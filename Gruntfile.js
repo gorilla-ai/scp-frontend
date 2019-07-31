@@ -109,7 +109,7 @@ module.exports = function(grunt) {
                 tasks: ['build-locales']
             },
             styles: {
-              files: ['less/**/*.less', '../chewbacca-ui/less/**/*.less'], // which files to watch
+              files: ['less/**/*.less'], // which files to watch
               tasks: ['build-less'],
               options: {
                 nospawn: true
