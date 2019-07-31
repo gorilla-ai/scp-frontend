@@ -50,59 +50,59 @@ module.exports = function(grunt) {
                 }
             }
         },
-        less: {
-            options: {
-                //cleancss: true
-                //compress:true
-            },
-            files: {
-                expand: true,
-                //cwd: "../",
-                src: ["less/*.less"],
-                dest: "build/css-temp",
-                ext: ".css"
-            }
-        },
         // less: {
-        //     dev:{
-        //         options: {
-        //             //paths: ['build/css']
-        //             //cleancss: true
-        //             //compress:true
-        //         },
-        //         files: {
-        //             'build/css/app-plain.css': 'less/app-plain.less',
-        //             'build/css/app-dark.css': 'less/app-dark.less'
-        //             // expand: true,
-        //             // //cwd: "../",
-        //             // src: ["less/*.less"],
-        //             // dest: "build/css-temp",
-        //             // ext: ".css"
-        //         }
+        //     options: {
+        //         //cleancss: true
+        //         //compress:true
         //     },
-        //     // prod:{
-        //     //     options: {
-        //     //         //paths: ['build/css']
-        //     //         //cleancss: true
-        //     //         //compress:true
-        //     //     },
-        //     //     files: {
-        //     //         'build/css/app-plain.css': 'less/app-plain.less',
-        //     //         'build/css/app-dark.css': 'less/app-dark.less'
-        //     //         // expand: true,
-        //     //         // //cwd: "../",
-        //     //         // src: ["less/chewbacca-app-ui-plain.less"],
-        //     //         // dest: "build/css-temp-dark",
-        //     //         // ext: ".css"
-        //     //     }
-        //     // }
+        //     files: {
+        //         expand: true,
+        //         //cwd: "../",
+        //         src: ["less/*.less"],
+        //         dest: "build/css-temp",
+        //         ext: ".css"
+        //     }
         // },
-        concat: {
-            css: {
-                src: ['build/css-temp/**/*.css'],
-                dest: "build/css/app.css"
+        less: {
+            dev:{
+                options: {
+                    //paths: ['build/css']
+                    //cleancss: true
+                    //compress:true
+                },
+                files: {
+                    'build/css/app-plain.css': 'less/app-plain.less',
+                    'build/css/app-dark.css': 'less/app-dark.less'
+                    // expand: true,
+                    // //cwd: "../",
+                    // src: ["less/*.less"],
+                    // dest: "build/css-temp",
+                    // ext: ".css"
+                }
+            },
+            prod:{
+                options: {
+                    //paths: ['build/css']
+                    //cleancss: true
+                    //compress:true
+                },
+                files: {
+                    'build/css/app-plain.css': 'less/app-plain.less',
+                    'build/css/app-dark.css': 'less/app-dark.less'
+                    // expand: true,
+                    // //cwd: "../",
+                    // src: ["less/chewbacca-app-ui-plain.less"],
+                    // dest: "build/css-temp-dark",
+                    // ext: ".css"
+                }
             }
         },
+        // concat: {
+        //     css: {
+        //         src: ['build/css-temp/**/*.css'],
+        //         dest: "build/css/app.css"
+        //     }
+        // },
         watch: {
             locale: {
                 files: ['locales/**/*.json'],
@@ -128,7 +128,7 @@ module.exports = function(grunt) {
         fse.removeSync('build/css-temp');
     });
     grunt.registerTask('build-less', function() {
-        grunt.task.run('less', 'concat:css', 'clean-less'); //'concat:css', 'clean-less'
+        grunt.task.run('less'); //'concat:css', 'clean-less'
     });
     grunt.registerTask('build-locales', function() {
         console.log('checking locale files...')
