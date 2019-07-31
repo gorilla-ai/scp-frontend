@@ -1,0 +1,33 @@
+export const RIGHTS = {
+  TIMAP: 'TIMAP',
+  TIMAP_IRADMIN: 'TIMAP_IRADMIN',
+  IRADMIN: 'IRADMIN',
+  VIEW_ACCOUNT: 'Module_Account_View_Account',
+  DELETE_ACCOUNT: 'Module_Account_Delete_Account',
+  MODIFY_ACCOUNT: 'Module_Account_Modify_Account',
+  CREATE_ACCOUNT: 'Module_Account_Create_Account',
+  ACCESS_CRAWLER_MODULE: 'Module_Crawler_Manage'
+}
+
+export const ROLES = {
+  ADMIN: -1, // 系統管理員
+  GROUP_OWNER: -2, // 群組管理員
+  AUDITOR: -3, // 稽核人員
+  USER: -4 // 一般使用者
+}
+
+export const ROLE_MIN_RIGHTS = {
+  '-1': [
+    RIGHTS.ACCOUNT_MGMT, RIGHTS.ROLE_MGMT, RIGHTS.GROUP_MGMT,
+    RIGHTS.SYS_CONFIG, RIGHTS.AUDIT,
+    RIGHTS.CI, RIGHTS.NETWORK_ANALYSIS,
+    RIGHTS.PAGE1, RIGHTS.PAGE2, RIGHTS.PAGE3_1, RIGHTS.PAGE3_2,
+    RIGHTS.CRAWER
+  ],
+  '-2': [RIGHTS.GROUP_ACCOUNT_MGMT, RIGHTS.GROUP_AUDIT],
+  '-3': [RIGHTS.AUDIT],
+  '-4': [
+    RIGHTS.PAGE1, RIGHTS.PAGE2, RIGHTS.PAGE3_1, RIGHTS.PAGE3_2,
+    RIGHTS.CI, RIGHTS.NETWORK_ANALYSIS
+  ]
+}

@@ -1,0 +1,78 @@
+{
+	"title-timap": "DPIR",
+	"subtitle-tima": "",
+	"btn-ok": "確認",
+	"btn-confirm": "確認",
+	"btn-cancel": "取消",
+	"btn-close": "關閉",
+	"btn-search": "搜尋",
+	"btn-save": "儲存",
+	"btn-export": "匯出",
+	"btn-import": "匯入",
+	"btn-reload": "重新載入",
+	"btn-now": "現在",
+	"btn-back": "返回",
+
+	"btn-new": "新增",
+	"btn-edit": "編輯",
+	"btn-delete": "刪除",
+
+	"tt-delete": "刪除",
+	"tt-edit": "編輯",
+	"tt-details": "查看內容",
+
+	"txt-logging-in":"登入中...",
+	"txt-loading":"讀取中...",
+	"txt-saving":"儲存中...",
+	"txt-uploading":"上傳中...",
+	"txt-uploaded":"上傳成功",
+	"txt-no-data":"無符合搜尋的資料",
+    "txt-time":"時間",
+    "txt-cover":"選取範圍包含Link Analysis範圍，請使用元件上的按鈕截圖",
+	"dlg-confirm":"請確認",
+	"dlg-error":"錯誤",
+	"txt-none": "無",
+	"txt-cpuUsage": "CPU 使用",
+	"txt-memoryUsage": "記憶體使用",
+	"txt-diskUsage": "磁碟機使用",
+	"txt-updateSuccess": "帳號更新成功",
+
+	"hdr-search":"搜尋",
+	
+    "lbl-select-file":"請選擇上傳檔案",
+    "lbl-page-size": "單頁資料數",
+
+    "ph-search":"輸入關鍵字",
+
+    "txt-phone-wc-pattern":"由數字和*組成長度為10的字串，例09123456**",
+    "txt-phone-pattern":"由10個數字組成的字串，例0912345678",
+    "txt-phone-international-pattern":"由至少10個數字組成的(國際)門號，例0912345678, +85212345678",
+    "txt-password-pattern":"長度須為12碼，並包含特殊字元與英文大小寫",
+    "txt-id-no-pattern":"開頭英文母大寫後面由數字組成共10碼",
+    "txt-email-pattern":"Email格式",
+
+	"txt-password-due-to-expire":"您的密碼即將在{{days}}天後過期，請更換您的密碼",
+	"txt-password-expired":"您的密碼已過期，請更換您的密碼",
+
+	"login":{
+		"btn-logout": "登出",
+		"btn-login": "登入",
+		"btn-setting": "帳戶設定",
+		"lbl-username": "請輸入帳號",
+		"lbl-password": "請輸入密碼",
+		"txt-username":"請輸入帳號",
+		"txt-password":"請輸入密碼",
+		"txt-account": "帳號"
+	},
+
+  "op-types":{
+  	"EQ":"等於",
+  	"LIKE":"關鍵詞搜尋",
+  	"RE":"正規表示式"
+  },
+
+  "lng": {
+    "en":"English",
+    "zh":"中文"
+  }
+}
