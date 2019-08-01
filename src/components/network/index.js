@@ -985,7 +985,6 @@ class Network extends Component {
     const currentTreeName = treeName ? treeName : this.state.currentTreeName;
     let treeObj = { //Handle service tree data
       id: 'all',
-      label: t('txt-all'),
       children: []
     };
     let allServiceCount = 0;

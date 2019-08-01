@@ -51,8 +51,8 @@ class SyslogController extends Component {
       datetime: {
         from: helper.getSubstractDate(1, 'hour'),
         to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
-        //from: '2019-07-27T07:17:00Z',
-        //to: '2019-07-27T08:17:00Z'
+        //from: '2019-07-25T03:10:00Z',
+        //to: '2019-08-01T04:10:00Z'
       },
       currentPage: 1,
       oldPage: 1,
@@ -152,6 +152,7 @@ class SyslogController extends Component {
       }, () => {
         this.getLAconfig();
         this.getSavedQuery();
+        this.getSyslogTree();
         this.initialLoad();
       });
 
@@ -220,6 +221,27 @@ class SyslogController extends Component {
       }
       return null;
     });
+  }
+  getSyslogTree = () => {
+    const {baseUrl} = this.props;
+    const url = `${baseUrl}/api/u1/log/event/_event_source_tree`;
+
+    this.ah.one({
+      url,
+      type: 'GET'
+    })
+    .then(data => {
+      const treeObj = this.getTreeData(data);
+
+      this.setState({
+        treeRawData: data,
+        treeData: treeObj
+      });
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   initialLoad = () => {
     const syslogParams = queryString.parse(location.search);
@@ -396,7 +418,7 @@ class SyslogController extends Component {
     const {activeTab, currentPage, pageSizeMap, subSectionsData, LAconfig} = this.state;
     const setPage = options === 'search' ? 1 : currentPage;
     const url = `${baseUrl}/api/u1/log/event/_search?page=${setPage}&pageSize=${pageSizeMap}`;
-    const requestData = this.toQueryLanguage(options);
+    const requestData = this.toQueryLanguage();
     let tempSubSectionsData = {...subSectionsData};
     let logEventsData = {};
     let eventHistogram = {};
@@ -428,10 +450,9 @@ class SyslogController extends Component {
       });
     });
   }
-  toQueryLanguage = (options) => {
+  toQueryLanguage = () => {
     const {datetime, sort, filterData, markData} = this.state;
     const timeAttribute = '@timestamp';
-    let time = {};
     let dateFrom = datetime.from;
     let dateTo = datetime.to;
     let dateTime = {};
@@ -444,12 +465,6 @@ class SyslogController extends Component {
       from: Moment(dateFrom).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
       to: Moment(dateTo).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
-
-    time[timeAttribute] = [dateTime.from, dateTime.to];
-
-    if (options === 'time') {
-      return time;
-    }
 
     dataObj[timeAttribute] = [dateTime.from, dateTime.to];
     sortObj[sort.field] = sort.desc ? 'desc' : 'asc';
@@ -497,13 +512,13 @@ class SyslogController extends Component {
 
     this.ah.all([{
       url: `${baseUrl}/api/u1/log/event/_search?page=${setPage}&pageSize=${pageSize}`,
-      data: JSON.stringify(this.toQueryLanguage(options)),
+      data: JSON.stringify(this.toQueryLanguage()),
       type: 'POST',
       contentType: 'text/plain'
     },
     {
-      url: `${baseUrl}/api/log/event/_event_source_tree`,
-      data: JSON.stringify(this.toQueryLanguage('time')),
+      url: `${baseUrl}/api/u1/log/event/_search?page=0&pageSize=0&timeline=true`,
+      data: JSON.stringify(this.toQueryLanguage()),
       type: 'POST',
       contentType: 'text/plain'
     }])
@@ -579,7 +594,6 @@ class SyslogController extends Component {
         }
       }) 
 
-      const treeObj = this.getTreeData(data[1]);
       let tempSubSectionsData = {...subSectionsData};
       tempSubSectionsData.mainData.logs = tempArray;
       tempSubSectionsData.fieldsData.logs = tempFields;
@@ -596,16 +610,16 @@ class SyslogController extends Component {
         }
       }
 
-      _.forEach(data[0].search, val => {
-        eventHistogram[val.searchName] = val.eventHistogram
-      })
+      if (data[1].search) {
+        _.forEach(data[1].search, val => {
+          eventHistogram[val.searchName] = val.eventHistogram
+        })
+      }
 
       this.setState({
         currentPage: tempCurrentPage,
         oldPage: tempCurrentPage,
         subSectionsData: tempSubSectionsData,
-        treeRawData: data[1],
-        treeData: treeObj,
         eventHistogram,
         currentLength
       });
@@ -633,52 +647,32 @@ class SyslogController extends Component {
     const currentTreeName = treeName ? treeName : this.state.currentTreeName;
     let treeObj = { //Handle service tree data
       id: 'all',
-      label: t('txt-all'),
       children: []
     };
     let allServiceCount = 0;
 
-    _.keys(treeData)
-    .sort()
-    .forEach(key => {
+    _.forEach(treeData, (val, key) => {
       let tempChild = [];
       let label = '';
-      let totalHostCount = 0;
 
-      treeData[key].forEach(key2 => {
-        for (var key3 in key2) {
-          let hostCount = 0;
+      _.forEach(val, val2 => {
+        label = <span title={val2}>{val2} <button className={cx('button', {'active': currentTreeName === val2})} onClick={this.selectTree.bind(this, val2, '_host')}>{t('network.connections.txt-addFilter')}</button></span>;
 
-          for (var i = 0; i < key2[key3].length; i++) {
-            hostCount += key2[key3][i].counts;
-          }
-          totalHostCount += hostCount;
-
-          label = <span title={key3}>{key3} ({hostCount}) <button className={cx('button', {'active': currentTreeName === key3})} onClick={this.selectTree.bind(this, key3, '_host')}>{t('network.connections.txt-addFilter')}</button></span>;
-
-          tempChild.push({
-            id: key3,
-            label,
-            count: hostCount
-          });
-        }
+        tempChild.push({
+          id: val2,
+          label
+        });
       })
 
-      let formattedKey = key;
-
-      if (key.length > 25) {
-        formattedKey = key.substr(0, 28) + '...';
-      }
-      label = <span title={key}>{formattedKey} ({totalHostCount}) <button className={cx('button', {'active': currentTreeName === key})} onClick={this.selectTree.bind(this, key, 'configSource')}>{t('network.connections.txt-addFilter')}</button></span>;
+      label = <span title={key}>{key} ({val.length}) <button className={cx('button', {'active': currentTreeName === key})} onClick={this.selectTree.bind(this, key, 'configSource')}>{t('network.connections.txt-addFilter')}</button></span>;
 
       treeObj.children.push({
         id: key,
         label,
-        count: totalHostCount,
         children: tempChild
       });
 
-      allServiceCount += totalHostCount;
+      allServiceCount++;
     })
 
     treeObj.label = t('txt-all') + ' (' + allServiceCount + ')';

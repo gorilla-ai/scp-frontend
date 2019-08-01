@@ -633,7 +633,6 @@ class AlertController extends Component {
     let formattedTreeData = [];
     let treeObj = { //Handle service tree data
       id: 'All',
-      label: t('txt-all'),
       children: []
     };
 
