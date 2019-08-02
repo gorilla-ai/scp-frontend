@@ -24,7 +24,7 @@ class Relationships extends Component {
 		t = global.chewbaccaI18n.getFixedT(null, 'connections')
   	et = global.chewbaccaI18n.getFixedT(null, 'errors')
 	}
-	componentWillMount() {
+	componentDidMount() {
 		this.getOptions()
 		this.setDefault()
 	}

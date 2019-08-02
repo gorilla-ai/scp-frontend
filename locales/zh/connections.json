@@ -661,8 +661,7 @@
     "txt-delSyslog": "刪除系統日誌",
     "txt-eventDist": " Event Distribution",
     "txt-overallDist": "Overall Distribution",
-    "txt-syslogDist": "Syslog(5544) Distribution",
-    "txt-eventlogDist": "Eventlog(3515) Distribution",
+    "txt-editHosts": "編輯主機",
     "txt-timelineUnavailable": "Timeline資料不存在"
   }
 }

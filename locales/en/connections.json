@@ -661,8 +661,7 @@
     "txt-delSyslog": "Delete Syslog",
     "txt-eventDist": " Event Distribution",
     "txt-overallDist": "Overall Distribution",
-    "txt-syslogDist": "Syslog(5544) Distribution",
-    "txt-eventlogDist": "Eventlog(3515) Distribution",
+    "txt-editHosts": "Edit Hosts",
     "txt-timelineUnavailable": "Timeline data is not available"
   }
 }

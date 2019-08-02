@@ -13,6 +13,7 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 import {HocConfig as Config} from '../common/configuration'
 import RowMenu from '../common/row-menu'
 import Relationships from './relationships'
+import EditHosts from './editHosts'
 
 import ButtonGroup from 'react-ui/build/src/components/button-group'
 import DataTable from 'react-ui/build/src/components/table'
@@ -21,8 +22,8 @@ import DropDownList from 'react-ui/build/src/components/dropdown'
 import Input from 'react-ui/build/src/components/input'
 import LineChart from 'react-chart/build/src/components/line'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
-import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import MultiInput from 'react-ui/build/src/components/multi-input'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import Textarea from 'react-ui/build/src/components/textarea'
 
 let t = null
@@ -67,6 +68,7 @@ const INIT = {
   },
   openSyslog: false,
   openTimeline: false,
+  openEditHosts: false,
   clickTimeline: false,
   activeTimeline: '',
   activeConfigId: '',
@@ -76,6 +78,7 @@ const INIT = {
     to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
   },
   eventsData: {},
+  hostsData: {},
   modalTitle: '',
   config: INIT_CONFIG,
   configRelationships: [],
@@ -97,7 +100,7 @@ class Syslog extends Component {
     et = chewbaccaI18n.getFixedT(null, 'errors')
     this.ah = getInstance('chewbacca');
 	}
-  componentWillMount() {
+  componentDidMount() {
     this.getRelationship()
     this.getSyslogList(false)
   }
@@ -139,11 +142,13 @@ class Syslog extends Component {
                       onDelete={this.modalDelete.bind(this, allValue)}
                       onEventDist={this.openTimeline.bind(this, 'configId', allValue)}
                       onEvents={this.forwardSyslog.bind(this, allValue)}
+                      onEditHosts={this.openEditHosts.bind(this, allValue)}
                       text={{
                         edit: t('txt-edit'),
                         delete: t('txt-delete'),
                         eventDist: t('syslogFields.txt-eventDist'),
-                        events: t('txt-events')
+                        events: t('txt-events'),
+                        hosts: t('syslogFields.txt-editHosts')
                       }} />
             }},
             name: { label: t('syslogFields.name'), sortable: true, style: {textAlign: "left"} },
@@ -360,6 +365,29 @@ class Syslog extends Component {
 
     window.location.href = `${baseUrl}${contextRoot}/syslog?configId=${config.id}`;
   }
+  openEditHosts(data) {
+    const splitHostsData = data.hosts.split(', ');
+    let formattedHostsData = [];
+
+    _.forEach(splitHostsData, val => {
+      val = val.replace('[', '');
+      val = val.replace(']', '');
+
+      formattedHostsData.push({
+        host: val
+      });
+    })
+
+    const hostsData = {
+      ...data,
+      formattedHostsData
+    };
+
+    this.setState({
+      openEditHosts: true,
+      hostsData
+    });
+  }
   openTimeline(type, config) {
     this.setState({
       openTimeline: true,
@@ -485,7 +513,11 @@ class Syslog extends Component {
     data.rawOptions = rawOptions
 
     return (
-        <MultiInput className='Relationships' base={Relationships} value={config.relationships} props={data}
+        <MultiInput
+          className='Relationships'
+          base={Relationships}
+          value={config.relationships}
+          props={data}
           onChange={this.handleRelationshipChange.bind(this, 'config.relationships')} />
     )
   }
@@ -533,10 +565,6 @@ class Syslog extends Component {
 
     if (activeTimeline === 'configId') {
       configId = activeConfigId;
-    } else if (activeTimeline === 'syslog') {
-      configId = 'id-syslog';
-    } else if (activeTimeline === 'eventlog') {
-      configId = 'id-eventlog';
     }
 
     this.ah.one({
@@ -595,12 +623,6 @@ class Syslog extends Component {
     } else if (activeTimeline === 'overall') {
       type = 'overall';
       title = t('syslogFields.txt-overallDist');
-    } else if (activeTimeline === 'syslog') {
-      type = 'syslog';
-      title = t('syslogFields.txt-syslogDist');
-    } else if (activeTimeline === 'eventlog') {
-      type = 'eventlog';
-      title = t('syslogFields.txt-eventlogDist');
     }
 
     const dataArr = _.map(eventsData.events, (value, key) => {
@@ -678,6 +700,74 @@ class Syslog extends Component {
       </ModalDialog>
     )
   }
+  handleEditHostsChange = (data) => {
+    const {hostsData} = this.state;
+    let tempHostsData = {...hostsData};
+    tempHostsData.formattedHostsData = data;
+
+    this.setState({
+      hostsData: tempHostsData
+    });
+  }
+  modalEditHosts = () => {
+    const {hostsData} = this.state;
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeEditHosts},
+      confirm: {text: t('txt-confirm'), handler: this.updateEditHosts}
+    }
+    const title = t('syslogFields.txt-editHosts');
+    const data = {
+      ...hostsData
+    };
+
+    return (
+      <ModalDialog
+        id='queryDialog'
+        title={title}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='confirm'>
+        <MultiInput
+          className='edit-hosts-group'
+          base={EditHosts}
+          props={data}
+          value={hostsData.formattedHostsData}
+          onChange={this.handleEditHostsChange} />
+      </ModalDialog>
+    )
+  }
+  updateEditHosts = () => {
+    const {baseUrl} = this.props;
+    const {hostsData} = this.state;
+    const url = `${baseUrl}/api/log/config/hosts`;
+    let hostsArray = [];
+
+    _.forEach(hostsData.formattedHostsData, val => {
+      if (val.host) {
+        hostsArray.push(val.host);
+      }
+    })
+
+    const data = {
+      id: hostsData.id,
+      hosts: hostsArray
+    };
+
+    helper.getAjaxData('PATCH', url, data)
+    .then(data => {
+      if (data) {
+        this.getSyslogList(false);
+      }
+      return null;
+    });
+    this.closeEditHosts();
+  }
+  closeEditHosts = () => {
+    this.setState({
+      openEditHosts: false
+    });
+  }
   handleSearchChange(type, value) {
     let tempSearch = {...this.state.search}
     tempSearch[type] = value.trim()
@@ -725,13 +815,14 @@ class Syslog extends Component {
       </div>
   }
 	render() {
-    const {openSyslog, openTimeline, syslog, openFilter, dataFields} = this.state
+    const {openSyslog, openTimeline, openEditHosts, syslog, openFilter, dataFields} = this.state
     const {session} = this.props
 
 		return (
 			<div>
         { openSyslog && this.modalSyslog() }
-        { openTimeline && this.modalTimeline()}
+        { openTimeline && this.modalTimeline() }
+        { openEditHosts && this.modalEditHosts() }
 
 				<div className='sub-nav-header' />
 				<div className='config-header'>
@@ -739,8 +830,6 @@ class Syslog extends Component {
 
           <div className='main-btn-group syslog'>
             <button className='active' onClick={this.openTimeline.bind(this, 'overall')} title={t('syslogFields.txt-overallDist')}>Overall</button>
-            <button className='active' onClick={this.openTimeline.bind(this, 'syslog')} title={t('syslogFields.txt-syslogDist')}>Syslog</button>
-            <button className='active' onClick={this.openTimeline.bind(this, 'eventlog')} title={t('syslogFields.txt-eventlogDist')}>Eventlog</button>
           </div>
   				<i className='c-link fg fg-add' onClick={this.openSyslog.bind(this, null)} title={t('syslogFields.txt-addSyslog')}></i>
   				<i className='c-link fg fg-filter' onClick={this.setFilter.bind(this, !openFilter)} title={t('txt-filter')}></i>
@@ -752,8 +841,11 @@ class Syslog extends Component {
           <div className='data-table manage'>
             { this.renderFilter() }
             
-            <DataTable className='table-100' data={syslog.dataContent} onRowMouseOver={this.handleRowMouseOver.bind(this)}
-                fields={dataFields}  />
+            <DataTable
+              className='table-100'
+              data={syslog.dataContent}
+              onRowMouseOver={this.handleRowMouseOver.bind(this)}
+              fields={dataFields} />
 
             <footer>
               <Pagination

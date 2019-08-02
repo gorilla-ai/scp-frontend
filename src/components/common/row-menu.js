@@ -10,10 +10,18 @@ class RowMenu extends Component {
 	}
 	handleRowContextMenu(evt) {
 		const {page, text, targetEdit, targetDelete, targetUnlock, targetEventDist, targetEvents} = this.props
-		let edit = { id: 'edit', text: text.edit, action: () => this.props.onEdit(targetEdit) }
+		let edit = { 
+			id: 'edit',
+			text: text.edit,
+			action: () => this.props.onEdit(targetEdit)
+		}
 
 		if (page === 'map') {
-			edit = { id: 'edit', text: text.edit, action: () => this.props.onEdit('', '', 'update', targetEdit) }
+			edit = {
+				id: 'edit',
+				text: text.edit,
+				action: () => this.props.onEdit('', '', 'update', targetEdit)
+			}
 		}
 
 		let menuItems = [
@@ -42,6 +50,10 @@ class RowMenu extends Component {
 				id: 'events',
 				text: text.events,
 				action: () => this.props.onEvents(targetEvents)
+			}, {
+				id: 'hosts',
+				text: text.hosts,
+				action: () => this.props.onEditHosts(targetEvents)
 			});
 		}
 

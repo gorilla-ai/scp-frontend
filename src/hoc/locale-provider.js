@@ -15,7 +15,6 @@ let initialized = false
 function withLocale(Component) {
   return class extends React.Component {
     static propTypes = {
-      locale: PropTypes.oneOf(['zh', 'en'])
     };
 
     state = {
@@ -29,51 +28,6 @@ function withLocale(Component) {
     }
 
     createLocale = () => {
-      const lng = this.props.locale ? this.props.locale : 'zh';
-      let baseUrl = '';
-      let contextRoot = '';
-      let customLocale = '';
-      let url = '';
-
-      if (cfg) {
-        baseUrl = cfg.apiPrefix;
-        contextRoot = cfg.contextRoot;
-        customLocale = cfg.customLocale;
-      }
-
-      if (customLocale) {
-        url = baseUrl + `/api/locale?lng=${lng}`;
-      } else {
-        url = `/build/locales/${lng}.json`;
-      }
-
-      Promise.resolve($.get(url))
-        .then(data => {
-          if (customLocale) {
-            return data.rt;
-          } else {
-            return data;
-          }
-        })
-        .catch(xhr => {
-          log.error(xhr)
-          return null;
-        })
-        .then(resources => {
-          i18n.init({
-            lng,
-            fallbackLng: lng,
-            resources: {[lng]:resources}
-          }, err => {
-            if (err) {
-              log.error(err);
-            } else {
-              initialized = true;
-              this.forceUpdate()
-            }
-          })
-        })
-
       createInstance(
         'chewbacca',
         {
