@@ -1,9 +1,4 @@
-//@import "./dark.less";
-//@import "../node_modules/react-ui/less/react-ui-dark.less";
-@import "connections.less";
 @import "modal.less";
-//@import "../node_modules/react-ui/less/react-ui-core.less";
-//@import "C:/Users/Ryan.Chen/Projects/scp-ui/less/app.less";
 
 @charset"utf-8";
 
@@ -99,9 +94,28 @@ footer.footer {
 		}
 	}
 }
-
-/* scp-ui */
-
+.c-chewie-connections {
+  max-width: 100%;
+  .font-init {
+    font-weight: initial;
+  }
+  .dropdown-margin {
+    margin-left:50px;
+  }
+  .table-overflow {
+    overflow-y: auto;
+  }
+  .table-100 {
+    width: 100%;
+    .c-table thead {
+      border-width: 0 0 1px 0;
+    }
+  }
+  .chart {
+    flex-basis: 150px;
+    height: 200px;
+  }
+}
 .c-contextmenu {
 	position: absolute;
 }

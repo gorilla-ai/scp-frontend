@@ -13,7 +13,7 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 import {HocConfig as Config} from '../common/configuration'
 import RowMenu from '../common/row-menu'
 import Relationships from './relationships'
-import EditHosts from './editHosts'
+import EditHosts from './edit-hosts'
 
 import ButtonGroup from 'react-ui/build/src/components/button-group'
 import DataTable from 'react-ui/build/src/components/table'

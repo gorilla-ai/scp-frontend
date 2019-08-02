@@ -20,8 +20,6 @@ const t = i18n.getFixedT(null, 'accounts');
 const gt = i18n.getFixedT(null, 'app');
 const et =  i18n.getFixedT(null, 'errors');
 
-const ID = 'g-user-accounts-edit';
-
 const INITIAL_STATE = {
   open: false,
   info: null,
@@ -265,7 +263,7 @@ class Editor extends Component {
     }
 
     return <ModalDialog
-      id={ID}
+      id='g-user-accounts-edit'
       title={id ? t('dlg-edit') : t('dlg-add')}
       draggable
       global
