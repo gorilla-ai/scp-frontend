@@ -1,9 +1,5 @@
 build/
 node_modules/
 package-lock.json
-less/theme.less
-less/app-plain.less
-less/app-dark.less
 app.config.json
-Gruntfile.js
 .eslintrc
