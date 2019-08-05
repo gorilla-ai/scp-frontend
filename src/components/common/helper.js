@@ -261,7 +261,7 @@ const helper = {
       })
     )
   },
-  getWorldMap: function(activeTab, WORLDMAP, geoJson, subSectionsData) {
+  getWorldMap: function(WORLDMAP, geoJson, mainData) {
     const t = global.chewbaccaI18n.getFixedT(null, 'connections');
     let tempGeoJson = {...geoJson};
     let attacksDataArr = [];
@@ -280,7 +280,7 @@ const helper = {
       tempGeoJson.mapDataArr.push(countryObj);
     });
 
-    _.forEach(subSectionsData.mapData[activeTab], val => {
+    _.forEach(mainData, val => {
       const uniqueID = val.id + Math.floor((Math.random() * 1000000) + 1);
       const timestamp = helper.getFormattedDate(val._eventDttm_, 'local');
 

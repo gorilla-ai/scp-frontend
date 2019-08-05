@@ -247,8 +247,8 @@ class AlertController extends Component {
     const {datetime} = this.state;
     const timeAttribute = 'timestamp';
     const dateTime = {
-      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
+      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
     };
     let dataObj = {};
     let apiArr = [];
@@ -566,7 +566,7 @@ class AlertController extends Component {
 
     this.setState({
       activeSubTab: 'worldMap',
-      geoJson: helper.getWorldMap(activeTab, WORLDMAP, geoJson, subSectionsData)
+      geoJson: helper.getWorldMap(WORLDMAP, geoJson, subSectionsData.mapData[activeTab])
     });
   }
   toQueryLanguage = (options) => {
@@ -582,8 +582,8 @@ class AlertController extends Component {
     let dataObj = {};
 
     dateTime = {
-      from: Moment(dateFrom).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-      to: Moment(dateTo).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+      from: Moment(dateFrom).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
+      to: Moment(dateTo).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
     };
     dataObj[timeAttribute] = [dateTime.from, dateTime.to];
 
@@ -1237,7 +1237,7 @@ class AlertController extends Component {
             handleDateChange={this.handleDateChange}
             handleSearchSubmit={this.handleSearchSubmit} />
 
-          <div className='secondary-btn-group'>
+          <div className='secondary-btn-group right'>
             <button onClick={this.getCSVfile} title={t('network.connections.txt-exportCSV')}><i className='fg fg-data-download'></i></button>
             <button onClick={this.toggleFilter} className={cx({'active': showFilter})} title={t('network.connections.txt-toggleFilter')} disabled={activeSubTab === 'statistics'}><i className='fg fg-filter'></i><span>({filterDataCount})</span></button>
             <button onClick={this.toggleChart} className={cx('last', {'active': showChart})} title={t('network.connections.txt-toggleChart')}><i className='fg fg-chart-columns'></i></button>

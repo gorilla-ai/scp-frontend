@@ -202,6 +202,8 @@
   "txt-map": "地圖",
 
   "dashboard": {
+    "txt-statisticsInfo": "統計資料",
+    "txt-attacksMap": "攻擊地圖",
     "txt-alertIndicator": "告警指標種類摘要",
     "txt-privateAlert": "最新10筆內部告警",
     "txt-publicAlert": "最新10筆外部告警",

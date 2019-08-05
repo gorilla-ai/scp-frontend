@@ -202,6 +202,8 @@
   "txt-map": "Map",  
 
   "dashboard": {
+    "txt-statisticsInfo": "Statistics Info",
+    "txt-attacksMap": "Attacks Map",
     "txt-alertIndicator": "Alert Summary",
     "txt-privateAlert": "Latest 10 Private Alert",
     "txt-publicAlert": "Latest 10 Public Alert",

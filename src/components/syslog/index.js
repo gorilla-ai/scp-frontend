@@ -164,7 +164,7 @@ class SyslogController extends Component {
         }
 
         const datetime = {
-          from: Moment(eventDttm).local().subtract(7, 'days').format('YYYY-MM-DDTHH:mm:ss'),
+          from: Moment(eventDttm).local().subtract(7, 'days').format('YYYY-MM-DDTHH:mm') + ':00',
           to: eventDttm
         };
         const filterData = [
@@ -332,8 +332,8 @@ class SyslogController extends Component {
     const {datetime} = this.state;
     const url = `${baseUrl}/api/log/event/fields`;
     const dateTime = {
-      startDttm: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-      endDttm: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+      startDttm: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
+      endDttm: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
     };
 
     helper.getAjaxData('POST', url, dateTime)
@@ -462,8 +462,8 @@ class SyslogController extends Component {
     let sortObj = {};
 
     dateTime = {
-      from: Moment(dateFrom).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-      to: Moment(dateTo).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+      from: Moment(dateFrom).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
+      to: Moment(dateTo).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
     };
 
     dataObj[timeAttribute] = [dateTime.from, dateTime.to];
@@ -1479,7 +1479,7 @@ class SyslogController extends Component {
             handleDateChange={this.handleDateChange}
             handleSearchSubmit={this.handleSearchSubmit} />
 
-          <div className='secondary-btn-group'>
+          <div className='secondary-btn-group right'>
             <button onClick={this.getCSVfile} title={t('network.connections.txt-exportCSV')}><i className='fg fg-data-download'></i></button>
             <button onClick={this.toggleMark} className={cx({'active': showMark})}><i className='fg fg-filter'></i><span>({filterDataCount})</span> <i className='fg fg-edit'></i><span>({markDataCount})</span></button>
             <button onClick={this.toggleChart} className={cx('last', {'active': showChart})} title={t('network.connections.txt-toggleChart')}><i className='fg fg-chart-columns'></i></button>

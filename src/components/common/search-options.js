@@ -62,7 +62,7 @@ class SearchOptions extends Component {
     const dataObj = this.getTimeAndText(searchInterval);
     const datetime = {
       from: dataObj.time,
-      to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+      to: Moment().local().format('YYYY-MM-DDTHH:mm') + ':00'
     };
 
     this.props.handleDateChange(datetime, 'refresh');
@@ -114,7 +114,7 @@ class SearchOptions extends Component {
   handleTimeframe = (type) => {
     let tempDatetime = {...this.state.datetime};
     const dataObj = this.getTimeAndText(type);
-    tempDatetime.to = Moment().local().format('YYYY-MM-DDTHH:mm:ss');
+    tempDatetime.to = Moment().local().format('YYYY-MM-DDTHH:mm') + ':00Z';
     tempDatetime.from = dataObj.time;
 
     this.props.handleDateChange(tempDatetime);

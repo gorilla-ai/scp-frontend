@@ -922,7 +922,7 @@ class Network extends Component {
 
     this.setState({
       activeSubTab: 'worldMap',
-      geoJson: helper.getWorldMap(activeTab, WORLDMAP, geoJson, subSectionsData)
+      geoJson: helper.getWorldMap(WORLDMAP, geoJson, subSectionsData.mapData[activeTab])
     });
   }
   toQueryLanguage = (options) => {
@@ -2379,7 +2379,7 @@ class Network extends Component {
             handleDateChange={this.handleDateChange}
             handleSearchSubmit={this.handleSearchSubmit} />
 
-          <div className='secondary-btn-group'>
+          <div className='secondary-btn-group right'>
             <button onClick={this.getCSVfile} title={t('network.connections.txt-exportCSV')}><i className='fg fg-data-download'></i></button>
             <button onClick={this.toggleFilter} className={cx({'active': showFilter})} title={t('network.connections.txt-toggleFilter')}><i className='fg fg-filter'></i><span>({filterDataCount})</span></button>
             <button onClick={this.toggleChart} className={cx('last', {'active': showChart})} disabled={activeTab !== 'connections'} title={t('network.connections.txt-toggleChart')}><i className='fg fg-chart-columns'></i></button>

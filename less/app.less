@@ -258,13 +258,27 @@ footer.footer {
 	.sub-header {
 		color: #fff;
 		background-color: #004d93;
+		position: relative;
 		input:not([type=radio]), select {
 			color: #000;
 		}
-		&.connections,
-		&.honeynet {
+		&.dashboard,
+		&.connections {
 			padding: 3px 10px;
 			overflow: hidden;
+		}
+		&.dashboard {
+			button {
+				margin-right: 0;
+			}
+			.date-time {
+				position: absolute;
+				top: 8px;
+				right: 15px;
+				color: #fff;
+			}
+		}
+		&.connections {
 			.datepicker {
 				position: relative;
 				float: left;
@@ -293,8 +307,6 @@ footer.footer {
 			.daterange {
 				display: inline-block;
 			}
-		}
-		&.connections {
 			.search-type {
 				float: left;
 				margin-right: 10px;
@@ -308,54 +320,40 @@ footer.footer {
 			.daterange {
 				margin-right: 15px;
 			}
-		}
-		.search-manual {
-			float: left;
-		}
-		.search-interval {
-			float: left;
-			.time-interval {
-				background-color: #fff;
-				width: 135px;
-				height: 36px;
-				box-shadow: none;
-				cursor: pointer;
-			}
-			.interval-options {
-				position: absolute;
-				width: 350px;
-				font-size: 14px;
-				color: #000;
-				background-color: #fff;
-				padding: 10px;
-				border: 1px solid #ccc;
-				z-index: 1000;
-				& > label {
-					color: #195f9e;
-				}
-			}
-			.list-item {
-				margin: 0 0 0.6em 0;
-				margin-right: 15px;
-			}
-			#timeInterval,
-			#updateInterval {
-				flex-direction: row;
-				margin-top: 10px;
-			}
-		}
-		&.honeynet {
-			.datepicker {
-				min-width: 515px;
-				width: 515px;
-				margin-right: 20px;
-			}
-			.daterange {
-				margin-right: 10px;
-			}
-			.max-top {
+			.search-manual {
 				float: left;
-				margin-right: 40px;
+			}
+			.search-interval {
+				float: left;
+				.time-interval {
+					background-color: #fff;
+					width: 135px;
+					height: 36px;
+					box-shadow: none;
+					cursor: pointer;
+				}
+				.interval-options {
+					position: absolute;
+					width: 350px;
+					font-size: 14px;
+					color: #000;
+					background-color: #fff;
+					padding: 10px;
+					border: 1px solid #ccc;
+					z-index: 1000;
+					& > label {
+						color: #195f9e;
+					}
+				}
+				.list-item {
+					margin: 0 0 0.6em 0;
+					margin-right: 15px;
+				}
+				#timeInterval,
+				#updateInterval {
+					flex-direction: row;
+					margin-top: 10px;
+				}
 			}
 		}
 	}
@@ -452,7 +450,6 @@ footer.footer {
 	}
 	.secondary-btn-group,
 	.main-btn-group {
-		float: right;
 		button {
 			padding: .3em .6em;
 			color: #001b34;
@@ -464,6 +461,7 @@ footer.footer {
 		}
 	}
 	.main-btn-group {
+		float: right;
 		button {
 			padding: .4em 1em;
 		}
@@ -474,6 +472,12 @@ footer.footer {
 		}
 	}
 	.secondary-btn-group {
+		&.left {
+			float: left;
+		}
+		&.right {
+			float: right;
+		}
 		button {
 			margin-right: 5px;
 			&.last {
@@ -1131,9 +1135,12 @@ footer.footer {
 	}
 	.main-dashboard {
 		.charts {
-			width: 40%;
+			width: 100%;
+			height: 400px;
 			.chart-group {
-				width: 98%;
+				float: left;
+				width: 32%;
+				height: 100%;
 				margin: 5px;
 				border: 1px solid #ccc;
 				border-radius: 5px;
@@ -1143,26 +1150,20 @@ footer.footer {
 					padding: 15px;
 					border-bottom: 1px solid #ccc;
 				}
-				.date-time {
-			    position: absolute;
-			    top: 15px;
-			    right: 15px;
-			    color: #004d93;
-				}
 				.show-pointer table tbody tr {
 					cursor: pointer;
 				}
 				.c-chart-pie {
-					height: 250px;
+					height: 345px;
 				}
 				.c-chart.table {
-					height: 228px;
+					height: 345px;
 					overflow-y: auto;
 				}
 			}
 		}
 		.maps {
-			width: 60%;
+			width: 100%;
 			height: 100%;
 			min-height: 94vh;
 			margin-top: 5px;

@@ -50,10 +50,9 @@ class Dashboard extends Component {
         to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
         //from: '2019-02-18T15:00:00Z',
         //to: '2019-02-18T23:23:36Z'
-        //from: '2018-12-06T07:22:33Z',
-        //to: '2018-12-06T08:22:33Z'
       },
       updatedTime: helper.getFormattedDate(Moment()),
+      activeTab: 'statistics',
       alertStatisticData: {
         alertPie: [],
         alertPrivateTable: {},
@@ -115,8 +114,8 @@ class Dashboard extends Component {
     const {datetime, alertDetails} = this.state;
     const apiNameList = ['_search/pie', '_search', '_search'];
     const dateTime = {
-      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
+      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
     };
 
     let dataObj = {
@@ -216,7 +215,6 @@ class Dashboard extends Component {
           alertDetails
         }, () => {
           this.getChartsData();
-          this.getWorldMap();
         });
 
         return null;
@@ -694,6 +692,15 @@ class Dashboard extends Component {
       modalOpen: false
     });
   }
+  toggleTab = (tab) => {
+    if (tab === 'maps') {
+      this.getWorldMap();
+    }
+
+    this.setState({
+      activeTab: tab
+    });
+  }
   // testChartFunction = (evt, data, cfg) => {
   //   const {baseUrl, contextRoot} = this.props;
   //   const url = `${baseUrl}${contextRoot}/syslog?service=${data[0].service}`;
@@ -702,6 +709,7 @@ class Dashboard extends Component {
   render() {
     const {
       updatedTime,
+      activeTab,
       alertChartsData,
       alertDetails,
       mapType,
@@ -827,135 +835,147 @@ class Dashboard extends Component {
           this.modalDialog()
         }
 
+        <div className='sub-header dashboard'>
+          <div className='secondary-btn-group left'>
+            <button className={cx({'active': activeTab === 'statistics'})} onClick={this.toggleTab.bind(this, 'statistics')}>{t('dashboard.txt-statisticsInfo')}</button>
+            <button className={cx({'active': activeTab === 'maps'})} onClick={this.toggleTab.bind(this, 'maps')}>{t('dashboard.txt-attacksMap')}</button>
+            <span className='date-time'>{updatedTime}</span>
+          </div>
+        </div>
+
         <div className='main-dashboard c-flex'>
-          <div className='charts'>
-            {
-              alertChartsList.map((key, i) => {
-                if (alertChartsList[i].type === 'pie') {
-                  return (
-                    <div className='chart-group c-box' key={alertChartsList[i].chartID}>
-                      <span className='date-time'>{updatedTime}</span>
-                      <PieChart
-                        id={alertChartsList[i].chartID}
-                        title={alertChartsList[i].chartTitle}
-                        data={alertChartsList[i].chartData}
-                        keyLabels={alertChartsList[i].chartKeyLabels}
-                        valueLabels={alertChartsList[i].chartValueLabels}
-                        dataCfg={alertChartsList[i].chartDataCfg} />
-                    </div>
-                  )
-                } else if (alertChartsList[i].type === 'table') {
-                  return (
-                    <div className='chart-group' key={alertChartsList[i].chartID}>
-                      <header>{alertChartsList[i].chartTitle}</header>
-                      <div id={alertChartsList[i].chartID} className='c-chart table'>
-                        <DataTable
-                          className='main-table overflow-scroll'
-                          fields={alertChartsList[i].chartFields}
+          {activeTab === 'statistics' &&
+            <div className='charts'>
+              {
+                alertChartsList.map((key, i) => {
+                  if (alertChartsList[i].type === 'pie') {
+                    return (
+                      <div className='chart-group c-box' key={alertChartsList[i].chartID}>
+                        <PieChart
+                          id={alertChartsList[i].chartID}
+                          title={alertChartsList[i].chartTitle}
                           data={alertChartsList[i].chartData}
-                          defaultSort={alertChartsList[i].chartData ? alertChartsList[i].sort : {}}
-                          onRowClick={this.openDetailInfo.bind(this, alertChartsList[i].chartID)} />
+                          keyLabels={alertChartsList[i].chartKeyLabels}
+                          valueLabels={alertChartsList[i].chartValueLabels}
+                          dataCfg={alertChartsList[i].chartDataCfg} />
                       </div>
-                    </div>
-                  )
-                }
-              })
-            }
-          </div>
-          <div className='c-box maps'>
-            <ol className='c-tabs-menu'>
-              <li className={cx({'current': mapType === PUBLIC})} onClick={this.toggleMaps.bind(this, PUBLIC)}><span>{t('dashboard.txt-privateAlertMap')}</span>
-                {alertDetails.publicCount > 0 &&
-                  <span className='count'>{alertDetails.publicCount}</span>
-                }
-              </li>
-              <li className={cx({'current': mapType === PRIVATE})} onClick={this.toggleMaps.bind(this, PRIVATE)}><span>{t('dashboard.txt-publicAlertMap')}</span>
-              {alertDetails.privateCount > 0 &&
-                <span className='count'>{alertDetails.privateCount}</span>
+                    )
+                  } else if (alertChartsList[i].type === 'table') {
+                    return (
+                      <div className='chart-group' key={alertChartsList[i].chartID}>
+                        <header>{alertChartsList[i].chartTitle}</header>
+                        <div id={alertChartsList[i].chartID} className='c-chart table'>
+                          <DataTable
+                            className='main-table overflow-scroll'
+                            fields={alertChartsList[i].chartFields}
+                            data={alertChartsList[i].chartData}
+                            defaultSort={alertChartsList[i].chartData ? alertChartsList[i].sort : {}}
+                            onRowClick={this.openDetailInfo.bind(this, alertChartsList[i].chartID)} />
+                        </div>
+                      </div>
+                    )
+                  }
+                })
               }
-              </li>
-            </ol>
-            {mapType === PUBLIC && geoJson.mapDataArr.length > 0 &&
-              <Gis
-                id='gisMap'
-                data={geoJson.mapDataArr}
-                layers={{
-                  world: {
-                    label: 'World Map',
-                    interactive: false,
-                    data: geoJson.attacksDataArr
+            </div>
+          }
+
+          {activeTab === 'maps' &&
+            <div className='c-box maps'>
+              <ol className='c-tabs-menu'>
+                <li className={cx({'current': mapType === PUBLIC})} onClick={this.toggleMaps.bind(this, PUBLIC)}><span>{t('dashboard.txt-privateAlertMap')}</span>
+                  {alertDetails.publicCount > 0 &&
+                    <span className='count'>{alertDetails.publicCount}</span>
                   }
-                }}
-                activeLayers={['world']}
-                baseLayers={{
-                  standard: {
-                    id: 'world',
-                    layer: 'world'
-                  }
-                }}
-                mapOptions={{
-                  crs: L.CRS.Simple
-                }}
-                onClick={this.showTopoDetail.bind(this, PUBLIC)}
-                symbolOptions={[{
-                  match: {
-                    type:'geojson'
-                  },
-                  selectedProps: {
-                    'fill-color': 'white',
-                    color: 'black',
-                    weight: 0.6,
-                    'fill-opacity': 1
-                  }
-                },
-                {
-                  match: {
-                    type: 'spot'
-                  },
-                  props: {
-                    'background-color': ({data}) => {
-                      return data.tag === 'red' ? 'red' : 'yellow';
+                </li>
+                <li className={cx({'current': mapType === PRIVATE})} onClick={this.toggleMaps.bind(this, PRIVATE)}><span>{t('dashboard.txt-publicAlertMap')}</span>
+                {alertDetails.privateCount > 0 &&
+                  <span className='count'>{alertDetails.privateCount}</span>
+                }
+                </li>
+              </ol>
+              {mapType === PUBLIC && geoJson.mapDataArr.length > 0 &&
+                <Gis
+                  id='gisMap'
+                  data={geoJson.mapDataArr}
+                  layers={{
+                    world: {
+                      label: 'World Map',
+                      interactive: false,
+                      data: geoJson.attacksDataArr
+                    }
+                  }}
+                  activeLayers={['world']}
+                  baseLayers={{
+                    standard: {
+                      id: 'world',
+                      layer: 'world'
+                    }
+                  }}
+                  mapOptions={{
+                    crs: L.CRS.Simple
+                  }}
+                  onClick={this.showTopoDetail.bind(this, PUBLIC)}
+                  symbolOptions={[{
+                    match: {
+                      type:'geojson'
                     },
-                    'border-color': '#333',
-                    'border-width': '1px'
-                  }
-                }]}
-                layouts={['standard']}
-                dragModes={['pan']} />
-            }
-            {mapType === PRIVATE &&
-              <div className='floor-map'>
-                <DropDownList
-                  className='drop-down'
-                  list={floorList}
-                  required={true}
-                  onChange={this.handleFloorChange}
-                  value={currentFloor} />
-                  {currentMap &&
-                    <Gis
-                      _ref={(ref) => {this.gisNode = ref}}
-                      data={_.get(seatData, [currentFloor, 'data'])}
-                      baseLayers={currentBaseLayers}
-                      baseLayer={currentFloor}
-                      layouts={['standard']}
-                      dragModes={['pan']}
-                      scale={{enabled: false}}
-                      onClick={this.showTopoDetail.bind(this, PRIVATE)}
-                      symbolOptions={[{
-                        match: {
-                          data: {tag: 'red'}
-                        },
-                        props: {
-                          backgroundColor: 'red',
-                          tooltip: ({data}) => {
-                            return this.showPrivateTooltip(data);
+                    selectedProps: {
+                      'fill-color': 'white',
+                      color: 'black',
+                      weight: 0.6,
+                      'fill-opacity': 1
+                    }
+                  },
+                  {
+                    match: {
+                      type: 'spot'
+                    },
+                    props: {
+                      'background-color': ({data}) => {
+                        return data.tag === 'red' ? 'red' : 'yellow';
+                      },
+                      'border-color': '#333',
+                      'border-width': '1px'
+                    }
+                  }]}
+                  layouts={['standard']}
+                  dragModes={['pan']} />
+              }
+              {mapType === PRIVATE &&
+                <div className='floor-map'>
+                  <DropDownList
+                    className='drop-down'
+                    list={floorList}
+                    required={true}
+                    onChange={this.handleFloorChange}
+                    value={currentFloor} />
+                    {currentMap &&
+                      <Gis
+                        _ref={(ref) => {this.gisNode = ref}}
+                        data={_.get(seatData, [currentFloor, 'data'])}
+                        baseLayers={currentBaseLayers}
+                        baseLayer={currentFloor}
+                        layouts={['standard']}
+                        dragModes={['pan']}
+                        scale={{enabled: false}}
+                        onClick={this.showTopoDetail.bind(this, PRIVATE)}
+                        symbolOptions={[{
+                          match: {
+                            data: {tag: 'red'}
+                          },
+                          props: {
+                            backgroundColor: 'red',
+                            tooltip: ({data}) => {
+                              return this.showPrivateTooltip(data);
+                            }
                           }
-                        }
-                      }]} />
-                  }
-              </div>
-            }
-          </div>
+                        }]} />
+                    }
+                </div>
+              }
+            </div>
+          }
         </div>
       </div>
     )
