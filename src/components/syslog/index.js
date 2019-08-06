@@ -1313,7 +1313,7 @@ class SyslogController extends Component {
   getCSVfile = () => {
     const {baseUrl, contextRoot} = this.props;
     const {activeTab, account} = this.state;
-    const url = `${baseUrl}${contextRoot}/api/log/event/_export`;
+    const url = `${baseUrl}${contextRoot}/api/u1/log/event/_export`;
     let tempColumns = [];
     let dataOptions = {};
 
@@ -1330,6 +1330,7 @@ class SyslogController extends Component {
       columns: tempColumns
     };
 
+    dataOptions = _.omit(dataOptions, ['sort']);
     downloadWithForm(url, {payload: JSON.stringify(dataOptions)});
   }
   toggleMark = () => {

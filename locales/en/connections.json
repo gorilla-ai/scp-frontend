@@ -117,6 +117,7 @@
   "txt-previous": "Previous",
   "txt-next": "Next",
   "txt-events": "Events",
+  "txt-level": "Level",
 
   "txt-daily": "Daily",
   "txt-weekly": "Weekly",
@@ -204,6 +205,8 @@
   "dashboard": {
     "txt-statisticsInfo": "Statistics Info",
     "txt-attacksMap": "Attacks Map",
+    "txt-alertLevel": "Alert Level",
+    "txt-alertStatistics": "Alert Statistics",
     "txt-alertIndicator": "Alert Summary",
     "txt-privateAlert": "Latest 10 Private Alert",
     "txt-publicAlert": "Latest 10 Public Alert",
@@ -212,8 +215,8 @@
     "txt-ownerName": "Owner Name",
     "txt-srcCountry": "Source Country",
     "txt-srcCity": "Source City",
-    "txt-privateAlertMap": "Public Alert Map",
-    "txt-publicAlertMap": "Private Alert Map"
+    "txt-private": "Private",
+    "txt-public": "Public"
   },
 
   "alert": {

@@ -1002,6 +1002,7 @@ class AlertController extends Component {
       this.setState({
         activeSubTab: newTab,
         showFilter: false,
+        showChart: false,
         tableMouseOver: false
       }, () => {
         this.loadStatistics();
@@ -1240,7 +1241,7 @@ class AlertController extends Component {
           <div className='secondary-btn-group right'>
             <button onClick={this.getCSVfile} title={t('network.connections.txt-exportCSV')}><i className='fg fg-data-download'></i></button>
             <button onClick={this.toggleFilter} className={cx({'active': showFilter})} title={t('network.connections.txt-toggleFilter')} disabled={activeSubTab === 'statistics'}><i className='fg fg-filter'></i><span>({filterDataCount})</span></button>
-            <button onClick={this.toggleChart} className={cx('last', {'active': showChart})} title={t('network.connections.txt-toggleChart')}><i className='fg fg-chart-columns'></i></button>
+            <button onClick={this.toggleChart} className={cx('last', {'active': showChart})} title={t('network.connections.txt-toggleChart')} disabled={activeSubTab === 'statistics'}><i className='fg fg-chart-columns'></i></button>
           </div>
         </div>
 

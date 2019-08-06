@@ -9,6 +9,7 @@ import cx from 'classnames'
 import Gis from 'react-gis/build/src/components'
 import WORLDMAP from '../../mock/world-map-low.json'
 
+import BarChart from 'react-chart/build/src/components/bar'
 import Checkbox from 'react-ui/build/src/components/checkbox'
 import DataTable from 'react-ui/build/src/components/table'
 import DropDownList from 'react-ui/build/src/components/dropdown'
@@ -24,6 +25,7 @@ let t = null;
 let et = null;
 let intervalId = null;
 
+const SEVERITY_TYPE = ['High', 'Medium', 'Low'];
 const PRIVATE = 'private';
 const PUBLIC = 'public';
 
@@ -53,6 +55,8 @@ class Dashboard extends Component {
       },
       updatedTime: helper.getFormattedDate(Moment()),
       activeTab: 'statistics',
+      chartAttributes: {},
+      alertAggregations: [],
       alertStatisticData: {
         alertPie: [],
         alertPrivateTable: {},
@@ -70,20 +74,31 @@ class Dashboard extends Component {
         mapDataArr: [],
         attacksDataArr: []
       },
+      // alertDetails: {
+      //   privateCount: '',
+      //   publicCount: '',
+      //   private: [],
+      //   public: [],
+      //   privateFormatted: [],
+      //   publicFormatted: {
+      //     srcIp: {},
+      //     destIp: {}
+      //   },
+      //   currentID: '',
+      //   currentIndex: '',
+      //   currentLength: ''
+      // },
+      alertMapData: [],
       alertDetails: {
-        privateCount: '',
-        publicCount: '',
-        private: [],
-        public: [],
-        privateFormatted: [],
+        all: [],
         publicFormatted: {
           srcIp: {},
           destIp: {}
         },
-        currentID: '',
         currentIndex: '',
         currentLength: ''
       },
+      alertData: '',
       floorList: [],
       currentFloor: '',
       floorPlan: {
@@ -94,7 +109,6 @@ class Dashboard extends Component {
       currentMap: '',
       currentBaseLayers: {},
       seatData: {},
-      alertData: '',
       modalOpen: false
     };
 
@@ -103,165 +117,299 @@ class Dashboard extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount = () => {
-    this.loadAlertData();
-    intervalId = setInterval(this.loadAlertData, 300000); //5 minutes
+    this.loadBarChartData();
+    //this.loadAlertData();
+    intervalId = setInterval(this.loadBarChartData, 300000); //5 minutes
   }
   componentWillUnmount = () => {
     clearInterval(intervalId);
   }
-  loadAlertData = (options) => {
-    const {baseUrl} = this.props;
-    const {datetime, alertDetails} = this.state;
-    const apiNameList = ['_search/pie', '_search', '_search'];
+  getText = (eventInfo, data) => {
+    const text = data[0].number + ' ' + t('txt-at') + ' ' + Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss');
+    return text;
+  }
+  onTooltip = (eventInfo, data) => {
+    return (
+      <div>
+        <div>{this.getText(eventInfo, data)}</div>
+      </div>
+    )
+  }
+  loadBarChartData = (prevProps) => {
+    const {baseUrl, contextRoot} = this.props;
+    const {datetime, alertDetails, alertMapData} = this.state;
+    const pageSize = 10000;
+    const url =`${baseUrl}/api/u1/alert/_search?page=1&pageSize=${pageSize}`;
     const dateTime = {
       from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
       to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
     };
-
-    let dataObj = {
-      _eventDttm_: {
-        op: 'BETWEEN',
-        arg: [dateTime.from, dateTime.to]
-      }
+    const requestData = {
+      timestamp: [dateTime.from, dateTime.to],
+      filters: [{
+        condition: 'must',
+        query: 'All'
+      }]
     };
 
-    if (options === 'getPrivate') {
-      dataObj.srcIpType = PRIVATE;
+    helper.getAjaxData('POST', url, requestData)
+    .then(data => {
+      let alertHistogram = {
+        High: {},
+        Medium: {},
+        Low: {}
+      };
+      const tempArray = _.map(data.data.rows, val => {
+        val._source.id = val._id;
+        val._source.index = val._index;
+        return val._source;
+      });
+      let alertAggregations = [];
+      let tempAlertDetails = {...alertDetails};
+      let tempAlertMapData = {...alertMapData};
+      tempAlertMapData.all = tempArray;
 
-      this.ah.one({
-        url: `${baseUrl}/api/alert/_search?page=1&pageSize=10000`,
-        data: JSON.stringify(dataObj),
-        type: 'POST',
-        contentType: 'text/plain'
-      })
-      .then(data => {
-        let tempAlertDetails = {...alertDetails};
-        tempAlertDetails.private = data.rows;
+      let publicData = {
+        srcIp: {},
+        destIp: {}
+      };
 
-        this.setState({
-          alertDetails: tempAlertDetails
-        }, () => {
-          this.getFloorPlan();
-        });
-
-        return null;
-      })
-      .catch(err => {
-        helper.showPopupMsg('', t('txt-error'), err.message);
-      })
-    } else {
-      const apiArr = _.map(apiNameList, (val, i) => {
-        let apiName = val;
-
-        if (i === 1 || i === 2) {
-          if (i === 1) {
-            apiName = val + '?page=1&pageSize=10';
-            dataObj.srcIpType = PRIVATE;
-          } else {
-            apiName = val + '?page=1&pageSize=10000';
-            dataObj.srcIpType = PUBLIC;
-          }
+      _.forEach(tempArray, val => {
+        if (!publicData.srcIp[val.srcIp]) {
+          publicData.srcIp[val.srcIp] = [];
         }
 
-        return {
-          url: `${baseUrl}/api/alert/${apiName}`,
-          data: JSON.stringify(dataObj),
-          type: 'POST',
-          contentType: 'text/plain'
-        };
-      });
+        if (!publicData.destIp[val.destIp]) {
+          publicData.destIp[val.destIp] = [];
+        }
 
-      this.ah.all(apiArr)
-      .then(data => {
-        const alertStatisticData = {
-          alertPie: helper.setChartData(data[0]),
-          alertPrivateTable: data[1],
-          alertPublicTable: data[2]
-        };
-        let alertDetails = {
-          privateCount: data[1].privateCounts,
-          publicCount: data[1].publicCounts,
-          public: data[2].rows,
-          publicFormatted: {
-            srcIp: {},
-            destIp: {}
+        publicData.srcIp[val.srcIp].push(val);
+        publicData.destIp[val.destIp].push(val);        
+      })
+
+      tempAlertDetails.publicFormatted.srcIp = publicData.srcIp;
+      tempAlertDetails.publicFormatted.destIp = publicData.destIp;
+
+      _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for High, Medium, Low
+        _.forEach(data.event_histogram[val].buckets, val2 => {
+          if (val2.doc_count > 0) {
+            alertHistogram[val][val2.key_as_string] = val2.doc_count;
           }
-        };
-        let publicData = {
-          srcIp: {},
-          destIp: {}
-        };
-
-        _.forEach(alertDetails.public, val => {
-          if (!publicData.srcIp[val.content.srcIp]) {
-            publicData.srcIp[val.content.srcIp] = [];
-          }
-
-          if (!publicData.destIp[val.content.destIp]) {
-            publicData.destIp[val.content.destIp] = [];
-          }
-
-          publicData.srcIp[val.content.srcIp].push(val);
-          publicData.destIp[val.content.destIp].push(val);        
         })
 
-        alertDetails.publicFormatted.srcIp = publicData.srcIp;
-        alertDetails.publicFormatted.destIp = publicData.destIp;
-
-        this.setState({
-          updatedTime: helper.getFormattedDate(Moment()),
-          mapType: PUBLIC,
-          alertStatisticData,
-          alertDetails
-        }, () => {
-          this.getChartsData();
-        });
-
-        return null;
-      })
-      .catch(err => {
-        helper.showPopupMsg('', t('txt-error'), err.message);
-      })
-    }
-  }
-  getFilterData = (data) => {
-    const filterData = _.filter(data, (val, i) => {
-      if (i < 10) {
-        return val;
-      }
-    });
-
-    return filterData;
-  }
-  getChartsData = () => {
-    const {alertStatisticData} = this.state;
-    const tableArr = ['alertPrivateTable', 'alertPublicTable'];
-    let tempChartData = {};
-
-    _.forEach(tableArr, val => {
-      tempChartData[val] = [];
-    })
-
-    if (!_.isEmpty(alertStatisticData)) {
-      _.forEach(tableArr, val => {
-        tempChartData[val].chartData = _.map(alertStatisticData[val].rows, val => {
-          return val.content;
+        alertAggregations.push({
+          key: val,
+          doc_count: data.aggregations[val].doc_count
         });
       })
-    }
 
-    const alertChartsData = {
-      statistic: alertStatisticData.alertPie,
-      private: this.getFilterData(tempChartData.alertPrivateTable.chartData),
-      public: this.getFilterData(tempChartData.alertPublicTable.chartData)
-    };
+      let dataArr = [];
+      let rulesObj = {};
+      let rulesAll = [];
 
-    this.setState({
-      alertChartsData
+      _.forEach(_.keys(alertHistogram), val => { //Manually add rule name to the response data
+        rulesObj[val] = _.map(alertHistogram[val], (value, key) => {
+          return {
+            time: parseInt(Moment(key, 'YYYY-MM-DDTHH:mm:ss.SSZ').utc(true).format('x')),
+            number: value,
+            rule: val
+          }
+        });
+      })
+
+      _.forEach(_.keys(alertHistogram), val => { //Push multiple rule arrays into a single array
+        rulesAll.push(rulesObj[val]);
+      })
+
+      //Merge multiple arrays with different rules to a single array
+      dataArr = rulesAll.reduce((accumulator, currentValue) => {
+        return accumulator.concat(currentValue)
+      }, []);
+
+      const chartAttributes = {
+        legend: {
+          enabled: true
+        },
+        data: dataArr,
+        onTooltip: this.onTooltip,
+        dataCfg: {
+          x: 'time',
+          y: 'number',
+          splitSeries: 'rule'
+        },
+        xAxis: {
+          type: 'datetime',
+          dateTimeLabelFormats: {
+            day: '%H:%M'
+          }
+        }
+      };
+
+      this.setState({
+        chartAttributes,
+        alertAggregations,
+        alertDetails: tempAlertDetails,
+        alertMapData: tempAlertMapData
+      }, () => {
+        this.getFloorPlan();
+      });
+
+      return null;
     });
   }
+  // loadAlertData = (options) => {
+  //   const {baseUrl} = this.props;
+  //   const {datetime, alertDetails} = this.state;
+  //   const apiNameList = ['_search/pie', '_search', '_search'];
+  //   const dateTime = {
+  //     from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
+  //     to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
+  //   };
+
+  //   let dataObj = {
+  //     _eventDttm_: {
+  //       op: 'BETWEEN',
+  //       arg: [dateTime.from, dateTime.to]
+  //     }
+  //   };
+
+  //   if (options === 'getPrivate') {
+  //     dataObj.srcIpType = PRIVATE;
+
+  //     this.ah.one({
+  //       url: `${baseUrl}/api/alert/_search?page=1&pageSize=10000`,
+  //       data: JSON.stringify(dataObj),
+  //       type: 'POST',
+  //       contentType: 'text/plain'
+  //     })
+  //     .then(data => {
+  //       let tempAlertDetails = {...alertDetails};
+  //       tempAlertDetails.private = data.rows;
+
+  //       this.setState({
+  //         alertDetails: tempAlertDetails
+  //       }, () => {
+  //         this.getFloorPlan();
+  //       });
+
+  //       return null;
+  //     })
+  //     .catch(err => {
+  //       helper.showPopupMsg('', t('txt-error'), err.message);
+  //     })
+  //   } else {
+  //     const apiArr = _.map(apiNameList, (val, i) => {
+  //       let apiName = val;
+
+  //       if (i === 1 || i === 2) {
+  //         if (i === 1) {
+  //           apiName = val + '?page=1&pageSize=10';
+  //           dataObj.srcIpType = PRIVATE;
+  //         } else {
+  //           apiName = val + '?page=1&pageSize=10000';
+  //           dataObj.srcIpType = PUBLIC;
+  //         }
+  //       }
+
+  //       return {
+  //         url: `${baseUrl}/api/alert/${apiName}`,
+  //         data: JSON.stringify(dataObj),
+  //         type: 'POST',
+  //         contentType: 'text/plain'
+  //       };
+  //     });
+
+  //     this.ah.all(apiArr)
+  //     .then(data => {
+  //       const alertStatisticData = {
+  //         alertPie: helper.setChartData(data[0]),
+  //         alertPrivateTable: data[1],
+  //         alertPublicTable: data[2]
+  //       };
+  //       let alertDetails = {
+  //         privateCount: data[1].privateCounts,
+  //         publicCount: data[1].publicCounts,
+  //         public: data[2].rows,
+  //         publicFormatted: {
+  //           srcIp: {},
+  //           destIp: {}
+  //         }
+  //       };
+  //       let publicData = {
+  //         srcIp: {},
+  //         destIp: {}
+  //       };
+
+  //       _.forEach(alertDetails.public, val => {
+  //         if (!publicData.srcIp[val.content.srcIp]) {
+  //           publicData.srcIp[val.content.srcIp] = [];
+  //         }
+
+  //         if (!publicData.destIp[val.content.destIp]) {
+  //           publicData.destIp[val.content.destIp] = [];
+  //         }
+
+  //         publicData.srcIp[val.content.srcIp].push(val);
+  //         publicData.destIp[val.content.destIp].push(val);
+  //       })
+
+  //       alertDetails.publicFormatted.srcIp = publicData.srcIp;
+  //       alertDetails.publicFormatted.destIp = publicData.destIp;
+
+  //       this.setState({
+  //         updatedTime: helper.getFormattedDate(Moment()),
+  //         mapType: PUBLIC,
+  //         alertStatisticData,
+  //         alertDetails
+  //       }, () => {
+  //         this.getChartsData();
+  //       });
+
+  //       return null;
+  //     })
+  //     .catch(err => {
+  //       helper.showPopupMsg('', t('txt-error'), err.message);
+  //     })
+  //   }
+  // }
+  // getFilterData = (data) => {
+  //   const filterData = _.filter(data, (val, i) => {
+  //     if (i < 10) {
+  //       return val;
+  //     }
+  //   });
+
+  //   return filterData;
+  // }
+  // getChartsData = () => {
+  //   const {alertStatisticData} = this.state;
+  //   const tableArr = ['alertPrivateTable', 'alertPublicTable'];
+  //   let tempChartData = {};
+
+  //   _.forEach(tableArr, val => {
+  //     tempChartData[val] = [];
+  //   })
+
+  //   if (!_.isEmpty(alertStatisticData)) {
+  //     _.forEach(tableArr, val => {
+  //       tempChartData[val].chartData = _.map(alertStatisticData[val].rows, val => {
+  //         return val.content;
+  //       });
+  //     })
+  //   }
+
+  //   const alertChartsData = {
+  //     statistic: alertStatisticData.alertPie,
+  //     private: this.getFilterData(tempChartData.alertPrivateTable.chartData),
+  //     public: this.getFilterData(tempChartData.alertPublicTable.chartData)
+  //   };
+
+  //   this.setState({
+  //     alertChartsData
+  //   });
+  // }
   getWorldMap = () => {
-    const {geoJson, alertDetails} = this.state;
+    const {geoJson, alertDetails, alertMapData} = this.state;
     let tempGeoJson = {...geoJson};
     let attacksDataArr = [];
 
@@ -279,18 +427,18 @@ class Dashboard extends Component {
       tempGeoJson.mapDataArr.push(countryObj);
     });
 
-    _.forEach(alertDetails.public, val => {
-      const timestamp = helper.getFormattedDate(val.content.timestamp, 'local');
+    _.forEach(alertMapData.all, val => {
+      const timestamp = helper.getFormattedDate(val.timestamp, 'local');
 
-      if (val.content.srcLatitude && val.content.srcLongitude) {
-        const count = alertDetails.publicFormatted.srcIp[val.content.srcIp].length;
+      if (val.srcLatitude && val.srcLongitude) {
+        const count = alertDetails.publicFormatted.srcIp[val.srcIp].length;
 
         attacksDataArr.push({
           type: 'spot',
-          id: val.content.srcIp,
+          id: val.srcIp,
           latlng: [
-            val.content.srcLatitude,
-            val.content.srcLongitude
+            val.srcLatitude,
+            val.srcLongitude
           ],
           data: {
             tag: 'red'
@@ -299,9 +447,9 @@ class Dashboard extends Component {
             return `
               <div class='map-tooltip'>
                 <div><span class='key'>${t('payloadsFields.attacksCount')}:</span> <span class='count'>${count}</span></div>
-                <div><span class='key'>${t('payloadsFields.srcCountry')}:</span> <span class='value'>${val.content.srcCountry}</span></div>
-                <div><span class='key'>${t('payloadsFields.srcCity')}:</span> <span class='value'>${val.content.srcCity}</span></div>
-                <div><span class='key'>${t('payloadsFields.srcIp')}:</span> <span class='value'>${val.content.srcIp}</span></div>
+                <div><span class='key'>${t('payloadsFields.srcCountry')}:</span> <span class='value'>${val.srcCountry}</span></div>
+                <div><span class='key'>${t('payloadsFields.srcCity')}:</span> <span class='value'>${val.srcCity}</span></div>
+                <div><span class='key'>${t('payloadsFields.srcIp')}:</span> <span class='value'>${val.srcIp}</span></div>
                 <div><span class='key'>${t('payloadsFields.timestamp')}:</span> <span class='value'>${timestamp}</span></div>
               </div>
               `
@@ -309,15 +457,15 @@ class Dashboard extends Component {
         });
       }
 
-      if (val.content.destLatitude && val.content.destLongitude) {
-        const count = alertDetails.publicFormatted.destIp[val.content.destIp].length;
+      if (val.destLatitude && val.destLongitude) {
+        const count = alertDetails.publicFormatted.destIp[val.destIp].length;
 
         attacksDataArr.push({
           type: 'spot',
-          id: val.content.destIp,
+          id: val.destIp,
           latlng: [
-            val.content.destLatitude,
-            val.content.destLongitude
+            val.destLatitude,
+            val.destLongitude
           ],
           data: {
             tag: 'yellow'
@@ -325,9 +473,9 @@ class Dashboard extends Component {
           tooltip: () => {
             return `
               <div class='map-tooltip'>
-                <div><span class='key'>${t('payloadsFields.destCountry')}:</span> <span class='value'>${val.content.destCountry}</span></div>
-                <div><span class='key'>${t('payloadsFields.destCity')}:</span> <span class='value'>${val.content.destCity}</span></div>
-                <div><span class='key'>${t('payloadsFields.destIp')}:</span> <span class='value'>${val.content.destIp}</span></div>
+                <div><span class='key'>${t('payloadsFields.destCountry')}:</span> <span class='value'>${val.destCountry}</span></div>
+                <div><span class='key'>${t('payloadsFields.destCity')}:</span> <span class='value'>${val.destCity}</span></div>
+                <div><span class='key'>${t('payloadsFields.destIp')}:</span> <span class='value'>${val.destIp}</span></div>
                 <div><span class='key'>${t('payloadsFields.timestamp')}:</span> <span class='value'>${timestamp}</span></div>
               </div>
               `
@@ -340,48 +488,6 @@ class Dashboard extends Component {
 
     this.setState({
       geoJson: tempGeoJson
-    });
-  }
-  showTopoDetail = (type, id, eventInfo) => {
-    const {alertDetails} = this.state;
-    let tempAlertDetails = {...alertDetails};
-    let data = '';
-
-    if (!id) {
-      return;
-    }
-
-    tempAlertDetails.currentIndex = 0;
-    tempAlertDetails.currentID = id;
-
-    if (type === PUBLIC) {
-      const uniqueIP = id;
-
-      if (id.indexOf('.') < 0) {
-        return;
-      }
-
-      data = alertDetails.publicFormatted.srcIp[uniqueIP] || alertDetails.publicFormatted.destIp[uniqueIP];
-      tempAlertDetails.currentLength = data.length;
-    } else if (type === PRIVATE) {
-      const seatUUID = id;
-      let tempPrivateData = [];
-
-      _.forEach(alertDetails.private, val => {
-        if (val.content.srcTopoInfo && val.content.srcTopoInfo.seatUUID === seatUUID) {
-          tempPrivateData.push(val.content);
-        }
-      })
-
-      tempAlertDetails.privateFormatted = tempPrivateData;
-      tempAlertDetails.currentLength = tempPrivateData.length;
-      data = tempPrivateData[0];
-    }
-
-    this.setState({
-      alertDetails: tempAlertDetails
-    }, () => {
-      this.openDetailInfo(type, '', data);
     });
   }
   getFloorPlan = () => {
@@ -568,8 +674,52 @@ class Dashboard extends Component {
       mapType: type
     }, () => {
       if (this.state.mapType === PRIVATE) {
-        this.loadAlertData('getPrivate');
+        //this.loadBarChartData('getPrivate');
       }
+    });
+  }
+  showTopoDetail = (type, id, eventInfo) => {
+    return;
+
+    const {alertDetails} = this.state;
+    let tempAlertDetails = {...alertDetails};
+    let data = '';
+
+    if (!id) {
+      return;
+    }
+
+    tempAlertDetails.currentIndex = 0;
+    tempAlertDetails.currentID = id;
+
+    if (type === PUBLIC) {
+      const uniqueIP = id;
+
+      if (id.indexOf('.') < 0) {
+        return;
+      }
+
+      data = alertDetails.publicFormatted.srcIp[uniqueIP] || alertDetails.publicFormatted.destIp[uniqueIP];
+      tempAlertDetails.currentLength = data.length;
+    } else if (type === PRIVATE) {
+      const seatUUID = id;
+      let tempPrivateData = [];
+
+      _.forEach(alertDetails.private, val => {
+        if (val.content.srcTopoInfo && val.content.srcTopoInfo.seatUUID === seatUUID) {
+          tempPrivateData.push(val.content);
+        }
+      })
+
+      tempAlertDetails.privateFormatted = tempPrivateData;
+      tempAlertDetails.currentLength = tempPrivateData.length;
+      data = tempPrivateData[0];
+    }
+
+    this.setState({
+      alertDetails: tempAlertDetails
+    }, () => {
+      this.openDetailInfo(type, '', data);
     });
   }
   showAlertData = (type) => {
@@ -610,26 +760,6 @@ class Dashboard extends Component {
       }
       this.openDetailInfo(chartType, currentIndex, data);
     });
-  }
-  modalDialog = () => {
-    const {baseUrl, contextRoot, language} = this.props;
-    const {alertDetails, alertData} = this.state;
-    const actions = {
-      confirm: {text: t('txt-close'), handler: this.closeDialog}
-    };
-
-    return (
-      <AlertDetails
-        baseUrl={baseUrl}
-        contextRoot={contextRoot}
-        language={language}
-        titleText={t('alert.txt-alertInfo')}
-        actions={actions}
-        alertDetails={alertDetails}
-        alertData={alertData}
-        showAlertData={this.showAlertData}
-        fromPage='dashboard' />
-    )
   }
   openDetailInfo = (type, index, data, evt) => {
     const {alertDetails} = this.state;
@@ -678,6 +808,26 @@ class Dashboard extends Component {
       modalOpen: true
     });
   }
+  modalDialog = () => {
+    const {baseUrl, contextRoot, language} = this.props;
+    const {alertDetails, alertData} = this.state;
+    const actions = {
+      confirm: {text: t('txt-close'), handler: this.closeDialog}
+    };
+
+    return (
+      <AlertDetails
+        baseUrl={baseUrl}
+        contextRoot={contextRoot}
+        language={language}
+        titleText={t('alert.txt-alertInfo')}
+        actions={actions}
+        alertDetails={alertDetails}
+        alertData={alertData}
+        showAlertData={this.showAlertData}
+        fromPage='dashboard' />
+    )
+  }
   closeDialog = () => {
     this.setState({
       alertData: '',
@@ -710,6 +860,8 @@ class Dashboard extends Component {
     const {
       updatedTime,
       activeTab,
+      chartAttributes,
+      alertAggregations,
       alertChartsData,
       alertDetails,
       mapType,
@@ -722,112 +874,133 @@ class Dashboard extends Component {
       modalOpen
     } = this.state;
 
-    const tempAlertChartsList = [
-      {
-        chartKeyLabels: {
-          service: t('txt-service'),
-          number: t('txt-count')
-        },
-        chartValueLabels: {
-          'Pie Chart': {
-            service: t('txt-service'),
-            number: t('txt-count')
-          }
-        },
-        chartDataCfg: {
-          splitSlice: ['service'],
-          sliceSize: 'number'
-        },
-        chartData: alertChartsData.statistic,
-        type: 'pie'
+    const alertChartsList = [{
+      chartID: t('dashboard.txt-alertThreatLevel'),
+      chartTitle: t('dashboard.txt-alertThreatLevel'),
+      chartKeyLabels: {
+        key: t('txt-level'),
+        doc_count: t('txt-count')
       },
-      {
-        chartFields: {
-          '_eventDttm_': {
-            label: t('alert.txt-alertTime'),
-            sortable: true,
-            formatter: (value) => {
-              return helper.getFormattedDate(value);
-            }
-          },
-          'alertInformation.type': {
-            label: t('dashboard.txt-alertType'),
-            sortable: true,
-            formatter: (value, allValue) => {
-              if (allValue.vpnName) {
-                return 'Honeynet';
-              }
-              return value;
-            }
-          },
-          srcIp: {
-            label: t('alert.txt-ipSrc'),
-            sortable: true
-          },
-          'srcTopoInfo.areaName': {
-            label: t('dashboard.txt-deviceName'),
-            sortable: true
-          },
-          'srcTopoInfo.ownerName': {
-            label: t('dashboard.txt-ownerName'),
-            sortable: true
-          }
-        },
-        chartData: alertChartsData.private,
-        sort: {
-          field: '_eventDttm_',
-          desc: true
-        },
-        type: 'table'
+      chartValueLabels: {
+        'Pie Chart': {
+          key: t('txt-level'),
+          doc_count: t('txt-count')
+        }
       },
-      {
-        chartFields: {
-          '_eventDttm_': {
-            label: t('alert.txt-alertTime'),
-            sortable: true,
-            formatter: (value) => {
-              return helper.getFormattedDate(value);
-            }
-          },
-          'alertInformation.type': {
-            label: t('dashboard.txt-alertType'),
-            sortable: true,
-            formatter: (value, allValue) => {
-              if (allValue.vpnName) {
-                return 'Honeynet';
-              }
-              return value;
-            }
-          },
-          srcIp: {
-            label: t('alert.txt-ipSrc'),
-            sortable: true
-          },
-          srcCountryCode: {
-            label: t('dashboard.txt-srcCountry'),
-            sortable: true
-          },
-          srcCity: {
-            label: t('dashboard.txt-srcCity'),
-            sortable: true
-          }
-        },
-        chartData: alertChartsData.public,
-        sort: {
-          field: '_eventDttm_',
-          desc: true
-        },
-        type: 'table'
-      }
-    ];
+      chartDataCfg: {
+        splitSlice: ['key'],
+        sliceSize: 'doc_count'
+      },
+      chartData: alertAggregations,
+      type: 'pie'
+    }];
 
-    const alertChartsList = _.map(tempAlertChartsList, (val, i) => {
-      return {
-        chartID: CHARTS_ID[i], //Insert chart ID
-        chartTitle: t(CHARTS_TITLE[i]), //Insert chart title
-        ...val
-      }
-    });
+    // const tempAlertChartsList = [
+    //   {
+    //     chartKeyLabels: {
+    //       service: t('txt-service'),
+    //       number: t('txt-count')
+    //     },
+    //     chartValueLabels: {
+    //       'Pie Chart': {
+    //         service: t('txt-service'),
+    //         number: t('txt-count')
+    //       }
+    //     },
+    //     chartDataCfg: {
+    //       splitSlice: ['service'],
+    //       sliceSize: 'number'
+    //     },
+    //     chartData: alertChartsData.statistic,
+    //     type: 'pie'
+    //   },
+    //   {
+    //     chartFields: {
+    //       '_eventDttm_': {
+    //         label: t('alert.txt-alertTime'),
+    //         sortable: true,
+    //         formatter: (value) => {
+    //           return helper.getFormattedDate(value);
+    //         }
+    //       },
+    //       'alertInformation.type': {
+    //         label: t('dashboard.txt-alertType'),
+    //         sortable: true,
+    //         formatter: (value, allValue) => {
+    //           if (allValue.vpnName) {
+    //             return 'Honeynet';
+    //           }
+    //           return value;
+    //         }
+    //       },
+    //       srcIp: {
+    //         label: t('alert.txt-ipSrc'),
+    //         sortable: true
+    //       },
+    //       'srcTopoInfo.areaName': {
+    //         label: t('dashboard.txt-deviceName'),
+    //         sortable: true
+    //       },
+    //       'srcTopoInfo.ownerName': {
+    //         label: t('dashboard.txt-ownerName'),
+    //         sortable: true
+    //       }
+    //     },
+    //     chartData: alertChartsData.private,
+    //     sort: {
+    //       field: '_eventDttm_',
+    //       desc: true
+    //     },
+    //     type: 'table'
+    //   },
+    //   {
+    //     chartFields: {
+    //       '_eventDttm_': {
+    //         label: t('alert.txt-alertTime'),
+    //         sortable: true,
+    //         formatter: (value) => {
+    //           return helper.getFormattedDate(value);
+    //         }
+    //       },
+    //       'alertInformation.type': {
+    //         label: t('dashboard.txt-alertType'),
+    //         sortable: true,
+    //         formatter: (value, allValue) => {
+    //           if (allValue.vpnName) {
+    //             return 'Honeynet';
+    //           }
+    //           return value;
+    //         }
+    //       },
+    //       srcIp: {
+    //         label: t('alert.txt-ipSrc'),
+    //         sortable: true
+    //       },
+    //       srcCountryCode: {
+    //         label: t('dashboard.txt-srcCountry'),
+    //         sortable: true
+    //       },
+    //       srcCity: {
+    //         label: t('dashboard.txt-srcCity'),
+    //         sortable: true
+    //       }
+    //     },
+    //     chartData: alertChartsData.public,
+    //     sort: {
+    //       field: '_eventDttm_',
+    //       desc: true
+    //     },
+    //     type: 'table'
+    //   }
+    // ];
+
+    // const alertChartsList = _.map(tempAlertChartsList, (val, i) => {
+    //   return {
+    //     chartID: CHARTS_ID[i], //Insert chart ID
+    //     chartTitle: t(CHARTS_TITLE[i]), //Insert chart title
+    //     ...val
+    //   }
+    // });
 
     return (
       <div>
@@ -846,6 +1019,15 @@ class Dashboard extends Component {
         <div className='main-dashboard c-flex'>
           {activeTab === 'statistics' &&
             <div className='charts'>
+              {!_.isEmpty(chartAttributes.data) &&
+                <div className='chart-group bar'>
+                  <header>{t('dashboard.txt-alertStatistics')}</header>
+                  <BarChart
+                    stacked
+                    vertical
+                    {...chartAttributes} />
+                </div>
+              }
               {
                 alertChartsList.map((key, i) => {
                   if (alertChartsList[i].type === 'pie') {
@@ -881,19 +1063,11 @@ class Dashboard extends Component {
           }
 
           {activeTab === 'maps' &&
-            <div className='c-box maps'>
-              <ol className='c-tabs-menu'>
-                <li className={cx({'current': mapType === PUBLIC})} onClick={this.toggleMaps.bind(this, PUBLIC)}><span>{t('dashboard.txt-privateAlertMap')}</span>
-                  {alertDetails.publicCount > 0 &&
-                    <span className='count'>{alertDetails.publicCount}</span>
-                  }
-                </li>
-                <li className={cx({'current': mapType === PRIVATE})} onClick={this.toggleMaps.bind(this, PRIVATE)}><span>{t('dashboard.txt-publicAlertMap')}</span>
-                {alertDetails.privateCount > 0 &&
-                  <span className='count'>{alertDetails.privateCount}</span>
-                }
-                </li>
-              </ol>
+            <div className='maps'>
+              <div className='secondary-btn-group left'>
+                <button className={cx({'active': mapType === PUBLIC})} onClick={this.toggleMaps.bind(this, PUBLIC)}>{t('dashboard.txt-public')}</button>
+                <button className={cx({'active': mapType === PRIVATE})} onClick={this.toggleMaps.bind(this, PRIVATE)}>{t('dashboard.txt-private')}</button>
+              </div>
               {mapType === PUBLIC && geoJson.mapDataArr.length > 0 &&
                 <Gis
                   id='gisMap'
@@ -950,28 +1124,29 @@ class Dashboard extends Component {
                     required={true}
                     onChange={this.handleFloorChange}
                     value={currentFloor} />
-                    {currentMap &&
-                      <Gis
-                        _ref={(ref) => {this.gisNode = ref}}
-                        data={_.get(seatData, [currentFloor, 'data'])}
-                        baseLayers={currentBaseLayers}
-                        baseLayer={currentFloor}
-                        layouts={['standard']}
-                        dragModes={['pan']}
-                        scale={{enabled: false}}
-                        onClick={this.showTopoDetail.bind(this, PRIVATE)}
-                        symbolOptions={[{
-                          match: {
-                            data: {tag: 'red'}
-                          },
-                          props: {
-                            backgroundColor: 'red',
-                            tooltip: ({data}) => {
-                              return this.showPrivateTooltip(data);
-                            }
+                  {currentMap &&
+                    <Gis
+                      className='floor-map-area'
+                      _ref={(ref) => {this.gisNode = ref}}
+                      data={_.get(seatData, [currentFloor, 'data'])}
+                      baseLayers={currentBaseLayers}
+                      baseLayer={currentFloor}
+                      layouts={['standard']}
+                      dragModes={['pan']}
+                      scale={{enabled: false}}
+                      onClick={this.showTopoDetail.bind(this, PRIVATE)}
+                      symbolOptions={[{
+                        match: {
+                          data: {tag: 'red'}
+                        },
+                        props: {
+                          backgroundColor: 'red',
+                          tooltip: ({data}) => {
+                            return this.showPrivateTooltip(data);
                           }
-                        }]} />
-                    }
+                        }
+                      }]} />
+                  }
                 </div>
               }
             </div>

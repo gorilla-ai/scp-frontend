@@ -117,6 +117,7 @@
   "txt-previous": "上一則",
   "txt-next": "下一則",
   "txt-events": "Events",
+  "txt-level": "等級",
 
   "txt-daily": "每日",
   "txt-weekly": "每星期",
@@ -204,6 +205,8 @@
   "dashboard": {
     "txt-statisticsInfo": "統計資料",
     "txt-attacksMap": "攻擊地圖",
+    "txt-alertStatistics": "告警數量統計",
+    "txt-alertThreatLevel": "告警威脅等級統計",
     "txt-alertIndicator": "告警指標種類摘要",
     "txt-privateAlert": "最新10筆內部告警",
     "txt-publicAlert": "最新10筆外部告警",
@@ -212,8 +215,8 @@
     "txt-ownerName": "所屬人員",
     "txt-srcCountry": "來源國家",
     "txt-srcCity": "來源城市",
-    "txt-privateAlertMap": "外部告警地圖",
-    "txt-publicAlertMap": "內部告警地圖"
+    "txt-private": "內部",
+    "txt-public": "外部"
   },
 
   "alert": {

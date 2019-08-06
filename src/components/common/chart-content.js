@@ -113,7 +113,7 @@ class ChartContent extends Component {
         data: dataArr,
         colors: colorCode,
         onTooltip: this.onTooltip,
-        dataCfg: dataCfg,
+        dataCfg,
         xAxis: {
           type: 'datetime',
           dateTimeLabelFormats: {
