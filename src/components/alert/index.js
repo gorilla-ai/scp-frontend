@@ -294,9 +294,9 @@ class AlertController extends Component {
           const dataBuckets = data[i].aggregations[val.title].agg.buckets;
           let tempArr = [];
 
-          if (dataBuckets.length > 0) { //Remove empty data
+          if (dataBuckets.length > 0) {
             _.forEach(dataBuckets, val2 => {
-              if (val2.key) {
+              if (val2.key) { //Remove empty data
                 tempArr.push({
                   doc_count: val2.doc_count,
                   key: val2.key

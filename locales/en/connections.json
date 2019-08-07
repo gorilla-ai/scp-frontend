@@ -117,7 +117,6 @@
   "txt-previous": "Previous",
   "txt-next": "Next",
   "txt-events": "Events",
-  "txt-level": "Level",
 
   "txt-daily": "Daily",
   "txt-weekly": "Weekly",
@@ -205,11 +204,9 @@
   "dashboard": {
     "txt-statisticsInfo": "Statistics Info",
     "txt-attacksMap": "Attacks Map",
-    "txt-alertLevel": "Alert Level",
     "txt-alertStatistics": "Alert Statistics",
-    "txt-alertIndicator": "Alert Summary",
-    "txt-privateAlert": "Latest 10 Private Alert",
-    "txt-publicAlert": "Latest 10 Public Alert",
+    "txt-alertThreatLevel": "Alert Threat Level",
+    "txt-Top10ExternalPotSrcCountry": "Alert Source Country",
     "txt-alertType": "Alert Type",
     "txt-deviceName": "Device Name",
     "txt-ownerName": "Owner Name",
@@ -563,8 +560,9 @@
     "destPort": "Destination Port",
     "honeyPot": "Honeypot",
     "protocol": "Protocol",
-    "options": "",
-    "attackCnt": "Attack Count"
+    "attackCnt": "Attack Count",
+    "level": "Level",
+    "options": ""
   },
   "payloadsFields": {
     "timestamp": "Date",

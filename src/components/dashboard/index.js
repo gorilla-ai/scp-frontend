@@ -30,17 +30,53 @@ const PRIVATE = 'private';
 const PUBLIC = 'public';
 
 //Charts ID must be unique
-const CHARTS_ID = [
-  'alert-statistics-pie',
-  'alert-statistics-private-table',
-  'alert-statistics-public-table'
+const CHARTS_LIST = [
+  {
+    id: 'alertThreatLevel',
+    key: 'level'
+  },
+  {
+    id: 'Top10ExternalPotSrcCountry',
+    key: 'srcCountry'
+  }
 ];
-
-const CHARTS_TITLE = [
-  'dashboard.txt-alertIndicator',
-  'dashboard.txt-privateAlert',
-  'dashboard.txt-publicAlert'
-];
+const CHARTS_DATA = {
+  chartAttributes: {},
+  pieCharts: {
+    alertThreatLevel: [],
+    alertSrcCountry: []
+  },
+  alertChartsList: []
+};
+const MAPS_PUBLIC_DATA = {
+  alertDetails: {
+    publicFormatted: {
+      srcIp: {},
+      destIp: {}
+    },
+    currentID: '',
+    currentIndex: '',
+    currentLength: ''
+  },
+  alertMapData: [],
+  geoJson: {
+    mapDataArr: [],
+    attacksDataArr: []
+  },
+  alertData: ''
+};
+const MAPS_PRIVATE_DATA = {
+  floorList: [],
+  currentFloor: '',
+  floorPlan: {
+    treeData: {},
+    currentAreaUUID: '',
+    currentAreaName: ''
+  },
+  currentMap: '',
+  currentBaseLayers: {},
+  seatData: {}
+};
 
 class Dashboard extends Component {
   constructor(props) {
@@ -56,7 +92,10 @@ class Dashboard extends Component {
       updatedTime: helper.getFormattedDate(Moment()),
       activeTab: 'statistics',
       chartAttributes: {},
-      alertAggregations: [],
+      pieCharts: {
+        alertThreatLevel: [],
+        alertSrcCountry: []
+      },
       alertChartsList: [],
       mapType: PUBLIC,
       chartType: '',
@@ -112,7 +151,7 @@ class Dashboard extends Component {
   }
   loadAlertData = (type) => {
     const {baseUrl, contextRoot} = this.props;
-    const {datetime, alertDetails, alertMapData} = this.state;
+    const {datetime, pieCharts, alertDetails, alertMapData} = this.state;
     const pageSize = type === 'maps' ? 10000 : 0;
     const url =`${baseUrl}/api/u1/alert/_search?page=1&pageSize=${pageSize}`;
     const dateTime = {
@@ -171,7 +210,6 @@ class Dashboard extends Component {
           Medium: {},
           Low: {}
         };
-        let alertAggregations = [];
         let rulesObj = {};
         let rulesAll = [];
         let dataArr = [];
@@ -182,11 +220,6 @@ class Dashboard extends Component {
               alertHistogram[val][val2.key_as_string] = val2.doc_count;
             }
           })
-
-          alertAggregations.push({
-            key: val,
-            doc_count: data.aggregations[val].doc_count
-          });
         })
 
         _.forEach(_.keys(alertHistogram), val => { //Manually add rule name to the response data
@@ -229,37 +262,114 @@ class Dashboard extends Component {
 
         this.setState({
           updatedTime: helper.getFormattedDate(Moment()),
-          alertAggregations,
           chartAttributes
-        }, () => {
-          this.getChartsData();
         });
       }
       return null;
     });
+
+    if (type !== 'maps') {
+      this.loadChartsData();
+    }
+  }
+  loadChartsData = () => {
+    const {baseUrl, contextRoot} = this.props;
+    const {datetime, pieCharts} = this.state;
+    const url =`${baseUrl}/api/u1/alert/_search?page=1&pageSize=0`;
+    const dateTime = {
+      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
+      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
+    };
+    let apiArr = [];
+
+    _.forEach(CHARTS_LIST, (val, i) => {
+      const chartID = val.id === 'alertThreatLevel' ? 'All' : val.id;
+      const dataObj = {
+        timestamp: [dateTime.from, dateTime.to],
+        filters: [{
+          condition: 'must',
+          query: chartID
+        }]
+      };
+
+      apiArr.push({
+        url: `${baseUrl}/api/u1/alert/_search?page=1&pageSize=0`,
+        data: JSON.stringify(dataObj),
+        type: 'POST',
+        contentType: 'text/plain'
+      })
+    })
+
+    this.ah.all(apiArr)
+    .then(data => {
+      let tempPieCharts = {...pieCharts};
+
+      _.forEach(CHARTS_LIST, (val, i) => {
+        if (i === 0) {
+          _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for High, Medium, Low
+            tempPieCharts.alertThreatLevel.push({
+              key: val,
+              doc_count: data[i].aggregations[val].doc_count
+            });
+          })
+        } else {
+          if (data[i].aggregations) {
+            const chartsData = data[i].aggregations[val.id].agg.buckets;
+            let tempArr = [];
+
+            if (chartsData.length > 0) {
+              _.forEach(chartsData, val2 => {
+                if (val2.key) { //Remove empty data
+                  tempArr.push({
+                    doc_count: val2.doc_count,
+                    key: val2.key
+                  });
+                }
+              })
+              tempPieCharts[val.id] = tempArr;
+            }
+          }
+        }
+      })
+
+      this.setState({
+        pieCharts: tempPieCharts
+      }, () => {
+        this.getChartsData();
+      });
+
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   getChartsData = () => {
-    const {alertAggregations} = this.state;
-    const alertChartsList = [{
-      chartID: t('dashboard.txt-alertThreatLevel'),
-      chartTitle: t('dashboard.txt-alertThreatLevel'),
-      chartKeyLabels: {
-        key: t('txt-level'),
-        doc_count: t('txt-count')
-      },
-      chartValueLabels: {
-        'Pie Chart': {
-          key: t('txt-level'),
+    const {pieCharts} = this.state;
+    let alertChartsList = [];
+
+    _.forEach(CHARTS_LIST, val => {
+      alertChartsList.push({
+        chartID: val.id,
+        chartTitle: t('dashboard.txt-' + val.id),
+        chartKeyLabels: {
+          key: t('attacksFields.' + val.key),
           doc_count: t('txt-count')
-        }
-      },
-      chartDataCfg: {
-        splitSlice: ['key'],
-        sliceSize: 'doc_count'
-      },
-      chartData: alertAggregations,
-      type: 'pie'
-    }];
+        },
+        chartValueLabels: {
+          'Pie Chart': {
+            key: t('attacksFields.' + val.key),
+            doc_count: t('txt-count')
+          }
+        },
+        chartDataCfg: {
+          splitSlice: ['key'],
+          sliceSize: 'doc_count'
+        },
+        chartData: pieCharts[val.id],
+        type: 'pie'
+      });
+    })
 
     this.setState({
       alertChartsList
@@ -364,6 +474,16 @@ class Dashboard extends Component {
         attacksDataArr: []
       },
       alertData: '',
+      floorList: [],
+      currentFloor: '',
+      floorPlan: {
+        treeData: {},
+        currentAreaUUID: '',
+        currentAreaName: ''
+      },
+      currentMap: '',
+      currentBaseLayers: {},
+      seatData: {},
       mapType: type
     }, () => {
       const {mapType} = this.state;
@@ -682,6 +802,12 @@ class Dashboard extends Component {
   }
   toggleTab = (tab) => {
     this.setState({
+      chartAttributes: {},
+      pieCharts: {
+        alertThreatLevel: [],
+        alertSrcCountry: []
+      },
+      alertChartsList: [],
       alertDetails: {
         publicFormatted: {
           srcIp: {},
