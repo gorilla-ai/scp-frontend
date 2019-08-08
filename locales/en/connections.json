@@ -207,6 +207,7 @@
     "txt-alertStatistics": "Alert Statistics",
     "txt-alertThreatLevel": "Alert Threat Level",
     "txt-Top10ExternalPotSrcCountry": "Alert Source Country",
+    "txt-Top10InternalSrcIp": "Alert Internal Source IP",
     "txt-alertType": "Alert Type",
     "txt-deviceName": "Device Name",
     "txt-ownerName": "Owner Name",

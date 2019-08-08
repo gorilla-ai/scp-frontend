@@ -37,15 +37,17 @@ const CHARTS_LIST = [
   },
   {
     id: 'Top10ExternalPotSrcCountry',
-    key: 'srcCountry'
+    key: 'srcCountry',
+    path: 'agg'
+  },
+  {
+    id: 'Top10InternalSrcIp',
+    key: 'srcIp'
   }
 ];
 const CHARTS_DATA = {
   chartAttributes: {},
-  pieCharts: {
-    alertThreatLevel: [],
-    alertSrcCountry: []
-  },
+  pieCharts: {},
   alertChartsList: []
 };
 const MAPS_PUBLIC_DATA = {
@@ -91,39 +93,11 @@ class Dashboard extends Component {
       },
       updatedTime: helper.getFormattedDate(Moment()),
       activeTab: 'statistics',
-      chartAttributes: {},
-      pieCharts: {
-        alertThreatLevel: [],
-        alertSrcCountry: []
-      },
-      alertChartsList: [],
+      ..._.cloneDeep(CHARTS_DATA),
       mapType: PUBLIC,
       chartType: '',
-      alertDetails: {
-        publicFormatted: {
-          srcIp: {},
-          destIp: {}
-        },
-        currentID: '',
-        currentIndex: '',
-        currentLength: ''
-      },
-      alertMapData: [],
-      geoJson: {
-        mapDataArr: [],
-        attacksDataArr: []
-      },
-      alertData: '',
-      floorList: [],
-      currentFloor: '',
-      floorPlan: {
-        treeData: {},
-        currentAreaUUID: '',
-        currentAreaName: ''
-      },
-      currentMap: '',
-      currentBaseLayers: {},
-      seatData: {},
+      ..._.cloneDeep(MAPS_PUBLIC_DATA),
+      ..._.cloneDeep(MAPS_PRIVATE_DATA),
       modalOpen: false
     };
 
@@ -163,7 +137,8 @@ class Dashboard extends Component {
       filters: [{
         condition: 'must',
         query: 'All'
-      }]
+      }],
+      search: ['Top10ExternalPotSrcCountry', 'Top10InternalSrcIp']
     };
 
     helper.getAjaxData('POST', url, requestData)
@@ -260,90 +235,125 @@ class Dashboard extends Component {
           }
         };
 
+        /* charts */
+        let tempPieCharts = {...pieCharts};
+
+        _.forEach(CHARTS_LIST, (val, i) => {
+          let tempArr = [];
+
+          if (i === 0) {
+            _.forEach(SEVERITY_TYPE, val2 => { //Create Alert histogram for High, Medium, Low
+              tempArr.push({
+                key: val2,
+                doc_count: data.aggregations[val2].doc_count
+              });
+            })
+          } else {
+            const chartData = data.aggregations[val.id][val.path || val.key].buckets;
+            tempArr = this.filteredChartData(chartData, [val.id]);
+          }
+          tempPieCharts[val.id] = tempArr;
+        })
+
         this.setState({
           updatedTime: helper.getFormattedDate(Moment()),
-          chartAttributes
+          chartAttributes,
+          pieCharts: tempPieCharts
+        }, () => {
+          this.getChartsData();
         });
       }
       return null;
     });
-
-    if (type !== 'maps') {
-      this.loadChartsData();
-    }
   }
-  loadChartsData = () => {
-    const {baseUrl, contextRoot} = this.props;
-    const {datetime, pieCharts} = this.state;
-    const url =`${baseUrl}/api/u1/alert/_search?page=1&pageSize=0`;
-    const dateTime = {
-      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
-      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
-    };
-    let apiArr = [];
+  filteredChartData = (chartData, chartName) => {
+    if (chartData.length > 0) {
+      let tempArr = [];
 
-    _.forEach(CHARTS_LIST, (val, i) => {
-      const chartID = val.id === 'alertThreatLevel' ? 'All' : val.id;
-      const dataObj = {
-        timestamp: [dateTime.from, dateTime.to],
-        filters: [{
-          condition: 'must',
-          query: chartID
-        }]
-      };
-
-      apiArr.push({
-        url: `${baseUrl}/api/u1/alert/_search?page=1&pageSize=0`,
-        data: JSON.stringify(dataObj),
-        type: 'POST',
-        contentType: 'text/plain'
-      })
-    })
-
-    this.ah.all(apiArr)
-    .then(data => {
-      let tempPieCharts = {...pieCharts};
-
-      _.forEach(CHARTS_LIST, (val, i) => {
-        if (i === 0) {
-          _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for High, Medium, Low
-            tempPieCharts.alertThreatLevel.push({
-              key: val,
-              doc_count: data[i].aggregations[val].doc_count
-            });
-          })
-        } else {
-          if (data[i].aggregations) {
-            const chartsData = data[i].aggregations[val.id].agg.buckets;
-            let tempArr = [];
-
-            if (chartsData.length > 0) {
-              _.forEach(chartsData, val2 => {
-                if (val2.key) { //Remove empty data
-                  tempArr.push({
-                    doc_count: val2.doc_count,
-                    key: val2.key
-                  });
-                }
-              })
-              tempPieCharts[val.id] = tempArr;
-            }
-          }
+      _.forEach(chartData, val2 => {
+        if (val2.key) { //Remove empty data
+          tempArr.push({
+            key: val2.key,
+            doc_count: val2.doc_count
+          });
         }
       })
-
-      this.setState({
-        pieCharts: tempPieCharts
-      }, () => {
-        this.getChartsData();
-      });
-
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
+      return tempArr;
+    }
   }
+  // loadChartsData = () => {
+  //   const {baseUrl, contextRoot} = this.props;
+  //   const {datetime, pieCharts} = this.state;
+  //   const url =`${baseUrl}/api/u1/alert/_search?page=1&pageSize=0`;
+  //   const dateTime = {
+  //     from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
+  //     to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
+  //   };
+  //   let apiArr = [];
+
+  //   _.forEach(CHARTS_LIST, (val, i) => {
+  //     const chartID = val.id === 'alertThreatLevel' ? 'All' : val.id;
+  //     const dataObj = {
+  //       timestamp: [dateTime.from, dateTime.to],
+  //       filters: [{
+  //         condition: 'must',
+  //         query: 'All'
+  //       }],
+  //       search: ['Top10ExternalPotSrcCountry', 'Top10InternalSrcIp']
+  //     };
+
+  //     apiArr.push({
+  //       url: `${baseUrl}/api/u1/alert/_search?page=1&pageSize=0`,
+  //       data: JSON.stringify(dataObj),
+  //       type: 'POST',
+  //       contentType: 'text/plain'
+  //     })
+  //   })
+
+  //   this.ah.all(apiArr)
+  //   .then(data => {
+  //     let tempPieCharts = {...pieCharts};
+
+  //     _.forEach(CHARTS_LIST, (val, i) => {
+  //       if (i === 0) {
+  //         _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for High, Medium, Low
+  //           tempPieCharts.alertThreatLevel.push({
+  //             key: val,
+  //             doc_count: data[i].aggregations[val].doc_count
+  //           });
+  //         })
+  //       } else {
+  //         if (data[i].aggregations) {
+  //           const chartsData = data[i].aggregations[val.id].agg.buckets;
+  //           let tempArr = [];
+
+  //           if (chartsData.length > 0) {
+  //             _.forEach(chartsData, val2 => {
+  //               if (val2.key) { //Remove empty data
+  //                 tempArr.push({
+  //                   doc_count: val2.doc_count,
+  //                   key: val2.key
+  //                 });
+  //               }
+  //             })
+  //             tempPieCharts[val.id] = tempArr;
+  //           }
+  //         }
+  //       }
+  //     })
+
+  //     this.setState({
+  //       pieCharts: tempPieCharts
+  //     }, () => {
+  //       this.getChartsData();
+  //     });
+
+  //     return null;
+  //   })
+  //   .catch(err => {
+  //     helper.showPopupMsg('', t('txt-error'), err.message);
+  //   })
+  // }
   getChartsData = () => {
     const {pieCharts} = this.state;
     let alertChartsList = [];
@@ -459,32 +469,9 @@ class Dashboard extends Component {
   }
   toggleMaps = (type) => {
     this.setState({
-      alertDetails: {
-        publicFormatted: {
-          srcIp: {},
-          destIp: {}
-        },
-        currentID: '',
-        currentIndex: '',
-        currentLength: ''
-      },
-      alertMapData: [],
-      geoJson: {
-        mapDataArr: [],
-        attacksDataArr: []
-      },
-      alertData: '',
-      floorList: [],
-      currentFloor: '',
-      floorPlan: {
-        treeData: {},
-        currentAreaUUID: '',
-        currentAreaName: ''
-      },
-      currentMap: '',
-      currentBaseLayers: {},
-      seatData: {},
-      mapType: type
+      mapType: type,
+      ..._.cloneDeep(MAPS_PUBLIC_DATA),
+      ..._.cloneDeep(MAPS_PRIVATE_DATA)
     }, () => {
       const {mapType} = this.state;
       if (mapType === PUBLIC) {
@@ -802,28 +789,9 @@ class Dashboard extends Component {
   }
   toggleTab = (tab) => {
     this.setState({
-      chartAttributes: {},
-      pieCharts: {
-        alertThreatLevel: [],
-        alertSrcCountry: []
-      },
-      alertChartsList: [],
-      alertDetails: {
-        publicFormatted: {
-          srcIp: {},
-          destIp: {}
-        },
-        currentID: '',
-        currentIndex: '',
-        currentLength: ''
-      },
-      alertMapData: [],
-      geoJson: {
-        mapDataArr: [],
-        attacksDataArr: []
-      },
-      alertData: '',
-      activeTab: tab
+      activeTab: tab,
+      ..._.cloneDeep(CHARTS_DATA),
+      ..._.cloneDeep(MAPS_PUBLIC_DATA)
     }, () => {
       this.loadAlertData(tab);
     });
