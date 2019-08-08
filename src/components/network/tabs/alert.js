@@ -112,6 +112,7 @@ class Alert extends Component {
                 mapOptions={{
                   crs: L.CRS.Simple
                 }}
+                onClick={mainContentData.showTopoDetail}
                 symbolOptions={[{
                   match: {
                     type:'geojson'

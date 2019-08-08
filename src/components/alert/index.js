@@ -169,6 +169,11 @@ class AlertController extends Component {
       alertDetailsOpen: false,
       alertDetails: {
         all: [],
+        publicFormatted: {
+          srcIp: {},
+          destIp: {}
+        },
+        currentID: '',
         currentIndex: '',
         currentLength: ''
       },
@@ -537,11 +542,12 @@ class AlertController extends Component {
   }
   loadWorldMap = (options) => {
     const {baseUrl, contextRoot} = this.props;
-    const {activeTab, subSectionsData, currentPage, pageSizeMap} = this.state;
+    const {activeTab, subSectionsData, currentPage, pageSizeMap, alertDetails} = this.state;
     const setPage = options === 'search' ? 1 : currentPage;
     const url = `${baseUrl}/api/u1/alert/_search?page=${setPage}&pageSize=${pageSizeMap}&mapFlag=true`;
     const requestData = this.toQueryLanguage(options);
     let tempSubSectionsData = {...subSectionsData};
+    let tempAlertDetails = {...alertDetails};
 
     helper.getAjaxData('POST', url, requestData)
     .then(data => {
@@ -554,19 +560,116 @@ class AlertController extends Component {
       tempSubSectionsData.mapData[activeTab] = tempArray;
       tempSubSectionsData.totalCount[activeTab] = data.data.counts;
 
+      let publicData = {
+        srcIp: {},
+        destIp: {}
+      };
+
+      _.forEach(tempArray, val => {
+        if (!publicData.srcIp[val.srcIp]) {
+          publicData.srcIp[val.srcIp] = [];
+        }
+
+        if (!publicData.destIp[val.destIp]) {
+          publicData.destIp[val.destIp] = [];
+        }
+
+        publicData.srcIp[val.srcIp].push(val);
+        publicData.destIp[val.destIp].push(val);        
+      })
+
+      tempAlertDetails.publicFormatted.srcIp = publicData.srcIp;
+      tempAlertDetails.publicFormatted.destIp = publicData.destIp;
+
       this.setState({
-        subSectionsData: tempSubSectionsData
+        subSectionsData: tempSubSectionsData,
+        alertDetails: tempAlertDetails
       }, () => {
         this.getWorldMap();
       });
     });
   }
   getWorldMap = () => {
-    const {activeTab, geoJson, subSectionsData} = this.state;
+    const {activeTab, geoJson, subSectionsData, alertDetails} = this.state;
+    let tempGeoJson = {...geoJson};
+    let attacksDataArr = [];
+
+    _.forEach(WORLDMAP.features, val => {
+      const countryObj = {
+        type: 'geojson',
+        id: val.properties.name,
+        weight: 0.6,
+        fillColor: 'white',
+        color: '#182f48',
+        fillOpacity: 1
+      };
+
+      countryObj.geojson = val.geometry;
+      tempGeoJson.mapDataArr.push(countryObj);
+    });
+
+    _.forEach(subSectionsData.mapData[activeTab], val => {
+      const timestamp = helper.getFormattedDate(val.timestamp, 'local');
+
+      if (val.srcLatitude && val.srcLongitude) {
+        const count = alertDetails.publicFormatted.srcIp[val.srcIp].length;
+
+        attacksDataArr.push({
+          type: 'spot',
+          id: val.srcIp,
+          latlng: [
+            val.srcLatitude,
+            val.srcLongitude
+          ],
+          data: {
+            tag: 'red'
+          },
+          tooltip: () => {
+            return `
+              <div class='map-tooltip'>
+                <div><span class='key'>${t('payloadsFields.attacksCount')}:</span> <span class='count'>${count}</span></div>
+                <div><span class='key'>${t('payloadsFields.srcCountry')}:</span> <span class='value'>${val.srcCountry}</span></div>
+                <div><span class='key'>${t('payloadsFields.srcCity')}:</span> <span class='value'>${val.srcCity}</span></div>
+                <div><span class='key'>${t('payloadsFields.srcIp')}:</span> <span class='value'>${val.srcIp}</span></div>
+                <div><span class='key'>${t('payloadsFields.timestamp')}:</span> <span class='value'>${timestamp}</span></div>
+              </div>
+              `
+          }
+        });
+      }
+
+      if (val.destLatitude && val.destLongitude) {
+        const count = alertDetails.publicFormatted.destIp[val.destIp].length;
+
+        attacksDataArr.push({
+          type: 'spot',
+          id: val.destIp,
+          latlng: [
+            val.destLatitude,
+            val.destLongitude
+          ],
+          data: {
+            tag: 'yellow'
+          },
+          tooltip: () => {
+            return `
+              <div class='map-tooltip'>
+                <div><span class='key'>${t('payloadsFields.destCountry')}:</span> <span class='value'>${val.destCountry}</span></div>
+                <div><span class='key'>${t('payloadsFields.destCity')}:</span> <span class='value'>${val.destCity}</span></div>
+                <div><span class='key'>${t('payloadsFields.destIp')}:</span> <span class='value'>${val.destIp}</span></div>
+                <div><span class='key'>${t('payloadsFields.timestamp')}:</span> <span class='value'>${timestamp}</span></div>
+              </div>
+              `
+          }
+        });
+      }
+    });
+
+    tempGeoJson.attacksDataArr = attacksDataArr;
 
     this.setState({
       activeSubTab: 'worldMap',
-      geoJson: helper.getWorldMap(WORLDMAP, geoJson, subSectionsData.mapData[activeTab])
+      geoJson: tempGeoJson
     });
   }
   toQueryLanguage = (options) => {
@@ -906,7 +1009,34 @@ class AlertController extends Component {
     this.setState({
       alertDetails: tempAlertDetails
     }, () => {
-      this.openDetailInfo();
+      const {alertDetails} = this.state;
+      let data = '';
+
+      if (alertDetails.currentID) {
+        data = alertDetails.publicFormatted.srcIp[alertDetails.currentID] || alertDetails.publicFormatted.destIp[alertDetails.currentID];
+      }
+
+      this.openDetailInfo(data);
+    });
+  }
+  showTopoDetail = (id, eventInfo) => {
+    const {alertDetails} = this.state;
+    let tempAlertDetails = {...alertDetails};
+
+    if (!id || id.indexOf('.') < 0) {
+      return;
+    }
+
+    const uniqueIP = id;
+    const data = alertDetails.publicFormatted.srcIp[uniqueIP] || alertDetails.publicFormatted.destIp[uniqueIP];
+    tempAlertDetails.currentID = id;
+    tempAlertDetails.currentIndex = 0;
+    tempAlertDetails.currentLength = data.length;
+
+    this.setState({
+      alertDetails: tempAlertDetails
+    }, () => {
+      this.openDetailInfo(data);
     });
   }
   openDetailInfo = (index, allValue, evt) => {
@@ -916,11 +1046,15 @@ class AlertController extends Component {
     let itemID = '';
 
     if (index) {
-      tempAlertDetails.currentIndex = Number(index);
-      data = allValue;
+      if (_.isArray(index)) {
+        data = index[alertDetails.currentIndex];
+      } else {
+        tempAlertDetails.currentIndex = Number(index);
+        data = allValue;
 
-      if (allValue.id) {
-        itemID = allValue.id;
+        if (allValue.id) {
+          itemID = allValue.id;
+        }
       }
     } else {
       data = alertDetails.all[alertDetails.currentIndex];
@@ -967,7 +1101,15 @@ class AlertController extends Component {
     };
   }
   closeDialog = () => {
+    const tempAlertDetails = {
+      ...this.state.alertDetails,
+      currentID: '',
+      currentIndex: '',
+      currentLength: ''
+    };
+
     this.setState({
+      alertDetails: tempAlertDetails,
       modalOpen: false,
       openQueryOpen: false,
       saveQueryOpen: false,
@@ -1075,6 +1217,7 @@ class AlertController extends Component {
       LAconfig: this.state.LAconfig,
       mainEventsData: this.state.mainEventsData,
       geoJson: this.state.geoJson,
+      showTopoDetail: this.showTopoDetail,
       dataTableSort: this.state.sort,
       handleTableSort: this.handleTableSort,
       handleRowDoubleClick: this.handleRowDoubleClick,

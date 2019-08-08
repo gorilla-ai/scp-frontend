@@ -43,6 +43,9 @@ const CHARTS_LIST = [
   {
     id: 'Top10InternalSrcIp',
     key: 'srcIp'
+  },
+  {
+    id: 'Top10InternalMaskedIp'
   }
 ];
 const CHARTS_DATA = {
@@ -125,7 +128,7 @@ class Dashboard extends Component {
   }
   loadAlertData = (type) => {
     const {baseUrl, contextRoot} = this.props;
-    const {datetime, pieCharts, alertDetails, alertMapData} = this.state;
+    const {datetime, alertDetails} = this.state;
     const pageSize = type === 'maps' ? 10000 : 0;
     const url =`${baseUrl}/api/u1/alert/_search?page=1&pageSize=${pageSize}`;
     const dateTime = {
@@ -138,7 +141,9 @@ class Dashboard extends Component {
         condition: 'must',
         query: 'All'
       }],
-      search: ['Top10ExternalPotSrcCountry', 'Top10InternalSrcIp']
+      search: _.map(CHARTS_LIST, val => {
+        return val.id;
+      })
     };
 
     helper.getAjaxData('POST', url, requestData)
@@ -149,7 +154,6 @@ class Dashboard extends Component {
           val._source.index = val._index;
           return val._source;
         });
-        const alertMapData = tempArray;
         let tempAlertDetails = {...alertDetails};
         let publicData = {
           srcIp: {},
@@ -175,7 +179,7 @@ class Dashboard extends Component {
         this.setState({
           updatedTime: helper.getFormattedDate(Moment()),
           alertDetails: tempAlertDetails,
-          alertMapData
+          alertMapData: tempArray
         }, () => {
           this.getWorldMap();
         });
@@ -235,8 +239,8 @@ class Dashboard extends Component {
           }
         };
 
-        /* charts */
-        let tempPieCharts = {...pieCharts};
+        /* Get charts data */
+        let pieCharts = {};
 
         _.forEach(CHARTS_LIST, (val, i) => {
           let tempArr = [];
@@ -248,38 +252,44 @@ class Dashboard extends Component {
                 doc_count: data.aggregations[val2].doc_count
               });
             })
+          } else if (i === 3) {
+            const chartData = data.aggregations[val.id];
+
+            _.forEach(_.keys(chartData), val2 => {
+              if (val2 !== 'doc_count' && chartData[val2].doc_count) {
+                tempArr.push({
+                  key: val2,
+                  doc_count: chartData[val2].doc_count
+                });
+              }
+            })
           } else {
             const chartData = data.aggregations[val.id][val.path || val.key].buckets;
-            tempArr = this.filteredChartData(chartData, [val.id]);
+
+            if (chartData.length > 0) {
+              _.forEach(chartData, val2 => {
+                if (val2.key) { //Remove empty data
+                  tempArr.push({
+                    key: val2.key,
+                    doc_count: val2.doc_count
+                  });
+                }
+              })
+            }
           }
-          tempPieCharts[val.id] = tempArr;
+          pieCharts[val.id] = tempArr;
         })
 
         this.setState({
           updatedTime: helper.getFormattedDate(Moment()),
           chartAttributes,
-          pieCharts: tempPieCharts
+          pieCharts
         }, () => {
           this.getChartsData();
         });
       }
       return null;
     });
-  }
-  filteredChartData = (chartData, chartName) => {
-    if (chartData.length > 0) {
-      let tempArr = [];
-
-      _.forEach(chartData, val2 => {
-        if (val2.key) { //Remove empty data
-          tempArr.push({
-            key: val2.key,
-            doc_count: val2.doc_count
-          });
-        }
-      })
-      return tempArr;
-    }
   }
   // loadChartsData = () => {
   //   const {baseUrl, contextRoot} = this.props;
