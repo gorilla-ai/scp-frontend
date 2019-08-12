@@ -568,7 +568,8 @@
     "protocol": "Protocol",
     "attackCnt": "Attack Count",
     "level": "Level",
-    "configSrc": "Config Source",
+    "maskedIP": "Masked IP",
+    "configSrc": "Source",
     "options": ""
   },
   "payloadsFields": {

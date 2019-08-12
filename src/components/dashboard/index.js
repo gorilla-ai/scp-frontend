@@ -47,7 +47,8 @@ const CHARTS_LIST = [
     key: 'srcIp'
   },
   {
-    id: 'Top10InternalMaskedIp'
+    id: 'Top10InternalMaskedIp',
+    key: 'maskedIP'
   },
   {
     id: 'Top10SyslogConfigSource',

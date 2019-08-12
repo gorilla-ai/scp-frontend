@@ -568,7 +568,8 @@
     "protocol": "Protocol",
     "attackCnt": "攻擊次數",
     "level": "等級",
-    "configSrc": "Config來源",
+    "maskedIP": "網段",
+    "configSrc": "來源",
     "options": ""
   },
   "payloadsFields": {
