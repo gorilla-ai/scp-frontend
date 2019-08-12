@@ -209,6 +209,10 @@
     "txt-Top10ExternalPotSrcCountry": "外部國家告警統計",
     "txt-Top10InternalSrcIp": "內部主機告警統計",
     "txt-Top10InternalMaskedIp": "內部網段告警統計",
+    "txt-Top10SyslogConfigSource": "系統日誌類型統計",
+    "txt-diskUsage": "系統記憶體狀態",
+    "txt-diskAvail": "Disk Available Space (GB)",
+    "txt-diskTotal": "Disk Total Space (GB)",
     "txt-alertType": "告警類型",
     "txt-deviceName": "裝置名稱",
     "txt-ownerName": "所屬人員",
@@ -564,6 +568,7 @@
     "protocol": "Protocol",
     "attackCnt": "攻擊次數",
     "level": "等級",
+    "configSrc": "Config來源",
     "options": ""
   },
   "payloadsFields": {

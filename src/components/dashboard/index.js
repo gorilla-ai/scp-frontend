@@ -13,6 +13,7 @@ import BarChart from 'react-chart/build/src/components/bar'
 import Checkbox from 'react-ui/build/src/components/checkbox'
 import DataTable from 'react-ui/build/src/components/table'
 import DropDownList from 'react-ui/build/src/components/dropdown'
+import Metric from 'react-chart/build/src/components/metric'
 import PieChart from 'react-chart/build/src/components/pie'
 
 import {HocAlertDetails as AlertDetails} from '../common/alert-details'
@@ -28,6 +29,7 @@ let intervalId = null;
 const SEVERITY_TYPE = ['High', 'Medium', 'Low'];
 const PRIVATE = 'private';
 const PUBLIC = 'public';
+let pieCharts = {};
 
 //Charts ID must be unique
 const CHARTS_LIST = [
@@ -46,6 +48,11 @@ const CHARTS_LIST = [
   },
   {
     id: 'Top10InternalMaskedIp'
+  },
+  {
+    id: 'Top10SyslogConfigSource',
+    key: 'configSrc',
+    path: 'agg'
   }
 ];
 const CHARTS_DATA = {
@@ -91,12 +98,13 @@ class Dashboard extends Component {
       datetime: {
         from: helper.getStartDate('day'),
         to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
-        //from: '2019-02-18T15:00:00Z',
-        //to: '2019-02-18T23:23:36Z'
+        //from: '2019-08-06T01:00:00Z',
+        //to: '2019-08-07T02:02:13Z'
       },
       updatedTime: helper.getFormattedDate(Moment()),
       activeTab: 'statistics',
       ..._.cloneDeep(CHARTS_DATA),
+      metricData: {},
       mapType: PUBLIC,
       chartType: '',
       ..._.cloneDeep(MAPS_PUBLIC_DATA),
@@ -109,11 +117,15 @@ class Dashboard extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount = () => {
-    this.loadAlertData();
-    intervalId = setInterval(this.loadAlertData, 300000); //5 minutes
+    this.loadEverything();
+    intervalId = setInterval(this.loadEverything, 300000); //5 minutes
   }
   componentWillUnmount = () => {
     clearInterval(intervalId);
+  }
+  loadEverything = () => {
+    this.loadAlertData();
+    this.loadMetricData();
   }
   getText = (eventInfo, data) => {
     const text = data[0].number + ' ' + t('txt-at') + ' ' + Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss');
@@ -240,8 +252,6 @@ class Dashboard extends Component {
         };
 
         /* Get charts data */
-        let pieCharts = {};
-
         _.forEach(CHARTS_LIST, (val, i) => {
           let tempArr = [];
 
@@ -285,9 +295,43 @@ class Dashboard extends Component {
           chartAttributes,
           pieCharts
         }, () => {
-          this.getChartsData();
+          this.loadSyslogSrc();
         });
       }
+      return null;
+    });
+  }
+  loadSyslogSrc = () => {
+    const {baseUrl, contextRoot} = this.props;
+    const {datetime, alertDetails} = this.state;
+    const url =`${baseUrl}/api/u1/alert/_search?page=1&pageSize=0`;
+    const chartInfo = CHARTS_LIST[4];
+    const dateTime = {
+      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
+      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
+    };
+    const requestData = {
+      timestamp: [dateTime.from, dateTime.to],
+      filters: [{
+        condition: 'must',
+        query: chartInfo.id
+      }]
+    };
+
+    helper.getAjaxData('POST', url, requestData)
+    .then(data => {
+      data = data.aggregations[chartInfo.id][chartInfo.path].buckets;
+
+      if (data.length > 0) {
+        pieCharts[chartInfo.id] = data;
+      }
+
+      this.setState({
+        pieCharts
+      }, () => {
+        this.getChartsData();
+      });
+
       return null;
     });
   }
@@ -369,31 +413,61 @@ class Dashboard extends Component {
     let alertChartsList = [];
 
     _.forEach(CHARTS_LIST, val => {
-      alertChartsList.push({
-        chartID: val.id,
-        chartTitle: t('dashboard.txt-' + val.id),
-        chartKeyLabels: {
-          key: t('attacksFields.' + val.key),
-          doc_count: t('txt-count')
-        },
-        chartValueLabels: {
-          'Pie Chart': {
+      if (pieCharts[val.id].length > 0) {
+        alertChartsList.push({
+          chartID: val.id,
+          chartTitle: t('dashboard.txt-' + val.id),
+          chartKeyLabels: {
             key: t('attacksFields.' + val.key),
             doc_count: t('txt-count')
-          }
-        },
-        chartDataCfg: {
-          splitSlice: ['key'],
-          sliceSize: 'doc_count'
-        },
-        chartData: pieCharts[val.id],
-        type: 'pie'
-      });
+          },
+          chartValueLabels: {
+            'Pie Chart': {
+              key: t('attacksFields.' + val.key),
+              doc_count: t('txt-count')
+            }
+          },
+          chartDataCfg: {
+            splitSlice: ['key'],
+            sliceSize: 'doc_count'
+          },
+          chartData: pieCharts[val.id],
+          type: 'pie'
+        });
+      }
     })
 
     this.setState({
       alertChartsList
     });
+  }
+  loadMetricData = () => {
+    const {baseUrl, contextRoot} = this.props;
+    let tempMetricData = {...this.state.metricData};
+
+    ah.one({
+      url: `${baseUrl}/api/alert/diskUsage`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        data = data.rt;
+        tempMetricData.diskUsage = {
+          data: [{
+            diskAvail: data['disk.avail'],
+            diskTotal: data['disk.total']
+          }],
+          keyLabels: {
+            diskAvail: t('dashboard.txt-diskAvail'),
+            diskTotal: t('dashboard.txt-diskTotal')
+          }
+        };
+
+        this.setState({
+          metricData: tempMetricData
+        });
+      }
+    }) 
   }
   getWorldMap = () => {
     const {geoJson, alertDetails, alertMapData} = this.state;
@@ -817,6 +891,7 @@ class Dashboard extends Component {
       activeTab,
       chartAttributes,
       alertChartsList,
+      metricData,
       mapType,
       geoJson,
       floorList,
@@ -883,6 +958,19 @@ class Dashboard extends Component {
                   }
                 })
               }
+              <div className='chart-group c-box metric'>
+                {!_.isEmpty(metricData.diskUsage) &&
+                  <Metric
+                    id='complex-multi-group-metric'
+                    className='disk-usage'
+                    title={t('dashboard.txt-diskUsage')}
+                    data={metricData.diskUsage.data}
+                    dataCfg={{
+                      agg: ['diskAvail', 'diskTotal']
+                    }}
+                    keyLabels={metricData.diskUsage.keyLabels} />
+                }
+              </div>
             </div>
           }
 

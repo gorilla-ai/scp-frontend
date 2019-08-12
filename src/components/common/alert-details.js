@@ -463,10 +463,10 @@ class AlertDetails extends Component {
           </thead>
           <tbody>
             <tr>
-              <td className='align-center'>{this.getIpPortData('srcIp')}</td>
-              <td className='align-center'>{this.getIpPortData('srcPort')}</td>
-              <td className='align-center'>{this.getIpPortData('destIp')}</td>
-              <td className='align-center'>{this.getIpPortData('destPort')}</td>
+              <td className='align-center src-ip'>{this.getIpPortData('srcIp')}</td>
+              <td className='align-center src-port'>{this.getIpPortData('srcPort')}</td>
+              <td className='align-center dest-ip'>{this.getIpPortData('destIp')}</td>
+              <td className='align-center dest-port'>{this.getIpPortData('destPort')}</td>
             </tr>
           </tbody>
         </table>
