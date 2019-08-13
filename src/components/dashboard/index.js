@@ -124,15 +124,11 @@ class Dashboard extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount = () => {
-    this.loadEverything();
-    intervalId = setInterval(this.loadEverything, 300000); //5 minutes
+    this.loadAlertData();
+    intervalId = setInterval(this.loadAlertData, 300000); //5 minutes
   }
   componentWillUnmount = () => {
     clearInterval(intervalId);
-  }
-  loadEverything = () => {
-    this.loadAlertData();
-    this.loadMetricData();
   }
   getText = (eventInfo, data) => {
     const text = data[0].number + ' ' + t('txt-at') + ' ' + Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss');
@@ -362,6 +358,7 @@ class Dashboard extends Component {
           dnsMetricData
         }, () => {
           this.getPieChartsData();
+          this.loadMetricData();
         });
       }
       return null;
@@ -839,13 +836,11 @@ class Dashboard extends Component {
     this.setState({
       activeTab: tab,
       ..._.cloneDeep(CHARTS_DATA),
-      ..._.cloneDeep(MAPS_PUBLIC_DATA)
+      ..._.cloneDeep(MAPS_PUBLIC_DATA),
+      dnsMetricData: {},
+      diskMetricData: {}
     }, () => {
-      if (tab === 'maps') {
-        this.loadAlertData(tab);
-      } else {
-        this.loadEverything();
-      }
+      this.loadAlertData(tab);
     });
   }
   // testChartFunction = (evt, data, cfg) => {
