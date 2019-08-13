@@ -56,7 +56,7 @@ class ChartContent extends Component {
    * @returns none
    */
   getChartData = (prevProps) => {
-    const {chartData, markData, pageType, tableMouseOver} = this.props;
+    const {chartData, markData, chartColors, pageType, tableMouseOver} = this.props;
     let dataArr = [];
     let legend = {
       enabled: false
@@ -106,6 +106,10 @@ class ChartContent extends Component {
 
         legend.enabled = true;
         dataCfg.splitSeries = 'rule';
+
+        if (pageType === 'alert') {
+          colorCode = chartColors;
+        }
       }
 
       const chartAttributes = {

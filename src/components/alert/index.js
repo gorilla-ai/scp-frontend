@@ -71,6 +71,11 @@ const CHARTS_ID2 = [
   'topAttackPassword'
 ]
 const SEVERITY_TYPE = ['High', 'Medium', 'Low'];
+const ALERT_LEVEL_COLORS = {
+  High: '#d9576c',
+  Medium: '#d99857',
+  Low: '#57c3d9'
+};
 
 class AlertController extends Component {
   constructor(props) {
@@ -454,17 +459,7 @@ class AlertController extends Component {
           sortable: true,
           formatter: (value, allValue) => {
             if (tempData === 'Severity') {
-              let styleStatus = '';
-
-              if (value === 'High') {
-                styleStatus = '#d9576c';
-              } else if (value === 'Medium') {
-                styleStatus = '#d99857';
-              } else if (value === 'Low') {
-                styleStatus = '#57c3d9';
-              }
-
-              return <span className='severity' style={{backgroundColor: styleStatus}}>{value}</span>;
+              return <span className='severity' style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>;
             } else {
               if (tempData === '_eventDttm_') {
                 value = helper.getFormattedDate(value, 'local');
@@ -1189,6 +1184,7 @@ class AlertController extends Component {
       searchFields,
       activeTab,
       tableMouseOver,
+      chartColors: ALERT_LEVEL_COLORS,
       subTabMenu: this.state.subTabMenu,
       activeSubTab: this.state.activeSubTab,
       handleSubTabChange: this.handleSubTabChange,

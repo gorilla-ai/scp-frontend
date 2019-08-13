@@ -29,6 +29,11 @@ let intervalId = null;
 const SEVERITY_TYPE = ['High', 'Medium', 'Low'];
 const PRIVATE = 'private';
 const PUBLIC = 'public';
+const ALERT_LEVEL_COLORS = {
+  High: '#d9576c',
+  Medium: '#d99857',
+  Low: '#57c3d9'
+};
 let pieCharts = {};
 
 //Charts ID must be unique
@@ -269,6 +274,7 @@ class Dashboard extends Component {
             enabled: true
           },
           data: dataArr,
+          colors: ALERT_LEVEL_COLORS,
           onTooltip: this.onTooltip,
           dataCfg: {
             x: 'time',
@@ -904,7 +910,10 @@ class Dashboard extends Component {
                           data={alertChartsList[i].chartData}
                           keyLabels={alertChartsList[i].chartKeyLabels}
                           valueLabels={alertChartsList[i].chartValueLabels}
-                          dataCfg={alertChartsList[i].chartDataCfg} />
+                          dataCfg={alertChartsList[i].chartDataCfg}
+                          colors={{
+                            key: ALERT_LEVEL_COLORS
+                          }} />
                       </div>
                     )
                   } else if (alertChartsList[i].type === 'table') {

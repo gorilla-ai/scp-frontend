@@ -230,6 +230,7 @@ class TimebarChart extends Component {
             <ChartContent
               {...tabChartData}
               markData={markData}
+              chartColors={mainContentData.chartColors}
               pageType={mainContentData.activeTab}
               tableMouseOver={tableMouseOver} />
           }
