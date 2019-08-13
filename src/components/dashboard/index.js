@@ -143,26 +143,49 @@ class Dashboard extends Component {
     const {baseUrl, contextRoot} = this.props;
     const {datetime, alertDetails} = this.state;
     const pageSize = type === 'maps' ? 10000 : 0;
-    const url =`${baseUrl}/api/u1/alert/_search?page=1&pageSize=${pageSize}`;
+    const chartInfo = CHARTS_LIST[4];
     const dateTime = {
       from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
       to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
     };
-    const requestData = {
-      timestamp: [dateTime.from, dateTime.to],
-      filters: [{
-        condition: 'must',
-        query: 'All'
-      }],
-      search: _.map(CHARTS_LIST, val => {
-        return val.id;
-      })
-    };
+    const apiData = [
+      {
+        url: `${baseUrl}/api/u1/alert/_search?page=1&pageSize=${pageSize}`,
+        requestData: {
+          timestamp: [dateTime.from, dateTime.to],
+          filters: [{
+            condition: 'must',
+            query: 'All'
+          }],
+          search: _.map(CHARTS_LIST, val => {
+            return val.id;
+          })
+        }
+      },
+      {
+        url: `${baseUrl}/api/u1/alert/_search?page=1&pageSize=0`,
+        requestData: {
+          timestamp: [dateTime.from, dateTime.to],
+          filters: [{
+            condition: 'must',
+            query: chartInfo.id
+          }]
+        }
+      }
+    ];
+    const apiArr = _.map(apiData, val => {
+      return {
+        url: val.url,
+        data: JSON.stringify(val.requestData),
+        type: 'POST',
+        contentType: 'text/plain'
+      }
+    });
 
-    helper.getAjaxData('POST', url, requestData)
+    this.ah.all(apiArr)
     .then(data => {
       if (type === 'maps') {
-        const tempArray = _.map(data.data.rows, val => {
+        const tempArray = _.map(data[0].data.rows, val => {
           val._source.id = val._id;
           val._source.index = val._index;
           return val._source;
@@ -207,7 +230,7 @@ class Dashboard extends Component {
         let dataArr = [];
 
         _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for High, Medium, Low
-          _.forEach(data.event_histogram[val].buckets, val2 => {
+          _.forEach(data[0].event_histogram[val].buckets, val2 => {
             if (val2.doc_count > 0) {
               alertHistogram[val][val2.key_as_string] = val2.doc_count;
             }
@@ -260,11 +283,11 @@ class Dashboard extends Component {
             _.forEach(SEVERITY_TYPE, val2 => { //Create Alert histogram for High, Medium, Low
               tempArr.push({
                 key: val2,
-                doc_count: data.aggregations[val2].doc_count
+                doc_count: data[0].aggregations[val2].doc_count
               });
             })
           } else if (i === 3) {
-            const chartData = data.aggregations[val.id];
+            const chartData = data[0].aggregations[val.id];
 
             _.forEach(_.keys(chartData), val2 => {
               if (val2 !== 'doc_count' && chartData[val2].doc_count) {
@@ -275,7 +298,7 @@ class Dashboard extends Component {
               }
             })
           } else {
-            const chartData = data.aggregations[val.id][val.path || val.key].buckets;
+            const chartData = data[0].aggregations[val.id][val.path || val.key].buckets;
 
             if (chartData.length > 0) {
               _.forEach(chartData, val2 => {
@@ -291,124 +314,26 @@ class Dashboard extends Component {
           pieCharts[val.id] = tempArr;
         })
 
+        const configSrcData = data[1].aggregations[chartInfo.id][chartInfo.path].buckets;
+
+        if (configSrcData.length > 0) {
+          pieCharts[chartInfo.id] = configSrcData;
+        }
+
         this.setState({
           updatedTime: helper.getFormattedDate(Moment()),
           chartAttributes,
           pieCharts
         }, () => {
-          this.loadSyslogSrc();
+          this.getChartsData();
         });
       }
       return null;
-    });
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
-  loadSyslogSrc = () => {
-    const {baseUrl, contextRoot} = this.props;
-    const {datetime, alertDetails} = this.state;
-    const url =`${baseUrl}/api/u1/alert/_search?page=1&pageSize=0`;
-    const chartInfo = CHARTS_LIST[4];
-    const dateTime = {
-      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
-      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
-    };
-    const requestData = {
-      timestamp: [dateTime.from, dateTime.to],
-      filters: [{
-        condition: 'must',
-        query: chartInfo.id
-      }]
-    };
-
-    helper.getAjaxData('POST', url, requestData)
-    .then(data => {
-      data = data.aggregations[chartInfo.id][chartInfo.path].buckets;
-
-      if (data.length > 0) {
-        pieCharts[chartInfo.id] = data;
-      }
-
-      this.setState({
-        pieCharts
-      }, () => {
-        this.getChartsData();
-      });
-
-      return null;
-    });
-  }
-  // loadChartsData = () => {
-  //   const {baseUrl, contextRoot} = this.props;
-  //   const {datetime, pieCharts} = this.state;
-  //   const url =`${baseUrl}/api/u1/alert/_search?page=1&pageSize=0`;
-  //   const dateTime = {
-  //     from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
-  //     to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
-  //   };
-  //   let apiArr = [];
-
-  //   _.forEach(CHARTS_LIST, (val, i) => {
-  //     const chartID = val.id === 'alertThreatLevel' ? 'All' : val.id;
-  //     const dataObj = {
-  //       timestamp: [dateTime.from, dateTime.to],
-  //       filters: [{
-  //         condition: 'must',
-  //         query: 'All'
-  //       }],
-  //       search: ['Top10ExternalPotSrcCountry', 'Top10InternalSrcIp']
-  //     };
-
-  //     apiArr.push({
-  //       url: `${baseUrl}/api/u1/alert/_search?page=1&pageSize=0`,
-  //       data: JSON.stringify(dataObj),
-  //       type: 'POST',
-  //       contentType: 'text/plain'
-  //     })
-  //   })
-
-  //   this.ah.all(apiArr)
-  //   .then(data => {
-  //     let tempPieCharts = {...pieCharts};
-
-  //     _.forEach(CHARTS_LIST, (val, i) => {
-  //       if (i === 0) {
-  //         _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for High, Medium, Low
-  //           tempPieCharts.alertThreatLevel.push({
-  //             key: val,
-  //             doc_count: data[i].aggregations[val].doc_count
-  //           });
-  //         })
-  //       } else {
-  //         if (data[i].aggregations) {
-  //           const chartsData = data[i].aggregations[val.id].agg.buckets;
-  //           let tempArr = [];
-
-  //           if (chartsData.length > 0) {
-  //             _.forEach(chartsData, val2 => {
-  //               if (val2.key) { //Remove empty data
-  //                 tempArr.push({
-  //                   doc_count: val2.doc_count,
-  //                   key: val2.key
-  //                 });
-  //               }
-  //             })
-  //             tempPieCharts[val.id] = tempArr;
-  //           }
-  //         }
-  //       }
-  //     })
-
-  //     this.setState({
-  //       pieCharts: tempPieCharts
-  //     }, () => {
-  //       this.getChartsData();
-  //     });
-
-  //     return null;
-  //   })
-  //   .catch(err => {
-  //     helper.showPopupMsg('', t('txt-error'), err.message);
-  //   })
-  // }
   getChartsData = () => {
     const {pieCharts} = this.state;
     let alertChartsList = [];
@@ -559,6 +484,7 @@ class Dashboard extends Component {
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
     }, () => {
       const {mapType} = this.state;
+
       if (mapType === PUBLIC) {
         this.loadAlertData('maps');
       } else if (mapType === PRIVATE) {
@@ -878,7 +804,11 @@ class Dashboard extends Component {
       ..._.cloneDeep(CHARTS_DATA),
       ..._.cloneDeep(MAPS_PUBLIC_DATA)
     }, () => {
-      this.loadAlertData(tab);
+      if (tab === 'maps') {
+        this.loadAlertData(tab);
+      } else {
+        this.loadEverything();
+      }
     });
   }
   // testChartFunction = (evt, data, cfg) => {

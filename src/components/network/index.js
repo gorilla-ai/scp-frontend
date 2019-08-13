@@ -704,7 +704,7 @@ class Network extends Component {
       contentType: 'text/plain'
     }])
     .then(data => {
-      if (currentPage > 1 && data[0].data.rows.length === 0) {
+      if (currentPage > 1 && data[0].rows.length === 0) {
         helper.showPopupMsg('', t('txt-error'), t('network.connections.txt-maxDataMsg'));
 
         this.setState({
@@ -713,10 +713,9 @@ class Network extends Component {
         return;
       }
 
-      const tableData = data[0];
       let tempSubSectionsData = {...subSectionsData};
 
-      if (_.isEmpty(tableData) || (tableData && tableData.counts === 0)) {
+      if (_.isEmpty(data[0]) || data[0].counts === 0) {
         helper.showPopupMsg(t('txt-notFound', ''));
 
         let tempSubSectionsData = {...this.state.subSectionsData};
@@ -740,7 +739,7 @@ class Network extends Component {
         return;
       }
 
-      const tempArray = tableData.rows.map(tempData => {
+      const tempArray = data[0].rows.map(tempData => {
         if (activeTab === 'dns') {
           tempData.content.id = tempData.id;
         } else {
@@ -754,7 +753,7 @@ class Network extends Component {
         return tempData.content;
       });
 
-      const currentLength = tableData.rows.length < pageSize ? tableData.rows.length : pageSize;
+      const currentLength = data[0].rows.length < pageSize ? data[0].rows.length : pageSize;
 
       let tempFields = {};
       subSectionsData.tableColumns[activeTab].forEach(tempData => {
@@ -802,7 +801,7 @@ class Network extends Component {
       })
 
       const treeObj = this.getTreeData(data[1]);
-      tempSubSectionsData.totalCount[activeTab] = tableData.counts;
+      tempSubSectionsData.totalCount[activeTab] = data[0].counts;
       tempSubSectionsData.mainData[activeTab] = tempArray;
       tempSubSectionsData.fieldsData[activeTab] = tempFields;
 

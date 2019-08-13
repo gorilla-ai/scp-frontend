@@ -270,7 +270,7 @@ class AlertController extends Component {
         data: JSON.stringify(dataObj),
         type: 'POST',
         contentType: 'text/plain'
-      })
+      });
     })
 
     dataObj = {
