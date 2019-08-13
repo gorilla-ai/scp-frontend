@@ -32,7 +32,7 @@ const PUBLIC = 'public';
 let pieCharts = {};
 
 //Charts ID must be unique
-const CHARTS_LIST = [
+const PIE_CHARTS_LIST = [
   {
     id: 'alertThreatLevel',
     key: 'level'
@@ -54,6 +54,11 @@ const CHARTS_LIST = [
     id: 'Top10SyslogConfigSource',
     key: 'configSrc',
     path: 'agg'
+  },
+  {
+    id: 'dnsQuery',
+    key: 'query',
+    path: 'dns.status-term'
   }
 ];
 const CHARTS_DATA = {
@@ -105,7 +110,8 @@ class Dashboard extends Component {
       updatedTime: helper.getFormattedDate(Moment()),
       activeTab: 'statistics',
       ..._.cloneDeep(CHARTS_DATA),
-      metricData: {},
+      dnsMetricData: {},
+      diskMetricData: {},
       mapType: PUBLIC,
       chartType: '',
       ..._.cloneDeep(MAPS_PUBLIC_DATA),
@@ -143,7 +149,7 @@ class Dashboard extends Component {
     const {baseUrl, contextRoot} = this.props;
     const {datetime, alertDetails} = this.state;
     const pageSize = type === 'maps' ? 10000 : 0;
-    const chartInfo = CHARTS_LIST[4];
+    const configSrcInfo = PIE_CHARTS_LIST[4];
     const dateTime = {
       from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
       to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
@@ -157,7 +163,7 @@ class Dashboard extends Component {
             condition: 'must',
             query: 'All'
           }],
-          search: _.map(CHARTS_LIST, val => {
+          search: _.map(PIE_CHARTS_LIST, val => {
             return val.id;
           })
         }
@@ -168,8 +174,14 @@ class Dashboard extends Component {
           timestamp: [dateTime.from, dateTime.to],
           filters: [{
             condition: 'must',
-            query: chartInfo.id
+            query: configSrcInfo.id
           }]
+        }
+      },
+      {
+        url: `${baseUrl}/api/alert/dnsQuery?page=1&pageSize=0`,
+        requestData: {
+          timestamp: [dateTime.from, dateTime.to]
         }
       }
     ];
@@ -276,7 +288,7 @@ class Dashboard extends Component {
         };
 
         /* Get charts data */
-        _.forEach(CHARTS_LIST, (val, i) => {
+        _.forEach(PIE_CHARTS_LIST, (val, i) => {
           let tempArr = [];
 
           if (i === 0) {
@@ -297,7 +309,7 @@ class Dashboard extends Component {
                 });
               }
             })
-          } else {
+          } else if (i <= 4){
             const chartData = data[0].aggregations[val.id][val.path || val.key].buckets;
 
             if (chartData.length > 0) {
@@ -314,18 +326,42 @@ class Dashboard extends Component {
           pieCharts[val.id] = tempArr;
         })
 
-        const configSrcData = data[1].aggregations[chartInfo.id][chartInfo.path].buckets;
+        const configSrcData = data[1].aggregations[configSrcInfo.id][configSrcInfo.path].buckets;
 
         if (configSrcData.length > 0) {
-          pieCharts[chartInfo.id] = configSrcData;
+          pieCharts[configSrcInfo.id] = configSrcData;
         }
+
+        const dnsInfo = PIE_CHARTS_LIST[5];
+        const dnsQueryData = data[2].aggregations[dnsInfo.id][dnsInfo.path].buckets;
+
+        if (dnsQueryData.length > 0) {
+          pieCharts[dnsInfo.id] = dnsQueryData;
+        }
+
+        const dnsData = data[2].aggregations.session_histogram;
+        const dnsMetricData = {
+          id: 'dns-histogram',
+          data: [{
+            doc_count: dnsData.doc_count,
+            MegaPackages: dnsData.MegaPackages,
+            MegaBytes: dnsData.MegaBytes
+          }],
+          agg: ['doc_count', 'MegaPackages', 'MegaBytes'],
+          keyLabels: {
+            doc_count: t('dashboard.txt-session'),
+            MegaPackages: t('dashboard.txt-packet'),
+            MegaBytes: t('dashboard.txt-databyte')
+          }
+        };
 
         this.setState({
           updatedTime: helper.getFormattedDate(Moment()),
           chartAttributes,
-          pieCharts
+          pieCharts,
+          dnsMetricData
         }, () => {
-          this.getChartsData();
+          this.getPieChartsData();
         });
       }
       return null;
@@ -334,11 +370,11 @@ class Dashboard extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  getChartsData = () => {
+  getPieChartsData = () => {
     const {pieCharts} = this.state;
     let alertChartsList = [];
 
-    _.forEach(CHARTS_LIST, val => {
+    _.forEach(PIE_CHARTS_LIST, val => {
       if (pieCharts[val.id].length > 0) {
         alertChartsList.push({
           chartID: val.id,
@@ -369,7 +405,6 @@ class Dashboard extends Component {
   }
   loadMetricData = () => {
     const {baseUrl, contextRoot} = this.props;
-    let tempMetricData = {...this.state.metricData};
 
     ah.one({
       url: `${baseUrl}/api/alert/diskUsage`,
@@ -378,11 +413,13 @@ class Dashboard extends Component {
     .then(data => {
       if (data) {
         data = data.rt;
-        tempMetricData.diskUsage = {
+        const diskMetricData = {
+          id: 'disk-usage',
           data: [{
             diskAvail: data['disk.avail'],
             diskTotal: data['disk.total']
           }],
+          agg: ['diskAvail', 'diskTotal'],
           keyLabels: {
             diskAvail: t('dashboard.txt-diskAvail'),
             diskTotal: t('dashboard.txt-diskTotal')
@@ -390,7 +427,7 @@ class Dashboard extends Component {
         };
 
         this.setState({
-          metricData: tempMetricData
+          diskMetricData
         });
       }
     }) 
@@ -822,7 +859,8 @@ class Dashboard extends Component {
       activeTab,
       chartAttributes,
       alertChartsList,
-      metricData,
+      dnsMetricData,
+      diskMetricData,
       mapType,
       geoJson,
       floorList,
@@ -832,6 +870,7 @@ class Dashboard extends Component {
       seatData,
       modalOpen
     } = this.state;
+    const metricData = [dnsMetricData, diskMetricData];
 
     return (
       <div>
@@ -889,19 +928,25 @@ class Dashboard extends Component {
                   }
                 })
               }
-              <div className='chart-group c-box metric'>
-                {!_.isEmpty(metricData.diskUsage) &&
-                  <Metric
-                    id='complex-multi-group-metric'
-                    className='disk-usage'
-                    title={t('dashboard.txt-diskUsage')}
-                    data={metricData.diskUsage.data}
-                    dataCfg={{
-                      agg: ['diskAvail', 'diskTotal']
-                    }}
-                    keyLabels={metricData.diskUsage.keyLabels} />
-                }
-              </div>
+              {
+                metricData.map((key, i) => {
+                  if (!_.isEmpty(key.data)) {
+                    return (
+                      <div className='chart-group c-box metric' key={key.id}>
+                        <Metric
+                          id='complex-multi-group-metric'
+                          className={key.id}
+                          title={t('dashboard.txt-' + key.id)}
+                          data={key.data}
+                          dataCfg={{
+                            agg: key.agg
+                          }}
+                          keyLabels={key.keyLabels} />
+                      </div>
+                    )
+                  }
+                })
+              }
             </div>
           }
 

@@ -371,7 +371,7 @@ class AlertController extends Component {
     const {baseUrl, contextRoot} = this.props;
     const {activeTab, currentPage, oldPage, pageSize, subSectionsData, account, alertDetails} = this.state;
     const setPage = options === 'search' ? 1 : currentPage;
-    const url =`${baseUrl}/api/u1/alert/_search?page=${setPage}&pageSize=${pageSize}`;
+    const url = `${baseUrl}/api/u1/alert/_search?page=${setPage}&pageSize=${pageSize}`;
     const requestData = this.toQueryLanguage(options);
 
     helper.getAjaxData('POST', url, requestData)
