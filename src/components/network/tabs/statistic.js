@@ -149,7 +149,7 @@ class StatisticNew extends Component {
 }
 
 StatisticNew.propTypes = {
-  statisticCharts: PropTypes.object.isRequired
+  alertStatisticData: PropTypes.object.isRequired
 };
 
 export default withLocale(StatisticNew);

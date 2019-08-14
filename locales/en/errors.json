@@ -42,7 +42,7 @@
 	"13008":"Group does not have this role",
 	"13009":"Owner does not exist",
 
-	"1001":"無權限存取",
+	"1001":"Access not allowed",
 	"1101":"請輸入欄位: {{field}}",
 
 	"-13": "Please set the valid Agent end time",

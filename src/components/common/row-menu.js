@@ -8,6 +8,14 @@ class RowMenu extends Component {
 	constructor(props) {
 		super(props)
 	}
+	checkDisabled = (data) => {
+		const name = data.name;
+
+		if (name === 'syslog' || name === 'eventlog') {
+			return true;
+		}
+		return false;
+	}
 	handleRowContextMenu(evt) {
 		const {page, text, targetEdit, targetDelete, targetUnlock, targetEventDist, targetEvents} = this.props
 		let edit = { 
@@ -29,7 +37,8 @@ class RowMenu extends Component {
 			{
 				id: 'delete',
 				text: text.delete,
-				action: () => this.props.onDelete(targetDelete)
+				action: () => this.props.onDelete(targetDelete),
+				disabled: this.checkDisabled(targetDelete)
 			}
 		]
 

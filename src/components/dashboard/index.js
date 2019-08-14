@@ -77,6 +77,7 @@ const MAPS_PUBLIC_DATA = {
       srcIp: {},
       destIp: {}
     },
+    private: {},
     currentID: '',
     currentIndex: '',
     currentLength: ''
@@ -113,11 +114,11 @@ class Dashboard extends Component {
         //to: '2019-08-07T02:02:13Z'
       },
       updatedTime: helper.getFormattedDate(Moment()),
-      activeTab: 'statistics',
+      activeTab: 'statistics', //maps
       ..._.cloneDeep(CHARTS_DATA),
       dnsMetricData: {},
       diskMetricData: {},
-      mapType: PUBLIC,
+      mapType: PUBLIC, //PRIVATE
       chartType: '',
       ..._.cloneDeep(MAPS_PUBLIC_DATA),
       ..._.cloneDeep(MAPS_PRIVATE_DATA),
@@ -129,6 +130,7 @@ class Dashboard extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount = () => {
+    //this.getFloorPlan();
     this.loadAlertData();
     intervalId = setInterval(this.loadAlertData, 300000); //5 minutes
   }
@@ -146,6 +148,12 @@ class Dashboard extends Component {
       </div>
     )
   }
+  formattedPieChartsList = () => {
+    const tempPieChartsList = _.cloneDeep(PIE_CHARTS_LIST);
+    tempPieChartsList.shift(); //Remove first chart from list
+    tempPieChartsList.pop(); //Remove last chart from list
+    return tempPieChartsList;
+  }
   loadAlertData = (type) => {
     const {baseUrl, contextRoot} = this.props;
     const {datetime, alertDetails} = this.state;
@@ -155,6 +163,7 @@ class Dashboard extends Component {
       from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
       to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
     };
+    const tempPieChartsList = this.formattedPieChartsList();
     const apiData = [
       {
         url: `${baseUrl}/api/u1/alert/_search?page=1&pageSize=${pageSize}`,
@@ -164,7 +173,7 @@ class Dashboard extends Component {
             condition: 'must',
             query: 'All'
           }],
-          search: _.map(PIE_CHARTS_LIST, val => {
+          search: _.map(tempPieChartsList, val => {
             return val.id;
           })
         }
@@ -1016,29 +1025,140 @@ class Dashboard extends Component {
                     required={true}
                     onChange={this.handleFloorChange}
                     value={currentFloor} />
-                  {currentMap &&
-                    <Gis
-                      className='floor-map-area'
-                      _ref={(ref) => {this.gisNode = ref}}
-                      data={_.get(seatData, [currentFloor, 'data'])}
-                      baseLayers={currentBaseLayers}
-                      baseLayer={currentFloor}
-                      layouts={['standard']}
-                      dragModes={['pan']}
-                      scale={{enabled: false}}
-                      onClick={this.showTopoDetail.bind(this, PRIVATE)}
-                      symbolOptions={[{
-                        match: {
-                          data: {tag: 'red'}
-                        },
-                        props: {
-                          backgroundColor: 'red',
-                          tooltip: ({data}) => {
-                            return this.showPrivateTooltip(data);
-                          }
-                        }
-                      }]} />
-                  }
+                  <div className='content'>
+                    <ul>
+                      <li>
+                        <div className='info'>
+                          <span className='ip'>192.168.88.1</span>
+                          <span className='host'>PC-1200</span>
+                        </div>
+                        <span className='count' style={{backgroundColor: '#d9576c'}}>10</span>
+                      </li>
+                      <li>
+                        <div className='info'>
+                          <span className='ip'>192.168.100.29</span>
+                          <span className='host'>NB-0001</span>
+                        </div>
+                        <span className='count' style={{backgroundColor: '#d9576c'}}>14</span>
+                      </li>
+                      <li>
+                        <div className='info'>
+                          <span className='ip'>192.168.0.36</span>
+                          <span className='host'>PC-1008</span>
+                        </div>
+                        <span className='count' style={{backgroundColor: 'rgb(217, 152, 87)'}}>20</span>
+                      </li>
+                      <li>
+                        <div className='info'>
+                          <span className='ip'>192.168.88.1</span>
+                          <span className='host'>PC-1200</span>
+                        </div>
+                        <span className='count' style={{backgroundColor: '#d9576c'}}>10</span>
+                      </li>
+                      <li>
+                        <div className='info'>
+                          <span className='ip'>192.168.100.29</span>
+                          <span className='host'>NB-0001</span>
+                        </div>
+                        <span className='count' style={{backgroundColor: '#d9576c'}}>14</span>
+                      </li>
+                      <li>
+                        <div className='info'>
+                          <span className='ip'>192.168.0.36</span>
+                          <span className='host'>PC-1008</span>
+                        </div>
+                        <span className='count' style={{backgroundColor: 'rgb(217, 152, 87)'}}>20</span>
+                      </li>
+                      <li>
+                        <div className='info'>
+                          <span className='ip'>192.168.88.1</span>
+                          <span className='host'>PC-1200</span>
+                        </div>
+                        <span className='count' style={{backgroundColor: '#d9576c'}}>10</span>
+                      </li>
+                      <li>
+                        <div className='info'>
+                          <span className='ip'>192.168.100.29</span>
+                          <span className='host'>NB-0001</span>
+                        </div>
+                        <span className='count' style={{backgroundColor: '#d9576c'}}>14</span>
+                      </li>
+                      <li>
+                        <div className='info'>
+                          <span className='ip'>192.168.0.36</span>
+                          <span className='host'>PC-1008</span>
+                        </div>
+                        <span className='count' style={{backgroundColor: 'rgb(217, 152, 87)'}}>20</span>
+                      </li>
+                      <li>
+                        <div className='info'>
+                          <span className='ip'>192.168.88.1</span>
+                          <span className='host'>PC-1200</span>
+                        </div>
+                        <span className='count' style={{backgroundColor: '#d9576c'}}>10</span>
+                      </li>
+                      <li>
+                        <div className='info'>
+                          <span className='ip'>192.168.100.29</span>
+                          <span className='host'>NB-0001</span>
+                        </div>
+                        <span className='count' style={{backgroundColor: '#d9576c'}}>14</span>
+                      </li>
+                      <li>
+                        <div className='info'>
+                          <span className='ip'>192.168.0.36</span>
+                          <span className='host'>PC-1008</span>
+                        </div>
+                        <span className='count' style={{backgroundColor: 'rgb(217, 152, 87)'}}>20</span>
+                      </li>
+                      <li>
+                        <div className='info'>
+                          <span className='ip'>192.168.88.1</span>
+                          <span className='host'>PC-1200</span>
+                        </div>
+                        <span className='count' style={{backgroundColor: '#d9576c'}}>10</span>
+                      </li>
+                      <li>
+                        <div className='info'>
+                          <span className='ip'>192.168.100.29</span>
+                          <span className='host'>NB-0001</span>
+                        </div>
+                        <span className='count' style={{backgroundColor: '#d9576c'}}>14</span>
+                      </li>
+                      <li>
+                        <div className='info'>
+                          <span className='ip'>192.168.0.36</span>
+                          <span className='host'>PC-1008</span>
+                        </div>
+                        <span className='count' style={{backgroundColor: 'rgb(217, 152, 87)'}}>20</span>
+                      </li>
+                    </ul>
+                    <div className='map'>
+                      {currentMap &&
+                        <Gis
+                          className='floor-map-area'
+                          _ref={(ref) => {this.gisNode = ref}}
+                          data={_.get(seatData, [currentFloor, 'data'])}
+                          baseLayers={currentBaseLayers}
+                          baseLayer={currentFloor}
+                          layouts={['standard']}
+                          dragModes={['pan']}
+                          scale={{enabled: false}}
+                          onClick={this.showTopoDetail.bind(this, PRIVATE)}
+                          symbolOptions={[{
+                            match: {
+                              data: {tag: 'red'}
+                            },
+                            props: {
+                              backgroundColor: 'red',
+                              tooltip: ({data}) => {
+                                return this.showPrivateTooltip(data);
+                              }
+                            }
+                          }]} />
+                      }
+                    </div>
+                  </div>
                 </div>
               }
             </div>

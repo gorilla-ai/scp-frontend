@@ -284,6 +284,12 @@ class Syslog extends Component {
     })
   }
   modalDelete(obj) {
+    const eventNme = obj.name
+
+    if (eventNme === 'syslog' || eventNme === 'eventlog') {
+      return null;
+    }
+
     PopupDialog.prompt({
       title: t('syslogFields.txt-delSyslog'),
       id: 'modalWindow',
