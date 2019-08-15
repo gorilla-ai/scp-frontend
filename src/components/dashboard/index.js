@@ -8,6 +8,7 @@ import cx from 'classnames'
 
 import Gis from 'react-gis/build/src/components'
 import WORLDMAP from '../../mock/world-map-low.json'
+import AlertPrivateData from '../../mock/alert-private.json'
 
 import BarChart from 'react-chart/build/src/components/bar'
 import Checkbox from 'react-ui/build/src/components/checkbox'
@@ -77,7 +78,10 @@ const MAPS_PUBLIC_DATA = {
       srcIp: {},
       destIp: {}
     },
-    private: {},
+    private: {
+      tree: [],
+      data: ''
+    },
     currentID: '',
     currentIndex: '',
     currentLength: ''
@@ -114,12 +118,12 @@ class Dashboard extends Component {
         //to: '2019-08-07T02:02:13Z'
       },
       updatedTime: helper.getFormattedDate(Moment()),
-      activeTab: 'statistics', //maps
+      activeTab: 'statistics', //maps statistics
       ..._.cloneDeep(CHARTS_DATA),
       dnsMetricData: {},
       diskMetricData: {},
-      mapType: PUBLIC, //PRIVATE
-      chartType: '',
+      mapType: PUBLIC, //PRIVATE PUBLIC
+      locationType: '',
       ..._.cloneDeep(MAPS_PUBLIC_DATA),
       ..._.cloneDeep(MAPS_PRIVATE_DATA),
       modalOpen: false
@@ -563,18 +567,21 @@ class Dashboard extends Component {
       data = alertDetails.publicFormatted.srcIp[uniqueIP] || alertDetails.publicFormatted.destIp[uniqueIP];
       tempAlertDetails.currentLength = data.length;
     } else if (type === PRIVATE) {
-      const seatUUID = id;
-      let tempPrivateData = [];
+      //const seatUUID = id;
+      // let tempPrivateData = [];
 
-      _.forEach(alertDetails.private, val => {
-        if (val.content.srcTopoInfo && val.content.srcTopoInfo.seatUUID === seatUUID) {
-          tempPrivateData.push(val.content);
-        }
-      })
+      // _.forEach(alertDetails.private.data, val => {
+      //   if (val._source.srcTopoInfo && val._source.srcTopoInfo.seatUUID === seatUUID) {
+      //     tempPrivateData.push(val._source);
+      //   }
+      // })
 
-      tempAlertDetails.privateFormatted = tempPrivateData;
-      tempAlertDetails.currentLength = tempPrivateData.length;
-      data = tempPrivateData[0];
+      //tempAlertDetails.privateFormatted = tempPrivateData;
+      //tempAlertDetails.currentLength = tempPrivateData.length;
+      //data = tempPrivateData[0];
+
+      tempAlertDetails.currentLength = alertDetails.private.data.length;
+      data = alertDetails.private.data[0];
     }
 
     this.setState({
@@ -584,7 +591,7 @@ class Dashboard extends Component {
     });
   }
   showAlertData = (type) => {
-    const {chartType, alertDetails} = this.state;
+    const {locationType, alertDetails} = this.state;
     let tempAlertDetails = {...alertDetails};
 
     if (type === 'previous') {
@@ -603,41 +610,41 @@ class Dashboard extends Component {
       const {alertDetails} = this.state;
       let data = '';
 
-      if (chartType === PRIVATE) {
-        data = alertDetails.privateFormatted[alertDetails.currentIndex];
-      } else if (chartType === PUBLIC) {
+      if (locationType === PRIVATE) {
+        data = alertDetails.private[alertDetails.currentIndex];
+      } else if (locationType === PUBLIC) {
         data = alertDetails.publicFormatted.srcIp[alertDetails.currentID] || alertDetails.publicFormatted.destIp[alertDetails.currentID];
       }
-      this.openDetailInfo(chartType, data);
+      this.openDetailInfo(locationType, data);
     });
   }
   openDetailInfo = (type, data) => {
     const {alertDetails} = this.state;
     let tempAlertDetails = {...alertDetails};
-    let chartType = '';
+    let locationType = '';
 
     if (type.indexOf(PRIVATE) > -1) {
-      chartType = PRIVATE;
+      locationType = PRIVATE;
     } else if (type.indexOf(PUBLIC) > -1) {
-      chartType = PUBLIC;
+      locationType = PUBLIC;
     }
 
     if (alertDetails.currentIndex.toString() !== '') {
-      if (chartType === PUBLIC) {
+      if (locationType === PUBLIC) {
         data = data[alertDetails.currentIndex];
       }
     }
 
     this.setState({
       alertDetails: tempAlertDetails,
-      chartType,
+      locationType,
       alertData: data,
       modalOpen: true
     });
   }
   modalDialog = () => {
     const {baseUrl, contextRoot, language} = this.props;
-    const {alertDetails, alertData} = this.state;
+    const {alertDetails, alertData, locationType} = this.state;
     const actions = {
       confirm: {text: t('txt-close'), handler: this.closeDialog}
     };
@@ -652,12 +659,13 @@ class Dashboard extends Component {
         alertDetails={alertDetails}
         alertData={alertData}
         showAlertData={this.showAlertData}
-        fromPage='dashboard' />
+        fromPage='dashboard'
+        locationType={locationType} />
     )
   }
   closeDialog = () => {
     this.setState({
-      chartType: '',
+      locationType: '',
       alertDetails: {
         ...this.state.alertDetails,
         currentID: '',
@@ -692,37 +700,37 @@ class Dashboard extends Component {
       }
     })
   }
-  filterTopologyData = (mainData, matchObjPath, matchID) => {
-    const filterData = _.filter(mainData, { 'srcLocType': 2 }); //Filter the intranet (type: 2)
-    const data = _.filter(filterData, obj => { //Get the data for the selected area
-      return _.get(obj, matchObjPath) === matchID;
-    });
-    return data;
-  }
+  // filterTopologyData = (mainData, matchObjPath, matchID) => {
+  //   const filterData = _.filter(mainData, { 'srcLocType': 2 }); //Filter the intranet (type: 2)
+  //   const data = _.filter(filterData, obj => { //Get the data for the selected area
+  //     return _.get(obj, matchObjPath) === matchID;
+  //   });
+  //   return data;
+  // }
   getFloorList = () => {
-    const {floorPlan, alertDetails} = this.state;
-    let tempFloorPlan = {...floorPlan};
-    let attacksCount = {};
+    const {floorPlan} = this.state;
+    //let tempFloorPlan = {...floorPlan};
+    //let attacksCount = {};
     let floorList = [];
     let currentFloor = '';
 
-    const privateTopoData = _.map(alertDetails.private, val => {
-      return val.content;
-    });
+    // const privateTopoData = _.map(alertDetails.private, val => {
+    //   return val.content;
+    // });
 
     _.forEach(floorPlan.treeData, val => {
       helper.floorPlanRecursive(val, obj => {
-        const filterData = this.filterTopologyData(privateTopoData, 'srcTopoInfo.areaUUID', obj.areaUUID);
-        const count = filterData.length;
+        // const filterData = this.filterTopologyData(privateTopoData, 'srcTopoInfo.areaUUID', obj.areaUUID);
+        // const count = filterData.length;
 
         floorList.push({
           value: obj.areaUUID,
-          text: obj.areaName + ' (' + count + ')'
+          text: obj.areaName
         });
       });
     })
 
-    currentFloor = floorList[0].value;
+    currentFloor = floorList[5].value;
 
     this.setState({
       floorList,
@@ -730,9 +738,6 @@ class Dashboard extends Component {
     }, () => {
       this.getAreaData(currentFloor);
     });
-  }
-  handleFloorChange = (areaUUID) => {
-    this.getAreaData(areaUUID);
   }
   getAreaData = (areaUUID) => {
     const {baseUrl, contextRoot} = this.props;
@@ -772,40 +777,85 @@ class Dashboard extends Component {
         currentBaseLayers,
         currentFloor: areaUUID
       }, () => {
-        this.getSeatData(areaUUID);
+        this.loadAlertPrivateData();
       });
     })
   }
-  getSeatData = (areaUUID) => {
-    const {alertDetails} = this.state;
+  loadAlertPrivateData = () => {
+    const {alertDetails, currentFloor} = this.state;
+    const areaUUID = currentFloor;
+    const allPrivateData = AlertPrivateData.rt.aggregations.Top10InternalSrcIp.srcIp.buckets;
+    const allPrivateList = AlertPrivateData.rt.data.rows;
+    let tempAlertDetails = {...alertDetails};
+    let currentPrivateData = [];
+
+    _.forEach(allPrivateData, val => {
+      if (val.srcTopoInfo.areaUUID === areaUUID) {
+        currentPrivateData.push(val);
+      }
+    })
+
+    const tempArray = _.map(allPrivateList, val => {
+      val._source.id = val._id;
+      val._source.index = val._index;
+      return val._source;
+    });
+
+    tempAlertDetails.private.tree = currentPrivateData;
+    tempAlertDetails.private.data = tempArray;
+
+    this.setState({
+      alertDetails: tempAlertDetails
+    }, () => {
+      this.getSeatData();
+    });
+  }
+  getSeatData = () => {
+    const {baseUrl, contextRoot} = this.props;
+    const {alertDetails, currentFloor} = this.state;
+    const areaUUID = currentFloor;
     let tempAlertDetails = [];
     let tempSeatID = '';
     let seatListArr = [];
     let seatData = {};
 
-    _.forEach(alertDetails.private, val => {
-      if (val.content.srcTopoInfo && val.content.srcTopoInfo.areaUUID === areaUUID) {
+    _.forEach(alertDetails.private.data, val => {
+      if (val.srcTopoInfo && val.srcTopoInfo.areaUUID === areaUUID) {
         if (tempSeatID) {
-          if (tempSeatID !== val.content.srcTopoInfo.seatUUID) {
-            tempSeatID = val.content.srcTopoInfo.seatUUID;
-            tempAlertDetails.push(val.content.srcTopoInfo);
+          if (tempSeatID !== val.srcTopoInfo.seatUUID) {
+            tempSeatID = val.srcTopoInfo.seatUUID;
+            tempAlertDetails.push(val.srcTopoInfo);
           }
         } else {
-          tempSeatID = val.content.srcTopoInfo.seatUUID;
-          tempAlertDetails.push(val.content.srcTopoInfo);
+          tempSeatID = val.srcTopoInfo.seatUUID;
+          tempAlertDetails.push(val.srcTopoInfo);
         }
       }
-    });
+    })
+
+    // _.forEach(alertDetails.private, val => {
+    //   if (val.content.srcTopoInfo && val.content.srcTopoInfo.areaUUID === areaUUID) {
+    //     if (tempSeatID) {
+    //       if (tempSeatID !== val.content.srcTopoInfo.seatUUID) {
+    //         tempSeatID = val.content.srcTopoInfo.seatUUID;
+    //         tempAlertDetails.push(val.content.srcTopoInfo);
+    //       }
+    //     } else {
+    //       tempSeatID = val.content.srcTopoInfo.seatUUID;
+    //       tempAlertDetails.push(val.content.srcTopoInfo);
+    //     }
+    //   }
+    // });
 
     if (tempAlertDetails.length > 0) {
       _.forEach(tempAlertDetails, val => {
         let tempSeatData = [];
 
-        _.forEach(alertDetails.private, val2 => {
-          if (val2.content.srcTopoInfo && val2.content.srcTopoInfo.seatUUID === val.seatUUID) {
-            tempSeatData.push(val2.content);
+        _.forEach(alertDetails.private.data, val2 => {
+          if (val2.srcTopoInfo && val2.srcTopoInfo.seatUUID === val.seatUUID) {
+            tempSeatData.push(val2);
           }
-        })
+        })   
 
         seatListArr.push({
           id: val.seatUUID,
@@ -872,6 +922,7 @@ class Dashboard extends Component {
       dnsMetricData,
       diskMetricData,
       mapType,
+      alertDetails,
       geoJson,
       floorList,
       currentFloor,
@@ -1023,115 +1074,24 @@ class Dashboard extends Component {
                     className='drop-down'
                     list={floorList}
                     required={true}
-                    onChange={this.handleFloorChange}
+                    onChange={this.getAreaData}
                     value={currentFloor} />
                   <div className='content'>
                     <ul>
-                      <li>
-                        <div className='info'>
-                          <span className='ip'>192.168.88.1</span>
-                          <span className='host'>PC-1200</span>
-                        </div>
-                        <span className='count' style={{backgroundColor: '#d9576c'}}>10</span>
-                      </li>
-                      <li>
-                        <div className='info'>
-                          <span className='ip'>192.168.100.29</span>
-                          <span className='host'>NB-0001</span>
-                        </div>
-                        <span className='count' style={{backgroundColor: '#d9576c'}}>14</span>
-                      </li>
-                      <li>
-                        <div className='info'>
-                          <span className='ip'>192.168.0.36</span>
-                          <span className='host'>PC-1008</span>
-                        </div>
-                        <span className='count' style={{backgroundColor: 'rgb(217, 152, 87)'}}>20</span>
-                      </li>
-                      <li>
-                        <div className='info'>
-                          <span className='ip'>192.168.88.1</span>
-                          <span className='host'>PC-1200</span>
-                        </div>
-                        <span className='count' style={{backgroundColor: '#d9576c'}}>10</span>
-                      </li>
-                      <li>
-                        <div className='info'>
-                          <span className='ip'>192.168.100.29</span>
-                          <span className='host'>NB-0001</span>
-                        </div>
-                        <span className='count' style={{backgroundColor: '#d9576c'}}>14</span>
-                      </li>
-                      <li>
-                        <div className='info'>
-                          <span className='ip'>192.168.0.36</span>
-                          <span className='host'>PC-1008</span>
-                        </div>
-                        <span className='count' style={{backgroundColor: 'rgb(217, 152, 87)'}}>20</span>
-                      </li>
-                      <li>
-                        <div className='info'>
-                          <span className='ip'>192.168.88.1</span>
-                          <span className='host'>PC-1200</span>
-                        </div>
-                        <span className='count' style={{backgroundColor: '#d9576c'}}>10</span>
-                      </li>
-                      <li>
-                        <div className='info'>
-                          <span className='ip'>192.168.100.29</span>
-                          <span className='host'>NB-0001</span>
-                        </div>
-                        <span className='count' style={{backgroundColor: '#d9576c'}}>14</span>
-                      </li>
-                      <li>
-                        <div className='info'>
-                          <span className='ip'>192.168.0.36</span>
-                          <span className='host'>PC-1008</span>
-                        </div>
-                        <span className='count' style={{backgroundColor: 'rgb(217, 152, 87)'}}>20</span>
-                      </li>
-                      <li>
-                        <div className='info'>
-                          <span className='ip'>192.168.88.1</span>
-                          <span className='host'>PC-1200</span>
-                        </div>
-                        <span className='count' style={{backgroundColor: '#d9576c'}}>10</span>
-                      </li>
-                      <li>
-                        <div className='info'>
-                          <span className='ip'>192.168.100.29</span>
-                          <span className='host'>NB-0001</span>
-                        </div>
-                        <span className='count' style={{backgroundColor: '#d9576c'}}>14</span>
-                      </li>
-                      <li>
-                        <div className='info'>
-                          <span className='ip'>192.168.0.36</span>
-                          <span className='host'>PC-1008</span>
-                        </div>
-                        <span className='count' style={{backgroundColor: 'rgb(217, 152, 87)'}}>20</span>
-                      </li>
-                      <li>
-                        <div className='info'>
-                          <span className='ip'>192.168.88.1</span>
-                          <span className='host'>PC-1200</span>
-                        </div>
-                        <span className='count' style={{backgroundColor: '#d9576c'}}>10</span>
-                      </li>
-                      <li>
-                        <div className='info'>
-                          <span className='ip'>192.168.100.29</span>
-                          <span className='host'>NB-0001</span>
-                        </div>
-                        <span className='count' style={{backgroundColor: '#d9576c'}}>14</span>
-                      </li>
-                      <li>
-                        <div className='info'>
-                          <span className='ip'>192.168.0.36</span>
-                          <span className='host'>PC-1008</span>
-                        </div>
-                        <span className='count' style={{backgroundColor: 'rgb(217, 152, 87)'}}>20</span>
-                      </li>
+                      {alertDetails.private.tree.length > 0 &&
+                        alertDetails.private.tree.map((val, i) => {
+                          return (
+                            <li>
+                              <div className='info'>
+                                <span className='ip'>{val.key}</span>
+                                <span className='host'>{val.srcTopoInfo.hostName}</span>
+                              </div>
+                              <span className='count' style={{backgroundColor: ALERT_LEVEL_COLORS[val.Severity]}}>{val.doc_count}</span>
+                            </li>
+                          )
+                        })
+                      }
+
                     </ul>
                     <div className='map'>
                       {currentMap &&

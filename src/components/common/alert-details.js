@@ -132,18 +132,23 @@ class AlertDetails extends Component {
    * @returns none
    */
   getIPcontent = (type) => {
-    const {baseUrl, alertData, fromPage} = this.props;
+    const {baseUrl, alertData, fromPage, locationType} = this.props;
     const {alertInfo} = this.state;
     const ip = this.getIpPortData(type);
-    const locationType = type.replace('Ip', '');
     let tempAlertInfo = {...alertInfo};
 
     if (fromPage === 'dashboard') { //Get topo info for Dashboard page
-      tempAlertInfo[type].topology = alertData[locationType + 'TopoInfo'];
+      const srcDestType = type.replace('Ip', '');
 
-      _.forEach(PUBLIC_KEY, val => {
-        tempAlertInfo[type].location[val] = alertData[locationType + val];
-      })
+      if (locationType === 'public') {
+        tempAlertInfo[type].topology = alertData[srcDestType + 'TopoInfo'];
+
+        _.forEach(PUBLIC_KEY, val => {
+          tempAlertInfo[type].location[val] = alertData[srcDestType + val];
+        })
+      } else if (locationType === 'private') {
+        tempAlertInfo[type].topology = alertData[srcDestType + 'TopoInfo'];
+      }
     } else if (fromPage === 'alert') { //Get topo info for Alert page
       ah.one({
         url: `${baseUrl}/api/alert/ip2loc?ip=${ip}`,
