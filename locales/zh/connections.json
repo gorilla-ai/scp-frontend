@@ -245,17 +245,20 @@
     "txt-lastPacket": "結束封包",
     "txt-rule": "觸發規則",
     "txt-attack": "攻擊行為",
-    "txt-ipSrcInfo": "來源IP資訊",
-    "txt-ipDstInfo": "目的IP資訊",
+    "txt-ipBasicInfo": "IP基本資訊",
+    "txt-safetyScanInfo": "安全掃描資訊",
     "txt-viewJSON": "$t(txt-view)JSON",
     "txt-queryMore": "查詢更多",
     "txt-downloadPCAP": "下載檔案",
     "txt-downloadFile": "下載惡意程式",
     "txt-filterEmpty": "過濾無內容封包",
+    "txt-ipInfo": "IP資訊",
+    "txt-systemInfo": "所屬主機資訊",
+    "txt-ownerInfo": "所屬人員資訊",
     "txt-loginRecord": "AD登入紀錄",
     "txt-accessRecord": "門禁紀錄",
-    "txt-systemInfo": "所屬主機資訊",
-    "txt-floorInfor": "樓層座位"
+    "txt-floorInfor": "樓層圖",
+    "txt-safetyScan": "安全掃描"
   },
 
   "network": {

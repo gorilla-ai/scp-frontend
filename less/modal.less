@@ -1,3 +1,15 @@
+.c-gis {
+	min-height: 500px;
+	.actions {
+		display: none;
+	}
+	.leaflet-control-zoom-in {
+		display: block !important;
+	}
+}
+.leaflet-container {
+	background: #fff;
+}
 #modalWindowSmall {
 	footer {
 		text-align: center;
@@ -142,7 +154,7 @@
 	}
 	.json-data {
 		height: 345px;
-		overflow-y: scroll;
+		overflow-y: auto;
 		border: 1px solid #ccc;
 		border-radius: 10px;
 		& > li {
@@ -539,18 +551,6 @@
 		text-align: center;
 		padding-top: 20px;
 		padding-bottom: 20px;
-		.c-gis {
-			min-height: 500px;
-			.actions {
-				display: none;
-			}
-			.leaflet-control-zoom-in {
-				display: block !important;
-			}
-		}
-		.leaflet-container {
-			background: #fff;
-		}
 	}
 	.gis-map {
 		width: 1000px;
@@ -731,6 +731,7 @@
 	}
 }
 #dashboardModalDialog-content {
+	width: 965px;
 	.main-table {
 		border-radius: 5px;
 		overflow: hidden;
@@ -744,17 +745,25 @@
 			padding: 10px !important;
 			border: 1px solid #ccc !important;
 		}
-		.src-ip,
-		.dest-ip {
-			width: 220px;
-		}
-		.src-port,
-		.dest-port {
-			width: 175px;
+		.align-center {
+			&.severity-level,
+			&.collector,
+			&.trigger,
+			&.datetime {
+				width: 25%;
+			}
+			&.src-ip,
+			&.dest-ip {
+				width: 30%;
+			}
+			&.src-port,
+			&.dest-port {
+				width: 20%;
+			}
 		}
 		.severity {
 			display: block;
-			width: 50%;
+			width: 35%;
 			padding: 2px;
 			color: #fff;
 			border-radius: 10px;
@@ -774,20 +783,36 @@
 		border: 1px solid #ccc;
 		border-radius: 5px;
 		.nav {
-			width: 190px;
+			width: 325px;
 			border-right: 1px solid #ccc;
 			ul li {
-				margin: 10px;
 				span {
+					padding: 10px;
+					display: block;
 					cursor: pointer;
 					&.active {
 						color: #185e9e;
 					}
 				}
+				&.header {
+					border-bottom: 1px solid #ccc;
+					span {
+						display: inline-block;
+						cursor: text;
+						&.name {
+							color: #185e9e;
+							font-size: 16px;
+							font-weight: bold;
+						}
+						&.ip {
+							color: #2db142;
+						}
+					}
+				}
 			}
 		}
-		.content {
-			width: 600px;
+		& > .content {
+			width: 100%;
 			color: #666;
 			background-color: #f5f5f5;
 			.options-buttons {
@@ -804,7 +829,7 @@
 			}
 			ul.alert-rule {
 				li {
-					overflow-y: scroll;
+					overflow-y: auto;
 					max-height: 340px;
 					padding-right: 10px;
 					word-break: break-all;
@@ -825,56 +850,46 @@
 			}
 			.srcIp-content,
 			.destIp-content {
+				max-height: 360px;
+				overflow-y: auto;
 				.private {
-					display: flex;
-					justify-content: space-between;
-					.pic {
-						width: 200px;
-						margin-left: 30px;
-						img {
+					section {
+						margin-bottom: 30px;
+						padding-right: 10px;
+						overflow: hidden;
+						clear: both;
+						.header {
+							font-size: 20px;
+							color: #185e9e;
+							margin-bottom: 15px;
+						}
+						img.owner-pic {
+							float: left;
 							display: block;
 							width: 150px;
 							height: 150px;
 							border-radius: 50%;
 							margin-bottom: 20px;
+							margin-right: 5%;
+							margin-left: 5%;
 						}
-						button {
-							color: #666;
-							background-color: #fff;
-							margin-bottom: 10px;
-						}
-					}
-					.info {
-						width: 360px;
-						max-height: 350px;
-						overflow-y: scroll;
-						.c-gis {
-							min-width: 330px;
-							min-height: 200px;
-							margin-bottom: 5px;
-							.actions {
-								display: none;
+						table {
+							&.ip,
+							&.host {
+								td:nth-child(odd) {
+									width: 32%;
+								}
 							}
-							.content {
-								width: 330px;
-								height: 200px;
-							}
-							.leaflet-container {
-								background: #fff;
+							&.owner {
+								float: left;
+								width: 67%;
 							}
 						}
-						.owner,
-						.header {
-							color: #185e9e;
-						}
-						.owner {
-							font-size: 18px;
-							margin-bottom: 20px;
-						}
-						.header {
-							margin-bottom: 5px;
-							& + ul {
-								margin-bottom: 15px;
+						.floor-map {
+							text-align: center;
+							.c-gis {
+								min-width: 99%;
+								min-height: 400px;
 							}
 						}
 					}
@@ -891,6 +906,49 @@
 							color: #185e9e;
 							display: block;
 						}
+					}
+				}
+			}
+			.safety-scan-content {
+				overflow: hidden;
+				max-height: 362px;
+				overflow-y: auto;
+				border: 1px solid #ccc;
+				.nav {
+					float: left;
+					width: 180px;
+					min-height: 360px;
+					background-color: #fff;
+					li {
+						font-size: 12px;
+						padding-top: 5px;
+						padding-bottom: 5px;
+						overflow: hidden;
+						border-bottom: 1px solid #ccc;
+						span {
+							&.name {
+								float: left;
+								color: #000;
+							}
+							&.count {
+								float: right;
+								font-size: 10px;
+							}
+						}
+					}
+				}
+				.content {
+					position: relative;
+					float: left;
+					width: 490px;
+					.updates {
+						margin-top: 6px;
+						margin-bottom: 20px;
+					}
+					button {
+						position: absolute;
+						top: 10px;
+						right: 10px;
 					}
 				}
 			}

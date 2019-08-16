@@ -1081,7 +1081,7 @@ class Dashboard extends Component {
                       {alertDetails.private.tree.length > 0 &&
                         alertDetails.private.tree.map((val, i) => {
                           return (
-                            <li>
+                            <li key={val.key} onClick={this.showTopoDetail.bind(this, PRIVATE, val.srcTopoInfo.seatUUID)}>
                               <div className='info'>
                                 <span className='ip'>{val.key}</span>
                                 <span className='host'>{val.srcTopoInfo.hostName}</span>

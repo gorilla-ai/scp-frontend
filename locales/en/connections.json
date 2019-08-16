@@ -245,17 +245,20 @@
     "txt-lastPacket": "Last Packet",
     "txt-rule": "Rule",
     "txt-attack": "Attack",
-    "txt-ipSrcInfo": "Source IP Info",
-    "txt-ipDstInfo": "Destination IP Info",
+    "txt-ipBasicInfo": "IP Info",
+    "txt-safetyScanInfo": "Safety Scan Info",
     "txt-viewJSON": "$t(txt-view)JSON",
     "txt-queryMore": "Query",
     "txt-downloadPCAP": "Download PCAP",
     "txt-downloadFile": "Download File",
     "txt-filterEmpty": "Filter empty packet",
+    "txt-ipInfo": "IP Information",
+    "txt-systemInfo": "System",
+    "txt-ownerInfo": "Owner",
     "txt-loginRecord": "AD Login Behavior",
     "txt-accessRecord": "Access Control Behavior",
-    "txt-systemInfo": "System",
-    "txt-floorInfor": "Floor"
+    "txt-floorInfor": "Floor",
+    "txt-safetyScan": "Safety Scan"
   },
 
   "network": {

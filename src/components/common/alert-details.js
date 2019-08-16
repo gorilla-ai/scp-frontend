@@ -36,6 +36,8 @@ class AlertDetails extends Component {
         attack: false,
         srcIp: false,
         destIp: false,
+        srcSafety: false,
+        destSafety: false,
         json: false
       },
       alertRule: '',
@@ -100,6 +102,8 @@ class AlertDetails extends Component {
       attack: false,
       srcIp: false,
       destIp: false,
+      srcSafety: false,
+      destSafety: false,
       json: false
     };
 
@@ -363,6 +367,8 @@ class AlertDetails extends Component {
         attack: false,
         srcIp: false,
         destIp: false,
+        srcSafety: false,
+        destSafety: false,
         json: false
       }
     }, () => {
@@ -386,6 +392,12 @@ class AlertDetails extends Component {
           break;
         case 'destIp':
           tempShowContent.destIp = true;
+          break;
+        case 'srcSafety':
+          tempShowContent.srcSafety = true;
+          break;
+        case 'destSafety':
+          tempShowContent.destSafety = true;
           break;
         case 'json':
           tempShowContent.json = true;
@@ -447,10 +459,10 @@ class AlertDetails extends Component {
           </thead>
           <tbody>
             <tr>
-              <td className='align-center'>{this.getSeverity(severity)}</td>
-              <td className='align-center'>{collector}</td>
-              <td className='align-center'>{trigger}</td>
-              <td className='align-center'>{helper.getFormattedDate(eventDatetime, 'local')}</td>
+              <td className='align-center severity-level'>{this.getSeverity(severity)}</td>
+              <td className='align-center collector'>{collector}</td>
+              <td className='align-center trigger'>{trigger}</td>
+              <td className='align-center datetime'>{helper.getFormattedDate(eventDatetime, 'local')}</td>
             </tr>
           </tbody>
         </table>
@@ -486,14 +498,26 @@ class AlertDetails extends Component {
               {alertType === 'pot_attack' &&
                 <li><span className={cx({'active': showContent.attack})} onClick={this.getContent.bind(this, 'attack')}>{t('alert.txt-attack')}</span></li>
               }
-              <li><span className={cx({'active': showContent.srcIp})} onClick={this.getContent.bind(this, 'srcIp')}>{t('alert.txt-ipSrcInfo')}</span></li>
-              <li><span className={cx({'active': showContent.destIp})} onClick={this.getContent.bind(this, 'destIp')}>{t('alert.txt-ipDstInfo')}</span></li>
+              <li className='header'>
+                <span className='name'>{t('alert.txt-ipSrc')}</span>
+                <span className='ip'>80.127.152.30</span>
+              </li>
+              <li><span className={cx({'active': showContent.srcIp})} onClick={this.getContent.bind(this, 'srcIp')}>{t('alert.txt-ipBasicInfo')}</span></li>
+              <li><span onClick={this.getContent.bind(this, 'srcSafety')}>{t('alert.txt-safetyScanInfo')}</span></li>
+              <li className='header'>
+                <span className='name'>{t('alert.txt-ipDst')}</span>
+                <span className='ip'>192.168.0.11</span>
+              </li>
+              <li><span className={cx({'active': showContent.destIp})} onClick={this.getContent.bind(this, 'destIp')}>{t('alert.txt-ipBasicInfo')}</span></li>
+              <li><span onClick={this.getContent.bind(this, 'destSafety')}>{t('alert.txt-safetyScanInfo')}</span></li>
               <li><span className={cx({'active': showContent.json})} onClick={this.getContent.bind(this, 'json')}>{t('alert.txt-viewJSON')}</span></li>
             </ul>
           </div>
           <div className='content'>
             <div className='options-buttons'>
-              <Link to={url} target='_blank'>{t('alert.txt-queryMore')}</Link>
+              {(showContent.rule || showContent.pcap || showContent.attack) &&
+                <Link to={url} target='_blank'>{t('alert.txt-queryMore')}</Link>
+              }
 
               {showContent.pcap &&
                 <div className='download' onClick={this.getPcapFile}>{t('alert.txt-downloadPCAP')}</div>
@@ -522,6 +546,14 @@ class AlertDetails extends Component {
 
             {showContent.destIp &&
               this.displayIPcontent('destIp')
+            }
+
+            {showContent.srcSafety &&
+              this.displaySafetyScanContent('srcSafety')
+            }
+
+            {showContent.destSafety &&
+              this.displaySafetyScanContent('destSafety')
             }
 
             {showContent.json &&
@@ -814,56 +846,97 @@ class AlertDetails extends Component {
         alertData
       }
     };
+    const srcDestType = type.replace('Ip', '');
 
     return (
       <div className='private'>
-        <div className='pic'>
-          <img src={picPath} title={t('network-topology.txt-profileImage')} />
+        <section>
+          <div className='header'>{t('alert.txt-ipInfo')}</div>
+          <table className='c-table main-table ip'>
+            <tbody>
+              <tr>
+                <td>IP</td>
+                <td>{topoInfo[type] || NOT_AVAILABLE}</td>
+              </tr>
+              <tr>
+                <td>MAC</td>
+                <td>{topoInfo[srcDestType + 'Mac'] || NOT_AVAILABLE}</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
 
-          <button><Link to={url_login}>{t('alert.txt-loginRecord')}</Link></button>
-          <button><Link to={url_access}>{t('alert.txt-accessRecord')}</Link></button>
-        </div>
-        <div className='info'>
-          <div className='owner'>{topoInfo.ownerName}</div>
-
+        <section>
           <div className='header'>{t('alert.txt-systemInfo')}</div>
-          <ul>
-            {topoInfo.hostName && <li><strong>{t('ipFields.hostName')}</strong>: {topoInfo.hostName}</li>}
-            {topoInfo.system && <li><strong>{t('ipFields.system')}</strong>: {topoInfo.system}</li>}
-            {topoInfo.deviceType && <li><strong>{t('ipFields.deviceType')}</strong>: {topoInfo.deviceType}</li>}
-            {topoInfo.srcIp && <li><strong>{t('attacksFields.srcIp')}</strong>: {topoInfo.srcIp}</li>}
-            {topoInfo.srcMac && <li><strong>{t('ipFields.mac')}</strong>: {topoInfo.srcMac}</li>}
-          </ul>
+          <table className='c-table main-table host'>
+            <tbody>
+              <tr>
+                <td>{t('ipFields.hostName')}</td>
+                <td>{topoInfo.hostName || NOT_AVAILABLE}</td>
+              </tr>
+              <tr>
+                <td>{t('ipFields.system')}</td>
+                <td>{topoInfo.system || NOT_AVAILABLE}</td>
+              </tr>
+              <tr>
+                <td>{t('ipFields.deviceType')}</td>
+                <td>{topoInfo.deviceType || NOT_AVAILABLE}</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
 
+        <section>
+          <div className='header'>{t('alert.txt-ownerInfo')}</div>
+          <img src={picPath} className='owner-pic' title={t('network-topology.txt-profileImage')} />
+          <table className='c-table main-table owner'>
+            <tbody>
+              <tr>
+                <td>{t('ownerFields.ownerName')}</td>
+                <td>{topoInfo.ownerName || NOT_AVAILABLE}</td>
+              </tr>
+              <tr>
+                <td>{t('ownerFields.ownerID')}</td>
+                <td>{topoInfo.ownerID || NOT_AVAILABLE}</td>
+              </tr>
+              <tr>
+                <td>{t('ownerFields.department')}</td>
+                <td>{topoInfo.department || NOT_AVAILABLE}</td>
+              </tr>
+              <tr>
+                <td>{t('ownerFields.title')}</td>
+                <td>{topoInfo.title || NOT_AVAILABLE}</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section>
           <div className='header'>{t('alert.txt-floorInfor')}</div>
           {!_.isEmpty(alertInfo[type].ownerMap) &&
-            <Gis
-              _ref={(ref) => {this.gisNode = ref}}
-              data={_.get(alertInfo[type].ownerSeat, [topoInfo.areaUUID, 'data'], [])}
-              baseLayers={alertInfo[type].ownerBaseLayers}
-              baseLayer={topoInfo.areaUUID}
-              layouts={['standard']}
-              dragModes={['pan']}
-              scale={{enabled: false}}
-              symbolOptions={[{
-                match: {
-                  data: {tag: 'red'}
-                },
-                props: {
-                  backgroundColor: 'red'
-                }
-              }]} />
+            <div className='floor-map'>
+              <Gis
+                _ref={(ref) => {this.gisNode = ref}}
+                data={_.get(alertInfo[type].ownerSeat, [topoInfo.areaUUID, 'data'], [])}
+                baseLayers={alertInfo[type].ownerBaseLayers}
+                baseLayer={topoInfo.areaUUID}
+                layouts={['standard']}
+                dragModes={['pan']}
+                scale={{enabled: false}}
+                symbolOptions={[{
+                  match: {
+                    data: {tag: 'red'}
+                  },
+                  props: {
+                    backgroundColor: 'red'
+                  }
+                }]} />
+              </div>
           }
           {_.isEmpty(alertInfo[type].ownerMap) &&
             <span>{NOT_AVAILABLE}</span>
           }
-          <ul>
-            {topoInfo.areaFullName && <li><strong>{t('ipFields.areaFullName')}</strong>: {topoInfo.areaFullName}</li>}
-            {topoInfo.seatName && <li><strong>{t('ipFields.seat')}</strong>: {topoInfo.seatName}</li>}
-            {topoInfo.department && <li><strong>{t('ownerFields.department')}</strong>: {topoInfo.department}</li>}
-            {topoInfo.title && <li><strong>{t('ownerFields.title')}</strong>: {topoInfo.title}</li>}
-          </ul>
-        </div>
+        </section>
       </div>
     )
   }
@@ -907,6 +980,84 @@ class AlertDetails extends Component {
       </div>
     )
   }
+  /**
+   * Display safety scan content
+   * @param {string} type - 'srcIp' or 'destIp'
+   * @returns none
+   */
+  displaySafetyScanContent = (type) => {
+    return (
+      <div className='safety-scan-content'>
+        <div className='nav'>
+          <ul>
+            <li>
+              <span className='name'>Yara Scan</span>
+              <span className='count' style={{color: '#d0021b'}}>可疑檔案數: 18</span>
+            </li>
+            <li>
+              <span className='name'>GCB</span>
+              <span className='count' style={{color: '#11a629'}}>通過/總項目: 49/87</span>
+            </li>
+          </ul>
+        </div>
+        <div className='content'>
+          <div className='updates'>最近更新時間: 2019/07/11 18:23</div>
+          <button>重新檢測</button>
+          <table className='c-table main-table'>
+            <thead>
+              <tr>
+                <th>可疑檔案名稱</th>
+                <th>檔案路徑</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>readme.doc</td>
+                <td>c:/desktop/readme.doc</td>
+              </tr>
+              <tr>
+                <td>test.bat</td>
+                <td>c:/desktop/test.bat</td>
+              </tr>
+              <tr>
+                <td>facebox.doc</td>
+                <td>c:/desktop/facebox/facebox.doc</td>
+              </tr>
+              <tr>
+                <td>SS-report.doc</td>
+                <td>c:/desktop/windows/user/SS-report.doc</td>
+              </tr>
+              <tr>
+                <td>readme.doc</td>
+                <td>c:/desktop/readme.doc</td>
+              </tr>
+              {/*<tr>
+                <td>test.bat</td>
+                <td>c:/desktop/test.bat</td>
+              </tr>
+              <tr>
+                <td>facebox.doc</td>
+                <td>c:/desktop/facebox/facebox.doc</td>
+              </tr>
+              <tr>
+                <td>SS-report.doc</td>
+                <td>c:/desktop/windows/user/SS-report.doc</td>
+              </tr>
+              <tr>
+                <td>readme.doc</td>
+                <td>c:/desktop/readme.doc</td>
+              </tr>*/}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    )
+  }
+  /**
+   * Display Json Data content
+   * @param none
+   * @returns none
+   */
   displayJsonData = () => {
     const {alertData} = this.props;
     const hiddenFields = ['id', '_tableMenu_'];
