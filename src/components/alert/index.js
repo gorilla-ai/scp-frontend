@@ -539,7 +539,7 @@ class AlertController extends Component {
     const {baseUrl, contextRoot} = this.props;
     const {activeTab, subSectionsData, currentPage, pageSizeMap, alertDetails} = this.state;
     const setPage = options === 'search' ? 1 : currentPage;
-    const url = `${baseUrl}/api/u1/alert/_search?page=${setPage}&pageSize=${pageSizeMap}&mapFlag=true`;
+    const url = `${baseUrl}/api/u1/alert/_search?page=${setPage}&pageSize=${pageSizeMap}`;
     const requestData = this.toQueryLanguage(options);
     let tempSubSectionsData = {...subSectionsData};
     let tempAlertDetails = {...alertDetails};
@@ -1219,6 +1219,7 @@ class AlertController extends Component {
       handleRowDoubleClick: this.handleRowDoubleClick,
       paginationTotalCount: this.state.subSectionsData.totalCount[activeTab],
       paginationPageSize: this.state.pageSize,
+      paginationAlertPageSize: this.state.pageSizeMap,
       paginationCurrentPage: this.state.currentPage,
       paginationPageChange: this.handlePageChange,
       paginationDropDownChange: this.handlePageDropdown,

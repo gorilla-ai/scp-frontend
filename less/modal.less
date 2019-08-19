@@ -782,7 +782,7 @@
 		min-height: 400px;
 		border: 1px solid #ccc;
 		border-radius: 5px;
-		.nav {
+		& > .nav {
 			width: 325px;
 			border-right: 1px solid #ccc;
 			ul li {
@@ -795,6 +795,7 @@
 					}
 				}
 				&.header {
+					margin-top: 10px;
 					border-bottom: 1px solid #ccc;
 					span {
 						display: inline-block;
@@ -906,49 +907,6 @@
 							color: #185e9e;
 							display: block;
 						}
-					}
-				}
-			}
-			.safety-scan-content {
-				overflow: hidden;
-				max-height: 362px;
-				overflow-y: auto;
-				border: 1px solid #ccc;
-				.nav {
-					float: left;
-					width: 180px;
-					min-height: 360px;
-					background-color: #fff;
-					li {
-						font-size: 12px;
-						padding-top: 5px;
-						padding-bottom: 5px;
-						overflow: hidden;
-						border-bottom: 1px solid #ccc;
-						span {
-							&.name {
-								float: left;
-								color: #000;
-							}
-							&.count {
-								float: right;
-								font-size: 10px;
-							}
-						}
-					}
-				}
-				.content {
-					position: relative;
-					float: left;
-					width: 490px;
-					.updates {
-						margin-top: 6px;
-						margin-bottom: 20px;
-					}
-					button {
-						position: absolute;
-						top: 10px;
-						right: 10px;
 					}
 				}
 			}

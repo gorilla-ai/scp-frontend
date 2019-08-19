@@ -1292,6 +1292,7 @@ class SyslogController extends Component {
       handleRowDoubleClick: this.handleRowDoubleClick,
       paginationTotalCount: this.state.subSectionsData.totalCount[activeTab],
       paginationPageSize: this.state.pageSize,
+      paginationAlertPageSize: this.state.pageSizeMap,
       paginationCurrentPage: this.state.currentPage,
       paginationPageChange: this.handlePageChange,
       paginationDropDownChange: this.handlePageDropdown,

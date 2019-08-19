@@ -13,6 +13,7 @@ import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PageNav from 'react-ui/build/src/components/page-nav'
 import Textarea from 'react-ui/build/src/components/textarea'
 
+import {HocSafetyScan as SafetyScan} from './safety-scan'
 import helper from './helper'
 import withLocale from '../../hoc/locale-provider'
 
@@ -498,19 +499,19 @@ class AlertDetails extends Component {
               {alertType === 'pot_attack' &&
                 <li><span className={cx({'active': showContent.attack})} onClick={this.getContent.bind(this, 'attack')}>{t('alert.txt-attack')}</span></li>
               }
+              <li><span className={cx({'active': showContent.json})} onClick={this.getContent.bind(this, 'json')}>{t('alert.txt-viewJSON')}</span></li>
               <li className='header'>
                 <span className='name'>{t('alert.txt-ipSrc')}</span>
-                <span className='ip'>80.127.152.30</span>
+                <span className='ip'>{this.getIpPortData('srcIp')}</span>
               </li>
               <li><span className={cx({'active': showContent.srcIp})} onClick={this.getContent.bind(this, 'srcIp')}>{t('alert.txt-ipBasicInfo')}</span></li>
-              <li><span onClick={this.getContent.bind(this, 'srcSafety')}>{t('alert.txt-safetyScanInfo')}</span></li>
+              <li><span className={cx({'active': showContent.srcSafety})} onClick={this.getContent.bind(this, 'srcSafety')}>{t('alert.txt-safetyScanInfo')}</span></li>
               <li className='header'>
                 <span className='name'>{t('alert.txt-ipDst')}</span>
-                <span className='ip'>192.168.0.11</span>
+                <span className='ip'>{this.getIpPortData('destIp')}</span>
               </li>
               <li><span className={cx({'active': showContent.destIp})} onClick={this.getContent.bind(this, 'destIp')}>{t('alert.txt-ipBasicInfo')}</span></li>
-              <li><span onClick={this.getContent.bind(this, 'destSafety')}>{t('alert.txt-safetyScanInfo')}</span></li>
-              <li><span className={cx({'active': showContent.json})} onClick={this.getContent.bind(this, 'json')}>{t('alert.txt-viewJSON')}</span></li>
+              <li><span className={cx({'active': showContent.destSafety})} onClick={this.getContent.bind(this, 'destSafety')}>{t('alert.txt-safetyScanInfo')}</span></li>
             </ul>
           </div>
           <div className='content'>
@@ -987,70 +988,9 @@ class AlertDetails extends Component {
    */
   displaySafetyScanContent = (type) => {
     return (
-      <div className='safety-scan-content'>
-        <div className='nav'>
-          <ul>
-            <li>
-              <span className='name'>Yara Scan</span>
-              <span className='count' style={{color: '#d0021b'}}>可疑檔案數: 18</span>
-            </li>
-            <li>
-              <span className='name'>GCB</span>
-              <span className='count' style={{color: '#11a629'}}>通過/總項目: 49/87</span>
-            </li>
-          </ul>
-        </div>
-        <div className='content'>
-          <div className='updates'>最近更新時間: 2019/07/11 18:23</div>
-          <button>重新檢測</button>
-          <table className='c-table main-table'>
-            <thead>
-              <tr>
-                <th>可疑檔案名稱</th>
-                <th>檔案路徑</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>readme.doc</td>
-                <td>c:/desktop/readme.doc</td>
-              </tr>
-              <tr>
-                <td>test.bat</td>
-                <td>c:/desktop/test.bat</td>
-              </tr>
-              <tr>
-                <td>facebox.doc</td>
-                <td>c:/desktop/facebox/facebox.doc</td>
-              </tr>
-              <tr>
-                <td>SS-report.doc</td>
-                <td>c:/desktop/windows/user/SS-report.doc</td>
-              </tr>
-              <tr>
-                <td>readme.doc</td>
-                <td>c:/desktop/readme.doc</td>
-              </tr>
-              {/*<tr>
-                <td>test.bat</td>
-                <td>c:/desktop/test.bat</td>
-              </tr>
-              <tr>
-                <td>facebox.doc</td>
-                <td>c:/desktop/facebox/facebox.doc</td>
-              </tr>
-              <tr>
-                <td>SS-report.doc</td>
-                <td>c:/desktop/windows/user/SS-report.doc</td>
-              </tr>
-              <tr>
-                <td>readme.doc</td>
-                <td>c:/desktop/readme.doc</td>
-              </tr>*/}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <div>N/A</div>
+      /*<SafetyScan
+        type={type} />*/
     )
   }
   /**

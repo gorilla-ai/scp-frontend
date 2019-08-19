@@ -2113,6 +2113,7 @@ class Network extends Component {
       handleRowMouseOut: this.handleRowMouseOut,
       paginationTotalCount: this.state.subSectionsData.totalCount[activeTab],
       paginationPageSize: this.getPageSize(),
+      paginationAlertPageSize: this.state.pageSizeMap,
       paginationCurrentPage: this.state.currentPage,
       paginationPageChange: this.handlePageChange,
       paginationDropDownChange: this.handlePageDropdown,

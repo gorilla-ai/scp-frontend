@@ -8,7 +8,6 @@ import cx from 'classnames'
 
 import Gis from 'react-gis/build/src/components'
 import WORLDMAP from '../../mock/world-map-low.json'
-import AlertPrivateData from '../../mock/alert-private.json'
 
 import BarChart from 'react-chart/build/src/components/bar'
 import Checkbox from 'react-ui/build/src/components/checkbox'
@@ -546,9 +545,10 @@ class Dashboard extends Component {
     });
   }
   showTopoDetail = (type, id, eventInfo) => {
+    const {baseUrl, contextRoot} = this.props;
     const {alertDetails} = this.state;
     let tempAlertDetails = {...alertDetails};
-    let data = '';
+    let alertData = '';
 
     if (!id) {
       return;
@@ -564,31 +564,47 @@ class Dashboard extends Component {
         return;
       }
 
-      data = alertDetails.publicFormatted.srcIp[uniqueIP] || alertDetails.publicFormatted.destIp[uniqueIP];
-      tempAlertDetails.currentLength = data.length;
+      alertData = alertDetails.publicFormatted.srcIp[uniqueIP] || alertDetails.publicFormatted.destIp[uniqueIP];
+      tempAlertDetails.currentLength = alertData.length;
+
+      this.setState({
+        alertDetails: tempAlertDetails
+      }, () => {
+        this.openDetailInfo(type, alertData);
+      });
     } else if (type === PRIVATE) {
-      //const seatUUID = id;
-      // let tempPrivateData = [];
+      const {datetime, alertDetails, currentFloor} = this.state;
+      const dateTime = {
+        from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
+        to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
+      };
+      const url = `${baseUrl}/api/u1/alert/_search?page=1&pageSize=10000`;
+      const requestData = {
+        timestamp: [dateTime.from, dateTime.to],
+        filters: [{
+          condition: 'must',
+          query: 'srcIp:' + id + ' OR ipSrc:' + id
+        }]
+      };
 
-      // _.forEach(alertDetails.private.data, val => {
-      //   if (val._source.srcTopoInfo && val._source.srcTopoInfo.seatUUID === seatUUID) {
-      //     tempPrivateData.push(val._source);
-      //   }
-      // })
+      helper.getAjaxData('POST', url, requestData)
+      .then(data => {
+        const tempArray = _.map(data.data.rows, val => {
+          val._source.id = val._id;
+          val._source.index = val._index;
+          return val._source;
+        });
+        tempAlertDetails.private.data =tempArray;
+        tempAlertDetails.currentLength = data.data.counts;
+        alertData = tempArray[0];
 
-      //tempAlertDetails.privateFormatted = tempPrivateData;
-      //tempAlertDetails.currentLength = tempPrivateData.length;
-      //data = tempPrivateData[0];
-
-      tempAlertDetails.currentLength = alertDetails.private.data.length;
-      data = alertDetails.private.data[0];
+        this.setState({
+          alertDetails: tempAlertDetails
+        }, () => {
+          this.openDetailInfo(type, alertData);
+        });
+      });
     }
-
-    this.setState({
-      alertDetails: tempAlertDetails
-    }, () => {
-      this.openDetailInfo(type, data);
-    });
   }
   showAlertData = (type) => {
     const {locationType, alertDetails} = this.state;
@@ -608,17 +624,17 @@ class Dashboard extends Component {
       alertDetails: tempAlertDetails
     }, () => {
       const {alertDetails} = this.state;
-      let data = '';
+      let alertData = '';
 
       if (locationType === PRIVATE) {
-        data = alertDetails.private[alertDetails.currentIndex];
+        alertData = alertDetails.private.data[alertDetails.currentIndex];
       } else if (locationType === PUBLIC) {
-        data = alertDetails.publicFormatted.srcIp[alertDetails.currentID] || alertDetails.publicFormatted.destIp[alertDetails.currentID];
+        alertData = alertDetails.publicFormatted.srcIp[alertDetails.currentID] || alertDetails.publicFormatted.destIp[alertDetails.currentID];
       }
-      this.openDetailInfo(locationType, data);
+      this.openDetailInfo(locationType, alertData);
     });
   }
-  openDetailInfo = (type, data) => {
+  openDetailInfo = (type, alertData) => {
     const {alertDetails} = this.state;
     let tempAlertDetails = {...alertDetails};
     let locationType = '';
@@ -631,14 +647,14 @@ class Dashboard extends Component {
 
     if (alertDetails.currentIndex.toString() !== '') {
       if (locationType === PUBLIC) {
-        data = data[alertDetails.currentIndex];
+        alertData = alertData[alertDetails.currentIndex];
       }
     }
 
     this.setState({
       alertDetails: tempAlertDetails,
       locationType,
-      alertData: data,
+      alertData,
       modalOpen: true
     });
   }
@@ -700,29 +716,13 @@ class Dashboard extends Component {
       }
     })
   }
-  // filterTopologyData = (mainData, matchObjPath, matchID) => {
-  //   const filterData = _.filter(mainData, { 'srcLocType': 2 }); //Filter the intranet (type: 2)
-  //   const data = _.filter(filterData, obj => { //Get the data for the selected area
-  //     return _.get(obj, matchObjPath) === matchID;
-  //   });
-  //   return data;
-  // }
   getFloorList = () => {
     const {floorPlan} = this.state;
-    //let tempFloorPlan = {...floorPlan};
-    //let attacksCount = {};
     let floorList = [];
     let currentFloor = '';
 
-    // const privateTopoData = _.map(alertDetails.private, val => {
-    //   return val.content;
-    // });
-
     _.forEach(floorPlan.treeData, val => {
       helper.floorPlanRecursive(val, obj => {
-        // const filterData = this.filterTopologyData(privateTopoData, 'srcTopoInfo.areaUUID', obj.areaUUID);
-        // const count = filterData.length;
-
         floorList.push({
           value: obj.areaUUID,
           text: obj.areaName
@@ -782,32 +782,40 @@ class Dashboard extends Component {
     })
   }
   loadAlertPrivateData = () => {
-    const {alertDetails, currentFloor} = this.state;
-    const areaUUID = currentFloor;
-    const allPrivateData = AlertPrivateData.rt.aggregations.Top10InternalSrcIp.srcIp.buckets;
-    const allPrivateList = AlertPrivateData.rt.data.rows;
-    let tempAlertDetails = {...alertDetails};
-    let currentPrivateData = [];
+    const {baseUrl, contextRoot} = this.props;
+    const {datetime, alertDetails, currentFloor} = this.state;
+    const dateTime = {
+      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
+      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
+    };
+    const url = `${baseUrl}/api/u1/alert/_search?page=1&pageSize=0`;
+    const requestData = {
+      timestamp: [dateTime.from, dateTime.to],
+      filters: [{
+        condition: 'must',
+        query: 'Top10InternalSrcIp'
+      }]
+    };
 
-    _.forEach(allPrivateData, val => {
-      if (val.srcTopoInfo.areaUUID === areaUUID) {
-        currentPrivateData.push(val);
-      }
-    })
+    helper.getAjaxData('POST', url, requestData)
+    .then(data => {
+      const allPrivateData = data.aggregations.Top10InternalSrcIp.srcIp.buckets;
+      let tempAlertDetails = {...alertDetails};
+      let currentPrivateData = [];
 
-    const tempArray = _.map(allPrivateList, val => {
-      val._source.id = val._id;
-      val._source.index = val._index;
-      return val._source;
-    });
+      _.forEach(allPrivateData, val => {
+        if (val.srcTopoInfo.areaUUID === currentFloor) {
+          currentPrivateData.push(val);
+        }
+      })
 
-    tempAlertDetails.private.tree = currentPrivateData;
-    tempAlertDetails.private.data = tempArray;
+      tempAlertDetails.private.tree = currentPrivateData;
 
-    this.setState({
-      alertDetails: tempAlertDetails
-    }, () => {
-      this.getSeatData();
+      this.setState({
+        alertDetails: tempAlertDetails
+      }, () => {
+        this.getSeatData();
+      });
     });
   }
   getSeatData = () => {
@@ -819,7 +827,7 @@ class Dashboard extends Component {
     let seatListArr = [];
     let seatData = {};
 
-    _.forEach(alertDetails.private.data, val => {
+    _.forEach(alertDetails.private.tree, val => {
       if (val.srcTopoInfo && val.srcTopoInfo.areaUUID === areaUUID) {
         if (tempSeatID) {
           if (tempSeatID !== val.srcTopoInfo.seatUUID) {
@@ -851,7 +859,7 @@ class Dashboard extends Component {
       _.forEach(tempAlertDetails, val => {
         let tempSeatData = [];
 
-        _.forEach(alertDetails.private.data, val2 => {
+        _.forEach(alertDetails.private.tree, val2 => {
           if (val2.srcTopoInfo && val2.srcTopoInfo.seatUUID === val.seatUUID) {
             tempSeatData.push(val2);
           }
@@ -1081,7 +1089,7 @@ class Dashboard extends Component {
                       {alertDetails.private.tree.length > 0 &&
                         alertDetails.private.tree.map((val, i) => {
                           return (
-                            <li key={val.key} onClick={this.showTopoDetail.bind(this, PRIVATE, val.srcTopoInfo.seatUUID)}>
+                            <li key={val.key} onClick={this.showTopoDetail.bind(this, PRIVATE, val.srcTopoInfo.srcIp || val.srcTopoInfo.ipSrc)}>
                               <div className='info'>
                                 <span className='ip'>{val.key}</span>
                                 <span className='host'>{val.srcTopoInfo.hostName}</span>
@@ -1104,7 +1112,6 @@ class Dashboard extends Component {
                           layouts={['standard']}
                           dragModes={['pan']}
                           scale={{enabled: false}}
-                          onClick={this.showTopoDetail.bind(this, PRIVATE)}
                           symbolOptions={[{
                             match: {
                               data: {tag: 'red'}

@@ -67,7 +67,7 @@ class Log extends Component {
                   activeTab={mainContentData.activeTab}
                   page='linkAnalysis'
                   totalCount={mainContentData.paginationTotalCount}
-                  pageSize='500'
+                  pageSize={mainContentData.paginationAlertPageSize}
                   currentPage={mainContentData.paginationCurrentPage}
                   onPageChange={mainContentData.paginationAlertPageChange.bind(this, 'la')}
                   onDropDownChange={mainContentData.paginationAlertDropDownChange.bind(this, 'la')} />
