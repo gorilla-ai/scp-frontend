@@ -12,14 +12,7 @@ import WORLDMAP from '../../mock/world-map-low.json'
 import {config as configLoader} from 'vbda-ui/build/src/loader'
 import {analyze} from 'vbda-ui/build/src/analyzer'
 
-import Checkbox from 'react-ui/build/src/components/checkbox'
 import ContextMenu from 'react-ui/build/src/components/contextmenu'
-import DropDownList from 'react-ui/build/src/components/dropdown'
-import Input from 'react-ui/build/src/components/input'
-import ModalDialog from 'react-ui/build/src/components/modal-dialog'
-import PageNav from 'react-ui/build/src/components/page-nav'
-import Popover from 'react-ui/build/src/components/popover'
-import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import JSONTree from 'react-json-tree'
 
@@ -165,7 +158,6 @@ class AlertController extends Component {
       },
       showFilter: false,
       showChart: false,
-      modalOpen: false,
       openQueryOpen: false,
       saveQueryOpen: false,
       tableMouseOver: false,
@@ -1105,7 +1097,6 @@ class AlertController extends Component {
 
     this.setState({
       alertDetails: tempAlertDetails,
-      modalOpen: false,
       openQueryOpen: false,
       saveQueryOpen: false,
       alertDetailsOpen: false
@@ -1337,7 +1328,6 @@ class AlertController extends Component {
       datetime,
       activeSubTab,
       subSectionsData,
-      modalOpen,
       openQueryOpen,
       saveQueryOpen,
       filterData,
@@ -1355,10 +1345,6 @@ class AlertController extends Component {
 
     return (
       <div>
-        {modalOpen &&
-          this.modalDialog()
-        }
-
         {openQueryOpen &&
           this.queryDialog('open')
         }

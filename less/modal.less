@@ -1022,6 +1022,33 @@
 		}
 	}
 }
+#intervalModalDialog-content {
+	.interval-options {
+		font-size: 14px;
+		color: #000;
+		background-color: #fff;
+		padding: 10px;
+		&.manual {
+			width: 355px;
+			height: 90px;
+		}
+		& > label {
+			display: none;
+		}
+		input {
+			width: 20px;
+		}
+	}
+	.list-item {
+		margin: 0 0 0.6em 0;
+		margin-right: 15px;
+	}
+	#timeInterval,
+	#updateInterval {
+		flex-direction: row;
+		margin-top: 10px;
+	}
+}
 #addTask-content {
 	max-height: 550px;
 	min-width: 400px;

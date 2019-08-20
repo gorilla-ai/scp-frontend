@@ -162,16 +162,23 @@ class Dashboard extends Component {
   loadAlertData = (type) => {
     const {baseUrl, contextRoot} = this.props;
     const {datetime, alertDetails} = this.state;
-    const pageSize = type === 'maps' ? 10000 : 0;
     const configSrcInfo = PIE_CHARTS_LIST[4];
     const dateTime = {
       from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
       to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
     };
     const tempPieChartsList = this.formattedPieChartsList();
+    let url = '';
+
+    if (type === 'maps') {
+      url = `${baseUrl}/api/u1/alert/_search`
+    } else {
+      url = `${baseUrl}/api/u1/alert/_search?page=1&pageSize=0`
+    }
+
     const apiData = [
       {
-        url: `${baseUrl}/api/u1/alert/_search?page=1&pageSize=${pageSize}`,
+        url,
         requestData: {
           timestamp: [dateTime.from, dateTime.to],
           filters: [{
@@ -898,7 +905,7 @@ class Dashboard extends Component {
         `
     }
   }
-  toggleTab = (tab) => {
+  toggleTabs = (tab) => {
     this.setState({
       activeTab: tab,
       ..._.cloneDeep(CHARTS_DATA),
@@ -950,8 +957,8 @@ class Dashboard extends Component {
 
         <div className='sub-header dashboard'>
           <div className='secondary-btn-group left'>
-            <button className={cx({'active': activeTab === 'statistics'})} onClick={this.toggleTab.bind(this, 'statistics')}>{t('dashboard.txt-statisticsInfo')}</button>
-            <button className={cx({'active': activeTab === 'maps'})} onClick={this.toggleTab.bind(this, 'maps')}>{t('dashboard.txt-attacksMap')}</button>
+            <button className={cx({'active': activeTab === 'statistics'})} onClick={this.toggleTabs.bind(this, 'statistics')}>{t('dashboard.txt-statisticsInfo')}</button>
+            <button className={cx({'active': activeTab === 'maps'})} onClick={this.toggleTabs.bind(this, 'maps')}>{t('dashboard.txt-attacksMap')}</button>
             <span className='date-time'>{updatedTime}</span>
           </div>
         </div>

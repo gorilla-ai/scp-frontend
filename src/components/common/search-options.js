@@ -6,6 +6,7 @@ import cx from 'classnames'
 import DateRange from 'react-ui/build/src/components/date-range'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import Input from 'react-ui/build/src/components/input'
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import RadioGroup from 'react-ui/build/src/components/radio-group'
 
 import helper from './helper'
@@ -22,8 +23,7 @@ class SearchOptions extends Component {
       searchType: 'manual',
       searchInterval: '1h',
       refreshTime: '600000', //10 minutes
-      showManualMenu: false,
-      showAutoMenu: false
+      modalOpen: false
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -31,12 +31,10 @@ class SearchOptions extends Component {
   }
   componentDidMount = () => {
     this.loadSearchOptions();
-    document.addEventListener('mousedown', this.handleClickOutside);
   }
   componentWillUnmount() {
     this.intervalId && clearInterval(this.intervalId);
     this.intervalId = null;
-    document.removeEventListener('mousedown', this.handleClickOutside);
   }
   loadSearchOptions = (search) => {
     const {searchType, refreshTime} = this.state;
@@ -46,15 +44,11 @@ class SearchOptions extends Component {
     }
 
     if (searchType === 'auto') {
-      this.setState({
-        showAutoMenu: false
-      }, () => {
-        if (this.intervalId) {
-          clearInterval(this.intervalId);
-          this.intervalId = null;
-        }
-        this.intervalId = setInterval(this.setNewDatetime, Number(refreshTime));
-      });
+      if (this.intervalId) {
+        clearInterval(this.intervalId);
+        this.intervalId = null;
+      }
+      this.intervalId = setInterval(this.setNewDatetime, Number(refreshTime));
     }
   }
   setNewDatetime = () => {
@@ -67,14 +61,6 @@ class SearchOptions extends Component {
 
     this.props.handleDateChange(datetime, 'refresh');
   }
-  handleClickOutside = (e) => {
-    if (this.wrapperRef && !this.wrapperRef.contains(e.target)) {
-      this.setState({
-        showManualMenu: false,
-        showAutoMenu: false
-      });
-    }
-  }
   setWrapperRef = (node) => {
     this.wrapperRef = node;
   }
@@ -82,34 +68,13 @@ class SearchOptions extends Component {
     this.setState({
       searchType: type,
       searchInterval: '1h',
-      refreshTime: '600000',
-      showManualMenu: false,
-      showAutoMenu: false
+      refreshTime: '600000'
     }, () => {
       if (this.intervalId) {
         clearInterval(this.intervalId);
         this.intervalId = null;
       }
     });
-  }
-  hideTimeMenu = () => {
-    this.setState({
-      showManualMenu: false,
-      showAutoMenu: false
-    });
-  }
-  toggleTimeOptions = () => {
-    const {searchType, showManualMenu, showAutoMenu} = this.state;
-
-    if (searchType === 'manual') {
-      this.setState({
-        showManualMenu: !showManualMenu
-      });
-    } else if (searchType === 'auto') {
-      this.setState({
-        showAutoMenu: !showAutoMenu
-      });
-    }
   }
   handleTimeframe = (type) => {
     let tempDatetime = {...this.state.datetime};
@@ -133,8 +98,6 @@ class SearchOptions extends Component {
         id='datetime'
         className='daterange'
         onChange={this.props.handleDateChange}
-        onClick={this.hideTimeMenu}
-        onFocus={this.hideTimeMenu}
         enableTime={true}
         value={this.props.datetime}
         t={et} />
@@ -199,23 +162,103 @@ class SearchOptions extends Component {
       time
     }
   }
+  toggleTimeOptions = () => {
+    this.setState({
+      modalOpen: !this.state.modalOpen
+    });
+  }
+  displayIntervalOptions = () => {
+    const {searchType, searchInterval, refreshTime} = this.state;
+
+    if (searchType === 'manual') {
+      return (
+        <div className='interval-options manual'>
+          <label>{t('network.connections.txt-time-frame')}</label>
+          <RadioGroup
+            id='timeInterval'
+            list={[
+              {value: '30m', text: t('network.connections.txt-last30m')},
+              {value: '1h', text: t('network.connections.txt-last1h')},
+              {value: '2h', text: t('network.connections.txt-last2h')},
+              {value: '24h', text: t('network.connections.txt-last24h')},
+              {value: 'today', text: t('network.connections.txt-today')},
+              {value: 'week', text: t('network.connections.txt-week')}
+            ]}
+            onChange={this.handleTimeframe}
+            value={searchInterval} />
+        </div>
+      )
+    } else if (searchType === 'auto') {
+      return (
+        <div className='interval-options auto'>
+          <label>{t('network.connections.txt-time-frame')}</label>
+          <RadioGroup
+            id='timeInterval'
+            list={[
+              {value: '15m', text: t('network.connections.txt-last15m')},
+              {value: '30m', text: t('network.connections.txt-last30m')},
+              {value: '1h', text: t('network.connections.txt-last1h')},
+              {value: '12h', text: t('network.connections.txt-last12h')}
+            ]}
+            onChange={this.handleTimeframe}
+            value={searchInterval} />
+
+          <label>{t('network.connections.txt-auto-update')}</label>
+          <RadioGroup
+            id='updateInterval'
+            list={[
+              {value: '15000', text: t('network.connections.txt-15s')},
+              {value: '30000', text: t('network.connections.txt-30s')},
+              {value: '60000', text: t('network.connections.txt-1m')},
+              {value: '300000', text: t('network.connections.txt-5m')},
+              {value: '600000', text: t('network.connections.txt-10m')}
+            ]}
+            onChange={this.handleRefreshTime}
+            value={refreshTime} />
+        </div>
+      )
+    }
+  }
+  modalDialog = () => {
+    const {activeTab} = this.state;
+    const actions = {
+      confirm: {text: t('txt-confirm'), handler: this.toggleTimeOptions}
+    };
+    const titleText = t('network.connections.txt-time-frame');
+
+    return (
+      <ModalDialog
+        id='intervalModalDialog'
+        className='modal-dialog'
+        title={titleText}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='confirm'>
+        {this.displayIntervalOptions()}
+      </ModalDialog>
+    )
+  }
   render() {
     const {showFilter} = this.props;
-    const {searchType, searchInterval, refreshTime, showManualMenu, showAutoMenu} = this.state;
+    const {searchType, searchInterval, refreshTime, modalOpen} = this.state;
     let dataObj = {};
-    let searchManualText = '';
-    let searchAutoText = '';
+    let searchInputValue = '';
 
     if (searchType === 'manual') {
       dataObj = this.getTimeAndText(searchInterval);
-      searchManualText = dataObj.text;
+      searchInputValue = dataObj.text;
     } else if (searchType === 'auto') {
       dataObj = this.getTimeAndText(refreshTime);
-      searchAutoText = t('txt-interval') + ': ' + dataObj.text;
+      searchInputValue = t('txt-interval') + ': ' + dataObj.text;
     }
 
     return (
       <div style={{float: 'left'}}>
+        {modalOpen &&
+          this.modalDialog()
+        }
+
         <DropDownList
           className='search-type'
           list={[
@@ -224,73 +267,11 @@ class SearchOptions extends Component {
           ]}
           required={true}
           onChange={this.handleSearchType}
-          onClick={this.hideTimeMenu}
           value={searchType} />
 
-        {searchType === 'manual' &&
-          <div className='search-interval'>
-            <Input
-              className='time-interval'
-              value={searchManualText}
-              onClick={this.toggleTimeOptions}
-              readOnly={true} />
-            {showManualMenu &&
-              <div className='interval-options' ref={this.setWrapperRef}>
-                <label>{t('network.connections.txt-time-frame')}</label>
-                <RadioGroup
-                  id='timeInterval'
-                  list={[
-                    {value: '30m', text: t('network.connections.txt-last30m')},
-                    {value: '1h', text: t('network.connections.txt-last1h')},
-                    {value: '2h', text: t('network.connections.txt-last2h')},
-                    {value: '24h', text: t('network.connections.txt-last24h')},
-                    {value: 'today', text: t('network.connections.txt-today')},
-                    {value: 'week', text: t('network.connections.txt-week')}
-                  ]}
-                  onChange={this.handleTimeframe}
-                  value={searchInterval} />
-              </div>
-            }
-          </div>
-        }
-
-        {searchType === 'auto' &&
-          <div className='search-interval'>
-            <Input
-              className='time-interval'
-              value={searchAutoText}
-              onClick={this.toggleTimeOptions}
-              readOnly={true} />
-            {showAutoMenu &&
-              <div className='interval-options' ref={this.setWrapperRef}>
-                <label>{t('network.connections.txt-time-frame')}</label>
-                <RadioGroup
-                  id='timeInterval'
-                  list={[
-                    {value: '15m', text: t('network.connections.txt-last15m')},
-                    {value: '30m', text: t('network.connections.txt-last30m')},
-                    {value: '1h', text: t('network.connections.txt-last1h')},
-                    {value: '12h', text: t('network.connections.txt-last12h')}
-                  ]}
-                  onChange={this.handleTimeframe}
-                  value={searchInterval} />
-
-                <label>{t('network.connections.txt-auto-update')}</label>
-                <RadioGroup
-                  id='updateInterval'
-                  list={[
-                    {value: '15000', text: t('network.connections.txt-15s')},
-                    {value: '30000', text: t('network.connections.txt-30s')},
-                    {value: '60000', text: t('network.connections.txt-1m')},
-                    {value: '300000', text: t('network.connections.txt-5m')},
-                    {value: '600000', text: t('network.connections.txt-10m')}
-                  ]}
-                  onChange={this.handleRefreshTime}
-                  value={refreshTime} />
-              </div>
-            }
-          </div>
-        }
+        <div className='search-interval'>
+          <input className='time-interval' value={searchInputValue} onClick={this.toggleTimeOptions.bind(this)} readOnly />
+        </div>
         
         <div className='datepicker'>
           <label htmlFor='datetime' className='datetime'></label>
