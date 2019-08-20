@@ -30,7 +30,7 @@ import {HocSearchOptions as SearchOptions} from '../common/search-options'
 import {HocTableCell as TableCell} from '../common/table-cell'
 import withLocale from '../../hoc/locale-provider'
 
-import Alert from '../network/tabs/alert'
+import Alert from './alert'
 
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -899,7 +899,7 @@ class AlertController extends Component {
     this.setState({
       currentPage
     }, () => {
-      this.loadTable();
+      this.loadTable('subTab');
     });
   }
   handlePageDropdown = (pageSize) => {
@@ -907,7 +907,7 @@ class AlertController extends Component {
       currentPage: 1,
       pageSize: Number(pageSize)
     }, () => {
-      this.loadTable();
+      this.loadTable('subTab');
     });
   }
   handleTableSort = (value) => {
@@ -919,7 +919,7 @@ class AlertController extends Component {
     this.setState({
       sort: tempSort
     }, () => {
-      this.loadTable();
+      this.loadTable('subTab');
     });
   }
   selectTree = (value, field) => {

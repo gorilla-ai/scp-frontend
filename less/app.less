@@ -1003,10 +1003,14 @@ footer.footer {
 			&._tableMenu_ {
 				width: 1px;
 			}
+			&._eventDttm_ {
+				text-align: center;
+			}
 			&.Severity {
 				span {
 					display: block;
 					width: 50%;
+					margin-left: 45px;
 					padding: 2px;
 					color: #fff;
 					text-align: center;
@@ -1209,9 +1213,15 @@ footer.footer {
 							border-left: 1px solid #d9d9d9;
 							border-bottom: 2px solid #d9d9d9;
 							cursor: pointer;
+							&:hover {
+								background-color: #e2ecfd;
+							}
 							.info {
 								font-size: 18px;
 								padding: 8px 10px;
+								&.faded {
+									color: #999;
+								}
 								span {
 									display: block;
 									margin-bottom: 2px;
@@ -1600,6 +1610,21 @@ footer.footer {
 			right: 15px;
 		}
 	}
+	.map-tooltip {
+		.key {
+			color: #004d93;
+		}
+		.value {
+			color: #000;
+		}
+		.count {
+			background-color: #d0021b;
+			color: #fff;
+			border-radius: 100%;
+			font-size: 5px;
+			padding: 2px;
+		}
+	}
 	.safety-scan-content {
 		overflow: hidden;
 		max-height: 362px;
@@ -1657,21 +1682,6 @@ footer.footer {
 	&.fit {
 		height: 75vh;
 	}
-	.map-tooltip {
-		.key {
-			color: #004d93;
-		}
-		.value {
-			color: #000;
-		}
-		.count {
-			background-color: #d0021b;
-			color: #fff;
-			border-radius: 100%;
-			font-size: 5px;
-			padding: 2px;
-		}
-	}
 	.actions {
 		display: none;
 	}
@@ -1679,22 +1689,19 @@ footer.footer {
 		background: -webkit-linear-gradient(top, #021320, #03244b, #021320)
 	}
 }
-
 .Filters {
 	margin-top: 10px;
-
 	label {
 		color: #4d86e2;
 	}
 	textarea {
-  		resize: none;
+		resize: none;
 	}
 	.scrollY {
 		max-height: 410px;
 		overflow-y: auto;
 	}
 }
-
 .Relationships {
 	.group {
 		border: 1px solid #d9d9d9;
@@ -1706,14 +1713,12 @@ footer.footer {
 		margin-top: 10px;
 		margin-bottom: 10px;
 		width: 90%;
-
 		.up {
 			display: flex;
 			padding: 5px 5px;
 		}
 		.down {
 			padding: 5px 5px;
-
 			.table-100 {
 				width: 100%;
 			}
@@ -1724,7 +1729,6 @@ footer.footer {
 		}
 		.item {
 			margin-left: 10px;
-			
 			label {
 				color: #4d86e2;
 			}

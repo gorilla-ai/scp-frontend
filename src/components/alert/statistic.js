@@ -7,8 +7,8 @@ import cx from 'classnames'
 import DataTable from 'react-ui/build/src/components/table'
 import PieChart from 'react-chart/build/src/components/pie'
 
-import helper from '../../common/helper'
-import withLocale from '../../../hoc/locale-provider'
+import helper from '../common/helper'
+import withLocale from '../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 

@@ -7,16 +7,16 @@ import Gis from 'react-gis/build/src/components'
 import Tabs from 'react-ui/build/src/components/tabs'
 import Timebar from 'react-timebar/build/src/components'
 
-import {HocFilterContent as FilterContent} from '../../common/filter-content'
-import helper from '../../common/helper'
-import TableContent from '../../common/table-content'
-import {HocPagination as Pagination} from '../../common/pagination'
-import {HocTimebarChart as TimebarChart} from '../../common/timebar-chart'
-import {HocTree as Tree} from '../../common/tree'
+import {HocFilterContent as FilterContent} from '../common/filter-content'
+import helper from '../common/helper'
+import TableContent from '../common/table-content'
+import {HocPagination as Pagination} from '../common/pagination'
+import {HocTimebarChart as TimebarChart} from '../common/timebar-chart'
+import {HocTree as Tree} from '../common/tree'
 import Statistic from './statistic'
 import VbdaLA from 'vbda-ui/build/src/components/analysis/la'
 
-import withLocale from '../../../hoc/locale-provider'
+import withLocale from '../../hoc/locale-provider'
 
 let t = null;
 

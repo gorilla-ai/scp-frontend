@@ -27,7 +27,7 @@ import {HocSortableList as SortableList} from '../common/sortable-list'
 import {HocTableCell as TableCell} from '../common/table-cell'
 import withLocale from '../../hoc/locale-provider'
 
-import Logs from '../network/tabs/log'
+import Logs from './log'
 
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'

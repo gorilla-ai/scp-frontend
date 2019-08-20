@@ -11,7 +11,6 @@ import TableContent from '../../common/table-content'
 import {HocPagination as Pagination} from '../../common/pagination'
 import {HocTimebarChart as TimebarChart} from '../../common/timebar-chart'
 import {HocTree as Tree} from '../../common/tree'
-import Statistic from './statistic'
 import VbdaLA from 'vbda-ui/build/src/components/analysis/la'
 
 import withLocale from '../../../hoc/locale-provider'
@@ -50,11 +49,6 @@ class Connections extends Component {
               current={mainContentData.activeSubTab}
               onChange={mainContentData.handleSubTabChange}>
             </Tabs>
-
-            {mainContentData.activeSubTab === 'statistics' &&
-              <Statistic
-                baseUrl={baseUrl} />
-            }
 
             {mainContentData.activeSubTab === 'table' &&
               <TableContent

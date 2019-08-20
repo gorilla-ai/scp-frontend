@@ -3,13 +3,13 @@ import PropTypes from 'prop-types'
 
 import Tabs from 'react-ui/build/src/components/tabs'
 
-import {HocFilterContent as FilterContent} from '../../common/filter-content'
-import helper from '../../common/helper'
-import {HocMarkContent as MarkContent} from '../../common/mark-content'
-import TableContent from '../../common/table-content'
-import {HocPagination as Pagination} from '../../common/pagination'
-import {HocTimebarChart as TimebarChart} from '../../common/timebar-chart'
-import {HocTree as Tree} from '../../common/tree'
+import {HocFilterContent as FilterContent} from '../common/filter-content'
+import helper from '../common/helper'
+import {HocMarkContent as MarkContent} from '../common/mark-content'
+import TableContent from '../common/table-content'
+import {HocPagination as Pagination} from '../common/pagination'
+import {HocTimebarChart as TimebarChart} from '../common/timebar-chart'
+import {HocTree as Tree} from '../common/tree'
 import VbdaLA from 'vbda-ui/build/src/components/analysis/la'
 
 class Log extends Component {

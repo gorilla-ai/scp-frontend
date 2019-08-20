@@ -79,7 +79,9 @@ const MAPS_PUBLIC_DATA = {
     },
     private: {
       tree: [],
-      data: ''
+      data: '',
+      currentFloorPrivateData: [],
+      allFloorPrivateData: []
     },
     currentID: '',
     currentIndex: '',
@@ -554,6 +556,14 @@ class Dashboard extends Component {
       return;
     }
 
+    if (id.length > 15) {
+      _.forEach(alertDetails.private.tree, val => {
+        if (val.srcTopoInfo.seatUUID === id) {
+          id = val.key;
+        }
+      })
+    }
+
     tempAlertDetails.currentIndex = 0;
     tempAlertDetails.currentID = id;
 
@@ -801,15 +811,20 @@ class Dashboard extends Component {
     .then(data => {
       const allPrivateData = data.aggregations.Top10InternalSrcIp.srcIp.buckets;
       let tempAlertDetails = {...alertDetails};
-      let currentPrivateData = [];
+      let currentFloorPrivateData = [];
+      let allFloorPrivateData = [];
 
       _.forEach(allPrivateData, val => {
         if (val.srcTopoInfo.areaUUID === currentFloor) {
-          currentPrivateData.push(val);
+          currentFloorPrivateData.push(val);
+        } else {
+          allFloorPrivateData.push(val);
         }
       })
 
-      tempAlertDetails.private.tree = currentPrivateData;
+      tempAlertDetails.private.currentFloorPrivateData = currentFloorPrivateData;
+      tempAlertDetails.private.allFloorPrivateData = allFloorPrivateData;
+      tempAlertDetails.private.tree = _.concat(currentFloorPrivateData, allFloorPrivateData);
 
       this.setState({
         alertDetails: tempAlertDetails
@@ -832,51 +847,29 @@ class Dashboard extends Component {
         if (tempSeatID) {
           if (tempSeatID !== val.srcTopoInfo.seatUUID) {
             tempSeatID = val.srcTopoInfo.seatUUID;
-            tempAlertDetails.push(val.srcTopoInfo);
+            tempAlertDetails.push(val);
           }
         } else {
           tempSeatID = val.srcTopoInfo.seatUUID;
-          tempAlertDetails.push(val.srcTopoInfo);
+          tempAlertDetails.push(val);
         }
       }
     })
 
-    // _.forEach(alertDetails.private, val => {
-    //   if (val.content.srcTopoInfo && val.content.srcTopoInfo.areaUUID === areaUUID) {
-    //     if (tempSeatID) {
-    //       if (tempSeatID !== val.content.srcTopoInfo.seatUUID) {
-    //         tempSeatID = val.content.srcTopoInfo.seatUUID;
-    //         tempAlertDetails.push(val.content.srcTopoInfo);
-    //       }
-    //     } else {
-    //       tempSeatID = val.content.srcTopoInfo.seatUUID;
-    //       tempAlertDetails.push(val.content.srcTopoInfo);
-    //     }
-    //   }
-    // });
-
     if (tempAlertDetails.length > 0) {
       _.forEach(tempAlertDetails, val => {
-        let tempSeatData = [];
-
-        _.forEach(alertDetails.private.tree, val2 => {
-          if (val2.srcTopoInfo && val2.srcTopoInfo.seatUUID === val.seatUUID) {
-            tempSeatData.push(val2);
-          }
-        })   
-
         seatListArr.push({
-          id: val.seatUUID,
+          id: val.srcTopoInfo.seatUUID,
           type: 'spot',
-          xy: [val.seatCoordX, val.seatCoordY],
-          label: val.seatName,
+          xy: [val.srcTopoInfo.seatCoordX, val.srcTopoInfo.seatCoordY],
+          label: val.srcTopoInfo.seatName,
           data: {
-            count: tempSeatData.length,
-            seatName: val.seatName,
-            areaFullName: val.areaFullName,
-            srcIp: val.srcIp,
-            srcMac: val.srcMac,
-            ownerName: val.ownerName,
+            count: val.doc_count,
+            seatName: val.srcTopoInfo.seatName,
+            areaFullName: val.srcTopoInfo.areaFullName,
+            srcIp: val.srcTopoInfo.srcIp,
+            srcMac: val.srcTopoInfo.srcMac,
+            ownerName: val.srcTopoInfo.ownerName,
             tag: 'red'
           }
         });
@@ -915,6 +908,14 @@ class Dashboard extends Component {
     }, () => {
       this.loadAlertData(tab);
     });
+  }
+  getTreeColor = (index) => {
+    const {alertDetails} = this.state;
+    const currentFloorLength = alertDetails.private.currentFloorPrivateData.length;
+
+    if ((index + 1) > currentFloorLength) {
+      return 'faded';
+    }
   }
   // testChartFunction = (evt, data, cfg) => {
   //   const {baseUrl, contextRoot} = this.props;
@@ -1089,8 +1090,8 @@ class Dashboard extends Component {
                       {alertDetails.private.tree.length > 0 &&
                         alertDetails.private.tree.map((val, i) => {
                           return (
-                            <li key={val.key} onClick={this.showTopoDetail.bind(this, PRIVATE, val.srcTopoInfo.srcIp || val.srcTopoInfo.ipSrc)}>
-                              <div className='info'>
+                            <li key={val.key} onClick={this.showTopoDetail.bind(this, PRIVATE, val.key)}>
+                              <div className={cx('info', {'faded': this.getTreeColor(i)})}>
                                 <span className='ip'>{val.key}</span>
                                 <span className='host'>{val.srcTopoInfo.hostName}</span>
                               </div>
@@ -1112,6 +1113,7 @@ class Dashboard extends Component {
                           layouts={['standard']}
                           dragModes={['pan']}
                           scale={{enabled: false}}
+                          onClick={this.showTopoDetail.bind(this, PRIVATE)}
                           symbolOptions={[{
                             match: {
                               data: {tag: 'red'}
