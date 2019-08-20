@@ -220,9 +220,8 @@ class Dashboard extends Component {
     .then(data => {
       if (type === 'maps') {
         const tempArray = _.map(data[0].data.rows, val => {
-          val._source.id = val._id;
-          val._source.index = val._index;
-          return val._source;
+          val.content.id = val.id;
+          return val.content;
         });
         let tempAlertDetails = {...alertDetails};
         let publicData = {
