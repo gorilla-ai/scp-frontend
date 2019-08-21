@@ -89,7 +89,7 @@ class Relationships extends Component {
 		const {nodeA, nodeB, nameOptions} = this.state
 
     return (
-  		<div className='Relationship'>
+  		<div className='relationship'>
   			<div className='up'>
     			<div className='item'>
       			<label>{t('syslogFields.name')}</label>

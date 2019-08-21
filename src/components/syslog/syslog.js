@@ -466,7 +466,7 @@ class Syslog extends Component {
     const {config, rawOptions} = this.state
 
     return (
-      <div className='Filters'>
+      <div className='filters'>
         <div className='left-syslog'>
           <div style={{display: 'flex'}}>
             <div style={{width: '90%', position: 'relative'}}>
@@ -520,45 +520,75 @@ class Syslog extends Component {
 
     return (
         <MultiInput
-          className='Relationships'
+          className='relationships'
           base={Relationships}
           value={config.relationships}
           props={data}
           onChange={this.handleRelationshipChange.bind(this, 'config.relationships')} />
     )
   }
+  displaySyslogDialog = () => {
+    const {config} = this.state;
+
+    return (
+      <div className='wide-dialog'>
+        <div className='syslogs'>
+          <div className='syslog'>
+            <label>{t('syslogFields.name')}</label>
+            <Input 
+              required={true} 
+              validate={{t: et}}
+              value={config.name}
+              onChange={this.handleConfigChange.bind(this, 'name')} />
+          </div>
+          <div className='syslog'>
+            <label>{t('syslogFields.port')}</label>
+            <Input
+              required={true}
+              validate={{t: et}}
+              value={config.port}
+              onChange={this.handleConfigChange.bind(this, 'port')} />
+          </div>
+          <div className='syslog'>
+            <label>{t('syslogFields.format')}</label>
+            <Input
+              required={true}
+              validate={{t: et}}
+              value={config.format}
+              onChange={this.handleConfigChange.bind(this, 'format')} />
+          </div>
+        </div>
+        <ButtonGroup
+          list={[
+            {value:'filter', text:'Filter'},
+            {value:'relationship', text:'Relationship'}
+          ]}
+          onChange={this.handleConfigChange.bind(this, 'type')}
+          value={config.type} />
+        { config.type === 'filter' && this.renderTabFilter() }
+        { config.type === 'relationship' && this.renderTabRelationship() }
+      </div>
+    )    
+  }
   modalSyslog() {
-    const {config, error, info, modalTitle} = this.state
+    const {error, info, modalTitle} = this.state
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeSyslog.bind(this)},
       confirm: {text: t('txt-confirm'), handler: this.confirmSyslog.bind(this)}
     }
 
     return (
-      <ModalDialog className='modal-dialog' title={modalTitle} draggable={true} global={true} actions={actions} closeAction='cancel'
-                   infoClassName={cx({'c-error':error})} info={info}>
-        <div className='wide-dialog'>
-          <div className='syslogs'>
-            <div className='syslog'>
-              <label>{t('syslogFields.name')}</label>
-              <Input required={true} validate={{t: et}} value={config.name} onChange={this.handleConfigChange.bind(this, 'name')} />
-            </div>
-            <div className='syslog'>
-              <label>{t('syslogFields.port')}</label>
-              <Input required={true} validate={{t: et}} value={config.port} onChange={this.handleConfigChange.bind(this, 'port')} />
-            </div>
-            <div className='syslog'>
-              <label>{t('syslogFields.format')}</label>
-              <Input required={true} validate={{t: et}} value={config.format} onChange={this.handleConfigChange.bind(this, 'format')} />
-            </div>
-          </div>
-          <ButtonGroup list={[{value:'filter', text:'Filter'}, {value:'relationship', text:'Relationship'}]}
-                onChange={this.handleConfigChange.bind(this, 'type')} value={config.type} />
-          
-          { config.type === 'filter' && this.renderTabFilter() }
-          { config.type === 'relationship' && this.renderTabRelationship() }
-
-        </div>
+      <ModalDialog 
+        id='syslogModalDialog'
+        className='modal-dialog'
+        title={modalTitle}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'
+        infoClassName={cx({'c-error':error})}
+        info={info}>
+        {this.displaySyslogDialog()}
       </ModalDialog>
     )
   }

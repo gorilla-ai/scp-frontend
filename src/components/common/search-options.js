@@ -19,15 +19,17 @@ class SearchOptions extends Component {
   constructor(props) {
     super(props);
 
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    et = global.chewbaccaI18n.getFixedT(null, 'errors');
+
     this.state = {
       searchType: 'manual',
       searchInterval: '1h',
       refreshTime: '600000', //10 minutes
-      modalOpen: false
+      searchInputManual: t('network.connections.txt-last1h'),
+      searchInputAuto: t('txt-interval') + ': ' + t('network.connections.txt-10m'),
+      intervalModalOpen: false
     };
-
-    t = global.chewbaccaI18n.getFixedT(null, 'connections');
-    et = global.chewbaccaI18n.getFixedT(null, 'errors');
   }
   componentDidMount = () => {
     this.loadSearchOptions();
@@ -61,35 +63,18 @@ class SearchOptions extends Component {
 
     this.props.handleDateChange(datetime, 'refresh');
   }
-  setWrapperRef = (node) => {
-    this.wrapperRef = node;
-  }
-  handleSearchType = (type) => {
+  handleSearchTypeChange = (type) => {
     this.setState({
       searchType: type,
       searchInterval: '1h',
-      refreshTime: '600000'
+      refreshTime: '600000',
+      searchInputManual: t('network.connections.txt-last1h'),
+      searchInputAuto: t('txt-interval') + ': ' + t('network.connections.txt-10m')
     }, () => {
       if (this.intervalId) {
         clearInterval(this.intervalId);
         this.intervalId = null;
       }
-    });
-  }
-  handleTimeframe = (type) => {
-    let tempDatetime = {...this.state.datetime};
-    const dataObj = this.getTimeAndText(type);
-    tempDatetime.to = Moment().local().format('YYYY-MM-DDTHH:mm') + ':00Z';
-    tempDatetime.from = dataObj.time;
-
-    this.props.handleDateChange(tempDatetime);
-    this.setState({
-      searchInterval: type
-    });
-  }
-  handleRefreshTime = (refreshTime) => {
-    this.setState({
-      refreshTime
     });
   }
   renderDateRange = () => {
@@ -162,9 +147,19 @@ class SearchOptions extends Component {
       time
     }
   }
-  toggleTimeOptions = () => {
+  toggleIntervalDialog = () => {
     this.setState({
-      modalOpen: !this.state.modalOpen
+      intervalModalOpen: !this.state.intervalModalOpen
+    });
+  }
+  handleTimeframe = (searchInterval) => {
+    this.setState({
+      searchInterval
+    });
+  }
+  handleRefreshTime = (refreshTime) => {
+    this.setState({
+      refreshTime
     });
   }
   displayIntervalOptions = () => {
@@ -219,10 +214,35 @@ class SearchOptions extends Component {
       )
     }
   }
-  modalDialog = () => {
+  handleIntervalConfirm = () => {
+    const {searchType, searchInterval, refreshTime} = this.state;
+    let dataObj = this.getTimeAndText(searchInterval);
+    let searchInputManual = '';
+    let searchInputAuto = '';
+
+    this.props.handleDateChange({
+      from: dataObj.time,
+      to: Moment().local().format('YYYY-MM-DDTHH:mm') + ':00Z'
+    });
+
+    if (searchType === 'manual') {
+      searchInputManual = dataObj.text;
+    } else if (searchType === 'auto') {
+      dataObj = this.getTimeAndText(refreshTime);
+      searchInputAuto = t('txt-interval') + ': ' + dataObj.text;
+    }
+
+    this.setState({
+      searchInputManual,
+      searchInputAuto
+    }, () => {
+      this.toggleIntervalDialog();
+    });
+  }
+  intervalModalDialog = () => {
     const {activeTab} = this.state;
     const actions = {
-      confirm: {text: t('txt-confirm'), handler: this.toggleTimeOptions}
+      confirm: {text: t('txt-close'), handler: this.handleIntervalConfirm}
     };
     const titleText = t('network.connections.txt-time-frame');
 
@@ -239,24 +259,25 @@ class SearchOptions extends Component {
       </ModalDialog>
     )
   }
+  toggleSearchBtn = () => {
+    if (this.props.showFilter) {
+      return { visibility: 'hidden' };
+    }
+  }
   render() {
-    const {showFilter} = this.props;
-    const {searchType, searchInterval, refreshTime, modalOpen} = this.state;
-    let dataObj = {};
+    const {searchType, searchInputManual, searchInputAuto, intervalModalOpen} = this.state;
     let searchInputValue = '';
 
     if (searchType === 'manual') {
-      dataObj = this.getTimeAndText(searchInterval);
-      searchInputValue = dataObj.text;
+      searchInputValue = searchInputManual;
     } else if (searchType === 'auto') {
-      dataObj = this.getTimeAndText(refreshTime);
-      searchInputValue = t('txt-interval') + ': ' + dataObj.text;
+      searchInputValue = searchInputAuto;
     }
 
     return (
-      <div style={{float: 'left'}}>
-        {modalOpen &&
-          this.modalDialog()
+      <div className='search-options'>
+        {intervalModalOpen &&
+          this.intervalModalDialog()
         }
 
         <DropDownList
@@ -266,11 +287,11 @@ class SearchOptions extends Component {
             {value: 'auto', text: t('network.connections.txt-search-auto')}
           ]}
           required={true}
-          onChange={this.handleSearchType}
+          onChange={this.handleSearchTypeChange}
           value={searchType} />
 
         <div className='search-interval'>
-          <input className='time-interval' value={searchInputValue} onClick={this.toggleTimeOptions.bind(this)} readOnly />
+          <input className='time-interval' value={searchInputValue} onClick={this.toggleIntervalDialog.bind(this)} readOnly />
         </div>
         
         <div className='datepicker'>
@@ -278,9 +299,7 @@ class SearchOptions extends Component {
           {this.renderDateRange()}
         </div>
 
-        {!showFilter &&
-          <button className='search-button' onClick={this.loadSearchOptions.bind(this, 'search')}>{t('network.connections.txt-toggleFilter')}</button>
-        }
+        <button className='search-button' style={this.toggleSearchBtn()} onClick={this.loadSearchOptions.bind(this, 'search')}>{t('network.connections.txt-toggleFilter')}</button>
       </div>
     )
   }

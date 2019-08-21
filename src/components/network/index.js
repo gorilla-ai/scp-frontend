@@ -2372,7 +2372,7 @@ class Network extends Component {
           this.pcapDialog()
         }
 
-        <div className='sub-header connections'>
+        <div className='sub-header'>
           <SearchOptions
             datetime={datetime}
             showFilter={showFilter}

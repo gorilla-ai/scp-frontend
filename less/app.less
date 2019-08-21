@@ -45,69 +45,44 @@ footer.footer {
 		background-color: #001b34 !important;
 	}
 }
-.header-wrapper {
-	.main-header {
-		position: relative;
-		#g-header {
-			color: #ffffff;
-			padding: 0 20px;
-			height: 45px;
-			background-color: #001b34;
-			.title {
-				position: absolute;
-				font-size: 1.6em;
-				font-weight: bold;
-				letter-spacing: 1px;
-				margin-bottom: 2px;
+#g-header {
+	color: #ffffff;
+	padding: 0 20px;
+	height: 45px;
+	background-color: #001b34;
+	.title {
+		position: absolute;
+		font-size: 1.6em;
+		font-weight: bold;
+		letter-spacing: 1px;
+		margin-bottom: 2px;
+	}
+	.main-nav {
+		text-align: center;
+		.item {
+			padding: 12px 35px;
+			&:hover {
+				background-color: #1a3248;
 			}
-			.subheader {
-				display: none;
-				position: absolute;
-				top: 36px;
-			}
-			.main-nav {
-				text-align: center;
-				.item {
-					padding: 12px 35px;
-					&:hover {
-						background-color: #1a3248;
-					}
-					&.active {
-						background-color: #004d93;
-						&:hover {
-							opacity: .9;
-						}
-					}
+			&.active {
+				background-color: #004d93;
+				&:hover {
+					opacity: .9;
 				}
-			}
-			.previous-page {
-				i {
-					font-size: 1em;
-					margin-top: 3px;
-				}
-				span {
-					margin-left: 5px;
-				}
-			}
-			.account {
-				position: absolute;
-				font-size: 1.8em;
-				top: 0;
-				right: 15px;
 			}
 		}
+	}
+	.account {
+		position: absolute;
+		font-size: 1.8em;
+		top: 0;
+		right: 15px;
 	}
 }
 .c-chewie-connections {
   max-width: 100%;
-  .font-init {
-    font-weight: initial;
-  }
   .dropdown-margin {
     margin-left:50px;
-  }
-  .table-overflow {
-    overflow-y: auto;
   }
   .table-100 {
     width: 100%;
@@ -184,9 +159,21 @@ footer.footer {
 		opacity: 0.5;
 	}
 }
-.filter-section,
- .mark-section {
-	background-color: #ededed;
+#gisMap {
+	width: 100%;
+	height: 86vh;
+	&.full {
+		height: 95vh;
+	}
+	&.fit {
+		height: 75vh;
+	}
+	.actions {
+		display: none;
+	}
+	.leaflet-container {
+		background: -webkit-linear-gradient(top, #021320, #03244b, #021320)
+	}
 }
 #mainFilter,
 #mainMark {
@@ -264,14 +251,11 @@ footer.footer {
 	.sub-header {
 		color: #fff;
 		background-color: #004d93;
+		padding: 3px 10px;
 		position: relative;
+		overflow: hidden;
 		input:not([type=radio]), select {
 			color: #000;
-		}
-		&.dashboard,
-		&.connections {
-			padding: 3px 10px;
-			overflow: hidden;
 		}
 		&.dashboard {
 			button {
@@ -284,34 +268,29 @@ footer.footer {
 				color: #fff;
 			}
 		}
-		&.connections {
-			.datepicker {
-				position: relative;
-				float: left;
-				#datetime-from,
-				#datetime-to {
-					width: 180px;
-					padding: 0.5em;
-				}
+		.search-options {
+			float: left;
+			#datetime-from,
+			#datetime-to {
+				width: 180px;
+				padding: 0.5em;
 			}
 			label {
-				&.datetime,
-				&.maxTopSize {
+				&.datetime {
 					display: inline-block;
 					margin-right: 10px;
 				}
-				&.filter {
-					display: block;
-					float: left;
-					padding-top: 6px;
-					margin-right: 10px;
-				}
 			}
-			.fg {
-				border: none;
+			.datepicker {
+				position: relative;
+				float: left;
 			}
 			.daterange {
 				display: inline-block;
+				margin-right: 15px;
+			}
+			.fg {
+				border: none;
 			}
 			.search-type {
 				float: left;
@@ -322,12 +301,6 @@ footer.footer {
 			}
 			.search-button {
 				margin-top: 2px;
-			}
-			.daterange {
-				margin-right: 15px;
-			}
-			.search-manual {
-				float: left;
 			}
 			.search-interval {
 				float: left;
@@ -432,8 +405,8 @@ footer.footer {
 			}
 		}
 	}
-	.secondary-btn-group,
-	.main-btn-group {
+	.main-btn-group,
+	.secondary-btn-group {
 		button {
 			padding: .3em .6em;
 			color: #001b34;
@@ -461,6 +434,7 @@ footer.footer {
 		}
 		&.right {
 			float: right;
+			margin-top: 1px;
 		}
 		button {
 			margin-right: 5px;
@@ -476,15 +450,6 @@ footer.footer {
 			span {
 				float: left;
 			}
-		}
-	}
-	.search-btns {
-		float: right;
-		margin-top: 1px;
-		&.honeynet {
-			float: left;
-			min-width: 130px;
-			width: 130px;
 		}
 	}
 	.la-content {
@@ -604,47 +569,53 @@ footer.footer {
 					margin-top: 0;
 				}
 			}
+			.frame,
+			.subframe {
+				cursor: pointer;
+				a {
+					display: block;
+					width: 100%;
+					height: 100%;
+				}
+				&:hover {
+					background-color: #e2ecfd;
+				}
+			}
 			.frame {
+				position: relative;
 				width: 100%;
 				height: 50px;
 				border-bottom: 2px solid #ccc;
 				&.last {
 					border-bottom: 0;
 				}
-				span.true {
-					color: #004d93;
-					padding-left: 10px;
+				span {
+					display: block;
 					font-weight: bold;
-					vertical-align: -webkit-baseline-middle;
-				}
-				span.false {
-					padding-left: 10px;
-					font-weight: bold;
-					vertical-align: -webkit-baseline-middle;
-				}
-				.fg-arrow-top {
-					float: right;
-					padding-right: 10px;
 					padding-top: 10px;
+					padding-left: 10px;
+					&.true {
+						color: #004d93;
+					}
 				}
+				.fg-arrow-top,
 				.fg-arrow-bottom {
-					float: right;
-					padding-right: 10px;
-					padding-top: 10px;
+					position: absolute;
+					top: 10px;
+					right: 10px;
 				}
 			}
 			.subframe {
 				width: 100%;
 				height: 50px;
 				background-color: #e8e9ed;
-				span.true {
-					color: #004d93;
-					padding-left: 30px;
-					vertical-align: -webkit-baseline-middle;
-				}
-				span.false {
-					padding-left: 30px;
-					vertical-align: -webkit-baseline-middle;
+				span {
+					display: block;
+					padding-top: 15px;
+					padding-left: 20px;
+					&.true {
+						color: #004d93;
+					}
 				}
 			}
 		}
@@ -722,6 +693,10 @@ footer.footer {
 			overflow-x: auto;
 			overflow: hidden;
 			white-space: nowrap;
+			.filter-section,
+			.mark-section {
+				background-color: #ededed;
+			}
 			.file-options {
 				display: flex;
 				margin: 25px 25px 15px 25px;
@@ -891,6 +866,11 @@ footer.footer {
 	}
 	.main-table {
 		width: 100%;
+		&.main {
+			tbody tr {
+				height: 45px;
+			}
+		}
 		&.overflow-scroll {
 			overflow-x: auto;
 		}
@@ -1339,6 +1319,7 @@ footer.footer {
 			display: block;
 			overflow-x: auto;
 			white-space: nowrap;
+			min-height: 75vh
 		}
 		.grid-flex {
 			display: flex;
@@ -1469,7 +1450,6 @@ footer.footer {
 	}
 	.filter-header {
 		background-color: #c9ced6;
-
 		.fg-close {
 			float: right;
 			padding-top: 5px;
@@ -1518,31 +1498,6 @@ footer.footer {
 			width: 1110px;
 			&.zh {
 				width: 1025px;
-			}
-		}
-		.mode-selection {
-			position: absolute;
-			top: 5px;
-			left: 315px;
-			&.zh {
-			 left: 280px;
-			}
-			label {
-				margin-right: 5px;
-			}
-			input  {
-				margin-right: 15px;
-				&:checked {
-					border: 6px solid #001b34;
-				}
-			}
-		}
-		.start-time {
-			position: absolute;
-			top: 5px;
-			left: 500px;
-			&.zh {
-				left: 430px;
 			}
 		}
 		.datepicker {
@@ -1649,86 +1604,6 @@ footer.footer {
 				right: 10px;
 			}
 		}
-	}
-}
-#gisMap {
-	width: 100%;
-	height: 86vh;
-	&.full {
-		height: 95vh;
-	}
-	&.fit {
-		height: 75vh;
-	}
-	.actions {
-		display: none;
-	}
-	.leaflet-container {
-		background: -webkit-linear-gradient(top, #021320, #03244b, #021320)
-	}
-}
-.Filters {
-	margin-top: 10px;
-	label {
-		color: #4d86e2;
-	}
-	textarea {
-		resize: none;
-	}
-	.scrollY {
-		max-height: 410px;
-		overflow-y: auto;
-	}
-}
-.Relationships {
-	.group {
-		border: 1px solid #d9d9d9;
-		border-radius: 5px;
-		margin-top: 10px;
-		background-color: #e3f2f9;
-	}
-	.Relationship {
-		margin-top: 10px;
-		margin-bottom: 10px;
-		width: 90%;
-		.up {
-			display: flex;
-			padding: 5px 5px;
-		}
-		.down {
-			padding: 5px 5px;
-			.table-100 {
-				width: 100%;
-			}
-			table {
-				border: 1px solid #CCCCCC;
-				border-radius: 5px;
-			}
-		}
-		.item {
-			margin-left: 10px;
-			label {
-				color: #4d86e2;
-			}
-			select {
-				width: 200px;
-			}
-		}
-		.fg-next {
-			margin-top: 30px;
-			margin-left: 10px;
-		}
-	}
-	.remove {
-		height: 30px;
-		width: 30px;
-		margin-top: 10px;
-		background-color: white;
-	}
-	.add {
-		height: 30px;
-		width: 30px;
-		margin-top: 10px;
 	}
 }
 

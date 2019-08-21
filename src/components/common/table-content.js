@@ -39,9 +39,9 @@ class TableContent extends Component {
       <div>
         <div className='table'>
           {(activeTab !== 'file' || (activeTab === 'file' && displayImgType === 'list')) &&
-            <div className='filter-table' style={filterStyle}>
+            <div className='filter-table'>
               <DataTable
-                className='main-table'
+                className='main-table main'
                 fields={dataTableFields}
                 data={dataTableData}
                 rowClassName={this.handleRowClass}

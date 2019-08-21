@@ -1357,7 +1357,7 @@ class AlertController extends Component {
           this.alertDialog()
         }
 
-        <div className='sub-header connections'>
+        <div className='sub-header'>
           <SearchOptions
             datetime={datetime}
             showFilter={showFilter}

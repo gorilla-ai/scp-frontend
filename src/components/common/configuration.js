@@ -71,60 +71,96 @@ class Config extends Component {
       <div className='left-nav search config'>
         {sessionRights.Module_FlowAnalysis_Agent_Manage &&
           <div className='frame agent-manage'>
-            <span className={`${this.getActiveFrame('agent')}`}><Link to='/ChewbaccaWeb/configuration/agent'>{t('txt-agentManage')}</Link></span>
+            <Link to='/ChewbaccaWeb/configuration/agent'>
+              <span className={`${this.getActiveFrame('agent')}`}>{t('txt-agentManage')}</span>
+            </Link>
           </div>
         }
         {sessionRights.Module_FlowAnalysis_Agent_Manage &&
           <div className='frame threat-manage'>
-            <span className={`${this.getActiveFrame('threat')}`}><Link to='/ChewbaccaWeb/configuration/threats'>{t('txt-threatManage')}</Link></span>
+            <Link to='/ChewbaccaWeb/configuration/threats'>
+              <span className={`${this.getActiveFrame('threat')}`}>{t('txt-threatManage')}</span>
+            </Link>
           </div>
         }
         
         {sessionRights.Module_Honeynet_Manage &&
-          <div className='frame honeynet-manage'>
+          <div className='frame honeynet-manage' onClick={this.handleOpen.bind(this, 'openHoneynet', openHoneynet)}>
             <span className={`${this.getActiveFrame('pot') || this.getActiveFrame('mail')}`}>{t('txt-honeyManage')}</span>
-            <i className={`c-link fg fg-arrow-${openHoneynet?'top':'bottom'}`} onClick={this.handleOpen.bind(this, 'openHoneynet', openHoneynet)}></i>
+            <i className={`c-link fg fg-arrow-${openHoneynet?'top':'bottom'}`}></i>
           </div>
         }
         {openHoneynet &&
           <div className='open-honeynet'>
-            <div className='subframe'><span className={`${this.getActiveFrame('pot')}`}><Link to='/ChewbaccaWeb/configuration/honeynet/host'>{t('txt-honeypot')}</Link></span></div>
-            <div className='subframe'><span className={`${this.getActiveFrame('mail')}`}><Link to='/ChewbaccaWeb/configuration/honeynet/email-report'>{t('txt-email-report')}</Link></span></div>
+            <div className='subframe'>
+              <Link to='/ChewbaccaWeb/configuration/honeynet/host'>
+                <span className={`${this.getActiveFrame('pot')}`}>{t('txt-honeypot')}</span>
+              </Link>
+            </div>
+            <div className='subframe'>
+              <Link to='/ChewbaccaWeb/configuration/honeynet/email-report'>
+                <span className={`${this.getActiveFrame('mail')}`}>{t('txt-email-report')}</span>
+              </Link>
+            </div>
           </div>
         }
         {sessionRights.Module_NetworkTopology_Manage &&
-          <div className='frame network-topology'>
+          <div className='frame network-topology' onClick={this.handleOpen.bind(this, 'openTopology', openTopology)}>
             <span className={`${this.getActiveFrame('owner') || this.getActiveFrame('ip') || this.getActiveFrame('map')}`}>{t('txt-topology')}</span>
-            <i className={`c-link fg fg-arrow-${openTopology?'top':'bottom'}`} onClick={this.handleOpen.bind(this, 'openTopology', openTopology)}></i>
+            <i className={`c-link fg fg-arrow-${openTopology?'top':'bottom'}`}></i>
           </div>
         }
         {openTopology &&
           <div className='open-topology'>
-            <div className='subframe'><span className={`${this.getActiveFrame('owner')}`}><Link to='/ChewbaccaWeb/configuration/topology/owner'>{t('txt-network-owner')}</Link></span></div>
-            <div className='subframe'><span className={`${this.getActiveFrame('ip')}`}><Link to='/ChewbaccaWeb/configuration/topology/ip'>{t('txt-network-ip')}</Link></span></div>
-            <div className='subframe'><span className={`${this.getActiveFrame('map')}`}><Link to='/ChewbaccaWeb/configuration/topology/map'>{t('txt-network-map')}</Link></span></div>  
+            <div className='subframe'>
+              <Link to='/ChewbaccaWeb/configuration/topology/owner'>
+                <span className={`${this.getActiveFrame('owner')}`}>{t('txt-network-owner')}</span>
+              </Link>
+            </div>
+            <div className='subframe'>
+              <Link to='/ChewbaccaWeb/configuration/topology/ip'>
+                <span className={`${this.getActiveFrame('ip')}`}>{t('txt-network-ip')}</span>
+              </Link>
+            </div>
+            <div className='subframe'>
+              <Link to='/ChewbaccaWeb/configuration/topology/map'>
+                <span className={`${this.getActiveFrame('map')}`}>{t('txt-network-map')}</span>
+              </Link>
+            </div>
           </div>
         }
         {sessionRights.Module_Syslog_Manage &&
           <div className='frame syslog-manage'>
-            <span className={`${this.getActiveFrame('syslog')}`}><Link to='/ChewbaccaWeb/configuration/syslog'>{t('txt-syslogManage')}</Link></span>
+            <Link to='/ChewbaccaWeb/configuration/syslog'>
+              <span className={`${this.getActiveFrame('syslog')}`}>{t('txt-syslogManage')}</span>
+            </Link>
           </div>
         }
         {sessionRights.Module_Account_Manage &&
-          <div className='frame account-manage'>
+          <div className='frame account-manage' onClick={this.handleOpen.bind(this, 'openAccount', openAccount)}>
             <span className={`${this.getActiveFrame('account') || this.getActiveFrame('privileges')}`}>{t('txt-accountManage')}</span>
-            <i className={`c-link fg fg-arrow-${openAccount?'top':'bottom'}`} onClick={this.handleOpen.bind(this, 'openAccount', openAccount)}></i>
+            <i className={`c-link fg fg-arrow-${openAccount?'top':'bottom'}`}></i>
           </div>
         }
         {openAccount &&
           <div className='open-account'>
-            <div className='subframe'><span className={`${this.getActiveFrame('account')}`}><Link to='/ChewbaccaWeb/configuration/user/account'>{t('txt-account')}</Link></span></div>
-            <div className='subframe'><span className={`${this.getActiveFrame('privileges')}`}><Link to='/ChewbaccaWeb/configuration/user/privileges'>{t('txt-privileges')}</Link></span></div>
+            <div className='subframe'>
+              <Link to='/ChewbaccaWeb/configuration/user/account'>
+                <span className={`${this.getActiveFrame('account')}`}>{t('txt-account')}</span>
+              </Link>
+            </div>
+            <div className='subframe'>
+              <Link to='/ChewbaccaWeb/configuration/user/privileges'>
+                <span className={`${this.getActiveFrame('privileges')}`}>{t('txt-privileges')}</span>
+              </Link>
+            </div>
           </div>
         }
         {sessionRights.Module_Account_Manage &&
           <div className='frame service-status last'>
-            <span className={`${this.getActiveFrame('serviceStatus')}`}><Link to='/ChewbaccaWeb/configuration/service-status'>{t('txt-serviceStatus')}</Link></span>
+            <Link to='/ChewbaccaWeb/configuration/service-status'>
+              <span className={`${this.getActiveFrame('serviceStatus')}`}>{t('txt-serviceStatus')}</span>
+            </Link>
           </div>
         }
       </div>
