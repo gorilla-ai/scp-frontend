@@ -1330,7 +1330,6 @@ class SyslogController extends Component {
       columns: tempColumns
     };
 
-    dataOptions = _.omit(dataOptions, ['sort']);
     downloadWithForm(url, {payload: JSON.stringify(dataOptions)});
   }
   toggleMark = () => {

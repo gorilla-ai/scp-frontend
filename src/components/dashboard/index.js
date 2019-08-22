@@ -123,7 +123,7 @@ class Dashboard extends Component {
       ..._.cloneDeep(CHARTS_DATA),
       dnsMetricData: {},
       diskMetricData: {},
-      mapType: PUBLIC, //PRIVATE PUBLIC
+      mapType: PRIVATE, //PRIVATE PUBLIC
       locationType: '',
       ..._.cloneDeep(MAPS_PUBLIC_DATA),
       ..._.cloneDeep(MAPS_PRIVATE_DATA),
@@ -135,7 +135,6 @@ class Dashboard extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount = () => {
-    //this.getFloorPlan();
     this.loadAlertData();
     intervalId = setInterval(this.loadAlertData, 300000); //5 minutes
   }
@@ -913,6 +912,7 @@ class Dashboard extends Component {
       diskMetricData: {}
     }, () => {
       this.loadAlertData(tab);
+      this.getFloorPlan();
     });
   }
   getTreeColor = (index) => {
@@ -1032,8 +1032,8 @@ class Dashboard extends Component {
           {activeTab === 'maps' &&
             <div className='maps'>
               <div className='c-button-group left'>
-                <button className={cx('thumb', {'selected': mapType === PUBLIC})} onClick={this.toggleMaps.bind(this, PUBLIC)}>{t('dashboard.txt-public')}</button>
                 <button className={cx('thumb', {'selected': mapType === PRIVATE})} onClick={this.toggleMaps.bind(this, PRIVATE)}>{t('dashboard.txt-private')}</button>
+                <button className={cx('thumb', {'selected': mapType === PUBLIC})} onClick={this.toggleMaps.bind(this, PUBLIC)}>{t('dashboard.txt-public')}</button>
               </div>
               {mapType === PUBLIC && geoJson.mapDataArr.length > 0 &&
                 <Gis
