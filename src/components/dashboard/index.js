@@ -955,11 +955,11 @@ class Dashboard extends Component {
         }
 
         <div className='sub-header dashboard'>
-          <div className='secondary-btn-group left'>
-            <button className={cx({'active': activeTab === 'statistics'})} onClick={this.toggleTabs.bind(this, 'statistics')}>{t('dashboard.txt-statisticsInfo')}</button>
-            <button className={cx({'active': activeTab === 'maps'})} onClick={this.toggleTabs.bind(this, 'maps')}>{t('dashboard.txt-attacksMap')}</button>
-            <span className='date-time'>{updatedTime}</span>
+          <div className='c-button-group left'>
+            <button className={cx('thumb', {'selected': activeTab === 'statistics'})} onClick={this.toggleTabs.bind(this, 'statistics')}>{t('dashboard.txt-statisticsInfo')}</button>
+            <button className={cx('thumb', {'selected': activeTab === 'maps'})} onClick={this.toggleTabs.bind(this, 'maps')}>{t('dashboard.txt-attacksMap')}</button>
           </div>
+          <span className='date-time'>{updatedTime}</span>
         </div>
 
         <div className='main-dashboard c-flex'>
@@ -1031,9 +1031,9 @@ class Dashboard extends Component {
 
           {activeTab === 'maps' &&
             <div className='maps'>
-              <div className='secondary-btn-group left'>
-                <button className={cx({'active': mapType === PUBLIC})} onClick={this.toggleMaps.bind(this, PUBLIC)}>{t('dashboard.txt-public')}</button>
-                <button className={cx({'active': mapType === PRIVATE})} onClick={this.toggleMaps.bind(this, PRIVATE)}>{t('dashboard.txt-private')}</button>
+              <div className='c-button-group left'>
+                <button className={cx('thumb', {'selected': mapType === PUBLIC})} onClick={this.toggleMaps.bind(this, PUBLIC)}>{t('dashboard.txt-public')}</button>
+                <button className={cx('thumb', {'selected': mapType === PRIVATE})} onClick={this.toggleMaps.bind(this, PRIVATE)}>{t('dashboard.txt-private')}</button>
               </div>
               {mapType === PUBLIC && geoJson.mapDataArr.length > 0 &&
                 <Gis

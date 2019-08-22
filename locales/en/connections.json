@@ -132,7 +132,9 @@
   "txt-dashboard": "Dashboard",
   "txt-network": "Network",
   "txt-hmd": "HMD",
+  "txt-netflow": "Netflow",
   "txt-syslog": "Syslog",
+  "txt-endpoint": "Endpoint",
   "txt-configuration": "Configuration",
 
   "txt-flowAnalysis": "Flow Analysis",
@@ -236,6 +238,8 @@
       "Top10InternalAlertIpSrc": "Top 10 Internal Alert Source IP",
       "Top10ExternalAlertIpDst": "Top 10 External Alert Destination IP"
     },
+    "txt-privateAlert": "Private Alert",
+    "txt-publicAlert": "Public Alert",
     "txt-alertInfo": "Alert Info",
     "txt-alertTime": "Alert Time",
     "txt-ipSrc": "Source IP",
@@ -333,8 +337,6 @@
       "txt-clear": "Clear",
       "txt-top10text": "TOP 10 Dst. Service/Dst. Host/Dst. IP",
       "txt-analysisType": "Analysis Item",
-      "txt-privateAlert": "Private Alert Events",
-      "txt-publicAlert": "Public Alert Events",
       "txt-alertRule": "$t(txt-alert)$t(txt-rule)",
       "txt-addAgentMsg": "Please add a new agent in the Agent Management page",
       "txt-showImageOnly": "Show images only",

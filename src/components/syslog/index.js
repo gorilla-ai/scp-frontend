@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
 import Moment from 'moment'
@@ -1427,6 +1426,7 @@ class SyslogController extends Component {
     });
   }
   render() {
+    const {session} = this.props;
     const {
       activeTab,
       datetime,
@@ -1441,8 +1441,13 @@ class SyslogController extends Component {
       showMark,
       logLocaleChangeOpen
     } = this.state;
+    let sessionRights = {};
     let filterDataCount = 0;
     let markDataCount = 0;
+
+    _.forEach(session.rights, val => {
+      sessionRights[val] = true;
+    })
 
     _.forEach(filterData, val => {
       if (val.query) {
@@ -1455,6 +1460,10 @@ class SyslogController extends Component {
         markDataCount++;
       }
     })
+
+    if (!sessionRights.Module_Syslog_Manage) {
+      return;
+    }
 
     return (
       <div>
@@ -1475,16 +1484,19 @@ class SyslogController extends Component {
         }
 
         <div className='sub-header'>
+          {helper.getEventsMenu('syslog', sessionRights)}
+
           <SearchOptions
+            page='syslog'
             datetime={datetime}
             showFilter={showFilter}
             handleDateChange={this.handleDateChange}
             handleSearchSubmit={this.handleSearchSubmit} />
 
           <div className='secondary-btn-group right'>
-            <button onClick={this.getCSVfile} title={t('network.connections.txt-exportCSV')}><i className='fg fg-data-download'></i></button>
             <button onClick={this.toggleMark} className={cx({'active': showMark})}><i className='fg fg-filter'></i><span>({filterDataCount})</span> <i className='fg fg-edit'></i><span>({markDataCount})</span></button>
-            <button onClick={this.toggleChart} className={cx('last', {'active': showChart})} title={t('network.connections.txt-toggleChart')}><i className='fg fg-chart-columns'></i></button>
+            <button onClick={this.toggleChart} className={cx({'active': showChart})} title={t('network.connections.txt-toggleChart')}><i className='fg fg-chart-columns'></i></button>
+            <button onClick={this.getCSVfile} className='last' title={t('network.connections.txt-exportCSV')}><i className='fg fg-data-download'></i></button>
           </div>
         </div>
 

@@ -259,13 +259,10 @@ class SearchOptions extends Component {
       </ModalDialog>
     )
   }
-  toggleSearchBtn = () => {
-    if (this.props.showFilter) {
-      return { visibility: 'hidden' };
-    }
-  }
   render() {
+    const {page, showFilter} = this.props;
     const {searchType, searchInputManual, searchInputAuto, intervalModalOpen} = this.state;
+    const searchStyle = page === 'syslog' ? '226px' : '180px';
     let searchInputValue = '';
 
     if (searchType === 'manual') {
@@ -275,7 +272,7 @@ class SearchOptions extends Component {
     }
 
     return (
-      <div className='search-options'>
+      <div className='search-options' style={{right: searchStyle}}>
         {intervalModalOpen &&
           this.intervalModalDialog()
         }
@@ -299,7 +296,7 @@ class SearchOptions extends Component {
           {this.renderDateRange()}
         </div>
 
-        <button className='search-button' style={this.toggleSearchBtn()} onClick={this.loadSearchOptions.bind(this, 'search')}>{t('network.connections.txt-toggleFilter')}</button>
+        <button className='search-button' onClick={this.loadSearchOptions.bind(this, 'search')} disabled={showFilter}>{t('network.connections.txt-toggleFilter')}</button>
       </div>
     )
   }

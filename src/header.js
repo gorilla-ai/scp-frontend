@@ -32,9 +32,7 @@ class Header extends Component {
     const getPattern = {
       dashboard: /^(\/ChewbaccaWeb[\/]?(dashboard)?)[\/]?$/i,
       alert: /^(\/ChewbaccaWeb\/alert)[\/]?$/i,
-      network: /^(\/ChewbaccaWeb\/network)[\/]?$/i,
-      hmd: /^(\/ChewbaccaWeb\/hmd)[\/]?$/i,
-      syslog: /^(\/ChewbaccaWeb\/syslog)[\/]?$/i,
+      events: /^(\/ChewbaccaWeb\/events\/.*)[\/]?$/i,
       configuration: /^(\/ChewbaccaWeb\/configuration[\s\S]*)[\/]?$/i
     };
 
@@ -105,10 +103,17 @@ class Header extends Component {
   render() {
     const {baseUrl, contextRoot, companyName, session} = this.props;
     let sessionRights = {};
+    let eventsLink = '/ChewbaccaWeb/events/endpoint';
 
     _.forEach(session.rights, val => {
       sessionRights[val] = true;
     })
+
+    if (sessionRights.Module_FlowAnalysis_Manage) {
+      eventsLink = '/ChewbaccaWeb/events/netflow';
+    } else if (sessionRights.Module_Syslog_Manage) {
+      eventsLink = '/ChewbaccaWeb/events/syslog';
+    }
 
     return (
       <div className='header-wrapper'>
@@ -122,18 +127,10 @@ class Header extends Component {
               <div className='main-nav'>
                 <Link to='/ChewbaccaWeb/dashboard' className={cx('item', {'active': this.getActiveTab('dashboard')})}>{t('txt-dashboard')}</Link>
 
-                {sessionRights.Module_Syslog_Manage &&
-                  <Link to='/ChewbaccaWeb/alert' className={cx('item', {'active': this.getActiveTab('alert')})}>{t('txt-alertMenu')}</Link>
-                }
-                {sessionRights.Module_FlowAnalysis_Manage &&
-                  <Link to='/ChewbaccaWeb/network' className={cx('item', {'active': this.getActiveTab('network')})}>{t('txt-network')}</Link>
-                }
+                <Link to='/ChewbaccaWeb/alert' className={cx('item', {'active': this.getActiveTab('alert')})}>{t('txt-alertMenu')}</Link>
 
-                <Link to='/ChewbaccaWeb/hmd' className={cx('item', {'active': this.getActiveTab('hmd')})}>{t('txt-hmd')}</Link>
+                <Link to={eventsLink} className={cx('item', {'active': this.getActiveTab('events')})}>{t('txt-events')}</Link>
 
-                {sessionRights.Module_Syslog_Manage &&
-                  <Link to='/ChewbaccaWeb/syslog' className={cx('item', {'active': this.getActiveTab('syslog')})}>{t('txt-syslog')}</Link>
-                }
                 {(sessionRights.Module_FlowAnalysis_Agent_Manage || sessionRights.Module_NetworkTopology_Manage || sessionRights.Module_Honeynet_Manage || sessionRights.Module_Account_Manage || sessionRights.Module_Syslog_Manage) &&
                   <Link to='/ChewbaccaWeb/configuration' className={cx('item', {'active': this.getActiveTab('configuration')})}>{t('txt-configuration')}</Link>
                 }

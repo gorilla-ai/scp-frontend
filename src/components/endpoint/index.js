@@ -24,7 +24,7 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 let t = null;
 let et = null;
 
-class Hmd extends Component {
+class Endpoint extends Component {
   constructor(props) {
     super(props);
 
@@ -472,8 +472,13 @@ class Hmd extends Component {
     )
   }
   render() {
-    const {baseUrl, contextRoot, language, session} = this.props;
+    const {session} = this.props;
     const {openFilter, hmd, addTaskOpen, viewTaskOpen} = this.state;
+    let sessionRights = {};
+
+    _.forEach(session.rights, val => {
+      sessionRights[val] = true;
+    })
 
     return (
       <div>
@@ -485,7 +490,10 @@ class Hmd extends Component {
           this.viewTask()
         }
 
-        <div className='sub-nav-header' />
+        <div className='sub-header'>
+          {helper.getEventsMenu('endpoint', sessionRights)}
+        </div>
+
         <div className='config-header'>
           <div className='breadcrumb' />
           <i className='c-link fg fg-filter' onClick={this.setFilter.bind(this, !openFilter)} title={t('txt-filter')}></i>
@@ -519,12 +527,12 @@ class Hmd extends Component {
   }
 }
 
-Hmd.propTypes = {
+Endpoint.propTypes = {
   baseUrl: PropTypes.string.isRequired,
   contextRoot: PropTypes.string.isRequired,
   language: PropTypes.string.isRequired,
   session: PropTypes.object.isRequired
 };
 
-const HocHmd = withRouter(withLocale(Hmd));
-export { Hmd, HocHmd };
+const HocEndpoint = withRouter(withLocale(Endpoint));
+export { Endpoint, HocEndpoint };

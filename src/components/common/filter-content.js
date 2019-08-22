@@ -25,15 +25,13 @@ class FilterContent extends Component {
   }
   render() {
     const {showFilter, queryData} = this.props;
-    //const title = queryData.displayName ? t('txt-filter') + ': ' + queryData.displayName : t('txt-filter');
+    const filterTitle = queryData.displayName ? queryData.displayName : t('txt-filter');
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
         <i className='fg fg-close' onClick={this.props.toggleFilter} title={t('txt-close')}></i>
+        <div className='header-text'>{filterTitle}</div>
         <div className='button-group'>
-          {queryData.displayName &&
-            <div className='header-text'>{queryData.displayName}</div>
-          }
           <button className='open-query' onClick={this.props.openQuery.bind(this, 'open')}>{t('network.connections.txt-openQuery')}</button>
           <button className='save-query' onClick={this.props.openQuery.bind(this, 'save')}>{t('network.connections.txt-saveQuery')}</button>
         </div>

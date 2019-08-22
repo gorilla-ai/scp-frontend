@@ -95,6 +95,41 @@ footer.footer {
     height: 200px;
   }
 }
+.c-button-group {
+	&.left {
+		float: left;
+		margin-top: 1px;
+	}
+	&.right {
+		float: right;
+		margin-top: 1px;
+	}
+	.thumb {
+		padding-left: 25px;
+		padding-right: 25px;
+		&:not(.selected):not(:disabled):hover {
+			background: #fff;
+		}
+		&:first-child {
+ 			border-radius: 4px 0 0 4px;
+ 		}
+ 		&:last-child {
+ 			border-radius: 0 4px 4px 0;
+ 		}
+	}
+	&.events {
+		.thumb {
+			padding: 0;
+			a {
+				width: 100%;
+				height: 100%;
+				padding: 0.3em 0.5em;
+				padding-left: 25px;
+				padding-right: 25px;
+			}
+		}
+	}
+}
 .c-contextmenu {
 	position: absolute;
 }
@@ -258,9 +293,6 @@ footer.footer {
 			color: #000;
 		}
 		&.dashboard {
-			button {
-				margin-right: 0;
-			}
 			.date-time {
 				position: absolute;
 				top: 8px;
@@ -268,8 +300,16 @@ footer.footer {
 				color: #fff;
 			}
 		}
+		.c-button-group {
+			button {
+				color: #001b34;
+				&.selected {
+					color: #fff;
+				}
+			}
+		}
 		.search-options {
-			float: left;
+			position: absolute;
 			#datetime-from,
 			#datetime-to {
 				width: 180px;
@@ -1025,13 +1065,12 @@ footer.footer {
 			display: block;
 			.open-query,
 			.save-query {
-				font-size: 14px;
-				color: #004d93;
-				text-decoration: underline;
+				font-size: 15px;
+				color: #001b34;
 				margin: 5px;
 				padding: 0;
-				border: none;
 				background: none;
+				padding: 0 10px;
 			}
 			.clear,
 			.filter {
@@ -1049,15 +1088,16 @@ footer.footer {
 	}
 	.main-filter {
 		.header-text {
-			color: #9b9b9b;
-			margin-left: 5px;
+			float: left;
+			margin-top: 5px;
+			margin-right: 5px;
+			color: #004d93;
 		}
 	}
 	.main-mark {
 		.header-text {
-			color: #9b9b9b;
-			margin-left: 5px;
-			margin-bottom: 5px;
+			color: #004d93;
+			margin-bottom: 8px;
 		}
 	}
 	.main-chart {
@@ -1079,6 +1119,10 @@ footer.footer {
 		.interval-btn {
 			display: inline-block;
 			margin-top: 20px;
+			.thumb {
+				padding-left: 10px;
+				padding-right: 10px;
+			}
 		}
 		.time-bar {
 			display: none; //temporary
@@ -1138,18 +1182,15 @@ footer.footer {
 			position: relative;
 			width: 100%;
 			height: 100%;
-			margin-top: 5px;
-			.secondary-btn-group {
-				padding: 5px 10px;
-				button {
-					margin-right: 0;
-				}
+			.c-button-group {
+				margin: 5px 8px;
 			}
 			.floor-map {
 				.drop-down {
 					position: absolute;
-					top: 4px;
-					left: 130px;
+					top: 5px;
+					left: 200px;
+					width: 105px;
 				}
 				& > .content {
 					width: 100%;

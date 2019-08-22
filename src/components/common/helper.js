@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import { Link } from 'react-router-dom'
 import Moment from 'moment'
 import cx from 'classnames'
 
@@ -232,6 +233,27 @@ const helper = {
       .catch(err => {
         helper.showPopupMsg('', t('txt-error'), err.message);
       })
+    )
+  },
+  getEventsMenu: function(page, sessionRights) {
+    const t = global.chewbaccaI18n.getFixedT(null, 'connections');
+
+    return (
+      <div className='c-button-group left events'>
+        {sessionRights.Module_FlowAnalysis_Manage &&
+          <button className={cx('thumb', {'selected': page === 'netflow'})}>
+            <Link to='/ChewbaccaWeb/events/netflow'>{t('txt-netflow')}</Link>
+          </button>
+        }
+        {sessionRights.Module_Syslog_Manage &&
+        <button className={cx('thumb', {'selected': page === 'syslog'})}>
+          <Link to='/ChewbaccaWeb/events/syslog'>{t('txt-syslog')}</Link>
+        </button>
+        }
+        <button className={cx('thumb', {'selected': page === 'endpoint'})}>
+          <Link to='/ChewbaccaWeb/events/endpoint'>{t('txt-endpoint')}</Link>
+        </button>
+      </div>
     )
   },
   getSavedQuery: function(baseUrl, account, queryData, type) {

@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
 import Moment from 'moment'
@@ -58,7 +57,7 @@ const ALL_TAB_DATA = {
   ftp: 'FTP'
 };
 
-class Network extends Component {
+class Netflow extends Component {
   constructor(props) {
     super(props);
 
@@ -206,7 +205,7 @@ class Network extends Component {
       currentTableIndex: '',
       currentLength: '',
       currentTableID: '',
-      loadNetworkData: true
+      loadNetflowData: true
     };
 
     this.ah = getInstance('chewbacca');
@@ -1159,7 +1158,7 @@ class Network extends Component {
   }
   selectTree = (value, field) => {
     this.setState({
-      loadNetworkData: false
+      loadNetflowData: false
     }, () => {
       this.addSearch(field, value, 'Must');
     });
@@ -2329,6 +2328,7 @@ class Network extends Component {
     });
   }
   render() {
+    const {session} = this.props;
     const {
       activeTab,
       datetime,
@@ -2342,13 +2342,22 @@ class Network extends Component {
       showChart,
       showFilter
     } = this.state;
+    let sessionRights = {};
     let filterDataCount = 0;
+
+    _.forEach(session.rights, val => {
+      sessionRights[val] = true;
+    })
 
     _.forEach(filterData, val => {
       if (val.data) {
         filterDataCount++;
       }
     })
+
+    if (!sessionRights.Module_FlowAnalysis_Manage) {
+      return;
+    }
 
     return (
       <div>
@@ -2373,16 +2382,19 @@ class Network extends Component {
         }
 
         <div className='sub-header'>
+          {helper.getEventsMenu('netflow', sessionRights)}
+
           <SearchOptions
+            page='netflow'
             datetime={datetime}
             showFilter={showFilter}
             handleDateChange={this.handleDateChange}
             handleSearchSubmit={this.handleSearchSubmit} />
 
           <div className='secondary-btn-group right'>
-            <button onClick={this.getCSVfile} title={t('network.connections.txt-exportCSV')}><i className='fg fg-data-download'></i></button>
             <button onClick={this.toggleFilter} className={cx({'active': showFilter})} title={t('network.connections.txt-toggleFilter')}><i className='fg fg-filter'></i><span>({filterDataCount})</span></button>
-            <button onClick={this.toggleChart} className={cx('last', {'active': showChart})} disabled={activeTab !== 'connections'} title={t('network.connections.txt-toggleChart')}><i className='fg fg-chart-columns'></i></button>
+            <button onClick={this.toggleChart} className={cx({'active': showChart})} disabled={activeTab !== 'connections'} title={t('network.connections.txt-toggleChart')}><i className='fg fg-chart-columns'></i></button>
+            <button onClick={this.getCSVfile} className='last' title={t('network.connections.txt-exportCSV')}><i className='fg fg-data-download'></i></button>
           </div>
         </div>
 
@@ -2396,7 +2408,7 @@ class Network extends Component {
   }
 }
 
-Network.propTypes = {
+Netflow.propTypes = {
   baseUrl: PropTypes.string.isRequired,
   contextRoot: PropTypes.string.isRequired,
   language: PropTypes.string.isRequired,
@@ -2404,5 +2416,5 @@ Network.propTypes = {
   session: PropTypes.object.isRequired
 };
 
-const HocNetworkController = withRouter(withLocale(Network));
-export { Network, HocNetworkController };
+const HocNetflowController = withRouter(withLocale(Netflow));
+export { Netflow, HocNetflowController };

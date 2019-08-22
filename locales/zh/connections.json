@@ -132,7 +132,9 @@
   "txt-dashboard": "Dashboard",
   "txt-network": "Network",
   "txt-hmd": "HMD",
+  "txt-netflow": "Netflow",
   "txt-syslog": "Syslog",
+  "txt-endpoint": "Endpoint",
   "txt-configuration": "Configuration",
 
 	"txt-flowAnalysis": "Flow分析",
@@ -236,6 +238,8 @@
       "Top10InternalAlertIpSrc": "前10大IDS告警內部來源IP",
       "Top10ExternalAlertIpDst": "前10大IDS告警外部目的IP"
     },
+    "txt-privateAlert": "內部告警",
+    "txt-publicAlert": "外部告警",
     "txt-alertInfo": "告警資訊",
     "txt-alertTime": "告警時間",
     "txt-ipSrc": "來源IP",
@@ -333,8 +337,6 @@
       "txt-clear": "清除條件",
       "txt-top10text": "前十大目標服務/主機/IP",
       "txt-analysisType": "分析項目",
-      "txt-privateAlert": "內部告警事件",
-      "txt-publicAlert": "外部告警事件",
       "txt-alertRule": "$t(txt-alert)$t(txt-rule)",
       "txt-addAgentMsg": "請至Agent管理新增agent",
       "txt-showImageOnly": "只顯示圖片",

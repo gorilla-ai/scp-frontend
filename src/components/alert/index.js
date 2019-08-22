@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
 import Moment from 'moment'
@@ -1358,16 +1357,22 @@ class AlertController extends Component {
         }
 
         <div className='sub-header'>
+          <div className='c-button-group left'>
+            <button className={cx('thumb selected')}>{t('alert.txt-privateAlert')}</button>
+            <button className={cx('thumb')} disabled={true}>{t('alert.txt-publicAlert')}</button>
+          </div>
+
           <SearchOptions
+            page='alert'
             datetime={datetime}
             showFilter={showFilter}
             handleDateChange={this.handleDateChange}
             handleSearchSubmit={this.handleSearchSubmit} />
 
           <div className='secondary-btn-group right'>
-            <button onClick={this.getCSVfile} title={t('network.connections.txt-exportCSV')}><i className='fg fg-data-download'></i></button>
             <button onClick={this.toggleFilter} className={cx({'active': showFilter})} title={t('network.connections.txt-toggleFilter')} disabled={activeSubTab === 'statistics'}><i className='fg fg-filter'></i><span>({filterDataCount})</span></button>
-            <button onClick={this.toggleChart} className={cx('last', {'active': showChart})} title={t('network.connections.txt-toggleChart')} disabled={activeSubTab === 'statistics'}><i className='fg fg-chart-columns'></i></button>
+            <button onClick={this.toggleChart} className={cx({'active': showChart})} title={t('network.connections.txt-toggleChart')} disabled={activeSubTab === 'statistics'}><i className='fg fg-chart-columns'></i></button>
+            <button onClick={this.getCSVfile} className='last' title={t('network.connections.txt-exportCSV')}><i className='fg fg-data-download'></i></button>
           </div>
         </div>
 

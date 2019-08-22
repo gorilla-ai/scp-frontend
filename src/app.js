@@ -11,10 +11,10 @@ import logger from 'loglevel-prefix-persist/client'
 import {HocHeader as Header} from './header'
 import {HocDashboard as Dashboard} from './components/dashboard/index'
 import {HocAlertController as Alert} from './components/alert/index'
-import {HocNetworkController as Network} from './components/network/index'
-import {HocHmd as Hmd} from './components/hmd/index'
+import {HocNetflowController as Netflow} from './components/netflow/index'
+import {HocEndpoint as Endpoint} from './components/endpoint/index'
 import {HocSyslogController as Syslog} from './components/syslog/index'
-import {HocManage as Manage} from './components/network/manage'
+import {HocManage as Manage} from './components/netflow/manage'
 import {HocHoneynet as Honeypot} from './components/honeynet/host'
 import {HocEmployeeRecord as EmployeeRecord} from './components/honeynet/employee-record'
 import {HocEmailReport as EmailReport} from './components/honeynet/email-report'
@@ -181,8 +181,8 @@ const AlertComp = () => (
 		session={session} />
 )
 
-const NetworkComp = () => (
-	<Network
+const NetflowComp = () => (
+	<Netflow
 		baseUrl={cfg.apiPrefix}
 		contextRoot={cfg.contextRoot}
 		language={cfg.lng}
@@ -201,8 +201,8 @@ const SyslogComp = () => (
 		session={session} />
 )
 
-const HmdComp = () => (
-	<Hmd
+const EndpointComp = () => (
+	<Endpoint
 		baseUrl={cfg.apiPrefix}
 		contextRoot={cfg.contextRoot}
 		language={cfg.lng}
@@ -224,9 +224,9 @@ const Main = () => (
 			<Route exact path='/ChewbaccaWeb' component={DashboardComp} />
 			<Route exact path='/ChewbaccaWeb/dashboard' component={DashboardComp} />
 			<Route exact path='/ChewbaccaWeb/alert' component={AlertComp} />
-			<Route exact path='/ChewbaccaWeb/network' component={NetworkComp} />
-			<Route exact path='/ChewbaccaWeb/hmd' component={HmdComp} />
-			<Route exact path='/ChewbaccaWeb/syslog' component={SyslogComp} />
+			<Route exact path='/ChewbaccaWeb/events/netflow' component={NetflowComp} />
+			<Route exact path='/ChewbaccaWeb/events/syslog' component={SyslogComp} />
+			<Route exact path='/ChewbaccaWeb/events/endpoint' component={EndpointComp} />
 			<Route exact path='/ChewbaccaWeb/honeynet/employee-record' component={HoneynetEmployeeRecord} />
 			<Route exact path='/ChewbaccaWeb/configuration' component={Config} />
 			<Route exact path='/ChewbaccaWeb/configuration/agent' component={Agent} />
