@@ -1321,6 +1321,9 @@ class AlertController extends Component {
       this.loadAllFields();
     });
   }
+  showNotAvailable = () => {
+    helper.showPopupMsg('', '', 'N/A');
+  }
   render() {
     const {
       activeTab,
@@ -1359,7 +1362,7 @@ class AlertController extends Component {
         <div className='sub-header'>
           <div className='c-button-group left'>
             <button className={cx('thumb selected')}>{t('alert.txt-privateAlert')}</button>
-            <button className={cx('thumb')} disabled={true}>{t('alert.txt-publicAlert')}</button>
+            <button className={cx('thumb')} onClick={this.showNotAvailable.bind(this)}>{t('alert.txt-publicAlert')}</button>
           </div>
 
           <SearchOptions

@@ -136,6 +136,13 @@ footer.footer {
 .c-hierarchy {
 	min-width: 350px;
 	background: none;
+	&.tree {
+		background-color: #e6e6e6;
+		.children .branch:last-child:before,
+		.leaf:last-child:before {
+			background-color: #e6e6e6;
+		}
+	}
 }
 .c-date-picker i.fg {
 	height: 35px;
@@ -511,8 +518,9 @@ footer.footer {
 			position: relative;
 			flex-grow: 0;
 			flex-shrink: 0;
-			border-right: 1px solid #d9d9d9;
 			min-width: 15px;
+			border-right: 1px solid #d9d9d9;
+			background-color: #d9d9d9;
 			&.tree {
 				min-height: 95vh;
 			}
