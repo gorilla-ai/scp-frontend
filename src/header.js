@@ -29,17 +29,13 @@ class Header extends Component {
   }
   getActiveTab = (tab) => {
     const activeRoute = this.props.location.pathname;
-    const getPattern = {
-      dashboard: /^(\/ChewbaccaWeb[\/]?(dashboard)?)[\/]?$/i,
-      alert: /^(\/ChewbaccaWeb\/alert)[\/]?$/i,
-      events: /^(\/ChewbaccaWeb\/events\/.*)[\/]?$/i,
-      configuration: /^(\/ChewbaccaWeb\/configuration[\s\S]*)[\/]?$/i
-    };
+    const pattern = /^(\/ChewbaccaWeb[\/]?)$/i;
+    const pathArr = activeRoute.split('/');
 
-    if (activeRoute.match(getPattern[tab])) {
+    if (activeRoute.match(pattern) && tab === 'dashboard') {
       return true;
     }
-    return false;
+    return pathArr[2] === tab;
   }
   changeLng = (lng) => {
     const {location} = this.props;
@@ -125,7 +121,7 @@ class Header extends Component {
 
             <div>
               <div className='main-nav'>
-                <Link to='/ChewbaccaWeb/dashboard' className={cx('item', {'active': this.getActiveTab('dashboard')})}>{t('txt-dashboard')}</Link>
+                <Link to='/ChewbaccaWeb/dashboard/statistics' className={cx('item', {'active': this.getActiveTab('dashboard')})}>{t('txt-dashboard')}</Link>
 
                 <Link to='/ChewbaccaWeb/alert' className={cx('item', {'active': this.getActiveTab('alert')})}>{t('txt-alertMenu')}</Link>
 

@@ -208,7 +208,7 @@
     "txt-attacksMap": "Attacks Map",
     "txt-alertStatistics": "Alert Statistics",
     "txt-alertThreatLevel": "Alert Threat Level",
-    "txt-Top10ExternalPotSrcCountry": "Alert Source Country",
+    "txt-Top10ExternalSrcCountry": "Alert Source Country",
     "txt-Top10InternalSrcIp": "Alert Internal Source IP",
     "txt-Top10InternalMaskedIp": "Alert Internal Masked IP",
     "txt-Top10SyslogConfigSource": "Syslog Config Source",
@@ -232,7 +232,7 @@
   "alert": {
     "statistics": {
       "Top10ExternalPotSrcIp": "Top 10 External Pot Source IP",
-      "Top10ExternalPotSrcCountry": "Top 10 External Pot Source Country",
+      "Top10ExternalSrcCountry": "Top 10 External Pot Source Country",
       "Top10ExternalPotDestPort": "Top 10 External Pot Destination Port",
       "Top10ExternalPotProtocol": "Top 10 External Pot Protocol",
       "Top10InternalAlertIpSrc": "Top 10 Internal Alert Source IP",

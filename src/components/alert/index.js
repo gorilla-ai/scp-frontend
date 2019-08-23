@@ -27,6 +27,9 @@ import Alert from './alert'
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+const PRIVATE = 'private';
+const PUBLIC = 'public';
+
 let t = null;
 let f = null;
 let et = null;
@@ -38,7 +41,7 @@ const CHARTS_ID = [
     key: 'srcIp'
   },
   {
-    title: 'Top10ExternalPotSrcCountry',
+    title: 'Top10ExternalSrcCountry',
     key: 'srcCountry'
   },
   {
@@ -106,6 +109,7 @@ class AlertController extends Component {
         linkAnalysis: t('txt-linkAnalysis'),
         worldMap: t('txt-map')
       },
+      locationType: PRIVATE,
       activeSubTab: 'statistics',
       alertHistogram: {},
       filterData: [{
@@ -292,7 +296,8 @@ class AlertController extends Component {
 
       _.forEach(CHARTS_ID, (val, i) => {
         if (data[i].aggregations) {
-          const dataBuckets = data[i].aggregations[val.title].agg.buckets;
+          const path = i === 1 ? 'srcCountry' : 'agg';
+          const dataBuckets = data[i].aggregations[val.title][path].buckets;
           let tempArr = [];
 
           if (dataBuckets.length > 0) {
@@ -659,12 +664,14 @@ class AlertController extends Component {
     });
   }
   toQueryLanguage = (options) => {
-    const {datetime, filterData, alertRequest} = this.state;
+    const {datetime, locationType, filterData, alertRequest} = this.state;
     const timeAttribute = 'timestamp';
-    const defaultCondition = [{
+    const treeQuery = locationType === PRIVATE ? 'Top10InternalSrcIp' : 'Top10ExternalSrcCountry';
+    const dataQuery = locationType === PRIVATE ? 'InternalSrcIp' : 'ExternalSrcIp';
+    const defaultCondition = {
       condition: 'must',
-      query: 'All'
-    }];
+      query: dataQuery
+    };
     let dateFrom = datetime.from;
     let dateTo = datetime.to;
     let dateTime = {};
@@ -677,14 +684,18 @@ class AlertController extends Component {
     dataObj[timeAttribute] = [dateTime.from, dateTime.to];
 
     if (!options || options === 'tree') {
-      dataObj['filters'] = defaultCondition;
+      dataObj['filters'] = [{
+        condition: 'must',
+        query: treeQuery
+      }];
     } else if (options === 'search') {
       let filterDataArr = [];
 
       if (filterData.length === 1 && filterData[0].query === '') {
-        dataObj['filters'] = defaultCondition;
+        dataObj['filters'] = [defaultCondition];
       } else {
         filterDataArr = helper.buildFilterDataArray(filterData);
+        filterDataArr.unshift(defaultCondition);
       }
 
       if (filterDataArr.length > 0) {
@@ -694,7 +705,7 @@ class AlertController extends Component {
       if (!_.isEmpty(alertRequest)) {
         return alertRequest;
       } else {
-        dataObj['filters'] = defaultCondition;
+        dataObj['filters'] = [defaultCondition];
       }
     }
 

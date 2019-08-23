@@ -9,7 +9,8 @@ import i18n from 'i18next'
 import loglevel from 'loglevel'
 import logger from 'loglevel-prefix-persist/client'
 import {HocHeader as Header} from './header'
-import {HocDashboard as Dashboard} from './components/dashboard/index'
+import {HocDashboardStat as DashboardStat} from './components/dashboard/statistics'
+import {HocDashboardMaps as DashboardMaps} from './components/dashboard/maps'
 import {HocAlertController as Alert} from './components/alert/index'
 import {HocNetflowController as Netflow} from './components/netflow/index'
 import {HocEndpoint as Endpoint} from './components/endpoint/index'
@@ -162,8 +163,17 @@ const Nav = () => (
 		session={session} />
 )
 
-const DashboardComp = () => (
-	<Dashboard
+const DashboardStatComp = () => (
+	<DashboardStat
+		baseUrl={cfg.apiPrefix}
+		contextRoot={cfg.contextRoot}
+		language={cfg.lng}
+		locale={cfg.lng}
+		session={session} />
+)
+
+const DashboardMapsComp = () => (
+	<DashboardMaps
 		baseUrl={cfg.apiPrefix}
 		contextRoot={cfg.contextRoot}
 		language={cfg.lng}
@@ -221,8 +231,9 @@ const Syslogs = () => (
 const Main = () => (
 	<main className='main'>
 		<Switch>
-			<Route exact path='/ChewbaccaWeb' component={DashboardComp} />
-			<Route exact path='/ChewbaccaWeb/dashboard' component={DashboardComp} />
+			<Route exact path='/ChewbaccaWeb' component={DashboardStatComp} />
+			<Route exact path='/ChewbaccaWeb/dashboard/statistics' component={DashboardStatComp} />
+			<Route exact path='/ChewbaccaWeb/dashboard/maps' component={DashboardMapsComp} />
 			<Route exact path='/ChewbaccaWeb/alert' component={AlertComp} />
 			<Route exact path='/ChewbaccaWeb/events/netflow' component={NetflowComp} />
 			<Route exact path='/ChewbaccaWeb/events/syslog' component={SyslogComp} />

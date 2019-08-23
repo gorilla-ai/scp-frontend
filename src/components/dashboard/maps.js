@@ -9,12 +9,7 @@ import cx from 'classnames'
 import Gis from 'react-gis/build/src/components'
 import WORLDMAP from '../../mock/world-map-low.json'
 
-import BarChart from 'react-chart/build/src/components/bar'
-import Checkbox from 'react-ui/build/src/components/checkbox'
-import DataTable from 'react-ui/build/src/components/table'
 import DropDownList from 'react-ui/build/src/components/dropdown'
-import Metric from 'react-chart/build/src/components/metric'
-import PieChart from 'react-chart/build/src/components/pie'
 
 import {HocAlertDetails as AlertDetails} from '../common/alert-details'
 import helper from '../common/helper'
@@ -26,7 +21,6 @@ let t = null;
 let et = null;
 let intervalId = null;
 
-const SEVERITY_TYPE = ['High', 'Medium', 'Low'];
 const PRIVATE = 'private';
 const PUBLIC = 'public';
 const ALERT_LEVEL_COLORS = {
@@ -34,43 +28,7 @@ const ALERT_LEVEL_COLORS = {
   Medium: '#d99857',
   Low: '#57c3d9'
 };
-let pieCharts = {};
 
-//Charts ID must be unique
-const PIE_CHARTS_LIST = [
-  {
-    id: 'alertThreatLevel',
-    key: 'level'
-  },
-  {
-    id: 'Top10ExternalPotSrcCountry',
-    key: 'srcCountry',
-    path: 'agg'
-  },
-  {
-    id: 'Top10InternalSrcIp',
-    key: 'srcIp'
-  },
-  {
-    id: 'Top10InternalMaskedIp',
-    key: 'maskedIP'
-  },
-  {
-    id: 'Top10SyslogConfigSource',
-    key: 'configSrc',
-    path: 'agg'
-  },
-  {
-    id: 'dnsQuery',
-    key: 'query',
-    path: 'dns.status-term'
-  }
-];
-const CHARTS_DATA = {
-  chartAttributes: {},
-  pieCharts: {},
-  alertChartsList: []
-};
 const MAPS_PUBLIC_DATA = {
   alertDetails: {
     publicFormatted: {
@@ -107,7 +65,7 @@ const MAPS_PRIVATE_DATA = {
   seatData: {}
 };
 
-class Dashboard extends Component {
+class DashboardMaps extends Component {
   constructor(props) {
     super(props);
 
@@ -119,10 +77,6 @@ class Dashboard extends Component {
         //to: '2019-08-07T02:02:13Z'
       },
       updatedTime: helper.getFormattedDate(Moment()),
-      activeTab: 'statistics', //maps statistics
-      ..._.cloneDeep(CHARTS_DATA),
-      dnsMetricData: {},
-      diskMetricData: {},
       mapType: PRIVATE, //PRIVATE PUBLIC
       locationType: '',
       ..._.cloneDeep(MAPS_PUBLIC_DATA),
@@ -135,90 +89,36 @@ class Dashboard extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount = () => {
-    this.loadAlertData();
-    intervalId = setInterval(this.loadAlertData, 300000); //5 minutes
+    this.loadEverything();
+    intervalId = setInterval(this.loadEverything, 300000); //5 minutes
   }
   componentWillUnmount = () => {
     clearInterval(intervalId);
   }
-  getText = (eventInfo, data) => {
-    const text = data[0].number + ' ' + t('txt-at') + ' ' + Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss');
-    return text;
-  }
-  onTooltip = (eventInfo, data) => {
-    return (
-      <div>
-        <div>{this.getText(eventInfo, data)}</div>
-      </div>
-    )
-  }
-  formattedPieChartsList = () => {
-    const tempPieChartsList = _.cloneDeep(PIE_CHARTS_LIST);
-    tempPieChartsList.shift(); //Remove first chart from list
-    tempPieChartsList.pop(); //Remove last chart from list
-    return tempPieChartsList;
+  loadEverything = () => {
+    this.loadAlertData();
+    this.getFloorPlan();
   }
   loadAlertData = (type) => {
     const {baseUrl, contextRoot} = this.props;
     const {datetime, alertDetails} = this.state;
-    const configSrcInfo = PIE_CHARTS_LIST[4];
     const dateTime = {
       from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
       to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
     };
-    const tempPieChartsList = this.formattedPieChartsList();
-    let url = '';
+    const url = `${baseUrl}/api/u1/alert/_search`;
+    const requestData = {
+      timestamp: [dateTime.from, dateTime.to],
+      filters: [{
+        condition: 'must',
+        query: 'All'
+      }]
+    };
 
-    if (type === 'maps') {
-      url = `${baseUrl}/api/u1/alert/_search`
-    } else {
-      url = `${baseUrl}/api/u1/alert/_search?page=1&pageSize=0`
-    }
-
-    const apiData = [
-      {
-        url,
-        requestData: {
-          timestamp: [dateTime.from, dateTime.to],
-          filters: [{
-            condition: 'must',
-            query: 'All'
-          }],
-          search: _.map(tempPieChartsList, val => {
-            return val.id;
-          })
-        }
-      },
-      {
-        url: `${baseUrl}/api/u1/alert/_search?page=1&pageSize=0`,
-        requestData: {
-          timestamp: [dateTime.from, dateTime.to],
-          filters: [{
-            condition: 'must',
-            query: configSrcInfo.id
-          }]
-        }
-      },
-      {
-        url: `${baseUrl}/api/alert/dnsQuery?page=1&pageSize=0`,
-        requestData: {
-          timestamp: [dateTime.from, dateTime.to]
-        }
-      }
-    ];
-    const apiArr = _.map(apiData, val => {
-      return {
-        url: val.url,
-        data: JSON.stringify(val.requestData),
-        type: 'POST',
-        contentType: 'text/plain'
-      }
-    });
-
-    this.ah.all(apiArr)
+    helper.getAjaxData('POST', url, requestData)
     .then(data => {
-      if (type === 'maps') {
-        const tempArray = _.map(data[0].data.rows, val => {
+      if (data) {
+        const tempArray = _.map(data.data.rows, val => {
           val.content.id = val.id;
           return val.content;
         });
@@ -251,208 +151,9 @@ class Dashboard extends Component {
         }, () => {
           this.getWorldMap();
         });
-      } else {
-        let alertHistogram = {
-          High: {},
-          Medium: {},
-          Low: {}
-        };
-        let rulesObj = {};
-        let rulesAll = [];
-        let dataArr = [];
-
-        _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for High, Medium, Low
-          _.forEach(data[0].event_histogram[val].buckets, val2 => {
-            if (val2.doc_count > 0) {
-              alertHistogram[val][val2.key_as_string] = val2.doc_count;
-            }
-          })
-        })
-
-        _.forEach(_.keys(alertHistogram), val => { //Manually add rule name to the response data
-          rulesObj[val] = _.map(alertHistogram[val], (value, key) => {
-            return {
-              time: parseInt(Moment(key, 'YYYY-MM-DDTHH:mm:ss.SSZ').utc(true).format('x')),
-              number: value,
-              rule: val
-            }
-          });
-        })
-
-        _.forEach(_.keys(alertHistogram), val => { //Push multiple rule arrays into a single array
-          rulesAll.push(rulesObj[val]);
-        })
-
-        //Merge multiple arrays with different rules to a single array
-        dataArr = rulesAll.reduce((accumulator, currentValue) => {
-          return accumulator.concat(currentValue)
-        }, []);
-
-        const chartAttributes = {
-          legend: {
-            enabled: true
-          },
-          data: dataArr,
-          colors: ALERT_LEVEL_COLORS,
-          onTooltip: this.onTooltip,
-          dataCfg: {
-            x: 'time',
-            y: 'number',
-            splitSeries: 'rule'
-          },
-          xAxis: {
-            type: 'datetime',
-            dateTimeLabelFormats: {
-              day: '%H:%M'
-            }
-          }
-        };
-
-        /* Get charts data */
-        _.forEach(PIE_CHARTS_LIST, (val, i) => {
-          let tempArr = [];
-
-          if (i === 0) {
-            _.forEach(SEVERITY_TYPE, val2 => { //Create Alert histogram for High, Medium, Low
-              tempArr.push({
-                key: val2,
-                doc_count: data[0].aggregations[val2].doc_count
-              });
-            })
-          } else if (i === 3) {
-            const chartData = data[0].aggregations[val.id];
-
-            _.forEach(_.keys(chartData), val2 => {
-              if (val2 !== 'doc_count' && chartData[val2].doc_count) {
-                tempArr.push({
-                  key: val2,
-                  doc_count: chartData[val2].doc_count
-                });
-              }
-            })
-          } else if (i <= 4){
-            const chartData = data[0].aggregations[val.id][val.path || val.key].buckets;
-
-            if (chartData.length > 0) {
-              _.forEach(chartData, val2 => {
-                if (val2.key) { //Remove empty data
-                  tempArr.push({
-                    key: val2.key,
-                    doc_count: val2.doc_count
-                  });
-                }
-              })
-            }
-          }
-          pieCharts[val.id] = tempArr;
-        })
-
-        const configSrcData = data[1].aggregations[configSrcInfo.id][configSrcInfo.path].buckets;
-
-        if (configSrcData.length > 0) {
-          pieCharts[configSrcInfo.id] = configSrcData;
-        }
-
-        const dnsInfo = PIE_CHARTS_LIST[5];
-        const dnsQueryData = data[2].aggregations[dnsInfo.id][dnsInfo.path].buckets;
-
-        if (dnsQueryData.length > 0) {
-          pieCharts[dnsInfo.id] = dnsQueryData;
-        }
-
-        const dnsData = data[2].aggregations.session_histogram;
-        const dnsMetricData = {
-          id: 'dns-histogram',
-          data: [{
-            doc_count: dnsData.doc_count,
-            MegaPackages: dnsData.MegaPackages,
-            MegaBytes: dnsData.MegaBytes
-          }],
-          agg: ['doc_count', 'MegaPackages', 'MegaBytes'],
-          keyLabels: {
-            doc_count: t('dashboard.txt-session'),
-            MegaPackages: t('dashboard.txt-packet'),
-            MegaBytes: t('dashboard.txt-databyte')
-          }
-        };
-
-        this.setState({
-          updatedTime: helper.getFormattedDate(Moment()),
-          chartAttributes,
-          pieCharts,
-          dnsMetricData
-        }, () => {
-          this.getPieChartsData();
-          this.loadMetricData();
-        });
       }
       return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  getPieChartsData = () => {
-    const {pieCharts} = this.state;
-    let alertChartsList = [];
-
-    _.forEach(PIE_CHARTS_LIST, val => {
-      if (pieCharts[val.id].length > 0) {
-        alertChartsList.push({
-          chartID: val.id,
-          chartTitle: t('dashboard.txt-' + val.id),
-          chartKeyLabels: {
-            key: t('attacksFields.' + val.key),
-            doc_count: t('txt-count')
-          },
-          chartValueLabels: {
-            'Pie Chart': {
-              key: t('attacksFields.' + val.key),
-              doc_count: t('txt-count')
-            }
-          },
-          chartDataCfg: {
-            splitSlice: ['key'],
-            sliceSize: 'doc_count'
-          },
-          chartData: pieCharts[val.id],
-          type: 'pie'
-        });
-      }
-    })
-
-    this.setState({
-      alertChartsList
     });
-  }
-  loadMetricData = () => {
-    const {baseUrl, contextRoot} = this.props;
-
-    ah.one({
-      url: `${baseUrl}/api/alert/diskUsage`,
-      type: 'GET'
-    })
-    .then(data => {
-      if (data) {
-        data = data.rt;
-        const diskMetricData = {
-          id: 'disk-usage',
-          data: [{
-            diskAvail: data['disk.avail'],
-            diskTotal: data['disk.total']
-          }],
-          agg: ['diskAvail', 'diskTotal'],
-          keyLabels: {
-            diskAvail: t('dashboard.txt-diskAvail'),
-            diskTotal: t('dashboard.txt-diskTotal')
-          }
-        };
-
-        this.setState({
-          diskMetricData
-        });
-      }
-    }) 
   }
   getWorldMap = () => {
     const {geoJson, alertDetails, alertMapData} = this.state;
@@ -545,7 +246,7 @@ class Dashboard extends Component {
       const {mapType} = this.state;
 
       if (mapType === PUBLIC) {
-        this.loadAlertData('maps');
+        this.loadAlertData();
       } else if (mapType === PRIVATE) {
         this.getFloorPlan();
       }
@@ -903,18 +604,6 @@ class Dashboard extends Component {
         `
     }
   }
-  toggleTabs = (tab) => {
-    this.setState({
-      activeTab: tab,
-      ..._.cloneDeep(CHARTS_DATA),
-      ..._.cloneDeep(MAPS_PUBLIC_DATA),
-      dnsMetricData: {},
-      diskMetricData: {}
-    }, () => {
-      this.loadAlertData(tab);
-      this.getFloorPlan();
-    });
-  }
   getTreeColor = (index) => {
     const {alertDetails} = this.state;
     const currentFloorLength = alertDetails.private.currentFloorPrivateData.length;
@@ -923,19 +612,9 @@ class Dashboard extends Component {
       return 'faded';
     }
   }
-  // testChartFunction = (evt, data, cfg) => {
-  //   const {baseUrl, contextRoot} = this.props;
-  //   const url = `${baseUrl}${contextRoot}/syslog?service=${data[0].service}`;
-  //   window.open(url, '_blank');
-  // }
   render() {
     const {
       updatedTime,
-      activeTab,
-      chartAttributes,
-      alertChartsList,
-      dnsMetricData,
-      diskMetricData,
       mapType,
       alertDetails,
       geoJson,
@@ -946,7 +625,6 @@ class Dashboard extends Component {
       seatData,
       modalOpen
     } = this.state;
-    const metricData = [dnsMetricData, diskMetricData];
 
     return (
       <div>
@@ -955,204 +633,131 @@ class Dashboard extends Component {
         }
 
         <div className='sub-header dashboard'>
-          <div className='c-button-group left'>
-            <button className={cx('thumb', {'selected': activeTab === 'statistics'})} onClick={this.toggleTabs.bind(this, 'statistics')}>{t('dashboard.txt-statisticsInfo')}</button>
-            <button className={cx('thumb', {'selected': activeTab === 'maps'})} onClick={this.toggleTabs.bind(this, 'maps')}>{t('dashboard.txt-attacksMap')}</button>
-          </div>
+          {helper.getDashboardMenu('maps')}
           <span className='date-time'>{updatedTime}</span>
         </div>
 
         <div className='main-dashboard c-flex'>
-          {activeTab === 'statistics' &&
-            <div className='charts'>
-              {!_.isEmpty(chartAttributes.data) &&
-                <div className='chart-group bar'>
-                  <header>{t('dashboard.txt-alertStatistics')}</header>
-                  <BarChart
-                    stacked
-                    vertical
-                    {...chartAttributes} />
-                </div>
-              }
-              {
-                alertChartsList.map((key, i) => {
-                  if (alertChartsList[i].type === 'pie') {
-                    return (
-                      <div className='chart-group c-box' key={alertChartsList[i].chartID}>
-                        <PieChart
-                          id={alertChartsList[i].chartID}
-                          title={alertChartsList[i].chartTitle}
-                          data={alertChartsList[i].chartData}
-                          keyLabels={alertChartsList[i].chartKeyLabels}
-                          valueLabels={alertChartsList[i].chartValueLabels}
-                          dataCfg={alertChartsList[i].chartDataCfg}
-                          colors={{
-                            key: ALERT_LEVEL_COLORS
-                          }} />
-                      </div>
-                    )
-                  } else if (alertChartsList[i].type === 'table') {
-                    return (
-                      <div className='chart-group' key={alertChartsList[i].chartID}>
-                        <header>{alertChartsList[i].chartTitle}</header>
-                        <div id={alertChartsList[i].chartID} className='c-chart table'>
-                          <DataTable
-                            className='main-table overflow-scroll'
-                            fields={alertChartsList[i].chartFields}
-                            data={alertChartsList[i].chartData}
-                            defaultSort={alertChartsList[i].chartData ? alertChartsList[i].sort : {}} />
-                        </div>
-                      </div>
-                    )
-                  }
-                })
-              }
-              {
-                metricData.map((key, i) => {
-                  if (!_.isEmpty(key.data)) {
-                    return (
-                      <div className='chart-group c-box metric' key={key.id}>
-                        <Metric
-                          id='complex-multi-group-metric'
-                          className={key.id}
-                          title={t('dashboard.txt-' + key.id)}
-                          data={key.data}
-                          dataCfg={{
-                            agg: key.agg
-                          }}
-                          keyLabels={key.keyLabels} />
-                      </div>
-                    )
-                  }
-                })
-              }
+          <div className='maps'>
+            <div className='c-button-group left'>
+              <button className={cx('thumb', {'selected': mapType === PRIVATE})} onClick={this.toggleMaps.bind(this, PRIVATE)}>{t('dashboard.txt-private')}</button>
+              <button className={cx('thumb', {'selected': mapType === PUBLIC})} onClick={this.toggleMaps.bind(this, PUBLIC)}>{t('dashboard.txt-public')}</button>
             </div>
-          }
-
-          {activeTab === 'maps' &&
-            <div className='maps'>
-              <div className='c-button-group left'>
-                <button className={cx('thumb', {'selected': mapType === PRIVATE})} onClick={this.toggleMaps.bind(this, PRIVATE)}>{t('dashboard.txt-private')}</button>
-                <button className={cx('thumb', {'selected': mapType === PUBLIC})} onClick={this.toggleMaps.bind(this, PUBLIC)}>{t('dashboard.txt-public')}</button>
-              </div>
-              {mapType === PUBLIC && geoJson.mapDataArr.length > 0 &&
-                <Gis
-                  id='gisMap'
-                  data={geoJson.mapDataArr}
-                  layers={{
-                    world: {
-                      label: 'World Map',
-                      interactive: false,
-                      data: geoJson.attacksDataArr
+            {mapType === PRIVATE &&
+              <div className='floor-map'>
+                <DropDownList
+                  className='drop-down'
+                  list={floorList}
+                  onChange={this.getAreaData}
+                  value={currentFloor} />
+                <div className='content'>
+                  <ul>
+                    {alertDetails.private.tree.length > 0 &&
+                      alertDetails.private.tree.map((val, i) => {
+                        return (
+                          <li key={val.key} onClick={this.showTopoDetail.bind(this, PRIVATE, val.key)}>
+                            <div className={cx('info', {'faded': this.getTreeColor(i)})}>
+                              <span className='ip'>{val.key}</span>
+                              <span className='host'>{val.srcTopoInfo.hostName}</span>
+                            </div>
+                            <span className='count' style={{backgroundColor: ALERT_LEVEL_COLORS[val.Severity]}}>{val.doc_count}</span>
+                          </li>
+                        )
+                      })
                     }
-                  }}
-                  activeLayers={['world']}
-                  baseLayers={{
-                    standard: {
-                      id: 'world',
-                      layer: 'world'
-                    }
-                  }}
-                  mapOptions={{
-                    crs: L.CRS.Simple
-                  }}
-                  onClick={this.showTopoDetail.bind(this, PUBLIC)}
-                  symbolOptions={[{
-                    match: {
-                      type:'geojson'
-                    },
-                    selectedProps: {
-                      'fill-color': 'white',
-                      color: 'black',
-                      weight: 0.6,
-                      'fill-opacity': 1
-                    }
-                  },
-                  {
-                    match: {
-                      type: 'spot'
-                    },
-                    props: {
-                      'background-color': ({data}) => {
-                        return data.tag === 'red' ? 'red' : 'yellow';
-                      },
-                      'border-color': '#333',
-                      'border-width': '1px'
-                    }
-                  }]}
-                  layouts={['standard']}
-                  dragModes={['pan']} />
-              }
-              {mapType === PRIVATE &&
-                <div className='floor-map'>
-                  <DropDownList
-                    className='drop-down'
-                    list={floorList}
-                    required={true}
-                    onChange={this.getAreaData}
-                    value={currentFloor} />
-                  <div className='content'>
-                    <ul>
-                      {alertDetails.private.tree.length > 0 &&
-                        alertDetails.private.tree.map((val, i) => {
-                          return (
-                            <li key={val.key} onClick={this.showTopoDetail.bind(this, PRIVATE, val.key)}>
-                              <div className={cx('info', {'faded': this.getTreeColor(i)})}>
-                                <span className='ip'>{val.key}</span>
-                                <span className='host'>{val.srcTopoInfo.hostName}</span>
-                              </div>
-                              <span className='count' style={{backgroundColor: ALERT_LEVEL_COLORS[val.Severity]}}>{val.doc_count}</span>
-                            </li>
-                          )
-                        })
-                      }
-
-                    </ul>
-                    <div className='map'>
-                      {currentMap &&
-                        <Gis
-                          className='floor-map-area'
-                          _ref={(ref) => {this.gisNode = ref}}
-                          data={_.get(seatData, [currentFloor, 'data'])}
-                          baseLayers={currentBaseLayers}
-                          baseLayer={currentFloor}
-                          layouts={['standard']}
-                          dragModes={['pan']}
-                          scale={{enabled: false}}
-                          onClick={this.showTopoDetail.bind(this, PRIVATE)}
-                          symbolOptions={[{
-                            match: {
-                              data: {tag: 'red'}
-                            },
-                            props: {
-                              backgroundColor: 'red',
-                              tooltip: ({data}) => {
-                                return this.showPrivateTooltip(data);
-                              }
+                  </ul>
+                  <div className='map'>
+                    {currentMap &&
+                      <Gis
+                        className='floor-map-area'
+                        _ref={(ref) => {this.gisNode = ref}}
+                        data={_.get(seatData, [currentFloor, 'data'])}
+                        baseLayers={currentBaseLayers}
+                        baseLayer={currentFloor}
+                        layouts={['standard']}
+                        dragModes={['pan']}
+                        scale={{enabled: false}}
+                        onClick={this.showTopoDetail.bind(this, PRIVATE)}
+                        symbolOptions={[{
+                          match: {
+                            data: {tag: 'red'}
+                          },
+                          props: {
+                            backgroundColor: 'red',
+                            tooltip: ({data}) => {
+                              return this.showPrivateTooltip(data);
                             }
-                          }]} />
-                      }
-                    </div>
+                          }
+                        }]} />
+                    }
                   </div>
                 </div>
-              }
-            </div>
-          }
+              </div>
+            }
+            {mapType === PUBLIC && geoJson.mapDataArr.length > 0 &&
+              <Gis
+                id='gisMap'
+                data={geoJson.mapDataArr}
+                layers={{
+                  world: {
+                    label: 'World Map',
+                    interactive: false,
+                    data: geoJson.attacksDataArr
+                  }
+                }}
+                activeLayers={['world']}
+                baseLayers={{
+                  standard: {
+                    id: 'world',
+                    layer: 'world'
+                  }
+                }}
+                mapOptions={{
+                  crs: L.CRS.Simple
+                }}
+                onClick={this.showTopoDetail.bind(this, PUBLIC)}
+                symbolOptions={[{
+                  match: {
+                    type:'geojson'
+                  },
+                  selectedProps: {
+                    'fill-color': 'white',
+                    color: 'black',
+                    weight: 0.6,
+                    'fill-opacity': 1
+                  }
+                },
+                {
+                  match: {
+                    type: 'spot'
+                  },
+                  props: {
+                    'background-color': ({data}) => {
+                      return data.tag === 'red' ? 'red' : 'yellow';
+                    },
+                    'border-color': '#333',
+                    'border-width': '1px'
+                  }
+                }]}
+                layouts={['standard']}
+                dragModes={['pan']} />
+            }
+          </div>
         </div>
       </div>
     )
   }
 }
 
-Dashboard.propTypes = {
+DashboardMaps.propTypes = {
   baseUrl: PropTypes.string.isRequired,
   contextRoot: PropTypes.string.isRequired,
   language: PropTypes.string.isRequired,
   session: PropTypes.object.isRequired
 };
 
-Dashboard.defaultProps = {
+DashboardMaps.defaultProps = {
 };
 
-const HocDashboard = withRouter(withLocale(Dashboard));
-export { Dashboard, HocDashboard };
+const HocDashboardMaps = withRouter(withLocale(DashboardMaps));
+export { DashboardMaps, HocDashboardMaps };

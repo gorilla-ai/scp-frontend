@@ -55,16 +55,13 @@ class Tree extends Component {
       showContent: !this.state.showContent
     });
   }
-  testFunction = (a, b, c) => {
-    //console.log('you clicked me');
-  }
   render() {
     const {activeTab, treeData} = this.props;
     const {showContent, tabData} = this.state;
 
     return (
-      <div className='left-nav tree'>
-        <div className={cx('toggle-content', {'hide': !showContent})}>
+      <div className={cx('left-nav tree', {'collapse': !showContent})}>
+        <div className='main-content'>
           {activeTab !== 'alert' && activeTab !== 'logs' &&
             <div>
               <label htmlFor='analysisType' className='header-text'>{t('network.connections.txt-analysisType')}</label>
@@ -80,14 +77,15 @@ class Tree extends Component {
           {activeTab !== 'alert' && activeTab !== 'logs' &&
             <div className='header-text'>{t('network.connections.txt-top10text')}</div>
           }
+
+          <label htmlFor='analysisType' className='header-text'>{t('network.connections.txt-analysisType')}</label>
           <Hierarchy
             layout='tree'
             foldable={true}
             indent={[4, 0]}
             data={treeData}
             defaultOpened={['all', 'All']}
-            onLabelMouseOver={this.props.showFilterBtn}
-            onToggleOpen={this.testFunction} />
+            onLabelMouseOver={this.props.showFilterBtn} />
         </div>
         <div className='expand-collapse' onClick={this.toggleLeftNav}>
           {showContent &&

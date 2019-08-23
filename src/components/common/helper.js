@@ -235,11 +235,25 @@ const helper = {
       })
     )
   },
+  getDashboardMenu: function(page) {
+    const t = global.chewbaccaI18n.getFixedT(null, 'connections');
+
+    return (
+      <div className='c-button-group left menu'>
+        <button className={cx('thumb', {'selected': page === 'statistics'})}>
+          <Link to='/ChewbaccaWeb/dashboard/statistics'>{t('dashboard.txt-statisticsInfo')}</Link>
+        </button>
+        <button className={cx('thumb', {'selected': page === 'maps'})}>
+          <Link to='/ChewbaccaWeb/dashboard/maps'>{t('dashboard.txt-attacksMap')}</Link>
+        </button>
+      </div>
+    )
+  },
   getEventsMenu: function(page, sessionRights) {
     const t = global.chewbaccaI18n.getFixedT(null, 'connections');
 
     return (
-      <div className='c-button-group left events'>
+      <div className='c-button-group left menu'>
         {sessionRights.Module_FlowAnalysis_Manage &&
           <button className={cx('thumb', {'selected': page === 'netflow'})}>
             <Link to='/ChewbaccaWeb/events/netflow'>{t('txt-netflow')}</Link>

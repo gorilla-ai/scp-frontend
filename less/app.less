@@ -117,7 +117,7 @@ footer.footer {
  			border-radius: 0 4px 4px 0;
  		}
 	}
-	&.events {
+	&.menu {
 		.thumb {
 			padding: 0;
 			a {
@@ -134,9 +134,11 @@ footer.footer {
 	position: absolute;
 }
 .c-hierarchy {
-	min-width: 350px;
 	background: none;
 	&.tree {
+		width: 100%;
+		padding: 10px 5px;
+		border-radius: 5px;
 		background-color: #e6e6e6;
 		.children .branch:last-child:before,
 		.leaf:last-child:before {
@@ -521,8 +523,31 @@ footer.footer {
 			min-width: 15px;
 			border-right: 1px solid #d9d9d9;
 			&.tree {
+				width: 350px;
 				min-height: 95vh;
+				padding: 10px 25px 10px 10px;
 				background-color: #d9d9d9;
+				&.collapse {
+					width: 0;
+					padding: 0;
+				}
+			}
+			.expand-collapse {
+				position: absolute;
+				top: 0;
+				right: 0;
+				height: 100%;
+				width: 15px;
+				background-color: #E4E4E4;
+				border-left: 1px solid #d9d9d9;
+				cursor: pointer;
+				.fg {
+					position: absolute;
+					top: 380px;
+					left: -5px;
+					color: #666;
+					font-size: 1.5em;
+				}
 			}
 			.header-text {
 				color: #004d93;
@@ -568,33 +593,7 @@ footer.footer {
 				padding: 20px 10px;
 			}
 			.analysis-type {
-				width: 315px;
-				margin: 0 10px;
 				margin-bottom: 10px;
-			}
-			.toggle-content {
-				margin-top: 5px;
-				display: block;
-				&.hide {
-					display: none;
-				}
-			}
-			.expand-collapse {
-				position: absolute;
-				top: 0;
-				right: 0;
-				height: 100%;
-				width: 15px;
-				background-color: #E4E4E4;
-				border-left: 1px solid #d9d9d9;
-				cursor: pointer;
-				.fg {
-					position: absolute;
-					top: 380px;
-					left: -5px;
-					color: #666;
-					font-size: 1.5em;
-				}
 			}
 			&.search {
 				width: 18%;
@@ -1208,16 +1207,16 @@ footer.footer {
 					padding-right: 10px;
 					ul {
 						float: left;
-						width: 18%;
+						width: 335px;
 						max-height: 84vh;
 						overflow-y: auto;
+						border-top: 1px solid #d9d9d9;
+						border-right: 1px solid #d9d9d9;
+						border-left: 1px solid #d9d9d9;
 						li {
 							position: relative;
 							color: #5e5e5e;
 							height: 70px;
-							border-top: 1px solid #d9d9d9;
-							border-right: 1px solid #d9d9d9;
-							border-left: 1px solid #d9d9d9;
 							border-bottom: 2px solid #d9d9d9;
 							cursor: pointer;
 							&:hover {
