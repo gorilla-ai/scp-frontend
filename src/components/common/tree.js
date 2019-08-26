@@ -56,15 +56,27 @@ class Tree extends Component {
     });
   }
   render() {
-    const {activeTab, treeData} = this.props;
+    const {activeTab, treeData, additionalTreeData, activeAlertTab} = this.props;
     const {showContent, tabData} = this.state;
+    let additionalTreeTitle = '';
+    let treeTitle = '';
+
+    if (activeTab === 'alert') {
+      treeTitle = t('alert.txt-threatLevel');
+
+      if (activeAlertTab === 'private') {
+        additionalTreeTitle = t('alert.txt-privateMaskedIp');
+      } else if (activeAlertTab === 'public') {
+        additionalTreeTitle = t('alert.txt-sourceCountry');
+      }
+    }
 
     return (
       <div className={cx('left-nav tree', {'collapse': !showContent})}>
         <div className='main-content'>
           {activeTab !== 'alert' && activeTab !== 'logs' &&
             <div>
-              <label htmlFor='analysisType' className='header-text'>{t('network.connections.txt-analysisType')}</label>
+              <label htmlFor='analysisType' className={cx('header-text', {'hide': !showContent})}>{t('network.connections.txt-analysisType')}</label>
               <DropDownList
                 id='analysisType'
                 className='analysis-type'
@@ -78,7 +90,20 @@ class Tree extends Component {
             <div className='header-text'>{t('network.connections.txt-top10text')}</div>
           }
 
-          <label htmlFor='analysisType' className='header-text'>{t('network.connections.txt-analysisType')}</label>
+          {additionalTreeData &&
+            <div>
+              <label htmlFor='analysisType' className={cx('header-text', {'hide': !showContent})}>{additionalTreeTitle}</label>
+              <Hierarchy
+                layout='tree'
+                foldable={true}
+                indent={[4, 0]}
+                data={additionalTreeData}
+                defaultOpened={['all', 'All']}
+                onLabelMouseOver={this.props.showFilterBtn} />
+            </div>
+          }
+
+          <label htmlFor='analysisType' className={cx('header-text', {'hide': !showContent})}>{treeTitle}</label>
           <Hierarchy
             layout='tree'
             foldable={true}

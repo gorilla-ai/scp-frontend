@@ -71,6 +71,99 @@ const ALERT_LEVEL_COLORS = {
   Medium: '#d99857',
   Low: '#57c3d9'
 };
+const SUBSECTIONS_DATA = {
+  //Sub sections
+  subSectionsData: {
+    mainData: {
+      alert: []
+    },
+    fieldsData: {
+      alert: {}
+    },
+    laData: {
+      alert: []
+    },
+    mapData: {
+      alert: []
+    },
+    tableColumns: {},
+    totalCount: {
+      alert: 0
+    }
+  }
+};
+const ALERT_MAIN_DATA = {
+  //General
+  datetime: {
+    from: helper.getSubstractDate(1, 'hour'),
+    to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+    //from: '2019-06-28T05:28:00Z',
+    //to: '2019-07-19T06:28:00Z'
+  },
+  alertStatisticData: '',
+  currentPage: 1,
+  oldPage: 1,
+  pageSize: 20,
+  pageSizeMap: 500,
+  sort: {
+    field: '_eventDttm_',
+    desc: true
+  },
+  //Left nav
+  treeRawData: {},
+  treeData: {},
+  additionalTreeData: {},
+  currentTreeName: '',
+  activeSubTab: 'statistics',
+  //Search bar
+  searchType: 'manual',
+  searchInterval: '1h',
+  refreshTime: '600000', //10 minutes
+  alertHistogram: {},
+  filterData: [{
+    condition: 'Must',
+    query: ''
+  }],
+  ..._.cloneDeep(SUBSECTIONS_DATA),
+  mainEventsData: {},
+  queryData: {
+    id: '',
+    name: '',
+    inputName: '',
+    displayId: '',
+    displayName: '',
+    list: [],
+    query: '',
+    formattedQuery: '',
+    openFlag: false
+  },
+  newQueryName: true,
+  geoJson: {
+    mapDataArr: [],
+    attacksDataArr: []
+  },
+  showFilter: false,
+  showChart: false,
+  openQueryOpen: false,
+  saveQueryOpen: false,
+  tableMouseOver: false,
+  currentTableIndex: '',
+  currentTableID: '',
+  alertDetailsOpen: false,
+  alertDetails: {
+    all: [],
+    publicFormatted: {
+      srcIp: {},
+      destIp: {}
+    },
+    currentID: '',
+    currentIndex: '',
+    currentLength: ''
+  },
+  alertData: '',
+  loadAlertData: true,
+  alertRequest: {}
+};
 
 class AlertController extends Component {
   constructor(props) {
@@ -82,26 +175,7 @@ class AlertController extends Component {
 
     this.state = {
       activeTab: 'alert',
-      //General
-      datetime: {
-        from: helper.getSubstractDate(1, 'hour'),
-        to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
-        //from: '2019-06-28T05:28:00Z',
-        //to: '2019-07-19T06:28:00Z'
-      },
-      alertStatisticData: '',
-      currentPage: 1,
-      oldPage: 1,
-      pageSize: 20,
-      pageSizeMap: 500,
-      sort: {
-        field: '_eventDttm_',
-        desc: true
-      },
-      //Left nav
-      treeRawData: {},
-      treeData: {},
-      currentTreeName: '',
+      activeLocationTab: PRIVATE,
       //Tab Menu
       subTabMenu: {
         statistics: t('txt-statistics'),
@@ -109,77 +183,16 @@ class AlertController extends Component {
         linkAnalysis: t('txt-linkAnalysis'),
         worldMap: t('txt-map')
       },
-      locationType: PRIVATE,
-      activeSubTab: 'statistics',
-      alertHistogram: {},
-      filterData: [{
-        condition: 'Must',
-        query: ''
-      }],
-      //Sub sections
-      subSectionsData: {
-        mainData: {
-          alert: []
-        },
-        fieldsData: {
-          alert: {}
-        },
-        laData: {
-          alert: []
-        },
-        mapData: {
-          alert: []
-        },
-        tableColumns: {},
-        totalCount: {
-          alert: 0
-        }
-      },
+      searchInputManual: t('network.connections.txt-last1h'),
+      searchInputAuto: t('txt-interval') + ': ' + t('network.connections.txt-10m'),
       LAconfig: {},
-      mainEventsData: {},
       account: {
         id: '',
         login: false,
         fields: [],
         logsLocale: ''
       },
-      queryData: {
-        id: '',
-        name: '',
-        inputName: '',
-        displayId: '',
-        displayName: '',
-        list: [],
-        query: '',
-        formattedQuery: '',
-        openFlag: false
-      },
-      newQueryName: true,
-      geoJson: {
-        mapDataArr: [],
-        attacksDataArr: []
-      },
-      showFilter: false,
-      showChart: false,
-      openQueryOpen: false,
-      saveQueryOpen: false,
-      tableMouseOver: false,
-      currentTableIndex: '',
-      currentTableID: '',
-      alertDetailsOpen: false,
-      alertDetails: {
-        all: [],
-        publicFormatted: {
-          srcIp: {},
-          destIp: {}
-        },
-        currentID: '',
-        currentIndex: '',
-        currentLength: ''
-      },
-      alertData: '',
-      loadAlertData: true,
-      alertRequest: {}
+      ..._.cloneDeep(ALERT_MAIN_DATA)
     };
 
     this.ah = getInstance('chewbacca');
@@ -239,9 +252,12 @@ class AlertController extends Component {
     helper.getAjaxData('POST', url, requestData)
     .then(data => {
       if (data) {
+        data = data.aggregations;
+
         this.setState({
-          treeRawData: data.aggregations,
-          treeData: this.getTreeData(data.aggregations)
+          treeRawData: data,
+          treeData: this.getTreeData(data),
+          additionalTreeData: this.getAdditionalTreeData(data)
         });
       }
       return null;
@@ -664,10 +680,10 @@ class AlertController extends Component {
     });
   }
   toQueryLanguage = (options) => {
-    const {datetime, locationType, filterData, alertRequest} = this.state;
+    const {datetime, activeLocationTab, filterData, alertRequest} = this.state;
     const timeAttribute = 'timestamp';
-    const treeQuery = locationType === PRIVATE ? 'Top10InternalSrcIp' : 'Top10ExternalSrcCountry';
-    const dataQuery = locationType === PRIVATE ? 'InternalSrcIp' : 'ExternalSrcIp';
+    const treeQuery = activeLocationTab === PRIVATE ? 'Top10InternalMaskedIp' : 'Top10ExternalSrcCountry';
+    const dataQuery = activeLocationTab === PRIVATE ? 'InternalSrcIp' : 'ExternalSrcIp';
     const defaultCondition = {
       condition: 'must',
       query: dataQuery
@@ -724,8 +740,69 @@ class AlertController extends Component {
   showFilterBtn = (value) => {
     this.setState({
       currentTreeName: value,
-      treeData: this.getTreeData(this.state.treeRawData, value)
+      treeData: this.getTreeData(this.state.treeRawData, value),
+      additionalTreeData: this.getAdditionalTreeData(this.state.treeRawData, value)
     });
+  }
+  getAdditionalTreeData = (treeData, treeName) => {
+    const {activeSubTab, currentTreeName, activeLocationTab} = this.state;
+    const activeTreeName = treeName ? treeName : currentTreeName;
+    let formattedTreeData = [];
+    let treeObj = { //Handle service tree data
+      id: 'All',
+      children: []
+    };
+    let path = '';
+
+    if (activeLocationTab === 'private') {
+      treeData = treeData.Top10InternalMaskedIp;
+      path = 'srcIp';
+    } else if (activeLocationTab === 'public') {
+      treeData = treeData.Top10ExternalSrcCountry;
+      path = 'srcCountry';
+    }
+
+    _.keys(treeData)
+    .forEach(key => {
+      let tempChild = [];
+      let label = '';
+
+      if (key !== 'doc_count') {
+        if (activeLocationTab === 'private') {
+          if (treeData[key][path].buckets.length > 0) {
+            _.forEach(treeData[key][path].buckets, val => {
+              label = <span title={val.key}>{val.key} ({val.doc_count}) <button className={cx('button', {'active': currentTreeName === val.key && activeSubTab !== 'statistics'})} onClick={this.selectTree.bind(this, val.key, '')}>{t('network.connections.txt-addFilter')}</button></span>;
+
+              tempChild.push({
+                id: val.key,
+                label
+              });
+            })
+          }
+
+          label = <span title={key}>{key} ({treeData[key].doc_count}) <button className={cx('button', {'active': currentTreeName === key && activeSubTab !== 'statistics'})} onClick={this.selectTree.bind(this, key, '')}>{t('network.connections.txt-addFilter')}</button></span>;
+
+          treeObj.children.push({
+            id: key,
+            label,
+            children: tempChild
+          });
+        } else if (activeLocationTab === 'public') {
+          _.forEach(treeData[path].buckets, val => {
+            label = <span title={val.key}>{val.key} ({val.doc_count}) <button className={cx('button', {'active': currentTreeName === val.key && activeSubTab !== 'statistics'})} onClick={this.selectTree.bind(this, val.key, '')}>{t('network.connections.txt-addFilter')}</button></span>;
+
+            treeObj.children.push({
+              id: val.key,
+              label
+            });
+          })
+        }
+      }
+    })
+
+    treeObj.label = t('txt-all') + ' (' + treeData.doc_count + ')';
+
+    return treeObj;
   }
   getTreeData = (treeData, treeName) => {
     const {activeSubTab, currentTreeName} = this.state;
@@ -1203,6 +1280,8 @@ class AlertController extends Component {
       handleResetBtn: this.handleResetBtn,
       handleSearchSubmit: this.handleSearchSubmit,
       treeData: this.state.treeData,
+      additionalTreeData: this.state.additionalTreeData,
+      activeAlertTab: this.state.activeLocationTab,
       showFilterBtn: this.showFilterBtn,
       filterStyle: {
         height: this.getStyleHeight(165)
@@ -1296,6 +1375,31 @@ class AlertController extends Component {
       showChart: !this.state.showChart
     });
   }
+  setSearchType = (searchType) => {
+    this.setState({
+      searchType
+    });
+  }
+  setSearchInterval = (searchInterval) => {
+    this.setState({
+      searchInterval
+    });
+  }
+  setRefreshTime = (refreshTime) => {
+    this.setState({
+      refreshTime
+    });
+  }
+  setSearchInputManual = (searchInputManual) => {
+    this.setState({
+      searchInputManual
+    });
+  }
+  setSearchInputAuto = (searchInputAuto) => {
+    this.setState({
+      searchInputAuto
+    });
+  }
   clearQueryData = () => {
     let tempQueryData = {...this.state.queryData};
     tempQueryData.inputName = '';
@@ -1306,39 +1410,30 @@ class AlertController extends Component {
     });
   }
   clearData = () => {
-    const subSectionsData = {
-      mainData: {
-        alert: []
-      },
-      fieldsData: {
-        alert: {}
-      },
-      laData: {
-        alert: [],
-        connections: []
-      },
-      mapData: {
-        alert: []
-      },
-      tableColumns: {},
-      totalCount: {
-        alert: 0
-      }
-    };
-
     this.setState({
-      subSectionsData
+      ..._.cloneDeep(SUBSECTIONS_DATA)
     }, () => {
       this.loadAllFields();
     });
   }
-  showNotAvailable = () => {
-    helper.showPopupMsg('', '', 'N/A');
+  toggleActiveLocation = (type) => {
+    this.setState({
+      ..._.cloneDeep(ALERT_MAIN_DATA),
+      activeLocationTab: type,
+      searchInputManual: t('network.connections.txt-last1h'),
+      searchInputAuto: t('txt-interval') + ': ' + t('network.connections.txt-10m')
+    }, () => {
+      this.clearData();
+      this.getSavedQuery();
+      this.loadAlertTree();
+      this.loadStatistics();
+    });
   }
   render() {
     const {
       activeTab,
       datetime,
+      activeLocationTab,
       activeSubTab,
       subSectionsData,
       openQueryOpen,
@@ -1346,7 +1441,12 @@ class AlertController extends Component {
       filterData,
       showChart,
       showFilter,
-      alertDetailsOpen
+      alertDetailsOpen,
+      searchType,
+      searchInterval,
+      refreshTime,
+      searchInputManual,
+      searchInputAuto
     } = this.state;
     let filterDataCount = 0;
 
@@ -1372,14 +1472,24 @@ class AlertController extends Component {
 
         <div className='sub-header'>
           <div className='c-button-group left'>
-            <button className={cx('thumb selected')}>{t('alert.txt-privateAlert')}</button>
-            <button className={cx('thumb')} onClick={this.showNotAvailable.bind(this)}>{t('alert.txt-publicAlert')}</button>
+            <button className={cx('thumb', {'selected': activeLocationTab === PRIVATE})} onClick={this.toggleActiveLocation.bind(this, PRIVATE)}>{t('alert.txt-privateAlert')}</button>
+            <button className={cx('thumb', {'selected': activeLocationTab === PUBLIC})} onClick={this.toggleActiveLocation.bind(this, PUBLIC)}>{t('alert.txt-publicAlert')}</button>
           </div>
 
           <SearchOptions
             page='alert'
             datetime={datetime}
+            searchType={searchType}
+            searchInterval={searchInterval}
+            refreshTime={refreshTime}
+            searchInputManual={searchInputManual}
+            searchInputAuto={searchInputAuto}
             showFilter={showFilter}
+            setSearchType={this.setSearchType}
+            setSearchInterval={this.setSearchInterval}
+            setRefreshTime={this.setRefreshTime}
+            setSearchInputManual={this.setSearchInputManual}
+            setSearchInputAuto={this.setSearchInputAuto}
             handleDateChange={this.handleDateChange}
             handleSearchSubmit={this.handleSearchSubmit} />
 

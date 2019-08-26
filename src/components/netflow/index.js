@@ -95,6 +95,12 @@ class Netflow extends Component {
         worldMap: t('txt-map')
       },
       activeSubTab: 'table',
+      //Search bar
+      searchType: 'manual',
+      searchInterval: '1h',
+      refreshTime: '600000', //10 minutes
+      searchInputManual: t('network.connections.txt-last1h'),
+      searchInputAuto: t('txt-interval') + ': ' + t('network.connections.txt-10m'),
       //Events count
       eventsCount: {},
       //Connections
@@ -2240,6 +2246,31 @@ class Netflow extends Component {
       showChart: !this.state.showChart
     });
   }
+  setSearchType = (searchType) => {
+    this.setState({
+      searchType
+    });
+  }
+  setSearchInterval = (searchInterval) => {
+    this.setState({
+      searchInterval
+    });
+  }
+  setRefreshTime = (refreshTime) => {
+    this.setState({
+      refreshTime
+    });
+  }
+  setSearchInputManual = (searchInputManual) => {
+    this.setState({
+      searchInputManual
+    });
+  }
+  setSearchInputAuto = (searchInputAuto) => {
+    this.setState({
+      searchInputAuto
+    });
+  }
   clearTagData = () => {
     const tagData = {
       id: '',
@@ -2340,7 +2371,12 @@ class Netflow extends Component {
       filterData,
       pcapOpen,
       showChart,
-      showFilter
+      showFilter,
+      searchType,
+      searchInterval,
+      refreshTime,
+      searchInputManual,
+      searchInputAuto
     } = this.state;
     let sessionRights = {};
     let filterDataCount = 0;
@@ -2387,7 +2423,17 @@ class Netflow extends Component {
           <SearchOptions
             page='netflow'
             datetime={datetime}
+            searchType={searchType}
+            searchInterval={searchInterval}
+            refreshTime={refreshTime}
+            searchInputManual={searchInputManual}
+            searchInputAuto={searchInputAuto}
             showFilter={showFilter}
+            setSearchType={this.setSearchType}
+            setSearchInterval={this.setSearchInterval}
+            setRefreshTime={this.setRefreshTime}
+            setSearchInputManual={this.setSearchInputManual}
+            setSearchInputAuto={this.setSearchInputAuto}
             handleDateChange={this.handleDateChange}
             handleSearchSubmit={this.handleSearchSubmit} />
 

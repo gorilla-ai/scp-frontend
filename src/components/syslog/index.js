@@ -71,6 +71,12 @@ class SyslogController extends Component {
         linkAnalysis: t('txt-linkAnalysis')
       },
       activeSubTab: 'table',
+      //Search bar
+      searchType: 'manual',
+      searchInterval: '1h',
+      refreshTime: '600000', //10 minutes
+      searchInputManual: t('network.connections.txt-last1h'),
+      searchInputAuto: t('txt-interval') + ': ' + t('network.connections.txt-10m'),
       eventHistogram: {},
       filterData: [{
         condition: 'Must',
@@ -1390,6 +1396,31 @@ class SyslogController extends Component {
       showChart: !this.state.showChart
     });
   }
+  setSearchType = (searchType) => {
+    this.setState({
+      searchType
+    });
+  }
+  setSearchInterval = (searchInterval) => {
+    this.setState({
+      searchInterval
+    });
+  }
+  setRefreshTime = (refreshTime) => {
+    this.setState({
+      refreshTime
+    });
+  }
+  setSearchInputManual = (searchInputManual) => {
+    this.setState({
+      searchInputManual
+    });
+  }
+  setSearchInputAuto = (searchInputAuto) => {
+    this.setState({
+      searchInputAuto
+    });
+  }
   clearQueryData = () => {
     const {queryData} = this.state;
     let tempQueryData = {...queryData};
@@ -1438,7 +1469,12 @@ class SyslogController extends Component {
       showChart,
       showFilter,
       showMark,
-      logLocaleChangeOpen
+      logLocaleChangeOpen,
+      searchType,
+      searchInterval,
+      refreshTime,
+      searchInputManual,
+      searchInputAuto
     } = this.state;
     let sessionRights = {};
     let filterDataCount = 0;
@@ -1488,7 +1524,17 @@ class SyslogController extends Component {
           <SearchOptions
             page='syslog'
             datetime={datetime}
+            searchType={searchType}
+            searchInterval={searchInterval}
+            refreshTime={refreshTime}
+            searchInputManual={searchInputManual}
+            searchInputAuto={searchInputAuto}
             showFilter={showFilter}
+            setSearchType={this.setSearchType}
+            setSearchInterval={this.setSearchInterval}
+            setRefreshTime={this.setRefreshTime}
+            setSearchInputManual={this.setSearchInputManual}
+            setSearchInputAuto={this.setSearchInputAuto}
             handleDateChange={this.handleDateChange}
             handleSearchSubmit={this.handleSearchSubmit} />
 

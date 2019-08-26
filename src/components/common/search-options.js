@@ -23,11 +23,6 @@ class SearchOptions extends Component {
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
 
     this.state = {
-      searchType: 'manual',
-      searchInterval: '1h',
-      refreshTime: '600000', //10 minutes
-      searchInputManual: t('network.connections.txt-last1h'),
-      searchInputAuto: t('txt-interval') + ': ' + t('network.connections.txt-10m'),
       intervalModalOpen: false
     };
   }
@@ -39,7 +34,7 @@ class SearchOptions extends Component {
     this.intervalId = null;
   }
   loadSearchOptions = (search) => {
-    const {searchType, refreshTime} = this.state;
+    const {searchType, refreshTime} = this.props;
 
     if (search) {
       this.props.handleSearchSubmit('search');
@@ -54,7 +49,7 @@ class SearchOptions extends Component {
     }
   }
   setNewDatetime = () => {
-    const {searchInterval} = this.state;
+    const {searchInterval} = this.props;
     const dataObj = this.getTimeAndText(searchInterval);
     const datetime = {
       from: dataObj.time,
@@ -64,18 +59,16 @@ class SearchOptions extends Component {
     this.props.handleDateChange(datetime, 'refresh');
   }
   handleSearchTypeChange = (type) => {
-    this.setState({
-      searchType: type,
-      searchInterval: '1h',
-      refreshTime: '600000',
-      searchInputManual: t('network.connections.txt-last1h'),
-      searchInputAuto: t('txt-interval') + ': ' + t('network.connections.txt-10m')
-    }, () => {
-      if (this.intervalId) {
-        clearInterval(this.intervalId);
-        this.intervalId = null;
-      }
-    });
+    this.props.setSearchType(type);
+    this.props.setSearchInterval('1h');
+    this.props.setRefreshTime('600000');
+    this.props.setSearchInputManual(t('network.connections.txt-last1h'));
+    this.props.setSearchInputAuto(t('txt-interval') + ': ' + t('network.connections.txt-10m'));
+
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+      this.intervalId = null;
+    }
   }
   renderDateRange = () => {
     return (
@@ -152,18 +145,8 @@ class SearchOptions extends Component {
       intervalModalOpen: !this.state.intervalModalOpen
     });
   }
-  handleTimeframe = (searchInterval) => {
-    this.setState({
-      searchInterval
-    });
-  }
-  handleRefreshTime = (refreshTime) => {
-    this.setState({
-      refreshTime
-    });
-  }
   displayIntervalOptions = () => {
-    const {searchType, searchInterval, refreshTime} = this.state;
+    const {searchType, searchInterval, refreshTime} = this.props;
 
     if (searchType === 'manual') {
       return (
@@ -179,7 +162,7 @@ class SearchOptions extends Component {
               {value: 'today', text: t('network.connections.txt-today')},
               {value: 'week', text: t('network.connections.txt-week')}
             ]}
-            onChange={this.handleTimeframe}
+            onChange={this.props.setSearchInterval}
             value={searchInterval} />
         </div>
       )
@@ -195,7 +178,7 @@ class SearchOptions extends Component {
               {value: '1h', text: t('network.connections.txt-last1h')},
               {value: '12h', text: t('network.connections.txt-last12h')}
             ]}
-            onChange={this.handleTimeframe}
+            onChange={this.props.setSearchInterval}
             value={searchInterval} />
 
           <label>{t('network.connections.txt-auto-update')}</label>
@@ -208,14 +191,14 @@ class SearchOptions extends Component {
               {value: '300000', text: t('network.connections.txt-5m')},
               {value: '600000', text: t('network.connections.txt-10m')}
             ]}
-            onChange={this.handleRefreshTime}
+            onChange={this.props.setRefreshTime}
             value={refreshTime} />
         </div>
       )
     }
   }
   handleIntervalConfirm = () => {
-    const {searchType, searchInterval, refreshTime} = this.state;
+    const {searchType, searchInterval, refreshTime} = this.props;
     let dataObj = this.getTimeAndText(searchInterval);
     let searchInputManual = '';
     let searchInputAuto = '';
@@ -232,12 +215,9 @@ class SearchOptions extends Component {
       searchInputAuto = t('txt-interval') + ': ' + dataObj.text;
     }
 
-    this.setState({
-      searchInputManual,
-      searchInputAuto
-    }, () => {
-      this.toggleIntervalDialog();
-    });
+    this.props.setSearchInputManual(searchInputManual);
+    this.props.setSearchInputAuto(searchInputAuto);
+    this.toggleIntervalDialog();
   }
   intervalModalDialog = () => {
     const {activeTab} = this.state;
@@ -260,8 +240,8 @@ class SearchOptions extends Component {
     )
   }
   render() {
-    const {page, showFilter} = this.props;
-    const {searchType, searchInputManual, searchInputAuto, intervalModalOpen} = this.state;
+    const {page, showFilter, searchType, searchInputManual, searchInputAuto} = this.props;
+    const {intervalModalOpen} = this.state;
     const searchStyle = page === 'syslog' ? '226px' : '180px';
     let searchInputValue = '';
 
