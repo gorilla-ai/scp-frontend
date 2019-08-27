@@ -813,27 +813,40 @@
 			}
 		}
 		& > .content {
+			position: relative;
 			width: 100%;
 			color: #666;
 			background-color: #f5f5f5;
 			.options-buttons {
-				overflow: hidden;
+				position: absolute;
+				top: 10px;
+				right: 10px;
 				text-align: right;
-				margin-bottom: 10px;
-				a {
-					float: right;
-					margin-left: 10px;
-				}
-				.download {
-					cursor: pointer;
-				}
+				cursor: pointer;
 			}
-			ul.alert-rule {
-				li {
-					overflow-y: auto;
-					max-height: 340px;
-					padding-right: 10px;
-					word-break: break-all;
+			ul {
+				&.redirect-menu {
+					position: absolute;
+					top: 35px;
+					right: 0;
+					border: 1px solid #ccc;
+					border-radius: 5px;
+					background-color: #fff;
+					li {
+						padding: 5px 10px;
+						cursor: pointer;
+						&:hover {
+							background-color: #e5e5e5;
+						}
+					}
+				}
+				&.alert-rule {
+					li {
+						overflow-y: auto;
+						max-height: 340px;
+						padding-right: 10px;
+						word-break: break-all;
+					}
 				}
 			}
 			.pcap {
@@ -851,6 +864,7 @@
 			}
 			.srcIp-content,
 			.destIp-content {
+				margin-top: 30px;
 				max-height: 360px;
 				overflow-y: auto;
 				.private {

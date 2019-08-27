@@ -256,6 +256,7 @@
     "txt-safetyScanInfo": "Safety Scan Info",
     "txt-viewJSON": "$t(txt-view)JSON",
     "txt-queryMore": "Query",
+    "txt-queryEvents": "Query Events",
     "txt-downloadPCAP": "Download PCAP",
     "txt-downloadFile": "Download File",
     "txt-filterEmpty": "Filter empty packet",

@@ -256,6 +256,7 @@
     "txt-safetyScanInfo": "安全掃描資訊",
     "txt-viewJSON": "$t(txt-view)JSON",
     "txt-queryMore": "查詢更多",
+    "txt-queryEvents": "查詢相關事件",
     "txt-downloadPCAP": "下載檔案",
     "txt-downloadFile": "下載惡意程式",
     "txt-filterEmpty": "過濾無內容封包",

@@ -116,9 +116,13 @@ const ALERT_MAIN_DATA = {
   currentTreeName: '',
   activeSubTab: 'statistics',
   //Search bar
-  searchType: 'manual',
-  searchInterval: '1h',
-  refreshTime: '600000', //10 minutes
+  searchInput: {
+    searchType: 'manual',
+    searchInterval: '1h',
+    refreshTime: '600000', //10 minutes
+    inputManual: '',
+    inputAuto: '',
+  },
   alertHistogram: {},
   filterData: [{
     condition: 'Must',
@@ -183,8 +187,6 @@ class AlertController extends Component {
         linkAnalysis: t('txt-linkAnalysis'),
         worldMap: t('txt-map')
       },
-      searchInputManual: t('network.connections.txt-last1h'),
-      searchInputAuto: t('txt-interval') + ': ' + t('network.connections.txt-10m'),
       LAconfig: {},
       account: {
         id: '',
@@ -782,11 +784,16 @@ class AlertController extends Component {
 
           label = <span title={key}>{key} ({treeData[key].doc_count}) <button className={cx('button', {'active': currentTreeName === key && activeSubTab !== 'statistics'})} onClick={this.selectTree.bind(this, key, '')}>{t('network.connections.txt-addFilter')}</button></span>;
 
-          treeObj.children.push({
+          let treeProperty = {
             id: key,
-            label,
-            children: tempChild
-          });
+            label
+          };
+
+          if (tempChild.length > 0) {
+            treeProperty.children = tempChild;
+          }
+
+          treeObj.children.push(treeProperty);
         } else if (activeLocationTab === 'public') {
           _.forEach(treeData[path].buckets, val => {
             label = <span title={val.key}>{val.key} ({val.doc_count}) <button className={cx('button', {'active': currentTreeName === val.key && activeSubTab !== 'statistics'})} onClick={this.selectTree.bind(this, val.key, '')}>{t('network.connections.txt-addFilter')}</button></span>;
@@ -903,11 +910,17 @@ class AlertController extends Component {
 
         if (key !== 'default') {
           label = <span title={key}>{key} ({totalHostCount}) <button className={cx('button', {'active': (activeTreeName === key && activeSubTab !== 'statistics')})} onClick={this.selectTree.bind(this, key, '')}>{t('network.connections.txt-addFilter')}</button></span>;
-          treeObj.children.push({
+
+          let treeProperty = {
             id: key,
-            label,
-            children: tempChild
-          });
+            label
+          };
+
+          if (tempChild.length > 0) {
+            treeProperty.children = tempChild;
+          }
+
+          treeObj.children.push(treeProperty);
         }
       })
     })
@@ -1375,30 +1388,22 @@ class AlertController extends Component {
       showChart: !this.state.showChart
     });
   }
-  setSearchType = (searchType) => {
-    this.setState({
-      searchType
-    });
-  }
-  setSearchInterval = (searchInterval) => {
-    this.setState({
-      searchInterval
-    });
-  }
-  setRefreshTime = (refreshTime) => {
-    this.setState({
-      refreshTime
-    });
-  }
-  setSearchInputManual = (searchInputManual) => {
-    this.setState({
-      searchInputManual
-    });
-  }
-  setSearchInputAuto = (searchInputAuto) => {
-    this.setState({
-      searchInputAuto
-    });
+  setSearchData = (type, value) => {
+    if (type === 'all') {
+      this.setState({
+        searchInput: value
+      });
+    } else {
+      let tempSearchInput = {...this.state.searchInput};
+
+      if (value) {
+        tempSearchInput[type] = value;
+
+        this.setState({
+          searchInput: tempSearchInput
+        });
+      }
+    }
   }
   clearQueryData = () => {
     let tempQueryData = {...this.state.queryData};
@@ -1420,8 +1425,6 @@ class AlertController extends Component {
     this.setState({
       ..._.cloneDeep(ALERT_MAIN_DATA),
       activeLocationTab: type,
-      searchInputManual: t('network.connections.txt-last1h'),
-      searchInputAuto: t('txt-interval') + ': ' + t('network.connections.txt-10m')
     }, () => {
       this.clearData();
       this.getSavedQuery();
@@ -1435,18 +1438,14 @@ class AlertController extends Component {
       datetime,
       activeLocationTab,
       activeSubTab,
+      searchInput,
       subSectionsData,
       openQueryOpen,
       saveQueryOpen,
       filterData,
       showChart,
       showFilter,
-      alertDetailsOpen,
-      searchType,
-      searchInterval,
-      refreshTime,
-      searchInputManual,
-      searchInputAuto
+      alertDetailsOpen
     } = this.state;
     let filterDataCount = 0;
 
@@ -1479,17 +1478,9 @@ class AlertController extends Component {
           <SearchOptions
             page='alert'
             datetime={datetime}
-            searchType={searchType}
-            searchInterval={searchInterval}
-            refreshTime={refreshTime}
-            searchInputManual={searchInputManual}
-            searchInputAuto={searchInputAuto}
+            searchInput={searchInput}
             showFilter={showFilter}
-            setSearchType={this.setSearchType}
-            setSearchInterval={this.setSearchInterval}
-            setRefreshTime={this.setRefreshTime}
-            setSearchInputManual={this.setSearchInputManual}
-            setSearchInputAuto={this.setSearchInputAuto}
+            setSearchData={this.setSearchData}
             handleDateChange={this.handleDateChange}
             handleSearchSubmit={this.handleSearchSubmit} />
 

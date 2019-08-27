@@ -96,11 +96,13 @@ class Netflow extends Component {
       },
       activeSubTab: 'table',
       //Search bar
-      searchType: 'manual',
-      searchInterval: '1h',
-      refreshTime: '600000', //10 minutes
-      searchInputManual: t('network.connections.txt-last1h'),
-      searchInputAuto: t('txt-interval') + ': ' + t('network.connections.txt-10m'),
+      searchInput: {
+        searchType: 'manual',
+        searchInterval: '1h',
+        refreshTime: '600000', //10 minutes
+        inputManual: '',
+        inputAuto: '',
+      },
       //Events count
       eventsCount: {},
       //Connections
@@ -211,27 +213,66 @@ class Netflow extends Component {
       currentTableIndex: '',
       currentLength: '',
       currentTableID: '',
-      loadNetflowData: true
+      loadNetflowData: true,
+      urlParams: {}
     };
 
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
     const {session} = this.props;
-    let tempAccount = {...this.state.account};
+    const {datetime, filterData, account} = this.state;
+    let tempDatetime = {...datetime};
+    let tempFilterData = {...filterData};
+    let tempAccount = {...account};
+    let urlParams = queryString.parse(location.search);
 
     if (session.accountId) {
       tempAccount.id = session.accountId;
       tempAccount.login = true;
 
-      this.setState({
-        account: tempAccount
-      }, () => {
-        this.getLAconfig();
-        this.getSavedQuery();
-        this.getProjectId();
-      });
+      if (!_.isEmpty(urlParams)) {
+        let ip = '';
+
+        tempDatetime = {
+          from: helper.getSubstractDate(30, 'minutes', urlParams.eventDttm),
+          to: helper.getAdditionDate(30, 'minutes', urlParams.eventDttm)
+        };
+
+        if (urlParams.srcIp) {
+          ip = 'ipSrc: ' + urlParams.srcIp;
+        } else if (urlParams.destIp) {
+          ip = 'ipDst: ' + urlParams.destIp;
+        }
+
+        tempFilterData = [{
+          condition: 'Must',
+          query: ip
+        }];
+        urlParams = _.omit(urlParams, ['lng']);
+
+        this.setState({
+          datetime: tempDatetime,
+          filterData: tempFilterData,
+          account: tempAccount,
+          showFilter: true,
+          urlParams
+        }, () => {
+          this.initialLoad();
+        });
+      } else {
+        this.setState({
+          account: tempAccount
+        }, () => {
+          this.initialLoad();
+        });
+      }
     }
+  }
+  initialLoad = () => {
+    this.getLAconfig();
+    this.getSavedQuery();
+    this.getProjectId();
   }
   getLAconfig = () => {
     const {baseUrl} = this.props;
@@ -1013,8 +1054,7 @@ class Netflow extends Component {
 
           tempChild.push({
             id: key3,
-            label,
-            count: hostCount
+            label
           });
         }
       })
@@ -1030,13 +1070,16 @@ class Netflow extends Component {
         label = <span title={key}>{formattedKey} ({totalHostCount}) <button className={cx('button', {'active': currentTreeName === key})} onClick={this.selectTree.bind(this, key, 'dstSvcname')}>{t('network.connections.txt-addFilter')}</button></span>;
       }
 
-      treeObj.children.push({
+      let treeProperty = {
         id: key,
-        label,
-        count: totalHostCount,
-        children: tempChild
-      });
+        label
+      };
 
+      if (tempChild.length > 0) {
+        treeProperty.children = tempChild;
+      }
+
+      treeObj.children.push(treeProperty);
       allServiceCount += totalHostCount;
     })
 
@@ -2246,30 +2289,22 @@ class Netflow extends Component {
       showChart: !this.state.showChart
     });
   }
-  setSearchType = (searchType) => {
-    this.setState({
-      searchType
-    });
-  }
-  setSearchInterval = (searchInterval) => {
-    this.setState({
-      searchInterval
-    });
-  }
-  setRefreshTime = (refreshTime) => {
-    this.setState({
-      refreshTime
-    });
-  }
-  setSearchInputManual = (searchInputManual) => {
-    this.setState({
-      searchInputManual
-    });
-  }
-  setSearchInputAuto = (searchInputAuto) => {
-    this.setState({
-      searchInputAuto
-    });
+  setSearchData = (type, value) => {
+    if (type === 'all') {
+      this.setState({
+        searchInput: value
+      });
+    } else {
+      let tempSearchInput = {...this.state.searchInput};
+
+      if (value) {
+        tempSearchInput[type] = value;
+
+        this.setState({
+          searchInput: tempSearchInput
+        });
+      }
+    }
   }
   clearTagData = () => {
     const tagData = {
@@ -2364,6 +2399,7 @@ class Netflow extends Component {
       activeTab,
       datetime,
       subSectionsData,
+      searchInput,
       modalOpen,
       openQueryOpen,
       saveQueryOpen,
@@ -2371,12 +2407,7 @@ class Netflow extends Component {
       filterData,
       pcapOpen,
       showChart,
-      showFilter,
-      searchType,
-      searchInterval,
-      refreshTime,
-      searchInputManual,
-      searchInputAuto
+      showFilter
     } = this.state;
     let sessionRights = {};
     let filterDataCount = 0;
@@ -2386,7 +2417,7 @@ class Netflow extends Component {
     })
 
     _.forEach(filterData, val => {
-      if (val.data) {
+      if (val.query) {
         filterDataCount++;
       }
     })
@@ -2423,17 +2454,9 @@ class Netflow extends Component {
           <SearchOptions
             page='netflow'
             datetime={datetime}
-            searchType={searchType}
-            searchInterval={searchInterval}
-            refreshTime={refreshTime}
-            searchInputManual={searchInputManual}
-            searchInputAuto={searchInputAuto}
+            searchInput={searchInput}
             showFilter={showFilter}
-            setSearchType={this.setSearchType}
-            setSearchInterval={this.setSearchInterval}
-            setRefreshTime={this.setRefreshTime}
-            setSearchInputManual={this.setSearchInputManual}
-            setSearchInputAuto={this.setSearchInputAuto}
+            setSearchData={this.setSearchData}
             handleDateChange={this.handleDateChange}
             handleSearchSubmit={this.handleSearchSubmit} />
 

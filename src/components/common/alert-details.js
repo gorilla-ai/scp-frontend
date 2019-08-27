@@ -70,7 +70,8 @@ class AlertDetails extends Component {
           ownerBaseLayers: {},
           ownerSeat: {}
         }
-      }
+      },
+      showRedirectMenu: false
     };
 
     t = chewbaccaI18n.getFixedT(null, 'connections');
@@ -81,12 +82,47 @@ class AlertDetails extends Component {
     this.loadAlertContent();
     this.getIPcontent('srcIp');
     this.getIPcontent('destIp');
+    document.addEventListener('mousedown', this.handleClickOutside);
   }
   componentDidUpdate = (prevProps) => {
     this.loadAlertContent(prevProps);
   }
   componentWillUnmount = () => {
     this.closeDialog();
+    document.addEventListener('mousedown', this.handleClickOutside);
+  }
+  handleClickOutside = (e) => {
+    if (this.wrapperRef && !this.wrapperRef.contains(e.target)) {
+      this.setState({
+        showRedirectMenu: false
+      });
+    }
+  }
+  setWrapperRef = (node) => {
+    this.wrapperRef = node;
+  }
+  toggleRedirectMenu = () => {
+    this.setState({
+      showRedirectMenu: !this.state.showRedirectMenu
+    });
+  }
+  redirectLink = (type, value) => {
+    const {language, alertData} = this.props;
+    const eventDatetime = helper.getFormattedDate(alertData._eventDttm_, 'local');
+    const srcIp = this.getIpPortData('srcIp');
+    const destIp = this.getIpPortData('destIp');
+    let ipParam = '';
+
+    if (type === 'events') {
+      if (value === 'srcIp') {
+        ipParam = `&srcIp=${srcIp}`;
+      } else if (value === 'destIp') {
+        ipParam = `&destIp=${destIp}`;
+      }
+      const url = `/ChewbaccaWeb/events/netflow?eventDttm=${eventDatetime}${ipParam}&lng=${language}`;
+
+      window.open(url, '_blank');
+    }
   }
   /**
    * Call corresponding Alert data based on conditions
@@ -436,16 +472,13 @@ class AlertDetails extends Component {
    * @returns none
    */
   displayAlertData = () => {
-    const {language, alertDetails, alertData} = this.props;
-    const {alertType, showContent, alertRule, alertPCAP, alertPayload} = this.state;
+    const {alertDetails, alertData} = this.props;
+    const {alertType, showContent, alertRule, alertPCAP, alertPayload, showRedirectMenu} = this.state;
     const severity = alertData.Severity ? alertData.Severity : NOT_AVAILABLE;
     const collector = alertData.Collector ? alertData.Collector : NOT_AVAILABLE;
     const trigger = alertData.Trigger ? alertData.Trigger : NOT_AVAILABLE;
     const eventDatetime = alertData._eventDttm_ ? helper.getFormattedDate(alertData._eventDttm_, 'local') : NOT_AVAILABLE;
     const info = alertData.Info ? alertData.Info : NOT_AVAILABLE;
-    const srcIp = this.getIpPortData('srcIp');
-    const destIp = this.getIpPortData('destIp');
-    const url = `/ChewbaccaWeb/network?eventDttm=${eventDatetime}&srcIp=${srcIp}&destIp=${destIp}&lng=${language}`;
 
     return (
       <div>
@@ -516,18 +549,26 @@ class AlertDetails extends Component {
           </div>
           <div className='content'>
             <div className='options-buttons'>
-              {(showContent.rule || showContent.pcap || showContent.attack) &&
-                <Link to={url} target='_blank'>{t('alert.txt-queryMore')}</Link>
+              {(showContent.srcIp || showContent.destIp) &&
+                <div onClick={this.toggleRedirectMenu}>{t('alert.txt-queryMore')}</div>
               }
 
               {showContent.pcap &&
-                <div className='download' onClick={this.getPcapFile}>{t('alert.txt-downloadPCAP')}</div>
+                <div onClick={this.getPcapFile}>{t('alert.txt-downloadPCAP')}</div>
               }
 
               {showContent.attack &&
-                <div className='download' onClick={this.downloadFile}>{t('alert.txt-downloadFile')}</div>
+                <div onClick={this.downloadFile}>{t('alert.txt-downloadFile')}</div>
               }
             </div>
+
+            {showRedirectMenu && showContent.srcIp &&
+              this.displayRedirectMenu('srcIp')
+            }
+
+            {showRedirectMenu && showContent.destIp &&
+              this.displayRedirectMenu('destIp')
+            }
 
             {showContent.rule && alertRule &&
               this.displayRuleContent()
@@ -572,6 +613,18 @@ class AlertDetails extends Component {
           </div>
         }
       </div>
+    )
+  }
+  /**
+   * Display redirect menu
+   * @param {string} type - 'srcIp' or 'destIp'
+   * @returns none
+   */
+  displayRedirectMenu = (type) => {
+    return (
+      <ul className='redirect-menu' ref={this.setWrapperRef}>
+        <li onClick={this.redirectLink.bind(this, 'events', type)}>{t('alert.txt-queryEvents')}</li>
+      </ul>
     )
   }
   /**

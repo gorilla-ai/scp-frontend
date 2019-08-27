@@ -72,11 +72,13 @@ class SyslogController extends Component {
       },
       activeSubTab: 'table',
       //Search bar
-      searchType: 'manual',
-      searchInterval: '1h',
-      refreshTime: '600000', //10 minutes
-      searchInputManual: t('network.connections.txt-last1h'),
-      searchInputAuto: t('txt-interval') + ': ' + t('network.connections.txt-10m'),
+      searchInput: {
+        searchType: 'manual',
+        searchInterval: '1h',
+        refreshTime: '600000', //10 minutes
+        inputManual: '',
+        inputAuto: '',
+      },
       eventHistogram: {},
       filterData: [{
         condition: 'Must',
@@ -671,12 +673,16 @@ class SyslogController extends Component {
 
       label = <span title={key}>{key} ({val.length}) <button className={cx('button', {'active': currentTreeName === key})} onClick={this.selectTree.bind(this, key, 'configSource')}>{t('network.connections.txt-addFilter')}</button></span>;
 
-      treeObj.children.push({
+      let treeProperty = {
         id: key,
-        label,
-        children: tempChild
-      });
+        label
+      };
 
+      if (tempChild.length > 0) {
+        treeProperty.children = tempChild;
+      }
+
+      treeObj.children.push(treeProperty);
       allServiceCount++;
     })
 
@@ -1396,30 +1402,22 @@ class SyslogController extends Component {
       showChart: !this.state.showChart
     });
   }
-  setSearchType = (searchType) => {
-    this.setState({
-      searchType
-    });
-  }
-  setSearchInterval = (searchInterval) => {
-    this.setState({
-      searchInterval
-    });
-  }
-  setRefreshTime = (refreshTime) => {
-    this.setState({
-      refreshTime
-    });
-  }
-  setSearchInputManual = (searchInputManual) => {
-    this.setState({
-      searchInputManual
-    });
-  }
-  setSearchInputAuto = (searchInputAuto) => {
-    this.setState({
-      searchInputAuto
-    });
+  setSearchData = (type, value) => {
+    if (type === 'all') {
+      this.setState({
+        searchInput: value
+      });
+    } else {
+      let tempSearchInput = {...this.state.searchInput};
+
+      if (value) {
+        tempSearchInput[type] = value;
+
+        this.setState({
+          searchInput: tempSearchInput
+        });
+      }
+    }
   }
   clearQueryData = () => {
     const {queryData} = this.state;
@@ -1461,6 +1459,7 @@ class SyslogController extends Component {
       activeTab,
       datetime,
       subSectionsData,
+      searchInput,
       modalOpen,
       openQueryOpen,
       saveQueryOpen,
@@ -1469,12 +1468,7 @@ class SyslogController extends Component {
       showChart,
       showFilter,
       showMark,
-      logLocaleChangeOpen,
-      searchType,
-      searchInterval,
-      refreshTime,
-      searchInputManual,
-      searchInputAuto
+      logLocaleChangeOpen
     } = this.state;
     let sessionRights = {};
     let filterDataCount = 0;
@@ -1524,17 +1518,9 @@ class SyslogController extends Component {
           <SearchOptions
             page='syslog'
             datetime={datetime}
-            searchType={searchType}
-            searchInterval={searchInterval}
-            refreshTime={refreshTime}
-            searchInputManual={searchInputManual}
-            searchInputAuto={searchInputAuto}
+            searchInput={searchInput}
             showFilter={showFilter}
-            setSearchType={this.setSearchType}
-            setSearchInterval={this.setSearchInterval}
-            setRefreshTime={this.setRefreshTime}
-            setSearchInputManual={this.setSearchInputManual}
-            setSearchInputAuto={this.setSearchInputAuto}
+            setSearchData={this.setSearchData}
             handleDateChange={this.handleDateChange}
             handleSearchSubmit={this.handleSearchSubmit} />
 

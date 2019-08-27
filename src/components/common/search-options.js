@@ -34,23 +34,23 @@ class SearchOptions extends Component {
     this.intervalId = null;
   }
   loadSearchOptions = (search) => {
-    const {searchType, refreshTime} = this.props;
+    const {searchInput} = this.props;
 
     if (search) {
       this.props.handleSearchSubmit('search');
     }
 
-    if (searchType === 'auto') {
+    if (searchInput.searchType === 'auto') {
       if (this.intervalId) {
         clearInterval(this.intervalId);
         this.intervalId = null;
       }
-      this.intervalId = setInterval(this.setNewDatetime, Number(refreshTime));
+      this.intervalId = setInterval(this.setNewDatetime, Number(searchInput.refreshTime));
     }
   }
   setNewDatetime = () => {
-    const {searchInterval} = this.props;
-    const dataObj = this.getTimeAndText(searchInterval);
+    const {searchInput} = this.props;
+    const dataObj = this.getTimeAndText(searchInput.searchInterval);
     const datetime = {
       from: dataObj.time,
       to: Moment().local().format('YYYY-MM-DDTHH:mm') + ':00'
@@ -59,11 +59,13 @@ class SearchOptions extends Component {
     this.props.handleDateChange(datetime, 'refresh');
   }
   handleSearchTypeChange = (type) => {
-    this.props.setSearchType(type);
-    this.props.setSearchInterval('1h');
-    this.props.setRefreshTime('600000');
-    this.props.setSearchInputManual(t('network.connections.txt-last1h'));
-    this.props.setSearchInputAuto(t('txt-interval') + ': ' + t('network.connections.txt-10m'));
+    this.props.setSearchData('all', {
+      searchType: type,
+      searchInterval: '1h',
+      refreshTime: '600000',
+      inputManual: t('network.connections.txt-last1h'),
+      inputAuto: t('txt-interval') + ': ' + t('network.connections.txt-10m')
+    });
 
     if (this.intervalId) {
       clearInterval(this.intervalId);
@@ -146,9 +148,9 @@ class SearchOptions extends Component {
     });
   }
   displayIntervalOptions = () => {
-    const {searchType, searchInterval, refreshTime} = this.props;
+    const {searchInput} = this.props;
 
-    if (searchType === 'manual') {
+    if (searchInput.searchType === 'manual') {
       return (
         <div className='interval-options manual'>
           <label>{t('network.connections.txt-time-frame')}</label>
@@ -162,11 +164,11 @@ class SearchOptions extends Component {
               {value: 'today', text: t('network.connections.txt-today')},
               {value: 'week', text: t('network.connections.txt-week')}
             ]}
-            onChange={this.props.setSearchInterval}
-            value={searchInterval} />
+            onChange={this.props.setSearchData.bind(this, 'searchInterval')}
+            value={searchInput.searchInterval} />
         </div>
       )
-    } else if (searchType === 'auto') {
+    } else if (searchInput.searchType === 'auto') {
       return (
         <div className='interval-options auto'>
           <label>{t('network.connections.txt-time-frame')}</label>
@@ -178,8 +180,8 @@ class SearchOptions extends Component {
               {value: '1h', text: t('network.connections.txt-last1h')},
               {value: '12h', text: t('network.connections.txt-last12h')}
             ]}
-            onChange={this.props.setSearchInterval}
-            value={searchInterval} />
+            onChange={this.props.setSearchData.bind(this, 'searchInterval')}
+            value={searchInput.searchInterval} />
 
           <label>{t('network.connections.txt-auto-update')}</label>
           <RadioGroup
@@ -191,32 +193,32 @@ class SearchOptions extends Component {
               {value: '300000', text: t('network.connections.txt-5m')},
               {value: '600000', text: t('network.connections.txt-10m')}
             ]}
-            onChange={this.props.setRefreshTime}
-            value={refreshTime} />
+            onChange={this.props.setSearchData.bind(this, 'refreshTime')}
+            value={searchInput.refreshTime} />
         </div>
       )
     }
   }
   handleIntervalConfirm = () => {
-    const {searchType, searchInterval, refreshTime} = this.props;
-    let dataObj = this.getTimeAndText(searchInterval);
-    let searchInputManual = '';
-    let searchInputAuto = '';
+    const {searchInput} = this.props;
+    let dataObj = this.getTimeAndText(searchInput.searchInterval);
+    let inputManual = '';
+    let inputAuto = '';
 
     this.props.handleDateChange({
       from: dataObj.time,
       to: Moment().local().format('YYYY-MM-DDTHH:mm') + ':00Z'
     });
 
-    if (searchType === 'manual') {
-      searchInputManual = dataObj.text;
-    } else if (searchType === 'auto') {
-      dataObj = this.getTimeAndText(refreshTime);
-      searchInputAuto = t('txt-interval') + ': ' + dataObj.text;
+    if (searchInput.searchType === 'manual') {
+      inputManual = dataObj.text;
+    } else if (searchInput.searchType === 'auto') {
+      dataObj = this.getTimeAndText(searchInput.refreshTime);
+      inputAuto = t('txt-interval') + ': ' + dataObj.text;
     }
 
-    this.props.setSearchInputManual(searchInputManual);
-    this.props.setSearchInputAuto(searchInputAuto);
+    this.props.setSearchData('inputManual', inputManual);
+    this.props.setSearchData('inputAuto', inputAuto);
     this.toggleIntervalDialog();
   }
   intervalModalDialog = () => {
@@ -240,15 +242,17 @@ class SearchOptions extends Component {
     )
   }
   render() {
-    const {page, showFilter, searchType, searchInputManual, searchInputAuto} = this.props;
+    const {page, showFilter, searchInput} = this.props;
     const {intervalModalOpen} = this.state;
+    const searchManualText = searchInput.inputManual ? searchInput.inputManual : t('network.connections.txt-last1h');
+    const searchAutoText = searchInput.inputAuto ? searchInput.inputAuto : t('txt-interval') + ': ' + t('network.connections.txt-10m');
     const searchStyle = page === 'syslog' ? '226px' : '180px';
     let searchInputValue = '';
 
-    if (searchType === 'manual') {
-      searchInputValue = searchInputManual;
-    } else if (searchType === 'auto') {
-      searchInputValue = searchInputAuto;
+    if (searchInput.searchType === 'manual') {
+      searchInputValue = searchManualText;
+    } else if (searchInput.searchType === 'auto') {
+      searchInputValue = searchAutoText;
     }
 
     return (
@@ -265,7 +269,7 @@ class SearchOptions extends Component {
           ]}
           required={true}
           onChange={this.handleSearchTypeChange}
-          value={searchType} />
+          value={searchInput.searchType} />
 
         <div className='search-interval'>
           <input className='time-interval' value={searchInputValue} onClick={this.toggleIntervalDialog.bind(this)} readOnly />

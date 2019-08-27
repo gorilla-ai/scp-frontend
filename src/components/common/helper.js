@@ -26,11 +26,13 @@ const helper = {
       return Moment(date).format('YYYY-MM-DD HH:mm:ss');
     }
   },
-  getSubstractDate: function(val, type) {
-    return Moment().local().subtract(val, type).format('YYYY-MM-DDTHH:mm:ss');
+  getSubstractDate: function(val, type, date) {
+    const dateTime = date ? date : new Date();
+    return Moment(dateTime).local().subtract(val, type).format('YYYY-MM-DDTHH:mm:ss');
   },
-  getAdditionDate: function(val, type) {
-    return Moment().local().add(val, type).format('YYYY-MM-DDTHH:mm:ss');
+  getAdditionDate: function(val, type, date) {
+    const dateTime = date ? date : new Date();
+    return Moment(dateTime).local().add(val, type).format('YYYY-MM-DDTHH:mm:ss');
   },
   getStartDate: function(val) {
     return Moment().local().startOf(val).format('YYYY-MM-DDTHH:mm:ss');
