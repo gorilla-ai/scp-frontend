@@ -135,6 +135,8 @@ class TableCell extends Component {
 }
 
 TableCell.propTypes = {
+  baseUrl: PropTypes.string.isRequired,
+  contextRoot: PropTypes.string.isRequired,
   fieldName: PropTypes.string.isRequired,
   allValue: PropTypes.object.isRequired
 };

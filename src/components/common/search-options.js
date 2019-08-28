@@ -287,6 +287,13 @@ class SearchOptions extends Component {
 }
 
 SearchOptions.propTypes = {
+  page: PropTypes.string.isRequired,
+  datetime: PropTypes.object.isRequired,
+  searchInput: PropTypes.object.isRequired,
+  showFilter: PropTypes.bool.isRequired,
+  setSearchData: PropTypes.func.isRequired,
+  handleDateChange: PropTypes.func.isRequired,
+  handleSearchSubmit: PropTypes.func.isRequired
 };
 
 const HocSearchOptions = withLocale(SearchOptions);

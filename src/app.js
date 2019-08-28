@@ -5,28 +5,30 @@ import { BrowserRouter, Switch, Route, Link } from 'react-router-dom'
 import Promise from 'bluebird'
 import $ from 'jquery'
 import i18n from 'i18next'
+import Moment from 'moment'
 
 import loglevel from 'loglevel'
 import logger from 'loglevel-prefix-persist/client'
-import {HocHeader as Header} from './header'
-import {HocDashboardStat as DashboardStat} from './components/dashboard/statistics'
-import {HocDashboardMaps as DashboardMaps} from './components/dashboard/maps'
+
 import {HocAlertController as Alert} from './components/alert/index'
-import {HocNetflowController as Netflow} from './components/netflow/index'
-import {HocEndpoint as Endpoint} from './components/endpoint/index'
-import {HocSyslogController as Syslog} from './components/syslog/index'
-import {HocManage as Manage} from './components/netflow/manage'
-import {HocHoneynet as Honeypot} from './components/honeynet/host'
-import {HocEmployeeRecord as EmployeeRecord} from './components/honeynet/employee-record'
-import {HocEmailReport as EmailReport} from './components/honeynet/email-report'
-import {HocNetworkTopology as Owner} from './components/network-topology/owner'
-import {HocIP as IP} from './components/network-topology/ip'
-import {HocMapNetwork as MapNetwork} from './components/network-topology/map'
-import {HocSyslog as SyslogConfig} from './components/syslog/syslog'
-import UserAccounts from './components/user/accounts/index'
-import UserPrivileges from './components/user/privileges/index'
-import {HocStatus as ServiceStatus} from './components/service/status'
+import {HocDashboardMaps as DashboardMaps} from './components/dashboard/maps'
+import {HocDashboardStats as DashboardStats} from './components/dashboard/statistics'
+import {HocEmailReport as EmailReport} from './components/configuration/honeynet/email-report'
+import {HocEmployeeRecord as EmployeeRecord} from './components/configuration/honeynet/employee-record'
+import {HocEndpoint as Endpoint} from './components/events/endpoint/index'
+import {HocHeader as Header} from './header'
+import {HocHoneynet as Honeypot} from './components/configuration/honeynet/host'
+import {HocIP as IP} from './components/configuration/topology/ip'
 import Login from './login'
+import {HocManage as Manage} from './components/configuration/agent/manage'
+import {HocMapNetwork as MapNetwork} from './components/configuration/topology/map'
+import {HocNetflowController as Netflow} from './components/events/netflow/index'
+import {HocNetworkTopology as Owner} from './components/configuration/topology/owner'
+import {HocStatus as ServiceStatus} from './components/configuration/service/status'
+import {HocSyslogController as Syslog} from './components/events/syslog/index'
+import {HocSyslog as SyslogConfig} from './components/configuration/syslog/syslog'
+import UserAccounts from './components/configuration/user/accounts/index'
+import UserPrivileges from './components/configuration/user/privileges/index'
 
 import 'font-gorilla/css/font-gorilla.css'
 import 'purecss/build/pure-min.css'
@@ -36,125 +38,14 @@ import 'react-la/build/css/react-la.css'
 const initialState = JSON.parse(document.getElementById('initial-state').innerHTML);
 const cfg = initialState.envCfg;
 const appcfg = initialState.appCfg;
+const year = Moment().year();
 const companyName = initialState.companyName;
 const productName = initialState.productName;
 const session = initialState.session;
 const log = logger(cfg.env, loglevel, cfg.log);
+const footerText = `Powered by ${companyName}. Copyright © ${companyName}. ${year} All Rights Reserved. ${cfg.version} For the best experience, use the latest version of Google Chrome`;
 
-const footerText = `Powered by ${companyName}. Copyright © ${companyName}. 2018 All Rights Reserved. ${cfg.version} For the best experience, use the latest version of Google Chrome`;
-
-const Config = () => {
-  let sessionRights = {};
-
-  _.forEach(session.rights, val => {
-    sessionRights[val] = true;
-  })
-
-  if (sessionRights.Module_FlowAnalysis_Agent_Manage) {
-		return Agent();
-	} else if (sessionRights.Module_Honeynet_Manage) {
-		return HoneynetHost();
-	} else if (sessionRights.Module_NetworkTopology_Manage) {
-		return 	NetworkTopologyOwner();
-	} else if (sessionRights.Module_Syslog_Manage) {
-		return 	Syslogs();
-	} else if (sessionRights.Module_Account_Manage) {
-		return 	userAccounts();
-	}
-}
-
-const Agent = () => (
-	<Manage
-		page='agent'
-		baseUrl={cfg.apiPrefix}
-		contextRoot={cfg.contextRoot}
-		locale={cfg.lng}
-		session={session} />
-)
-
-const Threats = () => (
-	<Manage
-		page='threats'
-		baseUrl={cfg.apiPrefix}
-		contextRoot={cfg.contextRoot}
-		locale={cfg.lng}
-		session={session} />
-)
-
-const HoneynetHost = () => (
-	<Honeypot
-		baseUrl={cfg.apiPrefix}
-		contextRoot={cfg.contextRoot}
-		locale={cfg.lng}
-		session={session} />
-)
-
-const HoneynetEmployeeRecord = () => (
-	<EmployeeRecord
-		baseUrl={cfg.apiPrefix}
-		contextRoot={cfg.contextRoot}
-		language={cfg.lng}
-		locale={cfg.lng}
-		session={session} />
-)
-
-const HoneynetEmailReport = () => (
-	<EmailReport
-		baseUrl={cfg.apiPrefix}
-		contextRoot={cfg.contextRoot}
-		locale={cfg.lng}
-		session={session} />
-)
-
-const NetworkTopologyOwner = () => (
-	<Owner
-		baseUrl={cfg.apiPrefix}
-		contextRoot={cfg.contextRoot}
-		locale={cfg.lng}
-		session={session} />
-)
-
-const NetworkTopologyIP = () => (
-	<IP
-		baseUrl={cfg.apiPrefix}
-		contextRoot={cfg.contextRoot}
-		locale={cfg.lng}
-		session={session} />
-)
-
-const NetworkTopologyMap = () => (
-	<MapNetwork
-		baseUrl={cfg.apiPrefix}
-		contextRoot={cfg.contextRoot}
-		locale={cfg.lng}
-		session={session} />
-)
-
-const userAccounts = () => (
-	<UserAccounts
-		baseUrl={cfg.apiPrefix}
-		contextRoot={cfg.contextRoot}
-		locale={cfg.lng}
-		session={session} />
-)
-
-const userPrivileges = () => (
-	<UserPrivileges
-		baseUrl={cfg.apiPrefix}
-		contextRoot={cfg.contextRoot}
-		locale={cfg.lng}
-		session={session} />
-)
-
-const serviceStatus = () => (
-	<ServiceStatus
-		baseUrl={cfg.apiPrefix}
-		contextRoot={cfg.contextRoot}
-		locale={cfg.lng}
-		session={session} />
-)
-
-const Nav = () => (
+const HeaderComp = () => (
 	<Header
 		baseUrl={cfg.apiPrefix}
 		contextRoot={cfg.contextRoot}
@@ -163,8 +54,8 @@ const Nav = () => (
 		session={session} />
 )
 
-const DashboardStatComp = () => (
-	<DashboardStat
+const DashboardStatsComp = () => (
+	<DashboardStats
 		baseUrl={cfg.apiPrefix}
 		contextRoot={cfg.contextRoot}
 		language={cfg.lng}
@@ -220,8 +111,119 @@ const EndpointComp = () => (
 		session={session} />
 )
 
+const Config = () => {
+  let sessionRights = {};
+
+  _.forEach(session.rights, val => {
+    sessionRights[val] = true;
+  })
+
+  if (sessionRights.Module_FlowAnalysis_Agent_Manage) {
+		return Agent();
+	} else if (sessionRights.Module_Honeynet_Manage) {
+		return HoneynetHost();
+	} else if (sessionRights.Module_NetworkTopology_Manage) {
+		return 	NetworkTopologyOwner();
+	} else if (sessionRights.Module_Syslog_Manage) {
+		return 	Syslogs();
+	} else if (sessionRights.Module_Account_Manage) {
+		return 	userAccounts();
+	}
+}
+
+const Agent = () => (
+	<Manage
+		page='agent'
+		baseUrl={cfg.apiPrefix}
+		contextRoot={cfg.contextRoot}
+		locale={cfg.lng}
+		session={session} />
+)
+
+const Threats = () => (
+	<Manage
+		page='threats'
+		baseUrl={cfg.apiPrefix}
+		contextRoot={cfg.contextRoot}
+		locale={cfg.lng}
+		session={session} />
+)
+
+const HoneynetHost = () => (
+	<Honeypot
+		baseUrl={cfg.apiPrefix}
+		contextRoot={cfg.contextRoot}
+		locale={cfg.lng}
+		session={session} />
+)
+
+const HoneynetEmailReport = () => (
+	<EmailReport
+		baseUrl={cfg.apiPrefix}
+		contextRoot={cfg.contextRoot}
+		locale={cfg.lng}
+		session={session} />
+)
+
+const HoneynetEmployeeRecord = () => (
+	<EmployeeRecord
+		baseUrl={cfg.apiPrefix}
+		contextRoot={cfg.contextRoot}
+		language={cfg.lng}
+		locale={cfg.lng}
+		session={session} />
+)
+
+const NetworkTopologyOwner = () => (
+	<Owner
+		baseUrl={cfg.apiPrefix}
+		contextRoot={cfg.contextRoot}
+		locale={cfg.lng}
+		session={session} />
+)
+
+const NetworkTopologyIP = () => (
+	<IP
+		baseUrl={cfg.apiPrefix}
+		contextRoot={cfg.contextRoot}
+		locale={cfg.lng}
+		session={session} />
+)
+
+const NetworkTopologyMap = () => (
+	<MapNetwork
+		baseUrl={cfg.apiPrefix}
+		contextRoot={cfg.contextRoot}
+		locale={cfg.lng}
+		session={session} />
+)
+
 const Syslogs = () => (
 	<SyslogConfig
+		baseUrl={cfg.apiPrefix}
+		contextRoot={cfg.contextRoot}
+		locale={cfg.lng}
+		session={session} />
+)
+
+const userAccounts = () => (
+	<UserAccounts
+		baseUrl={cfg.apiPrefix}
+		contextRoot={cfg.contextRoot}
+		locale={cfg.lng}
+		session={session} />
+)
+
+const userPrivileges = () => (
+	<UserPrivileges
+		baseUrl={cfg.apiPrefix}
+		contextRoot={cfg.contextRoot}
+		locale={cfg.lng}
+		session={session} />
+)
+
+const serviceStatus = () => (
+	<ServiceStatus
 		baseUrl={cfg.apiPrefix}
 		contextRoot={cfg.contextRoot}
 		locale={cfg.lng}
@@ -231,8 +233,8 @@ const Syslogs = () => (
 const Main = () => (
 	<main className='main'>
 		<Switch>
-			<Route exact path='/ChewbaccaWeb' component={DashboardStatComp} />
-			<Route exact path='/ChewbaccaWeb/dashboard/statistics' component={DashboardStatComp} />
+			<Route exact path='/ChewbaccaWeb' component={DashboardStatsComp} />
+			<Route exact path='/ChewbaccaWeb/dashboard/statistics' component={DashboardStatsComp} />
 			<Route exact path='/ChewbaccaWeb/dashboard/maps' component={DashboardMapsComp} />
 			<Route exact path='/ChewbaccaWeb/alert' component={AlertComp} />
 			<Route exact path='/ChewbaccaWeb/events/netflow' component={NetflowComp} />
@@ -268,7 +270,7 @@ const App = () => {
 			</div>
 		:
 			<div>
-				<Nav />
+				<HeaderComp />
 				<Main />
 				<footer className='footer'>{footerText}</footer>
 			</div>

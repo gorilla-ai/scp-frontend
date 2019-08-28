@@ -69,6 +69,13 @@ class TableContent extends Component {
 }
 
 TableContent.propTypes = {
+  activeTab: PropTypes.string.isRequired,
+  dataTableData: PropTypes.array.isRequired,
+  dataTableFields: PropTypes.object.isRequired,
+  dataTableSort: PropTypes.object.isRequired,
+  paginationTotalCount: PropTypes.number.isRequired,
+  paginationPageSize: PropTypes.number.isRequired,
+  paginationCurrentPage: PropTypes.number.isRequired
 };
 
 export default TableContent;

@@ -41,7 +41,7 @@ const CHARTS_ID = [
     key: 'srcIp'
   },
   {
-    title: 'Top10ExternalSrcCountry',
+    title: 'Top10ExternalPotSrcCountry',
     key: 'srcCountry'
   },
   {
@@ -100,7 +100,7 @@ const ALERT_MAIN_DATA = {
     //from: '2019-06-28T05:28:00Z',
     //to: '2019-07-19T06:28:00Z'
   },
-  alertStatisticData: '',
+  alertStatisticData: {},
   currentPage: 1,
   oldPage: 1,
   pageSize: 20,
@@ -164,7 +164,7 @@ const ALERT_MAIN_DATA = {
     currentIndex: '',
     currentLength: ''
   },
-  alertData: '',
+  alertData: {},
   loadAlertData: true,
   alertRequest: {}
 };
@@ -314,8 +314,7 @@ class AlertController extends Component {
 
       _.forEach(CHARTS_ID, (val, i) => {
         if (data[i].aggregations) {
-          const path = i === 1 ? 'srcCountry' : 'agg';
-          const dataBuckets = data[i].aggregations[val.title][path].buckets;
+          const dataBuckets = data[i].aggregations[val.title].agg.buckets;
           let tempArr = [];
 
           if (dataBuckets.length > 0) {
@@ -684,7 +683,7 @@ class AlertController extends Component {
   toQueryLanguage = (options) => {
     const {datetime, activeLocationTab, filterData, alertRequest} = this.state;
     const timeAttribute = 'timestamp';
-    const treeQuery = activeLocationTab === PRIVATE ? 'Top10InternalMaskedIp' : 'Top10ExternalSrcCountry';
+    const treeQuery = activeLocationTab === PRIVATE ? 'Top10InternalMaskedIp' : 'Top10ExternalPotSrcCountry';
     const dataQuery = activeLocationTab === PRIVATE ? 'InternalSrcIp' : 'ExternalSrcIp';
     const defaultCondition = {
       condition: 'must',
@@ -760,8 +759,8 @@ class AlertController extends Component {
       treeData = treeData.Top10InternalMaskedIp;
       path = 'srcIp';
     } else if (activeLocationTab === 'public') {
-      treeData = treeData.Top10ExternalSrcCountry;
-      path = 'srcCountry';
+      treeData = treeData.Top10ExternalPotSrcCountry;
+      path = 'agg';
     }
 
     _.keys(treeData)
@@ -769,16 +768,18 @@ class AlertController extends Component {
       let tempChild = [];
       let label = '';
 
-      if (key !== 'doc_count') {
+      if (key && key !== 'doc_count') {
         if (activeLocationTab === 'private') {
           if (treeData[key][path].buckets.length > 0) {
             _.forEach(treeData[key][path].buckets, val => {
-              label = <span title={val.key}>{val.key} ({val.doc_count}) <button className={cx('button', {'active': currentTreeName === val.key && activeSubTab !== 'statistics'})} onClick={this.selectTree.bind(this, val.key, '')}>{t('network.connections.txt-addFilter')}</button></span>;
+              if (val.key) {
+                label = <span title={val.key}>{val.key} ({val.doc_count}) <button className={cx('button', {'active': currentTreeName === val.key && activeSubTab !== 'statistics'})} onClick={this.selectTree.bind(this, val.key, '')}>{t('network.connections.txt-addFilter')}</button></span>;
 
-              tempChild.push({
-                id: val.key,
-                label
-              });
+                tempChild.push({
+                  id: val.key,
+                  label
+                });
+              }
             })
           }
 
@@ -796,12 +797,14 @@ class AlertController extends Component {
           treeObj.children.push(treeProperty);
         } else if (activeLocationTab === 'public') {
           _.forEach(treeData[path].buckets, val => {
-            label = <span title={val.key}>{val.key} ({val.doc_count}) <button className={cx('button', {'active': currentTreeName === val.key && activeSubTab !== 'statistics'})} onClick={this.selectTree.bind(this, val.key, '')}>{t('network.connections.txt-addFilter')}</button></span>;
+            if (val.key) {
+              label = <span title={val.key}>{val.key} ({val.doc_count}) <button className={cx('button', {'active': currentTreeName === val.key && activeSubTab !== 'statistics'})} onClick={this.selectTree.bind(this, val.key, '')}>{t('network.connections.txt-addFilter')}</button></span>;
 
-            treeObj.children.push({
-              id: val.key,
-              label
-            });
+              treeObj.children.push({
+                id: val.key,
+                label
+              });
+            }
           })
         }
       }
@@ -847,7 +850,7 @@ class AlertController extends Component {
         let label2 = '';
         let totalHostCount = 0;
 
-        if (key === 'High') {
+        if (key && key === 'High') {
           _.forEach(treeData[key], (val, key) => {
             if (key === 'doc_count') {
               totalHostCount += val;
@@ -876,39 +879,41 @@ class AlertController extends Component {
               }
             }
           })
-        } else if (key !== 'default') {
+        } else if (key && key !== 'default') {
           _.forEach(treeData[key], (val, key) => {
             if (key === 'doc_count') {
               totalHostCount += val;
             } else if (key === 'srcIp') {
               _.forEach(val.buckets, val => {
-                label = <span title={val.key}>{val.key} ({val.doc_count}) <button className={cx('button', {'active': (activeTreeName === val.key && activeSubTab !== 'statistics')})} onClick={this.selectTree.bind(this, val.key, key)}>{t('network.connections.txt-addFilter')}</button></span>;
+                if (val.key) {
+                  label = <span title={val.key}>{val.key} ({val.doc_count}) <button className={cx('button', {'active': (activeTreeName === val.key && activeSubTab !== 'statistics')})} onClick={this.selectTree.bind(this, val.key, key)}>{t('network.connections.txt-addFilter')}</button></span>;
 
-                if (val['destPort']) {
-                  label2 = <span title={val['destPort'].buckets[0].key}>{val['destPort'].buckets[0].key} ({val['destPort'].buckets[0].doc_count}) <button className={cx('button', {'active': (activeTreeName === val['destPort'].buckets[0].key && activeSubTab !== 'statistics')})} onClick={this.selectTree.bind(this, val['destPort'].buckets[0].key, 'destPort')}>{t('network.connections.txt-addFilter')}</button></span>;
-                }
+                  if (val['destPort']) {
+                    label2 = <span title={val['destPort'].buckets[0].key}>{val['destPort'].buckets[0].key} ({val['destPort'].buckets[0].doc_count}) <button className={cx('button', {'active': (activeTreeName === val['destPort'].buckets[0].key && activeSubTab !== 'statistics')})} onClick={this.selectTree.bind(this, val['destPort'].buckets[0].key, 'destPort')}>{t('network.connections.txt-addFilter')}</button></span>;
+                  }
 
-                if (label2) {
-                  tempChild.push({
-                    id: val.key,
-                    label,
-                    children: [{
-                      id: val['destPort'].buckets[0].key,
-                      label: label2
-                    }]
-                  });
-                } else {
-                  tempChild.push({
-                    id: val.key,
-                    label
-                  });
+                  if (label2) {
+                    tempChild.push({
+                      id: val.key,
+                      label,
+                      children: [{
+                        id: val['destPort'].buckets[0].key,
+                        label: label2
+                      }]
+                    });
+                  } else {
+                    tempChild.push({
+                      id: val.key,
+                      label
+                    });
+                  }
                 }
               })
             }
           })
         }
 
-        if (key !== 'default') {
+        if (key && key !== 'default') {
           label = <span title={key}>{key} ({totalHostCount}) <button className={cx('button', {'active': (activeTreeName === key && activeSubTab !== 'statistics')})} onClick={this.selectTree.bind(this, key, '')}>{t('network.connections.txt-addFilter')}</button></span>;
 
           let treeProperty = {
@@ -1191,8 +1196,7 @@ class AlertController extends Component {
     const tempAlertDetails = {
       ...this.state.alertDetails,
       currentID: '',
-      currentIndex: '',
-      currentLength: ''
+      currentIndex: ''
     };
 
     this.setState({

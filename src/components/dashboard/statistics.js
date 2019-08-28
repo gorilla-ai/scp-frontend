@@ -35,8 +35,8 @@ const PIE_CHARTS_LIST = [
     key: 'level'
   },
   {
-    id: 'Top10ExternalSrcCountry',
-    key: 'srcCountry'
+    id: 'Top10ExternalPotSrcCountry',
+    key: 'agg'
   },
   {
     id: 'Top10InternalSrcIp',
@@ -58,7 +58,7 @@ const PIE_CHARTS_LIST = [
   }
 ];
 
-class DashboardStat extends Component {
+class DashboardStats extends Component {
   constructor(props) {
     super(props);
 
@@ -449,15 +449,12 @@ class DashboardStat extends Component {
   }
 }
 
-DashboardStat.propTypes = {
+DashboardStats.propTypes = {
   baseUrl: PropTypes.string.isRequired,
   contextRoot: PropTypes.string.isRequired,
   language: PropTypes.string.isRequired,
   session: PropTypes.object.isRequired
 };
 
-DashboardStat.defaultProps = {
-};
-
-const HocDashboardStat = withRouter(withLocale(DashboardStat));
-export { DashboardStat, HocDashboardStat };
+const HocDashboardStats = withRouter(withLocale(DashboardStats));
+export { DashboardStats, HocDashboardStats };

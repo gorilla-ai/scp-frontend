@@ -12,7 +12,7 @@ import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import Progress from 'react-ui/build/src/components/progress'
 
-import AccountEdit from './components/user/accounts/account-edit'
+import AccountEdit from './components/configuration/user/accounts/account-edit'
 import helper from './components/common/helper'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 

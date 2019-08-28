@@ -8,7 +8,7 @@ import Input from 'react-ui/build/src/components/input'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 import withLocale from '../../hoc/locale-provider'
 
-import AddOwner from '../network-topology/owner-add'
+import AddOwner from '../configuration/topology/owner-add'
 
 let t = null;
 let et = null;
@@ -204,6 +204,14 @@ class IpOwnerMapModal extends Component {
 }
 
 IpOwnerMapModal.propTypes = {
+  baseUrl: PropTypes.string.isRequired,
+  contextRoot: PropTypes.string.isRequired,
+  showTabs: PropTypes.object.isRequired,
+  switchTab: PropTypes.func.isRequired,
+  IP: PropTypes.object.isRequired,
+  owner: PropTypes.object.isRequired,
+  handleDataChange: PropTypes.func.isRequired,
+  handleOwnerChange: PropTypes.func.isRequired
 };
 
 const HocIpOwnerMapModal = withLocale(IpOwnerMapModal);

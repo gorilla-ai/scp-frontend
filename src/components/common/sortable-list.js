@@ -12,7 +12,15 @@ class SortableList extends Component {
     super(props);
   }
   render() {
-    const {items, activeTab, getCustomFieldName, setFieldsChange, checkDisplayFields, showQueryOptions, toggleLocaleEdit} = this.props;
+    const {
+      items,
+      activeTab,
+      getCustomFieldName,
+      setFieldsChange,
+      checkDisplayFields,
+      showQueryOptions,
+      toggleLocaleEdit
+    } = this.props;
 
     return (
       <ul className='table-sort'>
@@ -38,6 +46,11 @@ class SortableList extends Component {
 }
 
 SortableList.propTypes = {
+  activeTab: PropTypes.string.isRequired,
+  items: PropTypes.array.isRequired,
+  setFieldsChange: PropTypes.func.isRequired,
+  checkDisplayFields: PropTypes.func.isRequired,
+  showQueryOptions: PropTypes.func.isRequired
 };
 
 const HocSortableList = withLocale(SortableContainer(SortableList));

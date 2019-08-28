@@ -44,6 +44,7 @@ class SearchMark extends Component {
 }
 
 SearchMark.propTypes = {
+  value: PropTypes.object.isRequired
 };
 
 export default SearchMark;

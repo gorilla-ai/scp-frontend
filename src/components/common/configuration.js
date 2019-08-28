@@ -170,8 +170,7 @@ class Config extends Component {
 
 
 Config.propTypes = {
-  baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired
+  session: PropTypes.object.isRequired
 };
 
 const HocConfig = withLocale(Config);

@@ -40,6 +40,7 @@ class SearchFilter extends Component {
 }
 
 SearchFilter.propTypes = {
+  value: PropTypes.object.isRequired
 };
 
 export default SearchFilter;

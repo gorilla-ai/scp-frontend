@@ -519,6 +519,16 @@ class QueryOpenSave extends Component {
 }
 
 QueryOpenSave.propTypes = {
+  baseUrl: PropTypes.string.isRequired,
+  contextRoot: PropTypes.string.isRequired,
+  activeTab: PropTypes.string.isRequired,
+  type: PropTypes.string.isRequired,
+  account: PropTypes.object.isRequired,
+  filterData: PropTypes.array.isRequired,
+  setFilterData: PropTypes.func.isRequired,
+  setQueryData: PropTypes.func.isRequired,
+  getSavedQuery: PropTypes.func.isRequired,
+  closeDialog: PropTypes.func.isRequired
 };
 
 const HocQueryOpenSave = withLocale(QueryOpenSave);

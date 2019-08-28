@@ -33,6 +33,7 @@ class MarkContent extends Component {
 }
 
 MarkContent.propTypes = {
+  showMark: PropTypes.bool.isRequired
 };
 
 const HocMarkContent = withLocale(MarkContent);

@@ -37,15 +37,13 @@ class FileUpload extends Component {
     }
 
     return (
-      <div>
-        <div className='content'>
-          <label htmlFor={id}>{supportText}</label>
-          <FileInput
-            id={id}
-            name={name}
-            validate={validate}
-            btnText={btnText} />
-        </div>
+      <div className='content'>
+        <label htmlFor={id}>{supportText}</label>
+        <FileInput
+          id={id}
+          name={name}
+          validate={validate}
+          btnText={btnText} />
       </div>
     )
   }

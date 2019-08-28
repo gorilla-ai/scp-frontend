@@ -1165,6 +1165,15 @@ class AlertDetails extends Component {
 }
 
 AlertDetails.propTypes = {
+  baseUrl: PropTypes.string.isRequired,
+  contextRoot: PropTypes.string.isRequired,
+  language: PropTypes.string.isRequired,
+  titleText: PropTypes.string.isRequired,
+  actions: PropTypes.object.isRequired,
+  alertDetails: PropTypes.object.isRequired,
+  alertData: PropTypes.object.isRequired,
+  showAlertData: PropTypes.func.isRequired,
+  fromPage: PropTypes.string.isRequired
 };
 
 const HocAlertDetails = withLocale(AlertDetails);

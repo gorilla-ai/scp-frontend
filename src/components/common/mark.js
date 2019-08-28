@@ -66,6 +66,10 @@ class Mark extends Component {
 }
 
 Mark.propTypes = {
+  activeTab: PropTypes.string.isRequired,
+  searchFields: PropTypes.object.isRequired,
+  logFields: PropTypes.array.isRequired,
+  markData: PropTypes.array.isRequired,
   inline: PropTypes.bool.isRequired
 };
 

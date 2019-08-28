@@ -48,6 +48,8 @@ class FilterContent extends Component {
 }
 
 FilterContent.propTypes = {
+  showFilter: PropTypes.bool.isRequired,
+  queryData: PropTypes.object.isRequired
 };
 
 const HocFilterContent = withLocale(FilterContent);

@@ -208,7 +208,7 @@
     "txt-attacksMap": "攻擊地圖",
     "txt-alertStatistics": "告警數量統計",
     "txt-alertThreatLevel": "告警威脅等級統計",
-    "txt-Top10ExternalSrcCountry": "外部國家告警統計",
+    "txt-Top10ExternalPotSrcCountry": "外部國家告警統計",
     "txt-Top10InternalSrcIp": "內部主機告警統計",
     "txt-Top10InternalMaskedIp": "內部網段告警統計",
     "txt-Top10SyslogConfigSource": "系統日誌類型統計",
@@ -232,7 +232,7 @@
   "alert": {
     "statistics": {
       "Top10ExternalPotSrcIp": "前10大外部攻擊IP",
-      "Top10ExternalSrcCountry": "前10大外部攻擊國家",
+      "Top10ExternalPotSrcCountry": "前10大外部攻擊國家",
       "Top10ExternalPotDestPort": "前10大外部攻擊Port",
       "Top10ExternalPotProtocol": "前10大外部攻擊Protocol",
       "Top10InternalAlertIpSrc": "前10大IDS告警內部來源IP",

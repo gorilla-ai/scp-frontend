@@ -756,8 +756,5 @@ DashboardMaps.propTypes = {
   session: PropTypes.object.isRequired
 };
 
-DashboardMaps.defaultProps = {
-};
-
 const HocDashboardMaps = withRouter(withLocale(DashboardMaps));
 export { DashboardMaps, HocDashboardMaps };

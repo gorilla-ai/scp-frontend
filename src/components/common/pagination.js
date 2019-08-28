@@ -76,7 +76,6 @@ class Pagination extends Component {
 }
 
 Pagination.propTypes = {
-  totalCount: PropTypes.number.isRequired,
   pageSize: PropTypes.oneOfType([
     PropTypes.string,
     PropTypes.number

@@ -241,8 +241,10 @@ class TimebarChart extends Component {
 }
 
 TimebarChart.propTypes = {
+  contextRoot: PropTypes.string.isRequired,
   mainContentData: PropTypes.object.isRequired,
-  tabChartData: PropTypes.object.isRequired
+  tabChartData: PropTypes.object.isRequired,
+  tableMouseOver: PropTypes.bool.isRequired
 };
 
 const HocTimebarChart = withLocale(TimebarChart);

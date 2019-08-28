@@ -13,7 +13,7 @@ import TableContent from '../common/table-content'
 import {HocPagination as Pagination} from '../common/pagination'
 import {HocTimebarChart as TimebarChart} from '../common/timebar-chart'
 import {HocTree as Tree} from '../common/tree'
-import Statistic from './statistic'
+import Statistics from './statistics'
 import VbdaLA from 'vbda-ui/build/src/components/analysis/la'
 
 import withLocale from '../../hoc/locale-provider'
@@ -55,7 +55,7 @@ class Alert extends Component {
           </Tabs>
 
           {mainContentData.activeSubTab === 'statistics' &&
-            <Statistic
+            <Statistics
               baseUrl={baseUrl}
               chartsID={chartsID}
               alertStatisticData={mainContentData.alertStatisticData} />
@@ -158,8 +158,13 @@ class Alert extends Component {
 }
 
 Alert.propTypes = {
+  baseUrl: PropTypes.string.isRequired,
+  contextRoot: PropTypes.string.isRequired,
+  language: PropTypes.string.isRequired,
+  chartsID: PropTypes.array.isRequired,
   mainContentData: PropTypes.object.isRequired,
-  tabChartData: PropTypes.object.isRequired
+  tabChartData: PropTypes.object.isRequired,
+  tableMouseOver: PropTypes.bool.isRequired
 };
 
 export default withLocale(Alert);

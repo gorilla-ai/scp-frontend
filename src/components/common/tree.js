@@ -126,6 +126,8 @@ class Tree extends Component {
 }
 
 Tree.propTypes = {
+  activeTab: PropTypes.string.isRequired,
+  treeData: PropTypes.object.isRequired
 };
 
 const HocTree = withLocale(Tree);

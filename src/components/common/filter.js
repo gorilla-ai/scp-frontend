@@ -75,6 +75,8 @@ class Filter extends Component {
 }
 
 Filter.propTypes = {
+  activeTab: PropTypes.string.isRequired,
+  filterData: PropTypes.array.isRequired,
   inline: PropTypes.bool.isRequired
 };
 

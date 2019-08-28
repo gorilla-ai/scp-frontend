@@ -172,7 +172,8 @@ class ChartContent extends Component {
 }
 
 ChartContent.propTypes = {
-  pageType: PropTypes.string.isRequired
+  pageType: PropTypes.string.isRequired,
+  tableMouseOver: PropTypes.bool.isRequired
 };
 
 const HocChartContent = withLocale(ChartContent);
