@@ -23,6 +23,7 @@ import Login from './login'
 import {HocManage as Manage} from './components/configuration/agent/manage'
 import {HocMapNetwork as MapNetwork} from './components/configuration/topology/map'
 import {HocNetflowController as Netflow} from './components/events/netflow/index'
+import {HocNetworkInventory as NetworkInventory} from './components/configuration/inventory/index'
 import {HocNetworkTopology as Owner} from './components/configuration/topology/owner'
 import {HocStatus as ServiceStatus} from './components/configuration/service/status'
 import {HocSyslogController as Syslog} from './components/events/syslog/index'
@@ -230,6 +231,14 @@ const serviceStatus = () => (
 		session={session} />
 )
 
+const networkInventory = () => (
+	<NetworkInventory
+		baseUrl={cfg.apiPrefix}
+		contextRoot={cfg.contextRoot}
+		locale={cfg.lng}
+		session={session} />
+)
+
 const Main = () => (
 	<main className='main'>
 		<Switch>
@@ -253,6 +262,7 @@ const Main = () => (
 			<Route exact path='/ChewbaccaWeb/configuration/user/account' component={userAccounts} />
 			<Route exact path='/ChewbaccaWeb/configuration/user/privileges' component={userPrivileges} />
 			<Route exact path='/ChewbaccaWeb/configuration/service-status' component={serviceStatus} />
+			<Route exact path='/ChewbaccaWeb/configuration/network-inventory' component={networkInventory} />
 		</Switch>
 	</main>
 )

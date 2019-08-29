@@ -156,6 +156,11 @@ class Config extends Component {
             </div>
           </div>
         }
+        <div className='frame network-inventory'>
+          <Link to='/ChewbaccaWeb/configuration/network-inventory'>
+            <span className={`${this.getActiveFrame('networkInventory')}`}>{t('txt-networkInventory')}</span>
+          </Link>
+        </div>
         {sessionRights.Module_Account_Manage &&
           <div className='frame service-status last'>
             <Link to='/ChewbaccaWeb/configuration/service-status'>

@@ -145,6 +145,7 @@
   "txt-accountManage": "帳號管理",
   "txt-syslogManage": "系統日誌管理",
   "txt-serviceStatus": "服務狀態",
+  "txt-networkInventory": "Network Inventory",
 
   "txt-honeypot-dashboard": "Dashboard",
 	"txt-honeypot-host": "蜜罐主機",

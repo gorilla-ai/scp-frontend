@@ -145,6 +145,7 @@
   "txt-accountManage": "Account Management",
   "txt-syslogManage": "Syslog Management",
   "txt-serviceStatus": "Service Status",
+  "txt-networkInventory": "Network Inventory",
 
   "txt-honeypot-dashboard": "Dashboard",
   "txt-honeypot-host": "Honeypot Host",

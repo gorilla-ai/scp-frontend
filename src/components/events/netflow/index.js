@@ -1664,7 +1664,7 @@ class Netflow extends Component {
       PopupDialog.alert({
         title,
         id: 'modalWindow',
-        confirmText: t('txt-confirm'),
+        confirmText: t('txt-close'),
         display: this.displayJsonData(allValue),
         act: (confirmed, data) => {
         }

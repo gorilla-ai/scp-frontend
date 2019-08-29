@@ -168,6 +168,7 @@ class IP extends Component {
   }
   getOwnerData = () => {
     const {baseUrl} = this.props;
+    const tempOwner = {...this.state.owner};
 
     this.ah.one({
       url: `${baseUrl}/api/owner/_search`,
@@ -185,8 +186,10 @@ class IP extends Component {
         });
       })
 
+      tempOwner.ownerListArr = ownerListArr;
+
       this.setState({
-        ownerListArr
+        owner: tempOwner
       });
     })
     .catch(err => {
@@ -315,36 +318,6 @@ class IP extends Component {
     } else {
       return true;
     }
-  }
-  getOwnerData = () => {
-    const {baseUrl} = this.props;
-    const tempOwner = {...this.state.owner};
-
-    this.ah.one({
-      url: `${baseUrl}/api/owner/_search`,
-      data: JSON.stringify({}),
-      type: 'POST',
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      let ownerListArr = [];
-
-      _.forEach(data.rows, val => {
-        ownerListArr.push({
-          value: val.ownerUUID,
-          text: val.ownerName
-        });
-      })
-
-      tempOwner.ownerListArr = ownerListArr;
-
-      this.setState({
-        owner: tempOwner
-      });
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
   }
   getFloorPlan = () => {
     const {baseUrl} = this.props;

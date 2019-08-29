@@ -87,11 +87,9 @@ class SortableItem extends Component {
 SortableItem.propTypes = {
   activeTab: PropTypes.string.isRequired,
   value: PropTypes.object.isRequired,
-  getCustomFieldName: PropTypes.func.isRequired,
   setFieldsChange: PropTypes.func.isRequired,
   checkDisplayFields: PropTypes.func.isRequired,
-  showQueryOptions: PropTypes.func.isRequired,
-  toggleLocaleEdit: PropTypes.func.isRequired
+  showQueryOptions: PropTypes.func.isRequired
 };
 
 const HocSortableItem = withLocale(SortableElement(SortableItem));

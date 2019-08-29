@@ -638,10 +638,13 @@ class AlertDetails extends Component {
     if (alertType === 'alert') {
       return (
         <ul className='alert-rule'>
-          {
+          {alertRule.length > 0 &&
             alertRule.map((val, i) => {
               return <li key={i}>{val.rule}</li>
             })
+          }
+          {alertRule.length === 0 &&
+            <li>{NOT_AVAILABLE}</li>
           }
         </ul>
       )
@@ -1041,7 +1044,7 @@ class AlertDetails extends Component {
    */
   displaySafetyScanContent = (type) => {
     return (
-      <div>N/A</div>
+      <div>{NOT_AVAILABLE}</div>
       /*<SafetyScan
         type={type} />*/
     )
@@ -1057,7 +1060,7 @@ class AlertDetails extends Component {
     const allData = _.omit(alertData, hiddenFields);
 
     return (
-      <ul className='json-data'>
+      <ul className='json-data alert'>
         <li><JSONTree data={allData} theme={helper.getJsonViewTheme()} /></li>
       </ul>
     )

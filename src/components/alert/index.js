@@ -27,12 +27,20 @@ import Alert from './alert'
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
-const PRIVATE = 'private';
-const PUBLIC = 'public';
-
 let t = null;
 let f = null;
 let et = null;
+
+const PRIVATE = 'private';
+const PUBLIC = 'public';
+const PRIVATE_API = {
+  name: 'Top10InternalMaskedIp',
+  path: 'srcIp'
+};
+const PUBLIC_API = {
+  name: 'Top10ExternalPotSrcCountry',
+  path: 'agg'
+};
 
 //Charts ID must be unique
 const CHARTS_ID = [
@@ -683,8 +691,8 @@ class AlertController extends Component {
   toQueryLanguage = (options) => {
     const {datetime, activeLocationTab, filterData, alertRequest} = this.state;
     const timeAttribute = 'timestamp';
-    const treeQuery = activeLocationTab === PRIVATE ? 'Top10InternalMaskedIp' : 'Top10ExternalPotSrcCountry';
-    const dataQuery = activeLocationTab === PRIVATE ? 'InternalSrcIp' : 'ExternalSrcIp';
+    const treeQuery = activeLocationTab === PRIVATE ? PRIVATE_API.name : PUBLIC_API.name;
+    const dataQuery = activeLocationTab === PRIVATE ? PRIVATE_API.name : PUBLIC_API.name;
     const defaultCondition = {
       condition: 'must',
       query: dataQuery
@@ -755,12 +763,12 @@ class AlertController extends Component {
     };
     let path = '';
 
-    if (activeLocationTab === 'private') {
-      treeData = treeData.Top10InternalMaskedIp;
-      path = 'srcIp';
-    } else if (activeLocationTab === 'public') {
-      treeData = treeData.Top10ExternalPotSrcCountry;
-      path = 'agg';
+    if (activeLocationTab === PRIVATE) {
+      treeData = treeData[PRIVATE_API.name];
+      path = PRIVATE_API.path;
+    } else if (activeLocationTab === PUBLIC) {
+      treeData = treeData[PUBLIC_API.name];
+      path = PUBLIC_API.path;
     }
 
     _.keys(treeData)
@@ -769,7 +777,7 @@ class AlertController extends Component {
       let label = '';
 
       if (key && key !== 'doc_count') {
-        if (activeLocationTab === 'private') {
+        if (activeLocationTab === PRIVATE) {
           if (treeData[key][path].buckets.length > 0) {
             _.forEach(treeData[key][path].buckets, val => {
               if (val.key) {
@@ -795,7 +803,7 @@ class AlertController extends Component {
           }
 
           treeObj.children.push(treeProperty);
-        } else if (activeLocationTab === 'public') {
+        } else if (activeLocationTab === PUBLIC) {
           _.forEach(treeData[path].buckets, val => {
             if (val.key) {
               label = <span title={val.key}>{val.key} ({val.doc_count}) <button className={cx('button', {'active': currentTreeName === val.key && activeSubTab !== 'statistics'})} onClick={this.selectTree.bind(this, val.key, '')}>{t('network.connections.txt-addFilter')}</button></span>;
