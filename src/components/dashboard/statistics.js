@@ -166,11 +166,13 @@ class DashboardStats extends Component {
       let dataArr = [];
 
       _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for High, Medium, Low
-        _.forEach(data[0].event_histogram[val].buckets, val2 => {
-          if (val2.doc_count > 0) {
-            alertHistogram[val][val2.key_as_string] = val2.doc_count;
-          }
-        })
+        if (data[0].event_histogram) {
+          _.forEach(data[0].event_histogram[val].buckets, val2 => {
+            if (val2.doc_count > 0) {
+              alertHistogram[val][val2.key_as_string] = val2.doc_count;
+            }
+          })
+        }
       })
 
       _.forEach(_.keys(alertHistogram), val => { //Manually add rule name to the response data
@@ -217,68 +219,80 @@ class DashboardStats extends Component {
         let tempArr = [];
 
         if (i === 0) {
-          _.forEach(SEVERITY_TYPE, val2 => { //Create Alert histogram for High, Medium, Low
-            tempArr.push({
-              key: val2,
-              doc_count: data[0].aggregations[val2].doc_count
-            });
-          })
-        } else if (i === 3) {
-          const chartData = data[0].aggregations[val.id];
-
-          _.forEach(_.keys(chartData), val2 => {
-            if (val2 !== 'doc_count' && chartData[val2].doc_count) {
+          if (data[0].aggregations) {
+            _.forEach(SEVERITY_TYPE, val2 => { //Create Alert histogram for High, Medium, Low
               tempArr.push({
                 key: val2,
-                doc_count: chartData[val2].doc_count
+                doc_count: data[0].aggregations[val2].doc_count
               });
-            }
-          })
-        } else if (i <= 4){
-          const chartData = data[0].aggregations[val.id][val.path || val.key].buckets;
+            })
+          }
+        } else if (i === 3) {
+          if (data[0].aggregations) {
+            const chartData = data[0].aggregations[val.id];
 
-          if (chartData.length > 0) {
-            _.forEach(chartData, val2 => {
-              if (val2.key) { //Remove empty data
+            _.forEach(_.keys(chartData), val2 => {
+              if (val2 !== 'doc_count' && chartData[val2].doc_count) {
                 tempArr.push({
-                  key: val2.key,
-                  doc_count: val2.doc_count
+                  key: val2,
+                  doc_count: chartData[val2].doc_count
                 });
               }
             })
+          }
+        } else if (i <= 4){
+          if (data[0].aggregations) {
+            const chartData = data[0].aggregations[val.id][val.path || val.key].buckets;
+
+            if (chartData.length > 0) {
+              _.forEach(chartData, val2 => {
+                if (val2.key) { //Remove empty data
+                  tempArr.push({
+                    key: val2.key,
+                    doc_count: val2.doc_count
+                  });
+                }
+              })
+            }
           }
         }
         pieCharts[val.id] = tempArr;
       })
 
-      const configSrcData = data[1].aggregations[configSrcInfo.id][configSrcInfo.path].buckets;
+      if (data[1].aggregations) {
+        const configSrcData = data[1].aggregations[configSrcInfo.id][configSrcInfo.path].buckets;
 
-      if (configSrcData.length > 0) {
-        pieCharts[configSrcInfo.id] = configSrcData;
+        if (configSrcData.length > 0) {
+          pieCharts[configSrcInfo.id] = configSrcData;
+        }
       }
 
       const dnsInfo = PIE_CHARTS_LIST[5];
-      const dnsQueryData = data[2].aggregations[dnsInfo.id][dnsInfo.path].buckets;
+      let dnsMetricData = {};
 
-      if (dnsQueryData.length > 0) {
-        pieCharts[dnsInfo.id] = dnsQueryData;
-      }
+      if (data[2].aggregations) {
+        const dnsQueryData = data[2].aggregations[dnsInfo.id][dnsInfo.path].buckets;
 
-      const dnsData = data[2].aggregations.session_histogram;
-      const dnsMetricData = {
-        id: 'dns-histogram',
-        data: [{
-          doc_count: dnsData.doc_count,
-          MegaPackages: dnsData.MegaPackages,
-          MegaBytes: dnsData.MegaBytes
-        }],
-        agg: ['doc_count', 'MegaPackages', 'MegaBytes'],
-        keyLabels: {
-          doc_count: t('dashboard.txt-session'),
-          MegaPackages: t('dashboard.txt-packet'),
-          MegaBytes: t('dashboard.txt-databyte')
+        if (dnsQueryData.length > 0) {
+          pieCharts[dnsInfo.id] = dnsQueryData;
         }
-      };
+
+        const dnsData = data[2].aggregations.session_histogram;
+        dnsMetricData = {
+          id: 'dns-histogram',
+          data: [{
+            doc_count: dnsData.doc_count,
+            MegaPackages: dnsData.MegaPackages,
+            MegaBytes: dnsData.MegaBytes
+          }],
+          agg: ['doc_count', 'MegaPackages', 'MegaBytes'],
+          keyLabels: {
+            doc_count: t('dashboard.txt-session'),
+            MegaPackages: t('dashboard.txt-packet'),
+            MegaBytes: t('dashboard.txt-databyte')
+          }
+        };
+      }
 
       this.setState({
         updatedTime: helper.getFormattedDate(Moment()),
