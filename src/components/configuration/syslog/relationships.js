@@ -106,15 +106,27 @@ class Relationships extends Component {
 			<div className='down'>
 				<div className='item'>
 					<label>{t('syslogFields.conditions')}</label>
-    			<DataTable className='table-100' data={value.conditions} 
-          			fields={{
-            			name: { label: t('syslogFields.name'), style:{textAlign: 'left'} },
-            			value: { label: t('syslogFields.value'), style:{textAlign: 'left'} },
-            			node: { label: '', formatter: (val, allVal) => {
-            				return <DropDownList list={rawOptions} required={true} validate={{t: et}} value={val}
-            							onChange={this.handleNodeChange.bind(this, allVal)} />
-            			}}
-          			}} />
+    			<DataTable 
+						className='main-table'
+						data={value.conditions} 
+						fields={
+							{
+								name: { 
+									label: t('syslogFields.name'),
+									style: { textAlign: 'left'}
+								},
+								value: {
+									label: t('syslogFields.value'),
+									style:{textAlign: 'left'}
+								},
+								node: {
+									label: '',
+									formatter: (val, allVal) => {
+										return <DropDownList list={rawOptions} required={true} validate={{t: et}} value={val} onChange={this.handleNodeChange.bind(this, allVal)} />
+									}
+								}
+							}
+						} />
       			</div>
   			</div>
   		</div>

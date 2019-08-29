@@ -1093,7 +1093,7 @@ class Manage extends Component {
               { this.renderFilter() }
 
               <DataTable
-                className='table-100 grow align-center no-pointer'
+                className='main-table'
                 data={agent.dataContent}
                 onRowMouseOver={this.handleRowMouseOver.bind(this)}
                 fields={agent.dataFields} />
@@ -1114,7 +1114,7 @@ class Manage extends Component {
               { this.renderFilter() }
 
               <DataTable
-                className='table-100 grow align-center no-pointer'
+                className='main-table'
                 data={threats.dataContent}
                 fields={threats.dataFields} />
 

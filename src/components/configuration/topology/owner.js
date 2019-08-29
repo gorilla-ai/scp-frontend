@@ -645,8 +645,13 @@ class NetworkTopology extends Component {
     return(
       <ModalDialog className='modal-dialog' title={t('txt-adImport')} draggable={true} global={true} actions={actions} closeAction='cancel'>
         <div className='narrow-dialog'>
-          <DataTable className='table-100' data={adList} selected={adSelected} onSelectionChange={this.handleADSelected.bind(this)}
-            selection={{enabled:true, toggleAll:true, multiSelect: true }} rowIdField='ownerID'
+          <DataTable
+            className='main-table'
+            data={adList}
+            selected={adSelected}
+            onSelectionChange={this.handleADSelected.bind(this)}
+            selection={{enabled:true, toggleAll:true, multiSelect: true }}
+            rowIdField='ownerID'
             fields={{
               ownerID: { label: t('ownerFields.ownerID') },
               ownerName: { label: t('ownerFields.ownerName') }
@@ -767,10 +772,9 @@ class NetworkTopology extends Component {
 
           <div className='data-table manage'>
             { this.renderFilter() }
-            {
-              owner.dataFields &&
+            {owner.dataFields &&
               <DataTable
-                className='table-100'
+                className='main-table align-center'
                 fields={owner.dataFields}
                 data={owner.dataContent}
                 onRowMouseOver={this.handleRowMouseOver.bind(this)}

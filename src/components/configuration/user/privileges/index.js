@@ -137,7 +137,7 @@ class Roles extends Component {
 
           <div className='data-table manage scroll-x'>
             <DataTable
-              className='table-100'
+              className='main-table'
               data={data}
               fields={dataFields}
               rowIdField='privilegeid'

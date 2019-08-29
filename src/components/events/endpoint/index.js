@@ -233,7 +233,7 @@ class Endpoint extends Component {
         actions={actions}
         closeAction='confirm'>
         <DataTable
-          className='table-100'
+          className='main-table'
           fields={taskTable.dataFields}
           data={taskTable.dataContent}
           onRowMouseOver={this.handleRowMouseOver}
@@ -506,7 +506,7 @@ class Endpoint extends Component {
             }
 
             <DataTable
-              className='table-100'
+              className='main-table'
               fields={hmd.dataFields}
               data={hmd.dataContent}
               onRowMouseOver={this.handleRowMouseOver}

@@ -767,7 +767,7 @@ class EmailReport extends Component {
             { this.renderFilter() }
 
             <DataTable
-              className='table-100 align-center'
+              className='main-table'
               fields={emailReport.dataFields}
               data={emailReport.dataContent}
               onRowMouseOver={this.handleRowMouseOver.bind(this)}

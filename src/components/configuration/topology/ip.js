@@ -838,7 +838,11 @@ class IP extends Component {
     return(
       <ModalDialog className='modal-dialog' title={t('txt-ipImport')} draggable={true} global={true} actions={actions} closeAction='cancel'>
         <div className='content'>
-          <DataTable className='table-100' data={ipImport.ipList} selected={ipImport.ipSelected} onSelectionChange={this.handleIpSelected.bind(this)}
+          <DataTable
+            className='main-table'
+            data={ipImport.ipList}
+            selected={ipImport.ipSelected}
+            onSelectionChange={this.handleIpSelected.bind(this)}
             selection={{enabled:true, toggleAll:true, multiSelect: true }} 
             fields={{
               ip: { label: t('ipFields.ip'), style: {width: '120px'} },
@@ -1003,7 +1007,7 @@ class IP extends Component {
       <ModalDialog id='netFlowDialog' className='modal-dialog' title={t('txt-ipNetflow')} draggable={true} global={true} actions={actions} closeAction='cancel'>
         <div className='content'>
           <DataTable
-            className='table-100'
+            className='main-table'
             data={ipNetflow.ipList}
             selected={ipNetflow.ipSelected}
             onSelectionChange={this.handleNetflowIpSelected.bind(this)}
@@ -1094,7 +1098,7 @@ class IP extends Component {
               { this.renderFilter() }
               {IP.dataFields &&
                 <DataTable
-                  className='table-100'
+                  className='main-table'
                   fields={IP.dataFields}
                   data={IP.dataContent}
                   onRowMouseOver={this.handleRowMouseOver.bind(this)}
@@ -1116,7 +1120,7 @@ class IP extends Component {
             <div className='data-table manage'>
               {IP.dataFields &&
                 <DataTable
-                  className='table-100'
+                  className='main-table'
                   fields={IP.dataFields}
                   data={IP.dataContent} />
               }

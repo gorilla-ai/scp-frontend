@@ -217,7 +217,7 @@ class NetworkInventory extends Component {
           <div className='data-table manage'>
             {IP.dataFields &&
               <DataTable
-                className='table-100'
+                className='main-table'
                 fields={IP.dataFields}
                 data={IP.dataContent}
                 sort={IP.dataContent.length === 0 ? {} : IP.sort}

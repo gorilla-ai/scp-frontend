@@ -267,7 +267,7 @@ class AccountList extends Component {
             { this.renderFilter() }
 
             <DataTable
-              className='table-100'
+              className='main-table'
               fields={dataFields}
               onRowMouseOver={this.handleRowMouseOver.bind(this)}
               data={this.filterData(accountData, param)} />

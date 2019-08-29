@@ -133,7 +133,7 @@ class Status extends Component {
 
           <div className='data-table manage'>
 	          <DataTable
-              className='table-100 align-center'
+              className='main-table align-center'
               fields={serviceStatus.dataFields}
               data={serviceStatus.dataContent} />
           </div>

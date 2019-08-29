@@ -151,10 +151,10 @@ class Syslog extends Component {
                         hosts: t('syslogFields.txt-editHosts')
                       }} />
             }},
-            name: { label: t('syslogFields.name'), sortable: true, style: {textAlign: "left"} },
-            port: { label: t('syslogFields.port'), sortable: true, style: {textAlign: "left"} },
-            format: { label: t('syslogFields.format'), sortable: true, style: {textAlign: "left"} },
-            property: { label: t('syslogFields.property'), style: {textAlign: "left"}, formatter: (value, allValue) => {
+            name: { label: t('syslogFields.name'), sortable: true },
+            port: { label: t('syslogFields.port'), sortable: true },
+            format: { label: t('syslogFields.format'), sortable: true },
+            property: { label: t('syslogFields.property'), formatter: (value, allValue) => {
               return <div>  
               {
                 _.map(JSON.parse(value), (v, k) => {
@@ -882,7 +882,7 @@ class Syslog extends Component {
             { this.renderFilter() }
             
             <DataTable
-              className='table-100'
+              className='main-table'
               data={syslog.dataContent}
               onRowMouseOver={this.handleRowMouseOver.bind(this)}
               fields={dataFields} />

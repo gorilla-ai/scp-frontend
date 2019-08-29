@@ -598,13 +598,13 @@ class EmployeeRecord extends Component {
             <div className='data-table manage wide-width scroll-y'>
               {switchTab.activeDirectory && activeDirectory.dataFields &&
                 <DataTable
-                  className='table-100'
+                  className='main-table'
                   fields={activeDirectory.dataFields}
                   data={activeDirectory.dataContent} />
               }
               {switchTab.smartEnterprise && smartEnterprise.dataFields &&
                 <DataTable
-                  className='table-100'
+                  className='main-table'
                   fields={smartEnterprise.dataFields}
                   data={smartEnterprise.dataContent} />
               }

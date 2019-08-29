@@ -1851,7 +1851,7 @@ class MapNetwork extends Component {
             <div className='data-table manage wide-width'>
               {IP.dataFields &&
                 <DataTable
-                  className='table-100'
+                  className='main-table'
                   fields={IP.dataFields}
                   data={IP.dataContent}
                   onRowMouseOver={this.handleRowMouseOver.bind(this)}

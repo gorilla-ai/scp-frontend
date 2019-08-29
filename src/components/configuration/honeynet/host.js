@@ -693,7 +693,7 @@ class Honeynet extends Component {
             { this.renderFilter() }
 
             <DataTable
-              className='table-100 align-center'
+              className='main-table'
               fields={honeynet.dataFields}
               data={honeynet.dataContent}
               onRowMouseOver={this.handleRowMouseOver.bind(this)}
