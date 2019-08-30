@@ -33,47 +33,49 @@ class Syslog extends Component {
           <MarkContent
             {...mainContentData} />
 
-          <Tabs
-            id='subTabMenu'
-            menu={mainContentData.subTabMenu}
-            current={mainContentData.activeSubTab}
-            onChange={mainContentData.handleSubTabChange}>
-          </Tabs>
+          <div className='main-content'>
+            <Tabs
+              className='subtab-menu'
+              menu={mainContentData.subTabMenu}
+              current={mainContentData.activeSubTab}
+              onChange={mainContentData.handleSubTabChange}>
+            </Tabs>
 
-          <TimebarChart
-            contextRoot={contextRoot}
-            mainContentData={mainContentData}
-            tabChartData={tabChartData}
-            markData={markData}
-            tableMouseOver={tableMouseOver} />
+            <TimebarChart
+              contextRoot={contextRoot}
+              mainContentData={mainContentData}
+              tabChartData={tabChartData}
+              markData={markData}
+              tableMouseOver={tableMouseOver} />
 
-          {mainContentData.activeSubTab === 'table' &&
-            <TableContent
-              {...mainContentData} />
-          }
+            {mainContentData.activeSubTab === 'table' &&
+              <TableContent
+                {...mainContentData} />
+            }
 
-          {mainContentData.activeSubTab === 'linkAnalysis' &&
-            <div className='la-content'>
-              <VbdaLA
-                assetsPath={assetsPath}
-                sourceCfg={mainContentData.LAconfig}
-                events={eventsData}
-                source={mainContentData.LAdata}
-                sourceItemOptions={mainContentData.LAconfig.la}
-                lng={language} />
+            {mainContentData.activeSubTab === 'linkAnalysis' &&
+              <div className='la-content'>
+                <VbdaLA
+                  assetsPath={assetsPath}
+                  sourceCfg={mainContentData.LAconfig}
+                  events={eventsData}
+                  source={mainContentData.LAdata}
+                  sourceItemOptions={mainContentData.LAconfig.la}
+                  lng={language} />
 
-              <footer>
-                <Pagination
-                  activeTab={mainContentData.activeTab}
-                  page='linkAnalysis'
-                  totalCount={mainContentData.paginationTotalCount}
-                  pageSize={mainContentData.paginationAlertPageSize}
-                  currentPage={mainContentData.paginationCurrentPage}
-                  onPageChange={mainContentData.paginationAlertPageChange.bind(this, 'la')}
-                  onDropDownChange={mainContentData.paginationAlertDropDownChange.bind(this, 'la')} />
-              </footer>
-            </div>
-          }
+                <footer>
+                  <Pagination
+                    activeTab={mainContentData.activeTab}
+                    page='linkAnalysis'
+                    totalCount={mainContentData.paginationTotalCount}
+                    pageSize={mainContentData.paginationAlertPageSize}
+                    currentPage={mainContentData.paginationCurrentPage}
+                    onPageChange={mainContentData.paginationAlertPageChange.bind(this, 'la')}
+                    onDropDownChange={mainContentData.paginationAlertDropDownChange.bind(this, 'la')} />
+                </footer>
+              </div>
+            }
+          </div>
         </div>
       </div>
     )

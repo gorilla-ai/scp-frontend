@@ -649,6 +649,7 @@ class DashboardMaps extends Component {
                   className='drop-down'
                   list={floorList}
                   onChange={this.getAreaData}
+                  required={true}
                   value={currentFloor} />
                 <div className='content'>
                   <ul>

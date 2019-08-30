@@ -1533,10 +1533,8 @@ class SyslogController extends Component {
           </div>
         </div>
 
-        <div className='c-chewie-connections c-flex'>
-          <div className='c-box grow flow-analysis'>
-            {this.renderTabContent()}
-          </div>
+        <div className='flow-analysis'>
+          {this.renderTabContent()}
         </div>
       </div>
     )

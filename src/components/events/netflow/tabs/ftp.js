@@ -24,15 +24,17 @@ class Ftp extends Component {
           <FilterContent
             {...mainContentData} />
 
-          <Tabs
-            id='subTabMenu'
-            menu={mainContentData.subTabMenu}
-            current={mainContentData.activeSubTab}
-            onChange={mainContentData.handleSubTabChange}>
-          </Tabs>
+          <div className='main-content'>
+            <Tabs
+              className='subtab-menu'
+              menu={mainContentData.subTabMenu}
+              current={mainContentData.activeSubTab}
+              onChange={mainContentData.handleSubTabChange}>
+            </Tabs>
 
-          <TableContent
-            {...mainContentData} />
+            <TableContent
+              {...mainContentData} />
+          </div>
         </div>
       </div>
     )

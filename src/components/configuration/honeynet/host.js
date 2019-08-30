@@ -679,7 +679,7 @@ class Honeynet extends Component {
         <div className='config-header'>
           <div className='breadcrumb' />
           <i className='c-link fg fg-update' onClick={this.getHostData} title={t('txt-refresh')} ></i>
-          <i className='c-link fg fg-filter' onClick={this.setFilter.bind(this, !openFilter)} title={t('txt-filter')}></i>          
+          <i className='c-link fg fg-filter' onClick={this.setFilter.bind(this, !openFilter)} title={t('txt-filter')}></i>
         </div>
 
         <div className='data-content'>
@@ -689,24 +689,30 @@ class Honeynet extends Component {
             language={language}
             session={session} />
 
-          <div className='data-table manage honeypot'>
+          <div className='data-table'>
             { this.renderFilter() }
 
-            <DataTable
-              className='main-table'
-              fields={honeynet.dataFields}
-              data={honeynet.dataContent}
-              onRowMouseOver={this.handleRowMouseOver.bind(this)}
-              sort={honeynet.dataContent.length === 0 ? {} : honeynet.sort}
-              onSort={this.handleTableSort} />
-            <footer>
-              <Pagination
-                totalCount={honeynet.totalCount}
-                pageSize={honeynet.pageSize}
-                currentPage={honeynet.currentPage}
-                onPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                onDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
-            </footer>
+            <div className='main-content'>
+              <div className='table-content'>
+                <div className='table normal'>
+                  <DataTable
+                    className='main-table'
+                    fields={honeynet.dataFields}
+                    data={honeynet.dataContent}
+                    onRowMouseOver={this.handleRowMouseOver.bind(this)}
+                    sort={honeynet.dataContent.length === 0 ? {} : honeynet.sort}
+                    onSort={this.handleTableSort} />
+                </div>
+                <footer>
+                  <Pagination
+                    totalCount={honeynet.totalCount}
+                    pageSize={honeynet.pageSize}
+                    currentPage={honeynet.currentPage}
+                    onPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
+                    onDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
+                </footer>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -28,23 +28,23 @@ class Connections extends Component {
     const assetsPath = `${contextRoot}/lib/keylines/assets/`;
 
     return (
-      <div>
-        <div className='data-content'>
-          <Tree
+      <div className='data-content'>
+        <Tree
+          {...mainContentData} />
+
+        <div className='data-table'>
+          <FilterContent
             {...mainContentData} />
 
-          <div className='data-table'>
-            <FilterContent
-              {...mainContentData} />
+          <TimebarChart
+            contextRoot={contextRoot}
+            mainContentData={mainContentData}
+            tabChartData={tabChartData}
+            tableMouseOver={tableMouseOver} />
 
-            <TimebarChart
-              contextRoot={contextRoot}
-              mainContentData={mainContentData}
-              tabChartData={tabChartData}
-              tableMouseOver={tableMouseOver} />
-
+          <div className='main-content'>
             <Tabs
-              id='subTabMenu'
+              className='subtab-menu'
               menu={mainContentData.subTabMenu}
               current={mainContentData.activeSubTab}
               onChange={mainContentData.handleSubTabChange}>

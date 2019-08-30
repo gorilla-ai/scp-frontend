@@ -131,11 +131,17 @@ class Status extends Component {
             language={language}
             session={session} />
 
-          <div className='data-table manage'>
-	          <DataTable
-              className='main-table align-center'
-              fields={serviceStatus.dataFields}
-              data={serviceStatus.dataContent} />
+          <div className='data-table'>
+            <div className='main-content'>
+              <div className='table-content'>
+                <div className='table normal'>
+      	          <DataTable
+                    className='main-table align-center'
+                    fields={serviceStatus.dataFields}
+                    data={serviceStatus.dataContent} />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

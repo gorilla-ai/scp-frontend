@@ -878,23 +878,28 @@ class Syslog extends Component {
             language={language}
             session={session} />
 
-          <div className='data-table manage'>
+          <div className='data-table'>
             { this.renderFilter() }
-            
-            <DataTable
-              className='main-table'
-              data={syslog.dataContent}
-              onRowMouseOver={this.handleRowMouseOver.bind(this)}
-              fields={dataFields} />
 
-            <footer>
-              <Pagination
-                totalCount={syslog.totalCount}
-                pageSize={syslog.pageSize}
-                currentPage={syslog.currentPage}
-                onPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                onDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
-            </footer>
+            <div className='main-content'>
+              <div className='table-content'>
+                <div className='table normal'>
+                  <DataTable
+                    className='main-table'
+                    data={syslog.dataContent}
+                    onRowMouseOver={this.handleRowMouseOver.bind(this)}
+                    fields={dataFields} />
+                </div>
+                <footer>
+                  <Pagination
+                    totalCount={syslog.totalCount}
+                    pageSize={syslog.pageSize}
+                    currentPage={syslog.currentPage}
+                    onPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
+                    onDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
+                </footer>
+              </div>
+            </div>
           </div>
         </div>
 			</div>

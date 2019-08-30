@@ -770,25 +770,32 @@ class NetworkTopology extends Component {
             language={language}
             session={session} />
 
-          <div className='data-table manage'>
+          <div className='data-table'>
             { this.renderFilter() }
-            {owner.dataFields &&
-              <DataTable
-                className='main-table align-center'
-                fields={owner.dataFields}
-                data={owner.dataContent}
-                onRowMouseOver={this.handleRowMouseOver.bind(this)}
-                sort={owner.dataContent.length === 0 ? {} : owner.sort}
-                onSort={this.handleTableSort} />
-            }
-            <footer>
-              <Pagination
-                totalCount={owner.totalCount}
-                pageSize={owner.pageSize}
-                currentPage={owner.currentPage}
-                onPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                onDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
-            </footer>
+
+            <div className='main-content'>
+              <div className='table-content'>
+                <div className='table normal'>
+                  {owner.dataFields &&
+                    <DataTable
+                      className='main-table'
+                      fields={owner.dataFields}
+                      data={owner.dataContent}
+                      onRowMouseOver={this.handleRowMouseOver.bind(this)}
+                      sort={owner.dataContent.length === 0 ? {} : owner.sort}
+                      onSort={this.handleTableSort} />
+                  }
+                </div>
+                <footer>
+                  <Pagination
+                    totalCount={owner.totalCount}
+                    pageSize={owner.pageSize}
+                    currentPage={owner.currentPage}
+                    onPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
+                    onDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
+                </footer>
+              </div>
+            </div>
           </div>
         </div>
       </div>

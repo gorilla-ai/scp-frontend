@@ -542,7 +542,7 @@ class EmployeeRecord extends Component {
     return (
       <div>
         <div className='data-content'>
-          <div className='left-nav search floor-plan'>
+          <div className='left-nav floor-plan'>
             {(topologyData.srcTopoInfo || topologyData.destTopoInfo) &&
               <div className='floor-map employee-record'>
                 <header>

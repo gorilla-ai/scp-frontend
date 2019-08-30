@@ -263,14 +263,20 @@ class AccountList extends Component {
             language={language}
             session={session} />
 
-          <div className='data-table manage'>
+          <div className='data-table'>
             { this.renderFilter() }
 
-            <DataTable
-              className='main-table'
-              fields={dataFields}
-              onRowMouseOver={this.handleRowMouseOver.bind(this)}
-              data={this.filterData(accountData, param)} />
+            <div className='main-content'>
+              <div className='table-content'>
+                <div className='table normal'>
+                  <DataTable
+                    className='main-table'
+                    fields={dataFields}
+                    onRowMouseOver={this.handleRowMouseOver.bind(this)}
+                    data={this.filterData(accountData, param)} />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

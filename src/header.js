@@ -128,7 +128,7 @@ class Header extends Component {
                 <Link to={eventsLink} className={cx('item', {'active': this.getActiveTab('events')})}>{t('txt-events')}</Link>
 
                 {(sessionRights.Module_FlowAnalysis_Agent_Manage || sessionRights.Module_NetworkTopology_Manage || sessionRights.Module_Honeynet_Manage || sessionRights.Module_Account_Manage || sessionRights.Module_Syslog_Manage) &&
-                  <Link to='/ChewbaccaWeb/configuration' className={cx('item', {'active': this.getActiveTab('configuration')})}>{t('txt-configuration')}</Link>
+                  <Link to='/ChewbaccaWeb/configuration/agent' className={cx('item', {'active': this.getActiveTab('configuration')})}>{t('txt-configuration')}</Link>
                 }
               </div>
             </div>

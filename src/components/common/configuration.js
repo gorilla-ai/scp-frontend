@@ -68,7 +68,7 @@ class Config extends Component {
     })
 
     return (
-      <div className='left-nav search config'>
+      <div className='left-nav'>
         {sessionRights.Module_FlowAnalysis_Agent_Manage &&
           <div className='frame agent-manage'>
             <Link to='/ChewbaccaWeb/configuration/agent'>

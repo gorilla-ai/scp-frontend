@@ -763,24 +763,30 @@ class EmailReport extends Component {
             language={language}
             session={session} />
 
-          <div className='data-table manage'>
+          <div className='data-table'>
             { this.renderFilter() }
 
-            <DataTable
-              className='main-table'
-              fields={emailReport.dataFields}
-              data={emailReport.dataContent}
-              onRowMouseOver={this.handleRowMouseOver.bind(this)}
-              sort={emailReport.dataContent.length === 0 ? {} : emailReport.sort}
-              onSort={this.handleTableSort} />
-            <footer>
-              <Pagination
-                totalCount={emailReport.totalCount}
-                pageSize={emailReport.pageSize}
-                currentPage={emailReport.currentPage}
-                onPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                onDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
-            </footer>
+            <div className='main-content'>
+              <div className='table-content'>
+                <div className='table normal'>
+                  <DataTable
+                    className='main-table'
+                    fields={emailReport.dataFields}
+                    data={emailReport.dataContent}
+                    onRowMouseOver={this.handleRowMouseOver.bind(this)}
+                    sort={emailReport.dataContent.length === 0 ? {} : emailReport.sort}
+                    onSort={this.handleTableSort} />
+                </div>
+                <footer>
+                  <Pagination
+                    totalCount={emailReport.totalCount}
+                    pageSize={emailReport.pageSize}
+                    currentPage={emailReport.currentPage}
+                    onPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
+                    onDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
+                </footer>
+              </div>
+            </div>
           </div>
         </div>
       </div>

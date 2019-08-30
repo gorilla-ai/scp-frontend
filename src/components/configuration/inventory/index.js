@@ -214,23 +214,29 @@ class NetworkInventory extends Component {
             language={language}
             session={session} />
 
-          <div className='data-table manage'>
-            {IP.dataFields &&
-              <DataTable
-                className='main-table'
-                fields={IP.dataFields}
-                data={IP.dataContent}
-                sort={IP.dataContent.length === 0 ? {} : IP.sort}
-                onSort={this.handleTableSort} />
-            }
-            <footer>
-              <Pagination
-                totalCount={IP.totalCount}
-                pageSize={IP.pageSize}
-                currentPage={IP.currentPage}
-                onPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                onDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
-            </footer>
+          <div className='data-table'>
+            <div className='main-content'>
+              <div className='table-content'>
+                <div className='table normal'>
+                  {IP.dataFields &&
+                    <DataTable
+                      className='main-table'
+                      fields={IP.dataFields}
+                      data={IP.dataContent}
+                      sort={IP.dataContent.length === 0 ? {} : IP.sort}
+                      onSort={this.handleTableSort} />
+                  }
+                </div>
+                <footer>
+                  <Pagination
+                    totalCount={IP.totalCount}
+                    pageSize={IP.pageSize}
+                    currentPage={IP.currentPage}
+                    onPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
+                    onDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
+                </footer>
+              </div>
+            </div>
           </div>
         </div>
       </div>

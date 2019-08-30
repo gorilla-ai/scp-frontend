@@ -1089,43 +1089,53 @@ class Manage extends Component {
             session={session} />
 
           {page === 'agent' && agent.showContent &&
-            <div className='data-table manage'>
+            <div className='data-table'>
               { this.renderFilter() }
 
-              <DataTable
-                className='main-table'
-                data={agent.dataContent}
-                onRowMouseOver={this.handleRowMouseOver.bind(this)}
-                fields={agent.dataFields} />
-
-              <footer>
-                <Pagination
-                  totalCount={agent.totalCount}
-                  pageSize={agent.pageSize}
-                  currentPage={agent.currentPage}
-                  onPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                  onDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
-              </footer>
+              <div className='main-content'>
+                <div className='table-content'>
+                  <div className='table normal'>
+                    <DataTable
+                      className='main-table'
+                      data={agent.dataContent}
+                      onRowMouseOver={this.handleRowMouseOver.bind(this)}
+                      fields={agent.dataFields} />
+                  </div>
+                  <footer>
+                    <Pagination
+                      totalCount={agent.totalCount}
+                      pageSize={agent.pageSize}
+                      currentPage={agent.currentPage}
+                      onPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
+                      onDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
+                  </footer>
+                </div>
+              </div>
             </div>
           }
 
           {page === 'threats' && threats.showContent &&
-            <div className='data-table manage'>
+            <div className='data-table'>
               { this.renderFilter() }
 
-              <DataTable
-                className='main-table'
-                data={threats.dataContent}
-                fields={threats.dataFields} />
-
-              <footer>
-                <Pagination
-                  totalCount={threats.totalCount}
-                  pageSize={threats.pageSize}
-                  currentPage={threats.currentPage}
-                  onPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                  onDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
-              </footer>
+              <div className='main-content'>
+                <div className='table-content'>
+                  <div className='table normal'>
+                    <DataTable
+                      className='main-table'
+                      data={threats.dataContent}
+                      fields={threats.dataFields} />
+                  </div>
+                  <footer>
+                    <Pagination
+                      totalCount={threats.totalCount}
+                      pageSize={threats.pageSize}
+                      currentPage={threats.currentPage}
+                      onPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
+                      onDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
+                  </footer>
+                </div>
+              </div>
             </div>
           }
         </div>

@@ -1805,7 +1805,7 @@ class MapNetwork extends Component {
             language={language}
             session={session} />
 
-          <div className='left-nav search floor-plan'>
+          <div className='left-nav floor-plan'>
             <header>
               <div className='title'>{t('txt-floorMap')}</div>
               <i className='c-link fg fg-edit' onClick={this.getAddMapContent.bind(this, 'edit')} title={editFloorPlan}></i>
@@ -1848,23 +1848,29 @@ class MapNetwork extends Component {
               </div>
             </div>
 
-            <div className='data-table manage wide-width'>
-              {IP.dataFields &&
-                <DataTable
-                  className='main-table'
-                  fields={IP.dataFields}
-                  data={IP.dataContent}
-                  onRowMouseOver={this.handleRowMouseOver.bind(this)}
-                  onRowClick={this.handleTableRowClick} />
-              }
-              <footer>
-                <Pagination
-                  totalCount={IP.totalCount}
-                  pageSize={IP.pageSize}
-                  currentPage={IP.currentPage}
-                  onPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                  onDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
-              </footer>
+            <div className='data-table'>
+              <div className='main-content'>
+                <div className='table-content'>
+                  <div className='table normal'>
+                    {IP.dataFields &&
+                      <DataTable
+                        className='main-table'
+                        fields={IP.dataFields}
+                        data={IP.dataContent}
+                        onRowMouseOver={this.handleRowMouseOver.bind(this)}
+                        onRowClick={this.handleTableRowClick} />
+                    }
+                  </div>
+                  <footer>
+                    <Pagination
+                      totalCount={IP.totalCount}
+                      pageSize={IP.pageSize}
+                      currentPage={IP.currentPage}
+                      onPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
+                      onDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
+                  </footer>
+                </div>
+              </div>
             </div>
           </div>
         </div>

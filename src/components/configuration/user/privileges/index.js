@@ -135,15 +135,21 @@ class Roles extends Component {
             language={language}
             session={session} />
 
-          <div className='data-table manage scroll-x'>
-            <DataTable
-              className='main-table'
-              data={data}
-              fields={dataFields}
-              rowIdField='privilegeid'
-              onRowMouseOver={this.handleRowMouseOver.bind(this)}
-              info={info}
-              infoClassName={cx({'c-error':error})} />
+          <div className='data-table'>
+            <div className='main-content'>
+              <div className='table-content'>
+                <div className='table normal'>
+                  <DataTable
+                    className='main-table'
+                    data={data}
+                    fields={dataFields}
+                    rowIdField='privilegeid'
+                    onRowMouseOver={this.handleRowMouseOver.bind(this)}
+                    info={info}
+                    infoClassName={cx({'c-error':error})} />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

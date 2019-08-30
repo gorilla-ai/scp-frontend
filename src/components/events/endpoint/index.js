@@ -500,26 +500,32 @@ class Endpoint extends Component {
         </div>
 
         <div className='data-content'>
-          <div className='data-table manage'>
+          <div className='data-table'>
             {openFilter &&
               this.renderFilter()
             }
 
-            <DataTable
-              className='main-table'
-              fields={hmd.dataFields}
-              data={hmd.dataContent}
-              onRowMouseOver={this.handleRowMouseOver}
-              sort={hmd.dataContent.length === 0 ? {} : hmd.sort}
-              onSort={this.handleHostTableSort} />
-            <footer>
-              <Pagination
-                totalCount={hmd.totalCount}
-                pageSize={hmd.pageSize}
-                currentPage={hmd.currentPage}
-                onPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                onDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
-            </footer>
+            <div className='main-content'>
+              <div className='table-content'>
+                <div className='table'>
+                  <DataTable
+                    className='main-table'
+                    fields={hmd.dataFields}
+                    data={hmd.dataContent}
+                    onRowMouseOver={this.handleRowMouseOver}
+                    sort={hmd.dataContent.length === 0 ? {} : hmd.sort}
+                    onSort={this.handleHostTableSort} />
+                  <footer>
+                    <Pagination
+                      totalCount={hmd.totalCount}
+                      pageSize={hmd.pageSize}
+                      currentPage={hmd.currentPage}
+                      onPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
+                      onDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
+                  </footer>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

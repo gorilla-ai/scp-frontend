@@ -47,110 +47,112 @@ class Alert extends Component {
             tabChartData={tabChartData}
             tableMouseOver={tableMouseOver} />
 
-          <Tabs
-            id='subTabMenu'
-            menu={mainContentData.subTabMenu}
-            current={mainContentData.activeSubTab}
-            onChange={mainContentData.handleSubTabChange}>
-          </Tabs>
+          <div className='main-content'>
+            <Tabs
+              className='subtab-menu'
+              menu={mainContentData.subTabMenu}
+              current={mainContentData.activeSubTab}
+              onChange={mainContentData.handleSubTabChange}>
+            </Tabs>
 
-          {mainContentData.activeSubTab === 'statistics' &&
-            <Statistics
-              baseUrl={baseUrl}
-              chartsID={chartsID}
-              alertStatisticData={mainContentData.alertStatisticData} />
-          }
+            {mainContentData.activeSubTab === 'statistics' &&
+              <Statistics
+                baseUrl={baseUrl}
+                chartsID={chartsID}
+                alertStatisticData={mainContentData.alertStatisticData} />
+            }
 
-          {mainContentData.activeSubTab === 'table' &&
-            <TableContent
-              {...mainContentData} />
-          }
+            {mainContentData.activeSubTab === 'table' &&
+              <TableContent
+                {...mainContentData} />
+            }
 
-          {mainContentData.activeSubTab === 'linkAnalysis' &&
-            <div className='la-content'>
-              <VbdaLA
-                assetsPath={assetsPath}
-                sourceCfg={mainContentData.LAconfig}
-                events={mainContentData.mainEventsData}
-                source={mainContentData.LAdata}
-                sourceItemOptions={mainContentData.LAconfig.la}
-                lng={language} />
+            {mainContentData.activeSubTab === 'linkAnalysis' &&
+              <div className='la-content'>
+                <VbdaLA
+                  assetsPath={assetsPath}
+                  sourceCfg={mainContentData.LAconfig}
+                  events={mainContentData.mainEventsData}
+                  source={mainContentData.LAdata}
+                  sourceItemOptions={mainContentData.LAconfig.la}
+                  lng={language} />
 
-              <footer>
-                <Pagination
-                  activeTab={mainContentData.activeTab}
-                  page='linkAnalysis'
-                  totalCount={mainContentData.paginationTotalCount}
-                  pageSize={mainContentData.paginationAlertPageSize}
-                  currentPage={mainContentData.paginationCurrentPage}
-                  onPageChange={mainContentData.paginationAlertPageChange.bind(this, 'la')}
-                  onDropDownChange={mainContentData.paginationAlertDropDownChange.bind(this, 'la')} />
-              </footer>
-            </div>
-          }
+                <footer>
+                  <Pagination
+                    activeTab={mainContentData.activeTab}
+                    page='linkAnalysis'
+                    totalCount={mainContentData.paginationTotalCount}
+                    pageSize={mainContentData.paginationAlertPageSize}
+                    currentPage={mainContentData.paginationCurrentPage}
+                    onPageChange={mainContentData.paginationAlertPageChange.bind(this, 'la')}
+                    onDropDownChange={mainContentData.paginationAlertDropDownChange.bind(this, 'la')} />
+                </footer>
+              </div>
+            }
 
-          {mainContentData.activeSubTab === 'worldMap' &&
-            <div className='map-content'>
-              <Gis
-                id='gisMap'
-                className='fit'
-                data={mainContentData.geoJson.mapDataArr}
-                layers={{
-                  world: {
-                    label: 'World Map',
-                    interactive: false,
-                    data: mainContentData.geoJson.attacksDataArr
-                  }
-                }}
-                activeLayers={['world']}
-                baseLayers={{
-                  standard: {
-                    id: 'world',
-                    layer: 'world'
-                  }
-                }}
-                mapOptions={{
-                  crs: L.CRS.Simple
-                }}
-                onClick={mainContentData.showTopoDetail}
-                symbolOptions={[{
-                  match: {
-                    type:'geojson'
-                  },
-                  selectedProps: {
-                    'fill-color': 'white',
-                    color: 'black',
-                    weight: 0.6,
-                    'fill-opacity': 1
-                  }
-                },
-                {
-                  match: {
-                    type: 'spot'
-                  },
-                  props: {
-                    'background-color': ({data}) => {
-                      return data.tag === 'red' ? 'red' : 'yellow';
+            {mainContentData.activeSubTab === 'worldMap' &&
+              <div className='map-content'>
+                <Gis
+                  id='gisMap'
+                  className='fit'
+                  data={mainContentData.geoJson.mapDataArr}
+                  layers={{
+                    world: {
+                      label: 'World Map',
+                      interactive: false,
+                      data: mainContentData.geoJson.attacksDataArr
+                    }
+                  }}
+                  activeLayers={['world']}
+                  baseLayers={{
+                    standard: {
+                      id: 'world',
+                      layer: 'world'
+                    }
+                  }}
+                  mapOptions={{
+                    crs: L.CRS.Simple
+                  }}
+                  onClick={mainContentData.showTopoDetail}
+                  symbolOptions={[{
+                    match: {
+                      type:'geojson'
                     },
-                    'border-color': '#333',
-                    'border-width': '1px'
-                  }
-                }]}
-                layouts={['standard']}
-                dragModes={['pan']} />
+                    selectedProps: {
+                      'fill-color': 'white',
+                      color: 'black',
+                      weight: 0.6,
+                      'fill-opacity': 1
+                    }
+                  },
+                  {
+                    match: {
+                      type: 'spot'
+                    },
+                    props: {
+                      'background-color': ({data}) => {
+                        return data.tag === 'red' ? 'red' : 'yellow';
+                      },
+                      'border-color': '#333',
+                      'border-width': '1px'
+                    }
+                  }]}
+                  layouts={['standard']}
+                  dragModes={['pan']} />
 
-              <footer>
-                <Pagination
-                  activeTab={mainContentData.activeTab}
-                  page='worldMap'
-                  totalCount={mainContentData.paginationTotalCount}
-                  pageSize={mainContentData.paginationAlertPageSize}
-                  currentPage={mainContentData.paginationCurrentPage}
-                  onPageChange={mainContentData.paginationAlertPageChange.bind(this, 'map')}
-                  onDropDownChange={mainContentData.paginationAlertDropDownChange.bind(this, 'map')} />
-              </footer>
-            </div>
-          }
+                <footer>
+                  <Pagination
+                    activeTab={mainContentData.activeTab}
+                    page='worldMap'
+                    totalCount={mainContentData.paginationTotalCount}
+                    pageSize={mainContentData.paginationAlertPageSize}
+                    currentPage={mainContentData.paginationCurrentPage}
+                    onPageChange={mainContentData.paginationAlertPageChange.bind(this, 'map')}
+                    onDropDownChange={mainContentData.paginationAlertDropDownChange.bind(this, 'map')} />
+                </footer>
+              </div>
+            }
+          </div>
         </div>
       </div>
     )

@@ -36,33 +36,31 @@ class TableContent extends Component {
     } = this.props;
 
     return (
-      <div>
+      <div className='table-content'>
         <div className='table'>
           {(activeTab !== 'file' || (activeTab === 'file' && displayImgType === 'list')) &&
-            <div className='filter-table'>
-              <DataTable
-                className='main-table main'
-                fields={dataTableFields}
-                data={dataTableData}
-                rowClassName={this.handleRowClass}
-                sort={dataTableData.length === 0 ? {} : dataTableSort}
-                onSort={this.props.handleTableSort}
-                onRowMouseOver={this.props.handleRowMouseOver}
-                onRowMouseOut={this.props.handleRowMouseOut}
-                onRowDoubleClick={this.props.handleRowDoubleClick} />
-            </div>
+            <DataTable
+              className='main-table'
+              fields={dataTableFields}
+              data={dataTableData}
+              rowClassName={this.handleRowClass}
+              sort={dataTableData.length === 0 ? {} : dataTableSort}
+              onSort={this.props.handleTableSort}
+              onRowMouseOver={this.props.handleRowMouseOver}
+              onRowMouseOut={this.props.handleRowMouseOut}
+              onRowDoubleClick={this.props.handleRowDoubleClick} />
           }
-          <footer>
-            <Pagination
-              activeTab={activeTab}
-              displayImgType={displayImgType}
-              totalCount={paginationTotalCount}
-              pageSize={paginationPageSize}
-              currentPage={paginationCurrentPage}
-              onPageChange={this.props.paginationPageChange}
-              onDropDownChange={this.props.paginationDropDownChange} />
-          </footer>
         </div>
+        <footer>
+          <Pagination
+            activeTab={activeTab}
+            displayImgType={displayImgType}
+            totalCount={paginationTotalCount}
+            pageSize={paginationPageSize}
+            currentPage={paginationCurrentPage}
+            onPageChange={this.props.paginationPageChange}
+            onDropDownChange={this.props.paginationDropDownChange} />
+        </footer>
       </div>
     )
   }

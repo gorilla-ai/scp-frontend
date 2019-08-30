@@ -33,54 +33,56 @@ class File extends Component {
           <FilterContent
             {...mainContentData} />
 
-          <Tabs
-            id='subTabMenu'
-            menu={mainContentData.subTabMenu}
-            current={mainContentData.activeSubTab}
-            onChange={mainContentData.handleSubTabChange}>
-          </Tabs>
+          <div className='main-content'>
+            <Tabs
+              className='subtab-menu'
+              menu={mainContentData.subTabMenu}
+              current={mainContentData.activeSubTab}
+              onChange={mainContentData.handleSubTabChange}>
+            </Tabs>
 
-          <div className='file-options'>
-            <div className='c-flex aic imgCheckBox'>
-              <label htmlFor='showImgCheckbox'>{t('network.connections.txt-showImageOnly')}</label>
-              <Checkbox
-                id='showImgCheckbox'
-                onChange={mainContentData.handleShowImgCheckbox}
-                checked={mainContentData.showImageValue}
-                disabled={mainContentData.displayImgType === 'grid'} />
+            <div className='file-options'>
+              <div className='c-flex aic imgCheckBox'>
+                <label htmlFor='showImgCheckbox'>{t('network.connections.txt-showImageOnly')}</label>
+                <Checkbox
+                  id='showImgCheckbox'
+                  onChange={mainContentData.handleShowImgCheckbox}
+                  checked={mainContentData.showImageValue}
+                  disabled={mainContentData.displayImgType === 'grid'} />
+              </div>
+              {(mainContentData.showImageValue) &&
+                <RadioGroup
+                  id='displayFileType'
+                  list={[
+                    {
+                      value: 'list',
+                      text: t('txt-list')
+                    },
+                    {
+                      value: 'grid',
+                      text: t('txt-grid')
+                    }
+                  ]}
+                  onChange={mainContentData.handleDisplayChange}
+                  value={mainContentData.displayImgType}/>
+              }
             </div>
-            {(mainContentData.showImageValue) &&
-              <RadioGroup
-                id='displayFileType'
-                list={[
-                  {
-                    value: 'list',
-                    text: t('txt-list')
-                  },
-                  {
-                    value: 'grid',
-                    text: t('txt-grid')
+
+            {mainContentData.displayImgType === 'grid' &&
+              <div className='grid-flex'>
+              {
+                mainContentData.dataTableData.map((item, i) => {
+                  if (item.base64.indexOf('data:image/') >= 0) {
+                    return <img src={item.base64} key={i} onClick={mainContentData.openImageModal(item.base64)} />;
                   }
-                ]}
-                onChange={mainContentData.handleDisplayChange}
-                value={mainContentData.displayImgType}/>
+                })
+              }
+              </div>
             }
+
+            <TableContent
+              {...mainContentData} />
           </div>
-
-          {mainContentData.displayImgType === 'grid' &&
-            <div className='grid-flex'>
-            {
-              mainContentData.dataTableData.map((item, i) => {
-                if (item.base64.indexOf('data:image/') >= 0) {
-                  return <img src={item.base64} key={i} onClick={mainContentData.openImageModal(item.base64)} />;
-                }
-              })
-            }
-            </div>
-          }
-
-          <TableContent
-            {...mainContentData} />
         </div>
       </div>
     )
