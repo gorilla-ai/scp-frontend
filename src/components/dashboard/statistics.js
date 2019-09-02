@@ -39,7 +39,7 @@ const PIE_CHARTS_LIST = [
     key: 'agg'
   },
   {
-    id: 'Top10InternalSrcIp',
+    id: 'Top10InternalIp',
     key: 'srcIp'
   },
   {

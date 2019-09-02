@@ -211,6 +211,7 @@
     "txt-alertThreatLevel": "告警威脅等級統計",
     "txt-Top10ExternalPotSrcCountry": "外部國家告警統計",
     "txt-Top10InternalSrcIp": "內部主機告警統計",
+    "txt-Top10InternalIp": "內部主機告警統計",
     "txt-Top10InternalMaskedIp": "內部網段告警統計",
     "txt-Top10SyslogConfigSource": "系統日誌類型統計",
     "txt-dnsQuery": "DNS Query",
@@ -519,6 +520,11 @@
 
     "txt-addDevice": "$t(txt-add)$t(txt-device)",
     "txt-removeDevice": "從座位中$t(txt-delete)此裝置"
+  },
+
+  "network-inventory": {
+    "txt-deviceList": "裝置列表",
+    "txt-deviceMap": "裝置地圖"
   },
 
   "sensorFields": {

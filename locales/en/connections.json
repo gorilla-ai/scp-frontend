@@ -211,6 +211,7 @@
     "txt-alertThreatLevel": "Alert Threat Level",
     "txt-Top10ExternalPotSrcCountry": "Alert Source Country",
     "txt-Top10InternalSrcIp": "Alert Internal Source IP",
+    "txt-Top10InternalIp": "Alert Internal IP",
     "txt-Top10InternalMaskedIp": "Alert Internal Masked IP",
     "txt-Top10SyslogConfigSource": "Syslog Config Source",
     "txt-dnsQuery": "DNS Query",
@@ -519,6 +520,11 @@
 
     "txt-addDevice": "$t(txt-add) $t(txt-device)",
     "txt-removeDevice": "$t(txt-remove) this device from seat"
+  },
+
+  "network-inventory": {
+    "txt-deviceList": "Device List",
+    "txt-deviceMap": "Device Map"
   },
 
   "sensorFields": {

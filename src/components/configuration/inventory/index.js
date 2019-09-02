@@ -6,7 +6,9 @@ import _ from 'lodash'
 import cx from 'classnames'
 
 import DataTable from 'react-ui/build/src/components/table'
+import Tabs from 'react-ui/build/src/components/tabs'
 
+import {HocFilterContent as FilterContent} from '../../common/filter-content'
 import helper from '../../common/helper'
 import {HocPagination as Pagination} from '../../common/pagination'
 import {HocConfig as Config} from '../../common/configuration'
@@ -21,6 +23,7 @@ class NetworkInventory extends Component {
 		super(props);
 
 		this.state = {
+      showFilter: false,
       IP: {
         dataFieldsArr: ['ip', 'mac', 'hostName', 'owner', 'system', 'deviceType', '_menu'],
         dataFields: {},
@@ -196,15 +199,34 @@ class NetworkInventory extends Component {
       this.getIPData();
     });
   }
+  handleSearchSubmit = () => {
+
+  }
+  handleSubTabChange = () => {
+
+  }
+  toggleFilter = () => {
+    this.setState({
+      showFilter: !this.state.showFilter
+    });
+  }
+  openQuery = () => {
+
+  }
+  handleResetBtn = () => {
+
+  }
 	render() {
     const {baseUrl, contextRoot, language, session} = this.props;
-    const {IP} = this.state;
+    const {showFilter, IP} = this.state;
+    let filterDataCount = 0;
 
 		return (
       <div>
-        <div className='sub-nav-header' />
-
-        <div className='config-header'>
+        <div className='sub-header'>
+          <div className='secondary-btn-group right'>
+            <button onClick={this.toggleFilter} className={cx({'active': showFilter})} title={t('network.connections.txt-toggleFilter')}><i className='fg fg-filter'></i><span>({filterDataCount})</span></button>
+          </div>
         </div>
 
         <div className='data-content'>
@@ -215,7 +237,31 @@ class NetworkInventory extends Component {
             session={session} />
 
           <div className='data-table'>
+            <FilterContent
+              showFilter={showFilter}
+              activeTab='config'
+              queryData={{}}
+              filterData={[{
+                condition: 'Must',
+                query: ''
+              }]}
+              handleSearchSubmit={this.handleSearchSubmit}
+              handleSubTabChange={this.handleSubTabChange}
+              toggleFilter={this.toggleFilter}
+              openQuery={this.openQuery}
+              handleResetBtn={this.handleResetBtn} />
+
             <div className='main-content'>
+              <Tabs
+                className='subtab-menu'
+                menu={{
+                  deviceList: t('network-inventory.txt-deviceList'),
+                  deviceMap: t('network-inventory.txt-deviceMap')
+                }}
+                current='deviceList'
+                onChange={this.handleSubTabChange}>
+              </Tabs>
+
               <div className='table-content'>
                 <div className='table normal'>
                   {IP.dataFields &&
@@ -246,9 +292,7 @@ class NetworkInventory extends Component {
 
 NetworkInventory.propTypes = {
 	baseUrl: PropTypes.string.isRequired,
-	contextRoot: PropTypes.string.isRequired,
-	language: PropTypes.string.isRequired,
-	session: PropTypes.object.isRequired
+	contextRoot: PropTypes.string.isRequired
 };
 
 const HocNetworkInventory = withRouter(withLocale(NetworkInventory));
