@@ -278,11 +278,12 @@ footer.footer {
 }
 #app-container {
 	.sub-header {
-		color: #fff;
-		background-color: #004d93;
-		padding: 3px 10px;
 		position: relative;
+		color: #fff;
+		padding: 3px 10px;
 		overflow: hidden;
+		background-color: #004d93;
+    min-height: 42px;
 		input:not([type=radio]), select {
 			color: #000;
 		}
@@ -378,6 +379,10 @@ footer.footer {
 			color: #4a4a4a;
 			background-color: #fff;
 		}
+		i.fg {
+			font-size: 26px;
+			margin-right: 8px;
+		}
 	}
 	.table-cell {
 		position: relative;
@@ -439,29 +444,6 @@ footer.footer {
 			}
 		}
 	}
-	.main-btn-group,
-	.secondary-btn-group {
-		button {
-			padding: .3em .6em;
-			color: #001b34;
-			background-color: #fff;
-			&.active {
-				color: #fff;
-				background-color: #001b34;
-			}
-		}
-	}
-	.main-btn-group {
-		float: right;
-		button {
-			padding: .4em 1em;
-		}
-		&.syslog {
-			position: absolute;
-			right: 110px;
-			top: 48px;
-		}
-	}
 	.secondary-btn-group {
 		&.left {
 			float: left;
@@ -471,7 +453,14 @@ footer.footer {
 			margin-top: 1px;
 		}
 		button {
+			color: #001b34;
+			padding: .3em .6em;
 			margin-right: 5px;
+			background-color: #fff;
+			&.active {
+				color: #fff;
+				background-color: #001b34;
+			}
 			&.last {
 				margin-right: 0;
 			}
@@ -483,6 +472,13 @@ footer.footer {
 			}
 			span {
 				float: left;
+			}
+		}
+		span {
+			&.last-update {
+				float: right;
+				margin-top: 7px;
+				margin-left: 5px;
 			}
 		}
 	}
@@ -954,6 +950,14 @@ footer.footer {
 					margin-right: 5px;
 					color: #004d93;
 				}
+				.button-group.open-query {
+					position: absolute;
+					top: 5px;
+					left: 47px;
+				}
+				.filter-section {
+					margin-top: 37px;
+				}
 			}
 			.main-mark {
 				.header-text {
@@ -1293,12 +1297,21 @@ footer.footer {
 				padding: 20px;
 				min-height: 300px;
 			}
+			.data-table {
+				background: none;
+				.main-content {
+					margin: 0 10px 10px 0;
+					border: 1px solid #ccc;
+					background: none;
+				}
+			}
 		}
 		.floor-plan,
 		.floor-map {
 			margin: 10px;
 			border: 1px solid #ccc;
 			border-radius: 5px;
+			background: none;
 			header {
 				text-align: right;
 			}
@@ -1320,6 +1333,7 @@ footer.footer {
 			}
 		}
 		.floor-map {
+			margin-left: 0;
 			&.employee-record {
 				margin: 0;
 				border: none;
@@ -1368,155 +1382,6 @@ footer.footer {
 				position: absolute;
 				top: 10px;
 				left: 495px;
-			}
-		}
-	}
-	.sub-nav-header {
-		position: relative;
-		color: #fff;
-		height: 42px;
-		background-color: #004d93;
-		.breadcrumb {
-			padding-top: 7px;
-		}
-		.search {
-			position: absolute;
-			top: 7px;
-			right: 20px;
-			width: 1110px;
-			&.zh {
-				width: 1025px;
-			}
-		}
-		.datepicker {
-			position: absolute;
-			top: 0;
-			left: 515px;
-			color: #333;
-			width: 595px;
-			&.zh {
-				left: 440px;
-				width: 585px;
-			}
-			i.fg-calendar {
-				color: #fff;
-				border: none;
-			}
-			button {
-				position: absolute;
-				top: 0;
-				right: 0;
-			}
-			.between {
-				color: #fff;
-			}
-		}
-		.fg-id {
-			position: absolute;
-			top: 7px;
-			right: 60px;
-			font-size: 2em;
-			color: #fff;
-		}
-		.fg-add {
-			position: absolute;
-			top: 7px;
-			right: 15px;
-			font-size: 2em;
-			color: #fff;
-		}
-		.refresh {
-			position: absolute;
-			top: 7px;
-			right: 15px;
-		}
-	}
-	.config-header {
-		.breadcrumb {
-			position: absolute;
-			top: 50px;
-			left: 20px;
-			font-size: 1.5em;
-			color: #fff;
-		}
-		.fg-network {
-			position: absolute;
-			top: 50px;
-			right: 195px;
-			font-size: 2em;
-			color: #fff;
-		}
-		.fg-data-box {
-			position: absolute;
-			top: 50px;
-			right: 150px;
-			font-size: 2em;
-			color: #fff;
-		}
-		.fg-signage-ad {
-			position: absolute;
-			top: 50px;
-			right: 150px;
-			font-size: 2em;
-			color: #fff;
-		}
-		.fg-correlate {
-			position: absolute;
-			top: 50px;
-			right: 105px;
-			font-size: 2em;
-			color: #fff;
-		}
-		.fg-id {
-			position: absolute;
-			top: 50px;
-			right: 105px;
-			font-size: 2em;
-			color: #fff;
-		}
-		.fg-add {
-			position: absolute;
-			top: 50px;
-			right: 60px;
-			font-size: 2em;
-			color: #fff;
-		}
-		.fg-chart-kpi {
-			position: absolute;
-			top: 50px;
-			font-size: 2em;
-			color: #fff;
-			&.overall {
-				right: 185px;
-			}
-			&.syslog {
-				right: 145px;
-			}
-			&.eventlog {
-				right: 105px;
-			}
-		}
-		.fg-update {
-			position: absolute;
-			top: 50px;
-			right: 60px;
-			font-size: 2em;
-			color: #fff;
-		}
-		.fg-filter {
-			position: absolute;
-			top: 50px;
-			right: 15px;
-			font-size: 2em;
-			color: #fff;
-		}
-		.last-update {
-			position: absolute;
-			top: 50px;
-			right: 15px;
-			color: #fff;
-			button {
-				margin-right: 10px;
 			}
 		}
 	}

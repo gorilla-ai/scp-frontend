@@ -494,8 +494,7 @@ class Endpoint extends Component {
           {helper.getEventsMenu('endpoint', sessionRights)}
         </div>
 
-        <div className='config-header'>
-          <div className='breadcrumb' />
+        <div className='sub-header'>
           <i className='c-link fg fg-filter' onClick={this.setFilter.bind(this, !openFilter)} title={t('txt-filter')}></i>
         </div>
 

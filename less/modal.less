@@ -748,6 +748,7 @@
 			border: 1px solid #ccc !important;
 		}
 		.align-center {
+			text-align: center;
 			&.severity-level,
 			&.collector,
 			&.trigger,
@@ -1148,6 +1149,33 @@
 			height: 30px;
 			width: 30px;
 			margin-top: 10px;
+		}
+	}
+}
+#configScanModalDialog-content {
+	width: 965px;
+	.main-table {
+		border-radius: 5px;
+		width: 100%;
+		overflow: hidden;
+		thead tr {
+			color: #185e9e;
+		}
+		tbody td:hover {
+			cursor: text;
+		}
+		th, td {
+			padding: 10px !important;
+			border: 1px solid #ccc !important;
+		}
+		.align-center {
+			text-align: center;
+			&.ip,
+			&.mac,
+			&.hostName,
+			&.ownerName {
+				width: 25%;
+			}
 		}
 	}
 }

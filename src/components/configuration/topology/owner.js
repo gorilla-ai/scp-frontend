@@ -754,13 +754,13 @@ class NetworkTopology extends Component {
 
         <Name ref={ref => { this.name=ref }} onDone={this.onDone.bind(this)} /> 
 
-        <div className='sub-nav-header' />
-        <div className='config-header'>
-          <div className='breadcrumb' />
-          <i className='c-link fg fg-id' onClick={this.openName.bind(this)} title={t('txt-mixName')}></i>
-          <i className='c-link fg fg-add' onClick={this.getAddOwnerContent} title={t('network-topology.txt-addOwner')}></i>
-          <i className='c-link fg fg-filter' onClick={this.setFilter.bind(this, !openFilter)} title={t('txt-filter')}></i>
-          <i className='c-link fg fg-signage-ad' onClick={this.switchADConnect.bind(this)} title={t('txt-adImport')}></i>
+        <div className='sub-header'>
+          <div className='secondary-btn-group right'>
+            <button onClick={this.switchADConnect.bind(this)} title={t('txt-adImport')}><i className='fg fg-signage-ad'></i></button>
+            <button onClick={this.openName.bind(this)} title={t('txt-mixName')}><i className='fg fg-id'></i></button>
+            <button onClick={this.getAddOwnerContent} title={t('network-topology.txt-addOwner')}><i className='fg fg-add'></i></button>
+            <button onClick={this.setFilter.bind(this, !openFilter)} className={cx('last', {'active': openFilter})} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
+          </div>
         </div>
 
         <div className='data-content'>

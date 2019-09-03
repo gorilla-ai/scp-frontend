@@ -1065,20 +1065,19 @@ class Manage extends Component {
     return (
       <div>
         { modalAgentOpen && this.modalAgentDialog() }
-
-        <div className='sub-nav-header' />
          
-        <div className='config-header'>
-          <div className='breadcrumb' />
-          {page === 'agent' && 
-            <i className='c-link fg fg-add' onClick={this.getAddAgentContent} title={t('network.agent.txt-addAgent')}></i>
-          }
-
-          {page === 'threats' &&
-            <i className='c-link fg fg-add' onClick={this.openUploadModal.bind(this, '', 'threats')} title={t('network.agent.txt-uploadIndicators')}></i>
-          }
-
-          <i className='c-link fg fg-filter' onClick={this.setFilter.bind(this, !openFilter)} title={t('txt-filter')}></i>
+        <div className='sub-header'>
+          <div className='secondary-btn-group right'>
+            {page === 'agent' &&
+              <button onClick={this.getAddAgentContent} title={t('network.agent.txt-addAgent')}><i className='fg fg-add'></i></button>
+            }
+            {page === 'threats' &&
+              <button onClick={this.openUploadModal.bind(this, '', 'threats')} className='last' title={t('network.agent.txt-uploadIndicators')}><i className='fg fg-add'></i></button>
+            }
+            {page === 'agent' &&
+              <button onClick={this.setFilter.bind(this, !openFilter)} className={cx('last', {'active': openFilter})} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
+            }
+          </div>
         </div>
 
         <div className='data-content'>

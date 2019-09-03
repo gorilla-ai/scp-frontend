@@ -2070,14 +2070,8 @@ class Netflow extends Component {
       chartTypeChange: this.handleChartChange,
       chartTypeValue: this.state.connectionsChartType,
       chartIntervalChange: this.handleIntervalChange,
-      chartIntervalValue: this.state.connectionsInterval,
-      filterStyle: {
-        height: this.getStyleHeight(165)
-      }
+      chartIntervalValue: this.state.connectionsInterval
     };
-  }
-  getStyleHeight = (val) => {
-    return 'calc(100vh - ' + val + 'px)';
   }
   handleSubTabChange = (newTab) => {
     const {activeTab} = this.state;
@@ -2145,9 +2139,6 @@ class Netflow extends Component {
       treeData: this.state.treeData,
       treeSelect: this.selectTree,
       showFilterBtn: this.showFilterBtn,
-      filterStyle: {
-        height: this.getStyleHeight(165)
-      },
       showImageValue: this.state.showImgCheckbox,
       handleShowImgCheckbox: this.handleShowImgCheckbox,
       displayImgType: this.state.displayType,

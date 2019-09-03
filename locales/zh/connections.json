@@ -41,7 +41,6 @@
   "txt-alertMenu": "Alert",
   "txt-rule": "規則",
   "txt-update": "更新",
-  "txt-lastUpdateTime": "最後更新時間",
   "txt-upload": "上傳",
   "txt-seat": "座位",
   "txt-agent": "Agent",
@@ -145,7 +144,7 @@
   "txt-accountManage": "帳號管理",
   "txt-syslogManage": "系統日誌管理",
   "txt-serviceStatus": "服務狀態",
-  "txt-networkInventory": "Network Inventory",
+  "txt-networkInventory": "網路清單",
 
   "txt-honeypot-dashboard": "Dashboard",
 	"txt-honeypot-host": "蜜罐主機",

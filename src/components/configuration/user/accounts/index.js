@@ -249,11 +249,11 @@ class AccountList extends Component {
 
     return (
       <div>
-        <div className='sub-nav-header' />
-        <div className='config-header'>
-          <div className='breadcrumb' />
-          <i className='c-link fg fg-add' onClick={this.showEditDialog.bind(this, null)} title={t('txt-add-account')}></i>
-          <i className='c-link fg fg-filter' onClick={this.setFilter.bind(this, !openFilter)} title={c('txt-filter')}></i>
+        <div className='sub-header'>
+          <div className='secondary-btn-group right'>
+            <button onClick={this.showEditDialog.bind(this, null)} title={t('txt-add-account')}><i className='fg fg-add'></i></button>
+            <button onClick={this.setFilter.bind(this, !openFilter)} className={cx('last', {'active': openFilter})} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
+          </div>
         </div>
 
         <div className='data-content'>

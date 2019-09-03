@@ -4,6 +4,7 @@ import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
 import Moment from 'moment'
 import _ from 'lodash'
+import cx from 'classnames'
 
 import ComboBox from 'react-ui/build/src/components/combobox'
 import DataTable from 'react-ui/build/src/components/table'
@@ -741,19 +742,16 @@ class EmailReport extends Component {
   render() {
     const {baseUrl, contextRoot, language, session} = this.props;
     const {emailReport, modalOpen, openFilter} = this.state;
-    const tableHeight = {
-      height: 'calc(100vh - 180px)'
-    };
 
     return (
       <div>
         { modalOpen && this.modalDialog() }
         
-        <div className='sub-nav-header' />
-        <div className='config-header'>
-          <div className='breadcrumb' />
-          <i className='c-link fg fg-add' onClick={this.addEmailSettings} title={t('honeynet.txt-addEmailReport')}></i>
-          <i className='c-link fg fg-filter' onClick={this.setFilter.bind(this, !openFilter)} title={t('txt-filter')}></i>
+        <div className='sub-header'>
+          <div className='secondary-btn-group right'>
+            <button onClick={this.addEmailSettings} title={t('honeynet.txt-addEmailReport')}><i className='fg fg-add'></i></button>
+            <button onClick={this.setFilter.bind(this, !openFilter)} className={cx('last', {'active': openFilter})} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
+          </div>
         </div>
 
         <div className='data-content'> 

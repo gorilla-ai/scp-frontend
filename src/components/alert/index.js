@@ -1228,14 +1228,8 @@ class AlertController extends Component {
   }
   getTabChartData = () => {
     return {
-      chartData: this.state.alertHistogram,
-      filterStyle: {
-        height: this.getStyleHeight(219)
-      }
+      chartData: this.state.alertHistogram
     };
-  }
-  getStyleHeight = (val) => {
-    return 'calc(100vh - ' + val + 'px)';
   }
   handleSubTabChange = (newTab) => {
     if (newTab === 'statistics') {
@@ -1308,9 +1302,6 @@ class AlertController extends Component {
       additionalTreeData: this.state.additionalTreeData,
       activeAlertTab: this.state.activeLocationTab,
       showFilterBtn: this.showFilterBtn,
-      filterStyle: {
-        height: this.getStyleHeight(165)
-      },
       dataTableData: this.state.subSectionsData.mainData[activeTab],
       dataTableFields: this.state.subSectionsData.fieldsData[activeTab],
       LAdata: this.state.subSectionsData.laData[activeTab],

@@ -1075,15 +1075,14 @@ class IP extends Component {
         { openNetflow && this.modalNetflow() }
         { openNetFlowTable && this.modalNetFlowTable() }
 
-        <div className='sub-nav-header' />
-
-        <div className='config-header'>
-          <div className='breadcrumb' />
-          <i className='c-link fg fg-add' onClick={this.getAddIPContent} title={t('network-topology.txt-addIP')}></i>
-          <i className='c-link fg fg-filter' onClick={this.setFilter.bind(this, !openFilter)} title={t('txt-filter')}></i>
-          <i className='c-link fg fg-correlate' onClick={this.getEdges.bind(this)} title={t('txt-network-scan')}></i>
-          <i className='c-link fg fg-data-box' onClick={this.switchLog.bind(this, 'openLog')} title={t('txt-log-capture')}></i>
-          <i className='c-link fg fg-network' onClick={this.switchNetflow.bind(this, 'openNetflow')} title={t('txt-netflowImport')}></i>
+        <div className='sub-header'>
+          <div className='secondary-btn-group right'>
+            <button onClick={this.switchNetflow.bind(this, 'openNetflow')} title={t('txt-netflowImport')}><i className='fg fg-network'></i></button>
+            <button onClick={this.switchLog.bind(this, 'openLog')} title={t('txt-log-capture')}><i className='fg fg-data-box'></i></button>
+            <button onClick={this.getEdges.bind(this)} title={t('txt-network-scan')}><i className='fg fg-correlate'></i></button>
+            <button onClick={this.getAddIPContent} title={t('network-topology.txt-addIP')}><i className='fg fg-add'></i></button>
+            <button onClick={this.setFilter.bind(this, !openFilter)} className={cx('last', {'active': openFilter})} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
+          </div>
         </div>
 
         <div className='data-content'>

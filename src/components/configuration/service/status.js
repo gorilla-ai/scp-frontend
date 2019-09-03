@@ -114,13 +114,10 @@ class Status extends Component {
 
 		return (
       <div>
-        <div className='sub-nav-header' />
-
-        <div className='config-header'>
-          <div className='breadcrumb' />
-          <div className='last-update'>
-	          <button onClick={this.getServiceStatus.bind(this, 'refresh')}>{t('txt-update')}</button>
-	          <span>{t('txt-lastUpdateTime')}: {serviceStatus.lastUpdateTime}</span>
+        <div className='sub-header'>
+          <div className='secondary-btn-group right'>
+            <button onClick={this.getServiceStatus.bind(this, 'refresh')} title={t('txt-update')}><i className='fg fg-update'></i></button>
+	          <span className='last-update'>{serviceStatus.lastUpdateTime}</span>
 	        </div>
         </div>
 

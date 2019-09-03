@@ -1786,12 +1786,9 @@ class MapNetwork extends Component {
     return (
       <div>
         { modalFloorOpen && this.modalFloorDialog() }
-
         { modalSeatOpen && this.modalSeatDialog() }
 
-        <div className='sub-nav-header' />
-        <div className='config-header'>
-          <div className='breadcrumb' />
+        <div className='sub-header'>
           {
             _.size(IP.dataContent) > 0 && 
             <i className='c-link fg fg-filter' onClick={this.setFilter.bind(this, !openFilter)} title={t('txt-filter')}></i>

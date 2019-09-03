@@ -860,15 +860,12 @@ class Syslog extends Component {
         { openTimeline && this.modalTimeline() }
         { openEditHosts && this.modalEditHosts() }
 
-				<div className='sub-nav-header' />
-				<div className='config-header'>
-    			<div className='breadcrumb' />
-
-          <div className='main-btn-group syslog'>
-            <button className='active' onClick={this.openTimeline.bind(this, 'overall')} title={t('syslogFields.txt-overallDist')}>Overall</button>
+				<div className='sub-header'>
+          <div className='secondary-btn-group right'>
+            <button onClick={this.openTimeline.bind(this, 'overall')} title={t('syslogFields.txt-overallDist')}><i className='fg fg-chart-kpi'></i></button>
+            <button onClick={this.openSyslog.bind(this, null)} title={t('syslogFields.txt-addSyslog')}><i className='fg fg-add'></i></button>
+            <button onClick={this.setFilter.bind(this, !openFilter)} className={cx('last', {'active': openFilter})} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
           </div>
-  				<i className='c-link fg fg-add' onClick={this.openSyslog.bind(this, null)} title={t('syslogFields.txt-addSyslog')}></i>
-  				<i className='c-link fg fg-filter' onClick={this.setFilter.bind(this, !openFilter)} title={t('txt-filter')}></i>
   			</div>
 
         <div className='data-content'>

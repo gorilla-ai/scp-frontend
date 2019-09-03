@@ -23,25 +23,24 @@ class FilterContent extends Component {
       )
     }
   }
-  showHideBtn = () => {
-    const {activeTab} = this.props;
-
-    if (activeTab === 'config') {
-      return { visibility: 'hidden' };
-    }
-  }
   render() {
-    const {showFilter, queryData} = this.props;
-    const filterTitle = queryData.displayName ? queryData.displayName : t('txt-filter');
+    const {activeTab, showFilter, queryData} = this.props;
+    let filterTitle = t('txt-filter');
+
+    if (queryData && queryData.displayName) {
+      filterTitle = queryData.displayName;
+    }
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
         <i className='fg fg-close' onClick={this.props.toggleFilter} title={t('txt-close')}></i>
         <div className='header-text'>{filterTitle}</div>
-        <div className='button-group' style={this.showHideBtn()}>
-          <button className='open-query' onClick={this.props.openQuery.bind(this, 'open')}>{t('network.connections.txt-openQuery')}</button>
-          <button className='save-query' onClick={this.props.openQuery.bind(this, 'save')}>{t('network.connections.txt-saveQuery')}</button>
-        </div>
+        {activeTab !== 'config' &&
+          <div className='button-group open-query'>
+            <button className='open-query' onClick={this.props.openQuery.bind(this, 'open')}>{t('network.connections.txt-openQuery')}</button>
+            <button className='save-query' onClick={this.props.openQuery.bind(this, 'save')}>{t('network.connections.txt-saveQuery')}</button>
+          </div>
+        }
         <Filter
           inline={true}
           {...this.props} />
@@ -56,10 +55,8 @@ class FilterContent extends Component {
 
 FilterContent.propTypes = {
   showFilter: PropTypes.bool.isRequired,
-  queryData: PropTypes.object.isRequired,
   handleSearchSubmit: PropTypes.func.isRequired,
   toggleFilter: PropTypes.func.isRequired,
-  openQuery: PropTypes.func.isRequired,
   handleResetBtn: PropTypes.func.isRequired
 };
 

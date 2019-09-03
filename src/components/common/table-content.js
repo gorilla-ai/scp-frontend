@@ -25,7 +25,6 @@ class TableContent extends Component {
   render() {
     const {
       activeTab,
-      filterStyle,
       displayImgType,
       dataTableData,
       dataTableFields,
