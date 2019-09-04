@@ -1739,28 +1739,29 @@ class MapNetwork extends Component {
     this.setState({search: clear})
   }
   renderFilter() {
-    const {floorPlan, list, search} = this.state;
+    const {floorPlan, list, search, openFilter} = this.state;
 
     return (
-      <div className='filter-header'>
-        <i className='c-link fg fg-close' onClick={this.setFilter.bind(this, false)} ></i>
-        <div className='conds'>
-          <div className='cond'>
+      <div className={cx('main-filter', {'active': openFilter})}>
+        <i className='fg fg-close' onClick={this.setFilter.bind(this, false)} title={t('txt-close')}></i>
+        <div className='header-text'>{t('txt-filter')}</div>
+        <div className='filter-section config'>
+          <div className='group'>
             <label htmlFor='MAPkeyword' className='first-label'>{t('ipFields.keyword')}</label>
-            <Input id='MAPkeyword' placeholder={t('txt-enterKeyword')} onChange={this.handleSearchChange.bind(this, 'keyword')} value={search.keyword} />  
+            <Input id='MAPkeyword' placeholder={t('txt-enterKeyword')} onChange={this.handleSearchChange.bind(this, 'keyword')} value={search.keyword} />
           </div>
-          <div className='cond'>
+          <div className='group'>
             <label htmlFor='MAPsystem'>{t('ipFields.system')}</label>
-            <DropDownList id='MAPsystem' list={list.system} required={true} onChange={this.handleSearchChange.bind(this, 'system')} value={search.system}/>  
+            <DropDownList id='MAPsystem' list={list.system} required={true} onChange={this.handleSearchChange.bind(this, 'system')} value={search.system}/>
           </div>
-          <div className='cond'>
+          <div className='group'>
             <label htmlFor='MAPdevice'>{t('txt-device')}</label>
             <DropDownList id='MAPdevice' list={list.deviceType} required={true} onChange={this.handleSearchChange.bind(this, 'deviceType')} value={search.deviceType}/>
           </div>
         </div>
-        <div className='action'>
-          <button className='standard' onClick={this.clearFilter.bind(this)}>{t('txt-clear')}</button>
-          <button onClick={this.getIPData.bind(this, floorPlan.currentAreaUUID)} >{t('txt-search')}</button>
+        <div className='button-group'>
+          <button className='filter' onClick={this.getIPData.bind(this, floorPlan.currentAreaUUID)}>{t('txt-filter')}</button>
+          <button className='clear' onClick={this.clearFilter.bind(this)}>{t('txt-clear')}</button>
         </div>
       </div>
     )
@@ -1789,10 +1790,11 @@ class MapNetwork extends Component {
         { modalSeatOpen && this.modalSeatDialog() }
 
         <div className='sub-header'>
-          {
-            _.size(IP.dataContent) > 0 && 
-            <i className='c-link fg fg-filter' onClick={this.setFilter.bind(this, !openFilter)} title={t('txt-filter')}></i>
-          }
+          <div className='secondary-btn-group right'>
+            {_.size(IP.dataContent) > 0 && false &&
+              <button onClick={this.setFilter.bind(this, !openFilter)} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
+            }
+          </div>
         </div>
 
         <div className='data-content'>
@@ -1817,7 +1819,7 @@ class MapNetwork extends Component {
           </div>
 
           <div className='right-content'>
-            { openFilter && this.renderFilter() }
+            {/* this.renderFilter() */}
             
             <div className='floor-map'>
               <header>

@@ -661,12 +661,13 @@ class EmailReport extends Component {
   }
   renderFilter() {
     const {search, openFilter} = this.state
-    
-    return openFilter &&
-      <div className='filter-header'>
-        <i className='c-link fg fg-close' onClick={this.setFilter.bind(this, false)} ></i>
-        <div className='conds'>
-          <div className='cond'>
+
+    return (
+      <div className={cx('main-filter', {'active': openFilter})}>
+        <i className='fg fg-close' onClick={this.setFilter.bind(this, false)} title={t('txt-close')}></i>
+        <div className='header-text'>{t('txt-filter')}</div>
+        <div className='filter-section config'>
+          <div className='group'>
             <label htmlFor='searchEmailReportPeriod' className='first-label'>{t('emailReportFields.reportPeriod')}</label>
             <DropDownList id='searchEmailReportPeriod' required={true}
               list={[
@@ -686,27 +687,7 @@ class EmailReport extends Component {
               onChange={this.handleDataChange.bind(this, 'search', 'reportPeriod')}
               value={search.reportPeriod} />
           </div>
-          <div className='cond'>
-            <label htmlFor='searchEmailReportEnabled'>{t('emailReportFields.isEnabled')}</label>
-            <DropDownList id='searchEmailReportEnabled' required={true}
-              list={[
-                {
-                  value: -1,
-                  text: t('txt-all')
-                },
-                {
-                  value: 0,
-                  text: t('txt-no')
-                },
-                {
-                  value: 1,
-                  text: t('txt-yes')
-                }
-              ]}
-              onChange={this.handleDataChange.bind(this, 'search', 'isEnabled')}
-              value={search.isEnabled} />
-          </div>
-          <div className='cond'>
+          <div className='group'>
             <label htmlFor='searchEmailReportNetwork'>{t('emailReportFields.networkType')}</label>
             <DropDownList id='searchEmailReportNetwork' required={true}
               list={[
@@ -726,18 +707,17 @@ class EmailReport extends Component {
               onChange={this.handleDataChange.bind(this, 'search', 'networkType')}
               value={search.networkType} />
           </div>
-        </div>
-        <div className='conds'>
-          <div className='cond'>
+          <div className='group'>
             <label htmlFor='searchEmailReportHoneypot'>{t('emailReportFields.honeypot')}</label>
             <Input id='searchEmailReportHoneypot' placeholder={t('txt-enterKeyword')} onChange={this.handleDataChange.bind(this, 'search', 'honeypot')} value={search.honeypot} />
           </div>
         </div>
-        <div className='action'>
-          <button className='standard' onClick={this.clearFilter.bind(this)}>{t('txt-clear')}</button>
-          <button onClick={this.getReportEmailData.bind(this, 'search')}>{t('txt-search')}</button>
+        <div className='button-group'>
+          <button className='filter' onClick={this.getReportEmailData.bind(this, 'search')}>{t('txt-filter')}</button>
+          <button className='clear' onClick={this.clearFilter.bind(this)}>{t('txt-clear')}</button>
         </div>
       </div>
+    )
   }
   render() {
     const {baseUrl, contextRoot, language, session} = this.props;

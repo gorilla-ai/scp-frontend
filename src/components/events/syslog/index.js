@@ -1264,6 +1264,7 @@ class SyslogController extends Component {
       activeTab,
       markData,
       tableMouseOver,
+      tableUniqueID: 'id',
       subTabMenu: this.state.subTabMenu,
       activeSubTab: this.state.activeSubTab,
       handleSubTabChange: this.handleSubTabChange,

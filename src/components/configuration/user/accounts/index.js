@@ -225,23 +225,25 @@ class AccountList extends Component {
   renderFilter() {
     const {param, openFilter} = this.state
 
-    return openFilter &&
-      <div className='filter-header'>
-        <i className='c-link fg fg-close' onClick={this.setFilter.bind(this, false)} ></i>
-        <div className='conds'>
-          <div className='cond'>
+    return (
+      <div className={cx('main-filter', {'active': openFilter})}>
+        <i className='fg fg-close' onClick={this.setFilter.bind(this, false)} title={t('txt-close')}></i>
+        <div className='header-text'>{c('txt-filter')}</div>
+        <div className='filter-section config'>
+          <div className='group'>
             <label htmlFor='account' >{t('l-account')}</label>
             <Input id='account' placeholder={t('ph-account')} onChange={this.handleSearchChange.bind(this, 'account')} value={param.account} />
           </div>
-          <div className='cond'>
+          <div className='group'>
             <label htmlFor='name'>{t('l-name')}</label>
             <Input id='name' placeholder={t('ph-name')} onChange={this.handleSearchChange.bind(this, 'name')} value={param.name} />
           </div>
         </div>
-        <div className='action'>
-          <button className='standard' onClick={this.clearFilter.bind(this)}>{c('txt-clear')}</button>
+        <div className='button-group'>
+          <button className='clear' onClick={this.clearFilter.bind(this)}>{c('txt-clear')}</button>
         </div>
       </div>
+    )
   }
   render() {
     const {baseUrl, contextRoot, language, session} = this.props;

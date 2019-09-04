@@ -6,13 +6,15 @@ import _ from 'lodash'
 import cx from 'classnames'
 
 import DataTable from 'react-ui/build/src/components/table'
+import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import Tabs from 'react-ui/build/src/components/tabs'
 
+import {HocConfig as Config} from '../../common/configuration'
 import {HocFilterContent as FilterContent} from '../../common/filter-content'
 import helper from '../../common/helper'
 import {HocPagination as Pagination} from '../../common/pagination'
-import {HocConfig as Config} from '../../common/configuration'
+import TableContent from '../../common/table-content'
 import withLocale from '../../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -30,12 +32,13 @@ class NetworkInventory extends Component {
       activeTab: 'deviceList',
       showFilter: false,
       showScanInfo: false,
-      filterData: [{
-        condition: 'Must',
-        query: ''
-      }],
+      deviceSearch: {
+        ip: '',
+        mac: '',
+        hostName: ''
+      },
       deviceData: {
-        dataFieldsArr: ['ip', 'mac', 'hostName', 'owner', 'system', 'deviceType', '_menu_'],
+        dataFieldsArr: ['ip', 'mac', 'hostName', 'owner', 'location', '_menu_'],
         dataFields: {},
         dataContent: [],
         ipListArr: [],
@@ -44,6 +47,7 @@ class NetworkInventory extends Component {
           field: 'ip',
           desc: false
         },
+        itemID: '',
         totalCount: 0,
         currentPage: 1,
         pageSize: 20,
@@ -51,10 +55,6 @@ class NetworkInventory extends Component {
         currentLength: ''
       },
       currentDeviceData: {}
-      // owner: {
-      //   ownerListArr: [],
-      //   selectedOwner: ''
-      // }
 		};
 
     t = chewbaccaI18n.getFixedT(null, 'connections');
@@ -62,84 +62,29 @@ class NetworkInventory extends Component {
     this.ah = getInstance('chewbacca');
 	}
 	componentWillMount() {
-    //this.getOwnerData();
     this.getDeviceData();
 	}
-  // getOwnerData = () => {
-  //   const {baseUrl} = this.props;
-  //   const tempOwner = {...this.state.owner};
-
-  //   this.ah.one({
-  //     url: `${baseUrl}/api/owner/_search`,
-  //     data: JSON.stringify({}),
-  //     type: 'POST',
-  //     contentType: 'text/plain'
-  //   })
-  //   .then(data => {
-  //     let ownerListArr = [];
-
-  //     _.forEach(data.rows, val => {
-  //       ownerListArr.push({
-  //         value: val.ownerUUID,
-  //         text: val.ownerName
-  //       });
-  //     })
-
-  //     tempOwner.ownerListArr = ownerListArr;
-
-  //     this.setState({
-  //       owner: tempOwner
-  //     });
-  //   })
-  //   .catch(err => {
-  //     helper.showPopupMsg('', t('txt-error'), err.message);
-  //   })
-  // }
-  checkSortable = (field) => {
-    const unSortableFields = ['options', 'owner', '_menu_'];
-
-    if (_.includes(unSortableFields, field)) {
-      return null;
-    } else {
-      return true;
-    }
-  }
-  openMenu = (type, allValue) => {
-    if (type === 'info') {
-      this.setState({
-        showScanInfo: true,
-        currentDeviceData: allValue
-      });
-    } else if (type === 'edit') {
-
-    } else if (type === 'delete') {
-
-    }
-  }
   getDeviceData = (fromSearch) => {
     const {baseUrl} = this.props;
-    const {search, deviceData} = this.state;
+    const {deviceSearch, deviceData} = this.state;
     let dataObj = {
       sort: deviceData.sort.field,
       order: deviceData.sort.desc ? 'desc' : 'asc',
       page: fromSearch === 'search' ? 1 : deviceData.currentPage,
-      pageSize: parseInt(deviceData.pageSize)
+      pageSize: deviceData.pageSize
     };
-    let type = '';
 
     if (fromSearch === 'search') {
-      dataObj.keyword = search.ip;
-
-      if (search.system != 'all') {
-        dataObj.system = search.system;
+      if (deviceSearch.ip) {
+        dataObj.ip = deviceSearch.ip;
       }
 
-      if (search.deviceType != 'all') {
-        dataObj.deviceType = search.deviceType;
+      if (deviceSearch.mac) {
+        dataObj.mac = deviceSearch.mac;
       }
 
-      if (search.name) {
-        dataObj.ownerUUID = search.name;
+      if (deviceSearch.hostName) {
+        dataObj.hostName = deviceSearch.hostName;
       }
     }
 
@@ -155,22 +100,26 @@ class NetworkInventory extends Component {
       tempDeviceData.totalCount = data.counts;
       tempDeviceData.currentPage = fromSearch === 'search' ? 1 : deviceData.currentPage;
       tempDeviceData.currentIndex = 0;
-      tempDeviceData.currentLength = data.length;
+      tempDeviceData.currentLength = data.rows.length;
 
       let dataFields = {};
       deviceData.dataFieldsArr.forEach(tempData => {
         dataFields[tempData] = {
           label: tempData === '_menu_' ? '' : t(`ipFields.${tempData}`),
           sortable: this.checkSortable(tempData),
-          formatter: (value, allValue) => {
+          formatter: (value, allValue, index) => {
             if (tempData === 'owner') {
               if (allValue.ownerObj) {
                 return <span>{allValue.ownerObj.ownerName}</span>;
               } else {
                 return <span>{value}</span>;
               }
+            } else if (tempData === 'location') {
+              if (allValue.areaObj && allValue.seatObj) {
+                return <span>{allValue.areaObj.areaName} {allValue.seatObj.seatName}</span>;
+              }
             } else if (tempData === '_menu_') {
-              return <div className={cx('table-menu', {'active': value})}><i className='fg fg-eye' onClick={this.openMenu.bind(this, 'info', allValue)}></i><i className='fg fg-chart-kpi' onClick={this.openMenu.bind(this, 'edit')}></i><i className='fg fg-trashcan' onClick={this.openMenu.bind(this, 'delete')}></i></div>;
+              return <div className={cx('table-menu inventory', {'active': value})}><i className='fg fg-eye' onClick={this.openMenu.bind(this, 'view')}></i><i className='fg fg-chart-kpi' onClick={this.openMenu.bind(this, 'info', allValue, index)}></i><i className='fg fg-trashcan' onClick={this.openMenu.bind(this, 'delete')}></i></div>;
             } else {
               return <span>{value}</span>;
             }
@@ -201,68 +150,27 @@ class NetworkInventory extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  handleTableSort = (value) => {
-    let tempDeviceData = {...this.state.deviceData};
-    tempDeviceData.sort.field = value.field;
-    tempDeviceData.sort.desc = !tempDeviceData.sort.desc;
+  checkSortable = (field) => {
+    const unSortableFields = ['options', 'owner', '_menu_'];
 
-    this.setState({
-      deviceData: tempDeviceData
-    }, () => {
-      this.getDeviceData();
-    });
-  }
-  handlePaginationChange = (type, value) => {
-    let tempDeviceData = {...this.state.deviceData};
-    tempDeviceData[type] = value;
-
-    if (type === 'pageSize') {
-      tempDeviceData.currentPage = 1;
+    if (_.includes(unSortableFields, field)) {
+      return null;
+    } else {
+      return true;
     }
+  }
+  openMenu = (type, allValue, index) => {
+    if (type === 'view') {
+      
+    } else if (type === 'info') {
+      this.openDetailInfo(index, allValue);
+    } else if (type === 'delete') {
 
-    this.setState({
-      deviceData: tempDeviceData
-    }, () => {
-      this.getDeviceData();
-    });
-  }
-  handleSearchSubmit = () => {
-
-  }
-  handleSubTabChange = (type) => {
-    this.setState({
-      activeTab: type,
-      showFilter: false
-    });
-  }
-  toggleFilter = () => {
-    this.setState({
-      showFilter: !this.state.showFilter
-    });
-  }
-  setFilterData = (filterData) => {
-    this.setState({
-      filterData
-    });
-  }
-  handleResetBtn = () => {
-
-  }
-  handleRowMouseOver = (id, allValue, evt) => {
-    let tempDeviceData = {...this.state.deviceData};
-    tempDeviceData.dataContent = _.map(tempDeviceData.dataContent, item => {
-      return {
-        ...item,
-        _menu_: allValue.ip === item.ip ? true : false
-      }
-    });
-
-    this.setState({
-      deviceData: tempDeviceData
-    });
+    }
   }
   showAlertData = (type) => {
-    let tempDeviceData = {...this.state.deviceData};
+    const {deviceData} = this.state;
+    let tempDeviceData = {...deviceData};
 
     if (type === 'previous') {
       if (deviceData.currentIndex !== 0) {
@@ -277,18 +185,85 @@ class NetworkInventory extends Component {
     this.setState({
       deviceData: tempDeviceData
     }, () => {
-      // const {deviceData} = this.state;
-      // let data = '';
+      const {deviceData} = this.state;
+      const index = deviceData.currentIndex;
+      const allValue = deviceData.dataContent[index];
 
-      // if (deviceData.currentID) {
-      //   data = deviceData.publicFormatted.srcIp[deviceData.currentID] || deviceData.publicFormatted.destIp[deviceData.currentID];
-      // }
+      this.openDetailInfo(index, allValue);
+    });
+  }
+  openDetailInfo = (index, allValue, evt) => {
+    let tempDeviceData = {...this.state.deviceData};
+    tempDeviceData.currentIndex = Number(index);
 
-      //this.openDetailInfo(data);
+    if (allValue.ip) {
+      tempDeviceData.itemID = allValue.ip;
+    }
+
+    this.setState({
+      showScanInfo: true,
+      deviceData: tempDeviceData,
+      currentDeviceData: allValue
+    });
+  }
+  handleTableSort = (value) => {
+    let tempDeviceData = {...this.state.deviceData};
+    tempDeviceData.sort.field = value.field;
+    tempDeviceData.sort.desc = !tempDeviceData.sort.desc;
+
+    this.setState({
+      deviceData: tempDeviceData
+    }, () => {
+      this.getDeviceData();
+    });
+  }
+  handlePageChange = (currentPage) => {
+    let tempDeviceData = {...this.state.deviceData};
+    tempDeviceData.currentPage = currentPage;
+
+    this.setState({
+      deviceData: tempDeviceData
+    }, () => {
+      this.getDeviceData();
+    });
+  }  
+  handlePageDropdown = (pageSize) => {
+    let tempDeviceData = {...this.state.deviceData};
+    tempDeviceData.currentPage = 1;
+    tempDeviceData.pageSize = Number(pageSize);
+
+    this.setState({
+      deviceData: tempDeviceData
+    }, () => {
+      this.getDeviceData();
+    });
+  }
+  handleSubTabChange = (type) => {
+    this.setState({
+      activeTab: type,
+      showFilter: false
+    });
+  }
+  toggleFilter = () => {
+    this.setState({
+      showFilter: !this.state.showFilter
+    });
+  }
+  handleRowMouseOver = (id, allValue, evt) => {
+    let tempDeviceData = {...this.state.deviceData};
+    tempDeviceData.dataContent = _.map(tempDeviceData.dataContent, item => {
+      return {
+        ...item,
+        _menu_: allValue.ip === item.ip ? true : false
+      }
+    });
+
+    this.setState({
+      deviceData: tempDeviceData
     });
   }
   displayScanInfo = () => {
-    const {currentDeviceData} = this.state;
+    const {deviceData, currentDeviceData} = this.state;
     const ip = currentDeviceData.ip ? currentDeviceData.ip : NOT_AVAILABLE;
     const mac = currentDeviceData.mac ? currentDeviceData.mac : NOT_AVAILABLE;
     const hostName = currentDeviceData.hostName ? currentDeviceData.hostName : NOT_AVAILABLE;
@@ -317,21 +292,13 @@ class NetworkInventory extends Component {
 
         <div className='pagination'>
           <div className='buttons'>
-            <button onClick={this.showAlertData.bind(this, 'previous')} disabled={currentDeviceData.currentIndex === 0}>{t('txt-previous')}</button>
-            <button onClick={this.showAlertData.bind(this, 'next')} disabled={currentDeviceData.currentIndex + 1 === currentDeviceData.currentLength}>{t('txt-next')}</button>
+            <button onClick={this.showAlertData.bind(this, 'previous')} disabled={deviceData.currentIndex === 0}>{t('txt-previous')}</button>
+            <button onClick={this.showAlertData.bind(this, 'next')} disabled={deviceData.currentIndex + 1 === deviceData.currentLength}>{t('txt-next')}</button>
           </div>
-          <span className='count'>{currentDeviceData.currentIndex + 1} / {currentDeviceData.currentLength}</span>
+          <span className='count'>{deviceData.currentIndex + 1} / {deviceData.currentLength}</span>
         </div>
       </div>
     )
-  }
-  closeDialog = (type) => {
-    if (type === 'scan') {
-      this.setState({
-        showScanInfo: false,
-        currentDeviceData: {}
-      });
-    }
   }
   showScanInfo = () => {
     const actions = {
@@ -352,10 +319,74 @@ class NetworkInventory extends Component {
       </ModalDialog>
     )
   }
+  closeDialog = (type) => {
+    if (type === 'scan') {
+      this.setState({
+        showScanInfo: false,
+        currentDeviceData: {}
+      });
+    }
+  }
+  clearFilter = () => {
+    this.setState({
+      deviceSearch: {
+        ip: '',
+        mac: '',
+        hostName: ''
+      }
+    });
+  }
+  handleDeviceSearch = (type, value) => {
+    const tempDeviceSearch = {...this.state.deviceSearch};
+    tempDeviceSearch[type] = value;
+
+    this.setState({
+      deviceSearch: tempDeviceSearch
+    });
+  }
+  renderFilter = () => {
+    const {showFilter, deviceSearch} = this.state;
+
+    return (
+      <div className={cx('main-filter', {'active': showFilter})}>
+        <i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}></i>
+        <div className='header-text'>{t('txt-filter')}</div>
+        <div className='filter-section config'>
+          <div className='group'>
+            <label htmlFor='deviceSearchIP' className='first-label'>{t('ipFields.ip')}</label>
+            <Input 
+              id='deviceSearchIP'
+              className='search-textarea'
+              onChange={this.handleDeviceSearch.bind(this, 'ip')}
+              value={deviceSearch.ip} />
+          </div>
+          <div className='group'>
+            <label htmlFor='deviceSearchMac'>{t('ipFields.mac')}</label>
+            <Input 
+              id='deviceSearchMac'
+              className='search-textarea'
+              onChange={this.handleDeviceSearch.bind(this, 'mac')}
+              value={deviceSearch.mac} />
+          </div>
+          <div className='group'>
+            <label htmlFor='deviceSearchHostname'>{t('ipFields.hostName')}</label>
+            <Input 
+              id='deviceSearchHostname'
+              className='search-textarea'
+              onChange={this.handleDeviceSearch.bind(this, 'hostName')}
+              value={deviceSearch.hostName} />
+          </div>
+        </div>
+        <div className='button-group'>
+          <button className='filter' onClick={this.getDeviceData.bind(this, 'search')}>{t('txt-filter')}</button>
+          <button className='clear' onClick={this.clearFilter.bind(this)}>{t('txt-clear')}</button>
+        </div>
+      </div>
+    )
+  }
 	render() {
     const {baseUrl, contextRoot, language, session} = this.props;
-    const {activeTab, showFilter, showScanInfo, filterData, deviceData} = this.state;
-    let filterDataCount = 0;
+    const {activeTab, showFilter, showScanInfo, deviceData} = this.state;
 
 		return (
       <div>
@@ -365,7 +396,7 @@ class NetworkInventory extends Component {
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
             {activeTab === 'deviceList' &&
-              <button onClick={this.toggleFilter} className={cx('last', {'active': showFilter})} title={t('network.connections.txt-toggleFilter')}><i className='fg fg-filter'></i><span>({filterDataCount})</span></button>
+              <button onClick={this.toggleFilter} className={cx('last', {'active': showFilter})} title={t('network.connections.txt-toggleFilter')}><i className='fg fg-filter'></i></button>
             }
           </div>
         </div>
@@ -379,14 +410,7 @@ class NetworkInventory extends Component {
 
           <div className='data-table'>
             {activeTab === 'deviceList' &&
-              <FilterContent
-                showFilter={showFilter}
-                activeTab='config'
-                filterData={filterData}
-                handleSearchSubmit={this.handleSearchSubmit}
-                toggleFilter={this.toggleFilter}
-                setFilterData={this.setFilterData}
-                handleResetBtn={this.handleResetBtn} />
+              this.renderFilter()
             }
 
             <div className='main-content'>
@@ -401,27 +425,20 @@ class NetworkInventory extends Component {
               </Tabs>
 
               {activeTab === 'deviceList' &&
-                <div className='table-content'>
-                  <div className='table'>
-                    {deviceData.dataFields &&
-                      <DataTable
-                        className='main-table'
-                        fields={deviceData.dataFields}
-                        data={deviceData.dataContent}
-                        sort={deviceData.dataContent.length === 0 ? {} : deviceData.sort}
-                        onSort={this.handleTableSort}
-                        onRowMouseOver={this.handleRowMouseOver} />
-                    }
-                  </div>
-                  <footer>
-                    <Pagination
-                      totalCount={deviceData.totalCount}
-                      pageSize={deviceData.pageSize}
-                      currentPage={deviceData.currentPage}
-                      onPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                      onDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
-                  </footer>
-                </div>
+                <TableContent
+                  activeTab='config'
+                  dataTableData={deviceData.dataContent}
+                  dataTableFields={deviceData.dataFields}
+                  dataTableSort={deviceData.sort}
+                  paginationTotalCount={deviceData.totalCount}
+                  paginationPageSize={deviceData.pageSize}
+                  paginationCurrentPage={deviceData.currentPage}
+                  currentTableID={deviceData.itemID}
+                  tableUniqueID='ip'
+                  handleTableSort={this.handleTableSort}
+                  handleRowMouseOver={this.handleRowMouseOver}
+                  paginationPageChange={this.handlePageChange}
+                  paginationDropDownChange={this.handlePageDropdown} />
               }
 
               {activeTab === 'deviceMap' &&

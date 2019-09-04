@@ -379,9 +379,11 @@ footer.footer {
 			color: #4a4a4a;
 			background-color: #fff;
 		}
-		i.fg {
-			font-size: 26px;
-			margin-right: 8px;
+		&.inventory {
+			i.fg {
+				font-size: 26px;
+				margin-right: 8px;
+			}
 		}
 	}
 	.table-cell {
@@ -956,7 +958,22 @@ footer.footer {
 					left: 47px;
 				}
 				.filter-section {
+					display: flex;
+					flex-wrap: wrap;
 					margin-top: 37px;
+					&.config {
+						padding: 5px;
+						.group {
+							padding: 5px;
+							label {
+								display: block;
+							}
+							input,
+							select {
+								width: 185px;
+							}
+						}
+					}
 				}
 			}
 			.main-mark {
@@ -1382,41 +1399,6 @@ footer.footer {
 				position: absolute;
 				top: 10px;
 				left: 495px;
-			}
-		}
-	}
-	.filter-header {
-		background-color: #c9ced6;
-		.fg-close {
-			float: right;
-			padding-top: 5px;
-			padding-right: 5px;
-		}
-		.conds {
-			padding-top: 20px;
-		}
-		.cond {
-			display: inline-grid;
-			width: 30%;
-			padding-left: 20px;
-
-			input {
-				height: 35.5px;
-				width: 70%;
-			}
-			select {
-				height: 35.5px;
-				width: 70%;
-			}
-		}
-		.action {
-			padding-top: 20px;
-			padding-bottom: 20px;
-			text-align: right;
-			
-			button {
-				width: 150px;
-				margin-right: 20px;
 			}
 		}
 	}

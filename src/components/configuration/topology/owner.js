@@ -719,28 +719,30 @@ class NetworkTopology extends Component {
   renderFilter() {
     const {list, search, openFilter} = this.state
 
-    return openFilter &&
-      <div className='filter-header'>
-        <i className='c-link fg fg-close' onClick={this.setFilter.bind(this, false)} ></i>
-        <div className='conds'>
-          <div className='cond'>
+    return (
+      <div className={cx('main-filter', {'active': openFilter})}>
+        <i className='fg fg-close' onClick={this.setFilter.bind(this, false)} title={t('txt-close')}></i>
+        <div className='header-text'>{t('txt-filter')}</div>
+        <div className='filter-section config'>
+          <div className='group'>
             <label htmlFor='ownerName' className='first-label'>{t('ownerFields.ownerName')}</label>
             <Input id='ownerName' placeholder={t('txt-enterName')} onChange={this.handleSearchChange.bind(this, 'name')} value={search.name} />
           </div>
-          <div className='cond'>
+          <div className='group'>
             <label htmlFor='ownerDept'>{t('ownerFields.department')}</label>
             <DropDownList id='ownerDept' list={list.department} required={true} onChange={this.handleSearchChange.bind(this, 'department')} value={search.department} />
           </div>
-          <div className='cond'>
+          <div className='group'>
             <label htmlFor='ownerTitle'>{t('ownerFields.title')}</label>
             <DropDownList id='ownerTitle' list={list.title} required={true} onChange={this.handleSearchChange.bind(this, 'title')} value={search.title} />
           </div>
         </div>
-        <div className='action'>
-          <button className='standard' onClick={this.clearFilter.bind(this)}>{t('txt-clear')}</button>
-          <button onClick={this.getOwnerData.bind(this, 'search')}>{t('txt-search')}</button>
+        <div className='button-group'>
+          <button className='filter' onClick={this.getOwnerData.bind(this, 'search')}>{t('txt-filter')}</button>
+          <button className='clear' onClick={this.clearFilter.bind(this)}>{t('txt-clear')}</button>
         </div>
       </div>
+    )
   }
   render() {
     const {baseUrl, contextRoot, language, session} = this.props;

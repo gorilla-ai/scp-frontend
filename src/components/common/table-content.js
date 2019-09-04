@@ -12,10 +12,10 @@ class TableContent extends Component {
     super(props);
   }
   handleRowClass = (allValue) => {
-    const {currentTableID} = this.props;
+    const {currentTableID, tableUniqueID} = this.props;
 
-    if (currentTableID && currentTableID === allValue.id) {
-     return 'table-row grey';
+    if (currentTableID && currentTableID === allValue[tableUniqueID]) {
+      return 'table-row grey';
     }
 
     if (allValue.tag && allValue.tag.color) {

@@ -831,24 +831,26 @@ class Syslog extends Component {
   renderFilter() {
     const {search, openFilter} = this.state
 
-    return openFilter &&
-      <div className='filter-header'>
-        <i className='c-link fg fg-close' onClick={this.setFilter.bind(this, false)} ></i>
-        <div className='conds'>
-          <div className='cond'>
+    return (
+      <div className={cx('main-filter', {'active': openFilter})}>
+        <i className='fg fg-close' onClick={this.setFilter.bind(this, false)} title={t('txt-close')}></i>
+        <div className='header-text'>{t('txt-filter')}</div>
+        <div className='filter-section config'>
+          <div className='group'>
             <label className='first-label'>{t('syslogFields.port')}</label>
             <Input onChange={this.handleSearchChange.bind(this, 'port')} value={search.port} />
           </div>
-          <div className='cond'>
+          <div className='group'>
             <label className='first-label'>{t('syslogFields.format')}</label>
             <Input onChange={this.handleSearchChange.bind(this, 'format')} value={search.format} />
           </div>
         </div>
-        <div className='action'>
-          <button className='standard' onClick={this.clearFilter.bind(this)}>{t('txt-clear')}</button>
-          <button onClick={this.getSyslogList.bind(this, true)}>{t('txt-search')}</button>
+        <div className='button-group'>
+          <button className='filter' onClick={this.getSyslogList.bind(this, true)}>{t('txt-filter')}</button>
+          <button className='clear' onClick={this.clearFilter.bind(this)}>{t('txt-clear')}</button>
         </div>
       </div>
+    )
   }
 	render() {
     const {baseUrl, contextRoot, language, session} = this.props

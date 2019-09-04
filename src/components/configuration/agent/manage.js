@@ -1020,43 +1020,46 @@ class Manage extends Component {
     this.setState({openFilter: flag})
   }
   clearFilter() {
-    // const clear = { name: '', department: 'all', title: 'all' }
     this.setState({agentSearch: ''})
   }
   renderFilter() {
     const {page} = this.props
     const {datetime, threats, agentSearch, openFilter} = this.state
 
-    return openFilter &&
-      <div className='filter-header'>
-        <i className='c-link fg fg-close' onClick={this.setFilter.bind(this, false)} ></i>
-        <div className='conds'>
-          <div className='cond'>
-            {page === 'agent' && 
+    return (
+      <div className={cx('main-filter', {'active': openFilter})}>
+        <i className='fg fg-close' onClick={this.setFilter.bind(this, false)} title={t('txt-close')}></i>
+        <div className='header-text'>{t('txt-filter')}</div>
+        <div className='filter-section config'>
+          {page === 'agent' && 
+            <div className='group'>
+              <label htmlFor='agentSearch' className='first-label'>{t('network.agent.txt-agentSearch')}</label>
               <Input 
-                id='search'
-                placeholder={t('network.agent.txt-agentSearch')}
+                id='agentSearch'
                 className='search-textarea'
                 onChange={this.handleAgentSearch}
                 value={agentSearch} />
-            }
-
-            {page === 'threats' &&
+            </div>
+          }
+          {page === 'threats' && 
+            <div className='group'>
+              <label htmlFor='threatsSearch' className='first-label'>{t('network.agent.txt-threatsSearch')}</label>
               <DateRange
-                id='datetime'
+                id='threatsSearch'
                 className='daterange'
                 onChange={this.handleDateChange}
                 enableTime={true}
                 value={datetime}
                 t={et} />
-            }
-          </div>
+            </div>
+          }
         </div>
-        <div className='action'>
-          <button className='standard' onClick={this.clearFilter.bind(this)}>{t('txt-clear')}</button>
-          <button onClick={this.updateAgentData.bind(this, 'search')}>{t('txt-search')}</button>
+        <div className='button-group'>
+          <button className='filter' onClick={this.updateAgentData.bind(this, 'search')}>{t('txt-filter')}</button>
+          <button className='clear' onClick={this.clearFilter.bind(this)}>{t('txt-clear')}</button>
         </div>
       </div>
+    )
   }
   render() {
     const {baseUrl, contextRoot, language, session, page} = this.props;

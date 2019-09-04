@@ -364,7 +364,8 @@
       "txt-viewADrecord": "View AD Record"
     },
     "agent": {
-      "txt-agentSearch": "Enter IP:Port",
+      "txt-agentSearch": "IP:Port",
+      "txt-threatsSearch": "Date",
       "txt-analyzed": "Analyzed",
       "txt-unanalyzed": "Unanalyzed",
       "txt-analyzing": "Analyzing",
@@ -667,7 +668,8 @@
     "options": "",
     "keyword": "Keyword",
     "connSize": "Connections Size",
-    "unauthType": "Unauthorize Type"
+    "unauthType": "Unauthorize Type",
+    "location": "Location"
   },
   "adFields": {
     "@timestamp": "Timestamp",

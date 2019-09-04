@@ -2119,6 +2119,7 @@ class Netflow extends Component {
       searchFields,
       activeTab,
       tableMouseOver,
+      tableUniqueID: 'id',
       subTabMenu: this.state.subTabMenu,
       activeSubTab: this.state.activeSubTab,
       handleSubTabChange: this.handleSubTabChange,

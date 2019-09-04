@@ -1110,13 +1110,16 @@ class AlertController extends Component {
       alertDetails: tempAlertDetails
     }, () => {
       const {alertDetails} = this.state;
+      const index = alertDetails.currentIndex;
       let data = '';
 
       if (alertDetails.currentID) {
         data = alertDetails.publicFormatted.srcIp[alertDetails.currentID] || alertDetails.publicFormatted.destIp[alertDetails.currentID];
+      } else {
+        data = alertDetails.all[index];
       }
 
-      this.openDetailInfo(data);
+      this.openDetailInfo(index, data);
     });
   }
   showTopoDetail = (id, eventInfo) => {
@@ -1136,7 +1139,8 @@ class AlertController extends Component {
     this.setState({
       alertDetails: tempAlertDetails
     }, () => {
-      this.openDetailInfo(data);
+      const {alertDetails} = this.state;
+      this.openDetailInfo(alertDetails.currentIndex, data);
     });
   }
   openDetailInfo = (index, allValue, evt) => {
@@ -1145,20 +1149,15 @@ class AlertController extends Component {
     let data = '';
     let itemID = '';
 
-    if (index) {
-      if (_.isArray(index)) {
-        data = index[alertDetails.currentIndex];
-      } else {
-        tempAlertDetails.currentIndex = Number(index);
-        data = allValue;
-
-        if (allValue.id) {
-          itemID = allValue.id;
-        }
-      }
+    if (_.isArray(allValue)) { //For click from World Map
+      data = allValue[index];
     } else {
-      data = alertDetails.all[alertDetails.currentIndex];
-      itemID = alertDetails.all[alertDetails.currentIndex].id;
+      tempAlertDetails.currentIndex = Number(index);
+      data = allValue;
+
+      if (allValue.id) {
+        itemID = allValue.id;
+      }
     }
 
     this.setState({
@@ -1282,6 +1281,7 @@ class AlertController extends Component {
       activeTab,
       tableMouseOver,
       chartColors: ALERT_LEVEL_COLORS,
+      tableUniqueID: 'id',
       subTabMenu: this.state.subTabMenu,
       activeSubTab: this.state.activeSubTab,
       handleSubTabChange: this.handleSubTabChange,

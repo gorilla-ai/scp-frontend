@@ -364,7 +364,8 @@
       "txt-viewADrecord": "瀏覽AD紀錄"
     },
     "agent": {
-      "txt-agentSearch": "輸入IP:Port",
+      "txt-agentSearch": "IP:Port",
+      "txt-threatsSearch": "日期",
       "txt-analyzed": "已分析",
       "txt-unanalyzed": "未分析",
       "txt-analyzing": "分析中",
@@ -667,7 +668,8 @@
     "options": "",
     "keyword": "關鍵字",
     "connSize": "Connections Size",
-    "unauthType": "Unauthorize Type"
+    "unauthType": "Unauthorize Type",
+    "location": "區域位置"
   },
   "adFields": {
     "@timestamp": "日期",

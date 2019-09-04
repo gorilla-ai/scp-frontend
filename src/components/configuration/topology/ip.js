@@ -689,28 +689,30 @@ class IP extends Component {
   renderFilter() {
     const {list, search, openFilter} = this.state
 
-    return openFilter &&
-      <div className='filter-header'>
-        <i className='c-link fg fg-close' onClick={this.setFilter.bind(this, false)} ></i>
-        <div className='conds'>
-          <div className='cond'>
+    return (
+      <div className={cx('main-filter', {'active': openFilter})}>
+        <i className='fg fg-close' onClick={this.setFilter.bind(this, false)} title={t('txt-close')}></i>
+        <div className='header-text'>{t('txt-filter')}</div>
+        <div className='filter-section config'>
+          <div className='group'>
             <label htmlFor='IPip' className='first-label'>{t('txt-keywords')}</label>
-            <Input id='IPip' placeholder={t('txt-enterKeyword')} onChange={this.handleSearchChange.bind(this, 'ip')} value={search.ip} />    
+            <Input id='IPip' placeholder={t('txt-enterKeyword')} onChange={this.handleSearchChange.bind(this, 'ip')} value={search.ip} />  
           </div>
-          <div className='cond'>
+          <div className='group'>
             <label htmlFor='IPsystem'>{t('ipFields.system')}</label>
             <DropDownList id='IPsystem' list={list.system} required={true} onChange={this.handleSearchChange.bind(this, 'system')} value={search.system}/>
           </div>
-          <div className='cond'>
+          <div className='group'>
             <label htmlFor='IPdevice'>{t('txt-device')}</label>
             <DropDownList id='IPdevice' list={list.deviceType} required={true} onChange={this.handleSearchChange.bind(this, 'deviceType')} value={search.deviceType}/>
           </div>
-          <div className='action'>
-            <button className='standard' onClick={this.clearFilter.bind(this)}>{t('txt-clear')}</button>
-            <button onClick={this.getIPData.bind(this, 'search')}>{t('txt-search')}</button>
-          </div>
+        </div>
+        <div className='button-group'>
+          <button className='filter' onClick={this.getIPData.bind(this, 'search')}>{t('txt-filter')}</button>
+          <button className='clear' onClick={this.clearFilter.bind(this)}>{t('txt-clear')}</button>
         </div>
       </div>
+    )
   }
   getEdges() {
     const {baseUrl} = this.props

@@ -443,30 +443,29 @@ class Endpoint extends Component {
     });
   }
   renderFilter = () => {
-    const {search} = this.state;
+    const {openFilter, search} = this.state;
 
     return (
-      <div className='filter-header'>
-        <i className='c-link fg fg-close' onClick={this.setFilter.bind(this, false)}></i>
-        <div className='conds'>
-          <div className='cond'>
+      <div className={cx('main-filter', {'active': openFilter})}>
+        <i className='fg fg-close' onClick={this.setFilter.bind(this, false)} title={t('txt-close')}></i>
+        <div className='header-text'>{t('txt-filter')}</div>
+        <div className='filter-section config'>
+          <div className='group'>
             <label htmlFor='hostName' className='first-label'>{t('hmdFields.hostName')}</label>
             <Input id='hostName' onChange={this.handleSearchChange.bind(this, 'hostName')} value={search.hostName} />
           </div>
-
-          <div className='cond'>
+          <div className='group'>
             <label htmlFor='hostName' className='first-label'>{t('hmdFields.ip')}</label>
             <Input id='hostName' onChange={this.handleSearchChange.bind(this, 'ip')} value={search.ip} />
           </div>
-
-          <div className='cond'>
+          <div className='group'>
             <label htmlFor='hostName' className='first-label'>{t('hmdFields.mac')}</label>
             <Input id='hostName' onChange={this.handleSearchChange.bind(this, 'mac')} value={search.mac} />
           </div>
         </div>
-        <div className='action'>
-          <button className='standard' onClick={this.clearFilter}>{t('txt-clear')}</button>
-          <button onClick={this.getHostData.bind(this, 'search')}>{t('txt-search')}</button>
+        <div className='button-group'>
+          <button className='filter' onClick={this.getHostData.bind(this, 'search')}>{t('txt-filter')}</button>
+          <button className='clear' onClick={this.clearFilter.bind(this)}>{t('txt-clear')}</button>
         </div>
       </div>
     )
@@ -492,10 +491,10 @@ class Endpoint extends Component {
 
         <div className='sub-header'>
           {helper.getEventsMenu('endpoint', sessionRights)}
-        </div>
 
-        <div className='sub-header'>
-          <i className='c-link fg fg-filter' onClick={this.setFilter.bind(this, !openFilter)} title={t('txt-filter')}></i>
+          <div className='secondary-btn-group right'>
+            <button onClick={this.setFilter.bind(this, !openFilter)} className={cx('last', {'active': openFilter})} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
+          </div>
         </div>
 
         <div className='data-content'>

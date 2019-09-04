@@ -46,7 +46,7 @@ class FilterContent extends Component {
           {...this.props} />
         <div className='button-group'>
           {this.getSubmitButton()}
-          <button className='clear' onClick={this.props.handleResetBtn.bind(this, 'filter')}>{t('network.connections.txt-clear')}</button>
+          <button className='clear' onClick={this.props.handleResetBtn.bind(this, 'filter')}>{t('txt-clear')}</button>
         </div>
       </div>
     )

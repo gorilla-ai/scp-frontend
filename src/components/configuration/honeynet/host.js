@@ -610,29 +610,28 @@ class Honeynet extends Component {
   renderFilter() {
     const {search, openFilter, groupData} = this.state
 
-    return openFilter &&
-      <div className='filter-header'>
-        <i className='c-link fg fg-close' onClick={this.setFilter.bind(this, false)} ></i>
-        <div className='conds'>
-          <div className='cond'>
+    return (
+      <div className={cx('main-filter', {'active': openFilter})}>
+        <i className='fg fg-close' onClick={this.setFilter.bind(this, false)} title={t('txt-close')}></i>
+        <div className='header-text'>{t('txt-filter')}</div>
+        <div className='filter-section config'>
+          <div className='group'>
+            <label htmlFor='honeypotName'>{t('honeynetFields.name')}</label>
+            <Input id='honeypotName' onChange={this.handleDataChange.bind(this, 'search', 'name')} value={search.name} />
+          </div>
+          <div className='group'>
             <label htmlFor='honeypotVPNname' className='first-label'>{t('honeynetFields.vpnName')}</label>
             <Input id='honeypotVPNname' onChange={this.handleDataChange.bind(this, 'search', 'vpnName')} value={search.vpnName} />
           </div>
-          <div className='cond'>
-            <label htmlFor='honeypotName'>{t('honeynetFields.name')}</label>
-            <Input id='honeypotName' onChange={this.handleDataChange.bind(this, 'search', 'name')} value={search.name} />            
-          </div>
-          <div className='cond'>
+          <div className='group'>
             <label htmlFor='honeypotIP'>{t('honeynetFields.ip')}</label>
             <Input id='honeypotIP' onChange={this.handleDataChange.bind(this, 'search', 'IP')} value={search.IP} />
           </div>
-        </div>
-        <div className='conds'>
-          <div className='cond'>
+          <div className='group'>
             <label htmlFor='honeypotPot'>{t('honeynetFields.honeypot')}</label>
             <Input id='honeypotPot' onChange={this.handleDataChange.bind(this, 'search', 'honeypot')} value={search.honeypot} />
           </div>
-          <div className='cond'>
+          <div className='group'>
             <label htmlFor='honeypotStatus'>{t('honeynetFields.status')}</label>
             <DropDownList id='honeypotStatus'
               list={[
@@ -653,7 +652,7 @@ class Honeynet extends Component {
               onChange={this.handleDataChange.bind(this, 'search', 'status')}
               value={search.status} />
           </div>
-          <div className='cond'>
+          <div className='group'>
             <label htmlFor='honeypotGroup'>{t('honeynetFields.groupName')}</label>
             <ComboBox list={groupData} multiSelect={{enabled: true, toggleAll: true}}
               search={{enabled: true}} info={(list)=>{return list.length <=0 ? 'No Results Found' : ''}}
@@ -661,11 +660,12 @@ class Honeynet extends Component {
               value={search.groupName}/>
           </div>
         </div>
-        <div className='action'>
-          <button className='standard' onClick={this.clearFilter.bind(this)}>{t('txt-clear')}</button>
-          <button onClick={this.getHostData}>{t('txt-search')}</button>
+        <div className='button-group'>
+          <button className='filter' onClick={this.getHostData}>{t('txt-filter')}</button>
+          <button className='clear' onClick={this.clearFilter.bind(this)}>{t('txt-clear')}</button>
         </div>
       </div>
+    )
   }
   render() {
     const {baseUrl, contextRoot, language, session} = this.props;
