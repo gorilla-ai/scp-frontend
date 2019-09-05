@@ -220,7 +220,7 @@ class Endpoint extends Component {
     const {taskTable} = this.state;
     const titleText = t('hmdFields.viewTask');
     const actions = {
-      confirm: {text: t('txt-confirm'), handler: this.closeDialog}
+      confirm: {text: t('txt-close'), handler: this.closeDialog}
     };
 
     return (

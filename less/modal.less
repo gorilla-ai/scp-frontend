@@ -10,6 +10,23 @@
 .leaflet-container {
 	background: #fff;
 }
+.modal-dialog {
+	.content {
+		padding: 10px;
+	}
+	.button-group {
+		margin: 10px;
+	}
+	.data-table {
+		width: 970px;
+		padding: 10px;
+		ul {
+			&.table-sort {
+				border: 1px solid #ccc;
+			}
+		}
+	}
+}
 #modalWindowSmall {
 	footer {
 		text-align: center;
@@ -567,23 +584,6 @@
 		}
 	}
 }
-.modal-dialog {
-	.content {
-		padding: 10px;
-	}
-	.button-group {
-		margin: 10px;
-	}
-	.data-table {
-		width: 970px;
-		padding: 10px;
-		ul {
-			&.table-sort {
-				border: 1px solid #ccc;
-			}
-		}
-	}
-}
 #floorModalDialog-content {
 	.left,
 	.right {
@@ -871,48 +871,6 @@
 				margin-top: 30px;
 				max-height: 360px;
 				overflow-y: auto;
-				.private {
-					section {
-						margin-bottom: 30px;
-						padding-right: 10px;
-						overflow: hidden;
-						clear: both;
-						.header {
-							font-size: 20px;
-							color: #185e9e;
-							margin-bottom: 15px;
-						}
-						img.owner-pic {
-							float: left;
-							display: block;
-							width: 150px;
-							height: 150px;
-							border-radius: 50%;
-							margin-bottom: 20px;
-							margin-right: 5%;
-							margin-left: 5%;
-						}
-						table {
-							&.ip,
-							&.host {
-								td:nth-child(odd) {
-									width: 32%;
-								}
-							}
-							&.owner {
-								float: left;
-								width: 67%;
-							}
-						}
-						.floor-map {
-							text-align: center;
-							.c-gis {
-								min-width: 99%;
-								min-height: 400px;
-							}
-						}
-					}
-				}
 			}
 			.srcIp-content,
 			.destIp-content {
@@ -1175,6 +1133,83 @@
 			&.hostName,
 			&.ownerName {
 				width: 25%;
+			}
+		}
+	}
+	.scan-info {
+		overflow: hidden;
+		min-height: 550px;
+		margin-top: 10px;
+		padding: 10px;
+		border: 1px solid #ccc;
+		border-radius: 5px;
+		background-color: #f2f2f2;
+		.info-content {
+			overflow: hidden;
+			clear: both;
+			.info {
+				position: relative;
+				padding-bottom: 5px;
+				padding-top: 25px;
+				overflow: hidden;
+				.last-update {
+					float: left;
+					margin-right: 520px;
+				}
+				.count {
+					color: #d10d25;
+				}
+				.btn {
+					position: absolute;
+					top: 20px;
+					right: 0;
+					padding: .3em .5em;
+				}
+			}
+			.file-path {
+				margin-top: 15px;
+				border-top: 2px solid #ccc;
+				border-bottom: 2px solid #ccc;
+				& > .header {
+					color: #185e9e;
+					font-weight: bold;
+					padding: 5px 10px;
+				}
+				.list {
+					max-height: 400px;
+					overflow-y: scroll;
+					.group {
+						border-top: 1px solid #ccc;
+						.path {
+							padding: 5px 10px 8px 10px;
+							background-color: #fff;
+							cursor: pointer;
+							i {
+								float: left;
+								margin-right: 10px;
+								border: 1px solid #ccc;
+								border-radius: 5px;
+							}
+						}
+						.rule {
+							padding: 5px 45px;
+							border-top: 1px solid #ccc;
+							&.hide {
+								display: none;
+							}
+							.header {
+								color: #185e9e;
+							}
+							i {
+								font-size: 14px;
+								margin-right: 5px;
+							}
+						}
+					}
+				}
+			}
+			.msg {
+				margin-top: 15px;
 			}
 		}
 	}

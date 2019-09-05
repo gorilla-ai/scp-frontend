@@ -13,6 +13,7 @@ import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PageNav from 'react-ui/build/src/components/page-nav'
 import Textarea from 'react-ui/build/src/components/textarea'
 
+import {HocPrivateDetails as PrivateDetails} from './private-details'
 import {HocSafetyScan as SafetyScan} from './safety-scan'
 import helper from './helper'
 import withLocale from '../../hoc/locale-provider'
@@ -906,95 +907,12 @@ class AlertDetails extends Component {
     const srcDestType = type.replace('Ip', '');
 
     return (
-      <div className='private'>
-        <section>
-          <div className='header'>{t('alert.txt-ipInfo')}</div>
-          <table className='c-table main-table ip'>
-            <tbody>
-              <tr>
-                <td>IP</td>
-                <td>{topoInfo[type] || NOT_AVAILABLE}</td>
-              </tr>
-              <tr>
-                <td>MAC</td>
-                <td>{topoInfo[srcDestType + 'Mac'] || NOT_AVAILABLE}</td>
-              </tr>
-            </tbody>
-          </table>
-        </section>
-
-        <section>
-          <div className='header'>{t('alert.txt-systemInfo')}</div>
-          <table className='c-table main-table host'>
-            <tbody>
-              <tr>
-                <td>{t('ipFields.hostName')}</td>
-                <td>{topoInfo.hostName || NOT_AVAILABLE}</td>
-              </tr>
-              <tr>
-                <td>{t('ipFields.system')}</td>
-                <td>{topoInfo.system || NOT_AVAILABLE}</td>
-              </tr>
-              <tr>
-                <td>{t('ipFields.deviceType')}</td>
-                <td>{topoInfo.deviceType || NOT_AVAILABLE}</td>
-              </tr>
-            </tbody>
-          </table>
-        </section>
-
-        <section>
-          <div className='header'>{t('alert.txt-ownerInfo')}</div>
-          <img src={picPath} className='owner-pic' title={t('network-topology.txt-profileImage')} />
-          <table className='c-table main-table owner'>
-            <tbody>
-              <tr>
-                <td>{t('ownerFields.ownerName')}</td>
-                <td>{topoInfo.ownerName || NOT_AVAILABLE}</td>
-              </tr>
-              <tr>
-                <td>{t('ownerFields.ownerID')}</td>
-                <td>{topoInfo.ownerID || NOT_AVAILABLE}</td>
-              </tr>
-              <tr>
-                <td>{t('ownerFields.department')}</td>
-                <td>{topoInfo.department || NOT_AVAILABLE}</td>
-              </tr>
-              <tr>
-                <td>{t('ownerFields.title')}</td>
-                <td>{topoInfo.title || NOT_AVAILABLE}</td>
-              </tr>
-            </tbody>
-          </table>
-        </section>
-
-        <section>
-          <div className='header'>{t('alert.txt-floorInfor')}</div>
-          {!_.isEmpty(alertInfo[type].ownerMap) &&
-            <div className='floor-map'>
-              <Gis
-                _ref={(ref) => {this.gisNode = ref}}
-                data={_.get(alertInfo[type].ownerSeat, [topoInfo.areaUUID, 'data'], [])}
-                baseLayers={alertInfo[type].ownerBaseLayers}
-                baseLayer={topoInfo.areaUUID}
-                layouts={['standard']}
-                dragModes={['pan']}
-                scale={{enabled: false}}
-                symbolOptions={[{
-                  match: {
-                    data: {tag: 'red'}
-                  },
-                  props: {
-                    backgroundColor: 'red'
-                  }
-                }]} />
-              </div>
-          }
-          {_.isEmpty(alertInfo[type].ownerMap) &&
-            <span>{NOT_AVAILABLE}</span>
-          }
-        </section>
-      </div>
+      <PrivateDetails
+        type={type}
+        alertInfo={alertInfo}
+        topoInfo={topoInfo}
+        picPath={picPath}
+        srcDestType={srcDestType} />
     )
   }
   /**

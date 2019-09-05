@@ -194,7 +194,7 @@ footer.footer {
 		height: 95vh;
 	}
 	&.fit {
-		height: 72vh;
+		height: 71vh;
 		overflow-y: auto;
 	}
 	.actions {
@@ -1036,6 +1036,7 @@ footer.footer {
 				}
 			}
 			.main-content {
+				position: relative;
 				margin: 15px;
 				border-radius: 5px;
 				background-color: #ededed;
@@ -1057,7 +1058,7 @@ footer.footer {
 					}
 				}
 				.table-content .table {
-					height: 72vh;
+					height: 71vh;
 					overflow-y: auto;
 					.main-table {
 						width: 100%;
@@ -1276,6 +1277,20 @@ footer.footer {
 				.table-content .table.normal {
 					height: auto;
 				}
+				.btn {
+					position: absolute;
+					top: 5px;
+					padding: .3em 1em;
+					&.notification {
+						right: 15px;
+					}
+					&.auto-settings {
+						right: 120px;
+					}
+					&.manual-settings {
+						right: 257px;
+					}
+				}
 				.la-content {
 					height: 80vh;
 					overflow-y: auto;
@@ -1461,6 +1476,97 @@ footer.footer {
 				position: absolute;
 				top: 10px;
 				right: 10px;
+			}
+		}
+	}
+	.privateIp-info {
+		background-color: #fff;
+		header {
+			color: #004d93;
+			font-weight: bold;
+			padding: 15px;
+			border-bottom: 1px solid #ccc;
+			background-color: #fff;
+		}
+		.btn {
+			top: 12px !important;
+			&.edit {
+				right: 15px;
+			}
+			&.list {
+				right: 90px;
+			}
+		}
+		.private {
+			width: 50%;
+			margin: 0 auto;
+			padding: 20px 0;
+			section {
+				padding-right: 0 !important;
+				table.owner {
+					width: 70% !important;
+				}
+			}
+		}
+		.main-table {
+			border-radius: 5px;
+			width: 100%;
+			overflow: hidden;
+			thead tr {
+				color: #185e9e;
+			}
+			tbody td:hover {
+				cursor: text;
+			}
+			th, td {
+				padding: 10px !important;
+				border: 1px solid #ccc !important;
+			}
+		}
+	}
+	.privateIp-info,
+	.srcIp-content,
+	.destIp-content {
+		.private {
+			section {
+				margin-bottom: 30px;
+				padding-right: 10px;
+				overflow: hidden;
+				clear: both;
+				.header {
+					font-size: 20px;
+					color: #185e9e;
+					margin-bottom: 15px;
+				}
+				img.owner-pic {
+					float: left;
+					display: block;
+					width: 150px;
+					height: 150px;
+					border-radius: 50%;
+					margin-bottom: 20px;
+					margin-right: 5%;
+					margin-left: 5%;
+				}
+				table {
+					&.ip,
+					&.host {
+						td:nth-child(odd) {
+							width: 32%;
+						}
+					}
+					&.owner {
+						float: left;
+						width: 67%;
+					}
+				}
+				.floor-map {
+					text-align: center;
+					.c-gis {
+						min-width: 99%;
+						min-height: 400px;
+					}
+				}
 			}
 		}
 	}
