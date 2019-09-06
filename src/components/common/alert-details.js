@@ -239,7 +239,7 @@ class AlertDetails extends Component {
           tempAlertInfo[type].ownerPic = data.base64;
 
           this.setState({
-            ownerPic: tempAlertInfo
+            alertInfo: tempAlertInfo
           });
         }
       })

@@ -20,6 +20,9 @@ import withLocale from '../../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+let t = null;
+let f = null;
+
 const NOT_AVAILABLE = 'N/A';
 const RULES = [
   {
@@ -38,10 +41,6 @@ const RULES = [
     rule: 'rule MatchNetflix'
   }
 ];
-
-let t = null;
-let f = null;
-
 class NetworkInventory extends Component {
 	constructor(props) {
 		super(props);
@@ -77,7 +76,12 @@ class NetworkInventory extends Component {
       },
       currentDeviceData: {},
       alertInfo: {
-        srcIp: {}
+        srcIp: {
+          ownerPic: '',
+          ownerMap: '',
+          ownerBaseLayers: {},
+          ownerSeat: {}
+        }
       }
 		};
 
@@ -87,6 +91,7 @@ class NetworkInventory extends Component {
 	}
 	componentWillMount() {
     this.getDeviceData();
+    this.getFloorPlan();
 	}
   getDeviceData = (fromSearch) => {
     const {baseUrl} = this.props;
@@ -189,6 +194,93 @@ class NetworkInventory extends Component {
       return true;
     }
   }
+  getFloorPlan = () => {
+    const {baseUrl} = this.props;
+
+    this.ah.one({
+      url: `${baseUrl}/api/area/_tree`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data && data.length > 0) {
+        const floorPlanData = data[0];
+        const floorPlan = {
+          treeData: data,
+          currentAreaUUID: floorPlanData.areaUUID,
+          currentAreaName: floorPlanData.areaName
+        };
+
+        this.setState({
+          floorPlan
+        }, () => {
+          this.getFloorList();
+        });
+      }
+    })
+  }
+  getFloorList = () => {
+    const {floorPlan} = this.state;
+    let floorList = [];
+    let currentFloor = '';
+
+    _.forEach(floorPlan.treeData, val => {
+      helper.floorPlanRecursive(val, obj => {
+        floorList.push({
+          value: obj.areaUUID,
+          text: obj.areaName
+        });
+      });
+    })
+
+    currentFloor = floorList[0].value;
+
+    this.setState({
+      floorList,
+      currentFloor
+    }, () => {
+      this.getAreaData(currentFloor);
+    });
+  }
+  getAreaData = (areaUUID) => {
+    const {baseUrl, contextRoot} = this.props;
+    const floorPlan = areaUUID;
+
+    this.ah.one({
+      url: `${baseUrl}/api/area?uuid=${floorPlan}`,
+      type: 'GET'
+    })
+    .then(data => {
+      const areaName = data.areaName;
+      const areaUUID = data.areaUUID;
+      let currentMap = '';
+
+      if (data.picPath) {
+        const picPath = `${baseUrl}${contextRoot}/api/area/_image?path=${data.picPath}`;
+        const picWidth = data.picWidth;
+        const picHeight = data.picHeight;
+
+        currentMap = {
+          label: areaName,
+          images: [
+            {
+              id: areaUUID,
+              url: picPath,
+              size: {width: picWidth, height: picHeight}
+            }
+          ]
+        };
+      }
+
+      let currentBaseLayers = {};
+      currentBaseLayers[floorPlan] = currentMap;
+
+      this.setState({
+        currentMap,
+        currentBaseLayers,
+        currentFloor: areaUUID
+      });
+    })
+  }
   renderFilter = () => {
     const {showFilter, deviceSearch} = this.state;
 
@@ -231,15 +323,85 @@ class NetworkInventory extends Component {
   }
   openMenu = (type, allValue, index) => {
     if (type === 'view') {
-      this.setState({
-        activeContent: 'dataInfo',
-        currentDeviceData: allValue
-      });
+        this.getOwnerPic(allValue);
+        this.getOwnerSeat(allValue);
     } else if (type === 'info') {
       this.openDetailInfo(index, allValue);
     } else if (type === 'delete') {
 
     }
+  }
+  getOwnerPic = (allValue) => {
+    const {baseUrl} = this.props;
+    const {alertInfo} = this.state;
+    let ownerUUID = '';
+    let tempAlertInfo = {...alertInfo};
+
+    if (!allValue.ownerObj) {
+      return;
+    }
+
+    ownerUUID = allValue.ownerObj.ownerUUID;
+
+    if (ownerUUID) {
+      this.ah.one({
+        url: `${baseUrl}/api/owner?uuid=${ownerUUID}`,
+        type: 'GET'
+      })
+      .then(data => {
+        if (data) {
+          tempAlertInfo.srcIp.ownerPic = data.base64;
+
+          this.setState({
+            alertInfo: tempAlertInfo
+          });
+        }
+      })
+      .catch(err => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
+      })
+    }
+  }
+  getOwnerSeat = (allValue) => {
+    const {baseUrl, contextRoot} = this.props;
+    const {alertInfo} = this.state;
+    const topoInfo = allValue;
+    let tempAlertInfo = {...alertInfo};
+    let ownerMap = {};
+
+    if (topoInfo.areaObj.picPath) {
+      ownerMap = {
+        label: topoInfo.areaObj.areaName,
+        images: [
+          {
+            id: topoInfo.areaUUID,
+            url: `${baseUrl}${contextRoot}/api/area/_image?path=${topoInfo.areaObj.picPath}`,
+            size: {width: topoInfo.areaObj.picWidth, height: topoInfo.areaObj.picHeight}
+          }
+        ]
+      };
+    }
+
+    tempAlertInfo.srcIp.ownerMap = ownerMap;
+    tempAlertInfo.srcIp.ownerBaseLayers[topoInfo.areaUUID] = ownerMap;
+    tempAlertInfo.srcIp.ownerSeat[topoInfo.areaUUID] = {
+      data: [{
+        id: topoInfo.seatUUID,
+        type: 'spot',
+        xy: [topoInfo.seatObj.coordX, topoInfo.seatObj.coordY],
+        label: topoInfo.seatObj.seatName,
+        data: {
+          name: topoInfo.seatObj.seatName,
+          tag: 'red'
+        }
+      }]
+    };
+
+    this.setState({
+      activeContent: 'dataInfo',
+      currentDeviceData: allValue,
+      alertInfo: tempAlertInfo
+    });
   }
   showAlertData = (type) => {
     const {deviceData} = this.state;

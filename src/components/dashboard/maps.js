@@ -446,7 +446,7 @@ class DashboardMaps extends Component {
       });
     })
 
-    currentFloor = floorList[5].value;
+    currentFloor = floorList[0].value; //Default to the top parent floor
 
     this.setState({
       floorList,
@@ -540,7 +540,6 @@ class DashboardMaps extends Component {
     });
   }
   getSeatData = () => {
-    const {baseUrl, contextRoot} = this.props;
     const {alertDetails, currentFloor} = this.state;
     const areaUUID = currentFloor;
     let tempAlertDetails = [];
