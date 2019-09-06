@@ -1061,6 +1061,9 @@ footer.footer {
 				.table-content .table {
 					height: 71vh;
 					overflow-y: auto;
+					&.no-fixed {
+						height: auto;
+					}
 					.main-table {
 						width: 100%;
 						&.overflow-scroll {
@@ -1569,6 +1572,25 @@ footer.footer {
 					}
 				}
 			}
+		}
+	}
+	.inventory-map {
+		overflow: hidden;
+		.tree {
+			float: left;
+			width: 20%;
+			ul.c-tree {
+				min-height: 80vh;
+				border-right: 1px solid #ccc;
+			}
+		}
+		.map {
+			float: left;
+			text-align: center;
+			width: 80%;
+			padding-top: 80px;
+			background-color: #f2f2f2;
+			min-height: 80vh;
 		}
 	}
 }

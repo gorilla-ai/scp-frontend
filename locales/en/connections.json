@@ -400,7 +400,7 @@
   },
 
   "hmdFields": {
-    "id": "Host ID",
+    "ipDeviceUUID": "Host ID",
     "hostId": "Host ID",
     "hostName": "Host Name",
     "taskId": "Task ID",
@@ -658,6 +658,8 @@
   "ipFields": {
     "timestamp": "Date",
     "seat": "Seat",
+    "seatName": "Seat Name",
+    "areaName": "Area Name",
     "areaFullName": "Area Full Name",
     "ip": "IP",
     "mac": "MAC",

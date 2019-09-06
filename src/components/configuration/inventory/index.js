@@ -5,10 +5,13 @@ import Moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
+import Gis from 'react-gis/build/src/components'
+
 import DataTable from 'react-ui/build/src/components/table'
 import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import Tabs from 'react-ui/build/src/components/tabs'
+import TreeView from 'react-ui/build/src/components/tree'
 
 import {HocConfig as Config} from '../../common/configuration'
 import {HocFilterContent as FilterContent} from '../../common/filter-content'
@@ -41,6 +44,19 @@ const RULES = [
     rule: 'rule MatchNetflix'
   }
 ];
+const MAPS_PRIVATE_DATA = {
+  floorList: [],
+  currentFloor: '',
+  floorPlan: {
+    treeData: {},
+    currentAreaUUID: '',
+    currentAreaName: ''
+  },
+  mapAreaUUID: '',
+  currentMap: '',
+  currentBaseLayers: {},
+  seatData: {}
+};
 class NetworkInventory extends Component {
 	constructor(props) {
 		super(props);
@@ -50,12 +66,16 @@ class NetworkInventory extends Component {
       activeContent: 'tableList', //tableList, dataInfo
       showFilter: false,
       showScanInfo: false,
+      showSeatData: false,
       activeScanType: 'yara', //yara, ir
       activeRule: null,
       deviceSearch: {
         ip: '',
         mac: '',
-        hostName: ''
+        hostName: '',
+        owner: '',
+        areaName: '',
+        seatName: ''
       },
       deviceData: {
         dataFieldsArr: ['ip', 'mac', 'hostName', 'owner', 'location', '_menu_'],
@@ -75,6 +95,15 @@ class NetworkInventory extends Component {
         currentLength: ''
       },
       currentDeviceData: {},
+      floorPlan: {
+        treeData: {},
+        type: '',
+        rootAreaUUID: '',
+        currentAreaUUID: '',
+        currentAreaName: '',
+        name: '',
+        map: ''
+      },
       alertInfo: {
         srcIp: {
           ownerPic: '',
@@ -82,7 +111,8 @@ class NetworkInventory extends Component {
           ownerBaseLayers: {},
           ownerSeat: {}
         }
-      }
+      },
+      ..._.cloneDeep(MAPS_PRIVATE_DATA)
 		};
 
     t = chewbaccaI18n.getFixedT(null, 'connections');
@@ -93,37 +123,62 @@ class NetworkInventory extends Component {
     this.getDeviceData();
     this.getFloorPlan();
 	}
-  getDeviceData = (fromSearch) => {
+  getDeviceData = (fromSearch, options, seatUUID) => {
     const {baseUrl} = this.props;
     const {deviceSearch, deviceData} = this.state;
-    let dataObj = {
-      sort: deviceData.sort.field,
-      order: deviceData.sort.desc ? 'desc' : 'asc',
-      page: fromSearch === 'search' ? 1 : deviceData.currentPage,
-      pageSize: deviceData.pageSize
-    };
+    let dataParams = '';
+
+    if (options === 'oneSeat') {
+      dataParams += `&seatUUID=${seatUUID}`;
+    } else {
+      const page = fromSearch === 'search' ? 1 : deviceData.currentPage;
+      const pageSize = deviceData.pageSize;
+      const sort = deviceData.sort.desc ? 'desc' : 'asc';
+      const orders = deviceData.sort.field + ' ' + sort;
+      dataParams = `page=${page}&pageSize=${pageSize}&orders=${orders}`
+    }
 
     if (fromSearch === 'search') {
       if (deviceSearch.ip) {
-        dataObj.ip = deviceSearch.ip;
+        dataParams += `&ip=${deviceSearch.ip}`;
       }
 
       if (deviceSearch.mac) {
-        dataObj.mac = deviceSearch.mac;
+        dataParams += `&mac=${deviceSearch.mac}`;
       }
 
       if (deviceSearch.hostName) {
-        dataObj.hostName = deviceSearch.hostName;
+        dataParams += `&hostName=${deviceSearch.hostName}`;
+      }
+
+      if (deviceSearch.owner) {
+        dataParams += `&ownerName=${deviceSearch.owner}`;
+      }
+
+      if (deviceSearch.areaName) {
+        dataParams += `&areaName=${deviceSearch.areaName}`;
+      }
+
+      if (deviceSearch.seatName) {
+        dataParams += `&seatName=${deviceSearch.seatName}`;
       }
     }
 
     this.ah.one({
-      url: `${baseUrl}/api/ipdevice/_search`,
-      data: JSON.stringify(dataObj),
-      type: 'POST',
-      contentType: 'text/plain'
+      url: `${baseUrl}/api/networkInventory/_search?${dataParams}`,
+      type: 'GET'
     })
     .then(data => {
+      if (options === 'oneSeat') {
+        if (data.counts > 0) {
+          this.setState({
+            showSeatData: true,
+            currentDeviceData: data.rows[0]
+          });
+          return null;
+        }
+      }
+
       let tempDeviceData = {...deviceData};
       tempDeviceData.dataContent = data.rows;
       tempDeviceData.totalCount = data.counts;
@@ -181,9 +236,39 @@ class NetworkInventory extends Component {
         deviceData: tempDeviceData
       });
     })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
+  }
+  displaySeatInfo = () => {
+    const {currentDeviceData} = this.state;
+    const ip = currentDeviceData.ip ? currentDeviceData.ip : NOT_AVAILABLE;
+    const mac = currentDeviceData.mac ? currentDeviceData.mac : NOT_AVAILABLE;
+    const hostName = currentDeviceData.hostName ? currentDeviceData.hostName : NOT_AVAILABLE;
+
+    return (
+      <div>
+        <div>IP: {ip}</div>
+        <div>Mac: {mac}</div>
+        <div>Host Name: {hostName}</div>
+      </div>
+    )
+  }
+  showSeatData = () => {
+    const actions = {
+      confirm: {text: t('txt-close'), handler: this.closeDialog}
+    };
+    const titleText = '';
+
+    return (
+      <ModalDialog
+        id='configSeatDialog'
+        className='modal-dialog'
+        title={titleText}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='confirm'>
+        {this.displaySeatInfo()}
+      </ModalDialog>
+    )
   }
   checkSortable = (field) => {
     const unSortableFields = ['options', 'owner', '_menu_'];
@@ -239,6 +324,7 @@ class NetworkInventory extends Component {
       currentFloor
     }, () => {
       this.getAreaData(currentFloor);
+      this.getSeatData(currentFloor);
     });
   }
   getAreaData = (areaUUID) => {
@@ -252,7 +338,7 @@ class NetworkInventory extends Component {
     .then(data => {
       const areaName = data.areaName;
       const areaUUID = data.areaUUID;
-      let currentMap = '';
+      let currentMap = {};
 
       if (data.picPath) {
         const picPath = `${baseUrl}${contextRoot}/api/area/_image?path=${data.picPath}`;
@@ -275,10 +361,55 @@ class NetworkInventory extends Component {
       currentBaseLayers[floorPlan] = currentMap;
 
       this.setState({
+        mapAreaUUID: floorPlan,
         currentMap,
         currentBaseLayers,
         currentFloor: areaUUID
       });
+    })
+  }
+  getSeatData = (areaUUID) => {
+    const {baseUrl, contextRoot} = this.props;
+    const area = areaUUID || this.state.floorPlan.currentAreaUUID;
+    const dataObj = {
+      areaUUID: area
+    };
+
+    this.ah.one({
+      url: `${baseUrl}/api/seat/_search`,
+      data: JSON.stringify(dataObj),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      const seatData = {};
+      let seatListArr = [];
+
+      _.forEach(data, val => {
+        seatListArr.push({
+          id: val.seatUUID,
+          type: 'marker',
+          xy: [val.coordX, val.coordY],
+          icon: {
+            iconUrl: `${contextRoot}/images/ic_person.png`,
+            iconSize: [25, 25],
+            iconAnchor: [12.5, 12.5]
+          },
+          label: val.seatName,
+          data: {
+            name: val.seatName
+          }
+        });
+      })
+
+      seatData[area] = {
+        data: seatListArr
+      };
+
+      this.setState({
+        seatData
+      });
+      return null;
     })
   }
   renderFilter = () => {
@@ -291,7 +422,7 @@ class NetworkInventory extends Component {
         <div className='filter-section config'>
           <div className='group'>
             <label htmlFor='deviceSearchIP' className='first-label'>{t('ipFields.ip')}</label>
-            <Input 
+            <Input
               id='deviceSearchIP'
               className='search-textarea'
               onChange={this.handleDeviceSearch.bind(this, 'ip')}
@@ -299,19 +430,43 @@ class NetworkInventory extends Component {
           </div>
           <div className='group'>
             <label htmlFor='deviceSearchMac'>{t('ipFields.mac')}</label>
-            <Input 
+            <Input
               id='deviceSearchMac'
               className='search-textarea'
               onChange={this.handleDeviceSearch.bind(this, 'mac')}
               value={deviceSearch.mac} />
           </div>
           <div className='group'>
-            <label htmlFor='deviceSearchHostname'>{t('ipFields.hostName')}</label>
-            <Input 
-              id='deviceSearchHostname'
+            <label htmlFor='deviceSearchHostName'>{t('ipFields.hostName')}</label>
+            <Input
+              id='deviceSearchHostName'
               className='search-textarea'
               onChange={this.handleDeviceSearch.bind(this, 'hostName')}
               value={deviceSearch.hostName} />
+          </div>
+          <div className='group'>
+            <label htmlFor='deviceSearchOwner'>{t('ipFields.owner')}</label>
+            <Input
+              id='deviceSearchOwner'
+              className='search-textarea'
+              onChange={this.handleDeviceSearch.bind(this, 'owner')}
+              value={deviceSearch.owner} />
+          </div>
+          <div className='group'>
+            <label htmlFor='deviceSearchAreaName'>{t('ipFields.areaName')}</label>
+            <Input
+              id='deviceSearchAreaName'
+              className='search-textarea'
+              onChange={this.handleDeviceSearch.bind(this, 'areaName')}
+              value={deviceSearch.areaName} />
+          </div>
+          <div className='group'>
+            <label htmlFor='deviceSearchSeatName'>{t('ipFields.seatName')}</label>
+            <Input
+              id='deviceSearchSeatName'
+              className='search-textarea'
+              onChange={this.handleDeviceSearch.bind(this, 'seatName')}
+              value={deviceSearch.seatName} />
           </div>
         </div>
         <div className='button-group'>
@@ -609,7 +764,7 @@ class NetworkInventory extends Component {
   }
   showScanInfo = () => {
     const actions = {
-      confirm: {text: t('txt-close'), handler: this.closeDialog.bind(this, 'scan')}
+      confirm: {text: t('txt-close'), handler: this.closeDialog}
     };
     const titleText = t('alert.txt-safetyScanInfo');
 
@@ -626,20 +781,22 @@ class NetworkInventory extends Component {
       </ModalDialog>
     )
   }
-  closeDialog = (type) => {
-    if (type === 'scan') {
-      this.setState({
-        showScanInfo: false,
-        currentDeviceData: {}
-      });
-    }
+  closeDialog = () => {
+    this.setState({
+      showScanInfo: false,
+      showSeatData: false,
+      currentDeviceData: {}
+    });
   }
   clearFilter = () => {
     this.setState({
       deviceSearch: {
         ip: '',
         mac: '',
-        hostName: ''
+        hostName: '',
+        owner: '',
+        areaName: '',
+        seatName: ''
       }
     });
   }
@@ -656,9 +813,77 @@ class NetworkInventory extends Component {
       activeContent: 'tableList'
     });
   }
+  selectTree = (i, areaUUID, eventData) => {
+    const {baseUrl} = this.props;
+    let tempFloorPlan = {...this.state.floorPlan};
+    let tempArr = [];
+    let pathStr = '';
+    let pathNameStr = '';
+    let pathParentStr = '';
+
+    if (eventData.path.length > 0) {
+      _.forEach(eventData.path, val => {
+        if (val.index) {
+          tempArr.push(val.index);
+        }
+      })
+    }
+
+    _.forEach(tempArr, val => {
+      pathStr += 'children[' + val + '].'
+    })
+    pathNameStr = pathStr + 'label';
+    pathParentStr = pathStr + 'parentAreaUUID';
+
+    if (eventData.path[0].id) {
+      tempFloorPlan.rootAreaUUID = eventData.path[0].id;
+    }
+    tempFloorPlan.currentAreaUUID = areaUUID;
+    tempFloorPlan.currentAreaName = _.get(tempFloorPlan.treeData[i], pathNameStr);
+    tempFloorPlan.currentParentAreaUUID = _.get(tempFloorPlan.treeData[i], pathParentStr);
+    tempFloorPlan.name = tempFloorPlan.currentAreaName;
+    tempFloorPlan.type = 'edit';
+
+    this.setState({
+      floorPlan: tempFloorPlan
+    }, () => {
+      this.getAreaData(areaUUID);
+      this.getSeatData(areaUUID);
+    });
+  }
+  getTreeView = (value, selectedID, i) => {
+    return (
+      <TreeView
+        id={value.areaUUID}
+        key={value.areaUUID}
+        data={value}
+        selected={selectedID}
+        defaultOpened={[value.areaUUID]}
+        onSelect={this.selectTree.bind(this, i)} />
+    )
+  }
+  showMapInfo = (id, evt, info) => {
+    const {deviceData} = this.state;
+
+    console.log(id, evt, info);
+  }
 	render() {
     const {baseUrl, contextRoot, language, session} = this.props;
-    const {activeTab, activeContent, showFilter, showScanInfo, deviceData, currentDeviceData, alertInfo} = this.state;
+    const {
+      activeTab,
+      activeContent,
+      showFilter,
+      showScanInfo,
+      showSeatData,
+      deviceData,
+      currentDeviceData,
+      floorPlan,
+      alertInfo,
+      mapAreaUUID,
+      currentMap,
+      seatData,
+      currentBaseLayers
+    } = this.state;
     const picPath = alertInfo.srcIp.ownerPic ? alertInfo.srcIp.ownerPic : contextRoot + '/images/empty_profile.png';
 
 		return (
@@ -666,6 +891,11 @@ class NetworkInventory extends Component {
         {showScanInfo &&
           this.showScanInfo()
         }
+
+        {showSeatData &&
+          this.showSeatData()
+        }
+
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
             {activeTab === 'deviceList' && activeContent === 'tableList' &&
@@ -720,8 +950,27 @@ class NetworkInventory extends Component {
                 }
 
                 {activeTab === 'deviceMap' &&
-                  <div>
-                    <span>Device Map</span>
+                  <div className='inventory-map'>
+                    <div className='tree'>
+                      {floorPlan.treeData && floorPlan.treeData.length > 0 &&
+                        floorPlan.treeData.map((value, i) => {
+                          return this.getTreeView(value, floorPlan.currentAreaUUID, i);
+                        })
+                      }
+                    </div>
+                    <div className='map'>
+                      {currentMap.label &&
+                        <Gis
+                          _ref={(ref) => {this.gisNode = ref}}
+                          data={_.get(seatData, [mapAreaUUID, 'data'], [])}
+                          baseLayers={currentBaseLayers}
+                          baseLayer={mapAreaUUID}
+                          layouts={['standard']}
+                          dragModes={['pan']}
+                          scale={{enabled: false}}
+                          onClick={this.getDeviceData.bind(this, '', 'oneSeat')} />
+                      }
+                    </div>
                   </div>
                 }
               </div>

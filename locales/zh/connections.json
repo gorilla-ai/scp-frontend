@@ -400,7 +400,7 @@
   },
 
   "hmdFields": {
-    "id": "主機ID",
+    "ipDeviceUUID": "主機ID",
     "hostId": "主機ID",
     "hostName": "主機名稱",
     "taskId": "Task ID",
@@ -658,6 +658,8 @@
   "ipFields": {
     "timestamp": "日期",
     "seat": "座位",
+    "seatName": "座位名稱",
+    "areaName": "區域名稱",
     "areaFullName": "區域全名",
     "ip": "IP",
     "mac": "MAC",

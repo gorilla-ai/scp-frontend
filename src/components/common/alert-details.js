@@ -5,7 +5,6 @@ import Moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import Gis from 'react-gis/build/src/components'
 import JSONTree from 'react-json-tree'
 
 import Checkbox from 'react-ui/build/src/components/checkbox'

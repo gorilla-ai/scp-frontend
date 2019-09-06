@@ -950,10 +950,12 @@ class MapNetwork extends Component {
     let pathNameStr = '';
     let pathParentStr = '';
 
-    if (eventData) {
-      for (let i = 1; i < eventData.path.length; i++) {
-        tempArr.push(eventData.path[i].index);
-      }
+    if (eventData.path.length > 0) {
+      _.forEach(eventData.path, val => {
+        if (val.index) {
+          tempArr.push(val.index);
+        }
+      })
     }
 
     _.forEach(tempArr, val => {
@@ -962,7 +964,7 @@ class MapNetwork extends Component {
     pathNameStr = pathStr + 'label';
     pathParentStr = pathStr + 'parentAreaUUID';
 
-    if (eventData) {
+    if (eventData.path[0].id) {
       tempFloorPlan.rootAreaUUID = eventData.path[0].id;
     }
     tempFloorPlan.currentAreaUUID = areaUUID;

@@ -36,11 +36,11 @@ class Endpoint extends Component {
         mac: ''
       },
       hmd: {
-        dataFieldsArr: ['_menu', 'id', 'hostName', 'ip', 'mac', 'createDttm', 'runningTaskCount', 'waitingTaskCount', 'completeTaskCount'],
+        dataFieldsArr: ['_menu', 'ipDeviceUUID', 'hostName', 'ip', 'mac', 'createDttm', 'runningTaskCount', 'waitingTaskCount', 'completeTaskCount'],
         dataFields: {},
         dataContent: [],
         sort: {
-          field: 'id',
+          field: 'ipDeviceUUID',
           desc: false
         },
         totalCount: 0,
@@ -148,7 +148,7 @@ class Endpoint extends Component {
     })
   }
   handleRowContextMenu = (allValue, evt) => {
-    const id = allValue.id;
+    const id = allValue.ipDeviceUUID;
     let menuItems = [
       {
         id: id + 'addTask',
@@ -170,7 +170,7 @@ class Endpoint extends Component {
   }
   openTask = (allValue) => {
     let tempTask = {...this.state.task};
-    tempTask.id = allValue.id;
+    tempTask.ipDeviceUUID = allValue.ipDeviceUUID;
 
     this.setState({
       task: tempTask,
@@ -182,7 +182,7 @@ class Endpoint extends Component {
     const {taskTable} = this.state;
 
     this.ah.one({
-      url: `${baseUrl}/api/hmd/taskinfo?hostId=${allValue.id}&taskStatus=${value}`,
+      url: `${baseUrl}/api/hmd/taskinfo?hostId=${allValue.ipDeviceUUID}&taskStatus=${value}`,
       type: 'GET'
     })
     .then(data => {
@@ -251,7 +251,7 @@ class Endpoint extends Component {
         <Input
           className='add'
           maxLength='50'
-          value={task.id}
+          value={task.ipDeviceUUID}
           readOnly={true} />
 
         <label>{t('hmdFields.taskName')}</label>
@@ -348,7 +348,7 @@ class Endpoint extends Component {
     const {baseUrl} = this.props;
     const url = `${baseUrl}/api/hmd/taskinfo`;
     let dataObj = {...this.state.task};
-    dataObj.hostId = dataObj.id;
+    dataObj.hostId = dataObj.ipDeviceUUID;
 
     helper.getAjaxData('POST', url, dataObj)
     .then(data => {
@@ -378,7 +378,7 @@ class Endpoint extends Component {
     tmpHmd['dataContent'] = _.map(tmpHmd['dataContent'], item => {
       return {
         ...item,
-        _menu: allValue.id === item.id ? true : false
+        _menu: allValue.ipDeviceUUID === item.ipDeviceUUID ? true : false
       }
     });
 
@@ -451,16 +451,16 @@ class Endpoint extends Component {
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group'>
-            <label htmlFor='hostName' className='first-label'>{t('hmdFields.hostName')}</label>
-            <Input id='hostName' onChange={this.handleSearchChange.bind(this, 'hostName')} value={search.hostName} />
+            <label htmlFor='HMDhostName' className='first-label'>{t('hmdFields.hostName')}</label>
+            <Input id='HMDhostName' onChange={this.handleSearchChange.bind(this, 'hostName')} value={search.hostName} />
           </div>
           <div className='group'>
-            <label htmlFor='hostName' className='first-label'>{t('hmdFields.ip')}</label>
-            <Input id='hostName' onChange={this.handleSearchChange.bind(this, 'ip')} value={search.ip} />
+            <label htmlFor='HMDip' className='first-label'>{t('hmdFields.ip')}</label>
+            <Input id='HMDip' onChange={this.handleSearchChange.bind(this, 'ip')} value={search.ip} />
           </div>
           <div className='group'>
-            <label htmlFor='hostName' className='first-label'>{t('hmdFields.mac')}</label>
-            <Input id='hostName' onChange={this.handleSearchChange.bind(this, 'mac')} value={search.mac} />
+            <label htmlFor='HMDmac' className='first-label'>{t('hmdFields.mac')}</label>
+            <Input id='HMDmac' onChange={this.handleSearchChange.bind(this, 'mac')} value={search.mac} />
           </div>
         </div>
         <div className='button-group'>
@@ -505,7 +505,7 @@ class Endpoint extends Component {
 
             <div className='main-content'>
               <div className='table-content'>
-                <div className='table'>
+                <div className='table no-fixed'>
                   <DataTable
                     className='main-table'
                     fields={hmd.dataFields}
