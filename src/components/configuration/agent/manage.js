@@ -482,10 +482,6 @@ class Manage extends Component {
       val = val.toLowerCase();
     }
 
-    if (type === 'memo') {
-      val = val.target.value;
-    }
-
     tempAgent.add[type] = val;
 
     this.setState({

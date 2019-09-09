@@ -1897,8 +1897,7 @@ class Netflow extends Component {
   handleDataChange = (val) => {
     let tempTagData = {...this.state.tagData};
 
-    if (val.target) {
-      val = val.target.value;
+    if (val) {
       tempTagData.memo = val;
     } else if (val.hex) {
       tempTagData.color = val.hex.toUpperCase();
