@@ -61,7 +61,7 @@
   "txt-refresh": "更新",
   "txt-select": "選擇",
   "txt-deselect": "取消選擇",
-  "txt-previous": "返回",
+  "txt-back": "返回",
   "txt-normal": "正常",
   "txt-error": "錯誤",
   "txt-success": "成功",
@@ -524,7 +524,19 @@
 
   "network-inventory": {
     "txt-deviceList": "裝置列表",
-    "txt-deviceMap": "裝置地圖"
+    "txt-deviceMap": "裝置地圖",
+    "txt-AddIP": "手動新增IP",
+    "txt-autoSettings": "自動執行設定",
+    "txt-notificationSettings": "通知設定",
+    "txt-backToList": "$t(txt-back)$t(txt-listText)",
+    "txt-backToMap": "$t(txt-back)$t(txt-map)",
+    "txt-lastUpdate": "最近更新時間",
+    "txt-suspiciousFileCount": "可疑檔案數",
+    "txt-suspiciousFilePath": "可疑檔案路徑",
+    "txt-reCheck": "重新檢測",
+    "txt-reCompress": "重新壓縮",
+    "txt-deleteDevice": "$t(txt-delete)$t(txt-device)",
+    "txt-deleteDeviceMsg": "$t(txt-delete-msg)$t(txt-device)"
   },
 
   "sensorFields": {
@@ -670,8 +682,7 @@
     "options": "",
     "keyword": "關鍵字",
     "connSize": "Connections Size",
-    "unauthType": "Unauthorize Type",
-    "location": "區域位置"
+    "unauthType": "Unauthorize Type"
   },
   "adFields": {
     "@timestamp": "日期",

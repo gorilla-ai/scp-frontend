@@ -61,7 +61,7 @@
   "txt-refresh": "Refresh",
   "txt-select": "Select",
   "txt-deselect": "Deselect",
-  "txt-previous": "Back",
+  "txt-back": "Back",
   "txt-normal": "Normal",
   "txt-error": "Error",
   "txt-success": "Success",
@@ -524,7 +524,19 @@
 
   "network-inventory": {
     "txt-deviceList": "Device List",
-    "txt-deviceMap": "Device Map"
+    "txt-deviceMap": "Device Map",
+    "txt-AddIP": "Add IP",
+    "txt-autoSettings": "Auto Settings",
+    "txt-notificationSettings": "Notification Settings",
+    "txt-backToList": "$t(txt-back) to $t(txt-listText)",
+    "txt-backToMap": "$t(txt-back) to $t(txt-map)",
+    "txt-lastUpdate": "Last Update",
+    "txt-suspiciousFileCount": "Suspicious File Count",
+    "txt-suspiciousFilePath": "Suspicious File Path",
+    "txt-reCheck": "Re-check",
+    "txt-reCompress": "Re-compress",
+    "txt-deleteDevice": "$t(txt-delete) $t(txt-device)",
+    "txt-deleteDeviceMsg": "$t(txt-delete-msg) $t(txt-device)"
   },
 
   "sensorFields": {
@@ -670,8 +682,7 @@
     "options": "",
     "keyword": "Keyword",
     "connSize": "Connections Size",
-    "unauthType": "Unauthorize Type",
-    "location": "Location"
+    "unauthType": "Unauthorize Type"
   },
   "adFields": {
     "@timestamp": "Timestamp",

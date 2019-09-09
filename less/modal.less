@@ -1154,9 +1154,11 @@
 				overflow: hidden;
 				.last-update {
 					float: left;
-					margin-right: 520px;
 				}
 				.count {
+					position: absolute;
+					top: 25px;
+					right: 100px;
 					color: #d10d25;
 				}
 				.btn {
@@ -1211,6 +1213,25 @@
 			.msg {
 				margin-top: 15px;
 			}
+		}
+	}
+}
+#configSeatDialog-content {
+	.main {
+		font-size: 16px;
+		color: #004d93;
+		&.header {
+			font-size: 14px;
+			margin-bottom: 2px;
+		}
+	}
+	.inventory {
+		margin: 15px 0;
+		i {
+			padding: 2px;
+			border: 1px solid #ccc;
+			border-radius: 5px;
+			cursor: pointer;
 		}
 	}
 }

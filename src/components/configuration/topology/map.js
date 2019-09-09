@@ -1094,7 +1094,7 @@ class MapNetwork extends Component {
 
     if (ipDeviceUUID) {
       this.ah.one({
-        url: `${baseUrl}/api/ipdevice?uuid=${ipDeviceUUID}`,
+        url: `${baseUrl}/api/u1/ipdevice?uuid=${ipDeviceUUID}`,
         type: 'GET'
       })
       .then(data => {
@@ -1572,7 +1572,7 @@ class MapNetwork extends Component {
       <div className='content delete'>
         <span>{t('network-topology.txt-deleteIPMsg')}: {ip + ' (' + mac + ')'}{t('network-topology.txt-fromSeat')}{seatName}?</span>
       </div>
-    )    
+    )
   }
   openDeleteDeviceModal = (allValue) => {
     PopupDialog.prompt({

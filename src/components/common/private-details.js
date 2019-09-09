@@ -22,18 +22,25 @@ class PrivateDetails extends Component {
     super(props);
 
     this.state = {
-
     };
 
     t = chewbaccaI18n.getFixedT(null, 'connections');
     f = chewbaccaI18n.getFixedT(null, 'tableFields');
     this.ah = getInstance('chewbacca');
   }
-  componentDidMount = () => {
-
-  }
   render() {
     const {type, alertInfo, topoInfo, picPath, srcDestType} = this.props;
+    const IP = topoInfo[type] ? topoInfo[type] : topoInfo.ip;
+    const mac = topoInfo[srcDestType + 'Mac'] ? topoInfo[srcDestType + 'Mac'] : topoInfo.mac;
+    const owner = {
+      id: topoInfo.ownerObj ? topoInfo.ownerObj.ownerID : topoInfo.ownerID,
+      name: topoInfo.ownerObj ? topoInfo.ownerObj.ownerName : topoInfo.ownerName,
+      department: topoInfo.ownerObj ? topoInfo.ownerObj.department : topoInfo.department,
+      title: topoInfo.ownerObj ? topoInfo.ownerObj.title : topoInfo.title,
+      map: alertInfo[type] ? alertInfo[type].ownerMap : alertInfo.ownerMap,
+      seat: alertInfo[type] ? alertInfo[type].ownerSeat : alertInfo.ownerSeat,
+      baseLayers: alertInfo[type] ? alertInfo[type].ownerBaseLayers : alertInfo.ownerBaseLayers
+    };
 
     return (
       <div className='private'>
@@ -43,11 +50,11 @@ class PrivateDetails extends Component {
             <tbody>
               <tr>
                 <td>IP</td>
-                <td>{topoInfo[type] || NOT_AVAILABLE}</td>
+                <td>{IP || NOT_AVAILABLE}</td>
               </tr>
               <tr>
                 <td>MAC</td>
-                <td>{topoInfo[srcDestType + 'Mac'] || NOT_AVAILABLE}</td>
+                <td>{mac || NOT_AVAILABLE}</td>
               </tr>
             </tbody>
           </table>
@@ -80,19 +87,19 @@ class PrivateDetails extends Component {
             <tbody>
               <tr>
                 <td>{t('ownerFields.ownerName')}</td>
-                <td>{topoInfo.ownerName || NOT_AVAILABLE}</td>
+                <td>{owner.name || NOT_AVAILABLE}</td>
               </tr>
               <tr>
                 <td>{t('ownerFields.ownerID')}</td>
-                <td>{topoInfo.ownerID || NOT_AVAILABLE}</td>
+                <td>{owner.id || NOT_AVAILABLE}</td>
               </tr>
               <tr>
                 <td>{t('ownerFields.department')}</td>
-                <td>{topoInfo.department || NOT_AVAILABLE}</td>
+                <td>{owner.department || NOT_AVAILABLE}</td>
               </tr>
               <tr>
                 <td>{t('ownerFields.title')}</td>
-                <td>{topoInfo.title || NOT_AVAILABLE}</td>
+                <td>{owner.title || NOT_AVAILABLE}</td>
               </tr>
             </tbody>
           </table>
@@ -100,12 +107,12 @@ class PrivateDetails extends Component {
 
         <section>
           <div className='header'>{t('alert.txt-floorInfo')}</div>
-          {!_.isEmpty(alertInfo[type].ownerMap) &&
+          {!_.isEmpty(owner.map) &&
             <div className='floor-map'>
               <Gis
                 _ref={(ref) => {this.gisNode = ref}}
-                data={_.get(alertInfo[type].ownerSeat, [topoInfo.areaUUID, 'data'], [])}
-                baseLayers={alertInfo[type].ownerBaseLayers}
+                data={_.get(owner.seat, [topoInfo.areaUUID, 'data'], [])}
+                baseLayers={owner.baseLayers}
                 baseLayer={topoInfo.areaUUID}
                 layouts={['standard']}
                 dragModes={['pan']}
@@ -120,7 +127,7 @@ class PrivateDetails extends Component {
                 }]} />
               </div>
           }
-          {_.isEmpty(alertInfo[type].ownerMap) &&
+          {_.isEmpty(owner.map) &&
             <span>{NOT_AVAILABLE}</span>
           }
         </section>

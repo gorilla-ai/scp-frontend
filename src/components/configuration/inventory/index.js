@@ -10,6 +10,7 @@ import Gis from 'react-gis/build/src/components'
 import DataTable from 'react-ui/build/src/components/table'
 import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import Tabs from 'react-ui/build/src/components/tabs'
 import TreeView from 'react-ui/build/src/components/tree'
 
@@ -78,7 +79,7 @@ class NetworkInventory extends Component {
         seatName: ''
       },
       deviceData: {
-        dataFieldsArr: ['ip', 'mac', 'hostName', 'owner', 'location', '_menu_'],
+        dataFieldsArr: ['ip', 'mac', 'hostName', 'owner', 'areaName', 'seatName', '_menu_'],
         dataFields: {},
         dataContent: [],
         ipListArr: [],
@@ -87,7 +88,6 @@ class NetworkInventory extends Component {
           field: 'ip',
           desc: false
         },
-        itemID: '',
         totalCount: 0,
         currentPage: 1,
         pageSize: 20,
@@ -105,13 +105,12 @@ class NetworkInventory extends Component {
         map: ''
       },
       alertInfo: {
-        srcIp: {
-          ownerPic: '',
-          ownerMap: '',
-          ownerBaseLayers: {},
-          ownerSeat: {}
-        }
+        ownerPic: '',
+        ownerMap: '',
+        ownerBaseLayers: {},
+        ownerSeat: {}
       },
+      activeIP: '',
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
 		};
 
@@ -198,16 +197,20 @@ class NetworkInventory extends Component {
               } else {
                 return <span>{value}</span>;
               }
-            } else if (tempData === 'location') {
-              if (allValue.areaObj && allValue.seatObj) {
-                return <span>{allValue.areaObj.areaName} {allValue.seatObj.seatName}</span>;
+            } else if (tempData === 'areaName') {
+              if (allValue.areaObj) {
+                return <span>{allValue.areaObj.areaName}</span>;
+              }
+            } else if (tempData === 'seatName') {
+              if (allValue.seatObj) {
+                return <span>{allValue.seatObj.seatName}</span>;
               }
             } else if (tempData === '_menu_') {
               return (
                 <div className={cx('table-menu inventory', {'active': value})}>
-                  <i className='fg fg-eye' onClick={this.openMenu.bind(this, 'view', allValue, index)}></i>
-                  <i className='fg fg-chart-kpi' onClick={this.openMenu.bind(this, 'info', allValue, index)}></i>
-                  <i className='fg fg-trashcan' onClick={this.openMenu.bind(this, 'delete')}></i>
+                  <i className='fg fg-eye' onClick={this.openMenu.bind(this, 'view', allValue, index)} title={t('alert.txt-ipBasicInfo')}></i>
+                  <i className='fg fg-chart-kpi' onClick={this.openMenu.bind(this, 'info', allValue, index)} title={t('alert.txt-safetyScanInfo')}></i>
+                  <i className='fg fg-trashcan' onClick={this.openMenu.bind(this, 'delete', allValue)} title={t('network-inventory.txt-deleteDevice')}></i>
                 </div>
               )
             } else {
@@ -239,15 +242,25 @@ class NetworkInventory extends Component {
   }
   displaySeatInfo = () => {
     const {currentDeviceData} = this.state;
-    const ip = currentDeviceData.ip ? currentDeviceData.ip : NOT_AVAILABLE;
-    const mac = currentDeviceData.mac ? currentDeviceData.mac : NOT_AVAILABLE;
-    const hostName = currentDeviceData.hostName ? currentDeviceData.hostName : NOT_AVAILABLE;
+    const deviceInfo = {
+      ip: currentDeviceData.ip ? currentDeviceData.ip : NOT_AVAILABLE,
+      mac: currentDeviceData.mac ? currentDeviceData.mac : NOT_AVAILABLE,
+      hostName: currentDeviceData.hostName ? currentDeviceData.hostName : NOT_AVAILABLE,
+      system: currentDeviceData.system ? currentDeviceData.system : NOT_AVAILABLE
+    };
 
     return (
       <div>
-        <div>IP: {ip}</div>
-        <div>Mac: {mac}</div>
-        <div>Host Name: {hostName}</div>
+        <div className='main'>{t('ipFields.ip')}: {deviceInfo.ip}</div>
+        <div className='main'>{t('ipFields.mac')}: {deviceInfo.mac}</div>
+        <div className='table-menu inventory active'>
+          <i className='fg fg-eye' onClick={this.openMenu.bind(this, 'view', currentDeviceData)} title={t('alert.txt-ipBasicInfo')}></i>
+          <i className='fg fg-chart-kpi' onClick={this.openMenu.bind(this, 'info', currentDeviceData)} title={t('alert.txt-safetyScanInfo')}></i>
+          <i className='fg fg-trashcan' onClick={this.openMenu.bind(this, 'delete', currentDeviceData)} title={t('network-inventory.txt-deleteDevice')}></i>
+        </div>
+        <div className='main header'>{t('alert.txt-systemInfo')}</div>
+        <div>{t('ipFields.hostName')}: {deviceInfo.hostName}</div>
+        <div>{t('ipFields.system')}: {deviceInfo.system}</div>
       </div>
     )
   }
@@ -255,13 +268,11 @@ class NetworkInventory extends Component {
     const actions = {
       confirm: {text: t('txt-close'), handler: this.closeDialog}
     };
-    const titleText = '';
 
     return (
       <ModalDialog
         id='configSeatDialog'
         className='modal-dialog'
-        title={titleText}
         draggable={true}
         global={true}
         actions={actions}
@@ -478,12 +489,11 @@ class NetworkInventory extends Component {
   }
   openMenu = (type, allValue, index) => {
     if (type === 'view') {
-        this.getOwnerPic(allValue);
-        this.getOwnerSeat(allValue);
+      this.getOwnerPic(allValue);
     } else if (type === 'info') {
       this.openDetailInfo(index, allValue);
     } else if (type === 'delete') {
-
+      this.openDeleteDeviceModal(allValue);
     }
   }
   getOwnerPic = (allValue) => {
@@ -493,6 +503,7 @@ class NetworkInventory extends Component {
     let tempAlertInfo = {...alertInfo};
 
     if (!allValue.ownerObj) {
+      this.getOwnerSeat(allValue);
       return;
     }
 
@@ -505,10 +516,12 @@ class NetworkInventory extends Component {
       })
       .then(data => {
         if (data) {
-          tempAlertInfo.srcIp.ownerPic = data.base64;
+          tempAlertInfo.ownerPic = data.base64;
 
           this.setState({
             alertInfo: tempAlertInfo
+          }, () => {
+            this.getOwnerSeat(allValue);
           });
         }
       })
@@ -519,12 +532,11 @@ class NetworkInventory extends Component {
   }
   getOwnerSeat = (allValue) => {
     const {baseUrl, contextRoot} = this.props;
-    const {alertInfo} = this.state;
     const topoInfo = allValue;
-    let tempAlertInfo = {...alertInfo};
+    let tempAlertInfo = {...this.state.alertInfo};
     let ownerMap = {};
 
-    if (topoInfo.areaObj.picPath) {
+    if (topoInfo.areaObj && topoInfo.areaObj.picPath) {
       ownerMap = {
         label: topoInfo.areaObj.areaName,
         images: [
@@ -535,27 +547,29 @@ class NetworkInventory extends Component {
           }
         ]
       };
-    }
 
-    tempAlertInfo.srcIp.ownerMap = ownerMap;
-    tempAlertInfo.srcIp.ownerBaseLayers[topoInfo.areaUUID] = ownerMap;
-    tempAlertInfo.srcIp.ownerSeat[topoInfo.areaUUID] = {
-      data: [{
-        id: topoInfo.seatUUID,
-        type: 'spot',
-        xy: [topoInfo.seatObj.coordX, topoInfo.seatObj.coordY],
-        label: topoInfo.seatObj.seatName,
-        data: {
-          name: topoInfo.seatObj.seatName,
-          tag: 'red'
-        }
-      }]
-    };
+      tempAlertInfo.ownerMap = ownerMap;
+      tempAlertInfo.ownerBaseLayers[topoInfo.areaUUID] = ownerMap;
+      tempAlertInfo.ownerSeat[topoInfo.areaUUID] = {
+        data: [{
+          id: topoInfo.seatUUID,
+          type: 'spot',
+          xy: [topoInfo.seatObj.coordX, topoInfo.seatObj.coordY],
+          label: topoInfo.seatObj.seatName,
+          data: {
+            name: topoInfo.seatObj.seatName,
+            tag: 'red'
+          }
+        }]
+      };
+    }
 
     this.setState({
       activeContent: 'dataInfo',
-      currentDeviceData: allValue,
-      alertInfo: tempAlertInfo
+      showSeatData: false,
+      currentDeviceData: topoInfo,
+      alertInfo: tempAlertInfo,
+      activeIP: allValue.ip
     });
   }
   showAlertData = (type) => {
@@ -586,15 +600,61 @@ class NetworkInventory extends Component {
     let tempDeviceData = {...this.state.deviceData};
     tempDeviceData.currentIndex = Number(index);
 
-    if (allValue.ip) {
-      tempDeviceData.itemID = allValue.ip;
-    }
-
     this.setState({
       showScanInfo: true,
+      showSeatData: false,
       deviceData: tempDeviceData,
-      currentDeviceData: allValue
+      currentDeviceData: allValue,
+      activeIP: allValue.ip
     });
+  }
+  getDeleteDeviceContent = (allValue) => {
+    this.setState({
+      currentDeviceData: allValue,
+      activeIP: allValue.ip
+    });
+
+    return (
+      <div className='content delete'>
+        <span>{t('network-inventory.txt-deleteDeviceMsg')}: {allValue.ip}?</span>
+      </div>
+    )    
+  }
+  openDeleteDeviceModal = (allValue) => {
+    PopupDialog.prompt({
+      title: t('network-inventory.txt-deleteDevice'),
+      id: 'modalWindow',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: this.getDeleteDeviceContent(allValue),
+      act: (confirmed, data) => {
+        if (confirmed) {
+          this.deleteDevice();
+        }
+      }
+    });
+
+    this.setState({
+      showSeatData: false
+    });
+  }
+  deleteDevice = () => {
+    const {baseUrl} = this.props;
+    const {currentDeviceData} = this.state;
+
+    ah.one({
+      url: `${baseUrl}/api/u1/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}`,
+      type: 'DELETE'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        this.getDeviceData();
+        this.closeDialog();
+      }
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   handleTableSort = (value) => {
     let tempDeviceData = {...this.state.deviceData};
@@ -689,7 +749,7 @@ class NetworkInventory extends Component {
     )    
   }
   displayScanInfo = () => {
-    const {activeScanType, deviceData, currentDeviceData} = this.state;
+    const {activeTab, activeScanType, deviceData, currentDeviceData} = this.state;
     const ip = currentDeviceData.ip ? currentDeviceData.ip : NOT_AVAILABLE;
     const mac = currentDeviceData.mac ? currentDeviceData.mac : NOT_AVAILABLE;
     const hostName = currentDeviceData.hostName ? currentDeviceData.hostName : NOT_AVAILABLE;
@@ -726,12 +786,12 @@ class NetworkInventory extends Component {
             {activeScanType === 'yara' &&
               <div>
                 <div className='info'>
-                  <div className='last-update'>最近更新時間: 2019/09/05 11:43</div>
-                  <div className='count'>可疑檔案數: 6</div>
-                  <button className='btn'>重新檢測</button>
+                  <div className='last-update'>{t('network-inventory.txt-lastUpdate')}: 2019/09/05 11:43</div>
+                  <div className='count'>{t('network-inventory.txt-suspiciousFileCount')}: 6</div>
+                  <button className='btn'>{t('network-inventory.txt-reCheck')}</button>
                 </div>
                 <div className='file-path'>
-                  <div className='header'>可疑檔案路徑</div>
+                  <div className='header'>{t('network-inventory.txt-suspiciousFilePath')}</div>
                   <div className='list'>
                     {RULES.map(this.displayRules)}
                   </div>
@@ -741,8 +801,8 @@ class NetworkInventory extends Component {
             {activeScanType === 'ir' &&
               <div>
                 <div className='info'>
-                  <div className='last-update'>最近更新時間: 2019/10/17 05:26</div>
-                  <button className='btn'>重新壓縮</button>
+                  <div className='last-update'>{t('network-inventory.txt-lastUpdate')}: 2019/10/17 05:26</div>
+                  <button className='btn'>{t('network-inventory.txt-reCompress')}</button>
                 </div>
                 <div className='msg'>
                   <div className=''>IR data has been uploaded to xxx.xx.xx.xx</div>
@@ -752,13 +812,15 @@ class NetworkInventory extends Component {
           </div>
         </div>
 
-        <div className='pagination'>
-          <div className='buttons'>
-            <button onClick={this.showAlertData.bind(this, 'previous')} disabled={deviceData.currentIndex === 0}>{t('txt-previous')}</button>
-            <button onClick={this.showAlertData.bind(this, 'next')} disabled={deviceData.currentIndex + 1 === deviceData.currentLength}>{t('txt-next')}</button>
+        {activeTab === 'deviceList' &&
+          <div className='pagination'>
+            <div className='buttons'>
+              <button onClick={this.showAlertData.bind(this, 'previous')} disabled={deviceData.currentIndex === 0}>{t('txt-previous')}</button>
+              <button onClick={this.showAlertData.bind(this, 'next')} disabled={deviceData.currentIndex + 1 === deviceData.currentLength}>{t('txt-next')}</button>
+            </div>
+            <span className='count'>{deviceData.currentIndex + 1} / {deviceData.currentLength}</span>
           </div>
-          <span className='count'>{deviceData.currentIndex + 1} / {deviceData.currentLength}</span>
-        </div>
+        }
       </div>
     )
   }
@@ -809,6 +871,8 @@ class NetworkInventory extends Component {
     });
   }
   toggleContent = () => {
+    const {activeTab} = this.state;
+
     this.setState({
       activeContent: 'tableList'
     });
@@ -862,10 +926,25 @@ class NetworkInventory extends Component {
         onSelect={this.selectTree.bind(this, i)} />
     )
   }
-  showMapInfo = (id, evt, info) => {
-    const {deviceData} = this.state;
+  getBtnPos = (type) => {
+    const {locale} = this.props;
+    let length = '';
 
-    console.log(id, evt, info);
+    if (type === 'auto') {
+      if (locale === 'zh') {
+        length = '120px';
+      } else if (locale === 'en') {
+        length = '200px';
+      }
+    } else if (type === 'manual') {
+      if (locale === 'zh') {
+        length = '257px';
+      } else if (locale === 'en') {
+        length = '336px';
+      }
+    }
+
+    return length;
   }
 	render() {
     const {baseUrl, contextRoot, language, session} = this.props;
@@ -879,12 +958,14 @@ class NetworkInventory extends Component {
       currentDeviceData,
       floorPlan,
       alertInfo,
+      activeIP,
       mapAreaUUID,
       currentMap,
       seatData,
       currentBaseLayers
     } = this.state;
-    const picPath = alertInfo.srcIp.ownerPic ? alertInfo.srcIp.ownerPic : contextRoot + '/images/empty_profile.png';
+    const picPath = alertInfo.ownerPic ? alertInfo.ownerPic : contextRoot + '/images/empty_profile.png';
+    const backText = activeTab === 'deviceList' ? t('network-inventory.txt-backToList') : t('network-inventory.txt-backToMap')
 
 		return (
       <div>
@@ -928,9 +1009,9 @@ class NetworkInventory extends Component {
                   onChange={this.handleSubTabChange}>
                 </Tabs>
 
-                <button className='standard btn notification'>通知設定</button>
-                <button className='standard btn auto-settings'>自動執行設定</button>
-                <button className='standard btn manual-settings'>手動新增IP</button>
+                <button className='standard btn notification'>{t('network-inventory.txt-notificationSettings')}</button>
+                <button className='standard btn' style={{right: this.getBtnPos('auto')}}>{t('network-inventory.txt-autoSettings')}</button>
+                <button className='standard btn' style={{right: this.getBtnPos('manual')}}>{t('network-inventory.txt-AddIP')}</button>
 
                 {activeTab === 'deviceList' &&
                   <TableContent
@@ -941,7 +1022,7 @@ class NetworkInventory extends Component {
                     paginationTotalCount={deviceData.totalCount}
                     paginationPageSize={deviceData.pageSize}
                     paginationCurrentPage={deviceData.currentPage}
-                    currentTableID={deviceData.itemID}
+                    currentTableID={activeIP}
                     tableUniqueID='ip'
                     handleTableSort={this.handleTableSort}
                     handleRowMouseOver={this.handleRowMouseOver}
@@ -981,15 +1062,13 @@ class NetworkInventory extends Component {
             <div className='data-table'>
               <div className='main-content'>
                 <div className='privateIp-info'>
-                  <header>IP基本資訊</header>
-                  <button className='standard btn edit'>編輯</button>
-                  <button className='standard btn list' onClick={this.toggleContent}>返回列表</button>
+                  <header>{t('alert.txt-ipBasicInfo')}</header>
+                  <button className='standard btn edit'>{t('txt-edit')}</button>
+                  <button className='standard btn list' onClick={this.toggleContent}>{backText}</button>
                   <PrivateDetails
-                    type='srcIp'
                     alertInfo={alertInfo}
                     topoInfo={currentDeviceData}
-                    picPath={picPath}
-                    srcDestType='src' />
+                    picPath={picPath} />
                 </div>
               </div>
             </div>
@@ -1001,8 +1080,9 @@ class NetworkInventory extends Component {
 }
 
 NetworkInventory.propTypes = {
-	baseUrl: PropTypes.string.isRequired,
-	contextRoot: PropTypes.string.isRequired
+  baseUrl: PropTypes.string.isRequired,
+  contextRoot: PropTypes.string.isRequired,
+  locale: PropTypes.string.isRequired
 };
 
 const HocNetworkInventory = withRouter(withLocale(NetworkInventory));
