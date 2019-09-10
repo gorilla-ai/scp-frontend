@@ -1807,8 +1807,8 @@ class MapNetwork extends Component {
             session={session} />
 
           <div className='left-nav floor-plan'>
-            <header>
-              <div className='title'>{t('txt-floorMap')}</div>
+            <header className='main-header'>
+              {t('txt-floorMap')}
               <i className='c-link fg fg-edit' onClick={this.getAddMapContent.bind(this, 'edit')} title={editFloorPlan}></i>
             </header>
             <div className='content-area'>
@@ -1824,12 +1824,10 @@ class MapNetwork extends Component {
             {/* this.renderFilter() */}
             
             <div className='floor-map'>
-              <header>
-                <div className='title'>{t('txt-plan-map')}</div>
+              <header className='main-header'>
+                {t('txt-plan-map')}
                 {currentMap.label &&
-                  <div>
-                    <i className='c-link fg fg-trashcan' onClick={this.openDeleteSingleAreaModal.bind(this)} title={removeFloorPlan}></i>
-                  </div>
+                  <i className='c-link fg fg-trashcan' onClick={this.openDeleteSingleAreaModal.bind(this)} title={removeFloorPlan}></i>
                 }
               </header>
               <div className='content-area'>

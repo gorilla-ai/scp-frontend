@@ -8,10 +8,12 @@ import cx from 'classnames'
 import Gis from 'react-gis/build/src/components'
 
 import DataTable from 'react-ui/build/src/components/table'
+import FileInput from 'react-ui/build/src/components/file-input'
 import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import Tabs from 'react-ui/build/src/components/tabs'
+import Textarea from 'react-ui/build/src/components/textarea'
 import TreeView from 'react-ui/build/src/components/tree'
 
 import {HocConfig as Config} from '../../common/configuration'
@@ -58,13 +60,14 @@ const MAPS_PRIVATE_DATA = {
   currentBaseLayers: {},
   seatData: {}
 };
+
 class NetworkInventory extends Component {
 	constructor(props) {
 		super(props);
 
 		this.state = {
       activeTab: 'deviceList', //deviceList, deviceMap
-      activeContent: 'tableList', //tableList, dataInfo
+      activeContent: 'tableList', //tableList, dataInfo, addIPsteps
       showFilter: false,
       showScanInfo: false,
       showSeatData: false,
@@ -111,6 +114,24 @@ class NetworkInventory extends Component {
         ownerSeat: {}
       },
       activeIP: '',
+      activeSteps: 1,
+      addIP: {
+        ip: '',
+        mac: '',
+        hostName: '',
+        hostID: '',
+        system: '',
+        user: '',
+        cpu: '',
+        memory: '',
+        disks: '',
+        folders: '',
+        file: '',
+        ownerID: '',
+        ownerName: '',
+        department: '',
+        title: ''
+      },
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
 		};
 
@@ -870,12 +891,68 @@ class NetworkInventory extends Component {
       deviceSearch: tempDeviceSearch
     });
   }
-  toggleContent = () => {
+  toggleContent = (type) => {
     const {activeTab} = this.state;
+    let activeContent = '';
+
+    if (type === 'showList') {
+      activeContent = 'tableList';
+    } else if (type === 'showData') {
+      activeContent = 'dataInfo';
+    } else if (type === 'showForm') {
+      activeContent = 'addIPsteps';
+    }
 
     this.setState({
-      activeContent: 'tableList'
+      activeContent
     });
+  }
+  handleAddIpConfirm = () => {
+
+  }
+  toggleSteps = (type) => {
+    let tempActiveSteps = this.state.activeSteps;
+
+    if (type === 'previous') {
+      tempActiveSteps--;
+    } else if (type === 'next') {
+      if (tempActiveSteps === 4) {
+        this.handleAddIpConfirm();
+        return;
+      } else {
+        tempActiveSteps++;
+      }
+    }
+
+    this.setState({
+      activeSteps: tempActiveSteps
+    });
+  }
+  showAddIpSteps = (val, i) => {
+    const {activeSteps} = this.state;
+    const index = ++i;
+    const groupClass = 'group group' + index;
+    const lineClass = 'line line' + index;
+    const stepClass = 'step step' + index;
+    const textClass = 'text text' + index;
+
+    return (
+      <div className={groupClass}>
+        <div className={cx(lineClass, {active: activeSteps >= index})}></div>
+        <div className={cx(stepClass, {active: activeSteps >= index})}>{index}
+          <div className={textClass}>{val}</div>
+        </div>
+      </div>
+    )
+  }
+  getBtnText = () => {
+    let text = t('txt-nextStep');
+
+    if (this.state.activeSteps === 4) {
+      text = t('txt-confirm');
+    }
+
+    return text;
   }
   selectTree = (i, areaUUID, eventData) => {
     const {baseUrl} = this.props;
@@ -926,6 +1003,14 @@ class NetworkInventory extends Component {
         onSelect={this.selectTree.bind(this, i)} />
     )
   }
+  handleAddIpChange = (type, value) => {
+    let tempAddIP = {...this.state.addIP};
+    tempAddIP[type] = value;
+
+    this.setState({
+      addIP: tempAddIP
+    });
+  }
   getBtnPos = (type) => {
     const {locale} = this.props;
     let length = '';
@@ -962,10 +1047,13 @@ class NetworkInventory extends Component {
       mapAreaUUID,
       currentMap,
       seatData,
-      currentBaseLayers
+      currentBaseLayers,
+      activeSteps,
+      addIP
     } = this.state;
     const picPath = alertInfo.ownerPic ? alertInfo.ownerPic : contextRoot + '/images/empty_profile.png';
     const backText = activeTab === 'deviceList' ? t('network-inventory.txt-backToList') : t('network-inventory.txt-backToMap')
+    const addIPtext = [t('txt-ipAddress'), t('alert.txt-systemInfo'), t('alert.txt-ownerInfo'), t('alert.txt-floorInfo')];
 
 		return (
       <div>
@@ -1011,7 +1099,7 @@ class NetworkInventory extends Component {
 
                 <button className='standard btn notification'>{t('network-inventory.txt-notificationSettings')}</button>
                 <button className='standard btn' style={{right: this.getBtnPos('auto')}}>{t('network-inventory.txt-autoSettings')}</button>
-                <button className='standard btn' style={{right: this.getBtnPos('manual')}}>{t('network-inventory.txt-AddIP')}</button>
+                <button className='standard btn' style={{right: this.getBtnPos('manual')}} onClick={this.toggleContent.bind(this, 'showForm')}>{t('network-inventory.txt-AddIP')}</button>
 
                 {activeTab === 'deviceList' &&
                   <TableContent
@@ -1062,14 +1150,175 @@ class NetworkInventory extends Component {
             <div className='data-table'>
               <div className='main-content'>
                 <div className='privateIp-info'>
-                  <header>{t('alert.txt-ipBasicInfo')}</header>
-                  <button className='standard btn edit'>{t('txt-edit')}</button>
-                  <button className='standard btn list' onClick={this.toggleContent}>{backText}</button>
+                  <header className='main-header'>{t('alert.txt-ipBasicInfo')}</header>
+                  <button className='standard btn edit' onClick={this.toggleContent.bind(this, 'showForm')}>{t('txt-edit')}</button>
+                  <button className='standard btn list' onClick={this.toggleContent.bind(this, 'showList')}>{backText}</button>
                   <PrivateDetails
                     alertInfo={alertInfo}
                     topoInfo={currentDeviceData}
                     picPath={picPath} />
                 </div>
+              </div>
+            </div>
+          }
+
+          {activeContent === 'addIPsteps' &&
+            <div className='data-table'>
+              <div className='main-content add-ip-steps'>
+                <header className='main-header'>{t('alert.txt-ipBasicInfo')}</header>
+                <div className='steps-indicator'>
+                  {addIPtext.map(this.showAddIpSteps)}
+                </div>
+                {activeSteps === 1 &&
+                  <div className='steps steps-address'>
+                    <header>{t('txt-ipAddress')}</header>
+                    <div className='group'>
+                      <label htmlFor='addIPstepsIP'>{t('ipFields.ip')}</label>
+                      <Input
+                        id='addIPstepsIP'
+                        onChange={this.handleAddIpChange.bind(this, 'ip')}
+                        value={addIP.ip} />
+
+                    </div>
+                    <div className='group'>
+                      <label htmlFor='addIPstepsMac'>{t('ipFields.mac')}</label>
+                      <Input
+                        id='addIPstepsMac'
+                        onChange={this.handleAddIpChange.bind(this, 'mac')}
+                        value={addIP.mac} />
+                    </div>
+                  </div>
+                }
+                {activeSteps === 2 &&
+                  <div className='steps steps-host'>
+                    <header>{t('alert.txt-systemInfo')}</header>
+                    <div className='group'>
+                      <label htmlFor='addIPstepsHostname'>{t('ipFields.hostName')}</label>
+                      <Input
+                        id='addIPstepsHostname'
+                        onChange={this.handleAddIpChange.bind(this, 'hostName')}
+                        value={addIP.hostName} />
+                    </div>
+                    <div className='group'>
+                      <label htmlFor='addIPstepsHostID'>{t('ipFields.hostID')}</label>
+                      <Input
+                        id='addIPstepsHostID'
+                        value={addIP.hostID}
+                        readOnly={true} />
+                    </div>
+                    <div className='group'>
+                      <label htmlFor='addIPstepsSystem'>{t('ipFields.system')}</label>
+                      <Input
+                        id='addIPstepsSystem'
+                        onChange={this.handleAddIpChange.bind(this, 'system')}
+                        value={addIP.system} />
+                    </div>
+                    <div className='group'>
+                      <label htmlFor='addIPstepsUser'>{t('ipFields.owner')}</label>
+                      <Input
+                        id='addIPstepsUser'
+                        onChange={this.handleAddIpChange.bind(this, 'user')}
+                        value={addIP.user} />
+                    </div>
+                    <div className='group'>
+                      <label htmlFor='addIPstepsCPU'>{t('txt-cpu')}</label>
+                      <Input
+                        id='addIPstepsCPU'
+                        value={addIP.cpu}
+                        readOnly={true} />
+                    </div>
+                    <div className='group'>
+                      <label htmlFor='addIPstepsMemory'>{t('txt-memory')}</label>
+                      <Input
+                        id='addIPstepsMemory'
+                        value={addIP.memory}
+                        readOnly={true} />
+                    </div>
+                    <div className='group'>
+                      <label htmlFor='addIPstepsDisks'>{t('txt-disks')}</label>
+                      <Textarea
+                        id='addIPstepsDisks'
+                        rows='4'
+                        value={addIP.disks}
+                        readOnly={true} />
+                    </div>
+                    <div className='group'>
+                      <label htmlFor='addIPstepsFolders'>{t('txt-shareFolders')}</label>
+                      <Textarea
+                        id='addIPstepsFolders'
+                        rows='4'
+                        value={addIP.folders}
+                        readOnly={true} />
+                    </div>
+                  </div>
+                }
+                {activeSteps === 3 &&
+                  <div className='steps steps-owner'>
+                    <header>{t('alert.txt-ownerInfo')}</header>
+                    <div className='user-pic'>
+                      <div className='group'>
+                        <label htmlFor='ownerPhotoUpload'>{t('txt-uploadPhoto')}</label>
+                        <FileInput id='ownerPhotoUpload' name='file' btnText={t('txt-uploadPhoto')}
+                          validate={{
+                            max: 10,
+                            extension: ['.jpg', '.jpeg', '.png'],
+                            t: (code, params) => {
+                              if (code[0] === 'file-wrong-format') {
+                                return t('txt-file-format-error') + ` ${params.extension}`
+                              }
+                            }
+                          }}
+                          onChange={this.handleAddIpChange.bind(this, 'file')} />
+                      </div>
+                      <img src='/images/empty_profile.png' />
+                    </div>
+                    <div className='user-info'>
+                      <div className='group'>
+                        <label htmlFor='addIPstepsOwnerID'>{t('ownerFields.ownerID')}</label>
+                        <Input
+                          id='addIPstepsOwnerID'
+                          onChange={this.handleAddIpChange.bind(this, 'ownerID')}
+                          value={addIP.ownerID} />
+                      </div>
+                      <div className='group'>
+                        <label htmlFor='addIPstepsOwnerName'>{t('ownerFields.ownerName')}</label>
+                        <Input
+                          id='addIPstepsOwnerName'
+                          onChange={this.handleAddIpChange.bind(this, 'ownerName')}
+                          value={addIP.ownerName} />
+                      </div>
+                      <div className='group'>
+                        <label htmlFor='addIPstepsDepartment'>{t('ownerFields.department')}</label>
+                        <Input
+                          id='addIPstepsDepartment'
+                          onChange={this.handleAddIpChange.bind(this, 'department')}
+                          value={addIP.department} />
+                      </div>
+                      <div className='group'>
+                        <label htmlFor='addIPstepsTitle'>{t('ownerFields.title')}</label>
+                        <Input
+                          id='addIPstepsTitle'
+                          onChange={this.handleAddIpChange.bind(this, 'title')}
+                          value={addIP.title} />
+                      </div>
+                    </div>
+                  </div>
+                }
+                {activeSteps === 4 &&
+                  <div className='steps steps-floor'>
+                    <header>{t('alert.txt-floorInfo')}</header>
+                    <div className='group'>
+
+                    </div>
+                  </div>
+                }
+                <footer>
+                  <button className='standard' onClick={this.toggleContent.bind(this, 'showData')}>{t('txt-cancel')}</button>
+                  {activeSteps > 1 &&
+                    <button className='standard previous-step' onClick={this.toggleSteps.bind(this, 'previous')}>{t('txt-previousStep')}</button>
+                  }
+                  <button className='next-step' onClick={this.toggleSteps.bind(this, 'next')}>{this.getBtnText()}</button>
+                </footer>
               </div>
             </div>
           }

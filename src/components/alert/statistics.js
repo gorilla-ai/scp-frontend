@@ -129,7 +129,7 @@ class StatisticNew extends Component {
               } else if (alertChartsList[i].type === 'table') {
                 return (
                   <div className='chart-group' key={alertChartsList[i].chartID}>
-                    <header>{alertChartsList[i].chartTitle}</header>
+                    <header className='main-header'>{alertChartsList[i].chartTitle}</header>
                     <div id={alertChartsList[i].chartID} className='c-chart table'>
                       <DataTable
                         className='main-table no-pointer'
