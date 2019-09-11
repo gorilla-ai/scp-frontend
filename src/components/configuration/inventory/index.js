@@ -255,9 +255,7 @@ class NetworkInventory extends Component {
               return (
                 <div className={cx('table-menu inventory', {'active': value})}>
                   <i className='fg fg-eye' onClick={this.openMenu.bind(this, 'view', allValue, index)} title={t('alert.txt-ipBasicInfo')}></i>
-                  {allValue.system === 'hmd' &&
-                    <i className='fg fg-chart-kpi' onClick={this.openMenu.bind(this, 'info', allValue, index)} title={t('alert.txt-safetyScanInfo')}></i>
-                  }
+                  <i className='fg fg-chart-kpi' onClick={this.openMenu.bind(this, 'info', allValue, index)} title={t('alert.txt-safetyScanInfo')}></i>
                   <i className='fg fg-trashcan' onClick={this.openMenu.bind(this, 'delete', allValue)} title={t('network-inventory.txt-deleteDevice')}></i>
                 </div>
               )
@@ -791,7 +789,7 @@ class NetworkInventory extends Component {
 
     return (
       <div>
-        <div className='header'><i className={cx('fg fg-play', {'rotate': activeRule === i})} onClick={this.togglePathRule.bind(this, 'rule', i)}></i>{t('txt-rule')}</div>
+        <div className='header' onClick={this.togglePathRule.bind(this, 'rule', i)}><i className={cx('fg fg-play', {'rotate': activeRule === i})}></i><span>{t('txt-rule')}</span></div>
         <code className={cx({'hide': activeRule !== i})}>{val}</code>
       </div>
     )
