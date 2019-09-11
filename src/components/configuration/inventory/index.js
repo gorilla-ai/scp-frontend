@@ -30,23 +30,7 @@ let t = null;
 let f = null;
 
 const NOT_AVAILABLE = 'N/A';
-const RULES = [
-  {
-    id: 1,
-    path: 'c:/desktop/readme.doc',
-    rule: 'rule MatchGoogleUpdateExe'
-  },
-  {
-    id: 2,
-    path: 'c:/desktop/test/hello.doc',
-    rule: 'rule MatchFacebookUpdate'
-  },
-  {
-    id: 3,
-    path: 'c:/desktop/andrew/world.html',
-    rule: 'rule MatchNetflix'
-  }
-];
+
 const MAPS_PRIVATE_DATA = {
   floorList: [],
   currentFloor: '',
@@ -72,17 +56,19 @@ class NetworkInventory extends Component {
       showScanInfo: false,
       showSeatData: false,
       activeScanType: 'yara', //yara, ir
+      activePath: null,
       activeRule: null,
       deviceSearch: {
         ip: '',
         mac: '',
         hostName: '',
+        system: '',
         owner: '',
         areaName: '',
         seatName: ''
       },
       deviceData: {
-        dataFieldsArr: ['ip', 'mac', 'hostName', 'owner', 'areaName', 'seatName', '_menu_'],
+        dataFieldsArr: ['ip', 'mac', 'hostName', 'system', 'owner', 'areaName', 'seatName', '_menu_'],
         dataFields: {},
         dataContent: [],
         ipListArr: [],
@@ -113,7 +99,19 @@ class NetworkInventory extends Component {
         ownerBaseLayers: {},
         ownerSeat: {}
       },
-      activeIP: '',
+      hmdInfo: {
+        yara: {
+          createTime: '',
+          responseTime: '',
+          result: ''
+        },
+        ir: {
+          createTime: '',
+          responseTime: '',
+          result: ''
+        }
+      },
+      activeIPdeviceUUID: '',
       activeSteps: 1,
       addIP: {
         ip: '',
@@ -145,7 +143,7 @@ class NetworkInventory extends Component {
 	}
   getDeviceData = (fromSearch, options, seatUUID) => {
     const {baseUrl} = this.props;
-    const {deviceSearch, deviceData} = this.state;
+    const {deviceSearch, deviceData, hmdInfo} = this.state;
     let dataParams = '';
 
     if (options === 'oneSeat') {
@@ -171,6 +169,10 @@ class NetworkInventory extends Component {
         dataParams += `&hostName=${deviceSearch.hostName}`;
       }
 
+      if (deviceSearch.system) {
+        dataParams += `&system=${deviceSearch.system}`;
+      }
+
       if (deviceSearch.owner) {
         dataParams += `&ownerName=${deviceSearch.owner}`;
       }
@@ -184,27 +186,50 @@ class NetworkInventory extends Component {
       }
     }
 
-    this.ah.one({
-      url: `${baseUrl}/api/networkInventory/_search?${dataParams}`,
-      type: 'GET'
-    })
+    const apiArr = [
+      {
+        url: `${baseUrl}/api/networkInventory/_search?${dataParams}`,
+        type: 'GET'
+      },
+      {
+        url: `${baseUrl}/api/networkInventory/_search?system=hmd`,
+        type: 'GET'
+      }
+    ];
+
+    this.ah.all(apiArr)
     .then(data => {
       if (options === 'oneSeat') {
-        if (data.counts > 0) {
+        if (data[0].counts > 0) {
           this.setState({
             showSeatData: true,
-            currentDeviceData: data.rows[0]
+            currentDeviceData: data[0].rows[0]
           });
           return null;
         }
       }
 
       let tempDeviceData = {...deviceData};
-      tempDeviceData.dataContent = data.rows;
-      tempDeviceData.totalCount = data.counts;
+      tempDeviceData.dataContent = _.map(data[0].rows, item => {
+        return {
+          ...item,
+          _menu_: true
+        }
+      });
+
+      tempDeviceData.totalCount = data[0].counts;
       tempDeviceData.currentPage = fromSearch === 'search' ? 1 : deviceData.currentPage;
       tempDeviceData.currentIndex = 0;
-      tempDeviceData.currentLength = data.rows.length;
+      tempDeviceData.currentLength = data[0].rows.length;
+
+      const hmdData = data[1].rows[0];
+      let tempHmdInfo = {...hmdInfo};
+      tempHmdInfo.yara.createTime = helper.getFormattedDate(hmdData.yaraResult.taskCreateDttm, 'local');
+      tempHmdInfo.yara.responseTime = helper.getFormattedDate(hmdData.yaraResult.taskResponseDttm, 'local');
+      tempHmdInfo.yara.result = hmdData.yaraResult.ScanResult;
+      tempHmdInfo.ir.createTime = helper.getFormattedDate(hmdData.irResult.taskCreateDttm, 'local');
+      tempHmdInfo.ir.responseTime = helper.getFormattedDate(hmdData.irResult.taskResponseDttm, 'local');
+      tempHmdInfo.ir.result = hmdData.irResult._status;
 
       let dataFields = {};
       deviceData.dataFieldsArr.forEach(tempData => {
@@ -230,7 +255,9 @@ class NetworkInventory extends Component {
               return (
                 <div className={cx('table-menu inventory', {'active': value})}>
                   <i className='fg fg-eye' onClick={this.openMenu.bind(this, 'view', allValue, index)} title={t('alert.txt-ipBasicInfo')}></i>
-                  <i className='fg fg-chart-kpi' onClick={this.openMenu.bind(this, 'info', allValue, index)} title={t('alert.txt-safetyScanInfo')}></i>
+                  {allValue.system === 'hmd' &&
+                    <i className='fg fg-chart-kpi' onClick={this.openMenu.bind(this, 'info', allValue, index)} title={t('alert.txt-safetyScanInfo')}></i>
+                  }
                   <i className='fg fg-trashcan' onClick={this.openMenu.bind(this, 'delete', allValue)} title={t('network-inventory.txt-deleteDevice')}></i>
                 </div>
               )
@@ -257,7 +284,8 @@ class NetworkInventory extends Component {
       }
 
       this.setState({
-        deviceData: tempDeviceData
+        deviceData: tempDeviceData,
+        hmdInfo: tempHmdInfo
       });
     })
   }
@@ -477,6 +505,14 @@ class NetworkInventory extends Component {
               value={deviceSearch.hostName} />
           </div>
           <div className='group'>
+            <label htmlFor='deviceSearchSystem'>{t('ipFields.system')}</label>
+            <Input
+              id='deviceSearchSystem'
+              className='search-textarea'
+              onChange={this.handleDeviceSearch.bind(this, 'system')}
+              value={deviceSearch.system} />
+          </div>
+          <div className='group'>
             <label htmlFor='deviceSearchOwner'>{t('ipFields.owner')}</label>
             <Input
               id='deviceSearchOwner'
@@ -590,7 +626,7 @@ class NetworkInventory extends Component {
       showSeatData: false,
       currentDeviceData: topoInfo,
       alertInfo: tempAlertInfo,
-      activeIP: allValue.ip
+      activeIPdeviceUUID: allValue.ipDeviceUUID
     });
   }
   showAlertData = (type) => {
@@ -626,13 +662,13 @@ class NetworkInventory extends Component {
       showSeatData: false,
       deviceData: tempDeviceData,
       currentDeviceData: allValue,
-      activeIP: allValue.ip
+      activeIPdeviceUUID: allValue.ipDeviceUUID
     });
   }
   getDeleteDeviceContent = (allValue) => {
     this.setState({
       currentDeviceData: allValue,
-      activeIP: allValue.ip
+      activeIPdeviceUUID: allValue.ipDeviceUUID
     });
 
     return (
@@ -720,57 +756,71 @@ class NetworkInventory extends Component {
       showFilter: !this.state.showFilter
     });
   }
-  handleRowMouseOver = (id, allValue, evt) => {
-    let tempDeviceData = {...this.state.deviceData};
-    tempDeviceData.dataContent = _.map(tempDeviceData.dataContent, item => {
-      return {
-        ...item,
-        _menu_: allValue.ip === item.ip ? true : false
-      }
-    });
+  // handleRowMouseOver = (id, allValue, evt) => {
+  //   let tempDeviceData = {...this.state.deviceData};
+  //   tempDeviceData.dataContent = _.map(tempDeviceData.dataContent, item => {
+  //     return {
+  //       ...item,
+  //       _menu_: allValue.ip === item.ip ? true : false
+  //     }
+  //   });
 
-    this.setState({
-      deviceData: tempDeviceData
-    });
-  }
+  //   this.setState({
+  //     deviceData: tempDeviceData
+  //   });
+  // }
   toggleScanType = (activeScanType) => {
     this.setState({
       activeScanType
     });
   }
-  toggleRule = (i) => {
-    const {activeRule} = this.state;
-    const rule = activeRule === i ? null : i;
-
-    this.setState({
-      activeRule: rule
-    });
-  }
-  toggleAccordion = (type, i) => {
-    const {activeRule} = this.state;
-
-    if (type === 'arrow') {
-      return activeRule === i ? 'fg fg-arrow-top' : 'fg fg-arrow-bottom';
+  togglePathRule = (type, i) => {
+    if (type === 'path') {
+      this.setState({
+        activePath: this.state.activePath === i ? null : i,
+        activeRule: null
+      });
     } else if (type === 'rule') {
-      return activeRule === i ? false : true;
+      this.setState({
+        activeRule: this.state.activeRule === i ? null : i
+      });
     }
   }
-  displayRules = (val, i) => {
+  displayRule = (val, i) => {
+    const {activeRule} = this.state;
+
+    return (
+      <div>
+        <div className='header'><i className={cx('fg fg-play', {'rotate': activeRule === i})} onClick={this.togglePathRule.bind(this, 'rule', i)}></i>{t('txt-rule')}</div>
+        <code className={cx({'hide': activeRule !== i})}>{val}</code>
+      </div>
+    )
+  }
+  displayPath = (val, i) => {
+    const {activePath} = this.state;
+
     return (
       <div className='group' key={val.id}>
-        <div className='path' onClick={this.toggleRule.bind(this, i)}>
-          <i className={this.toggleAccordion('arrow', i)}></i>
-          <span>{val.path}</span>
+        <div className='path' onClick={this.togglePathRule.bind(this, 'path', i)}>
+          <i className={cx('fg fg-arrow-bottom', {'rotate': activePath === i})}></i>
+          {val._MatchedFile &&
+            <span>{t('txt-path')}: {val._MatchedFile}</span>
+          }
+          {(val._MatchedFile && val._MatchedPid) &&
+            <span>, </span>
+          }
+          {val._MatchedPid &&
+            <span>PID: {val._MatchedPid}</span>
+          }
         </div>
-        <div className={cx('rule', {hide: this.toggleAccordion('rule', i)})}>
-          <div className='header'><i className='fg fg-play'></i>規則</div>
-          <code>{val.rule}</code>
+        <div className={cx('rule', {'hide': activePath !== i})}>
+          {val._MatchedRuleList.map(this.displayRule)}
         </div>
       </div>
-    )    
+    )
   }
   displayScanInfo = () => {
-    const {activeTab, activeScanType, deviceData, currentDeviceData} = this.state;
+    const {activeTab, activeScanType, deviceData, currentDeviceData, hmdInfo} = this.state;
     const ip = currentDeviceData.ip ? currentDeviceData.ip : NOT_AVAILABLE;
     const mac = currentDeviceData.mac ? currentDeviceData.mac : NOT_AVAILABLE;
     const hostName = currentDeviceData.hostName ? currentDeviceData.hostName : NOT_AVAILABLE;
@@ -807,14 +857,17 @@ class NetworkInventory extends Component {
             {activeScanType === 'yara' &&
               <div>
                 <div className='info'>
-                  <div className='last-update'>{t('network-inventory.txt-lastUpdate')}: 2019/09/05 11:43</div>
-                  <div className='count'>{t('network-inventory.txt-suspiciousFileCount')}: 6</div>
+                  <div className='last-update'>
+                    <span>{t('network-inventory.txt-createTime')}: {hmdInfo.yara.createTime}</span>
+                    <span>{t('network-inventory.txt-responseTime')}: {hmdInfo.yara.responseTime}</span>
+                  </div>
+                  <div className='count'>{t('network-inventory.txt-suspiciousFileCount')}: {hmdInfo.yara.result.length}</div>
                   <button className='btn'>{t('network-inventory.txt-reCheck')}</button>
                 </div>
                 <div className='file-path'>
                   <div className='header'>{t('network-inventory.txt-suspiciousFilePath')}</div>
                   <div className='list'>
-                    {RULES.map(this.displayRules)}
+                    {hmdInfo.yara.result.map(this.displayPath)}
                   </div>
                 </div>
               </div>
@@ -822,11 +875,14 @@ class NetworkInventory extends Component {
             {activeScanType === 'ir' &&
               <div>
                 <div className='info'>
-                  <div className='last-update'>{t('network-inventory.txt-lastUpdate')}: 2019/10/17 05:26</div>
+                  <div className='last-update'>
+                    <span>{t('network-inventory.txt-createTime')}: {hmdInfo.ir.createTime}</span>
+                    <span>{t('network-inventory.txt-responseTime')}: {hmdInfo.ir.responseTime}</span>
+                  </div>
                   <button className='btn'>{t('network-inventory.txt-reCompress')}</button>
                 </div>
                 <div className='msg'>
-                  <div className=''>IR data has been uploaded to xxx.xx.xx.xx</div>
+                  <div>{hmdInfo.ir.result}</div>
                 </div>
               </div>
             }
@@ -868,6 +924,7 @@ class NetworkInventory extends Component {
     this.setState({
       showScanInfo: false,
       showSeatData: false,
+      activeScanType: 'yara',
       currentDeviceData: {}
     });
   }
@@ -877,6 +934,7 @@ class NetworkInventory extends Component {
         ip: '',
         mac: '',
         hostName: '',
+        system: '',
         owner: '',
         areaName: '',
         seatName: ''
@@ -901,6 +959,10 @@ class NetworkInventory extends Component {
       activeContent = 'dataInfo';
     } else if (type === 'showForm') {
       activeContent = 'addIPsteps';
+
+      this.setState({
+        activeSteps: 1
+      });
     }
 
     this.setState({
@@ -1043,7 +1105,7 @@ class NetworkInventory extends Component {
       currentDeviceData,
       floorPlan,
       alertInfo,
-      activeIP,
+      activeIPdeviceUUID,
       mapAreaUUID,
       currentMap,
       seatData,
@@ -1110,10 +1172,9 @@ class NetworkInventory extends Component {
                     paginationTotalCount={deviceData.totalCount}
                     paginationPageSize={deviceData.pageSize}
                     paginationCurrentPage={deviceData.currentPage}
-                    currentTableID={activeIP}
-                    tableUniqueID='ip'
+                    currentTableID={activeIPdeviceUUID}
+                    tableUniqueID='ipDeviceUUID'
                     handleTableSort={this.handleTableSort}
-                    handleRowMouseOver={this.handleRowMouseOver}
                     paginationPageChange={this.handlePageChange}
                     paginationDropDownChange={this.handlePageDropdown} />
                 }

@@ -16,6 +16,7 @@ const helper = {
       return '';
     }
     if (timezone === 'local') {
+      val = Moment.utc(val).toDate();
       return Moment(val).local().format('YYYY-MM-DD HH:mm:ss');
     } else if (timezone === 'utc') {
       return Moment(val).utc().format('YYYY-MM-DD HH:mm:ss');

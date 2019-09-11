@@ -1154,6 +1154,9 @@
 				overflow: hidden;
 				.last-update {
 					float: left;
+					span {
+						margin-right: 30px;
+					}
 				}
 				.count {
 					position: absolute;
@@ -1186,24 +1189,31 @@
 							padding: 5px 10px 8px 10px;
 							background-color: #fff;
 							cursor: pointer;
-							i {
+							i.fg {
 								float: left;
 								margin-right: 10px;
 								border: 1px solid #ccc;
 								border-radius: 5px;
+								&.rotate {
+									transform: rotate(180deg);
+								}
 							}
 						}
 						.rule {
 							padding: 5px 45px;
 							border-top: 1px solid #ccc;
-							&.hide {
+							&.hide,
+							code.hide {
 								display: none;
 							}
 							.header {
 								color: #185e9e;
+								.fg-play.rotate {
+									transform: rotate(90deg);
+								}
 							}
-							i {
-								font-size: 14px;
+							i.fg {
+								font-size: 16px;
 								margin-right: 5px;
 							}
 						}
