@@ -583,8 +583,8 @@ class Manage extends Component {
         <Textarea
           id='agentMemo'
           className='add'
-          rows='4'
-          maxlength='250'
+          rows={4}
+          maxlength={250}
           value={agent.add.memo}
           onChange={this.handleDataChange.bind(this, 'memo')} />
 

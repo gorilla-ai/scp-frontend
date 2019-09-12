@@ -1916,7 +1916,7 @@ class Netflow extends Component {
     return (
       <div>
         <label htmlFor='tagMemo'>{t('txt-memo')}</label>
-        <Textarea id='tagMemo' className='add' rows='4' value={tagData.memo} onChange={this.handleDataChange} />
+        <Textarea id='tagMemo' className='add' rows={4} value={tagData.memo} onChange={this.handleDataChange} />
         <label>{t('txt-color')}</label>
         <GithubPicker width='213px' colors={colorList} triangle='hide' onChangeComplete={this.handleDataChange} />
         <div className='color-box' className={'color-box ' + helper.showColor(tagData.color)}></div>

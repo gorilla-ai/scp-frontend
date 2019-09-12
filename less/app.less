@@ -1305,7 +1305,7 @@ footer.footer {
 							margin-right: 5px;
 						}
 					}
-					#displayFileType {
+					.display-file-type {
 						flex-direction: row;
 						margin-left: 20px;
 						& > div {
@@ -1338,7 +1338,7 @@ footer.footer {
 						justify-content: center;
 						width: 70%;
 						margin: 0 auto;
-						margin-top: 60px;
+						margin-top: 40px;
 						.group {
 							display: flex;
 							width: 100%;
@@ -1354,6 +1354,7 @@ footer.footer {
 							text-align: center;
 							border-radius: 50%;
 							border: 4px solid #ccc;
+							cursor: default;
 							&.active {
 								color: #fff;
 								background-color: #004d99;
@@ -1371,7 +1372,7 @@ footer.footer {
 									left: -22px;
 								}
 								&.text3 {
-									left: -22px;
+									left: -9px;
 								}
 								&.text4 {
 									left: -2px;
@@ -1395,11 +1396,10 @@ footer.footer {
 						position: relative;
 						display: flex;
 						flex-wrap: wrap;
-						align-items: center;
-						justify-content: center;
+						justify-content: left;
 						text-align: center;
 						margin: 0 auto;
-						margin-top: 145px;
+						margin-top: 120px;
 						width: 70%;
 						padding: 10px 10px 15px 10px;
 						background-color: #f2f2f2;
@@ -1414,6 +1414,19 @@ footer.footer {
 							font-weight: bold;
 						}
 						&.steps-owner {
+							.owner-type {
+								position: absolute;
+								top: -38px;
+								left: 100px;
+								flex-direction: row;
+								.list-item {
+									margin: 0;
+									margin-right: 15px;
+								}
+								input {
+								width: 20px;
+								}
+							}
 							.user-pic {
 								width: 50%;
 								.group,
@@ -1425,6 +1438,9 @@ footer.footer {
 									height: 200px;
 									border-radius: 50%;
 									margin-top: 10px;
+									&.existing {
+										margin-top: 30px;
+									}
 								}
 							}
 							.user-info {
@@ -1437,6 +1453,16 @@ footer.footer {
 						.group {
 							width: 50%;
 							padding: 5px;
+							&.left {
+								text-align: left;
+								select {
+									width: 65%;
+								}
+								button {
+									float: right;
+									padding: .3em 1em;
+								}
+							}
 							label {
 								text-align: left;
 								color: #185e9e;

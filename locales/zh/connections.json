@@ -120,7 +120,7 @@
   "txt-previousStep": "上一步",
   "txt-path": "路徑",
   "txt-cpu": "CPU",
-  "txt-memory": "記憶體",
+  "txt-ram": "記憶體",
   "txt-disks": "Disks",
   "txt-shareFolders": "Share Folders",
 
@@ -544,6 +544,10 @@
     "txt-suspiciousFilePath": "可疑檔案路徑",
     "txt-reCheck": "重新檢測",
     "txt-reCompress": "重新壓縮",
+    "txt-existingOwner": "從人員名單選擇",
+    "txt-addNewOwner": "新增人員",
+    "txt-addNewDepartment": "新增部門",
+    "txt-addNewTitle": "新增職稱",
     "txt-deleteDevice": "$t(txt-delete)$t(txt-device)",
     "txt-deleteDeviceMsg": "$t(txt-delete-msg)$t(txt-device)"
   },

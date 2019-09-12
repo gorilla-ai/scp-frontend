@@ -33,7 +33,7 @@ class SortableItem extends Component {
     const key = _.keys(value).toString();
 
     if (_.includes(LONG_INPUT, key)) {
-      return <Textarea rows='8' cols='50' className='value-input' value={value[key]} readOnly={true} />
+      return <Textarea rows={8} cols={50} className='value-input' value={value[key]} readOnly={true} />
     } else if (_.includes(TIME_FIELDS, key)) {
       return <Input type='text' className='value-input' value={helper.getFormattedDate(value[key], 'local')} readOnly={true} />
     } else {

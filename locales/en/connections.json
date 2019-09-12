@@ -120,7 +120,7 @@
   "txt-previousStep": "Previous",
   "txt-path": "Path",
   "txt-cpu": "CPU",
-  "txt-memory": "Memory",
+  "txt-ram": "Ram",
   "txt-disks": "Disks",
   "txt-shareFolders": "Share Folders",
 
@@ -544,6 +544,10 @@
     "txt-suspiciousFilePath": "Suspicious File Path",
     "txt-reCheck": "Re-check",
     "txt-reCompress": "Re-compress",
+    "txt-existingOwner": "Add from existing owner",
+    "txt-addNewOwner": "Add Owner",
+    "txt-addNewDepartment": "Add Department",
+    "txt-addNewTitle": "Add Title",
     "txt-deleteDevice": "$t(txt-delete) $t(txt-device)",
     "txt-deleteDeviceMsg": "$t(txt-delete-msg) $t(txt-device)"
   },

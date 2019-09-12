@@ -2,11 +2,11 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 
 import Checkbox from 'react-ui/build/src/components/checkbox'
+import RadioGroup from 'react-ui/build/src/components/radio-group'
 import Tabs from 'react-ui/build/src/components/tabs'
 
 import {HocFilterContent as FilterContent} from '../../../common/filter-content'
 import helper from '../../../common/helper'
-import RadioGroup from 'react-ui/build/src/components/radio-group'
 import TableContent from '../../../common/table-content'
 import {HocTree as Tree} from '../../../common/tree'
 import withLocale from '../../../../hoc/locale-provider'
@@ -52,7 +52,7 @@ class File extends Component {
               </div>
               {(mainContentData.showImageValue) &&
                 <RadioGroup
-                  id='displayFileType'
+                  className='display-file-type'
                   list={[
                     {
                       value: 'list',
