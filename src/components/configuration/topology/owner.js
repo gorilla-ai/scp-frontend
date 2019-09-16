@@ -754,7 +754,7 @@ class NetworkTopology extends Component {
         { openADConnect && this.modalADConnect() }
         { openADImport && this.modalADImport() }
 
-        <Name ref={ref => { this.name=ref }} onDone={this.onDone.bind(this)} /> 
+        <Name ref={ref => { this.name=ref }} onDone={this.onDone.bind(this)} />
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>

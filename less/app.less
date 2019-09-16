@@ -974,6 +974,14 @@ footer.footer {
 							select {
 								width: 185px;
 							}
+							&.hmd {
+								padding-top: 30px;
+								padding-left: 15px;
+								label {
+									float: left;
+									margin-right: 5px;
+								}
+							}
 						}
 					}
 				}
@@ -1453,22 +1461,16 @@ footer.footer {
 						.group {
 							width: 50%;
 							padding: 5px;
-							&.left {
-								text-align: left;
-								select {
-									width: 65%;
-								}
-								button {
-									float: right;
-									padding: .3em 1em;
-								}
-							}
 							label {
 								text-align: left;
 								color: #185e9e;
 								font-size: .9em;
 								display: block;
 								margin-bottom: 3px;
+							}
+							span {
+								text-decoration: underline;
+								cursor: pointer;
 							}
 						}
 						&.steps-address {

@@ -7,6 +7,7 @@ import cx from 'classnames'
 
 import Gis from 'react-gis/build/src/components'
 
+import Checkbox from 'react-ui/build/src/components/checkbox'
 import DataTable from 'react-ui/build/src/components/table'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import FileInput from 'react-ui/build/src/components/file-input'
@@ -21,6 +22,7 @@ import TreeView from 'react-ui/build/src/components/tree'
 import {HocConfig as Config} from '../../common/configuration'
 import {HocFilterContent as FilterContent} from '../../common/filter-content'
 import helper from '../../common/helper'
+import Manage from '../topology/owner-mixname'
 import {HocPagination as Pagination} from '../../common/pagination'
 import {HocPrivateDetails as PrivateDetails} from '../../common/private-details'
 import TableContent from '../../common/table-content'
@@ -30,6 +32,7 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null;
 let f = null;
+let et = null;
 
 const NOT_AVAILABLE = 'N/A';
 
@@ -57,7 +60,7 @@ class NetworkInventory extends Component {
       showFilter: false,
       showScanInfo: false,
       showSeatData: false,
-      showAddData: false,
+      showHMDonly: false,
       activeScanType: 'yara', //yara, ir
       activeAddType: '',
       activePath: null,
@@ -102,22 +105,9 @@ class NetworkInventory extends Component {
         map: ''
       },
       alertInfo: {
-        ownerPic: '',
         ownerMap: '',
         ownerBaseLayers: {},
         ownerSeat: {}
-      },
-      hmdInfo: {
-        yara: {
-          createTime: '',
-          responseTime: '',
-          result: ''
-        },
-        ir: {
-          createTime: '',
-          responseTime: '',
-          result: ''
-        }
       },
       activeIPdeviceUUID: '',
       activeSteps: 1,
@@ -151,6 +141,7 @@ class NetworkInventory extends Component {
 
     t = chewbaccaI18n.getFixedT(null, 'connections');
     f = chewbaccaI18n.getFixedT(null, 'tableFields');
+    et = chewbaccaI18n.getFixedT(null, 'errors');
     this.ah = getInstance('chewbacca');
 	}
 	componentWillMount() {
@@ -161,7 +152,7 @@ class NetworkInventory extends Component {
 	}
   getDeviceData = (fromSearch, options, seatUUID) => {
     const {baseUrl} = this.props;
-    const {deviceSearch, deviceData, hmdInfo} = this.state;
+    const {showHMDonly, deviceSearch, deviceData} = this.state;
     let dataParams = '';
 
     if (options === 'oneSeat') {
@@ -171,7 +162,12 @@ class NetworkInventory extends Component {
       const pageSize = deviceData.pageSize;
       const sort = deviceData.sort.desc ? 'desc' : 'asc';
       const orders = deviceData.sort.field + ' ' + sort;
-      dataParams = `page=${page}&pageSize=${pageSize}&orders=${orders}`
+
+      if (showHMDonly) {
+        dataParams = 'isHmd=true&';
+      }
+
+      dataParams += `page=${page}&pageSize=${pageSize}&orders=${orders}`
     }
 
     if (fromSearch === 'search') {
@@ -204,50 +200,33 @@ class NetworkInventory extends Component {
       }
     }
 
-    const apiArr = [
-      {
-        url: `${baseUrl}/api/networkInventory/_search?${dataParams}`, //api/u1/ipDevice?
-        type: 'GET'
-      },
-      {
-        url: `${baseUrl}/api/networkInventory/_search?system=hmd`, //api/u1/ipDevice?
-        type: 'GET'
-      }
-    ];
-
-    this.ah.all(apiArr)
+    this.ah.one({
+      url: `${baseUrl}/api/u1/ipdevice/_search?${dataParams}`,
+      type: 'GET'
+    })
     .then(data => {
       if (options === 'oneSeat') {
-        if (data[0].counts > 0) {
+        if (data.counts > 0) {
           this.setState({
             showSeatData: true,
-            currentDeviceData: data[0].rows[0]
+            currentDeviceData: data.rows[0]
           });
           return null;
         }
       }
 
       let tempDeviceData = {...deviceData};
-      tempDeviceData.dataContent = _.map(data[0].rows, item => {
+      tempDeviceData.dataContent = _.map(data.rows, item => {
         return {
           ...item,
           _menu_: true
         }
       });
 
-      tempDeviceData.totalCount = data[0].counts;
+      tempDeviceData.totalCount = data.counts;
       tempDeviceData.currentPage = fromSearch === 'search' ? 1 : deviceData.currentPage;
       tempDeviceData.currentIndex = 0;
-      tempDeviceData.currentLength = data[0].rows.length;
-
-      const hmdData = data[1].rows[0];
-      let tempHmdInfo = {...hmdInfo};
-      tempHmdInfo.yara.createTime = helper.getFormattedDate(hmdData.yaraResult.taskCreateDttm, 'local');
-      tempHmdInfo.yara.responseTime = helper.getFormattedDate(hmdData.yaraResult.taskResponseDttm, 'local');
-      tempHmdInfo.yara.result = hmdData.yaraResult.ScanResult;
-      tempHmdInfo.ir.createTime = helper.getFormattedDate(hmdData.irResult.taskCreateDttm, 'local');
-      tempHmdInfo.ir.responseTime = helper.getFormattedDate(hmdData.irResult.taskResponseDttm, 'local');
-      tempHmdInfo.ir.result = hmdData.irResult._status;
+      tempDeviceData.currentLength = data.rows.length;
 
       let dataFields = {};
       deviceData.dataFieldsArr.forEach(tempData => {
@@ -274,7 +253,7 @@ class NetworkInventory extends Component {
                 <div className={cx('table-menu inventory', {'active': value})}>
                   <i className='fg fg-eye' onClick={this.openMenu.bind(this, 'view', allValue, index)} title={t('alert.txt-ipBasicInfo')}></i>
                   {allValue.system === 'hmd' &&
-                    <i className='fg fg-chart-kpi' onClick={this.openMenu.bind(this, 'info', allValue, index)} title={t('alert.txt-safetyScanInfo')}></i>
+                    <i className='fg fg-chart-kpi' onClick={this.openMenu.bind(this, 'hmd', allValue, index)} title={t('alert.txt-safetyScanInfo')}></i>
                   }
                   <i className='fg fg-trashcan' onClick={this.openMenu.bind(this, 'delete', allValue)} title={t('network-inventory.txt-deleteDevice')}></i>
                 </div>
@@ -303,7 +282,7 @@ class NetworkInventory extends Component {
 
       this.setState({
         deviceData: tempDeviceData,
-        hmdInfo: tempHmdInfo
+        activeIPdeviceUUID: ''
       });
     })
   }
@@ -401,7 +380,7 @@ class NetworkInventory extends Component {
         <div className='main'>{t('ipFields.mac')}: {deviceInfo.mac}</div>
         <div className='table-menu inventory active'>
           <i className='fg fg-eye' onClick={this.openMenu.bind(this, 'view', currentDeviceData)} title={t('alert.txt-ipBasicInfo')}></i>
-          <i className='fg fg-chart-kpi' onClick={this.openMenu.bind(this, 'info', currentDeviceData)} title={t('alert.txt-safetyScanInfo')}></i>
+          <i className='fg fg-chart-kpi' onClick={this.openMenu.bind(this, 'hmd', currentDeviceData)} title={t('alert.txt-safetyScanInfo')}></i>
           <i className='fg fg-trashcan' onClick={this.openMenu.bind(this, 'delete', currentDeviceData)} title={t('network-inventory.txt-deleteDevice')}></i>
         </div>
         <div className='main header'>{t('alert.txt-systemInfo')}</div>
@@ -569,8 +548,13 @@ class NetworkInventory extends Component {
       return null;
     })
   }
+  toggleHMDonly = (value) => {
+    this.setState({
+      showHMDonly: value
+    });
+  }
   renderFilter = () => {
-    const {showFilter, deviceSearch} = this.state;
+    const {showFilter, showHMDonly, deviceSearch} = this.state;
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
@@ -633,6 +617,13 @@ class NetworkInventory extends Component {
               onChange={this.handleDeviceSearch.bind(this, 'seatName')}
               value={deviceSearch.seatName} />
           </div>
+          <div className='group hmd'>
+            <label htmlFor='filterHMD'>HMD</label>
+            <Checkbox
+              id='filterHMD'
+              onChange={this.toggleHMDonly}
+              checked={showHMDonly} />
+          </div>
         </div>
         <div className='button-group'>
           <button className='filter' onClick={this.getDeviceData.bind(this, 'search')}>{t('txt-filter')}</button>
@@ -643,47 +634,47 @@ class NetworkInventory extends Component {
   }
   openMenu = (type, allValue, index) => {
     if (type === 'view') {
-      this.getOwnerPic(allValue);
-    } else if (type === 'info') {
+      this.getOwnerSeat(allValue);
+    } else if (type === 'hmd') {
       this.openDetailInfo(index, allValue);
     } else if (type === 'delete') {
       this.openDeleteDeviceModal(allValue);
     }
   }
-  getOwnerPic = (allValue) => {
-    const {baseUrl} = this.props;
-    const {alertInfo} = this.state;
-    let ownerUUID = '';
-    let tempAlertInfo = {...alertInfo};
+  // getOwnerPic = (allValue) => {
+  //   const {baseUrl} = this.props;
+  //   const {alertInfo} = this.state;
+  //   let ownerUUID = '';
+  //   let tempAlertInfo = {...alertInfo};
 
-    if (!allValue.ownerObj) {
-      this.getOwnerSeat(allValue);
-      return;
-    }
+  //   if (!allValue.ownerObj) {
+  //     this.getOwnerSeat(allValue);
+  //     return;
+  //   }
 
-    ownerUUID = allValue.ownerObj.ownerUUID;
+  //   ownerUUID = allValue.ownerObj.ownerUUID;
 
-    if (ownerUUID) {
-      this.ah.one({
-        url: `${baseUrl}/api/owner?uuid=${ownerUUID}`,
-        type: 'GET'
-      })
-      .then(data => {
-        if (data) {
-          tempAlertInfo.ownerPic = data.base64;
+  //   if (ownerUUID) {
+  //     this.ah.one({
+  //       url: `${baseUrl}/api/owner?uuid=${ownerUUID}`,
+  //       type: 'GET'
+  //     })
+  //     .then(data => {
+  //       if (data) {
+  //         tempAlertInfo.ownerPic = data.base64;
 
-          this.setState({
-            alertInfo: tempAlertInfo
-          }, () => {
-            this.getOwnerSeat(allValue);
-          });
-        }
-      })
-      .catch(err => {
-        helper.showPopupMsg('', t('txt-error'), err.message);
-      })
-    }
-  }
+  //         this.setState({
+  //           alertInfo: tempAlertInfo
+  //         }, () => {
+  //           this.getOwnerSeat(allValue);
+  //         });
+  //       }
+  //     })
+  //     .catch(err => {
+  //       helper.showPopupMsg('', t('txt-error'), err.message);
+  //     })
+  //   }
+  // }
   getOwnerSeat = (allValue) => {
     const {baseUrl, contextRoot} = this.props;
     const topoInfo = allValue;
@@ -917,11 +908,23 @@ class NetworkInventory extends Component {
     )
   }
   displayScanInfo = () => {
-    const {activeTab, activeScanType, deviceData, currentDeviceData, hmdInfo} = this.state;
+    const {activeTab, activeScanType, deviceData, currentDeviceData} = this.state;
     const ip = currentDeviceData.ip ? currentDeviceData.ip : NOT_AVAILABLE;
     const mac = currentDeviceData.mac ? currentDeviceData.mac : NOT_AVAILABLE;
     const hostName = currentDeviceData.hostName ? currentDeviceData.hostName : NOT_AVAILABLE;
     const ownerName = currentDeviceData.ownerObj ? currentDeviceData.ownerObj.ownerName : NOT_AVAILABLE;
+    const hmdInfo = {
+      yara: {
+        createTime: helper.getFormattedDate(currentDeviceData.yaraResult.taskCreateDttm, 'local'),
+        responseTime: helper.getFormattedDate(currentDeviceData.yaraResult.taskResponseDttm, 'local'),
+        result: currentDeviceData.yaraResult.ScanResult
+      },
+      ir: {
+        createTime: helper.getFormattedDate(currentDeviceData.irResult.taskCreateDttm, 'local'),
+        responseTime: helper.getFormattedDate(currentDeviceData.irResult.taskResponseDttm, 'local'),
+        result: currentDeviceData.irResult._url
+      }
+    };
 
     return (
       <div>
@@ -979,7 +982,7 @@ class NetworkInventory extends Component {
                   <button className='btn'>{t('network-inventory.txt-reCompress')}</button>
                 </div>
                 <div className='msg'>
-                  <div>{hmdInfo.ir.result}</div>
+                  <span>IR data has been uploaded to {hmdInfo.ir.result}</span>
                 </div>
               </div>
             }
@@ -1021,7 +1024,6 @@ class NetworkInventory extends Component {
     this.setState({
       showScanInfo: false,
       showSeatData: false,
-      showAddData: false,
       activeScanType: 'yara',
       addData: '',
       currentDeviceData: {}
@@ -1029,6 +1031,7 @@ class NetworkInventory extends Component {
   }
   clearFilter = () => {
     this.setState({
+      showHMDonly: false,
       deviceSearch: {
         ip: '',
         mac: '',
@@ -1072,7 +1075,7 @@ class NetworkInventory extends Component {
         disks: currentDeviceData.disks,
         sharefolders: currentDeviceData.sharefolders,
         file: currentDeviceData.ownerObj ? currentDeviceData.ownerObj.picPath : '',
-        ownerPic: alertInfo.ownerPic,
+        ownerPic: currentDeviceData.ownerObj ? currentDeviceData.ownerObj.base64 : '',
         ownerUUID: currentDeviceData.ownerUUID,
         ownerID: currentDeviceData.ownerObj ? currentDeviceData.ownerObj.ownerID : '',
         ownerName: currentDeviceData.ownerObj ? currentDeviceData.ownerObj.ownerName : '',
@@ -1192,59 +1195,17 @@ class NetworkInventory extends Component {
       addIP: tempAddIP
     });
   }
-  addNewData = (type) => {
-    this.setState({
-      showAddData: true,
-      activeAddType: type
-    }, () => {
-      this.showAddData();
-    });
+  openManage = () => {
+    this.manage._component.open();
   }
-  handleAddDataChange = (addData) => {
-    this.setState({
-      addData
-    });
-  }
-  displayAddInfo = () => {
-    const {activeAddType, addData} = this.state;
+  checkFormValidation = () => {
+    const {activeSteps, addIP, ownerType} = this.state;
 
-    return (
-      <div>
-        <Input
-          onChange={this.handleAddDataChange}
-          value={addData} />
-      </div>
-    )
-  }
-  showAddData = () => {
-    const {activeAddType} = this.state;
-    const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeDialog},
-      confirm: {text: t('txt-confirm'), handler: this.handleAddConfirm}
-    };
-    let titleText = '';
-
-    if (activeAddType === 'department') {
-      titleText = t('network-inventory.txt-addNewDepartment');
-    } else if (activeAddType === 'title') {
-      titleText = t('network-inventory.txt-addNewTitle');
+    if (activeSteps === 3 && ownerType === 'new') {
+      if (!addIP.newOwnerName || !addIP.newOwnerID) {
+        return true;
+      }
     }
-
-    return (
-      <ModalDialog
-        id='addDeptTitleDialog'
-        className='modal-dialog'
-        title={titleText}
-        draggable={true}
-        global={true}
-        actions={actions}
-        closeAction='confirm'>
-        {this.displayAddInfo()}
-      </ModalDialog>
-    )
-  }
-  handleAddConfirm = () => {
-    const {activeAddType, addData} = this.state;
   }
   displayAddIpSteps = () => {
     const {contextRoot} = this.props;
@@ -1385,10 +1346,10 @@ class NetworkInventory extends Component {
                   {ownerType === 'existing' && addIP.ownerPic &&
                     <img src={addIP.ownerPic} className='existing' title={t('network-topology.txt-profileImage')} />
                   }
-                  {ownerType === 'new' && addIP.newOwnerPic &&
-                    <img src={addIP.newOwnerPic} title={t('network-topology.txt-profileImage')} />
+                  {ownerType === 'new' && previewOwnerPic &&
+                    <img src={previewOwnerPic} title={t('network-topology.txt-profileImage')} />
                   }
-                  {(ownerType === 'existing' && !addIP.ownerPic) || (ownerType === 'new' && !addIP.newOwnerPic) &&
+                  {(ownerType === 'existing' && !addIP.ownerPic) || (ownerType === 'new' && !previewOwnerPic) &&
                     <img src={contextRoot + '/images/empty_profile.png'} className={cx({'existing': ownerType === 'existing'})} title={t('network-topology.txt-profileImage')} />
                   }
                 </div>
@@ -1410,7 +1371,11 @@ class NetworkInventory extends Component {
                     <label htmlFor='addIPstepsOwnerName'>{t('ownerFields.ownerName')}</label>
                     <Input
                       id='addIPstepsOwnerName'
-                      onChange={this.handleAddIpChange.bind(this, 'ownerName')}
+                      onChange={this.handleAddIpChange.bind(this, 'newOwnerName')}
+                      required={true}
+                      validate={{
+                        t: et
+                      }}
                       value={addIP.newOwnerName} />
                   </div>
                 }
@@ -1428,7 +1393,11 @@ class NetworkInventory extends Component {
                     <label htmlFor='addIPstepsOwnerID'>{t('ownerFields.ownerID')}</label>
                     <Input
                       id='addIPstepsOwnerID'
-                      onChange={this.handleAddIpChange.bind(this, 'ownerID')}
+                      onChange={this.handleAddIpChange.bind(this, 'newOwnerID')}
+                      required={true}
+                      validate={{
+                        t: et
+                      }}
                       value={addIP.newOwnerID} />
                   </div>
                 }
@@ -1442,15 +1411,15 @@ class NetworkInventory extends Component {
                   </div>
                 }
                 {ownerType === 'new' &&
-                  <div className='group left'>
-                    <label htmlFor='addIPstepsDepartment'>{t('ownerFields.department')}</label>
+                  <div className='group'>
+                    <label htmlFor='addIPstepsDepartment'>{t('ownerFields.department')} (<span onClick={this.openManage}>{t('txt-manage')}</span>)</label>
                     <DropDownList
                       id='addIPstepsDepartment'
                       list={departmentList}
                       required={true}
+                      validate={{t: et}}
                       onChange={this.handleDepartmentChange}
                       value={addIP.newDepartment} />
-                    <button class='standard' onClick={this.addNewData.bind(this, 'department')}>{t('network-inventory.txt-addNewDepartment')}</button>
                   </div>
                 }
                 {ownerType === 'existing' &&
@@ -1463,15 +1432,14 @@ class NetworkInventory extends Component {
                   </div>
                 }
                 {ownerType === 'new' &&
-                  <div className='group left'>
-                    <label htmlFor='addIPstepsTitle'>{t('ownerFields.title')}</label>
+                  <div className='group'>
+                    <label htmlFor='addIPstepsTitle'>{t('ownerFields.title')} (<span onClick={this.openManage}>{t('txt-manage')}</span>)</label>
                     <DropDownList
                       id='addIPstepsTitle'
                       list={titleList}
                       required={true}
                       onChange={this.handleTitleChange}
                       value={addIP.newTitle} />
-                    <button class='standard' onClick={this.addNewData.bind(this, 'title')}>{t('network-inventory.txt-addNewTitle')}</button>
                   </div>
                 }
               </div>
@@ -1490,7 +1458,7 @@ class NetworkInventory extends Component {
             {activeSteps > 1 &&
               <button className='standard previous-step' onClick={this.toggleSteps.bind(this, 'previous')}>{t('txt-previousStep')}</button>
             }
-            <button className='next-step' onClick={this.toggleSteps.bind(this, 'next')}>{this.getBtnText()}</button>
+            <button className='next-step' onClick={this.toggleSteps.bind(this, 'next')} disabled={this.checkFormValidation()}>{this.getBtnText()}</button>
           </footer>
         </div>
       </div>
@@ -1587,7 +1555,6 @@ class NetworkInventory extends Component {
       showFilter,
       showScanInfo,
       showSeatData,
-      showAddData,
       deviceData,
       currentDeviceData,
       floorPlan,
@@ -1600,7 +1567,7 @@ class NetworkInventory extends Component {
       activeSteps,
       addIP
     } = this.state;
-    const picPath = alertInfo.ownerPic ? alertInfo.ownerPic : contextRoot + '/images/empty_profile.png';
+    const picPath = (currentDeviceData.ownerObj && currentDeviceData.ownerObj.base64) ? currentDeviceData.ownerObj.base64 : contextRoot + '/images/empty_profile.png';
     const backText = activeTab === 'deviceList' ? t('network-inventory.txt-backToList') : t('network-inventory.txt-backToMap')
 
 		return (
@@ -1613,9 +1580,9 @@ class NetworkInventory extends Component {
           this.showSeatData()
         }
 
-        {showAddData &&
-          this.showAddData()
-        }
+        <Manage
+          ref={ref => { this.manage = ref }}
+          onDone={this.getOtherData} />
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>

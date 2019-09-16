@@ -167,13 +167,20 @@ class Name extends Component {
     	const label = tab.department ? t('ownerFields.department') : t('ownerFields.title')
 
     	return (
-    		<ModalDialog className='modal-dialog' title={t('txt-mixName')} draggable={true} global={true} actions={actions} closeAction='cancel'>
+    		<ModalDialog
+    			id='departmentTitleManage'
+    			className='modal-dialog'
+    			title={t('txt-mixName')}
+    			draggable={true}
+    			global={true}
+    			actions={actions}
+    			closeAction='cancel'>
 					<div className='narrow-dialog add-name'>
-						<div className='button-group'>
-							<button className={cx({'standard': !tab.department})} onClick={this.handleTabChange.bind(this, 'department')}>{t('ownerFields.department')}</button>
-		    			<button className={cx({'standard': !tab.title})} onClick={this.handleTabChange.bind(this, 'title')}>{t('ownerFields.title')}</button>
-		    			<i className='c-link fg fg-add' onClick={this.openAddName.bind(this)} title={tab.department ? t('txt-addDepartment') : t('txt-addTitle')}></i>
-						</div>
+	          <div className='c-button-group'>
+	            <button className={cx('thumb', {'selected': tab.department})} onClick={this.handleTabChange.bind(this, 'department')}>{t('ownerFields.department')}</button>
+	            <button className={cx('thumb', {'selected': tab.title})} onClick={this.handleTabChange.bind(this, 'title')}>{t('ownerFields.title')}</button>
+	          </div>
+						<i className='c-link fg fg-add' onClick={this.openAddName.bind(this)} title={tab.department ? t('txt-addDepartment') : t('txt-addTitle')}></i>
 						<div className='content'>
 							{
 								<DataTable
