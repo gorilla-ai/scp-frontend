@@ -17,10 +17,11 @@ import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import TreeView from 'react-ui/build/src/components/tree'
 
+import AddOwner from './owner-add'
 import {HocPagination as Pagination} from '../../common/pagination'
+import {HocFloorMap as FloorMap} from '../../common/floor-map'
 import helper from '../../common/helper'
 import withLocale from '../../../hoc/locale-provider'
-import AddOwner from './owner-add'
 import {HocConfig as Config} from '../../common/configuration'
 import RowMenu from '../../common/row-menu'
 
@@ -716,95 +717,94 @@ class MapNetwork extends Component {
       helper.showPopupMsg('', t('txt-error'), t('network-topology.txt-deleteChild'));
     })
   }
-  displayAddFloor = () => {
-    const {currentMap, floorPlan} = this.state;
-    let showMap = true;
+  // displayAddFloor = () => {
+  //   const {currentMap, floorPlan} = this.state;
+  //   const addTree = t('network-topology.txt-addTree');
+  //   const selectTree = t('network-topology.txt-selectTree');
+  //   const deselectTree = t('network-topology.txt-deselectTree');
+  //   const editTree = t('network-topology.txt-editTree');
+  //   const removeTree = t('network-topology.txt-removeTree');
+  //   const removeMap = t('network-topology.txt-deleteFloorMap');
+  //   let showMap = true;
 
-    const addTree = t('network-topology.txt-addTree');
-    const selectTree = t('network-topology.txt-selectTree');
-    const deselectTree = t('network-topology.txt-deselectTree');
-    const editTree = t('network-topology.txt-editTree');
-    const removeTree = t('network-topology.txt-removeTree');
-    const removeMap = t('network-topology.txt-deleteFloorMap');
+  //   if (floorPlan.type === 'add') {
+  //     showMap = false;
+  //   }
 
-    if (floorPlan.type === 'add') {
-      showMap = false;
-    }
+  //   return (
+  //     <div className='wide-dialog add-floor'>
+  //       <div className='content'>
+  //         <div className='text'>
+  //           {floorPlan.currentAreaUUID &&
+  //             <div>{t('network-topology.txt-selected-node')}: <span>{floorPlan.currentAreaName}</span></div>
+  //           }
+  //         </div>
+  //         <div className='left border'>
+  //           <header>
+  //             {floorPlan.currentAreaUUID &&
+  //               <i className='c-link fg fg-cancel' onClick={this.getAddMapContent.bind(this, 'clear')} title={deselectTree}></i>
+  //             }
+  //             <i className={cx('c-link', 'fg', 'fg-add', {'active': floorPlan.type === 'add' || !floorPlan.currentAreaUUID})} onClick={this.getAddMapContent.bind(this, 'add')} title={addTree}></i>
+  //             {floorPlan.currentAreaUUID &&
+  //               <span>
+  //                 <i className={cx('c-link', 'fg', 'fg-edit', {'active': floorPlan.type === 'edit'})} onClick={this.getAddMapContent.bind(this, 'edit')} title={editTree}></i>
+  //                 <i className='c-link fg fg-trashcan' onClick={this.openDeleteAreaModal} title={removeTree}></i>
+  //               </span>
+  //             }
+  //           </header>
 
-    return (
-      <div className='wide-dialog add-floor'>
-        <div className='content'>
-          <div className='text'>
-            {floorPlan.currentAreaUUID &&
-              <div>{t('network-topology.txt-selected-node')}: <span>{floorPlan.currentAreaName}</span></div>
-            }
-          </div>
-          <div className='left border'>
-            <header>
-              {floorPlan.currentAreaUUID &&
-                <i className='c-link fg fg-cancel' onClick={this.getAddMapContent.bind(this, 'clear')} title={deselectTree}></i>
-              }
-              <i className={cx('c-link', 'fg', 'fg-add', {'active': floorPlan.type === 'add' || !floorPlan.currentAreaUUID})} onClick={this.getAddMapContent.bind(this, 'add')} title={addTree}></i>
-              {floorPlan.currentAreaUUID &&
-                <span>
-                  <i className={cx('c-link', 'fg', 'fg-edit', {'active': floorPlan.type === 'edit'})} onClick={this.getAddMapContent.bind(this, 'edit')} title={editTree}></i>
-                  <i className='c-link fg fg-trashcan' onClick={this.openDeleteAreaModal} title={removeTree}></i>
-                </span>
-              }
-            </header>
+  //           <div className='display-tree'>
+  //             {floorPlan.treeData && !_.isEmpty(floorPlan.treeData) &&
+  //               floorPlan.treeData.map((value, i) => {
+  //                 return this.getTreeView(value, floorPlan.currentAreaUUID, i);
+  //               })
+  //             }
+  //           </div>
+  //         </div>
 
-            <div className='display-tree'>
-              {floorPlan.treeData && !_.isEmpty(floorPlan.treeData) &&
-                floorPlan.treeData.map((value, i) => {
-                  return this.getTreeView(value, floorPlan.currentAreaUUID, i);
-                })
-              }
-            </div>
-          </div>
+  //         <div className='right no-padding'>
+  //           <header className='text-left add-floor'>
+  //             <div className='field'>
+  //               <label htmlFor='areaMapName'>{t('txt-name')}</label>
+  //               <Input
+  //                 id='areaMapName'
+  //                 className='add'
+  //                 value={floorPlan.name}
+  //                 onChange={this.handleDataChange.bind(this, 'floorPlan', 'name')} />
+  //             </div>
 
-          <div className='right no-padding'>
-            <header className='text-left add-floor'>
-              <div className='field'>
-                <label htmlFor='areaMapName'>{t('txt-name')}</label>
-                <Input
-                  id='areaMapName'
-                  className='add'
-                  value={floorPlan.name}
-                  onChange={this.handleDataChange.bind(this, 'floorPlan', 'name')} />
-              </div>
+  //             <div className='field'>
+  //               <label htmlFor='areaMapUpload'>{t('txt-network-map')}</label>
+  //               <FileInput
+  //                 id='areaMapUpload'
+  //                 name='file'
+  //                 btnText={t('txt-upload')}
+  //                 validate={{
+  //                   max: 10,
+  //                   extension: ['.jpg', '.jpeg', '.png'],
+  //                   t: (code, params) => {
+  //                     if (code[0] === 'file-wrong-format') {
+  //                       return t('txt-file-format-error') + ` ${params.extension}`
+  //                     }
+  //                   }
+  //                 }}
+  //                 onChange={this.handleDataChange.bind(this, 'floorPlan', 'map')} />
+  //             </div>
 
-              <div className='field'>
-                <label htmlFor='areaMapUpload'>{t('txt-network-map')}</label>
-                <FileInput
-                  id='areaMapUpload'
-                  name='file'
-                  btnText={t('txt-upload')}
-                  validate={{
-                    max: 10,
-                    extension: ['.jpg', '.jpeg', '.png'],
-                    t: (code, params) => {
-                      if (code[0] === 'file-wrong-format') {
-                        return t('txt-file-format-error') + ` ${params.extension}`
-                      }
-                    }
-                  }}
-                  onChange={this.handleDataChange.bind(this, 'floorPlan', 'map')} />
-              </div>
-
-              {showMap && currentMap && floorPlan.currentAreaUUID &&
-                <i className='c-link fg fg-trashcan' onClick={this.openDeleteSingleAreaModal} title={removeMap}></i>
-              }
-            </header>
-            <div className='map'>
-              {showMap && currentMap.images &&
-                <img src={currentMap.images[0].url} title={floorPlan.currentAreaName + ' ' + t('txt-floorMap')} />
-              }
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
+  //             {showMap && currentMap && floorPlan.currentAreaUUID &&
+  //               <i className='c-link fg fg-trashcan' onClick={this.openDeleteSingleAreaModal} title={removeMap}></i>
+  //             }
+  //           </header>
+  //           <div className='map'>
+  //             {showMap && currentMap.images &&
+  //               <img src={currentMap.images[0].url} title={floorPlan.currentAreaName + ' ' + t('txt-floorMap')} />
+  //             }
+  //           </div>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   )
+  // }
   handleFloorConfirm = (option) => {
     const {baseUrl} = this.props;
     const {floorPlan} = this.state;
@@ -885,31 +885,44 @@ class MapNetwork extends Component {
     })
   }
   modalFloorDialog = () => {
-    const {floorPlan} = this.state;
-    const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeDialog.bind(this)},
-      confirm: {text: t('txt-confirm'), handler: this.handleFloorConfirm.bind(this, 'addFloor')}
-    };
-    let titleText = '';
-
-    if (floorPlan.type === 'edit' || floorPlan.type === 'map') {
-      titleText = t('network-topology.txt-editFloorMap');
-    } else {
-      titleText = t('network-topology.txt-addFloorMap');
-    }
+    const {currentMap, floorPlan} = this.state;
 
     return (
-      <ModalDialog
-        id='floorModalDialog'
-        className='modal-dialog'
-        title={titleText}
-        draggable={true}
-        global={true}
-        actions={actions}
-        closeAction='cancel'>
-        {this.displayAddFloor()}
-      </ModalDialog>
+      <FloorMap
+        currentMap={currentMap}
+        floorPlan={floorPlan}
+        handleDataChange={this.handleDataChange}
+        getAddMapContent={this.getAddMapContent}
+        openDeleteAreaModal={this.openDeleteAreaModal}
+        getTreeView={this.getTreeView}
+        handleFloorConfirm={this.handleFloorConfirm}
+        closeDialog={this.closeDialog} />
     )
+    // const {floorPlan} = this.state;
+    // const actions = {
+    //   cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeDialog.bind(this)},
+    //   confirm: {text: t('txt-confirm'), handler: this.handleFloorConfirm.bind(this, 'addFloor')}
+    // };
+    // let titleText = '';
+
+    // if (floorPlan.type === 'edit' || floorPlan.type === 'map') {
+    //   titleText = t('network-topology.txt-editFloorMap');
+    // } else {
+    //   titleText = t('network-topology.txt-addFloorMap');
+    // }
+
+    // return (
+    //   <ModalDialog
+    //     id='floorModalDialog'
+    //     className='modal-dialog'
+    //     title={titleText}
+    //     draggable={true}
+    //     global={true}
+    //     actions={actions}
+    //     closeAction='cancel'>
+    //     {this.displayAddFloor()}
+    //   </ModalDialog>
+    // )
   }
   getAddMapContent = (type) => {
     if (type === 'clear') {
@@ -1788,8 +1801,13 @@ class MapNetwork extends Component {
 
     return (
       <div>
-        { modalFloorOpen && this.modalFloorDialog() }
-        { modalSeatOpen && this.modalSeatDialog() }
+        {modalFloorOpen &&
+          this.modalFloorDialog()
+        }
+
+        {modalSeatOpen &&
+          this.modalSeatDialog()
+        }
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>

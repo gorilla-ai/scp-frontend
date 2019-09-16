@@ -1552,13 +1552,15 @@ class Netflow extends Component {
           useDragHandle={true}
           lockToContainerEdges={true} />
 
-        <div className='pagination'>
-          <div className='buttons'>
-            <button onClick={this.showTableData.bind(this, 'previous')} disabled={currentTableIndex === 0}>{t('txt-previous')}</button>
-            <button onClick={this.showTableData.bind(this, 'next')} disabled={currentTableIndex + 1 == currentLength}>{t('txt-next')}</button>
+        {currentLength > 1 &&
+          <div className='pagination'>
+            <div className='buttons'>
+              <button onClick={this.showTableData.bind(this, 'previous')} disabled={currentTableIndex === 0}>{t('txt-previous')}</button>
+              <button onClick={this.showTableData.bind(this, 'next')} disabled={currentTableIndex + 1 == currentLength}>{t('txt-next')}</button>
+            </div>
+            <span className='count'>{currentTableIndex + 1} / {currentLength}</span>
           </div>
-          <span className='count'>{currentTableIndex + 1} / {currentLength}</span>
-        </div>
+        }
       </div>
     )
   }
@@ -1640,13 +1642,15 @@ class Netflow extends Component {
           <li><JSONTree data={allValue} theme={helper.getJsonViewTheme()} /></li>
         </ul>
 
-        <div className='pagination json'>
-          <div className='buttons'>
-            <button onClick={this.viewJsonData.bind(this, 'previous')} disabled={currentTableIndex === 0}>{t('txt-previous')}</button>
-            <button onClick={this.viewJsonData.bind(this, 'next')} disabled={currentTableIndex + 1 == currentLength}>{t('txt-next')}</button>
+        {currentLength > 1 &&
+          <div className='pagination json'>
+            <div className='buttons'>
+              <button onClick={this.viewJsonData.bind(this, 'previous')} disabled={currentTableIndex === 0}>{t('txt-previous')}</button>
+              <button onClick={this.viewJsonData.bind(this, 'next')} disabled={currentTableIndex + 1 == currentLength}>{t('txt-next')}</button>
+            </div>
+            <span className='count'>{currentTableIndex + 1} / {currentLength}</span>
           </div>
-          <span className='count'>{currentTableIndex + 1} / {currentLength}</span>
-        </div>
+        }
       </div>
     )
   }

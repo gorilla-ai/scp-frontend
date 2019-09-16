@@ -22,6 +22,7 @@ import TreeView from 'react-ui/build/src/components/tree'
 import {HocConfig as Config} from '../../common/configuration'
 import {HocFilterContent as FilterContent} from '../../common/filter-content'
 import helper from '../../common/helper'
+import {HocFloorMap as FloorMap} from '../../common/floor-map'
 import Manage from '../topology/owner-mixname'
 import {HocPagination as Pagination} from '../../common/pagination'
 import {HocPrivateDetails as PrivateDetails} from '../../common/private-details'
@@ -39,11 +40,6 @@ const NOT_AVAILABLE = 'N/A';
 const MAPS_PRIVATE_DATA = {
   floorList: [],
   currentFloor: '',
-  floorPlan: {
-    treeData: {},
-    currentAreaUUID: '',
-    currentAreaName: ''
-  },
   mapAreaUUID: '',
   currentMap: '',
   currentBaseLayers: {},
@@ -56,11 +52,12 @@ class NetworkInventory extends Component {
 
 		this.state = {
       activeTab: 'deviceList', //deviceList, deviceMap
-      activeContent: 'tableList', //tableList, dataInfo, addIPsteps
+      activeContent: 'addIPsteps', //tableList, dataInfo, addIPsteps
       showFilter: false,
       showScanInfo: false,
       showSeatData: false,
       showHMDonly: false,
+      modalFloorOpen: false,
       activeScanType: 'yara', //yara, ir
       activeAddType: '',
       activePath: null,
@@ -97,7 +94,7 @@ class NetworkInventory extends Component {
       titleList: [],
       floorPlan: {
         treeData: {},
-        type: '',
+        type: 'edit',
         rootAreaUUID: '',
         currentAreaUUID: '',
         currentAreaName: '',
@@ -989,7 +986,7 @@ class NetworkInventory extends Component {
           </div>
         </div>
 
-        {activeTab === 'deviceList' &&
+        {activeTab === 'deviceList' && deviceData.currentLength > 1 &&
           <div className='pagination'>
             <div className='buttons'>
               <button onClick={this.showAlertData.bind(this, 'previous')} disabled={deviceData.currentIndex === 0}>{t('txt-previous')}</button>
@@ -1207,9 +1204,43 @@ class NetworkInventory extends Component {
       }
     }
   }
+  openFloorMap = () => {
+    this.setState({
+      modalFloorOpen: true
+    });
+  }
+  modalFloorDialog = () => {
+    const {currentMap, floorPlan} = this.state;
+
+    return (
+      <FloorMap
+        currentMap={currentMap}
+        floorPlan={floorPlan}
+        handleDataChange={this.handleDataChange}
+        getAddMapContent={this.getAddMapContent}
+        openDeleteAreaModal={this.openDeleteAreaModal}
+        getTreeView={this.getTreeView}
+        handleFloorConfirm={this.handleFloorConfirm}
+        closeDialog={this.closeDialog} />
+    )
+  }
   displayAddIpSteps = () => {
     const {contextRoot} = this.props;
-    const {activeSteps, currentDeviceData, addIP, previewOwnerPic, ownerList, departmentList, titleList, ownerType} = this.state;
+    const {
+      activeSteps,
+      currentDeviceData,
+      addIP,
+      previewOwnerPic,
+      ownerList,
+      departmentList,
+      titleList,
+      ownerType,
+      mapAreaUUID,
+      currentMap,
+      seatData,
+      currentBaseLayers,
+      floorPlan
+    } = this.state;
     const addIPtext = [t('txt-ipAddress'), t('alert.txt-systemInfo'), t('ipFields.owner'), t('alert.txt-floorInfo')];
 
     return (
@@ -1447,10 +1478,28 @@ class NetworkInventory extends Component {
           }
           {activeSteps === 4 &&
             <div className='steps steps-floor'>
-              <header>{t('alert.txt-floorInfo')}</header>
-              <div className='group'>
-
-              </div>
+              <header>{t('alert.txt-floorInfo')} (<span className='edit' onClick={this.openFloorMap}>{t('txt-edit')}</span>)</header>
+                <div className='floor-info'>
+                  <div className='tree'>
+                    {floorPlan.treeData && floorPlan.treeData.length > 0 &&
+                      floorPlan.treeData.map((value, i) => {
+                        return this.getTreeView(value, floorPlan.currentAreaUUID, i);
+                      })
+                    }
+                  </div>
+                  <div className='map'>
+                    {currentMap.label &&
+                      <Gis
+                        _ref={(ref) => {this.gisNode = ref}}
+                        data={_.get(seatData, [mapAreaUUID, 'data'], [])}
+                        baseLayers={currentBaseLayers}
+                        baseLayer={mapAreaUUID}
+                        layouts={['standard']}
+                        dragModes={['pan']}
+                        scale={{enabled: false}} />
+                    }
+                  </div>
+                </div>
             </div>
           }
           <footer>
@@ -1555,6 +1604,7 @@ class NetworkInventory extends Component {
       showFilter,
       showScanInfo,
       showSeatData,
+      modalFloorOpen,
       deviceData,
       currentDeviceData,
       floorPlan,
@@ -1578,6 +1628,10 @@ class NetworkInventory extends Component {
 
         {showSeatData &&
           this.showSeatData()
+        }
+
+        {modalFloorOpen &&
+          this.modalFloorDialog()
         }
 
         <Manage

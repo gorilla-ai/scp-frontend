@@ -1473,17 +1473,31 @@ footer.footer {
 								cursor: pointer;
 							}
 						}
-						&.steps-address {
-
-						}
-						&.steps-host {
-
-						}
-						&.steps-owner {
-
-						}
 						&.steps-floor {
-
+							padding: 0;
+							.edit {
+								text-decoration: underline;
+								cursor: pointer;
+							}
+							.floor-info {
+								width: 100%;
+								height: 450px;
+								.tree {
+									float: left;
+									text-align: left;
+									width: 20%;
+									height: 100%;
+									background-color: #fff;
+									border-right: 1px solid #ccc;
+								}
+								.map {
+									float: left;
+									width: 80%;
+									.c-gis {
+										min-height: 450px;
+									}
+								}
+							}
 						}
 					}
 				}
