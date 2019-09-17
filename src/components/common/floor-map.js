@@ -6,8 +6,13 @@ import cx from 'classnames'
 import FileInput from 'react-ui/build/src/components/file-input'
 import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
+import TreeView from 'react-ui/build/src/components/tree'
+
 import helper from './helper'
 import withLocale from '../../hoc/locale-provider'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null;
 
@@ -16,15 +21,136 @@ class FloorMap extends Component {
     super(props);
 
     this.state = {
+      floorPlan: {
+        treeData: {},
+        type: '',
+        rootAreaUUID: '',
+        currentAreaUUID: '',
+        currentAreaName: '',
+        name: '',
+        map: ''
+      },
+      mapAreaUUID: '',
+      currentMap: '',
+      currentBaseLayers: {},
+      previewFloorMap: ''
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    this.ah = getInstance('chewbacca');
   }
   componentDidMount = () => {
+    this.getFloorPlan();
+  }
+  getFloorPlan = () => {
+    const {baseUrl} = this.props;
 
+    this.ah.one({
+      url: `${baseUrl}/api/area/_tree`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data && data.length > 0) {
+        const floorPlanData = data[0];
+        const areaUUID = floorPlanData.areaUUID;
+        let tempFloorPlan = {...this.state.floorPlan};
+        tempFloorPlan.treeData = data;
+        tempFloorPlan.rootAreaUUID = floorPlanData.rootAreaUUID;
+        tempFloorPlan.currentAreaUUID = areaUUID;
+        tempFloorPlan.currentAreaName = floorPlanData.areaName;
+        tempFloorPlan.name = floorPlanData.areaName;
+
+        this.setState({
+          floorPlan: tempFloorPlan
+        }, () => {
+          this.getAreaData(areaUUID);
+        });
+      }
+      return null;
+    })      
+  }
+  getAreaData = (areaUUID) => {
+    const {baseUrl, contextRoot} = this.props;
+    const floorPlan = areaUUID || this.state.floorPlan.currentAreaUUID;
+
+    this.ah.one({
+      url: `${baseUrl}/api/area?uuid=${floorPlan}`,
+      type: 'GET'
+    })
+    .then(data => {
+      const areaName = data.areaName;
+      const areaUUID = data.areaUUID;
+      let currentMap = '';
+
+      if (data.picPath) {
+        const picPath = `${baseUrl}${contextRoot}/api/area/_image?path=${data.picPath}`;
+        const picWidth = data.picWidth;
+        const picHeight = data.picHeight;
+
+        currentMap = {
+          label: areaName,
+          images: [
+            {
+              id: areaUUID,
+              url: picPath,
+              size: {width: picWidth, height: picHeight}
+            }
+          ]
+        };
+      }
+
+      const currentBaseLayers = {};
+      currentBaseLayers[floorPlan] = currentMap;
+
+      this.setState({
+        mapAreaUUID: floorPlan,
+        currentMap,
+        currentBaseLayers
+      });
+      return null;
+    })
+  }
+  handleDataChange = (type, value, info) => {
+    let tempFloorPlan = {...this.state.floorPlan};
+    tempFloorPlan[type] = value;
+
+    if (type === 'map') {
+      this.setState({
+        previewFloorMap: URL.createObjectURL(value)
+      });
+    }
+
+    this.setState({
+      floorPlan: tempFloorPlan
+    });
+  }
+  getAddMapContent = (type) => {
+    if (type === 'clear') {
+      this.setState({
+        floorPlan: this.clearData('floorPlanData'),
+        currentMap: this.clearData('mapData')
+      });
+    } else {
+      const {floorPlan} = this.state;
+      let tempFloorPlan = {...floorPlan};
+
+      if (type === 'add') {
+        tempFloorPlan.type = type;
+        tempFloorPlan.name = '';
+      } else if (type === 'edit') {
+        if (_.isEmpty(floorPlan.treeData)) {
+          tempFloorPlan.type = 'add';
+          tempFloorPlan.name = '';
+        }
+      }
+
+      this.setState({
+        floorPlan: tempFloorPlan
+      });
+    }
   }
   displayAddFloor = () => {
-    const {currentMap, floorPlan} = this.props;
+    const {currentMap, floorPlan, previewFloorMap} = this.state;
     const addTree = t('network-topology.txt-addTree');
     const selectTree = t('network-topology.txt-selectTree');
     const deselectTree = t('network-topology.txt-deselectTree');
@@ -48,13 +174,13 @@ class FloorMap extends Component {
           <div className='left border'>
             <header>
               {floorPlan.currentAreaUUID &&
-                <i className='c-link fg fg-cancel' onClick={this.props.getAddMapContent.bind(this, 'clear')} title={deselectTree}></i>
+                <i className='c-link fg fg-cancel' onClick={this.getAddMapContent.bind(this, 'clear')} title={deselectTree}></i>
               }
-              <i className={cx('c-link', 'fg', 'fg-add', {'active': floorPlan.type === 'add' || !floorPlan.currentAreaUUID})} onClick={this.props.getAddMapContent.bind(this, 'add')} title={addTree}></i>
+              <i className={cx('c-link', 'fg', 'fg-add', {'active': floorPlan.type === 'add' || !floorPlan.currentAreaUUID})} onClick={this.getAddMapContent.bind(this, 'add')} title={addTree}></i>
               {floorPlan.currentAreaUUID &&
                 <span>
-                  <i className={cx('c-link', 'fg', 'fg-edit', {'active': floorPlan.type === 'edit'})} onClick={this.props.getAddMapContent.bind(this, 'edit')} title={editTree}></i>
-                  <i className='c-link fg fg-trashcan' onClick={this.props.openDeleteAreaModal} title={removeTree}></i>
+                  <i className={cx('c-link', 'fg', 'fg-edit', {'active': floorPlan.type === 'edit'})} onClick={this.getAddMapContent.bind(this, 'edit')} title={editTree}></i>
+                  <i className='c-link fg fg-trashcan' onClick={this.openDeleteAreaModal} title={removeTree}></i>
                 </span>
               }
             </header>
@@ -62,7 +188,7 @@ class FloorMap extends Component {
             <div className='display-tree'>
               {floorPlan.treeData && !_.isEmpty(floorPlan.treeData) &&
                 floorPlan.treeData.map((value, i) => {
-                  return this.props.getTreeView(value, floorPlan.currentAreaUUID, i);
+                  return this.getTreeView(value, floorPlan.currentAreaUUID, i);
                 })
               }
             </div>
@@ -75,8 +201,8 @@ class FloorMap extends Component {
                 <Input
                   id='areaMapName'
                   className='add'
-                  value={floorPlan.name}
-                  onChange={this.props.handleDataChange.bind(this, 'floorPlan', 'name')} />
+                  onChange={this.handleDataChange.bind(this, 'name')}
+                  value={floorPlan.name} />
               </div>
 
               <div className='field'>
@@ -94,7 +220,7 @@ class FloorMap extends Component {
                       }
                     }
                   }}
-                  onChange={this.props.handleDataChange.bind(this, 'floorPlan', 'map')} />
+                  onChange={this.handleDataChange.bind(this, 'map')} />
               </div>
 
               {showMap && currentMap && floorPlan.currentAreaUUID &&
@@ -102,7 +228,10 @@ class FloorMap extends Component {
               }
             </header>
             <div className='map'>
-              {showMap && currentMap.images &&
+              {previewFloorMap &&
+                <img src={previewFloorMap} title={floorPlan.currentAreaName + ' ' + t('txt-floorMap')} />
+              }
+              {showMap && currentMap.images && !previewFloorMap &&
                 <img src={currentMap.images[0].url} title={floorPlan.currentAreaName + ' ' + t('txt-floorMap')} />
               }
             </div>
@@ -111,11 +240,209 @@ class FloorMap extends Component {
       </div>
     )
   }
+  getTreeView = (value, selectedID, i) => {
+    return (
+      <TreeView
+        id={value.areaUUID}
+        key={value.areaUUID}
+        data={value}
+        selected={selectedID}
+        defaultOpened={[value.areaUUID]}
+        onSelect={this.selectTree.bind(this, i)} />
+    )
+  }
+  selectTree = (i, areaUUID, eventData) => {
+    const {baseUrl, contextRoot} = this.props;
+    let tempFloorPlan = {...this.state.floorPlan};
+    let tempArr = [];
+    let pathStr = '';
+    let pathNameStr = '';
+    let pathParentStr = '';
+
+    if (eventData.path.length > 0) {
+      _.forEach(eventData.path, val => {
+        if (val.index >= 0) {
+          tempArr.push(val.index);
+        }
+      })
+    }
+
+    _.forEach(tempArr, val => {
+      pathStr += 'children[' + val + '].'
+    })
+
+    pathNameStr = pathStr + 'label';
+    pathParentStr = pathStr + 'parentAreaUUID';
+
+    if (eventData.path[0].id) {
+      tempFloorPlan.rootAreaUUID = eventData.path[0].id;
+    }
+    tempFloorPlan.currentAreaUUID = areaUUID;
+    tempFloorPlan.currentAreaName = _.get(tempFloorPlan.treeData[i], pathNameStr);
+    tempFloorPlan.currentParentAreaUUID = _.get(tempFloorPlan.treeData[i], pathParentStr);
+    tempFloorPlan.name = tempFloorPlan.currentAreaName;
+    tempFloorPlan.type = 'edit';
+
+    this.setState({
+      floorPlan: tempFloorPlan
+    }, () => {
+      this.getAreaData(areaUUID);
+    });
+  }
+  getDeleteAreaContent = () => {
+    const {floorPlan} = this.state;
+
+    return (
+      <div className='content delete'>
+        <span>{t('network-topology.txt-deleteFloorMsg')}: {floorPlan.currentAreaName}?</span>
+      </div>
+    )
+  }
+  openDeleteAreaModal = () => {
+    PopupDialog.prompt({
+      title: t('network-topology.txt-deleteFloor'),
+      id: 'modalWindow',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: this.getDeleteAreaContent(),
+      act: (confirmed) => {
+        if (confirmed) {
+          this.deleteAreaMap();
+        }
+      }
+    });
+  }
+  deleteAreaMap = () => {
+    const {baseUrl, contextRoot} = this.props;
+    const {floorPlan} = this.state;
+
+    ah.one({
+      url: `${baseUrl}/api/area?uuid=${floorPlan.currentAreaUUID}`,
+      type: 'DELETE'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        this.setState({
+          currentMap: this.clearData('mapData'),
+          floorPlan: this.clearData('floorPlanData')
+        }, () => {
+          this.getFloorPlan();
+        });
+      }
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), t('network-topology.txt-deleteChild'));
+    })
+  }
+  handleFloorConfirm = () => {
+    const {baseUrl, contextRoot} = this.props;
+    const {floorPlan} = this.state;
+    let formData = new FormData();
+    let requestType = 'POST';
+    let floorName = '';
+
+    if (floorPlan.name) {
+      floorName = floorPlan.name;
+    } else {
+      helper.showPopupMsg(t('network-topology.txt-enterFloor'), t('txt-error'));
+      return;
+    }
+
+    formData.append('areaName', floorName);
+    formData.append('scale', 0);
+
+    if (floorPlan.type === 'add') {
+      if (floorPlan.currentAreaUUID) {
+        formData.append('parentAreaUUID', floorPlan.currentAreaUUID);
+      }
+
+      if (floorPlan.map) {
+        formData.append('file', floorPlan.map);
+      }
+    } else if (floorPlan.type === 'edit') {
+      requestType = 'PATCH';
+      formData.append('areaUUID', floorPlan.currentAreaUUID);
+      formData.append('rootAreaUUID', floorPlan.rootAreaUUID);
+      formData.append('areaRoute', '');
+      floorPlan.currentAreaName = floorName;
+
+      if (floorPlan.currentParentAreaUUID) {
+        formData.append('parentAreaUUID', floorPlan.currentParentAreaUUID);
+      } else {
+        formData.append('parentAreaUUID', '');
+      }
+
+      if (floorPlan.map) {
+        formData.append('file', floorPlan.map);
+        formData.append('updatePic', true);
+      } else {
+        formData.append('file', '');
+        formData.append('updatePic', false);
+      }
+    }
+
+    this.ah.one({
+      url: `${baseUrl}/api/area`,
+      data: formData,
+      type: requestType,
+      processData: false,
+      contentType: false
+    })
+    .then(data => {
+      this.getFloorPlan();
+
+      if (data) {
+        this.getAreaData(data, 'setAreaUUID');
+      } else {
+        this.getAreaData();
+      }
+
+      this.closeDialog('reload');
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  clearData = (type) => {
+    const {floorPlan} = this.state;
+    let tempData = {};
+
+    if (type === 'mapData') {
+      tempData = {
+        currentMap: ''
+      };
+    } else if (type === 'floorPlanData') {
+      tempData = {
+        treeData: floorPlan.treeData,
+        type: '',
+        rootAreaUUID: '',
+        currentAreaUUID: '',
+        currentAreaName: '',
+        name: '',
+        map: ''
+      };
+    }
+    return tempData;
+  }
+  closeDialog = (option) => {
+    let tempFloorPlan = {...this.state.floorPlan};
+    tempFloorPlan.type = '';
+    tempFloorPlan.name = tempFloorPlan.currentAreaName;
+    tempFloorPlan.map = '';
+
+    this.setState({
+      floorPlan: tempFloorPlan,
+      previewFloorMap: ''
+    }, () => {
+      this.props.closeDialog(option);
+    });
+  }
   render() {
-    const {floorPlan} = this.props;
+    const {floorPlan} = this.state;
     const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.props.closeDialog},
-      confirm: {text: t('txt-confirm'), handler: this.props.handleFloorConfirm.bind(this, 'addFloor')}
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeDialog},
+      confirm: {text: t('txt-confirm'), handler: this.handleFloorConfirm}
     };
     let titleText = '';
 

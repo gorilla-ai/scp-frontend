@@ -60,7 +60,7 @@ class NetworkTopology extends Component {
         filterOutExist: false
       },
       owner: {
-        dataFieldsArr: ['_menu', 'ownerID', 'ownerName', 'department', 'title', 'options'],
+        dataFieldsArr: ['_menu', 'ownerID', 'ownerName', 'departmentName', 'titleName', 'options'],
         dataFields: {},
         dataContent: [],
         sort: {
@@ -109,14 +109,14 @@ class NetworkTopology extends Component {
 
       _.forEach(data[0], val => {
         department.push({
-          value: val.name,
+          value: val.nameUUID,
           text: val.name
         });
       })
 
       _.forEach(data[1], val => {
         title.push({
-          value: val.name,
+          value: val.nameUUID,
           text: val.name
         });
       })
@@ -350,24 +350,24 @@ class NetworkTopology extends Component {
                 onChange={this.handleDataChange.bind(this, 'ownerName')} />
               <label htmlFor='ownerDept'>{t('ownerFields.department')}</label>
               <ComboBox
-                  id='ownerDept'
-                  className='add'
-                  list={_.drop(list.department)}
-                  search={{
-                    enabled: true
-                  }}
-                  onChange={this.handleDataChange.bind(this, 'department')}
-                  value={owner.add.department} />
+                id='ownerDept'
+                className='add'
+                list={_.drop(list.department)}
+                search={{
+                  enabled: true
+                }}
+                onChange={this.handleDataChange.bind(this, 'department')}
+                value={owner.add.department} />
               <label htmlFor='ownerTitle'>{t('ownerFields.title')}</label>
               <ComboBox
-                  id='ownerTitle'
-                  className='add'
-                  list={_.drop(list.title)}
-                  search={{
-                    enabled: true
-                  }}
-                  onChange={this.handleDataChange.bind(this, 'title')}
-                  value={owner.add.title} />
+                id='ownerTitle'
+                className='add'
+                list={_.drop(list.title)}
+                search={{
+                  enabled: true
+                }}
+                onChange={this.handleDataChange.bind(this, 'title')}
+                value={owner.add.title} />
             </div>
           </div>
         </div>

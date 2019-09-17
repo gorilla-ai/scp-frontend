@@ -114,7 +114,7 @@ class MapNetwork extends Component {
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
     this.ah = getInstance('chewbacca');
   }
-  componentWillMount() {
+  componentDidMount() {
     this.getSearchOption();
     this.getFloorPlan('firstLoad');  //For floor plan on the left nav
     this.getDeviceNoSeatData(); //For device list (no seat) in the modal
@@ -164,7 +164,7 @@ class MapNetwork extends Component {
     })
   }
   getFloorPlan = (option) => {
-    const {baseUrl} = this.props;
+    const {baseUrl, contextRoot} = this.props;
 
     this.ah.one({
       url: `${baseUrl}/api/area/_tree`,
@@ -209,7 +209,7 @@ class MapNetwork extends Component {
     })
   }
   getDeviceNoSeatData = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl, contextRoot} = this.props;
 
     this.ah.one({
       url: `${baseUrl}/api/ipdevice/_noseat`,
@@ -238,7 +238,7 @@ class MapNetwork extends Component {
     })
   }
   getOwnerData = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl, contextRoot} = this.props;
 
     this.ah.one({
       url: `${baseUrl}/api/owner/_search`,
@@ -281,7 +281,7 @@ class MapNetwork extends Component {
   }
   /* This function checks if there are any devices been assigned to a certain seat */
   checkIPdata = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl, contextRoot} = this.props;
     const {addSeat, allIPdata} = this.state;
     const seatUUID = allIPdata.seatUUID || addSeat.currentSeatUUID;
     const dataObj = {
@@ -306,7 +306,7 @@ class MapNetwork extends Component {
   }
   /* This function returns the IP data for the data table */
   getIPData = (areaUUID, seatUUID, option) => {
-    const {baseUrl} = this.props;
+    const {baseUrl, contextRoot} = this.props;
     const {IP, floorPlan, addSeat, search} = this.state;
     let dataObj = {};
     let area = areaUUID || floorPlan.currentAreaUUID;
@@ -453,7 +453,7 @@ class MapNetwork extends Component {
   }
   /* Update owner data when the user selects different owner from the dropdown list */
   handleOwnerChange = (ownerUUID) => {
-    const {baseUrl} = this.props;
+    const {baseUrl, contextRoot} = this.props;
     let tempOwnerData = {...this.state.ownerData};
 
     if (ownerUUID) {
@@ -581,10 +581,12 @@ class MapNetwork extends Component {
       crosshair: false,
       modalFloorOpen: false,
       modalSeatOpen: false
+    }, () => {
+      this.getFloorPlan();
     });
   }
   updateIPdevice = (seatUUID, option) => {
-    const {baseUrl} = this.props;
+    const {baseUrl, contextRoot} = this.props;
     const {IP, ipDeviceUUID, floorPlan, addSeat, ipData, ownerData, allIPdata} = this.state;
     let dataObj = {};
 
@@ -671,52 +673,52 @@ class MapNetwork extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  getDeleteAreaContent = () => {
-    const {floorPlan} = this.state;
+  // getDeleteAreaContent = () => {
+  //   const {floorPlan} = this.state;
 
-    return (
-      <div className='content delete'>
-        <span>{t('network-topology.txt-deleteFloorMsg')}: {floorPlan.currentAreaName}?</span>
-      </div>
-    )
-  }
-  openDeleteAreaModal = () => {
-    PopupDialog.prompt({
-      title: t('network-topology.txt-deleteFloor'),
-      id: 'modalWindow',
-      confirmText: t('txt-delete'),
-      cancelText: t('txt-cancel'),
-      display: this.getDeleteAreaContent(),
-      act: (confirmed) => {
-        if (confirmed) {
-          this.deleteAreaMap();
-        }
-      }
-    });
-  }
-  deleteAreaMap = () => {
-    const {baseUrl} = this.props;
-    const {floorPlan} = this.state;
+  //   return (
+  //     <div className='content delete'>
+  //       <span>{t('network-topology.txt-deleteFloorMsg')}: {floorPlan.currentAreaName}?</span>
+  //     </div>
+  //   )
+  // }
+  // openDeleteAreaModal = () => {
+  //   PopupDialog.prompt({
+  //     title: t('network-topology.txt-deleteFloor'),
+  //     id: 'modalWindow',
+  //     confirmText: t('txt-delete'),
+  //     cancelText: t('txt-cancel'),
+  //     display: this.getDeleteAreaContent(),
+  //     act: (confirmed) => {
+  //       if (confirmed) {
+  //         this.deleteAreaMap();
+  //       }
+  //     }
+  //   });
+  // }
+  // deleteAreaMap = () => {
+  //   const {baseUrl, contextRoot} = this.props;
+  //   const {floorPlan} = this.state;
 
-    ah.one({
-      url: `${baseUrl}/api/area?uuid=${floorPlan.currentAreaUUID}`,
-      type: 'DELETE'
-    })
-    .then(data => {
-      if (data.ret === 0) {
-        this.setState({
-          IP: this.clearData('ipTableData'),
-          currentMap: this.clearData('mapData'),
-          floorPlan: this.clearData('floorPlanData')
-        }, () => {
-          this.getFloorPlan();
-        });
-      }
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), t('network-topology.txt-deleteChild'));
-    })
-  }
+  //   ah.one({
+  //     url: `${baseUrl}/api/area?uuid=${floorPlan.currentAreaUUID}`,
+  //     type: 'DELETE'
+  //   })
+  //   .then(data => {
+  //     if (data.ret === 0) {
+  //       this.setState({
+  //         IP: this.clearData('ipTableData'),
+  //         currentMap: this.clearData('mapData'),
+  //         floorPlan: this.clearData('floorPlanData')
+  //       }, () => {
+  //         this.getFloorPlan();
+  //       });
+  //     }
+  //   })
+  //   .catch(err => {
+  //     helper.showPopupMsg('', t('txt-error'), t('network-topology.txt-deleteChild'));
+  //   })
+  // }
   // displayAddFloor = () => {
   //   const {currentMap, floorPlan} = this.state;
   //   const addTree = t('network-topology.txt-addTree');
@@ -805,66 +807,33 @@ class MapNetwork extends Component {
   //     </div>
   //   )
   // }
-  handleFloorConfirm = (option) => {
-    const {baseUrl} = this.props;
+  handleDeleteArea = () => {
+    const {baseUrl, contextRoot} = this.props;
     const {floorPlan} = this.state;
     let formData = new FormData();
-    let requestType = 'POST';
-    let floorName = '';
+    formData.append('rootAreaUUID', floorPlan.rootAreaUUID);
+    formData.append('areaName', floorPlan.currentAreaName);
+    formData.append('areaUUID', floorPlan.currentAreaUUID);
+    formData.append('areaRoute', '');
+    formData.append('scale', 0);
+    formData.append('updatePic', true);
 
-    if (option === 'addFloor') {
-      if (floorPlan.name) {
-        floorName = floorPlan.name;
-      } else {
-        helper.showPopupMsg(t('network-topology.txt-enterFloor'), t('txt-error'));
-        return;
-      }
-    } else if (option === 'deleteMap') {
-      floorName = floorPlan.currentAreaName;
+    if (floorPlan.currentParentAreaUUID) {
+      formData.append('parentAreaUUID', floorPlan.currentParentAreaUUID);
+    } else {
+      formData.append('parentAreaUUID', '');
     }
 
-    formData.append('areaName', floorName);
-    formData.append('scale', 0);
-
-    if (floorPlan.type === 'add') {
-      if (floorPlan.currentAreaUUID) {
-        formData.append('parentAreaUUID', floorPlan.currentAreaUUID);
-      }
-      if (floorPlan.map) {
-        formData.append('file', floorPlan.map);
-      }
-    } else if (floorPlan.type === 'edit' || option === 'deleteMap') {
-      requestType = 'PATCH';
-      formData.append('areaUUID', floorPlan.currentAreaUUID);
-
-      if (floorPlan.currentParentAreaUUID) {
-        formData.append('parentAreaUUID', floorPlan.currentParentAreaUUID);
-      } else {
-        formData.append('parentAreaUUID', '');
-      }
-
-      formData.append('rootAreaUUID', floorPlan.rootAreaUUID);
-      formData.append('areaRoute', '');
-      floorPlan.currentAreaName = floorName;
-
-      if (floorPlan.map) {
-        formData.append('file', floorPlan.map);
-        formData.append('updatePic', true);
-      } else {
-        formData.append('file', '');
-
-        if (option == 'deleteMap') {
-          formData.append('updatePic', true);
-        } else {
-          formData.append('updatePic', false);
-        }
-      }
+    if (floorPlan.map) {
+      formData.append('file', floorPlan.map);
+    } else {
+      formData.append('file', '');
     }
 
     this.ah.one({
       url: `${baseUrl}/api/area`,
       data: formData,
-      type: requestType,
+      type: 'PATCH',
       processData: false,
       contentType: false
     })
@@ -885,17 +854,12 @@ class MapNetwork extends Component {
     })
   }
   modalFloorDialog = () => {
-    const {currentMap, floorPlan} = this.state;
+    const {baseUrl, contextRoot} = this.props;
 
     return (
       <FloorMap
-        currentMap={currentMap}
-        floorPlan={floorPlan}
-        handleDataChange={this.handleDataChange}
-        getAddMapContent={this.getAddMapContent}
-        openDeleteAreaModal={this.openDeleteAreaModal}
-        getTreeView={this.getTreeView}
-        handleFloorConfirm={this.handleFloorConfirm}
+        baseUrl={baseUrl}
+        contextRoot={contextRoot}
         closeDialog={this.closeDialog} />
     )
     // const {floorPlan} = this.state;
@@ -924,39 +888,19 @@ class MapNetwork extends Component {
     //   </ModalDialog>
     // )
   }
-  getAddMapContent = (type) => {
-    if (type === 'clear') {
-      this.setState({
-        modalFloorOpen: true,
-        IP: this.clearData('ipTableData'),
-        currentMap: this.clearData('mapData'),
-        floorPlan: this.clearData('floorPlanData')
-      });
-    } else {
-      const {floorPlan} = this.state;
-      let tempFloorPlan = {...floorPlan};
+  openEditFloorMap = () => {
+    const {floorPlan} = this.state;
+    let tempFloorPlan = {...floorPlan};
+    tempFloorPlan.type = 'edit';
+    tempFloorPlan.name = tempFloorPlan.currentAreaName;
 
-      if (type === 'add') {
-        tempFloorPlan.type = type;
-        tempFloorPlan.name = '';
-      } else if (type === 'edit') {
-        if (_.isEmpty(floorPlan.treeData)) {
-          tempFloorPlan.type = 'add';
-          tempFloorPlan.name = '';
-        } else {
-          tempFloorPlan.type = type;
-          tempFloorPlan.name = tempFloorPlan.currentAreaName;
-        }
-      }
-
-      this.setState({
-        modalFloorOpen: true,
-        floorPlan: tempFloorPlan
-      });
-    }
+    this.setState({
+      modalFloorOpen: true,
+      floorPlan: tempFloorPlan
+    });
   }
   selectTree = (i, areaUUID, eventData) => {
-    const {baseUrl} = this.props;
+    const {baseUrl, contextRoot} = this.props;
     let tempFloorPlan = {...this.state.floorPlan};
     let tempArr = [];
     let pathStr = '';
@@ -965,7 +909,7 @@ class MapNetwork extends Component {
 
     if (eventData.path.length > 0) {
       _.forEach(eventData.path, val => {
-        if (val.index) {
+        if (val.index >= 0) {
           tempArr.push(val.index);
         }
       })
@@ -974,6 +918,7 @@ class MapNetwork extends Component {
     _.forEach(tempArr, val => {
       pathStr += 'children[' + val + '].'
     })
+
     pathNameStr = pathStr + 'label';
     pathParentStr = pathStr + 'parentAreaUUID';
 
@@ -1078,17 +1023,17 @@ class MapNetwork extends Component {
 
         this.setState({
           floorPlan: tempFloorPlan,
+          mapAreaUUID: floorPlan,
           currentMap,
-          currentBaseLayers,
-          mapAreaUUID: floorPlan
+          currentBaseLayers
         }, () => {
           this.getIPData(areaUUID);
         });
       } else {
         this.setState({
+          mapAreaUUID: floorPlan,
           currentMap,
-          currentBaseLayers,
-          mapAreaUUID: floorPlan
+          currentBaseLayers
         }, () => {
           if (areaUUID) {
             this.getSeatData(areaUUID);
@@ -1100,14 +1045,14 @@ class MapNetwork extends Component {
     })
   }
   handleIPChange = (ipDeviceUUID) => {
-    const {baseUrl} = this.props;
+    const {baseUrl, contextRoot} = this.props;
     let tempIPdata = {...this.state.ipData};
     let tempOwnerData = {...this.state.ownerData};
     tempIPdata.selectedIP = ipDeviceUUID;
 
     if (ipDeviceUUID) {
       this.ah.one({
-        url: `${baseUrl}/api/u1/ipdevice?uuid=${ipDeviceUUID}`,
+        url: `${baseUrl}/api/ipdevice?uuid=${ipDeviceUUID}`,
         type: 'GET'
       })
       .then(data => {
@@ -1376,7 +1321,7 @@ class MapNetwork extends Component {
     )
   }
   handleSeatConfirm = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl, contextRoot} = this.props;
     const {floorPlan, addSeat, ipData, ownerData} = this.state;
     let requestType = 'POST';
 
@@ -1556,7 +1501,7 @@ class MapNetwork extends Component {
       display: this.getDeleteSingleAreaMapContent(),
       act: (confirmed) => {
         if (confirmed) {
-          this.handleFloorConfirm('deleteMap');
+          this.handleDeleteArea();
           this.deleteSeatWithArea();
         }
       }
@@ -1630,7 +1575,7 @@ class MapNetwork extends Component {
     });
   }
   deleteSeatWithArea = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl, contextRoot} = this.props;
     const areaUUID = this.state.floorPlan.currentAreaUUID;
 
     ah.one({
@@ -1652,7 +1597,7 @@ class MapNetwork extends Component {
     })
   }
   deleteSeat = (seatUUID) => {
-    const {baseUrl} = this.props;
+    const {baseUrl, contextRoot} = this.props;
     const seat = seatUUID || this.state.addSeat.currentSeatUUID;
 
     ah.one({
@@ -1827,7 +1772,7 @@ class MapNetwork extends Component {
           <div className='left-nav floor-plan'>
             <header className='main-header'>
               {t('txt-floorMap')}
-              <i className='c-link fg fg-edit' onClick={this.getAddMapContent.bind(this, 'edit')} title={editFloorPlan}></i>
+              <i className='c-link fg fg-edit' onClick={this.openEditFloorMap} title={editFloorPlan}></i>
             </header>
             <div className='content-area'>
               {floorPlan.treeData && floorPlan.treeData.length > 0 &&
