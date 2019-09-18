@@ -1057,7 +1057,13 @@ class NetworkInventory extends Component {
     const {formTypeEdit, departmentList, titleList, currentDeviceData, alertInfo} = this.state;
     let activeContent = '';
 
-    if (type === 'showList') {
+    if (type === 'cancel') {
+      if (formTypeEdit) {
+        activeContent = 'dataInfo';
+      } else {
+        activeContent = 'tableList';
+      }
+    } else if (type === 'showList') {
       activeContent = 'tableList';
     } else if (type === 'showData') {
       activeContent = 'dataInfo';
@@ -1134,33 +1140,43 @@ class NetworkInventory extends Component {
     const {addIP, ownerType} = this.state;
 
     if (ownerType === 'new') {
-      const url = `${baseUrl}/api/owner`;
-      const requestData = {
-        ownerID: addIP.newOwnerID,
-        ownerName: addIP.newOwnerName,
-        department: addIP.newDepartment,
-        title: addIP.newTitle,
-        file: addIP.file
-      };
+      let formData = new FormData();
+      formData.append('ownerID', addIP.newOwnerID);
+      formData.append('ownerName', addIP.newOwnerName);
+      formData.append('department', addIP.newDepartment);
+      formData.append('title', addIP.newTitle);
 
-      helper.getAjaxData('POST', url, requestData)
+      if (addIP.file) {
+        formData.append('updatePic', true);
+        formData.append('file', addIP.file);
+      }
+
+      this.ah.one({
+        url: `${baseUrl}/api/owner`,
+        data: formData,
+        type: 'POST',
+        processData: false,
+        contentType: false
+      })
       .then(data => {
         if (data) {
-          this.handleIPdeviceConfirm();
+          const ownerUUID = data;
+          this.handleIPdeviceConfirm(ownerUUID);
         }
       })
       .catch(err => {
-        helper.showPopupMsg(t('txt-pcapNotAvailable'), t('txt-error'));
-      });
+        helper.showPopupMsg('', t('txt-error'), t('network-topology.txt-ownerDuplicated'));
+      })
     } else if (ownerType === 'existing') {
       this.handleIPdeviceConfirm();
     }
   }
-  handleIPdeviceConfirm = () => {
+  handleIPdeviceConfirm = (ownerUUID) => {
     const {baseUrl, contextRoot} = this.props;
-    const {floorPlan, addIP, addSeat, ownerType} = this.state;
+    const {formTypeEdit, currentDeviceData, floorPlan, addIP, addSeat} = this.state;
 
     const url = `${baseUrl}/api/ipdevice`;
+    const requestType = formTypeEdit ? 'PATCH' : 'POST';
     let requestData = {
       ip: addIP.ip,
       mac: addIP.mac,
@@ -1172,20 +1188,27 @@ class NetworkInventory extends Component {
       ram: addIP.ram,
       disks: addIP.disks,
       folders: addIP.folders,
-      ownerUUID: addIP.ownerUUID,
       areaUUID: floorPlan.currentAreaUUID,
       seatUUID: addSeat.selectedSeatUUID
     };
-    let requestType = 'POST';
+
+    if (formTypeEdit) {
+      requestData.ipDeviceUUID = currentDeviceData.ipDeviceUUID
+    }
+
+    if (ownerUUID) {
+      requestData.ownerUUID = ownerUUID;
+    } else {
+      requestData.ownerUUID = addIP.ownerUUID;
+    }
 
     helper.getAjaxData(requestType, url, requestData)
     .then(data => {
-      if (data) {
-        this.getDeviceData();
-        this.getOwnerData();
-        this.getOtherData();
-        this.getFloorPlan();
-      }
+      this.getDeviceData();
+      this.getOwnerData();
+      this.getOtherData();
+      this.getFloorPlan();
+      this.toggleContent('showList');
     })
     .catch(err => {
       helper.showPopupMsg(t('txt-pcapNotAvailable'), t('txt-error'));
@@ -1430,6 +1453,9 @@ class NetworkInventory extends Component {
                 ]}
                 onChange={this.handleOwnerTypeChange}
                 value={ownerType} />
+              {ownerType === 'new' &&
+                <button className='standard manage' onClick={this.openManage}>{t('network-inventory.txt-manageDepartmentTitle')}</button>
+              }
               <div className='user-pic'>
                 {ownerType === 'new' &&
                   <div className='group'>
@@ -1520,7 +1546,7 @@ class NetworkInventory extends Component {
                 }
                 {ownerType === 'new' &&
                   <div className='group'>
-                    <label htmlFor='addIPstepsDepartment'>{t('ownerFields.department')} (<span onClick={this.openManage}>{t('txt-manage')}</span>)</label>
+                    <label htmlFor='addIPstepsDepartment'>{t('ownerFields.department')}</label>
                     <DropDownList
                       id='addIPstepsDepartment'
                       list={departmentList}
@@ -1541,7 +1567,7 @@ class NetworkInventory extends Component {
                 }
                 {ownerType === 'new' &&
                   <div className='group'>
-                    <label htmlFor='addIPstepsTitle'>{t('ownerFields.title')} (<span onClick={this.openManage}>{t('txt-manage')}</span>)</label>
+                    <label htmlFor='addIPstepsTitle'>{t('ownerFields.title')}</label>
                     <DropDownList
                       id='addIPstepsTitle'
                       list={titleList}
@@ -1555,33 +1581,34 @@ class NetworkInventory extends Component {
           }
           {activeSteps === 4 &&
             <div className='steps steps-floor'>
-              <header>{t('alert.txt-floorInfo')} (<span className='edit' onClick={this.openFloorMap}>{t('txt-edit')}</span>)</header>
-                <div className='floor-info'>
-                  <div className='tree'>
-                    {floorPlan.treeData && floorPlan.treeData.length > 0 &&
-                      floorPlan.treeData.map((value, i) => {
-                        return this.getTreeView(value, floorPlan.currentAreaUUID, i);
-                      })
-                    }
-                  </div>
-                  <div className='map'>
-                    {currentMap.label &&
-                      <Gis
-                        _ref={(ref) => {this.gisNode = ref}}
-                        data={_.get(seatData, [mapAreaUUID, 'data'], [])}
-                        baseLayers={currentBaseLayers}
-                        baseLayer={mapAreaUUID}
-                        layouts={['standard']}
-                        dragModes={['pan']}
-                        scale={{enabled: false}}
-                        onClick={this.handleFloorMapClick} />
-                    }
-                  </div>
+              <header>{t('alert.txt-floorInfo')}</header>
+              <button className='standard manage' onClick={this.openFloorMap}>{t('txt-edit')}</button>
+              <div className='floor-info'>
+                <div className='tree'>
+                  {floorPlan.treeData && floorPlan.treeData.length > 0 &&
+                    floorPlan.treeData.map((value, i) => {
+                      return this.getTreeView(value, floorPlan.currentAreaUUID, i);
+                    })
+                  }
                 </div>
+                <div className='map'>
+                  {currentMap.label &&
+                    <Gis
+                      _ref={(ref) => {this.gisNode = ref}}
+                      data={_.get(seatData, [mapAreaUUID, 'data'], [])}
+                      baseLayers={currentBaseLayers}
+                      baseLayer={mapAreaUUID}
+                      layouts={['standard']}
+                      dragModes={['pan']}
+                      scale={{enabled: false}}
+                      onClick={this.handleFloorMapClick} />
+                  }
+                </div>
+              </div>
             </div>
           }
           <footer>
-            <button className='standard' onClick={this.toggleContent.bind(this, 'showData')}>{t('txt-cancel')}</button>
+            <button className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</button>
             {activeSteps > 1 &&
               <button className='standard previous-step' onClick={this.toggleSteps.bind(this, 'previous')}>{t('txt-previousStep')}</button>
             }

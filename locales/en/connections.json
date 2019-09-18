@@ -547,8 +547,7 @@
     "txt-reCompress": "Re-compress",
     "txt-existingOwner": "Add from existing owner",
     "txt-addNewOwner": "Add Owner",
-    "txt-addNewDepartment": "Add Department",
-    "txt-addNewTitle": "Add Title",
+    "txt-manageDepartmentTitle": "Manage Department / Title",
     "txt-deleteDevice": "$t(txt-delete) $t(txt-device)",
     "txt-deleteDeviceMsg": "$t(txt-delete-msg) $t(txt-device)"
   },
