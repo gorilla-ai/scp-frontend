@@ -115,8 +115,10 @@ class FloorMap extends Component {
     tempFloorPlan[type] = value;
 
     if (type === 'map') {
+      const file = value ? URL.createObjectURL(value) : '';
+
       this.setState({
-        previewFloorMap: URL.createObjectURL(value)
+        previewFloorMap: file
       });
     }
 

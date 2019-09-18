@@ -548,6 +548,7 @@
     "txt-existingOwner": "從人員名單選擇",
     "txt-addNewOwner": "新增人員",
     "txt-manageDepartmentTitle": "管理部門/職稱",
+    "txt-editFloorMap": "$t(txt-edit)$t(txt-floorMap)",
     "txt-deleteDevice": "$t(txt-delete)$t(txt-device)",
     "txt-deleteDeviceMsg": "$t(txt-delete-msg)$t(txt-device)"
   },

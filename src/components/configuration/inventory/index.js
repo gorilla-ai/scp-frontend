@@ -128,7 +128,7 @@ class NetworkInventory extends Component {
     et = chewbaccaI18n.getFixedT(null, 'errors');
     this.ah = getInstance('chewbacca');
 	}
-	componentWillMount() {
+	componentDidMount() {
     this.getDeviceData();
     this.getOwnerData();
     this.getOtherData();
@@ -627,7 +627,7 @@ class NetworkInventory extends Component {
     if (type === 'view') {
       this.getOwnerSeat(allValue);
     } else if (type === 'hmd') {
-      this.openDetailInfo(index, allValue);
+      this.getHMDscanInfo(index, allValue.ipDeviceUUID);
     } else if (type === 'delete') {
       this.openDeleteDeviceModal(allValue);
     }
@@ -737,7 +737,6 @@ class NetworkInventory extends Component {
     tempDeviceData.currentIndex = Number(index);
 
     this.setState({
-      showScanInfo: true,
       showSeatData: false,
       deviceData: tempDeviceData,
       currentDeviceData: allValue,
@@ -867,9 +866,10 @@ class NetworkInventory extends Component {
   }
   displayRule = (val, i) => {
     const {activeRule} = this.state;
+    const uniqueKey = val + i;
 
     return (
-      <div>
+      <div key={uniqueKey}>
         <div className='header' onClick={this.togglePathRule.bind(this, 'rule', i)}><i className={cx('fg fg-play', {'rotate': activeRule === i})}></i><span>{t('txt-rule')}</span></div>
         <code className={cx({'hide': activeRule !== i})}>{val}</code>
       </div>
@@ -877,9 +877,10 @@ class NetworkInventory extends Component {
   }
   displayPath = (val, i) => {
     const {activePath} = this.state;
+    const uniqueKey = val._ScanType + i;
 
     return (
-      <div className='group' key={val.id}>
+      <div className='group' key={uniqueKey}>
         <div className='path' onClick={this.togglePathRule.bind(this, 'path', i)}>
           <i className={cx('fg fg-arrow-bottom', {'rotate': activePath === i})}></i>
           {val._MatchedFile &&
@@ -898,6 +899,58 @@ class NetworkInventory extends Component {
       </div>
     )
   }
+  getHMDscanInfo = (index, ipDeviceUUID) => {
+    const {baseUrl} = this.props;
+    const {deviceData, currentDeviceData} = this.state;
+    let tempDeviceData = {...deviceData};
+
+    if (index) {
+      tempDeviceData.currentIndex = Number(index);
+    }
+
+    this.ah.one({
+      url: `${baseUrl}/api/ipdevice?uuid=${ipDeviceUUID}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          showScanInfo: true,
+          deviceData: tempDeviceData,
+          currentDeviceData: data,
+          activeIPdeviceUUID: ipDeviceUUID
+        });
+      }
+    })
+  }
+  checkTriggerTime = (type) => {
+    const {currentDeviceData} = this.state;
+    const resultType = type + 'Result';
+    const createTime = helper.getFormattedDate(currentDeviceData[resultType].taskCreateDttm, 'local');
+    const responseTime = helper.getFormattedDate(currentDeviceData[resultType].taskResponseDttm, 'local');
+
+    if (Moment(createTime).isAfter(responseTime)) {
+      return true;
+    }
+  }
+  triggerTask = (taskId) => {
+    const {baseUrl, contextRoot} = this.props;
+    const {currentDeviceData} = this.state;
+    const url = `${baseUrl}/api/hmd/taskinfo`;
+    const requestData = {
+      taskId
+    };
+
+    helper.getAjaxData('POST', url, requestData)
+    .then(data => {
+      if (data) {
+        this.getHMDscanInfo('', currentDeviceData.ipDeviceUUID);
+      }
+    })
+    .catch(err => {
+      helper.showPopupMsg(t('txt-pcapNotAvailable'), t('txt-error'));
+    });
+  }
   displayScanInfo = () => {
     const {activeTab, activeScanType, deviceData, currentDeviceData} = this.state;
     const ip = currentDeviceData.ip ? currentDeviceData.ip : NOT_AVAILABLE;
@@ -907,13 +960,11 @@ class NetworkInventory extends Component {
     const hmdInfo = {
       yara: {
         createTime: helper.getFormattedDate(currentDeviceData.yaraResult.taskCreateDttm, 'local'),
-        responseTime: helper.getFormattedDate(currentDeviceData.yaraResult.taskResponseDttm, 'local'),
-        result: currentDeviceData.yaraResult.ScanResult
+        responseTime: helper.getFormattedDate(currentDeviceData.yaraResult.taskResponseDttm, 'local')
       },
       ir: {
         createTime: helper.getFormattedDate(currentDeviceData.irResult.taskCreateDttm, 'local'),
-        responseTime: helper.getFormattedDate(currentDeviceData.irResult.taskResponseDttm, 'local'),
-        result: currentDeviceData.irResult._url
+        responseTime: helper.getFormattedDate(currentDeviceData.irResult.taskResponseDttm, 'local')
       }
     };
 
@@ -949,16 +1000,20 @@ class NetworkInventory extends Component {
               <div>
                 <div className='info'>
                   <div className='last-update'>
-                    <span>{t('network-inventory.txt-createTime')}: {hmdInfo.yara.createTime}</span>
-                    <span>{t('network-inventory.txt-responseTime')}: {hmdInfo.yara.responseTime}</span>
+                    {hmdInfo.yara.createTime &&
+                      <span>{t('network-inventory.txt-createTime')}: {hmdInfo.yara.createTime}</span>
+                    }
+                    {hmdInfo.yara.responseTime &&
+                      <span>{t('network-inventory.txt-responseTime')}: {hmdInfo.yara.responseTime}</span>
+                    }
                   </div>
-                  <div className='count'>{t('network-inventory.txt-suspiciousFileCount')}: {hmdInfo.yara.result.length}</div>
-                  <button className='btn'>{t('network-inventory.txt-reCheck')}</button>
+                  <div className='count'>{t('network-inventory.txt-suspiciousFileCount')}: {currentDeviceData.yaraResult.ScanResult.length}</div>
+                  <button className='btn' onClick={this.triggerTask.bind(this, currentDeviceData.yaraResult.taskId)} disabled={this.checkTriggerTime('yara')}>{t('network-inventory.txt-reCheck')}</button>
                 </div>
                 <div className='file-path'>
                   <div className='header'>{t('network-inventory.txt-suspiciousFilePath')}</div>
                   <div className='list'>
-                    {hmdInfo.yara.result.map(this.displayPath)}
+                    {currentDeviceData.yaraResult.ScanResult.map(this.displayPath)}
                   </div>
                 </div>
               </div>
@@ -967,13 +1022,17 @@ class NetworkInventory extends Component {
               <div>
                 <div className='info'>
                   <div className='last-update'>
-                    <span>{t('network-inventory.txt-createTime')}: {hmdInfo.ir.createTime}</span>
-                    <span>{t('network-inventory.txt-responseTime')}: {hmdInfo.ir.responseTime}</span>
+                    {hmdInfo.ir.createTime &&
+                      <span>{t('network-inventory.txt-createTime')}: {hmdInfo.ir.createTime}</span>
+                    }
+                    {hmdInfo.ir.responseTime &&
+                      <span>{t('network-inventory.txt-responseTime')}: {hmdInfo.ir.responseTime}</span>
+                    }
                   </div>
-                  <button className='btn'>{t('network-inventory.txt-reCompress')}</button>
+                  <button className='btn' onClick={this.triggerTask.bind(this, currentDeviceData.irResult.taskId)} disabled={this.checkTriggerTime('ir')}>{t('network-inventory.txt-reCompress')}</button>
                 </div>
                 <div className='msg'>
-                  <span>IR data has been uploaded to {hmdInfo.ir.result}</span>
+                  <span>IR data has been uploaded to {currentDeviceData.irResult._url}</span>
                 </div>
               </div>
             }
@@ -1054,7 +1113,7 @@ class NetworkInventory extends Component {
     });
   }
   toggleContent = (type, formType) => {
-    const {formTypeEdit, departmentList, titleList, currentDeviceData, alertInfo} = this.state;
+    const {formTypeEdit, ownerList, departmentList, titleList, currentDeviceData, alertInfo, floorList} = this.state;
     let activeContent = '';
 
     if (type === 'cancel') {
@@ -1096,16 +1155,31 @@ class NetworkInventory extends Component {
           newDepartment: departmentList[0].value,
           newTitle: titleList[0].value
         };
+
+        this.getAreaData(currentDeviceData.areaUUID);
+        this.getSeatData(currentDeviceData.areaUUID);
       } else if (formType === 'new') {
-        formTypeEdit = false;      
+        formTypeEdit = false;
+        this.getAreaData(floorList[0].value);
+        this.getSeatData(floorList[0].value);
+        this.getFloorPlan();
+        this.setState({
+          currentDeviceData: {}
+        });
       }
+
+      if (!currentDeviceData.ownerUUID) {
+        this.handleOwnerChange(ownerList[0].value);
+      }
+
       this.setState({
         activeContent,
         activeSteps: 1,
         formTypeEdit,
         //activeAreaUUID: '',
         //activeAreaName: '',
-        addIP
+        addIP,
+        ownerType: 'existing'
       });
       return;
     }
@@ -1114,17 +1188,30 @@ class NetworkInventory extends Component {
       activeContent
     });
   }
-  toggleSteps = (type) => {
-    const {addIP} = this.state;
-    let tempActiveSteps = this.state.activeSteps;
+  checkFormValidation = () => {
+    const {addIP, ownerType} = this.state;
 
-    console.log(addIP);
+    if (ownerType === 'new') {
+      if (!addIP.newOwnerName || !addIP.newOwnerID) {
+        return true;
+      }
+    }
+  }
+  toggleSteps = (type) => {
+    const {activeSteps} = this.state;
+    let tempActiveSteps = activeSteps;
 
     if (type === 'previous') {
       tempActiveSteps--;
     } else if (type === 'next') {
-      if (tempActiveSteps === 4) {
-        this.handleAddIpConfirm();
+      if (activeSteps === 4) {
+        const formError = this.checkFormValidation();
+
+        if (formError) {
+          helper.showPopupMsg(et('fill-required-fields'), t('txt-error'));
+        } else {
+          this.handleAddIpConfirm();
+        }
         return;
       } else {
         tempActiveSteps++;
@@ -1263,8 +1350,8 @@ class NetworkInventory extends Component {
         let tempAddIP = {...this.state.addIP};
         tempAddIP.ownerUUID = data.ownerUUID;
         tempAddIP.ownerID = data.ownerID;
-        tempAddIP.department = data.department;
-        tempAddIP.title = data.title;
+        tempAddIP.department = data.departmentName;
+        tempAddIP.title = data.titleName;
         tempAddIP.ownerPic = data.base64;
 
         this.setState({
@@ -1291,15 +1378,6 @@ class NetworkInventory extends Component {
   }
   openManage = () => {
     this.manage._component.open();
-  }
-  checkFormValidation = () => {
-    const {activeSteps, addIP, ownerType} = this.state;
-
-    if (activeSteps === 3 && ownerType === 'new') {
-      if (!addIP.newOwnerName || !addIP.newOwnerID) {
-        return true;
-      }
-    }
   }
   openFloorMap = () => {
     this.setState({
@@ -1406,7 +1484,7 @@ class NetworkInventory extends Component {
                   id='addIPstepsCPU'
                   onChange={this.handleAddIpChange.bind(this, 'cpu')}
                   value={addIP.cpu}
-                  readOnly={formTypeEdit} />
+                  readOnly={currentDeviceData.isHmd} />
               </div>
               <div className='group'>
                 <label htmlFor='addIPstepsRam'>{t('txt-ram')}</label>
@@ -1414,7 +1492,7 @@ class NetworkInventory extends Component {
                   id='addIPstepsRam'
                   onChange={this.handleAddIpChange.bind(this, 'ram')}
                   value={addIP.ram}
-                  readOnly={formTypeEdit} />
+                  readOnly={currentDeviceData.isHmd} />
               </div>
               <div className='group'>
                 <label htmlFor='addIPstepsDisks'>{t('txt-disks')}</label>
@@ -1423,7 +1501,7 @@ class NetworkInventory extends Component {
                   rows={3}
                   onChange={this.handleAddIpChange.bind(this, 'disks')}
                   value={addIP.disks}
-                  readOnly={formTypeEdit} />
+                  readOnly={currentDeviceData.isHmd} />
               </div>
               <div className='group'>
                 <label htmlFor='addIPstepsFolders'>{t('txt-shareFolders')}</label>
@@ -1432,7 +1510,7 @@ class NetworkInventory extends Component {
                   rows={3}
                   onChange={this.handleAddIpChange.bind(this, 'folders')}
                   value={addIP.folders}
-                  readOnly={formTypeEdit} />
+                  readOnly={currentDeviceData.isHmd} />
               </div>
             </div>
           }
@@ -1483,7 +1561,10 @@ class NetworkInventory extends Component {
                   {ownerType === 'new' && previewOwnerPic &&
                     <img src={previewOwnerPic} title={t('network-topology.txt-profileImage')} />
                   }
-                  {(ownerType === 'existing' && !addIP.ownerPic) || (ownerType === 'new' && !previewOwnerPic) &&
+                  {(ownerType === 'existing' && !addIP.ownerPic) &&
+                    <img src={contextRoot + '/images/empty_profile.png'} className={cx({'existing': ownerType === 'existing'})} title={t('network-topology.txt-profileImage')} />
+                  }
+                  {(ownerType === 'new' && !previewOwnerPic) &&
                     <img src={contextRoot + '/images/empty_profile.png'} className={cx({'existing': ownerType === 'existing'})} title={t('network-topology.txt-profileImage')} />
                   }
                 </div>
@@ -1582,13 +1663,11 @@ class NetworkInventory extends Component {
           {activeSteps === 4 &&
             <div className='steps steps-floor'>
               <header>{t('alert.txt-floorInfo')}</header>
-              <button className='standard manage' onClick={this.openFloorMap}>{t('txt-edit')}</button>
+              <button className='standard manage' onClick={this.openFloorMap}>{t('network-inventory.txt-editFloorMap')}</button>
               <div className='floor-info'>
                 <div className='tree'>
                   {floorPlan.treeData && floorPlan.treeData.length > 0 &&
-                    floorPlan.treeData.map((value, i) => {
-                      return this.getTreeView(value, floorPlan.currentAreaUUID, i);
-                    })
+                    floorPlan.treeData.map(this.displayTree)
                   }
                 </div>
                 <div className='map'>
@@ -1601,6 +1680,7 @@ class NetworkInventory extends Component {
                       layouts={['standard']}
                       dragModes={['pan']}
                       scale={{enabled: false}}
+                      defaultSelected={[currentDeviceData.seatUUID]}
                       onClick={this.handleFloorMapClick} />
                   }
                 </div>
@@ -1612,11 +1692,50 @@ class NetworkInventory extends Component {
             {activeSteps > 1 &&
               <button className='standard previous-step' onClick={this.toggleSteps.bind(this, 'previous')}>{t('txt-previousStep')}</button>
             }
-            <button className='next-step' onClick={this.toggleSteps.bind(this, 'next')} disabled={this.checkFormValidation()}>{this.getBtnText()}</button>
+            <button className='next-step' onClick={this.toggleSteps.bind(this, 'next')}>{this.getBtnText()}</button>
           </footer>
         </div>
       </div>
     )
+  }
+  getDefaultFloor = (selectedID) => {
+    const {floorPlan} = this.state;
+    let areaRoute = '';
+
+    _.forEach(floorPlan.treeData, val => {
+      helper.floorPlanRecursive(val, obj => {
+        if (obj.areaUUID === selectedID) {
+          areaRoute = obj.areaRoute
+        }
+      });
+    })
+
+    areaRoute = areaRoute.split(',');
+    return areaRoute;
+  }
+  getTreeView = (value, selectedID, i) => {
+    return (
+      <TreeView
+        id={value.areaUUID}
+        key={value.areaUUID}
+        data={value}
+        selected={selectedID}
+        defaultSelected={selectedID}
+        defaultOpened={this.getDefaultFloor(selectedID)}
+        onSelect={this.selectTree.bind(this, i)} />
+    )
+  }
+  displayTree = (val, i) => {
+    const {floorPlan, currentDeviceData} = this.state;
+    let currentAreaUUID = '';
+
+    if (currentDeviceData && currentDeviceData.seatUUID) {
+      currentAreaUUID = currentDeviceData.areaUUID;
+    } else {
+      currentAreaUUID = floorPlan.currentAreaUUID;
+    }
+
+    return this.getTreeView(val, currentAreaUUID, i);
   }
   handleFloorMapClick = (id, info, option, allValue) => {
     const {addSeat} = this.state;
@@ -1742,24 +1861,15 @@ class NetworkInventory extends Component {
       this.getSeatData(areaUUID);
     });
   }
-  getTreeView = (value, selectedID, i) => {
-    return (
-      <TreeView
-        id={value.areaUUID}
-        key={value.areaUUID}
-        data={value}
-        selected={selectedID}
-        defaultOpened={[value.areaUUID]}
-        onSelect={this.selectTree.bind(this, i)} />
-    )
-  }
   handleAddIpChange = (type, value, info) => {
     let tempAddIP = {...this.state.addIP};
     tempAddIP[type] = value;
 
     if (type === 'file') {
+      const file = value ? URL.createObjectURL(value) : '';
+
       this.setState({
-        previewOwnerPic: URL.createObjectURL(value)
+        previewOwnerPic: file
       });
     }
 
@@ -1890,9 +2000,7 @@ class NetworkInventory extends Component {
                   <div className='inventory-map'>
                     <div className='tree'>
                       {floorPlan.treeData && floorPlan.treeData.length > 0 &&
-                        floorPlan.treeData.map((value, i) => {
-                          return this.getTreeView(value, floorPlan.currentAreaUUID, i);
-                        })
+                        floorPlan.treeData.map(this.displayTree)
                       }
                     </div>
                     <div className='map'>
