@@ -37,7 +37,7 @@ class TableContent extends Component {
     return (
       <div className='table-content'>
         <div className='table'>
-          {(activeTab !== 'file' || (activeTab === 'file' && displayImgType === 'list')) &&
+          {(!activeTab || activeTab !== 'file' || (activeTab === 'file' && displayImgType === 'list')) &&
             <DataTable
               className='main-table'
               fields={dataTableFields}
@@ -66,7 +66,6 @@ class TableContent extends Component {
 }
 
 TableContent.propTypes = {
-  activeTab: PropTypes.string.isRequired,
   dataTableData: PropTypes.array.isRequired,
   dataTableFields: PropTypes.object.isRequired,
   dataTableSort: PropTypes.object.isRequired,

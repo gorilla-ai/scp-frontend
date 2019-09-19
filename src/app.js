@@ -18,13 +18,12 @@ import {HocEmployeeRecord as EmployeeRecord} from './components/configuration/ho
 import {HocEndpoint as Endpoint} from './components/events/endpoint/index'
 import {HocHeader as Header} from './header'
 import {HocHoneynet as Honeypot} from './components/configuration/honeynet/host'
-import {HocIP as IP} from './components/configuration/topology/ip'
 import Login from './login'
 import {HocManage as Manage} from './components/configuration/agent/manage'
-import {HocMapNetwork as MapNetwork} from './components/configuration/topology/map'
 import {HocNetflowController as Netflow} from './components/events/netflow/index'
-import {HocNetworkInventory as NetworkInventory} from './components/configuration/inventory/index'
-import {HocNetworkTopology as Owner} from './components/configuration/topology/owner'
+import {HocNetworkInventory as NetworkInventory} from './components/configuration/topology/inventory'
+import {HocNetworkOwner as NetworkOwner} from './components/configuration/topology/owner'
+import {HocNetworkMap as NetworkMap} from './components/configuration/topology/map'
 import {HocStatus as ServiceStatus} from './components/configuration/service/status'
 import {HocSyslogController as Syslog} from './components/events/syslog/index'
 import {HocSyslog as SyslogConfig} from './components/configuration/syslog/syslog'
@@ -175,16 +174,16 @@ const HoneynetEmployeeRecord = () => (
 		session={session} />
 )
 
-const NetworkTopologyOwner = () => (
-	<Owner
+const NetworkTopologyInventory = () => (
+	<NetworkInventory
 		baseUrl={cfg.apiPrefix}
 		contextRoot={cfg.contextRoot}
 		locale={cfg.lng}
 		session={session} />
 )
 
-const NetworkTopologyIP = () => (
-	<IP
+const NetworkTopologyOwner = () => (
+	<NetworkOwner
 		baseUrl={cfg.apiPrefix}
 		contextRoot={cfg.contextRoot}
 		locale={cfg.lng}
@@ -192,7 +191,7 @@ const NetworkTopologyIP = () => (
 )
 
 const NetworkTopologyMap = () => (
-	<MapNetwork
+	<NetworkMap
 		baseUrl={cfg.apiPrefix}
 		contextRoot={cfg.contextRoot}
 		locale={cfg.lng}
@@ -231,14 +230,6 @@ const serviceStatus = () => (
 		session={session} />
 )
 
-const networkInventory = () => (
-	<NetworkInventory
-		baseUrl={cfg.apiPrefix}
-		contextRoot={cfg.contextRoot}
-		locale={cfg.lng}
-		session={session} />
-)
-
 const Main = () => (
 	<main className='main'>
 		<Switch>
@@ -255,14 +246,13 @@ const Main = () => (
 			<Route exact path='/ChewbaccaWeb/configuration/threats' component={Threats} />
 			<Route exact path='/ChewbaccaWeb/configuration/honeynet/host' component={HoneynetHost} />
 			<Route exact path='/ChewbaccaWeb/configuration/honeynet/email-report' component={HoneynetEmailReport} />
+			<Route exact path='/ChewbaccaWeb/configuration/topology/inventory' component={NetworkTopologyInventory} />
 			<Route exact path='/ChewbaccaWeb/configuration/topology/owner' component={NetworkTopologyOwner} />
-			<Route exact path='/ChewbaccaWeb/configuration/topology/ip' component={NetworkTopologyIP} />
 			<Route exact path='/ChewbaccaWeb/configuration/topology/map' component={NetworkTopologyMap} />
 			<Route exact path='/ChewbaccaWeb/configuration/syslog' component={Syslogs} />
 			<Route exact path='/ChewbaccaWeb/configuration/user/account' component={userAccounts} />
 			<Route exact path='/ChewbaccaWeb/configuration/user/privileges' component={userPrivileges} />
 			<Route exact path='/ChewbaccaWeb/configuration/service-status' component={serviceStatus} />
-			<Route exact path='/ChewbaccaWeb/configuration/network-inventory' component={networkInventory} />
 		</Switch>
 	</main>
 )

@@ -134,6 +134,11 @@ class NetworkInventory extends Component {
     this.getOtherData();
     this.getFloorPlan();
 	}
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.location.state === 'tableList') {
+      this.toggleContent('showList');
+    }
+  }
   getDeviceData = (fromSearch, options, seatUUID) => {
     const {baseUrl} = this.props;
     const {showHMDonly, deviceSearch, deviceData} = this.state;
@@ -1522,17 +1527,17 @@ class NetworkInventory extends Component {
                 list={[
                   {
                     value: 'existing',
-                    text: t('network-inventory.txt-existingOwner')
+                    text: t('txt-existingOwner')
                   },
                   {
                     value: 'new',
-                    text: t('network-inventory.txt-addNewOwner')
+                    text: t('txt-addNewOwner')
                   }
                 ]}
                 onChange={this.handleOwnerTypeChange}
                 value={ownerType} />
               {ownerType === 'new' &&
-                <button className='standard manage' onClick={this.openManage}>{t('network-inventory.txt-manageDepartmentTitle')}</button>
+                <button className='standard manage' onClick={this.openManage}>{t('txt-manageDepartmentTitle')}</button>
               }
               <div className='user-pic'>
                 {ownerType === 'new' &&
@@ -1879,23 +1884,20 @@ class NetworkInventory extends Component {
   }
   getBtnPos = (type) => {
     const {locale} = this.props;
-    let length = '';
 
     if (type === 'auto') {
       if (locale === 'zh') {
-        length = '120px';
+        return '120px';
       } else if (locale === 'en') {
-        length = '200px';
+        return '200px';
       }
     } else if (type === 'manual') {
       if (locale === 'zh') {
-        length = '257px';
+        return '257px';
       } else if (locale === 'en') {
-        length = '336px';
+        return '336px';
       }
     }
-
-    return length;
   }
 	render() {
     const {baseUrl, contextRoot, language, session} = this.props;
@@ -1976,13 +1978,12 @@ class NetworkInventory extends Component {
                   onChange={this.handleSubTabChange}>
                 </Tabs>
 
-                <button className='standard btn notification'>{t('network-inventory.txt-notificationSettings')}</button>
+                <button className='standard btn last'>{t('network-inventory.txt-notificationSettings')}</button>
                 <button className='standard btn' style={{right: this.getBtnPos('auto')}}>{t('network-inventory.txt-autoSettings')}</button>
                 <button className='standard btn' style={{right: this.getBtnPos('manual')}} onClick={this.toggleContent.bind(this, 'showForm', 'new')}>{t('network-inventory.txt-AddIP')}</button>
 
                 {activeTab === 'deviceList' &&
                   <TableContent
-                    activeTab='config'
                     dataTableData={deviceData.dataContent}
                     dataTableFields={deviceData.dataFields}
                     dataTableSort={deviceData.sort}

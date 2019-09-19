@@ -25,7 +25,7 @@ class Config extends Component {
   }
   componentWillMount = () => {
     const openHoneynet = this.getActiveFrame('pot') || this.getActiveFrame('mail')
-    const openTopology = this.getActiveFrame('owner') || this.getActiveFrame('ip') || this.getActiveFrame('map')
+    const openTopology = this.getActiveFrame('inventory') || this.getActiveFrame('owner') || this.getActiveFrame('map')
     const openAccount = this.getActiveFrame('account') || this.getActiveFrame('privileges')
 
     this.setState({
@@ -47,8 +47,8 @@ class Config extends Component {
       threat: '/ChewbaccaWeb/configuration/threats',
       pot: '/ChewbaccaWeb/configuration/honeynet/host',
       mail: '/ChewbaccaWeb/configuration/honeynet/email-report',
+      inventory: '/ChewbaccaWeb/configuration/topology/inventory',
       owner: '/ChewbaccaWeb/configuration/topology/owner',
-      ip: '/ChewbaccaWeb/configuration/topology/ip',
       map: '/ChewbaccaWeb/configuration/topology/map',
       syslog: '/ChewbaccaWeb/configuration/syslog',
       account: '/ChewbaccaWeb/configuration/user/account',
@@ -106,20 +106,20 @@ class Config extends Component {
         }
         {sessionRights.Module_NetworkTopology_Manage &&
           <div className='frame network-topology' onClick={this.handleOpen.bind(this, 'openTopology', openTopology)}>
-            <span className={`${this.getActiveFrame('owner') || this.getActiveFrame('ip') || this.getActiveFrame('map')}`}>{t('txt-topology')}</span>
+            <span className={`${this.getActiveFrame('inventory') || this.getActiveFrame('owner') || this.getActiveFrame('map')}`}>{t('txt-topology')}</span>
             <i className={`c-link fg fg-arrow-${openTopology?'top':'bottom'}`}></i>
           </div>
         }
         {openTopology &&
           <div className='open-topology'>
             <div className='subframe'>
-              <Link to='/ChewbaccaWeb/configuration/topology/owner'>
-                <span className={`${this.getActiveFrame('owner')}`}>{t('txt-network-owner')}</span>
+              <Link to={{pathname: '/ChewbaccaWeb/configuration/topology/inventory', state: 'tableList'}}>
+                <span className={`${this.getActiveFrame('inventory')}`}>{t('txt-networkInventory')}</span>
               </Link>
             </div>
             <div className='subframe'>
-              <Link to='/ChewbaccaWeb/configuration/topology/ip'>
-                <span className={`${this.getActiveFrame('ip')}`}>{t('txt-network-ip')}</span>
+              <Link to={{pathname: '/ChewbaccaWeb/configuration/topology/owner', state: 'tableList'}}>
+                <span className={`${this.getActiveFrame('owner')}`}>{t('txt-network-owner')}</span>
               </Link>
             </div>
             <div className='subframe'>
@@ -129,11 +129,6 @@ class Config extends Component {
             </div>
           </div>
         }
-        <div className='frame network-inventory'>
-          <Link to='/ChewbaccaWeb/configuration/network-inventory'>
-            <span className={`${this.getActiveFrame('networkInventory')}`}>{t('txt-networkInventory')}</span>
-          </Link>
-        </div>
         {sessionRights.Module_Syslog_Manage &&
           <div className='frame syslog-manage'>
             <Link to='/ChewbaccaWeb/configuration/syslog'>

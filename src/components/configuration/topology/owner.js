@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
 import Moment from 'moment'
@@ -7,33 +6,34 @@ import _ from 'lodash'
 import cx from 'classnames'
 
 import Checkbox from 'react-ui/build/src/components/checkbox'
-import ComboBox from 'react-ui/build/src/components/combobox'
 import DataTable from 'react-ui/build/src/components/table'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import FileInput from 'react-ui/build/src/components/file-input'
 import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
-import ToggleBtn from 'react-ui/build/src/components/toggle-button'
+import Tabs from 'react-ui/build/src/components/tabs'
 import ButtonGroup from 'react-ui/build/src/components/button-group'
 
-import {HocPagination as Pagination} from '../../common/pagination'
-import helper from '../../common/helper'
-import withLocale from '../../../hoc/locale-provider'
-import Name from './owner-mixname'
 import {HocConfig as Config} from '../../common/configuration'
+import helper from '../../common/helper'
+import Name from './owner-mixname'
 import RowMenu from '../../common/row-menu'
+import TableContent from '../../common/table-content'
+import withLocale from '../../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null;
 let et = null;
 
-class NetworkTopology extends Component {
+class NetworkOwner extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
+      activeTab: 'ownerList',
+      activeContent: 'tableList', //tableList, addOwner
       list: {
         department: [],
         title: []
@@ -43,8 +43,8 @@ class NetworkTopology extends Component {
         department: 'all',
         title: 'all',
       },
-      modalTitle: '',
-      modalOwnerOpen: false,
+      addOwnerType: '',
+      addOwnerTitle: '',
       openFilter: false,
       openADConnect: false,
       openADImport: false,
@@ -71,22 +71,28 @@ class NetworkTopology extends Component {
         currentPage: 1,
         pageSize: 20,
         removePhoto: false,
-        add: {}
+        info: {}
       },
       error: false,
-      info: ''
+      info: '',
+      previewOwnerPic: ''
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
     this.ah = getInstance('chewbacca');
   }
-  componentWillMount() {
+  componentDidMount() {
    this.getSearchData(); //For search on the left nav
-   this.getOwnerData(); //For main table
+  }
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.location.state === 'tableList') {
+      this.toggleContent('tableList');
+    }
   }
   getSearchData = () => {
     const {baseUrl} = this.props;
+    const {list, search, owner} = this.state;
     const apiNameType = [1, 2]
     let apiArr = [];
 
@@ -103,31 +109,40 @@ class NetworkTopology extends Component {
 
     this.ah.all(apiArr)
     .then(data => {
-      let tempList = {...this.state.list};
-      let department = [{value: 'all', text: t('txt-all')}];
-      let title = [{value: 'all', text: t('txt-all')}];
+      let tempList = {...list};
+      let departmentList = [];
+      let titleList = [];
 
       _.forEach(data[0], val => {
-        department.push({
+        departmentList.push({
           value: val.nameUUID,
           text: val.name
         });
       })
 
       _.forEach(data[1], val => {
-        title.push({
+        titleList.push({
           value: val.nameUUID,
           text: val.name
         });
       })
 
-      tempList.department = department;
-      tempList.title = title;
+      tempList.department = departmentList;
+      tempList.title = titleList;
+
+      const tempSearch = {...search};
+      const tempOwner = {...owner};
+      tempSearch.department = departmentList[0].value;
+      tempSearch.title = titleList[0].value;
+      tempOwner.info.department = departmentList[0].value;
+      tempOwner.info.title = titleList[0].value;      
 
       this.setState({
-        list: tempList
+        list: tempList,
+        search: tempSearch,
+        owner: tempOwner
       }, () => {
-        this.closeDialog();
+        this.getOwnerData(); //For main table
       });
     })
     .catch(err => {
@@ -141,7 +156,7 @@ class NetworkTopology extends Component {
       sort: owner.sort.field,
       order: owner.sort.desc ? 'desc' : 'asc',
       page: fromSearch === 'search' ? 1 : owner.currentPage,
-      pageSize: parseInt(owner.pageSize)
+      pageSize: Number(owner.pageSize)
     };
 
     if (fromSearch === 'search') {
@@ -184,7 +199,7 @@ class NetworkTopology extends Component {
                         edit: t('txt-edit'),
                         delete: t('txt-delete')
                       }}
-                      onEdit={this.getAddOwnerContent}
+                      onEdit={this.getOwnerInfo}
                       onDelete={this.openDeleteOwnerModal} />
             } else {
               return <span>{value}</span>;
@@ -210,15 +225,13 @@ class NetworkTopology extends Component {
 
       this.setState({
         owner: tempOwner
-      }, () => {
-        this.closeDialog();
       });
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  handleRowMouseOver(value, allValue, evt) {
+  handleRowMouseOver = (value, allValue, evt) => {
     let tmp = {...this.state.owner}
 
     tmp['dataContent'] = _.map(tmp['dataContent'], el => {
@@ -251,7 +264,7 @@ class NetworkTopology extends Component {
   }
   handlePaginationChange = (type, value) => {
     let tempOwner = {...this.state.owner};
-    tempOwner[type] = value;
+    tempOwner[type] = Number(value);
 
     if (type === 'pageSize') {
       tempOwner.currentPage = 1;
@@ -263,9 +276,71 @@ class NetworkTopology extends Component {
       this.getOwnerData();
     });
   }
+  getOwnerInfo = (allValue) => {
+    const {baseUrl} = this.props;
+    let tempOwner = {...this.state.owner};
+
+    if (allValue.ownerID) {
+      this.ah.one({
+        url: `${baseUrl}/api/owner?uuid=${allValue.ownerUUID}`,
+        type: 'GET'
+      })
+      .then(data => {
+        if (data) {
+          tempOwner.info = {...data};
+
+          this.setState({
+            owner: tempOwner
+          }, () => {
+            this.toggleContent('addOwner', 'edit');
+          });          
+        }
+      })
+      .catch(err => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
+      })
+    }
+  }
+  toggleContent = (type, options) => {
+    const {owner} = this.state;
+    let tempOwner = {...owner};
+    let addOwnerType = '';
+    let addOwnerTitle = '';
+
+    if (type === 'addOwner') {
+      if (options === 'new') {
+        addOwnerType = 'new';
+        addOwnerTitle = t('txt-addNewOwner');
+        tempOwner.info = {
+          department: owner.info.department,
+          title: owner.info.title
+        };
+      } else if (options === 'edit') {
+        addOwnerType = 'edit';
+        addOwnerTitle = t('txt-editOwner');
+      }
+      tempOwner.removePhoto = false;
+    }
+
+    this.setState({
+      activeContent: type,
+      addOwnerType,
+      addOwnerTitle,
+      owner: tempOwner,
+      previewOwnerPic: '',
+    });
+  }
   handleDataChange = (type, value) => {
     let tempOwner = {...this.state.owner};
-    tempOwner.add[type] = value;
+    tempOwner.info[type] = value;
+
+    if (type === 'file') {
+      const file = value ? URL.createObjectURL(value) : '';
+
+      this.setState({
+        previewOwnerPic: file
+      });
+    }
 
     this.setState({
       owner: tempOwner
@@ -279,168 +354,25 @@ class NetworkTopology extends Component {
       owner: tempOwner
     });
   }
-  displayAddOwner = () => {
-    const {contextRoot} = this.props;
-    const {owner, list} = this.state;
-
-    return (
-      <div className='wide-dialog add-owner'>
-        <div className='content'>
-          <div className='left'>
-            <div className='owner'>
-              <label htmlFor='ownerPhotoUpload'>{t('txt-uploadPhoto')}</label>
-              <FileInput
-                id='ownerPhotoUpload'
-                name='file'
-                btnText={t('txt-uploadPhoto')}
-                validate={{
-                  max: 10,
-                  extension: ['.jpg', '.jpeg', '.png'],
-                  t: (code, params) => {
-                    if (code[0] === 'file-wrong-format') {
-                      return t('txt-file-format-error') + ` ${params.extension}`
-                    }
-                  }
-                }}
-                onChange={this.handleDataChange.bind(this, 'file')} />
-              <div className='photo'>
-                {owner.add.base64 &&
-                  <div>
-                    <img src={owner.add.base64} title={t('network-topology.txt-profileImage')} />
-
-                    <div className='removePhoto'>
-                      <label htmlFor='removePhoto'>{t('network-topology.txt-removePhoto')}</label>
-                      <Checkbox
-                        id='removePhoto'
-                        onChange={this.handleRemovePhoto}
-                        checked={owner.removePhoto} />
-                    </div>
-                  </div>
-                }
-                {!owner.add.base64 &&
-                  <img src={contextRoot + '/images/empty_profile.png'} title={t('network-topology.txt-profileImage')} />
-                }
-              </div>
-            </div>
-          </div>
-
-          <div className='right'>
-            <div>
-              <label htmlFor='ownerID'>{t('ownerFields.ownerID')}</label>
-              <Input
-                id='ownerID'
-                className='add'
-                placeholder=''
-                required={true}
-                validate={{
-                  t: et
-                }}
-                value={owner.add.ownerID}
-                onChange={this.handleDataChange.bind(this, 'ownerID')} />
-
-              <label htmlFor='ownerName'>{t('ownerFields.ownerName')}</label>
-              <Input
-                id='ownerName'
-                className='add'
-                required={true}
-                validate={{
-                  t: et
-                }}
-                value={owner.add.ownerName}
-                onChange={this.handleDataChange.bind(this, 'ownerName')} />
-              <label htmlFor='ownerDept'>{t('ownerFields.department')}</label>
-              <ComboBox
-                id='ownerDept'
-                className='add'
-                list={_.drop(list.department)}
-                search={{
-                  enabled: true
-                }}
-                onChange={this.handleDataChange.bind(this, 'department')}
-                value={owner.add.department} />
-              <label htmlFor='ownerTitle'>{t('ownerFields.title')}</label>
-              <ComboBox
-                id='ownerTitle'
-                className='add'
-                list={_.drop(list.title)}
-                search={{
-                  enabled: true
-                }}
-                onChange={this.handleDataChange.bind(this, 'title')}
-                value={owner.add.title} />
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-  getAddOwnerContent = (allValue) => {
-    const {baseUrl} = this.props;
-    const titleText = allValue.ownerID ? t('network-topology.txt-editOwner') : t('network-topology.txt-addOwner');
-    let tempOwner = {...this.state.owner};
-
-    if (allValue.ownerID) {
-      this.ah.one({
-        url: `${baseUrl}/api/owner?uuid=${allValue.ownerUUID}`,
-        type: 'GET'
-      })
-      .then(data => {
-        tempOwner.add = {...data};
-
-        this.setState({
-          owner: tempOwner,
-          modalTitle: titleText,
-          modalOwnerOpen: true
-        });
-      })
-      .catch(err => {
-        helper.showPopupMsg('', t('txt-error'), err.message);
-      })
-    } else {
-      tempOwner.add = {
-        ownerUUID: '',
-        ownerID: '',
-        ownerName: '',
-        department: '',
-        title: ''
-      };
-
-      this.setState({
-        owner: tempOwner,
-        modalTitle: titleText,
-        modalOwnerOpen: true
-      });
-    }
-  }
   handleOwnerConfirm = () => {
-    const {baseUrl} = this.props;
-    const {owner} = this.state;
-
-    if (!owner.add.ownerID || !owner.add.ownerName) {
-      this.setState({error: true, info: et('fill-required-fields')})
-      return
-    }
-    else {
-      this.setState({error: false, info: ''})
-    }
-
+    const {baseUrl, contextRoot} = this.props;
+    const {addOwnerType, owner} = this.state;
     let requestType = 'POST';
+    let updatePic = owner.removePhoto;
     let formData = new FormData();
-    let updatePic = owner.removePhoto ? true : false;
+    formData.append('ownerID', owner.info.ownerID);
+    formData.append('ownerName', owner.info.ownerName);
+    formData.append('department', owner.info.department);
+    formData.append('title', owner.info.title);
 
-    formData.append('ownerID', owner.add.ownerID);
-    formData.append('ownerName', owner.add.ownerName);
-    formData.append('department', owner.add.department);
-    formData.append('title', owner.add.title);
-
-    if (owner.add.file) {
+    if (owner.info.file) {
       updatePic = true;
-      formData.append('file', owner.add.file);
+      formData.append('file', owner.info.file);
     }
     formData.append('updatePic', updatePic);
 
-    if (owner.add.ownerUUID) {
-      formData.append('ownerUUID', owner.add.ownerUUID);
+    if (addOwnerType === 'edit') {
+      formData.append('ownerUUID', owner.info.ownerUUID);
       requestType = 'PATCH';
     }
 
@@ -452,43 +384,13 @@ class NetworkTopology extends Component {
       contentType: false
     })
     .then(data => {
-      // this.getSearchData();
+      this.getSearchData();
       this.getOwnerData();
+      this.toggleContent('tableList');
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), t('network-topology.txt-ownerDuplicated'));
     })
-  }
-  closeDialog = () => {
-    let tempOwner = {...this.state.owner};
-    tempOwner.removePhoto = false;
-
-    this.setState({
-      owner: tempOwner,
-      modalOwnerOpen: false
-    });
-  }
-  modalOwnerDialog = () => {
-    const {modalTitle, error, info} = this.state;
-    const titleText = modalTitle;
-    const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeDialog.bind(this)},
-      confirm: {text: t('txt-confirm'), handler: this.handleOwnerConfirm.bind(this)}
-    };
-
-    return (
-      <ModalDialog
-        id="ownerModalDialog"
-        className="modal-dialog"
-        infoClassName={cx({'c-error':error})} info={info}
-        title={titleText}
-        draggable={true}
-        global={true}
-        actions={actions}
-        closeAction='cancel'>
-        {this.displayAddOwner()}
-      </ModalDialog>
-    )
   }
   getDeleteOwnerContent = (value) => {
     if (value) {
@@ -744,23 +646,46 @@ class NetworkTopology extends Component {
       </div>
     )
   }
+  getBtnPos = (type) => {
+    const {locale} = this.props;
+
+    if (type === 'add') {
+      if (locale === 'zh') {
+        return '168px';
+      } else if (locale === 'en') {
+        return '268px';
+      }
+    }
+  }
   render() {
     const {baseUrl, contextRoot, language, session} = this.props;
-    const {modalOwnerOpen, owner, openFilter, openADConnect, openADImport} = this.state;
+    const {
+      activeTab,
+      activeContent,
+      list,
+      addOwnerTitle,
+      owner,
+      openFilter,
+      openADConnect,
+      openADImport,
+      previewOwnerPic
+    } = this.state;
 
     return (
       <div>
-        { modalOwnerOpen && this.modalOwnerDialog() }
-        { openADConnect && this.modalADConnect() }
-        { openADImport && this.modalADImport() }
+        {openADConnect &&
+          this.modalADConnect()
+        }
+
+        {openADImport &&
+          this.modalADImport()
+        }
 
         <Name ref={ref => { this.name=ref }} onDone={this.onDone.bind(this)} />
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
             <button onClick={this.switchADConnect.bind(this)} title={t('txt-adImport')}><i className='fg fg-signage-ad'></i></button>
-            <button onClick={this.openName.bind(this)} title={t('txt-mixName')}><i className='fg fg-id'></i></button>
-            <button onClick={this.getAddOwnerContent} title={t('network-topology.txt-addOwner')}><i className='fg fg-add'></i></button>
             <button onClick={this.setFilter.bind(this, !openFilter)} className={cx('last', {'active': openFilter})} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
           </div>
         </div>
@@ -775,29 +700,128 @@ class NetworkTopology extends Component {
           <div className='data-table'>
             { this.renderFilter() }
 
-            <div className='main-content'>
-              <div className='table-content'>
-                <div className='table normal'>
-                  {owner.dataFields &&
-                    <DataTable
-                      className='main-table'
-                      fields={owner.dataFields}
-                      data={owner.dataContent}
-                      onRowMouseOver={this.handleRowMouseOver.bind(this)}
-                      sort={owner.dataContent.length === 0 ? {} : owner.sort}
-                      onSort={this.handleTableSort} />
-                  }
+            {activeContent === 'tableList' &&
+              <div className='main-content'>
+                <Tabs
+                  className='subtab-menu'
+                  menu={{
+                    ownerList: t('txt-ownerList')
+                  }}
+                  current={activeTab}>
+                </Tabs>
+
+                <button className='standard btn last' onClick={this.openName.bind(this)} >{t('txt-manageDepartmentTitle')}</button>
+                <button className='standard btn' onClick={this.toggleContent.bind(this, 'addOwner', 'new')} style={{right: this.getBtnPos('add')}}>{t('txt-addNewOwner')}</button>
+
+                <TableContent
+                  dataTableData={owner.dataContent}
+                  dataTableFields={owner.dataFields}
+                  dataTableSort={owner.sort}
+                  paginationTotalCount={owner.totalCount}
+                  paginationPageSize={owner.pageSize}
+                  paginationCurrentPage={owner.currentPage}
+                  handleTableSort={this.handleTableSort}
+                  handleRowMouseOver={this.handleRowMouseOver}
+                  paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
+                  paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
+              </div>
+            }
+
+            {activeContent === 'addOwner' &&
+              <div className='main-content add-ip-steps'>
+                <header className='main-header'>{addOwnerTitle}</header>
+                <button className='standard btn last' onClick={this.openName.bind(this)} >{t('txt-manageDepartmentTitle')}</button>
+                <div className='steps steps-owner'>
+                  <header>{t('ipFields.owner')}</header>
+                  <div className='user-pic'>
+                    <div className='group'>
+                      <label htmlFor='ownerPhotoUpload'>{t('txt-uploadPhoto')}</label>
+                      <FileInput
+                        id='ownerPhotoUpload'
+                        name='file'
+                        btnText={t('txt-uploadPhoto')}
+                        validate={{
+                          max: 10,
+                          extension: ['.jpg', '.jpeg', '.png'],
+                          t: (code, params) => {
+                            if (code[0] === 'file-wrong-format') {
+                              return t('txt-file-format-error') + ` ${params.extension}`
+                            }
+                          }
+                        }}
+                        onChange={this.handleDataChange.bind(this, 'file')} />
+                    </div>
+                    <div className='group'>
+                      {previewOwnerPic &&
+                        <img src={previewOwnerPic} title={t('network-topology.txt-profileImage')} />
+                      }
+                      {owner.info.base64 &&
+                        <div>
+                          <img src={owner.info.base64} title={t('network-topology.txt-profileImage')} />
+                          <div className='removePhoto'>
+                            <label htmlFor='removePhoto'>{t('network-topology.txt-removePhoto')}</label>
+                            <Checkbox
+                              id='removePhoto'
+                              onChange={this.handleRemovePhoto}
+                              checked={owner.removePhoto} />
+                          </div>
+                        </div>
+                      }
+                      {!previewOwnerPic && !owner.info.base64 &&
+                        <img src={contextRoot + '/images/empty_profile.png'} className='' title={t('network-topology.txt-profileImage')} />
+                      }
+                    </div>
+                  </div>
+                  <div className='user-info'>
+                    <div className='group'>
+                      <label htmlFor='ownerName'>{t('ownerFields.ownerName')}</label>
+                      <Input
+                        id='ownerName'
+                        onChange={this.handleDataChange.bind(this, 'ownerName')}
+                        required={true}
+                        validate={{
+                          t: et
+                        }}
+                        value={owner.info.ownerName} />
+                    </div>
+                    <div className='group'>
+                      <label htmlFor='ownerID'>{t('ownerFields.ownerID')}</label>
+                      <Input
+                        id='ownerID'
+                        onChange={this.handleDataChange.bind(this, 'ownerID')}
+                        required={true}
+                        validate={{
+                          t: et
+                        }}
+                        value={owner.info.ownerID} />
+                    </div>
+                    <div className='group'>
+                      <label htmlFor='ownerDepartment'>{t('ownerFields.department')}</label>
+                      <DropDownList
+                        id='ownerDepartment'
+                        list={list.department}
+                        required={true}
+                        validate={{t: et}}
+                        onChange={this.handleDataChange.bind(this, 'department')}
+                        value={owner.info.department} />
+                    </div>
+                    <div className='group'>
+                      <label htmlFor='ownerTitle'>{t('ownerFields.title')}</label>
+                      <DropDownList
+                        id='ownerTitle'
+                        list={list.title}
+                        required={true}
+                        onChange={this.handleDataChange.bind(this, 'title')}
+                        value={owner.info.title} />
+                    </div>
+                  </div>
                 </div>
                 <footer>
-                  <Pagination
-                    totalCount={owner.totalCount}
-                    pageSize={owner.pageSize}
-                    currentPage={owner.currentPage}
-                    onPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                    onDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
+                  <button className='standard' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-cancel')}</button>
+                  <button className='next-step' onClick={this.handleOwnerConfirm}>{t('txt-save')}</button>
                 </footer>
               </div>
-            </div>
+            }
           </div>
         </div>
       </div>
@@ -805,10 +829,10 @@ class NetworkTopology extends Component {
   }
 }
 
-NetworkTopology.propTypes = {
+NetworkOwner.propTypes = {
   baseUrl: PropTypes.string.isRequired,
   contextRoot: PropTypes.string.isRequired
 };
 
-const HocNetworkTopology = withLocale(NetworkTopology);
-export { NetworkTopology, HocNetworkTopology };
+const HocNetworkOwner = withRouter(withLocale(NetworkOwner));
+export { NetworkOwner, HocNetworkOwner };

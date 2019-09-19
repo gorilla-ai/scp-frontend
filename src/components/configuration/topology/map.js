@@ -30,7 +30,7 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 let t = null;
 let et = null;
 
-class MapNetwork extends Component {
+class NetworkMap extends Component {
   constructor(props) {
     super(props);
 
@@ -1841,10 +1841,10 @@ class MapNetwork extends Component {
   }
 }
 
-MapNetwork.propTypes = {
+NetworkMap.propTypes = {
   baseUrl: PropTypes.string.isRequired,
   contextRoot: PropTypes.string.isRequired
 };
 
-const HocMapNetwork = withLocale(MapNetwork);
-export { MapNetwork, HocMapNetwork };
+const HocNetworkMap = withLocale(NetworkMap);
+export { NetworkMap, HocNetworkMap };

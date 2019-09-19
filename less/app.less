@@ -1057,7 +1057,7 @@ footer.footer {
 						display: none;
 					}
 					li {
-						padding: 15px 20px 5px 20px;
+						padding: 25px 20px 5px 20px;
 					}
 				}
 				footer {
@@ -1292,9 +1292,9 @@ footer.footer {
 				}
 				.btn {
 					position: absolute;
-					top: 5px;
+					top: 10px;
 					padding: .3em 1em;
-					&.notification {
+					&.last {
 						right: 15px;
 					}
 				}
@@ -1321,6 +1321,10 @@ footer.footer {
 							margin-right: 10px;
 						}
 					}
+				}
+				&.add-owner {
+					background-color: #fff;
+					min-height: 85vh;
 				}
 				&.add-ip-steps {
 					background-color: #fff;
@@ -1422,6 +1426,17 @@ footer.footer {
 							font-weight: bold;
 						}
 						&.steps-owner {
+							.removePhoto {
+								label {
+									display: inline-block;
+									margin-right: 5px;
+									margin-top: 15px;
+								}
+								i {
+									position: absolute;
+									margin-top: 13px;
+								}
+							}
 							button.manage {
 								position: absolute;
 								top: -40px;
