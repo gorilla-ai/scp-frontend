@@ -965,11 +965,15 @@ class NetworkInventory extends Component {
     const hmdInfo = {
       yara: {
         createTime: helper.getFormattedDate(currentDeviceData.yaraResult.taskCreateDttm, 'local'),
-        responseTime: helper.getFormattedDate(currentDeviceData.yaraResult.taskResponseDttm, 'local')
+        responseTime: helper.getFormattedDate(currentDeviceData.yaraResult.taskResponseDttm, 'local'),
+        result: currentDeviceData.yaraResult.ScanResult ? currentDeviceData.yaraResult.ScanResult : [],
+        taskID: currentDeviceData.yaraResult.taskId
       },
       ir: {
         createTime: helper.getFormattedDate(currentDeviceData.irResult.taskCreateDttm, 'local'),
-        responseTime: helper.getFormattedDate(currentDeviceData.irResult.taskResponseDttm, 'local')
+        responseTime: helper.getFormattedDate(currentDeviceData.irResult.taskResponseDttm, 'local'),
+        result: currentDeviceData.irResult._url,
+        taskID: currentDeviceData.irResult.taskId
       }
     };
 
@@ -1012,13 +1016,13 @@ class NetworkInventory extends Component {
                       <span>{t('network-inventory.txt-responseTime')}: {hmdInfo.yara.responseTime}</span>
                     }
                   </div>
-                  <div className='count'>{t('network-inventory.txt-suspiciousFileCount')}: {currentDeviceData.yaraResult.ScanResult.length}</div>
-                  <button className='btn' onClick={this.triggerTask.bind(this, currentDeviceData.yaraResult.taskId)} disabled={this.checkTriggerTime('yara')}>{t('network-inventory.txt-reCheck')}</button>
+                  <div className='count'>{t('network-inventory.txt-suspiciousFileCount')}: {hmdInfo.yara.result.length}</div>
+                  <button className='btn' onClick={this.triggerTask.bind(this, hmdInfo.yara.result.taskID)} disabled={this.checkTriggerTime('yara')}>{t('network-inventory.txt-reCheck')}</button>
                 </div>
                 <div className='file-path'>
                   <div className='header'>{t('network-inventory.txt-suspiciousFilePath')}</div>
                   <div className='list'>
-                    {currentDeviceData.yaraResult.ScanResult.map(this.displayPath)}
+                    {hmdInfo.yara.result.map(this.displayPath)}
                   </div>
                 </div>
               </div>
@@ -1034,10 +1038,10 @@ class NetworkInventory extends Component {
                       <span>{t('network-inventory.txt-responseTime')}: {hmdInfo.ir.responseTime}</span>
                     }
                   </div>
-                  <button className='btn' onClick={this.triggerTask.bind(this, currentDeviceData.irResult.taskId)} disabled={this.checkTriggerTime('ir')}>{t('network-inventory.txt-reCompress')}</button>
+                  <button className='btn' onClick={this.triggerTask.bind(this, hmdInfo.ir.taskID)} disabled={this.checkTriggerTime('ir')}>{t('network-inventory.txt-reCompress')}</button>
                 </div>
                 <div className='msg'>
-                  <span>IR data has been uploaded to {currentDeviceData.irResult._url}</span>
+                  <span>IR data has been uploaded to {hmdInfo.ir.result}</span>
                 </div>
               </div>
             }
