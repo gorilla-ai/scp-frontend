@@ -102,8 +102,6 @@ class NetworkInventory extends Component {
         name: '',
         map: ''
       },
-      //activeAreaUUID: '',
-      //activeAreaName: '',
       alertInfo: {
         ownerMap: '',
         ownerBaseLayers: {},
@@ -140,11 +138,14 @@ class NetworkInventory extends Component {
     }
   }
   getDeviceData = (fromSearch, options, seatUUID) => {
-    const {baseUrl} = this.props;
+    const {baseUrl, contextRoot} = this.props;
     const {showHMDonly, deviceSearch, deviceData} = this.state;
     let dataParams = '';
 
     if (options === 'oneSeat') {
+      if (!seatUUID) {
+        return;
+      }
       dataParams += `&seatUUID=${seatUUID}`;
     } else {
       const page = fromSearch === 'search' ? 1 : deviceData.currentPage;
@@ -405,8 +406,7 @@ class NetworkInventory extends Component {
     }
   }
   getFloorPlan = () => {
-    const {baseUrl} = this.props;
-    const {activeAreaUUID,  activeAreaName} = this.state;
+    const {baseUrl, contextRoot} = this.props;
 
     this.ah.one({
       url: `${baseUrl}/api/area/_tree`,
@@ -415,17 +415,11 @@ class NetworkInventory extends Component {
     .then(data => {
       if (data && data.length > 0) {
         const floorPlanData = data[0];
-        let floorPlan = {
-          treeData: data
+        const floorPlan = {
+          treeData: data,
+          currentAreaUUID: floorPlanData.areaUUID,
+          currentAreaName: floorPlanData.areaName
         };
-
-        if (activeAreaUUID && activeAreaName) {
-          //floorPlan.currentAreaUUID = activeAreaUUID;
-          //floorPlan.currentAreaName = activeAreaName;
-        } else {
-          floorPlan.currentAreaUUID = floorPlanData.areaUUID;
-          floorPlan.currentAreaName = floorPlanData.areaName;
-        }
 
         this.setState({
           floorPlan
@@ -637,40 +631,6 @@ class NetworkInventory extends Component {
       this.openDeleteDeviceModal(allValue);
     }
   }
-  // getOwnerPic = (allValue) => {
-  //   const {baseUrl} = this.props;
-  //   const {alertInfo} = this.state;
-  //   let ownerUUID = '';
-  //   let tempAlertInfo = {...alertInfo};
-
-  //   if (!allValue.ownerObj) {
-  //     this.getOwnerSeat(allValue);
-  //     return;
-  //   }
-
-  //   ownerUUID = allValue.ownerObj.ownerUUID;
-
-  //   if (ownerUUID) {
-  //     this.ah.one({
-  //       url: `${baseUrl}/api/owner?uuid=${ownerUUID}`,
-  //       type: 'GET'
-  //     })
-  //     .then(data => {
-  //       if (data) {
-  //         tempAlertInfo.ownerPic = data.base64;
-
-  //         this.setState({
-  //           alertInfo: tempAlertInfo
-  //         }, () => {
-  //           this.getOwnerSeat(allValue);
-  //         });
-  //       }
-  //     })
-  //     .catch(err => {
-  //       helper.showPopupMsg('', t('txt-error'), err.message);
-  //     })
-  //   }
-  // }
   getOwnerSeat = (allValue) => {
     const {baseUrl, contextRoot} = this.props;
     const topoInfo = allValue;
@@ -779,7 +739,7 @@ class NetworkInventory extends Component {
     });
   }
   deleteDevice = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl, contextRoot} = this.props;
     const {currentDeviceData} = this.state;
 
     ah.one({
@@ -839,19 +799,6 @@ class NetworkInventory extends Component {
       showFilter: !this.state.showFilter
     });
   }
-  // handleRowMouseOver = (id, allValue, evt) => {
-  //   let tempDeviceData = {...this.state.deviceData};
-  //   tempDeviceData.dataContent = _.map(tempDeviceData.dataContent, item => {
-  //     return {
-  //       ...item,
-  //       _menu_: allValue.ip === item.ip ? true : false
-  //     }
-  //   });
-
-  //   this.setState({
-  //     deviceData: tempDeviceData
-  //   });
-  // }
   toggleScanType = (activeScanType) => {
     this.setState({
       activeScanType
@@ -905,7 +852,7 @@ class NetworkInventory extends Component {
     )
   }
   getHMDscanInfo = (index, ipDeviceUUID) => {
-    const {baseUrl} = this.props;
+    const {baseUrl, contextRoot} = this.props;
     const {deviceData, currentDeviceData} = this.state;
     let tempDeviceData = {...deviceData};
 
@@ -962,20 +909,25 @@ class NetworkInventory extends Component {
     const mac = currentDeviceData.mac ? currentDeviceData.mac : NOT_AVAILABLE;
     const hostName = currentDeviceData.hostName ? currentDeviceData.hostName : NOT_AVAILABLE;
     const ownerName = currentDeviceData.ownerObj ? currentDeviceData.ownerObj.ownerName : NOT_AVAILABLE;
-    const hmdInfo = {
-      yara: {
+    let hmdInfo = {};
+
+    if (currentDeviceData.yaraResult) {
+      hmdInfo.yara = {
         createTime: helper.getFormattedDate(currentDeviceData.yaraResult.taskCreateDttm, 'local'),
         responseTime: helper.getFormattedDate(currentDeviceData.yaraResult.taskResponseDttm, 'local'),
         result: currentDeviceData.yaraResult.ScanResult ? currentDeviceData.yaraResult.ScanResult : [],
         taskID: currentDeviceData.yaraResult.taskId
-      },
-      ir: {
+      };
+    }
+
+    if (currentDeviceData.irResult) {
+      hmdInfo.ir = {
         createTime: helper.getFormattedDate(currentDeviceData.irResult.taskCreateDttm, 'local'),
         responseTime: helper.getFormattedDate(currentDeviceData.irResult.taskResponseDttm, 'local'),
         result: currentDeviceData.irResult._url,
         taskID: currentDeviceData.irResult.taskId
-      }
-    };
+      };
+    }
 
     return (
       <div>
@@ -1005,7 +957,7 @@ class NetworkInventory extends Component {
           </div>
 
           <div className='info-content'>
-            {activeScanType === 'yara' &&
+            {activeScanType === 'yara' && !_.isEmpty(hmdInfo.yara) &&
               <div>
                 <div className='info'>
                   <div className='last-update'>
@@ -1017,7 +969,7 @@ class NetworkInventory extends Component {
                     }
                   </div>
                   <div className='count'>{t('network-inventory.txt-suspiciousFileCount')}: {hmdInfo.yara.result.length}</div>
-                  <button className='btn' onClick={this.triggerTask.bind(this, hmdInfo.yara.result.taskID)} disabled={this.checkTriggerTime('yara')}>{t('network-inventory.txt-reCheck')}</button>
+                  <button className='btn' onClick={this.triggerTask.bind(this, hmdInfo.yara.taskID)} disabled={this.checkTriggerTime('yara')}>{t('network-inventory.txt-reCheck')}</button>
                 </div>
                 <div className='file-path'>
                   <div className='header'>{t('network-inventory.txt-suspiciousFilePath')}</div>
@@ -1027,7 +979,7 @@ class NetworkInventory extends Component {
                 </div>
               </div>
             }
-            {activeScanType === 'ir' &&
+            {activeScanType === 'ir' && !_.isEmpty(hmdInfo.ir) &&
               <div>
                 <div className='info'>
                   <div className='last-update'>
@@ -1185,8 +1137,6 @@ class NetworkInventory extends Component {
         activeContent,
         activeSteps: 1,
         formTypeEdit,
-        //activeAreaUUID: '',
-        //activeAreaName: '',
         addIP,
         ownerType: 'existing'
       });
@@ -1348,7 +1298,7 @@ class NetworkInventory extends Component {
     });
   }
   handleOwnerChange = (value) => {
-    const {baseUrl} = this.props;
+    const {baseUrl, contextRoot} = this.props;
 
     this.ah.one({
       url: `${baseUrl}/api/owner?uuid=${value}`,
@@ -1437,6 +1387,12 @@ class NetworkInventory extends Component {
                 <label htmlFor='addIPstepsIP'>{t('ipFields.ip')}</label>
                 <Input
                   id='addIPstepsIP'
+                  required={true}
+                  validate={{
+                    pattern: /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/,
+                    patternReadable: 'xxx.xxx.xxx.xxx',
+                    t: et
+                  }}
                   onChange={this.handleAddIpChange.bind(this, 'ip')}
                   value={addIP.ip} />
               </div>
@@ -1444,6 +1400,10 @@ class NetworkInventory extends Component {
                 <label htmlFor='addIPstepsMac'>{t('ipFields.mac')}</label>
                 <Input
                   id='addIPstepsMac'
+                  required={true}
+                  validate={{
+                    t: et
+                  }}                  
                   onChange={this.handleAddIpChange.bind(this, 'mac')}
                   value={addIP.mac} />
               </div>
@@ -1830,7 +1790,7 @@ class NetworkInventory extends Component {
     });
   }
   selectTree = (i, areaUUID, eventData) => {
-    const {baseUrl} = this.props;
+    const {baseUrl, contextRoot} = this.props;
     let tempFloorPlan = {...this.state.floorPlan};
     let tempArr = [];
     let pathStr = '';
@@ -1863,8 +1823,6 @@ class NetworkInventory extends Component {
 
     this.setState({
       floorPlan: tempFloorPlan
-      // activeAreaUUID: tempFloorPlan.currentAreaUUID,
-      // activeAreaName: tempFloorPlan.currentAreaName
     }, () => {
       this.getAreaData(areaUUID);
       this.getSeatData(areaUUID);

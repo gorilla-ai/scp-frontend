@@ -40,6 +40,10 @@ class NetworkOwner extends Component {
       },
       search: {
         name: '',
+        list: {
+          department: [],
+          title: []
+        },
         department: 'all',
         title: 'all',
       },
@@ -84,6 +88,7 @@ class NetworkOwner extends Component {
   }
   componentDidMount() {
    this.getSearchData(); //For search on the left nav
+   this.getOwnerData(); //For main table
   }
   componentWillReceiveProps(nextProps) {
     if (nextProps.location.state === 'tableList') {
@@ -92,12 +97,12 @@ class NetworkOwner extends Component {
   }
   getSearchData = () => {
     const {baseUrl} = this.props;
-    const {list, search, owner} = this.state;
-    const apiNameType = [1, 2]
+    const {list, search} = this.state;
+    const apiNameType = [1, 2]; //1: Department, 2: Title
     let apiArr = [];
 
     _.forEach(apiNameType, val => {
-      const json = {nameType: val}      
+      const json = {nameType: val}
 
       apiArr.push({
         url: `${baseUrl}/api/name/_search`,
@@ -110,6 +115,7 @@ class NetworkOwner extends Component {
     this.ah.all(apiArr)
     .then(data => {
       let tempList = {...list};
+      let tempSearch = {...search};
       let departmentList = [];
       let titleList = [];
 
@@ -127,22 +133,19 @@ class NetworkOwner extends Component {
         });
       })
 
-      tempList.department = departmentList;
-      tempList.title = titleList;
+      tempList.department = _.cloneDeep(departmentList);
+      tempList.title = _.cloneDeep(titleList);
 
-      const tempSearch = {...search};
-      const tempOwner = {...owner};
-      tempSearch.department = departmentList[0].value;
-      tempSearch.title = titleList[0].value;
-      tempOwner.info.department = departmentList[0].value;
-      tempOwner.info.title = titleList[0].value;      
+      tempSearch.list.department = _.cloneDeep(departmentList);
+      tempSearch.list.title = _.cloneDeep(titleList);
+      tempSearch.list.department.unshift({value: 'all', text: t('txt-all')});
+      tempSearch.list.title.unshift({value: 'all', text: t('txt-all')});
+      tempSearch.department = tempSearch.list.department[0].value;
+      tempSearch.title = tempSearch.list.title[0].value;
 
       this.setState({
         list: tempList,
-        search: tempSearch,
-        owner: tempOwner
-      }, () => {
-        this.getOwnerData(); //For main table
+        search: tempSearch
       });
     })
     .catch(err => {
@@ -302,7 +305,7 @@ class NetworkOwner extends Component {
     }
   }
   toggleContent = (type, options) => {
-    const {owner} = this.state;
+    const {list, owner} = this.state;
     let tempOwner = {...owner};
     let addOwnerType = '';
     let addOwnerTitle = '';
@@ -312,8 +315,8 @@ class NetworkOwner extends Component {
         addOwnerType = 'new';
         addOwnerTitle = t('txt-addNewOwner');
         tempOwner.info = {
-          department: owner.info.department,
-          title: owner.info.title
+          department: list.department[0].value,
+          title: list.title[0].value
         };
       } else if (options === 'edit') {
         addOwnerType = 'edit';
@@ -604,21 +607,31 @@ class NetworkOwner extends Component {
       </ModalDialog>
     )
   }
-  openName() {
-    this.name._component.open()
+  openName = () => {
+    this.name._component.open();
   }
-  onDone() {
-    this.getSearchData()
-    this.getOwnerData()
+  onDone = () => {
+    this.getSearchData();
+    this.getOwnerData();
   }
-  setFilter(flag) {
-    this.setState({openFilter: flag})
+  setFilter = (flag) => {
+    this.setState({
+      openFilter: flag
+    });
   }
-  clearFilter() {
-    const clear = { name: '', department: 'all', title: 'all' }
-    this.setState({search: clear})
+  clearFilter = () => {
+    const tempSearch = {
+      ...this.state.search,
+      name: '',
+      department: 'all',
+      title: 'all'
+    };
+
+    this.setState({
+      search: tempSearch
+    });
   }
-  renderFilter() {
+  renderFilter = () => {
     const {list, search, openFilter} = this.state
 
     return (
@@ -632,11 +645,11 @@ class NetworkOwner extends Component {
           </div>
           <div className='group'>
             <label htmlFor='ownerDept'>{t('ownerFields.department')}</label>
-            <DropDownList id='ownerDept' list={list.department} required={true} onChange={this.handleSearchChange.bind(this, 'department')} value={search.department} />
+            <DropDownList id='ownerDept' list={search.list.department} required={true} onChange={this.handleSearchChange.bind(this, 'department')} value={search.department} />
           </div>
           <div className='group'>
             <label htmlFor='ownerTitle'>{t('ownerFields.title')}</label>
-            <DropDownList id='ownerTitle' list={list.title} required={true} onChange={this.handleSearchChange.bind(this, 'title')} value={search.title} />
+            <DropDownList id='ownerTitle' list={search.list.title} required={true} onChange={this.handleSearchChange.bind(this, 'title')} value={search.title} />
           </div>
         </div>
         <div className='button-group'>
@@ -710,7 +723,7 @@ class NetworkOwner extends Component {
                   current={activeTab}>
                 </Tabs>
 
-                <button className='standard btn last' onClick={this.openName.bind(this)} >{t('txt-manageDepartmentTitle')}</button>
+                <button className='standard btn last' onClick={this.openName} >{t('txt-manageDepartmentTitle')}</button>
                 <button className='standard btn' onClick={this.toggleContent.bind(this, 'addOwner', 'new')} style={{right: this.getBtnPos('add')}}>{t('txt-addNewOwner')}</button>
 
                 <TableContent
@@ -730,7 +743,7 @@ class NetworkOwner extends Component {
             {activeContent === 'addOwner' &&
               <div className='main-content add-ip-steps'>
                 <header className='main-header'>{addOwnerTitle}</header>
-                <button className='standard btn last' onClick={this.openName.bind(this)} >{t('txt-manageDepartmentTitle')}</button>
+                <button className='standard btn last' onClick={this.openName} >{t('txt-manageDepartmentTitle')}</button>
                 <div className='steps steps-owner'>
                   <header>{t('ipFields.owner')}</header>
                   <div className='user-pic'>
