@@ -126,7 +126,7 @@ class Roles extends Component {
       <div>
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            <button onClick={this.showAddDialog} className='last' title={t('txt-add')}><i className='fg fg-add'></i></button>
+            <button className='last' onClick={this.showAddDialog} title={t('txt-add')}><i className='fg fg-add'></i></button>
           </div>
         </div>
         <div className='data-content'>

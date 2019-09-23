@@ -40,10 +40,6 @@ class NetworkOwner extends Component {
       },
       search: {
         name: '',
-        list: {
-          department: [],
-          title: []
-        },
         department: 'all',
         title: 'all',
       },
@@ -97,7 +93,7 @@ class NetworkOwner extends Component {
   }
   getSearchData = () => {
     const {baseUrl} = this.props;
-    const {list, search} = this.state;
+    const {list} = this.state;
     const apiNameType = [1, 2]; //1: Department, 2: Title
     let apiArr = [];
 
@@ -115,7 +111,6 @@ class NetworkOwner extends Component {
     this.ah.all(apiArr)
     .then(data => {
       let tempList = {...list};
-      let tempSearch = {...search};
       let departmentList = [];
       let titleList = [];
 
@@ -135,17 +130,11 @@ class NetworkOwner extends Component {
 
       tempList.department = _.cloneDeep(departmentList);
       tempList.title = _.cloneDeep(titleList);
-
-      tempSearch.list.department = _.cloneDeep(departmentList);
-      tempSearch.list.title = _.cloneDeep(titleList);
-      tempSearch.list.department.unshift({value: 'all', text: t('txt-all')});
-      tempSearch.list.title.unshift({value: 'all', text: t('txt-all')});
-      tempSearch.department = tempSearch.list.department[0].value;
-      tempSearch.title = tempSearch.list.title[0].value;
+      tempList.department.unshift({value: 'all', text: t('txt-all')});
+      tempList.title.unshift({value: 'all', text: t('txt-all')});
 
       this.setState({
-        list: tempList,
-        search: tempSearch
+        list: tempList
       });
     })
     .catch(err => {
@@ -306,11 +295,15 @@ class NetworkOwner extends Component {
   }
   toggleContent = (type, options) => {
     const {list, owner} = this.state;
+    let tempList = {...list};
     let tempOwner = {...owner};
     let addOwnerType = '';
     let addOwnerTitle = '';
 
     if (type === 'addOwner') {
+      tempList.department.shift(); //Remove 'all' option
+      tempList.title.shift(); //Remove 'all' option
+
       if (options === 'new') {
         addOwnerType = 'new';
         addOwnerTitle = t('txt-addNewOwner');
@@ -323,14 +316,19 @@ class NetworkOwner extends Component {
         addOwnerTitle = t('txt-editOwner');
       }
       tempOwner.removePhoto = false;
+    } else if (type === 'tableList') {
+      tempList.department.unshift({value: 'all', text: t('txt-all')});
+      tempList.title.unshift({value: 'all', text: t('txt-all')});
     }
 
     this.setState({
       activeContent: type,
+      list: tempList,
       addOwnerType,
       addOwnerTitle,
+      openFilter: false,
       owner: tempOwner,
-      previewOwnerPic: '',
+      previewOwnerPic: ''
     });
   }
   handleDataChange = (type, value) => {
@@ -621,7 +619,6 @@ class NetworkOwner extends Component {
   }
   clearFilter = () => {
     const tempSearch = {
-      ...this.state.search,
       name: '',
       department: 'all',
       title: 'all'
@@ -645,11 +642,11 @@ class NetworkOwner extends Component {
           </div>
           <div className='group'>
             <label htmlFor='ownerDept'>{t('ownerFields.department')}</label>
-            <DropDownList id='ownerDept' list={search.list.department} required={true} onChange={this.handleSearchChange.bind(this, 'department')} value={search.department} />
+            <DropDownList id='ownerDept' list={list.department} required={true} onChange={this.handleSearchChange.bind(this, 'department')} value={search.department} />
           </div>
           <div className='group'>
             <label htmlFor='ownerTitle'>{t('ownerFields.title')}</label>
-            <DropDownList id='ownerTitle' list={search.list.title} required={true} onChange={this.handleSearchChange.bind(this, 'title')} value={search.title} />
+            <DropDownList id='ownerTitle' list={list.title} required={true} onChange={this.handleSearchChange.bind(this, 'title')} value={search.title} />
           </div>
         </div>
         <div className='button-group'>
@@ -699,7 +696,7 @@ class NetworkOwner extends Component {
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
             <button onClick={this.switchADConnect.bind(this)} title={t('txt-adImport')}><i className='fg fg-signage-ad'></i></button>
-            <button onClick={this.setFilter.bind(this, !openFilter)} className={cx('last', {'active': openFilter})} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
+            <button className={cx('last', {'active': openFilter})} onClick={this.setFilter.bind(this, !openFilter)} title={t('txt-filter')} disabled={activeContent !== 'tableList'}><i className='fg fg-filter'></i></button>
           </div>
         </div>
 
@@ -723,7 +720,7 @@ class NetworkOwner extends Component {
                   current={activeTab}>
                 </Tabs>
 
-                <button className='standard btn last' onClick={this.openName} >{t('txt-manageDepartmentTitle')}</button>
+                <button className='standard btn last' onClick={this.openName}>{t('txt-manageDepartmentTitle')}</button>
                 <button className='standard btn' onClick={this.toggleContent.bind(this, 'addOwner', 'new')} style={{right: this.getBtnPos('add')}}>{t('txt-addNewOwner')}</button>
 
                 <TableContent

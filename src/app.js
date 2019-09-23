@@ -19,6 +19,8 @@ import {HocEndpoint as Endpoint} from './components/events/endpoint/index'
 import {HocHeader as Header} from './header'
 import {HocHoneynet as Honeypot} from './components/configuration/honeynet/host'
 import Login from './login'
+import {HocEdge as EdgeManagement} from './components/configuration/edge/edge'
+import {HocThreatIntelligence as ThreatIntelligence} from './components/configuration/edge/threat'
 import {HocManage as Manage} from './components/configuration/agent/manage'
 import {HocNetflowController as Netflow} from './components/events/netflow/index'
 import {HocNetworkInventory as NetworkInventory} from './components/configuration/topology/inventory'
@@ -131,6 +133,22 @@ const Config = () => {
 	}
 }
 
+const Edge = () => (
+	<EdgeManagement
+		baseUrl={cfg.apiPrefix}
+		contextRoot={cfg.contextRoot}
+		locale={cfg.lng}
+		session={session} />
+)
+
+const Threat = () => (
+	<ThreatIntelligence
+		baseUrl={cfg.apiPrefix}
+		contextRoot={cfg.contextRoot}
+		locale={cfg.lng}
+		session={session} />
+)
+
 const Agent = () => (
 	<Manage
 		page='agent'
@@ -140,14 +158,14 @@ const Agent = () => (
 		session={session} />
 )
 
-const Threats = () => (
-	<Manage
-		page='threats'
-		baseUrl={cfg.apiPrefix}
-		contextRoot={cfg.contextRoot}
-		locale={cfg.lng}
-		session={session} />
-)
+// const Threats = () => (
+// 	<Manage
+// 		page='threats'
+// 		baseUrl={cfg.apiPrefix}
+// 		contextRoot={cfg.contextRoot}
+// 		locale={cfg.lng}
+// 		session={session} />
+// )
 
 const HoneynetHost = () => (
 	<Honeypot
@@ -242,8 +260,10 @@ const Main = () => (
 			<Route exact path='/ChewbaccaWeb/events/endpoint' component={EndpointComp} />
 			<Route exact path='/ChewbaccaWeb/honeynet/employee-record' component={HoneynetEmployeeRecord} />
 			<Route exact path='/ChewbaccaWeb/configuration' component={Config} />
+			<Route exact path='/ChewbaccaWeb/configuration/edge/edge' component={Edge} />
+			<Route exact path='/ChewbaccaWeb/configuration/edge/threat' component={Threat} />
 			<Route exact path='/ChewbaccaWeb/configuration/agent' component={Agent} />
-			<Route exact path='/ChewbaccaWeb/configuration/threats' component={Threats} />
+			{/*<Route exact path='/ChewbaccaWeb/configuration/threats' component={Threats} />*/}
 			<Route exact path='/ChewbaccaWeb/configuration/honeynet/host' component={HoneynetHost} />
 			<Route exact path='/ChewbaccaWeb/configuration/honeynet/email-report' component={HoneynetEmailReport} />
 			<Route exact path='/ChewbaccaWeb/configuration/topology/inventory' component={NetworkTopologyInventory} />

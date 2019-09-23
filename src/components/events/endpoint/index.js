@@ -493,7 +493,7 @@ class Endpoint extends Component {
           {helper.getEventsMenu('endpoint', sessionRights)}
 
           <div className='secondary-btn-group right'>
-            <button onClick={this.setFilter.bind(this, !openFilter)} className={cx('last', {'active': openFilter})} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
+            <button className={cx('last', {'active': openFilter})} onClick={this.setFilter.bind(this, !openFilter)} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
           </div>
         </div>
 

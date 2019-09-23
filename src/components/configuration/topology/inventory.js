@@ -74,7 +74,7 @@ class NetworkInventory extends Component {
         seatName: ''
       },
       deviceData: {
-        dataFieldsArr: ['ip', 'mac', 'hostName', 'system', 'owner', 'areaName', 'seatName', '_menu_'],
+        dataFieldsArr: ['ip', 'mac', 'hostName', 'system', 'owner', 'areaName', 'seatName', 'yaraScan', '_menu_'],
         dataFields: {},
         dataContent: [],
         ipListArr: [],
@@ -238,6 +238,19 @@ class NetworkInventory extends Component {
               if (allValue.seatObj) {
                 return <span>{allValue.seatObj.seatName}</span>;
               }
+            } else if (tempData === 'yaraScan') {
+              let yaraCount = 0;
+              let styleStatus = '#22ac38';
+
+              if (allValue.yaraResult) {
+                yaraCount = allValue.yaraResult.ScanResult.length;
+
+                if (yaraCount > 0) {
+                  styleStatus = '#d0021b';
+                }
+              }
+
+              return <span style={{color: styleStatus}}>{yaraCount}</span>
             } else if (tempData === '_menu_') {
               return (
                 <div className={cx('table-menu inventory', {'active': value})}>
@@ -300,7 +313,7 @@ class NetworkInventory extends Component {
       }
     })
     .catch(err => {
-      helper.showPopupMsg(t('txt-pcapNotAvailable'), t('txt-error'));
+      helper.showPopupMsg('', t('txt-error'));
     });
   }
   getOtherData = () => {
@@ -896,11 +909,17 @@ class NetworkInventory extends Component {
     helper.getAjaxData('POST', url, requestData)
     .then(data => {
       if (data) {
+        PopupDialog.alert({
+          id: 'tiggerTaskModal',
+          confirmText: t('txt-close'),
+          display: <div>{t('txt-requestSent')}</div>
+        });
+
         this.getHMDscanInfo('', currentDeviceData.ipDeviceUUID);
       }
     })
     .catch(err => {
-      helper.showPopupMsg(t('txt-pcapNotAvailable'), t('txt-error'));
+      helper.showPopupMsg('', t('txt-error'));
     });
   }
   displayScanInfo = () => {
@@ -1066,7 +1085,7 @@ class NetworkInventory extends Component {
     });
   }
   handleDeviceSearch = (type, value) => {
-    const tempDeviceSearch = {...this.state.deviceSearch};
+    let tempDeviceSearch = {...this.state.deviceSearch};
     tempDeviceSearch[type] = value;
 
     this.setState({
@@ -1144,7 +1163,8 @@ class NetworkInventory extends Component {
     }
 
     this.setState({
-      activeContent
+      activeContent,
+      showFilter: false
     });
   }
   checkFormValidation = () => {
@@ -1257,7 +1277,7 @@ class NetworkInventory extends Component {
       this.toggleContent('showList');
     })
     .catch(err => {
-      helper.showPopupMsg(t('txt-pcapNotAvailable'), t('txt-error'));
+      helper.showPopupMsg('', t('txt-error'));
     });
   }
   showAddIpSteps = (val, i) => {
@@ -1786,7 +1806,7 @@ class NetworkInventory extends Component {
       }
     })
     .catch(err => {
-      helper.showPopupMsg(t('txt-pcapNotAvailable'), t('txt-error'));
+      helper.showPopupMsg('', t('txt-error'));
     });
   }
   selectTree = (i, areaUUID, eventData) => {
@@ -1910,8 +1930,8 @@ class NetworkInventory extends Component {
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            {activeTab === 'deviceList' && activeContent === 'tableList' &&
-              <button onClick={this.toggleFilter} className={cx('last', {'active': showFilter})} title={t('network.connections.txt-toggleFilter')}><i className='fg fg-filter'></i></button>
+            {activeTab === 'deviceList' &&
+              <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('network.connections.txt-toggleFilter')} disabled={activeContent !== 'tableList'}><i className='fg fg-filter'></i></button>
             }
           </div>
         </div>

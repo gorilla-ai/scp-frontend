@@ -10,6 +10,7 @@ import JSONTree from 'react-json-tree'
 import Checkbox from 'react-ui/build/src/components/checkbox'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PageNav from 'react-ui/build/src/components/page-nav'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import Textarea from 'react-ui/build/src/components/textarea'
 
 import {HocPrivateDetails as PrivateDetails} from './private-details'
@@ -71,6 +72,10 @@ class AlertDetails extends Component {
           ownerSeat: {}
         }
       },
+      ipDeviceInfo: {
+        srcIp: {},
+        destIp: {}
+      },
       showRedirectMenu: false
     };
 
@@ -82,6 +87,8 @@ class AlertDetails extends Component {
     this.loadAlertContent();
     this.getIPcontent('srcIp');
     this.getIPcontent('destIp');
+    this.getHMDinfo('srcIp');
+    this.getHMDinfo('destIp');
     document.addEventListener('mousedown', this.handleClickOutside);
   }
   componentDidUpdate = (prevProps) => {
@@ -216,6 +223,28 @@ class AlertDetails extends Component {
         this.getOwnerSeat(type);
       }
     });
+  }
+  getHMDinfo = (type) => {
+    const {baseUrl, contextRoot} = this.props;
+    const {ipDeviceInfo} = this.state;
+    const IP = this.getIpPortData(type);
+
+    this.ah.one({
+      url: `${baseUrl}/api/u1/ipdevice/_search?ip=${IP}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        if (data.rows[0]) {
+          let tempIPdeviceInfo = {...ipDeviceInfo};
+          tempIPdeviceInfo[type] = data.rows[0];
+        }
+
+        this.setState({
+          ipDeviceInfo: tempIPdeviceInfo
+        });
+      }
+    })
   }
   /**
    * Get owner picture based on location type
@@ -591,11 +620,11 @@ class AlertDetails extends Component {
             }
 
             {showContent.srcSafety &&
-              this.displaySafetyScanContent('srcSafety')
+              this.displaySafetyScanContent('srcIp')
             }
 
             {showContent.destSafety &&
-              this.displaySafetyScanContent('destSafety')
+              this.displaySafetyScanContent('destIp')
             }
 
             {showContent.json &&
@@ -954,16 +983,42 @@ class AlertDetails extends Component {
       </div>
     )
   }
+  triggerTask = (taskId, type) => {
+    const {baseUrl, contextRoot} = this.props;
+    const url = `${baseUrl}/api/hmd/taskinfo`;
+    const requestData = {
+      taskId
+    };
+
+    helper.getAjaxData('POST', url, requestData)
+    .then(data => {
+      if (data) {
+        PopupDialog.alert({
+          id: 'tiggerTaskModal',
+          confirmText: t('txt-close'),
+          display: <div>{t('txt-requestSent')}</div>
+        });
+
+        this.getHMDinfo(type);
+      }
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'));
+    });
+  }
   /**
    * Display safety scan content
    * @param {string} type - 'srcIp' or 'destIp'
    * @returns none
    */
   displaySafetyScanContent = (type) => {
+    const {ipDeviceInfo} = this.state;
+
     return (
-      <div>{NOT_AVAILABLE}</div>
-      /*<SafetyScan
-        type={type} />*/
+      <SafetyScan
+        type={type}
+        ipDeviceInfo={ipDeviceInfo}
+        triggerTask={this.triggerTask} />
     )
   }
   /**

@@ -125,6 +125,7 @@
   "txt-ram": "Ram",
   "txt-disks": "Disks",
   "txt-shareFolders": "Share Folders",
+  "txt-requestSent": "Request Sent",
 
   "txt-daily": "Daily",
   "txt-weekly": "Weekly",
@@ -146,6 +147,7 @@
   "txt-configuration": "Configuration",
 
   "txt-flowAnalysis": "Flow Analysis",
+  "txt-edgeManage": "Edge Management",
   "txt-agentManage": "Agent Management",
   "txt-threatManage": "Threat Intelligence Management",
   "txt-honeyManage": "Honeynet Management",
@@ -156,6 +158,8 @@
   "txt-networkInventory": "Network Inventory",
 
   "txt-honeypot-dashboard": "Dashboard",
+  "txt-edge": "Edge",
+  "txt-threatIntelligence": "Threat Intelligence",
   "txt-honeypot-host": "Honeypot Host",
   "txt-channel": "Channel",
   "txt-attacks": "Attacks",
@@ -446,6 +450,11 @@
     "taskComment": "Task Comment"
   },
 
+  "edgeManagement": {
+    "threatSettings": "Threat Settings",
+    "notificationSettings": "Notification Settings"
+  },
+
   "honeynet": {
     "txt-createTime": "Create Time",
     "txt-updateTime": "Update Time",
@@ -548,6 +557,7 @@
     "txt-createTime": "Create Time",
     "txt-responseTime": "Response Time",
     "txt-suspiciousFileCount": "Suspicious File Count",
+    "txt-suspiciousFileName": "Suspicious Filename",
     "txt-suspiciousFilePath": "Suspicious File Path",
     "txt-reCheck": "Re-check",
     "txt-reCompress": "Re-compress",
@@ -556,6 +566,16 @@
     "txt-deleteDeviceMsg": "$t(txt-delete-msg) $t(txt-device)"
   },
 
+  "edgeFields": {
+    "agentName": "Name",
+    "ipPort": "VPN IP",
+    "serviceType": "Service",
+    "description": "Description",
+    "keywords": "Keywords",
+    "serviceType": "Service Type",
+    "connectionStatus": "Connection Status",
+    "options": ""
+  },
   "sensorFields": {
     "areaName": "Area Name",
     "seatName": "Seat Name",
@@ -697,6 +717,7 @@
     "hostName": "Hostname",
     "system": "System",
     "deviceType": "Type",
+    "yaraScan": "Yara (Suspicious File Count)",
     "options": "",
     "keyword": "Keyword",
     "connSize": "Connections Size",

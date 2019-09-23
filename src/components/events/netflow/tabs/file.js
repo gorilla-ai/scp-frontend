@@ -21,6 +21,13 @@ class File extends Component {
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     et = global.chewbaccaI18n.getFixedT(null, 'errors');    
   }
+  showGridImage = (val, i) => {
+    const {mainContentData} = this.props;
+
+    if (val.base64.indexOf('data:image/') >= 0) {
+      return <img key={i} src={val.base64} onClick={mainContentData.openImageModal(val.base64)} />;
+    }
+  }
   render() {
     const {mainContentData} = this.props;
 
@@ -70,13 +77,7 @@ class File extends Component {
 
             {mainContentData.displayImgType === 'grid' &&
               <div className='grid-flex'>
-              {
-                mainContentData.dataTableData.map((item, i) => {
-                  if (item.base64.indexOf('data:image/') >= 0) {
-                    return <img src={item.base64} key={i} onClick={mainContentData.openImageModal(item.base64)} />;
-                  }
-                })
-              }
+                {mainContentData.dataTableData.map(this.showGridImage)}
               </div>
             }
 

@@ -11,6 +11,7 @@ import withLocale from '../../hoc/locale-provider'
 let t = null
 
 const INIT = {
+  openEdgeManagement: false,
   openHoneynet: false,
   openTopology: false,
   openAccount: false
@@ -24,11 +25,13 @@ class Config extends Component {
     this.state = _.cloneDeep(INIT)
   }
   componentWillMount = () => {
+    const openEdgeManagement = this.getActiveFrame('edge') || this.getActiveFrame('threat')
     const openHoneynet = this.getActiveFrame('pot') || this.getActiveFrame('mail')
     const openTopology = this.getActiveFrame('inventory') || this.getActiveFrame('owner') || this.getActiveFrame('map')
     const openAccount = this.getActiveFrame('account') || this.getActiveFrame('privileges')
 
     this.setState({
+      openEdgeManagement,
       openHoneynet,
       openTopology,
       openAccount
@@ -43,8 +46,10 @@ class Config extends Component {
     const path = window.location.pathname
 
     const pattern = {
+      edge: '/ChewbaccaWeb/configuration/edge/edge',
+      threat: '/ChewbaccaWeb/configuration/edge/threat',
       agent: '/ChewbaccaWeb/configuration/agent',
-      threat: '/ChewbaccaWeb/configuration/threats',
+      //threat: '/ChewbaccaWeb/configuration/threats',
       pot: '/ChewbaccaWeb/configuration/honeynet/host',
       mail: '/ChewbaccaWeb/configuration/honeynet/email-report',
       inventory: '/ChewbaccaWeb/configuration/topology/inventory',
@@ -60,7 +65,7 @@ class Config extends Component {
   }
   render() {
     const {session} = this.props;
-    const {openHoneynet, openTopology, openAccount, selected} = this.state
+    const {openEdgeManagement, openHoneynet, openTopology, openAccount, selected} = this.state
     let sessionRights = {};
 
     _.forEach(session.rights, val => {
@@ -69,6 +74,24 @@ class Config extends Component {
 
     return (
       <div className='left-nav'>
+        <div className='frame edge-manage' onClick={this.handleOpen.bind(this, 'openEdgeManagement', openEdgeManagement)}>
+          <span className={`${this.getActiveFrame('edge') || this.getActiveFrame('threat')}`}>{t('txt-edgeManage')}</span>
+          <i className={`c-link fg fg-arrow-${openEdgeManagement?'top':'bottom'}`}></i>
+        </div>
+        {openEdgeManagement &&
+          <div className='open-edge'>
+            <div className='subframe'>
+              <Link to='/ChewbaccaWeb/configuration/edge/edge'>
+                <span className={`${this.getActiveFrame('edge')}`}>{t('txt-edge')}</span>
+              </Link>
+            </div>
+            {/*<div className='subframe'>
+              <Link to='/ChewbaccaWeb/configuration/edge/threat'>
+                <span className={`${this.getActiveFrame('threat')}`}>{t('txt-threatIntelligence')}</span>
+              </Link>
+            </div>*/}
+          </div>
+        }
         {sessionRights.Module_FlowAnalysis_Agent_Manage &&
           <div className='frame agent-manage'>
             <Link to='/ChewbaccaWeb/configuration/agent'>
@@ -76,14 +99,6 @@ class Config extends Component {
             </Link>
           </div>
         }
-        {sessionRights.Module_FlowAnalysis_Agent_Manage &&
-          <div className='frame threat-manage'>
-            <Link to='/ChewbaccaWeb/configuration/threats'>
-              <span className={`${this.getActiveFrame('threat')}`}>{t('txt-threatManage')}</span>
-            </Link>
-          </div>
-        }
-        
         {sessionRights.Module_Honeynet_Manage &&
           <div className='frame honeynet-manage' onClick={this.handleOpen.bind(this, 'openHoneynet', openHoneynet)}>
             <span className={`${this.getActiveFrame('pot') || this.getActiveFrame('mail')}`}>{t('txt-honeyManage')}</span>

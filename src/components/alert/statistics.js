@@ -106,42 +106,43 @@ class StatisticNew extends Component {
       });
     }
   }
+  displayChartsList = (val, i) => {
+    const {alertChartsList} = this.state;
+
+    if (alertChartsList[i].type === 'pie' && !_.isEmpty(alertChartsList[i].chartData)) {
+      return (
+        <div className='chart-group c-box' key={alertChartsList[i].chartID}>
+          <PieChart
+            id={alertChartsList[i].chartID}
+            title={alertChartsList[i].chartTitle}
+            data={alertChartsList[i].chartData}
+            keyLabels={alertChartsList[i].chartKeyLabels}
+            valueLabels={alertChartsList[i].chartValueLabels}
+            dataCfg={alertChartsList[i].chartDataCfg} />
+        </div>
+      )
+    } else if (alertChartsList[i].type === 'table') {
+      return (
+        <div className='chart-group' key={alertChartsList[i].chartID}>
+          <header className='main-header'>{alertChartsList[i].chartTitle}</header>
+          <div id={alertChartsList[i].chartID} className='c-chart table'>
+            <DataTable
+              className='main-table no-pointer'
+              fields={alertChartsList[i].chartFields}
+              data={alertChartsList[i].chartData}
+              defaultSort={alertChartsList[i].chartData ? alertChartsList[i].sort : {}} />
+          </div>
+        </div>
+      )
+    }
+  }
   render() {
     const {alertChartsList} = this.state;
 
     return (
       <div className='main-statistic c-flex boxes'>
         <div className='content statistic'>
-          {
-            alertChartsList.map((key, i) => {
-              if (alertChartsList[i].type === 'pie' && !_.isEmpty(alertChartsList[i].chartData)) {
-                return (
-                  <div className='chart-group c-box' key={alertChartsList[i].chartID}>
-                    <PieChart
-                      id={alertChartsList[i].chartID}
-                      title={alertChartsList[i].chartTitle}
-                      data={alertChartsList[i].chartData}
-                      keyLabels={alertChartsList[i].chartKeyLabels}
-                      valueLabels={alertChartsList[i].chartValueLabels}
-                      dataCfg={alertChartsList[i].chartDataCfg} />
-                  </div>
-                )
-              } else if (alertChartsList[i].type === 'table') {
-                return (
-                  <div className='chart-group' key={alertChartsList[i].chartID}>
-                    <header className='main-header'>{alertChartsList[i].chartTitle}</header>
-                    <div id={alertChartsList[i].chartID} className='c-chart table'>
-                      <DataTable
-                        className='main-table no-pointer'
-                        fields={alertChartsList[i].chartFields}
-                        data={alertChartsList[i].chartData}
-                        defaultSort={alertChartsList[i].chartData ? alertChartsList[i].sort : {}} />
-                    </div>
-                  </div>
-                )
-              }
-            })
-          }
+          {alertChartsList.map(this.displayChartsList)}
         </div>
       </div>
     )

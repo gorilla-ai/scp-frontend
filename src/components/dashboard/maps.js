@@ -19,7 +19,6 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null;
 let et = null;
-let intervalId = null;
 
 const PRIVATE = 'private';
 const PUBLIC = 'public';
@@ -90,10 +89,6 @@ class DashboardMaps extends Component {
   }
   componentDidMount = () => {
     this.loadEverything();
-    intervalId = setInterval(this.loadEverything, 300000); //5 minutes
-  }
-  componentWillUnmount = () => {
-    clearInterval(intervalId);
   }
   loadEverything = () => {
     this.loadAlertData();

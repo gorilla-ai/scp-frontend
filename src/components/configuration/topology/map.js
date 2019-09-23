@@ -563,7 +563,7 @@ class NetworkMap extends Component {
       }
     })
     .catch(err => {
-      helper.showPopupMsg(t('txt-pcapNotAvailable'), t('txt-error'));
+      helper.showPopupMsg('', t('txt-error'));
     });
   }
   getSeatName = (seatUUID) => {

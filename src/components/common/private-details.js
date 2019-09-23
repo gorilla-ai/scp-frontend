@@ -41,6 +41,7 @@ class PrivateDetails extends Component {
       seat: alertInfo[type] ? alertInfo[type].ownerSeat : alertInfo.ownerSeat,
       baseLayers: alertInfo[type] ? alertInfo[type].ownerBaseLayers : alertInfo.ownerBaseLayers
     };
+    const areaName = topoInfo.areaObj ? topoInfo.areaObj.areaFullName : topoInfo.areaFullName;
 
     return (
       <div className='private'>
@@ -105,10 +106,11 @@ class PrivateDetails extends Component {
           </table>
         </section>
 
-        <section>
+        <section className='last'>
           <div className='header'>{t('alert.txt-floorInfo')}</div>
           {!_.isEmpty(owner.map) &&
             <div className='floor-map'>
+              <span className='floor-header'>{areaName}</span>
               <Gis
                 _ref={(ref) => {this.gisNode = ref}}
                 data={_.get(owner.seat, [topoInfo.areaUUID, 'data'], [])}

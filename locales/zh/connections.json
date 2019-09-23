@@ -125,6 +125,7 @@
   "txt-ram": "記憶體",
   "txt-disks": "Disks",
   "txt-shareFolders": "Share Folders",
+  "txt-requestSent": "需求已送出",
 
   "txt-daily": "每日",
   "txt-weekly": "每星期",
@@ -146,6 +147,7 @@
   "txt-configuration": "Configuration",
 
 	"txt-flowAnalysis": "Flow分析",
+  "txt-edgeManage": "Edge管理",
 	"txt-agentManage": "Agent管理",
 	"txt-threatManage": "威脅情資管理",
   "txt-honeyManage": "Honeynet管理",
@@ -156,6 +158,8 @@
   "txt-networkInventory": "網路清單",
 
   "txt-honeypot-dashboard": "Dashboard",
+  "txt-edge": "Edge",
+  "txt-threatIntelligence": "威脅情資",
 	"txt-honeypot-host": "蜜罐主機",
 	"txt-channel": "Channel",
   "txt-attacks": "攻擊資訊",
@@ -447,6 +451,11 @@
     "taskComment": "Task Comment"
   },
 
+  "edgeManagement": {
+    "threatSettings": "威脅情資設定",
+    "notificationSettings": "通知設定"
+  },
+
   "honeynet": {
     "txt-createTime": "建立時間",
     "txt-updateTime": "更新時間",
@@ -549,6 +558,7 @@
     "txt-createTime": "最近觸發時間",
     "txt-responseTime": "最近回應時間",
     "txt-suspiciousFileCount": "可疑檔案數",
+    "txt-suspiciousFileName": "可疑檔案名稱",
     "txt-suspiciousFilePath": "可疑檔案路徑",
     "txt-reCheck": "重新檢測",
     "txt-reCompress": "重新壓縮",
@@ -557,6 +567,16 @@
     "txt-deleteDeviceMsg": "$t(txt-delete-msg)$t(txt-device)"
   },
 
+  "edgeFields": {
+    "agentName": "名稱",
+    "ipPort": "VPN IP",
+    "serviceType": "服務",
+    "description": "Description",
+    "keywords": "關鍵字",
+    "serviceType": "服務種類",
+    "connectionStatus": "連線狀態",
+    "options": ""
+  },
   "sensorFields": {
     "areaName": "區域名稱",
     "seatName": "位置名稱",
@@ -698,6 +718,7 @@
     "hostName": "主機名稱",
     "system": "使用系統",
     "deviceType": "裝置類型",
+    "yaraScan": "Yara (可疑檔案數)",
     "options": "",
     "keyword": "關鍵字",
     "connSize": "Connections Size",

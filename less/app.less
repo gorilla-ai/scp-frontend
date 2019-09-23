@@ -186,7 +186,7 @@ footer.footer {
 }
 #gisMap {
 	width: 100%;
-	height: 86vh;
+	height: 77vh;
 	&.full {
 		height: 95vh;
 	}
@@ -1682,9 +1682,13 @@ footer.footer {
 			position: relative;
 			float: left;
 			width: 500px;
-			.updates {
+			.time {
 				margin-top: 6px;
 				margin-bottom: 20px;
+				span {
+					display: block;
+					margin-bottom: 10px;
+				}
 			}
 			button {
 				position: absolute;
@@ -1712,7 +1716,7 @@ footer.footer {
 			}
 		}
 		.private {
-			width: 50%;
+			width: 60%;
 			margin: 0 auto;
 			padding: 20px 0;
 			section {
@@ -1747,6 +1751,9 @@ footer.footer {
 				padding-right: 10px;
 				overflow: hidden;
 				clear: both;
+				&.last {
+					margin-bottom: 0;
+				}
 				.header {
 					font-size: 20px;
 					color: #185e9e;
@@ -1775,7 +1782,14 @@ footer.footer {
 					}
 				}
 				.floor-map {
+					position: relative;
 					text-align: center;
+					padding: 40px;
+					background-color: #f2f2f2;
+					.floor-header {
+						position: absolute;
+						top: 10px;
+					}
 					.c-gis {
 						min-width: 99%;
 						min-height: 400px;

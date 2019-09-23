@@ -1071,10 +1071,10 @@ class Manage extends Component {
               <button onClick={this.getAddAgentContent} title={t('network.agent.txt-addAgent')}><i className='fg fg-add'></i></button>
             }
             {page === 'threats' &&
-              <button onClick={this.openUploadModal.bind(this, '', 'threats')} className='last' title={t('network.agent.txt-uploadIndicators')}><i className='fg fg-add'></i></button>
+              <button className='last' onClick={this.openUploadModal.bind(this, '', 'threats')} title={t('network.agent.txt-uploadIndicators')}><i className='fg fg-add'></i></button>
             }
             {page === 'agent' &&
-              <button onClick={this.setFilter.bind(this, !openFilter)} className={cx('last', {'active': openFilter})} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
+              <button className={cx('last', {'active': openFilter})} onClick={this.setFilter.bind(this, !openFilter)} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
             }
           </div>
         </div>

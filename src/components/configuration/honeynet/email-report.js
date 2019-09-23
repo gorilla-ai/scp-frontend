@@ -730,7 +730,7 @@ class EmailReport extends Component {
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
             <button onClick={this.addEmailSettings} title={t('honeynet.txt-addEmailReport')}><i className='fg fg-add'></i></button>
-            <button onClick={this.setFilter.bind(this, !openFilter)} className={cx('last', {'active': openFilter})} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
+            <button className={cx('last', {'active': openFilter})} onClick={this.setFilter.bind(this, !openFilter)} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
           </div>
         </div>
 
