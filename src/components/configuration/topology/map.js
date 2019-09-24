@@ -771,7 +771,7 @@ class NetworkMap extends Component {
             language={language}
             session={session} />
 
-          <div className='data-table'>
+          <div className='parent-content'>
             { this.renderFilter() }
 
             <div className='main-content'>
@@ -813,7 +813,7 @@ class NetworkMap extends Component {
                     }
                   </div>
 
-                  <div className='data-table'>
+                  <div className='parent-content'>
                     <div className='main-content'>
                       <div className='table-content'>
                         <div className='table normal'>

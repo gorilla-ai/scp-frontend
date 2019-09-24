@@ -707,7 +707,7 @@ class NetworkOwner extends Component {
             language={language}
             session={session} />
 
-          <div className='data-table'>
+          <div className='parent-content'>
             { this.renderFilter() }
 
             {activeContent === 'tableList' &&
@@ -738,7 +738,7 @@ class NetworkOwner extends Component {
             }
 
             {activeContent === 'addOwner' &&
-              <div className='main-content add-ip-steps'>
+              <div className='main-content basic-form'>
                 <header className='main-header'>{addOwnerTitle}</header>
                 <button className='standard btn last' onClick={this.openName} >{t('txt-manageDepartmentTitle')}</button>
                 <div className='steps steps-owner'>

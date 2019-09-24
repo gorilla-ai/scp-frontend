@@ -417,6 +417,26 @@
     }
   },
 
+  "edgeManagement": {
+    "txt-threatSettings": "Threat Settings",
+    "txt-notificationSettings": "Notification Settings",
+    "txt-basicInfo": "Info",
+    "txt-editEdge": "Edit Edge",
+    "txt-edgeName": "Edge Name",
+    "txt-edgeID": "Edge ID",
+    "txt-ip": "IP",
+    "txt-vpnIP": "VPN IP",
+    "txt-vpnLicenseName": "VPN License Name",
+    "txt-serviceType": "Service Type",
+    "txt-serviceMode": "Service Mode",
+    "txt-activatTime": "Datetime",
+    "txt-lastUpateTime": "Last Update Time",
+    "txt-anyTime": "Any Time",
+    "txt-customTime": "Custom Time",
+    "txt-memo": "Memo",
+    "txt-memoMaxLength": "maximum 250 characters"
+  },
+
   "hmdFields": {
     "ipDeviceUUID": "Host ID",
     "hostId": "Host ID",
@@ -448,11 +468,6 @@
     "taskHandleDttm": "Task Handle Datetime",
     "taskResponseDttm": "Task Response Datetime",
     "taskComment": "Task Comment"
-  },
-
-  "edgeManagement": {
-    "threatSettings": "Threat Settings",
-    "notificationSettings": "Notification Settings"
   },
 
   "honeynet": {
@@ -573,8 +588,7 @@
     "description": "Description",
     "keywords": "Keywords",
     "serviceType": "Service Type",
-    "connectionStatus": "Connection Status",
-    "options": ""
+    "connectionStatus": "Connection Status"
   },
   "sensorFields": {
     "areaName": "Area Name",

@@ -741,7 +741,7 @@ class EmailReport extends Component {
             language={language}
             session={session} />
 
-          <div className='data-table'>
+          <div className='parent-content'>
             { this.renderFilter() }
 
             <div className='main-content'>

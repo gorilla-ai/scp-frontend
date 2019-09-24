@@ -498,7 +498,7 @@ class Endpoint extends Component {
         </div>
 
         <div className='data-content'>
-          <div className='data-table'>
+          <div className='parent-content'>
             {openFilter &&
               this.renderFilter()
             }

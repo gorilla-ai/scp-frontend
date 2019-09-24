@@ -4,9 +4,13 @@ import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
 
+import DateRange from 'react-ui/build/src/components/date-range'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import Input from 'react-ui/build/src/components/input'
+import RadioGroup from 'react-ui/build/src/components/radio-group'
 import Tabs from 'react-ui/build/src/components/tabs'
+import Textarea from 'react-ui/build/src/components/textarea'
+import ToggleBtn from 'react-ui/build/src/components/toggle-button'
 
 import helper from '../../common/helper'
 import withLocale from '../../../hoc/locale-provider'
@@ -27,17 +31,17 @@ class Edge extends Component {
 
     this.state = {
       activeTab: 'edgeList',
-      activeContent: 'tableList', //tableList, editAgent
+      activeContent: 'tableList', //tableList, editEdge
       showFilter: false,
       serviceType: [
-        { value: 'all', text: t('txt-all') },
-        { value: 'NETTRAP', text: 'NETTRAP' },
-        { value: 'NETFLOW-IDS-SURICATA', text: 'NETFLOW-IDS-SURICATA' }
+        {value: 'all', text: t('txt-all')},
+        {value: 'NETTRAP', text: 'NETTRAP'},
+        {value: 'NETFLOW-IDS-SURICATA', text: 'NETFLOW-IDS-SURICATA'}
       ],
       connectionStatus: [
-        { value: 'all', text: t('txt-all') },
-        { value: 'Error', text: 'Error' },
-        { value: 'Normal', text: 'Normal' }
+        {value: 'all', text: t('txt-all')},
+        {value: 'Normal', text: 'Normal'},
+        {value: 'Error', text: 'Error'}
       ],
       edgeSearch: {
         keyword: '',
@@ -45,18 +49,18 @@ class Edge extends Component {
         connectionStatus: 'all'
       },
       edge: {
-        dataFieldsArr: ['agentName', 'ipPort', 'serviceType', 'description', 'options'],
+        dataFieldsArr: ['agentName', 'ipPort', 'serviceType', 'description', '_menu_'],
         dataFields: {},
         dataContent: [],
         sort: {
-          field: 'ipPort',
+          field: 'agentName',
           desc: false
         },
         totalCount: 0,
         currentPage: 1,
         pageSize: 20,
         info: {}
-      },
+      }
     };
 
     this.ah = getInstance('chewbacca');
@@ -93,13 +97,60 @@ class Edge extends Component {
         let dataFields = {};
         edge.dataFieldsArr.forEach(tempData => {
           dataFields[tempData] = {
-            label: tempData === 'options' ? '' : t(`edgeFields.${tempData}`),
+            label: tempData === '_menu_' ? '' : t(`edgeFields.${tempData}`),
             sortable: this.checkSortable(tempData),
             formatter: (value, allValue, index) => {
-              if (tempData === 'description') {
+              if (tempData === 'ipPort') {
+                let iconType = '';
 
-              } else if (tempData === 'options') {
+                if (allValue.agentApiStatus === 'Normal') {
+                  iconType = 'icon_connected_on';
+                } else if (allValue.agentApiStatus === 'Error') {
+                  iconType = 'icon_connected_off';
+                }
 
+                const statusIcon = contextRoot + `/images/${iconType}.png`;
+
+                return (
+                  <span><img src={statusIcon} title={allValue.agentApiStatus} />{value}</span>
+                )
+              } else if (tempData === 'description') {
+                let serviceType = allValue.serviceType;
+
+                if (serviceType === 'NETTRAP') {
+                  return (
+                    <ul>
+                      {allValue.honeyPotHostDTO.honeypot &&
+                        <li><span>honeypot:</span> {allValue.honeyPotHostDTO.honeypot}</li>
+                      }
+                      <li><span>lastDataUpdDT:</span> {helper.getFormattedDate(allValue.honeyPotHostDTO.lastDataUpdDT, 'local')}</li>
+                      <li><span>attackCnt:</span> {allValue.honeyPotHostDTO.attackCnt}</li>
+                    </ul>
+                  )
+                } else if (serviceType === 'NETFLOW-IDS-SURICATA') {
+                  return (
+                    <ul>
+                      <li><span>mode:</span> {allValue.agentMode}</li>
+                      <li><span>status:</span> {allValue.lastStatus}</li>
+                      <li><span>threatIntellLastUpdDT:</span> {helper.getFormattedDate(allValue.threatIntellLastUpdDT, 'local')}</li>
+                      {allValue.agentMode === 'TCPDUMP' &&
+                        <section>
+                          <li><span>start:</span> {allValue.agentstartdt}</li>
+                          <li><span>end:</span> {allValue.agentenddt}</li>
+                          <li><span>threatintelllastupddt:</span> {helper.getFormattedDate(allValue.threatintelllastupddt, 'local')}</li>
+                          <li><span>lastanalyzedstatus:</span> {helper.getFormattedDate(allValue.lastanalyzedstatus, 'local')}</li>
+                          <li><span>lastanalyzedstatusupddt:</span> {helper.getFormattedDate(allValue.lastanalyzedstatusupddt, 'local')}</li>
+                        </section>
+                      }
+                    </ul>
+                  )
+                }
+              } else if (tempData === '_menu_') {
+                return (
+                  <div className='table-menu active'>
+                    <i className='fg fg-edit' onClick={this.toggleContent.bind(this, 'editEdge', allValue, index)} title={t('txt-edit')}></i>
+                  </div>
+                )
               } else {
                 return <span>{value}</span>;
               }
@@ -119,7 +170,7 @@ class Edge extends Component {
     });
   }
   checkSortable = (field) => {
-    const unSortableFields = ['description', 'options'];
+    const unSortableFields = ['description', '_menu_'];
 
     if (_.includes(unSortableFields, field)) {
       return null;
@@ -160,6 +211,235 @@ class Edge extends Component {
       edgeSearch: tempEdgeSearch
     });
   }
+  toggleContent = (type, allValue, index) => {
+    let tempEdge = {...this.state.edge};
+    let showPage = type;
+
+    if (type === 'editEdge') {
+      tempEdge.info = {
+        name: allValue.agentName ? allValue.agentName : '',
+        id: allValue.agentId,
+        ip: allValue.ipPort,
+        vpnIP: '',
+        licenseName: allValue.projectId,
+        serviceType: allValue.serviceType,
+        serviceMode: allValue.agentMode,
+        edgeModeType: 'anyTime',
+        edgeModeTime: {
+          from: '',
+          to: ''
+        },
+        agentApiStatus: allValue.agentApiStatus,
+        lastUpdateTime: allValue.lastStatusUpdDT,
+        lastStatus: allValue.lastStatus
+      };
+    } else if (type === 'tableList') {
+      tempEdge.info = {};
+    } else if (type === 'cancel') {
+      showPage = 'tableList';
+      tempEdge.info = {};
+    }
+
+    this.setState({
+      activeContent: showPage,
+      edge: tempEdge
+    }, () => {
+      if (type === 'tableList') {
+        this.getEdgeData();
+      }
+    });
+  }
+  handleDataChange = (type, value) => {
+    let tempEdge = {...this.state.edge};
+    tempEdge.info[type] = value;
+
+    this.setState({
+      edge: tempEdge
+    });
+  }
+  handleEdgeStatusChange = (type, status) => {
+    console.log(type, status);
+  }
+  handleEdgeSubmit = () => {
+    const {edge} = this.state;
+
+    this.toggleContent('tableList');
+
+    // if (agent.add.modeDatetime.from) {
+    //   if (agent.add.modeDatetime.to) {
+    //     data = {
+    //       ...data,
+    //       agentStartDt: Moment(agent.add.modeDatetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    //     };
+    //   } else { //End date is empty
+    //     this.setState({
+    //       info: t('network.agent.txt-agentEditNoEndDate')
+    //     });
+    //     return;
+    //   }
+    // }
+
+    // if (agent.add.modeDatetime.to) {
+    //   if (agent.add.modeDatetime.from) {
+    //     data = {
+    //       ...data,
+    //       agentEndDt: Moment(agent.add.modeDatetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    //     };
+    //   } else { //Start date is empty
+    //     this.setState({
+    //       info: t('network.agent.txt-agentEditNoStartDate')
+    //     });
+    //     return;
+    //   }
+
+    //   if (Moment(agent.add.modeDatetime.to).isBefore()) { //End date is a past date (compare with current date time)
+    //     this.setState({
+    //       info: t('network.agent.txt-agentEditPastEndDate')
+    //     });
+    //     return;
+    //   }
+    // }
+  }
+  displayEditEdgeContent = () => {
+    const {baseUrl, contextRoot} = this.props;
+    const {activeContent, edge} = this.state;
+    let statusIcon = '';
+    let on = true;
+    let status = 'n/a';
+    let action = '';
+
+    if (activeContent === 'editEdge') {
+      let iconType = '';
+
+      if (edge.info.agentApiStatus === 'Normal') {
+        iconType = 'icon_connected_on';
+      } else if (edge.info.agentApiStatus === 'Error') {
+        iconType = 'icon_connected_off';
+      }
+
+      statusIcon = contextRoot + `/images/${iconType}.png`;
+
+      if (edge.info.lastStatus.indexOf('inactive') !== -1) {
+        on = false
+        status = 'inactive'
+        action = 'start'
+      } else if (edge.info.lastStatus.indexOf('active') !== -1) {
+        status = 'active'
+        action = 'stop'
+      } else {
+        on = false
+        action = 'start'
+      }
+    }
+
+    return (
+      <div className='main-content basic-form'>
+        <header className='main-header'>{t('edgeManagement.txt-editEdge')}</header>
+        <div className='steps edge'>
+          <header>
+            <div className='text'>{t('edgeManagement.txt-basicInfo')}</div>
+            <img className='status' src={statusIcon} title={edge.info.agentApiStatus} />
+            <span className='msg'>{t('edgeManagement.txt-lastUpateTime')} {helper.getFormattedDate(edge.info.lastUpdateTime, 'local')}</span>
+          </header>
+          <ToggleBtn
+            className='toggle-btn'
+            onText='On'
+            offText='Off'
+            on={on}
+            onChange={this.handleEdgeStatusChange.bind(this, action, status)} />                  
+          <div className='group'>
+            <label htmlFor='edgeName'>{t('edgeManagement.txt-edgeName')}</label>
+            <Input
+              id='edgeName'
+              onChange={this.handleDataChange.bind(this, 'name')}
+              value={edge.info.name} />
+          </div>
+          <div className='group'>
+            <label htmlFor='edgeID'>{t('edgeManagement.txt-edgeID')}</label>
+            <Input
+              id='edgeID'
+              onChange={this.handleDataChange.bind(this, 'id')}
+              value={edge.info.id}
+              readOnly={true} />
+          </div>
+          <div className='group'>
+            <label htmlFor='edgeIP'>{t('edgeManagement.txt-ip')}</label>
+            <Input
+              id='edgeIP'
+              onChange={this.handleDataChange.bind(this, 'ip')}
+              value={edge.info.ip}
+              readOnly={true} />
+          </div>
+          <div className='group'>
+            <label htmlFor='edgeVPNip'>{t('edgeManagement.txt-vpnIP')}</label>
+            <Input
+              id='edgeVPNip'
+              onChange={this.handleDataChange.bind(this, 'vpnIP')}
+              value={edge.info.vpnIP}
+              readOnly={true} />
+          </div>
+          <div className='group'>
+            <label htmlFor='edgeLicenseName'>{t('edgeManagement.txt-vpnLicenseName')}</label>
+            <Input
+              id='edgeLicenseName'
+              onChange={this.handleDataChange.bind(this, 'licenseName')}
+              value={edge.info.licenseName}
+              readOnly={true} />
+          </div>
+          <div className='group'>
+            <label htmlFor='edgeServiceType'>{t('edgeManagement.txt-serviceType')}</label>
+            <Input
+              id='edgeServiceType'
+              onChange={this.handleDataChange.bind(this, 'serviceType')}
+              value={edge.info.serviceType}
+              readOnly={true} />
+          </div>
+          <div className='group'>
+            <label htmlFor='edgeServiceMode'>{t('edgeManagement.txt-serviceMode')}</label>
+            <Input
+              id='edgeServiceMode'
+              onChange={this.handleDataChange.bind(this, 'serviceMode')}
+              value={edge.info.serviceMode}
+              readOnly={true} />
+          </div>
+          <div className='group'>
+            <label>{t('edgeManagement.txt-activatTime')}</label>
+            <RadioGroup
+              id='edgeModeType'
+              list={[
+                {value: 'anyTime', text: t('edgeManagement.txt-anyTime')},
+                {value: 'customTime', text: t('edgeManagement.txt-customTime')}
+              ]}
+              onChange={this.handleDataChange.bind(this, 'edgeModeType')}
+              value={edge.info.edgeModeType} />
+
+            {edge.info.edgeModeType === 'customTime' &&
+              <DateRange
+                id='edgeModeTime'
+                className='daterange'
+                onChange={this.handleDataChange.bind(this, 'edgeModeTime')}
+                enableTime={true}
+                value={edge.info.edgeModeTime}
+                t={et} />
+            }
+          </div>
+          <div className='group full'>
+            <label htmlFor='edgeMemo'>{t('txt-memo')} ({t('edgeManagement.txt-memoMaxLength')})</label>
+            <Textarea
+              id='edgeMemo'
+              rows={4}
+              maxlength={250}
+              value={edge.info.memo}
+              onChange={this.handleDataChange.bind(this, 'memo')} />
+          </div>
+        </div>
+        <footer>
+          <button className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</button>
+          <button onClick={this.handleEdgeSubmit}>{t('txt-save')}</button>
+        </footer>
+      </div>
+    )
+  }  
   renderFilter = () => {
     const {showFilter, serviceType, connectionStatus, edgeSearch} = this.state;
 
@@ -207,6 +487,15 @@ class Edge extends Component {
       showFilter: !this.state.showFilter
     });
   }
+  clearFilter = () => {
+    this.setState({
+      edgeSearch: {
+        keyword: '',
+        serviceType: 'all',
+        connectionStatus: 'all'
+      }
+    });
+  }
   getBtnPos = (type) => {
     const {locale} = this.props;
 
@@ -217,15 +506,6 @@ class Edge extends Component {
         return '200px';
       }
     }
-  }
-  clearFilter = () => {
-    this.setState({
-      edgeSearch: {
-        keyword: '',
-        serviceType: 'all',
-        connectionStatus: 'all'
-      }
-    });
   }
   render() {
     const {baseUrl, contextRoot, language, session} = this.props;
@@ -246,7 +526,7 @@ class Edge extends Component {
             language={language}
             session={session} />
 
-          <div className='data-table'>
+          <div className='parent-content'>
             { this.renderFilter() }
 
             {activeContent === 'tableList' &&
@@ -259,8 +539,8 @@ class Edge extends Component {
                   current={activeTab}>
                 </Tabs>
 
-                <button className='standard btn last'>{t('edgeManagement.notificationSettings')}</button>
-                <button className='standard btn' style={{right: this.getBtnPos('add')}}>{t('edgeManagement.threatSettings')}</button>
+                <button className='standard btn last'>{t('edgeManagement.txt-notificationSettings')}</button>
+                <button className='standard btn' style={{right: this.getBtnPos('add')}}>{t('edgeManagement.txt-threatSettings')}</button>
 
                 <TableContent
                   dataTableData={edge.dataContent}
@@ -275,10 +555,8 @@ class Edge extends Component {
               </div>
             }
 
-            {activeContent === 'editAgent' &&
-              <div className='main-content'>
-
-              </div>
+            {activeContent === 'editEdge' &&
+              this.displayEditEdgeContent()
             }
           </div>
         </div>

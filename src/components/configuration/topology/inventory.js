@@ -832,13 +832,13 @@ class NetworkInventory extends Component {
       });
     }
   }
-  displayRule = (val, i) => {
+  displayRule = (nameList, val, i) => {
     const {activeRule} = this.state;
     const uniqueKey = val + i;
 
     return (
       <div key={uniqueKey}>
-        <div className='header' onClick={this.togglePathRule.bind(this, 'rule', i)}><i className={cx('fg fg-play', {'rotate': activeRule === i})}></i><span>{t('txt-rule')}</span></div>
+        <div className='header' onClick={this.togglePathRule.bind(this, 'rule', i)}><i className={cx('fg fg-play', {'rotate': activeRule === i})}></i><span>{nameList[i]}</span></div>
         <code className={cx({'hide': activeRule !== i})}>{val}</code>
       </div>
     )
@@ -862,7 +862,7 @@ class NetworkInventory extends Component {
           }
         </div>
         <div className={cx('rule', {'hide': activePath !== i})}>
-          {val._MatchedRuleList.map(this.displayRule)}
+          {val._MatchedRuleList.map(this.displayRule.bind(this, val._MatchedRuleNameList))}
         </div>
       </div>
     )
@@ -1124,8 +1124,8 @@ class NetworkInventory extends Component {
           system: currentDeviceData.system,
           deviceType: currentDeviceData.deviceType,
           userName: currentDeviceData.userName,
-          // cpu: currentDeviceData.cpu,
-          // ram: currentDeviceData.ram,
+          cpu: currentDeviceData.cpu,
+          ram: currentDeviceData.ram,
           disks: currentDeviceData.disks,
           folders: currentDeviceData.folders,
           file: currentDeviceData.ownerObj ? currentDeviceData.ownerObj.picPath : '',
@@ -1252,11 +1252,11 @@ class NetworkInventory extends Component {
       hostName: addIP.hostName,
       deviceType: addIP.deviceType,
       system: addIP.system,
-      user: addIP.user,
-      // cpu: addIP.cpu,
-      // ram: addIP.ram,
+      userName: addIP.user,
+      cpu: addIP.cpu,
+      ram: addIP.ram,
       disks: addIP.disks,
-      folders: addIP.folders,
+      shareFolders: addIP.folders,
       areaUUID: floorPlan.currentAreaUUID,
       seatUUID: addSeat.selectedSeatUUID
     };
@@ -1397,8 +1397,8 @@ class NetworkInventory extends Component {
     const addIPtext = [t('txt-ipAddress'), t('alert.txt-systemInfo'), t('ipFields.owner'), t('alert.txt-floorInfo')];
 
     return (
-      <div className='data-table'>
-        <div className='main-content add-ip-steps'>
+      <div className='parent-content'>
+        <div className='main-content basic-form'>
           <header className='main-header'>{t('alert.txt-ipBasicInfo')}</header>
           <div className='steps-indicator'>
             {addIPtext.map(this.showAddIpSteps)}
@@ -1470,7 +1470,7 @@ class NetworkInventory extends Component {
                   onChange={this.handleAddIpChange.bind(this, 'user')}
                   value={addIP.user} />
               </div>
-              {/*<div className='group'>
+              <div className='group'>
                 <label htmlFor='addIPstepsCPU'>{t('txt-cpu')}</label>
                 <Input
                   id='addIPstepsCPU'
@@ -1485,7 +1485,7 @@ class NetworkInventory extends Component {
                   onChange={this.handleAddIpChange.bind(this, 'ram')}
                   value={addIP.ram}
                   readOnly={currentDeviceData.isHmd} />
-              </div>*/}
+              </div>
               <div className='group'>
                 <label htmlFor='addIPstepsDisks'>{t('txt-disks')}</label>
                 <Textarea
@@ -1947,7 +1947,7 @@ class NetworkInventory extends Component {
             session={session} />
 
           {activeContent === 'tableList' &&
-            <div className='data-table'>
+            <div className='parent-content'>
               {activeTab === 'deviceList' &&
                 this.renderFilter()
               }
@@ -2009,7 +2009,7 @@ class NetworkInventory extends Component {
           }
 
           {activeContent === 'dataInfo' &&
-            <div className='data-table'>
+            <div className='parent-content'>
               <div className='main-content'>
                 <div className='privateIp-info'>
                   <header className='main-header'>{t('alert.txt-ipBasicInfo')}</header>

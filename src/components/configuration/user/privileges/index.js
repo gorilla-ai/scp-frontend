@@ -136,7 +136,7 @@ class Roles extends Component {
             language={language}
             session={session} />
 
-          <div className='data-table'>
+          <div className='parent-content'>
             <div className='main-content'>
               <div className='table-content'>
                 <div className='table normal'>

@@ -37,7 +37,7 @@ class Alert extends Component {
         <Tree
           {...mainContentData} />
 
-        <div className='data-table'>
+        <div className='parent-content'>
           <FilterContent
             {...mainContentData} />
 

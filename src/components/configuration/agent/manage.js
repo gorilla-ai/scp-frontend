@@ -1087,7 +1087,7 @@ class Manage extends Component {
             session={session} />
 
           {page === 'agent' && agent.showContent &&
-            <div className='data-table'>
+            <div className='parent-content'>
               { this.renderFilter() }
 
               <div className='main-content'>
@@ -1113,7 +1113,7 @@ class Manage extends Component {
           }
 
           {page === 'threats' && threats.showContent &&
-            <div className='data-table'>
+            <div className='parent-content'>
               { this.renderFilter() }
 
               <div className='main-content'>

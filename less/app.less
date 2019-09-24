@@ -893,7 +893,7 @@ footer.footer {
 				}
 			}
 		}
-		.data-table {
+		.parent-content {
 			flex-grow: 1;
 			overflow-x: auto;
 			overflow: hidden;
@@ -1180,8 +1180,18 @@ footer.footer {
 									border-radius: 10px;
 								}
 							}
+							&.description {
+								span {
+									color: #004d93;
+								}
+							}
+							&.ipPort {
+								img {
+									float: left;
+									margin-right: 5px;
+								}
+							}
 							.button {
-								//text-align: center;
 								button {
 									margin-top: 15px;
 									padding-right: 25px;
@@ -1325,11 +1335,7 @@ footer.footer {
 						}
 					}
 				}
-				&.add-owner {
-					background-color: #fff;
-					min-height: 85vh;
-				}
-				&.add-ip-steps {
+				&.basic-form {
 					background-color: #fff;
 					min-height: 85vh;
 					input,
@@ -1427,6 +1433,23 @@ footer.footer {
 							color: #185e9e;
 							font-size: 1.2em;
 							font-weight: bold;
+							.text,
+							.status {
+								float: left;
+								margin-right: 15px;
+							}
+							.msg {
+								font-size: 10px;
+								color: #4a4a4a;
+								font-weight: normal;
+								margin-top: 5px;
+								display: block;
+							}
+						}
+						.toggle-btn {
+							position: absolute;
+							top: -40px;
+							right: 0;
 						}
 						&.steps-owner {
 							.removePhoto {
@@ -1494,6 +1517,9 @@ footer.footer {
 								display: block;
 								margin-bottom: 3px;
 							}
+							&.full {
+								width: 100%;
+							}
 						}
 						&.steps-floor {
 							padding: 0;
@@ -1522,6 +1548,23 @@ footer.footer {
 								}
 							}
 						}
+						&.edge {
+							margin-top: 60px;
+							#edgeModeType {
+								flex-direction: row;
+								margin: 10px 0;
+							}
+							.list-item {
+								margin: 0;
+								margin-right: 10px;
+								input {
+									width: 20px;
+								}
+							}
+							#edgeModeTime {
+								text-align: left;
+							}
+						}
 					}
 				}
 			}
@@ -1538,7 +1581,7 @@ footer.footer {
 				padding: 20px;
 				min-height: 60vh;
 			}
-			.data-table {
+			.parent-content {
 				background: none;
 				.main-content {
 					margin: 0;

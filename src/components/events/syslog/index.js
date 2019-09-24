@@ -1093,7 +1093,7 @@ class SyslogController extends Component {
     const {activeTab, sortedDataList, currentTableIndex, currentLength} = this.state;
 
     return (
-      <div className='data-table'>
+      <div className='parent-content'>
         <SortableList
           activeTab={activeTab}
           items={sortedDataList}

@@ -60,7 +60,7 @@ class ThreatIntelligence extends Component {
             language={language}
             session={session} />
 
-          <div className='data-table'>
+          <div className='parent-content'>
             {activeTab === 'threatList' &&
               <div className='main-content'>
                 <Tabs

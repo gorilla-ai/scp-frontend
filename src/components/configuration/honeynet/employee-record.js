@@ -595,7 +595,7 @@ class EmployeeRecord extends Component {
               </div>
             </div>
 
-            <div className='data-table manage wide-width scroll-y'>
+            <div className='parent-content manage wide-width scroll-y'>
               {switchTab.activeDirectory && activeDirectory.dataFields &&
                 <DataTable
                   className='main-table'

@@ -305,7 +305,7 @@ class DashboardMaps extends Component {
           val._source.index = val._index;
           return val._source;
         });
-        tempAlertDetails.private.data =tempArray;
+        tempAlertDetails.private.data = tempArray;
         tempAlertDetails.currentLength = data.data.counts;
         alertData = tempArray[0];
 
