@@ -255,7 +255,7 @@ class NetworkInventory extends Component {
               return (
                 <div className={cx('table-menu inventory', {'active': value})}>
                   <i className='fg fg-eye' onClick={this.openMenu.bind(this, 'view', allValue, index)} title={t('alert.txt-ipBasicInfo')}></i>
-                  {allValue.system === 'hmd' &&
+                  {allValue.isHmd &&
                     <i className='fg fg-chart-kpi' onClick={this.openMenu.bind(this, 'hmd', allValue, index)} title={t('alert.txt-safetyScanInfo')}></i>
                   }
                   <i className='fg fg-trashcan' onClick={this.openMenu.bind(this, 'delete', allValue)} title={t('network-inventory.txt-deleteDevice')}></i>
@@ -664,18 +664,21 @@ class NetworkInventory extends Component {
 
       tempAlertInfo.ownerMap = ownerMap;
       tempAlertInfo.ownerBaseLayers[topoInfo.areaUUID] = ownerMap;
-      tempAlertInfo.ownerSeat[topoInfo.areaUUID] = {
-        data: [{
-          id: topoInfo.seatUUID,
-          type: 'spot',
-          xy: [topoInfo.seatObj.coordX, topoInfo.seatObj.coordY],
-          label: topoInfo.seatObj.seatName,
-          data: {
-            name: topoInfo.seatObj.seatName,
-            tag: 'red'
-          }
-        }]
-      };
+
+      if (topoInfo.seatUUID && topoInfo.seatObj) {
+        tempAlertInfo.ownerSeat[topoInfo.areaUUID] = {
+          data: [{
+            id: topoInfo.seatUUID,
+            type: 'spot',
+            xy: [topoInfo.seatObj.coordX, topoInfo.seatObj.coordY],
+            label: topoInfo.seatObj.seatName,
+            data: {
+              name: topoInfo.seatObj.seatName,
+              tag: 'red'
+            }
+          }]
+        };
+      }
     }
 
     this.setState({
@@ -1121,8 +1124,8 @@ class NetworkInventory extends Component {
           system: currentDeviceData.system,
           deviceType: currentDeviceData.deviceType,
           userName: currentDeviceData.userName,
-          cpu: currentDeviceData.cpu,
-          ram: currentDeviceData.ram,
+          // cpu: currentDeviceData.cpu,
+          // ram: currentDeviceData.ram,
           disks: currentDeviceData.disks,
           folders: currentDeviceData.folders,
           file: currentDeviceData.ownerObj ? currentDeviceData.ownerObj.picPath : '',
@@ -1130,8 +1133,8 @@ class NetworkInventory extends Component {
           ownerUUID: currentDeviceData.ownerUUID,
           ownerID: currentDeviceData.ownerObj ? currentDeviceData.ownerObj.ownerID : '',
           ownerName: currentDeviceData.ownerObj ? currentDeviceData.ownerObj.ownerName : '',
-          department: currentDeviceData.department,
-          title: currentDeviceData.title,
+          department: currentDeviceData.ownerObj ? currentDeviceData.ownerObj.departmentName : '',
+          title: currentDeviceData.ownerObj ? currentDeviceData.ownerObj.titleName : '',
           newDepartment: departmentList[0].value,
           newTitle: titleList[0].value
         };
@@ -1246,12 +1249,12 @@ class NetworkInventory extends Component {
     let requestData = {
       ip: addIP.ip,
       mac: addIP.mac,
-      hostname: addIP.hostName,
+      hostName: addIP.hostName,
       deviceType: addIP.deviceType,
       system: addIP.system,
       user: addIP.user,
-      cpu: addIP.cpu,
-      ram: addIP.ram,
+      // cpu: addIP.cpu,
+      // ram: addIP.ram,
       disks: addIP.disks,
       folders: addIP.folders,
       areaUUID: floorPlan.currentAreaUUID,
@@ -1423,7 +1426,7 @@ class NetworkInventory extends Component {
                   required={true}
                   validate={{
                     t: et
-                  }}                  
+                  }}
                   onChange={this.handleAddIpChange.bind(this, 'mac')}
                   value={addIP.mac} />
               </div>
@@ -1467,7 +1470,7 @@ class NetworkInventory extends Component {
                   onChange={this.handleAddIpChange.bind(this, 'user')}
                   value={addIP.user} />
               </div>
-              <div className='group'>
+              {/*<div className='group'>
                 <label htmlFor='addIPstepsCPU'>{t('txt-cpu')}</label>
                 <Input
                   id='addIPstepsCPU'
@@ -1482,7 +1485,7 @@ class NetworkInventory extends Component {
                   onChange={this.handleAddIpChange.bind(this, 'ram')}
                   value={addIP.ram}
                   readOnly={currentDeviceData.isHmd} />
-              </div>
+              </div>*/}
               <div className='group'>
                 <label htmlFor='addIPstepsDisks'>{t('txt-disks')}</label>
                 <Textarea

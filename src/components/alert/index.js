@@ -1488,9 +1488,9 @@ class AlertController extends Component {
             handleSearchSubmit={this.handleSearchSubmit} />
 
           <div className='secondary-btn-group right'>
-            <button onClick={this.toggleFilter} className={cx({'active': showFilter})} title={t('network.connections.txt-toggleFilter')} disabled={activeSubTab === 'statistics'}><i className='fg fg-filter'></i><span>({filterDataCount})</span></button>
-            <button onClick={this.toggleChart} className={cx({'active': showChart})} title={t('network.connections.txt-toggleChart')} disabled={activeSubTab === 'statistics'}><i className='fg fg-chart-columns'></i></button>
-            <button onClick={this.getCSVfile} className='last' title={t('network.connections.txt-exportCSV')}><i className='fg fg-data-download'></i></button>
+            <button className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('network.connections.txt-toggleFilter')} disabled={activeSubTab === 'statistics'}><i className='fg fg-filter'></i><span>({filterDataCount})</span></button>
+            <button className={cx({'active': showChart})} onClick={this.toggleChart} title={t('network.connections.txt-toggleChart')} disabled={activeSubTab === 'statistics'}><i className='fg fg-chart-columns'></i></button>
+            <button className='last' onClick={this.getCSVfile} title={t('network.connections.txt-exportCSV')}><i className='fg fg-data-download'></i></button>
           </div>
         </div>
 
