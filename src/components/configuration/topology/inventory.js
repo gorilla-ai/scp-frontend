@@ -239,18 +239,17 @@ class NetworkInventory extends Component {
                 return <span>{allValue.seatObj.seatName}</span>;
               }
             } else if (tempData === 'yaraScan') {
-              let yaraCount = 0;
-              let styleStatus = '#22ac38';
-
-              if (allValue.yaraResult) {
-                yaraCount = allValue.yaraResult.ScanResult.length;
+              if (allValue.yaraResult && allValue.yaraResult.ScanResult) {
+                const yaraCount = allValue.yaraResult.ScanResult.length;
+                let styleStatus = '#22ac38';
 
                 if (yaraCount > 0) {
                   styleStatus = '#d0021b';
                 }
+                return <span style={{color: styleStatus}}>{yaraCount}</span>
+              } else {
+                return <span>N/A</span>
               }
-
-              return <span style={{color: styleStatus}}>{yaraCount}</span>
             } else if (tempData === '_menu_') {
               return (
                 <div className={cx('table-menu inventory', {'active': value})}>
@@ -639,7 +638,7 @@ class NetworkInventory extends Component {
     if (type === 'view') {
       this.getOwnerSeat(allValue);
     } else if (type === 'hmd') {
-      this.getHMDscanInfo(index, allValue.ipDeviceUUID);
+      this.getIPdeviceInfo(index, allValue.ipDeviceUUID);
     } else if (type === 'delete') {
       this.openDeleteDeviceModal(allValue);
     }
@@ -837,8 +836,11 @@ class NetworkInventory extends Component {
     const uniqueKey = val + i;
 
     return (
-      <div key={uniqueKey}>
-        <div className='header' onClick={this.togglePathRule.bind(this, 'rule', i)}><i className={cx('fg fg-play', {'rotate': activeRule === i})}></i><span>{nameList[i]}</span></div>
+      <div className='rule-content' key={uniqueKey}>
+        <div className='header' onClick={this.togglePathRule.bind(this, 'rule', i)}>
+          <i className={cx('fg fg-play', {'rotate': activeRule === i})}></i>
+          <span>{nameList[i]}</span>
+        </div>
         <code className={cx({'hide': activeRule !== i})}>{val}</code>
       </div>
     )
@@ -867,7 +869,7 @@ class NetworkInventory extends Component {
       </div>
     )
   }
-  getHMDscanInfo = (index, ipDeviceUUID) => {
+  getIPdeviceInfo = (index, ipDeviceUUID, options) => {
     const {baseUrl, contextRoot} = this.props;
     const {deviceData, currentDeviceData} = this.state;
     let tempDeviceData = {...deviceData};
@@ -882,6 +884,11 @@ class NetworkInventory extends Component {
     })
     .then(data => {
       if (data) {
+        if (options === 'oneDevice') {
+          this.getOwnerSeat(data);
+          return;
+        }
+
         this.setState({
           showScanInfo: true,
           deviceData: tempDeviceData,
@@ -901,13 +908,18 @@ class NetworkInventory extends Component {
       return true;
     }
   }
-  triggerTask = (taskId) => {
+  triggerTask = (taskId, type) => {
     const {baseUrl, contextRoot} = this.props;
     const {currentDeviceData} = this.state;
-    const url = `${baseUrl}/api/hmd/taskinfo`;
-    const requestData = {
-      taskId
+    const url = `${baseUrl}/api/hmd/retrigger`;
+    let requestData = {
+      hostId: currentDeviceData.ipDeviceUUID,
+      cmd: type
     };
+
+    if (taskId) {
+      requestData.taskId = taskId;
+    }
 
     helper.getAjaxData('POST', url, requestData)
     .then(data => {
@@ -918,7 +930,9 @@ class NetworkInventory extends Component {
           display: <div>{t('txt-requestSent')}</div>
         });
 
-        this.getHMDscanInfo('', currentDeviceData.ipDeviceUUID);
+        if (type === 'compareIOC' || type === 'getFile') {
+          this.getIPdeviceInfo('', currentDeviceData.ipDeviceUUID);
+        }
       }
     })
     .catch(err => {
@@ -931,9 +945,13 @@ class NetworkInventory extends Component {
     const mac = currentDeviceData.mac ? currentDeviceData.mac : NOT_AVAILABLE;
     const hostName = currentDeviceData.hostName ? currentDeviceData.hostName : NOT_AVAILABLE;
     const ownerName = currentDeviceData.ownerObj ? currentDeviceData.ownerObj.ownerName : NOT_AVAILABLE;
-    let hmdInfo = {};
+    let hmdInfo = {
+      yara: {},
+      ir: {}
+    };
+    let yaraCount = '';
 
-    if (currentDeviceData.yaraResult) {
+    if (!_.isEmpty(currentDeviceData.yaraResult)) {
       hmdInfo.yara = {
         createTime: helper.getFormattedDate(currentDeviceData.yaraResult.taskCreateDttm, 'local'),
         responseTime: helper.getFormattedDate(currentDeviceData.yaraResult.taskResponseDttm, 'local'),
@@ -942,13 +960,17 @@ class NetworkInventory extends Component {
       };
     }
 
-    if (currentDeviceData.irResult) {
+    if (!_.isEmpty(currentDeviceData.irResult)) {
       hmdInfo.ir = {
         createTime: helper.getFormattedDate(currentDeviceData.irResult.taskCreateDttm, 'local'),
         responseTime: helper.getFormattedDate(currentDeviceData.irResult.taskResponseDttm, 'local'),
         result: currentDeviceData.irResult._url,
         taskID: currentDeviceData.irResult.taskId
       };
+    }
+
+    if (hmdInfo.yara.result) {
+      yaraCount = Number(hmdInfo.yara.result.length);
     }
 
     return (
@@ -979,7 +1001,7 @@ class NetworkInventory extends Component {
           </div>
 
           <div className='info-content'>
-            {activeScanType === 'yara' && !_.isEmpty(hmdInfo.yara) &&
+            {activeScanType === 'yara' &&
               <div>
                 <div className='info'>
                   <div className='last-update'>
@@ -990,18 +1012,22 @@ class NetworkInventory extends Component {
                       <span>{t('network-inventory.txt-responseTime')}: {hmdInfo.yara.responseTime}</span>
                     }
                   </div>
-                  <div className='count'>{t('network-inventory.txt-suspiciousFileCount')}: {hmdInfo.yara.result.length}</div>
-                  <button className='btn' onClick={this.triggerTask.bind(this, hmdInfo.yara.taskID)} disabled={this.checkTriggerTime('yara')}>{t('network-inventory.txt-reCheck')}</button>
+                  {yaraCount >= 0 &&
+                    <div className='count'>{t('network-inventory.txt-suspiciousFileCount')}: {yaraCount}</div>
+                  }
+                  <button className='btn' onClick={this.triggerTask.bind(this, hmdInfo.yara.taskID, 'compareIOC')} disabled={this.checkTriggerTime('yara')}>{t('network-inventory.txt-reCheck')}</button>
                 </div>
-                <div className='file-path'>
-                  <div className='header'>{t('network-inventory.txt-suspiciousFilePath')}</div>
-                  <div className='list'>
-                    {hmdInfo.yara.result.map(this.displayPath)}
+                {hmdInfo.yara.result &&
+                  <div className='file-path'>
+                    <div className='header'>{t('network-inventory.txt-suspiciousFilePath')}</div>
+                    <div className='list'>
+                      {hmdInfo.yara.result.map(this.displayPath)}
+                    </div>
                   </div>
-                </div>
+                }
               </div>
             }
-            {activeScanType === 'ir' && !_.isEmpty(hmdInfo.ir) &&
+            {activeScanType === 'ir' &&
               <div>
                 <div className='info'>
                   <div className='last-update'>
@@ -1012,11 +1038,13 @@ class NetworkInventory extends Component {
                       <span>{t('network-inventory.txt-responseTime')}: {hmdInfo.ir.responseTime}</span>
                     }
                   </div>
-                  <button className='btn' onClick={this.triggerTask.bind(this, hmdInfo.ir.taskID)} disabled={this.checkTriggerTime('ir')}>{t('network-inventory.txt-reCompress')}</button>
+                  <button className='btn' onClick={this.triggerTask.bind(this, hmdInfo.ir.taskID, 'getFile')} disabled={this.checkTriggerTime('ir')}>{t('network-inventory.txt-reCompress')}</button>
                 </div>
-                <div className='msg'>
-                  <span>IR data has been uploaded to {hmdInfo.ir.result}</span>
-                </div>
+                {hmdInfo.ir.result &&
+                  <div className='msg'>
+                    <span>IR data has been uploaded to {hmdInfo.ir.result}</span>
+                  </div>
+                }
               </div>
             }
           </div>
@@ -1060,6 +1088,8 @@ class NetworkInventory extends Component {
       modalFloorOpen: false,
       addSeatOpen: false,
       activeScanType: 'yara',
+      activePath: null,
+      activeRule: null,
       currentDeviceData: {},
       addSeat: {
         selectedSeatUUID: '',
@@ -1173,6 +1203,10 @@ class NetworkInventory extends Component {
   checkFormValidation = () => {
     const {addIP, ownerType} = this.state;
 
+    if (!addIP.ip || !addIP.mac) {
+      return true;
+    }
+
     if (ownerType === 'new') {
       if (!addIP.newOwnerName || !addIP.newOwnerID) {
         return true;
@@ -1262,7 +1296,7 @@ class NetworkInventory extends Component {
     };
 
     if (formTypeEdit) {
-      requestData.ipDeviceUUID = currentDeviceData.ipDeviceUUID
+      requestData.ipDeviceUUID = currentDeviceData.ipDeviceUUID;
     }
 
     if (ownerUUID) {
@@ -1277,7 +1311,12 @@ class NetworkInventory extends Component {
       this.getOwnerData();
       this.getOtherData();
       this.getFloorPlan();
-      this.toggleContent('showList');
+
+      if (formTypeEdit) {
+        this.getIPdeviceInfo('', currentDeviceData.ipDeviceUUID, 'oneDevice');
+      } else {
+        this.toggleContent('showList');
+      }
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'));
@@ -1299,15 +1338,6 @@ class NetworkInventory extends Component {
         </div>
       </div>
     )
-  }
-  getBtnText = () => {
-    let text = t('txt-nextStep');
-
-    if (this.state.activeSteps === 4) {
-      text = t('txt-confirm');
-    }
-
-    return text;
   }
   handleOwnerTypeChange = (ownerType) => {
     const {departmentList, titleList, addIP} = this.state;
@@ -1376,6 +1406,9 @@ class NetworkInventory extends Component {
         closeDialog={this.closeDialog} />
     )
   }
+  getBtnText = () => {
+    return this.state.activeSteps === 4 ? t('txt-confirm') : t('txt-nextStep');
+  }
   displayAddIpSteps = () => {
     const {contextRoot} = this.props;
     const {
@@ -1440,7 +1473,8 @@ class NetworkInventory extends Component {
                 <Input
                   id='addIPstepsHostname'
                   onChange={this.handleAddIpChange.bind(this, 'hostName')}
-                  value={addIP.hostName} />
+                  value={addIP.hostName}
+                  readOnly={currentDeviceData.isHmd} />
               </div>
               <div className='group'>
                 <label htmlFor='addIPstepsHostID'>{t('ipFields.hostID')}</label>
@@ -1454,21 +1488,24 @@ class NetworkInventory extends Component {
                 <Input
                   id='addIPstepsSystem'
                   onChange={this.handleAddIpChange.bind(this, 'system')}
-                  value={addIP.system} />
+                  value={addIP.system}
+                  readOnly={currentDeviceData.isHmd} />
               </div>
               <div className='group'>
                 <label htmlFor='addIPstepsDeviceType'>{t('ipFields.deviceType')}</label>
                 <Input
                   id='addIPstepsDeviceType'
                   onChange={this.handleAddIpChange.bind(this, 'deviceType')}
-                  value={addIP.deviceType} />
+                  value={addIP.deviceType}
+                  readOnly={currentDeviceData.isHmd} />
               </div>
               <div className='group'>
                 <label htmlFor='addIPstepsUser'>{t('ipFields.owner')}</label>
                 <Input
                   id='addIPstepsUser'
                   onChange={this.handleAddIpChange.bind(this, 'user')}
-                  value={addIP.user} />
+                  value={addIP.user}
+                  readOnly={currentDeviceData.isHmd} />
               </div>
               <div className='group'>
                 <label htmlFor='addIPstepsCPU'>{t('txt-cpu')}</label>
@@ -2018,7 +2055,8 @@ class NetworkInventory extends Component {
                   <PrivateDetails
                     alertInfo={alertInfo}
                     topoInfo={currentDeviceData}
-                    picPath={picPath} />
+                    picPath={picPath}
+                    triggerTask={this.triggerTask} />
                 </div>
               </div>
             </div>

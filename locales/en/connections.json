@@ -125,6 +125,7 @@
   "txt-ram": "Ram",
   "txt-disks": "Disks",
   "txt-shareFolders": "Share Folders",
+  "txt-reTrigger": "Get latest System info",  
   "txt-requestSent": "Request Sent",
 
   "txt-daily": "Daily",
@@ -417,26 +418,6 @@
     }
   },
 
-  "edgeManagement": {
-    "txt-threatSettings": "Threat Settings",
-    "txt-notificationSettings": "Notification Settings",
-    "txt-basicInfo": "Info",
-    "txt-editEdge": "Edit Edge",
-    "txt-edgeName": "Edge Name",
-    "txt-edgeID": "Edge ID",
-    "txt-ip": "IP",
-    "txt-vpnIP": "VPN IP",
-    "txt-vpnLicenseName": "VPN License Name",
-    "txt-serviceType": "Service Type",
-    "txt-serviceMode": "Service Mode",
-    "txt-activatTime": "Datetime",
-    "txt-lastUpateTime": "Last Update Time",
-    "txt-anyTime": "Any Time",
-    "txt-customTime": "Custom Time",
-    "txt-memo": "Memo",
-    "txt-memoMaxLength": "maximum 250 characters"
-  },
-
   "hmdFields": {
     "ipDeviceUUID": "Host ID",
     "hostId": "Host ID",
@@ -468,6 +449,41 @@
     "taskHandleDttm": "Task Handle Datetime",
     "taskResponseDttm": "Task Response Datetime",
     "taskComment": "Task Comment"
+  },
+
+  "edgeManagement": {
+    "txt-threatSettings": "Threat Settings",
+    "txt-notificationSettings": "Notification Settings",
+    "txt-basicInfo": "Info",
+    "txt-editEdge": "Edit Edge",
+    "txt-edgeName": "Edge Name",
+    "txt-edgeID": "Edge ID",
+    "txt-ip": "IP",
+    "txt-ipList": "IP List",
+    "txt-vpnIP": "VPN IP",
+    "txt-vpnLicenseName": "VPN License Name",
+    "txt-serviceType": "Service Type",
+    "txt-serviceMode": "Service Mode",
+    "txt-activatTime": "Datetime",
+    "txt-lastUpateTime": "Last Update Time",
+    "txt-anyTime": "Any Time",
+    "txt-customTime": "Custom Time",
+    "txt-memo": "Memo",
+    "txt-memoMaxLength": "maximum 250 characters",
+    "txt-edgeUpdateSuccess": "Edge is updated successfully",
+    "txt-edgeUpdateFail": "Error, please try again",
+    "txt-edgeEditSuccess": "Edge is added/updated successfully",
+    "txt-edgeEditFail": "Error, please try again",
+    "txt-edgeEditError1": "General Error",
+    "txt-edgeEditError2": "Edge ID field is NULL or Empty",
+    "txt-edgeEditError3": "Project ID field is NULL or Empty",
+    "txt-edgeEditError4": "Project ID field is Duplicated",
+    "txt-edgeEditError5": "IP and Port field is NULL or Empty",
+    "txt-edgeEditError6": "IP and Port field is Duplicated",
+    "txt-edgeEditError7": "Edge (ipPort) is not Reachable",
+    "txt-edgeEditNoStartDate": "Edge start date is missing",
+    "txt-edgeEditNoEndDate": "Edge end date is missing",
+    "txt-edgeEditPastEndDate": "Edge end date must be a future date"
   },
 
   "honeynet": {

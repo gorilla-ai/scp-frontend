@@ -630,7 +630,7 @@ class Manage extends Component {
     if (agent.add.memo) {
       data = {
         ...data,
-        memo: agent.add.memo,
+        memo: agent.add.memo
       };
     }
 

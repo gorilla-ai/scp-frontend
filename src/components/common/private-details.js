@@ -62,21 +62,59 @@ class PrivateDetails extends Component {
         </section>
 
         <section>
-          <div className='header'>{t('alert.txt-systemInfo')}</div>
+          <div className='header trigger'>{t('alert.txt-systemInfo')}</div>
+          <div className='trigger-text'>{t('edgeManagement.txt-lastUpateTime')}: {helper.getFormattedDate(topoInfo.updateDttm, 'local')}</div>
+          <button className='btn trigger' onClick={this.props.triggerTask.bind(this, '', 'getSystemInfo')}>{t('txt-reTrigger')}</button>
           <table className='c-table main-table host'>
             <tbody>
-              <tr>
-                <td>{t('ipFields.hostName')}</td>
-                <td>{topoInfo.hostName || NOT_AVAILABLE}</td>
-              </tr>
-              <tr>
-                <td>{t('ipFields.system')}</td>
-                <td>{topoInfo.system || NOT_AVAILABLE}</td>
-              </tr>
-              <tr>
-                <td>{t('ipFields.deviceType')}</td>
-                <td>{topoInfo.deviceType || NOT_AVAILABLE}</td>
-              </tr>
+              {topoInfo.hostName &&
+                <tr>
+                  <td>{t('ipFields.hostName')}</td>
+                  <td>{topoInfo.hostName}</td>
+                </tr>
+              }
+              {topoInfo.system &&
+                <tr>
+                  <td>{t('ipFields.system')}</td>
+                  <td>{topoInfo.system}</td>
+                </tr>
+              }
+              {topoInfo.deviceType &&
+                <tr>
+                  <td>{t('ipFields.deviceType')}</td>
+                  <td>{topoInfo.deviceType}</td>
+                </tr>
+              }
+              {topoInfo.userName &&
+                <tr>
+                  <td>User</td>
+                  <td>{topoInfo.userName}</td>
+                </tr>
+              }
+              {topoInfo.cpu &&
+                <tr>
+                  <td>{t('txt-cpu')}</td>
+                  <td>{topoInfo.cpu}</td>
+                </tr>
+              }
+              {topoInfo.cpu &&
+                <tr>
+                  <td>{t('txt-ram')}</td>
+                  <td>{topoInfo.ram}</td>
+                </tr>
+              }
+              {topoInfo.disks &&
+                <tr>
+                  <td>{t('txt-disks')}</td>
+                  <td>{topoInfo.disks}</td>
+                </tr>
+              }
+              {topoInfo.shareFolders &&
+                <tr>
+                  <td>{t('txt-shareFolders')}</td>
+                  <td>{topoInfo.shareFolders}</td>
+                </tr>
+              }
             </tbody>
           </table>
         </section>

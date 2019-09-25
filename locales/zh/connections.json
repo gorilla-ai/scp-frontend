@@ -125,6 +125,7 @@
   "txt-ram": "記憶體",
   "txt-disks": "Disks",
   "txt-shareFolders": "Share Folders",
+  "txt-reTrigger": "重新獲取資訊",
   "txt-requestSent": "需求已送出",
 
   "txt-daily": "每日",
@@ -191,7 +192,6 @@
   "txt-addNewOwner": "新增人員",
   "txt-editOwner": "編輯人員",
   "txt-manageDepartmentTitle": "編輯部門與職稱",
-
   "txt-network-ip": "IP",
   "txt-network-map": "樓層圖",
   "txt-plan-map": "樓層座位資訊",
@@ -459,6 +459,7 @@
     "txt-edgeName": "Edge Name",
     "txt-edgeID": "Edge ID",
     "txt-ip": "IP",
+    "txt-ipList": "IP列表",
     "txt-vpnIP": "VPN IP",
     "txt-vpnLicenseName": "VPN License Name",
     "txt-serviceType": "服務類型",
@@ -468,7 +469,21 @@
     "txt-anyTime": "不限時段",
     "txt-customTime": "自訂時段",
     "txt-memo": "備忘錄",
-    "txt-memoMaxLength": "上限250字"
+    "txt-memoMaxLength": "上限250字",
+    "txt-edgeUpdateSuccess": "Edge更新成功",
+    "txt-edgeUpdateFail": "Edge更新失敗",
+    "txt-edgeEditSuccess": "Edge新增/編輯成功",
+    "txt-edgeEditFail": "Edge新增/編輯失敗",
+    "txt-edgeEditError1": "一般錯誤",
+    "txt-edgeEditError2": "Edge ID 為空值",
+    "txt-edgeEditError3": "ID 為空值",
+    "txt-edgeEditError4": "ID 已有重複",
+    "txt-edgeEditError5": "Edge的IP與Port為空值",
+    "txt-edgeEditError6": "Edge的IP與Port已有重複",
+    "txt-edgeEditError7": "Edge(ipPort)不存在",
+    "txt-edgeEditNoStartDate": "Edge起始時間不得為空白",
+    "txt-edgeEditNoEndDate": "Edge結束時間不得為空白",
+    "txt-edgeEditPastEndDate": "Edge結束時間不得為過去時間"
   },
 
   "honeynet": {

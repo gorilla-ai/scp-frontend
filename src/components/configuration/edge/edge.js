@@ -219,19 +219,22 @@ class Edge extends Component {
       tempEdge.info = {
         name: allValue.agentName ? allValue.agentName : '',
         id: allValue.agentId,
+        projectId: allValue.projectId,
         ip: allValue.ipPort,
-        vpnIP: '',
-        licenseName: allValue.projectId,
+        vpnIP: allValue.vpnIp,
+        licenseName: allValue.vpnName,
         serviceType: allValue.serviceType,
         serviceMode: allValue.agentMode,
         edgeModeType: 'anyTime',
-        edgeModeTime: {
+        edgeModeDatetime: {
           from: '',
           to: ''
         },
+        memo: allValue.memo,
         agentApiStatus: allValue.agentApiStatus,
         lastUpdateTime: allValue.lastStatusUpdDT,
-        lastStatus: allValue.lastStatus
+        lastStatus: allValue.lastStatus,
+        isConfigurable: allValue.isConfigurable
       };
     } else if (type === 'tableList') {
       tempEdge.info = {};
@@ -257,56 +260,127 @@ class Edge extends Component {
       edge: tempEdge
     });
   }
-  handleEdgeStatusChange = (type, status) => {
-    console.log(type, status);
+  handleEdgeStatusChange = (type) => {
+    const {baseUrl, contextRoot} = this.props;
+    const {edge} = this.state;
+    const url = `${baseUrl}/api/agent/_${type}?id=${edge.info.id}&projectId=${edge.info.projectId}`;
+
+    ah.one({
+      url,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        let tempEdge = {...this.state.edge};
+        tempEdge.info.lastStatus = data.rt;
+
+        this.setState({
+          edge: tempEdge
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   handleEdgeSubmit = () => {
+    const {baseUrl, contextRoot} = this.props;
     const {edge} = this.state;
+    let data = {
+      id: edge.info.id,
+      agentName: edge.info.name,
+      memo: edge.info.memo
+    };
 
-    this.toggleContent('tableList');
+    if (edge.info.isConfigurable) {
+      if (edge.info.edgeIPlist) {
+        data.ipList = edge.info.edgeIPlist;
+      }
 
-    // if (agent.add.modeDatetime.from) {
-    //   if (agent.add.modeDatetime.to) {
-    //     data = {
-    //       ...data,
-    //       agentStartDt: Moment(agent.add.modeDatetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
-    //     };
-    //   } else { //End date is empty
-    //     this.setState({
-    //       info: t('network.agent.txt-agentEditNoEndDate')
-    //     });
-    //     return;
-    //   }
-    // }
+      if (edge.info.serviceMode) {
+        data.agentMode = edge.info.serviceMode;
+      }
 
-    // if (agent.add.modeDatetime.to) {
-    //   if (agent.add.modeDatetime.from) {
-    //     data = {
-    //       ...data,
-    //       agentEndDt: Moment(agent.add.modeDatetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
-    //     };
-    //   } else { //Start date is empty
-    //     this.setState({
-    //       info: t('network.agent.txt-agentEditNoStartDate')
-    //     });
-    //     return;
-    //   }
+      if (edge.info.edgeModeType === 'customTime') {
+        if (edge.info.edgeModeDatetime.from) {
+          if (edge.info.edgeModeDatetime.to) {
+            data.agentStartDt = Moment(edge.info.edgeModeDatetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+          } else { //End date is empty
+            helper.showPopupMsg(t('edgeManagement.txt-edgeEditNoEndDate'), t('txt-error'));
+            return;
+          }
+        } else {
+          helper.showPopupMsg(t('edgeManagement.txt-edgeEditNoStartDate'), t('txt-error'));
+          return;
+        }
 
-    //   if (Moment(agent.add.modeDatetime.to).isBefore()) { //End date is a past date (compare with current date time)
-    //     this.setState({
-    //       info: t('network.agent.txt-agentEditPastEndDate')
-    //     });
-    //     return;
-    //   }
-    // }
+        if (edge.info.edgeModeDatetime.to) {
+          if (edge.info.edgeModeDatetime.from) {
+            data.agentEndDt = Moment(edge.info.edgeModeDatetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+          } else { //Start date is empty
+            helper.showPopupMsg(t('edgeManagement.txt-edgeEditNoStartDate'), t('txt-error'));
+            return;
+          }
+
+          if (Moment(edge.info.edgeModeDatetime.to).isBefore()) { //End date is a past date (compare with current date time)
+            helper.showPopupMsg(t('edgeManagement.txt-edgeEditPastEndDate'), t('txt-error'));
+            return;
+          }
+        } else {
+          helper.showPopupMsg(t('edgeManagement.txt-edgeEditNoEndDate'), t('txt-error'));
+          return;
+        }
+      }
+    }
+
+    ah.one({
+      url: `${baseUrl}/api/agent`,
+      data: JSON.stringify(data),
+      type: 'PATCH',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      switch(data.ret) {
+        case 0:
+          helper.showPopupMsg(t('edgeManagement.txt-edgeEditSuccess'));
+          break;
+        case -1:
+          helper.showPopupMsg(t('edgeManagement.txt-edgeEditFail'), t('txt-error'), t('edgeManagement.txt-edgeEditError1'));
+          break;
+        case -11:
+          helper.showPopupMsg(t('edgeManagement.txt-edgeEditFail'), t('txt-error'), t('edgeManagement.txt-edgeEditError2'));
+          break;
+        case -21:
+          helper.showPopupMsg(t('edgeManagement.txt-edgeEditFail'), t('txt-error'), t('edgeManagement.txt-edgeEditError3'));
+          break;
+        case -22:
+          helper.showPopupMsg(t('edgeManagement.txt-edgeEditFail'), t('txt-error'), t('edgeManagement.txt-edgeEditError4'));
+          break;
+        case -31:
+          helper.showPopupMsg(t('edgeManagement.txt-edgeEditFail'), t('txt-error'), t('edgeManagement.txt-edgeEditError5'));
+          break;
+        case -32:
+          helper.showPopupMsg(t('edgeManagement.txt-edgeEditFail'), t('txt-error'), t('edgeManagement.txt-edgeEditError6'));
+        case -33:
+          helper.showPopupMsg(t('edgeManagement.txt-edgeEditFail'), t('txt-error'), t('edgeManagement.txt-edgeEditError7'));
+          break;
+        default:
+          break;
+      }
+      this.toggleContent('tableList');
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   displayEditEdgeContent = () => {
     const {baseUrl, contextRoot} = this.props;
     const {activeContent, edge} = this.state;
     let statusIcon = '';
-    let on = true;
-    let status = 'n/a';
-    let action = '';
+    let btnStatusOn = false;
+    let action = 'start';
 
     if (activeContent === 'editEdge') {
       let iconType = '';
@@ -319,16 +393,9 @@ class Edge extends Component {
 
       statusIcon = contextRoot + `/images/${iconType}.png`;
 
-      if (edge.info.lastStatus.indexOf('inactive') !== -1) {
-        on = false
-        status = 'inactive'
-        action = 'start'
-      } else if (edge.info.lastStatus.indexOf('active') !== -1) {
-        status = 'active'
-        action = 'stop'
-      } else {
-        on = false
-        action = 'start'
+      if (edge.info.lastStatus.indexOf('active') !== -1) {
+        btnStatusOn = true;
+        action = 'stop';
       }
     }
 
@@ -345,8 +412,9 @@ class Edge extends Component {
             className='toggle-btn'
             onText='On'
             offText='Off'
-            on={on}
-            onChange={this.handleEdgeStatusChange.bind(this, action, status)} />                  
+            on={btnStatusOn}
+            onChange={this.handleEdgeStatusChange.bind(this, action)}
+            disabled={!edge.info.isConfigurable} />                  
           <div className='group'>
             <label htmlFor='edgeName'>{t('edgeManagement.txt-edgeName')}</label>
             <Input
@@ -367,8 +435,27 @@ class Edge extends Component {
             <Input
               id='edgeIP'
               onChange={this.handleDataChange.bind(this, 'ip')}
+              validate={{
+                pattern:/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?):(\d+)$/,
+                patternReadable:'xxx.xxx.xxx.xxx:xxx',
+                t:(code, {value, pattern}) => {
+                  if (code[0] === 'missing') {
+                    return t('txt-required');
+                  } else if (code[0] === 'no-match') {
+                    return t('network.agent.txt-ipValidationFail');
+                  }
+                }
+              }}
               value={edge.info.ip}
               readOnly={true} />
+          </div>
+          <div className='group'>
+            <label htmlFor='edgeIPlist'>{t('edgeManagement.txt-ipList')} ({t('txt-commaSeparated')}</label>
+            <Input
+              id='edgeIPlist'
+              onChange={this.handleDataChange.bind(this, 'edgeIPlist')}
+              value={edge.info.edgeIPlist}
+              readOnly={!edge.info.isConfigurable} />
           </div>
           <div className='group'>
             <label htmlFor='edgeVPNip'>{t('edgeManagement.txt-vpnIP')}</label>
@@ -396,11 +483,22 @@ class Edge extends Component {
           </div>
           <div className='group'>
             <label htmlFor='edgeServiceMode'>{t('edgeManagement.txt-serviceMode')}</label>
-            <Input
+            <DropDownList
               id='edgeServiceMode'
+              required={true}
+              list={[
+                {
+                  value: 'REALTIME',
+                  text: t('txt-realtime')
+                },
+                {
+                  value: 'TCPDUMP',
+                  text: t('txt-tcpdump')
+                }
+              ]}
               onChange={this.handleDataChange.bind(this, 'serviceMode')}
               value={edge.info.serviceMode}
-              readOnly={true} />
+              readOnly={!edge.info.isConfigurable} />
           </div>
           <div className='group'>
             <label>{t('edgeManagement.txt-activatTime')}</label>
@@ -411,15 +509,16 @@ class Edge extends Component {
                 {value: 'customTime', text: t('edgeManagement.txt-customTime')}
               ]}
               onChange={this.handleDataChange.bind(this, 'edgeModeType')}
-              value={edge.info.edgeModeType} />
+              value={edge.info.edgeModeType}
+              disabled={!edge.info.isConfigurable} />
 
             {edge.info.edgeModeType === 'customTime' &&
               <DateRange
-                id='edgeModeTime'
+                id='edgeModeDatetime'
                 className='daterange'
-                onChange={this.handleDataChange.bind(this, 'edgeModeTime')}
+                onChange={this.handleDataChange.bind(this, 'edgeModeDatetime')}
                 enableTime={true}
-                value={edge.info.edgeModeTime}
+                value={edge.info.edgeModeDatetime}
                 t={et} />
             }
           </div>

@@ -1561,7 +1561,7 @@ footer.footer {
 									width: 20px;
 								}
 							}
-							#edgeModeTime {
+							#edgeModeDatetime {
 								text-align: left;
 							}
 						}
@@ -1742,6 +1742,7 @@ footer.footer {
 	}
 	.privateIp-info {
 		background-color: #fff;
+		min-height: 84vh;
 		header {
 			color: #004d93;
 			font-weight: bold;
@@ -1750,7 +1751,7 @@ footer.footer {
 			background-color: #fff;
 		}
 		.btn {
-			top: 12px !important;
+			//top: 12px !important;
 			&.edit {
 				right: 15px;
 			}
@@ -1790,6 +1791,7 @@ footer.footer {
 	.destIp-content {
 		.private {
 			section {
+				position: relative;
 				margin-bottom: 30px;
 				padding-right: 10px;
 				overflow: hidden;
@@ -1801,6 +1803,14 @@ footer.footer {
 					font-size: 20px;
 					color: #185e9e;
 					margin-bottom: 15px;
+					&.trigger {
+						float: left;
+						margin-right: 15px;
+					}
+				}
+				.trigger-text {
+					font-size: 14px;
+					margin-top: 5px;
 				}
 				img.owner-pic {
 					float: left;
@@ -1812,11 +1822,16 @@ footer.footer {
 					margin-right: 5%;
 					margin-left: 5%;
 				}
+				.btn.trigger {
+					top: 0 !important;
+					right: 0;
+				}
 				table {
 					&.ip,
-					&.host {
+					&.host,
+					&.owner {
 						td:nth-child(odd) {
-							width: 32%;
+							width: 200px;
 						}
 					}
 					&.owner {

@@ -259,7 +259,7 @@ const Main = () => (
 			<Route exact path='/ChewbaccaWeb/events/syslog' component={SyslogComp} />
 			<Route exact path='/ChewbaccaWeb/events/endpoint' component={EndpointComp} />
 			<Route exact path='/ChewbaccaWeb/honeynet/employee-record' component={HoneynetEmployeeRecord} />
-			<Route exact path='/ChewbaccaWeb/configuration' component={Config} />
+			{/*<Route exact path='/ChewbaccaWeb/configuration' component={Config} />*/}
 			<Route exact path='/ChewbaccaWeb/configuration/edge/edge' component={Edge} />
 			<Route exact path='/ChewbaccaWeb/configuration/edge/threat' component={Threat} />
 			<Route exact path='/ChewbaccaWeb/configuration/agent' component={Agent} />
