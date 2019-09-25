@@ -117,6 +117,12 @@ class Config extends Component {
             </div>
           </div>
         }
+        {sessionRights.Module_Honeynet_Manage &&
+          <div className='frame honeynet-manage' onClick={this.handleOpen.bind(this, 'openHoneynet', openHoneynet)}>
+            <span className={`${this.getActiveFrame('pot') || this.getActiveFrame('mail')}`}>{t('txt-honeyManage')}</span>
+            <i className={`c-link fg fg-arrow-${openHoneynet?'top':'bottom'}`}></i>
+          </div>
+        }
         {openHoneynet &&
           <div className='open-honeynet'>
             <div className='subframe'>
