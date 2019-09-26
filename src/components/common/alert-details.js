@@ -59,7 +59,7 @@ class AlertDetails extends Component {
           location: {},
           topology: {},
           ownerPic: '',
-          ownerMap: '',
+          ownerMap: {},
           ownerBaseLayers: {},
           ownerSeat: {}
         },
@@ -67,7 +67,7 @@ class AlertDetails extends Component {
           location: {},
           topology: {},
           ownerPic: '',
-          ownerMap: '',
+          ownerMap: {},
           ownerBaseLayers: {},
           ownerSeat: {}
         }

@@ -103,7 +103,7 @@ class NetworkInventory extends Component {
         map: ''
       },
       alertInfo: {
-        ownerMap: '',
+        ownerMap: {},
         ownerBaseLayers: {},
         ownerSeat: {}
       },
@@ -647,10 +647,9 @@ class NetworkInventory extends Component {
     const {baseUrl, contextRoot} = this.props;
     const topoInfo = allValue;
     let tempAlertInfo = {...this.state.alertInfo};
-    let ownerMap = {};
 
     if (topoInfo.areaObj && topoInfo.areaObj.picPath) {
-      ownerMap = {
+      const ownerMap = {
         label: topoInfo.areaObj.areaName,
         images: [
           {
@@ -678,6 +677,12 @@ class NetworkInventory extends Component {
           }]
         };
       }
+    } else {
+      tempAlertInfo = {
+        ownerMap: {},
+        ownerBaseLayers: {},
+        ownerSeat: {}
+      };
     }
 
     this.setState({

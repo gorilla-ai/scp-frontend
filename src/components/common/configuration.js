@@ -81,7 +81,7 @@ class Config extends Component {
         {openEdgeManagement &&
           <div className='open-edge'>
             <div className='subframe'>
-              <Link to='/ChewbaccaWeb/configuration/edge/edge'>
+              <Link to={{pathname: '/ChewbaccaWeb/configuration/edge/edge', state: 'tableList'}}>
                 <span className={`${this.getActiveFrame('edge')}`}>{t('txt-edge')}</span>
               </Link>
             </div>

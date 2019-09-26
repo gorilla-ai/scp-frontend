@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Link } from 'react-router-dom'
+import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
@@ -67,6 +67,11 @@ class Edge extends Component {
   }
   componentDidMount() {
     this.getEdgeData();
+  }
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.location.state === 'tableList') {
+      this.toggleContent('tableList');
+    }
   }
   getEdgeData = (fromSearch) => {
     const {baseUrl, contextRoot} = this.props;
@@ -671,5 +676,5 @@ Edge.propTypes = {
   baseUrl: PropTypes.string.isRequired
 };
 
-const HocEdge = withLocale(Edge);
+const HocEdge = withRouter(withLocale(Edge));
 export { Edge, HocEdge };
