@@ -8,7 +8,6 @@ import _ from 'lodash'
 
 import Gis from 'react-gis/build/src/components'
 
-import DataTable from 'react-ui/build/src/components/table'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
@@ -16,11 +15,11 @@ import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import Tabs from 'react-ui/build/src/components/tabs'
 import TreeView from 'react-ui/build/src/components/tree'
 
-import {HocPagination as Pagination} from '../../common/pagination'
 import {HocFloorMap as FloorMap} from '../../common/floor-map'
 import helper from '../../common/helper'
 import withLocale from '../../../hoc/locale-provider'
 import {HocConfig as Config} from '../../common/configuration'
+import TableContent from '../../common/table-content'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -796,7 +795,7 @@ class NetworkMap extends Component {
                   </div>
                 </div>
 
-                <div className='right-content'>
+                <div className='right-content map'>
                   <div className='content-area'>
                     {currentMap.label &&
                       <Gis
@@ -813,29 +812,15 @@ class NetworkMap extends Component {
                     }
                   </div>
 
-                  <div className='parent-content'>
-                    <div className='main-content'>
-                      <div className='table-content'>
-                        <div className='table normal'>
-                          {IP.dataFields &&
-                            <DataTable
-                              className='main-table'
-                              fields={IP.dataFields}
-                              data={IP.dataContent}
-                              onRowClick={this.handleTableRowClick} />
-                          }
-                        </div>
-                        <footer>
-                          <Pagination
-                            totalCount={IP.totalCount}
-                            pageSize={IP.pageSize}
-                            currentPage={IP.currentPage}
-                            onPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                            onDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
-                        </footer>
-                      </div>
-                    </div>
-                  </div>
+                  <TableContent
+                    dataTableData={IP.dataContent}
+                    dataTableFields={IP.dataFields}
+                    paginationTotalCount={IP.totalCount}
+                    paginationPageSize={IP.pageSize}
+                    paginationCurrentPage={IP.currentPage}
+                    handleTableSort={this.handleTableSort}
+                    paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
+                    paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
                 </div>
               </div>
             </div>

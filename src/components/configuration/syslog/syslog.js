@@ -6,15 +6,6 @@ import Moment from 'moment'
 import cx from 'classnames'
 import _ from 'lodash'
 
-import {HocPagination as Pagination} from '../../common/pagination'
-import helper from '../../common/helper'
-import withLocale from '../../../hoc/locale-provider'
-import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
-import {HocConfig as Config} from '../../common/configuration'
-import RowMenu from '../../common/row-menu'
-import Relationships from './relationships'
-import EditHosts from './edit-hosts'
-
 import ButtonGroup from 'react-ui/build/src/components/button-group'
 import DataTable from 'react-ui/build/src/components/table'
 import DateRange from 'react-ui/build/src/components/date-range'
@@ -25,6 +16,15 @@ import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import MultiInput from 'react-ui/build/src/components/multi-input'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import Textarea from 'react-ui/build/src/components/textarea'
+
+import helper from '../../common/helper'
+import withLocale from '../../../hoc/locale-provider'
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+import {HocConfig as Config} from '../../common/configuration'
+import RowMenu from '../../common/row-menu'
+import Relationships from './relationships'
+import EditHosts from './edit-hosts'
+import TableContent from '../../common/table-content'
 
 let t = null
 let f = null
@@ -104,7 +104,7 @@ class Syslog extends Component {
     this.getRelationship()
     this.getSyslogList(false)
   }
-  getSyslogList(flag) {
+  getSyslogList = (flag) => {
     const {baseUrl} = this.props
     let {syslog, search} = this.state
     let uri = `?page=${syslog.currentPage}&pageSize=${syslog.pageSize}&sort=${syslog.sort.field}&order=${syslog.sort.desc ? 'desc' : 'asc'}`
@@ -173,7 +173,7 @@ class Syslog extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })          
   }
-  handleRowMouseOver(value, allValue, evt) {
+  handleRowMouseOver = (value, allValue, evt) => {
     let tmp = {...this.state.syslog}
     tmp['dataContent'] = _.map(tmp['dataContent'], el => {
       return {
@@ -184,7 +184,7 @@ class Syslog extends Component {
 
     this.setState({syslog: tmp})
   }
-  getRelationship() {
+  getRelationship = () => {
     const {baseUrl} = this.props
 
     this.ah.one({
@@ -198,7 +198,7 @@ class Syslog extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  getRaw() {
+  getRaw = () => {
     const {config} = this.state
     const {baseUrl} = this.props
     let dataObj = {
@@ -226,7 +226,7 @@ class Syslog extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  confirmSyslog() {
+  confirmSyslog = () => {
     const {config} = this.state
     const {baseUrl} = this.props
 
@@ -283,7 +283,7 @@ class Syslog extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  modalDelete(obj) {
+  modalDelete = (obj) => {
     const eventNme = obj.name
 
     if (eventNme === 'syslog' || eventNme === 'eventlog') {
@@ -307,7 +307,7 @@ class Syslog extends Component {
       }
     })
   }
-  delSyslog(id) {
+  delSyslog = (id) => {
     const {baseUrl} = this.props
 
     this.ah.one({
@@ -321,12 +321,12 @@ class Syslog extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })  
   }
-  handleSyslogChange(type, value) {
+  handleSyslogChange = (type, value) => {
     let temp = {...this.state.syslog}
     temp[type] = value
     this.setState({syslog: temp})
   }
-  openSyslog(id) {
+  openSyslog = (id) => {
     const {baseUrl} = this.props
     
     if (id) {
@@ -363,15 +363,15 @@ class Syslog extends Component {
       this.setState({openSyslog: true, config: INIT_CONFIG, modalTitle: t('txt-add')})
     }
   }
-  closeSyslog() {
+  closeSyslog = () => {
     this.setState({openSyslog: false, error: false, info: ''})
   }
-  forwardSyslog(config) {
+  forwardSyslog = (config) => {
     const {baseUrl, contextRoot} = this.props;
 
     window.location.href = `${baseUrl}${contextRoot}/syslog?configId=${config.id}`;
   }
-  openEditHosts(data) {
+  openEditHosts = (data) => {
     const splitHostsData = data.hosts.split(', ');
     let formattedHostsData = [];
 
@@ -394,7 +394,7 @@ class Syslog extends Component {
       hostsData
     });
   }
-  openTimeline(type, config) {
+  openTimeline = (type, config) => {
     this.setState({
       openTimeline: true,
       activeTimeline: type,
@@ -404,7 +404,7 @@ class Syslog extends Component {
       this.getTimeline();
     });
   }
-  closeTimeline() {
+  closeTimeline = () => {
     this.setState({
       openTimeline: false,
       clickTimeline: false,
@@ -418,12 +418,12 @@ class Syslog extends Component {
       eventsData: {}
     });
   }
-  handleConfigChange(type, value) {
+  handleConfigChange = (type, value) => {
     let temp = {...this.state.config}
     temp[type] = value
     this.setState({config: temp})
   }
-  convertPattern() {
+  convertPattern = () => {
     const {baseUrl} = this.props
     const {config} = this.state
     let dataObj = {
@@ -443,7 +443,7 @@ class Syslog extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  getLatestInput(configId) {
+  getLatestInput = (configId) => {
     const {baseUrl} = this.props;
 
     this.ah.one({
@@ -462,7 +462,7 @@ class Syslog extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  renderTabFilter() {
+  renderTabFilter = () => {
     const {config, rawOptions} = this.state
 
     return (
@@ -506,12 +506,12 @@ class Syslog extends Component {
       </div>
     )
   }
-  handleRelationshipChange(name, val) {
+  handleRelationshipChange = (name, val) => {
     let cfg = {...this.state.config}
     cfg.relationships = val
     this.setState({config: cfg})
   }
-  renderTabRelationship() {
+  renderTabRelationship = () => {
     const {config, configRelationships, rawOptions} = this.state
     let data = {}
 
@@ -570,7 +570,7 @@ class Syslog extends Component {
       </div>
     )    
   }
-  modalSyslog() {
+  modalSyslog = () => {
     const {error, info, modalTitle} = this.state
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeSyslog.bind(this)},
@@ -804,12 +804,12 @@ class Syslog extends Component {
       openEditHosts: false
     });
   }
-  handleSearchChange(type, value) {
+  handleSearchChange = (type, value) => {
     let tempSearch = {...this.state.search}
     tempSearch[type] = value.trim()
     this.setState({search: tempSearch})
   }
-  handlePaginationChange(type, value) {
+  handlePaginationChange = (type, value) => {
     let temp = {...this.state.syslog}
     temp[type] = value
 
@@ -821,14 +821,14 @@ class Syslog extends Component {
       this.getSyslogList()
     })
   }
-  setFilter(flag) {
+  setFilter = (flag) => {
     this.setState({openFilter: flag})
   }
-  clearFilter() {
+  clearFilter = () => {
     const clear = { name: '', port: '', format: '' }
     this.setState({search: clear})
   }
-  renderFilter() {
+  renderFilter = () => {
     const {search, openFilter} = this.state
 
     return (
@@ -881,23 +881,15 @@ class Syslog extends Component {
             { this.renderFilter() }
 
             <div className='main-content'>
-              <div className='table-content'>
-                <div className='table normal'>
-                  <DataTable
-                    className='main-table'
-                    data={syslog.dataContent}
-                    onRowMouseOver={this.handleRowMouseOver.bind(this)}
-                    fields={dataFields} />
-                </div>
-                <footer>
-                  <Pagination
-                    totalCount={syslog.totalCount}
-                    pageSize={syslog.pageSize}
-                    currentPage={syslog.currentPage}
-                    onPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                    onDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
-                </footer>
-              </div>
+              <TableContent
+                dataTableData={syslog.dataContent}
+                dataTableFields={dataFields}
+                paginationTotalCount={syslog.totalCount}
+                paginationPageSize={syslog.pageSize}
+                paginationCurrentPage={syslog.currentPage}
+                handleRowMouseOver={this.handleRowMouseOver}
+                paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
+                paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
             </div>
           </div>
         </div>

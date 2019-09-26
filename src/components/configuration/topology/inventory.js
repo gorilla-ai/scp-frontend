@@ -954,7 +954,7 @@ class NetworkInventory extends Component {
       yara: {},
       ir: {}
     };
-    let yaraCount = '';
+    let yaraCount = 0;
 
     if (!_.isEmpty(currentDeviceData.yaraResult)) {
       hmdInfo.yara = {
@@ -1017,7 +1017,7 @@ class NetworkInventory extends Component {
                       <span>{t('network-inventory.txt-responseTime')}: {hmdInfo.yara.responseTime}</span>
                     }
                   </div>
-                  {yaraCount >= 0 &&
+                  {yaraCount > 0 &&
                     <div className='count'>{t('network-inventory.txt-suspiciousFileCount')}: {yaraCount}</div>
                   }
                   <button className='btn' onClick={this.triggerTask.bind(this, hmdInfo.yara.taskID, 'compareIOC')} disabled={this.checkTriggerTime('yara')}>{t('network-inventory.txt-reCheck')}</button>

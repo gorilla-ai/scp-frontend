@@ -35,7 +35,7 @@ class Status extends Component {
 		et = chewbaccaI18n.getFixedT(null, 'errors');
 		this.ah = getInstance('chewbacca');
 	}
-	componentWillMount() {
+	componentDidMount() {
 		this.getServiceStatus();
 	}
 	getServiceStatus = (option) => {

@@ -7,7 +7,6 @@ import _ from 'lodash'
 import cx from 'classnames'
 
 import ComboBox from 'react-ui/build/src/components/combobox'
-import DataTable from 'react-ui/build/src/components/table'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
@@ -15,11 +14,11 @@ import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import Popover from 'react-ui/build/src/components/popover'
 
 import countryList from '../../common/country-list'
-import {HocPagination as Pagination} from '../../common/pagination'
 import helper from '../../common/helper'
 import withLocale from '../../../hoc/locale-provider'
 import {HocConfig as Config} from '../../common/configuration'
 import RowMenu from '../../common/row-menu'
+import TableContent from '../../common/table-content'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -81,7 +80,7 @@ class Honeynet extends Component {
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
     this.ah = getInstance('chewbacca');
   }
-  componentWillMount() {
+  componentDidMount() {
     this.getCountryList()
     this.getHostData()
     this.getGroupData()
@@ -276,13 +275,13 @@ class Honeynet extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  mouseEnter(time, evt) {
+  mouseEnter = (time, evt) => {
     Popover.openId('popup-id', evt, t('honeynetFields.lastDataUpdDT') + ' ' + helper.getFormattedDate(time, 'local'))
   }
-  mouseLeave() {
+  mouseLeave = () => {
     Popover.closeId('popup-id')
   }
-  handleRowMouseOver(value, allValue, evt) {
+  handleRowMouseOver = (value, allValue, evt) => {
     let tmp = {...this.state.honeynet}
 
     tmp['dataContent'] = _.map(tmp['dataContent'], el => {
@@ -694,25 +693,17 @@ class Honeynet extends Component {
             { this.renderFilter() }
 
             <div className='main-content'>
-              <div className='table-content'>
-                <div className='table normal'>
-                  <DataTable
-                    className='main-table'
-                    fields={honeynet.dataFields}
-                    data={honeynet.dataContent}
-                    onRowMouseOver={this.handleRowMouseOver.bind(this)}
-                    sort={honeynet.dataContent.length === 0 ? {} : honeynet.sort}
-                    onSort={this.handleTableSort} />
-                </div>
-                <footer>
-                  <Pagination
-                    totalCount={honeynet.totalCount}
-                    pageSize={honeynet.pageSize}
-                    currentPage={honeynet.currentPage}
-                    onPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                    onDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
-                </footer>
-              </div>
+              <TableContent
+                dataTableData={honeynet.dataContent}
+                dataTableFields={honeynet.dataFields}
+                dataTableSort={honeynet.sort}
+                paginationTotalCount={honeynet.totalCount}
+                paginationPageSize={honeynet.pageSize}
+                paginationCurrentPage={honeynet.currentPage}
+                handleTableSort={this.handleTableSort}
+                handleRowMouseOver={this.handleRowMouseOver}
+                paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
+                paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
             </div>
           </div>
         </div>

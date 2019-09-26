@@ -68,7 +68,7 @@ class EmployeeRecord extends Component {
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
     this.ah = getInstance('chewbacca');
   }
-  componentWillMount() {
+  componentDidMount() {
     this.getTopologyData();
   }
   toggleSwitch = (type, mode) => {

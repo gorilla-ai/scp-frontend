@@ -73,6 +73,24 @@ class Edge extends Component {
       this.toggleContent('tableList');
     }
   }
+  agentAnalysis = (allValue) => {
+    const {baseUrl, contextRoot} = this.props;
+    const url = `${baseUrl}/api/agent/_analyze?projectId=${allValue.projectId}`;
+
+    ah.one({
+      url: url,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        this.getEdgeData();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
   getEdgeData = (fromSearch) => {
     const {baseUrl, contextRoot} = this.props;
     const {edgeSearch, edge} = this.state;
@@ -114,10 +132,10 @@ class Edge extends Component {
                   iconType = 'icon_connected_off';
                 }
 
-                const statusIcon = contextRoot + `/images/${iconType}.png`;
+                const iconImage = contextRoot + `/images/${iconType}.png`;
 
                 return (
-                  <span><img src={statusIcon} title={allValue.agentApiStatus} />{value}</span>
+                  <span><img src={iconImage} title={allValue.agentApiStatus} />{value}</span>
                 )
               } else if (tempData === 'description') {
                 let serviceType = allValue.serviceType;
@@ -140,11 +158,22 @@ class Edge extends Component {
                       <li><span>threatIntellLastUpdDT:</span> {helper.getFormattedDate(allValue.threatIntellLastUpdDT, 'local')}</li>
                       {allValue.agentMode === 'TCPDUMP' &&
                         <section>
-                          <li><span>start:</span> {allValue.agentstartdt}</li>
-                          <li><span>end:</span> {allValue.agentenddt}</li>
-                          <li><span>threatintelllastupddt:</span> {helper.getFormattedDate(allValue.threatintelllastupddt, 'local')}</li>
-                          <li><span>lastanalyzedstatus:</span> {helper.getFormattedDate(allValue.lastanalyzedstatus, 'local')}</li>
-                          <li><span>lastanalyzedstatusupddt:</span> {helper.getFormattedDate(allValue.lastanalyzedstatusupddt, 'local')}</li>
+                          {allValue.agentstartdt &&
+                            <li><span>start:</span> {allValue.agentstartdt}</li>
+                          }
+                          {allValue.agentenddt &&
+                            <li><span>end:</span> {allValue.agentenddt}</li>
+                          }
+                          <button onClick={this.agentAnalysis.bind(this, allValue)}>{t('txt-analyze')}</button>
+                          {allValue.threatintelllastupddt &&
+                            <li><span>threatintelllastupddt:</span> {helper.getFormattedDate(allValue.threatintelllastupddt, 'local')}</li>
+                          }
+                          {allValue.lastanalyzedstatus &&
+                            <li><span>lastanalyzedstatus:</span> {helper.getFormattedDate(allValue.lastanalyzedstatus, 'local')}</li>
+                          }
+                          {allValue.lastanalyzedstatusupddt &&
+                            <li><span>lastanalyzedstatusupddt:</span> {helper.getFormattedDate(allValue.lastanalyzedstatusupddt, 'local')}</li>
+                          }
                         </section>
                       }
                     </ul>
@@ -241,6 +270,10 @@ class Edge extends Component {
         lastStatus: allValue.lastStatus,
         isConfigurable: allValue.isConfigurable
       };
+
+      this.setState({
+        showFilter: false
+      });
     } else if (type === 'tableList') {
       tempEdge.info = {};
     } else if (type === 'cancel') {

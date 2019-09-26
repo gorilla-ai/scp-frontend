@@ -188,8 +188,8 @@ class Manage extends Component {
               return (
                 <div className='button'>
                   <button className='status no-pointer analysis'>
-                    {
-                      showStartBtn && <i className='c-link fg fg-video-analytics active' onClick={this.agentAnalysis.bind(this, allValue)}></i>
+                    {showStartBtn && 
+                      <i className='c-link fg fg-video-analytics active' onClick={this.agentAnalysis.bind(this, allValue)}></i>
                     }
                     <span className='status'>{statusLabel}</span>
                   </button>
@@ -342,7 +342,7 @@ class Manage extends Component {
     }
   }
   updateAgentData = (search) => {
-    const {page, baseUrl} = this.props;
+    const {baseUrl, page} = this.props;
     const {datetime, threats, threatSearch, agent, agentSearch} = this.state;
 
     if (page === 'agent') {
@@ -617,8 +617,8 @@ class Manage extends Component {
     });
   }
   handleAgentConfirm = () => {
-    const {agent} = this.state;
     const {baseUrl} = this.props;
+    const {agent} = this.state;
     let requestType = 'POST';
     let data = {
       projectId: agent.add.projectId,
@@ -729,8 +729,8 @@ class Manage extends Component {
     })
   }
   pcapAnalysis = (value) => {
-    const {agent} = this.state
-    const {baseUrl} = this.props
+    const {baseUrl} = this.props;
+    const {agent} = this.state;
     const url = `${baseUrl}/api/agent/pcap/_analyze?projectId=${value.projectId}`
 
     ah.one({
@@ -746,7 +746,6 @@ class Manage extends Component {
     })
   }
   agentAnalysis = (value) => {
-    const {agent} = this.state;
     const {baseUrl} = this.props;
     const url = `${baseUrl}/api/agent/_analyze?projectId=${value.projectId}`;
 
@@ -843,8 +842,8 @@ class Manage extends Component {
     )
   }
   deleteFile = () => {
-    const {agent} = this.state;
     const {baseUrl} = this.props;
+    const {agent} = this.state;
 
     ah.one({
       url: `${baseUrl}/api/agent/${agent.add.agentId}`,
@@ -910,7 +909,7 @@ class Manage extends Component {
     }
   }
   uploadFile = (data) => {
-    const {page, baseUrl} = this.props;
+    const {baseUrl, page} = this.props;
     const {agent} = this.state;
     let formData = new FormData();
     formData.append('file', data.file);

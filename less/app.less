@@ -380,6 +380,10 @@ footer.footer {
 		visibility: hidden;
 		&.active {
 			visibility: visible;
+			button,
+			.fg {
+				cursor: pointer;
+			}
 		}
 		button {
 			padding: .3em .5em;
@@ -408,6 +412,7 @@ footer.footer {
 			margin-left: 5px;
 			&.active {
 				visibility: visible;
+				cursor: pointer;
 			}
 		}
 		span {
@@ -1153,7 +1158,6 @@ footer.footer {
 						tbody td {
 							text-align: left;
 							padding-left: 30px;
-							cursor: pointer;
 							&.align-center {
 								text-align: center;
 							}
@@ -1184,49 +1188,14 @@ footer.footer {
 								span {
 									color: #004d93;
 								}
+								button {
+									margin: 5px 0;
+								}
 							}
 							&.ipPort {
 								img {
 									float: left;
 									margin-right: 5px;
-								}
-							}
-							.button {
-								button {
-									margin-top: 15px;
-									padding-right: 25px;
-									padding-left: 15px;
-									background-color: #fff;
-									color: #585858;
-									&.status {
-										border: none;
-										background: none;
-										cursor: text;
-									}
-									i {
-										float: left;
-										padding-top: 2px;
-										font-size: 1.6em;
-									}
-									span {
-										float: right;
-										margin-left: 20px;
-										margin-top: 4px;
-										&.status {
-											margin-left: 5px;
-										}
-									}
-								}
-								& > div, & > span {
-									color: #a6a6a6;
-									font-size: .9em;
-								}
-								& > div > span {
-									display: inline-block;
-									margin-right: 5px;
-								}
-								& > span {
-									display: block;
 								}
 							}
 							span {
@@ -1275,9 +1244,9 @@ footer.footer {
 								padding-left: 0;
 							}
 						}
-						&.no-pointer {
+						&.with-pointer {
 							tbody td {
-								cursor: text;
+								cursor: pointer;
 							}
 						}
 						&.fixed-header {
@@ -1575,6 +1544,11 @@ footer.footer {
 				overflow-x: auto;
 				overflow: hidden;
 				white-space: nowrap;
+			}
+			&.map {
+				.table-content .table {
+					height: auto;
+				}
 			}
 			.content-area {
 				text-align: center;

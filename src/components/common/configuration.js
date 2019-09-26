@@ -24,7 +24,7 @@ class Config extends Component {
     t = global.chewbaccaI18n.getFixedT(null, 'connections')
     this.state = _.cloneDeep(INIT)
   }
-  componentWillMount = () => {
+  componentDidMount = () => {
     const openEdgeManagement = this.getActiveFrame('edge') || this.getActiveFrame('threat')
     const openHoneynet = this.getActiveFrame('pot') || this.getActiveFrame('mail')
     const openTopology = this.getActiveFrame('inventory') || this.getActiveFrame('owner') || this.getActiveFrame('map')
@@ -92,6 +92,13 @@ class Config extends Component {
             </div>*/}
           </div>
         }
+        {/*sessionRights.Module_FlowAnalysis_Agent_Manage &&
+          <div className='frame agent-manage'>
+            <Link to='/ChewbaccaWeb/configuration/agent'>
+              <span className={`${this.getActiveFrame('agent')}`}>{t('txt-agentManage')}</span>
+            </Link>
+          </div>
+        */}
         {sessionRights.Module_NetworkTopology_Manage &&
           <div className='frame network-topology' onClick={this.handleOpen.bind(this, 'openTopology', openTopology)}>
             <span className={`${this.getActiveFrame('inventory') || this.getActiveFrame('owner') || this.getActiveFrame('map')}`}>{t('txt-topology')}</span>

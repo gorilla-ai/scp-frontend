@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
+import cx from 'classnames'
 
 import DataTable from 'react-ui/build/src/components/table'
 
@@ -25,6 +26,7 @@ class TableContent extends Component {
   render() {
     const {
       activeTab,
+      withPointer,
       displayImgType,
       dataTableData,
       dataTableFields,
@@ -39,7 +41,7 @@ class TableContent extends Component {
         <div className='table'>
           {(!activeTab || activeTab !== 'file' || (activeTab === 'file' && displayImgType === 'list')) &&
             <DataTable
-              className='main-table'
+              className={cx('main-table', {'with-pointer': withPointer})}
               fields={dataTableFields}
               data={dataTableData}
               rowClassName={this.handleRowClass}

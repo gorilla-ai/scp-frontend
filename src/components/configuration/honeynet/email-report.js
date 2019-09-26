@@ -7,7 +7,6 @@ import _ from 'lodash'
 import cx from 'classnames'
 
 import ComboBox from 'react-ui/build/src/components/combobox'
-import DataTable from 'react-ui/build/src/components/table'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
@@ -15,10 +14,10 @@ import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import Popover from 'react-ui/build/src/components/popover'
 
 import helper from '../../common/helper'
-import {HocPagination as Pagination} from '../../common/pagination'
 import withLocale from '../../../hoc/locale-provider'
 import {HocConfig as Config} from '../../common/configuration'
 import RowMenu from '../../common/row-menu'
+import TableContent from '../../common/table-content'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -59,7 +58,7 @@ class EmailReport extends Component {
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
     this.ah = getInstance('chewbacca');
   }
-  componentWillMount() {
+  componentDidMount() {
     this.getHoneyPotData();
     this.getReportEmailData();
   }
@@ -246,13 +245,13 @@ class EmailReport extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  mouseEnter(lfe, evt) {
+  mouseEnter = (lfe, evt) => {
     Popover.openId('popup-id', evt, <div>{t(`emailReportFields.lastFailEmail`) + lfe}</div>)
   }
-  mouseLeave() {
+  mouseLeave = () => {
     Popover.closeId('popup-id')
   }
-  handleRowMouseOver(value, allValue, evt) {
+  handleRowMouseOver = (value, allValue, evt) => {
     let tmp = {...this.state.emailReport}
 
     tmp['dataContent'] = _.map(tmp['dataContent'], el => {
@@ -745,25 +744,17 @@ class EmailReport extends Component {
             { this.renderFilter() }
 
             <div className='main-content'>
-              <div className='table-content'>
-                <div className='table normal'>
-                  <DataTable
-                    className='main-table'
-                    fields={emailReport.dataFields}
-                    data={emailReport.dataContent}
-                    onRowMouseOver={this.handleRowMouseOver.bind(this)}
-                    sort={emailReport.dataContent.length === 0 ? {} : emailReport.sort}
-                    onSort={this.handleTableSort} />
-                </div>
-                <footer>
-                  <Pagination
-                    totalCount={emailReport.totalCount}
-                    pageSize={emailReport.pageSize}
-                    currentPage={emailReport.currentPage}
-                    onPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                    onDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
-                </footer>
-              </div>
+              <TableContent
+                dataTableData={emailReport.dataContent}
+                dataTableFields={emailReport.dataFields}
+                dataTableSort={emailReport.sort}
+                paginationTotalCount={emailReport.totalCount}
+                paginationPageSize={emailReport.pageSize}
+                paginationCurrentPage={emailReport.currentPage}
+                handleTableSort={this.handleTableSort}
+                handleRowMouseOver={this.handleRowMouseOver}
+                paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
+                paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
             </div>
           </div>
         </div>
