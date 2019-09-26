@@ -393,7 +393,10 @@ class Edge extends Component {
 
       statusIcon = contextRoot + `/images/${iconType}.png`;
 
-      if (edge.info.lastStatus.indexOf('active') !== -1) {
+      if (edge.info.lastStatus.indexOf('inactive') !== -1) {
+        btnStatusOn = false;
+        action = 'start';
+      } else if (edge.info.lastStatus.indexOf('active') !== -1) {
         btnStatusOn = true;
         action = 'stop';
       }

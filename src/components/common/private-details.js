@@ -42,8 +42,6 @@ class PrivateDetails extends Component {
       baseLayers: alertInfo[type] ? alertInfo[type].ownerBaseLayers : alertInfo.ownerBaseLayers
     };
     const areaName = topoInfo.areaObj ? topoInfo.areaObj.areaFullName : topoInfo.areaFullName;
-    const disksContent = topoInfo.disks.substr(0, 80) + '...';
-    const foldersContent = topoInfo.shareFolders.substr(0, 80) + '...';
 
     return (
       <div className='private'>
@@ -108,13 +106,13 @@ class PrivateDetails extends Component {
               {topoInfo.disks &&
                 <tr>
                   <td>{t('txt-disks')}</td>
-                  <td onClick={helper.showPopupMsg.bind(this, topoInfo.disks, '')} style={{cursor: 'pointer'}}>{disksContent}</td>
+                  <td>{topoInfo.disks}</td>
                 </tr>
               }
               {topoInfo.shareFolders &&
                 <tr>
                   <td>{t('txt-shareFolders')}</td>
-                  <td onClick={helper.showPopupMsg.bind(this, topoInfo.shareFolders, '')} style={{cursor: 'pointer'}}>{foldersContent}</td>
+                  <td>{topoInfo.shareFolders}</td>
                 </tr>
               }
             </tbody>

@@ -584,6 +584,7 @@
     "txt-notificationSettings": "Notification Settings",
     "txt-backToList": "$t(txt-back) to $t(txt-listText)",
     "txt-backToMap": "$t(txt-back) to $t(txt-map)",
+    "txt-ipEditSuccess": "IP is added/updated successfully",
     "txt-lastUpdate": "Last Update",
     "txt-createTime": "Create Time",
     "txt-responseTime": "Response Time",

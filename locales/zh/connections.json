@@ -584,6 +584,7 @@
     "txt-notificationSettings": "通知設定",
     "txt-backToList": "$t(txt-back)$t(txt-listText)",
     "txt-backToMap": "$t(txt-back)$t(txt-map)",
+    "txt-ipEditSuccess": "IP新增/編輯成功",
     "txt-lastUpdate": "最近更新時間",
     "txt-createTime": "最近觸發時間",
     "txt-responseTime": "最近回應時間",

@@ -56,7 +56,6 @@ class NetworkInventory extends Component {
       showFilter: false,
       showScanInfo: false,
       showSeatData: false,
-      showHMDonly: false,
       modalFloorOpen: false,
       addSeatOpen: false,
       activeScanType: 'yara', //yara, ir
@@ -73,6 +72,7 @@ class NetworkInventory extends Component {
         areaName: '',
         seatName: ''
       },
+      showHMDonly: false,
       deviceData: {
         dataFieldsArr: ['ip', 'mac', 'hostName', 'system', 'owner', 'areaName', 'seatName', 'yaraScan', '_menu_'],
         dataFields: {},
@@ -467,10 +467,10 @@ class NetworkInventory extends Component {
   }
   getAreaData = (areaUUID) => {
     const {baseUrl, contextRoot} = this.props;
-    const floorPlan = areaUUID;
+    const mapAreaUUID = areaUUID;
 
     this.ah.one({
-      url: `${baseUrl}/api/area?uuid=${floorPlan}`,
+      url: `${baseUrl}/api/area?uuid=${mapAreaUUID}`,
       type: 'GET'
     })
     .then(data => {
@@ -496,10 +496,10 @@ class NetworkInventory extends Component {
       }
 
       let currentBaseLayers = {};
-      currentBaseLayers[floorPlan] = currentMap;
+      currentBaseLayers[mapAreaUUID] = currentMap;
 
       this.setState({
-        mapAreaUUID: floorPlan,
+        mapAreaUUID,
         currentMap,
         currentBaseLayers,
         currentFloor: areaUUID
@@ -1105,7 +1105,6 @@ class NetworkInventory extends Component {
   }
   clearFilter = () => {
     this.setState({
-      showHMDonly: false,
       deviceSearch: {
         ip: '',
         mac: '',
@@ -1114,7 +1113,8 @@ class NetworkInventory extends Component {
         owner: '',
         areaName: '',
         seatName: ''
-      }
+      },
+      showHMDonly: false
     });
   }
   handleDeviceSearch = (type, value) => {
@@ -1157,7 +1157,7 @@ class NetworkInventory extends Component {
           cpu: currentDeviceData.cpu,
           ram: currentDeviceData.ram,
           disks: currentDeviceData.disks,
-          folders: currentDeviceData.folders,
+          shareFolders: currentDeviceData.shareFolders,
           file: currentDeviceData.ownerObj ? currentDeviceData.ownerObj.picPath : '',
           ownerPic: currentDeviceData.ownerObj ? currentDeviceData.ownerObj.base64 : '',
           ownerUUID: currentDeviceData.ownerUUID,
@@ -1196,20 +1196,23 @@ class NetworkInventory extends Component {
     }
 
     this.setState({
-      activeContent,
-      showFilter: false
+      activeContent
     });
   }
-  checkFormValidation = () => {
+  checkFormValidation = (step) => {
     const {addIP, ownerType} = this.state;
 
-    if (!addIP.ip || !addIP.mac) {
-      return true;
+    if (step === 1) {
+      if (!addIP.ip || !addIP.mac) {
+        return true;
+      }
     }
 
-    if (ownerType === 'new') {
-      if (!addIP.newOwnerName || !addIP.newOwnerID) {
-        return true;
+    if (step === 3) {
+      if (ownerType === 'new') {
+        if (!addIP.newOwnerName || !addIP.newOwnerID) {
+          return true;
+        }
       }
     }
   }
@@ -1220,18 +1223,25 @@ class NetworkInventory extends Component {
     if (type === 'previous') {
       tempActiveSteps--;
     } else if (type === 'next') {
-      if (activeSteps === 4) {
-        const formError = this.checkFormValidation();
-
-        if (formError) {
+      if (activeSteps === 1) {
+        if (this.checkFormValidation(1)) {
           helper.showPopupMsg(et('fill-required-fields'), t('txt-error'));
-        } else {
-          this.handleAddIpConfirm();
+          return;
         }
-        return;
-      } else {
-        tempActiveSteps++;
       }
+
+      if (activeSteps === 3) {
+        if (this.checkFormValidation(3)) {
+          helper.showPopupMsg(et('fill-required-fields'), t('txt-error'));
+          return;
+        }
+      }
+
+      if (activeSteps === 4) {
+        this.handleAddIpConfirm();
+        return;
+      }
+      tempActiveSteps++;
     }
 
     this.setState({
@@ -1276,8 +1286,7 @@ class NetworkInventory extends Component {
   }
   handleIPdeviceConfirm = (ownerUUID) => {
     const {baseUrl, contextRoot} = this.props;
-    const {formTypeEdit, currentDeviceData, floorPlan, addIP, addSeat} = this.state;
-
+    const {formTypeEdit, currentDeviceData, floorPlan, addIP, addSeat, mapAreaUUID} = this.state;
     const url = `${baseUrl}/api/ipdevice`;
     const requestType = formTypeEdit ? 'PATCH' : 'POST';
     let requestData = {
@@ -1286,12 +1295,12 @@ class NetworkInventory extends Component {
       hostName: addIP.hostName,
       deviceType: addIP.deviceType,
       system: addIP.system,
-      userName: addIP.user,
+      userName: addIP.userName,
       cpu: addIP.cpu,
       ram: addIP.ram,
       disks: addIP.disks,
-      shareFolders: addIP.folders,
-      areaUUID: floorPlan.currentAreaUUID,
+      shareFolders: addIP.shareFolders,
+      areaUUID: mapAreaUUID,
       seatUUID: addSeat.selectedSeatUUID
     };
 
@@ -1307,7 +1316,7 @@ class NetworkInventory extends Component {
 
     helper.getAjaxData(requestType, url, requestData)
     .then(data => {
-      this.getDeviceData();
+      this.getDeviceData('search');
       this.getOwnerData();
       this.getOtherData();
       this.getFloorPlan();
@@ -1317,6 +1326,7 @@ class NetworkInventory extends Component {
       } else {
         this.toggleContent('showList');
       }
+      helper.showPopupMsg(t('edgeManagement.txt-edgeEditSuccess'));
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'));
@@ -1503,8 +1513,8 @@ class NetworkInventory extends Component {
                 <label htmlFor='addIPstepsUser'>{t('ipFields.owner')}</label>
                 <Input
                   id='addIPstepsUser'
-                  onChange={this.handleAddIpChange.bind(this, 'user')}
-                  value={addIP.user}
+                  onChange={this.handleAddIpChange.bind(this, 'userName')}
+                  value={addIP.userName}
                   readOnly={currentDeviceData.isHmd} />
               </div>
               <div className='group'>
@@ -1537,8 +1547,8 @@ class NetworkInventory extends Component {
                 <Textarea
                   id='addIPstepsFolders'
                   rows={3}
-                  onChange={this.handleAddIpChange.bind(this, 'folders')}
-                  value={addIP.folders}
+                  onChange={this.handleAddIpChange.bind(this, 'shareFolders')}
+                  value={addIP.shareFolders}
                   readOnly={currentDeviceData.isHmd} />
               </div>
             </div>
