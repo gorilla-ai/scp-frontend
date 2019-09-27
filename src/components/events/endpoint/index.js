@@ -5,19 +5,16 @@ import Moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import Checkbox from 'react-ui/build/src/components/checkbox'
 import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import DataTable from 'react-ui/build/src/components/table'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
-import PopupDialog from 'react-ui/build/src/components/popup-dialog'
-import RadioGroup from 'react-ui/build/src/components/radio-group'
 import Textarea from 'react-ui/build/src/components/textarea'
 
-import {HocPagination as Pagination} from '../../common/pagination'
 import helper from '../../common/helper'
 import withLocale from '../../../hoc/locale-provider'
+import TableContent from '../../common/table-content'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -30,6 +27,8 @@ class Endpoint extends Component {
 
     this.state = {
       openFilter: false,
+      addTaskOpen: false,
+      viewTaskOpen: false,
       search: {
         hostName: '',
         ip: '',
@@ -68,9 +67,7 @@ class Endpoint extends Component {
           desc: false
         },
         totalCount: 0
-      },
-      addTaskOpen: false,
-      viewTaskOpen: false
+      }
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -173,8 +170,8 @@ class Endpoint extends Component {
     tempTask.ipDeviceUUID = allValue.ipDeviceUUID;
 
     this.setState({
-      task: tempTask,
-      addTaskOpen: true
+      addTaskOpen: true,
+      task: tempTask
     });
   }
   getTaskInfo = (value, allValue) => {
@@ -208,8 +205,8 @@ class Endpoint extends Component {
       tempTaskTable.dataFields = dataFields;
 
       this.setState({
-        taskTable: tempTaskTable,
-        viewTaskOpen: true
+        viewTaskOpen: true,
+        taskTable: tempTaskTable
       });
     })
     .catch(err => {
@@ -358,6 +355,8 @@ class Endpoint extends Component {
   }
   closeDialog = () => {
     this.setState({
+      addTaskOpen: false,
+      viewTaskOpen: false,
       task: {
         hostId: '',
         taskName: '',
@@ -367,9 +366,7 @@ class Endpoint extends Component {
         fileCompressPassward: '',
         fileUrl: '',
         fileAccount: ''
-      },
-      addTaskOpen: false,
-      viewTaskOpen: false,
+      }
     });
   }
   handleRowMouseOver = (value, allValue, evt) => {
@@ -386,7 +383,7 @@ class Endpoint extends Component {
       hmd: tmpHmd
     });
   }
-  handleHostTableSort = (value) => {
+  handleTableSort = (value) => {
     let tempHmd = {...this.state.hmd};
     tempHmd.sort.field = value.field;
     tempHmd.sort.desc = !tempHmd.sort.desc;
@@ -472,7 +469,7 @@ class Endpoint extends Component {
   }
   render() {
     const {session} = this.props;
-    const {openFilter, hmd, addTaskOpen, viewTaskOpen} = this.state;
+    const {openFilter, addTaskOpen, viewTaskOpen, hmd} = this.state;
     let sessionRights = {};
 
     _.forEach(session.rights, val => {
@@ -504,25 +501,17 @@ class Endpoint extends Component {
             }
 
             <div className='main-content'>
-              <div className='table-content'>
-                <div className='table no-fixed'>
-                  <DataTable
-                    className='main-table'
-                    fields={hmd.dataFields}
-                    data={hmd.dataContent}
-                    onRowMouseOver={this.handleRowMouseOver}
-                    sort={hmd.dataContent.length === 0 ? {} : hmd.sort}
-                    onSort={this.handleHostTableSort} />
-                  <footer>
-                    <Pagination
-                      totalCount={hmd.totalCount}
-                      pageSize={hmd.pageSize}
-                      currentPage={hmd.currentPage}
-                      onPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                      onDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
-                  </footer>
-                </div>
-              </div>
+              <TableContent
+                dataTableData={hmd.dataContent}
+                dataTableFields={hmd.dataFields}
+                dataTableSort={hmd.sort}
+                paginationTotalCount={hmd.totalCount}
+                paginationPageSize={hmd.pageSize}
+                paginationCurrentPage={hmd.currentPage}
+                handleTableSort={this.handleTableSort}
+                handleRowMouseOver={this.handleRowMouseOver}
+                paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
+                paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
             </div>
           </div>
         </div>

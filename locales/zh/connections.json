@@ -419,6 +419,19 @@
     }
   },
 
+  "notifications": {
+    "txt-settings": "通知設定",
+    "txt-emailSettings": "Email設定",
+    "txt-smtpServer": "SMTP主機",
+    "txt-smtpPort": "SMTP Port",
+    "txt-sender": "寄件者",
+    "txt-smtpConnectType": "SMTP連線種類",
+    "txt-authentication": "驗證",
+    "txt-senderAccount": "寄件者帳號",
+    "txt-senderPassword": "寄件者密碼",
+    "txt-recipientEmail": "收件者郵件信箱"
+  },
+
   "hmdFields": {
     "ipDeviceUUID": "主機ID",
     "hostId": "主機ID",
@@ -774,7 +787,7 @@
     "value": "數值",
     "conditions": "條件",
     "query": "標示",
-    "txt-customFieldName": "自訂欄位命名稱",
+    "txt-customFieldName": "自訂欄位名稱",
     "txt-addSyslog": "新增系統日誌",
     "txt-delSyslog": "刪除系統日誌",
     "txt-eventDist": " Event Distribution",

@@ -64,7 +64,8 @@ class Alert extends Component {
 
             {mainContentData.activeSubTab === 'table' &&
               <TableContent
-                {...mainContentData} />
+                {...mainContentData}
+                withPointer={true} />
             }
 
             {mainContentData.activeSubTab === 'linkAnalysis' &&

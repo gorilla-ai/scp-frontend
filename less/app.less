@@ -616,7 +616,7 @@ footer.footer {
 		}
 	}
 	.main-statistic {
-		height: 80vh;
+		height: 79vh;
 		overflow-y: auto;
 		background-color: #d9d9d9;
 		.nav {
@@ -1065,7 +1065,8 @@ footer.footer {
 						display: none;
 					}
 					li {
-						padding: 25px 20px 5px 20px;
+						font-size: 16px;
+						padding: 15px 20px 10px 20px;
 					}
 				}
 				footer {
@@ -1076,11 +1077,8 @@ footer.footer {
 					}
 				}
 				.table-content .table {
-					height: 70vh;
+					height: 71vh;
 					overflow-y: auto;
-					&.no-fixed {
-						height: auto;
-					}
 					.main-table {
 						width: 100%;
 						&.overflow-scroll {
@@ -1274,14 +1272,14 @@ footer.footer {
 				}
 				.btn {
 					position: absolute;
-					top: 10px;
+					top: 9px;
 					padding: .3em 1em;
 					&.last {
 						right: 15px;
 					}
 				}
 				.la-content {
-					height: 80vh;
+					height: 79vh;
 					overflow-y: auto;
 					.c-la {
 						width: 100%;
@@ -1420,6 +1418,42 @@ footer.footer {
 							top: -40px;
 							right: 0;
 						}
+						.group {
+							width: 50%;
+							padding: 5px;
+							label {
+								text-align: left;
+								color: #185e9e;
+								font-size: .9em;
+								display: block;
+								margin-bottom: 3px;
+							}
+							&.full {
+								width: 100%;
+							}
+						}
+						&.normal {
+							margin-top: 60px;
+							#edgeModeType {
+								flex-direction: row;
+								margin: 10px 0;
+							}
+							.list-item {
+								margin: 0;
+								margin-right: 10px;
+								input {
+									width: 20px;
+								}
+							}
+							#edgeModeDatetime {
+								text-align: left;
+							}
+						}
+						&.short {
+							.group {
+								width: 25%;
+							}
+						}
 						&.steps-owner {
 							.removePhoto {
 								label {
@@ -1476,20 +1510,6 @@ footer.footer {
 								}
 							}
 						}
-						.group {
-							width: 50%;
-							padding: 5px;
-							label {
-								text-align: left;
-								color: #185e9e;
-								font-size: .9em;
-								display: block;
-								margin-bottom: 3px;
-							}
-							&.full {
-								width: 100%;
-							}
-						}
 						&.steps-floor {
 							padding: 0;
 							button.manage {
@@ -1515,23 +1535,6 @@ footer.footer {
 										min-height: 450px;
 									}
 								}
-							}
-						}
-						&.edge {
-							margin-top: 60px;
-							#edgeModeType {
-								flex-direction: row;
-								margin: 10px 0;
-							}
-							.list-item {
-								margin: 0;
-								margin-right: 10px;
-								input {
-									width: 20px;
-								}
-							}
-							#edgeModeDatetime {
-								text-align: left;
 							}
 						}
 					}
@@ -1734,14 +1737,10 @@ footer.footer {
 			}
 		}
 		.private {
-			width: 60%;
 			margin: 0 auto;
 			padding: 20px 0;
 			section {
 				padding-right: 0 !important;
-				table.owner {
-					width: 70% !important;
-				}
 			}
 		}
 		.main-table {
@@ -1790,8 +1789,7 @@ footer.footer {
 				img.owner-pic {
 					float: left;
 					display: block;
-					width: 150px;
-					height: 150px;
+					width: 20%;
 					border-radius: 50%;
 					margin-bottom: 20px;
 					margin-right: 5%;
@@ -1811,7 +1809,7 @@ footer.footer {
 					}
 					&.owner {
 						float: left;
-						width: 67%;
+						width: 70%;
 					}
 				}
 				.floor-map {
@@ -1852,11 +1850,28 @@ footer.footer {
 	}
 }
 
+@media only screen and (min-width: 1280px) {
+	#app-container {
+		.privateIp-info {
+			.private {
+				width: 60%;
+			}
+		}
+	}
+}
+
 @media only screen and (max-width: 1280px) {
-	#app-container .statistic .chart-group {
-		flex-direction: column;
-		.col {
-			width: 100%;
+	#app-container {
+		.statistic .chart-group {
+			flex-direction: column;
+			.col {
+				width: 100%;
+			}
+		}
+		.privateIp-info {
+			.private {
+				width: 80%;
+			}
 		}
 	}
 }

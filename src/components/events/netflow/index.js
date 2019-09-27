@@ -1901,12 +1901,10 @@ class Netflow extends Component {
   handleDataChange = (val) => {
     let tempTagData = {...this.state.tagData};
 
-    if (val) {
-      tempTagData.memo = val;
-    } else if (val.hex) {
+    if (val.hex) {
       tempTagData.color = val.hex.toUpperCase();
-    } else {
-      tempTagData.color = val.toUpperCase();
+    } else if (val) {
+      tempTagData.memo = val;
     }
 
     this.setState({
@@ -1919,11 +1917,26 @@ class Netflow extends Component {
 
     return (
       <div>
-        <label htmlFor='tagMemo'>{t('txt-memo')}</label>
-        <Textarea id='tagMemo' className='add' rows={4} value={tagData.memo} onChange={this.handleDataChange} />
-        <label>{t('txt-color')}</label>
-        <GithubPicker width='213px' colors={colorList} triangle='hide' onChangeComplete={this.handleDataChange} />
-        <div className='color-box' className={'color-box ' + helper.showColor(tagData.color)}></div>
+        <label htmlFor='tagMemo'>{t('txt-memo')} ({t('network.agent.txt-memoMaxLength')})</label>
+        <Textarea
+          id='tagMemo'
+          className='add'
+          rows={4}
+          maxLength={250}
+          value={tagData.memo}
+          onChange={this.handleDataChange} />
+        <div className='group'>
+          <label>{t('txt-color')}</label>
+          <GithubPicker
+            width='213px'
+            colors={colorList}
+            triangle='hide'
+            onChangeComplete={this.handleDataChange} />
+        </div>
+        <div className='group'>
+          <label>{t('txt-select')}</label>
+          <div className='color-box' className={'color-box ' + helper.showColor(tagData.color)}></div>
+        </div>
       </div>
     )
   }

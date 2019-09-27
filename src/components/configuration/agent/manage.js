@@ -584,7 +584,7 @@ class Manage extends Component {
           id='agentMemo'
           className='add'
           rows={4}
-          maxlength={250}
+          maxLength={250}
           value={agent.add.memo}
           onChange={this.handleDataChange.bind(this, 'memo')} />
 

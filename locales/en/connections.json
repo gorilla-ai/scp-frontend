@@ -419,6 +419,19 @@
     }
   },
 
+  "notifications": {
+    "txt-settings": "Notification Settings",
+    "txt-emailSettings": "Email Settings",
+    "txt-smtpServer": "SMTP Server",
+    "txt-smtpPort": "SMTP Port",
+    "txt-sender": "Sender",
+    "txt-smtpConnectType": "SMTP Connect Type",
+    "txt-authentication": "Authentication",
+    "txt-senderAccount": "Sender Account",
+    "txt-senderPassword": "Sender Password",
+    "txt-recipientEmail": "Recipient Email"
+  },
+
   "hmdFields": {
     "ipDeviceUUID": "Host ID",
     "hostId": "Host ID",

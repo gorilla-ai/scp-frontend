@@ -19,6 +19,7 @@ import {HocEndpoint as Endpoint} from './components/events/endpoint/index'
 import {HocHeader as Header} from './header'
 import {HocHoneynet as Honeypot} from './components/configuration/honeynet/host'
 import Login from './login'
+import {HocNotifications as NotificationSettings} from './components/configuration/notifications'
 import {HocEdge as EdgeManagement} from './components/configuration/edge/edge'
 import {HocThreatIntelligence as ThreatIntelligence} from './components/configuration/edge/threat'
 import {HocManage as Manage} from './components/configuration/agent/manage'
@@ -132,6 +133,14 @@ const Config = () => {
 		return 	userAccounts();
 	}
 }
+
+const Notifications = () => (
+	<NotificationSettings
+		baseUrl={cfg.apiPrefix}
+		contextRoot={cfg.contextRoot}
+		locale={cfg.lng}
+		session={session} />
+)
 
 const Edge = () => (
 	<EdgeManagement
@@ -260,6 +269,7 @@ const Main = () => (
 			<Route exact path='/ChewbaccaWeb/events/endpoint' component={EndpointComp} />
 			<Route exact path='/ChewbaccaWeb/honeynet/employee-record' component={HoneynetEmployeeRecord} />
 			{/*<Route exact path='/ChewbaccaWeb/configuration' component={Config} />*/}
+			<Route exact path='/ChewbaccaWeb/configuration/notifications' component={Notifications} />
 			<Route exact path='/ChewbaccaWeb/configuration/edge/edge' component={Edge} />
 			<Route exact path='/ChewbaccaWeb/configuration/edge/threat' component={Threat} />
 			<Route exact path='/ChewbaccaWeb/configuration/agent' component={Agent} />

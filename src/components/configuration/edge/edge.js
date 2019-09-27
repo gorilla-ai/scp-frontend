@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import { withRouter } from 'react-router'
+import { NavLink, Link, Switch, Route } from 'react-router-dom'
 import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
@@ -83,7 +84,7 @@ class Edge extends Component {
     })
     .then(data => {
       if (data.ret === 0) {
-        this.getEdgeData();
+        this.getEdgeData('search');
       }
       return null;
     })
@@ -132,10 +133,13 @@ class Edge extends Component {
                   iconType = 'icon_connected_off';
                 }
 
-                const iconImage = contextRoot + `/images/${iconType}.png`;
+                const icon = {
+                  src: contextRoot + `/images/${iconType}.png`,
+                  title: t('txt-' + allValue.agentApiStatus.toLowerCase())
+                };
 
                 return (
-                  <span><img src={iconImage} title={allValue.agentApiStatus} />{value}</span>
+                  <span><img src={icon.src} title={icon.title} />{value}</span>
                 )
               } else if (tempData === 'description') {
                 let serviceType = allValue.serviceType;
@@ -155,27 +159,26 @@ class Edge extends Component {
                     <ul>
                       <li><span>mode:</span> {allValue.agentMode}</li>
                       <li><span>status:</span> {allValue.lastStatus}</li>
-                      <li><span>threatIntellLastUpdDT:</span> {helper.getFormattedDate(allValue.threatIntellLastUpdDT, 'local')}</li>
                       {allValue.agentMode === 'TCPDUMP' &&
                         <section>
-                          {allValue.agentstartdt &&
-                            <li><span>start:</span> {allValue.agentstartdt}</li>
+                          {allValue.agentStartDT &&
+                            <li><span>start:</span> {helper.getFormattedDate(allValue.agentStartDT)}</li>
                           }
-                          {allValue.agentenddt &&
-                            <li><span>end:</span> {allValue.agentenddt}</li>
+                          {allValue.agentEndDT &&
+                            <li><span>end:</span> {helper.getFormattedDate(allValue.agentEndDT)}</li>
                           }
-                          <button onClick={this.agentAnalysis.bind(this, allValue)}>{t('txt-analyze')}</button>
-                          {allValue.threatintelllastupddt &&
-                            <li><span>threatintelllastupddt:</span> {helper.getFormattedDate(allValue.threatintelllastupddt, 'local')}</li>
+                          {allValue.lastAnalyzedStatus !== 'ANALYZED' &&
+                            <button onClick={this.agentAnalysis.bind(this, allValue)}>{t('txt-analyze')}</button>
                           }
-                          {allValue.lastanalyzedstatus &&
-                            <li><span>lastanalyzedstatus:</span> {helper.getFormattedDate(allValue.lastanalyzedstatus, 'local')}</li>
+                          {allValue.lastAnalyzedStatus &&
+                            <li><span>lastAnalyzedStatus:</span> {allValue.lastAnalyzedStatus}</li>
                           }
-                          {allValue.lastanalyzedstatusupddt &&
-                            <li><span>lastanalyzedstatusupddt:</span> {helper.getFormattedDate(allValue.lastanalyzedstatusupddt, 'local')}</li>
+                          {allValue.lastAnalyzedStatusUpdDT &&
+                            <li><span>lastAnalyzedStatusUpdDT:</span> {helper.getFormattedDate(allValue.lastAnalyzedStatusUpdDT, 'local')}</li>
                           }
                         </section>
                       }
+                      <li><span>threatIntellLastUpdDT:</span> {helper.getFormattedDate(allValue.threatIntellLastUpdDT, 'local')}</li>
                     </ul>
                   )
                 }
@@ -270,6 +273,12 @@ class Edge extends Component {
         lastStatus: allValue.lastStatus,
         isConfigurable: allValue.isConfigurable
       };
+
+      if (allValue.agentStartDT &&  allValue.agentEndDT) {
+        tempEdge.info.edgeModeType = 'customTime';
+        tempEdge.info.edgeModeDatetime.from = allValue.agentStartDT;
+        tempEdge.info.edgeModeDatetime.to = allValue.agentEndDT;
+      }
 
       this.setState({
         showFilter: false
@@ -416,37 +425,36 @@ class Edge extends Component {
   displayEditEdgeContent = () => {
     const {baseUrl, contextRoot} = this.props;
     const {activeContent, edge} = this.state;
-    let statusIcon = '';
+    let iconType = '';
     let btnStatusOn = false;
     let action = 'start';
 
-    if (activeContent === 'editEdge') {
-      let iconType = '';
+    if (edge.info.agentApiStatus === 'Normal') {
+      iconType = 'icon_connected_on';
+    } else if (edge.info.agentApiStatus === 'Error') {
+      iconType = 'icon_connected_off';
+    }
 
-      if (edge.info.agentApiStatus === 'Normal') {
-        iconType = 'icon_connected_on';
-      } else if (edge.info.agentApiStatus === 'Error') {
-        iconType = 'icon_connected_off';
-      }
+    const icon = {
+      src: contextRoot + `/images/${iconType}.png`,
+      title: t('txt-' + edge.info.agentApiStatus.toLowerCase())
+    };
 
-      statusIcon = contextRoot + `/images/${iconType}.png`;
-
-      if (edge.info.lastStatus.indexOf('inactive') !== -1) {
-        btnStatusOn = false;
-        action = 'start';
-      } else if (edge.info.lastStatus.indexOf('active') !== -1) {
-        btnStatusOn = true;
-        action = 'stop';
-      }
+    if (edge.info.lastStatus.indexOf('inactive') !== -1) {
+      btnStatusOn = false;
+      action = 'start';
+    } else if (edge.info.lastStatus.indexOf('active') !== -1) {
+      btnStatusOn = true;
+      action = 'stop';
     }
 
     return (
       <div className='main-content basic-form'>
         <header className='main-header'>{t('edgeManagement.txt-editEdge')}</header>
-        <div className='steps edge'>
+        <div className='steps normal'>
           <header>
             <div className='text'>{t('edgeManagement.txt-basicInfo')}</div>
-            <img className='status' src={statusIcon} title={edge.info.agentApiStatus} />
+            <img className='status' src={icon.src} title={icon.title} />
             <span className='msg'>{t('edgeManagement.txt-lastUpateTime')} {helper.getFormattedDate(edge.info.lastUpdateTime, 'local')}</span>
           </header>
           <ToggleBtn
@@ -568,7 +576,7 @@ class Edge extends Component {
             <Textarea
               id='edgeMemo'
               rows={4}
-              maxlength={250}
+              maxLength={250}
               value={edge.info.memo}
               onChange={this.handleDataChange.bind(this, 'memo')} />
           </div>
@@ -636,6 +644,8 @@ class Edge extends Component {
       }
     });
   }
+
+
   getBtnPos = (type) => {
     const {locale} = this.props;
 
@@ -679,7 +689,7 @@ class Edge extends Component {
                   current={activeTab}>
                 </Tabs>
 
-                <button className='standard btn last'>{t('edgeManagement.txt-notificationSettings')}</button>
+                <button className='standard btn last'><Link to='/ChewbaccaWeb/configuration/notifications'>{t('edgeManagement.txt-notificationSettings')}</Link></button>
                 <button className='standard btn' style={{right: this.getBtnPos('add')}}>{t('edgeManagement.txt-threatSettings')}</button>
 
                 <TableContent

@@ -46,6 +46,7 @@ class Config extends Component {
     const path = window.location.pathname
 
     const pattern = {
+      notifications: '/ChewbaccaWeb/configuration/notifications',
       edge: '/ChewbaccaWeb/configuration/edge/edge',
       threat: '/ChewbaccaWeb/configuration/edge/threat',
       agent: '/ChewbaccaWeb/configuration/agent',
@@ -74,6 +75,11 @@ class Config extends Component {
 
     return (
       <div className='left-nav'>
+        <div className='frame notifications'>
+          <Link to={{pathname: '/ChewbaccaWeb/configuration/notifications', state: 'viewMode'}}>
+            <span className={`${this.getActiveFrame('notifications')}`}>{t('notifications.txt-settings')}</span>
+          </Link>
+        </div>
         <div className='frame edge-manage' onClick={this.handleOpen.bind(this, 'openEdgeManagement', openEdgeManagement)}>
           <span className={`${this.getActiveFrame('edge') || this.getActiveFrame('threat')}`}>{t('txt-edgeManage')}</span>
           <i className={`c-link fg fg-arrow-${openEdgeManagement?'top':'bottom'}`}></i>
