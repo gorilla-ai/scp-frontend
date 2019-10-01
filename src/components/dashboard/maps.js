@@ -626,12 +626,12 @@ class DashboardMaps extends Component {
           this.modalDialog()
         }
 
-        <div className='sub-header dashboard'>
+        <div className='sub-header'>
           {helper.getDashboardMenu('maps')}
           <span className='date-time'>{updatedTime}</span>
         </div>
 
-        <div className='main-dashboard c-flex'>
+        <div className='main-dashboard'>
           <div className='maps'>
             <div className='c-button-group left'>
               <button className={cx('thumb', {'selected': mapType === PRIVATE})} onClick={this.toggleMaps.bind(this, PRIVATE)}>{t('dashboard.txt-private')}</button>

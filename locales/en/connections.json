@@ -422,6 +422,12 @@
   "notifications": {
     "txt-settings": "Notification Settings",
     "txt-emailSettings": "Email Settings",
+    "txt-serviceNotifications": "Service Settings",
+    "txt-edgeNotifications": "Edge Settings",
+    "txt-alertNotifications": "Alert Settings",
+    "txt-serviceError": "Service Status Error",
+    "txt-conectionsError": "Connections Status Error",
+    "txt-dailyAlert": "Daily Alert Statistics",
     "txt-smtpServer": "SMTP Server",
     "txt-smtpPort": "SMTP Port",
     "txt-sender": "Sender",

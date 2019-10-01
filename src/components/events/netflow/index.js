@@ -2480,9 +2480,7 @@ class Netflow extends Component {
           </div>
         </div>
 
-        <div className='flow-analysis'>
-          {this.renderTabContent()}
-        </div>
+        {this.renderTabContent()}
       </div>
     )
   }

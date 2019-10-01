@@ -744,6 +744,7 @@ class EmailReport extends Component {
             { this.renderFilter() }
 
             <div className='main-content'>
+              <header className='main-header'>{t('txt-email-report')}</header>
               <TableContent
                 dataTableData={emailReport.dataContent}
                 dataTableFields={emailReport.dataFields}

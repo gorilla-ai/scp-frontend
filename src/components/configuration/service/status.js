@@ -130,6 +130,7 @@ class Status extends Component {
 
           <div className='parent-content'>
             <div className='main-content'>
+              <header className='main-header'>{t('txt-serviceStatus')}</header>
               <div className='table-content'>
                 <div className='table normal'>
       	          <DataTable

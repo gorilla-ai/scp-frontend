@@ -269,6 +269,7 @@ class AccountList extends Component {
             { this.renderFilter() }
 
             <div className='main-content'>
+              <header className='main-header'>{c('txt-account')}</header>
               <div className='table-content'>
                 <div className='table normal'>
                   <DataTable

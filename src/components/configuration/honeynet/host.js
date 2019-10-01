@@ -693,6 +693,7 @@ class Honeynet extends Component {
             { this.renderFilter() }
 
             <div className='main-content'>
+              <header className='main-header'>{t('txt-honeypot')}</header>
               <TableContent
                 dataTableData={honeynet.dataContent}
                 dataTableFields={honeynet.dataFields}

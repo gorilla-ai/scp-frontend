@@ -388,12 +388,12 @@ class DashboardStats extends Component {
 
     return (
       <div>
-        <div className='sub-header dashboard'>
+        <div className='sub-header'>
           {helper.getDashboardMenu('statistics')}
           <span className='date-time'>{updatedTime}</span>
         </div>
 
-        <div className='main-dashboard c-flex'>
+        <div className='main-dashboard'>
           <div className='charts'>
             {!_.isEmpty(chartAttributes.data) &&
               <div className='chart-group bar'>

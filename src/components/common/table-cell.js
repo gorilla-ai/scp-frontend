@@ -76,11 +76,11 @@ class TableCell extends Component {
   getFieldValue = () => {
     const {contextRoot, fieldName, allValue} = this.props;
 
-    if (fieldName === 'destIp' || fieldName === 'srcIp') {
+    if (fieldName === 'destIp' || fieldName === 'srcIp' || fieldName === 'ipDst' || fieldName === 'ipSrc') {
       let picPath = '';
       let country = '';
 
-      if (fieldName === 'srcIp') {
+      if (fieldName === 'srcIp' || fieldName === 'ipSrc') {
         if (allValue.srcLocType === 1) {
           if (allValue.srcCountryCode) {
             picPath = `${contextRoot}/images/flag/${allValue.srcCountryCode.toLowerCase()}.png`;
@@ -100,7 +100,7 @@ class TableCell extends Component {
             return this.getFieldContent();
           }
         }
-      } else if (fieldName === 'destIp') {
+      } else if (fieldName === 'destIp' || fieldName === 'ipDst') {
         if (allValue.destLocType === 1) {
           if (allValue.destCountryCode) {
             picPath = `${contextRoot}/images/flag/${allValue.destCountryCode.toLowerCase()}.png`;

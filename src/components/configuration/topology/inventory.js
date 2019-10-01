@@ -1452,7 +1452,7 @@ class NetworkInventory extends Component {
             {addIPtext.map(this.showAddIpSteps)}
           </div>
           {activeSteps === 1 &&
-            <div className='steps steps-address'>
+            <div className='form-group steps-address'>
               <header>{t('txt-ipAddress')}</header>
               <div className='group'>
                 <label htmlFor='addIPstepsIP'>{t('ipFields.ip')}</label>
@@ -1481,7 +1481,7 @@ class NetworkInventory extends Component {
             </div>
           }
           {activeSteps === 2 &&
-            <div className='steps steps-host'>
+            <div className='form-group steps-host'>
               <header>{t('alert.txt-systemInfo')}</header>
               <div className='group'>
                 <label htmlFor='addIPstepsHostname'>{t('ipFields.hostName')}</label>
@@ -1559,7 +1559,7 @@ class NetworkInventory extends Component {
             </div>
           }
           {activeSteps === 3 &&
-            <div className='steps steps-owner'>
+            <div className='form-group steps-owner'>
               <header>{t('ipFields.owner')}</header>
               <RadioGroup
                 className='owner-type'
@@ -1705,7 +1705,7 @@ class NetworkInventory extends Component {
             </div>
           }
           {activeSteps === 4 &&
-            <div className='steps steps-floor'>
+            <div className='form-group steps-floor'>
               <header>{t('alert.txt-floorInfo')}</header>
               <button className='standard manage' onClick={this.openFloorMap}>{t('network-inventory.txt-editFloorMap')}</button>
               <div className='floor-info'>

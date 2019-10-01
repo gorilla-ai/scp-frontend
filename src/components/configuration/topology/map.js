@@ -12,7 +12,6 @@ import DropDownList from 'react-ui/build/src/components/dropdown'
 import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
-import Tabs from 'react-ui/build/src/components/tabs'
 import TreeView from 'react-ui/build/src/components/tree'
 
 import {HocFloorMap as FloorMap} from '../../common/floor-map'
@@ -33,7 +32,6 @@ class NetworkMap extends Component {
     super(props);
 
     this.state = {
-      activeTab: 'floorMap',
       list: {
         system: [],
         deviceType: []
@@ -727,7 +725,6 @@ class NetworkMap extends Component {
   render() {
     const {baseUrl, contextRoot, language, session} = this.props;
     const {
-      activeTab,
       modalFloorOpen,
       showSeatData,
       addSeatOpen,
@@ -774,14 +771,7 @@ class NetworkMap extends Component {
             { this.renderFilter() }
 
             <div className='main-content'>
-              <Tabs
-                className='subtab-menu'
-                menu={{
-                  floorMap: t('txt-floorMap')
-                }}
-                current={activeTab}>
-              </Tabs>
-
+              <header className='main-header'>{t('txt-floorMap')}</header>
               <button className='standard btn last' onClick={this.openEditFloorMap} >{t('network-topology.txt-editFloorMap')}</button>
 
               <div className='map-container'>

@@ -9,7 +9,6 @@ import DateRange from 'react-ui/build/src/components/date-range'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import Input from 'react-ui/build/src/components/input'
 import RadioGroup from 'react-ui/build/src/components/radio-group'
-import Tabs from 'react-ui/build/src/components/tabs'
 import Textarea from 'react-ui/build/src/components/textarea'
 import ToggleBtn from 'react-ui/build/src/components/toggle-button'
 
@@ -31,7 +30,6 @@ class Edge extends Component {
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
 
     this.state = {
-      activeTab: 'edgeList',
       activeContent: 'tableList', //tableList, editEdge
       showFilter: false,
       serviceType: [
@@ -451,7 +449,7 @@ class Edge extends Component {
     return (
       <div className='main-content basic-form'>
         <header className='main-header'>{t('edgeManagement.txt-editEdge')}</header>
-        <div className='steps normal'>
+        <div className='form-group normal'>
           <header>
             <div className='text'>{t('edgeManagement.txt-basicInfo')}</div>
             <img className='status' src={icon.src} title={icon.title} />
@@ -659,7 +657,7 @@ class Edge extends Component {
   }
   render() {
     const {baseUrl, contextRoot, language, session} = this.props;
-    const {activeTab, activeContent, showFilter, edge} = this.state;
+    const {activeContent, showFilter, edge} = this.state;
 
     return (
       <div>
@@ -681,14 +679,7 @@ class Edge extends Component {
 
             {activeContent === 'tableList' &&
               <div className='main-content'>
-                <Tabs
-                  className='subtab-menu'
-                  menu={{
-                    edgeList: t('txt-edge')
-                  }}
-                  current={activeTab}>
-                </Tabs>
-
+                <header className='main-header'>{t('txt-edge')}</header>
                 <button className='standard btn last'><Link to='/ChewbaccaWeb/configuration/notifications'>{t('edgeManagement.txt-notificationSettings')}</Link></button>
                 <button className='standard btn' style={{right: this.getBtnPos('add')}}>{t('edgeManagement.txt-threatSettings')}</button>
 

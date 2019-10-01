@@ -12,7 +12,6 @@ import FileInput from 'react-ui/build/src/components/file-input'
 import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
-import Tabs from 'react-ui/build/src/components/tabs'
 import ButtonGroup from 'react-ui/build/src/components/button-group'
 
 import {HocConfig as Config} from '../../common/configuration'
@@ -32,7 +31,6 @@ class NetworkOwner extends Component {
     super(props);
 
     this.state = {
-      activeTab: 'ownerList',
       activeContent: 'tableList', //tableList, addOwner
       list: {
         department: [],
@@ -670,7 +668,6 @@ class NetworkOwner extends Component {
   render() {
     const {baseUrl, contextRoot, language, session} = this.props;
     const {
-      activeTab,
       activeContent,
       list,
       addOwnerTitle,
@@ -712,14 +709,7 @@ class NetworkOwner extends Component {
 
             {activeContent === 'tableList' &&
               <div className='main-content'>
-                <Tabs
-                  className='subtab-menu'
-                  menu={{
-                    ownerList: t('txt-ownerList')
-                  }}
-                  current={activeTab}>
-                </Tabs>
-
+                <header className='main-header'>{t('txt-ownerList')}</header>
                 <button className='standard btn last' onClick={this.openName}>{t('txt-manageDepartmentTitle')}</button>
                 <button className='standard btn' onClick={this.toggleContent.bind(this, 'addOwner', 'new')} style={{right: this.getBtnPos('add')}}>{t('txt-addNewOwner')}</button>
 
@@ -741,7 +731,7 @@ class NetworkOwner extends Component {
               <div className='main-content basic-form'>
                 <header className='main-header'>{addOwnerTitle}</header>
                 <button className='standard btn last' onClick={this.openName} >{t('txt-manageDepartmentTitle')}</button>
-                <div className='steps steps-owner'>
+                <div className='form-group steps-owner'>
                   <header>{t('ipFields.owner')}</header>
                   <div className='user-pic'>
                     <div className='group'>

@@ -111,7 +111,7 @@ class StatisticNew extends Component {
 
     if (alertChartsList[i].type === 'pie' && !_.isEmpty(alertChartsList[i].chartData)) {
       return (
-        <div className='chart-group c-box' key={alertChartsList[i].chartID}>
+        <div className='chart-group' key={alertChartsList[i].chartID}>
           <PieChart
             id={alertChartsList[i].chartID}
             title={alertChartsList[i].chartTitle}
@@ -140,8 +140,8 @@ class StatisticNew extends Component {
     const {alertChartsList} = this.state;
 
     return (
-      <div className='main-statistic c-flex boxes'>
-        <div className='content statistic'>
+      <div className='alert-statistics'>
+        <div className='statistics-content'>
           {alertChartsList.map(this.displayChartsList)}
         </div>
       </div>

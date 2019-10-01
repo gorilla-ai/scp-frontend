@@ -4,16 +4,19 @@ import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
 
+import Checkbox from 'react-ui/build/src/components/checkbox'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import Input from 'react-ui/build/src/components/input'
 import Textarea from 'react-ui/build/src/components/textarea'
 
 import helper from '../../common/helper'
-import withLocale from '../../../hoc/locale-provider'
 import {HocConfig as Config} from '../../common/configuration'
+import {ReactMultiEmail} from 'react-multi-email';
 import TableContent from '../../common/table-content'
+import withLocale from '../../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+import 'react-multi-email/style.css';
 
 let t = null;
 let et = null;
@@ -26,14 +29,27 @@ class Notifications extends Component {
       activeContent: 'viewMode', //viewMode, editMode
       originalNotifications: {},
       notifications: {
-        email: {
-          server: '',
-          port: '',
-          sender: '',
-          connectType: 'standard',
-          authentication: false,
-          senderAccount: '',
-          senderPassword: ''
+        server: '',
+        port: '',
+        sender: '',
+        connectType: 'standard',
+        authentication: false,
+        senderAccount: '',
+        senderPassword: ''
+      },
+      originalEmails: {},
+      emails: {
+        service: {
+          emails: [],
+          enable: true
+        },
+        edge: {
+          emails: [],
+          enable: true
+        },
+        alert: {
+          emails: [],
+          enable: true
         }
       }
     };
@@ -52,30 +68,55 @@ class Notifications extends Component {
   }
   getMailServerInfo = () => {
     const {baseUrl, contextRoot} = this.props;
-    const {notifications} = this.state;
-    const url = `${baseUrl}/api/notification/mailServer`;
+    const {notifications, emails} = this.state;
 
-    ah.one({
-      url,
-      type: 'GET'
-    })
+    ah.all([
+      {
+        url: `${baseUrl}/api/notification/mailServer`,
+        type: 'GET'
+      },
+      {
+        url: `${baseUrl}/api/notification`,
+        type: 'GET'
+      }
+    ])
     .then(data => {
-      if (data.rt) {
-        data = data.rt;
-        let notifications = {};
-        notifications.email = {
-          server: data.smtpServer,
-          port: data.smtpPort,
-          sender: data.sender,
-          connectType: data.smtpConnectType,
-          authentication: data.emailAuthentication,
-          senderAccount: data.senderAcct,
-          senderPassword: data.senderPasswd,
+      if (data) {
+        const data1 = data[0].rt;
+        const data2 = data[1].rt;
+
+        const notifications = {
+          server: data1.smtpServer,
+          port: data1.smtpPort,
+          sender: data1.sender,
+          connectType: data1.smtpConnectType,
+          authentication: data1.emailAuthentication,
+          senderAccount: data1.senderAcct,
+          senderPassword: data1.senderPasswd,
         };
+
+        let tempEmails = {...emails};
+
+        if (data2['notify.service.failure.id']) {
+          tempEmails.service.emails = data2['notify.service.failure.id'].receipts;
+          tempEmails.service.enable = data2['notify.service.failure.id'].enable;
+        }
+
+        if (data2['notify.edge.disconnected.id']) {
+          tempEmails.edge.emails = data2['notify.edge.disconnected.id'].receipts;
+          tempEmails.edge.enable = data2['notify.edge.disconnected.id'].enable;
+        }
+
+        if (data2['notify.alert.report.id']) {
+          tempEmails.alert.emails = data2['notify.alert.report.id'].receipts;
+          tempEmails.alert.enable = data2['notify.alert.report.id'].enable;
+        }
 
         this.setState({
           originalNotifications: _.cloneDeep(notifications),
-          notifications
+          notifications,
+          originalEmails: _.cloneDeep(tempEmails),
+          emails: tempEmails
         });
       }
       return null;
@@ -86,13 +127,14 @@ class Notifications extends Component {
   }
   handleDataChange = (type, field) => {
     let tempNotifications = {...this.state.notifications};
-    tempNotifications.email[type] = field;
+    tempNotifications[type] = field;
 
     this.setState({
       notifications: tempNotifications
     });
   }
   toggleContent = (type) => {
+    const {originalNotifications, originalEmails} = this.state;
     let showPage = type;
 
     if (type === 'save') {
@@ -102,7 +144,8 @@ class Notifications extends Component {
       showPage = 'viewMode';
 
       this.setState({
-        notifications: this.state.originalNotifications
+        notifications: _.cloneDeep(originalNotifications),
+        emails: _.cloneDeep(originalEmails)
       });
     }
 
@@ -112,19 +155,47 @@ class Notifications extends Component {
   }
   handleNotificationsConfirm = () => {
     const {baseUrl, contextRoot} = this.props;
-    const {notifications} = this.state;
-    const url = `${baseUrl}/api/notification/mailServer`;
-    const requestData = {
-      smtpServer: notifications.email.server,
-      smtpPort: notifications.email.port,
-      smtpConnectType: notifications.email.connectType,
-      emailAuthentication: notifications.email.authentication,
-      sender: notifications.email.sender,
-      senderAcct: notifications.email.senderAccount,
-      senderPasswd: notifications.email.senderPassword
+    const {notifications, emails} = this.state;
+    const mailServerRequestData = {
+      smtpServer: notifications.server,
+      smtpPort: notifications.port,
+      smtpConnectType: notifications.connectType,
+      emailAuthentication: notifications.authentication,
+      sender: notifications.sender,
+      senderAcct: notifications.senderAccount,
+      senderPasswd: notifications.senderPassword
     };
 
-    helper.getAjaxData('POST', url, requestData)
+    const emailsSettings = {
+      'notify.service.failure.id': {
+        receipts: emails.service.emails,
+        enable: emails.service.enable
+      },
+      'notify.edge.disconnected.id': {
+        receipts: emails.edge.emails,
+        enable: emails.edge.enable
+      },
+      'notify.alert.report.id': {
+        receipts: emails.alert.emails,
+        enable: emails.alert.enable
+      }
+    };
+    const apiArr = [
+      {
+        url: `${baseUrl}/api/notification/mailServer`,
+        data: JSON.stringify(mailServerRequestData),
+        type: 'POST',
+        contentType: 'text/plain'
+      },
+      {
+        url: `${baseUrl}/api/notification`,
+        data: JSON.stringify(emailsSettings),
+        type: 'POST',
+        contentType: 'text/plain'
+      }
+    ];
+
+    this.ah.all(apiArr)
     .then(data => {
       if (data) {
         this.getMailServerInfo();
@@ -132,12 +203,95 @@ class Notifications extends Component {
       }
     })
     .catch(err => {
-      helper.showPopupMsg('', t('txt-error'));
-    });
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  toggleEmailCheckbox = (type, value) => {
+    let tempEmails = {...this.state.emails};
+    tempEmails[type].enable = value;
+
+    this.setState({
+      emails: tempEmails
+    })
+  }
+  getEmailsContent = (val, i) => {
+    const {activeContent, emails} = this.state;
+    let formattedEmail = '';
+
+    if (emails[val.type].emails.length > 0) {
+      formattedEmail = emails[val.type].emails.join(', ');
+    }
+
+    return (
+      <div className='form-group normal long'>
+        <header>{val.headerText}</header>
+        <div className='group'>
+          <label>{t('notifications.txt-recipientEmail')}</label>
+          {activeContent === 'viewMode' &&
+          <input
+            style={{height: '40px'}}
+            value={formattedEmail}
+            readOnly={true} />
+          }
+          {activeContent === 'editMode' &&
+            <ReactMultiEmail
+              emails={emails[val.type].emails}
+              onChange={(_emails: string[]) => {
+                let tempEmails = {...emails};
+                tempEmails[val.type].emails = _emails;
+
+                this.setState({
+                  emails: tempEmails
+                });
+              }}
+              getLabel={(
+                email: string,
+                index: number,
+                removeEmail: (index: number) => void
+              ) => {
+                return (
+                  <div data-tag key={index}>
+                    {email}
+                    <span data-tag-handle onClick={() => removeEmail(index)}>
+                      x
+                    </span>
+                  </div>
+                );
+              }}
+            />
+          }
+        </div>
+        <div className='group'>
+          <label htmlFor='serviceError' className='checkbox'>{val.checkboxText}</label>
+          <Checkbox
+            id='serviceError'
+            onChange={this.toggleEmailCheckbox.bind(this, val.type)}
+            checked={emails[val.type].enable}
+            disabled={activeContent === 'viewMode'} />
+        </div>
+      </div>
+    )
   }
   render() {
     const {baseUrl, contextRoot, language, session} = this.props;
-    const {activeContent, notifications} = this.state;
+    const {activeContent, notifications, emails} = this.state;
+    const EMAIL_SETTINGS = [
+      {
+        type: 'service',
+        headerText: t('notifications.txt-serviceNotifications'),
+        checkboxText: t('notifications.txt-serviceError')
+      },
+      {
+        type: 'edge',
+        headerText: t('notifications.txt-edgeNotifications'),
+        checkboxText: t('notifications.txt-conectionsError')
+      },
+      {
+        type: 'alert',
+        headerText: t('notifications.txt-alertNotifications'),
+        checkboxText: t('notifications.txt-dailyAlert')
+      }
+    ];    
 
     return (
       <div>
@@ -158,14 +312,14 @@ class Notifications extends Component {
                 <button className='standard btn last' onClick={this.toggleContent.bind(this, 'editMode')}>{t('txt-edit')}</button>
               }
 
-              <div className='steps normal short'>
+              <div className='form-group normal short'>
                 <header>{t('notifications.txt-emailSettings')}</header>
                 <div className='group'>
                   <label htmlFor='notificationsServer'>{t('notifications.txt-smtpServer')}</label>
                   <Input
                     id='notificationsServer'
                     onChange={this.handleDataChange.bind(this, 'server')}
-                    value={notifications.email.server}
+                    value={notifications.server}
                     readOnly={activeContent === 'viewMode'} />
                 </div>
                 <div className='group'>
@@ -173,7 +327,7 @@ class Notifications extends Component {
                   <Input
                     id='notificationsPort'
                     onChange={this.handleDataChange.bind(this, 'port')}
-                    value={notifications.email.port}
+                    value={notifications.port}
                     readOnly={activeContent === 'viewMode'} />
                 </div>
                 <div className='group' style={{width: '50%'}}>
@@ -181,7 +335,7 @@ class Notifications extends Component {
                   <Input
                     id='notificationsSender'
                     onChange={this.handleDataChange.bind(this, 'sender')}
-                    value={notifications.email.sender}
+                    value={notifications.sender}
                     readOnly={activeContent === 'viewMode'} />
                 </div>
                 <div className='group'>
@@ -193,7 +347,7 @@ class Notifications extends Component {
                       {value: 'standard', text: 'Standard'}
                     ]}
                     onChange={this.handleDataChange.bind(this, 'connectType')}
-                    value={notifications.email.connectType}
+                    value={notifications.connectType}
                     readOnly={activeContent === 'viewMode'} />
                 </div>
                 <div className='group'>
@@ -206,7 +360,7 @@ class Notifications extends Component {
                       {value: false, text: 'False'}
                     ]}
                     onChange={this.handleDataChange.bind(this, 'authentication')}
-                    value={notifications.email.authentication}
+                    value={notifications.authentication}
                     readOnly={activeContent === 'viewMode'} />
                 </div>
                 <div className='group'>
@@ -214,7 +368,7 @@ class Notifications extends Component {
                   <Input
                     id='notificationsSenderAccount'
                     onChange={this.handleDataChange.bind(this, 'senderAccount')}
-                    value={notifications.email.senderAccount}
+                    value={notifications.senderAccount}
                     readOnly={activeContent === 'viewMode'} />
                 </div>
                 <div className='group'>
@@ -223,13 +377,15 @@ class Notifications extends Component {
                     id='notificationsSenderPassword'
                     type='password'
                     onChange={this.handleDataChange.bind(this, 'senderPassword')}
-                    value={notifications.email.senderPassword}
+                    value={notifications.senderPassword}
                     readOnly={activeContent === 'viewMode'} />
                 </div>
               </div>
 
+              {EMAIL_SETTINGS.map(this.getEmailsContent)}
+
               {activeContent === 'editMode' &&
-                <footer>
+                <footer className='no-fixed'>
                   <button className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</button>
                   <button onClick={this.toggleContent.bind(this, 'save')}>{t('txt-save')}</button>
                 </footer>

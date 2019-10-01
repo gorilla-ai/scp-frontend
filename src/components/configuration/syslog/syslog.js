@@ -881,6 +881,7 @@ class Syslog extends Component {
             { this.renderFilter() }
 
             <div className='main-content'>
+              <header className='main-header'>{t('txt-syslogManage')}</header>
               <TableContent
                 dataTableData={syslog.dataContent}
                 dataTableFields={dataFields}

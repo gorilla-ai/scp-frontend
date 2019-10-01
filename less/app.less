@@ -274,6 +274,93 @@ footer.footer {
 	}
 }
 #app-container {
+	.sub-header { //The blue bar
+		position: relative;
+		color: #fff;
+		padding: 3px 10px;
+		overflow: hidden;
+		background-color: #004d93;
+		min-height: 42px;
+		input:not([type=radio]), select {
+			color: #000;
+		}
+		.secondary-btn-group {
+			&.left {
+				float: left;
+			}
+			&.right {
+				float: right;
+				margin-top: 1px;
+			}
+			button {
+				color: #001b34;
+				padding: .3em .6em;
+				margin-right: 5px;
+				background-color: #fff;
+				&.active {
+					color: #fff;
+					background-color: #001b34;
+				}
+				&.last {
+					margin-right: 0;
+				}
+				.fg {
+					float: left;
+					&.fg-edit {
+						margin-left: 5px;
+					}
+				}
+				span {
+					float: left;
+				}
+			}
+			.last-update {
+				float: right;
+				margin-top: 7px;
+				margin-left: 5px;
+			}
+		}
+		.date-time {
+			position: absolute;
+			top: 8px;
+			right: 15px;
+			color: #fff;
+		}
+		.search-options {
+			position: absolute;
+			.search-type {
+				float: left;
+				margin-right: 10px;
+			}
+			.search-interval {
+				float: left;
+				margin-right: 10px;
+				.time-interval {
+					background-color: #fff;
+					width: 135px;
+					height: 36px;
+					box-shadow: none;
+					cursor: pointer;
+				}
+			}
+			.datepicker {
+				float: left;
+				.daterange {
+					margin-right: 15px;
+				}
+				.fg {
+					border: none;
+				}
+			}
+			#datetime-from,
+			#datetime-to {
+				padding: 0.5em;
+			}
+			.search-button {
+				margin-top: 2px;
+			}
+		}
+	}
 	header.main-header {
 		position: relative;
 		color: #004d93;
@@ -283,100 +370,7 @@ footer.footer {
 		border-bottom: 1px solid #ccc;
 		background-color: #fff;
 	}
-	.sub-header {
-		position: relative;
-		color: #fff;
-		padding: 3px 10px;
-		overflow: hidden;
-		background-color: #004d93;
-    min-height: 42px;
-		input:not([type=radio]), select {
-			color: #000;
-		}
-		&.dashboard {
-			.date-time {
-				position: absolute;
-				top: 8px;
-				right: 15px;
-				color: #fff;
-			}
-		}
-		.c-button-group {
-			button {
-				color: #001b34;
-				&.selected {
-					color: #fff;
-				}
-			}
-		}
-		.search-options {
-			position: absolute;
-			#datetime-from,
-			#datetime-to {
-				width: 180px;
-				padding: 0.5em;
-			}
-			label {
-				&.datetime {
-					display: inline-block;
-					margin-right: 10px;
-				}
-			}
-			.datepicker {
-				position: relative;
-				float: left;
-			}
-			.daterange {
-				display: inline-block;
-				margin-right: 15px;
-			}
-			.fg {
-				border: none;
-			}
-			.search-type {
-				float: left;
-				margin-right: 10px;
-			}
-			.datepicker {
-				margin-right: 0;
-			}
-			.search-button {
-				margin-top: 2px;
-			}
-			.search-interval {
-				float: left;
-				.time-interval {
-					background-color: #fff;
-					width: 135px;
-					height: 36px;
-					box-shadow: none;
-					cursor: pointer;
-				}
-			}
-		}
-	}
-	.floor-map {
-		img {
-			&.crosshair {
-				border: 4px dashed grey;
-				cursor: crosshair;
-			}
-		}
-		.leaflet-container {
-			background: #fff;
-		}
-		.c-gis {
-			min-height: 500px;
-			& > .content > .base-layers,
-			.actions {
-				display: none;
-			}
-			.leaflet-control-zoom-in {
-				display: block !important;
-			}
-		}
-	}
-	.table-menu {
+	.table-menu { //table menu button
 		visibility: hidden;
 		&.active {
 			visibility: visible;
@@ -458,45 +452,7 @@ footer.footer {
 			}
 		}
 	}
-	.secondary-btn-group {
-		&.left {
-			float: left;
-		}
-		&.right {
-			float: right;
-			margin-top: 1px;
-		}
-		button {
-			color: #001b34;
-			padding: .3em .6em;
-			margin-right: 5px;
-			background-color: #fff;
-			&.active {
-				color: #fff;
-				background-color: #001b34;
-			}
-			&.last {
-				margin-right: 0;
-			}
-			.fg {
-				float: left;
-				&.fg-edit {
-					margin-left: 5px;
-				}
-			}
-			span {
-				float: left;
-			}
-		}
-		span {
-			&.last-update {
-				float: right;
-				margin-top: 7px;
-				margin-left: 5px;
-			}
-		}
-	}
-	.main-dashboard {
+	.main-dashboard { //For Dashboard section
 		min-height: 88vh;
 		padding: 15px;
 		background-color: #ededed;
@@ -505,13 +461,13 @@ footer.footer {
 			display: flex;
 			flex-wrap: wrap;
 			.chart-group {
-				width: 24.4%; //32.64%
+				width: 24.4%;
 				margin: 5px;
 				border: 1px solid #ccc;
 				border-radius: 5px;
 				overflow: hidden;
 				&.bar {
-					width: 74.25%; //65.8%
+					width: 74.25%;
 					height: 460px;
 				}
 				&.metric {
@@ -612,140 +568,6 @@ footer.footer {
 						text-align: center;
 					}
 				}
-			}
-		}
-	}
-	.main-statistic {
-		height: 79vh;
-		overflow-y: auto;
-		background-color: #d9d9d9;
-		.nav {
-			flex-grow: 1;
-			.fg.hide {
-				visibility: hidden;
-			}
-			.select-all {
-				color: #5b5b5b;
-				font-weight: bold;
-				padding: 7px 0;
-				border-bottom: 1px solid #ccc;
-				label {
-					margin-left: 37px;
-				}
-				i.c-checkbox {
-					position: absolute;
-					left: 6px;
-				}
-			}
-			.table-sort {
-				padding: 5px 0;
-				.table-sort-list {
-					list-style-type: none;
-					overflow: hidden;
-					color: #5b5b5b;
-					padding: 5px;
-					background-color: #fff;
-					border: 1px solid #ccc;
-					z-index: 10000;
-					user-select: none;
-					&.statistic {
-						border: none;
-					}
-					i.data-field {
-						float: left;
-						&.statistic {
-							width: 10%;
-						}
-					}
-					i.fg-menu {
-						width: 28px;
-						font-size: 26px;
-						cursor: row-resize;
-						&.statistic {
-							position: absolute;
-							right: 2px;
-						}
-						&.hide {
-							visibility: hidden;
-						}
-					}
-				}
-			}
-		}
-		.content {
-			flex-grow: 12;
-		}
-		.statistic {
-			display: flex;
-			flex-wrap: wrap;
-			&.honeynet {
-				margin-top: 0;
-				padding-bottom: 30px;
-				header {
-					color: #004d93;
-				}
-			}
-			.chart-group {
-				width: 49.2%;
-				margin: 5px;
-				border: none;
-				border-radius: 5px;
-				overflow: hidden;
-				header {
-					color: #004d93;
-					font-size: 1.1em;
-					font-weight: bold;
-					padding: 15px;
-					border-bottom: 1px solid #ccc;
-					background-color: #fff;
-				}
-				&.full-width {
-					width: 100%;
-				}
-				.show-pointer table tbody tr {
-					cursor: pointer;
-				}
-			}
-		}
-	}
-	.flow-analysis {
-		width: 100%;
-		border: none;
-		header.main {
-			padding: 0;
-			border: none;
-		}
-		.chart {
-			flex-basis: 150px;
-			height: 200px;
-		}
-		.export-btn {
-			position: absolute;
-			top: 10px;
-			right: 25px;
-		}
-		.la-btn {
-			position: absolute;
-			top: 10px;
-			right: 179px;
-			&.zh {
-				right: 160px;
-			}
-		}
-		.search-textarea.filter-box {
-			width: 450px;
-		}
-		.grid-flex {
-			display: flex;
-			flex-wrap: wrap;
-			margin: 15px 25px;
-			img {
-				max-width: 200px;
-				max-height: 100px;
-				margin-right: 20px;
-				margin-bottom: 30px;
-				border: 1px solid #ccc;
-				cursor: pointer;
 			}
 		}
 	}
@@ -1065,8 +887,9 @@ footer.footer {
 						display: none;
 					}
 					li {
-						font-size: 16px;
-						padding: 15px 20px 10px 20px;
+						font-size: 1.1em;
+						font-weight: bold;
+						padding: 15px;
 					}
 				}
 				footer {
@@ -1074,6 +897,32 @@ footer.footer {
 					margin: 0;
 					.dropdown-margin {
 						margin-left: 50px;
+					}
+				}
+				.alert-statistics {
+					height: 79vh;
+					overflow-y: auto;
+					padding: 6px;
+					background-color: #d9d9d9;
+					.statistics-content {
+						display: flex;
+						flex-grow: 12;
+						flex-wrap: wrap;
+						.chart-group {
+							width: 49.2%;
+							margin: 5px;
+							border: none;
+							border-radius: 5px;
+							overflow: hidden;
+							header {
+								color: #004d93;
+								font-size: 1.1em;
+								font-weight: bold;
+								padding: 15px;
+								border-bottom: 1px solid #ccc;
+								background-color: #fff;
+							}
+						}
 					}
 				}
 				.table-content .table {
@@ -1272,7 +1121,7 @@ footer.footer {
 				}
 				.btn {
 					position: absolute;
-					top: 9px;
+					top: 10px;
 					padding: .3em 1em;
 					&.last {
 						right: 15px;
@@ -1302,6 +1151,19 @@ footer.footer {
 						}
 					}
 				}
+				.grid-flex {
+					display: flex;
+					flex-wrap: wrap;
+					margin: 15px 25px;
+					img {
+						max-width: 200px;
+						max-height: 100px;
+						margin-right: 20px;
+						margin-bottom: 30px;
+						border: 1px solid #ccc;
+						cursor: pointer;
+					}
+				}
 				&.basic-form {
 					background-color: #fff;
 					min-height: 85vh;
@@ -1309,6 +1171,7 @@ footer.footer {
 					select,
 					textarea {
 						width: 100%;
+						box-shadow: none;
 					}
 					footer {
 						position: absolute;
@@ -1320,6 +1183,10 @@ footer.footer {
 						button {
 							margin: 0 5px;
 						}
+						&.no-fixed {
+							position: relative;
+							margin-top: 50px;
+						}
 					}
 					.steps-indicator {
 						display: flex;
@@ -1327,6 +1194,7 @@ footer.footer {
 						width: 70%;
 						margin: 0 auto;
 						margin-top: 40px;
+						margin-bottom: 120px;
 						.group {
 							display: flex;
 							width: 100%;
@@ -1380,14 +1248,15 @@ footer.footer {
 							}
 						}
 					}
-					.steps {
+					.form-group {
 						position: relative;
 						display: flex;
 						flex-wrap: wrap;
 						justify-content: left;
 						text-align: center;
 						margin: 0 auto;
-						margin-top: 120px;
+						margin-top: 70px;
+						margin-bottom: 40px;
 						width: 70%;
 						padding: 10px 10px 15px 10px;
 						background-color: #f2f2f2;
@@ -1421,19 +1290,23 @@ footer.footer {
 						.group {
 							width: 50%;
 							padding: 5px;
+							text-align: left;
 							label {
 								text-align: left;
 								color: #185e9e;
 								font-size: .9em;
 								display: block;
 								margin-bottom: 3px;
+								&.checkbox {
+									float: left;
+									margin-right: 5px;
+								}
 							}
 							&.full {
 								width: 100%;
 							}
 						}
 						&.normal {
-							margin-top: 60px;
 							#edgeModeType {
 								flex-direction: row;
 								margin: 10px 0;
@@ -1447,6 +1320,15 @@ footer.footer {
 							}
 							#edgeModeDatetime {
 								text-align: left;
+							}
+							.react-multi-email {
+								display: flex;
+								flex-wrap: wrap;
+							}
+						}
+						&.long {
+							.group {
+								width: 100%;
 							}
 						}
 						&.short {
