@@ -211,6 +211,7 @@ class FloorMap extends Component {
                 <label htmlFor='areaMapUpload'>{t('txt-network-map')}</label>
                 <FileInput
                   id='areaMapUpload'
+                  className='area-upload'
                   name='file'
                   btnText={t('txt-upload')}
                   validate={{

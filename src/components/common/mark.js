@@ -52,7 +52,7 @@ class Mark extends Component {
       return (
         <div className='mark-section'>
           <MultiInput
-            id='mainMark'
+            className='mark-wrap'
             base={searchMark}
             inline={inline}
             props={data}

@@ -438,7 +438,7 @@ class NetworkOwner extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  connectAD() {
+  connectAD = () => {
     const {baseUrl} = this.props
     const {ldap} = this.state
 
@@ -503,14 +503,14 @@ class NetworkOwner extends Component {
       helper.showPopupMsg('', t('txt-error'), msg);
     })
   }
-  switchADImport() {
+  switchADImport = () => {
     const {openADImport} = this.state
     this.setState({openADImport: !openADImport})
   }
-  handleADSelected(adSelected) {
+  handleADSelected = (adSelected) => {
     this.setState({adSelected})
   }
-  handleADImport() {
+  handleADImport = () => {
     const {adList, adSelected} = this.state
     const {baseUrl} = this.props
     let dataObj = []
@@ -536,11 +536,11 @@ class NetworkOwner extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  modalADImport() {
+  modalADImport = () => {
     const {adList, adSelected} = this.state
     const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.switchADImport.bind(this)},
-      confirm: {text: t('txt-import'), handler: this.handleADImport.bind(this)}
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.switchADImport},
+      confirm: {text: t('txt-import'), handler: this.handleADImport}
     }
 
     return(
@@ -550,7 +550,7 @@ class NetworkOwner extends Component {
             className='main-table'
             data={adList}
             selected={adSelected}
-            onSelectionChange={this.handleADSelected.bind(this)}
+            onSelectionChange={this.handleADSelected}
             selection={{enabled:true, toggleAll:true, multiSelect: true }}
             rowIdField='ownerID'
             fields={{
@@ -561,20 +561,20 @@ class NetworkOwner extends Component {
       </ModalDialog>
     )
   }
-  handleADChange(type, value) {
+  handleADChange = (type, value) => {
     let temp = {...this.state.ldap}
     temp[type] = value
     this.setState({ldap: temp})
   }
-  switchADConnect() {
+  switchADConnect = () => {
     const {openADConnect} = this.state
     this.setState({openADConnect: !openADConnect})
   }
-  modalADConnect() {
+  modalADConnect = () => {
     const {ldap, error, info} = this.state
     const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.switchADConnect.bind(this)},
-      confirm: {text: t('txt-connect'), handler: this.connectAD.bind(this)}
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.switchADConnect},
+      confirm: {text: t('txt-connect'), handler: this.connectAD}
     }
 
     return (
@@ -692,7 +692,7 @@ class NetworkOwner extends Component {
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            <button onClick={this.switchADConnect.bind(this)} title={t('txt-adImport')}><i className='fg fg-signage-ad'></i></button>
+            <button onClick={this.switchADConnect} title={t('txt-adImport')}><i className='fg fg-signage-ad'></i></button>
             <button className={cx('last', {'active': openFilter})} onClick={this.setFilter.bind(this, !openFilter)} title={t('txt-filter')} disabled={activeContent !== 'tableList'}><i className='fg fg-filter'></i></button>
           </div>
         </div>

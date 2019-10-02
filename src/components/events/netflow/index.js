@@ -821,7 +821,7 @@ class Netflow extends Component {
             }
             if (tempData === 'base64' && value) {
               if (value.indexOf('data:image/') >= 0) {
-                return <img src={value} onClick={this.openImageModal(value)} className='file-image' />;
+                return <img src={value} className='file-image' onClick={this.openImageModal(value)} />;
               }
             } else if (tempData === 'filePath') {
               return <a href={baseUrl + contextRoot + '/api/network/file?path=' + value} download>{value}</a>;

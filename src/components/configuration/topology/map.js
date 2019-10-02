@@ -775,8 +775,8 @@ class NetworkMap extends Component {
               <button className='standard btn last' onClick={this.openEditFloorMap} >{t('network-topology.txt-editFloorMap')}</button>
 
               <div className='map-container'>
-                <div className='left-nav floor-tree'>
-                  <div className='content-area'>
+                <div className='left-nav'>
+                  <div className='tree-data'>
                     {floorPlan.treeData && floorPlan.treeData.length > 0 &&
                       floorPlan.treeData.map((value, i) => {
                         return this.getTreeView(value, floorPlan.currentAreaUUID, i);

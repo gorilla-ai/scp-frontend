@@ -128,6 +128,7 @@
   "txt-reTrigger": "Get latest System info",  
   "txt-requestSent": "Request Sent",
   "txt-analyze": "Analyze",
+  "txt-send": "Send",
 
   "txt-daily": "Daily",
   "txt-weekly": "Weekly",
@@ -420,6 +421,7 @@
   },
 
   "notifications": {
+    "txt-testEmails": "Test Emails",
     "txt-settings": "Notification Settings",
     "txt-emailSettings": "Email Settings",
     "txt-serviceNotifications": "Service Settings",

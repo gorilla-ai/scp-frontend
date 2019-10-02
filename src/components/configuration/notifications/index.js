@@ -7,6 +7,7 @@ import cx from 'classnames'
 import Checkbox from 'react-ui/build/src/components/checkbox'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import Input from 'react-ui/build/src/components/input'
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import Textarea from 'react-ui/build/src/components/textarea'
 
 import helper from '../../common/helper'
@@ -27,13 +28,15 @@ class Notifications extends Component {
 
     this.state = {
       activeContent: 'viewMode', //viewMode, editMode
+      openEmailDialog: false,
+      testEmails: [],
       originalNotifications: {},
       notifications: {
         server: '',
-        port: '',
+        port: 25,
         sender: '',
         connectType: 'standard',
-        authentication: false,
+        authentication: 'true',
         senderAccount: '',
         senderPassword: ''
       },
@@ -90,7 +93,7 @@ class Notifications extends Component {
           port: data1.smtpPort,
           sender: data1.sender,
           connectType: data1.smtpConnectType,
-          authentication: data1.emailAuthentication,
+          authentication: data1.emailAuthentication.toString(), //Convert boolean to string
           senderAccount: data1.senderAcct,
           senderPassword: data1.senderPasswd,
         };
@@ -158,9 +161,9 @@ class Notifications extends Component {
     const {notifications, emails} = this.state;
     const mailServerRequestData = {
       smtpServer: notifications.server,
-      smtpPort: notifications.port,
+      smtpPort: Number(notifications.port),
       smtpConnectType: notifications.connectType,
-      emailAuthentication: notifications.authentication,
+      emailAuthentication: notifications.authentication === 'true', //Convert string to boolean
       sender: notifications.sender,
       senderAcct: notifications.senderAccount,
       senderPasswd: notifications.senderPassword
@@ -223,7 +226,7 @@ class Notifications extends Component {
     }
 
     return (
-      <div className='form-group normal long'>
+      <div className='form-group normal long' key={val.type}>
         <header>{val.headerText}</header>
         <div className='group'>
           <label>{t('notifications.txt-recipientEmail')}</label>
@@ -272,9 +275,89 @@ class Notifications extends Component {
       </div>
     )
   }
+  openEmailDialog = () => {
+    this.setState({
+      openEmailDialog: true
+    });
+  }
+  displayTestEmail = () => {
+    const {testEmails} = this.state;
+
+    return (
+      <div>
+        <label>{t('notifications.txt-recipientEmail')}</label>
+        <ReactMultiEmail
+          emails={testEmails}
+          onChange={(_emails: string[]) => {
+            this.setState({
+              testEmails: _emails
+            });
+          }}
+          getLabel={(
+            email: string,
+            index: number,
+            removeEmail: (index: number) => void
+          ) => {
+            return (
+              <div data-tag key={index}>
+                {email}
+                <span data-tag-handle onClick={() => removeEmail(index)}>
+                  x
+                </span>
+              </div>
+            );
+          }}
+        />
+      </div>
+    )
+  }
+  testEmailDialog = () => {
+    const titleText = t('notifications.txt-testEmails');
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeDialog},
+      confirm: {text: t('txt-send'), handler: this.testEmailConfirm}
+    };
+
+    return (
+      <ModalDialog
+        id='testEmailDialog'
+        className='modal-dialog'
+        title={titleText}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        {this.displayTestEmail()}
+      </ModalDialog>
+    )
+  }
+  testEmailConfirm = () => {
+    const {testEmails} = this.state;
+    let dataParams = '';
+
+    _.forEach(testEmails, val => {
+      dataParams += '&receipts=' + val;
+    })
+
+    this.ah.one({
+      url: `${baseUrl}/api/notification/mailServer/_test?` + dataParams,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        this.closeDialog();
+      }
+    })
+  }
+  closeDialog = () => {
+    this.setState({
+      openEmailDialog: false,
+      testEmails: []
+    });
+  }
   render() {
     const {baseUrl, contextRoot, language, session} = this.props;
-    const {activeContent, notifications, emails} = this.state;
+    const {activeContent, openEmailDialog, notifications, emails} = this.state;
     const EMAIL_SETTINGS = [
       {
         type: 'service',
@@ -295,6 +378,10 @@ class Notifications extends Component {
 
     return (
       <div>
+        {openEmailDialog &&
+          this.testEmailDialog()
+        }
+
         <div className='sub-header'>
         </div>
 
@@ -314,6 +401,7 @@ class Notifications extends Component {
 
               <div className='form-group normal short'>
                 <header>{t('notifications.txt-emailSettings')}</header>
+                <button className='last' onClick={this.openEmailDialog}>{t('notifications.txt-testEmails')}</button>
                 <div className='group'>
                   <label htmlFor='notificationsServer'>{t('notifications.txt-smtpServer')}</label>
                   <Input
@@ -324,8 +412,14 @@ class Notifications extends Component {
                 </div>
                 <div className='group'>
                   <label htmlFor='notificationsPort'>{t('notifications.txt-smtpPort')}</label>
-                  <Input
+                  <DropDownList
                     id='notificationsPort'
+                    required={true}
+                    list={[
+                      {value: 25, text: 25},
+                      {value: 465, text: 465},
+                      {value: 587, text: 587}
+                    ]}
                     onChange={this.handleDataChange.bind(this, 'port')}
                     value={notifications.port}
                     readOnly={activeContent === 'viewMode'} />
@@ -344,7 +438,9 @@ class Notifications extends Component {
                     id='notificationsSender'
                     required={true}
                     list={[
-                      {value: 'standard', text: 'Standard'}
+                      {value: 'standard', text: 'Standard'},
+                      {value: 'ssl', text: 'SSL'},
+                      {value: 'tls', text: 'TLS'},
                     ]}
                     onChange={this.handleDataChange.bind(this, 'connectType')}
                     value={notifications.connectType}
@@ -356,8 +452,8 @@ class Notifications extends Component {
                     id='notificationsAuthentication'
                     required={true}
                     list={[
-                      {value: true, text: 'True'},
-                      {value: false, text: 'False'}
+                      {value: 'true', text: 'True'},
+                      {value: 'false', text: 'False'}
                     ]}
                     onChange={this.handleDataChange.bind(this, 'authentication')}
                     value={notifications.authentication}

@@ -4,7 +4,6 @@ import Moment from 'moment'
 import cx from 'classnames'
 
 import ButtonGroup from 'react-ui/build/src/components/button-group'
-import Timebar from 'react-timebar/build/src/components'
 
 import {HocChartContent as ChartContent} from './chart-content'
 import helper from './helper'
@@ -13,15 +12,12 @@ import withLocale from '../../hoc/locale-provider'
 
 let t = null;
 
-let initialLoad = false;
-
 class TimebarChart extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      chartData: {},
-      timebarData: []
+      chartData: {}
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -31,9 +27,6 @@ class TimebarChart extends Component {
   }
   componentDidUpdate = (prevProps) => {
     this.getTimebarData(prevProps);
-  }
-  componentWillUnmount = () => {
-    initialLoad = false;
   }
   getHistogramType = () => {
     const {tabChartData} = this.props;
@@ -46,17 +39,15 @@ class TimebarChart extends Component {
       return tabChartData.byteHistogram;
     }
   }
-  setChartState = (chartData, timebarData) => {
+  setChartState = (chartData) => {
     this.setState({
-      chartData,
-      timebarData
+      chartData
     });
   }
   getTimebarData = (prevProps) => {
     const {mainContentData, tabChartData, tableMouseOver} = this.props;
     const activeTab = mainContentData.activeTab;
     let chartData = '';
-    let timebarData = [];
 
     if (!tableMouseOver) {
       if (activeTab === 'alert' || activeTab === 'logs') {
@@ -66,7 +57,7 @@ class TimebarChart extends Component {
       }
 
       if (_.isEmpty(chartData)) {
-        if (!_.isEmpty(this.state.chartData) || !_.isEmpty(this.state.timebarData)) {
+        if (!_.isEmpty(this.state.chartData)) {
           this.setChartState({}, []);
         }
       } else {
@@ -77,31 +68,11 @@ class TimebarChart extends Component {
             combinedData = _.assign({}, chartData[val]); //Combine chart object data for Alert
           })
 
-          timebarData = _.map(combinedData, (value, key) => {
-            const timeStamp = Moment(key).valueOf();
-
-            return {
-              id: '_' + timeStamp,
-              dt: timeStamp,
-              v: value
-            }
-          });
-
           if (!prevProps || (prevProps && chartData !== prevProps.tabChartData.chartData)) {
-            this.setChartState(chartData, timebarData);
+            this.setChartState(chartData);
           }
         } else if (activeTab === 'connections') {
           let setChartState = false;
-
-          timebarData = _.map(chartData, (value, key) => {
-            const timeStamp = Moment(key).valueOf();
-
-            return {
-              id: '_' + timeStamp,
-              dt: timeStamp,
-              v: value
-            }
-          });
 
           if (!prevProps) { //For switching the Table view and LA/Map view
             setChartState = true;
@@ -126,29 +97,15 @@ class TimebarChart extends Component {
           }
 
           if (setChartState) {
-            this.setChartState(chartData, timebarData);
+            this.setChartState(chartData);
           }
         }
       }
     }
   }
-  timebarReady = () => {
-    window.KeyLines.setSize(this.timebarComponent.timebarNode, 500, 100);
-
-    setTimeout(() => {
-      this.timebarComponent.resetView(() => {
-        initialLoad = true;
-      });
-    }, 1000);
-  }
-  rangeChange = (...args) => {
-    if (initialLoad) {
-      this.props.mainContentData.handleRangeChange(...args);
-    }
-  }
   render() {
     const {contextRoot, mainContentData, tabChartData, markData, tableMouseOver} = this.props;
-    const {chartData, timebarData} = this.state;
+    const {chartData} = this.state;
     const assetsPath = `${contextRoot}/lib/keylines/assets/`;
 
     if (mainContentData.activeTab === 'connections') {
@@ -177,23 +134,6 @@ class TimebarChart extends Component {
               ]}
               onChange={tabChartData.chartIntervalChange}
               value={tabChartData.chartIntervalValue} />
-
-            {timebarData &&
-              <div className='time-bar'>
-                {!_.isEmpty(timebarData) &&
-                  <Timebar
-                    _ref={(ref) => {this.timebarComponent = ref}}
-                    assetsPath={assetsPath}
-                    onReady={this.timebarReady}
-                    items={timebarData}
-                    chartOptions={{
-                      showPlay: false,
-                      showFit: false
-                    }}
-                    onRangeChange={this.rangeChange} />
-                }
-              </div>
-            }
           </div>
 
           {chartData &&
@@ -210,20 +150,6 @@ class TimebarChart extends Component {
           <i className='fg fg-close' onClick={mainContentData.toggleChart} title={t('txt-close')}></i>
           <div className='chart-content'>
             <button className='placeholder'></button>
-              <div className='time-bar'>
-                {!_.isEmpty(timebarData) &&
-                  <Timebar
-                    _ref={(ref) => {this.timebarComponent = ref}}
-                    assetsPath={assetsPath}
-                    onReady={this.timebarReady}
-                    items={timebarData}
-                    chartOptions={{
-                      showPlay: false,
-                      showFit: false
-                    }}
-                    onRangeChange={this.rangeChange} />
-                }
-              </div>
           </div>
 
           {tabChartData &&

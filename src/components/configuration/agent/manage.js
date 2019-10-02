@@ -764,8 +764,8 @@ class Manage extends Component {
   modalAgentDialog = () => {
     const {modalTitle, info} = this.state;
     const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeDialog.bind(this)},
-      confirm: {text: t('txt-confirm'), handler: this.handleAgentConfirm.bind(this)}
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeDialog},
+      confirm: {text: t('txt-confirm'), handler: this.handleAgentConfirm}
     };
 
     return (

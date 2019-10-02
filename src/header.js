@@ -133,7 +133,7 @@ class Header extends Component {
               </div>
             </div>
 
-            <div className='c-link account' onClick={this.showAccountMenu}>
+            <div className='account' onClick={this.showAccountMenu}>
               <i className='fg fg-globe'></i>
               <i className='fg fg-arrow-bottom'></i>
             </div>

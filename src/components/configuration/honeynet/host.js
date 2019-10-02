@@ -455,29 +455,29 @@ class Honeynet extends Component {
       </div>
     )
   }
-  handleGroupName(value) {
+  handleGroupName = (value) => {
     this.setState({newGroupName: value})
   }
-  switchAddGroupName() {
+  switchAddGroupName = () => {
     const {openNewGroupName} = this.state
     openNewGroupName ? this.setState({openNewGroupName: false, newGroupName: ''}) : this.setState({openNewGroupName: true})
   }
-  handleAddGroupName() {
+  handleAddGroupName = () => {
     let {newGroupName, groupData, sensor} = this.state
     groupData.push({value:newGroupName, text:newGroupName})
     sensor.groupName.push(newGroupName)
     this.setState({groupData, sensor}, () => this.switchAddGroupName())
   }
-  addGroupName() {
+  addGroupName = () => {
     const {newGroupName} = this.state
     const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.switchAddGroupName.bind(this)},
-      confirm: {text: t('txt-confirm'), handler: this.handleAddGroupName.bind(this)}
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.switchAddGroupName},
+      confirm: {text: t('txt-confirm'), handler: this.handleAddGroupName}
     }
 
     return (
     <ModalDialog className='modal-dialog' title={t('honeynet.txt-addGroupName')} draggable={true} global={true} actions={actions} closeAction='cancel'>
-      <Input className='add' value={newGroupName} onChange={this.handleGroupName.bind(this)} />
+      <Input className='add' value={newGroupName} onChange={this.handleGroupName} />
     </ModalDialog>
     )
   }
@@ -582,8 +582,8 @@ class Honeynet extends Component {
   modalDialog = () => {
     const titleText = t('honeynet.txt-editSensor');
     const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeDialog.bind(this)},
-      confirm: {text: t('txt-confirm'), handler: this.handleSensorConfirm.bind(this)}
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeDialog},
+      confirm: {text: t('txt-confirm'), handler: this.handleSensorConfirm}
     };
 
     return (
@@ -599,10 +599,10 @@ class Honeynet extends Component {
       </ModalDialog>
     )
   }
-  setFilter(flag) {
+  setFilter = (flag) => {
     this.setState({openFilter: flag})
   }
-  clearFilter() {
+  clearFilter = () => {
     const clear = { name: '', vpnName: '', IP: '', honeypot: '', status: 'All' }
     this.setState({search: clear})
   }

@@ -73,7 +73,7 @@ class Tree extends Component {
 
     return (
       <div className={cx('left-nav tree', {'collapse': !showContent})}>
-        <div className='main-content'>
+        <div className='content'>
           {activeTab !== 'alert' && activeTab !== 'logs' &&
             <div>
               <label htmlFor='analysisType' className={cx('header-text', {'hide': !showContent})}>{t('network.connections.txt-analysisType')}</label>

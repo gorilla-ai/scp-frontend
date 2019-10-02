@@ -122,11 +122,11 @@ class Endpoint extends Component {
             } else if (tempData === 'createDttm') {
               return <span>{helper.getFormattedDate(value)}</span>;
             } else if (tempData === 'runningTaskCount') {
-              return <span className={cx({'task-count': value > 0})} onClick={this.getTaskInfo.bind(this, 'Running', allValue)}>{value}</span>;
+              return <a className='bold' onClick={this.getTaskInfo.bind(this, 'Running', allValue)}>{value}</a>;
             } else if (tempData === 'waitingTaskCount') {
-              return <span className={cx({'task-count': value > 0})} onClick={this.getTaskInfo.bind(this, 'Waiting', allValue)}>{value}</span>;
+              return <a className='bold' onClick={this.getTaskInfo.bind(this, 'Waiting', allValue)}>{value}</a>;
             } else if (tempData === 'completeTaskCount') {
-              return <span className={cx({'task-count': value > 0})} onClick={this.getTaskInfo.bind(this, 'Complete', allValue)}>{value}</span>;
+              return <a className='bold' onClick={this.getTaskInfo.bind(this, 'Complete', allValue)}>{value}</a>;
             } else {
               return <span>{value}</span>;
             }

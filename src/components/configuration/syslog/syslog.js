@@ -573,12 +573,12 @@ class Syslog extends Component {
   modalSyslog = () => {
     const {error, info, modalTitle} = this.state
     const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeSyslog.bind(this)},
-      confirm: {text: t('txt-confirm'), handler: this.confirmSyslog.bind(this)}
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeSyslog},
+      confirm: {text: t('txt-confirm'), handler: this.confirmSyslog}
     }
 
     return (
-      <ModalDialog 
+      <ModalDialog
         id='syslogModalDialog'
         className='modal-dialog'
         title={modalTitle}
@@ -718,7 +718,8 @@ class Syslog extends Component {
           }
           {showTable &&
             <DataTable
-              className='main-table timeline'
+              className='main-table'
+              style={{margin: '0 auto'}}
               data={eventsData.hosts}
               fields={{
                 ip: { label: f('alertFields.srcIp'), sortable: true },

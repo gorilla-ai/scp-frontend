@@ -24,11 +24,6 @@ footer.footer {
 	padding-bottom: 12px;
 }
 /*******/
-#language-menu {
-	left: auto !important;
-	top: 40px !important;
-	right: 10px;
-}
 #g-login {
 	input,
 	select {
@@ -45,19 +40,23 @@ footer.footer {
 		background-color: #001b34 !important;
 	}
 }
-#g-header {
+#language-menu {
+	left: auto !important;
+	top: 40px !important;
+	right: 10px;
+}
+#g-header { //Top nav menu
 	color: #ffffff;
 	padding: 0 20px;
 	height: 45px;
 	background-color: #001b34;
-	.title {
+	.title { //Gorilla logo
 		position: absolute;
 		font-size: 1.6em;
 		font-weight: bold;
 		letter-spacing: 1px;
-		margin-bottom: 2px;
 	}
-	.main-nav {
+	.main-nav { //Main top nav
 		text-align: center;
 		.item {
 			padding: 12px 35px;
@@ -136,31 +135,8 @@ footer.footer {
 #g-progress.c-modal.spin > .dialog {
 	border: none;
 }
-#language-menu {
-	left: auto !important;
-	top: 60px !important;
-	right: 10px;
-}
-#areaMapUpload {
-	width: 282px;
-	button {
-		font-size: 15px;
-	}
-}
-#subTabMenu {
-	margin-top: 10px;
-	.tabContent {
-		display: none;
-	}
-}
 #eventsQueryMenu {
 	z-index: 10000;
-}
-#g-home.c-flex > .fg-3 {
-	flex-grow: 3;
-}
-#g-home.c-flex > .fg-7 {
-	flex-grow: 7;
 }
 .leaflet-touch .leaflet-bar a:first-child {
 	display: block !important;
@@ -199,78 +175,6 @@ footer.footer {
 	}
 	.leaflet-container {
 		background: -webkit-linear-gradient(top, #021320, #03244b, #021320)
-	}
-}
-#mainFilter,
-#mainMark {
-	padding: 5px 7px;
-	background-color: #ededed;
-	& > span {
-		margin: 3px 0;
-	}
-	span {
-		i.c-link {
-			background-color: #fff;
-		}
-	}
-	.filter-select {
-		width: 215px;
-	}
-	.condition-select {
-		width: 100px;
-	}
-	.filter-inputbox {
-		width: 235px;
-		height: 35px;
-	}
-	.mark-inputbox {
-		width: 200px;
-		height: 35px;
-	}
-	.fg-recode {
-		float: left;
-		width: 32px;
-		padding: 5px 5px 6px 4px;
-		margin-right: 3px;
-		border: 1px solid #d9d9d9;
-		border-radius: 5px;
-		&.red {
-			color: #B80000;
-		}
-		&.yellow {
-			color: #FCCB00;
-		}
-		&.green {
-			color: #008B02;
-		}
-		&.darkGreen {
-			color: #006B76;
-		}
-		&.blue {
-			color: #1273DE;
-		}
-		&.orange {
-			color: #DB3E00;
-		}
-		&.darkBlue {
-			color: #004DCF;
-		}
-		&.purple {
-			color: #5300EB;
-		}
-		&.soil {
-			color: #C1B748;
-		}
-		&.brown {
-			color: #660000;
-		}
-	}
-}
-#mainMark {
-	.group:nth-child(10) {
-		button {
-			display: none;
-		}
 	}
 }
 #app-container {
@@ -337,7 +241,7 @@ footer.footer {
 				margin-right: 10px;
 				.time-interval {
 					background-color: #fff;
-					width: 135px;
+					width: 110px;
 					height: 36px;
 					box-shadow: none;
 					cursor: pointer;
@@ -370,7 +274,7 @@ footer.footer {
 		border-bottom: 1px solid #ccc;
 		background-color: #fff;
 	}
-	.table-menu { //table menu button
+	.table-menu { //table menu [...] button
 		visibility: hidden;
 		&.active {
 			visibility: visible;
@@ -582,9 +486,6 @@ footer.footer {
 			min-width: 15px;
 			border-right: 1px solid #d9d9d9;
 			background-color: #d9d9d9;
-			&.floor-tree {
-				background-color: #fff;
-			}
 			&.tree {
 				padding: 10px 25px 10px 10px;
 				&.collapse {
@@ -592,7 +493,7 @@ footer.footer {
 					padding: 0;
 				}
 			}
-			.main-content {
+			.content {
 				overflow-y: auto;
 				max-height: 85vh;
 				padding-right: 10px;
@@ -614,16 +515,6 @@ footer.footer {
 					font-size: 1.5em;
 				}
 			}
-			.header-text {
-				color: #004d93;
-				font-size: .9em;
-				padding: 5px 10px;
-				margin-top: 0;
-				margin-bottom: 0;
-				&.hide {
-					display: none;
-				}
-			}
 			label {
 				display: block;
 				margin: 15px 0 3px 0;
@@ -642,6 +533,16 @@ footer.footer {
 					}
 				}
 			}
+			.header-text {
+				color: #004d93;
+				font-size: .9em;
+				padding: 5px 10px;
+				margin-top: 0;
+				margin-bottom: 0;
+				&.hide {
+					display: none;
+				}
+			}
 			input,
 			select,
 			.c-combobox {
@@ -657,20 +558,11 @@ footer.footer {
 					}
 				}
 			}
-			.content-area {
-				padding: 10px;
-			}
 			.analysis-type {
 				margin-bottom: 10px;
 			}
-			&.account {
-				label {
-					font-size: 1em;
-					margin-top: 0;
-				}
-			}
 			.frame,
-			.subframe {
+			.subframe { //For Config left nav
 				cursor: pointer;
 				a {
 					display: block;
@@ -750,6 +642,79 @@ footer.footer {
 				.filter-section,
 				.mark-section {
 					background-color: #ededed;
+					.filter-warp,
+					.mark-wrap {
+						padding: 5px 7px;
+						background-color: #ededed;
+						& > span {
+							margin: 3px 0;
+						}
+						span {
+							i.c-link {
+								background-color: #fff;
+							}
+						}
+						.filter-select {
+							width: 215px;
+						}
+						.condition-select {
+							width: 100px;
+							height: 35px;
+						}
+						.filter-inputbox {
+							width: 235px;
+							height: 35px;
+						}
+						.mark-inputbox {
+							width: 200px;
+							height: 35px;
+						}
+						.fg-recode {
+							float: left;
+							width: 32px;
+							padding: 5px 5px 6px 4px;
+							margin-right: 3px;
+							border: 1px solid #d9d9d9;
+							border-radius: 5px;
+							&.red {
+								color: #B80000;
+							}
+							&.yellow {
+								color: #FCCB00;
+							}
+							&.green {
+								color: #008B02;
+							}
+							&.darkGreen {
+								color: #006B76;
+							}
+							&.blue {
+								color: #1273DE;
+							}
+							&.orange {
+								color: #DB3E00;
+							}
+							&.darkBlue {
+								color: #004DCF;
+							}
+							&.purple {
+								color: #5300EB;
+							}
+							&.soil {
+								color: #C1B748;
+							}
+							&.brown {
+								color: #660000;
+							}
+						}
+					}
+					.mark-wrap {
+						.group:nth-child(10) {
+							button {
+								display: none;
+							}
+						}
+					}
 				}
 				.button-group {
 					margin-bottom: 5px;
@@ -822,7 +787,7 @@ footer.footer {
 					margin-bottom: 8px;
 				}
 			}
-			.main-chart {
+			.main-chart { //For main chart in Events and Syslog
 				border-bottom: 1px solid #ccc;
 				.chart-content {
 					background-color: #fff;
@@ -847,324 +812,21 @@ footer.footer {
 						padding-right: 10px;
 					}
 				}
-				.time-bar {
-					display: none; //temporary
-					float: right;
-					width: 500px;
-					margin-right: 40px;
-					margin-top: 15px;
-				}
 				.bar-chart {
-					//margin-top: 70px; //temporary
 					background-color: #fff;
 					.error {
 						padding: 0px 10px 15px 10px;
 					}
 				}
 			}
-			&.manage {
-				width: 80%;
-				margin: 10px;
-				border: 1px solid #ccc;
-				border-radius: 5px;
-				overflow-x: auto;
-				&.wide-width {
-					width: auto;
-				}
-				&.scroll-y {
-					overflow-y: auto;
-				}
-			}
-			.main-content {
+			.main-content { //Content below the filter or charts
 				position: relative;
 				margin: 15px;
 				border-radius: 5px;
 				background-color: #ededed;
 				border: 1px solid #d9d9d9;
 				overflow: hidden;
-				.subtab-menu {
-					.tabContent {
-						display: none;
-					}
-					li {
-						font-size: 1.1em;
-						font-weight: bold;
-						padding: 15px;
-					}
-				}
-				footer {
-					padding: 20px;
-					margin: 0;
-					.dropdown-margin {
-						margin-left: 50px;
-					}
-				}
-				.alert-statistics {
-					height: 79vh;
-					overflow-y: auto;
-					padding: 6px;
-					background-color: #d9d9d9;
-					.statistics-content {
-						display: flex;
-						flex-grow: 12;
-						flex-wrap: wrap;
-						.chart-group {
-							width: 49.2%;
-							margin: 5px;
-							border: none;
-							border-radius: 5px;
-							overflow: hidden;
-							header {
-								color: #004d93;
-								font-size: 1.1em;
-								font-weight: bold;
-								padding: 15px;
-								border-bottom: 1px solid #ccc;
-								background-color: #fff;
-							}
-						}
-					}
-				}
-				.table-content .table {
-					height: 71vh;
-					overflow-y: auto;
-					.main-table {
-						width: 100%;
-						&.overflow-scroll {
-							overflow-x: auto;
-						}
-						thead th {
-							text-align: center;
-						}
-						tbody tr {
-							height: 45px;
-							&.red {
-								color: #fff;
-								background-color: #B80000;
-								&:hover {
-									background-color: #B80000 !important;
-								}
-							}
-							&.orange {
-								color: #fff;
-								background-color: #DB3E00;
-								&:hover {
-									background-color: #DB3E00 !important;
-								}
-							}
-							&.yellow {
-								color: #fff;
-								background-color: #FCCB00;
-								&:hover {
-									background-color: #FCCB00 !important;
-								}
-							}
-							&.green {
-								color: #fff;
-								background-color: #008B02;
-								&:hover {
-									background-color: #008B02 !important;
-								}
-							}
-							&.darkGreen {
-								color: #fff;
-								background-color: #006B76;
-								&:hover {
-									background-color: #006B76 !important;
-								}
-							}
-							&.blue {
-								color: #fff;
-								background-color: #1273DE;
-								&:hover {
-									background-color: #1273DE !important;
-								}
-							}
-							&.darkBlue {
-								color: #fff;
-								background-color: #004DCF;
-								&:hover {
-									background-color: #004DCF !important;
-								}
-							}
-							&.purple {
-								color: #fff;
-								background-color: #5300EB;
-								&:hover {
-									background-color: #5300EB !important;
-								}
-							}
-							&.grey {
-								color: #fff;
-								background-color: #999;
-								&:hover {
-									background-color: #999 !important;
-								}
-							}
-						}
-						tbody td {
-							text-align: left;
-							padding-left: 30px;
-							&.align-center {
-								text-align: center;
-							}
-							&.c-info {
-								cursor: text;
-							}
-							a {
-								text-decoration: underline;
-								&.no-underline {
-									text-decoration: none;
-								}
-							}
-							&._tableMenu_ {
-								width: 1px;
-							}
-							&.Severity {
-								span {
-									display: block;
-									color: #fff;
-									width: 70px;
-									margin-left: 20px;
-									padding: 2px;
-									text-align: center;
-									border-radius: 10px;
-								}
-							}
-							&.description {
-								span {
-									color: #004d93;
-								}
-								button {
-									margin: 5px 0;
-								}
-							}
-							&.ipPort {
-								img {
-									float: left;
-									margin-right: 5px;
-								}
-							}
-							span {
-								a {
-									color: #185e9e;
-									text-decoration: underline;
-								}
-								&.permit {
-									margin: 5px;
-									border: 1px solid #ccc;
-									border-radius: 90px;
-									background-color: #004d93;
-									color: white;
-									padding: 5px 10px;
-								}
-								&.link {
-									text-decoration: underline;
-									cursor: pointer;
-								}
-								&.blue {
-									color: #2164a0;
-								}
-								&.green {
-									color: #2fb046;
-									font-weight: bold;
-								}
-								&.orange {
-									color: #f7af3a;
-									font-weight: bold;
-								}
-								&.red {
-									color: #d1152e;
-									font-weight: bold;
-								}
-								&.task-count {
-									color: #185e9e;
-									font-weight: bold;
-									text-decoration: underline;
-									cursor: pointer;
-								}
-							}
-						}
-						&.align-center {
-							tbody td {
-								text-align: center;
-								padding-left: 0;
-							}
-						}
-						&.with-pointer {
-							tbody td {
-								cursor: pointer;
-							}
-						}
-						&.fixed-header {
-							position: relative;
-						}
-						button.no-pointer {
-							cursor: text;
-						}
-						.file-image {
-							max-width: 200px;
-							max-height: 100px;
-						}
-						&.timeline {
-							width: 50%;
-							margin: 0 auto;
-							.ip {
-								text-align: right;
-								padding: 0;
-							}
-						}
-					}
-				}
-				.table-content .table.normal {
-					height: auto;
-				}
-				.btn {
-					position: absolute;
-					top: 10px;
-					padding: .3em 1em;
-					&.last {
-						right: 15px;
-					}
-				}
-				.la-content {
-					height: 79vh;
-					overflow-y: auto;
-					.c-la {
-						width: 100%;
-					}
-				}
-				.file-options {
-					display: flex;
-					margin: 25px 25px 15px 25px;
-					.imgCheckBox {
-						label {
-							margin-right: 5px;
-						}
-					}
-					.display-file-type {
-						flex-direction: row;
-						margin-left: 20px;
-						& > div {
-							margin: 0;
-							margin-right: 10px;
-						}
-					}
-				}
-				.grid-flex {
-					display: flex;
-					flex-wrap: wrap;
-					margin: 15px 25px;
-					img {
-						max-width: 200px;
-						max-height: 100px;
-						margin-right: 20px;
-						margin-bottom: 30px;
-						border: 1px solid #ccc;
-						cursor: pointer;
-					}
-				}
-				&.basic-form {
+				&.basic-form { //For content with form input
 					background-color: #fff;
 					min-height: 85vh;
 					input,
@@ -1188,67 +850,7 @@ footer.footer {
 							margin-top: 50px;
 						}
 					}
-					.steps-indicator {
-						display: flex;
-						justify-content: center;
-						width: 70%;
-						margin: 0 auto;
-						margin-top: 40px;
-						margin-bottom: 120px;
-						.group {
-							display: flex;
-							width: 100%;
-							&.group1 {
-								width: 13%;
-							}
-						}
-						.step {
-							position: relative;
-							width: 45px;
-							height: 45px;
-							padding: 7px 14px;
-							text-align: center;
-							border-radius: 50%;
-							border: 4px solid #ccc;
-							cursor: default;
-							&.active {
-								color: #fff;
-								background-color: #004d99;
-								border: 4px solid #004d99;
-							}
-							.text {
-								position: absolute;
-								color: #4a4a4a;
-								top: 55px;
-								font-size: 14px;
-								&.text1 {
-									left: -4px;
-								}
-								&.text2 {
-									left: -22px;
-								}
-								&.text3 {
-									left: -9px;
-								}
-								&.text4 {
-									left: -2px;
-								}
-							}
-						}
-						.line {
-							width: 100%;
-							height: 5px;
-							margin-top: 21px;
-							background-color: #ccc;
-							&.active {
-								background-color: #004d99;
-							}
-							&.line1 {
-								display: none;
-							}
-						}
-					}
-					.form-group {
+					.form-group { //For individual form group
 						position: relative;
 						display: flex;
 						flex-wrap: wrap;
@@ -1262,68 +864,20 @@ footer.footer {
 						background-color: #f2f2f2;
 						border: 1px solid #ccc;
 						border-radius: 5px;
-						header {
-							position: absolute;
-							top: -40px;
-							left: 0;
-							color: #185e9e;
-							font-size: 1.2em;
-							font-weight: bold;
-							.text,
-							.status {
-								float: left;
-								margin-right: 15px;
-							}
-							.msg {
-								font-size: 10px;
-								color: #4a4a4a;
-								font-weight: normal;
-								margin-top: 5px;
-								display: block;
-							}
+						#edgeModeType {
+							flex-direction: row;
+							margin: 10px 0;
 						}
-						.toggle-btn {
-							position: absolute;
-							top: -40px;
-							right: 0;
-						}
-						.group {
-							width: 50%;
-							padding: 5px;
+						#edgeModeDatetime {
 							text-align: left;
-							label {
-								text-align: left;
-								color: #185e9e;
-								font-size: .9em;
-								display: block;
-								margin-bottom: 3px;
-								&.checkbox {
-									float: left;
-									margin-right: 5px;
-								}
-							}
-							&.full {
-								width: 100%;
-							}
 						}
 						&.normal {
-							#edgeModeType {
-								flex-direction: row;
-								margin: 10px 0;
-							}
 							.list-item {
 								margin: 0;
 								margin-right: 10px;
 								input {
 									width: 20px;
 								}
-							}
-							#edgeModeDatetime {
-								text-align: left;
-							}
-							.react-multi-email {
-								display: flex;
-								flex-wrap: wrap;
 							}
 						}
 						&.long {
@@ -1419,121 +973,448 @@ footer.footer {
 								}
 							}
 						}
+						header {
+							position: absolute;
+							top: -40px;
+							left: 0;
+							color: #185e9e;
+							font-size: 1.2em;
+							font-weight: bold;
+							.text,
+							.status {
+								float: left;
+								margin-right: 15px;
+							}
+							.msg {
+								font-size: 10px;
+								color: #4a4a4a;
+								font-weight: normal;
+								margin-top: 5px;
+								display: block;
+							}
+						}
+						button {
+							&.last {
+								position: absolute;
+								top: -45px;
+								right: 0;
+							}
+						}
+						.toggle-btn {
+							position: absolute;
+							top: -40px;
+							right: 0;
+						}
+						.group {
+							width: 50%;
+							padding: 5px;
+							text-align: left;
+							&.full {
+								width: 100%;
+							}
+							label {
+								text-align: left;
+								color: #185e9e;
+								font-size: .9em;
+								display: block;
+								margin-bottom: 3px;
+								&.checkbox {
+									float: left;
+									margin-right: 5px;
+								}
+							}
+							.react-multi-email {
+								display: flex;
+								flex-wrap: wrap;
+								height: 42px;
+								[data-tag] {
+									padding-top: 10px;
+									color: #fff;
+									background-color: #004d99;
+									margin-bottom: 5px;
+								}
+							}
+						}
+					}
+					.steps-indicator { //For Config Topology Inventory page
+						display: flex;
+						justify-content: center;
+						width: 70%;
+						margin: 0 auto;
+						margin-top: 40px;
+						margin-bottom: 120px;
+						.group {
+							display: flex;
+							width: 100%;
+							&.group1 {
+								width: 13%;
+							}
+						}
+						.step {
+							position: relative;
+							width: 45px;
+							height: 45px;
+							padding: 7px 14px;
+							text-align: center;
+							border-radius: 50%;
+							border: 4px solid #ccc;
+							cursor: default;
+							&.active {
+								color: #fff;
+								background-color: #004d99;
+								border: 4px solid #004d99;
+							}
+							.text {
+								position: absolute;
+								color: #4a4a4a;
+								top: 55px;
+								font-size: 14px;
+								&.text1 {
+									left: -4px;
+								}
+								&.text2 {
+									left: -22px;
+								}
+								&.text3 {
+									left: -9px;
+								}
+								&.text4 {
+									left: -2px;
+								}
+							}
+						}
+						.line {
+							width: 100%;
+							height: 5px;
+							margin-top: 21px;
+							background-color: #ccc;
+							&.active {
+								background-color: #004d99;
+							}
+							&.line1 {
+								display: none;
+							}
+						}
+					}
+				}
+				.subtab-menu {
+					li {
+						font-size: 1.1em;
+						font-weight: bold;
+						padding: 15px;
+					}
+					.tabContent {
+						display: none;
+					}
+				}
+				footer { //For pagination in Table, LA and Maps
+					padding: 20px;
+					margin: 0;
+					.dropdown-margin {
+						margin-left: 50px;
+					}
+				}
+				.alert-statistics { //For Alert Statistics page
+					height: 79vh;
+					overflow-y: auto;
+					padding: 6px;
+					background-color: #d9d9d9;
+					.statistics-content {
+						display: flex;
+						flex-grow: 12;
+						flex-wrap: wrap;
+						.chart-group {
+							width: 49.2%;
+							margin: 5px;
+							border: none;
+							border-radius: 5px;
+							overflow: hidden;
+							header {
+								color: #004d93;
+								font-size: 1.1em;
+								font-weight: bold;
+								padding: 15px;
+								border-bottom: 1px solid #ccc;
+								background-color: #fff;
+							}
+						}
+					}
+				}
+				.table-content .table {
+					height: 71vh;
+					overflow-y: auto;
+					.main-table {
+						width: 100%;
+						&.overflow-scroll {
+							overflow-x: auto;
+						}
+						&.align-center {
+							tbody td {
+								text-align: center;
+								padding-left: 0;
+							}
+						}
+						&.with-pointer {
+							tbody td {
+								cursor: pointer;
+							}
+						}
+						thead th {
+							text-align: center;
+						}
+						tbody tr {
+							height: 45px;
+							&.red {
+								color: #fff;
+								background-color: #B80000;
+								&:hover {
+									background-color: #B80000 !important;
+								}
+							}
+							&.orange {
+								color: #fff;
+								background-color: #DB3E00;
+								&:hover {
+									background-color: #DB3E00 !important;
+								}
+							}
+							&.yellow {
+								color: #fff;
+								background-color: #FCCB00;
+								&:hover {
+									background-color: #FCCB00 !important;
+								}
+							}
+							&.green {
+								color: #fff;
+								background-color: #008B02;
+								&:hover {
+									background-color: #008B02 !important;
+								}
+							}
+							&.darkGreen {
+								color: #fff;
+								background-color: #006B76;
+								&:hover {
+									background-color: #006B76 !important;
+								}
+							}
+							&.blue {
+								color: #fff;
+								background-color: #1273DE;
+								&:hover {
+									background-color: #1273DE !important;
+								}
+							}
+							&.darkBlue {
+								color: #fff;
+								background-color: #004DCF;
+								&:hover {
+									background-color: #004DCF !important;
+								}
+							}
+							&.purple {
+								color: #fff;
+								background-color: #5300EB;
+								&:hover {
+									background-color: #5300EB !important;
+								}
+							}
+							&.grey {
+								color: #fff;
+								background-color: #999;
+								&:hover {
+									background-color: #999 !important;
+								}
+							}
+						}
+						tbody td {
+							text-align: left;
+							padding-left: 30px;
+							a {
+								color: #185e9e;
+								text-decoration: underline;
+								&.no-underline {
+									text-decoration: none;
+								}
+								&.bold {
+									font-weight: bold;
+								}
+							}
+							span {
+								a {
+									color: #185e9e;
+									text-decoration: underline;
+								}
+								&.link {
+									text-decoration: underline;
+									cursor: pointer;
+								}
+								&.blue {
+									color: #2164a0;
+								}
+								&.green {
+									color: #2fb046;
+									font-weight: bold;
+								}
+								&.orange {
+									color: #f7af3a;
+									font-weight: bold;
+								}
+								&.red {
+									color: #d1152e;
+									font-weight: bold;
+								}
+								&.permit {
+									margin: 5px;
+									border: 1px solid #ccc;
+									border-radius: 90px;
+									background-color: #004d93;
+									color: white;
+									padding: 5px 10px;
+								}
+							}
+							&.align-center {
+								text-align: center;
+							}
+							&.c-info {
+								cursor: text;
+							}
+							&._tableMenu_ {
+								width: 1px;
+							}
+							&.Severity {
+								span {
+									display: block;
+									color: #fff;
+									width: 70px;
+									margin-left: 20px;
+									padding: 2px;
+									text-align: center;
+									border-radius: 10px;
+								}
+							}
+							&.description {
+								span {
+									color: #004d93;
+								}
+								button {
+									margin: 5px 0;
+								}
+							}
+							&.ipPort {
+								img {
+									float: left;
+									margin-right: 5px;
+								}
+							}
+						}
+						button.no-pointer {
+							cursor: text;
+						}
+						.file-image {
+							max-width: 200px;
+							max-height: 100px;
+						}
+					}
+				}
+				.table-content .table.normal {
+					height: auto;
+				}
+				.btn { //For Buttons in content header
+					position: absolute;
+					top: 10px;
+					padding: .3em 1em;
+					&.last {
+						right: 15px;
+					}
+				}
+				.la-content {
+					height: 79vh;
+					overflow-y: auto;
+					.c-la {
+						width: 100%;
+					}
+				}
+				.file-options { //For Events File page
+					display: flex;
+					margin: 25px 25px 15px 25px;
+					.imgCheckBox {
+						label {
+							margin-right: 5px;
+						}
+					}
+					.display-file-type {
+						flex-direction: row;
+						margin-left: 20px;
+						& > div {
+							margin: 0;
+							margin-right: 10px;
+						}
+					}
+				}
+				.grid-flex { //For Events File page
+					display: flex;
+					flex-wrap: wrap;
+					margin: 15px 25px;
+					img {
+						max-width: 200px;
+						max-height: 100px;
+						margin-right: 20px;
+						margin-bottom: 30px;
+						border: 1px solid #ccc;
+						cursor: pointer;
+					}
+				}
+				.inventory-map { //For Config Network Inventory Map tab
+					overflow: hidden;
+					.tree {
+						float: left;
+						width: 20%;
+						ul.c-tree {
+							min-height: 80vh;
+							border-right: 1px solid #ccc;
+						}
+					}
+					.map {
+						float: left;
+						text-align: center;
+						width: 80%;
+						padding-top: 80px;
+						background-color: #f2f2f2;
+						min-height: 80vh;
 					}
 				}
 			}
 		}
-		.right-content {
-			flex-grow: 1;
-			&.center {
-				overflow-x: auto;
-				overflow: hidden;
-				white-space: nowrap;
+		.map-container { //For Config Topology Map page
+			display: flex;
+			min-height: 78vh;
+			.left-nav {
+				background-color: #fff;
+				.tree-data {
+					padding: 10px;
+				}
 			}
-			&.map {
+			.right-content {
+				flex-grow: 1;
 				.table-content .table {
 					height: auto;
 				}
-			}
-			.content-area {
-				text-align: center;
-				padding: 20px;
-				min-height: 60vh;
-			}
-			.parent-content {
-				background: none;
-				.main-content {
-					margin: 0;
-					border: none;
-					border-top: 1px solid #d9d9d9;
-					border-radius: 0;
-				}
-			}
-		}
-		.map-container {
-			display: flex;
-			min-height: 78vh;
-		}
-		.floor-plan,
-		.floor-map {
-			margin: 10px;
-			border: 1px solid #ccc;
-			border-radius: 5px;
-			background: none;
-			header {
-				.fg-edit,
-				.fg-trashcan {
-					position: absolute;
-					right: 15px;
-				}
-			}
-			.fg-add.border,
-			.fg-edit,
-			.fg-map,
-			.fg-trashcan,
-			.fg-fullscreen-exit {
-				top: 12px;
-				color: #4a4a4a;
-				font-size: 1.5em;
-				padding: 2px;
-				border: 1px solid #ccc;
-				border-radius: 5px;
-			}
-		}
-		.floor-map {
-			margin-left: 0;
-			&.employee-record {
-				margin: 0;
-				border: none;
-				header {
-					position: relative;
-					text-align: left;
-					.title {
-						position: relative;
-						width: 285px;
-					}
-				}
 				.content-area {
 					text-align: center;
-				}
-				.fg-fullscreen-exit {
-					position: absolute;
-					top: 8px;
-					right: 15px;
-					cursor: pointer;
-				}
-				.c-gis {
-					min-width: 300px;
-					min-height: 300px;
-					.content {
-						width: 300px;
-						height: 300px;
-					}
+					padding: 20px;
+					min-height: 60vh;
 				}
 			}
 		}
 	}
-	.pagination {
+	.pagination { //TODO!
 		label {
 			margin-right: 5px;
 		}
 	}
-	.search-bar {
-		text-align: left;
-		margin: 10px;
-		.datepicker {
-			position: relative;
-			margin-top: 10px;
-			background-color: #d8d8d8;
-			padding: 10px;
-			button {
-				position: absolute;
-				top: 10px;
-				left: 495px;
-			}
-		}
-	}
-	.map-tooltip {
+	.map-tooltip { //For World map tooltip
 		.key {
 			color: #004d93;
 		}
@@ -1548,7 +1429,7 @@ footer.footer {
 			padding: 2px;
 		}
 	}
-	.safety-scan-content {
+	.safety-scan-content { //TODO!
 		overflow: hidden;
 		max-height: 362px;
 		overflow-y: auto;
@@ -1599,7 +1480,7 @@ footer.footer {
 			}
 		}
 	}
-	.privateIp-info {
+	.privateIp-info { //For Config Topology Network Inventory
 		background-color: #fff;
 		min-height: 84vh;
 		header {
@@ -1610,7 +1491,6 @@ footer.footer {
 			background-color: #fff;
 		}
 		.btn {
-			//top: 12px !important;
 			&.edit {
 				right: 15px;
 			}
@@ -1644,7 +1524,7 @@ footer.footer {
 	}
 	.privateIp-info,
 	.srcIp-content,
-	.destIp-content {
+	.destIp-content { //For shared Alert Detials dialog and Config Network Inventory
 		.private {
 			section {
 				position: relative;
@@ -1709,25 +1589,6 @@ footer.footer {
 					}
 				}
 			}
-		}
-	}
-	.inventory-map {
-		overflow: hidden;
-		.tree {
-			float: left;
-			width: 20%;
-			ul.c-tree {
-				min-height: 80vh;
-				border-right: 1px solid #ccc;
-			}
-		}
-		.map {
-			float: left;
-			text-align: center;
-			width: 80%;
-			padding-top: 80px;
-			background-color: #f2f2f2;
-			min-height: 80vh;
 		}
 	}
 }

@@ -128,6 +128,7 @@
   "txt-reTrigger": "重新獲取資訊",
   "txt-requestSent": "需求已送出",
   "txt-analyze": "分析",
+  "txt-send": "寄出",
 
   "txt-daily": "每日",
   "txt-weekly": "每星期",
@@ -420,6 +421,7 @@
   },
 
   "notifications": {
+    "txt-testEmails": "寄信測試",
     "txt-settings": "通知設定",
     "txt-emailSettings": "Email設定",
     "txt-serviceNotifications": "服務通知設定",

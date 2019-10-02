@@ -535,8 +535,8 @@ class EmailReport extends Component {
     const {modalTitle} = this.state;
     const titleText = modalTitle;
     const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeDialog.bind(this)},
-      confirm: {text: t('txt-confirm'), handler: this.handleAddEmailSettingsConfirm.bind(this)}
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeDialog},
+      confirm: {text: t('txt-confirm'), handler: this.handleAddEmailSettingsConfirm}
     };
 
     return (
