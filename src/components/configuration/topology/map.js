@@ -608,13 +608,15 @@ class NetworkMap extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data.counts > 0) {
+      if (data.rows > 0) {
         this.setState({
           showSeatData: true,
           currentDeviceData: data.rows[0]
         });
-        return null;
+      } else {
+        this.getSeatName(seatUUID);
       }
+      return null;
     })
     .catch(err => {
       this.getSeatName(seatUUID);

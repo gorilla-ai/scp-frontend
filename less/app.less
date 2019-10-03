@@ -925,6 +925,7 @@ footer.footer {
 								.group,
 								#ownerPhotoUpload {
 									width: 100%;
+									text-align: center;
 									input[name='file'] {
 										width: 95%;
 									}
@@ -1012,6 +1013,17 @@ footer.footer {
 							&.full {
 								width: 100%;
 							}
+							&.multi {
+								label {
+									span {
+										display: inline-block;
+										margin-left: 1%;
+									}
+								}
+								.fg-close {
+									background-color: #fff;
+								}
+							}
 							label {
 								text-align: left;
 								color: #185e9e;
@@ -1032,6 +1044,41 @@ footer.footer {
 									color: #fff;
 									background-color: #004d99;
 									margin-bottom: 5px;
+								}
+							}
+							#ipRangeLabel span {
+								width: 30%;
+							}
+							#scannerLabel span {
+								width: 25%;
+							}
+							.ip-range-group,
+							.scanner-group {
+								.group {
+									width: auto;
+									.group-content {
+										width: 100%;
+									}
+									select,
+									input {
+										margin-right: 2.2%;
+									}
+								}
+							}
+							.ip-range-group {
+								.group {
+									select,
+									input {
+										width: 31.5%;
+									}
+								}
+							}
+							.scanner-group {
+								.group {
+									select,
+									input {
+										width: 26%;
+									}
 								}
 							}
 						}
@@ -1141,7 +1188,7 @@ footer.footer {
 					}
 				}
 				.table-content .table {
-					height: 71vh;
+					height: 70vh;
 					overflow-y: auto;
 					.main-table {
 						width: 100%;

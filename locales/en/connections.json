@@ -617,7 +617,14 @@
     "txt-reCompress": "Re-compress",
     "txt-editFloorMap": "$t(txt-edit) $t(txt-floorMap)",
     "txt-deleteDevice": "$t(txt-delete) $t(txt-device)",
-    "txt-deleteDeviceMsg": "$t(txt-delete-msg) $t(txt-device)"
+    "txt-deleteDeviceMsg": "$t(txt-delete-msg) $t(txt-device)",
+    "auto-settings": {
+      "txt-ipRange": "IP Range",
+      "txt-AD": "AD",
+      "txt-LDAP": "LDAP",
+      "txt-netflow": "Netflow",
+      "txt-scanner": "Scanner"
+    }
   },
 
   "edgeFields": {

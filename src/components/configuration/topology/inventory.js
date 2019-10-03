@@ -19,6 +19,7 @@ import Tabs from 'react-ui/build/src/components/tabs'
 import Textarea from 'react-ui/build/src/components/textarea'
 import TreeView from 'react-ui/build/src/components/tree'
 
+import {HocAutoSettings as AutoSettings} from './auto-settings'
 import {HocConfig as Config} from '../../common/configuration'
 import {HocFilterContent as FilterContent} from '../../common/filter-content'
 import helper from '../../common/helper'
@@ -52,7 +53,7 @@ class NetworkInventory extends Component {
 
 		this.state = {
       activeTab: 'deviceList', //deviceList, deviceMap
-      activeContent: 'tableList', //tableList, dataInfo, addIPsteps
+      activeContent: 'tableList', //tableList, dataInfo, addIPsteps, autoSettings
       showFilter: false,
       showScanInfo: false,
       showSeatData: false,
@@ -1142,6 +1143,8 @@ class NetworkInventory extends Component {
       }
     } else if (type === 'showList') {
       activeContent = 'tableList';
+    } else if (type === 'showAuto') {
+      activeContent = 'autoSettings';
     } else if (type === 'showData') {
       activeContent = 'dataInfo';
     } else if (type === 'showForm') {
@@ -1331,7 +1334,6 @@ class NetworkInventory extends Component {
       } else {
         this.toggleContent('showList');
       }
-      helper.showPopupMsg(t('edgeManagement.txt-edgeEditSuccess'));
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'));
@@ -1792,13 +1794,13 @@ class NetworkInventory extends Component {
         addSeat: tempAddSeat
       });
     } else {
-      tempAddSeat.coordX = Math.round(info.xy.x);
-      tempAddSeat.coordY = Math.round(info.xy.y);
+      // tempAddSeat.coordX = Math.round(info.xy.x);
+      // tempAddSeat.coordY = Math.round(info.xy.y);
 
-      this.setState({
-        addSeatOpen: true,
-        addSeat: tempAddSeat
-      });
+      // this.setState({
+      //   addSeatOpen: true,
+      //   addSeat: tempAddSeat
+      // });
     }
   }
   handleDataChange = (type, value) => {
@@ -2016,7 +2018,7 @@ class NetworkInventory extends Component {
                 </Tabs>
 
                 <button className='standard btn last'>{t('network-inventory.txt-notificationSettings')}</button>
-                <button className='standard btn' style={{right: this.getBtnPos('auto')}}>{t('network-inventory.txt-autoSettings')}</button>
+                <button className='standard btn' style={{right: this.getBtnPos('auto')}} onClick={this.toggleContent.bind(this, 'showAuto')}>{t('network-inventory.txt-autoSettings')}</button>
                 <button className='standard btn' style={{right: this.getBtnPos('manual')}} onClick={this.toggleContent.bind(this, 'showForm', 'new')}>{t('network-inventory.txt-AddIP')}</button>
 
                 {activeTab === 'deviceList' &&
@@ -2079,6 +2081,13 @@ class NetworkInventory extends Component {
 
           {activeContent === 'addIPsteps' &&
             this.displayAddIpSteps()
+          }
+
+          {activeContent === 'autoSettings' &&
+            <AutoSettings
+              baseUrl={baseUrl}
+              contextRoot={contextRoot}
+              toggleContent={this.toggleContent} />
           }
         </div>
       </div>
