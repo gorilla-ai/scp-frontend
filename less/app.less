@@ -864,12 +864,17 @@ footer.footer {
 						background-color: #f2f2f2;
 						border: 1px solid #ccc;
 						border-radius: 5px;
-						#edgeModeType {
-							flex-direction: row;
-							margin: 10px 0;
-						}
 						#edgeModeDatetime {
 							text-align: left;
+						}
+						#autoSettingsAD {
+							position: absolute;
+							top: -45px;
+							left: 80px;
+						}
+						.radio-group {
+							flex-direction: row;
+							margin: 10px 0;
 						}
 						&.normal {
 							.list-item {
@@ -999,6 +1004,7 @@ footer.footer {
 								position: absolute;
 								top: -45px;
 								right: 0;
+								padding: .3em 1em;
 							}
 						}
 						.toggle-btn {
@@ -1050,7 +1056,7 @@ footer.footer {
 								width: 30%;
 							}
 							#scannerLabel span {
-								width: 25%;
+								width: 26%;
 							}
 							.ip-range-group,
 							.scanner-group {
@@ -1058,10 +1064,13 @@ footer.footer {
 									width: auto;
 									.group-content {
 										width: 100%;
-									}
-									select,
-									input {
-										margin-right: 2.2%;
+										select,
+										input {
+											margin-right: 2.2%;
+										}
+										button {
+											padding: .3em 1em;
+										}
 									}
 								}
 							}
@@ -1077,7 +1086,7 @@ footer.footer {
 								.group {
 									select,
 									input {
-										width: 26%;
+										width: 27%;
 									}
 								}
 							}

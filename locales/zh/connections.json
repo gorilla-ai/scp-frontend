@@ -623,7 +623,8 @@
       "txt-AD": "AD",
       "txt-LDAP": "LDAP",
       "txt-netflow": "Netflow",
-      "txt-scanner": "Scanner"
+      "txt-scanner": "Scanner",
+      "txt-connectionsFail": "連線失敗"
     }
   },
 

@@ -16,16 +16,14 @@ class Scanner extends Component {
     });
   }
   render() {
-    const {statusEnable, value} = this.props;
+    const {statusEnable, deviceList, value} = this.props;
 
     return (
       <div className='group-content'>
         <DropDownList
           required={true}
           onChange={this.handleChange.bind(this, 'edge')}
-          list={[
-            {value: '192.168.0.203', text: '192.168.0.203'}
-          ]}
+          list={deviceList}
           value={value.edge}
           disabled={!statusEnable.scanner} />
         <Input
@@ -36,7 +34,7 @@ class Scanner extends Component {
           onChange={this.handleChange.bind(this, 'mask')}
           value={value.mask}
           disabled={!statusEnable.scanner} />
-        <button>Test Query</button>
+        <button onClick={this.props.handleScannerTest.bind(this, value)} disabled={!statusEnable.scanner}>Test Query</button>
       </div>
     )
   }

@@ -551,6 +551,7 @@ class Edge extends Component {
             <label>{t('edgeManagement.txt-activatTime')}</label>
             <RadioGroup
               id='edgeModeType'
+              className='radio-group'
               list={[
                 {value: 'anyTime', text: t('edgeManagement.txt-anyTime')},
                 {value: 'customTime', text: t('edgeManagement.txt-customTime')}
