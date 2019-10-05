@@ -141,7 +141,7 @@ class ChartContent extends Component {
     return (
       <div className='bar-chart'>
         {pageType === 'connections' && dataCount > 1000 &&
-          <div className='error'>{t('network.connections.txt-chartExceedMaxMsg')}</div>
+          <div className='error'>{t('events.connections.txt-chartExceedMaxMsg')}</div>
         }
 
         {pageType === 'logs' && !_.isEmpty(chartAttributes) &&

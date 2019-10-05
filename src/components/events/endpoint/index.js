@@ -19,6 +19,7 @@ import TableContent from '../../common/table-content'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null;
+let f = null;
 let et = null;
 
 class Endpoint extends Component {
@@ -71,6 +72,7 @@ class Endpoint extends Component {
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    f = chewbaccaI18n.getFixedT(null, 'tableFields');
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
     this.ah = getInstance('chewbacca');
   }
@@ -110,7 +112,7 @@ class Endpoint extends Component {
       let dataFields = {};
       hmd.dataFieldsArr.forEach(tempData => {
         dataFields[tempData] = {
-          label: tempData === '_menu' ? '' : t(`hmdFields.${tempData}`),
+          label: tempData === '_menu' ? '' : f(`hmdFields.${tempData}`),
           sortable: tempData !== '_menu' ? true : null,
           formatter: (value, allValue) => {
             if (tempData === '_menu') {
@@ -190,7 +192,7 @@ class Endpoint extends Component {
       let dataFields = {};
       taskTable.dataFieldsArr.forEach(tempData => {
         dataFields[tempData] = {
-          label: t(`hmdFields.${tempData}`),
+          label: f(`hmdFields.${tempData}`),
           sortable: true,
           formatter: (value, allValue) => {
             if (tempData.indexOf('Dttm') > 0) {

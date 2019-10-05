@@ -9,6 +9,7 @@ import cx from 'classnames'
 import Gis from 'react-gis/build/src/components'
 import WORLDMAP from '../../mock/world-map-low.json'
 
+import ButtonGroup from 'react-ui/build/src/components/button-group'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 
 import {HocAlertDetails as AlertDetails} from '../common/alert-details'
@@ -633,10 +634,15 @@ class DashboardMaps extends Component {
 
         <div className='main-dashboard'>
           <div className='maps'>
-            <div className='c-button-group left'>
-              <button className={cx('thumb', {'selected': mapType === PRIVATE})} onClick={this.toggleMaps.bind(this, PRIVATE)}>{t('dashboard.txt-private')}</button>
-              <button className={cx('thumb', {'selected': mapType === PUBLIC})} onClick={this.toggleMaps.bind(this, PUBLIC)}>{t('dashboard.txt-public')}</button>
-            </div>
+          <ButtonGroup
+            className='left'
+            list={[
+              {value: PRIVATE, text: t('dashboard.txt-private')},
+              {value: PUBLIC, text: t('dashboard.txt-public')}
+            ]}
+            onChange={this.toggleMaps}
+            value={mapType} />
+
             {mapType === PRIVATE &&
               <div className='floor-map'>
                 <DropDownList

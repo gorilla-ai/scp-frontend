@@ -50,7 +50,7 @@ class File extends Component {
 
             <div className='file-options'>
               <div className='c-flex aic imgCheckBox'>
-                <label htmlFor='showImgCheckbox'>{t('network.connections.txt-showImageOnly')}</label>
+                <label htmlFor='showImgCheckbox'>{t('events.connections.txt-showImageOnly')}</label>
                 <Checkbox
                   id='showImgCheckbox'
                   onChange={mainContentData.handleShowImgCheckbox}

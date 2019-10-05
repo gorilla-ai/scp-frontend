@@ -127,10 +127,10 @@ class TimebarChart extends Component {
               id='chartType'
               className='interval-btn'
               list={[
-                {value: '1m', text: t('network.connections.txt-connections1m')},
-                {value: '15m', text: t('network.connections.txt-connections15m')},
-                {value: '30m', text: t('network.connections.txt-connections30m')},
-                {value: '60m', text: t('network.connections.txt-connections60m')}
+                {value: '1m', text: t('events.connections.txt-connections1m')},
+                {value: '15m', text: t('events.connections.txt-connections15m')},
+                {value: '30m', text: t('events.connections.txt-connections30m')},
+                {value: '60m', text: t('events.connections.txt-connections60m')}
               ]}
               onChange={tabChartData.chartIntervalChange}
               value={tabChartData.chartIntervalValue} />

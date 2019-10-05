@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
 import Moment from 'moment'
@@ -7,6 +8,7 @@ import cx from 'classnames'
 
 import Gis from 'react-gis/build/src/components'
 
+import ButtonGroup from 'react-ui/build/src/components/button-group'
 import Checkbox from 'react-ui/build/src/components/checkbox'
 import DataTable from 'react-ui/build/src/components/table'
 import DropDownList from 'react-ui/build/src/components/dropdown'
@@ -1001,10 +1003,14 @@ class NetworkInventory extends Component {
         </table>
 
         <div className='scan-info'>
-          <div className='c-button-group left'>
-            <button className={cx('thumb', {'selected': activeScanType === 'yara'})} onClick={this.toggleScanType.bind(this, 'yara')}>Yara</button>
-            <button className={cx('thumb', {'selected': activeScanType === 'ir'})} onClick={this.toggleScanType.bind(this, 'ir')}>IR</button>
-          </div>
+          <ButtonGroup
+            className='left'
+            list={[
+              {value: 'yara', text: 'Yara'},
+              {value: 'ir', text: 'IR'}
+            ]}
+            onChange={this.toggleScanType}
+            value={activeScanType} />
 
           <div className='info-content'>
             {activeScanType === 'yara' &&
@@ -1939,7 +1945,7 @@ class NetworkInventory extends Component {
     }
   }
 	render() {
-    const {baseUrl, contextRoot, language, session} = this.props;
+    const {baseUrl, contextRoot, language, locale, session} = this.props;
     const {
       activeTab,
       activeContent,
@@ -1988,7 +1994,7 @@ class NetworkInventory extends Component {
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
             {activeTab === 'deviceList' &&
-              <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('network.connections.txt-toggleFilter')} disabled={activeContent !== 'tableList'}><i className='fg fg-filter'></i></button>
+              <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('events.connections.txt-toggleFilter')} disabled={activeContent !== 'tableList'}><i className='fg fg-filter'></i></button>
             }
           </div>
         </div>
@@ -2017,7 +2023,7 @@ class NetworkInventory extends Component {
                   onChange={this.handleSubTabChange}>
                 </Tabs>
 
-                <button className='standard btn last'>{t('network-inventory.txt-notificationSettings')}</button>
+                <button className='standard btn last'><Link to='/ChewbaccaWeb/configuration/notifications'>{t('notifications.txt-settings')}</Link></button>
                 <button className='standard btn' style={{right: this.getBtnPos('auto')}} onClick={this.toggleContent.bind(this, 'showAuto')}>{t('network-inventory.txt-autoSettings')}</button>
                 <button className='standard btn' style={{right: this.getBtnPos('manual')}} onClick={this.toggleContent.bind(this, 'showForm', 'new')}>{t('network-inventory.txt-AddIP')}</button>
 
@@ -2087,6 +2093,7 @@ class NetworkInventory extends Component {
             <AutoSettings
               baseUrl={baseUrl}
               contextRoot={contextRoot}
+              locale={locale}
               toggleContent={this.toggleContent} />
           }
         </div>

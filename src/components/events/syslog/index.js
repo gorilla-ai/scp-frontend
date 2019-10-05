@@ -531,7 +531,7 @@ class SyslogController extends Component {
     }])
     .then(data => {
       if (currentPage > 1 && !data[0].data) {
-        helper.showPopupMsg('', t('txt-error'), t('network.connections.txt-maxDataMsg'));
+        helper.showPopupMsg('', t('txt-error'), t('events.connections.txt-maxDataMsg'));
 
         this.setState({
           currentPage: oldPage
@@ -664,7 +664,7 @@ class SyslogController extends Component {
 
       if (key) {
         _.forEach(val, val2 => {
-          label = <span title={val2}>{val2} <button className={cx('button', {'active': currentTreeName === val2})} onClick={this.selectTree.bind(this, val2, '_host')}>{t('network.connections.txt-addFilter')}</button></span>;
+          label = <span title={val2}>{val2} <button className={cx('button', {'active': currentTreeName === val2})} onClick={this.selectTree.bind(this, val2, '_host')}>{t('events.connections.txt-addFilter')}</button></span>;
 
           tempChild.push({
             id: val2,
@@ -672,7 +672,7 @@ class SyslogController extends Component {
           });
         })
 
-        label = <span title={key}>{key} ({val.length}) <button className={cx('button', {'active': currentTreeName === key})} onClick={this.selectTree.bind(this, key, 'configSource')}>{t('network.connections.txt-addFilter')}</button></span>;
+        label = <span title={key}>{key} ({val.length}) <button className={cx('button', {'active': currentTreeName === key})} onClick={this.selectTree.bind(this, key, 'configSource')}>{t('events.connections.txt-addFilter')}</button></span>;
 
         let treeProperty = {
           id: key,
@@ -807,12 +807,12 @@ class SyslogController extends Component {
     const menuItems = [
       {
         id: allValue.id + 'Table',
-        text: t('network.connections.txt-fieldsSettings'),
+        text: t('events.connections.txt-fieldsSettings'),
         action: () => this.showTableData(allValue)
       },
       {
         id: allValue.id + 'Json',
-        text: t('network.connections.txt-viewJSON'),
+        text: t('events.connections.txt-viewJSON'),
         action: () => this.viewJsonData(allValue)
       }
     ];
@@ -1522,8 +1522,8 @@ class SyslogController extends Component {
 
           <div className='secondary-btn-group right'>
             <button className={cx({'active': showMark})} onClick={this.toggleMark}><i className='fg fg-filter'></i><span>({filterDataCount})</span> <i className='fg fg-edit'></i><span>({markDataCount})</span></button>
-            <button className={cx({'active': showChart})} onClick={this.toggleChart} title={t('network.connections.txt-toggleChart')}><i className='fg fg-chart-columns'></i></button>
-            <button className='last' onClick={this.getCSVfile} title={t('network.connections.txt-exportCSV')}><i className='fg fg-data-download'></i></button>
+            <button className={cx({'active': showChart})} onClick={this.toggleChart} title={t('events.connections.txt-toggleChart')}><i className='fg fg-chart-columns'></i></button>
+            <button className='last' onClick={this.getCSVfile} title={t('events.connections.txt-exportCSV')}><i className='fg fg-data-download'></i></button>
           </div>
         </div>
 

@@ -63,8 +63,8 @@ class SearchOptions extends Component {
       searchType: type,
       searchInterval: '1h',
       refreshTime: '600000',
-      inputManual: t('network.connections.txt-last1h'),
-      inputAuto: t('txt-interval') + ': ' + t('network.connections.txt-10m')
+      inputManual: t('events.connections.txt-last1h'),
+      inputAuto: t('txt-interval') + ': ' + t('events.connections.txt-10m')
     });
 
     if (this.intervalId) {
@@ -89,51 +89,51 @@ class SearchOptions extends Component {
 
     switch(type) {
       case '15m':
-        text = t('network.connections.txt-last15m');
+        text = t('events.connections.txt-last15m');
         time = helper.getSubstractDate(15, 'minutes');
         break;
       case '30m':
-        text = t('network.connections.txt-last30m');
+        text = t('events.connections.txt-last30m');
         time = helper.getSubstractDate(30, 'minutes');
         break;
       case '1h':
-        text = t('network.connections.txt-last1h');
+        text = t('events.connections.txt-last1h');
         time = helper.getSubstractDate(1, 'hours');
         break;
       case '2h':
-        text = t('network.connections.txt-last2h');
+        text = t('events.connections.txt-last2h');
         time = helper.getSubstractDate(2, 'hours');
         break;
       case '12h':
-        text = t('network.connections.txt-last12h');
+        text = t('events.connections.txt-last12h');
         time = helper.getSubstractDate(12, 'hours');
         break;
       case '24h':
-        text = t('network.connections.txt-last24h');
+        text = t('events.connections.txt-last24h');
         time = helper.getSubstractDate(24, 'hours');
         break;
       case 'today':
-        text = t('network.connections.txt-today');
+        text = t('events.connections.txt-today');
         time = helper.getStartDate('day');
         break;
       case 'week':
-        text = t('network.connections.txt-week');
+        text = t('events.connections.txt-week');
         time = helper.getStartDate('week');
         break;
       case '15000':
-        text = t('network.connections.txt-15s');
+        text = t('events.connections.txt-15s');
         break;
       case '30000':
-        text = t('network.connections.txt-30s');
+        text = t('events.connections.txt-30s');
         break;
       case '60000':
-        text = t('network.connections.txt-1m');
+        text = t('events.connections.txt-1m');
         break;
       case '300000':
-        text = t('network.connections.txt-5m');
+        text = t('events.connections.txt-5m');
         break;
       case '600000':
-        text = t('network.connections.txt-10m');
+        text = t('events.connections.txt-10m');
         break;
     }
 
@@ -153,16 +153,16 @@ class SearchOptions extends Component {
     if (searchInput.searchType === 'manual') {
       return (
         <div className='interval-options manual'>
-          <label>{t('network.connections.txt-time-frame')}</label>
+          <label>{t('events.connections.txt-time-frame')}</label>
           <RadioGroup
             id='timeInterval'
             list={[
-              {value: '30m', text: t('network.connections.txt-last30m')},
-              {value: '1h', text: t('network.connections.txt-last1h')},
-              {value: '2h', text: t('network.connections.txt-last2h')},
-              {value: '24h', text: t('network.connections.txt-last24h')},
-              {value: 'today', text: t('network.connections.txt-today')},
-              {value: 'week', text: t('network.connections.txt-week')}
+              {value: '30m', text: t('events.connections.txt-last30m')},
+              {value: '1h', text: t('events.connections.txt-last1h')},
+              {value: '2h', text: t('events.connections.txt-last2h')},
+              {value: '24h', text: t('events.connections.txt-last24h')},
+              {value: 'today', text: t('events.connections.txt-today')},
+              {value: 'week', text: t('events.connections.txt-week')}
             ]}
             onChange={this.props.setSearchData.bind(this, 'searchInterval')}
             value={searchInput.searchInterval} />
@@ -171,27 +171,27 @@ class SearchOptions extends Component {
     } else if (searchInput.searchType === 'auto') {
       return (
         <div className='interval-options auto'>
-          <label>{t('network.connections.txt-time-frame')}</label>
+          <label>{t('events.connections.txt-time-frame')}</label>
           <RadioGroup
             id='timeInterval'
             list={[
-              {value: '15m', text: t('network.connections.txt-last15m')},
-              {value: '30m', text: t('network.connections.txt-last30m')},
-              {value: '1h', text: t('network.connections.txt-last1h')},
-              {value: '12h', text: t('network.connections.txt-last12h')}
+              {value: '15m', text: t('events.connections.txt-last15m')},
+              {value: '30m', text: t('events.connections.txt-last30m')},
+              {value: '1h', text: t('events.connections.txt-last1h')},
+              {value: '12h', text: t('events.connections.txt-last12h')}
             ]}
             onChange={this.props.setSearchData.bind(this, 'searchInterval')}
             value={searchInput.searchInterval} />
 
-          <label>{t('network.connections.txt-auto-update')}</label>
+          <label>{t('events.connections.txt-auto-update')}</label>
           <RadioGroup
             id='updateInterval'
             list={[
-              {value: '15000', text: t('network.connections.txt-15s')},
-              {value: '30000', text: t('network.connections.txt-30s')},
-              {value: '60000', text: t('network.connections.txt-1m')},
-              {value: '300000', text: t('network.connections.txt-5m')},
-              {value: '600000', text: t('network.connections.txt-10m')}
+              {value: '15000', text: t('events.connections.txt-15s')},
+              {value: '30000', text: t('events.connections.txt-30s')},
+              {value: '60000', text: t('events.connections.txt-1m')},
+              {value: '300000', text: t('events.connections.txt-5m')},
+              {value: '600000', text: t('events.connections.txt-10m')}
             ]}
             onChange={this.props.setSearchData.bind(this, 'refreshTime')}
             value={searchInput.refreshTime} />
@@ -226,7 +226,7 @@ class SearchOptions extends Component {
     const actions = {
       confirm: {text: t('txt-close'), handler: this.handleIntervalConfirm}
     };
-    const titleText = t('network.connections.txt-time-frame');
+    const titleText = t('events.connections.txt-time-frame');
 
     return (
       <ModalDialog
@@ -244,8 +244,8 @@ class SearchOptions extends Component {
   render() {
     const {page, showFilter, searchInput} = this.props;
     const {intervalModalOpen} = this.state;
-    const searchManualText = searchInput.inputManual ? searchInput.inputManual : t('network.connections.txt-last1h');
-    const searchAutoText = searchInput.inputAuto ? searchInput.inputAuto : t('txt-interval') + ': ' + t('network.connections.txt-10m');
+    const searchManualText = searchInput.inputManual ? searchInput.inputManual : t('events.connections.txt-last1h');
+    const searchAutoText = searchInput.inputAuto ? searchInput.inputAuto : t('txt-interval') + ': ' + t('events.connections.txt-10m');
     const searchStyle = page === 'syslog' ? '226px' : '180px';
     let searchInputValue = '';
 
@@ -264,8 +264,8 @@ class SearchOptions extends Component {
         <DropDownList
           className='search-type'
           list={[
-            {value: 'manual', text: t('network.connections.txt-search-manual')},
-            {value: 'auto', text: t('network.connections.txt-search-auto')}
+            {value: 'manual', text: t('events.connections.txt-search-manual')},
+            {value: 'auto', text: t('events.connections.txt-search-auto')}
           ]}
           required={true}
           onChange={this.handleSearchTypeChange}
@@ -280,7 +280,7 @@ class SearchOptions extends Component {
           {this.renderDateRange()}
         </div>
 
-        <button className='search-button' onClick={this.loadSearchOptions.bind(this, 'search')} disabled={showFilter}>{t('network.connections.txt-toggleFilter')}</button>
+        <button className='search-button' onClick={this.loadSearchOptions.bind(this, 'search')} disabled={showFilter}>{t('events.connections.txt-toggleFilter')}</button>
       </div>
     )
   }

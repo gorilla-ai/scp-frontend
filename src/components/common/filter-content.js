@@ -37,8 +37,8 @@ class FilterContent extends Component {
         <div className='header-text'>{filterTitle}</div>
         {activeTab !== 'config' &&
           <div className='button-group open-query'>
-            <button className='open-query' onClick={this.props.openQuery.bind(this, 'open')}>{t('network.connections.txt-openQuery')}</button>
-            <button className='save-query' onClick={this.props.openQuery.bind(this, 'save')}>{t('network.connections.txt-saveQuery')}</button>
+            <button className='open-query' onClick={this.props.openQuery.bind(this, 'open')}>{t('events.connections.txt-openQuery')}</button>
+            <button className='save-query' onClick={this.props.openQuery.bind(this, 'save')}>{t('events.connections.txt-saveQuery')}</button>
           </div>
         }
         <Filter

@@ -20,6 +20,7 @@ import TableContent from '../../common/table-content'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null;
+let f = null;
 let et = null;
 
 class Edge extends Component {
@@ -27,6 +28,7 @@ class Edge extends Component {
     super(props);
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    f = chewbaccaI18n.getFixedT(null, 'tableFields');
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
 
     this.state = {
@@ -119,7 +121,7 @@ class Edge extends Component {
         let dataFields = {};
         edge.dataFieldsArr.forEach(tempData => {
           dataFields[tempData] = {
-            label: tempData === '_menu_' ? '' : t(`edgeFields.${tempData}`),
+            label: tempData === '_menu_' ? '' : f(`edgeFields.${tempData}`),
             sortable: this.checkSortable(tempData),
             formatter: (value, allValue, index) => {
               if (tempData === 'ipPort') {
@@ -489,7 +491,7 @@ class Edge extends Component {
                   if (code[0] === 'missing') {
                     return t('txt-required');
                   } else if (code[0] === 'no-match') {
-                    return t('network.agent.txt-ipValidationFail');
+                    return t('edgeManagement.txt-ipValidationFail');
                   }
                 }
               }}
@@ -571,7 +573,7 @@ class Edge extends Component {
             }
           </div>
           <div className='group full'>
-            <label htmlFor='edgeMemo'>{t('txt-memo')} ({t('edgeManagement.txt-memoMaxLength')})</label>
+            <label htmlFor='edgeMemo'>{t('txt-memo')} ({t('txt-memoMaxLength')})</label>
             <Textarea
               id='edgeMemo'
               rows={4}
@@ -681,7 +683,7 @@ class Edge extends Component {
             {activeContent === 'tableList' &&
               <div className='main-content'>
                 <header className='main-header'>{t('txt-edge')}</header>
-                <button className='standard btn last'><Link to='/ChewbaccaWeb/configuration/notifications'>{t('edgeManagement.txt-notificationSettings')}</Link></button>
+                <button className='standard btn last'><Link to='/ChewbaccaWeb/configuration/notifications'>{t('notifications.txt-settings')}</Link></button>
                 <button className='standard btn' style={{right: this.getBtnPos('add')}}>{t('edgeManagement.txt-threatSettings')}</button>
 
                 <TableContent

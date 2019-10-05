@@ -10,28 +10,29 @@ import Moment from 'moment'
 import loglevel from 'loglevel'
 import logger from 'loglevel-prefix-persist/client'
 
-import {HocAlertController as Alert} from './components/alert/index'
-import {HocDashboardMaps as DashboardMaps} from './components/dashboard/maps'
-import {HocDashboardStats as DashboardStats} from './components/dashboard/statistics'
-import {HocEmailReport as EmailReport} from './components/configuration/honeynet/email-report'
-import {HocEmployeeRecord as EmployeeRecord} from './components/configuration/honeynet/employee-record'
-import {HocEndpoint as Endpoint} from './components/events/endpoint/index'
-import {HocHeader as Header} from './header'
-import {HocHoneynet as Honeypot} from './components/configuration/honeynet/host'
+// import {HocEmailReport as EmailReport} from './components/configuration/honeynet/email-report'
+// import {HocEmployeeRecord as EmployeeRecord} from './components/configuration/honeynet/employee-record'
+//import {HocHoneynet as Honeypot} from './components/configuration/honeynet/host'
+//import {HocManage as Manage} from './components/configuration/agent/manage'
+
 import Login from './login'
+import {HocHeader as Header} from './header'
+import {HocDashboardStats as DashboardStats} from './components/dashboard/statistics'
+import {HocDashboardMaps as DashboardMaps} from './components/dashboard/maps'
+import {HocAlertController as Alert} from './components/alert/index'
+import {HocNetflowController as Netflow} from './components/events/netflow/index'
+import {HocSyslogController as Syslog} from './components/events/syslog/index'
+import {HocEndpoint as Endpoint} from './components/events/endpoint/index'
 import {HocNotifications as NotificationSettings} from './components/configuration/notifications'
 import {HocEdge as EdgeManagement} from './components/configuration/edge/edge'
 import {HocThreatIntelligence as ThreatIntelligence} from './components/configuration/edge/threat'
-import {HocManage as Manage} from './components/configuration/agent/manage'
-import {HocNetflowController as Netflow} from './components/events/netflow/index'
 import {HocNetworkInventory as NetworkInventory} from './components/configuration/topology/inventory'
 import {HocNetworkOwner as NetworkOwner} from './components/configuration/topology/owner'
 import {HocNetworkMap as NetworkMap} from './components/configuration/topology/map'
-import {HocStatus as ServiceStatus} from './components/configuration/service/status'
-import {HocSyslogController as Syslog} from './components/events/syslog/index'
 import {HocSyslog as SyslogConfig} from './components/configuration/syslog/syslog'
 import UserAccounts from './components/configuration/user/accounts/index'
 import UserPrivileges from './components/configuration/user/privileges/index'
+import {HocStatus as ServiceStatus} from './components/configuration/service/status'
 
 import 'font-gorilla/css/font-gorilla.css'
 import 'purecss/build/pure-min.css'
@@ -114,26 +115,6 @@ const EndpointComp = () => (
 		session={session} />
 )
 
-const Config = () => {
-  let sessionRights = {};
-
-  _.forEach(session.rights, val => {
-    sessionRights[val] = true;
-  })
-
-  if (sessionRights.Module_FlowAnalysis_Agent_Manage) {
-		return Agent();
-	} else if (sessionRights.Module_Honeynet_Manage) {
-		return HoneynetHost();
-	} else if (sessionRights.Module_NetworkTopology_Manage) {
-		return 	NetworkTopologyOwner();
-	} else if (sessionRights.Module_Syslog_Manage) {
-		return 	Syslogs();
-	} else if (sessionRights.Module_Account_Manage) {
-		return 	userAccounts();
-	}
-}
-
 const Notifications = () => (
 	<NotificationSettings
 		baseUrl={cfg.apiPrefix}
@@ -154,49 +135,6 @@ const Threat = () => (
 	<ThreatIntelligence
 		baseUrl={cfg.apiPrefix}
 		contextRoot={cfg.contextRoot}
-		locale={cfg.lng}
-		session={session} />
-)
-
-const Agent = () => (
-	<Manage
-		page='agent'
-		baseUrl={cfg.apiPrefix}
-		contextRoot={cfg.contextRoot}
-		locale={cfg.lng}
-		session={session} />
-)
-
-// const Threats = () => (
-// 	<Manage
-// 		page='threats'
-// 		baseUrl={cfg.apiPrefix}
-// 		contextRoot={cfg.contextRoot}
-// 		locale={cfg.lng}
-// 		session={session} />
-// )
-
-const HoneynetHost = () => (
-	<Honeypot
-		baseUrl={cfg.apiPrefix}
-		contextRoot={cfg.contextRoot}
-		locale={cfg.lng}
-		session={session} />
-)
-
-const HoneynetEmailReport = () => (
-	<EmailReport
-		baseUrl={cfg.apiPrefix}
-		contextRoot={cfg.contextRoot}
-		locale={cfg.lng}
-		session={session} />
-)
-
-const HoneynetEmployeeRecord = () => (
-	<EmployeeRecord
-		baseUrl={cfg.apiPrefix}
-		contextRoot={cfg.contextRoot}
-		language={cfg.lng}
 		locale={cfg.lng}
 		session={session} />
 )
@@ -267,15 +205,9 @@ const Main = () => (
 			<Route exact path='/ChewbaccaWeb/events/netflow' component={NetflowComp} />
 			<Route exact path='/ChewbaccaWeb/events/syslog' component={SyslogComp} />
 			<Route exact path='/ChewbaccaWeb/events/endpoint' component={EndpointComp} />
-			<Route exact path='/ChewbaccaWeb/honeynet/employee-record' component={HoneynetEmployeeRecord} />
-			{/*<Route exact path='/ChewbaccaWeb/configuration' component={Config} />*/}
 			<Route exact path='/ChewbaccaWeb/configuration/notifications' component={Notifications} />
 			<Route exact path='/ChewbaccaWeb/configuration/edge/edge' component={Edge} />
 			<Route exact path='/ChewbaccaWeb/configuration/edge/threat' component={Threat} />
-			<Route exact path='/ChewbaccaWeb/configuration/agent' component={Agent} />
-			{/*<Route exact path='/ChewbaccaWeb/configuration/threats' component={Threats} />*/}
-			<Route exact path='/ChewbaccaWeb/configuration/honeynet/host' component={HoneynetHost} />
-			<Route exact path='/ChewbaccaWeb/configuration/honeynet/email-report' component={HoneynetEmailReport} />
 			<Route exact path='/ChewbaccaWeb/configuration/topology/inventory' component={NetworkTopologyInventory} />
 			<Route exact path='/ChewbaccaWeb/configuration/topology/owner' component={NetworkTopologyOwner} />
 			<Route exact path='/ChewbaccaWeb/configuration/topology/map' component={NetworkTopologyMap} />

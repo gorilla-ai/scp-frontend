@@ -76,7 +76,7 @@ class Tree extends Component {
         <div className='content'>
           {activeTab !== 'alert' && activeTab !== 'logs' &&
             <div>
-              <label htmlFor='analysisType' className={cx('header-text', {'hide': !showContent})}>{t('network.connections.txt-analysisType')}</label>
+              <label htmlFor='analysisType' className={cx('header-text', {'hide': !showContent})}>{t('events.connections.txt-analysisType')}</label>
               <DropDownList
                 id='analysisType'
                 className='analysis-type'
@@ -87,7 +87,7 @@ class Tree extends Component {
             </div>
           }
           {activeTab !== 'alert' && activeTab !== 'logs' &&
-            <div className='header-text'>{t('network.connections.txt-top10text')}</div>
+            <div className='header-text'>{t('events.connections.txt-top10text')}</div>
           }
 
           {additionalTreeData &&

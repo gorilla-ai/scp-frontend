@@ -313,7 +313,7 @@ class Netflow extends Component {
     helper.getAjaxData('POST', url, agentData)
     .then(data => {
       if (data.counts === 0) {
-        helper.showPopupMsg(t('network.connections.txt-addAgentMsg'), '', '', '', 'agent');
+        helper.showPopupMsg(t('events.connections.txt-addAgentMsg'), '', '', '', 'agent');
       } else {
         const projectID = data.rows.map(tempData => {
           return tempData.projectId;
@@ -621,7 +621,7 @@ class Netflow extends Component {
     }])
     .then(data => {
       if (currentPage > 1 && !data[0]) {
-        helper.showPopupMsg('', t('txt-error'), t('network.connections.txt-maxDataMsg'));
+        helper.showPopupMsg('', t('txt-error'), t('events.connections.txt-maxDataMsg'));
 
         this.setState({
           currentPage: oldPage
@@ -753,7 +753,7 @@ class Netflow extends Component {
     }])
     .then(data => {
       if (currentPage > 1 && data[0].rows.length === 0) {
-        helper.showPopupMsg('', t('txt-error'), t('network.connections.txt-maxDataMsg'));
+        helper.showPopupMsg('', t('txt-error'), t('events.connections.txt-maxDataMsg'));
 
         this.setState({
           currentPage: oldPage
@@ -1054,7 +1054,7 @@ class Netflow extends Component {
 
             totalHostCount += hostCount;
 
-            label = <span title={key3}>{key3} ({hostCount}) <button className={cx('button', {'active': currentTreeName === key3})} onClick={this.selectTree.bind(this, key3, 'dstHostname')}>{t('network.connections.txt-addFilter')}</button></span>;
+            label = <span title={key3}>{key3} ({hostCount}) <button className={cx('button', {'active': currentTreeName === key3})} onClick={this.selectTree.bind(this, key3, 'dstHostname')}>{t('events.connections.txt-addFilter')}</button></span>;
 
             tempChild.push({
               id: key3,
@@ -1064,14 +1064,14 @@ class Netflow extends Component {
         })
 
         if (key === 'unknown') { //Add an export button for Unknown service
-          label = <span title={key}>{key} ({totalHostCount}) <button className='button active' onClick={this.handleTreeExport}>{t('txt-export')}</button> <button className={cx('button', {'active': currentTreeName === key})} onClick={this.selectTree.bind(this, key, 'dstSvcname')}>{t('network.connections.txt-addFilter')}</button></span>;
+          label = <span title={key}>{key} ({totalHostCount}) <button className='button active' onClick={this.handleTreeExport}>{t('txt-export')}</button> <button className={cx('button', {'active': currentTreeName === key})} onClick={this.selectTree.bind(this, key, 'dstSvcname')}>{t('events.connections.txt-addFilter')}</button></span>;
         } else {
           let formattedKey = key;
 
           if (key.length > 25) {
             formattedKey = key.substr(0, 28) + '...';
           }
-          label = <span title={key}>{formattedKey} ({totalHostCount}) <button className={cx('button', {'active': currentTreeName === key})} onClick={this.selectTree.bind(this, key, 'dstSvcname')}>{t('network.connections.txt-addFilter')}</button></span>;
+          label = <span title={key}>{formattedKey} ({totalHostCount}) <button className={cx('button', {'active': currentTreeName === key})} onClick={this.selectTree.bind(this, key, 'dstSvcname')}>{t('events.connections.txt-addFilter')}</button></span>;
         }
 
         let treeProperty = {
@@ -1279,12 +1279,12 @@ class Netflow extends Component {
     menuItems = [
       {
         id: id + 'Table',
-        text: t('network.connections.txt-fieldsSettings'),
+        text: t('events.connections.txt-fieldsSettings'),
         action: () => this.showTableData(allValue)
       },
       {
         id: id + 'Json',
-        text: t('network.connections.txt-viewJSON'),
+        text: t('events.connections.txt-viewJSON'),
         action: () => this.viewJsonData(allValue)
       }
     ];
@@ -1293,12 +1293,12 @@ class Netflow extends Component {
       menuItems.unshift(
         {
           id: id + 'downloadPCAP',
-          text: t('network.connections.txt-downloadPCAP'),
+          text: t('events.connections.txt-downloadPCAP'),
           action: () => this.pcapDownloadFile(allValue)
         },
         {
           id: id + 'viewPCAP',
-          text: t('network.connections.txt-viewPCAP'),
+          text: t('events.connections.txt-viewPCAP'),
           action: () => this.getPCAPcontent(allValue)
         }
       );
@@ -1306,7 +1306,7 @@ class Netflow extends Component {
       menuItems.push(
         {
           id: id + 'viewADrecord',
-          text: t('network.connections.txt-viewADrecord'),
+          text: t('events.connections.txt-viewADrecord'),
           action: () => this.forwardSyslog(allValue)
         }
       );
@@ -1316,12 +1316,12 @@ class Netflow extends Component {
       menuItems.push(
         {
           id: id + 'EditTag',
-          text: t('network.connections.txt-editTag'),
+          text: t('events.connections.txt-editTag'),
           action: () => this.addTagging(allValue)
         },
         {
           id: id + 'DeleteTag',
-          text: t('network.connections.txt-deleteTag'),
+          text: t('events.connections.txt-deleteTag'),
           action: () => this.removeTagging(allValue.tag.id)
         }
       );
@@ -1330,7 +1330,7 @@ class Netflow extends Component {
         menuItems.push(
           {
             className: 'disabled-tag-menu',
-            text: t('network.connections.txt-addTag'),
+            text: t('events.connections.txt-addTag'),
             action: () => { return; }
           }
         );
@@ -1338,7 +1338,7 @@ class Netflow extends Component {
         menuItems.push(
           {
             id: id + 'AddTag',
-            text: t('network.connections.txt-addTag'),
+            text: t('events.connections.txt-addTag'),
             action: () => this.addTagging(allValue)
           }
         );
@@ -1774,7 +1774,7 @@ class Netflow extends Component {
     )
   }
   pcapDialog = () => {
-    const titleText = t('network.connections.txt-viewPCAP');
+    const titleText = t('events.connections.txt-viewPCAP');
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeDialog},
       confirm: {text: t('txt-confirm'), handler: this.closeDialog}
@@ -1846,7 +1846,7 @@ class Netflow extends Component {
   }
   removeTagging = (id) => {
     PopupDialog.prompt({
-      title: t('network.connections.txt-deleteTag'),
+      title: t('events.connections.txt-deleteTag'),
       id: 'modalWindowSmall',
       confirmText: t('txt-delete'),
       cancelText: t('txt-cancel'),
@@ -1878,11 +1878,11 @@ class Netflow extends Component {
     });
   }
   addTagging = (allValue) => {
-    let titleText = t('network.connections.txt-addTag');
+    let titleText = t('events.connections.txt-addTag');
     let tempTagData = {...this.state.tagData};
 
     if (allValue.tag) {
-      titleText = t('network.connections.txt-editTag');
+      titleText = t('events.connections.txt-editTag');
       tempTagData.id = allValue.tag.id;
       tempTagData.color = allValue.tag.color;
       tempTagData.memo = allValue.tag.memo;
@@ -1917,7 +1917,7 @@ class Netflow extends Component {
 
     return (
       <div>
-        <label htmlFor='tagMemo'>{t('txt-memo')} ({t('network.agent.txt-memoMaxLength')})</label>
+        <label htmlFor='tagMemo'>{t('txt-memo')} ({t('txt-memoMaxLength')})</label>
         <Textarea
           id='tagMemo'
           className='add'
@@ -2474,9 +2474,9 @@ class Netflow extends Component {
             handleSearchSubmit={this.handleSearchSubmit} />
 
           <div className='secondary-btn-group right'>
-            <button className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('network.connections.txt-toggleFilter')}><i className='fg fg-filter'></i><span>({filterDataCount})</span></button>
-            <button className={cx({'active': showChart})} onClick={this.toggleChart} disabled={activeTab !== 'connections'} title={t('network.connections.txt-toggleChart')}><i className='fg fg-chart-columns'></i></button>
-            <button className='last' onClick={this.getCSVfile} title={t('network.connections.txt-exportCSV')}><i className='fg fg-data-download'></i></button>
+            <button className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('events.connections.txt-toggleFilter')}><i className='fg fg-filter'></i><span>({filterDataCount})</span></button>
+            <button className={cx({'active': showChart})} onClick={this.toggleChart} disabled={activeTab !== 'connections'} title={t('events.connections.txt-toggleChart')}><i className='fg fg-chart-columns'></i></button>
+            <button className='last' onClick={this.getCSVfile} title={t('events.connections.txt-exportCSV')}><i className='fg fg-data-download'></i></button>
           </div>
         </div>
 

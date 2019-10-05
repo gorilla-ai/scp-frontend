@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import _ from 'lodash'
 import cx from 'classnames'
 
+import ButtonGroup from 'react-ui/build/src/components/button-group'
 import DataTable from 'react-ui/build/src/components/table'
 import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
@@ -43,11 +44,11 @@ class Name extends Component {
 		et = global.chewbaccaI18n.getFixedT(null, 'errors');
 		this.ah = getInstance('chewbacca')
 	}
-	addName() {
+	addName = () => {
 		const {tab, name} = this.state
 
 		if (!name.trim()) {
-			helper.showPopupMsg('', t('txt-error'), t('txt-noempty'))
+			helper.showPopupMsg('', t('txt-error'), t('txt-noEmpty'))
 			return
 		}
 
@@ -72,11 +73,11 @@ class Name extends Component {
   		helper.showPopupMsg('', t('txt-error'), err.message);
   	})
 	}
-	updateName() {
+	updateName = () => {
 		const {tab, name, nameUUID} = this.state
 
 		if (!name.trim()) {
-			helper.showPopupMsg('', t('txt-error'), t('txt-noempty'))
+			helper.showPopupMsg('', t('txt-error'), t('txt-noEmpty'))
 			return
 		}
 
@@ -102,7 +103,7 @@ class Name extends Component {
   		helper.showPopupMsg('', t('txt-error'), err.message);
   	})
 	}
-	deleteName(nameUUID) {
+	deleteName = (nameUUID) => {
 		const {tab} = this.state
 
 		this.ah.one({
@@ -116,7 +117,7 @@ class Name extends Component {
   		helper.showPopupMsg('', t('txt-error'), err.message);
   	})
 	}
-	getNameList(tab) {
+	getNameList = (tab) => {
 		let json = {
 			nameType: tab === 'department' ? _department : _title
 		}
@@ -136,17 +137,17 @@ class Name extends Component {
   		helper.showPopupMsg('', t('txt-error'), err.message);
 		})
 	}
-	open() {
+	open = () => {
   	this.setState({
   		open: true
   	})
   	this.getNameList('department')
 	}
-	close() {
+	close = () => {
 		this.setState(_.cloneDeep(INIT))
 		this.props.onDone()
 	}
-	handleTabChange(tab) {
+	handleTabChange = (tab) => {
 		let tabs = { department:false, title: false }
 		tabs[tab] = true
 		this.setState({
@@ -154,12 +155,12 @@ class Name extends Component {
 		})
 		this.getNameList(tab)
 	}
-	handleChange(key, value) {
+	handleChange = (key, value) => {
 		this.setState({
 			[key]: value
 		})
 	}
-	renderModal() {
+	renderModal = () => {
 		const {tab, open, data} = this.state
     	const actions = {
     		cancel: {text: t('txt-close'), className: 'standard', handler: this.close.bind(this)}
@@ -176,10 +177,13 @@ class Name extends Component {
     			actions={actions}
     			closeAction='cancel'>
 					<div className='narrow-dialog add-name'>
-	          <div className='c-button-group'>
-	            <button className={cx('thumb', {'selected': tab.department})} onClick={this.handleTabChange.bind(this, 'department')}>{t('ownerFields.department')}</button>
-	            <button className={cx('thumb', {'selected': tab.title})} onClick={this.handleTabChange.bind(this, 'title')}>{t('ownerFields.title')}</button>
-	          </div>
+	          <ButtonGroup
+	            list={[
+	              {value: 'department', text: t('ownerFields.department')},
+	              {value: 'title', text: t('ownerFields.title')}
+	            ]}
+	            onChange={this.handleTabChange}
+	            value={tab.department ? 'department' : 'title'} />
 						<i className='c-link fg fg-add' onClick={this.openAddName.bind(this)} title={tab.department ? t('txt-addDepartment') : t('txt-addTitle')}></i>
 						<div className='content'>
 							{
@@ -202,7 +206,7 @@ class Name extends Component {
     		</ModalDialog>
     	)
     }
-    openAddName() {
+    openAddName = () => {
     	const {tab} = this.state
     	let header = tab.department ? t('txt-addDepartment') : t('txt-addTitle')
 
@@ -213,7 +217,7 @@ class Name extends Component {
 				nameUUID: ''
 			})
     }
-    openEditName(nameUUID, name) {
+    openEditName = (nameUUID, name) => {
     	const {tab} = this.state
     	let header = tab.department ? t('txt-updateDepartment') : t('txt-updateTitle')
 
@@ -224,7 +228,7 @@ class Name extends Component {
 				nameUUID
 			})
     }
-    openDeleteName(nameUUID, name) {
+    openDeleteName = (nameUUID, name) => {
     	const {tab} = this.state
     	
     	PopupDialog.prompt({
@@ -244,12 +248,12 @@ class Name extends Component {
     		}
     	})
     }
-    closeName() {
+    closeName = () => {
     	this.setState({
     		openName: false
     	})
     }
-    renderName() {
+    renderName = () => {
     	const {openName, name, nameUUID, header} = this.state
     	const actions = {
     		cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeName.bind(this)},

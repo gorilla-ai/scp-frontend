@@ -231,8 +231,7 @@ class Notifications extends Component {
         <div className='group'>
           <label>{t('notifications.txt-recipientEmail')}</label>
           {activeContent === 'viewMode' &&
-          <input
-            style={{height: '40px'}}
+          <Textarea
             value={formattedEmail}
             readOnly={true} />
           }

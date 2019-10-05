@@ -16,7 +16,7 @@ class IpRange extends Component {
     });
   }
   render() {
-    const {statusEnable, value} = this.props;
+    const {activeContent, statusEnable, value} = this.props;
 
     return (
       <div className='group-content'>
@@ -28,15 +28,15 @@ class IpRange extends Component {
             {value: 'public', text: 'Public'}
           ]}
           value={value.type}
-          disabled={!statusEnable.ipRange} />
+          readOnly={activeContent === 'viewMode' || !statusEnable.ipRange} />
         <Input
           onChange={this.handleChange.bind(this, 'ip')}
           value={value.ip}
-          disabled={!statusEnable.ipRange} />
+          readOnly={activeContent === 'viewMode' || !statusEnable.ipRange} />
         <Input
           onChange={this.handleChange.bind(this, 'mask')}
           value={value.mask}
-          disabled={!statusEnable.ipRange} />
+          readOnly={activeContent === 'viewMode' || !statusEnable.ipRange} />
       </div>
     )
   }

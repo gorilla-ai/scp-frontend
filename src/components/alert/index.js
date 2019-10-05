@@ -11,6 +11,7 @@ import WORLDMAP from '../../mock/world-map-low.json'
 import {config as configLoader} from 'vbda-ui/build/src/loader'
 import {analyze} from 'vbda-ui/build/src/analyzer'
 
+import ButtonGroup from 'react-ui/build/src/components/button-group'
 import ContextMenu from 'react-ui/build/src/components/contextmenu'
 
 import JSONTree from 'react-json-tree'
@@ -403,7 +404,7 @@ class AlertController extends Component {
     helper.getAjaxData('POST', url, requestData)
     .then(data => {
       if (currentPage > 1 && data.data.rows.length === 0) {
-        helper.showPopupMsg('', t('txt-error'), t('network.connections.txt-maxDataMsg'));
+        helper.showPopupMsg('', t('txt-error'), t('events.connections.txt-maxDataMsg'));
 
         this.setState({
           currentPage: oldPage
@@ -781,7 +782,7 @@ class AlertController extends Component {
           if (treeData[key][path].buckets.length > 0) {
             _.forEach(treeData[key][path].buckets, val => {
               if (val.key) {
-                label = <span title={val.key}>{val.key} ({val.doc_count}) <button className={cx('button', {'active': currentTreeName === val.key && activeSubTab !== 'statistics'})} onClick={this.selectTree.bind(this, val.key, '')}>{t('network.connections.txt-addFilter')}</button></span>;
+                label = <span title={val.key}>{val.key} ({val.doc_count}) <button className={cx('button', {'active': currentTreeName === val.key && activeSubTab !== 'statistics'})} onClick={this.selectTree.bind(this, val.key, '')}>{t('events.connections.txt-addFilter')}</button></span>;
 
                 tempChild.push({
                   id: val.key,
@@ -791,7 +792,7 @@ class AlertController extends Component {
             })
           }
 
-          label = <span title={key}>{key} ({treeData[key].doc_count}) <button className={cx('button', {'active': currentTreeName === key && activeSubTab !== 'statistics'})} onClick={this.selectTree.bind(this, key, '')}>{t('network.connections.txt-addFilter')}</button></span>;
+          label = <span title={key}>{key} ({treeData[key].doc_count}) <button className={cx('button', {'active': currentTreeName === key && activeSubTab !== 'statistics'})} onClick={this.selectTree.bind(this, key, '')}>{t('events.connections.txt-addFilter')}</button></span>;
 
           let treeProperty = {
             id: key,
@@ -806,7 +807,7 @@ class AlertController extends Component {
         } else if (activeLocationTab === PUBLIC) {
           _.forEach(treeData[path].buckets, val => {
             if (val.key) {
-              label = <span title={val.key}>{val.key} ({val.doc_count}) <button className={cx('button', {'active': currentTreeName === val.key && activeSubTab !== 'statistics'})} onClick={this.selectTree.bind(this, val.key, '')}>{t('network.connections.txt-addFilter')}</button></span>;
+              label = <span title={val.key}>{val.key} ({val.doc_count}) <button className={cx('button', {'active': currentTreeName === val.key && activeSubTab !== 'statistics'})} onClick={this.selectTree.bind(this, val.key, '')}>{t('events.connections.txt-addFilter')}</button></span>;
 
               treeObj.children.push({
                 id: val.key,
@@ -864,7 +865,7 @@ class AlertController extends Component {
               totalHostCount += val;
             } else if (key !== 'event_histogram') {
               let tempChild2 = [];
-              label = <span title={key}>{key} ({val.doc_count}) <button className={cx('button', {'active': (activeTreeName === key && activeSubTab !== 'statistics')})} onClick={this.selectTree.bind(this, key, '')}>{t('network.connections.txt-addFilter')}</button></span>;
+              label = <span title={key}>{key} ({val.doc_count}) <button className={cx('button', {'active': (activeTreeName === key && activeSubTab !== 'statistics')})} onClick={this.selectTree.bind(this, key, '')}>{t('events.connections.txt-addFilter')}</button></span>;
 
               tempChild.push({
                 id: key,
@@ -873,7 +874,7 @@ class AlertController extends Component {
 
               _.forEach(val, (val2, key2) => {
                 if (key2 !== 'doc_count') {
-                  label2 = <span title={key2}>{key2} ({val2.doc_count}) <button className={cx('button', {'active': (activeTreeName === key2 && activeSubTab !== 'statistics')})} onClick={this.selectTree.bind(this, key2, '')}>{t('network.connections.txt-addFilter')}</button></span>;
+                  label2 = <span title={key2}>{key2} ({val2.doc_count}) <button className={cx('button', {'active': (activeTreeName === key2 && activeSubTab !== 'statistics')})} onClick={this.selectTree.bind(this, key2, '')}>{t('events.connections.txt-addFilter')}</button></span>;
 
                   tempChild2.push({
                     id: key2,
@@ -894,10 +895,10 @@ class AlertController extends Component {
             } else if (key === 'srcIp') {
               _.forEach(val.buckets, val => {
                 if (val.key) {
-                  label = <span title={val.key}>{val.key} ({val.doc_count}) <button className={cx('button', {'active': (activeTreeName === val.key && activeSubTab !== 'statistics')})} onClick={this.selectTree.bind(this, val.key, key)}>{t('network.connections.txt-addFilter')}</button></span>;
+                  label = <span title={val.key}>{val.key} ({val.doc_count}) <button className={cx('button', {'active': (activeTreeName === val.key && activeSubTab !== 'statistics')})} onClick={this.selectTree.bind(this, val.key, key)}>{t('events.connections.txt-addFilter')}</button></span>;
 
                   if (val['destPort']) {
-                    label2 = <span title={val['destPort'].buckets[0].key}>{val['destPort'].buckets[0].key} ({val['destPort'].buckets[0].doc_count}) <button className={cx('button', {'active': (activeTreeName === val['destPort'].buckets[0].key && activeSubTab !== 'statistics')})} onClick={this.selectTree.bind(this, val['destPort'].buckets[0].key, 'destPort')}>{t('network.connections.txt-addFilter')}</button></span>;
+                    label2 = <span title={val['destPort'].buckets[0].key}>{val['destPort'].buckets[0].key} ({val['destPort'].buckets[0].doc_count}) <button className={cx('button', {'active': (activeTreeName === val['destPort'].buckets[0].key && activeSubTab !== 'statistics')})} onClick={this.selectTree.bind(this, val['destPort'].buckets[0].key, 'destPort')}>{t('events.connections.txt-addFilter')}</button></span>;
                   }
 
                   if (label2) {
@@ -922,7 +923,7 @@ class AlertController extends Component {
         }
 
         if (key && key !== 'default') {
-          label = <span title={key}>{key} ({totalHostCount}) <button className={cx('button', {'active': (activeTreeName === key && activeSubTab !== 'statistics')})} onClick={this.selectTree.bind(this, key, '')}>{t('network.connections.txt-addFilter')}</button></span>;
+          label = <span title={key}>{key} ({totalHostCount}) <button className={cx('button', {'active': (activeTreeName === key && activeSubTab !== 'statistics')})} onClick={this.selectTree.bind(this, key, '')}>{t('events.connections.txt-addFilter')}</button></span>;
 
           let treeProperty = {
             id: key,
@@ -1473,10 +1474,14 @@ class AlertController extends Component {
         }
 
         <div className='sub-header'>
-          <div className='c-button-group left'>
-            <button className={cx('thumb', {'selected': activeLocationTab === PRIVATE})} onClick={this.toggleActiveLocation.bind(this, PRIVATE)}>{t('alert.txt-privateAlert')}</button>
-            <button className={cx('thumb', {'selected': activeLocationTab === PUBLIC})} onClick={this.toggleActiveLocation.bind(this, PUBLIC)}>{t('alert.txt-publicAlert')}</button>
-          </div>
+          <ButtonGroup
+            className='left'
+            list={[
+              {value: PRIVATE, text: t('alert.txt-privateAlert')},
+              {value: PUBLIC, text: t('alert.txt-publicAlert')}
+            ]}
+            onChange={this.toggleActiveLocation}
+            value={activeLocationTab} />
 
           <SearchOptions
             page='alert'
@@ -1488,9 +1493,9 @@ class AlertController extends Component {
             handleSearchSubmit={this.handleSearchSubmit} />
 
           <div className='secondary-btn-group right'>
-            <button className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('network.connections.txt-toggleFilter')} disabled={activeSubTab === 'statistics'}><i className='fg fg-filter'></i><span>({filterDataCount})</span></button>
-            <button className={cx({'active': showChart})} onClick={this.toggleChart} title={t('network.connections.txt-toggleChart')} disabled={activeSubTab === 'statistics'}><i className='fg fg-chart-columns'></i></button>
-            <button className='last' onClick={this.getCSVfile} title={t('network.connections.txt-exportCSV')}><i className='fg fg-data-download'></i></button>
+            <button className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('events.connections.txt-toggleFilter')} disabled={activeSubTab === 'statistics'}><i className='fg fg-filter'></i><span>({filterDataCount})</span></button>
+            <button className={cx({'active': showChart})} onClick={this.toggleChart} title={t('events.connections.txt-toggleChart')} disabled={activeSubTab === 'statistics'}><i className='fg fg-chart-columns'></i></button>
+            <button className='last' onClick={this.getCSVfile} title={t('events.connections.txt-exportCSV')}><i className='fg fg-data-download'></i></button>
           </div>
         </div>
 

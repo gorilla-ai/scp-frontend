@@ -12,7 +12,6 @@ let t = null
 
 const INIT = {
   openEdgeManagement: false,
-  openHoneynet: false,
   openTopology: false,
   openAccount: false
 }
@@ -24,35 +23,31 @@ class Config extends Component {
     t = global.chewbaccaI18n.getFixedT(null, 'connections')
     this.state = _.cloneDeep(INIT)
   }
+  test = () => {
+
+  }
   componentDidMount = () => {
-    const openEdgeManagement = this.getActiveFrame('edge') || this.getActiveFrame('threat')
-    const openHoneynet = this.getActiveFrame('pot') || this.getActiveFrame('mail')
-    const openTopology = this.getActiveFrame('inventory') || this.getActiveFrame('owner') || this.getActiveFrame('map')
-    const openAccount = this.getActiveFrame('account') || this.getActiveFrame('privileges')
+    const openEdgeManagement = this.getActiveFrame('edge') || this.getActiveFrame('threat');
+    const openTopology = this.getActiveFrame('inventory') || this.getActiveFrame('owner') || this.getActiveFrame('map');
+    const openAccount = this.getActiveFrame('account') || this.getActiveFrame('privileges');
 
     this.setState({
       openEdgeManagement,
-      openHoneynet,
       openTopology,
       openAccount
-    })
+    });
   }
   handleOpen = (name, val) => {
     this.setState({
       [name]: !val
-    })
+    });
   }
   getActiveFrame = (frame) => {
-    const path = window.location.pathname
-
+    const path = window.location.pathname;
     const pattern = {
       notifications: '/ChewbaccaWeb/configuration/notifications',
       edge: '/ChewbaccaWeb/configuration/edge/edge',
       threat: '/ChewbaccaWeb/configuration/edge/threat',
-      agent: '/ChewbaccaWeb/configuration/agent',
-      //threat: '/ChewbaccaWeb/configuration/threats',
-      pot: '/ChewbaccaWeb/configuration/honeynet/host',
-      mail: '/ChewbaccaWeb/configuration/honeynet/email-report',
       inventory: '/ChewbaccaWeb/configuration/topology/inventory',
       owner: '/ChewbaccaWeb/configuration/topology/owner',
       map: '/ChewbaccaWeb/configuration/topology/map',
@@ -60,13 +55,13 @@ class Config extends Component {
       account: '/ChewbaccaWeb/configuration/user/account',
       privileges: '/ChewbaccaWeb/configuration/user/privileges',
       serviceStatus: '/ChewbaccaWeb/configuration/service-status'
-    }
+    };
 
-    return path === pattern[frame]
+    return path === pattern[frame];
   }
   render() {
     const {session} = this.props;
-    const {openEdgeManagement, openHoneynet, openTopology, openAccount, selected} = this.state
+    const {openEdgeManagement, openTopology, openAccount, selected} = this.state;
     let sessionRights = {};
 
     _.forEach(session.rights, val => {
@@ -98,13 +93,6 @@ class Config extends Component {
             </div>*/}
           </div>
         }
-        {/*sessionRights.Module_FlowAnalysis_Agent_Manage &&
-          <div className='frame agent-manage'>
-            <Link to='/ChewbaccaWeb/configuration/agent'>
-              <span className={`${this.getActiveFrame('agent')}`}>{t('txt-agentManage')}</span>
-            </Link>
-          </div>
-        */}
         {sessionRights.Module_NetworkTopology_Manage &&
           <div className='frame network-topology' onClick={this.handleOpen.bind(this, 'openTopology', openTopology)}>
             <span className={`${this.getActiveFrame('inventory') || this.getActiveFrame('owner') || this.getActiveFrame('map')}`}>{t('txt-topology')}</span>
@@ -126,26 +114,6 @@ class Config extends Component {
             <div className='subframe'>
               <Link to='/ChewbaccaWeb/configuration/topology/map'>
                 <span className={`${this.getActiveFrame('map')}`}>{t('txt-network-map')}</span>
-              </Link>
-            </div>
-          </div>
-        }
-        {sessionRights.Module_Honeynet_Manage &&
-          <div className='frame honeynet-manage' onClick={this.handleOpen.bind(this, 'openHoneynet', openHoneynet)}>
-            <span className={`${this.getActiveFrame('pot') || this.getActiveFrame('mail')}`}>{t('txt-honeyManage')}</span>
-            <i className={`c-link fg fg-arrow-${openHoneynet?'top':'bottom'}`}></i>
-          </div>
-        }
-        {openHoneynet &&
-          <div className='open-honeynet'>
-            <div className='subframe'>
-              <Link to='/ChewbaccaWeb/configuration/honeynet/host'>
-                <span className={`${this.getActiveFrame('pot')}`}>{t('txt-honeypot')}</span>
-              </Link>
-            </div>
-            <div className='subframe'>
-              <Link to='/ChewbaccaWeb/configuration/honeynet/email-report'>
-                <span className={`${this.getActiveFrame('mail')}`}>{t('txt-email-report')}</span>
               </Link>
             </div>
           </div>

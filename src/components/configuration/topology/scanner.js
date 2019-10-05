@@ -16,7 +16,7 @@ class Scanner extends Component {
     });
   }
   render() {
-    const {statusEnable, deviceList, value} = this.props;
+    const {activeContent, statusEnable, deviceList, value} = this.props;
 
     return (
       <div className='group-content'>
@@ -25,15 +25,15 @@ class Scanner extends Component {
           onChange={this.handleChange.bind(this, 'edge')}
           list={deviceList}
           value={value.edge}
-          disabled={!statusEnable.scanner} />
+          readOnly={activeContent === 'viewMode' || !statusEnable.scanner} />
         <Input
           onChange={this.handleChange.bind(this, 'ip')}
           value={value.ip}
-          disabled={!statusEnable.scanner} />
+          readOnly={activeContent === 'viewMode' || !statusEnable.scanner} />
         <Input
           onChange={this.handleChange.bind(this, 'mask')}
           value={value.mask}
-          disabled={!statusEnable.scanner} />
+          readOnly={activeContent === 'viewMode' || !statusEnable.scanner} />
         <button onClick={this.props.handleScannerTest.bind(this, value)} disabled={!statusEnable.scanner}>Test Query</button>
       </div>
     )

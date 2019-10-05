@@ -32,17 +32,21 @@ class AutoSettings extends Component {
     super(props);
 
     this.state = {
+      activeContent: 'viewMode', //viewMode, editMode
+      originalStatusEnable: {},
       statusEnable: {
         ipRange: true,
         ad_ldap: true,
         netflow: true,
         scanner: true
       },
+      originalIPrangeData: [],
       ipRangeData: [{
         type: 'private',
         ip: '',
         mask: ''
       }],
+      originalADdata: {},
       adData: {
         type: 'AD', //AD, LDAP
         ip: '',
@@ -52,11 +56,13 @@ class AutoSettings extends Component {
         password: ''
       },
       adTableData: [],
+      originalNetflowData: {},
       netflowData: {
         time: '24'
       },
       netFlowTableData: [],
       deviceList: [],
+      originalScannerData: [],
       scannerData: [{
         edge: '',
         ip: '',
@@ -70,10 +76,92 @@ class AutoSettings extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    this.getDeviceList();
+    this.getSettingsInfo();
   }
-  test = () => {
+  getSettingsInfo = () => {
+    const {baseUrl, contextRoot} = this.props;
+    const {statusEnable, ipRangeData, adData, netflowData, deviceList, scannerData} = this.state;
 
+    this.ah.one({
+      url: `${baseUrl}/api/ipdevice/config`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        data = data.value;
+        let tempStatusEnable = {...statusEnable};
+        let ipRangeData = [];
+        let tempADdata = {...adData};
+        let tempNetflowData = {...netflowData};
+        let scannerData = [];
+        tempStatusEnable.ipRange = data['ip.enable'];
+        tempStatusEnable.ad_ldap = data['ad.enable'];
+        tempStatusEnable.netflow = data['netflow.enable'];
+        tempStatusEnable.scanner = data['scanner.enable'];
+
+        let privateIParr = [];
+        let publicIParr = [];
+
+        if (data['ip.private'].range.length > 0) {
+          _.forEach(data['ip.private'].range, val => {
+            privateIParr = val.split('/');
+
+            ipRangeData.push({
+              type: 'private',
+              ip: privateIParr[0],
+              mask: privateIParr[1]
+            });
+          })
+        }
+
+        if (data['ip.public'].range.length > 0) {
+          _.forEach(data['ip.public'].range, val => {
+            publicIParr = val.split('/');
+
+            ipRangeData.push({
+              type: 'public',
+              ip: publicIParr[0],
+              mask: publicIParr[1]
+            });
+          })
+        }
+
+        tempADdata.type = data['ad.type'];
+        tempADdata.ip = data['ad.host'];
+        tempADdata.port = data['ad.port'];
+        tempADdata.domain = data['ad.domain'];
+        tempADdata.username = data['ad.username'];
+        tempADdata.password = data['ad.password'];
+        tempNetflowData.time = data['netflow.period.hr'];
+
+        if (data.scanner.length > 0) {
+          _.forEach(data.scanner, val => {
+            scannerData.push({
+              edge: val.edge,
+              ip: val.target,
+              mask: val.mask
+            });
+          })
+        }
+
+        this.setState({
+          activeContent: 'viewMode',
+          originalStatusEnable: _.cloneDeep(tempStatusEnable),
+          statusEnable: tempStatusEnable,
+          originalIPrangeData: _.cloneDeep(ipRangeData),
+          ipRangeData,
+          originalADdata: _.cloneDeep(tempADdata),
+          adData: tempADdata,
+          originalNetflowData: _.cloneDeep(tempNetflowData),
+          netflowData: tempNetflowData,
+          originalScannerData: _.cloneDeep(scannerData),
+          scannerData
+        }, () => {
+          this.getDeviceList();
+        });
+      }
+      return null;
+    })
   }
   getDeviceList = () => {
     const {baseUrl, contextRoot} = this.props;
@@ -89,11 +177,19 @@ class AutoSettings extends Component {
           return {value: val.target, text: val.target}
         });
 
-        let tempScannerData = {...scannerData};
-        tempScannerData[0].edge = deviceList[0].value;
+        let tempScannerData = scannerData;
+
+        if (!scannerData[0].edge) {
+          tempScannerData = [{
+            edge: deviceList[0].value,
+            ip: '',
+            mask: ''
+          }];
+        }
 
         this.setState({
-          deviceList
+          deviceList,
+          scannerData: tempScannerData
         });
       }
       return null;
@@ -109,14 +205,6 @@ class AutoSettings extends Component {
       scannerData
     });
   }
-  toggleADdata = (value) => {
-    let tempADdata = {...this.state.adData};
-    tempADdata.type = value;
-
-    this.setState({
-      adData: tempADdata
-    });
-  }
   handleStatusChange = (type, value) => {
     let tempStatusEnable = {...this.state.statusEnable};
     tempStatusEnable[type] = value;
@@ -125,23 +213,13 @@ class AutoSettings extends Component {
       statusEnable: tempStatusEnable
     });
   }
-  handleDataChange = (type, field, value) => {
+  handleADchange = (type, value) => {
     let tempADdata = {...this.state.adData};
-    let tempLDAPdata = {...this.state.ldapData};
+    tempADdata[type] = value;
 
-    if (type === 'ad') {
-      tempADdata[field] = value;
-
-      this.setState({
-        adData: tempADdata
-      });
-    } else if (type === 'ldap') {
-      tempLDAPdata[field] = value;
-
-      this.setState({
-        ldapData: tempLDAPdata
-      });
-    }
+    this.setState({
+      adData: tempADdata
+    });
   }
   getADtestContent = () => {
     const {adTableData} = this.state;
@@ -162,7 +240,7 @@ class AutoSettings extends Component {
       )
     } else {
       return (
-        <span>{t('txt-notFound')}</span>
+        <div className='align-center'>{t('txt-notFound')}</div>
       )
     }
   }
@@ -306,9 +384,32 @@ class AutoSettings extends Component {
       helper.showPopupMsg(t('network-inventory.auto-settings.txt-connectionsFail'), t('txt-error'));
     })
   }
+  toggleContent = (type) => {
+    const {originalStatusEnable, originalIPrangeData, originalADdata, originalNetflowData, originalScannerData} = this.state;
+    let showPage = type;
+
+    if (type === 'save') {
+      this.handleSettingsConfirm();
+      return;
+    } else if (type === 'viewMode' || type === 'cancel') {
+      showPage = 'viewMode';
+
+      this.setState({
+        statusEnable: _.cloneDeep(originalStatusEnable),
+        ipRangeData: _.cloneDeep(originalIPrangeData),
+        adData: _.cloneDeep(originalADdata),
+        netflowData: _.cloneDeep(originalNetflowData),
+        scannerData: _.cloneDeep(originalScannerData)
+      });
+    }
+
+    this.setState({
+      activeContent: showPage
+    });
+  }
   handleSettingsConfirm = () => {
     const {baseUrl, contextRoot} = this.props;
-    const {statusEnable, ipRangeData, adData, ldapData, netflowData, scannerData} = this.state;
+    const {statusEnable, ipRangeData, adData, netflowData, scannerData} = this.state;
     const url = `${baseUrl}/api/ipdevice/config`;
     let requestData = {
       'ip.enable': statusEnable.ipRange,
@@ -350,22 +451,39 @@ class AutoSettings extends Component {
       }
     });
 
-    //console.log(requestData);
+    helper.getAjaxData('POST', url, requestData)
+    .then(data => {
+      if (data) {
+        this.getSettingsInfo();
+      }
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'));
+    });
+  }
+  getBtnPos = (type) => {
+    const {locale} = this.props;
 
-
-    // helper.getAjaxData('POST', url, requestData)
-    // .then(data => {
-    //   if (data) {
-
-    //   }
-    // })
-    // .catch(err => {
-    //   helper.showPopupMsg('', t('txt-error'));
-    // });
+    if (type === 'back') {
+      if (locale === 'zh') {
+        return '88px';
+      } else if (locale === 'en') {
+        return '83px';
+      }
+    }
   }
   render() {
-    const {statusEnable, ipRangeData, adData, ldapData, netflowData, deviceList, scannerData} = this.state;
+    const {
+      activeContent,
+      statusEnable,
+      ipRangeData,
+      adData,
+      netflowData,
+      deviceList,
+      scannerData
+    } = this.state;
     const data = {
+      activeContent,
       statusEnable,
       deviceList,
       handleScannerTest: this.handleScannerTest
@@ -376,6 +494,14 @@ class AutoSettings extends Component {
       <div className='parent-content'>
         <div className='main-content basic-form'>
           <header className='main-header'>{t('network-inventory.txt-autoSettings')}</header>
+          {activeContent === 'viewMode' &&
+            <div>
+              <button className='standard btn last' onClick={this.toggleContent.bind(this, 'editMode')}>{t('txt-edit')}</button>
+              <button className='standard btn' style={{right: this.getBtnPos('back')}}>
+                <Link to={{pathname: '/ChewbaccaWeb/configuration/topology/inventory', state: 'tableList'}}>{t('txt-back')}</Link>
+              </button>
+            </div>
+          }
           <div className='form-group normal'>
             <header>{t('network-inventory.auto-settings.txt-ipRange')}</header>
             <ToggleBtn
@@ -383,7 +509,8 @@ class AutoSettings extends Component {
               onText='On'
               offText='Off'
               on={statusEnable.ipRange}
-              onChange={this.handleStatusChange.bind(this, 'ipRange')} />
+              onChange={this.handleStatusChange.bind(this, 'ipRange')}
+              disabled={activeContent === 'viewMode'} />
             <div className='group full multi'>
               <label id='ipRangeLabel' htmlFor='autoSettingsIpRange'>
                 <span>Type</span>
@@ -413,56 +540,57 @@ class AutoSettings extends Component {
                 {value: 'AD', text: t('network-inventory.auto-settings.txt-AD')},
                 {value: 'LDAP', text: t('network-inventory.auto-settings.txt-LDAP')}
               ]}
-              onChange={this.toggleADdata}
+              onChange={this.handleADchange.bind(this, 'type')}
               value={adData.type}
-              disabled={!statusEnable.ad_ldap} />
+              disabled={activeContent === 'viewMode' || !statusEnable.ad_ldap} />
             <button className='last' style={{right: '85px'}} onClick={this.handleADtest} disabled={!statusEnable.ad_ldap}>Test Query</button>
             <ToggleBtn
               className='toggle-btn'
               onText='On'
               offText='Off'
               on={statusEnable.ad_ldap}
-              onChange={this.handleStatusChange.bind(this, 'ad_ldap')} />
+              onChange={this.handleStatusChange.bind(this, 'ad_ldap')}
+              disabled={activeContent === 'viewMode'} />
             <div className='group'>
               <label htmlFor='autoSettingsIP'>IP</label>
               <Input
                 id='autoSettingsIP'
-                onChange={this.handleDataChange.bind(this, 'ad', 'ip')}
+                onChange={this.handleADchange.bind(this, 'ip')}
                 value={adData.ip}
-                readOnly={!statusEnable.ad_ldap} />
+                readOnly={activeContent === 'viewMode' || !statusEnable.ad_ldap} />
             </div>
             <div className='group'>
               <label htmlFor='autoSettingsPort'>Port</label>
               <Input
                 id='autoSettingsPort'
-                onChange={this.handleDataChange.bind(this, 'ad', 'port')}
+                onChange={this.handleADchange.bind(this, 'port')}
                 value={adData.port}
-                readOnly={!statusEnable.ad_ldap} />
+                readOnly={activeContent === 'viewMode' || !statusEnable.ad_ldap} />
             </div>
             <div className='group' style={{width: '50%'}}>
               <label htmlFor='autoSettingsDomain'>Domain</label>
               <Input
                 id='autoSettingsDomain'
-                onChange={this.handleDataChange.bind(this, 'ad', 'domain')}
+                onChange={this.handleADchange.bind(this, 'domain')}
                 value={adData.domain}
-                readOnly={!statusEnable.ad_ldap} />
+                readOnly={activeContent === 'viewMode' || !statusEnable.ad_ldap} />
             </div>
             <div className='group' style={{width: '50%'}}>
               <label htmlFor='autoSettingsUsername'>Username</label>
               <Input
                 id='autoSettingsUsername'
-                onChange={this.handleDataChange.bind(this, 'ad', 'username')}
+                onChange={this.handleADchange.bind(this, 'username')}
                 value={adData.username}
-                readOnly={!statusEnable.ad_ldap} />
+                readOnly={activeContent === 'viewMode' || !statusEnable.ad_ldap} />
             </div>
             <div className='group' style={{width: '50%'}}>
               <label htmlFor='autoSettingsPassword'>Password</label>
               <Input
                 id='autoSettingsPassword'
                 type='password'
-                onChange={this.handleDataChange.bind(this, 'ad', 'password')}
+                onChange={this.handleADchange.bind(this, 'password')}
                 value={adData.password}
-                readOnly={!statusEnable.ad_ldap} />
+                readOnly={activeContent === 'viewMode' || !statusEnable.ad_ldap} />
             </div>
           </div>
 
@@ -474,18 +602,18 @@ class AutoSettings extends Component {
               onText='On'
               offText='Off'
               on={statusEnable.netflow}
-              onChange={this.handleStatusChange.bind(this, 'netflow')} />
+              onChange={this.handleStatusChange.bind(this, 'netflow')}
+              disabled={activeContent === 'viewMode'} />
             <div className='group'>
-              <label htmlFor='autoSettingsNetflow'>{t('honeynet.txt-updateTime')}</label>
+              <label htmlFor='autoSettingsNetflow'>{t('txt-updateTime')}</label>
               <DropDownList
                 id='autoSettingsNetflow'
                 required={true}
-                onChange={this.handleDataChange.bind(this, 'edge')}
                 list={[
-                  {value: '24', text: t('network.connections.txt-last24h')}
+                  {value: '24', text: t('events.connections.txt-last24h')}
                 ]}
                 value={netflowData.time}
-                disabled={!statusEnable.netflow} />
+                readOnly={activeContent === 'viewMode' || !statusEnable.netflow} />
             </div>
           </div>
 
@@ -497,7 +625,8 @@ class AutoSettings extends Component {
                 onText='On'
                 offText='Off'
                 on={statusEnable.scanner}
-                onChange={this.handleStatusChange.bind(this, 'scanner')} />
+                onChange={this.handleStatusChange.bind(this, 'scanner')}
+                disabled={activeContent === 'viewMode'} />
               <div className='group full multi'>
                 <label id='scannerLabel' htmlFor='autoSettingsScanner'>
                   <span>Edge</span>
@@ -521,10 +650,12 @@ class AutoSettings extends Component {
             </div>
           }
 
-          <footer className='no-fixed'>
-            <button className='standard' onClick={this.props.toggleContent.bind(this, 'showList')}>{t('txt-cancel')}</button>
-            <button onClick={this.handleSettingsConfirm}>{t('txt-save')}</button>
-          </footer>
+          {activeContent === 'editMode' &&
+            <footer className='no-fixed'>
+              <button className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</button>
+              <button onClick={this.toggleContent.bind(this, 'save')}>{t('txt-save')}</button>
+            </footer>
+          }
         </div>
       </div>
     )

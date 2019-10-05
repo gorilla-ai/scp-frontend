@@ -44,19 +44,6 @@ class NetworkOwner extends Component {
       addOwnerType: '',
       addOwnerTitle: '',
       openFilter: false,
-      openADConnect: false,
-      openADImport: false,
-      adList: [],
-      adSelected: null,
-      ldap: {
-        type: 'ad',
-        ip: '',
-        port: '',
-        domain: '',
-        admin: '',
-        password: '',
-        filterOutExist: false
-      },
       owner: {
         dataFieldsArr: ['_menu', 'ownerID', 'ownerName', 'departmentName', 'titleName', 'options'],
         dataFields: {},
@@ -438,171 +425,6 @@ class NetworkOwner extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  connectAD = () => {
-    const {baseUrl} = this.props
-    const {ldap} = this.state
-
-    if (ldap.ip && ldap.port && ldap.domain && ldap.admin && ldap.password) {
-      this.setState({error: false, info: ''})
-    }
-    else {
-      this.setState({error: true, info: et('fill-required-fields')})
-      return
-    }
-
-    let dataObj = {
-      domain: ldap.domain,
-      admin: ldap.admin,
-      password: ldap.password,
-      filterOutExist: ldap.filterOutExist
-    }
-    let str = ''
-    _.map(ldap.domain.split('.'), el => {
-      str += 'DC=' + el + ','
-    })
-
-    dataObj.domain = str.substring(0, str.length - 1)
-
-    if (ldap.type === 'ad') {
-      dataObj.adIp = ldap.ip
-      dataObj.adPort = ldap.port
-    }
-
-    if (ldap.type === 'ldap') {
-      dataObj.ldapIp = ldap.ip
-      dataObj.ldapPort = ldap.port
-    }
-
-    this.ah.one({
-      url: `${baseUrl}/api/owner/${ldap.type}/_search`,
-      data: JSON.stringify(dataObj),
-      type: 'POST',
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      this.setState({
-        adList: data,
-        openADConnect: false,
-        openADImport:true,
-        adSelected: null
-      })
-    })
-    .catch(err => {
-      let msg = ''
-
-      if (err && _.includes(err.message, '-9004')) {
-        msg = et('txt-param-null')
-      }
-      else if (err && _.includes(err.message, '-9016')) {
-        msg = et('txt-account-fail')
-      }
-      else {
-        msg = err.message
-      }
-
-      helper.showPopupMsg('', t('txt-error'), msg);
-    })
-  }
-  switchADImport = () => {
-    const {openADImport} = this.state
-    this.setState({openADImport: !openADImport})
-  }
-  handleADSelected = (adSelected) => {
-    this.setState({adSelected})
-  }
-  handleADImport = () => {
-    const {adList, adSelected} = this.state
-    const {baseUrl} = this.props
-    let dataObj = []
-
-    _.map(adSelected, el => {
-      _.map(adList, ad => {
-        if (ad.ownerID === el) {
-          dataObj.push(ad)
-        }
-      })
-    })
-
-    this.ah.one({
-      url: `${baseUrl}/api/owners`,
-      data: JSON.stringify(dataObj),
-      type: 'POST',
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      this.setState({openADImport:false}, () => {this.getOwnerData()})
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  modalADImport = () => {
-    const {adList, adSelected} = this.state
-    const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.switchADImport},
-      confirm: {text: t('txt-import'), handler: this.handleADImport}
-    }
-
-    return(
-      <ModalDialog className='modal-dialog' title={t('txt-adImport')} draggable={true} global={true} actions={actions} closeAction='cancel'>
-        <div className='narrow-dialog'>
-          <DataTable
-            className='main-table'
-            data={adList}
-            selected={adSelected}
-            onSelectionChange={this.handleADSelected}
-            selection={{enabled:true, toggleAll:true, multiSelect: true }}
-            rowIdField='ownerID'
-            fields={{
-              ownerID: { label: t('ownerFields.ownerID') },
-              ownerName: { label: t('ownerFields.ownerName') }
-            }}  />
-        </div>
-      </ModalDialog>
-    )
-  }
-  handleADChange = (type, value) => {
-    let temp = {...this.state.ldap}
-    temp[type] = value
-    this.setState({ldap: temp})
-  }
-  switchADConnect = () => {
-    const {openADConnect} = this.state
-    this.setState({openADConnect: !openADConnect})
-  }
-  modalADConnect = () => {
-    const {ldap, error, info} = this.state
-    const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.switchADConnect},
-      confirm: {text: t('txt-connect'), handler: this.connectAD}
-    }
-
-    return (
-      <ModalDialog className='modal-dialog' title={t('txt-adConnect')} infoClassName={cx({'c-error':error})} info={info}
-                   draggable={true} global={true} actions={actions} closeAction='cancel'>
-        <div className='narrow-dialog'>
-          <div className='content'>
-            <ButtonGroup list={[{value:'ad', text:'AD'}, {value:'ldap', text:'LDAP'}]}
-                         onChange={this.handleADChange.bind(this, 'type')} value={ldap.type} />
-            <label htmlFor='ip2' className='first-label'>IP</label>
-            <Input id='ip2' required={true} onChange={this.handleADChange.bind(this, 'ip')} value={ldap.ip} />
-            <label htmlFor='port'>Port</label>
-            <Input id='port' required={true} onChange={this.handleADChange.bind(this, 'port')} value={ldap.port} />
-            <label htmlFor='domain'>Domain</label>
-            <Input id='domain' required={true} onChange={this.handleADChange.bind(this, 'domain')} value={ldap.domain} />
-            <label htmlFor='admin'>Username</label>
-            <Input id='admin' required={true} onChange={this.handleADChange.bind(this, 'admin')} value={ldap.admin} />
-            <label htmlFor='password'>Password</label>
-            <Input id='password' required={true} type='password' onChange={this.handleADChange.bind(this, 'password')} value={ldap.password} />
-            <div style={{display: 'flex'}}>
-              <Checkbox id='filterOutExist' onChange={this.handleADChange.bind(this, 'filterOutExist')} checked={ldap.filterOutExist} />
-              <span>Filter Out Exist</span>
-            </div>
-          </div>
-        </div>
-      </ModalDialog>
-    )
-  }
   openName = () => {
     this.name._component.open();
   }
@@ -673,26 +495,15 @@ class NetworkOwner extends Component {
       addOwnerTitle,
       owner,
       openFilter,
-      openADConnect,
-      openADImport,
       previewOwnerPic
     } = this.state;
 
     return (
       <div>
-        {openADConnect &&
-          this.modalADConnect()
-        }
-
-        {openADImport &&
-          this.modalADImport()
-        }
-
         <Name ref={ref => { this.name=ref }} onDone={this.onDone.bind(this)} />
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            <button onClick={this.switchADConnect} title={t('txt-adImport')}><i className='fg fg-signage-ad'></i></button>
             <button className={cx('last', {'active': openFilter})} onClick={this.setFilter.bind(this, !openFilter)} title={t('txt-filter')} disabled={activeContent !== 'tableList'}><i className='fg fg-filter'></i></button>
           </div>
         </div>

@@ -88,7 +88,7 @@ class QueryOpenSave extends Component {
       if (newQueryName) {
         if (!queryData.inputName) {
           this.setState({
-            info: t('network.connections.txt-noOpenQuery')
+            info: t('events.connections.txt-noOpenQuery')
           });
           return;
         }
@@ -142,7 +142,7 @@ class QueryOpenSave extends Component {
           PopupDialog.alert({
             id: 'queryModal',
             confirmText: t('txt-close'),
-            display: <div>{t('network.connections.txt-querySaved')}</div>
+            display: <div>{t('events.connections.txt-querySaved')}</div>
           });
 
           this.props.getSavedQuery();
@@ -221,7 +221,7 @@ class QueryOpenSave extends Component {
   }
   removeQuery = () => {
     PopupDialog.prompt({
-      title: t('network.connections.txt-deleteFilter'),
+      title: t('events.connections.txt-deleteFilter'),
       id: 'modalWindowSmall',
       confirmText: t('txt-delete'),
       cancelText: t('txt-cancel'),
@@ -326,7 +326,7 @@ class QueryOpenSave extends Component {
 
       if (queryData.list.length === 0) {
         return (
-          <div className='error-msg'>{t('network.connections.txt-noSavedQuery')}</div>
+          <div className='error-msg'>{t('events.connections.txt-noSavedQuery')}</div>
         )
       }
 
@@ -339,7 +339,7 @@ class QueryOpenSave extends Component {
 
       return (
         <div>
-          <label>{t('network.connections.txt-queryName')}</label>
+          <label>{t('events.connections.txt-queryName')}</label>
           <DropDownList
             className='query-name'
             list={displayList}
@@ -393,20 +393,20 @@ class QueryOpenSave extends Component {
       if (activeTab === 'logs') {
         if (tempFilterData.length === 0 && tempMarkData.length == 0) {
           return (
-            <div className='error-msg'>{t('network.connections.txt-noOpenQuery')}</div>
+            <div className='error-msg'>{t('events.connections.txt-noOpenQuery')}</div>
           )
         }
       } else {
         if (tempFilterData.length === 0) {
           return (
-            <div className='error-msg'>{t('network.connections.txt-noOpenQuery')}</div>
+            <div className='error-msg'>{t('events.connections.txt-noOpenQuery')}</div>
           )
         }
       }
 
       displayList.unshift({
         value: 'new',
-        text: t('network.connections.txt-addQuery')
+        text: t('events.connections.txt-addQuery')
       });
 
       if (queryData.openFlag) {
@@ -415,7 +415,7 @@ class QueryOpenSave extends Component {
 
       return (
         <div>
-          <label>{t('network.connections.txt-queryName')}</label>
+          <label>{t('events.connections.txt-queryName')}</label>
           <DropDownList
             className='query-name dropdown'
             list={displayList}
@@ -425,7 +425,7 @@ class QueryOpenSave extends Component {
 
           {dropDownValue === 'new' &&
             <Input
-              placeholder={t('network.connections.txt-enterQueryName')}
+              placeholder={t('events.connections.txt-enterQueryName')}
               className='query-name'
               maxLength='50'
               required={true}
@@ -492,9 +492,9 @@ class QueryOpenSave extends Component {
     let titleText = '';
 
     if (type === 'open') {
-      titleText = t('network.connections.txt-openQuery');
+      titleText = t('events.connections.txt-openQuery');
     } else if (type === 'save') {
-      titleText = t('network.connections.txt-saveQuery');
+      titleText = t('events.connections.txt-saveQuery');
     }
 
     const actions = {

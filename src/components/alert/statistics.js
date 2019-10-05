@@ -60,7 +60,7 @@ class StatisticNew extends Component {
     alertChartsList.push(
       {
         chartID: 'topAttackLogin',
-        chartTitle: t('network.statistic.top10AttackingLogin'),
+        chartTitle: t('events.statistic.top10AttackingLogin'),
         chartKeyLabels: {
           account: t('txt-account'),
           totalCnt: t('txt-count')
@@ -80,7 +80,7 @@ class StatisticNew extends Component {
       },
       {
         chartID: 'topAttackPassword',
-        chartTitle: t('network.statistic.top10AttackingPassword'),
+        chartTitle: t('events.statistic.top10AttackingPassword'),
         chartKeyLabels: {
           password: t('txt-password'),
           totalCnt: t('txt-count')
