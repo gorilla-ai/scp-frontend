@@ -56,15 +56,18 @@ class NetworkInventory extends Component {
 		this.state = {
       activeTab: 'deviceList', //deviceList, deviceMap
       activeContent: 'tableList', //tableList, dataInfo, addIPsteps, autoSettings
-      showFilter: false,
+      showFilter: true,
       showScanInfo: false,
       showSeatData: false,
       modalFloorOpen: false,
       addSeatOpen: false,
-      activeScanType: 'yara', //yara, ir
+      activeScanType: 'process', //process, ir
       activeAddType: '',
       activePath: null,
-      activeRule: null,
+      activeRuleHeader: false,
+      activeRule: [],
+      activeDDL: false,
+      activeConnections: false,
       formTypeEdit: true,
       deviceSearch: {
         ip: '',
@@ -827,34 +830,126 @@ class NetworkInventory extends Component {
       activeScanType
     });
   }
-  togglePathRule = (type, i) => {
+  togglePathRule = (type, i, parentIndex) => {
+    const {activePath, activeRule} = this.state;
+    const tempActivePath = activePath === i ? null : i;
+
     if (type === 'path') {
       this.setState({
-        activePath: this.state.activePath === i ? null : i,
-        activeRule: null
+        activePath: tempActivePath,
+        activeRuleHeader: false,
+        activeRule: [],
+        activeDDL: false,
+        activeConnections: false
       });
     } else if (type === 'rule') {
+      let tempActiveRule = activeRule;
+
+      if (_.includes(activeRule, i)) {
+        tempActiveRule.splice(tempActiveRule.indexOf(i), 1);
+      } else {
+        tempActiveRule.push(i);
+      }
+
       this.setState({
-        activeRule: this.state.activeRule === i ? null : i
+        activeRule: tempActiveRule
       });
     }
   }
-  displayRule = (nameList, val, i) => {
+  displayRule = (nameList, parentIndex, val, i) => {
     const {activeRule} = this.state;
     const uniqueKey = val + i;
 
     return (
       <div className='rule-content' key={uniqueKey}>
-        <div className='header' onClick={this.togglePathRule.bind(this, 'rule', i)}>
-          <i className={cx('fg fg-play', {'rotate': activeRule === i})}></i>
+        <div className='header' onClick={this.togglePathRule.bind(this, 'rule', i, parentIndex)}>
+          <i className={cx('fg fg-play', {'rotate': _.includes(activeRule, i)})}></i>
           <span>{nameList[i]}</span>
         </div>
-        <code className={cx({'hide': activeRule !== i})}>{val}</code>
+        <code className={cx({'hide': !_.includes(activeRule, i)})}>{val}</code>
       </div>
     )
   }
+  displayIndividualFile = (val, i) => {
+    const uniqueKey = val + i;
+
+    return (
+      <div key={uniqueKey}>{val}</div>
+    )
+  }
+  displayFilePath = (val) => {
+    const {activeDDL} = this.state;
+    let filePathList = [];
+
+    _.forEach(val._ProcessInfo._ModulesInfo, val2 => {
+      if (val2._FileInfo && val2._FileInfo._Filepath) {
+        filePathList.push(val2._FileInfo._Filepath);
+      }
+    })
+
+    return (
+      <div className={cx('sub-content', {'hide': (!activeDDL)})}>
+        {filePathList.map(this.displayIndividualFile)}
+      </div>
+    )
+  }
+  displayIndividualConnection = (val, i) => {
+    const uniqueKey = val + i;
+
+    return (
+      <ul key={uniqueKey}>
+        <li><span>{t('attacksFields.protocolType')}:</span> {val.protocol || NOT_AVAILABLE}</li>
+        <li><span>{t('attacksFields.srcIp')}:</span> {val.srcIp || NOT_AVAILABLE}</li>
+        <li><span>{t('attacksFields.srcPort')}:</span> {val.srcPort || NOT_AVAILABLE}</li>
+        <li><span>{t('attacksFields.destIp')}:</span> {val.destIP || NOT_AVAILABLE}</li>
+        <li><span>{t('attacksFields.destPort')}:</span> {val.destPort || NOT_AVAILABLE}</li>
+      </ul>
+    )
+  }
+  displayConnections = (val) => {
+    const {activeConnections} = this.state;
+    let connectionsList = [];
+    let displayInfo = '';
+
+    _.forEach(val._ProcessInfo._ConnectionList, val2 => {
+      connectionsList.push({
+        destIp: val2._DstIP,
+        destPort: val2._DstPort,
+        protocol: val2._ProtocolType,
+        srcIp: val2._SrcIP,
+        srcPort: val2._SrcPort,
+      });
+    })
+
+    if (connectionsList.length > 0) {
+      displayInfo = connectionsList.map(this.displayIndividualConnection);
+    } else {
+      displayInfo = NOT_AVAILABLE;
+    }
+
+    return (
+      <div className={cx('sub-content', {'hide': (!activeConnections)})}>
+        {displayInfo}
+      </div>
+    )
+  }
+  toggleInfoHeader = (type) => {
+    if (type === 'rule') {
+      this.setState({
+        activeRuleHeader: !this.state.activeRuleHeader
+      });
+    } else if (type === 'ddl') {
+      this.setState({
+        activeDDL: !this.state.activeDDL
+      });
+    } else if (type === 'connections') {
+      this.setState({
+        activeConnections: !this.state.activeConnections
+      });
+    }
+  }
   displayPath = (val, i) => {
-    const {activePath} = this.state;
+    const {activePath, activeRuleHeader, activeDDL, activeConnections} = this.state;
     const uniqueKey = val._ScanType + i;
 
     return (
@@ -864,7 +959,7 @@ class NetworkInventory extends Component {
           {val._MatchedFile &&
             <span>{t('txt-path')}: {val._MatchedFile}</span>
           }
-          {(val._MatchedFile && val._MatchedPid) &&
+          {val._MatchedFile && val._MatchedPid &&
             <span>, </span>
           }
           {val._MatchedPid &&
@@ -872,7 +967,31 @@ class NetworkInventory extends Component {
           }
         </div>
         <div className={cx('rule', {'hide': activePath !== i})}>
-          {val._MatchedRuleList.map(this.displayRule.bind(this, val._MatchedRuleNameList))}
+          <div className='rule-content'>
+            <div className='header' onClick={this.toggleInfoHeader.bind(this, 'rule')}>
+              <i className={cx('fg fg-play', {'rotate': activeRuleHeader})}></i>
+              <span>{t('txt-rule')}</span>
+            </div>
+            <div className={cx('sub-content', {'hide': (!activeRuleHeader)})}>
+              {val._MatchedRuleList.map(this.displayRule.bind(this, val._MatchedRuleNameList, i))}
+            </div>
+          </div>
+
+          <div className='rule-content'>
+            <div className='header' onClick={this.toggleInfoHeader.bind(this, 'ddl')}>
+              <i className={cx('fg fg-play', {'rotate': activeDDL})}></i>
+              <span>DDLs</span>
+            </div>
+            {this.displayFilePath(val)}
+          </div>
+
+          <div className='rule-content'>
+            <div className='header' onClick={this.toggleInfoHeader.bind(this, 'connections')}>
+              <i className={cx('fg fg-play', {'rotate': activeConnections})}></i>
+              <span>{t('txt-networkBehavior')}</span>
+            </div>
+            {this.displayConnections(val)}
+          </div>
         </div>
       </div>
     )
@@ -972,7 +1091,7 @@ class NetworkInventory extends Component {
       hmdInfo.ir = {
         createTime: helper.getFormattedDate(currentDeviceData.irResult.taskCreateDttm, 'local'),
         responseTime: helper.getFormattedDate(currentDeviceData.irResult.taskResponseDttm, 'local'),
-        result: currentDeviceData.irResult._url,
+        result: currentDeviceData.irResult._ZipPath,
         taskID: currentDeviceData.irResult.taskId
       };
     }
@@ -1006,14 +1125,14 @@ class NetworkInventory extends Component {
           <ButtonGroup
             className='left'
             list={[
-              {value: 'yara', text: 'Yara'},
+              {value: 'process', text: 'Scan Process'},
               {value: 'ir', text: 'IR'}
             ]}
             onChange={this.toggleScanType}
             value={activeScanType} />
 
           <div className='info-content'>
-            {activeScanType === 'yara' &&
+            {activeScanType === 'process' &&
               <div>
                 <div className='info'>
                   <div className='last-update'>
@@ -1099,9 +1218,12 @@ class NetworkInventory extends Component {
       showSeatData: false,
       modalFloorOpen: false,
       addSeatOpen: false,
-      activeScanType: 'yara',
+      activeScanType: 'process',
       activePath: null,
-      activeRule: null,
+      activeRuleHeader: false,
+      activeRule: [],
+      activeDDL: false,
+      activeConnections: false,
       currentDeviceData: {},
       addSeat: {
         selectedSeatUUID: '',

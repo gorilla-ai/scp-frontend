@@ -1132,30 +1132,45 @@
 							border-top: 1px solid #ccc;
 							.rule-content {
 								margin-bottom: 5px;
-							}
-							&.hide,
-							code.hide {
-								display: none;
-							}
-							.header {
-								position: relative;
-								width: 60px;
-								color: #185e9e;
-								cursor: default;
-								span {
-									padding-left: 18px;
-								}
-								.fg-play {
-									position: absolute;
-									top: 2px;
-									&.rotate {
-										transform: rotate(90deg);
+								.header {
+									position: relative;
+									width: 100%;
+									color: #185e9e;
+									cursor: default;
+									span {
+										padding-left: 18px;
+										display: inline-block;
+										cursor: pointer;
+									}
+									.fg-play {
+										position: absolute;
+										top: 2px;
+										cursor: pointer;
+										&.rotate {
+											transform: rotate(90deg);
+										}
 									}
 								}
+								.sub-content {
+									padding-left: 20px;
+									ul {
+										padding: 5px 0;
+										width: 20%;
+										border-bottom: 1px dotted #999;
+										li span {
+											color: #185e9e;
+										}
+									}
+								}
+								i.fg {
+									font-size: 16px;
+									margin-right: 5px;
+								}
 							}
-							i.fg {
-								font-size: 16px;
-								margin-right: 5px;
+							&.hide,
+							code.hide,
+							.sub-content.hide {
+								display: none;
 							}
 						}
 					}

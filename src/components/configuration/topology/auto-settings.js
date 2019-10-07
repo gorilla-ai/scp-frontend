@@ -497,7 +497,7 @@ class AutoSettings extends Component {
           {activeContent === 'viewMode' &&
             <div>
               <button className='standard btn last' onClick={this.toggleContent.bind(this, 'editMode')}>{t('txt-edit')}</button>
-              <button className='standard btn' style={{right: this.getBtnPos('back')}}>
+              <button className='standard btn no-padding' style={{right: this.getBtnPos('back')}}>
                 <Link to={{pathname: '/ChewbaccaWeb/configuration/topology/inventory', state: 'tableList'}}>{t('txt-back')}</Link>
               </button>
             </div>
