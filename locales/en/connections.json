@@ -147,6 +147,7 @@
   "txt-memoMaxLength": "maximum 250 characters",
   "txt-updateTime": "Update Time",
 
+  "txt-listText": "List",
   "txt-uploadPhoto": "Upload Photo",
   "txt-required": "This field is required",
   "txt-pcapDownloadFail": "Error, please try again",
@@ -189,16 +190,7 @@
   },
 
   "alert": {
-    "statistics": {
-      "Top10ExternalPotSrcIp": "Top 10 External Pot Source IP",
-      "Top10ExternalPotSrcCountry": "Top 10 External Pot Source Country",
-      "Top10ExternalPotDestPort": "Top 10 External Pot Destination Port",
-      "Top10ExternalPotProtocol": "Top 10 External Pot Protocol",
-      "Top10InternalAlertIpSrc": "Top 10 Internal Alert Source IP",
-      "Top10ExternalAlertIpDst": "Top 10 External Alert Destination IP"
-    },
-    "txt-privateAlert": "Private Alert",
-    "txt-publicAlert": "Public Alert",
+    "txt-alertList": "Alert List",
     "txt-alertInfo": "Alert Info",
     "txt-alertTime": "Alert Time",
     "txt-privateMaskedIp": "Private Masked IP",
@@ -229,36 +221,6 @@
   },
 
   "events": {
-    "statistic": {
-      "txt-statisticCharts": "Statistic Charts",
-      "allSourceServices": "Aggregate All Source Services",
-      "allSourceServicesExcludingUnknown": "Aggregate All Source Services Excluding of Unknown",
-      "allDestinationServices": "Aggregate All Destination Services",
-      "allDestinationServicesExcludingUnknown": "Aggregate All Destination Services Excluding of Unknown",
-      "allSrcHostnames": "Aggregate All Source Hostnames of the Unknown Service",
-      "allDstHostnames": "Aggregate All Destination Hostnames of the Unknown Service",
-      "top10DnsQueryFails": "TOP 10 DNS Query Fails",
-      "top10IcmpSourceIP": "TOP 10 ICMP source IP",
-      "top10UserAgents": "TOP 10 User Agents",
-      "top10HttpErrorCode": "TOP 10 HTTP Error Code",
-      "top10ActiveIPs": "TOP 10 Active IPs",
-      "top10DnsQuery": "TOP 10 DNS Query",
-      "top10MalwareSourceAlerts": "TOP 10 Malware Source Alerts",
-      "top10BlacklistAlerts": "TOP 10 Blacklist Alerts",
-      "top10IdsAlerts": "TOP 10 IDS Alerts",
-      "top10Attackers": "TOP 10 Attackers",
-      "top10Attacks": "TOP 10 Attacks",
-      "top10PublicDestinationIPs": "TOP 10 Public Destination IPs",
-      "top10PrivateDestinationIPs": "TOP 10 Private Destination IPs",
-      "top10AttackedHoneypot": "TOP 10 Attacked HoneyPot",
-      "top10AttackingIP": "TOP 10 Attacking IP",
-      "top10AttackingCountry": "TOP 10 Attacking Country",
-      "top10AttackedPort": "TOP 10 Attacked Port",
-      "top10AttackedProtocol": "TOP 10 Attacked Protocol",
-      "top10AttackingLogin": "TOP 10 Attacking Login",
-      "top10AttackingPassword": "TOP 10 Attacking Password",
-      "top10AttackingLoginPass": "TOP 10 Attacking Login and Password"
-    },
     "connections": {
       "txt-search-manual": "Manual",
       "txt-search-auto": "Auto",

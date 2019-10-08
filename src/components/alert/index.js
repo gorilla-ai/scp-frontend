@@ -11,7 +11,6 @@ import WORLDMAP from '../../mock/world-map-low.json'
 import {config as configLoader} from 'vbda-ui/build/src/loader'
 import {analyze} from 'vbda-ui/build/src/analyzer'
 
-import ButtonGroup from 'react-ui/build/src/components/button-group'
 import ContextMenu from 'react-ui/build/src/components/contextmenu'
 
 import JSONTree from 'react-json-tree'
@@ -39,41 +38,10 @@ const PRIVATE_API = {
   path: 'srcIp'
 };
 const PUBLIC_API = {
-  name: 'Top10ExternalPotSrcCountry',
-  path: 'agg'
+  name: 'Top10ExternalSrcCountry',
+  path: 'srcCountry'
 };
 
-//Charts ID must be unique
-const CHARTS_ID = [
-  {
-    title: 'Top10ExternalPotSrcIp',
-    key: 'srcIp'
-  },
-  {
-    title: 'Top10ExternalPotSrcCountry',
-    key: 'srcCountry'
-  },
-  {
-    title: 'Top10ExternalPotDestPort',
-    key: 'destPort'
-  },
-  {
-    title: 'Top10ExternalPotProtocol',
-    key: 'protocol'
-  },
-  {
-    title: 'Top10InternalAlertIpSrc',
-    key: 'srcIp'
-  },
-  {
-    title: 'Top10ExternalAlertIpDst',
-    key: 'destIp'
-  }
-];
-const CHARTS_ID2 = [
-  'topAttackLogin',
-  'topAttackPassword'
-]
 const SEVERITY_TYPE = ['High', 'Medium', 'Low'];
 const ALERT_LEVEL_COLORS = {
   High: '#d9576c',
@@ -89,12 +57,6 @@ const SUBSECTIONS_DATA = {
     fieldsData: {
       alert: {}
     },
-    laData: {
-      alert: []
-    },
-    mapData: {
-      alert: []
-    },
     tableColumns: {},
     totalCount: {
       alert: 0
@@ -109,21 +71,34 @@ const ALERT_MAIN_DATA = {
     //from: '2019-06-28T05:28:00Z',
     //to: '2019-07-19T06:28:00Z'
   },
-  alertStatisticData: {},
   currentPage: 1,
   oldPage: 1,
   pageSize: 20,
-  pageSizeMap: 500,
   sort: {
     field: '_eventDttm_',
     desc: true
   },
   //Left nav
-  treeRawData: {},
-  treeData: {},
-  additionalTreeData: {},
-  currentTreeName: '',
-  activeSubTab: 'statistics',
+  treeData: {
+    private: {
+      title: '',
+      rawData: {},
+      data: {},
+      currentTreeName: ''
+    },
+    public: {
+      title: '',
+      rawData: {},
+      data: {},
+      currentTreeName: ''
+    },
+    alert: {
+      title: '',
+      rawData: {},
+      data: {},
+      currentTreeName: ''
+    }
+  },
   //Search bar
   searchInput: {
     searchType: 'manual',
@@ -151,10 +126,6 @@ const ALERT_MAIN_DATA = {
     openFlag: false
   },
   newQueryName: true,
-  geoJson: {
-    mapDataArr: [],
-    attacksDataArr: []
-  },
   showFilter: false,
   showChart: false,
   openQueryOpen: false,
@@ -174,8 +145,7 @@ const ALERT_MAIN_DATA = {
     currentLength: ''
   },
   alertData: {},
-  loadAlertData: true,
-  alertRequest: {}
+  loadAlertData: true
 };
 
 class AlertController extends Component {
@@ -188,15 +158,6 @@ class AlertController extends Component {
 
     this.state = {
       activeTab: 'alert',
-      activeLocationTab: PRIVATE,
-      //Tab Menu
-      subTabMenu: {
-        statistics: t('txt-statistics'),
-        table: t('txt-table'),
-        linkAnalysis: t('txt-linkAnalysis'),
-        worldMap: t('txt-map')
-      },
-      LAconfig: {},
       account: {
         id: '',
         login: false,
@@ -219,26 +180,11 @@ class AlertController extends Component {
       this.setState({
         account: tempAccount
       }, () => {
-        this.getLAconfig();
         this.getSavedQuery();
-        this.loadAlertTree();
-        this.loadStatistics();
+        this.loadTreeData();
         this.loadAllFields();
       });
     }
-  }
-  getLAconfig = () => {
-    const {baseUrl} = this.props;
-
-    helper.getLAconfig(baseUrl)
-    .then(data => {
-      if (!_.isEmpty(data)) {
-        this.setState({
-          LAconfig: configLoader.processAll(data)
-        });
-      }
-      return null;
-    });
   }
   getSavedQuery = () => {
     const {baseUrl} = this.props;
@@ -254,9 +200,9 @@ class AlertController extends Component {
       return null;
     });
   }
-  loadAlertTree = (fromSearch) => {
+  loadTreeData = () => {
     const {baseUrl} = this.props;
-    const {currentPage, pageSize} = this.state;
+    const {currentPage, pageSize, treeData} = this.state;
     const url = `${baseUrl}/api/u1/alert/_search?page=${currentPage}&pageSize=${pageSize}`;
     const requestData = this.toQueryLanguage('tree');
 
@@ -264,112 +210,31 @@ class AlertController extends Component {
     .then(data => {
       if (data) {
         data = data.aggregations;
+        let alertTreeData = {
+          default: data.default
+        };
+
+        _.forEach(SEVERITY_TYPE, val => {
+          alertTreeData[val] = data[val];
+        })
+
+        let tempTreeData = {...treeData};
+        tempTreeData.alert.title = t('alert.txt-threatLevel');
+        tempTreeData.alert.rawData = alertTreeData;
+        tempTreeData.alert.data = this.getAlertTreeData(alertTreeData);
+        tempTreeData.private.title = t('alert.txt-privateMaskedIp');
+        tempTreeData.private.rawData = data[PRIVATE_API.name];
+        tempTreeData.private.data = this.getPrivateTreeData(data[PRIVATE_API.name]);
+        tempTreeData.public.title = t('alert.txt-sourceCountry');
+        tempTreeData.public.rawData = data[PUBLIC_API.name];
+        tempTreeData.public.data = this.getPublicTreeData(data[PUBLIC_API.name]);
 
         this.setState({
-          treeRawData: data,
-          treeData: this.getTreeData(data),
-          additionalTreeData: this.getAdditionalTreeData(data)
+          treeData: tempTreeData
         });
       }
       return null;
     });
-  }
-  loadStatistics = () => {
-    const {baseUrl} = this.props;
-    const {datetime} = this.state;
-    const timeAttribute = 'timestamp';
-    const dateTime = {
-      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
-      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
-    };
-    let dataObj = {};
-    let apiArr = [];
-
-    _.forEach(CHARTS_ID, (val, i) => {
-      dataObj.filters = [{
-        condition: 'must',
-        query: val.title
-      }];
-      dataObj[timeAttribute] = [dateTime.from, dateTime.to]
-
-      apiArr.push({
-        url: `${baseUrl}/api/u1/alert/_search?page=1&pageSize=1`,
-        data: JSON.stringify(dataObj),
-        type: 'POST',
-        contentType: 'text/plain'
-      });
-    })
-
-    dataObj = {
-      maxTopSize: 10,
-      startDttm: dateTime.from,
-      endDttm: dateTime.to
-    };
-
-    _.forEach(CHARTS_ID2, val => {
-      apiArr.push({
-        url: `${baseUrl}/api/honeynet/dashboard/${val}`,
-        data: JSON.stringify(dataObj),
-        type: 'POST',
-        contentType: 'text/plain'
-      });
-    })
-
-    this.ah.all(apiArr)
-    .then(data => {
-      let statisticData = {};
-      let tempArr1 = [];
-      let tempArr2 = [];
-
-      _.forEach(CHARTS_ID, (val, i) => {
-        if (data[i].aggregations) {
-          const dataBuckets = data[i].aggregations[val.title].agg.buckets;
-          let tempArr = [];
-
-          if (dataBuckets.length > 0) {
-            _.forEach(dataBuckets, val2 => {
-              if (val2.key) { //Remove empty data
-                tempArr.push({
-                  doc_count: val2.doc_count,
-                  key: val2.key
-                });
-              }
-            })
-            statisticData[val.title] = tempArr;
-          }
-        }
-      })
-
-      _.forEach(data[6].rows, val => { //Remove empty data
-        if (val.account) {
-          tempArr1.push({
-            account: val.account,
-            totalCnt: val.totalCnt
-          });
-        }
-      })
-
-      _.forEach(data[7].rows, val => { //Remove empty data
-        if (val.password) {
-          tempArr2.push({
-            password: val.password,
-            totalCnt: val.totalCnt
-          });
-        }
-      })
-
-      statisticData[CHARTS_ID2[0]] = tempArr1;
-      statisticData[CHARTS_ID2[1]] = tempArr2;
-
-      this.setState({
-        alertStatisticData: statisticData
-      });
-
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
   }
   loadAllFields = () => {
     let tempSubSectionsData = {...this.state.subSectionsData};
@@ -378,21 +243,8 @@ class AlertController extends Component {
     this.setState({
       subSectionsData: tempSubSectionsData
     }, () => {
-      this.loadActiveSubTab();
+      this.loadTable();
     });
-  }
-  loadActiveSubTab = (options) => {
-    const {activeSubTab} = this.state;
-
-    if (activeSubTab === 'statistics') {
-      this.loadStatistics();
-    } else if (activeSubTab === 'table') {
-      this.loadTable(options);
-    } else if (activeSubTab === 'linkAnalysis') {
-      this.resetLinkAnalysis(options);
-    } else if (activeSubTab === 'worldMap') {
-      this.loadWorldMap(options);
-    }
   }
   loadTable = (options) => {
     const {baseUrl, contextRoot} = this.props;
@@ -427,8 +279,6 @@ class AlertController extends Component {
         let tempSubSectionsData = {...this.state.subSectionsData};
         tempSubSectionsData.mainData[activeTab] = [];
         tempSubSectionsData.totalCount[activeTab] = 0;
-        tempSubSectionsData.laData[activeTab] = [];
-        tempSubSectionsData.mapData[activeTab] = [];
 
         const resetObj = {
           subSectionsData: tempSubSectionsData,
@@ -513,191 +363,14 @@ class AlertController extends Component {
       return null;
     });
   }
-  resetLinkAnalysis = (options) => {
-    const {activeTab, subSectionsData} = this.state;
-    let tempSubSectionsData = {...subSectionsData};
-    tempSubSectionsData.laData[activeTab] = '';
-
-    this.setState({
-      subSectionsData: tempSubSectionsData
-    }, () => {
-      this.loadLinkAnalysis(options);
-    });
-  }
-  loadLinkAnalysis = (options) => {
-    const {baseUrl, contextRoot} = this.props;
-    const {activeTab, currentPage, pageSizeMap, subSectionsData, LAconfig} = this.state;
-    const setPage = options === 'search' ? 1 : currentPage;
-    const url = `${baseUrl}/api/u1/alert/_search?page=${setPage}&pageSize=${pageSizeMap}`;
-    const requestData = this.toQueryLanguage(options);
-    let tempSubSectionsData = {...subSectionsData};
-    let mainEventsData = {};
-
-    helper.getAjaxData('POST', url, requestData)
-    .then(data => {
-      let laData = [];
-
-      if (data.data.rows.length > 0) {
-        laData = data.data;
-
-        _.forEach(laData.rows, val => {
-          mainEventsData[val._id] = val._source;
-        })
-
-        tempSubSectionsData.laData[activeTab] = analyze(mainEventsData, LAconfig, {analyzeGis: false});
-        tempSubSectionsData.totalCount[activeTab] = laData.counts;
-      } else {
-        helper.showPopupMsg(t('txt-notFound', ''));
-        return;
-      }
-
-      this.setState({
-        mainEventsData,
-        subSectionsData: tempSubSectionsData
-      });
-    });
-  }
-  loadWorldMap = (options) => {
-    const {baseUrl, contextRoot} = this.props;
-    const {activeTab, subSectionsData, currentPage, pageSizeMap, alertDetails} = this.state;
-    const setPage = options === 'search' ? 1 : currentPage;
-    const url = `${baseUrl}/api/u1/alert/_search?page=${setPage}&pageSize=${pageSizeMap}`;
-    const requestData = this.toQueryLanguage(options);
-    let tempSubSectionsData = {...subSectionsData};
-    let tempAlertDetails = {...alertDetails};
-
-    helper.getAjaxData('POST', url, requestData)
-    .then(data => {
-      const tempArray = _.map(data.data.rows, val => {
-        val._source.id = val._id;
-        val._source.index = val._index;
-        return val._source;
-      });
-
-      tempSubSectionsData.mapData[activeTab] = tempArray;
-      tempSubSectionsData.totalCount[activeTab] = data.data.counts;
-
-      let publicData = {
-        srcIp: {},
-        destIp: {}
-      };
-
-      _.forEach(tempArray, val => {
-        if (!publicData.srcIp[val.srcIp]) {
-          publicData.srcIp[val.srcIp] = [];
-        }
-
-        if (!publicData.destIp[val.destIp]) {
-          publicData.destIp[val.destIp] = [];
-        }
-
-        publicData.srcIp[val.srcIp].push(val);
-        publicData.destIp[val.destIp].push(val);        
-      })
-
-      tempAlertDetails.publicFormatted.srcIp = publicData.srcIp;
-      tempAlertDetails.publicFormatted.destIp = publicData.destIp;
-
-      this.setState({
-        subSectionsData: tempSubSectionsData,
-        alertDetails: tempAlertDetails
-      }, () => {
-        this.getWorldMap();
-      });
-    });
-  }
-  getWorldMap = () => {
-    const {activeTab, geoJson, subSectionsData, alertDetails} = this.state;
-    let tempGeoJson = {...geoJson};
-    let attacksDataArr = [];
-
-    _.forEach(WORLDMAP.features, val => {
-      const countryObj = {
-        type: 'geojson',
-        id: val.properties.name,
-        weight: 0.6,
-        fillColor: 'white',
-        color: '#182f48',
-        fillOpacity: 1
-      };
-
-      countryObj.geojson = val.geometry;
-      tempGeoJson.mapDataArr.push(countryObj);
-    });
-
-    _.forEach(subSectionsData.mapData[activeTab], val => {
-      const timestamp = helper.getFormattedDate(val.timestamp, 'local');
-
-      if (val.srcLatitude && val.srcLongitude) {
-        const count = alertDetails.publicFormatted.srcIp[val.srcIp].length;
-
-        attacksDataArr.push({
-          type: 'spot',
-          id: val.srcIp,
-          latlng: [
-            val.srcLatitude,
-            val.srcLongitude
-          ],
-          data: {
-            tag: 'red'
-          },
-          tooltip: () => {
-            return `
-              <div class='map-tooltip'>
-                <div><span class='key'>${t('payloadsFields.attacksCount')}:</span> <span class='count'>${count}</span></div>
-                <div><span class='key'>${t('payloadsFields.srcCountry')}:</span> <span class='value'>${val.srcCountry}</span></div>
-                <div><span class='key'>${t('payloadsFields.srcCity')}:</span> <span class='value'>${val.srcCity}</span></div>
-                <div><span class='key'>${t('payloadsFields.srcIp')}:</span> <span class='value'>${val.srcIp}</span></div>
-                <div><span class='key'>${t('payloadsFields.timestamp')}:</span> <span class='value'>${timestamp}</span></div>
-              </div>
-              `
-          }
-        });
-      }
-
-      if (val.destLatitude && val.destLongitude) {
-        const count = alertDetails.publicFormatted.destIp[val.destIp].length;
-
-        attacksDataArr.push({
-          type: 'spot',
-          id: val.destIp,
-          latlng: [
-            val.destLatitude,
-            val.destLongitude
-          ],
-          data: {
-            tag: 'yellow'
-          },
-          tooltip: () => {
-            return `
-              <div class='map-tooltip'>
-                <div><span class='key'>${t('payloadsFields.destCountry')}:</span> <span class='value'>${val.destCountry}</span></div>
-                <div><span class='key'>${t('payloadsFields.destCity')}:</span> <span class='value'>${val.destCity}</span></div>
-                <div><span class='key'>${t('payloadsFields.destIp')}:</span> <span class='value'>${val.destIp}</span></div>
-                <div><span class='key'>${t('payloadsFields.timestamp')}:</span> <span class='value'>${timestamp}</span></div>
-              </div>
-              `
-          }
-        });
-      }
-    });
-
-    tempGeoJson.attacksDataArr = attacksDataArr;
-
-    this.setState({
-      activeSubTab: 'worldMap',
-      geoJson: tempGeoJson
-    });
-  }
   toQueryLanguage = (options) => {
-    const {datetime, activeLocationTab, filterData, alertRequest} = this.state;
+    const {datetime, activeLocationTab, filterData} = this.state;
     const timeAttribute = 'timestamp';
-    const treeQuery = activeLocationTab === PRIVATE ? PRIVATE_API.name : PUBLIC_API.name;
-    const dataQuery = activeLocationTab === PRIVATE ? PRIVATE_API.name : PUBLIC_API.name;
     const defaultCondition = {
       condition: 'must',
-      query: dataQuery
+      query: 'All'
     };
+    const defaultSearch = [PRIVATE_API.name, PUBLIC_API.name];
     let dateFrom = datetime.from;
     let dateTo = datetime.to;
     let dateTime = {};
@@ -709,11 +382,14 @@ class AlertController extends Component {
     };
     dataObj[timeAttribute] = [dateTime.from, dateTime.to];
 
-    if (!options || options === 'tree') {
+    if (!options) {
+      dataObj['filters'] = [defaultCondition];
+    } else if (options === 'tree') {
       dataObj['filters'] = [{
         condition: 'must',
-        query: treeQuery
+        query: 'All'
       }];
+      dataObj['search'] = defaultSearch;
     } else if (options === 'search') {
       let filterDataArr = [];
 
@@ -727,50 +403,41 @@ class AlertController extends Component {
       if (filterDataArr.length > 0) {
         dataObj['filters'] = filterDataArr;
       }
-    } else if (options === 'subTab') {
-      if (!_.isEmpty(alertRequest)) {
-        return alertRequest;
-      } else {
-        dataObj['filters'] = [defaultCondition];
-      }
     }
 
     const dataOptions = {
       ...dataObj
     };
 
-    if (options !== 'tree') {
-      this.setState({
-        alertRequest: dataOptions
-      });
-    }
-
     return dataOptions;
   }
-  showFilterBtn = (value) => {
+  showFilterBtn = (type, value) => {
+    const {treeData} = this.state;
+
+    let tempTreeData = {...treeData};
+    tempTreeData[type].currentTreeName = value;
+    let individualTreeData = '';
+
+    if (type === 'private') {
+      individualTreeData = this.getPrivateTreeData(tempTreeData[type].rawData, value);
+    } else if (type === 'public') {
+      individualTreeData = this.getPublicTreeData(tempTreeData[type].rawData, value);
+    } else if (type === 'alert') {
+      individualTreeData = this.getAlertTreeData(tempTreeData[type].rawData, value);
+    }
+
+    tempTreeData[type].data = individualTreeData;
+
     this.setState({
-      currentTreeName: value,
-      treeData: this.getTreeData(this.state.treeRawData, value),
-      additionalTreeData: this.getAdditionalTreeData(this.state.treeRawData, value)
+      treeData: tempTreeData
     });
   }
-  getAdditionalTreeData = (treeData, treeName) => {
-    const {activeSubTab, currentTreeName, activeLocationTab} = this.state;
-    const activeTreeName = treeName ? treeName : currentTreeName;
-    let formattedTreeData = [];
+  getPrivateTreeData = (treeData, treeName) => {
+    const path = PRIVATE_API.path;
     let treeObj = { //Handle service tree data
       id: 'All',
       children: []
     };
-    let path = '';
-
-    if (activeLocationTab === PRIVATE) {
-      treeData = treeData[PRIVATE_API.name];
-      path = PRIVATE_API.path;
-    } else if (activeLocationTab === PUBLIC) {
-      treeData = treeData[PUBLIC_API.name];
-      path = PUBLIC_API.path;
-    }
 
     _.keys(treeData)
     .forEach(key => {
@@ -778,44 +445,31 @@ class AlertController extends Component {
       let label = '';
 
       if (key && key !== 'doc_count') {
-        if (activeLocationTab === PRIVATE) {
-          if (treeData[key][path].buckets.length > 0) {
-            _.forEach(treeData[key][path].buckets, val => {
-              if (val.key) {
-                label = <span title={val.key}>{val.key} ({val.doc_count}) <button className={cx('button', {'active': currentTreeName === val.key && activeSubTab !== 'statistics'})} onClick={this.selectTree.bind(this, val.key, '')}>{t('events.connections.txt-addFilter')}</button></span>;
-
-                tempChild.push({
-                  id: val.key,
-                  label
-                });
-              }
-            })
-          }
-
-          label = <span title={key}>{key} ({treeData[key].doc_count}) <button className={cx('button', {'active': currentTreeName === key && activeSubTab !== 'statistics'})} onClick={this.selectTree.bind(this, key, '')}>{t('events.connections.txt-addFilter')}</button></span>;
-
-          let treeProperty = {
-            id: key,
-            label
-          };
-
-          if (tempChild.length > 0) {
-            treeProperty.children = tempChild;
-          }
-
-          treeObj.children.push(treeProperty);
-        } else if (activeLocationTab === PUBLIC) {
-          _.forEach(treeData[path].buckets, val => {
+        if (treeData[key][path].buckets.length > 0) {
+          _.forEach(treeData[key][path].buckets, val => {
             if (val.key) {
-              label = <span title={val.key}>{val.key} ({val.doc_count}) <button className={cx('button', {'active': currentTreeName === val.key && activeSubTab !== 'statistics'})} onClick={this.selectTree.bind(this, val.key, '')}>{t('events.connections.txt-addFilter')}</button></span>;
+              label = <span title={val.key}>{val.key} ({val.doc_count}) <button className={cx('button', {'active': treeName === val.key})} onClick={this.selectTree.bind(this, val.key, '')}>{t('events.connections.txt-addFilter')}</button></span>;
 
-              treeObj.children.push({
+              tempChild.push({
                 id: val.key,
                 label
               });
             }
           })
         }
+
+        label = <span title={key}>{key} ({treeData[key].doc_count}) <button className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, '')}>{t('events.connections.txt-addFilter')}</button></span>;
+
+        let treeProperty = {
+          id: key,
+          label
+        };
+
+        if (tempChild.length > 0) {
+          treeProperty.children = tempChild;
+        }
+
+        treeObj.children.push(treeProperty);
       }
     })
 
@@ -823,14 +477,42 @@ class AlertController extends Component {
 
     return treeObj;
   }
-  getTreeData = (treeData, treeName) => {
-    const {activeSubTab, currentTreeName} = this.state;
-    const activeTreeName = treeName ? treeName : currentTreeName;
-    let formattedTreeData = [];
+  getPublicTreeData = (treeData, treeName) => {
+    const path = PUBLIC_API.path;
     let treeObj = { //Handle service tree data
       id: 'All',
       children: []
     };
+
+    _.keys(treeData)
+    .forEach(key => {
+      let tempChild = [];
+      let label = '';
+
+      if (key && key !== 'doc_count') {
+        _.forEach(treeData[path].buckets, val => {
+          if (val.key) {
+            label = <span title={val.key}>{val.key} ({val.doc_count}) <button className={cx('button', {'active': treeName === val.key})} onClick={this.selectTree.bind(this, val.key, '')}>{t('events.connections.txt-addFilter')}</button></span>;
+
+            treeObj.children.push({
+              id: val.key,
+              label
+            });
+          }
+        })
+      }
+    })
+
+    treeObj.label = t('txt-all') + ' (' + treeData.doc_count + ')';
+
+    return treeObj;
+  }
+  getAlertTreeData = (treeData, treeName) => {
+    let treeObj = { //Handle service tree data
+      id: 'All',
+      children: []
+    };
+    let formattedTreeData = [];
 
     if (treeData === null) { //Hanlde the case for no data
       treeObj.label = t('txt-all') + ' (0)';
@@ -865,7 +547,7 @@ class AlertController extends Component {
               totalHostCount += val;
             } else if (key !== 'event_histogram') {
               let tempChild2 = [];
-              label = <span title={key}>{key} ({val.doc_count}) <button className={cx('button', {'active': (activeTreeName === key && activeSubTab !== 'statistics')})} onClick={this.selectTree.bind(this, key, '')}>{t('events.connections.txt-addFilter')}</button></span>;
+              label = <span title={key}>{key} ({val.doc_count}) <button className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, '')}>{t('events.connections.txt-addFilter')}</button></span>;
 
               tempChild.push({
                 id: key,
@@ -874,7 +556,7 @@ class AlertController extends Component {
 
               _.forEach(val, (val2, key2) => {
                 if (key2 !== 'doc_count') {
-                  label2 = <span title={key2}>{key2} ({val2.doc_count}) <button className={cx('button', {'active': (activeTreeName === key2 && activeSubTab !== 'statistics')})} onClick={this.selectTree.bind(this, key2, '')}>{t('events.connections.txt-addFilter')}</button></span>;
+                  label2 = <span title={key2}>{key2} ({val2.doc_count}) <button className={cx('button', {'active': treeName === key2})} onClick={this.selectTree.bind(this, key2, '')}>{t('events.connections.txt-addFilter')}</button></span>;
 
                   tempChild2.push({
                     id: key2,
@@ -895,10 +577,10 @@ class AlertController extends Component {
             } else if (key === 'srcIp') {
               _.forEach(val.buckets, val => {
                 if (val.key) {
-                  label = <span title={val.key}>{val.key} ({val.doc_count}) <button className={cx('button', {'active': (activeTreeName === val.key && activeSubTab !== 'statistics')})} onClick={this.selectTree.bind(this, val.key, key)}>{t('events.connections.txt-addFilter')}</button></span>;
+                  label = <span title={val.key}>{val.key} ({val.doc_count}) <button className={cx('button', {'active': treeName === val.key})} onClick={this.selectTree.bind(this, val.key, key)}>{t('events.connections.txt-addFilter')}</button></span>;
 
                   if (val['destPort']) {
-                    label2 = <span title={val['destPort'].buckets[0].key}>{val['destPort'].buckets[0].key} ({val['destPort'].buckets[0].doc_count}) <button className={cx('button', {'active': (activeTreeName === val['destPort'].buckets[0].key && activeSubTab !== 'statistics')})} onClick={this.selectTree.bind(this, val['destPort'].buckets[0].key, 'destPort')}>{t('events.connections.txt-addFilter')}</button></span>;
+                    label2 = <span title={val['destPort'].buckets[0].key}>{val['destPort'].buckets[0].key} ({val['destPort'].buckets[0].doc_count}) <button className={cx('button', {'active': treeName === val['destPort'].buckets[0].key})} onClick={this.selectTree.bind(this, val['destPort'].buckets[0].key, 'destPort')}>{t('events.connections.txt-addFilter')}</button></span>;
                   }
 
                   if (label2) {
@@ -923,7 +605,7 @@ class AlertController extends Component {
         }
 
         if (key && key !== 'default') {
-          label = <span title={key}>{key} ({totalHostCount}) <button className={cx('button', {'active': (activeTreeName === key && activeSubTab !== 'statistics')})} onClick={this.selectTree.bind(this, key, '')}>{t('events.connections.txt-addFilter')}</button></span>;
+          label = <span title={key}>{key} ({totalHostCount}) <button className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, '')}>{t('events.connections.txt-addFilter')}</button></span>;
 
           let treeProperty = {
             id: key,
@@ -958,8 +640,8 @@ class AlertController extends Component {
         oldPage: 1,
         tableMouseOver: false
       }, () => {
-        this.loadAlertTree(fromSearch);
-        this.loadActiveSubTab(fromSearch);
+        this.loadTreeData();
+        this.loadTable(fromSearch);
       });
     }
   }
@@ -978,34 +660,11 @@ class AlertController extends Component {
       queryData: tempQueryData
     });
   }
-  handleLargePageChange = (type, currentPage) => {
-    this.setState({
-      currentPage
-    }, () => {
-      if (type === 'la') {
-        this.resetLinkAnalysis('subTab');
-      } else if (type === 'map') {
-        this.loadWorldMap('subTab');
-      }
-    });
-  }
-  handleLargePageDropdown = (type, pageSize) => {
-    this.setState({
-      currentPage: 1,
-      pageSizeMap: Number(pageSize)
-    }, () => {
-      if (type === 'la') {
-        this.resetLinkAnalysis('subTab');
-      } else if (type === 'map') {
-        this.loadWorldMap('subTab');
-      }
-    });
-  }
   handlePageChange = (currentPage) => {
     this.setState({
       currentPage
     }, () => {
-      this.loadTable('subTab');
+      this.loadTable();
     });
   }
   handlePageDropdown = (pageSize) => {
@@ -1013,7 +672,7 @@ class AlertController extends Component {
       currentPage: 1,
       pageSize: Number(pageSize)
     }, () => {
-      this.loadTable('subTab');
+      this.loadTable();
     });
   }
   handleTableSort = (value) => {
@@ -1025,7 +684,7 @@ class AlertController extends Component {
     this.setState({
       sort: tempSort
     }, () => {
-      this.loadTable('subTab');
+      this.loadTable();
     });
   }
   selectTree = (value, field) => {
@@ -1221,8 +880,8 @@ class AlertController extends Component {
       datetime
     }, () => {
       if (refresh === 'refresh') {
-        this.loadAlertTree();
-        this.loadActiveSubTab(fromSearch);
+        this.loadTreeData();
+        this.loadTable(fromSearch);
       }
     });
   }
@@ -1230,45 +889,6 @@ class AlertController extends Component {
     return {
       chartData: this.state.alertHistogram
     };
-  }
-  handleSubTabChange = (newTab) => {
-    if (newTab === 'statistics') {
-      this.setState({
-        activeSubTab: newTab,
-        showFilter: false,
-        showChart: false,
-        tableMouseOver: false
-      }, () => {
-        this.loadStatistics();
-      });
-    }
-    if (newTab === 'table') {
-      this.setState({
-        activeSubTab: newTab,
-        currentPage: 1,
-        pageSize: 20,
-        tableMouseOver: false
-      }, () => {
-        this.loadTable('subTab');
-      });
-    } else if (newTab === 'linkAnalysis') {
-      this.setState({
-        activeSubTab: newTab,
-        currentPage: 1,
-        pageSizeMap: 500,
-        tableMouseOver: false
-      }, () => {
-        this.resetLinkAnalysis('subTab');
-      });
-    } else if (newTab === 'worldMap') {
-      this.loadWorldMap('subTab');
-
-      this.setState({
-        currentPage: 1,
-        pageSizeMap: 500,
-        tableMouseOver: false
-      });
-    }
   }
   forwardSyslog = (allValue, type) => {
     const {baseUrl, contextRoot} = this.props;
@@ -1283,10 +903,6 @@ class AlertController extends Component {
       tableMouseOver,
       chartColors: ALERT_LEVEL_COLORS,
       tableUniqueID: 'id',
-      subTabMenu: this.state.subTabMenu,
-      activeSubTab: this.state.activeSubTab,
-      handleSubTabChange: this.handleSubTabChange,
-      alertStatisticData: this.state.alertStatisticData,
       currentTableID: this.state.currentTableID,
       queryData: this.state.queryData,
       filterData: this.state.filterData,
@@ -1300,28 +916,19 @@ class AlertController extends Component {
       handleResetBtn: this.handleResetBtn,
       handleSearchSubmit: this.handleSearchSubmit,
       treeData: this.state.treeData,
-      additionalTreeData: this.state.additionalTreeData,
-      activeAlertTab: this.state.activeLocationTab,
       showFilterBtn: this.showFilterBtn,
       dataTableData: this.state.subSectionsData.mainData[activeTab],
       dataTableFields: this.state.subSectionsData.fieldsData[activeTab],
-      LAdata: this.state.subSectionsData.laData[activeTab],
-      mapData: this.state.subSectionsData.mapData[activeTab],
-      LAconfig: this.state.LAconfig,
       mainEventsData: this.state.mainEventsData,
-      geoJson: this.state.geoJson,
       showTopoDetail: this.showTopoDetail,
       dataTableSort: this.state.sort,
       handleTableSort: this.handleTableSort,
       handleRowDoubleClick: this.handleRowDoubleClick,
       paginationTotalCount: this.state.subSectionsData.totalCount[activeTab],
       paginationPageSize: this.state.pageSize,
-      paginationAlertPageSize: this.state.pageSizeMap,
       paginationCurrentPage: this.state.currentPage,
       paginationPageChange: this.handlePageChange,
-      paginationDropDownChange: this.handlePageDropdown,
-      paginationAlertPageChange: this.handleLargePageChange,
-      paginationAlertDropDownChange: this.handleLargePageDropdown
+      paginationDropDownChange: this.handlePageDropdown
     };
 
     return (
@@ -1329,7 +936,6 @@ class AlertController extends Component {
         baseUrl={baseUrl}
         contextRoot={contextRoot}
         language={language}
-        chartsID={CHARTS_ID}
         mainContentData={mainContentData}
         tabChartData={this.getTabChartData()}
         tableMouseOver={tableMouseOver} />
@@ -1425,23 +1031,10 @@ class AlertController extends Component {
       this.loadAllFields();
     });
   }
-  toggleActiveLocation = (type) => {
-    this.setState({
-      ..._.cloneDeep(ALERT_MAIN_DATA),
-      activeLocationTab: type,
-    }, () => {
-      this.clearData();
-      this.getSavedQuery();
-      this.loadAlertTree();
-      this.loadStatistics();
-    });
-  }
   render() {
     const {
       activeTab,
       datetime,
-      activeLocationTab,
-      activeSubTab,
       searchInput,
       subSectionsData,
       openQueryOpen,
@@ -1474,15 +1067,6 @@ class AlertController extends Component {
         }
 
         <div className='sub-header'>
-          <ButtonGroup
-            className='left'
-            list={[
-              {value: PRIVATE, text: t('alert.txt-privateAlert')},
-              {value: PUBLIC, text: t('alert.txt-publicAlert')}
-            ]}
-            onChange={this.toggleActiveLocation}
-            value={activeLocationTab} />
-
           <SearchOptions
             page='alert'
             datetime={datetime}
@@ -1493,8 +1077,8 @@ class AlertController extends Component {
             handleSearchSubmit={this.handleSearchSubmit} />
 
           <div className='secondary-btn-group right'>
-            <button className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('events.connections.txt-toggleFilter')} disabled={activeSubTab === 'statistics'}><i className='fg fg-filter'></i><span>({filterDataCount})</span></button>
-            <button className={cx({'active': showChart})} onClick={this.toggleChart} title={t('events.connections.txt-toggleChart')} disabled={activeSubTab === 'statistics'}><i className='fg fg-chart-columns'></i></button>
+            <button className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('events.connections.txt-toggleFilter')}><i className='fg fg-filter'></i><span>({filterDataCount})</span></button>
+            <button className={cx({'active': showChart})} onClick={this.toggleChart} title={t('events.connections.txt-toggleChart')}><i className='fg fg-chart-columns'></i></button>
             <button className='last' onClick={this.getCSVfile} title={t('events.connections.txt-exportCSV')}><i className='fg fg-data-download'></i></button>
           </div>
         </div>

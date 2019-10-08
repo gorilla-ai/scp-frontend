@@ -147,6 +147,7 @@
   "txt-memoMaxLength": "上限250字",
   "txt-updateTime": "更新時間",
 
+  "txt-listText": "列表",
 	"txt-uploadPhoto": "上傳照片",
 	"txt-required": "此為必填欄位",
 	"txt-pcapDownloadFail": "檔案下載失敗",
@@ -189,16 +190,7 @@
   },
 
   "alert": {
-    "statistics": {
-      "Top10ExternalPotSrcIp": "前10大外部攻擊IP",
-      "Top10ExternalPotSrcCountry": "前10大外部攻擊國家",
-      "Top10ExternalPotDestPort": "前10大外部攻擊Port",
-      "Top10ExternalPotProtocol": "前10大外部攻擊Protocol",
-      "Top10InternalAlertIpSrc": "前10大IDS告警內部來源IP",
-      "Top10ExternalAlertIpDst": "前10大IDS告警外部目的IP"
-    },
-    "txt-privateAlert": "內部告警",
-    "txt-publicAlert": "外部告警",
+    "txt-alertList": "告警清單",
     "txt-alertInfo": "告警資訊",
     "txt-alertTime": "告警時間",
     "txt-privateMaskedIp": "內部網段",
@@ -229,36 +221,6 @@
   },
 
   "events": {
-    "statistic": {
-      "txt-statisticCharts": "統計圖表",
-      "allSourceServices": "來源端服務統計",
-      "allSourceServicesExcludingUnknown": "來源端服務統計(排除未知服務)",
-      "allDestinationServices": "目的端服務統計",
-      "allDestinationServicesExcludingUnknown": "目的端服務統計(排除未知服務)",
-      "allSrcHostnames": "來源端主機名稱統計(未知服務)",
-      "allDstHostnames": "目的端主機名稱統計(未知服務)",
-      "top10DnsQueryFails": "前10個DNS查詢失敗域名",
-      "top10IcmpSourceIP": "前10個ICMP來源IP",
-      "top10UserAgents": "前10個用戶代理",
-      "top10HttpErrorCode": "前10個HTTP錯誤代碼",
-      "top10ActiveIPs": "前10個活躍IP",
-      "top10DnsQuery": "前10個DNS查詢域名",
-      "top10MalwareSourceAlerts": "前10個惡意程式來源告警",
-      "top10BlacklistAlerts": "前10個黑名單告警",
-      "top10IdsAlerts": "前10個IDS告警",
-      "top10Attackers": "前10個攻擊者",
-      "top10Attacks": "前10個攻擊手法",
-      "top10PublicDestinationIPs": "前10個目的IP (外網)",
-      "top10PrivateDestinationIPs": "前10個目的IP (內網)",
-      "top10AttackedHoneypot": "前10個受攻擊蜜罐",
-      "top10AttackingIP": "前10個攻擊IP",
-      "top10AttackingCountry": "前10個攻擊國家",
-      "top10AttackedPort": "前10個受攻擊Port",
-      "top10AttackedProtocol": "前10個受攻擊Protocol",
-      "top10AttackingLogin": "前10個攻擊使用的登入帳號",
-      "top10AttackingPassword": "前10個攻擊使用的登入密碼",
-      "top10AttackingLoginPass": "前10個攻擊使用的登入帳號與密碼"
-    },
     "connections": {
       "txt-search-manual": "自訂時間",
       "txt-search-auto": "定期更新",

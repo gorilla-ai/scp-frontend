@@ -399,6 +399,11 @@ class NetworkMap extends Component {
         onSelect={this.selectTree.bind(this, i)} />
     )
   }
+  displayTreeView = (val, i) => {
+    const {floorPlan} = this.state;
+
+    return this.getTreeView(val, floorPlan.currentAreaUUID, i);
+  }
   handleSearchChange = (type, value) => {
     let tempSearch = {...this.state.search};
     tempSearch[type] = value.trim();
@@ -780,9 +785,7 @@ class NetworkMap extends Component {
                 <div className='left-nav'>
                   <div className='tree-data'>
                     {floorPlan.treeData && floorPlan.treeData.length > 0 &&
-                      floorPlan.treeData.map((value, i) => {
-                        return this.getTreeView(value, floorPlan.currentAreaUUID, i);
-                      })
+                      floorPlan.treeData.map(this.displayTreeView)
                     }
                   </div>
                 </div>

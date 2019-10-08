@@ -78,6 +78,18 @@ footer.footer {
 		right: 15px;
 	}
 }
+.c-gis {
+	min-width: 700px;
+}
+.leaflet-marker-icon.gis-divIcon > span.gis-label {
+  flex-grow: 0;
+  position: initial;
+  text-align: center;
+  width: 60px !important;
+  word-break: break-word;
+	background-color: #ffffff;
+	color: #4a4a4a;
+}
 .c-button-group {
 	&.left {
 		float: left;
@@ -445,9 +457,11 @@ footer.footer {
 								background-color: #e2ecfd;
 							}
 							.info {
+								color: #000;
 								font-size: 18px;
 								padding: 8px 10px;
 								&.faded {
+									font-style: italic;
 									color: #999;
 								}
 								span {
@@ -537,7 +551,7 @@ footer.footer {
 			.header-text {
 				color: #004d93;
 				font-size: .9em;
-				padding: 5px 10px;
+				padding: 10px;
 				margin-top: 0;
 				margin-bottom: 0;
 				&.hide {
@@ -1168,32 +1182,6 @@ footer.footer {
 					margin: 0;
 					.dropdown-margin {
 						margin-left: 50px;
-					}
-				}
-				.alert-statistics { //For Alert Statistics page
-					height: 79vh;
-					overflow-y: auto;
-					padding: 6px;
-					background-color: #d9d9d9;
-					.statistics-content {
-						display: flex;
-						flex-grow: 12;
-						flex-wrap: wrap;
-						.chart-group {
-							width: 49.2%;
-							margin: 5px;
-							border: none;
-							border-radius: 5px;
-							overflow: hidden;
-							header {
-								color: #004d93;
-								font-size: 1.1em;
-								font-weight: bold;
-								padding: 15px;
-								border-bottom: 1px solid #ccc;
-								background-color: #fff;
-							}
-						}
 					}
 				}
 				.table-content .table {
