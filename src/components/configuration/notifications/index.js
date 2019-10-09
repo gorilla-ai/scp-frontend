@@ -347,6 +347,9 @@ class Notifications extends Component {
         this.closeDialog();
       }
     })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   closeDialog = () => {
     this.setState({

@@ -91,8 +91,7 @@ class File extends Component {
 }
 
 File.propTypes = {
-  mainContentData: PropTypes.object.isRequired,
-  tabChartData: PropTypes.object.isRequired
+  mainContentData: PropTypes.object.isRequired
 };
 
 export default withLocale(File);

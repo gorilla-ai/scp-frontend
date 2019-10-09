@@ -110,6 +110,7 @@
   "txt-analyze": "Analyze",
   "txt-send": "Send",
   "txt-networkBehavior": "Network Behavior",
+  "txt-logSource": "Log Source",
 
   "txt-dashboard": "Dashboard",
   "txt-netflow": "Netflow",
@@ -299,7 +300,7 @@
     "txt-recipientEmail": "Recipient Email"
   },
 
-  "edgeManagement": {
+  "edge-management": {
     "txt-threatSettings": "Threat Settings",
     "txt-basicInfo": "Info",
     "txt-editEdge": "Edit Edge",
@@ -309,6 +310,8 @@
     "txt-ipList": "IP List",
     "txt-vpnIP": "VPN IP",
     "txt-vpnLicenseName": "VPN License Name",
+    "txt-deleteEdge": "$t(txt-delete)$t(txt-edge)",
+    "txt-deleteEdgeMsg": "$t(txt-delete-msg)$t(txt-edge)",
     "txt-serviceType": "Service Type",
     "txt-serviceMode": "Service Mode",
     "txt-activatTime": "Datetime",
@@ -348,7 +351,10 @@
     "txt-suspiciousFilePath": "Suspicious File Path",
     "txt-reCheck": "Re-check",
     "txt-reCompress": "Re-compress",
+    "txt-irMsg": "IR data has been uploaded to",
     "txt-editFloorMap": "$t(txt-edit) $t(txt-floorMap)",
+    "txt-viewDevice": "$t(txt-view) $t(alert.txt-ipBasicInfo)",
+    "txt-viewHMD": "$t(txt-view) $t(alert.txt-safetyScanInfo)",
     "txt-deleteDevice": "$t(txt-delete) $t(txt-device)",
     "txt-deleteDeviceMsg": "$t(txt-delete-msg) $t(txt-device)",
     "auto-settings": {

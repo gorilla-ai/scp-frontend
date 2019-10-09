@@ -130,7 +130,6 @@ const ALERT_MAIN_DATA = {
   showChart: false,
   openQueryOpen: false,
   saveQueryOpen: false,
-  tableMouseOver: false,
   currentTableIndex: '',
   currentTableID: '',
   alertDetailsOpen: false,
@@ -448,7 +447,7 @@ class AlertController extends Component {
         if (treeData[key][path].buckets.length > 0) {
           _.forEach(treeData[key][path].buckets, val => {
             if (val.key) {
-              label = <span title={val.key}>{val.key} ({val.doc_count}) <button className={cx('button', {'active': treeName === val.key})} onClick={this.selectTree.bind(this, val.key, '')}>{t('events.connections.txt-addFilter')}</button></span>;
+              label = <span title={val.key}>{val.key} ({val.doc_count}) <button className={cx('button', {'active': treeName === val.key})} onClick={this.selectTree.bind(this, val.key, 'sourceIp')}>{t('events.connections.txt-addFilter')}</button></span>;
 
               tempChild.push({
                 id: val.key,
@@ -458,7 +457,7 @@ class AlertController extends Component {
           })
         }
 
-        label = <span title={key}>{key} ({treeData[key].doc_count}) <button className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, '')}>{t('events.connections.txt-addFilter')}</button></span>;
+        label = <span title={key}>{key} ({treeData[key].doc_count}) <button className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, 'sourceIp')}>{t('events.connections.txt-addFilter')}</button></span>;
 
         let treeProperty = {
           id: key,
@@ -492,7 +491,7 @@ class AlertController extends Component {
       if (key && key !== 'doc_count') {
         _.forEach(treeData[path].buckets, val => {
           if (val.key) {
-            label = <span title={val.key}>{val.key} ({val.doc_count}) <button className={cx('button', {'active': treeName === val.key})} onClick={this.selectTree.bind(this, val.key, '')}>{t('events.connections.txt-addFilter')}</button></span>;
+            label = <span title={val.key}>{val.key} ({val.doc_count}) <button className={cx('button', {'active': treeName === val.key})} onClick={this.selectTree.bind(this, val.key, 'srcCountry')}>{t('events.connections.txt-addFilter')}</button></span>;
 
             treeObj.children.push({
               id: val.key,
@@ -637,8 +636,7 @@ class AlertController extends Component {
     if (fromSearch) {
       this.setState({
         currentPage: 1,
-        oldPage: 1,
-        tableMouseOver: false
+        oldPage: 1
       }, () => {
         this.loadTreeData();
         this.loadTable(fromSearch);
@@ -896,11 +894,10 @@ class AlertController extends Component {
   }
   renderTabContent = () => {
     const {baseUrl, contextRoot, language, searchFields} = this.props;
-    const {activeTab, tableMouseOver} = this.state;
+    const {activeTab} = this.state;
     const mainContentData = {
       searchFields,
       activeTab,
-      tableMouseOver,
       chartColors: ALERT_LEVEL_COLORS,
       tableUniqueID: 'id',
       currentTableID: this.state.currentTableID,
@@ -937,8 +934,7 @@ class AlertController extends Component {
         contextRoot={contextRoot}
         language={language}
         mainContentData={mainContentData}
-        tabChartData={this.getTabChartData()}
-        tableMouseOver={tableMouseOver} />
+        tabChartData={this.getTabChartData()} />
     )
   }
   getCSVfile = () => {

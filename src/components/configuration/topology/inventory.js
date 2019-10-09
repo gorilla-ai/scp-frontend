@@ -56,13 +56,12 @@ class NetworkInventory extends Component {
 		this.state = {
       activeTab: 'deviceList', //deviceList, deviceMap
       activeContent: 'tableList', //tableList, dataInfo, addIPsteps, autoSettings
-      showFilter: true,
+      showFilter: false,
       showScanInfo: false,
       showSeatData: false,
       modalFloorOpen: false,
       addSeatOpen: false,
       activeScanType: 'process', //process, ir
-      activeAddType: '',
       activePath: null,
       activeRuleHeader: false,
       activeRule: [],
@@ -258,10 +257,10 @@ class NetworkInventory extends Component {
               }
             } else if (tempData === '_menu_') {
               return (
-                <div className={cx('table-menu inventory', {'active': value})}>
-                  <i className='fg fg-eye' onClick={this.openMenu.bind(this, 'view', allValue, index)} title={t('alert.txt-ipBasicInfo')}></i>
+                <div className='table-menu menu active'>
+                  <i className='fg fg-eye' onClick={this.openMenu.bind(this, 'view', allValue, index)} title={t('network-inventory.txt-viewDevice')}></i>
                   {allValue.isHmd &&
-                    <i className='fg fg-chart-kpi' onClick={this.openMenu.bind(this, 'hmd', allValue, index)} title={t('alert.txt-safetyScanInfo')}></i>
+                    <i className='fg fg-chart-kpi' onClick={this.openMenu.bind(this, 'hmd', allValue, index)} title={t('network-inventory.txt-viewHMD')}></i>
                   }
                   <i className='fg fg-trashcan' onClick={this.openMenu.bind(this, 'delete', allValue)} title={t('network-inventory.txt-deleteDevice')}></i>
                 </div>
@@ -292,6 +291,9 @@ class NetworkInventory extends Component {
         deviceData: tempDeviceData,
         activeIPdeviceUUID: ''
       });
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
   getOwnerData = () => {
@@ -446,6 +448,9 @@ class NetworkInventory extends Component {
         });
       }
     })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   getFloorList = () => {
     const {floorPlan} = this.state;
@@ -510,6 +515,9 @@ class NetworkInventory extends Component {
         currentBaseLayers,
         currentFloor: areaUUID
       });
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
   getSeatData = (areaUUID) => {
@@ -749,7 +757,7 @@ class NetworkInventory extends Component {
   openDeleteDeviceModal = (allValue) => {
     PopupDialog.prompt({
       title: t('network-inventory.txt-deleteDevice'),
-      id: 'modalWindow',
+      id: 'modalWindowSmall',
       confirmText: t('txt-delete'),
       cancelText: t('txt-cancel'),
       display: this.getDeleteDeviceContent(allValue),
@@ -827,7 +835,12 @@ class NetworkInventory extends Component {
   }
   toggleScanType = (activeScanType) => {
     this.setState({
-      activeScanType
+      activeScanType,
+      activePath: null,
+      activeRuleHeader: false,
+      activeRule: [],
+      activeDDL: false,
+      activeConnections: false
     });
   }
   togglePathRule = (type, i, parentIndex) => {
@@ -917,7 +930,7 @@ class NetworkInventory extends Component {
         destPort: val2._DstPort,
         protocol: val2._ProtocolType,
         srcIp: val2._SrcIP,
-        srcPort: val2._SrcPort,
+        srcPort: val2._SrcPort
       });
     })
 
@@ -948,7 +961,7 @@ class NetworkInventory extends Component {
       });
     }
   }
-  displayPath = (val, i) => {
+  displayScanProcessPath = (val, i) => {
     const {activePath, activeRuleHeader, activeDDL, activeConnections} = this.state;
     const uniqueKey = val._ScanType + i;
 
@@ -996,6 +1009,38 @@ class NetworkInventory extends Component {
       </div>
     )
   }
+  displayScanFilePath = (val, i) => {
+    const {activePath, activeRuleHeader} = this.state;
+    const uniqueKey = val._ScanType + i;
+
+    return (
+      <div className='group' key={uniqueKey}>
+        <div className='path' onClick={this.togglePathRule.bind(this, 'path', i)}>
+          <i className={cx('fg fg-arrow-bottom', {'rotate': activePath === i})}></i>
+          {val._MatchedFile &&
+            <span>{t('txt-path')}: {val._MatchedFile}</span>
+          }
+          {val._MatchedFile && val._MatchedPid &&
+            <span>, </span>
+          }
+          {val._MatchedPid &&
+            <span>PID: {val._MatchedPid}</span>
+          }
+        </div>
+        <div className={cx('rule', {'hide': activePath !== i})}>
+          <div className='rule-content'>
+            <div className='header' onClick={this.toggleInfoHeader.bind(this, 'rule')}>
+              <i className={cx('fg fg-play', {'rotate': activeRuleHeader})}></i>
+              <span>{t('txt-rule')}</span>
+            </div>
+            <div className={cx('sub-content', {'hide': (!activeRuleHeader)})}>
+              {val._MatchedRuleList.map(this.displayRule.bind(this, val._MatchedRuleNameList, i))}
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
   getIPdeviceInfo = (index, ipDeviceUUID, options) => {
     const {baseUrl, contextRoot} = this.props;
     const {deviceData, currentDeviceData} = this.state;
@@ -1024,6 +1069,9 @@ class NetworkInventory extends Component {
         });
       }
     })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   checkTriggerTime = (type) => {
     const {currentDeviceData} = this.state;
@@ -1035,7 +1083,7 @@ class NetworkInventory extends Component {
       return true;
     }
   }
-  triggerTask = (taskId, type) => {
+  triggerTask = (type, taskId) => {
     const {baseUrl, contextRoot} = this.props;
     const {currentDeviceData} = this.state;
     const url = `${baseUrl}/api/hmd/retrigger`;
@@ -1057,7 +1105,7 @@ class NetworkInventory extends Component {
           display: <div>{t('txt-requestSent')}</div>
         });
 
-        if (type === 'compareIOC' || type === 'getFile') {
+        if (type === 'compareIOC' || type === 'yaraScanFile' || type === 'getFile') {
           this.getIPdeviceInfo('', currentDeviceData.ipDeviceUUID);
         }
       }
@@ -1074,9 +1122,11 @@ class NetworkInventory extends Component {
     const ownerName = currentDeviceData.ownerObj ? currentDeviceData.ownerObj.ownerName : NOT_AVAILABLE;
     let hmdInfo = {
       yara: {},
+      file: {},
       ir: {}
     };
     let yaraCount = 0;
+    let fileCount = 0;
 
     if (!_.isEmpty(currentDeviceData.yaraResult)) {
       hmdInfo.yara = {
@@ -1084,6 +1134,15 @@ class NetworkInventory extends Component {
         responseTime: helper.getFormattedDate(currentDeviceData.yaraResult.taskResponseDttm, 'local'),
         result: currentDeviceData.yaraResult.ScanResult ? currentDeviceData.yaraResult.ScanResult : [],
         taskID: currentDeviceData.yaraResult.taskId
+      };
+    }
+
+    if (!_.isEmpty(currentDeviceData.yaraScanFileResult)) {
+      hmdInfo.file = {
+        createTime: helper.getFormattedDate(currentDeviceData.yaraScanFileResult.taskCreateDttm, 'local'),
+        responseTime: helper.getFormattedDate(currentDeviceData.yaraScanFileResult.taskResponseDttm, 'local'),
+        result: currentDeviceData.yaraScanFileResult.ScanResult ? currentDeviceData.yaraScanFileResult.ScanResult : [],
+        taskID: currentDeviceData.yaraScanFileResult.taskId
       };
     }
 
@@ -1098,6 +1157,10 @@ class NetworkInventory extends Component {
 
     if (hmdInfo.yara.result) {
       yaraCount = Number(hmdInfo.yara.result.length);
+    }
+
+    if (hmdInfo.file.result) {
+      fileCount = Number(hmdInfo.file.result.length);
     }
 
     return (
@@ -1126,6 +1189,7 @@ class NetworkInventory extends Component {
             className='left'
             list={[
               {value: 'process', text: 'Scan Process'},
+              {value: 'file', text: 'Scan File'},
               {value: 'ir', text: 'IR'}
             ]}
             onChange={this.toggleScanType}
@@ -1146,13 +1210,39 @@ class NetworkInventory extends Component {
                   {yaraCount > 0 &&
                     <div className='count'>{t('network-inventory.txt-suspiciousFileCount')}: {yaraCount}</div>
                   }
-                  <button className='btn' onClick={this.triggerTask.bind(this, hmdInfo.yara.taskID, 'compareIOC')} disabled={this.checkTriggerTime('yara')}>{t('network-inventory.txt-reCheck')}</button>
+                  <button className='btn' onClick={this.triggerTask.bind(this, 'compareIOC', hmdInfo.yara.taskID)} disabled={this.checkTriggerTime('yara')}>{t('network-inventory.txt-reCheck')}</button>
                 </div>
                 {hmdInfo.yara.result &&
                   <div className='file-path'>
                     <div className='header'>{t('network-inventory.txt-suspiciousFilePath')}</div>
                     <div className='list'>
-                      {hmdInfo.yara.result.map(this.displayPath)}
+                      {hmdInfo.yara.result.map(this.displayScanProcessPath)}
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+            {activeScanType === 'file' &&
+              <div>
+                <div className='info'>
+                  <div className='last-update'>
+                    {hmdInfo.file.createTime &&
+                      <span>{t('network-inventory.txt-createTime')}: {hmdInfo.file.createTime}</span>
+                    }
+                    {hmdInfo.file.responseTime &&
+                      <span>{t('network-inventory.txt-responseTime')}: {hmdInfo.file.responseTime}</span>
+                    }
+                  </div>
+                  {fileCount > 0 &&
+                    <div className='count'>{t('network-inventory.txt-suspiciousFileCount')}: {fileCount}</div>
+                  }
+                  <button className='btn' onClick={this.triggerTask.bind(this, 'yaraScanFile', hmdInfo.file.taskID)} disabled={this.checkTriggerTime('yaraScanFile')}>{t('network-inventory.txt-reCheck')}</button>
+                </div>
+                {hmdInfo.file.result &&
+                  <div className='file-path'>
+                    <div className='header'>{t('network-inventory.txt-suspiciousFilePath')}</div>
+                    <div className='list'>
+                      {hmdInfo.file.result.map(this.displayScanFilePath)}
                     </div>
                   </div>
                 }
@@ -1169,12 +1259,10 @@ class NetworkInventory extends Component {
                       <span>{t('network-inventory.txt-responseTime')}: {hmdInfo.ir.responseTime}</span>
                     }
                   </div>
-                  <button className='btn' onClick={this.triggerTask.bind(this, hmdInfo.ir.taskID, 'getFile')} disabled={this.checkTriggerTime('ir')}>{t('network-inventory.txt-reCompress')}</button>
+                  <button className='btn' onClick={this.triggerTask.bind(this, 'getFile', hmdInfo.ir.taskID)} disabled={this.checkTriggerTime('ir')}>{t('network-inventory.txt-reCompress')}</button>
                 </div>
                 {hmdInfo.ir.result &&
-                  <div className='msg'>
-                    <span>IR data has been uploaded to {hmdInfo.ir.result}</span>
-                  </div>
+                  <div className='msg'>{t('network-inventory.txt-irMsg')}: <span className='url'>{hmdInfo.ir.result}</span></div>
                 }
               </div>
             }
@@ -1515,6 +1603,9 @@ class NetworkInventory extends Component {
           addIP: tempAddIP
         });
       }
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
   handleDepartmentChange = (value) => {

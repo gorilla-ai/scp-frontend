@@ -8,6 +8,7 @@ import cx from 'classnames'
 import DateRange from 'react-ui/build/src/components/date-range'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import Input from 'react-ui/build/src/components/input'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import RadioGroup from 'react-ui/build/src/components/radio-group'
 import Textarea from 'react-ui/build/src/components/textarea'
 import ToggleBtn from 'react-ui/build/src/components/toggle-button'
@@ -34,6 +35,7 @@ class Edge extends Component {
     this.state = {
       activeContent: 'tableList', //tableList, editEdge
       showFilter: false,
+      currentEdgeData: '',
       serviceType: [
         {value: 'all', text: t('txt-all')},
         {value: 'NETTRAP', text: 'NETTRAP'},
@@ -184,8 +186,9 @@ class Edge extends Component {
                 }
               } else if (tempData === '_menu_') {
                 return (
-                  <div className='table-menu active'>
-                    <i className='fg fg-edit' onClick={this.toggleContent.bind(this, 'editEdge', allValue, index)} title={t('txt-edit')}></i>
+                  <div className='table-menu menu active'>
+                    <i className='fg fg-edit' onClick={this.toggleContent.bind(this, 'editEdge', allValue, index)} title={t('edge-management.txt-editEdge')}></i>
+                    <i className='fg fg-trashcan' onClick={this.openDeleteMenu.bind(this, allValue)} title={t('edge-management.txt-deleteEdge')}></i>
                   </div>
                 )
               } else {
@@ -312,20 +315,60 @@ class Edge extends Component {
     const {edge} = this.state;
     const url = `${baseUrl}/api/agent/_${type}?id=${edge.info.id}&projectId=${edge.info.projectId}`;
 
-    ah.one({
+    this.ah.one({
       url,
       type: 'GET'
     })
     .then(data => {
-      if (data.ret === 0) {
-        let tempEdge = {...this.state.edge};
-        tempEdge.info.lastStatus = data.rt;
+      let tempEdge = {...this.state.edge};
+      tempEdge.info.lastStatus = data;
 
-        this.setState({
-          edge: tempEdge
-        });
-      }
+      this.setState({
+        edge: tempEdge
+      });
       return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  getDeleteEdgeContent = (allValue) => {
+    this.setState({
+      currentEdgeData: allValue
+    });
+
+    return (
+      <div className='content delete'>
+        <span>{t('edge-management.txt-deleteEdgeMsg')}: {allValue.agentName || allValue.ipPort}?</span>
+      </div>
+    )
+  }
+  openDeleteMenu = (allValue) => {
+    PopupDialog.prompt({
+      title: t('edge-management.txt-deleteEdge'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: this.getDeleteEdgeContent(allValue),
+      act: (confirmed, data) => {
+        if (confirmed) {
+          this.deleteEdge();
+        }
+      }
+    });
+  }
+  deleteEdge = () => {
+    const {baseUrl, contextRoot} = this.props;
+    const {currentEdgeData} = this.state;
+
+    ah.one({
+      url: `${baseUrl}/api/edge?id=${currentEdgeData.agentId}`,
+      type: 'DELETE'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        this.getEdgeData();
+      }
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -354,11 +397,11 @@ class Edge extends Component {
           if (edge.info.edgeModeDatetime.to) {
             data.agentStartDt = Moment(edge.info.edgeModeDatetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
           } else { //End date is empty
-            helper.showPopupMsg(t('edgeManagement.txt-edgeEditNoEndDate'), t('txt-error'));
+            helper.showPopupMsg(t('edge-management.txt-edgeEditNoEndDate'), t('txt-error'));
             return;
           }
         } else {
-          helper.showPopupMsg(t('edgeManagement.txt-edgeEditNoStartDate'), t('txt-error'));
+          helper.showPopupMsg(t('edge-management.txt-edgeEditNoStartDate'), t('txt-error'));
           return;
         }
 
@@ -366,16 +409,16 @@ class Edge extends Component {
           if (edge.info.edgeModeDatetime.from) {
             data.agentEndDt = Moment(edge.info.edgeModeDatetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
           } else { //Start date is empty
-            helper.showPopupMsg(t('edgeManagement.txt-edgeEditNoStartDate'), t('txt-error'));
+            helper.showPopupMsg(t('edge-management.txt-edgeEditNoStartDate'), t('txt-error'));
             return;
           }
 
           if (Moment(edge.info.edgeModeDatetime.to).isBefore()) { //End date is a past date (compare with current date time)
-            helper.showPopupMsg(t('edgeManagement.txt-edgeEditPastEndDate'), t('txt-error'));
+            helper.showPopupMsg(t('edge-management.txt-edgeEditPastEndDate'), t('txt-error'));
             return;
           }
         } else {
-          helper.showPopupMsg(t('edgeManagement.txt-edgeEditNoEndDate'), t('txt-error'));
+          helper.showPopupMsg(t('edge-management.txt-edgeEditNoEndDate'), t('txt-error'));
           return;
         }
       }
@@ -390,27 +433,27 @@ class Edge extends Component {
     .then(data => {
       switch(data.ret) {
         case 0:
-          helper.showPopupMsg(t('edgeManagement.txt-edgeEditSuccess'));
+          helper.showPopupMsg(t('edge-management.txt-edgeEditSuccess'));
           break;
         case -1:
-          helper.showPopupMsg(t('edgeManagement.txt-edgeEditFail'), t('txt-error'), t('edgeManagement.txt-edgeEditError1'));
+          helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError1'));
           break;
         case -11:
-          helper.showPopupMsg(t('edgeManagement.txt-edgeEditFail'), t('txt-error'), t('edgeManagement.txt-edgeEditError2'));
+          helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError2'));
           break;
         case -21:
-          helper.showPopupMsg(t('edgeManagement.txt-edgeEditFail'), t('txt-error'), t('edgeManagement.txt-edgeEditError3'));
+          helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError3'));
           break;
         case -22:
-          helper.showPopupMsg(t('edgeManagement.txt-edgeEditFail'), t('txt-error'), t('edgeManagement.txt-edgeEditError4'));
+          helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError4'));
           break;
         case -31:
-          helper.showPopupMsg(t('edgeManagement.txt-edgeEditFail'), t('txt-error'), t('edgeManagement.txt-edgeEditError5'));
+          helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError5'));
           break;
         case -32:
-          helper.showPopupMsg(t('edgeManagement.txt-edgeEditFail'), t('txt-error'), t('edgeManagement.txt-edgeEditError6'));
+          helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError6'));
         case -33:
-          helper.showPopupMsg(t('edgeManagement.txt-edgeEditFail'), t('txt-error'), t('edgeManagement.txt-edgeEditError7'));
+          helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError7'));
           break;
         default:
           break;
@@ -450,12 +493,12 @@ class Edge extends Component {
 
     return (
       <div className='main-content basic-form'>
-        <header className='main-header'>{t('edgeManagement.txt-editEdge')}</header>
+        <header className='main-header'>{t('edge-management.txt-editEdge')}</header>
         <div className='form-group normal'>
           <header>
-            <div className='text'>{t('edgeManagement.txt-basicInfo')}</div>
+            <div className='text'>{t('edge-management.txt-basicInfo')}</div>
             <img className='status' src={icon.src} title={icon.title} />
-            <span className='msg'>{t('edgeManagement.txt-lastUpateTime')} {helper.getFormattedDate(edge.info.lastUpdateTime, 'local')}</span>
+            <span className='msg'>{t('edge-management.txt-lastUpateTime')} {helper.getFormattedDate(edge.info.lastUpdateTime, 'local')}</span>
           </header>
           <ToggleBtn
             className='toggle-btn'
@@ -465,14 +508,14 @@ class Edge extends Component {
             onChange={this.handleEdgeStatusChange.bind(this, action)}
             disabled={!edge.info.isConfigurable} />                  
           <div className='group'>
-            <label htmlFor='edgeName'>{t('edgeManagement.txt-edgeName')}</label>
+            <label htmlFor='edgeName'>{t('edge-management.txt-edgeName')}</label>
             <Input
               id='edgeName'
               onChange={this.handleDataChange.bind(this, 'name')}
               value={edge.info.name} />
           </div>
           <div className='group'>
-            <label htmlFor='edgeID'>{t('edgeManagement.txt-edgeID')}</label>
+            <label htmlFor='edgeID'>{t('edge-management.txt-edgeID')}</label>
             <Input
               id='edgeID'
               onChange={this.handleDataChange.bind(this, 'id')}
@@ -480,7 +523,7 @@ class Edge extends Component {
               readOnly={true} />
           </div>
           <div className='group'>
-            <label htmlFor='edgeIP'>{t('edgeManagement.txt-ip')}</label>
+            <label htmlFor='edgeIP'>{t('edge-management.txt-ip')}</label>
             <Input
               id='edgeIP'
               onChange={this.handleDataChange.bind(this, 'ip')}
@@ -491,7 +534,7 @@ class Edge extends Component {
                   if (code[0] === 'missing') {
                     return t('txt-required');
                   } else if (code[0] === 'no-match') {
-                    return t('edgeManagement.txt-ipValidationFail');
+                    return t('edge-management.txt-ipValidationFail');
                   }
                 }
               }}
@@ -499,7 +542,7 @@ class Edge extends Component {
               readOnly={true} />
           </div>
           <div className='group'>
-            <label htmlFor='edgeIPlist'>{t('edgeManagement.txt-ipList')} ({t('txt-commaSeparated')}</label>
+            <label htmlFor='edgeIPlist'>{t('edge-management.txt-ipList')} ({t('txt-commaSeparated')}</label>
             <Input
               id='edgeIPlist'
               onChange={this.handleDataChange.bind(this, 'edgeIPlist')}
@@ -507,7 +550,7 @@ class Edge extends Component {
               readOnly={!edge.info.isConfigurable} />
           </div>
           <div className='group'>
-            <label htmlFor='edgeVPNip'>{t('edgeManagement.txt-vpnIP')}</label>
+            <label htmlFor='edgeVPNip'>{t('edge-management.txt-vpnIP')}</label>
             <Input
               id='edgeVPNip'
               onChange={this.handleDataChange.bind(this, 'vpnIP')}
@@ -515,7 +558,7 @@ class Edge extends Component {
               readOnly={true} />
           </div>
           <div className='group'>
-            <label htmlFor='edgeLicenseName'>{t('edgeManagement.txt-vpnLicenseName')}</label>
+            <label htmlFor='edgeLicenseName'>{t('edge-management.txt-vpnLicenseName')}</label>
             <Input
               id='edgeLicenseName'
               onChange={this.handleDataChange.bind(this, 'licenseName')}
@@ -523,7 +566,7 @@ class Edge extends Component {
               readOnly={true} />
           </div>
           <div className='group'>
-            <label htmlFor='edgeServiceType'>{t('edgeManagement.txt-serviceType')}</label>
+            <label htmlFor='edgeServiceType'>{t('edge-management.txt-serviceType')}</label>
             <Input
               id='edgeServiceType'
               onChange={this.handleDataChange.bind(this, 'serviceType')}
@@ -531,7 +574,7 @@ class Edge extends Component {
               readOnly={true} />
           </div>
           <div className='group'>
-            <label htmlFor='edgeServiceMode'>{t('edgeManagement.txt-serviceMode')}</label>
+            <label htmlFor='edgeServiceMode'>{t('edge-management.txt-serviceMode')}</label>
             <DropDownList
               id='edgeServiceMode'
               required={true}
@@ -550,13 +593,13 @@ class Edge extends Component {
               readOnly={!edge.info.isConfigurable} />
           </div>
           <div className='group'>
-            <label>{t('edgeManagement.txt-activatTime')}</label>
+            <label>{t('edge-management.txt-activatTime')}</label>
             <RadioGroup
               id='edgeModeType'
               className='radio-group'
               list={[
-                {value: 'anyTime', text: t('edgeManagement.txt-anyTime')},
-                {value: 'customTime', text: t('edgeManagement.txt-customTime')}
+                {value: 'anyTime', text: t('edge-management.txt-anyTime')},
+                {value: 'customTime', text: t('edge-management.txt-customTime')}
               ]}
               onChange={this.handleDataChange.bind(this, 'edgeModeType')}
               value={edge.info.edgeModeType}
@@ -598,7 +641,7 @@ class Edge extends Component {
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group'>
-            <label htmlFor='edgeSearchKeyword' className='first-label'>{t('edgeFields.keywords')}</label>
+            <label htmlFor='edgeSearchKeyword' className='first-label'>{f('edgeFields.keywords')}</label>
             <Input
               id='edgeSearchKeyword'
               className='search-textarea'
@@ -606,7 +649,7 @@ class Edge extends Component {
               value={edgeSearch.keyword} />
           </div>
           <div className='group'>
-            <label htmlFor='edgeSearchServiceType'>{t('edgeFields.serviceType')}</label>
+            <label htmlFor='edgeSearchServiceType'>{f('edgeFields.serviceType')}</label>
             <DropDownList
               id='edgeSearchServiceType'
               list={serviceType}
@@ -615,7 +658,7 @@ class Edge extends Component {
               value={edgeSearch.serviceType} />
           </div>
           <div className='group'>
-            <label htmlFor='edgeSearchConnectionStatus'>{t('edgeFields.connectionStatus')}</label>
+            <label htmlFor='edgeSearchConnectionStatus'>{f('edgeFields.connectionStatus')}</label>
             <DropDownList
               id='edgeSearchConnectionStatus'
               list={connectionStatus}
@@ -684,7 +727,7 @@ class Edge extends Component {
               <div className='main-content'>
                 <header className='main-header'>{t('txt-edge')}</header>
                 <button className='standard btn last'><Link to='/ChewbaccaWeb/configuration/notifications'>{t('notifications.txt-settings')}</Link></button>
-                <button className='standard btn' style={{right: this.getBtnPos('add')}}>{t('edgeManagement.txt-threatSettings')}</button>
+                <button className='standard btn' style={{right: this.getBtnPos('add')}}>{t('edge-management.txt-threatSettings')}</button>
 
                 <TableContent
                   dataTableData={edge.dataContent}

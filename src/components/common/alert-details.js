@@ -234,11 +234,9 @@ class AlertDetails extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data) {
-        if (data.rows[0]) {
-          let tempIPdeviceInfo = {...ipDeviceInfo};
-          tempIPdeviceInfo[type] = data.rows[0];
-        }
+      if (data && data.rows.length > 0) {
+        let tempIPdeviceInfo = {...ipDeviceInfo};
+        tempIPdeviceInfo[type] = data.rows[0];
 
         this.setState({
           ipDeviceInfo: tempIPdeviceInfo

@@ -24,7 +24,7 @@ class Alert extends Component {
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
   }
   render() {
-    const {baseUrl, contextRoot, language, chartsID, mainContentData, tabChartData, tableMouseOver} = this.props;
+    const {baseUrl, contextRoot, mainContentData, tabChartData} = this.props;
     const assetsPath = `${contextRoot}/lib/keylines/assets/`;
 
     return (
@@ -39,8 +39,7 @@ class Alert extends Component {
           <TimebarChart
             contextRoot={contextRoot}
             mainContentData={mainContentData}
-            tabChartData={tabChartData}
-            tableMouseOver={tableMouseOver} />
+            tabChartData={tabChartData} />
 
           <div className='main-content'>
             <header className='main-header'>{t('alert.txt-alertList')}</header>
@@ -57,11 +56,8 @@ class Alert extends Component {
 Alert.propTypes = {
   baseUrl: PropTypes.string.isRequired,
   contextRoot: PropTypes.string.isRequired,
-  language: PropTypes.string.isRequired,
-  chartsID: PropTypes.array.isRequired,
   mainContentData: PropTypes.object.isRequired,
-  tabChartData: PropTypes.object.isRequired,
-  tableMouseOver: PropTypes.bool.isRequired
+  tabChartData: PropTypes.object.isRequired
 };
 
 export default withLocale(Alert);

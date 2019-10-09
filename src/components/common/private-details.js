@@ -64,7 +64,7 @@ class PrivateDetails extends Component {
         <section>
           <div className='header trigger'>{t('alert.txt-systemInfo')}</div>
           {topoInfo.isHmd && topoInfo.updateDttm &&
-            <div className='trigger-text'>{t('edgeManagement.txt-lastUpateTime')}: {helper.getFormattedDate(topoInfo.updateDttm, 'local')}</div>
+            <div className='trigger-text'>{t('edge-management.txt-lastUpateTime')}: {helper.getFormattedDate(topoInfo.updateDttm, 'local')}</div>
           }
           {topoInfo.isHmd &&
             <button className='btn trigger' onClick={this.props.triggerTask.bind(this, '', 'getSystemInfo')}>{t('txt-reTrigger')}</button>

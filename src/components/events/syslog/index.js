@@ -1284,6 +1284,7 @@ class SyslogController extends Component {
       setMarkData: this.setMarkData,
       handleResetBtn: this.handleResetBtn,
       handleSearchSubmit: this.handleSearchSubmit,
+      treeTitle: t('txt-logSource'),
       treeData: this.state.treeData,
       treeSelect: this.selectTree,
       showFilterBtn: this.showFilterBtn,

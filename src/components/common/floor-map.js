@@ -67,7 +67,10 @@ class FloorMap extends Component {
         });
       }
       return null;
-    })      
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   getAreaData = (areaUUID) => {
     const {baseUrl, contextRoot} = this.props;
@@ -108,6 +111,9 @@ class FloorMap extends Component {
         currentBaseLayers
       });
       return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
   handleDataChange = (type, value, info) => {

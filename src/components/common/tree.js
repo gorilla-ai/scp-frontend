@@ -55,14 +55,30 @@ class Tree extends Component {
       showContent: !this.state.showContent
     });
   }
+  showAlertTree = (key, obj) => {
+    const {showContent} = this.state;
+
+    return (
+      <div key={key}>
+        <label className={cx('header-text', {'hide': !showContent})}>{obj[key].title}</label>
+        <Hierarchy
+          layout='tree'
+          foldable={true}
+          indent={[4, 0]}
+          data={obj[key].data}
+          defaultOpened={['all', 'All']}
+          onLabelMouseOver={this.props.showFilterBtn.bind(this, key)} />
+      </div>
+    )
+  }
   render() {
-    const {activeTab, treeData} = this.props;
+    const {activeTab, treeTitle, treeShowDropDown, treeData} = this.props;
     const {showContent, tabData} = this.state;
 
     return (
       <div className={cx('left-nav tree', {'collapse': !showContent})}>
         <div className='content'>
-          {activeTab !== 'alert' && activeTab !== 'logs' &&
+          {treeShowDropDown &&
             <div>
               <label htmlFor='analysisType' className={cx('header-text', {'hide': !showContent})}>{t('events.connections.txt-analysisType')}</label>
               <DropDownList
@@ -74,9 +90,9 @@ class Tree extends Component {
                 value={activeTab} />
             </div>
           }
-          {activeTab !== 'alert' && activeTab !== 'logs' &&
+          {activeTab !== 'alert' &&
             <div>
-              <label className={cx('header-text', {'hide': !showContent})}>{t('events.connections.txt-top10text')}</label>
+              <label className={cx('header-text', {'hide': !showContent})}>{treeTitle}</label>
               <Hierarchy
                 layout='tree'
                 foldable={true}
@@ -89,31 +105,12 @@ class Tree extends Component {
 
           {activeTab === 'alert' &&
             <div>
-              <label className={cx('header-text', {'hide': !showContent})}>{treeData.private.title}</label>
-              <Hierarchy
-                layout='tree'
-                foldable={true}
-                indent={[4, 0]}
-                data={treeData.private.data}
-                defaultOpened={['all', 'All']}
-                onLabelMouseOver={this.props.showFilterBtn.bind(this, 'private')} />
-              <label className={cx('header-text', {'hide': !showContent})}>{treeData.public.title}</label>
-              <Hierarchy
-                layout='tree'
-                foldable={true}
-                indent={[4, 0]}
-                data={treeData.public.data}
-                defaultOpened={['all', 'All']}
-                onLabelMouseOver={this.props.showFilterBtn.bind(this, 'public')} />
-              <label className={cx('header-text', {'hide': !showContent})}>{treeData.alert.title}</label>
-              <Hierarchy
-                layout='tree'
-                foldable={true}
-                indent={[4, 0]}
-                data={treeData.alert.data}
-                defaultOpened={['all', 'All']}
-                onLabelMouseOver={this.props.showFilterBtn.bind(this, 'alert')} />
-            </div>          
+              {
+                Object.keys(treeData).map(key =>
+                  this.showAlertTree(key, treeData)
+                )
+              }
+            </div>
           }
         </div>
 

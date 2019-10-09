@@ -45,6 +45,10 @@ class NetworkMap extends Component {
         dataFieldsArr: ['seat', 'ip', 'mac', 'owner', 'hostName', 'system', 'deviceType'],
         dataFields: {},
         dataContent: [],
+        sort: {
+          field: 'seat',
+          desc: false
+        },
         totalCount: 0,
         currentPage: 1,
         pageSize: 20,
@@ -170,6 +174,9 @@ class NetworkMap extends Component {
       }
       return null;
     })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   getAreaData = (areaUUID, option) => {
     const {baseUrl, contextRoot} = this.props;
@@ -230,6 +237,9 @@ class NetworkMap extends Component {
         });
       }
       return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
   getSeatData = (areaUUID) => {
@@ -591,6 +601,9 @@ class NetworkMap extends Component {
         });
       }
     })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   getDeviceData = (seatUUID, info) => {
     const {baseUrl, contextRoot} = this.props;
@@ -810,6 +823,7 @@ class NetworkMap extends Component {
                   <TableContent
                     dataTableData={IP.dataContent}
                     dataTableFields={IP.dataFields}
+                    dataTableSort={IP.sort}
                     paginationTotalCount={IP.totalCount}
                     paginationPageSize={IP.pageSize}
                     paginationCurrentPage={IP.currentPage}

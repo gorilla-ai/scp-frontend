@@ -173,6 +173,17 @@ class Syslog extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })          
   }
+  handleTableSort = (value) => {
+    let tempSyslog = {...this.state.syslog};
+    tempSyslog.sort.field = value.field;
+    tempSyslog.sort.desc = !tempSyslog.sort.desc;
+
+    this.setState({
+      syslog: tempSyslog
+    }, () => {
+      this.getSyslogList();
+    });
+  }
   handleRowMouseOver = (value, allValue, evt) => {
     let tmp = {...this.state.syslog}
     tmp['dataContent'] = _.map(tmp['dataContent'], el => {
@@ -886,9 +897,11 @@ class Syslog extends Component {
               <TableContent
                 dataTableData={syslog.dataContent}
                 dataTableFields={dataFields}
+                dataTableSort={syslog.sort}
                 paginationTotalCount={syslog.totalCount}
                 paginationPageSize={syslog.pageSize}
                 paginationCurrentPage={syslog.currentPage}
+                handleTableSort={this.handleTableSort}
                 handleRowMouseOver={this.handleRowMouseOver}
                 paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
                 paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />

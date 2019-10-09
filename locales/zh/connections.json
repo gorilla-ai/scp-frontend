@@ -110,6 +110,7 @@
   "txt-analyze": "分析",
   "txt-send": "寄出",
   "txt-networkBehavior": "網路行為",
+  "txt-logSource": "日誌來源",
 
   "txt-dashboard": "Dashboard",
   "txt-netflow": "Netflow",
@@ -299,7 +300,7 @@
     "txt-recipientEmail": "收件者郵件信箱"
   },
 
-  "edgeManagement": {
+  "edge-management": {
     "txt-threatSettings": "威脅情資設定",
     "txt-basicInfo": "基本資訊",
     "txt-editEdge": "編輯Edge",
@@ -309,6 +310,8 @@
     "txt-ipList": "IP列表",
     "txt-vpnIP": "VPN IP",
     "txt-vpnLicenseName": "VPN License Name",
+    "txt-deleteEdge": "$t(txt-delete)$t(txt-edge)",
+    "txt-deleteEdgeMsg": "$t(txt-delete-msg)$t(txt-edge)",
     "txt-serviceType": "服務類型",
     "txt-serviceMode": "服務模式",
     "txt-activatTime": "啟用時間",
@@ -348,7 +351,10 @@
     "txt-suspiciousFilePath": "可疑檔案路徑",
     "txt-reCheck": "重新檢測",
     "txt-reCompress": "重新壓縮",
+    "txt-irMsg": "IR資料已上傳至",
     "txt-editFloorMap": "$t(txt-edit)$t(txt-floorMap)",
+    "txt-viewDevice": "$t(txt-view)$t(alert.txt-ipBasicInfo)",
+    "txt-viewHMD": "$t(txt-view)$t(alert.txt-safetyScanInfo)",
     "txt-deleteDevice": "$t(txt-delete)$t(txt-device)",
     "txt-deleteDeviceMsg": "$t(txt-delete-msg)$t(txt-device)",
     "auto-settings": {

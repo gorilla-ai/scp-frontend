@@ -427,6 +427,9 @@ class DashboardMaps extends Component {
         });
       }
     })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   getFloorList = () => {
     const {floorPlan} = this.state;
@@ -491,6 +494,9 @@ class DashboardMaps extends Component {
       }, () => {
         this.loadAlertPrivateData();
       });
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
   loadAlertPrivateData = () => {

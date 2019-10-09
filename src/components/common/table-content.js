@@ -23,6 +23,13 @@ class TableContent extends Component {
       return 'table-row ' + helper.showColor(allValue.tag.color);
     }
   }
+  getTableHight = () => {
+    const {activeTab} = this.props;
+
+    if (activeTab === 'file') {
+      return {height: '63vh'};
+    }
+  }
   render() {
     const {
       activeTab,
@@ -38,8 +45,8 @@ class TableContent extends Component {
 
     return (
       <div className='table-content'>
-        <div className='table'>
-          {(!activeTab || activeTab !== 'file' || (activeTab === 'file' && displayImgType === 'list')) &&
+        {(!activeTab || activeTab !== 'file' || (activeTab === 'file' && displayImgType === 'list')) &&
+          <div className='table' style={this.getTableHight()}>
             <DataTable
               className={cx('main-table', {'with-pointer': withPointer})}
               fields={dataTableFields}
@@ -50,8 +57,8 @@ class TableContent extends Component {
               onRowMouseOver={this.props.handleRowMouseOver}
               onRowMouseOut={this.props.handleRowMouseOut}
               onRowDoubleClick={this.props.handleRowDoubleClick} />
-          }
-        </div>
+          </div>
+        }
         <footer>
           <Pagination
             activeTab={activeTab}

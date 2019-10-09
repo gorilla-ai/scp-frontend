@@ -162,6 +162,9 @@ class AutoSettings extends Component {
       }
       return null;
     })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   getDeviceList = () => {
     const {baseUrl, contextRoot} = this.props;
@@ -193,6 +196,9 @@ class AutoSettings extends Component {
         });
       }
       return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
   setIpRangeData = (ipRangeData) => {
@@ -333,7 +339,10 @@ class AutoSettings extends Component {
         });
       }
       return null;
-    })          
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   getScannerTestContent = () => {
     const {scannerTableData} = this.state;

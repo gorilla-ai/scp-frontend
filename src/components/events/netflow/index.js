@@ -160,7 +160,7 @@ class Netflow extends Component {
       LAconfig: {},
       mainEventsData: {},
       showImgCheckbox: false,
-      displayType: 'list',
+      displayType: 'list', //list, grid
       account: {
         id: '',
         login: false,
@@ -1825,7 +1825,7 @@ class Netflow extends Component {
       return null;
     })
     .catch(err => {
-      
+      helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
   getDeleteTagContent = (id) => {
@@ -2153,6 +2153,8 @@ class Netflow extends Component {
       handleResetBtn: this.handleResetBtn,
       handleSearchSubmit: this.handleSearchSubmit,
       handleTabChange: this.handleTabChange,
+      treeTitle: t('events.connections.txt-top10text'),
+      treeShowDropDown: true,
       treeData: this.state.treeData,
       treeSelect: this.selectTree,
       showFilterBtn: this.showFilterBtn,
