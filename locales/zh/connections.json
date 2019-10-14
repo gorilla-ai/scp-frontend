@@ -111,6 +111,7 @@
   "txt-send": "寄出",
   "txt-networkBehavior": "網路行為",
   "txt-logSource": "日誌來源",
+  "txt-indicator": "Indicator",
 
   "txt-dashboard": "Dashboard",
   "txt-netflow": "Netflow",
@@ -302,6 +303,7 @@
 
   "edge-management": {
     "txt-threatSettings": "威脅情資設定",
+    "txt-addThreat": "新增威脅情資",
     "txt-basicInfo": "基本資訊",
     "txt-editEdge": "編輯Edge",
     "txt-edgeName": "Edge Name",
@@ -333,7 +335,12 @@
     "txt-edgeEditNoStartDate": "Edge起始時間不得為空白",
     "txt-edgeEditNoEndDate": "Edge結束時間不得為空白",
     "txt-edgeEditPastEndDate": "Edge結束時間不得為過去時間",
-    "txt-ipValidationFail": "請輸入正確IP:Port格式"
+    "txt-ipValidationFail": "請輸入正確IP:Port格式",
+    "statistics": {
+      "txt-sourceIndicators": "來源服務統計",
+      "txt-indicatorsTrend": "感染指標趨勢",
+      "txt-acuIndicatorsTrend": "累計感染指標趨勢"
+    }
   },
 
   "network-inventory": {
@@ -440,6 +447,7 @@
     "level": "等級",
     "maskedIP": "網段",
     "configSrc": "系統日誌",
+    "agg": "國家",
     "query": "Query",
     "options": ""
   },

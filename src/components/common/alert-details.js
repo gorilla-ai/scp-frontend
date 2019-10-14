@@ -243,6 +243,9 @@ class AlertDetails extends Component {
         });
       }
     })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Get owner picture based on location type

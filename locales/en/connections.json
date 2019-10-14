@@ -111,6 +111,7 @@
   "txt-send": "Send",
   "txt-networkBehavior": "Network Behavior",
   "txt-logSource": "Log Source",
+  "txt-indicator": "Indicator",
 
   "txt-dashboard": "Dashboard",
   "txt-netflow": "Netflow",
@@ -302,6 +303,7 @@
 
   "edge-management": {
     "txt-threatSettings": "Threat Settings",
+    "txt-addThreat": "Add Threat",
     "txt-basicInfo": "Info",
     "txt-editEdge": "Edit Edge",
     "txt-edgeName": "Edge Name",
@@ -333,7 +335,12 @@
     "txt-edgeEditNoStartDate": "Edge start date is missing",
     "txt-edgeEditNoEndDate": "Edge end date is missing",
     "txt-edgeEditPastEndDate": "Edge end date must be a future date",
-    "txt-ipValidationFail": "Please enter a valid IP:Port address"
+    "txt-ipValidationFail": "Please enter a valid IP:Port address",
+    "statistics": {
+      "txt-sourceIndicators": "Source Indicators",
+      "txt-indicatorsTrend": "Indicators Trend",
+      "txt-acuIndicatorsTrend": "Accumulated Indicators Trend"
+    }
   },
 
   "network-inventory": {
@@ -440,6 +447,7 @@
     "level": "Level",
     "maskedIP": "Masked IP",
     "configSrc": "Config Source",
+    "agg": "Country",
     "query": "Query",
     "options": ""
   },

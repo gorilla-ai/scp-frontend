@@ -286,6 +286,30 @@ footer.footer {
 		border-bottom: 1px solid #ccc;
 		background-color: #fff;
 	}
+	.main-statistics { //For all statistics page
+		padding: 6px;
+		background-color: #d9d9d9;
+		.statistics-content {
+			display: flex;
+			flex-grow: 12;
+			flex-wrap: wrap;
+			.chart-group {
+				width: 49.2%;
+				margin: 5px;
+				border: none;
+				border-radius: 5px;
+				overflow: hidden;
+				header {
+					color: #004d93;
+					font-size: 1.1em;
+					font-weight: bold;
+					padding: 15px;
+					border-bottom: 1px solid #ccc;
+					background-color: #fff;
+				}
+			}
+		}
+	}
 	.table-menu { //table menu [...] button
 		visibility: hidden;
 		&.active {

@@ -86,11 +86,11 @@ class Config extends Component {
                 <span className={`${this.getActiveFrame('edge')}`}>{t('txt-edge')}</span>
               </Link>
             </div>
-            {/*<div className='subframe'>
+            <div className='subframe'>
               <Link to='/ChewbaccaWeb/configuration/edge/threat'>
                 <span className={`${this.getActiveFrame('threat')}`}>{t('txt-threatIntelligence')}</span>
               </Link>
-            </div>*/}
+            </div>
           </div>
         }
         {sessionRights.Module_NetworkTopology_Manage &&
