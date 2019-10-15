@@ -9,12 +9,6 @@ import Moment from 'moment'
 
 import loglevel from 'loglevel'
 import logger from 'loglevel-prefix-persist/client'
-
-// import {HocEmailReport as EmailReport} from './components/configuration/honeynet/email-report'
-// import {HocEmployeeRecord as EmployeeRecord} from './components/configuration/honeynet/employee-record'
-//import {HocHoneynet as Honeypot} from './components/configuration/honeynet/host'
-//import {HocManage as Manage} from './components/configuration/agent/manage'
-
 import Login from './login'
 import {HocHeader as Header} from './header'
 import {HocDashboardStats as DashboardStats} from './components/dashboard/statistics'
@@ -38,6 +32,7 @@ import 'font-gorilla/css/font-gorilla.css'
 import 'purecss/build/pure-min.css'
 import 'react-chart/build/css/react-chart.css'
 import 'react-la/build/css/react-la.css'
+import 'react-gis/build/css/react-gis.css'
 
 const initialState = JSON.parse(document.getElementById('initial-state').innerHTML);
 const cfg = initialState.envCfg;

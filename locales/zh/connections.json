@@ -276,8 +276,7 @@
       "txt-deleteFilter": "$t(txt-delete)查詢條件",
       "txt-viewRule": "$t(txt-view)$t(txt-alert)$t(txt-rule)",
       "txt-downloadMalware": "$t(txt-download)惡意程式",
-      "txt-maxDataMsg": "資料筆數最大為10,000筆",
-      "txt-viewADrecord": "瀏覽AD紀錄"
+      "txt-maxDataMsg": "資料筆數最大為10,000筆"
     }
   },
 

@@ -477,7 +477,7 @@ class NetworkMap extends Component {
   openDeleteSeatModal = (allValue) => {
     PopupDialog.prompt({
       title: t('network-topology.txt-deleteSeat'),
-      id: 'modalWindow',
+      id: 'modalWindowSmall',
       confirmText: t('txt-delete'),
       cancelText: t('txt-cancel'),
       display: this.displayDeleteSeat(allValue),

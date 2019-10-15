@@ -1239,10 +1239,6 @@ class Netflow extends Component {
       }
     });
   }
-  forwardSyslog = (allValue) => {
-    const {baseUrl, contextRoot} = this.props;
-    window.location.href = `${baseUrl}${contextRoot}/syslog?ipSrc=${allValue.ipSrc}`;
-  }
   handleRowMouseOver = (id, allValue, evt) => {
     const {activeTab, subSectionsData} = this.state;
     let tempSubSectionsData = {...subSectionsData};
@@ -1300,14 +1296,6 @@ class Netflow extends Component {
           id: id + 'viewPCAP',
           text: t('events.connections.txt-viewPCAP'),
           action: () => this.getPCAPcontent(allValue)
-        }
-      );
-
-      menuItems.push(
-        {
-          id: id + 'viewADrecord',
-          text: t('events.connections.txt-viewADrecord'),
-          action: () => this.forwardSyslog(allValue)
         }
       );
     }
@@ -2467,10 +2455,11 @@ class Netflow extends Component {
           {helper.getEventsMenu('netflow', sessionRights)}
 
           <SearchOptions
-            page='netflow'
+            position='180px'
             datetime={datetime}
             searchInput={searchInput}
             showFilter={showFilter}
+            showInterval={true}
             setSearchData={this.setSearchData}
             handleDateChange={this.handleDateChange}
             handleSearchSubmit={this.handleSearchSubmit} />

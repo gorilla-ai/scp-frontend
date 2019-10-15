@@ -1513,10 +1513,11 @@ class SyslogController extends Component {
           {helper.getEventsMenu('syslog', sessionRights)}
 
           <SearchOptions
-            page='syslog'
+            position='226px'
             datetime={datetime}
             searchInput={searchInput}
             showFilter={showFilter}
+            showInterval={true}
             setSearchData={this.setSearchData}
             handleDateChange={this.handleDateChange}
             handleSearchSubmit={this.handleSearchSubmit} />

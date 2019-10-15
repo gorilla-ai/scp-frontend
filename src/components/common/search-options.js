@@ -40,7 +40,7 @@ class SearchOptions extends Component {
       this.props.handleSearchSubmit('search');
     }
 
-    if (searchInput.searchType === 'auto') {
+    if (searchInput && searchInput.searchType === 'auto') {
       if (this.intervalId) {
         clearInterval(this.intervalId);
         this.intervalId = null;
@@ -242,17 +242,22 @@ class SearchOptions extends Component {
     )
   }
   render() {
-    const {page, showFilter, searchInput} = this.props;
+    const {position, showFilter, showInterval, searchInput} = this.props;
     const {intervalModalOpen} = this.state;
-    const searchManualText = searchInput.inputManual ? searchInput.inputManual : t('events.connections.txt-last1h');
-    const searchAutoText = searchInput.inputAuto ? searchInput.inputAuto : t('txt-interval') + ': ' + t('events.connections.txt-10m');
-    const searchStyle = page === 'syslog' ? '226px' : '180px';
+    const searchStyle = position ? position : '10px';
+    let searchManualText = '';
+    let searchAutoText = '';
     let searchInputValue = '';
 
-    if (searchInput.searchType === 'manual') {
-      searchInputValue = searchManualText;
-    } else if (searchInput.searchType === 'auto') {
-      searchInputValue = searchAutoText;
+    if (searchInput) {
+      searchManualText = searchInput.inputManual ? searchInput.inputManual : t('events.connections.txt-last1h');
+      searchAutoText = searchInput.inputAuto ? searchInput.inputAuto : t('txt-interval') + ': ' + t('events.connections.txt-10m');
+
+      if (searchInput.searchType === 'manual') {
+        searchInputValue = searchManualText;
+      } else if (searchInput.searchType === 'auto') {
+        searchInputValue = searchAutoText;
+      }
     }
 
     return (
@@ -261,19 +266,23 @@ class SearchOptions extends Component {
           this.intervalModalDialog()
         }
 
-        <DropDownList
-          className='search-type'
-          list={[
-            {value: 'manual', text: t('events.connections.txt-search-manual')},
-            {value: 'auto', text: t('events.connections.txt-search-auto')}
-          ]}
-          required={true}
-          onChange={this.handleSearchTypeChange}
-          value={searchInput.searchType} />
+        {showInterval &&
+          <DropDownList
+            className='search-type'
+            list={[
+              {value: 'manual', text: t('events.connections.txt-search-manual')},
+              {value: 'auto', text: t('events.connections.txt-search-auto')}
+            ]}
+            required={true}
+            onChange={this.handleSearchTypeChange}
+            value={searchInput.searchType} />
+        }
 
-        <div className='search-interval'>
-          <input className='time-interval' value={searchInputValue} onClick={this.toggleIntervalDialog.bind(this)} readOnly />
-        </div>
+        {showInterval &&
+          <div className='search-interval'>
+            <input className='time-interval' value={searchInputValue} onClick={this.toggleIntervalDialog.bind(this)} readOnly />
+          </div>
+        }
         
         <div className='datepicker'>
           <label htmlFor='datetime' className='datetime'></label>
@@ -287,11 +296,7 @@ class SearchOptions extends Component {
 }
 
 SearchOptions.propTypes = {
-  page: PropTypes.string.isRequired,
   datetime: PropTypes.object.isRequired,
-  searchInput: PropTypes.object.isRequired,
-  showFilter: PropTypes.bool.isRequired,
-  setSearchData: PropTypes.func.isRequired,
   handleDateChange: PropTypes.func.isRequired,
   handleSearchSubmit: PropTypes.func.isRequired
 };

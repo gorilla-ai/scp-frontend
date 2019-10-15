@@ -310,7 +310,7 @@ class FloorMap extends Component {
   openDeleteAreaModal = () => {
     PopupDialog.prompt({
       title: t('network-topology.txt-deleteFloor'),
-      id: 'modalWindow',
+      id: 'modalWindowSmall',
       confirmText: t('txt-delete'),
       cancelText: t('txt-cancel'),
       display: this.getDeleteAreaContent(),
@@ -349,6 +349,11 @@ class FloorMap extends Component {
     let formData = new FormData();
     let requestType = 'POST';
     let floorName = '';
+
+    if (floorPlan.type === '') {
+      this.closeDialog();
+      return;
+    }
 
     if (floorPlan.name) {
       floorName = floorPlan.name;
@@ -444,7 +449,7 @@ class FloorMap extends Component {
       floorPlan: tempFloorPlan,
       previewFloorMap: ''
     }, () => {
-      this.props.closeDialog(option);
+      this.props.closeDialog(option, 'all');
     });
   }
   render() {

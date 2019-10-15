@@ -1064,10 +1064,11 @@ class AlertController extends Component {
 
         <div className='sub-header'>
           <SearchOptions
-            page='alert'
+            position='180px'
             datetime={datetime}
             searchInput={searchInput}
             showFilter={showFilter}
+            showInterval={true}
             setSearchData={this.setSearchData}
             handleDateChange={this.handleDateChange}
             handleSearchSubmit={this.handleSearchSubmit} />

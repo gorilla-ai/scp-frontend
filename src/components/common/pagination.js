@@ -60,7 +60,7 @@ class Pagination extends Component {
         }
 
         {totalCount > 0 &&
-          <div className='pure-control-group dropdown-margin pagination'>
+          <div className='pagination dropdown-margin'>
             <label htmlFor='pageSize'>{t('txt-pageSize')}</label>
             <DropDownList
               id='pageSize'

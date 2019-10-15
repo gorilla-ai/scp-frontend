@@ -276,8 +276,7 @@
       "txt-deleteFilter": "$t(txt-delete) Query Filter",
       "txt-viewRule": "$t(txt-view) $t(txt-alert) $t(txt-rule)",
       "txt-downloadMalware": "$t(txt-download) Malware",
-      "txt-maxDataMsg": "The maximum data count is 10,000",
-      "txt-viewADrecord": "View AD Record"
+      "txt-maxDataMsg": "The maximum data count is 10,000"
     }
   },
 

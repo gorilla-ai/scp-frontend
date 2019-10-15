@@ -397,7 +397,7 @@ class NetworkOwner extends Component {
   openDeleteOwnerModal = (value) => {
     PopupDialog.prompt({
       title: t('network-topology.txt-deleteOwner'),
-      id: 'modalWindow',
+      id: 'modalWindowSmall',
       confirmText: t('txt-delete'),
       cancelText: t('txt-cancel'),
       display: this.getDeleteOwnerContent(value),

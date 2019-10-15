@@ -1300,7 +1300,7 @@ class NetworkInventory extends Component {
       </ModalDialog>
     )
   }
-  closeDialog = (option) => {
+  closeDialog = (option, all) => {
     this.setState({
       showScanInfo: false,
       showSeatData: false,
@@ -1320,8 +1320,14 @@ class NetworkInventory extends Component {
         coordY: ''
       }
     }, () => {
-      if (option === 'relaod') {
-        this.getFloorPlan();
+      if (option === 'reload') {
+        if (all === 'all') { //reload everything (from edit floor map)
+          this.getFloorPlan();
+        } else { //reload area and seat only (no tree)
+          const {floorPlan} = this.state;
+          this.getAreaData(floorPlan.currentAreaUUID);
+          this.getSeatData(floorPlan.currentAreaUUID);
+        }
       }
     });
   }
@@ -1694,6 +1700,8 @@ class NetworkInventory extends Component {
                   id='addIPstepsMac'
                   required={true}
                   validate={{
+                    pattern: /^(([A-Fa-f0-9]{2}[:]){5}[A-Fa-f0-9]{2}[,]?)+$/,
+                    patternReadable: '1)MM:MM:MM:SS:SS:SS 2)MM-MM-MM-SS-SS-SS',
                     t: et
                   }}
                   onChange={this.handleAddIpChange.bind(this, 'mac')}
@@ -2002,7 +2010,7 @@ class NetworkInventory extends Component {
 
     return this.getTreeView(val, currentAreaUUID, i);
   }
-  handleFloorMapClick = (id, info, option, allValue) => {
+  handleFloorMapClick = (id, info) => {
     const {addSeat} = this.state;
     let tempAddSeat = {...addSeat};
 
@@ -2013,13 +2021,13 @@ class NetworkInventory extends Component {
         addSeat: tempAddSeat
       });
     } else {
-      // tempAddSeat.coordX = Math.round(info.xy.x);
-      // tempAddSeat.coordY = Math.round(info.xy.y);
+      tempAddSeat.coordX = Math.round(info.xy.x);
+      tempAddSeat.coordY = Math.round(info.xy.y);
 
-      // this.setState({
-      //   addSeatOpen: true,
-      //   addSeat: tempAddSeat
-      // });
+      this.setState({
+        addSeatOpen: true,
+        addSeat: tempAddSeat
+      });
     }
   }
   handleDataChange = (type, value) => {
@@ -2077,7 +2085,6 @@ class NetworkInventory extends Component {
     helper.getAjaxData('POST', url, requestData)
     .then(data => {
       if (data) {
-        this.getFloorPlan();
         this.closeDialog('reload');
       }
     })

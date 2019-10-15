@@ -233,7 +233,7 @@ class Name extends Component {
     	
     	PopupDialog.prompt({
     		title: tab.department ? t('txt-deleteDepartment') : t('txt-deleteTitle'),
-    		id: 'modalWindow',
+    		id: 'modalWindowSmall',
     		confirmText: t('txt-delete'),
     		cancelText: t('txt-cancel'),
     		display: (

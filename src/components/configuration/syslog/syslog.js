@@ -303,7 +303,7 @@ class Syslog extends Component {
 
     PopupDialog.prompt({
       title: t('syslogFields.txt-delSyslog'),
-      id: 'modalWindow',
+      id: 'modalWindowSmall',
       confirmText: t('txt-delete'),
       cancelText: t('txt-cancel'),
       display: (
