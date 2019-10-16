@@ -71,12 +71,9 @@ const helper = {
     let filterDataArr = [];
 
     _.forEach(filterData, val => {
-      let formattedCondition = val.condition.toLowerCase();
-      formattedCondition = formattedCondition.replace(' ', '_');
-
       if (val.query) {
         filterDataArr.push({
-          condition: formattedCondition,
+          condition: val.condition,
           query: val.query
         });
       }

@@ -17,14 +17,15 @@ import MultiInput from 'react-ui/build/src/components/multi-input'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import Textarea from 'react-ui/build/src/components/textarea'
 
-import helper from '../../common/helper'
-import withLocale from '../../../hoc/locale-provider'
-import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 import {HocConfig as Config} from '../../common/configuration'
-import RowMenu from '../../common/row-menu'
-import Relationships from './relationships'
 import EditHosts from './edit-hosts'
+import helper from '../../common/helper'
+import Relationships from './relationships'
+import RowMenu from '../../common/row-menu'
 import TableContent from '../../common/table-content'
+import withLocale from '../../../hoc/locale-provider'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null
 let f = null
@@ -294,8 +295,8 @@ class Syslog extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  modalDelete = (obj) => {
-    const eventNme = obj.name
+  modalDelete = (allValue) => {
+    const eventNme = allValue.name
 
     if (eventNme === 'syslog' || eventNme === 'eventlog') {
       return null;
@@ -308,12 +309,12 @@ class Syslog extends Component {
       cancelText: t('txt-cancel'),
       display: (
         <div className='content delete'>
-          <span>{t('syslogFields.txt-delSyslog')} {obj.name} ?</span>
+          <span>{t('txt-delete-msg')}: {allValue.name}?</span>
         </div>
       ),
       act: (confirmed) => {
         if (confirmed) {
-          this.delSyslog(obj.id)
+          this.delSyslog(allValue.id)
         }
       }
     })
@@ -485,10 +486,16 @@ class Syslog extends Component {
                 <button onClick={this.getLatestInput.bind(this, config.id)}>Get Latest Input Text</button>
               }
               <label>Data Sample Input</label>
-              <Textarea rows={8} value={config.input} onChange={this.handleConfigChange.bind(this, 'input')} />
+              <Textarea
+                rows={8}
+                value={config.input}
+                onChange={this.handleConfigChange.bind(this, 'input')} />
               <i className='c-link fg fg-down' title={t('txt-convert')} onClick={this.convertPattern.bind(this)} />
               <label>Match Pattern</label>
-              <Textarea rows={10} value={config.pattern} onChange={this.handleConfigChange.bind(this, 'pattern')} />
+              <Textarea
+                rows={10}
+                value={config.pattern}
+                onChange={this.handleConfigChange.bind(this, 'pattern')} />
             </div>
             <i className='c-link fg fg-forward' style={{marginTop: '35%', marginLeft: '25px'}} 
                title={t('txt-parse')} onClick={this.getRaw.bind(this)} />

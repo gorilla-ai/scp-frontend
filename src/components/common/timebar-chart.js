@@ -7,7 +7,6 @@ import ButtonGroup from 'react-ui/build/src/components/button-group'
 
 import {HocChartContent as ChartContent} from './chart-content'
 import helper from './helper'
-
 import withLocale from '../../hoc/locale-provider'
 
 let t = null;

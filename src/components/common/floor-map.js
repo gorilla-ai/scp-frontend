@@ -157,6 +157,9 @@ class FloorMap extends Component {
       });
     }
   }
+  showTreeView = (currentAreaUUID, value, i) => {
+    return this.getTreeView(value, currentAreaUUID, i); 
+  }
   displayAddFloor = () => {
     const {currentMap, floorPlan, previewFloorMap} = this.state;
     const addTree = t('network-topology.txt-addTree');
@@ -195,9 +198,7 @@ class FloorMap extends Component {
 
             <div className='display-tree'>
               {floorPlan.treeData && !_.isEmpty(floorPlan.treeData) &&
-                floorPlan.treeData.map((value, i) => {
-                  return this.getTreeView(value, floorPlan.currentAreaUUID, i);
-                })
+                floorPlan.treeData.map(this.showTreeView.bind(this, floorPlan.currentAreaUUID))
               }
             </div>
           </div>
@@ -303,7 +304,7 @@ class FloorMap extends Component {
 
     return (
       <div className='content delete'>
-        <span>{t('network-topology.txt-deleteFloorMsg')}: {floorPlan.currentAreaName}?</span>
+        <span>{t('txt-delete-msg')}: {floorPlan.currentAreaName}?</span>
       </div>
     )
   }

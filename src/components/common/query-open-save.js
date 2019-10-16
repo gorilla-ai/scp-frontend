@@ -3,7 +3,6 @@ import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
 
-import DateRange from 'react-ui/build/src/components/date-range'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
@@ -174,7 +173,6 @@ class QueryOpenSave extends Component {
   }
   deleteFilterQuery = () => {
     const {baseUrl, activeTab, queryData} = this.props;
-    const {} = this.state;
     let url = '';
 
     if (activeTab === 'alert') {
@@ -235,13 +233,6 @@ class QueryOpenSave extends Component {
   }
   displayFilterQuery = (value, index) => {
     const {searchFields, activeTab, logFields} = this.props;
-    const {} = this.state;
-    let filterData = [];
-
-    filterData = [{
-      condition: value.condition,
-      query: value.query
-    }];
 
     return (
       <Filter
@@ -250,16 +241,15 @@ class QueryOpenSave extends Component {
         searchFields={searchFields}
         logFields={logFields}
         queryType='query'
-        filterData={filterData}
+        filterData={[{
+          condition: value.condition,
+          query: value.query
+        }]}
         inline={false} />
     )
   }
   displayMarkSearch = (value, index) => {
     const {searchFields, activeTab, logFields} = this.props;
-    const {} = this.state;
-    const markData = [{
-      data: value
-    }];
 
     return (
       <Mark
@@ -268,7 +258,9 @@ class QueryOpenSave extends Component {
         searchFields={searchFields}
         logFields={logFields}
         queryType='query'
-        markData={markData}
+        markData={[{
+          data: value
+        }]}
         inline={false} />
     )
   }
@@ -304,9 +296,7 @@ class QueryOpenSave extends Component {
     });
   }
   displayQueryContent = (type) => {
-    const {searchFields, activeTab, queryData, filterData, markData, logFields} = this.props;
-    const {} = this.state;
-    const that = this;
+    const {activeTab, queryData, filterData, markData} = this.props;
     let displayList = [];
     let tempFilterData = [];
     let tempMarkData = [];
@@ -349,21 +339,13 @@ class QueryOpenSave extends Component {
 
           {queryDataList && queryDataList.length > 0 &&
             <div className='filter-group'>
-              {
-                queryDataList.map(function(value, index) {
-                  return that.displayFilterQuery(value, index);
-                })
-              }
+              {queryDataList.map(this.displayFilterQuery)}
             </div>
           }
 
           {queryDataMark && queryDataMark.length > 0 &&
             <div className='filter-group'>
-              {
-                queryDataMark.map(function(value, index) {
-                  return that.displayMarkSearch(value, index);
-                })
-              }
+              {queryDataMark.map(this.displayMarkSearch)}
             </div>
           }
 
@@ -438,48 +420,13 @@ class QueryOpenSave extends Component {
 
           {tempFilterData.length > 0 &&
             <div className='filter-group'>
-              {
-                tempFilterData.map(function(value, index) {
-                  const filterData = [{
-                    condition: value.condition,
-                    query: value.query
-                  }];
-
-                  return (
-                    <Filter
-                      key={index}
-                      activeTab={activeTab}
-                      searchFields={searchFields}
-                      logFields={logFields}
-                      queryType='query'
-                      filterData={filterData}
-                      inline={false} />
-                  )
-                })
-              }
+              {tempFilterData.map(this.displayFilterQuery)}
             </div>
           }
 
           {tempMarkData.length > 0 &&
             <div className='filter-group'>
-              {
-                tempMarkData.map(function(value, index) {
-                  const markData = [{
-                    data: value.data
-                  }];
-
-                  return (
-                    <Mark
-                      key={index}
-                      activeTab={activeTab}
-                      searchFields={searchFields}
-                      logFields={logFields}
-                      queryType='query'
-                      markData={markData}
-                      inline={false} />
-                  )
-                })
-              }
+              {tempMarkData.map(this.displayMarkSearch)}
             </div>
           }
         </div>

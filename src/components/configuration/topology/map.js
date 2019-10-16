@@ -6,26 +6,25 @@ import Moment from 'moment'
 import cx from 'classnames'
 import _ from 'lodash'
 
-import Gis from 'react-gis/build/src/components'
-
 import DropDownList from 'react-ui/build/src/components/dropdown'
+import Gis from 'react-gis/build/src/components'
 import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import TreeView from 'react-ui/build/src/components/tree'
 
+import {HocConfig as Config} from '../../common/configuration'
 import {HocFloorMap as FloorMap} from '../../common/floor-map'
 import helper from '../../common/helper'
-import withLocale from '../../../hoc/locale-provider'
-import {HocConfig as Config} from '../../common/configuration'
 import TableContent from '../../common/table-content'
+import withLocale from '../../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+const NOT_AVAILABLE = 'N/A';
+
 let t = null;
 let et = null;
-
-const NOT_AVAILABLE = 'N/A';
 
 class NetworkMap extends Component {
   constructor(props) {

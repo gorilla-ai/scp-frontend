@@ -6,22 +6,20 @@ import _ from 'lodash'
 import cx from 'classnames'
 import queryString from 'query-string'
 
-import WORLDMAP from '../../../mock/world-map-low.json'
-
-import {config as configLoader} from 'vbda-ui/build/src/loader'
 import {analyze} from 'vbda-ui/build/src/analyzer'
-
 import Checkbox from 'react-ui/build/src/components/checkbox'
+import {config as configLoader} from 'vbda-ui/build/src/loader'
 import ContextMenu from 'react-ui/build/src/components/contextmenu'
+import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PageNav from 'react-ui/build/src/components/page-nav'
 import Popover from 'react-ui/build/src/components/popover'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import Textarea from 'react-ui/build/src/components/textarea'
 
-import JSONTree from 'react-json-tree'
-import {GithubPicker} from 'react-color';
 import {arrayMove} from 'react-sortable-hoc'
+import {GithubPicker} from 'react-color';
+import JSONTree from 'react-json-tree'
 
 import helper from '../../common/helper'
 import {HocQueryOpenSave as QueryOpenSave} from '../../common/query-open-save'
@@ -29,6 +27,7 @@ import {HocSearchOptions as SearchOptions} from '../../common/search-options'
 import {HocSortableList as SortableList} from '../../common/sortable-list'
 import {HocTableCell as TableCell} from '../../common/table-cell'
 import withLocale from '../../../hoc/locale-provider'
+import WORLDMAP from '../../../mock/world-map-low.json'
 
 import Certification from './tabs/certification'
 import Connections from './tabs/connections'
@@ -39,7 +38,6 @@ import Ftp from './tabs/ftp'
 import Html from './tabs/html'
 import Http from './tabs/http'
 
-import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null;
@@ -114,7 +112,7 @@ class Netflow extends Component {
       packageHistogram: {},
       byteHistogram: {},
       filterData: [{
-        condition: 'Must',
+        condition: 'must',
         query: ''
       }],
       //Sub sections
@@ -248,7 +246,7 @@ class Netflow extends Component {
         }
 
         tempFilterData = [{
-          condition: 'Must',
+          condition: 'must',
           query: ip
         }];
         urlParams = _.omit(urlParams, ['lng']);
@@ -537,7 +535,7 @@ class Netflow extends Component {
       }
     } else {
       tempFilterData = [{
-        condition: 'Must',
+        condition: 'must',
         query: ''
       }];
     }
@@ -1125,7 +1123,7 @@ class Netflow extends Component {
   }
   handleResetBtn = (type) => {
     const filterData = [{
-      condition: 'Must',
+      condition: 'must',
       query: ''
     }];
     let tempQueryData = {...this.state.queryData};
@@ -1214,7 +1212,7 @@ class Netflow extends Component {
     this.setState({
       loadNetflowData: false
     }, () => {
-      this.addSearch(field, value, 'Must');
+      this.addSearch(field, value, 'must');
     });
   }
   pcapDownloadFile = (value) => {
@@ -1341,17 +1339,17 @@ class Netflow extends Component {
       {
         id: value + '_Must',
         text: 'Must',
-        action: () => this.addSearch(field, value, 'Must')
+        action: () => this.addSearch(field, value, 'must')
       },
       {
         id: value + '_MustNot',
         text: 'Must Not',
-        action: () => this.addSearch(field, value, 'Must Not')
+        action: () => this.addSearch(field, value, 'must_not')
       },
       {
         id: value + '_Either',
         text: 'Either',
-        action: () => this.addSearch(field, value, 'Either')
+        action: () => this.addSearch(field, value, 'either')
       }
     ];
 
@@ -1712,6 +1710,11 @@ class Netflow extends Component {
       pcapData: tempPcapData
     });
   }
+  showPCAPcontent = (key, i) => {
+    const {pcapData} = this.state;
+
+    return <li id={key} key={i} className={cx({'active': key.hex})} onClick={this.setPCAPhex.bind(this, key.hex, i)}>{key.protocol}<i className={cx('fg', {'fg-arrow-left': pcapData.activeIndex === i})}></i></li>  
+  }
   displayPCAPcontent = () => {
     const {pcapData} = this.state;
     const hex = pcapData.hex;
@@ -1737,11 +1740,7 @@ class Netflow extends Component {
         <div className='pcap'>
           <div className='list'>
             <ul>
-              {
-                pcapData.data.map((key, i) => {
-                  return <li id={key} key={i} className={cx({'active': key.hex})} onClick={this.setPCAPhex.bind(this, key.hex, i)}>{key.protocol}<i className={cx('fg', {'fg-arrow-left': pcapData.activeIndex === i})}></i></li>
-                })
-              }
+              {pcapData.data.map(this.showPCAPcontent)}
             </ul>
           </div>
           <div className='data'>

@@ -6,25 +6,22 @@ import _ from 'lodash'
 import cx from 'classnames'
 import queryString from 'query-string'
 
-import WORLDMAP from '../../mock/world-map-low.json'
-
-import {config as configLoader} from 'vbda-ui/build/src/loader'
 import {analyze} from 'vbda-ui/build/src/analyzer'
-
+import {config as configLoader} from 'vbda-ui/build/src/loader'
 import ContextMenu from 'react-ui/build/src/components/contextmenu'
+import {downloadWithForm} from 'react-ui/build/src/utils/download'
 
 import JSONTree from 'react-json-tree'
 
+import Alert from './alert'
 import {HocAlertDetails as AlertDetails} from '../common/alert-details'
 import helper from '../common/helper'
 import {HocQueryOpenSave as QueryOpenSave} from '../common/query-open-save'
 import {HocSearchOptions as SearchOptions} from '../common/search-options'
 import {HocTableCell as TableCell} from '../common/table-cell'
 import withLocale from '../../hoc/locale-provider'
+import WORLDMAP from '../../mock/world-map-low.json'
 
-import Alert from './alert'
-
-import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null;
@@ -109,7 +106,7 @@ const ALERT_MAIN_DATA = {
   },
   alertHistogram: {},
   filterData: [{
-    condition: 'Must',
+    condition: 'must',
     query: ''
   }],
   ..._.cloneDeep(SUBSECTIONS_DATA),
@@ -645,7 +642,7 @@ class AlertController extends Component {
   }
   handleResetBtn = (type) => {
     const filterData = [{
-      condition: 'Must',
+      condition: 'must',
       query: ''
     }];
     let tempQueryData = {...this.state.queryData};
@@ -689,7 +686,7 @@ class AlertController extends Component {
     this.setState({
       loadAlertData: false
     }, () => {
-      this.addSearch(field, value, 'Must');
+      this.addSearch(field, value, 'must');
     });
   }
   addSearch = (field, value, type) => {

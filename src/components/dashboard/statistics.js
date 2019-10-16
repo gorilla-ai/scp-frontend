@@ -371,6 +371,56 @@ class DashboardStats extends Component {
       }
     }) 
   }
+  displayCharts = (key, i) => {
+    const {alertChartsList} = this.state;    
+
+    if (alertChartsList[i].type === 'pie') {
+      return (
+        <div className='chart-group c-box' key={alertChartsList[i].chartID}>
+          <PieChart
+            id={alertChartsList[i].chartID}
+            title={alertChartsList[i].chartTitle}
+            data={alertChartsList[i].chartData}
+            keyLabels={alertChartsList[i].chartKeyLabels}
+            valueLabels={alertChartsList[i].chartValueLabels}
+            dataCfg={alertChartsList[i].chartDataCfg}
+            colors={{
+              key: ALERT_LEVEL_COLORS
+            }} />
+        </div>
+      )
+    } else if (alertChartsList[i].type === 'table') {
+      return (
+        <div className='chart-group' key={alertChartsList[i].chartID}>
+          <header className='main-header'>{alertChartsList[i].chartTitle}</header>
+          <div id={alertChartsList[i].chartID} className='c-chart table'>
+            <DataTable
+              className='main-table overflow-scroll'
+              fields={alertChartsList[i].chartFields}
+              data={alertChartsList[i].chartData}
+              defaultSort={alertChartsList[i].chartData ? alertChartsList[i].sort : {}} />
+          </div>
+        </div>
+      )
+    }
+  }
+  dispalyMetrics = (key, i) => {
+    if (!_.isEmpty(key.data)) {
+      return (
+        <div className='chart-group c-box metric' key={key.id}>
+          <Metric
+            id='complex-multi-group-metric'
+            className={key.id}
+            title={t('dashboard.txt-' + key.id)}
+            data={key.data}
+            dataCfg={{
+              agg: key.agg
+            }}
+            keyLabels={key.keyLabels} />
+        </div>
+      )
+    }
+  }
   // testChartFunction = (evt, data, cfg) => {
   //   const {baseUrl, contextRoot} = this.props;
   //   const url = `${baseUrl}${contextRoot}/syslog?service=${data[0].service}`;
@@ -384,7 +434,7 @@ class DashboardStats extends Component {
       dnsMetricData,
       diskMetricData
     } = this.state;
-    const metricData = [dnsMetricData, diskMetricData];
+    const metricsData = [dnsMetricData, diskMetricData];
 
     return (
       <div>
@@ -404,58 +454,8 @@ class DashboardStats extends Component {
                   {...chartAttributes} />
               </div>
             }
-            {
-              alertChartsList.map((key, i) => {
-                if (alertChartsList[i].type === 'pie') {
-                  return (
-                    <div className='chart-group c-box' key={alertChartsList[i].chartID}>
-                      <PieChart
-                        id={alertChartsList[i].chartID}
-                        title={alertChartsList[i].chartTitle}
-                        data={alertChartsList[i].chartData}
-                        keyLabels={alertChartsList[i].chartKeyLabels}
-                        valueLabels={alertChartsList[i].chartValueLabels}
-                        dataCfg={alertChartsList[i].chartDataCfg}
-                        colors={{
-                          key: ALERT_LEVEL_COLORS
-                        }} />
-                    </div>
-                  )
-                } else if (alertChartsList[i].type === 'table') {
-                  return (
-                    <div className='chart-group' key={alertChartsList[i].chartID}>
-                      <header className='main-header'>{alertChartsList[i].chartTitle}</header>
-                      <div id={alertChartsList[i].chartID} className='c-chart table'>
-                        <DataTable
-                          className='main-table overflow-scroll'
-                          fields={alertChartsList[i].chartFields}
-                          data={alertChartsList[i].chartData}
-                          defaultSort={alertChartsList[i].chartData ? alertChartsList[i].sort : {}} />
-                      </div>
-                    </div>
-                  )
-                }
-              })
-            }
-            {
-              metricData.map((key, i) => {
-                if (!_.isEmpty(key.data)) {
-                  return (
-                    <div className='chart-group c-box metric' key={key.id}>
-                      <Metric
-                        id='complex-multi-group-metric'
-                        className={key.id}
-                        title={t('dashboard.txt-' + key.id)}
-                        data={key.data}
-                        dataCfg={{
-                          agg: key.agg
-                        }}
-                        keyLabels={key.keyLabels} />
-                    </div>
-                  )
-                }
-              })
-            }
+            {alertChartsList.map(this.displayCharts)}
+            {metricsData.map(this.dispalyMetrics)}
           </div>
         </div>
       </div>

@@ -135,6 +135,7 @@
   "txt-deleteDepartment": "刪除部門",
   "txt-deleteTitle": "刪除職稱",
   "txt-deleteAccount": "刪除帳號",
+  "txt-deletePrivilege": "刪除角色",
   "txt-unlockAccount": "解鎖帳號",
   "txt-network-owner": "所屬人員",
   "txt-ownerList": "人員列表",
@@ -156,7 +157,7 @@
   "txt-pcapNotAvailable": "找不到PCAP檔案",
 	"txt-file-format-error": "檔案格式必須為",
 	"txt-delete-msg": "確定要刪除",
-  "txt-account-unlock": "確定要解鎖帳號",
+  "txt-account-unlock": "確定要解鎖",
   "txt-commaSeparated": "用逗號(,)區隔",
 
   "txt-statistics": "統計",

@@ -5,17 +5,15 @@ import cx from 'classnames'
 import _ from 'lodash'
 
 import DataTable from 'react-ui/build/src/components/table'
-import Input from 'react-ui/build/src/components/input'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
-import helper from '../../../common/helper'
 import {HocConfig as Config} from '../../../common/configuration'
+import helper from '../../../common/helper'
+import PrivilegeAdd from './add'
+import PrivilegeEdit from './edit'
 import RowMenu from '../../../common/row-menu'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
-
-import PrivilegeEdit from './edit'
-import PrivilegeAdd from './add'
 
 const log = require('loglevel').getLogger('user/privileges')
 const c = i18n.getFixedT(null, 'connections');
@@ -34,19 +32,30 @@ class Roles extends Component {
   componentDidMount() {
     this.loadList();
   }
-  showEditDialog(id) {
+  showEditDialog = (id) => {
     this.editor.open(id);
   }
   showAddDialog = () => {
     this.addor.open();
   }
-  showDeleteDialog = (id) => {
+  getDeletePrivilegeContent = (allValue) => {
+    const msg = c('txt-delete-msg') + ': ' + allValue.name;
+
+    return (
+      <div className='content delete'>
+        <span>{msg}?</span>
+      </div>
+    )
+  }
+  showDeleteDialog = (allValue, id) => {
     const {baseUrl} = this.props;
 
-    PopupDialog.confirm({
-      display: t('txt-delete-privilege'),
-      cancelText: gt('btn-cancel'),
-      confirmText: gt('btn-confirm'),
+    PopupDialog.prompt({
+      title: c('txt-deletePrivilege'),
+      id: 'modalWindowSmall',
+      confirmText: c('txt-delete'),
+      cancelText: c('txt-cancel'),
+      display: this.getDeletePrivilegeContent(allValue),
       act: (confirmed) => {
         if (confirmed) {
           ah.one({
@@ -62,7 +71,7 @@ class Roles extends Component {
           })
         }
       }
-    })
+    });
   }
   loadList = () => {
     const {baseUrl} = this.props;
@@ -76,7 +85,7 @@ class Roles extends Component {
         _menu: {label: '', sortable: null, style:{width: '10%'}, formatter: (val, allValue) => {
           return <RowMenu page='privileges' active={val} targetEdit={allValue} targetDelete={allValue.privilegeid} 
                           text={{ edit: c('txt-edit'), delete: c('txt-delete') }}
-                          onEdit={this.showEditDialog.bind(this)} onDelete={this.showDeleteDialog} />
+                          onEdit={this.showEditDialog.bind(this)} onDelete={this.showDeleteDialog.bind(this, allValue)} />
         }},
         privilegeid: {label: 'ID', hide: true},
         name: {label: t('l-name'), sortable: true, style:{width: '30%', textAlign: 'left'}},

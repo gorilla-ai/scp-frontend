@@ -8,10 +8,10 @@ import BarChart from 'react-chart/build/src/components/bar'
 import LineChart from 'react-chart/build/src/components/line'
 import PieChart from 'react-chart/build/src/components/pie'
 
-import {HocSearchOptions as SearchOptions} from '../../common/search-options'
-import helper from '../../common/helper'
-import withLocale from '../../../hoc/locale-provider'
 import {HocConfig as Config} from '../../common/configuration'
+import helper from '../../common/helper'
+import {HocSearchOptions as SearchOptions} from '../../common/search-options'
+import withLocale from '../../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 

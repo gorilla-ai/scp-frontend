@@ -1129,22 +1129,32 @@ footer.footer {
 							display: flex;
 							width: 100%;
 							&.group1 {
-								width: 13%;
+								width: 12%;
 							}
 						}
 						.step {
 							position: relative;
 							width: 45px;
 							height: 45px;
-							padding: 7px 14px;
 							text-align: center;
 							border-radius: 50%;
-							border: 4px solid #ccc;
+							border: 3px solid #ccc;
 							cursor: default;
 							&.active {
 								color: #fff;
 								background-color: #004d99;
-								border: 4px solid #004d99;
+								border: 3px solid #004d99;
+							}
+							.wrapper {
+								width: 39px;
+								height: 39px;
+								border-radius: 50%;
+								border: 2px solid #fff;
+							}
+							.number {
+								position: absolute;
+								top: 8px;
+								left: 15px;
 							}
 							.text {
 								position: absolute;

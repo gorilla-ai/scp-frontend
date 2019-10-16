@@ -4,14 +4,15 @@ import PropTypes from 'prop-types'
 import Gis from 'react-gis/build/src/components'
 import Tabs from 'react-ui/build/src/components/tabs'
 import Timebar from 'react-timebar/build/src/components'
+import VbdaLA from 'vbda-ui/build/src/components/analysis/la'
 
 import {HocFilterContent as FilterContent} from '../../../common/filter-content'
 import helper from '../../../common/helper'
-import TableContent from '../../../common/table-content'
 import {HocPagination as Pagination} from '../../../common/pagination'
+import TableContent from '../../../common/table-content'
 import {HocTimebarChart as TimebarChart} from '../../../common/timebar-chart'
 import {HocTree as Tree} from '../../../common/tree'
-import VbdaLA from 'vbda-ui/build/src/components/analysis/la'
+
 
 import withLocale from '../../../../hoc/locale-provider'
 
@@ -67,8 +68,12 @@ class Connections extends Component {
 
                 <footer>
                   <Pagination
-                    activeTab={mainContentData.activeTab}
-                    page='linkAnalysis'
+                    paginationOptions={[
+                      {value: 500, text: '500'},
+                      {value: 1000, text: '1000'},
+                      {value: 2000, text: '2000'},
+                      {value: 5000, text: '5000'}
+                    ]}
                     totalCount={mainContentData.paginationTotalCount}
                     pageSize={mainContentData.paginationAlertPageSize}
                     currentPage={mainContentData.paginationCurrentPage}

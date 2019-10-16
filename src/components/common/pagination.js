@@ -14,10 +14,9 @@ class Pagination extends Component {
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
   }
-  getPaginationOptions() {
-    const {activeTab, page, displayImgType} = this.props;
-
-    let paginationOptions = [
+  render() {
+    const {paginationOptions, totalCount, pageSize, currentPage} = this.props;
+    const defaultPaginationOptions = [
       {value: 10, text: '10'},
       {value: 20, text: '20'},
       {value: 50, text: '50'},
@@ -25,30 +24,6 @@ class Pagination extends Component {
       {value: 500, text: '500'},
       {value: 1000, text: '1000'}
     ];
-
-    if (page === 'linkAnalysis' || page === 'worldMap') {
-      paginationOptions = [
-        {value: 500, text: '500'},
-        {value: 1000, text: '1000'},
-        {value: 2000, text: '2000'},
-        {value: 5000, text: '5000'}
-      ];
-    }
-
-    if (activeTab === 'file' && displayImgType === 'grid') {
-      paginationOptions = [
-        {value: 50, text: '50'},
-        {value: 100, text: '100'},
-        {value: 150, text: '150'},
-        {value: 200, text: '200'},
-        {value: 300, text: '300'}
-      ];
-    }
-
-    return paginationOptions;
-  }
-  render() {
-    const {totalCount, pageSize, currentPage} = this.props;
 
     return (
       <div className='c-flex jcc'>
@@ -64,7 +39,7 @@ class Pagination extends Component {
             <label htmlFor='pageSize'>{t('txt-pageSize')}</label>
             <DropDownList
               id='pageSize'
-              list={this.getPaginationOptions()}
+              list={paginationOptions || defaultPaginationOptions}
               required={true}
               onChange={this.props.onDropDownChange}
               value={pageSize} />
@@ -80,7 +55,9 @@ Pagination.propTypes = {
     PropTypes.string,
     PropTypes.number
   ]),
-  currentPage: PropTypes.number.isRequired
+  currentPage: PropTypes.number.isRequired,
+  onPageChange: PropTypes.func.isRequired,
+  onDropDownChange: PropTypes.func.isRequired
 };
 
 const HocPagination = withLocale(Pagination);

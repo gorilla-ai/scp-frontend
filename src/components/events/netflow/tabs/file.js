@@ -30,6 +30,21 @@ class File extends Component {
   }
   render() {
     const {mainContentData} = this.props;
+    let hideTable = false;
+    let pageSize = 20;
+    let paginationOptions = '';
+
+    if (mainContentData.displayImgType === 'grid') { //Make an exception for File grid type display
+      hideTable = true;
+      pageSize = 50;
+      paginationOptions = [
+        {value: 50, text: '50'},
+        {value: 100, text: '100'},
+        {value: 150, text: '150'},
+        {value: 200, text: '200'},
+        {value: 300, text: '300'}
+      ];
+    }
 
     return (
       <div className='data-content'>
@@ -82,7 +97,11 @@ class File extends Component {
             }
 
             <TableContent
-              {...mainContentData} />
+              {...mainContentData}
+              tableHeight='63vh'
+              hideTable={hideTable}
+              pageSize={pageSize}
+              paginationOptions={paginationOptions} />
           </div>
         </div>
       </div>

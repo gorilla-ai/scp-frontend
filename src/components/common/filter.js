@@ -41,7 +41,7 @@ class Filter extends Component {
           };
 
           defaultFilter = {
-            condition: 'Must',
+            condition: 'must',
             query: '',
             color: 'red'
           };
@@ -53,7 +53,7 @@ class Filter extends Component {
         };
 
         defaultFilter = {
-          condition: 'Must',
+          condition: 'must',
           query: ''
         };
       }

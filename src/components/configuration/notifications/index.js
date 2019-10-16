@@ -10,9 +10,10 @@ import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import Textarea from 'react-ui/build/src/components/textarea'
 
-import helper from '../../common/helper'
-import {HocConfig as Config} from '../../common/configuration'
 import {ReactMultiEmail} from 'react-multi-email';
+
+import {HocConfig as Config} from '../../common/configuration'
+import helper from '../../common/helper'
 import TableContent from '../../common/table-content'
 import withLocale from '../../../hoc/locale-provider'
 

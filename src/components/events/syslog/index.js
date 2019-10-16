@@ -6,29 +6,26 @@ import _ from 'lodash'
 import cx from 'classnames'
 import queryString from 'query-string'
 
-import WORLDMAP from '../../../mock/world-map-low.json'
-
-import {config as configLoader} from 'vbda-ui/build/src/loader'
 import {analyze} from 'vbda-ui/build/src/analyzer'
-
+import {config as configLoader} from 'vbda-ui/build/src/loader'
 import ContextMenu from 'react-ui/build/src/components/contextmenu'
+import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
-import JSONTree from 'react-json-tree'
 import {arrayMove} from 'react-sortable-hoc'
+import JSONTree from 'react-json-tree'
 
 import helper from '../../common/helper'
 import {HocQueryOpenSave as QueryOpenSave} from '../../common/query-open-save'
 import {HocSearchOptions as SearchOptions} from '../../common/search-options'
 import {HocSortableList as SortableList} from '../../common/sortable-list'
+import Syslog from './syslog'
 import {HocTableCell as TableCell} from '../../common/table-cell'
 import withLocale from '../../../hoc/locale-provider'
+import WORLDMAP from '../../../mock/world-map-low.json'
 
-import Syslog from './syslog'
-
-import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null;
@@ -81,7 +78,7 @@ class SyslogController extends Component {
       },
       eventHistogram: {},
       filterData: [{
-        condition: 'Must',
+        condition: 'must',
         query: ''
       }],
       markData: [{
@@ -256,7 +253,7 @@ class SyslogController extends Component {
     if (syslogParams.configId) {
       this.setState({
         filterData: [{
-          condition: 'Must',
+          condition: 'must',
           query: 'configId: ' + syslogParams.configId
         }]
       });
@@ -273,11 +270,11 @@ class SyslogController extends Component {
 
       this.setState({
         filterData: [{
-          condition: 'Must',
+          condition: 'must',
           query: 'type: eventlog'
         },
         {
-          condition: 'Must',
+          condition: 'must',
           query: '_host: ' + hostData
         }]
       });
@@ -714,7 +711,7 @@ class SyslogController extends Component {
   handleResetBtn = (type) => {
     if (type === 'filter') {
       const filterData = [{
-        condition: 'Must',
+        condition: 'must',
         query: ''
       }];
       let tempQueryData = {...this.state.queryData};
@@ -785,7 +782,7 @@ class SyslogController extends Component {
     this.setState({
       loadLogsData: false
     }, () => {
-      this.addSearch(field, value, 'Must');
+      this.addSearch(field, value, 'must');
     });
   }
   handleRowMouseOver = (id, allValue, evt) => {
@@ -825,17 +822,17 @@ class SyslogController extends Component {
       {
         id: value + '_Must',
         text: 'Must',
-        action: () => this.addSearch(field, value, 'Must')
+        action: () => this.addSearch(field, value, 'must')
       },
       {
         id: value + '_MustNot',
         text: 'Must Not',
-        action: () => this.addSearch(field, value, 'Must Not')
+        action: () => this.addSearch(field, value, 'must Not')
       },
       {
         id: value + '_Either',
         text: 'Either',
-        action: () => this.addSearch(field, value, 'Either')
+        action: () => this.addSearch(field, value, 'either')
       }
     ];
 

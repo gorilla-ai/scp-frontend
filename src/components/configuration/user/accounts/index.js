@@ -6,16 +6,13 @@ import i18n from 'i18next'
 import cx from 'classnames'
 import _ from 'lodash'
 
-import Checkbox from 'react-ui/build/src/components/checkbox'
 import DataTable from 'react-ui/build/src/components/table'
-import DropDownList from 'react-ui/build/src/components/dropdown'
-import Form from 'react-ui/build/src/components/form'
 import Input from 'react-ui/build/src/components/input'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import AccountEdit from './account-edit'
-import helper from '../../../common/helper'
 import {HocConfig as Config} from '../../../common/configuration'
+import helper from '../../../common/helper'
 import RowMenu from '../../../common/row-menu'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -65,7 +62,7 @@ class AccountList extends Component {
         _menu: {label: '', sortable: null, formatter: (val, allValue) => {
           return <RowMenu page='accounts' active={val} targetEdit={allValue.accountid} targetDelete={allValue.accountid} targetUnlock={allValue.accountid}
                           text={{ edit: c('txt-edit'), delete: c('txt-delete'), unlock: c('txt-unlock') }}
-                          onEdit={this.showEditDialog} onDelete={this.showDeleteDialog} onUnlock={this.showUnlockDialog} />
+                          onEdit={this.showEditDialog} onDelete={this.showDeleteDialog.bind(this, allValue)} onUnlock={this.showUnlockDialog.bind(this, allValue)} />
         }},
         accountid: {label: 'ID', hide: true},
         account: {label: t('l-account'), sortable: null},
@@ -127,13 +124,13 @@ class AccountList extends Component {
   showEditDialog = (id) => {
     this.editor._component.open(id);
   }
-  getAccountMsgContent = (id, type) => {
+  getAccountMsgContent = (allValue, id, type) => {
     let msg = '';
 
     if (type === 'delete') {
-      msg = c('txt-delete-msg');
+      msg = c('txt-delete-msg') + ': ' + allValue.account;
     } else if (type === 'unlock') {
-      msg = c('txt-account-unlock');
+      msg = c('txt-account-unlock') + ': ' + allValue.account;
     }
 
     this.setState({
@@ -146,13 +143,13 @@ class AccountList extends Component {
       </div>
     )
   }
-  showDeleteDialog = (id) => {
+  showDeleteDialog = (allValue, id) => {
     PopupDialog.prompt({
       title: c('txt-deleteAccount'),
       id: 'modalWindowSmall',
       confirmText: c('txt-delete'),
       cancelText: c('txt-cancel'),
-      display: this.getAccountMsgContent(id, 'delete'),
+      display: this.getAccountMsgContent(allValue, id, 'delete'),
       act: (confirmed) => {
         if (confirmed) {
           this.accountAction('delete');
@@ -160,13 +157,13 @@ class AccountList extends Component {
       }
     });
   }
-  showUnlockDialog = (id) => {
+  showUnlockDialog = (allValue, id) => {
     PopupDialog.prompt({
       title: c('txt-unlockAccount'),
       id: 'modalWindowSmall',
       confirmText: c('txt-delete'),
       cancelText: c('txt-cancel'),
-      display: this.getAccountMsgContent(id, 'unlock'),
+      display: this.getAccountMsgContent(allValue, id, 'unlock'),
       act: (confirmed) => {
         if (confirmed) {
           this.accountAction('unlock');

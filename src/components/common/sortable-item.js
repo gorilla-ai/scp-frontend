@@ -6,9 +6,9 @@ import Checkbox from 'react-ui/build/src/components/checkbox'
 import Input from 'react-ui/build/src/components/input'
 import Textarea from 'react-ui/build/src/components/textarea'
 
-import helper from './helper'
 import {SortableElement, SortableHandle} from 'react-sortable-hoc'
 
+import helper from './helper'
 import withLocale from '../../hoc/locale-provider'
 
 let t = null;

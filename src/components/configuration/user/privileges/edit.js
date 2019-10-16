@@ -7,7 +7,6 @@ import im from 'object-path-immutable'
 import queryString from 'query-string'
 
 import CheckboxGroup from 'react-ui/build/src/components/checkbox-group'
-import DropDownList from 'react-ui/build/src/components/dropdown'
 import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 

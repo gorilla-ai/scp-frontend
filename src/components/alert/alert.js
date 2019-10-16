@@ -10,7 +10,6 @@ import helper from '../common/helper'
 import TableContent from '../common/table-content'
 import {HocTimebarChart as TimebarChart} from '../common/timebar-chart'
 import {HocTree as Tree} from '../common/tree'
-
 import withLocale from '../../hoc/locale-provider'
 
 let t = null;

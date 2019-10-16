@@ -6,13 +6,11 @@ import Moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import Gis from 'react-gis/build/src/components'
-
 import ButtonGroup from 'react-ui/build/src/components/button-group'
 import Checkbox from 'react-ui/build/src/components/checkbox'
-import DataTable from 'react-ui/build/src/components/table'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import FileInput from 'react-ui/build/src/components/file-input'
+import Gis from 'react-gis/build/src/components'
 import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
@@ -24,8 +22,8 @@ import TreeView from 'react-ui/build/src/components/tree'
 import {HocAutoSettings as AutoSettings} from './auto-settings'
 import {HocConfig as Config} from '../../common/configuration'
 import {HocFilterContent as FilterContent} from '../../common/filter-content'
-import helper from '../../common/helper'
 import {HocFloorMap as FloorMap} from '../../common/floor-map'
+import helper from '../../common/helper'
 import Manage from '../topology/owner-mixname'
 import {HocPagination as Pagination} from '../../common/pagination'
 import {HocPrivateDetails as PrivateDetails} from '../../common/private-details'
@@ -34,12 +32,7 @@ import withLocale from '../../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
-let t = null;
-let f = null;
-let et = null;
-
 const NOT_AVAILABLE = 'N/A';
-
 const MAPS_PRIVATE_DATA = {
   floorList: [],
   currentFloor: '',
@@ -48,6 +41,10 @@ const MAPS_PRIVATE_DATA = {
   currentBaseLayers: {},
   seatData: {}
 };
+
+let t = null;
+let f = null;
+let et = null;
 
 class NetworkInventory extends Component {
 	constructor(props) {
@@ -750,7 +747,7 @@ class NetworkInventory extends Component {
 
     return (
       <div className='content delete'>
-        <span>{t('network-inventory.txt-deleteDeviceMsg')}: {allValue.ip}?</span>
+        <span>{t('txt-delete-msg')}: {allValue.ip}?</span>
       </div>
     )    
   }
@@ -1572,7 +1569,8 @@ class NetworkInventory extends Component {
     return (
       <div className={groupClass} key={index}>
         <div className={cx(lineClass, {active: activeSteps >= index})}></div>
-        <div className={cx(stepClass, {active: activeSteps >= index})}>{index}
+        <div className={cx(stepClass, {active: activeSteps >= index})}>
+          <div className='wrapper'><span className='number'>{index}</span></div>
           <div className={textClass}>{val}</div>
         </div>
       </div>

@@ -11,9 +11,10 @@ import $ from 'jquery'
 
 import DropDownList from 'react-ui/build/src/components/dropdown'
 
-import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 import ResetPwd from './components/configuration/user/accounts/resetPwd'
 import withLocale from './hoc/locale-provider'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const t = i18n.getFixedT(null, 'app');
 const et = i18n.getFixedT(null, 'errors');

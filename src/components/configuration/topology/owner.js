@@ -6,13 +6,10 @@ import _ from 'lodash'
 import cx from 'classnames'
 
 import Checkbox from 'react-ui/build/src/components/checkbox'
-import DataTable from 'react-ui/build/src/components/table'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import FileInput from 'react-ui/build/src/components/file-input'
 import Input from 'react-ui/build/src/components/input'
-import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
-import ButtonGroup from 'react-ui/build/src/components/button-group'
 
 import {HocConfig as Config} from '../../common/configuration'
 import helper from '../../common/helper'
@@ -390,7 +387,7 @@ class NetworkOwner extends Component {
 
     return (
       <div className='content delete'>
-        <span>{t('network-topology.txt-deleteOwnerMsg')}: {value.ownerID}?</span>
+        <span>{t('txt-delete-msg')}: {value.ownerID}?</span>
       </div>
     )
   }

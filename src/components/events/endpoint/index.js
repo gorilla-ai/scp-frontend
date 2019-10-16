@@ -13,8 +13,8 @@ import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import Textarea from 'react-ui/build/src/components/textarea'
 
 import helper from '../../common/helper'
-import withLocale from '../../../hoc/locale-provider'
 import TableContent from '../../common/table-content'
+import withLocale from '../../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 

@@ -7,9 +7,9 @@ import cx from 'classnames'
 
 import DataTable from 'react-ui/build/src/components/table'
 
+import {HocConfig as Config} from '../../common/configuration'
 import helper from '../../common/helper'
 import withLocale from '../../../hoc/locale-provider'
-import {HocConfig as Config} from '../../common/configuration'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 

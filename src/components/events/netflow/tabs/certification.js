@@ -3,8 +3,8 @@ import PropTypes from 'prop-types'
 
 import Tabs from 'react-ui/build/src/components/tabs'
 
-import helper from '../../../common/helper'
 import {HocFilterContent as FilterContent} from '../../../common/filter-content'
+import helper from '../../../common/helper'
 import TableContent from '../../../common/table-content'
 import {HocTree as Tree} from '../../../common/tree'
 

@@ -6,15 +6,14 @@ import Moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import Gis from 'react-gis/build/src/components'
-import WORLDMAP from '../../mock/world-map-low.json'
-
 import ButtonGroup from 'react-ui/build/src/components/button-group'
 import DropDownList from 'react-ui/build/src/components/dropdown'
+import Gis from 'react-gis/build/src/components'
 
 import {HocAlertDetails as AlertDetails} from '../common/alert-details'
 import helper from '../common/helper'
 import withLocale from '../../hoc/locale-provider'
+import WORLDMAP from '../../mock/world-map-low.json'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -605,6 +604,17 @@ class DashboardMaps extends Component {
         `
     }
   }
+  displayPrivateHost = (val, i) => {
+    return (
+      <li key={val.key} onClick={this.showTopoDetail.bind(this, PRIVATE, val.key)}>
+        <div className={cx('info', {'faded': this.getTreeColor(i)})}>
+          <span className='ip'>{val.key}</span>
+          <span className='host'>{val.srcTopoInfo.hostName}</span>
+        </div>
+        <span className='count' style={{backgroundColor: ALERT_LEVEL_COLORS[val.Severity]}}>{val.doc_count}</span>
+      </li>
+    )
+  }
   getTreeColor = (index) => {
     const {alertDetails} = this.state;
     const currentFloorLength = alertDetails.private.currentFloorPrivateData.length;
@@ -660,17 +670,7 @@ class DashboardMaps extends Component {
                 <div className='content'>
                   <ul>
                     {alertDetails.private.tree.length > 0 &&
-                      alertDetails.private.tree.map((val, i) => {
-                        return (
-                          <li key={val.key} onClick={this.showTopoDetail.bind(this, PRIVATE, val.key)}>
-                            <div className={cx('info', {'faded': this.getTreeColor(i)})}>
-                              <span className='ip'>{val.key}</span>
-                              <span className='host'>{val.srcTopoInfo.hostName}</span>
-                            </div>
-                            <span className='count' style={{backgroundColor: ALERT_LEVEL_COLORS[val.Severity]}}>{val.doc_count}</span>
-                          </li>
-                        )
-                      })
+                      alertDetails.private.tree.map(this.displayPrivateHost)
                     }
                   </ul>
                   <div className='map'>

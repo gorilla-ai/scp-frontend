@@ -24,20 +24,20 @@ class TableContent extends Component {
     }
   }
   getTableHight = () => {
-    const {activeTab} = this.props;
+    const {tableHeight} = this.props;
 
-    if (activeTab === 'file') {
-      return {height: '63vh'};
+    if (tableHeight) {
+      return {height: tableHeight};
     }
   }
   render() {
     const {
-      activeTab,
+      hideTable,
       withPointer,
-      displayImgType,
       dataTableData,
       dataTableFields,
       dataTableSort,
+      paginationOptions,
       paginationTotalCount,
       paginationPageSize,
       paginationCurrentPage
@@ -45,7 +45,7 @@ class TableContent extends Component {
 
     return (
       <div className='table-content'>
-        {(!activeTab || activeTab !== 'file' || (activeTab === 'file' && displayImgType === 'list')) &&
+        {!hideTable &&
           <div className='table' style={this.getTableHight()}>
             <DataTable
               className={cx('main-table', {'with-pointer': withPointer})}
@@ -61,8 +61,7 @@ class TableContent extends Component {
         }
         <footer>
           <Pagination
-            activeTab={activeTab}
-            displayImgType={displayImgType}
+            paginationOptions={paginationOptions}
             totalCount={paginationTotalCount}
             pageSize={paginationPageSize}
             currentPage={paginationCurrentPage}

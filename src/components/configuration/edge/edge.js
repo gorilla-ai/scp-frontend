@@ -13,10 +13,10 @@ import RadioGroup from 'react-ui/build/src/components/radio-group'
 import Textarea from 'react-ui/build/src/components/textarea'
 import ToggleBtn from 'react-ui/build/src/components/toggle-button'
 
-import helper from '../../common/helper'
-import withLocale from '../../../hoc/locale-provider'
 import {HocConfig as Config} from '../../common/configuration'
+import helper from '../../common/helper'
 import TableContent from '../../common/table-content'
+import withLocale from '../../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -129,6 +129,10 @@ class Edge extends Component {
               if (tempData === 'ipPort') {
                 let iconType = '';
 
+                if (!allValue.agentApiStatus) {
+                  return;
+                }
+
                 if (allValue.agentApiStatus === 'Normal') {
                   iconType = 'icon_connected_on';
                 } else if (allValue.agentApiStatus === 'Error') {
@@ -149,19 +153,27 @@ class Edge extends Component {
                 if (serviceType === 'NETTRAP') {
                   return (
                     <ul>
-                      {allValue.honeyPotHostDTO.honeypot &&
+                      {allValue.honeyPotHostDTO && allValue.honeyPotHostDTO.honeypot &&
                         <li><span>honeypot:</span> {allValue.honeyPotHostDTO.honeypot}</li>
                       }
-                      <li><span>lastDataUpdDT:</span> {helper.getFormattedDate(allValue.honeyPotHostDTO.lastDataUpdDT, 'local')}</li>
-                      <li><span>attackCnt:</span> {allValue.honeyPotHostDTO.attackCnt}</li>
+                      {allValue.honeyPotHostDTO && allValue.honeyPotHostDTO.lastDataUpdDT &&
+                        <li><span>lastDataUpdDT:</span> {helper.getFormattedDate(allValue.honeyPotHostDTO.lastDataUpdDT, 'local')}</li>
+                      }
+                      {allValue.honeyPotHostDTO && allValue.honeyPotHostDTO.attackCnt &&
+                        <li><span>attackCnt:</span> {allValue.honeyPotHostDTO.attackCnt}</li>
+                      }
                     </ul>
                   )
                 } else if (serviceType === 'NETFLOW-IDS-SURICATA') {
                   return (
                     <ul>
-                      <li><span>mode:</span> {allValue.agentMode}</li>
-                      <li><span>status:</span> {allValue.lastStatus}</li>
-                      {allValue.agentMode === 'TCPDUMP' &&
+                      {allValue.agentMode &&
+                        <li><span>mode:</span> {allValue.agentMode}</li>
+                      }
+                      {allValue.lastStatus &&
+                        <li><span>status:</span> {allValue.lastStatus}</li>
+                      }
+                      {allValue.agentMode && allValue.agentMode === 'TCPDUMP' &&
                         <section>
                           {allValue.agentStartDT &&
                             <li><span>start:</span> {helper.getFormattedDate(allValue.agentStartDT)}</li>
@@ -169,7 +181,7 @@ class Edge extends Component {
                           {allValue.agentEndDT &&
                             <li><span>end:</span> {helper.getFormattedDate(allValue.agentEndDT)}</li>
                           }
-                          {allValue.lastAnalyzedStatus !== 'ANALYZED' &&
+                          {allValue.lastAnalyzedStatus && allValue.lastAnalyzedStatus !== 'ANALYZED' &&
                             <button onClick={this.agentAnalysis.bind(this, allValue)}>{t('txt-analyze')}</button>
                           }
                           {allValue.lastAnalyzedStatus &&
@@ -180,9 +192,13 @@ class Edge extends Component {
                           }
                         </section>
                       }
-                      <li><span>threatIntellLastUpdDT:</span> {helper.getFormattedDate(allValue.threatIntellLastUpdDT, 'local')}</li>
+                      {allValue.threatIntellLastUpdDT &&
+                        <li><span>threatIntellLastUpdDT:</span> {helper.getFormattedDate(allValue.threatIntellLastUpdDT, 'local')}</li>
+                      }
                     </ul>
                   )
+                } else {
+                  return;
                 }
               } else if (tempData === '_menu_') {
                 return (
@@ -339,7 +355,7 @@ class Edge extends Component {
 
     return (
       <div className='content delete'>
-        <span>{t('edge-management.txt-deleteEdgeMsg')}: {allValue.agentName || allValue.ipPort}?</span>
+        <span>{t('txt-delete-msg')}: {allValue.agentName || allValue.ipPort}?</span>
       </div>
     )
   }
@@ -471,24 +487,29 @@ class Edge extends Component {
     let iconType = '';
     let btnStatusOn = false;
     let action = 'start';
+    let icon = '';
 
-    if (edge.info.agentApiStatus === 'Normal') {
-      iconType = 'icon_connected_on';
-    } else if (edge.info.agentApiStatus === 'Error') {
-      iconType = 'icon_connected_off';
+    if (edge.info.agentApiStatus) {
+      if (edge.info.agentApiStatus === 'Normal') {
+        iconType = 'icon_connected_on';
+      } else if (edge.info.agentApiStatus === 'Error') {
+        iconType = 'icon_connected_off';
+      }
+
+      icon = {
+        src: contextRoot + `/images/${iconType}.png`,
+        title: t('txt-' + edge.info.agentApiStatus.toLowerCase())
+      };
     }
 
-    const icon = {
-      src: contextRoot + `/images/${iconType}.png`,
-      title: t('txt-' + edge.info.agentApiStatus.toLowerCase())
-    };
-
-    if (edge.info.lastStatus.indexOf('inactive') !== -1) {
-      btnStatusOn = false;
-      action = 'start';
-    } else if (edge.info.lastStatus.indexOf('active') !== -1) {
-      btnStatusOn = true;
-      action = 'stop';
+    if (edge.info.lastStatus) {
+      if (edge.info.lastStatus.indexOf('inactive') !== -1) {
+        btnStatusOn = false;
+        action = 'start';
+      } else if (edge.info.lastStatus.indexOf('active') !== -1) {
+        btnStatusOn = true;
+        action = 'stop';
+      }
     }
 
     return (
@@ -497,16 +518,22 @@ class Edge extends Component {
         <div className='form-group normal'>
           <header>
             <div className='text'>{t('edge-management.txt-basicInfo')}</div>
-            <img className='status' src={icon.src} title={icon.title} />
-            <span className='msg'>{t('edge-management.txt-lastUpateTime')} {helper.getFormattedDate(edge.info.lastUpdateTime, 'local')}</span>
+            {icon &&
+              <img className='status' src={icon.src} title={icon.title} />
+            }
+            {edge.info.lastUpdateTime &&
+              <span className='msg'>{t('edge-management.txt-lastUpateTime')} {helper.getFormattedDate(edge.info.lastUpdateTime, 'local')}</span>
+            }
           </header>
-          <ToggleBtn
-            className='toggle-btn'
-            onText='On'
-            offText='Off'
-            on={btnStatusOn}
-            onChange={this.handleEdgeStatusChange.bind(this, action)}
-            disabled={!edge.info.isConfigurable} />                  
+          {edge.info.lastStatus &&
+            <ToggleBtn
+              className='toggle-btn'
+              onText='On'
+              offText='Off'
+              on={btnStatusOn}
+              onChange={this.handleEdgeStatusChange.bind(this, action)}
+              disabled={!edge.info.isConfigurable} />
+          }
           <div className='group'>
             <label htmlFor='edgeName'>{t('edge-management.txt-edgeName')}</label>
             <Input

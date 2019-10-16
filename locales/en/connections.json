@@ -135,6 +135,7 @@
   "txt-deleteDepartment": "Delete Department",
   "txt-deleteTitle": "Delete Title",
   "txt-deleteAccount": "Delete Account",
+  "txt-deletePrivilege": "Delete Privilege",
   "txt-unlockAccount": "Unlock Account",
   "txt-network-owner": "Owner",
   "txt-ownerList": "Owner List",

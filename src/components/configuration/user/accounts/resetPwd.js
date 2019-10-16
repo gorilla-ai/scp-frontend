@@ -5,8 +5,6 @@ import _ from 'lodash'
 import i18n from 'i18next'
 
 import Form from 'react-ui/build/src/components/form'
-import Input from 'react-ui/build/src/components/input'
-import ih from 'react-ui/build/src/utils/input-helper'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 

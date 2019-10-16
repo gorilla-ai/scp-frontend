@@ -19,15 +19,24 @@ class SearchFilter extends Component {
     const {queryType, value} = this.props;
     const conditionList = ['Must', 'Must Not', 'Either'];
     const formStatus = queryType === 'query' ? true : false;
+    const filterList = _.map(conditionList, val => {
+      let formattedValue = val.toLowerCase();
+      formattedValue = formattedValue.replace(' ', '_');
+
+      return {
+        value: formattedValue,
+        text: val
+      }
+    });
 
     return (
       <div>
         <DropDownList
           className='condition-select'
+          list={filterList}
           required={true}
           onChange={this.handleChange.bind(this, 'condition')}
           value={value.condition}
-          list={conditionList.map(type => ({value: type, text: type}))}
           disabled={formStatus} />
         <Input
           className='filter-inputbox'

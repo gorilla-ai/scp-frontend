@@ -4,16 +4,14 @@ import PropTypes from 'prop-types'
 import {SortableContainer} from 'react-sortable-hoc'
 
 import {HocSortableItem as SortableItem} from '../common/sortable-item'
-
 import withLocale from '../../hoc/locale-provider'
 
 class SortableList extends Component {
   constructor(props) {
     super(props);
   }
-  render() {
+  showTableSort = (value, index) => {
     const {
-      items,
       activeTab,
       getCustomFieldName,
       setFieldsChange,
@@ -23,23 +21,24 @@ class SortableList extends Component {
     } = this.props;
 
     return (
+      <SortableItem
+        key={index}
+        index={index}
+        activeTab={activeTab}
+        value={value}
+        getCustomFieldName={getCustomFieldName}
+        setFieldsChange={setFieldsChange}
+        checkDisplayFields={checkDisplayFields}
+        showQueryOptions={showQueryOptions}
+        toggleLocaleEdit={toggleLocaleEdit} />
+    )
+  }
+  render() {
+    const {items} = this.props;
+
+    return (
       <ul className='table-sort'>
-        {
-          items.map(function(value, index) {
-            return (
-              <SortableItem
-                key={index}
-                index={index}
-                activeTab={activeTab}
-                value={value}
-                getCustomFieldName={getCustomFieldName}
-                setFieldsChange={setFieldsChange}
-                checkDisplayFields={checkDisplayFields}
-                showQueryOptions={showQueryOptions}
-                toggleLocaleEdit={toggleLocaleEdit} />
-            )
-          })
-        }
+        {items.map(this.showTableSort)}
       </ul>
     )
   }

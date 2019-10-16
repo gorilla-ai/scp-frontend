@@ -5,10 +5,6 @@ import PropTypes from 'prop-types';
 import cx from 'classnames'
 import queryString from 'query-string'
 
-import CheckboxGroup from 'react-ui/build/src/components/checkbox-group'
-import DataTable from 'react-ui/build/src/components/table'
-import DatePicker from 'react-ui/build/src/components/date-picker'
-import Dropdown from 'react-ui/build/src/components/dropdown'
 import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 

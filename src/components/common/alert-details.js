@@ -5,13 +5,13 @@ import Moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import JSONTree from 'react-json-tree'
-
 import Checkbox from 'react-ui/build/src/components/checkbox'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PageNav from 'react-ui/build/src/components/page-nav'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import Textarea from 'react-ui/build/src/components/textarea'
+
+import JSONTree from 'react-json-tree'
 
 import {HocPrivateDetails as PrivateDetails} from './private-details'
 import {HocSafetyScan as SafetyScan} from './safety-scan'
@@ -648,7 +648,7 @@ class AlertDetails extends Component {
   /**
    * Display redirect menu
    * @param {string} type - 'srcIp' or 'destIp'
-   * @returns none
+   * @returns HTML
    */
   displayRedirectMenu = (type) => {
     return (
@@ -658,9 +658,20 @@ class AlertDetails extends Component {
     )
   }
   /**
+   * Show rule content
+   * @param {string} val - val for the rule content
+   * @param {number} i - index
+   * @returns HTML
+   */
+  showRuleContent = (val, i) => {
+    return (
+      <li key={i}>{val.rule}</li>
+    )
+  }
+  /**
    * Display rule content
    * @param none
-   * @returns none
+   * @returns HTML
    */
   displayRuleContent = () => {
     const {alertType, alertRule} = this.state;
@@ -669,9 +680,7 @@ class AlertDetails extends Component {
       return (
         <ul className='alert-rule'>
           {alertRule.length > 0 &&
-            alertRule.map((val, i) => {
-              return <li key={i}>{val.rule}</li>
-            })
+            alertRule.map(this.showRuleContent)
           }
           {alertRule.length === 0 &&
             <li>{NOT_AVAILABLE}</li>
@@ -750,9 +759,18 @@ class AlertDetails extends Component {
     });
   }
   /**
+   * Show PCAP content
+   * @param {string} key - key for the PCAP content
+   * @param {number} i - index
+   * @returns HTML
+   */
+  showPCAPcontent = (key, i) => {
+    return <li id={key} key={i} className={cx({'active': key.hex})} onClick={this.setPCAPhex.bind(this, key.hex, i)}>{key.protocol}<i className={cx('fg', {'fg-arrow-left': alertPCAP.activeIndex === i})}></i></li> 
+  }
+  /**
    * Display PCAP content
    * @param none
-   * @returns none
+   * @returns HTML
    */
   displayPCAPcontent = () => {
     const {alertPCAP} = this.state;
@@ -780,9 +798,7 @@ class AlertDetails extends Component {
           <div className='list'>
             <ul>
               {alertPCAP.data.length > 0 &&
-                alertPCAP.data.map((key, i) => {
-                  return <li id={key} key={i} className={cx({'active': key.hex})} onClick={this.setPCAPhex.bind(this, key.hex, i)}>{key.protocol}<i className={cx('fg', {'fg-arrow-left': alertPCAP.activeIndex === i})}></i></li>
-                })
+                alertPCAP.data.map(this.showPCAPcontent)
               }
               {alertPCAP.data.length === 0 &&
                 <li><span>{NOT_AVAILABLE}</span></li>
@@ -791,7 +807,9 @@ class AlertDetails extends Component {
           </div>
           <div className='data'>
             {str &&
-              <Textarea value={str} readOnly={true} />
+              <Textarea
+                value={str} 
+                readOnly={true} />
             }
           </div>
         </div>
@@ -809,7 +827,7 @@ class AlertDetails extends Component {
   /**
    * Display PCAP payload content
    * @param none
-   * @returns HTML DOM
+   * @returns HTML
    */
   displayPayloadcontent = () => {
     const {alertPayload} = this.state;
@@ -857,58 +875,63 @@ class AlertDetails extends Component {
     return false;
   }
   /**
-   * Display Alert public info
-   * @param {string} type - 'srcIp' or 'destIp'
-   * @returns none
+   * Show Alert public info
+   * @param {string} item - key for the public info
+   * @param {number} i - index 
+   * @returns HTML
    */
-  getPublicInfo = (type) => {
+  showPuclicInfo = (type, item, i) => {
     const {baseUrl, contextRoot} = this.props;
     const {alertInfo} = this.state;
     const countryCodeType = 'CountryCode';
     const countryType = 'CountryName';
     let validDataCount = 0;
 
+    if (alertInfo[type]['location'][item]) {
+      if (item === countryCodeType) { //Display country flag
+        const countryCode = alertInfo[type]['location'][item].toLowerCase();
+        const picPath = `${contextRoot}/images/flag/${countryCode}.png`;
+
+        if (countryCode && countryCode != '-') {
+          validDataCount++;
+
+          return (
+            <li key={item + i}>
+              <span className='key' style={{width: this.getListWidth()}}>{t('payloadsFields.' + item)}</span>
+              <span className='value'><img src={picPath} title={alertInfo[type]['location'][countryType]} /></span>
+            </li>
+          )
+        }
+      } else { //Display location info
+        const data = alertInfo[type]['location'][item];
+        const validData = this.checkLocationData(item, data);
+
+        if (validData) {
+          validDataCount++;
+
+          return (
+            <li key={item + i}>
+              <span className='key' style={{width: this.getListWidth()}}>{t('payloadsFields.' + item)}</span>
+              <span className='value'>{validData}</span>
+            </li>
+          )
+        }
+      }
+    }
+
+    if (validDataCount === 0) {
+      <li>{t('txt-notFound')} {this.getIpPortData(type)}</li>
+    }
+  }
+  /**
+   * Display Alert public info
+   * @param {string} type - 'srcIp' or 'destIp'
+   * @returns none
+   */
+  getPublicInfo = (type) => {
     return (
       <ul className='public'>
-      {
-        PUBLIC_KEY.map((item, i) => {
-          if (alertInfo[type]['location'][item]) {
-            if (item === countryCodeType) { //Display country flag
-              const countryCode = alertInfo[type]['location'][item].toLowerCase();
-              const picPath = `${contextRoot}/images/flag/${countryCode}.png`;
-
-              if (countryCode && countryCode != '-') {
-                validDataCount++;
-
-                return (
-                  <li key={item + i}>
-                    <span className='key' style={{width: this.getListWidth()}}>{t('payloadsFields.' + item)}</span>
-                    <span className='value'><img src={picPath} title={alertInfo[type]['location'][countryType]} /></span>
-                  </li>
-                )
-              }
-            } else { //Display location info
-              const data = alertInfo[type]['location'][item];
-              const validData = this.checkLocationData(item, data);
-
-              if (validData) {
-                validDataCount++;
-
-                return (
-                  <li key={item + i}>
-                    <span className='key' style={{width: this.getListWidth()}}>{t('payloadsFields.' + item)}</span>
-                    <span className='value'>{validData}</span>
-                  </li>
-                )
-              }
-            }
-          }
-        })
-      }
-
-      {validDataCount === 0 &&
-        <li>{t('txt-notFound')} {this.getIpPortData(type)}</li>
-      }
+        {PUBLIC_KEY.map(this.showPuclicInfo.bind(this, type))}
       </ul>
     )
   }
