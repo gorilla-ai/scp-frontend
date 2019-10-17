@@ -1921,7 +1921,7 @@ class Netflow extends Component {
             onChangeComplete={this.handleDataChange} />
         </div>
         <div className='group'>
-          <label>{t('txt-select')}</label>
+          <label>{t('txt-selected')}</label>
           <div className='color-box' className={'color-box ' + helper.showColor(tagData.color)}></div>
         </div>
       </div>

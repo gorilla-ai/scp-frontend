@@ -27,6 +27,64 @@
 		}
 	}
 }
+.table-sort-list {
+	list-style-type: none;
+	overflow: hidden;
+	color: #5b5b5b;
+	padding: 5px;
+	background-color: #fff;
+	border: 1px solid #ccc;
+	z-index: 10000;
+	user-select: none;
+	.fg-filter,
+	.fg-edit {
+		float: left;
+		cursor: pointer;
+		&.disabled {
+			opacity: 0.5;
+			cursor: not-allowed;
+		}
+	}
+	.fg-edit {
+		margin-right: 2px;
+	}
+	i.data-field {
+		float: left;
+		&.flow {
+			margin-left: 10px;
+			margin-right: 10px;
+		}
+	}
+	span {
+		a {
+			text-decoration: underline;
+		}
+		&.key {
+			font-weight: bold;
+			float: left;
+			width: 18%;
+			display: inline-block;
+		}
+		&.value {
+			float: left;
+			width: 68%;
+			word-wrap: break-word;
+			.value-input {
+				background-color: #fff;
+				border: none;
+				padding: 0;
+			}
+		}
+	}
+	i.fg-menu {
+		width: 28px;
+		font-size: 26px;
+		cursor: row-resize;
+		&.flow {
+			float: right;
+		}
+	}
+}
 #modalWindowSmall {
 	footer {
 		text-align: center;
@@ -217,26 +275,6 @@
 		.status {
 			margin-bottom: 5px;
 			font-size: 1.2em;
-		}
-	}
-	.narrow-dialog {
-		width: 350px;
-		height: 400px;		
-		&.add-name {
-			min-height: 300px;
-			.button-group {
-				position: relative;
-				margin: 0;
-				margin-bottom: 20px;
-			}
-			.fg-add {
-				position: absolute;
-				top: 15px;
-				right: 15px;
-			}
-			.table-name {
-				width: 100%;
-			}
 		}
 	}
 	.wide-dialog {
@@ -829,64 +867,6 @@
 }
 #flowModalDialog-content {
 	width: 1000px;
-	.table-sort-list {
-		list-style-type: none;
-		overflow: hidden;
-		color: #5b5b5b;
-		padding: 5px;
-		background-color: #fff;
-		border: 1px solid #ccc;
-		z-index: 10000;
-		user-select: none;
-		.fg-filter,
-		.fg-edit {
-			float: left;
-			cursor: pointer;
-			&.disabled {
-				opacity: 0.5;
-				cursor: not-allowed;
-			}
-		}
-		.fg-edit {
-			margin-right: 2px;
-		}
-		i.data-field {
-			float: left;
-			&.flow {
-				margin-left: 10px;
-				margin-right: 10px;
-			}
-		}
-		span {
-			a {
-				text-decoration: underline;
-			}
-			&.key {
-				font-weight: bold;
-				float: left;
-				width: 18%;
-				display: inline-block;
-			}
-			&.value {
-				float: left;
-				width: 68%;
-				word-wrap: break-word;
-				.value-input {
-					background-color: #fff;
-					border: none;
-					padding: 0;
-				}
-			}
-		}
-		i.fg-menu {
-			width: 28px;
-			font-size: 26px;
-			cursor: row-resize;
-			&.flow {
-				float: right;
-			}
-		}
-	}
 }
 #pcapModalDialog-dialog {
 	.standard {
@@ -1221,6 +1201,31 @@
 			color: #fff;
 			background-color: #004d99;
 			margin-bottom: 5px;
+		}
+	}
+}
+#departmentTitleManage-content {
+	width: 350px;
+	height: 400px;
+	overflow-y: auto;
+	.button-group {
+		position: relative;
+		margin: 0;
+		margin-bottom: 20px;
+	}
+	.fg-add {
+		position: absolute;
+		top: 15px;
+		right: 15px;
+	}
+	table {
+		width: 100%;
+		margin-top: 20px;
+		thead th {
+			text-align: left;
+		}
+		tbody td.name {
+			width: 80%;
 		}
 	}
 }

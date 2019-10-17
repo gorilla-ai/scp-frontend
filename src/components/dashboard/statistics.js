@@ -89,7 +89,7 @@ class DashboardStats extends Component {
     clearInterval(intervalId);
   }
   getText = (eventInfo, data) => {
-    const text = data[0].number + ' ' + t('txt-at') + ' ' + Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss');
+    const text = data[0].rule + ':' + data[0].number + ' ' + t('txt-at') + ' ' + Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss');
     return text;
   }
   onTooltip = (eventInfo, data) => {

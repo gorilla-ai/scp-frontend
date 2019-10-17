@@ -114,6 +114,7 @@ const Notifications = () => (
 	<NotificationSettings
 		baseUrl={cfg.apiPrefix}
 		contextRoot={cfg.contextRoot}
+		language={cfg.lng}
 		locale={cfg.lng}
 		session={session} />
 )
@@ -122,6 +123,7 @@ const Edge = () => (
 	<EdgeManagement
 		baseUrl={cfg.apiPrefix}
 		contextRoot={cfg.contextRoot}
+		language={cfg.lng}
 		locale={cfg.lng}
 		session={session} />
 )
@@ -130,6 +132,7 @@ const Threat = () => (
 	<ThreatIntelligence
 		baseUrl={cfg.apiPrefix}
 		contextRoot={cfg.contextRoot}
+		language={cfg.lng}
 		locale={cfg.lng}
 		session={session} />
 )
@@ -138,6 +141,7 @@ const NetworkTopologyInventory = () => (
 	<NetworkInventory
 		baseUrl={cfg.apiPrefix}
 		contextRoot={cfg.contextRoot}
+		language={cfg.lng}
 		locale={cfg.lng}
 		session={session} />
 )
@@ -146,6 +150,7 @@ const NetworkTopologyOwner = () => (
 	<NetworkOwner
 		baseUrl={cfg.apiPrefix}
 		contextRoot={cfg.contextRoot}
+		language={cfg.lng}
 		locale={cfg.lng}
 		session={session} />
 )
@@ -154,6 +159,7 @@ const NetworkTopologyMap = () => (
 	<NetworkMap
 		baseUrl={cfg.apiPrefix}
 		contextRoot={cfg.contextRoot}
+		language={cfg.lng}
 		locale={cfg.lng}
 		session={session} />
 )
@@ -162,6 +168,7 @@ const Syslogs = () => (
 	<SyslogConfig
 		baseUrl={cfg.apiPrefix}
 		contextRoot={cfg.contextRoot}
+		language={cfg.lng}
 		locale={cfg.lng}
 		session={session} />
 )
@@ -170,6 +177,7 @@ const userAccounts = () => (
 	<UserAccounts
 		baseUrl={cfg.apiPrefix}
 		contextRoot={cfg.contextRoot}
+		language={cfg.lng}
 		locale={cfg.lng}
 		session={session} />
 )
@@ -178,6 +186,7 @@ const userPrivileges = () => (
 	<UserPrivileges
 		baseUrl={cfg.apiPrefix}
 		contextRoot={cfg.contextRoot}
+		language={cfg.lng}
 		locale={cfg.lng}
 		session={session} />
 )
@@ -186,6 +195,7 @@ const serviceStatus = () => (
 	<ServiceStatus
 		baseUrl={cfg.apiPrefix}
 		contextRoot={cfg.contextRoot}
+		language={cfg.lng}
 		locale={cfg.lng}
 		session={session} />
 )

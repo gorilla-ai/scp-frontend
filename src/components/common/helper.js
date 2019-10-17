@@ -284,9 +284,23 @@ const helper = {
           data = data.rt;
 
           if (data.length > 0) {
+            let formattedQueryText = [];
             tempQueryData.id = data[0].id;
             tempQueryData.name = data[0].name;
-            tempQueryData.query = data[0].queryText;
+
+            _.forEach(data[0].queryText.filter, val => {
+              let formattedValue = val.condition.toLowerCase();
+              formattedValue = formattedValue.replace(' ', '_');
+
+              formattedQueryText.push({
+                condition: formattedValue,
+                query: val.query
+              });
+            })
+
+            tempQueryData.query = {
+              filter: formattedQueryText
+            };
             tempQueryData.list = data;
             return tempQueryData;
           }

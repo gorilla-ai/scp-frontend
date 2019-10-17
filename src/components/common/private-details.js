@@ -35,8 +35,8 @@ class PrivateDetails extends Component {
     const owner = {
       id: topoInfo.ownerObj ? topoInfo.ownerObj.ownerID : topoInfo.ownerID,
       name: topoInfo.ownerObj ? topoInfo.ownerObj.ownerName : topoInfo.ownerName,
-      department: topoInfo.ownerObj ? topoInfo.ownerObj.departmentName : topoInfo.department,
-      title: topoInfo.ownerObj ? topoInfo.ownerObj.titleName : topoInfo.title,
+      department: topoInfo.ownerObj ? topoInfo.ownerObj.departmentName : topoInfo.departmentName,
+      title: topoInfo.ownerObj ? topoInfo.ownerObj.titleName : topoInfo.titleName,
       map: alertInfo[type] ? alertInfo[type].ownerMap : alertInfo.ownerMap,
       seat: alertInfo[type] ? alertInfo[type].ownerSeat : alertInfo.ownerSeat,
       baseLayers: alertInfo[type] ? alertInfo[type].ownerBaseLayers : alertInfo.ownerBaseLayers

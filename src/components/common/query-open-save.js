@@ -276,8 +276,22 @@ class QueryOpenSave extends Component {
 
       _.forEach(queryData.list, val => {
         if (val.id === value) {
+          let formattedQueryText = [];
           tempQueryData.name = val.name;
-          tempQueryData.query = val.queryText;
+
+          _.forEach(val.queryText.filter, val => {
+            let formattedValue = val.condition.toLowerCase();
+            formattedValue = formattedValue.replace(' ', '_');
+
+            formattedQueryText.push({
+              condition: formattedValue,
+              query: val.query
+            });
+          })
+
+          tempQueryData.query = {
+            filter: formattedQueryText
+          };
         }
       })
 
