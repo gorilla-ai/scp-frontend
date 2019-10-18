@@ -7,11 +7,11 @@ import Input from 'react-ui/build/src/components/input'
 let t = null
 
 class EditHosts extends Component {
-	constructor(props) {
-		super(props)
+  constructor(props) {
+    super(props);
 
-		t = chewbaccaI18n.getFixedT(null, 'connections')
-	}
+    t = chewbaccaI18n.getFixedT(null, 'connections');
+  }
   handleChange = (field, value) => {
     this.props.onChange({
       [field]: value
@@ -22,8 +22,8 @@ class EditHosts extends Component {
       return t('network-topology.txt-ipValidationFail');
     }
   }
-	render() {
-		const {id, value} = this.props;
+  render() {
+    const {id, value} = this.props;
 
     return (
       <Input
@@ -35,8 +35,8 @@ class EditHosts extends Component {
         }}
         onChange={this.handleChange.bind(this, 'host')}
         value={value.host} />
-  	)
-	}
+    )
+  }
 }
 
 EditHosts.propTypes = {

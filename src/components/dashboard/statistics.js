@@ -151,7 +151,7 @@ class DashboardStats extends Component {
         data: JSON.stringify(val.requestData),
         type: 'POST',
         contentType: 'text/plain'
-      }
+      };
     });
 
     this.ah.all(apiArr)
@@ -181,7 +181,7 @@ class DashboardStats extends Component {
             time: parseInt(Moment(key, 'YYYY-MM-DDTHH:mm:ss.SSZ').utc(true).format('x')),
             number: value,
             rule: val
-          }
+          };
         });
       })
 

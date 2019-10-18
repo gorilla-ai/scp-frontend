@@ -1,4 +1,6 @@
 {
+  "txt-add": "新增",  
+  "txt-view": "瀏覽",
   "connectionsFields": {
     "_tableMenu_": "",
     "firstPacket": "首個封包",

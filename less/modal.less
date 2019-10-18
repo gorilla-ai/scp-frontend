@@ -10,23 +10,6 @@
 .leaflet-container {
 	background: #fff;
 }
-.modal-dialog {
-	.content {
-		padding: 10px;
-	}
-	.button-group {
-		margin: 10px;
-	}
-	.data-table {
-		width: 970px;
-		padding: 10px;
-		ul {
-			&.table-sort {
-				border: 1px solid #ccc;
-			}
-		}
-	}
-}
 .table-sort-list {
 	list-style-type: none;
 	overflow: hidden;
@@ -85,84 +68,107 @@
 		}
 	}
 }
-#modalWindowSmall {
-	footer {
-		text-align: center;
-	}
-}
-#modalWindowSmall-content {
-	min-width: 300px;
-	text-align: center;
-	.align-center {
-		margin-top: 30px;
-	}
-	.main-table {
-		margin: 0 auto;
-	}
-	.content {
-		margin: 25px 0;
-		text-align: center;
-		&.small-margin {
-			margin: 10px 0;
-		}
-		&.align-left {
-			text-align: left;
-		}
-		&.delete {
-			span {
-				display: block;
-				color: #d62238;
-			}
-		}
-		li {
-			margin-bottom: 20px;
-		}
-	}
-	.display-seat {
-		overflow: hidden;
-		width: 360px;
-		padding: 5px;
-		.info {
-			float: left;
-			margin-right: 30px;
-			li {
-				line-height: 1.6em;
-			}
-		}
-		img {
-			display: block;
-			float: right;
-			width: 150px;
-			height: 150px;
-			border-radius: 50%;
-		}
-	}
-	button {
-		margin-top: 10px;
-	}
-}
 #g-user-privileges-edit {
 	footer {
 		text-align: center;
 	}
 }
-#modalWindow-dialog {
-	max-height: 90%;
-	min-width: 600px;
-	header {
-		font-size: 1.2em;
-		color: #185e9e;
-		font-weight: bold;
-		padding: 15px;
+#g-user-accounts-edit-dialog {
+	.c-form {
+		flex-basis: auto;
+	}
+}
+#areaMapUpload {
+	input {
+		margin-bottom: 1px !important;
+	}
+}
+.modal-dialog {
+	.content {
+		padding: 10px;
+	}
+	.button-group {
+		margin: 10px;
+	}
+}
+#modalWindowSmall {
+	#modalWindowSmall-content {
+		min-width: 300px;
+		text-align: center;
+		.align-center {
+			margin-top: 30px;
+		}
+		.main-table {
+			margin: 0 auto;
+		}
+		.content {
+			margin: 25px 0;
+			text-align: center;
+			&.small-margin {
+				margin: 10px 0;
+			}
+			&.align-left {
+				text-align: left;
+			}
+			&.delete {
+				span {
+					display: block;
+					color: #d62238;
+				}
+			}
+			li {
+				margin-bottom: 20px;
+			}
+		}
+		button {
+			margin-top: 10px;
+		}
 	}
 	footer {
-		padding: 15px;
-		button {
-			padding: 0.5em 2.5em;
+		text-align: center;
+	}
+}
+.modal-dialog,
+#viewJsonDialog-dialog {
+	.json-data {
+		overflow-y: auto;
+		border: 1px solid #ccc;
+		border-radius: 10px;
+		& > li {
+			overflow: hidden;
+			padding: 5px 10px;
+			margin-bottom: 5px;
+		}
+	}
+	.pagination {
+		position: fixed;
+		width: 300px;
+		bottom: 10px;
+		.buttons {
+			button {
+				color: #5b5b5b;
+				background-color: #fff;
+				float: left;
+				margin-right: 10px;
+				margin-top: 10px;
+			}
+		}
+		.count {
+			float: left;
+			background-color: #d0021b;
+			color: #fff;
+			border-radius: 50%;
+			font-size: 5px;
+			margin-top: 12px;
+			padding: 5px;
+		}
+	}
+	footer {
+		.c-info {
+			color: #da364a;
 		}
 	}
 }
-#modalWindow-content,
 .modal-dialog {
 	padding: 0;
 	header {
@@ -180,32 +186,13 @@
 				color: #da364a;
 			}
 		}
-		input {
-			width: 100%;
-			//margin-bottom: 10px;
-		}
-		select {
-			width: 100%;
-			//margin-bottom: 10px;
-		}
+		input,
+		select,
 		textarea {
 			width: 100%;
+		}
+		textarea {
 			border: 1px solid #d9d9d9;
-		}
-		.host-cfg {
-			.c-combobox {
-				width: 95%;
-			}
-			.fg-add {
-				margin-left: 5px;
-				vertical-align: sub;
-			}
-			input {
-				margin-bottom: 0px;		
-			}
-		}
-		#deviceToEdit {
-			width: 265px;
 		}
 		.add {
 			margin-bottom: 15px;
@@ -229,20 +216,11 @@
 			min-width: 125px;
 		}
 	}
-	.json-reports {
-		padding: 20px 20px 15px 20px;
-	}
 	.json-data {
-		overflow-y: auto;
-		border: 1px solid #ccc;
-		border-radius: 10px;
 		&.alert {
 			height: 380px;
 		}
 		& > li {
-			overflow: hidden;
-			padding: 5px 10px;
-			margin-bottom: 5px;
 			span {
 				a {
 					text-decoration: underline;
@@ -266,173 +244,6 @@
 			}
 			&.border {
 				border-bottom: 1px solid #ccc;
-			}
-		}
-	}
-	.report-content {
-		margin-bottom: 30px;
-		flex-basis: 0;
-		.status {
-			margin-bottom: 5px;
-			font-size: 1.2em;
-		}
-	}
-	.wide-dialog {
-		width: 900px;
-		&.add-floor {
-			.text {
-				font-size: 1em;
-				margin-bottom: 10px;
-				min-height: 20px;
-				span {
-					font-weight: bold;
-					color: #185e9e;
-				}
-			}
-			.display-tree {
-				margin-top: 10px;
-			}
-		}
-		header {
-			position: relative;
-			padding: 10px;
-			text-align: right;
-			border-bottom: 1px solid #ccc;
-			background-color: #f2f2f2;
-			overflow: hidden;
-			&.text-left {
-				text-align: left;
-			}
-			&.text-right {
-				text-align: right;
-			}
-			.fg {
-				color: #4a4a4a;
-				font-size: 1.8em;
-				border: 1px solid #ccc;
-				padding: 2px;
-				border-radius: 5px;
-				margin-left: 10px;
-				background-color: #fff;
-				&.active {
-					background-color: #001b34;
-					color: #ffffff;
-					cursor: default;
-				}
-			}
-			&.add-floor {
-				font-weight: normal;
-				color: #5b5b5b;
-			}
-		}
-		&.add-ip {
-			min-height: 400px;
-			.button-group {
-				position: relative;
-				margin: 0;
-				margin-bottom: 20px;
-				.fg-poople-invite {
-					position: absolute;
-					top: 2px;
-					right: 0px;
-				}
-			}
-		}
-		.content {
-			overflow: hidden;
-		}
-		.left-syslog {
-			float: left;
-			width: 58%;
-			min-height: 330px;
-			&.border {
-				border: 1px solid #d9d9d9;
-				border-radius: 5px;
-			}
-			.fg-down {
-				margin-top: 10px;
-				margin-bottom: 10px;
-				margin-left: 50%;
-			}
-			button {
-				position: absolute;
-				right: 0;
-				top: -8px;
-				padding: .2em .8em;
-			}
-		}
-		.right-syslog {
-			float: right;
-			width: 40%;
-			min-height: 450px;
-			padding: 15px 15px 20px 15px;
-			border: 1px solid #d9d9d9;
-			border-radius: 5px;
-			&.no-padding {
-				padding: 0;
-			}
-		}
-		.left {
-			float: left;
-			width: 38%;
-			min-height: 330px;
-			&.border {
-				border: 1px solid #d9d9d9;
-				border-radius: 5px;
-			}
-			.owner {
-				.fg-trashcan {
-					display: block;
-					text-align: center;
-					margin-top: 15px;
-					font-size: 1.8em;
-				}
-			}
-		}
-		.right {
-			float: right;
-			width: 60%;
-			min-height: 330px;
-			padding: 15px 15px 20px 15px;
-			border: 1px solid #d9d9d9;
-			border-radius: 5px;
-			&.no-padding {
-				padding: 0;
-			}
-			.field {
-				float: left;
-				width: 32%;
-				margin-right: 15px;
-				label {
-					font-size: 16px;
-					font-weight: normal;
-					color: #4a4a4a;
-				}
-			}
-			.fg-trashcan {
-				position: absolute;
-				top: 33px;
-				right: 10px;
-				font-size: 28px;
-			}
-			.map {
-				text-align: center;
-				padding-top: 15px;
-				padding-bottom: 15px;
-				img {
-					width: 500px;
-					height: 330px;
-				}
-			}
-		}
-		.syslogs {
-			display: flex;
-
-			.syslog {
-				flex: 1;
-			}
-			input {
-				width: 95%;
 			}
 		}
 	}
@@ -478,95 +289,45 @@
 			margin: 5px;
 		}
 	}
-	.pagination {
-		position: fixed;
-		width: 300px;
-		bottom: 10px;
-		&.json {
-			bottom: 18px;
-		}
-		.buttons {
-			button {
-				color: #5b5b5b;
-				background-color: #fff;
-				float: left;
-				margin-right: 10px;
-				margin-top: 10px;
-			}
-		}
-		.count {
-			float: left;
-			background-color: #d0021b;
-			color: #fff;
-			border-radius: 50%;
-			font-size: 5px;
-			margin-top: 12px;
-			padding: 5px;
-		}
+}
+/* events/netflow/index */
+/* events/syslog/index */
+#viewJsonDialog-dialog {
+	header {
+		font-size: 1.2em;
+		color: #185e9e;
+		font-weight: bold;
+		padding: 15px;
 	}
 	footer {
-		.c-info {
-			color: #da364a;
+		padding: 10px;
+	}
+	#viewJsonDialog-content {
+		width: 965px;
+	}
+}
+/* events/netflow/index */
+#flowModalDialog-content {
+	width: 1000px;
+}
+/* events/netflow/index */
+#pcapModalDialog-dialog {
+	.standard {
+		display: none;
+	}
+}
+/* events/netflow/index */
+#pcapModalDialog-content {
+	width: 700px;
+	.pcap {
+		min-height: 270px;
+		textarea {
+			width: 550px;
+			height: 250px;
 		}
 	}
 }
-#modalWindow-content {
-	.content {
-		padding: 15px 20px 20px 20px;
-	}
-	.photo {
-		text-align: center;
-		margin: 20px;
-	}
-	.employee-record {
-		width: 950px;
-		text-align: center;
-		padding-top: 20px;
-		padding-bottom: 20px;
-	}
-	.gis-map {
-		width: 1000px;
-		height: 700px;
-		.actions {
-			display: none;
-		}
-		.leaflet-container {
-			background: -webkit-linear-gradient(top, #021320, #03244b, #021320);
-		}
-		.gis-spot {
-			border-radius: 50%;
-		}
-	}
-}
-#floorModalDialog-content {
-	.area-upload {
-		width: 282px;
-		button {
-			font-size: 15px;
-		}
-	}
-	.left,
-	.right {
-		min-height: 460px;
-	}
-}
-#seatModalDialog-content {
-	#seatName {
-		width: 30%;
-		display: block;
-	}
-}
-#hostModalDialog-content,
-#agentModalDialog-content,
-#emailReportModalDialog-content {
-	max-height: 550px;
-	min-width: 600px;
-}
-#g-user-accounts-edit-dialog {
-	.c-form {
-		flex-basis: auto;
-	}
-}
+/* events/netflow/index */
 #tagModalDialog-content {
 	width: 400px;
 	.github-picker {
@@ -608,20 +369,477 @@
 		}
 	}
 }
-#pcapModalDialog-content {
-	width: 700px;
-	.pcap {
-		min-height: 270px;
-		textarea {
-			width: 550px;
-			height: 250px;
+/* events/endpoint/index */
+#addTask-content {
+	max-height: 550px;
+	min-width: 400px;
+}
+/* configuration/notifications/index */
+#testEmailDialog-content {
+	width: 500px;
+	padding: 20px 20px 25px 20px;
+	.react-multi-email {
+		height: 42px;
+		[data-tag] {
+			padding-top: 10px;
+			color: #fff;
+			background-color: #004d99;
+			margin-bottom: 5px;
 		}
 	}
 }
+/* configuration/topology/inventory */
+/* configuration/common/alert-details */
+#tiggerTaskModal-content {
+	text-align: center;
+	margin-top: 30px;
+}
+/* configuration/topology/inventory */
+#configScanModalDialog-content {
+	width: 965px;
+	.main-table {
+		border-radius: 5px;
+		width: 100%;
+		overflow: hidden;
+		thead tr {
+			color: #185e9e;
+		}
+		tbody td:hover {
+			cursor: text;
+		}
+		th, td {
+			padding: 10px !important;
+			border: 1px solid #ccc !important;
+		}
+		.align-center {
+			text-align: center;
+			&.ip,
+			&.mac,
+			&.hostName,
+			&.ownerName {
+				width: 25%;
+			}
+		}
+	}
+	.scan-info {
+		overflow: hidden;
+		min-height: 550px;
+		margin-top: 10px;
+		padding: 10px;
+		border: 1px solid #ccc;
+		border-radius: 5px;
+		background-color: #f2f2f2;
+		.info-content {
+			overflow: hidden;
+			clear: both;
+			.info {
+				position: relative;
+				height: 50px;
+				padding-bottom: 5px;
+				padding-top: 25px;
+				overflow: hidden;
+				.last-update {
+					float: left;
+					span {
+						margin-right: 30px;
+					}
+				}
+				.count {
+					position: absolute;
+					top: 25px;
+					right: 100px;
+					color: #d10d25;
+				}
+				.btn {
+					position: absolute;
+					top: 20px;
+					right: 0;
+					padding: .3em .5em;
+				}
+			}
+			.file-path {
+				margin-top: 15px;
+				border-top: 2px solid #ccc;
+				border-bottom: 2px solid #ccc;
+				& > .header {
+					color: #185e9e;
+					font-weight: bold;
+					padding: 5px 10px;
+				}
+				.list {
+					max-height: 400px;
+					overflow-y: scroll;
+					.group {
+						border-top: 1px solid #ccc;
+						.path {
+							padding: 5px 10px 8px 10px;
+							background-color: #fff;
+							cursor: pointer;
+							i.fg {
+								float: left;
+								margin-right: 10px;
+								border: 1px solid #ccc;
+								border-radius: 5px;
+								&.rotate {
+									transform: rotate(180deg);
+								}
+							}
+						}
+						.rule {
+							padding: 5px 45px;
+							border-top: 1px solid #ccc;
+							.rule-content {
+								margin-bottom: 5px;
+								.header {
+									position: relative;
+									width: 100%;
+									color: #185e9e;
+									cursor: default;
+									span {
+										padding-left: 18px;
+										display: inline-block;
+										cursor: pointer;
+									}
+									.fg-play {
+										position: absolute;
+										top: 2px;
+										cursor: pointer;
+										&.rotate {
+											transform: rotate(90deg);
+										}
+									}
+								}
+								.sub-content {
+									padding-left: 20px;
+									ul {
+										padding: 5px 0;
+										width: 20%;
+										border-bottom: 1px dotted #999;
+										li span {
+											color: #185e9e;
+										}
+									}
+								}
+								i.fg {
+									font-size: 16px;
+									margin-right: 5px;
+								}
+							}
+							&.hide,
+							code.hide,
+							.sub-content.hide {
+								display: none;
+							}
+						}
+					}
+				}
+			}
+			.msg {
+				margin-top: 15px;
+				.url {
+					display: block;
+					margin-top: 5px;
+				}
+			}
+		}
+	}
+}
+/* configuration/topology/inventory */
+/* configuration/topology/map */
+#configSeatDialog-content {
+	.main {
+		font-size: 16px;
+		color: #004d93;
+		&.header {
+			font-size: 14px;
+			margin-bottom: 2px;
+		}
+	}
+	.inventory {
+		margin: 15px 0;
+		i {
+			padding: 2px;
+			border: 1px solid #ccc;
+			border-radius: 5px;
+			cursor: pointer;
+		}
+	}
+}
+/* configuration/topology/owner-mixname */
+#departmentTitleManage-content {
+	width: 350px;
+	height: 400px;
+	overflow-y: auto;
+	.button-group {
+		position: relative;
+		margin: 0;
+		margin-bottom: 20px;
+	}
+	.fg-add {
+		position: absolute;
+		top: 15px;
+		right: 15px;
+	}
+	table {
+		width: 100%;
+		margin-top: 20px;
+		thead th {
+			text-align: left;
+		}
+		tbody td.name {
+			width: 80%;
+		}
+	}
+}
+/* configuration/syslog/syslog */
+#viewEventsTimeline-content {
+	width: 1000px;
+	.calendar-section {
+		overflow: hidden;
+		width: 625px;
+		margin: 0 auto;
+		margin-top: 10px;
+		#datetime {
+			float: left;
+			margin-right: 10px;
+		}
+		button {
+			margin-top: 2px;
+		}
+	}
+	.chart-section {
+		clear: both;
+		margin-top: 10px;
+		.msg {
+			text-align: center;
+			margin-top: 20px;
+			margin-bottom: 10px;
+		}
+	}
+}
+/* configuration/syslog/syslog */
+#syslogModalDialog-content {
+	width: 900px;
+	height: 620px;
+	.syslogs {
+		display: flex;
+		margin-bottom: 15px;
+		.syslog {
+			flex: 1;
+		}
+		input {
+			width: 95%;
+		}
+	}
+	.filters {
+		margin-top: 10px;
+		label {
+			color: #4d86e2;
+		}
+		textarea {
+			resize: none;
+		}
+		.scrollY {
+			max-height: 410px;
+			overflow-y: auto;
+		}
+		.left-syslog {
+			float: left;
+			width: 58%;
+			min-height: 330px;
+			&.border {
+				border: 1px solid #d9d9d9;
+				border-radius: 5px;
+			}
+			.fg-down {
+				margin-top: 10px;
+				margin-bottom: 10px;
+				margin-left: 50%;
+			}
+			button {
+				position: absolute;
+				right: 0;
+				top: -8px;
+				padding: .2em .8em;
+			}
+		}
+		.right-syslog {
+			float: right;
+			width: 40%;
+			min-height: 450px;
+			padding: 15px 15px 20px 15px;
+			border: 1px solid #d9d9d9;
+			border-radius: 5px;
+			&.no-padding {
+				padding: 0;
+			}
+		}
+	}
+	.relationships {
+		.group {
+			border: 1px solid #d9d9d9;
+			border-radius: 5px;
+			margin-top: 10px;
+			background-color: #e3f2f9;
+		}
+		.relationship {
+			margin-top: 10px;
+			margin-bottom: 10px;
+			width: 90%;
+			.up {
+				display: flex;
+				padding: 5px 5px;
+			}
+			.down {
+				padding: 5px 5px;
+				.table-100 {
+					width: 100%;
+				}
+				table {
+					border: 1px solid #CCCCCC;
+					border-radius: 5px;
+				}
+			}
+			.item {
+				margin-left: 10px;
+				label {
+					color: #4d86e2;
+				}
+				select {
+					width: 200px;
+				}
+			}
+			.fg-next {
+				margin-top: 30px;
+				margin-left: 10px;
+			}
+		}
+		.remove {
+			height: 30px;
+			width: 30px;
+			margin-top: 10px;
+			background-color: white;
+		}
+		.add {
+			height: 30px;
+			width: 30px;
+			margin-top: 10px;
+		}
+	}
+}
+/* configuration/user/accounts/account-edit */
+#g-user-accounts-edit {
+  .c-box.dialog.react-draggable {
+    max-width: 600px;
+    > .content {
+      display: flex;
+      .c-form > div input, 
+      .c-form > div div, {
+         width: 250px;
+      }
+      .c-form > div.selected {
+        margin-right: 6px;
+      }
+    }
+  }
+}
+/* common/floor-map */
+#floorModalDialog-content {
+	width: 900px;
+	.text {
+		font-size: 1em;
+		margin-bottom: 10px;
+		min-height: 20px;
+		span {
+			font-weight: bold;
+			color: #185e9e;
+		}
+	}
+	header {
+		position: relative;
+		padding: 10px;
+		text-align: right;
+		border-bottom: 1px solid #ccc;
+		background-color: #f2f2f2;
+		overflow: hidden;
+		&.add-floor {
+			text-align: left;
+			font-weight: normal;
+			color: #5b5b5b;
+		}
+		.fg {
+			color: #4a4a4a;
+			font-size: 1.8em;
+			border: 1px solid #ccc;
+			padding: 2px;
+			border-radius: 5px;
+			margin-left: 10px;
+			background-color: #fff;
+			&.active {
+				background-color: #001b34;
+				color: #ffffff;
+				cursor: default;
+			}
+		}
+	}
+	.left,
+	.right {
+		min-height: 460px;
+	}
+	.left {
+		float: left;
+		width: 38%;
+		border: 1px solid #d9d9d9;
+		border-radius: 5px;
+		.display-tree {
+			margin-top: 10px;
+		}
+	}
+	.right {
+		float: right;
+		width: 60%;
+		padding: 0;
+		border: 1px solid #d9d9d9;
+		border-radius: 5px;
+		.field {
+			float: left;
+			width: 32%;
+			margin-right: 15px;
+			label {
+				font-size: 16px;
+				font-weight: normal;
+				color: #4a4a4a;
+			}
+		}
+		.area-upload {
+			width: 282px;
+			button {
+				font-size: 15px;
+			}
+		}
+		.fg-trashcan {
+			position: absolute;
+			top: 33px;
+			right: 10px;
+			font-size: 28px;
+		}
+		.map {
+			text-align: center;
+			padding-top: 15px;
+			padding-bottom: 15px;
+			img {
+				width: 500px;
+				height: 330px;
+			}
+		}
+	}
+}
+/* common/query-open-save */
 #queryModal-content {
 	text-align: center;
 	margin-top: 30px;
 }
+/* common/query-open-save */
 #queryDialog-dialog {
 	label {
 		color: #004d93;
@@ -694,6 +912,7 @@
 		}
 	}
 }
+/* common/alert-details */
 #dashboardModalDialog-content {
 	width: 965px;
 	.main-table {
@@ -852,58 +1071,7 @@
 		}
 	}
 }
-#agentModeDatetime-from {
-	margin-bottom: 0;
-}
-#indicatorUpload,
-#areaMapUpload {
-	input {
-		margin-bottom: 1px !important;
-	}
-}
-#modalWindowSmall2-content {
-	text-align: center;
-	margin-top: 30px;
-}
-#flowModalDialog-content {
-	width: 1000px;
-}
-#pcapModalDialog-dialog {
-	.standard {
-		display: none;
-	}
-}
-#netFlowDialog-content {
-	width: 600px;
-	.table-100 {
-		margin-bottom: 15px;
-	}
-}
-#viewEventsTimeline-content {
-	width: 1000px;
-	.calendar-section {
-		overflow: hidden;
-		width: 625px;
-		margin: 0 auto;
-		margin-top: 10px;
-		#datetime {
-			float: left;
-			margin-right: 10px;
-		}
-		button {
-			margin-top: 2px;
-		}
-	}
-	.chart-section {
-		clear: both;
-		margin-top: 10px;
-		.msg {
-			text-align: center;
-			margin-top: 20px;
-			margin-bottom: 10px;
-		}
-	}
-}
+/* common/search-options */
 #intervalModalDialog-content {
 	.interval-options {
 		font-size: 14px;
@@ -929,303 +1097,5 @@
 	#updateInterval {
 		flex-direction: row;
 		margin-top: 10px;
-	}
-}
-#addTask-content {
-	max-height: 550px;
-	min-width: 400px;
-}
-#g-user-accounts-edit {
-  .c-box.dialog.react-draggable {
-    max-width: 600px;
-    > .content {
-      display: flex;
-      .c-form > div input, 
-      .c-form > div div, {
-         width: 250px;
-      }
-      .c-form > div.selected {
-        margin-right: 6px;
-      }
-    }
-  }
-}
-#syslogModalDialog-content {
-	.filters {
-		margin-top: 10px;
-		label {
-			color: #4d86e2;
-		}
-		textarea {
-			resize: none;
-		}
-		.scrollY {
-			max-height: 410px;
-			overflow-y: auto;
-		}
-	}
-	.relationships {
-		.group {
-			border: 1px solid #d9d9d9;
-			border-radius: 5px;
-			margin-top: 10px;
-			background-color: #e3f2f9;
-		}
-		.relationship {
-			margin-top: 10px;
-			margin-bottom: 10px;
-			width: 90%;
-			.up {
-				display: flex;
-				padding: 5px 5px;
-			}
-			.down {
-				padding: 5px 5px;
-				.table-100 {
-					width: 100%;
-				}
-				table {
-					border: 1px solid #CCCCCC;
-					border-radius: 5px;
-				}
-			}
-			.item {
-				margin-left: 10px;
-				label {
-					color: #4d86e2;
-				}
-				select {
-					width: 200px;
-				}
-			}
-			.fg-next {
-				margin-top: 30px;
-				margin-left: 10px;
-			}
-		}
-		.remove {
-			height: 30px;
-			width: 30px;
-			margin-top: 10px;
-			background-color: white;
-		}
-		.add {
-			height: 30px;
-			width: 30px;
-			margin-top: 10px;
-		}
-	}
-}
-#configScanModalDialog-content {
-	width: 965px;
-	.main-table {
-		border-radius: 5px;
-		width: 100%;
-		overflow: hidden;
-		thead tr {
-			color: #185e9e;
-		}
-		tbody td:hover {
-			cursor: text;
-		}
-		th, td {
-			padding: 10px !important;
-			border: 1px solid #ccc !important;
-		}
-		.align-center {
-			text-align: center;
-			&.ip,
-			&.mac,
-			&.hostName,
-			&.ownerName {
-				width: 25%;
-			}
-		}
-	}
-	.scan-info {
-		overflow: hidden;
-		min-height: 550px;
-		margin-top: 10px;
-		padding: 10px;
-		border: 1px solid #ccc;
-		border-radius: 5px;
-		background-color: #f2f2f2;
-		.info-content {
-			overflow: hidden;
-			clear: both;
-			.info {
-				position: relative;
-				height: 50px;
-				padding-bottom: 5px;
-				padding-top: 25px;
-				overflow: hidden;
-				.last-update {
-					float: left;
-					span {
-						margin-right: 30px;
-					}
-				}
-				.count {
-					position: absolute;
-					top: 25px;
-					right: 100px;
-					color: #d10d25;
-				}
-				.btn {
-					position: absolute;
-					top: 20px;
-					right: 0;
-					padding: .3em .5em;
-				}
-			}
-			.file-path {
-				margin-top: 15px;
-				border-top: 2px solid #ccc;
-				border-bottom: 2px solid #ccc;
-				& > .header {
-					color: #185e9e;
-					font-weight: bold;
-					padding: 5px 10px;
-				}
-				.list {
-					max-height: 400px;
-					overflow-y: scroll;
-					.group {
-						border-top: 1px solid #ccc;
-						.path {
-							padding: 5px 10px 8px 10px;
-							background-color: #fff;
-							cursor: pointer;
-							i.fg {
-								float: left;
-								margin-right: 10px;
-								border: 1px solid #ccc;
-								border-radius: 5px;
-								&.rotate {
-									transform: rotate(180deg);
-								}
-							}
-						}
-						.rule {
-							padding: 5px 45px;
-							border-top: 1px solid #ccc;
-							.rule-content {
-								margin-bottom: 5px;
-								.header {
-									position: relative;
-									width: 100%;
-									color: #185e9e;
-									cursor: default;
-									span {
-										padding-left: 18px;
-										display: inline-block;
-										cursor: pointer;
-									}
-									.fg-play {
-										position: absolute;
-										top: 2px;
-										cursor: pointer;
-										&.rotate {
-											transform: rotate(90deg);
-										}
-									}
-								}
-								.sub-content {
-									padding-left: 20px;
-									ul {
-										padding: 5px 0;
-										width: 20%;
-										border-bottom: 1px dotted #999;
-										li span {
-											color: #185e9e;
-										}
-									}
-								}
-								i.fg {
-									font-size: 16px;
-									margin-right: 5px;
-								}
-							}
-							&.hide,
-							code.hide,
-							.sub-content.hide {
-								display: none;
-							}
-						}
-					}
-				}
-			}
-			.msg {
-				margin-top: 15px;
-				.url {
-					display: block;
-					margin-top: 5px;
-				}
-			}
-		}
-	}
-}
-#configSeatDialog-content {
-	.main {
-		font-size: 16px;
-		color: #004d93;
-		&.header {
-			font-size: 14px;
-			margin-bottom: 2px;
-		}
-	}
-	.inventory {
-		margin: 15px 0;
-		i {
-			padding: 2px;
-			border: 1px solid #ccc;
-			border-radius: 5px;
-			cursor: pointer;
-		}
-	}
-}
-#addDeptTitleDialog-content {
-	padding: 20px;
-}
-#tiggerTaskModal-content {
-	text-align: center;
-	margin-top: 30px;
-}
-#testEmailDialog-content {
-	width: 500px;
-	padding: 20px 20px 25px 20px;
-	.react-multi-email {
-		height: 42px;
-		[data-tag] {
-			padding-top: 10px;
-			color: #fff;
-			background-color: #004d99;
-			margin-bottom: 5px;
-		}
-	}
-}
-#departmentTitleManage-content {
-	width: 350px;
-	height: 400px;
-	overflow-y: auto;
-	.button-group {
-		position: relative;
-		margin: 0;
-		margin-bottom: 20px;
-	}
-	.fg-add {
-		position: absolute;
-		top: 15px;
-		right: 15px;
-	}
-	table {
-		width: 100%;
-		margin-top: 20px;
-		thead th {
-			text-align: left;
-		}
-		tbody td.name {
-			width: 80%;
-		}
 	}
 }

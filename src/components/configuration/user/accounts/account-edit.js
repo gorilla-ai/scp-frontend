@@ -96,7 +96,7 @@ class Editor extends Component {
         return {
           value: el.privilegeid,
           text: el.name
-        }
+        };
       })
 
       this.setState({

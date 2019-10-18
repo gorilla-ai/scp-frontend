@@ -175,76 +175,74 @@ class FloorMap extends Component {
     }
 
     return (
-      <div className='wide-dialog add-floor'>
-        <div className='content'>
-          <div className='text'>
+      <div>
+        <div className='text'>
+          {floorPlan.currentAreaUUID &&
+            <div>{t('network-topology.txt-selected-node')}: <span>{floorPlan.currentAreaName}</span></div>
+          }
+        </div>
+        <div className='left'>
+          <header>
             {floorPlan.currentAreaUUID &&
-              <div>{t('network-topology.txt-selected-node')}: <span>{floorPlan.currentAreaName}</span></div>
+              <i className='c-link fg fg-cancel' onClick={this.getAddMapContent.bind(this, 'clear')} title={deselectTree}></i>
+            }
+            <i className={cx('c-link', 'fg', 'fg-add', {'active': floorPlan.type === 'add' || !floorPlan.currentAreaUUID})} onClick={this.getAddMapContent.bind(this, 'add')} title={addTree}></i>
+            {floorPlan.currentAreaUUID &&
+              <span>
+                <i className={cx('c-link', 'fg', 'fg-edit', {'active': floorPlan.type === 'edit'})} onClick={this.getAddMapContent.bind(this, 'edit')} title={editTree}></i>
+                <i className='c-link fg fg-trashcan' onClick={this.openDeleteAreaModal} title={removeTree}></i>
+              </span>
+            }
+          </header>
+
+          <div className='display-tree'>
+            {floorPlan.treeData && !_.isEmpty(floorPlan.treeData) &&
+              floorPlan.treeData.map(this.showTreeView.bind(this, floorPlan.currentAreaUUID))
             }
           </div>
-          <div className='left border'>
-            <header>
-              {floorPlan.currentAreaUUID &&
-                <i className='c-link fg fg-cancel' onClick={this.getAddMapContent.bind(this, 'clear')} title={deselectTree}></i>
-              }
-              <i className={cx('c-link', 'fg', 'fg-add', {'active': floorPlan.type === 'add' || !floorPlan.currentAreaUUID})} onClick={this.getAddMapContent.bind(this, 'add')} title={addTree}></i>
-              {floorPlan.currentAreaUUID &&
-                <span>
-                  <i className={cx('c-link', 'fg', 'fg-edit', {'active': floorPlan.type === 'edit'})} onClick={this.getAddMapContent.bind(this, 'edit')} title={editTree}></i>
-                  <i className='c-link fg fg-trashcan' onClick={this.openDeleteAreaModal} title={removeTree}></i>
-                </span>
-              }
-            </header>
+        </div>
 
-            <div className='display-tree'>
-              {floorPlan.treeData && !_.isEmpty(floorPlan.treeData) &&
-                floorPlan.treeData.map(this.showTreeView.bind(this, floorPlan.currentAreaUUID))
-              }
+        <div className='right'>
+          <header className='add-floor'>
+            <div className='field'>
+              <label htmlFor='areaMapName'>{t('txt-name')}</label>
+              <Input
+                id='areaMapName'
+                className='add'
+                onChange={this.handleDataChange.bind(this, 'name')}
+                value={floorPlan.name} />
             </div>
-          </div>
 
-          <div className='right no-padding'>
-            <header className='text-left add-floor'>
-              <div className='field'>
-                <label htmlFor='areaMapName'>{t('txt-name')}</label>
-                <Input
-                  id='areaMapName'
-                  className='add'
-                  onChange={this.handleDataChange.bind(this, 'name')}
-                  value={floorPlan.name} />
-              </div>
-
-              <div className='field'>
-                <label htmlFor='areaMapUpload'>{t('txt-network-map')}</label>
-                <FileInput
-                  id='areaMapUpload'
-                  className='area-upload'
-                  name='file'
-                  btnText={t('txt-upload')}
-                  validate={{
-                    max: 10,
-                    extension: ['.jpg', '.jpeg', '.png'],
-                    t: (code, params) => {
-                      if (code[0] === 'file-wrong-format') {
-                        return t('txt-file-format-error') + ` ${params.extension}`
-                      }
+            <div className='field'>
+              <label htmlFor='areaMapUpload'>{t('txt-network-map')}</label>
+              <FileInput
+                id='areaMapUpload'
+                className='area-upload'
+                name='file'
+                btnText={t('txt-upload')}
+                validate={{
+                  max: 10,
+                  extension: ['.jpg', '.jpeg', '.png'],
+                  t: (code, params) => {
+                    if (code[0] === 'file-wrong-format') {
+                      return t('txt-file-format-error') + ` ${params.extension}`
                     }
-                  }}
-                  onChange={this.handleDataChange.bind(this, 'map')} />
-              </div>
-
-              {showMap && currentMap && floorPlan.currentAreaUUID &&
-                <i className='c-link fg fg-trashcan' onClick={this.openDeleteSingleAreaModal} title={removeMap}></i>
-              }
-            </header>
-            <div className='map'>
-              {previewFloorMap &&
-                <img src={previewFloorMap} title={floorPlan.currentAreaName + ' ' + t('txt-floorMap')} />
-              }
-              {showMap && currentMap.images && !previewFloorMap &&
-                <img src={currentMap.images[0].url} title={floorPlan.currentAreaName + ' ' + t('txt-floorMap')} />
-              }
+                  }
+                }}
+                onChange={this.handleDataChange.bind(this, 'map')} />
             </div>
+
+            {showMap && currentMap && floorPlan.currentAreaUUID &&
+              <i className='c-link fg fg-trashcan' onClick={this.openDeleteSingleAreaModal} title={removeMap}></i>
+            }
+          </header>
+          <div className='map'>
+            {previewFloorMap &&
+              <img src={previewFloorMap} title={floorPlan.currentAreaName + ' ' + t('txt-floorMap')} />
+            }
+            {showMap && currentMap.images && !previewFloorMap &&
+              <img src={currentMap.images[0].url} title={floorPlan.currentAreaName + ' ' + t('txt-floorMap')} />
+            }
           </div>
         </div>
       </div>

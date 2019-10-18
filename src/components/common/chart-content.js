@@ -79,7 +79,7 @@ class ChartContent extends Component {
           return {
             time: parseInt(Moment(key, 'YYYY-MM-DDTHH:mm:ss.SSZ').utc(true).format('x')),
             number: value
-          }
+          };
         });
       } else if (pageType === 'alert' || pageType === 'logs') {
         let rulesObj = {};
@@ -91,7 +91,7 @@ class ChartContent extends Component {
               time: parseInt(Moment(key, 'YYYY-MM-DDTHH:mm:ss.SSZ').utc(true).format('x')),
               number: value,
               rule: val
-            }
+            };
           });
         })
 

@@ -43,15 +43,13 @@ class Addor extends Component {
   save = (changed) => {
     this.setState(_.clone(INITIAL_STATE), () => {
       this.props.onDone();
-    })
+    });
   }
   error = (msg) => {
     this.setState({
       info:msg,
       error:true
     });
-  }
-  componentDidMount() {
   }
   handleChange = (name) => {
     this.setState({

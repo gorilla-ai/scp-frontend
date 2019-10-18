@@ -27,7 +27,9 @@ class TableContent extends Component {
     const {tableHeight} = this.props;
 
     if (tableHeight) {
-      return {height: tableHeight};
+      return {
+        height: tableHeight
+      };
     }
   }
   render() {

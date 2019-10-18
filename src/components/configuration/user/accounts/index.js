@@ -86,7 +86,10 @@ class AccountList extends Component {
     let tmp = {...this.state.accountData}
 
     tmp = _.map(tmp, el => {
-      return {...el, _menu: el.accountid === allValue.accountid ? true : false}
+      return {
+        ...el,
+        _menu: el.accountid === allValue.accountid ? true : false
+      };
     })
 
     this.setState({accountData: tmp})

@@ -139,7 +139,7 @@ class SearchOptions extends Component {
     return {
       text,
       time
-    }
+    };
   }
   toggleIntervalDialog = () => {
     this.setState({

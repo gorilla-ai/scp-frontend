@@ -176,7 +176,10 @@ class AutoSettings extends Component {
     .then(data => {
       if (data && data.length > 0) {
         const deviceList = _.map(data, val => {
-          return {value: val.target, text: val.target}
+          return {
+            value: val.target,
+            text: val.target
+          };
         });
 
         let tempScannerData = scannerData;
@@ -456,7 +459,7 @@ class AutoSettings extends Component {
         edge: val.edge,
         target: val.ip,
         mask: Number(val.mask)
-      }
+      };
     });
 
     helper.getAjaxData('POST', url, requestData)

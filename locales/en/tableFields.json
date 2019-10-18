@@ -1,4 +1,6 @@
 {
+  "txt-add": "Add",  
+  "txt-view": "View",
   "connectionsFields": {
     "_tableMenu_": "",
     "firstPacket": "First Packet",

@@ -65,7 +65,10 @@ class Editor extends Component {
     .then(data => {
       this.setState({
         permits: _.map(data.rt, (permit) => {
-          return {value:permit.permitid, text:permit.dispname};
+          return {
+            value: permit.permitid,
+            text: permit.dispname
+          };
         })
       });
     })

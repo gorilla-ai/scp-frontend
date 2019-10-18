@@ -118,13 +118,17 @@ class Roles extends Component {
     })
   }
   handleRowMouseOver(value, allValue, evt) {
-    let tmp = {...this.state.data}
+    let tempData = {...this.state.data};
+    tempData = _.map(tempData, el => {
+      return {
+        ...el,
+        _menu: el.privilegeid === allValue.privilegeid ? true : false
+      };
+    });
 
-    tmp = _.map(tmp, el => {
-      return {...el, _menu: el.privilegeid === allValue.privilegeid ? true : false}
-    })
-
-    this.setState({data: tmp})
+    this.setState({
+      data: tempData
+    });
   }
 
   render() {

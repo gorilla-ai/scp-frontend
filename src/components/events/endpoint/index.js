@@ -72,7 +72,7 @@ class Endpoint extends Component {
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
-    f = chewbaccaI18n.getFixedT(null, 'tableFields');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
     this.ah = getInstance('chewbacca');
   }
@@ -151,7 +151,7 @@ class Endpoint extends Component {
     let menuItems = [
       {
         id: id + 'addTask',
-        text: t('hmdFields.addTask'),
+        text: f('hmdFields.addTask'),
         action: () => this.openTask(allValue)
       }
     ];
@@ -217,7 +217,7 @@ class Endpoint extends Component {
   }
   viewTask = () => {
     const {taskTable} = this.state;
-    const titleText = t('hmdFields.viewTask');
+    const titleText = f('hmdFields.viewTask');
     const actions = {
       confirm: {text: t('txt-close'), handler: this.closeDialog}
     };
@@ -246,14 +246,14 @@ class Endpoint extends Component {
 
     return (
       <div className='content'>
-        <label>{t('hmdFields.id')}</label>
+        <label>{f('hmdFields.id')}</label>
         <Input
           className='add'
           maxLength='50'
           value={task.ipDeviceUUID}
           readOnly={true} />
 
-        <label>{t('hmdFields.taskName')}</label>
+        <label>{f('hmdFields.taskName')}</label>
         <Input
           className='add'
           maxLength='50'
@@ -261,7 +261,7 @@ class Endpoint extends Component {
           onChange={this.handleTaskChange.bind(this, 'taskName')}
           value={task.taskName} />
 
-        <label>{t('hmdFields.reqType')}</label>
+        <label>{f('hmdFields.reqType')}</label>
         <DropDownList
           className='add'
           list={[
@@ -278,7 +278,7 @@ class Endpoint extends Component {
           onChange={this.handleTaskChange.bind(this, 'reqType')}
           value={task.reqType} />
 
-        <label>{t('hmdFields.reqCommand')}</label>
+        <label>{f('hmdFields.reqCommand')}</label>
         <Textarea
           className='add'
           rows={6}
@@ -287,7 +287,7 @@ class Endpoint extends Component {
 
         {task.reqType === 'file' &&
           <div>
-            <label>{t('hmdFields.reqParameters')}</label>
+            <label>{f('hmdFields.reqParameters')}</label>
             <Input
               className='add'
               maxLength='50'
@@ -295,7 +295,7 @@ class Endpoint extends Component {
               onChange={this.handleTaskChange.bind(this, 'reqParameters')}
               value={task.reqParameters} />
 
-            <label>{t('hmdFields.fileCompressPassward')}</label>
+            <label>{f('hmdFields.fileCompressPassward')}</label>
             <Input
               type='password'
               className='add'
@@ -303,7 +303,7 @@ class Endpoint extends Component {
               onChange={this.handleTaskChange.bind(this, 'fileCompressPassward')}
               value={task.fileCompressPassward} />
 
-            <label>{t('hmdFields.fileUrl')}</label>
+            <label>{f('hmdFields.fileUrl')}</label>
             <Input
               className='add'
               maxLength='50'
@@ -311,7 +311,7 @@ class Endpoint extends Component {
               onChange={this.handleTaskChange.bind(this, 'fileUrl')}
               value={task.fileUrl} />
 
-            <label>{t('hmdFields.fileAccount')}</label>
+            <label>{f('hmdFields.fileAccount')}</label>
             <Input
               className='add'
               maxLength='50'
@@ -324,7 +324,7 @@ class Endpoint extends Component {
     )
   }
   addTask = () => {
-    const titleText = t('hmdFields.addTask');
+    const titleText = f('hmdFields.addTask');
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeDialog},
       confirm: {text: t('txt-confirm'), handler: this.handleAddTaskAction}
@@ -378,7 +378,7 @@ class Endpoint extends Component {
       return {
         ...item,
         _menu: allValue.ipDeviceUUID === item.ipDeviceUUID ? true : false
-      }
+      };
     });
 
     this.setState({
@@ -450,15 +450,15 @@ class Endpoint extends Component {
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group'>
-            <label htmlFor='HMDhostName' className='first-label'>{t('hmdFields.hostName')}</label>
+            <label htmlFor='HMDhostName' className='first-label'>{f('hmdFields.hostName')}</label>
             <Input id='HMDhostName' onChange={this.handleSearchChange.bind(this, 'hostName')} value={search.hostName} />
           </div>
           <div className='group'>
-            <label htmlFor='HMDip' className='first-label'>{t('hmdFields.ip')}</label>
+            <label htmlFor='HMDip' className='first-label'>{f('hmdFields.ip')}</label>
             <Input id='HMDip' onChange={this.handleSearchChange.bind(this, 'ip')} value={search.ip} />
           </div>
           <div className='group'>
-            <label htmlFor='HMDmac' className='first-label'>{t('hmdFields.mac')}</label>
+            <label htmlFor='HMDmac' className='first-label'>{f('hmdFields.mac')}</label>
             <Input id='HMDmac' onChange={this.handleSearchChange.bind(this, 'mac')} value={search.mac} />
           </div>
         </div>

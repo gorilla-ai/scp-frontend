@@ -444,7 +444,7 @@ class AlertController extends Component {
         if (treeData[key][path].buckets.length > 0) {
           _.forEach(treeData[key][path].buckets, val => {
             if (val.key) {
-              label = <span title={val.key}>{val.key} ({val.doc_count}) <button className={cx('button', {'active': treeName === val.key})} onClick={this.selectTree.bind(this, val.key, 'sourceIp')}>{t('events.connections.txt-addFilter')}</button></span>;
+              label = <span title={val.key}>{val.key} ({val.doc_count}) <button className={cx('button', {'active': treeName === val.key})} onClick={this.selectTree.bind(this, val.key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</button></span>;
 
               tempChild.push({
                 id: val.key,
@@ -454,7 +454,7 @@ class AlertController extends Component {
           })
         }
 
-        label = <span title={key}>{key} ({treeData[key].doc_count}) <button className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, 'sourceIp')}>{t('events.connections.txt-addFilter')}</button></span>;
+        label = <span title={key}>{key} ({treeData[key].doc_count}) <button className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</button></span>;
 
         let treeProperty = {
           id: key,

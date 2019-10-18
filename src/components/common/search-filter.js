@@ -26,7 +26,7 @@ class SearchFilter extends Component {
       return {
         value: formattedValue,
         text: val
-      }
+      };
     });
 
     return (

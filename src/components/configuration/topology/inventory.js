@@ -212,7 +212,7 @@ class NetworkInventory extends Component {
         return {
           ...item,
           _menu_: true
-        }
+        };
       });
 
       tempDeviceData.totalCount = data.counts;
@@ -308,7 +308,7 @@ class NetworkInventory extends Component {
           return {
             value: val.ownerUUID,
             text: val.ownerName
-          }
+          };
         });
 
         this.setState({

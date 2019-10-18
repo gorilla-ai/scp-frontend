@@ -212,7 +212,7 @@ class NetworkOwner extends Component {
       return {
         ...el,
         _menu: el.ownerUUID === allValue.ownerUUID ? true : false
-      }
+      };
     })
 
     this.setState({owner: tmp})

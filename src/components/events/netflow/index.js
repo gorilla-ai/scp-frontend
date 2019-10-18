@@ -1244,7 +1244,7 @@ class Netflow extends Component {
       return {
         ...item,
         _tableMenu_: allValue.id === item.id ? true : false
-      }
+      };
     });
 
     this.setState({
@@ -1653,7 +1653,7 @@ class Netflow extends Component {
     }, () => {
       PopupDialog.alert({
         title,
-        id: 'modalWindow',
+        id: 'viewJsonDialog',
         confirmText: t('txt-close'),
         display: this.displayJsonData(allValue),
         act: (confirmed, data) => {

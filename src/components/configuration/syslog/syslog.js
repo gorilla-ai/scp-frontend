@@ -27,12 +27,12 @@ import withLocale from '../../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
-let t = null
-let f = null
-let et = null
+let t = null;
+let f = null;
+let et = null;
 
-const default_pattern = '%{GREEDYDATA}'
-const default_input = 'streaming log sample'
+const default_pattern = '%{GREEDYDATA}';
+const default_input = 'streaming log sample';
 
 const INIT_CONFIG = {
   type: 'filter',
@@ -43,11 +43,10 @@ const INIT_CONFIG = {
   input: default_input,
   pattern: default_pattern,
   property: null,
-  // timestampField: '',
   relationships: [
     {name: '', srcNode: '', dstNode: '', conditions:[]}
   ]
-}
+};
 
 const INIT = {
   openFilter: false,
@@ -86,38 +85,54 @@ const INIT = {
   rawOptions: [],
   error: false,
   info: ''
-}
+};
 
 class Syslog extends Component {
 	constructor(props) {
-  	super(props)
+  	super(props);
 
-    this.handleInputChange = this.handleConfigChange.bind(this, 'input')
-    this.handleSampleChange = this.handleConfigChange.bind(this, 'sample')
-  	this.state = _.cloneDeep(INIT)
+  	this.state = _.cloneDeep(INIT);
 
-    t = chewbaccaI18n.getFixedT(null, 'connections')
+    t = chewbaccaI18n.getFixedT(null, 'connections');
     f = chewbaccaI18n.getFixedT(null, 'tableFields');
     et = chewbaccaI18n.getFixedT(null, 'errors')
     this.ah = getInstance('chewbacca');
 	}
   componentDidMount() {
-    this.getRelationship()
-    this.getSyslogList(false)
+    this.getRelationship();
+    this.getSyslogList(false);
+  }
+  getRelationship = () => {
+    const {baseUrl} = this.props;
+
+    this.ah.one({
+      url: `${baseUrl}/api/log/relationships`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          configRelationships: data.relationships
+        });
+      }
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   getSyslogList = (flag) => {
-    const {baseUrl} = this.props
-    let {syslog, search} = this.state
-    let uri = `?page=${syslog.currentPage}&pageSize=${syslog.pageSize}&sort=${syslog.sort.field}&order=${syslog.sort.desc ? 'desc' : 'asc'}`
+    const {baseUrl} = this.props;
+    let {syslog, search} = this.state;
+    let uri = `?page=${syslog.currentPage}&pageSize=${syslog.pageSize}&sort=${syslog.sort.field}&order=${syslog.sort.desc ? 'desc' : 'asc'}`;
 
     // by filter
     if (flag) {
       if (search.port) {
-        uri += `&port=${search.port}`
+        uri += `&port=${search.port}`;
       }
 
       if (search.format) {
-        uri += `&format=${search.format}`
+        uri += `&format=${search.format}`;
       }
     }
 
@@ -126,53 +141,56 @@ class Syslog extends Component {
       type: 'GET'
     })
     .then(data => {
-      let temp = {...syslog}
-      temp.dataContent = data.rows
-      temp.totalCount = data.counts
-      temp.currentPage = flag ? 1 : syslog.currentPage
+      let tempSyslog = {...syslog};
+      tempSyslog.dataContent = data.rows;
+      tempSyslog.totalCount = data.counts;
+      tempSyslog.currentPage = flag ? 1 : syslog.currentPage;
 
       const dataFields = {
-            _menu: { label: '', formatter: (value, allValue) => {
-              return <RowMenu
-                      page='syslog'
-                      active={value}
-                      targetEdit={allValue}
-                      targetDelete={allValue}
-                      targetEventDist={allValue}
-                      onEdit={this.openSyslog.bind(this, allValue.id)}
-                      onDelete={this.modalDelete.bind(this, allValue)}
-                      onEventDist={this.openTimeline.bind(this, 'configId', allValue)}
-                      onEvents={this.forwardSyslog.bind(this, allValue)}
-                      onEditHosts={this.openEditHosts.bind(this, allValue)}
-                      text={{
-                        edit: t('txt-edit'),
-                        delete: t('txt-delete'),
-                        eventDist: t('syslogFields.txt-eventDist'),
-                        events: t('txt-events'),
-                        hosts: t('syslogFields.txt-editHosts')
-                      }} />
-            }},
-            name: { label: t('syslogFields.name'), sortable: true },
-            port: { label: t('syslogFields.port'), sortable: true },
-            format: { label: t('syslogFields.format'), sortable: true },
-            property: { label: t('syslogFields.property'), formatter: (value, allValue) => {
-              return <div>  
-              {
-                _.map(JSON.parse(value), (v, k) => {
-                  return <span key={k} className='permit'>{k}</span>
-                })
-              }
-              </div>
-            }}
+        _menu: { label: '', formatter: (value, allValue) => {
+          return <RowMenu
+                  page='syslog'
+                  active={value}
+                  targetEdit={allValue}
+                  targetDelete={allValue}
+                  targetEventDist={allValue}
+                  onEdit={this.openSyslog.bind(this, allValue.id)}
+                  onDelete={this.modalDelete.bind(this, allValue)}
+                  onEventDist={this.openTimeline.bind(this, 'configId', allValue)}
+                  onEvents={this.forwardSyslog.bind(this, allValue)}
+                  onEditHosts={this.openEditHosts.bind(this, allValue)}
+                  text={{
+                    edit: t('txt-edit'),
+                    delete: t('txt-delete'),
+                    eventDist: t('syslogFields.txt-eventDist'),
+                    events: t('txt-events'),
+                    hosts: t('syslogFields.txt-editHosts')
+                  }} />
+        }},
+        name: { label: t('syslogFields.name'), sortable: true },
+        port: { label: t('syslogFields.port'), sortable: true },
+        format: { label: t('syslogFields.format'), sortable: true },
+        property: { label: t('syslogFields.property'), formatter: (value, allValue) => {
+          return <div>  
+          {
+            _.map(JSON.parse(value), (v, k) => {
+              return <span key={k} className='permit'>{k}</span>
+            })
           }
+          </div>
+        }}
+      };
 
-      this.setState({syslog: temp, dataFields}, () => {
-        this.closeSyslog()
-      })
+      this.setState({
+        syslog: tempSyslog,
+        dataFields
+      }, () => {
+        this.closeSyslog();
+      });
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
-    })          
+    })
   }
   handleTableSort = (value) => {
     let tempSyslog = {...this.state.syslog};
@@ -186,37 +204,25 @@ class Syslog extends Component {
     });
   }
   handleRowMouseOver = (value, allValue, evt) => {
-    let tmp = {...this.state.syslog}
-    tmp['dataContent'] = _.map(tmp['dataContent'], el => {
+    let tempSyslog = {...this.state.syslog};
+    tempSyslog['dataContent'] = _.map(tempSyslog['dataContent'], el => {
       return {
         ...el,
         _menu: el.id === allValue.id ? true : false
-      }
-    })
+      };
+    });
 
-    this.setState({syslog: tmp})
-  }
-  getRelationship = () => {
-    const {baseUrl} = this.props
-
-    this.ah.one({
-      url: `${baseUrl}/api/log/relationships`,
-      type: 'GET'
-    })
-    .then(data => {
-      this.setState({configRelationships: data.relationships})
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
+    this.setState({
+      syslog: tempSyslog
+    });
   }
   getRaw = () => {
-    const {config} = this.state
-    const {baseUrl} = this.props
-    let dataObj = {
+    const {baseUrl} = this.props;
+    const {config} = this.state;
+    const dataObj = {
       input: config.input,
       pattern: config.pattern
-    }
+    };
 
     this.ah.one({
       url: `${baseUrl}/api/log/grok`,
@@ -225,45 +231,58 @@ class Syslog extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      config.property = data
+      if (data) {
+        config.property = data;
+        let rawOptions = [];
 
-      let rawOptions = []
-      _.forEach(data, (value, key) => {
-        rawOptions.push({value: key, text: key})
-      })
+        _.forEach(data, (value, key) => {
+          rawOptions.push({
+            value: key,
+            text: key
+          });
+        })
 
-      this.setState({config, rawOptions})
+        this.setState({
+          config,
+          rawOptions
+        });
+      }
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
   confirmSyslog = () => {
-    const {config} = this.state
-    const {baseUrl} = this.props
+    const {baseUrl} = this.props;
+    const {config} = this.state;
+    let flag = false;
 
-    let flag = false
-    if (!config.port || !config.format || !config.input || !config.pattern/* || !config.timestampField*/) {
-      flag = true
+    if (!config.port || !config.format || !config.input || !config.pattern) {
+      flag = true;
     }
 
     _.forEach(config.relationship, el => {
       if (!el.name || !el.srcNode || !el.dstNode) {
-        flag = true
+        flag = true;
       }
       _.forEach(el.conditions, cond => {
         if (!cond.node) {
-          flag = true
+          flag = true;
         }
-      })  
+      })
     })
 
     if (flag) {
-      this.setState({error: true, info: et('fill-required-fields')})
-      return
-    }
-    else {
-      this.setState({error: false, info: ''})
+      this.setState({
+        error: true,
+        info: et('fill-required-fields')
+      });
+      return;
+    } else {
+      this.setState({
+        error: false,
+        info: ''
+      });
     }
 
     let dataObj = {
@@ -272,14 +291,13 @@ class Syslog extends Component {
       format: config.format,
       input: config.input,
       pattern: config.pattern,
-      // timestampField: config.timestampField,
       relationships: JSON.stringify(config.relationships)
-    }
+    };
+    let method = 'POST';
 
-    let method = 'POST'
     if (config.id) {
-      method = 'PATCH'
-      dataObj.id = config.id
+      method = 'PATCH';
+      dataObj.id = config.id;
     }
 
     this.ah.one({
@@ -289,14 +307,14 @@ class Syslog extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      this.getSyslogList(false)
+      this.getSyslogList(false);
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
   modalDelete = (allValue) => {
-    const eventNme = allValue.name
+    const eventNme = allValue.name;
 
     if (eventNme === 'syslog' || eventNme === 'eventlog') {
       return null;
@@ -314,40 +332,52 @@ class Syslog extends Component {
       ),
       act: (confirmed) => {
         if (confirmed) {
-          this.delSyslog(allValue.id)
+          this.delSyslog(allValue.id);
         }
       }
-    })
+    });
   }
   delSyslog = (id) => {
-    const {baseUrl} = this.props
+    const {baseUrl} = this.props;
 
     this.ah.one({
       url: `${baseUrl}/api/log/config?id=${id}`,
       type: 'DELETE'
     })
     .then(data => {
-      this.getSyslogList(false)
+      this.getSyslogList(false);
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })  
   }
   handleSyslogChange = (type, value) => {
-    let temp = {...this.state.syslog}
-    temp[type] = value
-    this.setState({syslog: temp})
+    let tempSyslog = {...this.state.syslog};
+    tempSyslog[type] = value;
+
+    this.setState({
+      syslog: tempSyslog
+    });
   }
   openSyslog = (id) => {
     const {baseUrl} = this.props
-    
-    if (id) {
-      this.ah.one({
-        url: `${baseUrl}/api/log/config?id=${id}`,
-        type: 'GET'
-      })
-      .then(data => {
-        let config = {
+
+    if (!id) {
+      this.setState({
+        openSyslog: true,
+        config: INIT_CONFIG,
+        modalTitle: t('txt-add')
+      });
+      return;
+    }
+
+    this.ah.one({
+      url: `${baseUrl}/api/log/config?id=${id}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        const config = {
           type: 'filter',
           id: data.id,
           name: data.name,
@@ -356,27 +386,35 @@ class Syslog extends Component {
           input: data.input,
           pattern: data.pattern,
           property: JSON.parse(data.property),
-          // timestampField: data.timestampField,
           relationships: JSON.parse(data.relationships)
-        }
+        };
+        let rawOptions = [];
 
-        let rawOptions = []
         _.forEach(config.property, (value, key) => {
-          rawOptions.push({value: key, text: key})
+          rawOptions.push({
+            value: key,
+            text: key
+          });
         })
 
-        this.setState({config, openSyslog:true, rawOptions, modalTitle: t('txt-edit')})
-      })
-      .catch(err => {
-        helper.showPopupMsg('', t('txt-error'), err.message);
-      })      
-    }
-    else {
-      this.setState({openSyslog: true, config: INIT_CONFIG, modalTitle: t('txt-add')})
-    }
+        this.setState({
+          config,
+          openSyslog: true,
+          rawOptions,
+          modalTitle: t('txt-edit')
+        });
+      }
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   closeSyslog = () => {
-    this.setState({openSyslog: false, error: false, info: ''})
+    this.setState({
+      openSyslog: false,
+      error: false,
+      info: ''
+    });
   }
   forwardSyslog = (config) => {
     const {baseUrl, contextRoot} = this.props;
@@ -431,16 +469,19 @@ class Syslog extends Component {
     });
   }
   handleConfigChange = (type, value) => {
-    let temp = {...this.state.config}
-    temp[type] = value
-    this.setState({config: temp})
+    let tempConfig = {...this.state.config};
+    tempConfig[type] = value;
+
+    this.setState({
+      config: tempConfig
+    });
   }
   convertPattern = () => {
-    const {baseUrl} = this.props
-    const {config} = this.state
-    let dataObj = {
+    const {baseUrl} = this.props;
+    const {config} = this.state;
+    const dataObj = {
       input: config.input
-    }
+    };
 
     this.ah.one({
       url: `${baseUrl}/api/log/pattern`,
@@ -449,7 +490,7 @@ class Syslog extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      this.handleConfigChange('pattern', data)
+      this.handleConfigChange('pattern', data);
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -458,24 +499,26 @@ class Syslog extends Component {
   getLatestInput = (configId) => {
     const {baseUrl} = this.props;
 
-    this.ah.one({
-      url: `${baseUrl}/api/log/event/sample?configId=${configId}`,
-      type: 'GET'
-    })
-    .then(data => {
-      let tempConfig = {...this.state.config};
-      tempConfig.input = data;
+    if (configId) {
+      this.ah.one({
+        url: `${baseUrl}/api/log/event/sample?configId=${configId}`,
+        type: 'GET'
+      })
+      .then(data => {
+        let tempConfig = {...this.state.config};
+        tempConfig.input = data;
 
-      this.setState({
-        config: tempConfig
-      });
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
+        this.setState({
+          config: tempConfig
+        });
+      })
+      .catch(err => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
+      })
+    }
   }
   renderTabFilter = () => {
-    const {config, rawOptions} = this.state
+    const {config, rawOptions} = this.state;
 
     return (
       <div className='filters'>
@@ -505,14 +548,6 @@ class Syslog extends Component {
           <label style={{marginLeft: '540px'}}>Data Property</label>
           <div className='right-syslog scrollY'>
             {
-              // config.property && 
-              // <div>
-              //   <label>timestamp field</label>
-              //   <DropDownList required={true} list={rawOptions} value={config.timestampField} 
-              //     onChange={this.handleConfigChange.bind(this, 'timestampField')} />
-              // </div>
-            }
-            {
               _.map(config.property, (val, key) => {
                 if (key != '_Raw') {
                   return <div key={key}><label>{key}</label><Input value={val} /></div>
@@ -525,31 +560,34 @@ class Syslog extends Component {
     )
   }
   handleRelationshipChange = (name, val) => {
-    let cfg = {...this.state.config}
-    cfg.relationships = val
-    this.setState({config: cfg})
+    let tempConfig = {...this.state.config};
+    tempConfig.relationships = val;
+
+    this.setState({
+      config: tempConfig
+    });
   }
   renderTabRelationship = () => {
-    const {config, configRelationships, rawOptions} = this.state
-    let data = {}
-
-    data.relationships = configRelationships
-    data.rawOptions = rawOptions
+    const {config, configRelationships, rawOptions} = this.state;
+    const data = {
+      relationships: configRelationships,
+      rawOptions
+    };
 
     return (
-        <MultiInput
-          className='relationships'
-          base={Relationships}
-          value={config.relationships}
-          props={data}
-          onChange={this.handleRelationshipChange.bind(this, 'config.relationships')} />
+      <MultiInput
+        className='relationships'
+        base={Relationships}
+        value={config.relationships}
+        props={data}
+        onChange={this.handleRelationshipChange.bind(this, 'config.relationships')} />
     )
   }
   displaySyslogDialog = () => {
     const {config} = this.state;
 
     return (
-      <div className='wide-dialog'>
+      <div>
         <div className='syslogs'>
           <div className='syslog'>
             <label>{t('syslogFields.name')}</label>
@@ -583,17 +621,23 @@ class Syslog extends Component {
           ]}
           onChange={this.handleConfigChange.bind(this, 'type')}
           value={config.type} />
-        { config.type === 'filter' && this.renderTabFilter() }
-        { config.type === 'relationship' && this.renderTabRelationship() }
+
+        {config.type === 'filter' && 
+          this.renderTabFilter()
+        }
+
+        {config.type === 'relationship' &&
+          this.renderTabRelationship()
+        }
       </div>
     )    
   }
   modalSyslog = () => {
-    const {error, info, modalTitle} = this.state
+    const {error, info, modalTitle} = this.state;
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeSyslog},
       confirm: {text: t('txt-confirm'), handler: this.confirmSyslog}
-    }
+    };
 
     return (
       <ModalDialog
@@ -630,7 +674,7 @@ class Syslog extends Component {
         return {
           ip: value,
           events: key
-        }
+        };
       });
 
       const tempEventsData = {
@@ -667,7 +711,7 @@ class Syslog extends Component {
     const {activeTimeline, activeConfigName, clickTimeline, datetime, eventsData} = this.state;
     const actions = {
       confirm: {text: t('txt-confirm'), handler: this.closeTimeline.bind(this)}
-    }
+    };
     let type = '';
     let title = '';
 
@@ -684,7 +728,7 @@ class Syslog extends Component {
         time: parseInt(Moment(key, 'YYYY-MM-DDTHH:mm:ss.SSZ').utc(true).format('x')),
         events: value,
         type: type
-      }
+      };
     });
     const chartAttributes = {
       legend: {
@@ -716,7 +760,13 @@ class Syslog extends Component {
     }
 
     return (
-      <ModalDialog id='viewEventsTimeline' title={title} draggable={true} global={true} actions={actions} closeAction='confirm'>
+      <ModalDialog
+        id='viewEventsTimeline'
+        title={title}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='confirm'>
         <div className='calendar-section'>
           <DateRange
             id='datetime'
@@ -756,8 +806,7 @@ class Syslog extends Component {
     )
   }
   handleEditHostsChange = (data) => {
-    const {hostsData} = this.state;
-    let tempHostsData = {...hostsData};
+    let tempHostsData = {...this.state.hostsData};
     tempHostsData.formattedHostsData = data;
 
     this.setState({
@@ -824,31 +873,45 @@ class Syslog extends Component {
     });
   }
   handleSearchChange = (type, value) => {
-    let tempSearch = {...this.state.search}
-    tempSearch[type] = value.trim()
-    this.setState({search: tempSearch})
+    let tempSearch = {...this.state.search};
+    tempSearch[type] = value.trim();
+
+    this.setState({
+      search: tempSearch
+    });
   }
   handlePaginationChange = (type, value) => {
-    let temp = {...this.state.syslog}
-    temp[type] = value
+    let tempSyslog = {...this.state.syslog};
+    tempSyslog[type] = value;
 
     if (type === 'pageSize') {
-      temp.currentPage = 1;
+      tempSyslog.currentPage = 1;
     }
 
-    this.setState({syslog: temp}, () => {
-      this.getSyslogList()
-    })
+    this.setState({
+      syslog: tempSyslog
+    }, () => {
+      this.getSyslogList();
+    });
   }
   setFilter = (flag) => {
-    this.setState({openFilter: flag})
+    this.setState({
+      openFilter: flag
+    });
   }
   clearFilter = () => {
-    const clear = { name: '', port: '', format: '' }
-    this.setState({search: clear})
+    const search = {
+      name: '',
+      port: '',
+      format: ''
+    };
+
+    this.setState({
+      search
+    });
   }
   renderFilter = () => {
-    const {search, openFilter} = this.state
+    const {search, openFilter} = this.state;
 
     return (
       <div className={cx('main-filter', {'active': openFilter})}>
@@ -872,14 +935,22 @@ class Syslog extends Component {
     )
   }
 	render() {
-    const {baseUrl, contextRoot, language, session} = this.props
-    const {openSyslog, openTimeline, openEditHosts, syslog, openFilter, dataFields} = this.state
+    const {baseUrl, contextRoot, language, session} = this.props;
+    const {openSyslog, openTimeline, openEditHosts, syslog, openFilter, dataFields} = this.state;
 
 		return (
 			<div>
-        { openSyslog && this.modalSyslog() }
-        { openTimeline && this.modalTimeline() }
-        { openEditHosts && this.modalEditHosts() }
+        {openSyslog &&
+          this.modalSyslog()
+        }
+
+        {openTimeline &&
+          this.modalTimeline()
+        }
+
+        {openEditHosts &&
+          this.modalEditHosts()
+        }
 
 				<div className='sub-header'>
           <div className='secondary-btn-group right'>
