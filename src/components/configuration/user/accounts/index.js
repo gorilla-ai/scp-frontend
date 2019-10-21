@@ -27,6 +27,7 @@ class AccountList extends Component {
     super(props);
 
     this.state = {
+      originalAccountData: [],
       accountData: [],
       param: {
         name: '',
@@ -60,9 +61,20 @@ class AccountList extends Component {
       const accountData = data.rt.rows;
       const dataFields = {
         _menu: {label: '', sortable: null, formatter: (val, allValue) => {
-          return <RowMenu page='accounts' active={val} targetEdit={allValue.accountid} targetDelete={allValue.accountid} targetUnlock={allValue.accountid}
-                          text={{ edit: c('txt-edit'), delete: c('txt-delete'), unlock: c('txt-unlock') }}
-                          onEdit={this.showEditDialog} onDelete={this.showDeleteDialog.bind(this, allValue)} onUnlock={this.showUnlockDialog.bind(this, allValue)} />
+          return <RowMenu
+            page='accounts'
+            active={val}
+            targetEdit={allValue.accountid}
+            targetDelete={allValue.accountid}
+            targetUnlock={allValue.accountid}
+            text={{
+              edit: c('txt-edit'),
+              delete: c('txt-delete'),
+              unlock: c('txt-unlock')
+            }}
+            onEdit={this.showEditDialog}
+            onDelete={this.showDeleteDialog.bind(this, allValue)}
+            onUnlock={this.showUnlockDialog.bind(this, allValue)} />
         }},
         accountid: {label: 'ID', hide: true},
         account: {label: t('l-account'), sortable: null},
@@ -74,6 +86,7 @@ class AccountList extends Component {
       };
 
       this.setState({
+        originalAccountData: _.cloneDeep(accountData),
         accountData,
         dataFields
       });
@@ -82,24 +95,34 @@ class AccountList extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  handleRowMouseOver(value, allValue, evt) {
-    let tmp = {...this.state.accountData}
-
-    tmp = _.map(tmp, el => {
+  handleRowMouseOver = (value, allValue, evt) => {
+    let tempAccountData = {...this.state.accountData};
+    tempAccountData = _.map(tempAccountData, el => {
       return {
         ...el,
         _menu: el.accountid === allValue.accountid ? true : false
       };
-    })
+    });
 
-    this.setState({accountData: tmp})
+    this.setState({
+      accountData: tempAccountData
+    });
   }
-  filterData(data, param) {
-    return (!param.name && !param.account)
-      ? data
-      : _.filter(data, ({name, account}) => {
-        return (_.includes(name, param.name) && _.includes(account, param.account))
-      })
+  filterData = () => {
+    const {originalAccountData, accountData, param} = this.state;
+    let filteredAccountArr = [];
+
+    if (param.name || param.account) { //If filters are set
+      filteredAccountArr = _.filter(accountData, ({name, account}) => {
+        return (_.includes(name, param.name) && _.includes(account, param.account));
+      });
+    } else  {
+      filteredAccountArr = originalAccountData;
+    }
+
+    this.setState({
+      accountData: filteredAccountArr
+    });
   }
   getFormFields = () => {
     const formFields = {
@@ -174,7 +197,6 @@ class AccountList extends Component {
       }
     });
   }
-
   accountAction = (type) => {
     const {baseUrl} = this.props;
     const {accountID} = this.state;
@@ -208,21 +230,27 @@ class AccountList extends Component {
     }
   }
   handleSearchChange = (type, value) => {
-    let temp = {...this.state.param}
-    temp[type] = value.trim()
+    let tempParam = {...this.state.param}
+    tempParam[type] = value.trim()
 
     this.setState({
-      param: temp
-    })
+      param: tempParam
+    });
   }
-  setFilter(flag) {
-    this.setState({openFilter: flag})
+  setFilter = (flag) => {
+    this.setState({
+      openFilter: flag
+    });
   }
-  clearFilter() {
-    const clear = { name: '', account: '' }
-    this.setState({param: clear})
+  clearFilter = () => {
+    this.setState({
+      param: {
+        name: '',
+        account: ''
+      }
+    });
   }
-  renderFilter() {
+  renderFilter = () => {
     const {param, openFilter} = this.state
 
     return (
@@ -240,6 +268,7 @@ class AccountList extends Component {
           </div>
         </div>
         <div className='button-group'>
+          <button className='filter' onClick={this.filterData}>{c('txt-filter')}</button>
           <button className='clear' onClick={this.clearFilter.bind(this)}>{c('txt-clear')}</button>
         </div>
       </div>
@@ -247,14 +276,14 @@ class AccountList extends Component {
   }
   render() {
     const {baseUrl, contextRoot, language, session} = this.props;
-    const {accountData, param, formFields, dataFields, openFilter} = this.state;
+    const {accountData, dataFields, openFilter} = this.state;
 
     return (
       <div>
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
             <button onClick={this.showEditDialog.bind(this, null)} title={t('txt-add-account')}><i className='fg fg-add'></i></button>
-            <button className={cx('last', {'active': openFilter})} onClick={this.setFilter.bind(this, !openFilter)} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
+            <button className={cx('last', {'active': openFilter})} onClick={this.setFilter.bind(this, !openFilter)} title={c('txt-filter')}><i className='fg fg-filter'></i></button>
           </div>
         </div>
 
@@ -276,7 +305,7 @@ class AccountList extends Component {
                     className='main-table'
                     fields={dataFields}
                     onRowMouseOver={this.handleRowMouseOver.bind(this)}
-                    data={this.filterData(accountData, param)} />
+                    data={accountData} />
                 </div>
               </div>
             </div>

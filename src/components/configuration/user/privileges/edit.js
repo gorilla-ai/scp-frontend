@@ -123,7 +123,6 @@ class Editor extends Component {
           cancel: {text: gt('btn-cancel'), className: 'standard', handler: this.close.bind(this, false)},
           confirm: {text: gt('btn-ok'), handler: this.bindPermits}
         }}>
-
         <div className='c-form'>
           <div>
             <label className='required'>{t('l-name')}</label>

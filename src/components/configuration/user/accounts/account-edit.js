@@ -105,7 +105,7 @@ class Editor extends Component {
     })
   }
   saveAccount = () => {
-    const {baseUrl, session, onDone} = this.props;
+    const {baseUrl} = this.props;
     const {id, accountData, showPrivileges} = this.state;
     let validForm = true;
 
@@ -129,12 +129,14 @@ class Editor extends Component {
       .then(data => {
         const resId = id || data || data.rt;
 
-        this.setState({id:resId}, () => {
+        this.setState({
+          id: resId
+        }, () => {
           if (showPrivileges) {
-            this.savePrivileges()
+            this.savePrivileges();
           } else {
-            this.close()
-            onDone()
+            this.close();
+            this.props.onDone();
           }
         });
       })
@@ -152,7 +154,7 @@ class Editor extends Component {
     }
   }
   savePrivileges = () => {
-    const {baseUrl, onDone} = this.props;
+    const {baseUrl} = this.props;
     const {id, accountData:{selected}} = this.state;
 
     ah.one({
@@ -164,7 +166,7 @@ class Editor extends Component {
     .then(data => {
       this.setState(
         _.cloneDeep(INITIAL_STATE), () => {
-        onDone()
+        this.props.onDone();
       });
     })
     .catch(err => {

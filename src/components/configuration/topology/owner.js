@@ -164,17 +164,17 @@ class NetworkOwner extends Component {
           sortable: (tempData === 'ownerID' || tempData === 'ownerName') ? true : null,
           formatter: (value, allValue) => {
             if (tempData === '_menu') {
-              return <RowMenu 
-                      page='owner'
-                      active={value}
-                      targetEdit={allValue}
-                      targetDelete={allValue}
-                      text={{
-                        edit: t('txt-edit'),
-                        delete: t('txt-delete')
-                      }}
-                      onEdit={this.getOwnerInfo}
-                      onDelete={this.openDeleteOwnerModal} />
+              return <RowMenu
+                page='owner'
+                active={value}
+                targetEdit={allValue}
+                targetDelete={allValue}
+                text={{
+                  edit: t('txt-edit'),
+                  delete: t('txt-delete')
+                }}
+                onEdit={this.getOwnerInfo}
+                onDelete={this.openDeleteOwnerModal} />
             } else {
               return <span>{value}</span>;
             }

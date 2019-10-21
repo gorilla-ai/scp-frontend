@@ -33,8 +33,6 @@ class ResetPwd extends Component {
 
 		this.ah = getInstance('chewbacca');
 	}
-	componentDidMount() {
-	}
 	saveAccount = () => {
 		const {baseUrl, contextRoot} = this.props;
 		const {formData} = this.state;

@@ -83,9 +83,17 @@ class Roles extends Component {
     .then(data => {
       const dataFields = {
         _menu: {label: '', sortable: null, style:{width: '10%'}, formatter: (val, allValue) => {
-          return <RowMenu page='privileges' active={val} targetEdit={allValue} targetDelete={allValue.privilegeid} 
-                          text={{ edit: c('txt-edit'), delete: c('txt-delete') }}
-                          onEdit={this.showEditDialog.bind(this)} onDelete={this.showDeleteDialog.bind(this, allValue)} />
+          return <RowMenu
+            page='privileges'
+            active={val}
+            targetEdit={allValue}
+            targetDelete={allValue.privilegeid} 
+            text={{
+              edit: c('txt-edit'),
+              delete: c('txt-delete')
+            }}
+            onEdit={this.showEditDialog.bind(this)}
+            onDelete={this.showDeleteDialog.bind(this, allValue)} />
         }},
         privilegeid: {label: 'ID', hide: true},
         name: {label: t('l-name'), sortable: true, style:{width: '30%', textAlign: 'left'}},
@@ -117,7 +125,7 @@ class Roles extends Component {
       });
     })
   }
-  handleRowMouseOver(value, allValue, evt) {
+  handleRowMouseOver = (value, allValue, evt) => {
     let tempData = {...this.state.data};
     tempData = _.map(tempData, el => {
       return {

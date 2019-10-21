@@ -149,23 +149,23 @@ class Syslog extends Component {
       const dataFields = {
         _menu: { label: '', formatter: (value, allValue) => {
           return <RowMenu
-                  page='syslog'
-                  active={value}
-                  targetEdit={allValue}
-                  targetDelete={allValue}
-                  targetEventDist={allValue}
-                  onEdit={this.openSyslog.bind(this, allValue.id)}
-                  onDelete={this.modalDelete.bind(this, allValue)}
-                  onEventDist={this.openTimeline.bind(this, 'configId', allValue)}
-                  onEvents={this.forwardSyslog.bind(this, allValue)}
-                  onEditHosts={this.openEditHosts.bind(this, allValue)}
-                  text={{
-                    edit: t('txt-edit'),
-                    delete: t('txt-delete'),
-                    eventDist: t('syslogFields.txt-eventDist'),
-                    events: t('txt-events'),
-                    hosts: t('syslogFields.txt-editHosts')
-                  }} />
+            page='syslog'
+            active={value}
+            targetEdit={allValue}
+            targetDelete={allValue}
+            targetEventDist={allValue}
+            onEdit={this.openSyslog.bind(this, allValue.id)}
+            onDelete={this.modalDelete.bind(this, allValue)}
+            onEventDist={this.openTimeline.bind(this, 'configId', allValue)}
+            onEvents={this.forwardSyslog.bind(this, allValue)}
+            onEditHosts={this.openEditHosts.bind(this, allValue)}
+            text={{
+              edit: t('txt-edit'),
+              delete: t('txt-delete'),
+              eventDist: t('syslogFields.txt-eventDist'),
+              events: t('txt-events'),
+              hosts: t('syslogFields.txt-editHosts')
+            }} />
         }},
         name: { label: t('syslogFields.name'), sortable: true },
         port: { label: t('syslogFields.port'), sortable: true },
