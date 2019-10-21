@@ -132,7 +132,7 @@ class Status extends Component {
             <div className='main-content'>
               <header className='main-header'>{t('txt-serviceStatus')}</header>
               <div className='table-content'>
-                <div className='table normal'>
+                <div className='table no-pagination'>
       	          <DataTable
                     className='main-table align-center'
                     fields={serviceStatus.dataFields}

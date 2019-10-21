@@ -300,7 +300,7 @@ class AccountList extends Component {
             <div className='main-content'>
               <header className='main-header'>{c('txt-account')}</header>
               <div className='table-content'>
-                <div className='table normal'>
+                <div className='table no-pagination'>
                   <DataTable
                     className='main-table'
                     fields={dataFields}

@@ -36,11 +36,7 @@ class Edge extends Component {
       activeContent: 'tableList', //tableList, editEdge
       showFilter: false,
       currentEdgeData: '',
-      serviceType: [
-        {value: 'all', text: t('txt-all')},
-        {value: 'NETTRAP', text: 'NETTRAP'},
-        {value: 'NETFLOW-IDS-SURICATA', text: 'NETFLOW-IDS-SURICATA'}
-      ],
+      serviceType: [],
       connectionStatus: [
         {value: 'all', text: t('txt-all')},
         {value: 'Normal', text: 'Normal'},
@@ -69,32 +65,14 @@ class Edge extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    this.getEdgeData();
+    this.getEdgeData('initialLoad');
   }
   componentWillReceiveProps(nextProps) {
     if (nextProps.location.state === 'tableList') {
       this.toggleContent('tableList');
     }
   }
-  agentAnalysis = (allValue) => {
-    const {baseUrl, contextRoot} = this.props;
-    const url = `${baseUrl}/api/agent/_analyze?projectId=${allValue.projectId}`;
-
-    ah.one({
-      url: url,
-      type: 'GET'
-    })
-    .then(data => {
-      if (data.ret === 0) {
-        this.getEdgeData('search');
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  getEdgeData = (fromSearch) => {
+  getEdgeData = (options) => {
     const {baseUrl, contextRoot} = this.props;
     const {edgeSearch, edge} = this.state;
     const url = `${baseUrl}/api/edge/_search?page=${edge.currentPage}&pageSize=${edge.pageSize}`;
@@ -118,7 +96,32 @@ class Edge extends Component {
         let tempEdge = {...edge};
         tempEdge.dataContent = data.rows;
         tempEdge.totalCount = data.counts;
-        tempEdge.currentPage = fromSearch === 'search' ? 1 : edge.currentPage;
+        tempEdge.currentPage = options === 'search' ? 1 : edge.currentPage;
+
+        if (options === 'initialLoad') {
+          let serviceTypeArr = [];
+          let serviceType = [{
+            value: 'all',
+            text: t('txt-all')
+          }];
+
+          _.forEach(data.rows, val => {
+            if (!_.includes(serviceTypeArr, val.serviceType)) {
+              serviceTypeArr.push(val.serviceType);
+            }
+          });
+
+          _.forEach(serviceTypeArr, val => {
+            serviceType.push({
+              value: val,
+              text: val
+            });
+          })
+
+          this.setState({
+            serviceType
+          });
+        }
 
         let dataFields = {};
         edge.dataFieldsArr.forEach(tempData => {
@@ -224,6 +227,24 @@ class Edge extends Component {
     .catch(err => {
       helper.showPopupMsg(t('txt-error'));
     });
+  }
+  agentAnalysis = (allValue) => {
+    const {baseUrl, contextRoot} = this.props;
+    const url = `${baseUrl}/api/agent/_analyze?projectId=${allValue.projectId}`;
+
+    ah.one({
+      url: url,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        this.getEdgeData('search');
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   checkSortable = (field) => {
     const unSortableFields = ['description', '_menu_'];

@@ -161,7 +161,7 @@ class Roles extends Component {
             <div className='main-content'>
               <header className='main-header'>{c('txt-privileges')}</header>
               <div className='table-content'>
-                <div className='table normal'>
+                <div className='table no-pagination'>
                   <DataTable
                     className='main-table'
                     data={data}
