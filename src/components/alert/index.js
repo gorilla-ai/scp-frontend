@@ -378,15 +378,13 @@ class AlertController extends Component {
     };
     dataObj[timeAttribute] = [dateTime.from, dateTime.to];
 
-    if (!options) {
-      dataObj['filters'] = [defaultCondition];
-    } else if (options === 'tree') {
+    if (options === 'tree') {
       dataObj['filters'] = [{
         condition: 'must',
         query: 'All'
       }];
       dataObj['search'] = defaultSearch;
-    } else if (options === 'search') {
+    } else {
       let filterDataArr = [];
 
       if (filterData.length === 1 && filterData[0].query === '') {
