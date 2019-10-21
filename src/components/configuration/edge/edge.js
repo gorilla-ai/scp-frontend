@@ -65,14 +65,47 @@ class Edge extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    this.getEdgeData('initialLoad');
+    this.getEdgeServiceType();
+    this.getEdgeData();
   }
   componentWillReceiveProps(nextProps) {
     if (nextProps.location.state === 'tableList') {
       this.toggleContent('tableList');
     }
   }
-  getEdgeData = (options) => {
+  getEdgeServiceType = () => {
+    const {baseUrl, contextRoot} = this.props;
+    const url = `${baseUrl}/api/edge/serviceType`;
+
+    this.ah.one({
+      url: url,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let serviceType = [{
+          value: 'all',
+          text: t('txt-all')
+        }];
+
+        _.forEach(data, val => {
+          serviceType.push({
+            value: val,
+            text: val
+          });
+        })
+
+        this.setState({
+          serviceType
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  getEdgeData = (fromSearch) => {
     const {baseUrl, contextRoot} = this.props;
     const {edgeSearch, edge} = this.state;
     const url = `${baseUrl}/api/edge/_search?page=${edge.currentPage}&pageSize=${edge.pageSize}`;
@@ -96,32 +129,7 @@ class Edge extends Component {
         let tempEdge = {...edge};
         tempEdge.dataContent = data.rows;
         tempEdge.totalCount = data.counts;
-        tempEdge.currentPage = options === 'search' ? 1 : edge.currentPage;
-
-        if (options === 'initialLoad') {
-          let serviceTypeArr = [];
-          let serviceType = [{
-            value: 'all',
-            text: t('txt-all')
-          }];
-
-          _.forEach(data.rows, val => {
-            if (!_.includes(serviceTypeArr, val.serviceType)) {
-              serviceTypeArr.push(val.serviceType);
-            }
-          });
-
-          _.forEach(serviceTypeArr, val => {
-            serviceType.push({
-              value: val,
-              text: val
-            });
-          })
-
-          this.setState({
-            serviceType
-          });
-        }
+        tempEdge.currentPage = fromSearch === 'search' ? 1 : edge.currentPage;
 
         let dataFields = {};
         edge.dataFieldsArr.forEach(tempData => {
