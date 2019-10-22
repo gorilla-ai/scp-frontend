@@ -314,7 +314,6 @@
     "txt-vpnIP": "VPN IP",
     "txt-vpnLicenseName": "VPN License Name",
     "txt-deleteEdge": "$t(txt-delete)$t(txt-edge)",
-    "txt-deleteEdgeMsg": "$t(txt-delete-msg)$t(txt-edge)",
     "txt-serviceType": "服務類型",
     "txt-serviceMode": "服務模式",
     "txt-activatTime": "啟用時間",

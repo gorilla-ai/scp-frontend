@@ -386,8 +386,8 @@ class NetworkInventory extends Component {
         <div className='main'>{t('ipFields.ip')}: {deviceInfo.ip}</div>
         <div className='main'>{t('ipFields.mac')}: {deviceInfo.mac}</div>
         <div className='table-menu inventory active'>
-          <i className='fg fg-eye' onClick={this.openMenu.bind(this, 'view', currentDeviceData)} title={t('alert.txt-ipBasicInfo')}></i>
-          <i className='fg fg-chart-kpi' onClick={this.openMenu.bind(this, 'hmd', currentDeviceData)} title={t('alert.txt-safetyScanInfo')}></i>
+          <i className='fg fg-eye' onClick={this.openMenu.bind(this, 'view', currentDeviceData)} title={t('network-inventory.txt-viewDevice')}></i>
+          <i className='fg fg-chart-kpi' onClick={this.openMenu.bind(this, 'hmd', currentDeviceData)} title={t('network-inventory.txt-viewHMD')}></i>
           <i className='fg fg-trashcan' onClick={this.openMenu.bind(this, 'delete', currentDeviceData)} title={t('network-inventory.txt-deleteDevice')}></i>
         </div>
         <div className='main header'>{t('alert.txt-systemInfo')}</div>
@@ -1073,11 +1073,16 @@ class NetworkInventory extends Component {
   checkTriggerTime = (type) => {
     const {currentDeviceData} = this.state;
     const resultType = type + 'Result';
-    const createTime = helper.getFormattedDate(currentDeviceData[resultType].taskCreateDttm, 'local');
-    const responseTime = helper.getFormattedDate(currentDeviceData[resultType].taskResponseDttm, 'local');
+    let createTime = '';
+    let responseTime = '';
 
-    if (Moment(createTime).isAfter(responseTime)) {
-      return true;
+    if (currentDeviceData[resultType].taskCreateDttm && currentDeviceData[resultType].taskResponseDttm) {
+      createTime = helper.getFormattedDate(currentDeviceData[resultType].taskCreateDttm, 'local');
+      responseTime = helper.getFormattedDate(currentDeviceData[resultType].taskResponseDttm, 'local');
+
+      if (Moment(createTime).isAfter(responseTime)) {
+        return true;
+      }
     }
   }
   triggerTask = (type, taskId) => {
@@ -1396,8 +1401,10 @@ class NetworkInventory extends Component {
           newTitle: titleList[0].value
         };
 
-        this.getAreaData(currentDeviceData.areaUUID);
-        this.getSeatData(currentDeviceData.areaUUID);
+        if (currentDeviceData.areaUUID) {
+          this.getAreaData(currentDeviceData.areaUUID);
+          this.getSeatData(currentDeviceData.areaUUID);
+        }
       } else if (formType === 'new') {
         formTypeEdit = false;
         this.getAreaData(floorList[0].value);
@@ -1698,7 +1705,7 @@ class NetworkInventory extends Component {
                   id='addIPstepsMac'
                   required={true}
                   validate={{
-                    pattern: /^(([A-Fa-f0-9]{2}[:]){5}[A-Fa-f0-9]{2}[,]?)+$/,
+                    pattern: /^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$/,
                     patternReadable: '1)MM:MM:MM:SS:SS:SS 2)MM-MM-MM-SS-SS-SS',
                     t: et
                   }}

@@ -67,7 +67,7 @@ class PrivateDetails extends Component {
             <div className='trigger-text'>{t('edge-management.txt-lastUpateTime')}: {helper.getFormattedDate(topoInfo.updateDttm, 'local')}</div>
           }
           {topoInfo.isHmd &&
-            <button className='btn trigger' onClick={this.props.triggerTask.bind(this, '', 'getSystemInfo')}>{t('txt-reTrigger')}</button>
+            <button className='btn trigger' onClick={this.props.triggerTask.bind(this, 'getSystemInfo', '')}>{t('txt-reTrigger')}</button>
           }
           <table className='c-table main-table host'>
             <tbody>

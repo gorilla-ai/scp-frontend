@@ -214,8 +214,8 @@ class Edge extends Component {
               } else if (tempData === '_menu_') {
                 return (
                   <div className='table-menu menu active'>
-                    <i className='fg fg-edit' onClick={this.toggleContent.bind(this, 'editEdge', allValue, index)} title={t('edge-management.txt-editEdge')}></i>
-                    <i className='fg fg-trashcan' onClick={this.openDeleteMenu.bind(this, allValue)} title={t('edge-management.txt-deleteEdge')}></i>
+                    <i className='fg fg-edit' onClick={this.toggleContent.bind(this, 'editEdge', allValue, index)} title={t('txt-edit')}></i>
+                    <i className='fg fg-trashcan' onClick={this.openDeleteMenu.bind(this, allValue)} title={t('txt-delete')}></i>
                   </div>
                 )
               } else {
