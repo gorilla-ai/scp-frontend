@@ -310,9 +310,7 @@ class Netflow extends Component {
 
     helper.getAjaxData('POST', url, agentData)
     .then(data => {
-      if (data.counts === 0) {
-        helper.showPopupMsg(t('events.connections.txt-addAgentMsg'), '', '', '', 'agent');
-      } else {
+      if (data.rows.length > 0) {
         const projectID = data.rows.map(tempData => {
           return tempData.projectId;
         });
@@ -321,7 +319,9 @@ class Netflow extends Component {
           projectID
         }, () => {
           this.loadAllFields();
-        });
+        });      
+      } else {
+        helper.showPopupMsg(t('events.connections.txt-addAgentMsg'), '', '', '', 'agent');
       }
       return null;
     });
@@ -1740,7 +1740,9 @@ class Netflow extends Component {
         <div className='pcap'>
           <div className='list'>
             <ul>
-              {pcapData.data.map(this.showPCAPcontent)}
+              {pcapData.data && pcapData.data.length > 0 &&
+                pcapData.data.map(this.showPCAPcontent)
+              }
             </ul>
           </div>
           <div className='data'>

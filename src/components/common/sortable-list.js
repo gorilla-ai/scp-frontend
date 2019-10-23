@@ -38,7 +38,9 @@ class SortableList extends Component {
 
     return (
       <ul className='table-sort'>
-        {items.map(this.showTableSort)}
+        {items.length > 0 &&
+          items.map(this.showTableSort)
+        }
       </ul>
     )
   }

@@ -876,7 +876,12 @@ class NetworkInventory extends Component {
           <i className={cx('fg fg-play', {'rotate': _.includes(activeRule, i)})}></i>
           <span>{nameList[i]}</span>
         </div>
-        <code className={cx({'hide': !_.includes(activeRule, i)})}>{val}</code>
+        {val &&
+          <code className={cx({'hide': !_.includes(activeRule, i)})}>{val}</code>
+        }
+        {!val &&
+          <span>{NOT_AVAILABLE}</span>
+        }
       </div>
     )
   }
@@ -890,6 +895,7 @@ class NetworkInventory extends Component {
   displayFilePath = (val) => {
     const {activeDDL} = this.state;
     let filePathList = [];
+    let displayInfo = '';
 
     _.forEach(val._ProcessInfo._ModulesInfo, val2 => {
       if (val2._FileInfo && val2._FileInfo._Filepath) {
@@ -897,9 +903,15 @@ class NetworkInventory extends Component {
       }
     })
 
+    if (filePathList.length > 0) {
+      displayInfo = filePathList.map(this.displayIndividualFile);
+    } else {
+      displayInfo = NOT_AVAILABLE;
+    }
+
     return (
-      <div className={cx('sub-content', {'hide': (!activeDDL)})}>
-        {filePathList.map(this.displayIndividualFile)}
+      <div className={cx('sub-content', {'hide': !activeDDL})}>
+        {displayInfo}
       </div>
     )
   }
@@ -961,82 +973,100 @@ class NetworkInventory extends Component {
   displayScanProcessPath = (val, i) => {
     const {activePath, activeRuleHeader, activeDDL, activeConnections} = this.state;
     const uniqueKey = val._ScanType + i;
+    let displayInfo = '';
 
-    return (
-      <div className='group' key={uniqueKey}>
-        <div className='path' onClick={this.togglePathRule.bind(this, 'path', i)}>
-          <i className={cx('fg fg-arrow-bottom', {'rotate': activePath === i})}></i>
-          {val._MatchedFile &&
-            <span>{t('txt-path')}: {val._MatchedFile}</span>
-          }
-          {val._MatchedFile && val._MatchedPid &&
-            <span>, </span>
-          }
-          {val._MatchedPid &&
-            <span>PID: {val._MatchedPid}</span>
-          }
+    if (val._MatchedRuleList && val._MatchedRuleList.length > 0 && val._MatchedRuleNameList) {
+      displayInfo = val._MatchedRuleList.map(this.displayRule.bind(this, val._MatchedRuleNameList, i));
+    } else {
+      displayInfo = NOT_AVAILABLE;
+    }
+
+    if (val._MatchedFile || val._MatchedPid) {
+      return (
+        <div className='group' key={uniqueKey}>
+          <div className='path' onClick={this.togglePathRule.bind(this, 'path', i)}>
+            <i className={cx('fg fg-arrow-bottom', {'rotate': activePath === i})}></i>
+            {val._MatchedFile &&
+              <span>{t('txt-path')}: {val._MatchedFile}</span>
+            }
+            {val._MatchedFile && val._MatchedPid &&
+              <span>, </span>
+            }
+            {val._MatchedPid &&
+              <span>PID: {val._MatchedPid}</span>
+            }
+          </div>
+          <div className={cx('rule', {'hide': activePath !== i})}>
+            <div className='rule-content'>
+              <div className='header' onClick={this.toggleInfoHeader.bind(this, 'rule')}>
+                <i className={cx('fg fg-play', {'rotate': activeRuleHeader})}></i>
+                <span>{t('txt-rule')}</span>
+              </div>
+              <div className={cx('sub-content', {'hide': !activeRuleHeader})}>
+                {displayInfo}
+              </div>
+            </div>
+
+            <div className='rule-content'>
+              <div className='header' onClick={this.toggleInfoHeader.bind(this, 'ddl')}>
+                <i className={cx('fg fg-play', {'rotate': activeDDL})}></i>
+                <span>DDLs</span>
+              </div>
+              {this.displayFilePath(val)}
+            </div>
+
+            <div className='rule-content'>
+              <div className='header' onClick={this.toggleInfoHeader.bind(this, 'connections')}>
+                <i className={cx('fg fg-play', {'rotate': activeConnections})}></i>
+                <span>{t('txt-networkBehavior')}</span>
+              </div>
+              {this.displayConnections(val)}
+            </div>
+          </div>
         </div>
-        <div className={cx('rule', {'hide': activePath !== i})}>
-          <div className='rule-content'>
-            <div className='header' onClick={this.toggleInfoHeader.bind(this, 'rule')}>
-              <i className={cx('fg fg-play', {'rotate': activeRuleHeader})}></i>
-              <span>{t('txt-rule')}</span>
-            </div>
-            <div className={cx('sub-content', {'hide': (!activeRuleHeader)})}>
-              {val._MatchedRuleList.map(this.displayRule.bind(this, val._MatchedRuleNameList, i))}
-            </div>
-          </div>
-
-          <div className='rule-content'>
-            <div className='header' onClick={this.toggleInfoHeader.bind(this, 'ddl')}>
-              <i className={cx('fg fg-play', {'rotate': activeDDL})}></i>
-              <span>DDLs</span>
-            </div>
-            {this.displayFilePath(val)}
-          </div>
-
-          <div className='rule-content'>
-            <div className='header' onClick={this.toggleInfoHeader.bind(this, 'connections')}>
-              <i className={cx('fg fg-play', {'rotate': activeConnections})}></i>
-              <span>{t('txt-networkBehavior')}</span>
-            </div>
-            {this.displayConnections(val)}
-          </div>
-        </div>
-      </div>
-    )
+      )
+    }
   }
   displayScanFilePath = (val, i) => {
     const {activePath, activeRuleHeader} = this.state;
     const uniqueKey = val._ScanType + i;
+    let displayInfo = '';
 
-    return (
-      <div className='group' key={uniqueKey}>
-        <div className='path' onClick={this.togglePathRule.bind(this, 'path', i)}>
-          <i className={cx('fg fg-arrow-bottom', {'rotate': activePath === i})}></i>
-          {val._MatchedFile &&
-            <span>{t('txt-path')}: {val._MatchedFile}</span>
-          }
-          {val._MatchedFile && val._MatchedPid &&
-            <span>, </span>
-          }
-          {val._MatchedPid &&
-            <span>PID: {val._MatchedPid}</span>
-          }
-        </div>
-        <div className={cx('rule', {'hide': activePath !== i})}>
-          <div className='rule-content'>
-            <div className='header' onClick={this.toggleInfoHeader.bind(this, 'rule')}>
-              <i className={cx('fg fg-play', {'rotate': activeRuleHeader})}></i>
-              <span>{t('txt-rule')}</span>
-            </div>
-            <div className={cx('sub-content', {'hide': (!activeRuleHeader)})}>
-              {val._MatchedRuleList.map(this.displayRule.bind(this, val._MatchedRuleNameList, i))}
+    if (val._MatchedRuleList && val._MatchedRuleList.length > 0 && val._MatchedRuleNameList) {
+      displayInfo = val._MatchedRuleList.map(this.displayRule.bind(this, val._MatchedRuleNameList, i));
+    } else {
+      displayInfo = NOT_AVAILABLE;
+    }
+
+    if (val._MatchedFile || val._MatchedPid) {
+      return (
+        <div className='group' key={uniqueKey}>
+          <div className='path' onClick={this.togglePathRule.bind(this, 'path', i)}>
+            <i className={cx('fg fg-arrow-bottom', {'rotate': activePath === i})}></i>
+            {val._MatchedFile &&
+              <span>{t('txt-path')}: {val._MatchedFile}</span>
+            }
+            {val._MatchedFile && val._MatchedPid &&
+              <span>, </span>
+            }
+            {val._MatchedPid &&
+              <span>PID: {val._MatchedPid}</span>
+            }
+          </div>
+          <div className={cx('rule', {'hide': activePath !== i})}>
+            <div className='rule-content'>
+              <div className='header' onClick={this.toggleInfoHeader.bind(this, 'rule')}>
+                <i className={cx('fg fg-play', {'rotate': activeRuleHeader})}></i>
+                <span>{t('txt-rule')}</span>
+              </div>
+              <div className={cx('sub-content', {'hide': (!activeRuleHeader)})}>
+                {displayInfo}
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    )
+      )
+    }
   }
   getIPdeviceInfo = (index, ipDeviceUUID, options) => {
     const {baseUrl, contextRoot} = this.props;
@@ -1116,12 +1146,38 @@ class NetworkInventory extends Component {
       helper.showPopupMsg('', t('txt-error'));
     });
   }
+  sortedRuleList = (scanResult) => {
+    let ruleWithFile = [];
+    let ruleWithNoFile = [];
+    let mergedRule = [];
+
+    _.forEach(scanResult, val => {
+      if (val._MatchedFile) {
+        ruleWithFile.push(val);
+      } else {
+        ruleWithNoFile.push(val);
+      }
+    })
+
+    mergedRule = _.concat(ruleWithFile, ruleWithNoFile);
+    return mergedRule;
+  }
   displayScanInfo = () => {
     const {activeTab, activeScanType, deviceData, currentDeviceData} = this.state;
     const ip = currentDeviceData.ip ? currentDeviceData.ip : NOT_AVAILABLE;
     const mac = currentDeviceData.mac ? currentDeviceData.mac : NOT_AVAILABLE;
     const hostName = currentDeviceData.hostName ? currentDeviceData.hostName : NOT_AVAILABLE;
     const ownerName = currentDeviceData.ownerObj ? currentDeviceData.ownerObj.ownerName : NOT_AVAILABLE;
+    const yaraRuleObj = [
+      {
+        name: 'yaraResult', //Scan Process
+        type: 'yara'
+      },
+      {
+        name: 'yaraScanFileResult', //Scan File
+        type: 'file'
+      }
+    ];
     let hmdInfo = {
       yara: {},
       file: {},
@@ -1130,23 +1186,22 @@ class NetworkInventory extends Component {
     let yaraCount = 0;
     let fileCount = 0;
 
-    if (!_.isEmpty(currentDeviceData.yaraResult)) {
-      hmdInfo.yara = {
-        createTime: helper.getFormattedDate(currentDeviceData.yaraResult.taskCreateDttm, 'local'),
-        responseTime: helper.getFormattedDate(currentDeviceData.yaraResult.taskResponseDttm, 'local'),
-        result: currentDeviceData.yaraResult.ScanResult ? currentDeviceData.yaraResult.ScanResult : [],
-        taskID: currentDeviceData.yaraResult.taskId
-      };
-    }
+    _.forEach(yaraRuleObj, val => { //Construct the HMD info object for Yara Scan Process and Yara Scan File
+      if (!_.isEmpty(currentDeviceData[val.name])) {
+        let mergedRule = [];
 
-    if (!_.isEmpty(currentDeviceData.yaraScanFileResult)) {
-      hmdInfo.file = {
-        createTime: helper.getFormattedDate(currentDeviceData.yaraScanFileResult.taskCreateDttm, 'local'),
-        responseTime: helper.getFormattedDate(currentDeviceData.yaraScanFileResult.taskResponseDttm, 'local'),
-        result: currentDeviceData.yaraScanFileResult.ScanResult ? currentDeviceData.yaraScanFileResult.ScanResult : [],
-        taskID: currentDeviceData.yaraScanFileResult.taskId
-      };
-    }
+        if (currentDeviceData[val.name].ScanResult && currentDeviceData[val.name].ScanResult.length > 0) {
+          mergedRule = this.sortedRuleList(currentDeviceData[val.name].ScanResult);
+        }
+
+        hmdInfo[val.type] = {
+          createTime: helper.getFormattedDate(currentDeviceData[val.name].taskCreateDttm, 'local'),
+          responseTime: helper.getFormattedDate(currentDeviceData[val.name].taskResponseDttm, 'local'),
+          result: mergedRule,
+          taskID: currentDeviceData[val.name].taskId
+        };
+      }
+    })
 
     if (!_.isEmpty(currentDeviceData.irResult)) {
       hmdInfo.ir = {
@@ -1217,9 +1272,14 @@ class NetworkInventory extends Component {
                 {hmdInfo.yara.result &&
                   <div className='file-path'>
                     <div className='header'>{t('network-inventory.txt-suspiciousFilePath')}</div>
-                    <div className='list'>
-                      {hmdInfo.yara.result.map(this.displayScanProcessPath)}
-                    </div>
+                    {hmdInfo.yara.result.length > 0 &&
+                      <div className='list'>
+                        {hmdInfo.yara.result.map(this.displayScanProcessPath)}
+                      </div>
+                    }
+                    {hmdInfo.yara.result.length === 0 &&
+                      <div className='empty-rule'>{NOT_AVAILABLE}</div>
+                    }
                   </div>
                 }
               </div>
@@ -1243,9 +1303,14 @@ class NetworkInventory extends Component {
                 {hmdInfo.file.result &&
                   <div className='file-path'>
                     <div className='header'>{t('network-inventory.txt-suspiciousFilePath')}</div>
-                    <div className='list'>
-                      {hmdInfo.file.result.map(this.displayScanFilePath)}
-                    </div>
+                    {hmdInfo.file.result.length > 0 &&
+                      <div className='list'>
+                        {hmdInfo.file.result.map(this.displayScanFilePath)}
+                      </div>
+                    }
+                    {hmdInfo.file.result.length === 0 &&
+                      <div className='empty-rule'>{NOT_AVAILABLE}</div>
+                    }
                   </div>
                 }
               </div>
@@ -1263,9 +1328,7 @@ class NetworkInventory extends Component {
                   </div>
                   <button className='btn' onClick={this.triggerTask.bind(this, 'getFile', hmdInfo.ir.taskID)} disabled={this.checkTriggerTime('ir')}>{t('network-inventory.txt-reCompress')}</button>
                 </div>
-                {hmdInfo.ir.result &&
-                  <div className='msg'>{t('network-inventory.txt-irMsg')}: <span className='url'>{hmdInfo.ir.result}</span></div>
-                }
+                <div className='msg'>{t('network-inventory.txt-irMsg')}: <span className='url'>{hmdInfo.ir.result || NOT_AVAILABLE}</span></div>
               </div>
             }
           </div>
@@ -1839,10 +1902,10 @@ class NetworkInventory extends Component {
                   {ownerType === 'new' && previewOwnerPic &&
                     <img src={previewOwnerPic} title={t('network-topology.txt-profileImage')} />
                   }
-                  {(ownerType === 'existing' && !addIP.ownerPic) &&
+                  {ownerType === 'existing' && !addIP.ownerPic &&
                     <img src={contextRoot + '/images/empty_profile.png'} className={cx({'existing': ownerType === 'existing'})} title={t('network-topology.txt-profileImage')} />
                   }
-                  {(ownerType === 'new' && !previewOwnerPic) &&
+                  {ownerType === 'new' && !previewOwnerPic &&
                     <img src={contextRoot + '/images/empty_profile.png'} className={cx({'existing': ownerType === 'existing'})} title={t('network-topology.txt-profileImage')} />
                   }
                 </div>

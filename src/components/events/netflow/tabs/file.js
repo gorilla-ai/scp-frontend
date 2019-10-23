@@ -72,7 +72,7 @@ class File extends Component {
                   checked={mainContentData.showImageValue}
                   disabled={mainContentData.displayImgType === 'grid'} />
               </div>
-              {(mainContentData.showImageValue) &&
+              {mainContentData.showImageValue &&
                 <RadioGroup
                   className='display-file-type'
                   list={[
@@ -92,7 +92,9 @@ class File extends Component {
 
             {mainContentData.displayImgType === 'grid' &&
               <div className='grid-flex'>
-                {mainContentData.dataTableData.map(this.showGridImage)}
+                {mainContentData.dataTableData && mainContentData.dataTableData.length > 0 &&
+                  mainContentData.dataTableData.map(this.showGridImage)
+                }
               </div>
             }
 

@@ -372,9 +372,8 @@ class Endpoint extends Component {
     });
   }
   handleRowMouseOver = (value, allValue, evt) => {
-    let tmpHmd = {...this.state.hmd};
-
-    tmpHmd['dataContent'] = _.map(tmpHmd['dataContent'], item => {
+    let tempHmd = {...this.state.hmd};
+    tempHmd['dataContent'] = _.map(tempHmd['dataContent'], item => {
       return {
         ...item,
         _menu: allValue.ipDeviceUUID === item.ipDeviceUUID ? true : false
@@ -382,7 +381,7 @@ class Endpoint extends Component {
     });
 
     this.setState({
-      hmd: tmpHmd
+      hmd: tempHmd
     });
   }
   handleTableSort = (value) => {

@@ -454,8 +454,14 @@ class DashboardStats extends Component {
                   {...chartAttributes} />
               </div>
             }
-            {alertChartsList.map(this.displayCharts)}
-            {metricsData.map(this.dispalyMetrics)}
+
+            {alertChartsList.length > 0 &&
+              alertChartsList.map(this.displayCharts)
+            }
+
+            {metricsData.length > 0 &&
+              metricsData.map(this.dispalyMetrics)
+            }
           </div>
         </div>
       </div>

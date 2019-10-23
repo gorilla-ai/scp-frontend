@@ -5,6 +5,8 @@ import cx from 'classnames'
 
 import withLocale from '../../hoc/locale-provider'
 
+const NOT_AVAILABLE = 'N/A';
+
 let t = null;
 
 class SafetyScan extends Component {
@@ -62,20 +64,24 @@ class SafetyScan extends Component {
             <ul>
               <li>
                 <span className='name'>Yara Scan</span>
-                <span className='count' style={{color: '#d0021b'}}>{t('network-inventory.txt-suspiciousFileCount')}: {hmdInfo.yara.result.length}</span>
+                {hmdInfo.yara.result &&
+                  <span className='count' style={{color: '#d0021b'}}>{t('network-inventory.txt-suspiciousFileCount')}: {hmdInfo.yara.result.length}</span>
+                }
               </li>
-              {/*<li>
-                <span className='name'>GCB</span>
-                <span className='count' style={{color: '#11a629'}}>通過/總項目: 49/87</span>
-              </li>*/}
             </ul>
           </div>
           <div className='content'>
             <div className='time'>
-              <span>{t('network-inventory.txt-createTime')}: {hmdInfo.yara.createTime}</span>
-              <span>{t('network-inventory.txt-responseTime')}: {hmdInfo.yara.responseTime}</span>
+              {hmdInfo.yara.createTime &&
+                <span>{t('network-inventory.txt-createTime')}: {hmdInfo.yara.createTime}</span>
+              }
+              {hmdInfo.yara.responseTime &&
+                <span>{t('network-inventory.txt-responseTime')}: {hmdInfo.yara.responseTime}</span>
+              }
             </div>
-            <button onClick={this.props.triggerTask.bind(this, hmdInfo.yara.taskID, type)} disabled={this.checkTriggerTime('yara')}>{t('network-inventory.txt-reCheck')}</button>
+            {hmdInfo.yara.taskID &&
+              <button onClick={this.props.triggerTask.bind(this, hmdInfo.yara.taskID, type)} disabled={this.checkTriggerTime('yara')}>{t('network-inventory.txt-reCheck')}</button>
+            }
             <table className='c-table main-table'>
               <thead>
                 <tr>
@@ -83,7 +89,9 @@ class SafetyScan extends Component {
                 </tr>
               </thead>
               <tbody>
-                {hmdInfo.yara.result.map(this.showScanInfo)}
+                {hmdInfo.yara.result && hmdInfo.yara.result.length > 0 &&
+                  hmdInfo.yara.result.map(this.showScanInfo)
+                }
               </tbody>
             </table>
           </div>
@@ -91,7 +99,7 @@ class SafetyScan extends Component {
       )
     } else {
       return (
-        <span>N/A</span>
+        <span>{NOT_AVAILABLE}</span>
       )
     }
   }

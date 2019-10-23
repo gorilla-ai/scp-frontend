@@ -206,16 +206,17 @@ class NetworkOwner extends Component {
     })
   }
   handleRowMouseOver = (value, allValue, evt) => {
-    let tmp = {...this.state.owner}
-
-    tmp['dataContent'] = _.map(tmp['dataContent'], el => {
+    let tempOwner = {...this.state.owner};
+    tempOwner['dataContent'] = _.map(tempOwner['dataContent'], el => {
       return {
         ...el,
         _menu: el.ownerUUID === allValue.ownerUUID ? true : false
       };
     })
 
-    this.setState({owner: tmp})
+    this.setState({
+      owner: tempOwner
+    });
   }
   handleTableSort = (value) => {
     let tempOwner = {...this.state.owner};

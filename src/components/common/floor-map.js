@@ -196,7 +196,7 @@ class FloorMap extends Component {
           </header>
 
           <div className='display-tree'>
-            {floorPlan.treeData && !_.isEmpty(floorPlan.treeData) &&
+            {floorPlan.treeData && floorPlan.treeData.length > 0 &&
               floorPlan.treeData.map(this.showTreeView.bind(this, floorPlan.currentAreaUUID))
             }
           </div>
