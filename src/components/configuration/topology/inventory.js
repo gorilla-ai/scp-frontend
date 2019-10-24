@@ -950,7 +950,7 @@ class NetworkInventory extends Component {
     }
 
     return (
-      <div className={cx('sub-content', {'hide': (!activeConnections)})}>
+      <div className={cx('sub-content flex', {'hide': !activeConnections})}>
         {displayInfo}
       </div>
     )
@@ -1059,7 +1059,7 @@ class NetworkInventory extends Component {
                 <i className={cx('fg fg-play', {'rotate': activeRuleHeader})}></i>
                 <span>{t('txt-rule')}</span>
               </div>
-              <div className={cx('sub-content', {'hide': (!activeRuleHeader)})}>
+              <div className={cx('sub-content', {'hide': !activeRuleHeader})}>
                 {displayInfo}
               </div>
             </div>
@@ -1168,7 +1168,7 @@ class NetworkInventory extends Component {
     const mac = currentDeviceData.mac ? currentDeviceData.mac : NOT_AVAILABLE;
     const hostName = currentDeviceData.hostName ? currentDeviceData.hostName : NOT_AVAILABLE;
     const ownerName = currentDeviceData.ownerObj ? currentDeviceData.ownerObj.ownerName : NOT_AVAILABLE;
-    const yaraRuleObj = [
+    const safetyScanObj = [
       {
         name: 'yaraResult', //Scan Process
         type: 'yara'
@@ -1176,6 +1176,10 @@ class NetworkInventory extends Component {
       {
         name: 'yaraScanFileResult', //Scan File
         type: 'file'
+      },
+      {
+        name: 'irResult', //IR
+        type: 'ir'
       }
     ];
     let hmdInfo = {
@@ -1186,31 +1190,31 @@ class NetworkInventory extends Component {
     let yaraCount = 0;
     let fileCount = 0;
 
-    _.forEach(yaraRuleObj, val => { //Construct the HMD info object for Yara Scan Process and Yara Scan File
+    _.forEach(safetyScanObj, val => { //Construct the HMD info object
       if (!_.isEmpty(currentDeviceData[val.name])) {
-        let mergedRule = [];
+        if (val.type === 'ir') {
+          hmdInfo[val.type] = {
+            createTime: helper.getFormattedDate(currentDeviceData[val.name].taskCreateDttm, 'local'),
+            responseTime: helper.getFormattedDate(currentDeviceData[val.name].taskResponseDttm, 'local'),
+            result: currentDeviceData[val.name]._ZipPath,
+            taskID: currentDeviceData[val.name].taskId
+          };
+        } else { //For Scan Process and Scan File
+          let mergedRule = [];
 
-        if (currentDeviceData[val.name].ScanResult && currentDeviceData[val.name].ScanResult.length > 0) {
-          mergedRule = this.sortedRuleList(currentDeviceData[val.name].ScanResult);
+          if (currentDeviceData[val.name].ScanResult && currentDeviceData[val.name].ScanResult.length > 0) {
+            mergedRule = this.sortedRuleList(currentDeviceData[val.name].ScanResult);
+          }
+
+          hmdInfo[val.type] = {
+            createTime: helper.getFormattedDate(currentDeviceData[val.name].taskCreateDttm, 'local'),
+            responseTime: helper.getFormattedDate(currentDeviceData[val.name].taskResponseDttm, 'local'),
+            result: mergedRule,
+            taskID: currentDeviceData[val.name].taskId
+          };
         }
-
-        hmdInfo[val.type] = {
-          createTime: helper.getFormattedDate(currentDeviceData[val.name].taskCreateDttm, 'local'),
-          responseTime: helper.getFormattedDate(currentDeviceData[val.name].taskResponseDttm, 'local'),
-          result: mergedRule,
-          taskID: currentDeviceData[val.name].taskId
-        };
       }
     })
-
-    if (!_.isEmpty(currentDeviceData.irResult)) {
-      hmdInfo.ir = {
-        createTime: helper.getFormattedDate(currentDeviceData.irResult.taskCreateDttm, 'local'),
-        responseTime: helper.getFormattedDate(currentDeviceData.irResult.taskResponseDttm, 'local'),
-        result: currentDeviceData.irResult._ZipPath,
-        taskID: currentDeviceData.irResult.taskId
-      };
-    }
 
     if (hmdInfo.yara.result) {
       yaraCount = Number(hmdInfo.yara.result.length);
@@ -1257,78 +1261,65 @@ class NetworkInventory extends Component {
               <div>
                 <div className='info'>
                   <div className='last-update'>
-                    {hmdInfo.yara.createTime &&
-                      <span>{t('network-inventory.txt-createTime')}: {hmdInfo.yara.createTime}</span>
-                    }
-                    {hmdInfo.yara.responseTime &&
-                      <span>{t('network-inventory.txt-responseTime')}: {hmdInfo.yara.responseTime}</span>
-                    }
+                    <span>{t('network-inventory.txt-createTime')}: {hmdInfo.yara.createTime || NOT_AVAILABLE}</span>
+                    <span>{t('network-inventory.txt-responseTime')}: {hmdInfo.yara.responseTime || NOT_AVAILABLE}</span>
                   </div>
                   {yaraCount > 0 &&
                     <div className='count'>{t('network-inventory.txt-suspiciousFileCount')}: {yaraCount}</div>
                   }
                   <button className='btn' onClick={this.triggerTask.bind(this, 'compareIOC', hmdInfo.yara.taskID)} disabled={this.checkTriggerTime('yara')}>{t('network-inventory.txt-reCheck')}</button>
                 </div>
-                {hmdInfo.yara.result &&
-                  <div className='file-path'>
-                    <div className='header'>{t('network-inventory.txt-suspiciousFilePath')}</div>
-                    {hmdInfo.yara.result.length > 0 &&
-                      <div className='list'>
-                        {hmdInfo.yara.result.map(this.displayScanProcessPath)}
-                      </div>
-                    }
-                    {hmdInfo.yara.result.length === 0 &&
-                      <div className='empty-rule'>{NOT_AVAILABLE}</div>
-                    }
-                  </div>
-                }
+                <div className='scan-content'>
+                  <div className='header'>{t('network-inventory.txt-suspiciousFilePath')}</div>
+                  {hmdInfo.yara.result && hmdInfo.yara.result.length > 0 &&
+                    <div className='list'>
+                      {hmdInfo.yara.result.map(this.displayScanProcessPath)}
+                    </div>
+                  }
+                  {(!hmdInfo.yara.result || hmdInfo.yara.result.length === 0) &&
+                    <div className='empty-msg'>{NOT_AVAILABLE}</div>
+                  }
+                </div>
               </div>
             }
             {activeScanType === 'file' &&
               <div>
                 <div className='info'>
                   <div className='last-update'>
-                    {hmdInfo.file.createTime &&
-                      <span>{t('network-inventory.txt-createTime')}: {hmdInfo.file.createTime}</span>
-                    }
-                    {hmdInfo.file.responseTime &&
-                      <span>{t('network-inventory.txt-responseTime')}: {hmdInfo.file.responseTime}</span>
-                    }
+                    <span>{t('network-inventory.txt-createTime')}: {hmdInfo.file.createTime || NOT_AVAILABLE}</span>
+                    <span>{t('network-inventory.txt-responseTime')}: {hmdInfo.file.responseTime || NOT_AVAILABLE}</span>
                   </div>
                   {fileCount > 0 &&
                     <div className='count'>{t('network-inventory.txt-suspiciousFileCount')}: {fileCount}</div>
                   }
                   <button className='btn' onClick={this.triggerTask.bind(this, 'yaraScanFile', hmdInfo.file.taskID)} disabled={this.checkTriggerTime('yaraScanFile')}>{t('network-inventory.txt-reCheck')}</button>
                 </div>
-                {hmdInfo.file.result &&
-                  <div className='file-path'>
-                    <div className='header'>{t('network-inventory.txt-suspiciousFilePath')}</div>
-                    {hmdInfo.file.result.length > 0 &&
-                      <div className='list'>
-                        {hmdInfo.file.result.map(this.displayScanFilePath)}
-                      </div>
-                    }
-                    {hmdInfo.file.result.length === 0 &&
-                      <div className='empty-rule'>{NOT_AVAILABLE}</div>
-                    }
-                  </div>
-                }
+                <div className='scan-content'>
+                  <div className='header'>{t('network-inventory.txt-suspiciousFilePath')}</div>
+                  {hmdInfo.file.result && hmdInfo.file.result.length > 0 &&
+                    <div className='list'>
+                      {hmdInfo.file.result.map(this.displayScanFilePath)}
+                    </div>
+                  }
+                  {(!hmdInfo.file.result || hmdInfo.file.result.length === 0) &&
+                    <div className='empty-msg'>{NOT_AVAILABLE}</div>
+                  }
+                </div>
               </div>
             }
             {activeScanType === 'ir' &&
               <div>
                 <div className='info'>
                   <div className='last-update'>
-                    {hmdInfo.ir.createTime &&
-                      <span>{t('network-inventory.txt-createTime')}: {hmdInfo.ir.createTime}</span>
-                    }
-                    {hmdInfo.ir.responseTime &&
-                      <span>{t('network-inventory.txt-responseTime')}: {hmdInfo.ir.responseTime}</span>
-                    }
+                    <span>{t('network-inventory.txt-createTime')}: {hmdInfo.ir.createTime || NOT_AVAILABLE}</span>
+                    <span>{t('network-inventory.txt-responseTime')}: {hmdInfo.ir.responseTime || NOT_AVAILABLE}</span>
                   </div>
                   <button className='btn' onClick={this.triggerTask.bind(this, 'getFile', hmdInfo.ir.taskID)} disabled={this.checkTriggerTime('ir')}>{t('network-inventory.txt-reCompress')}</button>
                 </div>
-                <div className='msg'>{t('network-inventory.txt-irMsg')}: <span className='url'>{hmdInfo.ir.result || NOT_AVAILABLE}</span></div>
+                <div className='scan-content'>
+                  <div className='header'>{t('network-inventory.txt-irMsg')}:</div>
+                  <div className='empty-msg'>{hmdInfo.ir.result || NOT_AVAILABLE}</div>
+                </div>
               </div>
             }
           </div>

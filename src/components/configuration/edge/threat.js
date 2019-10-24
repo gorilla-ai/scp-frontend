@@ -111,7 +111,7 @@ class ThreatIntelligence extends Component {
     })
   }
   getText = (eventInfo, data) => {
-    const text = data[0].indicator + ':' + data[0].count + ' ' + t('txt-at') + ' ' + Moment(data[0].day, 'x').utc().format('YYYY/MM/DD');
+    const text = data[0].indicator + ': ' + data[0].count + ' ' + t('txt-at') + ' ' + Moment(data[0].day, 'x').utc().format('YYYY/MM/DD');
     return text;
   }
   onTooltip = (eventInfo, data) => {

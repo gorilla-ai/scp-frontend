@@ -34,7 +34,13 @@ class ChartContent extends Component {
    * @returns none
    */
   getText = (eventInfo, data) => {
-    const text = data[0].number + ' ' + t('txt-at') + ' ' + Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss');
+    let text = '';
+
+    if (data[0].rule) {
+      text += data[0].rule + ': ';
+    }
+
+    text += data[0].number + ' ' + t('txt-at') + ' ' + Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss');
     return text;
   }
   /**

@@ -692,7 +692,7 @@ class Syslog extends Component {
     })
   }
   getText = (eventInfo, data) => {
-    const text = data[0].events + ' ' + t('txt-at') + ' ' + Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss');
+    const text = data[0].type + ': ' + data[0].events + ' ' + t('txt-at') + ' ' + Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss');
     return text;
   }
   onTooltip = (eventInfo, data) => {

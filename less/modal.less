@@ -133,11 +133,13 @@
 	.json-data {
 		overflow-y: auto;
 		border: 1px solid #ccc;
-		border-radius: 10px;
+		border-radius: 5px;
+		height: 680px;
 		& > li {
-			overflow: hidden;
 			padding: 5px 10px;
-			margin-bottom: 5px;
+			ul {
+				background: none !important;
+			}
 		}
 	}
 	.pagination {
@@ -218,7 +220,11 @@
 	}
 	.json-data {
 		&.alert {
-			height: 380px;
+			height: 375px;
+			border: none;
+			& > li {
+				padding: 0;
+			}
 		}
 		& > li {
 			span {
@@ -457,7 +463,7 @@
 					padding: .3em .5em;
 				}
 			}
-			.file-path {
+			.scan-content {
 				margin-top: 15px;
 				border-top: 2px solid #ccc;
 				border-bottom: 2px solid #ccc;
@@ -466,7 +472,7 @@
 					font-weight: bold;
 					padding: 5px 10px;
 				}
-				.empty-rule {
+				.empty-msg {
 					margin: 5px 0 5px 10px;
 				}
 				.list {
@@ -514,10 +520,16 @@
 								}
 								.sub-content {
 									padding-left: 20px;
+									&.flex {
+										display: flex;
+										flex-wrap: wrap;
+										padding-left: 10px;
+									}
+									&.flex.hide {
+										display: none;
+									}
 									ul {
-										padding: 5px 0;
-										width: 20%;
-										border-bottom: 1px dotted #999;
+										padding: 10px 15px;
 										li span {
 											color: #185e9e;
 										}
@@ -535,13 +547,6 @@
 							}
 						}
 					}
-				}
-			}
-			.msg {
-				margin-top: 15px;
-				.url {
-					display: block;
-					margin-top: 5px;
 				}
 			}
 		}
@@ -1021,6 +1026,7 @@
 					border: 1px solid #ccc;
 					border-radius: 5px;
 					background-color: #fff;
+					z-index: 100;
 					li {
 						padding: 5px 10px;
 						cursor: pointer;
@@ -1054,7 +1060,7 @@
 			.srcIp-content,
 			.destIp-content {
 				margin-top: 30px;
-				max-height: 360px;
+				max-height: 348px;
 				overflow-y: auto;
 			}
 			.srcIp-content,
