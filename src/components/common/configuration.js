@@ -8,20 +8,24 @@ import _ from 'lodash'
 import helper from './helper'
 import withLocale from '../../hoc/locale-provider'
 
-let t = null
+let t = null;
 
 const INIT = {
   openEdgeManagement: false,
   openTopology: false,
   openAccount: false
-}
+};
 
 class Config extends Component {
   constructor(props) {
-    super(props)
+    super(props);
 
-    t = global.chewbaccaI18n.getFixedT(null, 'connections')
-    this.state = _.cloneDeep(INIT)
+    this.state = {
+      showContent: true,
+      ..._.cloneDeep(INIT)
+    };
+
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
   }
   test = () => {
 
@@ -59,9 +63,14 @@ class Config extends Component {
 
     return path === pattern[frame];
   }
+  toggleLeftNav = () => {
+    this.setState({
+      showContent: !this.state.showContent
+    });
+  }
   render() {
     const {session} = this.props;
-    const {openEdgeManagement, openTopology, openAccount, selected} = this.state;
+    const {showContent, openEdgeManagement, openTopology, openAccount, selected} = this.state;
     let sessionRights = {};
 
     _.forEach(session.rights, val => {
@@ -69,18 +78,18 @@ class Config extends Component {
     })
 
     return (
-      <div className='left-nav'>
-        <div className='frame notifications'>
+      <div className={cx('left-nav', {'collapse': !showContent})}>
+        <div className='item frame notifications'>
           <Link to={{pathname: '/ChewbaccaWeb/configuration/notifications', state: 'viewMode'}}>
             <span className={`${this.getActiveFrame('notifications')}`}>{t('notifications.txt-settings')}</span>
           </Link>
         </div>
-        <div className='frame edge-manage' onClick={this.handleOpen.bind(this, 'openEdgeManagement', openEdgeManagement)}>
+        <div className='item frame edge-manage' onClick={this.handleOpen.bind(this, 'openEdgeManagement', openEdgeManagement)}>
           <span className={`${this.getActiveFrame('edge') || this.getActiveFrame('threat')}`}>{t('txt-edgeManage')}</span>
           <i className={`c-link fg fg-arrow-${openEdgeManagement?'top':'bottom'}`}></i>
         </div>
         {openEdgeManagement &&
-          <div className='open-edge'>
+          <div className='item open-edge'>
             <div className='subframe'>
               <Link to={{pathname: '/ChewbaccaWeb/configuration/edge/edge', state: 'tableList'}}>
                 <span className={`${this.getActiveFrame('edge')}`}>{t('txt-edge')}</span>
@@ -94,13 +103,13 @@ class Config extends Component {
           </div>
         }
         {sessionRights.Module_NetworkTopology_Manage &&
-          <div className='frame network-topology' onClick={this.handleOpen.bind(this, 'openTopology', openTopology)}>
+          <div className='item frame network-topology' onClick={this.handleOpen.bind(this, 'openTopology', openTopology)}>
             <span className={`${this.getActiveFrame('inventory') || this.getActiveFrame('owner') || this.getActiveFrame('map')}`}>{t('txt-topology')}</span>
             <i className={`c-link fg fg-arrow-${openTopology?'top':'bottom'}`}></i>
           </div>
         }
         {openTopology &&
-          <div className='open-topology'>
+          <div className='item open-topology'>
             <div className='subframe'>
               <Link to={{pathname: '/ChewbaccaWeb/configuration/topology/inventory', state: 'tableList'}}>
                 <span className={`${this.getActiveFrame('inventory')}`}>{t('txt-networkInventory')}</span>
@@ -119,20 +128,20 @@ class Config extends Component {
           </div>
         }
         {sessionRights.Module_Syslog_Manage &&
-          <div className='frame syslog-manage'>
+          <div className='item frame syslog-manage'>
             <Link to='/ChewbaccaWeb/configuration/syslog'>
               <span className={`${this.getActiveFrame('syslog')}`}>{t('txt-syslogManage')}</span>
             </Link>
           </div>
         }
         {sessionRights.Module_Account_Manage &&
-          <div className='frame account-manage' onClick={this.handleOpen.bind(this, 'openAccount', openAccount)}>
+          <div className='item frame account-manage' onClick={this.handleOpen.bind(this, 'openAccount', openAccount)}>
             <span className={`${this.getActiveFrame('account') || this.getActiveFrame('privileges')}`}>{t('txt-accountManage')}</span>
             <i className={`c-link fg fg-arrow-${openAccount?'top':'bottom'}`}></i>
           </div>
         }
         {openAccount &&
-          <div className='open-account'>
+          <div className='item open-account'>
             <div className='subframe'>
               <Link to='/ChewbaccaWeb/configuration/user/account'>
                 <span className={`${this.getActiveFrame('account')}`}>{t('txt-account')}</span>
@@ -146,12 +155,20 @@ class Config extends Component {
           </div>
         }
         {sessionRights.Module_Account_Manage &&
-          <div className='frame service-status last'>
+          <div className='item frame service-status last'>
             <Link to='/ChewbaccaWeb/configuration/service-status'>
               <span className={`${this.getActiveFrame('serviceStatus')}`}>{t('txt-serviceStatus')}</span>
             </Link>
           </div>
         }
+        <div className='expand-collapse' onClick={this.toggleLeftNav}>
+          {showContent &&
+            <i className='fg fg-arrow-left'></i>
+          }
+          {!showContent &&
+            <i className='fg fg-arrow-right'></i>
+          }
+        </div>
       </div>
     )
   }

@@ -513,6 +513,12 @@ footer.footer {
 			min-width: 15px;
 			border-right: 1px solid #d9d9d9;
 			background-color: #d9d9d9;
+			&.collapse {
+				width: 0;
+				& > .item {
+					display: none;
+				}
+			}
 			&.tree {
 				padding: 10px 25px 10px 10px;
 				&.collapse {
@@ -602,7 +608,7 @@ footer.footer {
 			}
 			.frame {
 				position: relative;
-				width: 100%;
+				width: 96%;
 				height: 50px;
 				border-bottom: 1px solid #ccc;
 				background-color: #fff;
@@ -1673,7 +1679,7 @@ footer.footer {
 	}
 }
 
-@media only screen and (min-width: 1280px) {
+@media only screen and (min-width: 1350px) {
 	#app-container {
 		.privateIp-info {
 			.private {
@@ -1683,7 +1689,7 @@ footer.footer {
 	}
 }
 
-@media only screen and (max-width: 1280px) {
+@media only screen and (max-width: 1350px) {
 	#app-container {
 		.statistic .chart-group {
 			flex-direction: column;

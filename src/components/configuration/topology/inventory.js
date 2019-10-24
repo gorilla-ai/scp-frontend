@@ -53,7 +53,7 @@ class NetworkInventory extends Component {
 		this.state = {
       activeTab: 'deviceList', //deviceList, deviceMap
       activeContent: 'tableList', //tableList, dataInfo, addIPsteps, autoSettings
-      showFilter: false,
+      showFilter: true,
       showScanInfo: false,
       showSeatData: false,
       modalFloorOpen: false,
@@ -719,6 +719,7 @@ class NetworkInventory extends Component {
     }
 
     this.setState({
+      activeScanType: 'process',
       activePath: null,
       activeRuleHeader: false,
       activeDLL: false,
@@ -1076,6 +1077,10 @@ class NetworkInventory extends Component {
     const {baseUrl, contextRoot} = this.props;
     const {deviceData, currentDeviceData} = this.state;
     let tempDeviceData = {...deviceData};
+
+    if (!ipDeviceUUID) {
+      return;
+    }
 
     if (index) {
       tempDeviceData.currentIndex = Number(index);
@@ -2148,7 +2153,18 @@ class NetworkInventory extends Component {
     helper.getAjaxData('POST', url, requestData)
     .then(data => {
       if (data) {
-        this.closeDialog('reload');
+        this.setState({
+          addSeatOpen: false,
+          addSeat: {
+            selectedSeatUUID: '',
+            name: '',
+            coordX: '',
+            coordY: ''
+          }
+        }, () => {
+          this.getAreaData(floorPlan.currentAreaUUID);
+          this.getSeatData(floorPlan.currentAreaUUID);
+        });
       }
     })
     .catch(err => {
