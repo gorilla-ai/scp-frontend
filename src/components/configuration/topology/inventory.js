@@ -62,7 +62,7 @@ class NetworkInventory extends Component {
       activePath: null,
       activeRuleHeader: false,
       activeRule: [],
-      activeDDL: false,
+      activeDLL: false,
       activeConnections: false,
       formTypeEdit: true,
       deviceSearch: {
@@ -719,6 +719,10 @@ class NetworkInventory extends Component {
     }
 
     this.setState({
+      activePath: null,
+      activeRuleHeader: false,
+      activeDLL: false,
+      activeConnections: false,
       deviceData: tempDeviceData
     }, () => {
       const {deviceData} = this.state;
@@ -836,7 +840,7 @@ class NetworkInventory extends Component {
       activePath: null,
       activeRuleHeader: false,
       activeRule: [],
-      activeDDL: false,
+      activeDLL: false,
       activeConnections: false
     });
   }
@@ -849,7 +853,7 @@ class NetworkInventory extends Component {
         activePath: tempActivePath,
         activeRuleHeader: false,
         activeRule: [],
-        activeDDL: false,
+        activeDLL: false,
         activeConnections: false
       });
     } else if (type === 'rule') {
@@ -893,7 +897,7 @@ class NetworkInventory extends Component {
     )
   }
   displayFilePath = (val) => {
-    const {activeDDL} = this.state;
+    const {activeDLL} = this.state;
     let filePathList = [];
     let displayInfo = '';
 
@@ -910,7 +914,7 @@ class NetworkInventory extends Component {
     }
 
     return (
-      <div className={cx('sub-content', {'hide': !activeDDL})}>
+      <div className={cx('sub-content', {'hide': !activeDLL})}>
         {displayInfo}
       </div>
     )
@@ -962,7 +966,7 @@ class NetworkInventory extends Component {
       });
     } else if (type === 'ddl') {
       this.setState({
-        activeDDL: !this.state.activeDDL
+        activeDLL: !this.state.activeDLL
       });
     } else if (type === 'connections') {
       this.setState({
@@ -971,7 +975,7 @@ class NetworkInventory extends Component {
     }
   }
   displayScanProcessPath = (val, i) => {
-    const {activePath, activeRuleHeader, activeDDL, activeConnections} = this.state;
+    const {activePath, activeRuleHeader, activeDLL, activeConnections} = this.state;
     const uniqueKey = val._ScanType + i;
     let displayInfo = '';
 
@@ -1009,7 +1013,7 @@ class NetworkInventory extends Component {
 
             <div className='rule-content'>
               <div className='header' onClick={this.toggleInfoHeader.bind(this, 'ddl')}>
-                <i className={cx('fg fg-play', {'rotate': activeDDL})}></i>
+                <i className={cx('fg fg-play', {'rotate': activeDLL})}></i>
                 <span>DLLs</span>
               </div>
               {this.displayFilePath(val)}
@@ -1366,7 +1370,7 @@ class NetworkInventory extends Component {
       activePath: null,
       activeRuleHeader: false,
       activeRule: [],
-      activeDDL: false,
+      activeDLL: false,
       activeConnections: false,
       currentDeviceData: {},
       addSeat: {
