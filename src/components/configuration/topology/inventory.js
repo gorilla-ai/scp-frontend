@@ -1010,7 +1010,7 @@ class NetworkInventory extends Component {
             <div className='rule-content'>
               <div className='header' onClick={this.toggleInfoHeader.bind(this, 'ddl')}>
                 <i className={cx('fg fg-play', {'rotate': activeDDL})}></i>
-                <span>DDLs</span>
+                <span>DLLs</span>
               </div>
               {this.displayFilePath(val)}
             </div>
