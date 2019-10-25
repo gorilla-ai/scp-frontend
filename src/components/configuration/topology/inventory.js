@@ -1177,7 +1177,7 @@ class NetworkInventory extends Component {
     const ip = currentDeviceData.ip || NOT_AVAILABLE;
     const mac = currentDeviceData.mac || NOT_AVAILABLE;
     const hostName = currentDeviceData.hostName || NOT_AVAILABLE;
-    const ownerName = currentDeviceData.ownerObj || NOT_AVAILABLE;
+    const ownerName = currentDeviceData.ownerObj ? currentDeviceData.ownerObj.ownerName : NOT_AVAILABLE;
     const safetyScanObj = [
       {
         name: 'yaraResult', //Scan Process
