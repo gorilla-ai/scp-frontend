@@ -175,6 +175,24 @@ class AlertDetails extends Component {
     }   
   }
   /**
+   * Set Topology Info
+   * @param {object} alertInfo - Alert Info to be set
+   * @param {string} type - 'srcIp' or 'destIp'
+   * @returns none
+   */
+  setTopologyInfo = (alertInfo, type) => {
+    this.setState({
+      alertInfo
+    }, () => {
+      const {alertInfo} = this.state;
+
+      if (!_.isEmpty(alertInfo[type].topology)) {
+        this.getOwnerPic(type);
+        this.getOwnerSeat(type);
+      }
+    });
+  }
+  /**
    * Get IP content
    * @param {string} type - 'srcIp' or 'destIp'
    * @returns none
@@ -197,6 +215,7 @@ class AlertDetails extends Component {
       } else if (locationType === 'private') {
         tempAlertInfo[type].topology = alertData[srcDestType + 'TopoInfo'];
       }
+      this.setTopologyInfo(tempAlertInfo, type);
     } else if (fromPage === 'alert') { //Get topo info for Alert page
       ah.one({
         url: `${baseUrl}/api/alert/ip2loc?ip=${ip}`,
@@ -211,18 +230,10 @@ class AlertDetails extends Component {
           } else {
             tempAlertInfo[type].location = data.Location;
           }
+          this.setTopologyInfo(tempAlertInfo, type);
         }
       })
     }
-
-    this.setState({
-      alertInfo: tempAlertInfo
-    }, () => {
-      if (!_.isEmpty(alertInfo[type].topology)) {
-        this.getOwnerPic(type);
-        this.getOwnerSeat(type);
-      }
-    });
   }
   getHMDinfo = (type) => {
     const {baseUrl, contextRoot} = this.props;
@@ -491,10 +502,10 @@ class AlertDetails extends Component {
     } else if (value === 'Low') {
       styleStatus = '#57c3d9';
     } else if (value === NOT_AVAILABLE) {
-      return <span>{NOT_AVAILABLE}</span>;
+      return <span>{NOT_AVAILABLE}</span>
     }
 
-    return <span className='severity' style={{backgroundColor: styleStatus}}>{value}</span>;
+    return <span className='severity' style={{backgroundColor: styleStatus}}>{value}</span>
   }
   /**
    * Display Alert information in dialog box
@@ -504,11 +515,8 @@ class AlertDetails extends Component {
   displayAlertData = () => {
     const {alertDetails, alertData} = this.props;
     const {alertType, showContent, alertRule, alertPCAP, alertPayload, showRedirectMenu} = this.state;
-    const severity = alertData.Severity ? alertData.Severity : NOT_AVAILABLE;
-    const collector = alertData.Collector ? alertData.Collector : NOT_AVAILABLE;
-    const trigger = alertData.Trigger ? alertData.Trigger : NOT_AVAILABLE;
+    const severity = alertData.Severity ? this.getSeverity(alertData.Severity) : NOT_AVAILABLE;
     const eventDatetime = alertData._eventDttm_ ? helper.getFormattedDate(alertData._eventDttm_, 'local') : NOT_AVAILABLE;
-    const info = alertData.Info ? alertData.Info : NOT_AVAILABLE;
 
     return (
       <div>
@@ -523,15 +531,15 @@ class AlertDetails extends Component {
           </thead>
           <tbody>
             <tr>
-              <td className='align-center severity-level'>{this.getSeverity(severity)}</td>
-              <td className='align-center collector'>{collector}</td>
-              <td className='align-center trigger'>{trigger}</td>
-              <td className='align-center datetime'>{helper.getFormattedDate(eventDatetime, 'local')}</td>
+              <td className='align-center severity-level'>{severity}</td>
+              <td className='align-center collector'>{alertData.Collector || NOT_AVAILABLE}</td>
+              <td className='align-center trigger'>{alertData.Trigger || NOT_AVAILABLE}</td>
+              <td className='align-center datetime'>{eventDatetime}</td>
             </tr>
           </tbody>
         </table>
 
-        <div className='alert-info'>{info}</div>
+        <div className='alert-info'>{alertData.Info || NOT_AVAILABLE}</div>
 
         <table className='c-table main-table'>
           <thead>

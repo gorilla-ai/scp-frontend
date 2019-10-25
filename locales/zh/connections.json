@@ -383,7 +383,6 @@
     "txt-deleteChild": "請先刪除子樹狀節點",
     "txt-addNewDevice": "$t(txt-add)裝置",
     "txt-editIPdevice": "$t(txt-edit)此裝置",
-    "txt-ownerDuplicated": "所屬人員ID不得空白或重複",
     "txt-ipDuplicated": "IP不得空白或重複",
     "txt-profileImage": "$t(txt-network-owner)$t(txt-photo)",
     "txt-removePhoto": "$t(txt-remove)$t(txt-photo)",

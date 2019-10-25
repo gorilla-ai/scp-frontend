@@ -64,9 +64,16 @@ class Config extends Component {
     return path === pattern[frame];
   }
   toggleLeftNav = () => {
+    if (this.getActiveFrame('threat')) {
+      return;
+    }
+
     this.setState({
       showContent: !this.state.showContent
     });
+  }
+  getClassName = () => {
+    return this.state.showContent ? 'fg fg-arrow-left' : 'fg fg-arrow-right';
   }
   render() {
     const {session} = this.props;
@@ -161,13 +168,8 @@ class Config extends Component {
             </Link>
           </div>
         }
-        <div className='expand-collapse' onClick={this.toggleLeftNav}>
-          {showContent &&
-            <i className='fg fg-arrow-left'></i>
-          }
-          {!showContent &&
-            <i className='fg fg-arrow-right'></i>
-          }
+        <div className={cx('expand-collapse', {'not-allowed': this.getActiveFrame('threat')})} onClick={this.toggleLeftNav}>
+          <i className={this.getClassName()}></i>
         </div>
       </div>
     )

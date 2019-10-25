@@ -540,8 +540,7 @@ class Syslog extends Component {
                 value={config.pattern}
                 onChange={this.handleConfigChange.bind(this, 'pattern')} />
             </div>
-            <i className='c-link fg fg-forward' style={{marginTop: '35%', marginLeft: '25px'}} 
-               title={t('txt-parse')} onClick={this.getRaw.bind(this)} />
+            <i className='c-link fg fg-forward' style={{marginTop: '35%', marginLeft: '25px'}} title={t('txt-parse')} onClick={this.getRaw.bind(this)} />
           </div>
         </div>
         <div>
@@ -707,20 +706,14 @@ class Syslog extends Component {
       datetime
     });
   }
-  modalTimeline = () => {
+  displayEventsTimeline = () => {
     const {activeTimeline, activeConfigName, clickTimeline, datetime, eventsData} = this.state;
-    const actions = {
-      confirm: {text: t('txt-confirm'), handler: this.closeTimeline.bind(this)}
-    };
     let type = '';
-    let title = '';
 
     if (activeTimeline === 'configId') {
       type = activeConfigName;
-      title = activeConfigName + t('syslogFields.txt-eventDist');
     } else if (activeTimeline === 'overall') {
       type = 'overall';
-      title = t('syslogFields.txt-overallDist');
     }
 
     const dataArr = _.map(eventsData.events, (value, key) => {
@@ -760,13 +753,7 @@ class Syslog extends Component {
     }
 
     return (
-      <ModalDialog
-        id='viewEventsTimeline'
-        title={title}
-        draggable={true}
-        global={true}
-        actions={actions}
-        closeAction='confirm'>
+      <div>
         <div className='calendar-section'>
           <DateRange
             id='datetime'
@@ -784,10 +771,14 @@ class Syslog extends Component {
               className='chart fixed'
               {...chartAttributes} />
           }
+          {clickTimeline && !showTimeline &&
+            <div className='msg'>{t('syslogFields.txt-timelineUnavailable')}</div>
+          }
+        </div>
+        <div className='table-section'>
           {showTable &&
             <DataTable
               className='main-table'
-              style={{margin: '0 auto'}}
               data={eventsData.hosts}
               fields={{
                 ip: { label: f('alertFields.srcIp'), sortable: true },
@@ -798,10 +789,33 @@ class Syslog extends Component {
                 desc: true
               }} />
           }
-          {clickTimeline && !showTimeline &&
-            <div className='msg'>{t('syslogFields.txt-timelineUnavailable')}</div>
-          }
         </div>
+      </div>
+    )
+  }
+  modalTimeline = () => {
+    const {activeTimeline, activeConfigName} = this.state;
+    const actions = {
+      confirm: {text: t('txt-close'), handler: this.closeTimeline}
+    };
+    let title = '';
+
+    if (activeTimeline === 'configId') {
+      title = activeConfigName + t('syslogFields.txt-eventDist');
+    } else if (activeTimeline === 'overall') {
+      title = t('syslogFields.txt-overallDist');
+    }
+
+    return (
+      <ModalDialog
+        id='viewEventsTimeline'
+        className='modal-dialog'
+        title={title}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='confirm'>
+        {this.displayEventsTimeline()}    
       </ModalDialog>
     )
   }
@@ -827,6 +841,7 @@ class Syslog extends Component {
     return (
       <ModalDialog
         id='queryDialog'
+        className='modal-dialog'
         title={title}
         draggable={true}
         global={true}

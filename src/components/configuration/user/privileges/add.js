@@ -86,8 +86,24 @@ class Addor extends Component {
       });
     }
   }
+  displayAddUser = () => {
+    const {name} = this.state;
+
+    return (
+      <div className='c-flex fdc dialog-width'>
+        <Input
+          type='text'
+          value={name}
+          onChange={this.handleChange} />
+      </div>
+    )
+  }
   render() {
-    const {name, info, error, open} = this.state;
+    const {info, error, open} = this.state;
+    const actions = {
+      cancel: {text:gt('btn-cancel'), className: 'standard', handler: this.close},
+      confirm: {text:gt('btn-ok'), handler: this.addPrivilege}
+    };
 
     if (!open) {
       return null;
@@ -96,23 +112,15 @@ class Addor extends Component {
     return (
       <ModalDialog
         id={ID}
+        className='modal-dialog'
         title={t('dlg-add-privilege')}
         draggable={true}
         global={true}
         info={info}
         infoClassName={cx({'c-error':error})}
         closeAction='cancel'
-        actions={{
-          cancel: {text:gt('btn-cancel'), className: 'standard', handler: this.close},
-          confirm: {text:gt('btn-ok'), handler: this.addPrivilege}
-        }}>
-
-        <div className='c-flex fdc dialog-width'>
-          <Input
-            type='text'
-            value={name}
-            onChange={this.handleChange} />
-        </div>
+        actions={actions}>
+        {this.displayAddUser()}
       </ModalDialog>
     )
   }

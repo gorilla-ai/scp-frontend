@@ -53,7 +53,7 @@ class NetworkInventory extends Component {
 		this.state = {
       activeTab: 'deviceList', //deviceList, deviceMap
       activeContent: 'tableList', //tableList, dataInfo, addIPsteps, autoSettings
-      showFilter: true,
+      showFilter: false,
       showScanInfo: false,
       showSeatData: false,
       modalFloorOpen: false,
@@ -118,7 +118,8 @@ class NetworkInventory extends Component {
         coordX: '',
         coordY: ''
       },
-      ownerType: 'existing', //existing, new
+      ownerType: 'existing', //existing, new,
+      ownerIDduplicated: false,
       previewOwnerPic: '',
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
 		};
@@ -228,17 +229,17 @@ class NetworkInventory extends Component {
           formatter: (value, allValue, index) => {
             if (tempData === 'owner') {
               if (allValue.ownerObj) {
-                return <span>{allValue.ownerObj.ownerName}</span>;
+                return <span>{allValue.ownerObj.ownerName}</span>
               } else {
-                return <span>{value}</span>;
+                return <span>{value}</span>
               }
             } else if (tempData === 'areaName') {
               if (allValue.areaObj) {
-                return <span>{allValue.areaObj.areaName}</span>;
+                return <span>{allValue.areaObj.areaName}</span>
               }
             } else if (tempData === 'seatName') {
               if (allValue.seatObj) {
-                return <span>{allValue.seatObj.seatName}</span>;
+                return <span>{allValue.seatObj.seatName}</span>
               }
             } else if (tempData === 'yaraScan') {
               if (allValue.yaraResult && allValue.yaraResult.ScanResult) {
@@ -263,7 +264,7 @@ class NetworkInventory extends Component {
                 </div>
               )
             } else {
-              return <span>{value}</span>;
+              return <span>{value}</span>
             }
           }
         };
@@ -375,10 +376,10 @@ class NetworkInventory extends Component {
   displaySeatInfo = () => {
     const {currentDeviceData} = this.state;
     const deviceInfo = {
-      ip: currentDeviceData.ip ? currentDeviceData.ip : NOT_AVAILABLE,
-      mac: currentDeviceData.mac ? currentDeviceData.mac : NOT_AVAILABLE,
-      hostName: currentDeviceData.hostName ? currentDeviceData.hostName : NOT_AVAILABLE,
-      system: currentDeviceData.system ? currentDeviceData.system : NOT_AVAILABLE
+      ip: currentDeviceData.ip || NOT_AVAILABLE,
+      mac: currentDeviceData.mac || NOT_AVAILABLE,
+      hostName: currentDeviceData.hostName || NOT_AVAILABLE,
+      system: currentDeviceData.system || NOT_AVAILABLE
     };
 
     return (
@@ -1173,10 +1174,10 @@ class NetworkInventory extends Component {
   }
   displayScanInfo = () => {
     const {activeTab, activeScanType, deviceData, currentDeviceData} = this.state;
-    const ip = currentDeviceData.ip ? currentDeviceData.ip : NOT_AVAILABLE;
-    const mac = currentDeviceData.mac ? currentDeviceData.mac : NOT_AVAILABLE;
-    const hostName = currentDeviceData.hostName ? currentDeviceData.hostName : NOT_AVAILABLE;
-    const ownerName = currentDeviceData.ownerObj ? currentDeviceData.ownerObj.ownerName : NOT_AVAILABLE;
+    const ip = currentDeviceData.ip || NOT_AVAILABLE;
+    const mac = currentDeviceData.mac || NOT_AVAILABLE;
+    const hostName = currentDeviceData.hostName || NOT_AVAILABLE;
+    const ownerName = currentDeviceData.ownerObj || NOT_AVAILABLE;
     const safetyScanObj = [
       {
         name: 'yaraResult', //Scan Process
@@ -1487,7 +1488,8 @@ class NetworkInventory extends Component {
         activeSteps: 1,
         formTypeEdit,
         addIP,
-        ownerType: 'existing'
+        ownerType: 'existing',
+        ownerIDduplicated: false
       });
       return;
     }
@@ -1574,8 +1576,13 @@ class NetworkInventory extends Component {
           this.handleIPdeviceConfirm(ownerUUID);
         }
       })
-      .catch(err => {
-        helper.showPopupMsg('', t('txt-error'), t('network-topology.txt-ownerDuplicated'));
+      .catch(err => {     
+        helper.showPopupMsg('', t('txt-error'), err.message);
+
+        this.setState({
+          activeSteps: 3,
+          ownerIDduplicated: true
+        });
       })
     } else if (ownerType === 'existing') {
       this.handleIPdeviceConfirm();
@@ -1735,7 +1742,9 @@ class NetworkInventory extends Component {
       currentMap,
       seatData,
       currentBaseLayers,
-      floorPlan
+      floorPlan,
+      addSeat,
+      ownerIDduplicated
     } = this.state;
     const addIPtext = [t('txt-ipAddress'), t('alert.txt-systemInfo'), t('ipFields.owner'), t('alert.txt-floorInfo')];
 
@@ -1768,7 +1777,7 @@ class NetworkInventory extends Component {
                   id='addIPstepsMac'
                   required={true}
                   validate={{
-                    pattern: /^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$/,
+                    pattern: /^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$/i,
                     patternReadable: '1)MM:MM:MM:SS:SS:SS 2)MM-MM-MM-SS-SS-SS',
                     t: et
                   }}
@@ -1949,6 +1958,7 @@ class NetworkInventory extends Component {
                     <label htmlFor='addIPstepsOwnerID'>{t('ownerFields.ownerID')}</label>
                     <Input
                       id='addIPstepsOwnerID'
+                      className={cx({'invalid': ownerIDduplicated})}
                       onChange={this.handleAddIpChange.bind(this, 'newOwnerID')}
                       required={true}
                       validate={{
@@ -2021,6 +2031,7 @@ class NetworkInventory extends Component {
                       layouts={['standard']}
                       dragModes={['pan']}
                       scale={{enabled: false}}
+                      selected={[addSeat.selectedSeatUUID]}
                       defaultSelected={[currentDeviceData.seatUUID]}
                       onClick={this.handleFloorMapClick} />
                   }
@@ -2156,7 +2167,7 @@ class NetworkInventory extends Component {
         this.setState({
           addSeatOpen: false,
           addSeat: {
-            selectedSeatUUID: '',
+            selectedSeatUUID: data,
             name: '',
             coordX: '',
             coordY: ''

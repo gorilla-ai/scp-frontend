@@ -1057,7 +1057,6 @@ class SyslogController extends Component {
         global={true}
         actions={actions}
         closeAction='cancel'>
-        <label></label>
         <Input
           type='text'
           className='field-input'

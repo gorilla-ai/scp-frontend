@@ -103,8 +103,34 @@ class Editor extends Component {
       selected
     });
   }
+  displayEditUser = () => {
+    const {permits, selected, name} = this.state;
+
+    return (
+      <div className='c-form'>
+        <div>
+          <label className='required'>{t('l-name')}</label>
+          <Input
+            type='text'
+            readOnly
+            value={name} />
+        </div>
+        <div className='group'>
+          <label className='required'>{t('l-permits')}</label>
+          <CheckboxGroup
+            list={permits}
+            onChange={this.handleChange}
+            value={selected} />
+        </div>
+      </div>
+    )
+  }
   render() {
-    const {permits, selected, name, info, error, open} = this.state;
+    const {info, error, open} = this.state;
+    const actions = {
+      cancel: {text: gt('btn-cancel'), className: 'standard', handler: this.close.bind(this, false)},
+      confirm: {text: gt('btn-ok'), handler: this.bindPermits}
+    };
 
     if (!open) {
       return null;
@@ -113,32 +139,15 @@ class Editor extends Component {
     return (
       <ModalDialog
         id={ID}
+        className='modal-dialog'
         title={t('dlg-edit-privilege')}
         draggable={true}
         global={true}
         info={info}
         infoClassName={cx({'c-error':error})}
         closeAction='cancel'
-        actions={{
-          cancel: {text: gt('btn-cancel'), className: 'standard', handler: this.close.bind(this, false)},
-          confirm: {text: gt('btn-ok'), handler: this.bindPermits}
-        }}>
-        <div className='c-form'>
-          <div>
-            <label className='required'>{t('l-name')}</label>
-            <Input
-              type='text'
-              readOnly
-              value={name} />
-          </div>
-          <div className='group'>
-            <label className='required'>{t('l-permits')}</label>
-            <CheckboxGroup
-              list={permits}
-              onChange={this.handleChange}
-              value={selected} />
-          </div>
-        </div>
+        actions={actions}>
+        {this.displayEditUser()}
       </ModalDialog>
     )
   }

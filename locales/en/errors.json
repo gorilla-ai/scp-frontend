@@ -44,13 +44,14 @@
 
 	"1001":"Access not allowed",
 	"1101":"請輸入欄位: {{field}}",
+	"-9001": "Owner ID is duplicated",
 
 	"-13": "Please set the valid Agent end time",
 	"-1002": "User already exists.",
 	"-1004": "password must contain at least one lower-case alphabet/upper-case alphabet/digital/special character and have length more than 12.",
-  "-1005": "Password is expired",
-  "-1006": "Login fails exceed 5 times",
+	"-1005": "Password is expired",
+	"-1006": "Login fails exceed 5 times",
 
 	"txt-param-null": "Parameter is NULL",
-  	"txt-account-fail" : "Fail to get accounts from AD"
+	"txt-account-fail" : "Fail to get accounts from AD"
 }

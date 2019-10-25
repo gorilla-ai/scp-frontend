@@ -327,7 +327,7 @@ class AlertController extends Component {
           sortable: true,
           formatter: (value, allValue) => {
             if (tempData === 'Severity') {
-              return <span className='severity' style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>;
+              return <span className='severity' style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>
             } else {
               if (tempData === '_eventDttm_') {
                 value = helper.getFormattedDate(value, 'local');
@@ -878,11 +878,6 @@ class AlertController extends Component {
       }
     });
   }
-  getTabChartData = () => {
-    return {
-      chartData: this.state.alertHistogram
-    };
-  }
   forwardSyslog = (allValue, type) => {
     const {baseUrl, contextRoot} = this.props;
     window.location.href = `${baseUrl}${contextRoot}/syslog?srcIp=${allValue.srcIp}`;
@@ -929,7 +924,9 @@ class AlertController extends Component {
         contextRoot={contextRoot}
         language={language}
         mainContentData={mainContentData}
-        tabChartData={this.getTabChartData()} />
+        tabChartData={{
+          chartData: this.state.alertHistogram
+        }} />
     )
   }
   getCSVfile = () => {

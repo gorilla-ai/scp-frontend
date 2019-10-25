@@ -205,12 +205,8 @@ class Editor extends Component {
       error: true
     });
   }
-  render() {
-    const {id, accountData, info, error, open, privileges, showPrivileges} = this.state;
-
-    if (!open) {
-      return null
-    }
+  displayAccountsEdit = () => {
+    const {id, accountData, privileges, showPrivileges} = this.state;
 
     let formFieldsBasic = {
       account: {label: t('l-account'), editor: Input, props: {
@@ -264,18 +260,7 @@ class Editor extends Component {
       formFieldsBasic = _.assign({}, formFieldsBasic, formFieldsPrivileges);
     }
 
-    return <ModalDialog
-      id='g-user-accounts-edit'
-      title={id ? t('dlg-edit') : t('dlg-add')}
-      draggable
-      global
-      info={info}
-      infoClassName={cx({'c-error':error})}
-      closeAction='cancel'
-      actions={{
-        cancel: {text: gt('btn-cancel'), className: 'standard', handler: this.close},
-        confirm: {text: gt('btn-ok'), handler: this.saveAccount}
-      }}>
+    return (
       <div className='c-flex fdc boxes dialog-width'>
         <Form
           formClassName='c-form inline c-flex jcsb'
@@ -283,7 +268,33 @@ class Editor extends Component {
           value={accountData}
           onChange={this.handleChange} />
       </div>
-    </ModalDialog>
+    )
+  }
+  render() {
+    const {id, info, error, open} = this.state;
+    const actions = {
+      cancel: {text: gt('btn-cancel'), className: 'standard', handler: this.close},
+      confirm: {text: gt('btn-ok'), handler: this.saveAccount}
+    };
+
+    if (!open) {
+      return null
+    }
+
+    return (
+      <ModalDialog
+        id='g-user-accounts-edit'
+        className='modal-dialog'
+        title={id ? t('dlg-edit') : t('dlg-add')}
+        draggable
+        global
+        info={info}
+        infoClassName={cx({'c-error':error})}
+        closeAction='cancel'
+        actions={actions}>
+        {this.displayAccountsEdit()}
+      </ModalDialog>
+    )
   }
 }
 

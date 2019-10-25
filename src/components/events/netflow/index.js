@@ -819,14 +819,14 @@ class Netflow extends Component {
             }
             if (tempData === 'base64' && value) {
               if (value.indexOf('data:image/') >= 0) {
-                return <img src={value} className='file-image' onClick={this.openImageModal(value)} />;
+                return <img src={value} className='file-image' onClick={this.openImageModal(value)} />
               }
             } else if (tempData === 'filePath') {
-              return <a href={baseUrl + contextRoot + '/api/network/file?path=' + value} download>{value}</a>;
+              return <a href={baseUrl + contextRoot + '/api/network/file?path=' + value} download>{value}</a>
             } else if (tempData === 'controlText') {
               return <span title={value} onClick={this.showQueryOptions(tempData, value)}>{value.substr(0, 50) + '...'}</span>
             } else if (tempData === 'htmlRelinkPath') {
-              return <span onClick={this.openHTMLModal.bind(this, value)}>{value}</span>;
+              return <span onClick={this.openHTMLModal.bind(this, value)}>{value}</span>
             } else {
               if (tempData === 'firstPacket' || tempData === 'lastPacket' || tempData === '_eventDttm_') {
                 value = helper.getFormattedDate(value, 'local');

@@ -48,7 +48,9 @@ class SafetyScan extends Component {
   }
   render() {
     const {type, ipDeviceInfo} = this.props;
-    let hmdInfo = {};
+    let hmdInfo = {
+      yara: {}
+    };
 
     if (ipDeviceInfo[type].yaraResult) {
       hmdInfo.yara = {
@@ -106,7 +108,6 @@ class SafetyScan extends Component {
 }
 
 SafetyScan.propTypes = {
-
 };
 
 const HocSafetyScan = withLocale(SafetyScan);

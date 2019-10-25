@@ -23,7 +23,7 @@ class ThreatIntelligence extends Component {
 
     this.state = {
       datetime: {
-        from: helper.getSubstractDate(1, 'day'),
+        from: helper.getSubstractDate(1, 'week'),
         to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
         //from: '2019-03-08T00:00:00Z',
         //to: '2019-03-13T00:00:00Z'

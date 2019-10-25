@@ -333,15 +333,15 @@ class NetworkMap extends Component {
           formatter: (value, allValue) => {
             if (tempData === 'seat') {
               if (allValue.seatObj) {
-                return <span>{allValue.seatObj.seatName}</span>;
+                return <span>{allValue.seatObj.seatName}</span>
               }
             }
             if (tempData === 'owner') {
               if (allValue.ownerObj) {
-                return <span>{allValue.ownerObj.ownerName}</span>;
+                return <span>{allValue.ownerObj.ownerName}</span>
               }
             }
-            return <span>{value}</span>;
+            return <span>{value}</span>
           }
         };
       })
@@ -642,10 +642,10 @@ class NetworkMap extends Component {
   displaySeatInfo = () => {
     const {currentDeviceData} = this.state;
     const deviceInfo = {
-      ip: currentDeviceData.ip ? currentDeviceData.ip : NOT_AVAILABLE,
-      mac: currentDeviceData.mac ? currentDeviceData.mac : NOT_AVAILABLE,
-      hostName: currentDeviceData.hostName ? currentDeviceData.hostName : NOT_AVAILABLE,
-      system: currentDeviceData.system ? currentDeviceData.system : NOT_AVAILABLE
+      ip: currentDeviceData.ip || NOT_AVAILABLE,
+      mac: currentDeviceData.mac || NOT_AVAILABLE,
+      hostName: currentDeviceData.hostName || NOT_AVAILABLE,
+      system: currentDeviceData.system || NOT_AVAILABLE
     };
 
     return (

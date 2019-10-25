@@ -122,15 +122,15 @@ class Endpoint extends Component {
                 </div>
               )
             } else if (tempData === 'createDttm') {
-              return <span>{helper.getFormattedDate(value)}</span>;
+              return <span>{helper.getFormattedDate(value)}</span>
             } else if (tempData === 'runningTaskCount') {
-              return <a className='bold' onClick={this.getTaskInfo.bind(this, 'Running', allValue)}>{value}</a>;
+              return <a className='bold' onClick={this.getTaskInfo.bind(this, 'Running', allValue)}>{value}</a>
             } else if (tempData === 'waitingTaskCount') {
-              return <a className='bold' onClick={this.getTaskInfo.bind(this, 'Waiting', allValue)}>{value}</a>;
+              return <a className='bold' onClick={this.getTaskInfo.bind(this, 'Waiting', allValue)}>{value}</a>
             } else if (tempData === 'completeTaskCount') {
-              return <a className='bold' onClick={this.getTaskInfo.bind(this, 'Complete', allValue)}>{value}</a>;
+              return <a className='bold' onClick={this.getTaskInfo.bind(this, 'Complete', allValue)}>{value}</a>
             } else {
-              return <span>{value}</span>;
+              return <span>{value}</span>
             }
           }
         };
@@ -196,9 +196,9 @@ class Endpoint extends Component {
           sortable: true,
           formatter: (value, allValue) => {
             if (tempData.indexOf('Dttm') > 0) {
-              return <span>{helper.getFormattedDate(value)}</span>;
+              return <span>{helper.getFormattedDate(value)}</span>
             } else {
-              return <span>{value}</span>;
+              return <span>{value}</span>
             }
           }
         };

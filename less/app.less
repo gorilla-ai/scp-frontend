@@ -540,6 +540,9 @@ footer.footer {
 				background-color: #E4E4E4;
 				border-left: 1px solid #d9d9d9;
 				cursor: pointer;
+				&.not-allowed {
+					cursor: not-allowed;
+				}
 				.fg {
 					position: absolute;
 					top: 380px;
@@ -1668,6 +1671,9 @@ footer.footer {
 					.floor-header {
 						position: absolute;
 						top: 10px;
+					}
+					.base-layers {
+						display: none;
 					}
 					.c-gis {
 						min-width: 99%;

@@ -25,7 +25,7 @@ class File extends Component {
     const {mainContentData} = this.props;
 
     if (val.base64 && val.base64.indexOf('data:image/') >= 0) {
-      return <img key={i} src={val.base64} onClick={mainContentData.openImageModal(val.base64)} />;
+      return <img key={i} src={val.base64} onClick={mainContentData.openImageModal(val.base64)} />
     }
   }
   render() {

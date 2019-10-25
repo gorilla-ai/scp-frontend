@@ -176,7 +176,7 @@ class NetworkOwner extends Component {
                 onEdit={this.getOwnerInfo}
                 onDelete={this.openDeleteOwnerModal} />
             } else {
-              return <span>{value}</span>;
+              return <span>{value}</span>
             }
           }
         };
@@ -373,7 +373,7 @@ class NetworkOwner extends Component {
       this.toggleContent('tableList');
     })
     .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), t('network-topology.txt-ownerDuplicated'));
+      helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
   getDeleteOwnerContent = (value) => {

@@ -57,31 +57,6 @@ class SearchOptions extends Component {
 
     this.props.handleDateChange(datetime, 'refresh');
   }
-  handleSearchTypeChange = (type) => {
-    this.props.setSearchData('all', {
-      searchType: type,
-      searchInterval: '1h',
-      refreshTime: '600000',
-      inputManual: t('events.connections.txt-last1h'),
-      inputAuto: t('txt-interval') + ': ' + t('events.connections.txt-10m')
-    });
-
-    if (this.intervalId) {
-      clearInterval(this.intervalId);
-      this.intervalId = null;
-    }
-  }
-  renderDateRange = () => {
-    return (
-      <DateRange
-        id='datetime'
-        className='daterange'
-        onChange={this.props.handleDateChange}
-        enableTime={true}
-        value={this.props.datetime}
-        t={et} />
-    )
-  }
   getTimeAndText = (type) => {
     let text = '';
     let time = '';
@@ -146,6 +121,20 @@ class SearchOptions extends Component {
       intervalModalOpen: !this.state.intervalModalOpen
     });
   }
+  handleSearchTypeChange = (type) => {
+    this.props.setSearchData('all', {
+      searchType: type,
+      searchInterval: '1h',
+      refreshTime: '600000',
+      inputManual: t('events.connections.txt-last1h'),
+      inputAuto: t('txt-interval') + ': ' + t('events.connections.txt-10m')
+    });
+
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+      this.intervalId = null;
+    }
+  }
   displayIntervalOptions = () => {
     const {searchInput} = this.props;
 
@@ -198,6 +187,26 @@ class SearchOptions extends Component {
       )
     }
   }
+  intervalModalDialog = () => {
+    const {activeTab} = this.state;
+    const actions = {
+      confirm: {text: t('txt-close'), handler: this.handleIntervalConfirm}
+    };
+    const titleText = t('events.connections.txt-time-frame');
+
+    return (
+      <ModalDialog
+        id='intervalModalDialog'
+        className='modal-dialog'
+        title={titleText}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='confirm'>
+        {this.displayIntervalOptions()}
+      </ModalDialog>
+    )
+  }
   handleIntervalConfirm = () => {
     const {searchInput} = this.props;
     let dataObj = this.getTimeAndText(searchInput.searchInterval);
@@ -220,24 +229,15 @@ class SearchOptions extends Component {
     this.props.setSearchData('inputAuto', inputAuto);
     this.toggleIntervalDialog();
   }
-  intervalModalDialog = () => {
-    const {activeTab} = this.state;
-    const actions = {
-      confirm: {text: t('txt-close'), handler: this.handleIntervalConfirm}
-    };
-    const titleText = t('events.connections.txt-time-frame');
-
+  showDataRange = () => {
     return (
-      <ModalDialog
-        id='intervalModalDialog'
-        className='modal-dialog'
-        title={titleText}
-        draggable={true}
-        global={true}
-        actions={actions}
-        closeAction='confirm'>
-        {this.displayIntervalOptions()}
-      </ModalDialog>
+      <DateRange
+        id='datetime'
+        className='daterange'
+        onChange={this.props.handleDateChange}
+        enableTime={true}
+        value={this.props.datetime}
+        t={et} />
     )
   }
   render() {
@@ -285,7 +285,7 @@ class SearchOptions extends Component {
         
         <div className='datepicker'>
           <label htmlFor='datetime' className='datetime'></label>
-          {this.renderDateRange()}
+          {this.showDataRange()}
         </div>
 
         <button className='search-button' onClick={this.loadSearchOptions.bind(this, 'search')} disabled={showFilter}>{t('events.connections.txt-toggleFilter')}</button>

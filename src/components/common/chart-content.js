@@ -139,39 +139,40 @@ class ChartContent extends Component {
       }
     }
   }
-  render() {
+  showChartContent = () => {
     const {pageType} = this.props;
     const {chartAttributes} = this.state;
     const dataCount = chartAttributes.data ? chartAttributes.data.length : 0;
 
-    return (
-      <div className='bar-chart'>
-        {pageType === 'connections' && dataCount > 1000 &&
-          <div className='error'>{t('events.connections.txt-chartExceedMaxMsg')}</div>
-        }
+    if (dataCount > 1000) {
+      return <div className='error'>{t('events.connections.txt-chartExceedMaxMsg')}</div>
+    }
 
-        {pageType === 'logs' && !_.isEmpty(chartAttributes) &&
+    if (!_.isEmpty(chartAttributes)) {
+      if (pageType === 'alert' || pageType === 'connections') {
+        return (
+          <BarChart
+            stacked
+            vertical
+            className={cx('chart fixed', {'connections': pageType === 'connections'})}
+            {...chartAttributes} />
+        )
+      }
+
+      if (pageType === 'logs') {
+        return (
           <LineChart
             vertical
             className='chart fixed'
             {...chartAttributes} />
-        }
-
-        {pageType === 'connections' && !_.isEmpty(chartAttributes) && dataCount <= 1000 &&
-          <BarChart
-            stacked
-            vertical
-            className={cx('chart fixed', {'connections': pageType === 'connections'})}
-            {...chartAttributes} />
-        }
-
-        {pageType !== 'logs' && pageType !== 'connections' && !_.isEmpty(chartAttributes) &&
-          <BarChart
-            stacked
-            vertical
-            className={cx('chart fixed', {'connections': pageType === 'connections'})}
-            {...chartAttributes} />
-        }
+        )
+      }
+    }
+  }
+  render() {
+    return (
+      <div className='bar-chart'>
+        {this.showChartContent()}
       </div>
     )
   }

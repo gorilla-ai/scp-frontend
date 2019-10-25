@@ -240,7 +240,7 @@ class FloorMap extends Component {
             {previewFloorMap &&
               <img src={previewFloorMap} title={floorPlan.currentAreaName + ' ' + t('txt-floorMap')} />
             }
-            {showMap && currentMap.images && !previewFloorMap &&
+            {!previewFloorMap && showMap && currentMap.images &&
               <img src={currentMap.images[0].url} title={floorPlan.currentAreaName + ' ' + t('txt-floorMap')} />
             }
           </div>
@@ -481,7 +481,6 @@ class FloorMap extends Component {
 }
 
 FloorMap.propTypes = {
-
 };
 
 const HocFloorMap = withLocale(FloorMap);

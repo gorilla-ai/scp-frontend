@@ -38,8 +38,9 @@ let t = null;
 let et = null;
 
 class Name extends Component {
-	constructor(props, context) {
-		super(props, context)
+	constructor(props) {
+		super(props);
+
 		this.state = _.cloneDeep(INIT);
 
 		t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -51,7 +52,7 @@ class Name extends Component {
 
 		if (!name.trim()) {
 			helper.showPopupMsg('', t('txt-error'), t('txt-noEmpty'));
-			return
+			return;
 		}
 
 		const json = {
@@ -80,7 +81,7 @@ class Name extends Component {
 
 		if (!name.trim()) {
 			helper.showPopupMsg('', t('txt-error'), t('txt-noEmpty'));
-			return
+			return;
 		}
 
 		const json = {
@@ -150,7 +151,10 @@ class Name extends Component {
 		this.props.onDone();
 	}
 	handleTabChange = (tab) => {
-		let tabs = { department:false, title: false };
+		let tabs = {
+			department: false,
+			title: false
+		};
 		tabs[tab] = true;
 
 		this.getNameList(tab);
@@ -280,9 +284,17 @@ class Name extends Component {
 		};
 
 		return (
-			<ModalDialog className='modal-dialog' title={header} draggable={true}
-				global={true} actions={actions} closeAction='cancel'>
-				<Input placeholder={t('txt-enterName')} onChange={this.handleChange.bind(this, 'name')} value={name} />	
+			<ModalDialog
+				className='modal-dialog'
+				title={header}
+				draggable={true}
+				global={true}
+				actions={actions}
+				closeAction='cancel'>
+				<Input
+					placeholder={t('txt-enterName')}
+					onChange={this.handleChange.bind(this, 'name')}
+					value={name} />
 			</ModalDialog>
 		)
 	}

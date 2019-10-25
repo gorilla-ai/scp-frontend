@@ -383,7 +383,6 @@
     "txt-deleteChild": "Please delete the child node first",
     "txt-addNewDevice": "$t(txt-add) a new device",
     "txt-editIPdevice": "$t(txt-edit) this device",
-    "txt-ownerDuplicated": "Owner ID cannot be empty or duplicated",
     "txt-ipDuplicated": "IP cannot be empty or duplicated",
     "txt-profileImage": "$t(txt-network-owner) $t(txt-photo)",
     "txt-removePhoto": "$t(txt-remove) $t(txt-photo)",

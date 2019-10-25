@@ -18,13 +18,11 @@ class FilterContent extends Component {
     const {activeTab} = this.props;
 
     if (activeTab !== 'logs') {
-      return (
-        <button className='filter' onClick={this.props.handleSearchSubmit.bind(this, 'search')}>{t('txt-filter')}</button>
-      )
+      return <button className='filter' onClick={this.props.handleSearchSubmit.bind(this, 'search')}>{t('txt-filter')}</button>
     }
   }
   render() {
-    const {activeTab, showFilter, queryData} = this.props;
+    const {showFilter, queryData} = this.props;
     let filterTitle = t('txt-filter');
 
     if (queryData && queryData.displayName) {
@@ -35,12 +33,10 @@ class FilterContent extends Component {
       <div className={cx('main-filter', {'active': showFilter})}>
         <i className='fg fg-close' onClick={this.props.toggleFilter} title={t('txt-close')}></i>
         <div className='header-text'>{filterTitle}</div>
-        {activeTab !== 'config' &&
-          <div className='button-group open-query'>
-            <button className='open-query' onClick={this.props.openQuery.bind(this, 'open')}>{t('events.connections.txt-openQuery')}</button>
-            <button className='save-query' onClick={this.props.openQuery.bind(this, 'save')}>{t('events.connections.txt-saveQuery')}</button>
-          </div>
-        }
+        <div className='button-group open-query'>
+          <button className='open-query' onClick={this.props.openQuery.bind(this, 'open')}>{t('events.connections.txt-openQuery')}</button>
+          <button className='save-query' onClick={this.props.openQuery.bind(this, 'save')}>{t('events.connections.txt-saveQuery')}</button>
+        </div>
         <Filter
           inline={true}
           {...this.props} />

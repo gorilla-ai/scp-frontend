@@ -116,8 +116,61 @@ class ResetPwd extends Component {
 			errInfo: null
 		};
 	}
+	displayResetPassword = () => {
+		const {formData} = this.state;
+
+		return (
+			<div className='accounts-size-frame'>
+				<Form
+					className='content'
+					fields={{
+						account: {label: `${t('l-account')}`, editor: Input, props: {
+							className: cx('accounts-style-form', {invalid:_.isEmpty(formData.account)}),
+							maxLength: 32,
+							required: true,
+							validate: {
+								t: et
+							}
+						}},
+						oldPwd: {label: `${t('oldPwd')}`, editor: Input, props: {
+							className: cx('accounts-style-form', {invalid:_.isEmpty(formData.oldPwd)}),
+							maxLength: 64,
+							required: true,
+							type: 'password',
+							validate: {
+								t: et
+							}
+						}},
+						newPwd1: {label: `${t('newPwd')}`, editor: Input, props: {
+							className: cx('accounts-style-form', {invalid:_.isEmpty(formData.newPwd1)}),
+							maxLength: 64,
+							required: true,
+							type: 'password',
+							validate: {
+								t: et
+							}
+						}},
+						newPwd2: {label: `${t('rewritePwd')}`, editor: Input, props: {
+							className: cx('accounts-style-form', {invalid:_.isEmpty(formData.newPwd2)}),
+							maxLength: 64,
+							required: true,
+							type: 'password',
+							validate: {
+								t: et
+							}
+						}}
+					}}
+					onChange={this.handleChange}
+					value={formData} />
+			</div>
+		)
+	}
 	render() {
-		const {open, formData, error, errInfo} = this.state;
+		const {open, error, errInfo} = this.state;
+		const actions = {
+			cancel: {text: at('btn-cancel'), className: 'standard', handler: this.close},
+			confirm: {text: at('btn-ok'), handler: this.saveAccount}
+		};
 
 		if (!open) {
 			return null;
@@ -126,59 +179,15 @@ class ResetPwd extends Component {
 		return (
 			<ModalDialog
 				id='g-user-resetPwd'
+				className='modal-dialog'
 				title={t('change-expired-pwd')}
 				draggable={true}
 				global={true}
 				info={errInfo}
 				infoClassName={cx({'c-error': error})}
 				closeAction='cancel'
-				actions={{
-					cancel: {text: at('btn-cancel'), className: 'standard', handler: this.close},
-					confirm: {text: at('btn-ok'), handler: this.saveAccount}
-				}}>
-				<div className='accounts-size-frame'>
-					<Form
-						className='content'
-						fields={{
-							account: {label: `${t('l-account')}`, editor: Input, props: {
-								className: cx('accounts-style-form', {invalid:_.isEmpty(formData.account)}),
-								maxLength: 32,
-								required: true,
-								validate: {
-									t: et
-								}
-							}},
-							oldPwd: {label: `${t('oldPwd')}`, editor: Input, props: {
-								className: cx('accounts-style-form', {invalid:_.isEmpty(formData.oldPwd)}),
-								maxLength: 64,
-								required: true,
-								type: 'password',
-								validate: {
-									t: et
-								}
-							}},
-							newPwd1: {label: `${t('newPwd')}`, editor: Input, props: {
-								className: cx('accounts-style-form', {invalid:_.isEmpty(formData.newPwd1)}),
-								maxLength: 64,
-								required: true,
-								type: 'password',
-								validate: {
-									t: et
-								}
-							}},
-							newPwd2: {label: `${t('rewritePwd')}`, editor: Input, props: {
-								className: cx('accounts-style-form', {invalid:_.isEmpty(formData.newPwd2)}),
-								maxLength: 64,
-								required: true,
-								type: 'password',
-								validate: {
-									t: et
-								}
-							}}
-						}}
-						onChange={this.handleChange}
-						value={formData} />
-				</div>
+				actions={actions}>
+				{this.displayResetPassword()}
 			</ModalDialog>
 		)
 	}

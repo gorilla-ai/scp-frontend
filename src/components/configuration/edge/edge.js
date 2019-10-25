@@ -219,7 +219,7 @@ class Edge extends Component {
                   </div>
                 )
               } else {
-                return <span>{value}</span>;
+                return <span>{value}</span>
               }
             }
           };
