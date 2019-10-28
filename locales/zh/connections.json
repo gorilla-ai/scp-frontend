@@ -177,7 +177,7 @@
     "txt-Top10InternalMaskedIp": "內部網段告警統計",
     "txt-Top10SyslogConfigSource": "系統日誌類型統計",
     "txt-dnsQuery": "DNS Query",
-    "txt-disk-usage": "系統記憶體狀態",
+    "txt-disk-usage": "系統可用空間狀態",
     "txt-diskAvail": "Disk Available Space (GB)",
     "txt-diskTotal": "Disk Total Space (GB)",
     "txt-dns-histogram": "網路流量統計",

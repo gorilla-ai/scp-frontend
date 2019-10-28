@@ -106,7 +106,7 @@ class DashboardMaps extends Component {
       timestamp: [dateTime.from, dateTime.to],
       filters: [{
         condition: 'must',
-        query: 'All'
+        query: 'Top10ExternalPotSrcIp'
       }]
     };
 

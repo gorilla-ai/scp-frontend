@@ -595,7 +595,7 @@ class AlertDetails extends Component {
                 <div onClick={this.getPcapFile}>{t('alert.txt-downloadPCAP')}</div>
               }
 
-              {showContent.attack &&
+              {showContent.attack && alertData.fileMD5 &&
                 <div onClick={this.downloadFile}>{t('alert.txt-downloadFile')}</div>
               }
             </div>
@@ -1110,6 +1110,10 @@ class AlertDetails extends Component {
       origFileId: alertData.origFileId,
       md5: alertData.fileMD5
     };
+
+    if (!alertData.origFileId && !alertData.fileMD5) {
+      return;
+    }
 
     this.ah.one({
       url: `${baseUrl}/api/honeynet/attack/payload/file`,
