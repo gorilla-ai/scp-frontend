@@ -101,7 +101,7 @@ class DashboardMaps extends Component {
       from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
       to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
     };
-    const url = `${baseUrl}/api/u1/alert/_search`;
+    const url = `${baseUrl}/api/u1/alert/_search?page=1&pageSize=10000`;
     const requestData = {
       timestamp: [dateTime.from, dateTime.to],
       filters: [{
@@ -114,8 +114,8 @@ class DashboardMaps extends Component {
     .then(data => {
       if (data) {
         const tempArray = _.map(data.data.rows, val => {
-          val.content.id = val.id;
-          return val.content;
+          val._source.id = val._id;
+          return val._source;
         });
         let tempAlertDetails = {...alertDetails};
         let publicData = {

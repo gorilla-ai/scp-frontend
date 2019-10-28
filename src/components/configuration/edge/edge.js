@@ -170,7 +170,7 @@ class Edge extends Component {
                       {allValue.honeyPotHostDTO && allValue.honeyPotHostDTO.lastDataUpdDT &&
                         <li><span>lastDataUpdDT:</span> {helper.getFormattedDate(allValue.honeyPotHostDTO.lastDataUpdDT, 'local')}</li>
                       }
-                      {allValue.honeyPotHostDTO && allValue.honeyPotHostDTO.attackCnt &&
+                      {allValue.honeyPotHostDTO &&
                         <li><span>attackCnt:</span> {allValue.honeyPotHostDTO.attackCnt}</li>
                       }
                     </ul>
