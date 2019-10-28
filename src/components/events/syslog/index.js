@@ -378,7 +378,6 @@ class SyslogController extends Component {
       }, () => {
         this.loadLogs(fromSearch);
       });
-
       return null;
     })
     .catch(err => {

@@ -101,7 +101,6 @@ class Status extends Component {
       this.setState({
         serviceStatus: tempServiceStatus
       });
-
       return null;
     })
     .catch(err => {

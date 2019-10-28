@@ -355,7 +355,6 @@ class AlertController extends Component {
         oldPage: tempCurrentPage,
         subSectionsData: tempSubSectionsData
       });
-
       return null;
     });
   }
@@ -820,38 +819,6 @@ class AlertController extends Component {
       alertDetailsOpen: true
     });
   }
-  handleDialogNavigation = (allValue, index) => {
-    const {activeTab, subSectionsData, currentTableIndex} = this.state;
-    let tableIndex = '';
-    let tableRowIndex = '';
-
-    if (allValue === 'next' || allValue === 'previous') {
-      tableIndex = currentTableIndex;
-
-      if (allValue === 'next') {
-        tableIndex++;
-      } else if (allValue === 'previous') {
-        tableIndex--;
-      }
-
-      allValue = subSectionsData.mainData[activeTab][tableIndex];
-    }
-
-    if (Number(index) >= 0) {
-      tableRowIndex = Number(index); //Find index for table row click
-    } else {
-      if (tableIndex) {
-        tableRowIndex = tableIndex; //Find index when click on 'next' and 'previous' button
-      } else {
-        tableRowIndex = _.findIndex(subSectionsData.mainData[activeTab], {'id': allValue.id}); //Find table index for ContextMenu
-      }
-    }
-
-    return {
-      allValue,
-      tableRowIndex
-    };
-  }
   closeDialog = () => {
     const tempAlertDetails = {
       ...this.state.alertDetails,
@@ -877,10 +844,6 @@ class AlertController extends Component {
         this.loadTable(fromSearch);
       }
     });
-  }
-  forwardSyslog = (allValue, type) => {
-    const {baseUrl, contextRoot} = this.props;
-    window.location.href = `${baseUrl}${contextRoot}/syslog?srcIp=${allValue.srcIp}`;
   }
   renderTabContent = () => {
     const {baseUrl, contextRoot, language, searchFields} = this.props;

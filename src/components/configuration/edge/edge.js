@@ -208,6 +208,23 @@ class Edge extends Component {
                       }
                     </ul>
                   )
+                } else if (serviceType === 'IPS-NETPROBE') {
+                  return (
+                    <ul>
+                      {allValue.lastStatus &&
+                        <li><span>lastStatus:</span> {allValue.lastStatus}</li>
+                      }
+                      {allValue.lastStatusUpdDT &&
+                        <li><span>lastStatusUpdDT:</span> {helper.getFormattedDate(allValue.lastStatusUpdDT, 'local')}</li>
+                      }
+                      {allValue.statistics && allValue.statistics.rx_pkts &&
+                        <li><span>received packets:</span> {allValue.statistics.rx_pkts}</li>
+                      }
+                      {allValue.statistics && allValue.statistics.tx_pkts &&
+                        <li><span>transferred packets:</span> {allValue.statistics.tx_pkts}</li>
+                      }
+                    </ul>
+                  )
                 } else {
                   return;
                 }

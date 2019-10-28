@@ -21,9 +21,6 @@ class PrivateDetails extends Component {
   constructor(props) {
     super(props);
 
-    this.state = {
-    };
-
     t = chewbaccaI18n.getFixedT(null, 'connections');
     f = chewbaccaI18n.getFixedT(null, 'tableFields');
     this.ah = getInstance('chewbacca');

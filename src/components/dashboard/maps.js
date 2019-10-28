@@ -133,7 +133,7 @@ class DashboardMaps extends Component {
           }
 
           publicData.srcIp[val.srcIp].push(val);
-          publicData.destIp[val.destIp].push(val);        
+          publicData.destIp[val.destIp].push(val);
         })
 
         tempAlertDetails.publicFormatted.srcIp = publicData.srcIp;

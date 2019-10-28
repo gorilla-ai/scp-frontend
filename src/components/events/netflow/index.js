@@ -884,7 +884,6 @@ class Netflow extends Component {
         subSectionsData: tempSubSectionsData,
         currentLength
       });
-
       return null;
     })
     .catch(err => {
@@ -2010,7 +2009,6 @@ class Netflow extends Component {
         confirmText: t('txt-close'),
         display: <div dangerouslySetInnerHTML={{__html: data}} />
       });
-
       return null;
     })
     .catch(err => {

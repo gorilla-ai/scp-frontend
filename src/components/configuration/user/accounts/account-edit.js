@@ -43,6 +43,7 @@ class Editor extends Component {
     super(props);
 
     this.state = _.cloneDeep(INITIAL_STATE);
+
     this.ah = getInstance('chewbacca');
   }
   handleChange = (accountData) => {

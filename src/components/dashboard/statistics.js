@@ -421,11 +421,6 @@ class DashboardStats extends Component {
       )
     }
   }
-  // testChartFunction = (evt, data, cfg) => {
-  //   const {baseUrl, contextRoot} = this.props;
-  //   const url = `${baseUrl}${contextRoot}/syslog?service=${data[0].service}`;
-  //   window.open(url, '_blank');
-  // }
   render() {
     const {
       updatedTime,
