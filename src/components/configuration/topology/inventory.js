@@ -47,10 +47,10 @@ let f = null;
 let et = null;
 
 class NetworkInventory extends Component {
-	constructor(props) {
-		super(props);
+  constructor(props) {
+    super(props);
 
-		this.state = {
+    this.state = {
       activeTab: 'deviceList', //deviceList, deviceMap
       activeContent: 'tableList', //tableList, dataInfo, addIPsteps, autoSettings
       showFilter: false,
@@ -122,19 +122,19 @@ class NetworkInventory extends Component {
       ownerIDduplicated: false,
       previewOwnerPic: '',
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
-		};
+    };
 
     t = chewbaccaI18n.getFixedT(null, 'connections');
     f = chewbaccaI18n.getFixedT(null, 'tableFields');
     et = chewbaccaI18n.getFixedT(null, 'errors');
     this.ah = getInstance('chewbacca');
-	}
-	componentDidMount() {
+  }
+  componentDidMount() {
     this.getDeviceData();
     this.getOwnerData();
     this.getOtherData();
     this.getFloorPlan();
-	}
+  }
   componentWillReceiveProps(nextProps) {
     if (nextProps.location.state === 'tableList') {
       this.toggleContent('showList');
@@ -2254,7 +2254,7 @@ class NetworkInventory extends Component {
       }
     }
   }
-	render() {
+  render() {
     const {baseUrl, contextRoot, language, locale, session} = this.props;
     const {
       activeTab,
@@ -2279,7 +2279,7 @@ class NetworkInventory extends Component {
     const picPath = (currentDeviceData.ownerObj && currentDeviceData.ownerObj.base64) ? currentDeviceData.ownerObj.base64 : contextRoot + '/images/empty_profile.png';
     const backText = activeTab === 'deviceList' ? t('network-inventory.txt-backToList') : t('network-inventory.txt-backToMap')
 
-		return (
+    return (
       <div>
         {showScanInfo &&
           this.showScanInfo()
@@ -2314,6 +2314,7 @@ class NetworkInventory extends Component {
             baseUrl={baseUrl}
             contextRoot={contextRoot}
             language={language}
+            locale={locale}
             session={session} />
 
           {activeContent === 'tableList' &&
@@ -2408,8 +2409,8 @@ class NetworkInventory extends Component {
           }
         </div>
       </div>
-		)
-	}
+    )
+  }
 }
 
 NetworkInventory.propTypes = {

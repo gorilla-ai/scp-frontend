@@ -18,33 +18,33 @@ let f = null;
 let et = null;
 
 class Status extends Component {
-	constructor(props) {
-		super(props);
+  constructor(props) {
+    super(props);
 
-		this.state = {
-			serviceStatus: {
-				dataFieldsArr: ['status', 'serviceName'],
-				lastUpdateTime: '',
+    this.state = {
+      serviceStatus: {
+        dataFieldsArr: ['status', 'serviceName'],
+        lastUpdateTime: '',
         dataFields: {},
         dataContent: []
-			}
-		};
+      }
+    };
 
-		t = chewbaccaI18n.getFixedT(null, 'connections');
+    t = chewbaccaI18n.getFixedT(null, 'connections');
     f = chewbaccaI18n.getFixedT(null, 'tableFields');
-		et = chewbaccaI18n.getFixedT(null, 'errors');
-		this.ah = getInstance('chewbacca');
-	}
-	componentDidMount() {
-		this.getServiceStatus();
-	}
-	getServiceStatus = (option) => {
+    et = chewbaccaI18n.getFixedT(null, 'errors');
+    this.ah = getInstance('chewbacca');
+  }
+  componentDidMount() {
+    this.getServiceStatus();
+  }
+  getServiceStatus = (option) => {
     const {baseUrl} = this.props;
     const {serviceStatus} = this.state;
     let url = `${baseUrl}/api/monitor`;
 
     if (option === 'refresh') {
-    	url += '?refresh=true';
+      url += '?refresh=true';
     }
 
     this.ah.one({
@@ -66,29 +66,29 @@ class Status extends Component {
               let styleStatus = '';
 
               if (value.toLowerCase() === 'active') {
-              	styleStatus = '#22ac38';
+                styleStatus = '#22ac38';
               } else if (value.toLowerCase() === 'unstable') {
                 styleStatus = '#e6e448';
               } else {
-              	styleStatus = '#d0021b';
+                styleStatus = '#d0021b';
               }
 
               return <div style={{color : styleStatus}}><i className='fg fg-recode' title={helper.capitalizeFirstLetter(value)} /></div>
             }
             if (tempData === 'serviceName') {
-            	let tooltip = '';
+              let tooltip = '';
 
-            	if (allValue.responseCode) {
-            		tooltip += allValue.responseCode + ': ';
-            	} else {
-            		tooltip += 'N/A: ';
-            	}
+              if (allValue.responseCode) {
+                tooltip += allValue.responseCode + ': ';
+              } else {
+                tooltip += 'N/A: ';
+              }
 
-            	if (allValue.reponseMsg) {
-            		tooltip += allValue.reponseMsg;
-            	} else {
-            		tooltip += 'N/A';
-            	}
+              if (allValue.reponseMsg) {
+                tooltip += allValue.reponseMsg;
+              } else {
+                tooltip += 'N/A';
+              }
 
               return <span>{value} <i className='fg fg-info' title={tooltip}></i></span>
             }
@@ -106,12 +106,12 @@ class Status extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
-	}
-	render() {
-		const {baseUrl, contextRoot, language, session} = this.props;
-		const {serviceStatus} = this.state;
+  }
+  render() {
+    const {baseUrl, contextRoot, language, locale, session} = this.props;
+    const {serviceStatus} = this.state;
 
-		return (
+    return (
       <div>
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
@@ -125,6 +125,7 @@ class Status extends Component {
             baseUrl={baseUrl}
             contextRoot={contextRoot}
             language={language}
+            locale={locale}
             session={session} />
 
           <div className='parent-content'>
@@ -132,7 +133,7 @@ class Status extends Component {
               <header className='main-header'>{t('txt-serviceStatus')}</header>
               <div className='table-content'>
                 <div className='table no-pagination'>
-      	          <DataTable
+                  <DataTable
                     className='main-table align-center'
                     fields={serviceStatus.dataFields}
                     data={serviceStatus.dataContent} />
@@ -142,15 +143,16 @@ class Status extends Component {
           </div>
         </div>
       </div>
-		)
-	}
+    )
+  }
 }
 
 Status.propTypes = {
-	baseUrl: PropTypes.string.isRequired,
-	contextRoot: PropTypes.string.isRequired,
-	language: PropTypes.string.isRequired,
-	session: PropTypes.object.isRequired
+  baseUrl: PropTypes.string.isRequired,
+  contextRoot: PropTypes.string.isRequired,
+  language: PropTypes.string.isRequired,
+  locale: PropTypes.string.isRequired,
+  session: PropTypes.object.isRequired
 };
 
 const HocStatus = withRouter(withLocale(Status));

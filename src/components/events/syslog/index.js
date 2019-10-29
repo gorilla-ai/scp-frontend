@@ -1254,7 +1254,7 @@ class SyslogController extends Component {
     });
   }
   renderTabContent = () => {
-    const {baseUrl, contextRoot, language, searchFields} = this.props;
+    const {baseUrl, contextRoot, language, locale, searchFields} = this.props;
     const {activeTab, markData, tableMouseOver} = this.state;
     const mainContentData = {
       searchFields,
@@ -1308,6 +1308,7 @@ class SyslogController extends Component {
         baseUrl={baseUrl}
         contextRoot={contextRoot}
         language={language}
+        locale={locale}
         mainContentData={mainContentData}
         tabChartData={this.getTabChartData()}
         markData={markData}
@@ -1446,7 +1447,7 @@ class SyslogController extends Component {
     });
   }
   render() {
-    const {session} = this.props;
+    const {locale, session} = this.props;
     const {
       activeTab,
       datetime,
@@ -1508,6 +1509,7 @@ class SyslogController extends Component {
           {helper.getEventsMenu('syslog', sessionRights)}
 
           <SearchOptions
+            locale={locale}
             position='226px'
             datetime={datetime}
             searchInput={searchInput}
@@ -1534,6 +1536,7 @@ SyslogController.propTypes = {
   baseUrl: PropTypes.string.isRequired,
   contextRoot: PropTypes.string.isRequired,
   language: PropTypes.string.isRequired,
+  locale: PropTypes.string.isRequired,
   searchFields: PropTypes.object.isRequired,
   session: PropTypes.object.isRequired
 };

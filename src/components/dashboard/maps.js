@@ -370,7 +370,7 @@ class DashboardMaps extends Component {
     });
   }
   modalDialog = () => {
-    const {baseUrl, contextRoot, language} = this.props;
+    const {baseUrl, contextRoot, language, locale} = this.props;
     const {alertDetails, alertData, locationType} = this.state;
     const actions = {
       confirm: {text: t('txt-close'), handler: this.closeDialog}
@@ -381,6 +381,7 @@ class DashboardMaps extends Component {
         baseUrl={baseUrl}
         contextRoot={contextRoot}
         language={language}
+        locale={locale}
         titleText={t('alert.txt-alertInfo')}
         actions={actions}
         alertDetails={alertDetails}
@@ -760,6 +761,7 @@ DashboardMaps.propTypes = {
   baseUrl: PropTypes.string.isRequired,
   contextRoot: PropTypes.string.isRequired,
   language: PropTypes.string.isRequired,
+  locale: PropTypes.string.isRequired,
   session: PropTypes.object.isRequired
 };
 

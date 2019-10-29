@@ -725,7 +725,7 @@ class AlertController extends Component {
     return null;
   }
   alertDialog = () => {
-    const {baseUrl, contextRoot, language} = this.props;
+    const {baseUrl, contextRoot, language, locale} = this.props;
     const {alertDetails, alertData} = this.state;
     const actions = {
       confirm: {text: t('txt-close'), handler: this.closeDialog}
@@ -736,6 +736,7 @@ class AlertController extends Component {
         baseUrl={baseUrl}
         contextRoot={contextRoot}
         language={language}
+        locale={locale}
         titleText={t('alert.txt-alertInfo')}
         actions={actions}
         alertDetails={alertDetails}
@@ -846,7 +847,7 @@ class AlertController extends Component {
     });
   }
   renderTabContent = () => {
-    const {baseUrl, contextRoot, language, searchFields} = this.props;
+    const {baseUrl, contextRoot, language, locale, searchFields} = this.props;
     const {activeTab} = this.state;
     const mainContentData = {
       searchFields,
@@ -886,6 +887,7 @@ class AlertController extends Component {
         baseUrl={baseUrl}
         contextRoot={contextRoot}
         language={language}
+        locale={locale}
         mainContentData={mainContentData}
         tabChartData={{
           chartData: this.state.alertHistogram
@@ -983,6 +985,7 @@ class AlertController extends Component {
     });
   }
   render() {
+    const {locale} = this.props;
     const {
       activeTab,
       datetime,
@@ -1019,6 +1022,7 @@ class AlertController extends Component {
 
         <div className='sub-header'>
           <SearchOptions
+            locale={locale}
             position='180px'
             datetime={datetime}
             searchInput={searchInput}
@@ -1045,6 +1049,7 @@ AlertController.propTypes = {
   baseUrl: PropTypes.string.isRequired,
   contextRoot: PropTypes.string.isRequired,
   language: PropTypes.string.isRequired,
+  locale: PropTypes.string.isRequired,
   searchFields: PropTypes.object.isRequired,
   session: PropTypes.object.isRequired
 };

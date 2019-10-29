@@ -2396,7 +2396,7 @@ class Netflow extends Component {
     });
   }
   render() {
-    const {session} = this.props;
+    const {locale, session} = this.props;
     const {
       activeTab,
       datetime,
@@ -2454,6 +2454,7 @@ class Netflow extends Component {
           {helper.getEventsMenu('netflow', sessionRights)}
 
           <SearchOptions
+            locale={locale}
             position='180px'
             datetime={datetime}
             searchInput={searchInput}
@@ -2480,6 +2481,7 @@ Netflow.propTypes = {
   baseUrl: PropTypes.string.isRequired,
   contextRoot: PropTypes.string.isRequired,
   language: PropTypes.string.isRequired,
+  locale: PropTypes.string.isRequired,
   searchFields: PropTypes.object.isRequired,
   session: PropTypes.object.isRequired
 };

@@ -525,6 +525,7 @@ Endpoint.propTypes = {
   baseUrl: PropTypes.string.isRequired,
   contextRoot: PropTypes.string.isRequired,
   language: PropTypes.string.isRequired,
+  locale: PropTypes.string.isRequired,
   session: PropTypes.object.isRequired
 };
 

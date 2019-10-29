@@ -127,13 +127,14 @@ class ThreatIntelligence extends Component {
     });
   }
   render() {
-    const {baseUrl, contextRoot, language, session} = this.props;
+    const {baseUrl, contextRoot, language, locale, session} = this.props;
     const {datetime, indicatorsData, indicatorsTrendData, acuIndicatorsTrendData} = this.state;
 
     return (
       <div>
         <div className='sub-header'>
           <SearchOptions
+            locale={locale}
             datetime={datetime}
             handleDateChange={this.handleDateChange}
             handleSearchSubmit={this.getChartsData} />
@@ -144,6 +145,7 @@ class ThreatIntelligence extends Component {
             baseUrl={baseUrl}
             contextRoot={contextRoot}
             language={language}
+            locale={locale}
             session={session} />
 
           <div className='parent-content'>

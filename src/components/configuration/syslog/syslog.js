@@ -88,16 +88,16 @@ const INIT = {
 };
 
 class Syslog extends Component {
-	constructor(props) {
-  	super(props);
+  constructor(props) {
+    super(props);
 
-  	this.state = _.cloneDeep(INIT);
+    this.state = _.cloneDeep(INIT);
 
     t = chewbaccaI18n.getFixedT(null, 'connections');
     f = chewbaccaI18n.getFixedT(null, 'tableFields');
     et = chewbaccaI18n.getFixedT(null, 'errors')
     this.ah = getInstance('chewbacca');
-	}
+  }
   componentDidMount() {
     this.getRelationship();
     this.getSyslogList(false);
@@ -949,12 +949,12 @@ class Syslog extends Component {
       </div>
     )
   }
-	render() {
-    const {baseUrl, contextRoot, language, session} = this.props;
+  render() {
+    const {baseUrl, contextRoot, language, locale, session} = this.props;
     const {openSyslog, openTimeline, openEditHosts, syslog, openFilter, dataFields} = this.state;
 
-		return (
-			<div>
+    return (
+      <div>
         {openSyslog &&
           this.modalSyslog()
         }
@@ -967,19 +967,20 @@ class Syslog extends Component {
           this.modalEditHosts()
         }
 
-				<div className='sub-header'>
+        <div className='sub-header'>
           <div className='secondary-btn-group right'>
             <button onClick={this.openTimeline.bind(this, 'overall')} title={t('syslogFields.txt-overallDist')}><i className='fg fg-chart-kpi'></i></button>
             <button onClick={this.openSyslog.bind(this, null)} title={t('syslogFields.txt-addSyslog')}><i className='fg fg-add'></i></button>
             <button className={cx('last', {'active': openFilter})} onClick={this.setFilter.bind(this, !openFilter)} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
           </div>
-  			</div>
+        </div>
 
         <div className='data-content'>
           <Config
             baseUrl={baseUrl}
             contextRoot={contextRoot}
             language={language}
+            locale={locale}
             session={session} />
 
           <div className='parent-content'>
@@ -1001,9 +1002,9 @@ class Syslog extends Component {
             </div>
           </div>
         </div>
-			</div>
-		)
-	}
+      </div>
+    )
+  }
 }
 
 Syslog.propTypes = {

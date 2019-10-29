@@ -275,7 +275,7 @@ class AccountList extends Component {
     )
   }
   render() {
-    const {baseUrl, contextRoot, language, session} = this.props;
+    const {baseUrl, contextRoot, language, locale, session} = this.props;
     const {accountData, dataFields, openFilter} = this.state;
 
     return (
@@ -292,6 +292,7 @@ class AccountList extends Component {
             baseUrl={baseUrl}
             contextRoot={contextRoot}
             language={language}
+            locale={locale}
             session={session} />
 
           <div className='parent-content'>

@@ -52,7 +52,6 @@ class FilterContent extends Component {
 FilterContent.propTypes = {
   showFilter: PropTypes.bool.isRequired,
   handleSearchSubmit: PropTypes.func.isRequired,
-  toggleFilter: PropTypes.func.isRequired,
   handleResetBtn: PropTypes.func.isRequired
 };
 

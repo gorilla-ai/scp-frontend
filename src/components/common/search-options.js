@@ -240,6 +240,15 @@ class SearchOptions extends Component {
         t={et} />
     )
   }
+  getInputWidth = (type) => {
+    const {locale} = this.props;
+
+    if (locale === 'zh') {
+      return '110px';
+    } else if (locale === 'en') {
+      return '140px';
+    }
+  }
   render() {
     const {position, showFilter, showInterval, searchInput} = this.props;
     const {intervalModalOpen} = this.state;
@@ -279,7 +288,7 @@ class SearchOptions extends Component {
 
         {showInterval &&
           <div className='search-interval'>
-            <input className='time-interval' value={searchInputValue} onClick={this.toggleIntervalDialog} readOnly />
+            <input className='time-interval' style={{width: this.getInputWidth()}} value={searchInputValue} onClick={this.toggleIntervalDialog} readOnly />
           </div>
         }
         

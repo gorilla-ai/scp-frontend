@@ -79,7 +79,6 @@ TableContent.propTypes = {
   dataTableData: PropTypes.array.isRequired,
   dataTableFields: PropTypes.object.isRequired,
   dataTableSort: PropTypes.object.isRequired,
-  paginationTotalCount: PropTypes.number.isRequired,
   paginationPageSize: PropTypes.number.isRequired,
   paginationCurrentPage: PropTypes.number.isRequired
 };

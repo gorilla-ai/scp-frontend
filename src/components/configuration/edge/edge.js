@@ -761,8 +761,6 @@ class Edge extends Component {
       }
     });
   }
-
-
   getBtnPos = (type) => {
     const {locale} = this.props;
 
@@ -775,7 +773,7 @@ class Edge extends Component {
     }
   }
   render() {
-    const {baseUrl, contextRoot, language, session} = this.props;
+    const {baseUrl, contextRoot, language, locale, session} = this.props;
     const {activeContent, showFilter, edge} = this.state;
 
     return (
@@ -791,6 +789,7 @@ class Edge extends Component {
             baseUrl={baseUrl}
             contextRoot={contextRoot}
             language={language}
+            locale={locale}
             session={session} />
 
           <div className='parent-content'>

@@ -486,7 +486,7 @@ class NetworkOwner extends Component {
     }
   }
   render() {
-    const {baseUrl, contextRoot, language, session} = this.props;
+    const {baseUrl, contextRoot, language, locale, session} = this.props;
     const {
       activeContent,
       list,
@@ -511,6 +511,7 @@ class NetworkOwner extends Component {
             baseUrl={baseUrl}
             contextRoot={contextRoot}
             language={language}
+            locale={locale}
             session={session} />
 
           <div className='parent-content'>

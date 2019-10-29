@@ -855,11 +855,11 @@ class AlertDetails extends Component {
 
    */
   getListWidth = () => {
-    const {language} = this.props;
+    const {locale} = this.props;
 
-    if (language === 'en') {
+    if (locale === 'en') {
       return '120px';
-    } else if (language === 'zh') {
+    } else if (locale === 'zh') {
       return '50px';
     }
   }
@@ -1179,6 +1179,7 @@ AlertDetails.propTypes = {
   baseUrl: PropTypes.string.isRequired,
   contextRoot: PropTypes.string.isRequired,
   language: PropTypes.string.isRequired,
+  locale: PropTypes.string.isRequired,
   titleText: PropTypes.string.isRequired,
   actions: PropTypes.object.isRequired,
   alertDetails: PropTypes.object.isRequired,

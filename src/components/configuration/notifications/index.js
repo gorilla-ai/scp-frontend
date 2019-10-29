@@ -359,7 +359,7 @@ class Notifications extends Component {
     });
   }
   render() {
-    const {baseUrl, contextRoot, language, session} = this.props;
+    const {baseUrl, contextRoot, language, locale, session} = this.props;
     const {activeContent, openEmailDialog, notifications, emails} = this.state;
     const EMAIL_SETTINGS = [
       {
@@ -393,6 +393,7 @@ class Notifications extends Component {
             baseUrl={baseUrl}
             contextRoot={contextRoot}
             language={language}
+            locale={locale}
             session={session} />
 
           <div className='parent-content'>
