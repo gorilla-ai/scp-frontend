@@ -45,263 +45,263 @@ const log = logger(cfg.env, loglevel, cfg.log);
 const footerText = `Powered by ${companyName}. Copyright © ${companyName}. ${year} All Rights Reserved. ${cfg.version} For the best experience, use the latest version of Google Chrome`;
 
 const HeaderComp = () => (
-	<Header
-		baseUrl={cfg.apiPrefix}
-		contextRoot={cfg.contextRoot}
-		productName={productName}
-		companyName={companyName}
-		session={session} />
+  <Header
+    baseUrl={cfg.apiPrefix}
+    contextRoot={cfg.contextRoot}
+    productName={productName}
+    companyName={companyName}
+    session={session} />
 )
 
 const DashboardStatsComp = () => (
-	<DashboardStats
-		baseUrl={cfg.apiPrefix}
-		contextRoot={cfg.contextRoot}
-		language={cfg.lng}
-		locale={cfg.lng}
-		session={session} />
+  <DashboardStats
+    baseUrl={cfg.apiPrefix}
+    contextRoot={cfg.contextRoot}
+    language={cfg.lng}
+    locale={cfg.lng}
+    session={session} />
 )
 
 const DashboardMapsComp = () => (
-	<DashboardMaps
-		baseUrl={cfg.apiPrefix}
-		contextRoot={cfg.contextRoot}
-		language={cfg.lng}
-		locale={cfg.lng}
-		session={session} />
+  <DashboardMaps
+    baseUrl={cfg.apiPrefix}
+    contextRoot={cfg.contextRoot}
+    language={cfg.lng}
+    locale={cfg.lng}
+    session={session} />
 )
 
 const AlertComp = () => (
-	<Alert
-		baseUrl={cfg.apiPrefix}
-		contextRoot={cfg.contextRoot}
-		language={cfg.lng}
-		locale={cfg.lng}
-		searchFields={appcfg.searchFields}
-		session={session} />
+  <Alert
+    baseUrl={cfg.apiPrefix}
+    contextRoot={cfg.contextRoot}
+    language={cfg.lng}
+    locale={cfg.lng}
+    searchFields={appcfg.searchFields}
+    session={session} />
 )
 
 const NetflowComp = () => (
-	<Netflow
-		baseUrl={cfg.apiPrefix}
-		contextRoot={cfg.contextRoot}
-		language={cfg.lng}
-		locale={cfg.lng}
-		searchFields={appcfg.searchFields}
-		session={session} />
+  <Netflow
+    baseUrl={cfg.apiPrefix}
+    contextRoot={cfg.contextRoot}
+    language={cfg.lng}
+    locale={cfg.lng}
+    searchFields={appcfg.searchFields}
+    session={session} />
 )
 
 const SyslogComp = () => (
-	<Syslog
-		baseUrl={cfg.apiPrefix}
-		contextRoot={cfg.contextRoot}
-		language={cfg.lng}
-		locale={cfg.lng}
-		searchFields={appcfg.searchFields}
-		session={session} />
+  <Syslog
+    baseUrl={cfg.apiPrefix}
+    contextRoot={cfg.contextRoot}
+    language={cfg.lng}
+    locale={cfg.lng}
+    searchFields={appcfg.searchFields}
+    session={session} />
 )
 
 const EndpointComp = () => (
-	<Endpoint
-		baseUrl={cfg.apiPrefix}
-		contextRoot={cfg.contextRoot}
-		language={cfg.lng}
-		locale={cfg.lng}
-		session={session} />
+  <Endpoint
+    baseUrl={cfg.apiPrefix}
+    contextRoot={cfg.contextRoot}
+    language={cfg.lng}
+    locale={cfg.lng}
+    session={session} />
 )
 
 const Notifications = () => (
-	<NotificationSettings
-		baseUrl={cfg.apiPrefix}
-		contextRoot={cfg.contextRoot}
-		language={cfg.lng}
-		locale={cfg.lng}
-		session={session} />
+  <NotificationSettings
+    baseUrl={cfg.apiPrefix}
+    contextRoot={cfg.contextRoot}
+    language={cfg.lng}
+    locale={cfg.lng}
+    session={session} />
 )
 
 const Edge = () => (
-	<EdgeManagement
-		baseUrl={cfg.apiPrefix}
-		contextRoot={cfg.contextRoot}
-		language={cfg.lng}
-		locale={cfg.lng}
-		session={session} />
+  <EdgeManagement
+    baseUrl={cfg.apiPrefix}
+    contextRoot={cfg.contextRoot}
+    language={cfg.lng}
+    locale={cfg.lng}
+    session={session} />
 )
 
 const Threat = () => (
-	<ThreatIntelligence
-		baseUrl={cfg.apiPrefix}
-		contextRoot={cfg.contextRoot}
-		language={cfg.lng}
-		locale={cfg.lng}
-		session={session} />
+  <ThreatIntelligence
+    baseUrl={cfg.apiPrefix}
+    contextRoot={cfg.contextRoot}
+    language={cfg.lng}
+    locale={cfg.lng}
+    session={session} />
 )
 
 const NetworkTopologyInventory = () => (
-	<NetworkInventory
-		baseUrl={cfg.apiPrefix}
-		contextRoot={cfg.contextRoot}
-		language={cfg.lng}
-		locale={cfg.lng}
-		session={session} />
+  <NetworkInventory
+    baseUrl={cfg.apiPrefix}
+    contextRoot={cfg.contextRoot}
+    language={cfg.lng}
+    locale={cfg.lng}
+    session={session} />
 )
 
 const NetworkTopologyOwner = () => (
-	<NetworkOwner
-		baseUrl={cfg.apiPrefix}
-		contextRoot={cfg.contextRoot}
-		language={cfg.lng}
-		locale={cfg.lng}
-		session={session} />
+  <NetworkOwner
+    baseUrl={cfg.apiPrefix}
+    contextRoot={cfg.contextRoot}
+    language={cfg.lng}
+    locale={cfg.lng}
+    session={session} />
 )
 
 const NetworkTopologyMap = () => (
-	<NetworkMap
-		baseUrl={cfg.apiPrefix}
-		contextRoot={cfg.contextRoot}
-		language={cfg.lng}
-		locale={cfg.lng}
-		session={session} />
+  <NetworkMap
+    baseUrl={cfg.apiPrefix}
+    contextRoot={cfg.contextRoot}
+    language={cfg.lng}
+    locale={cfg.lng}
+    session={session} />
 )
 
 const Syslogs = () => (
-	<SyslogConfig
-		baseUrl={cfg.apiPrefix}
-		contextRoot={cfg.contextRoot}
-		language={cfg.lng}
-		locale={cfg.lng}
-		session={session} />
+  <SyslogConfig
+    baseUrl={cfg.apiPrefix}
+    contextRoot={cfg.contextRoot}
+    language={cfg.lng}
+    locale={cfg.lng}
+    session={session} />
 )
 
 const userAccounts = () => (
-	<UserAccounts
-		baseUrl={cfg.apiPrefix}
-		contextRoot={cfg.contextRoot}
-		language={cfg.lng}
-		locale={cfg.lng}
-		session={session} />
+  <UserAccounts
+    baseUrl={cfg.apiPrefix}
+    contextRoot={cfg.contextRoot}
+    language={cfg.lng}
+    locale={cfg.lng}
+    session={session} />
 )
 
 const userPrivileges = () => (
-	<UserPrivileges
-		baseUrl={cfg.apiPrefix}
-		contextRoot={cfg.contextRoot}
-		language={cfg.lng}
-		locale={cfg.lng}
-		session={session} />
+  <UserPrivileges
+    baseUrl={cfg.apiPrefix}
+    contextRoot={cfg.contextRoot}
+    language={cfg.lng}
+    locale={cfg.lng}
+    session={session} />
 )
 
 const serviceStatus = () => (
-	<ServiceStatus
-		baseUrl={cfg.apiPrefix}
-		contextRoot={cfg.contextRoot}
-		language={cfg.lng}
-		locale={cfg.lng}
-		session={session} />
+  <ServiceStatus
+    baseUrl={cfg.apiPrefix}
+    contextRoot={cfg.contextRoot}
+    language={cfg.lng}
+    locale={cfg.lng}
+    session={session} />
 )
 
 const Main = () => (
-	<main className='main'>
-		<Switch>
-			<Route exact path='/ChewbaccaWeb' component={DashboardStatsComp} />
-			<Route exact path='/ChewbaccaWeb/dashboard/statistics' component={DashboardStatsComp} />
-			<Route exact path='/ChewbaccaWeb/dashboard/maps' component={DashboardMapsComp} />
-			<Route exact path='/ChewbaccaWeb/alert' component={AlertComp} />
-			<Route exact path='/ChewbaccaWeb/events/netflow' component={NetflowComp} />
-			<Route exact path='/ChewbaccaWeb/events/syslog' component={SyslogComp} />
-			<Route exact path='/ChewbaccaWeb/events/endpoint' component={EndpointComp} />
-			<Route exact path='/ChewbaccaWeb/configuration/notifications' component={Notifications} />
-			<Route exact path='/ChewbaccaWeb/configuration/edge/edge' component={Edge} />
-			<Route exact path='/ChewbaccaWeb/configuration/edge/threat' component={Threat} />
-			<Route exact path='/ChewbaccaWeb/configuration/topology/inventory' component={NetworkTopologyInventory} />
-			<Route exact path='/ChewbaccaWeb/configuration/topology/owner' component={NetworkTopologyOwner} />
-			<Route exact path='/ChewbaccaWeb/configuration/topology/map' component={NetworkTopologyMap} />
-			<Route exact path='/ChewbaccaWeb/configuration/syslog' component={Syslogs} />
-			<Route exact path='/ChewbaccaWeb/configuration/user/account' component={userAccounts} />
-			<Route exact path='/ChewbaccaWeb/configuration/user/privileges' component={userPrivileges} />
-			<Route exact path='/ChewbaccaWeb/configuration/service-status' component={serviceStatus} />
-		</Switch>
-	</main>
+  <main className='main'>
+    <Switch>
+      <Route exact path='/ChewbaccaWeb' component={DashboardStatsComp} />
+      <Route exact path='/ChewbaccaWeb/dashboard/statistics' component={DashboardStatsComp} />
+      <Route exact path='/ChewbaccaWeb/dashboard/maps' component={DashboardMapsComp} />
+      <Route exact path='/ChewbaccaWeb/alert' component={AlertComp} />
+      <Route exact path='/ChewbaccaWeb/events/netflow' component={NetflowComp} />
+      <Route exact path='/ChewbaccaWeb/events/syslog' component={SyslogComp} />
+      <Route exact path='/ChewbaccaWeb/events/endpoint' component={EndpointComp} />
+      <Route exact path='/ChewbaccaWeb/configuration/notifications' component={Notifications} />
+      <Route exact path='/ChewbaccaWeb/configuration/edge/edge' component={Edge} />
+      <Route exact path='/ChewbaccaWeb/configuration/edge/threat' component={Threat} />
+      <Route exact path='/ChewbaccaWeb/configuration/topology/inventory' component={NetworkTopologyInventory} />
+      <Route exact path='/ChewbaccaWeb/configuration/topology/owner' component={NetworkTopologyOwner} />
+      <Route exact path='/ChewbaccaWeb/configuration/topology/map' component={NetworkTopologyMap} />
+      <Route exact path='/ChewbaccaWeb/configuration/syslog' component={Syslogs} />
+      <Route exact path='/ChewbaccaWeb/configuration/user/account' component={userAccounts} />
+      <Route exact path='/ChewbaccaWeb/configuration/user/privileges' component={userPrivileges} />
+      <Route exact path='/ChewbaccaWeb/configuration/service-status' component={serviceStatus} />
+    </Switch>
+  </main>
 )
 
 const App = () => {
-	return (
-		!session.accountId ? 
-			<div>
-				<Login
-					baseUrl={cfg.apiPrefix}
-					contextRoot={cfg.contextRoot}
-					locale={['zh', 'en']}
-					productName={productName} />
-				<footer className='footer login'>{footerText}</footer>
-			</div>
-		:
-			<div>
-				<HeaderComp />
-				<Main />
-				<footer className='footer'>{footerText}</footer>
-			</div>
-	)
+  return (
+    !session.accountId ? 
+      <div>
+        <Login
+          baseUrl={cfg.apiPrefix}
+          contextRoot={cfg.contextRoot}
+          locale={['zh', 'en']}
+          productName={productName} />
+        <footer className='footer login'>{footerText}</footer>
+      </div>
+    :
+      <div>
+        <HeaderComp />
+        <Main />
+        <footer className='footer'>{footerText}</footer>
+      </div>
+  )
 }
 
 function start() {
-	//const store = createStore(initialState)
-	const baseUrl = cfg.apiPrefix;
-	const contextRoot = cfg.contextRoot;
-	const lng = cfg.lng || 'zh';
-	const customLocale = cfg.customLocale;
-	let url = '';
+  //const store = createStore(initialState)
+  const baseUrl = cfg.apiPrefix;
+  const contextRoot = cfg.contextRoot;
+  const lng = cfg.lng || 'zh';
+  const customLocale = cfg.customLocale;
+  let url = '';
 
-	$.ajaxPrefilter((options) => {
-		options.url = cfg.contextRoot + options.url;
-	});
+  $.ajaxPrefilter((options) => {
+    options.url = cfg.contextRoot + options.url;
+  });
 
-	$(document).ajaxError((event, jqxhr, settings) => {
-		const {url} = settings;
-		const {status} = jqxhr;
-		const {contextRoot} = cfg;
+  $(document).ajaxError((event, jqxhr, settings) => {
+    const {url} = settings;
+    const {status} = jqxhr;
+    const {contextRoot} = cfg;
 
-		if (url.indexOf(contextRoot + '/api') === 0 && url.indexOf(contextRoot + '/api/login') < 0) {
-			if (status === 401 || status === 403) {
-				document.location.reload();
-			}
-		}
-	})
+    if (url.indexOf(contextRoot + '/api') === 0 && url.indexOf(contextRoot + '/api/login') < 0) {
+      if (status === 401 || status === 403) {
+        document.location.reload();
+      }
+    }
+  })
 
-	if (customLocale) {
-		url = baseUrl + `/api/locale?lng=${lng}`;
-	} else {
-		url = `/build/locales/${lng}.json`;
-	}
+  if (customLocale) {
+    url = baseUrl + `/api/locale?lng=${lng}`;
+  } else {
+    url = `/build/locales/${lng}.json`;
+  }
 
-	Promise.resolve($.get(url))
-		.then(data => {
-			if (customLocale) {
-				return data.rt;
-			} else {
-				return data;
-			}
-		})
-		.catch(xhr => {
-			log.error(xhr)
-			return null;
-		})
-		.then(resources => {
-			i18n.init({
-				lng,
-				fallbackLng: lng,
-				resources: {[lng]:resources}
-			}, err => {
-				if (err) {
-					log.error(err);
-				}
-				render((
-					<BrowserRouter>
-						<App />
-					</BrowserRouter>
-				), document.getElementById('app-container'))
-			})
-		})
+  Promise.resolve($.get(url))
+    .then(data => {
+      if (customLocale) {
+        return data.rt;
+      } else {
+        return data;
+      }
+    })
+    .catch(xhr => {
+      log.error(xhr)
+      return null;
+    })
+    .then(resources => {
+      i18n.init({
+        lng,
+        fallbackLng: lng,
+        resources: {[lng]:resources}
+      }, err => {
+        if (err) {
+          log.error(err);
+        }
+        render((
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        ), document.getElementById('app-container'))
+      })
+    })
 }
 
 start();
