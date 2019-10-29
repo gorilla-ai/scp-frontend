@@ -293,7 +293,7 @@ class AlertController extends Component {
       tempSubSectionsData.totalCount[activeTab] = tableData.counts;
       tableData = tableData.rows;
 
-      tempArray = _.map(tableData, val => {
+      tempArray = _.map(tableData, val => { //Re-construct the Alert data
         val._source.id = val._id;
         val._source.index = val._index;
         return val._source;
@@ -324,7 +324,7 @@ class AlertController extends Component {
         tempFields[tempData] = {
           hide: false,
           label: f(`${activeTab}Fields.${tempFieldName}`),
-          sortable: true,
+          sortable: tempData === '_eventDttm_' ? true : false,
           formatter: (value, allValue) => {
             if (tempData === 'Severity') {
               return <span className='severity' style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>

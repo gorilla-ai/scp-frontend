@@ -826,7 +826,7 @@ class SyslogController extends Component {
       {
         id: value + '_MustNot',
         text: 'Must Not',
-        action: () => this.addSearch(field, value, 'must Not')
+        action: () => this.addSearch(field, value, 'must_not')
       },
       {
         id: value + '_Either',
