@@ -182,7 +182,7 @@ class Netflow extends Component {
         page: 1,
         pageSize: 10,
         totalCount: 0,
-        activeIndex: '',
+        activeIndex: null,
         hex: '',
         filterEmpty: false
       },
@@ -1677,6 +1677,8 @@ class Netflow extends Component {
   setPCAPpage = (currentPage) => {
     let tempPcapData = {...this.state.pcapData};
     tempPcapData.page = currentPage;
+    tempAlertPCAP.activeIndex = null;
+    tempPcapData.hex = '';
     tempPcapData.filterEmpty = false;
 
     this.setState({
@@ -1688,7 +1690,7 @@ class Netflow extends Component {
   toggleFilterEmpty = () => {
     const {pcapData} = this.state;
     let tempPcapData = {...pcapData};
-    tempPcapData.activeIndex = '';
+    tempPcapData.activeIndex = null;
     tempPcapData.hex = '';
     tempPcapData.filterEmpty = !tempPcapData.filterEmpty;
 
@@ -1765,7 +1767,7 @@ class Netflow extends Component {
     const titleText = t('events.connections.txt-viewPCAP');
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeDialog},
-      confirm: {text: t('txt-confirm'), handler: this.closeDialog}
+      confirm: {text: t('txt-close'), handler: this.closeDialog}
     };
 
     return (
@@ -1800,7 +1802,7 @@ class Netflow extends Component {
         tempPcapData.origData = data.rows;
         tempPcapData.data = data.rows;
         tempPcapData.totalCount = data.counts;
-        tempPcapData.activeIndex = '';
+        tempPcapData.activeIndex = null;
         tempPcapData.hex = '';
 
         this.setState({
@@ -2330,7 +2332,7 @@ class Netflow extends Component {
       page: 1,
       pageSize: 10,
       totalCount: 0,
-      activeIndex: '',
+      activeIndex: null,
       hex: ''
     };
 

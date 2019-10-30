@@ -49,7 +49,7 @@ class AlertDetails extends Component {
         page: 1,
         pageSize: 10,
         totalCount: 0,
-        activeIndex: '',
+        activeIndex: null,
         hex: '',
         filterEmpty: false
       },
@@ -388,6 +388,27 @@ class AlertDetails extends Component {
     }
   }
   /**
+   * Reset PCAP data
+   * @param none
+   * @returns none
+   */
+  resetPCAPcontent = () => {
+    this.setState({
+      alertPCAP: {
+        origData: [],
+        data: [],
+        page: 1,
+        pageSize: 10,
+        totalCount: 0,
+        activeIndex: null,
+        hex: '',
+        filterEmpty: false
+      }
+    }, () => {
+      this.getPCAPcontent();
+    });
+  }
+  /**
    * Get PCAP data
    * @param none
    * @returns none
@@ -458,7 +479,7 @@ class AlertDetails extends Component {
           tempShowContent.rule = true;
           break;
         case 'pcap':
-          this.getPCAPcontent();
+          this.resetPCAPcontent();
           tempShowContent.pcap = true;
           break;
         case 'attack':
@@ -729,7 +750,9 @@ class AlertDetails extends Component {
   setPCAPpage = (currentPage) => {
     let tempAlertPCAP = {...this.state.alertPCAP};
     tempAlertPCAP.page = currentPage;
-    tempPcapData.filterEmpty = false;
+    tempAlertPCAP.activeIndex = null;
+    tempAlertPCAP.hex = '';
+    tempAlertPCAP.filterEmpty = false;
 
     this.setState({
       alertPCAP: tempAlertPCAP
@@ -745,7 +768,7 @@ class AlertDetails extends Component {
   toggleFilterEmpty = () => {
     const {alertPCAP} = this.state;
     let tempAlertPCAP = {...alertPCAP};
-    tempAlertPCAP.activeIndex = '';
+    tempAlertPCAP.activeIndex = null;
     tempAlertPCAP.hex = '';
     tempAlertPCAP.filterEmpty = !tempAlertPCAP.filterEmpty;
 
@@ -1152,7 +1175,7 @@ class AlertDetails extends Component {
         page: 1,
         pageSize: 10,
         totalCount: 0,
-        activeIndex: '',
+        activeIndex: null,
         hex: '',
         filterEmpty: false
       },
