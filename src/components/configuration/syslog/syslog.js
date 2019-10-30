@@ -533,14 +533,14 @@ class Syslog extends Component {
                 rows={8}
                 value={config.input}
                 onChange={this.handleConfigChange.bind(this, 'input')} />
-              <i className='c-link fg fg-down' title={t('txt-convert')} onClick={this.convertPattern.bind(this)} />
+              <i className='c-link fg fg-down' title={t('txt-convert')} onClick={this.convertPattern} />
               <label>Match Pattern</label>
               <Textarea
                 rows={10}
                 value={config.pattern}
                 onChange={this.handleConfigChange.bind(this, 'pattern')} />
             </div>
-            <i className='c-link fg fg-forward' style={{marginTop: '35%', marginLeft: '25px'}} title={t('txt-parse')} onClick={this.getRaw.bind(this)} />
+            <i className='c-link fg fg-forward' style={{marginTop: '35%', marginLeft: '25px'}} title={t('txt-parse')} onClick={this.getRaw} />
           </div>
         </div>
         <div>
@@ -944,7 +944,7 @@ class Syslog extends Component {
         </div>
         <div className='button-group'>
           <button className='filter' onClick={this.getSyslogList.bind(this, true)}>{t('txt-filter')}</button>
-          <button className='clear' onClick={this.clearFilter.bind(this)}>{t('txt-clear')}</button>
+          <button className='clear' onClick={this.clearFilter}>{t('txt-clear')}</button>
         </div>
       </div>
     )

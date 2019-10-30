@@ -8,6 +8,7 @@ import cx from 'classnames'
 
 import ButtonGroup from 'react-ui/build/src/components/button-group'
 import Checkbox from 'react-ui/build/src/components/checkbox'
+import CheckboxGroup from 'react-ui/build/src/components/checkbox-group'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import FileInput from 'react-ui/build/src/components/file-input'
 import Gis from 'react-gis/build/src/components'
@@ -57,6 +58,7 @@ class NetworkInventory extends Component {
       showScanInfo: false,
       showSeatData: false,
       modalFloorOpen: false,
+      modalIRopen: false,
       addSeatOpen: false,
       activeScanType: 'process', //process, ir
       activePath: null,
@@ -121,6 +123,7 @@ class NetworkInventory extends Component {
       ownerType: 'existing', //existing, new,
       ownerIDduplicated: false,
       previewOwnerPic: '',
+      irItemSelected: [1, 3, 5],
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
     };
 
@@ -641,7 +644,7 @@ class NetworkInventory extends Component {
         </div>
         <div className='button-group'>
           <button className='filter' onClick={this.getDeviceData.bind(this, 'search')}>{t('txt-filter')}</button>
-          <button className='clear' onClick={this.clearFilter.bind(this)}>{t('txt-clear')}</button>
+          <button className='clear' onClick={this.clearFilter}>{t('txt-clear')}</button>
         </div>
       </div>
     )
@@ -1156,6 +1159,69 @@ class NetworkInventory extends Component {
       helper.showPopupMsg('', t('txt-error'));
     });
   }
+  handleIrSelectionChange = (irItemSelected) => {
+    this.setState({
+      irItemSelected
+    });
+  }
+  displayIRselection = () => {
+    const {irItemSelected} = this.state;
+    const list = [
+      {value: 1, text: '1 - 記憶體採證'},
+      {value: 2, text: '2 - 系統基本資訊'},
+      {value: 3, text: '3 - 檔案時間軸與簽章'},
+      {value: 4, text: '4 - 網路連線與程序列表'},
+      {value: 5, text: '5 - 系統自動執行清單'},
+      {value: 6, text: '6 - 工作排成列表'},
+      {value: 7, text: '7 - 網頁瀏覽歷史紀錄'}
+    ];
+
+    return (
+      <CheckboxGroup
+        list={list}
+        toggleAll={true}
+        toggleAllText={t('txt-all')}
+        onChange={this.handleIrSelectionChange}
+        value={irItemSelected} />
+    )
+  }
+  irSelectionDialog = () => {
+    const titleText = t('network-inventory.txt-itemSelection');
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleSelectionIR},
+      confirm: {text: t('txt-confirm'), handler: this.confirmIRselection}
+    };
+
+    return (
+      <ModalDialog
+        id='irSelectionDialog'
+        className='modal-dialog'
+        title={titleText}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        {this.displayIRselection()}
+      </ModalDialog>
+    )
+  }
+  confirmIRselection = () => {
+    this.toggleSelectionIR();
+    return;
+  }
+  toggleSelectionIR = () => {
+    const {modalIRopen} = this.state;
+
+    if (!modalIRopen) {
+      this.setState({
+        irItemSelected: [1, 3, 5]
+      });
+    }
+
+    this.setState({
+      modalIRopen: !modalIRopen
+    });
+  }
   sortedRuleList = (scanResult) => {
     let ruleWithFile = [];
     let ruleWithNoFile = [];
@@ -1324,7 +1390,8 @@ class NetworkInventory extends Component {
                     <span>{t('network-inventory.txt-createTime')}: {hmdInfo.ir.createTime || NOT_AVAILABLE}</span>
                     <span>{t('network-inventory.txt-responseTime')}: {hmdInfo.ir.responseTime || NOT_AVAILABLE}</span>
                   </div>
-                  <button className='btn' onClick={this.triggerTask.bind(this, 'getFile', hmdInfo.ir.taskID)} disabled={this.checkTriggerTime('ir')}>{t('network-inventory.txt-reCompress')}</button>
+                  <button className='btn temp' onClick={this.triggerTask.bind(this, 'getFile', hmdInfo.ir.taskID)} disabled={this.checkTriggerTime('ir')}>{t('network-inventory.txt-reCompress')}</button>
+                  <button className='btn' onClick={this.toggleSelectionIR}>{t('network-inventory.txt-itemSelection')}</button>
                 </div>
                 <div className='scan-content'>
                   <div className='header'>{t('network-inventory.txt-irMsg')}:</div>
@@ -2263,6 +2330,7 @@ class NetworkInventory extends Component {
       showScanInfo,
       showSeatData,
       modalFloorOpen,
+      modalIRopen,
       addSeatOpen,
       deviceData,
       currentDeviceData,
@@ -2291,6 +2359,10 @@ class NetworkInventory extends Component {
 
         {modalFloorOpen &&
           this.modalFloorDialog()
+        }
+
+        {modalIRopen &&
+          this.irSelectionDialog()
         }
 
         {addSeatOpen &&

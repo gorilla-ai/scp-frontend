@@ -1049,7 +1049,7 @@ class SyslogController extends Component {
 
     return (
       <ModalDialog
-        id='flowModalDialog'
+        id='localeChangeDialog'
         className='modal-dialog'
         title={titleText}
         draggable={true}

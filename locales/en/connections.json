@@ -359,6 +359,7 @@
     "txt-reCheck": "Re-check",
     "txt-reCompress": "Re-compress",
     "txt-irMsg": "IR data has been uploaded to",
+    "txt-itemSelection": "Item Selection",
     "txt-editFloorMap": "$t(txt-edit) $t(txt-floorMap)",
     "txt-viewDevice": "$t(txt-view) $t(alert.txt-ipBasicInfo)",
     "txt-viewHMD": "$t(txt-view) $t(alert.txt-safetyScanInfo)",

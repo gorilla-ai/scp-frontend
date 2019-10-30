@@ -16,7 +16,7 @@ class RowMenu extends Component {
     }
     return false;
   }
-  handleRowContextMenu(evt) {
+  handleRowContextMenu = (evt) => {
     const {page, text, targetEdit, targetDelete, targetUnlock, targetEventDist, targetEvents} = this.props
     let edit = { 
       id: 'edit',
@@ -73,7 +73,7 @@ class RowMenu extends Component {
 
     return (
       <div className={cx('table-menu', {'active': active})}>
-        <button onClick={this.handleRowContextMenu.bind(this)}><i className='fg fg-more'></i></button>
+        <button onClick={this.handleRowContextMenu}><i className='fg fg-more'></i></button>
       </div>
     )
   }

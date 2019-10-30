@@ -92,7 +92,7 @@ class Roles extends Component {
               edit: c('txt-edit'),
               delete: c('txt-delete')
             }}
-            onEdit={this.showEditDialog.bind(this)}
+            onEdit={this.showEditDialog}
             onDelete={this.showDeleteDialog.bind(this, allValue)} />
         }},
         privilegeid: {label: 'ID', hide: true},
@@ -168,7 +168,7 @@ class Roles extends Component {
                     data={data}
                     fields={dataFields}
                     rowIdField='privilegeid'
-                    onRowMouseOver={this.handleRowMouseOver.bind(this)}
+                    onRowMouseOver={this.handleRowMouseOver}
                     info={info}
                     infoClassName={cx({'c-error':error})} />
                 </div>

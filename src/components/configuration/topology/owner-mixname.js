@@ -202,7 +202,7 @@ class Name extends Component {
           onChange={this.handleTabChange}
           value={tab.department ? 'department' : 'title'} />
 
-        <i className='c-link fg fg-add' onClick={this.openAddName.bind(this)} title={tab.department ? t('txt-addDepartment') : t('txt-addTitle')}></i>
+        <i className='c-link fg fg-add' onClick={this.openAddName} title={tab.department ? t('txt-addDepartment') : t('txt-addTitle')}></i>
 
         <DataTable
           fields={dataFields}
@@ -213,7 +213,7 @@ class Name extends Component {
   renderModal = () => {
     const {tab, data} = this.state;
     const actions = {
-      cancel: {text: t('txt-close'), className: 'standard', handler: this.close.bind(this)}
+      cancel: {text: t('txt-close'), handler: this.close}
     };
 
     return (
@@ -279,8 +279,8 @@ class Name extends Component {
   renderName = () => {
     const {openName, name, nameUUID, header} = this.state;
     const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeName.bind(this)},
-      confirm: {text: t('txt-confirm'), handler: nameUUID === '' ? this.addName.bind(this) : this.updateName.bind(this)}
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeName},
+      confirm: {text: t('txt-confirm'), handler: nameUUID === '' ? this.addName : this.updateName}
     };
 
     return (

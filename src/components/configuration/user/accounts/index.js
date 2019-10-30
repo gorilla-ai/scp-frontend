@@ -269,7 +269,7 @@ class AccountList extends Component {
         </div>
         <div className='button-group'>
           <button className='filter' onClick={this.filterData}>{c('txt-filter')}</button>
-          <button className='clear' onClick={this.clearFilter.bind(this)}>{c('txt-clear')}</button>
+          <button className='clear' onClick={this.clearFilter}>{c('txt-clear')}</button>
         </div>
       </div>
     )
@@ -305,7 +305,7 @@ class AccountList extends Component {
                   <DataTable
                     className='main-table'
                     fields={dataFields}
-                    onRowMouseOver={this.handleRowMouseOver.bind(this)}
+                    onRowMouseOver={this.handleRowMouseOver}
                     data={accountData} />
                 </div>
               </div>

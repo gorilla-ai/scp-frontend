@@ -736,7 +736,7 @@ class NetworkMap extends Component {
         </div>
         <div className='button-group'>
           <button className='filter' onClick={this.getIPData.bind(this, floorPlan.currentAreaUUID)}>{t('txt-filter')}</button>
-          <button className='clear' onClick={this.clearFilter.bind(this)}>{t('txt-clear')}</button>
+          <button className='clear' onClick={this.clearFilter}>{t('txt-clear')}</button>
         </div>
       </div>
     )
