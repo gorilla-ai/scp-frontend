@@ -523,7 +523,7 @@ class AlertDetails extends Component {
     } else if (value === 'Low') {
       styleStatus = '#57c3d9';
     } else if (value === NOT_AVAILABLE) {
-      return <span>{NOT_AVAILABLE}</span>
+      return {NOT_AVAILABLE}
     }
 
     return <span className='severity' style={{backgroundColor: styleStatus}}>{value}</span>
@@ -612,7 +612,7 @@ class AlertDetails extends Component {
                 <div onClick={this.toggleRedirectMenu}>{t('alert.txt-queryMore')}</div>
               }
 
-              {showContent.pcap &&
+              {showContent.pcap && alertPCAP.data.length > 0 &&
                 <div onClick={this.getPcapFile}>{t('alert.txt-downloadPCAP')}</div>
               }
 
@@ -633,7 +633,7 @@ class AlertDetails extends Component {
               this.displayRuleContent()
             }
 
-            {showContent.pcap && alertPCAP &&
+            {showContent.pcap &&
               this.displayPCAPcontent()
             }
 
@@ -834,7 +834,7 @@ class AlertDetails extends Component {
                 alertPCAP.data.map(this.showPCAPcontent)
               }
               {alertPCAP.data.length === 0 &&
-                <li><span>{NOT_AVAILABLE}</span></li>
+                <li>{NOT_AVAILABLE}</li>
               }
             </ul>
           </div>
