@@ -23,10 +23,6 @@ class Header extends Component {
   constructor(props) {
     super(props);
   }
-  componentWillMount() {
-  }
-  placeholder = () => {
-  }
   getActiveTab = (tab) => {
     const activeRoute = this.props.location.pathname;
     const pattern = /^(\/ChewbaccaWeb[\/]?)$/i;
@@ -51,7 +47,7 @@ class Header extends Component {
     urlString += qs.stringify({lng});
     window.location.href = window.location.pathname + '?' + urlString;
   }
-  logout() {
+  logout = () => {
     const {baseUrl} = this.props;
     const url = `${baseUrl}/api/logout`;
 
@@ -74,12 +70,12 @@ class Header extends Component {
       {
         id: 'account',
         text: l('login.txt-account'),
-        action: this.editAccount.bind(this)
+        action: this.editAccount
       },
       {
         id: 'logout',
         text: l('login.btn-logout'),
-        action: this.logout.bind(this)
+        action: this.logout
       }
     ];
 

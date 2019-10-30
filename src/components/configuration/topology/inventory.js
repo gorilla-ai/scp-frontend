@@ -755,7 +755,7 @@ class NetworkInventory extends Component {
       <div className='content delete'>
         <span>{t('txt-delete-msg')}: {allValue.ip}?</span>
       </div>
-    )    
+    )
   }
   openDeleteDeviceModal = (allValue) => {
     PopupDialog.prompt({
@@ -1576,7 +1576,7 @@ class NetworkInventory extends Component {
           this.handleIPdeviceConfirm(ownerUUID);
         }
       })
-      .catch(err => {     
+      .catch(err => {
         helper.showPopupMsg('', t('txt-error'), err.message);
 
         this.setState({

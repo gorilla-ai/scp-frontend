@@ -564,7 +564,7 @@ class AlertDetails extends Component {
           <div className='nav'>
             <ul>
               <li><span className={cx({'active': showContent.rule})} onClick={this.getContent.bind(this, 'rule')}>{t('alert.txt-rule')}</span></li>
-              {alertType === 'alert' &&
+              {alertType === 'alert' && alertData.Collector !== 'NetProbe' &&
                 <li><span className={cx({'active': showContent.pcap})} onClick={this.getContent.bind(this, 'pcap')}>PCAP</span></li>
               }
               {alertType === 'pot_attack' &&
@@ -773,7 +773,9 @@ class AlertDetails extends Component {
    * @returns HTML
    */
   showPCAPcontent = (key, i) => {
-    return <li id={key} key={i} className={cx({'active': key.hex})} onClick={this.setPCAPhex.bind(this, key.hex, i)}>{key.protocol}<i className={cx('fg', {'fg-arrow-left': alertPCAP.activeIndex === i})}></i></li> 
+    const {alertPCAP} = this.state;
+
+    return <li key={i} className={cx({'active': key.hex})} onClick={this.setPCAPhex.bind(this, key.hex, i)}>{key.protocol}<i className={cx('fg', {'fg-arrow-left': alertPCAP.activeIndex === i})}></i></li> 
   }
   /**
    * Display PCAP content
@@ -794,7 +796,7 @@ class AlertDetails extends Component {
     return (
       <div className='pcap-content'>
         {alertPCAP.data.length > 0 &&
-          <div className='c-flex aic filter-empty alert'>
+          <div className='c-flex aic filter-empty'>
             <label htmlFor='filterEmpty'>{t('alert.txt-filterEmpty')}</label>
             <Checkbox
               id='filterEmpty'

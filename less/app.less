@@ -1,1738 +1,1738 @@
 @charset"utf-8";
 
 html, body, #app-container {
-	color: rgb(51,51,51);
-	font-family:"Segoe UI", "微軟正黑體", "新細明體";
-	font-size: 1em;
-	min-width: 720px;
+  color: rgb(51,51,51);
+  font-family:"Segoe UI", "微軟正黑體", "新細明體";
+  font-size: 1em;
+  min-width: 720px;
 }
 main.main {
-	min-height: 92vh;
+  min-height: 92vh;
 }
 footer.footer {
-	padding: 2px 10px;
-	font-size: .9em;
-	&.login {
-		position: absolute;
-		color: #fff;
-		bottom: 2px;
-	}
+  padding: 2px 10px;
+  font-size: .9em;
+  &.login {
+    position: absolute;
+    color: #fff;
+    bottom: 2px;
+  }
 }
 /* Temporary Fix for Gis library bug */
 .leaflet-marker-icon.gis-divIcon > div.gis-spot {
-	margin-bottom: 0;
-	padding-bottom: 12px;
+  margin-bottom: 0;
+  padding-bottom: 12px;
 }
 /*******/
 #g-login {
-	input,
-	select {
-		color: #000 !important;
-		background-color: #fff !important;
-		border: 1px solid #ccc !important;
-	}
-	select {
-		border: 1px solid #d9d9d9 !important;
-	}
-	button {
-		color: #fff;
-		border: 1px solid #d9d9d9 !important;
-		background-color: #001b34 !important;
-	}
+  input,
+  select {
+    color: #000 !important;
+    background-color: #fff !important;
+    border: 1px solid #ccc !important;
+  }
+  select {
+    border: 1px solid #d9d9d9 !important;
+  }
+  button {
+    color: #fff;
+    border: 1px solid #d9d9d9 !important;
+    background-color: #001b34 !important;
+  }
 }
 #language-menu {
-	left: auto !important;
-	top: 40px !important;
-	right: 10px;
-	li {
-		&:first-child {
-			border-top-left-radius: 8px;
-			border-top-right-radius: 8px;
-		}
-		&:last-child {
-			border-bottom-left-radius: 8px;
-			border-bottom-right-radius: 8px;
-		}
-	}
+  left: auto !important;
+  top: 40px !important;
+  right: 10px;
+  li {
+    &:first-child {
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+    }
+    &:last-child {
+      border-bottom-left-radius: 8px;
+      border-bottom-right-radius: 8px;
+    }
+  }
 }
 #g-header { //Top nav menu
-	color: #ffffff;
-	padding: 0 20px;
-	height: 45px;
-	background-color: #001b34;
-	.title { //Gorilla logo
-		position: absolute;
-		font-size: 1.6em;
-		font-weight: bold;
-		letter-spacing: 1px;
-	}
-	.main-nav { //Main top nav
-		text-align: center;
-		.item {
-			padding: 12px 35px;
-			&:hover {
-				background-color: #1a3248;
-			}
-			&.active {
-				background-color: #004d93;
-				&:hover {
-					opacity: .9;
-				}
-			}
-		}
-	}
-	.account {
-		position: absolute;
-		font-size: 1.8em;
-		top: 0;
-		right: 15px;
-		cursor: pointer;
-	}
+  color: #ffffff;
+  padding: 0 20px;
+  height: 45px;
+  background-color: #001b34;
+  .title { //Gorilla logo
+    position: absolute;
+    font-size: 1.6em;
+    font-weight: bold;
+    letter-spacing: 1px;
+  }
+  .main-nav { //Main top nav
+    text-align: center;
+    .item {
+      padding: 12px 35px;
+      &:hover {
+        background-color: #1a3248;
+      }
+      &.active {
+        background-color: #004d93;
+        &:hover {
+          opacity: .9;
+        }
+      }
+    }
+  }
+  .account {
+    position: absolute;
+    font-size: 1.8em;
+    top: 0;
+    right: 15px;
+    cursor: pointer;
+  }
 }
 .c-button-group {
-	&.left {
-		float: left;
-		margin-top: 1px;
-	}
-	&.right {
-		float: right;
-		margin-top: 1px;
-	}
-	.thumb {
-		padding-left: 25px;
-		padding-right: 25px;
-		&:not(.selected):not(:disabled):hover {
-			background: #fff;
-		}
-		&:first-child {
-			border-radius: 4px 0 0 4px;
-		}
-		&:last-child {
-			border-radius: 0 4px 4px 0;
-		}
-	}
-	&.menu {
-		.thumb {
-			padding: 0;
-			a {
-				width: 100%;
-				height: 100%;
-				padding: 0.3em 0.5em;
-				padding-left: 25px;
-				padding-right: 25px;
-			}
-		}
-	}
+  &.left {
+    float: left;
+    margin-top: 1px;
+  }
+  &.right {
+    float: right;
+    margin-top: 1px;
+  }
+  .thumb {
+    padding-left: 25px;
+    padding-right: 25px;
+    &:not(.selected):not(:disabled):hover {
+      background: #fff;
+    }
+    &:first-child {
+      border-radius: 4px 0 0 4px;
+    }
+    &:last-child {
+      border-radius: 0 4px 4px 0;
+    }
+  }
+  &.menu {
+    .thumb {
+      padding: 0;
+      a {
+        width: 100%;
+        height: 100%;
+        padding: 0.3em 0.5em;
+        padding-left: 25px;
+        padding-right: 25px;
+      }
+    }
+  }
 }
 .c-contextmenu {
-	position: absolute;
+  position: absolute;
 }
 .c-hierarchy {
-	background: none;
-	&.tree {
-		width: 100%;
-		padding: 10px 5px;
-		border-radius: 5px;
-		background-color: #e6e6e6;
-		.children .branch:last-child:before,
-		.leaf:last-child:before {
-			background-color: #e6e6e6;
-		}
-	}
+  background: none;
+  &.tree {
+    width: 100%;
+    padding: 10px 5px;
+    border-radius: 5px;
+    background-color: #e6e6e6;
+    .children .branch:last-child:before,
+    .leaf:last-child:before {
+      background-color: #e6e6e6;
+    }
+  }
 }
 .c-date-picker i.fg {
-	height: 35px;
+  height: 35px;
 }
 #g-progress.c-modal.spin > .dialog {
-	border: none;
+  border: none;
 }
 #eventsQueryMenu {
-	z-index: 10000;
+  z-index: 10000;
 }
 .leaflet-touch .leaflet-bar a:first-child {
-	display: block !important;
+  display: block !important;
 }
 #indicatorUpload,
 #PcapUpload {
-	width: 100%;
-	margin-bottom: 100px;
-	input {
-		&[type="file"] {
-			max-width: 535px;
-		}
-		&[type="text"] {
-			width: 430px;
-		}
-	}
+  width: 100%;
+  margin-bottom: 100px;
+  input {
+    &[type="file"] {
+      max-width: 535px;
+    }
+    &[type="text"] {
+      width: 430px;
+    }
+  }
 }
 #eventsViewMenu {
-	.disabled-tag-menu {
-		cursor: not-allowed;
-		opacity: 0.5;
-	}
+  .disabled-tag-menu {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
 }
 #gisMap {
-	width: 100%;
-	height: 77vh;
-	&.full {
-		height: 95vh;
-	}
-	&.fit {
-		height: 70vh;
-		overflow-y: auto;
-	}
-	.actions {
-		display: none;
-	}
-	.leaflet-container {
-		background: -webkit-linear-gradient(top, #021320, #03244b, #021320)
-	}
+  width: 100%;
+  height: 77vh;
+  &.full {
+    height: 95vh;
+  }
+  &.fit {
+    height: 70vh;
+    overflow-y: auto;
+  }
+  .actions {
+    display: none;
+  }
+  .leaflet-container {
+    background: -webkit-linear-gradient(top, #021320, #03244b, #021320)
+  }
 }
 #app-container {
-	.sub-header { //The blue bar
-		position: relative;
-		color: #fff;
-		padding: 3px 10px;
-		overflow: hidden;
-		background-color: #004d93;
-		min-height: 42px;
-		input:not([type=radio]), select {
-			color: #000;
-		}
-		.secondary-btn-group {
-			&.left {
-				float: left;
-			}
-			&.right {
-				float: right;
-				margin-top: 1px;
-			}
-			button {
-				color: #001b34;
-				padding: .3em .6em;
-				margin-right: 5px;
-				background-color: #fff;
-				&.active {
-					color: #fff;
-					background-color: #001b34;
-				}
-				&.last {
-					margin-right: 0;
-				}
-				.fg {
-					float: left;
-					&.fg-edit {
-						margin-left: 5px;
-					}
-				}
-				span {
-					float: left;
-				}
-			}
-			.last-update {
-				float: right;
-				margin-top: 7px;
-				margin-left: 5px;
-			}
-		}
-		.date-time {
-			position: absolute;
-			top: 8px;
-			right: 15px;
-			color: #fff;
-		}
-		.search-options {
-			position: absolute;
-			.search-type {
-				float: left;
-				margin-right: 10px;
-			}
-			.search-interval {
-				float: left;
-				margin-right: 10px;
-				.time-interval {
-					background-color: #fff;
-					height: 36px;
-					box-shadow: none;
-					cursor: pointer;
-				}
-			}
-			.datepicker {
-				float: left;
-				.daterange {
-					margin-right: 15px;
-				}
-				.fg {
-					border: none;
-				}
-			}
-			#datetime-from,
-			#datetime-to {
-				padding: 0.5em;
-			}
-			.search-button {
-				margin-top: 2px;
-			}
-		}
-	}
-	header.main-header {
-		position: relative;
-		color: #004d93;
-		font-size: 1.1em;
-		font-weight: bold;
-		padding: 15px;
-		border-bottom: 1px solid #ccc;
-		background-color: #fff;
-	}
-	.main-statistics { //For all statistics page
-		padding: 6px;
-		background-color: #d9d9d9;
-		.statistics-content {
-			display: flex;
-			flex-grow: 12;
-			flex-wrap: wrap;
-			.chart-group {
-				width: 49.2%;
-				margin: 5px;
-				border: none;
-				border-radius: 5px;
-				overflow: hidden;
-				header {
-					color: #004d93;
-					font-size: 1.1em;
-					font-weight: bold;
-					padding: 15px;
-					border-bottom: 1px solid #ccc;
-					background-color: #fff;
-				}
-			}
-		}
-	}
-	.table-menu { //table menu [...] button
-		visibility: hidden;
-		&.active {
-			visibility: visible;
-			button,
-			.fg {
-				cursor: pointer;
-			}
-		}
-		button {
-			padding: .3em .5em;
-			color: #4a4a4a;
-			background-color: #fff;
-		}
-		&.menu {
-			i.fg {
-				font-size: 26px;
-				margin-right: 8px;
-			}
-		}
-	}
-	.table-cell {
-		position: relative;
-		.ip {
-			img {
-				margin-left: 10px;
-			}
-			.fg-network {
-				margin-left: 5px;
-			}
-		}
-		.fg-filter {
-			visibility: hidden;
-			margin-left: 5px;
-			&.active {
-				visibility: visible;
-				cursor: pointer;
-			}
-		}
-		span {
-			&.red {
-				color: #fff;
-				background-color: #B80000;
-			}
-			&.yellow {
-				color: #fff;
-				background-color: #FCCB00;
-			}
-			&.green {
-				color: #fff;
-				background-color: #008B02;
-			}
-			&.darkGreen {
-				color: #fff;
-				background-color: #006B76;
-			}
-			&.blue {
-				color: #fff;
-				background-color: #1273DE;
-			}
-			&.orange {
-				color: #fff;
-				background-color: #DB3E00;
-			}
-			&.darkBlue {
-				color: #fff;
-				background-color: #004DCF;
-			}
-			&.purple {
-				color: #fff;
-				background-color: #5300EB;
-			}
-			&.soil {
-				color: #fff;
-				background-color: #C1B748;
-			}
-			&.brown {
-				color: #fff;
-				background-color: #660000;
-			}
-		}
-	}
-	.main-dashboard { //For Dashboard section
-		min-height: 88vh;
-		padding: 15px;
-		background-color: #ededed;
-		.charts {
-			width: 100%;
-			display: flex;
-			flex-wrap: wrap;
-			.chart-group {
-				width: 24.4%;
-				margin: 5px;
-				border: 1px solid #ccc;
-				border-radius: 5px;
-				overflow: hidden;
-				&.bar {
-					width: 74.25%;
-					height: 460px;
-				}
-				&.metric {
-					height: 138px;
-				}
-				header {
-					color: #004d93;
-					font-size: 1.1em;
-					font-weight: bold;
-					padding: 15px;
-					border-bottom: 1px solid #ccc;
-					background-color: #fff;
-				}
-				.show-pointer table tbody tr {
-					cursor: pointer;
-				}
-				.c-chart-pie {
-					height: 345px;
-				}
-				.c-chart.table {
-					height: 345px;
-					overflow-y: auto;
-				}
-				.disk-usage {
-					.item .value {
-						color: #d0021b;
-					}
-				}
-			}
-		}
-		.maps {
-			position: relative;
-			width: 100%;
-			min-height: 85vh;
-			border: 1px solid #d9d9d9;
-			border-radius: 5px;
-			padding: 10px 5px;
-			background-color: #fff;
-			.c-button-group {
-				margin: 5px 8px;
-			}
-			.floor-map {
-				.drop-down {
-					position: absolute;
-					top: 14px;
-					left: 200px;
-					width: 145px;
-				}
-				& > .content {
-					width: 100%;
-					margin-top: 55px;
-					overflow: hidden;
-					padding-left: 10px;
-					padding-right: 10px;
-					ul {
-						float: left;
-						width: 330px;
-						max-height: 77vh;
-						overflow-y: auto;
-						border-top: 1px solid #d9d9d9;
-						border-right: 1px solid #d9d9d9;
-						border-left: 1px solid #d9d9d9;
-						li {
-							position: relative;
-							color: #5e5e5e;
-							height: 70px;
-							background-color: #fff;
-							border-bottom: 2px solid #d9d9d9;
-							cursor: pointer;
-							&:hover {
-								background-color: #e2ecfd;
-							}
-							.info {
-								color: #000;
-								font-size: 18px;
-								padding: 8px 10px;
-								&.faded {
-									font-style: italic;
-									color: #999;
-								}
-								span {
-									display: block;
-									margin-bottom: 2px;
-								}
-							}
-							.count {
-								position: absolute;
-								top: 10px;
-								right: 10px;
-								width: 50px;
-								padding: 2px;
-								color: #fff;
-								text-align: center;
-								border-radius: 15px;
-							}
-						}
-					}
-					.map {
-						float: left;
-						width: 82%;
-						text-align: center;
-					}
-				}
-			}
-		}
-	}
-	.data-content {
-		display: flex;
-		min-height: 88vh;
-		.left-nav {
-			position: relative;
-			flex-grow: 0;
-			flex-shrink: 0;
-			width: 360px;
-			min-width: 15px;
-			border-right: 1px solid #d9d9d9;
-			background-color: #d9d9d9;
-			&.collapse {
-				width: 0;
-				& > .item {
-					display: none;
-				}
-			}
-			&.tree {
-				padding: 10px 25px 10px 10px;
-				&.collapse {
-					width: 0;
-					padding: 0;
-				}
-			}
-			.content {
-				overflow-y: auto;
-				max-height: 85vh;
-				padding-right: 10px;
-			}
-			.expand-collapse {
-				position: absolute;
-				top: 0;
-				right: 0;
-				height: 100%;
-				width: 15px;
-				background-color: #E4E4E4;
-				border-left: 1px solid #d9d9d9;
-				cursor: pointer;
-				&.not-allowed {
-					cursor: not-allowed;
-				}
-				.fg {
-					position: absolute;
-					top: 380px;
-					left: -5px;
-					color: #666;
-					font-size: 1.5em;
-				}
-			}
-			label {
-				display: block;
-				margin: 15px 0 3px 0;
-				&.first-label {
-					margin-top: 0;
-				}
-				&.inline-display {
-					float: left;
-					margin-right: 10px;
-					& + .c-checkbox {
-						float: left;
-						margin-top: 14px;
-						& + label {
-							clear: both;
-						}
-					}
-				}
-			}
-			.header-text {
-				color: #004d93;
-				font-size: .9em;
-				padding: 10px;
-				margin-top: 0;
-				margin-bottom: 0;
-				&.hide {
-					display: none;
-				}
-			}
-			input,
-			select,
-			.c-combobox {
-				width: 100%;
-			}
-			.c-hierarchy {
-				.button {
-					display: none;
-					padding: .1em .5em;
-					font-size: .5em;
-					&.active {
-						display: inline-block;
-					}
-				}
-			}
-			.analysis-type {
-				margin-bottom: 10px;
-			}
-			.frame,
-			.subframe { //For Config left nav
-				cursor: pointer;
-				a {
-					display: block;
-					width: 100%;
-					height: 100%;
-				}
-				&:hover {
-					background-color: #e2ecfd;
-				}
-			}
-			.frame {
-				position: relative;
-				width: 96%;
-				height: 50px;
-				border-bottom: 1px solid #ccc;
-				background-color: #fff;
-				&.last {
-					border-bottom: 0;
-				}
-				span {
-					display: block;
-					font-weight: bold;
-					padding-top: 10px;
-					padding-left: 15px;
-					&.true {
-						color: #004d93;
-					}
-				}
-				.fg-arrow-top,
-				.fg-arrow-bottom {
-					position: absolute;
-					top: 10px;
-					right: 10px;
-				}
-			}
-			.subframe {
-				width: 100%;
-				height: 50px;
-				background-color: #e8e9ed;
-				span {
-					display: block;
-					padding-top: 15px;
-					padding-left: 20px;
-					&.true {
-						color: #004d93;
-					}
-				}
-			}
-		}
-		.parent-content {
-			flex-grow: 1;
-			overflow-x: auto;
-			overflow: hidden;
-			white-space: nowrap;
-			background-color: #ededed;
-			.main-filter,
-			.main-mark,
-			.main-chart {
-				position: relative;
-				display: none;
-				&.active {
-					display: block;
-				}
-				& > .fg-close {
-					position: absolute;
-					top: 5px;
-					right: 5px;
-					cursor: pointer;
-				}
-			}
-			.main-filter,
-			.main-mark {
-				padding: 5px 10px 10px 10px;
-				border-bottom: 1px solid #ccc;
-				background-color: #fff;
-				overflow: hidden;
-				.filter-section,
-				.mark-section {
-					background-color: #ededed;
-					.filter-warp,
-					.mark-wrap {
-						padding: 5px 7px;
-						background-color: #ededed;
-						& > span {
-							margin: 3px 0;
-						}
-						span {
-							i.c-link {
-								background-color: #fff;
-							}
-						}
-						.filter-select {
-							width: 215px;
-						}
-						.condition-select {
-							width: 100px;
-							height: 35px;
-						}
-						.filter-inputbox {
-							width: 235px;
-							height: 35px;
-						}
-						.mark-inputbox {
-							width: 200px;
-							height: 35px;
-						}
-						.fg-recode {
-							float: left;
-							width: 32px;
-							padding: 5px 5px 6px 4px;
-							margin-right: 3px;
-							border: 1px solid #d9d9d9;
-							border-radius: 5px;
-							&.red {
-								color: #B80000;
-							}
-							&.yellow {
-								color: #FCCB00;
-							}
-							&.green {
-								color: #008B02;
-							}
-							&.darkGreen {
-								color: #006B76;
-							}
-							&.blue {
-								color: #1273DE;
-							}
-							&.orange {
-								color: #DB3E00;
-							}
-							&.darkBlue {
-								color: #004DCF;
-							}
-							&.purple {
-								color: #5300EB;
-							}
-							&.soil {
-								color: #C1B748;
-							}
-							&.brown {
-								color: #660000;
-							}
-						}
-					}
-					.mark-wrap {
-						.group:nth-child(10) {
-							button {
-								display: none;
-							}
-						}
-					}
-				}
-				.button-group {
-					margin-bottom: 5px;
-					display: block;
-					.open-query,
-					.save-query {
-						font-size: 15px;
-						color: #001b34;
-						margin: 5px;
-						padding: 0;
-						background: none;
-						padding: 0 10px;
-					}
-					.clear,
-					.filter {
-						float: right;
-						margin-top: 5px;
-						margin-left: 5px;
-						padding: .2em 1em;
-						font-size: 14px;
-					}
-					.clear {
-						color: #000;
-						background-color: #fff;
-					}
-				}
-			}
-			.main-filter {
-				.header-text {
-					float: left;
-					margin-top: 5px;
-					margin-right: 5px;
-					color: #004d93;
-				}
-				.button-group.open-query {
-					position: absolute;
-					top: 5px;
-					left: 47px;
-				}
-				.filter-section {
-					display: flex;
-					flex-wrap: wrap;
-					margin-top: 37px;
-					&.config {
-						padding: 5px;
-						.group {
-							padding: 5px;
-							label {
-								display: block;
-							}
-							input {
-								width: 185px;
-							}
-							select {
-								width: auto;
-								min-width: 185px;
-							}
-							&.hmd {
-								padding-top: 30px;
-								padding-left: 15px;
-								label {
-									float: left;
-									margin-right: 5px;
-								}
-							}
-						}
-					}
-				}
-			}
-			.main-mark {
-				.header-text {
-					color: #004d93;
-					margin-bottom: 8px;
-				}
-			}
-			.main-chart { //For main chart in Events and Syslog
-				border-bottom: 1px solid #ccc;
-				.chart-content {
-					background-color: #fff;
-					&.connections {
-						padding-left: 10px;
-						padding-bottom: 20px;
-					}
-					.placeholder {
-						visibility: hidden;
-						height: 52px;
-					}
-					.chart-btn {
-						margin-right: 10px;
-					}
-				}
-				.chart-btn,
-				.interval-btn {
-					display: inline-block;
-					margin-top: 20px;
-					.thumb {
-						padding-left: 10px;
-						padding-right: 10px;
-					}
-				}
-				.bar-chart {
-					background-color: #fff;
-					.error {
-						padding: 0px 10px 15px 10px;
-					}
-				}
-			}
-			.main-content { //Content below the filter or charts
-				position: relative;
-				margin: 15px;
-				border-radius: 5px;
-				background-color: #ededed;
-				border: 1px solid #d9d9d9;
-				overflow: hidden;
-				&.basic-form { //For content with form input
-					background-color: #fff;
-					min-height: 85vh;
-					input,
-					select,
-					textarea {
-						width: 100%;
-						box-shadow: none;
-					}
-					footer {
-						position: absolute;
-						bottom: 0;
-						width: 100%;
-						text-align: right;
-						padding: 15px;
-						border-top: 1px solid #ccc;
-						button {
-							margin: 0 5px;
-						}
-						&.no-fixed {
-							position: relative;
-							margin-top: 50px;
-						}
-					}
-					.form-group { //For individual form group
-						position: relative;
-						display: flex;
-						flex-wrap: wrap;
-						justify-content: left;
-						text-align: center;
-						margin: 0 auto;
-						margin-top: 70px;
-						margin-bottom: 40px;
-						width: 70%;
-						padding: 10px 10px 15px 10px;
-						background-color: #f2f2f2;
-						border: 1px solid #ccc;
-						border-radius: 5px;
-						#edgeModeDatetime {
-							text-align: left;
-						}
-						#autoSettingsAD {
-							position: absolute;
-							top: -45px;
-							left: 80px;
-						}
-						.radio-group {
-							flex-direction: row;
-							margin: 10px 0;
-						}
-						&.normal {
-							.list-item {
-								margin: 0;
-								margin-right: 10px;
-								input {
-									width: 20px;
-								}
-							}
-						}
-						&.long {
-							.group {
-								width: 100%;
-							}
-						}
-						&.short {
-							.group {
-								width: 25%;
-							}
-						}
-						&.steps-owner {
-							.removePhoto {
-								label {
-									display: inline-block;
-									margin-right: 5px;
-									margin-top: 15px;
-								}
-								i {
-									position: absolute;
-									margin-top: 13px;
-								}
-							}
-							button.manage {
-								position: absolute;
-								top: -40px;
-								right: 0;
-							}
-							.owner-type {
-								position: absolute;
-								top: -38px;
-								left: 100px;
-								flex-direction: row;
-								.list-item {
-									margin: 0;
-									margin-right: 15px;
-								}
-								input {
-									width: 20px;
-								}
-							}
-							.user-pic {
-								width: 50%;
-								.group,
-								#ownerPhotoUpload {
-									width: 100%;
-									text-align: center;
-									input[name='file'] {
-										width: 95%;
-									}
-								}
-								img {
-									width: 200px;
-									height: 200px;
-									border-radius: 50%;
-									margin-top: 10px;
-									&.existing {
-										margin-top: 30px;
-									}
-								}
-							}
-							.user-info {
-								width: 50%;
-								.group {
-									width: 100%;
-								}
-							}
-						}
-						&.steps-floor {
-							padding: 0;
-							button.manage {
-								position: absolute;
-								top: -40px;
-								right: 0;
-							}
-							.floor-info {
-								width: 100%;
-								height: 450px;
-								.tree {
-									float: left;
-									text-align: left;
-									width: 20%;
-									height: 100%;
-									background-color: #fff;
-									border-right: 1px solid #ccc;
-								}
-								.map {
-									float: left;
-									width: 80%;
-									.c-gis {
-										min-height: 450px;
-									}
-								}
-							}
-						}
-						header {
-							position: absolute;
-							top: -40px;
-							left: 0;
-							color: #185e9e;
-							font-size: 1.2em;
-							font-weight: bold;
-							.text,
-							.status {
-								float: left;
-								margin-right: 15px;
-							}
-							.msg {
-								font-size: 10px;
-								color: #4a4a4a;
-								font-weight: normal;
-								margin-top: 5px;
-								display: block;
-							}
-						}
-						button {
-							&.last {
-								position: absolute;
-								top: -45px;
-								right: 0;
-								padding: .3em 1em;
-							}
-						}
-						.toggle-btn {
-							position: absolute;
-							top: -40px;
-							right: 0;
-						}
-						.group {
-							width: 50%;
-							padding: 5px;
-							text-align: left;
-							&.full {
-								width: 100%;
-							}
-							&.multi {
-								label {
-									span {
-										display: inline-block;
-										margin-left: 1%;
-									}
-								}
-								.fg-close {
-									background-color: #fff;
-								}
-							}
-							label {
-								text-align: left;
-								color: #185e9e;
-								font-size: .9em;
-								display: block;
-								margin-bottom: 3px;
-								&.checkbox {
-									float: left;
-									margin-right: 5px;
-								}
-							}
-							.react-multi-email {
-								display: flex;
-								flex-wrap: wrap;
-								[data-tag] {
-									padding-top: 10px;
-									color: #fff;
-									background-color: #004d99;
-									margin-bottom: 5px;
-								}
-							}
-							#ipRangeLabel span {
-								width: 30%;
-							}
-							#scannerLabel span {
-								width: 26%;
-							}
-							.ip-range-group,
-							.scanner-group {
-								.group {
-									width: auto;
-									.group-content {
-										width: 100%;
-										select,
-										input {
-											margin-right: 2.2%;
-										}
-										button {
-											padding: .3em 1em;
-										}
-									}
-								}
-							}
-							.ip-range-group {
-								.group {
-									select,
-									input {
-										width: 31.5%;
-									}
-								}
-							}
-							.scanner-group {
-								.group {
-									select,
-									input {
-										width: 27%;
-									}
-								}
-							}
-						}
-					}
-					.steps-indicator { //For Config Topology Inventory page
-						display: flex;
-						justify-content: center;
-						width: 70%;
-						margin: 0 auto;
-						margin-top: 40px;
-						margin-bottom: 120px;
-						.group {
-							display: flex;
-							width: 100%;
-							&.group1 {
-								width: 12%;
-							}
-						}
-						.step {
-							position: relative;
-							width: 45px;
-							height: 45px;
-							text-align: center;
-							border-radius: 50%;
-							border: 3px solid #ccc;
-							cursor: default;
-							&.active {
-								color: #fff;
-								background-color: #004d99;
-								border: 3px solid #004d99;
-							}
-							.wrapper {
-								width: 39px;
-								height: 39px;
-								border-radius: 50%;
-								border: 2px solid #fff;
-							}
-							.number {
-								position: absolute;
-								top: 8px;
-								left: 15px;
-							}
-							.text {
-								position: absolute;
-								color: #4a4a4a;
-								top: 55px;
-								font-size: 14px;
-								&.text1 {
-									left: -4px;
-								}
-								&.text2 {
-									left: -22px;
-								}
-								&.text3 {
-									left: -9px;
-								}
-								&.text4 {
-									left: -2px;
-								}
-							}
-						}
-						.line {
-							width: 100%;
-							height: 5px;
-							margin-top: 21px;
-							background-color: #ccc;
-							&.active {
-								background-color: #004d99;
-							}
-							&.line1 {
-								display: none;
-							}
-						}
-					}
-				}
-				.subtab-menu {
-					li {
-						font-size: 1.1em;
-						font-weight: bold;
-						padding: 15px;
-					}
-					.tabContent {
-						display: none;
-					}
-				}
-				footer { //For pagination in Table, LA and Maps
-					padding: 20px;
-					margin: 0;
-					.dropdown-margin {
-						margin-left: 50px;
-					}
-				}
-				.table-content .table {
-					height: 70vh;
-					overflow-y: auto;
-					.main-table {
-						width: 100%;
-						&.overflow-scroll {
-							overflow-x: auto;
-						}
-						&.align-center {
-							tbody td {
-								text-align: center;
-								padding-left: 0;
-							}
-						}
-						&.with-pointer {
-							tbody td {
-								cursor: pointer;
-							}
-						}
-						thead th {
-							text-align: center;
-						}
-						tbody tr {
-							height: 45px;
-							&.red {
-								color: #fff;
-								background-color: #B80000;
-								&:hover {
-									background-color: #B80000 !important;
-								}
-							}
-							&.orange {
-								color: #fff;
-								background-color: #DB3E00;
-								&:hover {
-									background-color: #DB3E00 !important;
-								}
-							}
-							&.yellow {
-								color: #fff;
-								background-color: #FCCB00;
-								&:hover {
-									background-color: #FCCB00 !important;
-								}
-							}
-							&.green {
-								color: #fff;
-								background-color: #008B02;
-								&:hover {
-									background-color: #008B02 !important;
-								}
-							}
-							&.darkGreen {
-								color: #fff;
-								background-color: #006B76;
-								&:hover {
-									background-color: #006B76 !important;
-								}
-							}
-							&.blue {
-								color: #fff;
-								background-color: #1273DE;
-								&:hover {
-									background-color: #1273DE !important;
-								}
-							}
-							&.darkBlue {
-								color: #fff;
-								background-color: #004DCF;
-								&:hover {
-									background-color: #004DCF !important;
-								}
-							}
-							&.purple {
-								color: #fff;
-								background-color: #5300EB;
-								&:hover {
-									background-color: #5300EB !important;
-								}
-							}
-							&.grey {
-								color: #fff;
-								background-color: #999;
-								&:hover {
-									background-color: #999 !important;
-								}
-							}
-						}
-						tbody td {
-							text-align: left;
-							padding-left: 30px;
-							a {
-								color: #185e9e;
-								text-decoration: underline;
-								&.no-underline {
-									text-decoration: none;
-								}
-								&.bold {
-									font-weight: bold;
-								}
-							}
-							span {
-								a {
-									color: #185e9e;
-									text-decoration: underline;
-								}
-								&.link {
-									text-decoration: underline;
-									cursor: pointer;
-								}
-								&.blue {
-									color: #2164a0;
-								}
-								&.green {
-									color: #2fb046;
-									font-weight: bold;
-								}
-								&.orange {
-									color: #f7af3a;
-									font-weight: bold;
-								}
-								&.red {
-									color: #d1152e;
-									font-weight: bold;
-								}
-								&.permit {
-									margin: 5px;
-									border: 1px solid #ccc;
-									border-radius: 90px;
-									background-color: #004d93;
-									color: white;
-									padding: 5px 10px;
-								}
-							}
-							&.align-center {
-								text-align: center;
-							}
-							&.c-info {
-								cursor: text;
-							}
-							&._tableMenu_ {
-								width: 1px;
-							}
-							&.Severity {
-								span.severity {
-									display: block;
-									color: #fff;
-									width: 70px;
-									margin-left: 20px;
-									padding: 2px;
-									text-align: center;
-									border-radius: 10px;
-								}
-							}
-							&.description {
-								span {
-									color: #004d93;
-								}
-								button {
-									margin: 5px 0;
-								}
-							}
-							&.ipPort {
-								img {
-									float: left;
-									margin-right: 5px;
-								}
-							}
-						}
-						button.no-pointer {
-							cursor: text;
-						}
-						.file-image {
-							max-width: 200px;
-							max-height: 100px;
-						}
-					}
-				}
-				.table-content .table.no-pagination {
-					height: 79vh;
-				}
-				.table-content .table.normal {
-					height: auto;
-				}
-				.btn { //For Buttons in content header
-					position: absolute;
-					top: 10px;
-					padding: .3em 1em;
-					&.last {
-						right: 15px;
-					}
-					&.no-padding {
-						padding: 0;
-						a {
-							padding: .3em 1em;
-						}
-					}
-				}
-				.la-content {
-					height: 79vh;
-					overflow-y: auto;
-					.c-la {
-						width: 100%;
-					}
-				}
-				.file-options { //For Events File page
-					display: flex;
-					margin: 25px 25px 15px 25px;
-					.imgCheckBox {
-						label {
-							margin-right: 5px;
-						}
-					}
-					.display-file-type {
-						flex-direction: row;
-						margin-left: 20px;
-						& > div {
-							margin: 0;
-							margin-right: 10px;
-						}
-					}
-				}
-				.grid-flex { //For Events File page
-					display: flex;
-					flex-wrap: wrap;
-					height: 62vh;
-					margin: 15px 25px;
-					overflow-x: auto;
-					img {
-						max-width: 200px;
-						max-height: 100px;
-						margin-right: 20px;
-						margin-bottom: 30px;
-						border: 1px solid #ccc;
-						cursor: pointer;
-					}
-				}
-				.inventory-map { //For Config Network Inventory Map tab
-					overflow: hidden;
-					.tree {
-						float: left;
-						width: 20%;
-						ul.c-tree {
-							min-height: 80vh;
-							border-right: 1px solid #ccc;
-						}
-					}
-					.map {
-						float: left;
-						text-align: center;
-						width: 80%;
-						padding-top: 80px;
-						background-color: #f2f2f2;
-						min-height: 80vh;
-					}
-				}
-			}
-		}
-		.map-container { //For Config Topology Map page
-			display: flex;
-			min-height: 78vh;
-			.left-nav {
-				background-color: #fff;
-				.tree-data {
-					padding: 10px;
-				}
-			}
-			.right-content {
-				flex-grow: 1;
-				.table-content .table {
-					height: auto;
-				}
-				.content-area {
-					text-align: center;
-					padding: 20px;
-					min-height: 60vh;
-				}
-			}
-		}
-	}
-	.pagination { //TODO!
-		label {
-			margin-right: 5px;
-		}
-	}
-	.map-tooltip { //For World map tooltip
-		.key {
-			color: #004d93;
-		}
-		.value {
-			color: #000;
-		}
-		.count {
-			background-color: #d0021b;
-			color: #fff;
-			border-radius: 100%;
-			font-size: 5px;
-			padding: 2px;
-		}
-	}
-	.safety-scan-content { //TODO!
-		overflow: hidden;
-		max-height: 362px;
-		overflow-y: auto;
-		border: 1px solid #ccc;
-		.nav {
-			float: left;
-			width: 180px;
-			min-height: 360px;
-			background-color: #fff;
-			border-right: 1px solid #ccc;
-			li {
-				font-size: 12px;
-				padding-top: 5px;
-				padding-bottom: 5px;
-				overflow: hidden;
-				border-bottom: 1px solid #ccc;
-				span {
-					padding: 10px;
-					display: block;
-					cursor: pointer;
-					&.name {
-						float: left;
-						color: #000;
-					}
-					&.count {
-						float: right;
-						font-size: 10px;
-					}
-				}
-			}
-		}
-		.content {
-			position: relative;
-			float: left;
-			width: 500px;
-			.time {
-				margin-top: 6px;
-				margin-bottom: 20px;
-				span {
-					display: block;
-					margin-bottom: 10px;
-				}
-			}
-			button {
-				position: absolute;
-				top: 10px;
-				right: 10px;
-			}
-		}
-	}
-	.privateIp-info { //For Config Topology Network Inventory
-		background-color: #fff;
-		min-height: 84vh;
-		header {
-			color: #004d93;
-			font-weight: bold;
-			padding: 15px;
-			border-bottom: 1px solid #ccc;
-			background-color: #fff;
-		}
-		.btn {
-			&.edit {
-				right: 15px;
-			}
-			&.list {
-				right: 90px;
-			}
-		}
-		.private {
-			margin: 0 auto;
-			padding: 20px 0;
-			section {
-				padding-right: 0 !important;
-			}
-		}
-		.main-table {
-			border-radius: 5px;
-			width: 100%;
-			overflow: hidden;
-			thead tr {
-				color: #185e9e;
-			}
-			tbody td:hover {
-				cursor: text;
-			}
-			th, td {
-				padding: 10px !important;
-				border: 1px solid #ccc !important;
-				white-space: pre-wrap;
-			}
-		}
-	}
-	.privateIp-info,
-	.srcIp-content,
-	.destIp-content { //For shared Alert Detials dialog and Config Network Inventory
-		.private {
-			section {
-				position: relative;
-				margin-bottom: 30px;
-				padding-right: 10px;
-				overflow: hidden;
-				clear: both;
-				&.last {
-					margin-bottom: 0;
-				}
-				.header {
-					font-size: 20px;
-					color: #185e9e;
-					margin-bottom: 15px;
-					&.trigger {
-						float: left;
-						margin-right: 15px;
-					}
-				}
-				.trigger-text {
-					font-size: 14px;
-					margin-top: 5px;
-				}
-				img.owner-pic {
-					float: left;
-					display: block;
-					width: 20%;
-					border-radius: 50%;
-					margin-bottom: 20px;
-					margin-right: 5%;
-					margin-left: 5%;
-				}
-				.btn.trigger {
-					top: 0 !important;
-					right: 0;
-				}
-				table {
-					&.ip,
-					&.host,
-					&.owner {
-						td:nth-child(odd) {
-							width: 200px;
-						}
-					}
-					&.owner {
-						float: left;
-						width: 70%;
-					}
-				}
-				.floor-map {
-					position: relative;
-					text-align: center;
-					padding: 40px;
-					background-color: #f2f2f2;
-					.floor-header {
-						position: absolute;
-						top: 10px;
-					}
-					.base-layers {
-						display: none;
-					}
-					.c-gis {
-						min-width: 99%;
-						min-height: 400px;
-					}
-				}
-			}
-		}
-	}
+  .sub-header { //The blue bar
+    position: relative;
+    color: #fff;
+    padding: 3px 10px;
+    overflow: hidden;
+    background-color: #004d93;
+    min-height: 42px;
+    input:not([type=radio]), select {
+      color: #000;
+    }
+    .secondary-btn-group {
+      &.left {
+        float: left;
+      }
+      &.right {
+        float: right;
+        margin-top: 1px;
+      }
+      button {
+        color: #001b34;
+        padding: .3em .6em;
+        margin-right: 5px;
+        background-color: #fff;
+        &.active {
+          color: #fff;
+          background-color: #001b34;
+        }
+        &.last {
+          margin-right: 0;
+        }
+        .fg {
+          float: left;
+          &.fg-edit {
+            margin-left: 5px;
+          }
+        }
+        span {
+          float: left;
+        }
+      }
+      .last-update {
+        float: right;
+        margin-top: 7px;
+        margin-left: 5px;
+      }
+    }
+    .date-time {
+      position: absolute;
+      top: 8px;
+      right: 15px;
+      color: #fff;
+    }
+    .search-options {
+      position: absolute;
+      .search-type {
+        float: left;
+        margin-right: 10px;
+      }
+      .search-interval {
+        float: left;
+        margin-right: 10px;
+        .time-interval {
+          background-color: #fff;
+          height: 36px;
+          box-shadow: none;
+          cursor: pointer;
+        }
+      }
+      .datepicker {
+        float: left;
+        .daterange {
+          margin-right: 15px;
+        }
+        .fg {
+          border: none;
+        }
+      }
+      #datetime-from,
+      #datetime-to {
+        padding: 0.5em;
+      }
+      .search-button {
+        margin-top: 2px;
+      }
+    }
+  }
+  header.main-header {
+    position: relative;
+    color: #004d93;
+    font-size: 1.1em;
+    font-weight: bold;
+    padding: 15px;
+    border-bottom: 1px solid #ccc;
+    background-color: #fff;
+  }
+  .main-statistics { //For all statistics page
+    padding: 6px;
+    background-color: #d9d9d9;
+    .statistics-content {
+      display: flex;
+      flex-grow: 12;
+      flex-wrap: wrap;
+      .chart-group {
+        width: 49.2%;
+        margin: 5px;
+        border: none;
+        border-radius: 5px;
+        overflow: hidden;
+        header {
+          color: #004d93;
+          font-size: 1.1em;
+          font-weight: bold;
+          padding: 15px;
+          border-bottom: 1px solid #ccc;
+          background-color: #fff;
+        }
+      }
+    }
+  }
+  .table-menu { //table menu [...] button
+    visibility: hidden;
+    &.active {
+      visibility: visible;
+      button,
+      .fg {
+        cursor: pointer;
+      }
+    }
+    button {
+      padding: .3em .5em;
+      color: #4a4a4a;
+      background-color: #fff;
+    }
+    &.menu {
+      i.fg {
+        font-size: 26px;
+        margin-right: 8px;
+      }
+    }
+  }
+  .table-cell {
+    position: relative;
+    .ip {
+      img {
+        margin-left: 10px;
+      }
+      .fg-network {
+        margin-left: 5px;
+      }
+    }
+    .fg-filter {
+      visibility: hidden;
+      margin-left: 5px;
+      &.active {
+        visibility: visible;
+        cursor: pointer;
+      }
+    }
+    span {
+      &.red {
+        color: #fff;
+        background-color: #B80000;
+      }
+      &.yellow {
+        color: #fff;
+        background-color: #FCCB00;
+      }
+      &.green {
+        color: #fff;
+        background-color: #008B02;
+      }
+      &.darkGreen {
+        color: #fff;
+        background-color: #006B76;
+      }
+      &.blue {
+        color: #fff;
+        background-color: #1273DE;
+      }
+      &.orange {
+        color: #fff;
+        background-color: #DB3E00;
+      }
+      &.darkBlue {
+        color: #fff;
+        background-color: #004DCF;
+      }
+      &.purple {
+        color: #fff;
+        background-color: #5300EB;
+      }
+      &.soil {
+        color: #fff;
+        background-color: #C1B748;
+      }
+      &.brown {
+        color: #fff;
+        background-color: #660000;
+      }
+    }
+  }
+  .main-dashboard { //For Dashboard section
+    min-height: 88vh;
+    padding: 15px;
+    background-color: #ededed;
+    .charts {
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      .chart-group {
+        width: 24.4%;
+        margin: 5px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        overflow: hidden;
+        &.bar {
+          width: 74.25%;
+          height: 460px;
+        }
+        &.metric {
+          height: 138px;
+        }
+        header {
+          color: #004d93;
+          font-size: 1.1em;
+          font-weight: bold;
+          padding: 15px;
+          border-bottom: 1px solid #ccc;
+          background-color: #fff;
+        }
+        .show-pointer table tbody tr {
+          cursor: pointer;
+        }
+        .c-chart-pie {
+          height: 345px;
+        }
+        .c-chart.table {
+          height: 345px;
+          overflow-y: auto;
+        }
+        .disk-usage {
+          .item .value {
+            color: #d0021b;
+          }
+        }
+      }
+    }
+    .maps {
+      position: relative;
+      width: 100%;
+      min-height: 85vh;
+      border: 1px solid #d9d9d9;
+      border-radius: 5px;
+      padding: 10px 5px;
+      background-color: #fff;
+      .c-button-group {
+        margin: 5px 8px;
+      }
+      .floor-map {
+        .drop-down {
+          position: absolute;
+          top: 14px;
+          left: 200px;
+          width: 145px;
+        }
+        & > .content {
+          width: 100%;
+          margin-top: 55px;
+          overflow: hidden;
+          padding-left: 10px;
+          padding-right: 10px;
+          ul {
+            float: left;
+            width: 330px;
+            max-height: 77vh;
+            overflow-y: auto;
+            border-top: 1px solid #d9d9d9;
+            border-right: 1px solid #d9d9d9;
+            border-left: 1px solid #d9d9d9;
+            li {
+              position: relative;
+              color: #5e5e5e;
+              height: 70px;
+              background-color: #fff;
+              border-bottom: 2px solid #d9d9d9;
+              cursor: pointer;
+              &:hover {
+                background-color: #e2ecfd;
+              }
+              .info {
+                color: #000;
+                font-size: 18px;
+                padding: 8px 10px;
+                &.faded {
+                  font-style: italic;
+                  color: #999;
+                }
+                span {
+                  display: block;
+                  margin-bottom: 2px;
+                }
+              }
+              .count {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                width: 50px;
+                padding: 2px;
+                color: #fff;
+                text-align: center;
+                border-radius: 15px;
+              }
+            }
+          }
+          .map {
+            float: left;
+            width: 82%;
+            text-align: center;
+          }
+        }
+      }
+    }
+  }
+  .data-content {
+    display: flex;
+    min-height: 88vh;
+    .left-nav {
+      position: relative;
+      flex-grow: 0;
+      flex-shrink: 0;
+      width: 360px;
+      min-width: 15px;
+      border-right: 1px solid #d9d9d9;
+      background-color: #d9d9d9;
+      &.collapse {
+        width: 0;
+        & > .item {
+          display: none;
+        }
+      }
+      &.tree {
+        padding: 10px 25px 10px 10px;
+        &.collapse {
+          width: 0;
+          padding: 0;
+        }
+      }
+      .content {
+        overflow-y: auto;
+        max-height: 85vh;
+        padding-right: 10px;
+      }
+      .expand-collapse {
+        position: absolute;
+        top: 0;
+        right: 0;
+        height: 100%;
+        width: 15px;
+        background-color: #E4E4E4;
+        border-left: 1px solid #d9d9d9;
+        cursor: pointer;
+        &.not-allowed {
+          cursor: not-allowed;
+        }
+        .fg {
+          position: absolute;
+          top: 380px;
+          left: -5px;
+          color: #666;
+          font-size: 1.5em;
+        }
+      }
+      label {
+        display: block;
+        margin: 15px 0 3px 0;
+        &.first-label {
+          margin-top: 0;
+        }
+        &.inline-display {
+          float: left;
+          margin-right: 10px;
+          & + .c-checkbox {
+            float: left;
+            margin-top: 14px;
+            & + label {
+              clear: both;
+            }
+          }
+        }
+      }
+      .header-text {
+        color: #004d93;
+        font-size: .9em;
+        padding: 10px;
+        margin-top: 0;
+        margin-bottom: 0;
+        &.hide {
+          display: none;
+        }
+      }
+      input,
+      select,
+      .c-combobox {
+        width: 100%;
+      }
+      .c-hierarchy {
+        .button {
+          display: none;
+          padding: .1em .5em;
+          font-size: .5em;
+          &.active {
+            display: inline-block;
+          }
+        }
+      }
+      .analysis-type {
+        margin-bottom: 10px;
+      }
+      .frame,
+      .subframe { //For Config left nav
+        cursor: pointer;
+        a {
+          display: block;
+          width: 100%;
+          height: 100%;
+        }
+        &:hover {
+          background-color: #e2ecfd;
+        }
+      }
+      .frame {
+        position: relative;
+        width: 96%;
+        height: 50px;
+        border-bottom: 1px solid #ccc;
+        background-color: #fff;
+        &.last {
+          border-bottom: 0;
+        }
+        span {
+          display: block;
+          font-weight: bold;
+          padding-top: 10px;
+          padding-left: 15px;
+          &.true {
+            color: #004d93;
+          }
+        }
+        .fg-arrow-top,
+        .fg-arrow-bottom {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+        }
+      }
+      .subframe {
+        width: 100%;
+        height: 50px;
+        background-color: #e8e9ed;
+        span {
+          display: block;
+          padding-top: 15px;
+          padding-left: 20px;
+          &.true {
+            color: #004d93;
+          }
+        }
+      }
+    }
+    .parent-content {
+      flex-grow: 1;
+      overflow-x: auto;
+      overflow: hidden;
+      white-space: nowrap;
+      background-color: #ededed;
+      .main-filter,
+      .main-mark,
+      .main-chart {
+        position: relative;
+        display: none;
+        &.active {
+          display: block;
+        }
+        & > .fg-close {
+          position: absolute;
+          top: 5px;
+          right: 5px;
+          cursor: pointer;
+        }
+      }
+      .main-filter,
+      .main-mark {
+        padding: 5px 10px 10px 10px;
+        border-bottom: 1px solid #ccc;
+        background-color: #fff;
+        overflow: hidden;
+        .filter-section,
+        .mark-section {
+          background-color: #ededed;
+          .filter-warp,
+          .mark-wrap {
+            padding: 5px 7px;
+            background-color: #ededed;
+            & > span {
+              margin: 3px 0;
+            }
+            span {
+              i.c-link {
+                background-color: #fff;
+              }
+            }
+            .filter-select {
+              width: 215px;
+            }
+            .condition-select {
+              width: 100px;
+              height: 35px;
+            }
+            .filter-inputbox {
+              width: 235px;
+              height: 35px;
+            }
+            .mark-inputbox {
+              width: 200px;
+              height: 35px;
+            }
+            .fg-recode {
+              float: left;
+              width: 32px;
+              padding: 5px 5px 6px 4px;
+              margin-right: 3px;
+              border: 1px solid #d9d9d9;
+              border-radius: 5px;
+              &.red {
+                color: #B80000;
+              }
+              &.yellow {
+                color: #FCCB00;
+              }
+              &.green {
+                color: #008B02;
+              }
+              &.darkGreen {
+                color: #006B76;
+              }
+              &.blue {
+                color: #1273DE;
+              }
+              &.orange {
+                color: #DB3E00;
+              }
+              &.darkBlue {
+                color: #004DCF;
+              }
+              &.purple {
+                color: #5300EB;
+              }
+              &.soil {
+                color: #C1B748;
+              }
+              &.brown {
+                color: #660000;
+              }
+            }
+          }
+          .mark-wrap {
+            .group:nth-child(10) {
+              button {
+                display: none;
+              }
+            }
+          }
+        }
+        .button-group {
+          margin-bottom: 5px;
+          display: block;
+          .open-query,
+          .save-query {
+            font-size: 15px;
+            color: #001b34;
+            margin: 5px;
+            padding: 0;
+            background: none;
+            padding: 0 10px;
+          }
+          .clear,
+          .filter {
+            float: right;
+            margin-top: 5px;
+            margin-left: 5px;
+            padding: .2em 1em;
+            font-size: 14px;
+          }
+          .clear {
+            color: #000;
+            background-color: #fff;
+          }
+        }
+      }
+      .main-filter {
+        .header-text {
+          float: left;
+          margin-top: 5px;
+          margin-right: 5px;
+          color: #004d93;
+        }
+        .button-group.open-query {
+          position: absolute;
+          top: 5px;
+          left: 47px;
+        }
+        .filter-section {
+          display: flex;
+          flex-wrap: wrap;
+          margin-top: 37px;
+          &.config {
+            padding: 5px;
+            .group {
+              padding: 5px;
+              label {
+                display: block;
+              }
+              input {
+                width: 185px;
+              }
+              select {
+                width: auto;
+                min-width: 185px;
+              }
+              &.hmd {
+                padding-top: 30px;
+                padding-left: 15px;
+                label {
+                  float: left;
+                  margin-right: 5px;
+                }
+              }
+            }
+          }
+        }
+      }
+      .main-mark {
+        .header-text {
+          color: #004d93;
+          margin-bottom: 8px;
+        }
+      }
+      .main-chart { //For main chart in Events and Syslog
+        border-bottom: 1px solid #ccc;
+        .chart-content {
+          background-color: #fff;
+          &.connections {
+            padding-left: 10px;
+            padding-bottom: 20px;
+          }
+          .placeholder {
+            visibility: hidden;
+            height: 52px;
+          }
+          .chart-btn {
+            margin-right: 10px;
+          }
+        }
+        .chart-btn,
+        .interval-btn {
+          display: inline-block;
+          margin-top: 20px;
+          .thumb {
+            padding-left: 10px;
+            padding-right: 10px;
+          }
+        }
+        .bar-chart {
+          background-color: #fff;
+          .error {
+            padding: 0px 10px 15px 10px;
+          }
+        }
+      }
+      .main-content { //Content below the filter or charts
+        position: relative;
+        margin: 15px;
+        border-radius: 5px;
+        background-color: #ededed;
+        border: 1px solid #d9d9d9;
+        overflow: hidden;
+        &.basic-form { //For content with form input
+          background-color: #fff;
+          min-height: 85vh;
+          input,
+          select,
+          textarea {
+            width: 100%;
+            box-shadow: none;
+          }
+          footer {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            text-align: right;
+            padding: 15px;
+            border-top: 1px solid #ccc;
+            button {
+              margin: 0 5px;
+            }
+            &.no-fixed {
+              position: relative;
+              margin-top: 50px;
+            }
+          }
+          .form-group { //For individual form group
+            position: relative;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: left;
+            text-align: center;
+            margin: 0 auto;
+            margin-top: 70px;
+            margin-bottom: 40px;
+            width: 70%;
+            padding: 10px 10px 15px 10px;
+            background-color: #f2f2f2;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            #edgeModeDatetime {
+              text-align: left;
+            }
+            #autoSettingsAD {
+              position: absolute;
+              top: -45px;
+              left: 80px;
+            }
+            .radio-group {
+              flex-direction: row;
+              margin: 10px 0;
+            }
+            &.normal {
+              .list-item {
+                margin: 0;
+                margin-right: 10px;
+                input {
+                  width: 20px;
+                }
+              }
+            }
+            &.long {
+              .group {
+                width: 100%;
+              }
+            }
+            &.short {
+              .group {
+                width: 25%;
+              }
+            }
+            &.steps-owner {
+              .removePhoto {
+                label {
+                  display: inline-block;
+                  margin-right: 5px;
+                  margin-top: 15px;
+                }
+                i {
+                  position: absolute;
+                  margin-top: 13px;
+                }
+              }
+              button.manage {
+                position: absolute;
+                top: -40px;
+                right: 0;
+              }
+              .owner-type {
+                position: absolute;
+                top: -38px;
+                left: 100px;
+                flex-direction: row;
+                .list-item {
+                  margin: 0;
+                  margin-right: 15px;
+                }
+                input {
+                  width: 20px;
+                }
+              }
+              .user-pic {
+                width: 50%;
+                .group,
+                #ownerPhotoUpload {
+                  width: 100%;
+                  text-align: center;
+                  input[name='file'] {
+                    width: 95%;
+                  }
+                }
+                img {
+                  width: 200px;
+                  height: 200px;
+                  border-radius: 50%;
+                  margin-top: 10px;
+                  &.existing {
+                    margin-top: 30px;
+                  }
+                }
+              }
+              .user-info {
+                width: 50%;
+                .group {
+                  width: 100%;
+                }
+              }
+            }
+            &.steps-floor {
+              padding: 0;
+              button.manage {
+                position: absolute;
+                top: -40px;
+                right: 0;
+              }
+              .floor-info {
+                width: 100%;
+                height: 450px;
+                .tree {
+                  float: left;
+                  text-align: left;
+                  width: 20%;
+                  height: 100%;
+                  background-color: #fff;
+                  border-right: 1px solid #ccc;
+                }
+                .map {
+                  float: left;
+                  width: 80%;
+                  .c-gis {
+                    min-height: 450px;
+                  }
+                }
+              }
+            }
+            header {
+              position: absolute;
+              top: -40px;
+              left: 0;
+              color: #185e9e;
+              font-size: 1.2em;
+              font-weight: bold;
+              .text,
+              .status {
+                float: left;
+                margin-right: 15px;
+              }
+              .msg {
+                font-size: 10px;
+                color: #4a4a4a;
+                font-weight: normal;
+                margin-top: 5px;
+                display: block;
+              }
+            }
+            button {
+              &.last {
+                position: absolute;
+                top: -45px;
+                right: 0;
+                padding: .3em 1em;
+              }
+            }
+            .toggle-btn {
+              position: absolute;
+              top: -40px;
+              right: 0;
+            }
+            .group {
+              width: 50%;
+              padding: 5px;
+              text-align: left;
+              &.full {
+                width: 100%;
+              }
+              &.multi {
+                label {
+                  span {
+                    display: inline-block;
+                    margin-left: 1%;
+                  }
+                }
+                .fg-close {
+                  background-color: #fff;
+                }
+              }
+              label {
+                text-align: left;
+                color: #185e9e;
+                font-size: .9em;
+                display: block;
+                margin-bottom: 3px;
+                &.checkbox {
+                  float: left;
+                  margin-right: 5px;
+                }
+              }
+              .react-multi-email {
+                display: flex;
+                flex-wrap: wrap;
+                [data-tag] {
+                  padding-top: 10px;
+                  color: #fff;
+                  background-color: #004d99;
+                  margin-bottom: 5px;
+                }
+              }
+              #ipRangeLabel span {
+                width: 30%;
+              }
+              #scannerLabel span {
+                width: 26%;
+              }
+              .ip-range-group,
+              .scanner-group {
+                .group {
+                  width: auto;
+                  .group-content {
+                    width: 100%;
+                    select,
+                    input {
+                      margin-right: 2.2%;
+                    }
+                    button {
+                      padding: .3em 1em;
+                    }
+                  }
+                }
+              }
+              .ip-range-group {
+                .group {
+                  select,
+                  input {
+                    width: 31.5%;
+                  }
+                }
+              }
+              .scanner-group {
+                .group {
+                  select,
+                  input {
+                    width: 27%;
+                  }
+                }
+              }
+            }
+          }
+          .steps-indicator { //For Config Topology Inventory page
+            display: flex;
+            justify-content: center;
+            width: 70%;
+            margin: 0 auto;
+            margin-top: 40px;
+            margin-bottom: 120px;
+            .group {
+              display: flex;
+              width: 100%;
+              &.group1 {
+                width: 12%;
+              }
+            }
+            .step {
+              position: relative;
+              width: 45px;
+              height: 45px;
+              text-align: center;
+              border-radius: 50%;
+              border: 3px solid #ccc;
+              cursor: default;
+              &.active {
+                color: #fff;
+                background-color: #004d99;
+                border: 3px solid #004d99;
+              }
+              .wrapper {
+                width: 39px;
+                height: 39px;
+                border-radius: 50%;
+                border: 2px solid #fff;
+              }
+              .number {
+                position: absolute;
+                top: 8px;
+                left: 15px;
+              }
+              .text {
+                position: absolute;
+                color: #4a4a4a;
+                top: 55px;
+                font-size: 14px;
+                &.text1 {
+                  left: -4px;
+                }
+                &.text2 {
+                  left: -22px;
+                }
+                &.text3 {
+                  left: -9px;
+                }
+                &.text4 {
+                  left: -2px;
+                }
+              }
+            }
+            .line {
+              width: 100%;
+              height: 5px;
+              margin-top: 21px;
+              background-color: #ccc;
+              &.active {
+                background-color: #004d99;
+              }
+              &.line1 {
+                display: none;
+              }
+            }
+          }
+        }
+        .subtab-menu {
+          li {
+            font-size: 1.1em;
+            font-weight: bold;
+            padding: 15px;
+          }
+          .tabContent {
+            display: none;
+          }
+        }
+        footer { //For pagination in Table, LA and Maps
+          padding: 20px;
+          margin: 0;
+          .dropdown-margin {
+            margin-left: 50px;
+          }
+        }
+        .table-content .table {
+          height: 70vh;
+          overflow-y: auto;
+          .main-table {
+            width: 100%;
+            &.overflow-scroll {
+              overflow-x: auto;
+            }
+            &.align-center {
+              tbody td {
+                text-align: center;
+                padding-left: 0;
+              }
+            }
+            &.with-pointer {
+              tbody td {
+                cursor: pointer;
+              }
+            }
+            thead th {
+              text-align: center;
+            }
+            tbody tr {
+              height: 45px;
+              &.red {
+                color: #fff;
+                background-color: #B80000;
+                &:hover {
+                  background-color: #B80000 !important;
+                }
+              }
+              &.orange {
+                color: #fff;
+                background-color: #DB3E00;
+                &:hover {
+                  background-color: #DB3E00 !important;
+                }
+              }
+              &.yellow {
+                color: #fff;
+                background-color: #FCCB00;
+                &:hover {
+                  background-color: #FCCB00 !important;
+                }
+              }
+              &.green {
+                color: #fff;
+                background-color: #008B02;
+                &:hover {
+                  background-color: #008B02 !important;
+                }
+              }
+              &.darkGreen {
+                color: #fff;
+                background-color: #006B76;
+                &:hover {
+                  background-color: #006B76 !important;
+                }
+              }
+              &.blue {
+                color: #fff;
+                background-color: #1273DE;
+                &:hover {
+                  background-color: #1273DE !important;
+                }
+              }
+              &.darkBlue {
+                color: #fff;
+                background-color: #004DCF;
+                &:hover {
+                  background-color: #004DCF !important;
+                }
+              }
+              &.purple {
+                color: #fff;
+                background-color: #5300EB;
+                &:hover {
+                  background-color: #5300EB !important;
+                }
+              }
+              &.grey {
+                color: #fff;
+                background-color: #999;
+                &:hover {
+                  background-color: #999 !important;
+                }
+              }
+            }
+            tbody td {
+              text-align: left;
+              padding-left: 30px;
+              a {
+                color: #185e9e;
+                text-decoration: underline;
+                &.no-underline {
+                  text-decoration: none;
+                }
+                &.bold {
+                  font-weight: bold;
+                }
+              }
+              span {
+                a {
+                  color: #185e9e;
+                  text-decoration: underline;
+                }
+                &.link {
+                  text-decoration: underline;
+                  cursor: pointer;
+                }
+                &.blue {
+                  color: #2164a0;
+                }
+                &.green {
+                  color: #2fb046;
+                  font-weight: bold;
+                }
+                &.orange {
+                  color: #f7af3a;
+                  font-weight: bold;
+                }
+                &.red {
+                  color: #d1152e;
+                  font-weight: bold;
+                }
+                &.permit {
+                  margin: 5px;
+                  border: 1px solid #ccc;
+                  border-radius: 90px;
+                  background-color: #004d93;
+                  color: white;
+                  padding: 5px 10px;
+                }
+              }
+              &.align-center {
+                text-align: center;
+              }
+              &.c-info {
+                cursor: text;
+              }
+              &._tableMenu_ {
+                width: 1px;
+              }
+              &.Severity {
+                span.severity {
+                  display: block;
+                  color: #fff;
+                  width: 70px;
+                  margin-left: 20px;
+                  padding: 2px;
+                  text-align: center;
+                  border-radius: 10px;
+                }
+              }
+              &.description {
+                span {
+                  color: #004d93;
+                }
+                button {
+                  margin: 5px 0;
+                }
+              }
+              &.ipPort {
+                img {
+                  float: left;
+                  margin-right: 5px;
+                }
+              }
+            }
+            button.no-pointer {
+              cursor: text;
+            }
+            .file-image {
+              max-width: 200px;
+              max-height: 100px;
+            }
+          }
+        }
+        .table-content .table.no-pagination {
+          height: 79vh;
+        }
+        .table-content .table.normal {
+          height: auto;
+        }
+        .btn { //For Buttons in content header
+          position: absolute;
+          top: 10px;
+          padding: .3em 1em;
+          &.last {
+            right: 15px;
+          }
+          &.no-padding {
+            padding: 0;
+            a {
+              padding: .3em 1em;
+            }
+          }
+        }
+        .la-content {
+          height: 79vh;
+          overflow-y: auto;
+          .c-la {
+            width: 100%;
+          }
+        }
+        .file-options { //For Events File page
+          display: flex;
+          margin: 25px 25px 15px 25px;
+          .imgCheckBox {
+            label {
+              margin-right: 5px;
+            }
+          }
+          .display-file-type {
+            flex-direction: row;
+            margin-left: 20px;
+            & > div {
+              margin: 0;
+              margin-right: 10px;
+            }
+          }
+        }
+        .grid-flex { //For Events File page
+          display: flex;
+          flex-wrap: wrap;
+          height: 62vh;
+          margin: 15px 25px;
+          overflow-x: auto;
+          img {
+            max-width: 200px;
+            max-height: 100px;
+            margin-right: 20px;
+            margin-bottom: 30px;
+            border: 1px solid #ccc;
+            cursor: pointer;
+          }
+        }
+        .inventory-map { //For Config Network Inventory Map tab
+          overflow: hidden;
+          .tree {
+            float: left;
+            width: 20%;
+            ul.c-tree {
+              min-height: 80vh;
+              border-right: 1px solid #ccc;
+            }
+          }
+          .map {
+            float: left;
+            text-align: center;
+            width: 80%;
+            padding-top: 80px;
+            background-color: #f2f2f2;
+            min-height: 80vh;
+          }
+        }
+      }
+    }
+    .map-container { //For Config Topology Map page
+      display: flex;
+      min-height: 78vh;
+      .left-nav {
+        background-color: #fff;
+        .tree-data {
+          padding: 10px;
+        }
+      }
+      .right-content {
+        flex-grow: 1;
+        .table-content .table {
+          height: auto;
+        }
+        .content-area {
+          text-align: center;
+          padding: 20px;
+          min-height: 60vh;
+        }
+      }
+    }
+  }
+  .pagination { //TODO!
+    label {
+      margin-right: 5px;
+    }
+  }
+  .map-tooltip { //For World map tooltip
+    .key {
+      color: #004d93;
+    }
+    .value {
+      color: #000;
+    }
+    .count {
+      background-color: #d0021b;
+      color: #fff;
+      border-radius: 100%;
+      font-size: 5px;
+      padding: 2px;
+    }
+  }
+  .safety-scan-content { //TODO!
+    overflow: hidden;
+    max-height: 362px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    .nav {
+      float: left;
+      width: 180px;
+      min-height: 360px;
+      background-color: #fff;
+      border-right: 1px solid #ccc;
+      li {
+        font-size: 12px;
+        padding-top: 5px;
+        padding-bottom: 5px;
+        overflow: hidden;
+        border-bottom: 1px solid #ccc;
+        span {
+          padding: 10px;
+          display: block;
+          cursor: pointer;
+          &.name {
+            float: left;
+            color: #000;
+          }
+          &.count {
+            float: right;
+            font-size: 10px;
+          }
+        }
+      }
+    }
+    .content {
+      position: relative;
+      float: left;
+      width: 500px;
+      .time {
+        margin-top: 6px;
+        margin-bottom: 20px;
+        span {
+          display: block;
+          margin-bottom: 10px;
+        }
+      }
+      button {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+      }
+    }
+  }
+  .privateIp-info { //For Config Topology Network Inventory
+    background-color: #fff;
+    min-height: 84vh;
+    header {
+      color: #004d93;
+      font-weight: bold;
+      padding: 15px;
+      border-bottom: 1px solid #ccc;
+      background-color: #fff;
+    }
+    .btn {
+      &.edit {
+        right: 15px;
+      }
+      &.list {
+        right: 90px;
+      }
+    }
+    .private {
+      margin: 0 auto;
+      padding: 20px 0;
+      section {
+        padding-right: 0 !important;
+      }
+    }
+    .main-table {
+      border-radius: 5px;
+      width: 100%;
+      overflow: hidden;
+      thead tr {
+        color: #185e9e;
+      }
+      tbody td:hover {
+        cursor: text;
+      }
+      th, td {
+        padding: 10px !important;
+        border: 1px solid #ccc !important;
+        white-space: pre-wrap;
+      }
+    }
+  }
+  .privateIp-info,
+  .srcIp-content,
+  .destIp-content { //For shared Alert Detials dialog and Config Network Inventory
+    .private {
+      section {
+        position: relative;
+        margin-bottom: 30px;
+        padding-right: 10px;
+        overflow: hidden;
+        clear: both;
+        &.last {
+          margin-bottom: 0;
+        }
+        .header {
+          font-size: 20px;
+          color: #185e9e;
+          margin-bottom: 15px;
+          &.trigger {
+            float: left;
+            margin-right: 15px;
+          }
+        }
+        .trigger-text {
+          font-size: 14px;
+          margin-top: 5px;
+        }
+        img.owner-pic {
+          float: left;
+          display: block;
+          width: 20%;
+          border-radius: 50%;
+          margin-bottom: 20px;
+          margin-right: 5%;
+          margin-left: 5%;
+        }
+        .btn.trigger {
+          top: 0 !important;
+          right: 0;
+        }
+        table {
+          &.ip,
+          &.host,
+          &.owner {
+            td:nth-child(odd) {
+              width: 200px;
+            }
+          }
+          &.owner {
+            float: left;
+            width: 70%;
+          }
+        }
+        .floor-map {
+          position: relative;
+          text-align: center;
+          padding: 40px;
+          background-color: #f2f2f2;
+          .floor-header {
+            position: absolute;
+            top: 10px;
+          }
+          .base-layers {
+            display: none;
+          }
+          .c-gis {
+            min-width: 99%;
+            min-height: 400px;
+          }
+        }
+      }
+    }
+  }
 }
 
 @media only screen and (min-width: 1350px) {
-	#app-container {
-		.privateIp-info {
-			.private {
-				width: 60%;
-			}
-		}
-	}
+  #app-container {
+    .privateIp-info {
+      .private {
+        width: 60%;
+      }
+    }
+  }
 }
 
 @media only screen and (max-width: 1350px) {
-	#app-container {
-		.statistic .chart-group {
-			flex-direction: column;
-			.col {
-				width: 100%;
-			}
-		}
-		.privateIp-info {
-			.private {
-				width: 80%;
-			}
-		}
-	}
+  #app-container {
+    .statistic .chart-group {
+      flex-direction: column;
+      .col {
+        width: 100%;
+      }
+    }
+    .privateIp-info {
+      .private {
+        width: 80%;
+      }
+    }
+  }
 }
 
 @media only screen and (max-width: 1165px) {
-	#app-container {
-		.datepicker {
-			margin-bottom: 10px;
-		}
-	}
+  #app-container {
+    .datepicker {
+      margin-bottom: 10px;
+    }
+  }
 }
 
 @media only screen and (max-width: 850px) {
-	#app-container {
-		.search-btns {
-			float: left;
-		}
-	}
+  #app-container {
+    .search-btns {
+      float: left;
+    }
+  }
 }

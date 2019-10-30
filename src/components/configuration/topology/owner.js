@@ -268,7 +268,7 @@ class NetworkOwner extends Component {
             owner: tempOwner
           }, () => {
             this.toggleContent('addOwner', 'edit');
-          });          
+          });
         }
       })
       .catch(err => {

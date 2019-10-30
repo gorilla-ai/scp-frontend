@@ -319,7 +319,7 @@ class Netflow extends Component {
           projectID
         }, () => {
           this.loadAllFields();
-        });      
+        });
       } else {
         helper.showPopupMsg(t('events.connections.txt-addAgentMsg'), '', '', '', 'agent');
       }
@@ -1712,7 +1712,7 @@ class Netflow extends Component {
   showPCAPcontent = (key, i) => {
     const {pcapData} = this.state;
 
-    return <li id={key} key={i} className={cx({'active': key.hex})} onClick={this.setPCAPhex.bind(this, key.hex, i)}>{key.protocol}<i className={cx('fg', {'fg-arrow-left': pcapData.activeIndex === i})}></i></li>  
+    return <li key={i} className={cx({'active': key.hex})} onClick={this.setPCAPhex.bind(this, key.hex, i)}>{key.protocol}<i className={cx('fg', {'fg-arrow-left': pcapData.activeIndex === i})}></i></li>  
   }
   displayPCAPcontent = () => {
     const {pcapData} = this.state;
