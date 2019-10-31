@@ -187,7 +187,7 @@ class AccountList extends Component {
     PopupDialog.prompt({
       title: c('txt-unlockAccount'),
       id: 'modalWindowSmall',
-      confirmText: c('txt-delete'),
+      confirmText: c('txt-unlock'),
       cancelText: c('txt-cancel'),
       display: this.getAccountMsgContent(allValue, id, 'unlock'),
       act: (confirmed) => {

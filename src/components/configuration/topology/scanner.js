@@ -5,9 +5,13 @@ import _ from 'lodash'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import Input from 'react-ui/build/src/components/input'
 
+let t = null;
+
 class Scanner extends Component {
   constructor(props) {
     super(props);
+
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
   }
   handleChange(field, value) {
     this.props.onChange({
@@ -34,7 +38,7 @@ class Scanner extends Component {
           onChange={this.handleChange.bind(this, 'mask')}
           value={value.mask}
           readOnly={activeContent === 'viewMode' || !statusEnable.scanner} />
-        <button onClick={this.props.handleScannerTest.bind(this, value)} disabled={!statusEnable.scanner}>Test Query</button>
+        <button onClick={this.props.handleScannerTest.bind(this, value)} disabled={!statusEnable.scanner}>{t('network-inventory.txt-testQuery')}</button>
       </div>
     )
   }

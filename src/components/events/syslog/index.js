@@ -144,7 +144,6 @@ class SyslogController extends Component {
   }
   componentDidMount() {
     const {session} = this.props;
-    const dataObj = queryString.parse(location.search);
     let tempAccount = {...this.state.account};
 
     if (session.accountId) {
@@ -159,44 +158,6 @@ class SyslogController extends Component {
         this.getSyslogTree();
         this.initialLoad();
       });
-
-      if (dataObj.eventDttm) {
-        let eventDttm = helper.getFormattedDate(Number(dataObj.eventDttm), 'local');
-
-        if (!eventDttm) {
-          eventDttm = helper.getFormattedDate(dataObj.eventDttm, 'local');
-        }
-
-        const datetime = {
-          from: Moment(eventDttm).local().subtract(7, 'days').format('YYYY-MM-DDTHH:mm') + ':00',
-          to: eventDttm
-        };
-        const filterData = [
-          {
-            fields: 'srcIp',
-            condition: '=',
-            query: dataObj.srcIp
-          },
-          {
-            fields: 'destIp',
-            condition: '=',
-            query: dataObj.destIp
-          }
-        ];
-        const markData = [
-          {
-            data: '',
-            color: 'red'
-          }
-        ];
-
-        this.setState({
-          datetime,
-          filterData,
-          markData,
-          showFilter: true
-        });
-      }
     }
   }
   getLAconfig = () => {
@@ -254,8 +215,9 @@ class SyslogController extends Component {
       this.setState({
         filterData: [{
           condition: 'must',
-          query: 'configId: ' + syslogParams.configId
-        }]
+          query: syslogParams.configId
+        }],
+        showFilter: true
       });
     }
 
@@ -276,7 +238,8 @@ class SyslogController extends Component {
         {
           condition: 'must',
           query: '_host: ' + hostData
-        }]
+        }],
+        showFilter: true
       });
     }
 

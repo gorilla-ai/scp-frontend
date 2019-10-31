@@ -773,9 +773,7 @@ class NetworkMap extends Component {
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            {_.size(IP.dataContent) > 0 &&
-              <button onClick={this.setFilter.bind(this, !openFilter)} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
-            }
+            <button onClick={this.setFilter.bind(this, !openFilter)} title={t('txt-filter')} disabled={IP.dataContent.length === 0}><i className='fg fg-filter'></i></button>
           </div>
         </div>
 

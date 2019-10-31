@@ -163,7 +163,7 @@ class Syslog extends Component {
               edit: t('txt-edit'),
               delete: t('txt-delete'),
               eventDist: t('syslogFields.txt-eventDist'),
-              events: t('txt-events'),
+              events: t('syslogFields.txt-viewEvents'),
               hosts: t('syslogFields.txt-editHosts')
             }} />
         }},
@@ -419,7 +419,7 @@ class Syslog extends Component {
   forwardSyslog = (config) => {
     const {baseUrl, contextRoot} = this.props;
 
-    window.location.href = `${baseUrl}${contextRoot}/syslog?configId=${config.id}`;
+    window.location.href = `${baseUrl}${contextRoot}/events/syslog?configId=${config.id}`;
   }
   openEditHosts = (data) => {
     const splitHostsData = data.hosts.split(', ');
@@ -526,7 +526,7 @@ class Syslog extends Component {
           <div style={{display: 'flex'}}>
             <div style={{width: '90%', position: 'relative'}}>
               {config.id &&
-                <button onClick={this.getLatestInput.bind(this, config.id)}>Get Latest Input Text</button>
+                <button onClick={this.getLatestInput.bind(this, config.id)}>{t('syslogFields.txt-getLatest')}</button>
               }
               <label>Data Sample Input</label>
               <Textarea
@@ -607,7 +607,6 @@ class Syslog extends Component {
           <div className='syslog'>
             <label>{t('syslogFields.format')}</label>
             <Input
-              required={true}
               validate={{t: et}}
               value={config.format}
               onChange={this.handleConfigChange.bind(this, 'format')} />

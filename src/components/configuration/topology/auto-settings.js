@@ -554,7 +554,7 @@ class AutoSettings extends Component {
               onChange={this.handleADchange.bind(this, 'type')}
               value={adData.type}
               disabled={activeContent === 'viewMode' || !statusEnable.ad_ldap} />
-            <button className='last' style={{right: '85px'}} onClick={this.handleADtest} disabled={!statusEnable.ad_ldap}>Test Query</button>
+            <button className='last' style={{right: '85px'}} onClick={this.handleADtest} disabled={!statusEnable.ad_ldap}>{t('network-inventory.txt-testQuery')}</button>
             <ToggleBtn
               className='toggle-btn'
               onText='On'
@@ -607,7 +607,7 @@ class AutoSettings extends Component {
 
           <div className='form-group normal'>
             <header>{t('network-inventory.auto-settings.txt-netflow')}</header>
-            <button className='last' style={{right: '85px'}} onClick={this.handleNetflowtest} disabled={!statusEnable.netflow}>Test Query</button>
+            <button className='last' style={{right: '85px'}} onClick={this.handleNetflowtest} disabled={!statusEnable.netflow}>{t('network-inventory.txt-testQuery')}</button>
             <ToggleBtn
               className='toggle-btn'
               onText='On'

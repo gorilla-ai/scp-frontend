@@ -337,9 +337,9 @@
     "txt-edgeEditPastEndDate": "Edge結束時間不得為過去時間",
     "txt-ipValidationFail": "請輸入正確IP:Port格式",
     "statistics": {
-      "txt-sourceIndicators": "來源服務統計",
-      "txt-indicatorsTrend": "感染指標趨勢",
-      "txt-acuIndicatorsTrend": "累計感染指標趨勢"
+      "txt-sourceIndicators": "情資類型統計圓餅圖",
+      "txt-indicatorsTrend": "每日情資更新數量長條圖",
+      "txt-acuIndicatorsTrend": "每日情資數量曲線圖"
     }
   },
 
@@ -348,6 +348,7 @@
     "txt-deviceMap": "裝置地圖",
     "txt-AddIP": "手動新增IP",
     "txt-autoSettings": "自動執行設定",
+    "txt-testQuery": "查詢測試",
     "txt-backToList": "$t(txt-back)$t(txt-listText)",
     "txt-backToMap": "$t(txt-back)$t(txt-map)",
     "txt-lastUpdate": "最近更新時間",
@@ -372,6 +373,29 @@
       "txt-netflow": "Netflow",
       "txt-scanner": "Scanner",
       "txt-connectionsFail": "連線失敗"
+    },
+    "ir-type": {
+      "txt-quick": "快速採證",
+      "txt-common": "常用採證",
+      "txt-all": "完整採證"
+    },
+    "ir-list": {
+      "txt-list1": "記憶體採證",
+      "txt-list2": "系統基本資訊",
+      "txt-list3": "檔案時間軸與簽章",
+      "txt-list4": "網路連線與程序列表",
+      "txt-list5": "系統自動執行清單",
+      "txt-list6": "工作排程列表",
+      "txt-list7": "網頁瀏覽歷史紀錄",
+      "txt-list8": "電子郵件資料",
+      "txt-list9": "Windows Registry",
+      "txt-list10": "Event Log",
+      "txt-list11": "刪除還原的檔案",
+      "txt-list12": "最近開啟檔案列表",
+      "txt-list13": "圖像搜尋",
+      "txt-list14": "影像搜尋",
+      "txt-list15": "微軟檔案搜尋",
+      "txt-list16": "關鍵字檔案搜尋"
     }
   },
 
@@ -516,10 +540,12 @@
     "value": "數值",
     "conditions": "條件",
     "query": "標示",
+    "txt-getLatest": "取得最新串流資料",
     "txt-customFieldName": "自訂欄位名稱",
     "txt-addSyslog": "新增系統日誌",
     "txt-delSyslog": "刪除系統日誌",
-    "txt-eventDist": " Event Distribution",
+    "txt-eventDist": "日誌串流事件趨勢圖",
+    "txt-viewEvents": "檢視日誌串流事件",
     "txt-overallDist": "Overall Distribution",
     "txt-editHosts": "編輯主機",
     "txt-timelineUnavailable": "Timeline資料不存在"

@@ -42,6 +42,7 @@ const MAPS_PRIVATE_DATA = {
   currentBaseLayers: {},
   seatData: {}
 };
+const DEFAULT_IR_SELECTED = [2, 4, 5, 6, 9, 10];
 
 let t = null;
 let f = null;
@@ -123,7 +124,8 @@ class NetworkInventory extends Component {
       ownerType: 'existing', //existing, new,
       ownerIDduplicated: false,
       previewOwnerPic: '',
-      irItemSelected: [1, 3, 5],
+      irComboSelected: 'quick',
+      irItemSelected: DEFAULT_IR_SELECTED,
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
     };
 
@@ -1159,30 +1161,59 @@ class NetworkInventory extends Component {
       helper.showPopupMsg('', t('txt-error'));
     });
   }
-  handleIrSelectionChange = (irItemSelected) => {
+  handleIrComboChange = (value) => {
+    let irItemSelected = [];
+
+    if (value === 'quick') {
+      irItemSelected = DEFAULT_IR_SELECTED;
+    } else if (value === 'common') {
+      irItemSelected = _.concat(_.range(1, 7), [9, 10, 12]);
+    } else if (value === 'all') {
+      irItemSelected = _.range(1, 17);
+    }
+
+    this.setState({
+      irComboSelected: value,
+      irItemSelected
+    });
+  }
+  handleIrSelectionChange = (selected) => {
+    const irItemSelected = selected.sort((a, b) => {
+      return a - b;
+    });
+
     this.setState({
       irItemSelected
     });
   }
   displayIRselection = () => {
-    const {irItemSelected} = this.state;
-    const list = [
-      {value: 1, text: '1 - 記憶體採證'},
-      {value: 2, text: '2 - 系統基本資訊'},
-      {value: 3, text: '3 - 檔案時間軸與簽章'},
-      {value: 4, text: '4 - 網路連線與程序列表'},
-      {value: 5, text: '5 - 系統自動執行清單'},
-      {value: 6, text: '6 - 工作排成列表'},
-      {value: 7, text: '7 - 網頁瀏覽歷史紀錄'}
-    ];
+    const {irComboSelected, irItemSelected} = this.state;
+    const dropDownList = _.map(['quick', 'common', 'all'], val => {
+      return {
+        value: val,
+        text: t('network-inventory.ir-type.txt-' + val)
+      };
+    });
+    const checkBoxList = _.map(_.range(1, 17), val => {
+      return {
+        value: val,
+        text: val + ' - ' + t('network-inventory.ir-list.txt-list' + val)
+      };
+    });
 
     return (
-      <CheckboxGroup
-        list={list}
-        toggleAll={true}
-        toggleAllText={t('txt-all')}
-        onChange={this.handleIrSelectionChange}
-        value={irItemSelected} />
+      <div>
+        <DropDownList
+          id='irComboList'
+          list={dropDownList}
+          required={true}
+          onChange={this.handleIrComboChange}
+          value={irComboSelected} />
+        <CheckboxGroup
+          list={checkBoxList}
+          onChange={this.handleIrSelectionChange}
+          value={irItemSelected} />
+      </div>
     )
   }
   irSelectionDialog = () => {
@@ -1206,6 +1237,10 @@ class NetworkInventory extends Component {
     )
   }
   confirmIRselection = () => {
+    const {irItemSelected} = this.state;
+
+    alert('You selected: ' + irItemSelected);
+
     this.toggleSelectionIR();
     return;
   }
@@ -1214,7 +1249,8 @@ class NetworkInventory extends Component {
 
     if (!modalIRopen) {
       this.setState({
-        irItemSelected: [1, 3, 5]
+        irComboSelected: 'quick',
+        irItemSelected: DEFAULT_IR_SELECTED
       });
     }
 

@@ -217,11 +217,17 @@ class Edge extends Component {
                       {allValue.lastStatusUpdDT &&
                         <li><span>lastStatusUpdDT:</span> {helper.getFormattedDate(allValue.lastStatusUpdDT, 'local')}</li>
                       }
+                      {allValue.threatIntellLastUpdDT &&
+                        <li><span>threatIntellLastUpdDT:</span> {helper.getFormattedDate(allValue.threatIntellLastUpdDT, 'local')}</li>
+                      }
                       {allValue.statistics && allValue.statistics.rx_pkts &&
                         <li><span>received packets:</span> {allValue.statistics.rx_pkts}</li>
                       }
                       {allValue.statistics && allValue.statistics.tx_pkts &&
                         <li><span>transferred packets:</span> {allValue.statistics.tx_pkts}</li>
+                      }
+                      {allValue.honeyPotHostDTO &&
+                        <li><span>attackCnt:</span> {allValue.honeyPotHostDTO.attackCnt}</li>
                       }
                     </ul>
                   )
