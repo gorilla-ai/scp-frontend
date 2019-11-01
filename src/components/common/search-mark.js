@@ -11,7 +11,7 @@ class SearchMark extends Component {
   constructor(props) {
     super(props);
   }
-  handleChange(value) {
+  handleChange = (value) => {
     const {markData} = this.props;
     let index = '';
 

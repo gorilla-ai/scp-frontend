@@ -407,17 +407,15 @@ class DashboardStats extends Component {
   dispalyMetrics = (key, i) => {
     if (!_.isEmpty(key.data)) {
       return (
-        <div className='chart-group c-box metric' key={key.id}>
-          <Metric
-            id='complex-multi-group-metric'
-            className={key.id}
-            title={t('dashboard.txt-' + key.id)}
-            data={key.data}
-            dataCfg={{
-              agg: key.agg
-            }}
-            keyLabels={key.keyLabels} />
-        </div>
+        <Metric
+          key={key.id}
+          className={key.id}
+          title={t('dashboard.txt-' + key.id)}
+          data={key.data}
+          dataCfg={{
+            agg: key.agg
+          }}
+          keyLabels={key.keyLabels} />
       )
     }
   }
@@ -454,9 +452,9 @@ class DashboardStats extends Component {
               alertChartsList.map(this.displayCharts)
             }
 
-            {metricsData.length > 0 &&
-              metricsData.map(this.dispalyMetrics)
-            }
+            <div className='chart-group c-box'>
+              {metricsData.map(this.dispalyMetrics)}
+            </div>
           </div>
         </div>
       </div>

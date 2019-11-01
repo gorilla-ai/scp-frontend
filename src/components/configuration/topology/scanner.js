@@ -13,7 +13,7 @@ class Scanner extends Component {
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
   }
-  handleChange(field, value) {
+  handleChange = (field, value) => {
     this.props.onChange({
       ...this.props.value,
       [field]: value

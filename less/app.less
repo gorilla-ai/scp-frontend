@@ -351,42 +351,52 @@ footer.footer {
       &.red {
         color: #fff;
         background-color: #B80000;
+        padding-left: 10px;
       }
       &.yellow {
         color: #fff;
         background-color: #FCCB00;
+        padding-left: 10px;
       }
       &.green {
         color: #fff;
         background-color: #008B02;
+        padding-left: 10px;
       }
       &.darkGreen {
         color: #fff;
         background-color: #006B76;
+        padding-left: 10px;
       }
       &.blue {
         color: #fff;
         background-color: #1273DE;
+        padding-left: 10px;
       }
       &.orange {
         color: #fff;
         background-color: #DB3E00;
+        padding-left: 10px;
       }
       &.darkBlue {
         color: #fff;
         background-color: #004DCF;
+        padding-left: 10px;
       }
       &.purple {
         color: #fff;
         background-color: #5300EB;
+        padding-left: 10px;
       }
       &.soil {
         color: #fff;
         background-color: #C1B748;
+        padding-left: 10px;
       }
       &.brown {
         color: #fff;
         background-color: #660000;
+        padding-left: 10px;
       }
     }
   }
@@ -408,9 +418,6 @@ footer.footer {
           width: 74.25%;
           height: 460px;
         }
-        &.metric {
-          height: 138px;
-        }
         header {
           color: #004d93;
           font-size: 1.1em;
@@ -429,9 +436,16 @@ footer.footer {
           height: 345px;
           overflow-y: auto;
         }
+        .dns-histogram,
         .disk-usage {
-          .item .value {
-            color: #d0021b;
+          height: 200px;
+          .group {
+            padding-top: 25px;
+          }
+        }
+        .disk-usage {
+          header {
+            border-top: 1px solid #ccc;
           }
         }
       }
@@ -1338,21 +1352,21 @@ footer.footer {
                   text-decoration: underline;
                   cursor: pointer;
                 }
-                &.blue {
-                  color: #2164a0;
-                }
-                &.green {
-                  color: #2fb046;
-                  font-weight: bold;
-                }
-                &.orange {
-                  color: #f7af3a;
-                  font-weight: bold;
-                }
-                &.red {
-                  color: #d1152e;
-                  font-weight: bold;
-                }
+                // &.blue {
+                //   color: #2164a0;
+                // }
+                // &.green {
+                //   color: #2fb046;
+                //   font-weight: bold;
+                // }
+                // &.orange {
+                //   color: #f7af3a;
+                //   font-weight: bold;
+                // }
+                // &.red {
+                //   color: #d1152e;
+                //   font-weight: bold;
+                // }
                 &.permit {
                   margin: 5px;
                   border: 1px solid #ccc;

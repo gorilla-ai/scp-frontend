@@ -9,7 +9,7 @@ class IpRange extends Component {
   constructor(props) {
     super(props);
   }
-  handleChange(field, value) {
+  handleChange = (field, value) => {
     this.props.onChange({
       ...this.props.value,
       [field]: value
