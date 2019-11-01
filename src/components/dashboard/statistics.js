@@ -88,16 +88,10 @@ class DashboardStats extends Component {
   componentWillUnmount = () => {
     clearInterval(intervalId);
   }
-  getText = (eventInfo, data) => {
-    const text = data[0].rule + ': ' + data[0].number + ' ' + t('txt-at') + ' ' + Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss');
-    return text;
-  }
   onTooltip = (eventInfo, data) => {
-    return (
-      <div>
-        <div>{this.getText(eventInfo, data)}</div>
-      </div>
-    )
+    const text = data[0].rule + ': ' + data[0].number + ' ' + t('txt-at') + ' ' + Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss');
+
+    return <div>{text}</div>
   }
   formattedPieChartsList = () => {
     const tempPieChartsList = _.cloneDeep(PIE_CHARTS_LIST);

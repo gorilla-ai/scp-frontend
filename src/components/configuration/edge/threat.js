@@ -110,16 +110,10 @@ class ThreatIntelligence extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  getText = (eventInfo, data) => {
-    const text = data[0].indicator + ': ' + data[0].count + ' ' + t('txt-at') + ' ' + Moment(data[0].day, 'x').utc().format('YYYY/MM/DD');
-    return text;
-  }
   onTooltip = (eventInfo, data) => {
-    return (
-      <div>
-        <div>{this.getText(eventInfo, data)}</div>
-      </div>
-    )
+    const text = data[0].indicator + ': ' + data[0].count + ' ' + t('txt-at') + ' ' + Moment(data[0].day, 'x').utc().format('YYYY/MM/DD');
+
+    return <div>{text}</div>
   }
   handleDateChange = (datetime) => {
     this.setState({

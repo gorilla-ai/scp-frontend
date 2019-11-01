@@ -28,12 +28,12 @@ class ChartContent extends Component {
     this.getChartData(prevProps);
   }
   /**
-   * Call corresponding Alert data based on conditions
+   * Show tooltip info when mouseover
    * @param {object} eventInfo - event info for the mouseover
    * @param {object} data - data info to show for tooltip
    * @returns none
    */
-  getText = (eventInfo, data) => {
+  onTooltip = (eventInfo, data) => {
     let text = '';
 
     if (data[0].rule) {
@@ -41,20 +41,8 @@ class ChartContent extends Component {
     }
 
     text += data[0].number + ' ' + t('txt-at') + ' ' + Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss');
-    return text;
-  }
-  /**
-   * Show tooltip info when mouseover
-   * @param {object} eventInfo - event info for the mouseover
-   * @param {object} data - data info to show for tooltip
-   * @returns none
-   */
-  onTooltip = (eventInfo, data) => {
-    return (
-      <div>
-        <div>{this.getText(eventInfo, data)}</div>
-      </div>
-    )
+
+    return <div>{text}</div>
   }
   /**
    * Load data for chart content
