@@ -124,7 +124,7 @@ class NetworkInventory extends Component {
       ownerType: 'existing', //existing, new,
       ownerIDduplicated: false,
       previewOwnerPic: '',
-      irComboSelected: 'quick',
+      irComboSelected: 'quick', //quick, standard, full
       irItemSelected: DEFAULT_IR_SELECTED,
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
     };
@@ -1166,9 +1166,9 @@ class NetworkInventory extends Component {
 
     if (value === 'quick') {
       irItemSelected = DEFAULT_IR_SELECTED;
-    } else if (value === 'common') {
+    } else if (value === 'standard') {
       irItemSelected = _.concat(_.range(1, 7), [9, 10, 12]);
-    } else if (value === 'all') {
+    } else if (value === 'full') {
       irItemSelected = _.range(1, 17);
     }
 
@@ -1188,7 +1188,7 @@ class NetworkInventory extends Component {
   }
   displayIRselection = () => {
     const {irComboSelected, irItemSelected} = this.state;
-    const dropDownList = _.map(['quick', 'common', 'all'], val => {
+    const dropDownList = _.map(['quick', 'standard', 'full'], val => {
       return {
         value: val,
         text: t('network-inventory.ir-type.txt-' + val)
@@ -1273,6 +1273,15 @@ class NetworkInventory extends Component {
 
     mergedRule = _.concat(ruleWithFile, ruleWithNoFile);
     return mergedRule;
+  }
+  getIrBtnPos = (type) => {
+    const {locale} = this.props;
+
+    if (locale === 'zh') {
+      return '80px';
+    } else if (locale === 'en') {
+      return '100px';
+    }
   }
   displayScanInfo = () => {
     const {activeTab, activeScanType, deviceData, currentDeviceData} = this.state;
@@ -1426,7 +1435,7 @@ class NetworkInventory extends Component {
                     <span>{t('network-inventory.txt-createTime')}: {hmdInfo.ir.createTime || NOT_AVAILABLE}</span>
                     <span>{t('network-inventory.txt-responseTime')}: {hmdInfo.ir.responseTime || NOT_AVAILABLE}</span>
                   </div>
-                  <button className='btn temp' onClick={this.triggerTask.bind(this, 'getFile', hmdInfo.ir.taskID)} disabled={this.checkTriggerTime('ir')}>{t('network-inventory.txt-reCompress')}</button>
+                  <button className='btn' style={{right: this.getIrBtnPos()}} onClick={this.triggerTask.bind(this, 'getFile', hmdInfo.ir.taskID)} disabled={this.checkTriggerTime('ir')}>{t('network-inventory.txt-reCompress')}</button>
                   <button className='btn' onClick={this.toggleSelectionIR}>{t('network-inventory.txt-itemSelection')}</button>
                 </div>
                 <div className='scan-content'>

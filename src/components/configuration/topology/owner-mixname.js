@@ -218,7 +218,7 @@ class Name extends Component {
 
     return (
       <ModalDialog
-        id='departmentTitleManage'
+        id='departmentTitleDialog'
         className='modal-dialog'
         title={t('txt-mixName')}
         draggable={true}
@@ -285,6 +285,7 @@ class Name extends Component {
 
     return (
       <ModalDialog
+        id='renderNameDialog'
         className='modal-dialog'
         title={header}
         draggable={true}

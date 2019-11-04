@@ -87,7 +87,7 @@ class Roles extends Component {
             page='privileges'
             active={val}
             targetEdit={allValue}
-            targetDelete={allValue.privilegeid} 
+            targetDelete={allValue.privilegeid}
             text={{
               edit: c('txt-edit'),
               delete: c('txt-delete')

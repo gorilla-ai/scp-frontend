@@ -17,8 +17,6 @@ const t = i18n.getFixedT(null, 'privileges');
 const gt = i18n.getFixedT(null, 'app');
 const et =  i18n.getFixedT(null, 'errors');
 
-const ID = 'g-user-privileges-add';
-
 const INITIAL_STATE = {
   open: false,
   info: null,
@@ -111,7 +109,7 @@ class Addor extends Component {
 
     return (
       <ModalDialog
-        id={ID}
+        id='privilegeAddDialog'
         className='modal-dialog'
         title={t('dlg-add-privilege')}
         draggable={true}

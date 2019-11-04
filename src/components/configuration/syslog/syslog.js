@@ -833,7 +833,7 @@ class Syslog extends Component {
 
     return (
       <ModalDialog
-        id='queryDialog'
+        id='editHostDialog'
         className='modal-dialog'
         title={title}
         draggable={true}

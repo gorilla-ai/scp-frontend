@@ -178,7 +178,7 @@ class ResetPwd extends Component {
 
     return (
       <ModalDialog
-        id='g-user-resetPwd'
+        id='resetPasswordDialog'
         className='modal-dialog'
         title={t('change-expired-pwd')}
         draggable={true}

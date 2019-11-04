@@ -102,10 +102,10 @@
   "txt-save": "儲存",
   "txt-manage": "管理",
   "txt-path": "路徑",
-  "txt-cpu": "CPU",
+  "txt-cpu": "中央處理器",
   "txt-ram": "記憶體",
-  "txt-disks": "Disks",
-  "txt-shareFolders": "Share Folders",
+  "txt-disks": "硬碟",
+  "txt-shareFolders": "分享資料夾",
   "txt-reTrigger": "重新獲取資訊",
   "txt-requestSent": "需求已送出",
   "txt-analyze": "分析",
@@ -376,8 +376,8 @@
     },
     "ir-type": {
       "txt-quick": "快速採證",
-      "txt-common": "常用採證",
-      "txt-all": "完整採證"
+      "txt-standard": "常用採證",
+      "txt-full": "完整採證"
     },
     "ir-list": {
       "txt-list1": "記憶體採證",
@@ -522,6 +522,11 @@
     "ip": "IP",
     "mac": "MAC",
     "owner": "所屬人員",
+    "userName": "人員",
+    "disks": "$t(txt-disks)",
+    "shareFolders": "$t(txt-shareFolders)",
+    "cpu": "$t(txt-cpu)",
+    "ram": "$t(txt-ram)",
     "hostID": "主機ID",
     "hostName": "主機名稱",
     "system": "使用系統",

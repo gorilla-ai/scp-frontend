@@ -25,10 +25,36 @@ class PrivateDetails extends Component {
     f = chewbaccaI18n.getFixedT(null, 'tableFields');
     this.ah = getInstance('chewbacca');
   }
+  displayIpInfo = (info, val, i) => {
+    return (
+      <tr key={i}>
+        <td>{t('ipFields.' + val)}</td>
+        <td>{info[val] || NOT_AVAILABLE}</td>
+      </tr>
+    )
+  }
+  displayOwnerInfo = (owner, val, i) => {
+    let ownerField = val;
+
+    if (val === 'ownerName') {
+      ownerField = 'name';
+    } else if (val === 'ownerID') {
+      ownerField = 'id';
+    }
+
+    return (
+      <tr key={i}>
+        <td>{t('ownerFields.' + val)}</td>
+        <td>{owner[ownerField] || NOT_AVAILABLE}</td>
+      </tr>
+    )
+  }
   render() {
     const {type, alertInfo, topoInfo, picPath, srcDestType} = this.props;
-    const IP = topoInfo[type] ? topoInfo[type] : topoInfo.ip;
-    const mac = topoInfo[srcDestType + 'Mac'] ? topoInfo[srcDestType + 'Mac'] : topoInfo.mac;
+    const ip = {
+      ip: topoInfo[type] ? topoInfo[type] : topoInfo.ip,
+      mac: topoInfo[srcDestType + 'Mac'] ? topoInfo[srcDestType + 'Mac'] : topoInfo.mac
+    };
     const owner = {
       id: topoInfo.ownerObj ? topoInfo.ownerObj.ownerID : topoInfo.ownerID,
       name: topoInfo.ownerObj ? topoInfo.ownerObj.ownerName : topoInfo.ownerName,
@@ -39,6 +65,9 @@ class PrivateDetails extends Component {
       baseLayers: alertInfo[type] ? alertInfo[type].ownerBaseLayers : alertInfo.ownerBaseLayers
     };
     const areaName = topoInfo.areaObj ? topoInfo.areaObj.areaFullName : topoInfo.areaFullName;
+    const ipInfoArr = ['ip', 'mac'];
+    const hostInfoArr = ['hostName', 'system', 'deviceType', 'userName', 'cpu', 'ram', 'disks', 'shareFolders'];
+    const ownerInfoArr = ['ownerName', 'ownerID', 'department', 'title'];
 
     return (
       <div className='private'>
@@ -46,14 +75,7 @@ class PrivateDetails extends Component {
           <div className='header'>{t('alert.txt-ipInfo')}</div>
           <table className='c-table main-table ip'>
             <tbody>
-              <tr>
-                <td>IP</td>
-                <td>{IP || NOT_AVAILABLE}</td>
-              </tr>
-              <tr>
-                <td>MAC</td>
-                <td>{mac || NOT_AVAILABLE}</td>
-              </tr>
+              {ipInfoArr.map(this.displayIpInfo.bind(this, ip))}
             </tbody>
           </table>
         </section>
@@ -68,54 +90,7 @@ class PrivateDetails extends Component {
           }
           <table className='c-table main-table host'>
             <tbody>
-              {topoInfo.hostName &&
-                <tr>
-                  <td>{t('ipFields.hostName')}</td>
-                  <td>{topoInfo.hostName}</td>
-                </tr>
-              }
-              {topoInfo.system &&
-                <tr>
-                  <td>{t('ipFields.system')}</td>
-                  <td>{topoInfo.system}</td>
-                </tr>
-              }
-              {topoInfo.deviceType &&
-                <tr>
-                  <td>{t('ipFields.deviceType')}</td>
-                  <td>{topoInfo.deviceType}</td>
-                </tr>
-              }
-              {topoInfo.userName &&
-                <tr>
-                  <td>User</td>
-                  <td>{topoInfo.userName}</td>
-                </tr>
-              }
-              {topoInfo.cpu &&
-                <tr>
-                  <td>{t('txt-cpu')}</td>
-                  <td>{topoInfo.cpu}</td>
-                </tr>
-              }
-              {topoInfo.cpu &&
-                <tr>
-                  <td>{t('txt-ram')}</td>
-                  <td>{topoInfo.ram}</td>
-                </tr>
-              }
-              {topoInfo.disks &&
-                <tr>
-                  <td>{t('txt-disks')}</td>
-                  <td>{topoInfo.disks}</td>
-                </tr>
-              }
-              {topoInfo.shareFolders &&
-                <tr>
-                  <td>{t('txt-shareFolders')}</td>
-                  <td>{topoInfo.shareFolders}</td>
-                </tr>
-              }
+              {hostInfoArr.map(this.displayIpInfo.bind(this, topoInfo))}
             </tbody>
           </table>
         </section>
@@ -125,22 +100,7 @@ class PrivateDetails extends Component {
           <img src={picPath} className='owner-pic' title={t('network-topology.txt-profileImage')} />
           <table className='c-table main-table owner'>
             <tbody>
-              <tr>
-                <td>{t('ownerFields.ownerName')}</td>
-                <td>{owner.name || NOT_AVAILABLE}</td>
-              </tr>
-              <tr>
-                <td>{t('ownerFields.ownerID')}</td>
-                <td>{owner.id || NOT_AVAILABLE}</td>
-              </tr>
-              <tr>
-                <td>{t('ownerFields.department')}</td>
-                <td>{owner.department || NOT_AVAILABLE}</td>
-              </tr>
-              <tr>
-                <td>{t('ownerFields.title')}</td>
-                <td>{owner.title || NOT_AVAILABLE}</td>
-              </tr>
+              {ownerInfoArr.map(this.displayOwnerInfo.bind(this, owner))}
             </tbody>
           </table>
         </section>

@@ -224,7 +224,7 @@ class Endpoint extends Component {
 
     return (
       <ModalDialog
-        id='viewTask'
+        id='viewTaskDialog'
         className='modal-dialog'
         title={titleText}
         draggable={true}
@@ -332,7 +332,7 @@ class Endpoint extends Component {
 
     return (
       <ModalDialog
-        id='addTask'
+        id='addTaskDialog'
         className='modal-dialog'
         title={titleText}
         draggable={true}

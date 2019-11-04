@@ -284,7 +284,7 @@ class Editor extends Component {
 
     return (
       <ModalDialog
-        id='g-user-accounts-edit'
+        id='accountEditDialog'
         className='modal-dialog'
         title={id ? t('dlg-edit') : t('dlg-add')}
         draggable

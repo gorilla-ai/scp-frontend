@@ -21,8 +21,6 @@ const gt =  i18n.getFixedT(null, 'app');
 const initialState = JSON.parse(document.getElementById('initial-state').innerHTML || '{}')
 const {apiServerPrefix} = initialState.envCfg
 
-const ID = 'g-user-privileges-edit'
-
 const INITIAL_STATE = {
   open: false,
   info: null,
@@ -138,7 +136,7 @@ class Editor extends Component {
 
     return (
       <ModalDialog
-        id={ID}
+        id='privilegeEditDialog'
         className='modal-dialog'
         title={t('dlg-edit-privilege')}
         draggable={true}
