@@ -194,7 +194,7 @@ class Syslog extends Component {
       dataFieldsArr.forEach(tempData => {
         tempFields[tempData] = {
           label: tempData === '_menu' ? '' : t(`syslogFields.${tempData}`),
-          sortable: true,
+          sortable: (tempData === '_menu' || tempData === 'property') ? null : true,
           formatter: (value, allValue, i) => {
             if (tempData === '_menu') {
               return (

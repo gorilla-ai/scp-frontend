@@ -27,8 +27,8 @@
   "txt-uploading":"上傳中...",
   "txt-uploaded":"上傳成功",
   "txt-no-data":"無符合搜尋的資料",
-    "txt-time":"時間",
-    "txt-cover":"選取範圍包含Link Analysis範圍，請使用元件上的按鈕截圖",
+  "txt-time":"時間",
+  "txt-cover":"選取範圍包含Link Analysis範圍，請使用元件上的按鈕截圖",
   "dlg-confirm":"請確認",
   "dlg-error":"錯誤",
   "txt-none": "無",
@@ -38,18 +38,15 @@
   "txt-updateSuccess": "帳號更新成功",
 
   "hdr-search":"搜尋",
-  
-    "lbl-select-file":"請選擇上傳檔案",
-    "lbl-page-size": "單頁資料數",
-
-    "ph-search":"輸入關鍵字",
-
-    "txt-phone-wc-pattern":"由數字和*組成長度為10的字串，例09123456**",
-    "txt-phone-pattern":"由10個數字組成的字串，例0912345678",
-    "txt-phone-international-pattern":"由至少10個數字組成的(國際)門號，例0912345678, +85212345678",
-    "txt-password-pattern":"長度須為12碼，並包含特殊字元與英文大小寫",
-    "txt-id-no-pattern":"開頭英文母大寫後面由數字組成共10碼",
-    "txt-email-pattern":"Email格式",
+  "lbl-select-file":"請選擇上傳檔案",
+  "lbl-page-size": "單頁資料數",
+  "ph-search":"輸入關鍵字",
+  "txt-phone-wc-pattern":"由數字和*組成長度為10的字串，例09123456**",
+  "txt-phone-pattern":"由10個數字組成的字串，例0912345678",
+  "txt-phone-international-pattern":"由至少10個數字組成的(國際)門號，例0912345678, +85212345678",
+  "txt-password-pattern":"長度須為12碼，並包含特殊字元與英文大小寫",
+  "txt-id-no-pattern":"開頭英文母大寫後面由數字組成共10碼",
+  "txt-email-pattern":"Email格式",
 
   "txt-password-due-to-expire":"您的密碼即將在{{days}}天後過期，請更換您的密碼",
   "txt-password-expired":"您的密碼已過期，請更換您的密碼",
