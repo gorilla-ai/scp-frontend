@@ -21,7 +21,7 @@ class Tree extends Component {
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
   }
-  componentDidMount = () => {
+  componentDidMount() {
     this.loadTabData();
   }
   componentDidUpdate = (prevProps) => {

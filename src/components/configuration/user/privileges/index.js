@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import cx from 'classnames'
 import _ from 'lodash'
 
+import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import DataTable from 'react-ui/build/src/components/table'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
@@ -11,7 +12,6 @@ import {HocConfig as Config} from '../../../common/configuration'
 import helper from '../../../common/helper'
 import PrivilegeAdd from './add'
 import PrivilegeEdit from './edit'
-import RowMenu from '../../../common/row-menu'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -26,6 +26,7 @@ class Roles extends Component {
 
     this.state = {
       data: [],
+      dataFieldsArr: ['_menu', 'privilegeid', 'name', 'permits'],
       dataFields: {}
     };
   }
@@ -73,49 +74,64 @@ class Roles extends Component {
       }
     });
   }
+  handleRowContextMenu = (allValue, evt) => {
+    const menuItems = [
+      {
+        id: 'edit',
+        text: c('txt-edit'),
+        action: () => this.showEditDialog(allValue)
+      },
+      {
+        id: 'delete',
+        text: c('txt-delete'),
+        action: () => this.showDeleteDialog(allValue, allValue.privilegeid)
+      }
+    ];
+
+    ContextMenu.open(evt, menuItems, 'configUserPrivilegesMenu');
+    evt.stopPropagation();
+  }
+  displayPermit = (value) => {
+    const permitList = _.map(value, (val, i) => {
+      return <span key={i} className='permit'>{val.dispname}</span>
+    });
+
+    return permitList;
+  }
   loadList = () => {
     const {baseUrl} = this.props;
+    const {dataFieldsArr} = this.state;
 
     ah.one({
       url: `${baseUrl}/api/account/privileges?getPermits=true`,
       type: 'GET'
     })
     .then(data => {
-      const dataFields = {
-        _menu: {label: '', sortable: null, style:{width: '10%'}, formatter: (val, allValue) => {
-          return <RowMenu
-            page='privileges'
-            active={val}
-            targetEdit={allValue}
-            targetDelete={allValue.privilegeid}
-            text={{
-              edit: c('txt-edit'),
-              delete: c('txt-delete')
-            }}
-            onEdit={this.showEditDialog}
-            onDelete={this.showDeleteDialog.bind(this, allValue)} />
-        }},
-        privilegeid: {label: 'ID', hide: true},
-        name: {label: t('l-name'), sortable: true, style:{width: '30%', textAlign: 'left'}},
-        permits: {
-          label: t('l-permits'),
-          sortable: null,
-          style:{width: '50%', textAlign: 'left'},
-          formatter: (val, {permits}) => {
-            return <span>
-              {
-                _.map(permits, (permit, index) => {
-                  return <span key={index} className='permit' > {permit.dispname} </span>
-                })
-              }
-            </span>
+      let tempFields = {};
+      dataFieldsArr.forEach(tempData => {
+        tempFields[tempData] = {
+          hide: tempData === 'privilegeid' ? true : false,
+          label: tempData === '_menu' ? '' : t(`privilegeFields.${tempData}`),
+          sortable: tempData === 'name' ? true : null,
+          formatter: (value, allValue, i) => {
+            if (tempData === '_menu') {
+              return (
+                <div className={cx('table-menu', {'active': value})}>
+                  <button onClick={this.handleRowContextMenu.bind(this, allValue)}><i className='fg fg-more'></i></button>
+                </div>
+              )
+            } else if (tempData === 'permits') {
+              return <div>{this.displayPermit(value)}</div>
+            } else {
+              return <span>{value}</span>;
+            }
           }
         }
-      };
+      })
 
       this.setState({
         data: data.rt,
-        dataFields
+        dataFields: tempFields
       });
     })
     .catch(err => {

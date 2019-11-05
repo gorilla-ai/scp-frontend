@@ -48,7 +48,7 @@ class Edge extends Component {
         connectionStatus: 'all'
       },
       edge: {
-        dataFieldsArr: ['agentName', 'ipPort', 'serviceType', 'description', '_menu_'],
+        dataFieldsArr: ['agentName', 'ipPort', 'serviceType', 'description', '_menu'],
         dataFields: {},
         dataContent: [],
         sort: {
@@ -134,7 +134,7 @@ class Edge extends Component {
         let dataFields = {};
         edge.dataFieldsArr.forEach(tempData => {
           dataFields[tempData] = {
-            label: tempData === '_menu_' ? '' : f(`edgeFields.${tempData}`),
+            label: tempData === '_menu' ? '' : f(`edgeFields.${tempData}`),
             sortable: this.checkSortable(tempData),
             formatter: (value, allValue, index) => {
               if (tempData === 'ipPort') {
@@ -234,7 +234,7 @@ class Edge extends Component {
                 } else {
                   return;
                 }
-              } else if (tempData === '_menu_') {
+              } else if (tempData === '_menu') {
                 return (
                   <div className='table-menu menu active'>
                     <i className='fg fg-edit' onClick={this.toggleContent.bind(this, 'editEdge', allValue, index)} title={t('txt-edit')}></i>
@@ -278,7 +278,7 @@ class Edge extends Component {
     })
   }
   checkSortable = (field) => {
-    const unSortableFields = ['description', '_menu_'];
+    const unSortableFields = ['description', '_menu'];
 
     if (_.includes(unSortableFields, field)) {
       return null;

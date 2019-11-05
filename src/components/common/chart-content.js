@@ -21,7 +21,7 @@ class ChartContent extends Component {
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
   }
-  componentDidMount = () => {
+  componentDidMount() {
     this.getChartData();
   }
   componentDidUpdate = (prevProps) => {

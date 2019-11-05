@@ -6,6 +6,7 @@ import _ from 'lodash'
 import cx from 'classnames'
 
 import Checkbox from 'react-ui/build/src/components/checkbox'
+import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import FileInput from 'react-ui/build/src/components/file-input'
 import Input from 'react-ui/build/src/components/input'
@@ -14,7 +15,6 @@ import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import {HocConfig as Config} from '../../common/configuration'
 import helper from '../../common/helper'
 import Name from './owner-mixname'
-import RowMenu from '../../common/row-menu'
 import TableContent from '../../common/table-content'
 import withLocale from '../../../hoc/locale-provider'
 
@@ -123,6 +123,23 @@ class NetworkOwner extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  handleRowContextMenu = (allValue, evt) => {
+    const menuItems = [
+      {
+        id: 'edit',
+        text: t('txt-edit'),
+        action: () => this.getOwnerInfo(allValue)
+      },
+      {
+        id: 'delete',
+        text: t('txt-delete'),
+        action: () => this.openDeleteOwnerModal(allValue)
+      }
+    ];
+
+    ContextMenu.open(evt, menuItems, 'configTopologyOwnerMenu');
+    evt.stopPropagation();
+  }
   getOwnerData = (fromSearch) => {
     const {baseUrl} = this.props;
     const {owner, search} = this.state;
@@ -164,17 +181,11 @@ class NetworkOwner extends Component {
           sortable: (tempData === 'ownerID' || tempData === 'ownerName') ? true : null,
           formatter: (value, allValue) => {
             if (tempData === '_menu') {
-              return <RowMenu
-                page='owner'
-                active={value}
-                targetEdit={allValue}
-                targetDelete={allValue}
-                text={{
-                  edit: t('txt-edit'),
-                  delete: t('txt-delete')
-                }}
-                onEdit={this.getOwnerInfo}
-                onDelete={this.openDeleteOwnerModal} />
+              return (
+                <div className={cx('table-menu', {'active': value})}>
+                  <button onClick={this.handleRowContextMenu.bind(this, allValue)}><i className='fg fg-more'></i></button>
+                </div>
+              )
             } else {
               return <span>{value}</span>
             }
@@ -376,10 +387,10 @@ class NetworkOwner extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  getDeleteOwnerContent = (value) => {
-    if (value) {
+  getDeleteOwnerContent = (allValue) => {
+    if (allValue.ownerID) {
       let tempOwner = {...this.state.owner};
-      tempOwner.add = {...value};
+      tempOwner.add = {...allValue};
 
       this.setState({
         owner: tempOwner
@@ -388,17 +399,17 @@ class NetworkOwner extends Component {
 
     return (
       <div className='content delete'>
-        <span>{t('txt-delete-msg')}: {value.ownerID}?</span>
+        <span>{t('txt-delete-msg')}: {allValue.ownerID}?</span>
       </div>
     )
   }
-  openDeleteOwnerModal = (value) => {
+  openDeleteOwnerModal = (allValue) => {
     PopupDialog.prompt({
       title: t('network-topology.txt-deleteOwner'),
       id: 'modalWindowSmall',
       confirmText: t('txt-delete'),
       cancelText: t('txt-cancel'),
-      display: this.getDeleteOwnerContent(value),
+      display: this.getDeleteOwnerContent(allValue),
       act: (confirmed) => {
         if (confirmed) {
           this.deleteOwner();

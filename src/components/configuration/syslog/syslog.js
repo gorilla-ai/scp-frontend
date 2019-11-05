@@ -7,6 +7,7 @@ import cx from 'classnames'
 import _ from 'lodash'
 
 import ButtonGroup from 'react-ui/build/src/components/button-group'
+import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import DataTable from 'react-ui/build/src/components/table'
 import DateRange from 'react-ui/build/src/components/date-range'
 import DropDownList from 'react-ui/build/src/components/dropdown'
@@ -21,7 +22,6 @@ import {HocConfig as Config} from '../../common/configuration'
 import EditHosts from './edit-hosts'
 import helper from '../../common/helper'
 import Relationships from './relationships'
-import RowMenu from '../../common/row-menu'
 import TableContent from '../../common/table-content'
 import withLocale from '../../../hoc/locale-provider'
 
@@ -50,6 +50,7 @@ const INIT_CONFIG = {
 
 const INIT = {
   openFilter: false,
+  dataFieldsArr: ['_menu', 'name', 'port', 'format', 'property'],
   dataFields: {},
   syslog: {
     dataContent: [],
@@ -120,9 +121,52 @@ class Syslog extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  checkDisabled = (name) => {
+    return (name === 'syslog' || name === 'eventlog') ? true : false;
+  }
+  handleRowContextMenu = (allValue, evt) => {
+    const menuItems = [
+      {
+        id: 'edit',
+        text: t('txt-edit'),
+        action: () => this.openSyslog(allValue.id)
+      },
+      {
+        id: 'delete',
+        text: t('txt-delete'),
+        action: () => this.modalDelete(allValue),
+        disabled: this.checkDisabled(allValue.name)
+      },
+      {
+        id: 'eventDist',
+        text: t('syslogFields.txt-eventDist'),
+        action: () => this.openTimeline('configId', allValue)
+      },
+      {
+        id: 'events',
+        text: t('syslogFields.txt-viewEvents'),
+        action: () => this.forwardSyslog(allValue)
+      },
+      {
+        id: 'hosts',
+        text: t('syslogFields.txt-editHosts'),
+        action: () => this.openEditHosts(allValue)
+      }
+    ];
+
+    ContextMenu.open(evt, menuItems, 'configSyslogMenu');
+    evt.stopPropagation();
+  }
+  displayProperty = (value) => {
+    const propertyList = _.map(JSON.parse(value), (val, key) => {
+      return <span key={key} className='permit'>{key}</span>
+    });
+
+    return propertyList;
+  }
   getSyslogList = (flag) => {
     const {baseUrl} = this.props;
-    let {syslog, search} = this.state;
+    const {dataFieldsArr, syslog, search} = this.state;
     let uri = `?page=${syslog.currentPage}&pageSize=${syslog.pageSize}&sort=${syslog.sort.field}&order=${syslog.sort.desc ? 'desc' : 'asc'}`;
 
     // by filter
@@ -146,44 +190,30 @@ class Syslog extends Component {
       tempSyslog.totalCount = data.counts;
       tempSyslog.currentPage = flag ? 1 : syslog.currentPage;
 
-      const dataFields = {
-        _menu: { label: '', formatter: (value, allValue) => {
-          return <RowMenu
-            page='syslog'
-            active={value}
-            targetEdit={allValue}
-            targetDelete={allValue}
-            targetEventDist={allValue}
-            onEdit={this.openSyslog.bind(this, allValue.id)}
-            onDelete={this.modalDelete.bind(this, allValue)}
-            onEventDist={this.openTimeline.bind(this, 'configId', allValue)}
-            onEvents={this.forwardSyslog.bind(this, allValue)}
-            onEditHosts={this.openEditHosts.bind(this, allValue)}
-            text={{
-              edit: t('txt-edit'),
-              delete: t('txt-delete'),
-              eventDist: t('syslogFields.txt-eventDist'),
-              events: t('syslogFields.txt-viewEvents'),
-              hosts: t('syslogFields.txt-editHosts')
-            }} />
-        }},
-        name: { label: t('syslogFields.name'), sortable: true },
-        port: { label: t('syslogFields.port'), sortable: true },
-        format: { label: t('syslogFields.format'), sortable: true },
-        property: { label: t('syslogFields.property'), formatter: (value, allValue) => {
-          return <div>  
-          {
-            _.map(JSON.parse(value), (v, k) => {
-              return <span key={k} className='permit'>{k}</span>
-            })
+      let tempFields = {};
+      dataFieldsArr.forEach(tempData => {
+        tempFields[tempData] = {
+          label: tempData === '_menu' ? '' : t(`syslogFields.${tempData}`),
+          sortable: true,
+          formatter: (value, allValue, i) => {
+            if (tempData === '_menu') {
+              return (
+                <div className={cx('table-menu', {'active': value})}>
+                  <button onClick={this.handleRowContextMenu.bind(this, allValue)}><i className='fg fg-more'></i></button>
+                </div>
+              )
+            } else if (tempData === 'property') {
+              return <div>{this.displayProperty(value)}</div>
+            } else {
+              return <span>{value}</span>;
+            }
           }
-          </div>
-        }}
-      };
+        }
+      })
 
       this.setState({
         syslog: tempSyslog,
-        dataFields
+        dataFields: tempFields
       }, () => {
         this.closeSyslog();
       });

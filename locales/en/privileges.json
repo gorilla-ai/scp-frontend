@@ -1,10 +1,14 @@
 {
-    "txt-delete-privilege":"Are you sure you would like to delete the selected privilege?",
-    "txt-edit":"Edit",
-    "txt-delete":"Delete",
-    "txt-add":"Add",
-    "l-name":"Privilege name",
-    "l-permits":"Permits",
-    "dlg-edit-privilege":"Edit privilege",
-    "dlg-add-privilege":"Add privilege"     
+  "txt-delete-privilege":"Are you sure you would like to delete the selected privilege?",
+  "txt-edit":"Edit",
+  "txt-delete":"Delete",
+  "txt-add":"Add",
+  "l-name":"Privilege name",
+  "l-permits":"Permits",
+  "dlg-edit-privilege":"Edit privilege",
+  "dlg-add-privilege":"Add privilege",
+  "privilegeFields": {
+    "name": "$t(l-name)",
+    "permits": "$t(l-permits)"
+  }
 }

@@ -83,7 +83,7 @@ class AlertDetails extends Component {
     f = chewbaccaI18n.getFixedT(null, 'tableFields');
     this.ah = getInstance('chewbacca');
   }
-  componentDidMount = () => {
+  componentDidMount() {
     this.loadAlertContent();
     this.getIPcontent('srcIp');
     this.getIPcontent('destIp');

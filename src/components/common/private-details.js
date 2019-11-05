@@ -13,6 +13,9 @@ import withLocale from '../../hoc/locale-provider'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const NOT_AVAILABLE = 'N/A';
+const IP_INFO = ['ip', 'mac'];
+const HOST_INFO = ['hostName', 'system', 'deviceType', 'userName', 'cpu', 'ram', 'disks', 'shareFolders'];
+const OWNER_INFO = ['ownerName', 'ownerID', 'department', 'title'];
 
 let t = null;
 let f = null;
@@ -21,36 +24,23 @@ class PrivateDetails extends Component {
   constructor(props) {
     super(props);
 
+    this.state = {
+      ip: {},
+      owner: {},
+      areaName: '',
+      hostInfo: [],
+      ownerInfo: []
+    };
+
     t = chewbaccaI18n.getFixedT(null, 'connections');
     f = chewbaccaI18n.getFixedT(null, 'tableFields');
     this.ah = getInstance('chewbacca');
   }
-  displayIpInfo = (info, val, i) => {
-    return (
-      <tr key={i}>
-        <td>{t('ipFields.' + val)}</td>
-        <td>{info[val] || NOT_AVAILABLE}</td>
-      </tr>
-    )
+  componentDidMount() {
+    this.getDataInfo();
   }
-  displayOwnerInfo = (owner, val, i) => {
-    let ownerField = val;
-
-    if (val === 'ownerName') {
-      ownerField = 'name';
-    } else if (val === 'ownerID') {
-      ownerField = 'id';
-    }
-
-    return (
-      <tr key={i}>
-        <td>{t('ownerFields.' + val)}</td>
-        <td>{owner[ownerField] || NOT_AVAILABLE}</td>
-      </tr>
-    )
-  }
-  render() {
-    const {type, alertInfo, topoInfo, picPath, srcDestType} = this.props;
+  getDataInfo = () => {
+    const {type, alertInfo, topoInfo, srcDestType} = this.props;
     const ip = {
       ip: topoInfo[type] ? topoInfo[type] : topoInfo.ip,
       mac: topoInfo[srcDestType + 'Mac'] ? topoInfo[srcDestType + 'Mac'] : topoInfo.mac
@@ -65,9 +55,73 @@ class PrivateDetails extends Component {
       baseLayers: alertInfo[type] ? alertInfo[type].ownerBaseLayers : alertInfo.ownerBaseLayers
     };
     const areaName = topoInfo.areaObj ? topoInfo.areaObj.areaFullName : topoInfo.areaFullName;
-    const ipInfoArr = ['ip', 'mac'];
-    const hostInfoArr = ['hostName', 'system', 'deviceType', 'userName', 'cpu', 'ram', 'disks', 'shareFolders'];
-    const ownerInfoArr = ['ownerName', 'ownerID', 'department', 'title'];
+    let hostInfo = [];
+    let ownerInfo = [];
+
+    _.forEach(HOST_INFO, val => {
+      if (topoInfo[val]) {
+        hostInfo.push({
+          field: val,
+          info: topoInfo[val]
+        });
+      }
+    })
+
+    _.forEach(OWNER_INFO, val => {
+      let ownerField = val;
+
+      if (val === 'ownerName') {
+        ownerField = 'name';
+      } else if (val === 'ownerID') {
+        ownerField = 'id';
+      }
+
+      if (owner[ownerField]) {
+        ownerInfo.push({
+          field: val,
+          info: owner[ownerField]
+        });
+      }
+    })
+
+    this.setState({
+      ip,
+      owner,
+      areaName,
+      hostInfo,
+      ownerInfo
+    });
+  }
+  displayIpInfo = (ip, val, i) => {
+    return (
+      <tr key={i}>
+        <td>{t('ipFields.' + val)}</td>
+        <td>{ip[val] || NOT_AVAILABLE}</td>
+      </tr>
+    )
+  }
+  displayDataInfo = (fieldType, val, i) => {
+    return (
+      <tr key={i}>
+        <td>{t(fieldType + '.' + val.field)}</td>
+        <td>{val.info}</td>
+      </tr>
+    )
+  }
+  displayTableData = (infoType, fieldType) => {
+    if (infoType.length > 0) {
+      return infoType.map(this.displayDataInfo.bind(this, fieldType));
+    } else if (infoType.length === 0) {
+      return (
+        <tr>
+          <td>{NOT_AVAILABLE}</td>
+        </tr>
+      )
+    }
+  }
+  render() {
+    const {topoInfo, picPath} = this.props;
+    const {ip, owner, areaName, hostInfo, ownerInfo} = this.state;
 
     return (
       <div className='private'>
@@ -75,7 +129,7 @@ class PrivateDetails extends Component {
           <div className='header'>{t('alert.txt-ipInfo')}</div>
           <table className='c-table main-table ip'>
             <tbody>
-              {ipInfoArr.map(this.displayIpInfo.bind(this, ip))}
+              {IP_INFO.map(this.displayIpInfo.bind(this, ip))}
             </tbody>
           </table>
         </section>
@@ -90,7 +144,7 @@ class PrivateDetails extends Component {
           }
           <table className='c-table main-table host'>
             <tbody>
-              {hostInfoArr.map(this.displayIpInfo.bind(this, topoInfo))}
+              {this.displayTableData(hostInfo, 'ipFields')}
             </tbody>
           </table>
         </section>
@@ -100,7 +154,7 @@ class PrivateDetails extends Component {
           <img src={picPath} className='owner-pic' title={t('network-topology.txt-profileImage')} />
           <table className='c-table main-table owner'>
             <tbody>
-              {ownerInfoArr.map(this.displayOwnerInfo.bind(this, owner))}
+              {this.displayTableData(ownerInfo, 'ownerFields')}
             </tbody>
           </table>
         </section>

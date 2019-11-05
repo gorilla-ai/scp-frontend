@@ -26,9 +26,6 @@ class SortableItem extends Component {
     t = chewbaccaI18n.getFixedT(null, 'connections');
     f = chewbaccaI18n.getFixedT(null, 'tableFields');
   }
-  componentDidMount = () => {
-
-  }
   getValueData = (value) => {
     const key = _.keys(value).toString();
 

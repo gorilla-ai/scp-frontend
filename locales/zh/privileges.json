@@ -1,10 +1,14 @@
 {
-    "txt-delete-privilege":"確認刪除所選角色？",
-    "txt-edit":"編輯",
-    "txt-delete":"刪除",
-    "txt-add":"新增",
-    "l-name":"角色名稱",
-    "l-permits":"角色權限",
-    "dlg-edit-privilege":"編輯角色", 
-    "dlg-add-privilege":"新增角色" 
+  "txt-delete-privilege":"確認刪除所選角色？",
+  "txt-edit":"編輯",
+  "txt-delete":"刪除",
+  "txt-add":"新增",
+  "l-name":"角色名稱",
+  "l-permits":"角色權限",
+  "dlg-edit-privilege":"編輯角色",
+  "dlg-add-privilege":"新增角色",
+  "privilegeFields": {
+    "name": "$t(l-name)",
+    "permits": "$t(l-permits)"
+  }
 }

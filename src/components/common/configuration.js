@@ -27,10 +27,7 @@ class Config extends Component {
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
   }
-  test = () => {
-
-  }
-  componentDidMount = () => {
+  componentDidMount() {
     const openEdgeManagement = this.getActiveFrame('edge') || this.getActiveFrame('threat');
     const openTopology = this.getActiveFrame('inventory') || this.getActiveFrame('owner') || this.getActiveFrame('map');
     const openAccount = this.getActiveFrame('account') || this.getActiveFrame('privileges');

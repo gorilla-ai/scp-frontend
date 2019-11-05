@@ -1,46 +1,46 @@
 {
-	"title-timap": "DPIR",
-	"subtitle-tima": "",
-	"btn-ok": "OK",
-	"btn-confirm": "OK",
-	"btn-cancel": "Cancel",
-	"btn-close": "Close",
-	"btn-search": "Search",
-	"btn-save": "Save",
-	"btn-export": "Export",
-	"btn-import": "Import",
-	"btn-reload": "Reload",
-	"btn-now": "Now",
-	"btn-back": "Back",
+  "title-timap": "DPIR",
+  "subtitle-tima": "",
+  "btn-ok": "OK",
+  "btn-confirm": "OK",
+  "btn-cancel": "Cancel",
+  "btn-close": "Close",
+  "btn-search": "Search",
+  "btn-save": "Save",
+  "btn-export": "Export",
+  "btn-import": "Import",
+  "btn-reload": "Reload",
+  "btn-now": "Now",
+  "btn-back": "Back",
 
-	"btn-new": "New",
-	"btn-edit": "Edit",
-	"btn-delete": "Delete",
+  "btn-new": "New",
+  "btn-edit": "Edit",
+  "btn-delete": "Delete",
 
-	"tt-delete": "Delete",
-	"tt-edit": "Edit",
-	"tt-details": "View Details",
+  "tt-delete": "Delete",
+  "tt-edit": "Edit",
+  "tt-details": "View Details",
 
-	"txt-logging-in":"Logging in...",
-	"txt-loading":"Loading...",
-	"txt-saving":"Saving...",
-	"txt-uploading":"Uploading...",
-	"txt-uploaded":"Done",
-	"txt-no-data":"No results matching search criteria",
+  "txt-logging-in":"Logging in...",
+  "txt-loading":"Loading...",
+  "txt-saving":"Saving...",
+  "txt-uploading":"Uploading...",
+  "txt-uploaded":"Done",
+  "txt-no-data":"No results matching search criteria",
     "txt-time":"Time",
     "txt-cover":"The capture box is cover Link Analysis, click the camera botton on the component to capture Link Analysis",
-	"dlg-confirm":"Please Confirm",
-	"dlg-error":"Error",
-	"txt-none": "None",
-	"txt-cpuUsage": "CPU Usage",
-	"txt-memoryUsage": "Memory Usage",
-	"txt-diskUsage": "Disk Usage",
-	"txt-updateSuccess": "Account has been updated",
+  "dlg-confirm":"Please Confirm",
+  "dlg-error":"Error",
+  "txt-none": "None",
+  "txt-cpuUsage": "CPU Usage",
+  "txt-memoryUsage": "Memory Usage",
+  "txt-diskUsage": "Disk Usage",
+  "txt-updateSuccess": "Account has been updated",
 
     "hdr-search":"Search",
     
     "lbl-page-size": "Page Size",
-	"lbl-select-file":"Please select file to upload",
+  "lbl-select-file":"Please select file to upload",
 
     "ph-search":"Enter keyword here",
 
@@ -51,28 +51,28 @@
     "txt-id-no-pattern":"Fisrt character need english uppercase, and then add digital, tatal need 10 characters",
     "txt-email-pattern":"Email format",
 
-	"txt-password-due-to-expire":"Your password is due to expire after {{days}} days, please change your password",
-	"txt-password-expired":"Your password has expired, please change your password",    
+  "txt-password-due-to-expire":"Your password is due to expire after {{days}} days, please change your password",
+  "txt-password-expired":"Your password has expired, please change your password",    
 
-	"login":{
-		"btn-logout": "Logout",
-		"btn-login": "Login",
-		"btn-setting": "Account Setting",
-		"lbl-username": "Please Enter Username",
-		"lbl-password": "Please Enter Password",
-		"txt-username":"Please enter your username",
-		"txt-password":"Please enter your password",
-		"txt-account": "Account"
-	},
+  "login":{
+    "btn-logout": "Logout",
+    "btn-login": "Login",
+    "btn-setting": "Account Setting",
+    "lbl-username": "Please Enter Username",
+    "lbl-password": "Please Enter Password",
+    "txt-username":"Please enter your username",
+    "txt-password":"Please enter your password",
+    "txt-account": "Account"
+  },
 
   "op-types":{
-  	"EQ":"Equals",
-  	"LIKE":"Like",
-  	"RE":"Regexp"
+    "EQ":"Equals",
+    "LIKE":"Like",
+    "RE":"Regexp"
   },
 
   "lng": {
     "en":"English",
     "zh":"中文"
-  }  
+  }
 }

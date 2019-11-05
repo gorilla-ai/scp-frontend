@@ -76,7 +76,7 @@ class Endpoint extends Component {
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
     this.ah = getInstance('chewbacca');
   }
-  componentDidMount = () => {
+  componentDidMount() {
    this.getHostData();
   }
   getHostData = (fromSearch) => {

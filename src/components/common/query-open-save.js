@@ -30,9 +30,6 @@ class QueryOpenSave extends Component {
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     this.ah = getInstance('chewbacca');
   }
-  componentDidMount = () => {
-
-  }
   handleQueryAction = (type) => {
     const {activeTab, filterData, queryData, markData} = this.props;
 

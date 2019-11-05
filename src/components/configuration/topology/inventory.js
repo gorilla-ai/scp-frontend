@@ -79,7 +79,7 @@ class NetworkInventory extends Component {
       },
       showHMDonly: false,
       deviceData: {
-        dataFieldsArr: ['ip', 'mac', 'hostName', 'system', 'owner', 'areaName', 'seatName', 'yaraScan', '_menu_'],
+        dataFieldsArr: ['ip', 'mac', 'hostName', 'system', 'owner', 'areaName', 'seatName', 'yaraScan', '_menu'],
         dataFields: {},
         dataContent: [],
         ipListArr: [],
@@ -217,7 +217,7 @@ class NetworkInventory extends Component {
       tempDeviceData.dataContent = _.map(data.rows, item => {
         return {
           ...item,
-          _menu_: true
+          _menu: true
         };
       });
 
@@ -229,7 +229,7 @@ class NetworkInventory extends Component {
       let dataFields = {};
       deviceData.dataFieldsArr.forEach(tempData => {
         dataFields[tempData] = {
-          label: tempData === '_menu_' ? '' : t(`ipFields.${tempData}`),
+          label: tempData === '_menu' ? '' : t(`ipFields.${tempData}`),
           sortable: this.checkSortable(tempData),
           formatter: (value, allValue, index) => {
             if (tempData === 'owner') {
@@ -258,7 +258,7 @@ class NetworkInventory extends Component {
               } else {
                 return <span>N/A</span>
               }
-            } else if (tempData === '_menu_') {
+            } else if (tempData === '_menu') {
               return (
                 <div className='table-menu menu active'>
                   <i className='fg fg-eye' onClick={this.openMenu.bind(this, 'view', allValue, index)} title={t('network-inventory.txt-viewDevice')}></i>
@@ -420,7 +420,7 @@ class NetworkInventory extends Component {
     )
   }
   checkSortable = (field) => {
-    const unSortableFields = ['options', 'owner', '_menu_'];
+    const unSortableFields = ['options', 'owner', '_menu'];
 
     if (_.includes(unSortableFields, field)) {
       return null;

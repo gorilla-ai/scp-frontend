@@ -25,7 +25,7 @@ class SearchOptions extends Component {
       intervalModalOpen: false
     };
   }
-  componentDidMount = () => {
+  componentDidMount() {
     this.loadSearchOptions();
   }
   componentWillUnmount() {

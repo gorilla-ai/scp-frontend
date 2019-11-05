@@ -39,7 +39,7 @@ class FloorMap extends Component {
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     this.ah = getInstance('chewbacca');
   }
-  componentDidMount = () => {
+  componentDidMount() {
     this.getFloorPlan();
   }
   getFloorPlan = () => {

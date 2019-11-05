@@ -6,6 +6,7 @@ import i18n from 'i18next'
 import cx from 'classnames'
 import _ from 'lodash'
 
+import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import DataTable from 'react-ui/build/src/components/table'
 import Input from 'react-ui/build/src/components/input'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
@@ -13,7 +14,6 @@ import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import AccountEdit from './account-edit'
 import {HocConfig as Config} from '../../../common/configuration'
 import helper from '../../../common/helper'
-import RowMenu from '../../../common/row-menu'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -29,6 +29,7 @@ class AccountList extends Component {
     this.state = {
       originalAccountData: [],
       accountData: [],
+      dataFieldsArr: ['_menu', 'accountid', 'account', 'name', 'email', 'unit', 'title', 'phone'],
       param: {
         name: '',
         account: ''
@@ -48,8 +49,31 @@ class AccountList extends Component {
       param
     });
   }
+  handleRowContextMenu = (allValue, evt) => {
+    const menuItems = [
+      {
+        id: 'edit',
+        text: c('txt-edit'),
+        action: () => this.showEditDialog(allValue.accountid)
+      },
+      {
+        id: 'delete',
+        text: c('txt-delete'),
+        action: () => this.showDeleteDialog(allValue, allValue.accountid)
+      },
+      {
+        id: 'unlock',
+        text: c('txt-unlock'),
+        action: () => this.showUnlockDialog(allValue, allValue.accountid)
+      }
+    ];
+
+    ContextMenu.open(evt, menuItems, 'configUserAccountsMenu');
+    evt.stopPropagation();
+  }
   loadAccounts = () => {
     const {baseUrl} = this.props;
+    const {dataFieldsArr} = this.state;
 
     ah.one({
       url: `${baseUrl}/api/account/_search`,
@@ -59,36 +83,31 @@ class AccountList extends Component {
     })
     .then(data => {
       const accountData = data.rt.rows;
-      const dataFields = {
-        _menu: {label: '', sortable: null, formatter: (val, allValue) => {
-          return <RowMenu
-            page='accounts'
-            active={val}
-            targetEdit={allValue.accountid}
-            targetDelete={allValue.accountid}
-            targetUnlock={allValue.accountid}
-            text={{
-              edit: c('txt-edit'),
-              delete: c('txt-delete'),
-              unlock: c('txt-unlock')
-            }}
-            onEdit={this.showEditDialog}
-            onDelete={this.showDeleteDialog.bind(this, allValue)}
-            onUnlock={this.showUnlockDialog.bind(this, allValue)} />
-        }},
-        accountid: {label: 'ID', hide: true},
-        account: {label: t('l-account'), sortable: null},
-        name: {label: t('l-name'), sortable: null},
-        email: {label: t('l-email'), sortable: null},
-        unit: {label: t('l-unit'), sortable: null},
-        title: {label: t('l-title'), sortable: null},
-        phone: {label: t('l-phone'), sortable: null}
-      };
+
+      let tempFields = {};
+      dataFieldsArr.forEach(tempData => {
+        tempFields[tempData] = {
+          hide: tempData === 'accountid' ? true : false,
+          label: tempData === '_menu' ? '' : t(`accountFields.${tempData}`),
+          sortable: null,
+          formatter: (value, allValue, i) => {
+            if (tempData === '_menu') {
+              return (
+                <div className={cx('table-menu', {'active': value})}>
+                  <button onClick={this.handleRowContextMenu.bind(this, allValue)}><i className='fg fg-more'></i></button>
+                </div>
+              )
+            } else {
+              return <span>{value}</span>;
+            }
+          }
+        }
+      })
 
       this.setState({
         originalAccountData: _.cloneDeep(accountData),
         accountData,
-        dataFields
+        dataFields: tempFields
       });
     })
     .catch(err => {

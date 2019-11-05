@@ -81,7 +81,7 @@ class DashboardStats extends Component {
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
     this.ah = getInstance('chewbacca');
   }
-  componentDidMount = () => {
+  componentDidMount() {
     this.loadAlertData();
     intervalId = setInterval(this.loadAlertData, 300000); //5 minutes
   }
@@ -366,7 +366,7 @@ class DashboardStats extends Component {
     }) 
   }
   displayCharts = (key, i) => {
-    const {alertChartsList} = this.state;    
+    const {alertChartsList} = this.state;
 
     if (alertChartsList[i].type === 'pie') {
       return (
