@@ -8,7 +8,6 @@ import Checkbox from 'react-ui/build/src/components/checkbox'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
-import Textarea from 'react-ui/build/src/components/textarea'
 
 import {ReactMultiEmail} from 'react-multi-email';
 
@@ -218,49 +217,47 @@ class Notifications extends Component {
       emails: tempEmails
     })
   }
+  displayEmail = (val, i) => {
+    return <span key={i}>{val}</span>
+  }
+  handleEmailChange = (val, newEmails) => {
+    let tempEmails = {...this.state.emails};
+    tempEmails[val.type].emails = newEmails;
+
+    this.setState({
+      emails: tempEmails
+    });
+  }
+  deleteEmail = (removeEmail, index) => {
+    removeEmail(index);
+  }
+  getLabel = (email, index, removeEmail) => {
+    return (
+      <div data-tag key={index}>
+        {email}
+        <span data-tag-handle onClick={this.deleteEmail.bind(this, removeEmail, index)}> <span className='font-bold'>x</span></span>
+      </div>
+    )
+  }
   getEmailsContent = (val, i) => {
     const {activeContent, emails} = this.state;
-    let formattedEmail = '';
-
-    if (emails[val.type].emails.length > 0) {
-      formattedEmail = emails[val.type].emails.join(', ');
-    }
 
     return (
       <div className='form-group normal long' key={val.type}>
         <header>{val.headerText}</header>
         <div className='group'>
           <label>{t('notifications.txt-recipientEmail')}</label>
-          {activeContent === 'viewMode' &&
-          <Textarea
-            value={formattedEmail}
-            readOnly={true} />
+          {activeContent === 'viewMode' && emails[val.type].emails.length > 0 &&
+            <div className='flex-item'>{emails[val.type].emails.map(this.displayEmail)}</div>
+          }
+          {activeContent === 'viewMode' && emails[val.type].emails.length === 0 &&
+            <div>N/A</div>
           }
           {activeContent === 'editMode' &&
             <ReactMultiEmail
               emails={emails[val.type].emails}
-              onChange={(_emails: string[]) => {
-                let tempEmails = {...emails};
-                tempEmails[val.type].emails = _emails;
-
-                this.setState({
-                  emails: tempEmails
-                });
-              }}
-              getLabel={(
-                email: string,
-                index: number,
-                removeEmail: (index: number) => void
-              ) => {
-                return (
-                  <div data-tag key={index}>
-                    {email}
-                    <span data-tag-handle onClick={() => removeEmail(index)}>
-                      x
-                    </span>
-                  </div>
-                );
-              }}
+              onChange={this.handleEmailChange.bind(this, val)}
+              getLabel={this.getLabel}
             />
           }
         </div>
@@ -280,6 +277,11 @@ class Notifications extends Component {
       openEmailDialog: true
     });
   }
+  handleTestEmailChange = (newEmails) => {
+    this.setState({
+      testEmails: newEmails
+    });
+  }
   displayTestEmail = () => {
     const {testEmails} = this.state;
 
@@ -288,25 +290,8 @@ class Notifications extends Component {
         <label>{t('notifications.txt-recipientEmail')}</label>
         <ReactMultiEmail
           emails={testEmails}
-          onChange={(_emails: string[]) => {
-            this.setState({
-              testEmails: _emails
-            });
-          }}
-          getLabel={(
-            email: string,
-            index: number,
-            removeEmail: (index: number) => void
-          ) => {
-            return (
-              <div data-tag key={index}>
-                {email}
-                <span data-tag-handle onClick={() => removeEmail(index)}>
-                  x
-                </span>
-              </div>
-            );
-          }}
+          onChange={this.handleTestEmailChange}
+          getLabel={this.getLabel}
         />
       </div>
     )

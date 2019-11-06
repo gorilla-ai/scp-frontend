@@ -23,7 +23,7 @@ class EditHosts extends Component {
     }
   }
   render() {
-    const {id, value} = this.props;
+    const {value} = this.props;
 
     return (
       <Input

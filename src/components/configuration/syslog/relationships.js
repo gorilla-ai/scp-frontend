@@ -133,8 +133,13 @@ class Relationships extends Component {
                   },
                   node: {
                     label: '',
-                    formatter: (val, allVal) => {
-                      return <DropDownList list={rawOptions} required={true} validate={{t: et}} value={val} onChange={this.handleNodeChange.bind(this, allVal)} />
+                    formatter: (val, allValue) => {
+                      return <DropDownList
+                        list={rawOptions}
+                        required={true}
+                        validate={{t: et}}
+                        value={val}
+                        onChange={this.handleNodeChange.bind(this, allValue)} />
                     }
                   }
                 }

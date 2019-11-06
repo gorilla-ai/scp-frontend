@@ -24,6 +24,9 @@ footer.footer {
   padding-bottom: 12px;
 }
 /*******/
+.font-bold {
+  font-weight: bold;
+}
 #g-login {
   input,
   select {
@@ -599,6 +602,7 @@ footer.footer {
         padding: 10px;
         margin-top: 0;
         margin-bottom: 0;
+        cursor: text;
         &.hide {
           display: none;
         }
@@ -1104,14 +1108,28 @@ footer.footer {
                   margin-right: 5px;
                 }
               }
+              .flex-item {
+                display: flex;
+                flex-wrap: wrap;
+                span {
+                  color: #fff;
+                  font-size: 14px;
+                  margin: 3px 2px;
+                  padding: 5px 10px;
+                  border-radius: 5px;
+                  background-color: #004d93;
+                }
+              }
               .react-multi-email {
                 display: flex;
                 flex-wrap: wrap;
                 [data-tag] {
-                  padding-top: 10px;
+                  font-size: 14px;
+                  font-weight: normal;
                   color: #fff;
+                  padding: 8px 10px;
+                  margin: 2px;
                   background-color: #004d99;
-                  margin-bottom: 5px;
                 }
               }
               #ipRangeLabel span {
@@ -1343,6 +1361,10 @@ footer.footer {
                   font-weight: bold;
                 }
               }
+              .flex-item {
+                display: flex;
+                flex-wrap: wrap;
+              }
               span {
                 a {
                   color: #185e9e;
@@ -1370,7 +1392,7 @@ footer.footer {
                 &.permit {
                   color: #fff;
                   font-size: 15px;
-                  margin: 0px 2px;
+                  margin: 5px 2px;
                   padding: 5px 10px;
                   border-radius: 5px;
                   background-color: #004d93;

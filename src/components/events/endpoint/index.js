@@ -79,6 +79,13 @@ class Endpoint extends Component {
   componentDidMount() {
    this.getHostData();
   }
+  getTaskCount = (taskType, value, allValue) => {
+    if (value === 0) {
+      return value;
+    } else {
+      return <a className='bold' onClick={this.getTaskInfo.bind(this, taskType, allValue)}>{value}</a>
+    }
+  }
   getHostData = (fromSearch) => {
     const {baseUrl} = this.props;
     const {search, hmd} = this.state;
@@ -124,11 +131,11 @@ class Endpoint extends Component {
             } else if (tempData === 'createDttm') {
               return <span>{helper.getFormattedDate(value)}</span>
             } else if (tempData === 'runningTaskCount') {
-              return <a className='bold' onClick={this.getTaskInfo.bind(this, 'Running', allValue)}>{value}</a>
+              return this.getTaskCount('Running', value, allValue);
             } else if (tempData === 'waitingTaskCount') {
-              return <a className='bold' onClick={this.getTaskInfo.bind(this, 'Waiting', allValue)}>{value}</a>
+              return this.getTaskCount('Waiting', value, allValue);
             } else if (tempData === 'completeTaskCount') {
-              return <a className='bold' onClick={this.getTaskInfo.bind(this, 'Complete', allValue)}>{value}</a>
+              return this.getTaskCount('Complete', value, allValue);
             } else {
               return <span>{value}</span>
             }
@@ -147,10 +154,9 @@ class Endpoint extends Component {
     })
   }
   handleRowContextMenu = (allValue, evt) => {
-    const id = allValue.ipDeviceUUID;
-    let menuItems = [
+    const menuItems = [
       {
-        id: id + 'addTask',
+        id: 'addTask',
         text: f('hmdFields.addTask'),
         action: () => this.openTask(allValue)
       }
@@ -246,10 +252,9 @@ class Endpoint extends Component {
 
     return (
       <div className='content'>
-        <label>{f('hmdFields.id')}</label>
+        <label>{f('hmdFields.ipDeviceUUID')}</label>
         <Input
           className='add'
-          maxLength='50'
           value={task.ipDeviceUUID}
           readOnly={true} />
 

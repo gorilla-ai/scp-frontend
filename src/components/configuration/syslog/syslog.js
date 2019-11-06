@@ -203,7 +203,7 @@ class Syslog extends Component {
                 </div>
               )
             } else if (tempData === 'property') {
-              return <div>{this.displayProperty(value)}</div>
+              return <div className='flex-item'>{this.displayProperty(value)}</div>
             } else {
               return <span>{value}</span>;
             }
