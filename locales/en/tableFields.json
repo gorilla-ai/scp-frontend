@@ -483,6 +483,12 @@
     "taskResponseDttm": "Task Response Datetime",
     "taskComment": "Task Comment"
   },
+  "gcbFields": {
+    "cceId": "CCE-ID",
+    "name": "Name",
+    "type": "Type",
+    "compareResult": "Result"
+  },
   "edgeFields": {
     "agentName": "Name",
     "ipPort": "VPN IP",

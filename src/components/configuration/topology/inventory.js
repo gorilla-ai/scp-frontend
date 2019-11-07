@@ -9,6 +9,7 @@ import cx from 'classnames'
 import ButtonGroup from 'react-ui/build/src/components/button-group'
 import Checkbox from 'react-ui/build/src/components/checkbox'
 import CheckboxGroup from 'react-ui/build/src/components/checkbox-group'
+import DataTable from 'react-ui/build/src/components/table'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import FileInput from 'react-ui/build/src/components/file-input'
 import Gis from 'react-gis/build/src/components'
@@ -61,7 +62,7 @@ class NetworkInventory extends Component {
       modalFloorOpen: false,
       modalIRopen: false,
       addSeatOpen: false,
-      activeScanType: 'process', //process, ir
+      activeScanType: 'process', //process, file, gcb, ir
       activePath: null,
       activeRuleHeader: false,
       activeRule: [],
@@ -94,6 +95,7 @@ class NetworkInventory extends Component {
         currentIndex: '',
         currentLength: ''
       },
+      gcbFieldsArr: ['cceId', 'name', 'type', 'compareResult'],
       currentDeviceData: {},
       ownerList: [],
       departmentList: [],
@@ -226,12 +228,12 @@ class NetworkInventory extends Component {
       tempDeviceData.currentIndex = 0;
       tempDeviceData.currentLength = data.rows.length;
 
-      let dataFields = {};
+      let tempFields = {};
       deviceData.dataFieldsArr.forEach(tempData => {
-        dataFields[tempData] = {
+        tempFields[tempData] = {
           label: tempData === '_menu' ? '' : t(`ipFields.${tempData}`),
           sortable: this.checkSortable(tempData),
-          formatter: (value, allValue, index) => {
+          formatter: (value, allValue, i) => {
             if (tempData === 'owner') {
               if (allValue.ownerObj) {
                 return <span>{allValue.ownerObj.ownerName}</span>
@@ -261,9 +263,9 @@ class NetworkInventory extends Component {
             } else if (tempData === '_menu') {
               return (
                 <div className='table-menu menu active'>
-                  <i className='fg fg-eye' onClick={this.openMenu.bind(this, 'view', allValue, index)} title={t('network-inventory.txt-viewDevice')}></i>
+                  <i className='fg fg-eye' onClick={this.openMenu.bind(this, 'view', allValue, i)} title={t('network-inventory.txt-viewDevice')}></i>
                   {allValue.isHmd &&
-                    <i className='fg fg-chart-kpi' onClick={this.openMenu.bind(this, 'hmd', allValue, index)} title={t('network-inventory.txt-viewHMD')}></i>
+                    <i className='fg fg-chart-kpi' onClick={this.openMenu.bind(this, 'hmd', allValue, i)} title={t('network-inventory.txt-viewHMD')}></i>
                   }
                   <i className='fg fg-trashcan' onClick={this.openMenu.bind(this, 'delete', allValue)} title={t('network-inventory.txt-deleteDevice')}></i>
                 </div>
@@ -275,7 +277,7 @@ class NetworkInventory extends Component {
         };
       })
 
-      tempDeviceData.dataFields = dataFields;
+      tempDeviceData.dataFields = tempFields;
 
       if (!fromSearch) {
         let ipListArr = [];
@@ -420,7 +422,7 @@ class NetworkInventory extends Component {
     )
   }
   checkSortable = (field) => {
-    const unSortableFields = ['options', 'owner', '_menu'];
+    const unSortableFields = ['owner', 'areaName', 'seatName', 'yaraScan', '_menu'];
 
     if (_.includes(unSortableFields, field)) {
       return null;
@@ -1152,7 +1154,7 @@ class NetworkInventory extends Component {
           display: <div>{t('txt-requestSent')}</div>
         });
 
-        if (type === 'compareIOC' || type === 'yaraScanFile' || type === 'getFile') {
+        if (type && type !== 'getSystemInfo') {
           this.getIPdeviceInfo('', currentDeviceData.ipDeviceUUID);
         }
       }
@@ -1284,7 +1286,7 @@ class NetworkInventory extends Component {
     }
   }
   displayScanInfo = () => {
-    const {activeTab, activeScanType, deviceData, currentDeviceData} = this.state;
+    const {activeTab, activeScanType, deviceData, gcbFieldsArr, currentDeviceData} = this.state;
     const ip = currentDeviceData.ip || NOT_AVAILABLE;
     const mac = currentDeviceData.mac || NOT_AVAILABLE;
     const hostName = currentDeviceData.hostName || NOT_AVAILABLE;
@@ -1299,6 +1301,10 @@ class NetworkInventory extends Component {
         type: 'file'
       },
       {
+        name: 'gcbResult', //GCB
+        type: 'gcb'
+      },
+      {
         name: 'irResult', //IR
         type: 'ir'
       }
@@ -1306,10 +1312,13 @@ class NetworkInventory extends Component {
     let hmdInfo = {
       yara: {},
       file: {},
+      gcb: {},
       ir: {}
     };
     let yaraCount = 0;
     let fileCount = 0;
+    let gcbFilteredData = [];
+    let gcbFields = {};
 
     _.forEach(safetyScanObj, val => { //Construct the HMD info object
       if (!_.isEmpty(currentDeviceData[val.name])) {
@@ -1318,6 +1327,13 @@ class NetworkInventory extends Component {
             createTime: helper.getFormattedDate(currentDeviceData[val.name].taskCreateDttm, 'local'),
             responseTime: helper.getFormattedDate(currentDeviceData[val.name].taskResponseDttm, 'local'),
             result: currentDeviceData[val.name]._ZipPath,
+            taskID: currentDeviceData[val.name].taskId
+          };
+        } else if (val.type === 'gcb') {
+          hmdInfo[val.type] = {
+            createTime: helper.getFormattedDate(currentDeviceData[val.name].taskCreateDttm, 'local'),
+            responseTime: helper.getFormattedDate(currentDeviceData[val.name].taskResponseDttm, 'local'),
+            result: currentDeviceData[val.name].GCBResult,
             taskID: currentDeviceData[val.name].taskId
           };
         } else { //For Scan Process and Scan File
@@ -1340,6 +1356,34 @@ class NetworkInventory extends Component {
     if (hmdInfo.yara.result) {
       yaraCount = Number(hmdInfo.yara.result.length);
     }
+
+    if (hmdInfo.gcb.result) {
+      gcbFilteredData = _.filter(hmdInfo.gcb.result, ['compareResult', true]);
+
+      gcbFieldsArr.forEach(tempData => {
+        gcbFields[tempData] = {
+          label: f(`gcbFields.${tempData}`),
+          sortable: true,
+          formatter: (value, allValue) => {
+            if (tempData === 'compareResult') {
+              let styleStatus = '';
+
+              if (value) {
+                styleStatus = '#22ac38';
+                value = 'Pass';
+              } else {
+                styleStatus = '#d0021b';
+                value = 'Fail';
+              }
+
+              return <span style={{color : styleStatus}}>{value}</span>
+            } else {
+              return <span>{value}</span>
+            }
+          }
+        };
+      })
+    }    
 
     if (hmdInfo.file.result) {
       fileCount = Number(hmdInfo.file.result.length);
@@ -1372,6 +1416,7 @@ class NetworkInventory extends Component {
             list={[
               {value: 'process', text: 'Scan Process'},
               {value: 'file', text: 'Scan File'},
+              {value: 'gcb', text: 'GCB'},
               {value: 'ir', text: 'IR'}
             ]}
             onChange={this.toggleScanType}
@@ -1426,6 +1471,28 @@ class NetworkInventory extends Component {
                     <div className='empty-msg'>{NOT_AVAILABLE}</div>
                   }
                 </div>
+              </div>
+            }
+            {activeScanType === 'gcb' &&
+              <div>
+                <div className='info'>
+                  <div className='last-update'>
+                    <span>{t('network-inventory.txt-createTime')}: {hmdInfo.gcb.createTime || NOT_AVAILABLE}</span>
+                    <span>{t('network-inventory.txt-responseTime')}: {hmdInfo.gcb.responseTime || NOT_AVAILABLE}</span>
+                  </div>
+                  {hmdInfo.gcb.result && hmdInfo.gcb.result.length > 0 &&
+                    <div>
+                      <span className='pass-total'>{t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}: {gcbFilteredData.length}/{hmdInfo.gcb.result.length}</span>
+                      <button className='btn' onClick={this.triggerTask.bind(this, 'gcbDetection', hmdInfo.gcb.taskID)} disabled={this.checkTriggerTime('gcb')}>{t('network-inventory.txt-reCheck')}</button>
+                    </div>
+                  }
+                </div>
+                {hmdInfo.gcb.result && hmdInfo.gcb.result.length > 0 &&
+                  <DataTable
+                    className='main-table'
+                    fields={gcbFields}
+                    data={hmdInfo.gcb.result} />
+                }
               </div>
             }
             {activeScanType === 'ir' &&

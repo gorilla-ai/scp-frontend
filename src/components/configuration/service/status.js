@@ -64,16 +64,20 @@ class Status extends Component {
           formatter: (value, allValue, i) => {
             if (tempData === 'status') {
               let styleStatus = '';
+              let title = '';
 
               if (value.toLowerCase() === 'active') {
                 styleStatus = '#22ac38';
+                title = t('txt-online');
               } else if (value.toLowerCase() === 'unstable') {
                 styleStatus = '#e6e448';
+                title = t('txt-offline');
               } else {
                 styleStatus = '#d0021b';
+                title = t('txt-unstable');
               }
 
-              return <div style={{color : styleStatus}}><i className='fg fg-recode' title={helper.capitalizeFirstLetter(value)} /></div>
+              return <div style={{color : styleStatus}}><i className='fg fg-recode' title={title} /></div>
             }
             if (tempData === 'serviceName') {
               let tooltip = '';

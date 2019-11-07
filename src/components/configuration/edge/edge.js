@@ -136,7 +136,7 @@ class Edge extends Component {
           dataFields[tempData] = {
             label: tempData === '_menu' ? '' : f(`edgeFields.${tempData}`),
             sortable: this.checkSortable(tempData),
-            formatter: (value, allValue, index) => {
+            formatter: (value, allValue, i) => {
               if (tempData === 'ipPort') {
                 let iconType = '';
 
@@ -237,7 +237,7 @@ class Edge extends Component {
               } else if (tempData === '_menu') {
                 return (
                   <div className='table-menu menu active'>
-                    <i className='fg fg-edit' onClick={this.toggleContent.bind(this, 'editEdge', allValue, index)} title={t('txt-edit')}></i>
+                    <i className='fg fg-edit' onClick={this.toggleContent.bind(this, 'editEdge', allValue, i)} title={t('txt-edit')}></i>
                     <i className='fg fg-trashcan' onClick={this.openDeleteMenu.bind(this, allValue)} title={t('txt-delete')}></i>
                   </div>
                 )

@@ -483,6 +483,12 @@
     "taskResponseDttm": "Task Response Datetime",
     "taskComment": "Task Comment"
   },
+  "gcbFields": {
+    "cceId": "CCE-ID",
+    "name": "原廠設定名稱",
+    "type": "類別",
+    "compareResult": "檢測結果"
+  },
   "edgeFields": {
     "agentName": "名稱",
     "ipPort": "VPN IP",

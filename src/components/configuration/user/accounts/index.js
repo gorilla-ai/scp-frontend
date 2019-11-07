@@ -89,7 +89,7 @@ class AccountList extends Component {
         tempFields[tempData] = {
           hide: tempData === 'accountid' ? true : false,
           label: tempData === '_menu' ? '' : t(`accountFields.${tempData}`),
-          sortable: null,
+          sortable: tempData === '_menu' ? null : true,
           formatter: (value, allValue, i) => {
             if (tempData === '_menu') {
               return (

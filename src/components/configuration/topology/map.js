@@ -6,6 +6,7 @@ import Moment from 'moment'
 import cx from 'classnames'
 import _ from 'lodash'
 
+import DataTable from 'react-ui/build/src/components/table'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import Gis from 'react-gis/build/src/components'
 import Input from 'react-ui/build/src/components/input'
@@ -16,7 +17,6 @@ import TreeView from 'react-ui/build/src/components/tree'
 import {HocConfig as Config} from '../../common/configuration'
 import {HocFloorMap as FloorMap} from '../../common/floor-map'
 import helper from '../../common/helper'
-import TableContent from '../../common/table-content'
 import withLocale from '../../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -285,6 +285,15 @@ class NetworkMap extends Component {
       return null;
     })
   }
+  checkSortable = (field) => {
+    const unSortableFields = ['seat', 'owner'];
+
+    if (_.includes(unSortableFields, field)) {
+      return null;
+    } else {
+      return true;
+    }
+  }
   /* This function returns the IP data for the data table */
   getIPData = (areaUUID) => {
     const {baseUrl, contextRoot} = this.props;
@@ -329,7 +338,7 @@ class NetworkMap extends Component {
       IP.dataFieldsArr.forEach(tempData => {
         dataFields[tempData] = {
           label: t(`ipFields.${tempData}`),
-          sortable: true,
+          sortable: this.checkSortable(tempData),
           formatter: (value, allValue) => {
             if (tempData === 'seat') {
               if (allValue.seatObj) {
@@ -817,17 +826,14 @@ class NetworkMap extends Component {
                         onClick={this.getDeviceData} />
                     }
                   </div>
-
-                  <TableContent
-                    dataTableData={IP.dataContent}
-                    dataTableFields={IP.dataFields}
-                    dataTableSort={IP.sort}
-                    paginationTotalCount={IP.totalCount}
-                    paginationPageSize={IP.pageSize}
-                    paginationCurrentPage={IP.currentPage}
-                    handleTableSort={this.handleTableSort}
-                    paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                    paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
+                  <div className='table-content'>
+                    <div className='table'>
+                      <DataTable
+                        className='main-table'
+                        fields={IP.dataFields}
+                        data={IP.dataContent} />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

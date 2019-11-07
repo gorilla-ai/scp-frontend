@@ -113,6 +113,9 @@
   "txt-networkBehavior": "網路行為",
   "txt-logSource": "日誌來源",
   "txt-indicator": "Indicator",
+  "txt-online": "上線",
+  "txt-offline": "離線",
+  "txt-unstable": "不穩定",
 
   "txt-dashboard": "Dashboard",
   "txt-netflow": "Netflow",
@@ -359,6 +362,8 @@
     "txt-suspiciousFilePath": "可疑檔案路徑",
     "txt-reCheck": "重新檢測",
     "txt-reCompress": "重新壓縮",
+    "txt-passCount": "通過",
+    "txt-totalItem": "總項目",
     "txt-irMsg": "IR資料已上傳至",
     "txt-itemSelection": "套餐選擇",
     "txt-editFloorMap": "$t(txt-edit)$t(txt-floorMap)",
@@ -509,7 +514,6 @@
     "ownerName": "所屬人員",
     "department": "部門",
     "title": "職稱",
-    "options": "",
     "departmentName": "部門",
     "titleName": "職稱"
   },
@@ -532,7 +536,6 @@
     "system": "使用系統",
     "deviceType": "裝置類型",
     "yaraScan": "Yara (可疑檔案數)",
-    "options": "",
     "keyword": "關鍵字",
     "connSize": "Connections Size",
     "unauthType": "Unauthorize Type"

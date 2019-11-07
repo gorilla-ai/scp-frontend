@@ -42,7 +42,7 @@ class NetworkOwner extends Component {
       addOwnerTitle: '',
       openFilter: false,
       owner: {
-        dataFieldsArr: ['_menu', 'ownerID', 'ownerName', 'departmentName', 'titleName', 'options'],
+        dataFieldsArr: ['_menu', 'ownerID', 'ownerName', 'departmentName', 'titleName'],
         dataFields: {},
         dataContent: [],
         sort: {

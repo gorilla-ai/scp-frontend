@@ -113,6 +113,9 @@
   "txt-networkBehavior": "Network Behavior",
   "txt-logSource": "Log Source",
   "txt-indicator": "Indicator",
+  "txt-online": "Online",
+  "txt-offline": "Offline",
+  "txt-unstable": "Unstable",
 
   "txt-dashboard": "Dashboard",
   "txt-netflow": "Netflow",
@@ -359,6 +362,8 @@
     "txt-suspiciousFilePath": "Suspicious File Path",
     "txt-reCheck": "Re-check",
     "txt-reCompress": "Re-compress",
+    "txt-passCount": "Pass",
+    "txt-totalItem": "Total",
     "txt-irMsg": "IR data has been uploaded to",
     "txt-itemSelection": "Select IR Set",
     "txt-editFloorMap": "$t(txt-edit) $t(txt-floorMap)",
@@ -509,7 +514,6 @@
     "ownerName": "Name",
     "department": "Department",
     "title": "Title",
-    "options": "",
     "departmentName": "Department",
     "titleName": "Title"
   },
@@ -532,7 +536,6 @@
     "system": "System",
     "deviceType": "Type",
     "yaraScan": "Yara (Suspicious File Count)",
-    "options": "",
     "keyword": "Keyword",
     "connSize": "Connections Size",
     "unauthType": "Unauthorize Type"
