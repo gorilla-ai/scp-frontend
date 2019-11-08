@@ -247,9 +247,7 @@ class AutoSettings extends Component {
           }} />
       )
     } else {
-      return (
-        <div className='align-center'>{t('txt-notFound')}</div>
-      )
+      return <div className='align-center'>{t('txt-notFound')}</div>
     }
   }
   handleADtest = () => {
@@ -310,9 +308,7 @@ class AutoSettings extends Component {
           }} />
       )
     } else {
-      return (
-        <span>{t('txt-notFound')}</span>
-      )
+      return <span>{t('txt-notFound')}</span>
     }
   }
   handleNetflowtest = () => {
@@ -365,9 +361,7 @@ class AutoSettings extends Component {
           }} />
       )
     } else {
-      return (
-        <span>{t('txt-notFound')}</span>
-      )
+      return <span>{t('txt-notFound')}</span>
     }
   }
   handleScannerTest = (value) => {

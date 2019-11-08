@@ -100,9 +100,7 @@ class SafetyScan extends Component {
         </div>
       )
     } else {
-      return (
-        <span>{NOT_AVAILABLE}</span>
-      )
+      return <span>{NOT_AVAILABLE}</span>
     }
   }
 }

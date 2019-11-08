@@ -507,7 +507,7 @@ class AlertController extends Component {
     };
     let formattedTreeData = [];
 
-    if (treeData === null) { //Hanlde the case for no data
+    if (treeData === null) { //Handle the case for no data
       treeObj.label = t('txt-all') + ' (0)';
 
       _.forEach(SEVERITY_TYPE, val => { //Create ordered tree list for High, Medium, Low

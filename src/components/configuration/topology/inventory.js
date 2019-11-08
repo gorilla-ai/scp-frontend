@@ -43,6 +43,24 @@ const MAPS_PRIVATE_DATA = {
   currentBaseLayers: {},
   seatData: {}
 };
+const IR_MAPPINGS = {
+  1: 'dumpMemory',
+  2: 'getSystemInfo',
+  3: 'getFileInfo',
+  4: 'getProcessInfo',
+  5: 'getAutoruns',
+  6: 'getTaskScheduler',
+  7: 'getBrowserData',
+  8: 'getOutlookData',
+  9:  'getRegistryBackup',
+  10: 'getEventLogFile',
+  11: 'getRecycleFile',
+  12: 'getRecentFile',
+  13: 'getPictureFile',
+  14: 'getVideoFile',
+  15: 'getMicrosoftFile',
+  16: 'getKeyWordFile'
+};
 const DEFAULT_IR_SELECTED = [2, 4, 5, 6, 9, 10];
 
 let t = null;
@@ -62,7 +80,7 @@ class NetworkInventory extends Component {
       modalFloorOpen: false,
       modalIRopen: false,
       addSeatOpen: false,
-      activeScanType: 'process', //process, file, gcb, ir
+      activeScanType: 'process', //process, file, gcb, ir, malware
       activePath: null,
       activeRuleHeader: false,
       activeRule: [],
@@ -96,6 +114,7 @@ class NetworkInventory extends Component {
         currentLength: ''
       },
       gcbFieldsArr: ['cceId', 'name', 'type', 'compareResult'],
+      malwareFieldsArr: ['_FileInfo._Filepath', '_FileInfo._Filesize', '_FileInfo._HashValues._MD5', '_IsPE', '_IsPEextension', '_IsVerifyTrust'],
       currentDeviceData: {},
       ownerList: [],
       departmentList: [],
@@ -126,6 +145,7 @@ class NetworkInventory extends Component {
       ownerType: 'existing', //existing, new,
       ownerIDduplicated: false,
       previewOwnerPic: '',
+      irSelectedTaskID: '',
       irComboSelected: 'quick', //quick, standard, full
       irItemSelected: DEFAULT_IR_SELECTED,
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
@@ -1138,7 +1158,7 @@ class NetworkInventory extends Component {
     const url = `${baseUrl}/api/hmd/retrigger`;
     let requestData = {
       hostId: currentDeviceData.ipDeviceUUID,
-      cmd: type
+      cmds: type
     };
 
     if (taskId) {
@@ -1239,18 +1259,24 @@ class NetworkInventory extends Component {
     )
   }
   confirmIRselection = () => {
-    const {irItemSelected} = this.state;
+    const {irSelectedTaskID, irItemSelected} = this.state;
+    const selectedIrArr = _.map(irItemSelected, val => {
+      return IR_MAPPINGS[val];
+    });
 
-    alert('You selected: ' + irItemSelected);
-
+    this.triggerTask(selectedIrArr, irSelectedTaskID);
     this.toggleSelectionIR();
-    return;
   }
-  toggleSelectionIR = () => {
+  toggleSelectionIR = (taskID) => {
     const {modalIRopen} = this.state;
 
-    if (!modalIRopen) {
+    if (modalIRopen) {
       this.setState({
+        irSelectedTaskID: ''
+      });
+    } else {
+      this.setState({
+        irSelectedTaskID: taskID,
         irComboSelected: 'quick',
         irItemSelected: DEFAULT_IR_SELECTED
       });
@@ -1276,17 +1302,8 @@ class NetworkInventory extends Component {
     mergedRule = _.concat(ruleWithFile, ruleWithNoFile);
     return mergedRule;
   }
-  getIrBtnPos = (type) => {
-    const {locale} = this.props;
-
-    if (locale === 'zh') {
-      return '80px';
-    } else if (locale === 'en') {
-      return '100px';
-    }
-  }
   displayScanInfo = () => {
-    const {activeTab, activeScanType, deviceData, gcbFieldsArr, currentDeviceData} = this.state;
+    const {activeTab, activeScanType, deviceData, gcbFieldsArr, malwareFieldsArr, currentDeviceData} = this.state;
     const ip = currentDeviceData.ip || NOT_AVAILABLE;
     const mac = currentDeviceData.mac || NOT_AVAILABLE;
     const hostName = currentDeviceData.hostName || NOT_AVAILABLE;
@@ -1307,18 +1324,25 @@ class NetworkInventory extends Component {
       {
         name: 'irResult', //IR
         type: 'ir'
+      },
+      {
+        name: 'malwareResult', //Malware Detection
+        type: 'malware'
       }
     ];
     let hmdInfo = {
       yara: {},
       file: {},
       gcb: {},
-      ir: {}
+      ir: {},
+      malware: {}
     };
     let yaraCount = 0;
     let fileCount = 0;
     let gcbFilteredData = [];
     let gcbFields = {};
+    let malwareFilteredData = [];
+    let malwareFields = {};
 
     _.forEach(safetyScanObj, val => { //Construct the HMD info object
       if (!_.isEmpty(currentDeviceData[val.name])) {
@@ -1336,7 +1360,15 @@ class NetworkInventory extends Component {
             result: currentDeviceData[val.name].GCBResult,
             taskID: currentDeviceData[val.name].taskId
           };
-        } else { //For Scan Process and Scan File
+        } else if (val.type === 'malware') {
+          hmdInfo[val.type] = {
+            createTime: helper.getFormattedDate(currentDeviceData[val.name].taskCreateDttm, 'local'),
+            responseTime: helper.getFormattedDate(currentDeviceData[val.name].taskResponseDttm, 'local'),
+            result: currentDeviceData[val.name].GCBResult,
+            result: currentDeviceData[val.name].GCBResult,
+            taskID: currentDeviceData[val.name].taskId
+          };
+        }  else { //For Scan Process and Scan File
           let mergedRule = [];
 
           if (currentDeviceData[val.name].ScanResult && currentDeviceData[val.name].ScanResult.length > 0) {
@@ -1383,7 +1415,80 @@ class NetworkInventory extends Component {
           }
         };
       })
-    }    
+    }
+
+    hmdInfo.malware.result = [
+      {
+        _FileInfo: {
+          _Filepath: 'D:\\Ember_HMD_test_1\\Procmon.exe',
+          _Filesize: 2196016,
+          _HashValues: {
+            _MD5: 'b6201d0f8541a4f7d968d4bd2423b3f3'
+          }
+        },
+        _IsPE: true,
+        _IsPEextension: true,
+        _IsVerifyTrust: false
+      },
+      {
+        _FileInfo: {
+          _Filepath: 'D:\\Gorilla_HMD_test_1\\Pokemon.exe',
+          _Filesize: 1234567,
+          _HashValues: {
+            _MD5: '878951dad5b6201d0f8541a4f7123456'
+          }
+        },
+        _IsPE: true,
+        _IsPEextension: false,
+        _IsVerifyTrust: true
+      },
+      {
+        _FileInfo: {
+          _Filepath: 'C:\\Telmedia_HMD_test_1\\Nintendo.exe',
+          _Filesize: 7654321,
+          _HashValues: {
+            _MD5: '5b6278951da0f8548d1a4f712345601d'
+          }
+        },
+        _IsPE: false,
+        _IsPEextension: true,
+        _IsVerifyTrust: true
+      }
+    ];
+
+    if (hmdInfo.malware.result) {
+      //malwareFilteredData = _.filter(hmdInfo.gcb.result, ['compareResult', true]);
+
+      malwareFieldsArr.forEach(tempData => {
+        malwareFields[tempData] = {
+          label: f(`malwareFields.${tempData}`),
+          sortable: true,
+          formatter: (value, allValue) => {
+            if (tempData === '_FileInfo._Filepath') {
+              const newValue = value.substr(0, 20) + '...';
+              return <span title={value}>{newValue}</span>
+            }
+            if (tempData === '_FileInfo._Filesize') {
+              value = value + ' KB';
+            }
+            if (tempData === '_IsPE' || tempData === '_IsPEextension' || tempData === '_IsVerifyTrust') {
+              let styleStatus = '';
+
+              if (value) {
+                styleStatus = '#22ac38';
+                value = 'True';
+              } else {
+                styleStatus = '#d0021b';
+                value = 'False';
+              }
+
+              return <span style={{color : styleStatus}}>{value}</span>
+            }
+            return <span>{value}</span>
+          }
+        };
+      })
+    }
 
     if (hmdInfo.file.result) {
       fileCount = Number(hmdInfo.file.result.length);
@@ -1417,7 +1522,8 @@ class NetworkInventory extends Component {
               {value: 'process', text: 'Scan Process'},
               {value: 'file', text: 'Scan File'},
               {value: 'gcb', text: 'GCB'},
-              {value: 'ir', text: 'IR'}
+              {value: 'ir', text: 'IR'},
+              {value: 'malware', text: 'Malware Detection'}
             ]}
             onChange={this.toggleScanType}
             value={activeScanType} />
@@ -1433,7 +1539,7 @@ class NetworkInventory extends Component {
                   {yaraCount > 0 &&
                     <div className='count'>{t('network-inventory.txt-suspiciousFileCount')}: {yaraCount}</div>
                   }
-                  <button className='btn' onClick={this.triggerTask.bind(this, 'compareIOC', hmdInfo.yara.taskID)} disabled={this.checkTriggerTime('yara')}>{t('network-inventory.txt-reCheck')}</button>
+                  <button className='btn' onClick={this.triggerTask.bind(this, ['compareIOC'], hmdInfo.yara.taskID)} disabled={this.checkTriggerTime('yara')}>{t('network-inventory.txt-reCheck')}</button>
                 </div>
                 <div className='scan-content'>
                   <div className='header'>{t('network-inventory.txt-suspiciousFilePath')}</div>
@@ -1458,7 +1564,7 @@ class NetworkInventory extends Component {
                   {fileCount > 0 &&
                     <div className='count'>{t('network-inventory.txt-suspiciousFileCount')}: {fileCount}</div>
                   }
-                  <button className='btn' onClick={this.triggerTask.bind(this, 'yaraScanFile', hmdInfo.file.taskID)} disabled={this.checkTriggerTime('yaraScanFile')}>{t('network-inventory.txt-reCheck')}</button>
+                  <button className='btn' onClick={this.triggerTask.bind(this, ['yaraScanFile'], hmdInfo.file.taskID)} disabled={this.checkTriggerTime('yaraScanFile')}>{t('network-inventory.txt-reCheck')}</button>
                 </div>
                 <div className='scan-content'>
                   <div className='header'>{t('network-inventory.txt-suspiciousFilePath')}</div>
@@ -1483,7 +1589,7 @@ class NetworkInventory extends Component {
                   {hmdInfo.gcb.result && hmdInfo.gcb.result.length > 0 &&
                     <div>
                       <span className='pass-total'>{t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}: {gcbFilteredData.length}/{hmdInfo.gcb.result.length}</span>
-                      <button className='btn' onClick={this.triggerTask.bind(this, 'gcbDetection', hmdInfo.gcb.taskID)} disabled={this.checkTriggerTime('gcb')}>{t('network-inventory.txt-reCheck')}</button>
+                      <button className='btn' onClick={this.triggerTask.bind(this, ['gcbDetection'], hmdInfo.gcb.taskID)} disabled={this.checkTriggerTime('gcb')}>{t('network-inventory.txt-reCheck')}</button>
                     </div>
                   }
                 </div>
@@ -1502,13 +1608,31 @@ class NetworkInventory extends Component {
                     <span>{t('network-inventory.txt-createTime')}: {hmdInfo.ir.createTime || NOT_AVAILABLE}</span>
                     <span>{t('network-inventory.txt-responseTime')}: {hmdInfo.ir.responseTime || NOT_AVAILABLE}</span>
                   </div>
-                  <button className='btn' style={{right: this.getIrBtnPos()}} onClick={this.triggerTask.bind(this, 'getFile', hmdInfo.ir.taskID)} disabled={this.checkTriggerTime('ir')}>{t('network-inventory.txt-reCompress')}</button>
-                  <button className='btn' onClick={this.toggleSelectionIR}>{t('network-inventory.txt-itemSelection')}</button>
+                  <button className='btn' onClick={this.toggleSelectionIR.bind(this, hmdInfo.ir.taskID)} disabled={this.checkTriggerTime('ir')}>{t('network-inventory.txt-reCompress')}</button>
                 </div>
                 <div className='scan-content'>
                   <div className='header'>{t('network-inventory.txt-irMsg')}:</div>
                   <div className='empty-msg'>{hmdInfo.ir.result || NOT_AVAILABLE}</div>
                 </div>
+              </div>
+            }
+            {activeScanType === 'malware' &&
+              <div>
+                <div className='info'>
+                  <div className='last-update'>
+                    <span>{t('network-inventory.txt-createTime')}: {hmdInfo.malware.createTime || NOT_AVAILABLE}</span>
+                    <span>{t('network-inventory.txt-responseTime')}: {hmdInfo.malware.responseTime || NOT_AVAILABLE}</span>
+                  </div>
+                  {hmdInfo.malware.result && hmdInfo.malware.result.length > 0 &&
+                    <button className='btn'>{t('network-inventory.txt-reCheck')}</button>
+                  }
+                </div>
+                {hmdInfo.malware.result && hmdInfo.malware.result.length > 0 &&
+                  <DataTable
+                    className='main-table'
+                    fields={malwareFields}
+                    data={hmdInfo.malware.result} />
+                }
               </div>
             }
           </div>

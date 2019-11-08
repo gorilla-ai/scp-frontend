@@ -6,11 +6,11 @@ import Tabs from 'react-ui/build/src/components/tabs'
 import Timebar from 'react-timebar/build/src/components'
 import VbdaLA from 'vbda-ui/build/src/components/analysis/la'
 
+import {HocDataChart as DataChart} from '../../../common/data-chart'
 import {HocFilterContent as FilterContent} from '../../../common/filter-content'
 import helper from '../../../common/helper'
 import {HocPagination as Pagination} from '../../../common/pagination'
 import TableContent from '../../../common/table-content'
-import {HocTimebarChart as TimebarChart} from '../../../common/timebar-chart'
 import {HocTree as Tree} from '../../../common/tree'
 
 
@@ -37,7 +37,7 @@ class Connections extends Component {
           <FilterContent
             {...mainContentData} />
 
-          <TimebarChart
+          <DataChart
             contextRoot={contextRoot}
             mainContentData={mainContentData}
             tabChartData={tabChartData}

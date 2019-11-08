@@ -11,7 +11,7 @@ import withLocale from '../../hoc/locale-provider'
 
 let t = null;
 
-class TimebarChart extends Component {
+class DataChart extends Component {
   constructor(props) {
     super(props);
 
@@ -165,11 +165,11 @@ class TimebarChart extends Component {
   }
 }
 
-TimebarChart.propTypes = {
+DataChart.propTypes = {
   contextRoot: PropTypes.string.isRequired,
   mainContentData: PropTypes.object.isRequired,
   tabChartData: PropTypes.object.isRequired
 };
 
-const HocTimebarChart = withLocale(TimebarChart);
-export { TimebarChart, HocTimebarChart };
+const HocDataChart = withLocale(DataChart);
+export { DataChart, HocDataChart };

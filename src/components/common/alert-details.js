@@ -693,9 +693,7 @@ class AlertDetails extends Component {
    * @returns HTML
    */
   showRuleContent = (val, i) => {
-    return (
-      <li key={i}>{val.rule}</li>
-    )
+    return <li key={i}>{val.rule}</li>
   }
   /**
    * Display rule content
@@ -717,9 +715,7 @@ class AlertDetails extends Component {
         </ul>
       )
     } else {
-      return (
-        <span>{alertRule}</span>
-      )
+      return <span>{alertRule}</span>
     }
   }
   /**

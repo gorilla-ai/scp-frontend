@@ -4,12 +4,12 @@ import PropTypes from 'prop-types'
 import Tabs from 'react-ui/build/src/components/tabs'
 import VbdaLA from 'vbda-ui/build/src/components/analysis/la'
 
+import {HocDataChart as DataChart} from '../../common/data-chart'
 import {HocFilterContent as FilterContent} from '../../common/filter-content'
 import helper from '../../common/helper'
 import {HocMarkContent as MarkContent} from '../../common/mark-content'
 import {HocPagination as Pagination} from '../../common/pagination'
 import TableContent from '../../common/table-content'
-import {HocTimebarChart as TimebarChart} from '../../common/timebar-chart'
 import {HocTree as Tree} from '../../common/tree'
 
 class Syslog extends Component {
@@ -41,7 +41,7 @@ class Syslog extends Component {
               onChange={mainContentData.handleSubTabChange}>
             </Tabs>
 
-            <TimebarChart
+            <DataChart
               contextRoot={contextRoot}
               mainContentData={mainContentData}
               tabChartData={tabChartData}

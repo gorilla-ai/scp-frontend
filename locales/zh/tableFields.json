@@ -489,6 +489,18 @@
     "type": "類別",
     "compareResult": "檢測結果"
   },
+  "malwareFields": {
+    "_FileInfo": {
+      "_Filepath": "檔案路徑",
+      "_Filesize": "檔案大小",
+      "_HashValues": {
+        "_MD5": "Hash Value"
+      }
+    },
+    "_IsPE": "IsPE",
+    "_IsPEextension": "IsPEextension",
+    "_IsVerifyTrust": "IsVerifyTrust"
+  },
   "edgeFields": {
     "agentName": "名稱",
     "ipPort": "VPN IP",

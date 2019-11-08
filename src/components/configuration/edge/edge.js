@@ -155,9 +155,7 @@ class Edge extends Component {
                   title: t('txt-' + allValue.agentApiStatus.toLowerCase())
                 };
 
-                return (
-                  <span><img src={icon.src} title={icon.title} />{value}</span>
-                )
+                return <span><img src={icon.src} title={icon.title} />{value}</span>
               } else if (tempData === 'description') {
                 let serviceType = allValue.serviceType;
 

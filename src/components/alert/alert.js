@@ -3,12 +3,10 @@ import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
 
-import Timebar from 'react-timebar/build/src/components'
-
+import {HocDataChart as DataChart} from '../common/data-chart'
 import {HocFilterContent as FilterContent} from '../common/filter-content'
 import helper from '../common/helper'
 import TableContent from '../common/table-content'
-import {HocTimebarChart as TimebarChart} from '../common/timebar-chart'
 import {HocTree as Tree} from '../common/tree'
 import withLocale from '../../hoc/locale-provider'
 
@@ -24,7 +22,6 @@ class Alert extends Component {
   }
   render() {
     const {baseUrl, contextRoot, mainContentData, tabChartData} = this.props;
-    const assetsPath = `${contextRoot}/lib/keylines/assets/`;
 
     return (
       <div className='data-content'>
@@ -35,7 +32,7 @@ class Alert extends Component {
           <FilterContent
             {...mainContentData} />
 
-          <TimebarChart
+          <DataChart
             contextRoot={contextRoot}
             mainContentData={mainContentData}
             tabChartData={tabChartData} />

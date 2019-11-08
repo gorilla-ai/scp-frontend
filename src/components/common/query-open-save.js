@@ -326,9 +326,7 @@ class QueryOpenSave extends Component {
       let queryDataMark = [];
 
       if (queryData.list.length === 0) {
-        return (
-          <div className='error-msg'>{t('events.connections.txt-noSavedQuery')}</div>
-        )
+        return <div className='error-msg'>{t('events.connections.txt-noSavedQuery')}</div>
       }
 
       if (activeTab === 'logs') {
@@ -385,15 +383,11 @@ class QueryOpenSave extends Component {
 
       if (activeTab === 'logs') {
         if (tempFilterData.length === 0 && tempMarkData.length == 0) {
-          return (
-            <div className='error-msg'>{t('events.connections.txt-noOpenQuery')}</div>
-          )
+          return <div className='error-msg'>{t('events.connections.txt-noOpenQuery')}</div>
         }
       } else {
         if (tempFilterData.length === 0) {
-          return (
-            <div className='error-msg'>{t('events.connections.txt-noOpenQuery')}</div>
-          )
+          return <div className='error-msg'>{t('events.connections.txt-noOpenQuery')}</div>
         }
       }
 
