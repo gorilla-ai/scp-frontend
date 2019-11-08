@@ -394,19 +394,30 @@
 /* configuration/topology/inventory */
 #configScanModalDialog-content {
   width: 965px;
+  .table {
+    height: 430px;
+    overflow-y: auto;
+    margin-top: 15px;
+  }
   .main-table {
     border-radius: 5px;
     width: 100%;
     overflow: hidden;
-    thead tr {
-      color: #185e9e;
+    &.with-border {
+      th, td {
+        padding: 10px !important;
+        border: 1px solid #ccc !important;
+      }
+    }
+    thead {
+      border-top: 1px solid #d9d9d9;
+      tr {
+        color: #185e9e;
+        background-color: #f7f7f7;
+      }
     }
     tbody td:hover {
       cursor: text;
-    }
-    th, td {
-      padding: 10px !important;
-      border: 1px solid #ccc !important;
     }
     .align-center {
       text-align: center;
@@ -416,6 +427,9 @@
       &.ownerName {
         width: 25%;
       }
+    }
+    span[title] {
+      cursor: default;
     }
   }
   .scan-info {
@@ -457,12 +471,6 @@
           top: 20px;
           right: 0;
           padding: .3em .5em;
-        }
-      }
-      .main-table {
-        margin-top: 15px;
-        span[title] {
-          cursor: default;
         }
       }
       .scan-content {

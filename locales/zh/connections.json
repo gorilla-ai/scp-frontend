@@ -379,6 +379,13 @@
       "txt-scanner": "Scanner",
       "txt-connectionsFail": "連線失敗"
     },
+    "scan-list": {
+      "txt-yara": "Scan Process",
+      "txt-file": "Scan File",
+      "txt-gcb": "GCB",
+      "txt-ir": "IR",
+      "txt-malware": "Malware Detection"
+    },
     "ir-type": {
       "txt-quick": "快速採證",
       "txt-standard": "常用採證",

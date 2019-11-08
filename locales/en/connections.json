@@ -379,6 +379,13 @@
       "txt-scanner": "Scanner",
       "txt-connectionsFail": "Connections Fail"
     },
+    "scan-list": {
+      "txt-yara": "Scan Process",
+      "txt-file": "Scan File",
+      "txt-gcb": "GCB",
+      "txt-ir": "IR",
+      "txt-malware": "Malware Detection"
+    },
     "ir-type": {
       "txt-quick": "Quick IR",
       "txt-standard": "Standard IR",
