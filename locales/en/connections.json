@@ -381,7 +381,7 @@
     },
     "scan-list": {
       "txt-yara": "Scan Process",
-      "txt-file": "Scan File",
+      "txt-yaraScanFile": "Scan File",
       "txt-gcb": "GCB",
       "txt-ir": "IR",
       "txt-malware": "Malware Detection"
