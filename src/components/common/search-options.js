@@ -241,12 +241,17 @@ class SearchOptions extends Component {
     )
   }
   getInputWidth = (type) => {
-    const {locale} = this.props;
+    const {locale, searchInput} = this.props;
+    const searchType = searchInput.searchType;
 
-    if (locale === 'zh') {
+    if (searchType === 'manual') {
       return '110px';
-    } else if (locale === 'en') {
-      return '140px';
+    } else if (searchType === 'auto') {
+      if (locale === 'zh') {
+        return '114px';
+      } else if (locale === 'en') {
+        return '135px';
+      }
     }
   }
   render() {

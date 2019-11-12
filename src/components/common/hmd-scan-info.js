@@ -17,25 +17,22 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 const NOT_AVAILABLE = 'N/A';
 const SAFETY_SCAN_LIST = [
   {
-    name: 'yaraResult',
-    type: 'yara'
+    type: 'yara',
+    path: 'ScanResult'
   },
   {
-    name: 'yaraScanFileResult',
-    type: 'yaraScanFile'
+    type: 'yaraScanFile',
+    path: 'ScanResult'
   },
   {
-    name: 'gcbResult',
     type: 'gcb',
     path: 'GCBResult'
   },
   {
-    name: 'irResult',
     type: 'ir',
     path: '_ZipPath'
   },
   {
-    name: 'malwareResult',
     type: 'malware',
     path: 'DetectionResult'
   }
@@ -55,7 +52,7 @@ class HMDscanInfo extends Component {
     super(props);
 
     this.state = {
-      activeScanType: 'yara', //yara, yaraScanFile, gcb, ir, malware
+      activeTab: 'yara', //yara, yaraScanFile, gcb, ir, malware
       activePath: null,
       activeRuleHeader: false,
       activeRule: [],
@@ -87,9 +84,9 @@ class HMDscanInfo extends Component {
     mergedRule = _.concat(ruleWithFile, ruleWithNoFile);
     return mergedRule;
   }
-  toggleScanType = (activeScanType) => {
+  toggleScanType = (activeTab) => {
     this.setState({
-      activeScanType,
+      activeTab,
       activePath: null,
       activeRuleHeader: false,
       activeRule: [],
@@ -342,7 +339,7 @@ class HMDscanInfo extends Component {
   }
   showAlertData = (type) => {
     this.setState({
-      activeScanType: 'yara',
+      activeTab: 'yara',
       activePath: null,
       activeRuleHeader: false,
       activeDLL: false,
@@ -352,76 +349,79 @@ class HMDscanInfo extends Component {
     });
   }
   getSuspiciousFileCount = (hmdInfo) => {
-    const {activeScanType} = this.state;
+    const {activeTab} = this.state;
 
-    if (hmdInfo[activeScanType].count && hmdInfo[activeScanType].count >= 0) {
-      return <div className='count'>{t('network-inventory.txt-suspiciousFileCount')}: {hmdInfo[activeScanType].count}</div>
+    if (hmdInfo[activeTab].count && hmdInfo[activeTab].count >= 0) {
+      return <div className='count'>{t('network-inventory.txt-suspiciousFileCount')}: {hmdInfo[activeTab].count}</div>
     }
   }
   getPassTotalCount = (hmdInfo) => {
-    const {activeScanType} = this.state;
+    const {activeTab} = this.state;
 
-    if (hmdInfo[activeScanType].filteredResult) {
-      return <span className='pass-total'>{t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}: {hmdInfo[activeScanType].filteredResult.length}/{hmdInfo[activeScanType].result.length}</span>
+    if (hmdInfo[activeTab].filteredResult) {
+      return <span className='pass-total'>{t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}: {hmdInfo[activeTab].filteredResult.length}/{hmdInfo[activeTab].result.length}</span>
     }
   }
   getTriggerBtn = (hmdInfo) => {
-    const {activeScanType} = this.state;
+    const {activeTab} = this.state;
 
-    if (activeScanType === 'ir') {
-      return <button className='btn' onClick={this.props.toggleSelectionIR.bind(this, hmdInfo[activeScanType].taskID)} disabled={this.checkTriggerTime(activeScanType)}>{t('network-inventory.txt-reCompress')}</button>
+    if (activeTab === 'ir') {
+      return <button className='btn' onClick={this.props.toggleSelectionIR.bind(this, hmdInfo[activeTab].taskID)} disabled={this.checkTriggerTime(activeTab)}>{t('network-inventory.txt-reCompress')}</button>
     } else {
-      return <button className='btn' onClick={this.props.triggerTask.bind(this, [TRIGGER_NAME[activeScanType]], hmdInfo[activeScanType].taskID)} disabled={this.checkTriggerTime(activeScanType)}>{t('network-inventory.txt-reCheck')}</button>
+      return <button className='btn' onClick={this.props.triggerTask.bind(this, [TRIGGER_NAME[activeTab]], hmdInfo[activeTab].taskID)} disabled={this.checkTriggerTime(activeTab)}>{t('network-inventory.txt-reCheck')}</button>
     }
   }
   getScanContent = (hmdInfo) => {
-    const {activeScanType} = this.state;
+    const {activeTab} = this.state;
 
-    if (activeScanType === 'yara' || activeScanType === 'yaraScanFile') {
+    if (activeTab === 'yara' || activeTab === 'yaraScanFile') {
+      let scanPath = '';
+
+      if (activeTab === 'yara') {
+        scanPath = this.displayScanProcessPath;
+      } else if (activeTab === 'yaraScanFile') {
+        scanPath = this.displayScanFilePath;
+      }
+
       return (
         <div className='scan-content'>
           <div className='header'>{t('network-inventory.txt-suspiciousFilePath')}</div>
-          {hmdInfo[activeScanType].result && hmdInfo[activeScanType].result.length > 0 &&
+          {hmdInfo[activeTab].result && hmdInfo[activeTab].result.length > 0 &&
             <div className='list'>
-              {activeScanType === 'yara' &&
-                hmdInfo[activeScanType].result.map(this.displayScanProcessPath)
-              }
-              {activeScanType === 'yaraScanFile' &&
-                hmdInfo[activeScanType].result.map(this.displayScanFilePath)
-              }
+              {hmdInfo[activeTab].result.map(scanPath)}
             </div>
           }
-          {(!hmdInfo[activeScanType].result || hmdInfo[activeScanType].result.length === 0) &&
+          {(!hmdInfo[activeTab].result || hmdInfo[activeTab].result.length === 0) &&
             <div className='empty-msg'>{NOT_AVAILABLE}</div>
           }
         </div>
       )
-    } else if (activeScanType === 'ir') {
+    } else if (activeTab === 'ir') {
       return (
         <div className='scan-content'>
           <div className='header'>{t('network-inventory.txt-irMsg')}:</div>
-          <div className='empty-msg'>{hmdInfo[activeScanType].result || NOT_AVAILABLE}</div>
+          <div className='empty-msg'>{hmdInfo[activeTab].result || NOT_AVAILABLE}</div>
         </div>
       )
     }
   }
   getTableContent = (hmdInfo) => {
-    const {activeScanType} = this.state;
+    const {activeTab} = this.state;
 
-    if (!_.isEmpty(hmdInfo[activeScanType].fields) && hmdInfo[activeScanType].result.length > 0) {
+    if (!_.isEmpty(hmdInfo[activeTab].fields) && hmdInfo[activeTab].result.length > 0) {
       return (
         <div className='table'>
           <DataTable
             className='main-table'
-            fields={hmdInfo[activeScanType].fields}
-            data={hmdInfo[activeScanType].result} />
+            fields={hmdInfo[activeTab].fields}
+            data={hmdInfo[activeTab].result} />
         </div>
       )
     }   
   }
   displayScanInfo = () => {
     const {deviceData, currentDeviceData} = this.props;
-    const {activeScanType, gcbFieldsArr, malwareFieldsArr} = this.state;
+    const {activeTab, gcbFieldsArr, malwareFieldsArr} = this.state;
     const ip = currentDeviceData.ip || NOT_AVAILABLE;
     const mac = currentDeviceData.mac || NOT_AVAILABLE;
     const hostName = currentDeviceData.hostName || NOT_AVAILABLE;
@@ -439,20 +439,21 @@ class HMDscanInfo extends Component {
     });
 
     _.forEach(SAFETY_SCAN_LIST, val => { //Construct the HMD info object
-      if (!_.isEmpty(currentDeviceData[val.name])) {
-        let dataResult = currentDeviceData[val.name][val.path];
+      const dataType = val.type + 'Result';
+      const currentDataObj = currentDeviceData[dataType];
 
-        if (val.type === 'yara' || val.type === 'yaraScanFile') { //For Scan Process and Scan File
-          if (currentDeviceData[val.name].ScanResult && currentDeviceData[val.name].ScanResult.length > 0) {
-            dataResult = this.sortedRuleList(currentDeviceData[val.name].ScanResult);
-          }
+      if (!_.isEmpty(currentDataObj)) {
+        let dataResult = currentDataObj[val.path];
+
+        if (val.path === 'ScanResult') { //For Scan Process and Scan File
+          dataResult = this.sortedRuleList(dataResult);
         }
 
         hmdInfo[val.type] = {
-          createTime: helper.getFormattedDate(currentDeviceData[val.name].taskCreateDttm, 'local'),
-          responseTime: helper.getFormattedDate(currentDeviceData[val.name].taskResponseDttm, 'local'),
+          createTime: helper.getFormattedDate(currentDataObj.taskCreateDttm, 'local'),
+          responseTime: helper.getFormattedDate(currentDataObj.taskResponseDttm, 'local'),
           result: dataResult,
-          taskID: currentDeviceData[val.name].taskId
+          taskID: currentDataObj.taskId
         };
       }
     })
@@ -472,7 +473,7 @@ class HMDscanInfo extends Component {
       gcbFieldsArr.forEach(tempData => {
         hmdInfo.gcb.fields[tempData] = {
           label: f(`gcbFields.${tempData}`),
-          sortable: true,
+          sortable: null,
           formatter: (value, allValue) => {
             if (tempData === 'compareResult') {
               let styleStatus = '';
@@ -499,7 +500,7 @@ class HMDscanInfo extends Component {
       malwareFieldsArr.forEach(tempData => {
         hmdInfo.malware.fields[tempData] = {
           label: tempData === 'download' ? '' : f(`malwareFields.${tempData}`),
-          sortable: tempData === 'download' ? null : true,
+          sortable: null,
           formatter: (value, allValue) => {
             if (tempData === '_FileInfo._Filepath') {
               const newValue = value.substr(0, 20) + '...';
@@ -560,21 +561,21 @@ class HMDscanInfo extends Component {
             className='left'
             list={buttonGroupList}
             onChange={this.toggleScanType}
-            value={activeScanType} />
+            value={activeTab} />
 
           <div className='info-content'>
             <div>
               <div className='info'>
                 <div className='last-update'>
-                  <span>{t('network-inventory.txt-createTime')}: {hmdInfo[activeScanType].createTime || NOT_AVAILABLE}</span>
-                  <span>{t('network-inventory.txt-responseTime')}: {hmdInfo[activeScanType].responseTime || NOT_AVAILABLE}</span>
+                  <span>{t('network-inventory.txt-createTime')}: {hmdInfo[activeTab].createTime || NOT_AVAILABLE}</span>
+                  <span>{t('network-inventory.txt-responseTime')}: {hmdInfo[activeTab].responseTime || NOT_AVAILABLE}</span>
                 </div>
-                {this.getSuspiciousFileCount(hmdInfo)}
-                {this.getPassTotalCount(hmdInfo)}
-                {this.getTriggerBtn(hmdInfo)}
+                {this.getSuspiciousFileCount(hmdInfo)} {/*For Yara and Yara Scan File*/}
+                {this.getPassTotalCount(hmdInfo)} {/*For GCB*/}
+                {this.getTriggerBtn(hmdInfo)} {/*For all*/}
               </div>
-              {this.getScanContent(hmdInfo)}
-              {this.getTableContent(hmdInfo)}
+              {this.getScanContent(hmdInfo)} {/*For Yara, Yara Scan File and IR*/}
+              {this.getTableContent(hmdInfo)} {/*For GCB and Malware*/}
             </div>
           </div>
         </div>
