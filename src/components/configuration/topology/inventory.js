@@ -136,7 +136,6 @@ class NetworkInventory extends Component {
       ownerType: 'existing', //existing, new,
       ownerIDduplicated: false,
       previewOwnerPic: '',
-      irSelectedTaskID: '',
       irComboSelected: 'quick', //quick, standard, full
       irItemSelected: DEFAULT_IR_SELECTED,
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
@@ -890,18 +889,14 @@ class NetworkInventory extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  triggerTask = (type, taskId) => {
+  triggerTask = (type) => {
     const {baseUrl, contextRoot} = this.props;
     const {currentDeviceData} = this.state;
     const url = `${baseUrl}/api/hmd/retrigger`;
-    let requestData = {
+    const requestData = {
       hostId: currentDeviceData.ipDeviceUUID,
       cmds: type
     };
-
-    if (taskId) {
-      requestData.taskId = taskId;
-    }
 
     helper.getAjaxData('POST', url, requestData)
     .then(data => {
@@ -997,24 +992,19 @@ class NetworkInventory extends Component {
     )
   }
   confirmIRselection = () => {
-    const {irSelectedTaskID, irItemSelected} = this.state;
+    const {irItemSelected} = this.state;
     const selectedIrArr = _.map(irItemSelected, val => {
       return IR_MAPPINGS[val];
     });
 
-    this.triggerTask(selectedIrArr, irSelectedTaskID);
+    this.triggerTask(selectedIrArr);
     this.toggleSelectionIR();
   }
-  toggleSelectionIR = (taskID) => {
+  toggleSelectionIR = () => {
     const {modalIRopen} = this.state;
 
-    if (modalIRopen) {
+    if (!modalIRopen) {
       this.setState({
-        irSelectedTaskID: ''
-      });
-    } else {
-      this.setState({
-        irSelectedTaskID: taskID,
         irComboSelected: 'quick',
         irItemSelected: DEFAULT_IR_SELECTED
       });

@@ -77,6 +77,12 @@ const ALERT_MAIN_DATA = {
   },
   //Left nav
   treeData: {
+    alert: {
+      title: '',
+      rawData: {},
+      data: {},
+      currentTreeName: ''
+    },
     private: {
       title: '',
       rawData: {},
@@ -84,12 +90,6 @@ const ALERT_MAIN_DATA = {
       currentTreeName: ''
     },
     public: {
-      title: '',
-      rawData: {},
-      data: {},
-      currentTreeName: ''
-    },
-    alert: {
       title: '',
       rawData: {},
       data: {},
@@ -411,12 +411,12 @@ class AlertController extends Component {
     tempTreeData[type].currentTreeName = value;
     let individualTreeData = '';
 
-    if (type === 'private') {
+    if (type === 'alert') {
+      individualTreeData = this.getAlertTreeData(tempTreeData[type].rawData, value);
+    } else if (type === 'private') {
       individualTreeData = this.getPrivateTreeData(tempTreeData[type].rawData, value);
     } else if (type === 'public') {
       individualTreeData = this.getPublicTreeData(tempTreeData[type].rawData, value);
-    } else if (type === 'alert') {
-      individualTreeData = this.getAlertTreeData(tempTreeData[type].rawData, value);
     }
 
     tempTreeData[type].data = individualTreeData;
@@ -424,81 +424,6 @@ class AlertController extends Component {
     this.setState({
       treeData: tempTreeData
     });
-  }
-  getPrivateTreeData = (treeData, treeName) => {
-    const path = PRIVATE_API.path;
-    let treeObj = { //Handle service tree data
-      id: 'All',
-      children: []
-    };
-
-    _.keys(treeData)
-    .forEach(key => {
-      let tempChild = [];
-      let label = '';
-
-      if (key && key !== 'doc_count') {
-        if (treeData[key][path].buckets.length > 0) {
-          _.forEach(treeData[key][path].buckets, val => {
-            if (val.key) {
-              label = <span title={val.key}>{val.key} ({val.doc_count}) <button className={cx('button', {'active': treeName === val.key})} onClick={this.selectTree.bind(this, val.key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</button></span>;
-
-              tempChild.push({
-                id: val.key,
-                label
-              });
-            }
-          })
-        }
-
-        label = <span title={key}>{key} ({treeData[key].doc_count}) <button className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</button></span>;
-
-        let treeProperty = {
-          id: key,
-          label
-        };
-
-        if (tempChild.length > 0) {
-          treeProperty.children = tempChild;
-        }
-
-        treeObj.children.push(treeProperty);
-      }
-    })
-
-    treeObj.label = t('txt-all') + ' (' + treeData.doc_count + ')';
-
-    return treeObj;
-  }
-  getPublicTreeData = (treeData, treeName) => {
-    const path = PUBLIC_API.path;
-    let treeObj = { //Handle service tree data
-      id: 'All',
-      children: []
-    };
-
-    _.keys(treeData)
-    .forEach(key => {
-      let tempChild = [];
-      let label = '';
-
-      if (key && key !== 'doc_count') {
-        _.forEach(treeData[path].buckets, val => {
-          if (val.key) {
-            label = <span title={val.key}>{val.key} ({val.doc_count}) <button className={cx('button', {'active': treeName === val.key})} onClick={this.selectTree.bind(this, val.key, 'srcCountry')}>{t('events.connections.txt-addFilter')}</button></span>;
-
-            treeObj.children.push({
-              id: val.key,
-              label
-            });
-          }
-        })
-      }
-    })
-
-    treeObj.label = t('txt-all') + ' (' + treeData.doc_count + ')';
-
-    return treeObj;
   }
   getAlertTreeData = (treeData, treeName) => {
     let treeObj = { //Handle service tree data
@@ -615,6 +540,81 @@ class AlertController extends Component {
     })
 
     treeObj.label = t('txt-all') + ' (' + treeData.default.doc_count + ')';
+
+    return treeObj;
+  }
+  getPrivateTreeData = (treeData, treeName) => {
+    const path = PRIVATE_API.path;
+    let treeObj = { //Handle service tree data
+      id: 'All',
+      children: []
+    };
+
+    _.keys(treeData)
+    .forEach(key => {
+      let tempChild = [];
+      let label = '';
+
+      if (key && key !== 'doc_count') {
+        if (treeData[key][path].buckets.length > 0) {
+          _.forEach(treeData[key][path].buckets, val => {
+            if (val.key) {
+              label = <span title={val.key}>{val.key} ({val.doc_count}) <button className={cx('button', {'active': treeName === val.key})} onClick={this.selectTree.bind(this, val.key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</button></span>;
+
+              tempChild.push({
+                id: val.key,
+                label
+              });
+            }
+          })
+        }
+
+        label = <span title={key}>{key} ({treeData[key].doc_count}) <button className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</button></span>;
+
+        let treeProperty = {
+          id: key,
+          label
+        };
+
+        if (tempChild.length > 0) {
+          treeProperty.children = tempChild;
+        }
+
+        treeObj.children.push(treeProperty);
+      }
+    })
+
+    treeObj.label = t('txt-all') + ' (' + treeData.doc_count + ')';
+
+    return treeObj;
+  }
+  getPublicTreeData = (treeData, treeName) => {
+    const path = PUBLIC_API.path;
+    let treeObj = { //Handle service tree data
+      id: 'All',
+      children: []
+    };
+
+    _.keys(treeData)
+    .forEach(key => {
+      let tempChild = [];
+      let label = '';
+
+      if (key && key !== 'doc_count') {
+        _.forEach(treeData[path].buckets, val => {
+          if (val.key) {
+            label = <span title={val.key}>{val.key} ({val.doc_count}) <button className={cx('button', {'active': treeName === val.key})} onClick={this.selectTree.bind(this, val.key, 'srcCountry')}>{t('events.connections.txt-addFilter')}</button></span>;
+
+            treeObj.children.push({
+              id: val.key,
+              label
+            });
+          }
+        })
+      }
+    })
+
+    treeObj.label = t('txt-all') + ' (' + treeData.doc_count + ')';
 
     return treeObj;
   }

@@ -26,6 +26,12 @@ const NOT_AVAILABLE = 'N/A';
 let t = null;
 let f = null;
 
+/**
+ * Alert Details
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the alert details information
+ */
 class AlertDetails extends Component {
   constructor(props) {
     super(props);
@@ -98,6 +104,12 @@ class AlertDetails extends Component {
     this.closeDialog();
     document.addEventListener('mousedown', this.handleClickOutside);
   }
+  /**
+   * Call when mouse click outside the redirect menu
+   * @method
+   * @param {object} e - MouseEvents
+   * @returns none
+   */
   handleClickOutside = (e) => {
     if (this.wrapperRef && !this.wrapperRef.contains(e.target)) {
       this.setState({
@@ -105,14 +117,33 @@ class AlertDetails extends Component {
       });
     }
   }
+  /**
+   * Set wrapper reference
+   * @method
+   * @param {object} node - redirect menu node
+   * @returns none
+   */
   setWrapperRef = (node) => {
     this.wrapperRef = node;
   }
+  /**
+   * Toggle redirect menu on/off
+   * @method
+   * @param none
+   * @returns none
+   */
   toggleRedirectMenu = () => {
     this.setState({
       showRedirectMenu: !this.state.showRedirectMenu
     });
   }
+  /**
+   * Generate a redirect link and process the browser redirect
+   * @method
+   * @param {object} type - 'events'
+   * @param {string} value - 'srcIp' or 'destIp'
+   * @returns none
+   */
   redirectLink = (type, value) => {
     const {language, alertData} = this.props;
     const eventDatetime = helper.getFormattedDate(alertData._eventDttm_, 'local');
@@ -127,13 +158,13 @@ class AlertDetails extends Component {
         ipParam = `&destIp=${destIp}`;
       }
       const url = `/ChewbaccaWeb/events/netflow?eventDttm=${eventDatetime}${ipParam}&lng=${language}`;
-
       window.open(url, '_blank');
     }
   }
   /**
    * Call corresponding Alert data based on conditions
-   * @param {object} prevProps - previous props when the props have been updated
+   * @method
+   * @param {object} prevProps - previous props when the react props have been updated
    * @returns none
    */
   loadAlertContent = (prevProps) => {
@@ -175,7 +206,8 @@ class AlertDetails extends Component {
     }   
   }
   /**
-   * Set Topology Info
+   * Set source or destination topology data to alertInfo
+   * @method
    * @param {object} alertInfo - Alert Info to be set
    * @param {string} type - 'srcIp' or 'destIp'
    * @returns none
@@ -193,7 +225,8 @@ class AlertDetails extends Component {
     });
   }
   /**
-   * Get IP content
+   * Get source or destination topology data
+   * @method
    * @param {string} type - 'srcIp' or 'destIp'
    * @returns none
    */
@@ -235,6 +268,12 @@ class AlertDetails extends Component {
       })
     }
   }
+  /**
+   * Get IP device info for HMD section
+   * @method
+   * @param {string} type - 'srcIp' or 'destIp'
+   * @returns none
+   */
   getHMDinfo = (type) => {
     const {baseUrl, contextRoot} = this.props;
     const {ipDeviceInfo} = this.state;
@@ -260,6 +299,7 @@ class AlertDetails extends Component {
   }
   /**
    * Get owner picture based on location type
+   * @method
    * @param {string} type - 'srcIp' or 'destIp'
    * @returns none
    */
@@ -289,7 +329,8 @@ class AlertDetails extends Component {
     }
   }
   /**
-   * Set AlertInfo data
+   * Set owner map and seat data for alertInfo
+   * @method
    * @param {string} type - 'srcIp' or 'destIp'
    * @returns none
    */
@@ -333,7 +374,8 @@ class AlertDetails extends Component {
     });
   }
   /**
-   * Get Alert data
+   * Get Alert rule data
+   * @method
    * @param none
    * @returns none
    */
@@ -371,8 +413,9 @@ class AlertDetails extends Component {
   }
   /**
    * Get IP and Port data
+   * @method
    * @param {string} type - 'srcIp', 'destIp', 'srcPort', 'destPort'
-   * @returns ip or port data
+   * @returns IP or port
    */
   getIpPortData = (type) => {
     const {alertData} = this.props;
@@ -389,6 +432,7 @@ class AlertDetails extends Component {
   }
   /**
    * Reset PCAP data
+   * @method
    * @param none
    * @returns none
    */
@@ -409,7 +453,8 @@ class AlertDetails extends Component {
     });
   }
   /**
-   * Get PCAP data
+   * Get and set PCAP data
+   * @method
    * @param none
    * @returns none
    */
@@ -443,6 +488,7 @@ class AlertDetails extends Component {
   }
   /**
    * Set Alert payload data
+   * @method
    * @param none
    * @returns none
    */
@@ -454,7 +500,8 @@ class AlertDetails extends Component {
     });
   }
   /**
-   * Get corresponding content based on content type
+   * Set corresponding content based on content type
+   * @method
    * @param {string} the content type
    * @returns none
    */
@@ -510,8 +557,9 @@ class AlertDetails extends Component {
   }
   /**
    * Get alert severity
+   * @method
    * @param {value} - 'High', 'Medium', 'Low'
-   * @returns HTML Dom with severity
+   * @returns HTML DOM
    */
   getSeverity = (value) => {
     let styleStatus = '';
@@ -530,6 +578,7 @@ class AlertDetails extends Component {
   }
   /**
    * Display Alert information in dialog box
+   * @method
    * @param none
    * @returns none
    */
@@ -676,8 +725,9 @@ class AlertDetails extends Component {
   }
   /**
    * Display redirect menu
+   * @method
    * @param {string} type - 'srcIp' or 'destIp'
-   * @returns HTML
+   * @returns HTML DOM
    */
   displayRedirectMenu = (type) => {
     return (
@@ -687,18 +737,20 @@ class AlertDetails extends Component {
     )
   }
   /**
-   * Show rule content
+   * Display rule content
+   * @method
    * @param {string} val - val for the rule content
    * @param {number} i - index
-   * @returns HTML
+   * @returns HTML DOM
    */
   showRuleContent = (val, i) => {
     return <li key={i}>{val.rule}</li>
   }
   /**
    * Display rule content
+   * @method
    * @param none
-   * @returns HTML
+   * @returns HTML DOM
    */
   displayRuleContent = () => {
     const {alertType, alertRule} = this.state;
@@ -720,8 +772,9 @@ class AlertDetails extends Component {
   }
   /**
    * Set PCAP hex value
+   * @method
    * @param {string} hex - original string value
-   * @param {number} index - active index for the Alert PCAP array
+   * @param {number} index - active index of the Alert PCAP array
    * @returns none
    */
   setPCAPhex = (hex, index) => {
@@ -740,6 +793,7 @@ class AlertDetails extends Component {
   }
   /**
    * Set PCAP page
+   * @method
    * @param {string} currentPage - current page of the PCAP info
    * @returns none
    */
@@ -758,6 +812,7 @@ class AlertDetails extends Component {
   }
   /**
    * Toggle (check/uncheck) to show/hide the PCAP data
+   * @method
    * @param none
    * @returns none
    */
@@ -786,10 +841,11 @@ class AlertDetails extends Component {
     });
   }
   /**
-   * Show PCAP content
-   * @param {string} key - key for the PCAP content
+   * Display individual PCAP data
+   * @method
+   * @param {string} key - key of the PCAP content
    * @param {number} i - index
-   * @returns HTML
+   * @returns HTML DOM
    */
   showPCAPcontent = (key, i) => {
     const {alertPCAP} = this.state;
@@ -798,8 +854,9 @@ class AlertDetails extends Component {
   }
   /**
    * Display PCAP content
+   * @method
    * @param none
-   * @returns HTML
+   * @returns HTML DOM
    */
   displayPCAPcontent = () => {
     const {alertPCAP} = this.state;
@@ -855,8 +912,9 @@ class AlertDetails extends Component {
   }
   /**
    * Display PCAP payload content
+   * @method
    * @param none
-   * @returns HTML
+   * @returns HTML DOM
    */
   displayPayloadcontent = () => {
     const {alertPayload} = this.state;
@@ -871,6 +929,7 @@ class AlertDetails extends Component {
   }
   /**
    * Get Alert details list width
+   * @method
    * @param none
    * @returns {string} - list width
 
@@ -886,9 +945,10 @@ class AlertDetails extends Component {
   }
   /**
    * Check location data
+   * @method
    * @param {string} item - key item
    * @param {string} data - data associated with the key
-   * @returns {string} - return only the valid data
+   * @returns - valid data in string or false
 
    */
   checkLocationData = (item, data) => {
@@ -904,10 +964,11 @@ class AlertDetails extends Component {
     return false;
   }
   /**
-   * Show Alert public info
-   * @param {string} item - key for the public info
+   * Display Alert public info
+   * @method
+   * @param {string} item - key of the public info
    * @param {number} i - index 
-   * @returns HTML
+   * @returns HTML DOM
    */
   showPuclicInfo = (type, item, i) => {
     const {baseUrl, contextRoot} = this.props;
@@ -954,8 +1015,9 @@ class AlertDetails extends Component {
   }
   /**
    * Display Alert public info
+   * @method
    * @param {string} type - 'srcIp' or 'destIp'
-   * @returns none
+   * @returns HTML DOM
    */
   getPublicInfo = (type) => {
     return (
@@ -966,8 +1028,9 @@ class AlertDetails extends Component {
   }
   /**
    * Display Alert private info
+   * @method
    * @param {string} type - 'srcIp' or 'destIp'
-   * @returns none
+   * @returns PrivateDetails component
    */
   getPrivateInfo = (type) => {
     const {baseUrl, contextRoot, language, alertData} = this.props;
@@ -998,8 +1061,9 @@ class AlertDetails extends Component {
   }
   /**
    * Display IP content
+   * @method
    * @param {string} type - 'srcIp' or 'destIp'
-   * @returns none
+   * @returns HTML DOM
    */
   displayIPcontent = (type) => {
     const {alertInfo} = this.state;
@@ -1036,6 +1100,12 @@ class AlertDetails extends Component {
       </div>
     )
   }
+  /**
+   * Call taskinfo API for HMD trigger button
+   * @method
+   * @param {string} type - 'srcIp' or 'destIp'
+   * @returns HTML DOM
+   */  
   triggerTask = (taskId, type) => {
     const {baseUrl, contextRoot} = this.props;
     const url = `${baseUrl}/api/hmd/taskinfo`;
@@ -1051,7 +1121,6 @@ class AlertDetails extends Component {
           confirmText: t('txt-close'),
           display: <div>{t('txt-requestSent')}</div>
         });
-
         this.getHMDinfo(type);
       }
     })
@@ -1061,8 +1130,9 @@ class AlertDetails extends Component {
   }
   /**
    * Display safety scan content
+   * @method
    * @param {string} type - 'srcIp' or 'destIp'
-   * @returns none
+   * @returns SafetyScan component
    */
   displaySafetyScanContent = (type) => {
     const {ipDeviceInfo} = this.state;
@@ -1075,9 +1145,10 @@ class AlertDetails extends Component {
     )
   }
   /**
-   * Display Json Data content
+   * Display JSON Data content
+   * @method
    * @param none
-   * @returns none
+   * @returns HTML DOM
    */
   displayJsonData = () => {
     const {alertData} = this.props;
@@ -1092,6 +1163,7 @@ class AlertDetails extends Component {
   }
   /**
    * Get Alert PCAP file
+   * @method
    * @param none
    * @returns none
    */
@@ -1122,8 +1194,9 @@ class AlertDetails extends Component {
   }
   /**
    * Download paylaod file
+   * @method
    * @param none
-   * @returns none
+   * @returns false if origFileId and fileMD5 are not available
    */
   downloadFile = () => {
     const {baseUrl, contextRoot, alertData} = this.props;
@@ -1152,7 +1225,8 @@ class AlertDetails extends Component {
     })
   }
   /**
-   * Reset state values
+   * Close dialog and reset state values
+   * @method
    * @param none
    * @returns none
    */

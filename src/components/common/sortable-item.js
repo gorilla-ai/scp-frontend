@@ -38,38 +38,29 @@ class SortableItem extends Component {
     }
   }
   render() {
-    const {
-      index,
-      activeTab,
-      value,
-      getCustomFieldName,
-      setFieldsChange,
-      checkDisplayFields,
-      showQueryOptions,
-      toggleLocaleEdit
-    } = this.props;
+    const {index, activeTab, value} = this.props;
     const key = _.keys(value).toString();
     let localeField = f(`${activeTab}Fields.${key}`);
 
     if (activeTab === 'logs') {
-      localeField = getCustomFieldName(key, 'logs');
+      localeField = this.props.getCustomFieldName(key, 'logs');
     }
 
     return (
       <li key={index} className='table-sort-list'>
         {!_.includes(TIME_FIELDS, key) &&
-          <i className='fg fg-filter' title={t('txt-filterQuery')} onClick={showQueryOptions(key, value[key])}></i>
+          <i className='fg fg-filter' title={t('txt-filterQuery')} onClick={this.props.showQueryOptions(key, value[key])}></i>
         }
         {_.includes(TIME_FIELDS, key) && //Disable the filer for time related fields
           <i className='fg fg-filter disabled' title={t('txt-filterQuery')}></i>
         }
         <Checkbox
           className='data-field flow'
-          onChange={setFieldsChange.bind(this, key)}
-          checked={checkDisplayFields(key)}
+          onChange={this.props.setFieldsChange.bind(this, key)}
+          checked={this.props.checkDisplayFields(key)}
           disabled={_.includes(TIME_FIELDS, key)} />
         {activeTab === 'logs' &&
-          <i className='fg fg-edit' title={t('syslogFields.txt-customFieldName')} onClick={toggleLocaleEdit.bind(this, key, localeField)}></i>
+          <i className='fg fg-edit' title={t('syslogFields.txt-customFieldName')} onClick={this.props.toggleLocaleEdit.bind(this, key, localeField)}></i>
         }
         <span className='key'>{localeField}</span>
         <span className='value'>

@@ -11,6 +11,12 @@ import withLocale from '../../hoc/locale-provider'
 
 let t = null;
 
+/**
+ * Chart Content
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the chart data
+ */
 class ChartContent extends Component {
   constructor(props) {
     super(props);
@@ -26,11 +32,12 @@ class ChartContent extends Component {
   }
   componentDidUpdate = (prevProps) => {
     this.getChartData(prevProps);
-  }
+  } 
   /**
-   * Show tooltip info when mouseover
-   * @param {object} eventInfo - event info for the mouseover
-   * @param {object} data - data info to show for tooltip
+   * Show tooltip info when mouseover the chart
+   * @method
+   * @param {object} eventInfo - MouseoverEvents
+   * @param {object} data - chart data
    * @returns none
    */
   onTooltip = (eventInfo, data) => {
@@ -45,8 +52,9 @@ class ChartContent extends Component {
     return <div>{text}</div>
   }
   /**
-   * Load data for chart content
-   * @param {object} prevProps - previous props when the props have been updated
+   * Construct and set the chart content
+   * @method
+   * @param {object} prevProps - previous react props when the props have been updated
    * @returns none
    */
   getChartData = (prevProps) => {
@@ -61,72 +69,80 @@ class ChartContent extends Component {
     };
     let colorCode = {};
 
-    if (!tableMouseOver) {
-      if (markData) {
-        _.forEach(markData, (val, i) => {
-          colorCode[val.data] = helper.getColorList(i);
-        })
-      }
+    if (tableMouseOver) {
+      return;
+    }
 
-      if (pageType === 'connections') {
-        dataArr = _.map(chartData, (value, key) => {
+    if (markData) {
+      _.forEach(markData, (val, i) => {
+        colorCode[val.data] = helper.getColorList(i);
+      })
+    }
+
+    if (pageType === 'connections') {
+      dataArr = _.map(chartData, (value, key) => {
+        return {
+          time: parseInt(Moment(key, 'YYYY-MM-DDTHH:mm:ss.SSZ').utc(true).format('x')),
+          number: value
+        };
+      });
+    } else if (pageType === 'alert' || pageType === 'logs') {
+      let rulesObj = {};
+      let rulesAll = [];
+
+      _.forEach(_.keys(chartData), val => { //Manually add rule name to the response data
+        rulesObj[val] = _.map(chartData[val], (value, key) => {
           return {
             time: parseInt(Moment(key, 'YYYY-MM-DDTHH:mm:ss.SSZ').utc(true).format('x')),
-            number: value
+            number: value,
+            rule: val
           };
         });
-      } else if (pageType === 'alert' || pageType === 'logs') {
-        let rulesObj = {};
-        let rulesAll = [];
+      })
 
-        _.forEach(_.keys(chartData), val => { //Manually add rule name to the response data
-          rulesObj[val] = _.map(chartData[val], (value, key) => {
-            return {
-              time: parseInt(Moment(key, 'YYYY-MM-DDTHH:mm:ss.SSZ').utc(true).format('x')),
-              number: value,
-              rule: val
-            };
-          });
-        })
+      _.forEach(_.keys(chartData), val => { //Push multiple rule arrays into a single array
+        rulesAll.push(rulesObj[val]);
+      })
 
-        _.forEach(_.keys(chartData), val => { //Push multiple rule arrays into a single array
-          rulesAll.push(rulesObj[val]);
-        })
+      //Merge multiple arrays with different rules to a single array
+      dataArr = rulesAll.reduce((accumulator, currentValue) => {
+        return accumulator.concat(currentValue)
+      }, []);
 
-        //Merge multiple arrays with different rules to a single array
-        dataArr = rulesAll.reduce((accumulator, currentValue) => {
-          return accumulator.concat(currentValue)
-        }, []);
+      legend.enabled = true;
+      dataCfg.splitSeries = 'rule';
 
-        legend.enabled = true;
-        dataCfg.splitSeries = 'rule';
-
-        if (pageType === 'alert') {
-          colorCode = chartColors;
-        }
-      }
-
-      const chartAttributes = {
-        legend,
-        data: dataArr,
-        colors: colorCode,
-        onTooltip: this.onTooltip,
-        dataCfg,
-        xAxis: {
-          type: 'datetime',
-          dateTimeLabelFormats: {
-            day: '%H:%M'
-          }
-        }
-      };
-
-      if (!prevProps || (prevProps && chartData !== prevProps.chartData)) {
-        this.setState({
-          chartAttributes
-        });
+      if (pageType === 'alert') {
+        colorCode = chartColors;
       }
     }
+
+    const chartAttributes = {
+      legend,
+      data: dataArr,
+      colors: colorCode,
+      onTooltip: this.onTooltip,
+      dataCfg,
+      xAxis: {
+        type: 'datetime',
+        dateTimeLabelFormats: {
+          day: '%H:%M'
+        }
+      }
+    };
+
+    if (!prevProps || (prevProps && chartData !== prevProps.chartData)) {
+      this.setState({
+        chartAttributes
+      });
+    }
   }
+  /**
+   * Display chart content
+   * @method
+   * @param none
+   * @returns HTML DOM or BarChart/LineChart component
+   */
   showChartContent = () => {
     const {pageType} = this.props;
     const {chartAttributes} = this.state;

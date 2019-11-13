@@ -23,6 +23,7 @@
     "lint-fix": "./node_modules/eslint/bin/eslint.js --fix \"src/**/*.js\" > lint.log",
     "start": "babel-node server.js",
     "start-watch": "nodemon --watch server.js --watch src/server --exec babel-node server.js",
+    "doc": "jsdoc -r src -R README.md -p -c jsdoc.json -d docs",
     "test": "jest"
   },
   "author": "",
@@ -41,6 +42,7 @@
     "formidable": "^1.2.1",
     "jest": "^23.6.0",
     "jquery": "^3.3.1",
+    "jsdoc": "^3.6.3",
     "lodash": "^4.17.5",
     "loglevel": "^1.6.1",
     "loglevel-prefix-persist": "^1.0.3",

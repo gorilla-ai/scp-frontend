@@ -366,9 +366,9 @@ class HMDscanInfo extends Component {
     const {activeTab} = this.state;
 
     if (activeTab === 'ir') {
-      return <button className='btn' onClick={this.props.toggleSelectionIR.bind(this, hmdInfo[activeTab].taskID)} disabled={this.checkTriggerTime(activeTab)}>{t('network-inventory.txt-reCompress')}</button>
+      return <button className='btn' onClick={this.props.toggleSelectionIR} disabled={this.checkTriggerTime(activeTab)}>{t('network-inventory.txt-reCompress')}</button>
     } else {
-      return <button className='btn' onClick={this.props.triggerTask.bind(this, [TRIGGER_NAME[activeTab]], hmdInfo[activeTab].taskID)} disabled={this.checkTriggerTime(activeTab)}>{t('network-inventory.txt-reCheck')}</button>
+      return <button className='btn' onClick={this.props.triggerTask.bind(this, [TRIGGER_NAME[activeTab]])} disabled={this.checkTriggerTime(activeTab)}>{t('network-inventory.txt-reCheck')}</button>
     }
   }
   getScanContent = (hmdInfo) => {
@@ -452,8 +452,7 @@ class HMDscanInfo extends Component {
         hmdInfo[val.type] = {
           createTime: helper.getFormattedDate(currentDataObj.taskCreateDttm, 'local'),
           responseTime: helper.getFormattedDate(currentDataObj.taskResponseDttm, 'local'),
-          result: dataResult,
-          taskID: currentDataObj.taskId
+          result: dataResult
         };
       }
     })

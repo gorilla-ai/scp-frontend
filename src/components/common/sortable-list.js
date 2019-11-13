@@ -11,14 +11,7 @@ class SortableList extends Component {
     super(props);
   }
   showTableSort = (value, index) => {
-    const {
-      activeTab,
-      getCustomFieldName,
-      setFieldsChange,
-      checkDisplayFields,
-      showQueryOptions,
-      toggleLocaleEdit
-    } = this.props;
+    const {activeTab} = this.props;
 
     return (
       <SortableItem
@@ -26,11 +19,11 @@ class SortableList extends Component {
         index={index}
         activeTab={activeTab}
         value={value}
-        getCustomFieldName={getCustomFieldName}
-        setFieldsChange={setFieldsChange}
-        checkDisplayFields={checkDisplayFields}
-        showQueryOptions={showQueryOptions}
-        toggleLocaleEdit={toggleLocaleEdit} />
+        getCustomFieldName={this.props.getCustomFieldName}
+        setFieldsChange={this.props.setFieldsChange}
+        checkDisplayFields={this.props.checkDisplayFields}
+        showQueryOptions={this.props.showQueryOptions}
+        toggleLocaleEdit={this.props.toggleLocaleEdit} />
     )
   }
   render() {
