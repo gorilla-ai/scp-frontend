@@ -19,6 +19,12 @@ const TIME_FIELDS = ['@timestamp', 'firstPacket', 'lastPacket', 'timestamp', '_e
 
 const DragHandle = SortableHandle(() => <i className='fg fg-menu flow'></i>);
 
+/**
+ * Sortable Item
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the list with sort functionality
+ */
 class SortableItem extends Component {
   constructor(props) {
     super(props);
@@ -26,6 +32,12 @@ class SortableItem extends Component {
     t = chewbaccaI18n.getFixedT(null, 'connections');
     f = chewbaccaI18n.getFixedT(null, 'tableFields');
   }
+  /**
+   * Get input value in the table row
+   * @method
+   * @param {object} value - selected value of the sortable item
+   * @returns HTML DOM
+   */
   getValueData = (value) => {
     const key = _.keys(value).toString();
 

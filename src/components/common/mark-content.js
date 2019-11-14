@@ -2,12 +2,18 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import cx from 'classnames'
 
-import Mark from './mark'
+import MarkInput from './mark-input'
 
 import withLocale from '../../hoc/locale-provider'
 
 let t = null;
 
+/**
+ * Mark Content
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the mark menu content
+ */
 class MarkContent extends Component {
   constructor(props) {
     super(props);
@@ -20,7 +26,7 @@ class MarkContent extends Component {
     return (
       <div className={cx('main-mark', {'active': showMark})}>
         <div className='header-text'>{t('syslogFields.query')}</div>
-        <Mark
+        <MarkInput
           inline={true}
           {...this.props} />
         <div className='button-group'>

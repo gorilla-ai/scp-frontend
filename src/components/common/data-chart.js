@@ -11,6 +11,12 @@ import withLocale from '../../hoc/locale-provider'
 
 let t = null;
 
+/**
+ * Data Chart
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to set the chart data and display chart related content
+ */
 class DataChart extends Component {
   constructor(props) {
     super(props);
@@ -22,11 +28,16 @@ class DataChart extends Component {
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
   }
   componentDidMount() {
-    this.getTimebarData();
+    this.getChartData();
   }
   componentDidUpdate = (prevProps) => {
-    this.getTimebarData(prevProps);
+    this.getChartData(prevProps);
   }
+  /**
+   * Get chart data based on user selections
+   * @method
+   * @returns chart data object
+   */
   getHistogramType = () => {
     const {tabChartData} = this.props;
 
@@ -38,66 +49,80 @@ class DataChart extends Component {
       return tabChartData.byteHistogram;
     }
   }
-  setChartState = (chartData) => {
+  /**
+   * Set chart data
+   * @method
+   * @param {object} chartData - chart data to be set
+   * @returns none
+   */
+  setChartData = (chartData) => {
     this.setState({
       chartData
     });
   }
-  getTimebarData = (prevProps) => {
+  /**
+   * Get chart data and handle the button clicks for chart options
+   * @method
+   * @param {object} prevProps - previous react props when the props have been updated
+   * @returns none
+   */
+  getChartData = (prevProps) => {
     const {mainContentData, tabChartData, tableMouseOver} = this.props;
     const activeTab = mainContentData.activeTab;
     let chartData = '';
 
-    if (!tableMouseOver) {
-      if (activeTab === 'alert' || activeTab === 'logs') {
-        chartData = tabChartData.chartData;
-      } else if (activeTab === 'connections') {
-        chartData = this.getHistogramType();
+    if (tableMouseOver) {
+      return;
+    }
+
+    if (activeTab === 'alert' || activeTab === 'logs') {
+      chartData = tabChartData.chartData;
+    } else if (activeTab === 'connections') {
+      chartData = this.getHistogramType();
+    }
+
+    if (_.isEmpty(chartData)) {
+      if (!_.isEmpty(this.state.chartData)) {
+        this.setChartData({}, []);
       }
+    } else {
+      if (activeTab === 'alert' || activeTab === 'logs') {
+        let combinedData = '';
 
-      if (_.isEmpty(chartData)) {
-        if (!_.isEmpty(this.state.chartData)) {
-          this.setChartState({}, []);
+        _.forEach(_.keys(chartData), val => {
+          combinedData = _.assign({}, chartData[val]); //Combine chart object data for Alert
+        })
+
+        if (!prevProps || (prevProps && chartData !== prevProps.tabChartData.chartData)) {
+          this.setChartData(chartData);
         }
-      } else {
-        if (activeTab === 'alert' || activeTab === 'logs') {
-          let combinedData = '';
+      } else if (activeTab === 'connections') {
+        let setChartData = false;
 
-          _.forEach(_.keys(chartData), val => {
-            combinedData = _.assign({}, chartData[val]); //Combine chart object data for Alert
-          })
-
-          if (!prevProps || (prevProps && chartData !== prevProps.tabChartData.chartData)) {
-            this.setChartState(chartData);
-          }
-        } else if (activeTab === 'connections') {
-          let setChartState = false;
-
-          if (!prevProps) { //For switching the Table view and LA/Map view
-            setChartState = true;
-          } else {
-            if (tabChartData.chartTypeValue !== prevProps.tabChartData.chartTypeValue) { //For switching chart type
-              setChartState = true;
-            } else { //For switching chart interval
-              if (tabChartData.chartTypeValue === 'connections') {
-                if (chartData !== prevProps.tabChartData.sessionHistogram) {
-                  setChartState = true;
-                }
-              } else if (tabChartData.chartTypeValue === 'packets') {
-                if (chartData !== prevProps.tabChartData.packageHistogram) {
-                  setChartState = true;
-                }
-              } else if (tabChartData.chartTypeValue === 'databytes') {
-                if (chartData !== prevProps.tabChartData.byteHistogram) {
-                  setChartState = true;
-                }
+        if (!prevProps) { //For switching the Table view and LA/Map view
+          setChartData = true;
+        } else {
+          if (tabChartData.chartTypeValue !== prevProps.tabChartData.chartTypeValue) { //For switching chart type
+            setChartData = true;
+          } else { //For switching chart interval
+            if (tabChartData.chartTypeValue === 'connections') {
+              if (chartData !== prevProps.tabChartData.sessionHistogram) {
+                setChartData = true;
+              }
+            } else if (tabChartData.chartTypeValue === 'packets') {
+              if (chartData !== prevProps.tabChartData.packageHistogram) {
+                setChartData = true;
+              }
+            } else if (tabChartData.chartTypeValue === 'databytes') {
+              if (chartData !== prevProps.tabChartData.byteHistogram) {
+                setChartData = true;
               }
             }
           }
+        }
 
-          if (setChartState) {
-            this.setChartState(chartData);
-          }
+        if (setChartData) {
+          this.setChartData(chartData);
         }
       }
     }

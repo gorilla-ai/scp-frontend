@@ -20,6 +20,12 @@ const OWNER_INFO = ['ownerName', 'ownerID', 'department', 'title'];
 let t = null;
 let f = null;
 
+/**
+ * Private Details
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the detail IP device information
+ */
 class PrivateDetails extends Component {
   constructor(props) {
     super(props);
@@ -39,6 +45,12 @@ class PrivateDetails extends Component {
   componentDidMount() {
     this.getDataInfo();
   }
+  /**
+   * Get and set the ip, owner, area and host information
+   * @method
+   * @param none
+   * @returns none
+   */
   getDataInfo = () => {
     const {type, alertInfo, topoInfo, srcDestType} = this.props;
     const ip = {
@@ -92,6 +104,14 @@ class PrivateDetails extends Component {
       ownerInfo
     });
   }
+  /**
+   * Display IP information
+   * @method
+   * @param {object} ip - IP data
+   * @param {string} val - ip or mac
+   * @param {number} i - index of IP_INFO array
+   * @returns HTML DOM
+   */
   displayIpInfo = (ip, val, i) => {
     return (
       <tr key={i}>
@@ -100,6 +120,14 @@ class PrivateDetails extends Component {
       </tr>
     )
   }
+  /**
+   * Display host or owner table row
+   * @method
+   * @param {string} fieldType - field name
+   * @param {object} val - host or owner data
+   * @param {number} i - index of hostInfo or ownerInfo
+   * @returns HTML DOM
+   */
   displayDataInfo = (fieldType, val, i) => {
     return (
       <tr key={i}>
@@ -108,6 +136,13 @@ class PrivateDetails extends Component {
       </tr>
     )
   }
+  /**
+   * Display host or owner table
+   * @method
+   * @param {array} infoType - hostInfo or ownerInfo array
+   * @param {object} fieldType - field name
+   * @returns HTML DOM
+   */
   displayTableData = (infoType, fieldType) => {
     if (infoType.length > 0) {
       return infoType.map(this.displayDataInfo.bind(this, fieldType));

@@ -5,7 +5,13 @@ import MultiInput from 'react-ui/build/src/components/multi-input'
 
 import SearchFilter from './search-filter'
 
-class Filter extends Component {
+/**
+ * Filter Input
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the individual filter input
+ */
+class FilterInput extends Component {
   constructor(props) {
     super(props);
   }
@@ -74,10 +80,10 @@ class Filter extends Component {
   }
 }
 
-Filter.propTypes = {
+FilterInput.propTypes = {
   activeTab: PropTypes.string.isRequired,
   filterData: PropTypes.array.isRequired,
   inline: PropTypes.bool.isRequired
 };
 
-export default Filter;
+export default FilterInput;

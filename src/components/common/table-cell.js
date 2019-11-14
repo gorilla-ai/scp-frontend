@@ -9,6 +9,12 @@ const TIME_FIELDS = ['@timestamp', 'firstPacket', 'lastPacket', 'timestamp', '_e
 
 let t = null;
 
+/**
+ * Table Cell
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to display formatted data in the table
+ */
 class TableCell extends Component {
   constructor(props) {
     super(props);
@@ -19,15 +25,31 @@ class TableCell extends Component {
 
     t = chewbaccaI18n.getFixedT(null, 'connections');
   }
+  /**
+   * Toggle the filter icon on/off
+   * @method
+   * @param {boolean} boolean - true/false
+   * @returns none
+   */
   showFilterIcon = (boolean) => {
     this.setState({
       showIcon: boolean
     });
   }
+  /**
+   * Get table row background color
+   * @method
+   * @param {object} value - field value
+   * @returns background color
+   */
   getBackgroundColor = (value) => {
     const {markData} = this.props;
     let tempMarkData = [];
     let color = '';
+
+    if (!value) {
+      return;
+    }
 
     _.forEach(markData, (val, i) => {
       tempMarkData.push({
@@ -36,17 +58,24 @@ class TableCell extends Component {
       });
     })
 
-    if (value) {
-      _.forEach(tempMarkData, val => {
-        if (val.data.toLowerCase() === value.toLowerCase()) {
-          color = val.color;
-          return false;
-        }
-      })
-    }
+    _.forEach(tempMarkData, val => {
+      if (val.data.toLowerCase() === value.toLowerCase()) {
+        color = val.color;
+        return false; //Exit the loop
+      }
+    })
 
     return color;
   }
+  /**
+   * Get table field content
+   * @method
+   * @param {object} type - field type ('internet' or 'intranet')
+   * @param {object} tooltip - tooltip info
+   * @param {object} picPath - icon image path
+   * @param {object} country - country name
+   * @returns HTML DOM
+   */
   getFieldContent = (type, tooltip, picPath, country) => {
     const {activeTab, fieldName, fieldValue} = this.props;
     const {showIcon} = this.state;
@@ -73,6 +102,12 @@ class TableCell extends Component {
       }
     }
   }
+  /**
+   * Get table field value
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
   getFieldValue = () => {
     const {contextRoot, fieldName, allValue} = this.props;
 

@@ -8,10 +8,22 @@ import helper from '../common/helper'
 import {HocPagination as Pagination} from './pagination'
 import withLocale from '../../hoc/locale-provider'
 
+/**
+ * Table Content
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the table content
+ */
 class TableContent extends Component {
   constructor(props) {
     super(props);
   }
+  /**
+   * Get row class name
+   * @method
+   * @param {object} allValue - data value in the table
+   * @returns class name
+   */
   handleRowClass = (allValue) => {
     const {currentTableID, tableUniqueID} = this.props;
 
@@ -23,6 +35,12 @@ class TableContent extends Component {
       return 'table-row ' + helper.showColor(allValue.tag.color);
     }
   }
+  /**
+   * Get table height
+   * @method
+   * @param none
+   * @returns object with height value
+   */
   getTableHight = () => {
     const {tableHeight} = this.props;
 

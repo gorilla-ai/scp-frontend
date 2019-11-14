@@ -8,6 +8,12 @@ import withLocale from '../../hoc/locale-provider'
 
 let t = null;
 
+/**
+ * Pagination
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the pagination
+ */
 class Pagination extends Component {
   constructor(props) {
     super(props);

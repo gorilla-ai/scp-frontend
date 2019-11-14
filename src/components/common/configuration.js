@@ -16,6 +16,12 @@ const INIT = {
   openAccount: false
 };
 
+/**
+ * Configuration
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the left menu in Configuration section
+ */
 class Config extends Component {
   constructor(props) {
     super(props);
@@ -38,11 +44,24 @@ class Config extends Component {
       openAccount
     });
   }
+  /**
+   * Toggle the submenu on/off
+   * @method
+   * @param {object} name - menu to be toggled
+   * @param {boolean} val - true/false
+   * @returns none
+   */
   handleOpen = (name, val) => {
     this.setState({
       [name]: !val
     });
   }
+  /**
+   * Determine the current active path
+   * @method
+   * @param {object} frame - menu to be toggled
+   * @returns boolean value
+   */
   getActiveFrame = (frame) => {
     const path = window.location.pathname;
     const pattern = {
@@ -60,8 +79,14 @@ class Config extends Component {
 
     return path === pattern[frame];
   }
+  /**
+   * Toggle (show/hide) the left menu
+   * @method
+   * @param none
+   * @returns none
+   */
   toggleLeftNav = () => {
-    if (this.getActiveFrame('threat')) {
+    if (this.getActiveFrame('threat')) { //Disable the functionality for Threat Intelligent page
       return;
     }
 
@@ -69,6 +94,12 @@ class Config extends Component {
       showContent: !this.state.showContent
     });
   }
+  /**
+   * Set the menu class name
+   * @method
+   * @param none
+   * @returns {string} - class name
+   */
   getClassName = () => {
     return this.state.showContent ? 'fg fg-arrow-left' : 'fg fg-arrow-right';
   }

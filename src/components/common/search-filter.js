@@ -5,10 +5,23 @@ import _ from 'lodash'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import Input from 'react-ui/build/src/components/input'
 
+/**
+ * Search Filter
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component for the search filter multi input (filter-input.js)
+ */
 class SearchFilter extends Component {
   constructor(props) {
     super(props);
   }
+  /**
+   * Set search filter input
+   * @method
+   * @param {string} field - input type ('condition' or 'query')
+   * @param {string} value - input value
+   * @returns none
+   */
   handleChange = (field, value) => {
     this.props.onChange({
       ...this.props.value,

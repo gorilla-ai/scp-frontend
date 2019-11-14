@@ -15,7 +15,7 @@ let t = null;
  * Chart Content
  * @class
  * @author Ryan Chen <ryanchen@telmediatech.com>
- * @summary A react component to show the chart data
+ * @summary A react component to show the chart
  */
 class ChartContent extends Component {
   constructor(props) {

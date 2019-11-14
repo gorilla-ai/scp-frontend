@@ -47,6 +47,12 @@ const TRIGGER_NAME = {
 let t = null;
 let f = null;
 
+/**
+ * HMD Scan Info
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the HMD scan information
+ */
 class HMDscanInfo extends Component {
   constructor(props) {
     super(props);
@@ -66,8 +72,12 @@ class HMDscanInfo extends Component {
     f = chewbaccaI18n.getFixedT(null, 'tableFields');
     this.ah = getInstance('chewbacca');
   }
-  componentDidMount() {
-  }
+  /**
+   * Sort the Yara and Yara Scan File by matched file availablility
+   * @method
+   * @param {object} scanResult - scan file for Yara and Yara Scan File
+   * @returns sorted and mereged list
+   */
   sortedRuleList = (scanResult) => {
     let ruleWithFile = [];
     let ruleWithNoFile = [];
@@ -84,6 +94,12 @@ class HMDscanInfo extends Component {
     mergedRule = _.concat(ruleWithFile, ruleWithNoFile);
     return mergedRule;
   }
+  /**
+   * Set active tab based on scan type
+   * @method
+   * @param {string} activeTab - active scan type
+   * @returns none
+   */
   toggleScanType = (activeTab) => {
     this.setState({
       activeTab,
@@ -94,22 +110,31 @@ class HMDscanInfo extends Component {
       activeConnections: false
     });
   }
+  /**
+   * Compare the task create datetime and task response datetime
+   * @method
+   * @param {string} type - scan type
+   * @returns boolean true/false
+   */
   checkTriggerTime = (type) => {
     const {currentDeviceData} = this.props;
     const resultType = type + 'Result';
-    let createTime = '';
-    let responseTime = '';
 
     if (currentDeviceData[resultType].taskCreateDttm && currentDeviceData[resultType].taskResponseDttm) {
-      createTime = helper.getFormattedDate(currentDeviceData[resultType].taskCreateDttm, 'local');
-      responseTime = helper.getFormattedDate(currentDeviceData[resultType].taskResponseDttm, 'local');
+      const createTime = helper.getFormattedDate(currentDeviceData[resultType].taskCreateDttm, 'local');
+      const responseTime = helper.getFormattedDate(currentDeviceData[resultType].taskResponseDttm, 'local');
 
-      if (Moment(createTime).isAfter(responseTime)) {
-        return true;
-      }
+      return Moment(createTime).isAfter(responseTime);
     }
   }
-  togglePathRule = (type, i, parentIndex) => {
+  /**
+   * Toggle scan path/rule on/off and set the rule
+   * @method
+   * @param {string} type - scan type
+   * @param {number} i - index of rule
+   * @returns none
+   */
+  togglePathRule = (type, i) => {
     const {activePath, activeRule} = this.state;
     const tempActivePath = activePath === i ? null : i;
 
@@ -135,13 +160,20 @@ class HMDscanInfo extends Component {
       });
     }
   }
-  displayRule = (nameList, parentIndex, val, i) => {
+  /**
+   * Display rule for yara scan
+   * @method
+   * @param {array} nameList - scan rule list
+   * @param {number} i - index of rule
+   * @returns HTML DOM
+   */
+  displayRule = (nameList, val, i) => {
     const {activeRule} = this.state;
     const uniqueKey = val + i;
 
     return (
       <div className='rule-content' key={uniqueKey}>
-        <div className='header' onClick={this.togglePathRule.bind(this, 'rule', i, parentIndex)}>
+        <div className='header' onClick={this.togglePathRule.bind(this, 'rule', i)}>
           <i className={cx('fg fg-play', {'rotate': _.includes(activeRule, i)})}></i>
           <span>{nameList[i]}</span>
         </div>
@@ -154,6 +186,13 @@ class HMDscanInfo extends Component {
       </div>
     )
   }
+  /**
+   * Display individual file
+   * @method
+   * @param {string} val - scan file data
+   * @param {number} i - index of file
+   * @returns HTML DOM
+   */
   displayIndividualFile = (val, i) => {
     const uniqueKey = val + i;
 
@@ -161,6 +200,12 @@ class HMDscanInfo extends Component {
       <div key={uniqueKey}>{val}</div>
     )
   }
+  /**
+   * Display file path
+   * @method
+   * @param {object} val - scan file data
+   * @returns HTML DOM
+   */
   displayFilePath = (val) => {
     const {activeDLL} = this.state;
     let filePathList = [];
@@ -184,6 +229,13 @@ class HMDscanInfo extends Component {
       </div>
     )
   }
+  /**
+   * Display individual connection for Yara Scan
+   * @method
+   * @param {object} val - connection data
+   * @param {number} i - index of connection
+   * @returns HTML DOM
+   */
   displayIndividualConnection = (val, i) => {
     const uniqueKey = val + i;
 
@@ -197,6 +249,12 @@ class HMDscanInfo extends Component {
       </ul>
     )
   }
+  /**
+   * Display connections for Yara Scan
+   * @method
+   * @param {object} val - connection data
+   * @returns HTML DOM
+   */
   displayConnections = (val) => {
     const {activeConnections} = this.state;
     let connectionsList = [];
@@ -224,12 +282,18 @@ class HMDscanInfo extends Component {
       </div>
     )
   }
+  /**
+   * Toggle scan rule item on/off
+   * @method
+   * @param {string} type - item type ('rule', 'dll' or 'connections')
+   * @returns none
+   */
   toggleInfoHeader = (type) => {
     if (type === 'rule') {
       this.setState({
         activeRuleHeader: !this.state.activeRuleHeader
       });
-    } else if (type === 'ddl') {
+    } else if (type === 'dll') {
       this.setState({
         activeDLL: !this.state.activeDLL
       });
@@ -239,13 +303,20 @@ class HMDscanInfo extends Component {
       });
     }
   }
+  /**
+   * Display Yara Scan Process content
+   * @method
+   * @param {object} val - scan data content
+   * @param {number} i - index of scan process
+   * @returns HTML DOM
+   */
   displayScanProcessPath = (val, i) => {
     const {activePath, activeRuleHeader, activeDLL, activeConnections} = this.state;
     const uniqueKey = val._ScanType + i;
     let displayInfo = '';
 
     if (val._MatchedRuleList && val._MatchedRuleList.length > 0 && val._MatchedRuleNameList) {
-      displayInfo = val._MatchedRuleList.map(this.displayRule.bind(this, val._MatchedRuleNameList, i));
+      displayInfo = val._MatchedRuleList.map(this.displayRule.bind(this, val._MatchedRuleNameList));
     } else {
       displayInfo = NOT_AVAILABLE;
     }
@@ -277,7 +348,7 @@ class HMDscanInfo extends Component {
             </div>
 
             <div className='rule-content'>
-              <div className='header' onClick={this.toggleInfoHeader.bind(this, 'ddl')}>
+              <div className='header' onClick={this.toggleInfoHeader.bind(this, 'dll')}>
                 <i className={cx('fg fg-play', {'rotate': activeDLL})}></i>
                 <span>DLLs</span>
               </div>
@@ -296,13 +367,20 @@ class HMDscanInfo extends Component {
       )
     }
   }
+  /**
+   * Display Yara Scan File content
+   * @method
+   * @param {object} val - scan file content
+   * @param {number} i - index of scan file
+   * @returns HTML DOM
+   */
   displayScanFilePath = (val, i) => {
     const {activePath, activeRuleHeader} = this.state;
     const uniqueKey = val._ScanType + i;
     let displayInfo = '';
 
     if (val._MatchedRuleList && val._MatchedRuleList.length > 0 && val._MatchedRuleNameList) {
-      displayInfo = val._MatchedRuleList.map(this.displayRule.bind(this, val._MatchedRuleNameList, i));
+      displayInfo = val._MatchedRuleList.map(this.displayRule.bind(this, val._MatchedRuleNameList));
     } else {
       displayInfo = NOT_AVAILABLE;
     }
@@ -337,6 +415,12 @@ class HMDscanInfo extends Component {
       )
     }
   }
+  /**
+   * Reset the activeTab and rule data
+   * @method
+   * @param {string} type - button action type ('previous' or 'next')
+   * @returns none
+   */
   showAlertData = (type) => {
     this.setState({
       activeTab: 'yara',
@@ -348,6 +432,12 @@ class HMDscanInfo extends Component {
       this.props.showAlertData(type);
     });
   }
+  /**
+   * Display suspicious file count content
+   * @method
+   * @param {object} hmdInfo - HMD data
+   * @returns HTML DOM
+   */
   getSuspiciousFileCount = (hmdInfo) => {
     const {activeTab} = this.state;
 
@@ -355,6 +445,12 @@ class HMDscanInfo extends Component {
       return <div className='count'>{t('network-inventory.txt-suspiciousFileCount')}: {hmdInfo[activeTab].count}</div>
     }
   }
+  /**
+   * Display pass / total count info
+   * @method
+   * @param {object} hmdInfo - HMD data
+   * @returns HTML DOM
+   */
   getPassTotalCount = (hmdInfo) => {
     const {activeTab} = this.state;
 
@@ -362,6 +458,12 @@ class HMDscanInfo extends Component {
       return <span className='pass-total'>{t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}: {hmdInfo[activeTab].filteredResult.length}/{hmdInfo[activeTab].result.length}</span>
     }
   }
+  /**
+   * Display trigger button for scan type
+   * @method
+   * @param {object} hmdInfo - HMD data
+   * @returns HTML DOM
+   */
   getTriggerBtn = (hmdInfo) => {
     const {activeTab} = this.state;
 
@@ -371,6 +473,12 @@ class HMDscanInfo extends Component {
       return <button className='btn' onClick={this.props.triggerTask.bind(this, [TRIGGER_NAME[activeTab]])} disabled={this.checkTriggerTime(activeTab)}>{t('network-inventory.txt-reCheck')}</button>
     }
   }
+  /**
+   * Display scan content for different scan type
+   * @method
+   * @param {object} hmdInfo - HMD data
+   * @returns HTML DOM
+   */
   getScanContent = (hmdInfo) => {
     const {activeTab} = this.state;
 
@@ -405,6 +513,12 @@ class HMDscanInfo extends Component {
       )
     }
   }
+  /**
+   * Display table content
+   * @method
+   * @param {object} hmdInfo - HMD data
+   * @returns HTML DOM
+   */
   getTableContent = (hmdInfo) => {
     const {activeTab} = this.state;
 
@@ -419,6 +533,12 @@ class HMDscanInfo extends Component {
       )
     }   
   }
+  /**
+   * Display main scan content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
   displayScanInfo = () => {
     const {deviceData, currentDeviceData} = this.props;
     const {activeTab, gcbFieldsArr, malwareFieldsArr} = this.state;

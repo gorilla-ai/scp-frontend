@@ -164,7 +164,7 @@ class AlertDetails extends Component {
   /**
    * Call corresponding Alert data based on conditions
    * @method
-   * @param {object} prevProps - previous props when the react props have been updated
+   * @param {object} prevProps - previous react props when the props have been updated
    * @returns none
    */
   loadAlertContent = (prevProps) => {

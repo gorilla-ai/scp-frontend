@@ -10,6 +10,12 @@ import withLocale from '../../hoc/locale-provider'
 
 let t = null;
 
+/**
+ * Tree
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the tree data
+ */
 class Tree extends Component {
   constructor(props) {
     super(props);
@@ -27,6 +33,12 @@ class Tree extends Component {
   componentDidUpdate = (prevProps) => {
     this.loadTabData(prevProps);
   }
+  /**
+   * Construct and set the tab data for Events dropdown menu
+   * @method
+   * @param {object} prevProps - previous react props when the props have been updated
+   * @returns none
+   */
   loadTabData = (prevProps) => {
     const {eventsCount, allTabData} = this.props;
     let tabData = [];
@@ -34,12 +46,10 @@ class Tree extends Component {
     _.forEach(allTabData, (val, key) => {
       _.forEach(eventsCount, (val2, key2) => {
         if (key2 === key) {
-          tabData.push(
-            {
-              value: key,
-              text: val + ' (' + val2 + ')'
-            }
-          );
+          tabData.push({
+            value: key,
+            text: val + ' (' + val2 + ')'
+          });
         }
       })
     })
@@ -50,22 +60,35 @@ class Tree extends Component {
       });
     }
   }
+  /**
+   * Toggle (show/hide) the left menu
+   * @method
+   * @param none
+   * @returns none
+   */
   toggleLeftNav = () => {
     this.setState({
       showContent: !this.state.showContent
     });
   }
-  showAlertTree = (key, obj) => {
+  /**
+   * Show multiple tree data for Alert page
+   * @method
+   * @param {string} key - tree name for the Alert ('alert', 'private' and 'public')
+   * @param {object} treeData - tree data of the Alert
+   * @returns HTML DOM
+   */
+  showAlertTree = (key, treeData) => {
     const {showContent} = this.state;
 
     return (
       <div key={key}>
-        <label className={cx('header-text', {'hide': !showContent})}>{obj[key].title}</label>
+        <label className={cx('header-text', {'hide': !showContent})}>{treeData[key].title}</label>
         <Hierarchy
           layout='tree'
           foldable={true}
           indent={[4, 0]}
-          data={obj[key].data}
+          data={treeData[key].data}
           defaultOpened={['all', 'All']}
           onLabelMouseOver={this.props.showFilterBtn.bind(this, key)} />
       </div>
@@ -102,7 +125,6 @@ class Tree extends Component {
                 onLabelMouseOver={this.props.showFilterBtn} />
             </div>
           }
-
           {activeTab === 'alert' &&
             <div>
               {

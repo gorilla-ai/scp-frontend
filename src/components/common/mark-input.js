@@ -6,7 +6,13 @@ import MultiInput from 'react-ui/build/src/components/multi-input'
 import helper from './helper'
 import searchMark from './search-mark'
 
-class Mark extends Component {
+/**
+ * Mark Input
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the individual mark input
+ */
+class MarkInput extends Component {
   constructor(props) {
     super(props);
   }
@@ -65,7 +71,7 @@ class Mark extends Component {
   }
 }
 
-Mark.propTypes = {
+MarkInput.propTypes = {
   activeTab: PropTypes.string.isRequired,
   searchFields: PropTypes.object.isRequired,
   logFields: PropTypes.array.isRequired,
@@ -73,4 +79,4 @@ Mark.propTypes = {
   inline: PropTypes.bool.isRequired
 };
 
-export default Mark;
+export default MarkInput;

@@ -7,10 +7,22 @@ import Input from 'react-ui/build/src/components/input'
 
 import helper from './helper'
 
+/**
+ * Search Filter
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component for the search mark multi input (mark-input.js)
+ */
 class SearchMark extends Component {
   constructor(props) {
     super(props);
   }
+  /**
+   * Set search mark input
+   * @method
+   * @param {string} value - input value
+   * @returns none
+   */
   handleChange = (value) => {
     const {markData} = this.props;
     let index = '';

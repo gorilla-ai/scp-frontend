@@ -6,10 +6,23 @@ import {SortableContainer} from 'react-sortable-hoc'
 import {HocSortableItem as SortableItem} from '../common/sortable-item'
 import withLocale from '../../hoc/locale-provider'
 
+/**
+ * Sortable List
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the data with detail information
+ */
 class SortableList extends Component {
   constructor(props) {
     super(props);
   }
+  /**
+   * Show data with sortable functionality
+   * @method
+   * @param {object} value - data value to be displayed
+   * @param {number} index - index of the sortable data array
+   * @returns SortableItem component
+   */
   showTableSort = (value, index) => {
     const {activeTab} = this.props;
 

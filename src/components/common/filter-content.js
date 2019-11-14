@@ -2,22 +2,34 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import cx from 'classnames'
 
-import Filter from './filter'
+import FilterInput from './filter-input'
 
 import withLocale from '../../hoc/locale-provider'
 
 let t = null;
 
+/**
+ * Filter Content
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the filter menu content
+ */
 class FilterContent extends Component {
   constructor(props) {
     super(props);
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
   }
+  /**
+   * Display the filter button
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
   getSubmitButton = () => {
     const {activeTab} = this.props;
 
-    if (activeTab !== 'logs') {
+    if (activeTab !== 'logs') { //Don't show the button for Logs page
       return <button className='filter' onClick={this.props.handleSearchSubmit.bind(this, 'search')}>{t('txt-filter')}</button>
     }
   }
@@ -37,7 +49,7 @@ class FilterContent extends Component {
           <button className='open-query' onClick={this.props.openQuery.bind(this, 'open')}>{t('events.connections.txt-openQuery')}</button>
           <button className='save-query' onClick={this.props.openQuery.bind(this, 'save')}>{t('events.connections.txt-saveQuery')}</button>
         </div>
-        <Filter
+        <FilterInput
           inline={true}
           {...this.props} />
         <div className='button-group'>

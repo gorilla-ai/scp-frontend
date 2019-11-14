@@ -9,12 +9,25 @@ const NOT_AVAILABLE = 'N/A';
 
 let t = null;
 
+/**
+ * Safety Scan
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the safety scan data
+ */
 class SafetyScan extends Component {
   constructor(props) {
     super(props);
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
   }
+  /**
+   * Construct and show scan info in table row
+   * @method
+   * @param {object} val - Yara scan data
+   * @param {number} i - index of yara scan result array
+   * @returns HTML DOM
+   */
   showScanInfo = (val, i) => {
     let text = '';
 
@@ -36,14 +49,21 @@ class SafetyScan extends Component {
       </tr>
     )
   }
+  /**
+   * Compare the task create datetime and task response datetime
+   * @method
+   * @param {string} type - scan type
+   * @returns boolean true/false
+   */
   checkTriggerTime = (type) => {
     const {ipDeviceInfo} = this.state;
     const resultType = type + 'Result';
-    const createTime = helper.getFormattedDate(ipDeviceInfo[type][resultType].taskCreateDttm, 'local');
-    const responseTime = helper.getFormattedDate(ipDeviceInfo[type][resultType].taskResponseDttm, 'local');
 
-    if (Moment(createTime).isAfter(responseTime)) {
-      return true;
+    if (ipDeviceInfo[type][resultType].taskCreateDttm && ipDeviceInfo[type][resultType].taskResponseDttm) {
+      const createTime = helper.getFormattedDate(ipDeviceInfo[type][resultType].taskCreateDttm, 'local');
+      const responseTime = helper.getFormattedDate(ipDeviceInfo[type][resultType].taskResponseDttm, 'local');
+
+      return Moment(createTime).isAfter(responseTime);
     }
   }
   render() {
@@ -56,8 +76,7 @@ class SafetyScan extends Component {
       hmdInfo.yara = {
         createTime: helper.getFormattedDate(ipDeviceInfo[type].yaraResult.taskCreateDttm, 'local'),
         responseTime: helper.getFormattedDate(ipDeviceInfo[type].yaraResult.taskResponseDttm, 'local'),
-        result: ipDeviceInfo[type].yaraResult.ScanResult ? ipDeviceInfo[type].yaraResult.ScanResult : [],
-        taskID: ipDeviceInfo[type].yaraResult.taskId
+        result: ipDeviceInfo[type].yaraResult.ScanResult ? ipDeviceInfo[type].yaraResult.ScanResult : []
       };
 
       return (
@@ -81,9 +100,7 @@ class SafetyScan extends Component {
                 <span>{t('network-inventory.txt-responseTime')}: {hmdInfo.yara.responseTime}</span>
               }
             </div>
-            {hmdInfo.yara.taskID &&
-              <button onClick={this.props.triggerTask.bind(this, hmdInfo.yara.taskID, type)} disabled={this.checkTriggerTime('yara')}>{t('network-inventory.txt-reCheck')}</button>
-            }
+            <button onClick={this.props.triggerTask} disabled={this.checkTriggerTime('yara')}>{t('network-inventory.txt-reCheck')}</button>
             <table className='c-table main-table'>
               <thead>
                 <tr>

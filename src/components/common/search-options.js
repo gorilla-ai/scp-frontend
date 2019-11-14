@@ -14,6 +14,12 @@ import withLocale from '../../hoc/locale-provider'
 let t = null;
 let et = null;
 
+/**
+ * Search Options
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component for the search options in Alert and Events pages
+ */
 class SearchOptions extends Component {
   constructor(props) {
     super(props);
@@ -32,6 +38,12 @@ class SearchOptions extends Component {
     this.intervalId && clearInterval(this.intervalId);
     this.intervalId = null;
   }
+  /**
+   * Set and run the time interval for auto refresh
+   * @method
+   * @param @param {string} search - search option
+   * @returns none
+   */
   loadSearchOptions = (search) => {
     const {searchInput} = this.props;
 
@@ -47,6 +59,12 @@ class SearchOptions extends Component {
       this.intervalId = setInterval(this.setNewDatetime, Number(searchInput.refreshTime));
     }
   }
+  /**
+   * Set new datetime based on time interval
+   * @method
+   * @param none
+   * @returns none
+   */
   setNewDatetime = () => {
     const {searchInput} = this.props;
     const dataObj = this.getTimeAndText(searchInput.searchInterval);
@@ -57,6 +75,12 @@ class SearchOptions extends Component {
 
     this.props.handleDateChange(datetime, 'refresh');
   }
+  /**
+   * Get text and time to be displayed in the search bar based on user's selection
+   * @method
+   * @param {string} type - time options
+   * @returns text and time
+   */
   getTimeAndText = (type) => {
     let text = '';
     let time = '';
@@ -116,11 +140,23 @@ class SearchOptions extends Component {
       time
     };
   }
+  /**
+   * Toggle interval dialog on/off
+   * @method
+   * @param none
+   * @returns none
+   */
   toggleIntervalDialog = () => {
     this.setState({
       intervalModalOpen: !this.state.intervalModalOpen
     });
   }
+  /**
+   * Set search type and interval based on user's selection
+   * @method
+   * @param {string} type - input value ('manual' or 'auto')
+   * @returns none
+   */
   handleSearchTypeChange = (type) => {
     this.props.setSearchData('all', {
       searchType: type,
@@ -135,6 +171,12 @@ class SearchOptions extends Component {
       this.intervalId = null;
     }
   }
+  /**
+   * Display interval options content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
   displayIntervalOptions = () => {
     const {searchInput} = this.props;
 
@@ -187,6 +229,12 @@ class SearchOptions extends Component {
       )
     }
   }
+  /**
+   * Display interval options modal dialog
+   * @method
+   * @param none
+   * @returns ModalDialog component
+   */
   intervalModalDialog = () => {
     const {activeTab} = this.state;
     const actions = {
@@ -207,6 +255,12 @@ class SearchOptions extends Component {
       </ModalDialog>
     )
   }
+  /**
+   * Set search data based on user's selection
+   * @method
+   * @param none
+   * @returns none
+   */
   handleIntervalConfirm = () => {
     const {searchInput} = this.props;
     let dataObj = this.getTimeAndText(searchInput.searchInterval);
@@ -229,6 +283,12 @@ class SearchOptions extends Component {
     this.props.setSearchData('inputAuto', inputAuto);
     this.toggleIntervalDialog();
   }
+  /**
+   * Display date picker
+   * @method
+   * @param none
+   * @returns DateRange component
+   */
   showDataRange = () => {
     return (
       <DateRange
@@ -240,6 +300,12 @@ class SearchOptions extends Component {
         t={et} />
     )
   }
+  /**
+   * Get time interval input width
+   * @method
+   * @param {string} type - input value ('manual' or 'auto')
+   * @returns input box width
+   */
   getInputWidth = (type) => {
     const {locale, searchInput} = this.props;
     const searchType = searchInput.searchType;
