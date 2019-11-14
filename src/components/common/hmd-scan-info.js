@@ -501,7 +501,7 @@ class HMDscanInfo extends Component {
           label: tempData === 'download' ? '' : f(`malwareFields.${tempData}`),
           sortable: null,
           formatter: (value, allValue) => {
-            if (tempData === '_FileInfo._Filepath') {
+            if (tempData === '_FileInfo._HashValues._MD5') {
               const newValue = value.substr(0, 20) + '...';
               return <span title={value}>{newValue}</span>
             }
