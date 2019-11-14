@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: query-open-save.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: query-open-save.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
+import PropTypes from 'prop-types'
+import Moment from 'moment'
+import cx from 'classnames'
+
+import DropDownList from 'react-ui/build/src/components/dropdown'
+import Input from 'react-ui/build/src/components/input'
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
+
+import FilterInput from './filter-input'
+import helper from './helper'
+import MarkInput from './mark-input'
+import withLocale from '../../hoc/locale-provider'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+let t = null;
+let et = null;
+
+/**
+ * Query open/save
+ * @class
+ * @author Ryan Chen &lt;ryanchen@telmediatech.com>
+ * @summary A react component to show the Query open/save menu
+ */
+class QueryOpenSave extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      newQueryName: true,
+      info: '',
+    };
+
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    this.ah = getInstance('chewbacca');
+  }
+  /**
+   * Set and close query menu
+   * @method
+   * @param {string} type - query type ('open' or 'save')
+   * @returns none
+   */
+  handleQueryAction = (type) => {
+    const {activeTab, filterData, queryData, markData} = this.props;
+
+    if (type === 'open') {
+      let tempQueryData = {...queryData};
+      tempQueryData.openFlag = true;
+      tempQueryData.displayId = queryData.id;
+      tempQueryData.displayName = queryData.name;
+
+      this.props.setQueryData(tempQueryData);
+
+      if (queryData.query) {
+        if (activeTab === 'logs') {
+          let formattedMarkData = [];
+
+          _.forEach(queryData.query.search, val => {
+            if (val) {
+              formattedMarkData.push({
+                data: val
+              });
+            }
+          })
+          this.props.setMarkData(formattedMarkData);
+        }
+
+        this.props.setFilterData(queryData.query.filter);
+      }
+    } else if (type === 'save') {
+      const {baseUrl, account, queryData} = this.props;
+      const {newQueryName} = this.state;
+      let tempFilterData = [];
+      let url = '';
+      let queryText = {};
+      let queryString = [];
+      let requestType = '';
+      let data = {};
+
+      _.forEach(filterData, val => {
+        if (val.query) {
+          tempFilterData.push({
+            condition: val.condition,
+            query: val.query
+          });
+        }
+      })
+
+      if (_.isEmpty(tempFilterData)) { //Close Save dialog if filterData is empty
+        this.props.closeDialog();
+        return;
+      }
+
+      if (newQueryName) {
+        if (!queryData.inputName) {
+          this.setState({
+            info: t('events.connections.txt-noOpenQuery')
+          });
+          return;
+        }
+      }
+
+      if (activeTab === 'alert') {
+        url = `${baseUrl}/api/account/alert/queryText`;
+        queryText = {
+          filter: filterData
+        };
+      } else if (activeTab === 'logs') {
+        let markDataArr = [];
+        url = `${baseUrl}/api/account/syslog/queryText`;
+
+        _.forEach(markData, val => {
+          if (val.data) {
+            markDataArr.push(val.data);
+          }
+        })
+
+        queryText = {
+          filter: filterData,
+          search: markDataArr
+        };
+      } else {
+        url = `${baseUrl}/api/account/event/queryText`;
+        queryText = {
+          filter: filterData
+        };
+      }
+
+      if (newQueryName) {
+        requestType = 'POST';
+        data = {
+          accountId: account.id,
+          name: queryData.inputName,
+          queryText
+        };
+      } else {
+        requestType = 'PATCH';
+        data = {
+          id: queryData.id,
+          name: this.getQueryName(),
+          queryText
+        };
+      }
+
+      helper.getAjaxData(requestType, url, data)
+      .then(data => {
+        if (data) {
+          PopupDialog.alert({
+            id: 'queryModal',
+            confirmText: t('txt-close'),
+            display: &lt;div>{t('events.connections.txt-querySaved')}&lt;/div>
+          });
+
+          this.props.getSavedQuery();
+        }
+        return null;
+      });
+    }
+    this.props.closeDialog();
+  }
+  /**
+   * Get active query name
+   * @method
+   * @param none
+   * @returns matched query name
+   */
+  getQueryName = () => {
+    const {queryData} = this.props;
+    let queryName = '';
+
+    _.forEach(queryData.list, val => {
+      if (val.id === queryData.id) {
+        queryName = val.name;
+        return false;
+      }
+    })
+
+    return queryName;
+  }
+  /**
+   * Display delete query content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
+  getDeleteQueryContent = () => {
+    return (
+      &lt;div className='content delete'>
+        &lt;span>{t('txt-delete-msg')}: {this.getQueryName()}?&lt;/span>
+      &lt;/div>
+    )
+  }
+  /**
+   * Open delete query dialog
+   * @method
+   * @param none
+   * @returns none
+   */
+  removeQuery = () => {
+    PopupDialog.prompt({
+      title: t('events.connections.txt-deleteFilter'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: this.getDeleteQueryContent(),
+      act: (confirmed) => {
+        if (confirmed) {
+          this.deleteFilterQuery();
+        }
+      }
+    });
+  }
+  /**
+   * Delete saved query and reset query data
+   * @method
+   * @param none
+   * @returns none
+   */
+  deleteFilterQuery = () => {
+    const {baseUrl, activeTab, queryData} = this.props;
+    let url = '';
+
+    if (activeTab === 'alert') {
+      url = `${baseUrl}/api/account/alert/queryText?id=${queryData.id}`;
+    } else if (activeTab === 'logs') {
+      url = `${baseUrl}/api/account/syslog/queryText?id=${queryData.id}`;
+    } else {
+      url = `${baseUrl}/api/account/event/queryText?id=${queryData.id}`;
+    }
+
+    this.ah.one({
+      url,
+      type: 'DELETE'
+    })
+    .then(data => {
+      if (data) {
+        let newQueryList = [];
+        let tempQueryData = {...queryData};
+
+        _.forEach(queryData.list, val => {
+          if (val.id !== queryData.id) {
+            newQueryList.push(val);
+          }
+        })
+
+        if (newQueryList.length > 0) {
+          tempQueryData.id = newQueryList[0].id;
+          tempQueryData.name = newQueryList[0].name;
+          tempQueryData.list = newQueryList;
+          tempQueryData.query = newQueryList[0].queryText;
+        } else {
+          tempQueryData.id = '';
+          tempQueryData.name = '';
+          tempQueryData.list = [];
+          tempQueryData.query = '';
+        }
+
+        this.props.setQueryData(tempQueryData);
+      } else {
+        helper.showPopupMsg('', t('txt-error'), err.message);
+      }
+      return null;
+    });
+  }
+  /**
+   * Display all saved filter queries
+   * @method
+   * @param @param {object} value - saved query data
+   * @param @param {number} index - index of queryDataList array
+   * @returns FilterInput component
+   */
+  displayFilterQuery = (value, index) => {
+    const {searchFields, activeTab, logFields} = this.props;
+
+    return (
+      &lt;FilterInput
+        key={index}
+        activeTab={activeTab}
+        searchFields={searchFields}
+        logFields={logFields}
+        queryType='query'
+        filterData={[{
+          condition: value.condition,
+          query: value.query
+        }]}
+        inline={false} />
+    )
+  }
+  /**
+   * Display all saved mark
+   * @method
+   * @param @param {object} value - saved mark data
+   * @param @param {number} index - index of queryDataMark array
+   * @returns MarkInput component
+   */
+  displayMarkSearch = (value, index) => {
+    const {searchFields, activeTab, logFields} = this.props;
+
+    return (
+      &lt;MarkInput
+        key={index}
+        activeTab={activeTab}
+        searchFields={searchFields}
+        logFields={logFields}
+        queryType='query'
+        markData={[{
+          data: value
+        }]}
+        inline={false} />
+    )
+  }
+  /**
+   * Set query data for new selected saved query
+   * @method
+   * @param @param {string} type - input type ('id' or 'name')
+   * @param @param {number} value - input value
+   * @returns none
+   */
+  handleQueryChange = (type, value) => {
+    const {activeTab, queryData} = this.props;
+    const {newQueryName} = this.state;
+    let tempQueryData = {...queryData};
+    let queryName = newQueryName;
+
+    if (type === 'id') {
+      tempQueryData.id = value;
+      tempQueryData.openFlag = true;
+
+      _.forEach(queryData.list, val => {
+        if (val.id === value) {
+          let formattedQueryText = [];
+          tempQueryData.name = val.name;
+
+          _.forEach(val.queryText.filter, val => {
+            let formattedValue = val.condition.toLowerCase();
+            formattedValue = formattedValue.replace(' ', '_');
+
+            formattedQueryText.push({
+              condition: formattedValue,
+              query: val.query
+            });
+          })
+
+          tempQueryData.query = {
+            filter: formattedQueryText
+          };
+        }
+      })
+
+      if (value === 'new') {
+        queryName = true;
+      } else {
+        queryName = false;
+      }
+    } else if (type === 'name') {
+      tempQueryData.inputName = value;
+    }
+
+    this.props.setQueryData(tempQueryData);
+    this.setState({
+      newQueryName: queryName
+    });
+  }
+  /**
+   * Display query menu content
+   * @method
+   * @param @param {string} type - query type ('open' or 'save')
+   * @returns HTML DOM
+   */
+  displayQueryContent = (type) => {
+    const {activeTab, queryData, filterData, markData} = this.props;
+    let displayList = [];
+    let tempFilterData = [];
+    let tempMarkData = [];
+
+    if (queryData.list.length > 0) {
+      _.forEach(queryData.list, val => {
+        displayList.push({
+          value: val.id,
+          text: val.name
+        });
+      })
+    }
+
+    if (type === 'open') {
+      let queryDataList = [];
+      let queryDataMark = [];
+
+      if (queryData.list.length === 0) {
+        return &lt;div className='error-msg'>{t('events.connections.txt-noSavedQuery')}&lt;/div>
+      }
+
+      if (activeTab === 'logs') {
+        queryDataList = queryData.query.filter;
+        queryDataMark = queryData.query.search;
+      } else {
+        queryDataList = queryData.query.filter;
+      }
+
+      return (
+        &lt;div>
+          &lt;label>{t('events.connections.txt-queryName')}&lt;/label>
+          &lt;DropDownList
+            className='query-name'
+            list={displayList}
+            required={true}
+            onChange={this.handleQueryChange.bind(this, 'id')}
+            value={queryData.id} />
+
+          {queryDataList &amp;&amp; queryDataList.length > 0 &amp;&amp;
+            &lt;div className='filter-group'>
+              {queryDataList.map(this.displayFilterQuery)}
+            &lt;/div>
+          }
+
+          {queryDataMark &amp;&amp; queryDataMark.length > 0 &amp;&amp;
+            &lt;div className='filter-group'>
+              {queryDataMark.map(this.displayMarkSearch)}
+            &lt;/div>
+          }
+
+          &lt;button className='standard delete-query' onClick={this.removeQuery} disabled={queryData.displayId === queryData.id}>{t('txt-delete')}&lt;/button>
+        &lt;/div>
+      )
+    } else if (type === 'save') {
+      let dropDownValue = 'new';
+
+      _.forEach(filterData, val => {
+        if (val.query) {
+          tempFilterData.push({
+            condition: val.condition,
+            query: val.query
+          });
+        }
+      })
+
+      _.forEach(markData, val => {
+        if (val.data) {
+          tempMarkData.push({
+            data: val.data
+          });
+        }
+      })
+
+      if (activeTab === 'logs') {
+        if (tempFilterData.length === 0 &amp;&amp; tempMarkData.length == 0) {
+          return &lt;div className='error-msg'>{t('events.connections.txt-noOpenQuery')}&lt;/div>
+        }
+      } else {
+        if (tempFilterData.length === 0) {
+          return &lt;div className='error-msg'>{t('events.connections.txt-noOpenQuery')}&lt;/div>
+        }
+      }
+
+      displayList.unshift({
+        value: 'new',
+        text: t('events.connections.txt-addQuery')
+      });
+
+      if (queryData.openFlag) {
+        dropDownValue = queryData.id;
+      }
+
+      return (
+        &lt;div>
+          &lt;label>{t('events.connections.txt-queryName')}&lt;/label>
+          &lt;DropDownList
+            className='query-name dropdown'
+            list={displayList}
+            required={true}
+            onChange={this.handleQueryChange.bind(this, 'id')}
+            value={dropDownValue} />
+
+          {dropDownValue === 'new' &amp;&amp;
+            &lt;Input
+              placeholder={t('events.connections.txt-enterQueryName')}
+              className='query-name'
+              maxLength='50'
+              required={true}
+              validate={{
+                t: et
+              }}
+              onChange={this.handleQueryChange.bind(this, 'name')}
+              value={queryData.inputName} />
+          }
+
+          {tempFilterData.length > 0 &amp;&amp;
+            &lt;div className='filter-group'>
+              {tempFilterData.map(this.displayFilterQuery)}
+            &lt;/div>
+          }
+
+          {tempMarkData.length > 0 &amp;&amp;
+            &lt;div className='filter-group'>
+              {tempMarkData.map(this.displayMarkSearch)}
+            &lt;/div>
+          }
+        &lt;/div>
+      )
+    }
+  }
+  render() {
+    const {type} = this.props;
+    const {info} = this.state;
+    let titleText = '';
+
+    if (type === 'open') {
+      titleText = t('events.connections.txt-openQuery');
+    } else if (type === 'save') {
+      titleText = t('events.connections.txt-saveQuery');
+    }
+
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.props.closeDialog},
+      confirm: {text: t('txt-confirm'), handler: this.handleQueryAction.bind(this, type)}
+    };
+
+    return (
+      &lt;ModalDialog
+        id='queryDialog'
+        className='modal-dialog'
+        title={titleText}
+        draggable={true}
+        global={true}
+        actions={actions}
+        info={info}
+        closeAction='cancel'>
+        {this.displayQueryContent(type)}
+      &lt;/ModalDialog>
+    )
+  }
+}
+
+QueryOpenSave.propTypes = {
+  baseUrl: PropTypes.string.isRequired,
+  contextRoot: PropTypes.string.isRequired,
+  activeTab: PropTypes.string.isRequired,
+  type: PropTypes.string.isRequired,
+  account: PropTypes.object.isRequired,
+  filterData: PropTypes.array.isRequired,
+  setFilterData: PropTypes.func.isRequired,
+  setQueryData: PropTypes.func.isRequired,
+  getSavedQuery: PropTypes.func.isRequired,
+  closeDialog: PropTypes.func.isRequired
+};
+
+const HocQueryOpenSave = withLocale(QueryOpenSave);
+export { QueryOpenSave, HocQueryOpenSave };</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="SafetyScan.html">SafetyScan</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="Tree.html">Tree</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Nov 14 2019 17:48:35 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

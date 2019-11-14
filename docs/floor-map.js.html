@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: floor-map.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: floor-map.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
+import PropTypes from 'prop-types'
+import Moment from 'moment'
+import cx from 'classnames'
+
+import FileInput from 'react-ui/build/src/components/file-input'
+import Input from 'react-ui/build/src/components/input'
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
+import TreeView from 'react-ui/build/src/components/tree'
+
+import helper from './helper'
+import withLocale from '../../hoc/locale-provider'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+let t = null;
+
+/**
+ * Floor Map
+ * @class
+ * @author Ryan Chen &lt;ryanchen@telmediatech.com>
+ * @summary A react component to show the floor map and its settings
+ */
+class FloorMap extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      floorPlan: {
+        treeData: {},
+        type: '',
+        rootAreaUUID: '',
+        currentAreaUUID: '',
+        currentAreaName: '',
+        name: '',
+        map: ''
+      },
+      mapAreaUUID: '',
+      currentMap: '',
+      currentBaseLayers: {},
+      previewFloorMap: ''
+    };
+
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    this.ah = getInstance('chewbacca');
+  }
+  componentDidMount() {
+    this.getFloorPlan();
+  }
+  /**
+   * Get and set floor plan data
+   * @method
+   * @param none
+   * @returns none
+   */
+  getFloorPlan = () => {
+    const {baseUrl} = this.props;
+
+    this.ah.one({
+      url: `${baseUrl}/api/area/_tree`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data &amp;&amp; data.length > 0) {
+        const floorPlanData = data[0];
+        const areaUUID = floorPlanData.areaUUID;
+        let tempFloorPlan = {...this.state.floorPlan};
+        tempFloorPlan.treeData = data;
+        tempFloorPlan.rootAreaUUID = floorPlanData.rootAreaUUID;
+        tempFloorPlan.currentAreaUUID = areaUUID;
+        tempFloorPlan.currentAreaName = floorPlanData.areaName;
+        tempFloorPlan.name = floorPlanData.areaName;
+
+        this.setState({
+          floorPlan: tempFloorPlan
+        }, () => {
+          this.getAreaData(areaUUID);
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get and set area related data
+   * @method
+   * @param {string} areaUUID - area UUID
+   * @returns none
+   */
+  getAreaData = (areaUUID) => {
+    const {baseUrl, contextRoot} = this.props;
+    const floorPlan = areaUUID || this.state.floorPlan.currentAreaUUID;
+
+    this.ah.one({
+      url: `${baseUrl}/api/area?uuid=${floorPlan}`,
+      type: 'GET'
+    })
+    .then(data => {
+      const areaName = data.areaName;
+      const areaUUID = data.areaUUID;
+      let currentMap = '';
+
+      if (data.picPath) {
+        const picPath = `${baseUrl}${contextRoot}/api/area/_image?path=${data.picPath}`;
+        const picWidth = data.picWidth;
+        const picHeight = data.picHeight;
+
+        currentMap = {
+          label: areaName,
+          images: [
+            {
+              id: areaUUID,
+              url: picPath,
+              size: {width: picWidth, height: picHeight}
+            }
+          ]
+        };
+      }
+
+      const currentBaseLayers = {};
+      currentBaseLayers[floorPlan] = currentMap;
+
+      this.setState({
+        mapAreaUUID: floorPlan,
+        currentMap,
+        currentBaseLayers
+      });
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Set input data change
+   * @method
+   * @param {string} type - input type
+   * @param {string | object} value - input data to be set
+   * @returns none
+   */
+  handleDataChange = (type, value) => {
+    let tempFloorPlan = {...this.state.floorPlan};
+    tempFloorPlan[type] = value;
+
+    if (type === 'map') {
+      const file = value ? URL.createObjectURL(value) : '';
+
+      this.setState({
+        previewFloorMap: file
+      });
+    }
+
+    this.setState({
+      floorPlan: tempFloorPlan
+    });
+  }
+  /**
+   * Set floor plan based on user actions
+   * @method
+   * @param {string} type - action type ('add', 'edit' or 'clear')
+   * @returns none
+   */
+  handleMapActions = (type) => {
+    if (type === 'clear') {
+      this.setState({
+        floorPlan: this.clearData('floorPlanData'),
+        currentMap: this.clearData('mapData')
+      });
+    } else {
+      const {floorPlan} = this.state;
+      let tempFloorPlan = {...floorPlan};
+
+      if (type === 'add') {
+        tempFloorPlan.type = type;
+        tempFloorPlan.name = '';
+      } else if (type === 'edit') {
+        if (_.isEmpty(floorPlan.treeData)) {
+          tempFloorPlan.type = 'add';
+          tempFloorPlan.name = '';
+        }
+      }
+
+      this.setState({
+        floorPlan: tempFloorPlan
+      });
+    }
+  }
+  /**
+   * Get Tree data
+   * @method
+   * @param {string} value - floor plan data
+   * @param {object} selectedID - current active area UUID
+   * @param {number} i - index of the tree
+   * @returns TreeView component
+   */
+  getTreeView = (value, selectedID, i) => {
+    return (
+      &lt;TreeView
+        id={value.areaUUID}
+        key={value.areaUUID}
+        data={value}
+        selected={selectedID}
+        defaultOpened={[value.areaUUID]}
+        onSelect={this.selectTree.bind(this, i)} />
+    )
+  }
+  /**
+   * Display tree data for lefe nav
+   * @method
+   * @param {string} currentAreaUUID - current active area UUID
+   * @param {object} value - floor plan data
+   * @param {number} i - index of the tree
+   * @returns content of the TreeView component
+   */
+  displayTreeView = (currentAreaUUID, value, i) => {
+    return this.getTreeView(value, currentAreaUUID, i); 
+  }
+  /**
+   * Set floor plan based on user's section of the tree
+   * @method
+   * @param {number} i - index of the tree
+   * @param {string} areaUUID - current active area UUID
+   * @param {object} eventData - event data
+   * @returns none
+   */
+  selectTree = (i, areaUUID, eventData) => {
+    const {baseUrl, contextRoot} = this.props;
+    let tempFloorPlan = {...this.state.floorPlan};
+    let tempArr = [];
+    let pathStr = '';
+    let pathNameStr = '';
+    let pathParentStr = '';
+
+    if (eventData.path.length > 0) {
+      _.forEach(eventData.path, val => {
+        if (val.index >= 0) {
+          tempArr.push(val.index);
+        }
+      })
+    }
+
+    _.forEach(tempArr, val => {
+      pathStr += 'children[' + val + '].'
+    })
+
+    pathNameStr = pathStr + 'label';
+    pathParentStr = pathStr + 'parentAreaUUID';
+
+    if (eventData.path[0].id) {
+      tempFloorPlan.rootAreaUUID = eventData.path[0].id;
+    }
+    tempFloorPlan.currentAreaUUID = areaUUID;
+    tempFloorPlan.currentAreaName = _.get(tempFloorPlan.treeData[i], pathNameStr);
+    tempFloorPlan.currentParentAreaUUID = _.get(tempFloorPlan.treeData[i], pathParentStr);
+    tempFloorPlan.name = tempFloorPlan.currentAreaName;
+    tempFloorPlan.type = 'edit';
+
+    this.setState({
+      floorPlan: tempFloorPlan
+    }, () => {
+      this.getAreaData(areaUUID);
+    });
+  }
+  /**
+   * Display delete area content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
+  getDeleteAreaContent = () => {
+    const {floorPlan} = this.state;
+
+    return (
+      &lt;div className='content delete'>
+        &lt;span>{t('txt-delete-msg')}: {floorPlan.currentAreaName}?&lt;/span>
+      &lt;/div>
+    )
+  }
+  /**
+   * Show the delete area modal dialog
+   * @method
+   * @param none
+   * @returns none
+   */
+  openDeleteAreaModal = () => {
+    PopupDialog.prompt({
+      title: t('network-topology.txt-deleteFloor'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: this.getDeleteAreaContent(),
+      act: (confirmed) => {
+        if (confirmed) {
+          this.deleteAreaMap();
+        }
+      }
+    });
+  }
+  /**
+   * Delete specific area and reset the floor plan
+   * @method
+   * @param none
+   * @returns none
+   */
+  deleteAreaMap = () => {
+    const {baseUrl, contextRoot} = this.props;
+    const {floorPlan} = this.state;
+
+    ah.one({
+      url: `${baseUrl}/api/area?uuid=${floorPlan.currentAreaUUID}`,
+      type: 'DELETE'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        this.setState({
+          currentMap: this.clearData('mapData'),
+          floorPlan: this.clearData('floorPlanData')
+        }, () => {
+          this.getFloorPlan();
+        });
+      }
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), t('network-topology.txt-deleteChild'));
+    })
+  }
+  /**
+   * Display Add Floor content
+   * @method
+   * @param none
+   * @returns none
+   */
+  displayAddFloor = () => {
+    const {currentMap, floorPlan, previewFloorMap} = this.state;
+    const addTree = t('network-topology.txt-addTree');
+    const selectTree = t('network-topology.txt-selectTree');
+    const deselectTree = t('network-topology.txt-deselectTree');
+    const editTree = t('network-topology.txt-editTree');
+    const removeTree = t('network-topology.txt-removeTree');
+    const removeMap = t('network-topology.txt-deleteFloorMap');
+    let showMap = true;
+
+    if (floorPlan.type === 'add') {
+      showMap = false;
+    }
+
+    return (
+      &lt;div>
+        &lt;div className='text'>
+          {floorPlan.currentAreaUUID &amp;&amp;
+            &lt;div>{t('network-topology.txt-selected-node')}: &lt;span>{floorPlan.currentAreaName}&lt;/span>&lt;/div>
+          }
+        &lt;/div>
+        &lt;div className='left'>
+          &lt;header>
+            {floorPlan.currentAreaUUID &amp;&amp;
+              &lt;i className='c-link fg fg-cancel' onClick={this.handleMapActions.bind(this, 'clear')} title={deselectTree}>&lt;/i>
+            }
+            &lt;i className={cx('c-link', 'fg', 'fg-add', {'active': floorPlan.type === 'add' || !floorPlan.currentAreaUUID})} onClick={this.handleMapActions.bind(this, 'add')} title={addTree}>&lt;/i>
+            {floorPlan.currentAreaUUID &amp;&amp;
+              &lt;span>
+                &lt;i className={cx('c-link', 'fg', 'fg-edit', {'active': floorPlan.type === 'edit'})} onClick={this.handleMapActions.bind(this, 'edit')} title={editTree}>&lt;/i>
+                &lt;i className='c-link fg fg-trashcan' onClick={this.openDeleteAreaModal} title={removeTree}>&lt;/i>
+              &lt;/span>
+            }
+          &lt;/header>
+
+          &lt;div className='display-tree'>
+            {floorPlan.treeData &amp;&amp; floorPlan.treeData.length > 0 &amp;&amp;
+              floorPlan.treeData.map(this.displayTreeView.bind(this, floorPlan.currentAreaUUID))
+            }
+          &lt;/div>
+        &lt;/div>
+
+        &lt;div className='right'>
+          &lt;header className='add-floor'>
+            &lt;div className='field'>
+              &lt;label htmlFor='areaMapName'>{t('txt-name')}&lt;/label>
+              &lt;Input
+                id='areaMapName'
+                className='add'
+                onChange={this.handleDataChange.bind(this, 'name')}
+                value={floorPlan.name} />
+            &lt;/div>
+
+            &lt;div className='field'>
+              &lt;label htmlFor='areaMapUpload'>{t('txt-network-map')}&lt;/label>
+              &lt;FileInput
+                id='areaMapUpload'
+                className='area-upload'
+                name='file'
+                btnText={t('txt-upload')}
+                validate={{
+                  max: 10,
+                  extension: ['.jpg', '.jpeg', '.png'],
+                  t: (code, params) => {
+                    if (code[0] === 'file-wrong-format') {
+                      return t('txt-file-format-error') + ` ${params.extension}`
+                    }
+                  }
+                }}
+                onChange={this.handleDataChange.bind(this, 'map')} />
+            &lt;/div>
+
+            {showMap &amp;&amp; currentMap &amp;&amp; floorPlan.currentAreaUUID &amp;&amp;
+              &lt;i className='c-link fg fg-trashcan' onClick={this.openDeleteSingleAreaModal} title={removeMap}>&lt;/i>
+            }
+          &lt;/header>
+          &lt;div className='map'>
+            {previewFloorMap &amp;&amp;
+              &lt;img src={previewFloorMap} title={floorPlan.currentAreaName + ' ' + t('txt-floorMap')} />
+            }
+            {!previewFloorMap &amp;&amp; showMap &amp;&amp; currentMap.images &amp;&amp;
+              &lt;img src={currentMap.images[0].url} title={floorPlan.currentAreaName + ' ' + t('txt-floorMap')} />
+            }
+          &lt;/div>
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+  /**
+   * Add/Edit area floor map and reload the map/table
+   * @method
+   * @param none
+   * @returns none
+   */
+  handleFloorConfirm = () => {
+    const {baseUrl, contextRoot} = this.props;
+    const {floorPlan} = this.state;
+    let formData = new FormData();
+    let requestType = 'POST';
+    let floorName = '';
+
+    if (floorPlan.type === '') {
+      this.closeDialog();
+      return;
+    }
+
+    if (floorPlan.name) {
+      floorName = floorPlan.name;
+    } else {
+      helper.showPopupMsg(t('network-topology.txt-enterFloor'), t('txt-error'));
+      return;
+    }
+
+    formData.append('areaName', floorName);
+    formData.append('scale', 0);
+
+    if (floorPlan.type === 'add') {
+      if (floorPlan.currentAreaUUID) {
+        formData.append('parentAreaUUID', floorPlan.currentAreaUUID);
+      }
+
+      if (floorPlan.map) {
+        formData.append('file', floorPlan.map);
+      }
+    } else if (floorPlan.type === 'edit') {
+      requestType = 'PATCH';
+      formData.append('areaUUID', floorPlan.currentAreaUUID);
+      formData.append('rootAreaUUID', floorPlan.rootAreaUUID);
+      formData.append('areaRoute', '');
+      floorPlan.currentAreaName = floorName;
+
+      if (floorPlan.currentParentAreaUUID) {
+        formData.append('parentAreaUUID', floorPlan.currentParentAreaUUID);
+      } else {
+        formData.append('parentAreaUUID', '');
+      }
+
+      if (floorPlan.map) {
+        formData.append('file', floorPlan.map);
+        formData.append('updatePic', true);
+      } else {
+        formData.append('file', '');
+        formData.append('updatePic', false);
+      }
+    }
+
+    this.ah.one({
+      url: `${baseUrl}/api/area`,
+      data: formData,
+      type: requestType,
+      processData: false,
+      contentType: false
+    })
+    .then(data => {
+      this.getFloorPlan();
+
+      if (data) {
+        this.getAreaData(data, 'setAreaUUID');
+      } else {
+        this.getAreaData();
+      }
+
+      this.closeDialog('reload');
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Clear floor plan data
+   * @method
+   * @param {string} type - data type to be cleared
+   * @returns none
+   */
+  clearData = (type) => {
+    const {floorPlan} = this.state;
+    let tempData = {};
+
+    if (type === 'mapData') {
+      tempData = {
+        currentMap: ''
+      };
+    } else if (type === 'floorPlanData') {
+      tempData = {
+        treeData: floorPlan.treeData,
+        type: '',
+        rootAreaUUID: '',
+        currentAreaUUID: '',
+        currentAreaName: '',
+        name: '',
+        map: ''
+      };
+    }
+    return tempData;
+  }
+  /**
+   * Reset floor plan data before closing the modal dialog
+   * @method
+   * @param {string} option - option to reload the data
+   * @returns none
+   */
+  closeDialog = (option) => {
+    let tempFloorPlan = {...this.state.floorPlan};
+    tempFloorPlan.type = '';
+    tempFloorPlan.name = tempFloorPlan.currentAreaName;
+    tempFloorPlan.map = '';
+
+    this.setState({
+      floorPlan: tempFloorPlan,
+      previewFloorMap: ''
+    }, () => {
+      this.props.closeDialog(option, 'all');
+    });
+  }
+  render() {
+    const {floorPlan} = this.state;
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeDialog},
+      confirm: {text: t('txt-confirm'), handler: this.handleFloorConfirm}
+    };
+    let titleText = '';
+
+    if (floorPlan.type === 'edit' || floorPlan.type === 'map') {
+      titleText = t('network-topology.txt-editFloorMap');
+    } else {
+      titleText = t('network-topology.txt-addFloorMap');
+    }
+
+    return (
+      &lt;ModalDialog
+        id='floorModalDialog'
+        className='modal-dialog'
+        title={titleText}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        {this.displayAddFloor()}
+      &lt;/ModalDialog>
+    )
+  }
+}
+
+FloorMap.propTypes = {
+};
+
+const HocFloorMap = withLocale(FloorMap);
+export { FloorMap, HocFloorMap };</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="SafetyScan.html">SafetyScan</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="Tree.html">Tree</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Nov 14 2019 17:48:35 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

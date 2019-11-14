@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: sortable-item.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: sortable-item.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
+import PropTypes from 'prop-types'
+import _ from 'lodash'
+
+import Checkbox from 'react-ui/build/src/components/checkbox'
+import Input from 'react-ui/build/src/components/input'
+import Textarea from 'react-ui/build/src/components/textarea'
+
+import {SortableElement, SortableHandle} from 'react-sortable-hoc'
+
+import helper from './helper'
+import withLocale from '../../hoc/locale-provider'
+
+let t = null;
+let f = null;
+
+const LONG_INPUT = ['_Raw', 'message', 'msg'];
+const TIME_FIELDS = ['@timestamp', 'firstPacket', 'lastPacket', 'timestamp', '_eventDttm_'];
+
+const DragHandle = SortableHandle(() => &lt;i className='fg fg-menu flow'>&lt;/i>);
+
+/**
+ * Sortable Item
+ * @class
+ * @author Ryan Chen &lt;ryanchen@telmediatech.com>
+ * @summary A react component to show the list with sort functionality
+ */
+class SortableItem extends Component {
+  constructor(props) {
+    super(props);
+
+    t = chewbaccaI18n.getFixedT(null, 'connections');
+    f = chewbaccaI18n.getFixedT(null, 'tableFields');
+  }
+  /**
+   * Get input value in the table row
+   * @method
+   * @param {object} value - selected value of the sortable item
+   * @returns HTML DOM
+   */
+  getValueData = (value) => {
+    const key = _.keys(value).toString();
+
+    if (_.includes(LONG_INPUT, key)) {
+      return &lt;Textarea rows={8} cols={50} className='value-input' value={value[key]} readOnly={true} />
+    } else if (_.includes(TIME_FIELDS, key)) {
+      return &lt;Input type='text' className='value-input' value={helper.getFormattedDate(value[key], 'local')} readOnly={true} />
+    } else {
+      return &lt;Input type='text' className='value-input' value={value[key]} readOnly={true} />
+    }
+  }
+  render() {
+    const {index, activeTab, value} = this.props;
+    const key = _.keys(value).toString();
+    let localeField = f(`${activeTab}Fields.${key}`);
+
+    if (activeTab === 'logs') {
+      localeField = this.props.getCustomFieldName(key, 'logs');
+    }
+
+    return (
+      &lt;li key={index} className='table-sort-list'>
+        {!_.includes(TIME_FIELDS, key) &amp;&amp;
+          &lt;i className='fg fg-filter' title={t('txt-filterQuery')} onClick={this.props.showQueryOptions(key, value[key])}>&lt;/i>
+        }
+        {_.includes(TIME_FIELDS, key) &amp;&amp; //Disable the filer for time related fields
+          &lt;i className='fg fg-filter disabled' title={t('txt-filterQuery')}>&lt;/i>
+        }
+        &lt;Checkbox
+          className='data-field flow'
+          onChange={this.props.setFieldsChange.bind(this, key)}
+          checked={this.props.checkDisplayFields(key)}
+          disabled={_.includes(TIME_FIELDS, key)} />
+        {activeTab === 'logs' &amp;&amp;
+          &lt;i className='fg fg-edit' title={t('syslogFields.txt-customFieldName')} onClick={this.props.toggleLocaleEdit.bind(this, key, localeField)}>&lt;/i>
+        }
+        &lt;span className='key'>{localeField}&lt;/span>
+        &lt;span className='value'>
+          {this.getValueData(value)}
+        &lt;/span>
+        &lt;DragHandle />
+      &lt;/li>
+    )
+  }
+}
+
+SortableItem.propTypes = {
+  activeTab: PropTypes.string.isRequired,
+  value: PropTypes.object.isRequired,
+  setFieldsChange: PropTypes.func.isRequired,
+  checkDisplayFields: PropTypes.func.isRequired,
+  showQueryOptions: PropTypes.func.isRequired
+};
+
+const HocSortableItem = withLocale(SortableElement(SortableItem));
+export { SortableItem, HocSortableItem };</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="SafetyScan.html">SafetyScan</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="Tree.html">Tree</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Nov 14 2019 17:48:35 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: data-chart.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: data-chart.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
+import PropTypes from 'prop-types'
+import Moment from 'moment'
+import cx from 'classnames'
+
+import ButtonGroup from 'react-ui/build/src/components/button-group'
+
+import {HocChartContent as ChartContent} from './chart-content'
+import helper from './helper'
+import withLocale from '../../hoc/locale-provider'
+
+let t = null;
+
+/**
+ * Data Chart
+ * @class
+ * @author Ryan Chen &lt;ryanchen@telmediatech.com>
+ * @summary A react component to set the chart data and display chart related content
+ */
+class DataChart extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      chartData: {}
+    };
+
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+  }
+  componentDidMount() {
+    this.getChartData();
+  }
+  componentDidUpdate = (prevProps) => {
+    this.getChartData(prevProps);
+  }
+  /**
+   * Get chart data based on user selections
+   * @method
+   * @returns chart data object
+   */
+  getHistogramType = () => {
+    const {tabChartData} = this.props;
+
+    if (tabChartData.chartTypeValue == 'connections') {
+      return tabChartData.sessionHistogram;
+    } else if (tabChartData.chartTypeValue == 'packets') {
+      return tabChartData.packageHistogram;
+    } else if (tabChartData.chartTypeValue == 'databytes') {
+      return tabChartData.byteHistogram;
+    }
+  }
+  /**
+   * Set chart data
+   * @method
+   * @param {object} chartData - chart data to be set
+   * @returns none
+   */
+  setChartData = (chartData) => {
+    this.setState({
+      chartData
+    });
+  }
+  /**
+   * Get chart data and handle the button clicks for chart options
+   * @method
+   * @param {object} prevProps - previous react props when the props have been updated
+   * @returns none
+   */
+  getChartData = (prevProps) => {
+    const {mainContentData, tabChartData, tableMouseOver} = this.props;
+    const activeTab = mainContentData.activeTab;
+    let chartData = '';
+
+    if (tableMouseOver) {
+      return;
+    }
+
+    if (activeTab === 'alert' || activeTab === 'logs') {
+      chartData = tabChartData.chartData;
+    } else if (activeTab === 'connections') {
+      chartData = this.getHistogramType();
+    }
+
+    if (_.isEmpty(chartData)) {
+      if (!_.isEmpty(this.state.chartData)) {
+        this.setChartData({}, []);
+      }
+    } else {
+      if (activeTab === 'alert' || activeTab === 'logs') {
+        let combinedData = '';
+
+        _.forEach(_.keys(chartData), val => {
+          combinedData = _.assign({}, chartData[val]); //Combine chart object data for Alert
+        })
+
+        if (!prevProps || (prevProps &amp;&amp; chartData !== prevProps.tabChartData.chartData)) {
+          this.setChartData(chartData);
+        }
+      } else if (activeTab === 'connections') {
+        let setChartData = false;
+
+        if (!prevProps) { //For switching the Table view and LA/Map view
+          setChartData = true;
+        } else {
+          if (tabChartData.chartTypeValue !== prevProps.tabChartData.chartTypeValue) { //For switching chart type
+            setChartData = true;
+          } else { //For switching chart interval
+            if (tabChartData.chartTypeValue === 'connections') {
+              if (chartData !== prevProps.tabChartData.sessionHistogram) {
+                setChartData = true;
+              }
+            } else if (tabChartData.chartTypeValue === 'packets') {
+              if (chartData !== prevProps.tabChartData.packageHistogram) {
+                setChartData = true;
+              }
+            } else if (tabChartData.chartTypeValue === 'databytes') {
+              if (chartData !== prevProps.tabChartData.byteHistogram) {
+                setChartData = true;
+              }
+            }
+          }
+        }
+
+        if (setChartData) {
+          this.setChartData(chartData);
+        }
+      }
+    }
+  }
+  render() {
+    const {contextRoot, mainContentData, tabChartData, markData, tableMouseOver} = this.props;
+    const {chartData} = this.state;
+    const assetsPath = `${contextRoot}/lib/keylines/assets/`;
+
+    if (mainContentData.activeTab === 'connections') {
+      return (
+        &lt;div className={cx('main-chart', {'active': mainContentData.showChart})}>
+          &lt;i className='fg fg-close' onClick={mainContentData.toggleChart} title={t('txt-close')}>&lt;/i>
+          &lt;div className='chart-content connections'>
+            &lt;ButtonGroup
+              id='chartType'
+              className='chart-btn'
+              list={[
+                {value: 'connections', text: t('txt-connections')},
+                {value: 'packets', text: t('txt-packets')},
+                {value: 'databytes', text: t('txt-databytes')}
+              ]}
+              onChange={tabChartData.chartTypeChange}
+              value={tabChartData.chartTypeValue} />
+            &lt;ButtonGroup
+              id='chartType'
+              className='interval-btn'
+              list={[
+                {value: '1m', text: t('events.connections.txt-connections1m')},
+                {value: '15m', text: t('events.connections.txt-connections15m')},
+                {value: '30m', text: t('events.connections.txt-connections30m')},
+                {value: '60m', text: t('events.connections.txt-connections60m')}
+              ]}
+              onChange={tabChartData.chartIntervalChange}
+              value={tabChartData.chartIntervalValue} />
+          &lt;/div>
+
+          {chartData &amp;&amp;
+            &lt;ChartContent
+              chartData={chartData}
+              pageType={mainContentData.activeTab}
+              tableMouseOver={tableMouseOver} />
+          }
+        &lt;/div>
+      )
+    } else {
+      return (
+        &lt;div className={cx('main-chart', {'active': mainContentData.showChart})}>
+          &lt;i className='fg fg-close' onClick={mainContentData.toggleChart} title={t('txt-close')}>&lt;/i>
+          &lt;div className='chart-content'>
+            &lt;button className='placeholder'>&lt;/button>
+          &lt;/div>
+
+          {tabChartData &amp;&amp;
+            &lt;ChartContent
+              {...tabChartData}
+              markData={markData}
+              chartColors={mainContentData.chartColors}
+              pageType={mainContentData.activeTab}
+              tableMouseOver={tableMouseOver} />
+          }
+        &lt;/div>
+      )
+    }
+  }
+}
+
+DataChart.propTypes = {
+  contextRoot: PropTypes.string.isRequired,
+  mainContentData: PropTypes.object.isRequired,
+  tabChartData: PropTypes.object.isRequired
+};
+
+const HocDataChart = withLocale(DataChart);
+export { DataChart, HocDataChart };</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="SafetyScan.html">SafetyScan</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="Tree.html">Tree</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Nov 14 2019 17:48:35 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
