@@ -26,6 +26,12 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 let t = null;
 let et = null;
 
+/**
+ * Network Topology Inventory Auto Settings
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to manage auto settings
+ */
 class AutoSettings extends Component {
   constructor(props) {
     super(props);
@@ -77,6 +83,12 @@ class AutoSettings extends Component {
   componentDidMount() {
     this.getSettingsInfo();
   }
+  /**
+   * Get and set auto settings data
+   * @method
+   * @param none
+   * @returns none
+   */
   getSettingsInfo = () => {
     const {baseUrl, contextRoot} = this.props;
     const {statusEnable, ipRangeData, adData, netflowData, deviceList, scannerData} = this.state;
@@ -165,6 +177,12 @@ class AutoSettings extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Get and set device list data
+   * @method
+   * @param none
+   * @returns none
+   */
   getDeviceList = () => {
     const {baseUrl, contextRoot} = this.props;
     const {scannerData} = this.state;
@@ -203,16 +221,35 @@ class AutoSettings extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Set IP range data
+   * @method
+   * @param {array} ipRangeData - IP range data
+   * @returns none
+   */
   setIpRangeData = (ipRangeData) => {
     this.setState({
       ipRangeData
     });
   }
+  /**
+   * Set IP range data
+   * @method
+   * @param {array} scannerData - scanner data
+   * @returns none
+   */
   setScannerData = (scannerData) => {
     this.setState({
       scannerData
     });
   }
+  /**
+   * Set status data
+   * @method
+   * @param {string} type - status type
+   * @param {boolean} value - status data
+   * @returns none
+   */
   handleStatusChange = (type, value) => {
     let tempStatusEnable = {...this.state.statusEnable};
     tempStatusEnable[type] = value;
@@ -221,6 +258,13 @@ class AutoSettings extends Component {
       statusEnable: tempStatusEnable
     });
   }
+  /**
+   * Handle AD/LDAP input value change
+   * @method
+   * @param {string} type - input type
+   * @param {string} value - input value
+   * @returns none
+   */
   handleADchange = (type, value) => {
     let tempADdata = {...this.state.adData};
     tempADdata[type] = value;
@@ -229,6 +273,12 @@ class AutoSettings extends Component {
       adData: tempADdata
     });
   }
+  /**
+   * Display AD/LDAP test query content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
   getADtestContent = () => {
     const {adTableData} = this.state;
 
@@ -250,6 +300,12 @@ class AutoSettings extends Component {
       return <div className='align-center'>{t('txt-notFound')}</div>
     }
   }
+  /**
+   * Get and set AD/LDAP test result
+   * @method
+   * @param none
+   * @returns none
+   */
   handleADtest = () => {
     const {baseUrl, contextRoot} = this.props;
     const {adData} = this.state;
@@ -288,6 +344,12 @@ class AutoSettings extends Component {
       helper.showPopupMsg(t('network-inventory.auto-settings.txt-connectionsFail'), t('txt-error'));
     })
   }
+  /**
+   * Display Netflow test query content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
   getNetflowTestContent = () => {
     const {netFlowTableData} = this.state;
 
@@ -311,6 +373,12 @@ class AutoSettings extends Component {
       return <span>{t('txt-notFound')}</span>
     }
   }
+  /**
+   * Get and test Netflow test result
+   * @method
+   * @param none
+   * @returns none
+   */
   handleNetflowtest = () => {
     const {baseUrl, contextRoot} = this.props;
     const dateTime = {
@@ -342,6 +410,12 @@ class AutoSettings extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Display Scanner test query content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
   getScannerTestContent = () => {
     const {scannerTableData} = this.state;
 
@@ -364,6 +438,12 @@ class AutoSettings extends Component {
       return <span>{t('txt-notFound')}</span>
     }
   }
+  /**
+   * Get and set Scanner test result
+   * @method
+   * @param none
+   * @returns none
+   */
   handleScannerTest = (value) => {
     const {baseUrl, contextRoot} = this.props;
 
@@ -389,6 +469,12 @@ class AutoSettings extends Component {
       helper.showPopupMsg(t('network-inventory.auto-settings.txt-connectionsFail'), t('txt-error'));
     })
   }
+  /**
+   * Toggle content type
+   * @method
+   * @param {string} type - content type ('viewMode', 'editMode', 'save' or 'cancel')
+   * @returns none
+   */
   toggleContent = (type) => {
     const {originalStatusEnable, originalIPrangeData, originalADdata, originalNetflowData, originalScannerData} = this.state;
     let showPage = type;
@@ -412,6 +498,12 @@ class AutoSettings extends Component {
       activeContent: showPage
     });
   }
+  /**
+   * Handle auto settings confirm
+   * @method
+   * @param none
+   * @returns none
+   */
   handleSettingsConfirm = () => {
     const {baseUrl, contextRoot} = this.props;
     const {statusEnable, ipRangeData, adData, netflowData, scannerData} = this.state;
@@ -466,6 +558,12 @@ class AutoSettings extends Component {
       helper.showPopupMsg('', t('txt-error'));
     });
   }
+  /**
+   * Get Back button position
+   * @method
+   * @param {string} type - button type
+   * @returns width
+   */
   getBtnPos = (type) => {
     const {locale} = this.props;
 

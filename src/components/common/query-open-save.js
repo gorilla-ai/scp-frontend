@@ -268,7 +268,7 @@ class QueryOpenSave extends Component {
    * Display all saved filter queries
    * @method
    * @param @param {object} value - saved query data
-   * @param @param {number} index - index of queryDataList array
+   * @param @param {number} index - index of the queryDataList array
    * @returns FilterInput component
    */
   displayFilterQuery = (value, index) => {
@@ -292,7 +292,7 @@ class QueryOpenSave extends Component {
    * Display all saved mark
    * @method
    * @param @param {object} value - saved mark data
-   * @param @param {number} index - index of queryDataMark array
+   * @param @param {number} index - index of the queryDataMark array
    * @returns MarkInput component
    */
   displayMarkSearch = (value, index) => {

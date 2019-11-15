@@ -17,6 +17,12 @@ let t = null;
 let f = null;
 let et = null;
 
+/**
+ * Service Status
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the Config service status page
+ */
 class Status extends Component {
   constructor(props) {
     super(props);
@@ -38,6 +44,12 @@ class Status extends Component {
   componentDidMount() {
     this.getServiceStatus();
   }
+  /**
+   * Get and set service status data
+   * @method
+   * @param {string} option - option for 'refresh'
+   * @returns none
+   */
   getServiceStatus = (option) => {
     const {baseUrl} = this.props;
     const {serviceStatus} = this.state;

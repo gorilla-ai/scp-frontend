@@ -66,6 +66,12 @@ let t = null;
 let f = null;
 let et = null;
 
+/**
+ * Network Topology Inventory
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the Network Topology Inventory page
+ */
 class NetworkInventory extends Component {
   constructor(props) {
     super(props);
@@ -157,6 +163,12 @@ class NetworkInventory extends Component {
       this.toggleContent('showList');
     }
   }
+  /**
+   * Get and set IP device data (new api)
+   * @method
+   * @param none
+   * @returns none
+   */
   getDeviceData = (fromSearch, options, seatUUID) => {
     const {baseUrl, contextRoot} = this.props;
     const {showHMDonly, deviceSearch, deviceData} = this.state;
@@ -311,6 +323,12 @@ class NetworkInventory extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Get and set owner data
+   * @method
+   * @param none
+   * @returns none
+   */
   getOwnerData = () => {
     const {baseUrl, contextRoot} = this.props;
     const url = `${baseUrl}/api/owner/_search`;
@@ -338,6 +356,12 @@ class NetworkInventory extends Component {
       helper.showPopupMsg('', t('txt-error'));
     });
   }
+  /**
+   * Get and set Department and Title data
+   * @method
+   * @param none
+   * @returns none
+   */
   getOtherData = () => {
     const {baseUrl, contextRoot} = this.props;
     const {addIP} = this.state;
@@ -390,6 +414,12 @@ class NetworkInventory extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Display owner seat content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
   displaySeatInfo = () => {
     const {currentDeviceData} = this.state;
     const deviceInfo = {
@@ -414,6 +444,12 @@ class NetworkInventory extends Component {
       </div>
     )
   }
+  /**
+   * Display owner seat modal dialog
+   * @method
+   * @param none
+   * @returns ModalDialog component
+   */
   showSeatData = () => {
     const actions = {
       confirm: {text: t('txt-close'), handler: this.closeDialog.bind(this, 'reload')}
@@ -431,6 +467,12 @@ class NetworkInventory extends Component {
       </ModalDialog>
     )
   }
+  /**
+   * Check table sortable fields
+   * @method
+   * @param {string} field - field name
+   * @returns true or null
+   */
   checkSortable = (field) => {
     const unSortableFields = ['owner', 'areaName', 'seatName', 'yaraScan', '_menu'];
 
@@ -440,6 +482,12 @@ class NetworkInventory extends Component {
       return true;
     }
   }
+  /**
+   * Get and set floor plan data
+   * @method
+   * @param none
+   * @returns none
+   */
   getFloorPlan = () => {
     const {baseUrl, contextRoot} = this.props;
 
@@ -467,6 +515,12 @@ class NetworkInventory extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Get and set floor list data
+   * @method
+   * @param none
+   * @returns none
+   */
   getFloorList = () => {
     const {floorPlan} = this.state;
     let floorList = [];
@@ -491,6 +545,12 @@ class NetworkInventory extends Component {
       this.getSeatData(currentFloor);
     });
   }
+  /**
+   * Get and set individual floor area data
+   * @method
+   * @param {string} areaUUID - area UUID
+   * @returns none
+   */
   getAreaData = (areaUUID) => {
     const {baseUrl, contextRoot} = this.props;
     const mapAreaUUID = areaUUID;
@@ -535,6 +595,12 @@ class NetworkInventory extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Get and set individual floor area data
+   * @method
+   * @param {string} areaUUID - area UUID
+   * @returns none
+   */
   getSeatData = (areaUUID) => {
     const {baseUrl, contextRoot} = this.props;
     const area = areaUUID || this.state.floorPlan.currentAreaUUID;
@@ -579,11 +645,23 @@ class NetworkInventory extends Component {
       return null;
     })
   }
+  /**
+   * Toggle to show only HMD result
+   * @method
+   * @param {boolean} value - true/false
+   * @returns none
+   */
   toggleHMDonly = (value) => {
     this.setState({
       showHMDonly: value
     });
   }
+  /**
+   * Display filter content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
   renderFilter = () => {
     const {showFilter, showHMDonly, deviceSearch} = this.state;
 
@@ -663,6 +741,14 @@ class NetworkInventory extends Component {
       </div>
     )
   }
+  /**
+   * Open table menu based on conditions
+   * @method
+   * @param {string} type - content type ('view', 'hmd' or 'delete')
+   * @param {object} allValue - IP device data
+   * @param {string} index - index of the IP device data
+   * @returns none
+   */
   openMenu = (type, allValue, index) => {
     if (type === 'view') {
       this.getOwnerSeat(allValue);
@@ -672,6 +758,12 @@ class NetworkInventory extends Component {
       this.openDeleteDeviceModal(allValue);
     }
   }
+  /**
+   * Get and set owner seat data
+   * @method
+   * @param {object} allValue - IP device data
+   * @returns none
+   */
   getOwnerSeat = (allValue) => {
     const {baseUrl, contextRoot} = this.props;
     const topoInfo = allValue;
@@ -722,6 +814,12 @@ class NetworkInventory extends Component {
       activeIPdeviceUUID: allValue.ipDeviceUUID
     });
   }
+  /**
+   * Handle 'previous' and 'next' buttons for HMD dialog
+   * @method
+   * @param {string} type - button type ('previous' or 'next')
+   * @returns none
+   */
   showAlertData = (type) => {
     const {deviceData} = this.state;
     let tempDeviceData = {...deviceData};
@@ -737,11 +835,6 @@ class NetworkInventory extends Component {
     }
 
     this.setState({
-      // activeScanType: 'yara',
-      // activePath: null,
-      // activeRuleHeader: false,
-      // activeDLL: false,
-      // activeConnections: false,
       deviceData: tempDeviceData
     }, () => {
       const {deviceData} = this.state;
@@ -751,7 +844,14 @@ class NetworkInventory extends Component {
       this.openDetailInfo(index, allValue);
     });
   }
-  openDetailInfo = (index, allValue, evt) => {
+  /**
+   * Set new IP device data
+   * @method
+   * @param {string} index - index of the IP device data
+   * @param {object} allValue - IP device data
+   * @returns none
+   */
+  openDetailInfo = (index, allValue) => {
     let tempDeviceData = {...this.state.deviceData};
     tempDeviceData.currentIndex = Number(index);
 
@@ -762,6 +862,12 @@ class NetworkInventory extends Component {
       activeIPdeviceUUID: allValue.ipDeviceUUID
     });
   }
+  /**
+   * Display delete IP device content
+   * @method
+   * @param {object} allValue - IP device data
+   * @returns HTML DOM
+   */
   getDeleteDeviceContent = (allValue) => {
     this.setState({
       currentDeviceData: allValue,
@@ -774,6 +880,12 @@ class NetworkInventory extends Component {
       </div>
     )
   }
+  /**
+   * Display delete IP device modal dialog
+   * @method
+   * @param {object} allValue - IP device data
+   * @returns none
+   */
   openDeleteDeviceModal = (allValue) => {
     PopupDialog.prompt({
       title: t('network-inventory.txt-deleteDevice'),
@@ -792,6 +904,12 @@ class NetworkInventory extends Component {
       showSeatData: false
     });
   }
+  /**
+   * Handle delete IP device confirm
+   * @method
+   * @param none
+   * @returns none
+   */
   deleteDevice = () => {
     const {baseUrl, contextRoot} = this.props;
     const {currentDeviceData} = this.state;
@@ -810,10 +928,16 @@ class NetworkInventory extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  handleTableSort = (value) => {
+  /**
+   * Handle table sort functionality
+   * @method
+   * @param {object} sort - sort data object
+   * @returns none
+   */
+  handleTableSort = (sort) => {
     let tempDeviceData = {...this.state.deviceData};
-    tempDeviceData.sort.field = value.field;
-    tempDeviceData.sort.desc = !tempDeviceData.sort.desc;
+    tempDeviceData.sort.field = sort.field;
+    tempDeviceData.sort.desc = sort.desc;
 
     this.setState({
       deviceData: tempDeviceData
@@ -821,7 +945,13 @@ class NetworkInventory extends Component {
       this.getDeviceData();
     });
   }
-  handlePageChange = (currentPage) => {
+  /**
+   * Handle table pagination change
+   * @method
+   * @param {number} currentPage - new page number
+   * @returns none
+   */
+  handlePaginationChange = (currentPage) => {
     let tempDeviceData = {...this.state.deviceData};
     tempDeviceData.currentPage = currentPage;
 
@@ -830,7 +960,13 @@ class NetworkInventory extends Component {
     }, () => {
       this.getDeviceData();
     });
-  }  
+  }
+  /**
+   * Handle table pagesize change
+   * @method
+   * @param {string} pageSize - new page sizse
+   * @returns none
+   */
   handlePageDropdown = (pageSize) => {
     let tempDeviceData = {...this.state.deviceData};
     tempDeviceData.currentPage = 1;
@@ -842,17 +978,37 @@ class NetworkInventory extends Component {
       this.getDeviceData();
     });
   }
+  /**
+   * Handle content tab change
+   * @method
+   * @param {string} type - content type ('deviceList' or 'deviceMap')
+   * @returns none
+   */
   handleSubTabChange = (type) => {
     this.setState({
       activeTab: type,
       showFilter: false
     });
   }
+  /**
+   * Toggle filter content on/off
+   * @method
+   * @param none
+   * @returns none
+   */
   toggleFilter = () => {
     this.setState({
       showFilter: !this.state.showFilter
     });
   }
+  /**
+   * Get and set IP device data (old api)
+   * @method
+   * @param {string} index - index of the IP devicde data
+   * @param {string} ipDeviceUUID - IP device UUID
+   * @param {string} options - option for 'oneDevice'
+   * @returns none
+   */
   getIPdeviceInfo = (index, ipDeviceUUID, options) => {
     const {baseUrl, contextRoot} = this.props;
     const {deviceData, currentDeviceData} = this.state;
@@ -889,6 +1045,12 @@ class NetworkInventory extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Handle trigger button for HMD
+   * @method
+   * @param {string} type - HMD scan type
+   * @returns none
+   */
   triggerTask = (type) => {
     const {baseUrl, contextRoot} = this.props;
     const {currentDeviceData} = this.state;
@@ -916,6 +1078,12 @@ class NetworkInventory extends Component {
       helper.showPopupMsg('', t('txt-error'));
     });
   }
+  /**
+   * Handle IR combo dropdown change
+   * @method
+   * @param {string} type - IR combo type ('quick', 'standard' or 'full')
+   * @returns none
+   */
   handleIrComboChange = (value) => {
     let irItemSelected = [];
 
@@ -932,6 +1100,12 @@ class NetworkInventory extends Component {
       irItemSelected
     });
   }
+  /**
+   * Handle IR combo multi checkbox change
+   * @method
+   * @param {array} selected - selected checkbox array
+   * @returns none
+   */
   handleIrSelectionChange = (selected) => {
     const irItemSelected = selected.sort((a, b) => {
       return a - b;
@@ -941,6 +1115,12 @@ class NetworkInventory extends Component {
       irItemSelected
     });
   }
+  /**
+   * Display IR selection content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
   displayIRselection = () => {
     const {irComboSelected, irItemSelected} = this.state;
     const dropDownList = _.map(['quick', 'standard', 'full'], val => {
@@ -971,6 +1151,12 @@ class NetworkInventory extends Component {
       </div>
     )
   }
+  /**
+   * Display IR selection modal dialog
+   * @method
+   * @param none
+   * @returns ModalDialog component
+   */
   irSelectionDialog = () => {
     const titleText = t('network-inventory.txt-itemSelection');
     const actions = {
@@ -991,6 +1177,12 @@ class NetworkInventory extends Component {
       </ModalDialog>
     )
   }
+  /**
+   * Handle IR selection confirm
+   * @method
+   * @param none
+   * @returns none
+   */
   confirmIRselection = () => {
     const {irItemSelected} = this.state;
     const selectedIrArr = _.map(irItemSelected, val => {
@@ -1000,6 +1192,12 @@ class NetworkInventory extends Component {
     this.triggerTask(selectedIrArr);
     this.toggleSelectionIR();
   }
+  /**
+   * Toggle IR combo selection dialog
+   * @method
+   * @param none
+   * @returns none
+   */
   toggleSelectionIR = () => {
     const {modalIRopen} = this.state;
 
@@ -1014,6 +1212,12 @@ class NetworkInventory extends Component {
       modalIRopen: !modalIRopen
     });
   }
+  /**
+   * Display HMD scan info content
+   * @method
+   * @param none
+   * @returns HMDscanInfo component
+   */
   showScanInfo = () => {
     const {baseUrl, contextRoot, language, locale} = this.props;
     const {deviceData, currentDeviceData} = this.state;
@@ -1036,6 +1240,13 @@ class NetworkInventory extends Component {
         triggerTask={this.triggerTask} />
     )
   }
+  /**
+   * Close HMD scan info dialog
+   * @method
+   * @param {string} option - option for 'reload'
+   * @param {string} all - option for 'all'
+   * @returns none
+   */
   closeDialog = (option, all) => {
     this.setState({
       showScanInfo: false,
@@ -1061,6 +1272,12 @@ class NetworkInventory extends Component {
       }
     });
   }
+  /**
+   * Clear filter input value
+   * @method
+   * @param none
+   * @returns none
+   */
   clearFilter = () => {
     this.setState({
       deviceSearch: {
@@ -1075,6 +1292,13 @@ class NetworkInventory extends Component {
       showHMDonly: false
     });
   }
+  /**
+   * Handle filter input value change
+   * @method
+   * @param {string} type - input type
+   * @param {string} value - input value
+   * @returns none
+   */
   handleDeviceSearch = (type, value) => {
     let tempDeviceSearch = {...this.state.deviceSearch};
     tempDeviceSearch[type] = value;
@@ -1083,6 +1307,13 @@ class NetworkInventory extends Component {
       deviceSearch: tempDeviceSearch
     });
   }
+  /**
+   * Toggle Inventory content
+   * @method
+   * @param {string} type - content type
+   * @param {string} formType - show form content type ('new' or 'edit')
+   * @returns none
+   */
   toggleContent = (type, formType) => {
     const {formTypeEdit, ownerList, departmentList, titleList, currentDeviceData, alertInfo, floorList} = this.state;
     let activeContent = '';
@@ -1162,6 +1393,12 @@ class NetworkInventory extends Component {
       activeContent
     });
   }
+  /**
+   * Check add/edit step form validation
+   * @method
+   * @param {number} step - form step
+   * @returns true if form is invalid
+   */
   checkFormValidation = (step) => {
     const {addIP, ownerType} = this.state;
 
@@ -1179,6 +1416,12 @@ class NetworkInventory extends Component {
       }
     }
   }
+  /**
+   * Toggle add/edit form step content
+   * @method
+   * @param {string} type - form step type ('previous' or 'next')
+   * @returns none
+   */
   toggleSteps = (type) => {
     const {activeSteps} = this.state;
     let tempActiveSteps = activeSteps;
@@ -1211,6 +1454,12 @@ class NetworkInventory extends Component {
       activeSteps: tempActiveSteps
     });
   }
+  /**
+   * Add new owner if new owner is selected
+   * @method
+   * @param none
+   * @returns none
+   */
   handleAddIpConfirm = () => {
     const {baseUrl, contextRoot} = this.props;
     const {addIP, ownerType} = this.state;
@@ -1252,6 +1501,12 @@ class NetworkInventory extends Component {
       this.handleIPdeviceConfirm();
     }
   }
+  /**
+   * Handle add/edit form confirm
+   * @method
+   * @param none
+   * @returns none
+   */
   handleIPdeviceConfirm = (ownerUUID) => {
     const {baseUrl, contextRoot} = this.props;
     const {formTypeEdit, currentDeviceData, floorPlan, addIP, addSeat, mapAreaUUID} = this.state;
@@ -1299,6 +1554,13 @@ class NetworkInventory extends Component {
       helper.showPopupMsg('', t('txt-error'));
     });
   }
+  /**
+   * Display form steps indicator
+   * @method
+   * @param {string} val - step text
+   * @param {number} i - index of the steps array
+   * @returns HTML DOM
+   */
   showAddIpSteps = (val, i) => {
     const {activeSteps} = this.state;
     const index = ++i;
@@ -1317,6 +1579,12 @@ class NetworkInventory extends Component {
       </div>
     )
   }
+  /**
+   * Handle owner type change
+   * @method
+   * @param {string} ownerType - owner type ('existing' or 'new')
+   * @returns none
+   */
   handleOwnerTypeChange = (ownerType) => {
     const {departmentList, titleList, addIP} = this.state;
     const tempAddIP = {...addIP};
@@ -1328,6 +1596,12 @@ class NetworkInventory extends Component {
       addIP: tempAddIP
     });
   }
+  /**
+   * Handle existing owners dropdown change
+   * @method
+   * @param {string} value - ownerUUID
+   * @returns none
+   */
   handleOwnerChange = (value) => {
     const {baseUrl, contextRoot} = this.props;
 
@@ -1353,6 +1627,12 @@ class NetworkInventory extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Handle Department dropdown change
+   * @method
+   * @param {string} value - department nameUUID
+   * @returns none
+   */
   handleDepartmentChange = (value) => {
     const tempAddIP = {...this.state.addIP};
     tempAddIP.newDepartment = value;
@@ -1361,6 +1641,12 @@ class NetworkInventory extends Component {
       addIP: tempAddIP
     });
   }
+  /**
+   * Handle Title dropdown change
+   * @method
+   * @param {string} value - title nameUUID
+   * @returns none
+   */
   handleTitleChange = (value) => {
     const tempAddIP = {...this.state.addIP};
     tempAddIP.newTitle = value;
@@ -1369,14 +1655,32 @@ class NetworkInventory extends Component {
       addIP: tempAddIP
     });
   }
+  /**
+   * Open department / title edit dialog
+   * @method
+   * @param none
+   * @returns none
+   */
   openManage = () => {
     this.manage._component.open();
   }
+  /**
+   * Open floor map edit dialog
+   * @method
+   * @param none
+   * @returns none
+   */
   openFloorMap = () => {
     this.setState({
       modalFloorOpen: true
     });
   }
+  /**
+   * Display floor map modal dialog
+   * @method
+   * @param none
+   * @returns FloorMap component
+   */
   modalFloorDialog = () => {
     const {baseUrl, contextRoot} = this.props;
 
@@ -1387,9 +1691,21 @@ class NetworkInventory extends Component {
         closeDialog={this.closeDialog} />
     )
   }
+  /**
+   * Get show form button text
+   * @method
+   * @param none
+   * @returns button text
+   */
   getBtnText = () => {
     return this.state.activeSteps === 4 ? t('txt-confirm') : t('txt-nextStep');
   }
+  /**
+   * Display add/edit IP device form content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
   displayAddIpSteps = () => {
     const {contextRoot} = this.props;
     const {
@@ -1714,6 +2030,12 @@ class NetworkInventory extends Component {
       </div>
     )
   }
+  /**
+   * Get default opened floor plan map
+   * @method
+   * @param {string} selectedID - selected area UUID
+   * @returns default opened areaRoute array IDs
+   */
   getDefaultFloor = (selectedID) => {
     const {floorPlan} = this.state;
     let areaRoute = '';
@@ -1729,123 +2051,14 @@ class NetworkInventory extends Component {
     areaRoute = areaRoute.split(',');
     return areaRoute;
   }
-  getTreeView = (value, selectedID, i) => {
-    return (
-      <TreeView
-        id={value.areaUUID}
-        key={value.areaUUID}
-        data={value}
-        selected={selectedID}
-        defaultSelected={selectedID}
-        defaultOpened={this.getDefaultFloor(selectedID)}
-        onSelect={this.selectTree.bind(this, i)} />
-    )
-  }
-  displayTree = (val, i) => {
-    const {floorPlan, currentDeviceData} = this.state;
-    let currentAreaUUID = '';
-
-    if (currentDeviceData && currentDeviceData.seatUUID) {
-      currentAreaUUID = currentDeviceData.areaUUID;
-    } else {
-      currentAreaUUID = floorPlan.currentAreaUUID;
-    }
-
-    return this.getTreeView(val, currentAreaUUID, i);
-  }
-  handleFloorMapClick = (id, info) => {
-    const {addSeat} = this.state;
-    let tempAddSeat = {...addSeat};
-
-    if (id) {
-      tempAddSeat.selectedSeatUUID = id;
-
-      this.setState({
-        addSeat: tempAddSeat
-      });
-    } else {
-      tempAddSeat.coordX = Math.round(info.xy.x);
-      tempAddSeat.coordY = Math.round(info.xy.y);
-
-      this.setState({
-        addSeatOpen: true,
-        addSeat: tempAddSeat
-      });
-    }
-  }
-  handleDataChange = (type, value) => {
-    let tempAddSeat = {...this.state.addSeat};
-    tempAddSeat[type] = value;
-
-    this.setState({
-      addSeat: tempAddSeat
-    });
-  }
-  displayAddSeat = () => {
-    const {addSeat} = this.state;
-
-    return (
-      <div className='add-seat'>
-        <label htmlFor='addAreaSeat'>{t('txt-name')}</label>
-        <Input
-          id='addAreaSeat'
-          onChange={this.handleDataChange.bind(this, 'name')}
-          value={addSeat.name} />
-      </div>
-    )
-  }
-  addSeatDialog = () => {
-    const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeDialog},
-      confirm: {text: t('txt-confirm'), handler: this.handleAddSeatConfirm}
-    };
-    const titleText = t('network-topology.txt-addSeat');
-
-    return (
-      <ModalDialog
-        id='addSeatDialog'
-        className='modal-dialog'
-        title={titleText}
-        draggable={true}
-        global={true}
-        actions={actions}
-        closeAction='cancel'>
-        {this.displayAddSeat()}
-      </ModalDialog>
-    )
-  }
-  handleAddSeatConfirm = () => {
-    const {baseUrl, contextRoot} = this.props;
-    const {floorPlan, addSeat} = this.state;
-    const url = `${baseUrl}/api/seat`;
-    const requestData = {
-      areaUUID: floorPlan.currentAreaUUID,
-      seatName: addSeat.name,
-      coordX: addSeat.coordX,
-      coordY: addSeat.coordY
-    };
-
-    helper.getAjaxData('POST', url, requestData)
-    .then(data => {
-      if (data) {
-        this.setState({
-          addSeatOpen: false,
-          addSeat: {
-            selectedSeatUUID: data,
-            name: '',
-            coordX: '',
-            coordY: ''
-          }
-        }, () => {
-          this.getAreaData(floorPlan.currentAreaUUID);
-          this.getSeatData(floorPlan.currentAreaUUID);
-        });
-      }
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'));
-    });
-  }
+  /**
+   * Handle floor plan tree node select
+   * @method
+   * @param {number} i - index of the tree data
+   * @param {string} areaUUID - selected area UUID
+   * @param {object} eventData - tree click events data
+   * @returns none
+   */
   selectTree = (i, areaUUID, eventData) => {
     const {baseUrl, contextRoot} = this.props;
     let tempFloorPlan = {...this.state.floorPlan};
@@ -1885,7 +2098,178 @@ class NetworkInventory extends Component {
       this.getSeatData(areaUUID);
     });
   }
-  handleAddIpChange = (type, value, info) => {
+  /**
+   * Display floor tree data
+   * @method
+   * @param {object} value - floor plan data
+   * @param {string} selectedID - selected area UUID
+   * @param {number} i - index of the floor plan data
+   * @returns TreeView component
+   */
+  getTreeView = (value, selectedID, i) => {
+    return (
+      <TreeView
+        id={value.areaUUID}
+        key={value.areaUUID}
+        data={value}
+        selected={selectedID}
+        defaultSelected={selectedID}
+        defaultOpened={this.getDefaultFloor(selectedID)}
+        onSelect={this.selectTree.bind(this, i)} />
+    )
+  }
+  /**
+   * Handle floor tree data
+   * @method
+   * @param {object} val - floor plan data
+   * @param {number} i - index of the floor plan data
+   * @returns content of TreeView component
+   */
+  displayTree = (val, i) => {
+    const {floorPlan, currentDeviceData} = this.state;
+    let currentAreaUUID = '';
+
+    if (currentDeviceData && currentDeviceData.seatUUID) {
+      currentAreaUUID = currentDeviceData.areaUUID;
+    } else {
+      currentAreaUUID = floorPlan.currentAreaUUID;
+    }
+
+    return this.getTreeView(val, currentAreaUUID, i);
+  }
+  /**
+   * Handle floor map mouse click
+   * @method
+   * @param {string} id - existing seat ID
+   * @param {object} info - mouseClick events
+   * @returns none
+   */
+  handleFloorMapClick = (id, info) => {
+    const {addSeat} = this.state;
+    let tempAddSeat = {...addSeat};
+
+    if (id) {
+      tempAddSeat.selectedSeatUUID = id;
+
+      this.setState({
+        addSeat: tempAddSeat
+      });
+    } else {
+      tempAddSeat.coordX = Math.round(info.xy.x);
+      tempAddSeat.coordY = Math.round(info.xy.y);
+
+      this.setState({
+        addSeatOpen: true,
+        addSeat: tempAddSeat
+      });
+    }
+  }
+  /**
+   * Handle add seat input value change
+   * @method
+   * @param {string} type - input type
+   * @param {string} value - input value
+   * @returns none
+   */
+  handleDataChange = (type, value) => {
+    let tempAddSeat = {...this.state.addSeat};
+    tempAddSeat[type] = value;
+
+    this.setState({
+      addSeat: tempAddSeat
+    });
+  }
+  /**
+   * Display add seat contnt
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
+  displayAddSeat = () => {
+    const {addSeat} = this.state;
+
+    return (
+      <div className='add-seat'>
+        <label htmlFor='addAreaSeat'>{t('txt-name')}</label>
+        <Input
+          id='addAreaSeat'
+          onChange={this.handleDataChange.bind(this, 'name')}
+          value={addSeat.name} />
+      </div>
+    )
+  }
+  /**
+   * Display add seat modal dialog
+   * @method
+   * @param none
+   * @returns ModalDialog component
+   */
+  addSeatDialog = () => {
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeDialog},
+      confirm: {text: t('txt-confirm'), handler: this.handleAddSeatConfirm}
+    };
+    const titleText = t('network-topology.txt-addSeat');
+
+    return (
+      <ModalDialog
+        id='addSeatDialog'
+        className='modal-dialog'
+        title={titleText}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        {this.displayAddSeat()}
+      </ModalDialog>
+    )
+  }
+  /**
+   * Handle add seat confirm
+   * @method
+   * @param none
+   * @returns none
+   */
+  handleAddSeatConfirm = () => {
+    const {baseUrl, contextRoot} = this.props;
+    const {floorPlan, addSeat} = this.state;
+    const url = `${baseUrl}/api/seat`;
+    const requestData = {
+      areaUUID: floorPlan.currentAreaUUID,
+      seatName: addSeat.name,
+      coordX: addSeat.coordX,
+      coordY: addSeat.coordY
+    };
+
+    helper.getAjaxData('POST', url, requestData)
+    .then(data => {
+      if (data) {
+        this.setState({
+          addSeatOpen: false,
+          addSeat: {
+            selectedSeatUUID: data,
+            name: '',
+            coordX: '',
+            coordY: ''
+          }
+        }, () => {
+          this.getAreaData(floorPlan.currentAreaUUID);
+          this.getSeatData(floorPlan.currentAreaUUID);
+        });
+      }
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'));
+    });
+  }
+  /**
+   * Handle Add IP form input value change
+   * @method
+   * @param {string} type - input type
+   * @param {string} value - input value
+   * @returns none
+   */
+  handleAddIpChange = (type, value) => {
     let tempAddIP = {...this.state.addIP};
     tempAddIP[type] = value;
 
@@ -1901,6 +2285,12 @@ class NetworkInventory extends Component {
       addIP: tempAddIP
     });
   }
+  /**
+   * Get Auto and Manual buttons position
+   * @method
+   * @param {string} type - button type
+   * @returns width
+   */
   getBtnPos = (type) => {
     const {locale} = this.props;
 
@@ -2018,7 +2408,7 @@ class NetworkInventory extends Component {
                     currentTableID={activeIPdeviceUUID}
                     tableUniqueID='ipDeviceUUID'
                     handleTableSort={this.handleTableSort}
-                    paginationPageChange={this.handlePageChange}
+                    paginationPageChange={this.handlePaginationChange}
                     paginationDropDownChange={this.handlePageDropdown} />
                 }
 

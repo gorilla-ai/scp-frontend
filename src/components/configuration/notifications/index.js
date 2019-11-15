@@ -22,6 +22,12 @@ import 'react-multi-email/style.css';
 let t = null;
 let et = null;
 
+/**
+ * Notifications
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the Config Notifications page
+ */
 class Notifications extends Component {
   constructor(props) {
     super(props);
@@ -69,11 +75,17 @@ class Notifications extends Component {
       this.toggleContent('viewMode');
     }
   }
+  /**
+   * Get and set mail and notification data
+   * @method
+   * @param none
+   * @returns none
+   */
   getMailServerInfo = () => {
     const {baseUrl, contextRoot} = this.props;
     const {notifications, emails} = this.state;
 
-    ah.all([
+    this.ah.all([
       {
         url: `${baseUrl}/api/notification/mailServer`,
         type: 'GET'
@@ -85,8 +97,8 @@ class Notifications extends Component {
     ])
     .then(data => {
       if (data) {
-        const data1 = data[0].rt;
-        const data2 = data[1].rt;
+        const data1 = data[0];
+        const data2 = data[1];
 
         const notifications = {
           server: data1.smtpServer,
@@ -95,7 +107,7 @@ class Notifications extends Component {
           connectType: data1.smtpConnectType,
           authentication: data1.emailAuthentication.toString(), //Convert boolean to string
           senderAccount: data1.senderAcct,
-          senderPassword: data1.senderPasswd,
+          senderPassword: data1.senderPasswd
         };
 
         let tempEmails = {...emails};
@@ -128,14 +140,27 @@ class Notifications extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  handleDataChange = (type, field) => {
+  /**
+   * Handle email settings input data change
+   * @method
+   * @param {string} type - input type
+   * @param {string} value - input value
+   * @returns none
+   */
+  handleDataChange = (type, value) => {
     let tempNotifications = {...this.state.notifications};
-    tempNotifications[type] = field;
+    tempNotifications[type] = value;
 
     this.setState({
       notifications: tempNotifications
     });
   }
+  /**
+   * Toggle different content
+   * @method
+   * @param {string} type - content type ('editMode', 'viewMode', 'save' or 'cancel')
+   * @returns none
+   */
   toggleContent = (type) => {
     const {originalNotifications, originalEmails} = this.state;
     let showPage = type;
@@ -156,6 +181,12 @@ class Notifications extends Component {
       activeContent: showPage
     });
   }
+  /**
+   * Handle edit confirm
+   * @method
+   * @param none
+   * @returns none
+   */
   handleNotificationsConfirm = () => {
     const {baseUrl, contextRoot} = this.props;
     const {notifications, emails} = this.state;
@@ -209,6 +240,13 @@ class Notifications extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Toggle Email notifications checkbox
+   * @method
+   * @param {string} type - notifications type ('service', 'edge', or 'alert')
+   * @param {string} value - input value
+   * @returns none
+   */
   toggleEmailCheckbox = (type, value) => {
     let tempEmails = {...this.state.emails};
     tempEmails[type].enable = value;
@@ -217,9 +255,23 @@ class Notifications extends Component {
       emails: tempEmails
     })
   }
+  /**
+   * Display individual email
+   * @method
+   * @param {string} val - email value
+   * @param {string} i - index of the emails array
+   * @returns HTML DOM
+   */
   displayEmail = (val, i) => {
     return <span key={i}>{val}</span>
   }
+  /**
+   * Handle email input change
+   * @method
+   * @param {object} val - EMAIL_SETTINGS object
+   * @param {array} newEmails - new emails list
+   * @returns none
+   */
   handleEmailChange = (val, newEmails) => {
     let tempEmails = {...this.state.emails};
     tempEmails[val.type].emails = newEmails;
@@ -228,9 +280,24 @@ class Notifications extends Component {
       emails: tempEmails
     });
   }
+  /**
+   * Handle email delete
+   * @method
+   * @param {function} removeEmail - function to remove email
+   * @param {number} index - index of the emails list array
+   * @returns none
+   */
   deleteEmail = (removeEmail, index) => {
     removeEmail(index);
   }
+  /**
+   * Handle email delete
+   * @method
+   * @param {string} email - individual email
+   * @param {number} index - index of the emails list array
+   * @param {function} removeEmail - function to remove email
+   * @returns HTML DOM
+   */
   getLabel = (email, index, removeEmail) => {
     return (
       <div data-tag key={index}>
@@ -239,6 +306,13 @@ class Notifications extends Component {
       </div>
     )
   }
+  /**
+   * Display emails notifications content
+   * @method
+   * @param {object} val - EMAIL_SETTINGS object
+   * @param {number} i - index of the EMAIL_SETTINGS array
+   * @returns HTML DOM
+   */
   getEmailsContent = (val, i) => {
     const {activeContent, emails} = this.state;
 
@@ -272,16 +346,34 @@ class Notifications extends Component {
       </div>
     )
   }
+  /**
+   * Set test email dialog
+   * @method
+   * @param none
+   * @returns none
+   */
   openEmailDialog = () => {
     this.setState({
       openEmailDialog: true
     });
   }
+  /**
+   * Set test emails list
+   * @method
+   * @param {array} newEmails - new emails list
+   * @returns none
+   */
   handleTestEmailChange = (newEmails) => {
     this.setState({
       testEmails: newEmails
     });
   }
+  /**
+   * Display test email content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
   displayTestEmail = () => {
     const {testEmails} = this.state;
 
@@ -296,6 +388,12 @@ class Notifications extends Component {
       </div>
     )
   }
+  /**
+   * Open test email dialog
+   * @method
+   * @param none
+   * @returns ModalDialog component
+   */
   testEmailDialog = () => {
     const titleText = t('notifications.txt-testEmails');
     const actions = {
@@ -316,6 +414,12 @@ class Notifications extends Component {
       </ModalDialog>
     )
   }
+  /**
+   * Handle test email confirm
+   * @method
+   * @param none
+   * @returns none
+   */
   testEmailConfirm = () => {
     const {testEmails} = this.state;
     let dataParams = '';
@@ -337,6 +441,12 @@ class Notifications extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Close test email dialog
+   * @method
+   * @param none
+   * @returns none
+   */
   closeDialog = () => {
     this.setState({
       openEmailDialog: false,
@@ -362,7 +472,7 @@ class Notifications extends Component {
         headerText: t('notifications.txt-alertNotifications'),
         checkboxText: t('notifications.txt-dailyAlert')
       }
-    ];    
+    ];
 
     return (
       <div>

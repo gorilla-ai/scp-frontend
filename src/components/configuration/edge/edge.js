@@ -24,6 +24,12 @@ let t = null;
 let f = null;
 let et = null;
 
+/**
+ * Edge
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the Config Edge page
+ */
 class Edge extends Component {
   constructor(props) {
     super(props);
@@ -73,6 +79,12 @@ class Edge extends Component {
       this.toggleContent('tableList');
     }
   }
+  /**
+   * Get Edge service type for filter dropdown
+   * @method
+   * @param none
+   * @returns none
+   */
   getEdgeServiceType = () => {
     const {baseUrl, contextRoot} = this.props;
     const url = `${baseUrl}/api/edge/serviceType`;
@@ -105,6 +117,12 @@ class Edge extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Get and set Edge table data
+   * @method
+   * @param {string} fromSearch - option for the 'search'
+   * @returns none
+   */
   getEdgeData = (fromSearch) => {
     const {baseUrl, contextRoot} = this.props;
     const {edgeSearch, edge} = this.state;
@@ -235,7 +253,7 @@ class Edge extends Component {
               } else if (tempData === '_menu') {
                 return (
                   <div className='table-menu menu active'>
-                    <i className='fg fg-edit' onClick={this.toggleContent.bind(this, 'editEdge', allValue, i)} title={t('txt-edit')}></i>
+                    <i className='fg fg-edit' onClick={this.toggleContent.bind(this, 'editEdge', allValue)} title={t('txt-edit')}></i>
                     <i className='fg fg-trashcan' onClick={this.openDeleteMenu.bind(this, allValue)} title={t('txt-delete')}></i>
                   </div>
                 )
@@ -257,6 +275,12 @@ class Edge extends Component {
       helper.showPopupMsg(t('txt-error'));
     });
   }
+  /**
+   * Handle Analyze button and reload the table
+   * @method
+   * @param {object} allValue - Edge data
+   * @returns none
+   */
   agentAnalysis = (allValue) => {
     const {baseUrl, contextRoot} = this.props;
     const url = `${baseUrl}/api/agent/_analyze?projectId=${allValue.projectId}`;
@@ -275,6 +299,12 @@ class Edge extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Check table sort functionality
+   * @method
+   * @param {string} field - table field name
+   * @returns none
+   */
   checkSortable = (field) => {
     const unSortableFields = ['description', '_menu'];
 
@@ -284,10 +314,16 @@ class Edge extends Component {
       return true;
     }
   }
-  handleTableSort = (value) => {
+  /**
+   * Handle table sort functionality
+   * @method
+   * @param {object} sort - sort data object
+   * @returns none
+   */
+  handleTableSort = (sort) => {
     let tempEdge = {...this.state.edge};
-    tempEdge.sort.field = value.field;
-    tempEdge.sort.desc = !tempEdge.sort.desc;
+    tempEdge.sort.field = sort.field;
+    tempEdge.sort.desc = sort.desc;
 
     this.setState({
       edge: tempEdge
@@ -295,6 +331,13 @@ class Edge extends Component {
       this.getEdgeData();
     });
   }
+  /**
+   * Handle table pagination change
+   * @method
+   * @param {string} type - page type ('currentPage' or 'pageSize')
+   * @param {string | number} value - new page number
+   * @returns none
+   */
   handlePaginationChange = (type, value) => {
     let tempEdge = {...this.state.edge};
     tempEdge[type] = Number(value);
@@ -309,6 +352,13 @@ class Edge extends Component {
       this.getEdgeData();
     });
   }
+  /**
+   * Handle filter input data change
+   * @method
+   * @param {string} type - input type
+   * @param {string} value - input value
+   * @returns none
+   */
   handleEdgeSearch = (type, value) => {
     let tempEdgeSearch = {...this.state.edgeSearch};
     tempEdgeSearch[type] = value;
@@ -317,7 +367,14 @@ class Edge extends Component {
       edgeSearch: tempEdgeSearch
     });
   }
-  toggleContent = (type, allValue, index) => {
+  /**
+   * Handle filter input data change
+   * @method
+   * @param {string} type - page type ('tableList', 'editEdge' and 'cancel')
+   * @param {object} allValue - Edge data
+   * @returns none
+   */
+  toggleContent = (type, allValue) => {
     let tempEdge = {...this.state.edge};
     let showPage = type;
 
@@ -368,6 +425,13 @@ class Edge extends Component {
       }
     });
   }
+  /**
+   * Handle Edge edit input data change
+   * @method
+   * @param {string} type - input type
+   * @param {string} value - input value
+   * @returns none
+   */
   handleDataChange = (type, value) => {
     let tempEdge = {...this.state.edge};
     tempEdge.info[type] = value;
@@ -376,6 +440,12 @@ class Edge extends Component {
       edge: tempEdge
     });
   }
+  /**
+   * Handle Edge edit status toggle
+   * @method
+   * @param {string} type - status action type ('start' or 'stop')
+   * @returns none
+   */
   handleEdgeStatusChange = (type) => {
     const {baseUrl, contextRoot} = this.props;
     const {edge} = this.state;
@@ -398,6 +468,12 @@ class Edge extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Display delete Edge content
+   * @method
+   * @param {object} allValue - Edge data
+   * @returns HTML DOM
+   */
   getDeleteEdgeContent = (allValue) => {
     this.setState({
       currentEdgeData: allValue
@@ -409,6 +485,12 @@ class Edge extends Component {
       </div>
     )
   }
+  /**
+   * Show Delete Edge dialog
+   * @method
+   * @param {object} allValue - Edge data
+   * @returns none
+   */
   openDeleteMenu = (allValue) => {
     PopupDialog.prompt({
       title: t('edge-management.txt-deleteEdge'),
@@ -423,6 +505,12 @@ class Edge extends Component {
       }
     });
   }
+  /**
+   * Handle delete Edge confirm
+   * @method
+   * @param none
+   * @returns none
+   */
   deleteEdge = () => {
     const {baseUrl, contextRoot} = this.props;
     const {currentEdgeData} = this.state;
@@ -440,6 +528,12 @@ class Edge extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Handle Edge Edit confirm
+   * @method
+   * @param none
+   * @returns none
+   */
   handleEdgeSubmit = () => {
     const {baseUrl, contextRoot} = this.props;
     const {edge} = this.state;
@@ -531,6 +625,12 @@ class Edge extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Display edit Edge content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
   displayEditEdgeContent = () => {
     const {baseUrl, contextRoot} = this.props;
     const {activeContent, edge} = this.state;
@@ -708,7 +808,13 @@ class Edge extends Component {
         </footer>
       </div>
     )
-  }  
+  }
+  /**
+   * Display filter content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
   renderFilter = () => {
     const {showFilter, serviceType, connectionStatus, edgeSearch} = this.state;
 
@@ -751,11 +857,23 @@ class Edge extends Component {
       </div>
     )
   }
+  /**
+   * Toggle filter content on/off
+   * @method
+   * @param none
+   * @returns none
+   */
   toggleFilter = () => {
     this.setState({
       showFilter: !this.state.showFilter
     });
   }
+  /**
+   * Clear filter input value
+   * @method
+   * @param none
+   * @returns none
+   */
   clearFilter = () => {
     this.setState({
       edgeSearch: {
@@ -765,6 +883,12 @@ class Edge extends Component {
       }
     });
   }
+  /**
+   * Get Add button position
+   * @method
+   * @param {string} type - button type
+   * @returns width
+   */
   getBtnPos = (type) => {
     const {locale} = this.props;
 
@@ -804,7 +928,6 @@ class Edge extends Component {
                 <header className='main-header'>{t('txt-edge')}</header>
                 <button className='standard btn last'><Link to='/ChewbaccaWeb/configuration/notifications'>{t('notifications.txt-settings')}</Link></button>
                 {/*<button className='standard btn' style={{right: this.getBtnPos('add')}}>{t('edge-management.txt-threatSettings')}</button>*/}
-
                 <TableContent
                   dataTableData={edge.dataContent}
                   dataTableFields={edge.dataFields}

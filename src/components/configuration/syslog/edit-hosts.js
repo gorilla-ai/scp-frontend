@@ -6,17 +6,36 @@ import Input from 'react-ui/build/src/components/input'
 
 let t = null
 
+/**
+ * Service Status
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to edit host
+ */
 class EditHosts extends Component {
   constructor(props) {
     super(props);
 
     t = chewbaccaI18n.getFixedT(null, 'connections');
   }
-  handleChange = (field, value) => {
+  /**
+   * Set edit host input
+   * @method
+   * @param {string} field - input field
+   * @param {string} value - input value
+   * @returns none
+   */
+  handleDataChange = (field, value) => {
     this.props.onChange({
       [field]: value
     });
   }
+  /**
+   * Input validation
+   * @method
+   * @param {array} code - error code
+   * @returns error message
+   */
   getErrorMsg = (code, {value, pattern}) => {
     if (code[0] === 'no-match') {
       return t('network-topology.txt-ipValidationFail');
@@ -33,7 +52,7 @@ class EditHosts extends Component {
           patternReadable: 'xxx.xxx.xxx.xxx',
           t: this.getErrorMsg
         }}
-        onChange={this.handleChange.bind(this, 'host')}
+        onChange={this.handleDataChange.bind(this, 'host')}
         value={value.host} />
     )
   }

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: common/table-cell.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: common/table-cell.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
+import PropTypes from 'prop-types'
+import cx from 'classnames'
+
+import helper from './helper'
+import withLocale from '../../hoc/locale-provider'
+
+const TIME_FIELDS = ['@timestamp', 'firstPacket', 'lastPacket', 'timestamp', '_eventDttm_'];
+
+let t = null;
+
+/**
+ * Table Cell
+ * @class
+ * @author Ryan Chen &lt;ryanchen@telmediatech.com>
+ * @summary A react component to display formatted data in the table
+ */
+class TableCell extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      showIcon: false
+    };
+
+    t = chewbaccaI18n.getFixedT(null, 'connections');
+  }
+  /**
+   * Toggle the filter icon on/off
+   * @method
+   * @param {boolean} boolean - true/false
+   * @returns none
+   */
+  showFilterIcon = (boolean) => {
+    this.setState({
+      showIcon: boolean
+    });
+  }
+  /**
+   * Get table row background color
+   * @method
+   * @param {object} value - field value
+   * @returns background color
+   */
+  getBackgroundColor = (value) => {
+    const {markData} = this.props;
+    let tempMarkData = [];
+    let color = '';
+
+    if (!value) {
+      return;
+    }
+
+    _.forEach(markData, (val, i) => {
+      tempMarkData.push({
+        data: val.data,
+        color: helper.getColor(i)
+      });
+    })
+
+    _.forEach(tempMarkData, val => {
+      if (val.data.toLowerCase() === value.toLowerCase()) {
+        color = val.color;
+        return false; //Exit the loop
+      }
+    })
+
+    return color;
+  }
+  /**
+   * Get table field content
+   * @method
+   * @param {object} type - field type ('internet' or 'intranet')
+   * @param {object} tooltip - tooltip info
+   * @param {object} picPath - icon image path
+   * @param {object} country - country name
+   * @returns HTML DOM
+   */
+  getFieldContent = (type, tooltip, picPath, country) => {
+    const {activeTab, fieldName, fieldValue} = this.props;
+    const {showIcon} = this.state;
+
+    if (fieldValue) {
+      if (type === 'internet') {
+        return (
+          &lt;span className={this.getBackgroundColor(fieldValue)}>{fieldValue}&lt;span className='ip'>&lt;img src={picPath} title={country} />&lt;i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.showQueryOptions(fieldName, fieldValue)}>&lt;/i>&lt;/span>&lt;/span>
+        )
+      } else if (type === 'intranet') {
+        return (
+          &lt;span className={this.getBackgroundColor(fieldValue)}>{fieldValue}&lt;span className='ip'>&lt;i className='fg fg-network' title={tooltip}>&lt;/i>&lt;i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.showQueryOptions(fieldName, fieldValue)}>&lt;/i>&lt;/span>&lt;/span>
+        )
+      } else {
+        if (activeTab === 'alert' || _.includes(TIME_FIELDS, fieldName)) {
+          return (
+            &lt;span className={this.getBackgroundColor(fieldValue)}>{fieldValue}&lt;/span>
+          )
+        } else {
+          return (
+            &lt;span className={this.getBackgroundColor(fieldValue)}>{fieldValue}&lt;i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.showQueryOptions(fieldName, fieldValue)}>&lt;/i>&lt;/span>
+          )
+        }
+      }
+    }
+  }
+  /**
+   * Get table field value
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
+  getFieldValue = () => {
+    const {contextRoot, fieldName, allValue} = this.props;
+
+    if (fieldName === 'destIp' || fieldName === 'srcIp' || fieldName === 'ipDst' || fieldName === 'ipSrc') {
+      let picPath = '';
+      let country = '';
+
+      if (fieldName === 'srcIp' || fieldName === 'ipSrc') {
+        if (allValue.srcLocType === 1) {
+          if (allValue.srcCountryCode) {
+            picPath = `${contextRoot}/images/flag/${allValue.srcCountryCode.toLowerCase()}.png`;
+            country = allValue.srcCountry;
+            return this.getFieldContent('internet', '', picPath, country);
+          } else {
+            return this.getFieldContent();
+          }
+        } else {
+          if (allValue.srcTopoInfo) {
+            const ownerName = allValue.srcTopoInfo.ownerName;
+            const areaName = allValue.srcTopoInfo.areaFullName;
+            const seatName = allValue.srcTopoInfo.seatName;
+            const tooltip = t('ipFields.owner') + ': ' + ownerName + ', ' + t('ipFields.areaFullName') + ': ' + areaName + ', ' + t('ipFields.seat') + ': ' + seatName;
+            return this.getFieldContent('intranet', tooltip);
+          } else {
+            return this.getFieldContent();
+          }
+        }
+      } else if (fieldName === 'destIp' || fieldName === 'ipDst') {
+        if (allValue.destLocType === 1) {
+          if (allValue.destCountryCode) {
+            picPath = `${contextRoot}/images/flag/${allValue.destCountryCode.toLowerCase()}.png`;
+            country = allValue.destCountry;
+            return this.getFieldContent('internet', '', picPath, country);          
+          } else {
+            return this.getFieldContent();
+          }
+        } else {
+          if (allValue.destTopoInfo) {
+            const ownerName = allValue.destTopoInfo.ownerName;
+            const areaName = allValue.destTopoInfo.areaFullName;
+            const seatName = allValue.destTopoInfo.seatName;
+            const tooltip = t('ipFields.owner') + ': ' + ownerName + ', ' + t('ipFields.areaFullName') + ': ' + areaName + ', ' + t('ipFields.seat') + ': ' + seatName;
+            return this.getFieldContent('intranet', tooltip);
+          } else {
+            return this.getFieldContent();
+          }
+        }
+      }
+    } else {
+      return this.getFieldContent();
+    }
+  }
+  render() {
+    return (
+      &lt;div className='table-cell' onMouseOver={this.showFilterIcon.bind(this, true)} onMouseOut={this.showFilterIcon.bind(this, false)}>
+        {this.getFieldValue()}
+      &lt;/div>
+    )
+  }
+}
+
+TableCell.propTypes = {
+  baseUrl: PropTypes.string.isRequired,
+  contextRoot: PropTypes.string.isRequired,
+  fieldName: PropTypes.string.isRequired,
+  allValue: PropTypes.object.isRequired
+};
+
+const HocTableCell = withLocale(TableCell);
+export { TableCell, HocTableCell };</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="SafetyScan.html">SafetyScan</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Fri Nov 15 2019 18:06:34 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

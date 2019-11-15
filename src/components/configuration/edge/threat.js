@@ -17,6 +17,12 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null;
 
+/**
+ * Threat Intelligence
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the Config Edge Threat Intelligence page
+ */
 class ThreatIntelligence extends Component {
   constructor(props) {
     super(props);
@@ -39,6 +45,12 @@ class ThreatIntelligence extends Component {
   componentDidMount() {
     this.getChartsData();
   }
+  /**
+   * Get and set charts data
+   * @method
+   * @param none
+   * @returns none
+   */
   getChartsData = (search) => {
     const {baseUrl, contextRoot} = this.props;
     const {datetime} = this.state;
@@ -110,11 +122,24 @@ class ThreatIntelligence extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Display tooltip info when mouse over charts
+   * @method
+   * @param @param {object} eventInfo - chart event
+   * @param @param {array} data - chart data
+   * @returns HTML DOM
+   */
   onTooltip = (eventInfo, data) => {
     const text = data[0].indicator + ': ' + data[0].count + ' ' + t('txt-at') + ' ' + Moment(data[0].day, 'x').utc().format('YYYY/MM/DD');
 
     return <div>{text}</div>
   }
+  /**
+   * Display date picker
+   * @method
+   * @param @param {object} datetime - new datetime object
+   * @returns none
+   */
   handleDateChange = (datetime) => {
     this.setState({
       datetime

@@ -109,7 +109,7 @@ class PrivateDetails extends Component {
    * @method
    * @param {object} ip - IP data
    * @param {string} val - ip or mac
-   * @param {number} i - index of IP_INFO array
+   * @param {number} i - index of the IP_INFO array
    * @returns HTML DOM
    */
   displayIpInfo = (ip, val, i) => {
@@ -125,7 +125,7 @@ class PrivateDetails extends Component {
    * @method
    * @param {string} fieldType - field name
    * @param {object} val - host or owner data
-   * @param {number} i - index of hostInfo or ownerInfo
+   * @param {number} i - index of the hostInfo or ownerInfo array
    * @returns HTML DOM
    */
   displayDataInfo = (fieldType, val, i) => {

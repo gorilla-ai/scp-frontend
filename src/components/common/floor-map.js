@@ -193,7 +193,7 @@ class FloorMap extends Component {
    * @method
    * @param {string} value - floor plan data
    * @param {object} selectedID - current active area UUID
-   * @param {number} i - index of the tree
+   * @param {number} i - index of the tree array
    * @returns TreeView component
    */
   getTreeView = (value, selectedID, i) => {
@@ -212,7 +212,7 @@ class FloorMap extends Component {
    * @method
    * @param {string} currentAreaUUID - current active area UUID
    * @param {object} value - floor plan data
-   * @param {number} i - index of the tree
+   * @param {number} i - index of the tree array
    * @returns content of the TreeView component
    */
   displayTreeView = (currentAreaUUID, value, i) => {
@@ -221,7 +221,7 @@ class FloorMap extends Component {
   /**
    * Set floor plan based on user's section of the tree
    * @method
-   * @param {number} i - index of the tree
+   * @param {number} i - index of the tree array
    * @param {string} areaUUID - current active area UUID
    * @param {object} eventData - event data
    * @returns none

@@ -8,6 +8,12 @@ import DropDownList from 'react-ui/build/src/components/dropdown'
 let t = null;
 let et = null;
 
+/**
+ * Relationships
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the Relationships content
+ */
 class Relationships extends Component {
   constructor(props) {
     super(props);
@@ -25,6 +31,12 @@ class Relationships extends Component {
     this.getOptions();
     this.setDefault();
   }
+  /**
+   * Get and set relationships name options
+   * @method
+   * @param none
+   * @returns none
+   */
   getOptions = () => {
     const {relationships} = this.props;
     let nameList = [];
@@ -37,6 +49,12 @@ class Relationships extends Component {
       nameOptions: nameList
     });
   }
+  /**
+   * Set default relationships
+   * @method
+   * @param none
+   * @returns none
+   */
   setDefault = () => {
     const {value, relationships} = this.props;
     let curValue = value === '' ? {} : value;
@@ -60,7 +78,14 @@ class Relationships extends Component {
       });
     }
   }
-  handleChange = (field, value) => {
+  /**
+   * Handle relationships input value change
+   * @method
+   * @param {string} field - input field
+   * @param {string} value - input value
+   * @returns none
+   */
+  handleDataChange = (field, value) => {
     let {value: curValue, relationships} = this.props;
 
     if (field === 'name') {
@@ -86,6 +111,13 @@ class Relationships extends Component {
       this.props.onChange({...curValue, [field]: value});
     }
   }
+  /**
+   * Handle node data change
+   * @method
+   * @param {object} allValue - relationships data
+   * @param {string} value - node value
+   * @returns none
+   */
   handleNodeChange = (allValue, value) => {
     const {value: curValue} = this.props;
     let conds = curValue.conditions;
@@ -103,16 +135,16 @@ class Relationships extends Component {
         <div className='up'>
           <div className='item'>
             <label>{t('syslogFields.name')}</label>
-            <DropDownList list={nameOptions} onChange={this.handleChange.bind(this, 'name')} value={value.name} />
+            <DropDownList list={nameOptions} onChange={this.handleDataChange.bind(this, 'name')} value={value.name} />
           </div>
           <div className='item'>
             <label>{nodeA}</label>
-            <DropDownList list={rawOptions} onChange={this.handleChange.bind(this, 'srcNode')} value={value.srcNode} />
+            <DropDownList list={rawOptions} onChange={this.handleDataChange.bind(this, 'srcNode')} value={value.srcNode} />
           </div>
           <i className='fg fg-next' />
           <div className='item'>
             <label>{nodeB}</label>
-            <DropDownList list={rawOptions} onChange={this.handleChange.bind(this, 'dstNode')} value={value.dstNode} />
+            <DropDownList list={rawOptions} onChange={this.handleDataChange.bind(this, 'dstNode')} value={value.dstNode} />
           </div>
         </div>
         <div className='down'>

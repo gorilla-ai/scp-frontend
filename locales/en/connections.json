@@ -558,7 +558,7 @@
     "txt-getLatest": "Get Latest Input Text",
     "txt-customFieldName": "Custom Field Name",
     "txt-addSyslog": "Add Syslog",
-    "txt-delSyslog": "Delete Syslog",
+    "txt-deleteSyslog": "Delete Syslog",
     "txt-eventDist": " Event Distribution",
     "txt-viewEvents": "View Events",
     "txt-overallDist": "Overall Distribution",

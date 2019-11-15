@@ -131,7 +131,7 @@ class HMDscanInfo extends Component {
    * Toggle scan path/rule on/off and set the rule
    * @method
    * @param {string} type - scan type
-   * @param {number} i - index of rule
+   * @param {number} i - index of the rule array
    * @returns none
    */
   togglePathRule = (type, i) => {
@@ -164,7 +164,7 @@ class HMDscanInfo extends Component {
    * Display rule for yara scan
    * @method
    * @param {array} nameList - scan rule list
-   * @param {number} i - index of rule
+   * @param {number} i - index of the rule array
    * @returns HTML DOM
    */
   displayRule = (nameList, val, i) => {
@@ -190,7 +190,7 @@ class HMDscanInfo extends Component {
    * Display individual file
    * @method
    * @param {string} val - scan file data
-   * @param {number} i - index of file
+   * @param {number} i - index of the file array
    * @returns HTML DOM
    */
   displayIndividualFile = (val, i) => {
@@ -233,7 +233,7 @@ class HMDscanInfo extends Component {
    * Display individual connection for Yara Scan
    * @method
    * @param {object} val - connection data
-   * @param {number} i - index of connection
+   * @param {number} i - index of the connections array
    * @returns HTML DOM
    */
   displayIndividualConnection = (val, i) => {
@@ -307,7 +307,7 @@ class HMDscanInfo extends Component {
    * Display Yara Scan Process content
    * @method
    * @param {object} val - scan data content
-   * @param {number} i - index of scan process
+   * @param {number} i - index of the scan process array
    * @returns HTML DOM
    */
   displayScanProcessPath = (val, i) => {
@@ -371,7 +371,7 @@ class HMDscanInfo extends Component {
    * Display Yara Scan File content
    * @method
    * @param {object} val - scan file content
-   * @param {number} i - index of scan file
+   * @param {number} i - index of the scan file array
    * @returns HTML DOM
    */
   displayScanFilePath = (val, i) => {

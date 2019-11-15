@@ -88,6 +88,12 @@ const INIT = {
   info: ''
 };
 
+/**
+ * Syslog Management
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to manage the System Syslog
+ */
 class Syslog extends Component {
   constructor(props) {
     super(props);
@@ -103,6 +109,12 @@ class Syslog extends Component {
     this.getRelationship();
     this.getSyslogList(false);
   }
+  /**
+   * Get and set the relationships data
+   * @method
+   * @param none
+   * @returns none
+   */
   getRelationship = () => {
     const {baseUrl} = this.props;
 
@@ -121,9 +133,22 @@ class Syslog extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Disable the delete functionality based on conditions
+   * @method
+   * @param {string} name - syslog type
+   * @returns none
+   */
   checkDisabled = (name) => {
     return (name === 'syslog' || name === 'eventlog') ? true : false;
   }
+  /**
+   * Construct and display table context menu
+   * @method
+   * @param {object} allValue - syslog data
+   * @param {object} evt - mouse events
+   * @returns none
+   */
   handleRowContextMenu = (allValue, evt) => {
     const menuItems = [
       {
@@ -157,13 +182,25 @@ class Syslog extends Component {
     ContextMenu.open(evt, menuItems, 'configSyslogMenu');
     evt.stopPropagation();
   }
+  /**
+   * Display list for property table column
+   * @method
+   * @param {string} value - property data
+   * @returns none
+   */
   displayProperty = (value) => {
-    const propertyList = _.map(JSON.parse(value), (val, key) => {
+    const propertyList = _.map(JSON.parse(value), (val, key) => { //Convert data string to array
       return <span key={key} className='permit'>{key}</span>
     });
 
     return propertyList;
   }
+  /**
+   * Get and set syslog data
+   * @method
+   * @param {boolean} flag - flog for port and format
+   * @returns none
+   */
   getSyslogList = (flag) => {
     const {baseUrl} = this.props;
     const {dataFieldsArr, syslog, search} = this.state;
@@ -222,10 +259,16 @@ class Syslog extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  handleTableSort = (value) => {
+  /**
+   * Handle table sort functionality
+   * @method
+   * @param {object} sort - sort data object
+   * @returns none
+   */
+  handleTableSort = (sort) => {
     let tempSyslog = {...this.state.syslog};
-    tempSyslog.sort.field = value.field;
-    tempSyslog.sort.desc = !tempSyslog.sort.desc;
+    tempSyslog.sort.field = sort.field;
+    tempSyslog.sort.desc = sort.desc;
 
     this.setState({
       syslog: tempSyslog
@@ -233,7 +276,15 @@ class Syslog extends Component {
       this.getSyslogList();
     });
   }
-  handleRowMouseOver = (value, allValue, evt) => {
+  /**
+   * Handle table row mouse over
+   * @method
+   * @param {string} index - index of the syslog data
+   * @param {object} allValue - syslog data
+   * @param {object} evt - MouseoverEvents
+   * @returns none
+   */
+  handleRowMouseOver = (index, allValue, evt) => {
     let tempSyslog = {...this.state.syslog};
     tempSyslog['dataContent'] = _.map(tempSyslog['dataContent'], el => {
       return {
@@ -246,6 +297,12 @@ class Syslog extends Component {
       syslog: tempSyslog
     });
   }
+  /**
+   * Get and set config data
+   * @method
+   * @param none
+   * @returns none
+   */
   getRaw = () => {
     const {baseUrl} = this.props;
     const {config} = this.state;
@@ -282,6 +339,12 @@ class Syslog extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Handle syslog edit confirm
+   * @method
+   * @param none
+   * @returns none
+   */
   confirmSyslog = () => {
     const {baseUrl} = this.props;
     const {config} = this.state;
@@ -343,6 +406,12 @@ class Syslog extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Open delete syslog dialog
+   * @method
+   * @param {object} allValue - syslog data
+   * @returns none
+   */
   modalDelete = (allValue) => {
     const eventNme = allValue.name;
 
@@ -351,7 +420,7 @@ class Syslog extends Component {
     }
 
     PopupDialog.prompt({
-      title: t('syslogFields.txt-delSyslog'),
+      title: t('syslogFields.txt-deleteSyslog'),
       id: 'modalWindowSmall',
       confirmText: t('txt-delete'),
       cancelText: t('txt-cancel'),
@@ -362,12 +431,18 @@ class Syslog extends Component {
       ),
       act: (confirmed) => {
         if (confirmed) {
-          this.delSyslog(allValue.id);
+          this.deleteSyslog(allValue.id);
         }
       }
     });
   }
-  delSyslog = (id) => {
+  /**
+   * Handle delete syslog confirm
+   * @method
+   * @param {string} id - syslog id
+   * @returns none
+   */
+  deleteSyslog = (id) => {
     const {baseUrl} = this.props;
 
     this.ah.one({
@@ -381,18 +456,16 @@ class Syslog extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })  
   }
-  handleSyslogChange = (type, value) => {
-    let tempSyslog = {...this.state.syslog};
-    tempSyslog[type] = value;
-
-    this.setState({
-      syslog: tempSyslog
-    });
-  }
+  /**
+   * Open add/edit syslog dialog
+   * @method
+   * @param {string} id - syslog id
+   * @returns none
+   */
   openSyslog = (id) => {
     const {baseUrl} = this.props
 
-    if (!id) {
+    if (!id) { //Add new syslog
       this.setState({
         openSyslog: true,
         config: INIT_CONFIG,
@@ -401,7 +474,7 @@ class Syslog extends Component {
       return;
     }
 
-    this.ah.one({
+    this.ah.one({ //Edit existing syslog
       url: `${baseUrl}/api/log/config?id=${id}`,
       type: 'GET'
     })
@@ -439,6 +512,12 @@ class Syslog extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Close syslog dialog
+   * @method
+   * @param none
+   * @returns none
+   */
   closeSyslog = () => {
     this.setState({
       openSyslog: false,
@@ -446,13 +525,25 @@ class Syslog extends Component {
       info: ''
     });
   }
-  forwardSyslog = (config) => {
+  /**
+   * Construct URL and redirect to events page
+   * @method
+   * @param {object} allValue - syslog data
+   * @returns none
+   */
+  forwardSyslog = (allValue) => {
     const {baseUrl, contextRoot} = this.props;
 
-    window.location.href = `${baseUrl}${contextRoot}/events/syslog?configId=${config.id}`;
+    window.location.href = `${baseUrl}${contextRoot}/events/syslog?configId=${allValue.id}`;
   }
-  openEditHosts = (data) => {
-    const splitHostsData = data.hosts.split(', ');
+  /**
+   * Open edit hosts dialog
+   * @method
+   * @param {object} allValue - syslog data
+   * @returns none
+   */
+  openEditHosts = (allValue) => {
+    const splitHostsData = allValue.hosts.split(', ');
     let formattedHostsData = [];
 
     _.forEach(splitHostsData, val => {
@@ -465,7 +556,7 @@ class Syslog extends Component {
     })
 
     const hostsData = {
-      ...data,
+      ...allValue,
       formattedHostsData
     };
 
@@ -474,16 +565,29 @@ class Syslog extends Component {
       hostsData
     });
   }
-  openTimeline = (type, config) => {
+  /**
+   * Open syslog events chart dialog
+   * @method
+   * @param {string} type - syslog type
+   * @param {object} allValue - syslog data
+   * @returns none
+   */
+  openTimeline = (type, allValue) => {
     this.setState({
       openTimeline: true,
       activeTimeline: type,
-      activeConfigId: config.id,
-      activeConfigName: config.name
+      activeConfigId: allValue.id,
+      activeConfigName: allValue.name
     }, () => {
       this.getTimeline();
     });
   }
+  /**
+   * Close syslog events chart dialog
+   * @method
+   * @param none
+   * @returns none
+   */
   closeTimeline = () => {
     this.setState({
       openTimeline: false,
@@ -498,6 +602,13 @@ class Syslog extends Component {
       eventsData: {}
     });
   }
+  /**
+   * Handle syslog edit input value change
+   * @method
+   * @param {string} type - input type
+   * @param {string} value - input value
+   * @returns none
+   */
   handleConfigChange = (type, value) => {
     let tempConfig = {...this.state.config};
     tempConfig[type] = value;
@@ -506,6 +617,12 @@ class Syslog extends Component {
       config: tempConfig
     });
   }
+  /**
+   * Get pattern data
+   * @method
+   * @param none
+   * @returns none
+   */
   convertPattern = () => {
     const {baseUrl} = this.props;
     const {config} = this.state;
@@ -526,6 +643,12 @@ class Syslog extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Get and set the latest event sample data
+   * @method
+   * @param {string} configId - config ID
+   * @returns none
+   */
   getLatestInput = (configId) => {
     const {baseUrl} = this.props;
 
@@ -547,6 +670,12 @@ class Syslog extends Component {
       })
     }
   }
+  /**
+   * Display content for the Filter tab
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
   renderTabFilter = () => {
     const {config, rawOptions} = this.state;
 
@@ -588,7 +717,13 @@ class Syslog extends Component {
       </div>
     )
   }
-  handleRelationshipChange = (name, val) => {
+  /**
+   * Handle add/remove for the relationship box
+   * @method
+   * @param {array} val - relationship list array
+   * @returns none
+   */
+  handleRelationshipChange = (val) => {
     let tempConfig = {...this.state.config};
     tempConfig.relationships = val;
 
@@ -596,6 +731,12 @@ class Syslog extends Component {
       config: tempConfig
     });
   }
+  /**
+   * Display contnet for the relationship tab
+   * @method
+   * @param none
+   * @returns MultiInput component
+   */
   renderTabRelationship = () => {
     const {config, configRelationships, rawOptions} = this.state;
     const data = {
@@ -609,9 +750,15 @@ class Syslog extends Component {
         base={Relationships}
         value={config.relationships}
         props={data}
-        onChange={this.handleRelationshipChange.bind(this, 'config.relationships')} />
+        onChange={this.handleRelationshipChange} />
     )
   }
+  /**
+   * Display syslog content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
   displaySyslogDialog = () => {
     const {config} = this.state;
 
@@ -660,6 +807,12 @@ class Syslog extends Component {
       </div>
     )    
   }
+  /**
+   * Display syslog modal dialog
+   * @method
+   * @param none
+   * @returns ModalDialog component
+   */
   modalSyslog = () => {
     const {error, info, modalTitle} = this.state;
     const actions = {
@@ -682,6 +835,12 @@ class Syslog extends Component {
       </ModalDialog>
     )
   }
+  /**
+   * Get and set timeline events data
+   * @method
+   * @param none
+   * @returns none
+   */
   getTimeline = () => {
     const {baseUrl} = this.props;
     const {activeTimeline, activeConfigId, datetime} = this.state;
@@ -719,16 +878,35 @@ class Syslog extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Show tooltip info when mouseover the chart
+   * @method
+   * @param {object} eventInfo - MouseoverEvents
+   * @param {object} data - chart data
+   * @returns none
+   */
   onTooltip = (eventInfo, data) => {
     const text = data[0].type + ': ' + data[0].events + ' ' + t('txt-at') + ' ' + Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss');
 
     return <div>{text}</div>
   }
+  /**
+   * Set new datetime
+   * @method
+   * @param {object} datetime - datetime object
+   * @returns none
+   */
   handleDateChange = (datetime) => {
     this.setState({
       datetime
     });
   }
+  /**
+   * Display Events timeline content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
   displayEventsTimeline = () => {
     const {activeTimeline, activeConfigName, clickTimeline, datetime, eventsData} = this.state;
     let type = '';
@@ -816,6 +994,12 @@ class Syslog extends Component {
       </div>
     )
   }
+  /**
+   * Display Events timeline modal dialog
+   * @method
+   * @param none
+   * @returns ModalDialog component
+   */
   modalTimeline = () => {
     const {activeTimeline, activeConfigName} = this.state;
     const actions = {
@@ -842,6 +1026,12 @@ class Syslog extends Component {
       </ModalDialog>
     )
   }
+  /**
+   * Display Events timeline modal dialog
+   * @method
+   * @param {array} data - edit host input data
+   * @returns none
+   */
   handleEditHostsChange = (data) => {
     let tempHostsData = {...this.state.hostsData};
     tempHostsData.formattedHostsData = data;
@@ -850,11 +1040,17 @@ class Syslog extends Component {
       hostsData: tempHostsData
     });
   }
+  /**
+   * Display edit hosts modal dialog
+   * @method
+   * @param none
+   * @returns none
+   */
   modalEditHosts = () => {
     const {hostsData} = this.state;
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeEditHosts},
-      confirm: {text: t('txt-confirm'), handler: this.updateEditHosts}
+      confirm: {text: t('txt-confirm'), handler: this.confirmEditHosts}
     }
     const title = t('syslogFields.txt-editHosts');
     const data = {
@@ -879,7 +1075,13 @@ class Syslog extends Component {
       </ModalDialog>
     )
   }
-  updateEditHosts = () => {
+  /**
+   * Handle edit hosts confirm
+   * @method
+   * @param none
+   * @returns none
+   */
+  confirmEditHosts = () => {
     const {baseUrl} = this.props;
     const {hostsData} = this.state;
     const url = `${baseUrl}/api/log/config/hosts`;
@@ -905,11 +1107,24 @@ class Syslog extends Component {
     });
     this.closeEditHosts();
   }
+  /**
+   * Close edit hosts dialog
+   * @method
+   * @param none
+   * @returns none
+   */
   closeEditHosts = () => {
     this.setState({
       openEditHosts: false
     });
   }
+  /**
+   * Handle filter input value change
+   * @method
+   * @param {string} type - input type
+   * @param {string} value - input value
+   * @returns none
+   */
   handleSearchChange = (type, value) => {
     let tempSearch = {...this.state.search};
     tempSearch[type] = value.trim();
@@ -918,6 +1133,13 @@ class Syslog extends Component {
       search: tempSearch
     });
   }
+  /**
+   * Handle table pagination change
+   * @method
+   * @param {string} type - page type ('currentPage' or 'pageSize')
+   * @param {string} value - new page number
+   * @returns none
+   */
   handlePaginationChange = (type, value) => {
     let tempSyslog = {...this.state.syslog};
     tempSyslog[type] = value;
@@ -932,11 +1154,23 @@ class Syslog extends Component {
       this.getSyslogList();
     });
   }
-  setFilter = (flag) => {
+  /**
+   * Toggle filter content on/off
+   * @method
+   * @param none
+   * @returns none
+   */
+  toggleFilter = () => {
     this.setState({
-      openFilter: flag
+      openFilter: !this.state.openFilter
     });
   }
+  /**
+   * Clear filter input value
+   * @method
+   * @param none
+   * @returns none
+   */
   clearFilter = () => {
     const search = {
       name: '',
@@ -948,12 +1182,18 @@ class Syslog extends Component {
       search
     });
   }
+  /**
+   * Display filter content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
   renderFilter = () => {
     const {search, openFilter} = this.state;
 
     return (
       <div className={cx('main-filter', {'active': openFilter})}>
-        <i className='fg fg-close' onClick={this.setFilter.bind(this, false)} title={t('txt-close')}></i>
+        <i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}></i>
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group'>
@@ -994,7 +1234,7 @@ class Syslog extends Component {
           <div className='secondary-btn-group right'>
             <button onClick={this.openTimeline.bind(this, 'overall')} title={t('syslogFields.txt-overallDist')}><i className='fg fg-chart-kpi'></i></button>
             <button onClick={this.openSyslog.bind(this, null)} title={t('syslogFields.txt-addSyslog')}><i className='fg fg-add'></i></button>
-            <button className={cx('last', {'active': openFilter})} onClick={this.setFilter.bind(this, !openFilter)} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
+            <button className={cx('last', {'active': openFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
           </div>
         </div>
 

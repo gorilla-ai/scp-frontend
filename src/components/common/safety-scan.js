@@ -25,7 +25,7 @@ class SafetyScan extends Component {
    * Construct and show scan info in table row
    * @method
    * @param {object} val - Yara scan data
-   * @param {number} i - index of yara scan result array
+   * @param {number} i - index of the yara scan result array
    * @returns HTML DOM
    */
   showScanInfo = (val, i) => {
