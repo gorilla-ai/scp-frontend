@@ -26,6 +26,12 @@ const NOT_AVAILABLE = 'N/A';
 let t = null;
 let et = null;
 
+/**
+ * Config Topology Map
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the floor map and table list
+ */
 class NetworkMap extends Component {
   constructor(props) {
     super(props);
@@ -40,6 +46,7 @@ class NetworkMap extends Component {
         system: 'all',
         deviceType: 'all'
       },
+      showFilter: false,
       IP: {
         dataFieldsArr: ['seat', 'ip', 'mac', 'owner', 'hostName', 'system', 'deviceType'],
         dataFields: {},
@@ -76,8 +83,7 @@ class NetworkMap extends Component {
         name: '',
         coordX: '',
         coordY: ''
-      },
-      openFilter: false
+      }
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -88,6 +94,12 @@ class NetworkMap extends Component {
     this.getSearchOption();
     this.getFloorPlan('firstLoad');  //For floor plan on the left nav
   }
+  /**
+   * Get and set the IP device list
+   * @method
+   * @param none
+   * @returns none
+   */
   getSearchOption = () => {
     const {baseUrl} = this.props
     const apiNameList = ['system', 'devicetype'];
@@ -131,6 +143,12 @@ class NetworkMap extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Get and set tree and floor map data
+   * @method
+   * @param none
+   * @returns none
+   */
   getFloorPlan = (option) => {
     const {baseUrl, contextRoot} = this.props;
     const {floorPlan} = this.state;
@@ -177,6 +195,13 @@ class NetworkMap extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Get and set floor plan area data
+   * @method
+   * @param {string} areaUUID - area UUID
+   * @param {string} option - option for 'setAreaUUID'
+   * @returns none
+   */
   getAreaData = (areaUUID, option) => {
     const {baseUrl, contextRoot} = this.props;
     const floorPlan = areaUUID || this.state.floorPlan.currentAreaUUID;
@@ -241,6 +266,12 @@ class NetworkMap extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Get and set floor plan seat data
+   * @method
+   * @param {string} areaUUID - area UUID
+   * @returns none
+   */
   getSeatData = (areaUUID) => {
     const {baseUrl, contextRoot} = this.props;
     const area = areaUUID || this.state.floorPlan.currentAreaUUID;
@@ -285,6 +316,12 @@ class NetworkMap extends Component {
       return null;
     })
   }
+  /**
+   * Check table sort
+   * @method
+   * @param {string} field - table field name
+   * @returns none
+   */
   checkSortable = (field) => {
     const unSortableFields = ['seat', 'owner'];
 
@@ -294,7 +331,12 @@ class NetworkMap extends Component {
       return true;
     }
   }
-  /* This function returns the IP data for the data table */
+  /**
+   * Get and set IP data
+   * @method
+   * @param {string} areaUUID - area UUID
+   * @returns IP data for the data table
+   */
   getIPData = (areaUUID) => {
     const {baseUrl, contextRoot} = this.props;
     const {IP, floorPlan, search} = this.state;
@@ -366,6 +408,14 @@ class NetworkMap extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Handle tree filter button selection
+   * @method
+   * @param {number} i - index of the floorPlan tree data
+   * @param {string} areaUUID - selected area UUID
+   * @param {object} eventData - selected node data (before and path)
+   * @returns none
+   */
   selectTree = (i, areaUUID, eventData) => {
     const {baseUrl, contextRoot} = this.props;
     let tempFloorPlan = {...this.state.floorPlan};
@@ -406,22 +456,42 @@ class NetworkMap extends Component {
       this.getIPData(areaUUID);
     });
   }
-  getTreeView = (value, selectedID, i) => {
+  /**
+   * Get tree data
+   * @method
+   * @param {object} tree - tree data
+   * @param {string} selectedID - selected area UUID
+   * @param {number} i - index of the floorPlan tree data
+   * @returns TreeView component
+   */
+  getTreeView = (tree, selectedID, i) => {
     return (
       <TreeView
-        id={value.areaUUID}
-        key={value.areaUUID}
-        data={value}
+        id={tree.areaUUID}
+        key={tree.areaUUID}
+        data={tree}
         selected={selectedID}
-        defaultOpened={[value.areaUUID]}
+        defaultOpened={[tree.areaUUID]}
         onSelect={this.selectTree.bind(this, i)} />
     )
   }
+  /**
+   * Display tree data for lefe nav
+   * @method
+   * @param {object} val - tree data
+   * @param {number} i - index of the tree array
+   * @returns content of the TreeView component
+   */
   displayTreeView = (val, i) => {
-    const {floorPlan} = this.state;
-
-    return this.getTreeView(val, floorPlan.currentAreaUUID, i);
+    return this.getTreeView(val, this.state.floorPlan.currentAreaUUID, i);
   }
+  /**
+   * Handle filter input value change
+   * @method
+   * @param {string} type - input type
+   * @param {string} value - input value
+   * @returns none
+   */
   handleSearchChange = (type, value) => {
     let tempSearch = {...this.state.search};
     tempSearch[type] = value.trim();
@@ -430,6 +500,13 @@ class NetworkMap extends Component {
       search: tempSearch
     });
   }
+  /**
+   * Handle table pagination change
+   * @method
+   * @param {string} type - page type ('currentPage' or 'pageSize')
+   * @param {string | number} value - new page number
+   * @returns none
+   */
   handlePaginationChange = (type, value) => {
     let tempIP = {...this.state.IP};
     tempIP[type] = value;
@@ -444,6 +521,14 @@ class NetworkMap extends Component {
       this.getIPData();
     });
   }
+  /**
+   * Handle add seat value change
+   * @method
+   * @param {string} type - add seat type ('addSeat')
+   * @param {string} field - field value
+   * @param {string} value - seat name
+   * @returns none
+   */
   handleDataChange = (type, field, value) => {
     let tempAddSeat = {...this.state.addSeat};
     tempAddSeat[field] = value;
@@ -452,6 +537,12 @@ class NetworkMap extends Component {
       addSeat: tempAddSeat
     });
   }
+  /**
+   * Display floor map management modal dialog
+   * @method
+   * @param none
+   * @returns FloorMap component
+   */
   modalFloorDialog = () => {
     const {baseUrl, contextRoot} = this.props;
 
@@ -462,6 +553,12 @@ class NetworkMap extends Component {
         closeDialog={this.closeDialog} />
     )
   }
+  /**
+   * Reset floor plan data and open management dialog
+   * @method
+   * @param none
+   * @returns none
+   */
   openEditFloorMap = () => {
     const {floorPlan} = this.state;
     let tempFloorPlan = {...floorPlan};
@@ -473,22 +570,32 @@ class NetworkMap extends Component {
       floorPlan: tempFloorPlan
     });
   }
-  displayDeleteSeat = (allValue) => {
-    const {currentDeviceData} = this.state;
-
+  /**
+   * Display delete seat content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
+  displayDeleteSeat = () => {
     return (
       <div className='content delete'>
-        <span>{t('network-topology.txt-deleteSeatMsg')}: {currentDeviceData.seatObj.seatName}?</span>
+        <span>{t('network-topology.txt-deleteSeatMsg')}: {this.state.currentDeviceData.seatObj.seatName}?</span>
       </div>
     )
   }
-  openDeleteSeatModal = (allValue) => {
+  /**
+   * Display delete seat modal dialog
+   * @method
+   * @param none
+   * @returns none
+   */
+  openDeleteSeatModal = () => {
     PopupDialog.prompt({
       title: t('network-topology.txt-deleteSeat'),
       id: 'modalWindowSmall',
       confirmText: t('txt-delete'),
       cancelText: t('txt-cancel'),
-      display: this.displayDeleteSeat(allValue),
+      display: this.displayDeleteSeat(),
       act: (confirmed) => {
         if (confirmed) {
           this.deleteSeatConfirm();
@@ -496,6 +603,12 @@ class NetworkMap extends Component {
       }
     });
   }
+  /**
+   * Handle delete seat confirm
+   * @method
+   * @param {string} seatUUID - seat UUID
+   * @returns none
+   */
   deleteSeatConfirm = (seatUUID) => {
     const {baseUrl, contextRoot} = this.props;
     const seat = seatUUID || this.state.currentDeviceData.seatUUID;
@@ -515,34 +628,41 @@ class NetworkMap extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  handleTableRowClick = (tableIndex) => {
-    const {IP} = this.state
-    const seatUUID = _.get(IP.dataContent[tableIndex], 'seatUUID')
-
+  /**
+   * Set selected seat
+   * @method
+   * @param {string} seatUUID - seat UUID
+   * @param {object} eventInfo - selected seat data
+   * @returns none
+   */
+  handleSelectionChange = (seatUUID, eventInfo) => {
     this.setState({
       selectedSeat: seatUUID ? [seatUUID] : []
     });
   }
-  handleSelectionChange = (id, eventInfo) => {
-    const seatUUID = id;
-
-    this.setState({
-      selectedSeat: seatUUID ? [seatUUID] : []
-    });
-  }
+  /**
+   * Display add seat content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
   displayAddNewSeat = () => {
-    const {addSeat} = this.state;
-
     return (
       <div className='add-seat'>
         <label htmlFor='addSeat'>{t('txt-name')}</label>
         <Input
           id='addSeat'
           onChange={this.handleDataChange.bind(this, 'addSeat', 'name')}
-          value={addSeat.name} />
+          value={this.state.addSeat.name} />
       </div>
     )
   }
+  /**
+   * Display add seat modal dialog
+   * @method
+   * @param none
+   * @returns ModalDialog component
+   */
   addSeatDialog = () => {
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeDialog},
@@ -563,6 +683,12 @@ class NetworkMap extends Component {
       </ModalDialog>
     )
   }
+  /**
+   * Handle add seat confirm
+   * @method
+   * @param none
+   * @returns none
+   */
   handleAddSeatConfirm = () => {
     const {baseUrl, contextRoot} = this.props;
     const {floorPlan, addSeat} = this.state;
@@ -586,6 +712,12 @@ class NetworkMap extends Component {
       helper.showPopupMsg('', t('txt-error'));
     });
   }
+  /**
+   * Get and set seat name based on seat UUID
+   * @method
+   * @param {string} seatUUID - selected seat UUID
+   * @returns none
+   */
   getSeatName = (seatUUID) => {
     const {baseUrl, contextRoot} = this.props;
     const {currentDeviceData} = this.state;
@@ -613,11 +745,18 @@ class NetworkMap extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Get and set IP device data based on seat selection, or add new seat
+   * @method
+   * @param {string} seatUUID - selected seat UUID
+   * @param {object} info - MouseClick events
+   * @returns none
+   */
   getDeviceData = (seatUUID, info) => {
     const {baseUrl, contextRoot} = this.props;
     const url = `${baseUrl}/api/u1/ipdevice/_search?seatUUID=${seatUUID}`;
 
-    if (!seatUUID) {
+    if (!seatUUID) { //Add new seat
       let tempAddSeat = {...this.state.addSeat};
       tempAddSeat.coordX = Math.round(info.xy.x);
       tempAddSeat.coordY = Math.round(info.xy.y);
@@ -648,6 +787,12 @@ class NetworkMap extends Component {
       this.getSeatName(seatUUID);
     });
   }
+  /**
+   * Display seat info content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
   displaySeatInfo = () => {
     const {currentDeviceData} = this.state;
     const deviceInfo = {
@@ -670,6 +815,12 @@ class NetworkMap extends Component {
       </div>
     )
   }
+  /**
+   * Display seat info modal dialog
+   * @method
+   * @param none
+   * @returns ModalDialog component
+   */
   showSeatData = () => {
     const actions = {
       confirm: {text: t('txt-close'), handler: this.closeSeatDialog}
@@ -687,6 +838,12 @@ class NetworkMap extends Component {
       </ModalDialog>
     )
   }
+  /**
+   * Close dialog and reset floor plan data
+   * @method
+   * @param none
+   * @returns none
+   */
   closeDialog = () => {
     let tempFloorPlan = {...this.state.floorPlan};
     tempFloorPlan.type = '';
@@ -709,25 +866,56 @@ class NetworkMap extends Component {
       this.getFloorPlan();
     });
   }
+  /**
+   * Close seat dialog and reset seat data
+   * @method
+   * @param none
+   * @returns none
+   */
   closeSeatDialog = () => {
     this.setState({
       showSeatData: false,
       currentDeviceData: {}
     });
   }
-  setFilter = (flag) => {
-    this.setState({openFilter: flag})
+  /**
+   * Toggle filter content on/off
+   * @method
+   * @param none
+   * @returns none
+   */
+  toggleFilter = () => {
+    this.setState({
+      showFilter: !this.state.showFilter
+    });
   }
+  /**
+   * Clear filter input value
+   * @method
+   * @param none
+   * @returns none
+   */
   clearFilter = () => {
-    const clear = { keyword: '', system: 'all', deviceType: 'all' }
-    this.setState({search: clear})
+    this.setState({
+      search: {
+        keyword: '',
+        system: 'all',
+        deviceType: 'all'
+      }
+    });
   }
+  /**
+   * Display filter content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
   renderFilter = () => {
-    const {floorPlan, list, search, openFilter} = this.state;
+    const {showFilter, IP, floorPlan, list, search} = this.state;
 
     return (
-      <div className={cx('main-filter', {'active': openFilter})}>
-        <i className='fg fg-close' onClick={this.setFilter.bind(this, false)} title={t('txt-close')}></i>
+      <div className={cx('main-filter', {'active': showFilter && IP.dataContent.length > 0})}>
+        <i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}></i>
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group'>
@@ -753,10 +941,10 @@ class NetworkMap extends Component {
   render() {
     const {baseUrl, contextRoot, language, locale, session} = this.props;
     const {
+      showFilter,
       modalFloorOpen,
       showSeatData,
       addSeatOpen,
-      openFilter,
       IP,
       floorPlan,
       currentMap,
@@ -782,7 +970,7 @@ class NetworkMap extends Component {
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            <button onClick={this.setFilter.bind(this, !openFilter)} title={t('txt-filter')} disabled={IP.dataContent.length === 0}><i className='fg fg-filter'></i></button>
+            <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')} disabled={IP.dataContent.length === 0}><i className='fg fg-filter'></i></button>
           </div>
         </div>
 

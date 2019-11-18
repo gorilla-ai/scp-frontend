@@ -23,6 +23,12 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 let t = null;
 let et = null;
 
+/**
+ * Config Topology Owner
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the owner list
+ */
 class NetworkOwner extends Component {
   constructor(props) {
     super(props);
@@ -40,7 +46,7 @@ class NetworkOwner extends Component {
       },
       addOwnerType: '',
       addOwnerTitle: '',
-      openFilter: false,
+      showFilter: false,
       owner: {
         dataFieldsArr: ['_menu', 'ownerID', 'ownerName', 'departmentName', 'titleName'],
         dataFields: {},
@@ -65,14 +71,20 @@ class NetworkOwner extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-   this.getSearchData(); //For search on the left nav
-   this.getOwnerData(); //For main table
+   this.getSearchData();
+   this.getOwnerData();
   }
   componentWillReceiveProps(nextProps) {
     if (nextProps.location.state === 'tableList') {
       this.toggleContent('tableList');
     }
   }
+  /**
+   * Get and set department and title data
+   * @method
+   * @param none
+   * @returns none
+   */
   getSearchData = () => {
     const {baseUrl} = this.props;
     const {list} = this.state;
@@ -123,23 +135,12 @@ class NetworkOwner extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  handleRowContextMenu = (allValue, evt) => {
-    const menuItems = [
-      {
-        id: 'edit',
-        text: t('txt-edit'),
-        action: () => this.getOwnerInfo(allValue)
-      },
-      {
-        id: 'delete',
-        text: t('txt-delete'),
-        action: () => this.openDeleteOwnerModal(allValue)
-      }
-    ];
-
-    ContextMenu.open(evt, menuItems, 'configTopologyOwnerMenu');
-    evt.stopPropagation();
-  }
+  /**
+   * Get and set owner data
+   * @method
+   * @param {string} fromSearch - option for 'search'
+   * @returns none
+   */
   getOwnerData = (fromSearch) => {
     const {baseUrl} = this.props;
     const {owner, search} = this.state;
@@ -216,7 +217,39 @@ class NetworkOwner extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  handleRowMouseOver = (value, allValue, evt) => {
+  /**
+   * Construct and display table context menu
+   * @method
+   * @param {object} allValue - owner data
+   * @param {object} evt - mouseClick events
+   * @returns none
+   */
+  handleRowContextMenu = (allValue, evt) => {
+    const menuItems = [
+      {
+        id: 'edit',
+        text: t('txt-edit'),
+        action: () => this.getOwnerInfo(allValue)
+      },
+      {
+        id: 'delete',
+        text: t('txt-delete'),
+        action: () => this.openDeleteOwnerModal(allValue)
+      }
+    ];
+
+    ContextMenu.open(evt, menuItems, 'configTopologyOwnerMenu');
+    evt.stopPropagation();
+  }
+  /**
+   * Handle table row mouse over
+   * @method
+   * @param {string} index - index of the owner data
+   * @param {object} allValue - owner data
+   * @param {object} evt - mouseOver events
+   * @returns none
+   */
+  handleRowMouseOver = (index, allValue, evt) => {
     let tempOwner = {...this.state.owner};
     tempOwner['dataContent'] = _.map(tempOwner['dataContent'], el => {
       return {
@@ -229,10 +262,16 @@ class NetworkOwner extends Component {
       owner: tempOwner
     });
   }
-  handleTableSort = (value) => {
+  /**
+   * Handle table sort
+   * @method
+   * @param {object} sort - sort data object
+   * @returns none
+   */
+  handleTableSort = (sort) => {
     let tempOwner = {...this.state.owner};
-    tempOwner.sort.field = value.field;
-    tempOwner.sort.desc = !tempOwner.sort.desc;
+    tempOwner.sort.field = sort.field;
+    tempOwner.sort.desc = sort.desc;
 
     this.setState({
       owner: tempOwner
@@ -240,6 +279,13 @@ class NetworkOwner extends Component {
       this.getOwnerData();
     });
   }
+  /**
+   * Handle filter input value change
+   * @method
+   * @param {string} type - input type
+   * @param {string} value - input value
+   * @returns none
+   */
   handleSearchChange = (type, value) => {
     let tempSearch = {...this.state.search};
     tempSearch[type] = value.trim();
@@ -248,6 +294,13 @@ class NetworkOwner extends Component {
       search: tempSearch
     });
   }
+  /**
+   * Handle table pagination change
+   * @method
+   * @param {string} type - page type ('currentPage' or 'pageSize')
+   * @param {string} value - new page number
+   * @returns none
+   */
   handlePaginationChange = (type, value) => {
     let tempOwner = {...this.state.owner};
     tempOwner[type] = Number(value);
@@ -262,6 +315,12 @@ class NetworkOwner extends Component {
       this.getOwnerData();
     });
   }
+  /**
+   * Get individual owner data
+   * @method
+   * @param {object} allValue - owner data
+   * @returns none
+   */
   getOwnerInfo = (allValue) => {
     const {baseUrl} = this.props;
     let tempOwner = {...this.state.owner};
@@ -287,6 +346,13 @@ class NetworkOwner extends Component {
       })
     }
   }
+  /**
+   * Toggle and display page content
+   * @method
+   * @param {string} type - content type ('addOwner' or 'tableList')
+   * @param {string} options - options for 'new' or 'edit'
+   * @returns none
+   */
   toggleContent = (type, options) => {
     const {list, owner} = this.state;
     let tempList = {...list};
@@ -320,11 +386,18 @@ class NetworkOwner extends Component {
       list: tempList,
       addOwnerType,
       addOwnerTitle,
-      openFilter: false,
+      showFilter: false,
       owner: tempOwner,
       previewOwnerPic: ''
     });
   }
+  /**
+   * Handle add/edit owner data change
+   * @method
+   * @param {string} type - input type
+   * @param {string} value - input value
+   * @returns none
+   */
   handleDataChange = (type, value) => {
     let tempOwner = {...this.state.owner};
     tempOwner.info[type] = value;
@@ -341,6 +414,12 @@ class NetworkOwner extends Component {
       owner: tempOwner
     });
   }
+  /**
+   * Handle remove owner photo checkbox
+   * @method
+   * @param none
+   * @returns none
+   */
   handleRemovePhoto = () => {
     let tempOwner = {...this.state.owner};
     tempOwner.removePhoto = !tempOwner.removePhoto;
@@ -349,6 +428,12 @@ class NetworkOwner extends Component {
       owner: tempOwner
     });
   }
+  /**
+   * Handle add/edit owner form confirm
+   * @method
+   * @param none
+   * @returns none
+   */
   handleOwnerConfirm = () => {
     const {baseUrl, contextRoot} = this.props;
     const {addOwnerType, owner} = this.state;
@@ -387,6 +472,12 @@ class NetworkOwner extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Display delete owner content
+   * @method
+   * @param {object} allValue - owner data
+   * @returns HTML DOM
+   */
   getDeleteOwnerContent = (allValue) => {
     if (allValue.ownerID) {
       let tempOwner = {...this.state.owner};
@@ -403,6 +494,12 @@ class NetworkOwner extends Component {
       </div>
     )
   }
+  /**
+   * Display delete owner modal dialog
+   * @method
+   * @param {object} allValue - owner data
+   * @returns none
+   */
   openDeleteOwnerModal = (allValue) => {
     PopupDialog.prompt({
       title: t('network-topology.txt-deleteOwner'),
@@ -417,6 +514,12 @@ class NetworkOwner extends Component {
       }
     });
   }
+  /**
+   * Handle delete owner confirm
+   * @method
+   * @param none
+   * @returns none
+   */
   deleteOwner = () => {
     const {baseUrl} = this.props;
     const {owner} = this.state;
@@ -434,18 +537,42 @@ class NetworkOwner extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Open department/title management modal dialog
+   * @method
+   * @param none
+   * @returns none
+   */
   openName = () => {
     this.name._component.open();
   }
+  /**
+   * Handle close on department/title management modal dialog
+   * @method
+   * @param none
+   * @returns none
+   */
   onDone = () => {
     this.getSearchData();
     this.getOwnerData();
   }
-  setFilter = (flag) => {
+  /**
+   * Toggle filter content on/off
+   * @method
+   * @param none
+   * @returns none
+   */
+  toggleFilter = () => {
     this.setState({
-      openFilter: flag
+      showFilter: !this.state.showFilter
     });
   }
+  /**
+   * Clear filter input value
+   * @method
+   * @param none
+   * @returns none
+   */
   clearFilter = () => {
     const tempSearch = {
       name: '',
@@ -457,12 +584,18 @@ class NetworkOwner extends Component {
       search: tempSearch
     });
   }
+  /**
+   * Display filter content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
   renderFilter = () => {
-    const {list, search, openFilter} = this.state
+    const {list, search, showFilter} = this.state
 
     return (
-      <div className={cx('main-filter', {'active': openFilter})}>
-        <i className='fg fg-close' onClick={this.setFilter.bind(this, false)} title={t('txt-close')}></i>
+      <div className={cx('main-filter', {'active': showFilter})}>
+        <i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}></i>
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group'>
@@ -485,6 +618,12 @@ class NetworkOwner extends Component {
       </div>
     )
   }
+  /**
+   * Get Add button position
+   * @method
+   * @param {string} type - button type
+   * @returns width
+   */
   getBtnPos = (type) => {
     const {locale} = this.props;
 
@@ -503,7 +642,7 @@ class NetworkOwner extends Component {
       list,
       addOwnerTitle,
       owner,
-      openFilter,
+      showFilter,
       previewOwnerPic
     } = this.state;
 
@@ -513,7 +652,7 @@ class NetworkOwner extends Component {
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            <button className={cx('last', {'active': openFilter})} onClick={this.setFilter.bind(this, !openFilter)} title={t('txt-filter')} disabled={activeContent !== 'tableList'}><i className='fg fg-filter'></i></button>
+            <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')} disabled={activeContent !== 'tableList'}><i className='fg fg-filter'></i></button>
           </div>
         </div>
 

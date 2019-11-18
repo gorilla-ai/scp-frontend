@@ -27,7 +27,7 @@ class Endpoint extends Component {
     super(props);
 
     this.state = {
-      openFilter: false,
+      showFilter: false,
       addTaskOpen: false,
       viewTaskOpen: false,
       search: {
@@ -423,9 +423,9 @@ class Endpoint extends Component {
       this.getHostData();
     });
   }
-  setFilter = (flag) => {
+  toggleFilter = () => {
     this.setState({
-      openFilter: flag
+      showFilter: !this.state.showFilter
     });
   }
   handleSearchChange = (type, value) => {
@@ -446,11 +446,11 @@ class Endpoint extends Component {
     });
   }
   renderFilter = () => {
-    const {openFilter, search} = this.state;
+    const {showFilter, search} = this.state;
 
     return (
-      <div className={cx('main-filter', {'active': openFilter})}>
-        <i className='fg fg-close' onClick={this.setFilter.bind(this, false)} title={t('txt-close')}></i>
+      <div className={cx('main-filter', {'active': showFilter})}>
+        <i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}></i>
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group'>
@@ -475,7 +475,7 @@ class Endpoint extends Component {
   }
   render() {
     const {session} = this.props;
-    const {openFilter, addTaskOpen, viewTaskOpen, hmd} = this.state;
+    const {showFilter, addTaskOpen, viewTaskOpen, hmd} = this.state;
     let sessionRights = {};
 
     _.forEach(session.rights, val => {
@@ -496,13 +496,13 @@ class Endpoint extends Component {
           {helper.getEventsMenu('endpoint', sessionRights)}
 
           <div className='secondary-btn-group right'>
-            <button className={cx('last', {'active': openFilter})} onClick={this.setFilter.bind(this, !openFilter)} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
+            <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
           </div>
         </div>
 
         <div className='data-content'>
           <div className='parent-content'>
-            {openFilter &&
+            {showFilter &&
               this.renderFilter()
             }
 

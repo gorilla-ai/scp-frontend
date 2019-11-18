@@ -41,7 +41,7 @@ class SearchOptions extends Component {
   /**
    * Set and run the time interval for auto refresh
    * @method
-   * @param @param {string} search - search option
+   * @param {string} search - search option
    * @returns none
    */
   loadSearchOptions = (search) => {

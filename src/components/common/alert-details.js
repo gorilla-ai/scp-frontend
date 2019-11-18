@@ -1105,7 +1105,7 @@ class AlertDetails extends Component {
    * @method
    * @param {string} type - 'srcIp' or 'destIp'
    * @returns HTML DOM
-   */  
+   */
   triggerTask = (taskId, type) => {
     const {baseUrl, contextRoot} = this.props;
     const url = `${baseUrl}/api/hmd/taskinfo`;

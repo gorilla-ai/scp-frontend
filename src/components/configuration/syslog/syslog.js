@@ -146,7 +146,7 @@ class Syslog extends Component {
    * Construct and display table context menu
    * @method
    * @param {object} allValue - syslog data
-   * @param {object} evt - mouse events
+   * @param {object} evt - mouseClick events
    * @returns none
    */
   handleRowContextMenu = (allValue, evt) => {

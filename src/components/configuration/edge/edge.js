@@ -300,7 +300,7 @@ class Edge extends Component {
     })
   }
   /**
-   * Check table sort functionality
+   * Check table sort
    * @method
    * @param {string} field - table field name
    * @returns none
@@ -315,7 +315,7 @@ class Edge extends Component {
     }
   }
   /**
-   * Handle table sort functionality
+   * Handle table sort
    * @method
    * @param {object} sort - sort data object
    * @returns none

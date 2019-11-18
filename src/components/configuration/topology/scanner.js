@@ -7,13 +7,26 @@ import Input from 'react-ui/build/src/components/input'
 
 let t = null;
 
+/**
+ * Config Inventory auto settings Scanner
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the scanner form
+ */
 class Scanner extends Component {
   constructor(props) {
     super(props);
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
   }
-  handleChange = (field, value) => {
+  /**
+   * Set input value change
+   * @method
+   * @param {string} field - input field
+   * @param {string} value - input value
+   * @returns none
+   */
+  handleDataChange = (field, value) => {
     this.props.onChange({
       ...this.props.value,
       [field]: value
@@ -26,16 +39,16 @@ class Scanner extends Component {
       <div className='group-content'>
         <DropDownList
           required={true}
-          onChange={this.handleChange.bind(this, 'edge')}
+          onChange={this.handleDataChange.bind(this, 'edge')}
           list={deviceList}
           value={value.edge}
           readOnly={activeContent === 'viewMode' || !statusEnable.scanner} />
         <Input
-          onChange={this.handleChange.bind(this, 'ip')}
+          onChange={this.handleDataChange.bind(this, 'ip')}
           value={value.ip}
           readOnly={activeContent === 'viewMode' || !statusEnable.scanner} />
         <Input
-          onChange={this.handleChange.bind(this, 'mask')}
+          onChange={this.handleDataChange.bind(this, 'mask')}
           value={value.mask}
           readOnly={activeContent === 'viewMode' || !statusEnable.scanner} />
         <button onClick={this.props.handleScannerTest.bind(this, value)} disabled={!statusEnable.scanner}>{t('network-inventory.txt-testQuery')}</button>

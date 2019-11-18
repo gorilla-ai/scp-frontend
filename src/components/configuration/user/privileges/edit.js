@@ -96,7 +96,7 @@ class Editor extends Component {
       });
     })
   }
-  handleChange = (selected) => {
+  handleDataChange = (selected) => {
     this.setState({
       selected
     });
@@ -117,7 +117,7 @@ class Editor extends Component {
           <label className='required'>{t('l-permits')}</label>
           <CheckboxGroup
             list={permits}
-            onChange={this.handleChange}
+            onChange={this.handleDataChange}
             value={selected} />
         </div>
       </div>

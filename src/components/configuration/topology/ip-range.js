@@ -5,11 +5,24 @@ import _ from 'lodash'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import Input from 'react-ui/build/src/components/input'
 
+/**
+ * Config Inventory auto settings IP Range
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the IP range form
+ */
 class IpRange extends Component {
   constructor(props) {
     super(props);
   }
-  handleChange = (field, value) => {
+  /**
+   * Set input value change
+   * @method
+   * @param {string} field - input field
+   * @param {string} value - input value
+   * @returns none
+   */
+  handleDataChange = (field, value) => {
     this.props.onChange({
       ...this.props.value,
       [field]: value
@@ -22,7 +35,7 @@ class IpRange extends Component {
       <div className='group-content'>
         <DropDownList
           required={true}
-          onChange={this.handleChange.bind(this, 'type')}
+          onChange={this.handleDataChange.bind(this, 'type')}
           list={[
             {value: 'private', text: 'Private'},
             {value: 'public', text: 'Public'}
@@ -30,11 +43,11 @@ class IpRange extends Component {
           value={value.type}
           readOnly={activeContent === 'viewMode' || !statusEnable.ipRange} />
         <Input
-          onChange={this.handleChange.bind(this, 'ip')}
+          onChange={this.handleDataChange.bind(this, 'ip')}
           value={value.ip}
           readOnly={activeContent === 'viewMode' || !statusEnable.ipRange} />
         <Input
-          onChange={this.handleChange.bind(this, 'mask')}
+          onChange={this.handleDataChange.bind(this, 'mask')}
           value={value.mask}
           readOnly={activeContent === 'viewMode' || !statusEnable.ipRange} />
       </div>

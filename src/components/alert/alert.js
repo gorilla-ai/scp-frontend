@@ -14,6 +14,12 @@ let t = null;
 
 let initialLoad = false;
 
+/**
+ * Alert
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the alert page
+ */
 class Alert extends Component {
   constructor(props) {
     super(props);

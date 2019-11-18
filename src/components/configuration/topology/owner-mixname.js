@@ -162,7 +162,7 @@ class Name extends Component {
       tab: tabs
     });
   }
-  handleChange = (key, value) => {
+  handleDataChange = (key, value) => {
     this.setState({
       [key]: value
     });
@@ -211,7 +211,6 @@ class Name extends Component {
     )
   }
   renderModal = () => {
-    const {tab, data} = this.state;
     const actions = {
       cancel: {text: t('txt-close'), handler: this.close}
     };
@@ -230,8 +229,7 @@ class Name extends Component {
     )
   }
   openAddName = () => {
-    const {tab} = this.state;
-    const header = tab.department ? t('txt-addDepartment') : t('txt-addTitle');
+    const header = this.state.tab.department ? t('txt-addDepartment') : t('txt-addTitle');
 
     this.setState({
       openName: true,
@@ -241,8 +239,7 @@ class Name extends Component {
     });
   }
   openEditName = (nameUUID, name) => {
-    const {tab} = this.state;
-    const header = tab.department ? t('txt-updateDepartment') : t('txt-updateTitle');
+    const header = this.state.tab.department ? t('txt-updateDepartment') : t('txt-updateTitle');
 
     this.setState({
       openName: true,
@@ -252,10 +249,8 @@ class Name extends Component {
     });
   }
   openDeleteName = (nameUUID, name) => {
-    const {tab} = this.state;
-
     PopupDialog.prompt({
-      title: tab.department ? t('txt-deleteDepartment') : t('txt-deleteTitle'),
+      title: this.state.tab.department ? t('txt-deleteDepartment') : t('txt-deleteTitle'),
       id: 'modalWindowSmall',
       confirmText: t('txt-delete'),
       cancelText: t('txt-cancel'),
@@ -294,7 +289,7 @@ class Name extends Component {
         closeAction='cancel'>
         <Input
           placeholder={t('txt-enterName')}
-          onChange={this.handleChange.bind(this, 'name')}
+          onChange={this.handleDataChange.bind(this, 'name')}
           value={name} />
       </ModalDialog>
     )

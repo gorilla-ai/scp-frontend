@@ -58,6 +58,12 @@ const PIE_CHARTS_LIST = [
   }
 ];
 
+/**
+ * Dashboard Statistics
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the Dashboard Statistics
+ */
 class DashboardStats extends Component {
   constructor(props) {
     super(props);
@@ -88,17 +94,36 @@ class DashboardStats extends Component {
   componentWillUnmount = () => {
     clearInterval(intervalId);
   }
+  /**
+   * Show tooltip info when mouseover the chart
+   * @method
+   * @param {object} eventInfo - MouseoverEvents
+   * @param {object} data - chart data
+   * @returns none
+   */
   onTooltip = (eventInfo, data) => {
     const text = data[0].rule + ': ' + data[0].number + ' ' + t('txt-at') + ' ' + Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss');
 
     return <div>{text}</div>
   }
+  /**
+   * Remove the charts that require special manipulation
+   * @method
+   * @param none
+   * @returns formatted chars list
+   */
   formattedPieChartsList = () => {
     const tempPieChartsList = _.cloneDeep(PIE_CHARTS_LIST);
     tempPieChartsList.shift(); //Remove first chart from list
     tempPieChartsList.pop(); //Remove last chart from list
     return tempPieChartsList;
   }
+  /**
+   * Get and set alert charts data
+   * @method
+   * @param none
+   * @returns none
+   */
   loadAlertData = () => {
     const {baseUrl, contextRoot} = this.props;
     const {datetime, alertDetails} = this.state;
@@ -303,6 +328,12 @@ class DashboardStats extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Construct and set the pie charts
+   * @method
+   * @param none
+   * @returns none
+   */
   getPieChartsData = () => {
     const {pieCharts} = this.state;
     let alertChartsList = [];
@@ -336,6 +367,12 @@ class DashboardStats extends Component {
       alertChartsList
     });
   }
+  /**
+   * Construct and set the metric chart
+   * @method
+   * @param none
+   * @returns none
+   */
   loadMetricData = () => {
     const {baseUrl, contextRoot} = this.props;
 
@@ -365,7 +402,14 @@ class DashboardStats extends Component {
       }
     }) 
   }
-  displayCharts = (key, i) => {
+  /**
+   * Display pie chart and table chart
+   * @method
+   * @param {object} val - alert chart data
+   * @param {number} i - index of the alert chart data
+   * @returns HTML DOM
+   */
+  displayCharts = (val, i) => {
     const {alertChartsList} = this.state;
 
     if (alertChartsList[i].type === 'pie') {
@@ -398,18 +442,25 @@ class DashboardStats extends Component {
       )
     }
   }
-  dispalyMetrics = (key, i) => {
-    if (!_.isEmpty(key.data)) {
+  /**
+   * Display metrics chart
+   * @method
+   * @param {object} val - alert chart data
+   * @param {number} i - index of the alert chart data
+   * @returns HTML DOM
+   */
+  dispalyMetrics = (val, i) => {
+    if (!_.isEmpty(val.data)) {
       return (
         <Metric
-          key={key.id}
-          className={key.id}
-          title={t('dashboard.txt-' + key.id)}
-          data={key.data}
+          key={val.id}
+          className={val.id}
+          title={t('dashboard.txt-' + val.id)}
+          data={val.data}
           dataCfg={{
-            agg: key.agg
+            agg: val.agg
           }}
-          keyLabels={key.keyLabels} />
+          keyLabels={val.keyLabels} />
       )
     }
   }

@@ -23,7 +23,7 @@ class SearchMark extends Component {
    * @param {string} value - input value
    * @returns none
    */
-  handleChange = (value) => {
+  handleDataChange = (value) => {
     const {markData} = this.props;
     let index = '';
 
@@ -47,7 +47,7 @@ class SearchMark extends Component {
         <i className={'c-link fg fg-recode ' + value.color}></i>
         <Input
           className='mark-inputbox'
-          onChange={this.handleChange}
+          onChange={this.handleDataChange}
           value={value.data}
           disabled={formStatus} />
       </div>

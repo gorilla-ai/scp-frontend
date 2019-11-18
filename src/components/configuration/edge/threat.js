@@ -125,8 +125,8 @@ class ThreatIntelligence extends Component {
   /**
    * Display tooltip info when mouse over charts
    * @method
-   * @param @param {object} eventInfo - chart event
-   * @param @param {array} data - chart data
+   * @param {object} eventInfo - chart event
+   * @param {array} data - chart data
    * @returns HTML DOM
    */
   onTooltip = (eventInfo, data) => {
@@ -135,9 +135,9 @@ class ThreatIntelligence extends Component {
     return <div>{text}</div>
   }
   /**
-   * Display date picker
+   * Set new datetime
    * @method
-   * @param @param {object} datetime - new datetime object
+   * @param {object} datetime - new datetime object
    * @returns none
    */
   handleDateChange = (datetime) => {

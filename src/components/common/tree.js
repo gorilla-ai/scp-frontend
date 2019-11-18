@@ -90,7 +90,7 @@ class Tree extends Component {
           indent={[4, 0]}
           data={treeData[key].data}
           defaultOpened={['all', 'All']}
-          onLabelMouseOver={this.props.showFilterBtn.bind(this, key)} />
+          onLabelMouseOver={this.props.showTreeFilterBtn.bind(this, key)} />
       </div>
     )
   }
@@ -122,7 +122,7 @@ class Tree extends Component {
                 indent={[4, 0]}
                 data={treeData}
                 defaultOpened={['all', 'All']}
-                onLabelMouseOver={this.props.showFilterBtn} />
+                onLabelMouseOver={this.props.showTreeFilterBtn} />
             </div>
           }
           {activeTab === 'alert' &&

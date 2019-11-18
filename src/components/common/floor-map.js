@@ -189,21 +189,21 @@ class FloorMap extends Component {
     }
   }
   /**
-   * Get Tree data
+   * Get tree data
    * @method
-   * @param {string} value - floor plan data
-   * @param {object} selectedID - current active area UUID
-   * @param {number} i - index of the tree array
+   * @param {object} tree - tree data
+   * @param {string} selectedID - selected area UUID
+   * @param {number} i - index of the floorPlan tree data
    * @returns TreeView component
    */
-  getTreeView = (value, selectedID, i) => {
+  getTreeView = (tree, selectedID, i) => {
     return (
       <TreeView
-        id={value.areaUUID}
-        key={value.areaUUID}
-        data={value}
+        id={tree.areaUUID}
+        key={tree.areaUUID}
+        data={tree}
         selected={selectedID}
-        defaultOpened={[value.areaUUID]}
+        defaultOpened={[tree.areaUUID]}
         onSelect={this.selectTree.bind(this, i)} />
     )
   }

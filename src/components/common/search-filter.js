@@ -22,7 +22,7 @@ class SearchFilter extends Component {
    * @param {string} value - input value
    * @returns none
    */
-  handleChange = (field, value) => {
+  handleDataChange = (field, value) => {
     this.props.onChange({
       ...this.props.value,
       [field]: value
@@ -48,12 +48,12 @@ class SearchFilter extends Component {
           className='condition-select'
           list={filterList}
           required={true}
-          onChange={this.handleChange.bind(this, 'condition')}
+          onChange={this.handleDataChange.bind(this, 'condition')}
           value={value.condition}
           disabled={formStatus} />
         <Input
           className='filter-inputbox'
-          onChange={this.handleChange.bind(this, 'query')}
+          onChange={this.handleDataChange.bind(this, 'query')}
           value={value.query}
           disabled={formStatus} />
       </div>

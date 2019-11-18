@@ -49,7 +49,7 @@ class Addor extends Component {
       error:true
     });
   }
-  handleChange = (name) => {
+  handleDataChange = (name) => {
     this.setState({
       name
     });
@@ -92,7 +92,7 @@ class Addor extends Component {
         <Input
           type='text'
           value={name}
-          onChange={this.handleChange} />
+          onChange={this.handleDataChange} />
       </div>
     )
   }

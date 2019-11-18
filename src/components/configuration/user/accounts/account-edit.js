@@ -46,7 +46,7 @@ class Editor extends Component {
 
     this.ah = getInstance('chewbacca');
   }
-  handleChange = (accountData) => {
+  handleDataChange = (accountData) => {
     this.setState({
       accountData
     });
@@ -267,7 +267,7 @@ class Editor extends Component {
           formClassName='c-form inline c-flex jcsb'
           fields={formFieldsBasic}
           value={accountData}
-          onChange={this.handleChange} />
+          onChange={this.handleDataChange} />
       </div>
     )
   }

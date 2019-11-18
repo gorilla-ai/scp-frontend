@@ -99,7 +99,7 @@ class ResetPwd extends Component {
       errInfo: msg
     });
   }
-  handleChange = (value) => {
+  handleDataChange = (value) => {
     this.setState({
       formData: value
     });
@@ -161,7 +161,7 @@ class ResetPwd extends Component {
               }
             }}
           }}
-          onChange={this.handleChange}
+          onChange={this.handleDataChange}
           value={formData} />
       </div>
     )

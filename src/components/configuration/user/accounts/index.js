@@ -37,14 +37,14 @@ class AccountList extends Component {
       accountID: '',
       formFields: {},
       dataFields: {},
-      openFilter: false
+      showFilter: false
     };
   }
   componentDidMount() {
     this.loadAccounts();
     this.getFormFields();
   }
-  handleChange = (param) => {
+  handleDataChange = (param) => {
     this.setState({
       param
     });
@@ -248,6 +248,13 @@ class AccountList extends Component {
       })
     }
   }
+  /**
+   * Handle filter input value change
+   * @method
+   * @param {string} type - input type
+   * @param {string} value - input value
+   * @returns none
+   */
   handleSearchChange = (type, value) => {
     let tempParam = {...this.state.param}
     tempParam[type] = value.trim()
@@ -256,11 +263,23 @@ class AccountList extends Component {
       param: tempParam
     });
   }
-  setFilter = (flag) => {
+  /**
+   * Toggle filter content on/off
+   * @method
+   * @param none
+   * @returns none
+   */
+  toggleFilter = () => {
     this.setState({
-      openFilter: flag
+      showFilter: !this.state.showFilter
     });
   }
+  /**
+   * Clear filter input value
+   * @method
+   * @param none
+   * @returns none
+   */
   clearFilter = () => {
     this.setState({
       param: {
@@ -269,12 +288,18 @@ class AccountList extends Component {
       }
     });
   }
+  /**
+   * Display filter content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
   renderFilter = () => {
-    const {param, openFilter} = this.state
+    const {param, showFilter} = this.state
 
     return (
-      <div className={cx('main-filter', {'active': openFilter})}>
-        <i className='fg fg-close' onClick={this.setFilter.bind(this, false)} title={t('txt-close')}></i>
+      <div className={cx('main-filter', {'active': showFilter})}>
+        <i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}></i>
         <div className='header-text'>{c('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group'>
@@ -295,14 +320,14 @@ class AccountList extends Component {
   }
   render() {
     const {baseUrl, contextRoot, language, locale, session} = this.props;
-    const {accountData, dataFields, openFilter} = this.state;
+    const {accountData, dataFields, showFilter} = this.state;
 
     return (
       <div>
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
             <button onClick={this.showEditDialog.bind(this, null)} title={t('txt-add-account')}><i className='fg fg-add'></i></button>
-            <button className={cx('last', {'active': openFilter})} onClick={this.setFilter.bind(this, !openFilter)} title={c('txt-filter')}><i className='fg fg-filter'></i></button>
+            <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={c('txt-filter')}><i className='fg fg-filter'></i></button>
           </div>
         </div>
 

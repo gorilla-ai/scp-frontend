@@ -267,8 +267,8 @@ class QueryOpenSave extends Component {
   /**
    * Display all saved filter queries
    * @method
-   * @param @param {object} value - saved query data
-   * @param @param {number} index - index of the queryDataList array
+   * @param {object} value - saved query data
+   * @param {number} index - index of the queryDataList array
    * @returns FilterInput component
    */
   displayFilterQuery = (value, index) => {
@@ -291,8 +291,8 @@ class QueryOpenSave extends Component {
   /**
    * Display all saved mark
    * @method
-   * @param @param {object} value - saved mark data
-   * @param @param {number} index - index of the queryDataMark array
+   * @param {object} value - saved mark data
+   * @param {number} index - index of the queryDataMark array
    * @returns MarkInput component
    */
   displayMarkSearch = (value, index) => {
@@ -314,8 +314,8 @@ class QueryOpenSave extends Component {
   /**
    * Set query data for new selected saved query
    * @method
-   * @param @param {string} type - input type ('id' or 'name')
-   * @param @param {number} value - input value
+   * @param {string} type - input type ('id' or 'name')
+   * @param {number} value - input value
    * @returns none
    */
   handleQueryChange = (type, value) => {
@@ -366,7 +366,7 @@ class QueryOpenSave extends Component {
   /**
    * Display query menu content
    * @method
-   * @param @param {string} type - query type ('open' or 'save')
+   * @param {string} type - query type ('open' or 'save')
    * @returns HTML DOM
    */
   displayQueryContent = (type) => {

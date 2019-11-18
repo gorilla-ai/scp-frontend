@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: configuration/topology/owner.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: configuration/topology/owner.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
+import { withRouter } from 'react-router'
+import PropTypes from 'prop-types'
+import Moment from 'moment'
+import _ from 'lodash'
+import cx from 'classnames'
+
+import Checkbox from 'react-ui/build/src/components/checkbox'
+import ContextMenu from 'react-ui/build/src/components/contextmenu'
+import DropDownList from 'react-ui/build/src/components/dropdown'
+import FileInput from 'react-ui/build/src/components/file-input'
+import Input from 'react-ui/build/src/components/input'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
+
+import {HocConfig as Config} from '../../common/configuration'
+import helper from '../../common/helper'
+import Name from './owner-mixname'
+import TableContent from '../../common/table-content'
+import withLocale from '../../../hoc/locale-provider'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+let t = null;
+let et = null;
+
+/**
+ * Config Topology Owner
+ * @class
+ * @author Ryan Chen &lt;ryanchen@telmediatech.com>
+ * @summary A react component to show the owner list
+ */
+class NetworkOwner extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      activeContent: 'tableList', //tableList, addOwner
+      list: {
+        department: [],
+        title: []
+      },
+      search: {
+        name: '',
+        department: 'all',
+        title: 'all',
+      },
+      addOwnerType: '',
+      addOwnerTitle: '',
+      showFilter: false,
+      owner: {
+        dataFieldsArr: ['_menu', 'ownerID', 'ownerName', 'departmentName', 'titleName'],
+        dataFields: {},
+        dataContent: [],
+        sort: {
+          field: 'ownerID',
+          desc: false
+        },
+        totalCount: 0,
+        currentPage: 1,
+        pageSize: 20,
+        removePhoto: false,
+        info: {}
+      },
+      error: false,
+      info: '',
+      previewOwnerPic: ''
+    };
+
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    et = global.chewbaccaI18n.getFixedT(null, 'errors');
+    this.ah = getInstance('chewbacca');
+  }
+  componentDidMount() {
+   this.getSearchData();
+   this.getOwnerData();
+  }
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.location.state === 'tableList') {
+      this.toggleContent('tableList');
+    }
+  }
+  /**
+   * Get and set department and title data
+   * @method
+   * @param none
+   * @returns none
+   */
+  getSearchData = () => {
+    const {baseUrl} = this.props;
+    const {list} = this.state;
+    const apiNameType = [1, 2]; //1: Department, 2: Title
+    let apiArr = [];
+
+    _.forEach(apiNameType, val => {
+      const json = {nameType: val}
+
+      apiArr.push({
+        url: `${baseUrl}/api/name/_search`,
+        data: JSON.stringify(json),
+        type: 'POST',
+        contentType: 'application/json'
+      });
+    })
+
+    this.ah.all(apiArr)
+    .then(data => {
+      let tempList = {...list};
+      let departmentList = [];
+      let titleList = [];
+
+      _.forEach(data[0], val => {
+        departmentList.push({
+          value: val.nameUUID,
+          text: val.name
+        });
+      })
+
+      _.forEach(data[1], val => {
+        titleList.push({
+          value: val.nameUUID,
+          text: val.name
+        });
+      })
+
+      tempList.department = _.cloneDeep(departmentList);
+      tempList.title = _.cloneDeep(titleList);
+      tempList.department.unshift({value: 'all', text: t('txt-all')});
+      tempList.title.unshift({value: 'all', text: t('txt-all')});
+
+      this.setState({
+        list: tempList
+      });
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get and set owner data
+   * @method
+   * @param {string} fromSearch - option for 'search'
+   * @returns none
+   */
+  getOwnerData = (fromSearch) => {
+    const {baseUrl} = this.props;
+    const {owner, search} = this.state;
+    let dataObj = {
+      sort: owner.sort.field,
+      order: owner.sort.desc ? 'desc' : 'asc',
+      page: fromSearch === 'search' ? 1 : owner.currentPage,
+      pageSize: Number(owner.pageSize)
+    };
+
+    if (fromSearch === 'search') {
+      dataObj.ownerName = '%' + search.name + '%';
+
+      if (search.department != 'all') {
+        dataObj.department = search.department;
+      }
+
+      if (search.title != 'all') {
+        dataObj.title = search.title;
+      }
+    }
+
+    this.ah.one({
+      url: `${baseUrl}/api/owner/_search`,
+      data: JSON.stringify(dataObj),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      let tempOwner = {...owner};
+      tempOwner.dataContent = data.rows;
+      tempOwner.totalCount = data.counts;
+      tempOwner.currentPage = fromSearch === 'search' ? 1 : owner.currentPage;
+
+      let dataFields = {};
+      owner.dataFieldsArr.forEach(tempData => {
+        dataFields[tempData] = {
+          label: tempData === '_menu' ? '' : t(`ownerFields.${tempData}`),
+          sortable: (tempData === 'ownerID' || tempData === 'ownerName') ? true : null,
+          formatter: (value, allValue) => {
+            if (tempData === '_menu') {
+              return (
+                &lt;div className={cx('table-menu', {'active': value})}>
+                  &lt;button onClick={this.handleRowContextMenu.bind(this, allValue)}>&lt;i className='fg fg-more'>&lt;/i>&lt;/button>
+                &lt;/div>
+              )
+            } else {
+              return &lt;span>{value}&lt;/span>
+            }
+          }
+        };
+      })
+
+      tempOwner.dataFields = dataFields;
+
+      if (!fromSearch) {
+        let ownerListArr = [];
+
+        _.forEach(data.rows, val => {
+          ownerListArr.push({
+            value: val.ownerName,
+            text: val.ownerName
+          });
+        })
+
+        tempOwner.ownerListArr = ownerListArr;
+      }
+
+      this.setState({
+        owner: tempOwner
+      });
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Construct and display table context menu
+   * @method
+   * @param {object} allValue - owner data
+   * @param {object} evt - mouseClick events
+   * @returns none
+   */
+  handleRowContextMenu = (allValue, evt) => {
+    const menuItems = [
+      {
+        id: 'edit',
+        text: t('txt-edit'),
+        action: () => this.getOwnerInfo(allValue)
+      },
+      {
+        id: 'delete',
+        text: t('txt-delete'),
+        action: () => this.openDeleteOwnerModal(allValue)
+      }
+    ];
+
+    ContextMenu.open(evt, menuItems, 'configTopologyOwnerMenu');
+    evt.stopPropagation();
+  }
+  /**
+   * Handle table row mouse over
+   * @method
+   * @param {string} index - index of the owner data
+   * @param {object} allValue - owner data
+   * @param {object} evt - mouseOver events
+   * @returns none
+   */
+  handleRowMouseOver = (index, allValue, evt) => {
+    let tempOwner = {...this.state.owner};
+    tempOwner['dataContent'] = _.map(tempOwner['dataContent'], el => {
+      return {
+        ...el,
+        _menu: el.ownerUUID === allValue.ownerUUID ? true : false
+      };
+    })
+
+    this.setState({
+      owner: tempOwner
+    });
+  }
+  /**
+   * Handle table sort
+   * @method
+   * @param {object} sort - sort data object
+   * @returns none
+   */
+  handleTableSort = (sort) => {
+    let tempOwner = {...this.state.owner};
+    tempOwner.sort.field = sort.field;
+    tempOwner.sort.desc = sort.desc;
+
+    this.setState({
+      owner: tempOwner
+    }, () => {
+      this.getOwnerData();
+    });
+  }
+  /**
+   * Handle filter input value change
+   * @method
+   * @param {string} type - input type
+   * @param {string} value - input value
+   * @returns none
+   */
+  handleSearchChange = (type, value) => {
+    let tempSearch = {...this.state.search};
+    tempSearch[type] = value.trim();
+
+    this.setState({
+      search: tempSearch
+    });
+  }
+  /**
+   * Handle table pagination change
+   * @method
+   * @param {string} type - page type ('currentPage' or 'pageSize')
+   * @param {string} value - new page number
+   * @returns none
+   */
+  handlePaginationChange = (type, value) => {
+    let tempOwner = {...this.state.owner};
+    tempOwner[type] = Number(value);
+
+    if (type === 'pageSize') {
+      tempOwner.currentPage = 1;
+    }
+
+    this.setState({
+      owner: tempOwner
+    }, () => {
+      this.getOwnerData();
+    });
+  }
+  /**
+   * Get individual owner data
+   * @method
+   * @param {object} allValue - owner data
+   * @returns none
+   */
+  getOwnerInfo = (allValue) => {
+    const {baseUrl} = this.props;
+    let tempOwner = {...this.state.owner};
+
+    if (allValue.ownerID) {
+      this.ah.one({
+        url: `${baseUrl}/api/owner?uuid=${allValue.ownerUUID}`,
+        type: 'GET'
+      })
+      .then(data => {
+        if (data) {
+          tempOwner.info = {...data};
+
+          this.setState({
+            owner: tempOwner
+          }, () => {
+            this.toggleContent('addOwner', 'edit');
+          });
+        }
+      })
+      .catch(err => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
+      })
+    }
+  }
+  /**
+   * Toggle and display page content
+   * @method
+   * @param {string} type - content type ('addOwner' or 'tableList')
+   * @param {string} options - options for 'new' or 'edit'
+   * @returns none
+   */
+  toggleContent = (type, options) => {
+    const {list, owner} = this.state;
+    let tempList = {...list};
+    let tempOwner = {...owner};
+    let addOwnerType = '';
+    let addOwnerTitle = '';
+
+    if (type === 'addOwner') {
+      tempList.department.shift(); //Remove 'all' option
+      tempList.title.shift(); //Remove 'all' option
+
+      if (options === 'new') {
+        addOwnerType = 'new';
+        addOwnerTitle = t('txt-addNewOwner');
+        tempOwner.info = {
+          department: list.department[0].value,
+          title: list.title[0].value
+        };
+      } else if (options === 'edit') {
+        addOwnerType = 'edit';
+        addOwnerTitle = t('txt-editOwner');
+      }
+      tempOwner.removePhoto = false;
+    } else if (type === 'tableList') {
+      tempList.department.unshift({value: 'all', text: t('txt-all')});
+      tempList.title.unshift({value: 'all', text: t('txt-all')});
+    }
+
+    this.setState({
+      activeContent: type,
+      list: tempList,
+      addOwnerType,
+      addOwnerTitle,
+      showFilter: false,
+      owner: tempOwner,
+      previewOwnerPic: ''
+    });
+  }
+  /**
+   * Handle add/edit owner data change
+   * @method
+   * @param {string} type - input type
+   * @param {string} value - input value
+   * @returns none
+   */
+  handleDataChange = (type, value) => {
+    let tempOwner = {...this.state.owner};
+    tempOwner.info[type] = value;
+
+    if (type === 'file') {
+      const file = value ? URL.createObjectURL(value) : '';
+
+      this.setState({
+        previewOwnerPic: file
+      });
+    }
+
+    this.setState({
+      owner: tempOwner
+    });
+  }
+  /**
+   * Handle remove owner photo checkbox
+   * @method
+   * @param none
+   * @returns none
+   */
+  handleRemovePhoto = () => {
+    let tempOwner = {...this.state.owner};
+    tempOwner.removePhoto = !tempOwner.removePhoto;
+
+    this.setState({
+      owner: tempOwner
+    });
+  }
+  /**
+   * Handle add/edit owner form confirm
+   * @method
+   * @param none
+   * @returns none
+   */
+  handleOwnerConfirm = () => {
+    const {baseUrl, contextRoot} = this.props;
+    const {addOwnerType, owner} = this.state;
+    let requestType = 'POST';
+    let updatePic = owner.removePhoto;
+    let formData = new FormData();
+    formData.append('ownerID', owner.info.ownerID);
+    formData.append('ownerName', owner.info.ownerName);
+    formData.append('department', owner.info.department);
+    formData.append('title', owner.info.title);
+
+    if (owner.info.file) {
+      updatePic = true;
+      formData.append('file', owner.info.file);
+    }
+    formData.append('updatePic', updatePic);
+
+    if (addOwnerType === 'edit') {
+      formData.append('ownerUUID', owner.info.ownerUUID);
+      requestType = 'PATCH';
+    }
+
+    this.ah.one({
+      url: `${baseUrl}/api/owner`,
+      data: formData,
+      type: requestType,
+      processData: false,
+      contentType: false
+    })
+    .then(data => {
+      this.getSearchData();
+      this.getOwnerData();
+      this.toggleContent('tableList');
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Display delete owner content
+   * @method
+   * @param {object} allValue - owner data
+   * @returns HTML DOM
+   */
+  getDeleteOwnerContent = (allValue) => {
+    if (allValue.ownerID) {
+      let tempOwner = {...this.state.owner};
+      tempOwner.add = {...allValue};
+
+      this.setState({
+        owner: tempOwner
+      });
+    }
+
+    return (
+      &lt;div className='content delete'>
+        &lt;span>{t('txt-delete-msg')}: {allValue.ownerID}?&lt;/span>
+      &lt;/div>
+    )
+  }
+  /**
+   * Display delete owner modal dialog
+   * @method
+   * @param {object} allValue - owner data
+   * @returns none
+   */
+  openDeleteOwnerModal = (allValue) => {
+    PopupDialog.prompt({
+      title: t('network-topology.txt-deleteOwner'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: this.getDeleteOwnerContent(allValue),
+      act: (confirmed) => {
+        if (confirmed) {
+          this.deleteOwner();
+        }
+      }
+    });
+  }
+  /**
+   * Handle delete owner confirm
+   * @method
+   * @param none
+   * @returns none
+   */
+  deleteOwner = () => {
+    const {baseUrl} = this.props;
+    const {owner} = this.state;
+
+    ah.one({
+      url: `${baseUrl}/api/owner?uuid=${owner.add.ownerUUID}`,
+      type: 'DELETE'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        this.getOwnerData();
+      }
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Open department/title management modal dialog
+   * @method
+   * @param none
+   * @returns none
+   */
+  openName = () => {
+    this.name._component.open();
+  }
+  /**
+   * Handle close on department/title management modal dialog
+   * @method
+   * @param none
+   * @returns none
+   */
+  onDone = () => {
+    this.getSearchData();
+    this.getOwnerData();
+  }
+  /**
+   * Toggle filter content on/off
+   * @method
+   * @param none
+   * @returns none
+   */
+  toggleFilter = () => {
+    this.setState({
+      showFilter: !this.state.showFilter
+    });
+  }
+  /**
+   * Clear filter input value
+   * @method
+   * @param none
+   * @returns none
+   */
+  clearFilter = () => {
+    const tempSearch = {
+      name: '',
+      department: 'all',
+      title: 'all'
+    };
+
+    this.setState({
+      search: tempSearch
+    });
+  }
+  /**
+   * Display filter content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
+  renderFilter = () => {
+    const {list, search, showFilter} = this.state
+
+    return (
+      &lt;div className={cx('main-filter', {'active': showFilter})}>
+        &lt;i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}>&lt;/i>
+        &lt;div className='header-text'>{t('txt-filter')}&lt;/div>
+        &lt;div className='filter-section config'>
+          &lt;div className='group'>
+            &lt;label htmlFor='ownerName' className='first-label'>{t('ownerFields.ownerName')}&lt;/label>
+            &lt;Input id='ownerName' placeholder={t('txt-enterName')} onChange={this.handleSearchChange.bind(this, 'name')} value={search.name} />
+          &lt;/div>
+          &lt;div className='group'>
+            &lt;label htmlFor='ownerDept'>{t('ownerFields.department')}&lt;/label>
+            &lt;DropDownList id='ownerDept' list={list.department} required={true} onChange={this.handleSearchChange.bind(this, 'department')} value={search.department} />
+          &lt;/div>
+          &lt;div className='group'>
+            &lt;label htmlFor='ownerTitle'>{t('ownerFields.title')}&lt;/label>
+            &lt;DropDownList id='ownerTitle' list={list.title} required={true} onChange={this.handleSearchChange.bind(this, 'title')} value={search.title} />
+          &lt;/div>
+        &lt;/div>
+        &lt;div className='button-group'>
+          &lt;button className='filter' onClick={this.getOwnerData.bind(this, 'search')}>{t('txt-filter')}&lt;/button>
+          &lt;button className='clear' onClick={this.clearFilter}>{t('txt-clear')}&lt;/button>
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+  /**
+   * Get Add button position
+   * @method
+   * @param {string} type - button type
+   * @returns width
+   */
+  getBtnPos = (type) => {
+    const {locale} = this.props;
+
+    if (type === 'add') {
+      if (locale === 'zh') {
+        return '168px';
+      } else if (locale === 'en') {
+        return '268px';
+      }
+    }
+  }
+  render() {
+    const {baseUrl, contextRoot, language, locale, session} = this.props;
+    const {
+      activeContent,
+      list,
+      addOwnerTitle,
+      owner,
+      showFilter,
+      previewOwnerPic
+    } = this.state;
+
+    return (
+      &lt;div>
+        &lt;Name ref={ref => { this.name=ref }} onDone={this.onDone} />
+
+        &lt;div className='sub-header'>
+          &lt;div className='secondary-btn-group right'>
+            &lt;button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')} disabled={activeContent !== 'tableList'}>&lt;i className='fg fg-filter'>&lt;/i>&lt;/button>
+          &lt;/div>
+        &lt;/div>
+
+        &lt;div className='data-content'>
+          &lt;Config
+            baseUrl={baseUrl}
+            contextRoot={contextRoot}
+            language={language}
+            locale={locale}
+            session={session} />
+
+          &lt;div className='parent-content'>
+            { this.renderFilter() }
+
+            {activeContent === 'tableList' &amp;&amp;
+              &lt;div className='main-content'>
+                &lt;header className='main-header'>{t('txt-ownerList')}&lt;/header>
+                &lt;button className='standard btn last' onClick={this.openName}>{t('txt-manageDepartmentTitle')}&lt;/button>
+                &lt;button className='standard btn' onClick={this.toggleContent.bind(this, 'addOwner', 'new')} style={{right: this.getBtnPos('add')}}>{t('txt-addNewOwner')}&lt;/button>
+
+                &lt;TableContent
+                  dataTableData={owner.dataContent}
+                  dataTableFields={owner.dataFields}
+                  dataTableSort={owner.sort}
+                  paginationTotalCount={owner.totalCount}
+                  paginationPageSize={owner.pageSize}
+                  paginationCurrentPage={owner.currentPage}
+                  handleTableSort={this.handleTableSort}
+                  handleRowMouseOver={this.handleRowMouseOver}
+                  paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
+                  paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
+              &lt;/div>
+            }
+
+            {activeContent === 'addOwner' &amp;&amp;
+              &lt;div className='main-content basic-form'>
+                &lt;header className='main-header'>{addOwnerTitle}&lt;/header>
+                &lt;button className='standard btn last' onClick={this.openName} >{t('txt-manageDepartmentTitle')}&lt;/button>
+                &lt;div className='form-group steps-owner'>
+                  &lt;header>{t('ipFields.owner')}&lt;/header>
+                  &lt;div className='user-pic'>
+                    &lt;div className='group'>
+                      &lt;label htmlFor='ownerPhotoUpload'>{t('txt-uploadPhoto')}&lt;/label>
+                      &lt;FileInput
+                        id='ownerPhotoUpload'
+                        name='file'
+                        btnText={t('txt-uploadPhoto')}
+                        validate={{
+                          max: 10,
+                          extension: ['.jpg', '.jpeg', '.png'],
+                          t: (code, params) => {
+                            if (code[0] === 'file-wrong-format') {
+                              return t('txt-file-format-error') + ` ${params.extension}`
+                            }
+                          }
+                        }}
+                        onChange={this.handleDataChange.bind(this, 'file')} />
+                    &lt;/div>
+                    &lt;div className='group'>
+                      {previewOwnerPic &amp;&amp;
+                        &lt;img src={previewOwnerPic} title={t('network-topology.txt-profileImage')} />
+                      }
+                      {owner.info.base64 &amp;&amp;
+                        &lt;div>
+                          &lt;img src={owner.info.base64} title={t('network-topology.txt-profileImage')} />
+                          &lt;div className='removePhoto'>
+                            &lt;label htmlFor='removePhoto'>{t('network-topology.txt-removePhoto')}&lt;/label>
+                            &lt;Checkbox
+                              id='removePhoto'
+                              onChange={this.handleRemovePhoto}
+                              checked={owner.removePhoto} />
+                          &lt;/div>
+                        &lt;/div>
+                      }
+                      {!previewOwnerPic &amp;&amp; !owner.info.base64 &amp;&amp;
+                        &lt;img src={contextRoot + '/images/empty_profile.png'} className='' title={t('network-topology.txt-profileImage')} />
+                      }
+                    &lt;/div>
+                  &lt;/div>
+                  &lt;div className='user-info'>
+                    &lt;div className='group'>
+                      &lt;label htmlFor='ownerName'>{t('ownerFields.ownerName')}&lt;/label>
+                      &lt;Input
+                        id='ownerName'
+                        onChange={this.handleDataChange.bind(this, 'ownerName')}
+                        required={true}
+                        validate={{
+                          t: et
+                        }}
+                        value={owner.info.ownerName} />
+                    &lt;/div>
+                    &lt;div className='group'>
+                      &lt;label htmlFor='ownerID'>{t('ownerFields.ownerID')}&lt;/label>
+                      &lt;Input
+                        id='ownerID'
+                        onChange={this.handleDataChange.bind(this, 'ownerID')}
+                        required={true}
+                        validate={{
+                          t: et
+                        }}
+                        value={owner.info.ownerID} />
+                    &lt;/div>
+                    &lt;div className='group'>
+                      &lt;label htmlFor='ownerDepartment'>{t('ownerFields.department')}&lt;/label>
+                      &lt;DropDownList
+                        id='ownerDepartment'
+                        list={list.department}
+                        required={true}
+                        validate={{t: et}}
+                        onChange={this.handleDataChange.bind(this, 'department')}
+                        value={owner.info.department} />
+                    &lt;/div>
+                    &lt;div className='group'>
+                      &lt;label htmlFor='ownerTitle'>{t('ownerFields.title')}&lt;/label>
+                      &lt;DropDownList
+                        id='ownerTitle'
+                        list={list.title}
+                        required={true}
+                        onChange={this.handleDataChange.bind(this, 'title')}
+                        value={owner.info.title} />
+                    &lt;/div>
+                  &lt;/div>
+                &lt;/div>
+                &lt;footer>
+                  &lt;button className='standard' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-cancel')}&lt;/button>
+                  &lt;button className='next-step' onClick={this.handleOwnerConfirm}>{t('txt-save')}&lt;/button>
+                &lt;/footer>
+              &lt;/div>
+            }
+          &lt;/div>
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+}
+
+NetworkOwner.propTypes = {
+  baseUrl: PropTypes.string.isRequired,
+  contextRoot: PropTypes.string.isRequired
+};
+
+const HocNetworkOwner = withRouter(withLocale(NetworkOwner));
+export { NetworkOwner, HocNetworkOwner };</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="SafetyScan.html">SafetyScan</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Mon Nov 18 2019 18:18:08 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

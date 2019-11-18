@@ -144,6 +144,12 @@ const ALERT_MAIN_DATA = {
   loadAlertData: true
 };
 
+/**
+ * Alert
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to handle the business logic for the alert page
+ */
 class AlertController extends Component {
   constructor(props) {
     super(props);
@@ -182,6 +188,12 @@ class AlertController extends Component {
       });
     }
   }
+  /**
+   * Get and set the account saved query
+   * @method
+   * @param none
+   * @returns none
+   */
   getSavedQuery = () => {
     const {baseUrl} = this.props;
     const {account, queryData} = this.state;
@@ -196,6 +208,12 @@ class AlertController extends Component {
       return null;
     });
   }
+  /**
+   * Get and set the alert tree data
+   * @method
+   * @param none
+   * @returns none
+   */
   loadTreeData = () => {
     const {baseUrl} = this.props;
     const {currentPage, pageSize, treeData} = this.state;
@@ -232,6 +250,12 @@ class AlertController extends Component {
       return null;
     });
   }
+  /**
+   * Copy search fields into table columns
+   * @method
+   * @param none
+   * @returns none
+   */
   loadAllFields = () => {
     let tempSubSectionsData = {...this.state.subSectionsData};
     tempSubSectionsData.tableColumns = _.cloneDeep(this.props.searchFields);
@@ -242,6 +266,12 @@ class AlertController extends Component {
       this.loadTable();
     });
   }
+  /**
+   * Get and set alert data
+   * @method
+   * @param {string} options - option for 'search'
+   * @returns none
+   */
   loadTable = (options) => {
     const {baseUrl, contextRoot} = this.props;
     const {activeTab, currentPage, oldPage, pageSize, subSectionsData, account, alertDetails} = this.state;
@@ -358,6 +388,12 @@ class AlertController extends Component {
       return null;
     });
   }
+  /**
+   * Construct the alert api request body
+   * @method
+   * @param {string} options - option for 'search'
+   * @returns requst data object
+   */
   toQueryLanguage = (options) => {
     const {datetime, activeLocationTab, filterData} = this.state;
     const timeAttribute = 'timestamp';
@@ -404,27 +440,36 @@ class AlertController extends Component {
 
     return dataOptions;
   }
-  showFilterBtn = (type, value) => {
-    const {treeData} = this.state;
-
-    let tempTreeData = {...treeData};
+  /**
+   * Set the alert tree data based on alert type
+   * @method
+   * @param {string} type - alert tree type ('alert', 'private' or 'public')
+   * @param {string} value - tree node name
+   * @returns none
+   */
+  showTreeFilterBtn = (type, value) => {
+    let tempTreeData = {...this.state.treeData};
     tempTreeData[type].currentTreeName = value;
-    let individualTreeData = '';
 
     if (type === 'alert') {
-      individualTreeData = this.getAlertTreeData(tempTreeData[type].rawData, value);
+      tempTreeData[type].data = this.getAlertTreeData(tempTreeData[type].rawData, value);
     } else if (type === 'private') {
-      individualTreeData = this.getPrivateTreeData(tempTreeData[type].rawData, value);
+      tempTreeData[type].data = this.getPrivateTreeData(tempTreeData[type].rawData, value);
     } else if (type === 'public') {
-      individualTreeData = this.getPublicTreeData(tempTreeData[type].rawData, value);
+      tempTreeData[type].data = this.getPublicTreeData(tempTreeData[type].rawData, value);
     }
-
-    tempTreeData[type].data = individualTreeData;
 
     this.setState({
       treeData: tempTreeData
     });
   }
+  /**
+   * Set the alert tree data
+   * @method
+   * @param {string} treeData - alert tree data
+   * @param {string} treeName - tree node name
+   * @returns tree data object
+   */
   getAlertTreeData = (treeData, treeName) => {
     let treeObj = { //Handle service tree data
       id: 'All',
@@ -543,6 +588,13 @@ class AlertController extends Component {
 
     return treeObj;
   }
+  /**
+   * Set the alert private tree data
+   * @method
+   * @param {string} treeData - alert tree data
+   * @param {string} treeName - tree node name
+   * @returns tree data object
+   */
   getPrivateTreeData = (treeData, treeName) => {
     const path = PRIVATE_API.path;
     let treeObj = { //Handle service tree data
@@ -588,6 +640,13 @@ class AlertController extends Component {
 
     return treeObj;
   }
+  /**
+   * Set the alert public tree data
+   * @method
+   * @param {string} treeData - alert tree data
+   * @param {string} treeName - tree node name
+   * @returns tree data object
+   */
   getPublicTreeData = (treeData, treeName) => {
     const path = PUBLIC_API.path;
     let treeObj = { //Handle service tree data
@@ -618,6 +677,12 @@ class AlertController extends Component {
 
     return treeObj;
   }
+  /**
+   * Handle alert search submit
+   * @method
+   * @param {string} fromSearch - option for 'search'
+   * @returns none
+   */
   handleSearchSubmit = (fromSearch) => {
     const {activeTab, subSectionsData} = this.state;
     let tempSubSectionsData = {...subSectionsData};
@@ -637,6 +702,12 @@ class AlertController extends Component {
       });
     }
   }
+  /**
+   * Handle alert search reset
+   * @method
+   * @param {string} type - reset type ('filter' or 'mark')
+   * @returns none
+   */
   handleResetBtn = (type) => {
     const filterData = [{
       condition: 'must',
@@ -652,13 +723,25 @@ class AlertController extends Component {
       queryData: tempQueryData
     });
   }
-  handlePageChange = (currentPage) => {
+  /**
+   * Handle pagination change
+   * @method
+   * @param {number} currentPage - current page
+   * @returns none
+   */
+  handlePaginationChange = (currentPage) => {
     this.setState({
       currentPage
     }, () => {
       this.loadTable();
     });
   }
+  /**
+   * Handle page size dropdown
+   * @method
+   * @param {string} pageSize - current page size
+   * @returns none
+   */
   handlePageDropdown = (pageSize) => {
     this.setState({
       currentPage: 1,
@@ -667,11 +750,16 @@ class AlertController extends Component {
       this.loadTable();
     });
   }
-  handleTableSort = (value) => {
-    const {sort} = this.state;
-    let tempSort = {...sort};
-    tempSort.field = value.field;
-    tempSort.desc = !sort.desc;
+  /**
+   * Handle table sort
+   * @method
+   * @param {object} sort - sort data object
+   * @returns none
+   */
+  handleTableSort = (sort) => {
+    let tempSort = {...this.state.sort};
+    tempSort.field = sort.field;
+    tempSort.desc = sort.desc;
 
     this.setState({
       sort: tempSort
@@ -679,6 +767,13 @@ class AlertController extends Component {
       this.loadTable();
     });
   }
+  /**
+   * Handle tree filter button selection
+   * @method
+   * @param {string} value - selected node name
+   * @param {string} field - corresponding field of selected node
+   * @returns none
+   */
   selectTree = (value, field) => {
     this.setState({
       loadAlertData: false
@@ -686,6 +781,14 @@ class AlertController extends Component {
       this.addSearch(field, value, 'must');
     });
   }
+  /**
+   * Add tree node to search filter
+   * @method
+   * @param {string} field - corresponding field of selected node
+   * @param {string} value - selected node name
+   * @param {string} type - condition of selected node ('must')
+   * @returns none
+   */
   addSearch = (field, value, type) => {
     const {filterData} = this.state;
     let currentFilterData = filterData;
@@ -719,11 +822,25 @@ class AlertController extends Component {
       filterData: currentFilterData
     });
   }
+  /**
+   * Add tree node to search filter
+   * @method
+   * @param {string} index - index of the alert data
+   * @param {object} allValue - alert data
+   * @param {object} evt - MouseEvents
+   * @returns none
+   */
   handleRowDoubleClick = (index, allValue, evt) => {
     this.openDetailInfo(index, allValue);
     evt.stopPropagation();
     return null;
   }
+  /**
+   * Display alert details modal dialog 
+   * @method
+   * @param none
+   * @returns AlertDetails component
+   */
   alertDialog = () => {
     const {baseUrl, contextRoot, language, locale} = this.props;
     const {alertDetails, alertData} = this.state;
@@ -745,6 +862,12 @@ class AlertController extends Component {
         fromPage='alert' />
     )
   }
+  /**
+   * Set the alert index and get the alert data
+   * @method
+   * @param {string} type - button action type ('previous' or 'next')
+   * @returns none
+   */
   showAlertData = (type) => {
     const {alertDetails} = this.state;
     let tempAlertDetails = {...alertDetails};
@@ -775,27 +898,12 @@ class AlertController extends Component {
       this.openDetailInfo(index, data);
     });
   }
-  showTopoDetail = (id, eventInfo) => {
-    const {alertDetails} = this.state;
-    let tempAlertDetails = {...alertDetails};
-
-    if (!id || id.indexOf('.') < 0) {
-      return;
-    }
-
-    const uniqueIP = id;
-    const data = alertDetails.publicFormatted.srcIp[uniqueIP] || alertDetails.publicFormatted.destIp[uniqueIP];
-    tempAlertDetails.currentID = id;
-    tempAlertDetails.currentIndex = 0;
-    tempAlertDetails.currentLength = data.length;
-
-    this.setState({
-      alertDetails: tempAlertDetails
-    }, () => {
-      const {alertDetails} = this.state;
-      this.openDetailInfo(alertDetails.currentIndex, data);
-    });
-  }
+  /**
+   * Set the individual alert data
+   * @method
+   * @param {string} type - button action type ('previous' or 'next')
+   * @returns none
+   */
   openDetailInfo = (index, allValue, evt) => {
     const {alertDetails} = this.state;
     let tempAlertDetails = {...alertDetails};
@@ -820,6 +928,12 @@ class AlertController extends Component {
       alertDetailsOpen: true
     });
   }
+  /**
+   * Close modal dialog and reset data
+   * @method
+   * @param none
+   * @returns none
+   */
   closeDialog = () => {
     const tempAlertDetails = {
       ...this.state.alertDetails,
@@ -836,6 +950,13 @@ class AlertController extends Component {
       this.clearQueryData();
     });
   }
+  /**
+   * Set new datetime
+   * @method
+   * @param {object} datetime - new datetime object
+   * @param {string} refresh - option for 'refresh'
+   * @returns none
+   */
   handleDateChange = (datetime, refresh) => {
     this.setState({
       datetime
@@ -846,6 +967,12 @@ class AlertController extends Component {
       }
     });
   }
+  /**
+   * Display alert table data
+   * @method
+   * @param none
+   * @returns Alert component
+   */
   renderTabContent = () => {
     const {baseUrl, contextRoot, language, locale, searchFields} = this.props;
     const {activeTab} = this.state;
@@ -867,18 +994,17 @@ class AlertController extends Component {
       handleResetBtn: this.handleResetBtn,
       handleSearchSubmit: this.handleSearchSubmit,
       treeData: this.state.treeData,
-      showFilterBtn: this.showFilterBtn,
+      showTreeFilterBtn: this.showTreeFilterBtn,
       dataTableData: this.state.subSectionsData.mainData[activeTab],
       dataTableFields: this.state.subSectionsData.fieldsData[activeTab],
       mainEventsData: this.state.mainEventsData,
-      showTopoDetail: this.showTopoDetail,
       dataTableSort: this.state.sort,
       handleTableSort: this.handleTableSort,
       handleRowDoubleClick: this.handleRowDoubleClick,
       paginationTotalCount: this.state.subSectionsData.totalCount[activeTab],
       paginationPageSize: this.state.pageSize,
       paginationCurrentPage: this.state.currentPage,
-      paginationPageChange: this.handlePageChange,
+      paginationPageChange: this.handlePaginationChange,
       paginationDropDownChange: this.handlePageDropdown
     };
 
@@ -894,6 +1020,12 @@ class AlertController extends Component {
         }} />
     )
   }
+  /**
+   * Handle CSV download
+   * @method
+   * @param none
+   * @returns none
+   */
   getCSVfile = () => {
     const {baseUrl, contextRoot} = this.props;
     const url = `${baseUrl}${contextRoot}/api/u1/alert/_export`;
@@ -901,11 +1033,23 @@ class AlertController extends Component {
 
     downloadWithForm(url, {payload: JSON.stringify(requestData)});
   }
+  /**
+   * Toggle filter content on/off
+   * @method
+   * @param none
+   * @returns none
+   */
   toggleFilter = () => {
     this.setState({
       showFilter: !this.state.showFilter
     });
   }
+  /**
+   * Toggle query menu on/off
+   * @method
+   * @param {string} type - type of query menu ('open' or 'save')
+   * @returns none
+   */
   openQuery = (type) => {
     if (type === 'open') {
       this.setState({
@@ -917,16 +1061,34 @@ class AlertController extends Component {
       });
     }
   }
+  /**
+   * Set filter data
+   * @method
+   * @param {array} filterData - filter data to be set
+   * @returns none
+   */
   setFilterData = (filterData) => {
     this.setState({
       filterData
     });
   }
+  /**
+   * Set query data
+   * @method
+   * @param {object} queryData - query data to be set
+   * @returns none
+   */
   setQueryData = (queryData) => {
     this.setState({
       queryData
     });
   }
+  /**
+   * Display query menu modal dialog
+   * @method
+   * @param {string} type - query type ('open' or 'save')
+   * @returns QueryOpenSave component
+   */
   queryDialog = (type) => {
     const {baseUrl, contextRoot} = this.props;
     const {activeTab, account, filterData, queryData} = this.state;
@@ -946,11 +1108,24 @@ class AlertController extends Component {
         closeDialog={this.closeDialog} />
     )
   }
+  /**
+   * Toggle chart content on/off
+   * @method
+   * @param none
+   * @returns none
+   */
   toggleChart = () => {
     this.setState({
       showChart: !this.state.showChart
     });
   }
+  /**
+   * Set search options data
+   * @method
+   * @param {string} type - search type to be set ('all' and others)
+   * @param {string} value - search value to be set
+   * @returns none
+   */
   setSearchData = (type, value) => {
     if (type === 'all') {
       this.setState({
@@ -968,6 +1143,12 @@ class AlertController extends Component {
       }
     }
   }
+  /**
+   * Reset query data
+   * @method
+   * @param none
+   * @returns none
+   */
   clearQueryData = () => {
     let tempQueryData = {...this.state.queryData};
     tempQueryData.inputName = '';
@@ -977,6 +1158,12 @@ class AlertController extends Component {
       queryData: tempQueryData
     });
   }
+  /**
+   * Reset subSections data
+   * @method
+   * @param none
+   * @returns none
+   */
   clearData = () => {
     this.setState({
       ..._.cloneDeep(SUBSECTIONS_DATA)
