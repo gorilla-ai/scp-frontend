@@ -12,15 +12,26 @@ import {HocTree as Tree} from '../../../common/tree'
 import withLocale from '../../../../hoc/locale-provider'
 
 let t = null;
-let et = null;
 
+/**
+ * Events Netflow File
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the Netflow File
+ */
 class File extends Component {
   constructor(props) {
     super(props);
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
-    et = global.chewbaccaI18n.getFixedT(null, 'errors');    
   }
+  /**
+   * Show image data in grid view
+   * @method
+   * @param {object} val - image files data
+   * @param {number} i - index of the image data
+   * @returns HTML DOM
+   */
   showGridImage = (val, i) => {
     const {mainContentData} = this.props;
 

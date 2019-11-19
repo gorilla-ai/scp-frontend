@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/configuration/service/status.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/configuration/service/status.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
+import { withRouter } from 'react-router'
+import PropTypes from 'prop-types'
+import Moment from 'moment'
+import _ from 'lodash'
+import cx from 'classnames'
+
+import DataTable from 'react-ui/build/src/components/table'
+
+import {HocConfig as Config} from '../../common/configuration'
+import helper from '../../common/helper'
+import withLocale from '../../../hoc/locale-provider'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+let t = null;
+let f = null;
+let et = null;
+
+/**
+ * Service Status
+ * @class
+ * @author Ryan Chen &lt;ryanchen@telmediatech.com>
+ * @summary A react component to show the Config service status page
+ */
+class Status extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      serviceStatus: {
+        dataFieldsArr: ['status', 'serviceName'],
+        lastUpdateTime: '',
+        dataFields: {},
+        dataContent: []
+      }
+    };
+
+    t = chewbaccaI18n.getFixedT(null, 'connections');
+    f = chewbaccaI18n.getFixedT(null, 'tableFields');
+    et = chewbaccaI18n.getFixedT(null, 'errors');
+    this.ah = getInstance('chewbacca');
+  }
+  componentDidMount() {
+    this.getServiceStatus();
+  }
+  /**
+   * Get and set service status data
+   * @method
+   * @param {string} option - option for 'refresh'
+   * @returns none
+   */
+  getServiceStatus = (option) => {
+    const {baseUrl} = this.props;
+    const {serviceStatus} = this.state;
+    let url = `${baseUrl}/api/monitor`;
+
+    if (option === 'refresh') {
+      url += '?refresh=true';
+    }
+
+    this.ah.one({
+      url,
+      type: 'GET'
+    })
+    .then(data => {
+      let tempServiceStatus = {...serviceStatus};
+      tempServiceStatus.lastUpdateTime = helper.getFormattedDate(data.lastUpdateDttm, 'local');
+      tempServiceStatus.dataContent = data.monitor;
+
+      let dataFields = {};
+      serviceStatus.dataFieldsArr.forEach(tempData => {
+        dataFields[tempData] = {
+          label: f(`serviceStatusFields.${tempData}`),
+          sortable: true,
+          formatter: (value, allValue, i) => {
+            if (tempData === 'status') {
+              let styleStatus = '';
+              let title = '';
+
+              if (value.toLowerCase() === 'active') {
+                styleStatus = '#22ac38';
+                title = t('txt-online');
+              } else if (value.toLowerCase() === 'unstable') {
+                styleStatus = '#e6e448';
+                title = t('txt-offline');
+              } else {
+                styleStatus = '#d0021b';
+                title = t('txt-unstable');
+              }
+
+              return &lt;div style={{color : styleStatus}}>&lt;i className='fg fg-recode' title={title} />&lt;/div>
+            }
+            if (tempData === 'serviceName') {
+              let tooltip = '';
+
+              if (allValue.responseCode) {
+                tooltip += allValue.responseCode + ': ';
+              } else {
+                tooltip += 'N/A: ';
+              }
+
+              if (allValue.reponseMsg) {
+                tooltip += allValue.reponseMsg;
+              } else {
+                tooltip += 'N/A';
+              }
+
+              return &lt;span>{value} &lt;i className='fg fg-info' title={tooltip}>&lt;/i>&lt;/span>
+            }
+          }
+        };
+      })
+
+      tempServiceStatus.dataFields = dataFields;
+
+      this.setState({
+        serviceStatus: tempServiceStatus
+      });
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  render() {
+    const {baseUrl, contextRoot, language, locale, session} = this.props;
+    const {serviceStatus} = this.state;
+
+    return (
+      &lt;div>
+        &lt;div className='sub-header'>
+          &lt;div className='secondary-btn-group right'>
+            &lt;button onClick={this.getServiceStatus.bind(this, 'refresh')} title={t('txt-update')}>&lt;i className='fg fg-update'>&lt;/i>&lt;/button>
+	          &lt;span className='last-update'>{serviceStatus.lastUpdateTime}&lt;/span>
+	        &lt;/div>
+        &lt;/div>
+
+        &lt;div className='data-content'>
+          &lt;Config
+            baseUrl={baseUrl}
+            contextRoot={contextRoot}
+            language={language}
+            locale={locale}
+            session={session} />
+
+          &lt;div className='parent-content'>
+            &lt;div className='main-content'>
+              &lt;header className='main-header'>{t('txt-serviceStatus')}&lt;/header>
+              &lt;div className='table-content'>
+                &lt;div className='table no-pagination'>
+                  &lt;DataTable
+                    className='main-table align-center'
+                    fields={serviceStatus.dataFields}
+                    data={serviceStatus.dataContent} />
+                &lt;/div>
+              &lt;/div>
+            &lt;/div>
+          &lt;/div>
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+}
+
+Status.propTypes = {
+  baseUrl: PropTypes.string.isRequired,
+  contextRoot: PropTypes.string.isRequired,
+  language: PropTypes.string.isRequired,
+  locale: PropTypes.string.isRequired,
+  session: PropTypes.object.isRequired
+};
+
+const HocStatus = withRouter(withLocale(Status));
+export { Status, HocStatus };</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="Login.html">Login</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="SafetyScan.html">SafetyScan</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Tue Nov 19 2019 17:26:26 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

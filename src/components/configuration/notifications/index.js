@@ -375,13 +375,11 @@ class Notifications extends Component {
    * @returns HTML DOM
    */
   displayTestEmail = () => {
-    const {testEmails} = this.state;
-
     return (
       <div>
         <label>{t('notifications.txt-recipientEmail')}</label>
         <ReactMultiEmail
-          emails={testEmails}
+          emails={this.state.testEmails}
           onChange={this.handleTestEmailChange}
           getLabel={this.getLabel}
         />

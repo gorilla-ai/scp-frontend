@@ -8,6 +8,12 @@ import helper from '../../../common/helper'
 import TableContent from '../../../common/table-content'
 import {HocTree as Tree} from '../../../common/tree'
 
+/**
+ * Events Netflow DNS
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the Netflow DNS
+ */
 class Dns extends Component {
   constructor(props) {
     super(props);

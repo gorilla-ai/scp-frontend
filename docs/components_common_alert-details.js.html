@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/common/alert-details.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/common/alert-details.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
+import { Link } from 'react-router-dom'
+import PropTypes from 'prop-types'
+import Moment from 'moment'
+import _ from 'lodash'
+import cx from 'classnames'
+
+import Checkbox from 'react-ui/build/src/components/checkbox'
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import PageNav from 'react-ui/build/src/components/page-nav'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
+import Textarea from 'react-ui/build/src/components/textarea'
+
+import JSONTree from 'react-json-tree'
+
+import {HocPrivateDetails as PrivateDetails} from './private-details'
+import {HocSafetyScan as SafetyScan} from './safety-scan'
+import helper from './helper'
+import withLocale from '../../hoc/locale-provider'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+const PUBLIC_KEY = ['City', 'CountryCode', 'Latitude', 'Longitude'];
+const NOT_AVAILABLE = 'N/A';
+
+let t = null;
+let f = null;
+
+/**
+ * Alert Details
+ * @class
+ * @author Ryan Chen &lt;ryanchen@telmediatech.com>
+ * @summary A react component to show the alert details information
+ */
+class AlertDetails extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      alertType: '',
+      showContent: {
+        rule: false,
+        pcap: false,
+        attack: false,
+        srcIp: false,
+        destIp: false,
+        srcSafety: false,
+        destSafety: false,
+        json: false
+      },
+      alertRule: '',
+      alertPCAP: {
+        origData: [],
+        data: [],
+        page: 1,
+        pageSize: 10,
+        totalCount: 0,
+        activeIndex: null,
+        hex: '',
+        filterEmpty: false
+      },
+      alertPayload: '',
+      alertInfo: {
+        srcIp: {
+          location: {},
+          topology: {},
+          ownerPic: '',
+          ownerMap: {},
+          ownerBaseLayers: {},
+          ownerSeat: {}
+        },
+        destIp: {
+          location: {},
+          topology: {},
+          ownerPic: '',
+          ownerMap: {},
+          ownerBaseLayers: {},
+          ownerSeat: {}
+        }
+      },
+      ipDeviceInfo: {
+        srcIp: {},
+        destIp: {}
+      },
+      showRedirectMenu: false
+    };
+
+    t = chewbaccaI18n.getFixedT(null, 'connections');
+    f = chewbaccaI18n.getFixedT(null, 'tableFields');
+    this.ah = getInstance('chewbacca');
+  }
+  componentDidMount() {
+    this.loadAlertContent();
+    this.getIPcontent('srcIp');
+    this.getIPcontent('destIp');
+    this.getHMDinfo('srcIp');
+    this.getHMDinfo('destIp');
+    document.addEventListener('mousedown', this.handleClickOutside);
+  }
+  componentDidUpdate = (prevProps) => {
+    this.loadAlertContent(prevProps);
+  }
+  componentWillUnmount = () => {
+    this.closeDialog();
+    document.addEventListener('mousedown', this.handleClickOutside);
+  }
+  /**
+   * Call when mouse click outside the redirect menu
+   * @method
+   * @param {object} e - MouseEvents
+   * @returns none
+   */
+  handleClickOutside = (e) => {
+    if (this.wrapperRef &amp;&amp; !this.wrapperRef.contains(e.target)) {
+      this.setState({
+        showRedirectMenu: false
+      });
+    }
+  }
+  /**
+   * Set wrapper reference
+   * @method
+   * @param {object} node - redirect menu node
+   * @returns none
+   */
+  setWrapperRef = (node) => {
+    this.wrapperRef = node;
+  }
+  /**
+   * Toggle redirect menu on/off
+   * @method
+   * @param none
+   * @returns none
+   */
+  toggleRedirectMenu = () => {
+    this.setState({
+      showRedirectMenu: !this.state.showRedirectMenu
+    });
+  }
+  /**
+   * Generate a redirect link and process the browser redirect
+   * @method
+   * @param {object} type - 'events'
+   * @param {string} value - 'srcIp' or 'destIp'
+   * @returns none
+   */
+  redirectLink = (type, value) => {
+    const {language, alertData} = this.props;
+    const eventDatetime = helper.getFormattedDate(alertData._eventDttm_, 'local');
+    const srcIp = this.getIpPortData('srcIp');
+    const destIp = this.getIpPortData('destIp');
+    let ipParam = '';
+
+    if (type === 'events') {
+      if (value === 'srcIp') {
+        ipParam = `&amp;srcIp=${srcIp}`;
+      } else if (value === 'destIp') {
+        ipParam = `&amp;destIp=${destIp}`;
+      }
+      const url = `/ChewbaccaWeb/events/netflow?eventDttm=${eventDatetime}${ipParam}&amp;lng=${language}`;
+      window.open(url, '_blank');
+    }
+  }
+  /**
+   * Call corresponding Alert data based on conditions
+   * @method
+   * @param {object} prevProps - previous react props when the props have been updated
+   * @returns none
+   */
+  loadAlertContent = (prevProps) => {
+    const {alertDetails, alertData} = this.props;
+    const index = alertData.index ? alertData.index : 'alert';
+    let alertType = '';
+    let showContent = {
+      rule: false,
+      pcap: false,
+      attack: false,
+      srcIp: false,
+      destIp: false,
+      srcSafety: false,
+      destSafety: false,
+      json: false
+    };
+
+    if (!prevProps || (prevProps &amp;&amp; alertDetails.currentIndex != prevProps.alertDetails.currentIndex)) {
+      if (index.indexOf('alert') > -1) {
+        alertType = 'alert';
+      } else if (index.indexOf('pot_attack') > -1) {
+        alertType = 'pot_attack';
+      } else if (index.indexOf('syslog') > -1) {
+        alertType = 'syslog';
+      }
+
+      if (alertData) {
+        showContent.rule = true;
+      }
+
+      this.setState({
+        alertType,
+        showContent
+      }, () => {
+        this.getIPcontent('srcIp');
+        this.getIPcontent('destIp');
+        this.getAlertRule();
+      });
+    }   
+  }
+  /**
+   * Set source or destination topology data to alertInfo
+   * @method
+   * @param {object} alertInfo - Alert Info to be set
+   * @param {string} type - 'srcIp' or 'destIp'
+   * @returns none
+   */
+  setTopologyInfo = (alertInfo, type) => {
+    this.setState({
+      alertInfo
+    }, () => {
+      const {alertInfo} = this.state;
+
+      if (!_.isEmpty(alertInfo[type].topology)) {
+        this.getOwnerPic(type);
+        this.getOwnerSeat(type);
+      }
+    });
+  }
+  /**
+   * Get source or destination topology data
+   * @method
+   * @param {string} type - 'srcIp' or 'destIp'
+   * @returns none
+   */
+  getIPcontent = (type) => {
+    const {baseUrl, alertData, fromPage, locationType} = this.props;
+    const {alertInfo} = this.state;
+    const ip = this.getIpPortData(type);
+    let tempAlertInfo = {...alertInfo};
+
+    if (fromPage === 'dashboard') { //Get topo info for Dashboard page
+      const srcDestType = type.replace('Ip', '');
+
+      if (locationType === 'public') {
+        tempAlertInfo[type].topology = alertData[srcDestType + 'TopoInfo'];
+
+        _.forEach(PUBLIC_KEY, val => {
+          tempAlertInfo[type].location[val] = alertData[srcDestType + val];
+        })
+      } else if (locationType === 'private') {
+        tempAlertInfo[type].topology = alertData[srcDestType + 'TopoInfo'];
+      }
+      this.setTopologyInfo(tempAlertInfo, type);
+    } else if (fromPage === 'alert') { //Get topo info for Alert page
+      ah.one({
+        url: `${baseUrl}/api/alert/ip2loc?ip=${ip}`,
+        type: 'GET'
+      })
+      .then(data => {
+        if (data) {
+          data = data.rt;
+
+          if (!_.isEmpty(data.Topology)) {
+            tempAlertInfo[type].topology = data.Topology;
+          } else {
+            tempAlertInfo[type].location = data.Location;
+          }
+          this.setTopologyInfo(tempAlertInfo, type);
+        }
+      })
+    }
+  }
+  /**
+   * Get IP device info for HMD section
+   * @method
+   * @param {string} type - 'srcIp' or 'destIp'
+   * @returns none
+   */
+  getHMDinfo = (type) => {
+    const {baseUrl, contextRoot} = this.props;
+    const {ipDeviceInfo} = this.state;
+    const IP = this.getIpPortData(type);
+
+    this.ah.one({
+      url: `${baseUrl}/api/u1/ipdevice/_search?ip=${IP}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data &amp;&amp; data.rows.length > 0) {
+        let tempIPdeviceInfo = {...ipDeviceInfo};
+        tempIPdeviceInfo[type] = data.rows[0];
+
+        this.setState({
+          ipDeviceInfo: tempIPdeviceInfo
+        });
+      }
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get owner picture based on location type
+   * @method
+   * @param {string} type - 'srcIp' or 'destIp'
+   * @returns none
+   */
+  getOwnerPic = (type) => {
+    const {baseUrl} = this.props;
+    const {alertInfo} = this.state;
+    const ownerUUID = alertInfo[type].topology.ownerUUID;
+    let tempAlertInfo = {...alertInfo};
+
+    if (ownerUUID) {
+      this.ah.one({
+        url: `${baseUrl}/api/owner?uuid=${ownerUUID}`,
+        type: 'GET'
+      })
+      .then(data => {
+        if (data) {
+          tempAlertInfo[type].ownerPic = data.base64;
+
+          this.setState({
+            alertInfo: tempAlertInfo
+          });
+        }
+      })
+      .catch(err => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
+      })
+    }
+  }
+  /**
+   * Set owner map and seat data for alertInfo
+   * @method
+   * @param {string} type - 'srcIp' or 'destIp'
+   * @returns none
+   */
+  getOwnerSeat = (type) => {
+    const {baseUrl, contextRoot} = this.props;
+    const {alertInfo} = this.state;
+    const topoInfo = alertInfo[type].topology;
+    let tempAlertInfo = {...alertInfo};
+    let ownerMap = {};
+
+    if (topoInfo.areaPicPath) {
+      ownerMap = {
+        label: topoInfo.areaName,
+        images: [
+          {
+            id: topoInfo.areaUUID,
+            url: `${baseUrl}${contextRoot}/api/area/_image?path=${topoInfo.areaPicPath}`,
+            size: {width: topoInfo.areaPicWidth, height: topoInfo.areaPicHeight}
+          }
+        ]
+      };
+    }
+    
+    tempAlertInfo[type].ownerMap = ownerMap;
+    tempAlertInfo[type].ownerBaseLayers[topoInfo.areaUUID] = ownerMap;
+    tempAlertInfo[type].ownerSeat[topoInfo.areaUUID] = {
+      data: [{
+        id: topoInfo.seatUUID,
+        type: 'spot',
+        xy: [topoInfo.seatCoordX, topoInfo.seatCoordY],
+        label: topoInfo.seatName,
+        data: {
+          name: topoInfo.seatName,
+          tag: 'red'
+        }
+      }]
+    };
+
+    this.setState({
+      alertInfo: tempAlertInfo
+    });
+  }
+  /**
+   * Get Alert rule data
+   * @method
+   * @param none
+   * @returns none
+   */
+  getAlertRule = () => {
+    const {baseUrl, alertData} = this.props;
+    const {alertType} = this.state;
+    const index = alertData.index;
+    const projectId = alertData.projectName;
+
+    if (alertType === 'alert') {
+      const url = `${baseUrl}/api/network/alert/rule?projectId=${projectId}`;
+      let alertInfo = {
+        alert: {}
+      };
+
+      if (alertData.alert &amp;&amp; alertData.alert.signature_id) {
+        alertInfo.alert.signature_id = alertData.alert.signature_id;
+      } else if (alertData.trailName) {
+        alertInfo.alert.trailName = alertData.trailName;
+      }
+
+      helper.getAjaxData('POST', url, alertInfo)
+      .then(data => {
+        if (data) {
+          this.setState({
+            alertRule: data
+          });
+        }
+      });
+    } else {
+      this.setState({
+        alertRule: alertData.Rule
+      });
+    }
+  }
+  /**
+   * Get IP and Port data
+   * @method
+   * @param {string} type - 'srcIp', 'destIp', 'srcPort', 'destPort'
+   * @returns IP or port
+   */
+  getIpPortData = (type) => {
+    const {alertData} = this.props;
+
+    if (type === 'srcIp') {
+      return alertData.srcIp || alertData.ipSrc;
+    } else if (type === 'destIp') {
+      return alertData.destIp || alertData.ipDst;
+    } else if (type === 'srcPort') {
+      return alertData.srcPort || alertData.portSrc;
+    } else if (type === 'destPort') {
+      return alertData.destPort || alertData.portDst;
+    }
+  }
+  /**
+   * Reset PCAP data
+   * @method
+   * @param none
+   * @returns none
+   */
+  resetPCAPcontent = () => {
+    this.setState({
+      alertPCAP: {
+        origData: [],
+        data: [],
+        page: 1,
+        pageSize: 10,
+        totalCount: 0,
+        activeIndex: null,
+        hex: '',
+        filterEmpty: false
+      }
+    }, () => {
+      this.getPCAPcontent();
+    });
+  }
+  /**
+   * Get and set PCAP data
+   * @method
+   * @param none
+   * @returns none
+   */
+  getPCAPcontent = () => {
+    const {baseUrl, alertData} = this.props;
+    const {alertPCAP} = this.state;
+    const projectId = alertData.projectName;
+    const url = `${baseUrl}/api/alert/pcapContent?projectId=${projectId}&amp;page=${alertPCAP.page}&amp;pageSize=${alertPCAP.pageSize}`;
+    const data = {
+      ipSrc: this.getIpPortData('srcIp'),
+      portSrc: this.getIpPortData('srcPort'),
+      ipDst: this.getIpPortData('destIp'),
+      portDst: this.getIpPortData('destPort'),
+      lastPacket: alertData.lastPacket
+    };
+
+    helper.getAjaxData('POST', url, data)
+    .then(data => {
+      let tempAlertPCAP = {...alertPCAP};
+      tempAlertPCAP.totalCount = data.counts;
+      tempAlertPCAP.origData = data.rows;
+      tempAlertPCAP.data = data.rows;
+
+      this.setState({
+        alertPCAP: tempAlertPCAP
+      });
+    })
+    .catch(err => {
+      helper.showPopupMsg(t('txt-pcapNotAvailable'), t('txt-error'));
+    });
+  }
+  /**
+   * Set Alert payload data
+   * @method
+   * @param none
+   * @returns none
+   */
+  getAttackJson = () => {
+    const {alertData} = this.props;
+
+    this.setState({
+      alertPayload: alertData.payload
+    });
+  }
+  /**
+   * Set corresponding content based on content type
+   * @method
+   * @param {string} the content type
+   * @returns none
+   */
+  getContent = (type) => {
+    this.setState({
+      showContent: {
+        rule: false,
+        pcap: false,
+        attack: false,
+        srcIp: false,
+        destIp: false,
+        srcSafety: false,
+        destSafety: false,
+        json: false
+      }
+    }, () => {
+      let tempShowContent = {...this.state.showContent};
+
+      switch(type) {
+        case 'rule':
+          this.getAlertRule();
+          tempShowContent.rule = true;
+          break;
+        case 'pcap':
+          this.resetPCAPcontent();
+          tempShowContent.pcap = true;
+          break;
+        case 'attack':
+          this.getAttackJson();
+          tempShowContent.attack = true;
+          break;
+        case 'srcIp':
+          tempShowContent.srcIp = true;
+          break;
+        case 'destIp':
+          tempShowContent.destIp = true;
+          break;
+        case 'srcSafety':
+          tempShowContent.srcSafety = true;
+          break;
+        case 'destSafety':
+          tempShowContent.destSafety = true;
+          break;
+        case 'json':
+          tempShowContent.json = true;
+          break;
+      }
+
+      this.setState({
+        showContent: tempShowContent
+      });
+    });
+  }
+  /**
+   * Get alert severity
+   * @method
+   * @param {value} - 'High', 'Medium', 'Low'
+   * @returns HTML DOM
+   */
+  getSeverity = (value) => {
+    let styleStatus = '';
+
+    if (value === 'High') {
+      styleStatus = '#d9576c';
+    } else if (value === 'Medium') {
+      styleStatus = '#d99857';
+    } else if (value === 'Low') {
+      styleStatus = '#57c3d9';
+    } else if (value === NOT_AVAILABLE) {
+      return {NOT_AVAILABLE}
+    }
+
+    return &lt;span className='severity' style={{backgroundColor: styleStatus}}>{value}&lt;/span>
+  }
+  /**
+   * Display Alert information in dialog box
+   * @method
+   * @param none
+   * @returns none
+   */
+  displayAlertData = () => {
+    const {alertDetails, alertData} = this.props;
+    const {alertType, showContent, alertRule, alertPCAP, alertPayload, showRedirectMenu} = this.state;
+    const severity = alertData.Severity ? this.getSeverity(alertData.Severity) : NOT_AVAILABLE;
+    const eventDatetime = alertData._eventDttm_ ? helper.getFormattedDate(alertData._eventDttm_, 'local') : NOT_AVAILABLE;
+
+    return (
+      &lt;div>
+        &lt;table className='c-table main-table'>
+          &lt;thead>
+            &lt;tr>
+              &lt;th>{f('alertFields.Severity')}&lt;/th>
+              &lt;th>{f('alertFields.Collector')}&lt;/th>
+              &lt;th>{f('alertFields.Trigger')}&lt;/th>
+              &lt;th>{f('alertFields._eventDttm_')}&lt;/th>
+            &lt;/tr>
+          &lt;/thead>
+          &lt;tbody>
+            &lt;tr>
+              &lt;td className='align-center severity-level'>{severity}&lt;/td>
+              &lt;td className='align-center collector'>{alertData.Collector || NOT_AVAILABLE}&lt;/td>
+              &lt;td className='align-center trigger'>{alertData.Trigger || NOT_AVAILABLE}&lt;/td>
+              &lt;td className='align-center datetime'>{eventDatetime}&lt;/td>
+            &lt;/tr>
+          &lt;/tbody>
+        &lt;/table>
+
+        &lt;div className='alert-info'>{alertData.Info || NOT_AVAILABLE}&lt;/div>
+
+        &lt;table className='c-table main-table'>
+          &lt;thead>
+            &lt;tr>
+              &lt;th>{f('alertFields.srcIp')}&lt;/th>
+              &lt;th>{f('alertFields.srcPort')}&lt;/th>
+              &lt;th>{f('alertFields.destIp')}&lt;/th>
+              &lt;th>{f('alertFields.destPort')}&lt;/th>
+            &lt;/tr>
+          &lt;/thead>
+          &lt;tbody>
+            &lt;tr>
+              &lt;td className='align-center src-ip'>{this.getIpPortData('srcIp')}&lt;/td>
+              &lt;td className='align-center src-port'>{this.getIpPortData('srcPort')}&lt;/td>
+              &lt;td className='align-center dest-ip'>{this.getIpPortData('destIp')}&lt;/td>
+              &lt;td className='align-center dest-port'>{this.getIpPortData('destPort')}&lt;/td>
+            &lt;/tr>
+          &lt;/tbody>
+        &lt;/table>
+
+        &lt;div className='main-content'>
+          &lt;div className='nav'>
+            &lt;ul>
+              &lt;li>&lt;span className={cx({'active': showContent.rule})} onClick={this.getContent.bind(this, 'rule')}>{t('alert.txt-rule')}&lt;/span>&lt;/li>
+              {alertType === 'alert' &amp;&amp; alertData.Collector !== 'NetProbe' &amp;&amp;
+                &lt;li>&lt;span className={cx({'active': showContent.pcap})} onClick={this.getContent.bind(this, 'pcap')}>PCAP&lt;/span>&lt;/li>
+              }
+              {alertType === 'pot_attack' &amp;&amp;
+                &lt;li>&lt;span className={cx({'active': showContent.attack})} onClick={this.getContent.bind(this, 'attack')}>{t('alert.txt-attack')}&lt;/span>&lt;/li>
+              }
+              &lt;li>&lt;span className={cx({'active': showContent.json})} onClick={this.getContent.bind(this, 'json')}>{t('alert.txt-viewJSON')}&lt;/span>&lt;/li>
+              &lt;li className='header'>
+                &lt;span className='name'>{t('alert.txt-ipSrc')}&lt;/span>
+                &lt;span className='ip'>{this.getIpPortData('srcIp')}&lt;/span>
+              &lt;/li>
+              &lt;li>&lt;span className={cx({'active': showContent.srcIp})} onClick={this.getContent.bind(this, 'srcIp')}>{t('alert.txt-ipBasicInfo')}&lt;/span>&lt;/li>
+              &lt;li>&lt;span className={cx({'active': showContent.srcSafety})} onClick={this.getContent.bind(this, 'srcSafety')}>{t('alert.txt-safetyScanInfo')}&lt;/span>&lt;/li>
+              &lt;li className='header'>
+                &lt;span className='name'>{t('alert.txt-ipDst')}&lt;/span>
+                &lt;span className='ip'>{this.getIpPortData('destIp')}&lt;/span>
+              &lt;/li>
+              &lt;li>&lt;span className={cx({'active': showContent.destIp})} onClick={this.getContent.bind(this, 'destIp')}>{t('alert.txt-ipBasicInfo')}&lt;/span>&lt;/li>
+              &lt;li>&lt;span className={cx({'active': showContent.destSafety})} onClick={this.getContent.bind(this, 'destSafety')}>{t('alert.txt-safetyScanInfo')}&lt;/span>&lt;/li>
+            &lt;/ul>
+          &lt;/div>
+          &lt;div className='content'>
+            &lt;div className='options-buttons'>
+              {(showContent.srcIp || showContent.destIp) &amp;&amp;
+                &lt;div onClick={this.toggleRedirectMenu}>{t('alert.txt-queryMore')}&lt;/div>
+              }
+
+              {showContent.pcap &amp;&amp; alertPCAP.data.length > 0 &amp;&amp;
+                &lt;div onClick={this.getPcapFile}>{t('alert.txt-downloadPCAP')}&lt;/div>
+              }
+
+              {showContent.attack &amp;&amp; alertData.fileMD5 &amp;&amp;
+                &lt;div onClick={this.downloadFile}>{t('alert.txt-downloadFile')}&lt;/div>
+              }
+            &lt;/div>
+
+            {showRedirectMenu &amp;&amp; showContent.srcIp &amp;&amp;
+              this.displayRedirectMenu('srcIp')
+            }
+
+            {showRedirectMenu &amp;&amp; showContent.destIp &amp;&amp;
+              this.displayRedirectMenu('destIp')
+            }
+
+            {showContent.rule &amp;&amp; alertRule &amp;&amp;
+              this.displayRuleContent()
+            }
+
+            {showContent.pcap &amp;&amp;
+              this.displayPCAPcontent()
+            }
+
+            {showContent.attack &amp;&amp; alertPayload &amp;&amp;
+              this.displayPayloadcontent()
+            }
+
+            {showContent.srcIp &amp;&amp;
+              this.displayIPcontent('srcIp')
+            }
+
+            {showContent.destIp &amp;&amp;
+              this.displayIPcontent('destIp')
+            }
+
+            {showContent.srcSafety &amp;&amp;
+              this.displaySafetyScanContent('srcIp')
+            }
+
+            {showContent.destSafety &amp;&amp;
+              this.displaySafetyScanContent('destIp')
+            }
+
+            {showContent.json &amp;&amp;
+              this.displayJsonData()
+            }
+          &lt;/div>
+        &lt;/div>
+        {alertDetails.currentLength > 1 &amp;&amp;
+          &lt;div className='pagination'>
+            &lt;div className='buttons'>
+              &lt;button onClick={this.props.showAlertData.bind(this, 'previous')} disabled={alertDetails.currentIndex === 0}>{t('txt-previous')}&lt;/button>
+              &lt;button onClick={this.props.showAlertData.bind(this, 'next')} disabled={alertDetails.currentIndex + 1 === alertDetails.currentLength}>{t('txt-next')}&lt;/button>
+            &lt;/div>
+            &lt;span className='count'>{alertDetails.currentIndex + 1} / {alertDetails.currentLength}&lt;/span>
+          &lt;/div>
+        }
+      &lt;/div>
+    )
+  }
+  /**
+   * Display redirect menu
+   * @method
+   * @param {string} type - 'srcIp' or 'destIp'
+   * @returns HTML DOM
+   */
+  displayRedirectMenu = (type) => {
+    return (
+      &lt;ul className='redirect-menu' ref={this.setWrapperRef}>
+        &lt;li onClick={this.redirectLink.bind(this, 'events', type)}>{t('alert.txt-queryEvents')}&lt;/li>
+      &lt;/ul>
+    )
+  }
+  /**
+   * Display rule content
+   * @method
+   * @param {string} val - val for the rule content
+   * @param {number} i - index
+   * @returns HTML DOM
+   */
+  showRuleContent = (val, i) => {
+    return &lt;li key={i}>{val.rule}&lt;/li>
+  }
+  /**
+   * Display rule content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
+  displayRuleContent = () => {
+    const {alertType, alertRule} = this.state;
+
+    if (alertType === 'alert') {
+      return (
+        &lt;ul className='alert-rule'>
+          {alertRule.length > 0 &amp;&amp;
+            alertRule.map(this.showRuleContent)
+          }
+          {alertRule.length === 0 &amp;&amp;
+            &lt;li>{NOT_AVAILABLE}&lt;/li>
+          }
+        &lt;/ul>
+      )
+    } else {
+      return &lt;span>{alertRule}&lt;/span>
+    }
+  }
+  /**
+   * Set PCAP hex value
+   * @method
+   * @param {string} hex - original string value
+   * @param {number} index - active index of the Alert PCAP array
+   * @returns none
+   */
+  setPCAPhex = (hex, index) => {
+    let tempAlertPCAP = {...this.state.alertPCAP};
+
+    if (hex) {
+      tempAlertPCAP.hex = hex.replace(/\s/g, '');
+    } else {
+      return false;
+    }
+    tempAlertPCAP.activeIndex = index;
+
+    this.setState({
+      alertPCAP: tempAlertPCAP
+    });
+  }
+  /**
+   * Set PCAP page
+   * @method
+   * @param {string} currentPage - current page of the PCAP info
+   * @returns none
+   */
+  setPCAPpage = (currentPage) => {
+    let tempAlertPCAP = {...this.state.alertPCAP};
+    tempAlertPCAP.page = currentPage;
+    tempAlertPCAP.activeIndex = null;
+    tempAlertPCAP.hex = '';
+    tempAlertPCAP.filterEmpty = false;
+
+    this.setState({
+      alertPCAP: tempAlertPCAP
+    }, () => {
+      this.getPCAPcontent();
+    });
+  }
+  /**
+   * Toggle (check/uncheck) to show/hide the PCAP data
+   * @method
+   * @param none
+   * @returns none
+   */
+  toggleFilterEmpty = () => {
+    const {alertPCAP} = this.state;
+    let tempAlertPCAP = {...alertPCAP};
+    tempAlertPCAP.activeIndex = null;
+    tempAlertPCAP.hex = '';
+    tempAlertPCAP.filterEmpty = !tempAlertPCAP.filterEmpty;
+
+    if (tempAlertPCAP.filterEmpty) {
+      let alertPCAPdata = [];
+
+      _.forEach(alertPCAP.data, val => {
+        if (val.hex) {
+          alertPCAPdata.push(val);
+        }
+      })
+      tempAlertPCAP.data = alertPCAPdata;
+    } else {
+      tempAlertPCAP.data = _.cloneDeep(alertPCAP.origData);
+    }
+
+    this.setState({
+      alertPCAP: tempAlertPCAP
+    });
+  }
+  /**
+   * Display individual PCAP data
+   * @method
+   * @param {object} val - PCAP data
+   * @param {number} i - index
+   * @returns HTML DOM
+   */
+  showPCAPcontent = (val, i) => {
+    return &lt;li key={i} className={cx({'active': val.hex})} onClick={this.setPCAPhex.bind(this, val.hex, i)}>{val.protocol}&lt;i className={cx('fg', {'fg-arrow-left': this.state.alertPCAP.activeIndex === i})}>&lt;/i>&lt;/li> 
+  }
+  /**
+   * Display PCAP content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
+  displayPCAPcontent = () => {
+    const {alertPCAP} = this.state;
+    const hex = alertPCAP.hex;
+    let str = '';
+
+    if (hex) {
+      for (let i = 0; i &lt; hex.length; i += 2) {
+        str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+      }
+    }
+
+    return (
+      &lt;div className='pcap-content'>
+        {alertPCAP.data.length > 0 &amp;&amp;
+          &lt;div className='c-flex aic filter-empty'>
+            &lt;label htmlFor='filterEmpty'>{t('alert.txt-filterEmpty')}&lt;/label>
+            &lt;Checkbox
+              id='filterEmpty'
+              onChange={this.toggleFilterEmpty}
+              checked={alertPCAP.filterEmpty} />
+          &lt;/div>
+        }
+        &lt;div className='pcap'>
+          &lt;div className='list'>
+            &lt;ul>
+              {alertPCAP.data.length > 0 &amp;&amp;
+                alertPCAP.data.map(this.showPCAPcontent)
+              }
+              {alertPCAP.data.length === 0 &amp;&amp;
+                &lt;li>{NOT_AVAILABLE}&lt;/li>
+              }
+            &lt;/ul>
+          &lt;/div>
+          &lt;div className='data'>
+            {str &amp;&amp;
+              &lt;Textarea
+                value={str} 
+                readOnly={true} />
+            }
+          &lt;/div>
+        &lt;/div>
+        {alertPCAP.totalCount > alertPCAP.pageSize &amp;&amp;
+          &lt;footer>
+            &lt;PageNav
+              pages={Math.ceil(alertPCAP.totalCount / alertPCAP.pageSize)}
+              current={alertPCAP.page}
+              onChange={this.setPCAPpage} />
+          &lt;/footer>
+        }
+      &lt;/div>
+    )
+  }
+  /**
+   * Display PCAP payload content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
+  displayPayloadcontent = () => {
+    const {alertPayload} = this.state;
+
+    return (
+      &lt;div className='payload'>
+        &lt;ul>
+          &lt;li>&lt;JSONTree data={alertPayload} theme={helper.getJsonViewTheme()} />&lt;/li>
+        &lt;/ul>
+      &lt;/div>
+    )
+  }
+  /**
+   * Get Alert details list width
+   * @method
+   * @param none
+   * @returns {string} - list width
+
+   */
+  getListWidth = () => {
+    const {locale} = this.props;
+
+    if (locale === 'en') {
+      return '120px';
+    } else if (locale === 'zh') {
+      return '50px';
+    }
+  }
+  /**
+   * Check location data
+   * @method
+   * @param {string} item - key item
+   * @param {string} data - data associated with the key
+   * @returns - valid data in string or false
+
+   */
+  checkLocationData = (item, data) => {
+    if (item === 'City') {
+      if (data !== '' &amp;&amp; data !== '-') {
+        return data;
+      }
+    } else if (item === 'Latitude' || item === 'Longitude') {
+      if (data !== 0) {
+        return data;
+      }
+    }
+    return false;
+  }
+  /**
+   * Display Alert public info
+   * @method
+   * @param {string} item - key of the public info
+   * @param {number} i - index 
+   * @returns HTML DOM
+   */
+  showPuclicInfo = (type, item, i) => {
+    const {baseUrl, contextRoot} = this.props;
+    const {alertInfo} = this.state;
+    const countryCodeType = 'CountryCode';
+    const countryType = 'CountryName';
+    let validDataCount = 0;
+
+    if (alertInfo[type]['location'][item]) {
+      if (item === countryCodeType) { //Display country flag
+        const countryCode = alertInfo[type]['location'][item].toLowerCase();
+        const picPath = `${contextRoot}/images/flag/${countryCode}.png`;
+
+        if (countryCode &amp;&amp; countryCode != '-') {
+          validDataCount++;
+
+          return (
+            &lt;li key={item + i}>
+              &lt;span className='key' style={{width: this.getListWidth()}}>{t('payloadsFields.' + item)}&lt;/span>
+              &lt;span className='value'>&lt;img src={picPath} title={alertInfo[type]['location'][countryType]} />&lt;/span>
+            &lt;/li>
+          )
+        }
+      } else { //Display location info
+        const data = alertInfo[type]['location'][item];
+        const validData = this.checkLocationData(item, data);
+
+        if (validData) {
+          validDataCount++;
+
+          return (
+            &lt;li key={item + i}>
+              &lt;span className='key' style={{width: this.getListWidth()}}>{t('payloadsFields.' + item)}&lt;/span>
+              &lt;span className='value'>{validData}&lt;/span>
+            &lt;/li>
+          )
+        }
+      }
+    }
+
+    if (validDataCount === 0) {
+      &lt;li>{t('txt-notFound')} {this.getIpPortData(type)}&lt;/li>
+    }
+  }
+  /**
+   * Display Alert public info
+   * @method
+   * @param {string} type - 'srcIp' or 'destIp'
+   * @returns HTML DOM
+   */
+  getPublicInfo = (type) => {
+    return (
+      &lt;ul className='public'>
+        {PUBLIC_KEY.map(this.showPuclicInfo.bind(this, type))}
+      &lt;/ul>
+    )
+  }
+  /**
+   * Display Alert private info
+   * @method
+   * @param {string} type - 'srcIp' or 'destIp'
+   * @returns PrivateDetails component
+   */
+  getPrivateInfo = (type) => {
+    const {baseUrl, contextRoot, language, alertData} = this.props;
+    const {alertInfo} = this.state;
+    const topoInfo = alertInfo[type].topology;
+    const picPath = alertInfo[type].ownerPic ? alertInfo[type].ownerPic : contextRoot + '/images/empty_profile.png';
+    const url_login = {
+      pathname: '/ChewbaccaWeb/honeynet/employee-record',
+      search: `?lng=${language}`
+    };
+    const url_access = {
+      pathname: '/ChewbaccaWeb/honeynet/employee-record',
+      search: `?eventDttm=${alertData._eventDttm_}&amp;lng=${language}`,
+      state: {
+        alertData
+      }
+    };
+    const srcDestType = type.replace('Ip', '');
+
+    return (
+      &lt;PrivateDetails
+        type={type}
+        alertInfo={alertInfo}
+        topoInfo={topoInfo}
+        picPath={picPath}
+        srcDestType={srcDestType} />
+    )
+  }
+  /**
+   * Display IP content
+   * @method
+   * @param {string} type - 'srcIp' or 'destIp'
+   * @returns HTML DOM
+   */
+  displayIPcontent = (type) => {
+    const {alertInfo} = this.state;
+
+    return (
+      &lt;div>
+        {(_.isEmpty(alertInfo[type].topology) &amp;&amp; _.isEmpty(alertInfo[type].location)) &amp;&amp; 
+          &lt;span>{t('txt-notFound')} {this.getIpPortData(type)}&lt;/span>
+        }
+
+        {type === 'srcIp' &amp;&amp; !_.isEmpty(alertInfo[type].location) &amp;&amp; //Public
+          &lt;div className='srcIp-content'>
+            {this.getPublicInfo(type)}
+          &lt;/div>
+        }
+
+        {type === 'srcIp' &amp;&amp; !_.isEmpty(alertInfo[type].topology) &amp;&amp; //Private
+          &lt;div className='srcIp-content'>
+            {this.getPrivateInfo(type)}
+          &lt;/div>
+        }
+
+        {type === 'destIp' &amp;&amp; !_.isEmpty(alertInfo[type].location) &amp;&amp; //Public
+          &lt;div className='destIp-content'>
+            {this.getPublicInfo(type)}
+          &lt;/div>
+        }
+
+        {type === 'destIp' &amp;&amp; !_.isEmpty(alertInfo[type].topology) &amp;&amp; //Private
+          &lt;div className='destIp-content'>
+            {this.getPrivateInfo(type)}
+          &lt;/div>
+        }
+      &lt;/div>
+    )
+  }
+  /**
+   * Call taskinfo API for HMD trigger button
+   * @method
+   * @param {string} type - 'srcIp' or 'destIp'
+   * @returns HTML DOM
+   */
+  triggerTask = (taskId, type) => {
+    const {baseUrl, contextRoot} = this.props;
+    const url = `${baseUrl}/api/hmd/taskinfo`;
+    const requestData = {
+      taskId
+    };
+
+    helper.getAjaxData('POST', url, requestData)
+    .then(data => {
+      if (data) {
+        PopupDialog.alert({
+          id: 'tiggerTaskModal',
+          confirmText: t('txt-close'),
+          display: &lt;div>{t('txt-requestSent')}&lt;/div>
+        });
+        this.getHMDinfo(type);
+      }
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'));
+    });
+  }
+  /**
+   * Display safety scan content
+   * @method
+   * @param {string} type - 'srcIp' or 'destIp'
+   * @returns SafetyScan component
+   */
+  displaySafetyScanContent = (type) => {
+    const {ipDeviceInfo} = this.state;
+
+    return (
+      &lt;SafetyScan
+        type={type}
+        ipDeviceInfo={ipDeviceInfo}
+        triggerTask={this.triggerTask} />
+    )
+  }
+  /**
+   * Display JSON Data content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
+  displayJsonData = () => {
+    const {alertData} = this.props;
+    const hiddenFields = ['id', '_tableMenu_'];
+    const allData = _.omit(alertData, hiddenFields);
+
+    return (
+      &lt;ul className='json-data alert'>
+        &lt;li>&lt;JSONTree data={allData} theme={helper.getJsonViewTheme()} />&lt;/li>
+      &lt;/ul>
+    )
+  }
+  /**
+   * Get Alert PCAP file
+   * @method
+   * @param none
+   * @returns none
+   */
+  getPcapFile = () => {
+    const {baseUrl, alertData} = this.props;
+    const projectId = alertData.projectName;
+    const url = `${baseUrl}/api/network/alert/pcap?projectId=${projectId}`;
+    const data = {
+      projectId : projectId,
+      ipSrc: this.getIpPortData('srcIp'),
+      portSrc: this.getIpPortData('srcPort'),
+      ipDst: this.getIpPortData('destIp'),
+      portDst: this.getIpPortData('destPort'),
+      lastPacket: alertData.lastPacket
+    };
+
+    helper.getAjaxData('POST', url, data)
+    .then(data => {
+      if (data.ResultMessage === 'fail') {
+        helper.showPopupMsg(t('txt-pcapDownloadFail'), t('txt-error'), data.ErrorMessage);
+      } else {
+        window.location.assign(data.PcapFilelink);
+      }
+    })
+    .catch(err => {
+      helper.showPopupMsg(t('txt-pcapNotAvailable'), t('txt-error'));
+    });
+  }
+  /**
+   * Download paylaod file
+   * @method
+   * @param none
+   * @returns false if origFileId and fileMD5 are not available
+   */
+  downloadFile = () => {
+    const {baseUrl, contextRoot, alertData} = this.props;
+    const dataObj = {
+      origFileId: alertData.origFileId,
+      md5: alertData.fileMD5
+    };
+
+    if (!alertData.origFileId &amp;&amp; !alertData.fileMD5) {
+      return;
+    }
+
+    this.ah.one({
+      url: `${baseUrl}/api/honeynet/attack/payload/file`,
+      data: JSON.stringify(dataObj),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data.id) {
+        window.location.href = `${baseUrl}${contextRoot}/api/honeynet/attack/payload/file/${data.id}`;
+      }
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Close dialog and reset state values
+   * @method
+   * @param none
+   * @returns none
+   */
+  closeDialog = () => {
+    this.setState({
+      showContent: {
+        rule: false,
+        pcap: false,
+        attack: false,
+        srcIp: false,
+        destIp: false
+      },
+      alertRule: '',
+      alertPCAP: {
+        data: [],
+        page: 1,
+        pageSize: 10,
+        totalCount: 0,
+        activeIndex: null,
+        hex: '',
+        filterEmpty: false
+      },
+      alertPayload: ''
+    });
+  }
+  render() {
+    const {titleText, actions} = this.props;
+
+    return (
+      &lt;ModalDialog
+        id='dashboardModalDialog'
+        className='modal-dialog'
+        title={titleText}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='confirm'>
+        {this.displayAlertData()}
+      &lt;/ModalDialog>
+    )
+  }
+}
+
+AlertDetails.propTypes = {
+  baseUrl: PropTypes.string.isRequired,
+  contextRoot: PropTypes.string.isRequired,
+  language: PropTypes.string.isRequired,
+  locale: PropTypes.string.isRequired,
+  titleText: PropTypes.string.isRequired,
+  actions: PropTypes.object.isRequired,
+  alertDetails: PropTypes.object.isRequired,
+  alertData: PropTypes.object.isRequired,
+  showAlertData: PropTypes.func.isRequired,
+  fromPage: PropTypes.string.isRequired
+};
+
+const HocAlertDetails = withLocale(AlertDetails);
+export { AlertDetails, HocAlertDetails };</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="Login.html">Login</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="SafetyScan.html">SafetyScan</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Tue Nov 19 2019 17:26:26 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

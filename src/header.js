@@ -19,10 +19,22 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 const t = i18n.getFixedT(null, 'connections');
 const l = i18n.getFixedT(null, 'app');
 
+/**
+ * Header
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the header section
+ */
 class Header extends Component {
   constructor(props) {
     super(props);
   }
+  /**
+   * Determine the active page
+   * @method
+   * @param {string} tab - page sections ('dashboard', 'alert', 'events' and 'configuration')
+   * @returns true/false boolean value
+   */
   getActiveTab = (tab) => {
     const activeRoute = this.props.location.pathname;
     const pattern = /^(\/ChewbaccaWeb[\/]?)$/i;
@@ -33,6 +45,12 @@ class Header extends Component {
     }
     return pathArr[2] === tab;
   }
+  /**
+   * Handle language change
+   * @method
+   * @param {string} lng - language type ('en' or 'zh')
+   * @returns none
+   */
   changeLng = (lng) => {
     const {location} = this.props;
     const urlParams = qs.parse(location.search);
@@ -47,6 +65,12 @@ class Header extends Component {
     urlString += qs.stringify({lng});
     window.location.href = window.location.pathname + '?' + urlString;
   }
+  /**
+   * Handle logout
+   * @method
+   * @param none
+   * @returns none
+   */
   logout = () => {
     const {baseUrl} = this.props;
     const url = `${baseUrl}/api/logout`;
@@ -58,6 +82,12 @@ class Header extends Component {
         document.location.reload()
       })
   }
+  /**
+   * Open and display account context menu
+   * @method
+   * @param {object} evt - mouseClick events
+   * @returns none
+   */
   showAccountMenu = (evt) => {
     const lngs = _.map(['en', 'zh'], i => ({
       id: i,
@@ -81,10 +111,21 @@ class Header extends Component {
 
     ContextMenu.open(evt, menuItems, 'language-menu')
   }
+  /**
+   * Handle account edit action
+   * @method
+   * @param none
+   * @returns none
+   */
   editAccount = () => {
-    const {session} = this.props;
-    this.editor._component.open(session.accountId, 'fromHeader');
+    this.editor._component.open(this.props.session.accountId, 'fromHeader');
   }
+  /**
+   * Show account edit success message
+   * @method
+   * @param none
+   * @returns none
+   */
   showPopup = () => {
     PopupDialog.alert({
       id: 'modalWindowSmall',

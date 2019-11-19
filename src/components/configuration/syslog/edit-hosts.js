@@ -42,8 +42,6 @@ class EditHosts extends Component {
     }
   }
   render() {
-    const {value} = this.props;
-
     return (
       <Input
         className='edit-hosts-inputbox'
@@ -53,7 +51,7 @@ class EditHosts extends Component {
           t: this.getErrorMsg
         }}
         onChange={this.handleDataChange.bind(this, 'host')}
-        value={value.host} />
+        value={this.props.value.host} />
     )
   }
 }

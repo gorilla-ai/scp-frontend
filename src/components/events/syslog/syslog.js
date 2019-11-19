@@ -12,6 +12,12 @@ import {HocPagination as Pagination} from '../../common/pagination'
 import TableContent from '../../common/table-content'
 import {HocTree as Tree} from '../../common/tree'
 
+/**
+ * Events Syslog
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the Events Syslog
+ */
 class Syslog extends Component {
   constructor(props) {
     super(props);

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/events/netflow/tabs/connections.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/events/netflow/tabs/connections.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
+import PropTypes from 'prop-types'
+
+import Gis from 'react-gis/build/src/components'
+import Tabs from 'react-ui/build/src/components/tabs'
+import Timebar from 'react-timebar/build/src/components'
+import VbdaLA from 'vbda-ui/build/src/components/analysis/la'
+
+import {HocDataChart as DataChart} from '../../../common/data-chart'
+import {HocFilterContent as FilterContent} from '../../../common/filter-content'
+import helper from '../../../common/helper'
+import {HocPagination as Pagination} from '../../../common/pagination'
+import TableContent from '../../../common/table-content'
+import {HocTree as Tree} from '../../../common/tree'
+
+import withLocale from '../../../../hoc/locale-provider'
+
+/**
+ * Events Netflow Connections
+ * @class
+ * @author Ryan Chen &lt;ryanchen@telmediatech.com>
+ * @summary A react component to show the Netflow Connections
+ */
+class Connections extends Component {
+  constructor(props) {
+    super(props);
+  }
+  render() {
+    const {baseUrl, contextRoot, language, mainContentData, tabChartData, tableMouseOver} = this.props;
+    const assetsPath = `${contextRoot}/lib/keylines/assets/`;
+
+    return (
+      &lt;div className='data-content'>
+        &lt;Tree
+          {...mainContentData} />
+
+        &lt;div className='parent-content'>
+          &lt;FilterContent
+            {...mainContentData} />
+
+          &lt;DataChart
+            contextRoot={contextRoot}
+            mainContentData={mainContentData}
+            tabChartData={tabChartData}
+            tableMouseOver={tableMouseOver} />
+
+          &lt;div className='main-content'>
+            &lt;Tabs
+              className='subtab-menu'
+              menu={mainContentData.subTabMenu}
+              current={mainContentData.activeSubTab}
+              onChange={mainContentData.handleSubTabChange}>
+            &lt;/Tabs>
+
+            {mainContentData.activeSubTab === 'table' &amp;&amp;
+              &lt;TableContent
+                {...mainContentData} />
+            }
+
+            {mainContentData.activeSubTab === 'linkAnalysis' &amp;&amp;
+              &lt;div className='la-content'>
+                &lt;VbdaLA
+                  assetsPath={assetsPath}
+                  sourceCfg={mainContentData.LAconfig}
+                  events={mainContentData.mainEventsData}
+                  source={mainContentData.LAdata}
+                  sourceItemOptions={mainContentData.LAconfig.la}
+                  lng={language} />
+
+                &lt;footer>
+                  &lt;Pagination
+                    paginationOptions={[
+                      {value: 500, text: '500'},
+                      {value: 1000, text: '1000'},
+                      {value: 2000, text: '2000'},
+                      {value: 5000, text: '5000'}
+                    ]}
+                    totalCount={mainContentData.paginationTotalCount}
+                    pageSize={mainContentData.paginationAlertPageSize}
+                    currentPage={mainContentData.paginationCurrentPage}
+                    onPageChange={mainContentData.paginationAlertPageChange.bind(this, 'la')}
+                    onDropDownChange={mainContentData.paginationAlertDropDownChange.bind(this, 'la')} />
+                &lt;/footer>
+              &lt;/div>
+            }
+
+            {mainContentData.activeSubTab === 'worldMap' &amp;&amp;
+              &lt;div className='map-content'>
+                &lt;Gis
+                  id='gisMap'
+                  className='fit'
+                  data={mainContentData.geoJson.mapDataArr}
+                  layers={{
+                    world: {
+                      label: 'World Map',
+                      interactive: false,
+                      data: mainContentData.geoJson.attacksDataArr
+                    }
+                  }}
+                  activeLayers={['world']}
+                  baseLayers={{
+                    standard: {
+                      id: 'world',
+                      layer: 'world'
+                    }
+                  }}
+                  mapOptions={{
+                    crs: L.CRS.Simple
+                  }}
+                  symbolOptions={[{
+                    match: {
+                      type:'geojson'
+                    },
+                    selectedProps: {
+                      'fill-color': 'white',
+                      color: 'black',
+                      weight: 0.6,
+                      'fill-opacity': 1
+                    }
+                  },
+                  {
+                    match: {
+                      type: 'spot'
+                    },
+                    props: {
+                      'background-color': ({data}) => {
+                        return data.tag === 'red' ? 'red' : 'yellow';
+                      },
+                      'border-color': '#333',
+                      'border-width': '1px'
+                    }
+                  }]}
+                  layouts={['standard']}
+                  dragModes={['pan']} />
+
+                &lt;footer>
+                  &lt;Pagination
+                    activeTab={mainContentData.activeTab}
+                    page='worldMap'
+                    totalCount={mainContentData.paginationTotalCount}
+                    pageSize={mainContentData.paginationAlertPageSize}
+                    currentPage={mainContentData.paginationCurrentPage}
+                    onPageChange={mainContentData.paginationAlertPageChange.bind(this, 'map')}
+                    onDropDownChange={mainContentData.paginationAlertDropDownChange.bind(this, 'map')} />
+                &lt;/footer>
+              &lt;/div>
+            }
+          &lt;/div>
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+}
+
+Connections.propTypes = {
+  mainContentData: PropTypes.object.isRequired,
+  tabChartData: PropTypes.object.isRequired
+};
+
+export default withLocale(Connections);</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="Login.html">Login</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="SafetyScan.html">SafetyScan</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Tue Nov 19 2019 17:26:26 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

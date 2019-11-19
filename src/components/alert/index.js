@@ -6,12 +6,7 @@ import _ from 'lodash'
 import cx from 'classnames'
 import queryString from 'query-string'
 
-import {analyze} from 'vbda-ui/build/src/analyzer'
-import {config as configLoader} from 'vbda-ui/build/src/loader'
-import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
-
-import JSONTree from 'react-json-tree'
 
 import Alert from './alert'
 import {HocAlertDetails as AlertDetails} from '../common/alert-details'

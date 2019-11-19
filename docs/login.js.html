@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: login.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: login.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
+import { NavLink } from 'react-router-dom'
+import { Link } from 'react-router-dom'
+import { withRouter } from 'react-router'
+import PropTypes from 'prop-types'
+import cx from 'classnames'
+import _ from 'lodash'
+import i18n from 'i18next'
+import qs from 'query-string'
+import $ from 'jquery'
+
+import DropDownList from 'react-ui/build/src/components/dropdown'
+
+import ResetPwd from './components/configuration/user/accounts/resetPwd'
+import withLocale from './hoc/locale-provider'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+const t = i18n.getFixedT(null, 'app');
+const et = i18n.getFixedT(null, 'errors');
+
+/**
+ * Login
+ * @class
+ * @author Ryan Chen &lt;ryanchen@telmediatech.com>
+ * @summary A react component to show the Login page
+ */
+class Login extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      info: null,
+      error: false
+    };
+
+    this.ah = getInstance('chewbacca');
+  }
+  componentDidMount() {
+    this.username.focus();
+  }
+  /**
+   * Handle login confirm
+   * @method
+   * @param none
+   * @returns none
+   */
+  logon = () =>  {
+    const {contextRoot} = this.context;
+    const username = this.username.value;
+    const password = this.password.value;
+    let error = '';
+
+    if (username === '') {
+      error = t('login.txt-username');
+    } else if (password === '') {
+      error = t('login.txt-password');
+    }
+
+    if (error) {
+      this.setState({
+        info: error,
+        error: true
+      });
+    } else {
+      this.setState({
+        info: t('txt-logging-in'),
+        error: false
+      }, () => {
+        this.getLogin(username, password);
+      });
+    }
+  }
+  /**
+   * Call login api and show login success/fail
+   * @method
+   * @param {string} username - entered username
+   * @param {string} password - entered password
+   * @returns none
+   */
+  getLogin = (username, password) => {
+    const {baseUrl, contextRoot} = this.props;
+    const dataObj = {
+      account: username,
+      password: password
+    };
+
+    this.ah.one({
+      url: `${baseUrl}/api/login`,
+      data: JSON.stringify(dataObj),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      const redirectURL = contextRoot || '/ChewbaccaWeb';
+      window.location.href = redirectURL;
+    })
+    .catch(err => {
+      if (err.message === et('-1005')) {
+        this.setState({
+          info: null,
+          error: false
+        }, () => {
+          this.startResetPwd();
+        });
+      } else {
+        this.setState({
+          info: err.message,
+          error: true
+        });
+      }
+    })
+  }
+  /**
+   * Open reset password page
+   * @method
+   * @param none
+   * @returns none
+   */
+  startResetPwd = () => {
+    this.pageResetPwd.open();
+  }
+  /**
+   * Handle enter key for login
+   * @method
+   * @param {object} e - mouseClick events
+   * @returns none
+   */
+  handleKeyDown = (e) => {
+    if (e.keyCode === 13) {
+      this.logon();
+    }
+  }
+  /**
+   * Handle language change
+   * @method
+   * @param {string} lng - language type ('en' or 'zh')
+   * @returns none
+   */
+  changeLng = (lng) => {
+    const {contextRoot} = this.props;
+    const redirectURL = contextRoot || '/ChewbaccaWeb';
+
+    window.location.href = redirectURL + '/?' + qs.stringify({lng});
+  }
+  render() {
+    const {baseUrl, contextRoot, productName, locale} = this.props;
+    const {info, error} = this.state;
+
+    return (
+      &lt;div id='g-login' className='c-center global c-flex fdc'>
+        &lt;div id='title'>
+          &lt;span className='title'>{productName}&lt;/span>
+          &lt;span className='subtitle'>&lt;/span>
+        &lt;/div>
+
+        &lt;div id='form' className='c-flex fdc'>
+          &lt;label htmlFor='username'>{t('login.lbl-username')}&lt;/label>
+          &lt;input ref={ref => { this.username = ref }} id='username' type='text' />
+
+          &lt;label htmlFor='password'>{t('login.lbl-password')}&lt;/label>
+          &lt;input ref={ref => { this.password = ref }} id='password' type='password' onKeyDown={this.handleKeyDown.bind(this)} />
+
+          &lt;button className='end' onClick={this.logon}>{t('login.btn-login')}&lt;/button>
+
+          &lt;div className={cx('c-info', {'c-error': error})}>{info}&lt;/div>
+          &lt;div className='end actions c-flex aic'>
+            {!_.isEmpty(locale) &amp;&amp; locale.length > 1 &amp;&amp;
+              &lt;DropDownList
+                required
+                list={_.map(locale, l=>({value:l, text:t(`lng.${l}`)}))}
+                value={i18n.language}
+                onChange={this.changeLng} />
+            }
+          &lt;/div>
+        &lt;/div>
+
+        &lt;ResetPwd
+          ref={connect => { this.pageResetPwd = connect }}
+          baseUrl={baseUrl}
+          contextRoot={contextRoot} />
+      &lt;/div>
+    )
+  }
+}
+
+Login.propTypes = {
+};
+
+export default withLocale(Login);</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="Login.html">Login</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="SafetyScan.html">SafetyScan</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Tue Nov 19 2019 17:26:26 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

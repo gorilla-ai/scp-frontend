@@ -32,7 +32,7 @@ class ChartContent extends Component {
   }
   componentDidUpdate = (prevProps) => {
     this.getChartData(prevProps);
-  } 
+  }
   /**
    * Show tooltip info when mouseover the chart
    * @method

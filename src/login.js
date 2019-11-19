@@ -19,6 +19,12 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 const t = i18n.getFixedT(null, 'app');
 const et = i18n.getFixedT(null, 'errors');
 
+/**
+ * Login
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the Login page
+ */
 class Login extends Component {
   constructor(props) {
     super(props);
@@ -33,6 +39,12 @@ class Login extends Component {
   componentDidMount() {
     this.username.focus();
   }
+  /**
+   * Handle login confirm
+   * @method
+   * @param none
+   * @returns none
+   */
   logon = () =>  {
     const {contextRoot} = this.context;
     const username = this.username.value;
@@ -59,6 +71,13 @@ class Login extends Component {
       });
     }
   }
+  /**
+   * Call login api and show login success/fail
+   * @method
+   * @param {string} username - entered username
+   * @param {string} password - entered password
+   * @returns none
+   */
   getLogin = (username, password) => {
     const {baseUrl, contextRoot} = this.props;
     const dataObj = {
@@ -92,14 +111,32 @@ class Login extends Component {
       }
     })
   }
+  /**
+   * Open reset password page
+   * @method
+   * @param none
+   * @returns none
+   */
   startResetPwd = () => {
     this.pageResetPwd.open();
   }
+  /**
+   * Handle enter key for login
+   * @method
+   * @param {object} e - mouseClick events
+   * @returns none
+   */
   handleKeyDown = (e) => {
     if (e.keyCode === 13) {
       this.logon();
     }
   }
+  /**
+   * Handle language change
+   * @method
+   * @param {string} lng - language type ('en' or 'zh')
+   * @returns none
+   */
   changeLng = (lng) => {
     const {contextRoot} = this.props;
     const redirectURL = contextRoot || '/ChewbaccaWeb';

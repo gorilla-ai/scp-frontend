@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/configuration/edge/edge.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/configuration/edge/edge.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
+import { withRouter } from 'react-router'
+import { NavLink, Link, Switch, Route } from 'react-router-dom'
+import PropTypes from 'prop-types'
+import Moment from 'moment'
+import cx from 'classnames'
+
+import DateRange from 'react-ui/build/src/components/date-range'
+import DropDownList from 'react-ui/build/src/components/dropdown'
+import Input from 'react-ui/build/src/components/input'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
+import RadioGroup from 'react-ui/build/src/components/radio-group'
+import Textarea from 'react-ui/build/src/components/textarea'
+import ToggleBtn from 'react-ui/build/src/components/toggle-button'
+
+import {HocConfig as Config} from '../../common/configuration'
+import helper from '../../common/helper'
+import TableContent from '../../common/table-content'
+import withLocale from '../../../hoc/locale-provider'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+let t = null;
+let f = null;
+let et = null;
+
+/**
+ * Edge
+ * @class
+ * @author Ryan Chen &lt;ryanchen@telmediatech.com>
+ * @summary A react component to show the Config Edge page
+ */
+class Edge extends Component {
+  constructor(props) {
+    super(props);
+
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    f = chewbaccaI18n.getFixedT(null, 'tableFields');
+    et = global.chewbaccaI18n.getFixedT(null, 'errors');
+
+    this.state = {
+      activeContent: 'tableList', //tableList, editEdge
+      showFilter: false,
+      currentEdgeData: '',
+      serviceType: [],
+      connectionStatus: [
+        {value: 'all', text: t('txt-all')},
+        {value: 'Normal', text: 'Normal'},
+        {value: 'Error', text: 'Error'}
+      ],
+      edgeSearch: {
+        keyword: '',
+        serviceType: 'all',
+        connectionStatus: 'all'
+      },
+      edge: {
+        dataFieldsArr: ['agentName', 'ipPort', 'serviceType', 'description', '_menu'],
+        dataFields: {},
+        dataContent: [],
+        sort: {
+          field: 'agentName',
+          desc: false
+        },
+        totalCount: 0,
+        currentPage: 1,
+        pageSize: 20,
+        info: {}
+      }
+    };
+
+    this.ah = getInstance('chewbacca');
+  }
+  componentDidMount() {
+    this.getEdgeServiceType();
+    this.getEdgeData();
+  }
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.location.state === 'tableList') {
+      this.toggleContent('tableList');
+    }
+  }
+  /**
+   * Get Edge service type for filter dropdown
+   * @method
+   * @param none
+   * @returns none
+   */
+  getEdgeServiceType = () => {
+    const {baseUrl, contextRoot} = this.props;
+    const url = `${baseUrl}/api/edge/serviceType`;
+
+    this.ah.one({
+      url: url,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let serviceType = [{
+          value: 'all',
+          text: t('txt-all')
+        }];
+
+        _.forEach(data, val => {
+          serviceType.push({
+            value: val,
+            text: val
+          });
+        })
+
+        this.setState({
+          serviceType
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get and set Edge table data
+   * @method
+   * @param {string} fromSearch - option for the 'search'
+   * @returns none
+   */
+  getEdgeData = (fromSearch) => {
+    const {baseUrl, contextRoot} = this.props;
+    const {edgeSearch, edge} = this.state;
+    const url = `${baseUrl}/api/edge/_search?page=${edge.currentPage}&amp;pageSize=${edge.pageSize}`;
+    let data = {};
+
+    if (edgeSearch.keyword) {
+      data.keyword = edgeSearch.keyword;
+    }
+
+    if (edgeSearch.serviceType &amp;&amp; edgeSearch.serviceType !== 'all') {
+      data.serviceType = edgeSearch.serviceType;
+    }
+
+    if (edgeSearch.connectionStatus &amp;&amp; edgeSearch.connectionStatus !== 'all') {
+      data.connectionStatus = edgeSearch.connectionStatus;
+    }
+
+    helper.getAjaxData('POST', url, data)
+    .then(data => {
+      if (data) {
+        let tempEdge = {...edge};
+        tempEdge.dataContent = data.rows;
+        tempEdge.totalCount = data.counts;
+        tempEdge.currentPage = fromSearch === 'search' ? 1 : edge.currentPage;
+
+        let dataFields = {};
+        edge.dataFieldsArr.forEach(tempData => {
+          dataFields[tempData] = {
+            label: tempData === '_menu' ? '' : f(`edgeFields.${tempData}`),
+            sortable: this.checkSortable(tempData),
+            formatter: (value, allValue, i) => {
+              if (tempData === 'ipPort') {
+                let iconType = '';
+
+                if (!allValue.agentApiStatus) {
+                  return;
+                }
+
+                if (allValue.agentApiStatus === 'Normal') {
+                  iconType = 'icon_connected_on';
+                } else if (allValue.agentApiStatus === 'Error') {
+                  iconType = 'icon_connected_off';
+                }
+
+                const icon = {
+                  src: contextRoot + `/images/${iconType}.png`,
+                  title: t('txt-' + allValue.agentApiStatus.toLowerCase())
+                };
+
+                return &lt;span>&lt;img src={icon.src} title={icon.title} />{value}&lt;/span>
+              } else if (tempData === 'description') {
+                let serviceType = allValue.serviceType;
+
+                if (serviceType === 'NETTRAP') {
+                  return (
+                    &lt;ul>
+                      {allValue.honeyPotHostDTO &amp;&amp; allValue.honeyPotHostDTO.honeypot &amp;&amp;
+                        &lt;li>&lt;span>honeypot:&lt;/span> {allValue.honeyPotHostDTO.honeypot}&lt;/li>
+                      }
+                      {allValue.honeyPotHostDTO &amp;&amp; allValue.honeyPotHostDTO.lastDataUpdDT &amp;&amp;
+                        &lt;li>&lt;span>lastDataUpdDT:&lt;/span> {helper.getFormattedDate(allValue.honeyPotHostDTO.lastDataUpdDT, 'local')}&lt;/li>
+                      }
+                      {allValue.honeyPotHostDTO &amp;&amp;
+                        &lt;li>&lt;span>attackCnt:&lt;/span> {allValue.honeyPotHostDTO.attackCnt}&lt;/li>
+                      }
+                    &lt;/ul>
+                  )
+                } else if (serviceType === 'NETFLOW-IDS-SURICATA') {
+                  return (
+                    &lt;ul>
+                      {allValue.agentMode &amp;&amp;
+                        &lt;li>&lt;span>mode:&lt;/span> {allValue.agentMode}&lt;/li>
+                      }
+                      {allValue.lastStatus &amp;&amp;
+                        &lt;li>&lt;span>status:&lt;/span> {allValue.lastStatus}&lt;/li>
+                      }
+                      {allValue.agentMode &amp;&amp; allValue.agentMode === 'TCPDUMP' &amp;&amp;
+                        &lt;section>
+                          {allValue.agentStartDT &amp;&amp;
+                            &lt;li>&lt;span>start:&lt;/span> {helper.getFormattedDate(allValue.agentStartDT)}&lt;/li>
+                          }
+                          {allValue.agentEndDT &amp;&amp;
+                            &lt;li>&lt;span>end:&lt;/span> {helper.getFormattedDate(allValue.agentEndDT)}&lt;/li>
+                          }
+                          {allValue.lastAnalyzedStatus &amp;&amp; allValue.lastAnalyzedStatus !== 'ANALYZED' &amp;&amp;
+                            &lt;button onClick={this.agentAnalysis.bind(this, allValue)}>{t('txt-analyze')}&lt;/button>
+                          }
+                          {allValue.lastAnalyzedStatus &amp;&amp;
+                            &lt;li>&lt;span>lastAnalyzedStatus:&lt;/span> {allValue.lastAnalyzedStatus}&lt;/li>
+                          }
+                          {allValue.lastAnalyzedStatusUpdDT &amp;&amp;
+                            &lt;li>&lt;span>lastAnalyzedStatusUpdDT:&lt;/span> {helper.getFormattedDate(allValue.lastAnalyzedStatusUpdDT, 'local')}&lt;/li>
+                          }
+                        &lt;/section>
+                      }
+                      {allValue.threatIntellLastUpdDT &amp;&amp;
+                        &lt;li>&lt;span>threatIntellLastUpdDT:&lt;/span> {helper.getFormattedDate(allValue.threatIntellLastUpdDT, 'local')}&lt;/li>
+                      }
+                    &lt;/ul>
+                  )
+                } else if (serviceType === 'IPS-NETPROBE') {
+                  return (
+                    &lt;ul>
+                      {allValue.lastStatus &amp;&amp;
+                        &lt;li>&lt;span>lastStatus:&lt;/span> {allValue.lastStatus}&lt;/li>
+                      }
+                      {allValue.lastStatusUpdDT &amp;&amp;
+                        &lt;li>&lt;span>lastStatusUpdDT:&lt;/span> {helper.getFormattedDate(allValue.lastStatusUpdDT, 'local')}&lt;/li>
+                      }
+                      {allValue.threatIntellLastUpdDT &amp;&amp;
+                        &lt;li>&lt;span>threatIntellLastUpdDT:&lt;/span> {helper.getFormattedDate(allValue.threatIntellLastUpdDT, 'local')}&lt;/li>
+                      }
+                      {allValue.statistics &amp;&amp; allValue.statistics.rx_pkts &amp;&amp;
+                        &lt;li>&lt;span>received packets:&lt;/span> {allValue.statistics.rx_pkts}&lt;/li>
+                      }
+                      {allValue.statistics &amp;&amp; allValue.statistics.tx_pkts &amp;&amp;
+                        &lt;li>&lt;span>transferred packets:&lt;/span> {allValue.statistics.tx_pkts}&lt;/li>
+                      }
+                      {allValue.honeyPotHostDTO &amp;&amp;
+                        &lt;li>&lt;span>attackCnt:&lt;/span> {allValue.honeyPotHostDTO.attackCnt}&lt;/li>
+                      }
+                    &lt;/ul>
+                  )
+                } else {
+                  return;
+                }
+              } else if (tempData === '_menu') {
+                return (
+                  &lt;div className='table-menu menu active'>
+                    &lt;i className='fg fg-edit' onClick={this.toggleContent.bind(this, 'editEdge', allValue)} title={t('txt-edit')}>&lt;/i>
+                    &lt;i className='fg fg-trashcan' onClick={this.openDeleteMenu.bind(this, allValue)} title={t('txt-delete')}>&lt;/i>
+                  &lt;/div>
+                )
+              } else {
+                return &lt;span>{value}&lt;/span>
+              }
+            }
+          };
+        })
+
+        tempEdge.dataFields = dataFields;
+
+        this.setState({
+          edge: tempEdge
+        });
+      }
+    })
+    .catch(err => {
+      helper.showPopupMsg(t('txt-error'));
+    });
+  }
+  /**
+   * Handle Analyze button and reload the table
+   * @method
+   * @param {object} allValue - Edge data
+   * @returns none
+   */
+  agentAnalysis = (allValue) => {
+    const {baseUrl, contextRoot} = this.props;
+    const url = `${baseUrl}/api/agent/_analyze?projectId=${allValue.projectId}`;
+
+    ah.one({
+      url: url,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        this.getEdgeData('search');
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Check table sort
+   * @method
+   * @param {string} field - table field name
+   * @returns true for sortable or null
+   */
+  checkSortable = (field) => {
+    const unSortableFields = ['description', '_menu'];
+
+    if (_.includes(unSortableFields, field)) {
+      return null;
+    } else {
+      return true;
+    }
+  }
+  /**
+   * Handle table sort
+   * @method
+   * @param {object} sort - sort data object
+   * @returns none
+   */
+  handleTableSort = (sort) => {
+    let tempEdge = {...this.state.edge};
+    tempEdge.sort.field = sort.field;
+    tempEdge.sort.desc = sort.desc;
+
+    this.setState({
+      edge: tempEdge
+    }, () => {
+      this.getEdgeData();
+    });
+  }
+  /**
+   * Handle table pagination change
+   * @method
+   * @param {string} type - page type ('currentPage' or 'pageSize')
+   * @param {string | number} value - new page number
+   * @returns none
+   */
+  handlePaginationChange = (type, value) => {
+    let tempEdge = {...this.state.edge};
+    tempEdge[type] = Number(value);
+
+    if (type === 'pageSize') {
+      tempEdge.currentPage = 1;
+    }
+
+    this.setState({
+      edge: tempEdge
+    }, () => {
+      this.getEdgeData();
+    });
+  }
+  /**
+   * Handle filter input data change
+   * @method
+   * @param {string} type - input type
+   * @param {string} value - input value
+   * @returns none
+   */
+  handleEdgeSearch = (type, value) => {
+    let tempEdgeSearch = {...this.state.edgeSearch};
+    tempEdgeSearch[type] = value;
+
+    this.setState({
+      edgeSearch: tempEdgeSearch
+    });
+  }
+  /**
+   * Handle filter input data change
+   * @method
+   * @param {string} type - page type ('tableList', 'editEdge' and 'cancel')
+   * @param {object} allValue - Edge data
+   * @returns none
+   */
+  toggleContent = (type, allValue) => {
+    let tempEdge = {...this.state.edge};
+    let showPage = type;
+
+    if (type === 'editEdge') {
+      tempEdge.info = {
+        name: allValue.agentName ? allValue.agentName : '',
+        id: allValue.agentId,
+        projectId: allValue.projectId,
+        ip: allValue.ipPort,
+        vpnIP: allValue.vpnIp,
+        licenseName: allValue.vpnName,
+        serviceType: allValue.serviceType,
+        serviceMode: allValue.agentMode,
+        edgeModeType: 'anyTime',
+        edgeModeDatetime: {
+          from: '',
+          to: ''
+        },
+        memo: allValue.memo,
+        agentApiStatus: allValue.agentApiStatus,
+        lastUpdateTime: allValue.lastStatusUpdDT,
+        lastStatus: allValue.lastStatus,
+        isConfigurable: allValue.isConfigurable
+      };
+
+      if (allValue.agentStartDT &amp;&amp;  allValue.agentEndDT) {
+        tempEdge.info.edgeModeType = 'customTime';
+        tempEdge.info.edgeModeDatetime.from = allValue.agentStartDT;
+        tempEdge.info.edgeModeDatetime.to = allValue.agentEndDT;
+      }
+
+      this.setState({
+        showFilter: false
+      });
+    } else if (type === 'tableList') {
+      tempEdge.info = {};
+    } else if (type === 'cancel') {
+      showPage = 'tableList';
+      tempEdge.info = {};
+    }
+
+    this.setState({
+      activeContent: showPage,
+      edge: tempEdge
+    }, () => {
+      if (type === 'tableList') {
+        this.getEdgeData();
+      }
+    });
+  }
+  /**
+   * Handle Edge edit input data change
+   * @method
+   * @param {string} type - input type
+   * @param {string} value - input value
+   * @returns none
+   */
+  handleDataChange = (type, value) => {
+    let tempEdge = {...this.state.edge};
+    tempEdge.info[type] = value;
+
+    this.setState({
+      edge: tempEdge
+    });
+  }
+  /**
+   * Handle Edge edit status toggle
+   * @method
+   * @param {string} type - status action type ('start' or 'stop')
+   * @returns none
+   */
+  handleEdgeStatusChange = (type) => {
+    const {baseUrl, contextRoot} = this.props;
+    const {edge} = this.state;
+    const url = `${baseUrl}/api/agent/_${type}?id=${edge.info.id}&amp;projectId=${edge.info.projectId}`;
+
+    this.ah.one({
+      url,
+      type: 'GET'
+    })
+    .then(data => {
+      let tempEdge = {...this.state.edge};
+      tempEdge.info.lastStatus = data;
+
+      this.setState({
+        edge: tempEdge
+      });
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Display delete Edge content
+   * @method
+   * @param {object} allValue - Edge data
+   * @returns HTML DOM
+   */
+  getDeleteEdgeContent = (allValue) => {
+    this.setState({
+      currentEdgeData: allValue
+    });
+
+    return (
+      &lt;div className='content delete'>
+        &lt;span>{t('txt-delete-msg')}: {allValue.agentName || allValue.ipPort}?&lt;/span>
+      &lt;/div>
+    )
+  }
+  /**
+   * Show Delete Edge dialog
+   * @method
+   * @param {object} allValue - Edge data
+   * @returns none
+   */
+  openDeleteMenu = (allValue) => {
+    PopupDialog.prompt({
+      title: t('edge-management.txt-deleteEdge'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: this.getDeleteEdgeContent(allValue),
+      act: (confirmed, data) => {
+        if (confirmed) {
+          this.deleteEdge();
+        }
+      }
+    });
+  }
+  /**
+   * Handle delete Edge confirm
+   * @method
+   * @param none
+   * @returns none
+   */
+  deleteEdge = () => {
+    const {baseUrl, contextRoot} = this.props;
+    const {currentEdgeData} = this.state;
+
+    ah.one({
+      url: `${baseUrl}/api/edge?id=${currentEdgeData.agentId}`,
+      type: 'DELETE'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        this.getEdgeData();
+      }
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle Edge Edit confirm
+   * @method
+   * @param none
+   * @returns none
+   */
+  handleEdgeSubmit = () => {
+    const {baseUrl, contextRoot} = this.props;
+    const {edge} = this.state;
+    let data = {
+      id: edge.info.id,
+      agentName: edge.info.name,
+      memo: edge.info.memo
+    };
+
+    if (edge.info.isConfigurable) {
+      if (edge.info.edgeIPlist) {
+        data.ipList = edge.info.edgeIPlist;
+      }
+
+      if (edge.info.serviceMode) {
+        data.agentMode = edge.info.serviceMode;
+      }
+
+      if (edge.info.edgeModeType === 'customTime') {
+        if (edge.info.edgeModeDatetime.from) {
+          if (edge.info.edgeModeDatetime.to) {
+            data.agentStartDt = Moment(edge.info.edgeModeDatetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+          } else { //End date is empty
+            helper.showPopupMsg(t('edge-management.txt-edgeEditNoEndDate'), t('txt-error'));
+            return;
+          }
+        } else {
+          helper.showPopupMsg(t('edge-management.txt-edgeEditNoStartDate'), t('txt-error'));
+          return;
+        }
+
+        if (edge.info.edgeModeDatetime.to) {
+          if (edge.info.edgeModeDatetime.from) {
+            data.agentEndDt = Moment(edge.info.edgeModeDatetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+          } else { //Start date is empty
+            helper.showPopupMsg(t('edge-management.txt-edgeEditNoStartDate'), t('txt-error'));
+            return;
+          }
+
+          if (Moment(edge.info.edgeModeDatetime.to).isBefore()) { //End date is a past date (compare with current date time)
+            helper.showPopupMsg(t('edge-management.txt-edgeEditPastEndDate'), t('txt-error'));
+            return;
+          }
+        } else {
+          helper.showPopupMsg(t('edge-management.txt-edgeEditNoEndDate'), t('txt-error'));
+          return;
+        }
+      }
+    }
+
+    ah.one({
+      url: `${baseUrl}/api/agent`,
+      data: JSON.stringify(data),
+      type: 'PATCH',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      switch(data.ret) {
+        case 0:
+          helper.showPopupMsg(t('edge-management.txt-edgeEditSuccess'));
+          break;
+        case -1:
+          helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError1'));
+          break;
+        case -11:
+          helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError2'));
+          break;
+        case -21:
+          helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError3'));
+          break;
+        case -22:
+          helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError4'));
+          break;
+        case -31:
+          helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError5'));
+          break;
+        case -32:
+          helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError6'));
+        case -33:
+          helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError7'));
+          break;
+        default:
+          break;
+      }
+      this.toggleContent('tableList');
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Display edit Edge content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
+  displayEditEdgeContent = () => {
+    const {baseUrl, contextRoot} = this.props;
+    const {activeContent, edge} = this.state;
+    let iconType = '';
+    let btnStatusOn = false;
+    let action = 'start';
+    let icon = '';
+
+    if (edge.info.agentApiStatus) {
+      if (edge.info.agentApiStatus === 'Normal') {
+        iconType = 'icon_connected_on';
+      } else if (edge.info.agentApiStatus === 'Error') {
+        iconType = 'icon_connected_off';
+      }
+
+      icon = {
+        src: contextRoot + `/images/${iconType}.png`,
+        title: t('txt-' + edge.info.agentApiStatus.toLowerCase())
+      };
+    }
+
+    if (edge.info.lastStatus) {
+      if (edge.info.lastStatus.indexOf('inactive') !== -1) {
+        btnStatusOn = false;
+        action = 'start';
+      } else if (edge.info.lastStatus.indexOf('active') !== -1) {
+        btnStatusOn = true;
+        action = 'stop';
+      }
+    }
+
+    return (
+      &lt;div className='main-content basic-form'>
+        &lt;header className='main-header'>{t('edge-management.txt-editEdge')}&lt;/header>
+        &lt;div className='form-group normal'>
+          &lt;header>
+            &lt;div className='text'>{t('edge-management.txt-basicInfo')}&lt;/div>
+            {icon &amp;&amp;
+              &lt;img className='status' src={icon.src} title={icon.title} />
+            }
+            {edge.info.lastUpdateTime &amp;&amp;
+              &lt;span className='msg'>{t('edge-management.txt-lastUpateTime')} {helper.getFormattedDate(edge.info.lastUpdateTime, 'local')}&lt;/span>
+            }
+          &lt;/header>
+          {edge.info.lastStatus &amp;&amp;
+            &lt;ToggleBtn
+              className='toggle-btn'
+              onText='On'
+              offText='Off'
+              on={btnStatusOn}
+              onChange={this.handleEdgeStatusChange.bind(this, action)}
+              disabled={!edge.info.isConfigurable} />
+          }
+          &lt;div className='group'>
+            &lt;label htmlFor='edgeName'>{t('edge-management.txt-edgeName')}&lt;/label>
+            &lt;Input
+              id='edgeName'
+              onChange={this.handleDataChange.bind(this, 'name')}
+              value={edge.info.name} />
+          &lt;/div>
+          &lt;div className='group'>
+            &lt;label htmlFor='edgeID'>{t('edge-management.txt-edgeID')}&lt;/label>
+            &lt;Input
+              id='edgeID'
+              onChange={this.handleDataChange.bind(this, 'id')}
+              value={edge.info.id}
+              readOnly={true} />
+          &lt;/div>
+          &lt;div className='group'>
+            &lt;label htmlFor='edgeIP'>{t('edge-management.txt-ip')}&lt;/label>
+            &lt;Input
+              id='edgeIP'
+              onChange={this.handleDataChange.bind(this, 'ip')}
+              validate={{
+                pattern:/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?):(\d+)$/,
+                patternReadable:'xxx.xxx.xxx.xxx:xxx',
+                t:(code, {value, pattern}) => {
+                  if (code[0] === 'missing') {
+                    return t('txt-required');
+                  } else if (code[0] === 'no-match') {
+                    return t('edge-management.txt-ipValidationFail');
+                  }
+                }
+              }}
+              value={edge.info.ip}
+              readOnly={true} />
+          &lt;/div>
+          &lt;div className='group'>
+            &lt;label htmlFor='edgeIPlist'>{t('edge-management.txt-ipList')} ({t('txt-commaSeparated')}&lt;/label>
+            &lt;Input
+              id='edgeIPlist'
+              onChange={this.handleDataChange.bind(this, 'edgeIPlist')}
+              value={edge.info.edgeIPlist}
+              readOnly={!edge.info.isConfigurable} />
+          &lt;/div>
+          &lt;div className='group'>
+            &lt;label htmlFor='edgeVPNip'>{t('edge-management.txt-vpnIP')}&lt;/label>
+            &lt;Input
+              id='edgeVPNip'
+              onChange={this.handleDataChange.bind(this, 'vpnIP')}
+              value={edge.info.vpnIP}
+              readOnly={true} />
+          &lt;/div>
+          &lt;div className='group'>
+            &lt;label htmlFor='edgeLicenseName'>{t('edge-management.txt-vpnLicenseName')}&lt;/label>
+            &lt;Input
+              id='edgeLicenseName'
+              onChange={this.handleDataChange.bind(this, 'licenseName')}
+              value={edge.info.licenseName}
+              readOnly={true} />
+          &lt;/div>
+          &lt;div className='group'>
+            &lt;label htmlFor='edgeServiceType'>{t('edge-management.txt-serviceType')}&lt;/label>
+            &lt;Input
+              id='edgeServiceType'
+              onChange={this.handleDataChange.bind(this, 'serviceType')}
+              value={edge.info.serviceType}
+              readOnly={true} />
+          &lt;/div>
+          &lt;div className='group'>
+            &lt;label htmlFor='edgeServiceMode'>{t('edge-management.txt-serviceMode')}&lt;/label>
+            &lt;DropDownList
+              id='edgeServiceMode'
+              required={true}
+              list={[
+                {
+                  value: 'REALTIME',
+                  text: t('txt-realtime')
+                },
+                {
+                  value: 'TCPDUMP',
+                  text: t('txt-tcpdump')
+                }
+              ]}
+              onChange={this.handleDataChange.bind(this, 'serviceMode')}
+              value={edge.info.serviceMode}
+              readOnly={!edge.info.isConfigurable} />
+          &lt;/div>
+          &lt;div className='group'>
+            &lt;label>{t('edge-management.txt-activatTime')}&lt;/label>
+            &lt;RadioGroup
+              id='edgeModeType'
+              className='radio-group'
+              list={[
+                {value: 'anyTime', text: t('edge-management.txt-anyTime')},
+                {value: 'customTime', text: t('edge-management.txt-customTime')}
+              ]}
+              onChange={this.handleDataChange.bind(this, 'edgeModeType')}
+              value={edge.info.edgeModeType}
+              disabled={!edge.info.isConfigurable} />
+
+            {edge.info.edgeModeType === 'customTime' &amp;&amp;
+              &lt;DateRange
+                id='edgeModeDatetime'
+                className='daterange'
+                onChange={this.handleDataChange.bind(this, 'edgeModeDatetime')}
+                enableTime={true}
+                value={edge.info.edgeModeDatetime}
+                t={et} />
+            }
+          &lt;/div>
+          &lt;div className='group full'>
+            &lt;label htmlFor='edgeMemo'>{t('txt-memo')} ({t('txt-memoMaxLength')})&lt;/label>
+            &lt;Textarea
+              id='edgeMemo'
+              rows={4}
+              maxLength={250}
+              value={edge.info.memo}
+              onChange={this.handleDataChange.bind(this, 'memo')} />
+          &lt;/div>
+        &lt;/div>
+        &lt;footer>
+          &lt;button className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}&lt;/button>
+          &lt;button onClick={this.handleEdgeSubmit}>{t('txt-save')}&lt;/button>
+        &lt;/footer>
+      &lt;/div>
+    )
+  }
+  /**
+   * Display filter content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
+  renderFilter = () => {
+    const {showFilter, serviceType, connectionStatus, edgeSearch} = this.state;
+
+    return (
+      &lt;div className={cx('main-filter', {'active': showFilter})}>
+        &lt;i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}>&lt;/i>
+        &lt;div className='header-text'>{t('txt-filter')}&lt;/div>
+        &lt;div className='filter-section config'>
+          &lt;div className='group'>
+            &lt;label htmlFor='edgeSearchKeyword' className='first-label'>{f('edgeFields.keywords')}&lt;/label>
+            &lt;Input
+              id='edgeSearchKeyword'
+              className='search-textarea'
+              onChange={this.handleEdgeSearch.bind(this, 'keyword')}
+              value={edgeSearch.keyword} />
+          &lt;/div>
+          &lt;div className='group'>
+            &lt;label htmlFor='edgeSearchServiceType'>{f('edgeFields.serviceType')}&lt;/label>
+            &lt;DropDownList
+              id='edgeSearchServiceType'
+              list={serviceType}
+              required={true}
+              onChange={this.handleEdgeSearch.bind(this, 'serviceType')}
+              value={edgeSearch.serviceType} />
+          &lt;/div>
+          &lt;div className='group'>
+            &lt;label htmlFor='edgeSearchConnectionStatus'>{f('edgeFields.connectionStatus')}&lt;/label>
+            &lt;DropDownList
+              id='edgeSearchConnectionStatus'
+              list={connectionStatus}
+              required={true}
+              onChange={this.handleEdgeSearch.bind(this, 'connectionStatus')}
+              value={edgeSearch.connectionStatus} />
+          &lt;/div>
+        &lt;/div>
+        &lt;div className='button-group'>
+          &lt;button className='filter' onClick={this.getEdgeData.bind(this, 'search')}>{t('txt-filter')}&lt;/button>
+          &lt;button className='clear' onClick={this.clearFilter}>{t('txt-clear')}&lt;/button>
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+  /**
+   * Toggle filter content on/off
+   * @method
+   * @param none
+   * @returns none
+   */
+  toggleFilter = () => {
+    this.setState({
+      showFilter: !this.state.showFilter
+    });
+  }
+  /**
+   * Clear filter input value
+   * @method
+   * @param none
+   * @returns none
+   */
+  clearFilter = () => {
+    this.setState({
+      edgeSearch: {
+        keyword: '',
+        serviceType: 'all',
+        connectionStatus: 'all'
+      }
+    });
+  }
+  /**
+   * Get Add button position
+   * @method
+   * @param {string} type - button type
+   * @returns width
+   */
+  getBtnPos = (type) => {
+    const {locale} = this.props;
+
+    if (type === 'add') {
+      if (locale === 'zh') {
+        return '120px';
+      } else if (locale === 'en') {
+        return '200px';
+      }
+    }
+  }
+  render() {
+    const {baseUrl, contextRoot, language, locale, session} = this.props;
+    const {activeContent, showFilter, edge} = this.state;
+
+    return (
+      &lt;div>
+        &lt;div className='sub-header'>
+          &lt;div className='secondary-btn-group right'>
+            &lt;button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}>&lt;i className='fg fg-filter'>&lt;/i>&lt;/button>
+          &lt;/div>
+        &lt;/div>
+
+        &lt;div className='data-content'>
+          &lt;Config
+            baseUrl={baseUrl}
+            contextRoot={contextRoot}
+            language={language}
+            locale={locale}
+            session={session} />
+
+          &lt;div className='parent-content'>
+            { this.renderFilter() }
+
+            {activeContent === 'tableList' &amp;&amp;
+              &lt;div className='main-content'>
+                &lt;header className='main-header'>{t('txt-edge')}&lt;/header>
+                &lt;button className='standard btn last'>&lt;Link to='/ChewbaccaWeb/configuration/notifications'>{t('notifications.txt-settings')}&lt;/Link>&lt;/button>
+                {/*&lt;button className='standard btn' style={{right: this.getBtnPos('add')}}>{t('edge-management.txt-threatSettings')}&lt;/button>*/}
+                &lt;TableContent
+                  dataTableData={edge.dataContent}
+                  dataTableFields={edge.dataFields}
+                  dataTableSort={edge.sort}
+                  paginationTotalCount={edge.totalCount}
+                  paginationPageSize={edge.pageSize}
+                  paginationCurrentPage={edge.currentPage}
+                  handleTableSort={this.handleTableSort}
+                  paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
+                  paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
+              &lt;/div>
+            }
+
+            {activeContent === 'editEdge' &amp;&amp;
+              this.displayEditEdgeContent()
+            }
+          &lt;/div>
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+}
+
+Edge.propTypes = {
+  baseUrl: PropTypes.string.isRequired
+};
+
+const HocEdge = withRouter(withLocale(Edge));
+export { Edge, HocEdge };</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="Login.html">Login</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="SafetyScan.html">SafetyScan</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Tue Nov 19 2019 17:26:26 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

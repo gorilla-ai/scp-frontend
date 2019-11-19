@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/common/private-details.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/common/private-details.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
+import { Link } from 'react-router-dom'
+import PropTypes from 'prop-types'
+import Moment from 'moment'
+import _ from 'lodash'
+import cx from 'classnames'
+
+import Gis from 'react-gis/build/src/components'
+
+import helper from './helper'
+import withLocale from '../../hoc/locale-provider'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+const NOT_AVAILABLE = 'N/A';
+const IP_INFO = ['ip', 'mac'];
+const HOST_INFO = ['hostName', 'system', 'deviceType', 'userName', 'cpu', 'ram', 'disks', 'shareFolders'];
+const OWNER_INFO = ['ownerName', 'ownerID', 'department', 'title'];
+
+let t = null;
+let f = null;
+
+/**
+ * Private Details
+ * @class
+ * @author Ryan Chen &lt;ryanchen@telmediatech.com>
+ * @summary A react component to show the detail IP device information
+ */
+class PrivateDetails extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      ip: {},
+      owner: {},
+      areaName: '',
+      hostInfo: [],
+      ownerInfo: []
+    };
+
+    t = chewbaccaI18n.getFixedT(null, 'connections');
+    f = chewbaccaI18n.getFixedT(null, 'tableFields');
+    this.ah = getInstance('chewbacca');
+  }
+  componentDidMount() {
+    this.getDataInfo();
+  }
+  /**
+   * Get and set the ip, owner, area and host information
+   * @method
+   * @param none
+   * @returns none
+   */
+  getDataInfo = () => {
+    const {type, alertInfo, topoInfo, srcDestType} = this.props;
+    const ip = {
+      ip: topoInfo[type] ? topoInfo[type] : topoInfo.ip,
+      mac: topoInfo[srcDestType + 'Mac'] ? topoInfo[srcDestType + 'Mac'] : topoInfo.mac
+    };
+    const owner = {
+      id: topoInfo.ownerObj ? topoInfo.ownerObj.ownerID : topoInfo.ownerID,
+      name: topoInfo.ownerObj ? topoInfo.ownerObj.ownerName : topoInfo.ownerName,
+      department: topoInfo.ownerObj ? topoInfo.ownerObj.departmentName : topoInfo.departmentName,
+      title: topoInfo.ownerObj ? topoInfo.ownerObj.titleName : topoInfo.titleName,
+      map: alertInfo[type] ? alertInfo[type].ownerMap : alertInfo.ownerMap,
+      seat: alertInfo[type] ? alertInfo[type].ownerSeat : alertInfo.ownerSeat,
+      baseLayers: alertInfo[type] ? alertInfo[type].ownerBaseLayers : alertInfo.ownerBaseLayers
+    };
+    const areaName = topoInfo.areaObj ? topoInfo.areaObj.areaFullName : topoInfo.areaFullName;
+    let hostInfo = [];
+    let ownerInfo = [];
+
+    _.forEach(HOST_INFO, val => {
+      if (topoInfo[val]) {
+        hostInfo.push({
+          field: val,
+          info: topoInfo[val]
+        });
+      }
+    })
+
+    _.forEach(OWNER_INFO, val => {
+      let ownerField = val;
+
+      if (val === 'ownerName') {
+        ownerField = 'name';
+      } else if (val === 'ownerID') {
+        ownerField = 'id';
+      }
+
+      if (owner[ownerField]) {
+        ownerInfo.push({
+          field: val,
+          info: owner[ownerField]
+        });
+      }
+    })
+
+    this.setState({
+      ip,
+      owner,
+      areaName,
+      hostInfo,
+      ownerInfo
+    });
+  }
+  /**
+   * Display IP information
+   * @method
+   * @param {object} ip - IP data
+   * @param {string} val - ip or mac
+   * @param {number} i - index of the IP_INFO array
+   * @returns HTML DOM
+   */
+  displayIpInfo = (ip, val, i) => {
+    return (
+      &lt;tr key={i}>
+        &lt;td>{t('ipFields.' + val)}&lt;/td>
+        &lt;td>{ip[val] || NOT_AVAILABLE}&lt;/td>
+      &lt;/tr>
+    )
+  }
+  /**
+   * Display host or owner table row
+   * @method
+   * @param {string} fieldType - field name
+   * @param {object} val - host or owner data
+   * @param {number} i - index of the hostInfo or ownerInfo array
+   * @returns HTML DOM
+   */
+  displayDataInfo = (fieldType, val, i) => {
+    return (
+      &lt;tr key={i}>
+        &lt;td>{t(fieldType + '.' + val.field)}&lt;/td>
+        &lt;td>{val.info}&lt;/td>
+      &lt;/tr>
+    )
+  }
+  /**
+   * Display host or owner table
+   * @method
+   * @param {array} infoType - hostInfo or ownerInfo array
+   * @param {object} fieldType - field name
+   * @returns HTML DOM
+   */
+  displayTableData = (infoType, fieldType) => {
+    if (infoType.length > 0) {
+      return infoType.map(this.displayDataInfo.bind(this, fieldType));
+    } else if (infoType.length === 0) {
+      return (
+        &lt;tr>
+          &lt;td>{NOT_AVAILABLE}&lt;/td>
+        &lt;/tr>
+      )
+    }
+  }
+  render() {
+    const {topoInfo, picPath} = this.props;
+    const {ip, owner, areaName, hostInfo, ownerInfo} = this.state;
+
+    return (
+      &lt;div className='private'>
+        &lt;section>
+          &lt;div className='header'>{t('alert.txt-ipInfo')}&lt;/div>
+          &lt;table className='c-table main-table ip'>
+            &lt;tbody>
+              {IP_INFO.map(this.displayIpInfo.bind(this, ip))}
+            &lt;/tbody>
+          &lt;/table>
+        &lt;/section>
+
+        &lt;section>
+          &lt;div className='header trigger'>{t('alert.txt-systemInfo')}&lt;/div>
+          {topoInfo.isHmd &amp;&amp; topoInfo.updateDttm &amp;&amp;
+            &lt;div className='trigger-text'>{t('edge-management.txt-lastUpateTime')}: {helper.getFormattedDate(topoInfo.updateDttm, 'local')}&lt;/div>
+          }
+          {topoInfo.isHmd &amp;&amp;
+            &lt;button className='btn trigger' onClick={this.props.triggerTask.bind(this, 'getSystemInfo', '')}>{t('txt-reTrigger')}&lt;/button>
+          }
+          &lt;table className='c-table main-table host'>
+            &lt;tbody>
+              {this.displayTableData(hostInfo, 'ipFields')}
+            &lt;/tbody>
+          &lt;/table>
+        &lt;/section>
+
+        &lt;section>
+          &lt;div className='header'>{t('alert.txt-ownerInfo')}&lt;/div>
+          &lt;img src={picPath} className='owner-pic' title={t('network-topology.txt-profileImage')} />
+          &lt;table className='c-table main-table owner'>
+            &lt;tbody>
+              {this.displayTableData(ownerInfo, 'ownerFields')}
+            &lt;/tbody>
+          &lt;/table>
+        &lt;/section>
+
+        &lt;section className='last'>
+          &lt;div className='header'>{t('alert.txt-floorInfo')}&lt;/div>
+          {!_.isEmpty(owner.map) &amp;&amp;
+            &lt;div className='floor-map'>
+              &lt;span className='floor-header'>{areaName}&lt;/span>
+              &lt;Gis
+                _ref={(ref) => {this.gisNode = ref}}
+                data={_.get(owner.seat, [topoInfo.areaUUID, 'data'], [])}
+                baseLayers={owner.baseLayers}
+                baseLayer={topoInfo.areaUUID}
+                layouts={['standard']}
+                dragModes={['pan']}
+                scale={{enabled: false}}
+                symbolOptions={[{
+                  match: {
+                    data: {tag: 'red'}
+                  },
+                  props: {
+                    backgroundColor: 'red'
+                  }
+                }]} />
+              &lt;/div>
+          }
+          {_.isEmpty(owner.map) &amp;&amp;
+            &lt;span>{NOT_AVAILABLE}&lt;/span>
+          }
+        &lt;/section>
+      &lt;/div>
+    )
+  }
+}
+
+PrivateDetails.propTypes = {
+  alertInfo: PropTypes.object.isRequired,
+  topoInfo: PropTypes.object.isRequired
+};
+
+const HocPrivateDetails = withLocale(PrivateDetails);
+export { PrivateDetails, HocPrivateDetails };</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="Login.html">Login</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="SafetyScan.html">SafetyScan</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Tue Nov 19 2019 17:26:26 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

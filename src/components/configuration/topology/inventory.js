@@ -471,7 +471,7 @@ class NetworkInventory extends Component {
    * Check table sortable fields
    * @method
    * @param {string} field - field name
-   * @returns true or null
+   * @returns true for sortable or null
    */
   checkSortable = (field) => {
     const unSortableFields = ['owner', 'areaName', 'seatName', 'yaraScan', '_menu'];

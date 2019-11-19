@@ -55,6 +55,12 @@ const ALL_TAB_DATA = {
   ftp: 'FTP'
 };
 
+/**
+ * Events Netflow
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to handle the business logic for the events page
+ */
 class Netflow extends Component {
   constructor(props) {
     super(props);
@@ -89,7 +95,6 @@ class Netflow extends Component {
       currentTreeName: '',
       //Tab Menu
       subTabMenu: {
-        //statistics: t('txt-statistics'),
         table: t('txt-table'),
         linkAnalysis: t('txt-linkAnalysis'),
         worldMap: t('txt-map')
@@ -269,11 +274,23 @@ class Netflow extends Component {
       }
     }
   }
+  /**
+   * Initial load for the page
+   * @method
+   * @param none
+   * @returns none
+   */
   initialLoad = () => {
     this.getLAconfig();
     this.getSavedQuery();
     this.getProjectId();
   }
+  /**
+   * Get and set the Link Analysis config
+   * @method
+   * @param none
+   * @returns none
+   */
   getLAconfig = () => {
     const {baseUrl} = this.props;
 
@@ -287,6 +304,12 @@ class Netflow extends Component {
       return null;
     });
   }
+  /**
+   * Get and set the account saved query
+   * @method
+   * @param none
+   * @returns none
+   */
   getSavedQuery = () => {
     const {baseUrl} = this.props;
     const {account, queryData} = this.state;
@@ -301,6 +324,12 @@ class Netflow extends Component {
       return null;
     });
   }
+  /**
+   * Get and set the project ID
+   * @method
+   * @param none
+   * @returns none
+   */
   getProjectId = () => {
     const {baseUrl} = this.props;
     const url = `${baseUrl}/api/agent/_search`;
@@ -326,6 +355,12 @@ class Netflow extends Component {
       return null;
     });
   }
+  /**
+   * Copy search fields into table columns
+   * @method
+   * @param none
+   * @returns none
+   */
   loadAllFields = () => {
     let tempSubSectionsData = {...this.state.subSectionsData};
     tempSubSectionsData.tableColumns = _.cloneDeep(this.props.searchFields);
@@ -338,6 +373,12 @@ class Netflow extends Component {
       this.loadEventsCount('loadFields');
     });
   }
+  /**
+   * Get and set the events count
+   * @method
+   * @param {string} options - option for 'loadFields'
+   * @returns none
+   */
   loadEventsCount = (options) => {
     const {baseUrl} = this.props;
     const {projectID, eventsCount, activeTab} = this.state;
@@ -392,7 +433,14 @@ class Netflow extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  loadFields = (activeTab, options, fromSearch) => {
+  /**
+   * Get and set event fields of the account
+   * @method
+   * @param {string} activeTab - current tab
+   * @param {string} options - options for 'showDefault' and 'noCount'
+   * @returns none
+   */
+  loadFields = (activeTab, options) => {
     const {baseUrl} = this.props;
     const {subSectionsData, account} = this.state;
     let tempSubSectionsData = {...subSectionsData};
@@ -447,7 +495,7 @@ class Netflow extends Component {
           this.loadSection(options);
         });
       } else {
-        this.loadFields(activeTab, 'showDefault', fromSearch);
+        this.loadFields(activeTab, 'showDefault');
       }
       return null;
     })
@@ -455,12 +503,16 @@ class Netflow extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Load subtab content ('table', 'link analysis' or 'world map')
+   * @method
+   * @param {string} options - option for 'search'
+   * @returns none
+   */
   loadActiveSubTab = (options) => {
     const {activeTab, activeSubTab} = this.state;
 
-    if (activeSubTab === 'statistics') {
-      //this.loadStatistics();
-    } else if (activeSubTab === 'table') {
+    if (activeSubTab === 'table') {
       if (activeTab === 'connections') {
         this.loadConnections(options);
       } else {
@@ -472,12 +524,24 @@ class Netflow extends Component {
       this.loadWorldMap(options);
     }
   }
+  /**
+   * Hide certain columns for the table
+   * @method
+   * @param {string} field - field name
+   * @returns true/false boolean
+   */
   checkDisplayFields = (field) => {
     if (_.includes(this.state.account.fields, field) || field === '_tableMenu_') {
       return true;
     }
     return false;
   }
+  /**
+   * Load table data based on events type
+   * @method
+   * @param {string} options - option for 'noCount'
+   * @returns none
+   */
   loadSection = (options) => {
     const {activeTab} = this.state;
 
@@ -491,6 +555,13 @@ class Netflow extends Component {
       this.loadSubSections();
     }
   }
+  /**
+   * Handle tab dropdown change
+   * @method
+   * @param {string} newTab - new tab to be loaded
+   * @param {string} oldTab - old tab
+   * @returns none
+   */
   handleTabChange = (newTab, oldTab) => {
     const activeTab = newTab;
     const {subSectionsData, filterData, showFilter} = this.state;
@@ -517,7 +588,6 @@ class Netflow extends Component {
 
     if (activeTab === 'connections') {
       subTabMenu = {
-        //statistics: t('txt-statistics'),
         table: t('txt-table'),
         linkAnalysis: t('txt-linkAnalysis'),
         worldMap: t('txt-map')
@@ -577,6 +647,12 @@ class Netflow extends Component {
       this.loadFields(activeTab, 'noCount');
     });
   }
+  /**
+   * Construct project URL
+   * @method
+   * @param {string} projectID - project ID
+   * @returns project URL
+   */
   getProjectURL = (projectID) => {
     let projectIDstring = '';
 
@@ -590,6 +666,12 @@ class Netflow extends Component {
 
     return projectIDstring.slice(0, -1);
   }
+  /**
+   * Check table sort
+   * @method
+   * @param {string} field - table field name
+   * @returns true for sortable or null
+   */
   checkSortable = (field) => {
     const unSortableFields = ['_tableMenu_', 'base64', 'filePath', 'controlText', 'htmlRelinkPath', 'body', 'requestRawHeader', 'responseRawHeader', 'uploadData', 'dnsho'];
 
@@ -599,6 +681,12 @@ class Netflow extends Component {
       return true;
     }
   }
+  /**
+   * Load Connections data
+   * @method
+   * @param {string} options - option for 'search'
+   * @returns none
+   */
   loadConnections = (options) => {
     const {baseUrl, contextRoot} = this.props;
     const {projectID, connectionsInterval, currentPage, oldPage, pageSize, subSectionsData, account} = this.state;
@@ -729,6 +817,12 @@ class Netflow extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Load events data other than Connections (DNS, File, Email, HTTP, etc.)
+   * @method
+   * @param {string} options - option for 'search'
+   * @returns none
+   */
   loadSubSections = (options) => {
     const {baseUrl, contextRoot} = this.props;
     const {projectID, activeTab, currentPage, oldPage, pageSize, pageSizeGrid, subSectionsData, account} = this.state;
@@ -826,7 +920,7 @@ class Netflow extends Component {
             } else if (tempData === 'controlText') {
               return <span title={value} onClick={this.showQueryOptions(tempData, value)}>{value.substr(0, 50) + '...'}</span>
             } else if (tempData === 'htmlRelinkPath') {
-              return <span onClick={this.openHTMLModal.bind(this, value)}>{value}</span>
+              return <span className='file-html' onClick={this.openHTMLModal.bind(this, value)}>{value}</span>
             } else {
               if (tempData === 'firstPacket' || tempData === 'lastPacket' || tempData === '_eventDttm_') {
                 value = helper.getFormattedDate(value, 'local');
@@ -890,6 +984,12 @@ class Netflow extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Reset link analysis data to avoid weird display in LA
+   * @method
+   * @param {string} options - option for 'search'
+   * @returns none
+   */
   resetLinkAnalysis = (options) => {
     const {activeTab, subSectionsData} = this.state;
     let tempSubSectionsData = {...subSectionsData};
@@ -901,6 +1001,12 @@ class Netflow extends Component {
       this.loadLinkAnalysis(options);
     });
   }
+  /**
+   * Get and set link analysis data
+   * @method
+   * @param {string} options - option for 'search'
+   * @returns none
+   */
   loadLinkAnalysis = (options) => {
     const {baseUrl, contextRoot} = this.props;
     const {activeTab, projectID, currentPage, pageSizeMap, subSectionsData, LAconfig} = this.state;
@@ -935,6 +1041,12 @@ class Netflow extends Component {
       });
     });
   }
+  /**
+   * Get and set data for the world map
+   * @method
+   * @param {string} options - option for 'search'
+   * @returns none
+   */
   loadWorldMap = (options) => {
     const {baseUrl, contextRoot} = this.props;
     const {activeTab, projectID, datetime, subSectionsData, currentPage, pageSizeMap} = this.state;
@@ -961,6 +1073,12 @@ class Netflow extends Component {
       });
     });
   }
+  /**
+   * Get and set world map geoJson data
+   * @method
+   * @param none
+   * @returns none
+   */
   getWorldMap = () => {
     const {activeTab, geoJson, subSectionsData} = this.state;
 
@@ -969,6 +1087,12 @@ class Netflow extends Component {
       geoJson: helper.getWorldMap(WORLDMAP, geoJson, subSectionsData.mapData[activeTab])
     });
   }
+  /**
+   * Construct the netflow events api request body
+   * @method
+   * @param {string} options - option for 'search'
+   * @returns requst data object
+   */
   toQueryLanguage = (options) => {
     const {datetime, sort, filterData} = this.state;
     const timeAttribute = 'lastPacket';
@@ -1019,12 +1143,25 @@ class Netflow extends Component {
 
     return dataOptions;
   }
-  showFilterBtn = (value) => {
+  /**
+   * Set the netflow events tree data
+   * @method
+   * @param {string} value - tree node name
+   * @returns none
+   */
+  showTreeFilterBtn = (value) => {
     this.setState({
       currentTreeName: value,
       treeData: this.getTreeData(this.state.treeRawData, value)
     });
   }
+  /**
+   * Set the netflow tree data
+   * @method
+   * @param {string} treeData - alert tree data
+   * @param {string} treeName - tree node name
+   * @returns tree data object
+   */
   getTreeData = (treeData, treeName) => {
     const currentTreeName = treeName ? treeName : this.state.currentTreeName;
     let treeObj = { //Handle service tree data
@@ -1089,6 +1226,12 @@ class Netflow extends Component {
 
     return treeObj;
   }
+  /**
+   * Handle tree export button
+   * @method
+   * @param none
+   * @returns none
+   */
   handleTreeExport = () => {
     const {baseUrl, contextRoot} = this.props;
     const {projectID, activeTab} = this.state;
@@ -1101,6 +1244,12 @@ class Netflow extends Component {
 
     downloadWithForm(url, {payload: JSON.stringify(dataOptions)});
   }
+  /**
+   * Handle alert search submit
+   * @method
+   * @param {string} fromSearch - option for 'search'
+   * @returns none
+   */
   handleSearchSubmit = (fromSearch) => {
     const {activeTab, subSectionsData} = this.state;
     let tempSubSectionsData = {...subSectionsData};
@@ -1120,6 +1269,12 @@ class Netflow extends Component {
       }
     });
   }
+  /**
+   * Handle alert search reset
+   * @method
+   * @param {string} type - reset type ('filter' or 'mark')
+   * @returns none
+   */
   handleResetBtn = (type) => {
     const filterData = [{
       condition: 'must',
@@ -1135,6 +1290,13 @@ class Netflow extends Component {
       queryData: tempQueryData
     });
   }
+  /**
+   * Handle pagination change for LA and World Map
+   * @method
+   * @param {number} type - content type ('la' or 'map')
+   * @param {number} currentPage - current page
+   * @returns none
+   */
   handleLargePageChange = (type, currentPage) => {
     this.setState({
       currentPage
@@ -1146,6 +1308,13 @@ class Netflow extends Component {
       }
     });
   }
+  /**
+   * Handle page size dropdown for LA and World Map
+   * @method
+   * @param {number} type - content type ('la' or 'map')
+   * @param {string} pageSize - current page size
+   * @returns none
+   */
   handleLargePageDropdown = (type, pageSize) => {
     this.setState({
       currentPage: 1,
@@ -1158,7 +1327,13 @@ class Netflow extends Component {
       }
     });
   }
-  handlePageChange = (currentPage) => {
+  /**
+   * Handle pagination change
+   * @method
+   * @param {number} currentPage - current page
+   * @returns none
+   */
+  handlePaginationChange = (currentPage) => {
     const {activeTab, showImgCheckbox} = this.state;
 
     this.setState({
@@ -1171,6 +1346,12 @@ class Netflow extends Component {
       }
     });
   }
+  /**
+   * Handle page size dropdown
+   * @method
+   * @param {string} pageSize - current page size
+   * @returns none
+   */
   handlePageDropdown = (pageSize) => {
     const {activeTab} = this.state;
     const isFileGrid = this.fileImageGrid();
@@ -1195,11 +1376,16 @@ class Netflow extends Component {
       });
     }
   }
-  handleTableSort = (value) => {
-    const {sort} = this.state;
-    let tempSort = {...sort};
-    tempSort.field = value.field;
-    tempSort.desc = !sort.desc;
+  /**
+   * Handle table sort
+   * @method
+   * @param {object} sort - sort data object
+   * @returns none
+   */
+  handleTableSort = (sort) => {
+    let tempSort = {...this.state.sort};
+    tempSort.field = sort.field;
+    tempSort.desc = sort.desc;
 
     this.setState({
       sort: tempSort
@@ -1207,6 +1393,13 @@ class Netflow extends Component {
       this.loadSection();
     });
   }
+  /**
+   * Handle tree filter button selection
+   * @method
+   * @param {string} value - selected node name
+   * @param {string} field - corresponding field of selected node
+   * @returns none
+   */
   selectTree = (value, field) => {
     this.setState({
       loadNetflowData: false
@@ -1214,6 +1407,12 @@ class Netflow extends Component {
       this.addSearch(field, value, 'must');
     });
   }
+  /**
+   * Handle table menu PCAP download
+   * @method
+   * @param {string} value - table selected row data
+   * @returns none
+   */
   pcapDownloadFile = (value) => {
     const {baseUrl} = this.props;
     const projectId = value.projectName;
@@ -1224,9 +1423,6 @@ class Netflow extends Component {
       projectId : projectId
     };
 
-    this.getPcapFile(url, data);
-  }
-  getPcapFile = (url, data) => {
     helper.getAjaxData('POST', url, data)
     .then(data => {
       if (data.ResultMessage === 'fail') {
@@ -1234,8 +1430,16 @@ class Netflow extends Component {
       } else {
         window.location.assign(data.PcapFilelink);
       }
-    });
+    });    
   }
+  /**
+   * Handle table row mouse over to show menu button and tag memo
+   * @method
+   * @param {number} id - ID of the selected raw data
+   * @param {object} allValue - table data
+   * @param {object} evt - MouseoverEvents
+   * @returns none
+   */
   handleRowMouseOver = (id, allValue, evt) => {
     const {activeTab, subSectionsData} = this.state;
     let tempSubSectionsData = {...subSectionsData};
@@ -1259,9 +1463,24 @@ class Netflow extends Component {
       )
     }
   }
+  /**
+   * Handle table row mouse out
+   * @method
+   * @param {number} id - ID of the selected raw data
+   * @param {object} allValue - table data
+   * @param {object} evt - MouseoverEvents
+   * @returns none
+   */
   handleRowMouseOut = (id, allValue, evt) => {
     Popover.closeId('popup-id')
   }
+  /**
+   * Construct and display table context menu
+   * @method
+   * @param {object} allValue - syslog data
+   * @param {object} evt - mouseClick events
+   * @returns none
+   */
   handleRowContextMenu = (allValue, evt) => {
     this.handleRowMouseOut();
 
@@ -1307,7 +1526,7 @@ class Netflow extends Component {
         {
           id: id + 'DeleteTag',
           text: t('events.connections.txt-deleteTag'),
-          action: () => this.removeTagging(allValue.tag.id)
+          action: () => this.deleteTagging(allValue.tag.id)
         }
       );
     } else {
@@ -1333,6 +1552,14 @@ class Netflow extends Component {
     ContextMenu.open(evt, menuItems, 'networkViewMenu');
     evt.stopPropagation();
   }
+  /**
+   * Show query option when click on the table raw filter icon
+   * @method
+   * @param {string} field - field name of selected field
+   * @param {string | number} value - value of selected field
+   * @param {object} e - mouseClick events
+   * @returns none
+   */
   showQueryOptions = (field, value) => (e) => {
     const menuItems = [
       {
@@ -1355,6 +1582,14 @@ class Netflow extends Component {
     ContextMenu.open(e, menuItems, 'eventsQueryMenu');
     e.stopPropagation();
   }
+  /**
+   * Add tree node to search filter
+   * @method
+   * @param {string} field - corresponding field of selected node
+   * @param {string} value - selected node name
+   * @param {string} type - condition of selected node ('must')
+   * @returns none
+   */
   addSearch = (field, value, type) => {
     const {filterData} = this.state;
     let currentFilterData = filterData;
@@ -1388,6 +1623,13 @@ class Netflow extends Component {
       filterData: currentFilterData
     });
   }
+  /**
+   * Handle value change for the checkbox in the table dialog
+   * @method
+   * @param {string} field - field of selected checkbox
+   * @param {boolean} data - checked/uncheck status
+   * @returns none
+   */
   setFieldsChange = (field, data) => {
     let tempAccount = {...this.state.account};
 
@@ -1404,6 +1646,12 @@ class Netflow extends Component {
 
     this.setCustomFields(tempAccount.fields);
   }
+  /**
+   * Set and save events table fields of the account
+   * @method
+   * @param {array} fields - fields list to be set
+   * @returns none
+   */
   setCustomFields = (fields) => {
     const {baseUrl} = this.props;
     const {activeTab, account} = this.state;
@@ -1437,41 +1685,45 @@ class Netflow extends Component {
       return null;
     })
   }
-  handleDialogNavigation = (allValue, index) => {
+  /**
+   * Set the table raw index and netflow data
+   * @method
+   * @param {string | object} data - button action type ('previous' or 'next'), or data object
+   * @returns object of index and data
+   */
+  handleDialogNavigation = (data) => {
     const {activeTab, subSectionsData, currentTableIndex} = this.state;
-    let tableIndex = '';
     let tableRowIndex = '';
+    let allValue = {};
 
-    if (allValue === 'next' || allValue === 'previous') {
-      tableIndex = currentTableIndex;
+    if (data === 'next' || data === 'previous') { //For click on navigation button
+      tableRowIndex = currentTableIndex;
 
-      if (allValue === 'next') {
-        tableIndex++;
-      } else if (allValue === 'previous') {
-        tableIndex--;
+      if (data === 'next') {
+        tableRowIndex++;
+      } else if (data === 'previous') {
+        tableRowIndex--;
       }
-
-      allValue = subSectionsData.mainData[activeTab][tableIndex];
-    }
-
-    if (Number(index) >= 0) {
-      tableRowIndex = Number(index); //Find index for table row click
-    } else {
-      if (tableIndex) {
-        tableRowIndex = tableIndex; //Find index when click on 'next' and 'previous' button
-      } else {
-        tableRowIndex = _.findIndex(subSectionsData.mainData[activeTab], {'id': allValue.id}); //Find table index for ContextMenu
-      }
+      allValue = subSectionsData.mainData[activeTab][tableRowIndex];
+    } else { //For click on table raw
+      tableRowIndex = _.findIndex(subSectionsData.mainData[activeTab], {'id': data.id});
+      allValue = data;
     }
 
     return {
-      allValue,
-      tableRowIndex
+      tableRowIndex,
+      allValue
     };
   }
-  showTableData = (allValue, index) => {
+  /**
+   * Set the data to be displayed in table dialog
+   * @method
+   * @param {object} allValue - data of selected table raw
+   * @returns none
+   */
+  showTableData = (allValue) => {
     const {account} = this.state;
-    const newData = this.handleDialogNavigation(allValue, index);
+    const newData = this.handleDialogNavigation(allValue);
     const currentTableIndex = newData.tableRowIndex;
     let filteredAllValue = {};
     allValue = newData.allValue;
@@ -1522,6 +1774,23 @@ class Netflow extends Component {
       currentTableID: allValue.id
     });
   }
+  /**
+   * Handle table field sort action
+   * @method
+   * @param {object} listObj - sort data
+   * @returns none
+   */
+  onSortEnd = (listObj) => {
+    this.setState({
+      sortedDataList: arrayMove(this.state.sortedDataList, listObj.oldIndex, listObj.newIndex)
+    });
+  }
+  /**
+   * Display table data content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
   displayTableData = () => {
     const {activeTab, sortedDataList, currentTableIndex, currentLength} = this.state;
 
@@ -1549,11 +1818,12 @@ class Netflow extends Component {
       </div>
     )
   }
-  onSortEnd = (listObj) => {
-    this.setState({
-      sortedDataList: arrayMove(this.state.sortedDataList, listObj.oldIndex, listObj.newIndex)
-    });
-  }
+  /**
+   * Close dialog and reset data
+   * @method
+   * @param none
+   * @returns none
+   */
   closeDialog = () => {
     this.setState({
       modalOpen: false,
@@ -1567,6 +1837,12 @@ class Netflow extends Component {
       this.clearQueryData();
     });
   }
+  /**
+   * Reset table based on user's interaction with table dialog or memo tag
+   * @method
+   * @param {string} options - option for 'setFields'
+   * @returns none
+   */
   resetDataTable = (options) => {
     const {activeTab, subSectionsData} = this.state;
     let tempSubSectionsData = {...subSectionsData};
@@ -1595,7 +1871,13 @@ class Netflow extends Component {
       this.clearData();
     });
   }
-  modalDialog = () => {
+  /**
+   * Display table data content in modal dialog
+   * @method
+   * @param none
+   * @returns none
+   */
+  tableDialog = () => {
     const {activeTab} = this.state;
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeDialog},
@@ -1616,6 +1898,12 @@ class Netflow extends Component {
       </ModalDialog>
     )
   }
+  /**
+   * Display Json data content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
   displayJsonData = (allValue) => {
     const {currentTableIndex, currentLength} = this.state;
     const hiddenFields = ['id', '_tableMenu_'];
@@ -1639,6 +1927,12 @@ class Netflow extends Component {
       </div>
     )
   }
+  /**
+   * Open Json data modal dialog
+   * @method
+   * @param {object} allValue - data of selected table raw
+   * @returns none
+   */
   viewJsonData = (allValue) => {
     const {activeTab} = this.state;
     const newData = this.handleDialogNavigation(allValue);
@@ -1660,6 +1954,13 @@ class Netflow extends Component {
       });
     });
   }
+  /**
+   * Set PCAP hex value
+   * @method
+   * @param {string} hex - original string value
+   * @param {number} index - active index of the Alert PCAP array
+   * @returns none
+   */
   setPCAPhex = (hex, index) => {
     let tempPcapData = {...this.state.pcapData};
 
@@ -1674,6 +1975,12 @@ class Netflow extends Component {
       pcapData: tempPcapData
     });
   }
+  /**
+   * Set PCAP page
+   * @method
+   * @param {string} currentPage - current page of the PCAP info
+   * @returns none
+   */
   setPCAPpage = (currentPage) => {
     let tempPcapData = {...this.state.pcapData};
     tempPcapData.page = currentPage;
@@ -1687,6 +1994,12 @@ class Netflow extends Component {
       this.getPCAPcontent();
     });
   }
+  /**
+   * Toggle (check/uncheck) to show/hide the PCAP data
+   * @method
+   * @param none
+   * @returns none
+   */
   toggleFilterEmpty = () => {
     const {pcapData} = this.state;
     let tempPcapData = {...pcapData};
@@ -1711,11 +2024,22 @@ class Netflow extends Component {
       pcapData: tempPcapData
     });
   }
-  showPCAPcontent = (key, i) => {
-    const {pcapData} = this.state;
-
-    return <li key={i} className={cx({'active': key.hex})} onClick={this.setPCAPhex.bind(this, key.hex, i)}>{key.protocol}<i className={cx('fg', {'fg-arrow-left': pcapData.activeIndex === i})}></i></li>  
+  /**
+   * Display individual PCAP data
+   * @method
+   * @param {object} val - PCAP data
+   * @param {number} i - index
+   * @returns HTML DOM
+   */
+  showPCAPcontent = (val, i) => {
+    return <li key={i} className={cx({'active': val.hex})} onClick={this.setPCAPhex.bind(this, val.hex, i)}>{val.protocol}<i className={cx('fg', {'fg-arrow-left': this.state.pcapData.activeIndex === i})}></i></li>  
   }
+  /**
+   * Display PCAP content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
   displayPCAPcontent = () => {
     const {pcapData} = this.state;
     const hex = pcapData.hex;
@@ -1763,6 +2087,12 @@ class Netflow extends Component {
       </div>
     )
   }
+  /**
+   * Display PCAP content in modal dialog
+   * @method
+   * @param none
+   * @returns ModalDialog component
+   */
   pcapDialog = () => {
     const titleText = t('events.connections.txt-viewPCAP');
     const actions = {
@@ -1783,6 +2113,12 @@ class Netflow extends Component {
       </ModalDialog>
     )
   }
+  /**
+   * Get and set PCAP data
+   * @method
+   * @param {object} allValue - data of selected table raw
+   * @returns none
+   */
   getPCAPcontent = (allValue) => {
     const {baseUrl} = this.props;
     const {pcapData} = this.state;
@@ -1818,6 +2154,12 @@ class Netflow extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Display delete tag content
+   * @method
+   * @param {string} id - ID of selected table raw data
+   * @returns HTML DOM
+   */
   getDeleteTagContent = (id) => {
     if (id) {
       let tempTagData = {...this.state.tagData};
@@ -1834,7 +2176,13 @@ class Netflow extends Component {
       </div>
     )
   }
-  removeTagging = (id) => {
+  /**
+   * Open delete tag modal dialog
+   * @method
+   * @param {string} id - ID of selected table raw data
+   * @returns none
+   */
+  deleteTagging = (id) => {
     PopupDialog.prompt({
       title: t('events.connections.txt-deleteTag'),
       id: 'modalWindowSmall',
@@ -1848,6 +2196,12 @@ class Netflow extends Component {
       }
     });
   }
+  /**
+   * Handle delete tag confirm
+   * @method
+   * @param none
+   * @returns none
+   */
   deleteTag = () => {
     const {baseUrl} = this.props;
     const {tagData} = this.state;
@@ -1867,6 +2221,12 @@ class Netflow extends Component {
       return null;
     });
   }
+  /**
+   * Handle add tag table menu
+   * @method
+   * @param {object} allValue - data of selected table raw
+   * @returns none
+   */
   addTagging = (allValue) => {
     let titleText = t('events.connections.txt-addTag');
     let tempTagData = {...this.state.tagData};
@@ -1888,6 +2248,12 @@ class Netflow extends Component {
       taggingOpen: true
     });
   }
+  /**
+   * Handle value change for the add tagging form
+   * @method
+   * @param {object | string} val - input value
+   * @returns none
+   */
   handleDataChange = (val) => {
     let tempTagData = {...this.state.tagData};
 
@@ -1901,6 +2267,12 @@ class Netflow extends Component {
       tagData: tempTagData
     });
   }
+  /**
+   * Display add tagging content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
   displayAddTagging = () => {
     const {tagData} = this.state;
     const colorList = ['#B80000', '#DB3E00', '#FCCB00', '#008B02', '#006B76', '#1273DE', '#004DCF', '#5300EB'];
@@ -1930,6 +2302,12 @@ class Netflow extends Component {
       </div>
     )
   }
+  /**
+   * Display add tagging content in modal dialog
+   * @method
+   * @param none
+   * @returns ModalDialog component
+   */
   taggingDialog = () => {
     const {tagData} = this.state;
     const titleText = tagData.modalTitle;
@@ -1951,6 +2329,12 @@ class Netflow extends Component {
       </ModalDialog>
     )
   }
+  /**
+   * Handle add tagging confirm
+   * @method
+   * @param none
+   * @returns none
+   */
   handleAddTagging = () => {
     const {baseUrl} = this.props;
     const {account, tagData} = this.state;
@@ -1990,6 +2374,13 @@ class Netflow extends Component {
       return null;
     });
   }
+  /**
+   * Handle open image modal dialog in File events
+   * @method
+   * @param {string} value - image file data
+   * @param {object} e - mouseClick events
+   * @returns none
+   */
   openImageModal = (value) => (e) => {
     PopupDialog.alert({
       id: 'fileModal',
@@ -1997,6 +2388,12 @@ class Netflow extends Component {
       display: <img src={value} />
     });
   }
+  /**
+   * Handle open HTML modal dialog
+   * @method
+   * @param {string} value - HTML path
+   * @returns none
+   */
   openHTMLModal = (value) => {
     const {baseUrl} = this.props;
     const url = `${baseUrl}/api/network/html/reLinkFile?path=${value}`;
@@ -2017,6 +2414,13 @@ class Netflow extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Set new datetime
+   * @method
+   * @param {object} datetime - new datetime object
+   * @param {string} refresh - option for 'refresh'
+   * @returns none
+   */
   handleDateChange = (datetime, refresh) => {
     this.setState({
       datetime
@@ -2026,12 +2430,24 @@ class Netflow extends Component {
       }
     });
   }
+  /**
+   * Handle chart type change for Connections events
+   * @method
+   * @param {string} connectionsChartType - chart type ('connections', 'packets' or 'databytes')
+   * @returns none
+   */
   handleChartChange = (connectionsChartType) => {
     this.setState({
       connectionsChartType,
       tableMouseOver: false
     });
   }
+  /**
+   * Handle chart interval change for Connections events
+   * @method
+   * @param {string} connectionsChartType - chart type ('1m', '15m', '30m' or '60m')
+   * @returns none
+   */
   handleIntervalChange = (connectionsInterval) => {
     this.setState({
       connectionsInterval,
@@ -2040,6 +2456,12 @@ class Netflow extends Component {
       this.loadConnections();
     });
   }
+  /**
+   * Handle show image only checkbox for File events
+   * @method
+   * @param {boolean} showImgCheckbox - checkbox status (true/false)
+   * @returns none
+   */
   handleShowImgCheckbox = (showImgCheckbox) => {
     this.setState({
       showImgCheckbox
@@ -2047,6 +2469,12 @@ class Netflow extends Component {
       this.loadSubSections(this.state.showImgCheckbox ? 'images' : '');
     });
   }
+  /**
+   * Handle display change radio for File events
+   * @method
+   * @param {boolean} displayType - display type ('list' or 'grid')
+   * @returns none
+   */
   handleDisplayChange = (displayType) => {
     this.setState({
       displayType
@@ -2054,30 +2482,36 @@ class Netflow extends Component {
       this.loadSubSections(this.state.showImgCheckbox ? 'images' : '');
     });
   }
+  /**
+   * Check for File type and grid view
+   * @method
+   * @param none
+   * @returns true/false boolean
+   */
   fileImageGrid = () => {
     return (this.state.activeTab === 'file' && this.state.displayType === 'grid') ? true : false;
   }
+  /**
+   * Get default page size based on events type
+   * @method
+   * @param none
+   * @returns true/false boolean
+   */
   getPageSize = () => {
-    const {pageSize, pageSizeGrid, pageSizeMap} = this.state;
-    const isFileGrid =  this.fileImageGrid();
+    const {pageSize, pageSizeGrid} = this.state;
 
-    if (isFileGrid) {
+    if (this.fileImageGrid()) {
       return pageSizeGrid;
     } else {
       return pageSize;
     }
   }
-  getTabChartData = () => {
-    return {
-      sessionHistogram: this.state.sessionHistogram,
-      packageHistogram: this.state.packageHistogram,
-      byteHistogram: this.state.byteHistogram,
-      chartTypeChange: this.handleChartChange,
-      chartTypeValue: this.state.connectionsChartType,
-      chartIntervalChange: this.handleIntervalChange,
-      chartIntervalValue: this.state.connectionsInterval
-    };
-  }
+  /**
+   * Handle content tab change
+   * @method
+   * @param {string} newTab - content type ('table', 'linkAnalysis' or 'worldMap')
+   * @returns none
+   */
   handleSubTabChange = (newTab) => {
     const {activeTab} = this.state;
 
@@ -2116,6 +2550,12 @@ class Netflow extends Component {
       });
     }
   }
+  /**
+   * Display table data content for events type
+   * @method
+   * @param none
+   * @returns events component
+   */
   renderTabContent = () => {
     const {baseUrl, contextRoot, language, searchFields} = this.props;
     const {activeTab, tableMouseOver} = this.state;
@@ -2146,7 +2586,7 @@ class Netflow extends Component {
       treeShowDropDown: true,
       treeData: this.state.treeData,
       treeSelect: this.selectTree,
-      showFilterBtn: this.showFilterBtn,
+      showTreeFilterBtn: this.showTreeFilterBtn,
       showImageValue: this.state.showImgCheckbox,
       handleShowImgCheckbox: this.handleShowImgCheckbox,
       displayImgType: this.state.displayType,
@@ -2167,7 +2607,7 @@ class Netflow extends Component {
       paginationPageSize: this.getPageSize(),
       paginationAlertPageSize: this.state.pageSizeMap,
       paginationCurrentPage: this.state.currentPage,
-      paginationPageChange: this.handlePageChange,
+      paginationPageChange: this.handlePaginationChange,
       paginationDropDownChange: this.handlePageDropdown,
       paginationAlertPageChange: this.handleLargePageChange,
       paginationAlertDropDownChange: this.handleLargePageDropdown
@@ -2179,7 +2619,15 @@ class Netflow extends Component {
           contextRoot={contextRoot}
           baseUrl={baseUrl}
           mainContentData={mainContentData}
-          tabChartData={this.getTabChartData()}
+          tabChartData={{
+            sessionHistogram: this.state.sessionHistogram,
+            packageHistogram: this.state.packageHistogram,
+            byteHistogram: this.state.byteHistogram,
+            chartTypeChange: this.handleChartChange,
+            chartTypeValue: this.state.connectionsChartType,
+            chartIntervalChange: this.handleIntervalChange,
+            chartIntervalValue: this.state.connectionsInterval
+          }}
           tableMouseOver={tableMouseOver} />
       )
     } else if (activeTab === 'dns') {
@@ -2219,6 +2667,12 @@ class Netflow extends Component {
       )
     }
   }
+  /**
+   * Handle CSV download
+   * @method
+   * @param none
+   * @returns none
+   */
   getCSVfile = () => {
     const {baseUrl, contextRoot} = this.props;
     const {projectID, activeTab, account} = this.state;
@@ -2242,11 +2696,23 @@ class Netflow extends Component {
 
     downloadWithForm(url, {payload: JSON.stringify(dataOptions)});
   }
+  /**
+   * Toggle filter content on/off
+   * @method
+   * @param none
+   * @returns none
+   */
   toggleFilter = () => {
     this.setState({
       showFilter: !this.state.showFilter
     });
   }
+  /**
+   * Toggle query menu on/off
+   * @method
+   * @param {string} type - type of query menu ('open' or 'save')
+   * @returns none
+   */
   openQuery = (type) => {
     if (type === 'open') {
       this.setState({
@@ -2258,16 +2724,34 @@ class Netflow extends Component {
       });
     }
   }
+  /**
+   * Set filter data
+   * @method
+   * @param {array} filterData - filter data to be set
+   * @returns none
+   */
   setFilterData = (filterData) => {
     this.setState({
       filterData
     });
   }
+  /**
+   * Set query data
+   * @method
+   * @param {object} queryData - query data to be set
+   * @returns none
+   */
   setQueryData = (queryData) => {
     this.setState({
       queryData
     });
   }
+  /**
+   * Display query menu modal dialog
+   * @method
+   * @param {string} type - query type ('open' or 'save')
+   * @returns QueryOpenSave component
+   */
   queryDialog = (type) => {
     const {baseUrl, contextRoot} = this.props;
     const {activeTab, account, filterData, queryData} = this.state;
@@ -2288,11 +2772,24 @@ class Netflow extends Component {
         closeDialog={this.closeDialog} />
     )
   }
+  /**
+   * Toggle chart content on/off
+   * @method
+   * @param none
+   * @returns none
+   */
   toggleChart = () => {
     this.setState({
       showChart: !this.state.showChart
     });
   }
+  /**
+   * Set search options data
+   * @method
+   * @param {string} type - search type to be set ('all' and others)
+   * @param {string} value - search value to be set
+   * @returns none
+   */
   setSearchData = (type, value) => {
     if (type === 'all') {
       this.setState({
@@ -2310,6 +2807,12 @@ class Netflow extends Component {
       }
     }
   }
+  /**
+   * Clear memo tag data
+   * @method
+   * @param none
+   * @returns none
+   */
   clearTagData = () => {
     const tagData = {
       id: '',
@@ -2324,6 +2827,12 @@ class Netflow extends Component {
       tagData
     });
   }
+  /**
+   * Clear PCAP data
+   * @method
+   * @param none
+   * @returns none
+   */
   clearPcapData = () => {
     const pcapData = {
       projectID: '',
@@ -2340,6 +2849,12 @@ class Netflow extends Component {
       pcapData
     });
   }
+  /**
+   * Reset query data
+   * @method
+   * @param none
+   * @returns none
+   */
   clearQueryData = () => {
     const {queryData} = this.state;
     let tempQueryData = {...queryData};
@@ -2350,6 +2865,12 @@ class Netflow extends Component {
       queryData: tempQueryData
     });
   }
+  /**
+   * Reset subSections data
+   * @method
+   * @param none
+   * @returns none
+   */
   clearData = () => {
     const subSectionsData = {
       mainData: {
@@ -2433,7 +2954,7 @@ class Netflow extends Component {
     return (
       <div>
         {modalOpen &&
-          this.modalDialog()
+          this.tableDialog()
         }
 
         {openQueryOpen &&

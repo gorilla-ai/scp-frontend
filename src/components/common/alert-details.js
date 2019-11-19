@@ -843,14 +843,12 @@ class AlertDetails extends Component {
   /**
    * Display individual PCAP data
    * @method
-   * @param {string} key - key of the PCAP content
+   * @param {object} val - PCAP data
    * @param {number} i - index
    * @returns HTML DOM
    */
-  showPCAPcontent = (key, i) => {
-    const {alertPCAP} = this.state;
-
-    return <li key={i} className={cx({'active': key.hex})} onClick={this.setPCAPhex.bind(this, key.hex, i)}>{key.protocol}<i className={cx('fg', {'fg-arrow-left': alertPCAP.activeIndex === i})}></i></li> 
+  showPCAPcontent = (val, i) => {
+    return <li key={i} className={cx({'active': val.hex})} onClick={this.setPCAPhex.bind(this, val.hex, i)}>{val.protocol}<i className={cx('fg', {'fg-arrow-left': this.state.alertPCAP.activeIndex === i})}></i></li> 
   }
   /**
    * Display PCAP content

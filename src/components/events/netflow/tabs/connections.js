@@ -13,16 +13,17 @@ import {HocPagination as Pagination} from '../../../common/pagination'
 import TableContent from '../../../common/table-content'
 import {HocTree as Tree} from '../../../common/tree'
 
-
 import withLocale from '../../../../hoc/locale-provider'
 
-let t = null;
-
+/**
+ * Events Netflow Connections
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the Netflow Connections
+ */
 class Connections extends Component {
   constructor(props) {
     super(props);
-
-    t = global.chewbaccaI18n.getFixedT(null, 'connections');
   }
   render() {
     const {baseUrl, contextRoot, language, mainContentData, tabChartData, tableMouseOver} = this.props;

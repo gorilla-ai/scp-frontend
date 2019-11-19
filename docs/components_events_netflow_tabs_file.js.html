@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/events/netflow/tabs/file.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/events/netflow/tabs/file.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
+import PropTypes from 'prop-types'
+
+import Checkbox from 'react-ui/build/src/components/checkbox'
+import RadioGroup from 'react-ui/build/src/components/radio-group'
+import Tabs from 'react-ui/build/src/components/tabs'
+
+import {HocFilterContent as FilterContent} from '../../../common/filter-content'
+import helper from '../../../common/helper'
+import TableContent from '../../../common/table-content'
+import {HocTree as Tree} from '../../../common/tree'
+import withLocale from '../../../../hoc/locale-provider'
+
+let t = null;
+
+/**
+ * Events Netflow File
+ * @class
+ * @author Ryan Chen &lt;ryanchen@telmediatech.com>
+ * @summary A react component to show the Netflow File
+ */
+class File extends Component {
+  constructor(props) {
+    super(props);
+
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+  }
+  /**
+   * Show image data in grid view
+   * @method
+   * @param {object} val - image files data
+   * @param {number} i - index of the image data
+   * @returns HTML DOM
+   */
+  showGridImage = (val, i) => {
+    const {mainContentData} = this.props;
+
+    if (val.base64 &amp;&amp; val.base64.indexOf('data:image/') >= 0) {
+      return &lt;img key={i} src={val.base64} onClick={mainContentData.openImageModal(val.base64)} />
+    }
+  }
+  render() {
+    const {mainContentData} = this.props;
+    let hideTable = false;
+    let pageSize = 20;
+    let paginationOptions = '';
+
+    if (mainContentData.displayImgType === 'grid') { //Make an exception for File grid type display
+      hideTable = true;
+      pageSize = 50;
+      paginationOptions = [
+        {value: 50, text: '50'},
+        {value: 100, text: '100'},
+        {value: 150, text: '150'},
+        {value: 200, text: '200'},
+        {value: 300, text: '300'}
+      ];
+    }
+
+    return (
+      &lt;div className='data-content'>
+        &lt;Tree
+          {...mainContentData} />
+
+        &lt;div className='parent-content'>
+          &lt;FilterContent
+            {...mainContentData} />
+
+          &lt;div className='main-content'>
+            &lt;Tabs
+              className='subtab-menu'
+              menu={mainContentData.subTabMenu}
+              current={mainContentData.activeSubTab}
+              onChange={mainContentData.handleSubTabChange}>
+            &lt;/Tabs>
+
+            &lt;div className='file-options'>
+              &lt;div className='c-flex aic imgCheckBox'>
+                &lt;label htmlFor='showImgCheckbox'>{t('events.connections.txt-showImageOnly')}&lt;/label>
+                &lt;Checkbox
+                  id='showImgCheckbox'
+                  onChange={mainContentData.handleShowImgCheckbox}
+                  checked={mainContentData.showImageValue}
+                  disabled={mainContentData.displayImgType === 'grid'} />
+              &lt;/div>
+              {mainContentData.showImageValue &amp;&amp;
+                &lt;RadioGroup
+                  className='display-file-type'
+                  list={[
+                    {
+                      value: 'list',
+                      text: t('txt-list')
+                    },
+                    {
+                      value: 'grid',
+                      text: t('txt-grid')
+                    }
+                  ]}
+                  onChange={mainContentData.handleDisplayChange}
+                  value={mainContentData.displayImgType}/>
+              }
+            &lt;/div>
+
+            {mainContentData.displayImgType === 'grid' &amp;&amp;
+              &lt;div className='grid-flex'>
+                {mainContentData.dataTableData &amp;&amp; mainContentData.dataTableData.length > 0 &amp;&amp;
+                  mainContentData.dataTableData.map(this.showGridImage)
+                }
+              &lt;/div>
+            }
+
+            &lt;TableContent
+              {...mainContentData}
+              tableHeight='63vh'
+              hideTable={hideTable}
+              pageSize={pageSize}
+              paginationOptions={paginationOptions} />
+          &lt;/div>
+        &lt;/div>
+      &lt;/div>
+    )
+  }
+}
+
+File.propTypes = {
+  mainContentData: PropTypes.object.isRequired
+};
+
+export default withLocale(File);</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="Login.html">Login</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="SafetyScan.html">SafetyScan</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Tue Nov 19 2019 17:26:26 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

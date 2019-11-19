@@ -320,7 +320,7 @@ class NetworkMap extends Component {
    * Check table sort
    * @method
    * @param {string} field - table field name
-   * @returns none
+   * @returns true for sortable or null
    */
   checkSortable = (field) => {
     const unSortableFields = ['seat', 'owner'];
