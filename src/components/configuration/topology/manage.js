@@ -37,7 +37,13 @@ const _title = 2;
 let t = null;
 let et = null;
 
-class Name extends Component {
+/**
+ * Config Topology Department and Title management
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to manage department and title
+ */
+class Manage extends Component {
   constructor(props) {
     super(props);
 
@@ -311,8 +317,8 @@ class Name extends Component {
   }
 }
 
-Name.propTypes = {
+Manage.propTypes = {
   onDone: PropTypes.func.isRequired
 }
 
-export default withLocale(Name);
+export default withLocale(Manage);

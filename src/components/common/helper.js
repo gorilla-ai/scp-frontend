@@ -385,7 +385,7 @@ const helper = {
       act:(confirmed) => {
         if (redirect === 'agent') {
           if (confirmed) {
-            const url = '/ChewbaccaWeb/configuration/agent?lng=' + lng;
+            const url = '/ChewbaccaWeb/configuration/edge/edge?lng=' + lng;
             window.location.href = url;
           }
         }

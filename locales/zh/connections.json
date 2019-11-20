@@ -264,7 +264,7 @@
       "txt-top10text": "前十大目標服務/主機/IP",
       "txt-analysisType": "分析項目",
       "txt-alertRule": "$t(txt-alert)$t(txt-rule)",
-      "txt-addAgentMsg": "請至Agent管理新增agent",
+      "txt-addAgentMsg": "請至Edge管理新增device",
       "txt-showImageOnly": "只顯示圖片",
       "txt-downloadPCAP": "$t(txt-download)PCAP",
       "txt-viewJSON": "$t(txt-view)JSON",

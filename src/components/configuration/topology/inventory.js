@@ -27,7 +27,7 @@ import {HocFloorMap as FloorMap} from '../../common/floor-map'
 import {HocHMDscanInfo as HMDscanInfo} from '../../common/hmd-scan-info'
 import {HocPagination as Pagination} from '../../common/pagination'
 import {HocPrivateDetails as PrivateDetails} from '../../common/private-details'
-import Manage from '../topology/owner-mixname'
+import Manage from './manage'
 import TableContent from '../../common/table-content'
 import withLocale from '../../../hoc/locale-provider'
 
@@ -385,30 +385,37 @@ class NetworkInventory extends Component {
     .then(data => {
       let departmentList = [];
       let titleList = [];
+      let tempAddIP = {...addIP};
 
-      _.forEach(data[0], val => {
-        departmentList.push({
-          value: val.nameUUID,
-          text: val.name
+      if (!_.isEmpty(data[0])) {
+        _.forEach(data[0], val => {
+          departmentList.push({
+            value: val.nameUUID,
+            text: val.name
+          });
+        })
+        tempAddIP.newDepartment = departmentList[0].value;
+
+        this.setState({
+          departmentList,
+          addIP: tempAddIP
         });
-      })
+      }
 
-      _.forEach(data[1], val => {
-        titleList.push({
-          value: val.nameUUID,
-          text: val.name
+      if (!_.isEmpty(data[1])) {
+        _.forEach(data[1], val => {
+          titleList.push({
+            value: val.nameUUID,
+            text: val.name
+          });
+        })
+        tempAddIP.newTitle = titleList[0].value;
+
+        this.setState({
+          titleList,
+          addIP: tempAddIP
         });
-      })
-
-      const tempAddIP = {...addIP};
-      tempAddIP.newDepartment = departmentList[0].value;
-      tempAddIP.newTitle = titleList[0].value;
-
-      this.setState({
-        departmentList,
-        titleList,
-        addIP: tempAddIP
-      });
+      }
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);

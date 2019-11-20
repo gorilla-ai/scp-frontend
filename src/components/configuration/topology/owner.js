@@ -14,7 +14,7 @@ import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import {HocConfig as Config} from '../../common/configuration'
 import helper from '../../common/helper'
-import Name from './owner-mixname'
+import Manage from './manage'
 import TableContent from '../../common/table-content'
 import withLocale from '../../../hoc/locale-provider'
 
@@ -648,7 +648,9 @@ class NetworkOwner extends Component {
 
     return (
       <div>
-        <Name ref={ref => { this.name=ref }} onDone={this.onDone} />
+        <Manage
+          ref={ref => { this.name=ref }}
+          onDone={this.onDone} />
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
