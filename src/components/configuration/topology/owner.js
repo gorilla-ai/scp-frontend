@@ -543,8 +543,8 @@ class NetworkOwner extends Component {
    * @param none
    * @returns none
    */
-  openName = () => {
-    this.name._component.open();
+  openManage = () => {
+    this.name._component.openManage();
   }
   /**
    * Handle close on department/title management modal dialog
@@ -650,6 +650,8 @@ class NetworkOwner extends Component {
       <div>
         <Manage
           ref={ref => { this.name=ref }}
+          baseUrl={baseUrl}
+          contextRoot={contextRoot}
           onDone={this.onDone} />
 
         <div className='sub-header'>
@@ -672,7 +674,7 @@ class NetworkOwner extends Component {
             {activeContent === 'tableList' &&
               <div className='main-content'>
                 <header className='main-header'>{t('txt-ownerList')}</header>
-                <button className='standard btn last' onClick={this.openName}>{t('txt-manageDepartmentTitle')}</button>
+                <button className='standard btn last' onClick={this.openManage}>{t('txt-manageDepartmentTitle')}</button>
                 <button className='standard btn' onClick={this.toggleContent.bind(this, 'addOwner', 'new')} style={{right: this.getBtnPos('add')}}>{t('txt-addNewOwner')}</button>
 
                 <TableContent
@@ -692,7 +694,7 @@ class NetworkOwner extends Component {
             {activeContent === 'addOwner' &&
               <div className='main-content basic-form'>
                 <header className='main-header'>{addOwnerTitle}</header>
-                <button className='standard btn last' onClick={this.openName} >{t('txt-manageDepartmentTitle')}</button>
+                <button className='standard btn last' onClick={this.openManage} >{t('txt-manageDepartmentTitle')}</button>
                 <div className='form-group steps-owner'>
                   <header>{t('ipFields.owner')}</header>
                   <div className='user-pic'>

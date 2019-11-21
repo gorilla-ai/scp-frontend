@@ -20,6 +20,12 @@ const c = i18n.getFixedT(null, 'connections');
 const t = i18n.getFixedT(null, 'privileges');
 const gt =  i18n.getFixedT(null, 'app');
 
+/**
+ * Account Privileges
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the account privileges
+ */
 class Roles extends Component {
   constructor(props) {
     super(props);
@@ -33,71 +39,12 @@ class Roles extends Component {
   componentDidMount() {
     this.loadList();
   }
-  showEditDialog = (id) => {
-    this.editor.open(id);
-  }
-  showAddDialog = () => {
-    this.addor.open();
-  }
-  getDeletePrivilegeContent = (allValue) => {
-    const msg = c('txt-delete-msg') + ': ' + allValue.name;
-
-    return (
-      <div className='content delete'>
-        <span>{msg}?</span>
-      </div>
-    )
-  }
-  showDeleteDialog = (allValue, id) => {
-    const {baseUrl} = this.props;
-
-    PopupDialog.prompt({
-      title: c('txt-deletePrivilege'),
-      id: 'modalWindowSmall',
-      confirmText: c('txt-delete'),
-      cancelText: c('txt-cancel'),
-      display: this.getDeletePrivilegeContent(allValue),
-      act: (confirmed) => {
-        if (confirmed) {
-          ah.one({
-            url: `${baseUrl}/api/account/privilege?privilegeId=${id}`,
-            type: 'DELETE',
-            contentType: 'application/json'
-          })
-          .then(data => {
-            setTimeout(this.loadList, 1000);
-          })
-          .catch(err => {
-            helper.showPopupMsg('', t('txt-error'), err.message);
-          })
-        }
-      }
-    });
-  }
-  handleRowContextMenu = (allValue, evt) => {
-    const menuItems = [
-      {
-        id: 'edit',
-        text: c('txt-edit'),
-        action: () => this.showEditDialog(allValue)
-      },
-      {
-        id: 'delete',
-        text: c('txt-delete'),
-        action: () => this.showDeleteDialog(allValue, allValue.privilegeid)
-      }
-    ];
-
-    ContextMenu.open(evt, menuItems, 'configUserPrivilegesMenu');
-    evt.stopPropagation();
-  }
-  displayPermit = (value) => {
-    const permitList = _.map(value, (val, i) => {
-      return <span key={i} className='permit'>{val.dispname}</span>
-    });
-
-    return permitList;
-  }
+  /**
+   * Get and set privileges list
+   * @method
+   * @param none
+   * @returns none
+   */
   loadList = () => {
     const {baseUrl} = this.props;
     const {dataFieldsArr} = this.state;
@@ -141,7 +88,118 @@ class Roles extends Component {
       });
     })
   }
-  handleRowMouseOver = (value, allValue, evt) => {
+  /**
+   * Open account privilege edit dialog
+   * @method
+   * @param {string} id - selected privilege id
+   * @returns none
+   */
+  showEditDialog = (id) => {
+    this.editor.openPrivilegeEdit(id);
+  }
+  /**
+   * Open account privilege add dialog
+   * @method
+   * @param none
+   * @returns none
+   */
+  showAddDialog = () => {
+    this.addor.openPrivilegeAdd();
+  }
+  /**
+   * Display delete privilege content
+   * @method
+   * @param {object} allValue - selected privilege data
+   * @returns HTML DOM
+   */
+  getDeletePrivilegeContent = (allValue) => {
+    const msg = c('txt-delete-msg') + ': ' + allValue.name;
+
+    return (
+      <div className='content delete'>
+        <span>{msg}?</span>
+      </div>
+    )
+  }
+  /**
+   * Display delete privilege content in modal dialog
+   * @method
+   * @param {object} allValue - selected privilege data
+   * @param {string} id - selected privilege id
+   * @returns none
+   */
+  showDeleteDialog = (allValue, id) => {
+    const {baseUrl} = this.props;
+
+    PopupDialog.prompt({
+      title: c('txt-deletePrivilege'),
+      id: 'modalWindowSmall',
+      confirmText: c('txt-delete'),
+      cancelText: c('txt-cancel'),
+      display: this.getDeletePrivilegeContent(allValue),
+      act: (confirmed) => {
+        if (confirmed) {
+          ah.one({
+            url: `${baseUrl}/api/account/privilege?privilegeId=${id}`,
+            type: 'DELETE',
+            contentType: 'application/json'
+          })
+          .then(data => {
+            setTimeout(this.loadList, 1000);
+          })
+          .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message);
+          })
+        }
+      }
+    });
+  }
+  /**
+   * Construct and display table context menu
+   * @method
+   * @param {object} allValue - owner data
+   * @param {object} evt - mouseClick events
+   * @returns none
+   */
+  handleRowContextMenu = (allValue, evt) => {
+    const menuItems = [
+      {
+        id: 'edit',
+        text: c('txt-edit'),
+        action: () => this.showEditDialog(allValue)
+      },
+      {
+        id: 'delete',
+        text: c('txt-delete'),
+        action: () => this.showDeleteDialog(allValue, allValue.privilegeid)
+      }
+    ];
+
+    ContextMenu.open(evt, menuItems, 'configUserPrivilegesMenu');
+    evt.stopPropagation();
+  }
+  /**
+   * Display role privilege data
+   * @method
+   * @param {array} value - role list
+   * @returns HTML DOM
+   */
+  displayPermit = (value) => {
+    const permitList = _.map(value, (val, i) => {
+      return <span key={i} className='permit'>{val.dispname}</span>
+    });
+
+    return permitList;
+  }
+  /**
+   * Handle table row mouse over
+   * @method
+   * @param {string} id - selected privilege id
+   * @param {object} allValue - privilege data
+   * @param {object} evt - MouseoverEvents
+   * @returns none
+   */
+  handleRowMouseOver = (id, allValue, evt) => {
     let tempData = {...this.state.data};
     tempData = _.map(tempData, el => {
       return {
@@ -154,7 +212,6 @@ class Roles extends Component {
       data: tempData
     });
   }
-
   render() {
     const {baseUrl, contextRoot, language, locale, session} = this.props;
     const {data, dataFields, info, error} = this.state;
@@ -194,15 +251,15 @@ class Roles extends Component {
         </div>
 
         <PrivilegeEdit
+          ref={ref => { this.editor = ref }}
           baseUrl={baseUrl}
           contextRoot={contextRoot}
-          ref={ref => { this.editor = ref }} 
           onDone={() => setTimeout(this.loadList, 1000)} />
 
-        <PrivilegeAdd 
+        <PrivilegeAdd
+          ref={ref => { this.addor = ref }}
           baseUrl={baseUrl}
           contextRoot={contextRoot}
-          ref={ref => { this.addor = ref }}
           onDone={() => setTimeout(this.loadList, 1000)} />
       </div>
     )

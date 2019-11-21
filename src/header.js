@@ -118,7 +118,7 @@ class Header extends Component {
    * @returns none
    */
   editAccount = () => {
-    this.editor._component.open(this.props.session.accountId, 'fromHeader');
+    this.editor._component.openAccount(this.props.session.accountId, 'fromHeader');
   }
   /**
    * Show account edit success message

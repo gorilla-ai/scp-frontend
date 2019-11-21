@@ -24,36 +24,78 @@ const INITIAL_STATE = {
   name: ''
 };
 
-class Addor extends Component {
+/**
+ * Account Privileges Add
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the account privileges add
+ */
+class PrivilegeAdd extends Component {
   constructor(props) {
     super(props);
 
     this.state = _.clone(INITIAL_STATE);
   }
-  open = () => {
+  /**
+   * Open privilege add modal dialog
+   * @method
+   * @param none
+   * @returns none
+   */
+  openPrivilegeAdd = () => {
     this.setState({
       open: true
     });
   }
+  /**
+   * Handle close confirm and reset data
+   * @method
+   * @param none
+   * @returns none
+   */
   close = () => {
     this.setState(_.clone(INITIAL_STATE));
   }
-  save = (changed) => {
+  /**
+   * Reset data and call onDone props funciton
+   * @method
+   * @param none
+   * @returns none
+   */
+  save = () => {
     this.setState(_.clone(INITIAL_STATE), () => {
       this.props.onDone();
     });
   }
+  /**
+   * Set form error message
+   * @method
+   * @param {string} msg - error message
+   * @returns none
+   */
   error = (msg) => {
     this.setState({
       info:msg,
       error:true
     });
   }
-  handleDataChange = (name) => {
+  /**
+   * Handle privilege add input value change
+   * @method
+   * @param {string} value - input value
+   * @returns none
+   */
+  handleDataChange = (value) => {
     this.setState({
-      name
+      name: value
     });
   }
+  /**
+   * Handle add privilege confirm
+   * @method
+   * @param none
+   * @returns none
+   */
   addPrivilege = () => {
     const {baseUrl} = this.props;
     const {name} = this.state;
@@ -84,7 +126,13 @@ class Addor extends Component {
       });
     }
   }
-  displayAddUser = () => {
+  /**
+   * Display add privilege content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
+  displayAddPrivilege = () => {
     const {name} = this.state;
 
     return (
@@ -118,15 +166,15 @@ class Addor extends Component {
         infoClassName={cx({'c-error':error})}
         closeAction='cancel'
         actions={actions}>
-        {this.displayAddUser()}
+        {this.displayAddPrivilege()}
       </ModalDialog>
     )
   }
 }
 
-Addor.defaultProps = {
+PrivilegeAdd.defaultProps = {
   baseUrl: PropTypes.string.isRequired,
   contextRoot: PropTypes.string.isRequired
 };
 
-export default Addor;
+export default PrivilegeAdd;

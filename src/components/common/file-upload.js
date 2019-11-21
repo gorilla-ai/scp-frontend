@@ -7,12 +7,25 @@ import withLocale from '../../hoc/locale-provider'
 
 let t = null;
 
+/**
+ * Filter Upload
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the file upload
+ */
 class FileUpload extends Component {
   constructor(props) {
     super(props);
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
   }
+  /**
+   * Get error message
+   * @method
+   * @param {object} code - error code
+   * @param {object} params - error info
+   * @returns text
+   */
   getErrorMsg = (code, params) => {
     if (params.code === 'file-wrong-format') {
       return t('txt-file-format-error') + params.extension;

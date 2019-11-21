@@ -118,7 +118,7 @@ class Login extends Component {
    * @returns none
    */
   startResetPwd = () => {
-    this.pageResetPwd.open();
+    this.pageResetPwd.openResetPwd();
   }
   /**
    * Handle enter key for login

@@ -50,6 +50,12 @@ const c = i18n.getFixedT(null, 'connections');
 const t = i18n.getFixedT(null, 'accounts');
 const gt =  i18n.getFixedT(null, 'app');
 
+/**
+ * Account List
+ * @class
+ * @author Ryan Chen &lt;ryanchen@telmediatech.com>
+ * @summary A react component to show the account list
+ */
 class AccountList extends Component {
   constructor(props) {
     super(props);
@@ -63,42 +69,19 @@ class AccountList extends Component {
         account: ''
       },
       accountID: '',
-      formFields: {},
       dataFields: {},
       showFilter: false
     };
   }
   componentDidMount() {
     this.loadAccounts();
-    this.getFormFields();
   }
-  handleDataChange = (param) => {
-    this.setState({
-      param
-    });
-  }
-  handleRowContextMenu = (allValue, evt) => {
-    const menuItems = [
-      {
-        id: 'edit',
-        text: c('txt-edit'),
-        action: () => this.showEditDialog(allValue.accountid)
-      },
-      {
-        id: 'delete',
-        text: c('txt-delete'),
-        action: () => this.showDeleteDialog(allValue, allValue.accountid)
-      },
-      {
-        id: 'unlock',
-        text: c('txt-unlock'),
-        action: () => this.showUnlockDialog(allValue, allValue.accountid)
-      }
-    ];
-
-    ContextMenu.open(evt, menuItems, 'configUserAccountsMenu');
-    evt.stopPropagation();
-  }
+  /**
+   * Get and set account list data
+   * @method
+   * @param none
+   * @returns none
+   */
   loadAccounts = () => {
     const {baseUrl} = this.props;
     const {dataFieldsArr} = this.state;
@@ -142,6 +125,43 @@ class AccountList extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Construct and display table context menu
+   * @method
+   * @param {object} allValue - account data
+   * @param {object} evt - mouseClick events
+   * @returns none
+   */
+  handleRowContextMenu = (allValue, evt) => {
+    const menuItems = [
+      {
+        id: 'edit',
+        text: c('txt-edit'),
+        action: () => this.showEditDialog(allValue.accountid)
+      },
+      {
+        id: 'delete',
+        text: c('txt-delete'),
+        action: () => this.showDialog('delete', allValue, allValue.accountid)
+      },
+      {
+        id: 'unlock',
+        text: c('txt-unlock'),
+        action: () => this.showDialog('unlock', allValue, allValue.accountid)
+      }
+    ];
+
+    ContextMenu.open(evt, menuItems, 'configUserAccountsMenu');
+    evt.stopPropagation();
+  }
+  /**
+   * Handle table row mouse over
+   * @method
+   * @param {string} index - index of the account data
+   * @param {object} allValue - account data
+   * @param {object} evt - MouseoverEvents
+   * @returns none
+   */
   handleRowMouseOver = (value, allValue, evt) => {
     let tempAccountData = {...this.state.accountData};
     tempAccountData = _.map(tempAccountData, el => {
@@ -155,7 +175,13 @@ class AccountList extends Component {
       accountData: tempAccountData
     });
   }
-  filterData = () => {
+  /**
+   * Handle account filter action
+   * @method
+   * @param none
+   * @returns none
+   */
+  getAccountFilterData = () => {
     const {originalAccountData, accountData, param} = this.state;
     let filteredAccountArr = [];
 
@@ -171,33 +197,24 @@ class AccountList extends Component {
       accountData: filteredAccountArr
     });
   }
-  getFormFields = () => {
-    const formFields = {
-      account: {
-        label: t('l-account'),
-        editor: Input,
-        props: {
-          id:'search-account',
-          placeholder:t('ph-account')
-        }
-      },
-      name: {
-        label: t('l-name'),
-        editor: Input,
-        props: {
-          placeholder:t('ph-name')
-        }
-      }
-    };
-
-    this.setState({
-      formFields
-    });
-  }
+  /**
+   * Open account edit modal dialog
+   * @method
+   * @param {string} id - selected account ID
+   * @returns none
+   */
   showEditDialog = (id) => {
-    this.editor._component.open(id);
+    this.editor._component.openAccount(id);
   }
-  getAccountMsgContent = (allValue, id, type) => {
+  /**
+   * Display delete and unlock content
+   * @method
+   * @param {string} type - action type ('delete' or 'unlock')
+   * @param {object} allValue - account data
+   * @param {string} id - selected account ID
+   * @returns HTML DOM
+   */
+  getAccountMsgContent = (type, allValue, id) => {
     let msg = '';
 
     if (type === 'delete') {
@@ -216,34 +233,34 @@ class AccountList extends Component {
       &lt;/div>
     )
   }
-  showDeleteDialog = (allValue, id) => {
+  /**
+   * Display delete/unlock modal dialog
+   * @method
+   * @param {string} type - action type ('delete' or 'unlock')
+   * @param {object} allValue - account data
+   * @param {string} id - selected account ID
+   * @returns none
+   */
+  showDialog = (type, allValue, id) => {
     PopupDialog.prompt({
-      title: c('txt-deleteAccount'),
+      title: c('txt-' + type + 'Account'),
       id: 'modalWindowSmall',
-      confirmText: c('txt-delete'),
+      confirmText: c('txt-' + type),
       cancelText: c('txt-cancel'),
-      display: this.getAccountMsgContent(allValue, id, 'delete'),
+      display: this.getAccountMsgContent(type, allValue, id),
       act: (confirmed) => {
         if (confirmed) {
-          this.accountAction('delete');
+          this.accountAction(type);
         }
       }
     });
   }
-  showUnlockDialog = (allValue, id) => {
-    PopupDialog.prompt({
-      title: c('txt-unlockAccount'),
-      id: 'modalWindowSmall',
-      confirmText: c('txt-unlock'),
-      cancelText: c('txt-cancel'),
-      display: this.getAccountMsgContent(allValue, id, 'unlock'),
-      act: (confirmed) => {
-        if (confirmed) {
-          this.accountAction('unlock');
-        }
-      }
-    });
-  }
+  /**
+   * Handle delete/unlock modal confirm
+   * @method
+   * @param {string} type - action type ('delete' or 'unlock')
+   * @returns none
+   */
   accountAction = (type) => {
     const {baseUrl} = this.props;
     const {accountID} = this.state;
@@ -340,7 +357,7 @@ class AccountList extends Component {
           &lt;/div>
         &lt;/div>
         &lt;div className='button-group'>
-          &lt;button className='filter' onClick={this.filterData}>{c('txt-filter')}&lt;/button>
+          &lt;button className='filter' onClick={this.getAccountFilterData}>{c('txt-filter')}&lt;/button>
           &lt;button className='clear' onClick={this.clearFilter}>{c('txt-clear')}&lt;/button>
         &lt;/div>
       &lt;/div>
@@ -386,10 +403,9 @@ class AccountList extends Component {
         &lt;/div>
 
         &lt;AccountEdit
+          ref={ref => { this.editor = ref }}
           baseUrl={baseUrl}
           contextRoot={contextRoot}
-          session={session}
-          ref={ref => { this.editor = ref }}
           onDone={this.loadAccounts} />
       &lt;/div>
     )
@@ -411,13 +427,13 @@ export default AccountList;</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="Login.html">Login</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="SafetyScan.html">SafetyScan</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyScan.html">SafetyScan</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Tue Nov 19 2019 17:26:26 GMT+0800 (台北標準時間)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Nov 21 2019 15:10:59 GMT+0800 (台北標準時間)
 </footer>
 
 <script> prettyPrint(); </script>

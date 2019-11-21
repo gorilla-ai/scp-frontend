@@ -31,13 +31,25 @@ const INITIAL_STATE = {
   privilegeid: ''
 };
 
-class Editor extends Component {
+/**
+ * Account Privileges Edit
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the account privileges edit
+ */
+class PrivilegeEdit extends Component {
   constructor(props) {
     super(props);
 
     this.state = _.clone(INITIAL_STATE);
   }
-  open = (privilege) => {
+  /**
+   * Open privilege edit modal dialog and set data
+   * @method
+   * @param {object} privilege - selected privilege data
+   * @returns none
+   */
+  openPrivilegeEdit = (privilege) => {
     this.setState({
       open: true,
       name: privilege.name,
@@ -45,14 +57,12 @@ class Editor extends Component {
       selected: _.map(privilege.permits, (permit) => { return permit.permitid }
     )}, this.loadPermits)
   }
-  close = () => {
-    this.setState(_.clone(INITIAL_STATE));
-  }
-  save = (changed) => {
-    this.setState(_.clone(INITIAL_STATE), () => {
-      this.props.onDone();
-    })
-  }
+  /**
+   * Get and set privilege permits data
+   * @method
+   * @param none
+   * @returns none
+   */
   loadPermits = () => {
     const {baseUrl} = this.props;
 
@@ -77,7 +87,33 @@ class Editor extends Component {
       });
     })
   }
-  bindPermits = () => {
+  /**
+   * Handle close confirm and reset data
+   * @method
+   * @param none
+   * @returns none
+   */
+  close = () => {
+    this.setState(_.clone(INITIAL_STATE));
+  }
+  /**
+   * Reset data and call onDone props funciton
+   * @method
+   * @param none
+   * @returns none
+   */
+  save = () => {
+    this.setState(_.clone(INITIAL_STATE), () => {
+      this.props.onDone();
+    })
+  }
+  /**
+   * Handle privilege edit confirm
+   * @method
+   * @param none
+   * @returns none
+   */
+  editPrivilege = () => {
     const {baseUrl} = this.props;
     const {selected, privilegeid} = this.state;
 
@@ -96,12 +132,24 @@ class Editor extends Component {
       });
     })
   }
+  /**
+   * Handle checkboxgroup value change
+   * @method
+   * @param {array} selected - selected checkboxs value
+   * @returns none
+   */
   handleDataChange = (selected) => {
     this.setState({
       selected
     });
   }
-  displayEditUser = () => {
+  /**
+   * Display edit privilege content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
+  displayEditPrivilege = () => {
     const {permits, selected, name} = this.state;
 
     return (
@@ -127,7 +175,7 @@ class Editor extends Component {
     const {info, error, open} = this.state;
     const actions = {
       cancel: {text: gt('btn-cancel'), className: 'standard', handler: this.close.bind(this, false)},
-      confirm: {text: gt('btn-ok'), handler: this.bindPermits}
+      confirm: {text: gt('btn-ok'), handler: this.editPrivilege}
     };
 
     if (!open) {
@@ -145,15 +193,15 @@ class Editor extends Component {
         infoClassName={cx({'c-error':error})}
         closeAction='cancel'
         actions={actions}>
-        {this.displayEditUser()}
+        {this.displayEditPrivilege()}
       </ModalDialog>
     )
   }
 }
 
-Editor.defaultProps = {
+PrivilegeEdit.defaultProps = {
   baseUrl: PropTypes.string.isRequired,
   contextRoot: PropTypes.string.isRequired
 };
 
-export default Editor;
+export default PrivilegeEdit;

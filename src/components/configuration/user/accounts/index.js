@@ -22,6 +22,12 @@ const c = i18n.getFixedT(null, 'connections');
 const t = i18n.getFixedT(null, 'accounts');
 const gt =  i18n.getFixedT(null, 'app');
 
+/**
+ * Account List
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the account list
+ */
 class AccountList extends Component {
   constructor(props) {
     super(props);
@@ -35,42 +41,19 @@ class AccountList extends Component {
         account: ''
       },
       accountID: '',
-      formFields: {},
       dataFields: {},
       showFilter: false
     };
   }
   componentDidMount() {
     this.loadAccounts();
-    this.getFormFields();
   }
-  handleDataChange = (param) => {
-    this.setState({
-      param
-    });
-  }
-  handleRowContextMenu = (allValue, evt) => {
-    const menuItems = [
-      {
-        id: 'edit',
-        text: c('txt-edit'),
-        action: () => this.showEditDialog(allValue.accountid)
-      },
-      {
-        id: 'delete',
-        text: c('txt-delete'),
-        action: () => this.showDeleteDialog(allValue, allValue.accountid)
-      },
-      {
-        id: 'unlock',
-        text: c('txt-unlock'),
-        action: () => this.showUnlockDialog(allValue, allValue.accountid)
-      }
-    ];
-
-    ContextMenu.open(evt, menuItems, 'configUserAccountsMenu');
-    evt.stopPropagation();
-  }
+  /**
+   * Get and set account list data
+   * @method
+   * @param none
+   * @returns none
+   */
   loadAccounts = () => {
     const {baseUrl} = this.props;
     const {dataFieldsArr} = this.state;
@@ -114,6 +97,43 @@ class AccountList extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Construct and display table context menu
+   * @method
+   * @param {object} allValue - account data
+   * @param {object} evt - mouseClick events
+   * @returns none
+   */
+  handleRowContextMenu = (allValue, evt) => {
+    const menuItems = [
+      {
+        id: 'edit',
+        text: c('txt-edit'),
+        action: () => this.showEditDialog(allValue.accountid)
+      },
+      {
+        id: 'delete',
+        text: c('txt-delete'),
+        action: () => this.showDialog('delete', allValue, allValue.accountid)
+      },
+      {
+        id: 'unlock',
+        text: c('txt-unlock'),
+        action: () => this.showDialog('unlock', allValue, allValue.accountid)
+      }
+    ];
+
+    ContextMenu.open(evt, menuItems, 'configUserAccountsMenu');
+    evt.stopPropagation();
+  }
+  /**
+   * Handle table row mouse over
+   * @method
+   * @param {string} index - index of the account data
+   * @param {object} allValue - account data
+   * @param {object} evt - MouseoverEvents
+   * @returns none
+   */
   handleRowMouseOver = (value, allValue, evt) => {
     let tempAccountData = {...this.state.accountData};
     tempAccountData = _.map(tempAccountData, el => {
@@ -127,7 +147,13 @@ class AccountList extends Component {
       accountData: tempAccountData
     });
   }
-  filterData = () => {
+  /**
+   * Handle account filter action
+   * @method
+   * @param none
+   * @returns none
+   */
+  getAccountFilterData = () => {
     const {originalAccountData, accountData, param} = this.state;
     let filteredAccountArr = [];
 
@@ -143,33 +169,24 @@ class AccountList extends Component {
       accountData: filteredAccountArr
     });
   }
-  getFormFields = () => {
-    const formFields = {
-      account: {
-        label: t('l-account'),
-        editor: Input,
-        props: {
-          id:'search-account',
-          placeholder:t('ph-account')
-        }
-      },
-      name: {
-        label: t('l-name'),
-        editor: Input,
-        props: {
-          placeholder:t('ph-name')
-        }
-      }
-    };
-
-    this.setState({
-      formFields
-    });
-  }
+  /**
+   * Open account edit modal dialog
+   * @method
+   * @param {string} id - selected account ID
+   * @returns none
+   */
   showEditDialog = (id) => {
-    this.editor._component.open(id);
+    this.editor._component.openAccount(id);
   }
-  getAccountMsgContent = (allValue, id, type) => {
+  /**
+   * Display delete and unlock content
+   * @method
+   * @param {string} type - action type ('delete' or 'unlock')
+   * @param {object} allValue - account data
+   * @param {string} id - selected account ID
+   * @returns HTML DOM
+   */
+  getAccountMsgContent = (type, allValue, id) => {
     let msg = '';
 
     if (type === 'delete') {
@@ -188,34 +205,34 @@ class AccountList extends Component {
       </div>
     )
   }
-  showDeleteDialog = (allValue, id) => {
+  /**
+   * Display delete/unlock modal dialog
+   * @method
+   * @param {string} type - action type ('delete' or 'unlock')
+   * @param {object} allValue - account data
+   * @param {string} id - selected account ID
+   * @returns none
+   */
+  showDialog = (type, allValue, id) => {
     PopupDialog.prompt({
-      title: c('txt-deleteAccount'),
+      title: c('txt-' + type + 'Account'),
       id: 'modalWindowSmall',
-      confirmText: c('txt-delete'),
+      confirmText: c('txt-' + type),
       cancelText: c('txt-cancel'),
-      display: this.getAccountMsgContent(allValue, id, 'delete'),
+      display: this.getAccountMsgContent(type, allValue, id),
       act: (confirmed) => {
         if (confirmed) {
-          this.accountAction('delete');
+          this.accountAction(type);
         }
       }
     });
   }
-  showUnlockDialog = (allValue, id) => {
-    PopupDialog.prompt({
-      title: c('txt-unlockAccount'),
-      id: 'modalWindowSmall',
-      confirmText: c('txt-unlock'),
-      cancelText: c('txt-cancel'),
-      display: this.getAccountMsgContent(allValue, id, 'unlock'),
-      act: (confirmed) => {
-        if (confirmed) {
-          this.accountAction('unlock');
-        }
-      }
-    });
-  }
+  /**
+   * Handle delete/unlock modal confirm
+   * @method
+   * @param {string} type - action type ('delete' or 'unlock')
+   * @returns none
+   */
   accountAction = (type) => {
     const {baseUrl} = this.props;
     const {accountID} = this.state;
@@ -312,7 +329,7 @@ class AccountList extends Component {
           </div>
         </div>
         <div className='button-group'>
-          <button className='filter' onClick={this.filterData}>{c('txt-filter')}</button>
+          <button className='filter' onClick={this.getAccountFilterData}>{c('txt-filter')}</button>
           <button className='clear' onClick={this.clearFilter}>{c('txt-clear')}</button>
         </div>
       </div>
@@ -358,10 +375,9 @@ class AccountList extends Component {
         </div>
 
         <AccountEdit
+          ref={ref => { this.editor = ref }}
           baseUrl={baseUrl}
           contextRoot={contextRoot}
-          session={session}
-          ref={ref => { this.editor = ref }}
           onDone={this.loadAccounts} />
       </div>
     )

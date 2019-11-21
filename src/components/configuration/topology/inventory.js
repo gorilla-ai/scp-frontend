@@ -1669,7 +1669,7 @@ class NetworkInventory extends Component {
    * @returns none
    */
   openManage = () => {
-    this.manage._component.open();
+    this.manage._component.openManage();
   }
   /**
    * Open floor map edit dialog
@@ -2365,6 +2365,8 @@ class NetworkInventory extends Component {
 
         <Manage
           ref={ref => { this.manage = ref }}
+          baseUrl={baseUrl}
+          contextRoot={contextRoot}
           onDone={this.getOtherData} />
 
         <div className='sub-header'>

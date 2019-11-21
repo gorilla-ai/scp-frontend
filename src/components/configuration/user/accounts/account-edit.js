@@ -38,7 +38,13 @@ const INITIAL_STATE = {
   showPrivileges: true
 };
 
-class Editor extends Component {
+/**
+ * AccountEdit
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show account edit form
+ */
+class AccountEdit extends Component {
   constructor(props) {
     super(props);
 
@@ -46,11 +52,23 @@ class Editor extends Component {
 
     this.ah = getInstance('chewbacca');
   }
+  /**
+   * Handle account edit form change
+   * @method
+   * @param {object} accountData - form input key-value
+   * @returns none
+   */
   handleDataChange = (accountData) => {
     this.setState({
       accountData
     });
   }
+  /**
+   * Get and set account data
+   * @method
+   * @param {string} id - selected account ID
+   * @returns none
+   */
   loadAccount = (id) => {
     const {baseUrl} = this.props;
 
@@ -86,6 +104,12 @@ class Editor extends Component {
       this.close();
     })
   }
+  /**
+   * Get and set account privileges
+   * @method
+   * @param none
+   * @returns none
+   */
   loadPrivileges = () => {
     const {baseUrl} = this.props;
 
@@ -105,6 +129,12 @@ class Editor extends Component {
       });
     })
   }
+  /**
+   * Handle save account confirm
+   * @method
+   * @param none
+   * @returns none
+   */
   saveAccount = () => {
     const {baseUrl} = this.props;
     const {id, accountData, showPrivileges} = this.state;
@@ -154,6 +184,12 @@ class Editor extends Component {
       });
     }
   }
+  /**
+   * Handle save privileges confirm
+   * @method
+   * @param none
+   * @returns none
+   */
   savePrivileges = () => {
     const {baseUrl} = this.props;
     const {id, accountData:{selected}} = this.state;
@@ -177,10 +213,17 @@ class Editor extends Component {
       })
     })
   }
-  open = (id, option) => {
+  /**
+   * Open account add/edit modal dialog
+   * @method
+   * @param {string} id - selected account ID
+   * @param {string} options - option for 'fromHeader'
+   * @returns none
+   */
+  openAccount = (id, options) => {
     let showPrivileges = true;
 
-    if (option === 'fromHeader') {
+    if (options === 'fromHeader') {
       showPrivileges = false;
     }
     this.setState({
@@ -195,17 +238,35 @@ class Editor extends Component {
       }
     });
   }
+  /**
+   * Handle close confirm and reset data
+   * @method
+   * @param none
+   * @returns none
+   */
   close = () => {
     this.setState(
       _.cloneDeep(INITIAL_STATE)
     );
   }
+  /**
+   * Set form error message
+   * @method
+   * @param {string} msg - error message
+   * @returns none
+   */
   error = (msg) => {
     this.setState({
-      info:msg,
+      info: msg,
       error: true
     });
   }
+  /**
+   * Display account edit content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
   displayAccountsEdit = () => {
     const {id, accountData, privileges, showPrivileges} = this.state;
 
@@ -290,7 +351,7 @@ class Editor extends Component {
         draggable
         global
         info={info}
-        infoClassName={cx({'c-error':error})}
+        infoClassName={cx({'c-error': error})}
         closeAction='cancel'
         actions={actions}>
         {this.displayAccountsEdit()}
@@ -299,13 +360,13 @@ class Editor extends Component {
   }
 }
 
-Editor.propTypes = {
+AccountEdit.propTypes = {
   onDone: PropTypes.func.isRequired
 };
 
-Editor.defaultProps = {
+AccountEdit.defaultProps = {
   baseUrl: PropTypes.string.isRequired,
   contextRoot: PropTypes.string.isRequired
 };
 
-export default withLocale(Editor);
+export default withLocale(AccountEdit);

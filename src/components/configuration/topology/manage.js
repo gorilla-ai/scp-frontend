@@ -14,12 +14,8 @@ import withLocale from '../../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
-const initialState = JSON.parse(document.getElementById('initial-state').innerHTML || '{}');
-const {envCfg:cfg} = initialState;
-const baseUrl = cfg.apiPrefix;
-
 const INIT = {
-  open: false,
+  openManage: false,
   openName: false,
   tableArr: ['nameUUID', 'name', 'option'],
   tab: {
@@ -31,8 +27,8 @@ const INIT = {
   header: '',
   data: [],
 };
-const _department = 1;
-const _title = 2;
+const DEPARTMENT = 1;
+const TITLE = 2;
 
 let t = null;
 let et = null;
@@ -53,66 +49,127 @@ class Manage extends Component {
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
     this.ah = getInstance('chewbacca');
   }
-  addName = () => {
-    const {tab, name} = this.state;
+  /**
+   * Get and set department or title data
+   * @method
+   * @param {string} tab - tab name ('department' or 'title')
+   * @returns none
+   */
+  getNameList = (tab) => {
+    const {baseUrl, contextRoot} = this.props;
+    const url = `${baseUrl}/api/name/_search`;
+    let nameType = '';
 
-    if (!name.trim()) {
-      helper.showPopupMsg('', t('txt-error'), t('txt-noEmpty'));
-      return;
+    if (tab === 'department') {
+      nameType = DEPARTMENT;
+    } else if (tab === 'title') {
+      nameType = TITLE;
     }
 
-    const json = {
-      name: name,
-      nameType: tab.department ? _department : _title
+    const requestData = {
+      nameType
     };
 
-    this.ah.one({
-      url: `${baseUrl}/api/name`,
-      type: 'POST',
-      data: JSON.stringify(json),
-      contentType: 'application/json'
-    })
+    helper.getAjaxData('POST', url, requestData)
     .then(data => {
-      this.setState({
-        openName: false
-      });
-      this.getNameList(tab.department ? 'department' : 'title');
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
+      if (data) {
+        this.setState({
+          data
+        });
+      }
+      return null;
+    });
   }
-  updateName = () => {
-    const {tab, name, nameUUID} = this.state;
+  /**
+   * Get department data and set open manage modal
+   * @method
+   * @param none
+   * @returns none
+   */
+  openManage = () => {
+    this.getNameList('department');
+    this.setState({
+      openManage: true
+    });
+  }
+  /**
+   * Handle tabs change
+   * @method
+   * @param {string} tab - tab name ('department' or 'title')
+   * @returns none
+   */
+  handleTabChange = (tab) => {
+    let tabs = {
+      department: false,
+      title: false
+    };
+    tabs[tab] = true;
 
-    if (!name.trim()) {
-      helper.showPopupMsg('', t('txt-error'), t('txt-noEmpty'));
-      return;
+    this.getNameList(tab);
+    this.setState({
+      tab: tabs
+    });
+  }
+  /**
+   * Handle add/edit name action
+   * @method
+   * @param {string} type - action type ('add' or 'edit')
+   * @param {string} nameUUID - name UUID
+   * @param {string} name - selected name value
+   * @returns none
+   */
+  openName = (type, nameUUID, name) => {
+    const {tab} = this.state;
+    let header = '';
+
+    if (type === 'add') {
+      header = tab.department ? t('txt-addDepartment') : t('txt-addTitle');
+      name = '';
+      nameUUID = '';
+    } else if (type === 'edit') {
+      header = tab.department ? t('txt-updateDepartment') : t('txt-updateTitle');
     }
 
-    const json = {
-      nameUUID: nameUUID,
-      name: name,
-      nameType: tab.department ? _department : _title
-    };
-
-    this.ah.one({
-      url: `${baseUrl}/api/name`,
-      type: 'PATCH',
-      data: JSON.stringify(json),
-      contentType: 'application/json'
-    })
-    .then(data => {
-      this.setState({
-        openName: false
-      });
-      this.getNameList(tab.department ? 'department' : 'title');
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
+    this.setState({
+      openName: true,
+      header,
+      name,
+      nameUUID
+    });
+  }
+  /**
+   * Open delete name modal dialog
+   * @method
+   * @param {string} nameUUID - name UUID
+   * @param {string} name - selected name value
+   * @returns none
+   */
+  openDeleteName = (nameUUID, name) => {
+    PopupDialog.prompt({
+      title: this.state.tab.department ? t('txt-deleteDepartment') : t('txt-deleteTitle'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: (
+        <div className='content delete'>
+          <span>{t('txt-delete-msg')}: {name}?</span>
+        </div>
+      ),
+      act: (confirmed) => {
+        if (confirmed) {
+          this.deleteName(nameUUID)
+        }
+      }
     })
   }
+  /**
+   * Handle delete name confirm
+   * @method
+   * @param {string} nameUUID - name UUID
+   * @returns none
+   */
   deleteName = (nameUUID) => {
+    const {baseUrl, contextRoot} = this.props;
     const {tab} = this.state;
 
     this.ah.one({
@@ -126,53 +183,12 @@ class Manage extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  getNameList = (tab) => {
-    const json = {
-      nameType: tab === 'department' ? _department : _title
-    };
-
-    this.ah.one({
-      url: `${baseUrl}/api/name/_search`,
-      data: JSON.stringify(json),
-      type: 'POST',
-      contentType: 'application/json'
-    })
-    .then(data => {
-      this.setState({
-        data: data
-      });
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  open = () => {
-    this.getNameList('department');
-    this.setState({
-      open: true
-    });
-  }
-  close = () => {
-    this.setState(_.cloneDeep(INIT));
-    this.props.onDone();
-  }
-  handleTabChange = (tab) => {
-    let tabs = {
-      department: false,
-      title: false
-    };
-    tabs[tab] = true;
-
-    this.getNameList(tab);
-    this.setState({
-      tab: tabs
-    });
-  }
-  handleDataChange = (key, value) => {
-    this.setState({
-      [key]: value
-    });
-  }
+  /**
+   * Display department/title manage content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
   displayDepartmentTitle = () => {
     const {tableArr, tab, data} = this.state;
     const label = tab.department ? t('ownerFields.department') : t('ownerFields.title');
@@ -187,7 +203,7 @@ class Manage extends Component {
           if (tempData === 'option') {
             return (
               <div>
-                <i className='c-link fg fg-edit' onClick={this.openEditName.bind(this, allValue.nameUUID, allValue.name)} title={t('txt-edit')} />
+                <i className='c-link fg fg-edit' onClick={this.openName.bind(this, 'edit', allValue.nameUUID, allValue.name)} title={t('txt-edit')} />
                 <i className='c-link fg fg-trashcan' onClick={this.openDeleteName.bind(this, allValue.nameUUID, allValue.name)} title={t('txt-delete')} />
               </div>
             )
@@ -208,7 +224,7 @@ class Manage extends Component {
           onChange={this.handleTabChange}
           value={tab.department ? 'department' : 'title'} />
 
-        <i className='c-link fg fg-add' onClick={this.openAddName} title={tab.department ? t('txt-addDepartment') : t('txt-addTitle')}></i>
+        <i className='c-link fg fg-add' onClick={this.openName.bind(this, 'add')} title={tab.department ? t('txt-addDepartment') : t('txt-addTitle')}></i>
 
         <DataTable
           fields={dataFields}
@@ -216,9 +232,15 @@ class Manage extends Component {
       </div>
     )
   }
-  renderModal = () => {
+  /**
+   * Display department/title manage content in modal dialog
+   * @method
+   * @param none
+   * @returns ModalDialog component
+   */
+  departmentTitleManageModal = () => {
     const actions = {
-      cancel: {text: t('txt-close'), handler: this.close}
+      cancel: {text: t('txt-close'), handler: this.closeManage}
     };
 
     return (
@@ -234,54 +256,53 @@ class Manage extends Component {
       </ModalDialog>
     )
   }
-  openAddName = () => {
-    const header = this.state.tab.department ? t('txt-addDepartment') : t('txt-addTitle');
-
+  /**
+   * Handle close manage confirm
+   * @method
+   * @param none
+   * @returns none
+   */
+  closeManage = () => {
+    this.setState(_.cloneDeep(INIT));
+    this.props.onDone();
+  }
+  /**
+   * Handle name input value change
+   * @method
+   * @param {string} key - input type
+   * @param {string} value - input value
+   * @returns none
+   */
+  handleDataChange = (key, value) => {
     this.setState({
-      openName: true,
-      header,
-      name: '',
-      nameUUID: ''
+      [key]: value
     });
   }
-  openEditName = (nameUUID, name) => {
-    const header = this.state.tab.department ? t('txt-updateDepartment') : t('txt-updateTitle');
-
-    this.setState({
-      openName: true,
-      header,
-      name,
-      nameUUID
-    });
+  /**
+   * Display name content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
+  displayName = () => {
+    return (
+      <Input
+        placeholder={t('txt-enterName')}
+        onChange={this.handleDataChange.bind(this, 'name')}
+        value={this.state.name} />
+    )
   }
-  openDeleteName = (nameUUID, name) => {
-    PopupDialog.prompt({
-      title: this.state.tab.department ? t('txt-deleteDepartment') : t('txt-deleteTitle'),
-      id: 'modalWindowSmall',
-      confirmText: t('txt-delete'),
-      cancelText: t('txt-cancel'),
-      display: (
-        <div className='content delete'>
-          <span>{t('txt-delete-msg')}: {name}?</span>
-        </div>
-      ),
-      act: (confirmed) => {
-        if (confirmed) {
-          this.deleteName(nameUUID)
-        }
-      }
-    })
-  }
-  closeName = () => {
-    this.setState({
-      openName: false
-    });
-  }
-  renderName = () => {
-    const {openName, name, nameUUID, header} = this.state;
+  /**
+   * Display name content in modal dialog
+   * @method
+   * @param none
+   * @returns ModalDialog component
+   */
+  departmentTitleNameModal = () => {
+    const {header} = this.state;
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeName},
-      confirm: {text: t('txt-confirm'), handler: nameUUID === '' ? this.addName : this.updateName}
+      confirm: {text: t('txt-confirm'), handler: this.confirmName}
     };
 
     return (
@@ -293,24 +314,73 @@ class Manage extends Component {
         global={true}
         actions={actions}
         closeAction='cancel'>
-        <Input
-          placeholder={t('txt-enterName')}
-          onChange={this.handleDataChange.bind(this, 'name')}
-          value={name} />
+        {this.displayName()}
       </ModalDialog>
     )
   }
+  /**
+   * Handle name modal confirm
+   * @method
+   * @param none
+   * @returns none
+   */
+  confirmName = () => {
+    const {baseUrl, contextRoot} = this.props;
+    const {tab, name, nameUUID} = this.state;
+    const url = `${baseUrl}/api/name`;
+    let requestData = {};  
+
+    if (!name.trim()) {
+      helper.showPopupMsg('', t('txt-error'), t('txt-noEmpty'));
+      return;
+    }
+
+    if (nameUUID) {
+      requestData = {
+        nameUUID: nameUUID,
+        name: name,
+        nameType: tab.department ? DEPARTMENT : TITLE
+      };
+    } else {
+      requestData = {
+        name: name,
+        nameType: tab.department ? DEPARTMENT : TITLE
+      };
+    }
+
+    helper.getAjaxData('POST', url, requestData)
+    .then(data => {
+      if (data) {
+        this.setState({
+          openName: false
+        });
+        this.getNameList(tab.department ? 'department' : 'title');
+      }
+      return null;
+    });
+  }
+  /**
+   * Close open name dialog
+   * @method
+   * @param none
+   * @returns none
+   */
+  closeName = () => {
+    this.setState({
+      openName: false
+    });
+  }
   render() {
-    const {open, openName} = this.state;
+    const {openManage, openName} = this.state;
 
     return (
       <div>
-        {open &&
-          this.renderModal()
+        {openManage &&
+          this.departmentTitleManageModal()
         }
 
         {openName &&
-          this.renderName()
+          this.departmentTitleNameModal()
         }
       </div>
     )

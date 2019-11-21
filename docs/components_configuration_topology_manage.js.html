@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/configuration/topology/manage.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/configuration/topology/manage.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { Component } from 'react'
+import PropTypes from 'prop-types'
+import _ from 'lodash'
+import cx from 'classnames'
+
+import ButtonGroup from 'react-ui/build/src/components/button-group'
+import DataTable from 'react-ui/build/src/components/table'
+import Input from 'react-ui/build/src/components/input'
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
+
+import helper from '../../common/helper'
+import withLocale from '../../../hoc/locale-provider'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+const INIT = {
+  openManage: false,
+  openName: false,
+  tableArr: ['nameUUID', 'name', 'option'],
+  tab: {
+    department: true,
+    title: false
+  },
+  nameUUID: '',
+  name: '',
+  header: '',
+  data: [],
+};
+const DEPARTMENT = 1;
+const TITLE = 2;
+
+let t = null;
+let et = null;
+
+/**
+ * Config Topology Department and Title management
+ * @class
+ * @author Ryan Chen &lt;ryanchen@telmediatech.com>
+ * @summary A react component to manage department and title
+ */
+class Manage extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = _.cloneDeep(INIT);
+
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    et = global.chewbaccaI18n.getFixedT(null, 'errors');
+    this.ah = getInstance('chewbacca');
+  }
+  /**
+   * Get and set department or title data
+   * @method
+   * @param {string} tab - tab name ('department' or 'title')
+   * @returns none
+   */
+  getNameList = (tab) => {
+    const {baseUrl, contextRoot} = this.props;
+    const url = `${baseUrl}/api/name/_search`;
+    let nameType = '';
+
+    if (tab === 'department') {
+      nameType = DEPARTMENT;
+    } else if (tab === 'title') {
+      nameType = TITLE;
+    }
+
+    const requestData = {
+      nameType
+    };
+
+    helper.getAjaxData('POST', url, requestData)
+    .then(data => {
+      if (data) {
+        this.setState({
+          data
+        });
+      }
+      return null;
+    });
+  }
+  /**
+   * Get department data and set open manage modal
+   * @method
+   * @param none
+   * @returns none
+   */
+  openManage = () => {
+    this.getNameList('department');
+    this.setState({
+      openManage: true
+    });
+  }
+  /**
+   * Handle tabs change
+   * @method
+   * @param {string} tab - tab name ('department' or 'title')
+   * @returns none
+   */
+  handleTabChange = (tab) => {
+    let tabs = {
+      department: false,
+      title: false
+    };
+    tabs[tab] = true;
+
+    this.getNameList(tab);
+    this.setState({
+      tab: tabs
+    });
+  }
+  /**
+   * Handle add/edit name action
+   * @method
+   * @param {string} type - action type ('add' or 'edit')
+   * @param {string} nameUUID - name UUID
+   * @param {string} name - selected name value
+   * @returns none
+   */
+  openName = (type, nameUUID, name) => {
+    const {tab} = this.state;
+    let header = '';
+
+    if (type === 'add') {
+      header = tab.department ? t('txt-addDepartment') : t('txt-addTitle');
+      name = '';
+      nameUUID = '';
+    } else if (type === 'edit') {
+      header = tab.department ? t('txt-updateDepartment') : t('txt-updateTitle');
+    }
+
+    this.setState({
+      openName: true,
+      header,
+      name,
+      nameUUID
+    });
+  }
+  /**
+   * Open delete name modal dialog
+   * @method
+   * @param {string} nameUUID - name UUID
+   * @param {string} name - selected name value
+   * @returns none
+   */
+  openDeleteName = (nameUUID, name) => {
+    PopupDialog.prompt({
+      title: this.state.tab.department ? t('txt-deleteDepartment') : t('txt-deleteTitle'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: (
+        &lt;div className='content delete'>
+          &lt;span>{t('txt-delete-msg')}: {name}?&lt;/span>
+        &lt;/div>
+      ),
+      act: (confirmed) => {
+        if (confirmed) {
+          this.deleteName(nameUUID)
+        }
+      }
+    })
+  }
+  /**
+   * Handle delete name confirm
+   * @method
+   * @param {string} nameUUID - name UUID
+   * @returns none
+   */
+  deleteName = (nameUUID) => {
+    const {baseUrl, contextRoot} = this.props;
+    const {tab} = this.state;
+
+    this.ah.one({
+      url: `${baseUrl}/api/name?uuid=${nameUUID}`,
+      type: 'DELETE'
+    })
+    .then(data => {
+      this.getNameList(tab.department ? 'department' : 'title');
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Display department/title manage content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
+  displayDepartmentTitle = () => {
+    const {tableArr, tab, data} = this.state;
+    const label = tab.department ? t('ownerFields.department') : t('ownerFields.title');
+
+    let dataFields = {};
+    tableArr.forEach(tempData => {
+      dataFields[tempData] = {
+        hide: tempData === 'nameUUID' ? true : false,
+        label: tempData === 'name' ? label : '',
+        sortable: false,
+        formatter: (value, allValue) => {
+          if (tempData === 'option') {
+            return (
+              &lt;div>
+                &lt;i className='c-link fg fg-edit' onClick={this.openName.bind(this, 'edit', allValue.nameUUID, allValue.name)} title={t('txt-edit')} />
+                &lt;i className='c-link fg fg-trashcan' onClick={this.openDeleteName.bind(this, allValue.nameUUID, allValue.name)} title={t('txt-delete')} />
+              &lt;/div>
+            )
+          } else {
+            return &lt;span>{value}&lt;/span>
+          }
+        }
+      };
+    })
+
+    return (
+      &lt;div>
+        &lt;ButtonGroup
+          list={[
+            {value: 'department', text: t('ownerFields.department')},
+            {value: 'title', text: t('ownerFields.title')}
+          ]}
+          onChange={this.handleTabChange}
+          value={tab.department ? 'department' : 'title'} />
+
+        &lt;i className='c-link fg fg-add' onClick={this.openName.bind(this, 'add')} title={tab.department ? t('txt-addDepartment') : t('txt-addTitle')}>&lt;/i>
+
+        &lt;DataTable
+          fields={dataFields}
+          data={data} />
+      &lt;/div>
+    )
+  }
+  /**
+   * Display department/title manage content in modal dialog
+   * @method
+   * @param none
+   * @returns ModalDialog component
+   */
+  departmentTitleManageModal = () => {
+    const actions = {
+      cancel: {text: t('txt-close'), handler: this.closeManage}
+    };
+
+    return (
+      &lt;ModalDialog
+        id='departmentTitleDialog'
+        className='modal-dialog'
+        title={t('txt-mixName')}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        {this.displayDepartmentTitle()}
+      &lt;/ModalDialog>
+    )
+  }
+  /**
+   * Handle close manage confirm
+   * @method
+   * @param none
+   * @returns none
+   */
+  closeManage = () => {
+    this.setState(_.cloneDeep(INIT));
+    this.props.onDone();
+  }
+  /**
+   * Handle name input value change
+   * @method
+   * @param {string} key - input type
+   * @param {string} value - input value
+   * @returns none
+   */
+  handleDataChange = (key, value) => {
+    this.setState({
+      [key]: value
+    });
+  }
+  /**
+   * Display name content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
+  displayName = () => {
+    return (
+      &lt;Input
+        placeholder={t('txt-enterName')}
+        onChange={this.handleDataChange.bind(this, 'name')}
+        value={this.state.name} />
+    )
+  }
+  /**
+   * Display name content in modal dialog
+   * @method
+   * @param none
+   * @returns ModalDialog component
+   */
+  departmentTitleNameModal = () => {
+    const {header} = this.state;
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeName},
+      confirm: {text: t('txt-confirm'), handler: this.confirmName}
+    };
+
+    return (
+      &lt;ModalDialog
+        id='renderNameDialog'
+        className='modal-dialog'
+        title={header}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        {this.displayName()}
+      &lt;/ModalDialog>
+    )
+  }
+  /**
+   * Handle name modal confirm
+   * @method
+   * @param none
+   * @returns none
+   */
+  confirmName = () => {
+    const {baseUrl, contextRoot} = this.props;
+    const {tab, name, nameUUID} = this.state;
+    const url = `${baseUrl}/api/name`;
+    let requestData = {};  
+
+    if (!name.trim()) {
+      helper.showPopupMsg('', t('txt-error'), t('txt-noEmpty'));
+      return;
+    }
+
+    if (nameUUID) {
+      requestData = {
+        nameUUID: nameUUID,
+        name: name,
+        nameType: tab.department ? DEPARTMENT : TITLE
+      };
+    } else {
+      requestData = {
+        name: name,
+        nameType: tab.department ? DEPARTMENT : TITLE
+      };
+    }
+
+    helper.getAjaxData('POST', url, requestData)
+    .then(data => {
+      if (data) {
+        this.setState({
+          openName: false
+        });
+        this.getNameList(tab.department ? 'department' : 'title');
+      }
+      return null;
+    });
+  }
+  /**
+   * Close open name dialog
+   * @method
+   * @param none
+   * @returns none
+   */
+  closeName = () => {
+    this.setState({
+      openName: false
+    });
+  }
+  render() {
+    const {openManage, openName} = this.state;
+
+    return (
+      &lt;div>
+        {openManage &amp;&amp;
+          this.departmentTitleManageModal()
+        }
+
+        {openName &amp;&amp;
+          this.departmentTitleNameModal()
+        }
+      &lt;/div>
+    )
+  }
+}
+
+Manage.propTypes = {
+  onDone: PropTypes.func.isRequired
+}
+
+export default withLocale(Manage);</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyScan.html">SafetyScan</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Nov 21 2019 15:10:59 GMT+0800 (台北標準時間)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

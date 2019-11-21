@@ -16,6 +16,12 @@ const t = i18n.getFixedT(null, 'accounts');
 const at = i18n.getFixedT(null, 'app');
 const et = i18n.getFixedT(null, 'errors');
 
+/**
+ * Reset Password
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the reset password form
+ */
 class ResetPwd extends Component {
   constructor(props) {
     super(props);
@@ -34,6 +40,12 @@ class ResetPwd extends Component {
 
     this.ah = getInstance('chewbacca');
   }
+  /**
+   * Handle save account confirm
+   * @method
+   * @param none
+   * @returns none
+   */
   saveAccount = () => {
     const {baseUrl, contextRoot} = this.props;
     const {formData} = this.state;
@@ -85,25 +97,55 @@ class ResetPwd extends Component {
       this.error('');
     })
   }
-  open = () => {
+  /**
+   * Open reset password modal dialog
+   * @method
+   * @param none
+   * @returns none
+   */
+  openResetPwd = () => {
     this.setState({
       open: true
     });
   }
+  /**
+   * Close dialog and reset data
+   * @method
+   * @param none
+   * @returns none
+   */
   close = () => {
     this.setState(this.clearData());
   }
+  /**
+   * Set form error message
+   * @method
+   * @param {string} msg - error message
+   * @returns none
+   */
   error = (msg) => {
     this.setState({
       error: true,
       errInfo: msg
     });
   }
-  handleDataChange = (value) => {
+  /**
+   * Handle reset password form change
+   * @method
+   * @param {object} formData - form input key-value
+   * @returns none
+   */
+  handleDataChange = (formData) => {
     this.setState({
-      formData: value
+      formData
     });
   }
+  /**
+   * Reset form data
+   * @method
+   * @param none
+   * @returns none
+   */
   clearData = () => {
     return {
       open: false,
@@ -117,6 +159,12 @@ class ResetPwd extends Component {
       errInfo: null
     };
   }
+  /**
+   * Display reset password content
+   * @method
+   * @param none
+   * @returns HTML DOM
+   */
   displayResetPassword = () => {
     const {formData} = this.state;
 
