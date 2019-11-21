@@ -97,8 +97,6 @@ class NetworkMap extends Component {
   /**
    * Get and set the IP device list
    * @method
-   * @param none
-   * @returns none
    */
   getSearchOption = () => {
     const {baseUrl} = this.props
@@ -146,8 +144,6 @@ class NetworkMap extends Component {
   /**
    * Get and set tree and floor map data
    * @method
-   * @param none
-   * @returns none
    */
   getFloorPlan = (option) => {
     const {baseUrl, contextRoot} = this.props;
@@ -200,7 +196,6 @@ class NetworkMap extends Component {
    * @method
    * @param {string} areaUUID - area UUID
    * @param {string} option - option for 'setAreaUUID'
-   * @returns none
    */
   getAreaData = (areaUUID, option) => {
     const {baseUrl, contextRoot} = this.props;
@@ -270,7 +265,6 @@ class NetworkMap extends Component {
    * Get and set floor plan seat data
    * @method
    * @param {string} areaUUID - area UUID
-   * @returns none
    */
   getSeatData = (areaUUID) => {
     const {baseUrl, contextRoot} = this.props;
@@ -414,7 +408,6 @@ class NetworkMap extends Component {
    * @param {number} i - index of the floorPlan tree data
    * @param {string} areaUUID - selected area UUID
    * @param {object} eventData - selected node data (before and path)
-   * @returns none
    */
   selectTree = (i, areaUUID, eventData) => {
     const {baseUrl, contextRoot} = this.props;
@@ -490,7 +483,6 @@ class NetworkMap extends Component {
    * @method
    * @param {string} type - input type
    * @param {string} value - input value
-   * @returns none
    */
   handleSearchChange = (type, value) => {
     let tempSearch = {...this.state.search};
@@ -505,7 +497,6 @@ class NetworkMap extends Component {
    * @method
    * @param {string} type - page type ('currentPage' or 'pageSize')
    * @param {string | number} value - new page number
-   * @returns none
    */
   handlePaginationChange = (type, value) => {
     let tempIP = {...this.state.IP};
@@ -527,7 +518,6 @@ class NetworkMap extends Component {
    * @param {string} type - add seat type ('addSeat')
    * @param {string} field - field value
    * @param {string} value - seat name
-   * @returns none
    */
   handleDataChange = (type, field, value) => {
     let tempAddSeat = {...this.state.addSeat};
@@ -540,7 +530,6 @@ class NetworkMap extends Component {
   /**
    * Display floor map management modal dialog
    * @method
-   * @param none
    * @returns FloorMap component
    */
   modalFloorDialog = () => {
@@ -556,8 +545,6 @@ class NetworkMap extends Component {
   /**
    * Reset floor plan data and open management dialog
    * @method
-   * @param none
-   * @returns none
    */
   openEditFloorMap = () => {
     const {floorPlan} = this.state;
@@ -573,7 +560,6 @@ class NetworkMap extends Component {
   /**
    * Display delete seat content
    * @method
-   * @param none
    * @returns HTML DOM
    */
   displayDeleteSeat = () => {
@@ -586,8 +572,6 @@ class NetworkMap extends Component {
   /**
    * Display delete seat modal dialog
    * @method
-   * @param none
-   * @returns none
    */
   openDeleteSeatModal = () => {
     PopupDialog.prompt({
@@ -607,7 +591,6 @@ class NetworkMap extends Component {
    * Handle delete seat confirm
    * @method
    * @param {string} seatUUID - seat UUID
-   * @returns none
    */
   deleteSeatConfirm = (seatUUID) => {
     const {baseUrl, contextRoot} = this.props;
@@ -633,7 +616,6 @@ class NetworkMap extends Component {
    * @method
    * @param {string} seatUUID - seat UUID
    * @param {object} eventInfo - selected seat data
-   * @returns none
    */
   handleSelectionChange = (seatUUID, eventInfo) => {
     this.setState({
@@ -643,7 +625,6 @@ class NetworkMap extends Component {
   /**
    * Display add seat content
    * @method
-   * @param none
    * @returns HTML DOM
    */
   displayAddNewSeat = () => {
@@ -660,7 +641,6 @@ class NetworkMap extends Component {
   /**
    * Display add seat modal dialog
    * @method
-   * @param none
    * @returns ModalDialog component
    */
   addSeatDialog = () => {
@@ -686,8 +666,6 @@ class NetworkMap extends Component {
   /**
    * Handle add seat confirm
    * @method
-   * @param none
-   * @returns none
    */
   handleAddSeatConfirm = () => {
     const {baseUrl, contextRoot} = this.props;
@@ -716,7 +694,6 @@ class NetworkMap extends Component {
    * Get and set seat name based on seat UUID
    * @method
    * @param {string} seatUUID - selected seat UUID
-   * @returns none
    */
   getSeatName = (seatUUID) => {
     const {baseUrl, contextRoot} = this.props;
@@ -750,7 +727,6 @@ class NetworkMap extends Component {
    * @method
    * @param {string} seatUUID - selected seat UUID
    * @param {object} info - MouseClick events
-   * @returns none
    */
   getDeviceData = (seatUUID, info) => {
     const {baseUrl, contextRoot} = this.props;
@@ -790,7 +766,6 @@ class NetworkMap extends Component {
   /**
    * Display seat info content
    * @method
-   * @param none
    * @returns HTML DOM
    */
   displaySeatInfo = () => {
@@ -818,7 +793,6 @@ class NetworkMap extends Component {
   /**
    * Display seat info modal dialog
    * @method
-   * @param none
    * @returns ModalDialog component
    */
   showSeatData = () => {
@@ -841,8 +815,6 @@ class NetworkMap extends Component {
   /**
    * Close dialog and reset floor plan data
    * @method
-   * @param none
-   * @returns none
    */
   closeDialog = () => {
     let tempFloorPlan = {...this.state.floorPlan};
@@ -869,8 +841,6 @@ class NetworkMap extends Component {
   /**
    * Close seat dialog and reset seat data
    * @method
-   * @param none
-   * @returns none
    */
   closeSeatDialog = () => {
     this.setState({
@@ -881,8 +851,6 @@ class NetworkMap extends Component {
   /**
    * Toggle filter content on/off
    * @method
-   * @param none
-   * @returns none
    */
   toggleFilter = () => {
     this.setState({
@@ -892,8 +860,6 @@ class NetworkMap extends Component {
   /**
    * Clear filter input value
    * @method
-   * @param none
-   * @returns none
    */
   clearFilter = () => {
     this.setState({
@@ -907,7 +873,6 @@ class NetworkMap extends Component {
   /**
    * Display filter content
    * @method
-   * @param none
    * @returns HTML DOM
    */
   renderFilter = () => {

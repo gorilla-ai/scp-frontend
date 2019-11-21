@@ -98,7 +98,6 @@ class HMDscanInfo extends Component {
    * Set active tab based on scan type
    * @method
    * @param {string} activeTab - active scan type
-   * @returns none
    */
   toggleScanType = (activeTab) => {
     this.setState({
@@ -132,7 +131,6 @@ class HMDscanInfo extends Component {
    * @method
    * @param {string} type - scan type
    * @param {number} i - index of the rule array
-   * @returns none
    */
   togglePathRule = (type, i) => {
     const {activePath, activeRule} = this.state;
@@ -286,7 +284,6 @@ class HMDscanInfo extends Component {
    * Toggle scan rule item on/off
    * @method
    * @param {string} type - item type ('rule', 'dll' or 'connections')
-   * @returns none
    */
   toggleInfoHeader = (type) => {
     if (type === 'rule') {
@@ -419,7 +416,6 @@ class HMDscanInfo extends Component {
    * Reset the activeTab and rule data
    * @method
    * @param {string} type - button action type ('previous' or 'next')
-   * @returns none
    */
   showAlertData = (type) => {
     this.setState({
@@ -536,7 +532,6 @@ class HMDscanInfo extends Component {
   /**
    * Display main scan content
    * @method
-   * @param none
    * @returns HTML DOM
    */
   displayScanInfo = () => {

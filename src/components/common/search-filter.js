@@ -20,7 +20,6 @@ class SearchFilter extends Component {
    * @method
    * @param {string} field - input type ('condition' or 'query')
    * @param {string} value - input value
-   * @returns none
    */
   handleDataChange = (field, value) => {
     this.props.onChange({

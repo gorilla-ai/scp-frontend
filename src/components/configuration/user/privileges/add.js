@@ -39,8 +39,6 @@ class PrivilegeAdd extends Component {
   /**
    * Open privilege add modal dialog
    * @method
-   * @param none
-   * @returns none
    */
   openPrivilegeAdd = () => {
     this.setState({
@@ -50,8 +48,6 @@ class PrivilegeAdd extends Component {
   /**
    * Handle close confirm and reset data
    * @method
-   * @param none
-   * @returns none
    */
   close = () => {
     this.setState(_.clone(INITIAL_STATE));
@@ -59,8 +55,6 @@ class PrivilegeAdd extends Component {
   /**
    * Reset data and call onDone props funciton
    * @method
-   * @param none
-   * @returns none
    */
   save = () => {
     this.setState(_.clone(INITIAL_STATE), () => {
@@ -71,19 +65,17 @@ class PrivilegeAdd extends Component {
    * Set form error message
    * @method
    * @param {string} msg - error message
-   * @returns none
    */
   error = (msg) => {
     this.setState({
-      info:msg,
-      error:true
+      info: msg,
+      error: true
     });
   }
   /**
    * Handle privilege add input value change
    * @method
    * @param {string} value - input value
-   * @returns none
    */
   handleDataChange = (value) => {
     this.setState({
@@ -93,8 +85,6 @@ class PrivilegeAdd extends Component {
   /**
    * Handle add privilege confirm
    * @method
-   * @param none
-   * @returns none
    */
   addPrivilege = () => {
     const {baseUrl} = this.props;
@@ -129,7 +119,6 @@ class PrivilegeAdd extends Component {
   /**
    * Display add privilege content
    * @method
-   * @param none
    * @returns HTML DOM
    */
   displayAddPrivilege = () => {

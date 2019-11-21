@@ -40,7 +40,6 @@ class QueryOpenSave extends Component {
    * Set and close query menu
    * @method
    * @param {string} type - query type ('open' or 'save')
-   * @returns none
    */
   handleQueryAction = (type) => {
     const {activeTab, filterData, queryData, markData} = this.props;
@@ -163,7 +162,6 @@ class QueryOpenSave extends Component {
   /**
    * Get active query name
    * @method
-   * @param none
    * @returns matched query name
    */
   getQueryName = () => {
@@ -182,7 +180,6 @@ class QueryOpenSave extends Component {
   /**
    * Display delete query content
    * @method
-   * @param none
    * @returns HTML DOM
    */
   getDeleteQueryContent = () => {
@@ -195,8 +192,6 @@ class QueryOpenSave extends Component {
   /**
    * Open delete query dialog
    * @method
-   * @param none
-   * @returns none
    */
   removeQuery = () => {
     PopupDialog.prompt({
@@ -215,8 +210,6 @@ class QueryOpenSave extends Component {
   /**
    * Delete saved query and reset query data
    * @method
-   * @param none
-   * @returns none
    */
   deleteFilterQuery = () => {
     const {baseUrl, activeTab, queryData} = this.props;
@@ -316,7 +309,6 @@ class QueryOpenSave extends Component {
    * @method
    * @param {string} type - input type ('id' or 'name')
    * @param {number} value - input value
-   * @returns none
    */
   handleQueryChange = (type, value) => {
     const {activeTab, queryData} = this.props;

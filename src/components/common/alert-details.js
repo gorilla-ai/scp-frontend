@@ -108,7 +108,6 @@ class AlertDetails extends Component {
    * Call when mouse click outside the redirect menu
    * @method
    * @param {object} e - MouseEvents
-   * @returns none
    */
   handleClickOutside = (e) => {
     if (this.wrapperRef && !this.wrapperRef.contains(e.target)) {
@@ -121,7 +120,6 @@ class AlertDetails extends Component {
    * Set wrapper reference
    * @method
    * @param {object} node - redirect menu node
-   * @returns none
    */
   setWrapperRef = (node) => {
     this.wrapperRef = node;
@@ -129,8 +127,6 @@ class AlertDetails extends Component {
   /**
    * Toggle redirect menu on/off
    * @method
-   * @param none
-   * @returns none
    */
   toggleRedirectMenu = () => {
     this.setState({
@@ -142,7 +138,6 @@ class AlertDetails extends Component {
    * @method
    * @param {object} type - 'events'
    * @param {string} value - 'srcIp' or 'destIp'
-   * @returns none
    */
   redirectLink = (type, value) => {
     const {language, alertData} = this.props;
@@ -165,7 +160,6 @@ class AlertDetails extends Component {
    * Call corresponding Alert data based on conditions
    * @method
    * @param {object} prevProps - previous react props when the props have been updated
-   * @returns none
    */
   loadAlertContent = (prevProps) => {
     const {alertDetails, alertData} = this.props;
@@ -210,7 +204,6 @@ class AlertDetails extends Component {
    * @method
    * @param {object} alertInfo - Alert Info to be set
    * @param {string} type - 'srcIp' or 'destIp'
-   * @returns none
    */
   setTopologyInfo = (alertInfo, type) => {
     this.setState({
@@ -228,7 +221,6 @@ class AlertDetails extends Component {
    * Get source or destination topology data
    * @method
    * @param {string} type - 'srcIp' or 'destIp'
-   * @returns none
    */
   getIPcontent = (type) => {
     const {baseUrl, alertData, fromPage, locationType} = this.props;
@@ -272,7 +264,6 @@ class AlertDetails extends Component {
    * Get IP device info for HMD section
    * @method
    * @param {string} type - 'srcIp' or 'destIp'
-   * @returns none
    */
   getHMDinfo = (type) => {
     const {baseUrl, contextRoot} = this.props;
@@ -301,7 +292,6 @@ class AlertDetails extends Component {
    * Get owner picture based on location type
    * @method
    * @param {string} type - 'srcIp' or 'destIp'
-   * @returns none
    */
   getOwnerPic = (type) => {
     const {baseUrl} = this.props;
@@ -332,7 +322,6 @@ class AlertDetails extends Component {
    * Set owner map and seat data for alertInfo
    * @method
    * @param {string} type - 'srcIp' or 'destIp'
-   * @returns none
    */
   getOwnerSeat = (type) => {
     const {baseUrl, contextRoot} = this.props;
@@ -376,8 +365,6 @@ class AlertDetails extends Component {
   /**
    * Get Alert rule data
    * @method
-   * @param none
-   * @returns none
    */
   getAlertRule = () => {
     const {baseUrl, alertData} = this.props;
@@ -433,8 +420,6 @@ class AlertDetails extends Component {
   /**
    * Reset PCAP data
    * @method
-   * @param none
-   * @returns none
    */
   resetPCAPcontent = () => {
     this.setState({
@@ -455,8 +440,6 @@ class AlertDetails extends Component {
   /**
    * Get and set PCAP data
    * @method
-   * @param none
-   * @returns none
    */
   getPCAPcontent = () => {
     const {baseUrl, alertData} = this.props;
@@ -489,8 +472,6 @@ class AlertDetails extends Component {
   /**
    * Set Alert payload data
    * @method
-   * @param none
-   * @returns none
    */
   getAttackJson = () => {
     const {alertData} = this.props;
@@ -503,7 +484,6 @@ class AlertDetails extends Component {
    * Set corresponding content based on content type
    * @method
    * @param {string} the content type
-   * @returns none
    */
   getContent = (type) => {
     this.setState({
@@ -579,8 +559,6 @@ class AlertDetails extends Component {
   /**
    * Display Alert information in dialog box
    * @method
-   * @param none
-   * @returns none
    */
   displayAlertData = () => {
     const {alertDetails, alertData} = this.props;
@@ -749,7 +727,6 @@ class AlertDetails extends Component {
   /**
    * Display rule content
    * @method
-   * @param none
    * @returns HTML DOM
    */
   displayRuleContent = () => {
@@ -775,7 +752,6 @@ class AlertDetails extends Component {
    * @method
    * @param {string} hex - original string value
    * @param {number} index - active index of the Alert PCAP array
-   * @returns none
    */
   setPCAPhex = (hex, index) => {
     let tempAlertPCAP = {...this.state.alertPCAP};
@@ -795,7 +771,6 @@ class AlertDetails extends Component {
    * Set PCAP page
    * @method
    * @param {string} currentPage - current page of the PCAP info
-   * @returns none
    */
   setPCAPpage = (currentPage) => {
     let tempAlertPCAP = {...this.state.alertPCAP};
@@ -813,8 +788,6 @@ class AlertDetails extends Component {
   /**
    * Toggle (check/uncheck) to show/hide the PCAP data
    * @method
-   * @param none
-   * @returns none
    */
   toggleFilterEmpty = () => {
     const {alertPCAP} = this.state;
@@ -853,7 +826,6 @@ class AlertDetails extends Component {
   /**
    * Display PCAP content
    * @method
-   * @param none
    * @returns HTML DOM
    */
   displayPCAPcontent = () => {
@@ -911,7 +883,6 @@ class AlertDetails extends Component {
   /**
    * Display PCAP payload content
    * @method
-   * @param none
    * @returns HTML DOM
    */
   displayPayloadcontent = () => {
@@ -928,7 +899,6 @@ class AlertDetails extends Component {
   /**
    * Get Alert details list width
    * @method
-   * @param none
    * @returns {string} - list width
 
    */
@@ -1145,7 +1115,6 @@ class AlertDetails extends Component {
   /**
    * Display JSON Data content
    * @method
-   * @param none
    * @returns HTML DOM
    */
   displayJsonData = () => {
@@ -1162,8 +1131,6 @@ class AlertDetails extends Component {
   /**
    * Get Alert PCAP file
    * @method
-   * @param none
-   * @returns none
    */
   getPcapFile = () => {
     const {baseUrl, alertData} = this.props;
@@ -1193,7 +1160,6 @@ class AlertDetails extends Component {
   /**
    * Download paylaod file
    * @method
-   * @param none
    * @returns false if origFileId and fileMD5 are not available
    */
   downloadFile = () => {
@@ -1225,8 +1191,6 @@ class AlertDetails extends Component {
   /**
    * Close dialog and reset state values
    * @method
-   * @param none
-   * @returns none
    */
   closeDialog = () => {
     this.setState({

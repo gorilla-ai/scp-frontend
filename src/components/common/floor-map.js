@@ -51,8 +51,6 @@ class FloorMap extends Component {
   /**
    * Get and set floor plan data
    * @method
-   * @param none
-   * @returns none
    */
   getFloorPlan = () => {
     const {baseUrl} = this.props;
@@ -88,7 +86,6 @@ class FloorMap extends Component {
    * Get and set area related data
    * @method
    * @param {string} areaUUID - area UUID
-   * @returns none
    */
   getAreaData = (areaUUID) => {
     const {baseUrl, contextRoot} = this.props;
@@ -139,7 +136,6 @@ class FloorMap extends Component {
    * @method
    * @param {string} type - input type
    * @param {string | object} value - input data to be set
-   * @returns none
    */
   handleDataChange = (type, value) => {
     let tempFloorPlan = {...this.state.floorPlan};
@@ -161,7 +157,6 @@ class FloorMap extends Component {
    * Set floor plan based on user actions
    * @method
    * @param {string} type - action type ('add', 'edit' or 'clear')
-   * @returns none
    */
   handleMapActions = (type) => {
     if (type === 'clear') {
@@ -224,7 +219,6 @@ class FloorMap extends Component {
    * @param {number} i - index of the tree array
    * @param {string} areaUUID - current active area UUID
    * @param {object} eventData - event data
-   * @returns none
    */
   selectTree = (i, areaUUID, eventData) => {
     const {baseUrl, contextRoot} = this.props;
@@ -267,7 +261,6 @@ class FloorMap extends Component {
   /**
    * Display delete area content
    * @method
-   * @param none
    * @returns HTML DOM
    */
   getDeleteAreaContent = () => {
@@ -282,8 +275,6 @@ class FloorMap extends Component {
   /**
    * Show the delete area modal dialog
    * @method
-   * @param none
-   * @returns none
    */
   openDeleteAreaModal = () => {
     PopupDialog.prompt({
@@ -302,8 +293,6 @@ class FloorMap extends Component {
   /**
    * Delete specific area and reset the floor plan
    * @method
-   * @param none
-   * @returns none
    */
   deleteAreaMap = () => {
     const {baseUrl, contextRoot} = this.props;
@@ -330,8 +319,6 @@ class FloorMap extends Component {
   /**
    * Display Add Floor content
    * @method
-   * @param none
-   * @returns none
    */
   displayAddFloor = () => {
     const {currentMap, floorPlan, previewFloorMap} = this.state;
@@ -424,8 +411,6 @@ class FloorMap extends Component {
   /**
    * Add/Edit area floor map and reload the map/table
    * @method
-   * @param none
-   * @returns none
    */
   handleFloorConfirm = () => {
     const {baseUrl, contextRoot} = this.props;
@@ -506,7 +491,6 @@ class FloorMap extends Component {
    * Clear floor plan data
    * @method
    * @param {string} type - data type to be cleared
-   * @returns none
    */
   clearData = (type) => {
     const {floorPlan} = this.state;
@@ -533,7 +517,6 @@ class FloorMap extends Component {
    * Reset floor plan data before closing the modal dialog
    * @method
    * @param {string} option - option to reload the data
-   * @returns none
    */
   closeDialog = (option) => {
     let tempFloorPlan = {...this.state.floorPlan};

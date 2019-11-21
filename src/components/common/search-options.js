@@ -42,7 +42,6 @@ class SearchOptions extends Component {
    * Set and run the time interval for auto refresh
    * @method
    * @param {string} search - search option
-   * @returns none
    */
   loadSearchOptions = (search) => {
     const {searchInput} = this.props;
@@ -62,8 +61,6 @@ class SearchOptions extends Component {
   /**
    * Set new datetime based on time interval
    * @method
-   * @param none
-   * @returns none
    */
   setNewDatetime = () => {
     const {searchInput} = this.props;
@@ -143,8 +140,6 @@ class SearchOptions extends Component {
   /**
    * Toggle interval dialog on/off
    * @method
-   * @param none
-   * @returns none
    */
   toggleIntervalDialog = () => {
     this.setState({
@@ -155,7 +150,6 @@ class SearchOptions extends Component {
    * Set search type and interval based on user's selection
    * @method
    * @param {string} type - input value ('manual' or 'auto')
-   * @returns none
    */
   handleSearchTypeChange = (type) => {
     this.props.setSearchData('all', {
@@ -174,7 +168,6 @@ class SearchOptions extends Component {
   /**
    * Display interval options content
    * @method
-   * @param none
    * @returns HTML DOM
    */
   displayIntervalOptions = () => {
@@ -232,7 +225,6 @@ class SearchOptions extends Component {
   /**
    * Display interval options modal dialog
    * @method
-   * @param none
    * @returns ModalDialog component
    */
   intervalModalDialog = () => {
@@ -258,8 +250,6 @@ class SearchOptions extends Component {
   /**
    * Set search data based on user's selection
    * @method
-   * @param none
-   * @returns none
    */
   handleIntervalConfirm = () => {
     const {searchInput} = this.props;
@@ -286,7 +276,6 @@ class SearchOptions extends Component {
   /**
    * Display date picker
    * @method
-   * @param none
    * @returns DateRange component
    */
   showDataRange = () => {

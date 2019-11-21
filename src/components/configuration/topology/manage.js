@@ -53,7 +53,6 @@ class Manage extends Component {
    * Get and set department or title data
    * @method
    * @param {string} tab - tab name ('department' or 'title')
-   * @returns none
    */
   getNameList = (tab) => {
     const {baseUrl, contextRoot} = this.props;
@@ -83,8 +82,6 @@ class Manage extends Component {
   /**
    * Get department data and set open manage modal
    * @method
-   * @param none
-   * @returns none
    */
   openManage = () => {
     this.getNameList('department');
@@ -96,7 +93,6 @@ class Manage extends Component {
    * Handle tabs change
    * @method
    * @param {string} tab - tab name ('department' or 'title')
-   * @returns none
    */
   handleTabChange = (tab) => {
     let tabs = {
@@ -116,7 +112,6 @@ class Manage extends Component {
    * @param {string} type - action type ('add' or 'edit')
    * @param {string} nameUUID - name UUID
    * @param {string} name - selected name value
-   * @returns none
    */
   openName = (type, nameUUID, name) => {
     const {tab} = this.state;
@@ -142,7 +137,6 @@ class Manage extends Component {
    * @method
    * @param {string} nameUUID - name UUID
    * @param {string} name - selected name value
-   * @returns none
    */
   openDeleteName = (nameUUID, name) => {
     PopupDialog.prompt({
@@ -166,7 +160,6 @@ class Manage extends Component {
    * Handle delete name confirm
    * @method
    * @param {string} nameUUID - name UUID
-   * @returns none
    */
   deleteName = (nameUUID) => {
     const {baseUrl, contextRoot} = this.props;
@@ -186,7 +179,6 @@ class Manage extends Component {
   /**
    * Display department/title manage content
    * @method
-   * @param none
    * @returns HTML DOM
    */
   displayDepartmentTitle = () => {
@@ -235,7 +227,6 @@ class Manage extends Component {
   /**
    * Display department/title manage content in modal dialog
    * @method
-   * @param none
    * @returns ModalDialog component
    */
   departmentTitleManageModal = () => {
@@ -259,8 +250,6 @@ class Manage extends Component {
   /**
    * Handle close manage confirm
    * @method
-   * @param none
-   * @returns none
    */
   closeManage = () => {
     this.setState(_.cloneDeep(INIT));
@@ -271,7 +260,6 @@ class Manage extends Component {
    * @method
    * @param {string} key - input type
    * @param {string} value - input value
-   * @returns none
    */
   handleDataChange = (key, value) => {
     this.setState({
@@ -281,7 +269,6 @@ class Manage extends Component {
   /**
    * Display name content
    * @method
-   * @param none
    * @returns HTML DOM
    */
   displayName = () => {
@@ -295,7 +282,6 @@ class Manage extends Component {
   /**
    * Display name content in modal dialog
    * @method
-   * @param none
    * @returns ModalDialog component
    */
   departmentTitleNameModal = () => {
@@ -321,8 +307,6 @@ class Manage extends Component {
   /**
    * Handle name modal confirm
    * @method
-   * @param none
-   * @returns none
    */
   confirmName = () => {
     const {baseUrl, contextRoot} = this.props;
@@ -362,8 +346,6 @@ class Manage extends Component {
   /**
    * Close open name dialog
    * @method
-   * @param none
-   * @returns none
    */
   closeName = () => {
     this.setState({

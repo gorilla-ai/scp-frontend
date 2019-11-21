@@ -82,8 +82,6 @@ class Edge extends Component {
   /**
    * Get Edge service type for filter dropdown
    * @method
-   * @param none
-   * @returns none
    */
   getEdgeServiceType = () => {
     const {baseUrl, contextRoot} = this.props;
@@ -121,7 +119,6 @@ class Edge extends Component {
    * Get and set Edge table data
    * @method
    * @param {string} fromSearch - option for the 'search'
-   * @returns none
    */
   getEdgeData = (fromSearch) => {
     const {baseUrl, contextRoot} = this.props;
@@ -279,7 +276,6 @@ class Edge extends Component {
    * Handle Analyze button and reload the table
    * @method
    * @param {object} allValue - Edge data
-   * @returns none
    */
   agentAnalysis = (allValue) => {
     const {baseUrl, contextRoot} = this.props;
@@ -318,7 +314,6 @@ class Edge extends Component {
    * Handle table sort
    * @method
    * @param {object} sort - sort data object
-   * @returns none
    */
   handleTableSort = (sort) => {
     let tempEdge = {...this.state.edge};
@@ -336,7 +331,6 @@ class Edge extends Component {
    * @method
    * @param {string} type - page type ('currentPage' or 'pageSize')
    * @param {string | number} value - new page number
-   * @returns none
    */
   handlePaginationChange = (type, value) => {
     let tempEdge = {...this.state.edge};
@@ -357,7 +351,6 @@ class Edge extends Component {
    * @method
    * @param {string} type - input type
    * @param {string} value - input value
-   * @returns none
    */
   handleEdgeSearch = (type, value) => {
     let tempEdgeSearch = {...this.state.edgeSearch};
@@ -372,7 +365,6 @@ class Edge extends Component {
    * @method
    * @param {string} type - page type ('tableList', 'editEdge' and 'cancel')
    * @param {object} allValue - Edge data
-   * @returns none
    */
   toggleContent = (type, allValue) => {
     let tempEdge = {...this.state.edge};
@@ -430,7 +422,6 @@ class Edge extends Component {
    * @method
    * @param {string} type - input type
    * @param {string} value - input value
-   * @returns none
    */
   handleDataChange = (type, value) => {
     let tempEdge = {...this.state.edge};
@@ -444,7 +435,6 @@ class Edge extends Component {
    * Handle Edge edit status toggle
    * @method
    * @param {string} type - status action type ('start' or 'stop')
-   * @returns none
    */
   handleEdgeStatusChange = (type) => {
     const {baseUrl, contextRoot} = this.props;
@@ -489,7 +479,6 @@ class Edge extends Component {
    * Show Delete Edge dialog
    * @method
    * @param {object} allValue - Edge data
-   * @returns none
    */
   openDeleteMenu = (allValue) => {
     PopupDialog.prompt({
@@ -508,8 +497,6 @@ class Edge extends Component {
   /**
    * Handle delete Edge confirm
    * @method
-   * @param none
-   * @returns none
    */
   deleteEdge = () => {
     const {baseUrl, contextRoot} = this.props;
@@ -531,8 +518,6 @@ class Edge extends Component {
   /**
    * Handle Edge Edit confirm
    * @method
-   * @param none
-   * @returns none
    */
   handleEdgeSubmit = () => {
     const {baseUrl, contextRoot} = this.props;
@@ -628,7 +613,6 @@ class Edge extends Component {
   /**
    * Display edit Edge content
    * @method
-   * @param none
    * @returns HTML DOM
    */
   displayEditEdgeContent = () => {
@@ -812,7 +796,6 @@ class Edge extends Component {
   /**
    * Display filter content
    * @method
-   * @param none
    * @returns HTML DOM
    */
   renderFilter = () => {
@@ -860,8 +843,6 @@ class Edge extends Component {
   /**
    * Toggle filter content on/off
    * @method
-   * @param none
-   * @returns none
    */
   toggleFilter = () => {
     this.setState({
@@ -871,8 +852,6 @@ class Edge extends Component {
   /**
    * Clear filter input value
    * @method
-   * @param none
-   * @returns none
    */
   clearFilter = () => {
     this.setState({

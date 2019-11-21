@@ -186,8 +186,6 @@ class AlertController extends Component {
   /**
    * Get and set the account saved query
    * @method
-   * @param none
-   * @returns none
    */
   getSavedQuery = () => {
     const {baseUrl} = this.props;
@@ -206,8 +204,6 @@ class AlertController extends Component {
   /**
    * Get and set the alert tree data
    * @method
-   * @param none
-   * @returns none
    */
   loadTreeData = () => {
     const {baseUrl} = this.props;
@@ -248,8 +244,6 @@ class AlertController extends Component {
   /**
    * Copy search fields into table columns
    * @method
-   * @param none
-   * @returns none
    */
   loadAllFields = () => {
     let tempSubSectionsData = {...this.state.subSectionsData};
@@ -265,7 +259,6 @@ class AlertController extends Component {
    * Get and set alert data
    * @method
    * @param {string} options - option for 'search'
-   * @returns none
    */
   loadTable = (options) => {
     const {baseUrl, contextRoot} = this.props;
@@ -440,7 +433,6 @@ class AlertController extends Component {
    * @method
    * @param {string} type - alert tree type ('alert', 'private' or 'public')
    * @param {string} value - tree node name
-   * @returns none
    */
   showTreeFilterBtn = (type, value) => {
     let tempTreeData = {...this.state.treeData};
@@ -676,7 +668,6 @@ class AlertController extends Component {
    * Handle alert search submit
    * @method
    * @param {string} fromSearch - option for 'search'
-   * @returns none
    */
   handleSearchSubmit = (fromSearch) => {
     const {activeTab, subSectionsData} = this.state;
@@ -701,7 +692,6 @@ class AlertController extends Component {
    * Handle alert search reset
    * @method
    * @param {string} type - reset type ('filter' or 'mark')
-   * @returns none
    */
   handleResetBtn = (type) => {
     const filterData = [{
@@ -722,7 +712,6 @@ class AlertController extends Component {
    * Handle pagination change
    * @method
    * @param {number} currentPage - current page
-   * @returns none
    */
   handlePaginationChange = (currentPage) => {
     this.setState({
@@ -735,7 +724,6 @@ class AlertController extends Component {
    * Handle page size dropdown
    * @method
    * @param {string} pageSize - current page size
-   * @returns none
    */
   handlePageDropdown = (pageSize) => {
     this.setState({
@@ -749,7 +737,6 @@ class AlertController extends Component {
    * Handle table sort
    * @method
    * @param {object} sort - sort data object
-   * @returns none
    */
   handleTableSort = (sort) => {
     let tempSort = {...this.state.sort};
@@ -767,7 +754,6 @@ class AlertController extends Component {
    * @method
    * @param {string} value - selected node name
    * @param {string} field - corresponding field of selected node
-   * @returns none
    */
   selectTree = (value, field) => {
     this.setState({
@@ -782,7 +768,6 @@ class AlertController extends Component {
    * @param {string} field - corresponding field of selected node
    * @param {string} value - selected node name
    * @param {string} type - condition of selected node ('must')
-   * @returns none
    */
   addSearch = (field, value, type) => {
     const {filterData} = this.state;
@@ -823,7 +808,6 @@ class AlertController extends Component {
    * @param {string} index - index of the alert data
    * @param {object} allValue - alert data
    * @param {object} evt - MouseEvents
-   * @returns none
    */
   handleRowDoubleClick = (index, allValue, evt) => {
     this.openDetailInfo(index, allValue);
@@ -833,7 +817,6 @@ class AlertController extends Component {
   /**
    * Display alert details modal dialog 
    * @method
-   * @param none
    * @returns AlertDetails component
    */
   alertDialog = () => {
@@ -861,7 +844,6 @@ class AlertController extends Component {
    * Set the alert index and get the alert data
    * @method
    * @param {string} type - button action type ('previous' or 'next')
-   * @returns none
    */
   showAlertData = (type) => {
     const {alertDetails} = this.state;
@@ -897,7 +879,6 @@ class AlertController extends Component {
    * Set the individual alert data
    * @method
    * @param {string} type - button action type ('previous' or 'next')
-   * @returns none
    */
   openDetailInfo = (index, allValue, evt) => {
     const {alertDetails} = this.state;
@@ -926,8 +907,6 @@ class AlertController extends Component {
   /**
    * Close modal dialog and reset data
    * @method
-   * @param none
-   * @returns none
    */
   closeDialog = () => {
     const tempAlertDetails = {
@@ -950,7 +929,6 @@ class AlertController extends Component {
    * @method
    * @param {object} datetime - new datetime object
    * @param {string} refresh - option for 'refresh'
-   * @returns none
    */
   handleDateChange = (datetime, refresh) => {
     this.setState({
@@ -965,7 +943,6 @@ class AlertController extends Component {
   /**
    * Display alert table data
    * @method
-   * @param none
    * @returns Alert component
    */
   renderTabContent = () => {
@@ -1018,8 +995,6 @@ class AlertController extends Component {
   /**
    * Handle CSV download
    * @method
-   * @param none
-   * @returns none
    */
   getCSVfile = () => {
     const {baseUrl, contextRoot} = this.props;
@@ -1031,8 +1006,6 @@ class AlertController extends Component {
   /**
    * Toggle filter content on/off
    * @method
-   * @param none
-   * @returns none
    */
   toggleFilter = () => {
     this.setState({
@@ -1043,7 +1016,6 @@ class AlertController extends Component {
    * Toggle query menu on/off
    * @method
    * @param {string} type - type of query menu ('open' or 'save')
-   * @returns none
    */
   openQuery = (type) => {
     if (type === 'open') {
@@ -1060,7 +1032,6 @@ class AlertController extends Component {
    * Set filter data
    * @method
    * @param {array} filterData - filter data to be set
-   * @returns none
    */
   setFilterData = (filterData) => {
     this.setState({
@@ -1071,7 +1042,6 @@ class AlertController extends Component {
    * Set query data
    * @method
    * @param {object} queryData - query data to be set
-   * @returns none
    */
   setQueryData = (queryData) => {
     this.setState({
@@ -1106,8 +1076,6 @@ class AlertController extends Component {
   /**
    * Toggle chart content on/off
    * @method
-   * @param none
-   * @returns none
    */
   toggleChart = () => {
     this.setState({
@@ -1119,7 +1087,6 @@ class AlertController extends Component {
    * @method
    * @param {string} type - search type to be set ('all' and others)
    * @param {string} value - search value to be set
-   * @returns none
    */
   setSearchData = (type, value) => {
     if (type === 'all') {
@@ -1141,8 +1108,6 @@ class AlertController extends Component {
   /**
    * Reset query data
    * @method
-   * @param none
-   * @returns none
    */
   clearQueryData = () => {
     let tempQueryData = {...this.state.queryData};
@@ -1156,8 +1121,6 @@ class AlertController extends Component {
   /**
    * Reset subSections data
    * @method
-   * @param none
-   * @returns none
    */
   clearData = () => {
     this.setState({

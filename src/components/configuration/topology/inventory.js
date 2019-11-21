@@ -166,8 +166,6 @@ class NetworkInventory extends Component {
   /**
    * Get and set IP device data (new api)
    * @method
-   * @param none
-   * @returns none
    */
   getDeviceData = (fromSearch, options, seatUUID) => {
     const {baseUrl, contextRoot} = this.props;
@@ -326,8 +324,6 @@ class NetworkInventory extends Component {
   /**
    * Get and set owner data
    * @method
-   * @param none
-   * @returns none
    */
   getOwnerData = () => {
     const {baseUrl, contextRoot} = this.props;
@@ -359,8 +355,6 @@ class NetworkInventory extends Component {
   /**
    * Get and set Department and Title data
    * @method
-   * @param none
-   * @returns none
    */
   getOtherData = () => {
     const {baseUrl, contextRoot} = this.props;
@@ -424,7 +418,6 @@ class NetworkInventory extends Component {
   /**
    * Display owner seat content
    * @method
-   * @param none
    * @returns HTML DOM
    */
   displaySeatInfo = () => {
@@ -454,7 +447,6 @@ class NetworkInventory extends Component {
   /**
    * Display owner seat modal dialog
    * @method
-   * @param none
    * @returns ModalDialog component
    */
   showSeatData = () => {
@@ -492,8 +484,6 @@ class NetworkInventory extends Component {
   /**
    * Get and set floor plan data
    * @method
-   * @param none
-   * @returns none
    */
   getFloorPlan = () => {
     const {baseUrl, contextRoot} = this.props;
@@ -525,8 +515,6 @@ class NetworkInventory extends Component {
   /**
    * Get and set floor list data
    * @method
-   * @param none
-   * @returns none
    */
   getFloorList = () => {
     const {floorPlan} = this.state;
@@ -556,7 +544,6 @@ class NetworkInventory extends Component {
    * Get and set individual floor area data
    * @method
    * @param {string} areaUUID - area UUID
-   * @returns none
    */
   getAreaData = (areaUUID) => {
     const {baseUrl, contextRoot} = this.props;
@@ -606,7 +593,6 @@ class NetworkInventory extends Component {
    * Get and set individual floor area data
    * @method
    * @param {string} areaUUID - area UUID
-   * @returns none
    */
   getSeatData = (areaUUID) => {
     const {baseUrl, contextRoot} = this.props;
@@ -656,7 +642,6 @@ class NetworkInventory extends Component {
    * Toggle to show only HMD result
    * @method
    * @param {boolean} value - true/false
-   * @returns none
    */
   toggleHMDonly = (value) => {
     this.setState({
@@ -666,7 +651,6 @@ class NetworkInventory extends Component {
   /**
    * Display filter content
    * @method
-   * @param none
    * @returns HTML DOM
    */
   renderFilter = () => {
@@ -754,7 +738,6 @@ class NetworkInventory extends Component {
    * @param {string} type - content type ('view', 'hmd' or 'delete')
    * @param {object} allValue - IP device data
    * @param {string} index - index of the IP device data
-   * @returns none
    */
   openMenu = (type, allValue, index) => {
     if (type === 'view') {
@@ -769,7 +752,6 @@ class NetworkInventory extends Component {
    * Get and set owner seat data
    * @method
    * @param {object} allValue - IP device data
-   * @returns none
    */
   getOwnerSeat = (allValue) => {
     const {baseUrl, contextRoot} = this.props;
@@ -825,7 +807,6 @@ class NetworkInventory extends Component {
    * Handle 'previous' and 'next' buttons for HMD dialog
    * @method
    * @param {string} type - button type ('previous' or 'next')
-   * @returns none
    */
   showAlertData = (type) => {
     const {deviceData} = this.state;
@@ -856,7 +837,6 @@ class NetworkInventory extends Component {
    * @method
    * @param {string} index - index of the IP device data
    * @param {object} allValue - IP device data
-   * @returns none
    */
   openDetailInfo = (index, allValue) => {
     let tempDeviceData = {...this.state.deviceData};
@@ -891,7 +871,6 @@ class NetworkInventory extends Component {
    * Display delete IP device modal dialog
    * @method
    * @param {object} allValue - IP device data
-   * @returns none
    */
   openDeleteDeviceModal = (allValue) => {
     PopupDialog.prompt({
@@ -914,8 +893,6 @@ class NetworkInventory extends Component {
   /**
    * Handle delete IP device confirm
    * @method
-   * @param none
-   * @returns none
    */
   deleteDevice = () => {
     const {baseUrl, contextRoot} = this.props;
@@ -939,7 +916,6 @@ class NetworkInventory extends Component {
    * Handle table sort functionality
    * @method
    * @param {object} sort - sort data object
-   * @returns none
    */
   handleTableSort = (sort) => {
     let tempDeviceData = {...this.state.deviceData};
@@ -956,7 +932,6 @@ class NetworkInventory extends Component {
    * Handle table pagination change
    * @method
    * @param {number} currentPage - new page number
-   * @returns none
    */
   handlePaginationChange = (currentPage) => {
     let tempDeviceData = {...this.state.deviceData};
@@ -972,7 +947,6 @@ class NetworkInventory extends Component {
    * Handle table pagesize change
    * @method
    * @param {string} pageSize - new page sizse
-   * @returns none
    */
   handlePageDropdown = (pageSize) => {
     let tempDeviceData = {...this.state.deviceData};
@@ -989,7 +963,6 @@ class NetworkInventory extends Component {
    * Handle content tab change
    * @method
    * @param {string} type - content type ('deviceList' or 'deviceMap')
-   * @returns none
    */
   handleSubTabChange = (type) => {
     this.setState({
@@ -1000,8 +973,6 @@ class NetworkInventory extends Component {
   /**
    * Toggle filter content on/off
    * @method
-   * @param none
-   * @returns none
    */
   toggleFilter = () => {
     this.setState({
@@ -1014,7 +985,6 @@ class NetworkInventory extends Component {
    * @param {string} index - index of the IP devicde data
    * @param {string} ipDeviceUUID - IP device UUID
    * @param {string} options - option for 'oneDevice'
-   * @returns none
    */
   getIPdeviceInfo = (index, ipDeviceUUID, options) => {
     const {baseUrl, contextRoot} = this.props;
@@ -1056,7 +1026,6 @@ class NetworkInventory extends Component {
    * Handle trigger button for HMD
    * @method
    * @param {string} type - HMD scan type
-   * @returns none
    */
   triggerTask = (type) => {
     const {baseUrl, contextRoot} = this.props;
@@ -1089,7 +1058,6 @@ class NetworkInventory extends Component {
    * Handle IR combo dropdown change
    * @method
    * @param {string} type - IR combo type ('quick', 'standard' or 'full')
-   * @returns none
    */
   handleIrComboChange = (value) => {
     let irItemSelected = [];
@@ -1111,7 +1079,6 @@ class NetworkInventory extends Component {
    * Handle IR combo multi checkbox change
    * @method
    * @param {array} selected - selected checkbox array
-   * @returns none
    */
   handleIrSelectionChange = (selected) => {
     const irItemSelected = selected.sort((a, b) => {
@@ -1125,7 +1092,6 @@ class NetworkInventory extends Component {
   /**
    * Display IR selection content
    * @method
-   * @param none
    * @returns HTML DOM
    */
   displayIRselection = () => {
@@ -1161,7 +1127,6 @@ class NetworkInventory extends Component {
   /**
    * Display IR selection modal dialog
    * @method
-   * @param none
    * @returns ModalDialog component
    */
   irSelectionDialog = () => {
@@ -1187,8 +1152,6 @@ class NetworkInventory extends Component {
   /**
    * Handle IR selection confirm
    * @method
-   * @param none
-   * @returns none
    */
   confirmIRselection = () => {
     const {irItemSelected} = this.state;
@@ -1202,8 +1165,6 @@ class NetworkInventory extends Component {
   /**
    * Toggle IR combo selection dialog
    * @method
-   * @param none
-   * @returns none
    */
   toggleSelectionIR = () => {
     const {modalIRopen} = this.state;
@@ -1222,7 +1183,6 @@ class NetworkInventory extends Component {
   /**
    * Display HMD scan info content
    * @method
-   * @param none
    * @returns HMDscanInfo component
    */
   showScanInfo = () => {
@@ -1252,7 +1212,6 @@ class NetworkInventory extends Component {
    * @method
    * @param {string} option - option for 'reload'
    * @param {string} all - option for 'all'
-   * @returns none
    */
   closeDialog = (option, all) => {
     this.setState({
@@ -1282,8 +1241,6 @@ class NetworkInventory extends Component {
   /**
    * Clear filter input value
    * @method
-   * @param none
-   * @returns none
    */
   clearFilter = () => {
     this.setState({
@@ -1304,7 +1261,6 @@ class NetworkInventory extends Component {
    * @method
    * @param {string} type - input type
    * @param {string} value - input value
-   * @returns none
    */
   handleDeviceSearch = (type, value) => {
     let tempDeviceSearch = {...this.state.deviceSearch};
@@ -1319,7 +1275,6 @@ class NetworkInventory extends Component {
    * @method
    * @param {string} type - content type
    * @param {string} formType - show form content type ('new' or 'edit')
-   * @returns none
    */
   toggleContent = (type, formType) => {
     const {formTypeEdit, ownerList, departmentList, titleList, currentDeviceData, alertInfo, floorList} = this.state;
@@ -1427,7 +1382,6 @@ class NetworkInventory extends Component {
    * Toggle add/edit form step content
    * @method
    * @param {string} type - form step type ('previous' or 'next')
-   * @returns none
    */
   toggleSteps = (type) => {
     const {activeSteps} = this.state;
@@ -1464,8 +1418,6 @@ class NetworkInventory extends Component {
   /**
    * Add new owner if new owner is selected
    * @method
-   * @param none
-   * @returns none
    */
   handleAddIpConfirm = () => {
     const {baseUrl, contextRoot} = this.props;
@@ -1511,8 +1463,6 @@ class NetworkInventory extends Component {
   /**
    * Handle add/edit form confirm
    * @method
-   * @param none
-   * @returns none
    */
   handleIPdeviceConfirm = (ownerUUID) => {
     const {baseUrl, contextRoot} = this.props;
@@ -1590,7 +1540,6 @@ class NetworkInventory extends Component {
    * Handle owner type change
    * @method
    * @param {string} ownerType - owner type ('existing' or 'new')
-   * @returns none
    */
   handleOwnerTypeChange = (ownerType) => {
     const {departmentList, titleList, addIP} = this.state;
@@ -1607,7 +1556,6 @@ class NetworkInventory extends Component {
    * Handle existing owners dropdown change
    * @method
    * @param {string} value - ownerUUID
-   * @returns none
    */
   handleOwnerChange = (value) => {
     const {baseUrl, contextRoot} = this.props;
@@ -1638,7 +1586,6 @@ class NetworkInventory extends Component {
    * Handle Department dropdown change
    * @method
    * @param {string} value - department nameUUID
-   * @returns none
    */
   handleDepartmentChange = (value) => {
     const tempAddIP = {...this.state.addIP};
@@ -1652,7 +1599,6 @@ class NetworkInventory extends Component {
    * Handle Title dropdown change
    * @method
    * @param {string} value - title nameUUID
-   * @returns none
    */
   handleTitleChange = (value) => {
     const tempAddIP = {...this.state.addIP};
@@ -1665,8 +1611,6 @@ class NetworkInventory extends Component {
   /**
    * Open department / title edit dialog
    * @method
-   * @param none
-   * @returns none
    */
   openManage = () => {
     this.manage._component.openManage();
@@ -1674,8 +1618,6 @@ class NetworkInventory extends Component {
   /**
    * Open floor map edit dialog
    * @method
-   * @param none
-   * @returns none
    */
   openFloorMap = () => {
     this.setState({
@@ -1685,7 +1627,6 @@ class NetworkInventory extends Component {
   /**
    * Display floor map modal dialog
    * @method
-   * @param none
    * @returns FloorMap component
    */
   modalFloorDialog = () => {
@@ -1701,7 +1642,6 @@ class NetworkInventory extends Component {
   /**
    * Get show form button text
    * @method
-   * @param none
    * @returns button text
    */
   getBtnText = () => {
@@ -1710,7 +1650,6 @@ class NetworkInventory extends Component {
   /**
    * Display add/edit IP device form content
    * @method
-   * @param none
    * @returns HTML DOM
    */
   displayAddIpSteps = () => {
@@ -2064,7 +2003,6 @@ class NetworkInventory extends Component {
    * @param {number} i - index of the tree data
    * @param {string} areaUUID - selected area UUID
    * @param {object} eventData - tree click events data
-   * @returns none
    */
   selectTree = (i, areaUUID, eventData) => {
     const {baseUrl, contextRoot} = this.props;
@@ -2149,7 +2087,6 @@ class NetworkInventory extends Component {
    * @method
    * @param {string} id - existing seat ID
    * @param {object} info - mouseClick events
-   * @returns none
    */
   handleFloorMapClick = (id, info) => {
     const {addSeat} = this.state;
@@ -2176,7 +2113,6 @@ class NetworkInventory extends Component {
    * @method
    * @param {string} type - input type
    * @param {string} value - input value
-   * @returns none
    */
   handleDataChange = (type, value) => {
     let tempAddSeat = {...this.state.addSeat};
@@ -2189,7 +2125,6 @@ class NetworkInventory extends Component {
   /**
    * Display add seat contnt
    * @method
-   * @param none
    * @returns HTML DOM
    */
   displayAddSeat = () => {
@@ -2208,7 +2143,6 @@ class NetworkInventory extends Component {
   /**
    * Display add seat modal dialog
    * @method
-   * @param none
    * @returns ModalDialog component
    */
   addSeatDialog = () => {
@@ -2234,8 +2168,6 @@ class NetworkInventory extends Component {
   /**
    * Handle add seat confirm
    * @method
-   * @param none
-   * @returns none
    */
   handleAddSeatConfirm = () => {
     const {baseUrl, contextRoot} = this.props;
@@ -2274,7 +2206,6 @@ class NetworkInventory extends Component {
    * @method
    * @param {string} type - input type
    * @param {string} value - input value
-   * @returns none
    */
   handleAddIpChange = (type, value) => {
     let tempAddIP = {...this.state.addIP};

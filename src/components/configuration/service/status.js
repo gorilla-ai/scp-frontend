@@ -48,7 +48,6 @@ class Status extends Component {
    * Get and set service status data
    * @method
    * @param {string} option - option for 'refresh'
-   * @returns none
    */
   getServiceStatus = (option) => {
     const {baseUrl} = this.props;

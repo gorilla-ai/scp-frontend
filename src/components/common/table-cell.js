@@ -29,7 +29,6 @@ class TableCell extends Component {
    * Toggle the filter icon on/off
    * @method
    * @param {boolean} boolean - true/false
-   * @returns none
    */
   showFilterIcon = (boolean) => {
     this.setState({
@@ -105,7 +104,6 @@ class TableCell extends Component {
   /**
    * Get table field value
    * @method
-   * @param none
    * @returns HTML DOM
    */
   getFieldValue = () => {

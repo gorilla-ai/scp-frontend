@@ -23,7 +23,6 @@ class EditHosts extends Component {
    * @method
    * @param {string} field - input field
    * @param {string} value - input value
-   * @returns none
    */
   handleDataChange = (field, value) => {
     this.props.onChange({

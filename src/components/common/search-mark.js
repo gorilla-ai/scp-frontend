@@ -21,7 +21,6 @@ class SearchMark extends Component {
    * Set search mark input
    * @method
    * @param {string} value - input value
-   * @returns none
    */
   handleDataChange = (value) => {
     const {markData} = this.props;

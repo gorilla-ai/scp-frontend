@@ -48,8 +48,6 @@ class ThreatIntelligence extends Component {
   /**
    * Get and set charts data
    * @method
-   * @param none
-   * @returns none
    */
   getChartsData = (search) => {
     const {baseUrl, contextRoot} = this.props;
@@ -138,7 +136,6 @@ class ThreatIntelligence extends Component {
    * Set new datetime
    * @method
    * @param {object} datetime - new datetime object
-   * @returns none
    */
   handleDateChange = (datetime) => {
     this.setState({

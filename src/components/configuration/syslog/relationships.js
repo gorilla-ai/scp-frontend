@@ -34,8 +34,6 @@ class Relationships extends Component {
   /**
    * Get and set relationships name options
    * @method
-   * @param none
-   * @returns none
    */
   getOptions = () => {
     const {relationships} = this.props;
@@ -52,8 +50,6 @@ class Relationships extends Component {
   /**
    * Set default relationships
    * @method
-   * @param none
-   * @returns none
    */
   setDefault = () => {
     const {value, relationships} = this.props;
@@ -83,7 +79,6 @@ class Relationships extends Component {
    * @method
    * @param {string} field - input field
    * @param {string} value - input value
-   * @returns none
    */
   handleDataChange = (field, value) => {
     let {value: curValue, relationships} = this.props;
@@ -116,7 +111,6 @@ class Relationships extends Component {
    * @method
    * @param {object} allValue - relationships data
    * @param {string} value - node value
-   * @returns none
    */
   handleNodeChange = (allValue, value) => {
     const {value: curValue} = this.props;

@@ -86,8 +86,6 @@ class AutoSettings extends Component {
   /**
    * Get and set auto settings data
    * @method
-   * @param none
-   * @returns none
    */
   getSettingsInfo = () => {
     const {baseUrl, contextRoot} = this.props;
@@ -180,8 +178,6 @@ class AutoSettings extends Component {
   /**
    * Get and set device list data
    * @method
-   * @param none
-   * @returns none
    */
   getDeviceList = () => {
     const {baseUrl, contextRoot} = this.props;
@@ -225,7 +221,6 @@ class AutoSettings extends Component {
    * Set IP range data
    * @method
    * @param {array} ipRangeData - IP range data
-   * @returns none
    */
   setIpRangeData = (ipRangeData) => {
     this.setState({
@@ -236,7 +231,6 @@ class AutoSettings extends Component {
    * Set IP range data
    * @method
    * @param {array} scannerData - scanner data
-   * @returns none
    */
   setScannerData = (scannerData) => {
     this.setState({
@@ -248,7 +242,6 @@ class AutoSettings extends Component {
    * @method
    * @param {string} type - status type
    * @param {boolean} value - status data
-   * @returns none
    */
   handleStatusChange = (type, value) => {
     let tempStatusEnable = {...this.state.statusEnable};
@@ -263,7 +256,6 @@ class AutoSettings extends Component {
    * @method
    * @param {string} type - input type
    * @param {string} value - input value
-   * @returns none
    */
   handleADchange = (type, value) => {
     let tempADdata = {...this.state.adData};
@@ -276,7 +268,6 @@ class AutoSettings extends Component {
   /**
    * Display AD/LDAP test query content
    * @method
-   * @param none
    * @returns HTML DOM
    */
   getADtestContent = () => {
@@ -303,8 +294,6 @@ class AutoSettings extends Component {
   /**
    * Get and set AD/LDAP test result
    * @method
-   * @param none
-   * @returns none
    */
   handleADtest = () => {
     const {baseUrl, contextRoot} = this.props;
@@ -347,7 +336,6 @@ class AutoSettings extends Component {
   /**
    * Display Netflow test query content
    * @method
-   * @param none
    * @returns HTML DOM
    */
   getNetflowTestContent = () => {
@@ -376,8 +364,6 @@ class AutoSettings extends Component {
   /**
    * Get and test Netflow test result
    * @method
-   * @param none
-   * @returns none
    */
   handleNetflowtest = () => {
     const {baseUrl, contextRoot} = this.props;
@@ -413,7 +399,6 @@ class AutoSettings extends Component {
   /**
    * Display Scanner test query content
    * @method
-   * @param none
    * @returns HTML DOM
    */
   getScannerTestContent = () => {
@@ -441,8 +426,6 @@ class AutoSettings extends Component {
   /**
    * Get and set Scanner test result
    * @method
-   * @param none
-   * @returns none
    */
   handleScannerTest = (value) => {
     const {baseUrl, contextRoot} = this.props;
@@ -473,7 +456,6 @@ class AutoSettings extends Component {
    * Toggle content type
    * @method
    * @param {string} type - content type ('viewMode', 'editMode', 'save' or 'cancel')
-   * @returns none
    */
   toggleContent = (type) => {
     const {originalStatusEnable, originalIPrangeData, originalADdata, originalNetflowData, originalScannerData} = this.state;
@@ -501,8 +483,6 @@ class AutoSettings extends Component {
   /**
    * Handle auto settings confirm
    * @method
-   * @param none
-   * @returns none
    */
   handleSettingsConfirm = () => {
     const {baseUrl, contextRoot} = this.props;

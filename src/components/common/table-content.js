@@ -38,7 +38,6 @@ class TableContent extends Component {
   /**
    * Get table height
    * @method
-   * @param none
    * @returns object with height value
    */
   getTableHight = () => {

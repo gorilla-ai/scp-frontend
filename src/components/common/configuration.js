@@ -49,7 +49,6 @@ class Config extends Component {
    * @method
    * @param {object} name - menu to be toggled
    * @param {boolean} val - true/false
-   * @returns none
    */
   handleOpen = (name, val) => {
     this.setState({
@@ -82,8 +81,6 @@ class Config extends Component {
   /**
    * Toggle (show/hide) the left menu
    * @method
-   * @param none
-   * @returns none
    */
   toggleLeftNav = () => {
     if (this.getActiveFrame('threat')) { //Disable the functionality for Threat Intelligent page
@@ -97,7 +94,6 @@ class Config extends Component {
   /**
    * Set the menu class name
    * @method
-   * @param none
    * @returns {string} - class name
    */
   getClassName = () => {

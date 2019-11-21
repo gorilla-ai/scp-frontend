@@ -53,7 +53,6 @@ class DataChart extends Component {
    * Set chart data
    * @method
    * @param {object} chartData - chart data to be set
-   * @returns none
    */
   setChartData = (chartData) => {
     this.setState({
@@ -64,7 +63,6 @@ class DataChart extends Component {
    * Get chart data and handle the button clicks for chart options
    * @method
    * @param {object} prevProps - previous react props when the props have been updated
-   * @returns none
    */
   getChartData = (prevProps) => {
     const {mainContentData, tabChartData, tableMouseOver} = this.props;

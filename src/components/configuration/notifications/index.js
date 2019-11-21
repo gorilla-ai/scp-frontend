@@ -78,8 +78,6 @@ class Notifications extends Component {
   /**
    * Get and set mail and notification data
    * @method
-   * @param none
-   * @returns none
    */
   getMailServerInfo = () => {
     const {baseUrl, contextRoot} = this.props;
@@ -145,7 +143,6 @@ class Notifications extends Component {
    * @method
    * @param {string} type - input type
    * @param {string} value - input value
-   * @returns none
    */
   handleDataChange = (type, value) => {
     let tempNotifications = {...this.state.notifications};
@@ -159,7 +156,6 @@ class Notifications extends Component {
    * Toggle different content
    * @method
    * @param {string} type - content type ('editMode', 'viewMode', 'save' or 'cancel')
-   * @returns none
    */
   toggleContent = (type) => {
     const {originalNotifications, originalEmails} = this.state;
@@ -184,8 +180,6 @@ class Notifications extends Component {
   /**
    * Handle edit confirm
    * @method
-   * @param none
-   * @returns none
    */
   handleNotificationsConfirm = () => {
     const {baseUrl, contextRoot} = this.props;
@@ -245,7 +239,6 @@ class Notifications extends Component {
    * @method
    * @param {string} type - notifications type ('service', 'edge', or 'alert')
    * @param {string} value - input value
-   * @returns none
    */
   toggleEmailCheckbox = (type, value) => {
     let tempEmails = {...this.state.emails};
@@ -270,7 +263,6 @@ class Notifications extends Component {
    * @method
    * @param {object} val - EMAIL_SETTINGS object
    * @param {array} newEmails - new emails list
-   * @returns none
    */
   handleEmailChange = (val, newEmails) => {
     let tempEmails = {...this.state.emails};
@@ -285,7 +277,6 @@ class Notifications extends Component {
    * @method
    * @param {function} removeEmail - function to remove email
    * @param {number} index - index of the emails list array
-   * @returns none
    */
   deleteEmail = (removeEmail, index) => {
     removeEmail(index);
@@ -349,8 +340,6 @@ class Notifications extends Component {
   /**
    * Set test email dialog
    * @method
-   * @param none
-   * @returns none
    */
   openEmailDialog = () => {
     this.setState({
@@ -361,7 +350,6 @@ class Notifications extends Component {
    * Set test emails list
    * @method
    * @param {array} newEmails - new emails list
-   * @returns none
    */
   handleTestEmailChange = (newEmails) => {
     this.setState({
@@ -371,7 +359,6 @@ class Notifications extends Component {
   /**
    * Display test email content
    * @method
-   * @param none
    * @returns HTML DOM
    */
   displayTestEmail = () => {
@@ -389,7 +376,6 @@ class Notifications extends Component {
   /**
    * Open test email dialog
    * @method
-   * @param none
    * @returns ModalDialog component
    */
   testEmailDialog = () => {
@@ -415,8 +401,6 @@ class Notifications extends Component {
   /**
    * Handle test email confirm
    * @method
-   * @param none
-   * @returns none
    */
   testEmailConfirm = () => {
     const {testEmails} = this.state;
@@ -442,8 +426,6 @@ class Notifications extends Component {
   /**
    * Close test email dialog
    * @method
-   * @param none
-   * @returns none
    */
   closeDialog = () => {
     this.setState({

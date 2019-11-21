@@ -112,8 +112,6 @@ class Syslog extends Component {
   /**
    * Get and set the relationships data
    * @method
-   * @param none
-   * @returns none
    */
   getRelationship = () => {
     const {baseUrl} = this.props;
@@ -137,7 +135,6 @@ class Syslog extends Component {
    * Disable the delete functionality based on conditions
    * @method
    * @param {string} name - syslog type
-   * @returns none
    */
   checkDisabled = (name) => {
     return (name === 'syslog' || name === 'eventlog') ? true : false;
@@ -147,7 +144,6 @@ class Syslog extends Component {
    * @method
    * @param {object} allValue - syslog data
    * @param {object} evt - mouseClick events
-   * @returns none
    */
   handleRowContextMenu = (allValue, evt) => {
     const menuItems = [
@@ -186,7 +182,6 @@ class Syslog extends Component {
    * Display list for property table column
    * @method
    * @param {string} value - property data
-   * @returns none
    */
   displayProperty = (value) => {
     const propertyList = _.map(JSON.parse(value), (val, key) => { //Convert data string to array
@@ -199,7 +194,6 @@ class Syslog extends Component {
    * Get and set syslog data
    * @method
    * @param {boolean} flag - flog for port and format
-   * @returns none
    */
   getSyslogList = (flag) => {
     const {baseUrl} = this.props;
@@ -263,7 +257,6 @@ class Syslog extends Component {
    * Handle table sort functionality
    * @method
    * @param {object} sort - sort data object
-   * @returns none
    */
   handleTableSort = (sort) => {
     let tempSyslog = {...this.state.syslog};
@@ -282,7 +275,6 @@ class Syslog extends Component {
    * @param {string} index - index of the syslog data
    * @param {object} allValue - syslog data
    * @param {object} evt - MouseoverEvents
-   * @returns none
    */
   handleRowMouseOver = (index, allValue, evt) => {
     let tempSyslog = {...this.state.syslog};
@@ -300,8 +292,6 @@ class Syslog extends Component {
   /**
    * Get and set config data
    * @method
-   * @param none
-   * @returns none
    */
   getRaw = () => {
     const {baseUrl} = this.props;
@@ -342,8 +332,6 @@ class Syslog extends Component {
   /**
    * Handle syslog edit confirm
    * @method
-   * @param none
-   * @returns none
    */
   confirmSyslog = () => {
     const {baseUrl} = this.props;
@@ -410,7 +398,6 @@ class Syslog extends Component {
    * Open delete syslog dialog
    * @method
    * @param {object} allValue - syslog data
-   * @returns none
    */
   modalDelete = (allValue) => {
     const eventNme = allValue.name;
@@ -440,7 +427,6 @@ class Syslog extends Component {
    * Handle delete syslog confirm
    * @method
    * @param {string} id - syslog id
-   * @returns none
    */
   deleteSyslog = (id) => {
     const {baseUrl} = this.props;
@@ -460,7 +446,6 @@ class Syslog extends Component {
    * Open add/edit syslog dialog
    * @method
    * @param {string} id - syslog id
-   * @returns none
    */
   openSyslog = (id) => {
     const {baseUrl} = this.props
@@ -515,8 +500,6 @@ class Syslog extends Component {
   /**
    * Close syslog dialog
    * @method
-   * @param none
-   * @returns none
    */
   closeSyslog = () => {
     this.setState({
@@ -529,7 +512,6 @@ class Syslog extends Component {
    * Construct URL and redirect to events page
    * @method
    * @param {object} allValue - syslog data
-   * @returns none
    */
   forwardSyslog = (allValue) => {
     const {baseUrl, contextRoot} = this.props;
@@ -540,7 +522,6 @@ class Syslog extends Component {
    * Open edit hosts dialog
    * @method
    * @param {object} allValue - syslog data
-   * @returns none
    */
   openEditHosts = (allValue) => {
     const splitHostsData = allValue.hosts.split(', ');
@@ -570,7 +551,6 @@ class Syslog extends Component {
    * @method
    * @param {string} type - syslog type
    * @param {object} allValue - syslog data
-   * @returns none
    */
   openTimeline = (type, allValue) => {
     this.setState({
@@ -585,8 +565,6 @@ class Syslog extends Component {
   /**
    * Close syslog events chart dialog
    * @method
-   * @param none
-   * @returns none
    */
   closeTimeline = () => {
     this.setState({
@@ -607,7 +585,6 @@ class Syslog extends Component {
    * @method
    * @param {string} type - input type
    * @param {string} value - input value
-   * @returns none
    */
   handleConfigChange = (type, value) => {
     let tempConfig = {...this.state.config};
@@ -620,8 +597,6 @@ class Syslog extends Component {
   /**
    * Get pattern data
    * @method
-   * @param none
-   * @returns none
    */
   convertPattern = () => {
     const {baseUrl} = this.props;
@@ -647,7 +622,6 @@ class Syslog extends Component {
    * Get and set the latest event sample data
    * @method
    * @param {string} configId - config ID
-   * @returns none
    */
   getLatestInput = (configId) => {
     const {baseUrl} = this.props;
@@ -673,7 +647,6 @@ class Syslog extends Component {
   /**
    * Display content for the Filter tab
    * @method
-   * @param none
    * @returns HTML DOM
    */
   renderTabFilter = () => {
@@ -721,7 +694,6 @@ class Syslog extends Component {
    * Handle add/remove for the relationship box
    * @method
    * @param {array} val - relationship list array
-   * @returns none
    */
   handleRelationshipChange = (val) => {
     let tempConfig = {...this.state.config};
@@ -734,7 +706,6 @@ class Syslog extends Component {
   /**
    * Display contnet for the relationship tab
    * @method
-   * @param none
    * @returns MultiInput component
    */
   renderTabRelationship = () => {
@@ -756,7 +727,6 @@ class Syslog extends Component {
   /**
    * Display syslog content
    * @method
-   * @param none
    * @returns HTML DOM
    */
   displaySyslogDialog = () => {
@@ -810,7 +780,6 @@ class Syslog extends Component {
   /**
    * Display syslog modal dialog
    * @method
-   * @param none
    * @returns ModalDialog component
    */
   modalSyslog = () => {
@@ -838,8 +807,6 @@ class Syslog extends Component {
   /**
    * Get and set timeline events data
    * @method
-   * @param none
-   * @returns none
    */
   getTimeline = () => {
     const {baseUrl} = this.props;
@@ -883,7 +850,6 @@ class Syslog extends Component {
    * @method
    * @param {object} eventInfo - MouseoverEvents
    * @param {object} data - chart data
-   * @returns none
    */
   onTooltip = (eventInfo, data) => {
     const text = data[0].type + ': ' + data[0].events + ' ' + t('txt-at') + ' ' + Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss');
@@ -894,7 +860,6 @@ class Syslog extends Component {
    * Set new datetime
    * @method
    * @param {object} datetime - datetime object
-   * @returns none
    */
   handleDateChange = (datetime) => {
     this.setState({
@@ -904,7 +869,6 @@ class Syslog extends Component {
   /**
    * Display Events timeline content
    * @method
-   * @param none
    * @returns HTML DOM
    */
   displayEventsTimeline = () => {
@@ -997,7 +961,6 @@ class Syslog extends Component {
   /**
    * Display Events timeline modal dialog
    * @method
-   * @param none
    * @returns ModalDialog component
    */
   modalTimeline = () => {
@@ -1030,7 +993,6 @@ class Syslog extends Component {
    * Display Events timeline modal dialog
    * @method
    * @param {array} data - edit host input data
-   * @returns none
    */
   handleEditHostsChange = (data) => {
     let tempHostsData = {...this.state.hostsData};
@@ -1043,8 +1005,6 @@ class Syslog extends Component {
   /**
    * Display edit hosts modal dialog
    * @method
-   * @param none
-   * @returns none
    */
   modalEditHosts = () => {
     const {hostsData} = this.state;
@@ -1078,8 +1038,6 @@ class Syslog extends Component {
   /**
    * Handle edit hosts confirm
    * @method
-   * @param none
-   * @returns none
    */
   confirmEditHosts = () => {
     const {baseUrl} = this.props;
@@ -1110,8 +1068,6 @@ class Syslog extends Component {
   /**
    * Close edit hosts dialog
    * @method
-   * @param none
-   * @returns none
    */
   closeEditHosts = () => {
     this.setState({
@@ -1123,7 +1079,6 @@ class Syslog extends Component {
    * @method
    * @param {string} type - input type
    * @param {string} value - input value
-   * @returns none
    */
   handleSearchChange = (type, value) => {
     let tempSearch = {...this.state.search};
@@ -1138,7 +1093,6 @@ class Syslog extends Component {
    * @method
    * @param {string} type - page type ('currentPage' or 'pageSize')
    * @param {string} value - new page number
-   * @returns none
    */
   handlePaginationChange = (type, value) => {
     let tempSyslog = {...this.state.syslog};
@@ -1157,8 +1111,6 @@ class Syslog extends Component {
   /**
    * Toggle filter content on/off
    * @method
-   * @param none
-   * @returns none
    */
   toggleFilter = () => {
     this.setState({
@@ -1168,8 +1120,6 @@ class Syslog extends Component {
   /**
    * Clear filter input value
    * @method
-   * @param none
-   * @returns none
    */
   clearFilter = () => {
     const search = {
@@ -1185,7 +1135,6 @@ class Syslog extends Component {
   /**
    * Display filter content
    * @method
-   * @param none
    * @returns HTML DOM
    */
   renderFilter = () => {

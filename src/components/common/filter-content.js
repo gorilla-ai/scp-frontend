@@ -23,7 +23,6 @@ class FilterContent extends Component {
   /**
    * Display the filter button
    * @method
-   * @param none
    * @returns HTML DOM
    */
   getSubmitButton = () => {

@@ -48,8 +48,6 @@ class PrivateDetails extends Component {
   /**
    * Get and set the ip, owner, area and host information
    * @method
-   * @param none
-   * @returns none
    */
   getDataInfo = () => {
     const {type, alertInfo, topoInfo, srcDestType} = this.props;

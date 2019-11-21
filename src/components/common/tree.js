@@ -37,7 +37,6 @@ class Tree extends Component {
    * Construct and set the tab data for Events dropdown menu
    * @method
    * @param {object} prevProps - previous react props when the props have been updated
-   * @returns none
    */
   loadTabData = (prevProps) => {
     const {eventsCount, allTabData} = this.props;
@@ -63,8 +62,6 @@ class Tree extends Component {
   /**
    * Toggle (show/hide) the left menu
    * @method
-   * @param none
-   * @returns none
    */
   toggleLeftNav = () => {
     this.setState({

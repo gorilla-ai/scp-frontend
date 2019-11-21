@@ -38,7 +38,6 @@ class ChartContent extends Component {
    * @method
    * @param {object} eventInfo - MouseoverEvents
    * @param {object} data - chart data
-   * @returns none
    */
   onTooltip = (eventInfo, data) => {
     let text = '';
@@ -55,7 +54,6 @@ class ChartContent extends Component {
    * Construct and set the chart content
    * @method
    * @param {object} prevProps - previous react props when the props have been updated
-   * @returns none
    */
   getChartData = (prevProps) => {
     const {chartData, markData, chartColors, pageType, tableMouseOver} = this.props;
@@ -140,7 +138,6 @@ class ChartContent extends Component {
   /**
    * Display chart content
    * @method
-   * @param none
    * @returns HTML DOM or BarChart/LineChart component
    */
   showChartContent = () => {
