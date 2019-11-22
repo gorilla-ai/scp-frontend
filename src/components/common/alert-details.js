@@ -14,8 +14,9 @@ import Textarea from 'react-ui/build/src/components/textarea'
 import JSONTree from 'react-json-tree'
 
 import {HocPrivateDetails as PrivateDetails} from './private-details'
-import {HocSafetyScan as SafetyScan} from './safety-scan'
+//import {HocSafetyScan as SafetyScan} from './safety-scan'
 import helper from './helper'
+import {HocHMDscanInfo as HMDscanInfo} from './hmd-scan-info'
 import withLocale from '../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -107,7 +108,7 @@ class AlertDetails extends Component {
   /**
    * Call when mouse click outside the redirect menu
    * @method
-   * @param {object} e - MouseEvents
+   * @param {object} e - MouseClick events
    */
   handleClickOutside = (e) => {
     if (this.wrapperRef && !this.wrapperRef.contains(e.target)) {
@@ -568,7 +569,7 @@ class AlertDetails extends Component {
 
     return (
       <div>
-        <table className='c-table main-table'>
+        <table className='c-table main-table top-info'>
           <thead>
             <tr>
               <th>{f('alertFields.Severity')}</th>
@@ -589,7 +590,7 @@ class AlertDetails extends Component {
 
         <div className='alert-info'>{alertData.Info || NOT_AVAILABLE}</div>
 
-        <table className='c-table main-table'>
+        <table className='c-table main-table top-info'>
           <thead>
             <tr>
               <th>{f('alertFields.srcIp')}</th>
@@ -750,7 +751,7 @@ class AlertDetails extends Component {
   /**
    * Set PCAP hex value
    * @method
-   * @param {string} hex - original string value
+   * @param {string} [hex] - original string value
    * @param {number} index - active index of the Alert PCAP array
    */
   setPCAPhex = (hex, index) => {
@@ -1069,32 +1070,38 @@ class AlertDetails extends Component {
     )
   }
   /**
-   * Call taskinfo API for HMD trigger button
+   * Handle trigger button for HMD
    * @method
-   * @param {string} type - 'srcIp' or 'destIp'
-   * @returns HTML DOM
+   * @param {string} type - HMD scan type
+   * @param {string} [ipType] - IP type ('srcIp' or 'destIp')
    */
-  triggerTask = (taskId, type) => {
+  triggerTask = (type, ipType) => {
     const {baseUrl, contextRoot} = this.props;
-    const url = `${baseUrl}/api/hmd/taskinfo`;
+    const {ipDeviceInfo} = this.state;
+
+    const url = `${baseUrl}/api/hmd/retrigger`;
     const requestData = {
-      taskId
+      hostId: ipDeviceInfo[ipType].ipDeviceUUID,
+      cmds: type
     };
 
-    helper.getAjaxData('POST', url, requestData)
-    .then(data => {
-      if (data) {
-        PopupDialog.alert({
-          id: 'tiggerTaskModal',
-          confirmText: t('txt-close'),
-          display: <div>{t('txt-requestSent')}</div>
-        });
-        this.getHMDinfo(type);
-      }
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'));
-    });
+    // helper.getAjaxData('POST', url, requestData)
+    // .then(data => {
+    //   if (data) {
+    //     PopupDialog.alert({
+    //       id: 'tiggerTaskModal',
+    //       confirmText: t('txt-close'),
+    //       display: <div>{t('txt-requestSent')}</div>
+    //     });
+    //     this.getHMDinfo(type);
+    //   }
+    // })
+    // .catch(err => {
+    //   helper.showPopupMsg('', t('txt-error'));
+    // });
+  }
+  toggleSelectionIR = () => {
+
   }
   /**
    * Display safety scan content
@@ -1103,14 +1110,32 @@ class AlertDetails extends Component {
    * @returns SafetyScan component
    */
   displaySafetyScanContent = (type) => {
+    const {baseUrl, contextRoot, language, locale} = this.props;
     const {ipDeviceInfo} = this.state;
 
-    return (
-      <SafetyScan
-        type={type}
-        ipDeviceInfo={ipDeviceInfo}
-        triggerTask={this.triggerTask} />
-    )
+    if (ipDeviceInfo[type].isHmd) {
+      return (
+        <HMDscanInfo
+          baseUrl={baseUrl}
+          contextRoot={contextRoot}
+          language={language}
+          locale={locale}
+          ipType={type}
+          currentDeviceData={ipDeviceInfo[type]}
+          toggleSelectionIR={this.toggleSelectionIR}
+          showAlertData={this.showAlertData}
+          triggerTask={this.triggerTask} />
+      )
+    } else {
+      return <span>{NOT_AVAILABLE}</span>
+    }
+
+    // return (
+    //   <SafetyScan
+    //     type={type}
+    //     ipDeviceInfo={ipDeviceInfo}
+    //     triggerTask={this.triggerTask} />
+    // )
   }
   /**
    * Display JSON Data content

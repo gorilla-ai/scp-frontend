@@ -461,12 +461,13 @@ class HMDscanInfo extends Component {
    * @returns HTML DOM
    */
   getTriggerBtn = (hmdInfo) => {
+    const {ipType} = this.props;
     const {activeTab} = this.state;
 
     if (activeTab === 'ir') {
       return <button className='btn' onClick={this.props.toggleSelectionIR} disabled={this.checkTriggerTime(activeTab)}>{t('network-inventory.txt-reCompress')}</button>
     } else {
-      return <button className='btn' onClick={this.props.triggerTask.bind(this, [TRIGGER_NAME[activeTab]])} disabled={this.checkTriggerTime(activeTab)}>{t('network-inventory.txt-reCheck')}</button>
+      return <button className='btn' onClick={this.props.triggerTask.bind(this, [TRIGGER_NAME[activeTab]], ipType)} disabled={this.checkTriggerTime(activeTab)}>{t('network-inventory.txt-reCheck')}</button>
     }
   }
   /**
@@ -529,18 +530,10 @@ class HMDscanInfo extends Component {
       )
     }   
   }
-  /**
-   * Display main scan content
-   * @method
-   * @returns HTML DOM
-   */
-  displayScanInfo = () => {
-    const {deviceData, currentDeviceData} = this.props;
+  render() {
+    const {currentDeviceData} = this.props;
     const {activeTab, gcbFieldsArr, malwareFieldsArr} = this.state;
-    const ip = currentDeviceData.ip || NOT_AVAILABLE;
-    const mac = currentDeviceData.mac || NOT_AVAILABLE;
-    const hostName = currentDeviceData.hostName || NOT_AVAILABLE;
-    const ownerName = currentDeviceData.ownerObj ? currentDeviceData.ownerObj.ownerName : NOT_AVAILABLE;
+
     let hmdInfo = {};
     let buttonGroupList = [];
 
@@ -650,76 +643,29 @@ class HMDscanInfo extends Component {
     }
 
     return (
-      <div>
-        <table className='c-table main-table with-border'>
-          <thead>
-            <tr>
-              <th>{t('ipFields.ip')}</th>
-              <th>{t('ipFields.mac')}</th>
-              <th>{t('ipFields.hostName')}</th>
-              <th>{t('ipFields.owner')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td className='align-center ip'>{ip}</td>
-              <td className='align-center mac'>{mac}</td>
-              <td className='align-center hostName'>{hostName}</td>
-              <td className='align-center ownerName'>{ownerName}</td>
-            </tr>
-          </tbody>
-        </table>
+      <div className='scan-info'>
+        <ButtonGroup
+          className='left'
+          list={buttonGroupList}
+          onChange={this.toggleScanType}
+          value={activeTab} />
 
-        <div className='scan-info'>
-          <ButtonGroup
-            className='left'
-            list={buttonGroupList}
-            onChange={this.toggleScanType}
-            value={activeTab} />
-
-          <div className='info-content'>
-            <div>
-              <div className='info'>
-                <div className='last-update'>
-                  <span>{t('network-inventory.txt-createTime')}: {hmdInfo[activeTab].createTime || NOT_AVAILABLE}</span>
-                  <span>{t('network-inventory.txt-responseTime')}: {hmdInfo[activeTab].responseTime || NOT_AVAILABLE}</span>
-                </div>
-                {this.getSuspiciousFileCount(hmdInfo)} {/*For Yara and Yara Scan File*/}
-                {this.getPassTotalCount(hmdInfo)} {/*For GCB*/}
-                {this.getTriggerBtn(hmdInfo)} {/*For all*/}
+        <div className='info-content'>
+          <div>
+            <div className='info'>
+              <div className='last-update'>
+                <span>{t('network-inventory.txt-createTime')}: {hmdInfo[activeTab].createTime || NOT_AVAILABLE}</span>
+                <span>{t('network-inventory.txt-responseTime')}: {hmdInfo[activeTab].responseTime || NOT_AVAILABLE}</span>
               </div>
-              {this.getScanContent(hmdInfo)} {/*For Yara, Yara Scan File and IR*/}
-              {this.getTableContent(hmdInfo)} {/*For GCB and Malware*/}
+              {this.getSuspiciousFileCount(hmdInfo)} {/*For Yara and Yara Scan File*/}
+              {this.getPassTotalCount(hmdInfo)} {/*For GCB*/}
+              {this.getTriggerBtn(hmdInfo)} {/*For all*/}
             </div>
+            {this.getScanContent(hmdInfo)} {/*For Yara, Yara Scan File and IR*/}
+            {this.getTableContent(hmdInfo)} {/*For GCB and Malware*/}
           </div>
         </div>
-
-        {deviceData.currentLength > 1 &&
-          <div className='pagination'>
-            <div className='buttons'>
-              <button onClick={this.showAlertData.bind(this, 'previous')} disabled={deviceData.currentIndex === 0}>{t('txt-previous')}</button>
-              <button onClick={this.showAlertData.bind(this, 'next')} disabled={deviceData.currentIndex + 1 === deviceData.currentLength}>{t('txt-next')}</button>
-            </div>
-            <span className='count'>{deviceData.currentIndex + 1} / {deviceData.currentLength}</span>
-          </div>
-        }
       </div>
-    )
-  }
-  render() {
-    const {titleText, actions} = this.props;
-
-    return (
-      <ModalDialog
-        id='configScanModalDialog'
-        className='modal-dialog'
-        title={titleText}
-        draggable={true}
-        global={true}
-        actions={actions}
-        closeAction='confirm'>
-        {this.displayScanInfo()}
-      </ModalDialog>
     )
   }
 }
@@ -729,9 +675,6 @@ HMDscanInfo.propTypes = {
   contextRoot: PropTypes.string.isRequired,
   language: PropTypes.string.isRequired,
   locale: PropTypes.string.isRequired,
-  titleText: PropTypes.string.isRequired,
-  actions: PropTypes.object.isRequired,
-  deviceData: PropTypes.object.isRequired,
   currentDeviceData: PropTypes.object.isRequired,
   toggleSelectionIR: PropTypes.func.isRequired,
   showAlertData: PropTypes.func.isRequired,

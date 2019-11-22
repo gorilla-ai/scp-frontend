@@ -396,50 +396,10 @@
   text-align: center;
   margin-top: 30px;
 }
-/* configuration/topology/inventory */
+#dashboardModalDialog-content,
 #configScanModalDialog-content {
-  width: 965px;
-  .table {
-    height: 430px;
-    overflow-y: auto;
-    margin-top: 15px;
-  }
-  .main-table {
-    border-radius: 5px;
-    width: 100%;
-    overflow: hidden;
-    &.with-border {
-      th, td {
-        padding: 10px !important;
-        border: 1px solid #ccc !important;
-      }
-    }
-    thead {
-      border-top: 1px solid #d9d9d9;
-      tr {
-        color: #185e9e;
-        background-color: #f7f7f7;
-      }
-    }
-    tbody td:hover {
-      cursor: text;
-    }
-    .align-center {
-      text-align: center;
-      &.ip,
-      &.mac,
-      &.hostName,
-      &.ownerName {
-        width: 25%;
-      }
-    }
-    span[title] {
-      cursor: default;
-    }
-  }
   .scan-info {
     overflow: hidden;
-    min-height: 550px;
     margin-top: 10px;
     padding: 10px;
     border: 1px solid #ccc;
@@ -478,6 +438,10 @@
           padding: .3em .5em;
         }
       }
+      .table {
+        overflow-y: auto;
+        margin-top: 15px;
+      }
       .scan-content {
         margin-top: 15px;
         border-top: 2px solid #ccc;
@@ -491,7 +455,6 @@
           margin: 5px 0 5px 10px;
         }
         .list {
-          max-height: 400px;
           overflow-y: auto;
           .group {
             border-top: 1px solid #ccc;
@@ -563,6 +526,242 @@
               }
             }
           }
+        }
+      }
+    }
+  }
+}
+/* common/alert-details */
+#dashboardModalDialog-content {
+  width: 965px;
+  .main-table {
+    border-radius: 5px;
+    width: 100%;
+    overflow: hidden;
+    thead tr {
+      color: #185e9e;
+    }
+    tbody td:hover {
+      cursor: text;
+    }
+    &.top-info {
+      th, td {
+        padding: 10px !important;
+        border: 1px solid #ccc !important;
+      }
+      .align-center {
+        text-align: center;
+        &.severity-level,
+        &.collector,
+        &.trigger,
+        &.datetime {
+          width: 25%;
+        }
+        &.src-ip,
+        &.dest-ip {
+          width: 30%;
+        }
+        &.src-port,
+        &.dest-port {
+          width: 20%;
+        }
+      }
+      .severity {
+        display: block;
+        width: 70px;
+        padding: 2px;
+        color: #fff;
+        border-radius: 10px;
+        margin: 0 auto;
+        text-align: center;
+      }
+    }
+  }
+  .alert-info {
+    margin: 7px 0;
+    background-color: #f7f7f7;
+    padding: 20px;
+  }
+  .main-content {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    min-height: 400px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    & > .nav {
+      width: 280px;
+      border-right: 1px solid #ccc;
+      ul li {
+        span {
+          padding: 10px;
+          display: block;
+          cursor: pointer;
+          &.active {
+            color: #185e9e;
+          }
+        }
+        &.header {
+          margin-top: 10px;
+          border-bottom: 1px solid #ccc;
+          span {
+            display: inline-block;
+            cursor: text;
+            &.name {
+              color: #185e9e;
+              font-size: 16px;
+              font-weight: bold;
+            }
+            &.ip {
+              color: #2db142;
+            }
+          }
+        }
+      }
+    }
+    & > .content {
+      position: relative;
+      width: 100%;
+      color: #666;
+      background-color: #f5f5f5;
+      .options-buttons {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        text-align: right;
+        cursor: pointer;
+        div {
+          cursor: pointer;
+        }
+      }
+      ul {
+        &.redirect-menu {
+          position: absolute;
+          top: 35px;
+          right: 0;
+          border: 1px solid #ccc;
+          border-radius: 5px;
+          background-color: #fff;
+          z-index: 100;
+          li {
+            padding: 5px 10px;
+            cursor: pointer;
+            &:hover {
+              background-color: #e5e5e5;
+            }
+          }
+        }
+        &.alert-rule {
+          li {
+            overflow-y: auto;
+            max-height: 340px;
+            padding-right: 10px;
+            word-break: break-all;
+          }
+        }
+      }
+      .pcap {
+        min-height: 285px;
+        textarea {
+          width: 550px;
+          height: 280px;
+        }
+      }
+      .payload {
+        padding: 0 10px;
+        ul {
+          background-color: #f5f5f5 !important;
+        }
+      }
+      .srcIp-content,
+      .destIp-content {
+        margin-top: 30px;
+        max-height: 348px;
+        overflow-y: auto;
+      }
+      .srcIp-content,
+      .destIp-content {
+        .public {
+          li {
+            overflow: hidden;
+            margin-bottom: 5px;
+            .key {
+              float: left;
+              color: #185e9e;
+              display: block;
+            }
+          }
+        }
+      }
+      .pcap-content {
+        footer {
+          margin-top: 15px;
+        }
+      }
+    }
+  }
+}
+#dashboardModalDialog-content {
+  .scan-info {
+    min-height: 365px;
+    .info-content {
+      .table {
+        height: 255px;
+      }
+      .scan-content {
+        .list {
+          max-height: 210px;
+          width: 685px;
+        }
+      }
+    }
+  }
+}
+/* configuration/topology/inventory */
+#configScanModalDialog-content {
+  width: 965px;
+  .main-table {
+    border-radius: 5px;
+    width: 100%;
+    overflow: hidden;
+    &.with-border {
+      th, td {
+        padding: 10px !important;
+        border: 1px solid #ccc !important;
+      }
+    }
+    thead {
+      border-top: 1px solid #d9d9d9;
+      tr {
+        color: #185e9e;
+        background-color: #f7f7f7;
+      }
+    }
+    tbody td:hover {
+      cursor: text;
+    }
+    .align-center {
+      text-align: center;
+      &.ip,
+      &.mac,
+      &.hostName,
+      &.ownerName {
+        width: 25%;
+      }
+    }
+    span[title] {
+      cursor: default;
+    }
+  }
+  .scan-info {
+    min-height: 550px;
+    .info-content {
+      .table {
+        height: 430px;
+      }
+      .scan-content {
+        .list {
+          max-height: 400px;
         }
       }
     }
@@ -953,174 +1152,6 @@
   footer {
     .c-info {
       color: #d0021b;
-    }
-  }
-}
-/* common/alert-details */
-#dashboardModalDialog-content {
-  width: 965px;
-  .main-table {
-    border-radius: 5px;
-    width: 100%;
-    overflow: hidden;
-    thead tr {
-      color: #185e9e;
-    }
-    tbody td:hover {
-      cursor: text;
-    }
-    th, td {
-      padding: 10px !important;
-      border: 1px solid #ccc !important;
-    }
-    .align-center {
-      text-align: center;
-      &.severity-level,
-      &.collector,
-      &.trigger,
-      &.datetime {
-        width: 25%;
-      }
-      &.src-ip,
-      &.dest-ip {
-        width: 30%;
-      }
-      &.src-port,
-      &.dest-port {
-        width: 20%;
-      }
-    }
-    .severity {
-      display: block;
-      width: 70px;
-      padding: 2px;
-      color: #fff;
-      border-radius: 10px;
-      margin: 0 auto;
-      text-align: center;
-    }
-  }
-  .alert-info {
-    margin: 7px 0;
-    background-color: #f7f7f7;
-    padding: 20px;
-  }
-  .main-content {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 10px;
-    min-height: 400px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    & > .nav {
-      width: 325px;
-      border-right: 1px solid #ccc;
-      ul li {
-        span {
-          padding: 10px;
-          display: block;
-          cursor: pointer;
-          &.active {
-            color: #185e9e;
-          }
-        }
-        &.header {
-          margin-top: 10px;
-          border-bottom: 1px solid #ccc;
-          span {
-            display: inline-block;
-            cursor: text;
-            &.name {
-              color: #185e9e;
-              font-size: 16px;
-              font-weight: bold;
-            }
-            &.ip {
-              color: #2db142;
-            }
-          }
-        }
-      }
-    }
-    & > .content {
-      position: relative;
-      width: 100%;
-      color: #666;
-      background-color: #f5f5f5;
-      .options-buttons {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        text-align: right;
-        cursor: pointer;
-        div {
-          cursor: pointer;
-        }
-      }
-      ul {
-        &.redirect-menu {
-          position: absolute;
-          top: 35px;
-          right: 0;
-          border: 1px solid #ccc;
-          border-radius: 5px;
-          background-color: #fff;
-          z-index: 100;
-          li {
-            padding: 5px 10px;
-            cursor: pointer;
-            &:hover {
-              background-color: #e5e5e5;
-            }
-          }
-        }
-        &.alert-rule {
-          li {
-            overflow-y: auto;
-            max-height: 340px;
-            padding-right: 10px;
-            word-break: break-all;
-          }
-        }
-      }
-      .pcap {
-        min-height: 285px;
-        textarea {
-          width: 550px;
-          height: 280px;
-        }
-      }
-      .payload {
-        padding: 0 10px;
-        ul {
-          background-color: #f5f5f5 !important;
-        }
-      }
-      .srcIp-content,
-      .destIp-content {
-        margin-top: 30px;
-        max-height: 348px;
-        overflow-y: auto;
-      }
-      .srcIp-content,
-      .destIp-content {
-        .public {
-          li {
-            overflow: hidden;
-            margin-bottom: 5px;
-            .key {
-              float: left;
-              color: #185e9e;
-              display: block;
-            }
-          }
-        }
-      }
-      .pcap-content {
-        footer {
-          margin-top: 15px;
-        }
-      }
     }
   }
 }

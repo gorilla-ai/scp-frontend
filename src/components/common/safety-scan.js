@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
 
+import helper from './helper'
 import withLocale from '../../hoc/locale-provider'
 
 const NOT_AVAILABLE = 'N/A';
@@ -56,7 +57,7 @@ class SafetyScan extends Component {
    * @returns boolean true/false
    */
   checkTriggerTime = (type) => {
-    const {ipDeviceInfo} = this.state;
+    const {ipDeviceInfo} = this.props;
     const resultType = type + 'Result';
 
     if (ipDeviceInfo[type][resultType].taskCreateDttm && ipDeviceInfo[type][resultType].taskResponseDttm) {

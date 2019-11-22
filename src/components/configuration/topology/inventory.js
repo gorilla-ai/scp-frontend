@@ -79,7 +79,7 @@ class NetworkInventory extends Component {
     this.state = {
       activeTab: 'deviceList', //deviceList, deviceMap
       activeContent: 'tableList', //tableList, dataInfo, addIPsteps, autoSettings
-      showFilter: false,
+      showFilter: true,
       showScanInfo: false,
       showSeatData: false,
       modalFloorOpen: false,
@@ -1036,23 +1036,23 @@ class NetworkInventory extends Component {
       cmds: type
     };
 
-    helper.getAjaxData('POST', url, requestData)
-    .then(data => {
-      if (data) {
-        PopupDialog.alert({
-          id: 'tiggerTaskModal',
-          confirmText: t('txt-close'),
-          display: <div>{t('txt-requestSent')}</div>
-        });
+    // helper.getAjaxData('POST', url, requestData)
+    // .then(data => {
+    //   if (data) {
+    //     PopupDialog.alert({
+    //       id: 'tiggerTaskModal',
+    //       confirmText: t('txt-close'),
+    //       display: <div>{t('txt-requestSent')}</div>
+    //     });
 
-        if (type && type !== 'getSystemInfo') {
-          this.getIPdeviceInfo('', currentDeviceData.ipDeviceUUID);
-        }
-      }
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'));
-    });
+    //     if (type && type !== 'getSystemInfo') {
+    //       this.getIPdeviceInfo('', currentDeviceData.ipDeviceUUID);
+    //     }
+    //   }
+    // })
+    // .catch(err => {
+    //   helper.showPopupMsg('', t('txt-error'));
+    // });
   }
   /**
    * Handle IR combo dropdown change
@@ -1181,30 +1181,82 @@ class NetworkInventory extends Component {
     });
   }
   /**
+   * 
+   * @method
+   * @returns HTML DOM
+   */
+  displayScanInfo = () => {
+    const {baseUrl, contextRoot, language, locale} = this.props;
+    const {deviceData, currentDeviceData} = this.state;
+    const ip = currentDeviceData.ip || NOT_AVAILABLE;
+    const mac = currentDeviceData.mac || NOT_AVAILABLE;
+    const hostName = currentDeviceData.hostName || NOT_AVAILABLE;
+    const ownerName = currentDeviceData.ownerObj ? currentDeviceData.ownerObj.ownerName : NOT_AVAILABLE;
+
+    return (
+      <div>
+        <table className='c-table main-table with-border'>
+          <thead>
+            <tr>
+              <th>{t('ipFields.ip')}</th>
+              <th>{t('ipFields.mac')}</th>
+              <th>{t('ipFields.hostName')}</th>
+              <th>{t('ipFields.owner')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td className='align-center ip'>{ip}</td>
+              <td className='align-center mac'>{mac}</td>
+              <td className='align-center hostName'>{hostName}</td>
+              <td className='align-center ownerName'>{ownerName}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <HMDscanInfo
+          baseUrl={baseUrl}
+          contextRoot={contextRoot}
+          language={language}
+          locale={locale}
+          currentDeviceData={currentDeviceData}
+          toggleSelectionIR={this.toggleSelectionIR}
+          showAlertData={this.showAlertData}
+          triggerTask={this.triggerTask} />
+
+        {deviceData.currentLength > 1 &&
+          <div className='pagination'>
+            <div className='buttons'>
+              <button onClick={this.showAlertData.bind(this, 'previous')} disabled={deviceData.currentIndex === 0}>{t('txt-previous')}</button>
+              <button onClick={this.showAlertData.bind(this, 'next')} disabled={deviceData.currentIndex + 1 === deviceData.currentLength}>{t('txt-next')}</button>
+            </div>
+            <span className='count'>{deviceData.currentIndex + 1} / {deviceData.currentLength}</span>
+          </div>
+        }          
+      </div>
+    )
+  }
+  /**
    * Display HMD scan info content
    * @method
    * @returns HMDscanInfo component
    */
   showScanInfo = () => {
-    const {baseUrl, contextRoot, language, locale} = this.props;
-    const {deviceData, currentDeviceData} = this.state;
     const actions = {
       confirm: {text: t('txt-close'), handler: this.closeDialog.bind(this, 'reload')}
     };
 
     return (
-      <HMDscanInfo
-        baseUrl={baseUrl}
-        contextRoot={contextRoot}
-        language={language}
-        locale={locale}
-        titleText={t('alert.txt-safetyScanInfo')}
+      <ModalDialog
+        id='configScanModalDialog'
+        className='modal-dialog'
+        title={t('alert.txt-safetyScanInfo')}
+        draggable={true}
+        global={true}
         actions={actions}
-        deviceData={deviceData}
-        currentDeviceData={currentDeviceData}
-        toggleSelectionIR={this.toggleSelectionIR}
-        showAlertData={this.showAlertData}
-        triggerTask={this.triggerTask} />
+        closeAction='confirm'>
+        {this.displayScanInfo()}
+      </ModalDialog>
     )
   }
   /**

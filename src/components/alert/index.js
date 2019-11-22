@@ -258,7 +258,7 @@ class AlertController extends Component {
   /**
    * Get and set alert data
    * @method
-   * @param {string} options - option for 'search'
+   * @param {string} [options] - option for 'search'
    */
   loadTable = (options) => {
     const {baseUrl, contextRoot} = this.props;
@@ -379,7 +379,7 @@ class AlertController extends Component {
   /**
    * Construct the alert api request body
    * @method
-   * @param {string} options - option for 'search'
+   * @param {string} [options] - option for 'search'
    * @returns requst data object
    */
   toQueryLanguage = (options) => {
@@ -454,7 +454,7 @@ class AlertController extends Component {
    * Set the alert tree data
    * @method
    * @param {string} treeData - alert tree data
-   * @param {string} treeName - tree node name
+   * @param {string} [treeName] - tree node name
    * @returns tree data object
    */
   getAlertTreeData = (treeData, treeName) => {
@@ -579,7 +579,7 @@ class AlertController extends Component {
    * Set the alert private tree data
    * @method
    * @param {string} treeData - alert tree data
-   * @param {string} treeName - tree node name
+   * @param {string} [treeName] - tree node name
    * @returns tree data object
    */
   getPrivateTreeData = (treeData, treeName) => {
@@ -631,7 +631,7 @@ class AlertController extends Component {
    * Set the alert public tree data
    * @method
    * @param {string} treeData - alert tree data
-   * @param {string} treeName - tree node name
+   * @param {string} [treeName] - tree node name
    * @returns tree data object
    */
   getPublicTreeData = (treeData, treeName) => {
@@ -667,7 +667,7 @@ class AlertController extends Component {
   /**
    * Handle alert search submit
    * @method
-   * @param {string} fromSearch - option for 'search'
+   * @param {string} [fromSearch] - option for 'search'
    */
   handleSearchSubmit = (fromSearch) => {
     const {activeTab, subSectionsData} = this.state;
@@ -691,7 +691,7 @@ class AlertController extends Component {
   /**
    * Handle alert search reset
    * @method
-   * @param {string} type - reset type ('filter' or 'mark')
+   * @param {string} [type] - reset type ('filter' or 'mark')
    */
   handleResetBtn = (type) => {
     const filterData = [{
@@ -753,7 +753,7 @@ class AlertController extends Component {
    * Handle tree filter button selection
    * @method
    * @param {string} value - selected node name
-   * @param {string} field - corresponding field of selected node
+   * @param {string} [field] - corresponding field of selected node
    */
   selectTree = (value, field) => {
     this.setState({
@@ -765,7 +765,7 @@ class AlertController extends Component {
   /**
    * Add tree node to search filter
    * @method
-   * @param {string} field - corresponding field of selected node
+   * @param {string} [field] - corresponding field of selected node
    * @param {string} value - selected node name
    * @param {string} type - condition of selected node ('must')
    */
@@ -928,7 +928,7 @@ class AlertController extends Component {
    * Set new datetime
    * @method
    * @param {object} datetime - new datetime object
-   * @param {string} refresh - option for 'refresh'
+   * @param {string} [refresh] - option for 'refresh'
    */
   handleDateChange = (datetime, refresh) => {
     this.setState({
@@ -1031,7 +1031,7 @@ class AlertController extends Component {
   /**
    * Set filter data
    * @method
-   * @param {array} filterData - filter data to be set
+   * @param {Array.<object>} filterData - filter data to be set
    */
   setFilterData = (filterData) => {
     this.setState({
@@ -1085,7 +1085,7 @@ class AlertController extends Component {
   /**
    * Set search options data
    * @method
-   * @param {string} type - search type to be set ('all' and others)
+   * @param {string} type - search type to be set ('all' and everything else)
    * @param {string} value - search value to be set
    */
   setSearchData = (type, value) => {
