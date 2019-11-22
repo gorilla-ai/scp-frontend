@@ -56,7 +56,6 @@ class AccountEdit extends Component {
    * Handle account edit form change
    * @method
    * @param {object} accountData - form input key-value
-   * @returns none
    */
   handleDataChange = (accountData) => {
     this.setState({
@@ -67,7 +66,6 @@ class AccountEdit extends Component {
    * Get and set account data
    * @method
    * @param {string} id - selected account ID
-   * @returns none
    */
   loadAccount = (id) => {
     const {baseUrl} = this.props;
@@ -107,8 +105,6 @@ class AccountEdit extends Component {
   /**
    * Get and set account privileges
    * @method
-   * @param none
-   * @returns none
    */
   loadPrivileges = () => {
     const {baseUrl} = this.props;
@@ -132,8 +128,6 @@ class AccountEdit extends Component {
   /**
    * Handle save account confirm
    * @method
-   * @param none
-   * @returns none
    */
   saveAccount = () => {
     const {baseUrl} = this.props;
@@ -187,8 +181,6 @@ class AccountEdit extends Component {
   /**
    * Handle save privileges confirm
    * @method
-   * @param none
-   * @returns none
    */
   savePrivileges = () => {
     const {baseUrl} = this.props;
@@ -218,7 +210,6 @@ class AccountEdit extends Component {
    * @method
    * @param {string} id - selected account ID
    * @param {string} options - option for 'fromHeader'
-   * @returns none
    */
   openAccount = (id, options) => {
     let showPrivileges = true;
@@ -241,8 +232,6 @@ class AccountEdit extends Component {
   /**
    * Handle close confirm and reset data
    * @method
-   * @param none
-   * @returns none
    */
   close = () => {
     this.setState(
@@ -253,7 +242,6 @@ class AccountEdit extends Component {
    * Set form error message
    * @method
    * @param {string} msg - error message
-   * @returns none
    */
   error = (msg) => {
     this.setState({
@@ -264,7 +252,6 @@ class AccountEdit extends Component {
   /**
    * Display account edit content
    * @method
-   * @param none
    * @returns HTML DOM
    */
   displayAccountsEdit = () => {

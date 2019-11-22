@@ -82,8 +82,6 @@ class NetworkOwner extends Component {
   /**
    * Get and set department and title data
    * @method
-   * @param none
-   * @returns none
    */
   getSearchData = () => {
     const {baseUrl} = this.props;
@@ -139,7 +137,6 @@ class NetworkOwner extends Component {
    * Get and set owner data
    * @method
    * @param {string} fromSearch - option for 'search'
-   * @returns none
    */
   getOwnerData = (fromSearch) => {
     const {baseUrl} = this.props;
@@ -222,7 +219,6 @@ class NetworkOwner extends Component {
    * @method
    * @param {object} allValue - owner data
    * @param {object} evt - mouseClick events
-   * @returns none
    */
   handleRowContextMenu = (allValue, evt) => {
     const menuItems = [
@@ -247,7 +243,6 @@ class NetworkOwner extends Component {
    * @param {string} index - index of the owner data
    * @param {object} allValue - owner data
    * @param {object} evt - mouseOver events
-   * @returns none
    */
   handleRowMouseOver = (index, allValue, evt) => {
     let tempOwner = {...this.state.owner};
@@ -266,7 +261,6 @@ class NetworkOwner extends Component {
    * Handle table sort
    * @method
    * @param {object} sort - sort data object
-   * @returns none
    */
   handleTableSort = (sort) => {
     let tempOwner = {...this.state.owner};
@@ -284,7 +278,6 @@ class NetworkOwner extends Component {
    * @method
    * @param {string} type - input type
    * @param {string} value - input value
-   * @returns none
    */
   handleSearchChange = (type, value) => {
     let tempSearch = {...this.state.search};
@@ -299,7 +292,6 @@ class NetworkOwner extends Component {
    * @method
    * @param {string} type - page type ('currentPage' or 'pageSize')
    * @param {string} value - new page number
-   * @returns none
    */
   handlePaginationChange = (type, value) => {
     let tempOwner = {...this.state.owner};
@@ -319,7 +311,6 @@ class NetworkOwner extends Component {
    * Get individual owner data
    * @method
    * @param {object} allValue - owner data
-   * @returns none
    */
   getOwnerInfo = (allValue) => {
     const {baseUrl} = this.props;
@@ -351,7 +342,6 @@ class NetworkOwner extends Component {
    * @method
    * @param {string} type - content type ('addOwner' or 'tableList')
    * @param {string} options - options for 'new' or 'edit'
-   * @returns none
    */
   toggleContent = (type, options) => {
     const {list, owner} = this.state;
@@ -396,7 +386,6 @@ class NetworkOwner extends Component {
    * @method
    * @param {string} type - input type
    * @param {string} value - input value
-   * @returns none
    */
   handleDataChange = (type, value) => {
     let tempOwner = {...this.state.owner};
@@ -417,8 +406,6 @@ class NetworkOwner extends Component {
   /**
    * Handle remove owner photo checkbox
    * @method
-   * @param none
-   * @returns none
    */
   handleRemovePhoto = () => {
     let tempOwner = {...this.state.owner};
@@ -431,8 +418,6 @@ class NetworkOwner extends Component {
   /**
    * Handle add/edit owner form confirm
    * @method
-   * @param none
-   * @returns none
    */
   handleOwnerConfirm = () => {
     const {baseUrl, contextRoot} = this.props;
@@ -498,7 +483,6 @@ class NetworkOwner extends Component {
    * Display delete owner modal dialog
    * @method
    * @param {object} allValue - owner data
-   * @returns none
    */
   openDeleteOwnerModal = (allValue) => {
     PopupDialog.prompt({
@@ -517,8 +501,6 @@ class NetworkOwner extends Component {
   /**
    * Handle delete owner confirm
    * @method
-   * @param none
-   * @returns none
    */
   deleteOwner = () => {
     const {baseUrl} = this.props;
@@ -540,8 +522,6 @@ class NetworkOwner extends Component {
   /**
    * Open department/title management modal dialog
    * @method
-   * @param none
-   * @returns none
    */
   openManage = () => {
     this.name._component.openManage();
@@ -549,8 +529,6 @@ class NetworkOwner extends Component {
   /**
    * Handle close on department/title management modal dialog
    * @method
-   * @param none
-   * @returns none
    */
   onDone = () => {
     this.getSearchData();
@@ -559,8 +537,6 @@ class NetworkOwner extends Component {
   /**
    * Toggle filter content on/off
    * @method
-   * @param none
-   * @returns none
    */
   toggleFilter = () => {
     this.setState({
@@ -570,8 +546,6 @@ class NetworkOwner extends Component {
   /**
    * Clear filter input value
    * @method
-   * @param none
-   * @returns none
    */
   clearFilter = () => {
     const tempSearch = {
@@ -587,7 +561,6 @@ class NetworkOwner extends Component {
   /**
    * Display filter content
    * @method
-   * @param none
    * @returns HTML DOM
    */
   renderFilter = () => {

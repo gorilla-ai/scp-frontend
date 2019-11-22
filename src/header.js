@@ -49,7 +49,6 @@ class Header extends Component {
    * Handle language change
    * @method
    * @param {string} lng - language type ('en' or 'zh')
-   * @returns none
    */
   changeLng = (lng) => {
     const {location} = this.props;
@@ -68,8 +67,6 @@ class Header extends Component {
   /**
    * Handle logout
    * @method
-   * @param none
-   * @returns none
    */
   logout = () => {
     const {baseUrl} = this.props;
@@ -86,7 +83,6 @@ class Header extends Component {
    * Open and display account context menu
    * @method
    * @param {object} evt - mouseClick events
-   * @returns none
    */
   showAccountMenu = (evt) => {
     const lngs = _.map(['en', 'zh'], i => ({
@@ -114,8 +110,6 @@ class Header extends Component {
   /**
    * Handle account edit action
    * @method
-   * @param none
-   * @returns none
    */
   editAccount = () => {
     this.editor._component.openAccount(this.props.session.accountId, 'fromHeader');
@@ -123,8 +117,6 @@ class Header extends Component {
   /**
    * Show account edit success message
    * @method
-   * @param none
-   * @returns none
    */
   showPopup = () => {
     PopupDialog.alert({

@@ -100,8 +100,6 @@ class DashboardMaps extends Component {
   /**
    * Get and set alert maps data
    * @method
-   * @param none
-   * @returns none
    */
   loadAlertData = (type) => {
     const {baseUrl, contextRoot} = this.props;
@@ -162,8 +160,6 @@ class DashboardMaps extends Component {
   /**
    * Set map geoJson and attacks data
    * @method
-   * @param none
-   * @returns none
    */
   getWorldMap = () => {
     const {geoJson, alertDetails, alertMapData} = this.state;
@@ -251,7 +247,6 @@ class DashboardMaps extends Component {
    * Toggle public and private maps content
    * @method
    * @param {string} type - content type ('private' or 'public')
-   * @returns none
    */
   toggleMaps = (type) => {
     this.setState({
@@ -274,7 +269,6 @@ class DashboardMaps extends Component {
    * @param {string} type - alert type ('private' or 'public')
    * @param {string} id - selected seat UUID
    * @param {object} eventInfo - MouseClick events
-   * @returns none
    */
   showTopoDetail = (type, id, eventInfo) => {
     const {baseUrl, contextRoot} = this.props;
@@ -350,7 +344,6 @@ class DashboardMaps extends Component {
    * Set the alert index and get the alert data
    * @method
    * @param {string} type - button action type ('previous' or 'next')
-   * @returns none
    */
   showAlertData = (type) => {
     const {locationType, alertDetails} = this.state;
@@ -385,7 +378,6 @@ class DashboardMaps extends Component {
    * @method
    * @param {string} type - button action type ('previous' or 'next')
    * @param {object} alertData - selected alert data
-   * @returns none
    */
   openDetailInfo = (type, alertData) => {
     const {alertDetails} = this.state;
@@ -414,7 +406,6 @@ class DashboardMaps extends Component {
   /**
    * Display alert details modal dialog
    * @method
-   * @param none
    * @returns AlertDetails component
    */
   alertDialog = () => {
@@ -442,8 +433,6 @@ class DashboardMaps extends Component {
   /**
    * Close alert dialog and reset alert data
    * @method
-   * @param none
-   * @returns none
    */
   closeDialog = () => {
     this.setState({
@@ -461,8 +450,6 @@ class DashboardMaps extends Component {
   /**
    * Get and set floor plan data
    * @method
-   * @param none
-   * @returns none
    */
   getFloorPlan = () => {
     const {baseUrl} = this.props;
@@ -494,8 +481,6 @@ class DashboardMaps extends Component {
   /**
    * Get and set floor list data
    * @method
-   * @param none
-   * @returns none
    */
   getFloorList = () => {
     const {floorPlan} = this.state;
@@ -524,7 +509,6 @@ class DashboardMaps extends Component {
    * Get and set area related data
    * @method
    * @param {string} areaUUID - area UUID
-   * @returns none
    */
   getAreaData = (areaUUID) => {
     const {baseUrl, contextRoot} = this.props;
@@ -574,8 +558,6 @@ class DashboardMaps extends Component {
   /**
    * Get and set the alert tree data
    * @method
-   * @param none
-   * @returns none
    */
   loadAlertPrivateData = () => {
     const {baseUrl, contextRoot} = this.props;
@@ -622,8 +604,6 @@ class DashboardMaps extends Component {
   /**
    * Get and set individual floor area data
    * @method
-   * @param none
-   * @returns none
    */
   getSeatData = () => {
     const {alertDetails, currentFloor} = this.state;

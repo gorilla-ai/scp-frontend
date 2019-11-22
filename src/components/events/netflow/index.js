@@ -277,8 +277,6 @@ class Netflow extends Component {
   /**
    * Initial load for the page
    * @method
-   * @param none
-   * @returns none
    */
   initialLoad = () => {
     this.getLAconfig();
@@ -288,8 +286,6 @@ class Netflow extends Component {
   /**
    * Get and set the Link Analysis config
    * @method
-   * @param none
-   * @returns none
    */
   getLAconfig = () => {
     const {baseUrl} = this.props;
@@ -307,8 +303,6 @@ class Netflow extends Component {
   /**
    * Get and set the account saved query
    * @method
-   * @param none
-   * @returns none
    */
   getSavedQuery = () => {
     const {baseUrl} = this.props;
@@ -327,8 +321,6 @@ class Netflow extends Component {
   /**
    * Get and set the project ID
    * @method
-   * @param none
-   * @returns none
    */
   getProjectId = () => {
     const {baseUrl} = this.props;
@@ -358,8 +350,6 @@ class Netflow extends Component {
   /**
    * Copy search fields into table columns
    * @method
-   * @param none
-   * @returns none
    */
   loadAllFields = () => {
     let tempSubSectionsData = {...this.state.subSectionsData};
@@ -377,7 +367,6 @@ class Netflow extends Component {
    * Get and set the events count
    * @method
    * @param {string} options - option for 'loadFields'
-   * @returns none
    */
   loadEventsCount = (options) => {
     const {baseUrl} = this.props;
@@ -438,7 +427,6 @@ class Netflow extends Component {
    * @method
    * @param {string} activeTab - current tab
    * @param {string} options - options for 'showDefault' and 'noCount'
-   * @returns none
    */
   loadFields = (activeTab, options) => {
     const {baseUrl} = this.props;
@@ -507,7 +495,6 @@ class Netflow extends Component {
    * Load subtab content ('table', 'link analysis' or 'world map')
    * @method
    * @param {string} options - option for 'search'
-   * @returns none
    */
   loadActiveSubTab = (options) => {
     const {activeTab, activeSubTab} = this.state;
@@ -540,7 +527,6 @@ class Netflow extends Component {
    * Load table data based on events type
    * @method
    * @param {string} options - option for 'noCount'
-   * @returns none
    */
   loadSection = (options) => {
     const {activeTab} = this.state;
@@ -560,7 +546,6 @@ class Netflow extends Component {
    * @method
    * @param {string} newTab - new tab to be loaded
    * @param {string} oldTab - old tab
-   * @returns none
    */
   handleTabChange = (newTab, oldTab) => {
     const activeTab = newTab;
@@ -685,7 +670,6 @@ class Netflow extends Component {
    * Load Connections data
    * @method
    * @param {string} options - option for 'search'
-   * @returns none
    */
   loadConnections = (options) => {
     const {baseUrl, contextRoot} = this.props;
@@ -821,7 +805,6 @@ class Netflow extends Component {
    * Load events data other than Connections (DNS, File, Email, HTTP, etc.)
    * @method
    * @param {string} options - option for 'search'
-   * @returns none
    */
   loadSubSections = (options) => {
     const {baseUrl, contextRoot} = this.props;
@@ -988,7 +971,7 @@ class Netflow extends Component {
    * Reset link analysis data to avoid weird display in LA
    * @method
    * @param {string} options - option for 'search'
-   * @returns none
+
    */
   resetLinkAnalysis = (options) => {
     const {activeTab, subSectionsData} = this.state;
@@ -1005,7 +988,6 @@ class Netflow extends Component {
    * Get and set link analysis data
    * @method
    * @param {string} options - option for 'search'
-   * @returns none
    */
   loadLinkAnalysis = (options) => {
     const {baseUrl, contextRoot} = this.props;
@@ -1045,7 +1027,6 @@ class Netflow extends Component {
    * Get and set data for the world map
    * @method
    * @param {string} options - option for 'search'
-   * @returns none
    */
   loadWorldMap = (options) => {
     const {baseUrl, contextRoot} = this.props;
@@ -1076,8 +1057,6 @@ class Netflow extends Component {
   /**
    * Get and set world map geoJson data
    * @method
-   * @param none
-   * @returns none
    */
   getWorldMap = () => {
     const {activeTab, geoJson, subSectionsData} = this.state;
@@ -1147,7 +1126,6 @@ class Netflow extends Component {
    * Set the netflow events tree data
    * @method
    * @param {string} value - tree node name
-   * @returns none
    */
   showTreeFilterBtn = (value) => {
     this.setState({
@@ -1229,8 +1207,6 @@ class Netflow extends Component {
   /**
    * Handle tree export button
    * @method
-   * @param none
-   * @returns none
    */
   handleTreeExport = () => {
     const {baseUrl, contextRoot} = this.props;
@@ -1248,7 +1224,6 @@ class Netflow extends Component {
    * Handle alert search submit
    * @method
    * @param {string} fromSearch - option for 'search'
-   * @returns none
    */
   handleSearchSubmit = (fromSearch) => {
     const {activeTab, subSectionsData} = this.state;
@@ -1273,7 +1248,6 @@ class Netflow extends Component {
    * Handle alert search reset
    * @method
    * @param {string} type - reset type ('filter' or 'mark')
-   * @returns none
    */
   handleResetBtn = (type) => {
     const filterData = [{
@@ -1295,7 +1269,6 @@ class Netflow extends Component {
    * @method
    * @param {number} type - content type ('la' or 'map')
    * @param {number} currentPage - current page
-   * @returns none
    */
   handleLargePageChange = (type, currentPage) => {
     this.setState({
@@ -1313,7 +1286,6 @@ class Netflow extends Component {
    * @method
    * @param {number} type - content type ('la' or 'map')
    * @param {string} pageSize - current page size
-   * @returns none
    */
   handleLargePageDropdown = (type, pageSize) => {
     this.setState({
@@ -1331,7 +1303,6 @@ class Netflow extends Component {
    * Handle pagination change
    * @method
    * @param {number} currentPage - current page
-   * @returns none
    */
   handlePaginationChange = (currentPage) => {
     const {activeTab, showImgCheckbox} = this.state;
@@ -1350,7 +1321,6 @@ class Netflow extends Component {
    * Handle page size dropdown
    * @method
    * @param {string} pageSize - current page size
-   * @returns none
    */
   handlePageDropdown = (pageSize) => {
     const {activeTab} = this.state;
@@ -1380,7 +1350,6 @@ class Netflow extends Component {
    * Handle table sort
    * @method
    * @param {object} sort - sort data object
-   * @returns none
    */
   handleTableSort = (sort) => {
     let tempSort = {...this.state.sort};
@@ -1398,7 +1367,6 @@ class Netflow extends Component {
    * @method
    * @param {string} value - selected node name
    * @param {string} field - corresponding field of selected node
-   * @returns none
    */
   selectTree = (value, field) => {
     this.setState({
@@ -1411,7 +1379,6 @@ class Netflow extends Component {
    * Handle table menu PCAP download
    * @method
    * @param {string} value - table selected row data
-   * @returns none
    */
   pcapDownloadFile = (value) => {
     const {baseUrl} = this.props;
@@ -1438,7 +1405,6 @@ class Netflow extends Component {
    * @param {number} id - ID of the selected raw data
    * @param {object} allValue - table data
    * @param {object} evt - MouseoverEvents
-   * @returns none
    */
   handleRowMouseOver = (id, allValue, evt) => {
     const {activeTab, subSectionsData} = this.state;
@@ -1469,7 +1435,6 @@ class Netflow extends Component {
    * @param {number} id - ID of the selected raw data
    * @param {object} allValue - table data
    * @param {object} evt - MouseoverEvents
-   * @returns none
    */
   handleRowMouseOut = (id, allValue, evt) => {
     Popover.closeId('popup-id')
@@ -1479,7 +1444,6 @@ class Netflow extends Component {
    * @method
    * @param {object} allValue - syslog data
    * @param {object} evt - mouseClick events
-   * @returns none
    */
   handleRowContextMenu = (allValue, evt) => {
     this.handleRowMouseOut();
@@ -1558,7 +1522,6 @@ class Netflow extends Component {
    * @param {string} field - field name of selected field
    * @param {string | number} value - value of selected field
    * @param {object} e - mouseClick events
-   * @returns none
    */
   showQueryOptions = (field, value) => (e) => {
     const menuItems = [
@@ -1588,7 +1551,6 @@ class Netflow extends Component {
    * @param {string} field - corresponding field of selected node
    * @param {string} value - selected node name
    * @param {string} type - condition of selected node ('must')
-   * @returns none
    */
   addSearch = (field, value, type) => {
     const {filterData} = this.state;
@@ -1628,7 +1590,7 @@ class Netflow extends Component {
    * @method
    * @param {string} field - field of selected checkbox
    * @param {boolean} data - checked/uncheck status
-   * @returns none
+
    */
   setFieldsChange = (field, data) => {
     let tempAccount = {...this.state.account};
@@ -1650,7 +1612,6 @@ class Netflow extends Component {
    * Set and save events table fields of the account
    * @method
    * @param {array} fields - fields list to be set
-   * @returns none
    */
   setCustomFields = (fields) => {
     const {baseUrl} = this.props;
@@ -1719,7 +1680,6 @@ class Netflow extends Component {
    * Set the data to be displayed in table dialog
    * @method
    * @param {object} allValue - data of selected table raw
-   * @returns none
    */
   showTableData = (allValue) => {
     const {account} = this.state;
@@ -1778,7 +1738,6 @@ class Netflow extends Component {
    * Handle table field sort action
    * @method
    * @param {object} listObj - sort data
-   * @returns none
    */
   onSortEnd = (listObj) => {
     this.setState({
@@ -1788,7 +1747,6 @@ class Netflow extends Component {
   /**
    * Display table data content
    * @method
-   * @param none
    * @returns HTML DOM
    */
   displayTableData = () => {
@@ -1821,8 +1779,6 @@ class Netflow extends Component {
   /**
    * Close dialog and reset data
    * @method
-   * @param none
-   * @returns none
    */
   closeDialog = () => {
     this.setState({
@@ -1841,7 +1797,6 @@ class Netflow extends Component {
    * Reset table based on user's interaction with table dialog or memo tag
    * @method
    * @param {string} options - option for 'setFields'
-   * @returns none
    */
   resetDataTable = (options) => {
     const {activeTab, subSectionsData} = this.state;
@@ -1874,8 +1829,6 @@ class Netflow extends Component {
   /**
    * Display table data content in modal dialog
    * @method
-   * @param none
-   * @returns none
    */
   tableDialog = () => {
     const {activeTab} = this.state;
@@ -1901,7 +1854,6 @@ class Netflow extends Component {
   /**
    * Display Json data content
    * @method
-   * @param none
    * @returns HTML DOM
    */
   displayJsonData = (allValue) => {
@@ -1931,7 +1883,6 @@ class Netflow extends Component {
    * Open Json data modal dialog
    * @method
    * @param {object} allValue - data of selected table raw
-   * @returns none
    */
   viewJsonData = (allValue) => {
     const {activeTab} = this.state;
@@ -1959,7 +1910,6 @@ class Netflow extends Component {
    * @method
    * @param {string} hex - original string value
    * @param {number} index - active index of the Alert PCAP array
-   * @returns none
    */
   setPCAPhex = (hex, index) => {
     let tempPcapData = {...this.state.pcapData};
@@ -1979,7 +1929,6 @@ class Netflow extends Component {
    * Set PCAP page
    * @method
    * @param {string} currentPage - current page of the PCAP info
-   * @returns none
    */
   setPCAPpage = (currentPage) => {
     let tempPcapData = {...this.state.pcapData};
@@ -1997,8 +1946,6 @@ class Netflow extends Component {
   /**
    * Toggle (check/uncheck) to show/hide the PCAP data
    * @method
-   * @param none
-   * @returns none
    */
   toggleFilterEmpty = () => {
     const {pcapData} = this.state;
@@ -2037,7 +1984,6 @@ class Netflow extends Component {
   /**
    * Display PCAP content
    * @method
-   * @param none
    * @returns HTML DOM
    */
   displayPCAPcontent = () => {
@@ -2090,7 +2036,6 @@ class Netflow extends Component {
   /**
    * Display PCAP content in modal dialog
    * @method
-   * @param none
    * @returns ModalDialog component
    */
   pcapDialog = () => {
@@ -2117,7 +2062,6 @@ class Netflow extends Component {
    * Get and set PCAP data
    * @method
    * @param {object} allValue - data of selected table raw
-   * @returns none
    */
   getPCAPcontent = (allValue) => {
     const {baseUrl} = this.props;
@@ -2180,7 +2124,6 @@ class Netflow extends Component {
    * Open delete tag modal dialog
    * @method
    * @param {string} id - ID of selected table raw data
-   * @returns none
    */
   deleteTagging = (id) => {
     PopupDialog.prompt({
@@ -2199,8 +2142,6 @@ class Netflow extends Component {
   /**
    * Handle delete tag confirm
    * @method
-   * @param none
-   * @returns none
    */
   deleteTag = () => {
     const {baseUrl} = this.props;
@@ -2225,7 +2166,6 @@ class Netflow extends Component {
    * Handle add tag table menu
    * @method
    * @param {object} allValue - data of selected table raw
-   * @returns none
    */
   addTagging = (allValue) => {
     let titleText = t('events.connections.txt-addTag');
@@ -2252,7 +2192,6 @@ class Netflow extends Component {
    * Handle value change for the add tagging form
    * @method
    * @param {object | string} val - input value
-   * @returns none
    */
   handleDataChange = (val) => {
     let tempTagData = {...this.state.tagData};
@@ -2270,7 +2209,6 @@ class Netflow extends Component {
   /**
    * Display add tagging content
    * @method
-   * @param none
    * @returns HTML DOM
    */
   displayAddTagging = () => {
@@ -2305,7 +2243,6 @@ class Netflow extends Component {
   /**
    * Display add tagging content in modal dialog
    * @method
-   * @param none
    * @returns ModalDialog component
    */
   taggingDialog = () => {
@@ -2332,8 +2269,6 @@ class Netflow extends Component {
   /**
    * Handle add tagging confirm
    * @method
-   * @param none
-   * @returns none
    */
   handleAddTagging = () => {
     const {baseUrl} = this.props;
@@ -2379,7 +2314,6 @@ class Netflow extends Component {
    * @method
    * @param {string} value - image file data
    * @param {object} e - mouseClick events
-   * @returns none
    */
   openImageModal = (value) => (e) => {
     PopupDialog.alert({
@@ -2392,7 +2326,6 @@ class Netflow extends Component {
    * Handle open HTML modal dialog
    * @method
    * @param {string} value - HTML path
-   * @returns none
    */
   openHTMLModal = (value) => {
     const {baseUrl} = this.props;
@@ -2419,7 +2352,6 @@ class Netflow extends Component {
    * @method
    * @param {object} datetime - new datetime object
    * @param {string} refresh - option for 'refresh'
-   * @returns none
    */
   handleDateChange = (datetime, refresh) => {
     this.setState({
@@ -2434,7 +2366,6 @@ class Netflow extends Component {
    * Handle chart type change for Connections events
    * @method
    * @param {string} connectionsChartType - chart type ('connections', 'packets' or 'databytes')
-   * @returns none
    */
   handleChartChange = (connectionsChartType) => {
     this.setState({
@@ -2446,7 +2377,6 @@ class Netflow extends Component {
    * Handle chart interval change for Connections events
    * @method
    * @param {string} connectionsChartType - chart type ('1m', '15m', '30m' or '60m')
-   * @returns none
    */
   handleIntervalChange = (connectionsInterval) => {
     this.setState({
@@ -2460,7 +2390,6 @@ class Netflow extends Component {
    * Handle show image only checkbox for File events
    * @method
    * @param {boolean} showImgCheckbox - checkbox status (true/false)
-   * @returns none
    */
   handleShowImgCheckbox = (showImgCheckbox) => {
     this.setState({
@@ -2473,7 +2402,6 @@ class Netflow extends Component {
    * Handle display change radio for File events
    * @method
    * @param {boolean} displayType - display type ('list' or 'grid')
-   * @returns none
    */
   handleDisplayChange = (displayType) => {
     this.setState({
@@ -2485,7 +2413,6 @@ class Netflow extends Component {
   /**
    * Check for File type and grid view
    * @method
-   * @param none
    * @returns true/false boolean
    */
   fileImageGrid = () => {
@@ -2494,7 +2421,6 @@ class Netflow extends Component {
   /**
    * Get default page size based on events type
    * @method
-   * @param none
    * @returns true/false boolean
    */
   getPageSize = () => {
@@ -2510,7 +2436,6 @@ class Netflow extends Component {
    * Handle content tab change
    * @method
    * @param {string} newTab - content type ('table', 'linkAnalysis' or 'worldMap')
-   * @returns none
    */
   handleSubTabChange = (newTab) => {
     const {activeTab} = this.state;
@@ -2553,7 +2478,6 @@ class Netflow extends Component {
   /**
    * Display table data content for events type
    * @method
-   * @param none
    * @returns events component
    */
   renderTabContent = () => {
@@ -2670,8 +2594,6 @@ class Netflow extends Component {
   /**
    * Handle CSV download
    * @method
-   * @param none
-   * @returns none
    */
   getCSVfile = () => {
     const {baseUrl, contextRoot} = this.props;
@@ -2699,8 +2621,6 @@ class Netflow extends Component {
   /**
    * Toggle filter content on/off
    * @method
-   * @param none
-   * @returns none
    */
   toggleFilter = () => {
     this.setState({
@@ -2711,7 +2631,6 @@ class Netflow extends Component {
    * Toggle query menu on/off
    * @method
    * @param {string} type - type of query menu ('open' or 'save')
-   * @returns none
    */
   openQuery = (type) => {
     if (type === 'open') {
@@ -2728,7 +2647,6 @@ class Netflow extends Component {
    * Set filter data
    * @method
    * @param {array} filterData - filter data to be set
-   * @returns none
    */
   setFilterData = (filterData) => {
     this.setState({
@@ -2739,7 +2657,6 @@ class Netflow extends Component {
    * Set query data
    * @method
    * @param {object} queryData - query data to be set
-   * @returns none
    */
   setQueryData = (queryData) => {
     this.setState({
@@ -2775,8 +2692,6 @@ class Netflow extends Component {
   /**
    * Toggle chart content on/off
    * @method
-   * @param none
-   * @returns none
    */
   toggleChart = () => {
     this.setState({
@@ -2788,7 +2703,6 @@ class Netflow extends Component {
    * @method
    * @param {string} type - search type to be set ('all' and others)
    * @param {string} value - search value to be set
-   * @returns none
    */
   setSearchData = (type, value) => {
     if (type === 'all') {
@@ -2810,8 +2724,6 @@ class Netflow extends Component {
   /**
    * Clear memo tag data
    * @method
-   * @param none
-   * @returns none
    */
   clearTagData = () => {
     const tagData = {
@@ -2830,8 +2742,6 @@ class Netflow extends Component {
   /**
    * Clear PCAP data
    * @method
-   * @param none
-   * @returns none
    */
   clearPcapData = () => {
     const pcapData = {
@@ -2852,8 +2762,6 @@ class Netflow extends Component {
   /**
    * Reset query data
    * @method
-   * @param none
-   * @returns none
    */
   clearQueryData = () => {
     const {queryData} = this.state;
@@ -2868,8 +2776,6 @@ class Netflow extends Component {
   /**
    * Reset subSections data
    * @method
-   * @param none
-   * @returns none
    */
   clearData = () => {
     const subSectionsData = {

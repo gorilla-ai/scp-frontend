@@ -99,7 +99,6 @@ class DashboardStats extends Component {
    * @method
    * @param {object} eventInfo - MouseoverEvents
    * @param {object} data - chart data
-   * @returns none
    */
   onTooltip = (eventInfo, data) => {
     const text = data[0].rule + ': ' + data[0].number + ' ' + t('txt-at') + ' ' + Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss');
@@ -109,7 +108,6 @@ class DashboardStats extends Component {
   /**
    * Remove the charts that require special manipulation
    * @method
-   * @param none
    * @returns formatted chars list
    */
   formattedPieChartsList = () => {
@@ -121,8 +119,6 @@ class DashboardStats extends Component {
   /**
    * Get and set alert charts data
    * @method
-   * @param none
-   * @returns none
    */
   loadAlertData = () => {
     const {baseUrl, contextRoot} = this.props;
@@ -331,8 +327,6 @@ class DashboardStats extends Component {
   /**
    * Construct and set the pie charts
    * @method
-   * @param none
-   * @returns none
    */
   getPieChartsData = () => {
     const {pieCharts} = this.state;
@@ -370,8 +364,6 @@ class DashboardStats extends Component {
   /**
    * Construct and set the metric chart
    * @method
-   * @param none
-   * @returns none
    */
   loadMetricData = () => {
     const {baseUrl, contextRoot} = this.props;

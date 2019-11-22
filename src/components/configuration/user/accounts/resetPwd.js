@@ -43,8 +43,6 @@ class ResetPwd extends Component {
   /**
    * Handle save account confirm
    * @method
-   * @param none
-   * @returns none
    */
   saveAccount = () => {
     const {baseUrl, contextRoot} = this.props;
@@ -100,8 +98,6 @@ class ResetPwd extends Component {
   /**
    * Open reset password modal dialog
    * @method
-   * @param none
-   * @returns none
    */
   openResetPwd = () => {
     this.setState({
@@ -111,8 +107,6 @@ class ResetPwd extends Component {
   /**
    * Close dialog and reset data
    * @method
-   * @param none
-   * @returns none
    */
   close = () => {
     this.setState(this.clearData());
@@ -121,7 +115,6 @@ class ResetPwd extends Component {
    * Set form error message
    * @method
    * @param {string} msg - error message
-   * @returns none
    */
   error = (msg) => {
     this.setState({
@@ -133,7 +126,6 @@ class ResetPwd extends Component {
    * Handle reset password form change
    * @method
    * @param {object} formData - form input key-value
-   * @returns none
    */
   handleDataChange = (formData) => {
     this.setState({
@@ -143,8 +135,6 @@ class ResetPwd extends Component {
   /**
    * Reset form data
    * @method
-   * @param none
-   * @returns none
    */
   clearData = () => {
     return {
@@ -162,7 +152,6 @@ class ResetPwd extends Component {
   /**
    * Display reset password content
    * @method
-   * @param none
    * @returns HTML DOM
    */
   displayResetPassword = () => {

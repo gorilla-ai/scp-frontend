@@ -42,8 +42,6 @@ class Roles extends Component {
   /**
    * Get and set privileges list
    * @method
-   * @param none
-   * @returns none
    */
   loadList = () => {
     const {baseUrl} = this.props;
@@ -92,7 +90,6 @@ class Roles extends Component {
    * Open account privilege edit dialog
    * @method
    * @param {string} id - selected privilege id
-   * @returns none
    */
   showEditDialog = (id) => {
     this.editor.openPrivilegeEdit(id);
@@ -100,8 +97,6 @@ class Roles extends Component {
   /**
    * Open account privilege add dialog
    * @method
-   * @param none
-   * @returns none
    */
   showAddDialog = () => {
     this.addor.openPrivilegeAdd();
@@ -126,7 +121,6 @@ class Roles extends Component {
    * @method
    * @param {object} allValue - selected privilege data
    * @param {string} id - selected privilege id
-   * @returns none
    */
   showDeleteDialog = (allValue, id) => {
     const {baseUrl} = this.props;
@@ -159,7 +153,6 @@ class Roles extends Component {
    * @method
    * @param {object} allValue - owner data
    * @param {object} evt - mouseClick events
-   * @returns none
    */
   handleRowContextMenu = (allValue, evt) => {
     const menuItems = [
@@ -197,7 +190,6 @@ class Roles extends Component {
    * @param {string} id - selected privilege id
    * @param {object} allValue - privilege data
    * @param {object} evt - MouseoverEvents
-   * @returns none
    */
   handleRowMouseOver = (id, allValue, evt) => {
     let tempData = {...this.state.data};

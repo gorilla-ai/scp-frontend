@@ -169,8 +169,6 @@ class SyslogController extends Component {
   /**
    * Get and set the Link Analysis config
    * @method
-   * @param none
-   * @returns none
    */
   getLAconfig = () => {
     const {baseUrl} = this.props;
@@ -188,8 +186,6 @@ class SyslogController extends Component {
   /**
    * Get and set the account saved query
    * @method
-   * @param none
-   * @returns none
    */
   getSavedQuery = () => {
     const {baseUrl} = this.props;
@@ -208,8 +204,6 @@ class SyslogController extends Component {
   /**
    * Get and set syslog tree data
    * @method
-   * @param none
-   * @returns none
    */
   getSyslogTree = () => {
     const {baseUrl} = this.props;
@@ -235,8 +229,6 @@ class SyslogController extends Component {
   /**
    * Set initial data for page load
    * @method
-   * @param none
-   * @returns none
    */
   initialLoad = () => {
     const syslogParams = queryString.parse(location.search);
@@ -280,7 +272,6 @@ class SyslogController extends Component {
    * @method
    * @param {string} activeTab - current tab
    * @param {string} options - options for 'showDefault'
-   * @returns none
    */
   loadFields = (activeTab, options) => {
     const {baseUrl} = this.props;
@@ -334,8 +325,6 @@ class SyslogController extends Component {
   /**
    * Get and set the list of log event fields
    * @method
-   * @param none
-   * @returns none
    */
   loadLogsFields = () => {
     const {baseUrl} = this.props;
@@ -364,8 +353,6 @@ class SyslogController extends Component {
   /**
    * Get and set the customized locales name for fields
    * @method
-   * @param none
-   * @returns none
    */
   loadLogsLocaleFields = () => {
     const {baseUrl} = this.props;
@@ -433,7 +420,6 @@ class SyslogController extends Component {
    * Reset link analysis data to avoid weird display in LA
    * @method
    * @param {string} options - option for 'search'
-   * @returns none
    */
   resetLinkAnalysis = (options) => {
     const {activeTab, subSectionsData} = this.state;
@@ -450,7 +436,6 @@ class SyslogController extends Component {
    * Get and set link analysis data
    * @method
    * @param {string} options - option for 'search'
-   * @returns none
    */
   loadLinkAnalysis = (options) => {
     const {baseUrl, contextRoot} = this.props;
@@ -492,7 +477,6 @@ class SyslogController extends Component {
   /**
    * Construct the netflow events api request body
    * @method
-   * @param none
    * @returns requst data object
    */
   toQueryLanguage = () => {
@@ -544,7 +528,6 @@ class SyslogController extends Component {
    * @method
    * @param {string} field - field name
    * @param {string} page - option for 'logs'
-   * @returns none
    */
   getCustomFieldName = (field, page) => {
     const {account} = this.state;
@@ -561,7 +544,6 @@ class SyslogController extends Component {
    * Load Syslog data
    * @method
    * @param {string} options - option for 'search'
-   * @returns none
    */
   loadLogs = (options) => {
     const {baseUrl, contextRoot} = this.props;
@@ -690,7 +672,6 @@ class SyslogController extends Component {
    * Load subtab content ('table' or 'link analysis')
    * @method
    * @param {string} options - option for 'search'
-   * @returns none
    */
   loadActiveSubTab = (options) => {
     const {activeSubTab} = this.state;
@@ -705,7 +686,6 @@ class SyslogController extends Component {
    * Set the netflow events tree data
    * @method
    * @param {string} value - tree node name
-   * @returns none
    */
   showTreeFilterBtn = (value) => {
     this.setState({
@@ -766,7 +746,6 @@ class SyslogController extends Component {
    * Handle alert search submit
    * @method
    * @param {string} fromSearch - option for 'search'
-   * @returns none
    */
   handleSearchSubmit = (fromSearch) => {
     const {activeTab, subSectionsData} = this.state;
@@ -791,7 +770,6 @@ class SyslogController extends Component {
    * Handle alert search reset
    * @method
    * @param {string} type - reset type ('filter' or 'mark')
-   * @returns none
    */
   handleResetBtn = (type) => {
     if (type === 'filter') {
@@ -822,7 +800,6 @@ class SyslogController extends Component {
    * @method
    * @param {number} type - content type ('la' or 'map')
    * @param {number} currentPage - current page
-   * @returns none
    */
   handleLargePageChange = (type, currentPage) => {
     this.setState({
@@ -838,7 +815,6 @@ class SyslogController extends Component {
    * @method
    * @param {number} type - content type ('la' or 'map')
    * @param {string} pageSize - current page size
-   * @returns none
    */
   handleLargePageDropdown = (type, pageSize) => {
     this.setState({
@@ -854,7 +830,6 @@ class SyslogController extends Component {
    * Handle pagination change
    * @method
    * @param {number} currentPage - current page
-   * @returns none
    */
   handlePaginationChange = (currentPage) => {
     this.setState({
@@ -867,7 +842,6 @@ class SyslogController extends Component {
    * Handle page size dropdown
    * @method
    * @param {string} pageSize - current page size
-   * @returns none
    */
   handlePageDropdown = (pageSize) => {
     this.setState({
@@ -881,7 +855,6 @@ class SyslogController extends Component {
    * Handle table sort
    * @method
    * @param {object} sort - sort data object
-   * @returns none
    */
   handleTableSort = (value) => {
     let tempSort = {...this.state.sort};
@@ -899,7 +872,6 @@ class SyslogController extends Component {
    * @method
    * @param {string} value - selected node name
    * @param {string} field - corresponding field of selected node
-   * @returns none
    */
   selectTree = (value, field) => {
     this.setState({
@@ -914,7 +886,6 @@ class SyslogController extends Component {
    * @param {number} id - ID of the selected raw data
    * @param {object} allValue - table data
    * @param {object} evt - MouseoverEvents
-   * @returns none
    */
   handleRowMouseOver = (id, allValue, evt) => {
     const {activeTab, subSectionsData} = this.state;
@@ -936,7 +907,6 @@ class SyslogController extends Component {
    * @method
    * @param {object} allValue - syslog data
    * @param {object} evt - mouseClick events
-   * @returns none
    */
   handleRowContextMenu = (allValue, evt) => {
     const menuItems = [
@@ -961,7 +931,6 @@ class SyslogController extends Component {
    * @param {string} field - field name of selected field
    * @param {string | number} value - value of selected field
    * @param {object} e - mouseClick events
-   * @returns none
    */
   showQueryOptions = (field, value) => (e) => {
     const menuItems = [
@@ -991,7 +960,6 @@ class SyslogController extends Component {
    * @param {string} field - corresponding field of selected node
    * @param {string} value - selected node name
    * @param {string} type - condition of selected node ('must')
-   * @returns none
    */
   addSearch = (field, value, type) => {
     const {filterData} = this.state;
@@ -1032,7 +1000,6 @@ class SyslogController extends Component {
    * @method
    * @param {string} field - field of selected checkbox
    * @param {boolean} data - checked/uncheck status
-   * @returns none
    */
   setFieldsChange = (field, data) => {
     let tempAccount = {...this.state.account};
@@ -1054,7 +1021,6 @@ class SyslogController extends Component {
    * Set and save events table fields of the account
    * @method
    * @param {array} fields - fields list to be set
-   * @returns none
    */
   setCustomFields = (fields) => {
     const {baseUrl} = this.props;
@@ -1082,6 +1048,18 @@ class SyslogController extends Component {
       }
       return null;
     })
+  }
+  /**
+   * Open table menu when double click the table
+   * @method
+   * @param {string} index - index of the syslog data
+   * @param {object} allValue - selected syslog data
+   * @param {object} evt - mouseClick events
+   */
+  handleRowDoubleClick = (index, allValue, evt) => {
+    this.showTableData(allValue, index);
+    evt.stopPropagation();
+    return null;
   }
   /**
    * Set the table raw index and netflow data
@@ -1117,7 +1095,6 @@ class SyslogController extends Component {
    * Set the data to be displayed in table dialog
    * @method
    * @param {object} allValue - data of selected table raw
-   * @returns none
    */
   showTableData = (allValue) => {
     const {activeTab, subSectionsData, account} = this.state;
@@ -1186,7 +1163,6 @@ class SyslogController extends Component {
    * @method
    * @param {string} key - default field name
    * @param {string} localeField - custom locale name
-   * @returns none
    */
   toggleLocaleEdit = (key, localeField) => {
     const logCustomLocal = localeField ? localeField : key;
@@ -1201,7 +1177,6 @@ class SyslogController extends Component {
    * Handle locale input value change
    * @method
    * @param {string} value - input value
-   * @returns none
    */
   handleLocaleChange = (value) => {
     this.setState({
@@ -1211,7 +1186,6 @@ class SyslogController extends Component {
   /**
    * Display local edit content in modal dialog
    * @method
-   * @param none
    * @returns ModalDialog component
    */
   localeChangeDialog = () => {
@@ -1247,7 +1221,6 @@ class SyslogController extends Component {
    * Handle locale dialog cancel
    * @method
    * @param {string} options - option for 'reload'
-   * @returns none
    */
   closeLocaleChange = (options) => {
     this.setState({
@@ -1263,8 +1236,6 @@ class SyslogController extends Component {
   /**
    * Handle locale dialog confirm
    * @method
-   * @param none
-   * @returns none
    */
   setCustomLocale = () => {
     const {baseUrl} = this.props;
@@ -1286,7 +1257,6 @@ class SyslogController extends Component {
    * Handle table field sort action
    * @method
    * @param {object} listObj - sort data
-   * @returns none
    */
   onSortEnd = (listObj) => {
     this.setState({
@@ -1296,7 +1266,6 @@ class SyslogController extends Component {
   /**
    * Display table data content
    * @method
-   * @param none
    * @returns HTML DOM
    */
   displayTableData = () => {
@@ -1331,8 +1300,6 @@ class SyslogController extends Component {
   /**
    * Close dialog and reset data
    * @method
-   * @param none
-   * @returns none
    */
   closeDialog = () => {
     this.setState({
@@ -1347,7 +1314,6 @@ class SyslogController extends Component {
    * Reset table based on user's interaction with table dialog
    * @method
    * @param {string} options - option for 'setFields'
-   * @returns none
    */
   resetDataTable = (options) => {
     const {activeTab, subSectionsData} = this.state;
@@ -1381,8 +1347,6 @@ class SyslogController extends Component {
   /**
    * Display table data content in modal dialog
    * @method
-   * @param none
-   * @returns none
    */
   tableDialog = () => {
     const actions = {
@@ -1407,7 +1371,6 @@ class SyslogController extends Component {
   /**
    * Display Json data content
    * @method
-   * @param none
    * @returns HTML DOM
    */
   displayJsonData = (allValue) => {
@@ -1435,7 +1398,6 @@ class SyslogController extends Component {
    * Open Json data modal dialog
    * @method
    * @param {object} allValue - data of selected table raw
-   * @returns none
    */
   viewJsonData = (allValue) => {
     const newData = this.handleDialogNavigation(allValue);
@@ -1462,7 +1424,6 @@ class SyslogController extends Component {
    * @method
    * @param {object} datetime - new datetime object
    * @param {string} refresh - option for 'refresh'
-   * @returns none
    */
   handleDateChange = (datetime, refresh) => {
     this.setState({
@@ -1477,7 +1438,6 @@ class SyslogController extends Component {
    * Handle content tab change
    * @method
    * @param {string} newTab - content type ('table' or 'linkAnalysis')
-   * @returns none
    */
   handleSubTabChange = (newTab) => {
     if (newTab === 'table') {
@@ -1504,7 +1464,6 @@ class SyslogController extends Component {
   /**
    * Display table data content Syslog
    * @method
-   * @param none
    * @returns Syslog component
    */
   renderTabContent = () => {
@@ -1546,6 +1505,7 @@ class SyslogController extends Component {
       dataTableSort: this.state.sort,
       handleTableSort: this.handleTableSort,
       handleRowMouseOver: this.handleRowMouseOver,
+      handleRowDoubleClick: this.handleRowDoubleClick,
       paginationTotalCount: this.state.subSectionsData.totalCount[activeTab],
       paginationPageSize: this.state.pageSize,
       paginationAlertPageSize: this.state.pageSizeMap,
@@ -1573,8 +1533,6 @@ class SyslogController extends Component {
   /**
    * Handle CSV download
    * @method
-   * @param none
-   * @returns none
    */
   getCSVfile = () => {
     const {baseUrl, contextRoot} = this.props;
@@ -1601,8 +1559,6 @@ class SyslogController extends Component {
   /**
    * Toggle filter and mark content on/off
    * @method
-   * @param none
-   * @returns none
    */
   toggleMark = () => {
     this.setState({
@@ -1614,7 +1570,6 @@ class SyslogController extends Component {
    * Toggle query menu on/off
    * @method
    * @param {string} type - type of query menu ('open' or 'save')
-   * @returns none
    */
   openQuery = (type) => {
     if (type === 'open') {
@@ -1631,7 +1586,6 @@ class SyslogController extends Component {
    * Set filter data
    * @method
    * @param {array} filterData - filter data to be set
-   * @returns none
    */
   setFilterData = (filterData) => {
     this.setState({
@@ -1642,7 +1596,6 @@ class SyslogController extends Component {
    * Set mark data
    * @method
    * @param {array} markData - mark data to be set
-   * @returns none
    */
   setMarkData = (markData) => {
     this.setState({
@@ -1653,7 +1606,6 @@ class SyslogController extends Component {
    * Set query data
    * @method
    * @param {object} queryData - query data to be set
-   * @returns none
    */
   setQueryData = (queryData) => {
     this.setState({
@@ -1690,8 +1642,6 @@ class SyslogController extends Component {
   /**
    * Toggle chart content on/off
    * @method
-   * @param none
-   * @returns none
    */
   toggleChart = () => {
     this.setState({
@@ -1703,7 +1653,6 @@ class SyslogController extends Component {
    * @method
    * @param {string} type - search type to be set ('all' and others)
    * @param {string} value - search value to be set
-   * @returns none
    */
   setSearchData = (type, value) => {
     if (type === 'all') {
@@ -1725,8 +1674,6 @@ class SyslogController extends Component {
   /**
    * Reset query data
    * @method
-   * @param none
-   * @returns none
    */
   clearQueryData = () => {
     const {queryData} = this.state;
@@ -1741,8 +1688,6 @@ class SyslogController extends Component {
   /**
    * Reset subSections data
    * @method
-   * @param none
-   * @returns none
    */
   clearData = () => {
     const {activeTab} = this.state;

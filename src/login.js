@@ -42,8 +42,6 @@ class Login extends Component {
   /**
    * Handle login confirm
    * @method
-   * @param none
-   * @returns none
    */
   logon = () =>  {
     const {contextRoot} = this.context;
@@ -76,7 +74,6 @@ class Login extends Component {
    * @method
    * @param {string} username - entered username
    * @param {string} password - entered password
-   * @returns none
    */
   getLogin = (username, password) => {
     const {baseUrl, contextRoot} = this.props;
@@ -114,8 +111,6 @@ class Login extends Component {
   /**
    * Open reset password page
    * @method
-   * @param none
-   * @returns none
    */
   startResetPwd = () => {
     this.pageResetPwd.openResetPwd();
@@ -124,7 +119,6 @@ class Login extends Component {
    * Handle enter key for login
    * @method
    * @param {object} e - mouseClick events
-   * @returns none
    */
   handleKeyDown = (e) => {
     if (e.keyCode === 13) {
@@ -135,7 +129,6 @@ class Login extends Component {
    * Handle language change
    * @method
    * @param {string} lng - language type ('en' or 'zh')
-   * @returns none
    */
   changeLng = (lng) => {
     const {contextRoot} = this.props;

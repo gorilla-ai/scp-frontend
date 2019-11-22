@@ -47,7 +47,6 @@ class PrivilegeEdit extends Component {
    * Open privilege edit modal dialog and set data
    * @method
    * @param {object} privilege - selected privilege data
-   * @returns none
    */
   openPrivilegeEdit = (privilege) => {
     this.setState({
@@ -60,8 +59,6 @@ class PrivilegeEdit extends Component {
   /**
    * Get and set privilege permits data
    * @method
-   * @param none
-   * @returns none
    */
   loadPermits = () => {
     const {baseUrl} = this.props;
@@ -90,8 +87,6 @@ class PrivilegeEdit extends Component {
   /**
    * Handle close confirm and reset data
    * @method
-   * @param none
-   * @returns none
    */
   close = () => {
     this.setState(_.clone(INITIAL_STATE));
@@ -99,8 +94,6 @@ class PrivilegeEdit extends Component {
   /**
    * Reset data and call onDone props funciton
    * @method
-   * @param none
-   * @returns none
    */
   save = () => {
     this.setState(_.clone(INITIAL_STATE), () => {
@@ -110,8 +103,6 @@ class PrivilegeEdit extends Component {
   /**
    * Handle privilege edit confirm
    * @method
-   * @param none
-   * @returns none
    */
   editPrivilege = () => {
     const {baseUrl} = this.props;
@@ -136,7 +127,6 @@ class PrivilegeEdit extends Component {
    * Handle checkboxgroup value change
    * @method
    * @param {array} selected - selected checkboxs value
-   * @returns none
    */
   handleDataChange = (selected) => {
     this.setState({
@@ -146,7 +136,6 @@ class PrivilegeEdit extends Component {
   /**
    * Display edit privilege content
    * @method
-   * @param none
    * @returns HTML DOM
    */
   displayEditPrivilege = () => {

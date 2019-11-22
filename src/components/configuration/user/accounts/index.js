@@ -51,8 +51,6 @@ class AccountList extends Component {
   /**
    * Get and set account list data
    * @method
-   * @param none
-   * @returns none
    */
   loadAccounts = () => {
     const {baseUrl} = this.props;
@@ -102,7 +100,6 @@ class AccountList extends Component {
    * @method
    * @param {object} allValue - account data
    * @param {object} evt - mouseClick events
-   * @returns none
    */
   handleRowContextMenu = (allValue, evt) => {
     const menuItems = [
@@ -132,7 +129,6 @@ class AccountList extends Component {
    * @param {string} index - index of the account data
    * @param {object} allValue - account data
    * @param {object} evt - MouseoverEvents
-   * @returns none
    */
   handleRowMouseOver = (value, allValue, evt) => {
     let tempAccountData = {...this.state.accountData};
@@ -150,8 +146,6 @@ class AccountList extends Component {
   /**
    * Handle account filter action
    * @method
-   * @param none
-   * @returns none
    */
   getAccountFilterData = () => {
     const {originalAccountData, accountData, param} = this.state;
@@ -173,7 +167,6 @@ class AccountList extends Component {
    * Open account edit modal dialog
    * @method
    * @param {string} id - selected account ID
-   * @returns none
    */
   showEditDialog = (id) => {
     this.editor._component.openAccount(id);
@@ -211,7 +204,6 @@ class AccountList extends Component {
    * @param {string} type - action type ('delete' or 'unlock')
    * @param {object} allValue - account data
    * @param {string} id - selected account ID
-   * @returns none
    */
   showDialog = (type, allValue, id) => {
     PopupDialog.prompt({
@@ -231,7 +223,6 @@ class AccountList extends Component {
    * Handle delete/unlock modal confirm
    * @method
    * @param {string} type - action type ('delete' or 'unlock')
-   * @returns none
    */
   accountAction = (type) => {
     const {baseUrl} = this.props;
@@ -270,7 +261,6 @@ class AccountList extends Component {
    * @method
    * @param {string} type - input type
    * @param {string} value - input value
-   * @returns none
    */
   handleSearchChange = (type, value) => {
     let tempParam = {...this.state.param}
@@ -283,8 +273,6 @@ class AccountList extends Component {
   /**
    * Toggle filter content on/off
    * @method
-   * @param none
-   * @returns none
    */
   toggleFilter = () => {
     this.setState({
@@ -294,8 +282,6 @@ class AccountList extends Component {
   /**
    * Clear filter input value
    * @method
-   * @param none
-   * @returns none
    */
   clearFilter = () => {
     this.setState({
@@ -308,7 +294,6 @@ class AccountList extends Component {
   /**
    * Display filter content
    * @method
-   * @param none
    * @returns HTML DOM
    */
   renderFilter = () => {
