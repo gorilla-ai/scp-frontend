@@ -365,7 +365,7 @@
     "txt-passCount": "通過",
     "txt-totalItem": "總項目",
     "txt-irMsg": "IR資料已上傳至",
-    "txt-itemSelection": "套餐選擇",
+    "txt-itemSelection": "電腦採證",
     "txt-editFloorMap": "$t(txt-edit)$t(txt-floorMap)",
     "txt-viewDevice": "$t(txt-view)$t(alert.txt-ipBasicInfo)",
     "txt-viewHMD": "$t(txt-view)$t(alert.txt-safetyScanInfo)",

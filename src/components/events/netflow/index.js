@@ -2481,11 +2481,10 @@ class Netflow extends Component {
    * @returns events component
    */
   renderTabContent = () => {
-    const {baseUrl, contextRoot, language, searchFields} = this.props;
+    const {baseUrl, contextRoot, language} = this.props;
     const {activeTab, tableMouseOver} = this.state;
     const mainContentData = {
       allTabData: ALL_TAB_DATA,
-      searchFields,
       activeTab,
       tableMouseOver,
       tableUniqueID: 'id',

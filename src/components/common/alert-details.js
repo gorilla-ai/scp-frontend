@@ -14,9 +14,9 @@ import Textarea from 'react-ui/build/src/components/textarea'
 import JSONTree from 'react-json-tree'
 
 import {HocPrivateDetails as PrivateDetails} from './private-details'
-//import {HocSafetyScan as SafetyScan} from './safety-scan'
 import helper from './helper'
 import {HocHMDscanInfo as HMDscanInfo} from './hmd-scan-info'
+import {HocIrSelections as IrSelections} from './ir-selections'
 import withLocale from '../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -83,7 +83,9 @@ class AlertDetails extends Component {
         srcIp: {},
         destIp: {}
       },
-      showRedirectMenu: false
+      showRedirectMenu: false,
+      modalIRopen: false,
+      ipType: ''
     };
 
     t = chewbaccaI18n.getFixedT(null, 'connections');
@@ -539,18 +541,22 @@ class AlertDetails extends Component {
   /**
    * Get alert severity
    * @method
-   * @param {value} - 'High', 'Medium', 'Low'
+   * @param {value} - 'Emergency', 'Alert', 'Critical', 'Warning', 'Notice'
    * @returns HTML DOM
    */
   getSeverity = (value) => {
     let styleStatus = '';
 
-    if (value === 'High') {
+    if (value === 'Emergency') {
       styleStatus = '#d9576c';
-    } else if (value === 'Medium') {
-      styleStatus = '#d99857';
-    } else if (value === 'Low') {
+    } else if (value === 'Alert') {
+      styleStatus = '#E4D354';
+    } else if (value === 'Critical') {
+      styleStatus = '#F7A35C';
+    } else if (value === 'Warning') {
       styleStatus = '#57c3d9';
+    } else if (value === 'Notice') {
+      styleStatus = '#90ED7D';
     } else if (value === NOT_AVAILABLE) {
       return {NOT_AVAILABLE}
     }
@@ -564,7 +570,7 @@ class AlertDetails extends Component {
   displayAlertData = () => {
     const {alertDetails, alertData} = this.props;
     const {alertType, showContent, alertRule, alertPCAP, alertPayload, showRedirectMenu} = this.state;
-    const severity = alertData.Severity ? this.getSeverity(alertData.Severity) : NOT_AVAILABLE;
+    const severity = alertData._severity_ ? this.getSeverity(alertData._severity_) : NOT_AVAILABLE;
     const eventDatetime = alertData._eventDttm_ ? helper.getFormattedDate(alertData._eventDttm_, 'local') : NOT_AVAILABLE;
 
     return (
@@ -572,7 +578,7 @@ class AlertDetails extends Component {
         <table className='c-table main-table top-info'>
           <thead>
             <tr>
-              <th>{f('alertFields.Severity')}</th>
+              <th>{f('alertFields._severity_')}</th>
               <th>{f('alertFields.Collector')}</th>
               <th>{f('alertFields.Trigger')}</th>
               <th>{f('alertFields._eventDttm_')}</th>
@@ -1073,41 +1079,48 @@ class AlertDetails extends Component {
    * Handle trigger button for HMD
    * @method
    * @param {string} type - HMD scan type
-   * @param {string} [ipType] - IP type ('srcIp' or 'destIp')
+   * @param {string} [activeIP] - IP type ('srcIp' or 'destIp')
    */
-  triggerTask = (type, ipType) => {
+  triggerTask = (type, activeIP) => {
     const {baseUrl, contextRoot} = this.props;
-    const {ipDeviceInfo} = this.state;
-
+    const {ipDeviceInfo, ipType} = this.state;
     const url = `${baseUrl}/api/hmd/retrigger`;
+    const activeIPtype = activeIP || ipType;
     const requestData = {
-      hostId: ipDeviceInfo[ipType].ipDeviceUUID,
+      hostId: ipDeviceInfo[activeIPtype].ipDeviceUUID,
       cmds: type
     };
 
-    // helper.getAjaxData('POST', url, requestData)
-    // .then(data => {
-    //   if (data) {
-    //     PopupDialog.alert({
-    //       id: 'tiggerTaskModal',
-    //       confirmText: t('txt-close'),
-    //       display: <div>{t('txt-requestSent')}</div>
-    //     });
-    //     this.getHMDinfo(type);
-    //   }
-    // })
-    // .catch(err => {
-    //   helper.showPopupMsg('', t('txt-error'));
-    // });
+    helper.getAjaxData('POST', url, requestData)
+    .then(data => {
+      if (data) {
+        PopupDialog.alert({
+          id: 'tiggerTaskModal',
+          confirmText: t('txt-close'),
+          display: <div>{t('txt-requestSent')}</div>
+        });
+        this.getHMDinfo(type);
+      }
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'));
+    });
   }
-  toggleSelectionIR = () => {
-
+  /**
+   * Toggle IR combo selection dialog
+   * @method
+   */
+  toggleSelectionIR = (ipType) => {
+    this.setState({
+      modalIRopen: !this.state.modalIRopen,
+      ipType
+    });
   }
   /**
    * Display safety scan content
    * @method
    * @param {string} type - 'srcIp' or 'destIp'
-   * @returns SafetyScan component
+   * @returns HMDscanInfo component
    */
   displaySafetyScanContent = (type) => {
     const {baseUrl, contextRoot, language, locale} = this.props;
@@ -1129,13 +1142,6 @@ class AlertDetails extends Component {
     } else {
       return <span>{NOT_AVAILABLE}</span>
     }
-
-    // return (
-    //   <SafetyScan
-    //     type={type}
-    //     ipDeviceInfo={ipDeviceInfo}
-    //     triggerTask={this.triggerTask} />
-    // )
   }
   /**
    * Display JSON Data content
@@ -1239,20 +1245,40 @@ class AlertDetails extends Component {
       alertPayload: ''
     });
   }
+  /**
+   * Display IR selection modal dialog
+   * @method
+   * @returns IrSelections component
+   */
+  irSelectionDialog = () => {
+    return (
+      <IrSelections
+        triggerTask={this.triggerTask}
+        toggleSelectionIR={this.toggleSelectionIR}
+      />
+    )
+  }
   render() {
     const {titleText, actions} = this.props;
+    const {modalIRopen} = this.state;
 
     return (
-      <ModalDialog
-        id='dashboardModalDialog'
-        className='modal-dialog'
-        title={titleText}
-        draggable={true}
-        global={true}
-        actions={actions}
-        closeAction='confirm'>
-        {this.displayAlertData()}
-      </ModalDialog>
+      <div>
+        <ModalDialog
+          id='dashboardModalDialog'
+          className='modal-dialog'
+          title={titleText}
+          draggable={true}
+          global={true}
+          actions={actions}
+          closeAction='confirm'>
+          {this.displayAlertData()}
+        </ModalDialog>
+
+        {modalIRopen &&
+          this.irSelectionDialog()
+        }
+      </div>
     )
   }
 }

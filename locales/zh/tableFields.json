@@ -320,7 +320,7 @@
     "payloadMD5": "Payload MD5",
     "destLocType": "Dest Loc Type",
     "timestamp": "日期",
-    "Severity": "Severity",
+    "_severity_": "Severity",
     "Info": "Info",
     "Collector": "Collector",
     "Trigger": "Trigger",
@@ -497,9 +497,9 @@
         "_MD5": "Hash Value"
       }
     },
-    "_IsPE": "IsPE",
-    "_IsPEextension": "IsPEextension",
-    "_IsVerifyTrust": "IsVerifyTrust"
+    "_IsPE": "是否為PE檔",
+    "_IsPEextension": "是否為PE附檔名",
+    "_IsVerifyTrust": "是否為有效簽章"
   },
   "edgeFields": {
     "agentName": "名稱",

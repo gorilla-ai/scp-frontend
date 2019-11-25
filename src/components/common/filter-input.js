@@ -16,13 +16,12 @@ class FilterInput extends Component {
     super(props);
   }
   render() {
-    const {activeTab, queryType, searchFields, logFields, filterData, inline} = this.props;
+    const {activeTab, queryType, logFields, filterData, inline} = this.props;
     let data = {};
 
     if (queryType === 'query') {
       data = {
         activeTab,
-        searchFields,
         logFields,
         queryType
       };
@@ -42,7 +41,6 @@ class FilterInput extends Component {
         if (logFields.length > 0) {
           data = {
             activeTab,
-            searchFields,
             logFields
           };
 
@@ -54,8 +52,7 @@ class FilterInput extends Component {
         }
       } else {
         data = {
-          activeTab,
-          searchFields: this.props.searchFields
+          activeTab
         };
 
         defaultFilter = {

@@ -7,7 +7,6 @@ import _ from 'lodash'
 import cx from 'classnames'
 
 import Checkbox from 'react-ui/build/src/components/checkbox'
-import CheckboxGroup from 'react-ui/build/src/components/checkbox-group'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import FileInput from 'react-ui/build/src/components/file-input'
 import Gis from 'react-gis/build/src/components'
@@ -25,6 +24,7 @@ import {HocConfig as Config} from '../../common/configuration'
 import {HocFilterContent as FilterContent} from '../../common/filter-content'
 import {HocFloorMap as FloorMap} from '../../common/floor-map'
 import {HocHMDscanInfo as HMDscanInfo} from '../../common/hmd-scan-info'
+import {HocIrSelections as IrSelections} from '../../common/ir-selections'
 import {HocPagination as Pagination} from '../../common/pagination'
 import {HocPrivateDetails as PrivateDetails} from '../../common/private-details'
 import Manage from './manage'
@@ -42,25 +42,6 @@ const MAPS_PRIVATE_DATA = {
   currentBaseLayers: {},
   seatData: {}
 };
-const IR_MAPPINGS = {
-  1: 'dumpMemory',
-  2: 'getSystemInfo',
-  3: 'getFileInfo',
-  4: 'getProcessInfo',
-  5: 'getAutoruns',
-  6: 'getTaskScheduler',
-  7: 'getBrowserData',
-  8: 'getOutlookData',
-  9:  'getRegistryBackup',
-  10: 'getEventLogFile',
-  11: 'getRecycleFile',
-  12: 'getRecentFile',
-  13: 'getPictureFile',
-  14: 'getVideoFile',
-  15: 'getMicrosoftFile',
-  16: 'getKeyWordFile'
-};
-const DEFAULT_IR_SELECTED = [2, 4, 5, 6, 9, 10];
 
 let t = null;
 let f = null;
@@ -142,8 +123,6 @@ class NetworkInventory extends Component {
       ownerType: 'existing', //existing, new,
       ownerIDduplicated: false,
       previewOwnerPic: '',
-      irComboSelected: 'quick', //quick, standard, full
-      irItemSelected: DEFAULT_IR_SELECTED,
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
     };
 
@@ -1036,152 +1015,48 @@ class NetworkInventory extends Component {
       cmds: type
     };
 
-    // helper.getAjaxData('POST', url, requestData)
-    // .then(data => {
-    //   if (data) {
-    //     PopupDialog.alert({
-    //       id: 'tiggerTaskModal',
-    //       confirmText: t('txt-close'),
-    //       display: <div>{t('txt-requestSent')}</div>
-    //     });
+    helper.getAjaxData('POST', url, requestData)
+    .then(data => {
+      if (data) {
+        PopupDialog.alert({
+          id: 'tiggerTaskModal',
+          confirmText: t('txt-close'),
+          display: <div>{t('txt-requestSent')}</div>
+        });
 
-    //     if (type && type !== 'getSystemInfo') {
-    //       this.getIPdeviceInfo('', currentDeviceData.ipDeviceUUID);
-    //     }
-    //   }
-    // })
-    // .catch(err => {
-    //   helper.showPopupMsg('', t('txt-error'));
-    // });
-  }
-  /**
-   * Handle IR combo dropdown change
-   * @method
-   * @param {string} type - IR combo type ('quick', 'standard' or 'full')
-   */
-  handleIrComboChange = (value) => {
-    let irItemSelected = [];
-
-    if (value === 'quick') {
-      irItemSelected = DEFAULT_IR_SELECTED;
-    } else if (value === 'standard') {
-      irItemSelected = _.concat(_.range(1, 7), [9, 10, 12]);
-    } else if (value === 'full') {
-      irItemSelected = _.range(1, 17);
-    }
-
-    this.setState({
-      irComboSelected: value,
-      irItemSelected
+        if (type && type !== 'getSystemInfo') {
+          this.getIPdeviceInfo('', currentDeviceData.ipDeviceUUID);
+        }
+      }
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'));
     });
-  }
-  /**
-   * Handle IR combo multi checkbox change
-   * @method
-   * @param {array} selected - selected checkbox array
-   */
-  handleIrSelectionChange = (selected) => {
-    const irItemSelected = selected.sort((a, b) => {
-      return a - b;
-    });
-
-    this.setState({
-      irItemSelected
-    });
-  }
-  /**
-   * Display IR selection content
-   * @method
-   * @returns HTML DOM
-   */
-  displayIRselection = () => {
-    const {irComboSelected, irItemSelected} = this.state;
-    const dropDownList = _.map(['quick', 'standard', 'full'], val => {
-      return {
-        value: val,
-        text: t('network-inventory.ir-type.txt-' + val)
-      };
-    });
-    const checkBoxList = _.map(_.range(1, 17), val => {
-      return {
-        value: val,
-        text: val + ' - ' + t('network-inventory.ir-list.txt-list' + val)
-      };
-    });
-
-    return (
-      <div>
-        <DropDownList
-          id='irComboList'
-          list={dropDownList}
-          required={true}
-          onChange={this.handleIrComboChange}
-          value={irComboSelected} />
-        <CheckboxGroup
-          list={checkBoxList}
-          onChange={this.handleIrSelectionChange}
-          value={irItemSelected} />
-      </div>
-    )
-  }
-  /**
-   * Display IR selection modal dialog
-   * @method
-   * @returns ModalDialog component
-   */
-  irSelectionDialog = () => {
-    const titleText = t('network-inventory.txt-itemSelection');
-    const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleSelectionIR},
-      confirm: {text: t('txt-confirm'), handler: this.confirmIRselection}
-    };
-
-    return (
-      <ModalDialog
-        id='irSelectionDialog'
-        className='modal-dialog'
-        title={titleText}
-        draggable={true}
-        global={true}
-        actions={actions}
-        closeAction='cancel'>
-        {this.displayIRselection()}
-      </ModalDialog>
-    )
-  }
-  /**
-   * Handle IR selection confirm
-   * @method
-   */
-  confirmIRselection = () => {
-    const {irItemSelected} = this.state;
-    const selectedIrArr = _.map(irItemSelected, val => {
-      return IR_MAPPINGS[val];
-    });
-
-    this.triggerTask(selectedIrArr);
-    this.toggleSelectionIR();
   }
   /**
    * Toggle IR combo selection dialog
    * @method
    */
   toggleSelectionIR = () => {
-    const {modalIRopen} = this.state;
-
-    if (!modalIRopen) {
-      this.setState({
-        irComboSelected: 'quick',
-        irItemSelected: DEFAULT_IR_SELECTED
-      });
-    }
-
     this.setState({
-      modalIRopen: !modalIRopen
+      modalIRopen: !this.state.modalIRopen
     });
   }
   /**
-   * 
+   * Display IR selection modal dialog
+   * @method
+   * @returns IrSelections component
+   */
+  irSelectionDialog = () => {
+    return (
+      <IrSelections
+        triggerTask={this.triggerTask}
+        toggleSelectionIR={this.toggleSelectionIR}
+      />
+    )
+  }
+  /**
+   * Display device info and HMD scan results
    * @method
    * @returns HTML DOM
    */

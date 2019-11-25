@@ -265,13 +265,12 @@ class QueryOpenSave extends Component {
    * @returns FilterInput component
    */
   displayFilterQuery = (value, index) => {
-    const {searchFields, activeTab, logFields} = this.props;
+    const {activeTab, logFields} = this.props;
 
     return (
       <FilterInput
         key={index}
         activeTab={activeTab}
-        searchFields={searchFields}
         logFields={logFields}
         queryType='query'
         filterData={[{
@@ -289,13 +288,12 @@ class QueryOpenSave extends Component {
    * @returns MarkInput component
    */
   displayMarkSearch = (value, index) => {
-    const {searchFields, activeTab, logFields} = this.props;
+    const {activeTab, logFields} = this.props;
 
     return (
       <MarkInput
         key={index}
         activeTab={activeTab}
-        searchFields={searchFields}
         logFields={logFields}
         queryType='query'
         markData={[{

@@ -1,0 +1,160 @@
+import React, { Component } from 'react'
+import PropTypes from 'prop-types'
+
+import CheckboxGroup from 'react-ui/build/src/components/checkbox-group'
+import DropDownList from 'react-ui/build/src/components/dropdown'
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+
+import withLocale from '../../hoc/locale-provider'
+
+const IR_MAPPINGS = {
+  1: 'dumpMemory',
+  2: 'getSystemInfo',
+  3: 'getFileInfo',
+  4: 'getProcessInfo',
+  5: 'getAutoruns',
+  6: 'getTaskScheduler',
+  7: 'getBrowserData',
+  8: 'getOutlookData',
+  9:  'getRegistryBackup',
+  10: 'getEventLogFile',
+  11: 'getRecycleFile',
+  12: 'getRecentFile',
+  13: 'getPictureFile',
+  14: 'getVideoFile',
+  15: 'getMicrosoftFile',
+  16: 'getKeyWordFile'
+};
+const DEFAULT_IR_SELECTED = [2, 4, 5, 6, 9, 10];
+
+let t = null;
+
+/**
+ * IR combo selections
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the IR combo selection list
+ */
+class IrSelections extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      irComboSelected: 'quick', //quick, standard, full
+      irItemSelected: DEFAULT_IR_SELECTED
+    };
+
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+  }
+  /**
+   * Handle IR combo dropdown change
+   * @method
+   * @param {string} type - IR combo type ('quick', 'standard' or 'full')
+   */
+  handleIrComboChange = (value) => {
+    let irItemSelected = [];
+
+    if (value === 'quick') {
+      irItemSelected = DEFAULT_IR_SELECTED;
+    } else if (value === 'standard') {
+      irItemSelected = _.concat(_.range(1, 7), [9, 10, 12]);
+    } else if (value === 'full') {
+      irItemSelected = _.range(1, 17);
+    }
+
+    this.setState({
+      irComboSelected: value,
+      irItemSelected
+    });
+  }
+  /**
+   * Handle IR combo multi checkbox change
+   * @method
+   * @param {array} selected - selected checkbox array
+   */
+  handleIrSelectionChange = (selected) => {
+    const irItemSelected = selected.sort((a, b) => {
+      return a - b;
+    });
+
+    this.setState({
+      irItemSelected
+    });
+  }
+  /**
+   * Display IR selection content
+   * @method
+   * @returns HTML DOM
+   */
+  displayIRselection = () => {
+    const {irComboSelected, irItemSelected} = this.state;
+    const dropDownList = _.map(['quick', 'standard', 'full'], val => {
+      return {
+        value: val,
+        text: t('network-inventory.ir-type.txt-' + val)
+      };
+    });
+    const checkBoxList = _.map(_.range(1, 17), val => {
+      return {
+        value: val,
+        text: val + ' - ' + t('network-inventory.ir-list.txt-list' + val)
+      };
+    });
+
+    return (
+      <div>
+        <DropDownList
+          id='irComboList'
+          list={dropDownList}
+          required={true}
+          onChange={this.handleIrComboChange}
+          value={irComboSelected} />
+        <CheckboxGroup
+          list={checkBoxList}
+          onChange={this.handleIrSelectionChange}
+          value={irItemSelected} />
+      </div>
+    )
+  }
+  /**
+   * Handle IR selection confirm
+   * @method
+   */
+  confirmIRselection = () => {
+    const {irItemSelected} = this.state;
+    const selectedIrArr = _.map(irItemSelected, val => {
+      return IR_MAPPINGS[val];
+    });
+
+    this.props.triggerTask(selectedIrArr);
+    this.props.toggleSelectionIR();
+  }
+  render() {
+    const titleText = t('network-inventory.txt-itemSelection');
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.props.toggleSelectionIR},
+      confirm: {text: t('txt-confirm'), handler: this.confirmIRselection}
+    };
+
+    return (
+      <ModalDialog
+        id='irSelectionDialog'
+        className='modal-dialog'
+        title={titleText}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        {this.displayIRselection()}
+      </ModalDialog>
+    )
+  }
+}
+
+IrSelections.propTypes = {
+  triggerTask: PropTypes.func.isRequired,
+  toggleSelectionIR: PropTypes.func.isRequired
+};
+
+const HocIrSelections = withLocale(IrSelections);
+export { IrSelections, HocIrSelections };

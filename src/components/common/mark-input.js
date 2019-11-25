@@ -17,13 +17,12 @@ class MarkInput extends Component {
     super(props);
   }
   render() {
-    const {activeTab, queryType, searchFields, logFields, markData, inline} = this.props;
+    const {activeTab, queryType, logFields, markData, inline} = this.props;
     let data = {};
 
     if (queryType === 'query') {
       data = {
         activeTab,
-        searchFields,
         logFields,
         queryType
       };
@@ -73,7 +72,6 @@ class MarkInput extends Component {
 
 MarkInput.propTypes = {
   activeTab: PropTypes.string.isRequired,
-  searchFields: PropTypes.object.isRequired,
   logFields: PropTypes.array.isRequired,
   markData: PropTypes.array.isRequired,
   inline: PropTypes.bool.isRequired

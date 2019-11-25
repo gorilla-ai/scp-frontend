@@ -33,12 +33,13 @@ const PUBLIC_API = {
   name: 'Top10ExternalSrcCountry',
   path: 'srcCountry'
 };
-
-const SEVERITY_TYPE = ['High', 'Medium', 'Low'];
+const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const ALERT_LEVEL_COLORS = {
-  High: '#d9576c',
-  Medium: '#d99857',
-  Low: '#57c3d9'
+  Emergency: '#d9576c',
+  Alert: '#E4D354',
+  Critical: '#F7A35C',
+  Warning: '#57c3d9',
+  Notice: '#90ED7D'
 };
 const SUBSECTIONS_DATA = {
   //Sub sections
@@ -208,7 +209,7 @@ class AlertController extends Component {
   loadTreeData = () => {
     const {baseUrl} = this.props;
     const {currentPage, pageSize, treeData} = this.state;
-    const url = `${baseUrl}/api/u1/alert/_search?page=${currentPage}&pageSize=${pageSize}`;
+    const url = `${baseUrl}/api/u2/alert/_search?page=${currentPage}&pageSize=${pageSize}`;
     const requestData = this.toQueryLanguage('tree');
 
     helper.getAjaxData('POST', url, requestData)
@@ -246,8 +247,9 @@ class AlertController extends Component {
    * @method
    */
   loadAllFields = () => {
+    const {activeTab} = this.state;
     let tempSubSectionsData = {...this.state.subSectionsData};
-    tempSubSectionsData.tableColumns = _.cloneDeep(this.props.searchFields);
+    tempSubSectionsData.tableColumns[activeTab] = ['_eventDttm_', '_severity_', 'Info', 'Collector', 'Trigger', 'Suggest'];
 
     this.setState({
       subSectionsData: tempSubSectionsData
@@ -264,7 +266,7 @@ class AlertController extends Component {
     const {baseUrl, contextRoot} = this.props;
     const {activeTab, currentPage, oldPage, pageSize, subSectionsData, account, alertDetails} = this.state;
     const setPage = options === 'search' ? 1 : currentPage;
-    const url = `${baseUrl}/api/u1/alert/_search?page=${setPage}&pageSize=${pageSize}`;
+    const url = `${baseUrl}/api/u2/alert/_search?page=${setPage}&pageSize=${pageSize}`;
     const requestData = this.toQueryLanguage(options);
 
     helper.getAjaxData('POST', url, requestData)
@@ -279,9 +281,11 @@ class AlertController extends Component {
       }
 
       let alertHistogram = {
-        High: {},
-        Medium: {},
-        Low: {}
+        Emergency: {},
+        Alert: {},
+        Critical: {},
+        Warning: {},
+        Notice: {}
       };
       let tableData = data.data;
       let tempArray = [];
@@ -322,7 +326,7 @@ class AlertController extends Component {
       tempAlertDetails.currentLength = tableData.length < pageSize ? tableData.length : pageSize;
       tempAlertDetails.all = tempArray;
 
-      _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for High, Medium, Low
+      _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
         _.forEach(data.event_histogram[val].buckets, val2 => {
           if (val2.doc_count > 0) {
             alertHistogram[val][val2.key_as_string] = val2.doc_count;
@@ -344,7 +348,7 @@ class AlertController extends Component {
           label: f(`${activeTab}Fields.${tempFieldName}`),
           sortable: tempData === '_eventDttm_' ? true : false,
           formatter: (value, allValue) => {
-            if (tempData === 'Severity') {
+            if (tempData === '_severity_') {
               return <span className='severity' style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>
             } else {
               if (tempData === '_eventDttm_') {
@@ -467,7 +471,7 @@ class AlertController extends Component {
     if (treeData === null) { //Handle the case for no data
       treeObj.label = t('txt-all') + ' (0)';
 
-      _.forEach(SEVERITY_TYPE, val => { //Create ordered tree list for High, Medium, Low
+      _.forEach(SEVERITY_TYPE, val => { //Create ordered tree list for Emergency, Alert, Critical, Warning, Notice
         treeObj.children.push({
           id: val,
           label: <span>{val} (0)</span>
@@ -477,7 +481,7 @@ class AlertController extends Component {
       return treeObj;
     }
 
-    _.forEach(SEVERITY_TYPE, val => { //Create ordered tree list for High, Medium, Low
+    _.forEach(SEVERITY_TYPE, val => { //Create ordered tree list for Emergency, Alert, Critical, Warning, Notice
       formattedTreeData.push({
         [val]: treeData[val]
       });
@@ -946,10 +950,9 @@ class AlertController extends Component {
    * @returns Alert component
    */
   renderTabContent = () => {
-    const {baseUrl, contextRoot, language, locale, searchFields} = this.props;
+    const {baseUrl, contextRoot, language, locale} = this.props;
     const {activeTab} = this.state;
     const mainContentData = {
-      searchFields,
       activeTab,
       chartColors: ALERT_LEVEL_COLORS,
       tableUniqueID: 'id',
@@ -1195,7 +1198,6 @@ AlertController.propTypes = {
   contextRoot: PropTypes.string.isRequired,
   language: PropTypes.string.isRequired,
   locale: PropTypes.string.isRequired,
-  searchFields: PropTypes.object.isRequired,
   session: PropTypes.object.isRequired
 };
 

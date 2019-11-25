@@ -20,11 +20,13 @@ let t = null;
 let et = null;
 let intervalId = null;
 
-const SEVERITY_TYPE = ['High', 'Medium', 'Low'];
+const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const ALERT_LEVEL_COLORS = {
-  High: '#d9576c',
-  Medium: '#d99857',
-  Low: '#57c3d9'
+  Emergency: '#d9576c',
+  Alert: '#E4D354',
+  Critical: '#F7A35C',
+  Warning: '#57c3d9',
+  Notice: '#90ED7D'
 };
 let pieCharts = {};
 
@@ -131,7 +133,7 @@ class DashboardStats extends Component {
     const tempPieChartsList = this.formattedPieChartsList();
     const apiData = [
       {
-        url: `${baseUrl}/api/u1/alert/_search?page=1&pageSize=0`,
+        url: `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`,
         requestData: {
           timestamp: [dateTime.from, dateTime.to],
           filters: [{
@@ -144,7 +146,7 @@ class DashboardStats extends Component {
         }
       },
       {
-        url: `${baseUrl}/api/u1/alert/_search?page=1&pageSize=0`,
+        url: `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`,
         requestData: {
           timestamp: [dateTime.from, dateTime.to],
           filters: [{
@@ -172,15 +174,17 @@ class DashboardStats extends Component {
     this.ah.all(apiArr)
     .then(data => {
       let alertHistogram = {
-        High: {},
-        Medium: {},
-        Low: {}
+        Emergency: {},
+        Alert: {},
+        Critical: {},
+        Warning: {},
+        Notice: {}
       };
       let rulesObj = {};
       let rulesAll = [];
       let dataArr = [];
 
-      _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for High, Medium, Low
+      _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
         if (data[0].event_histogram) {
           _.forEach(data[0].event_histogram[val].buckets, val2 => {
             if (val2.doc_count > 0) {
@@ -235,7 +239,7 @@ class DashboardStats extends Component {
 
         if (i === 0) {
           if (data[0].aggregations) {
-            _.forEach(SEVERITY_TYPE, val2 => { //Create Alert histogram for High, Medium, Low
+            _.forEach(SEVERITY_TYPE, val2 => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
               tempArr.push({
                 key: val2,
                 doc_count: data[0].aggregations[val2].doc_count

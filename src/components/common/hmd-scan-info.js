@@ -65,7 +65,7 @@ class HMDscanInfo extends Component {
       activeDLL: false,
       activeConnections: false,
       gcbFieldsArr: ['cceId', 'name', 'type', 'compareResult'],
-      malwareFieldsArr: ['_FileInfo._Filepath', '_FileInfo._Filesize', '_FileInfo._HashValues._MD5', '_IsPE', '_IsPEextension', '_IsVerifyTrust', 'download']
+      malwareFieldsArr: ['_FileInfo._Filepath', '_FileInfo._Filesize', '_FileInfo._HashValues._MD5', '_IsPE', '_IsPEextension', '_IsVerifyTrust']
     };
 
     t = chewbaccaI18n.getFixedT(null, 'connections');
@@ -465,7 +465,7 @@ class HMDscanInfo extends Component {
     const {activeTab} = this.state;
 
     if (activeTab === 'ir') {
-      return <button className='btn' onClick={this.props.toggleSelectionIR} disabled={this.checkTriggerTime(activeTab)}>{t('network-inventory.txt-reCompress')}</button>
+      return <button className='btn' onClick={this.props.toggleSelectionIR.bind(this, ipType)} disabled={this.checkTriggerTime(activeTab)}>{t('network-inventory.txt-reCompress')}</button>
     } else {
       return <button className='btn' onClick={this.props.triggerTask.bind(this, [TRIGGER_NAME[activeTab]], ipType)} disabled={this.checkTriggerTime(activeTab)}>{t('network-inventory.txt-reCheck')}</button>
     }
@@ -606,7 +606,7 @@ class HMDscanInfo extends Component {
       hmdInfo.malware.fields = {};
       malwareFieldsArr.forEach(tempData => {
         hmdInfo.malware.fields[tempData] = {
-          label: tempData === 'download' ? '' : f(`malwareFields.${tempData}`),
+          label: f(`malwareFields.${tempData}`),
           sortable: null,
           formatter: (value, allValue) => {
             if (tempData === '_FileInfo._HashValues._MD5') {
@@ -628,13 +628,6 @@ class HMDscanInfo extends Component {
               }
 
               return <span style={{color : styleStatus}}>{value}</span>
-            }
-            if (tempData === 'download') {
-              return (
-                <div className='table-menu menu active'>
-                  <i className='fg fg-data-download' style={{cursor: 'not-allowed'}} title={t('txt-download')}></i>
-                </div>
-              )
             }
             return <span>{value}</span>
           }

@@ -23,9 +23,11 @@ let et = null;
 const PRIVATE = 'private';
 const PUBLIC = 'public';
 const ALERT_LEVEL_COLORS = {
-  High: '#d9576c',
-  Medium: '#d99857',
-  Low: '#57c3d9'
+  Emergency: '#d9576c',
+  Alert: '#E4D354',
+  Critical: '#F7A35C',
+  Warning: '#57c3d9',
+  Notice: '#90ED7D'
 };
 
 const MAPS_PUBLIC_DATA = {
@@ -108,7 +110,7 @@ class DashboardMaps extends Component {
       from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
       to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
     };
-    const url = `${baseUrl}/api/u1/alert/_search?page=1&pageSize=10000`;
+    const url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=10000`;
     const requestData = {
       timestamp: [dateTime.from, dateTime.to],
       filters: [{
@@ -312,7 +314,7 @@ class DashboardMaps extends Component {
         from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
         to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
       };
-      const url = `${baseUrl}/api/u1/alert/_search?page=1&pageSize=10000`;
+      const url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=10000`;
       const requestData = {
         timestamp: [dateTime.from, dateTime.to],
         filters: [{
@@ -566,7 +568,7 @@ class DashboardMaps extends Component {
       from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
       to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
     };
-    const url = `${baseUrl}/api/u1/alert/_search?page=1&pageSize=0`;
+    const url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`;
     const requestData = {
       timestamp: [dateTime.from, dateTime.to],
       filters: [{
@@ -689,7 +691,7 @@ class DashboardMaps extends Component {
           <span className='ip'>{val.key}</span>
           <span className='host'>{val.srcTopoInfo.hostName}</span>
         </div>
-        <span className='count' style={{backgroundColor: ALERT_LEVEL_COLORS[val.Severity]}}>{val.doc_count}</span>
+        <span className='count' style={{backgroundColor: ALERT_LEVEL_COLORS[val._severity_]}}>{val.doc_count}</span>
       </li>
     )
   }

@@ -1467,10 +1467,9 @@ class SyslogController extends Component {
    * @returns Syslog component
    */
   renderTabContent = () => {
-    const {baseUrl, contextRoot, language, locale, searchFields} = this.props;
+    const {baseUrl, contextRoot, language, locale} = this.props;
     const {activeTab, markData, tableMouseOver} = this.state;
     const mainContentData = {
-      searchFields,
       activeTab,
       markData,
       tableMouseOver,
@@ -1804,7 +1803,6 @@ SyslogController.propTypes = {
   contextRoot: PropTypes.string.isRequired,
   language: PropTypes.string.isRequired,
   locale: PropTypes.string.isRequired,
-  searchFields: PropTypes.object.isRequired,
   session: PropTypes.object.isRequired
 };
 
