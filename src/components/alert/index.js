@@ -495,36 +495,7 @@ class AlertController extends Component {
         let label2 = '';
         let totalHostCount = 0;
 
-        if (key && key === 'High') {
-          _.forEach(treeData[key], (val, key) => {
-            if (key === 'doc_count') {
-              totalHostCount += val;
-            } else if (key !== 'event_histogram') {
-              let tempChild2 = [];
-              label = <span title={key}>{key} ({val.doc_count}) <button className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, '')}>{t('events.connections.txt-addFilter')}</button></span>;
-
-              tempChild.push({
-                id: key,
-                label
-              });
-
-              _.forEach(val, (val2, key2) => {
-                if (key2 !== 'doc_count') {
-                  label2 = <span title={key2}>{key2} ({val2.doc_count}) <button className={cx('button', {'active': treeName === key2})} onClick={this.selectTree.bind(this, key2, '')}>{t('events.connections.txt-addFilter')}</button></span>;
-
-                  tempChild2.push({
-                    id: key2,
-                    label: label2
-                  });
-                }
-              })
-
-              if (!_.isEmpty(tempChild2)) {
-                tempChild[tempChild.length - 1].children = tempChild2;
-              }
-            }
-          })
-        } else if (key && key !== 'default') {
+        if (key && key !== 'default') {
           _.forEach(treeData[key], (val, key) => {
             if (key === 'doc_count') {
               totalHostCount += val;
@@ -556,9 +527,7 @@ class AlertController extends Component {
               })
             }
           })
-        }
 
-        if (key && key !== 'default') {
           label = <span title={key}>{key} ({totalHostCount}) <button className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, '')}>{t('events.connections.txt-addFilter')}</button></span>;
 
           let treeProperty = {

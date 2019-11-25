@@ -64,7 +64,7 @@ class HMDscanInfo extends Component {
       activeRule: [],
       activeDLL: false,
       activeConnections: false,
-      gcbFieldsArr: ['cceId', 'name', 'type', 'compareResult'],
+      gcbFieldsArr: ['cceId', 'name', 'compareResult'],
       malwareFieldsArr: ['_FileInfo._Filepath', '_FileInfo._Filesize', '_FileInfo._HashValues._MD5', '_IsPE', '_IsPEextension', '_IsVerifyTrust']
     };
 
@@ -531,7 +531,7 @@ class HMDscanInfo extends Component {
     }   
   }
   render() {
-    const {currentDeviceData} = this.props;
+    const {locale, currentDeviceData} = this.props;
     const {activeTab, gcbFieldsArr, malwareFieldsArr} = this.state;
 
     let hmdInfo = {};
@@ -582,8 +582,19 @@ class HMDscanInfo extends Component {
           label: f(`gcbFields.${tempData}`),
           sortable: null,
           formatter: (value, allValue) => {
-            if (tempData === 'compareResult') {
+            if (tempData === 'name') {
+              let content = allValue._OriginalKey;
+
+              if (locale === 'zh' && allValue['_PolicyName_zh-tw']) {
+                content = allValue['_PolicyName_zh-tw'];
+              } else if (locale === 'en' && allValue['_PolicyName_en']) {
+                content = allValue['_PolicyName_en'];
+              }
+
+              return <span>{content}</span>
+            } else if (tempData === 'compareResult') {
               let styleStatus = '';
+              let tooltip = '';
 
               if (value) {
                 styleStatus = '#22ac38';
@@ -593,7 +604,10 @@ class HMDscanInfo extends Component {
                 value = 'Fail';
               }
 
-              return <span style={{color : styleStatus}}>{value}</span>
+              tooltip += 'GPO Value: ' + (allValue._GpoValue || 'N/A');
+              tooltip += ' / GCB Value: ' + (allValue._GcbValue || 'N/A');
+
+              return <span style={{color : styleStatus}} title={tooltip}>{value}</span>
             } else {
               return <span>{value}</span>
             }

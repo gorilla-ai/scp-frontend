@@ -486,7 +486,6 @@
   "gcbFields": {
     "cceId": "CCE-ID",
     "name": "Name",
-    "type": "Type",
     "compareResult": "Result"
   },
   "malwareFields": {
