@@ -548,15 +548,15 @@ class AlertDetails extends Component {
     let styleStatus = '';
 
     if (value === 'Emergency') {
-      styleStatus = '#d9576c';
+      styleStatus = '#CC2943';
     } else if (value === 'Alert') {
-      styleStatus = '#E4D354';
+      styleStatus = '#CC7B29';
     } else if (value === 'Critical') {
-      styleStatus = '#F7A35C';
+      styleStatus = '#29B0CC';
     } else if (value === 'Warning') {
-      styleStatus = '#57c3d9';
+      styleStatus = '#29CC7A';
     } else if (value === 'Notice') {
-      styleStatus = '#90ED7D';
+      styleStatus = '#7ACC29';
     } else if (value === NOT_AVAILABLE) {
       return {NOT_AVAILABLE}
     }

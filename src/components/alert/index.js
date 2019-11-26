@@ -35,11 +35,11 @@ const PUBLIC_API = {
 };
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const ALERT_LEVEL_COLORS = {
-  Emergency: '#d9576c',
-  Alert: '#E4D354',
-  Critical: '#F7A35C',
-  Warning: '#57c3d9',
-  Notice: '#90ED7D'
+  Emergency: '#CC2943',
+  Alert: '#CC7B29',
+  Critical: '#29B0CC',
+  Warning: '#29CC7A',
+  Notice: '#7ACC29'
 };
 const SUBSECTIONS_DATA = {
   //Sub sections
@@ -499,32 +499,34 @@ class AlertController extends Component {
           _.forEach(treeData[key], (val, key) => {
             if (key === 'doc_count') {
               totalHostCount += val;
-            } else if (key === 'srcIp') {
-              _.forEach(val.buckets, val => {
-                if (val.key) {
-                  label = <span title={val.key}>{val.key} ({val.doc_count}) <button className={cx('button', {'active': treeName === val.key})} onClick={this.selectTree.bind(this, val.key, key)}>{t('events.connections.txt-addFilter')}</button></span>;
+            } else {
+              label = <span title={key}>{key} ({val.doc_count}) <button className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, '')}>{t('events.connections.txt-addFilter')}</button></span>;
 
-                  if (val['destPort']) {
-                    label2 = <span title={val['destPort'].buckets[0].key}>{val['destPort'].buckets[0].key} ({val['destPort'].buckets[0].doc_count}) <button className={cx('button', {'active': treeName === val['destPort'].buckets[0].key})} onClick={this.selectTree.bind(this, val['destPort'].buckets[0].key, 'destPort')}>{t('events.connections.txt-addFilter')}</button></span>;
-                  }
+              if (_.size(val) === 1) {
+                tempChild.push({
+                  id: key,
+                  label
+                });
+              } else {
+                let tempChild2 = [];
 
-                  if (label2) {
-                    tempChild.push({
-                      id: val.key,
-                      label,
-                      children: [{
-                        id: val['destPort'].buckets[0].key,
-                        label: label2
-                      }]
-                    });
-                  } else {
-                    tempChild.push({
-                      id: val.key,
-                      label
+                _.forEach(val, (val2, key2) => {
+                  if (key2 !== 'doc_count') {
+                    label2 = <span title={key2}>{key2} ({val2.doc_count}) <button className={cx('button', {'active': treeName === key2})} onClick={this.selectTree.bind(this, key2, '')}>{t('events.connections.txt-addFilter')}</button></span>;
+
+                    tempChild2.push({
+                      id: key2,
+                      label: label2
                     });
                   }
-                }
-              })
+                })
+
+                tempChild.push({
+                  id: key,
+                  label,
+                  children: tempChild2
+                });
+              }
             }
           })
 

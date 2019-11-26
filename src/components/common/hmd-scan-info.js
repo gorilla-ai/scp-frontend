@@ -511,6 +511,18 @@ class HMDscanInfo extends Component {
     }
   }
   /**
+   * Get formatted field name
+   * @method
+   * @param {string} tempData - original field name
+   * @returns formatted field name
+   */
+  getFieldName = (tempData) => {
+    if (tempData === '_FileInfo._Filesize') {
+      tempData = '_Filesize';
+    }
+    return 'field' + tempData;
+  }
+  /**
    * Display table content
    * @method
    * @param {object} hmdInfo - HMD data
@@ -622,6 +634,7 @@ class HMDscanInfo extends Component {
         hmdInfo.malware.fields[tempData] = {
           label: f(`malwareFields.${tempData}`),
           sortable: null,
+          className: this.getFieldName(tempData),
           formatter: (value, allValue) => {
             if (tempData === '_FileInfo._HashValues._MD5') {
               const newValue = value.substr(0, 20) + '...';

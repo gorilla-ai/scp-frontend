@@ -857,14 +857,11 @@ footer.footer {
       .main-chart { //For main chart in Events and Syslog
         border-bottom: 1px solid #ccc;
         .chart-content {
+          position: absolute;
           background-color: #fff;
           &.connections {
             padding-left: 10px;
             padding-bottom: 20px;
-          }
-          .placeholder {
-            visibility: hidden;
-            height: 52px;
           }
           .chart-btn {
             margin-right: 10px;
@@ -880,9 +877,11 @@ footer.footer {
           }
         }
         .bar-chart {
+          padding-top: 70px;
           background-color: #fff;
           .error {
-            padding: 0px 10px 15px 10px;
+            padding-left: 20px;
+            margin-top: -45px;
           }
         }
       }

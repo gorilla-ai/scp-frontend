@@ -22,11 +22,11 @@ let intervalId = null;
 
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const ALERT_LEVEL_COLORS = {
-  Emergency: '#d9576c',
-  Alert: '#E4D354',
-  Critical: '#F7A35C',
-  Warning: '#57c3d9',
-  Notice: '#90ED7D'
+  Emergency: '#CC2943',
+  Alert: '#CC7B29',
+  Critical: '#29B0CC',
+  Warning: '#29CC7A',
+  Notice: '#7ACC29'
 };
 let pieCharts = {};
 

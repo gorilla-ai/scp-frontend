@@ -170,9 +170,6 @@ class DataChart extends Component {
       return (
         <div className={cx('main-chart', {'active': mainContentData.showChart})}>
           <i className='fg fg-close' onClick={mainContentData.toggleChart} title={t('txt-close')}></i>
-          <div className='chart-content'>
-            <button className='placeholder'></button>
-          </div>
 
           {tabChartData &&
             <ChartContent
