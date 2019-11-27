@@ -30,6 +30,7 @@
   "txt-rule": "規則",
   "txt-update": "更新",
   "txt-upload": "上傳",
+  "txt-uploadSuccess": "上傳成功",
   "txt-seat": "座位",
   "txt-service": "服務",
   "txt-number": "數字",
@@ -307,7 +308,7 @@
 
   "edge-management": {
     "txt-threatSettings": "威脅情資設定",
-    "txt-addThreat": "新增威脅情資",
+    "txt-uploadThreat": "上傳威脅情資",
     "txt-basicInfo": "基本資訊",
     "txt-editEdge": "編輯Edge",
     "txt-edgeName": "Edge Name",

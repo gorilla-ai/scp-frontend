@@ -30,6 +30,7 @@
   "txt-rule": "Rule",
   "txt-update": "Update",
   "txt-upload": "Upload",
+  "txt-uploadSuccess": "Upload Success",
   "txt-seat": "Seat",
   "txt-service": "Service",
   "txt-number": "Number",
@@ -307,7 +308,7 @@
 
   "edge-management": {
     "txt-threatSettings": "Threat Settings",
-    "txt-addThreat": "Add Threat",
+    "txt-uploadThreat": "Upload Threat",
     "txt-basicInfo": "Info",
     "txt-editEdge": "Edit Edge",
     "txt-edgeName": "Edge Name",
