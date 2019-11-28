@@ -362,6 +362,8 @@
     "txt-suspiciousFileName": "Suspicious Filename",
     "txt-suspiciousFilePath": "Suspicious File Path",
     "txt-reCheck": "Re-check",
+    "txt-syncGCB": "Sync GCB",
+    "txt-importGCB": "Import GCB",
     "txt-reCompress": "Re-compress",
     "txt-passCount": "Pass",
     "txt-totalItem": "Total",
