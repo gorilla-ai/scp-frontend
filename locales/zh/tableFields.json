@@ -497,7 +497,7 @@
       }
     },
     "_IsPE": "是否為PE檔",
-    "_IsPEextension": "是否為PE附檔名",
+    "_IsPEextension": "是否為PE副檔名",
     "_IsVerifyTrust": "是否為有效簽章"
   },
   "edgeFields": {

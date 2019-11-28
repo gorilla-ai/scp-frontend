@@ -72,6 +72,13 @@ class HMDscanInfo extends Component {
     f = chewbaccaI18n.getFixedT(null, 'tableFields');
     this.ah = getInstance('chewbacca');
   }
+  componentDidUpdate(prevProps) {
+    if (!prevProps || (this.props.currentDeviceData.ip !== prevProps.currentDeviceData.ip)) {
+      this.setState({
+        activeTab: 'yara'
+      });
+    }
+  }
   /**
    * Sort the Yara and Yara Scan File by matched file availablility
    * @method
@@ -467,13 +474,7 @@ class HMDscanInfo extends Component {
     if (activeTab === 'ir') {
       return <button className='btn' onClick={this.props.toggleSelectionIR.bind(this, ipType)} disabled={this.checkTriggerTime(activeTab)}>{t('network-inventory.txt-reCompress')}</button>
     } else if (activeTab === 'gcb') {
-      return (
-        <section>
-          <button className='btn sync' onClick={this.props.triggerTask.bind(this, ['syncGcbTemplates'], ipType)}>{t('network-inventory.txt-syncGCB')}</button>
-          <button className='btn import' onClick={this.props.triggerTask.bind(this, ['importGcb'], ipType)}>{t('network-inventory.txt-importGCB')}</button>
-          <button className='btn' onClick={this.props.triggerTask.bind(this, [TRIGGER_NAME[activeTab]], ipType)} disabled={this.checkTriggerTime(activeTab)}>{t('network-inventory.txt-reCheck')}</button>
-        </section>
-      )
+      return <button className='btn' onClick={this.props.triggerTask.bind(this, [TRIGGER_NAME[activeTab]], ipType)} disabled={this.checkTriggerTime(activeTab)}>{t('network-inventory.txt-reCheck')}</button>
     } else {
       return <button className='btn' onClick={this.props.triggerTask.bind(this, [TRIGGER_NAME[activeTab]], ipType)} disabled={this.checkTriggerTime(activeTab)}>{t('network-inventory.txt-reCheck')}</button>
     }
@@ -602,6 +603,9 @@ class HMDscanInfo extends Component {
           label: f(`gcbFields.${tempData}`),
           sortable: null,
           formatter: (value, allValue) => {
+            if (tempData === 'cceId') {
+              return <span>{allValue._CceId}</span>
+            }
             if (tempData === 'name') {
               let content = allValue._OriginalKey;
 
@@ -611,15 +615,21 @@ class HMDscanInfo extends Component {
                 content = allValue['_PolicyName_en'];
               }
 
-              return <span>{content}</span>
-            } else if (tempData === 'compareResult') {
+              if (content.length > 80) {
+                const newValue = content.substr(0, 80) + '...';
+                return <span title={content}>{newValue}</span>
+              } else {
+                return <span>{content}</span>
+              }
+            }
+            if (tempData === 'compareResult') {
               let styleStatus = '';
               let tooltip = '';
 
-              if (value) {
+              if (allValue._CompareResult === 'true') {
                 styleStatus = '#22ac38';
                 value = 'Pass';
-              } else {
+              } else if (allValue._CompareResult === 'false') {
                 styleStatus = '#d0021b';
                 value = 'Fail';
               }
@@ -628,8 +638,6 @@ class HMDscanInfo extends Component {
               tooltip += ' / GCB Value: ' + (allValue._GcbValue || 'N/A');
 
               return <span style={{color : styleStatus}} title={tooltip}>{value}</span>
-            } else {
-              return <span>{value}</span>
             }
           }
         };
@@ -644,9 +652,21 @@ class HMDscanInfo extends Component {
           sortable: null,
           className: this.getFieldName(tempData),
           formatter: (value, allValue) => {
+            if (tempData === '_FileInfo._Filepath') {
+              if (value.length > 30) {
+                const newValue = value.substr(0, 30) + '...';
+                return <span title={value}>{newValue}</span>
+              } else {
+                return <span>{value}</span>
+              }
+            }
             if (tempData === '_FileInfo._HashValues._MD5') {
-              const newValue = value.substr(0, 20) + '...';
-              return <span title={value}>{newValue}</span>
+              if (value.length > 20) {
+                const newValue = value.substr(0, 20) + '...';
+                return <span title={value}>{newValue}</span>
+              } else {
+                return <span>{value}</span>
+              }
             }
             if (tempData === '_FileInfo._Filesize') {
               value = value + ' KB';

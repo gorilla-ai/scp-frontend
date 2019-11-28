@@ -264,9 +264,6 @@ const helper = {
           <Link to='/ChewbaccaWeb/events/syslog'>{t('txt-syslog')}</Link>
         </button>
         }
-        <button className={cx('thumb', {'selected': page === 'endpoint'})}>
-          <Link to='/ChewbaccaWeb/events/endpoint'>{t('txt-endpoint')}</Link>
-        </button>
       </div>
     )
   },

@@ -30,7 +30,7 @@ class Tree extends Component {
   componentDidMount() {
     this.loadTabData();
   }
-  componentDidUpdate = (prevProps) => {
+  componentDidUpdate(prevProps) {
     this.loadTabData(prevProps);
   }
   /**

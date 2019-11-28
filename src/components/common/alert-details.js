@@ -100,10 +100,10 @@ class AlertDetails extends Component {
     this.getHMDinfo('destIp');
     document.addEventListener('mousedown', this.handleClickOutside);
   }
-  componentDidUpdate = (prevProps) => {
+  componentDidUpdate(prevProps) {
     this.loadAlertContent(prevProps);
   }
-  componentWillUnmount = () => {
+  componentWillUnmount() {
     this.closeDialog();
     document.addEventListener('mousedown', this.handleClickOutside);
   }
@@ -166,7 +166,7 @@ class AlertDetails extends Component {
    * @param {object} type - 'events'
    * @param {string} value - 'srcIp' or 'destIp'
    */
-  searchVirustotalLink = (type, value) =>{
+  searchVirustotalLink = (type, value) => {
     const {language, alertData} = this.props;
     const eventDatetime = helper.getFormattedDate(alertData._eventDttm_, 'local');
     const srcIp = this.getIpPortData('srcIp');

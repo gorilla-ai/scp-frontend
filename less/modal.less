@@ -411,37 +411,32 @@
       .info {
         position: relative;
         height: 50px;
-        padding-bottom: 5px;
-        padding-top: 25px;
+        padding-top: 15px;
         overflow: hidden;
         .last-update {
           float: left;
+          margin-top: 5px;
           span {
-            margin-right: 30px;
+            margin-right: 20px;
           }
         }
-        .pass-total {
-          float: right;
-          color: #22ac38;
-          margin-right: 265px;
-        }
+        .pass-total,
         .count {
           position: absolute;
-          top: 25px;
-          right: 100px;
+          right: 95px;
+          top: 20px;
+        }
+        .pass-total {
+          color: #22ac38;
+        }
+        .count {
           color: #d10d25;
         }
         .btn {
           position: absolute;
-          top: 20px;
+          top: 15px;
           right: 0;
           padding: .3em .5em;
-          &.sync {
-            right: 175px;
-          }
-          &.import {
-            right: 80px;
-          }
         }
       }
       .table {
@@ -449,9 +444,7 @@
         margin-top: 15px;
         .cceId,
         .compareResult {
-          min-width: 95px;
-        }
-        .compareResult {
+          min-width: 120px;
           text-align: center;
         }
         .field_Filesize,
@@ -728,7 +721,7 @@
     border: none;
     .info-content {
       .table {
-        height: 270px;
+        height: 265px;
         width: 705px;
       }
       .scan-content {
@@ -780,7 +773,7 @@
     min-height: 550px;
     .info-content {
       .table {
-        height: 430px;
+        height: 425px;
       }
       .scan-content {
         .list {

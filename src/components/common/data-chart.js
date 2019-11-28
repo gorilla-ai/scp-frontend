@@ -30,7 +30,7 @@ class DataChart extends Component {
   componentDidMount() {
     this.getChartData();
   }
-  componentDidUpdate = (prevProps) => {
+  componentDidUpdate(prevProps) {
     this.getChartData(prevProps);
   }
   /**

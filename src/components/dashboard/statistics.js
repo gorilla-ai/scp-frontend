@@ -93,7 +93,7 @@ class DashboardStats extends Component {
     this.loadAlertData();
     intervalId = setInterval(this.loadAlertData, 300000); //5 minutes
   }
-  componentWillUnmount = () => {
+  componentWillUnmount() {
     clearInterval(intervalId);
   }
   /**

@@ -30,7 +30,7 @@ class ChartContent extends Component {
   componentDidMount() {
     this.getChartData();
   }
-  componentDidUpdate = (prevProps) => {
+  componentDidUpdate(prevProps) {
     this.getChartData(prevProps);
   }
   /**
