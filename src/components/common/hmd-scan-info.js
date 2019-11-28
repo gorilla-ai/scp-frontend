@@ -466,6 +466,14 @@ class HMDscanInfo extends Component {
 
     if (activeTab === 'ir') {
       return <button className='btn' onClick={this.props.toggleSelectionIR.bind(this, ipType)} disabled={this.checkTriggerTime(activeTab)}>{t('network-inventory.txt-reCompress')}</button>
+    } else if (activeTab === 'gcb') {
+      return (
+        <section>
+          <button className='btn sync' onClick={this.props.triggerTask.bind(this, ['syncGcbTemplates'], ipType)}>{t('network-inventory.txt-syncGCB')}</button>
+          <button className='btn import' onClick={this.props.triggerTask.bind(this, ['importGcb'], ipType)}>{t('network-inventory.txt-importGCB')}</button>
+          <button className='btn' onClick={this.props.triggerTask.bind(this, [TRIGGER_NAME[activeTab]], ipType)} disabled={this.checkTriggerTime(activeTab)}>{t('network-inventory.txt-reCheck')}</button>
+        </section>
+      )
     } else {
       return <button className='btn' onClick={this.props.triggerTask.bind(this, [TRIGGER_NAME[activeTab]], ipType)} disabled={this.checkTriggerTime(activeTab)}>{t('network-inventory.txt-reCheck')}</button>
     }

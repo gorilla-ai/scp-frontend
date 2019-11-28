@@ -20,6 +20,14 @@ import withLocale from '../../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+const SERVICE_TYPE_LIST = {
+  'NETTRAP': ['honeypot', 'lastDataUpdDT', 'attackCnt'],
+  'NETFLOW-IDS-SURICATA': ['agentMode', 'lastStatus', 'TCPDUMP', 'threatIntellLastUpdDT'],
+  'IPS-NETPROBE': ['lastStatus', 'lastStatusUpdDT', 'threatIntellLastUpdDT', 'rx_pkts', 'tx_pkts', 'attackCnt'],
+  'IDS-SURICATA': ['lastStatus', 'lastStatusUpdDT', 'threatIntellLastUpdDT'],
+  'DNS': ['lastDataUpdDT', 'threatIntellLastUpdDT', 'attackCnt']
+};
+
 let t = null;
 let f = null;
 let et = null;
@@ -116,6 +124,73 @@ class Edge extends Component {
     })
   }
   /**
+   * Get individual service description
+   * @method
+   * @param {object} allValue - Edge data
+   * @param {string} val - service desc type
+   * @param {number} i - index of the service desc
+   * @returns HTML DOM
+   */
+  getIndividualDesc = (allValue, val, i) => {
+    if (val === 'honeypot' || val === 'attackCnt') {
+      if (allValue.honeyPotHostDTO) {
+        return <li key={val}><span>{val}:</span> {allValue.honeyPotHostDTO[val]}</li>
+      }
+    } else if (val === 'lastDataUpdDT') {
+      if (allValue.honeyPotHostDTO && allValue.honeyPotHostDTO[val]) {
+        return <li key={val}><span>{val}:</span> {helper.getFormattedDate(allValue.honeyPotHostDTO[val], 'local')}</li>
+      }
+    } else if (val === 'lastStatusUpdDT' || val === 'threatIntellLastUpdDT') {
+      return <li key={val}><span>{val}:</span> {helper.getFormattedDate(allValue[val], 'local')}</li>
+    } else if (val === 'TCPDUMP') {
+      if (allValue.agentMode === 'TCPDUMP') {
+        return (
+          <section key={val}>
+            {allValue.agentStartDT &&
+              <li><span>start:</span> {helper.getFormattedDate(allValue.agentStartDT)}</li>
+            }
+            {allValue.agentEndDT &&
+              <li><span>end:</span> {helper.getFormattedDate(allValue.agentEndDT)}</li>
+            }
+            {allValue.lastAnalyzedStatus && allValue.lastAnalyzedStatus !== 'ANALYZED' &&
+              <button onClick={this.agentAnalysis.bind(this, allValue)}>{t('txt-analyze')}</button>
+            }
+            {allValue.lastAnalyzedStatus &&
+              <li><span>lastAnalyzedStatus:</span> {allValue.lastAnalyzedStatus}</li>
+            }
+            {allValue.lastAnalyzedStatusUpdDT &&
+              <li><span>lastAnalyzedStatusUpdDT:</span> {helper.getFormattedDate(allValue.lastAnalyzedStatusUpdDT, 'local')}</li>
+            }
+          </section>
+        )
+      }
+    } else if (val === 'rx_pkts') {
+      if (allValue.statistics && allValue.statistics[val]) {
+        return <li key={val}><span>received packets:</span> {allValue.statistics[val]}</li>
+      }
+    } else if (val === 'tx_pkts') {
+      if (allValue.statistics && allValue.statistics[val]) {
+        return <li key={val}><span>transferred packets:</span> {allValue.statistics[val]}</li>
+      }
+    } else {
+      return <li key={val}><span>{val}:</span> {allValue[val]}</li>
+    }
+  }
+  /**
+   * Get service description list
+   * @method
+   * @param {object} allValue - Edge data
+   * @param {array.<string>} desc - service desc type
+   * @returns HTML DOM
+   */
+  getServiceDesc = (allValue, desc) => {
+    return (
+      <ul>
+        {desc.map(this.getIndividualDesc.bind(this, allValue))}
+      </ul>
+    )
+  }
+  /**
    * Get and set Edge table data
    * @method
    * @param {string} fromSearch - option for the 'search'
@@ -172,108 +247,10 @@ class Edge extends Component {
 
                 return <span><img src={icon.src} title={icon.title} />{value}</span>
               } else if (tempData === 'description') {
-                let serviceType = allValue.serviceType;
+                const serviceDescList = SERVICE_TYPE_LIST[allValue.serviceType];
 
-                if (serviceType === 'NETTRAP') {
-                  return (
-                    <ul>
-                      {allValue.honeyPotHostDTO && allValue.honeyPotHostDTO.honeypot &&
-                        <li><span>honeypot:</span> {allValue.honeyPotHostDTO.honeypot}</li>
-                      }
-                      {allValue.honeyPotHostDTO && allValue.honeyPotHostDTO.lastDataUpdDT &&
-                        <li><span>lastDataUpdDT:</span> {helper.getFormattedDate(allValue.honeyPotHostDTO.lastDataUpdDT, 'local')}</li>
-                      }
-                      {allValue.honeyPotHostDTO &&
-                        <li><span>attackCnt:</span> {allValue.honeyPotHostDTO.attackCnt}</li>
-                      }
-                    </ul>
-                  )
-                } else if (serviceType === 'NETFLOW-IDS-SURICATA') {
-                  return (
-                    <ul>
-                      {allValue.agentMode &&
-                        <li><span>mode:</span> {allValue.agentMode}</li>
-                      }
-                      {allValue.lastStatus &&
-                        <li><span>status:</span> {allValue.lastStatus}</li>
-                      }
-                      {allValue.agentMode && allValue.agentMode === 'TCPDUMP' &&
-                        <section>
-                          {allValue.agentStartDT &&
-                            <li><span>start:</span> {helper.getFormattedDate(allValue.agentStartDT)}</li>
-                          }
-                          {allValue.agentEndDT &&
-                            <li><span>end:</span> {helper.getFormattedDate(allValue.agentEndDT)}</li>
-                          }
-                          {allValue.lastAnalyzedStatus && allValue.lastAnalyzedStatus !== 'ANALYZED' &&
-                            <button onClick={this.agentAnalysis.bind(this, allValue)}>{t('txt-analyze')}</button>
-                          }
-                          {allValue.lastAnalyzedStatus &&
-                            <li><span>lastAnalyzedStatus:</span> {allValue.lastAnalyzedStatus}</li>
-                          }
-                          {allValue.lastAnalyzedStatusUpdDT &&
-                            <li><span>lastAnalyzedStatusUpdDT:</span> {helper.getFormattedDate(allValue.lastAnalyzedStatusUpdDT, 'local')}</li>
-                          }
-                        </section>
-                      }
-                      {allValue.threatIntellLastUpdDT &&
-                        <li><span>threatIntellLastUpdDT:</span> {helper.getFormattedDate(allValue.threatIntellLastUpdDT, 'local')}</li>
-                      }
-                    </ul>
-                  )
-                } else if (serviceType === 'IPS-NETPROBE') {
-                  return (
-                    <ul>
-                      {allValue.lastStatus &&
-                        <li><span>lastStatus:</span> {allValue.lastStatus}</li>
-                      }
-                      {allValue.lastStatusUpdDT &&
-                        <li><span>lastStatusUpdDT:</span> {helper.getFormattedDate(allValue.lastStatusUpdDT, 'local')}</li>
-                      }
-                      {allValue.threatIntellLastUpdDT &&
-                        <li><span>threatIntellLastUpdDT:</span> {helper.getFormattedDate(allValue.threatIntellLastUpdDT, 'local')}</li>
-                      }
-                      {allValue.statistics && allValue.statistics.rx_pkts &&
-                        <li><span>received packets:</span> {allValue.statistics.rx_pkts}</li>
-                      }
-                      {allValue.statistics && allValue.statistics.tx_pkts &&
-                        <li><span>transferred packets:</span> {allValue.statistics.tx_pkts}</li>
-                      }
-                      {allValue.honeyPotHostDTO &&
-                        <li><span>attackCnt:</span> {allValue.honeyPotHostDTO.attackCnt}</li>
-                      }
-                    </ul>
-                  )
-                } else if (serviceType === 'IDS-SURICATA') {
-                  return (
-                    <ul>
-                      {allValue.lastStatus &&
-                        <li><span>lastStatus:</span> {allValue.lastStatus}</li>
-                      }
-                      {allValue.lastStatusUpdDT &&
-                        <li><span>lastStatusUpdDT:</span> {helper.getFormattedDate(allValue.lastStatusUpdDT, 'local')}</li>
-                      }
-                      {allValue.threatIntellLastUpdDT &&
-                        <li><span>threatIntellLastUpdDT:</span> {helper.getFormattedDate(allValue.threatIntellLastUpdDT, 'local')}</li>
-                      }
-                    </ul>
-                  )
-                } else if (serviceType === 'DNS') {
-                  return (
-                    <ul>
-                      {allValue.honeyPotHostDTO && allValue.honeyPotHostDTO.lastDataUpdDT &&
-                        <li><span>lastDataUpdDT:</span> {helper.getFormattedDate(allValue.honeyPotHostDTO.lastDataUpdDT, 'local')}</li>
-                      }
-                      {allValue.threatIntellLastUpdDT &&
-                        <li><span>threatIntellLastUpdDT:</span> {helper.getFormattedDate(allValue.threatIntellLastUpdDT, 'local')}</li>
-                      }
-                      {allValue.honeyPotHostDTO &&
-                        <li><span>attackCnt:</span> {allValue.honeyPotHostDTO.attackCnt}</li>
-                      }
-                    </ul>
-                  )
-                } else {
-                  return;
+                if (serviceDescList) {
+                  return this.getServiceDesc(allValue, serviceDescList);
                 }
               } else if (tempData === '_menu') {
                 return (

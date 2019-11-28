@@ -1004,7 +1004,7 @@ class NetworkInventory extends Component {
   /**
    * Handle trigger button for HMD
    * @method
-   * @param {string} type - HMD scan type
+   * @param {array.<string>} type - HMD scan type
    */
   triggerTask = (type) => {
     const {baseUrl, contextRoot} = this.props;

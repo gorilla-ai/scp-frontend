@@ -363,6 +363,8 @@
     "txt-suspiciousFileName": "可疑檔案名稱",
     "txt-suspiciousFilePath": "可疑檔案路徑",
     "txt-reCheck": "重新檢測",
+    "txt-syncGCB": "Sync GCB",
+    "txt-importGCB": "Import GCB",
     "txt-reCompress": "重新壓縮",
     "txt-passCount": "通過",
     "txt-totalItem": "總項目",

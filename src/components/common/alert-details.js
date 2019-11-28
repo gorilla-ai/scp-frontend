@@ -1104,7 +1104,7 @@ class AlertDetails extends Component {
   /**
    * Handle trigger button for HMD
    * @method
-   * @param {string} type - HMD scan type
+   * @param {array.<string>} type - HMD scan type
    * @param {string} [activeIP] - IP type ('srcIp' or 'destIp')
    */
   triggerTask = (type, activeIP) => {

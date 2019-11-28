@@ -1005,7 +1005,7 @@ class AlertController extends Component {
   /**
    * Set filter data
    * @method
-   * @param {Array.<object>} filterData - filter data to be set
+   * @param {array.<object>} filterData - filter data to be set
    */
   setFilterData = (filterData) => {
     this.setState({
