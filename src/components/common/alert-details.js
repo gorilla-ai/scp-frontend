@@ -159,6 +159,31 @@ class AlertDetails extends Component {
       window.open(url, '_blank');
     }
   }
+
+    /**
+   * Generate a redirect link and process the browser redirect to Virustotal
+   * @method
+   * @param {object} type - 'events'
+   * @param {string} value - 'srcIp' or 'destIp'
+   */
+  searchVirustotalLink = (type, value) =>{
+    const {language, alertData} = this.props;
+    const eventDatetime = helper.getFormattedDate(alertData._eventDttm_, 'local');
+    const srcIp = this.getIpPortData('srcIp');
+    const destIp = this.getIpPortData('destIp');
+    let ipParam = '';
+    
+    if (type === 'events') {
+      if (value === 'srcIp') {
+        ipParam = srcIp;
+      } else if (value === 'destIp') {
+        ipParam = destIp;
+      }
+      const virustotalUrl = 'https://www.virustotal.com/gui/ip-address/'+ ipParam +'/relations';
+      window.open(virustotalUrl, '_blank');
+    }
+  }
+
   /**
    * Call corresponding Alert data based on conditions
    * @method
@@ -718,6 +743,7 @@ class AlertDetails extends Component {
     return (
       <ul className='redirect-menu' ref={this.setWrapperRef}>
         <li onClick={this.redirectLink.bind(this, 'events', type)}>{t('alert.txt-queryEvents')}</li>
+        <li onClick={this.searchVirustotalLink.bind(this, 'events', type)}>{t('alert.txt-searthVirustotal')}</li>
       </ul>
     )
   }
@@ -1024,7 +1050,7 @@ class AlertDetails extends Component {
       }
     };
     const srcDestType = type.replace('Ip', '');
-
+    
     return (
       <PrivateDetails
         type={type}
