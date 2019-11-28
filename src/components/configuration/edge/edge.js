@@ -244,6 +244,34 @@ class Edge extends Component {
                       }
                     </ul>
                   )
+                } else if (serviceType === 'IDS-SURICATA') {
+                  return (
+                    <ul>
+                      {allValue.lastStatus &&
+                        <li><span>lastStatus:</span> {allValue.lastStatus}</li>
+                      }
+                      {allValue.lastStatusUpdDT &&
+                        <li><span>lastStatusUpdDT:</span> {helper.getFormattedDate(allValue.lastStatusUpdDT, 'local')}</li>
+                      }
+                      {allValue.threatIntellLastUpdDT &&
+                        <li><span>threatIntellLastUpdDT:</span> {helper.getFormattedDate(allValue.threatIntellLastUpdDT, 'local')}</li>
+                      }
+                    </ul>
+                  )
+                } else if (serviceType === 'DNS') {
+                  return (
+                    <ul>
+                      {allValue.honeyPotHostDTO && allValue.honeyPotHostDTO.lastDataUpdDT &&
+                        <li><span>lastDataUpdDT:</span> {helper.getFormattedDate(allValue.honeyPotHostDTO.lastDataUpdDT, 'local')}</li>
+                      }
+                      {allValue.threatIntellLastUpdDT &&
+                        <li><span>threatIntellLastUpdDT:</span> {helper.getFormattedDate(allValue.threatIntellLastUpdDT, 'local')}</li>
+                      }
+                      {allValue.honeyPotHostDTO &&
+                        <li><span>attackCnt:</span> {allValue.honeyPotHostDTO.attackCnt}</li>
+                      }
+                    </ul>
+                  )
                 } else {
                   return;
                 }

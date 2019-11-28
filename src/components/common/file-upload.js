@@ -31,8 +31,16 @@ class FileUpload extends Component {
       return t('txt-file-format-error') + params.extension;
     }
   }
+  /**
+   * Handle file change
+   * @method
+   * @param {object} file - file info object
+   */
+  handleFileChange = (file) => {
+    this.props.handleFileChange(file);
+  }
   render() {
-    const {supportText, id, name, fileType, btnText} = this.props;
+    const {supportText, id, fileType, btnText} = this.props;
     let validate = {};
 
     if (fileType == 'indicators') {
@@ -54,8 +62,8 @@ class FileUpload extends Component {
         <label htmlFor={id}>{supportText}</label>
         <FileInput
           id={id}
-          name={name}
           validate={validate}
+          onChange={this.handleFileChange}
           btnText={btnText} />
       </div>
     )
@@ -65,9 +73,9 @@ class FileUpload extends Component {
 FileUpload.propTypes = {
   supportText: PropTypes.string.isRequired,
   id: PropTypes.string.isRequired,
-  name: PropTypes.string.isRequired,
   fileType: PropTypes.string.isRequired,
-  btnText: PropTypes.string.isRequired
+  btnText: PropTypes.string.isRequired,
+  handleFileChange: PropTypes.func.isRequired
 };
 
 const HocFileUpload = withLocale(FileUpload);

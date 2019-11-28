@@ -6,9 +6,12 @@ import cx from 'classnames'
 
 import BarChart from 'react-chart/build/src/components/bar'
 import LineChart from 'react-chart/build/src/components/line'
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PieChart from 'react-chart/build/src/components/pie'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import {HocConfig as Config} from '../../common/configuration'
+import {HocFileUpload as FileUpload} from '../../common/file-upload'
 import helper from '../../common/helper'
 import {HocSearchOptions as SearchOptions} from '../../common/search-options'
 import withLocale from '../../../hoc/locale-provider'
@@ -36,7 +39,9 @@ class ThreatIntelligence extends Component {
       },
       indicatorsData: [],
       indicatorsTrendData: [],
-      acuIndicatorsTrendData: []
+      acuIndicatorsTrendData: [],
+      uplaodOpen: false,
+      file: {}
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -142,12 +147,100 @@ class ThreatIntelligence extends Component {
       datetime
     });
   }
+  /**
+   * Toggle upload modal dialog on/off
+   * @method
+   * @param {string} options - option for 'showMsg'
+   */
+  toggleUploadThreat = (options) => {
+    this.setState({
+      uplaodOpen: !this.state.uplaodOpen
+    }, () => {
+      if (options === 'showMsg') {
+        PopupDialog.alert({
+          id: 'modalWindowSmall',
+          confirmText: t('txt-close'),
+          display: <div className='content'><span>{t('txt-uploadSuccess')}</span></div>
+        });
+      }
+    });
+  }
+  /**
+   * Handle file change
+   * @method
+   * @param {object} file - file info object
+   */
+  handleFileChange = (file) => {
+    this.setState({
+      file
+    });
+  }
+  /**
+   * Display threat upload modal dialog and its content
+   * @method
+   * @returns ModalDialog component
+   */
+  uploadDialog = () => {
+    const titleText = t('edge-management.txt-uploadThreat');
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleUploadThreat},
+      confirm: {text: t('txt-confirm'), handler: this.confirmThreatUpload}
+    };
+
+    return (
+      <ModalDialog
+        id='uploadThreatDialog'
+        className='modal-dialog'
+        title={titleText}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        <FileUpload
+          supportText={titleText}
+          id='uploadThreat'
+          fileType='indicators'
+          btnText={t('txt-upload')}
+          handleFileChange={this.handleFileChange} />
+      </ModalDialog>
+    )
+  }
+  /**
+   * Handle threat upload confirm
+   * @method
+   */
+  confirmThreatUpload = () => {
+    const {baseUrl, contextRoot} = this.props;
+    const {file} = this.state;
+    let formData = new FormData();
+    formData.append('file', file);
+
+    ah.one({
+      url: `${baseUrl}/api/threat/upload`,
+      data: formData,
+      type: 'POST',
+      processData: false,
+      contentType: false
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        this.toggleUploadThreat('showMsg');
+      }
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
   render() {
     const {baseUrl, contextRoot, language, locale, session} = this.props;
-    const {datetime, indicatorsData, indicatorsTrendData, acuIndicatorsTrendData} = this.state;
+    const {datetime, indicatorsData, indicatorsTrendData, acuIndicatorsTrendData, uplaodOpen} = this.state;
 
     return (
       <div>
+        {uplaodOpen &&
+          this.uploadDialog()
+        }
+
         <div className='sub-header'>
           <SearchOptions
             locale={locale}
@@ -167,7 +260,7 @@ class ThreatIntelligence extends Component {
           <div className='parent-content'>
             <div className='main-content'>
               <header className='main-header'>{t('txt-threatIntelligence')}</header>
-              {/*<button className='standard btn last'>{t('edge-management.txt-addThreat')}</button>*/}
+              <button className='standard btn last' onClick={this.toggleUploadThreat.bind(this)}>{t('edge-management.txt-uploadThreat')}</button>
 
               <div className='main-statistics'>
                 <div className='statistics-content'>
