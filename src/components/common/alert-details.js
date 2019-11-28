@@ -160,7 +160,7 @@ class AlertDetails extends Component {
     }
   }
 
-    /**
+  /**
    * Generate a redirect link and process the browser redirect to Virustotal
    * @method
    * @param {object} type - 'events'
@@ -179,7 +179,7 @@ class AlertDetails extends Component {
       } else if (value === 'destIp') {
         ipParam = destIp;
       }
-      const virustotalUrl = 'https://www.virustotal.com/gui/ip-address/'+ ipParam +'/relations';
+      const virustotalUrl = 'https:\//www.virustotal.com/gui/ip-address/'+ ipParam +'/relations';
       window.open(virustotalUrl, '_blank');
     }
   }
@@ -1050,7 +1050,7 @@ class AlertDetails extends Component {
       }
     };
     const srcDestType = type.replace('Ip', '');
-    
+
     return (
       <PrivateDetails
         type={type}
