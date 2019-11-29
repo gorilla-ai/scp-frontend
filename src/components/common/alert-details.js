@@ -148,16 +148,25 @@ class AlertDetails extends Component {
     const srcIp = this.getIpPortData('srcIp');
     const destIp = this.getIpPortData('destIp');
     let ipParam = '';
-
+    var linkUrl ='';
+ 
     if (type === 'events') {
       if (value === 'srcIp') {
         ipParam = `&srcIp=${srcIp}`;
       } else if (value === 'destIp') {
         ipParam = `&destIp=${destIp}`;
       }
-      const url = `/ChewbaccaWeb/events/netflow?eventDttm=${eventDatetime}${ipParam}&lng=${language}`;
-      window.open(url, '_blank');
+      linkUrl = `/ChewbaccaWeb/events/netflow?eventDttm=${eventDatetime}${ipParam}&lng=${language}`;
+    }else if(type === 'virustotal'){
+      if (value === 'srcIp') {
+        ipParam = srcIp;
+      } else if (value === 'destIp') {
+        ipParam = destIp;
+      }
+      linkUrl = 'https://www.virustotal.com/gui/ip-address/'+ ipParam +'/relations';
     }
+
+    window.open(linkUrl, '_blank');
   }
 
   /**
@@ -743,7 +752,7 @@ class AlertDetails extends Component {
     return (
       <ul className='redirect-menu' ref={this.setWrapperRef}>
         <li onClick={this.redirectLink.bind(this, 'events', type)}>{t('alert.txt-queryEvents')}</li>
-        <li onClick={this.searchVirustotalLink.bind(this, 'events', type)}>{t('alert.txt-searthVirustotal')}</li>
+        <li onClick={this.redirectLink.bind(this, 'virustotal', type)}>{t('alert.txt-searthVirustotal')}</li>
       </ul>
     )
   }
