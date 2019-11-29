@@ -139,7 +139,7 @@ class AlertDetails extends Component {
   /**
    * Generate a redirect link and process the browser redirect
    * @method
-   * @param {object} type - 'events'
+   * @param {string} type - 'events' or 'virustotal'
    * @param {string} value - 'srcIp' or 'destIp'
    */
   redirectLink = (type, value) => {
@@ -148,7 +148,7 @@ class AlertDetails extends Component {
     const srcIp = this.getIpPortData('srcIp');
     const destIp = this.getIpPortData('destIp');
     let ipParam = '';
-    var linkUrl ='';
+    let linkUrl ='';
  
     if (type === 'events') {
       if (value === 'srcIp') {
@@ -157,18 +157,17 @@ class AlertDetails extends Component {
         ipParam = `&destIp=${destIp}`;
       }
       linkUrl = `/ChewbaccaWeb/events/netflow?eventDttm=${eventDatetime}${ipParam}&lng=${language}`;
-    }else if(type === 'virustotal'){
+    } else if (type === 'virustotal') {
       if (value === 'srcIp') {
         ipParam = srcIp;
       } else if (value === 'destIp') {
         ipParam = destIp;
       }
-      linkUrl = 'https://www.virustotal.com/gui/ip-address/'+ ipParam +'/relations';
+      linkUrl = 'https:\//www.virustotal.com/gui/ip-address/' + ipParam + '/relations';
     }
 
     window.open(linkUrl, '_blank');
   }
-
   /**
    * Generate a redirect link and process the browser redirect to Virustotal
    * @method

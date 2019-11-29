@@ -530,7 +530,7 @@ class AlertController extends Component {
             }
           })
 
-          label = <span title={key}>{key} ({totalHostCount}) <button className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, '')}>{t('events.connections.txt-addFilter')}</button></span>;
+          label = <span title={key}><i className={'fg fg-recode ' + key} /> {key} ({totalHostCount}) <button className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, '')}>{t('events.connections.txt-addFilter')}</button></span>;
 
           let treeProperty = {
             id: key,
@@ -551,6 +551,19 @@ class AlertController extends Component {
     return treeObj;
   }
   /**
+   * Show severity level for private tree data
+   * @method
+   * @param {string} severity - severity info
+   * @returns object display property
+   */
+  showSeverity = (severity) => {
+    if (!severity) {
+      return {
+        display: 'none'
+      };
+    }
+  }
+  /**
    * Set the alert private tree data
    * @method
    * @param {string} treeData - alert tree data
@@ -568,12 +581,13 @@ class AlertController extends Component {
     .forEach(key => {
       let tempChild = [];
       let label = '';
+      let treeProperty = {};
 
       if (key && key !== 'doc_count') {
         if (treeData[key][path].buckets.length > 0) {
           _.forEach(treeData[key][path].buckets, val => {
             if (val.key) {
-              label = <span title={val.key}>{val.key} ({val.doc_count}) <button className={cx('button', {'active': treeName === val.key})} onClick={this.selectTree.bind(this, val.key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</button></span>;
+              label = <span title={val.key}><i className={'fg fg-recode ' + val._severity_} />{val.key} ({val.doc_count}) <button className={cx('button', {'active': treeName === val.key})} onClick={this.selectTree.bind(this, val.key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</button></span>;
 
               tempChild.push({
                 id: val.key,
@@ -583,9 +597,9 @@ class AlertController extends Component {
           })
         }
 
-        label = <span title={key}>{key} ({treeData[key].doc_count}) <button className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</button></span>;
+        label = <span title={key}><i className={'fg fg-recode ' + treeData[key]._severity_} style={this.showSeverity(treeData[key]._severity_)}/> {key} ({treeData[key].doc_count}) <button className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</button></span>;
 
-        let treeProperty = {
+        treeProperty = {
           id: key,
           label
         };

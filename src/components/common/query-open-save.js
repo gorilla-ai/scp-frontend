@@ -467,7 +467,7 @@ class QueryOpenSave extends Component {
             <Input
               placeholder={t('events.connections.txt-enterQueryName')}
               className='query-name'
-              maxLength='50'
+              maxLength={50}
               required={true}
               validate={{
                 t: et

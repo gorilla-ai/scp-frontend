@@ -77,9 +77,10 @@ class Tree extends Component {
    */
   showAlertTree = (key, treeData) => {
     const {showContent} = this.state;
+    const className = key + '-tree';
 
     return (
-      <div key={key}>
+      <div key={key} className={className}>
         <label className={cx('header-text', {'hide': !showContent})}>{treeData[key].title}</label>
         <Hierarchy
           layout='tree'

@@ -64,7 +64,7 @@ class HMDscanInfo extends Component {
       activeRule: [],
       activeDLL: false,
       activeConnections: false,
-      gcbFieldsArr: ['cceId', 'name', 'compareResult'],
+      gcbFieldsArr: ['cceId', 'name', 'type', 'compareResult'],
       malwareFieldsArr: ['_FileInfo._Filepath', '_FileInfo._Filesize', '_FileInfo._HashValues._MD5', '_IsPE', '_IsPEextension', '_IsVerifyTrust']
     };
 
@@ -615,12 +615,15 @@ class HMDscanInfo extends Component {
                 content = allValue['_PolicyName_en'];
               }
 
-              if (content.length > 80) {
-                const newValue = content.substr(0, 80) + '...';
+              if (content.length > 70) {
+                const newValue = content.substr(0, 70) + '...';
                 return <span title={content}>{newValue}</span>
               } else {
                 return <span>{content}</span>
               }
+            }
+            if (tempData === 'type') {
+              return <span>{allValue._Type}</span>
             }
             if (tempData === 'compareResult') {
               let styleStatus = '';
@@ -661,8 +664,8 @@ class HMDscanInfo extends Component {
               }
             }
             if (tempData === '_FileInfo._HashValues._MD5') {
-              if (value.length > 20) {
-                const newValue = value.substr(0, 20) + '...';
+              if (value.length > 15) {
+                const newValue = value.substr(0, 15) + '...';
                 return <span title={value}>{newValue}</span>
               } else {
                 return <span>{value}</span>
@@ -725,7 +728,6 @@ HMDscanInfo.propTypes = {
   locale: PropTypes.string.isRequired,
   currentDeviceData: PropTypes.object.isRequired,
   toggleSelectionIR: PropTypes.func.isRequired,
-  showAlertData: PropTypes.func.isRequired,
   triggerTask: PropTypes.func.isRequired
 };
 

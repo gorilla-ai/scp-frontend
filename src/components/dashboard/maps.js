@@ -573,22 +573,26 @@ class DashboardMaps extends Component {
       timestamp: [dateTime.from, dateTime.to],
       filters: [{
         condition: 'must',
-        query: 'Top10InternalSrcIp'
+        query: 'Top10InternalMaskedIp'
       }]
     };
 
     helper.getAjaxData('POST', url, requestData)
     .then(data => {
-      const allPrivateData = data.aggregations.Top10InternalSrcIp.srcIp.buckets;
+      const allPrivateData = data.aggregations.Top10InternalMaskedIp;
       let tempAlertDetails = {...alertDetails};
       let currentFloorPrivateData = [];
       let allFloorPrivateData = [];
 
-      _.forEach(allPrivateData, val => {
-        if (val.srcTopoInfo.areaUUID === currentFloor) {
-          currentFloorPrivateData.push(val);
-        } else {
-          allFloorPrivateData.push(val);
+      _.forEach(_.keys(allPrivateData), val => {
+        if (val !== 'doc_count' && allPrivateData[val].doc_count) {
+          _.forEach(allPrivateData[val].srcIp.buckets, val2 => {
+            if (val2.srcTopoInfo.areaUUID === currentFloor) {
+              currentFloorPrivateData.push(val2);
+            } else {
+              allFloorPrivateData.push(val2);
+            }
+          })
         }
       })
 
@@ -678,6 +682,20 @@ class DashboardMaps extends Component {
     }
   }
   /**
+   * Get class name for alert hosts text
+   * @method
+   * @param {number} index - index of the alert data
+   * @returns class name
+   */
+  getTreeColor = (index) => {
+    const {alertDetails} = this.state;
+    const currentFloorLength = alertDetails.private.currentFloorPrivateData.length;
+
+    if ((index + 1) > currentFloorLength) {
+      return 'faded';
+    }
+  }
+  /**
    * Display private host data
    * @method
    * @param {object} val - alert data
@@ -694,20 +712,6 @@ class DashboardMaps extends Component {
         <span className='count' style={{backgroundColor: ALERT_LEVEL_COLORS[val._severity_]}}>{val.doc_count}</span>
       </li>
     )
-  }
-  /**
-   * Get class name for alert hosts text
-   * @method
-   * @param {number} index - index of the alert data
-   * @returns class name
-   */
-  getTreeColor = (index) => {
-    const {alertDetails} = this.state;
-    const currentFloorLength = alertDetails.private.currentFloorPrivateData.length;
-
-    if ((index + 1) > currentFloorLength) {
-      return 'faded';
-    }
   }
   render() {
     const {

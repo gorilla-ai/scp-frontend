@@ -110,7 +110,7 @@ class DashboardStats extends Component {
   /**
    * Remove the charts that require special manipulation
    * @method
-   * @returns formatted chars list
+   * @returns formatted charts list
    */
   formattedPieChartsList = () => {
     const tempPieChartsList = _.cloneDeep(PIE_CHARTS_LIST);

@@ -261,7 +261,7 @@ class Endpoint extends Component {
         <label>{f('hmdFields.taskName')}</label>
         <Input
           className='add'
-          maxLength='50'
+          maxLength={50}
           required={true}
           onChange={this.handleTaskChange.bind(this, 'taskName')}
           value={task.taskName} />
@@ -295,7 +295,7 @@ class Endpoint extends Component {
             <label>{f('hmdFields.reqParameters')}</label>
             <Input
               className='add'
-              maxLength='50'
+              maxLength={50}
               required={true}
               onChange={this.handleTaskChange.bind(this, 'reqParameters')}
               value={task.reqParameters} />
@@ -304,14 +304,14 @@ class Endpoint extends Component {
             <Input
               type='password'
               className='add'
-              maxLength='50'
+              maxLength={50}
               onChange={this.handleTaskChange.bind(this, 'fileCompressPassward')}
               value={task.fileCompressPassward} />
 
             <label>{f('hmdFields.fileUrl')}</label>
             <Input
               className='add'
-              maxLength='50'
+              maxLength={50}
               required={true}
               onChange={this.handleTaskChange.bind(this, 'fileUrl')}
               value={task.fileUrl} />
@@ -319,7 +319,7 @@ class Endpoint extends Component {
             <label>{f('hmdFields.fileAccount')}</label>
             <Input
               className='add'
-              maxLength='50'
+              maxLength={50}
               required={true}
               onChange={this.handleTaskChange.bind(this, 'fileAccount')}
               value={task.fileAccount} />

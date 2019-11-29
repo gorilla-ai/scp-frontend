@@ -486,6 +486,7 @@
   "gcbFields": {
     "cceId": "CCE-ID",
     "name": "原廠設定名稱",
+    "type": "種類",
     "compareResult": "檢測結果"
   },
   "malwareFields": {
