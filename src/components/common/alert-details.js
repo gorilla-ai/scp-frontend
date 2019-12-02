@@ -137,62 +137,6 @@ class AlertDetails extends Component {
     });
   }
   /**
-   * Generate a redirect link and process the browser redirect
-   * @method
-   * @param {string} type - 'events' or 'virustotal'
-   * @param {string} value - 'srcIp' or 'destIp'
-   */
-  redirectLink = (type, value) => {
-    const {language, alertData} = this.props;
-    const eventDatetime = helper.getFormattedDate(alertData._eventDttm_, 'local');
-    const srcIp = this.getIpPortData('srcIp');
-    const destIp = this.getIpPortData('destIp');
-    let ipParam = '';
-    let linkUrl ='';
- 
-    if (type === 'events') {
-      if (value === 'srcIp') {
-        ipParam = `&srcIp=${srcIp}`;
-      } else if (value === 'destIp') {
-        ipParam = `&destIp=${destIp}`;
-      }
-      linkUrl = `/ChewbaccaWeb/events/netflow?eventDttm=${eventDatetime}${ipParam}&lng=${language}`;
-    } else if (type === 'virustotal') {
-      if (value === 'srcIp') {
-        ipParam = srcIp;
-      } else if (value === 'destIp') {
-        ipParam = destIp;
-      }
-      linkUrl = 'https:\//www.virustotal.com/gui/ip-address/' + ipParam + '/relations';
-    }
-
-    window.open(linkUrl, '_blank');
-  }
-  /**
-   * Generate a redirect link and process the browser redirect to Virustotal
-   * @method
-   * @param {object} type - 'events'
-   * @param {string} value - 'srcIp' or 'destIp'
-   */
-  searchVirustotalLink = (type, value) => {
-    const {language, alertData} = this.props;
-    const eventDatetime = helper.getFormattedDate(alertData._eventDttm_, 'local');
-    const srcIp = this.getIpPortData('srcIp');
-    const destIp = this.getIpPortData('destIp');
-    let ipParam = '';
-    
-    if (type === 'events') {
-      if (value === 'srcIp') {
-        ipParam = srcIp;
-      } else if (value === 'destIp') {
-        ipParam = destIp;
-      }
-      const virustotalUrl = 'https:\//www.virustotal.com/gui/ip-address/'+ ipParam +'/relations';
-      window.open(virustotalUrl, '_blank');
-    }
-  }
-
-  /**
    * Call corresponding Alert data based on conditions
    * @method
    * @param {object} prevProps - previous react props when the props have been updated
@@ -742,6 +686,38 @@ class AlertDetails extends Component {
     )
   }
   /**
+   * Generate a redirect link and process the browser redirect
+   * @method
+   * @param {string} type - 'events' or 'virustotal'
+   * @param {string} value - 'srcIp' or 'destIp'
+   */
+  redirectLink = (type, value) => {
+    const {language, alertData} = this.props;
+    const eventDatetime = helper.getFormattedDate(alertData._eventDttm_, 'local');
+    const srcIp = this.getIpPortData('srcIp');
+    const destIp = this.getIpPortData('destIp');
+    let ipParam = '';
+    let linkUrl ='';
+ 
+    if (type === 'events') {
+      if (value === 'srcIp') {
+        ipParam = `&srcIp=${srcIp}`;
+      } else if (value === 'destIp') {
+        ipParam = `&destIp=${destIp}`;
+      }
+      linkUrl = `/ChewbaccaWeb/events/netflow?eventDttm=${eventDatetime}${ipParam}&lng=${language}`;
+    } else if (type === 'virustotal') {
+      if (value === 'srcIp') {
+        ipParam = srcIp;
+      } else if (value === 'destIp') {
+        ipParam = destIp;
+      }
+      linkUrl = 'https:\//www.virustotal.com/gui/ip-address/' + ipParam + '/relations';
+    }
+
+    window.open(linkUrl, '_blank');
+  }
+  /**
    * Display redirect menu
    * @method
    * @param {string} type - 'srcIp' or 'destIp'
@@ -1069,6 +1045,21 @@ class AlertDetails extends Component {
     )
   }
   /**
+   * Get content for the public IP
+   * @method
+   * @param {string} type - 'srcIp' or 'destIp'
+   * @returns HTML DOM
+   */
+  getPublicIPcontent = (type) => {
+    const {alertInfo} = this.state;
+
+    if (alertInfo[type].location.City !== '-' && alertInfo[type].location.CountryCode !== '-') {
+      return this.getPublicInfo(type);
+    } else {
+      return <span>{NOT_AVAILABLE}</span>
+    }
+  }
+  /**
    * Display IP content
    * @method
    * @param {string} type - 'srcIp' or 'destIp'
@@ -1085,7 +1076,7 @@ class AlertDetails extends Component {
 
         {type === 'srcIp' && !_.isEmpty(alertInfo[type].location) && //Public
           <div className='srcIp-content'>
-            {this.getPublicInfo(type)}
+            {this.getPublicIPcontent(type)}
           </div>
         }
 
@@ -1097,7 +1088,7 @@ class AlertDetails extends Component {
 
         {type === 'destIp' && !_.isEmpty(alertInfo[type].location) && //Public
           <div className='destIp-content'>
-            {this.getPublicInfo(type)}
+            {this.getPublicIPcontent(type)}
           </div>
         }
 

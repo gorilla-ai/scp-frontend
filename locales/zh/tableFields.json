@@ -484,10 +484,10 @@
     "taskComment": "Task Comment"
   },
   "gcbFields": {
-    "cceId": "CCE-ID",
-    "name": "原廠設定名稱",
-    "type": "種類",
-    "compareResult": "檢測結果"
+    "_CceId": "CCE-ID",
+    "_OriginalKey": "原廠設定名稱",
+    "_Type": "種類",
+    "_CompareResult": "檢測結果"
   },
   "malwareFields": {
     "_FileInfo": {

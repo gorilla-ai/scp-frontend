@@ -484,10 +484,10 @@
     "taskComment": "Task Comment"
   },
   "gcbFields": {
-    "cceId": "CCE-ID",
-    "name": "Name",
-    "type": "Type",
-    "compareResult": "Result"
+    "_CceId": "CCE-ID",
+    "_OriginalKey": "Name",
+    "_Type": "Type",
+    "_CompareResult": "Result"
   },
   "malwareFields": {
     "_FileInfo": {

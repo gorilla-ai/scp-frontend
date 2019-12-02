@@ -25,16 +25,16 @@ const SAFETY_SCAN_LIST = [
     path: 'ScanResult'
   },
   {
+    type: 'malware',
+    path: 'DetectionResult'
+  },
+  {
     type: 'gcb',
     path: 'GCBResult'
   },
   {
     type: 'ir',
     path: '_ZipPath'
-  },
-  {
-    type: 'malware',
-    path: 'DetectionResult'
   }
 ];
 const TRIGGER_NAME = {
@@ -58,14 +58,14 @@ class HMDscanInfo extends Component {
     super(props);
 
     this.state = {
-      activeTab: 'yara', //yara, yaraScanFile, gcb, ir, malware
+      activeTab: 'yara', //yara, yaraScanFile, malware, gcb, ir
       activePath: null,
       activeRuleHeader: false,
       activeRule: [],
       activeDLL: false,
       activeConnections: false,
-      gcbFieldsArr: ['cceId', 'name', 'type', 'compareResult'],
-      malwareFieldsArr: ['_FileInfo._Filepath', '_FileInfo._Filesize', '_FileInfo._HashValues._MD5', '_IsPE', '_IsPEextension', '_IsVerifyTrust']
+      malwareFieldsArr: ['_FileInfo._Filepath', '_FileInfo._Filesize', '_FileInfo._HashValues._MD5', '_IsPE', '_IsPEextension', '_IsVerifyTrust'],
+      gcbFieldsArr: ['_CceId', '_OriginalKey', '_Type', '_CompareResult']
     };
 
     t = chewbaccaI18n.getFixedT(null, 'connections');
@@ -529,7 +529,7 @@ class HMDscanInfo extends Component {
     if (tempData === '_FileInfo._Filesize') {
       tempData = '_Filesize';
     }
-    return 'field' + tempData;
+    return 'scan-file' + tempData;
   }
   /**
    * Display table content
@@ -553,7 +553,7 @@ class HMDscanInfo extends Component {
   }
   render() {
     const {locale, currentDeviceData} = this.props;
-    const {activeTab, gcbFieldsArr, malwareFieldsArr} = this.state;
+    const {activeTab, malwareFieldsArr, gcbFieldsArr} = this.state;
 
     let hmdInfo = {};
     let buttonGroupList = [];
@@ -592,59 +592,6 @@ class HMDscanInfo extends Component {
 
     if (hmdInfo.yaraScanFile.result) {
       hmdInfo.yaraScanFile.count = Number(hmdInfo.yaraScanFile.result.length);
-    }
-
-    if (hmdInfo.gcb.result) {
-      hmdInfo.gcb.filteredResult = _.filter(hmdInfo.gcb.result, ['compareResult', true]);
-
-      hmdInfo.gcb.fields = {};
-      gcbFieldsArr.forEach(tempData => {
-        hmdInfo.gcb.fields[tempData] = {
-          label: f(`gcbFields.${tempData}`),
-          sortable: null,
-          formatter: (value, allValue) => {
-            if (tempData === 'cceId') {
-              return <span>{allValue._CceId}</span>
-            }
-            if (tempData === 'name') {
-              let content = allValue._OriginalKey;
-
-              if (locale === 'zh' && allValue['_PolicyName_zh-tw']) {
-                content = allValue['_PolicyName_zh-tw'];
-              } else if (locale === 'en' && allValue['_PolicyName_en']) {
-                content = allValue['_PolicyName_en'];
-              }
-
-              if (content.length > 70) {
-                const newValue = content.substr(0, 70) + '...';
-                return <span title={content}>{newValue}</span>
-              } else {
-                return <span>{content}</span>
-              }
-            }
-            if (tempData === 'type') {
-              return <span>{allValue._Type}</span>
-            }
-            if (tempData === 'compareResult') {
-              let styleStatus = '';
-              let tooltip = '';
-
-              if (allValue._CompareResult === 'true') {
-                styleStatus = '#22ac38';
-                value = 'Pass';
-              } else if (allValue._CompareResult === 'false') {
-                styleStatus = '#d0021b';
-                value = 'Fail';
-              }
-
-              tooltip += 'GPO Value: ' + (allValue._GpoValue || 'N/A');
-              tooltip += ' / GCB Value: ' + (allValue._GcbValue || 'N/A');
-
-              return <span style={{color : styleStatus}} title={tooltip}>{value}</span>
-            }
-          }
-        };
-      })
     }
 
     if (hmdInfo.malware.result) {
@@ -693,6 +640,60 @@ class HMDscanInfo extends Component {
       })
     }
 
+    if (hmdInfo.gcb.result) {
+      hmdInfo.gcb.filteredResult = _.filter(hmdInfo.gcb.result, ['compareResult', true]);
+
+      hmdInfo.gcb.fields = {};
+      gcbFieldsArr.forEach(tempData => {
+        hmdInfo.gcb.fields[tempData] = {
+          label: f(`gcbFields.${tempData}`),
+          sortable: true,
+          className: 'gcb' + tempData,
+          formatter: (value, allValue) => {
+            if (tempData === '_CceId') {
+              return <span>{value}</span>
+            }
+            if (tempData === '_OriginalKey') {
+              let content = value;
+
+              if (locale === 'zh' && allValue['_PolicyName_zh-tw']) {
+                content = allValue['_PolicyName_zh-tw'];
+              } else if (locale === 'en' && allValue['_PolicyName_en']) {
+                content = allValue['_PolicyName_en'];
+              }
+
+              if (content.length > 70) {
+                const newValue = content.substr(0, 70) + '...';
+                return <span title={content}>{newValue}</span>
+              } else {
+                return <span>{content}</span>
+              }
+            }
+            if (tempData === '_Type') {
+              return <span>{value}</span>
+            }
+            if (tempData === '_CompareResult') {
+              let styleStatus = '';
+              let tooltip = '';
+
+              if (value === 'true') {
+                styleStatus = '#22ac38';
+                value = 'Pass';
+              } else if (value === 'false') {
+                styleStatus = '#d0021b';
+                value = 'Fail';
+              }
+
+              tooltip += 'GPO Value: ' + (allValue._GpoValue || 'N/A');
+              tooltip += ' / GCB Value: ' + (allValue._GcbValue || 'N/A');
+
+              return <span style={{color : styleStatus}} title={tooltip}>{value}</span>
+            }
+          }
+        };
+      })
+    }
+
     return (
       <div className='scan-info'>
         <ButtonGroup
@@ -713,7 +714,7 @@ class HMDscanInfo extends Component {
               {this.getTriggerBtn(hmdInfo)} {/*For all*/}
             </div>
             {this.getScanContent(hmdInfo)} {/*For Yara, Yara Scan File and IR*/}
-            {this.getTableContent(hmdInfo)} {/*For GCB and Malware*/}
+            {this.getTableContent(hmdInfo)} {/*For Malware and GCB*/}
           </div>
         </div>
       </div>
