@@ -150,13 +150,21 @@ class SyslogController extends Component {
   }
   componentDidMount() {
     const {session} = this.props;
+    const {datetime} = this.state;
     let tempAccount = {...this.state.account};
+    let tempDatetime = {...datetime};
 
     if (session.accountId) {
       tempAccount.id = session.accountId;
       tempAccount.login = true;
 
+      tempDatetime = {
+        from: helper.getSubstractDate(1, 'hour'),
+        to: Moment().local().format('YYYY-MM-DDTHH:mm:ss') 
+      };
+
       this.setState({
+        datetime: tempDatetime,
         account: tempAccount
       }, () => {
         this.getLAconfig();
