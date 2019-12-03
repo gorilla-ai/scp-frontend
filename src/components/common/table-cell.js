@@ -5,7 +5,7 @@ import cx from 'classnames'
 import helper from './helper'
 import withLocale from '../../hoc/locale-provider'
 
-const TIME_FIELDS = ['@timestamp', 'firstPacket', 'lastPacket', 'timestamp', '_eventDttm_'];
+const FILTER_EXCLUDE_FIELDS = ['@timestamp', 'firstPacket', 'lastPacket', 'timestamp', '_eventDttm_'];
 
 let t = null;
 
@@ -89,7 +89,7 @@ class TableCell extends Component {
           <span className={this.getBackgroundColor(fieldValue)}>{fieldValue}<span className='ip'><i className='fg fg-network' title={tooltip}></i><i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.showQueryOptions(fieldName, fieldValue)}></i></span></span>
         )
       } else {
-        if (activeTab === 'alert' || _.includes(TIME_FIELDS, fieldName)) {
+        if (_.includes(FILTER_EXCLUDE_FIELDS, fieldName)) {
           return (
             <span className={this.getBackgroundColor(fieldValue)}>{fieldValue}</span>
           )
@@ -114,44 +114,32 @@ class TableCell extends Component {
       let country = '';
 
       if (fieldName === 'srcIp' || fieldName === 'ipSrc') {
-        if (allValue.srcLocType === 1) {
-          if (allValue.srcCountryCode) {
-            picPath = `${contextRoot}/images/flag/${allValue.srcCountryCode.toLowerCase()}.png`;
-            country = allValue.srcCountry;
-            return this.getFieldContent('internet', '', picPath, country);
-          } else {
-            return this.getFieldContent();
-          }
+        if (allValue.srcTopoInfo) {
+          const ownerName = allValue.srcTopoInfo.ownerName;
+          const areaName = allValue.srcTopoInfo.areaFullName;
+          const seatName = allValue.srcTopoInfo.seatName;
+          const tooltip = t('ipFields.owner') + ': ' + ownerName + ', ' + t('ipFields.areaFullName') + ': ' + areaName + ', ' + t('ipFields.seat') + ': ' + seatName;
+          return this.getFieldContent('intranet', tooltip);
+        } else if (allValue.srcCountryCode) {
+          picPath = `${contextRoot}/images/flag/${allValue.srcCountryCode.toLowerCase()}.png`;
+          country = allValue.srcCountry;
+          return this.getFieldContent('internet', '', picPath, country);
         } else {
-          if (allValue.srcTopoInfo) {
-            const ownerName = allValue.srcTopoInfo.ownerName;
-            const areaName = allValue.srcTopoInfo.areaFullName;
-            const seatName = allValue.srcTopoInfo.seatName;
-            const tooltip = t('ipFields.owner') + ': ' + ownerName + ', ' + t('ipFields.areaFullName') + ': ' + areaName + ', ' + t('ipFields.seat') + ': ' + seatName;
-            return this.getFieldContent('intranet', tooltip);
-          } else {
-            return this.getFieldContent();
-          }
+          return this.getFieldContent();
         }
       } else if (fieldName === 'destIp' || fieldName === 'ipDst') {
-        if (allValue.destLocType === 1) {
-          if (allValue.destCountryCode) {
-            picPath = `${contextRoot}/images/flag/${allValue.destCountryCode.toLowerCase()}.png`;
-            country = allValue.destCountry;
-            return this.getFieldContent('internet', '', picPath, country);          
-          } else {
-            return this.getFieldContent();
-          }
+        if (allValue.destTopoInfo) {
+          const ownerName = allValue.destTopoInfo.ownerName;
+          const areaName = allValue.destTopoInfo.areaFullName;
+          const seatName = allValue.destTopoInfo.seatName;
+          const tooltip = t('ipFields.owner') + ': ' + ownerName + ', ' + t('ipFields.areaFullName') + ': ' + areaName + ', ' + t('ipFields.seat') + ': ' + seatName;
+          return this.getFieldContent('intranet', tooltip);
+        } else if (allValue.destCountryCode) {
+          picPath = `${contextRoot}/images/flag/${allValue.destCountryCode.toLowerCase()}.png`;
+          country = allValue.destCountry;
+          return this.getFieldContent('internet', '', picPath, country);          
         } else {
-          if (allValue.destTopoInfo) {
-            const ownerName = allValue.destTopoInfo.ownerName;
-            const areaName = allValue.destTopoInfo.areaFullName;
-            const seatName = allValue.destTopoInfo.seatName;
-            const tooltip = t('ipFields.owner') + ': ' + ownerName + ', ' + t('ipFields.areaFullName') + ': ' + areaName + ', ' + t('ipFields.seat') + ': ' + seatName;
-            return this.getFieldContent('intranet', tooltip);
-          } else {
-            return this.getFieldContent();
-          }
+          return this.getFieldContent();
         }
       }
     } else {

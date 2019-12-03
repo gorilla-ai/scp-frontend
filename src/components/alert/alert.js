@@ -46,8 +46,7 @@ class Alert extends Component {
           <div className='main-content'>
             <header className='main-header'>{t('alert.txt-alertList')}</header>
             <TableContent
-              {...mainContentData}
-              withPointer={true} />
+              {...mainContentData} />
           </div>
         </div>
       </div>

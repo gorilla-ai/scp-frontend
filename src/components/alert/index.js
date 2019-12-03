@@ -10,6 +10,7 @@ import {downloadWithForm} from 'react-ui/build/src/utils/download'
 
 import Alert from './alert'
 import {HocAlertDetails as AlertDetails} from '../common/alert-details'
+import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import helper from '../common/helper'
 import {HocQueryOpenSave as QueryOpenSave} from '../common/query-open-save'
 import {HocSearchOptions as SearchOptions} from '../common/search-options'
@@ -249,13 +250,42 @@ class AlertController extends Component {
   loadAllFields = () => {
     const {activeTab} = this.state;
     let tempSubSectionsData = {...this.state.subSectionsData};
-    tempSubSectionsData.tableColumns[activeTab] = ['_eventDttm_', '_severity_', 'Info', 'Collector', 'Trigger', 'Suggest'];
+    tempSubSectionsData.tableColumns[activeTab] = ['_eventDttm_', '_severity_', 'srcIp', 'destIp', 'Info', 'Collector'];
 
     this.setState({
       subSectionsData: tempSubSectionsData
     }, () => {
       this.loadTable();
     });
+  }
+  /**
+   * Show query option when click on the table raw filter icon
+   * @method
+   * @param {string} field - field name of selected field
+   * @param {string | number} value - value of selected field
+   * @param {object} e - mouseClick events
+   */
+  showQueryOptions = (field, value) => (e) => {
+    const menuItems = [
+      {
+        id: value + '_Must',
+        text: 'Must',
+        action: () => this.addSearch('', value, 'must')
+      },
+      {
+        id: value + '_MustNot',
+        text: 'Must Not',
+        action: () => this.addSearch('', value, 'must_not')
+      },
+      {
+        id: value + '_Either',
+        text: 'Either',
+        action: () => this.addSearch('', value, 'either')
+      }
+    ];
+
+    ContextMenu.open(e, menuItems, 'eventsQueryMenu');
+    e.stopPropagation();
   }
   /**
    * Get and set alert data
@@ -350,6 +380,8 @@ class AlertController extends Component {
           formatter: (value, allValue) => {
             if (tempData === '_severity_') {
               return <span className='severity' style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>
+            } else if (tempData === 'Info') {
+              return <span>{value}</span>
             } else {
               if (tempData === '_eventDttm_') {
                 value = helper.getFormattedDate(value, 'local');
@@ -361,7 +393,8 @@ class AlertController extends Component {
                   activeTab={activeTab}
                   fieldValue={value}
                   fieldName={tempData}
-                  allValue={allValue} />
+                  allValue={allValue}
+                  showQueryOptions={this.showQueryOptions} />
               )
             }
           }

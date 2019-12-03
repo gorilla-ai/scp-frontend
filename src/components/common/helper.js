@@ -254,15 +254,15 @@ const helper = {
 
     return (
       <div className='c-button-group left menu'>
-        {sessionRights.Module_FlowAnalysis_Manage &&
-          <button className={cx('thumb', {'selected': page === 'netflow'})}>
-            <Link to='/ChewbaccaWeb/events/netflow'>{t('txt-netflow')}</Link>
-          </button>
-        }
         {sessionRights.Module_Syslog_Manage &&
         <button className={cx('thumb', {'selected': page === 'syslog'})}>
           <Link to='/ChewbaccaWeb/events/syslog'>{t('txt-syslog')}</Link>
         </button>
+        }
+        {sessionRights.Module_FlowAnalysis_Manage &&
+          <button className={cx('thumb', {'selected': page === 'netflow'})}>
+            <Link to='/ChewbaccaWeb/events/netflow'>{t('txt-netflow')}</Link>
+          </button>
         }
       </div>
     )

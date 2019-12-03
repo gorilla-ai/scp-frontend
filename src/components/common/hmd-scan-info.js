@@ -65,7 +65,9 @@ class HMDscanInfo extends Component {
       activeDLL: false,
       activeConnections: false,
       malwareFieldsArr: ['_FileInfo._Filepath', '_FileInfo._Filesize', '_FileInfo._HashValues._MD5', '_IsPE', '_IsPEextension', '_IsVerifyTrust'],
-      gcbFieldsArr: ['_CceId', '_OriginalKey', '_Type', '_CompareResult']
+      malwareSort: ['asc'],
+      gcbFieldsArr: ['_CceId', '_OriginalKey', '_Type', '_CompareResult'],
+      gcbSort: 'asc',
     };
 
     t = chewbaccaI18n.getFixedT(null, 'connections');
@@ -532,28 +534,79 @@ class HMDscanInfo extends Component {
     return 'scan-file' + tempData;
   }
   /**
+   * Handle table sort for malware and gcb
+   * @method
+   */
+  handleTableSort = () => {
+    const {activeTab, malwareSort, gcbSort} = this.state;
+
+    if (activeTab === 'malware') {
+      this.setState({
+        malwareSort: malwareSort === 'asc' ? 'desc' : 'asc'
+      });
+    } else if (activeTab === 'gcb') {
+      this.setState({
+        gcbSort: gcbSort === 'asc' ? 'desc' : 'asc'
+      });
+    }
+  }
+  /**
+   * Display table data for malware
+   * @method
+   * @param {string} activeTab - current active tab
+   * @param {object} hmdInfo - HMD data
+   * @returns DataTable component
+   */
+  malwareDataTable = (activeTab, hmdInfo) => {
+    return (
+      <DataTable
+        className='main-table'
+        fields={hmdInfo[activeTab].fields}
+        data={hmdInfo[activeTab].result}
+        onSort={this.handleTableSort} />
+    )
+  }
+  /**
+   * Display table data for gcb
+   * @method
+   * @param {string} activeTab - current active tab
+   * @param {object} hmdInfo - HMD data
+   * @returns DataTable component
+   */
+  gcbDataTable = (activeTab, hmdInfo) => {
+    return (
+      <DataTable
+        className='main-table'
+        fields={hmdInfo[activeTab].fields}
+        data={hmdInfo[activeTab].result}
+        onSort={this.handleTableSort} />
+    )
+  }
+  /**
    * Display table content
    * @method
    * @param {object} hmdInfo - HMD data
    * @returns HTML DOM
    */
   getTableContent = (hmdInfo) => {
-    const {activeTab} = this.state;
+    const {activeTab, malwareSort, gcbSort} = this.state;
 
     if (!_.isEmpty(hmdInfo[activeTab].fields) && hmdInfo[activeTab].result.length > 0) {
       return (
         <div className='table'>
-          <DataTable
-            className='main-table'
-            fields={hmdInfo[activeTab].fields}
-            data={hmdInfo[activeTab].result} />
+          {activeTab === 'malware' &&
+            this.malwareDataTable(activeTab, hmdInfo)
+          }
+          {activeTab === 'gcb' &&
+            this.gcbDataTable(activeTab, hmdInfo)
+          }
         </div>
       )
-    }   
+    }
   }
   render() {
     const {locale, currentDeviceData} = this.props;
-    const {activeTab, malwareFieldsArr, gcbFieldsArr} = this.state;
+    const {activeTab, malwareFieldsArr, gcbFieldsArr, malwareSort, gcbSort} = this.state;
 
     let hmdInfo = {};
     let buttonGroupList = [];
@@ -578,6 +631,14 @@ class HMDscanInfo extends Component {
           dataResult = this.sortedRuleList(dataResult);
         }
 
+        if (val.type === 'malware') {
+          dataResult = _.orderBy(dataResult, ['_IsVerifyTrust'], [malwareSort]);
+        }
+
+        if (val.type ===  'gcb') {
+          dataResult = _.orderBy(dataResult, ['_CompareResult'], [gcbSort]);
+        }
+
         hmdInfo[val.type] = {
           createTime: helper.getFormattedDate(currentDataObj.taskCreateDttm, 'local'),
           responseTime: helper.getFormattedDate(currentDataObj.taskResponseDttm, 'local'),
@@ -599,7 +660,7 @@ class HMDscanInfo extends Component {
       malwareFieldsArr.forEach(tempData => {
         hmdInfo.malware.fields[tempData] = {
           label: f(`malwareFields.${tempData}`),
-          sortable: null,
+          sortable: true,
           className: this.getFieldName(tempData),
           formatter: (value, allValue) => {
             if (tempData === '_FileInfo._Filepath') {

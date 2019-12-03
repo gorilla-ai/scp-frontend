@@ -220,6 +220,7 @@ class DashboardStats extends Component {
       }, []);
 
       const alertChartAttributes = { //For Alert severity bar chart
+        title: t('dashboard.txt-alertStatistics'),
         data: alertDataArr,
         colors: ALERT_LEVEL_COLORS,
         onTooltip: this.onTooltip,
@@ -243,7 +244,7 @@ class DashboardStats extends Component {
         if (val !== 'doc_count' && maskedIPdata[val].doc_count > 0) {
           _.forEach(maskedIPdata[val].srcIp.buckets, val2 => {
             internalMaskedIp.push({
-              ip: val2.key,
+              ip: val,
               number: val2.doc_count,
               severity: val2._severity_
             });
@@ -523,7 +524,6 @@ class DashboardStats extends Component {
             {!_.isEmpty(alertChartAttributes.data) &&
               <div className='chart-group bar'>
                 <BarChart
-                  title={t('dashboard.txt-alertStatistics')}
                   stacked
                   vertical
                   {...alertChartAttributes} />

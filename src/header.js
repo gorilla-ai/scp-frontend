@@ -128,16 +128,16 @@ class Header extends Component {
   render() {
     const {baseUrl, contextRoot, companyName, session} = this.props;
     let sessionRights = {};
-    let eventsLink = '/ChewbaccaWeb/events/endpoint';
+    let eventsLink = '';
 
     _.forEach(session.rights, val => {
       sessionRights[val] = true;
     })
 
-    if (sessionRights.Module_FlowAnalysis_Manage) {
-      eventsLink = '/ChewbaccaWeb/events/netflow';
-    } else if (sessionRights.Module_Syslog_Manage) {
+    if (sessionRights.Module_Syslog_Manage) {
       eventsLink = '/ChewbaccaWeb/events/syslog';
+    } else if (sessionRights.Module_FlowAnalysis_Manage) {
+      eventsLink = '/ChewbaccaWeb/events/netflow';
     }
 
     return (
