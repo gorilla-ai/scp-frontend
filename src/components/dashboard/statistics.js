@@ -78,7 +78,8 @@ class DashboardStats extends Component {
         //to: '2019-08-07T02:02:13Z'
       },
       updatedTime: helper.getFormattedDate(Moment()),
-      chartAttributes: {},
+      alertChartAttributes: {},
+      maskedIpChartAttributes: {},
       pieCharts: {},
       alertChartsList: [],
       dnsMetricData: {},
@@ -101,11 +102,16 @@ class DashboardStats extends Component {
    * @method
    * @param {object} eventInfo - MouseoverEvents
    * @param {object} data - chart data
+   * @returns HTML DOM
    */
   onTooltip = (eventInfo, data) => {
-    const text = data[0].rule + ': ' + data[0].number + ' ' + t('txt-at') + ' ' + Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss');
-
-    return <div>{text}</div>
+    return (
+      <section>
+        <span>{t('txt-severity')}: {data[0].rule}</span><br />
+        <span>{t('txt-time')}: {Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss')}</span><br />
+        <span>{t('txt-count')}: {data[0].number}</span>
+      </section>
+    )
   }
   /**
    * Remove the charts that require special manipulation
@@ -182,7 +188,7 @@ class DashboardStats extends Component {
       };
       let rulesObj = {};
       let rulesAll = [];
-      let dataArr = [];
+      let alertDataArr = [];
 
       _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
         if (data[0].event_histogram) {
@@ -209,15 +215,12 @@ class DashboardStats extends Component {
       })
 
       //Merge multiple arrays with different rules to a single array
-      dataArr = rulesAll.reduce((accumulator, currentValue) => {
+      alertDataArr = rulesAll.reduce((accumulator, currentValue) => {
         return accumulator.concat(currentValue)
       }, []);
 
-      const chartAttributes = {
-        legend: {
-          enabled: true
-        },
-        data: dataArr,
+      const alertChartAttributes = { //For Alert severity bar chart
+        data: alertDataArr,
         colors: ALERT_LEVEL_COLORS,
         onTooltip: this.onTooltip,
         dataCfg: {
@@ -233,7 +236,42 @@ class DashboardStats extends Component {
         }
       };
 
-      /* Get charts data */
+      const maskedIPdata = data[0].aggregations.Top10InternalMaskedIp;
+      let internalMaskedIp = [];
+
+      _.forEach(maskedIPdata, (key, val) => {
+        if (val !== 'doc_count' && maskedIPdata[val].doc_count > 0) {
+          _.forEach(maskedIPdata[val].srcIp.buckets, val2 => {
+            internalMaskedIp.push({
+              ip: val2.key,
+              number: val2.doc_count,
+              severity: val2._severity_
+            });
+          })
+        }
+      })
+
+      const maskedIpChartAttributes = { //For internal masked IP bar chart
+        title: t('dashboard.txt-alertMaskedIpStatistics'),
+        data: internalMaskedIp,
+        colors: ALERT_LEVEL_COLORS,
+        onTooltip: true,
+        dataCfg: {
+          splitSeries: 'severity',
+          x: 'ip',
+          y: 'number'
+        },
+        xAxis: {
+          type:'category'
+        },
+        keyLabels: {
+          ip: 'IP',
+          number: t('txt-count'),
+          severity: t('txt-severity')
+        }
+      };
+
+      /* Get pie charts data */
       _.forEach(PIE_CHARTS_LIST, (val, i) => {
         let tempArr = [];
 
@@ -315,7 +353,9 @@ class DashboardStats extends Component {
 
       this.setState({
         updatedTime: helper.getFormattedDate(Moment()),
-        chartAttributes,
+        alertChartAttributes,
+        maskedIpChartAttributes,
+        internalMaskedIp,
         pieCharts,
         dnsMetricData
       }, () => {
@@ -463,7 +503,8 @@ class DashboardStats extends Component {
   render() {
     const {
       updatedTime,
-      chartAttributes,
+      alertChartAttributes,
+      maskedIpChartAttributes,
       alertChartsList,
       dnsMetricData,
       diskMetricData
@@ -479,13 +520,22 @@ class DashboardStats extends Component {
 
         <div className='main-dashboard'>
           <div className='charts'>
-            {!_.isEmpty(chartAttributes.data) &&
+            {!_.isEmpty(alertChartAttributes.data) &&
               <div className='chart-group bar'>
-                <header className='main-header'>{t('dashboard.txt-alertStatistics')}</header>
+                <BarChart
+                  title={t('dashboard.txt-alertStatistics')}
+                  stacked
+                  vertical
+                  {...alertChartAttributes} />
+              </div>
+            }
+
+            {!_.isEmpty(maskedIpChartAttributes.data) &&
+              <div className='chart-group bar'>
                 <BarChart
                   stacked
                   vertical
-                  {...chartAttributes} />
+                  {...maskedIpChartAttributes} />                  
               </div>
             }
 

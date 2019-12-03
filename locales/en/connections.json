@@ -117,6 +117,7 @@
   "txt-online": "Online",
   "txt-offline": "Offline",
   "txt-unstable": "Unstable",
+  "txt-severity": "Severity",
 
   "txt-dashboard": "Dashboard",
   "txt-netflow": "Netflow",

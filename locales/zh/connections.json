@@ -62,7 +62,7 @@
   "txt-location": "地點",
   "txt-device": "裝置",
   "txt-port": "Port",
-  "txt-ipAddress": "IP 位址",
+  "txt-ipAddress": "IP位址",
   "txt-payloads": "攻擊資訊",
   "txt-dept": "部門",
   "txt-title": "職稱",
@@ -117,6 +117,7 @@
   "txt-online": "上線",
   "txt-offline": "離線",
   "txt-unstable": "不穩定",
+  "txt-severity": "嚴重性",
 
   "txt-dashboard": "Dashboard",
   "txt-netflow": "Netflow",

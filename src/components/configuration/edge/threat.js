@@ -126,16 +126,20 @@ class ThreatIntelligence extends Component {
     })
   }
   /**
-   * Display tooltip info when mouse over charts
+   * Show tooltip info when mouseover the chart
    * @method
-   * @param {object} eventInfo - chart event
-   * @param {array} data - chart data
+   * @param {object} eventInfo - MouseoverEvents
+   * @param {object} data - chart data
    * @returns HTML DOM
    */
   onTooltip = (eventInfo, data) => {
-    const text = data[0].indicator + ': ' + data[0].count + ' ' + t('txt-at') + ' ' + Moment(data[0].day, 'x').utc().format('YYYY/MM/DD');
-
-    return <div>{text}</div>
+    return (
+      <section>
+        <span>{t('txt-indicator')}: {data[0].indicator}</span><br />
+        <span>{t('txt-date')}: {Moment(data[0].day, 'x').utc().format('YYYY/MM/DD')}</span><br />
+        <span>{t('txt-count')}: {data[0].count}</span>
+      </section>
+    )
   }
   /**
    * Set new datetime

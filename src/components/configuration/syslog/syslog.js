@@ -850,11 +850,16 @@ class Syslog extends Component {
    * @method
    * @param {object} eventInfo - MouseoverEvents
    * @param {object} data - chart data
+   * @returns HTML DOM
    */
   onTooltip = (eventInfo, data) => {
-    const text = data[0].type + ': ' + data[0].events + ' ' + t('txt-at') + ' ' + Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss');
-
-    return <div>{text}</div>
+    return (
+      <section>
+        <span>{data[0].type}</span><br />
+        <span>{t('txt-time')}: {Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss')}</span><br />
+        <span>{t('txt-count')}: {data[0].events}</span>
+      </section>
+    )
   }
   /**
    * Set new datetime
@@ -889,9 +894,6 @@ class Syslog extends Component {
       };
     });
     const chartAttributes = {
-      legend: {
-        enabled: true
-      },
       data: dataArr,
       onTooltip: this.onTooltip,
       dataCfg: {

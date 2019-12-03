@@ -38,17 +38,16 @@ class ChartContent extends Component {
    * @method
    * @param {object} eventInfo - MouseoverEvents
    * @param {object} data - chart data
+   * @returns HTML DOM
    */
   onTooltip = (eventInfo, data) => {
-    let text = '';
-
-    if (data[0].rule) {
-      text += data[0].rule + ': ';
-    }
-
-    text += data[0].number + ' ' + t('txt-at') + ' ' + Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss');
-
-    return <div>{text}</div>
+    return (
+      <section>
+        <span>{t('txt-severity')}: {data[0].rule}</span><br />
+        <span>{t('txt-time')}: {Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss')}</span><br />
+        <span>{t('txt-count')}: {data[0].number}</span>
+      </section>
+    )
   }
   /**
    * Construct and set the chart content
