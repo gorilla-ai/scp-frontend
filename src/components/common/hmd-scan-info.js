@@ -458,16 +458,15 @@ class HMDscanInfo extends Component {
    */
   getPassTotalCount = (hmdInfo) => {
     const {activeTab} = this.state;
-    let text = '';
-
-    if (activeTab === 'malware') {
-      text = t('network-inventory.txt-validCount');
-    } else if (activeTab === 'gcb') {
-      text = t('network-inventory.txt-passCount');
-    }
 
     if (hmdInfo[activeTab].filteredResult) {
-      return <span className='pass-total'>{text}/{t('network-inventory.txt-totalItem')}: {hmdInfo[activeTab].filteredResult.length}/{hmdInfo[activeTab].result.length}</span>
+      let style = '#d10d25'; //Default red color
+
+      if (hmdInfo[activeTab].filteredResult.length === hmdInfo[activeTab].result.length) { //Show green color for all pass
+        style = '#22ac38';
+      }
+
+      return <span className='pass-total' style={{'color': style}}>{t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}: {hmdInfo[activeTab].filteredResult.length}/{hmdInfo[activeTab].result.length}</span>
     }
   }
   /**
@@ -663,7 +662,7 @@ class HMDscanInfo extends Component {
     }
 
     if (hmdInfo.malware.result) {
-      hmdInfo.malware.filteredResult = _.filter(hmdInfo.malware.result, ['_IsVerifyTrust', true]);
+      hmdInfo.malware.count = Number(hmdInfo.malware.result.length);
 
       hmdInfo.malware.fields = {};
       malwareFieldsArr.forEach(tempData => {
@@ -779,8 +778,8 @@ class HMDscanInfo extends Component {
                 <span>{t('network-inventory.txt-createTime')}: {hmdInfo[activeTab].createTime || NOT_AVAILABLE}</span>
                 <span>{t('network-inventory.txt-responseTime')}: {hmdInfo[activeTab].responseTime || NOT_AVAILABLE}</span>
               </div>
-              {this.getSuspiciousFileCount(hmdInfo)} {/*For Scan Process and Scan File(Yara)*/}
-              {this.getPassTotalCount(hmdInfo)} {/*Scan File (AI) and For GCB*/}
+              {this.getSuspiciousFileCount(hmdInfo)} {/*For Scan Process, Yara and AI*/}
+              {this.getPassTotalCount(hmdInfo)} {/*For GCB*/}
               {this.getTriggerBtn(hmdInfo)} {/*For all*/}
             </div>
             {this.getScanContent(hmdInfo)} {/*For Scan Process, Scan File(Yara) and IR*/}

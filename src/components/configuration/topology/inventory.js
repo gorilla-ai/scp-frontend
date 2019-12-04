@@ -168,7 +168,24 @@ class NetworkInventory extends Component {
    * @returns HTML DOM
    */
   getHMDinfo = (val, i) => {
-    return <li><span>{val.name}:</span> {val.result.length}</li>
+    const scanType = val.type;
+
+    if (!val.result) {
+      return;
+    }
+
+    if (scanType === 'gcb') {
+      const filteredResult = _.filter(val.result, ['_CompareResult', 'true']);
+      let style = '#d10d25'; //Default red color
+
+      if (filteredResult.length === val.result.length) { //Show green color for all pass
+        style = '#22ac38';
+      }
+
+      return <li style={{'color': style}}><span>{val.name} {t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}:</span> {filteredResult.length}/{val.result.length}</li>
+    } else {
+      return <li><span>{val.name} {t('network-inventory.txt-suspiciousFileCount')}:</span> {val.result.length}</li>
+    }
   }
   /**
    * Get and set device data

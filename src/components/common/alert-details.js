@@ -595,26 +595,26 @@ class AlertDetails extends Component {
         <div className='main-content'>
           <div className='nav'>
             <ul>
-              <li><span className={cx({'active': showContent.rule})} onClick={this.getContent.bind(this, 'rule')}>{t('alert.txt-rule')}</span></li>
+              <li onClick={this.getContent.bind(this, 'rule')}><span className={cx({'active': showContent.rule})}>{t('alert.txt-rule')}</span></li>
               {alertType === 'alert' && alertData.Collector !== 'NetProbe' &&
-                <li><span className={cx({'active': showContent.pcap})} onClick={this.getContent.bind(this, 'pcap')}>PCAP</span></li>
+                <li onClick={this.getContent.bind(this, 'pcap')}><span className={cx({'active': showContent.pcap})}>PCAP</span></li>
               }
               {alertType === 'pot_attack' &&
-                <li><span className={cx({'active': showContent.attack})} onClick={this.getContent.bind(this, 'attack')}>{t('alert.txt-attack')}</span></li>
+                <li onClick={this.getContent.bind(this, 'attack')}><span className={cx({'active': showContent.attack})}>{t('alert.txt-attack')}</span></li>
               }
-              <li><span className={cx({'active': showContent.json})} onClick={this.getContent.bind(this, 'json')}>{t('alert.txt-viewJSON')}</span></li>
+              <li onClick={this.getContent.bind(this, 'json')}><span className={cx({'active': showContent.json})}>{t('alert.txt-viewJSON')}</span></li>
               <li className='header'>
                 <span className='name'>{t('alert.txt-ipSrc')}</span>
                 <span className='ip'>{this.getIpPortData('srcIp')}</span>
               </li>
-              <li><span className={cx({'active': showContent.srcIp})} onClick={this.getContent.bind(this, 'srcIp')}>{t('alert.txt-ipBasicInfo')}</span></li>
-              <li><span className={cx({'active': showContent.srcSafety})} onClick={this.getContent.bind(this, 'srcSafety')}>{t('alert.txt-safetyScanInfo')}</span></li>
+              <li className='child' onClick={this.getContent.bind(this, 'srcIp')}><span className={cx({'active': showContent.srcIp})}>{t('alert.txt-ipBasicInfo')}</span></li>
+              <li className='child' onClick={this.getContent.bind(this, 'srcSafety')}><span className={cx({'active': showContent.srcSafety})}>{t('alert.txt-safetyScanInfo')}</span></li>
               <li className='header'>
                 <span className='name'>{t('alert.txt-ipDst')}</span>
                 <span className='ip'>{this.getIpPortData('destIp')}</span>
               </li>
-              <li><span className={cx({'active': showContent.destIp})} onClick={this.getContent.bind(this, 'destIp')}>{t('alert.txt-ipBasicInfo')}</span></li>
-              <li><span className={cx({'active': showContent.destSafety})} onClick={this.getContent.bind(this, 'destSafety')}>{t('alert.txt-safetyScanInfo')}</span></li>
+              <li className='child' onClick={this.getContent.bind(this, 'destIp')}><span className={cx({'active': showContent.destIp})}>{t('alert.txt-ipBasicInfo')}</span></li>
+              <li className='child' onClick={this.getContent.bind(this, 'destSafety')}><span className={cx({'active': showContent.destSafety})}>{t('alert.txt-safetyScanInfo')}</span></li>
             </ul>
           </div>
           <div className='content'>

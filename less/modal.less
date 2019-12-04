@@ -426,9 +426,6 @@
           right: 95px;
           top: 20px;
         }
-        .pass-total {
-          color: #22ac38;
-        }
         .count {
           color: #d10d25;
         }
@@ -607,28 +604,42 @@
       width: 280px;
       border-right: 1px solid #ccc;
       ul li {
+        overflow: hidden;
+        color: #4e4d4e;
+        font-size: 15px;
+        font-weight: bold;
+        padding: 10px;
+        border-bottom: 1px solid #ccc;
+        cursor: pointer;
+        &:hover {
+          background-color: #e2ecfd;
+        }
         span {
-          padding: 10px;
-          display: block;
-          cursor: pointer;
           &.active {
             color: #185e9e;
           }
         }
         &.header {
-          margin-top: 10px;
-          border-bottom: 1px solid #ccc;
-          span {
-            display: inline-block;
-            cursor: text;
-            &.name {
-              color: #185e9e;
-              font-size: 16px;
-              font-weight: bold;
-            }
-            &.ip {
-              color: #2db142;
-            }
+          cursor: text;
+          &:hover {
+            background-color: #fff;
+          }
+          .name {
+            float: left;
+          }
+          .ip {
+            float: right;
+            color: #2db142;
+            font-weight: normal;
+          }
+        }
+        &.child {
+          clear: both;
+          padding-left: 20px;
+          background-color: #e8e9ed;
+          border: none;
+          &:hover {
+            background-color: #e2ecfd;
           }
         }
       }
