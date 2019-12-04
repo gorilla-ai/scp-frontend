@@ -57,89 +57,6 @@ const SUBSECTIONS_DATA = {
     }
   }
 };
-const ALERT_MAIN_DATA = {
-  //General
-  datetime: {
-    from: helper.getSubstractDate(1, 'hour'),
-    to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
-    //from: '2019-06-28T05:28:00Z',
-    //to: '2019-07-19T06:28:00Z'
-  },
-  currentPage: 1,
-  oldPage: 1,
-  pageSize: 20,
-  sort: {
-    field: '_eventDttm_',
-    desc: true
-  },
-  //Left nav
-  treeData: {
-    alert: {
-      title: '',
-      rawData: {},
-      data: {},
-      currentTreeName: ''
-    },
-    private: {
-      title: '',
-      rawData: {},
-      data: {},
-      currentTreeName: ''
-    },
-    public: {
-      title: '',
-      rawData: {},
-      data: {},
-      currentTreeName: ''
-    }
-  },
-  //Search bar
-  searchInput: {
-    searchType: 'manual',
-    searchInterval: '1h',
-    refreshTime: '600000', //10 minutes
-    inputManual: '',
-    inputAuto: '',
-  },
-  alertHistogram: {},
-  filterData: [{
-    condition: 'must',
-    query: ''
-  }],
-  ..._.cloneDeep(SUBSECTIONS_DATA),
-  mainEventsData: {},
-  queryData: {
-    id: '',
-    name: '',
-    inputName: '',
-    displayId: '',
-    displayName: '',
-    list: [],
-    query: '',
-    formattedQuery: '',
-    openFlag: false
-  },
-  newQueryName: true,
-  showFilter: false,
-  showChart: false,
-  openQueryOpen: false,
-  saveQueryOpen: false,
-  currentTableIndex: '',
-  currentTableID: '',
-  alertDetailsOpen: false,
-  alertDetails: {
-    all: [],
-    publicFormatted: {
-      srcIp: {},
-      destIp: {}
-    },
-    currentID: '',
-    currentIndex: '',
-    currentLength: ''
-  },
-  alertData: {},
-  loadAlertData: true
-};
 
 /**
  * Alert
@@ -163,28 +80,108 @@ class AlertController extends Component {
         fields: [],
         logsLocale: ''
       },
-      ..._.cloneDeep(ALERT_MAIN_DATA)
+      //General
+      datetime: {
+        from: helper.getSubstractDate(1, 'hour'),
+        to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+        //from: '2019-06-28T05:28:00Z',
+        //to: '2019-07-19T06:28:00Z'
+      },
+      currentPage: 1,
+      oldPage: 1,
+      pageSize: 20,
+      sort: {
+        field: '_eventDttm_',
+        desc: true
+      },
+      //Left nav
+      treeData: {
+        alert: {
+          title: '',
+          rawData: {},
+          data: {},
+          currentTreeName: ''
+        },
+        private: {
+          title: '',
+          rawData: {},
+          data: {},
+          currentTreeName: ''
+        },
+        public: {
+          title: '',
+          rawData: {},
+          data: {},
+          currentTreeName: ''
+        }
+      },
+      //Search bar
+      searchInput: {
+        searchType: 'manual',
+        searchInterval: '1h',
+        refreshTime: '600000', //10 minutes
+        inputManual: '',
+        inputAuto: '',
+      },
+      alertHistogram: {},
+      filterData: [{
+        condition: 'must',
+        query: ''
+      }],
+      ..._.cloneDeep(SUBSECTIONS_DATA),
+      mainEventsData: {},
+      queryData: {
+        id: '',
+        name: '',
+        inputName: '',
+        displayId: '',
+        displayName: '',
+        list: [],
+        query: '',
+        formattedQuery: '',
+        openFlag: false
+      },
+      newQueryName: true,
+      showFilter: false,
+      showChart: false,
+      openQueryOpen: false,
+      saveQueryOpen: false,
+      currentTableIndex: '',
+      currentTableID: '',
+      alertDetailsOpen: false,
+      alertDetails: {
+        all: [],
+        publicFormatted: {
+          srcIp: {},
+          destIp: {}
+        },
+        currentID: '',
+        currentIndex: '',
+        currentLength: ''
+      },
+      alertData: {},
+      loadAlertData: true
     };
 
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
     const {session} = this.props;
-    const {datetime} = this.state;
+    //const {datetime} = this.state;
     let tempAccount = {...this.state.account};
-    let tempDatetime = {...datetime};
+    //let tempDatetime = {...datetime};
 
     if (session.accountId) {
       tempAccount.id = session.accountId;
       tempAccount.login = true;
       
-      tempDatetime = {
-        from: helper.getSubstractDate(1, 'hour'),
-        to: Moment().local().format('YYYY-MM-DDTHH:mm:ss') 
-      };
+      // tempDatetime = {
+      //   from: helper.getSubstractDate(1, 'hour'),
+      //   to: Moment().local().format('YYYY-MM-DDTHH:mm:ss') 
+      // };
 
       this.setState({
-        datetime: tempDatetime,
+        //datetime: tempDatetime,
         account: tempAccount
       }, () => {
         this.getSavedQuery();

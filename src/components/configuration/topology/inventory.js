@@ -182,9 +182,9 @@ class NetworkInventory extends Component {
         style = '#22ac38';
       }
 
-      return <li style={{'color': style}}><span>{val.name} {t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}:</span> {filteredResult.length}/{val.result.length}</li>
+      return <li key={scanType} style={{'color': style}}><span>{val.name} {t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}:</span> {filteredResult.length}/{val.result.length}</li>
     } else {
-      return <li><span>{val.name} {t('network-inventory.txt-suspiciousFileCount')}:</span> {val.result.length}</li>
+      return <li key={scanType}><span>{val.name} {t('network-inventory.txt-suspiciousFileCount')}:</span> {val.result.length}</li>
     }
   }
   /**
