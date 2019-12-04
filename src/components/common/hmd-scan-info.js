@@ -40,8 +40,8 @@ const SAFETY_SCAN_LIST = [
 const TRIGGER_NAME = {
   [SAFETY_SCAN_LIST[0].type]: 'compareIOC',
   [SAFETY_SCAN_LIST[1].type]: 'yaraScanFile',
-  [SAFETY_SCAN_LIST[2].type]: 'gcbDetection',
-  [SAFETY_SCAN_LIST[4].type]: 'malwareDetection'
+  [SAFETY_SCAN_LIST[2].type]: 'malwareDetection',
+  [SAFETY_SCAN_LIST[3].type]: 'gcbDetection'
 };
 
 let t = null;
