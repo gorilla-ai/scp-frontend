@@ -76,27 +76,35 @@ class TableCell extends Component {
    * @returns HTML DOM
    */
   getFieldContent = (type, tooltip, picPath, country) => {
-    const {activeTab, fieldName, fieldValue} = this.props;
+    const {activeTab, fieldName, fieldValue, alertLevelColors} = this.props;
     const {showIcon} = this.state;
 
     if (fieldValue) {
-      if (type === 'internet') {
+      if (type === 'internet' || type === 'intranet') {
         return (
-          <span className={this.getBackgroundColor(fieldValue)}>{fieldValue}<span className='ip'><img src={picPath} title={country} /><i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.showQueryOptions(fieldName, fieldValue)}></i></span></span>
-        )
-      } else if (type === 'intranet') {
-        return (
-          <span className={this.getBackgroundColor(fieldValue)}>{fieldValue}<span className='ip'><i className='fg fg-network' title={tooltip}></i><i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.showQueryOptions(fieldName, fieldValue)}></i></span></span>
+          <div className={this.getBackgroundColor(fieldValue)}>
+            {type === 'internet' &&
+              <img src={picPath} className='flag-icon' title={country} />
+            }
+            {type === 'intranet' &&
+              <i className='fg fg-network' title={tooltip}></i>
+            }
+            <span className='ip'>{fieldValue}</span>
+            <i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.showQueryOptions(fieldName, fieldValue)}></i>
+          </div>
         )
       } else {
-        if (_.includes(FILTER_EXCLUDE_FIELDS, fieldName)) {
-          return (
-            <span className={this.getBackgroundColor(fieldValue)}>{fieldValue}</span>
+        if (_.includes(FILTER_EXCLUDE_FIELDS, fieldName)) { //Dont' show filter icon
+          return <span className={this.getBackgroundColor(fieldValue)}>{fieldValue}</span>
+        } else if (fieldName === '_severity_') {
+          return ( //Special case for Severity in Alerts
+            <div>
+              <span className='severity' style={{backgroundColor: alertLevelColors[fieldValue]}}>{fieldValue}</span>
+              <i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.showQueryOptions(fieldName, fieldValue)}></i>
+            </div>
           )
-        } else {
-          return (
-            <span className={this.getBackgroundColor(fieldValue)}>{fieldValue}<i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.showQueryOptions(fieldName, fieldValue)}></i></span>
-          )
+        } else { //Everythig else
+          return <span className={this.getBackgroundColor(fieldValue)}>{fieldValue}<i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.showQueryOptions(fieldName, fieldValue)}></i></span>
         }
       }
     }

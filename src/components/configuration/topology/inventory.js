@@ -34,6 +34,24 @@ import withLocale from '../../../hoc/locale-provider'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const NOT_AVAILABLE = 'N/A';
+const SAFETY_SCAN_LIST = [
+  {
+    type: 'yara',
+    path: 'ScanResult'
+  },
+  {
+    type: 'yaraScanFile',
+    path: 'ScanResult'
+  },
+  {
+    type: 'malware',
+    path: 'DetectionResult'
+  },
+  {
+    type: 'gcb',
+    path: 'GCBResult'
+  }
+];
 const MAPS_PRIVATE_DATA = {
   floorList: [],
   currentFloor: '',
@@ -78,7 +96,7 @@ class NetworkInventory extends Component {
       },
       showHMDonly: false,
       deviceData: {
-        dataFieldsArr: ['ip', 'mac', 'hostName', 'system', 'owner', 'areaName', 'seatName', 'yaraScan', '_menu'],
+        dataFieldsArr: ['ip', 'mac', 'hostName', 'system', 'owner', 'areaName', 'seatName', 'scanInfo', '_menu'],
         dataFields: {},
         dataContent: [],
         ipListArr: [],
@@ -143,8 +161,21 @@ class NetworkInventory extends Component {
     }
   }
   /**
-   * Get and set IP device data (new api)
+   * Display individual scan info
    * @method
+   * @param {object} val - scan info data
+   * @param {number} i - index of the hmdInfo array
+   * @returns HTML DOM
+   */
+  getHMDinfo = (val, i) => {
+    return <li><span>{val.name}:</span> {val.result.length}</li>
+  }
+  /**
+   * Get and set device data
+   * @method
+   * @param {string} fromSearch - options for 'search'
+   * @param {string} options - options for 'oneSeat'
+   * @param {string} seatUUID - seat UUID
    */
   getDeviceData = (fromSearch, options, seatUUID) => {
     const {baseUrl, contextRoot} = this.props;
@@ -247,18 +278,27 @@ class NetworkInventory extends Component {
               if (allValue.seatObj) {
                 return <span>{allValue.seatObj.seatName}</span>
               }
-            } else if (tempData === 'yaraScan') {
-              if (allValue.yaraResult && allValue.yaraResult.ScanResult) {
-                const yaraCount = allValue.yaraResult.ScanResult.length;
-                let styleStatus = '#22ac38';
+            } else if (tempData === 'scanInfo') {
+              let hmdInfo = [];
 
-                if (yaraCount > 0) {
-                  styleStatus = '#d0021b';
+              _.forEach(SAFETY_SCAN_LIST, val => { //Construct the HMD info array
+                const dataType = val.type + 'Result';
+                const currentDataObj = allValue[dataType];
+
+                if (!_.isEmpty(currentDataObj)) {
+                  hmdInfo.push({
+                    type: val.type,
+                    name: t('network-inventory.scan-list.txt-' + val.type),
+                    result: currentDataObj[val.path]
+                  });
                 }
-                return <span style={{color: styleStatus}}>{yaraCount}</span>
-              } else {
-                return <span>N/A</span>
-              }
+              })
+
+              return (
+                <ul>
+                  {hmdInfo.map(this.getHMDinfo)}
+                </ul>
+              )
             } else if (tempData === '_menu') {
               return (
                 <div className='table-menu menu active'>
@@ -1066,6 +1106,7 @@ class NetworkInventory extends Component {
     const ip = currentDeviceData.ip || NOT_AVAILABLE;
     const mac = currentDeviceData.mac || NOT_AVAILABLE;
     const hostName = currentDeviceData.hostName || NOT_AVAILABLE;
+    const system = currentDeviceData.system || NOT_AVAILABLE;
     const ownerName = currentDeviceData.ownerObj ? currentDeviceData.ownerObj.ownerName : NOT_AVAILABLE;
 
     return (
@@ -1076,15 +1117,17 @@ class NetworkInventory extends Component {
               <th>{t('ipFields.ip')}</th>
               <th>{t('ipFields.mac')}</th>
               <th>{t('ipFields.hostName')}</th>
+              <th>{t('ipFields.system')}</th>
               <th>{t('ipFields.owner')}</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td className='align-center ip'>{ip}</td>
-              <td className='align-center mac'>{mac}</td>
-              <td className='align-center hostName'>{hostName}</td>
-              <td className='align-center ownerName'>{ownerName}</td>
+            <tr className='align-center'>
+              <td>{ip}</td>
+              <td>{mac}</td>
+              <td>{hostName}</td>
+              <td>{system}</td>
+              <td>{ownerName}</td>
             </tr>
           </tbody>
         </table>

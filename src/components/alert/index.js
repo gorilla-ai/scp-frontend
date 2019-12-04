@@ -386,9 +386,7 @@ class AlertController extends Component {
           label: f(`${activeTab}Fields.${tempFieldName}`),
           sortable: tempData === '_eventDttm_' ? true : false,
           formatter: (value, allValue) => {
-            if (tempData === '_severity_') {
-              return <span className='severity' style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>
-            } else if (tempData === 'Info') {
+            if (tempData === 'Info') {
               return <span>{value}</span>
             } else {
               if (tempData === '_eventDttm_') {
@@ -402,6 +400,7 @@ class AlertController extends Component {
                   fieldValue={value}
                   fieldName={tempData}
                   allValue={allValue}
+                  alertLevelColors={ALERT_LEVEL_COLORS}
                   showQueryOptions={this.showQueryOptions} />
               )
             }

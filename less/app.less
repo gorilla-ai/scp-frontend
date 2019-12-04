@@ -334,13 +334,10 @@ footer.footer {
   }
   .table-cell {
     position: relative;
-    .ip {
-      img {
-        margin-left: 10px;
-      }
-      .fg-network {
-        margin-left: 5px;
-      }
+    .flag-icon,
+    .fg-network {
+      float: left;
+      margin-right: 5px;
     }
     .fg-filter {
       visibility: hidden;
@@ -753,7 +750,7 @@ footer.footer {
               height: 35px;
             }
             .filter-inputbox {
-              width: 235px;
+              width: 233px;
               height: 35px;
             }
             .mark-inputbox {
@@ -1434,7 +1431,7 @@ footer.footer {
               }
               &._severity_ {
                 span.severity {
-                  display: block;
+                  float: left;
                   color: #fff;
                   width: 90px;
                   margin-left: 20px;

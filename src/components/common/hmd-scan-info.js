@@ -458,9 +458,16 @@ class HMDscanInfo extends Component {
    */
   getPassTotalCount = (hmdInfo) => {
     const {activeTab} = this.state;
+    let text = '';
+
+    if (activeTab === 'malware') {
+      text = t('network-inventory.txt-validCount');
+    } else if (activeTab === 'gcb') {
+      text = t('network-inventory.txt-passCount');
+    }
 
     if (hmdInfo[activeTab].filteredResult) {
-      return <span className='pass-total'>{t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}: {hmdInfo[activeTab].filteredResult.length}/{hmdInfo[activeTab].result.length}</span>
+      return <span className='pass-total'>{text}/{t('network-inventory.txt-totalItem')}: {hmdInfo[activeTab].filteredResult.length}/{hmdInfo[activeTab].result.length}</span>
     }
   }
   /**
@@ -656,6 +663,8 @@ class HMDscanInfo extends Component {
     }
 
     if (hmdInfo.malware.result) {
+      hmdInfo.malware.filteredResult = _.filter(hmdInfo.malware.result, ['_IsVerifyTrust', true]);
+
       hmdInfo.malware.fields = {};
       malwareFieldsArr.forEach(tempData => {
         hmdInfo.malware.fields[tempData] = {
@@ -664,8 +673,8 @@ class HMDscanInfo extends Component {
           className: this.getFieldName(tempData),
           formatter: (value, allValue) => {
             if (tempData === '_FileInfo._Filepath') {
-              if (value.length > 30) {
-                const newValue = value.substr(0, 30) + '...';
+              if (value.length > 25) {
+                const newValue = value.substr(0, 25) + '...';
                 return <span title={value}>{newValue}</span>
               } else {
                 return <span>{value}</span>
@@ -702,7 +711,7 @@ class HMDscanInfo extends Component {
     }
 
     if (hmdInfo.gcb.result) {
-      hmdInfo.gcb.filteredResult = _.filter(hmdInfo.gcb.result, ['compareResult', true]);
+      hmdInfo.gcb.filteredResult = _.filter(hmdInfo.gcb.result, ['_CompareResult', 'true']);
 
       hmdInfo.gcb.fields = {};
       gcbFieldsArr.forEach(tempData => {
@@ -770,12 +779,12 @@ class HMDscanInfo extends Component {
                 <span>{t('network-inventory.txt-createTime')}: {hmdInfo[activeTab].createTime || NOT_AVAILABLE}</span>
                 <span>{t('network-inventory.txt-responseTime')}: {hmdInfo[activeTab].responseTime || NOT_AVAILABLE}</span>
               </div>
-              {this.getSuspiciousFileCount(hmdInfo)} {/*For Yara and Yara Scan File*/}
-              {this.getPassTotalCount(hmdInfo)} {/*For GCB*/}
+              {this.getSuspiciousFileCount(hmdInfo)} {/*For Scan Process and Scan File(Yara)*/}
+              {this.getPassTotalCount(hmdInfo)} {/*Scan File (AI) and For GCB*/}
               {this.getTriggerBtn(hmdInfo)} {/*For all*/}
             </div>
-            {this.getScanContent(hmdInfo)} {/*For Yara, Yara Scan File and IR*/}
-            {this.getTableContent(hmdInfo)} {/*For Malware and GCB*/}
+            {this.getScanContent(hmdInfo)} {/*For Scan Process, Scan File(Yara) and IR*/}
+            {this.getTableContent(hmdInfo)} {/*For Scan File (AI) and GCB*/}
           </div>
         </div>
       </div>

@@ -367,6 +367,7 @@
     "txt-reCheck": "Re-check",
     "txt-reCompress": "Re-compress",
     "txt-passCount": "Pass",
+    "txt-validCount": "Valid",
     "txt-totalItem": "Total",
     "txt-irMsg": "IR data has been uploaded to",
     "txt-itemSelection": "Select IR Set",
@@ -546,7 +547,7 @@
     "hostName": "Hostname",
     "system": "System",
     "deviceType": "Type",
-    "yaraScan": "Yara (Suspicious File Count)",
+    "scanInfo": "Safety Scan Info",
     "keyword": "Keyword",
     "connSize": "Connections Size",
     "unauthType": "Unauthorize Type"
