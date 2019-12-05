@@ -81,6 +81,10 @@ class AutoSettings extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    const {locale, sessionRights} = this.props;
+
+    helper.getPrivilegesInfo(sessionRights, 'config', locale);
+
     this.getSettingsInfo();
   }
   /**
@@ -747,7 +751,8 @@ class AutoSettings extends Component {
 
 AutoSettings.propTypes = {
   baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired
+  contextRoot: PropTypes.string.isRequired,
+  sessionRights: PropTypes.object.isRequired
 };
 
 const HocAutoSettings = withLocale(AutoSettings);

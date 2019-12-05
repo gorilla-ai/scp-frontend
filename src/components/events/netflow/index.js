@@ -225,12 +225,14 @@ class Netflow extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {session} = this.props;
+    const {locale, session, sessionRights} = this.props;
     const {datetime, filterData, account} = this.state;
     let tempDatetime = {...datetime};
     let tempFilterData = {...filterData};
     let tempAccount = {...account};
     let urlParams = queryString.parse(location.search);
+
+    helper.getPrivilegesInfo(sessionRights, 'common', locale);
 
     if (session.accountId) {
       tempAccount.id = session.accountId;
@@ -2839,22 +2841,13 @@ class Netflow extends Component {
       showChart,
       showFilter
     } = this.state;
-    let sessionRights = {};
     let filterDataCount = 0;
-
-    _.forEach(session.rights, val => {
-      sessionRights[val] = true;
-    })
 
     _.forEach(filterData, val => {
       if (val.query) {
         filterDataCount++;
       }
     })
-
-    if (!sessionRights.Module_FlowAnalysis_Manage) {
-      return;
-    }
 
     return (
       <div>
@@ -2879,8 +2872,6 @@ class Netflow extends Component {
         }
 
         <div className='sub-header'>
-          {helper.getEventsMenu('netflow', sessionRights)}
-
           <SearchOptions
             locale={locale}
             position='180px'

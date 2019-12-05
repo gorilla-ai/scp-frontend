@@ -166,22 +166,16 @@ class AlertController extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {session} = this.props;
-    //const {datetime} = this.state;
+    const {locale, session, sessionRights} = this.props;
     let tempAccount = {...this.state.account};
-    //let tempDatetime = {...datetime};
+
+    helper.getPrivilegesInfo(sessionRights, 'common', locale);
 
     if (session.accountId) {
       tempAccount.id = session.accountId;
       tempAccount.login = true;
-      
-      // tempDatetime = {
-      //   from: helper.getSubstractDate(1, 'hour'),
-      //   to: Moment().local().format('YYYY-MM-DDTHH:mm:ss') 
-      // };
 
       this.setState({
-        //datetime: tempDatetime,
         account: tempAccount
       }, () => {
         this.getSavedQuery();
@@ -1220,7 +1214,8 @@ AlertController.propTypes = {
   contextRoot: PropTypes.string.isRequired,
   language: PropTypes.string.isRequired,
   locale: PropTypes.string.isRequired,
-  session: PropTypes.object.isRequired
+  session: PropTypes.object.isRequired,
+  sessionRights: PropTypes.object.isRequired
 };
 
 const HocAlertController = withRouter(withLocale(AlertController));

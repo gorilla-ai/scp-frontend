@@ -91,6 +91,10 @@ class NetworkMap extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    const {locale, sessionRights} = this.props;
+
+    helper.getPrivilegesInfo(sessionRights, 'config', locale);
+
     this.getSearchOption();
     this.getFloorPlan('firstLoad');  //For floor plan on the left nav
   }
@@ -999,7 +1003,8 @@ class NetworkMap extends Component {
 
 NetworkMap.propTypes = {
   baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired
+  contextRoot: PropTypes.string.isRequired,
+  sessionRights: PropTypes.object.isRequired
 };
 
 const HocNetworkMap = withLocale(NetworkMap);

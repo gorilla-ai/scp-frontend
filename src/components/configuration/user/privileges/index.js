@@ -37,6 +37,10 @@ class Roles extends Component {
     };
   }
   componentDidMount() {
+    const {locale, sessionRights} = this.props;
+
+    helper.getPrivilegesInfo(sessionRights, 'config', locale);
+
     this.loadList();
   }
   /**
@@ -260,7 +264,8 @@ class Roles extends Component {
 
 Roles.defaultProps = {
   baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired
+  contextRoot: PropTypes.string.isRequired,
+  sessionRights: PropTypes.object.isRequired
 };
 
 export default Roles;

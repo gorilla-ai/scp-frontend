@@ -38,6 +38,7 @@ import {downloadWithForm} from 'react-ui/build/src/utils/download'
 
 import Alert from './alert'
 import {HocAlertDetails as AlertDetails} from '../common/alert-details'
+import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import helper from '../common/helper'
 import {HocQueryOpenSave as QueryOpenSave} from '../common/query-open-save'
 import {HocSearchOptions as SearchOptions} from '../common/search-options'
@@ -61,12 +62,13 @@ const PUBLIC_API = {
   name: 'Top10ExternalSrcCountry',
   path: 'srcCountry'
 };
-
-const SEVERITY_TYPE = ['High', 'Medium', 'Low'];
+const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const ALERT_LEVEL_COLORS = {
-  High: '#d9576c',
-  Medium: '#d99857',
-  Low: '#57c3d9'
+  Emergency: '#CC2943',
+  Alert: '#CC7B29',
+  Critical: '#29B0CC',
+  Warning: '#29CC7A',
+  Notice: '#7ACC29'
 };
 const SUBSECTIONS_DATA = {
   //Sub sections
@@ -82,89 +84,6 @@ const SUBSECTIONS_DATA = {
       alert: 0
     }
   }
-};
-const ALERT_MAIN_DATA = {
-  //General
-  datetime: {
-    from: helper.getSubstractDate(1, 'hour'),
-    to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
-    //from: '2019-06-28T05:28:00Z',
-    //to: '2019-07-19T06:28:00Z'
-  },
-  currentPage: 1,
-  oldPage: 1,
-  pageSize: 20,
-  sort: {
-    field: '_eventDttm_',
-    desc: true
-  },
-  //Left nav
-  treeData: {
-    alert: {
-      title: '',
-      rawData: {},
-      data: {},
-      currentTreeName: ''
-    },
-    private: {
-      title: '',
-      rawData: {},
-      data: {},
-      currentTreeName: ''
-    },
-    public: {
-      title: '',
-      rawData: {},
-      data: {},
-      currentTreeName: ''
-    }
-  },
-  //Search bar
-  searchInput: {
-    searchType: 'manual',
-    searchInterval: '1h',
-    refreshTime: '600000', //10 minutes
-    inputManual: '',
-    inputAuto: '',
-  },
-  alertHistogram: {},
-  filterData: [{
-    condition: 'must',
-    query: ''
-  }],
-  ..._.cloneDeep(SUBSECTIONS_DATA),
-  mainEventsData: {},
-  queryData: {
-    id: '',
-    name: '',
-    inputName: '',
-    displayId: '',
-    displayName: '',
-    list: [],
-    query: '',
-    formattedQuery: '',
-    openFlag: false
-  },
-  newQueryName: true,
-  showFilter: false,
-  showChart: false,
-  openQueryOpen: false,
-  saveQueryOpen: false,
-  currentTableIndex: '',
-  currentTableID: '',
-  alertDetailsOpen: false,
-  alertDetails: {
-    all: [],
-    publicFormatted: {
-      srcIp: {},
-      destIp: {}
-    },
-    currentID: '',
-    currentIndex: '',
-    currentLength: ''
-  },
-  alertData: {},
-  loadAlertData: true
 };
 
 /**
@@ -189,7 +108,87 @@ class AlertController extends Component {
         fields: [],
         logsLocale: ''
       },
-      ..._.cloneDeep(ALERT_MAIN_DATA)
+      //General
+      datetime: {
+        from: helper.getSubstractDate(1, 'hour'),
+        to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+        //from: '2019-06-28T05:28:00Z',
+        //to: '2019-07-19T06:28:00Z'
+      },
+      currentPage: 1,
+      oldPage: 1,
+      pageSize: 20,
+      sort: {
+        field: '_eventDttm_',
+        desc: true
+      },
+      //Left nav
+      treeData: {
+        alert: {
+          title: '',
+          rawData: {},
+          data: {},
+          currentTreeName: ''
+        },
+        private: {
+          title: '',
+          rawData: {},
+          data: {},
+          currentTreeName: ''
+        },
+        public: {
+          title: '',
+          rawData: {},
+          data: {},
+          currentTreeName: ''
+        }
+      },
+      //Search bar
+      searchInput: {
+        searchType: 'manual',
+        searchInterval: '1h',
+        refreshTime: '600000', //10 minutes
+        inputManual: '',
+        inputAuto: '',
+      },
+      alertHistogram: {},
+      filterData: [{
+        condition: 'must',
+        query: ''
+      }],
+      ..._.cloneDeep(SUBSECTIONS_DATA),
+      mainEventsData: {},
+      queryData: {
+        id: '',
+        name: '',
+        inputName: '',
+        displayId: '',
+        displayName: '',
+        list: [],
+        query: '',
+        formattedQuery: '',
+        openFlag: false
+      },
+      newQueryName: true,
+      showFilter: false,
+      showChart: false,
+      openQueryOpen: false,
+      saveQueryOpen: false,
+      currentTableIndex: '',
+      currentTableID: '',
+      alertDetailsOpen: false,
+      alertDetails: {
+        all: [],
+        publicFormatted: {
+          srcIp: {},
+          destIp: {}
+        },
+        currentID: '',
+        currentIndex: '',
+        currentLength: ''
+      },
+      alertData: {},
+      loadAlertData: true
     };
 
     this.ah = getInstance('chewbacca');
@@ -236,7 +235,7 @@ class AlertController extends Component {
   loadTreeData = () => {
     const {baseUrl} = this.props;
     const {currentPage, pageSize, treeData} = this.state;
-    const url = `${baseUrl}/api/u1/alert/_search?page=${currentPage}&amp;pageSize=${pageSize}`;
+    const url = `${baseUrl}/api/u2/alert/_search?page=${currentPage}&amp;pageSize=${pageSize}`;
     const requestData = this.toQueryLanguage('tree');
 
     helper.getAjaxData('POST', url, requestData)
@@ -274,14 +273,44 @@ class AlertController extends Component {
    * @method
    */
   loadAllFields = () => {
+    const {activeTab} = this.state;
     let tempSubSectionsData = {...this.state.subSectionsData};
-    tempSubSectionsData.tableColumns = _.cloneDeep(this.props.searchFields);
+    tempSubSectionsData.tableColumns[activeTab] = ['_eventDttm_', '_severity_', 'srcIp', 'destIp', 'Info', 'Collector'];
 
     this.setState({
       subSectionsData: tempSubSectionsData
     }, () => {
       this.loadTable();
     });
+  }
+  /**
+   * Show query option when click on the table raw filter icon
+   * @method
+   * @param {string} field - field name of selected field
+   * @param {string | number} value - value of selected field
+   * @param {object} e - mouseClick events
+   */
+  showQueryOptions = (field, value) => (e) => {
+    const menuItems = [
+      {
+        id: value + '_Must',
+        text: 'Must',
+        action: () => this.addSearch('', value, 'must')
+      },
+      {
+        id: value + '_MustNot',
+        text: 'Must Not',
+        action: () => this.addSearch('', value, 'must_not')
+      },
+      {
+        id: value + '_Either',
+        text: 'Either',
+        action: () => this.addSearch('', value, 'either')
+      }
+    ];
+
+    ContextMenu.open(e, menuItems, 'eventsQueryMenu');
+    e.stopPropagation();
   }
   /**
    * Get and set alert data
@@ -292,7 +321,7 @@ class AlertController extends Component {
     const {baseUrl, contextRoot} = this.props;
     const {activeTab, currentPage, oldPage, pageSize, subSectionsData, account, alertDetails} = this.state;
     const setPage = options === 'search' ? 1 : currentPage;
-    const url = `${baseUrl}/api/u1/alert/_search?page=${setPage}&amp;pageSize=${pageSize}`;
+    const url = `${baseUrl}/api/u2/alert/_search?page=${setPage}&amp;pageSize=${pageSize}`;
     const requestData = this.toQueryLanguage(options);
 
     helper.getAjaxData('POST', url, requestData)
@@ -307,9 +336,11 @@ class AlertController extends Component {
       }
 
       let alertHistogram = {
-        High: {},
-        Medium: {},
-        Low: {}
+        Emergency: {},
+        Alert: {},
+        Critical: {},
+        Warning: {},
+        Notice: {}
       };
       let tableData = data.data;
       let tempArray = [];
@@ -350,7 +381,7 @@ class AlertController extends Component {
       tempAlertDetails.currentLength = tableData.length &lt; pageSize ? tableData.length : pageSize;
       tempAlertDetails.all = tempArray;
 
-      _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for High, Medium, Low
+      _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
         _.forEach(data.event_histogram[val].buckets, val2 => {
           if (val2.doc_count > 0) {
             alertHistogram[val][val2.key_as_string] = val2.doc_count;
@@ -372,8 +403,8 @@ class AlertController extends Component {
           label: f(`${activeTab}Fields.${tempFieldName}`),
           sortable: tempData === '_eventDttm_' ? true : false,
           formatter: (value, allValue) => {
-            if (tempData === 'Severity') {
-              return &lt;span className='severity' style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}&lt;/span>
+            if (tempData === 'Info') {
+              return &lt;span>{value}&lt;/span>
             } else {
               if (tempData === '_eventDttm_') {
                 value = helper.getFormattedDate(value, 'local');
@@ -385,7 +416,9 @@ class AlertController extends Component {
                   activeTab={activeTab}
                   fieldValue={value}
                   fieldName={tempData}
-                  allValue={allValue} />
+                  allValue={allValue}
+                  alertLevelColors={ALERT_LEVEL_COLORS}
+                  showQueryOptions={this.showQueryOptions} />
               )
             }
           }
@@ -495,7 +528,7 @@ class AlertController extends Component {
     if (treeData === null) { //Handle the case for no data
       treeObj.label = t('txt-all') + ' (0)';
 
-      _.forEach(SEVERITY_TYPE, val => { //Create ordered tree list for High, Medium, Low
+      _.forEach(SEVERITY_TYPE, val => { //Create ordered tree list for Emergency, Alert, Critical, Warning, Notice
         treeObj.children.push({
           id: val,
           label: &lt;span>{val} (0)&lt;/span>
@@ -505,7 +538,7 @@ class AlertController extends Component {
       return treeObj;
     }
 
-    _.forEach(SEVERITY_TYPE, val => { //Create ordered tree list for High, Medium, Low
+    _.forEach(SEVERITY_TYPE, val => { //Create ordered tree list for Emergency, Alert, Critical, Warning, Notice
       formattedTreeData.push({
         [val]: treeData[val]
       });
@@ -519,71 +552,42 @@ class AlertController extends Component {
         let label2 = '';
         let totalHostCount = 0;
 
-        if (key &amp;&amp; key === 'High') {
+        if (key &amp;&amp; key !== 'default') {
           _.forEach(treeData[key], (val, key) => {
             if (key === 'doc_count') {
               totalHostCount += val;
-            } else if (key !== 'event_histogram') {
-              let tempChild2 = [];
+            } else {
               label = &lt;span title={key}>{key} ({val.doc_count}) &lt;button className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, '')}>{t('events.connections.txt-addFilter')}&lt;/button>&lt;/span>;
 
-              tempChild.push({
-                id: key,
-                label
-              });
+              if (_.size(val) === 1) {
+                tempChild.push({
+                  id: key,
+                  label
+                });
+              } else {
+                let tempChild2 = [];
 
-              _.forEach(val, (val2, key2) => {
-                if (key2 !== 'doc_count') {
-                  label2 = &lt;span title={key2}>{key2} ({val2.doc_count}) &lt;button className={cx('button', {'active': treeName === key2})} onClick={this.selectTree.bind(this, key2, '')}>{t('events.connections.txt-addFilter')}&lt;/button>&lt;/span>;
+                _.forEach(val, (val2, key2) => {
+                  if (key2 !== 'doc_count') {
+                    label2 = &lt;span title={key2}>{key2} ({val2.doc_count}) &lt;button className={cx('button', {'active': treeName === key2})} onClick={this.selectTree.bind(this, key2, '')}>{t('events.connections.txt-addFilter')}&lt;/button>&lt;/span>;
 
-                  tempChild2.push({
-                    id: key2,
-                    label: label2
-                  });
-                }
-              })
+                    tempChild2.push({
+                      id: key2,
+                      label: label2
+                    });
+                  }
+                })
 
-              if (!_.isEmpty(tempChild2)) {
-                tempChild[tempChild.length - 1].children = tempChild2;
+                tempChild.push({
+                  id: key,
+                  label,
+                  children: tempChild2
+                });
               }
             }
           })
-        } else if (key &amp;&amp; key !== 'default') {
-          _.forEach(treeData[key], (val, key) => {
-            if (key === 'doc_count') {
-              totalHostCount += val;
-            } else if (key === 'srcIp') {
-              _.forEach(val.buckets, val => {
-                if (val.key) {
-                  label = &lt;span title={val.key}>{val.key} ({val.doc_count}) &lt;button className={cx('button', {'active': treeName === val.key})} onClick={this.selectTree.bind(this, val.key, key)}>{t('events.connections.txt-addFilter')}&lt;/button>&lt;/span>;
 
-                  if (val['destPort']) {
-                    label2 = &lt;span title={val['destPort'].buckets[0].key}>{val['destPort'].buckets[0].key} ({val['destPort'].buckets[0].doc_count}) &lt;button className={cx('button', {'active': treeName === val['destPort'].buckets[0].key})} onClick={this.selectTree.bind(this, val['destPort'].buckets[0].key, 'destPort')}>{t('events.connections.txt-addFilter')}&lt;/button>&lt;/span>;
-                  }
-
-                  if (label2) {
-                    tempChild.push({
-                      id: val.key,
-                      label,
-                      children: [{
-                        id: val['destPort'].buckets[0].key,
-                        label: label2
-                      }]
-                    });
-                  } else {
-                    tempChild.push({
-                      id: val.key,
-                      label
-                    });
-                  }
-                }
-              })
-            }
-          })
-        }
-
-        if (key &amp;&amp; key !== 'default') {
-          label = &lt;span title={key}>{key} ({totalHostCount}) &lt;button className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, '')}>{t('events.connections.txt-addFilter')}&lt;/button>&lt;/span>;
+          label = &lt;span title={key}>&lt;i className={'fg fg-recode ' + key} /> {key} ({totalHostCount}) &lt;button className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, '')}>{t('events.connections.txt-addFilter')}&lt;/button>&lt;/span>;
 
           let treeProperty = {
             id: key,
@@ -604,6 +608,19 @@ class AlertController extends Component {
     return treeObj;
   }
   /**
+   * Show severity level for private tree data
+   * @method
+   * @param {string} severity - severity info
+   * @returns object display property
+   */
+  showSeverity = (severity) => {
+    if (!severity) {
+      return {
+        display: 'none'
+      };
+    }
+  }
+  /**
    * Set the alert private tree data
    * @method
    * @param {string} treeData - alert tree data
@@ -621,12 +638,13 @@ class AlertController extends Component {
     .forEach(key => {
       let tempChild = [];
       let label = '';
+      let treeProperty = {};
 
       if (key &amp;&amp; key !== 'doc_count') {
         if (treeData[key][path].buckets.length > 0) {
           _.forEach(treeData[key][path].buckets, val => {
             if (val.key) {
-              label = &lt;span title={val.key}>{val.key} ({val.doc_count}) &lt;button className={cx('button', {'active': treeName === val.key})} onClick={this.selectTree.bind(this, val.key, 'sourceIP')}>{t('events.connections.txt-addFilter')}&lt;/button>&lt;/span>;
+              label = &lt;span title={val.key}>&lt;i className={'fg fg-recode ' + val._severity_} />{val.key} ({val.doc_count}) &lt;button className={cx('button', {'active': treeName === val.key})} onClick={this.selectTree.bind(this, val.key, 'sourceIP')}>{t('events.connections.txt-addFilter')}&lt;/button>&lt;/span>;
 
               tempChild.push({
                 id: val.key,
@@ -636,9 +654,9 @@ class AlertController extends Component {
           })
         }
 
-        label = &lt;span title={key}>{key} ({treeData[key].doc_count}) &lt;button className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, 'sourceIP')}>{t('events.connections.txt-addFilter')}&lt;/button>&lt;/span>;
+        label = &lt;span title={key}>&lt;i className={'fg fg-recode ' + treeData[key]._severity_} style={this.showSeverity(treeData[key]._severity_)}/> {key} ({treeData[key].doc_count}) &lt;button className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, 'sourceIP')}>{t('events.connections.txt-addFilter')}&lt;/button>&lt;/span>;
 
-        let treeProperty = {
+        treeProperty = {
           id: key,
           label
         };
@@ -974,10 +992,9 @@ class AlertController extends Component {
    * @returns Alert component
    */
   renderTabContent = () => {
-    const {baseUrl, contextRoot, language, locale, searchFields} = this.props;
+    const {baseUrl, contextRoot, language, locale} = this.props;
     const {activeTab} = this.state;
     const mainContentData = {
-      searchFields,
       activeTab,
       chartColors: ALERT_LEVEL_COLORS,
       tableUniqueID: 'id',
@@ -1059,7 +1076,7 @@ class AlertController extends Component {
   /**
    * Set filter data
    * @method
-   * @param {Array.&lt;object>} filterData - filter data to be set
+   * @param {array.&lt;object>} filterData - filter data to be set
    */
   setFilterData = (filterData) => {
     this.setState({
@@ -1223,7 +1240,6 @@ AlertController.propTypes = {
   contextRoot: PropTypes.string.isRequired,
   language: PropTypes.string.isRequired,
   locale: PropTypes.string.isRequired,
-  searchFields: PropTypes.object.isRequired,
   session: PropTypes.object.isRequired
 };
 
@@ -1238,13 +1254,13 @@ export { AlertController, HocAlertController };</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyScan.html">SafetyScan</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Fri Nov 22 2019 11:41:39 GMT+0800 (台北標準時間)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Dec 05 2019 12:09:38 GMT+0800 (台北標準時間)
 </footer>
 
 <script> prettyPrint(); </script>

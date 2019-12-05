@@ -68,6 +68,10 @@ class Notifications extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    const {locale, sessionRights} = this.props;
+
+    helper.getPrivilegesInfo(sessionRights, 'config', locale);
+
     this.getMailServerInfo();
   }
   componentWillReceiveProps(nextProps) {
@@ -574,7 +578,8 @@ class Notifications extends Component {
 }
 
 Notifications.propTypes = {
-  baseUrl: PropTypes.string.isRequired
+  baseUrl: PropTypes.string.isRequired,
+  sessionRights: PropTypes.object.isRequired
 };
 
 const HocNotifications = withRouter(withLocale(Notifications));

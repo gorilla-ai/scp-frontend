@@ -128,17 +128,10 @@ class Header extends Component {
   render() {
     const {baseUrl, contextRoot, companyName, session} = this.props;
     let sessionRights = {};
-    let eventsLink = '';
 
     _.forEach(session.rights, val => {
       sessionRights[val] = true;
     })
-
-    if (sessionRights.Module_Syslog_Manage) {
-      eventsLink = '/ChewbaccaWeb/events/syslog';
-    } else if (sessionRights.Module_FlowAnalysis_Manage) {
-      eventsLink = '/ChewbaccaWeb/events/netflow';
-    }
 
     return (
       <div className='header-wrapper'>
@@ -150,13 +143,16 @@ class Header extends Component {
 
             <div>
               <div className='main-nav'>
-                <Link to='/ChewbaccaWeb/dashboard/statistics' className={cx('item', {'active': this.getActiveTab('dashboard')})}>{t('txt-dashboard')}</Link>
-
-                <Link to='/ChewbaccaWeb/alert' className={cx('item', {'active': this.getActiveTab('alert')})}>{t('txt-alertMenu')}</Link>
-
-                <Link to={eventsLink} className={cx('item', {'active': this.getActiveTab('events')})}>{t('txt-events')}</Link>
-
-                {(sessionRights.Module_FlowAnalysis_Agent_Manage || sessionRights.Module_NetworkTopology_Manage || sessionRights.Module_Honeynet_Manage || sessionRights.Module_Account_Manage || sessionRights.Module_Syslog_Manage) &&
+                {sessionRights.Module_Common &&
+                  <Link to='/ChewbaccaWeb/dashboard/statistics' className={cx('item', {'active': this.getActiveTab('dashboard')})}>{t('txt-dashboard')}</Link>
+                }
+                {sessionRights.Module_Common &&
+                  <Link to='/ChewbaccaWeb/alerts' className={cx('item', {'active': this.getActiveTab('alerts')})}>{t('txt-alertMenu')}</Link>
+                }
+                {sessionRights.Module_Common &&
+                  <Link to='/ChewbaccaWeb/events/syslog' className={cx('item', {'active': this.getActiveTab('events')})}>{t('txt-events')}</Link>
+                }
+                {sessionRights.Module_Config &&
                   <Link to='/ChewbaccaWeb/configuration/edge/edge' className={cx('item', {'active': this.getActiveTab('configuration')})}>{t('txt-configuration')}</Link>
                 }
               </div>

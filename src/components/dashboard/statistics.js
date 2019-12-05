@@ -91,6 +91,10 @@ class DashboardStats extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    const {locale, sessionRights} = this.props;
+
+    helper.getPrivilegesInfo(sessionRights, 'common', locale);
+
     this.loadAlertData();
     intervalId = setInterval(this.loadAlertData, 300000); //5 minutes
   }

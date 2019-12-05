@@ -150,6 +150,10 @@ class NetworkInventory extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    const {locale, sessionRights} = this.props;
+
+    helper.getPrivilegesInfo(sessionRights, 'config', locale);
+
     this.getDeviceData();
     this.getOwnerData();
     this.getOtherData();
@@ -2402,7 +2406,8 @@ class NetworkInventory extends Component {
 NetworkInventory.propTypes = {
   baseUrl: PropTypes.string.isRequired,
   contextRoot: PropTypes.string.isRequired,
-  locale: PropTypes.string.isRequired
+  locale: PropTypes.string.isRequired,
+  sessionRights: PropTypes.object.isRequired
 };
 
 const HocNetworkInventory = withRouter(withLocale(NetworkInventory));

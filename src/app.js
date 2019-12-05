@@ -43,6 +43,11 @@ const productName = initialState.productName;
 const session = initialState.session;
 const log = logger(cfg.env, loglevel, cfg.log);
 const footerText = `Powered by ${companyName}. Copyright © ${companyName}. ${year} All Rights Reserved. ${cfg.version} For the best experience, use the latest version of Google Chrome`;
+let sessionRights = {};
+
+_.forEach(session.rights, val => {
+  sessionRights[val] = true;
+})
 
 const HeaderComp = () => (
   <Header
@@ -50,7 +55,8 @@ const HeaderComp = () => (
     contextRoot={cfg.contextRoot}
     productName={productName}
     companyName={companyName}
-    session={session} />
+    session={session}
+    sessionRights={sessionRights} />
 )
 
 const DashboardStatsComp = () => (
@@ -59,7 +65,8 @@ const DashboardStatsComp = () => (
     contextRoot={cfg.contextRoot}
     language={cfg.lng}
     locale={cfg.lng}
-    session={session} />
+    session={session}
+    sessionRights={sessionRights} />
 )
 
 const DashboardMapsComp = () => (
@@ -68,7 +75,8 @@ const DashboardMapsComp = () => (
     contextRoot={cfg.contextRoot}
     language={cfg.lng}
     locale={cfg.lng}
-    session={session} />
+    session={session}
+    sessionRights={sessionRights} />
 )
 
 const AlertComp = () => (
@@ -78,7 +86,8 @@ const AlertComp = () => (
     language={cfg.lng}
     locale={cfg.lng}
     searchFields={appcfg.searchFields}
-    session={session} />
+    session={session}
+    sessionRights={sessionRights} />
 )
 
 const NetflowComp = () => (
@@ -88,7 +97,8 @@ const NetflowComp = () => (
     language={cfg.lng}
     locale={cfg.lng}
     searchFields={appcfg.searchFields}
-    session={session} />
+    session={session}
+    sessionRights={sessionRights} />
 )
 
 const SyslogComp = () => (
@@ -98,7 +108,8 @@ const SyslogComp = () => (
     language={cfg.lng}
     locale={cfg.lng}
     searchFields={appcfg.searchFields}
-    session={session} />
+    session={session}
+    sessionRights={sessionRights} />
 )
 
 const EndpointComp = () => (
@@ -116,7 +127,8 @@ const Notifications = () => (
     contextRoot={cfg.contextRoot}
     language={cfg.lng}
     locale={cfg.lng}
-    session={session} />
+    session={session}
+    sessionRights={sessionRights} />
 )
 
 const Edge = () => (
@@ -125,7 +137,8 @@ const Edge = () => (
     contextRoot={cfg.contextRoot}
     language={cfg.lng}
     locale={cfg.lng}
-    session={session} />
+    session={session}
+    sessionRights={sessionRights} />
 )
 
 const Threat = () => (
@@ -134,7 +147,8 @@ const Threat = () => (
     contextRoot={cfg.contextRoot}
     language={cfg.lng}
     locale={cfg.lng}
-    session={session} />
+    session={session}
+    sessionRights={sessionRights} />
 )
 
 const NetworkTopologyInventory = () => (
@@ -143,7 +157,8 @@ const NetworkTopologyInventory = () => (
     contextRoot={cfg.contextRoot}
     language={cfg.lng}
     locale={cfg.lng}
-    session={session} />
+    session={session}
+    sessionRights={sessionRights} />
 )
 
 const NetworkTopologyOwner = () => (
@@ -152,7 +167,8 @@ const NetworkTopologyOwner = () => (
     contextRoot={cfg.contextRoot}
     language={cfg.lng}
     locale={cfg.lng}
-    session={session} />
+    session={session}
+    sessionRights={sessionRights} />
 )
 
 const NetworkTopologyMap = () => (
@@ -161,7 +177,8 @@ const NetworkTopologyMap = () => (
     contextRoot={cfg.contextRoot}
     language={cfg.lng}
     locale={cfg.lng}
-    session={session} />
+    session={session}
+    sessionRights={sessionRights} />
 )
 
 const Syslogs = () => (
@@ -170,7 +187,8 @@ const Syslogs = () => (
     contextRoot={cfg.contextRoot}
     language={cfg.lng}
     locale={cfg.lng}
-    session={session} />
+    session={session}
+    sessionRights={sessionRights} />
 )
 
 const userAccounts = () => (
@@ -179,7 +197,8 @@ const userAccounts = () => (
     contextRoot={cfg.contextRoot}
     language={cfg.lng}
     locale={cfg.lng}
-    session={session} />
+    session={session}
+    sessionRights={sessionRights} />
 )
 
 const userPrivileges = () => (
@@ -188,7 +207,8 @@ const userPrivileges = () => (
     contextRoot={cfg.contextRoot}
     language={cfg.lng}
     locale={cfg.lng}
-    session={session} />
+    session={session}
+    sessionRights={sessionRights} />
 )
 
 const serviceStatus = () => (
@@ -197,7 +217,8 @@ const serviceStatus = () => (
     contextRoot={cfg.contextRoot}
     language={cfg.lng}
     locale={cfg.lng}
-    session={session} />
+    session={session}
+    sessionRights={sessionRights} />
 )
 
 const Main = () => (
@@ -206,7 +227,7 @@ const Main = () => (
       <Route exact path='/ChewbaccaWeb' component={DashboardStatsComp} />
       <Route exact path='/ChewbaccaWeb/dashboard/statistics' component={DashboardStatsComp} />
       <Route exact path='/ChewbaccaWeb/dashboard/maps' component={DashboardMapsComp} />
-      <Route exact path='/ChewbaccaWeb/alert' component={AlertComp} />
+      <Route exact path='/ChewbaccaWeb/alerts' component={AlertComp} />
       <Route exact path='/ChewbaccaWeb/events/netflow' component={NetflowComp} />
       <Route exact path='/ChewbaccaWeb/events/syslog' component={SyslogComp} />
       <Route exact path='/ChewbaccaWeb/events/endpoint' component={EndpointComp} />

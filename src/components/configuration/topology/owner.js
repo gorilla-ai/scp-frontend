@@ -71,6 +71,10 @@ class NetworkOwner extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    const {locale, sessionRights} = this.props;
+
+    helper.getPrivilegesInfo(sessionRights, 'config', locale);
+
    this.getSearchData();
    this.getOwnerData();
   }
@@ -768,7 +772,8 @@ class NetworkOwner extends Component {
 
 NetworkOwner.propTypes = {
   baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired
+  contextRoot: PropTypes.string.isRequired,
+  sessionRights: PropTypes.object.isRequired
 };
 
 const HocNetworkOwner = withRouter(withLocale(NetworkOwner));

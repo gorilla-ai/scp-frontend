@@ -35,7 +35,6 @@ import _ from 'lodash'
 import cx from 'classnames'
 
 import Checkbox from 'react-ui/build/src/components/checkbox'
-import CheckboxGroup from 'react-ui/build/src/components/checkbox-group'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import FileInput from 'react-ui/build/src/components/file-input'
 import Gis from 'react-gis/build/src/components'
@@ -53,6 +52,7 @@ import {HocConfig as Config} from '../../common/configuration'
 import {HocFilterContent as FilterContent} from '../../common/filter-content'
 import {HocFloorMap as FloorMap} from '../../common/floor-map'
 import {HocHMDscanInfo as HMDscanInfo} from '../../common/hmd-scan-info'
+import {HocIrSelections as IrSelections} from '../../common/ir-selections'
 import {HocPagination as Pagination} from '../../common/pagination'
 import {HocPrivateDetails as PrivateDetails} from '../../common/private-details'
 import Manage from './manage'
@@ -62,6 +62,24 @@ import withLocale from '../../../hoc/locale-provider'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const NOT_AVAILABLE = 'N/A';
+const SAFETY_SCAN_LIST = [
+  {
+    type: 'yara',
+    path: 'ScanResult'
+  },
+  {
+    type: 'yaraScanFile',
+    path: 'ScanResult'
+  },
+  {
+    type: 'malware',
+    path: 'DetectionResult'
+  },
+  {
+    type: 'gcb',
+    path: 'GCBResult'
+  }
+];
 const MAPS_PRIVATE_DATA = {
   floorList: [],
   currentFloor: '',
@@ -70,25 +88,6 @@ const MAPS_PRIVATE_DATA = {
   currentBaseLayers: {},
   seatData: {}
 };
-const IR_MAPPINGS = {
-  1: 'dumpMemory',
-  2: 'getSystemInfo',
-  3: 'getFileInfo',
-  4: 'getProcessInfo',
-  5: 'getAutoruns',
-  6: 'getTaskScheduler',
-  7: 'getBrowserData',
-  8: 'getOutlookData',
-  9:  'getRegistryBackup',
-  10: 'getEventLogFile',
-  11: 'getRecycleFile',
-  12: 'getRecentFile',
-  13: 'getPictureFile',
-  14: 'getVideoFile',
-  15: 'getMicrosoftFile',
-  16: 'getKeyWordFile'
-};
-const DEFAULT_IR_SELECTED = [2, 4, 5, 6, 9, 10];
 
 let t = null;
 let f = null;
@@ -125,7 +124,7 @@ class NetworkInventory extends Component {
       },
       showHMDonly: false,
       deviceData: {
-        dataFieldsArr: ['ip', 'mac', 'hostName', 'system', 'owner', 'areaName', 'seatName', 'yaraScan', '_menu'],
+        dataFieldsArr: ['ip', 'mac', 'hostName', 'system', 'owner', 'areaName', 'seatName', 'scanInfo', '_menu'],
         dataFields: {},
         dataContent: [],
         ipListArr: [],
@@ -170,8 +169,6 @@ class NetworkInventory extends Component {
       ownerType: 'existing', //existing, new,
       ownerIDduplicated: false,
       previewOwnerPic: '',
-      irComboSelected: 'quick', //quick, standard, full
-      irItemSelected: DEFAULT_IR_SELECTED,
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
     };
 
@@ -192,8 +189,38 @@ class NetworkInventory extends Component {
     }
   }
   /**
-   * Get and set IP device data (new api)
+   * Display individual scan info
    * @method
+   * @param {object} val - scan info data
+   * @param {number} i - index of the hmdInfo array
+   * @returns HTML DOM
+   */
+  getHMDinfo = (val, i) => {
+    const scanType = val.type;
+
+    if (!val.result) {
+      return;
+    }
+
+    if (scanType === 'gcb') {
+      const filteredResult = _.filter(val.result, ['_CompareResult', 'true']);
+      let style = '#d10d25'; //Default red color
+
+      if (filteredResult.length === val.result.length) { //Show green color for all pass
+        style = '#22ac38';
+      }
+
+      return &lt;li key={scanType} style={{'color': style}}>&lt;span>{val.name} {t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}:&lt;/span> {filteredResult.length}/{val.result.length}&lt;/li>
+    } else {
+      return &lt;li key={scanType}>&lt;span>{val.name} {t('network-inventory.txt-suspiciousFileCount')}:&lt;/span> {val.result.length}&lt;/li>
+    }
+  }
+  /**
+   * Get and set device data
+   * @method
+   * @param {string} fromSearch - options for 'search'
+   * @param {string} options - options for 'oneSeat'
+   * @param {string} seatUUID - seat UUID
    */
   getDeviceData = (fromSearch, options, seatUUID) => {
     const {baseUrl, contextRoot} = this.props;
@@ -296,18 +323,27 @@ class NetworkInventory extends Component {
               if (allValue.seatObj) {
                 return &lt;span>{allValue.seatObj.seatName}&lt;/span>
               }
-            } else if (tempData === 'yaraScan') {
-              if (allValue.yaraResult &amp;&amp; allValue.yaraResult.ScanResult) {
-                const yaraCount = allValue.yaraResult.ScanResult.length;
-                let styleStatus = '#22ac38';
+            } else if (tempData === 'scanInfo') {
+              let hmdInfo = [];
 
-                if (yaraCount > 0) {
-                  styleStatus = '#d0021b';
+              _.forEach(SAFETY_SCAN_LIST, val => { //Construct the HMD info array
+                const dataType = val.type + 'Result';
+                const currentDataObj = allValue[dataType];
+
+                if (!_.isEmpty(currentDataObj)) {
+                  hmdInfo.push({
+                    type: val.type,
+                    name: t('network-inventory.scan-list.txt-' + val.type),
+                    result: currentDataObj[val.path]
+                  });
                 }
-                return &lt;span style={{color: styleStatus}}>{yaraCount}&lt;/span>
-              } else {
-                return &lt;span>N/A&lt;/span>
-              }
+              })
+
+              return (
+                &lt;ul>
+                  {hmdInfo.map(this.getHMDinfo)}
+                &lt;/ul>
+              )
             } else if (tempData === '_menu') {
               return (
                 &lt;div className='table-menu menu active'>
@@ -1053,7 +1089,7 @@ class NetworkInventory extends Component {
   /**
    * Handle trigger button for HMD
    * @method
-   * @param {string} type - HMD scan type
+   * @param {array.&lt;string>} type - HMD scan type
    */
   triggerTask = (type) => {
     const {baseUrl, contextRoot} = this.props;
@@ -1083,130 +1119,85 @@ class NetworkInventory extends Component {
     });
   }
   /**
-   * Handle IR combo dropdown change
-   * @method
-   * @param {string} type - IR combo type ('quick', 'standard' or 'full')
-   */
-  handleIrComboChange = (value) => {
-    let irItemSelected = [];
-
-    if (value === 'quick') {
-      irItemSelected = DEFAULT_IR_SELECTED;
-    } else if (value === 'standard') {
-      irItemSelected = _.concat(_.range(1, 7), [9, 10, 12]);
-    } else if (value === 'full') {
-      irItemSelected = _.range(1, 17);
-    }
-
-    this.setState({
-      irComboSelected: value,
-      irItemSelected
-    });
-  }
-  /**
-   * Handle IR combo multi checkbox change
-   * @method
-   * @param {array} selected - selected checkbox array
-   */
-  handleIrSelectionChange = (selected) => {
-    const irItemSelected = selected.sort((a, b) => {
-      return a - b;
-    });
-
-    this.setState({
-      irItemSelected
-    });
-  }
-  /**
-   * Display IR selection content
-   * @method
-   * @returns HTML DOM
-   */
-  displayIRselection = () => {
-    const {irComboSelected, irItemSelected} = this.state;
-    const dropDownList = _.map(['quick', 'standard', 'full'], val => {
-      return {
-        value: val,
-        text: t('network-inventory.ir-type.txt-' + val)
-      };
-    });
-    const checkBoxList = _.map(_.range(1, 17), val => {
-      return {
-        value: val,
-        text: val + ' - ' + t('network-inventory.ir-list.txt-list' + val)
-      };
-    });
-
-    return (
-      &lt;div>
-        &lt;DropDownList
-          id='irComboList'
-          list={dropDownList}
-          required={true}
-          onChange={this.handleIrComboChange}
-          value={irComboSelected} />
-        &lt;CheckboxGroup
-          list={checkBoxList}
-          onChange={this.handleIrSelectionChange}
-          value={irItemSelected} />
-      &lt;/div>
-    )
-  }
-  /**
-   * Display IR selection modal dialog
-   * @method
-   * @returns ModalDialog component
-   */
-  irSelectionDialog = () => {
-    const titleText = t('network-inventory.txt-itemSelection');
-    const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleSelectionIR},
-      confirm: {text: t('txt-confirm'), handler: this.confirmIRselection}
-    };
-
-    return (
-      &lt;ModalDialog
-        id='irSelectionDialog'
-        className='modal-dialog'
-        title={titleText}
-        draggable={true}
-        global={true}
-        actions={actions}
-        closeAction='cancel'>
-        {this.displayIRselection()}
-      &lt;/ModalDialog>
-    )
-  }
-  /**
-   * Handle IR selection confirm
-   * @method
-   */
-  confirmIRselection = () => {
-    const {irItemSelected} = this.state;
-    const selectedIrArr = _.map(irItemSelected, val => {
-      return IR_MAPPINGS[val];
-    });
-
-    this.triggerTask(selectedIrArr);
-    this.toggleSelectionIR();
-  }
-  /**
    * Toggle IR combo selection dialog
    * @method
    */
   toggleSelectionIR = () => {
-    const {modalIRopen} = this.state;
-
-    if (!modalIRopen) {
-      this.setState({
-        irComboSelected: 'quick',
-        irItemSelected: DEFAULT_IR_SELECTED
-      });
-    }
-
     this.setState({
-      modalIRopen: !modalIRopen
+      modalIRopen: !this.state.modalIRopen
     });
+  }
+  /**
+   * Display IR selection modal dialog
+   * @method
+   * @returns IrSelections component
+   */
+  irSelectionDialog = () => {
+    return (
+      &lt;IrSelections
+        triggerTask={this.triggerTask}
+        toggleSelectionIR={this.toggleSelectionIR}
+      />
+    )
+  }
+  /**
+   * Display device info and HMD scan results
+   * @method
+   * @returns HTML DOM
+   */
+  displayScanInfo = () => {
+    const {baseUrl, contextRoot, language, locale} = this.props;
+    const {deviceData, currentDeviceData} = this.state;
+    const ip = currentDeviceData.ip || NOT_AVAILABLE;
+    const mac = currentDeviceData.mac || NOT_AVAILABLE;
+    const hostName = currentDeviceData.hostName || NOT_AVAILABLE;
+    const system = currentDeviceData.system || NOT_AVAILABLE;
+    const ownerName = currentDeviceData.ownerObj ? currentDeviceData.ownerObj.ownerName : NOT_AVAILABLE;
+
+    return (
+      &lt;div>
+        &lt;table className='c-table main-table with-border'>
+          &lt;thead>
+            &lt;tr>
+              &lt;th>{t('ipFields.ip')}&lt;/th>
+              &lt;th>{t('ipFields.mac')}&lt;/th>
+              &lt;th>{t('ipFields.hostName')}&lt;/th>
+              &lt;th>{t('ipFields.system')}&lt;/th>
+              &lt;th>{t('ipFields.owner')}&lt;/th>
+            &lt;/tr>
+          &lt;/thead>
+          &lt;tbody>
+            &lt;tr className='align-center'>
+              &lt;td>{ip}&lt;/td>
+              &lt;td>{mac}&lt;/td>
+              &lt;td>{hostName}&lt;/td>
+              &lt;td>{system}&lt;/td>
+              &lt;td>{ownerName}&lt;/td>
+            &lt;/tr>
+          &lt;/tbody>
+        &lt;/table>
+
+        &lt;HMDscanInfo
+          baseUrl={baseUrl}
+          contextRoot={contextRoot}
+          language={language}
+          locale={locale}
+          currentDeviceData={currentDeviceData}
+          toggleSelectionIR={this.toggleSelectionIR}
+          showAlertData={this.showAlertData}
+          triggerTask={this.triggerTask} />
+
+        {deviceData.currentLength > 1 &amp;&amp;
+          &lt;div className='pagination'>
+            &lt;div className='buttons'>
+              &lt;button onClick={this.showAlertData.bind(this, 'previous')} disabled={deviceData.currentIndex === 0}>{t('txt-previous')}&lt;/button>
+              &lt;button onClick={this.showAlertData.bind(this, 'next')} disabled={deviceData.currentIndex + 1 === deviceData.currentLength}>{t('txt-next')}&lt;/button>
+            &lt;/div>
+            &lt;span className='count'>{deviceData.currentIndex + 1} / {deviceData.currentLength}&lt;/span>
+          &lt;/div>
+        }          
+      &lt;/div>
+    )
   }
   /**
    * Display HMD scan info content
@@ -1214,25 +1205,21 @@ class NetworkInventory extends Component {
    * @returns HMDscanInfo component
    */
   showScanInfo = () => {
-    const {baseUrl, contextRoot, language, locale} = this.props;
-    const {deviceData, currentDeviceData} = this.state;
     const actions = {
       confirm: {text: t('txt-close'), handler: this.closeDialog.bind(this, 'reload')}
     };
 
     return (
-      &lt;HMDscanInfo
-        baseUrl={baseUrl}
-        contextRoot={contextRoot}
-        language={language}
-        locale={locale}
-        titleText={t('alert.txt-safetyScanInfo')}
+      &lt;ModalDialog
+        id='configScanModalDialog'
+        className='modal-dialog'
+        title={t('alert.txt-safetyScanInfo')}
+        draggable={true}
+        global={true}
         actions={actions}
-        deviceData={deviceData}
-        currentDeviceData={currentDeviceData}
-        toggleSelectionIR={this.toggleSelectionIR}
-        showAlertData={this.showAlertData}
-        triggerTask={this.triggerTask} />
+        closeAction='confirm'>
+        {this.displayScanInfo()}
+      &lt;/ModalDialog>
     )
   }
   /**
@@ -2457,13 +2444,13 @@ export { NetworkInventory, HocNetworkInventory };</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyScan.html">SafetyScan</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Fri Nov 22 2019 11:41:39 GMT+0800 (台北標準時間)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Dec 05 2019 12:09:38 GMT+0800 (台北標準時間)
 </footer>
 
 <script> prettyPrint(); </script>

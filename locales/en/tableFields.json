@@ -507,7 +507,17 @@
     "description": "Description",
     "keywords": "Keywords",
     "serviceType": "Service Type",
-    "connectionStatus": "Connection Status"
+    "connectionStatus": "Connection Status",
+    "txt-lastDataUpdDT": "Latest data update time",
+    "txt-attackCnt": "Attack counts",
+    "txt-agentMode": "Monitor mode",
+    "txt-lastStatus": "Status",
+    "txt-lastStatusUpdDT": "Latest T.I. update time",
+    "txt-threatIntellLastUpdDT": "Latest status update time",
+    "txt-rx_pkts": "Received packets",
+    "txt-tx_pkts": "Transferred packets",
+    "txt-lastAnalyzedStatus": "Latest analyzed status",
+    "txt-lastAnalyzedStatusUpdDT": "Latest analyzed status time"
   },
   "serviceStatusFields": {
     "status": "Status",

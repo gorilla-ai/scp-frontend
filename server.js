@@ -43,7 +43,7 @@ const cfg = _.assign({
   productName: 'DPIR',
   companyName: 'Gorilla',
   session: {
-    rights: ["Module_FlowAnalysis_Manage", "Module_FlowAnalysis_Agent_Manage", , "Module_Honeynet_Manage", "Module_Account_Manage", "Module_Syslog_Manage", "Module_NetworkTopology_Manage"],
+    rights: ["Module_Common", "Module_Config"],
     name: null,
     account: "admin",
     accountId: "DPIR-00000000-0000-0000-0000-000000000000"

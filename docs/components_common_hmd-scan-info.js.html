@@ -53,23 +53,23 @@ const SAFETY_SCAN_LIST = [
     path: 'ScanResult'
   },
   {
+    type: 'malware',
+    path: 'DetectionResult'
+  },
+  {
     type: 'gcb',
     path: 'GCBResult'
   },
   {
     type: 'ir',
     path: '_ZipPath'
-  },
-  {
-    type: 'malware',
-    path: 'DetectionResult'
   }
 ];
 const TRIGGER_NAME = {
   [SAFETY_SCAN_LIST[0].type]: 'compareIOC',
   [SAFETY_SCAN_LIST[1].type]: 'yaraScanFile',
-  [SAFETY_SCAN_LIST[2].type]: 'gcbDetection',
-  [SAFETY_SCAN_LIST[4].type]: 'malwareDetection'
+  [SAFETY_SCAN_LIST[2].type]: 'malwareDetection',
+  [SAFETY_SCAN_LIST[3].type]: 'gcbDetection'
 };
 
 let t = null;
@@ -86,19 +86,28 @@ class HMDscanInfo extends Component {
     super(props);
 
     this.state = {
-      activeTab: 'yara', //yara, yaraScanFile, gcb, ir, malware
+      activeTab: 'yara', //yara, yaraScanFile, malware, gcb, ir
       activePath: null,
       activeRuleHeader: false,
       activeRule: [],
       activeDLL: false,
       activeConnections: false,
-      gcbFieldsArr: ['cceId', 'name', 'type', 'compareResult'],
-      malwareFieldsArr: ['_FileInfo._Filepath', '_FileInfo._Filesize', '_FileInfo._HashValues._MD5', '_IsPE', '_IsPEextension', '_IsVerifyTrust', 'download']
+      malwareFieldsArr: ['_FileInfo._Filepath', '_FileInfo._Filesize', '_FileInfo._HashValues._MD5', '_IsPE', '_IsPEextension', '_IsVerifyTrust'],
+      malwareSort: ['asc'],
+      gcbFieldsArr: ['_CceId', '_OriginalKey', '_Type', '_CompareResult'],
+      gcbSort: 'asc',
     };
 
     t = chewbaccaI18n.getFixedT(null, 'connections');
     f = chewbaccaI18n.getFixedT(null, 'tableFields');
     this.ah = getInstance('chewbacca');
+  }
+  componentDidUpdate(prevProps) {
+    if (!prevProps || (this.props.currentDeviceData.ip !== prevProps.currentDeviceData.ip)) {
+      this.setState({
+        activeTab: 'yara'
+      });
+    }
   }
   /**
    * Sort the Yara and Yara Scan File by matched file availablility
@@ -479,7 +488,13 @@ class HMDscanInfo extends Component {
     const {activeTab} = this.state;
 
     if (hmdInfo[activeTab].filteredResult) {
-      return &lt;span className='pass-total'>{t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}: {hmdInfo[activeTab].filteredResult.length}/{hmdInfo[activeTab].result.length}&lt;/span>
+      let style = '#d10d25'; //Default red color
+
+      if (hmdInfo[activeTab].filteredResult.length === hmdInfo[activeTab].result.length) { //Show green color for all pass
+        style = '#22ac38';
+      }
+
+      return &lt;span className='pass-total' style={{'color': style}}>{t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}: {hmdInfo[activeTab].filteredResult.length}/{hmdInfo[activeTab].result.length}&lt;/span>
     }
   }
   /**
@@ -489,12 +504,15 @@ class HMDscanInfo extends Component {
    * @returns HTML DOM
    */
   getTriggerBtn = (hmdInfo) => {
+    const {ipType} = this.props;
     const {activeTab} = this.state;
 
     if (activeTab === 'ir') {
-      return &lt;button className='btn' onClick={this.props.toggleSelectionIR} disabled={this.checkTriggerTime(activeTab)}>{t('network-inventory.txt-reCompress')}&lt;/button>
+      return &lt;button className='btn' onClick={this.props.toggleSelectionIR.bind(this, ipType)} disabled={this.checkTriggerTime(activeTab)}>{t('network-inventory.txt-reCompress')}&lt;/button>
+    } else if (activeTab === 'gcb') {
+      return &lt;button className='btn' onClick={this.props.triggerTask.bind(this, [TRIGGER_NAME[activeTab]], ipType)} disabled={this.checkTriggerTime(activeTab)}>{t('network-inventory.txt-reCheck')}&lt;/button>
     } else {
-      return &lt;button className='btn' onClick={this.props.triggerTask.bind(this, [TRIGGER_NAME[activeTab]])} disabled={this.checkTriggerTime(activeTab)}>{t('network-inventory.txt-reCheck')}&lt;/button>
+      return &lt;button className='btn' onClick={this.props.triggerTask.bind(this, [TRIGGER_NAME[activeTab]], ipType)} disabled={this.checkTriggerTime(activeTab)}>{t('network-inventory.txt-reCheck')}&lt;/button>
     }
   }
   /**
@@ -538,37 +556,92 @@ class HMDscanInfo extends Component {
     }
   }
   /**
+   * Get formatted field name
+   * @method
+   * @param {string} tempData - original field name
+   * @returns formatted field name
+   */
+  getFieldName = (tempData) => {
+    if (tempData === '_FileInfo._Filesize') {
+      tempData = '_Filesize';
+    }
+    return 'scan-file' + tempData;
+  }
+  /**
+   * Handle table sort for malware and gcb
+   * @method
+   */
+  handleTableSort = () => {
+    const {activeTab, malwareSort, gcbSort} = this.state;
+
+    if (activeTab === 'malware') {
+      this.setState({
+        malwareSort: malwareSort === 'asc' ? 'desc' : 'asc'
+      });
+    } else if (activeTab === 'gcb') {
+      this.setState({
+        gcbSort: gcbSort === 'asc' ? 'desc' : 'asc'
+      });
+    }
+  }
+  /**
+   * Display table data for malware
+   * @method
+   * @param {string} activeTab - current active tab
+   * @param {object} hmdInfo - HMD data
+   * @returns DataTable component
+   */
+  malwareDataTable = (activeTab, hmdInfo) => {
+    return (
+      &lt;DataTable
+        className='main-table'
+        fields={hmdInfo[activeTab].fields}
+        data={hmdInfo[activeTab].result}
+        onSort={this.handleTableSort} />
+    )
+  }
+  /**
+   * Display table data for gcb
+   * @method
+   * @param {string} activeTab - current active tab
+   * @param {object} hmdInfo - HMD data
+   * @returns DataTable component
+   */
+  gcbDataTable = (activeTab, hmdInfo) => {
+    return (
+      &lt;DataTable
+        className='main-table'
+        fields={hmdInfo[activeTab].fields}
+        data={hmdInfo[activeTab].result}
+        onSort={this.handleTableSort} />
+    )
+  }
+  /**
    * Display table content
    * @method
    * @param {object} hmdInfo - HMD data
    * @returns HTML DOM
    */
   getTableContent = (hmdInfo) => {
-    const {activeTab} = this.state;
+    const {activeTab, malwareSort, gcbSort} = this.state;
 
     if (!_.isEmpty(hmdInfo[activeTab].fields) &amp;&amp; hmdInfo[activeTab].result.length > 0) {
       return (
         &lt;div className='table'>
-          &lt;DataTable
-            className='main-table'
-            fields={hmdInfo[activeTab].fields}
-            data={hmdInfo[activeTab].result} />
+          {activeTab === 'malware' &amp;&amp;
+            this.malwareDataTable(activeTab, hmdInfo)
+          }
+          {activeTab === 'gcb' &amp;&amp;
+            this.gcbDataTable(activeTab, hmdInfo)
+          }
         &lt;/div>
       )
-    }   
+    }
   }
-  /**
-   * Display main scan content
-   * @method
-   * @returns HTML DOM
-   */
-  displayScanInfo = () => {
-    const {deviceData, currentDeviceData} = this.props;
-    const {activeTab, gcbFieldsArr, malwareFieldsArr} = this.state;
-    const ip = currentDeviceData.ip || NOT_AVAILABLE;
-    const mac = currentDeviceData.mac || NOT_AVAILABLE;
-    const hostName = currentDeviceData.hostName || NOT_AVAILABLE;
-    const ownerName = currentDeviceData.ownerObj ? currentDeviceData.ownerObj.ownerName : NOT_AVAILABLE;
+  render() {
+    const {locale, currentDeviceData} = this.props;
+    const {activeTab, malwareFieldsArr, gcbFieldsArr, malwareSort, gcbSort} = this.state;
+
     let hmdInfo = {};
     let buttonGroupList = [];
 
@@ -592,6 +665,14 @@ class HMDscanInfo extends Component {
           dataResult = this.sortedRuleList(dataResult);
         }
 
+        if (val.type === 'malware') {
+          dataResult = _.orderBy(dataResult, ['_IsVerifyTrust'], [malwareSort]);
+        }
+
+        if (val.type ===  'gcb') {
+          dataResult = _.orderBy(dataResult, ['_CompareResult'], [gcbSort]);
+        }
+
         hmdInfo[val.type] = {
           createTime: helper.getFormattedDate(currentDataObj.taskCreateDttm, 'local'),
           responseTime: helper.getFormattedDate(currentDataObj.taskResponseDttm, 'local'),
@@ -608,45 +689,31 @@ class HMDscanInfo extends Component {
       hmdInfo.yaraScanFile.count = Number(hmdInfo.yaraScanFile.result.length);
     }
 
-    if (hmdInfo.gcb.result) {
-      hmdInfo.gcb.filteredResult = _.filter(hmdInfo.gcb.result, ['compareResult', true]);
-
-      hmdInfo.gcb.fields = {};
-      gcbFieldsArr.forEach(tempData => {
-        hmdInfo.gcb.fields[tempData] = {
-          label: f(`gcbFields.${tempData}`),
-          sortable: null,
-          formatter: (value, allValue) => {
-            if (tempData === 'compareResult') {
-              let styleStatus = '';
-
-              if (value) {
-                styleStatus = '#22ac38';
-                value = 'Pass';
-              } else {
-                styleStatus = '#d0021b';
-                value = 'Fail';
-              }
-
-              return &lt;span style={{color : styleStatus}}>{value}&lt;/span>
-            } else {
-              return &lt;span>{value}&lt;/span>
-            }
-          }
-        };
-      })
-    }
-
     if (hmdInfo.malware.result) {
+      hmdInfo.malware.count = Number(hmdInfo.malware.result.length);
+
       hmdInfo.malware.fields = {};
       malwareFieldsArr.forEach(tempData => {
         hmdInfo.malware.fields[tempData] = {
-          label: tempData === 'download' ? '' : f(`malwareFields.${tempData}`),
-          sortable: null,
+          label: f(`malwareFields.${tempData}`),
+          sortable: true,
+          className: this.getFieldName(tempData),
           formatter: (value, allValue) => {
+            if (tempData === '_FileInfo._Filepath') {
+              if (value.length > 25) {
+                const newValue = value.substr(0, 25) + '...';
+                return &lt;span title={value}>{newValue}&lt;/span>
+              } else {
+                return &lt;span>{value}&lt;/span>
+              }
+            }
             if (tempData === '_FileInfo._HashValues._MD5') {
-              const newValue = value.substr(0, 20) + '...';
-              return &lt;span title={value}>{newValue}&lt;/span>
+              if (value.length > 15) {
+                const newValue = value.substr(0, 15) + '...';
+                return &lt;span title={value}>{newValue}&lt;/span>
+              } else {
+                return &lt;span>{value}&lt;/span>
+              }
             }
             if (tempData === '_FileInfo._Filesize') {
               value = value + ' KB';
@@ -664,90 +731,90 @@ class HMDscanInfo extends Component {
 
               return &lt;span style={{color : styleStatus}}>{value}&lt;/span>
             }
-            if (tempData === 'download') {
-              return (
-                &lt;div className='table-menu menu active'>
-                  &lt;i className='fg fg-data-download' style={{cursor: 'not-allowed'}} title={t('txt-download')}>&lt;/i>
-                &lt;/div>
-              )
-            }
             return &lt;span>{value}&lt;/span>
           }
         };
       })
     }
 
+    if (hmdInfo.gcb.result) {
+      hmdInfo.gcb.filteredResult = _.filter(hmdInfo.gcb.result, ['_CompareResult', 'true']);
+
+      hmdInfo.gcb.fields = {};
+      gcbFieldsArr.forEach(tempData => {
+        hmdInfo.gcb.fields[tempData] = {
+          label: f(`gcbFields.${tempData}`),
+          sortable: true,
+          className: 'gcb' + tempData,
+          formatter: (value, allValue) => {
+            if (tempData === '_CceId') {
+              return &lt;span>{value}&lt;/span>
+            }
+            if (tempData === '_OriginalKey') {
+              let content = value;
+
+              if (locale === 'zh' &amp;&amp; allValue['_PolicyName_zh-tw']) {
+                content = allValue['_PolicyName_zh-tw'];
+              } else if (locale === 'en' &amp;&amp; allValue['_PolicyName_en']) {
+                content = allValue['_PolicyName_en'];
+              }
+
+              if (content.length > 70) {
+                const newValue = content.substr(0, 70) + '...';
+                return &lt;span title={content}>{newValue}&lt;/span>
+              } else {
+                return &lt;span>{content}&lt;/span>
+              }
+            }
+            if (tempData === '_Type') {
+              return &lt;span>{value}&lt;/span>
+            }
+            if (tempData === '_CompareResult') {
+              let styleStatus = '';
+              let tooltip = '';
+
+              if (value === 'true') {
+                styleStatus = '#22ac38';
+                value = 'Pass';
+              } else if (value === 'false') {
+                styleStatus = '#d0021b';
+                value = 'Fail';
+              }
+
+              tooltip += 'GPO Value: ' + (allValue._GpoValue || 'N/A');
+              tooltip += ' / GCB Value: ' + (allValue._GcbValue || 'N/A');
+
+              return &lt;span style={{color : styleStatus}} title={tooltip}>{value}&lt;/span>
+            }
+          }
+        };
+      })
+    }
+
     return (
-      &lt;div>
-        &lt;table className='c-table main-table with-border'>
-          &lt;thead>
-            &lt;tr>
-              &lt;th>{t('ipFields.ip')}&lt;/th>
-              &lt;th>{t('ipFields.mac')}&lt;/th>
-              &lt;th>{t('ipFields.hostName')}&lt;/th>
-              &lt;th>{t('ipFields.owner')}&lt;/th>
-            &lt;/tr>
-          &lt;/thead>
-          &lt;tbody>
-            &lt;tr>
-              &lt;td className='align-center ip'>{ip}&lt;/td>
-              &lt;td className='align-center mac'>{mac}&lt;/td>
-              &lt;td className='align-center hostName'>{hostName}&lt;/td>
-              &lt;td className='align-center ownerName'>{ownerName}&lt;/td>
-            &lt;/tr>
-          &lt;/tbody>
-        &lt;/table>
+      &lt;div className='scan-info'>
+        &lt;ButtonGroup
+          className='left'
+          list={buttonGroupList}
+          onChange={this.toggleScanType}
+          value={activeTab} />
 
-        &lt;div className='scan-info'>
-          &lt;ButtonGroup
-            className='left'
-            list={buttonGroupList}
-            onChange={this.toggleScanType}
-            value={activeTab} />
-
-          &lt;div className='info-content'>
-            &lt;div>
-              &lt;div className='info'>
-                &lt;div className='last-update'>
-                  &lt;span>{t('network-inventory.txt-createTime')}: {hmdInfo[activeTab].createTime || NOT_AVAILABLE}&lt;/span>
-                  &lt;span>{t('network-inventory.txt-responseTime')}: {hmdInfo[activeTab].responseTime || NOT_AVAILABLE}&lt;/span>
-                &lt;/div>
-                {this.getSuspiciousFileCount(hmdInfo)} {/*For Yara and Yara Scan File*/}
-                {this.getPassTotalCount(hmdInfo)} {/*For GCB*/}
-                {this.getTriggerBtn(hmdInfo)} {/*For all*/}
+        &lt;div className='info-content'>
+          &lt;div>
+            &lt;div className='info'>
+              &lt;div className='last-update'>
+                &lt;span>{t('network-inventory.txt-createTime')}: {hmdInfo[activeTab].createTime || NOT_AVAILABLE}&lt;/span>
+                &lt;span>{t('network-inventory.txt-responseTime')}: {hmdInfo[activeTab].responseTime || NOT_AVAILABLE}&lt;/span>
               &lt;/div>
-              {this.getScanContent(hmdInfo)} {/*For Yara, Yara Scan File and IR*/}
-              {this.getTableContent(hmdInfo)} {/*For GCB and Malware*/}
+              {this.getSuspiciousFileCount(hmdInfo)} {/*For Scan Process, Yara and AI*/}
+              {this.getPassTotalCount(hmdInfo)} {/*For GCB*/}
+              {this.getTriggerBtn(hmdInfo)} {/*For all*/}
             &lt;/div>
+            {this.getScanContent(hmdInfo)} {/*For Scan Process, Scan File(Yara) and IR*/}
+            {this.getTableContent(hmdInfo)} {/*For Scan File (AI) and GCB*/}
           &lt;/div>
         &lt;/div>
-
-        {deviceData.currentLength > 1 &amp;&amp;
-          &lt;div className='pagination'>
-            &lt;div className='buttons'>
-              &lt;button onClick={this.showAlertData.bind(this, 'previous')} disabled={deviceData.currentIndex === 0}>{t('txt-previous')}&lt;/button>
-              &lt;button onClick={this.showAlertData.bind(this, 'next')} disabled={deviceData.currentIndex + 1 === deviceData.currentLength}>{t('txt-next')}&lt;/button>
-            &lt;/div>
-            &lt;span className='count'>{deviceData.currentIndex + 1} / {deviceData.currentLength}&lt;/span>
-          &lt;/div>
-        }
       &lt;/div>
-    )
-  }
-  render() {
-    const {titleText, actions} = this.props;
-
-    return (
-      &lt;ModalDialog
-        id='configScanModalDialog'
-        className='modal-dialog'
-        title={titleText}
-        draggable={true}
-        global={true}
-        actions={actions}
-        closeAction='confirm'>
-        {this.displayScanInfo()}
-      &lt;/ModalDialog>
     )
   }
 }
@@ -757,12 +824,8 @@ HMDscanInfo.propTypes = {
   contextRoot: PropTypes.string.isRequired,
   language: PropTypes.string.isRequired,
   locale: PropTypes.string.isRequired,
-  titleText: PropTypes.string.isRequired,
-  actions: PropTypes.object.isRequired,
-  deviceData: PropTypes.object.isRequired,
   currentDeviceData: PropTypes.object.isRequired,
   toggleSelectionIR: PropTypes.func.isRequired,
-  showAlertData: PropTypes.func.isRequired,
   triggerTask: PropTypes.func.isRequired
 };
 
@@ -777,13 +840,13 @@ export { HMDscanInfo, HocHMDscanInfo };</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyScan.html">SafetyScan</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Fri Nov 22 2019 11:41:39 GMT+0800 (台北標準時間)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Dec 05 2019 12:09:38 GMT+0800 (台北標準時間)
 </footer>
 
 <script> prettyPrint(); </script>

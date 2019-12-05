@@ -48,6 +48,14 @@ import withLocale from '../../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+const SERVICE_TYPE_LIST = {
+  'NETTRAP': ['lastDataUpdDT', 'attackCnt'],
+  'NETFLOW-IDS-SURICATA': ['agentMode', 'lastStatus', 'TCPDUMP', 'threatIntellLastUpdDT'],
+  'IPS-NETPROBE': ['lastStatus', 'lastStatusUpdDT', 'threatIntellLastUpdDT', 'rx_pkts', 'tx_pkts', 'attackCnt'],
+  'IDS-SURICATA': ['lastStatus', 'lastStatusUpdDT', 'threatIntellLastUpdDT'],
+  'DNS': ['lastDataUpdDT', 'threatIntellLastUpdDT']
+};
+
 let t = null;
 let f = null;
 let et = null;
@@ -144,6 +152,71 @@ class Edge extends Component {
     })
   }
   /**
+   * Get individual service description
+   * @method
+   * @param {object} allValue - Edge data
+   * @param {string} val - service desc type
+   * @param {number} i - index of the service desc
+   * @returns HTML DOM
+   */
+  getIndividualDesc = (allValue, val, i) => {
+    const descHeader = f('edgeFields.txt-' + val);
+
+    if (val === 'attackCnt') {
+      if (allValue.honeyPotHostDTO) {
+        return &lt;li key={val}>&lt;span>{descHeader}:&lt;/span> {allValue.honeyPotHostDTO[val]}&lt;/li>
+      }
+    } else if (val === 'lastDataUpdDT') {
+      if (allValue.honeyPotHostDTO &amp;&amp; allValue.honeyPotHostDTO[val]) {
+        return &lt;li key={val}>&lt;span>{descHeader}:&lt;/span> {helper.getFormattedDate(allValue.honeyPotHostDTO[val], 'local')}&lt;/li>
+      }
+    } else if (val === 'lastStatusUpdDT' || val === 'threatIntellLastUpdDT') {
+      return &lt;li key={val}>&lt;span>{descHeader}:&lt;/span> {helper.getFormattedDate(allValue[val], 'local')}&lt;/li>
+    } else if (val === 'TCPDUMP') {
+      if (allValue.agentMode === 'TCPDUMP') {
+        return (
+          &lt;section key={val}>
+            {allValue.agentStartDT &amp;&amp;
+              &lt;li>&lt;span>{t('txt-start')}:&lt;/span> {helper.getFormattedDate(allValue.agentStartDT)}&lt;/li>
+            }
+            {allValue.agentEndDT &amp;&amp;
+              &lt;li>&lt;span>{t('txt-stop')}:&lt;/span> {helper.getFormattedDate(allValue.agentEndDT)}&lt;/li>
+            }
+            {allValue.lastAnalyzedStatus &amp;&amp; allValue.lastAnalyzedStatus !== 'ANALYZED' &amp;&amp;
+              &lt;button onClick={this.agentAnalysis.bind(this, allValue)}>{t('txt-analyze')}&lt;/button>
+            }
+            {allValue.lastAnalyzedStatus &amp;&amp;
+              &lt;li>&lt;span>lastAnalyzedStatus:&lt;/span> {allValue.lastAnalyzedStatus}&lt;/li>
+            }
+            {allValue.lastAnalyzedStatusUpdDT &amp;&amp;
+              &lt;li>&lt;span>lastAnalyzedStatusUpdDT:&lt;/span> {helper.getFormattedDate(allValue.lastAnalyzedStatusUpdDT, 'local')}&lt;/li>
+            }
+          &lt;/section>
+        )
+      }
+    } else if (val === 'rx_pkts' || val === 'tx_pkts') {
+      if (allValue.statistics &amp;&amp; allValue.statistics[val]) {
+        return &lt;li key={val}>&lt;span>{descHeader}:&lt;/span> {allValue.statistics[val]}&lt;/li>
+      }
+    } else {
+      return &lt;li key={val}>&lt;span>{descHeader}:&lt;/span> {allValue[val]}&lt;/li>
+    }
+  }
+  /**
+   * Get service description list
+   * @method
+   * @param {object} allValue - Edge data
+   * @param {array.&lt;string>} desc - service desc type
+   * @returns HTML DOM
+   */
+  getServiceDesc = (allValue, desc) => {
+    return (
+      &lt;ul>
+        {desc.map(this.getIndividualDesc.bind(this, allValue))}
+      &lt;/ul>
+    )
+  }
+  /**
    * Get and set Edge table data
    * @method
    * @param {string} fromSearch - option for the 'search'
@@ -200,80 +273,10 @@ class Edge extends Component {
 
                 return &lt;span>&lt;img src={icon.src} title={icon.title} />{value}&lt;/span>
               } else if (tempData === 'description') {
-                let serviceType = allValue.serviceType;
+                const serviceDescList = SERVICE_TYPE_LIST[allValue.serviceType];
 
-                if (serviceType === 'NETTRAP') {
-                  return (
-                    &lt;ul>
-                      {allValue.honeyPotHostDTO &amp;&amp; allValue.honeyPotHostDTO.honeypot &amp;&amp;
-                        &lt;li>&lt;span>honeypot:&lt;/span> {allValue.honeyPotHostDTO.honeypot}&lt;/li>
-                      }
-                      {allValue.honeyPotHostDTO &amp;&amp; allValue.honeyPotHostDTO.lastDataUpdDT &amp;&amp;
-                        &lt;li>&lt;span>lastDataUpdDT:&lt;/span> {helper.getFormattedDate(allValue.honeyPotHostDTO.lastDataUpdDT, 'local')}&lt;/li>
-                      }
-                      {allValue.honeyPotHostDTO &amp;&amp;
-                        &lt;li>&lt;span>attackCnt:&lt;/span> {allValue.honeyPotHostDTO.attackCnt}&lt;/li>
-                      }
-                    &lt;/ul>
-                  )
-                } else if (serviceType === 'NETFLOW-IDS-SURICATA') {
-                  return (
-                    &lt;ul>
-                      {allValue.agentMode &amp;&amp;
-                        &lt;li>&lt;span>mode:&lt;/span> {allValue.agentMode}&lt;/li>
-                      }
-                      {allValue.lastStatus &amp;&amp;
-                        &lt;li>&lt;span>status:&lt;/span> {allValue.lastStatus}&lt;/li>
-                      }
-                      {allValue.agentMode &amp;&amp; allValue.agentMode === 'TCPDUMP' &amp;&amp;
-                        &lt;section>
-                          {allValue.agentStartDT &amp;&amp;
-                            &lt;li>&lt;span>start:&lt;/span> {helper.getFormattedDate(allValue.agentStartDT)}&lt;/li>
-                          }
-                          {allValue.agentEndDT &amp;&amp;
-                            &lt;li>&lt;span>end:&lt;/span> {helper.getFormattedDate(allValue.agentEndDT)}&lt;/li>
-                          }
-                          {allValue.lastAnalyzedStatus &amp;&amp; allValue.lastAnalyzedStatus !== 'ANALYZED' &amp;&amp;
-                            &lt;button onClick={this.agentAnalysis.bind(this, allValue)}>{t('txt-analyze')}&lt;/button>
-                          }
-                          {allValue.lastAnalyzedStatus &amp;&amp;
-                            &lt;li>&lt;span>lastAnalyzedStatus:&lt;/span> {allValue.lastAnalyzedStatus}&lt;/li>
-                          }
-                          {allValue.lastAnalyzedStatusUpdDT &amp;&amp;
-                            &lt;li>&lt;span>lastAnalyzedStatusUpdDT:&lt;/span> {helper.getFormattedDate(allValue.lastAnalyzedStatusUpdDT, 'local')}&lt;/li>
-                          }
-                        &lt;/section>
-                      }
-                      {allValue.threatIntellLastUpdDT &amp;&amp;
-                        &lt;li>&lt;span>threatIntellLastUpdDT:&lt;/span> {helper.getFormattedDate(allValue.threatIntellLastUpdDT, 'local')}&lt;/li>
-                      }
-                    &lt;/ul>
-                  )
-                } else if (serviceType === 'IPS-NETPROBE') {
-                  return (
-                    &lt;ul>
-                      {allValue.lastStatus &amp;&amp;
-                        &lt;li>&lt;span>lastStatus:&lt;/span> {allValue.lastStatus}&lt;/li>
-                      }
-                      {allValue.lastStatusUpdDT &amp;&amp;
-                        &lt;li>&lt;span>lastStatusUpdDT:&lt;/span> {helper.getFormattedDate(allValue.lastStatusUpdDT, 'local')}&lt;/li>
-                      }
-                      {allValue.threatIntellLastUpdDT &amp;&amp;
-                        &lt;li>&lt;span>threatIntellLastUpdDT:&lt;/span> {helper.getFormattedDate(allValue.threatIntellLastUpdDT, 'local')}&lt;/li>
-                      }
-                      {allValue.statistics &amp;&amp; allValue.statistics.rx_pkts &amp;&amp;
-                        &lt;li>&lt;span>received packets:&lt;/span> {allValue.statistics.rx_pkts}&lt;/li>
-                      }
-                      {allValue.statistics &amp;&amp; allValue.statistics.tx_pkts &amp;&amp;
-                        &lt;li>&lt;span>transferred packets:&lt;/span> {allValue.statistics.tx_pkts}&lt;/li>
-                      }
-                      {allValue.honeyPotHostDTO &amp;&amp;
-                        &lt;li>&lt;span>attackCnt:&lt;/span> {allValue.honeyPotHostDTO.attackCnt}&lt;/li>
-                      }
-                    &lt;/ul>
-                  )
-                } else {
-                  return;
+                if (serviceDescList) {
+                  return this.getServiceDesc(allValue, serviceDescList);
                 }
               } else if (tempData === '_menu') {
                 return (
@@ -973,13 +976,13 @@ export { Edge, HocEdge };</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyScan.html">SafetyScan</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Fri Nov 22 2019 11:41:39 GMT+0800 (台北標準時間)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Dec 05 2019 12:09:38 GMT+0800 (台北標準時間)
 </footer>
 
 <script> prettyPrint(); </script>

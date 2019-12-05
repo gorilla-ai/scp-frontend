@@ -476,11 +476,6 @@ class Endpoint extends Component {
   render() {
     const {session} = this.props;
     const {showFilter, addTaskOpen, viewTaskOpen, hmd} = this.state;
-    let sessionRights = {};
-
-    _.forEach(session.rights, val => {
-      sessionRights[val] = true;
-    })
 
     return (
       <div>
@@ -493,8 +488,6 @@ class Endpoint extends Component {
         }
 
         <div className='sub-header'>
-          {helper.getEventsMenu('endpoint', sessionRights)}
-
           <div className='secondary-btn-group right'>
             <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
           </div>

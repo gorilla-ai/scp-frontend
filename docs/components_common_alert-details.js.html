@@ -42,8 +42,9 @@ import Textarea from 'react-ui/build/src/components/textarea'
 import JSONTree from 'react-json-tree'
 
 import {HocPrivateDetails as PrivateDetails} from './private-details'
-import {HocSafetyScan as SafetyScan} from './safety-scan'
 import helper from './helper'
+import {HocHMDscanInfo as HMDscanInfo} from './hmd-scan-info'
+import {HocIrSelections as IrSelections} from './ir-selections'
 import withLocale from '../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -110,7 +111,9 @@ class AlertDetails extends Component {
         srcIp: {},
         destIp: {}
       },
-      showRedirectMenu: false
+      showRedirectMenu: false,
+      modalIRopen: false,
+      ipType: ''
     };
 
     t = chewbaccaI18n.getFixedT(null, 'connections');
@@ -125,17 +128,17 @@ class AlertDetails extends Component {
     this.getHMDinfo('destIp');
     document.addEventListener('mousedown', this.handleClickOutside);
   }
-  componentDidUpdate = (prevProps) => {
+  componentDidUpdate(prevProps) {
     this.loadAlertContent(prevProps);
   }
-  componentWillUnmount = () => {
+  componentWillUnmount() {
     this.closeDialog();
     document.addEventListener('mousedown', this.handleClickOutside);
   }
   /**
    * Call when mouse click outside the redirect menu
    * @method
-   * @param {object} e - MouseEvents
+   * @param {object} e - MouseClick events
    */
   handleClickOutside = (e) => {
     if (this.wrapperRef &amp;&amp; !this.wrapperRef.contains(e.target)) {
@@ -160,29 +163,6 @@ class AlertDetails extends Component {
     this.setState({
       showRedirectMenu: !this.state.showRedirectMenu
     });
-  }
-  /**
-   * Generate a redirect link and process the browser redirect
-   * @method
-   * @param {object} type - 'events'
-   * @param {string} value - 'srcIp' or 'destIp'
-   */
-  redirectLink = (type, value) => {
-    const {language, alertData} = this.props;
-    const eventDatetime = helper.getFormattedDate(alertData._eventDttm_, 'local');
-    const srcIp = this.getIpPortData('srcIp');
-    const destIp = this.getIpPortData('destIp');
-    let ipParam = '';
-
-    if (type === 'events') {
-      if (value === 'srcIp') {
-        ipParam = `&amp;srcIp=${srcIp}`;
-      } else if (value === 'destIp') {
-        ipParam = `&amp;destIp=${destIp}`;
-      }
-      const url = `/ChewbaccaWeb/events/netflow?eventDttm=${eventDatetime}${ipParam}&amp;lng=${language}`;
-      window.open(url, '_blank');
-    }
   }
   /**
    * Call corresponding Alert data based on conditions
@@ -566,18 +546,22 @@ class AlertDetails extends Component {
   /**
    * Get alert severity
    * @method
-   * @param {value} - 'High', 'Medium', 'Low'
+   * @param {value} - 'Emergency', 'Alert', 'Critical', 'Warning', 'Notice'
    * @returns HTML DOM
    */
   getSeverity = (value) => {
     let styleStatus = '';
 
-    if (value === 'High') {
-      styleStatus = '#d9576c';
-    } else if (value === 'Medium') {
-      styleStatus = '#d99857';
-    } else if (value === 'Low') {
-      styleStatus = '#57c3d9';
+    if (value === 'Emergency') {
+      styleStatus = '#CC2943';
+    } else if (value === 'Alert') {
+      styleStatus = '#CC7B29';
+    } else if (value === 'Critical') {
+      styleStatus = '#29B0CC';
+    } else if (value === 'Warning') {
+      styleStatus = '#29CC7A';
+    } else if (value === 'Notice') {
+      styleStatus = '#7ACC29';
     } else if (value === NOT_AVAILABLE) {
       return {NOT_AVAILABLE}
     }
@@ -591,15 +575,15 @@ class AlertDetails extends Component {
   displayAlertData = () => {
     const {alertDetails, alertData} = this.props;
     const {alertType, showContent, alertRule, alertPCAP, alertPayload, showRedirectMenu} = this.state;
-    const severity = alertData.Severity ? this.getSeverity(alertData.Severity) : NOT_AVAILABLE;
+    const severity = alertData._severity_ ? this.getSeverity(alertData._severity_) : NOT_AVAILABLE;
     const eventDatetime = alertData._eventDttm_ ? helper.getFormattedDate(alertData._eventDttm_, 'local') : NOT_AVAILABLE;
 
     return (
       &lt;div>
-        &lt;table className='c-table main-table'>
+        &lt;table className='c-table main-table top-info'>
           &lt;thead>
             &lt;tr>
-              &lt;th>{f('alertFields.Severity')}&lt;/th>
+              &lt;th>{f('alertFields._severity_')}&lt;/th>
               &lt;th>{f('alertFields.Collector')}&lt;/th>
               &lt;th>{f('alertFields.Trigger')}&lt;/th>
               &lt;th>{f('alertFields._eventDttm_')}&lt;/th>
@@ -617,7 +601,7 @@ class AlertDetails extends Component {
 
         &lt;div className='alert-info'>{alertData.Info || NOT_AVAILABLE}&lt;/div>
 
-        &lt;table className='c-table main-table'>
+        &lt;table className='c-table main-table top-info'>
           &lt;thead>
             &lt;tr>
               &lt;th>{f('alertFields.srcIp')}&lt;/th>
@@ -639,26 +623,26 @@ class AlertDetails extends Component {
         &lt;div className='main-content'>
           &lt;div className='nav'>
             &lt;ul>
-              &lt;li>&lt;span className={cx({'active': showContent.rule})} onClick={this.getContent.bind(this, 'rule')}>{t('alert.txt-rule')}&lt;/span>&lt;/li>
+              &lt;li onClick={this.getContent.bind(this, 'rule')}>&lt;span className={cx({'active': showContent.rule})}>{t('alert.txt-rule')}&lt;/span>&lt;/li>
               {alertType === 'alert' &amp;&amp; alertData.Collector !== 'NetProbe' &amp;&amp;
-                &lt;li>&lt;span className={cx({'active': showContent.pcap})} onClick={this.getContent.bind(this, 'pcap')}>PCAP&lt;/span>&lt;/li>
+                &lt;li onClick={this.getContent.bind(this, 'pcap')}>&lt;span className={cx({'active': showContent.pcap})}>PCAP&lt;/span>&lt;/li>
               }
               {alertType === 'pot_attack' &amp;&amp;
-                &lt;li>&lt;span className={cx({'active': showContent.attack})} onClick={this.getContent.bind(this, 'attack')}>{t('alert.txt-attack')}&lt;/span>&lt;/li>
+                &lt;li onClick={this.getContent.bind(this, 'attack')}>&lt;span className={cx({'active': showContent.attack})}>{t('alert.txt-attack')}&lt;/span>&lt;/li>
               }
-              &lt;li>&lt;span className={cx({'active': showContent.json})} onClick={this.getContent.bind(this, 'json')}>{t('alert.txt-viewJSON')}&lt;/span>&lt;/li>
+              &lt;li onClick={this.getContent.bind(this, 'json')}>&lt;span className={cx({'active': showContent.json})}>{t('alert.txt-viewJSON')}&lt;/span>&lt;/li>
               &lt;li className='header'>
                 &lt;span className='name'>{t('alert.txt-ipSrc')}&lt;/span>
                 &lt;span className='ip'>{this.getIpPortData('srcIp')}&lt;/span>
               &lt;/li>
-              &lt;li>&lt;span className={cx({'active': showContent.srcIp})} onClick={this.getContent.bind(this, 'srcIp')}>{t('alert.txt-ipBasicInfo')}&lt;/span>&lt;/li>
-              &lt;li>&lt;span className={cx({'active': showContent.srcSafety})} onClick={this.getContent.bind(this, 'srcSafety')}>{t('alert.txt-safetyScanInfo')}&lt;/span>&lt;/li>
+              &lt;li className='child' onClick={this.getContent.bind(this, 'srcIp')}>&lt;span className={cx({'active': showContent.srcIp})}>{t('alert.txt-ipBasicInfo')}&lt;/span>&lt;/li>
+              &lt;li className='child' onClick={this.getContent.bind(this, 'srcSafety')}>&lt;span className={cx({'active': showContent.srcSafety})}>{t('alert.txt-safetyScanInfo')}&lt;/span>&lt;/li>
               &lt;li className='header'>
                 &lt;span className='name'>{t('alert.txt-ipDst')}&lt;/span>
                 &lt;span className='ip'>{this.getIpPortData('destIp')}&lt;/span>
               &lt;/li>
-              &lt;li>&lt;span className={cx({'active': showContent.destIp})} onClick={this.getContent.bind(this, 'destIp')}>{t('alert.txt-ipBasicInfo')}&lt;/span>&lt;/li>
-              &lt;li>&lt;span className={cx({'active': showContent.destSafety})} onClick={this.getContent.bind(this, 'destSafety')}>{t('alert.txt-safetyScanInfo')}&lt;/span>&lt;/li>
+              &lt;li className='child' onClick={this.getContent.bind(this, 'destIp')}>&lt;span className={cx({'active': showContent.destIp})}>{t('alert.txt-ipBasicInfo')}&lt;/span>&lt;/li>
+              &lt;li className='child' onClick={this.getContent.bind(this, 'destSafety')}>&lt;span className={cx({'active': showContent.destSafety})}>{t('alert.txt-safetyScanInfo')}&lt;/span>&lt;/li>
             &lt;/ul>
           &lt;/div>
           &lt;div className='content'>
@@ -730,6 +714,38 @@ class AlertDetails extends Component {
     )
   }
   /**
+   * Generate a redirect link and process the browser redirect
+   * @method
+   * @param {string} type - 'events' or 'virustotal'
+   * @param {string} value - 'srcIp' or 'destIp'
+   */
+  redirectLink = (type, value) => {
+    const {language, alertData} = this.props;
+    const eventDatetime = helper.getFormattedDate(alertData._eventDttm_, 'local');
+    const srcIp = this.getIpPortData('srcIp');
+    const destIp = this.getIpPortData('destIp');
+    let ipParam = '';
+    let linkUrl ='';
+ 
+    if (type === 'events') {
+      if (value === 'srcIp') {
+        ipParam = `&amp;srcIp=${srcIp}`;
+      } else if (value === 'destIp') {
+        ipParam = `&amp;destIp=${destIp}`;
+      }
+      linkUrl = `/ChewbaccaWeb/events/netflow?eventDttm=${eventDatetime}${ipParam}&amp;lng=${language}`;
+    } else if (type === 'virustotal') {
+      if (value === 'srcIp') {
+        ipParam = srcIp;
+      } else if (value === 'destIp') {
+        ipParam = destIp;
+      }
+      linkUrl = 'https:\//www.virustotal.com/gui/ip-address/' + ipParam + '/relations';
+    }
+
+    window.open(linkUrl, '_blank');
+  }
+  /**
    * Display redirect menu
    * @method
    * @param {string} type - 'srcIp' or 'destIp'
@@ -739,6 +755,7 @@ class AlertDetails extends Component {
     return (
       &lt;ul className='redirect-menu' ref={this.setWrapperRef}>
         &lt;li onClick={this.redirectLink.bind(this, 'events', type)}>{t('alert.txt-queryEvents')}&lt;/li>
+        &lt;li onClick={this.redirectLink.bind(this, 'virustotal', type)}>{t('alert.txt-searthVirustotal')}&lt;/li>
       &lt;/ul>
     )
   }
@@ -778,7 +795,7 @@ class AlertDetails extends Component {
   /**
    * Set PCAP hex value
    * @method
-   * @param {string} hex - original string value
+   * @param {string} [hex] - original string value
    * @param {number} index - active index of the Alert PCAP array
    */
   setPCAPhex = (hex, index) => {
@@ -1056,6 +1073,21 @@ class AlertDetails extends Component {
     )
   }
   /**
+   * Get content for the public IP
+   * @method
+   * @param {string} type - 'srcIp' or 'destIp'
+   * @returns HTML DOM
+   */
+  getPublicIPcontent = (type) => {
+    const {alertInfo} = this.state;
+
+    if (alertInfo[type].location.City !== '-' &amp;&amp; alertInfo[type].location.CountryCode !== '-') {
+      return this.getPublicInfo(type);
+    } else {
+      return &lt;span>{NOT_AVAILABLE}&lt;/span>
+    }
+  }
+  /**
    * Display IP content
    * @method
    * @param {string} type - 'srcIp' or 'destIp'
@@ -1072,7 +1104,7 @@ class AlertDetails extends Component {
 
         {type === 'srcIp' &amp;&amp; !_.isEmpty(alertInfo[type].location) &amp;&amp; //Public
           &lt;div className='srcIp-content'>
-            {this.getPublicInfo(type)}
+            {this.getPublicIPcontent(type)}
           &lt;/div>
         }
 
@@ -1084,7 +1116,7 @@ class AlertDetails extends Component {
 
         {type === 'destIp' &amp;&amp; !_.isEmpty(alertInfo[type].location) &amp;&amp; //Public
           &lt;div className='destIp-content'>
-            {this.getPublicInfo(type)}
+            {this.getPublicIPcontent(type)}
           &lt;/div>
         }
 
@@ -1097,16 +1129,19 @@ class AlertDetails extends Component {
     )
   }
   /**
-   * Call taskinfo API for HMD trigger button
+   * Handle trigger button for HMD
    * @method
-   * @param {string} type - 'srcIp' or 'destIp'
-   * @returns HTML DOM
+   * @param {array.&lt;string>} type - HMD scan type
+   * @param {string} [activeIP] - IP type ('srcIp' or 'destIp')
    */
-  triggerTask = (taskId, type) => {
+  triggerTask = (type, activeIP) => {
     const {baseUrl, contextRoot} = this.props;
-    const url = `${baseUrl}/api/hmd/taskinfo`;
+    const {ipDeviceInfo, ipType} = this.state;
+    const url = `${baseUrl}/api/hmd/retrigger`;
+    const activeIPtype = activeIP || ipType;
     const requestData = {
-      taskId
+      hostId: ipDeviceInfo[activeIPtype].ipDeviceUUID,
+      cmds: type
     };
 
     helper.getAjaxData('POST', url, requestData)
@@ -1125,20 +1160,41 @@ class AlertDetails extends Component {
     });
   }
   /**
+   * Toggle IR combo selection dialog
+   * @method
+   */
+  toggleSelectionIR = (ipType) => {
+    this.setState({
+      modalIRopen: !this.state.modalIRopen,
+      ipType
+    });
+  }
+  /**
    * Display safety scan content
    * @method
    * @param {string} type - 'srcIp' or 'destIp'
-   * @returns SafetyScan component
+   * @returns HMDscanInfo component
    */
   displaySafetyScanContent = (type) => {
+    const {baseUrl, contextRoot, language, locale} = this.props;
     const {ipDeviceInfo} = this.state;
 
-    return (
-      &lt;SafetyScan
-        type={type}
-        ipDeviceInfo={ipDeviceInfo}
-        triggerTask={this.triggerTask} />
-    )
+    if (ipDeviceInfo[type].isHmd) {
+      return (
+        &lt;HMDscanInfo
+          baseUrl={baseUrl}
+          contextRoot={contextRoot}
+          language={language}
+          locale={locale}
+          ipType={type}
+          currentDeviceData={ipDeviceInfo[type]}
+          toggleSelectionIR={this.toggleSelectionIR}
+          showAlertData={this.showAlertData}
+          triggerTask={this.triggerTask} />
+      )
+    } else {
+      return &lt;span>{NOT_AVAILABLE}&lt;/span>
+    }
   }
   /**
    * Display JSON Data content
@@ -1242,20 +1298,40 @@ class AlertDetails extends Component {
       alertPayload: ''
     });
   }
+  /**
+   * Display IR selection modal dialog
+   * @method
+   * @returns IrSelections component
+   */
+  irSelectionDialog = () => {
+    return (
+      &lt;IrSelections
+        triggerTask={this.triggerTask}
+        toggleSelectionIR={this.toggleSelectionIR}
+      />
+    )
+  }
   render() {
     const {titleText, actions} = this.props;
+    const {modalIRopen} = this.state;
 
     return (
-      &lt;ModalDialog
-        id='dashboardModalDialog'
-        className='modal-dialog'
-        title={titleText}
-        draggable={true}
-        global={true}
-        actions={actions}
-        closeAction='confirm'>
-        {this.displayAlertData()}
-      &lt;/ModalDialog>
+      &lt;div>
+        &lt;ModalDialog
+          id='dashboardModalDialog'
+          className='modal-dialog'
+          title={titleText}
+          draggable={true}
+          global={true}
+          actions={actions}
+          closeAction='confirm'>
+          {this.displayAlertData()}
+        &lt;/ModalDialog>
+
+        {modalIRopen &amp;&amp;
+          this.irSelectionDialog()
+        }
+      &lt;/div>
     )
   }
 }
@@ -1284,13 +1360,13 @@ export { AlertDetails, HocAlertDetails };</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyScan.html">SafetyScan</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Fri Nov 22 2019 11:41:39 GMT+0800 (台北標準時間)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Dec 05 2019 12:09:38 GMT+0800 (台北標準時間)
 </footer>
 
 <script> prettyPrint(); </script>

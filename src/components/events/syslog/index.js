@@ -149,8 +149,10 @@ class SyslogController extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {session} = this.props;
+    const {locale, session, sessionRights} = this.props;
     let tempAccount = {...this.state.account};
+
+    helper.getPrivilegesInfo(sessionRights, 'common', locale);
 
     if (session.accountId) {
       tempAccount.id = session.accountId;
@@ -1729,13 +1731,8 @@ class SyslogController extends Component {
       showMark,
       logLocaleChangeOpen
     } = this.state;
-    let sessionRights = {};
     let filterDataCount = 0;
     let markDataCount = 0;
-
-    _.forEach(session.rights, val => {
-      sessionRights[val] = true;
-    })
 
     _.forEach(filterData, val => {
       if (val.query) {
@@ -1748,10 +1745,6 @@ class SyslogController extends Component {
         markDataCount++;
       }
     })
-
-    if (!sessionRights.Module_Syslog_Manage) {
-      return;
-    }
 
     return (
       <div>
@@ -1772,8 +1765,6 @@ class SyslogController extends Component {
         }
 
         <div className='sub-header'>
-          {helper.getEventsMenu('syslog', sessionRights)}
-
           <SearchOptions
             locale={locale}
             position='226px'

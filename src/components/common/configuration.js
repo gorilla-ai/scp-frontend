@@ -102,11 +102,6 @@ class Config extends Component {
   render() {
     const {session} = this.props;
     const {showContent, openEdgeManagement, openTopology, openAccount, selected} = this.state;
-    let sessionRights = {};
-
-    _.forEach(session.rights, val => {
-      sessionRights[val] = true;
-    })
 
     return (
       <div className={cx('left-nav', {'collapse': !showContent})}>
@@ -115,10 +110,12 @@ class Config extends Component {
             <span className={`${this.getActiveFrame('notifications')}`}>{t('notifications.txt-settings')}</span>
           </Link>
         </div>
+
         <div className='item frame edge-manage' onClick={this.handleOpen.bind(this, 'openEdgeManagement', openEdgeManagement)}>
           <span className={`${this.getActiveFrame('edge') || this.getActiveFrame('threat')}`}>{t('txt-edgeManage')}</span>
           <i className={`c-link fg fg-arrow-${openEdgeManagement?'top':'bottom'}`}></i>
         </div>
+
         {openEdgeManagement &&
           <div className='item open-edge'>
             <div className='subframe'>
@@ -133,12 +130,12 @@ class Config extends Component {
             </div>
           </div>
         }
-        {sessionRights.Module_NetworkTopology_Manage &&
-          <div className='item frame network-topology' onClick={this.handleOpen.bind(this, 'openTopology', openTopology)}>
-            <span className={`${this.getActiveFrame('inventory') || this.getActiveFrame('owner') || this.getActiveFrame('map')}`}>{t('txt-topology')}</span>
-            <i className={`c-link fg fg-arrow-${openTopology?'top':'bottom'}`}></i>
-          </div>
-        }
+
+        <div className='item frame network-topology' onClick={this.handleOpen.bind(this, 'openTopology', openTopology)}>
+          <span className={`${this.getActiveFrame('inventory') || this.getActiveFrame('owner') || this.getActiveFrame('map')}`}>{t('txt-topology')}</span>
+          <i className={`c-link fg fg-arrow-${openTopology?'top':'bottom'}`}></i>
+        </div>
+
         {openTopology &&
           <div className='item open-topology'>
             <div className='subframe'>
@@ -158,19 +155,18 @@ class Config extends Component {
             </div>
           </div>
         }
-        {sessionRights.Module_Syslog_Manage &&
-          <div className='item frame syslog-manage'>
-            <Link to='/ChewbaccaWeb/configuration/syslog'>
-              <span className={`${this.getActiveFrame('syslog')}`}>{t('txt-syslogManage')}</span>
-            </Link>
-          </div>
-        }
-        {sessionRights.Module_Account_Manage &&
-          <div className='item frame account-manage' onClick={this.handleOpen.bind(this, 'openAccount', openAccount)}>
-            <span className={`${this.getActiveFrame('account') || this.getActiveFrame('privileges')}`}>{t('txt-accountManage')}</span>
-            <i className={`c-link fg fg-arrow-${openAccount?'top':'bottom'}`}></i>
-          </div>
-        }
+
+        <div className='item frame syslog-manage'>
+          <Link to='/ChewbaccaWeb/configuration/syslog'>
+            <span className={`${this.getActiveFrame('syslog')}`}>{t('txt-syslogManage')}</span>
+          </Link>
+        </div>
+
+        <div className='item frame account-manage' onClick={this.handleOpen.bind(this, 'openAccount', openAccount)}>
+          <span className={`${this.getActiveFrame('account') || this.getActiveFrame('privileges')}`}>{t('txt-accountManage')}</span>
+          <i className={`c-link fg fg-arrow-${openAccount?'top':'bottom'}`}></i>
+        </div>
+
         {openAccount &&
           <div className='item open-account'>
             <div className='subframe'>
@@ -185,13 +181,13 @@ class Config extends Component {
             </div>
           </div>
         }
-        {sessionRights.Module_Account_Manage &&
-          <div className='item frame service-status last'>
-            <Link to='/ChewbaccaWeb/configuration/service-status'>
-              <span className={`${this.getActiveFrame('serviceStatus')}`}>{t('txt-serviceStatus')}</span>
-            </Link>
-          </div>
-        }
+
+        <div className='item frame service-status last'>
+          <Link to='/ChewbaccaWeb/configuration/service-status'>
+            <span className={`${this.getActiveFrame('serviceStatus')}`}>{t('txt-serviceStatus')}</span>
+          </Link>
+        </div>
+
         <div className={cx('expand-collapse', {'not-allowed': this.getActiveFrame('threat')})} onClick={this.toggleLeftNav}>
           <i className={this.getClassName()}></i>
         </div>

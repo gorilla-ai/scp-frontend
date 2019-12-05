@@ -48,6 +48,10 @@ class ThreatIntelligence extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    const {locale, sessionRights} = this.props;
+
+    helper.getPrivilegesInfo(sessionRights, 'config', locale);
+
     this.getChartsData();
   }
   /**
@@ -347,7 +351,8 @@ class ThreatIntelligence extends Component {
 }
 
 ThreatIntelligence.propTypes = {
-  baseUrl: PropTypes.string.isRequired
+  baseUrl: PropTypes.string.isRequired,
+  sessionRights: PropTypes.object.isRequired
 };
 
 const HocThreatIntelligence = withLocale(ThreatIntelligence);

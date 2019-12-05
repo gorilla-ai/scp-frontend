@@ -254,16 +254,13 @@ const helper = {
 
     return (
       <div className='c-button-group left menu'>
-        {sessionRights.Module_Syslog_Manage &&
         <button className={cx('thumb', {'selected': page === 'syslog'})}>
           <Link to='/ChewbaccaWeb/events/syslog'>{t('txt-syslog')}</Link>
         </button>
-        }
-        {sessionRights.Module_FlowAnalysis_Manage &&
-          <button className={cx('thumb', {'selected': page === 'netflow'})}>
-            <Link to='/ChewbaccaWeb/events/netflow'>{t('txt-netflow')}</Link>
-          </button>
-        }
+
+        <button className={cx('thumb', {'selected': page === 'netflow'})}>
+          <Link to='/ChewbaccaWeb/events/netflow'>{t('txt-netflow')}</Link>
+        </button>
       </div>
     )
   },
@@ -368,6 +365,13 @@ const helper = {
 
     tempGeoJson.attacksDataArr = attacksDataArr;
     return tempGeoJson;
+  },
+  getPrivilegesInfo: function(sessionRights, privilege, locale) {
+    if (privilege === 'common' && !sessionRights.Module_Common) {
+      window.location.href = '/ChewbaccaWeb/configuration/edge/edge?lng=' + locale;
+    } else if (privilege === 'config' && !sessionRights.Module_Config)  {
+      window.location.href = '/ChewbaccaWeb?lng=' + locale;
+    }
   },
   showPopupMsg: function(msg, title, errorMsg, options, redirect) {
     const t = global.chewbaccaI18n.getFixedT(null, 'connections');

@@ -48,11 +48,13 @@ let t = null;
 let et = null;
 let intervalId = null;
 
-const SEVERITY_TYPE = ['High', 'Medium', 'Low'];
+const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const ALERT_LEVEL_COLORS = {
-  High: '#d9576c',
-  Medium: '#d99857',
-  Low: '#57c3d9'
+  Emergency: '#CC2943',
+  Alert: '#CC7B29',
+  Critical: '#29B0CC',
+  Warning: '#29CC7A',
+  Notice: '#7ACC29'
 };
 let pieCharts = {};
 
@@ -104,7 +106,8 @@ class DashboardStats extends Component {
         //to: '2019-08-07T02:02:13Z'
       },
       updatedTime: helper.getFormattedDate(Moment()),
-      chartAttributes: {},
+      alertChartAttributes: {},
+      maskedIpChartAttributes: {},
       pieCharts: {},
       alertChartsList: [],
       dnsMetricData: {},
@@ -119,7 +122,7 @@ class DashboardStats extends Component {
     this.loadAlertData();
     intervalId = setInterval(this.loadAlertData, 300000); //5 minutes
   }
-  componentWillUnmount = () => {
+  componentWillUnmount() {
     clearInterval(intervalId);
   }
   /**
@@ -127,16 +130,21 @@ class DashboardStats extends Component {
    * @method
    * @param {object} eventInfo - MouseoverEvents
    * @param {object} data - chart data
+   * @returns HTML DOM
    */
   onTooltip = (eventInfo, data) => {
-    const text = data[0].rule + ': ' + data[0].number + ' ' + t('txt-at') + ' ' + Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss');
-
-    return &lt;div>{text}&lt;/div>
+    return (
+      &lt;section>
+        &lt;span>{t('txt-severity')}: {data[0].rule}&lt;/span>&lt;br />
+        &lt;span>{t('txt-time')}: {Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss')}&lt;/span>&lt;br />
+        &lt;span>{t('txt-count')}: {data[0].number}&lt;/span>
+      &lt;/section>
+    )
   }
   /**
    * Remove the charts that require special manipulation
    * @method
-   * @returns formatted chars list
+   * @returns formatted charts list
    */
   formattedPieChartsList = () => {
     const tempPieChartsList = _.cloneDeep(PIE_CHARTS_LIST);
@@ -159,7 +167,7 @@ class DashboardStats extends Component {
     const tempPieChartsList = this.formattedPieChartsList();
     const apiData = [
       {
-        url: `${baseUrl}/api/u1/alert/_search?page=1&amp;pageSize=0`,
+        url: `${baseUrl}/api/u2/alert/_search?page=1&amp;pageSize=0`,
         requestData: {
           timestamp: [dateTime.from, dateTime.to],
           filters: [{
@@ -172,7 +180,7 @@ class DashboardStats extends Component {
         }
       },
       {
-        url: `${baseUrl}/api/u1/alert/_search?page=1&amp;pageSize=0`,
+        url: `${baseUrl}/api/u2/alert/_search?page=1&amp;pageSize=0`,
         requestData: {
           timestamp: [dateTime.from, dateTime.to],
           filters: [{
@@ -200,15 +208,17 @@ class DashboardStats extends Component {
     this.ah.all(apiArr)
     .then(data => {
       let alertHistogram = {
-        High: {},
-        Medium: {},
-        Low: {}
+        Emergency: {},
+        Alert: {},
+        Critical: {},
+        Warning: {},
+        Notice: {}
       };
       let rulesObj = {};
       let rulesAll = [];
-      let dataArr = [];
+      let alertDataArr = [];
 
-      _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for High, Medium, Low
+      _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
         if (data[0].event_histogram) {
           _.forEach(data[0].event_histogram[val].buckets, val2 => {
             if (val2.doc_count > 0) {
@@ -233,15 +243,13 @@ class DashboardStats extends Component {
       })
 
       //Merge multiple arrays with different rules to a single array
-      dataArr = rulesAll.reduce((accumulator, currentValue) => {
+      alertDataArr = rulesAll.reduce((accumulator, currentValue) => {
         return accumulator.concat(currentValue)
       }, []);
 
-      const chartAttributes = {
-        legend: {
-          enabled: true
-        },
-        data: dataArr,
+      const alertChartAttributes = { //For Alert severity bar chart
+        title: t('dashboard.txt-alertStatistics'),
+        data: alertDataArr,
         colors: ALERT_LEVEL_COLORS,
         onTooltip: this.onTooltip,
         dataCfg: {
@@ -257,13 +265,48 @@ class DashboardStats extends Component {
         }
       };
 
-      /* Get charts data */
+      const maskedIPdata = data[0].aggregations.Top10InternalMaskedIp;
+      let internalMaskedIp = [];
+
+      _.forEach(maskedIPdata, (key, val) => {
+        if (val !== 'doc_count' &amp;&amp; maskedIPdata[val].doc_count > 0) {
+          _.forEach(maskedIPdata[val].srcIp.buckets, val2 => {
+            internalMaskedIp.push({
+              ip: val,
+              number: val2.doc_count,
+              severity: val2._severity_
+            });
+          })
+        }
+      })
+
+      const maskedIpChartAttributes = { //For internal masked IP bar chart
+        title: t('dashboard.txt-alertMaskedIpStatistics'),
+        data: internalMaskedIp,
+        colors: ALERT_LEVEL_COLORS,
+        onTooltip: true,
+        dataCfg: {
+          splitSeries: 'severity',
+          x: 'ip',
+          y: 'number'
+        },
+        xAxis: {
+          type:'category'
+        },
+        keyLabels: {
+          ip: 'IP',
+          number: t('txt-count'),
+          severity: t('txt-severity')
+        }
+      };
+
+      /* Get pie charts data */
       _.forEach(PIE_CHARTS_LIST, (val, i) => {
         let tempArr = [];
 
         if (i === 0) {
           if (data[0].aggregations) {
-            _.forEach(SEVERITY_TYPE, val2 => { //Create Alert histogram for High, Medium, Low
+            _.forEach(SEVERITY_TYPE, val2 => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
               tempArr.push({
                 key: val2,
                 doc_count: data[0].aggregations[val2].doc_count
@@ -339,7 +382,9 @@ class DashboardStats extends Component {
 
       this.setState({
         updatedTime: helper.getFormattedDate(Moment()),
-        chartAttributes,
+        alertChartAttributes,
+        maskedIpChartAttributes,
+        internalMaskedIp,
         pieCharts,
         dnsMetricData
       }, () => {
@@ -487,7 +532,8 @@ class DashboardStats extends Component {
   render() {
     const {
       updatedTime,
-      chartAttributes,
+      alertChartAttributes,
+      maskedIpChartAttributes,
       alertChartsList,
       dnsMetricData,
       diskMetricData
@@ -503,13 +549,21 @@ class DashboardStats extends Component {
 
         &lt;div className='main-dashboard'>
           &lt;div className='charts'>
-            {!_.isEmpty(chartAttributes.data) &amp;&amp;
+            {!_.isEmpty(alertChartAttributes.data) &amp;&amp;
               &lt;div className='chart-group bar'>
-                &lt;header className='main-header'>{t('dashboard.txt-alertStatistics')}&lt;/header>
                 &lt;BarChart
                   stacked
                   vertical
-                  {...chartAttributes} />
+                  {...alertChartAttributes} />
+              &lt;/div>
+            }
+
+            {!_.isEmpty(maskedIpChartAttributes.data) &amp;&amp;
+              &lt;div className='chart-group bar'>
+                &lt;BarChart
+                  stacked
+                  vertical
+                  {...maskedIpChartAttributes} />                  
               &lt;/div>
             }
 
@@ -546,13 +600,13 @@ export { DashboardStats, HocDashboardStats };</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyScan.html">SafetyScan</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Fri Nov 22 2019 11:41:39 GMT+0800 (台北標準時間)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Dec 05 2019 12:09:38 GMT+0800 (台北標準時間)
 </footer>
 
 <script> prettyPrint(); </script>

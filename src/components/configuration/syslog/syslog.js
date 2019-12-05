@@ -106,6 +106,10 @@ class Syslog extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    const {locale, sessionRights} = this.props;
+
+    helper.getPrivilegesInfo(sessionRights, 'config', locale);
+
     this.getRelationship();
     this.getSyslogList(false);
   }
@@ -1223,7 +1227,8 @@ class Syslog extends Component {
 
 Syslog.propTypes = {
   baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired
+  contextRoot: PropTypes.string.isRequired,
+  sessionRights: PropTypes.object.isRequired
 }
 
 const HocSyslog = withLocale(Syslog);

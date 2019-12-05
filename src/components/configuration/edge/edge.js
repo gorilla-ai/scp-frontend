@@ -21,11 +21,11 @@ import withLocale from '../../../hoc/locale-provider'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const SERVICE_TYPE_LIST = {
-  'NETTRAP': ['honeypot', 'lastDataUpdDT', 'attackCnt'],
+  'NETTRAP': ['lastDataUpdDT', 'attackCnt'],
   'NETFLOW-IDS-SURICATA': ['agentMode', 'lastStatus', 'TCPDUMP', 'threatIntellLastUpdDT'],
   'IPS-NETPROBE': ['lastStatus', 'lastStatusUpdDT', 'threatIntellLastUpdDT', 'rx_pkts', 'tx_pkts', 'attackCnt'],
   'IDS-SURICATA': ['lastStatus', 'lastStatusUpdDT', 'threatIntellLastUpdDT'],
-  'DNS': ['lastDataUpdDT', 'threatIntellLastUpdDT', 'attackCnt']
+  'DNS': ['lastDataUpdDT', 'threatIntellLastUpdDT']
 };
 
 let t = null;
@@ -79,6 +79,10 @@ class Edge extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    const {locale, sessionRights} = this.props;
+
+    helper.getPrivilegesInfo(sessionRights, 'config', locale);
+
     this.getEdgeServiceType();
     this.getEdgeData();
   }
@@ -132,25 +136,27 @@ class Edge extends Component {
    * @returns HTML DOM
    */
   getIndividualDesc = (allValue, val, i) => {
-    if (val === 'honeypot' || val === 'attackCnt') {
+    const descHeader = f('edgeFields.txt-' + val);
+
+    if (val === 'attackCnt') {
       if (allValue.honeyPotHostDTO) {
-        return <li key={val}><span>{val}:</span> {allValue.honeyPotHostDTO[val]}</li>
+        return <li key={val}><span>{descHeader}:</span> {allValue.honeyPotHostDTO[val]}</li>
       }
     } else if (val === 'lastDataUpdDT') {
       if (allValue.honeyPotHostDTO && allValue.honeyPotHostDTO[val]) {
-        return <li key={val}><span>{val}:</span> {helper.getFormattedDate(allValue.honeyPotHostDTO[val], 'local')}</li>
+        return <li key={val}><span>{descHeader}:</span> {helper.getFormattedDate(allValue.honeyPotHostDTO[val], 'local')}</li>
       }
     } else if (val === 'lastStatusUpdDT' || val === 'threatIntellLastUpdDT') {
-      return <li key={val}><span>{val}:</span> {helper.getFormattedDate(allValue[val], 'local')}</li>
+      return <li key={val}><span>{descHeader}:</span> {helper.getFormattedDate(allValue[val], 'local')}</li>
     } else if (val === 'TCPDUMP') {
       if (allValue.agentMode === 'TCPDUMP') {
         return (
           <section key={val}>
             {allValue.agentStartDT &&
-              <li><span>start:</span> {helper.getFormattedDate(allValue.agentStartDT)}</li>
+              <li><span>{t('txt-start')}:</span> {helper.getFormattedDate(allValue.agentStartDT)}</li>
             }
             {allValue.agentEndDT &&
-              <li><span>end:</span> {helper.getFormattedDate(allValue.agentEndDT)}</li>
+              <li><span>{t('txt-stop')}:</span> {helper.getFormattedDate(allValue.agentEndDT)}</li>
             }
             {allValue.lastAnalyzedStatus && allValue.lastAnalyzedStatus !== 'ANALYZED' &&
               <button onClick={this.agentAnalysis.bind(this, allValue)}>{t('txt-analyze')}</button>
@@ -164,16 +170,12 @@ class Edge extends Component {
           </section>
         )
       }
-    } else if (val === 'rx_pkts') {
+    } else if (val === 'rx_pkts' || val === 'tx_pkts') {
       if (allValue.statistics && allValue.statistics[val]) {
-        return <li key={val}><span>received packets:</span> {allValue.statistics[val]}</li>
-      }
-    } else if (val === 'tx_pkts') {
-      if (allValue.statistics && allValue.statistics[val]) {
-        return <li key={val}><span>transferred packets:</span> {allValue.statistics[val]}</li>
+        return <li key={val}><span>{descHeader}:</span> {allValue.statistics[val]}</li>
       }
     } else {
-      return <li key={val}><span>{val}:</span> {allValue[val]}</li>
+      return <li key={val}><span>{descHeader}:</span> {allValue[val]}</li>
     }
   }
   /**
@@ -936,7 +938,8 @@ class Edge extends Component {
 }
 
 Edge.propTypes = {
-  baseUrl: PropTypes.string.isRequired
+  baseUrl: PropTypes.string.isRequired,
+  sessionRights: PropTypes.object.isRequired
 };
 
 const HocEdge = withRouter(withLocale(Edge));

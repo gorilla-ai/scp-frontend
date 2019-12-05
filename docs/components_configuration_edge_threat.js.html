@@ -34,9 +34,12 @@ import cx from 'classnames'
 
 import BarChart from 'react-chart/build/src/components/bar'
 import LineChart from 'react-chart/build/src/components/line'
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PieChart from 'react-chart/build/src/components/pie'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import {HocConfig as Config} from '../../common/configuration'
+import {HocFileUpload as FileUpload} from '../../common/file-upload'
 import helper from '../../common/helper'
 import {HocSearchOptions as SearchOptions} from '../../common/search-options'
 import withLocale from '../../../hoc/locale-provider'
@@ -64,7 +67,9 @@ class ThreatIntelligence extends Component {
       },
       indicatorsData: [],
       indicatorsTrendData: [],
-      acuIndicatorsTrendData: []
+      acuIndicatorsTrendData: [],
+      uplaodOpen: false,
+      file: {}
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -149,16 +154,20 @@ class ThreatIntelligence extends Component {
     })
   }
   /**
-   * Display tooltip info when mouse over charts
+   * Show tooltip info when mouseover the chart
    * @method
-   * @param {object} eventInfo - chart event
-   * @param {array} data - chart data
+   * @param {object} eventInfo - MouseoverEvents
+   * @param {object} data - chart data
    * @returns HTML DOM
    */
   onTooltip = (eventInfo, data) => {
-    const text = data[0].indicator + ': ' + data[0].count + ' ' + t('txt-at') + ' ' + Moment(data[0].day, 'x').utc().format('YYYY/MM/DD');
-
-    return &lt;div>{text}&lt;/div>
+    return (
+      &lt;section>
+        &lt;span>{t('txt-indicator')}: {data[0].indicator}&lt;/span>&lt;br />
+        &lt;span>{t('txt-date')}: {Moment(data[0].day, 'x').utc().format('YYYY/MM/DD')}&lt;/span>&lt;br />
+        &lt;span>{t('txt-count')}: {data[0].count}&lt;/span>
+      &lt;/section>
+    )
   }
   /**
    * Set new datetime
@@ -170,12 +179,100 @@ class ThreatIntelligence extends Component {
       datetime
     });
   }
+  /**
+   * Toggle upload modal dialog on/off
+   * @method
+   * @param {string} options - option for 'showMsg'
+   */
+  toggleUploadThreat = (options) => {
+    this.setState({
+      uplaodOpen: !this.state.uplaodOpen
+    }, () => {
+      if (options === 'showMsg') {
+        PopupDialog.alert({
+          id: 'modalWindowSmall',
+          confirmText: t('txt-close'),
+          display: &lt;div className='content'>&lt;span>{t('txt-uploadSuccess')}&lt;/span>&lt;/div>
+        });
+      }
+    });
+  }
+  /**
+   * Handle file change
+   * @method
+   * @param {object} file - file info object
+   */
+  handleFileChange = (file) => {
+    this.setState({
+      file
+    });
+  }
+  /**
+   * Display threat upload modal dialog and its content
+   * @method
+   * @returns ModalDialog component
+   */
+  uploadDialog = () => {
+    const titleText = t('edge-management.txt-uploadThreat');
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleUploadThreat},
+      confirm: {text: t('txt-confirm'), handler: this.confirmThreatUpload}
+    };
+
+    return (
+      &lt;ModalDialog
+        id='uploadThreatDialog'
+        className='modal-dialog'
+        title={titleText}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        &lt;FileUpload
+          supportText={titleText}
+          id='uploadThreat'
+          fileType='indicators'
+          btnText={t('txt-upload')}
+          handleFileChange={this.handleFileChange} />
+      &lt;/ModalDialog>
+    )
+  }
+  /**
+   * Handle threat upload confirm
+   * @method
+   */
+  confirmThreatUpload = () => {
+    const {baseUrl, contextRoot} = this.props;
+    const {file} = this.state;
+    let formData = new FormData();
+    formData.append('file', file);
+
+    ah.one({
+      url: `${baseUrl}/api/threat/upload`,
+      data: formData,
+      type: 'POST',
+      processData: false,
+      contentType: false
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        this.toggleUploadThreat('showMsg');
+      }
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
   render() {
     const {baseUrl, contextRoot, language, locale, session} = this.props;
-    const {datetime, indicatorsData, indicatorsTrendData, acuIndicatorsTrendData} = this.state;
+    const {datetime, indicatorsData, indicatorsTrendData, acuIndicatorsTrendData, uplaodOpen} = this.state;
 
     return (
       &lt;div>
+        {uplaodOpen &amp;&amp;
+          this.uploadDialog()
+        }
+
         &lt;div className='sub-header'>
           &lt;SearchOptions
             locale={locale}
@@ -195,7 +292,7 @@ class ThreatIntelligence extends Component {
           &lt;div className='parent-content'>
             &lt;div className='main-content'>
               &lt;header className='main-header'>{t('txt-threatIntelligence')}&lt;/header>
-              {/*&lt;button className='standard btn last'>{t('edge-management.txt-addThreat')}&lt;/button>*/}
+              &lt;button className='standard btn last' onClick={this.toggleUploadThreat.bind(this)}>{t('edge-management.txt-uploadThreat')}&lt;/button>
 
               &lt;div className='main-statistics'>
                 &lt;div className='statistics-content'>
@@ -292,13 +389,13 @@ export { ThreatIntelligence, HocThreatIntelligence };</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="SafetyScan.html">SafetyScan</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AccountEdit.html">AccountEdit</a></li><li><a href="AccountList.html">AccountList</a></li><li><a href="Alert.html">Alert</a></li><li><a href="AlertController.html">AlertController</a></li><li><a href="AlertDetails.html">AlertDetails</a></li><li><a href="AutoSettings.html">AutoSettings</a></li><li><a href="ChartContent.html">ChartContent</a></li><li><a href="Config.html">Config</a></li><li><a href="Connections.html">Connections</a></li><li><a href="DashboardMaps.html">DashboardMaps</a></li><li><a href="DashboardStats.html">DashboardStats</a></li><li><a href="DataChart.html">DataChart</a></li><li><a href="Edge.html">Edge</a></li><li><a href="EditHosts.html">EditHosts</a></li><li><a href="File.html">File</a></li><li><a href="FileUpload.html">FileUpload</a></li><li><a href="FilterContent.html">FilterContent</a></li><li><a href="FilterInput.html">FilterInput</a></li><li><a href="FloorMap.html">FloorMap</a></li><li><a href="Header.html">Header</a></li><li><a href="HMDscanInfo.html">HMDscanInfo</a></li><li><a href="IpRange.html">IpRange</a></li><li><a href="IrSelections.html">IrSelections</a></li><li><a href="Login.html">Login</a></li><li><a href="Manage.html">Manage</a></li><li><a href="MarkContent.html">MarkContent</a></li><li><a href="MarkInput.html">MarkInput</a></li><li><a href="Netflow.html">Netflow</a></li><li><a href="NetworkInventory.html">NetworkInventory</a></li><li><a href="NetworkMap.html">NetworkMap</a></li><li><a href="NetworkOwner.html">NetworkOwner</a></li><li><a href="Notifications.html">Notifications</a></li><li><a href="Pagination.html">Pagination</a></li><li><a href="PrivateDetails.html">PrivateDetails</a></li><li><a href="PrivilegeAdd.html">PrivilegeAdd</a></li><li><a href="PrivilegeEdit.html">PrivilegeEdit</a></li><li><a href="QueryOpenSave.html">QueryOpenSave</a></li><li><a href="Relationships.html">Relationships</a></li><li><a href="ResetPwd.html">ResetPwd</a></li><li><a href="Roles.html">Roles</a></li><li><a href="Scanner.html">Scanner</a></li><li><a href="SearchFilter.html">SearchFilter</a></li><li><a href="SearchMark.html">SearchMark</a></li><li><a href="SearchOptions.html">SearchOptions</a></li><li><a href="SortableItem.html">SortableItem</a></li><li><a href="SortableList.html">SortableList</a></li><li><a href="Status.html">Status</a></li><li><a href="Syslog.html">Syslog</a></li><li><a href="SyslogController.html">SyslogController</a></li><li><a href="TableCell.html">TableCell</a></li><li><a href="TableContent.html">TableContent</a></li><li><a href="ThreatIntelligence.html">ThreatIntelligence</a></li><li><a href="Tree.html">Tree</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Fri Nov 22 2019 11:41:39 GMT+0800 (台北標準時間)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Thu Dec 05 2019 12:09:38 GMT+0800 (台北標準時間)
 </footer>
 
 <script> prettyPrint(); </script>

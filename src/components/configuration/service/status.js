@@ -42,6 +42,10 @@ class Status extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    const {locale, sessionRights} = this.props;
+
+    helper.getPrivilegesInfo(sessionRights, 'config', locale);
+
     this.getServiceStatus();
   }
   /**
@@ -167,7 +171,8 @@ Status.propTypes = {
   contextRoot: PropTypes.string.isRequired,
   language: PropTypes.string.isRequired,
   locale: PropTypes.string.isRequired,
-  session: PropTypes.object.isRequired
+  session: PropTypes.object.isRequired,
+  sessionRights: PropTypes.object.isRequired
 };
 
 const HocStatus = withRouter(withLocale(Status));

@@ -507,7 +507,17 @@
     "description": "Description",
     "keywords": "關鍵字",
     "serviceType": "服務種類",
-    "connectionStatus": "連線狀態"
+    "connectionStatus": "連線狀態",
+    "txt-lastDataUpdDT": "上次資料更新時間",
+    "txt-attackCnt": "攻擊次數",
+    "txt-agentMode": "網路監控模式",
+    "txt-lastStatus": "狀態",
+    "txt-lastStatusUpdDT": "上次狀態更新時間",
+    "txt-threatIntellLastUpdDT": "上次情資更新時間",
+    "txt-rx_pkts": "接收封包",
+    "txt-tx_pkts": "傳送封包",
+    "txt-lastAnalyzedStatus": "分析狀態",
+    "txt-lastAnalyzedStatusUpdDT": "上次分析狀態時間"
   },
   "serviceStatusFields": {
     "status": "狀態",

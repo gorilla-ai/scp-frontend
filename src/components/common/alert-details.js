@@ -63,6 +63,7 @@ class AlertDetails extends Component {
       alertPayload: '',
       alertInfo: {
         srcIp: {
+          locationType: '',
           location: {},
           topology: {},
           ownerPic: '',
@@ -71,6 +72,7 @@ class AlertDetails extends Component {
           ownerSeat: {}
         },
         destIp: {
+          locationType: '',
           location: {},
           topology: {},
           ownerPic: '',
@@ -213,6 +215,14 @@ class AlertDetails extends Component {
 
       if (locationType === 'public') {
         tempAlertInfo[type].topology = alertData[srcDestType + 'TopoInfo'];
+
+        if (type === 'srcIp' && alertData.srcLocType) {
+          tempAlertInfo[type].locationType = alertData.srcLocType;
+        }
+
+        if (type === 'destIp' && alertData.destLocType) {
+          tempAlertInfo[type].locationType = alertData.destLocType;
+        }
 
         _.forEach(PUBLIC_KEY, val => {
           tempAlertInfo[type].location[val] = alertData[srcDestType + val];
@@ -1074,13 +1084,13 @@ class AlertDetails extends Component {
           <span>{t('txt-notFound')} {this.getIpPortData(type)}</span>
         }
 
-        {type === 'srcIp' && !_.isEmpty(alertInfo[type].location) && //Public
+        {type === 'srcIp' && !_.isEmpty(alertInfo[type].location) && alertInfo[type].locationType === 1 && //Public
           <div className='srcIp-content'>
             {this.getPublicIPcontent(type)}
           </div>
         }
 
-        {type === 'srcIp' && !_.isEmpty(alertInfo[type].topology) && //Private
+        {type === 'srcIp' && !_.isEmpty(alertInfo[type].topology) && alertInfo[type].locationType === 2 && //Private
           <div className='srcIp-content'>
             {this.getPrivateInfo(type)}
           </div>

@@ -46,6 +46,10 @@ class AccountList extends Component {
     };
   }
   componentDidMount() {
+    const {locale, sessionRights} = this.props;
+
+    helper.getPrivilegesInfo(sessionRights, 'config', locale);
+
     this.loadAccounts();
   }
   /**
@@ -371,7 +375,8 @@ class AccountList extends Component {
 
 AccountList.propTypes = {
   baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired
+  contextRoot: PropTypes.string.isRequired,
+  sessionRights: PropTypes.object.isRequired
 };
 
 export default AccountList;
