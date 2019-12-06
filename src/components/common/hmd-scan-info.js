@@ -710,7 +710,7 @@ class HMDscanInfo extends Component {
     }
 
     if (hmdInfo.gcb.result) {
-      hmdInfo.gcb.filteredResult = _.filter(hmdInfo.gcb.result, ['_CompareResult', 'true']);
+      hmdInfo.gcb.filteredResult = _.filter(hmdInfo.gcb.result, ['_CompareResult', true]);
 
       hmdInfo.gcb.fields = {};
       gcbFieldsArr.forEach(tempData => {
@@ -745,10 +745,10 @@ class HMDscanInfo extends Component {
               let styleStatus = '';
               let tooltip = '';
 
-              if (value === 'true') {
+              if (value) {
                 styleStatus = '#22ac38';
                 value = 'Pass';
-              } else if (value === 'false') {
+              } else {
                 styleStatus = '#d0021b';
                 value = 'Fail';
               }
