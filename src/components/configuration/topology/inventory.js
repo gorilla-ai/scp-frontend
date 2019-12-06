@@ -179,7 +179,7 @@ class NetworkInventory extends Component {
     }
 
     if (scanType === 'gcb') {
-      const filteredResult = _.filter(val.result, ['_CompareResult', 'true']);
+      const filteredResult = _.filter(val.result, ['_CompareResult', true]);
       let style = '#d10d25'; //Default red color
 
       if (filteredResult.length === val.result.length) { //Show green color for all pass
