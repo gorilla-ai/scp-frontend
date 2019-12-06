@@ -240,9 +240,11 @@ class AlertDetails extends Component {
         if (data) {
           data = data.rt;
 
-          if (!_.isEmpty(data.Topology)) {
+          if (!_.isEmpty(data.Topology)) { //Private
+            tempAlertInfo[type].locationType = 2;
             tempAlertInfo[type].topology = data.Topology;
-          } else {
+          } else { //Public
+            tempAlertInfo[type].locationType = 1;
             tempAlertInfo[type].location = data.Location;
           }
           this.setTopologyInfo(tempAlertInfo, type);
@@ -650,7 +652,7 @@ class AlertDetails extends Component {
               this.displayRedirectMenu('destIp')
             }
 
-            {showContent.rule && alertRule &&
+            {showContent.rule &&
               this.displayRuleContent()
             }
 
@@ -759,15 +761,14 @@ class AlertDetails extends Component {
   displayRuleContent = () => {
     const {alertType, alertRule} = this.state;
 
+    if (alertRule.length === 0) {
+      return <span>{NOT_AVAILABLE}</span>
+    }
+
     if (alertType === 'alert') {
       return (
         <ul className='alert-rule'>
-          {alertRule.length > 0 &&
-            alertRule.map(this.showRuleContent)
-          }
-          {alertRule.length === 0 &&
-            <li>{NOT_AVAILABLE}</li>
-          }
+          {alertRule.map(this.showRuleContent)}
         </ul>
       )
     } else {

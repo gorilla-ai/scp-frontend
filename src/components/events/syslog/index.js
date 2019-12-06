@@ -1765,6 +1765,8 @@ class SyslogController extends Component {
         }
 
         <div className='sub-header'>
+          {helper.getEventsMenu('syslog')}
+
           <SearchOptions
             locale={locale}
             position='226px'

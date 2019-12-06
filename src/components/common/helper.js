@@ -249,7 +249,7 @@ const helper = {
       </div>
     )
   },
-  getEventsMenu: function(page, sessionRights) {
+  getEventsMenu: function(page) {
     const t = global.chewbaccaI18n.getFixedT(null, 'connections');
 
     return (

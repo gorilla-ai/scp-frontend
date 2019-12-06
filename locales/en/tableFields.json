@@ -509,7 +509,7 @@
     "serviceType": "Service Type",
     "connectionStatus": "Connection Status",
     "txt-lastDataUpdDT": "Latest data update time",
-    "txt-attackCnt": "Attack counts",
+    "txt-attackCnt": "Attack count",
     "txt-agentMode": "Monitor mode",
     "txt-lastStatus": "Status",
     "txt-lastStatusUpdDT": "Latest T.I. update time",

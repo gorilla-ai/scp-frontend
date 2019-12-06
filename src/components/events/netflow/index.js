@@ -2872,6 +2872,8 @@ class Netflow extends Component {
         }
 
         <div className='sub-header'>
+          {helper.getEventsMenu('netflow')}
+
           <SearchOptions
             locale={locale}
             position='180px'
