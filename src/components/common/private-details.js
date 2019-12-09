@@ -52,8 +52,8 @@ class PrivateDetails extends Component {
   getDataInfo = () => {
     const {type, alertInfo, topoInfo, srcDestType} = this.props;
     const ip = {
-      ip: topoInfo[type] ? topoInfo[type] : topoInfo.srcIp,
-      mac: topoInfo[srcDestType + 'Mac'] ? topoInfo[srcDestType + 'Mac'] : topoInfo.srcMac
+      ip: topoInfo[type] ? topoInfo[type] : topoInfo.ip,
+      mac: topoInfo[srcDestType + 'Mac'] ? topoInfo[srcDestType + 'Mac'] : topoInfo.mac
     };
     const owner = {
       id: topoInfo.ownerObj ? topoInfo.ownerObj.ownerID : topoInfo.ownerID,

@@ -2238,7 +2238,7 @@ class NetworkInventory extends Component {
     }
   }
   render() {
-    const {baseUrl, contextRoot, language, locale, session} = this.props;
+    const {baseUrl, contextRoot, language, locale, session, sessionRights} = this.props;
     const {
       activeTab,
       activeContent,
@@ -2395,6 +2395,7 @@ class NetworkInventory extends Component {
               baseUrl={baseUrl}
               contextRoot={contextRoot}
               locale={locale}
+              sessionRights={sessionRights}
               toggleContent={this.toggleContent} />
           }
         </div>

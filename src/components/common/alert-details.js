@@ -448,17 +448,19 @@ class AlertDetails extends Component {
 
     helper.getAjaxData('POST', url, data)
     .then(data => {
-      let tempAlertPCAP = {...alertPCAP};
-      tempAlertPCAP.totalCount = data.counts;
-      tempAlertPCAP.origData = data.rows;
-      tempAlertPCAP.data = data.rows;
+      if (data) {
+        let tempAlertPCAP = {...alertPCAP};
+        tempAlertPCAP.totalCount = data.counts;
+        tempAlertPCAP.origData = data.rows;
+        tempAlertPCAP.data = data.rows;
 
-      this.setState({
-        alertPCAP: tempAlertPCAP
-      });
+        this.setState({
+          alertPCAP: tempAlertPCAP
+        });
+      }
     })
     .catch(err => {
-      helper.showPopupMsg(t('txt-pcapNotAvailable'), t('txt-error'));
+      helper.showPopupMsg('', t('txt-error'), err.message);
     });
   }
   /**
@@ -867,26 +869,23 @@ class AlertDetails extends Component {
       }
     }
 
+    if (alertPCAP.data.length === 0) {
+      return <span>{NOT_AVAILABLE}</span>
+    }
+
     return (
       <div className='pcap-content'>
-        {alertPCAP.data.length > 0 &&
-          <div className='c-flex aic filter-empty'>
-            <label htmlFor='filterEmpty'>{t('alert.txt-filterEmpty')}</label>
-            <Checkbox
-              id='filterEmpty'
-              onChange={this.toggleFilterEmpty}
-              checked={alertPCAP.filterEmpty} />
-          </div>
-        }
+        <div className='c-flex aic filter-empty'>
+          <label htmlFor='filterEmpty'>{t('alert.txt-filterEmpty')}</label>
+          <Checkbox
+            id='filterEmpty'
+            onChange={this.toggleFilterEmpty}
+            checked={alertPCAP.filterEmpty} />
+        </div>
         <div className='pcap'>
           <div className='list'>
             <ul>
-              {alertPCAP.data.length > 0 &&
-                alertPCAP.data.map(this.showPCAPcontent)
-              }
-              {alertPCAP.data.length === 0 &&
-                <li>{NOT_AVAILABLE}</li>
-              }
+              {alertPCAP.data.map(this.showPCAPcontent)}
             </ul>
           </div>
           <div className='data'>
@@ -1085,25 +1084,25 @@ class AlertDetails extends Component {
           <span>{t('txt-notFound')} {this.getIpPortData(type)}</span>
         }
 
-        {type === 'srcIp' && !_.isEmpty(alertInfo[type].location) && alertInfo[type].locationType === 1 && //Public
+        {type === 'srcIp' && alertInfo[type].locationType === 1 && //Public
           <div className='srcIp-content'>
             {this.getPublicIPcontent(type)}
           </div>
         }
 
-        {type === 'srcIp' && !_.isEmpty(alertInfo[type].topology) && alertInfo[type].locationType === 2 && //Private
+        {type === 'srcIp' && alertInfo[type].locationType === 2 && //Private
           <div className='srcIp-content'>
             {this.getPrivateInfo(type)}
           </div>
         }
 
-        {type === 'destIp' && !_.isEmpty(alertInfo[type].location) && //Public
+        {type === 'destIp' && alertInfo[type].locationType === 1 && //Public
           <div className='destIp-content'>
             {this.getPublicIPcontent(type)}
           </div>
         }
 
-        {type === 'destIp' && !_.isEmpty(alertInfo[type].topology) && //Private
+        {type === 'destIp' && alertInfo[type].locationType === 2 && //Private
           <div className='destIp-content'>
             {this.getPrivateInfo(type)}
           </div>
@@ -1221,7 +1220,7 @@ class AlertDetails extends Component {
       }
     })
     .catch(err => {
-      helper.showPopupMsg(t('txt-pcapNotAvailable'), t('txt-error'));
+      helper.showPopupMsg('', t('txt-error'), err.message);
     });
   }
   /**

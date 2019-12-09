@@ -323,7 +323,7 @@ class DashboardMaps extends Component {
         timestamp: [dateTime.from, dateTime.to],
         filters: [{
           condition: 'must',
-          query: 'srcIp:' + id + ' OR ipSrc:' + id
+          query: id
         }]
       };
 
@@ -591,7 +591,7 @@ class DashboardMaps extends Component {
       _.forEach(_.keys(allPrivateData), val => {
         if (val !== 'doc_count' && allPrivateData[val].doc_count) {
           _.forEach(allPrivateData[val].srcIp.buckets, val2 => {
-            if (val2.srcTopoInfo.areaUUID === currentFloor) {
+            if (val2.srcTopoInfo && val2.srcTopoInfo.areaUUID === currentFloor) {
               currentFloorPrivateData.push(val2);
             } else {
               allFloorPrivateData.push(val2);
@@ -648,8 +648,8 @@ class DashboardMaps extends Component {
             count: val.doc_count,
             seatName: val.srcTopoInfo.seatName,
             areaFullName: val.srcTopoInfo.areaFullName,
-            srcIp: val.srcTopoInfo.srcIp,
-            srcMac: val.srcTopoInfo.srcMac,
+            srcIp: val.srcTopoInfo.ip,
+            srcMac: val.srcTopoInfo.mac,
             ownerName: val.srcTopoInfo.ownerName,
             tag: 'red'
           }
@@ -676,8 +676,8 @@ class DashboardMaps extends Component {
       return `
         <div class='map-tooltip'>
           <div><span class='key'>${t('payloadsFields.attacksCount')}:</span> <span class='count'>${data.count}</span></div>
-          <div><span class='key'>${t('attacksFields.srcIp')}:</span> <span class='value'>${data.srcIp}</span></div>
-          <div><span class='key'>${t('ipFields.mac')}:</span> <span class='value'>${data.srcMac}</span></div>
+          <div><span class='key'>${t('ipFields.ip')}:</span> <span class='value'>${data.ip}</span></div>
+          <div><span class='key'>${t('ipFields.mac')}:</span> <span class='value'>${data.mac}</span></div>
           <div><span class='key'>${t('ipFields.areaFullName')}:</span> <span class='value'>${data.areaFullName}</span></div>
           <div><span class='key'>${t('ipFields.seat')}:</span> <span class='value'>${data.seatName}</span></div>
           <div><span class='key'>${t('ipFields.owner')}:</span> <span class='value'>${data.ownerName}</span></div>
@@ -711,7 +711,7 @@ class DashboardMaps extends Component {
       <li key={val.key} onClick={this.showTopoDetail.bind(this, PRIVATE, val.key)}>
         <div className={cx('info', {'faded': this.getTreeColor(i)})}>
           <span className='ip'>{val.key}</span>
-          <span className='host'>{val.srcTopoInfo.hostName}</span>
+          <span className='host'>{val.srcTopoInfo && val.srcTopoInfo.hostName}</span>
         </div>
         <span className='count' style={{backgroundColor: ALERT_LEVEL_COLORS[val._severity_]}}>{val.doc_count}</span>
       </li>
