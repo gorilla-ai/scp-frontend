@@ -593,7 +593,7 @@ class DashboardMaps extends Component {
           _.forEach(allPrivateData[val].srcIp.buckets, val2 => {
             if (val2.srcTopoInfo && val2.srcTopoInfo.areaUUID === currentFloor) {
               currentFloorPrivateData.push(val2);
-            } else {
+            } else if (!val2.srcTopoInfo.areaUUID) {
               allFloorPrivateData.push(val2);
             }
           })
@@ -676,8 +676,8 @@ class DashboardMaps extends Component {
       return `
         <div class='map-tooltip'>
           <div><span class='key'>${t('payloadsFields.attacksCount')}:</span> <span class='count'>${data.count}</span></div>
-          <div><span class='key'>${t('ipFields.ip')}:</span> <span class='value'>${data.ip}</span></div>
-          <div><span class='key'>${t('ipFields.mac')}:</span> <span class='value'>${data.mac}</span></div>
+          <div><span class='key'>${t('ipFields.ip')}:</span> <span class='value'>${data.ip || data.srcIp}</span></div>
+          <div><span class='key'>${t('ipFields.mac')}:</span> <span class='value'>${data.mac || data.srcMac}</span></div>
           <div><span class='key'>${t('ipFields.areaFullName')}:</span> <span class='value'>${data.areaFullName}</span></div>
           <div><span class='key'>${t('ipFields.seat')}:</span> <span class='value'>${data.seatName}</span></div>
           <div><span class='key'>${t('ipFields.owner')}:</span> <span class='value'>${data.ownerName}</span></div>
