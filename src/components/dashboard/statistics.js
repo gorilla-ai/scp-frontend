@@ -193,6 +193,8 @@ class DashboardStats extends Component {
       let rulesObj = {};
       let rulesAll = [];
       let alertDataArr = [];
+      let maskedIPdata = '';
+      let internalMaskedIp = [];
 
       _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
         if (data[0].event_histogram) {
@@ -241,20 +243,21 @@ class DashboardStats extends Component {
         }
       };
 
-      const maskedIPdata = data[0].aggregations.Top10InternalMaskedIp;
-      let internalMaskedIp = [];
+      if (data[0].aggregations) {
+        maskedIPdata = data[0].aggregations.Top10InternalMaskedIp;
 
-      _.forEach(maskedIPdata, (key, val) => {
-        if (val !== 'doc_count' && maskedIPdata[val].doc_count > 0) {
-          _.forEach(maskedIPdata[val].srcIp.buckets, val2 => {
-            internalMaskedIp.push({
-              ip: val,
-              number: val2.doc_count,
-              severity: val2._severity_
-            });
-          })
-        }
-      })
+        _.forEach(maskedIPdata, (key, val) => {
+          if (val !== 'doc_count' && maskedIPdata[val].doc_count > 0) {
+            _.forEach(maskedIPdata[val].srcIp.buckets, val2 => {
+              internalMaskedIp.push({
+                ip: val,
+                number: val2.doc_count,
+                severity: val2._severity_
+              });
+            })
+          }
+        })
+      }
 
       const maskedIpChartAttributes = { //For internal masked IP bar chart
         title: t('dashboard.txt-alertMaskedIpStatistics'),

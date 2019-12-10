@@ -4,7 +4,6 @@ import PropTypes from 'prop-types'
 import Moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
-import queryString from 'query-string'
 
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 
@@ -1017,7 +1016,7 @@ class AlertController extends Component {
    */
   getCSVfile = () => {
     const {baseUrl, contextRoot} = this.props;
-    const url = `${baseUrl}${contextRoot}/api/u1/alert/_export`;
+    const url = `${baseUrl}${contextRoot}/api/u2/alert/_export`;
     const requestData = this.toQueryLanguage('search');
 
     downloadWithForm(url, {payload: JSON.stringify(requestData)});

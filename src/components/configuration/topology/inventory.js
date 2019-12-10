@@ -5,6 +5,7 @@ import PropTypes from 'prop-types'
 import Moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
+import queryString from 'query-string'
 
 import Checkbox from 'react-ui/build/src/components/checkbox'
 import DropDownList from 'react-ui/build/src/components/dropdown'
@@ -151,13 +152,15 @@ class NetworkInventory extends Component {
   }
   componentDidMount() {
     const {locale, sessionRights} = this.props;
+    const inventoryParam = queryString.parse(location.search);
 
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
-
-    this.getDeviceData();
+    
+    if (_.isEmpty(inventoryParam)) {
+      this.getDeviceData();
+    }
     this.getOwnerData();
     this.getOtherData();
-    this.getFloorPlan();
   }
   componentWillReceiveProps(nextProps) {
     if (nextProps.location.state === 'tableList') {
@@ -188,7 +191,9 @@ class NetworkInventory extends Component {
 
       return <li key={scanType} style={{'color': style}}><span>{val.name} {t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}:</span> {filteredResult.length}/{val.result.length}</li>
     } else {
-      return <li key={scanType}><span>{val.name} {t('network-inventory.txt-suspiciousFileCount')}:</span> {val.result.length}</li>
+      if (val.result.length > 0) {
+        return <li key={scanType}><span>{val.name} {t('network-inventory.txt-suspiciousFileCount')}:</span> {val.result.length}</li>
+      }
     }
   }
   /**
@@ -393,6 +398,32 @@ class NetworkInventory extends Component {
     });
   }
   /**
+   * Get single device data from URL parameter
+   * @method
+   */
+  getSingleDeviceData = () => {
+    const {baseUrl, contextRoot} = this.props;
+    const inventoryParam = queryString.parse(location.search);
+
+    this.ah.one({
+      url: `${baseUrl}/api/u1/ipdevice/_search?ip=${inventoryParam.ip}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          currentDeviceData: data.rows[0]
+        }, () => {
+          this.toggleContent('showForm', 'edit');
+        });
+        return null;
+      }
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Get and set Department and Title data
    * @method
    */
@@ -448,6 +479,8 @@ class NetworkInventory extends Component {
         this.setState({
           titleList,
           addIP: tempAddIP
+        }, () => {
+          this.getFloorPlan();
         });
       }
     })
@@ -576,8 +609,18 @@ class NetworkInventory extends Component {
       floorList,
       currentFloor
     }, () => {
+      const inventoryParam = queryString.parse(location.search);
+
       this.getAreaData(currentFloor);
       this.getSeatData(currentFloor);
+
+      if (!_.isEmpty(inventoryParam)) {
+        if (inventoryParam.type === 'add') {
+          this.toggleContent('showForm', 'new');
+        } else if (inventoryParam.type === 'edit') {
+          this.getSingleDeviceData();
+        }
+      }
     });
   }
   /**
@@ -1318,13 +1361,18 @@ class NetworkInventory extends Component {
           this.getSeatData(currentDeviceData.areaUUID);
         }
       } else if (formType === 'new') {
+        const inventoryParam = queryString.parse(location.search);
         formTypeEdit = false;
+
         this.getAreaData(floorList[0].value);
         this.getSeatData(floorList[0].value);
-        this.getFloorPlan();
         this.setState({
           currentDeviceData: {}
         });
+
+        if (_.isEmpty(inventoryParam)) {
+          this.getFloorPlan();
+        }
       }
 
       if (!currentDeviceData.ownerUUID) {
@@ -1344,6 +1392,13 @@ class NetworkInventory extends Component {
 
     this.setState({
       activeContent
+    }, () => {
+      if (activeContent === 'dataInfo') {
+        this.getOwnerSeat(currentDeviceData);
+      }
+      if (activeContent === 'tableList') {
+        this.getDeviceData();
+      }
     });
   }
   /**
@@ -1549,6 +1604,7 @@ class NetworkInventory extends Component {
    * @param {string} value - ownerUUID
    */
   handleOwnerChange = (value) => {
+    const inventoryParam = queryString.parse(location.search);
     const {baseUrl, contextRoot} = this.props;
 
     this.ah.one({
@@ -1563,6 +1619,10 @@ class NetworkInventory extends Component {
         tempAddIP.department = data.departmentName;
         tempAddIP.title = data.titleName;
         tempAddIP.ownerPic = data.base64;
+
+        if (inventoryParam.ip && inventoryParam.type === 'add') {
+          tempAddIP.ip = inventoryParam.ip;
+        }
 
         this.setState({
           addIP: tempAddIP

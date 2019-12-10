@@ -45,11 +45,14 @@ class PrivateDetails extends Component {
   componentDidMount() {
     this.getDataInfo();
   }
+  componentDidUpdate(prevProps) {
+    this.getDataInfo(prevProps);
+  }
   /**
    * Get and set the ip, owner, area and host information
    * @method
    */
-  getDataInfo = () => {
+  getDataInfo = (prevProps) => {
     const {type, alertInfo, topoInfo, srcDestType} = this.props;
     const ip = {
       ip: topoInfo[type] ? topoInfo[type] : (topoInfo.ip || topoInfo.srcIp),
@@ -94,13 +97,15 @@ class PrivateDetails extends Component {
       }
     })
 
-    this.setState({
-      ip,
-      owner,
-      areaName,
-      hostInfo,
-      ownerInfo
-    });
+    if (!prevProps || (prevProps && alertInfo.ownerMap != prevProps.alertInfo.ownerMap)) {
+      this.setState({
+        ip,
+        owner,
+        areaName,
+        hostInfo,
+        ownerInfo
+      });
+    }
   }
   /**
    * Display IP information

@@ -74,7 +74,6 @@ class QueryOpenSave extends Component {
       let tempFilterData = [];
       let url = '';
       let queryText = {};
-      let queryString = [];
       let requestType = '';
       let data = {};
 

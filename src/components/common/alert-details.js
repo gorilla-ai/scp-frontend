@@ -555,8 +555,49 @@ class AlertDetails extends Component {
     return <span className='severity' style={{backgroundColor: styleStatus}}>{value}</span>
   }
   /**
+   * Display redirect IP menu for source IP and dest. IP
+   * @method
+   * @param {string} url - url to be redirected
+   */
+  redirectIp = (url) => {
+    window.open(url, '_blank');
+  }
+  /**
+   * Display redirect IP menu for source IP and dest. IP
+   * @method
+   * @returns HTML DOM
+   */
+  getRedirectIp = () => {
+    const {baseUrl, contextRoot} = this.props;
+    const {showContent, alertInfo} = this.state;
+    let text = t('txt-add');
+    let type = 'new';
+    let ip = '';
+
+    if (showContent.srcIp) {
+      ip = alertInfo.srcIp.topology.ip;
+
+      if (alertInfo.srcIp.topology.mac) {
+        text = t('txt-edit');
+        type = 'edit';
+      }
+    } else if (showContent.destIp) {
+      ip = alertInfo.destIp.topology.ip;
+
+      if (alertInfo.destIp.topology.mac) {
+        text = t('txt-edit');
+        type = 'edit';
+      }
+    }
+
+    const url = `${baseUrl}${contextRoot}/configuration/topology/inventory?ip=${ip}&type=${type}`;
+
+    return <div className='redirect-ip' onClick={this.redirectIp.bind(this, url)}>{text}</div>
+  }
+  /**
    * Display Alert information in dialog box
    * @method
+   * @returns HTML DOM
    */
   displayAlertData = () => {
     const {alertDetails, alertData} = this.props;
@@ -634,7 +675,10 @@ class AlertDetails extends Component {
           <div className='content'>
             <div className='options-buttons'>
               {(showContent.srcIp || showContent.destIp) &&
-                <div onClick={this.toggleRedirectMenu}>{t('alert.txt-queryMore')}</div>
+                <section>
+                  {this.getRedirectIp()}
+                  <div className='qurey-more' onClick={this.toggleRedirectMenu}>{t('alert.txt-queryMore')}</div>
+                </section>
               }
 
               {showContent.pcap && alertPCAP.data.length > 0 &&
@@ -1081,28 +1125,28 @@ class AlertDetails extends Component {
     return (
       <div>
         {(_.isEmpty(alertInfo[type].topology) && _.isEmpty(alertInfo[type].location)) && 
-          <span>{t('txt-notFound')} {this.getIpPortData(type)}</span>
+          <span>{NOT_AVAILABLE}</span>
         }
 
-        {type === 'srcIp' && alertInfo[type].locationType === 1 && //Public
+        {type === 'srcIp' && (!_.isEmpty(alertInfo[type].location) || alertInfo[type].locationType === 1) && //Public
           <div className='srcIp-content'>
             {this.getPublicIPcontent(type)}
           </div>
         }
 
-        {type === 'srcIp' && alertInfo[type].locationType === 2 && //Private
+        {type === 'srcIp' && (!_.isEmpty(alertInfo[type].topology) || alertInfo[type].locationType === 2) && //Private
           <div className='srcIp-content'>
             {this.getPrivateInfo(type)}
           </div>
         }
 
-        {type === 'destIp' && alertInfo[type].locationType === 1 && //Public
+        {type === 'destIp' && (!_.isEmpty(alertInfo[type].location) || alertInfo[type].locationType === 1) && //Public
           <div className='destIp-content'>
             {this.getPublicIPcontent(type)}
           </div>
         }
 
-        {type === 'destIp' && alertInfo[type].locationType === 2 && //Private
+        {type === 'destIp' && (!_.isEmpty(alertInfo[type].topology) || alertInfo[type].locationType === 2) && //Private
           <div className='destIp-content'>
             {this.getPrivateInfo(type)}
           </div>
