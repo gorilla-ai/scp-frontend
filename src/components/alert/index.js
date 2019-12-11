@@ -320,7 +320,7 @@ class AlertController extends Component {
       let tempSubSectionsData = {...subSectionsData};
 
       if (_.isEmpty(tableData) || (tableData && tableData.counts === 0)) {
-        helper.showPopupMsg(t('txt-notFound', ''));
+        helper.showPopupMsg(t('txt-notFound'));
 
         let tempSubSectionsData = {...this.state.subSectionsData};
         tempSubSectionsData.mainData[activeTab] = [];

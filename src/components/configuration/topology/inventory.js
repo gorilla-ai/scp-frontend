@@ -139,7 +139,7 @@ class NetworkInventory extends Component {
         coordX: '',
         coordY: ''
       },
-      ownerType: 'existing', //existing, new,
+      ownerType: 'existing', //existing, new
       ownerIDduplicated: false,
       previewOwnerPic: '',
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
@@ -380,17 +380,23 @@ class NetworkInventory extends Component {
 
     helper.getAjaxData('POST', url, data)
     .then(data => {
-      if (data && data.rows.length > 0) {
-        const ownerList = _.map(data.rows, val => {
-          return {
-            value: val.ownerUUID,
-            text: val.ownerName
-          };
-        });
+      if (data) {
+        if (data.rows.length > 0) {
+          const ownerList = _.map(data.rows, val => {
+            return {
+              value: val.ownerUUID,
+              text: val.ownerName
+            };
+          });
 
-        this.setState({
-          ownerList
-        });
+          this.setState({
+            ownerList
+          });
+        } else {
+          this.setState({
+            ownerType: 'new'
+          });
+        }
       }
     })
     .catch(err => {
@@ -459,7 +465,10 @@ class NetworkInventory extends Component {
             text: val.name
           });
         })
-        tempAddIP.newDepartment = departmentList[0].value;
+
+        if (departmentList[0]) {
+          tempAddIP.newDepartment = departmentList[0].value;
+        }
 
         this.setState({
           departmentList,
@@ -474,7 +483,10 @@ class NetworkInventory extends Component {
             text: val.name
           });
         })
-        tempAddIP.newTitle = titleList[0].value;
+
+        if (titleList[0]) {
+          tempAddIP.newTitle = titleList[0].value;
+        }
 
         this.setState({
           titleList,
@@ -1330,6 +1342,7 @@ class NetworkInventory extends Component {
       activeContent = 'addIPsteps';
       let formTypeEdit = '';
       let addIP = {};
+      let ownerType = 'existing';
 
       if (formType === 'edit') {
         formTypeEdit = true;
@@ -1352,8 +1365,8 @@ class NetworkInventory extends Component {
           ownerName: currentDeviceData.ownerObj ? currentDeviceData.ownerObj.ownerName : '',
           department: currentDeviceData.ownerObj ? currentDeviceData.ownerObj.departmentName : '',
           title: currentDeviceData.ownerObj ? currentDeviceData.ownerObj.titleName : '',
-          newDepartment: departmentList[0].value,
-          newTitle: titleList[0].value
+          newDepartment: departmentList[0] ? departmentList[0].value : '',
+          newTitle: titleList[0] ? titleList[0].value : ''
         };
 
         if (currentDeviceData.areaUUID) {
@@ -1382,12 +1395,16 @@ class NetworkInventory extends Component {
         this.handleOwnerChange(ownerList[0].value);
       }
 
+      if (_.isEmpty(ownerList)) {
+        ownerType = 'new';
+      }
+
       this.setState({
         activeContent,
         activeSteps: 1,
         formTypeEdit,
         addIP,
-        ownerType: 'existing',
+        ownerType,
         ownerIDduplicated: false
       });
       return;
@@ -1597,8 +1614,8 @@ class NetworkInventory extends Component {
   handleOwnerTypeChange = (ownerType) => {
     const {departmentList, titleList, addIP} = this.state;
     const tempAddIP = {...addIP};
-    tempAddIP.newDepartment = departmentList[0].value;
-    tempAddIP.newTitle = titleList[0].value;
+    tempAddIP.newDepartment = departmentList[0] ? departmentList[0].value : '';
+    tempAddIP.newTitle = titleList[0] ? titleList[0].value : '';
 
     this.setState({
       ownerType,
@@ -1704,6 +1721,25 @@ class NetworkInventory extends Component {
    */
   getBtnText = () => {
     return this.state.activeSteps === 4 ? t('txt-confirm') : t('txt-nextStep');
+  }
+  getOwnerType = () => {
+    const {ownerList} = this.state;
+
+    let ownerType = [
+      {
+        value: 'new',
+        text: t('txt-addNewOwner')
+      }
+    ];
+
+    if (!_.isEmpty(ownerList)) {
+      ownerType.unshift({
+        value: 'existing',
+        text: t('txt-existingOwner')
+      });
+    }
+
+    return ownerType;
   }
   /**
    * Display add/edit IP device form content
@@ -1853,16 +1889,7 @@ class NetworkInventory extends Component {
               <header>{t('ipFields.owner')}</header>
               <RadioGroup
                 className='owner-type'
-                list={[
-                  {
-                    value: 'existing',
-                    text: t('txt-existingOwner')
-                  },
-                  {
-                    value: 'new',
-                    text: t('txt-addNewOwner')
-                  }
-                ]}
+                list={this.getOwnerType()}
                 onChange={this.handleOwnerTypeChange}
                 value={ownerType} />
               {ownerType === 'new' &&
@@ -1889,13 +1916,13 @@ class NetworkInventory extends Component {
                   </div>
                 }
                 <div className='group'>
-                  {ownerType === 'existing' && addIP.ownerPic &&
+                  {ownerType === 'existing' && addIP.ownerPic && !_.isEmpty(ownerList) &&
                     <img src={addIP.ownerPic} className='existing' title={t('network-topology.txt-profileImage')} />
                   }
                   {ownerType === 'new' && previewOwnerPic &&
                     <img src={previewOwnerPic} title={t('network-topology.txt-profileImage')} />
                   }
-                  {ownerType === 'existing' && !addIP.ownerPic &&
+                  {ownerType === 'existing' && !addIP.ownerPic && !_.isEmpty(ownerList) &&
                     <img src={contextRoot + '/images/empty_profile.png'} className={cx({'existing': ownerType === 'existing'})} title={t('network-topology.txt-profileImage')} />
                   }
                   {ownerType === 'new' && !previewOwnerPic &&
@@ -1904,7 +1931,7 @@ class NetworkInventory extends Component {
                 </div>
               </div>
               <div className='user-info'>
-                {ownerType === 'existing' &&
+                {ownerType === 'existing' && !_.isEmpty(ownerList) &&
                   <div className='group'>
                     <label htmlFor='addIPstepsOwnerName'>{t('ownerFields.ownerName')}</label>
                     <DropDownList
@@ -1928,7 +1955,7 @@ class NetworkInventory extends Component {
                       value={addIP.newOwnerName} />
                   </div>
                 }
-                {ownerType === 'existing' &&
+                {ownerType === 'existing' && !_.isEmpty(ownerList) &&
                 <div className='group'>
                   <label htmlFor='addIPstepsOwnerID'>{t('ownerFields.ownerID')}</label>
                   <Input
@@ -1951,7 +1978,7 @@ class NetworkInventory extends Component {
                       value={addIP.newOwnerID} />
                   </div>
                 }
-                {ownerType === 'existing' &&
+                {ownerType === 'existing' && !_.isEmpty(ownerList) &&
                   <div className='group'>
                     <label htmlFor='addIPstepsDepartment'>{t('ownerFields.department')}</label>
                     <Input
@@ -1972,7 +1999,7 @@ class NetworkInventory extends Component {
                       value={addIP.newDepartment} />
                   </div>
                 }
-                {ownerType === 'existing' &&
+                {ownerType === 'existing' && !_.isEmpty(ownerList) &&
                   <div className='group'>
                     <label htmlFor='addIPstepsTitle'>{t('ownerFields.title')}</label>
                     <Input
