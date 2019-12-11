@@ -361,10 +361,14 @@ class NetworkOwner extends Component {
       if (options === 'new') {
         addOwnerType = 'new';
         addOwnerTitle = t('txt-addNewOwner');
-        tempOwner.info = {
-          department: list.department[0].value,
-          title: list.title[0].value
-        };
+        tempOwner.info = {};
+
+        if (list.department[0] && list.title[0]) {
+          tempOwner.info = {
+            department: list.department[0].value,
+            title: list.title[0].value
+          };
+        }
       } else if (options === 'edit') {
         addOwnerType = 'edit';
         addOwnerTitle = t('txt-editOwner');
@@ -420,6 +424,18 @@ class NetworkOwner extends Component {
     });
   }
   /**
+   * Check add owner form validation
+   * @method
+   * @returns true if form is invalid
+   */
+  checkFormValidation = () => {
+    const {owner} = this.state;
+
+    if (!owner.info.ownerID || !owner.info.ownerName) {
+      return true;
+    }
+  }
+  /**
    * Handle add/edit owner form confirm
    * @method
    */
@@ -429,6 +445,12 @@ class NetworkOwner extends Component {
     let requestType = 'POST';
     let updatePic = owner.removePhoto;
     let formData = new FormData();
+
+    if (this.checkFormValidation()) {
+      helper.showPopupMsg(et('fill-required-fields'), t('txt-error'));
+      return;
+    }
+
     formData.append('ownerID', owner.info.ownerID);
     formData.append('ownerName', owner.info.ownerName);
     formData.append('department', owner.info.department);
@@ -470,7 +492,7 @@ class NetworkOwner extends Component {
   getDeleteOwnerContent = (allValue) => {
     if (allValue.ownerID) {
       let tempOwner = {...this.state.owner};
-      tempOwner.add = {...allValue};
+      tempOwner.info = {...allValue};
 
       this.setState({
         owner: tempOwner
@@ -511,7 +533,7 @@ class NetworkOwner extends Component {
     const {owner} = this.state;
 
     ah.one({
-      url: `${baseUrl}/api/owner?uuid=${owner.add.ownerUUID}`,
+      url: `${baseUrl}/api/owner?uuid=${owner.info.ownerUUID}`,
       type: 'DELETE'
     })
     .then(data => {

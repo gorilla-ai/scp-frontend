@@ -608,7 +608,7 @@ class NetworkMap extends Component {
       if (data.ret === 0) {
         this.getIPData();
         this.getSeatData();
-        this.closeDialog();
+        this.closeDialog('reload');
       }
     })
     .catch(err => {
@@ -687,7 +687,7 @@ class NetworkMap extends Component {
       if (data) {
         this.getIPData();
         this.getSeatData();
-        this.closeDialog();
+        this.closeDialog('reload');
       }
     })
     .catch(err => {
@@ -820,7 +820,7 @@ class NetworkMap extends Component {
    * Close dialog and reset floor plan data
    * @method
    */
-  closeDialog = () => {
+  closeDialog = (options) => {
     let tempFloorPlan = {...this.state.floorPlan};
     tempFloorPlan.type = '';
     tempFloorPlan.name = tempFloorPlan.currentAreaName;
@@ -839,7 +839,9 @@ class NetworkMap extends Component {
       showSeatData: false,
       currentDeviceData: {}
     }, () => {
-      this.getFloorPlan();
+      if (options === 'reload') {
+        this.getFloorPlan();
+      }
     });
   }
   /**

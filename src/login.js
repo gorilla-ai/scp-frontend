@@ -89,7 +89,7 @@ class Login extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      const redirectURL = contextRoot || '/ChewbaccaWeb';
+      const redirectURL = contextRoot || '/SCP';
       window.location.href = redirectURL;
     })
     .catch(err => {
@@ -132,7 +132,7 @@ class Login extends Component {
    */
   changeLng = (lng) => {
     const {contextRoot} = this.props;
-    const redirectURL = contextRoot || '/ChewbaccaWeb';
+    const redirectURL = contextRoot || '/SCP';
 
     window.location.href = redirectURL + '/?' + qs.stringify({lng});
   }

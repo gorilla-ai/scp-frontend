@@ -241,10 +241,10 @@ const helper = {
     return (
       <div className='c-button-group left menu'>
         <button className={cx('thumb', {'selected': page === 'statistics'})}>
-          <Link to='/ChewbaccaWeb/dashboard/statistics'>{t('dashboard.txt-statisticsInfo')}</Link>
+          <Link to='/SCP/dashboard/statistics'>{t('dashboard.txt-statisticsInfo')}</Link>
         </button>
         <button className={cx('thumb', {'selected': page === 'maps'})}>
-          <Link to='/ChewbaccaWeb/dashboard/maps'>{t('dashboard.txt-attacksMap')}</Link>
+          <Link to='/SCP/dashboard/maps'>{t('dashboard.txt-attacksMap')}</Link>
         </button>
       </div>
     )
@@ -255,11 +255,11 @@ const helper = {
     return (
       <div className='c-button-group left menu'>
         <button className={cx('thumb', {'selected': page === 'syslog'})}>
-          <Link to='/ChewbaccaWeb/events/syslog'>{t('txt-syslog')}</Link>
+          <Link to='/SCP/events/syslog'>{t('txt-syslog')}</Link>
         </button>
 
         <button className={cx('thumb', {'selected': page === 'netflow'})}>
-          <Link to='/ChewbaccaWeb/events/netflow'>{t('txt-netflow')}</Link>
+          <Link to='/SCP/events/netflow'>{t('txt-netflow')}</Link>
         </button>
       </div>
     )
@@ -368,9 +368,9 @@ const helper = {
   },
   getPrivilegesInfo: function(sessionRights, privilege, locale) {
     if (privilege === 'common' && !sessionRights.Module_Common) {
-      window.location.href = '/ChewbaccaWeb/configuration/edge/edge?lng=' + locale;
+      window.location.href = '/SCP/configuration/edge/edge?lng=' + locale;
     } else if (privilege === 'config' && !sessionRights.Module_Config)  {
-      window.location.href = '/ChewbaccaWeb?lng=' + locale;
+      window.location.href = '/SCP?lng=' + locale;
     }
   },
   showPopupMsg: function(msg, title, errorMsg, options, redirect) {
@@ -386,7 +386,7 @@ const helper = {
       act:(confirmed) => {
         if (redirect === 'agent') {
           if (confirmed) {
-            const url = '/ChewbaccaWeb/configuration/edge/edge?lng=' + lng;
+            const url = '/SCP/configuration/edge/edge?lng=' + lng;
             window.location.href = url;
           }
         }

@@ -224,23 +224,23 @@ const serviceStatus = () => (
 const Main = () => (
   <main className='main'>
     <Switch>
-      <Route exact path='/ChewbaccaWeb' component={DashboardStatsComp} />
-      <Route exact path='/ChewbaccaWeb/dashboard/statistics' component={DashboardStatsComp} />
-      <Route exact path='/ChewbaccaWeb/dashboard/maps' component={DashboardMapsComp} />
-      <Route exact path='/ChewbaccaWeb/alerts' component={AlertComp} />
-      <Route exact path='/ChewbaccaWeb/events/netflow' component={NetflowComp} />
-      <Route exact path='/ChewbaccaWeb/events/syslog' component={SyslogComp} />
-      <Route exact path='/ChewbaccaWeb/events/endpoint' component={EndpointComp} />
-      <Route exact path='/ChewbaccaWeb/configuration/notifications' component={Notifications} />
-      <Route exact path='/ChewbaccaWeb/configuration/edge/edge' component={Edge} />
-      <Route exact path='/ChewbaccaWeb/configuration/edge/threat' component={Threat} />
-      <Route exact path='/ChewbaccaWeb/configuration/topology/inventory' component={NetworkTopologyInventory} />
-      <Route exact path='/ChewbaccaWeb/configuration/topology/owner' component={NetworkTopologyOwner} />
-      <Route exact path='/ChewbaccaWeb/configuration/topology/map' component={NetworkTopologyMap} />
-      <Route exact path='/ChewbaccaWeb/configuration/syslog' component={Syslogs} />
-      <Route exact path='/ChewbaccaWeb/configuration/user/account' component={userAccounts} />
-      <Route exact path='/ChewbaccaWeb/configuration/user/privileges' component={userPrivileges} />
-      <Route exact path='/ChewbaccaWeb/configuration/service-status' component={serviceStatus} />
+      <Route exact path='/SCP' component={DashboardStatsComp} />
+      <Route exact path='/SCP/dashboard/statistics' component={DashboardStatsComp} />
+      <Route exact path='/SCP/dashboard/maps' component={DashboardMapsComp} />
+      <Route exact path='/SCP/alerts' component={AlertComp} />
+      <Route exact path='/SCP/events/netflow' component={NetflowComp} />
+      <Route exact path='/SCP/events/syslog' component={SyslogComp} />
+      <Route exact path='/SCP/events/endpoint' component={EndpointComp} />
+      <Route exact path='/SCP/configuration/notifications' component={Notifications} />
+      <Route exact path='/SCP/configuration/edge/edge' component={Edge} />
+      <Route exact path='/SCP/configuration/edge/threat' component={Threat} />
+      <Route exact path='/SCP/configuration/topology/inventory' component={NetworkTopologyInventory} />
+      <Route exact path='/SCP/configuration/topology/owner' component={NetworkTopologyOwner} />
+      <Route exact path='/SCP/configuration/topology/map' component={NetworkTopologyMap} />
+      <Route exact path='/SCP/configuration/syslog' component={Syslogs} />
+      <Route exact path='/SCP/configuration/user/account' component={userAccounts} />
+      <Route exact path='/SCP/configuration/user/privileges' component={userPrivileges} />
+      <Route exact path='/SCP/configuration/service-status' component={serviceStatus} />
     </Switch>
   </main>
 )

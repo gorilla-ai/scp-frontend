@@ -19,7 +19,7 @@ const server = require('http').Server(app)
 const cfg = _.assign({
   env: process.env.NODE_ENV || 'development', 
   contextRoot: '',
-  apiPrefix: 'http:\//172.18.0.119/ChewbaccaWeb', //Prod environment
+  apiPrefix: 'http:\//172.18.0.119/SCP', //Prod environment
   //apiPrefix: 'http:\//192.168.11.91/ChewbaccaWeb', //Test environment
   //apiPrefix: 'http:\//172.18.0.136:8080/ChewbaccaWeb', //Rays's machine
   port: process.env.PORT || 3000,

@@ -115,7 +115,7 @@ class AutoSettings extends Component {
         let privateIParr = [];
         let publicIParr = [];
 
-        if (data['ip.private'].range.length > 0) {
+        if (data['ip.private'] && data['ip.private'].range.length > 0) {
           _.forEach(data['ip.private'].range, val => {
             privateIParr = val.split('/');
 
@@ -127,7 +127,7 @@ class AutoSettings extends Component {
           })
         }
 
-        if (data['ip.public'].range.length > 0) {
+        if (data['ip.public'] && data['ip.public'].range.length > 0) {
           _.forEach(data['ip.public'].range, val => {
             publicIParr = val.split('/');
 
@@ -139,15 +139,15 @@ class AutoSettings extends Component {
           })
         }
 
-        tempADdata.type = data['ad.type'];
+        tempADdata.type = data['ad.type'] || adData.type;
         tempADdata.ip = data['ad.host'];
         tempADdata.port = data['ad.port'];
         tempADdata.domain = data['ad.domain'];
         tempADdata.username = data['ad.username'];
         tempADdata.password = data['ad.password'];
-        tempNetflowData.time = data['netflow.period.hr'];
+        tempNetflowData.time = data['netflow.period.hr'] || netflowData.time;
 
-        if (data.scanner.length > 0) {
+        if (data.scanner && data.scanner.length > 0) {
           _.forEach(data.scanner, val => {
             scannerData.push({
               edge: val.edge,
@@ -585,7 +585,7 @@ class AutoSettings extends Component {
             <div>
               <button className='standard btn last' onClick={this.toggleContent.bind(this, 'editMode')}>{t('txt-edit')}</button>
               <button className='standard btn no-padding' style={{right: this.getBtnPos('back')}}>
-                <Link to={{pathname: '/ChewbaccaWeb/configuration/topology/inventory', state: 'tableList'}}>{t('txt-back')}</Link>
+                <Link to={{pathname: '/SCP/configuration/topology/inventory', state: 'tableList'}}>{t('txt-back')}</Link>
               </button>
             </div>
           }
@@ -629,7 +629,7 @@ class AutoSettings extends Component {
               ]}
               onChange={this.handleADchange.bind(this, 'type')}
               value={adData.type}
-              disabled={activeContent === 'viewMode' || !statusEnable.ad_ldap} />
+              disabled={activeContent === 'viewMode'} />
             <button className='last' style={{right: '85px'}} onClick={this.handleADtest} disabled={!statusEnable.ad_ldap}>{t('network-inventory.txt-testQuery')}</button>
             <ToggleBtn
               className='toggle-btn'
@@ -644,7 +644,7 @@ class AutoSettings extends Component {
                 id='autoSettingsIP'
                 onChange={this.handleADchange.bind(this, 'ip')}
                 value={adData.ip}
-                readOnly={activeContent === 'viewMode' || !statusEnable.ad_ldap} />
+                readOnly={activeContent === 'viewMode'} />
             </div>
             <div className='group'>
               <label htmlFor='autoSettingsPort'>Port</label>
@@ -652,7 +652,7 @@ class AutoSettings extends Component {
                 id='autoSettingsPort'
                 onChange={this.handleADchange.bind(this, 'port')}
                 value={adData.port}
-                readOnly={activeContent === 'viewMode' || !statusEnable.ad_ldap} />
+                readOnly={activeContent === 'viewMode'} />
             </div>
             <div className='group' style={{width: '50%'}}>
               <label htmlFor='autoSettingsDomain'>Domain</label>
@@ -660,7 +660,7 @@ class AutoSettings extends Component {
                 id='autoSettingsDomain'
                 onChange={this.handleADchange.bind(this, 'domain')}
                 value={adData.domain}
-                readOnly={activeContent === 'viewMode' || !statusEnable.ad_ldap} />
+                readOnly={activeContent === 'viewMode'} />
             </div>
             <div className='group' style={{width: '50%'}}>
               <label htmlFor='autoSettingsUsername'>Username</label>
@@ -668,7 +668,7 @@ class AutoSettings extends Component {
                 id='autoSettingsUsername'
                 onChange={this.handleADchange.bind(this, 'username')}
                 value={adData.username}
-                readOnly={activeContent === 'viewMode' || !statusEnable.ad_ldap} />
+                readOnly={activeContent === 'viewMode'} />
             </div>
             <div className='group' style={{width: '50%'}}>
               <label htmlFor='autoSettingsPassword'>Password</label>
@@ -677,7 +677,7 @@ class AutoSettings extends Component {
                 type='password'
                 onChange={this.handleADchange.bind(this, 'password')}
                 value={adData.password}
-                readOnly={activeContent === 'viewMode' || !statusEnable.ad_ldap} />
+                readOnly={activeContent === 'viewMode'} />
             </div>
           </div>
 
@@ -700,7 +700,7 @@ class AutoSettings extends Component {
                   {value: '24', text: t('events.connections.txt-last24h')}
                 ]}
                 value={netflowData.time}
-                readOnly={activeContent === 'viewMode' || !statusEnable.netflow} />
+                readOnly={activeContent === 'viewMode'} />
             </div>
           </div>
 

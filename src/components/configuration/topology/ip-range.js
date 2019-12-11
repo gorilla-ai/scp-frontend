@@ -40,15 +40,15 @@ class IpRange extends Component {
             {value: 'public', text: 'Public'}
           ]}
           value={value.type}
-          readOnly={activeContent === 'viewMode' || !statusEnable.ipRange} />
+          readOnly={activeContent === 'viewMode'} />
         <Input
           onChange={this.handleDataChange.bind(this, 'ip')}
           value={value.ip}
-          readOnly={activeContent === 'viewMode' || !statusEnable.ipRange} />
+          readOnly={activeContent === 'viewMode'} />
         <Input
           onChange={this.handleDataChange.bind(this, 'mask')}
           value={value.mask}
-          readOnly={activeContent === 'viewMode' || !statusEnable.ipRange} />
+          readOnly={activeContent === 'viewMode'} />
       </div>
     )
   }

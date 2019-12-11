@@ -516,9 +516,9 @@ class FloorMap extends Component {
   /**
    * Reset floor plan data before closing the modal dialog
    * @method
-   * @param {string} option - option to reload the data
+   * @param {string} options - option to reload the data
    */
-  closeDialog = (option) => {
+  closeDialog = (options) => {
     let tempFloorPlan = {...this.state.floorPlan};
     tempFloorPlan.type = '';
     tempFloorPlan.name = tempFloorPlan.currentAreaName;
@@ -528,7 +528,7 @@ class FloorMap extends Component {
       floorPlan: tempFloorPlan,
       previewFloorMap: ''
     }, () => {
-      this.props.closeDialog(option, 'all');
+      this.props.closeDialog(options, 'all');
     });
   }
   render() {
