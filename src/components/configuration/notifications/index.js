@@ -404,6 +404,7 @@ class Notifications extends Component {
    * @method
    */
   testEmailConfirm = () => {
+    const {baseUrl, contextRoot} = this.props;
     const {testEmails} = this.state;
     let dataParams = '';
 
@@ -411,14 +412,17 @@ class Notifications extends Component {
       dataParams += '&receipts=' + val;
     })
 
-    this.ah.one({
+    ah.one({
       url: `${baseUrl}/api/notification/mailServer/_test?` + dataParams,
       type: 'GET'
     })
     .then(data => {
-      if (data.ret === 0) {
-        this.closeDialog();
+      if (data.rt) {
+        helper.showPopupMsg(t('notifications.txt-sendSuccess'));
+      } else {
+        helper.showPopupMsg(t('notifications.txt-sendFail'));
       }
+      this.closeDialog();
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);

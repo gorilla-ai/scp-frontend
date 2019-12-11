@@ -21,11 +21,11 @@ import withLocale from '../../../hoc/locale-provider'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const SERVICE_TYPE_LIST = {
-  'NETTRAP': ['lastDataUpdDT', 'attackCnt'],
-  'NETFLOW-IDS-SURICATA': ['agentMode', 'lastStatus', 'TCPDUMP', 'threatIntellLastUpdDT'],
-  'IPS-NETPROBE': ['lastStatus', 'lastStatusUpdDT', 'threatIntellLastUpdDT', 'rx_pkts', 'tx_pkts', 'attackCnt'],
-  'IDS-SURICATA': ['lastStatus', 'lastStatusUpdDT', 'threatIntellLastUpdDT'],
-  'DNS': ['lastDataUpdDT', 'threatIntellLastUpdDT']
+  'NETTRAP': ['lastAlertDataUpdDT', 'lastStatusUpdDT', 'attackCnt'],
+  'IPS-NETPROBE': ['lastAlertDataUpdDT', 'lastStatusUpdDT', 'threatIntellLastUpdDT', 'rx_pkts', 'tx_pkts', 'attackCnt'],
+  'NETFLOW-IDS-SURICATA': ['lastAlertDataUpdDT', 'lastStatusUpdDT', 'threatIntellLastUpdDT', 'lastStatus', 'agentMode', 'TCPDUMP'],
+  'IDS-SURICATA': ['lastAlertDataUpdDT', 'lastStatusUpdDT', 'threatIntellLastUpdDT'],
+  'DNS': ['lastAlertDataUpdDT', 'lastStatusUpdDT', 'threatIntellLastUpdDT']
 };
 
 let t = null;
@@ -142,11 +142,7 @@ class Edge extends Component {
       if (allValue.honeyPotHostDTO) {
         return <li key={val}><span>{descHeader}:</span> {allValue.honeyPotHostDTO[val]}</li>
       }
-    } else if (val === 'lastDataUpdDT') {
-      if (allValue.honeyPotHostDTO && allValue.honeyPotHostDTO[val]) {
-        return <li key={val}><span>{descHeader}:</span> {helper.getFormattedDate(allValue.honeyPotHostDTO[val], 'local')}</li>
-      }
-    } else if (val === 'lastStatusUpdDT' || val === 'threatIntellLastUpdDT') {
+    } else if (val === 'lastAlertDataUpdDT' || val === 'lastStatusUpdDT' || val === 'threatIntellLastUpdDT') {
       return <li key={val}><span>{descHeader}:</span> {helper.getFormattedDate(allValue[val], 'local')}</li>
     } else if (val === 'TCPDUMP') {
       if (allValue.agentMode === 'TCPDUMP') {
@@ -913,7 +909,6 @@ class Edge extends Component {
               <div className='main-content'>
                 <header className='main-header'>{t('txt-edge')}</header>
                 <button className='standard btn last'><Link to='/SCP/configuration/notifications'>{t('notifications.txt-settings')}</Link></button>
-                {/*<button className='standard btn' style={{right: this.getBtnPos('add')}}>{t('edge-management.txt-threatSettings')}</button>*/}
                 <TableContent
                   dataTableData={edge.dataContent}
                   dataTableFields={edge.dataFields}

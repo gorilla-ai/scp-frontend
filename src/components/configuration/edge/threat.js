@@ -89,32 +89,38 @@ class ThreatIntelligence extends Component {
 
         _.keys(data[0])
         .forEach(key => {
-          indicatorsData.push({
-            key,
-            doc_count: data[0][key]
-          });
+          if (data[0][key] > 0) {
+            indicatorsData.push({
+              key,
+              doc_count: data[0][key]
+            });
+          }
         });
 
         _.keys(data[1])
         .forEach(key => {
           _.keys(data[1][key])
           .forEach(key2 => {
-            indicatorsTrendData.push({
-              day: parseInt(Moment(helper.getFormattedDate(key2, 'local')).format('x')),
-              count: data[1][key][key2],
-              indicator: key
-            })
+            if (data[1][key][key2] > 0) {
+              indicatorsTrendData.push({
+                day: parseInt(Moment(helper.getFormattedDate(key2, 'local')).format('x')),
+                count: data[1][key][key2],
+                indicator: key
+              })
+            }
           })
         });
 
         _.keys(data[2])
         .forEach(key => {
           _.forEach(data[2][key], val => {
-            acuIndicatorsTrendData.push({
-              day: parseInt(Moment(helper.getFormattedDate(val.time, 'local')).format('x')),
-              count: val.counts,
-              indicator: key
-            })
+            if (val.counts > 0) {
+              acuIndicatorsTrendData.push({
+                day: parseInt(Moment(helper.getFormattedDate(val.time, 'local')).format('x')),
+                count: val.counts,
+                indicator: key
+              })
+            }
           })
         });
 

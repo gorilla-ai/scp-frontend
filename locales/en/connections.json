@@ -306,11 +306,12 @@
     "txt-authentication": "Authentication",
     "txt-senderAccount": "Sender Account",
     "txt-senderPassword": "Sender Password",
-    "txt-recipientEmail": "Recipient Email"
+    "txt-recipientEmail": "Recipient Email",
+    "txt-sendSuccess": "Email has been sent successfully",
+    "txt-sendFail": "Email delivery failed"
   },
 
   "edge-management": {
-    "txt-threatSettings": "Threat Settings",
     "txt-uploadThreat": "Upload Threat",
     "txt-basicInfo": "Info",
     "txt-editEdge": "Edit Edge",

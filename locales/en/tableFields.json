@@ -508,7 +508,7 @@
     "keywords": "Keywords",
     "serviceType": "Service Type",
     "connectionStatus": "Connection Status",
-    "txt-lastDataUpdDT": "Latest data update time",
+    "txt-lastAlertDataUpdDT": "Latest alert data update time",
     "txt-attackCnt": "Attack count",
     "txt-agentMode": "Monitor mode",
     "txt-lastStatus": "Status",
