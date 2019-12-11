@@ -828,22 +828,24 @@ class Syslog extends Component {
       type: 'GET'
     })
     .then(data => {
+      if (data) {
       const hostsArr = _.map(data.hosts, (key, value) => {
-        return {
-          ip: value,
-          events: key
+          return {
+            ip: value,
+            events: key
+          };
+        });
+
+        const tempEventsData = {
+          events: data.events,
+          hosts: hostsArr
         };
-      });
 
-      const tempEventsData = {
-        events: data.events,
-        hosts: hostsArr
-      };
-
-      this.setState({
-        clickTimeline: true,
-        eventsData: tempEventsData
-      });
+        this.setState({
+          clickTimeline: true,
+          eventsData: tempEventsData
+        });     
+      }
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);

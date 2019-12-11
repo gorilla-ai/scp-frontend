@@ -319,9 +319,6 @@ class Notifications extends Component {
           {activeContent === 'viewMode' && emails[val.type].emails.length > 0 &&
             <div className='flex-item'>{emails[val.type].emails.map(this.displayEmail)}</div>
           }
-          {activeContent === 'viewMode' && emails[val.type].emails.length === 0 &&
-            <div>N/A</div>
-          }
           {activeContent === 'editMode' &&
             <ReactMultiEmail
               emails={emails[val.type].emails}

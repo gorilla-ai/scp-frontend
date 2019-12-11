@@ -64,16 +64,16 @@ class Config extends Component {
   getActiveFrame = (frame) => {
     const path = window.location.pathname;
     const pattern = {
-      notifications: '/ChewbaccaWeb/configuration/notifications',
-      edge: '/ChewbaccaWeb/configuration/edge/edge',
-      threat: '/ChewbaccaWeb/configuration/edge/threat',
-      inventory: '/ChewbaccaWeb/configuration/topology/inventory',
-      owner: '/ChewbaccaWeb/configuration/topology/owner',
-      map: '/ChewbaccaWeb/configuration/topology/map',
-      syslog: '/ChewbaccaWeb/configuration/syslog',
-      account: '/ChewbaccaWeb/configuration/user/account',
-      privileges: '/ChewbaccaWeb/configuration/user/privileges',
-      serviceStatus: '/ChewbaccaWeb/configuration/service-status'
+      notifications: '/SCP/configuration/notifications',
+      edge: '/SCP/configuration/edge/edge',
+      threat: '/SCP/configuration/edge/threat',
+      inventory: '/SCP/configuration/topology/inventory',
+      owner: '/SCP/configuration/topology/owner',
+      map: '/SCP/configuration/topology/map',
+      syslog: '/SCP/configuration/syslog',
+      account: '/SCP/configuration/user/account',
+      privileges: '/SCP/configuration/user/privileges',
+      serviceStatus: '/SCP/configuration/service-status'
     };
 
     return path === pattern[frame];
@@ -106,7 +106,7 @@ class Config extends Component {
     return (
       <div className={cx('left-nav', {'collapse': !showContent})}>
         <div className='item frame notifications'>
-          <Link to={{pathname: '/ChewbaccaWeb/configuration/notifications', state: 'viewMode'}}>
+          <Link to={{pathname: '/SCP/configuration/notifications', state: 'viewMode'}}>
             <span className={`${this.getActiveFrame('notifications')}`}>{t('notifications.txt-settings')}</span>
           </Link>
         </div>
@@ -119,12 +119,12 @@ class Config extends Component {
         {openEdgeManagement &&
           <div className='item open-edge'>
             <div className='subframe'>
-              <Link to={{pathname: '/ChewbaccaWeb/configuration/edge/edge', state: 'tableList'}}>
+              <Link to={{pathname: '/SCP/configuration/edge/edge', state: 'tableList'}}>
                 <span className={`${this.getActiveFrame('edge')}`}>{t('txt-edge')}</span>
               </Link>
             </div>
             <div className='subframe'>
-              <Link to='/ChewbaccaWeb/configuration/edge/threat'>
+              <Link to='/SCP/configuration/edge/threat'>
                 <span className={`${this.getActiveFrame('threat')}`}>{t('txt-threatIntelligence')}</span>
               </Link>
             </div>
@@ -139,17 +139,17 @@ class Config extends Component {
         {openTopology &&
           <div className='item open-topology'>
             <div className='subframe'>
-              <Link to={{pathname: '/ChewbaccaWeb/configuration/topology/inventory', state: 'tableList'}}>
+              <Link to={{pathname: '/SCP/configuration/topology/inventory', state: 'tableList'}}>
                 <span className={`${this.getActiveFrame('inventory')}`}>{t('txt-networkInventory')}</span>
               </Link>
             </div>
             <div className='subframe'>
-              <Link to={{pathname: '/ChewbaccaWeb/configuration/topology/owner', state: 'tableList'}}>
+              <Link to={{pathname: '/SCP/configuration/topology/owner', state: 'tableList'}}>
                 <span className={`${this.getActiveFrame('owner')}`}>{t('txt-network-owner')}</span>
               </Link>
             </div>
             <div className='subframe'>
-              <Link to='/ChewbaccaWeb/configuration/topology/map'>
+              <Link to='/SCP/configuration/topology/map'>
                 <span className={`${this.getActiveFrame('map')}`}>{t('txt-network-map')}</span>
               </Link>
             </div>
@@ -157,7 +157,7 @@ class Config extends Component {
         }
 
         <div className='item frame syslog-manage'>
-          <Link to='/ChewbaccaWeb/configuration/syslog'>
+          <Link to='/SCP/configuration/syslog'>
             <span className={`${this.getActiveFrame('syslog')}`}>{t('txt-syslogManage')}</span>
           </Link>
         </div>
@@ -170,12 +170,12 @@ class Config extends Component {
         {openAccount &&
           <div className='item open-account'>
             <div className='subframe'>
-              <Link to='/ChewbaccaWeb/configuration/user/account'>
+              <Link to='/SCP/configuration/user/account'>
                 <span className={`${this.getActiveFrame('account')}`}>{t('txt-account')}</span>
               </Link>
             </div>
             <div className='subframe'>
-              <Link to='/ChewbaccaWeb/configuration/user/privileges'>
+              <Link to='/SCP/configuration/user/privileges'>
                 <span className={`${this.getActiveFrame('privileges')}`}>{t('txt-privileges')}</span>
               </Link>
             </div>
@@ -183,7 +183,7 @@ class Config extends Component {
         }
 
         <div className='item frame service-status last'>
-          <Link to='/ChewbaccaWeb/configuration/service-status'>
+          <Link to='/SCP/configuration/service-status'>
             <span className={`${this.getActiveFrame('serviceStatus')}`}>{t('txt-serviceStatus')}</span>
           </Link>
         </div>

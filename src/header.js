@@ -37,7 +37,7 @@ class Header extends Component {
    */
   getActiveTab = (tab) => {
     const activeRoute = this.props.location.pathname;
-    const pattern = /^(\/ChewbaccaWeb[\/]?)$/i;
+    const pattern = /^(\/SCP[\/]?)$/i;
     const pathArr = activeRoute.split('/');
 
     if (activeRoute.match(pattern) && tab === 'dashboard') {
@@ -138,22 +138,22 @@ class Header extends Component {
         <div className='main-header'>
           <header id='g-header'>
             <div className='title'>
-              <Link to='/ChewbaccaWeb'>{companyName}</Link>
+              <Link to='/SCP'>{companyName}</Link>
             </div>
 
             <div>
               <div className='main-nav'>
                 {sessionRights.Module_Common &&
-                  <Link to='/ChewbaccaWeb/dashboard/statistics' className={cx('item', {'active': this.getActiveTab('dashboard')})}>{t('txt-dashboard')}</Link>
+                  <Link to='/SCP/dashboard/statistics' className={cx('item', {'active': this.getActiveTab('dashboard')})}>{t('txt-dashboard')}</Link>
                 }
                 {sessionRights.Module_Common &&
-                  <Link to='/ChewbaccaWeb/alerts' className={cx('item', {'active': this.getActiveTab('alerts')})}>{t('txt-alertMenu')}</Link>
+                  <Link to='/SCP/alerts' className={cx('item', {'active': this.getActiveTab('alerts')})}>{t('txt-alertMenu')}</Link>
                 }
                 {sessionRights.Module_Common &&
-                  <Link to='/ChewbaccaWeb/events/syslog' className={cx('item', {'active': this.getActiveTab('events')})}>{t('txt-events')}</Link>
+                  <Link to='/SCP/events/syslog' className={cx('item', {'active': this.getActiveTab('events')})}>{t('txt-events')}</Link>
                 }
                 {sessionRights.Module_Config &&
-                  <Link to='/ChewbaccaWeb/configuration/edge/edge' className={cx('item', {'active': this.getActiveTab('configuration')})}>{t('txt-configuration')}</Link>
+                  <Link to='/SCP/configuration/edge/edge' className={cx('item', {'active': this.getActiveTab('configuration')})}>{t('txt-configuration')}</Link>
                 }
               </div>
             </div>

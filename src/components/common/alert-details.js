@@ -763,7 +763,7 @@ class AlertDetails extends Component {
       } else if (value === 'destIp') {
         ipParam = `&destIp=${destIp}`;
       }
-      linkUrl = `/ChewbaccaWeb/events/netflow?eventDttm=${eventDatetime}${ipParam}&lng=${language}`;
+      linkUrl = `/SCP/events/netflow?eventDttm=${eventDatetime}${ipParam}&lng=${language}`;
     } else if (type === 'virustotal') {
       if (value === 'srcIp') {
         ipParam = srcIp;
@@ -1077,11 +1077,11 @@ class AlertDetails extends Component {
     const topoInfo = alertInfo[type].topology;
     const picPath = alertInfo[type].ownerPic ? alertInfo[type].ownerPic : contextRoot + '/images/empty_profile.png';
     const url_login = {
-      pathname: '/ChewbaccaWeb/honeynet/employee-record',
+      pathname: '/SCP/honeynet/employee-record',
       search: `?lng=${language}`
     };
     const url_access = {
-      pathname: '/ChewbaccaWeb/honeynet/employee-record',
+      pathname: '/SCP/honeynet/employee-record',
       search: `?eventDttm=${alertData._eventDttm_}&lng=${language}`,
       state: {
         alertData

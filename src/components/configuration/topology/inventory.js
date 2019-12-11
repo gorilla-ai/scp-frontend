@@ -1225,7 +1225,7 @@ class NetworkInventory extends Component {
    */
   showScanInfo = () => {
     const actions = {
-      confirm: {text: t('txt-close'), handler: this.closeDialog.bind(this, 'reload')}
+      confirm: {text: t('txt-close'), handler: this.closeDialog}
     };
 
     return (
@@ -1364,8 +1364,11 @@ class NetworkInventory extends Component {
         const inventoryParam = queryString.parse(location.search);
         formTypeEdit = false;
 
-        this.getAreaData(floorList[0].value);
-        this.getSeatData(floorList[0].value);
+        if (!_.isEmpty(floorList)) {
+          this.getAreaData(floorList[0].value);
+          this.getSeatData(floorList[0].value);
+        }
+
         this.setState({
           currentDeviceData: {}
         });
@@ -1375,7 +1378,7 @@ class NetworkInventory extends Component {
         }
       }
 
-      if (!currentDeviceData.ownerUUID) {
+      if (!currentDeviceData.ownerUUID && ownerList[0]) {
         this.handleOwnerChange(ownerList[0].value);
       }
 
@@ -1393,11 +1396,15 @@ class NetworkInventory extends Component {
     this.setState({
       activeContent
     }, () => {
-      if (activeContent === 'dataInfo') {
-        this.getOwnerSeat(currentDeviceData);
-      }
-      if (activeContent === 'tableList') {
-        this.getDeviceData();
+      const inventoryParam = queryString.parse(location.search);
+
+      if (!_.isEmpty(inventoryParam)) {
+        if (activeContent === 'dataInfo') {
+          this.getOwnerSeat(currentDeviceData);
+        }
+        if (activeContent === 'tableList') {
+          this.getDeviceData();
+        }
       }
     });
   }
@@ -2384,7 +2391,7 @@ class NetworkInventory extends Component {
                   onChange={this.handleSubTabChange}>
                 </Tabs>
 
-                <button className='standard btn last'><Link to='/ChewbaccaWeb/configuration/notifications'>{t('notifications.txt-settings')}</Link></button>
+                <button className='standard btn last'><Link to='/SCP/configuration/notifications'>{t('notifications.txt-settings')}</Link></button>
                 <button className='standard btn' style={{right: this.getBtnPos('auto')}} onClick={this.toggleContent.bind(this, 'showAuto')}>{t('network-inventory.txt-autoSettings')}</button>
                 <button className='standard btn' style={{right: this.getBtnPos('manual')}} onClick={this.toggleContent.bind(this, 'showForm', 'new')}>{t('network-inventory.txt-AddIP')}</button>
 

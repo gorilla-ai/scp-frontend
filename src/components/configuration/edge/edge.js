@@ -912,7 +912,7 @@ class Edge extends Component {
             {activeContent === 'tableList' &&
               <div className='main-content'>
                 <header className='main-header'>{t('txt-edge')}</header>
-                <button className='standard btn last'><Link to='/ChewbaccaWeb/configuration/notifications'>{t('notifications.txt-settings')}</Link></button>
+                <button className='standard btn last'><Link to='/SCP/configuration/notifications'>{t('notifications.txt-settings')}</Link></button>
                 {/*<button className='standard btn' style={{right: this.getBtnPos('add')}}>{t('edge-management.txt-threatSettings')}</button>*/}
                 <TableContent
                   dataTableData={edge.dataContent}
