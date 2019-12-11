@@ -3,7 +3,6 @@ import _ from 'lodash'
 import i18n from 'i18next'
 import PropTypes from 'prop-types';
 import cx from 'classnames'
-import queryString from 'query-string'
 
 import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
