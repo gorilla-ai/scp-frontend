@@ -37,8 +37,8 @@ const PIE_CHARTS_LIST = [
     key: 'level'
   },
   {
-    id: 'Top10ExternalPotSrcCountry',
-    key: 'agg'
+    id: 'Top10ExternalSrcCountry',
+    key: 'srcCountry'
   },
   {
     id: 'Top10InternalIp',
@@ -444,7 +444,45 @@ class DashboardStats extends Component {
           diskMetricData
         });
       }
-    }) 
+    })
+  }
+  /**
+   * Redirect to Alerts or Events page
+   * @method
+   * @param {string} chartID - unique chart ID
+   * @param {object} chart - chart overall data
+   * @param {array.<object>} data - chart specific data
+   * @param {object} info - chart info
+   */
+  getChartRedirect = (chartID, chart, chartData, info) => {
+    const {baseUrl, contextRoot} = this.props;
+    const severityChart = ['alertThreatLevel', ];
+    const ipChart = ['Top10InternalIp', 'Top10InternalMaskedIp', 'maskedIP'];
+    const countryChart = ['Top10ExternalSrcCountry'];
+    const syslogChart = ['Top10SyslogConfigSource'];
+    let data = chartData[0].key;
+    let type = '';
+
+    if (_.includes(syslogChart, chartID)) {
+      const url = `${baseUrl}${contextRoot}/events/syslog?configSource=${data}`;
+      window.open(url, '_blank');
+      return;
+    }
+
+    if (_.includes(severityChart, chartID)) {
+      type = 'severity';
+    } else if (_.includes(ipChart, chartID)) {
+      type = 'ip';
+
+      if (chartID === 'maskedIP') {
+        data = chartData[0].ip;
+      }
+    } else if (_.includes(countryChart, chartID)) {
+      type = 'country';
+    }
+
+    const url = `${baseUrl}${contextRoot}/alerts?type=${type}&data=${data}`;
+    window.open(url, '_blank');
   }
   /**
    * Display pie chart and table chart
@@ -466,6 +504,7 @@ class DashboardStats extends Component {
             keyLabels={alertChartsList[i].chartKeyLabels}
             valueLabels={alertChartsList[i].chartValueLabels}
             dataCfg={alertChartsList[i].chartDataCfg}
+            onClick={this.getChartRedirect.bind(this, alertChartsList[i].chartID)}
             colors={{
               key: ALERT_LEVEL_COLORS
             }} />
@@ -542,6 +581,7 @@ class DashboardStats extends Component {
                 <BarChart
                   stacked
                   vertical
+                  onClick={this.getChartRedirect.bind(this, 'maskedIP')}
                   {...maskedIpChartAttributes} />                  
               </div>
             }

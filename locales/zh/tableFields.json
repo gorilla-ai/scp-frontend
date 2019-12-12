@@ -511,7 +511,7 @@
     "txt-lastAlertDataUpdDT": "上次告警資料更新時間",
     "txt-attackCnt": "誘捕攻擊次數",
     "txt-agentMode": "網路監控模式",
-    "txt-lastStatus": "狀態",
+    "txt-lastStatus": "最新狀態",
     "txt-lastStatusUpdDT": "上次狀態更新時間",
     "txt-threatIntellLastUpdDT": "上次情資更新時間",
     "txt-rx_pkts": "接收封包",
