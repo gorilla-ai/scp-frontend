@@ -187,7 +187,7 @@ class AlertController extends Component {
 
     if (!_.isEmpty(alertsParam)) {
       const type = alertsParam.type;
-      const data = alertsParam.data
+      const data = alertsParam.data;
       let query = '';
 
       if (type === 'severity') {

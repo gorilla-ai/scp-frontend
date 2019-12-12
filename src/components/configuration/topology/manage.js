@@ -332,16 +332,24 @@ class Manage extends Component {
       };
     }
 
-    helper.getAjaxData('POST', url, requestData)
+    ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
     .then(data => {
-      if (data) {
+      if (data.ret === 0) {
         this.setState({
           openName: false
         });
         this.getNameList(tab.department ? 'department' : 'title');
       }
       return null;
-    });
+    })
+    .catch(err => {
+      this.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Close open name dialog

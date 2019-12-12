@@ -45,7 +45,7 @@ class FileUpload extends Component {
 
     if (fileType == 'indicators') {
       validate = {
-        extension: '.json',
+        extension: '.zip',
         t: this.getErrorMsg
       };
     }

@@ -342,7 +342,7 @@ class Syslog extends Component {
     const {config} = this.state;
     let flag = false;
 
-    if (!config.port || !config.format || !config.input || !config.pattern) {
+    if (!config.port || !config.input || !config.pattern) {
       flag = true;
     }
 
