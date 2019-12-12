@@ -644,6 +644,10 @@ class NetworkInventory extends Component {
     const {baseUrl, contextRoot} = this.props;
     const mapAreaUUID = areaUUID;
 
+    if (!areaUUID) {
+      return;
+    }
+
     this.ah.one({
       url: `${baseUrl}/api/area?uuid=${mapAreaUUID}`,
       type: 'GET'
@@ -695,6 +699,10 @@ class NetworkInventory extends Component {
     const dataObj = {
       areaUUID: area
     };
+
+    if (!areaUUID) {
+      return;
+    }
 
     this.ah.one({
       url: `${baseUrl}/api/seat/_search`,
@@ -1256,10 +1264,10 @@ class NetworkInventory extends Component {
   /**
    * Close HMD scan info dialog
    * @method
-   * @param {string} option - option for 'reload'
+   * @param {string} options - option for 'reload'
    * @param {string} all - option for 'all'
    */
-  closeDialog = (option, all) => {
+  closeDialog = (options, all) => {
     this.setState({
       showScanInfo: false,
       showSeatData: false,
@@ -1273,7 +1281,7 @@ class NetworkInventory extends Component {
         coordY: ''
       }
     }, () => {
-      if (option === 'reload') {
+      if (options === 'reload') {
         if (all === 'all') { //reload everything (from edit floor map)
           this.getFloorPlan();
         } else { //reload area and seat only (no tree)

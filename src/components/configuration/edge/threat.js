@@ -278,74 +278,70 @@ class ThreatIntelligence extends Component {
 
               <div className='main-statistics'>
                 <div className='statistics-content'>
-                  {indicatorsData.length > 0 &&
-                    <div className='chart-group'>
-                      <PieChart
-                        title={t('edge-management.statistics.txt-sourceIndicators')}
-                        data={indicatorsData}
-                        keyLabels={{
+                  <div className='chart-group'>
+                    <PieChart
+                      title={t('edge-management.statistics.txt-sourceIndicators')}
+                      data={indicatorsData}
+                      keyLabels={{
+                        key: t('txt-indicator'),
+                        doc_count: t('txt-count')
+                      }}
+                      valueLabels={{
+                        'Pie Chart': {
                           key: t('txt-indicator'),
                           doc_count: t('txt-count')
-                        }}
-                        valueLabels={{
-                          'Pie Chart': {
-                            key: t('txt-indicator'),
-                            doc_count: t('txt-count')
-                          }
-                        }}
-                        dataCfg={{
-                          splitSlice: ['key'],
-                          sliceSize: 'doc_count'
-                        }} />
-                    </div>
-                  }
-                  {indicatorsTrendData.length > 0 &&
-                    <div className='chart-group'>
-                      <header className='main-header'>{t('edge-management.statistics.txt-indicatorsTrend')}</header>
-                      <BarChart
-                        stacked
-                        vertical
-                        legend={{
-                          enabled:true
-                        }}
-                        data={indicatorsTrendData}
-                        onTooltip={this.onTooltip}
-                        dataCfg={{
-                          x: 'day',
-                          y: 'count',
-                          splitSeries: 'indicator'
-                        }}
-                        xAxis={{
-                          type: 'datetime',
-                          dateTimeLabelFormats: {
-                            day: '%Y-%m-%d'
-                          }
-                        }} />
-                    </div>
-                  }
-                  {acuIndicatorsTrendData.length > 0 &&
-                    <div className='chart-group'>
-                      <header className='main-header'>{t('edge-management.statistics.txt-acuIndicatorsTrend')}</header>
-                      <LineChart
-                        stacked
-                        legend={{
-                          enabled: true
-                        }}
-                        data={acuIndicatorsTrendData}
-                        onTooltip={this.onTooltip}
-                        dataCfg={{
-                          x: 'day',
-                          y: 'count',
-                          splitSeries: 'indicator'
-                        }}
-                        xAxis={{
-                          type: 'datetime',
-                          dateTimeLabelFormats: {
-                            day: '%Y-%m-%d'
-                          }
-                        }} />
-                    </div>
-                  }
+                        }
+                      }}
+                      dataCfg={{
+                        splitSlice: ['key'],
+                        sliceSize: 'doc_count'
+                      }} />
+                  </div>
+
+                  <div className='chart-group'>
+                    <header className='main-header'>{t('edge-management.statistics.txt-indicatorsTrend')}</header>
+                    <BarChart
+                      stacked
+                      vertical
+                      legend={{
+                        enabled:true
+                      }}
+                      data={indicatorsTrendData}
+                      onTooltip={this.onTooltip}
+                      dataCfg={{
+                        x: 'day',
+                        y: 'count',
+                        splitSeries: 'indicator'
+                      }}
+                      xAxis={{
+                        type: 'datetime',
+                        dateTimeLabelFormats: {
+                          day: '%Y-%m-%d'
+                        }
+                      }} />
+                  </div>
+
+                  <div className='chart-group'>
+                    <header className='main-header'>{t('edge-management.statistics.txt-acuIndicatorsTrend')}</header>
+                    <LineChart
+                      stacked
+                      legend={{
+                        enabled: true
+                      }}
+                      data={acuIndicatorsTrendData}
+                      onTooltip={this.onTooltip}
+                      dataCfg={{
+                        x: 'day',
+                        y: 'count',
+                        splitSeries: 'indicator'
+                      }}
+                      xAxis={{
+                        type: 'datetime',
+                        dateTimeLabelFormats: {
+                          day: '%Y-%m-%d'
+                        }
+                      }} />
+                  </div>
                 </div>
               </div>
             </div>

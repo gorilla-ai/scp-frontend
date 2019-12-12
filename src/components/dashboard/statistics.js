@@ -78,8 +78,8 @@ class DashboardStats extends Component {
         //to: '2019-08-07T02:02:13Z'
       },
       updatedTime: helper.getFormattedDate(Moment()),
-      alertChartAttributes: {},
-      maskedIpChartAttributes: {},
+      alertDataArr: [],
+      internalMaskedIp: [],
       pieCharts: {},
       alertChartsList: [],
       dnsMetricData: {},
@@ -225,24 +225,6 @@ class DashboardStats extends Component {
         return accumulator.concat(currentValue)
       }, []);
 
-      const alertChartAttributes = { //For Alert severity bar chart
-        title: t('dashboard.txt-alertStatistics'),
-        data: alertDataArr,
-        colors: ALERT_LEVEL_COLORS,
-        onTooltip: this.onTooltip,
-        dataCfg: {
-          x: 'time',
-          y: 'number',
-          splitSeries: 'rule'
-        },
-        xAxis: {
-          type: 'datetime',
-          dateTimeLabelFormats: {
-            day: '%H:%M'
-          }
-        }
-      };
-
       if (data[0].aggregations) {
         maskedIPdata = data[0].aggregations.Top10InternalMaskedIp;
 
@@ -258,26 +240,6 @@ class DashboardStats extends Component {
           }
         })
       }
-
-      const maskedIpChartAttributes = { //For internal masked IP bar chart
-        title: t('dashboard.txt-alertMaskedIpStatistics'),
-        data: internalMaskedIp,
-        colors: ALERT_LEVEL_COLORS,
-        onTooltip: true,
-        dataCfg: {
-          splitSeries: 'severity',
-          x: 'ip',
-          y: 'number'
-        },
-        xAxis: {
-          type:'category'
-        },
-        keyLabels: {
-          ip: 'IP',
-          number: t('txt-count'),
-          severity: t('txt-severity')
-        }
-      };
 
       /* Get pie charts data */
       _.forEach(PIE_CHARTS_LIST, (val, i) => {
@@ -333,7 +295,9 @@ class DashboardStats extends Component {
       }
 
       const dnsInfo = PIE_CHARTS_LIST[5];
-      let dnsMetricData = {};
+      let dnsMetricData = {
+        id: 'dns-histogram'
+      };
 
       if (data[2].aggregations) {
         const dnsQueryData = data[2].aggregations[dnsInfo.id][dnsInfo.path].buckets;
@@ -343,26 +307,22 @@ class DashboardStats extends Component {
         }
 
         const dnsData = data[2].aggregations.session_histogram;
-        dnsMetricData = {
-          id: 'dns-histogram',
-          data: [{
-            doc_count: dnsData.doc_count,
-            MegaPackages: dnsData.MegaPackages,
-            MegaBytes: dnsData.MegaBytes
-          }],
-          agg: ['doc_count', 'MegaPackages', 'MegaBytes'],
-          keyLabels: {
-            doc_count: t('dashboard.txt-session'),
-            MegaPackages: t('dashboard.txt-packet'),
-            MegaBytes: t('dashboard.txt-databyte')
-          }
+        dnsMetricData.data = [{
+          doc_count: dnsData.doc_count,
+          MegaPackages: dnsData.MegaPackages,
+          MegaBytes: dnsData.MegaBytes
+        }];
+        dnsMetricData.agg = ['doc_count', 'MegaPackages', 'MegaBytes'];
+        dnsMetricData.keyLabels = {
+          doc_count: t('dashboard.txt-session'),
+          MegaPackages: t('dashboard.txt-packet'),
+          MegaBytes: t('dashboard.txt-databyte')
         };
       }
 
       this.setState({
         updatedTime: helper.getFormattedDate(Moment()),
-        alertChartAttributes,
-        maskedIpChartAttributes,
+        alertDataArr,
         internalMaskedIp,
         pieCharts,
         dnsMetricData
@@ -385,28 +345,26 @@ class DashboardStats extends Component {
     let alertChartsList = [];
 
     _.forEach(PIE_CHARTS_LIST, val => {
-      if (pieCharts[val.id].length > 0) {
-        alertChartsList.push({
-          chartID: val.id,
-          chartTitle: t('dashboard.txt-' + val.id),
-          chartKeyLabels: {
+      alertChartsList.push({
+        chartID: val.id,
+        chartTitle: t('dashboard.txt-' + val.id),
+        chartKeyLabels: {
+          key: t('attacksFields.' + val.key),
+          doc_count: t('txt-count')
+        },
+        chartValueLabels: {
+          'Pie Chart': {
             key: t('attacksFields.' + val.key),
             doc_count: t('txt-count')
-          },
-          chartValueLabels: {
-            'Pie Chart': {
-              key: t('attacksFields.' + val.key),
-              doc_count: t('txt-count')
-            }
-          },
-          chartDataCfg: {
-            splitSlice: ['key'],
-            sliceSize: 'doc_count'
-          },
-          chartData: pieCharts[val.id],
-          type: 'pie'
-        });
-      }
+          }
+        },
+        chartDataCfg: {
+          splitSlice: ['key'],
+          sliceSize: 'doc_count'
+        },
+        chartData: pieCharts[val.id],
+        type: 'pie'
+      });
     })
 
     this.setState({
@@ -456,7 +414,7 @@ class DashboardStats extends Component {
    */
   getChartRedirect = (chartID, chart, chartData, info) => {
     const {baseUrl, contextRoot} = this.props;
-    const severityChart = ['alertThreatLevel', ];
+    const severityChart = ['alertThreatLevel'];
     const ipChart = ['Top10InternalIp', 'Top10InternalMaskedIp', 'maskedIP'];
     const countryChart = ['Top10ExternalSrcCountry'];
     const syslogChart = ['Top10SyslogConfigSource'];
@@ -533,25 +491,23 @@ class DashboardStats extends Component {
    * @returns HTML DOM
    */
   dispalyMetrics = (val, i) => {
-    if (!_.isEmpty(val.data)) {
-      return (
-        <Metric
-          key={val.id}
-          className={val.id}
-          title={t('dashboard.txt-' + val.id)}
-          data={val.data}
-          dataCfg={{
-            agg: val.agg
-          }}
-          keyLabels={val.keyLabels} />
-      )
-    }
+    return (
+      <Metric
+        key={val.id}
+        className={val.id}
+        title={t('dashboard.txt-' + val.id)}
+        data={val.data}
+        dataCfg={{
+          agg: val.agg
+        }}
+        keyLabels={val.keyLabels} />
+    )
   }
   render() {
     const {
       updatedTime,
-      alertChartAttributes,
-      maskedIpChartAttributes,
+      alertDataArr,
+      internalMaskedIp,
       alertChartsList,
       dnsMetricData,
       diskMetricData
@@ -567,24 +523,50 @@ class DashboardStats extends Component {
 
         <div className='main-dashboard'>
           <div className='charts'>
-            {!_.isEmpty(alertChartAttributes.data) &&
-              <div className='chart-group bar'>
-                <BarChart
-                  stacked
-                  vertical
-                  {...alertChartAttributes} />
-              </div>
-            }
+            <div className='chart-group bar'>
+              <BarChart
+                stacked
+                vertical
+                title={t('dashboard.txt-alertStatistics')}
+                data={alertDataArr}
+                colors={ALERT_LEVEL_COLORS}
+                onTooltip={this.onTooltip}
+                dataCfg={{
+                  x: 'time',
+                  y: 'number',
+                  splitSeries: 'rule'
+                }}
+                xAxis={{
+                  type: 'datetime',
+                  dateTimeLabelFormats: {
+                    day: '%H:%M'
+                  }
+                }} />
+            </div>
 
-            {!_.isEmpty(maskedIpChartAttributes.data) &&
-              <div className='chart-group bar'>
-                <BarChart
-                  stacked
-                  vertical
-                  onClick={this.getChartRedirect.bind(this, 'maskedIP')}
-                  {...maskedIpChartAttributes} />                  
-              </div>
-            }
+            <div className='chart-group bar'>
+              <BarChart
+                stacked
+                vertical
+                title={t('dashboard.txt-alertMaskedIpStatistics')}
+                data={internalMaskedIp}
+                colors={ALERT_LEVEL_COLORS}
+                onTooltip={true}
+                dataCfg={{
+                  splitSeries: 'severity',
+                  x: 'ip',
+                  y: 'number'
+                }}
+                xAxis={{
+                  type:'category'
+                }}
+                keyLabels={{
+                  ip: 'IP',
+                  number: t('txt-count'),
+                  severity: t('txt-severity')
+                }}
+                onClick={this.getChartRedirect.bind(this, 'maskedIP')} />
+            </div>
 
             {alertChartsList.length > 0 &&
               alertChartsList.map(this.displayCharts)
