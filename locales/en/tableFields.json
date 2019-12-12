@@ -511,7 +511,7 @@
     "txt-lastAlertDataUpdDT": "Latest alert data update time",
     "txt-attackCnt": "Attack count",
     "txt-agentMode": "Monitor mode",
-    "txt-lastStatus": "Status",
+    "txt-lastStatus": "Latest status",
     "txt-lastStatusUpdDT": "Latest T.I. update time",
     "txt-threatIntellLastUpdDT": "Latest status update time",
     "txt-rx_pkts": "Received packets",

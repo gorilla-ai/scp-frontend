@@ -4,6 +4,7 @@ import PropTypes from 'prop-types'
 import Moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
+import queryString from 'query-string'
 
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 
@@ -166,6 +167,7 @@ class AlertController extends Component {
   }
   componentDidMount() {
     const {locale, session, sessionRights} = this.props;
+    const alertsParam = queryString.parse(location.search);
     let tempAccount = {...this.state.account};
 
     helper.getPrivilegesInfo(sessionRights, 'common', locale);
@@ -180,6 +182,28 @@ class AlertController extends Component {
         this.getSavedQuery();
         this.loadTreeData();
         this.loadAllFields();
+      });
+    }
+
+    if (!_.isEmpty(alertsParam)) {
+      const type = alertsParam.type;
+      const data = alertsParam.data
+      let query = '';
+
+      if (type === 'severity') {
+        query = data.charAt(0).toUpperCase() + data.slice(1); //Make first letter uppercase
+      } else if (type === 'ip') {
+        query = 'sourceIP: ' + data;
+      } else if (type === 'country') {
+        query = 'srcCountry: ' + data;
+      }
+
+      this.setState({
+        filterData:  [{
+          condition: 'must',
+          query
+        }],
+        showFilter: true
       });
     }
   }
@@ -448,7 +472,6 @@ class AlertController extends Component {
         dataObj['filters'] = [defaultCondition];
       } else {
         filterDataArr = helper.buildFilterDataArray(filterData);
-        filterDataArr.unshift(defaultCondition);
       }
 
       if (filterDataArr.length > 0) {

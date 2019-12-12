@@ -245,6 +245,16 @@ class SyslogController extends Component {
       });
     }
 
+    if (syslogParams.configSource) {
+      this.setState({
+        filterData: [{
+          condition: 'must',
+          query: syslogParams.configSource
+        }],
+        showFilter: true
+      });
+    }
+
     if (syslogParams.srcIp || syslogParams.ipSrc) {
       let hostData = '';
 
