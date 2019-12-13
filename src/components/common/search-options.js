@@ -53,8 +53,10 @@ class SearchOptions extends Component {
       this.props.handleSearchSubmit('search');
     }
 
-    if (prevProps && prevProps.searchInput.searchInterval !== searchInput.searchInterval) {
-      this.handleIntervalConfirm('noToggle');
+    if (prevProps && prevProps.searchInput) {
+      if (prevProps.searchInput.searchInterval !== searchInput.searchInterval) {
+        this.handleIntervalConfirm('noToggle');
+      }
     }
 
     if (searchInput && searchInput.searchType === 'auto') {

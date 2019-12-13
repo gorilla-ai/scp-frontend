@@ -493,17 +493,19 @@ class DashboardStats extends Component {
    * @returns HTML DOM
    */
   dispalyMetrics = (val, i) => {
-    return (
-      <Metric
-        key={val.id}
-        className={val.id}
-        title={t('dashboard.txt-' + val.id)}
-        data={val.data}
-        dataCfg={{
-          agg: val.agg
-        }}
-        keyLabels={val.keyLabels} />
-    )
+    if (val.id) {
+      return (
+        <Metric
+          key={val.id}
+          className={val.id}
+          title={t('dashboard.txt-' + val.id)}
+          data={val.data}
+          dataCfg={{
+            agg: val.agg
+          }}
+          keyLabels={val.keyLabels} />
+      )
+    }
   }
   render() {
     const {
@@ -570,13 +572,13 @@ class DashboardStats extends Component {
                 onClick={this.getChartRedirect.bind(this, 'maskedIP')} />
             </div>
 
-            {alertChartsList.length > 0 &&
-              alertChartsList.map(this.displayCharts)
-            }
+            {alertChartsList.map(this.displayCharts)}
 
-            <div className='chart-group c-box'>
-              {metricsData.map(this.dispalyMetrics)}
-            </div>
+            {metricsData[0].id &&
+              <div className='chart-group c-box'>
+                {metricsData.map(this.dispalyMetrics)}
+              </div>
+            }
           </div>
         </div>
       </div>
