@@ -574,7 +574,7 @@ class DashboardStats extends Component {
 
             {alertChartsList.map(this.displayCharts)}
 
-            {metricsData[0].id &&
+            {(metricsData[0].id || metricsData[1].id) &&
               <div className='chart-group c-box'>
                 {metricsData.map(this.dispalyMetrics)}
               </div>
