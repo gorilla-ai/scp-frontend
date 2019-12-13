@@ -31,7 +31,7 @@ const ALERT_LEVEL_COLORS = {
 let pieCharts = {};
 
 //Charts ID must be unique
-const PIE_CHARTS_LIST = [
+const CHARTS_LIST = [
   {
     id: 'alertThreatLevel',
     key: 'level'
@@ -118,29 +118,17 @@ class DashboardStats extends Component {
     )
   }
   /**
-   * Remove the charts that require special manipulation
-   * @method
-   * @returns formatted charts list
-   */
-  formattedPieChartsList = () => {
-    const tempPieChartsList = _.cloneDeep(PIE_CHARTS_LIST);
-    tempPieChartsList.shift(); //Remove first chart from list
-    tempPieChartsList.pop(); //Remove last chart from list
-    return tempPieChartsList;
-  }
-  /**
    * Get and set alert charts data
    * @method
    */
   loadAlertData = () => {
     const {baseUrl, contextRoot} = this.props;
     const {datetime, alertDetails} = this.state;
-    const configSrcInfo = PIE_CHARTS_LIST[4];
+    const configSrcInfo = CHARTS_LIST[4];
     const dateTime = {
       from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
       to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
     };
-    const tempPieChartsList = this.formattedPieChartsList();
     const apiData = [
       {
         url: `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`,
@@ -150,9 +138,7 @@ class DashboardStats extends Component {
             condition: 'must',
             query: 'All'
           }],
-          search: _.map(tempPieChartsList, val => {
-            return val.id;
-          })
+          search: ['Top10ExternalSrcCountry', 'Top10InternalIp', 'Top10InternalMaskedIp']
         }
       },
       {
@@ -241,8 +227,8 @@ class DashboardStats extends Component {
         })
       }
 
-      /* Get pie charts data */
-      _.forEach(PIE_CHARTS_LIST, (val, i) => {
+      /* Get charts data */
+      _.forEach(CHARTS_LIST, (val, i) => {
         let tempArr = [];
 
         if (i === 0) {
@@ -267,9 +253,9 @@ class DashboardStats extends Component {
               }
             })
           }
-        } else if (i <= 4){
+        } else if (i < 3) {
           if (data[0].aggregations) {
-            const chartData = data[0].aggregations[val.id][val.path || val.key].buckets;
+            const chartData = data[0].aggregations[val.id][val.key].buckets;
 
             if (chartData.length > 0) {
               _.forEach(chartData, val2 => {
@@ -294,7 +280,7 @@ class DashboardStats extends Component {
         }
       }
 
-      const dnsInfo = PIE_CHARTS_LIST[5];
+      const dnsInfo = CHARTS_LIST[5];
       let dnsMetricData = {
         id: 'dns-histogram'
       };
@@ -344,7 +330,7 @@ class DashboardStats extends Component {
     const {pieCharts} = this.state;
     let alertChartsList = [];
 
-    _.forEach(PIE_CHARTS_LIST, val => {
+    _.forEach(CHARTS_LIST, val => {
       alertChartsList.push({
         chartID: val.id,
         chartTitle: t('dashboard.txt-' + val.id),
