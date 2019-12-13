@@ -249,7 +249,7 @@ class SyslogController extends Component {
       this.setState({
         filterData: [{
           condition: 'must',
-          query: syslogParams.configSource
+          query: 'configSource: ' + syslogParams.configSource
         }],
         showFilter: true
       });

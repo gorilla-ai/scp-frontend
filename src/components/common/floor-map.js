@@ -317,6 +317,77 @@ class FloorMap extends Component {
     })
   }
   /**
+   * Display delete floor content
+   * @method
+   * @returns HTML DOM
+   */
+  getDeleteFloorContent = () => {
+    const {floorPlan} = this.state;
+
+    return (
+      <div className='content delete'>
+        <span>{t('txt-delete-msg')}?</span>
+      </div>
+    )
+  }
+  /**
+   * Show the delete single area modal dialog
+   * @method
+   */
+  openDeleteSingleAreaModal = () => {
+    PopupDialog.prompt({
+      title: t('network-topology.txt-deleteFloorPlan'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: this.getDeleteFloorContent(),
+      act: (confirmed) => {
+        if (confirmed) {
+          this.deleteFloorMap();
+        }
+      }
+    });
+  }
+  /**
+   * Delete single floor map file
+   * @method
+   */
+  deleteFloorMap = () => {
+    const {baseUrl, contextRoot} = this.props;
+    const {floorPlan} = this.state;
+    const requestType = 'PATCH';
+    let formData = new FormData();
+    formData.append('areaName', floorPlan.name);
+    formData.append('scale', 0);
+    formData.append('areaUUID', floorPlan.currentAreaUUID);
+    formData.append('rootAreaUUID', floorPlan.rootAreaUUID);
+    formData.append('areaRoute', '');
+
+    if (floorPlan.currentParentAreaUUID) {
+      formData.append('parentAreaUUID', floorPlan.currentParentAreaUUID);
+    } else {
+      formData.append('parentAreaUUID', '');
+    }
+
+    formData.append('file', '');
+    formData.append('updatePic', true);
+
+    this.ah.one({
+      url: `${baseUrl}/api/area`,
+      data: formData,
+      type: requestType,
+      processData: false,
+      contentType: false
+    })
+    .then(data => {
+      this.getFloorPlan();
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Display Add Floor content
    * @method
    */
