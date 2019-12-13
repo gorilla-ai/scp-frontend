@@ -241,17 +241,26 @@ class SyslogController extends Component {
           condition: 'must',
           query: syslogParams.configId
         }],
-        showFilter: true
+        showFilter: true,
+        showMark: true
       });
     }
 
     if (syslogParams.configSource) {
+      let tempSearchInput = {...this.state.searchInput};
+
+      if (syslogParams.interval) {
+        tempSearchInput.searchInterval = syslogParams.interval;
+      }
+
       this.setState({
+        searchInput: tempSearchInput,
         filterData: [{
           condition: 'must',
           query: 'configSource: ' + syslogParams.configSource
         }],
-        showFilter: true
+        showFilter: true,
+        showMark: true
       });
     }
 
@@ -273,7 +282,8 @@ class SyslogController extends Component {
           condition: 'must',
           query: '_host: ' + hostData
         }],
-        showFilter: true
+        showFilter: true,
+        showMark: true
       });
     }
 

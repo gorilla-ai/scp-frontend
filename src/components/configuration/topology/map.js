@@ -753,7 +753,7 @@ class NetworkMap extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data.rows > 0) {
+      if (data.rows.length > 0) {
         this.setState({
           showSeatData: true,
           currentDeviceData: data.rows[0]

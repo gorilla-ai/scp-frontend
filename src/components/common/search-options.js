@@ -34,6 +34,9 @@ class SearchOptions extends Component {
   componentDidMount() {
     this.loadSearchOptions();
   }
+  componentDidUpdate(prevProps) {
+    this.loadSearchOptions('', prevProps);
+  }
   componentWillUnmount() {
     this.intervalId && clearInterval(this.intervalId);
     this.intervalId = null;
@@ -43,11 +46,15 @@ class SearchOptions extends Component {
    * @method
    * @param {string} search - search option
    */
-  loadSearchOptions = (search) => {
+  loadSearchOptions = (search, prevProps) => {
     const {searchInput} = this.props;
 
     if (search) {
       this.props.handleSearchSubmit('search');
+    }
+
+    if (prevProps && prevProps.searchInput.searchInterval !== searchInput.searchInterval) {
+      this.handleIntervalConfirm('noToggle');
     }
 
     if (searchInput && searchInput.searchType === 'auto') {
@@ -183,8 +190,8 @@ class SearchOptions extends Component {
               {value: '30m', text: t('events.connections.txt-last30m')},
               {value: '1h', text: t('events.connections.txt-last1h')},
               {value: '2h', text: t('events.connections.txt-last2h')},
-              {value: '24h', text: t('events.connections.txt-last24h')},
               {value: 'today', text: t('events.connections.txt-today')},
+              {value: '24h', text: t('events.connections.txt-last24h')},
               {value: 'week', text: t('events.connections.txt-week')}
             ]}
             onChange={this.props.setSearchData.bind(this, 'searchInterval')}
@@ -251,7 +258,7 @@ class SearchOptions extends Component {
    * Set search data based on user's selection
    * @method
    */
-  handleIntervalConfirm = () => {
+  handleIntervalConfirm = (options) => {
     const {searchInput} = this.props;
     let dataObj = this.getTimeAndText(searchInput.searchInterval);
     let inputManual = '';
@@ -271,7 +278,10 @@ class SearchOptions extends Component {
 
     this.props.setSearchData('inputManual', inputManual);
     this.props.setSearchData('inputAuto', inputAuto);
-    this.toggleIntervalDialog();
+
+    if (!options || options !== 'noToggle') {
+      this.toggleIntervalDialog(options);
+    }
   }
   /**
    * Display date picker

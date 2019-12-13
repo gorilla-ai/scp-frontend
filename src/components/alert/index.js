@@ -188,6 +188,7 @@ class AlertController extends Component {
     if (!_.isEmpty(alertsParam)) {
       const type = alertsParam.type;
       const data = alertsParam.data;
+      let tempSearchInput = {...this.state.searchInput};
       let query = '';
 
       if (type === 'severity') {
@@ -198,7 +199,12 @@ class AlertController extends Component {
         query = 'srcCountry: ' + data;
       }
 
+      if (alertsParam.interval) {
+        tempSearchInput.searchInterval = alertsParam.interval;
+      }
+
       this.setState({
+        searchInput: tempSearchInput,
         filterData:  [{
           condition: 'must',
           query
