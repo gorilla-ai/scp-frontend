@@ -214,6 +214,7 @@ class AlertDetails extends Component {
       const srcDestType = type.replace('Ip', '');
 
       if (locationType === 'public') {
+        tempAlertInfo[type].locationType = alertData[srcDestType + 'LocType'];
         tempAlertInfo[type].topology = alertData[srcDestType + 'TopoInfo'];
 
         if (type === 'srcIp' && alertData.srcLocType) {
@@ -228,6 +229,7 @@ class AlertDetails extends Component {
           tempAlertInfo[type].location[val] = alertData[srcDestType + val];
         })
       } else if (locationType === 'private') {
+        tempAlertInfo[type].locationType = alertData[srcDestType + 'LocType'];
         tempAlertInfo[type].topology = alertData[srcDestType + 'TopoInfo'];
       }
       this.setTopologyInfo(tempAlertInfo, type);
@@ -573,26 +575,30 @@ class AlertDetails extends Component {
     let text = t('txt-add');
     let type = 'new';
     let ip = '';
+    let showRedirect = false;
 
-    if (showContent.srcIp) {
+    if (showContent.srcIp && alertInfo.srcIp.locationType === 2 && alertInfo.srcIp.topology) {
       ip = alertInfo.srcIp.topology.ip;
 
       if (alertInfo.srcIp.topology.mac) {
         text = t('txt-edit');
         type = 'edit';
       }
-    } else if (showContent.destIp) {
+      showRedirect = true;
+    } else if (showContent.destIp && alertInfo.destIp.locationType === 2 && alertInfo.destIp.topology) {
       ip = alertInfo.destIp.topology.ip;
 
       if (alertInfo.destIp.topology.mac) {
         text = t('txt-edit');
         type = 'edit';
       }
+      showRedirect = true;
     }
 
-    const url = `${baseUrl}${contextRoot}/configuration/topology/inventory?ip=${ip}&type=${type}`;
-
-    return <div className='redirect-ip' onClick={this.redirectIp.bind(this, url)}>{text}</div>
+    if (showRedirect) {
+      const url = `${baseUrl}${contextRoot}/configuration/topology/inventory?ip=${ip}&type=${type}`;
+      return <div className='redirect-ip' onClick={this.redirectIp.bind(this, url)}>{text}</div>
+    }
   }
   /**
    * Display Alert information in dialog box
