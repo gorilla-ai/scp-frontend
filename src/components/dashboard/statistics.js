@@ -422,7 +422,7 @@ class DashboardStats extends Component {
     let type = '';
 
     if (_.includes(syslogChart, chartID)) {
-      const url = `${baseUrl}${contextRoot}/events/syslog?configSource=${data}`;
+      const url = `${baseUrl}${contextRoot}/events/syslog?configSource=${data}&interval=today`;
       window.open(url, '_blank');
       return;
     }
@@ -437,9 +437,11 @@ class DashboardStats extends Component {
       }
     } else if (_.includes(countryChart, chartID)) {
       type = 'country';
+    } else {
+      return;
     }
 
-    const url = `${baseUrl}${contextRoot}/alerts?type=${type}&data=${data}`;
+    const url = `${baseUrl}${contextRoot}/alerts?type=${type}&data=${data}&interval=today`;
     window.open(url, '_blank');
   }
   /**
