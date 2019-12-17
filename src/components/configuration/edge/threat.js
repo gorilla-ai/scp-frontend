@@ -239,6 +239,8 @@ class ThreatIntelligence extends Component {
     .then(data => {
       if (data.ret === 0) {
         this.toggleUploadThreat('showMsg');
+      } else {
+        helper.showPopupMsg('', t('txt-error'), t('txt-uploadFailed'));
       }
     })
     .catch(err => {
