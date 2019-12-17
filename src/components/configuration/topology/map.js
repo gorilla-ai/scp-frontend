@@ -96,7 +96,7 @@ class NetworkMap extends Component {
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
 
     this.getSearchOption();
-    this.getFloorPlan('firstLoad');  //For floor plan on the left nav
+    this.getFloorPlan();  //For floor plan on the left nav
   }
   /**
    * Get and set the IP device list
@@ -149,7 +149,7 @@ class NetworkMap extends Component {
    * Get and set tree and floor map data
    * @method
    */
-  getFloorPlan = (option) => {
+  getFloorPlan = () => {
     const {baseUrl, contextRoot} = this.props;
     const {floorPlan} = this.state;
 
@@ -158,35 +158,40 @@ class NetworkMap extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (option === 'firstLoad') {
-        if (data && data.length > 0) {
-          const floorPlanData = data[0];
-          const areaUUID = floorPlanData.areaUUID;
-          let tempFloorPlan = {...floorPlan};
-          tempFloorPlan.treeData = data;
-          tempFloorPlan.rootAreaUUID = floorPlanData.rootAreaUUID;
-          tempFloorPlan.currentAreaUUID = areaUUID;
-          tempFloorPlan.currentAreaName = floorPlanData.areaName;
-          tempFloorPlan.name = floorPlanData.areaName;
+      let tempFloorPlan = {...floorPlan};
 
-          this.setState({
-            floorPlan: tempFloorPlan
-          }, () => {
-            this.getAreaData(areaUUID);
-            this.getSeatData(areaUUID);
-            this.getIPData(areaUUID);
-          });
-        }
+      if (data && data.length === 0) {
+        this.setState({
+          mapAreaUUID: '',
+          currentMap: '',
+          currentBaseLayers: {},
+          floorPlan: {
+            treeData: {},
+            type: '',
+            rootAreaUUID: '',
+            currentAreaUUID: '',
+            currentAreaName: '',
+            name: '',
+            map: ''
+          }      
+        }, () => {
+          this.closeDialog();
+        });
       } else {
-        let tempFloorPlan = {...floorPlan};
+        const floorPlanData = data[0];
+        const areaUUID = floorPlanData.areaUUID;
         tempFloorPlan.treeData = data;
+        tempFloorPlan.rootAreaUUID = floorPlanData.rootAreaUUID;
+        tempFloorPlan.currentAreaUUID = areaUUID;
+        tempFloorPlan.currentAreaName = floorPlanData.areaName;
+        tempFloorPlan.name = floorPlanData.areaName;
 
         this.setState({
           floorPlan: tempFloorPlan
         }, () => {
-          if (_.isEmpty(this.state.floorPlan.treeData)) {
-            this.closeDialog();
-          }
+          this.getAreaData(areaUUID);
+          this.getSeatData(areaUUID);
+          this.getIPData(areaUUID);
         });
       }
       return null;
@@ -204,6 +209,10 @@ class NetworkMap extends Component {
   getAreaData = (areaUUID, option) => {
     const {baseUrl, contextRoot} = this.props;
     const floorPlan = areaUUID || this.state.floorPlan.currentAreaUUID;
+
+    if (!floorPlan) {
+      return;
+    }
 
     this.ah.one({
       url: `${baseUrl}/api/area?uuid=${floorPlan}`,
@@ -277,6 +286,10 @@ class NetworkMap extends Component {
       areaUUID: area
     };
 
+    if (!area) {
+      return;
+    }
+
     this.ah.one({
       url: `${baseUrl}/api/seat/_search`,
       data: JSON.stringify(dataObj),
@@ -340,6 +353,10 @@ class NetworkMap extends Component {
     const {IP, floorPlan, search} = this.state;
     let dataObj = {};
     let area = areaUUID || floorPlan.currentAreaUUID;
+
+    if (!area) {
+      return;
+    }
 
     dataObj = {
       page: IP.currentPage,

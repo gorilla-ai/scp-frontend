@@ -31,6 +31,7 @@
   "txt-update": "更新",
   "txt-upload": "上傳",
   "txt-uploadSuccess": "上傳成功",
+  "txt-uploadFailed": "上傳失敗: 格式錯誤",
   "txt-seat": "座位",
   "txt-service": "服務",
   "txt-number": "數字",

@@ -234,24 +234,26 @@ class AlertDetails extends Component {
       }
       this.setTopologyInfo(tempAlertInfo, type);
     } else if (fromPage === 'alert') { //Get topo info for Alert page
-      ah.one({
-        url: `${baseUrl}/api/alert/ip2loc?ip=${ip}`,
-        type: 'GET'
-      })
-      .then(data => {
-        if (data) {
-          data = data.rt;
-
-          if (!_.isEmpty(data.Topology)) { //Private
-            tempAlertInfo[type].locationType = 2;
-            tempAlertInfo[type].topology = data.Topology;
-          } else { //Public
-            tempAlertInfo[type].locationType = 1;
-            tempAlertInfo[type].location = data.Location;
+      if (ip) {
+        ah.one({
+          url: `${baseUrl}/api/alert/ip2loc?ip=${ip}`,
+          type: 'GET'
+        })
+        .then(data => {
+          if (data) {
+            data = data.rt;
+  
+            if (!_.isEmpty(data.Topology)) { //Private
+              tempAlertInfo[type].locationType = 2;
+              tempAlertInfo[type].topology = data.Topology;
+            } else { //Public
+              tempAlertInfo[type].locationType = 1;
+              tempAlertInfo[type].location = data.Location;
+            }
+            this.setTopologyInfo(tempAlertInfo, type);
           }
-          this.setTopologyInfo(tempAlertInfo, type);
-        }
-      })
+        })
+      }
     }
   }
   /**
@@ -402,13 +404,13 @@ class AlertDetails extends Component {
     const {alertData} = this.props;
 
     if (type === 'srcIp') {
-      return alertData.srcIp || alertData.ipSrc;
+      return alertData.srcIp || alertData.ipSrc || NOT_AVAILABLE;
     } else if (type === 'destIp') {
-      return alertData.destIp || alertData.ipDst;
+      return alertData.destIp || alertData.ipDst || NOT_AVAILABLE;
     } else if (type === 'srcPort') {
-      return alertData.srcPort || alertData.portSrc;
+      return alertData.srcPort || alertData.portSrc || NOT_AVAILABLE;
     } else if (type === 'destPort') {
-      return alertData.destPort || alertData.portDst;
+      return alertData.destPort || alertData.portDst || NOT_AVAILABLE;
     }
   }
   /**
@@ -601,6 +603,25 @@ class AlertDetails extends Component {
     }
   }
   /**
+   * Display Query More menu
+   * @method
+   * @returns HTML DOM
+   */
+  getQueryMore = () => {
+    const {showContent} = this.state;
+    let ip = '';
+
+    if (showContent.srcIp) {
+      ip = this.getIpPortData('srcIp');
+    } else if (showContent.destIp) {
+      ip = this.getIpPortData('destIp');
+    }
+
+    if (ip && ip !== NOT_AVAILABLE) {
+      return <div className='qurey-more' onClick={this.toggleRedirectMenu}>{t('alert.txt-queryMore')}</div>
+    }
+  }
+  /**
    * Display Alert information in dialog box
    * @method
    * @returns HTML DOM
@@ -683,7 +704,7 @@ class AlertDetails extends Component {
               {(showContent.srcIp || showContent.destIp) &&
                 <section>
                   {this.getRedirectIp()}
-                  <div className='qurey-more' onClick={this.toggleRedirectMenu}>{t('alert.txt-queryMore')}</div>
+                  {this.getQueryMore()}
                 </section>
               }
 

@@ -46,13 +46,13 @@ class FloorMap extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    this.getFloorPlan();
+    this.getFloorPlan('firstLoad');
   }
   /**
    * Get and set floor plan data
    * @method
    */
-  getFloorPlan = () => {
+  getFloorPlan = (options) => {
     const {baseUrl} = this.props;
 
     this.ah.one({
@@ -60,21 +60,48 @@ class FloorMap extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data && data.length > 0) {
-        const floorPlanData = data[0];
-        const areaUUID = floorPlanData.areaUUID;
+      if (data) {
         let tempFloorPlan = {...this.state.floorPlan};
-        tempFloorPlan.treeData = data;
-        tempFloorPlan.rootAreaUUID = floorPlanData.rootAreaUUID;
-        tempFloorPlan.currentAreaUUID = areaUUID;
-        tempFloorPlan.currentAreaName = floorPlanData.areaName;
-        tempFloorPlan.name = floorPlanData.areaName;
 
-        this.setState({
-          floorPlan: tempFloorPlan
-        }, () => {
-          this.getAreaData(areaUUID);
-        });
+        if (data.length > 0) {
+          const floorPlanData = data[0];
+          const areaUUID = floorPlanData.areaUUID;
+          tempFloorPlan.treeData = data;
+          tempFloorPlan.rootAreaUUID = floorPlanData.rootAreaUUID;
+          tempFloorPlan.currentAreaUUID = areaUUID;
+          tempFloorPlan.currentAreaName = floorPlanData.areaName;
+          tempFloorPlan.name = floorPlanData.areaName;
+
+          this.setState({
+            floorPlan: tempFloorPlan
+          }, () => {
+            this.getAreaData(areaUUID);
+          });
+        } else {
+          if (options === 'firstLoad') {
+            tempFloorPlan.type = 'add';
+
+            this.setState({
+              floorPlan: tempFloorPlan
+            });
+          } else {
+            this.setState({
+              floorPlan: {
+                treeData: {},
+                type: '',
+                rootAreaUUID: '',
+                currentAreaUUID: '',
+                currentAreaName: '',
+                name: '',
+                map: ''
+              },
+              mapAreaUUID: '',
+              currentMap: '',
+              currentBaseLayers: {},
+              previewFloorMap: ''
+            });         
+          }
+        }
       }
       return null;
     })
@@ -167,9 +194,9 @@ class FloorMap extends Component {
     } else {
       const {floorPlan} = this.state;
       let tempFloorPlan = {...floorPlan};
+      tempFloorPlan.type = type;
 
       if (type === 'add') {
-        tempFloorPlan.type = type;
         tempFloorPlan.name = '';
       } else if (type === 'edit') {
         if (_.isEmpty(floorPlan.treeData)) {
@@ -414,13 +441,16 @@ class FloorMap extends Component {
         </div>
         <div className='left'>
           <header>
-            {floorPlan.currentAreaUUID &&
-              <i className='c-link fg fg-cancel' onClick={this.handleMapActions.bind(this, 'clear')} title={deselectTree}></i>
+            <i className='c-link fg fg-cancel' onClick={this.handleMapActions.bind(this, 'clear')} title={deselectTree}></i>
+            {floorPlan.type === 'add' &&
+             <i className='c-link fg fg-add active' title={addTree}></i>
             }
-            <i className={cx('c-link', 'fg', 'fg-add', {'active': floorPlan.type === 'add' || !floorPlan.currentAreaUUID})} onClick={this.handleMapActions.bind(this, 'add')} title={addTree}></i>
-            {floorPlan.currentAreaUUID &&
+            {floorPlan.type === 'edit' &&
+             <i className={cx('c-link', 'fg', 'fg-add', {'active': !floorPlan.currentAreaUUID})} onClick={this.handleMapActions.bind(this, 'add')} title={addTree}></i>
+            }
+            {floorPlan.currentAreaUUID && floorPlan.type === 'edit' &&
               <span>
-                <i className={cx('c-link', 'fg', 'fg-edit', {'active': floorPlan.type === 'edit'})} onClick={this.handleMapActions.bind(this, 'edit')} title={editTree}></i>
+                <i className='c-link fg-ft-edit' onClick={this.handleMapActions.bind(this, 'edit')} title={editTree}></i>
                 <i className='c-link fg fg-trashcan' onClick={this.openDeleteAreaModal} title={removeTree}></i>
               </span>
             }
@@ -440,6 +470,7 @@ class FloorMap extends Component {
               <Input
                 id='areaMapName'
                 className='add'
+                required={true}
                 onChange={this.handleDataChange.bind(this, 'name')}
                 value={floorPlan.name} />
             </div>
@@ -491,7 +522,7 @@ class FloorMap extends Component {
     let floorName = '';
 
     if (floorPlan.type === '') {
-      this.closeDialog();
+      this.closeDialog('reload');
       return;
     }
 
@@ -599,13 +630,13 @@ class FloorMap extends Component {
       floorPlan: tempFloorPlan,
       previewFloorMap: ''
     }, () => {
-      this.props.closeDialog(options, 'all');
+      this.props.closeDialog(options);
     });
   }
   render() {
     const {floorPlan} = this.state;
     const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeDialog},
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeDialog.bind(this, 'reload')},
       confirm: {text: t('txt-confirm'), handler: this.handleFloorConfirm}
     };
     let titleText = '';
