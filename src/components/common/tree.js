@@ -79,18 +79,20 @@ class Tree extends Component {
     const {showContent} = this.state;
     const className = key + '-tree';
 
-    return (
-      <div key={key} className={className}>
-        <label className={cx('header-text', {'hide': !showContent})}>{treeData[key].title}</label>
-        <Hierarchy
-          layout='tree'
-          foldable={true}
-          indent={[4, 0]}
-          data={treeData[key].data}
-          defaultOpened={['all', 'All']}
-          onLabelMouseOver={this.props.showTreeFilterBtn.bind(this, key)} />
-      </div>
-    )
+    if (!_.isEmpty(treeData[key].data)) {
+      return (
+        <div key={key} className={className}>
+          <label className={cx('header-text', {'hide': !showContent})}>{treeData[key].title}</label>
+          <Hierarchy
+            layout='tree'
+            foldable={true}
+            indent={[4, 0]}
+            data={treeData[key].data}
+            defaultOpened={['all', 'All']}
+            onLabelMouseOver={this.props.showTreeFilterBtn.bind(this, key)} />
+        </div>
+      )
+    }
   }
   render() {
     const {activeTab, treeTitle, treeShowDropDown, treeData} = this.props;
@@ -99,7 +101,7 @@ class Tree extends Component {
     return (
       <div className={cx('left-nav tree', {'collapse': !showContent})}>
         <div className='content'>
-          {treeShowDropDown &&
+          {treeShowDropDown && tabData.length > 0 &&
             <div>
               <label htmlFor='analysisType' className={cx('header-text', {'hide': !showContent})}>{t('events.connections.txt-analysisType')}</label>
               <DropDownList
@@ -111,7 +113,7 @@ class Tree extends Component {
                 value={activeTab} />
             </div>
           }
-          {activeTab !== 'alert' &&
+          {activeTab !== 'alert' && !_.isEmpty(treeData) &&
             <div>
               <label className={cx('header-text', {'hide': !showContent})}>{treeTitle}</label>
               <Hierarchy

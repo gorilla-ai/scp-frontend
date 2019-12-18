@@ -253,7 +253,7 @@ class Manage extends Component {
    */
   closeManage = () => {
     this.setState(_.cloneDeep(INIT));
-    this.props.onDone();
+    this.props.onDone('fromManage');
   }
   /**
    * Handle name input value change

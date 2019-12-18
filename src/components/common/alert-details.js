@@ -233,7 +233,7 @@ class AlertDetails extends Component {
         tempAlertInfo[type].topology = alertData[srcDestType + 'TopoInfo'];
       }
       this.setTopologyInfo(tempAlertInfo, type);
-    } else if (fromPage === 'alert') { //Get topo info for Alert page
+    } else if (fromPage === 'threats') { //Get topo info for Threats page
       if (ip) {
         ah.one({
           url: `${baseUrl}/api/alert/ip2loc?ip=${ip}`,

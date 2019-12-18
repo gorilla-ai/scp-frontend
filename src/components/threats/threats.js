@@ -15,12 +15,12 @@ let t = null;
 let initialLoad = false;
 
 /**
- * Alert
+ * Threats
  * @class
  * @author Ryan Chen <ryanchen@telmediatech.com>
- * @summary A react component to show the alert page
+ * @summary A react component to show the threats page
  */
-class Alert extends Component {
+class Threats extends Component {
   constructor(props) {
     super(props);
 
@@ -54,11 +54,11 @@ class Alert extends Component {
   }
 }
 
-Alert.propTypes = {
+Threats.propTypes = {
   baseUrl: PropTypes.string.isRequired,
   contextRoot: PropTypes.string.isRequired,
   mainContentData: PropTypes.object.isRequired,
   tabChartData: PropTypes.object.isRequired
 };
 
-export default withLocale(Alert);
+export default withLocale(Threats);

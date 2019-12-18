@@ -344,7 +344,7 @@ class Netflow extends Component {
           this.loadAllFields();
         });
       } else {
-        helper.showPopupMsg(t('events.connections.txt-addAgentMsg'), '', '', '', 'agent');
+        helper.showPopupMsg(t('txt-notFound'));
       }
       return null;
     });

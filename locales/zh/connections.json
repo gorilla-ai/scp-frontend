@@ -26,7 +26,6 @@
   "txt-databytes": "數據",
   "txt-download": "下載",
   "txt-alert": "告警",
-  "txt-alertMenu": "Alerts",
   "txt-rule": "規則",
   "txt-update": "更新",
   "txt-upload": "上傳",
@@ -121,8 +120,9 @@
   "txt-severity": "嚴重性",
 
   "txt-dashboard": "Dashboard",
-  "txt-netflow": "Netflow",
+  "txt-threats": "Threats",
   "txt-syslog": "Syslog",
+  "txt-netflow": "Netflow",
   "txt-endpoint": "Endpoint",
   "txt-configuration": "Configuration",
 
@@ -269,7 +269,6 @@
       "txt-top10text": "前十大目標服務/主機/IP",
       "txt-analysisType": "分析項目",
       "txt-alertRule": "$t(txt-alert)$t(txt-rule)",
-      "txt-addAgentMsg": "請至Edge管理新增device",
       "txt-showImageOnly": "只顯示圖片",
       "txt-downloadPCAP": "$t(txt-download)PCAP",
       "txt-viewJSON": "$t(txt-view)JSON",

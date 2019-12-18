@@ -267,8 +267,8 @@ class NetworkInventory extends Component {
             showSeatData: true,
             currentDeviceData: data.rows[0]
           });
-          return null;
         }
+        return null;
       }
 
       let tempDeviceData = {...deviceData};
@@ -431,9 +431,10 @@ class NetworkInventory extends Component {
   }
   /**
    * Get and set Department and Title data
+   * @param {string} options - option for calling type
    * @method
    */
-  getOtherData = () => {
+  getOtherData = (options) => {
     const {baseUrl, contextRoot} = this.props;
     const {addIP} = this.state;
     const apiNameType = [1, 2]; //1: Department, 2: Title
@@ -492,7 +493,7 @@ class NetworkInventory extends Component {
           titleList,
           addIP: tempAddIP
         }, () => {
-          this.getFloorPlan();
+          this.getFloorPlan(options);
         });
       }
     })
@@ -568,9 +569,10 @@ class NetworkInventory extends Component {
   }
   /**
    * Get and set floor plan data
+   * @param {string} options - option for calling type
    * @method
    */
-  getFloorPlan = () => {
+  getFloorPlan = (options) => {
     const {baseUrl, contextRoot} = this.props;
 
     this.ah.one({
@@ -589,7 +591,7 @@ class NetworkInventory extends Component {
         this.setState({
           floorPlan
         }, () => {
-          this.getFloorList();
+          this.getFloorList(options);
         });
       }
     })
@@ -599,9 +601,10 @@ class NetworkInventory extends Component {
   }
   /**
    * Get and set floor list data
+   * @param {string} options - option for calling type
    * @method
    */
-  getFloorList = () => {
+  getFloorList = (options) => {
     const {floorPlan} = this.state;
     let floorList = [];
     let currentFloor = '';
@@ -626,7 +629,7 @@ class NetworkInventory extends Component {
       this.getAreaData(currentFloor);
       this.getSeatData(currentFloor);
 
-      if (!_.isEmpty(inventoryParam)) {
+      if (!options && !_.isEmpty(inventoryParam)) {
         if (inventoryParam.type === 'add') {
           this.toggleContent('showForm', 'new');
         } else if (inventoryParam.type === 'edit') {
@@ -642,9 +645,9 @@ class NetworkInventory extends Component {
    */
   getAreaData = (areaUUID) => {
     const {baseUrl, contextRoot} = this.props;
-    const mapAreaUUID = areaUUID;
+    const mapAreaUUID = areaUUID.trim();
 
-    if (!areaUUID) {
+    if (!mapAreaUUID) {
       return;
     }
 
@@ -695,12 +698,12 @@ class NetworkInventory extends Component {
    */
   getSeatData = (areaUUID) => {
     const {baseUrl, contextRoot} = this.props;
-    const area = areaUUID || this.state.floorPlan.currentAreaUUID;
+    const area = areaUUID.trim() || this.state.floorPlan.currentAreaUUID;
     const dataObj = {
       areaUUID: area
     };
 
-    if (!areaUUID) {
+    if (!area) {
       return;
     }
 
@@ -1282,8 +1285,8 @@ class NetworkInventory extends Component {
       }
     }, () => {
       if (options === 'reload') {
-        if (all === 'all') { //reload everything (from edit floor map)
-          this.getFloorPlan();
+        if (all === 'fromFloorMap') { //reload everything
+          this.getFloorPlan('fromFloorMap');
         } else { //reload area and seat only (no tree)
           const {floorPlan} = this.state;
           this.getAreaData(floorPlan.currentAreaUUID);
@@ -1572,22 +1575,29 @@ class NetworkInventory extends Component {
       requestData.ownerUUID = addIP.ownerUUID;
     }
 
-    helper.getAjaxData(requestType, url, requestData)
+    ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: requestType,
+      contentType: 'text/plain'
+    })
     .then(data => {
-      this.getDeviceData('search');
-      this.getOwnerData();
-      this.getOtherData();
-      this.getFloorPlan();
+      if (data.ret === 0) {
+        this.getDeviceData('search');
+        this.getOwnerData();
+        this.getOtherData('stepComplete');
+        this.getFloorPlan('stepComplete');
 
-      if (formTypeEdit) {
-        this.getIPdeviceInfo('', currentDeviceData.ipDeviceUUID, 'oneDevice');
-      } else {
-        this.toggleContent('showList');
+        if (formTypeEdit) {
+          this.getIPdeviceInfo('', currentDeviceData.ipDeviceUUID, 'oneDevice');
+        } else {
+          this.toggleContent('showList');
+        }
       }
     })
     .catch(err => {
-      helper.showPopupMsg('', t('txt-error'));
-    });
+      this.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Display form steps indicator

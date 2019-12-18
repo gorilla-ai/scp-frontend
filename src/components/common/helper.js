@@ -384,12 +384,6 @@ const helper = {
       confirmText: t('txt-ok'),
       display: <div className={cx('content', {'small-margin align-left': options})}><span>{msg}</span><div>{showErrorMsg}</div></div>,
       act:(confirmed) => {
-        if (redirect === 'agent') {
-          if (confirmed) {
-            const url = '/SCP/configuration/edge/edge?lng=' + lng;
-            window.location.href = url;
-          }
-        }
       }
     });
   }

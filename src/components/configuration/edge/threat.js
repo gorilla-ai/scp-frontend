@@ -176,6 +176,7 @@ class ThreatIntelligence extends Component {
           confirmText: t('txt-close'),
           display: <div className='content'><span>{t('txt-uploadSuccess')}</span></div>
         });
+        this.getChartsData();
       }
     });
   }
@@ -276,7 +277,7 @@ class ThreatIntelligence extends Component {
           <div className='parent-content'>
             <div className='main-content'>
               <header className='main-header'>{t('txt-threatIntelligence')}</header>
-              <button className='standard btn last' onClick={this.toggleUploadThreat.bind(this)}>{t('edge-management.txt-uploadThreat')}</button>
+              <button className='standard btn last' onClick={this.toggleUploadThreat}>{t('edge-management.txt-uploadThreat')}</button>
 
               <div className='main-statistics'>
                 <div className='statistics-content'>
