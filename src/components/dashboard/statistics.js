@@ -419,7 +419,10 @@ class DashboardStats extends Component {
       type = 'ip';
 
       if (chartID === 'maskedIP') {
-        data = chartData[0].ip;
+        type = 'maskedIP';
+        const ip = chartData[0].ip;
+        const severity = chartData[0].severity;
+        data = ip + '&severity=' + severity;
       }
     } else if (_.includes(countryChart, chartID)) {
       type = 'country';
@@ -427,7 +430,7 @@ class DashboardStats extends Component {
       return;
     }
 
-    const url = `${baseUrl}${contextRoot}/alerts?type=${type}&data=${data}&interval=today`;
+    const url = `${baseUrl}${contextRoot}/threats?type=${type}&data=${data}&interval=today`;
     window.open(url, '_blank');
   }
   /**

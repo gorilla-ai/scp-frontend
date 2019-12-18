@@ -147,7 +147,7 @@ class Header extends Component {
                   <Link to='/SCP/dashboard/statistics' className={cx('item', {'active': this.getActiveTab('dashboard')})}>{t('txt-dashboard')}</Link>
                 }
                 {sessionRights.Module_Common &&
-                  <Link to='/SCP/alerts' className={cx('item', {'active': this.getActiveTab('alerts')})}>{t('txt-alertMenu')}</Link>
+                  <Link to='/SCP/threats' className={cx('item', {'active': this.getActiveTab('threats')})}>{t('txt-threats')}</Link>
                 }
                 {sessionRights.Module_Common &&
                   <Link to='/SCP/events/syslog' className={cx('item', {'active': this.getActiveTab('events')})}>{t('txt-events')}</Link>

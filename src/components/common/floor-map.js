@@ -619,8 +619,9 @@ class FloorMap extends Component {
    * Reset floor plan data before closing the modal dialog
    * @method
    * @param {string} options - option to reload the data
+   * @param {string} type - option for 'confirm' or 'cancel'
    */
-  closeDialog = (options) => {
+  closeDialog = (options, type) => {
     let tempFloorPlan = {...this.state.floorPlan};
     tempFloorPlan.type = '';
     tempFloorPlan.name = tempFloorPlan.currentAreaName;
@@ -630,13 +631,17 @@ class FloorMap extends Component {
       floorPlan: tempFloorPlan,
       previewFloorMap: ''
     }, () => {
-      this.props.closeDialog(options);
+      if (!type) {
+        this.props.closeDialog(options, 'fromFloorMap');
+      } else if (type === 'cancel') {
+        this.props.closeDialog();
+      }
     });
   }
   render() {
     const {floorPlan} = this.state;
     const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeDialog.bind(this, 'reload')},
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeDialog.bind(this, 'reload', 'cancel')},
       confirm: {text: t('txt-confirm'), handler: this.handleFloorConfirm}
     };
     let titleText = '';

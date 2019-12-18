@@ -594,6 +594,10 @@ class SyslogController extends Component {
         return;
       }
 
+      if (_.isEmpty(data[0]) || _.isEmpty(data[1])) {
+        return;
+      }
+
       const dataObj = data[0].data;
       const currentLength = dataObj.rows.length < pageSize ? dataObj.rows.length : pageSize;
       let eventHistogram = {};

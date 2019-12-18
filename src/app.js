@@ -7,7 +7,6 @@ import $ from 'jquery'
 import i18n from 'i18next'
 import Moment from 'moment'
 
-import {HocAlertController as Alert} from './components/alert/index'
 import {HocDashboardMaps as DashboardMaps} from './components/dashboard/maps'
 import {HocDashboardStats as DashboardStats} from './components/dashboard/statistics'
 import {HocEdge as EdgeManagement} from './components/configuration/edge/edge'
@@ -24,6 +23,7 @@ import {HocNotifications as NotificationSettings} from './components/configurati
 import {HocStatus as ServiceStatus} from './components/configuration/service/status'
 import {HocSyslogController as Syslog} from './components/events/syslog/index'
 import {HocSyslog as SyslogConfig} from './components/configuration/syslog/syslog'
+import {HocThreatsController as Threats} from './components/threats/index'
 import {HocThreatIntelligence as ThreatIntelligence} from './components/configuration/edge/threat'
 import UserAccounts from './components/configuration/user/accounts/index'
 import UserPrivileges from './components/configuration/user/privileges/index'
@@ -79,8 +79,8 @@ const DashboardMapsComp = () => (
     sessionRights={sessionRights} />
 )
 
-const AlertComp = () => (
-  <Alert
+const ThreatsComp = () => (
+  <Threats
     baseUrl={cfg.apiPrefix}
     contextRoot={cfg.contextRoot}
     language={cfg.lng}
@@ -227,7 +227,7 @@ const Main = () => (
       <Route exact path='/SCP' component={DashboardStatsComp} />
       <Route exact path='/SCP/dashboard/statistics' component={DashboardStatsComp} />
       <Route exact path='/SCP/dashboard/maps' component={DashboardMapsComp} />
-      <Route exact path='/SCP/alerts' component={AlertComp} />
+      <Route exact path='/SCP/threats' component={ThreatsComp} />
       <Route exact path='/SCP/events/netflow' component={NetflowComp} />
       <Route exact path='/SCP/events/syslog' component={SyslogComp} />
       <Route exact path='/SCP/events/endpoint' component={EndpointComp} />

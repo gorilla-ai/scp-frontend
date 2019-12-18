@@ -8,13 +8,13 @@ import queryString from 'query-string'
 
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 
-import Alert from './alert'
 import {HocAlertDetails as AlertDetails} from '../common/alert-details'
 import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import helper from '../common/helper'
 import {HocQueryOpenSave as QueryOpenSave} from '../common/query-open-save'
 import {HocSearchOptions as SearchOptions} from '../common/search-options'
 import {HocTableCell as TableCell} from '../common/table-cell'
+import Threats from './threats'
 import withLocale from '../../hoc/locale-provider'
 import WORLDMAP from '../../mock/world-map-low.json'
 
@@ -59,12 +59,12 @@ const SUBSECTIONS_DATA = {
 };
 
 /**
- * Alert
+ * Threats
  * @class
  * @author Ryan Chen <ryanchen@telmediatech.com>
- * @summary A react component to handle the business logic for the alert page
+ * @summary A react component to handle the business logic for the threats page
  */
-class AlertController extends Component {
+class ThreatsController extends Component {
   constructor(props) {
     super(props);
 
@@ -190,14 +190,33 @@ class AlertController extends Component {
       const data = alertsParam.data;
       let tempSearchInput = {...this.state.searchInput};
       let query = '';
+      let filterData = [];
 
-      if (type === 'severity') {
-        query = data.charAt(0).toUpperCase() + data.slice(1); //Make first letter uppercase
-      } else if (type === 'ip') {
-        query = 'sourceIP: ' + data;
-      } else if (type === 'country') {
-        query = 'srcCountry: ' + data;
-      }
+      if (type === 'maskedIP') {
+        const severity = alertsParam.severity;
+        query = 'sourceIP: ' + data.charAt(0).toUpperCase() + data.slice(1); //Make first letter uppercase
+
+        filterData = [{
+          condition: 'must',
+          query: severity
+        }, {
+          condition: 'must',
+          query
+        }];
+      } else {
+        if (type === 'severity') {
+          query = data.charAt(0).toUpperCase() + data.slice(1); //Make first letter uppercase
+        } else if (type === 'ip') {
+          query = 'sourceIP: ' + data;
+        } else if (type === 'country') {
+          query = 'srcCountry: ' + data;
+        }
+
+        filterData = [{
+          condition: 'must',
+          query
+        }];
+      } 
 
       if (alertsParam.interval) {
         tempSearchInput.searchInterval = alertsParam.interval;
@@ -205,10 +224,7 @@ class AlertController extends Component {
 
       this.setState({
         searchInput: tempSearchInput,
-        filterData:  [{
-          condition: 'must',
-          query
-        }],
+        filterData,
         showFilter: true
       });
     }
@@ -885,7 +901,7 @@ class AlertController extends Component {
         alertDetails={alertDetails}
         alertData={alertData}
         showAlertData={this.showAlertData}
-        fromPage='alert' />
+        fromPage='threats' />
     )
   }
   /**
@@ -1028,7 +1044,7 @@ class AlertController extends Component {
     };
 
     return (
-      <Alert
+      <Threats
         baseUrl={baseUrl}
         contextRoot={contextRoot}
         language={language}
@@ -1237,7 +1253,7 @@ class AlertController extends Component {
   }
 }
 
-AlertController.propTypes = {
+ThreatsController.propTypes = {
   baseUrl: PropTypes.string.isRequired,
   contextRoot: PropTypes.string.isRequired,
   language: PropTypes.string.isRequired,
@@ -1246,5 +1262,5 @@ AlertController.propTypes = {
   sessionRights: PropTypes.object.isRequired
 };
 
-const HocAlertController = withRouter(withLocale(AlertController));
-export { AlertController, HocAlertController };
+const HocThreatsController = withRouter(withLocale(ThreatsController));
+export { ThreatsController, HocThreatsController };
