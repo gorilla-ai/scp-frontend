@@ -201,7 +201,7 @@ class AutoSettings extends Component {
 
         deviceList.unshift({
           value: '',
-          text: t('txt-plsSelect')
+          text: '--- ' + t('txt-plsSelect') + ' ---'
         });
 
         this.setState({
