@@ -827,6 +827,18 @@ class AlertDetails extends Component {
     return <li key={i}>{val.rule}</li>
   }
   /**
+   * Display pattern refs data
+   * @method
+   * @returns HTML DOM
+   */
+  showRuleRefsData = () => {
+    const {alertData} = this.props;
+
+    if (alertData.refs && alertData.refs.length > 0) {
+      return <JSONTree data={alertData.refs} theme={helper.getJsonViewTheme()} />
+    }
+  }
+  /**
    * Display rule content
    * @method
    * @returns HTML DOM
@@ -842,10 +854,16 @@ class AlertDetails extends Component {
       return (
         <ul className='alert-rule'>
           {alertRule.map(this.showRuleContent)}
+          {this.showRuleRefsData()}
         </ul>
       )
     } else {
-      return <span>{alertRule}</span>
+      return (
+        <section className='alert-rule'>
+          <span>{alertRule}</span>
+          {this.showRuleRefsData()}
+        </section>
+      )
     }
   }
   /**

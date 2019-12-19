@@ -526,6 +526,11 @@ class FloorMap extends Component {
       return;
     }
 
+    if (floorPlan.type === 'clear') {
+      helper.showPopupMsg(t('network-topology.txt-selected-node'), t('txt-error'));
+      return;
+    }
+
     if (floorPlan.name) {
       floorName = floorPlan.name;
     } else {
@@ -605,7 +610,7 @@ class FloorMap extends Component {
     } else if (type === 'floorPlanData') {
       tempData = {
         treeData: floorPlan.treeData,
-        type: '',
+        type: 'clear',
         rootAreaUUID: '',
         currentAreaUUID: '',
         currentAreaName: '',

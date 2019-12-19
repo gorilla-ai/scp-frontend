@@ -408,6 +408,11 @@ class Notifications extends Component {
     const {testEmails} = this.state;
     let dataParams = '';
 
+    if (testEmails.length === 0) {
+      helper.showPopupMsg(t('notifications.txt-emailInvalid'));
+      return;
+    }
+
     _.forEach(testEmails, val => {
       dataParams += '&receipts=' + val;
     })
