@@ -185,7 +185,6 @@ class AutoSettings extends Component {
    */
   getDeviceList = () => {
     const {baseUrl, contextRoot} = this.props;
-    const {scannerData} = this.state;
 
     this.ah.one({
       url: `${baseUrl}/api/ipdevice/edges`,
@@ -193,26 +192,20 @@ class AutoSettings extends Component {
     })
     .then(data => {
       if (data && data.length > 0) {
-        const deviceList = _.map(data, val => {
+        let deviceList = _.map(data, val => {
           return {
             value: val.target,
             text: val.target
           };
         });
 
-        let tempScannerData = scannerData;
-
-        if (!scannerData[0].edge) {
-          tempScannerData = [{
-            edge: deviceList[0].value,
-            ip: '',
-            mask: ''
-          }];
-        }
+        deviceList.unshift({
+          value: '',
+          text: t('txt-plsSelect')
+        });
 
         this.setState({
-          deviceList,
-          scannerData: tempScannerData
+          deviceList
         });
       }
       return null;
@@ -433,6 +426,10 @@ class AutoSettings extends Component {
    */
   handleScannerTest = (value) => {
     const {baseUrl, contextRoot} = this.props;
+
+    if (!_.isEmpty(value)) {
+      return;
+    }
 
     this.ah.one({
       url: `${baseUrl}/api/u1/ipdevice/_scan?edge=${value.edge}&target=${value.ip}&mask=${value.mask}`,

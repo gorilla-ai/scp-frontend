@@ -312,7 +312,8 @@ class Manage extends Component {
     const {baseUrl, contextRoot} = this.props;
     const {tab, name, nameUUID} = this.state;
     const url = `${baseUrl}/api/name`;
-    let requestData = {};  
+    let type = 'POST';
+    let requestData = {};
 
     if (!name.trim()) {
       helper.showPopupMsg('', t('txt-error'), t('txt-noEmpty'));
@@ -320,6 +321,7 @@ class Manage extends Component {
     }
 
     if (nameUUID) {
+      type = 'PATCH';
       requestData = {
         nameUUID: nameUUID,
         name: name,
@@ -335,7 +337,7 @@ class Manage extends Component {
     ah.one({
       url,
       data: JSON.stringify(requestData),
-      type: 'POST',
+      type,
       contentType: 'text/plain'
     })
     .then(data => {

@@ -262,12 +262,16 @@ class NetworkInventory extends Component {
     })
     .then(data => {
       if (options === 'oneSeat') {
+        let currentDeviceData = {};
+
         if (data.counts > 0) {
-          this.setState({
-            showSeatData: true,
-            currentDeviceData: data.rows[0]
-          });
+          currentDeviceData = data.rows[0];
         }
+
+        this.setState({
+          showSeatData: true,
+          currentDeviceData
+        });
         return null;
       }
 
@@ -520,9 +524,15 @@ class NetworkInventory extends Component {
         <div className='main'>{t('ipFields.ip')}: {deviceInfo.ip}</div>
         <div className='main'>{t('ipFields.mac')}: {deviceInfo.mac}</div>
         <div className='table-menu inventory active'>
-          <i className='fg fg-eye' onClick={this.openMenu.bind(this, 'view', currentDeviceData)} title={t('network-inventory.txt-viewDevice')}></i>
-          <i className='fg fg-chart-kpi' onClick={this.openMenu.bind(this, 'hmd', currentDeviceData)} title={t('network-inventory.txt-viewHMD')}></i>
-          <i className='fg fg-trashcan' onClick={this.openMenu.bind(this, 'delete', currentDeviceData)} title={t('network-inventory.txt-deleteDevice')}></i>
+          {currentDeviceData.ip &&
+            <i className='fg fg-eye' onClick={this.openMenu.bind(this, 'view', currentDeviceData)} title={t('network-inventory.txt-viewDevice')}></i>
+          }
+          {currentDeviceData.isHmd &&
+            <i className='fg fg-chart-kpi' onClick={this.openMenu.bind(this, 'hmd', currentDeviceData)} title={t('network-inventory.txt-viewHMD')}></i>
+          }
+          {currentDeviceData.ip &&
+            <i className='fg fg-trashcan' onClick={this.openMenu.bind(this, 'delete', currentDeviceData)} title={t('network-inventory.txt-deleteDevice')}></i>
+          }
         </div>
         <div className='main header'>{t('alert.txt-systemInfo')}</div>
         <div>{t('ipFields.hostName')}: {deviceInfo.hostName}</div>
