@@ -409,7 +409,7 @@ class Notifications extends Component {
     let dataParams = '';
 
     if (testEmails.length === 0) {
-      helper.showPopupMsg(t('notifications.txt-emailInvalid'));
+      helper.showPopupMsg(t('notifications.txt-emailInvalid'), t('txt-error'), );
       return;
     }
 
