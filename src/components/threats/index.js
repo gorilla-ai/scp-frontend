@@ -9,6 +9,7 @@ import queryString from 'query-string'
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 
 import {HocAlertDetails as AlertDetails} from '../common/alert-details'
+import {BaseDataContext} from '../common/context';
 import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import helper from '../common/helper'
 import {HocQueryOpenSave as QueryOpenSave} from '../common/query-open-save'
@@ -166,7 +167,7 @@ class ThreatsController extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {locale, session, sessionRights} = this.props;
+    const {locale, session, sessionRights} = this.context;
     const alertsParam = queryString.parse(location.search);
     let tempAccount = {...this.state.account};
 
@@ -234,7 +235,7 @@ class ThreatsController extends Component {
    * @method
    */
   getSavedQuery = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const {account, queryData} = this.state;
 
     helper.getSavedQuery(baseUrl, account, queryData, 'alert')
@@ -252,7 +253,7 @@ class ThreatsController extends Component {
    * @method
    */
   loadTreeData = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const {currentPage, pageSize, treeData} = this.state;
     const url = `${baseUrl}/api/u2/alert/_search?page=${currentPage}&pageSize=${pageSize}`;
     const requestData = this.toQueryLanguage('tree');
@@ -337,7 +338,7 @@ class ThreatsController extends Component {
    * @param {string} [options] - option for 'search'
    */
   loadTable = (options) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const {activeTab, currentPage, oldPage, pageSize, subSectionsData, account, alertDetails} = this.state;
     const setPage = options === 'search' ? 1 : currentPage;
     const url = `${baseUrl}/api/u2/alert/_search?page=${setPage}&pageSize=${pageSize}`;
@@ -430,8 +431,6 @@ class ThreatsController extends Component {
               }
               return (
                 <TableCell
-                  baseUrl={baseUrl}
-                  contextRoot={contextRoot}
                   activeTab={activeTab}
                   fieldValue={value}
                   fieldName={tempData}
@@ -884,7 +883,6 @@ class ThreatsController extends Component {
    * @returns AlertDetails component
    */
   alertDialog = () => {
-    const {baseUrl, contextRoot, language, locale} = this.props;
     const {alertDetails, alertData} = this.state;
     const actions = {
       confirm: {text: t('txt-close'), handler: this.closeDialog}
@@ -892,10 +890,6 @@ class ThreatsController extends Component {
 
     return (
       <AlertDetails
-        baseUrl={baseUrl}
-        contextRoot={contextRoot}
-        language={language}
-        locale={locale}
         titleText={t('alert.txt-alertInfo')}
         actions={actions}
         alertDetails={alertDetails}
@@ -1010,7 +1004,6 @@ class ThreatsController extends Component {
    * @returns Alert component
    */
   renderTabContent = () => {
-    const {baseUrl, contextRoot, language, locale} = this.props;
     const {activeTab} = this.state;
     const mainContentData = {
       activeTab,
@@ -1045,10 +1038,6 @@ class ThreatsController extends Component {
 
     return (
       <Threats
-        baseUrl={baseUrl}
-        contextRoot={contextRoot}
-        language={language}
-        locale={locale}
         mainContentData={mainContentData}
         tabChartData={{
           chartData: this.state.alertHistogram
@@ -1060,7 +1049,7 @@ class ThreatsController extends Component {
    * @method
    */
   getCSVfile = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const url = `${baseUrl}${contextRoot}/api/u2/alert/_export`;
     const requestData = this.toQueryLanguage('search');
 
@@ -1118,13 +1107,10 @@ class ThreatsController extends Component {
    * @returns QueryOpenSave component
    */
   queryDialog = (type) => {
-    const {baseUrl, contextRoot} = this.props;
     const {activeTab, account, filterData, queryData} = this.state;
 
     return (
       <QueryOpenSave
-        baseUrl={baseUrl}
-        contextRoot={contextRoot}
         activeTab={activeTab}
         type={type}
         account={account}
@@ -1193,7 +1179,6 @@ class ThreatsController extends Component {
     });
   }
   render() {
-    const {locale} = this.props;
     const {
       activeTab,
       datetime,
@@ -1230,7 +1215,6 @@ class ThreatsController extends Component {
 
         <div className='sub-header'>
           <SearchOptions
-            locale={locale}
             position='180px'
             datetime={datetime}
             searchInput={searchInput}
@@ -1253,13 +1237,9 @@ class ThreatsController extends Component {
   }
 }
 
+ThreatsController.contextType = BaseDataContext;
+
 ThreatsController.propTypes = {
-  baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired,
-  language: PropTypes.string.isRequired,
-  locale: PropTypes.string.isRequired,
-  session: PropTypes.object.isRequired,
-  sessionRights: PropTypes.object.isRequired
 };
 
 const HocThreatsController = withRouter(withLocale(ThreatsController));

@@ -12,6 +12,7 @@ import Input from 'react-ui/build/src/components/input'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import AccountEdit from './account-edit'
+import {BaseDataContext} from '../../../common/context';
 import {HocConfig as Config} from '../../../common/configuration'
 import helper from '../../../common/helper'
 
@@ -46,7 +47,7 @@ class AccountList extends Component {
     };
   }
   componentDidMount() {
-    const {locale, sessionRights} = this.props;
+    const {locale, sessionRights} = this.context;
 
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
 
@@ -57,7 +58,7 @@ class AccountList extends Component {
    * @method
    */
   loadAccounts = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const {dataFieldsArr} = this.state;
 
     ah.one({
@@ -229,7 +230,7 @@ class AccountList extends Component {
    * @param {string} type - action type ('delete' or 'unlock')
    */
   accountAction = (type) => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const {accountID} = this.state;
 
     if (type === 'delete') {
@@ -325,7 +326,6 @@ class AccountList extends Component {
     )
   }
   render() {
-    const {baseUrl, contextRoot, language, locale, session} = this.props;
     const {accountData, dataFields, showFilter} = this.state;
 
     return (
@@ -338,12 +338,7 @@ class AccountList extends Component {
         </div>
 
         <div className='data-content'>
-          <Config
-            baseUrl={baseUrl}
-            contextRoot={contextRoot}
-            language={language}
-            locale={locale}
-            session={session} />
+          <Config />
 
           <div className='parent-content'>
             { this.renderFilter() }
@@ -365,18 +360,15 @@ class AccountList extends Component {
 
         <AccountEdit
           ref={ref => { this.editor = ref }}
-          baseUrl={baseUrl}
-          contextRoot={contextRoot}
           onDone={this.loadAccounts} />
       </div>
     )
   }
 }
 
+AccountList.contextType = BaseDataContext;
+
 AccountList.propTypes = {
-  baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired,
-  sessionRights: PropTypes.object.isRequired
 };
 
 export default AccountList;

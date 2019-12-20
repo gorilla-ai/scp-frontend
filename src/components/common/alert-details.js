@@ -13,6 +13,7 @@ import Textarea from 'react-ui/build/src/components/textarea'
 
 import JSONTree from 'react-json-tree'
 
+import {BaseDataContext} from './context';
 import {HocPrivateDetails as PrivateDetails} from './private-details'
 import helper from './helper'
 import {HocHMDscanInfo as HMDscanInfo} from './hmd-scan-info'
@@ -205,7 +206,8 @@ class AlertDetails extends Component {
    * @param {string} type - 'srcIp' or 'destIp'
    */
   getIPcontent = (type) => {
-    const {baseUrl, alertData, fromPage, locationType} = this.props;
+    const {baseUrl} = this.context;
+    const {alertData, fromPage, locationType} = this.props;
     const {alertInfo} = this.state;
     const ip = this.getIpPortData(type);
     let tempAlertInfo = {...alertInfo};
@@ -262,7 +264,7 @@ class AlertDetails extends Component {
    * @param {string} type - 'srcIp' or 'destIp'
    */
   getHMDinfo = (type) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const {ipDeviceInfo} = this.state;
     const IP = this.getIpPortData(type);
 
@@ -290,7 +292,7 @@ class AlertDetails extends Component {
    * @param {string} type - 'srcIp' or 'destIp'
    */
   getOwnerPic = (type) => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const {alertInfo} = this.state;
     const ownerUUID = alertInfo[type].topology.ownerUUID;
     let tempAlertInfo = {...alertInfo};
@@ -320,7 +322,7 @@ class AlertDetails extends Component {
    * @param {string} type - 'srcIp' or 'destIp'
    */
   getOwnerSeat = (type) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const {alertInfo} = this.state;
     const topoInfo = alertInfo[type].topology;
     let tempAlertInfo = {...alertInfo};
@@ -363,7 +365,8 @@ class AlertDetails extends Component {
    * @method
    */
   getAlertRule = () => {
-    const {baseUrl, alertData} = this.props;
+    const {baseUrl} = this.context;
+    const {alertData} = this.props;
     const {alertType} = this.state;
     const index = alertData.index;
     const projectId = alertData.projectName;
@@ -438,7 +441,8 @@ class AlertDetails extends Component {
    * @method
    */
   getPCAPcontent = () => {
-    const {baseUrl, alertData} = this.props;
+    const {baseUrl} = this.context;
+    const {alertData} = this.props;
     const {alertPCAP} = this.state;
     const projectId = alertData.projectName;
     const url = `${baseUrl}/api/alert/pcapContent?projectId=${projectId}&page=${alertPCAP.page}&pageSize=${alertPCAP.pageSize}`;
@@ -572,7 +576,7 @@ class AlertDetails extends Component {
    * @returns HTML DOM
    */
   getRedirectIp = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const {showContent, alertInfo} = this.state;
     let text = t('txt-add');
     let type = 'new';
@@ -777,7 +781,8 @@ class AlertDetails extends Component {
    * @param {string} value - 'srcIp' or 'destIp'
    */
   redirectLink = (type, value) => {
-    const {language, alertData} = this.props;
+    const {language} = this.context;
+    const {alertData} = this.props;
     const eventDatetime = helper.getFormattedDate(alertData._eventDttm_, 'local');
     const srcIp = this.getIpPortData('srcIp');
     const destIp = this.getIpPortData('destIp');
@@ -1019,7 +1024,7 @@ class AlertDetails extends Component {
 
    */
   getListWidth = () => {
-    const {locale} = this.props;
+    const {locale} = this.context;
 
     if (locale === 'en') {
       return '120px';
@@ -1055,7 +1060,7 @@ class AlertDetails extends Component {
    * @returns HTML DOM
    */
   showPuclicInfo = (type, item, i) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const {alertInfo} = this.state;
     const countryCodeType = 'CountryCode';
     const countryType = 'CountryName';
@@ -1117,7 +1122,8 @@ class AlertDetails extends Component {
    * @returns PrivateDetails component
    */
   getPrivateInfo = (type) => {
-    const {baseUrl, contextRoot, language, alertData} = this.props;
+    const {baseUrl, contextRoot, language} = this.context;
+    const {alertData} = this.props;
     const {alertInfo} = this.state;
     const topoInfo = alertInfo[type].topology;
     const picPath = alertInfo[type].ownerPic ? alertInfo[type].ownerPic : contextRoot + '/images/empty_profile.png';
@@ -1206,7 +1212,7 @@ class AlertDetails extends Component {
    * @param {string} [activeIP] - IP type ('srcIp' or 'destIp')
    */
   triggerTask = (type, activeIP) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const {ipDeviceInfo, ipType} = this.state;
     const url = `${baseUrl}/api/hmd/retrigger`;
     const activeIPtype = activeIP || ipType;
@@ -1247,16 +1253,11 @@ class AlertDetails extends Component {
    * @returns HMDscanInfo component
    */
   displaySafetyScanContent = (type) => {
-    const {baseUrl, contextRoot, language, locale} = this.props;
     const {ipDeviceInfo} = this.state;
 
     if (ipDeviceInfo[type].isHmd) {
       return (
         <HMDscanInfo
-          baseUrl={baseUrl}
-          contextRoot={contextRoot}
-          language={language}
-          locale={locale}
           ipType={type}
           currentDeviceData={ipDeviceInfo[type]}
           toggleSelectionIR={this.toggleSelectionIR}
@@ -1288,7 +1289,8 @@ class AlertDetails extends Component {
    * @method
    */
   getPcapFile = () => {
-    const {baseUrl, alertData} = this.props;
+    const {baseUrl} = this.context;
+    const {alertData} = this.props;
     const projectId = alertData.projectName;
     const url = `${baseUrl}/api/network/alert/pcap?projectId=${projectId}`;
     const data = {
@@ -1318,7 +1320,8 @@ class AlertDetails extends Component {
    * @returns false if origFileId and fileMD5 are not available
    */
   downloadFile = () => {
-    const {baseUrl, contextRoot, alertData} = this.props;
+    const {baseUrl, contextRoot} = this.context;
+    const {alertData} = this.props;
     const dataObj = {
       origFileId: alertData.origFileId,
       md5: alertData.fileMD5
@@ -1407,11 +1410,9 @@ class AlertDetails extends Component {
   }
 }
 
+AlertDetails.contextType = BaseDataContext;
+
 AlertDetails.propTypes = {
-  baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired,
-  language: PropTypes.string.isRequired,
-  locale: PropTypes.string.isRequired,
   titleText: PropTypes.string.isRequired,
   actions: PropTypes.object.isRequired,
   alertDetails: PropTypes.object.isRequired,

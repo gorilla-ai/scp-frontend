@@ -9,6 +9,7 @@ import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
+import {BaseDataContext} from '../../common/context';
 import helper from '../../common/helper'
 import withLocale from '../../../hoc/locale-provider'
 
@@ -55,7 +56,7 @@ class Manage extends Component {
    * @param {string} tab - tab name ('department' or 'title')
    */
   getNameList = (tab) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const url = `${baseUrl}/api/name/_search`;
     let nameType = '';
 
@@ -162,7 +163,7 @@ class Manage extends Component {
    * @param {string} nameUUID - name UUID
    */
   deleteName = (nameUUID) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const {tab} = this.state;
 
     this.ah.one({
@@ -309,7 +310,7 @@ class Manage extends Component {
    * @method
    */
   confirmName = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const {tab, name, nameUUID} = this.state;
     const url = `${baseUrl}/api/name`;
     let type = 'POST';
@@ -378,6 +379,8 @@ class Manage extends Component {
     )
   }
 }
+
+Manage.contextType = BaseDataContext;
 
 Manage.propTypes = {
   onDone: PropTypes.func.isRequired

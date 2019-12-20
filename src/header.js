@@ -13,6 +13,7 @@ import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import Progress from 'react-ui/build/src/components/progress'
 
 import AccountEdit from './components/configuration/user/accounts/account-edit'
+import {BaseDataContext} from './components/common/context';
 import helper from './components/common/helper'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -51,7 +52,7 @@ class Header extends Component {
    * @param {string} lng - language type ('en' or 'zh')
    */
   changeLng = (lng) => {
-    const {location} = this.props;
+    const {location} = this.context;
     const urlParams = qs.parse(location.search);
     let urlString = '';
 
@@ -69,7 +70,7 @@ class Header extends Component {
    * @method
    */
   logout = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const url = `${baseUrl}/api/logout`;
 
     Progress.startSpin()
@@ -126,12 +127,8 @@ class Header extends Component {
     });
   }
   render() {
-    const {baseUrl, contextRoot, companyName, session} = this.props;
-    let sessionRights = {};
-
-    _.forEach(session.rights, val => {
-      sessionRights[val] = true;
-    })
+    const {sessionRights} = this.context;
+    const {companyName} = this.props;
 
     return (
       <div className='header-wrapper'>
@@ -166,8 +163,6 @@ class Header extends Component {
         </div>
 
         <AccountEdit
-          baseUrl={baseUrl}
-          contextRoot={contextRoot}
           ref={ref => { this.editor = ref }}
           onDone={this.showPopup} />
       </div>
@@ -175,12 +170,11 @@ class Header extends Component {
   }
 }
 
+Header.contextType = BaseDataContext;
+
 Header.propTypes = {
-  baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired,
   productName: PropTypes.string.isRequired,
-  companyName: PropTypes.string.isRequired,
-  session: PropTypes.object.isRequired
+  companyName: PropTypes.string.isRequired
 };
 
 const HocHeader = withRouter(Header);

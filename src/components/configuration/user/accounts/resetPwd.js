@@ -9,6 +9,8 @@ import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
+import {BaseDataContext} from '../../../common/context';
+
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const log = require('loglevel').getLogger('system/audit');
@@ -45,7 +47,7 @@ class ResetPwd extends Component {
    * @method
    */
   saveAccount = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const {formData} = this.state;
     const PASSWORD = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@.$%^&*-]).{12,}$/;
 
@@ -230,6 +232,8 @@ class ResetPwd extends Component {
     )
   }
 }
+
+ResetPwd.contextType = BaseDataContext;
 
 ResetPwd.propTypes = {
 };

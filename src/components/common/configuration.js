@@ -100,7 +100,6 @@ class Config extends Component {
     return this.state.showContent ? 'fg fg-arrow-left' : 'fg fg-arrow-right';
   }
   render() {
-    const {session} = this.props;
     const {showContent, openEdgeManagement, openTopology, openAccount, selected} = this.state;
 
     return (
@@ -196,9 +195,7 @@ class Config extends Component {
   }
 }
 
-
 Config.propTypes = {
-  session: PropTypes.object.isRequired
 };
 
 const HocConfig = withLocale(Config);

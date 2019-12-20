@@ -11,6 +11,7 @@ import DropDownList from 'react-ui/build/src/components/dropdown'
 import Gis from 'react-gis/build/src/components'
 
 import {HocAlertDetails as AlertDetails} from '../common/alert-details'
+import {BaseDataContext} from '../common/context';
 import helper from '../common/helper'
 import withLocale from '../../hoc/locale-provider'
 import WORLDMAP from '../../mock/world-map-low.json'
@@ -96,7 +97,7 @@ class DashboardMaps extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {locale, sessionRights} = this.props;
+    const {locale, sessionRights} = this.context;
 
     helper.getPrivilegesInfo(sessionRights, 'common', locale);
 
@@ -108,7 +109,7 @@ class DashboardMaps extends Component {
    * @method
    */
   loadAlertData = (type) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const {datetime, alertDetails} = this.state;
     const dateTime = {
       from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
@@ -277,7 +278,7 @@ class DashboardMaps extends Component {
    * @param {object} eventInfo - MouseClick events
    */
   showTopoDetail = (type, id, eventInfo) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const {alertDetails} = this.state;
     let tempAlertDetails = {...alertDetails};
     let alertData = '';
@@ -415,7 +416,6 @@ class DashboardMaps extends Component {
    * @returns AlertDetails component
    */
   alertDialog = () => {
-    const {baseUrl, contextRoot, language, locale} = this.props;
     const {alertDetails, alertData, locationType} = this.state;
     const actions = {
       confirm: {text: t('txt-close'), handler: this.closeDialog}
@@ -423,10 +423,6 @@ class DashboardMaps extends Component {
 
     return (
       <AlertDetails
-        baseUrl={baseUrl}
-        contextRoot={contextRoot}
-        language={language}
-        locale={locale}
         titleText={t('alert.txt-alertInfo')}
         actions={actions}
         alertDetails={alertDetails}
@@ -458,7 +454,7 @@ class DashboardMaps extends Component {
    * @method
    */
   getFloorPlan = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
 
     this.ah.one({
       url: `${baseUrl}/api/area/_tree`,
@@ -517,7 +513,7 @@ class DashboardMaps extends Component {
    * @param {string} areaUUID - area UUID
    */
   getAreaData = (areaUUID) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const floorPlan = areaUUID;
 
     this.ah.one({
@@ -566,7 +562,7 @@ class DashboardMaps extends Component {
    * @method
    */
   loadAlertPrivateData = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const {datetime, alertDetails, currentFloor} = this.state;
     const dateTime = {
       from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
@@ -850,12 +846,9 @@ class DashboardMaps extends Component {
   }
 }
 
+DashboardMaps.contextType = BaseDataContext;
+
 DashboardMaps.propTypes = {
-  baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired,
-  language: PropTypes.string.isRequired,
-  locale: PropTypes.string.isRequired,
-  session: PropTypes.object.isRequired
 };
 
 const HocDashboardMaps = withRouter(withLocale(DashboardMaps));

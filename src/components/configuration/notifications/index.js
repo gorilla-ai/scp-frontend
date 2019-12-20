@@ -11,6 +11,7 @@ import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
 import {ReactMultiEmail} from 'react-multi-email';
 
+import {BaseDataContext} from '../../common/context';
 import {HocConfig as Config} from '../../common/configuration'
 import helper from '../../common/helper'
 import TableContent from '../../common/table-content'
@@ -68,7 +69,7 @@ class Notifications extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {locale, sessionRights} = this.props;
+    const {locale, sessionRights} = this.context;
 
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
 
@@ -84,7 +85,7 @@ class Notifications extends Component {
    * @method
    */
   getMailServerInfo = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const {notifications, emails} = this.state;
 
     this.ah.all([
@@ -186,7 +187,7 @@ class Notifications extends Component {
    * @method
    */
   handleNotificationsConfirm = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const {notifications, emails} = this.state;
     const mailServerRequestData = {
       smtpServer: notifications.server,
@@ -404,7 +405,7 @@ class Notifications extends Component {
    * @method
    */
   testEmailConfirm = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const {testEmails} = this.state;
     let dataParams = '';
 
@@ -444,7 +445,6 @@ class Notifications extends Component {
     });
   }
   render() {
-    const {baseUrl, contextRoot, language, locale, session} = this.props;
     const {activeContent, openEmailDialog, notifications, emails} = this.state;
     const EMAIL_SETTINGS = [
       {
@@ -474,12 +474,7 @@ class Notifications extends Component {
         </div>
 
         <div className='data-content'>
-          <Config
-            baseUrl={baseUrl}
-            contextRoot={contextRoot}
-            language={language}
-            locale={locale}
-            session={session} />
+          <Config />
 
           <div className='parent-content'>
             <div className='main-content basic-form'>
@@ -583,9 +578,9 @@ class Notifications extends Component {
   }
 }
 
+Notifications.contextType = BaseDataContext;
+
 Notifications.propTypes = {
-  baseUrl: PropTypes.string.isRequired,
-  sessionRights: PropTypes.object.isRequired
 };
 
 const HocNotifications = withRouter(withLocale(Notifications));

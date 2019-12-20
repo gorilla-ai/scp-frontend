@@ -10,6 +10,7 @@ import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PieChart from 'react-chart/build/src/components/pie'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
+import {BaseDataContext} from '../../common/context';
 import {HocConfig as Config} from '../../common/configuration'
 import {HocFileUpload as FileUpload} from '../../common/file-upload'
 import helper from '../../common/helper'
@@ -48,7 +49,7 @@ class ThreatIntelligence extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {locale, sessionRights} = this.props;
+    const {locale, sessionRights} = this.context;
 
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
 
@@ -59,7 +60,7 @@ class ThreatIntelligence extends Component {
    * @method
    */
   getChartsData = (search) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const {datetime} = this.state;
     const dateTime = {
       from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
@@ -225,7 +226,7 @@ class ThreatIntelligence extends Component {
    * @method
    */
   confirmThreatUpload = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const {file} = this.state;
     let formData = new FormData();
     formData.append('file', file);
@@ -249,7 +250,6 @@ class ThreatIntelligence extends Component {
     })
   }
   render() {
-    const {baseUrl, contextRoot, language, locale, session} = this.props;
     const {datetime, indicatorsData, indicatorsTrendData, acuIndicatorsTrendData, uplaodOpen} = this.state;
 
     return (
@@ -260,19 +260,13 @@ class ThreatIntelligence extends Component {
 
         <div className='sub-header'>
           <SearchOptions
-            locale={locale}
             datetime={datetime}
             handleDateChange={this.handleDateChange}
             handleSearchSubmit={this.getChartsData} />
         </div>
 
         <div className='data-content'>
-          <Config
-            baseUrl={baseUrl}
-            contextRoot={contextRoot}
-            language={language}
-            locale={locale}
-            session={session} />
+          <Config />
 
           <div className='parent-content'>
             <div className='main-content'>
@@ -355,9 +349,9 @@ class ThreatIntelligence extends Component {
   }
 }
 
+ThreatIntelligence.contextType = BaseDataContext;
+
 ThreatIntelligence.propTypes = {
-  baseUrl: PropTypes.string.isRequired,
-  sessionRights: PropTypes.object.isRequired
 };
 
 const HocThreatIntelligence = withLocale(ThreatIntelligence);

@@ -12,6 +12,7 @@ import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import Textarea from 'react-ui/build/src/components/textarea'
 
+import {BaseDataContext} from '../../common/context';
 import helper from '../../common/helper'
 import TableContent from '../../common/table-content'
 import withLocale from '../../../hoc/locale-provider'
@@ -87,7 +88,7 @@ class Endpoint extends Component {
     }
   }
   getHostData = (fromSearch) => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const {search, hmd} = this.state;
     let url = `${baseUrl}/api/hmd/host`;
 
@@ -183,7 +184,7 @@ class Endpoint extends Component {
     });
   }
   getTaskInfo = (value, allValue) => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const {taskTable} = this.state;
 
     this.ah.one({
@@ -349,7 +350,7 @@ class Endpoint extends Component {
     )
   }
   handleAddTaskAction = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const url = `${baseUrl}/api/hmd/taskinfo`;
     let dataObj = {...this.state.task};
     dataObj.hostId = dataObj.ipDeviceUUID;
@@ -474,7 +475,6 @@ class Endpoint extends Component {
     )
   }
   render() {
-    const {session} = this.props;
     const {showFilter, addTaskOpen, viewTaskOpen, hmd} = this.state;
 
     return (
@@ -519,12 +519,9 @@ class Endpoint extends Component {
   }
 }
 
+Endpoint.contextType = BaseDataContext;
+
 Endpoint.propTypes = {
-  baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired,
-  language: PropTypes.string.isRequired,
-  locale: PropTypes.string.isRequired,
-  session: PropTypes.object.isRequired
 };
 
 const HocEndpoint = withRouter(withLocale(Endpoint));

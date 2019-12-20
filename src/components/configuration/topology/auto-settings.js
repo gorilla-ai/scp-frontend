@@ -14,6 +14,7 @@ import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import RadioGroup from 'react-ui/build/src/components/radio-group'
 import ToggleBtn from 'react-ui/build/src/components/toggle-button'
 
+import {BaseDataContext} from '../../common/context';
 import {HocConfig as Config} from '../../common/configuration'
 import {HocFloorMap as FloorMap} from '../../common/floor-map'
 import helper from '../../common/helper'
@@ -81,7 +82,7 @@ class AutoSettings extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {locale, sessionRights} = this.props;
+    const {locale, sessionRights} = this.context;
 
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
 
@@ -92,7 +93,7 @@ class AutoSettings extends Component {
    * @method
    */
   getSettingsInfo = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const {statusEnable, ipRangeData, adData, netflowData, deviceList, scannerData} = this.state;
 
     this.ah.one({
@@ -184,7 +185,7 @@ class AutoSettings extends Component {
    * @method
    */
   getDeviceList = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
 
     this.ah.one({
       url: `${baseUrl}/api/ipdevice/edges`,
@@ -293,7 +294,7 @@ class AutoSettings extends Component {
    * @method
    */
   handleADtest = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const {adData} = this.state;
     const url = `${baseUrl}/api/ipdevice/config/ad/_test`;
     const requestData = {
@@ -363,7 +364,7 @@ class AutoSettings extends Component {
    * @method
    */
   handleNetflowtest = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const dateTime = {
       from: Moment(helper.getSubstractDate(24, 'hour')).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
       to: Moment().utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
@@ -425,7 +426,7 @@ class AutoSettings extends Component {
    * @method
    */
   handleScannerTest = (value) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
 
     if (!_.isEmpty(value)) {
       return;
@@ -486,7 +487,7 @@ class AutoSettings extends Component {
    * @method
    */
   handleSettingsConfirm = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const {statusEnable, ipRangeData, adData, netflowData, scannerData} = this.state;
     const url = `${baseUrl}/api/ipdevice/config`;
     let requestData = {
@@ -546,7 +547,7 @@ class AutoSettings extends Component {
    * @returns width
    */
   getBtnPos = (type) => {
-    const {locale} = this.props;
+    const {locale} = this.context;
 
     if (type === 'back') {
       if (locale === 'zh') {
@@ -746,10 +747,9 @@ class AutoSettings extends Component {
   }
 }
 
+AutoSettings.contextType = BaseDataContext;
+
 AutoSettings.propTypes = {
-  baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired,
-  sessionRights: PropTypes.object.isRequired
 };
 
 const HocAutoSettings = withLocale(AutoSettings);

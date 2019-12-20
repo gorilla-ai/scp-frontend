@@ -8,6 +8,7 @@ import DropDownList from 'react-ui/build/src/components/dropdown'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import RadioGroup from 'react-ui/build/src/components/radio-group'
 
+import {BaseDataContext} from './context';
 import helper from './helper'
 import withLocale from '../../hoc/locale-provider'
 
@@ -308,7 +309,8 @@ class SearchOptions extends Component {
    * @returns input box width
    */
   getInputWidth = (type) => {
-    const {locale, searchInput} = this.props;
+    const {locale} = this.context;
+    const {searchInput} = this.props;
     const searchType = searchInput.searchType;
 
     if (searchType === 'manual') {
@@ -374,6 +376,8 @@ class SearchOptions extends Component {
     )
   }
 }
+
+SearchOptions.contextType = BaseDataContext;
 
 SearchOptions.propTypes = {
   datetime: PropTypes.object.isRequired,

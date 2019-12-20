@@ -14,6 +14,7 @@ import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import TreeView from 'react-ui/build/src/components/tree'
 
+import {BaseDataContext} from '../../common/context';
 import {HocConfig as Config} from '../../common/configuration'
 import {HocFloorMap as FloorMap} from '../../common/floor-map'
 import helper from '../../common/helper'
@@ -91,7 +92,7 @@ class NetworkMap extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {locale, sessionRights} = this.props;
+    const {locale, sessionRights} = this.context;
 
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
 
@@ -103,7 +104,7 @@ class NetworkMap extends Component {
    * @method
    */
   getSearchOption = () => {
-    const {baseUrl} = this.props
+    const {baseUrl} = this.context
     const apiNameList = ['system', 'devicetype'];
     let apiArr = [];
 
@@ -150,7 +151,7 @@ class NetworkMap extends Component {
    * @method
    */
   getFloorPlan = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const {floorPlan} = this.state;
 
     this.ah.one({
@@ -207,7 +208,7 @@ class NetworkMap extends Component {
    * @param {string} option - option for 'setAreaUUID'
    */
   getAreaData = (areaUUID, option) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const floorPlan = areaUUID || this.state.floorPlan.currentAreaUUID;
 
     if (!floorPlan) {
@@ -280,7 +281,7 @@ class NetworkMap extends Component {
    * @param {string} areaUUID - area UUID
    */
   getSeatData = (areaUUID) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const area = areaUUID || this.state.floorPlan.currentAreaUUID;
     const dataObj = {
       areaUUID: area
@@ -349,7 +350,7 @@ class NetworkMap extends Component {
    * @returns IP data for the data table
    */
   getIPData = (areaUUID) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const {IP, floorPlan, search} = this.state;
     let dataObj = {};
     let area = areaUUID || floorPlan.currentAreaUUID;
@@ -431,7 +432,7 @@ class NetworkMap extends Component {
    * @param {object} eventData - selected node data (before and path)
    */
   selectTree = (i, areaUUID, eventData) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     let tempFloorPlan = {...this.state.floorPlan};
     let tempArr = [];
     let pathStr = '';
@@ -554,12 +555,8 @@ class NetworkMap extends Component {
    * @returns FloorMap component
    */
   modalFloorDialog = () => {
-    const {baseUrl, contextRoot} = this.props;
-
     return (
       <FloorMap
-        baseUrl={baseUrl}
-        contextRoot={contextRoot}
         closeDialog={this.closeDialog} />
     )
   }
@@ -614,7 +611,7 @@ class NetworkMap extends Component {
    * @param {string} seatUUID - seat UUID
    */
   deleteSeatConfirm = (seatUUID) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const seat = seatUUID || this.state.currentDeviceData.seatUUID;
 
     ah.one({
@@ -689,7 +686,7 @@ class NetworkMap extends Component {
    * @method
    */
   handleAddSeatConfirm = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const {floorPlan, addSeat} = this.state;
     const url = `${baseUrl}/api/seat`;
     const requestData = {
@@ -717,7 +714,7 @@ class NetworkMap extends Component {
    * @param {string} seatUUID - selected seat UUID
    */
   getSeatName = (seatUUID) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const {currentDeviceData} = this.state;
     const url = `${baseUrl}/api/seat?uuid=${seatUUID}`;
 
@@ -750,7 +747,7 @@ class NetworkMap extends Component {
    * @param {object} info - MouseClick events
    */
   getDeviceData = (seatUUID, info) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const url = `${baseUrl}/api/u1/ipdevice/_search?seatUUID=${seatUUID}`;
 
     if (!seatUUID) { //Add new seat
@@ -927,7 +924,6 @@ class NetworkMap extends Component {
     )
   }
   render() {
-    const {baseUrl, contextRoot, language, locale, session} = this.props;
     const {
       showFilter,
       modalFloorOpen,
@@ -963,12 +959,7 @@ class NetworkMap extends Component {
         </div>
 
         <div className='data-content'>
-          <Config
-            baseUrl={baseUrl}
-            contextRoot={contextRoot}
-            language={language}
-            locale={locale}
-            session={session} />
+          <Config />
 
           <div className='parent-content'>
             { this.renderFilter() }
@@ -1020,10 +1011,9 @@ class NetworkMap extends Component {
   }
 }
 
+NetworkMap.contextType = BaseDataContext;
+
 NetworkMap.propTypes = {
-  baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired,
-  sessionRights: PropTypes.object.isRequired
 };
 
 const HocNetworkMap = withLocale(NetworkMap);

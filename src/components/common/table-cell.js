@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import cx from 'classnames'
 
+import {BaseDataContext} from './context';
 import helper from './helper'
 import withLocale from '../../hoc/locale-provider'
 
@@ -115,7 +116,8 @@ class TableCell extends Component {
    * @returns HTML DOM
    */
   getFieldValue = () => {
-    const {contextRoot, fieldName, allValue} = this.props;
+    const {contextRoot} = this.context;
+    const {fieldName, allValue} = this.props;
 
     if (fieldName === 'destIp' || fieldName === 'srcIp' || fieldName === 'ipDst' || fieldName === 'ipSrc') {
       let picPath = '';
@@ -163,9 +165,9 @@ class TableCell extends Component {
   }
 }
 
+TableCell.contextType = BaseDataContext;
+
 TableCell.propTypes = {
-  baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired,
   fieldName: PropTypes.string.isRequired,
   allValue: PropTypes.object.isRequired
 };

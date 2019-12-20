@@ -9,6 +9,7 @@ import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import TreeView from 'react-ui/build/src/components/tree'
 
+import {BaseDataContext} from './context';
 import helper from './helper'
 import withLocale from '../../hoc/locale-provider'
 
@@ -53,7 +54,7 @@ class FloorMap extends Component {
    * @method
    */
   getFloorPlan = (options) => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
 
     this.ah.one({
       url: `${baseUrl}/api/area/_tree`,
@@ -115,7 +116,7 @@ class FloorMap extends Component {
    * @param {string} areaUUID - area UUID
    */
   getAreaData = (areaUUID) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const floorPlan = areaUUID || this.state.floorPlan.currentAreaUUID;
 
     this.ah.one({
@@ -248,7 +249,6 @@ class FloorMap extends Component {
    * @param {object} eventData - event data
    */
   selectTree = (i, areaUUID, eventData) => {
-    const {baseUrl, contextRoot} = this.props;
     let tempFloorPlan = {...this.state.floorPlan};
     let tempArr = [];
     let pathStr = '';
@@ -322,7 +322,7 @@ class FloorMap extends Component {
    * @method
    */
   deleteAreaMap = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const {floorPlan} = this.state;
 
     ah.one({
@@ -380,7 +380,7 @@ class FloorMap extends Component {
    * @method
    */
   deleteFloorMap = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const {floorPlan} = this.state;
     const requestType = 'PATCH';
     let formData = new FormData();
@@ -515,7 +515,7 @@ class FloorMap extends Component {
    * @method
    */
   handleFloorConfirm = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const {floorPlan} = this.state;
     let formData = new FormData();
     let requestType = 'POST';
@@ -671,6 +671,8 @@ class FloorMap extends Component {
     )
   }
 }
+
+FloorMap.contextType = BaseDataContext;
 
 FloorMap.propTypes = {
 };

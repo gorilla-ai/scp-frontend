@@ -12,6 +12,7 @@ import FileInput from 'react-ui/build/src/components/file-input'
 import Input from 'react-ui/build/src/components/input'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
+import {BaseDataContext} from '../../common/context';
 import {HocConfig as Config} from '../../common/configuration'
 import helper from '../../common/helper'
 import Manage from './manage'
@@ -71,7 +72,7 @@ class NetworkOwner extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {locale, sessionRights} = this.props;
+    const {locale, sessionRights} = this.context;
 
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
 
@@ -88,7 +89,7 @@ class NetworkOwner extends Component {
    * @method
    */
   getSearchData = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const {list} = this.state;
     const apiNameType = [1, 2]; //1: Department, 2: Title
     let apiArr = [];
@@ -143,7 +144,7 @@ class NetworkOwner extends Component {
    * @param {string} fromSearch - option for 'search'
    */
   getOwnerData = (fromSearch) => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const {owner, search} = this.state;
     let dataObj = {
       sort: owner.sort.field,
@@ -317,7 +318,7 @@ class NetworkOwner extends Component {
    * @param {object} allValue - owner data
    */
   getOwnerInfo = (allValue) => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     let tempOwner = {...this.state.owner};
 
     if (allValue.ownerID) {
@@ -440,7 +441,7 @@ class NetworkOwner extends Component {
    * @method
    */
   handleOwnerConfirm = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const {addOwnerType, owner} = this.state;
     let requestType = 'POST';
     let updatePic = owner.removePhoto;
@@ -529,7 +530,7 @@ class NetworkOwner extends Component {
    * @method
    */
   deleteOwner = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const {owner} = this.state;
 
     ah.one({
@@ -624,7 +625,7 @@ class NetworkOwner extends Component {
    * @returns width
    */
   getBtnPos = (type) => {
-    const {locale} = this.props;
+    const {locale} = this.context;
 
     if (type === 'add') {
       if (locale === 'zh') {
@@ -635,7 +636,7 @@ class NetworkOwner extends Component {
     }
   }
   render() {
-    const {baseUrl, contextRoot, language, locale, session} = this.props;
+    const {contextRoot} = this.context;
     const {
       activeContent,
       list,
@@ -649,8 +650,6 @@ class NetworkOwner extends Component {
       <div>
         <Manage
           ref={ref => { this.name=ref }}
-          baseUrl={baseUrl}
-          contextRoot={contextRoot}
           onDone={this.onDone} />
 
         <div className='sub-header'>
@@ -660,12 +659,7 @@ class NetworkOwner extends Component {
         </div>
 
         <div className='data-content'>
-          <Config
-            baseUrl={baseUrl}
-            contextRoot={contextRoot}
-            language={language}
-            locale={locale}
-            session={session} />
+          <Config />
 
           <div className='parent-content'>
             { this.renderFilter() }
@@ -792,10 +786,9 @@ class NetworkOwner extends Component {
   }
 }
 
+NetworkOwner.contextType = BaseDataContext;
+
 NetworkOwner.propTypes = {
-  baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired,
-  sessionRights: PropTypes.object.isRequired
 };
 
 const HocNetworkOwner = withRouter(withLocale(NetworkOwner));

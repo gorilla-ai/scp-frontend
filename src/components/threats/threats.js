@@ -27,7 +27,7 @@ class Threats extends Component {
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
   }
   render() {
-    const {baseUrl, contextRoot, mainContentData, tabChartData} = this.props;
+    const {mainContentData, tabChartData} = this.props;
 
     return (
       <div className='data-content'>
@@ -39,7 +39,6 @@ class Threats extends Component {
             {...mainContentData} />
 
           <DataChart
-            contextRoot={contextRoot}
             mainContentData={mainContentData}
             tabChartData={tabChartData} />
 
@@ -55,8 +54,6 @@ class Threats extends Component {
 }
 
 Threats.propTypes = {
-  baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired,
   mainContentData: PropTypes.object.isRequired,
   tabChartData: PropTypes.object.isRequired
 };
