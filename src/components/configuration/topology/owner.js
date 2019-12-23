@@ -441,7 +441,7 @@ class NetworkOwner extends Component {
    * @method
    */
   handleOwnerConfirm = () => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {addOwnerType, owner} = this.state;
     let requestType = 'POST';
     let updatePic = owner.removePhoto;

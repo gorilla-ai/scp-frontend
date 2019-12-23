@@ -47,7 +47,7 @@ class ResetPwd extends Component {
    * @method
    */
   saveAccount = () => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {formData} = this.state;
     const PASSWORD = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@.$%^&*-]).{12,}$/;
 

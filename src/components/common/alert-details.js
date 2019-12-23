@@ -264,7 +264,7 @@ class AlertDetails extends Component {
    * @param {string} type - 'srcIp' or 'destIp'
    */
   getHMDinfo = (type) => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {ipDeviceInfo} = this.state;
     const IP = this.getIpPortData(type);
 
@@ -1060,7 +1060,7 @@ class AlertDetails extends Component {
    * @returns HTML DOM
    */
   showPuclicInfo = (type, item, i) => {
-    const {baseUrl, contextRoot} = this.context;
+    const {contextRoot} = this.context;
     const {alertInfo} = this.state;
     const countryCodeType = 'CountryCode';
     const countryType = 'CountryName';
@@ -1122,7 +1122,7 @@ class AlertDetails extends Component {
    * @returns PrivateDetails component
    */
   getPrivateInfo = (type) => {
-    const {baseUrl, contextRoot, language} = this.context;
+    const {contextRoot, language} = this.context;
     const {alertData} = this.props;
     const {alertInfo} = this.state;
     const topoInfo = alertInfo[type].topology;
@@ -1212,7 +1212,7 @@ class AlertDetails extends Component {
    * @param {string} [activeIP] - IP type ('srcIp' or 'destIp')
    */
   triggerTask = (type, activeIP) => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {ipDeviceInfo, ipType} = this.state;
     const url = `${baseUrl}/api/hmd/retrigger`;
     const activeIPtype = activeIP || ipType;

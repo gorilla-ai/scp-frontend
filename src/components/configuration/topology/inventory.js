@@ -205,7 +205,7 @@ class NetworkInventory extends Component {
    * @param {string} seatUUID - seat UUID
    */
   getDeviceData = (fromSearch, options, seatUUID) => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {showHMDonly, deviceSearch, deviceData} = this.state;
     let dataParams = '';
 
@@ -376,7 +376,7 @@ class NetworkInventory extends Component {
    * @method
    */
   getOwnerData = () => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const url = `${baseUrl}/api/owner/_search`;
     const data = {
       sort: 'ownerID',
@@ -413,7 +413,7 @@ class NetworkInventory extends Component {
    * @method
    */
   getSingleDeviceData = () => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const inventoryParam = queryString.parse(location.search);
 
     this.ah.one({
@@ -440,7 +440,7 @@ class NetworkInventory extends Component {
    * @method
    */
   getOtherData = (options) => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {addIP} = this.state;
     const apiNameType = [1, 2]; //1: Department, 2: Title
     let apiArr = [];
@@ -584,7 +584,7 @@ class NetworkInventory extends Component {
    * @method
    */
   getFloorPlan = (options) => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
 
     this.ah.one({
       url: `${baseUrl}/api/area/_tree`,
@@ -1012,7 +1012,7 @@ class NetworkInventory extends Component {
    * @method
    */
   deleteDevice = () => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {currentDeviceData} = this.state;
 
     ah.one({
@@ -1104,7 +1104,7 @@ class NetworkInventory extends Component {
    * @param {string} options - option for 'oneDevice'
    */
   getIPdeviceInfo = (index, ipDeviceUUID, options) => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {deviceData, currentDeviceData} = this.state;
     let tempDeviceData = {...deviceData};
 
@@ -1145,7 +1145,7 @@ class NetworkInventory extends Component {
    * @param {array.<string>} type - HMD scan type
    */
   triggerTask = (type) => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {currentDeviceData} = this.state;
     const url = `${baseUrl}/api/hmd/retrigger`;
     const requestData = {
@@ -1199,7 +1199,6 @@ class NetworkInventory extends Component {
    * @returns HTML DOM
    */
   displayScanInfo = () => {
-    const {baseUrl, contextRoot, language, locale} = this.context;
     const {deviceData, currentDeviceData} = this.state;
     const ip = currentDeviceData.ip || NOT_AVAILABLE;
     const mac = currentDeviceData.mac || NOT_AVAILABLE;
@@ -1508,7 +1507,7 @@ class NetworkInventory extends Component {
    * @method
    */
   handleAddIpConfirm = () => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {addIP, ownerType} = this.state;
 
     if (ownerType === 'new') {
@@ -1553,7 +1552,7 @@ class NetworkInventory extends Component {
    * @method
    */
   handleIPdeviceConfirm = (ownerUUID) => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {formTypeEdit, currentDeviceData, floorPlan, addIP, addSeat, mapAreaUUID} = this.state;
     const url = `${baseUrl}/api/ipdevice`;
     const requestType = formTypeEdit ? 'PATCH' : 'POST';
@@ -1654,7 +1653,7 @@ class NetworkInventory extends Component {
    */
   handleOwnerChange = (value) => {
     const inventoryParam = queryString.parse(location.search);
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
 
     this.ah.one({
       url: `${baseUrl}/api/owner?uuid=${value}`,
@@ -2111,7 +2110,6 @@ class NetworkInventory extends Component {
    * @param {object} eventData - tree click events data
    */
   selectTree = (i, areaUUID, eventData) => {
-    const {baseUrl, contextRoot} = this.context;
     let tempFloorPlan = {...this.state.floorPlan};
     let tempArr = [];
     let pathStr = '';
@@ -2276,7 +2274,7 @@ class NetworkInventory extends Component {
    * @method
    */
   handleAddSeatConfirm = () => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {floorPlan, addSeat} = this.state;
     const url = `${baseUrl}/api/seat`;
     const requestData = {

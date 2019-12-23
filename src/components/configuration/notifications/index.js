@@ -85,7 +85,7 @@ class Notifications extends Component {
    * @method
    */
   getMailServerInfo = () => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {notifications, emails} = this.state;
 
     this.ah.all([
@@ -187,7 +187,7 @@ class Notifications extends Component {
    * @method
    */
   handleNotificationsConfirm = () => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {notifications, emails} = this.state;
     const mailServerRequestData = {
       smtpServer: notifications.server,
@@ -405,7 +405,7 @@ class Notifications extends Component {
    * @method
    */
   testEmailConfirm = () => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {testEmails} = this.state;
     let dataParams = '';
 

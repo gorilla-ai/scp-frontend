@@ -39,29 +39,17 @@ import 'react-la/build/css/react-la.css'
 const initialState = JSON.parse(document.getElementById('initial-state').innerHTML);
 const cfg = initialState.envCfg;
 const appcfg = initialState.appCfg;
-const year = Moment().year();
 const companyName = initialState.companyName;
 const productName = initialState.productName;
+const year = Moment().year();
 const session = initialState.session;
 const log = logger(cfg.env, loglevel, cfg.log);
 const footerText = `Powered by ${companyName}. Copyright © ${companyName}. ${year} All Rights Reserved. ${cfg.version} For the best experience, use the latest version of Google Chrome`;
-let sessionRights = {};
-
-_.forEach(session.rights, val => {
-  sessionRights[val] = true;
-})
-
-const ThemeContext = React.createContext('light');
 
 const HeaderComp = () => (
   <BaseDataContext.Provider value={baseData}>
     <Header
-      baseUrl={cfg.apiPrefix}
-      contextRoot={cfg.contextRoot}
-      productName={productName}
-      companyName={companyName}
-      session={session}
-      sessionRights={sessionRights} />
+      companyName={companyName} />
   </BaseDataContext.Provider>
 )
 

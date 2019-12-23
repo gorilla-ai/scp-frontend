@@ -675,7 +675,7 @@ class Netflow extends Component {
    * @param {string} options - option for 'search'
    */
   loadConnections = (options) => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {projectID, connectionsInterval, currentPage, oldPage, pageSize, subSectionsData, account} = this.state;
     const projectIDstring = this.getProjectURL(projectID);
     const setPage = options === 'search' ? 1 : currentPage;
@@ -989,7 +989,7 @@ class Netflow extends Component {
    * @param {string} options - option for 'search'
    */
   loadLinkAnalysis = (options) => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {activeTab, projectID, currentPage, pageSizeMap, subSectionsData, LAconfig} = this.state;
     const projectIDstring = this.getProjectURL(projectID); 
     const setPage = options === 'search' ? 1 : currentPage;
@@ -1028,7 +1028,7 @@ class Netflow extends Component {
    * @param {string} options - option for 'search'
    */
   loadWorldMap = (options) => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {activeTab, projectID, datetime, subSectionsData, currentPage, pageSizeMap} = this.state;
     const projectIDstring = this.getProjectURL(projectID);
     const setPage = options === 'search' ? 1 : currentPage;

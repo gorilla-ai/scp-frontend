@@ -60,7 +60,7 @@ class ThreatIntelligence extends Component {
    * @method
    */
   getChartsData = (search) => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {datetime} = this.state;
     const dateTime = {
       from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
@@ -226,7 +226,7 @@ class ThreatIntelligence extends Component {
    * @method
    */
   confirmThreatUpload = () => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {file} = this.state;
     let formData = new FormData();
     formData.append('file', file);

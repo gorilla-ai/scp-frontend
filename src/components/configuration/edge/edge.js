@@ -97,7 +97,7 @@ class Edge extends Component {
    * @method
    */
   getEdgeServiceType = () => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const url = `${baseUrl}/api/edge/serviceType`;
 
     this.ah.one({
@@ -282,7 +282,7 @@ class Edge extends Component {
    * @param {object} allValue - Edge data
    */
   agentAnalysis = (allValue) => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const url = `${baseUrl}/api/agent/_analyze?projectId=${allValue.projectId}`;
 
     ah.one({
@@ -441,7 +441,7 @@ class Edge extends Component {
    * @param {string} type - status action type ('start' or 'stop')
    */
   handleEdgeStatusChange = (type) => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {edge} = this.state;
     const url = `${baseUrl}/api/agent/_${type}?id=${edge.info.id}&projectId=${edge.info.projectId}`;
 
@@ -503,7 +503,7 @@ class Edge extends Component {
    * @method
    */
   deleteEdge = () => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {currentEdgeData} = this.state;
 
     ah.one({
@@ -524,7 +524,7 @@ class Edge extends Component {
    * @method
    */
   handleEdgeSubmit = () => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {edge} = this.state;
     let data = {
       id: edge.info.id,
@@ -620,7 +620,7 @@ class Edge extends Component {
    * @returns HTML DOM
    */
   displayEditEdgeContent = () => {
-    const {baseUrl, contextRoot} = this.context;
+    const {contextRoot} = this.context;
     const {activeContent, edge} = this.state;
     let iconType = '';
     let btnStatusOn = false;

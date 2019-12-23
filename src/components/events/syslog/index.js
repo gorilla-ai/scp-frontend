@@ -461,7 +461,7 @@ class SyslogController extends Component {
    * @param {string} options - option for 'search'
    */
   loadLinkAnalysis = (options) => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {activeTab, currentPage, pageSizeMap, subSectionsData, LAconfig} = this.state;
     const setPage = options === 'search' ? 1 : currentPage;
     const url = `${baseUrl}/api/u1/log/event/_search?page=${setPage}&pageSize=${pageSizeMap}`;
@@ -569,7 +569,7 @@ class SyslogController extends Component {
    * @param {string} options - option for 'search'
    */
   loadLogs = (options) => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {currentPage, oldPage, pageSize, subSectionsData, markData} = this.state;
     const setPage = options === 'search' ? 1 : currentPage;
 

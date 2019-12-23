@@ -109,7 +109,7 @@ class DashboardMaps extends Component {
    * @method
    */
   loadAlertData = (type) => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {datetime, alertDetails} = this.state;
     const dateTime = {
       from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
@@ -278,7 +278,7 @@ class DashboardMaps extends Component {
    * @param {object} eventInfo - MouseClick events
    */
   showTopoDetail = (type, id, eventInfo) => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {alertDetails} = this.state;
     let tempAlertDetails = {...alertDetails};
     let alertData = '';
@@ -562,7 +562,7 @@ class DashboardMaps extends Component {
    * @method
    */
   loadAlertPrivateData = () => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {datetime, alertDetails, currentFloor} = this.state;
     const dateTime = {
       from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',

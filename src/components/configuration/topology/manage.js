@@ -56,7 +56,7 @@ class Manage extends Component {
    * @param {string} tab - tab name ('department' or 'title')
    */
   getNameList = (tab) => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const url = `${baseUrl}/api/name/_search`;
     let nameType = '';
 
@@ -163,7 +163,7 @@ class Manage extends Component {
    * @param {string} nameUUID - name UUID
    */
   deleteName = (nameUUID) => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {tab} = this.state;
 
     this.ah.one({
@@ -310,7 +310,7 @@ class Manage extends Component {
    * @method
    */
   confirmName = () => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {tab, name, nameUUID} = this.state;
     const url = `${baseUrl}/api/name`;
     let type = 'POST';

@@ -151,7 +151,7 @@ class NetworkMap extends Component {
    * @method
    */
   getFloorPlan = () => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {floorPlan} = this.state;
 
     this.ah.one({
@@ -350,7 +350,7 @@ class NetworkMap extends Component {
    * @returns IP data for the data table
    */
   getIPData = (areaUUID) => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {IP, floorPlan, search} = this.state;
     let dataObj = {};
     let area = areaUUID || floorPlan.currentAreaUUID;
@@ -432,7 +432,6 @@ class NetworkMap extends Component {
    * @param {object} eventData - selected node data (before and path)
    */
   selectTree = (i, areaUUID, eventData) => {
-    const {baseUrl, contextRoot} = this.context;
     let tempFloorPlan = {...this.state.floorPlan};
     let tempArr = [];
     let pathStr = '';
@@ -611,7 +610,7 @@ class NetworkMap extends Component {
    * @param {string} seatUUID - seat UUID
    */
   deleteSeatConfirm = (seatUUID) => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const seat = seatUUID || this.state.currentDeviceData.seatUUID;
 
     ah.one({
@@ -686,7 +685,7 @@ class NetworkMap extends Component {
    * @method
    */
   handleAddSeatConfirm = () => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {floorPlan, addSeat} = this.state;
     const url = `${baseUrl}/api/seat`;
     const requestData = {
@@ -714,7 +713,7 @@ class NetworkMap extends Component {
    * @param {string} seatUUID - selected seat UUID
    */
   getSeatName = (seatUUID) => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {currentDeviceData} = this.state;
     const url = `${baseUrl}/api/seat?uuid=${seatUUID}`;
 
@@ -747,7 +746,7 @@ class NetworkMap extends Component {
    * @param {object} info - MouseClick events
    */
   getDeviceData = (seatUUID, info) => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const url = `${baseUrl}/api/u1/ipdevice/_search?seatUUID=${seatUUID}`;
 
     if (!seatUUID) { //Add new seat

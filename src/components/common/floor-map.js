@@ -322,7 +322,7 @@ class FloorMap extends Component {
    * @method
    */
   deleteAreaMap = () => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {floorPlan} = this.state;
 
     ah.one({
@@ -380,7 +380,7 @@ class FloorMap extends Component {
    * @method
    */
   deleteFloorMap = () => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {floorPlan} = this.state;
     const requestType = 'PATCH';
     let formData = new FormData();
@@ -515,7 +515,7 @@ class FloorMap extends Component {
    * @method
    */
   handleFloorConfirm = () => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {floorPlan} = this.state;
     let formData = new FormData();
     let requestType = 'POST';

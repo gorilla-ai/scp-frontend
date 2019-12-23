@@ -338,7 +338,7 @@ class ThreatsController extends Component {
    * @param {string} [options] - option for 'search'
    */
   loadTable = (options) => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {activeTab, currentPage, oldPage, pageSize, subSectionsData, account, alertDetails} = this.state;
     const setPage = options === 'search' ? 1 : currentPage;
     const url = `${baseUrl}/api/u2/alert/_search?page=${setPage}&pageSize=${pageSize}`;

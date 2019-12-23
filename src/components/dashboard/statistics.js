@@ -123,7 +123,7 @@ class DashboardStats extends Component {
    * @method
    */
   loadAlertData = () => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {datetime, alertDetails} = this.state;
     const configSrcInfo = CHARTS_LIST[4];
     const dateTime = {
@@ -363,7 +363,7 @@ class DashboardStats extends Component {
    * @method
    */
   loadMetricData = () => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
 
     ah.one({
       url: `${baseUrl}/api/alert/diskUsage`,

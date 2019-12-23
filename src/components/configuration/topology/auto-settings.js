@@ -93,7 +93,7 @@ class AutoSettings extends Component {
    * @method
    */
   getSettingsInfo = () => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {statusEnable, ipRangeData, adData, netflowData, deviceList, scannerData} = this.state;
 
     this.ah.one({
@@ -185,7 +185,7 @@ class AutoSettings extends Component {
    * @method
    */
   getDeviceList = () => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
 
     this.ah.one({
       url: `${baseUrl}/api/ipdevice/edges`,
@@ -196,7 +196,7 @@ class AutoSettings extends Component {
         let deviceList = _.map(data, val => {
           return {
             value: val.target,
-            text: val.target
+            text: val.name
           };
         });
 
@@ -294,7 +294,7 @@ class AutoSettings extends Component {
    * @method
    */
   handleADtest = () => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {adData} = this.state;
     const url = `${baseUrl}/api/ipdevice/config/ad/_test`;
     const requestData = {
@@ -364,7 +364,7 @@ class AutoSettings extends Component {
    * @method
    */
   handleNetflowtest = () => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const dateTime = {
       from: Moment(helper.getSubstractDate(24, 'hour')).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
       to: Moment().utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
@@ -426,7 +426,7 @@ class AutoSettings extends Component {
    * @method
    */
   handleScannerTest = (value) => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
 
     if (!_.isEmpty(value)) {
       return;
@@ -487,7 +487,7 @@ class AutoSettings extends Component {
    * @method
    */
   handleSettingsConfirm = () => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {statusEnable, ipRangeData, adData, netflowData, scannerData} = this.state;
     const url = `${baseUrl}/api/ipdevice/config`;
     let requestData = {
