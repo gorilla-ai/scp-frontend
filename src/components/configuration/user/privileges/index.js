@@ -8,6 +8,7 @@ import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import DataTable from 'react-ui/build/src/components/table'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
+import {BaseDataContext} from '../../../common/context';
 import {HocConfig as Config} from '../../../common/configuration'
 import helper from '../../../common/helper'
 import PrivilegeAdd from './add'
@@ -37,7 +38,7 @@ class Roles extends Component {
     };
   }
   componentDidMount() {
-    const {locale, sessionRights} = this.props;
+    const {locale, sessionRights} = this.context;
 
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
 
@@ -48,7 +49,7 @@ class Roles extends Component {
    * @method
    */
   loadList = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const {dataFieldsArr} = this.state;
 
     ah.one({
@@ -127,7 +128,7 @@ class Roles extends Component {
    * @param {string} id - selected privilege id
    */
   showDeleteDialog = (allValue, id) => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
 
     PopupDialog.prompt({
       title: c('txt-deletePrivilege'),
@@ -209,7 +210,6 @@ class Roles extends Component {
     });
   }
   render() {
-    const {baseUrl, contextRoot, language, locale, session} = this.props;
     const {data, dataFields, info, error} = this.state;
 
     return (
@@ -220,12 +220,7 @@ class Roles extends Component {
           </div>
         </div>
         <div className='data-content'>
-          <Config
-            baseUrl={baseUrl}
-            contextRoot={contextRoot}
-            language={language}
-            locale={locale}
-            session={session} />
+          <Config />
 
           <div className='parent-content'>
             <div className='main-content'>
@@ -248,24 +243,19 @@ class Roles extends Component {
 
         <PrivilegeEdit
           ref={ref => { this.editor = ref }}
-          baseUrl={baseUrl}
-          contextRoot={contextRoot}
           onDone={() => setTimeout(this.loadList, 1000)} />
 
         <PrivilegeAdd
           ref={ref => { this.addor = ref }}
-          baseUrl={baseUrl}
-          contextRoot={contextRoot}
           onDone={() => setTimeout(this.loadList, 1000)} />
       </div>
     )
   }
 }
 
+Roles.contextType = BaseDataContext;
+
 Roles.defaultProps = {
-  baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired,
-  sessionRights: PropTypes.object.isRequired
 };
 
 export default Roles;

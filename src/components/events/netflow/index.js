@@ -22,6 +22,7 @@ import {GithubPicker} from 'react-color';
 import JSONTree from 'react-json-tree'
 
 import helper from '../../common/helper'
+import {BaseDataContext} from '../../common/context';
 import {HocQueryOpenSave as QueryOpenSave} from '../../common/query-open-save'
 import {HocSearchOptions as SearchOptions} from '../../common/search-options'
 import {HocSortableList as SortableList} from '../../common/sortable-list'
@@ -225,7 +226,7 @@ class Netflow extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {locale, session, sessionRights} = this.props;
+    const {locale, session, sessionRights} = this.context;
     const {datetime, filterData, account} = this.state;
     let tempDatetime = {...datetime};
     let tempFilterData = {...filterData};
@@ -290,7 +291,7 @@ class Netflow extends Component {
    * @method
    */
   getLAconfig = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
 
     helper.getLAconfig(baseUrl)
     .then(data => {
@@ -307,7 +308,7 @@ class Netflow extends Component {
    * @method
    */
   getSavedQuery = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const {account, queryData} = this.state;
 
     helper.getSavedQuery(baseUrl, account, queryData, 'event')
@@ -325,7 +326,7 @@ class Netflow extends Component {
    * @method
    */
   getProjectId = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const url = `${baseUrl}/api/agent/_search`;
     const agentData = {
       pageSize: 10000
@@ -371,7 +372,7 @@ class Netflow extends Component {
    * @param {string} options - option for 'loadFields'
    */
   loadEventsCount = (options) => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const {projectID, eventsCount, activeTab} = this.state;
     const projectIDstring = this.getProjectURL(projectID);
     let apiArr = [];
@@ -431,7 +432,7 @@ class Netflow extends Component {
    * @param {string} options - options for 'showDefault' and 'noCount'
    */
   loadFields = (activeTab, options) => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const {subSectionsData, account} = this.state;
     let tempSubSectionsData = {...subSectionsData};
     let tempAccont = {...account};
@@ -674,7 +675,7 @@ class Netflow extends Component {
    * @param {string} options - option for 'search'
    */
   loadConnections = (options) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl} = this.context;
     const {projectID, connectionsInterval, currentPage, oldPage, pageSize, subSectionsData, account} = this.state;
     const projectIDstring = this.getProjectURL(projectID);
     const setPage = options === 'search' ? 1 : currentPage;
@@ -757,8 +758,6 @@ class Netflow extends Component {
             }
             return (
               <TableCell
-                baseUrl={baseUrl}
-                contextRoot={contextRoot}
                 fieldValue={value}
                 fieldName={tempData}
                 allValue={allValue}
@@ -809,7 +808,7 @@ class Netflow extends Component {
    * @param {string} options - option for 'search'
    */
   loadSubSections = (options) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const {projectID, activeTab, currentPage, oldPage, pageSize, pageSizeGrid, subSectionsData, account} = this.state;
     const projectIDstring = this.getProjectURL(projectID);
     const setPage = options === 'search' ? 1 : currentPage;
@@ -912,8 +911,6 @@ class Netflow extends Component {
               }
               return (
                 <TableCell
-                  baseUrl={baseUrl}
-                  contextRoot={contextRoot}
                   activeTab={activeTab}
                   fieldValue={value}
                   fieldName={tempData}
@@ -992,7 +989,7 @@ class Netflow extends Component {
    * @param {string} options - option for 'search'
    */
   loadLinkAnalysis = (options) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl} = this.context;
     const {activeTab, projectID, currentPage, pageSizeMap, subSectionsData, LAconfig} = this.state;
     const projectIDstring = this.getProjectURL(projectID); 
     const setPage = options === 'search' ? 1 : currentPage;
@@ -1031,7 +1028,7 @@ class Netflow extends Component {
    * @param {string} options - option for 'search'
    */
   loadWorldMap = (options) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl} = this.context;
     const {activeTab, projectID, datetime, subSectionsData, currentPage, pageSizeMap} = this.state;
     const projectIDstring = this.getProjectURL(projectID);
     const setPage = options === 'search' ? 1 : currentPage;
@@ -1211,7 +1208,7 @@ class Netflow extends Component {
    * @method
    */
   handleTreeExport = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const {projectID, activeTab} = this.state;
     const type = activeTab === 'connections' ? 'session' : activeTab;
     const projectIDstring = this.getProjectURL(projectID);
@@ -1383,7 +1380,7 @@ class Netflow extends Component {
    * @param {string} value - table selected row data
    */
   pcapDownloadFile = (value) => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const projectId = value.projectName;
     const url = `${baseUrl}/api/network/session/pcapFile`;
     const data = {
@@ -1616,7 +1613,7 @@ class Netflow extends Component {
    * @param {array} fields - fields list to be set
    */
   setCustomFields = (fields) => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const {activeTab, account} = this.state;
     let tempAccount = {...account};
     let fieldString = '';
@@ -2066,7 +2063,7 @@ class Netflow extends Component {
    * @param {object} allValue - data of selected table raw
    */
   getPCAPcontent = (allValue) => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const {pcapData} = this.state;
     const projectID = allValue ? allValue.projectName : pcapData.projectID;
     const sessionID = allValue ? allValue.id : pcapData.sessionID;
@@ -2146,7 +2143,7 @@ class Netflow extends Component {
    * @method
    */
   deleteTag = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const {tagData} = this.state;
     const url = `${baseUrl}/api/account/flow/session?id=${tagData.id}`;
 
@@ -2273,7 +2270,7 @@ class Netflow extends Component {
    * @method
    */
   handleAddTagging = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const {account, tagData} = this.state;
     const url = `${baseUrl}/api/account/flow/session`;
     let data = {};
@@ -2330,7 +2327,7 @@ class Netflow extends Component {
    * @param {string} value - HTML path
    */
   openHTMLModal = (value) => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const url = `${baseUrl}/api/network/html/reLinkFile?path=${value}`;
 
     ah.one({
@@ -2483,7 +2480,6 @@ class Netflow extends Component {
    * @returns events component
    */
   renderTabContent = () => {
-    const {baseUrl, contextRoot, language} = this.props;
     const {activeTab, tableMouseOver} = this.state;
     const mainContentData = {
       allTabData: ALL_TAB_DATA,
@@ -2541,8 +2537,6 @@ class Netflow extends Component {
     if (activeTab === 'connections') {
       return (
         <Connections
-          contextRoot={contextRoot}
-          baseUrl={baseUrl}
           mainContentData={mainContentData}
           tabChartData={{
             sessionHistogram: this.state.sessionHistogram,
@@ -2597,7 +2591,7 @@ class Netflow extends Component {
    * @method
    */
   getCSVfile = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const {projectID, activeTab, account} = this.state;
     const projectIDstring = this.getProjectURL(projectID);
     const type = activeTab === 'connections' ? 'session' : activeTab;
@@ -2671,13 +2665,10 @@ class Netflow extends Component {
    * @returns QueryOpenSave component
    */
   queryDialog = (type) => {
-    const {baseUrl, contextRoot} = this.props;
     const {activeTab, account, filterData, queryData} = this.state;
 
     return (
       <QueryOpenSave
-        baseUrl={baseUrl}
-        contextRoot={contextRoot}
         activeTab={activeTab}
         type={type}
         account={account}
@@ -2826,7 +2817,6 @@ class Netflow extends Component {
     });
   }
   render() {
-    const {locale, session} = this.props;
     const {
       activeTab,
       datetime,
@@ -2875,7 +2865,6 @@ class Netflow extends Component {
           {helper.getEventsMenu('netflow')}
 
           <SearchOptions
-            locale={locale}
             position='180px'
             datetime={datetime}
             searchInput={searchInput}
@@ -2898,13 +2887,10 @@ class Netflow extends Component {
   }
 }
 
+Netflow.contextType = BaseDataContext;
+
 Netflow.propTypes = {
-  baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired,
-  language: PropTypes.string.isRequired,
-  locale: PropTypes.string.isRequired,
-  searchFields: PropTypes.object.isRequired,
-  session: PropTypes.object.isRequired
+  searchFields: PropTypes.object.isRequired
 };
 
 const HocNetflowController = withRouter(withLocale(Netflow));

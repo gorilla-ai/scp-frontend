@@ -4,6 +4,7 @@ import PropTypes from 'prop-types'
 import Tabs from 'react-ui/build/src/components/tabs'
 import VbdaLA from 'vbda-ui/build/src/components/analysis/la'
 
+import {BaseDataContext} from '../../common/context';
 import {HocDataChart as DataChart} from '../../common/data-chart'
 import {HocFilterContent as FilterContent} from '../../common/filter-content'
 import helper from '../../common/helper'
@@ -23,7 +24,8 @@ class Syslog extends Component {
     super(props);
   }
   render() {
-    const {baseUrl, contextRoot, language, mainContentData, tabChartData, markData, tableMouseOver} = this.props;
+    const {contextRoot, language} = this.context;
+    const {mainContentData, tabChartData, markData, tableMouseOver} = this.props;
     const assetsPath = `${contextRoot}/lib/keylines/assets/`;
     const eventsData = mainContentData.logEventsData;
 
@@ -48,7 +50,6 @@ class Syslog extends Component {
             </Tabs>
 
             <DataChart
-              contextRoot={contextRoot}
               mainContentData={mainContentData}
               tabChartData={tabChartData}
               markData={markData}
@@ -92,11 +93,9 @@ class Syslog extends Component {
   }
 }
 
+Syslog.contextType = BaseDataContext;
+
 Syslog.propTypes = {
-  baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired,
-  language: PropTypes.string.isRequired,
-  locale: PropTypes.string.isRequired,
   mainContentData: PropTypes.object.isRequired,
   tabChartData: PropTypes.object.isRequired,
   markData: PropTypes.array.isRequired,

@@ -10,6 +10,7 @@ import CheckboxGroup from 'react-ui/build/src/components/checkbox-group'
 import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
+import {BaseDataContext} from '../../../common/context';
 import helper from '../../../common/helper'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -61,7 +62,7 @@ class PrivilegeEdit extends Component {
    * @method
    */
   loadPermits = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
 
     ah.one({
       url: `${baseUrl}/api/account/permits`,
@@ -105,7 +106,7 @@ class PrivilegeEdit extends Component {
    * @method
    */
   editPrivilege = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const {selected, privilegeid} = this.state;
 
     ah.one({
@@ -188,9 +189,9 @@ class PrivilegeEdit extends Component {
   }
 }
 
+PrivilegeEdit.contextType = BaseDataContext;
+
 PrivilegeEdit.defaultProps = {
-  baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired
 };
 
 export default PrivilegeEdit;

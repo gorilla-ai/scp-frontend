@@ -9,6 +9,7 @@ import ButtonGroup from 'react-ui/build/src/components/button-group'
 import DataTable from 'react-ui/build/src/components/table'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
+import {BaseDataContext} from './context';
 import helper from './helper'
 import withLocale from '../../hoc/locale-provider'
 
@@ -611,7 +612,8 @@ class HMDscanInfo extends Component {
     }
   }
   render() {
-    const {locale, currentDeviceData} = this.props;
+    const {locale} = this.context;
+    const {currentDeviceData} = this.props;
     const {activeTab, malwareFieldsArr, gcbFieldsArr, malwareSort, gcbSort} = this.state;
 
     let hmdInfo = {};
@@ -791,11 +793,9 @@ class HMDscanInfo extends Component {
   }
 }
 
+HMDscanInfo.contextType = BaseDataContext;
+
 HMDscanInfo.propTypes = {
-  baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired,
-  language: PropTypes.string.isRequired,
-  locale: PropTypes.string.isRequired,
   currentDeviceData: PropTypes.object.isRequired,
   toggleSelectionIR: PropTypes.func.isRequired,
   triggerTask: PropTypes.func.isRequired

@@ -7,6 +7,7 @@ import cx from 'classnames'
 
 import DataTable from 'react-ui/build/src/components/table'
 
+import {BaseDataContext} from '../../common/context';
 import {HocConfig as Config} from '../../common/configuration'
 import helper from '../../common/helper'
 import withLocale from '../../../hoc/locale-provider'
@@ -42,7 +43,7 @@ class Status extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {locale, sessionRights} = this.props;
+    const {locale, sessionRights} = this.context;
 
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
 
@@ -54,7 +55,7 @@ class Status extends Component {
    * @param {string} option - option for 'refresh'
    */
   getServiceStatus = (option) => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const {serviceStatus} = this.state;
     let url = `${baseUrl}/api/monitor`;
 
@@ -127,7 +128,6 @@ class Status extends Component {
     })
   }
   render() {
-    const {baseUrl, contextRoot, language, locale, session} = this.props;
     const {serviceStatus} = this.state;
 
     return (
@@ -140,12 +140,7 @@ class Status extends Component {
         </div>
 
         <div className='data-content'>
-          <Config
-            baseUrl={baseUrl}
-            contextRoot={contextRoot}
-            language={language}
-            locale={locale}
-            session={session} />
+          <Config />
 
           <div className='parent-content'>
             <div className='main-content'>
@@ -166,13 +161,9 @@ class Status extends Component {
   }
 }
 
+Status.contextType = BaseDataContext;
+
 Status.propTypes = {
-  baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired,
-  language: PropTypes.string.isRequired,
-  locale: PropTypes.string.isRequired,
-  session: PropTypes.object.isRequired,
-  sessionRights: PropTypes.object.isRequired
 };
 
 const HocStatus = withRouter(withLocale(Status));

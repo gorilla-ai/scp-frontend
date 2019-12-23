@@ -17,6 +17,7 @@ import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import {arrayMove} from 'react-sortable-hoc'
 import JSONTree from 'react-json-tree'
 
+import {BaseDataContext} from '../../common/context';
 import helper from '../../common/helper'
 import {HocQueryOpenSave as QueryOpenSave} from '../../common/query-open-save'
 import {HocSearchOptions as SearchOptions} from '../../common/search-options'
@@ -149,7 +150,7 @@ class SyslogController extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {locale, session, sessionRights} = this.props;
+    const {locale, session, sessionRights} = this.context;
     let tempAccount = {...this.state.account};
 
     helper.getPrivilegesInfo(sessionRights, 'common', locale);
@@ -173,7 +174,7 @@ class SyslogController extends Component {
    * @method
    */
   getLAconfig = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
 
     helper.getLAconfig(baseUrl)
     .then(data => {
@@ -190,7 +191,7 @@ class SyslogController extends Component {
    * @method
    */
   getSavedQuery = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const {account, queryData} = this.state;
 
     helper.getSavedQuery(baseUrl, account, queryData, 'syslog')
@@ -208,7 +209,7 @@ class SyslogController extends Component {
    * @method
    */
   getSyslogTree = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const url = `${baseUrl}/api/u1/log/event/_event_source_tree`;
 
     this.ah.one({
@@ -296,7 +297,7 @@ class SyslogController extends Component {
    * @param {string} options - options for 'showDefault'
    */
   loadFields = (activeTab, options) => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const {subSectionsData, account} = this.state;
     let url = `${baseUrl}/api/account/log/fields`;
     let tempSubSectionsData = {...subSectionsData};
@@ -349,7 +350,7 @@ class SyslogController extends Component {
    * @method
    */
   loadLogsFields = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const {datetime} = this.state;
     const url = `${baseUrl}/api/log/event/fields`;
     const dateTime = {
@@ -377,7 +378,7 @@ class SyslogController extends Component {
    * @method
    */
   loadLogsLocaleFields = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const {account} = this.state;
     const url = `${baseUrl}/api/account/log/locales?accountId=${account.id}`;
 
@@ -460,7 +461,7 @@ class SyslogController extends Component {
    * @param {string} options - option for 'search'
    */
   loadLinkAnalysis = (options) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl} = this.context;
     const {activeTab, currentPage, pageSizeMap, subSectionsData, LAconfig} = this.state;
     const setPage = options === 'search' ? 1 : currentPage;
     const url = `${baseUrl}/api/u1/log/event/_search?page=${setPage}&pageSize=${pageSizeMap}`;
@@ -568,7 +569,7 @@ class SyslogController extends Component {
    * @param {string} options - option for 'search'
    */
   loadLogs = (options) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl} = this.context;
     const {currentPage, oldPage, pageSize, subSectionsData, markData} = this.state;
     const setPage = options === 'search' ? 1 : currentPage;
 
@@ -648,8 +649,6 @@ class SyslogController extends Component {
             }
             return (
               <TableCell
-                baseUrl={baseUrl}
-                contextRoot={contextRoot}
                 fieldValue={value}
                 fieldName={tempData}
                 allValue={allValue}
@@ -760,7 +759,7 @@ class SyslogController extends Component {
         }
 
         treeObj.children.push(treeProperty);
-        allServiceCount++;
+        allServiceCount += val.length;
       }
     })
 
@@ -1049,7 +1048,7 @@ class SyslogController extends Component {
    * @param {array} fields - fields list to be set
    */
   setCustomFields = (fields) => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const {account} = this.state;
     let tempAccount = {...account};
     let fieldString = '';
@@ -1264,7 +1263,7 @@ class SyslogController extends Component {
    * @method
    */
   setCustomLocale = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const {account, logActiveField, logCustomLocal} = this.state;
     const url = `${baseUrl}/api/account/log/locale`;
     const dataObj = {
@@ -1493,7 +1492,6 @@ class SyslogController extends Component {
    * @returns Syslog component
    */
   renderTabContent = () => {
-    const {baseUrl, contextRoot, language, locale} = this.props;
     const {activeTab, markData, tableMouseOver} = this.state;
     const mainContentData = {
       activeTab,
@@ -1543,10 +1541,6 @@ class SyslogController extends Component {
 
     return (
       <Syslog
-        baseUrl={baseUrl}
-        contextRoot={contextRoot}
-        language={language}
-        locale={locale}
         mainContentData={mainContentData}
         tabChartData={{
           chartData: this.state.eventHistogram
@@ -1560,7 +1554,7 @@ class SyslogController extends Component {
    * @method
    */
   getCSVfile = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const {activeTab, account} = this.state;
     const url = `${baseUrl}${contextRoot}/api/u1/log/event/_export`;
     let tempColumns = [];
@@ -1644,13 +1638,10 @@ class SyslogController extends Component {
    * @returns QueryOpenSave component
    */
   queryDialog = (type) => {
-    const {baseUrl, contextRoot} = this.props;
     const {activeTab, account, filterData, markData, queryData} = this.state;
 
     return (
       <QueryOpenSave
-        baseUrl={baseUrl}
-        contextRoot={contextRoot}
         activeTab={activeTab}
         type={type}
         account={account}
@@ -1739,7 +1730,6 @@ class SyslogController extends Component {
     });
   }
   render() {
-    const {locale, session} = this.props;
     const {
       activeTab,
       datetime,
@@ -1792,7 +1782,6 @@ class SyslogController extends Component {
           {helper.getEventsMenu('syslog')}
 
           <SearchOptions
-            locale={locale}
             position='226px'
             datetime={datetime}
             searchInput={searchInput}
@@ -1815,12 +1804,9 @@ class SyslogController extends Component {
   }
 }
 
+SyslogController.contextType = BaseDataContext;
+
 SyslogController.propTypes = {
-  baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired,
-  language: PropTypes.string.isRequired,
-  locale: PropTypes.string.isRequired,
-  session: PropTypes.object.isRequired
 };
 
 const HocSyslogController = withRouter(withLocale(SyslogController));

@@ -6,6 +6,7 @@ import Tabs from 'react-ui/build/src/components/tabs'
 import Timebar from 'react-timebar/build/src/components'
 import VbdaLA from 'vbda-ui/build/src/components/analysis/la'
 
+import {BaseDataContext} from '../../../common/context';
 import {HocDataChart as DataChart} from '../../../common/data-chart'
 import {HocFilterContent as FilterContent} from '../../../common/filter-content'
 import helper from '../../../common/helper'
@@ -26,7 +27,8 @@ class Connections extends Component {
     super(props);
   }
   render() {
-    const {baseUrl, contextRoot, language, mainContentData, tabChartData, tableMouseOver} = this.props;
+    const {contextRoot, language} = this.context;
+    const {mainContentData, tabChartData, tableMouseOver} = this.props;
     const assetsPath = `${contextRoot}/lib/keylines/assets/`;
 
     return (
@@ -39,7 +41,6 @@ class Connections extends Component {
             {...mainContentData} />
 
           <DataChart
-            contextRoot={contextRoot}
             mainContentData={mainContentData}
             tabChartData={tabChartData}
             tableMouseOver={tableMouseOver} />
@@ -151,6 +152,8 @@ class Connections extends Component {
     )
   }
 }
+
+Connections.contextType = BaseDataContext;
 
 Connections.propTypes = {
   mainContentData: PropTypes.object.isRequired,

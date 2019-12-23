@@ -11,6 +11,7 @@ import DataTable from 'react-ui/build/src/components/table'
 import Metric from 'react-chart/build/src/components/metric'
 import PieChart from 'react-chart/build/src/components/pie'
 
+import {BaseDataContext} from '../common/context';
 import helper from '../common/helper'
 import withLocale from '../../hoc/locale-provider'
 
@@ -91,7 +92,7 @@ class DashboardStats extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {locale, sessionRights} = this.props;
+    const {locale, sessionRights} = this.context;
 
     helper.getPrivilegesInfo(sessionRights, 'common', locale);
 
@@ -122,7 +123,7 @@ class DashboardStats extends Component {
    * @method
    */
   loadAlertData = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl} = this.context;
     const {datetime, alertDetails} = this.state;
     const configSrcInfo = CHARTS_LIST[4];
     const dateTime = {
@@ -362,7 +363,7 @@ class DashboardStats extends Component {
    * @method
    */
   loadMetricData = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl} = this.context;
 
     ah.one({
       url: `${baseUrl}/api/alert/diskUsage`,
@@ -399,7 +400,7 @@ class DashboardStats extends Component {
    * @param {object} info - chart info
    */
   getChartRedirect = (chartID, chart, chartData, info) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const severityChart = ['alertThreatLevel'];
     const ipChart = ['Top10InternalIp', 'Top10InternalMaskedIp', 'maskedIP'];
     const countryChart = ['Top10ExternalSrcCountry'];
@@ -575,12 +576,9 @@ class DashboardStats extends Component {
   }
 }
 
+DashboardStats.contextType = BaseDataContext;
+
 DashboardStats.propTypes = {
-  baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired,
-  language: PropTypes.string.isRequired,
-  locale: PropTypes.string.isRequired,
-  session: PropTypes.object.isRequired
 };
 
 const HocDashboardStats = withRouter(withLocale(DashboardStats));

@@ -5,6 +5,7 @@ import cx from 'classnames'
 
 import ButtonGroup from 'react-ui/build/src/components/button-group'
 
+import {BaseDataContext} from './context';
 import {HocChartContent as ChartContent} from './chart-content'
 import helper from './helper'
 import withLocale from '../../hoc/locale-provider'
@@ -126,7 +127,8 @@ class DataChart extends Component {
     }
   }
   render() {
-    const {contextRoot, mainContentData, tabChartData, markData, tableMouseOver} = this.props;
+    const {contextRoot} = this.context;
+    const {mainContentData, tabChartData, markData, tableMouseOver} = this.props;
     const {chartData} = this.state;
     const assetsPath = `${contextRoot}/lib/keylines/assets/`;
 
@@ -185,8 +187,9 @@ class DataChart extends Component {
   }
 }
 
+DataChart.contextType = BaseDataContext;
+
 DataChart.propTypes = {
-  contextRoot: PropTypes.string.isRequired,
   mainContentData: PropTypes.object.isRequired,
   tabChartData: PropTypes.object.isRequired
 };

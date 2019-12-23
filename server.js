@@ -40,8 +40,8 @@ const cfg = _.assign({
     },
     whoisService: 'https:\//www.whois.com/whois/'
   },
-  productName: 'DPIR',
-  companyName: 'Gorilla',
+  productName: 'SCP',
+  companyName: 'NSGUARD',
   session: {
     rights: ["Module_Common", "Module_Config"],
     name: null,

@@ -7,6 +7,7 @@ import cx from 'classnames'
 import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
+import {BaseDataContext} from '../../../common/context';
 import helper from '../../../common/helper'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -86,7 +87,7 @@ class PrivilegeAdd extends Component {
    * @method
    */
   addPrivilege = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const {name} = this.state;
     const reqArg = {
       name
@@ -160,9 +161,9 @@ class PrivilegeAdd extends Component {
   }
 }
 
+PrivilegeAdd.contextType = BaseDataContext;
+
 PrivilegeAdd.defaultProps = {
-  baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired
 };
 
 export default PrivilegeAdd;

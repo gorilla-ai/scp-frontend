@@ -10,6 +10,7 @@ import Form from 'react-ui/build/src/components/form'
 import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
+import {BaseDataContext} from '../../../common/context';
 import helper from '../../../common/helper'
 import withLocale from '../../../../hoc/locale-provider'
 
@@ -68,7 +69,7 @@ class AccountEdit extends Component {
    * @param {string} id - selected account ID
    */
   loadAccount = (id) => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
 
     ah.all([
       {
@@ -107,7 +108,7 @@ class AccountEdit extends Component {
    * @method
    */
   loadPrivileges = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
 
     ah.one({
       url: `${baseUrl}/api/account/privileges`
@@ -130,7 +131,7 @@ class AccountEdit extends Component {
    * @method
    */
   saveAccount = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const {id, accountData, showPrivileges} = this.state;
     let validForm = true;
 
@@ -183,7 +184,7 @@ class AccountEdit extends Component {
    * @method
    */
   savePrivileges = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const {id, accountData:{selected}} = this.state;
 
     ah.one({
@@ -347,13 +348,13 @@ class AccountEdit extends Component {
   }
 }
 
+AccountEdit.contextType = BaseDataContext;
+
 AccountEdit.propTypes = {
   onDone: PropTypes.func.isRequired
 };
 
 AccountEdit.defaultProps = {
-  baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired
 };
 
 export default withLocale(AccountEdit);

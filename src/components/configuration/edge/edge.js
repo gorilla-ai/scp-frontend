@@ -13,6 +13,7 @@ import RadioGroup from 'react-ui/build/src/components/radio-group'
 import Textarea from 'react-ui/build/src/components/textarea'
 import ToggleBtn from 'react-ui/build/src/components/toggle-button'
 
+import {BaseDataContext} from '../../common/context';
 import {HocConfig as Config} from '../../common/configuration'
 import helper from '../../common/helper'
 import TableContent from '../../common/table-content'
@@ -79,7 +80,7 @@ class Edge extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {locale, sessionRights} = this.props;
+    const {locale, sessionRights} = this.context;
 
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
 
@@ -96,7 +97,7 @@ class Edge extends Component {
    * @method
    */
   getEdgeServiceType = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl} = this.context;
     const url = `${baseUrl}/api/edge/serviceType`;
 
     this.ah.one({
@@ -194,7 +195,7 @@ class Edge extends Component {
    * @param {string} fromSearch - option for the 'search'
    */
   getEdgeData = (fromSearch) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const {edgeSearch, edge} = this.state;
     const url = `${baseUrl}/api/edge/_search?page=${edge.currentPage}&pageSize=${edge.pageSize}`;
     let data = {};
@@ -281,7 +282,7 @@ class Edge extends Component {
    * @param {object} allValue - Edge data
    */
   agentAnalysis = (allValue) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl} = this.context;
     const url = `${baseUrl}/api/agent/_analyze?projectId=${allValue.projectId}`;
 
     ah.one({
@@ -440,7 +441,7 @@ class Edge extends Component {
    * @param {string} type - status action type ('start' or 'stop')
    */
   handleEdgeStatusChange = (type) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl} = this.context;
     const {edge} = this.state;
     const url = `${baseUrl}/api/agent/_${type}?id=${edge.info.id}&projectId=${edge.info.projectId}`;
 
@@ -502,7 +503,7 @@ class Edge extends Component {
    * @method
    */
   deleteEdge = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl} = this.context;
     const {currentEdgeData} = this.state;
 
     ah.one({
@@ -523,7 +524,7 @@ class Edge extends Component {
    * @method
    */
   handleEdgeSubmit = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl} = this.context;
     const {edge} = this.state;
     let data = {
       id: edge.info.id,
@@ -619,7 +620,7 @@ class Edge extends Component {
    * @returns HTML DOM
    */
   displayEditEdgeContent = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {contextRoot} = this.context;
     const {activeContent, edge} = this.state;
     let iconType = '';
     let btnStatusOn = false;
@@ -872,7 +873,7 @@ class Edge extends Component {
    * @returns width
    */
   getBtnPos = (type) => {
-    const {locale} = this.props;
+    const {locale} = this.context;
 
     if (type === 'add') {
       if (locale === 'zh') {
@@ -883,7 +884,6 @@ class Edge extends Component {
     }
   }
   render() {
-    const {baseUrl, contextRoot, language, locale, session} = this.props;
     const {activeContent, showFilter, edge} = this.state;
 
     return (
@@ -895,12 +895,7 @@ class Edge extends Component {
         </div>
 
         <div className='data-content'>
-          <Config
-            baseUrl={baseUrl}
-            contextRoot={contextRoot}
-            language={language}
-            locale={locale}
-            session={session} />
+          <Config />
 
           <div className='parent-content'>
             { this.renderFilter() }
@@ -932,9 +927,9 @@ class Edge extends Component {
   }
 }
 
+Edge.contextType = BaseDataContext;
+
 Edge.propTypes = {
-  baseUrl: PropTypes.string.isRequired,
-  sessionRights: PropTypes.object.isRequired
 };
 
 const HocEdge = withRouter(withLocale(Edge));

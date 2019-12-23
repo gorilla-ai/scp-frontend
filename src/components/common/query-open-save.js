@@ -8,6 +8,7 @@ import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
+import {BaseDataContext} from './context';
 import FilterInput from './filter-input'
 import helper from './helper'
 import MarkInput from './mark-input'
@@ -69,7 +70,8 @@ class QueryOpenSave extends Component {
         this.props.setFilterData(queryData.query.filter);
       }
     } else if (type === 'save') {
-      const {baseUrl, account, queryData} = this.props;
+      const {baseUrl} = this.context;
+      const {account, queryData} = this.props;
       const {newQueryName} = this.state;
       let tempFilterData = [];
       let url = '';
@@ -211,7 +213,8 @@ class QueryOpenSave extends Component {
    * @method
    */
   deleteFilterQuery = () => {
-    const {baseUrl, activeTab, queryData} = this.props;
+    const {baseUrl} = this.context;
+    const {activeTab, queryData} = this.props;
     let url = '';
 
     if (activeTab === 'alert') {
@@ -522,9 +525,9 @@ class QueryOpenSave extends Component {
   }
 }
 
+QueryOpenSave.contextType = BaseDataContext;
+
 QueryOpenSave.propTypes = {
-  baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired,
   activeTab: PropTypes.string.isRequired,
   type: PropTypes.string.isRequired,
   account: PropTypes.object.isRequired,

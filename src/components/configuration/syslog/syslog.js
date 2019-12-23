@@ -18,6 +18,7 @@ import MultiInput from 'react-ui/build/src/components/multi-input'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import Textarea from 'react-ui/build/src/components/textarea'
 
+import {BaseDataContext} from '../../common/context';
 import {HocConfig as Config} from '../../common/configuration'
 import EditHosts from './edit-hosts'
 import helper from '../../common/helper'
@@ -106,7 +107,7 @@ class Syslog extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {locale, sessionRights} = this.props;
+    const {locale, sessionRights} = this.context;
 
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
 
@@ -118,7 +119,7 @@ class Syslog extends Component {
    * @method
    */
   getRelationship = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
 
     this.ah.one({
       url: `${baseUrl}/api/log/relationships`,
@@ -200,7 +201,7 @@ class Syslog extends Component {
    * @param {boolean} flag - flog for port and format
    */
   getSyslogList = (flag) => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const {dataFieldsArr, syslog, search} = this.state;
     let uri = `?page=${syslog.currentPage}&pageSize=${syslog.pageSize}&sort=${syslog.sort.field}&order=${syslog.sort.desc ? 'desc' : 'asc'}`;
 
@@ -298,7 +299,7 @@ class Syslog extends Component {
    * @method
    */
   getRaw = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const {config} = this.state;
     const dataObj = {
       input: config.input,
@@ -338,7 +339,7 @@ class Syslog extends Component {
    * @method
    */
   confirmSyslog = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const {config} = this.state;
     let flag = false;
 
@@ -433,7 +434,7 @@ class Syslog extends Component {
    * @param {string} id - syslog id
    */
   deleteSyslog = (id) => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
 
     this.ah.one({
       url: `${baseUrl}/api/log/config?id=${id}`,
@@ -452,7 +453,7 @@ class Syslog extends Component {
    * @param {string} id - syslog id
    */
   openSyslog = (id) => {
-    const {baseUrl} = this.props
+    const {baseUrl} = this.context
 
     if (!id) { //Add new syslog
       this.setState({
@@ -518,7 +519,7 @@ class Syslog extends Component {
    * @param {object} allValue - syslog data
    */
   forwardSyslog = (allValue) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
 
     window.location.href = `${baseUrl}${contextRoot}/events/syslog?configId=${allValue.id}`;
   }
@@ -603,7 +604,7 @@ class Syslog extends Component {
    * @method
    */
   convertPattern = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const {config} = this.state;
     const dataObj = {
       input: config.input
@@ -628,7 +629,7 @@ class Syslog extends Component {
    * @param {string} configId - config ID
    */
   getLatestInput = (configId) => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
 
     if (configId) {
       this.ah.one({
@@ -813,7 +814,7 @@ class Syslog extends Component {
    * @method
    */
   getTimeline = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const {activeTimeline, activeConfigId, datetime} = this.state;
     const startDttm = Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
     const endDttm = Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
@@ -1048,7 +1049,7 @@ class Syslog extends Component {
    * @method
    */
   confirmEditHosts = () => {
-    const {baseUrl} = this.props;
+    const {baseUrl} = this.context;
     const {hostsData} = this.state;
     const url = `${baseUrl}/api/log/config/hosts`;
     let hostsArray = [];
@@ -1170,7 +1171,6 @@ class Syslog extends Component {
     )
   }
   render() {
-    const {baseUrl, contextRoot, language, locale, session} = this.props;
     const {openSyslog, openTimeline, openEditHosts, syslog, openFilter, dataFields} = this.state;
 
     return (
@@ -1196,12 +1196,7 @@ class Syslog extends Component {
         </div>
 
         <div className='data-content'>
-          <Config
-            baseUrl={baseUrl}
-            contextRoot={contextRoot}
-            language={language}
-            locale={locale}
-            session={session} />
+          <Config />
 
           <div className='parent-content'>
             { this.renderFilter() }
@@ -1227,10 +1222,9 @@ class Syslog extends Component {
   }
 }
 
+Syslog.contextType = BaseDataContext;
+
 Syslog.propTypes = {
-  baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired,
-  sessionRights: PropTypes.object.isRequired
 }
 
 const HocSyslog = withLocale(Syslog);

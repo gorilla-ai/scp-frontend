@@ -28,6 +28,8 @@ import {HocThreatIntelligence as ThreatIntelligence} from './components/configur
 import UserAccounts from './components/configuration/user/accounts/index'
 import UserPrivileges from './components/configuration/user/privileges/index'
 
+import {BaseDataContext, baseData} from './components/common/context'
+
 import 'font-gorilla/css/font-gorilla.css'
 import 'purecss/build/pure-min.css'
 import 'react-chart/build/css/react-chart.css'
@@ -37,188 +39,117 @@ import 'react-la/build/css/react-la.css'
 const initialState = JSON.parse(document.getElementById('initial-state').innerHTML);
 const cfg = initialState.envCfg;
 const appcfg = initialState.appCfg;
-const year = Moment().year();
 const companyName = initialState.companyName;
 const productName = initialState.productName;
+const year = Moment().year();
 const session = initialState.session;
 const log = logger(cfg.env, loglevel, cfg.log);
 const footerText = `Powered by ${companyName}. Copyright © ${companyName}. ${year} All Rights Reserved. ${cfg.version} For the best experience, use the latest version of Google Chrome`;
-let sessionRights = {};
-
-_.forEach(session.rights, val => {
-  sessionRights[val] = true;
-})
 
 const HeaderComp = () => (
-  <Header
-    baseUrl={cfg.apiPrefix}
-    contextRoot={cfg.contextRoot}
-    productName={productName}
-    companyName={companyName}
-    session={session}
-    sessionRights={sessionRights} />
+  <BaseDataContext.Provider value={baseData}>
+    <Header
+      companyName={companyName} />
+  </BaseDataContext.Provider>
 )
 
 const DashboardStatsComp = () => (
-  <DashboardStats
-    baseUrl={cfg.apiPrefix}
-    contextRoot={cfg.contextRoot}
-    language={cfg.lng}
-    locale={cfg.lng}
-    session={session}
-    sessionRights={sessionRights} />
+  <BaseDataContext.Provider value={baseData}>
+    <DashboardStats />
+  </BaseDataContext.Provider>
 )
 
 const DashboardMapsComp = () => (
-  <DashboardMaps
-    baseUrl={cfg.apiPrefix}
-    contextRoot={cfg.contextRoot}
-    language={cfg.lng}
-    locale={cfg.lng}
-    session={session}
-    sessionRights={sessionRights} />
+  <BaseDataContext.Provider value={baseData}>
+    <DashboardMaps />
+  </BaseDataContext.Provider>
 )
 
 const ThreatsComp = () => (
-  <Threats
-    baseUrl={cfg.apiPrefix}
-    contextRoot={cfg.contextRoot}
-    language={cfg.lng}
-    locale={cfg.lng}
-    searchFields={appcfg.searchFields}
-    session={session}
-    sessionRights={sessionRights} />
+  <BaseDataContext.Provider value={baseData}>
+    <Threats
+      searchFields={appcfg.searchFields} />
+  </BaseDataContext.Provider>
 )
 
 const NetflowComp = () => (
-  <Netflow
-    baseUrl={cfg.apiPrefix}
-    contextRoot={cfg.contextRoot}
-    language={cfg.lng}
-    locale={cfg.lng}
-    searchFields={appcfg.searchFields}
-    session={session}
-    sessionRights={sessionRights} />
+  <BaseDataContext.Provider value={baseData}>
+    <Netflow
+      searchFields={appcfg.searchFields} />
+  </BaseDataContext.Provider>
 )
 
 const SyslogComp = () => (
-  <Syslog
-    baseUrl={cfg.apiPrefix}
-    contextRoot={cfg.contextRoot}
-    language={cfg.lng}
-    locale={cfg.lng}
-    searchFields={appcfg.searchFields}
-    session={session}
-    sessionRights={sessionRights} />
+  <BaseDataContext.Provider value={baseData}>
+    <Syslog
+      searchFields={appcfg.searchFields} />
+  </BaseDataContext.Provider>
 )
 
 const EndpointComp = () => (
-  <Endpoint
-    baseUrl={cfg.apiPrefix}
-    contextRoot={cfg.contextRoot}
-    language={cfg.lng}
-    locale={cfg.lng}
-    session={session} />
+  <BaseDataContext.Provider value={baseData}>
+    <Endpoint />
+  </BaseDataContext.Provider>
 )
 
 const Notifications = () => (
-  <NotificationSettings
-    baseUrl={cfg.apiPrefix}
-    contextRoot={cfg.contextRoot}
-    language={cfg.lng}
-    locale={cfg.lng}
-    session={session}
-    sessionRights={sessionRights} />
+  <BaseDataContext.Provider value={baseData}>
+    <NotificationSettings />
+  </BaseDataContext.Provider>
 )
 
 const Edge = () => (
-  <EdgeManagement
-    baseUrl={cfg.apiPrefix}
-    contextRoot={cfg.contextRoot}
-    language={cfg.lng}
-    locale={cfg.lng}
-    session={session}
-    sessionRights={sessionRights} />
+  <BaseDataContext.Provider value={baseData}>
+    <EdgeManagement />
+  </BaseDataContext.Provider>
 )
 
 const Threat = () => (
-  <ThreatIntelligence
-    baseUrl={cfg.apiPrefix}
-    contextRoot={cfg.contextRoot}
-    language={cfg.lng}
-    locale={cfg.lng}
-    session={session}
-    sessionRights={sessionRights} />
+  <BaseDataContext.Provider value={baseData}>
+    <ThreatIntelligence />
+  </BaseDataContext.Provider>
 )
 
 const NetworkTopologyInventory = () => (
-  <NetworkInventory
-    baseUrl={cfg.apiPrefix}
-    contextRoot={cfg.contextRoot}
-    language={cfg.lng}
-    locale={cfg.lng}
-    session={session}
-    sessionRights={sessionRights} />
+  <BaseDataContext.Provider value={baseData}>
+    <NetworkInventory />
+  </BaseDataContext.Provider>
 )
 
 const NetworkTopologyOwner = () => (
-  <NetworkOwner
-    baseUrl={cfg.apiPrefix}
-    contextRoot={cfg.contextRoot}
-    language={cfg.lng}
-    locale={cfg.lng}
-    session={session}
-    sessionRights={sessionRights} />
+  <BaseDataContext.Provider value={baseData}>
+    <NetworkOwner />
+  </BaseDataContext.Provider>
 )
 
 const NetworkTopologyMap = () => (
-  <NetworkMap
-    baseUrl={cfg.apiPrefix}
-    contextRoot={cfg.contextRoot}
-    language={cfg.lng}
-    locale={cfg.lng}
-    session={session}
-    sessionRights={sessionRights} />
+  <BaseDataContext.Provider value={baseData}>
+    <NetworkMap />
+  </BaseDataContext.Provider>
 )
 
 const Syslogs = () => (
-  <SyslogConfig
-    baseUrl={cfg.apiPrefix}
-    contextRoot={cfg.contextRoot}
-    language={cfg.lng}
-    locale={cfg.lng}
-    session={session}
-    sessionRights={sessionRights} />
+  <BaseDataContext.Provider value={baseData}>
+    <SyslogConfig />
+  </BaseDataContext.Provider>
 )
 
 const userAccounts = () => (
-  <UserAccounts
-    baseUrl={cfg.apiPrefix}
-    contextRoot={cfg.contextRoot}
-    language={cfg.lng}
-    locale={cfg.lng}
-    session={session}
-    sessionRights={sessionRights} />
+  <BaseDataContext.Provider value={baseData}>
+    <UserAccounts />
+  </BaseDataContext.Provider>
 )
 
 const userPrivileges = () => (
-  <UserPrivileges
-    baseUrl={cfg.apiPrefix}
-    contextRoot={cfg.contextRoot}
-    language={cfg.lng}
-    locale={cfg.lng}
-    session={session}
-    sessionRights={sessionRights} />
+  <BaseDataContext.Provider value={baseData}>
+    <UserPrivileges />
+  </BaseDataContext.Provider>
 )
 
 const serviceStatus = () => (
-  <ServiceStatus
-    baseUrl={cfg.apiPrefix}
-    contextRoot={cfg.contextRoot}
-    language={cfg.lng}
-    locale={cfg.lng}
-    session={session}
-    sessionRights={sessionRights} />
+  <BaseDataContext.Provider value={baseData}>
+    <ServiceStatus />
+  </BaseDataContext.Provider>
 )
 
 const Main = () => (

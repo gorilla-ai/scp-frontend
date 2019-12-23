@@ -19,8 +19,9 @@ import Tabs from 'react-ui/build/src/components/tabs'
 import Textarea from 'react-ui/build/src/components/textarea'
 import TreeView from 'react-ui/build/src/components/tree'
 
-import helper from '../../common/helper'
 import {HocAutoSettings as AutoSettings} from './auto-settings'
+import {BaseDataContext} from '../../common/context';
+import helper from '../../common/helper'
 import {HocConfig as Config} from '../../common/configuration'
 import {HocFilterContent as FilterContent} from '../../common/filter-content'
 import {HocFloorMap as FloorMap} from '../../common/floor-map'
@@ -151,7 +152,7 @@ class NetworkInventory extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {locale, sessionRights} = this.props;
+    const {locale, sessionRights} = this.context;
     const inventoryParam = queryString.parse(location.search);
 
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
@@ -204,7 +205,7 @@ class NetworkInventory extends Component {
    * @param {string} seatUUID - seat UUID
    */
   getDeviceData = (fromSearch, options, seatUUID) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl} = this.context;
     const {showHMDonly, deviceSearch, deviceData} = this.state;
     let dataParams = '';
 
@@ -375,7 +376,7 @@ class NetworkInventory extends Component {
    * @method
    */
   getOwnerData = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl} = this.context;
     const url = `${baseUrl}/api/owner/_search`;
     const data = {
       sort: 'ownerID',
@@ -412,7 +413,7 @@ class NetworkInventory extends Component {
    * @method
    */
   getSingleDeviceData = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl} = this.context;
     const inventoryParam = queryString.parse(location.search);
 
     this.ah.one({
@@ -439,7 +440,7 @@ class NetworkInventory extends Component {
    * @method
    */
   getOtherData = (options) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl} = this.context;
     const {addIP} = this.state;
     const apiNameType = [1, 2]; //1: Department, 2: Title
     let apiArr = [];
@@ -583,7 +584,7 @@ class NetworkInventory extends Component {
    * @method
    */
   getFloorPlan = (options) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl} = this.context;
 
     this.ah.one({
       url: `${baseUrl}/api/area/_tree`,
@@ -654,7 +655,7 @@ class NetworkInventory extends Component {
    * @param {string} areaUUID - area UUID
    */
   getAreaData = (areaUUID) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const mapAreaUUID = areaUUID.trim();
 
     if (!mapAreaUUID) {
@@ -707,7 +708,7 @@ class NetworkInventory extends Component {
    * @param {string} areaUUID - area UUID
    */
   getSeatData = (areaUUID) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const area = areaUUID.trim() || this.state.floorPlan.currentAreaUUID;
     const dataObj = {
       areaUUID: area
@@ -870,7 +871,7 @@ class NetworkInventory extends Component {
    * @param {object} allValue - IP device data
    */
   getOwnerSeat = (allValue) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot} = this.context;
     const topoInfo = allValue;
     let tempAlertInfo = {...this.state.alertInfo};
 
@@ -1011,7 +1012,7 @@ class NetworkInventory extends Component {
    * @method
    */
   deleteDevice = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl} = this.context;
     const {currentDeviceData} = this.state;
 
     ah.one({
@@ -1103,7 +1104,7 @@ class NetworkInventory extends Component {
    * @param {string} options - option for 'oneDevice'
    */
   getIPdeviceInfo = (index, ipDeviceUUID, options) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl} = this.context;
     const {deviceData, currentDeviceData} = this.state;
     let tempDeviceData = {...deviceData};
 
@@ -1144,7 +1145,7 @@ class NetworkInventory extends Component {
    * @param {array.<string>} type - HMD scan type
    */
   triggerTask = (type) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl} = this.context;
     const {currentDeviceData} = this.state;
     const url = `${baseUrl}/api/hmd/retrigger`;
     const requestData = {
@@ -1198,7 +1199,6 @@ class NetworkInventory extends Component {
    * @returns HTML DOM
    */
   displayScanInfo = () => {
-    const {baseUrl, contextRoot, language, locale} = this.props;
     const {deviceData, currentDeviceData} = this.state;
     const ip = currentDeviceData.ip || NOT_AVAILABLE;
     const mac = currentDeviceData.mac || NOT_AVAILABLE;
@@ -1230,10 +1230,6 @@ class NetworkInventory extends Component {
         </table>
 
         <HMDscanInfo
-          baseUrl={baseUrl}
-          contextRoot={contextRoot}
-          language={language}
-          locale={locale}
           currentDeviceData={currentDeviceData}
           toggleSelectionIR={this.toggleSelectionIR}
           showAlertData={this.showAlertData}
@@ -1511,7 +1507,7 @@ class NetworkInventory extends Component {
    * @method
    */
   handleAddIpConfirm = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl} = this.context;
     const {addIP, ownerType} = this.state;
 
     if (ownerType === 'new') {
@@ -1556,7 +1552,7 @@ class NetworkInventory extends Component {
    * @method
    */
   handleIPdeviceConfirm = (ownerUUID) => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl} = this.context;
     const {formTypeEdit, currentDeviceData, floorPlan, addIP, addSeat, mapAreaUUID} = this.state;
     const url = `${baseUrl}/api/ipdevice`;
     const requestType = formTypeEdit ? 'PATCH' : 'POST';
@@ -1657,7 +1653,7 @@ class NetworkInventory extends Component {
    */
   handleOwnerChange = (value) => {
     const inventoryParam = queryString.parse(location.search);
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl} = this.context;
 
     this.ah.one({
       url: `${baseUrl}/api/owner?uuid=${value}`,
@@ -1733,12 +1729,8 @@ class NetworkInventory extends Component {
    * @returns FloorMap component
    */
   modalFloorDialog = () => {
-    const {baseUrl, contextRoot} = this.props;
-
     return (
       <FloorMap
-        baseUrl={baseUrl}
-        contextRoot={contextRoot}
         closeDialog={this.closeDialog} />
     )
   }
@@ -1775,7 +1767,7 @@ class NetworkInventory extends Component {
    * @returns HTML DOM
    */
   displayAddIpSteps = () => {
-    const {contextRoot} = this.props;
+    const {contextRoot} = this.context;
     const {
       activeSteps,
       formTypeEdit,
@@ -2118,7 +2110,6 @@ class NetworkInventory extends Component {
    * @param {object} eventData - tree click events data
    */
   selectTree = (i, areaUUID, eventData) => {
-    const {baseUrl, contextRoot} = this.props;
     let tempFloorPlan = {...this.state.floorPlan};
     let tempArr = [];
     let pathStr = '';
@@ -2283,7 +2274,7 @@ class NetworkInventory extends Component {
    * @method
    */
   handleAddSeatConfirm = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl} = this.context;
     const {floorPlan, addSeat} = this.state;
     const url = `${baseUrl}/api/seat`;
     const requestData = {
@@ -2343,7 +2334,7 @@ class NetworkInventory extends Component {
    * @returns width
    */
   getBtnPos = (type) => {
-    const {locale} = this.props;
+    const {locale} = this.context;
 
     if (type === 'auto') {
       if (locale === 'zh') {
@@ -2360,7 +2351,7 @@ class NetworkInventory extends Component {
     }
   }
   render() {
-    const {baseUrl, contextRoot, language, locale, session, sessionRights} = this.props;
+    const {contextRoot} = this.context;
     const {
       activeTab,
       activeContent,
@@ -2409,8 +2400,6 @@ class NetworkInventory extends Component {
 
         <Manage
           ref={ref => { this.manage = ref }}
-          baseUrl={baseUrl}
-          contextRoot={contextRoot}
           onDone={this.getOtherData} />
 
         <div className='sub-header'>
@@ -2422,12 +2411,7 @@ class NetworkInventory extends Component {
         </div>
 
         <div className='data-content'>
-          <Config
-            baseUrl={baseUrl}
-            contextRoot={contextRoot}
-            language={language}
-            locale={locale}
-            session={session} />
+          <Config />
 
           {activeContent === 'tableList' &&
             <div className='parent-content'>
@@ -2514,10 +2498,6 @@ class NetworkInventory extends Component {
 
           {activeContent === 'autoSettings' &&
             <AutoSettings
-              baseUrl={baseUrl}
-              contextRoot={contextRoot}
-              locale={locale}
-              sessionRights={sessionRights}
               toggleContent={this.toggleContent} />
           }
         </div>
@@ -2526,11 +2506,9 @@ class NetworkInventory extends Component {
   }
 }
 
+NetworkInventory.contextType = BaseDataContext;
+
 NetworkInventory.propTypes = {
-  baseUrl: PropTypes.string.isRequired,
-  contextRoot: PropTypes.string.isRequired,
-  locale: PropTypes.string.isRequired,
-  sessionRights: PropTypes.object.isRequired
 };
 
 const HocNetworkInventory = withRouter(withLocale(NetworkInventory));
