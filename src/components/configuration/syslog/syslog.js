@@ -884,6 +884,7 @@ class Syslog extends Component {
    * @returns HTML DOM
    */
   displayEventsTimeline = () => {
+    const {locale} = this.context;
     const {activeTimeline, activeConfigName, clickTimeline, datetime, eventsData} = this.state;
     let type = '';
 
@@ -935,6 +936,7 @@ class Syslog extends Component {
             onChange={this.handleDateChange}
             enableTime={true}
             value={datetime}
+            locale={locale}
             t={et} />
           <button onClick={this.getTimeline}>{t('txt-search')}</button>
           </div>
