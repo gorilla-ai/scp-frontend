@@ -219,9 +219,11 @@ class Manage extends Component {
 
         <i className='c-link fg fg-add' onClick={this.openName.bind(this, 'add')} title={tab.department ? t('txt-addDepartment') : t('txt-addTitle')}></i>
 
-        <DataTable
-          fields={dataFields}
-          data={data} />
+        <div className='table-data'>
+          <DataTable
+            fields={dataFields}
+            data={data} />
+        </div>
       </div>
     )
   }

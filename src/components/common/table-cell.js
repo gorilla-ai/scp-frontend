@@ -47,7 +47,16 @@ class TableCell extends Component {
     let tempMarkData = [];
     let color = '';
 
-    if (!value) {
+    if (value) {
+      if (typeof value === 'string') {
+        value = value.toLowerCase();
+      } else if (typeof myVar === 'number') {
+        value = value.toString();
+        value = value.toLowerCase();
+      } else {
+        return;
+      }
+    } else {
       return;
     }
 
@@ -59,7 +68,7 @@ class TableCell extends Component {
     })
 
     _.forEach(tempMarkData, val => {
-      if (val.data.toLowerCase() === value.toLowerCase()) {
+      if (val.data.toLowerCase() === value) {
         color = val.color;
         return false; //Exit the loop
       }
@@ -97,7 +106,7 @@ class TableCell extends Component {
       } else {
         if (_.includes(FILTER_EXCLUDE_FIELDS, fieldName)) { //Dont' show filter icon
           return <span className={this.getBackgroundColor(fieldValue)}>{fieldValue}</span>
-        } else if (fieldName === '_severity_') {
+        } else if (activeTab === 'alert' && fieldName === '_severity_') {
           return ( //Special case for Severity in Alerts
             <div>
               <span className='severity' style={{backgroundColor: alertLevelColors[fieldValue]}}>{fieldValue}</span>

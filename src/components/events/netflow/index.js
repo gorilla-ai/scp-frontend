@@ -105,9 +105,7 @@ class Netflow extends Component {
       searchInput: {
         searchType: 'manual',
         searchInterval: '1h',
-        refreshTime: '600000', //10 minutes
-        inputManual: '',
-        inputAuto: '',
+        refreshTime: '600000' //10 minutes
       },
       //Events count
       eventsCount: {},
@@ -676,7 +674,7 @@ class Netflow extends Component {
    */
   loadConnections = (options) => {
     const {baseUrl} = this.context;
-    const {projectID, connectionsInterval, currentPage, oldPage, pageSize, subSectionsData, account} = this.state;
+    const {projectID, activeTab, connectionsInterval, currentPage, oldPage, pageSize, subSectionsData, account} = this.state;
     const projectIDstring = this.getProjectURL(projectID);
     const setPage = options === 'search' ? 1 : currentPage;
 
@@ -758,6 +756,7 @@ class Netflow extends Component {
             }
             return (
               <TableCell
+                activeTab={activeTab}
                 fieldValue={value}
                 fieldName={tempData}
                 allValue={allValue}

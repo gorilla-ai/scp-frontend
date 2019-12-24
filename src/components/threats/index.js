@@ -120,9 +120,7 @@ class ThreatsController extends Component {
       searchInput: {
         searchType: 'manual',
         searchInterval: '1h',
-        refreshTime: '600000', //10 minutes
-        inputManual: '',
-        inputAuto: '',
+        refreshTime: '600000' //10 minutes
       },
       alertHistogram: {},
       filterData: [{

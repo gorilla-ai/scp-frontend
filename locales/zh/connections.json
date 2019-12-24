@@ -237,8 +237,6 @@
     "connections": {
       "txt-search-manual": "自訂時間",
       "txt-search-auto": "定期更新",
-      "txt-time-frame": "時間範圍",
-      "txt-auto-update": "自動更新週期",
       "txt-last15m": "最近15分鐘",
       "txt-last30m": "最近30分鐘",
       "txt-last1h": "最近1小時",

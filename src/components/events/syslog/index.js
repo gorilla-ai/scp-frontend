@@ -79,9 +79,7 @@ class SyslogController extends Component {
       searchInput: {
         searchType: 'manual',
         searchInterval: '1h',
-        refreshTime: '600000', //10 minutes
-        inputManual: '',
-        inputAuto: '',
+        refreshTime: '600000' //10 minutes
       },
       eventHistogram: {},
       filterData: [{
@@ -570,7 +568,7 @@ class SyslogController extends Component {
    */
   loadLogs = (options) => {
     const {baseUrl} = this.context;
-    const {currentPage, oldPage, pageSize, subSectionsData, markData} = this.state;
+    const {activeTab, currentPage, oldPage, pageSize, subSectionsData, markData} = this.state;
     const setPage = options === 'search' ? 1 : currentPage;
 
     this.ah.all([{
@@ -649,6 +647,7 @@ class SyslogController extends Component {
             }
             return (
               <TableCell
+                activeTab={activeTab}
                 fieldValue={value}
                 fieldName={tempData}
                 allValue={allValue}
