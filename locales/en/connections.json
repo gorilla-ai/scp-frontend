@@ -237,8 +237,6 @@
     "connections": {
       "txt-search-manual": "Manual",
       "txt-search-auto": "Auto",
-      "txt-time-frame": "Time Frame",
-      "txt-auto-update": "Auto Update Interval",
       "txt-last15m": "Last 15 min.",
       "txt-last30m": "Last 30 min.",
       "txt-last1h": "Last 1 hour",

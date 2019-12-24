@@ -840,9 +840,13 @@
     right: 15px;
     font-size: 24px;
   }
+  .table-data {
+    height: 330px;
+    margin-top: 15px;
+    overflow-y: auto;
+  }
   table {
     width: 100%;
-    margin-top: 20px;
     thead th {
       text-align: left;
     }
@@ -1189,34 +1193,6 @@
     .c-info {
       color: #d0021b;
     }
-  }
-}
-/* common/search-options */
-#intervalModalDialog-content {
-  .interval-options {
-    font-size: 14px;
-    color: #000;
-    background-color: #fff;
-    padding: 10px;
-    &.manual {
-      width: 355px;
-      height: 90px;
-    }
-    & > label {
-      display: none;
-    }
-    input {
-      width: 20px;
-    }
-  }
-  .list-item {
-    margin: 0 0 0.6em 0;
-    margin-right: 15px;
-  }
-  #timeInterval,
-  #updateInterval {
-    flex-direction: row;
-    margin-top: 10px;
   }
 }
 #irSelectionDialog-content {
