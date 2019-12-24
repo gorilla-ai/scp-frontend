@@ -32,6 +32,19 @@ class FilterContent extends Component {
       return <button className='filter' onClick={this.props.handleSearchSubmit.bind(this, 'search')}>{t('txt-filter')}</button>
     }
   }
+  /**
+   * Toggle filter/mark content on/off
+   * @method
+   */
+  toggleFilter = () => {
+    const {activeTab} = this.props;
+
+    if (activeTab === 'logs') {
+      this.props.toggleMark();
+    } else {
+      this.props.toggleFilter();
+    }
+  }
   render() {
     const {showFilter, queryData} = this.props;
     let filterTitle = t('txt-filter');
@@ -42,7 +55,7 @@ class FilterContent extends Component {
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
-        <i className='fg fg-close' onClick={this.props.toggleFilter} title={t('txt-close')}></i>
+        <i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}></i>
         <div className='header-text'>{filterTitle}</div>
         <div className='button-group open-query'>
           <button className='open-query' onClick={this.props.openQuery.bind(this, 'open')}>{t('events.connections.txt-openQuery')}</button>
