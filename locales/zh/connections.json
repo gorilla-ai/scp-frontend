@@ -346,6 +346,7 @@
     "txt-edgeEditNoEndDate": "Edge結束時間不得為空白",
     "txt-edgeEditPastEndDate": "Edge結束時間不得為過去時間",
     "txt-ipValidationFail": "請輸入正確IP:Port格式",
+    "txt-threatDateErr": "時間不得為未來時間",
     "statistics": {
       "txt-sourceIndicators": "情資類型統計圓餅圖",
       "txt-indicatorsTrend": "每日情資更新數量長條圖",

@@ -292,6 +292,8 @@ class SearchOptions extends Component {
    * @returns DateRange component
    */
   showDataRange = () => {
+    const {locale} = this.context;
+
     return (
       <DateRange
         id='datetime'
@@ -299,6 +301,7 @@ class SearchOptions extends Component {
         onChange={this.props.handleDateChange}
         enableTime={true}
         value={this.props.datetime}
+        locale={locale}
         t={et} />
     )
   }

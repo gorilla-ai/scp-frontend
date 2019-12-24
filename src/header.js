@@ -5,7 +5,7 @@ import PropTypes from 'prop-types'
 import Promise from 'bluebird'
 import $ from 'jquery'
 import cx from 'classnames'
-import qs from 'query-string'
+import queryString from 'query-string'
 import i18n from 'i18next'
 
 import ContextMenu from 'react-ui/build/src/components/contextmenu'
@@ -52,8 +52,7 @@ class Header extends Component {
    * @param {string} lng - language type ('en' or 'zh')
    */
   changeLng = (lng) => {
-    const {location} = this.context;
-    const urlParams = qs.parse(location.search);
+    const urlParams = queryString.parse(location.search);
     let urlString = '';
 
     _.forEach(urlParams, (value, key) => {
@@ -62,7 +61,7 @@ class Header extends Component {
       }
     });
 
-    urlString += qs.stringify({lng});
+    urlString += queryString.stringify({lng});
     window.location.href = window.location.pathname + '?' + urlString;
   }
   /**
@@ -113,7 +112,9 @@ class Header extends Component {
    * @method
    */
   editAccount = () => {
-    this.editor._component.openAccount(this.props.session.accountId, 'fromHeader');
+    const {session} = this.context;
+
+    this.editor._component.openAccount(session.accountId, 'fromHeader');
   }
   /**
    * Show account edit success message

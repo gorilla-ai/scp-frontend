@@ -620,7 +620,7 @@ class Edge extends Component {
    * @returns HTML DOM
    */
   displayEditEdgeContent = () => {
-    const {contextRoot} = this.context;
+    const {contextRoot, locale} = this.context;
     const {activeContent, edge} = this.state;
     let iconType = '';
     let btnStatusOn = false;
@@ -777,6 +777,7 @@ class Edge extends Component {
                 onChange={this.handleDataChange.bind(this, 'edgeModeDatetime')}
                 enableTime={true}
                 value={edge.info.edgeModeDatetime}
+                locale={locale}
                 t={et} />
             }
           </div>
