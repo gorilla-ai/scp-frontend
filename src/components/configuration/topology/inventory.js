@@ -1162,7 +1162,7 @@ class NetworkInventory extends Component {
           display: <div>{t('txt-requestSent')}</div>
         });
 
-        if (type && type !== 'getSystemInfo') {
+        if (type.length > 0 && !_.includes(type, 'getSystemInfo')) {
           this.getIPdeviceInfo('', currentDeviceData.ipDeviceUUID);
         }
       }
@@ -1466,6 +1466,33 @@ class NetworkInventory extends Component {
     }
   }
   /**
+   * Check if IP aready exists in inventory
+   * @method
+   */
+  checkDuplicatedIP = () => {
+    const {baseUrl} = this.context;
+    const {addIP} = this.state;
+
+    this.ah.one({
+      url: `${baseUrl}/api/u1/ipdevice/_search?ip=${addIP.ip}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        if (data.counts >= 1) {
+          helper.showPopupMsg(t('network-inventory.txt-duplicatedIP'), t('txt-error'));
+        } else {
+          this.setState({
+            activeSteps: 2
+          });
+        }
+      }
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Toggle add/edit form step content
    * @method
    * @param {string} type - form step type ('previous' or 'next')
@@ -1476,31 +1503,37 @@ class NetworkInventory extends Component {
 
     if (type === 'previous') {
       tempActiveSteps--;
+
+      this.setState({
+        activeSteps: tempActiveSteps
+      });
     } else if (type === 'next') {
       if (activeSteps === 1) {
         if (this.checkFormValidation(1)) {
           helper.showPopupMsg(et('fill-required-fields'), t('txt-error'));
           return;
+        } else {
+          this.checkDuplicatedIP();
         }
-      }
+      } else {
+        if (activeSteps === 3) {
+          if (this.checkFormValidation(3)) {
+            helper.showPopupMsg(et('fill-required-fields'), t('txt-error'));
+            return;
+          }
+        }
 
-      if (activeSteps === 3) {
-        if (this.checkFormValidation(3)) {
-          helper.showPopupMsg(et('fill-required-fields'), t('txt-error'));
+        if (activeSteps === 4) {
+          this.handleAddIpConfirm();
           return;
         }
-      }
+        tempActiveSteps++;
 
-      if (activeSteps === 4) {
-        this.handleAddIpConfirm();
-        return;
+        this.setState({
+          activeSteps: tempActiveSteps
+        });
       }
-      tempActiveSteps++;
     }
-
-    this.setState({
-      activeSteps: tempActiveSteps
-    });
   }
   /**
    * Add new owner if new owner is selected

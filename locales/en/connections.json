@@ -372,6 +372,7 @@
     "txt-totalItem": "Total",
     "txt-irMsg": "IR data has been uploaded to",
     "txt-itemSelection": "Select IR Set",
+    "txt-duplicatedIP": "IP already exists",
     "txt-editFloorMap": "$t(txt-edit) $t(txt-floorMap)",
     "txt-viewDevice": "$t(txt-view) $t(alert.txt-ipBasicInfo)",
     "txt-viewHMD": "$t(txt-view) $t(alert.txt-safetyScanInfo)",
