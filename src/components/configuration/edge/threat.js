@@ -146,7 +146,7 @@ class ThreatIntelligence extends Component {
    * Show tooltip info when mouseover the chart
    * @method
    * @param {object} eventInfo - MouseoverEvents
-   * @param {object} data - chart data
+   * @param {array.<object>} data - chart data
    * @returns HTML DOM
    */
   onTooltip = (eventInfo, data) => {

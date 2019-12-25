@@ -252,8 +252,8 @@ class ThreatsController extends Component {
    */
   loadTreeData = () => {
     const {baseUrl} = this.context;
-    const {currentPage, pageSize, treeData} = this.state;
-    const url = `${baseUrl}/api/u2/alert/_search?page=${currentPage}&pageSize=${pageSize}`;
+    const {treeData} = this.state;
+    const url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`;
     const requestData = this.toQueryLanguage('tree');
 
     helper.getAjaxData('POST', url, requestData)

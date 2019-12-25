@@ -435,6 +435,22 @@ class DashboardStats extends Component {
     window.open(url, '_blank');
   }
   /**
+   * Show tooltip info when mouseover the pie chart
+   * @method
+   * @param {object} keyLabel - chart key label
+   * @param {object} eventInfo - MouseoverEvents
+   * @param {array.<object>} data - chart data
+   * @returns HTML DOM
+   */
+  onPieChartTooltip = (keyLabel, eventInfo, data) => {
+    return (
+      <section>
+        <span>{keyLabel.key}: {_.escape(data[0].key)}</span><br />
+        <span>{keyLabel.doc_count}: {data[0].doc_count}</span><br />
+      </section>
+    )
+  }
+  /**
    * Display pie chart and table chart
    * @method
    * @param {object} val - alert chart data
@@ -455,6 +471,7 @@ class DashboardStats extends Component {
             valueLabels={alertChartsList[i].chartValueLabels}
             dataCfg={alertChartsList[i].chartDataCfg}
             onClick={this.getChartRedirect.bind(this, alertChartsList[i].chartID)}
+            onTooltip={this.onPieChartTooltip.bind(this, alertChartsList[i].chartKeyLabels)}
             colors={{
               key: ALERT_LEVEL_COLORS
             }} />
