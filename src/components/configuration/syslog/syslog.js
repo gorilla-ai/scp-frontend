@@ -862,8 +862,8 @@ class Syslog extends Component {
   onTooltip = (eventInfo, data) => {
     return (
       <section>
-        <span>{data[0].type}</span><br />
-        <span>{t('txt-time')}: {Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss')}</span><br />
+        <span>{data[0].type}<br /></span>
+        <span>{t('txt-time')}: {Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss')}<br /></span>
         <span>{t('txt-count')}: {data[0].events}</span>
       </section>
     )

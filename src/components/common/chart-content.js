@@ -41,10 +41,17 @@ class ChartContent extends Component {
    * @returns HTML DOM
    */
   onTooltip = (eventInfo, data) => {
+    const {pageType} = this.props;
+
     return (
       <section>
-        <span>{t('txt-severity')}: {data[0].rule}</span><br />
-        <span>{t('txt-time')}: {Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss')}</span><br />
+        {pageType === 'alert' &&
+          <span>{t('txt-severity')}: {data[0].rule}<br /></span>
+        }
+        {pageType === 'logs' &&
+          <span>{t('txt-data')}: {data[0].rule}<br /></span>
+        }
+        <span>{t('txt-time')}: {Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss')}<br /></span>
         <span>{t('txt-count')}: {data[0].number}</span>
       </section>
     )

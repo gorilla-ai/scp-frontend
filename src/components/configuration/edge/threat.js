@@ -152,8 +152,8 @@ class ThreatIntelligence extends Component {
   onTooltip = (eventInfo, data) => {
     return (
       <section>
-        <span>{t('txt-indicator')}: {data[0].indicator}</span><br />
-        <span>{t('txt-date')}: {Moment(data[0].day, 'x').utc().format('YYYY/MM/DD')}</span><br />
+        <span>{t('txt-indicator')}: {data[0].indicator}<br /></span>
+        <span>{t('txt-date')}: {Moment(data[0].day, 'x').utc().format('YYYY/MM/DD')}<br /></span>
         <span>{t('txt-count')}: {data[0].count}</span>
       </section>
     )

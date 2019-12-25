@@ -112,8 +112,8 @@ class DashboardStats extends Component {
   onTooltip = (eventInfo, data) => {
     return (
       <section>
-        <span>{t('txt-severity')}: {data[0].rule}</span><br />
-        <span>{t('txt-time')}: {Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss')}</span><br />
+        <span>{t('txt-severity')}: {data[0].rule}<br /></span>
+        <span>{t('txt-time')}: {Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss')}<br /></span>
         <span>{t('txt-count')}: {data[0].number}</span>
       </section>
     )
