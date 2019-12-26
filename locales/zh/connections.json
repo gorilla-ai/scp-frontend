@@ -489,6 +489,7 @@
     "protocolType": "Protocol種類",
     "attackCnt": "攻擊次數",
     "level": "等級",
+    "severity": "嚴重性",
     "maskedIP": "網段",
     "configSrc": "系統日誌",
     "agg": "國家",

@@ -489,6 +489,7 @@
     "protocolType": "Protocol Type",
     "attackCnt": "Attack Count",
     "level": "Level",
+    "severity": "Severity",
     "maskedIP": "Masked IP",
     "configSrc": "Config Source",
     "agg": "Country",
