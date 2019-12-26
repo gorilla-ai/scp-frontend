@@ -587,6 +587,10 @@ class AlertDetails extends Component {
 
     const ip = this.getIpPortData(ipType);
 
+    if (ip === NOT_AVAILABLE) {
+      return;
+    }
+
     if (alertInfo[ipType].topology && alertInfo[ipType].topology.mac) {
       type = 'edit';
       text = t('txt-edit');
