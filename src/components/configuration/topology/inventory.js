@@ -110,8 +110,11 @@ class NetworkInventory extends Component {
         totalCount: 0,
         currentPage: 1,
         pageSize: 20,
-        currentIndex: '',
-        currentLength: ''
+        hmdOnly: {
+          dataContent: [],
+          currentIndex: '',
+          currentLength: ''
+        }
       },
       currentDeviceData: {},
       ownerList: [],
@@ -286,8 +289,19 @@ class NetworkInventory extends Component {
 
       tempDeviceData.totalCount = data.counts;
       tempDeviceData.currentPage = fromSearch === 'search' ? 1 : deviceData.currentPage;
-      tempDeviceData.currentIndex = 0;
-      tempDeviceData.currentLength = data.rows.length;
+
+      //HMD only
+      let hmdDataOnly = [];
+
+      _.forEach(data.rows, val => {
+        if (val.isHmd) {
+          hmdDataOnly.push(val);
+        }
+      });
+
+      tempDeviceData.hmdOnly.dataContent = hmdDataOnly;
+      tempDeviceData.hmdOnly.currentIndex = 0;
+      tempDeviceData.hmdOnly.currentLength = hmdDataOnly.length;
 
       let tempFields = {};
       deviceData.dataFieldsArr.forEach(tempData => {
@@ -930,12 +944,12 @@ class NetworkInventory extends Component {
     let tempDeviceData = {...deviceData};
 
     if (type === 'previous') {
-      if (deviceData.currentIndex !== 0) {
-        tempDeviceData.currentIndex--;
+      if (deviceData.hmdOnly.currentIndex !== 0) {
+        tempDeviceData.hmdOnly.currentIndex--;
       }
     } else if (type === 'next') {
-      if (deviceData.currentLength - deviceData.currentIndex > 1) {
-        tempDeviceData.currentIndex++;
+      if (deviceData.hmdOnly.currentLength - deviceData.hmdOnly.currentIndex > 1) {
+        tempDeviceData.hmdOnly.currentIndex++;
       }
     }
 
@@ -943,8 +957,8 @@ class NetworkInventory extends Component {
       deviceData: tempDeviceData
     }, () => {
       const {deviceData} = this.state;
-      const index = deviceData.currentIndex;
-      const allValue = deviceData.dataContent[index];
+      const index = deviceData.hmdOnly.currentIndex;
+      const allValue = deviceData.hmdOnly.dataContent[index];
 
       this.openDetailInfo(index, allValue);
     });
@@ -957,7 +971,7 @@ class NetworkInventory extends Component {
    */
   openDetailInfo = (index, allValue) => {
     let tempDeviceData = {...this.state.deviceData};
-    tempDeviceData.currentIndex = Number(index);
+    tempDeviceData.hmdOnly.currentIndex = Number(index);
 
     this.setState({
       showSeatData: false,
@@ -1113,7 +1127,11 @@ class NetworkInventory extends Component {
     }
 
     if (index) {
-      tempDeviceData.currentIndex = Number(index);
+      _.forEach(deviceData.hmdOnly.dataContent, (val, i) => {
+        if (val.ipDeviceUUID === ipDeviceUUID) {
+          tempDeviceData.hmdOnly.currentIndex = i;
+        }
+      })
     }
 
     this.ah.one({
@@ -1235,13 +1253,13 @@ class NetworkInventory extends Component {
           showAlertData={this.showAlertData}
           triggerTask={this.triggerTask} />
 
-        {deviceData.currentLength > 1 &&
+        {deviceData.hmdOnly.currentLength > 1 &&
           <div className='pagination'>
             <div className='buttons'>
-              <button onClick={this.showAlertData.bind(this, 'previous')} disabled={deviceData.currentIndex === 0}>{t('txt-previous')}</button>
-              <button onClick={this.showAlertData.bind(this, 'next')} disabled={deviceData.currentIndex + 1 === deviceData.currentLength}>{t('txt-next')}</button>
+              <button onClick={this.showAlertData.bind(this, 'previous')} disabled={deviceData.hmdOnly.currentIndex === 0}>{t('txt-previous')}</button>
+              <button onClick={this.showAlertData.bind(this, 'next')} disabled={deviceData.hmdOnly.currentIndex + 1 === deviceData.hmdOnly.currentLength}>{t('txt-next')}</button>
             </div>
-            <span className='count'>{deviceData.currentIndex + 1} / {deviceData.currentLength}</span>
+            <span className='count'>{deviceData.hmdOnly.currentIndex + 1} / {deviceData.hmdOnly.currentLength}</span>
           </div>
         }          
       </div>

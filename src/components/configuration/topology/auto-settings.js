@@ -428,7 +428,7 @@ class AutoSettings extends Component {
   handleScannerTest = (value) => {
     const {baseUrl} = this.context;
 
-    if (!_.isEmpty(value)) {
+    if (_.isEmpty(value)) {
       return;
     }
 

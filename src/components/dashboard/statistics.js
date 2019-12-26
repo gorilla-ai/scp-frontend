@@ -35,7 +35,7 @@ let pieCharts = {};
 const CHARTS_LIST = [
   {
     id: 'alertThreatLevel',
-    key: 'level'
+    key: 'severity'
   },
   {
     id: 'Top10ExternalSrcCountry',
