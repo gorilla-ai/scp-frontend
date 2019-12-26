@@ -436,11 +436,15 @@ class NetworkInventory extends Component {
     })
     .then(data => {
       if (data) {
-        this.setState({
-          currentDeviceData: data.rows[0]
-        }, () => {
-          this.toggleContent('showForm', 'edit');
-        });
+        if (data.counts > 0) {
+          this.setState({
+            currentDeviceData: data.rows[0]
+          }, () => {
+            this.toggleContent('showForm', 'edit');
+          });
+        } else {
+          this.getDeviceData(); //No device data is found
+        }
         return null;
       }
     })
@@ -1516,7 +1520,7 @@ class NetworkInventory extends Component {
    * @param {string} type - form step type ('previous' or 'next')
    */
   toggleSteps = (type) => {
-    const {activeSteps} = this.state;
+    const {activeSteps, formTypeEdit} = this.state;
     let tempActiveSteps = activeSteps;
 
     if (type === 'previous') {
@@ -1531,7 +1535,13 @@ class NetworkInventory extends Component {
           helper.showPopupMsg(et('fill-required-fields'), t('txt-error'));
           return;
         } else {
-          this.checkDuplicatedIP();
+          if (formTypeEdit) {
+            this.setState({
+              activeSteps: 2
+            });
+          } else { //Check duplicated IP for adding new device
+            this.checkDuplicatedIP();
+          }
         }
       } else {
         if (activeSteps === 3) {
@@ -1860,7 +1870,8 @@ class NetworkInventory extends Component {
                     t: et
                   }}
                   onChange={this.handleAddIpChange.bind(this, 'ip')}
-                  value={addIP.ip} />
+                  value={addIP.ip}
+                  readOnly={formTypeEdit} />
               </div>
               <div className='group'>
                 <label htmlFor='addIPstepsMac'>{t('ipFields.mac')}</label>
@@ -2100,7 +2111,7 @@ class NetworkInventory extends Component {
               <div className='floor-info'>
                 <div className='tree'>
                   {floorPlan.treeData && floorPlan.treeData.length > 0 &&
-                    floorPlan.treeData.map(this.displayTree)
+                    floorPlan.treeData.map(this.displayTree.bind(this, 'stepsFloor'))
                   }
                 </div>
                 <div className='map'>
@@ -2221,18 +2232,23 @@ class NetworkInventory extends Component {
   /**
    * Handle floor tree data
    * @method
+   * @param {string} type - map type ('deviceMap' or 'stepsFloor')
    * @param {object} val - floor plan data
    * @param {number} i - index of the floor plan data
    * @returns content of TreeView component
    */
-  displayTree = (val, i) => {
+  displayTree = (type, val, i) => {
     const {floorPlan, currentDeviceData} = this.state;
     let currentAreaUUID = '';
 
-    if (currentDeviceData && currentDeviceData.seatUUID) {
-      currentAreaUUID = currentDeviceData.areaUUID;
-    } else {
+    if (type === 'deviceMap') {
       currentAreaUUID = floorPlan.currentAreaUUID;
+    } else {
+      if (currentDeviceData && currentDeviceData.seatUUID) {
+        currentAreaUUID = currentDeviceData.areaUUID;
+      } else {
+        currentAreaUUID = floorPlan.currentAreaUUID;
+      }
     }
 
     return this.getTreeView(val, currentAreaUUID, i);
@@ -2424,8 +2440,12 @@ class NetworkInventory extends Component {
       activeSteps,
       addIP
     } = this.state;
-    const picPath = (currentDeviceData.ownerObj && currentDeviceData.ownerObj.base64) ? currentDeviceData.ownerObj.base64 : contextRoot + '/images/empty_profile.png';
     const backText = activeTab === 'deviceList' ? t('network-inventory.txt-backToList') : t('network-inventory.txt-backToMap')
+    let picPath = '';
+
+    if (!_.isEmpty(currentDeviceData)) {
+      picPath = (currentDeviceData.ownerObj && currentDeviceData.ownerObj.base64) ? currentDeviceData.ownerObj.base64 : contextRoot + '/images/empty_profile.png'
+    }
 
     return (
       <div>
@@ -2504,7 +2524,7 @@ class NetworkInventory extends Component {
                   <div className='inventory-map'>
                     <div className='tree'>
                       {floorPlan.treeData && floorPlan.treeData.length > 0 &&
-                        floorPlan.treeData.map(this.displayTree)
+                        floorPlan.treeData.map(this.displayTree.bind(this, 'deviceMap'))
                       }
                     </div>
                     <div className='map'>

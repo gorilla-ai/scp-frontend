@@ -93,7 +93,7 @@ class TableCell extends Component {
       if (type === 'internet' || type === 'intranet') {
         return (
           <div className={this.getBackgroundColor(fieldValue)}>
-            {type === 'internet' &&
+            {type === 'internet' && picPath && country &&
               <img src={picPath} className='flag-icon' title={country} />
             }
             {type === 'intranet' &&
@@ -133,32 +133,44 @@ class TableCell extends Component {
       let country = '';
 
       if (fieldName === 'srcIp' || fieldName === 'ipSrc') {
-        if (allValue.srcTopoInfo) {
-          const ownerName = allValue.srcTopoInfo.ownerName;
-          const areaName = allValue.srcTopoInfo.areaFullName;
-          const seatName = allValue.srcTopoInfo.seatName;
-          const tooltip = t('ipFields.owner') + ': ' + ownerName + ', ' + t('ipFields.areaFullName') + ': ' + areaName + ', ' + t('ipFields.seat') + ': ' + seatName;
+        if (allValue.srcLocType === 2) {
+          let tooltip = '';
+
+          if (allValue.srcTopoInfo) {
+            const ownerName = allValue.srcTopoInfo.ownerName;
+            const areaName = allValue.srcTopoInfo.areaFullName;
+            const seatName = allValue.srcTopoInfo.seatName;
+            tooltip = t('ipFields.owner') + ': ' + ownerName + ', ' + t('ipFields.areaFullName') + ': ' + areaName + ', ' + t('ipFields.seat') + ': ' + seatName;
+          }
           return this.getFieldContent('intranet', tooltip);
-        } else if (allValue.srcCountryCode) {
-          picPath = `${contextRoot}/images/flag/${allValue.srcCountryCode.toLowerCase()}.png`;
-          country = allValue.srcCountry;
+        } else if (allValue.srcLocType === 1) {
+          if (allValue.srcCountryCode) {
+            picPath = `${contextRoot}/images/flag/${allValue.srcCountryCode.toLowerCase()}.png`;
+          }
+          if (allValue.srcCountry) {
+            country = allValue.srcCountry;
+          }
           return this.getFieldContent('internet', '', picPath, country);
-        } else {
-          return this.getFieldContent();
         }
       } else if (fieldName === 'destIp' || fieldName === 'ipDst') {
-        if (allValue.destTopoInfo) {
-          const ownerName = allValue.destTopoInfo.ownerName;
-          const areaName = allValue.destTopoInfo.areaFullName;
-          const seatName = allValue.destTopoInfo.seatName;
-          const tooltip = t('ipFields.owner') + ': ' + ownerName + ', ' + t('ipFields.areaFullName') + ': ' + areaName + ', ' + t('ipFields.seat') + ': ' + seatName;
+        if (allValue.destLocType === 2) {
+          let tooltip = '';
+
+          if (allValue.destTopoInfo) {
+            const ownerName = allValue.destTopoInfo.ownerName;
+            const areaName = allValue.destTopoInfo.areaFullName;
+            const seatName = allValue.destTopoInfo.seatName;
+            tooltip = t('ipFields.owner') + ': ' + ownerName + ', ' + t('ipFields.areaFullName') + ': ' + areaName + ', ' + t('ipFields.seat') + ': ' + seatName;
+          }
           return this.getFieldContent('intranet', tooltip);
-        } else if (allValue.destCountryCode) {
-          picPath = `${contextRoot}/images/flag/${allValue.destCountryCode.toLowerCase()}.png`;
-          country = allValue.destCountry;
-          return this.getFieldContent('internet', '', picPath, country);          
-        } else {
-          return this.getFieldContent();
+        } else if (allValue.destLocType === 1) {
+          if (allValue.destCountryCode) {
+            picPath = `${contextRoot}/images/flag/${allValue.destCountryCode.toLowerCase()}.png`;
+          }
+          if (allValue.destCountry) {
+            country = allValue.destCountry;
+          }
+          return this.getFieldContent('internet', '', picPath, country);
         }
       }
     } else {
