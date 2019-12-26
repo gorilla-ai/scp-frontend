@@ -209,7 +209,6 @@ class AlertDetails extends Component {
     const {baseUrl} = this.context;
     const {alertData, fromPage, locationType} = this.props;
     const {alertInfo} = this.state;
-    const ip = this.getIpPortData(type);
     let tempAlertInfo = {...alertInfo};
 
     if (fromPage === 'dashboard') { //Get topo info for Dashboard page
@@ -236,25 +235,16 @@ class AlertDetails extends Component {
       }
       this.setTopologyInfo(tempAlertInfo, type);
     } else if (fromPage === 'threats') { //Get topo info for Threats page
-      if (ip) {
-        ah.one({
-          url: `${baseUrl}/api/alert/ip2loc?ip=${ip}`,
-          type: 'GET'
-        })
-        .then(data => {
-          if (data) {
-            data = data.rt;
-  
-            if (!_.isEmpty(data.Topology)) { //Private
-              tempAlertInfo[type].locationType = 2;
-              tempAlertInfo[type].topology = data.Topology;
-            } else { //Public
-              tempAlertInfo[type].locationType = 1;
-              tempAlertInfo[type].location = data.Location;
-            }
-            this.setTopologyInfo(tempAlertInfo, type);
-          }
-        })
+      if (this.getIpPortData(type)) {
+        if (type === 'srcIp') {
+          tempAlertInfo[type].locationType = alertData.srcLocType;
+          tempAlertInfo[type].topology = alertData.srcTopoInfo;
+        } else if (type === 'destIp') {
+          tempAlertInfo[type].locationType = alertData.destLocType;
+          tempAlertInfo[type].topology = alertData.destTopoInfo;
+        }
+
+        this.setTopologyInfo(tempAlertInfo, type);
       }
     }
   }
@@ -578,33 +568,32 @@ class AlertDetails extends Component {
   getRedirectIp = () => {
     const {baseUrl, contextRoot} = this.context;
     const {showContent, alertInfo} = this.state;
+    let ipType = '';
+    let type = 'add';
     let text = t('txt-add');
-    let type = 'new';
-    let ip = '';
-    let showRedirect = false;
 
-    if (showContent.srcIp && alertInfo.srcIp.locationType === 2 && alertInfo.srcIp.topology) {
-      ip = alertInfo.srcIp.topology.ip;
-
-      if (alertInfo.srcIp.topology.mac) {
-        text = t('txt-edit');
-        type = 'edit';
+    if (showContent.srcIp) {
+      if (alertInfo.srcIp.locationType === 1) { //public
+        return;
       }
-      showRedirect = true;
-    } else if (showContent.destIp && alertInfo.destIp.locationType === 2 && alertInfo.destIp.topology) {
-      ip = alertInfo.destIp.topology.ip;
+      ipType = 'srcIp';
 
-      if (alertInfo.destIp.topology.mac) {
-        text = t('txt-edit');
-        type = 'edit';
+    } else if (showContent.destIp) {
+      if (alertInfo.destIp.locationType === 1) { //public
+        return;
       }
-      showRedirect = true;
+      ipType = 'destIp';
     }
 
-    if (showRedirect) {
-      const url = `${baseUrl}${contextRoot}/configuration/topology/inventory?ip=${ip}&type=${type}`;
-      return <div className='redirect-ip' onClick={this.redirectIp.bind(this, url)}>{text}</div>
+    const ip = this.getIpPortData(ipType);
+
+    if (alertInfo[ipType].topology && alertInfo[ipType].topology.mac) {
+      type = 'edit';
+      text = t('txt-edit');
     }
+
+    const url = `${baseUrl}${contextRoot}/configuration/topology/inventory?ip=${ip}&type=${type}`;
+    return <div className='redirect-ip' onClick={this.redirectIp.bind(this, url)}>{text}</div>
   }
   /**
    * Display Query More menu
@@ -1179,25 +1168,25 @@ class AlertDetails extends Component {
           <span>{NOT_AVAILABLE}</span>
         }
 
-        {type === 'srcIp' && (!_.isEmpty(alertInfo[type].location) || alertInfo[type].locationType === 1) && //Public
+        {type === 'srcIp' && alertInfo[type].locationType === 1 && //Public
           <div className='srcIp-content'>
             {this.getPublicIPcontent(type)}
           </div>
         }
 
-        {type === 'srcIp' && (!_.isEmpty(alertInfo[type].topology) || alertInfo[type].locationType === 2) && //Private
+        {type === 'srcIp' && alertInfo[type].locationType === 2 && //Private
           <div className='srcIp-content'>
             {this.getPrivateInfo(type)}
           </div>
         }
 
-        {type === 'destIp' && (!_.isEmpty(alertInfo[type].location) || alertInfo[type].locationType === 1) && //Public
+        {type === 'destIp' && alertInfo[type].locationType === 1 && //Public
           <div className='destIp-content'>
             {this.getPublicIPcontent(type)}
           </div>
         }
 
-        {type === 'destIp' && (!_.isEmpty(alertInfo[type].topology) || alertInfo[type].locationType === 2) && //Private
+        {type === 'destIp' && alertInfo[type].locationType === 2 && //Private
           <div className='destIp-content'>
             {this.getPrivateInfo(type)}
           </div>
