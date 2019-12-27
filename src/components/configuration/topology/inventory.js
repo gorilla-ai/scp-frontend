@@ -721,7 +721,7 @@ class NetworkInventory extends Component {
     })
   }
   /**
-   * Get and set individual floor area data
+   * Get and set floor seat data
    * @method
    * @param {string} areaUUID - area UUID
    */
@@ -1362,7 +1362,8 @@ class NetworkInventory extends Component {
    * @param {string} formType - show form content type ('new' or 'edit')
    */
   toggleContent = (type, formType) => {
-    const {formTypeEdit, ownerList, departmentList, titleList, currentDeviceData, alertInfo, floorList} = this.state;
+    const {formTypeEdit, ownerList, departmentList, titleList, currentDeviceData, alertInfo, floorList, addSeat} = this.state;
+    let tempAddSeat = {...addSeat};
     let activeContent = '';
 
     if (type === 'cancel') {
@@ -1412,6 +1413,8 @@ class NetworkInventory extends Component {
           this.getAreaData(currentDeviceData.areaUUID);
           this.getSeatData(currentDeviceData.areaUUID);
         }
+
+        tempAddSeat.selectedSeatUUID = currentDeviceData.seatUUID;
       } else if (formType === 'new') {
         const inventoryParam = queryString.parse(location.search);
         formTypeEdit = false;
@@ -1444,7 +1447,8 @@ class NetworkInventory extends Component {
         formTypeEdit,
         addIP,
         ownerType,
-        ownerIDduplicated: false
+        ownerIDduplicated: false,
+        addSeat: tempAddSeat
       });
       return;
     }
