@@ -189,7 +189,7 @@ class FloorMap extends Component {
   handleMapActions = (type) => {
     if (type === 'clear') {
       this.setState({
-        floorPlan: this.clearData('floorPlanData'),
+        floorPlan: this.clearData('floorPlanData', 'clear'),
         currentMap: this.clearData('mapData')
       });
     } else {
@@ -333,7 +333,7 @@ class FloorMap extends Component {
       if (data.ret === 0) {
         this.setState({
           currentMap: this.clearData('mapData'),
-          floorPlan: this.clearData('floorPlanData')
+          floorPlan: this.clearData('floorPlanData', 'delete')
         }, () => {
           this.getFloorPlan();
         });
@@ -599,7 +599,7 @@ class FloorMap extends Component {
    * @method
    * @param {string} type - data type to be cleared
    */
-  clearData = (type) => {
+  clearData = (type, actionType) => {
     const {floorPlan} = this.state;
     let tempData = {};
 
@@ -608,9 +608,15 @@ class FloorMap extends Component {
         currentMap: ''
       };
     } else if (type === 'floorPlanData') {
+      let action = '';
+
+      if (actionType === 'clear') {
+        action = actionType;
+      }
+
       tempData = {
         treeData: floorPlan.treeData,
-        type: 'clear',
+        type: action,
         rootAreaUUID: '',
         currentAreaUUID: '',
         currentAreaName: '',
