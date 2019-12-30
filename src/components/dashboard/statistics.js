@@ -256,7 +256,11 @@ class DashboardStats extends Component {
           }
         } else if (i < 3) {
           if (data[0].aggregations) {
-            const chartData = data[0].aggregations[val.id][val.key].buckets;
+            let chartData = [];
+
+            if (data[0].aggregations[val.id]) {
+              chartData = data[0].aggregations[val.id][val.key].buckets;
+            }
 
             if (chartData.length > 0) {
               _.forEach(chartData, val2 => {
@@ -274,7 +278,11 @@ class DashboardStats extends Component {
       })
 
       if (data[1].aggregations) {
-        const configSrcData = data[1].aggregations[configSrcInfo.id][configSrcInfo.path].buckets;
+        let configSrcData = [];
+
+        if (data[1].aggregations[configSrcInfo.id]) {
+          configSrcData = data[1].aggregations[configSrcInfo.id][configSrcInfo.path].buckets;
+        }
 
         if (configSrcData.length > 0) {
           pieCharts[configSrcInfo.id] = configSrcData;
@@ -287,24 +295,32 @@ class DashboardStats extends Component {
       };
 
       if (data[2].aggregations) {
-        const dnsQueryData = data[2].aggregations[dnsInfo.id][dnsInfo.path].buckets;
+        let dnsQueryData = [];
+        let dnsData = {};
+
+        if (data[2].aggregations[dnsInfo.id]) {
+          dnsQueryData = data[2].aggregations[dnsInfo.id][dnsInfo.path].buckets;
+        }
 
         if (dnsQueryData.length > 0) {
           pieCharts[dnsInfo.id] = dnsQueryData;
         }
 
-        const dnsData = data[2].aggregations.session_histogram;
-        dnsMetricData.data = [{
-          doc_count: dnsData.doc_count,
-          MegaPackages: dnsData.MegaPackages,
-          MegaBytes: dnsData.MegaBytes
-        }];
-        dnsMetricData.agg = ['doc_count', 'MegaPackages', 'MegaBytes'];
-        dnsMetricData.keyLabels = {
-          doc_count: t('dashboard.txt-session'),
-          MegaPackages: t('dashboard.txt-packet'),
-          MegaBytes: t('dashboard.txt-databyte')
-        };
+        if (data[2].aggregations.session_histogram) {
+          dnsData = data[2].aggregations.session_histogram;
+
+          dnsMetricData.data = [{
+            doc_count: dnsData.doc_count,
+            MegaPackages: dnsData.MegaPackages,
+            MegaBytes: dnsData.MegaBytes
+          }];
+          dnsMetricData.agg = ['doc_count', 'MegaPackages', 'MegaBytes'];
+          dnsMetricData.keyLabels = {
+            doc_count: t('dashboard.txt-session'),
+            MegaPackages: t('dashboard.txt-packet'),
+            MegaBytes: t('dashboard.txt-databyte')
+          };
+        }
       }
 
       this.setState({

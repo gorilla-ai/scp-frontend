@@ -151,6 +151,8 @@ class TableCell extends Component {
             country = allValue.srcCountry;
           }
           return this.getFieldContent('internet', '', picPath, country);
+        } else {
+          return this.getFieldContent();
         }
       } else if (fieldName === 'destIp' || fieldName === 'ipDst') {
         if (allValue.destLocType === 2) {
@@ -171,6 +173,8 @@ class TableCell extends Component {
             country = allValue.destCountry;
           }
           return this.getFieldContent('internet', '', picPath, country);
+        } else {
+          return this.getFieldContent();
         }
       }
     } else {

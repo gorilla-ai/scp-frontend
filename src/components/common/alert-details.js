@@ -209,11 +209,10 @@ class AlertDetails extends Component {
     const {baseUrl} = this.context;
     const {alertData, fromPage, locationType} = this.props;
     const {alertInfo} = this.state;
+    const srcDestType = type.replace('Ip', '');
     let tempAlertInfo = {...alertInfo};
 
     if (fromPage === 'dashboard') { //Get topo info for Dashboard page
-      const srcDestType = type.replace('Ip', '');
-
       if (locationType === 'public') {
         tempAlertInfo[type].locationType = alertData[srcDestType + 'LocType'];
         tempAlertInfo[type].topology = alertData[srcDestType + 'TopoInfo'];
@@ -227,7 +226,9 @@ class AlertDetails extends Component {
         }
 
         _.forEach(PUBLIC_KEY, val => {
-          tempAlertInfo[type].location[val] = alertData[srcDestType + val];
+          if (alertData[srcDestType + val]) {
+            tempAlertInfo[type].location[val] = alertData[srcDestType + val];
+          }
         })
       } else if (locationType === 'private') {
         tempAlertInfo[type].locationType = alertData[srcDestType + 'LocType'];
@@ -236,13 +237,14 @@ class AlertDetails extends Component {
       this.setTopologyInfo(tempAlertInfo, type);
     } else if (fromPage === 'threats') { //Get topo info for Threats page
       if (this.getIpPortData(type)) {
-        if (type === 'srcIp') {
-          tempAlertInfo[type].locationType = alertData.srcLocType;
-          tempAlertInfo[type].topology = alertData.srcTopoInfo;
-        } else if (type === 'destIp') {
-          tempAlertInfo[type].locationType = alertData.destLocType;
-          tempAlertInfo[type].topology = alertData.destTopoInfo;
-        }
+        tempAlertInfo[type].locationType = alertData[srcDestType + 'LocType'];
+        tempAlertInfo[type].topology = alertData[srcDestType + 'TopoInfo'];
+
+        _.forEach(PUBLIC_KEY, val => {
+          if (alertData[srcDestType + val]) {
+            tempAlertInfo[type].location[val] = alertData[srcDestType + val];
+          }
+        })
 
         this.setTopologyInfo(tempAlertInfo, type);
       }
