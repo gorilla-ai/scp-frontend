@@ -146,6 +146,7 @@ class NetworkInventory extends Component {
       ownerType: 'existing', //existing, new
       ownerIDduplicated: false,
       previewOwnerPic: '',
+      changeAreaMap: false,
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
     };
 
@@ -1448,7 +1449,8 @@ class NetworkInventory extends Component {
         addIP,
         ownerType,
         ownerIDduplicated: false,
-        addSeat: tempAddSeat
+        addSeat: tempAddSeat,
+        changeAreaMap: false
       });
       return;
     }
@@ -1531,7 +1533,8 @@ class NetworkInventory extends Component {
       tempActiveSteps--;
 
       this.setState({
-        activeSteps: tempActiveSteps
+        activeSteps: tempActiveSteps,
+        changeAreaMap: false
       });
     } else if (type === 'next') {
       if (activeSteps === 1) {
@@ -1605,7 +1608,8 @@ class NetworkInventory extends Component {
 
         this.setState({
           activeSteps: 3,
-          ownerIDduplicated: true
+          ownerIDduplicated: true,
+          changeAreaMap: false
         });
       })
     } else if (ownerType === 'existing') {
@@ -2207,7 +2211,8 @@ class NetworkInventory extends Component {
     tempFloorPlan.type = 'edit';
 
     this.setState({
-      floorPlan: tempFloorPlan
+      floorPlan: tempFloorPlan,
+      changeAreaMap: true
     }, () => {
       this.getAreaData(areaUUID);
       this.getSeatData(areaUUID);
@@ -2242,17 +2247,13 @@ class NetworkInventory extends Component {
    * @returns content of TreeView component
    */
   displayTree = (type, val, i) => {
-    const {floorPlan, currentDeviceData} = this.state;
+    const {floorPlan, currentDeviceData, changeAreaMap} = this.state;
     let currentAreaUUID = '';
 
     if (type === 'deviceMap') {
       currentAreaUUID = floorPlan.currentAreaUUID;
     } else {
-      if (currentDeviceData && currentDeviceData.seatUUID) {
-        currentAreaUUID = currentDeviceData.areaUUID;
-      } else {
-        currentAreaUUID = floorPlan.currentAreaUUID;
-      }
+      currentAreaUUID = changeAreaMap ? floorPlan.currentAreaUUID : currentDeviceData.areaUUID;
     }
 
     return this.getTreeView(val, currentAreaUUID, i);
@@ -2346,10 +2347,11 @@ class NetworkInventory extends Component {
    */
   handleAddSeatConfirm = () => {
     const {baseUrl} = this.context;
-    const {floorPlan, addSeat} = this.state;
+    const {floorPlan, currentDeviceData, addSeat, changeAreaMap} = this.state;
     const url = `${baseUrl}/api/seat`;
+    const currentAreaUUID = changeAreaMap ? floorPlan.currentAreaUUID : currentDeviceData.areaUUID;
     const requestData = {
-      areaUUID: floorPlan.currentAreaUUID,
+      areaUUID: currentAreaUUID,
       seatName: addSeat.name,
       coordX: addSeat.coordX,
       coordY: addSeat.coordY
@@ -2367,8 +2369,8 @@ class NetworkInventory extends Component {
             coordY: ''
           }
         }, () => {
-          this.getAreaData(floorPlan.currentAreaUUID);
-          this.getSeatData(floorPlan.currentAreaUUID);
+          this.getAreaData(currentAreaUUID);
+          this.getSeatData(currentAreaUUID);
         });
       }
     })
