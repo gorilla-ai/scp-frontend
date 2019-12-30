@@ -600,30 +600,6 @@ class Syslog extends Component {
     });
   }
   /**
-   * Get pattern data
-   * @method
-   */
-  convertPattern = () => {
-    const {baseUrl} = this.context;
-    const {config} = this.state;
-    const dataObj = {
-      input: config.input
-    };
-
-    this.ah.one({
-      url: `${baseUrl}/api/log/pattern`,
-      data: JSON.stringify(dataObj),
-      type: 'POST',
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      this.handleConfigChange('pattern', data);
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
    * Get and set the latest event sample data
    * @method
    * @param {string} configId - config ID
@@ -670,7 +646,7 @@ class Syslog extends Component {
                 rows={8}
                 value={config.input}
                 onChange={this.handleConfigChange.bind(this, 'input')} />
-              <i className='c-link fg fg-down' title={t('txt-convert')} onClick={this.convertPattern} />
+              <i className='c-link fg fg-down' />
               <label>Match Pattern</label>
               <Textarea
                 rows={10}
