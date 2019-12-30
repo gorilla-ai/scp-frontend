@@ -356,7 +356,7 @@ class AutoSettings extends Component {
           }} />
       )
     } else {
-      return <span>{t('txt-notFound')}</span>
+      return <div className='align-center'>{t('txt-notFound')}</div>
     }
   }
   /**
@@ -418,7 +418,7 @@ class AutoSettings extends Component {
           }} />
       )
     } else {
-      return <span>{t('txt-notFound')}</span>
+      return <div className='align-center'>{t('txt-notFound')}</div>
     }
   }
   /**
