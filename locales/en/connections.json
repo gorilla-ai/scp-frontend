@@ -358,6 +358,7 @@
     "txt-deviceMap": "Device Map",
     "txt-AddIP": "Add IP",
     "txt-autoSettings": "Auto Settings",
+    "txt-batchUpload": "Batch Upload IP",
     "txt-testQuery": "Test Query",
     "txt-backToList": "$t(txt-back) to $t(txt-listText)",
     "txt-backToMap": "$t(txt-back) to $t(txt-map)",
