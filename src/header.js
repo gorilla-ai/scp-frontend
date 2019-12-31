@@ -174,7 +174,6 @@ class Header extends Component {
 Header.contextType = BaseDataContext;
 
 Header.propTypes = {
-  productName: PropTypes.string.isRequired,
   companyName: PropTypes.string.isRequired
 };
 

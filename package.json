@@ -42,6 +42,7 @@
     "formidable": "^1.2.1",
     "jest": "^23.6.0",
     "jquery": "^3.3.1",
+    "jschardet": "^2.1.1",
     "jsdoc": "^3.6.3",
     "lodash": "^4.17.5",
     "loglevel": "^1.6.1",
@@ -74,7 +75,8 @@
     "stomp-websocket": "^2.3.4-next",
     "stompjs": "^2.3.3",
     "underscore.string": "^3.2.1",
-    "vbda-ui": "git+ssh://git@git.gorilla-technology.com:scrd01/vbda-ui.git#upgrade-react-v16"
+    "vbda-ui": "git+ssh://git@git.gorilla-technology.com:scrd01/vbda-ui.git#upgrade-react-v16",
+    "xlsx": "^0.15.4"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",

@@ -7,6 +7,9 @@ import _ from 'lodash'
 import cx from 'classnames'
 import queryString from 'query-string'
 
+import jschardet from "jschardet";
+import XLSX from 'xlsx';
+
 import Checkbox from 'react-ui/build/src/components/checkbox'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import FileInput from 'react-ui/build/src/components/file-input'
@@ -86,6 +89,7 @@ class NetworkInventory extends Component {
       modalFloorOpen: false,
       modalIRopen: false,
       addSeatOpen: false,
+      uplaodOpen: false,
       formTypeEdit: true,
       deviceSearch: {
         ip: '',
@@ -147,6 +151,13 @@ class NetworkInventory extends Component {
       ownerIDduplicated: false,
       previewOwnerPic: '',
       changeAreaMap: false,
+      csvData: [],
+      showCsvData: false,
+      csvColumns: {
+        ip: '',
+        mac: '',
+        host: ''
+      },
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
     };
 
@@ -1453,6 +1464,9 @@ class NetworkInventory extends Component {
         changeAreaMap: false
       });
       return;
+    } else if (type === 'showUpload') {
+      this.toggleFileUpload();
+      return;
     }
 
     this.setState({
@@ -1469,6 +1483,197 @@ class NetworkInventory extends Component {
         }
       }
     });
+  }
+  /**
+   * Handle CSV batch upload
+   * @method
+   * @param {object} file - file uploaded by the user
+   */
+  handleFileChange = (file) => {
+    let reader = new FileReader();
+    const rABS = !!reader.readAsBinaryString;
+
+    reader.onload = (e) => {
+      const bstr = e.target.result;
+      const wb = XLSX.read(bstr, {type:rABS ? 'binary' : 'array'});
+      /* Get first worksheet */
+      const wsname = wb.SheetNames[0];
+      const ws = wb.Sheets[wsname];
+      /* Convert array of arrays */
+      const data = XLSX.utils.sheet_to_json(ws, {header:1});
+
+      this.setState({
+        csvData: data
+      });
+    }
+
+    reader.readAsText(file);
+  }
+  /**
+   * Toggle CSV file upload dialog on/off
+   * @method
+   */
+  toggleFileUpload = () => {
+    const {uploadOpen} = this.state;
+
+    if (uploadOpen) {
+      this.setState({
+        uploadOpen: false,
+        showCsvData: true
+      });
+    } else {
+      this.setState({
+        uploadOpen: true
+      });
+    }
+  }
+  /**
+   * Turn file upload dialog off
+   * @method
+   */
+  closeFileUpload = () => {
+    this.setState({
+      uploadOpen: false
+    });
+  }
+  /**
+   * Display CSV file upload dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  uploadDialog = () => {
+    const titleText = t('network-inventory.txt-batchUpload');
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeFileUpload},
+      confirm: {text: t('txt-confirm'), handler: this.toggleFileUpload}
+    };
+
+    return (
+      <ModalDialog
+        id='batchUploadDialog'
+        className='modal-dialog'
+        title={titleText}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+          <FileInput
+            onChange={this.handleFileChange}
+            btnText={t('txt-upload')} />
+      </ModalDialog>
+    )
+  }
+  /**
+   * Display CSV table header and body cell
+   * @method
+   * @param {string} type - CSV body cell type ('header' or 'body')
+   * @param {string} value - table cell content
+   * @param {number} i - index of the CSV data
+   * @returns HTML DOM
+   */
+  showCSVbodyCell = (type, value, i) => {
+    if (type === 'header') {
+      return <th>{value}</th>
+    } else if (type === 'body') {
+      return <td>{value}</td>
+    }
+  }
+  /**
+   * Display CSV table body row
+   * @method
+   * @param {string} value - table row content
+   * @param {number} i - index of the CSV data
+   * @returns HTML DOM
+   */
+  showCSVbody = (value, i) => {
+    if (i > 0) {
+      return (
+        <tr>
+          {value.map(this.showCSVbodyCell.bind(this, 'body'))}
+        </tr>
+      )
+    }
+  }
+  /**
+   * Display CSV table data
+   * @method
+   * @returns HTML DOM
+   */
+  displayCSVtable = () => {
+    const {csvData} = this.state;
+
+    if (!_.isEmpty(csvData)) {
+      return (
+        <table className='c-table main-table csv-data'>
+          <thead>
+            <tr>
+              {csvData[0].map(this.showCSVbodyCell.bind(this, 'header'))}
+            </tr>
+          </thead>
+          <tbody>
+            {csvData.map(this.showCSVbody)}
+          </tbody>
+        </table>
+      )
+    }
+  }
+  /**
+   * Handle column change for CSV table dropdown
+   * @method
+   * @param {string} type - dropdown selection type ('ip', 'mac' or 'host')
+   * @param {string} value - selected value from dropdown
+   */
+  handleColumnChange = (type, value) => {
+    let tempCsvColumns = {...this.state.csvColumns};
+    tempCsvColumns[type] = value;
+
+    this.setState({
+      csvColumns: tempCsvColumns
+    });
+  }
+  /**
+   * Display selected result
+   * @method
+   * @returns HTML DOM
+   */
+  displayResult = () => {
+    const {csvColumns} = this.state;
+
+    return (
+      <ul>
+        {csvColumns.ip &&
+          <li>IP: {csvColumns.ip}</li>
+        }
+        {csvColumns.mac &&
+          <li>Mac: {csvColumns.mac}</li>
+        }
+        {csvColumns.host &&
+          <li>Host Name: {csvColumns.host}</li>
+        }
+      </ul>
+    )
+  }
+  /**
+   * Handle upload actions for CSV table
+   * @method
+   */
+  uploadActions = (type) => {
+    const {csvColumns} = this.state;
+
+    if (type === 'upload') {
+      if (!csvColumns.ip) {
+        helper.showPopupMsg('請選擇IP欄位', t('txt-error'));
+      } else {
+        PopupDialog.alert({
+          confirmText: t('txt-close'),
+          display: this.displayResult()
+        });
+      }
+    } else if (type === 'cancel') {
+      this.setState({
+        showCsvData: false
+      });
+    }
   }
   /**
    * Check add/edit step form validation
@@ -2421,6 +2626,12 @@ class NetworkInventory extends Component {
       } else if (locale === 'en') {
         return '336px';
       }
+    } else if (type === 'upload') {
+      if (locale === 'zh') {
+        return '376px';
+      } else if (locale === 'en') {
+        return '424px';
+      }
     }
   }
   render() {
@@ -2434,6 +2645,7 @@ class NetworkInventory extends Component {
       modalFloorOpen,
       modalIRopen,
       addSeatOpen,
+      uploadOpen,
       deviceData,
       currentDeviceData,
       floorPlan,
@@ -2444,13 +2656,26 @@ class NetworkInventory extends Component {
       seatData,
       currentBaseLayers,
       activeSteps,
-      addIP
+      addIP,
+      csvData,
+      showCsvData,
+      csvColumns
     } = this.state;
     const backText = activeTab === 'deviceList' ? t('network-inventory.txt-backToList') : t('network-inventory.txt-backToMap')
     let picPath = '';
+    let csvHeaderList = [];
 
     if (!_.isEmpty(currentDeviceData)) {
       picPath = (currentDeviceData.ownerObj && currentDeviceData.ownerObj.base64) ? currentDeviceData.ownerObj.base64 : contextRoot + '/images/empty_profile.png'
+    }
+
+    if (!_.isEmpty(csvData)) {
+      _.forEach(csvData[0], val => {
+        csvHeaderList.push({
+          value: val,
+          text: val
+        })
+      })
     }
 
     return (
@@ -2473,6 +2698,10 @@ class NetworkInventory extends Component {
 
         {addSeatOpen &&
           this.addSeatDialog()
+        }
+
+        {uploadOpen &&
+          this.uploadDialog()
         }
 
         <Manage
@@ -2510,8 +2739,49 @@ class NetworkInventory extends Component {
                 <button className='standard btn last'><Link to='/SCP/configuration/notifications'>{t('notifications.txt-settings')}</Link></button>
                 <button className='standard btn' style={{right: this.getBtnPos('auto')}} onClick={this.toggleContent.bind(this, 'showAuto')}>{t('network-inventory.txt-autoSettings')}</button>
                 <button className='standard btn' style={{right: this.getBtnPos('manual')}} onClick={this.toggleContent.bind(this, 'showForm', 'new')}>{t('network-inventory.txt-AddIP')}</button>
+                <button className='standard btn' style={{right: this.getBtnPos('upload')}} onClick={this.toggleContent.bind(this, 'showUpload')}>{t('network-inventory.txt-batchUpload')}</button>
 
-                {activeTab === 'deviceList' &&
+                {activeTab === 'deviceList' && showCsvData &&
+                  <div className='csv-section'>
+                    <div className='csv-table'>
+                      {this.displayCSVtable()}
+                    </div>
+                    <section className='csv-dropdown'>
+                      <div className='group'>
+                        <label htmlFor='csvColumnIP'>{t('ipFields.ip')}*</label>
+                        <DropDownList
+                          id='csvColumnIP'
+                          required={true}
+                          list={csvHeaderList}
+                          onChange={this.handleColumnChange.bind(this, 'ip')}
+                          value={csvColumns.ip} />
+                      </div>
+                      <div className='group'>
+                        <label htmlFor='csvColumnMac'>{t('ipFields.mac')}</label>
+                        <DropDownList
+                          id='csvColumnMac'
+                          list={csvHeaderList}
+                          onChange={this.handleColumnChange.bind(this, 'mac')}
+                          value={csvColumns.mac} />
+                      </div>
+                      <div className='group'>
+                        <label htmlFor='csvColumnHost'>{t('ipFields.hostName')}</label>
+                        <DropDownList
+                          id='csvColumnHost'
+                          list={csvHeaderList}
+                          onChange={this.handleColumnChange.bind(this, 'host')}
+                          value={csvColumns.host} />
+                      </div>
+                    </section>
+
+                    <footer>
+                      <button className='standard' onClick={this.uploadActions.bind(this, 'cancel')}>{t('txt-cancel')}</button>
+                      <button className='upload' onClick={this.uploadActions.bind(this, 'upload')}>{t('txt-upload')}</button>
+                    </footer>
+                  </div>
+                }
+
+                {activeTab === 'deviceList' && !showCsvData &&
                   <TableContent
                     dataTableData={deviceData.dataContent}
                     dataTableFields={deviceData.dataFields}

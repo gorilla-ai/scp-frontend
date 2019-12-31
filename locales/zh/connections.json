@@ -358,6 +358,7 @@
     "txt-deviceMap": "裝置地圖",
     "txt-AddIP": "手動新增IP",
     "txt-autoSettings": "自動執行設定",
+    "txt-batchUpload": "批次上傳IP",
     "txt-testQuery": "查詢測試",
     "txt-backToList": "$t(txt-back)$t(txt-listText)",
     "txt-backToMap": "$t(txt-back)$t(txt-map)",
