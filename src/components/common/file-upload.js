@@ -57,6 +57,13 @@ class FileUpload extends Component {
       };
     }
 
+    if (fileType === 'csv') {
+      validate = {
+        extension: ['.csv', '.xlsx', '.xls'],
+        t: this.getErrorMsg
+      };
+    }
+
     return (
       <div className='content'>
         <label htmlFor={id}>{supportText}</label>

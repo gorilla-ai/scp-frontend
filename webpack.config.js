@@ -10,7 +10,7 @@ const extractCSS = new ExtractTextPlugin({
 var cfg = {
     mode: 'development',
     entry: {
-        app: ['./src/app.js']
+        app: ['babel-polyfill', './src/app.js']
         // vendor: [
         //     'bluebird',
         //     'classnames',

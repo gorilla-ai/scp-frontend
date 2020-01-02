@@ -30,6 +30,7 @@
   "license": "ISC",
   "dependencies": {
     "babel-jest": "^23.6.0",
+    "babel-polyfill": "^6.26.0",
     "bluebird": "^3.5.1",
     "body-parser": "^1.18.2",
     "classnames": "^2.2.5",

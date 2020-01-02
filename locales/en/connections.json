@@ -120,6 +120,7 @@
   "txt-unstable": "Unstable",
   "txt-severity": "Severity",
   "txt-data": "Data",
+  "txt-selectFile": "Please select file.",
 
   "txt-dashboard": "Dashboard",
   "txt-threats": "Threats",
@@ -359,6 +360,8 @@
     "txt-AddIP": "Add IP",
     "txt-autoSettings": "Auto Settings",
     "txt-batchUpload": "Batch Upload IP",
+    "txt-withHeader": "With Header",
+    "txt-selectIP": "Please select IP field",
     "txt-testQuery": "Test Query",
     "txt-backToList": "$t(txt-back) to $t(txt-listText)",
     "txt-backToMap": "$t(txt-back) to $t(txt-map)",

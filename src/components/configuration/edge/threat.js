@@ -193,9 +193,13 @@ class ThreatIntelligence extends Component {
    * @param {object} file - file info object
    */
   handleFileChange = (file) => {
-    this.setState({
-      file
-    });
+    if (file) {
+      this.setState({
+        file
+      });
+    } else {
+      helper.showPopupMsg(t('txt-selectFile'), t('txt-error'));
+    }
   }
   /**
    * Display threat upload modal dialog and its content
@@ -234,6 +238,12 @@ class ThreatIntelligence extends Component {
   confirmThreatUpload = () => {
     const {baseUrl} = this.context;
     const {file} = this.state;
+
+    if (_.isEmpty(file)) {
+      helper.showPopupMsg(t('txt-selectFile'), t('txt-error'));
+      return;
+    }
+
     let formData = new FormData();
     formData.append('file', file);
 
