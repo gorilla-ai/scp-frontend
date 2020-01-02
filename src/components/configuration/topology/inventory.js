@@ -26,6 +26,7 @@ import {HocAutoSettings as AutoSettings} from './auto-settings'
 import {BaseDataContext} from '../../common/context';
 import helper from '../../common/helper'
 import {HocConfig as Config} from '../../common/configuration'
+import {HocFileUpload as FileUpload} from '../../common/file-upload'
 import {HocFilterContent as FilterContent} from '../../common/filter-content'
 import {HocFloorMap as FloorMap} from '../../common/floor-map'
 import {HocHMDscanInfo as HMDscanInfo} from '../../common/hmd-scan-info'
@@ -152,12 +153,14 @@ class NetworkInventory extends Component {
       previewOwnerPic: '',
       changeAreaMap: false,
       csvData: [],
+      tempCsvData: [],
       showCsvData: false,
       csvColumns: {
         ip: '',
         mac: '',
         host: ''
       },
+      csvHeader: true,
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
     };
 
@@ -1489,7 +1492,41 @@ class NetworkInventory extends Component {
    * @method
    * @param {object} file - file uploaded by the user
    */
-  handleFileChange = (file) => {
+  parseFile = async (file) => {
+    if (file) {
+      this.handleFileChange(file, await this.checkEncode(file));
+    }
+  }
+  /**
+   * Check file encoding
+   * @method
+   * @param {object} file - file uploaded by the user
+   * @returns promise of the file reader
+   */
+  checkEncode = async (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      const rABS = !!reader.readAsBinaryString;
+
+      reader.onload = async (e) => {
+        resolve(jschardet.detect(e.target.result));
+      }
+      reader.onerror = error => reject(error);
+
+      if (rABS) {
+        reader.readAsBinaryString(file);
+      } else {
+        reader.readAsArrayBuffer(file);
+      }
+    });
+  }
+  /**
+   * Handle file change and set the file
+   * @method
+   * @param {object} file - file uploaded by the user
+   * @param {object} check - a returned promise for the encode info
+   */
+  handleFileChange = (file, check) => {
     let reader = new FileReader();
     const rABS = !!reader.readAsBinaryString;
 
@@ -1503,27 +1540,55 @@ class NetworkInventory extends Component {
       const data = XLSX.utils.sheet_to_json(ws, {header:1});
 
       this.setState({
-        csvData: data
+        tempCsvData: data
       });
     }
+    reader.onerror = error => reject(error);
 
-    reader.readAsText(file);
+    if (rABS) {
+      if (check.encoding === 'Big5' || check.encoding === 'UTF-8') {
+        reader.readAsText(file, check.encoding.toUpperCase());
+      } else {
+        reader.readAsBinaryString(file);
+      }
+    } else {
+      reader.readAsArrayBuffer(file); 
+    }
   }
   /**
    * Toggle CSV file upload dialog on/off
    * @method
    */
   toggleFileUpload = () => {
-    const {uploadOpen} = this.state;
+    const {uploadOpen, tempCsvData, csvHeader} = this.state;
 
     if (uploadOpen) {
-      this.setState({
-        uploadOpen: false,
-        showCsvData: true
-      });
+      if (tempCsvData.length > 0) {
+        if (!csvHeader) { //Generate header for the user
+          tempCsvData.unshift(_.map(tempCsvData[0], (val, i) => {
+            i++;
+            return i.toString();
+          }));
+        }
+
+        this.setState({
+          uploadOpen: false,
+          csvData: tempCsvData,
+          showCsvData: true,
+          csvColumns: {
+            ip: '',
+            mac: '',
+            host: ''
+          }
+        });
+      } else {
+        helper.showPopupMsg(t('txt-selectFile'), t('txt-error'));
+        return;
+      }
     } else {
       this.setState({
-        uploadOpen: true
+        uploadOpen: true,
+        csvHeader: true
       });
     }
   }
@@ -1537,11 +1602,21 @@ class NetworkInventory extends Component {
     });
   }
   /**
+   * Toggle CSV header checkbox
+   * @method
+   */  
+  toggleCsvHeader = () => {
+    this.setState({
+      csvHeader: !this.state.csvHeader
+    });
+  }
+  /**
    * Display CSV file upload dialog
    * @method
    * @returns ModalDialog component
    */
   uploadDialog = () => {
+    const {csvHeader} = this.state;
     const titleText = t('network-inventory.txt-batchUpload');
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeFileUpload},
@@ -1557,9 +1632,19 @@ class NetworkInventory extends Component {
         global={true}
         actions={actions}
         closeAction='cancel'>
-          <FileInput
-            onChange={this.handleFileChange}
-            btnText={t('txt-upload')} />
+          <FileUpload
+            supportText={t('network-inventory.txt-batchUpload')}
+            id='csvFileInput'
+            fileType='csv'
+            btnText={t('txt-upload')}
+            handleFileChange={this.parseFile} />
+          <div className='csv-options'>
+            <label htmlFor='csvHeaderOption'>{t('network-inventory.txt-withHeader')}</label>
+            <Checkbox
+              id='csvHeaderOption'
+              onChange={this.toggleCsvHeader}
+              checked={csvHeader} />
+          </div>
       </ModalDialog>
     )
   }
@@ -1573,9 +1658,9 @@ class NetworkInventory extends Component {
    */
   showCSVbodyCell = (type, value, i) => {
     if (type === 'header') {
-      return <th>{value}</th>
+      return <th key={type + i}>{value}</th>
     } else if (type === 'body') {
-      return <td>{value}</td>
+      return <td key={type + i}>{value}</td>
     }
   }
   /**
@@ -1588,7 +1673,7 @@ class NetworkInventory extends Component {
   showCSVbody = (value, i) => {
     if (i > 0) {
       return (
-        <tr>
+        <tr key={i}>
           {value.map(this.showCSVbodyCell.bind(this, 'body'))}
         </tr>
       )
@@ -1662,7 +1747,7 @@ class NetworkInventory extends Component {
 
     if (type === 'upload') {
       if (!csvColumns.ip) {
-        helper.showPopupMsg('請選擇IP欄位', t('txt-error'));
+        helper.showPopupMsg(t('network-inventory.txt-selectIP'), t('txt-error'));
       } else {
         PopupDialog.alert({
           confirmText: t('txt-close'),
@@ -1671,7 +1756,12 @@ class NetworkInventory extends Component {
       }
     } else if (type === 'cancel') {
       this.setState({
-        showCsvData: false
+        showCsvData: false,
+        csvColumns: {
+          ip: '',
+          mac: '',
+          host: ''
+        }
       });
     }
   }

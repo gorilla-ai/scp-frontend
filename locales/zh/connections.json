@@ -120,6 +120,7 @@
   "txt-unstable": "不穩定",
   "txt-severity": "嚴重性",
   "txt-data": "資料",
+  "txt-selectFile": "請選擇檔案",
 
   "txt-dashboard": "Dashboard",
   "txt-threats": "Threats",
@@ -359,6 +360,8 @@
     "txt-AddIP": "手動新增IP",
     "txt-autoSettings": "自動執行設定",
     "txt-batchUpload": "批次上傳IP",
+    "txt-withHeader": "包含表頭",
+    "txt-selectIP": "請選擇IP欄位",
     "txt-testQuery": "查詢測試",
     "txt-backToList": "$t(txt-back)$t(txt-listText)",
     "txt-backToMap": "$t(txt-back)$t(txt-map)",
