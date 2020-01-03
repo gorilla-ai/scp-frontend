@@ -479,8 +479,11 @@ class Notifications extends Component {
           <div className='parent-content'>
             <div className='main-content basic-form'>
               <header className='main-header'>{t('notifications.txt-settings')}</header>
+
               {activeContent === 'viewMode' &&
-                <button className='standard btn last' onClick={this.toggleContent.bind(this, 'editMode')}>{t('txt-edit')}</button>
+                <div className='content-header-btns'>
+                  <button className='standard btn' onClick={this.toggleContent.bind(this, 'editMode')}>{t('txt-edit')}</button>
+                </div>
               }
 
               <div className='form-group normal short'>

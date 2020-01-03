@@ -618,23 +618,6 @@ class NetworkOwner extends Component {
       </div>
     )
   }
-  /**
-   * Get Add button position
-   * @method
-   * @param {string} type - button type
-   * @returns width
-   */
-  getBtnPos = (type) => {
-    const {locale} = this.context;
-
-    if (type === 'add') {
-      if (locale === 'zh') {
-        return '168px';
-      } else if (locale === 'en') {
-        return '268px';
-      }
-    }
-  }
   render() {
     const {contextRoot} = this.context;
     const {
@@ -667,8 +650,11 @@ class NetworkOwner extends Component {
             {activeContent === 'tableList' &&
               <div className='main-content'>
                 <header className='main-header'>{t('txt-ownerList')}</header>
-                <button className='standard btn last' onClick={this.openManage}>{t('txt-manageDepartmentTitle')}</button>
-                <button className='standard btn' onClick={this.toggleContent.bind(this, 'addOwner', 'new')} style={{right: this.getBtnPos('add')}}>{t('txt-addNewOwner')}</button>
+
+                <div className='content-header-btns'>
+                  <button className='standard btn' onClick={this.toggleContent.bind(this, 'addOwner', 'new')}>{t('txt-addNewOwner')}</button>
+                  <button className='standard btn' onClick={this.openManage}>{t('txt-manageDepartmentTitle')}</button>
+                </div>
 
                 <TableContent
                   dataTableData={owner.dataContent}
@@ -687,7 +673,11 @@ class NetworkOwner extends Component {
             {activeContent === 'addOwner' &&
               <div className='main-content basic-form'>
                 <header className='main-header'>{addOwnerTitle}</header>
-                <button className='standard btn last' onClick={this.openManage} >{t('txt-manageDepartmentTitle')}</button>
+
+                <div className='content-header-btns'>
+                  <button className='standard btn' onClick={this.openManage} >{t('txt-manageDepartmentTitle')}</button>
+                </div>
+
                 <div className='form-group steps-owner'>
                   <header>{t('ipFields.owner')}</header>
                   <div className='user-pic'>

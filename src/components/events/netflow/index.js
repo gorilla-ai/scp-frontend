@@ -226,10 +226,10 @@ class Netflow extends Component {
   componentDidMount() {
     const {locale, session, sessionRights} = this.context;
     const {datetime, filterData, account} = this.state;
+    let urlParams = queryString.parse(location.search);
     let tempDatetime = {...datetime};
     let tempFilterData = {...filterData};
     let tempAccount = {...account};
-    let urlParams = queryString.parse(location.search);
 
     helper.getPrivilegesInfo(sessionRights, 'common', locale);
 
@@ -237,7 +237,7 @@ class Netflow extends Component {
       tempAccount.id = session.accountId;
       tempAccount.login = true;
 
-      if (!_.isEmpty(urlParams)) {
+      if (urlParams.eventDttm) {
         let ip = '';
 
         tempDatetime = {

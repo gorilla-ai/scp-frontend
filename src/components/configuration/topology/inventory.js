@@ -5,12 +5,12 @@ import PropTypes from 'prop-types'
 import Moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
-import queryString from 'query-string'
-
 import jschardet from "jschardet";
+import queryString from 'query-string'
 import XLSX from 'xlsx';
 
 import Checkbox from 'react-ui/build/src/components/checkbox'
+import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import FileInput from 'react-ui/build/src/components/file-input'
 import Gis from 'react-gis/build/src/components'
@@ -175,7 +175,7 @@ class NetworkInventory extends Component {
 
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
     
-    if (_.isEmpty(inventoryParam)) {
+    if (_.isEmpty(inventoryParam) || (!_.isEmpty(inventoryParam) && !inventoryParam.ip)) {
       this.getDeviceData();
     }
     this.getOwnerData();
@@ -445,6 +445,10 @@ class NetworkInventory extends Component {
     const {baseUrl} = this.context;
     const inventoryParam = queryString.parse(location.search);
 
+    if (!inventoryParam.ip) {
+      return;
+    }
+
     this.ah.one({
       url: `${baseUrl}/api/u1/ipdevice/_search?ip=${inventoryParam.ip}`,
       type: 'GET'
@@ -673,7 +677,7 @@ class NetworkInventory extends Component {
       this.getAreaData(currentFloor);
       this.getSeatData(currentFloor);
 
-      if (!options && !_.isEmpty(inventoryParam)) {
+      if (!options && inventoryParam.type) {
         if (inventoryParam.type === 'add') {
           this.toggleContent('showForm', 'new');
         } else if (inventoryParam.type === 'edit') {
@@ -1443,7 +1447,7 @@ class NetworkInventory extends Component {
           currentDeviceData: {}
         });
 
-        if (_.isEmpty(inventoryParam)) {
+        if (_.isEmpty(inventoryParam) || (!_.isEmpty(inventoryParam) && !inventoryParam.ip)) {
           this.getFloorPlan();
         }
       }
@@ -1477,7 +1481,7 @@ class NetworkInventory extends Component {
     }, () => {
       const inventoryParam = queryString.parse(location.search);
 
-      if (!_.isEmpty(inventoryParam)) {
+      if (!_.isEmpty(inventoryParam) && inventoryParam.ip) {
         if (activeContent === 'dataInfo') {
           this.getOwnerSeat(currentDeviceData);
         }
@@ -1486,6 +1490,28 @@ class NetworkInventory extends Component {
         }
       }
     });
+  }
+  /**
+   * Construct and display add IP context menu
+   * @method
+   * @param {object} evt - mouseClick events
+   */
+  handleRowContextMenu = (evt) => {
+    const menuItems = [
+      {
+        id: 'showForm',
+        text: t('network-inventory.txt-manuallyEnter'),
+        action: () => this.toggleContent('showForm', 'new')
+      },
+      {
+        id: 'showUpload',
+        text: t('network-inventory.txt-batchUpload'),
+        action: () => this.toggleContent('showUpload')
+      }
+    ];
+
+    ContextMenu.open(evt, menuItems, 'addIpMenu');
+    evt.stopPropagation();
   }
   /**
    * Handle CSV batch upload
@@ -1617,7 +1643,7 @@ class NetworkInventory extends Component {
    */
   uploadDialog = () => {
     const {csvHeader} = this.state;
-    const titleText = t('network-inventory.txt-batchUpload');
+    const titleText = t('network-inventory.txt-batchUploadIp');
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeFileUpload},
       confirm: {text: t('txt-confirm'), handler: this.toggleFileUpload}
@@ -1633,7 +1659,7 @@ class NetworkInventory extends Component {
         actions={actions}
         closeAction='cancel'>
           <FileUpload
-            supportText={t('network-inventory.txt-batchUpload')}
+            supportText={t('network-inventory.txt-batchUploadIp')}
             id='csvFileInput'
             fileType='csv'
             btnText={t('txt-upload')}
@@ -2556,20 +2582,20 @@ class NetworkInventory extends Component {
   /**
    * Handle floor map mouse click
    * @method
-   * @param {string} id - existing seat ID
+   * @param {string} seatUUID - selected seat UUID
    * @param {object} info - mouseClick events
    */
-  handleFloorMapClick = (id, info) => {
+  handleFloorMapClick = (seatUUID, info) => {
     const {addSeat} = this.state;
     let tempAddSeat = {...addSeat};
 
-    if (id) {
-      tempAddSeat.selectedSeatUUID = id;
+    if (seatUUID) {
+      tempAddSeat.selectedSeatUUID = seatUUID;
 
       this.setState({
         addSeat: tempAddSeat
       });
-    } else {
+    } else { //Add new seat
       tempAddSeat.coordX = Math.round(info.xy.x);
       tempAddSeat.coordY = Math.round(info.xy.y);
 
@@ -2695,35 +2721,6 @@ class NetworkInventory extends Component {
       addIP: tempAddIP
     });
   }
-  /**
-   * Get Auto and Manual buttons position
-   * @method
-   * @param {string} type - button type
-   * @returns width
-   */
-  getBtnPos = (type) => {
-    const {locale} = this.context;
-
-    if (type === 'auto') {
-      if (locale === 'zh') {
-        return '120px';
-      } else if (locale === 'en') {
-        return '200px';
-      }
-    } else if (type === 'manual') {
-      if (locale === 'zh') {
-        return '257px';
-      } else if (locale === 'en') {
-        return '336px';
-      }
-    } else if (type === 'upload') {
-      if (locale === 'zh') {
-        return '376px';
-      } else if (locale === 'en') {
-        return '424px';
-      }
-    }
-  }
   render() {
     const {contextRoot} = this.context;
     const {
@@ -2826,10 +2823,11 @@ class NetworkInventory extends Component {
                   onChange={this.handleSubTabChange}>
                 </Tabs>
 
-                <button className='standard btn last'><Link to='/SCP/configuration/notifications'>{t('notifications.txt-settings')}</Link></button>
-                <button className='standard btn' style={{right: this.getBtnPos('auto')}} onClick={this.toggleContent.bind(this, 'showAuto')}>{t('network-inventory.txt-autoSettings')}</button>
-                <button className='standard btn' style={{right: this.getBtnPos('manual')}} onClick={this.toggleContent.bind(this, 'showForm', 'new')}>{t('network-inventory.txt-AddIP')}</button>
-                <button className='standard btn' style={{right: this.getBtnPos('upload')}} onClick={this.toggleContent.bind(this, 'showUpload')}>{t('network-inventory.txt-batchUpload')}</button>
+                <div className='content-header-btns'>
+                  <button className='standard btn' onClick={this.handleRowContextMenu}>{t('network-inventory.txt-addIP')}</button>
+                  <button className='standard btn' onClick={this.toggleContent.bind(this, 'showAuto')}>{t('network-inventory.txt-autoSettings')}</button>
+                  <button className='standard btn'><Link to='/SCP/configuration/notifications'>{t('notifications.txt-settings')}</Link></button>
+                </div>
 
                 {activeTab === 'deviceList' && showCsvData &&
                   <div className='csv-section'>
@@ -2917,8 +2915,12 @@ class NetworkInventory extends Component {
               <div className='main-content'>
                 <div className='privateIp-info'>
                   <header className='main-header'>{t('alert.txt-ipBasicInfo')}</header>
-                  <button className='standard btn edit' onClick={this.toggleContent.bind(this, 'showForm', 'edit')}>{t('txt-edit')}</button>
-                  <button className='standard btn list' onClick={this.toggleContent.bind(this, 'showList')}>{backText}</button>
+
+                  <div className='content-header-btns'>
+                    <button className='standard btn list' onClick={this.toggleContent.bind(this, 'showList')}>{backText}</button>
+                    <button className='standard btn edit' onClick={this.toggleContent.bind(this, 'showForm', 'edit')}>{t('txt-edit')}</button>
+                  </div>
+
                   <PrivateDetails
                     alertInfo={alertInfo}
                     topoInfo={currentDeviceData}

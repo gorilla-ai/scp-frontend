@@ -287,7 +287,10 @@ class ThreatIntelligence extends Component {
           <div className='parent-content'>
             <div className='main-content'>
               <header className='main-header'>{t('txt-threatIntelligence')}</header>
-              <button className='standard btn last' onClick={this.toggleUploadThreat}>{t('edge-management.txt-uploadThreat')}</button>
+
+              <div className='content-header-btns'>
+                <button className='standard btn' onClick={this.toggleUploadThreat}>{t('edge-management.txt-uploadThreat')}</button>
+              </div>
 
               <div className='main-statistics'>
                 <div className='statistics-content'>

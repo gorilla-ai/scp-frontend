@@ -1480,17 +1480,19 @@ footer.footer {
         .table-content .table.normal {
           height: auto;
         }
-        .btn { //For Buttons in content header
+        .content-header-btns {
           position: absolute;
-          top: 10px;
+          top: 5px;
+          right: -5px;
           padding: .3em 1em;
-          &.last {
-            right: 15px;
-          }
-          &.no-padding {
-            padding: 0;
-            a {
-              padding: .3em 1em;
+          .btn { //For Buttons in content header
+            margin: 0 3px;
+            padding: .3em 1em;
+            &.no-padding {
+              padding: 0;
+              a {
+                padding: .3em 1em;
+              }
             }
           }
         }
@@ -1706,6 +1708,7 @@ footer.footer {
           margin-left: 5%;
         }
         .btn.trigger {
+          position: absolute;
           top: 0 !important;
           right: 0;
         }

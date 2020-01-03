@@ -184,7 +184,7 @@ class ThreatsController extends Component {
       });
     }
 
-    if (!_.isEmpty(alertsParam)) {
+    if (alertsParam.type) {
       const type = alertsParam.type;
       const data = alertsParam.data;
       let tempSearchInput = {...this.state.searchInput};
