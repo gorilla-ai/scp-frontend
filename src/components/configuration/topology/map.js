@@ -619,9 +619,12 @@ class NetworkMap extends Component {
     })
     .then(data => {
       if (data.ret === 0) {
-        this.getIPData();
-        this.getSeatData();
-        this.closeDialog('reload');
+        this.setState({
+          showSeatData: false
+        }, () => {
+          this.getIPData();
+          this.getSeatData();
+        })
       }
     })
     .catch(err => {
@@ -698,9 +701,18 @@ class NetworkMap extends Component {
     helper.getAjaxData('POST', url, requestData)
     .then(data => {
       if (data) {
-        this.getIPData();
-        this.getSeatData();
-        this.closeDialog('reload');
+        this.setState({
+          addSeatOpen: false,
+          addSeat: {
+            selectedSeatUUID: data,
+            name: '',
+            coordX: '',
+            coordY: ''
+          }
+        }, () => {
+          this.getIPData();
+          this.getSeatData();
+        });
       }
     })
     .catch(err => {
@@ -745,7 +757,7 @@ class NetworkMap extends Component {
    * @param {string} seatUUID - selected seat UUID
    * @param {object} info - MouseClick events
    */
-  getDeviceData = (seatUUID, info) => {
+  handleFloorMapClick = (seatUUID, info) => {
     const {baseUrl} = this.context;
     const url = `${baseUrl}/api/u1/ipdevice/_search?seatUUID=${seatUUID}`;
 
@@ -830,10 +842,20 @@ class NetworkMap extends Component {
     )
   }
   /**
+   * Close seat dialog and reset seat data
+   * @method
+   */
+  closeSeatDialog = () => {
+    this.setState({
+      showSeatData: false,
+      currentDeviceData: {}
+    });
+  }
+  /**
    * Close dialog and reset floor plan data
    * @method
    */
-  closeDialog = (options) => {
+  closeDialog = () => {
     let tempFloorPlan = {...this.state.floorPlan};
     tempFloorPlan.type = '';
     tempFloorPlan.name = tempFloorPlan.currentAreaName;
@@ -841,29 +863,15 @@ class NetworkMap extends Component {
 
     this.setState({
       floorPlan: tempFloorPlan,
+      modalFloorOpen: false,
+      showSeatData: false,
+      addSeatOpen: false,
       addSeat: {
         selectedSeatUUID: '',
         name: '',
         coordX: '',
         coordY: ''
       },
-      modalFloorOpen: false,
-      addSeatOpen: false,
-      showSeatData: false,
-      currentDeviceData: {}
-    }, () => {
-      if (options === 'reload') {
-        this.getFloorPlan();
-      }
-    });
-  }
-  /**
-   * Close seat dialog and reset seat data
-   * @method
-   */
-  closeSeatDialog = () => {
-    this.setState({
-      showSeatData: false,
       currentDeviceData: {}
     });
   }
@@ -934,7 +942,8 @@ class NetworkMap extends Component {
       currentBaseLayers,
       mapAreaUUID,
       seatData,
-      selectedSeat
+      selectedSeat,
+      addSeat
     } = this.state;
 
     return (
@@ -965,7 +974,10 @@ class NetworkMap extends Component {
 
             <div className='main-content'>
               <header className='main-header'>{t('txt-floorMap')}</header>
-              <button className='standard btn last' onClick={this.openEditFloorMap} >{t('network-topology.txt-editFloorMap')}</button>
+
+              <div className='content-header-btns'>
+                <button className='standard btn' onClick={this.openEditFloorMap} >{t('network-topology.txt-editFloorMap')}</button>
+              </div>
 
               <div className='map-container'>
                 <div className='left-nav'>
@@ -989,7 +1001,8 @@ class NetworkMap extends Component {
                         layouts={['standard']}
                         dragModes={['pan']}
                         scale={{enabled: false}}
-                        onClick={this.getDeviceData} />
+                        selected={[addSeat.selectedSeatUUID]}
+                        onClick={this.handleFloorMapClick} />
                     }
                   </div>
                   <div className='table-content'>

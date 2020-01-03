@@ -540,23 +540,6 @@ class AutoSettings extends Component {
       helper.showPopupMsg('', t('txt-error'));
     });
   }
-  /**
-   * Get Back button position
-   * @method
-   * @param {string} type - button type
-   * @returns width
-   */
-  getBtnPos = (type) => {
-    const {locale} = this.context;
-
-    if (type === 'back') {
-      if (locale === 'zh') {
-        return '88px';
-      } else if (locale === 'en') {
-        return '83px';
-      }
-    }
-  }
   render() {
     const {
       activeContent,
@@ -579,14 +562,16 @@ class AutoSettings extends Component {
       <div className='parent-content'>
         <div className='main-content basic-form'>
           <header className='main-header'>{t('network-inventory.txt-autoSettings')}</header>
+
           {activeContent === 'viewMode' &&
-            <div>
-              <button className='standard btn last' onClick={this.toggleContent.bind(this, 'editMode')}>{t('txt-edit')}</button>
-              <button className='standard btn no-padding' style={{right: this.getBtnPos('back')}}>
+            <div className='content-header-btns'>
+              <button className='standard btn no-padding'>
                 <Link to={{pathname: '/SCP/configuration/topology/inventory', state: 'tableList'}}>{t('txt-back')}</Link>
               </button>
+              <button className='standard btn' onClick={this.toggleContent.bind(this, 'editMode')}>{t('txt-edit')}</button>
             </div>
           }
+
           <div className='form-group normal'>
             <header>{t('network-inventory.auto-settings.txt-ipRange')}</header>
             <ToggleBtn

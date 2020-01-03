@@ -416,7 +416,7 @@ class DashboardStats extends Component {
    * @param {object} info - chart info
    */
   getChartRedirect = (chartID, chart, chartData, info) => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl, contextRoot, language} = this.context;
     const severityChart = ['alertThreatLevel'];
     const ipChart = ['Top10InternalIp', 'Top10InternalMaskedIp', 'maskedIP'];
     const countryChart = ['Top10ExternalSrcCountry'];
@@ -447,7 +447,7 @@ class DashboardStats extends Component {
       return;
     }
 
-    const url = `${baseUrl}${contextRoot}/threats?type=${type}&data=${data}&interval=today`;
+    const url = `${baseUrl}${contextRoot}/threats?type=${type}&data=${data}&interval=today&lng=${language}`;
     window.open(url, '_blank');
   }
   /**

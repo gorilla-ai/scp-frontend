@@ -568,7 +568,7 @@ class AlertDetails extends Component {
    * @returns HTML DOM
    */
   getRedirectIp = () => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl, contextRoot, language} = this.context;
     const {showContent, alertInfo} = this.state;
     let ipType = '';
     let type = 'add';
@@ -598,7 +598,7 @@ class AlertDetails extends Component {
       text = t('txt-edit');
     }
 
-    const url = `${baseUrl}${contextRoot}/configuration/topology/inventory?ip=${ip}&type=${type}`;
+    const url = `${baseUrl}${contextRoot}/configuration/topology/inventory?ip=${ip}&type=${type}&lng=${language}`;
     return <div className='redirect-ip' onClick={this.redirectIp.bind(this, url)}>{text}</div>
   }
   /**

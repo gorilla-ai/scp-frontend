@@ -357,9 +357,11 @@
   "network-inventory": {
     "txt-deviceList": "裝置列表",
     "txt-deviceMap": "裝置地圖",
-    "txt-AddIP": "手動新增IP",
+    "txt-addIP": "新增IP",
+    "txt-manuallyEnter": "單筆輸入",
+    "txt-batchUpload": "批次上傳",
+    "txt-batchUploadIp": "批次上傳IP",
     "txt-autoSettings": "自動執行設定",
-    "txt-batchUpload": "批次上傳IP",
     "txt-withHeader": "包含表頭",
     "txt-selectIP": "請選擇IP欄位",
     "txt-testQuery": "查詢測試",

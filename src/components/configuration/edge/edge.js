@@ -867,23 +867,6 @@ class Edge extends Component {
       }
     });
   }
-  /**
-   * Get Add button position
-   * @method
-   * @param {string} type - button type
-   * @returns width
-   */
-  getBtnPos = (type) => {
-    const {locale} = this.context;
-
-    if (type === 'add') {
-      if (locale === 'zh') {
-        return '120px';
-      } else if (locale === 'en') {
-        return '200px';
-      }
-    }
-  }
   render() {
     const {activeContent, showFilter, edge} = this.state;
 
@@ -904,7 +887,11 @@ class Edge extends Component {
             {activeContent === 'tableList' &&
               <div className='main-content'>
                 <header className='main-header'>{t('txt-edge')}</header>
-                <button className='standard btn last'><Link to='/SCP/configuration/notifications'>{t('notifications.txt-settings')}</Link></button>
+
+                <div className='content-header-btns'>
+                  <button className='standard btn'><Link to='/SCP/configuration/notifications'>{t('notifications.txt-settings')}</Link></button>
+                </div>
+
                 <TableContent
                   dataTableData={edge.dataContent}
                   dataTableFields={edge.dataFields}

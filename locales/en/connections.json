@@ -357,9 +357,11 @@
   "network-inventory": {
     "txt-deviceList": "Device List",
     "txt-deviceMap": "Device Map",
-    "txt-AddIP": "Add IP",
+    "txt-addIP": "Add IP",
+    "txt-manuallyEnter": "Manually Enter",
+    "txt-batchUpload": "Batch Upload",
+    "txt-batchUploadIp": "Batch Upload IP",
     "txt-autoSettings": "Auto Settings",
-    "txt-batchUpload": "Batch Upload IP",
     "txt-withHeader": "With Header",
     "txt-selectIP": "Please select IP field",
     "txt-testQuery": "Test Query",
