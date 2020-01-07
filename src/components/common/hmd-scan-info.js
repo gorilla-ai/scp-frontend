@@ -5,6 +5,8 @@ import Moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
+import InfiniteScroll from 'react-infinite-scroll-component'
+
 import ButtonGroup from 'react-ui/build/src/components/button-group'
 import DataTable from 'react-ui/build/src/components/table'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
@@ -14,6 +16,95 @@ import helper from './helper'
 import withLocale from '../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+
+const TEST_LIST = [
+  {
+    _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
+    _MatchedPid: "12345",
+    _MatchedRuleNameList: [],
+    _ProcessInfo: {},
+    _ScanType: "Yara"
+  },
+  {
+    _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
+    _MatchedPid: "67890",
+    _MatchedRuleNameList: [],
+    _ProcessInfo: {},
+    _ScanType: "Yara"
+  },
+  {
+    _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
+    _MatchedPid: "12345",
+    _MatchedRuleNameList: [],
+    _ProcessInfo: {},
+    _ScanType: "Yara"
+  },
+  {
+    _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
+    _MatchedPid: "67890",
+    _MatchedRuleNameList: [],
+    _ProcessInfo: {},
+    _ScanType: "Yara"
+  },
+  {
+    _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
+    _MatchedPid: "12345",
+    _MatchedRuleNameList: [],
+    _ProcessInfo: {},
+    _ScanType: "Yara"
+  },
+  {
+    _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
+    _MatchedPid: "67890",
+    _MatchedRuleNameList: [],
+    _ProcessInfo: {},
+    _ScanType: "Yara"
+  },
+  {
+    _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
+    _MatchedPid: "12345",
+    _MatchedRuleNameList: [],
+    _ProcessInfo: {},
+    _ScanType: "Yara"
+  },
+  {
+    _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
+    _MatchedPid: "67890",
+    _MatchedRuleNameList: [],
+    _ProcessInfo: {},
+    _ScanType: "Yara"
+  },
+  {
+    _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
+    _MatchedPid: "12345",
+    _MatchedRuleNameList: [],
+    _ProcessInfo: {},
+    _ScanType: "Yara"
+  },
+  {
+    _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
+    _MatchedPid: "67890",
+    _MatchedRuleNameList: [],
+    _ProcessInfo: {},
+    _ScanType: "Yara"
+  },
+  {
+    _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
+    _MatchedPid: "12345",
+    _MatchedRuleNameList: [],
+    _ProcessInfo: {},
+    _ScanType: "Yara"
+  },
+  {
+    _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
+    _MatchedPid: "67890",
+    _MatchedRuleNameList: [],
+    _ProcessInfo: {},
+    _ScanType: "Yara"
+  }
+];
+
 
 const NOT_AVAILABLE = 'N/A';
 const SAFETY_SCAN_LIST = [
@@ -69,6 +160,8 @@ class HMDscanInfo extends Component {
       malwareSort: ['asc'],
       gcbFieldsArr: ['_CceId', '_OriginalKey', '_Type', '_CompareResult'],
       gcbSort: 'asc',
+      testList: _.cloneDeep(TEST_LIST),
+      hasMore: true
     };
 
     t = chewbaccaI18n.getFixedT(null, 'connections');
@@ -81,6 +174,12 @@ class HMDscanInfo extends Component {
         activeTab: 'yara'
       });
     }
+  }
+  componentWillUnmount() {
+    this.setState({
+      testList: _.cloneDeep(TEST_LIST),
+      hasMore: true
+    });
   }
   /**
    * Sort the Yara and Yara Scan File by matched file availablility
@@ -489,13 +588,49 @@ class HMDscanInfo extends Component {
     }
   }
   /**
+   * Load more items when scrolling to the bottom of the dialog
+   * @method
+   */
+  loadMore = () => {
+    let tempTestList = this.state.testList;
+
+    if (tempTestList.length <= 30) {
+      tempTestList.push(
+        {
+          _MatchedFile: "NEW ITEM 1",
+          _MatchedPid: "00000",
+          _MatchedRuleNameList: [],
+          _ProcessInfo: {},
+          _ScanType: "Yara"
+        },
+        {
+          _MatchedFile: "NEW ITEM 2",
+          _MatchedPid: "9999",
+          _MatchedRuleNameList: [],
+          _ProcessInfo: {},
+          _ScanType: "Yara"
+        }
+      );
+
+      this.setState({
+        testList: tempTestList,
+        hasMore: true
+      });
+    } else {
+      this.setState({
+        hasMore: false
+      });
+    }
+  }
+  /**
    * Display scan content for different scan type
    * @method
    * @param {object} hmdInfo - HMD data
    * @returns HTML DOM
    */
   getScanContent = (hmdInfo) => {
-    const {activeTab} = this.state;
+    const {activeTab, testList, hasMore} = this.state;
+    const loader = <div className='loader'>Loading...</div>;
 
     if (activeTab === 'yara' || activeTab === 'yaraScanFile') {
       let scanPath = '';
@@ -511,7 +646,14 @@ class HMDscanInfo extends Component {
           <div className='header'>{t('network-inventory.txt-suspiciousFilePath')}</div>
           {hmdInfo[activeTab].result && hmdInfo[activeTab].result.length > 0 &&
             <div className='list'>
-              {hmdInfo[activeTab].result.map(scanPath)}
+              <InfiniteScroll
+                dataLength={testList.length}
+                next={this.loadMore}
+                hasMore={hasMore}
+                loader={loader}
+                height={395} >
+                {testList.map(scanPath)}
+              </InfiniteScroll>
             </div>
           }
           {(!hmdInfo[activeTab].result || hmdInfo[activeTab].result.length === 0) &&
