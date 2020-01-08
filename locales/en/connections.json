@@ -370,6 +370,7 @@
     "txt-lastUpdate": "Last Update",
     "txt-createTime": "Create Time",
     "txt-responseTime": "Response Time",
+    "txt-checkTime": "Check Time",
     "txt-suspiciousFileCount": "Suspicious File Count",
     "txt-suspiciousFileName": "Suspicious Filename",
     "txt-suspiciousFilePath": "Suspicious File Path",

@@ -20,88 +20,98 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const TEST_LIST = [
   {
-    _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
-    _MatchedPid: "12345",
-    _MatchedRuleNameList: [],
-    _ProcessInfo: {},
-    _ScanType: "Yara"
+    checkTime: '2019-11-25 13:49:40',
+    data: [
+      {
+        _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
+        _MatchedPid: "12345",
+        _MatchedRuleNameList: [],
+        _ProcessInfo: {},
+        _ScanType: "Yara"
+      },
+      {
+        _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
+        _MatchedPid: "67890",
+        _MatchedRuleNameList: [],
+        _ProcessInfo: {},
+        _ScanType: "Yara"
+      },
+      {
+        _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
+        _MatchedPid: "12345",
+        _MatchedRuleNameList: [],
+        _ProcessInfo: {},
+        _ScanType: "Yara"
+      },
+      {
+        _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
+        _MatchedPid: "67890",
+        _MatchedRuleNameList: [],
+        _ProcessInfo: {},
+        _ScanType: "Yara"
+      },
+      {
+        _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
+        _MatchedPid: "12345",
+        _MatchedRuleNameList: [],
+        _ProcessInfo: {},
+        _ScanType: "Yara"
+      }
+    ]
   },
   {
-    _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
-    _MatchedPid: "67890",
-    _MatchedRuleNameList: [],
-    _ProcessInfo: {},
-    _ScanType: "Yara"
-  },
-  {
-    _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
-    _MatchedPid: "12345",
-    _MatchedRuleNameList: [],
-    _ProcessInfo: {},
-    _ScanType: "Yara"
-  },
-  {
-    _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
-    _MatchedPid: "67890",
-    _MatchedRuleNameList: [],
-    _ProcessInfo: {},
-    _ScanType: "Yara"
-  },
-  {
-    _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
-    _MatchedPid: "12345",
-    _MatchedRuleNameList: [],
-    _ProcessInfo: {},
-    _ScanType: "Yara"
-  },
-  {
-    _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
-    _MatchedPid: "67890",
-    _MatchedRuleNameList: [],
-    _ProcessInfo: {},
-    _ScanType: "Yara"
-  },
-  {
-    _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
-    _MatchedPid: "12345",
-    _MatchedRuleNameList: [],
-    _ProcessInfo: {},
-    _ScanType: "Yara"
-  },
-  {
-    _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
-    _MatchedPid: "67890",
-    _MatchedRuleNameList: [],
-    _ProcessInfo: {},
-    _ScanType: "Yara"
-  },
-  {
-    _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
-    _MatchedPid: "12345",
-    _MatchedRuleNameList: [],
-    _ProcessInfo: {},
-    _ScanType: "Yara"
-  },
-  {
-    _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
-    _MatchedPid: "67890",
-    _MatchedRuleNameList: [],
-    _ProcessInfo: {},
-    _ScanType: "Yara"
-  },
-  {
-    _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
-    _MatchedPid: "12345",
-    _MatchedRuleNameList: [],
-    _ProcessInfo: {},
-    _ScanType: "Yara"
-  },
-  {
-    _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
-    _MatchedPid: "67890",
-    _MatchedRuleNameList: [],
-    _ProcessInfo: {},
-    _ScanType: "Yara"
+    checkTime: '2019-11-30 13:49:40',
+    data: [
+      {
+        _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
+        _MatchedPid: "12345",
+        _MatchedRuleNameList: [],
+        _ProcessInfo: {},
+        _ScanType: "Yara"
+      },
+      {
+        _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
+        _MatchedPid: "67890",
+        _MatchedRuleNameList: [],
+        _ProcessInfo: {},
+        _ScanType: "Yara"
+      },
+      {
+        _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
+        _MatchedPid: "12345",
+        _MatchedRuleNameList: [],
+        _ProcessInfo: {},
+        _ScanType: "Yara"
+      },
+      {
+        _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
+        _MatchedPid: "67890",
+        _MatchedRuleNameList: [],
+        _ProcessInfo: {},
+        _ScanType: "Yara"
+      },
+      {
+        _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
+        _MatchedPid: "12345",
+        _MatchedRuleNameList: [],
+        _ProcessInfo: {},
+        _ScanType: "Yara"
+      },
+      {
+        _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
+        _MatchedPid: "67890",
+        _MatchedRuleNameList: [],
+        _ProcessInfo: {},
+        _ScanType: "Yara"
+      },
+      {
+        _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
+        _MatchedPid: "12345",
+        _MatchedRuleNameList: [],
+        _ProcessInfo: {},
+        _ScanType: "Yara"
+      }
+    ]
   }
 ];
 
@@ -241,9 +251,10 @@ class HMDscanInfo extends Component {
    * @param {string} type - scan type
    * @param {number} i - index of the rule array
    */
-  togglePathRule = (type, i) => {
+  togglePathRule = (type, parentIndex, i) => {
     const {activePath, activeRule} = this.state;
-    const tempActivePath = activePath === i ? null : i;
+    const uniqueKey = parentIndex.toString() + i.toString();
+    const tempActivePath = activePath === uniqueKey ? null : uniqueKey;
 
     if (type === 'path') {
       this.setState({
@@ -276,10 +287,9 @@ class HMDscanInfo extends Component {
    */
   displayRule = (nameList, val, i) => {
     const {activeRule} = this.state;
-    const uniqueKey = val + i;
 
     return (
-      <div className='rule-content' key={uniqueKey}>
+      <div className='rule-content' key={val + i}>
         <div className='header' onClick={this.togglePathRule.bind(this, 'rule', i)}>
           <i className={cx('fg fg-play', {'rotate': _.includes(activeRule, i)})}></i>
           <span>{nameList[i]}</span>
@@ -301,10 +311,8 @@ class HMDscanInfo extends Component {
    * @returns HTML DOM
    */
   displayIndividualFile = (val, i) => {
-    const uniqueKey = val + i;
-
     return (
-      <div key={uniqueKey}>{val}</div>
+      <div key={val + i}>{val}</div>
     )
   }
   /**
@@ -344,10 +352,8 @@ class HMDscanInfo extends Component {
    * @returns HTML DOM
    */
   displayIndividualConnection = (val, i) => {
-    const uniqueKey = val + i;
-
     return (
-      <ul key={uniqueKey}>
+      <ul key={val + i}>
         <li><span>{t('attacksFields.protocolType')}:</span> {val.protocol || NOT_AVAILABLE}</li>
         <li><span>{t('attacksFields.srcIp')}:</span> {val.srcIp || NOT_AVAILABLE}</li>
         <li><span>{t('attacksFields.srcPort')}:</span> {val.srcPort || NOT_AVAILABLE}</li>
@@ -416,9 +422,9 @@ class HMDscanInfo extends Component {
    * @param {number} i - index of the scan process array
    * @returns HTML DOM
    */
-  displayScanProcessPath = (val, i) => {
+  displayScanProcessPath = (parentIndex, val, i) => {
     const {activePath, activeRuleHeader, activeDLL, activeConnections} = this.state;
-    const uniqueKey = val._ScanType + i;
+    const uniqueKey = parentIndex.toString() + i.toString();
     let displayInfo = '';
 
     if (val._MatchedRuleList && val._MatchedRuleList.length > 0 && val._MatchedRuleNameList) {
@@ -429,9 +435,9 @@ class HMDscanInfo extends Component {
 
     if (val._MatchedFile || val._MatchedPid) {
       return (
-        <div className='group' key={uniqueKey}>
-          <div className='path' onClick={this.togglePathRule.bind(this, 'path', i)}>
-            <i className={cx('fg fg-arrow-bottom', {'rotate': activePath === i})}></i>
+        <div className='group' key={val._ScanType + i}>
+          <div className='path' onClick={this.togglePathRule.bind(this, 'path', parentIndex, i)}>
+            <i className={cx('fg fg-arrow-bottom', {'rotate': activePath === uniqueKey})}></i>
             {val._MatchedFile &&
               <span>{t('txt-path')}: {val._MatchedFile}</span>
             }
@@ -442,7 +448,7 @@ class HMDscanInfo extends Component {
               <span>PID: {val._MatchedPid}</span>
             }
           </div>
-          <div className={cx('rule', {'hide': activePath !== i})}>
+          <div className={cx('rule', {'hide': activePath !== uniqueKey})}>
             <div className='rule-content'>
               <div className='header' onClick={this.toggleInfoHeader.bind(this, 'rule')}>
                 <i className={cx('fg fg-play', {'rotate': activeRuleHeader})}></i>
@@ -482,7 +488,6 @@ class HMDscanInfo extends Component {
    */
   displayScanFilePath = (val, i) => {
     const {activePath, activeRuleHeader} = this.state;
-    const uniqueKey = val._ScanType + i;
     let displayInfo = '';
 
     if (val._MatchedRuleList && val._MatchedRuleList.length > 0 && val._MatchedRuleNameList) {
@@ -493,7 +498,7 @@ class HMDscanInfo extends Component {
 
     if (val._MatchedFile || val._MatchedPid) {
       return (
-        <div className='group' key={uniqueKey}>
+        <div className='group' key={val._ScanType + i}>
           <div className='path' onClick={this.togglePathRule.bind(this, 'path', i)}>
             <i className={cx('fg fg-arrow-bottom', {'rotate': activePath === i})}></i>
             {val._MatchedFile &&
@@ -594,21 +599,26 @@ class HMDscanInfo extends Component {
   loadMore = () => {
     let tempTestList = this.state.testList;
 
-    if (tempTestList.length <= 30) {
+    if (tempTestList.length < 20) {
       tempTestList.push(
         {
-          _MatchedFile: "NEW ITEM 1",
-          _MatchedPid: "00000",
-          _MatchedRuleNameList: [],
-          _ProcessInfo: {},
-          _ScanType: "Yara"
-        },
-        {
-          _MatchedFile: "NEW ITEM 2",
-          _MatchedPid: "9999",
-          _MatchedRuleNameList: [],
-          _ProcessInfo: {},
-          _ScanType: "Yara"
+          checkTime: '2020-01-08 13:49:40',
+          data: [
+            {
+              _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
+              _MatchedPid: "12345",
+              _MatchedRuleNameList: [],
+              _ProcessInfo: {},
+              _ScanType: "Yara"
+            },
+            {
+              _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
+              _MatchedPid: "67890",
+              _MatchedRuleNameList: [],
+              _ProcessInfo: {},
+              _ScanType: "Yara"
+            }
+          ]
         }
       );
 
@@ -622,6 +632,26 @@ class HMDscanInfo extends Component {
       });
     }
   }
+  displayScanContent = (hmdInfo, val, i) => {
+    const {activeTab} = this.state;
+
+    return (
+      <div className='scan-section' key={i}>
+        <span className='scan-header'>{t('network-inventory.txt-checkTime')}: {val.checkTime}</span>
+        <div className='scan-content'>
+          <div className='header'>{t('network-inventory.txt-suspiciousFilePath')}</div>
+          {hmdInfo[activeTab].result && hmdInfo[activeTab].result.length > 0 &&
+            <div className='list'>
+              {val.data.map(this.displayScanProcessPath.bind(this, i))}
+            </div>
+          }
+          {(!hmdInfo[activeTab].result || hmdInfo[activeTab].result.length === 0) &&
+            <div className='empty-msg'>{NOT_AVAILABLE}</div>
+          }
+        </div>
+      </div>
+    )
+  }
   /**
    * Display scan content for different scan type
    * @method
@@ -633,34 +663,34 @@ class HMDscanInfo extends Component {
     const loader = <div className='loader'>Loading...</div>;
 
     if (activeTab === 'yara' || activeTab === 'yaraScanFile') {
-      let scanPath = '';
-
       if (activeTab === 'yara') {
-        scanPath = this.displayScanProcessPath;
+        return (
+          <div className='scan-wrapper'>
+            <InfiniteScroll
+              dataLength={testList.length}
+              next={this.loadMore}
+              hasMore={hasMore}
+              loader={loader}
+              height={435}>
+              {testList.map(this.displayScanContent.bind(this, hmdInfo))}
+            </InfiniteScroll>
+          </div>
+        )
       } else if (activeTab === 'yaraScanFile') {
-        scanPath = this.displayScanFilePath;
+        return (
+          <div className='scan-content'>
+            <div className='header'>{t('network-inventory.txt-suspiciousFilePath')}</div>
+            {hmdInfo[activeTab].result && hmdInfo[activeTab].result.length > 0 &&
+              <div className='list'>
+                {hmdInfo[activeTab].result.map(this.displayScanFilePath)}
+              </div>
+            }
+            {(!hmdInfo[activeTab].result || hmdInfo[activeTab].result.length === 0) &&
+              <div className='empty-msg'>{NOT_AVAILABLE}</div>
+            }
+          </div>
+        )
       }
-
-      return (
-        <div className='scan-content'>
-          <div className='header'>{t('network-inventory.txt-suspiciousFilePath')}</div>
-          {hmdInfo[activeTab].result && hmdInfo[activeTab].result.length > 0 &&
-            <div className='list'>
-              <InfiniteScroll
-                dataLength={testList.length}
-                next={this.loadMore}
-                hasMore={hasMore}
-                loader={loader}
-                height={395} >
-                {testList.map(scanPath)}
-              </InfiniteScroll>
-            </div>
-          }
-          {(!hmdInfo[activeTab].result || hmdInfo[activeTab].result.length === 0) &&
-            <div className='empty-msg'>{NOT_AVAILABLE}</div>
-          }
-        </div>
-      )
     } else if (activeTab === 'ir') {
       return (
         <div className='scan-content'>

@@ -370,6 +370,7 @@
     "txt-lastUpdate": "最近更新時間",
     "txt-createTime": "最近觸發時間",
     "txt-responseTime": "最近回應時間",
+    "txt-checkTime": "檢測時間",
     "txt-suspiciousFileCount": "可疑檔案數",
     "txt-suspiciousFileName": "可疑檔案名稱",
     "txt-suspiciousFilePath": "可疑檔案路徑",
