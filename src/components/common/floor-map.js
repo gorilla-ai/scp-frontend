@@ -119,6 +119,10 @@ class FloorMap extends Component {
     const {baseUrl, contextRoot} = this.context;
     const floorPlan = areaUUID || this.state.floorPlan.currentAreaUUID;
 
+    if (!floorPlan) {
+      return;
+    }
+
     this.ah.one({
       url: `${baseUrl}/api/area?uuid=${floorPlan}`,
       type: 'GET'

@@ -203,7 +203,13 @@ class Syslog extends Component {
   getSyslogList = (flag) => {
     const {baseUrl} = this.context;
     const {dataFieldsArr, syslog, search} = this.state;
-    let uri = `?page=${syslog.currentPage}&pageSize=${syslog.pageSize}&sort=${syslog.sort.field}&order=${syslog.sort.desc ? 'desc' : 'asc'}`;
+    let uri = ''; 
+
+    if (_.isEmpty(syslog)) {
+      return;
+    } else {
+      uri = `?page=${syslog.currentPage}&pageSize=${syslog.pageSize}&sort=${syslog.sort.field}&order=${syslog.sort.desc ? 'desc' : 'asc'}`;
+    }
 
     // by filter
     if (flag) {
@@ -436,6 +442,10 @@ class Syslog extends Component {
   deleteSyslog = (id) => {
     const {baseUrl} = this.context;
 
+    if (!id) {
+      return;
+    }
+
     this.ah.one({
       url: `${baseUrl}/api/log/config?id=${id}`,
       type: 'DELETE'
@@ -607,23 +617,25 @@ class Syslog extends Component {
   getLatestInput = (configId) => {
     const {baseUrl} = this.context;
 
-    if (configId) {
-      this.ah.one({
-        url: `${baseUrl}/api/log/event/sample?configId=${configId}`,
-        type: 'GET'
-      })
-      .then(data => {
-        let tempConfig = {...this.state.config};
-        tempConfig.input = data;
-
-        this.setState({
-          config: tempConfig
-        });
-      })
-      .catch(err => {
-        helper.showPopupMsg('', t('txt-error'), err.message);
-      })
+    if (!configId) {
+      return;
     }
+
+    this.ah.one({
+      url: `${baseUrl}/api/log/event/sample?configId=${configId}`,
+      type: 'GET'
+    })
+    .then(data => {
+      let tempConfig = {...this.state.config};
+      tempConfig.input = data;
+
+      this.setState({
+        config: tempConfig
+      });
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Display content for the Filter tab
@@ -794,14 +806,15 @@ class Syslog extends Component {
     const {activeTimeline, activeConfigId, datetime} = this.state;
     const startDttm = Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
     const endDttm = Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-    let configId = '';
+    const configId = activeTimeline === 'configId' ? activeConfigId : '';
+    let uri = '';
 
-    if (activeTimeline === 'configId') {
-      configId = activeConfigId;
+    if (configId) {
+      uri += `&configId=${configId}`;
     }
 
     this.ah.one({
-      url: `${baseUrl}/api/log/event/_event_source_agg?startDttm=${startDttm}&endDttm=${endDttm}&configId=${configId}`,
+      url: `${baseUrl}/api/log/event/_event_source_agg?startDttm=${startDttm}&endDttm=${endDttm}${uri}`,
       type: 'GET'
     })
     .then(data => {

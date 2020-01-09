@@ -217,6 +217,10 @@ class QueryOpenSave extends Component {
     const {activeTab, queryData} = this.props;
     let url = '';
 
+    if (!queryData.id) {
+      return;
+    }
+
     if (activeTab === 'alert') {
       url = `${baseUrl}/api/account/alert/queryText?id=${queryData.id}`;
     } else if (activeTab === 'logs') {

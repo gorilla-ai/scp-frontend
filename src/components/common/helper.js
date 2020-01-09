@@ -217,11 +217,9 @@ const helper = {
     }
   },
   getLAconfig: function(baseUrl) {
-    const url = `${baseUrl}/api/cibd/configurations`;
-
     return (
       ah.one({
-        url,
+        url: `${baseUrl}/api/cibd/configurations`,
         type: 'GET'
       })
       .then(data => {
@@ -265,12 +263,15 @@ const helper = {
     )
   },
   getSavedQuery: function(baseUrl, account, queryData, type) {
-    const url = `${baseUrl}/api/account/${type}/queryText?accountId=${account.id}`;
     let tempQueryData = {...queryData};
+
+    if (!account.id) {
+      return;
+    }
 
     return (
       ah.one({
-        url,
+        url: `${baseUrl}/api/account/${type}/queryText?accountId=${account.id}`,
         type: 'GET'
       })
       .then(data => {

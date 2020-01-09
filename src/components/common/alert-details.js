@@ -258,10 +258,14 @@ class AlertDetails extends Component {
   getHMDinfo = (type) => {
     const {baseUrl} = this.context;
     const {ipDeviceInfo} = this.state;
-    const IP = this.getIpPortData(type);
+    const ip = this.getIpPortData(type);
+
+    if (ip === NOT_AVAILABLE) {
+      return;
+    }
 
     this.ah.one({
-      url: `${baseUrl}/api/u1/ipdevice/_search?ip=${IP}`,
+      url: `${baseUrl}/api/u1/ipdevice/_search?ip=${ip}`,
       type: 'GET'
     })
     .then(data => {
@@ -289,24 +293,26 @@ class AlertDetails extends Component {
     const ownerUUID = alertInfo[type].topology.ownerUUID;
     let tempAlertInfo = {...alertInfo};
 
-    if (ownerUUID) {
-      this.ah.one({
-        url: `${baseUrl}/api/owner?uuid=${ownerUUID}`,
-        type: 'GET'
-      })
-      .then(data => {
-        if (data) {
-          tempAlertInfo[type].ownerPic = data.base64;
-
-          this.setState({
-            alertInfo: tempAlertInfo
-          });
-        }
-      })
-      .catch(err => {
-        helper.showPopupMsg('', t('txt-error'), err.message);
-      })
+    if (!ownerUUID) {
+      return;
     }
+
+    this.ah.one({
+      url: `${baseUrl}/api/owner?uuid=${ownerUUID}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        tempAlertInfo[type].ownerPic = data.base64;
+
+        this.setState({
+          alertInfo: tempAlertInfo
+        });
+      }
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Set owner map and seat data for alertInfo
@@ -1317,12 +1323,14 @@ class AlertDetails extends Component {
   downloadFile = () => {
     const {baseUrl, contextRoot} = this.context;
     const {alertData} = this.props;
-    const dataObj = {
-      origFileId: alertData.origFileId,
-      md5: alertData.fileMD5
-    };
+    let dataObj = {};
 
-    if (!alertData.origFileId && !alertData.fileMD5) {
+    if (alertData.origFileId && alertData.fileMD5) {
+      dataObj = {
+        origFileId: alertData.origFileId,
+        md5: alertData.fileMD5
+      };
+    } else {
       return;
     }
 

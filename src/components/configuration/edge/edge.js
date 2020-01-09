@@ -98,10 +98,9 @@ class Edge extends Component {
    */
   getEdgeServiceType = () => {
     const {baseUrl} = this.context;
-    const url = `${baseUrl}/api/edge/serviceType`;
 
     this.ah.one({
-      url: url,
+      url: `${baseUrl}/api/edge/serviceType`,
       type: 'GET'
     })
     .then(data => {
@@ -283,10 +282,13 @@ class Edge extends Component {
    */
   agentAnalysis = (allValue) => {
     const {baseUrl} = this.context;
-    const url = `${baseUrl}/api/agent/_analyze?projectId=${allValue.projectId}`;
+
+    if (!allValue.projectId) {
+      return;
+    }
 
     ah.one({
-      url: url,
+      url: `${baseUrl}/api/agent/_analyze?projectId=${allValue.projectId}`,
       type: 'GET'
     })
     .then(data => {
@@ -443,10 +445,13 @@ class Edge extends Component {
   handleEdgeStatusChange = (type) => {
     const {baseUrl} = this.context;
     const {edge} = this.state;
-    const url = `${baseUrl}/api/agent/_${type}?id=${edge.info.id}&projectId=${edge.info.projectId}`;
+
+    if (_.isEmpty(edge.info)) {
+      return;
+    }
 
     this.ah.one({
-      url,
+      url: `${baseUrl}/api/agent/_${type}?id=${edge.info.id}&projectId=${edge.info.projectId}`,
       type: 'GET'
     })
     .then(data => {

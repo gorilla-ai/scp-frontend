@@ -208,10 +208,9 @@ class SyslogController extends Component {
    */
   getSyslogTree = () => {
     const {baseUrl} = this.context;
-    const url = `${baseUrl}/api/u1/log/event/_event_source_tree`;
 
     this.ah.one({
-      url,
+      url: `${baseUrl}/api/u1/log/event/_event_source_tree`,
       type: 'GET'
     })
     .then(data => {
@@ -378,10 +377,13 @@ class SyslogController extends Component {
   loadLogsLocaleFields = () => {
     const {baseUrl} = this.context;
     const {account} = this.state;
-    const url = `${baseUrl}/api/account/log/locales?accountId=${account.id}`;
+
+    if (!account.id) {
+      return;
+    }
 
     this.ah.one({
-      url,
+      url: `${baseUrl}/api/account/log/locales?accountId=${account.id}`,
       type: 'GET'
     })
     .then(data => {
@@ -1051,17 +1053,18 @@ class SyslogController extends Component {
     const {account} = this.state;
     let tempAccount = {...account};
     let fieldString = '';
-    let url = '';
     tempAccount.fields = fields;
 
     _.forEach(fields, value => {
       fieldString += '&field=' + value;
     })
 
-    url = `${baseUrl}/api/account/log/fields?accountId=${account.id}${fieldString}`;
+    if (!account.id) {
+      return;
+    }
 
     ah.one({
-      url,
+      url: `${baseUrl}/api/account/log/fields?accountId=${account.id}${fieldString}`,
       type: 'POST'
     })
     .then(data => {

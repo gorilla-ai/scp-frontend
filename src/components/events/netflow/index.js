@@ -2066,10 +2066,9 @@ class Netflow extends Component {
     const {pcapData} = this.state;
     const projectID = allValue ? allValue.projectName : pcapData.projectID;
     const sessionID = allValue ? allValue.id : pcapData.sessionID;
-    const url = `${baseUrl}/api/network/session/pcapContent?projectId=${projectID}&sessionId=${sessionID}&page=${pcapData.page}&pageSize=${pcapData.pageSize}`;
 
     this.ah.one({
-      url,
+      url: `${baseUrl}/api/network/session/pcapContent?projectId=${projectID}&sessionId=${sessionID}&page=${pcapData.page}&pageSize=${pcapData.pageSize}`,
       type: 'GET'
     })
     .then(data => {
@@ -2144,10 +2143,13 @@ class Netflow extends Component {
   deleteTag = () => {
     const {baseUrl} = this.context;
     const {tagData} = this.state;
-    const url = `${baseUrl}/api/account/flow/session?id=${tagData.id}`;
+
+    if (!tagData.id) {
+      return;
+    }
 
     this.ah.one({
-      url,
+      url: `${baseUrl}/api/account/flow/session?id=${tagData.id}`,
       type: 'DELETE'
     })
     .then(data => {
@@ -2327,10 +2329,13 @@ class Netflow extends Component {
    */
   openHTMLModal = (value) => {
     const {baseUrl} = this.context;
-    const url = `${baseUrl}/api/network/html/reLinkFile?path=${value}`;
+
+    if (!value) {
+      return;
+    }
 
     ah.one({
-      url,
+      url: `${baseUrl}/api/network/html/reLinkFile?path=${value}`,
       type: 'GET'
     })
     .then(data => {

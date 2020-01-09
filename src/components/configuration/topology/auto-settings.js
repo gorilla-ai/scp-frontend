@@ -423,6 +423,7 @@ class AutoSettings extends Component {
   }
   /**
    * Get and set Scanner test result
+   * @param {object} value - scanner test info
    * @method
    */
   handleScannerTest = (value) => {

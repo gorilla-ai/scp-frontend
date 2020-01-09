@@ -727,10 +727,13 @@ class NetworkMap extends Component {
   getSeatName = (seatUUID) => {
     const {baseUrl} = this.context;
     const {currentDeviceData} = this.state;
-    const url = `${baseUrl}/api/seat?uuid=${seatUUID}`;
+
+    if (!seatUUID) {
+      return;
+    }
 
     this.ah.one({
-      url,
+      url: `${baseUrl}/api/seat?uuid=${seatUUID}`,
       type: 'GET'
     })
     .then(data => {
@@ -759,7 +762,6 @@ class NetworkMap extends Component {
    */
   handleFloorMapClick = (seatUUID, info) => {
     const {baseUrl} = this.context;
-    const url = `${baseUrl}/api/u1/ipdevice/_search?seatUUID=${seatUUID}`;
 
     if (!seatUUID) { //Add new seat
       let tempAddSeat = {...this.state.addSeat};
@@ -774,7 +776,7 @@ class NetworkMap extends Component {
     }
 
     this.ah.one({
-      url,
+      url: `${baseUrl}/api/u1/ipdevice/_search?seatUUID=${seatUUID}`,
       type: 'GET'
     })
     .then(data => {
