@@ -109,6 +109,10 @@ class PrivilegeEdit extends Component {
     const {baseUrl} = this.context;
     const {selected, privilegeid} = this.state;
 
+    if (!privilegeid) {
+      return;
+    }
+
     ah.one({
       url: `${baseUrl}/api/account/privilege/permits?privilegeId=${privilegeid}&${queryString.stringify({permitIds:selected})}`,
       type: 'PATCH',

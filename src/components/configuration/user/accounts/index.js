@@ -233,6 +233,10 @@ class AccountList extends Component {
     const {baseUrl} = this.context;
     const {accountID} = this.state;
 
+    if (!accountID) {
+      return;
+    }
+
     if (type === 'delete') {
       ah.one({
         url: `${baseUrl}/api/account/?accountid=${accountID}`,

@@ -187,6 +187,10 @@ class AccountEdit extends Component {
     const {baseUrl} = this.context;
     const {id, accountData:{selected}} = this.state;
 
+    if (!id) {
+      return;
+    }
+
     ah.one({
       url: `${baseUrl}/api/account/privileges?accountId=${id}&${queryString.stringify({privilegeIds:selected})}`,
       type: 'PATCH',

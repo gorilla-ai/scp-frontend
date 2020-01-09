@@ -1052,6 +1052,10 @@ class NetworkInventory extends Component {
     const {baseUrl} = this.context;
     const {currentDeviceData} = this.state;
 
+    if (!currentDeviceData.ipDeviceUUID) {
+      return;
+    }
+
     ah.one({
       url: `${baseUrl}/api/u1/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}`,
       type: 'DELETE'

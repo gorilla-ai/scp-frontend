@@ -137,7 +137,7 @@ class Roles extends Component {
       cancelText: c('txt-cancel'),
       display: this.getDeletePrivilegeContent(allValue),
       act: (confirmed) => {
-        if (confirmed) {
+        if (confirmed && id) {
           ah.one({
             url: `${baseUrl}/api/account/privilege?privilegeId=${id}`,
             type: 'DELETE',

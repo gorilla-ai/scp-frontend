@@ -613,6 +613,10 @@ class NetworkMap extends Component {
     const {baseUrl} = this.context;
     const seat = seatUUID || this.state.currentDeviceData.seatUUID;
 
+    if (!seat) {
+      return;
+    }
+
     ah.one({
       url: `${baseUrl}/api/seat?uuid=${seat}`,
       type: 'DELETE'

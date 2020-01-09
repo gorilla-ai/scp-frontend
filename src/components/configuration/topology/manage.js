@@ -318,7 +318,6 @@ class Manage extends Component {
   confirmName = () => {
     const {baseUrl} = this.context;
     const {tab, name, nameUUID} = this.state;
-    const url = `${baseUrl}/api/name`;
     let type = 'POST';
     let requestData = {};
 
@@ -342,7 +341,7 @@ class Manage extends Component {
     }
 
     ah.one({
-      url,
+      url: `${baseUrl}/api/name`,
       data: JSON.stringify(requestData),
       type,
       contentType: 'text/plain'

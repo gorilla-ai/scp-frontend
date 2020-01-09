@@ -329,6 +329,10 @@ class FloorMap extends Component {
     const {baseUrl} = this.context;
     const {floorPlan} = this.state;
 
+    if (!floorPlan.currentAreaUUID) {
+      return;
+    }
+
     ah.one({
       url: `${baseUrl}/api/area?uuid=${floorPlan.currentAreaUUID}`,
       type: 'DELETE'

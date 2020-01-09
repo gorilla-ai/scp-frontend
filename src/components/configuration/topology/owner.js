@@ -535,6 +535,10 @@ class NetworkOwner extends Component {
     const {baseUrl} = this.context;
     const {owner} = this.state;
 
+    if (owner.info && !owner.info.ownerUUID) {
+      return;
+    }
+
     ah.one({
       url: `${baseUrl}/api/owner?uuid=${owner.info.ownerUUID}`,
       type: 'DELETE'

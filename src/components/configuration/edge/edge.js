@@ -511,6 +511,10 @@ class Edge extends Component {
     const {baseUrl} = this.context;
     const {currentEdgeData} = this.state;
 
+    if (!currentEdgeData.agentId) {
+      return;
+    }
+
     ah.one({
       url: `${baseUrl}/api/edge?id=${currentEdgeData.agentId}`,
       type: 'DELETE'

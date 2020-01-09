@@ -419,7 +419,7 @@ class Notifications extends Component {
     })
 
     ah.one({
-      url: `${baseUrl}/api/notification/mailServer/_test?` + dataParams,
+      url: `${baseUrl}/api/notification/mailServer/_test?${dataParams}`,
       type: 'GET'
     })
     .then(data => {
