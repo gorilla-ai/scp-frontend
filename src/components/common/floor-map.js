@@ -650,10 +650,12 @@ class FloorMap extends Component {
       floorPlan: tempFloorPlan,
       previewFloorMap: ''
     }, () => {
-      if (!type) {
+      if (type) {
+        if (type === 'cancel') {
+          this.props.closeDialog();
+        }
+      } else {
         this.props.closeDialog(options, 'fromFloorMap');
-      } else if (type === 'cancel') {
-        this.props.closeDialog();
       }
     });
   }

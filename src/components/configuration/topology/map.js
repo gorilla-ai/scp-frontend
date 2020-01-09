@@ -861,7 +861,7 @@ class NetworkMap extends Component {
    * Close dialog and reset floor plan data
    * @method
    */
-  closeDialog = () => {
+  closeDialog = (options) => {
     let tempFloorPlan = {...this.state.floorPlan};
     tempFloorPlan.type = '';
     tempFloorPlan.name = tempFloorPlan.currentAreaName;
@@ -879,6 +879,10 @@ class NetworkMap extends Component {
         coordY: ''
       },
       currentDeviceData: {}
+    }, () => {
+      if (options === 'reload') {
+        this.getFloorPlan();
+      }
     });
   }
   /**
