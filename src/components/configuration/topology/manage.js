@@ -166,6 +166,10 @@ class Manage extends Component {
     const {baseUrl} = this.context;
     const {tab} = this.state;
 
+    if (!nameUUID) {
+      return;
+    }
+
     this.ah.one({
       url: `${baseUrl}/api/name?uuid=${nameUUID}`,
       type: 'DELETE'

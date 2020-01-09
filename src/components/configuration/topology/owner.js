@@ -321,26 +321,28 @@ class NetworkOwner extends Component {
     const {baseUrl} = this.context;
     let tempOwner = {...this.state.owner};
 
-    if (allValue.ownerID) {
-      this.ah.one({
-        url: `${baseUrl}/api/owner?uuid=${allValue.ownerUUID}`,
-        type: 'GET'
-      })
-      .then(data => {
-        if (data) {
-          tempOwner.info = {...data};
-
-          this.setState({
-            owner: tempOwner
-          }, () => {
-            this.toggleContent('addOwner', 'edit');
-          });
-        }
-      })
-      .catch(err => {
-        helper.showPopupMsg('', t('txt-error'), err.message);
-      })
+    if (!allValue.ownerID) {
+      return;
     }
+
+    this.ah.one({
+      url: `${baseUrl}/api/owner?uuid=${allValue.ownerUUID}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        tempOwner.info = {...data};
+
+        this.setState({
+          owner: tempOwner
+        }, () => {
+          this.toggleContent('addOwner', 'edit');
+        });
+      }
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Toggle and display page content

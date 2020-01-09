@@ -1822,6 +1822,10 @@ class NetworkInventory extends Component {
     const {baseUrl} = this.context;
     const {addIP} = this.state;
 
+    if (!addIP.ip) {
+      return;
+    }
+
     this.ah.one({
       url: `${baseUrl}/api/u1/ipdevice/_search?ip=${addIP.ip}`,
       type: 'GET'
@@ -2044,6 +2048,10 @@ class NetworkInventory extends Component {
   handleOwnerChange = (value) => {
     const inventoryParam = queryString.parse(location.search);
     const {baseUrl} = this.context;
+
+    if (!value) {
+      return;
+    }
 
     this.ah.one({
       url: `${baseUrl}/api/owner?uuid=${value}`,
