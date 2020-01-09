@@ -5,6 +5,7 @@ import Moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
+import ButtonGroup from 'react-ui/build/src/components/button-group'
 import Checkbox from 'react-ui/build/src/components/checkbox'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PageNav from 'react-ui/build/src/components/page-nav'
@@ -48,6 +49,8 @@ class AlertDetails extends Component {
         destIp: false,
         srcSafety: false,
         destSafety: false,
+        srcNetwork: false,
+        destNetwork: false,
         json: false
       },
       alertRule: '',
@@ -88,7 +91,8 @@ class AlertDetails extends Component {
       },
       showRedirectMenu: false,
       modalIRopen: false,
-      ipType: ''
+      ipType: '',
+      activeNetwork: 'threats'
     };
 
     t = chewbaccaI18n.getFixedT(null, 'connections');
@@ -156,6 +160,8 @@ class AlertDetails extends Component {
       destIp: false,
       srcSafety: false,
       destSafety: false,
+      srcNetwork: false,
+      destNetwork: false,
       json: false
     };
 
@@ -495,6 +501,8 @@ class AlertDetails extends Component {
         destIp: false,
         srcSafety: false,
         destSafety: false,
+        srcNetwork: false,
+        destNetwork: false,
         json: false
       }
     }, () => {
@@ -524,6 +532,12 @@ class AlertDetails extends Component {
           break;
         case 'destSafety':
           tempShowContent.destSafety = true;
+          break;
+        case 'srcNetwork':
+          tempShowContent.srcNetwork = true;
+          break;
+        case 'destNetwork':
+          tempShowContent.destNetwork = true;
           break;
         case 'json':
           tempShowContent.json = true;
@@ -696,12 +710,14 @@ class AlertDetails extends Component {
               </li>
               <li className='child' onClick={this.getContent.bind(this, 'srcIp')}><span className={cx({'active': showContent.srcIp})}>{t('alert.txt-ipBasicInfo')}</span></li>
               <li className='child' onClick={this.getContent.bind(this, 'srcSafety')}><span className={cx({'active': showContent.srcSafety})}>{t('alert.txt-safetyScanInfo')}</span></li>
+              <li className='child' onClick={this.getContent.bind(this, 'srcNetwork')}><span className={cx({'active': showContent.srcNetwork})}>{t('txt-networkBehavior')}</span></li>
               <li className='header'>
                 <span className='name'>{t('alert.txt-ipDst')}</span>
                 <span className='ip'>{this.getIpPortData('destIp')}</span>
               </li>
               <li className='child' onClick={this.getContent.bind(this, 'destIp')}><span className={cx({'active': showContent.destIp})}>{t('alert.txt-ipBasicInfo')}</span></li>
               <li className='child' onClick={this.getContent.bind(this, 'destSafety')}><span className={cx({'active': showContent.destSafety})}>{t('alert.txt-safetyScanInfo')}</span></li>
+              <li className='child' onClick={this.getContent.bind(this, 'destNetwork')}><span className={cx({'active': showContent.destNetwork})}>{t('txt-networkBehavior')}</span></li>
             </ul>
           </div>
           <div className='content'>
@@ -738,6 +754,10 @@ class AlertDetails extends Component {
               this.displayPCAPcontent()
             }
 
+            {showContent.json &&
+              this.displayJsonData()
+            }
+
             {showContent.attack && alertPayload &&
               this.displayPayloadcontent()
             }
@@ -758,8 +778,12 @@ class AlertDetails extends Component {
               this.displaySafetyScanContent('destIp')
             }
 
-            {showContent.json &&
-              this.displayJsonData()
+            {showContent.srcNetwork &&
+              this.displayNetworkBehaviorContent('srcIp')
+            }
+
+            {showContent.destNetwork &&
+              this.displayNetworkBehaviorContent('destIp')
             }
           </div>
         </div>
@@ -817,7 +841,7 @@ class AlertDetails extends Component {
   displayRedirectMenu = (type) => {
     return (
       <ul className='redirect-menu' ref={this.setWrapperRef}>
-        <li onClick={this.redirectLink.bind(this, 'events', type)}>{t('alert.txt-queryEvents')}</li>
+        {/*<li onClick={this.redirectLink.bind(this, 'events', type)}>{t('alert.txt-queryEvents')}</li>*/}
         <li onClick={this.redirectLink.bind(this, 'virustotal', type)}>{t('alert.txt-searthVirustotal')}</li>
       </ul>
     )
@@ -1268,6 +1292,38 @@ class AlertDetails extends Component {
     } else {
       return <span>{NOT_AVAILABLE}</span>
     }
+  }
+  /**
+   * Toggle network behavior button
+   * @method
+   * @param {string} type - 'threats' or 'syslog'
+   */
+  toggleNetworkBtn = (type) => {
+    this.setState({
+      activeNetwork: type
+    });
+  }
+  /**
+   * Display network behavior content
+   * @method
+   * @param {string} type - 'srcIp' or 'destIp'
+   * @returns HTML DOM
+   */
+  displayNetworkBehaviorContent = (type) => {
+    const {activeNetwork} = this.state;
+
+    return (
+      <div>
+        <ButtonGroup
+          id='networkType'
+          list={[
+            {value: 'threats', text: t('txt-threats')},
+            {value: 'syslog', text: t('txt-syslog')}
+          ]}
+          onChange={this.toggleNetworkBtn}
+          value={activeNetwork} />
+      </div>
+    )
   }
   /**
    * Display JSON Data content
