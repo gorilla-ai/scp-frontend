@@ -23,7 +23,7 @@ const helper = {
     } else if (timezone === 'unix') {
       return Moment.unix(val).format('YYYY-MM-DD HH:mm:ss');
     } else {
-      let date = new Date(val);
+      const date = new Date(val);
       return Moment(date).format('YYYY-MM-DD HH:mm:ss');
     }
   },

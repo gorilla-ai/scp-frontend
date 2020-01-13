@@ -159,7 +159,25 @@ class ThreatsController extends Component {
         currentLength: ''
       },
       alertData: {},
-      loadAlertData: true
+      loadAlertData: true,
+      networkBehavior: {
+        alert: {
+          srcIP: {},
+          destIP: {}
+        },
+        connections: {
+          srcIP: {},
+          destIP: {}
+        },
+        dns: {
+          srcIP: {},
+          destIP: {}
+        },
+        syslog: {
+          srcIP: {},
+          destIP: {}
+        }
+      }
     };
 
     this.ah = getInstance('chewbacca');
@@ -863,6 +881,55 @@ class ThreatsController extends Component {
       filterData: currentFilterData
     });
   }
+  loadNetworkBehavior = (index, allValue) => {
+    const {baseUrl} = this.context;
+    const eventDateTime = helper.getFormattedDate(allValue._eventDttm_, 'local');
+    const eventDateFrom = helper.getSubstractDate(1, 'hours', eventDateTime);
+    const dateTime = {
+      from: Moment(eventDateFrom).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
+      to: Moment(eventDateTime).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
+    };
+    const apiArr = [
+      {
+        url: `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`,
+        data: JSON.stringify({
+          timestamp: [dateTime.from, dateTime.to],
+          filters: [
+            {
+              condition: 'must',
+              query: 'sourceIP:' + allValue.srcIp
+            }
+          ]
+        }),
+        type: 'POST',
+        contentType: 'text/plain'
+      },
+      {
+        url: `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`,
+        data: JSON.stringify({
+          timestamp: [dateTime.from, dateTime.to],
+          filters: [
+            {
+              condition: 'must',
+              query: 'destinationIP:' + allValue.destIp
+            }
+          ]
+        }),
+        type: 'POST',
+        contentType: 'text/plain'
+      }
+    ];
+
+    this.ah.all(apiArr)
+    .then(data => {
+      console.log(data);
+
+      this.openDetailInfo(index, allValue);
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
   /**
    * Add tree node to search filter
    * @method
@@ -871,7 +938,9 @@ class ThreatsController extends Component {
    * @param {object} evt - MouseEvents
    */
   handleRowDoubleClick = (index, allValue, evt) => {
-    this.openDetailInfo(index, allValue);
+    this.loadNetworkBehavior(index, allValue);
+
+    //this.openDetailInfo(index, allValue);
     evt.stopPropagation();
     return null;
   }
