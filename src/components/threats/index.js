@@ -306,9 +306,18 @@ class ThreatsController extends Component {
    * @method
    * @param {string} field - field name of selected field
    * @param {string | number} value - value of selected field
+   * @param {string} activeTab - currect active tab
    * @param {object} e - mouseClick events
    */
-  showQueryOptions = (field, value) => (e) => {
+  showQueryOptions = (field, value, activeTab) => (e) => {
+    if (activeTab && activeTab === 'alert') {
+      if (field === 'srcIp') {
+        value = 'sourceIP: ' +  value;
+      } else if (field === 'destIp') {
+        value = 'destinationIP: ' +  value;
+      }
+    }
+
     const menuItems = [
       {
         id: value + '_Must',

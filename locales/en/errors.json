@@ -53,7 +53,7 @@
   "-1006": "Login fails exceed 5 times",
   "-5001": "Port number is duplicated",
   "-5002": "IP is duplicated",
-  "-5003": "Match Pattern error",
+  "-5003": "Match pattern format error",
 
   "txt-param-null": "Parameter is NULL",
   "txt-account-fail" : "Fail to get accounts from AD"
