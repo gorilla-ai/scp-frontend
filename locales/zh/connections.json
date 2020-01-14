@@ -121,6 +121,11 @@
   "txt-severity": "嚴重性",
   "txt-data": "資料",
   "txt-selectFile": "請選擇檔案",
+  "txt-severity": "嚴重等級",
+  "txt-destIp": "目的IP",
+  "txt-destPort": "目的Port",
+  "txt-configSource": "Config Source",
+  "txt-alertHourBefore": "告警時間前一小時",
 
   "txt-dashboard": "Dashboard",
   "txt-threats": "Threats",
@@ -128,6 +133,9 @@
   "txt-netflow": "Netflow",
   "txt-endpoint": "Endpoint",
   "txt-configuration": "Configuration",
+
+  "txt-connections": "Connections",
+  "txt-dns": "DNS",
 
   "txt-edgeManage": "Edge管理",
   "txt-topology": "網路拓樸",

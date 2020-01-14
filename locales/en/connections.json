@@ -120,7 +120,12 @@
   "txt-unstable": "Unstable",
   "txt-severity": "Severity",
   "txt-data": "Data",
-  "txt-selectFile": "Please select file.",
+  "txt-selectFile": "Please select file",
+  "txt-severity": "Severity",
+  "txt-destIp": "Destination IP",
+  "txt-destPort": "Destination Port",
+  "txt-configSource": "Config Source",
+  "txt-alertHourBefore": "An hour before Alert time",
 
   "txt-dashboard": "Dashboard",
   "txt-threats": "Threats",
@@ -128,6 +133,9 @@
   "txt-netflow": "Netflow",
   "txt-endpoint": "Endpoint",
   "txt-configuration": "Configuration",
+
+  "txt-connections": "Connections",
+  "txt-dns": "DNS",
 
   "txt-edgeManage": "Edge Management",
   "txt-topology": "Network Topology",

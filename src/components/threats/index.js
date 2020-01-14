@@ -162,20 +162,40 @@ class ThreatsController extends Component {
       loadAlertData: true,
       networkBehavior: {
         alert: {
-          srcIP: {},
-          destIP: {}
+          fields: ['severity', 'count'],
+          sort: {
+            field: 'severity',
+            desc: true
+          },
+          srcIp: {},
+          destIp: {}
         },
         connections: {
-          srcIP: {},
-          destIP: {}
+          fields: ['destIp', 'destPort', 'count'],
+          sort: {
+            field: 'destIp',
+            desc: true
+          },
+          srcIp: {},
+          destIp: {}
         },
         dns: {
-          srcIP: {},
-          destIP: {}
+          fields: ['destIp', 'destPort', 'count'],
+          sort: {
+            field: 'destIp',
+            desc: true
+          },
+          srcIp: {},
+          destIp: {}
         },
         syslog: {
-          srcIP: {},
-          destIP: {}
+          fields: ['configSource', 'count'],
+          sort: {
+            field: 'configSource',
+            desc: true
+          },
+          srcIp: {},
+          destIp: {}
         }
       }
     };
@@ -242,6 +262,20 @@ class ThreatsController extends Component {
       this.setState({
         searchInput: tempSearchInput,
         filterData,
+        showFilter: true
+      });
+    }
+
+    if (alertsParam.from && alertsParam.to) {
+      this.setState({
+        datetime: {
+          from: alertsParam.from,
+          to: alertsParam.to
+        },
+        filterData: [{
+          condition: 'must',
+          query: 'sourceIP: ' + alertsParam.ip
+        }],
         showFilter: true
       });
     }
@@ -881,8 +915,69 @@ class ThreatsController extends Component {
       filterData: currentFilterData
     });
   }
+  /**
+   * Handle table sort
+   * @method
+   * @param {string} type - network behavior type ('threats', 'connections', 'dns' or 'syslog')
+   * @param {object} sort - sort data object
+   */
+  handleNetworkBehaviorTableSort = (type, sort) => {
+    let tempNetworkBehavior = {...this.state.networkBehavior};
+    tempNetworkBehavior[type].sort.field = sort.field;
+    tempNetworkBehavior[type].sort.desc = sort.desc;
+
+    this.setState({
+      networkBehavior: tempNetworkBehavior
+    });
+  }
+  /**
+   * Get aggregated network behavior data
+   * @method
+   * @param {string} type - network behavior type ('alert', 'connections', 'dns' or 'syslog')
+   * @param {object | array.<object>} data - network behavior data
+   */
+  getNetworkBehaviorData = (type, data) => {
+    let tempData = [];
+
+    if (type === 'alert') {
+      _.forEach(data, (val, key) => {
+        if (key !== 'default') {
+          tempData.push({
+            severity: key,
+            count: val.doc_count
+          });
+        }
+      })
+    } else if (type === 'connections' || type === 'dns') {
+      _.forEach(data, val => {
+        _.forEach(val.portDst.buckets, val2 => {
+          tempData.push({
+            destIp: val.key,
+            destPort: val2.key,
+            count: val.doc_count
+          });
+        })
+      })
+    } else if (type === 'syslog') {
+      _.forEach(data, val => {
+        tempData.push({
+          configSource: key,
+          count: val.doc_count
+        });
+      })
+    }
+
+    return tempData;
+  }
+  /**
+   * Load network behavior data
+   * @method
+   * @param {string} index - index of the alert data
+   * @param {object} allValue - data from user's selection
+   */
   loadNetworkBehavior = (index, allValue) => {
     const {baseUrl} = this.context;
+    const {networkBehavior} = this.state;
     const eventDateTime = helper.getFormattedDate(allValue._eventDttm_, 'local');
     const eventDateFrom = helper.getSubstractDate(1, 'hours', eventDateTime);
     const dateTime = {
@@ -891,7 +986,7 @@ class ThreatsController extends Component {
     };
     const apiArr = [
       {
-        url: `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`,
+        url: `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`, //Threats srcIp
         data: JSON.stringify({
           timestamp: [dateTime.from, dateTime.to],
           filters: [
@@ -905,13 +1000,125 @@ class ThreatsController extends Component {
         contentType: 'text/plain'
       },
       {
-        url: `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`,
+        url: `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`, //Threats destIp
         data: JSON.stringify({
           timestamp: [dateTime.from, dateTime.to],
           filters: [
             {
               condition: 'must',
-              query: 'destinationIP:' + allValue.destIp
+              query: 'sourceIP:' + allValue.destIp
+            }
+          ]
+        }),
+        type: 'POST',
+        contentType: 'text/plain'
+      },
+      {
+        url: `${baseUrl}/api/u1/network/session?pageSize=0`, //Connections srcIp
+        data: JSON.stringify({
+          timestamp: [dateTime.from, dateTime.to],
+          filters: [
+            {
+              condition: 'must',
+              query: 'sourceIP:' + allValue.srcIp
+            }
+          ],
+          search: [
+            'TopDestIpPortAgg'
+          ]
+        }),
+        type: 'POST',
+        contentType: 'text/plain'
+      },
+      {
+        url: `${baseUrl}/api/u1/network/session?pageSize=0`, //Connections destIp
+        data: JSON.stringify({
+          timestamp: [dateTime.from, dateTime.to],
+          filters: [
+            {
+              condition: 'must',
+              query: 'sourceIP:' + allValue.destIp
+            }
+          ],
+          search: [
+            'TopDestIpPortAgg'
+          ]
+        }),
+        type: 'POST',
+        contentType: 'text/plain'
+      },
+      {
+        url: `${baseUrl}/api/u1/network/session?pageSize=0`, //DNS srcIp
+        data: JSON.stringify({
+          timestamp: [dateTime.from, dateTime.to],
+          filters: [
+            {
+              condition: 'must',
+              query: 'sourceIP:' + allValue.srcIp
+            },
+            {
+              condition: 'must',
+              query: 'DNS' 
+            }
+          ],
+          search: [
+            'TopDestIpPortAgg'
+          ]
+        }),
+        type: 'POST',
+        contentType: 'text/plain'
+      },
+      {
+        url: `${baseUrl}/api/u1/network/session?pageSize=0`, //DNS destIp
+        data: JSON.stringify({
+          timestamp: [dateTime.from, dateTime.to],
+          filters: [
+            {
+              condition: 'must',
+              query: 'sourceIP:' + allValue.destIp
+            },
+            {
+              condition: 'must',
+              query: 'DNS' 
+            }
+          ],
+          search: [
+            'TopDestIpPortAgg'
+          ]
+        }),
+        type: 'POST',
+        contentType: 'text/plain'
+      },
+      {
+        url: `${baseUrl}/api/u2/alert/_search?pageSize=0`, //Syslog srcIp
+        data: JSON.stringify({
+          timestamp: [dateTime.from, dateTime.to],
+          filters: [
+            {
+              condition: 'must',
+              query: 'Top10SyslogConfigSource'
+            },
+            {
+              condition: 'must',
+              query: 'sourceIP:' + allValue.srcIp
+            }
+          ]
+        }),
+        type: 'POST',
+        contentType: 'text/plain'
+      },
+      {
+        url: `${baseUrl}/api/u2/alert/_search?pageSize=0`, //Syslog destIp
+        data: JSON.stringify({
+          timestamp: [dateTime.from, dateTime.to],
+          filters: [
+            {
+              condition: 'must',
+              query: 'Top10SyslogConfigSource'
+            },
+            {
+              condition: 'must',
+              query: 'sourceIP:' + allValue.destIp
             }
           ]
         }),
@@ -922,9 +1129,76 @@ class ThreatsController extends Component {
 
     this.ah.all(apiArr)
     .then(data => {
-      console.log(data);
+      if (data) {
+        let tempNetworkBehavior = {...networkBehavior};
+        let tempFields = {};
+        networkBehavior.alert.fields.forEach(tempData => {
+          tempFields[tempData] = {
+            label: t(`txt-${tempData}`),
+            sortable: true,
+            formatter: (value, allValue, i) => {
+              if (tempData === 'severity') {
+                return (
+                  <div>
+                    <span>{value}</span>
+                  </div>
+                )
+              } else {
+                return (
+                  <span>{value}</span>
+                )
+              }
+            }
+          }
+        })
 
-      this.openDetailInfo(index, allValue);
+        tempNetworkBehavior.alert.fieldsData = tempFields;
+        tempNetworkBehavior.alert.srcIp.data = this.getNetworkBehaviorData('alert', data[0].aggregations);
+        tempNetworkBehavior.alert.destIp.data = this.getNetworkBehaviorData('alert', data[1].aggregations);
+
+        tempFields = {};
+        networkBehavior.connections.fields.forEach(tempData => {
+          tempFields[tempData] = {
+            label: t(`txt-${tempData}`),
+            sortable: true,
+            formatter: (value, allValue, i) => {
+              return (
+                <span>{value}</span>
+              )
+            }
+          }
+        })
+
+        tempNetworkBehavior.connections.fieldsData = tempFields;
+        tempNetworkBehavior.dns.fieldsData = tempFields;
+        tempNetworkBehavior.connections.srcIp.data = this.getNetworkBehaviorData('connections', data[2].aggregations.TopDestIpPortAgg.buckets);
+        tempNetworkBehavior.connections.destIp.data = this.getNetworkBehaviorData('connections', data[3].aggregations.TopDestIpPortAgg.buckets);
+        tempNetworkBehavior.dns.srcIp.data = this.getNetworkBehaviorData('dns', data[4].aggregations.TopDestIpPortAgg.buckets);
+        tempNetworkBehavior.dns.destIp.data = this.getNetworkBehaviorData('dns', data[5].aggregations.TopDestIpPortAgg.buckets);
+
+        tempFields = {};
+        networkBehavior.syslog.fields.forEach(tempData => {
+          tempFields[tempData] = {
+            label: t(`txt-${tempData}`),
+            sortable: true,
+            formatter: (value, allValue, i) => {
+              return (
+                <span>{value}</span>
+              )
+            }
+          }
+        })
+
+        tempNetworkBehavior.syslog.fieldsData = tempFields;
+        tempNetworkBehavior.syslog.srcIp.data = this.getNetworkBehaviorData('syslog', data[6].aggregations.Top10SyslogConfigSource.agg.buckets);
+        tempNetworkBehavior.syslog.destIp.data = this.getNetworkBehaviorData('syslog', data[7].aggregations.Top10SyslogConfigSource.agg.buckets);
+
+        this.setState({
+          networkBehavior: tempNetworkBehavior
+        }, () => {
+          this.openDetailInfo(index, allValue);
+        });
+      }
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -940,7 +1214,6 @@ class ThreatsController extends Component {
   handleRowDoubleClick = (index, allValue, evt) => {
     this.loadNetworkBehavior(index, allValue);
 
-    //this.openDetailInfo(index, allValue);
     evt.stopPropagation();
     return null;
   }
@@ -950,7 +1223,7 @@ class ThreatsController extends Component {
    * @returns AlertDetails component
    */
   alertDialog = () => {
-    const {alertDetails, alertData} = this.state;
+    const {alertDetails, alertData, networkBehavior} = this.state;
     const actions = {
       confirm: {text: t('txt-close'), handler: this.closeDialog}
     };
@@ -961,7 +1234,9 @@ class ThreatsController extends Component {
         actions={actions}
         alertDetails={alertDetails}
         alertData={alertData}
+        networkBehavior={networkBehavior}
         showAlertData={this.showAlertData}
+        handleNetworkBehaviorTableSort={this.handleNetworkBehaviorTableSort}
         fromPage='threats' />
     )
   }

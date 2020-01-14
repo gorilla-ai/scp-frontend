@@ -614,7 +614,6 @@ class SyslogController extends Component {
           subSectionsData: tempSubSectionsData,
           eventHistogram: {}
         });
-
         return;
       }
 
@@ -658,7 +657,7 @@ class SyslogController extends Component {
             )
           }
         }
-      }) 
+      })
 
       let tempSubSectionsData = {...subSectionsData};
       tempSubSectionsData.mainData.logs = tempArray;

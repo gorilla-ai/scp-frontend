@@ -7,6 +7,7 @@ import cx from 'classnames'
 
 import ButtonGroup from 'react-ui/build/src/components/button-group'
 import Checkbox from 'react-ui/build/src/components/checkbox'
+import DataTable from 'react-ui/build/src/components/table'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PageNav from 'react-ui/build/src/components/page-nav'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
@@ -92,7 +93,7 @@ class AlertDetails extends Component {
       showRedirectMenu: false,
       modalIRopen: false,
       ipType: '',
-      activeNetwork: 'threats'
+      activeNetwork: 'alert'
     };
 
     t = chewbaccaI18n.getFixedT(null, 'connections');
@@ -806,7 +807,7 @@ class AlertDetails extends Component {
    * @param {string} value - 'srcIp' or 'destIp'
    */
   redirectLink = (type, value) => {
-    const {language} = this.context;
+    const {baseUrl, contextRoot, language} = this.context;
     const {alertData} = this.props;
     const eventDatetime = helper.getFormattedDate(alertData._eventDttm_, 'local');
     const srcIp = this.getIpPortData('srcIp');
@@ -820,7 +821,7 @@ class AlertDetails extends Component {
       } else if (value === 'destIp') {
         ipParam = `&destIp=${destIp}`;
       }
-      linkUrl = `/SCP/events/netflow?eventDttm=${eventDatetime}${ipParam}&lng=${language}`;
+      linkUrl = `${baseUrl}${contextRoot}/events/netflow?eventDttm=${eventDatetime}${ipParam}&lng=${language}`;
     } else if (type === 'virustotal') {
       if (value === 'srcIp') {
         ipParam = srcIp;
@@ -1304,24 +1305,79 @@ class AlertDetails extends Component {
     });
   }
   /**
+   * Redirect to netflow or syslog page
+   * @method
+   * @param {string} type - 'srcIp' or 'destIp'
+   */
+  redirectNewPage = (type) => {
+    const {baseUrl, contextRoot, language} = this.context;
+    const {alertData} = this.props;
+    const {activeNetwork} = this.state;
+    const datetime = {
+      from: helper.getFormattedDate(alertData._eventDttm_, 'local'),
+      to: helper.getFormattedDate(helper.getSubstractDate(1, 'hours', alertData._eventDttm_))
+    };
+    const srcIp = this.getIpPortData('srcIp');
+    const destIp = this.getIpPortData('destIp');
+    let ipParam = '';
+    let linkUrl ='';
+
+    if (type === 'srcIp') {
+      ipParam = `&ip=${srcIp}`;
+    } else if (type === 'destIp') {
+      ipParam = `&ip=${destIp}`;
+    }
+ 
+    if (activeNetwork === 'alert') {
+      linkUrl = `${baseUrl}${contextRoot}/threats?from=${datetime.from}&to=${datetime.to}${ipParam}&lng=${language}`;
+    } else if (activeNetwork === 'connections') {
+      linkUrl = `${baseUrl}${contextRoot}/events/netflow?from=${datetime.from}&to=${datetime.to}${ipParam}&type=connections&lng=${language}`;
+    } else if (activeNetwork === 'dns') {
+      linkUrl = `${baseUrl}${contextRoot}/events/netflow?from=${datetime.from}&to=${datetime.to}${ipParam}&type=dns&lng=${language}`;
+    } else if (activeNetwork === 'syslog') {
+      linkUrl = `${baseUrl}${contextRoot}/events/syslog?from=${datetime.from}&to=${datetime.to}${ipParam}&lng=${language}`;
+    }
+
+    window.open(linkUrl, '_blank');
+  }
+  /**
    * Display network behavior content
    * @method
    * @param {string} type - 'srcIp' or 'destIp'
    * @returns HTML DOM
    */
   displayNetworkBehaviorContent = (type) => {
+    const {alertData, networkBehavior} = this.props;
     const {activeNetwork} = this.state;
+    const datetime = {
+      from: helper.getFormattedDate(alertData._eventDttm_, 'local'),
+      to: helper.getFormattedDate(helper.getSubstractDate(1, 'hours', alertData._eventDttm_))
+    };
 
     return (
-      <div>
+      <div className='network-behavior'>
         <ButtonGroup
           id='networkType'
           list={[
-            {value: 'threats', text: t('txt-threats')},
+            {value: 'alert', text: t('txt-threats')},
+            {value: 'connections', text: t('txt-connections')},
+            {value: 'dns', text: t('txt-dns')},
             {value: 'syslog', text: t('txt-syslog')}
           ]}
           onChange={this.toggleNetworkBtn}
           value={activeNetwork} />
+
+        <div className='msg'>{t('txt-alertHourBefore')}: {datetime.from} ~ {datetime.to}</div>
+        <button className='query-events' onClick={this.redirectNewPage.bind(this, type)}>{t('alert.txt-queryEvents')}</button>
+
+        <div className='table-data'>
+          <DataTable
+            className='main-table'
+            fields={networkBehavior[activeNetwork].fieldsData}
+            data={networkBehavior[activeNetwork][type].data}
+            sort={networkBehavior[activeNetwork][type].data.length === 0 ? {} : networkBehavior[activeNetwork].sort}
+            onSort={this.props.handleNetworkBehaviorTableSort.bind(this, activeNetwork)} />
+        </div>
       </div>
     )
   }
