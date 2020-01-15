@@ -242,9 +242,7 @@ class SyslogController extends Component {
         showFilter: true,
         showMark: true
       });
-    }
-
-    if (syslogParams.configSource) {
+    } else if (syslogParams.configSource) {
       let tempSearchInput = {...this.state.searchInput};
 
       if (syslogParams.interval) {
@@ -260,9 +258,7 @@ class SyslogController extends Component {
         showFilter: true,
         showMark: true
       });
-    }
-
-    if (syslogParams.srcIp || syslogParams.ipSrc) {
+    } else if (syslogParams.srcIp || syslogParams.ipSrc) {
       let hostData = '';
 
       if (syslogParams.srcIp) {
@@ -279,6 +275,19 @@ class SyslogController extends Component {
         {
           condition: 'must',
           query: '_host: ' + hostData
+        }],
+        showFilter: true,
+        showMark: true
+      });
+    } else if (syslogParams.from && syslogParams.to) {
+      this.setState({
+        datetime: {
+          from: syslogParams.from,
+          to: syslogParams.to
+        },
+        filterData: [{
+          condition: 'must',
+          query: syslogParams.ip
         }],
         showFilter: true,
         showMark: true

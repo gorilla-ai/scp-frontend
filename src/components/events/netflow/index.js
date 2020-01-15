@@ -217,8 +217,7 @@ class Netflow extends Component {
       currentTableIndex: '',
       currentLength: '',
       currentTableID: '',
-      loadNetflowData: true,
-      urlParams: {}
+      loadNetflowData: true
     };
 
     this.ah = getInstance('chewbacca');
@@ -227,8 +226,6 @@ class Netflow extends Component {
     const {locale, session, sessionRights} = this.context;
     const {datetime, filterData, account} = this.state;
     let urlParams = queryString.parse(location.search);
-    let tempDatetime = {...datetime};
-    let tempFilterData = {...filterData};
     let tempAccount = {...account};
 
     helper.getPrivilegesInfo(sessionRights, 'common', locale);
@@ -240,31 +237,44 @@ class Netflow extends Component {
       if (urlParams.eventDttm) {
         let ip = '';
 
-        tempDatetime = {
-          from: helper.getSubstractDate(30, 'minutes', urlParams.eventDttm),
-          to: helper.getAdditionDate(30, 'minutes', urlParams.eventDttm)
-        };
-
         if (urlParams.srcIp) {
           ip = 'ipSrc: ' + urlParams.srcIp;
         } else if (urlParams.destIp) {
           ip = 'ipDst: ' + urlParams.destIp;
         }
 
-        tempFilterData = [{
-          condition: 'must',
-          query: ip
-        }];
-        urlParams = _.omit(urlParams, ['lng']);
-
         this.setState({
-          datetime: tempDatetime,
-          filterData: tempFilterData,
+          datetime: {
+            from: helper.getSubstractDate(30, 'minutes', urlParams.eventDttm),
+            to: helper.getAdditionDate(30, 'minutes', urlParams.eventDttm)
+          },
+          filterData: [{
+            condition: 'must',
+            query: ip
+          }],
           account: tempAccount,
-          showFilter: true,
-          urlParams
+          showFilter: true
         }, () => {
           this.initialLoad();
+        });
+      } else if (urlParams.from && urlParams.to) {
+        this.setState({
+          datetime: {
+            from: urlParams.from,
+            to: urlParams.to
+          },
+          filterData: [{
+            condition: 'must',
+            query: urlParams.ip
+          }],
+          account: tempAccount,
+          showFilter: true
+        }, () => {
+          this.initialLoad();
+
+          if (urlParams.type === 'dns') {
+            this.handleTabChange('dns');
+          }
         });
       } else {
         this.setState({

@@ -265,10 +265,6 @@ const helper = {
   getSavedQuery: function(baseUrl, account, queryData, type) {
     let tempQueryData = {...queryData};
 
-    if (!account.id) {
-      return;
-    }
-
     return (
       ah.one({
         url: `${baseUrl}/api/account/${type}/queryText?accountId=${account.id}`,

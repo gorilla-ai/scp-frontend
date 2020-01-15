@@ -93,7 +93,7 @@ class AlertDetails extends Component {
       showRedirectMenu: false,
       modalIRopen: false,
       ipType: '',
-      activeNetwork: 'alert'
+      activeNetworkBehavior: 'alert'
     };
 
     t = chewbaccaI18n.getFixedT(null, 'connections');
@@ -546,7 +546,8 @@ class AlertDetails extends Component {
       }
 
       this.setState({
-        showContent: tempShowContent
+        showContent: tempShowContent,
+        activeNetworkBehavior: 'alert'
       });
     });
   }
@@ -1301,7 +1302,7 @@ class AlertDetails extends Component {
    */
   toggleNetworkBtn = (type) => {
     this.setState({
-      activeNetwork: type
+      activeNetworkBehavior: type
     });
   }
   /**
@@ -1312,7 +1313,7 @@ class AlertDetails extends Component {
   redirectNewPage = (type) => {
     const {baseUrl, contextRoot, language} = this.context;
     const {alertData} = this.props;
-    const {activeNetwork} = this.state;
+    const {activeNetworkBehavior} = this.state;
     const datetime = {
       from: helper.getFormattedDate(alertData._eventDttm_, 'local'),
       to: helper.getFormattedDate(helper.getSubstractDate(1, 'hours', alertData._eventDttm_))
@@ -1328,13 +1329,13 @@ class AlertDetails extends Component {
       ipParam = `&ip=${destIp}`;
     }
  
-    if (activeNetwork === 'alert') {
+    if (activeNetworkBehavior === 'alert') {
       linkUrl = `${baseUrl}${contextRoot}/threats?from=${datetime.from}&to=${datetime.to}${ipParam}&lng=${language}`;
-    } else if (activeNetwork === 'connections') {
+    } else if (activeNetworkBehavior === 'connections') {
       linkUrl = `${baseUrl}${contextRoot}/events/netflow?from=${datetime.from}&to=${datetime.to}${ipParam}&type=connections&lng=${language}`;
-    } else if (activeNetwork === 'dns') {
+    } else if (activeNetworkBehavior === 'dns') {
       linkUrl = `${baseUrl}${contextRoot}/events/netflow?from=${datetime.from}&to=${datetime.to}${ipParam}&type=dns&lng=${language}`;
-    } else if (activeNetwork === 'syslog') {
+    } else if (activeNetworkBehavior === 'syslog') {
       linkUrl = `${baseUrl}${contextRoot}/events/syslog?from=${datetime.from}&to=${datetime.to}${ipParam}&lng=${language}`;
     }
 
@@ -1348,24 +1349,28 @@ class AlertDetails extends Component {
    */
   displayNetworkBehaviorContent = (type) => {
     const {alertData, networkBehavior} = this.props;
-    const {activeNetwork} = this.state;
+    const {activeNetworkBehavior} = this.state;
     const datetime = {
       from: helper.getFormattedDate(alertData._eventDttm_, 'local'),
       to: helper.getFormattedDate(helper.getSubstractDate(1, 'hours', alertData._eventDttm_))
     };
+
+    if (this.getIpPortData(type) === NOT_AVAILABLE) {
+      return <span>{NOT_AVAILABLE}</span>
+    }
 
     return (
       <div className='network-behavior'>
         <ButtonGroup
           id='networkType'
           list={[
-            {value: 'alert', text: t('txt-threats')},
-            {value: 'connections', text: t('txt-connections')},
-            {value: 'dns', text: t('txt-dns')},
-            {value: 'syslog', text: t('txt-syslog')}
+            {value: 'alert', text: t('txt-threats') + ' (' + networkBehavior.alert[type].totalCount + ')'},
+            {value: 'connections', text: t('txt-connections') + ' (' + networkBehavior.connections[type].totalCount + ')'},
+            {value: 'dns', text: t('txt-dns') + ' (' + networkBehavior.dns[type].totalCount + ')'},
+            {value: 'syslog', text: t('txt-syslog') + ' (' + networkBehavior.syslog[type].totalCount + ')'}
           ]}
           onChange={this.toggleNetworkBtn}
-          value={activeNetwork} />
+          value={activeNetworkBehavior} />
 
         <div className='msg'>{t('txt-alertHourBefore')}: {datetime.from} ~ {datetime.to}</div>
         <button className='query-events' onClick={this.redirectNewPage.bind(this, type)}>{t('alert.txt-queryEvents')}</button>
@@ -1373,10 +1378,10 @@ class AlertDetails extends Component {
         <div className='table-data'>
           <DataTable
             className='main-table'
-            fields={networkBehavior[activeNetwork].fieldsData}
-            data={networkBehavior[activeNetwork][type].data}
-            sort={networkBehavior[activeNetwork][type].data.length === 0 ? {} : networkBehavior[activeNetwork].sort}
-            onSort={this.props.handleNetworkBehaviorTableSort.bind(this, activeNetwork)} />
+            fields={networkBehavior[activeNetworkBehavior].fieldsData}
+            data={networkBehavior[activeNetworkBehavior][type].data}
+            sort={networkBehavior[activeNetworkBehavior][type].data.length === 0 ? {} : networkBehavior[activeNetworkBehavior].sort}
+            onSort={this.props.handleNetworkBehaviorTableSort.bind(this, activeNetworkBehavior)} />
         </div>
       </div>
     )

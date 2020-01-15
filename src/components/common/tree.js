@@ -44,6 +44,8 @@ class Tree extends Component {
 
     _.forEach(allTabData, (val, key) => {
       _.forEach(eventsCount, (val2, key2) => {
+        val2 = val2 ? val2 : 0;
+
         if (key2 === key) {
           tabData.push({
             value: key,

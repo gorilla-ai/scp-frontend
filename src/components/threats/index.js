@@ -163,10 +163,6 @@ class ThreatsController extends Component {
       networkBehavior: {
         alert: {
           fields: ['severity', 'count'],
-          sort: {
-            field: 'severity',
-            desc: true
-          },
           srcIp: {},
           destIp: {}
         },
@@ -916,9 +912,9 @@ class ThreatsController extends Component {
     });
   }
   /**
-   * Handle table sort
+   * Handle table sort for network behavior
    * @method
-   * @param {string} type - network behavior type ('threats', 'connections', 'dns' or 'syslog')
+   * @param {string} type - network behavior type ('alert', 'connections', 'dns' or 'syslog')
    * @param {object} sort - sort data object
    */
   handleNetworkBehaviorTableSort = (type, sort) => {
@@ -940,13 +936,15 @@ class ThreatsController extends Component {
     let tempData = [];
 
     if (type === 'alert') {
-      _.forEach(data, (val, key) => {
-        if (key !== 'default') {
-          tempData.push({
-            severity: key,
-            count: val.doc_count
-          });
-        }
+      _.forEach(SEVERITY_TYPE, val => {
+        _.forEach(data, (val2, key) => {
+          if (key !== 'default' && val === key) {
+            tempData.push({
+              severity: key,
+              count: val2.doc_count
+            });
+          }
+        })
       })
     } else if (type === 'connections' || type === 'dns') {
       _.forEach(data, val => {
@@ -1129,19 +1127,17 @@ class ThreatsController extends Component {
 
     this.ah.all(apiArr)
     .then(data => {
-      if (data) {
+      if (data && data.length > 0) {
         let tempNetworkBehavior = {...networkBehavior};
         let tempFields = {};
         networkBehavior.alert.fields.forEach(tempData => {
           tempFields[tempData] = {
             label: t(`txt-${tempData}`),
-            sortable: true,
+            sortable: false,
             formatter: (value, allValue, i) => {
               if (tempData === 'severity') {
                 return (
-                  <div>
-                    <span>{value}</span>
-                  </div>
+                  <span className='severity-level' style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>
                 )
               } else {
                 return (
@@ -1153,8 +1149,16 @@ class ThreatsController extends Component {
         })
 
         tempNetworkBehavior.alert.fieldsData = tempFields;
-        tempNetworkBehavior.alert.srcIp.data = this.getNetworkBehaviorData('alert', data[0].aggregations);
-        tempNetworkBehavior.alert.destIp.data = this.getNetworkBehaviorData('alert', data[1].aggregations);
+
+        if (data[0].aggregations) {
+          tempNetworkBehavior.alert.srcIp.data = this.getNetworkBehaviorData('alert', data[0].aggregations);
+          tempNetworkBehavior.alert.srcIp.totalCount = data[0].data.counts;
+        }
+
+        if (data[1].aggregations) {
+          tempNetworkBehavior.alert.destIp.data = this.getNetworkBehaviorData('alert', data[1].aggregations);
+          tempNetworkBehavior.alert.destIp.totalCount = data[1].data.counts;
+        }
 
         tempFields = {};
         networkBehavior.connections.fields.forEach(tempData => {
@@ -1171,10 +1175,26 @@ class ThreatsController extends Component {
 
         tempNetworkBehavior.connections.fieldsData = tempFields;
         tempNetworkBehavior.dns.fieldsData = tempFields;
-        tempNetworkBehavior.connections.srcIp.data = this.getNetworkBehaviorData('connections', data[2].aggregations.TopDestIpPortAgg.buckets);
-        tempNetworkBehavior.connections.destIp.data = this.getNetworkBehaviorData('connections', data[3].aggregations.TopDestIpPortAgg.buckets);
-        tempNetworkBehavior.dns.srcIp.data = this.getNetworkBehaviorData('dns', data[4].aggregations.TopDestIpPortAgg.buckets);
-        tempNetworkBehavior.dns.destIp.data = this.getNetworkBehaviorData('dns', data[5].aggregations.TopDestIpPortAgg.buckets);
+
+        if (data[2].aggregations.TopDestIpPortAgg) {
+          tempNetworkBehavior.connections.srcIp.data = this.getNetworkBehaviorData('connections', data[2].aggregations.TopDestIpPortAgg.buckets);
+          tempNetworkBehavior.connections.srcIp.totalCount = data[2].data.counts;
+        }
+
+        if (data[3].aggregations.TopDestIpPortAgg) {
+          tempNetworkBehavior.connections.destIp.data = this.getNetworkBehaviorData('connections', data[3].aggregations.TopDestIpPortAgg.buckets);
+          tempNetworkBehavior.connections.destIp.totalCount = data[3].data.counts;
+        }
+
+        if (data[4].aggregations.TopDestIpPortAgg) {
+          tempNetworkBehavior.dns.srcIp.data = this.getNetworkBehaviorData('dns', data[4].aggregations.TopDestIpPortAgg.buckets);
+          tempNetworkBehavior.dns.srcIp.totalCount = data[4].data.counts;
+        }
+
+        if (data[5].aggregations.TopDestIpPortAgg.buckets) {
+          tempNetworkBehavior.dns.destIp.data = this.getNetworkBehaviorData('dns', data[5].aggregations.TopDestIpPortAgg.buckets);
+          tempNetworkBehavior.dns.destIp.totalCount = data[5].data.counts;
+        }
 
         tempFields = {};
         networkBehavior.syslog.fields.forEach(tempData => {
@@ -1190,8 +1210,16 @@ class ThreatsController extends Component {
         })
 
         tempNetworkBehavior.syslog.fieldsData = tempFields;
-        tempNetworkBehavior.syslog.srcIp.data = this.getNetworkBehaviorData('syslog', data[6].aggregations.Top10SyslogConfigSource.agg.buckets);
-        tempNetworkBehavior.syslog.destIp.data = this.getNetworkBehaviorData('syslog', data[7].aggregations.Top10SyslogConfigSource.agg.buckets);
+
+        if (data[6].aggregations.Top10SyslogConfigSource) {
+          tempNetworkBehavior.syslog.srcIp.data = this.getNetworkBehaviorData('syslog', data[6].aggregations.Top10SyslogConfigSource.agg.buckets);
+          tempNetworkBehavior.syslog.srcIp.totalCount = data[6].data.counts;
+        }
+
+        if (data[7].aggregations.Top10SyslogConfigSource) {
+          tempNetworkBehavior.syslog.destIp.data = this.getNetworkBehaviorData('syslog', data[7].aggregations.Top10SyslogConfigSource.agg.buckets);
+          tempNetworkBehavior.syslog.destIp.totalCount = data[7].data.counts;
+        }
 
         this.setState({
           networkBehavior: tempNetworkBehavior
@@ -1271,8 +1299,7 @@ class ThreatsController extends Component {
       } else {
         data = alertDetails.all[index];
       }
-
-      this.openDetailInfo(index, data);
+      this.loadNetworkBehavior(index, data);
     });
   }
   /**
