@@ -121,6 +121,11 @@
   "txt-severity": "嚴重性",
   "txt-data": "資料",
   "txt-selectFile": "請選擇檔案",
+  "txt-severity": "嚴重等級",
+  "txt-destIp": "目的IP",
+  "txt-destPort": "目的Port",
+  "txt-configSource": "Config Source",
+  "txt-alertHourBefore": "告警時間前一小時",
 
   "txt-dashboard": "Dashboard",
   "txt-threats": "Threats",
@@ -128,6 +133,9 @@
   "txt-netflow": "Netflow",
   "txt-endpoint": "Endpoint",
   "txt-configuration": "Configuration",
+
+  "txt-connections": "Connections",
+  "txt-dns": "DNS",
 
   "txt-edgeManage": "Edge管理",
   "txt-topology": "網路拓樸",
@@ -221,7 +229,7 @@
     "txt-safetyScanInfo": "安全掃描資訊",
     "txt-viewJSON": "$t(txt-view)JSON",
     "txt-queryMore": "查詢更多",
-    "txt-queryEvents": "查詢相關事件",
+    "txt-queryEvents": "查看詳細資料",
     "txt-searthVirustotal": "查詢 Virustotal",
     "txt-downloadPCAP": "下載檔案",
     "txt-downloadFile": "下載惡意程式",

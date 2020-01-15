@@ -545,6 +545,7 @@
 /* common/alert-details */
 #dashboardModalDialog-content {
   width: 965px;
+  max-height: 725px;
   .main-table {
     border-radius: 5px;
     width: 100%;
@@ -736,6 +737,30 @@
       .pcap-content {
         footer {
           margin-top: 15px;
+        }
+      }
+    }
+    .network-behavior {
+      position: relative;
+      .msg {
+        margin: 20px 0 10px 0;
+      }
+      .query-events {
+        position: absolute;
+        top: 35px;
+        right: 0;
+        padding: .3em .5em;
+      }
+      .table-data {
+        max-height: 345px;
+        overflow-y: auto;
+        .severity-level {
+          display: block;
+          width: 90px;
+          padding: 2px;
+          color: #fff;
+          border-radius: 10px;
+          text-align: center;
         }
       }
     }

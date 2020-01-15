@@ -5,7 +5,9 @@ import Moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
+import ButtonGroup from 'react-ui/build/src/components/button-group'
 import Checkbox from 'react-ui/build/src/components/checkbox'
+import DataTable from 'react-ui/build/src/components/table'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PageNav from 'react-ui/build/src/components/page-nav'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
@@ -48,6 +50,8 @@ class AlertDetails extends Component {
         destIp: false,
         srcSafety: false,
         destSafety: false,
+        srcNetwork: false,
+        destNetwork: false,
         json: false
       },
       alertRule: '',
@@ -88,7 +92,8 @@ class AlertDetails extends Component {
       },
       showRedirectMenu: false,
       modalIRopen: false,
-      ipType: ''
+      ipType: '',
+      activeNetworkBehavior: 'alert'
     };
 
     t = chewbaccaI18n.getFixedT(null, 'connections');
@@ -156,6 +161,8 @@ class AlertDetails extends Component {
       destIp: false,
       srcSafety: false,
       destSafety: false,
+      srcNetwork: false,
+      destNetwork: false,
       json: false
     };
 
@@ -495,6 +502,8 @@ class AlertDetails extends Component {
         destIp: false,
         srcSafety: false,
         destSafety: false,
+        srcNetwork: false,
+        destNetwork: false,
         json: false
       }
     }, () => {
@@ -525,13 +534,20 @@ class AlertDetails extends Component {
         case 'destSafety':
           tempShowContent.destSafety = true;
           break;
+        case 'srcNetwork':
+          tempShowContent.srcNetwork = true;
+          break;
+        case 'destNetwork':
+          tempShowContent.destNetwork = true;
+          break;
         case 'json':
           tempShowContent.json = true;
           break;
       }
 
       this.setState({
-        showContent: tempShowContent
+        showContent: tempShowContent,
+        activeNetworkBehavior: 'alert'
       });
     });
   }
@@ -696,12 +712,14 @@ class AlertDetails extends Component {
               </li>
               <li className='child' onClick={this.getContent.bind(this, 'srcIp')}><span className={cx({'active': showContent.srcIp})}>{t('alert.txt-ipBasicInfo')}</span></li>
               <li className='child' onClick={this.getContent.bind(this, 'srcSafety')}><span className={cx({'active': showContent.srcSafety})}>{t('alert.txt-safetyScanInfo')}</span></li>
+              <li className='child' onClick={this.getContent.bind(this, 'srcNetwork')}><span className={cx({'active': showContent.srcNetwork})}>{t('txt-networkBehavior')}</span></li>
               <li className='header'>
                 <span className='name'>{t('alert.txt-ipDst')}</span>
                 <span className='ip'>{this.getIpPortData('destIp')}</span>
               </li>
               <li className='child' onClick={this.getContent.bind(this, 'destIp')}><span className={cx({'active': showContent.destIp})}>{t('alert.txt-ipBasicInfo')}</span></li>
               <li className='child' onClick={this.getContent.bind(this, 'destSafety')}><span className={cx({'active': showContent.destSafety})}>{t('alert.txt-safetyScanInfo')}</span></li>
+              <li className='child' onClick={this.getContent.bind(this, 'destNetwork')}><span className={cx({'active': showContent.destNetwork})}>{t('txt-networkBehavior')}</span></li>
             </ul>
           </div>
           <div className='content'>
@@ -738,6 +756,10 @@ class AlertDetails extends Component {
               this.displayPCAPcontent()
             }
 
+            {showContent.json &&
+              this.displayJsonData()
+            }
+
             {showContent.attack && alertPayload &&
               this.displayPayloadcontent()
             }
@@ -758,8 +780,12 @@ class AlertDetails extends Component {
               this.displaySafetyScanContent('destIp')
             }
 
-            {showContent.json &&
-              this.displayJsonData()
+            {showContent.srcNetwork &&
+              this.displayNetworkBehaviorContent('srcIp')
+            }
+
+            {showContent.destNetwork &&
+              this.displayNetworkBehaviorContent('destIp')
             }
           </div>
         </div>
@@ -782,22 +808,12 @@ class AlertDetails extends Component {
    * @param {string} value - 'srcIp' or 'destIp'
    */
   redirectLink = (type, value) => {
-    const {language} = this.context;
-    const {alertData} = this.props;
-    const eventDatetime = helper.getFormattedDate(alertData._eventDttm_, 'local');
     const srcIp = this.getIpPortData('srcIp');
     const destIp = this.getIpPortData('destIp');
     let ipParam = '';
     let linkUrl ='';
  
-    if (type === 'events') {
-      if (value === 'srcIp') {
-        ipParam = `&srcIp=${srcIp}`;
-      } else if (value === 'destIp') {
-        ipParam = `&destIp=${destIp}`;
-      }
-      linkUrl = `/SCP/events/netflow?eventDttm=${eventDatetime}${ipParam}&lng=${language}`;
-    } else if (type === 'virustotal') {
+    if (type === 'virustotal') {
       if (value === 'srcIp') {
         ipParam = srcIp;
       } else if (value === 'destIp') {
@@ -817,7 +833,6 @@ class AlertDetails extends Component {
   displayRedirectMenu = (type) => {
     return (
       <ul className='redirect-menu' ref={this.setWrapperRef}>
-        <li onClick={this.redirectLink.bind(this, 'events', type)}>{t('alert.txt-queryEvents')}</li>
         <li onClick={this.redirectLink.bind(this, 'virustotal', type)}>{t('alert.txt-searthVirustotal')}</li>
       </ul>
     )
@@ -1268,6 +1283,97 @@ class AlertDetails extends Component {
     } else {
       return <span>{NOT_AVAILABLE}</span>
     }
+  }
+  /**
+   * Toggle network behavior button
+   * @method
+   * @param {string} type - 'threats' or 'syslog'
+   */
+  toggleNetworkBtn = (type) => {
+    this.setState({
+      activeNetworkBehavior: type
+    });
+  }
+  /**
+   * Redirect to netflow or syslog page
+   * @method
+   * @param {string} type - 'srcIp' or 'destIp'
+   */
+  redirectNewPage = (type) => {
+    const {baseUrl, contextRoot, language} = this.context;
+    const {alertData} = this.props;
+    const {activeNetworkBehavior} = this.state;
+    const datetime = {
+      from: helper.getFormattedDate(alertData._eventDttm_, 'local'),
+      to: helper.getFormattedDate(helper.getSubstractDate(1, 'hours', alertData._eventDttm_))
+    };
+    const srcIp = this.getIpPortData('srcIp');
+    const destIp = this.getIpPortData('destIp');
+    let ipParam = '';
+    let linkUrl ='';
+
+    if (type === 'srcIp') {
+      ipParam = `&ip=${srcIp}`;
+    } else if (type === 'destIp') {
+      ipParam = `&ip=${destIp}`;
+    }
+ 
+    if (activeNetworkBehavior === 'alert') {
+      linkUrl = `${baseUrl}${contextRoot}/threats?from=${datetime.from}&to=${datetime.to}${ipParam}&lng=${language}`;
+    } else if (activeNetworkBehavior === 'connections') {
+      linkUrl = `${baseUrl}${contextRoot}/events/netflow?from=${datetime.from}&to=${datetime.to}${ipParam}&type=connections&lng=${language}`;
+    } else if (activeNetworkBehavior === 'dns') {
+      linkUrl = `${baseUrl}${contextRoot}/events/netflow?from=${datetime.from}&to=${datetime.to}${ipParam}&type=dns&lng=${language}`;
+    } else if (activeNetworkBehavior === 'syslog') {
+      linkUrl = `${baseUrl}${contextRoot}/events/syslog?from=${datetime.from}&to=${datetime.to}${ipParam}&lng=${language}`;
+    }
+
+    window.open(linkUrl, '_blank');
+  }
+  /**
+   * Display network behavior content
+   * @method
+   * @param {string} type - 'srcIp' or 'destIp'
+   * @returns HTML DOM
+   */
+  displayNetworkBehaviorContent = (type) => {
+    const {alertData, networkBehavior} = this.props;
+    const {activeNetworkBehavior} = this.state;
+    const datetime = {
+      from: helper.getFormattedDate(alertData._eventDttm_, 'local'),
+      to: helper.getFormattedDate(helper.getSubstractDate(1, 'hours', alertData._eventDttm_))
+    };
+
+    if (this.getIpPortData(type) === NOT_AVAILABLE) {
+      return <span>{NOT_AVAILABLE}</span>
+    }
+
+    return (
+      <div className='network-behavior'>
+        <ButtonGroup
+          id='networkType'
+          list={[
+            {value: 'alert', text: t('txt-threats') + ' (' + networkBehavior.alert[type].totalCount + ')'},
+            {value: 'connections', text: t('txt-connections') + ' (' + networkBehavior.connections[type].totalCount + ')'},
+            {value: 'dns', text: t('txt-dns') + ' (' + networkBehavior.dns[type].totalCount + ')'},
+            {value: 'syslog', text: t('txt-syslog') + ' (' + networkBehavior.syslog[type].totalCount + ')'}
+          ]}
+          onChange={this.toggleNetworkBtn}
+          value={activeNetworkBehavior} />
+
+        <div className='msg'>{t('txt-alertHourBefore')}: {datetime.from} ~ {datetime.to}</div>
+        <button className='query-events' onClick={this.redirectNewPage.bind(this, type)}>{t('alert.txt-queryEvents')}</button>
+
+        <div className='table-data'>
+          <DataTable
+            className='main-table'
+            fields={networkBehavior[activeNetworkBehavior].fieldsData}
+            data={networkBehavior[activeNetworkBehavior][type].data}
+            sort={networkBehavior[activeNetworkBehavior][type].data.length === 0 ? {} : networkBehavior[activeNetworkBehavior].sort}
+            onSort={this.props.handleNetworkBehaviorTableSort.bind(this, activeNetworkBehavior)} />
+        </div>
+      </div>
+    )
   }
   /**
    * Display JSON Data content
