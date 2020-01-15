@@ -808,22 +808,12 @@ class AlertDetails extends Component {
    * @param {string} value - 'srcIp' or 'destIp'
    */
   redirectLink = (type, value) => {
-    const {baseUrl, contextRoot, language} = this.context;
-    const {alertData} = this.props;
-    const eventDatetime = helper.getFormattedDate(alertData._eventDttm_, 'local');
     const srcIp = this.getIpPortData('srcIp');
     const destIp = this.getIpPortData('destIp');
     let ipParam = '';
     let linkUrl ='';
  
-    if (type === 'events') {
-      if (value === 'srcIp') {
-        ipParam = `&srcIp=${srcIp}`;
-      } else if (value === 'destIp') {
-        ipParam = `&destIp=${destIp}`;
-      }
-      linkUrl = `${baseUrl}${contextRoot}/events/netflow?eventDttm=${eventDatetime}${ipParam}&lng=${language}`;
-    } else if (type === 'virustotal') {
+    if (type === 'virustotal') {
       if (value === 'srcIp') {
         ipParam = srcIp;
       } else if (value === 'destIp') {
@@ -843,7 +833,6 @@ class AlertDetails extends Component {
   displayRedirectMenu = (type) => {
     return (
       <ul className='redirect-menu' ref={this.setWrapperRef}>
-        {/*<li onClick={this.redirectLink.bind(this, 'events', type)}>{t('alert.txt-queryEvents')}</li>*/}
         <li onClick={this.redirectLink.bind(this, 'virustotal', type)}>{t('alert.txt-searthVirustotal')}</li>
       </ul>
     )
