@@ -513,28 +513,24 @@ class SyslogController extends Component {
    */
   toQueryLanguage = () => {
     const {datetime, sort, filterData, markData} = this.state;
-    const timeAttribute = '@timestamp';
-    let dateFrom = datetime.from;
-    let dateTo = datetime.to;
-    let dateTime = {};
-    let dataObj = {};
+    const dateTime = {
+      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
+      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
+    };
+    let dataObj = {
+      '@timestamp': [dateTime.from, dateTime.to],
+      sort: [{
+        [sort.field]: sort.desc ? 'desc' : 'asc'
+      }]
+    };
     let filterDataArr = [];
     let markDataArr = [];
-    let sortObj = {};
-
-    dateTime = {
-      from: Moment(dateFrom).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
-      to: Moment(dateTo).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
-    };
-
-    dataObj[timeAttribute] = [dateTime.from, dateTime.to];
-    sortObj[sort.field] = sort.desc ? 'desc' : 'asc';
 
     if (filterData.length > 0) {
       filterDataArr = helper.buildFilterDataArray(filterData);
 
       if (filterDataArr.length > 0) {
-        dataObj['filters'] = filterDataArr;
+        dataObj.filters = filterDataArr;
       }
     }
 
@@ -545,15 +541,10 @@ class SyslogController extends Component {
     })
 
     if (markDataArr.length > 0) {
-      dataObj['search'] = markDataArr;
+      dataObj.search = markDataArr;
     }
 
-    const dataOptions = {
-      ...dataObj,
-      sort: [sortObj]
-    };
-
-    return dataOptions;
+    return dataObj;
   }
   /**
    * Get custom field name
