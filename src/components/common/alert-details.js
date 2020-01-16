@@ -1304,8 +1304,8 @@ class AlertDetails extends Component {
     const {alertData} = this.props;
     const {activeNetworkBehavior} = this.state;
     const datetime = {
-      from: helper.getFormattedDate(alertData._eventDttm_, 'local'),
-      to: helper.getFormattedDate(helper.getSubstractDate(1, 'hours', alertData._eventDttm_))
+      from: helper.getFormattedDate(helper.getSubstractDate(1, 'hours', alertData._eventDttm_)),
+      to: helper.getFormattedDate(alertData._eventDttm_, 'local')
     };
     const srcIp = this.getIpPortData('srcIp');
     const destIp = this.getIpPortData('destIp');
@@ -1340,8 +1340,8 @@ class AlertDetails extends Component {
     const {alertData, networkBehavior} = this.props;
     const {activeNetworkBehavior} = this.state;
     const datetime = {
-      from: helper.getFormattedDate(alertData._eventDttm_, 'local'),
-      to: helper.getFormattedDate(helper.getSubstractDate(1, 'hours', alertData._eventDttm_))
+      from: helper.getFormattedDate(helper.getSubstractDate(1, 'hours', alertData._eventDttm_)),
+      to: helper.getFormattedDate(alertData._eventDttm_, 'local')
     };
 
     if (this.getIpPortData(type) === NOT_AVAILABLE) {
