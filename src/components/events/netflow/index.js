@@ -1082,34 +1082,29 @@ class Netflow extends Component {
    */
   toQueryLanguage = (options) => {
     const {datetime, sort, filterData} = this.state;
-    const timeAttribute = 'lastPacket';
-    let time = {};
-    let dateFrom = datetime.from;
-    let dateTo = datetime.to;
-    let dateTime = {};
-    let dataObj = {};
+    const dateTime = {
+      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    };
+    let dataObj = {
+      query: {
+        lastPacket: {
+          op: 'BETWEEN',
+          arg: [dateTime.from, dateTime.to]
+        }
+      },
+      sort: [{
+        [sort.field]: sort.desc ? 'desc' : 'asc'
+      }]
+    };
     let filterDataArr = [];
-    let sortObj = {};
-
-    dateTime = {
-      from: Moment(dateFrom).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-      to: Moment(dateTo).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
-    };
-
-    time[timeAttribute] = {
-      op: 'BETWEEN',
-      arg: [dateTime.from, dateTime.to]
-    };
 
     if (options === 'time') {
-      return time;
+      return dataObj.query;
     }
 
-    dataObj[timeAttribute] = time[timeAttribute];
-    sortObj[sort.field] = sort.desc ? 'desc' : 'asc';
-
     if (options === 'images') {
-      dataObj['detectedType'] = {
+      dataObj.query.detectedType = {
         op: 'LIKE',
         arg: 'image'
       };
@@ -1120,15 +1115,10 @@ class Netflow extends Component {
     }
 
     if (filterDataArr.length > 0) {
-      dataObj['filter'] = filterDataArr;
+      dataObj.query.filter = filterDataArr;
     }
 
-    const dataOptions = {
-      query: dataObj,
-      sort: [sortObj]
-    };
-
-    return dataOptions;
+    return dataObj;
   }
   /**
    * Set the netflow events tree data

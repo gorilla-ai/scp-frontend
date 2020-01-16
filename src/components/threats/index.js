@@ -517,49 +517,26 @@ class ThreatsController extends Component {
    * @returns requst data object
    */
   toQueryLanguage = (options) => {
-    const {datetime, activeLocationTab, filterData} = this.state;
-    const timeAttribute = 'timestamp';
-    const defaultCondition = {
-      condition: 'must',
-      query: 'All'
+    const {datetime, filterData} = this.state;
+    const dateTime = {
+      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
+      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
     };
-    const defaultSearch = [PRIVATE_API.name, PUBLIC_API.name];
-    let dateFrom = datetime.from;
-    let dateTo = datetime.to;
-    let dateTime = {};
-    let dataObj = {};
-
-    dateTime = {
-      from: Moment(dateFrom).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
-      to: Moment(dateTo).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
+    let dataObj = {
+      timestamp: [dateTime.from, dateTime.to]
     };
-    dataObj[timeAttribute] = [dateTime.from, dateTime.to];
 
     if (options === 'tree') {
-      dataObj['filters'] = [{
-        condition: 'must',
-        query: 'All'
-      }];
-      dataObj['search'] = defaultSearch;
+      dataObj.search = [PRIVATE_API.name, PUBLIC_API.name];
     } else {
-      let filterDataArr = [];
-
-      if (filterData.length === 1 && filterData[0].query === '') {
-        dataObj['filters'] = [defaultCondition];
-      } else {
-        filterDataArr = helper.buildFilterDataArray(filterData);
-      }
+      const filterDataArr = helper.buildFilterDataArray(filterData);
 
       if (filterDataArr.length > 0) {
-        dataObj['filters'] = filterDataArr;
+        dataObj.filters = filterDataArr;
       }
     }
 
-    const dataOptions = {
-      ...dataObj
-    };
-
-    return dataOptions;
+    return dataObj;
   }
   /**
    * Set the alert tree data based on alert type

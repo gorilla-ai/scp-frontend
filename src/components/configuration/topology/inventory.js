@@ -1188,8 +1188,9 @@ class NetworkInventory extends Component {
    * Handle trigger button for HMD
    * @method
    * @param {array.<string>} type - HMD scan type
+   * @param {string} options - option for 'fromInventory'
    */
-  triggerTask = (type) => {
+  triggerTask = (type, options) => {
     const {baseUrl} = this.context;
     const {currentDeviceData} = this.state;
     const url = `${baseUrl}/api/hmd/retrigger`;
@@ -1207,7 +1208,7 @@ class NetworkInventory extends Component {
           display: <div>{t('txt-requestSent')}</div>
         });
 
-        if (type.length > 0 && !_.includes(type, 'getSystemInfo')) {
+        if (type.length > 0 && options !== 'fromInventory') {
           this.getIPdeviceInfo('', currentDeviceData.ipDeviceUUID);
         }
       }
