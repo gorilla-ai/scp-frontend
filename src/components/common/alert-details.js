@@ -1313,9 +1313,9 @@ class AlertDetails extends Component {
     let linkUrl ='';
 
     if (type === 'srcIp') {
-      ipParam = `&ip=${srcIp}`;
+      ipParam = `&sourceIP=${srcIp}`;
     } else if (type === 'destIp') {
-      ipParam = `&ip=${destIp}`;
+      ipParam = `&sourceIP=${destIp}`;
     }
  
     if (activeNetworkBehavior === 'alert') {

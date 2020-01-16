@@ -270,7 +270,7 @@ class ThreatsController extends Component {
         },
         filterData: [{
           condition: 'must',
-          query: 'sourceIP: ' + alertsParam.ip
+          query: 'sourceIP:' + alertsParam.sourceIP
         }],
         showFilter: true
       });
@@ -945,7 +945,7 @@ class ThreatsController extends Component {
     } else if (type === 'syslog') {
       _.forEach(data, val => {
         tempData.push({
-          configSource: key,
+          configSource: val.key,
           count: val.doc_count
         });
       })
@@ -1084,7 +1084,7 @@ class ThreatsController extends Component {
             },
             {
               condition: 'must',
-              query: 'sourceIP:' + allValue.srcIp
+              query: allValue.srcIp
             }
           ]
         }),
@@ -1102,7 +1102,7 @@ class ThreatsController extends Component {
             },
             {
               condition: 'must',
-              query: 'sourceIP:' + allValue.destIp
+              query: allValue.destIp
             }
           ]
         }),

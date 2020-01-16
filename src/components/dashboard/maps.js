@@ -576,7 +576,7 @@ class DashboardMaps extends Component {
             },
             {
               condition: 'must',
-              query: 'sourceIP:' + alertData.srcIp
+              query: alertData.srcIp
             }
           ]
         }),
@@ -594,7 +594,7 @@ class DashboardMaps extends Component {
             },
             {
               condition: 'must',
-              query: 'sourceIP:' + alertData.destIp
+              query: alertData.destIp
             }
           ]
         }),

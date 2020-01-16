@@ -287,7 +287,7 @@ class SyslogController extends Component {
         },
         filterData: [{
           condition: 'must',
-          query: syslogParams.ip
+          query: syslogParams.sourceIP
         }],
         showFilter: true,
         showMark: true

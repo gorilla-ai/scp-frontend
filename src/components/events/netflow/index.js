@@ -265,7 +265,7 @@ class Netflow extends Component {
           },
           filterData: [{
             condition: 'must',
-            query: urlParams.ip
+            query: 'ipSrc:' + urlParams.sourceIP
           }],
           account: tempAccount,
           showFilter: true
