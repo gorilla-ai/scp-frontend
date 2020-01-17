@@ -11,6 +11,7 @@ import XLSX from 'xlsx';
 
 import Checkbox from 'react-ui/build/src/components/checkbox'
 import ContextMenu from 'react-ui/build/src/components/contextmenu'
+import DataTable from 'react-ui/build/src/components/table'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import FileInput from 'react-ui/build/src/components/file-input'
 import Gis from 'react-gis/build/src/components'
@@ -158,9 +159,11 @@ class NetworkInventory extends Component {
       csvColumns: {
         ip: '',
         mac: '',
-        host: ''
+        hostName: ''
       },
       csvHeader: true,
+      failureTableFields: ['ip', 'mac', 'hostName'],
+      failureList: [],
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
     };
 
@@ -1598,7 +1601,7 @@ class NetworkInventory extends Component {
         if (!csvHeader) { //Generate header for the user
           tempCsvData.unshift(_.map(tempCsvData[0], (val, i) => {
             i++;
-            return i.toString();
+            return t('txt-column') + ' ' + i.toString();
           }));
         }
 
@@ -1609,7 +1612,7 @@ class NetworkInventory extends Component {
           csvColumns: {
             ip: '',
             mac: '',
-            host: ''
+            hostName: ''
           }
         });
       } else {
@@ -1736,7 +1739,7 @@ class NetworkInventory extends Component {
   /**
    * Handle column change for CSV table dropdown
    * @method
-   * @param {string} type - dropdown selection type ('ip', 'mac' or 'host')
+   * @param {string} type - dropdown selection type ('ip', 'mac' or 'hostName')
    * @param {string} value - selected value from dropdown
    */
   handleColumnChange = (type, value) => {
@@ -1748,25 +1751,33 @@ class NetworkInventory extends Component {
     });
   }
   /**
-   * Display selected result
+   * Display upload failure list
    * @method
    * @returns HTML DOM
    */
-  displayResult = () => {
-    const {csvColumns} = this.state;
+  displayUploadFaulure = () => {
+    const {failureTableFields, failureList} = this.state;
+    let tableFields = {};
+    failureTableFields.forEach(tempData => {
+      tableFields[tempData] = {
+        label: t(`ipFields.${tempData}`),
+        sortable: false,
+        formatter: (value, allValue, i) => {
+          return <span>{value}</span>
+        }
+      };
+    })
 
     return (
-      <ul>
-        {csvColumns.ip &&
-          <li>IP: {csvColumns.ip}</li>
-        }
-        {csvColumns.mac &&
-          <li>Mac: {csvColumns.mac}</li>
-        }
-        {csvColumns.host &&
-          <li>Host Name: {csvColumns.host}</li>
-        }
-      </ul>
+      <div>
+        <div className='error-msg'>{t('network-inventory.txt-uploadFailed')}</div>
+        <div className='table-data'>
+          <DataTable
+            className='main-table'
+            fields={tableFields}
+            data={failureList} />
+        </div>
+      </div>
     )
   }
   /**
@@ -1774,15 +1785,81 @@ class NetworkInventory extends Component {
    * @method
    */
   uploadActions = (type) => {
-    const {csvColumns} = this.state;
+    const {baseUrl} = this.context;
+    const {csvData, csvColumns, csvHeader, failureTableFields} = this.state;
 
     if (type === 'upload') {
       if (!csvColumns.ip) {
         helper.showPopupMsg(t('network-inventory.txt-selectIP'), t('txt-error'));
       } else {
-        PopupDialog.alert({
-          confirmText: t('txt-close'),
-          display: this.displayResult()
+        const url = `${baseUrl}/api/ipdevices`;
+        let requestData = [];
+
+        _.forEach(csvData, (val, i) => {
+          let dataObj = {
+            ip: '',
+            mac: '',
+            hostName: ''
+          };
+
+          if (i > 0) {
+            _.forEach(failureTableFields, val2 => {
+              if (csvColumns[val2]) {
+                dataObj[val2] = val[Number(csvColumns[val2])];
+              }
+            })
+          }
+
+          if (dataObj.ip) {
+            requestData.push({
+              ip: dataObj.ip,
+              mac: dataObj.mac,
+              hostName: dataObj.hostName
+            });
+          }
+        })
+
+        if (requestData.length === 0) {
+          helper.showPopupMsg(t('txt-uploadEmpty'));
+          return;
+        }
+
+        helper.getAjaxData('POST', url, requestData)
+        .then(data => {
+          if (data) {
+            if (data.successList.length > 0 && data.failureList.length === 0) {
+              helper.showPopupMsg(t('txt-uploadSuccess'));
+
+              this.setState({
+                csvData: [],
+                tempCsvData: [],
+                showCsvData: false,
+                csvColumns: {
+                  ip: '',
+                  mac: '',
+                  hostName: ''
+                }
+              }, () => {
+                this.getDeviceData();
+              });
+            } else if (data.failureList.length > 0) {
+              this.setState({
+                failureList: data.failureList
+              }, () => {
+                PopupDialog.alert({
+                  title: t('txt-uploadStatus'),
+                  id: 'batchUploadFailureModal',
+                  confirmText: t('txt-close'),
+                  display: this.displayUploadFaulure()
+                });
+              });
+            } if (data.successList.length === 0 && data.failureList.length === 0) {
+              helper.showPopupMsg(t('txt-uploadEmpty'));
+            }
+          }
+        })
+        .catch(err => {
+          helper.showPopupMsg('', t('txt-error'));
         });
       }
     } else if (type === 'cancel') {
@@ -1791,7 +1868,7 @@ class NetworkInventory extends Component {
         csvColumns: {
           ip: '',
           mac: '',
-          host: ''
+          hostName: ''
         }
       });
     }
@@ -2770,9 +2847,9 @@ class NetworkInventory extends Component {
     }
 
     if (!_.isEmpty(csvData)) {
-      _.forEach(csvData[0], val => {
+      _.forEach(csvData[0], (val, i) => {
         csvHeaderList.push({
-          value: val,
+          value: i,
           text: val
         })
       })
@@ -2870,8 +2947,8 @@ class NetworkInventory extends Component {
                         <DropDownList
                           id='csvColumnHost'
                           list={csvHeaderList}
-                          onChange={this.handleColumnChange.bind(this, 'host')}
-                          value={csvColumns.host} />
+                          onChange={this.handleColumnChange.bind(this, 'hostName')}
+                          value={csvColumns.hostName} />
                       </div>
                     </section>
 
