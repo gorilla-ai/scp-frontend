@@ -197,8 +197,6 @@ class ThreatIntelligence extends Component {
       this.setState({
         file
       });
-    } else {
-      helper.showPopupMsg(t('txt-selectFile'), t('txt-error'));
     }
   }
   /**
@@ -239,7 +237,7 @@ class ThreatIntelligence extends Component {
     const {baseUrl} = this.context;
     const {file} = this.state;
 
-    if (_.isEmpty(file)) {
+    if (!file.name) {
       helper.showPopupMsg(t('txt-selectFile'), t('txt-error'));
       return;
     }
@@ -260,6 +258,10 @@ class ThreatIntelligence extends Component {
       } else {
         helper.showPopupMsg('', t('txt-error'), t('txt-uploadFailed'));
       }
+
+      this.setState({
+        file: {}
+      });
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
