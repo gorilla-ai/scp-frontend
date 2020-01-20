@@ -248,7 +248,7 @@ class NetworkInventory extends Component {
       dataParams += `page=${page}&pageSize=${pageSize}&orders=${orders}`
     }
 
-    if (fromSearch === 'search') {
+    if (fromSearch === 'search' || !_.isEmpty(deviceSearch)) {
       if (deviceSearch.ip) {
         dataParams += `&ip=${deviceSearch.ip}`;
       }
