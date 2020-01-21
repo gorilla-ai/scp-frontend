@@ -431,7 +431,7 @@ class DashboardMaps extends Component {
     } else if (type === 'syslog') {
       _.forEach(data, val => {
         tempData.push({
-          configSource: key,
+          configSource: val.key,
           count: val.doc_count
         });
       })
