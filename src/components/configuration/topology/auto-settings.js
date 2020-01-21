@@ -541,6 +541,25 @@ class AutoSettings extends Component {
       helper.showPopupMsg('', t('txt-error'));
     });
   }
+  getInputWidth = (type) => {
+    const {activeContent} = this.state;
+
+    if (type === 'ipRange') {
+      if (activeContent === 'viewMode') {
+        return '32%';
+      } else if (activeContent === 'editMode') {
+        return '30%';
+      }
+    }
+
+    if (type === 'scanner') {
+      if (activeContent === 'viewMode') {
+        return '28%';
+      } else if (activeContent === 'editMode') {
+        return '26%';
+      }
+    }
+  }
   render() {
     const {
       activeContent,
@@ -584,9 +603,9 @@ class AutoSettings extends Component {
               disabled={activeContent === 'viewMode'} />
             <div className='group full multi'>
               <label id='ipRangeLabel' htmlFor='autoSettingsIpRange'>
-                <span>Type</span>
-                <span>IP</span>
-                <span>Mask</span>
+                <span style={{width: this.getInputWidth('ipRange')}}>Type</span>
+                <span style={{width: this.getInputWidth('ipRange')}}>IP</span>
+                <span style={{width: this.getInputWidth('ipRange')}}>Mask</span>
               </label>
               <MultiInput
                 id='autoSettingsIpRange'
@@ -599,7 +618,8 @@ class AutoSettings extends Component {
                   mask: ''
                 }}
                 onChange={this.setIpRangeData}
-                value={ipRangeData} />
+                value={ipRangeData}
+                disabled={activeContent === 'viewMode'} />
             </div>
           </div>
           <div className='form-group normal short'>
@@ -700,9 +720,9 @@ class AutoSettings extends Component {
                 disabled={activeContent === 'viewMode'} />
               <div className='group full multi'>
                 <label id='scannerLabel' htmlFor='autoSettingsScanner'>
-                  <span>Edge</span>
-                  <span>IP</span>
-                  <span>Mask</span>
+                  <span style={{width: this.getInputWidth('scanner')}}>Edge</span>
+                  <span style={{width: this.getInputWidth('scanner')}}>IP</span>
+                  <span style={{width: this.getInputWidth('scanner')}}>Mask</span>
                 </label>
                 <MultiInput
                   id='autoSettingsScanner'
@@ -716,7 +736,8 @@ class AutoSettings extends Component {
                   }}
                   onChange={this.setScannerData}
                   handleScannertest={this.handleScannerTest}
-                  value={scannerData} />
+                  value={scannerData}
+                  disabled={activeContent === 'viewMode'} />
               </div>
             </div>
           }

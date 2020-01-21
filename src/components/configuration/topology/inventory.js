@@ -1787,6 +1787,7 @@ class NetworkInventory extends Component {
   uploadActions = (type) => {
     const {baseUrl} = this.context;
     const {csvData, csvColumns, csvHeader, failureTableFields} = this.state;
+    const ipPattern = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
 
     if (type === 'upload') {
       if (!csvColumns.ip) {
@@ -1794,6 +1795,7 @@ class NetworkInventory extends Component {
       } else {
         const url = `${baseUrl}/api/ipdevices`;
         let requestData = [];
+        let validate = true;
 
         _.forEach(csvData, (val, i) => {
           let dataObj = {
@@ -1805,12 +1807,17 @@ class NetworkInventory extends Component {
           if (i > 0) {
             _.forEach(failureTableFields, val2 => {
               if (csvColumns[val2]) {
-                dataObj[val2] = val[Number(csvColumns[val2])];
+                dataObj[val2] = val[Number(csvColumns[val2])].trim();
               }
             })
           }
 
           if (dataObj.ip) {
+            if (!ipPattern.test(dataObj.ip)) { //Check IP format
+              validate = false;
+              return false;
+            }
+
             requestData.push({
               ip: dataObj.ip,
               mac: dataObj.mac,
@@ -1818,6 +1825,11 @@ class NetworkInventory extends Component {
             });
           }
         })
+
+        if (!validate) {
+          helper.showPopupMsg(t('network-inventory.txt-uploadFailedIP'));
+          return;
+        }
 
         if (requestData.length === 0) {
           helper.showPopupMsg(t('txt-uploadEmpty'));

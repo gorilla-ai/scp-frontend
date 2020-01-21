@@ -1354,7 +1354,7 @@ class AlertDetails extends Component {
           id='networkType'
           list={[
             {value: 'alert', text: t('txt-threats') + ' (' + networkBehavior.alert[type].totalCount + ')'},
-            {value: 'connections', text: t('txt-connections') + ' (' + networkBehavior.connections[type].totalCount + ')'},
+            {value: 'connections', text: t('txt-connections-eng') + ' (' + networkBehavior.connections[type].totalCount + ')'},
             {value: 'dns', text: t('txt-dns') + ' (' + networkBehavior.dns[type].totalCount + ')'},
             {value: 'syslog', text: t('txt-syslog') + ' (' + networkBehavior.syslog[type].totalCount + ')'}
           ]}

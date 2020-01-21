@@ -137,7 +137,7 @@
   "txt-endpoint": "Endpoint",
   "txt-configuration": "Configuration",
 
-  "txt-connections": "Connections",
+  "txt-connections-eng": "Connections",
   "txt-dns": "DNS",
 
   "txt-edgeManage": "Edge Management",
@@ -372,7 +372,8 @@
     "txt-manuallyEnter": "Manually Enter",
     "txt-batchUpload": "Batch Upload",
     "txt-batchUploadIp": "Batch Upload IP",
-    "txt-uploadFailed": "The error occured with the following list, please try upload again.",
+    "txt-uploadFailedIP": "IP address is incorrect, please try upload again.",
+    "txt-uploadFailed": "The following IP contains error, please try upload again.",
     "txt-autoSettings": "Auto Settings",
     "txt-withHeader": "With Header",
     "txt-selectIP": "Please select IP field",
