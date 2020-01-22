@@ -105,8 +105,14 @@ class AlertDetails extends Component {
       networkBehavior: {
         alert: {
           fields: ['severity', 'count'],
-          srcIp: {},
-          destIp: {}
+          srcIp: {
+            totalCount: 0,
+            data: []
+          },
+          destIp: {
+            totalCount: 0,
+            data: []
+          }
         },
         connections: {
           fields: ['destIp', 'destPort', 'count'],
@@ -114,8 +120,14 @@ class AlertDetails extends Component {
             field: 'destIp',
             desc: true
           },
-          srcIp: {},
-          destIp: {}
+          srcIp: {
+            totalCount: 0,
+            data: []
+          },
+          destIp: {
+            totalCount: 0,
+            data: []
+          }
         },
         dns: {
           fields: ['destIp', 'destPort', 'count'],
@@ -123,8 +135,14 @@ class AlertDetails extends Component {
             field: 'destIp',
             desc: true
           },
-          srcIp: {},
-          destIp: {}
+          srcIp: {
+            totalCount: 0,
+            data: []
+          },
+          destIp: {
+            totalCount: 0,
+            data: []
+          }
         },
         syslog: {
           fields: ['configSource', 'count'],
@@ -132,8 +150,14 @@ class AlertDetails extends Component {
             field: 'configSource',
             desc: true
           },
-          srcIp: {},
-          destIp: {}
+          srcIp: {
+            totalCount: 0,
+            data: []
+          },
+          destIp: {
+            totalCount: 0,
+            data: []
+          }
         }
       }
     };
@@ -1441,7 +1465,7 @@ class AlertDetails extends Component {
     const {networkBehavior} = this.state;
     const eventDateTime = helper.getFormattedDate(alertData._eventDttm_, 'local');
     const eventDateFrom = helper.getSubstractDate(1, 'hours', eventDateTime);
-    const dateTime = {
+    const datetime = {
       from: Moment(eventDateFrom).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
       to: Moment(eventDateTime).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
     };
@@ -1452,7 +1476,7 @@ class AlertDetails extends Component {
         {
           url: `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`, //Threats srcIp
           data: JSON.stringify({
-            timestamp: [dateTime.from, dateTime.to],
+            timestamp: [datetime.from, datetime.to],
             filters: [
               {
                 condition: 'must',
@@ -1466,7 +1490,7 @@ class AlertDetails extends Component {
         {
           url: `${baseUrl}/api/u1/network/session?pageSize=0`, //Connections srcIp
           data: JSON.stringify({
-            timestamp: [dateTime.from, dateTime.to],
+            timestamp: [datetime.from, datetime.to],
             filters: [
               {
                 condition: 'must',
@@ -1483,7 +1507,7 @@ class AlertDetails extends Component {
         {
           url: `${baseUrl}/api/u1/network/session?pageSize=0`, //DNS srcIp
           data: JSON.stringify({
-            timestamp: [dateTime.from, dateTime.to],
+            timestamp: [datetime.from, datetime.to],
             filters: [
               {
                 condition: 'must',
@@ -1504,7 +1528,7 @@ class AlertDetails extends Component {
         {
           url: `${baseUrl}/api/u2/alert/_search?pageSize=0`, //Syslog srcIp
           data: JSON.stringify({
-            timestamp: [dateTime.from, dateTime.to],
+            timestamp: [datetime.from, datetime.to],
             filters: [
               {
                 condition: 'must',
@@ -1525,7 +1549,7 @@ class AlertDetails extends Component {
         {
           url: `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`, //Threats destIp
           data: JSON.stringify({
-            timestamp: [dateTime.from, dateTime.to],
+            timestamp: [datetime.from, datetime.to],
             filters: [
               {
                 condition: 'must',
@@ -1539,7 +1563,7 @@ class AlertDetails extends Component {
         {
           url: `${baseUrl}/api/u1/network/session?pageSize=0`, //Connections destIp
           data: JSON.stringify({
-            timestamp: [dateTime.from, dateTime.to],
+            timestamp: [datetime.from, datetime.to],
             filters: [
               {
                 condition: 'must',
@@ -1556,7 +1580,7 @@ class AlertDetails extends Component {
         {
           url: `${baseUrl}/api/u1/network/session?pageSize=0`, //DNS destIp
           data: JSON.stringify({
-            timestamp: [dateTime.from, dateTime.to],
+            timestamp: [datetime.from, datetime.to],
             filters: [
               {
                 condition: 'must',
@@ -1577,7 +1601,7 @@ class AlertDetails extends Component {
         {
           url: `${baseUrl}/api/u2/alert/_search?pageSize=0`, //Syslog destIp
           data: JSON.stringify({
-            timestamp: [dateTime.from, dateTime.to],
+            timestamp: [datetime.from, datetime.to],
             filters: [
               {
                 condition: 'must',
@@ -1621,14 +1645,16 @@ class AlertDetails extends Component {
         tempNetworkBehavior.alert.fieldsData = tempFields;
 
         if (type === 'srcIp') {
+          tempNetworkBehavior.alert.srcIp.totalCount = data[0].data.counts;
+
           if (data[0].aggregations) {
             tempNetworkBehavior.alert.srcIp.data = this.getNetworkBehaviorData('alert', data[0].aggregations);
-            tempNetworkBehavior.alert.srcIp.totalCount = data[0].data.counts;
           }
         } else if (type === 'destIp') {
+          tempNetworkBehavior.alert.destIp.totalCount = data[0].data.counts;
+
           if (data[0].aggregations) {
             tempNetworkBehavior.alert.destIp.data = this.getNetworkBehaviorData('alert', data[0].aggregations);
-            tempNetworkBehavior.alert.destIp.totalCount = data[0].data.counts;
           }
         }
 
@@ -1649,24 +1675,28 @@ class AlertDetails extends Component {
         tempNetworkBehavior.dns.fieldsData = tempFields;
 
         if (type === 'srcIp') {
-          if (data[1].aggregations.TopDestIpPortAgg) {
+          tempNetworkBehavior.connections.srcIp.totalCount = data[1].data.counts;
+
+          if (data[1].aggregations && data[1].aggregations.TopDestIpPortAgg) {
             tempNetworkBehavior.connections.srcIp.data = this.getNetworkBehaviorData('connections', data[1].aggregations.TopDestIpPortAgg.buckets);
-            tempNetworkBehavior.connections.srcIp.totalCount = data[1].data.counts;
           }
 
-          if (data[2].aggregations.TopDestIpPortAgg) {
+          tempNetworkBehavior.dns.srcIp.totalCount = data[2].data.counts;
+
+          if (data[2].aggregations && data[2].aggregations.TopDestIpPortAgg) {
             tempNetworkBehavior.dns.srcIp.data = this.getNetworkBehaviorData('dns', data[2].aggregations.TopDestIpPortAgg.buckets);
-            tempNetworkBehavior.dns.srcIp.totalCount = data[2].data.counts;
           }
         } else if (type === 'destIp') {
-          if (data[1].aggregations.TopDestIpPortAgg) {
+          tempNetworkBehavior.connections.destIp.totalCount = data[1].data.counts;
+
+          if (data[1].aggregations && data[1].aggregations.TopDestIpPortAgg) {
             tempNetworkBehavior.connections.destIp.data = this.getNetworkBehaviorData('connections', data[1].aggregations.TopDestIpPortAgg.buckets);
-            tempNetworkBehavior.connections.destIp.totalCount = data[1].data.counts;
           }
 
-          if (data[2].aggregations.TopDestIpPortAgg.buckets) {
+          tempNetworkBehavior.dns.destIp.totalCount = data[2].data.counts;
+
+          if (data[2].aggregations && data[2].aggregations.TopDestIpPortAgg) {
             tempNetworkBehavior.dns.destIp.data = this.getNetworkBehaviorData('dns', data[2].aggregations.TopDestIpPortAgg.buckets);
-            tempNetworkBehavior.dns.destIp.totalCount = data[2].data.counts;
           }
         }
 
@@ -1686,14 +1716,16 @@ class AlertDetails extends Component {
         tempNetworkBehavior.syslog.fieldsData = tempFields;
 
         if (type === 'srcIp') {
-          if (data[3].aggregations.Top10SyslogConfigSource) {
+          tempNetworkBehavior.syslog.srcIp.totalCount = data[3].data.counts;
+
+          if (data[3].aggregations && data[3].aggregations.Top10SyslogConfigSource) {
             tempNetworkBehavior.syslog.srcIp.data = this.getNetworkBehaviorData('syslog', data[3].aggregations.Top10SyslogConfigSource.agg.buckets);
-            tempNetworkBehavior.syslog.srcIp.totalCount = data[3].data.counts;
           }
         } else if (type === 'destIp') {
-          if (data[3].aggregations.Top10SyslogConfigSource) {
+          tempNetworkBehavior.syslog.destIp.totalCount = data[3].data.counts;
+
+          if (data[3].aggregations && data[3].aggregations.Top10SyslogConfigSource) {
             tempNetworkBehavior.syslog.destIp.data = this.getNetworkBehaviorData('syslog', data[3].aggregations.Top10SyslogConfigSource.agg.buckets);
-            tempNetworkBehavior.syslog.destIp.totalCount = data[3].data.counts;
           }
         }
 
@@ -1728,36 +1760,34 @@ class AlertDetails extends Component {
       return <span>{NOT_AVAILABLE}</span>
     }
 
-    if (networkBehavior[activeNetworkBehavior][type].data) {
-      return (
-        <div className='network-behavior'>
-          <ButtonGroup
-            id='networkType'
-            list={[
-              {value: 'alert', text: t('txt-threats') + ' (' + networkBehavior.alert[type].totalCount + ')'},
-              {value: 'connections', text: t('txt-connections-eng') + ' (' + networkBehavior.connections[type].totalCount + ')'},
-              {value: 'dns', text: t('txt-dns') + ' (' + networkBehavior.dns[type].totalCount + ')'},
-              {value: 'syslog', text: t('txt-syslog') + ' (' + networkBehavior.syslog[type].totalCount + ')'}
-            ]}
-            onChange={this.toggleNetworkBtn}
-            value={activeNetworkBehavior} />
+    return (
+      <div className='network-behavior'>
+        <ButtonGroup
+          id='networkType'
+          list={[
+            {value: 'alert', text: t('txt-threats') + ' (' + networkBehavior.alert[type].totalCount + ')'},
+            {value: 'connections', text: t('txt-connections-eng') + ' (' + networkBehavior.connections[type].totalCount + ')'},
+            {value: 'dns', text: t('txt-dns') + ' (' + networkBehavior.dns[type].totalCount + ')'},
+            {value: 'syslog', text: t('txt-syslog') + ' (' + networkBehavior.syslog[type].totalCount + ')'}
+          ]}
+          onChange={this.toggleNetworkBtn}
+          value={activeNetworkBehavior} />
 
-          {datetime.from && datetime.to &&
-            <div className='msg'>{t('txt-alertHourBefore')}: {datetime.from} ~ {datetime.to}</div>
-          }
-          <button className='query-events' onClick={this.redirectNewPage.bind(this, type)}>{t('alert.txt-queryEvents')}</button>
+        {datetime.from && datetime.to &&
+          <div className='msg'>{t('txt-alertHourBefore')}: {datetime.from} ~ {datetime.to}</div>
+        }
+        <button className='query-events' onClick={this.redirectNewPage.bind(this, type)}>{t('alert.txt-queryEvents')}</button>
 
-          <div className='table-data'>
-            <DataTable
-              className='main-table'
-              fields={networkBehavior[activeNetworkBehavior].fieldsData}
-              data={networkBehavior[activeNetworkBehavior][type].data}
-              sort={networkBehavior[activeNetworkBehavior][type].data.length === 0 ? {} : networkBehavior[activeNetworkBehavior].sort}
-              onSort={this.handleNetworkBehaviorTableSort.bind(this, activeNetworkBehavior)} />
-          </div>
+        <div className='table-data'>
+          <DataTable
+            className='main-table'
+            fields={networkBehavior[activeNetworkBehavior].fieldsData}
+            data={networkBehavior[activeNetworkBehavior][type].data}
+            sort={networkBehavior[activeNetworkBehavior][type].data.length === 0 ? {} : networkBehavior[activeNetworkBehavior].sort}
+            onSort={this.handleNetworkBehaviorTableSort.bind(this, activeNetworkBehavior)} />
         </div>
-      )
-    }
+      </div>
+    )
   }
   /**
    * Display JSON Data content
