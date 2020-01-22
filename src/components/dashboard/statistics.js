@@ -479,18 +479,26 @@ class DashboardStats extends Component {
     if (alertChartsList[i].type === 'pie') {
       return (
         <div className='chart-group c-box' key={alertChartsList[i].chartID}>
-          <PieChart
-            id={alertChartsList[i].chartID}
-            title={alertChartsList[i].chartTitle}
-            data={alertChartsList[i].chartData}
-            keyLabels={alertChartsList[i].chartKeyLabels}
-            valueLabels={alertChartsList[i].chartValueLabels}
-            dataCfg={alertChartsList[i].chartDataCfg}
-            onClick={this.getChartRedirect.bind(this, alertChartsList[i].chartID)}
-            onTooltip={this.onPieChartTooltip.bind(this, alertChartsList[i].chartKeyLabels)}
-            colors={{
-              key: ALERT_LEVEL_COLORS
-            }} />
+          {alertChartsList[i].chartData.length === 0 &&
+            <div className='empty-data'>
+              <header>{alertChartsList[i].chartTitle}</header>
+              <span>{t('txt-notFound')}</span>
+            </div>
+          }
+          {alertChartsList[i].chartData.length > 0 &&
+            <PieChart
+              id={alertChartsList[i].chartID}
+              title={alertChartsList[i].chartTitle}
+              data={alertChartsList[i].chartData}
+              keyLabels={alertChartsList[i].chartKeyLabels}
+              valueLabels={alertChartsList[i].chartValueLabels}
+              dataCfg={alertChartsList[i].chartDataCfg}
+              onClick={this.getChartRedirect.bind(this, alertChartsList[i].chartID)}
+              onTooltip={this.onPieChartTooltip.bind(this, alertChartsList[i].chartKeyLabels)}
+              colors={{
+                key: ALERT_LEVEL_COLORS
+              }} />
+          }
         </div>
       )
     } else if (alertChartsList[i].type === 'table') {
@@ -551,48 +559,64 @@ class DashboardStats extends Component {
         <div className='main-dashboard'>
           <div className='charts'>
             <div className='chart-group bar'>
-              <BarChart
-                stacked
-                vertical
-                title={t('dashboard.txt-alertStatistics')}
-                data={alertDataArr}
-                colors={ALERT_LEVEL_COLORS}
-                onTooltip={this.onTooltip}
-                dataCfg={{
-                  x: 'time',
-                  y: 'number',
-                  splitSeries: 'rule'
-                }}
-                xAxis={{
-                  type: 'datetime',
-                  dateTimeLabelFormats: {
-                    day: '%H:%M'
-                  }
-                }} />
+              {alertDataArr.length === 0 &&
+                <div className='empty-data'>
+                  <header>{t('dashboard.txt-alertStatistics')}</header>
+                  <span>{t('txt-notFound')}</span>
+                </div>
+              }
+              {alertDataArr.length > 0 &&
+                <BarChart
+                  stacked
+                  vertical
+                  title={t('dashboard.txt-alertStatistics')}
+                  data={alertDataArr}
+                  colors={ALERT_LEVEL_COLORS}
+                  onTooltip={this.onTooltip}
+                  dataCfg={{
+                    x: 'time',
+                    y: 'number',
+                    splitSeries: 'rule'
+                  }}
+                  xAxis={{
+                    type: 'datetime',
+                    dateTimeLabelFormats: {
+                      day: '%H:%M'
+                    }
+                  }} />
+              }
             </div>
 
             <div className='chart-group bar'>
-              <BarChart
-                stacked
-                vertical
-                title={t('dashboard.txt-alertMaskedIpStatistics')}
-                data={internalMaskedIp}
-                colors={ALERT_LEVEL_COLORS}
-                onTooltip={true}
-                dataCfg={{
-                  splitSeries: 'severity',
-                  x: 'ip',
-                  y: 'number'
-                }}
-                xAxis={{
-                  type:'category'
-                }}
-                keyLabels={{
-                  ip: 'IP',
-                  number: t('txt-count'),
-                  severity: t('txt-severity')
-                }}
-                onClick={this.getChartRedirect.bind(this, 'maskedIP')} />
+              {internalMaskedIp.length === 0 &&
+                <div className='empty-data'>
+                  <header>{t('dashboard.txt-alertMaskedIpStatistics')}</header>
+                  <span>{t('txt-notFound')}</span>
+                </div>
+              }
+              {internalMaskedIp.length > 0 &&
+                <BarChart
+                  stacked
+                  vertical
+                  title={t('dashboard.txt-alertMaskedIpStatistics')}
+                  data={internalMaskedIp}
+                  colors={ALERT_LEVEL_COLORS}
+                  onTooltip={true}
+                  dataCfg={{
+                    splitSeries: 'severity',
+                    x: 'ip',
+                    y: 'number'
+                  }}
+                  xAxis={{
+                    type:'category'
+                  }}
+                  keyLabels={{
+                    ip: 'IP',
+                    number: t('txt-count'),
+                    severity: t('txt-severity')
+                  }}
+                  onClick={this.getChartRedirect.bind(this, 'maskedIP')} />
+              }
             </div>
 
             {alertChartsList.map(this.displayCharts)}

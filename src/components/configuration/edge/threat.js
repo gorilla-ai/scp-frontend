@@ -297,68 +297,92 @@ class ThreatIntelligence extends Component {
               <div className='main-statistics'>
                 <div className='statistics-content'>
                   <div className='chart-group'>
-                    <PieChart
-                      title={t('edge-management.statistics.txt-sourceIndicators')}
-                      data={indicatorsData}
-                      keyLabels={{
-                        key: t('txt-indicator'),
-                        doc_count: t('txt-count')
-                      }}
-                      valueLabels={{
-                        'Pie Chart': {
+                    {indicatorsData.length === 0 &&
+                      <div className='empty-data'>
+                        <header>{t('edge-management.statistics.txt-sourceIndicators')}</header>
+                        <span>{t('txt-notFound')}</span>
+                      </div>
+                    }
+                    {indicatorsData.length > 0 &&
+                      <PieChart
+                        title={t('edge-management.statistics.txt-sourceIndicators')}
+                        data={indicatorsData}
+                        keyLabels={{
                           key: t('txt-indicator'),
                           doc_count: t('txt-count')
-                        }
-                      }}
-                      dataCfg={{
-                        splitSlice: ['key'],
-                        sliceSize: 'doc_count'
-                      }} />
+                        }}
+                        valueLabels={{
+                          'Pie Chart': {
+                            key: t('txt-indicator'),
+                            doc_count: t('txt-count')
+                          }
+                        }}
+                        dataCfg={{
+                          splitSlice: ['key'],
+                          sliceSize: 'doc_count'
+                        }} />
+                    }
                   </div>
 
                   <div className='chart-group'>
-                    <header className='main-header'>{t('edge-management.statistics.txt-indicatorsTrend')}</header>
-                    <BarChart
-                      stacked
-                      vertical
-                      legend={{
-                        enabled:true
-                      }}
-                      data={indicatorsTrendData}
-                      onTooltip={this.onTooltip}
-                      dataCfg={{
-                        x: 'day',
-                        y: 'count',
-                        splitSeries: 'indicator'
-                      }}
-                      xAxis={{
-                        type: 'datetime',
-                        dateTimeLabelFormats: {
-                          day: '%Y-%m-%d'
-                        }
-                      }} />
+                    {indicatorsTrendData.length === 0 &&
+                      <div className='empty-data'>
+                        <header>{t('edge-management.statistics.txt-indicatorsTrend')}</header>
+                        <span>{t('txt-notFound')}</span>
+                      </div>
+                    }
+                    {indicatorsTrendData.length > 0 &&
+                      <BarChart
+                        stacked
+                        vertical
+                        title={t('edge-management.statistics.txt-indicatorsTrend')}
+                        legend={{
+                          enabled:true
+                        }}
+                        data={indicatorsTrendData}
+                        onTooltip={this.onTooltip}
+                        dataCfg={{
+                          x: 'day',
+                          y: 'count',
+                          splitSeries: 'indicator'
+                        }}
+                        xAxis={{
+                          type: 'datetime',
+                          dateTimeLabelFormats: {
+                            day: '%Y-%m-%d'
+                          }
+                        }} />
+                    }
                   </div>
 
                   <div className='chart-group'>
-                    <header className='main-header'>{t('edge-management.statistics.txt-acuIndicatorsTrend')}</header>
-                    <LineChart
-                      stacked
-                      legend={{
-                        enabled: true
-                      }}
-                      data={acuIndicatorsTrendData}
-                      onTooltip={this.onTooltip}
-                      dataCfg={{
-                        x: 'day',
-                        y: 'count',
-                        splitSeries: 'indicator'
-                      }}
-                      xAxis={{
-                        type: 'datetime',
-                        dateTimeLabelFormats: {
-                          day: '%Y-%m-%d'
-                        }
-                      }} />
+                    {acuIndicatorsTrendData.length === 0 &&
+                      <div className='empty-data'>
+                        <header>{t('edge-management.statistics.txt-acuIndicatorsTrend')}</header>
+                        <span>{t('txt-notFound')}</span>
+                      </div>
+                    }
+                    {acuIndicatorsTrendData.length > 0 &&                    
+                      <LineChart
+                        stacked
+                        title={t('edge-management.statistics.txt-acuIndicatorsTrend')}
+                        legend={{
+                          enabled: true
+                        }}
+                        data={acuIndicatorsTrendData}
+                        onTooltip={this.onTooltip}
+                        dataCfg={{
+                          x: 'day',
+                          y: 'count',
+                          splitSeries: 'indicator'
+                        }}
+                        xAxis={{
+                          type: 'datetime',
+                          dateTimeLabelFormats: {
+                            day: '%Y-%m-%d'
+                          }
+                        }} />
+                    }
                   </div>
                 </div>
               </div>

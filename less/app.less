@@ -303,6 +303,19 @@ footer.footer {
         border: none;
         border-radius: 5px;
         overflow: hidden;
+        background-color: #fff;
+        .empty-data {
+          position: relative;
+          height: 458px;
+          span {
+            display: block;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.2em;
+          }
+        }
         header {
           color: #004d93;
           font-size: 1.1em;
@@ -413,13 +426,27 @@ footer.footer {
       flex-wrap: wrap;
       .chart-group {
         width: 24.4%;
+        height: 400px;
         margin: 5px;
         border: 1px solid #ccc;
         border-radius: 5px;
+        background-color: #fff;
         overflow: hidden;
         &.bar {
           width: 49.32%;
           height: 460px;
+        }
+        .empty-data {
+          position: relative;
+          height: 458px;
+          span {
+            display: block;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.2em;
+          }
         }
         header {
           color: #004d93;
