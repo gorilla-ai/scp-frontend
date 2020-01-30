@@ -161,6 +161,7 @@ class NetworkInventory extends Component {
         mac: '',
         hostName: ''
       },
+      selectedTreeID: '',
       csvHeader: true,
       failureTableFields: ['ip', 'mac', 'hostName'],
       failureList: [],
@@ -1330,14 +1331,7 @@ class NetworkInventory extends Component {
       showScanInfo: false,
       showSeatData: false,
       modalFloorOpen: false,
-      addSeatOpen: false,
-      currentDeviceData: {},
-      addSeat: {
-        selectedSeatUUID: '',
-        name: '',
-        coordX: '',
-        coordY: ''
-      }
+      currentDeviceData: {}
     }, () => {
       if (options === 'reload') {
         if (all === 'fromFloorMap') { //reload everything
@@ -1452,7 +1446,8 @@ class NetworkInventory extends Component {
         }
 
         this.setState({
-          currentDeviceData: {}
+          currentDeviceData: {},
+          selectedTreeID: ''
         });
 
         if (_.isEmpty(inventoryParam) || (!_.isEmpty(inventoryParam) && !inventoryParam.ip)) {
@@ -1952,8 +1947,7 @@ class NetworkInventory extends Component {
       tempActiveSteps--;
 
       this.setState({
-        activeSteps: tempActiveSteps,
-        changeAreaMap: false
+        activeSteps: tempActiveSteps
       });
     } else if (type === 'next') {
       if (activeSteps === 1) {
@@ -2575,7 +2569,7 @@ class NetworkInventory extends Component {
     )
   }
   /**
-   * Get default opened floor plan map
+   * Get default opened tree node
    * @method
    * @param {string} selectedID - selected area UUID
    * @returns default opened areaRoute array IDs
@@ -2635,7 +2629,8 @@ class NetworkInventory extends Component {
 
     this.setState({
       floorPlan: tempFloorPlan,
-      changeAreaMap: true
+      changeAreaMap: true,
+      selectedTreeID: areaUUID
     }, () => {
       this.getAreaData(areaUUID);
       this.getSeatData(areaUUID);
@@ -2644,20 +2639,32 @@ class NetworkInventory extends Component {
   /**
    * Display floor tree data
    * @method
-   * @param {object} value - floor plan data
+   * @param {object} tree - tree data
    * @param {string} selectedID - selected area UUID
    * @param {number} i - index of the floor plan data
    * @returns TreeView component
    */
-  getTreeView = (value, selectedID, i) => {
+  getTreeView = (tree, selectedID, i) => {
+    const {currentDeviceData, changeAreaMap, selectedTreeID} = this.state;
+    let defaultSelectedID = selectedTreeID || tree.areaUUID;
+
+    if (changeAreaMap) {
+      if (selectedID) {
+        defaultSelectedID = selectedID;
+      }
+    } else {
+      if (currentDeviceData && currentDeviceData.areaUUID) {
+        defaultSelectedID = currentDeviceData.areaUUID;
+      }
+    }
+
     return (
       <TreeView
-        id={value.areaUUID}
-        key={value.areaUUID}
-        data={value}
-        selected={selectedID}
-        defaultSelected={selectedID}
-        defaultOpened={this.getDefaultFloor(selectedID)}
+        id={tree.areaUUID}
+        key={tree.areaUUID}
+        data={tree}
+        selected={defaultSelectedID}
+        defaultOpened={this.getDefaultFloor(defaultSelectedID)}
         onSelect={this.selectTree.bind(this, i)} />
     )
   }
@@ -2671,12 +2678,12 @@ class NetworkInventory extends Component {
    */
   displayTree = (type, val, i) => {
     const {floorPlan, currentDeviceData, changeAreaMap} = this.state;
-    let currentAreaUUID = '';
+    let currentAreaUUID = floorPlan.currentAreaUUID;
 
-    if (type === 'deviceMap') {
-      currentAreaUUID = floorPlan.currentAreaUUID;
-    } else {
-      currentAreaUUID = changeAreaMap ? floorPlan.currentAreaUUID : currentDeviceData.areaUUID;
+    if (type === 'stepsFloor') {
+      if (!changeAreaMap && currentDeviceData.areaUUI) {
+        currentAreaUUID = currentDeviceData.areaUUID;
+      }
     }
 
     return this.getTreeView(val, currentAreaUUID, i);
@@ -2740,13 +2747,28 @@ class NetworkInventory extends Component {
     )
   }
   /**
+   * Close add seat dialog
+   * @method
+   */
+  closeSeatDialog = () => {
+    this.setState({
+      addSeatOpen: false,
+      addSeat: {
+        selectedSeatUUID: '',
+        name: '',
+        coordX: '',
+        coordY: ''
+      }
+    });
+  }
+  /**
    * Display add seat modal dialog
    * @method
    * @returns ModalDialog component
    */
   addSeatDialog = () => {
     const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeDialog},
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeSeatDialog},
       confirm: {text: t('txt-confirm'), handler: this.handleAddSeatConfirm}
     };
     const titleText = t('network-topology.txt-addSeat');
@@ -2772,7 +2794,12 @@ class NetworkInventory extends Component {
     const {baseUrl} = this.context;
     const {floorPlan, currentDeviceData, addSeat, changeAreaMap} = this.state;
     const url = `${baseUrl}/api/seat`;
-    const currentAreaUUID = changeAreaMap ? floorPlan.currentAreaUUID : currentDeviceData.areaUUID;
+    let currentAreaUUID = floorPlan.currentAreaUUID;
+
+    if (!changeAreaMap && currentDeviceData.areaUUID) {
+      currentAreaUUID = currentDeviceData.areaUUID;
+    }
+
     const requestData = {
       areaUUID: currentAreaUUID,
       seatName: addSeat.name,
