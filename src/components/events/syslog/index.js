@@ -881,7 +881,7 @@ class SyslogController extends Component {
    * @method
    * @param {object} sort - sort data object
    */
-  handleTableSort = (value) => {
+  handleTableSort = (sort) => {
     let tempSort = {...this.state.sort};
     tempSort.field = sort.field;
     tempSort.desc = sort.desc;
