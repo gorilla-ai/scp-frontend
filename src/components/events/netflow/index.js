@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
 import Moment from 'moment'
+import moment from 'moment-timezone'
 import _ from 'lodash'
 import cx from 'classnames'
 import queryString from 'query-string'
@@ -1077,7 +1078,7 @@ class Netflow extends Component {
   /**
    * Construct the netflow events api request body
    * @method
-   * @param {string} options - option for 'search'
+   * @param {string} options - option for time', 'images' or 'csv'
    * @returns requst data object
    */
   toQueryLanguage = (options) => {
@@ -1116,6 +1117,12 @@ class Netflow extends Component {
 
     if (filterDataArr.length > 0) {
       dataObj.query.filter = filterDataArr;
+    }
+
+    if (options == 'csv') {
+      const timezone = moment.tz(moment.tz.guess()); //Get local timezone obj
+      const utc_offset = timezone._offset / 60; //Convert minute to hour
+      dataObj.timeZone = utc_offset;
     }
 
     return dataObj;
@@ -2611,7 +2618,7 @@ class Netflow extends Component {
     })
 
     const dataOptions = {
-      ...this.toQueryLanguage(),
+      ...this.toQueryLanguage('csv'),
       columns: tempColumns
     };
 
