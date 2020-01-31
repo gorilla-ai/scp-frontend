@@ -492,19 +492,14 @@ class SyslogController extends Component {
         tempSubSectionsData.laData[activeTab] = analyze(logEventsData, LAconfig, {analyzeGis: false});
         tempSubSectionsData.totalCount[activeTab] = logsData.counts;
 
-        _.forEach(data.search, val => {
-          eventHistogram[val.searchName] = val.eventHistogram
-        })
+        this.setState({
+          logEventsData,
+          subSectionsData: tempSubSectionsData
+        });
       } else {
         helper.showPopupMsg(t('txt-notFound', ''));
         return;
       }
-
-      this.setState({
-        logEventsData,
-        eventHistogram,
-        subSectionsData: tempSubSectionsData
-      });
     });
   }
   /**

@@ -41,6 +41,12 @@ class Syslog extends Component {
           <MarkContent
             {...mainContentData} />
 
+          <DataChart
+            mainContentData={mainContentData}
+            tabChartData={tabChartData}
+            markData={markData}
+            tableMouseOver={tableMouseOver} />
+
           <div className='main-content'>
             <Tabs
               className='subtab-menu'
@@ -48,12 +54,6 @@ class Syslog extends Component {
               current={mainContentData.activeSubTab}
               onChange={mainContentData.handleSubTabChange}>
             </Tabs>
-
-            <DataChart
-              mainContentData={mainContentData}
-              tabChartData={tabChartData}
-              markData={markData}
-              tableMouseOver={tableMouseOver} />
 
             {mainContentData.activeSubTab === 'table' &&
               <TableContent
