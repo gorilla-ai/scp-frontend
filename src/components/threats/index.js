@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
 import Moment from 'moment'
+import moment from 'moment-timezone'
 import _ from 'lodash'
 import cx from 'classnames'
 import queryString from 'query-string'
@@ -479,11 +480,11 @@ class ThreatsController extends Component {
   /**
    * Construct the alert api request body
    * @method
-   * @param {string} [options] - option for 'search'
+   * @param {string} options - option for 'tree' or 'csv'
    * @returns requst data object
    */
   toQueryLanguage = (options) => {
-    const {datetime, filterData} = this.state;
+    const {datetime, sort, filterData} = this.state;
     const dateTime = {
       from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
       to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
@@ -500,6 +501,16 @@ class ThreatsController extends Component {
       if (filterDataArr.length > 0) {
         dataObj.filters = filterDataArr;
       }
+
+      dataObj.sort = [{
+        '_eventDttm_': sort.desc ? 'desc' : 'asc'
+      }];
+    }
+
+    if (options == 'csv') {
+      const timezone = moment.tz(moment.tz.guess()); //Get local timezone obj
+      const utc_offset = timezone._offset / 60; //Convert minute to hour
+      dataObj.timeZone = utc_offset;
     }
 
     return dataObj;
@@ -1049,7 +1060,7 @@ class ThreatsController extends Component {
   getCSVfile = () => {
     const {baseUrl, contextRoot} = this.context;
     const url = `${baseUrl}${contextRoot}/api/u2/alert/_export`;
-    const requestData = this.toQueryLanguage('search');
+    const requestData = this.toQueryLanguage('csv');
 
     downloadWithForm(url, {payload: JSON.stringify(requestData)});
   }
