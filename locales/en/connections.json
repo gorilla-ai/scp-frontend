@@ -167,7 +167,7 @@
   "txt-network-map": "Map",
   "txt-selected-node": "Selected Node",
   "txt-mixName": "Department & Title Management",
-  "txt-noEmpty": "Name cannot be empty",
+  "txt-nameInvalid": "Please enter a name",
   "txt-memoMaxLength": "maximum 250 characters",
   "txt-updateTime": "Update Time",
 
@@ -453,6 +453,7 @@
     "txt-fromSeat": " from $t(txt-seat) ",
     "txt-selected-node": "Selected Node",
     "txt-ipValidationFail": "Please enter a valid IP address",
+    "txt-seatNameEmpty": "Please enter a seat name",
 
     "txt-addOwner": "$t(txt-add) $t(ipFields.owner)",
     "txt-editOwner": "$t(txt-edit) $t(ipFields.owner)",

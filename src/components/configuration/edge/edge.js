@@ -270,6 +270,7 @@ class Edge extends Component {
           edge: tempEdge
         });
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg(t('txt-error'));
@@ -455,12 +456,14 @@ class Edge extends Component {
       type: 'GET'
     })
     .then(data => {
-      let tempEdge = {...this.state.edge};
-      tempEdge.info.lastStatus = data;
+      if (data) {
+        let tempEdge = {...this.state.edge};
+        tempEdge.info.lastStatus = data;
 
-      this.setState({
-        edge: tempEdge
-      });
+        this.setState({
+          edge: tempEdge
+        });
+      }
       return null;
     })
     .catch(err => {
@@ -523,6 +526,7 @@ class Edge extends Component {
       if (data.ret === 0) {
         this.getEdgeData();
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);

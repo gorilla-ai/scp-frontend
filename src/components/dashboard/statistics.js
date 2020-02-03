@@ -170,169 +170,171 @@ class DashboardStats extends Component {
 
     this.ah.all(apiArr)
     .then(data => {
-      let alertHistogram = {
-        Emergency: {},
-        Alert: {},
-        Critical: {},
-        Warning: {},
-        Notice: {}
-      };
-      let rulesObj = {};
-      let rulesAll = [];
-      let alertDataArr = [];
-      let maskedIPdata = '';
-      let internalMaskedIp = [];
+      if (data) {
+        let alertHistogram = {
+          Emergency: {},
+          Alert: {},
+          Critical: {},
+          Warning: {},
+          Notice: {}
+        };
+        let rulesObj = {};
+        let rulesAll = [];
+        let alertDataArr = [];
+        let maskedIPdata = '';
+        let internalMaskedIp = [];
 
-      _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
-        if (data[0].event_histogram) {
-          _.forEach(data[0].event_histogram[val].buckets, val2 => {
-            if (val2.doc_count > 0) {
-              alertHistogram[val][val2.key_as_string] = val2.doc_count;
-            }
-          })
-        }
-      })
-
-      _.forEach(_.keys(alertHistogram), val => { //Manually add rule name to the response data
-        rulesObj[val] = _.map(alertHistogram[val], (value, key) => {
-          return {
-            time: parseInt(Moment(key, 'YYYY-MM-DDTHH:mm:ss.SSZ').utc(true).format('x')),
-            number: value,
-            rule: val
-          };
-        });
-      })
-
-      _.forEach(_.keys(alertHistogram), val => { //Push multiple rule arrays into a single array
-        rulesAll.push(rulesObj[val]);
-      })
-
-      //Merge multiple arrays with different rules to a single array
-      alertDataArr = rulesAll.reduce((accumulator, currentValue) => {
-        return accumulator.concat(currentValue)
-      }, []);
-
-      if (data[0].aggregations) {
-        maskedIPdata = data[0].aggregations.Top10InternalMaskedIp;
-
-        _.forEach(maskedIPdata, (key, val) => {
-          if (val !== 'doc_count' && maskedIPdata[val].doc_count > 0) {
-            _.forEach(maskedIPdata[val].srcIp.buckets, val2 => {
-              internalMaskedIp.push({
-                ip: val,
-                number: val2.doc_count,
-                severity: val2._severity_
-              });
-            })
-          }
-        })
-      }
-
-      /* Get charts data */
-      _.forEach(CHARTS_LIST, (val, i) => {
-        let tempArr = [];
-
-        if (i === 0) {
-          if (data[0].aggregations) {
-            _.forEach(SEVERITY_TYPE, val2 => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
-              tempArr.push({
-                key: val2,
-                doc_count: data[0].aggregations[val2].doc_count
-              });
-            })
-          }
-        } else if (i === 3) {
-          if (data[0].aggregations) {
-            const chartData = data[0].aggregations[val.id];
-
-            _.forEach(_.keys(chartData), val2 => {
-              if (val2 !== 'doc_count' && chartData[val2].doc_count) {
-                tempArr.push({
-                  key: val2,
-                  doc_count: chartData[val2].doc_count
-                });
+        _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
+          if (data[0].event_histogram) {
+            _.forEach(data[0].event_histogram[val].buckets, val2 => {
+              if (val2.doc_count > 0) {
+                alertHistogram[val][val2.key_as_string] = val2.doc_count;
               }
             })
           }
-        } else if (i < 3) {
-          if (data[0].aggregations) {
-            let chartData = [];
+        })
 
-            if (data[0].aggregations[val.id]) {
-              chartData = data[0].aggregations[val.id][val.key].buckets;
+        _.forEach(_.keys(alertHistogram), val => { //Manually add rule name to the response data
+          rulesObj[val] = _.map(alertHistogram[val], (value, key) => {
+            return {
+              time: parseInt(Moment(key, 'YYYY-MM-DDTHH:mm:ss.SSZ').utc(true).format('x')),
+              number: value,
+              rule: val
+            };
+          });
+        })
+
+        _.forEach(_.keys(alertHistogram), val => { //Push multiple rule arrays into a single array
+          rulesAll.push(rulesObj[val]);
+        })
+
+        //Merge multiple arrays with different rules to a single array
+        alertDataArr = rulesAll.reduce((accumulator, currentValue) => {
+          return accumulator.concat(currentValue)
+        }, []);
+
+        if (data[0].aggregations) {
+          maskedIPdata = data[0].aggregations.Top10InternalMaskedIp;
+
+          _.forEach(maskedIPdata, (key, val) => {
+            if (val !== 'doc_count' && maskedIPdata[val].doc_count > 0) {
+              _.forEach(maskedIPdata[val].srcIp.buckets, val2 => {
+                internalMaskedIp.push({
+                  ip: val,
+                  number: val2.doc_count,
+                  severity: val2._severity_
+                });
+              })
             }
+          })
+        }
 
-            if (chartData.length > 0) {
-              _.forEach(chartData, val2 => {
-                if (val2.key) { //Remove empty data
+        /* Get charts data */
+        _.forEach(CHARTS_LIST, (val, i) => {
+          let tempArr = [];
+
+          if (i === 0) {
+            if (data[0].aggregations) {
+              _.forEach(SEVERITY_TYPE, val2 => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
+                tempArr.push({
+                  key: val2,
+                  doc_count: data[0].aggregations[val2].doc_count
+                });
+              })
+            }
+          } else if (i === 3) {
+            if (data[0].aggregations) {
+              const chartData = data[0].aggregations[val.id];
+
+              _.forEach(_.keys(chartData), val2 => {
+                if (val2 !== 'doc_count' && chartData[val2].doc_count) {
                   tempArr.push({
-                    key: val2.key,
-                    doc_count: val2.doc_count
+                    key: val2,
+                    doc_count: chartData[val2].doc_count
                   });
                 }
               })
             }
+          } else if (i < 3) {
+            if (data[0].aggregations) {
+              let chartData = [];
+
+              if (data[0].aggregations[val.id]) {
+                chartData = data[0].aggregations[val.id][val.key].buckets;
+              }
+
+              if (chartData.length > 0) {
+                _.forEach(chartData, val2 => {
+                  if (val2.key) { //Remove empty data
+                    tempArr.push({
+                      key: val2.key,
+                      doc_count: val2.doc_count
+                    });
+                  }
+                })
+              }
+            }
+          }
+          pieCharts[val.id] = tempArr;
+        })
+
+        if (data[1].aggregations) {
+          let configSrcData = [];
+
+          if (data[1].aggregations[configSrcInfo.id]) {
+            configSrcData = data[1].aggregations[configSrcInfo.id][configSrcInfo.path].buckets;
+          }
+
+          if (configSrcData.length > 0) {
+            pieCharts[configSrcInfo.id] = configSrcData;
           }
         }
-        pieCharts[val.id] = tempArr;
-      })
 
-      if (data[1].aggregations) {
-        let configSrcData = [];
+        const dnsInfo = CHARTS_LIST[5];
+        let dnsMetricData = {
+          id: 'dns-histogram'
+        };
 
-        if (data[1].aggregations[configSrcInfo.id]) {
-          configSrcData = data[1].aggregations[configSrcInfo.id][configSrcInfo.path].buckets;
+        if (data[2].aggregations) {
+          let dnsQueryData = [];
+          let dnsData = {};
+
+          if (data[2].aggregations[dnsInfo.id]) {
+            dnsQueryData = data[2].aggregations[dnsInfo.id][dnsInfo.path].buckets;
+          }
+
+          if (dnsQueryData.length > 0) {
+            pieCharts[dnsInfo.id] = dnsQueryData;
+          }
+
+          if (data[2].aggregations.session_histogram) {
+            dnsData = data[2].aggregations.session_histogram;
+
+            dnsMetricData.data = [{
+              doc_count: dnsData.doc_count,
+              MegaPackages: dnsData.MegaPackages,
+              MegaBytes: dnsData.MegaBytes
+            }];
+            dnsMetricData.agg = ['doc_count', 'MegaPackages', 'MegaBytes'];
+            dnsMetricData.keyLabels = {
+              doc_count: t('dashboard.txt-session'),
+              MegaPackages: t('dashboard.txt-packet'),
+              MegaBytes: t('dashboard.txt-databyte')
+            };
+          }
         }
 
-        if (configSrcData.length > 0) {
-          pieCharts[configSrcInfo.id] = configSrcData;
-        }
+        this.setState({
+          updatedTime: helper.getFormattedDate(Moment()),
+          alertDataArr,
+          internalMaskedIp,
+          pieCharts,
+          dnsMetricData
+        }, () => {
+          this.getPieChartsData();
+          this.loadMetricData();
+        });
       }
-
-      const dnsInfo = CHARTS_LIST[5];
-      let dnsMetricData = {
-        id: 'dns-histogram'
-      };
-
-      if (data[2].aggregations) {
-        let dnsQueryData = [];
-        let dnsData = {};
-
-        if (data[2].aggregations[dnsInfo.id]) {
-          dnsQueryData = data[2].aggregations[dnsInfo.id][dnsInfo.path].buckets;
-        }
-
-        if (dnsQueryData.length > 0) {
-          pieCharts[dnsInfo.id] = dnsQueryData;
-        }
-
-        if (data[2].aggregations.session_histogram) {
-          dnsData = data[2].aggregations.session_histogram;
-
-          dnsMetricData.data = [{
-            doc_count: dnsData.doc_count,
-            MegaPackages: dnsData.MegaPackages,
-            MegaBytes: dnsData.MegaBytes
-          }];
-          dnsMetricData.agg = ['doc_count', 'MegaPackages', 'MegaBytes'];
-          dnsMetricData.keyLabels = {
-            doc_count: t('dashboard.txt-session'),
-            MegaPackages: t('dashboard.txt-packet'),
-            MegaBytes: t('dashboard.txt-databyte')
-          };
-        }
-      }
-
-      this.setState({
-        updatedTime: helper.getFormattedDate(Moment()),
-        alertDataArr,
-        internalMaskedIp,
-        pieCharts,
-        dnsMetricData
-      }, () => {
-        this.getPieChartsData();
-        this.loadMetricData();
-      });
       return null;
     })
     .catch(err => {
@@ -405,6 +407,7 @@ class DashboardStats extends Component {
           diskMetricData
         });
       }
+      return null;
     })
   }
   /**

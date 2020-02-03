@@ -326,6 +326,7 @@ class AutoSettings extends Component {
       } else {
         helper.showPopupMsg(t('network-inventory.auto-settings.txt-connectionsFail'), t('txt-error'));
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg(t('network-inventory.auto-settings.txt-connectionsFail'), t('txt-error'));
@@ -536,6 +537,7 @@ class AutoSettings extends Component {
       if (data) {
         this.getSettingsInfo();
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'));

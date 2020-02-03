@@ -350,6 +350,7 @@ class AlertDetails extends Component {
           ipDeviceInfo: tempIPdeviceInfo
         });
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -382,6 +383,7 @@ class AlertDetails extends Component {
           alertInfo: tempAlertInfo
         });
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -461,6 +463,10 @@ class AlertDetails extends Component {
             alertRule: data
           });
         }
+        return null;
+      })
+      .catch(err => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
       });
     } else {
       this.setState({
@@ -537,6 +543,7 @@ class AlertDetails extends Component {
           alertPCAP: tempAlertPCAP
         });
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -1308,13 +1315,10 @@ class AlertDetails extends Component {
     helper.getAjaxData('POST', url, requestData)
     .then(data => {
       if (data) {
-        PopupDialog.alert({
-          id: 'tiggerTaskModal',
-          confirmText: t('txt-close'),
-          display: <div>{t('txt-requestSent')}</div>
-        });
+        helper.showPopupMsg(t('txt-requestSent'));
         this.getHMDinfo(type);
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'));
@@ -1733,6 +1737,7 @@ class AlertDetails extends Component {
           networkBehavior: tempNetworkBehavior
         });
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -1830,6 +1835,7 @@ class AlertDetails extends Component {
       } else {
         window.location.assign(data.PcapFilelink);
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -1864,6 +1870,7 @@ class AlertDetails extends Component {
       if (data.id) {
         window.location.href = `${baseUrl}${contextRoot}/api/honeynet/attack/payload/file/${data.id}`;
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);

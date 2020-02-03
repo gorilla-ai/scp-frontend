@@ -331,20 +331,23 @@ class DashboardMaps extends Component {
 
       helper.getAjaxData('POST', url, requestData)
       .then(data => {
-        const tempArray = _.map(data.data.rows, val => {
-          val._source.id = val._id;
-          val._source.index = val._index;
-          return val._source;
-        });
-        tempAlertDetails.private.data = tempArray;
-        tempAlertDetails.currentLength = data.data.counts;
-        alertData = tempArray[0];
+        if (data) {
+          const tempArray = _.map(data.data.rows, val => {
+            val._source.id = val._id;
+            val._source.index = val._index;
+            return val._source;
+          });
+          tempAlertDetails.private.data = tempArray;
+          tempAlertDetails.currentLength = data.data.counts;
+          alertData = tempArray[0];
 
-        this.setState({
-          alertDetails: tempAlertDetails
-        }, () => {
-          this.openDetailInfo(type, alertData);
-        });
+          this.setState({
+            alertDetails: tempAlertDetails
+          }, () => {
+            this.openDetailInfo(type, alertData);
+          });
+        }
+        return null;
       });
     }
   }
@@ -476,6 +479,7 @@ class DashboardMaps extends Component {
           this.getFloorList();
         });
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -526,37 +530,41 @@ class DashboardMaps extends Component {
       type: 'GET'
     })
     .then(data => {
-      const areaName = data.areaName;
-      const areaUUID = data.areaUUID;
-      let currentMap = '';
+      if (data) {
+        const areaName = data.areaName;
+        const areaUUID = data.areaUUID;
+        let currentMap = '';
 
-      if (data.picPath) {
-        const picPath = `${baseUrl}${contextRoot}/api/area/_image?path=${data.picPath}`;
-        const picWidth = data.picWidth;
-        const picHeight = data.picHeight;
+        if (data.picPath) {
+          const picPath = `${baseUrl}${contextRoot}/api/area/_image?path=${data.picPath}`;
+          const picWidth = data.picWidth;
+          const picHeight = data.picHeight;
 
-        currentMap = {
-          label: areaName,
-          images: [
-            {
-              id: areaUUID,
-              url: picPath,
-              size: {width: picWidth, height: picHeight}
-            }
-          ]
+          currentMap = {
+            label: areaName,
+            images: [
+              {
+                id: areaUUID,
+                url: picPath,
+                size: {width: picWidth, height: picHeight}
+              }
+            ]
+          };
+        }
+
+        const currentBaseLayers = {
+          [floorPlan]: currentMap
         };
+
+        this.setState({
+          currentMap,
+          currentBaseLayers,
+          currentFloor: areaUUID
+        }, () => {
+          this.loadAlertPrivateData();
+        });
       }
-
-      let currentBaseLayers = {};
-      currentBaseLayers[floorPlan] = currentMap;
-
-      this.setState({
-        currentMap,
-        currentBaseLayers,
-        currentFloor: areaUUID
-      }, () => {
-        this.loadAlertPrivateData();
-      });
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -584,32 +592,35 @@ class DashboardMaps extends Component {
 
     helper.getAjaxData('POST', url, requestData)
     .then(data => {
-      const allPrivateData = data.aggregations.Top10InternalMaskedIp;
-      let tempAlertDetails = {...alertDetails};
-      let currentFloorPrivateData = [];
-      let allFloorPrivateData = [];
+      if (data) {
+        const allPrivateData = data.aggregations.Top10InternalMaskedIp;
+        let tempAlertDetails = {...alertDetails};
+        let currentFloorPrivateData = [];
+        let allFloorPrivateData = [];
 
-      _.forEach(_.keys(allPrivateData), val => {
-        if (val !== 'doc_count' && allPrivateData[val].doc_count) {
-          _.forEach(allPrivateData[val].srcIp.buckets, val2 => {
-            if (val2.srcTopoInfo && val2.srcTopoInfo.areaUUID === currentFloor) {
-              currentFloorPrivateData.push(val2);
-            } else if (!val2.srcTopoInfo.areaUUID) {
-              allFloorPrivateData.push(val2);
-            }
-          })
-        }
-      })
+        _.forEach(_.keys(allPrivateData), val => {
+          if (val !== 'doc_count' && allPrivateData[val].doc_count) {
+            _.forEach(allPrivateData[val].srcIp.buckets, val2 => {
+              if (val2.srcTopoInfo && val2.srcTopoInfo.areaUUID === currentFloor) {
+                currentFloorPrivateData.push(val2);
+              } else if (!val2.srcTopoInfo.areaUUID) {
+                allFloorPrivateData.push(val2);
+              }
+            })
+          }
+        })
 
-      tempAlertDetails.private.currentFloorPrivateData = currentFloorPrivateData;
-      tempAlertDetails.private.allFloorPrivateData = allFloorPrivateData;
-      tempAlertDetails.private.tree = _.concat(currentFloorPrivateData, allFloorPrivateData);
+        tempAlertDetails.private.currentFloorPrivateData = currentFloorPrivateData;
+        tempAlertDetails.private.allFloorPrivateData = allFloorPrivateData;
+        tempAlertDetails.private.tree = _.concat(currentFloorPrivateData, allFloorPrivateData);
 
-      this.setState({
-        alertDetails: tempAlertDetails
-      }, () => {
-        this.getSeatData();
-      });
+        this.setState({
+          alertDetails: tempAlertDetails
+        }, () => {
+          this.getSeatData();
+        });
+      }
+      return null;
     });
   }
   /**

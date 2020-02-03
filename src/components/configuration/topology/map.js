@@ -117,30 +117,33 @@ class NetworkMap extends Component {
 
     this.ah.all(apiArr)
     .then(data => {
-      let tempList = {...this.state.list};
-      let system = [{value: 'all', text: t('txt-all')}];
-      let deviceType = [{value: 'all', text: t('txt-all')}];
+      if (data) {
+        let tempList = {...this.state.list};
+        let system = [{value: 'all', text: t('txt-all')}];
+        let deviceType = [{value: 'all', text: t('txt-all')}];
 
-      _.forEach(data[0], val => {
-        system.push({
-          value: val,
-          text: val
+        _.forEach(data[0], val => {
+          system.push({
+            value: val,
+            text: val
+          });
+        })
+
+        _.forEach(data[1], val => {
+          deviceType.push({
+            value: val,
+            text: val
+          });
+        })
+
+        tempList.system = system;
+        tempList.deviceType = deviceType;
+
+        this.setState({
+          list: tempList
         });
-      })
-
-      _.forEach(data[1], val => {
-        deviceType.push({
-          value: val,
-          text: val
-        });
-      })
-
-      tempList.system = system;
-      tempList.deviceType = deviceType;
-
-      this.setState({
-        list: tempList
-      });
+      }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -159,8 +162,6 @@ class NetworkMap extends Component {
       type: 'GET'
     })
     .then(data => {
-      let tempFloorPlan = {...floorPlan};
-
       if (data && data.length === 0) {
         this.setState({
           mapAreaUUID: '',
@@ -181,6 +182,7 @@ class NetworkMap extends Component {
       } else {
         const floorPlanData = data[0];
         const areaUUID = floorPlanData.areaUUID;
+        let tempFloorPlan = {...floorPlan};
         tempFloorPlan.treeData = data;
         tempFloorPlan.rootAreaUUID = floorPlanData.rootAreaUUID;
         tempFloorPlan.currentAreaUUID = areaUUID;
@@ -220,54 +222,57 @@ class NetworkMap extends Component {
       type: 'GET'
     })
     .then(data => {
-      const areaName = data.areaName;
-      const areaUUID = data.areaUUID;
-      let currentMap = '';
+      if (data) {
+        const areaName = data.areaName;
+        const areaUUID = data.areaUUID;
+        let currentMap = '';
 
-      if (data.picPath) {
-        const picPath = `${baseUrl}${contextRoot}/api/area/_image?path=${data.picPath}`;
-        const picWidth = data.picWidth;
-        const picHeight = data.picHeight;
+        if (data.picPath) {
+          const picPath = `${baseUrl}${contextRoot}/api/area/_image?path=${data.picPath}`;
+          const picWidth = data.picWidth;
+          const picHeight = data.picHeight;
 
-        currentMap = {
-          label: areaName,
-          images: [
-            {
-              id: areaUUID,
-              url: picPath,
-              size: {width: picWidth, height: picHeight}
-            }
-          ]
+          currentMap = {
+            label: areaName,
+            images: [
+              {
+                id: areaUUID,
+                url: picPath,
+                size: {width: picWidth, height: picHeight}
+              }
+            ]
+          };
+        }
+
+        const currentBaseLayers = {
+          [floorPlan]: currentMap
         };
-      }
 
-      const currentBaseLayers = {};
-      currentBaseLayers[floorPlan] = currentMap;
+        if (option === 'setAreaUUID') {
+          const tempFloorPlan = this.state.floorPlan;
+          tempFloorPlan.currentAreaUUID = areaUUID;
+          tempFloorPlan.currentAreaName = areaName;
 
-      if (option === 'setAreaUUID') {
-        const tempFloorPlan = this.state.floorPlan;
-        tempFloorPlan.currentAreaUUID = areaUUID;
-        tempFloorPlan.currentAreaName = areaName;
-
-        this.setState({
-          floorPlan: tempFloorPlan,
-          mapAreaUUID: floorPlan,
-          currentMap,
-          currentBaseLayers
-        }, () => {
-          this.getIPData(areaUUID);
-        });
-      } else {
-        this.setState({
-          mapAreaUUID: floorPlan,
-          currentMap,
-          currentBaseLayers
-        }, () => {
-          if (areaUUID) {
-            this.getSeatData(areaUUID);
+          this.setState({
+            floorPlan: tempFloorPlan,
+            mapAreaUUID: floorPlan,
+            currentMap,
+            currentBaseLayers
+          }, () => {
             this.getIPData(areaUUID);
-          }
-        });
+          });
+        } else {
+          this.setState({
+            mapAreaUUID: floorPlan,
+            currentMap,
+            currentBaseLayers
+          }, () => {
+            if (areaUUID) {
+              this.getSeatData(areaUUID);
+              this.getIPData(areaUUID);
+            }
+          });
+        }
       }
       return null;
     })
@@ -298,33 +303,35 @@ class NetworkMap extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      const seatData = {};
-      let seatListArr = [];
+      if (data) {
+        const seatData = {};
+        let seatListArr = [];
 
-      _.forEach(data, val => {
-        seatListArr.push({
-          id: val.seatUUID,
-          type: 'marker',
-          xy: [val.coordX, val.coordY],
-          icon: {
-            iconUrl: `${contextRoot}/images/ic_person.png`,
-            iconSize: [25, 25],
-            iconAnchor: [12.5, 12.5]
-          },
-          label: val.seatName,
-          data: {
-            name: val.seatName
-          }
+        _.forEach(data, val => {
+          seatListArr.push({
+            id: val.seatUUID,
+            type: 'marker',
+            xy: [val.coordX, val.coordY],
+            icon: {
+              iconUrl: `${contextRoot}/images/ic_person.png`,
+              iconSize: [25, 25],
+              iconAnchor: [12.5, 12.5]
+            },
+            label: val.seatName,
+            data: {
+              name: val.seatName
+            }
+          });
+        })
+
+        seatData[area] = {
+          data: seatListArr
+        };
+
+        this.setState({
+          seatData
         });
-      })
-
-      seatData[area] = {
-        data: seatListArr
-      };
-
-      this.setState({
-        seatData
-      });
+      }
       return null;
     })
   }
@@ -388,36 +395,38 @@ class NetworkMap extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      let tempIP = {...this.state.IP};
-      tempIP.dataContent = data.rows;
-      tempIP.totalCount = data.counts;
+      if (data) {
+        let tempIP = {...this.state.IP};
+        tempIP.dataContent = data.rows;
+        tempIP.totalCount = data.counts;
 
-      let dataFields = {};
-      IP.dataFieldsArr.forEach(tempData => {
-        dataFields[tempData] = {
-          label: t(`ipFields.${tempData}`),
-          sortable: this.checkSortable(tempData),
-          formatter: (value, allValue) => {
-            if (tempData === 'seat') {
-              if (allValue.seatObj) {
-                return <span>{allValue.seatObj.seatName}</span>
+        let dataFields = {};
+        IP.dataFieldsArr.forEach(tempData => {
+          dataFields[tempData] = {
+            label: t(`ipFields.${tempData}`),
+            sortable: this.checkSortable(tempData),
+            formatter: (value, allValue) => {
+              if (tempData === 'seat') {
+                if (allValue.seatObj) {
+                  return <span>{allValue.seatObj.seatName}</span>
+                }
               }
-            }
-            if (tempData === 'owner') {
-              if (allValue.ownerObj) {
-                return <span>{allValue.ownerObj.ownerName}</span>
+              if (tempData === 'owner') {
+                if (allValue.ownerObj) {
+                  return <span>{allValue.ownerObj.ownerName}</span>
+                }
               }
+              return <span>{value}</span>
             }
-            return <span>{value}</span>
-          }
-        };
-      })
+          };
+        })
 
-      tempIP.dataFields = dataFields;
+        tempIP.dataFields = dataFields;
 
-      this.setState({
-        IP: tempIP
-      });
+        this.setState({
+          IP: tempIP
+        });
+      }
       return null;
     })
     .catch(err => {
@@ -630,6 +639,7 @@ class NetworkMap extends Component {
           this.getSeatData();
         })
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -702,6 +712,11 @@ class NetworkMap extends Component {
       coordY: addSeat.coordY
     };
 
+    if (!addSeat.name) {
+      helper.showPopupMsg(t('network-topology.txt-seatNameEmpty'), t('txt-error'));
+      return;
+    }
+
     helper.getAjaxData('POST', url, requestData)
     .then(data => {
       if (data) {
@@ -718,6 +733,7 @@ class NetworkMap extends Component {
           this.getSeatData();
         });
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'));
@@ -753,6 +769,7 @@ class NetworkMap extends Component {
           currentDeviceData: tempCurrentDeviceData
         });
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);

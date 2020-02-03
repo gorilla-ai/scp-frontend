@@ -102,6 +102,7 @@ class PrivilegeAdd extends Component {
       })
       .then(data => {
         this.save();
+        return null;
       })
       .catch(err => {
         this.setState({

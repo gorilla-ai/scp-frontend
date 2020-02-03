@@ -68,33 +68,36 @@ class AccountList extends Component {
       dataType: 'json'
     })
     .then(data => {
-      const accountData = data.rt.rows;
+      if (data) {
+        const accountData = data.rt.rows;
 
-      let tempFields = {};
-      dataFieldsArr.forEach(tempData => {
-        tempFields[tempData] = {
-          hide: tempData === 'accountid' ? true : false,
-          label: tempData === '_menu' ? '' : t(`accountFields.${tempData}`),
-          sortable: tempData === '_menu' ? null : true,
-          formatter: (value, allValue, i) => {
-            if (tempData === '_menu') {
-              return (
-                <div className={cx('table-menu', {'active': value})}>
-                  <button onClick={this.handleRowContextMenu.bind(this, allValue)}><i className='fg fg-more'></i></button>
-                </div>
-              )
-            } else {
-              return <span>{value}</span>;
+        let tempFields = {};
+        dataFieldsArr.forEach(tempData => {
+          tempFields[tempData] = {
+            hide: tempData === 'accountid' ? true : false,
+            label: tempData === '_menu' ? '' : t(`accountFields.${tempData}`),
+            sortable: tempData === '_menu' ? null : true,
+            formatter: (value, allValue, i) => {
+              if (tempData === '_menu') {
+                return (
+                  <div className={cx('table-menu', {'active': value})}>
+                    <button onClick={this.handleRowContextMenu.bind(this, allValue)}><i className='fg fg-more'></i></button>
+                  </div>
+                )
+              } else {
+                return <span>{value}</span>;
+              }
             }
           }
-        }
-      })
+        })
 
-      this.setState({
-        originalAccountData: _.cloneDeep(accountData),
-        accountData,
-        dataFields: tempFields
-      });
+        this.setState({
+          originalAccountData: _.cloneDeep(accountData),
+          accountData,
+          dataFields: tempFields
+        });
+      }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -244,6 +247,7 @@ class AccountList extends Component {
       })
       .then(() => {
         this.loadAccounts();
+        return null;
       })
       .catch(err => {
         helper.showPopupMsg('', t('txt-error'), err.message);
@@ -254,11 +258,8 @@ class AccountList extends Component {
         type: 'PATCH'
       })
       .then(() => {
-        PopupDialog.alertId('modalWindowSmall', {
-          id: 'modalWindowSmall',
-          confirmText: c('txt-confirm'),
-          display: t('txt-unlockAccountSuccess')
-        });
+        helper.showPopupMsg(t('txt-unlockAccountSuccess', ''));
+        return null;
       })
       .catch(err => {
         helper.showPopupMsg('', t('txt-error'), err.message);

@@ -215,12 +215,14 @@ class SyslogController extends Component {
       type: 'GET'
     })
     .then(data => {
-      const treeObj = this.getTreeData(data);
+      if (data) {
+        const treeObj = this.getTreeData(data);
 
-      this.setState({
-        treeRawData: data,
-        treeData: treeObj
-      });
+        this.setState({
+          treeRawData: data,
+          treeData: treeObj
+        });
+      }
       return null;
     })
     .catch(err => {
@@ -367,17 +369,20 @@ class SyslogController extends Component {
 
     helper.getAjaxData('POST', url, dateTime)
     .then(data => {
-      let filedsArr = ['_tableMenu_'];
+      if (data) {
+        let filedsArr = ['_tableMenu_'];
 
-      _.forEach(data, val => {
-        filedsArr.push(val);
-      });
+        _.forEach(data, val => {
+          filedsArr.push(val);
+        });
 
-      this.setState({
-        logFields: filedsArr
-      }, () => {
-        this.loadLogsLocaleFields();
-      });
+        this.setState({
+          logFields: filedsArr
+        }, () => {
+          this.loadLogsLocaleFields();
+        });
+      }
+      return null;
     });
   }
   /**
@@ -397,19 +402,21 @@ class SyslogController extends Component {
       type: 'GET'
     })
     .then(data => {
-      let tempAccount = {...account};
-      let localObj = {};
+      if (data) {
+        let tempAccount = {...account};
+        let localObj = {};
 
-      _.forEach(data, (val, key) => {
-        localObj[val.field] = val.locale;
-      })
-      tempAccount.logsLocale = localObj;
+        _.forEach(data, (val, key) => {
+          localObj[val.field] = val.locale;
+        })
+        tempAccount.logsLocale = localObj;
 
-      this.setState({
-        account: tempAccount
-      }, () => {
-        this.loadLogs();
-      });
+        this.setState({
+          account: tempAccount
+        }, () => {
+          this.loadLogs();
+        });
+      }
       return null;
     })
     .catch(err => {
@@ -497,9 +504,9 @@ class SyslogController extends Component {
           subSectionsData: tempSubSectionsData
         });
       } else {
-        helper.showPopupMsg(t('txt-notFound', ''));
-        return;
+        helper.showPopupMsg(t('txt-notFound'));
       }
+      return null;
     });
   }
   /**
@@ -589,108 +596,111 @@ class SyslogController extends Component {
       contentType: 'text/plain'
     }])
     .then(data => {
-      if (currentPage > 1 && !data[0].data) {
-        helper.showPopupMsg('', t('txt-error'), t('events.connections.txt-maxDataMsg'));
+      if (data) {
+        if (currentPage > 1 && !data[0].data) {
+          helper.showPopupMsg('', t('txt-error'), t('events.connections.txt-maxDataMsg'));
 
-        this.setState({
-          currentPage: oldPage
+          this.setState({
+            currentPage: oldPage
+          });
+          return;
+        }
+
+        if (_.isEmpty(data[0]) || _.isEmpty(data[1])) {
+          return;
+        }
+
+        const dataObj = data[0].data;
+        const currentLength = dataObj.rows.length < pageSize ? dataObj.rows.length : pageSize;
+        let eventHistogram = {};
+
+        if (_.isEmpty(data[0]) || dataObj.counts === 0) {
+          helper.showPopupMsg(t('txt-notFound', ''));
+
+          let tempSubSectionsData = {...subSectionsData};
+          tempSubSectionsData.mainData.logs = [];
+          tempSubSectionsData.totalCount.logs = 0;
+
+          this.setState({
+            subSectionsData: tempSubSectionsData,
+            eventHistogram: {}
+          });
+          return;
+        }
+
+        const tempArray = dataObj.rows.map(tempData => {
+          tempData.content.id = tempData.id;
+          return tempData.content;
         });
-        return;
-      }
 
-      if (_.isEmpty(data[0]) || _.isEmpty(data[1])) {
-        return;
-      }
-
-      const dataObj = data[0].data;
-      const currentLength = dataObj.rows.length < pageSize ? dataObj.rows.length : pageSize;
-      let eventHistogram = {};
-
-      if (_.isEmpty(data[0]) || dataObj.counts === 0) {
-        helper.showPopupMsg(t('txt-notFound', ''));
-
-        let tempSubSectionsData = {...subSectionsData};
-        tempSubSectionsData.mainData.logs = [];
-        tempSubSectionsData.totalCount.logs = 0;
-
-        this.setState({
-          subSectionsData: tempSubSectionsData,
-          eventHistogram: {}
-        });
-        return;
-      }
-
-      const tempArray = dataObj.rows.map(tempData => {
-        tempData.content.id = tempData.id;
-        return tempData.content;
-      });
-
-      let tempFields = {};
-      subSectionsData.tableColumns.logs.forEach(tempData => {
-        tempFields[tempData] = {
-          hide: !this.checkDisplayFields(tempData),
-          label: this.getCustomFieldName(tempData, 'logs'),
-          sortable: this.checkSortable(tempData),
-          formatter: (value, allValue) => {
-            if (tempData === '_tableMenu_') {
+        let tempFields = {};
+        subSectionsData.tableColumns.logs.forEach(tempData => {
+          tempFields[tempData] = {
+            hide: !this.checkDisplayFields(tempData),
+            label: this.getCustomFieldName(tempData, 'logs'),
+            sortable: this.checkSortable(tempData),
+            formatter: (value, allValue) => {
+              if (tempData === '_tableMenu_') {
+                return (
+                  <div className={cx('table-menu', {'active': value})}>
+                    <button onClick={this.handleRowContextMenu.bind(this, allValue)}><i className='fg fg-more'></i></button>
+                  </div>
+                )
+              }
+              if (tempData === '@timestamp') {
+                value = helper.getFormattedDate(value, 'local');
+              }
+              if (tempData === '_Raw' || tempData === 'message' || tempData === 'msg') {
+                if (value) {
+                  value = value.substr(0, 50) + '...';
+                } else {
+                  value = value;
+                }
+              }
               return (
-                <div className={cx('table-menu', {'active': value})}>
-                  <button onClick={this.handleRowContextMenu.bind(this, allValue)}><i className='fg fg-more'></i></button>
-                </div>
+                <TableCell
+                  activeTab={activeTab}
+                  fieldValue={value}
+                  fieldName={tempData}
+                  allValue={allValue}
+                  markData={markData}
+                  showQueryOptions={this.showQueryOptions} />
               )
             }
-            if (tempData === '@timestamp') {
-              value = helper.getFormattedDate(value, 'local');
-            }
-            if (tempData === '_Raw' || tempData === 'message' || tempData === 'msg') {
-              if (value) {
-                value = value.substr(0, 50) + '...';
-              } else {
-                value = value;
-              }
-            }
-            return (
-              <TableCell
-                activeTab={activeTab}
-                fieldValue={value}
-                fieldName={tempData}
-                allValue={allValue}
-                markData={markData}
-                showQueryOptions={this.showQueryOptions} />
-            )
           }
-        }
-      })
-
-      let tempSubSectionsData = {...subSectionsData};
-      tempSubSectionsData.mainData.logs = tempArray;
-      tempSubSectionsData.fieldsData.logs = tempFields;
-      tempSubSectionsData.totalCount.logs = dataObj.counts;
-
-      const tempCurrentPage = options === 'search' ? 1 : currentPage;
-      const dataArray = tempSubSectionsData.mainData.logs;
-
-      for (var i = 0; i < dataArray.length; i++) {
-        for (var key in dataArray[i]) {
-          if (Array.isArray(dataArray[i][key])) {
-            tempSubSectionsData.mainData.logs[i][key] = helper.arrayDataJoin(dataArray[i][key], '', ', ');
-          }
-        }
-      }
-
-      if (data[1].search) {
-        _.forEach(data[1].search, val => {
-          eventHistogram[val.searchName] = val.eventHistogram
         })
-      }
 
-      this.setState({
-        currentPage: tempCurrentPage,
-        oldPage: tempCurrentPage,
-        subSectionsData: tempSubSectionsData,
-        eventHistogram,
-        currentLength
-      });
+        let tempSubSectionsData = {...subSectionsData};
+        tempSubSectionsData.mainData.logs = tempArray;
+        tempSubSectionsData.fieldsData.logs = tempFields;
+        tempSubSectionsData.totalCount.logs = dataObj.counts;
+
+        const tempCurrentPage = options === 'search' ? 1 : currentPage;
+        const dataArray = tempSubSectionsData.mainData.logs;
+
+        for (var i = 0; i < dataArray.length; i++) {
+          for (var key in dataArray[i]) {
+            if (Array.isArray(dataArray[i][key])) {
+              tempSubSectionsData.mainData.logs[i][key] = helper.arrayDataJoin(dataArray[i][key], '', ', ');
+            }
+          }
+        }
+
+        if (data[1].search) {
+          _.forEach(data[1].search, val => {
+            eventHistogram[val.searchName] = val.eventHistogram
+          })
+        }
+
+        this.setState({
+          currentPage: tempCurrentPage,
+          oldPage: tempCurrentPage,
+          subSectionsData: tempSubSectionsData,
+          eventHistogram,
+          currentLength
+        });
+      }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);

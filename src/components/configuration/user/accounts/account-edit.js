@@ -82,21 +82,24 @@ class AccountEdit extends Component {
       }
     ])
     .then(data => {
-      const accountData = {
-        accountid: data[0].rt.accountid,
-        account: data[0].rt.account,
-        name: data[0].rt.name,
-        password: data[0].rt.password,
-        email: data[0].rt.email,
-        unit: data[0].rt.unit,
-        title: data[0].rt.title,
-        phone: data[0].rt.phone,
-        selected: _.map(data[1].rt, 'privilegeid')
-      };
+      if (data) {
+        const accountData = {
+          accountid: data[0].rt.accountid,
+          account: data[0].rt.account,
+          name: data[0].rt.name,
+          password: data[0].rt.password,
+          email: data[0].rt.email,
+          unit: data[0].rt.unit,
+          title: data[0].rt.title,
+          phone: data[0].rt.phone,
+          selected: _.map(data[1].rt, 'privilegeid')
+        };
 
-      this.setState({
-        accountData
-      });
+        this.setState({
+          accountData
+        });
+      }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -114,16 +117,19 @@ class AccountEdit extends Component {
       url: `${baseUrl}/api/account/privileges`
     })
     .then(data => {
-      const privileges = _.map(data.rt, el => {
-        return {
-          value: el.privilegeid,
-          text: el.name
-        };
-      })
+      if (data) {
+        const privileges = _.map(data.rt, el => {
+          return {
+            value: el.privilegeid,
+            text: el.name
+          };
+        })
 
-      this.setState({
-        privileges
-      });
+        this.setState({
+          privileges
+        });
+      }
+      return null;
     })
   }
   /**
@@ -153,18 +159,21 @@ class AccountEdit extends Component {
         dataType: 'json'
       })
       .then(data => {
-        const resId = id || data || data.rt;
+        if (data) {
+          const resId = id || data || data.rt;
 
-        this.setState({
-          id: resId
-        }, () => {
-          if (showPrivileges) {
-            this.savePrivileges();
-          } else {
-            this.close();
-            this.props.onDone();
-          }
-        });
+          this.setState({
+            id: resId
+          }, () => {
+            if (showPrivileges) {
+              this.savePrivileges();
+            } else {
+              this.close();
+              this.props.onDone();
+            }
+          });
+        }
+        return null;
       })
       .catch(err => {
         this.setState({
@@ -202,6 +211,7 @@ class AccountEdit extends Component {
         _.cloneDeep(INITIAL_STATE), () => {
         this.props.onDone();
       });
+      return null;
     })
     .catch(err => {
       this.setState({

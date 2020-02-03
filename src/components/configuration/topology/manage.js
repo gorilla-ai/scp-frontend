@@ -176,6 +176,7 @@ class Manage extends Component {
     })
     .then(data => {
       this.getNameList(tab.department ? 'department' : 'title');
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -322,7 +323,7 @@ class Manage extends Component {
     let requestData = {};
 
     if (!name.trim()) {
-      helper.showPopupMsg('', t('txt-error'), t('txt-noEmpty'));
+      helper.showPopupMsg(t('txt-nameInvalid'), t('txt-error'));
       return;
     }
 

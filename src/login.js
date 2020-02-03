@@ -91,6 +91,7 @@ class Login extends Component {
     .then(data => {
       const redirectURL = contextRoot || '/SCP';
       window.location.href = redirectURL;
+      return null;
     })
     .catch(err => {
       if (err.message === et('-1005')) {

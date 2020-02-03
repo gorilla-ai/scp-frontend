@@ -131,6 +131,7 @@ class Syslog extends Component {
           configRelationships: data.relationships
         });
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -227,38 +228,41 @@ class Syslog extends Component {
       type: 'GET'
     })
     .then(data => {
-      let tempSyslog = {...syslog};
-      tempSyslog.dataContent = data.rows;
-      tempSyslog.totalCount = data.counts;
-      tempSyslog.currentPage = flag ? 1 : syslog.currentPage;
+      if (data) {
+        let tempSyslog = {...syslog};
+        tempSyslog.dataContent = data.rows;
+        tempSyslog.totalCount = data.counts;
+        tempSyslog.currentPage = flag ? 1 : syslog.currentPage;
 
-      let tempFields = {};
-      dataFieldsArr.forEach(tempData => {
-        tempFields[tempData] = {
-          label: tempData === '_menu' ? '' : t(`syslogFields.${tempData}`),
-          sortable: (tempData === '_menu' || tempData === 'property') ? null : true,
-          formatter: (value, allValue, i) => {
-            if (tempData === '_menu') {
-              return (
-                <div className={cx('table-menu', {'active': value})}>
-                  <button onClick={this.handleRowContextMenu.bind(this, allValue)}><i className='fg fg-more'></i></button>
-                </div>
-              )
-            } else if (tempData === 'property') {
-              return <div className='flex-item'>{this.displayProperty(value)}</div>
-            } else {
-              return <span>{value}</span>;
+        let tempFields = {};
+        dataFieldsArr.forEach(tempData => {
+          tempFields[tempData] = {
+            label: tempData === '_menu' ? '' : t(`syslogFields.${tempData}`),
+            sortable: (tempData === '_menu' || tempData === 'property') ? null : true,
+            formatter: (value, allValue, i) => {
+              if (tempData === '_menu') {
+                return (
+                  <div className={cx('table-menu', {'active': value})}>
+                    <button onClick={this.handleRowContextMenu.bind(this, allValue)}><i className='fg fg-more'></i></button>
+                  </div>
+                )
+              } else if (tempData === 'property') {
+                return <div className='flex-item'>{this.displayProperty(value)}</div>
+              } else {
+                return <span>{value}</span>;
+              }
             }
           }
-        }
-      })
+        })
 
-      this.setState({
-        syslog: tempSyslog,
-        dataFields: tempFields
-      }, () => {
-        this.closeSyslog();
-      });
+        this.setState({
+          syslog: tempSyslog,
+          dataFields: tempFields
+        }, () => {
+          this.closeSyslog();
+        });
+      }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -335,6 +339,7 @@ class Syslog extends Component {
           rawOptions
         });
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -400,6 +405,7 @@ class Syslog extends Component {
     })
     .then(data => {
       this.getSyslogList(false);
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -452,6 +458,7 @@ class Syslog extends Component {
     })
     .then(data => {
       this.getSyslogList(false);
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -507,6 +514,7 @@ class Syslog extends Component {
           modalTitle: t('txt-edit')
         });
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -626,12 +634,15 @@ class Syslog extends Component {
       type: 'GET'
     })
     .then(data => {
-      let tempConfig = {...this.state.config};
-      tempConfig.input = data;
+      if (data) {
+        let tempConfig = {...this.state.config};
+        tempConfig.input = data;
 
-      this.setState({
-        config: tempConfig
-      });
+        this.setState({
+          config: tempConfig
+        });
+      }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -819,7 +830,7 @@ class Syslog extends Component {
     })
     .then(data => {
       if (data) {
-      const hostsArr = _.map(data.hosts, (key, value) => {
+        const hostsArr = _.map(data.hosts, (key, value) => {
           return {
             ip: value,
             events: key
@@ -836,6 +847,7 @@ class Syslog extends Component {
           eventsData: tempEventsData
         });     
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);

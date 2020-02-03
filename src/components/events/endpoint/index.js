@@ -192,31 +192,36 @@ class Endpoint extends Component {
       type: 'GET'
     })
     .then(data => {
-      let tempTaskTable = {...taskTable};
-      tempTaskTable.dataContent = data.rows;
-      tempTaskTable.totalCount = data.counts;
+      if (data) {
+        let tempTaskTable = {...taskTable};
+        tempTaskTable.dataContent = data.rows;
+        tempTaskTable.totalCount = data.counts;
 
-      let dataFields = {};
-      taskTable.dataFieldsArr.forEach(tempData => {
-        dataFields[tempData] = {
-          label: f(`hmdFields.${tempData}`),
-          sortable: true,
-          formatter: (value, allValue) => {
-            if (tempData.indexOf('Dttm') > 0) {
-              return <span>{helper.getFormattedDate(value)}</span>
-            } else {
-              return <span>{value}</span>
+        let dataFields = {};
+        taskTable.dataFieldsArr.forEach(tempData => {
+          dataFields[tempData] = {
+            label: f(`hmdFields.${tempData}`),
+            sortable: true,
+            formatter: (value, allValue) => {
+              if (tempData.indexOf('Dttm') > 0) {
+                return <span>{helper.getFormattedDate(value)}</span>
+              } else {
+                return <span>{value}</span>
+              }
             }
-          }
-        };
-      })
+          };
+        })
 
-      tempTaskTable.dataFields = dataFields;
+        tempTaskTable.dataFields = dataFields;
 
-      this.setState({
-        viewTaskOpen: true,
-        taskTable: tempTaskTable
-      });
+        this.setState({
+          viewTaskOpen: true,
+          taskTable: tempTaskTable
+        });
+      } else {
+        helper.showPopupMsg(t('txt-notFound'));
+        return;
+      }
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);

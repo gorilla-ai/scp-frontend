@@ -234,6 +234,7 @@ class Notifications extends Component {
         this.getMailServerInfo();
         this.toggleContent('viewMode');
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -429,6 +430,7 @@ class Notifications extends Component {
         helper.showPopupMsg(t('notifications.txt-sendFail'));
       }
       this.closeDialog();
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);

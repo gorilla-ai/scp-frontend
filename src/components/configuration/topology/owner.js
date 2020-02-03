@@ -107,32 +107,35 @@ class NetworkOwner extends Component {
 
     this.ah.all(apiArr)
     .then(data => {
-      let tempList = {...list};
-      let departmentList = [];
-      let titleList = [];
+      if (data) {
+        let tempList = {...list};
+        let departmentList = [];
+        let titleList = [];
 
-      _.forEach(data[0], val => {
-        departmentList.push({
-          value: val.nameUUID,
-          text: val.name
+        _.forEach(data[0], val => {
+          departmentList.push({
+            value: val.nameUUID,
+            text: val.name
+          });
+        })
+
+        _.forEach(data[1], val => {
+          titleList.push({
+            value: val.nameUUID,
+            text: val.name
+          });
+        })
+
+        tempList.department = _.cloneDeep(departmentList);
+        tempList.title = _.cloneDeep(titleList);
+        tempList.department.unshift({value: 'all', text: t('txt-all')});
+        tempList.title.unshift({value: 'all', text: t('txt-all')});
+
+        this.setState({
+          list: tempList
         });
-      })
-
-      _.forEach(data[1], val => {
-        titleList.push({
-          value: val.nameUUID,
-          text: val.name
-        });
-      })
-
-      tempList.department = _.cloneDeep(departmentList);
-      tempList.title = _.cloneDeep(titleList);
-      tempList.department.unshift({value: 'all', text: t('txt-all')});
-      tempList.title.unshift({value: 'all', text: t('txt-all')});
-
-      this.setState({
-        list: tempList
-      });
+      }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -172,48 +175,51 @@ class NetworkOwner extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      let tempOwner = {...owner};
-      tempOwner.dataContent = data.rows;
-      tempOwner.totalCount = data.counts;
-      tempOwner.currentPage = fromSearch === 'search' ? 1 : owner.currentPage;
+      if (data) {
+        let tempOwner = {...owner};
+        tempOwner.dataContent = data.rows;
+        tempOwner.totalCount = data.counts;
+        tempOwner.currentPage = fromSearch === 'search' ? 1 : owner.currentPage;
 
-      let dataFields = {};
-      owner.dataFieldsArr.forEach(tempData => {
-        dataFields[tempData] = {
-          label: tempData === '_menu' ? '' : t(`ownerFields.${tempData}`),
-          sortable: (tempData === 'ownerID' || tempData === 'ownerName') ? true : null,
-          formatter: (value, allValue) => {
-            if (tempData === '_menu') {
-              return (
-                <div className={cx('table-menu', {'active': value})}>
-                  <button onClick={this.handleRowContextMenu.bind(this, allValue)}><i className='fg fg-more'></i></button>
-                </div>
-              )
-            } else {
-              return <span>{value}</span>
+        let dataFields = {};
+        owner.dataFieldsArr.forEach(tempData => {
+          dataFields[tempData] = {
+            label: tempData === '_menu' ? '' : t(`ownerFields.${tempData}`),
+            sortable: (tempData === 'ownerID' || tempData === 'ownerName') ? true : null,
+            formatter: (value, allValue) => {
+              if (tempData === '_menu') {
+                return (
+                  <div className={cx('table-menu', {'active': value})}>
+                    <button onClick={this.handleRowContextMenu.bind(this, allValue)}><i className='fg fg-more'></i></button>
+                  </div>
+                )
+              } else {
+                return <span>{value}</span>
+              }
             }
-          }
-        };
-      })
-
-      tempOwner.dataFields = dataFields;
-
-      if (!fromSearch) {
-        let ownerListArr = [];
-
-        _.forEach(data.rows, val => {
-          ownerListArr.push({
-            value: val.ownerName,
-            text: val.ownerName
-          });
+          };
         })
 
-        tempOwner.ownerListArr = ownerListArr;
-      }
+        tempOwner.dataFields = dataFields;
 
-      this.setState({
-        owner: tempOwner
-      });
+        if (!fromSearch) {
+          let ownerListArr = [];
+
+          _.forEach(data.rows, val => {
+            ownerListArr.push({
+              value: val.ownerName,
+              text: val.ownerName
+            });
+          })
+
+          tempOwner.ownerListArr = ownerListArr;
+        }
+
+        this.setState({
+          owner: tempOwner
+        });
+      }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -339,6 +345,7 @@ class NetworkOwner extends Component {
           this.toggleContent('addOwner', 'edit');
         });
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -481,6 +488,7 @@ class NetworkOwner extends Component {
       this.getSearchData();
       this.getOwnerData();
       this.toggleContent('tableList');
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -547,6 +555,7 @@ class NetworkOwner extends Component {
       if (data.ret === 0) {
         this.getOwnerData();
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);

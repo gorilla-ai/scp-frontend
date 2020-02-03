@@ -68,59 +68,61 @@ class Status extends Component {
       type: 'GET'
     })
     .then(data => {
-      let tempServiceStatus = {...serviceStatus};
-      tempServiceStatus.lastUpdateTime = helper.getFormattedDate(data.lastUpdateDttm, 'local');
-      tempServiceStatus.dataContent = data.monitor;
+      if (data) {
+        let tempServiceStatus = {...serviceStatus};
+        tempServiceStatus.lastUpdateTime = helper.getFormattedDate(data.lastUpdateDttm, 'local');
+        tempServiceStatus.dataContent = data.monitor;
 
-      let dataFields = {};
-      serviceStatus.dataFieldsArr.forEach(tempData => {
-        dataFields[tempData] = {
-          label: f(`serviceStatusFields.${tempData}`),
-          sortable: true,
-          formatter: (value, allValue, i) => {
-            if (tempData === 'status') {
-              let styleStatus = '';
-              let title = '';
+        let dataFields = {};
+        serviceStatus.dataFieldsArr.forEach(tempData => {
+          dataFields[tempData] = {
+            label: f(`serviceStatusFields.${tempData}`),
+            sortable: true,
+            formatter: (value, allValue, i) => {
+              if (tempData === 'status') {
+                let styleStatus = '';
+                let title = '';
 
-              if (value.toLowerCase() === 'active') {
-                styleStatus = '#22ac38';
-                title = t('txt-online');
-              } else if (value.toLowerCase() === 'unstable') {
-                styleStatus = '#e6e448';
-                title = t('txt-offline');
-              } else {
-                styleStatus = '#d0021b';
-                title = t('txt-unstable');
+                if (value.toLowerCase() === 'active') {
+                  styleStatus = '#22ac38';
+                  title = t('txt-online');
+                } else if (value.toLowerCase() === 'unstable') {
+                  styleStatus = '#e6e448';
+                  title = t('txt-offline');
+                } else {
+                  styleStatus = '#d0021b';
+                  title = t('txt-unstable');
+                }
+
+                return <div style={{color : styleStatus}}><i className='fg fg-recode' title={title} /></div>
               }
+              if (tempData === 'serviceName') {
+                let tooltip = '';
 
-              return <div style={{color : styleStatus}}><i className='fg fg-recode' title={title} /></div>
+                if (allValue.responseCode) {
+                  tooltip += allValue.responseCode + ': ';
+                } else {
+                  tooltip += 'N/A: ';
+                }
+
+                if (allValue.reponseMsg) {
+                  tooltip += allValue.reponseMsg;
+                } else {
+                  tooltip += 'N/A';
+                }
+
+                return <span>{value} <i className='fg fg-info' title={tooltip}></i></span>
+              }
             }
-            if (tempData === 'serviceName') {
-              let tooltip = '';
+          };
+        })
 
-              if (allValue.responseCode) {
-                tooltip += allValue.responseCode + ': ';
-              } else {
-                tooltip += 'N/A: ';
-              }
+        tempServiceStatus.dataFields = dataFields;
 
-              if (allValue.reponseMsg) {
-                tooltip += allValue.reponseMsg;
-              } else {
-                tooltip += 'N/A';
-              }
-
-              return <span>{value} <i className='fg fg-info' title={tooltip}></i></span>
-            }
-          }
-        };
-      })
-
-      tempServiceStatus.dataFields = dataFields;
-
-      this.setState({
-        serviceStatus: tempServiceStatus
-      });
+        this.setState({
+          serviceStatus: tempServiceStatus
+        });
+      }
       return null;
     })
     .catch(err => {

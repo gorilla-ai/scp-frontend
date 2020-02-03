@@ -132,7 +132,6 @@ class HMDscanInfo extends Component {
     if (currentDeviceData[resultType].taskCreateDttm && currentDeviceData[resultType].taskResponseDttm) {
       const createTime = helper.getFormattedDate(currentDeviceData[resultType].taskCreateDttm, 'local');
       const responseTime = helper.getFormattedDate(currentDeviceData[resultType].taskResponseDttm, 'local');
-
       return Moment(createTime).isAfter(responseTime);
     }
   }

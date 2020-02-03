@@ -128,36 +128,37 @@ class FloorMap extends Component {
       type: 'GET'
     })
     .then(data => {
-      const areaName = data.areaName;
-      const areaUUID = data.areaUUID;
-      let currentMap = '';
+      if (data) {
+        let currentMap = '';
 
-      if (data.picPath) {
-        const picPath = `${baseUrl}${contextRoot}/api/area/_image?path=${data.picPath}`;
-        const picWidth = data.picWidth;
-        const picHeight = data.picHeight;
+        if (data.picPath) {
+          const picPath = `${baseUrl}${contextRoot}/api/area/_image?path=${data.picPath}`;
+          const picWidth = data.picWidth;
+          const picHeight = data.picHeight;
 
-        currentMap = {
-          label: areaName,
-          images: [
-            {
-              id: areaUUID,
-              url: picPath,
-              size: {width: picWidth, height: picHeight}
-            }
-          ]
+          currentMap = {
+            label: data.areaName,
+            images: [
+              {
+                id: data.areaUUID,
+                url: picPath,
+                size: {width: picWidth, height: picHeight}
+              }
+            ]
+          };
+        }
+
+        const currentBaseLayers = {
+          [floorPlan]: currentMap
         };
+
+        this.setState({
+          mapAreaUUID: floorPlan,
+          currentMap,
+          currentBaseLayers
+        });
+        return null;
       }
-
-      const currentBaseLayers = {};
-      currentBaseLayers[floorPlan] = currentMap;
-
-      this.setState({
-        mapAreaUUID: floorPlan,
-        currentMap,
-        currentBaseLayers
-      });
-      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -346,6 +347,7 @@ class FloorMap extends Component {
           this.getFloorPlan();
         });
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), t('network-topology.txt-deleteChild'));
@@ -587,14 +589,13 @@ class FloorMap extends Component {
       contentType: false
     })
     .then(data => {
-      this.getFloorPlan();
-
       if (data) {
         this.getAreaData(data, 'setAreaUUID');
       } else {
         this.getAreaData();
       }
 
+      this.getFloorPlan();
       this.closeDialog('reload');
       return null;
     })

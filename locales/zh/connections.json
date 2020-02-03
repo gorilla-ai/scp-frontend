@@ -167,7 +167,7 @@
   "txt-network-map": "樓層圖",
   "txt-selected-node": "選擇樓層節點",
   "txt-mixName":"部門與職稱管理",
-  "txt-noEmpty": "名稱不得為空白",
+  "txt-nameInvalid": "請輸入名稱",
   "txt-memoMaxLength": "上限250字",
   "txt-updateTime": "更新時間",
 
@@ -453,6 +453,7 @@
     "txt-fromSeat": "從$t(txt-seat)",
     "txt-selected-node": "選擇樓層節點",
     "txt-ipValidationFail": "請輸入正確IP格式",
+    "txt-seatNameEmpty": "請輸入座位名稱",
 
     "txt-addOwner": "$t(txt-add)$t(ipFields.owner)",
     "txt-editOwner": "$t(txt-edit)$t(ipFields.owner)",

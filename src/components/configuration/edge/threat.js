@@ -137,6 +137,7 @@ class ThreatIntelligence extends Component {
           acuIndicatorsTrendData
         });
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -262,6 +263,7 @@ class ThreatIntelligence extends Component {
       this.setState({
         file: {}
       });
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);

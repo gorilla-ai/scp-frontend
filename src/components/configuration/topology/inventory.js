@@ -284,121 +284,124 @@ class NetworkInventory extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (options === 'oneSeat') {
-        let currentDeviceData = {};
+      if (data) {
+        if (options === 'oneSeat') {
+          let currentDeviceData = {};
 
-        if (data.counts > 0) {
-          currentDeviceData = data.rows[0];
+          if (data.counts > 0) {
+            currentDeviceData = data.rows[0];
+          }
+
+          this.setState({
+            showSeatData: true,
+            currentDeviceData
+          });
+          return null;
         }
 
-        this.setState({
-          showSeatData: true,
-          currentDeviceData
+        let tempDeviceData = {...deviceData};
+        tempDeviceData.dataContent = _.map(data.rows, item => {
+          return {
+            ...item,
+            _menu: true
+          };
         });
-        return null;
-      }
 
-      let tempDeviceData = {...deviceData};
-      tempDeviceData.dataContent = _.map(data.rows, item => {
-        return {
-          ...item,
-          _menu: true
-        };
-      });
+        tempDeviceData.totalCount = data.counts;
+        tempDeviceData.currentPage = fromSearch === 'search' ? 1 : deviceData.currentPage;
 
-      tempDeviceData.totalCount = data.counts;
-      tempDeviceData.currentPage = fromSearch === 'search' ? 1 : deviceData.currentPage;
+        //HMD only
+        let hmdDataOnly = [];
 
-      //HMD only
-      let hmdDataOnly = [];
+        _.forEach(data.rows, val => {
+          if (val.isHmd) {
+            hmdDataOnly.push(val);
+          }
+        });
 
-      _.forEach(data.rows, val => {
-        if (val.isHmd) {
-          hmdDataOnly.push(val);
-        }
-      });
+        tempDeviceData.hmdOnly.dataContent = hmdDataOnly;
+        tempDeviceData.hmdOnly.currentIndex = 0;
+        tempDeviceData.hmdOnly.currentLength = hmdDataOnly.length;
 
-      tempDeviceData.hmdOnly.dataContent = hmdDataOnly;
-      tempDeviceData.hmdOnly.currentIndex = 0;
-      tempDeviceData.hmdOnly.currentLength = hmdDataOnly.length;
+        let tempFields = {};
+        deviceData.dataFieldsArr.forEach(tempData => {
+          tempFields[tempData] = {
+            label: tempData === '_menu' ? '' : t(`ipFields.${tempData}`),
+            sortable: this.checkSortable(tempData),
+            formatter: (value, allValue, i) => {
+              if (tempData === 'owner') {
+                if (allValue.ownerObj) {
+                  return <span>{allValue.ownerObj.ownerName}</span>
+                } else {
+                  return <span>{value}</span>
+                }
+              } else if (tempData === 'areaName') {
+                if (allValue.areaObj) {
+                  return <span>{allValue.areaObj.areaName}</span>
+                }
+              } else if (tempData === 'seatName') {
+                if (allValue.seatObj) {
+                  return <span>{allValue.seatObj.seatName}</span>
+                }
+              } else if (tempData === 'scanInfo') {
+                let hmdInfo = [];
 
-      let tempFields = {};
-      deviceData.dataFieldsArr.forEach(tempData => {
-        tempFields[tempData] = {
-          label: tempData === '_menu' ? '' : t(`ipFields.${tempData}`),
-          sortable: this.checkSortable(tempData),
-          formatter: (value, allValue, i) => {
-            if (tempData === 'owner') {
-              if (allValue.ownerObj) {
-                return <span>{allValue.ownerObj.ownerName}</span>
+                _.forEach(SAFETY_SCAN_LIST, val => { //Construct the HMD info array
+                  const dataType = val.type + 'Result';
+                  const currentDataObj = allValue[dataType];
+
+                  if (!_.isEmpty(currentDataObj)) {
+                    hmdInfo.push({
+                      type: val.type,
+                      name: t('network-inventory.scan-list.txt-' + val.type),
+                      result: currentDataObj[val.path]
+                    });
+                  }
+                })
+
+                return (
+                  <ul>
+                    {hmdInfo.map(this.getHMDinfo)}
+                  </ul>
+                )
+              } else if (tempData === '_menu') {
+                return (
+                  <div className='table-menu menu active'>
+                    <i className='fg fg-eye' onClick={this.openMenu.bind(this, 'view', allValue, i)} title={t('network-inventory.txt-viewDevice')}></i>
+                    {allValue.isHmd &&
+                      <i className='fg fg-chart-kpi' onClick={this.openMenu.bind(this, 'hmd', allValue, i)} title={t('network-inventory.txt-viewHMD')}></i>
+                    }
+                    <i className='fg fg-trashcan' onClick={this.openMenu.bind(this, 'delete', allValue)} title={t('network-inventory.txt-deleteDevice')}></i>
+                  </div>
+                )
               } else {
                 return <span>{value}</span>
               }
-            } else if (tempData === 'areaName') {
-              if (allValue.areaObj) {
-                return <span>{allValue.areaObj.areaName}</span>
-              }
-            } else if (tempData === 'seatName') {
-              if (allValue.seatObj) {
-                return <span>{allValue.seatObj.seatName}</span>
-              }
-            } else if (tempData === 'scanInfo') {
-              let hmdInfo = [];
-
-              _.forEach(SAFETY_SCAN_LIST, val => { //Construct the HMD info array
-                const dataType = val.type + 'Result';
-                const currentDataObj = allValue[dataType];
-
-                if (!_.isEmpty(currentDataObj)) {
-                  hmdInfo.push({
-                    type: val.type,
-                    name: t('network-inventory.scan-list.txt-' + val.type),
-                    result: currentDataObj[val.path]
-                  });
-                }
-              })
-
-              return (
-                <ul>
-                  {hmdInfo.map(this.getHMDinfo)}
-                </ul>
-              )
-            } else if (tempData === '_menu') {
-              return (
-                <div className='table-menu menu active'>
-                  <i className='fg fg-eye' onClick={this.openMenu.bind(this, 'view', allValue, i)} title={t('network-inventory.txt-viewDevice')}></i>
-                  {allValue.isHmd &&
-                    <i className='fg fg-chart-kpi' onClick={this.openMenu.bind(this, 'hmd', allValue, i)} title={t('network-inventory.txt-viewHMD')}></i>
-                  }
-                  <i className='fg fg-trashcan' onClick={this.openMenu.bind(this, 'delete', allValue)} title={t('network-inventory.txt-deleteDevice')}></i>
-                </div>
-              )
-            } else {
-              return <span>{value}</span>
             }
-          }
-        };
-      })
-
-      tempDeviceData.dataFields = tempFields;
-
-      if (!fromSearch) {
-        let ipListArr = [];
-
-        _.forEach(data.rows, val => {
-          ipListArr.push({
-            value: val.ip,
-            text: val.ip
-          });
+          };
         })
 
-        tempDeviceData.ipListArr = ipListArr;
-      }
+        tempDeviceData.dataFields = tempFields;
 
-      this.setState({
-        deviceData: tempDeviceData,
-        activeIPdeviceUUID: ''
-      });
+        if (!fromSearch) {
+          let ipListArr = [];
+
+          _.forEach(data.rows, val => {
+            ipListArr.push({
+              value: val.ip,
+              text: val.ip
+            });
+          })
+
+          tempDeviceData.ipListArr = ipListArr;
+        }
+
+        this.setState({
+          deviceData: tempDeviceData,
+          activeIPdeviceUUID: ''
+        });
+      }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -436,6 +439,7 @@ class NetworkInventory extends Component {
           });
         }
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'));
@@ -468,8 +472,8 @@ class NetworkInventory extends Component {
         } else {
           this.getDeviceData(); //No device data is found
         }
-        return null;
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -501,47 +505,50 @@ class NetworkInventory extends Component {
 
     this.ah.all(apiArr)
     .then(data => {
-      let departmentList = [];
-      let titleList = [];
-      let tempAddIP = {...addIP};
+      if (data) {
+        let departmentList = [];
+        let titleList = [];
+        let tempAddIP = {...addIP};
 
-      if (!_.isEmpty(data[0])) {
-        _.forEach(data[0], val => {
-          departmentList.push({
-            value: val.nameUUID,
-            text: val.name
+        if (!_.isEmpty(data[0])) {
+          _.forEach(data[0], val => {
+            departmentList.push({
+              value: val.nameUUID,
+              text: val.name
+            });
+          })
+
+          if (departmentList[0]) {
+            tempAddIP.newDepartment = departmentList[0].value;
+          }
+
+          this.setState({
+            departmentList,
+            addIP: tempAddIP
           });
-        })
-
-        if (departmentList[0]) {
-          tempAddIP.newDepartment = departmentList[0].value;
         }
 
-        this.setState({
-          departmentList,
-          addIP: tempAddIP
-        });
-      }
+        if (!_.isEmpty(data[1])) {
+          _.forEach(data[1], val => {
+            titleList.push({
+              value: val.nameUUID,
+              text: val.name
+            });
+          })
 
-      if (!_.isEmpty(data[1])) {
-        _.forEach(data[1], val => {
-          titleList.push({
-            value: val.nameUUID,
-            text: val.name
+          if (titleList[0]) {
+            tempAddIP.newTitle = titleList[0].value;
+          }
+
+          this.setState({
+            titleList,
+            addIP: tempAddIP
+          }, () => {
+            this.getFloorPlan(options);
           });
-        })
-
-        if (titleList[0]) {
-          tempAddIP.newTitle = titleList[0].value;
         }
-
-        this.setState({
-          titleList,
-          addIP: tempAddIP
-        }, () => {
-          this.getFloorPlan(options);
-        });
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -646,6 +653,7 @@ class NetworkInventory extends Component {
           this.getFloorList(options);
         });
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -708,36 +716,40 @@ class NetworkInventory extends Component {
       type: 'GET'
     })
     .then(data => {
-      const areaName = data.areaName;
-      const areaUUID = data.areaUUID;
-      let currentMap = {};
+      if (data) {
+        const areaName = data.areaName;
+        const areaUUID = data.areaUUID;
+        let currentMap = {};
 
-      if (data.picPath) {
-        const picPath = `${baseUrl}${contextRoot}/api/area/_image?path=${data.picPath}`;
-        const picWidth = data.picWidth;
-        const picHeight = data.picHeight;
+        if (data.picPath) {
+          const picPath = `${baseUrl}${contextRoot}/api/area/_image?path=${data.picPath}`;
+          const picWidth = data.picWidth;
+          const picHeight = data.picHeight;
 
-        currentMap = {
-          label: areaName,
-          images: [
-            {
-              id: areaUUID,
-              url: picPath,
-              size: {width: picWidth, height: picHeight}
-            }
-          ]
+          currentMap = {
+            label: areaName,
+            images: [
+              {
+                id: areaUUID,
+                url: picPath,
+                size: {width: picWidth, height: picHeight}
+              }
+            ]
+          };
+        }
+
+        const currentBaseLayers = {
+          [mapAreaUUID]: currentMap
         };
+
+        this.setState({
+          mapAreaUUID,
+          currentMap,
+          currentBaseLayers,
+          currentFloor: areaUUID
+        });
       }
-
-      let currentBaseLayers = {};
-      currentBaseLayers[mapAreaUUID] = currentMap;
-
-      this.setState({
-        mapAreaUUID,
-        currentMap,
-        currentBaseLayers,
-        currentFloor: areaUUID
-      });
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -766,33 +778,35 @@ class NetworkInventory extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      const seatData = {};
-      let seatListArr = [];
+      if (data) {
+        const seatData = {};
+        let seatListArr = [];
 
-      _.forEach(data, val => {
-        seatListArr.push({
-          id: val.seatUUID,
-          type: 'marker',
-          xy: [val.coordX, val.coordY],
-          icon: {
-            iconUrl: `${contextRoot}/images/ic_person.png`,
-            iconSize: [25, 25],
-            iconAnchor: [12.5, 12.5]
-          },
-          label: val.seatName,
-          data: {
-            name: val.seatName
-          }
+        _.forEach(data, val => {
+          seatListArr.push({
+            id: val.seatUUID,
+            type: 'marker',
+            xy: [val.coordX, val.coordY],
+            icon: {
+              iconUrl: `${contextRoot}/images/ic_person.png`,
+              iconSize: [25, 25],
+              iconAnchor: [12.5, 12.5]
+            },
+            label: val.seatName,
+            data: {
+              name: val.seatName
+            }
+          });
+        })
+
+        seatData[area] = {
+          data: seatListArr
+        };
+
+        this.setState({
+          seatData
         });
-      })
-
-      seatData[area] = {
-        data: seatListArr
-      };
-
-      this.setState({
-        seatData
-      });
+      }
       return null;
     })
   }
@@ -1069,6 +1083,7 @@ class NetworkInventory extends Component {
         this.getDeviceData();
         this.closeDialog('reload');
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -1183,6 +1198,7 @@ class NetworkInventory extends Component {
           activeIPdeviceUUID: ipDeviceUUID
         });
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -1206,16 +1222,13 @@ class NetworkInventory extends Component {
     helper.getAjaxData('POST', url, requestData)
     .then(data => {
       if (data) {
-        PopupDialog.alert({
-          id: 'tiggerTaskModal',
-          confirmText: t('txt-close'),
-          display: <div>{t('txt-requestSent')}</div>
-        });
+        helper.showPopupMsg(t('txt-requestSent'));
 
         if (type.length > 0 && options !== 'fromInventory') {
           this.getIPdeviceInfo('', currentDeviceData.ipDeviceUUID);
         }
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'));
@@ -1864,6 +1877,7 @@ class NetworkInventory extends Component {
               helper.showPopupMsg(t('txt-uploadEmpty'));
             }
           }
+          return null;
         })
         .catch(err => {
           helper.showPopupMsg('', t('txt-error'));
@@ -1929,6 +1943,7 @@ class NetworkInventory extends Component {
           });
         }
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -2015,6 +2030,7 @@ class NetworkInventory extends Component {
           const ownerUUID = data;
           this.handleIPdeviceConfirm(ownerUUID);
         }
+        return null;
       })
       .catch(err => {
         helper.showPopupMsg('', t('txt-error'), err.message);
@@ -2082,6 +2098,7 @@ class NetworkInventory extends Component {
           this.toggleContent('showList');
         }
       }
+      return null;
     })
     .catch(err => {
       this.showPopupMsg('', t('txt-error'), err.message);
@@ -2162,6 +2179,7 @@ class NetworkInventory extends Component {
           addIP: tempAddIP
         });
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -2800,6 +2818,11 @@ class NetworkInventory extends Component {
       currentAreaUUID = currentDeviceData.areaUUID;
     }
 
+    if (!addSeat.name) {
+      helper.showPopupMsg(t('network-topology.txt-seatNameEmpty'), t('txt-error'));
+      return;
+    }
+
     const requestData = {
       areaUUID: currentAreaUUID,
       seatName: addSeat.name,
@@ -2823,6 +2846,7 @@ class NetworkInventory extends Component {
           this.getSeatData(currentAreaUUID);
         });
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'));
