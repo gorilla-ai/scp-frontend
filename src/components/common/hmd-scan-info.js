@@ -13,8 +13,6 @@ import {BaseDataContext} from './context';
 import helper from './helper'
 import withLocale from '../../hoc/locale-provider'
 
-import {HocArrowTree as ArrowTree} from './arrow-tree'
-
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const NOT_AVAILABLE = 'N/A';
@@ -49,45 +47,6 @@ const TRIGGER_NAME = {
 
 let t = null;
 let f = null;
-
-const TREE_DATA = {
-  "id": "home",
-  "label": "Home",
-  "children": [
-    {
-      "id": "rule",
-      "label": "規則",
-      "children": [
-        {
-          "children": [
-            {
-              "id": "Check_unhandledExceptionFiler_iat",
-              "label": "Check_unhandledExceptionFiler_iat",
-              "content": 'rule rat_webcam { meta: author = "x0r" description = "Remote Administration toolkit using webcam" version = "0.1" strings: $f1 = "avicap32.dll" nocase $c1 = "capCreateCaptureWindow" nocase condition: all of them }'
-            },
-            {
-              "id": "DebuggerException__UnhandledFilter",
-              "label": "DebuggerException__UnhandledFilter",
-              "content": 'rule DebuggerTiming__Ticks : AntiDebug DebuggerTiming { meta: weight = 1 Author = "naxonez" reference = "https:\//github.com/naxonez/yaraRules/blob/master/AntiDebugging.yara" strings: $ ="GetTickCount" condition: any of them }'
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "DLLs",
-      "label": "DLLs",
-      "children": [
-        {
-          "content": "C:\Windows\System32\svchost.exe"
-        },
-        {
-          "content": "C:\Windows\SYSTEM32\ntdll.dll"
-        }
-      ]
-    }
-  ]
-};
 
 /**
  * HMD Scan Info
@@ -555,9 +514,7 @@ class HMDscanInfo extends Component {
             </div>
           }
           {(!hmdInfo[activeTab].result || hmdInfo[activeTab].result.length === 0) &&
-            <ArrowTree
-              data={TREE_DATA} />
-            //<div className='empty-msg'>{NOT_AVAILABLE}</div>
+            <div className='empty-msg'>{NOT_AVAILABLE}</div>
           }
         </div>
       )
