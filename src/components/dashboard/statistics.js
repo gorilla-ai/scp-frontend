@@ -73,11 +73,12 @@ class DashboardStats extends Component {
 
     this.state = {
       datetime: {
-        from: helper.getStartDate('day'),
+        from: helper.getSubstractDate(24, 'hours'),
         to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
         //from: '2019-08-06T01:00:00Z',
         //to: '2019-08-07T02:02:13Z'
       },
+      past24hTime: helper.getFormattedDate(helper.getSubstractDate(24, 'hours')),
       updatedTime: helper.getFormattedDate(Moment()),
       alertDataArr: [],
       internalMaskedIp: [],
@@ -325,6 +326,7 @@ class DashboardStats extends Component {
         }
 
         this.setState({
+          past24hTime: helper.getFormattedDate(helper.getSubstractDate(24, 'hours')),
           updatedTime: helper.getFormattedDate(Moment()),
           alertDataArr,
           internalMaskedIp,
@@ -428,7 +430,7 @@ class DashboardStats extends Component {
     let type = '';
 
     if (_.includes(syslogChart, chartID)) {
-      const url = `${baseUrl}${contextRoot}/events/syslog?configSource=${data}&interval=today`;
+      const url = `${baseUrl}${contextRoot}/events/syslog?configSource=${data}&interval=24h`;
       window.open(url, '_blank');
       return;
     }
@@ -450,7 +452,7 @@ class DashboardStats extends Component {
       return;
     }
 
-    const url = `${baseUrl}${contextRoot}/threats?type=${type}&data=${data}&interval=today&lng=${language}`;
+    const url = `${baseUrl}${contextRoot}/threats?type=${type}&data=${data}&interval=24h&lng=${language}`;
     window.open(url, '_blank');
   }
   /**
@@ -543,6 +545,7 @@ class DashboardStats extends Component {
   }
   render() {
     const {
+      past24hTime,
       updatedTime,
       alertDataArr,
       internalMaskedIp,
@@ -551,12 +554,13 @@ class DashboardStats extends Component {
       diskMetricData
     } = this.state;
     const metricsData = [dnsMetricData, diskMetricData];
+    const displayTime = past24hTime + ' - ' + updatedTime;
 
     return (
       <div>
         <div className='sub-header'>
           {helper.getDashboardMenu('statistics')}
-          <span className='date-time'>{updatedTime}</span>
+          <span className='date-time'>{displayTime}</span>
         </div>
 
         <div className='main-dashboard'>

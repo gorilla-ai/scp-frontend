@@ -1588,10 +1588,11 @@ class NetworkInventory extends Component {
     reader.onerror = error => reject(error);
 
     if (rABS) {
-      if (check.encoding === 'Big5' || check.encoding === 'UTF-8') {
-        reader.readAsText(file, check.encoding.toUpperCase());
+      if (check.encoding === 'UTF-8') {
+        reader.readAsText(file, 'UTF-8');
       } else {
-        reader.readAsBinaryString(file);
+        reader.readAsText(file, 'BIG5');
+        //reader.readAsBinaryString(file);
       }
     } else {
       reader.readAsArrayBuffer(file); 

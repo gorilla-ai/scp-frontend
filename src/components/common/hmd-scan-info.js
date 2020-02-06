@@ -65,7 +65,7 @@ class HMDscanInfo extends Component {
       activeRule: [],
       activeDLL: false,
       activeConnections: false,
-      malwareFieldsArr: ['_FileInfo._Filepath', '_FileInfo._Filesize', '_FileInfo._HashValues._MD5', '_IsPE', '_IsPEextension', '_IsVerifyTrust'],
+      malwareFieldsArr: ['_FileInfo._Filepath', '_FileInfo._Filesize', '_FileInfo._HashValues._MD5', '_IsPE', '_IsPEextension', '_IsVerifyTrust', 'hostIdArrCnt', 'totalHostCnt'],
       malwareSort: ['asc'],
       gcbFieldsArr: ['_CceId', '_OriginalKey', '_Type', '_CompareResult'],
       gcbSort: 'asc',
@@ -566,7 +566,7 @@ class HMDscanInfo extends Component {
   malwareDataTable = (activeTab, hmdInfo) => {
     return (
       <DataTable
-        className='main-table'
+        className='main-table maleware'
         fields={hmdInfo[activeTab].fields}
         data={hmdInfo[activeTab].result}
         onSort={this.handleTableSort} />
@@ -595,7 +595,7 @@ class HMDscanInfo extends Component {
    * @returns HTML DOM
    */
   getTableContent = (hmdInfo) => {
-    const {activeTab, malwareSort, gcbSort} = this.state;
+    const {activeTab} = this.state;
 
     if (!_.isEmpty(hmdInfo[activeTab].fields) && hmdInfo[activeTab].result.length > 0) {
       return (
@@ -703,6 +703,11 @@ class HMDscanInfo extends Component {
               }
 
               return <span style={{color : styleStatus}}>{value}</span>
+            }
+            if (tempData === 'hostIdArrCnt' || tempData === 'totalHostCnt') {
+              if (!allValue.hostIdArr) {
+                value = NOT_AVAILABLE;
+              }
             }
             return <span>{value}</span>
           }
