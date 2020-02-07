@@ -163,8 +163,7 @@ class NetworkInventory extends Component {
       },
       selectedTreeID: '',
       csvHeader: true,
-      failureTableFields: ['ip', 'mac', 'hostName'],
-      failureList: [],
+      ipUploadFields: ['ip', 'mac', 'hostName'],
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
     };
 
@@ -1588,11 +1587,14 @@ class NetworkInventory extends Component {
     reader.onerror = error => reject(error);
 
     if (rABS) {
-      if (check.encoding === 'UTF-8') {
-        reader.readAsText(file, 'UTF-8');
+      if (check.encoding) {
+        if (check.encoding === 'UTF-8') {
+          reader.readAsText(file, 'UTF-8');
+        } else { //If check.encoding is available, force to read as BIG5 encoding
+          reader.readAsText(file, 'BIG5');
+        }
       } else {
-        reader.readAsText(file, 'BIG5');
-        //reader.readAsBinaryString(file);
+        reader.readAsBinaryString(file);
       }
     } else {
       reader.readAsArrayBuffer(file); 
@@ -1762,12 +1764,13 @@ class NetworkInventory extends Component {
   /**
    * Display upload failure list
    * @method
+   * @param {object} data - uploaded data with success and fail list
    * @returns HTML DOM
    */
-  displayUploadFaulure = () => {
-    const {failureTableFields, failureList} = this.state;
+  displayUploadStatus = (data) => {
+    const {ipUploadFields} = this.state;
     let tableFields = {};
-    failureTableFields.forEach(tempData => {
+    ipUploadFields.forEach(tempData => {
       tableFields[tempData] = {
         label: t(`ipFields.${tempData}`),
         sortable: false,
@@ -1779,12 +1782,15 @@ class NetworkInventory extends Component {
 
     return (
       <div>
+        <div>{t('network-inventory.txt-total')}: {data.successList.length + data.failureList.length}</div>
+        <div>{t('network-inventory.txt-success')}: {data.successList.length}</div>
+        <div>{t('network-inventory.txt-fail')}: {data.failureList.length}</div>
         <div className='error-msg'>{t('network-inventory.txt-uploadFailed')}</div>
         <div className='table-data'>
           <DataTable
             className='main-table'
             fields={tableFields}
-            data={failureList} />
+            data={data.failureList} />
         </div>
       </div>
     )
@@ -1795,7 +1801,7 @@ class NetworkInventory extends Component {
    */
   uploadActions = (type) => {
     const {baseUrl} = this.context;
-    const {csvData, csvColumns, csvHeader, failureTableFields} = this.state;
+    const {csvData, csvColumns, csvHeader, ipUploadFields} = this.state;
     const ipPattern = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
 
     if (type === 'upload') {
@@ -1814,7 +1820,7 @@ class NetworkInventory extends Component {
           };
 
           if (i > 0) {
-            _.forEach(failureTableFields, val2 => {
+            _.forEach(ipUploadFields, val2 => {
               if (csvColumns[val2]) {
                 dataObj[val2] = val[Number(csvColumns[val2])].trim();
               }
@@ -1864,15 +1870,11 @@ class NetworkInventory extends Component {
                 this.getDeviceData();
               });
             } else if (data.failureList.length > 0) {
-              this.setState({
-                failureList: data.failureList
-              }, () => {
-                PopupDialog.alert({
-                  title: t('txt-uploadStatus'),
-                  id: 'batchUploadFailureModal',
-                  confirmText: t('txt-close'),
-                  display: this.displayUploadFaulure()
-                });
+              PopupDialog.alert({
+                title: t('txt-uploadStatus'),
+                id: 'batchUploadStatusModal',
+                confirmText: t('txt-close'),
+                display: this.displayUploadStatus(data)
               });
             } if (data.successList.length === 0 && data.failureList.length === 0) {
               helper.showPopupMsg(t('txt-uploadEmpty'));
