@@ -565,6 +565,7 @@
     "ip": "IP",
     "mac": "MAC",
     "owner": "所屬人員",
+    "userAccount": "使用者帳號",
     "userName": "人員",
     "disks": "$t(txt-disks)",
     "shareFolders": "$t(txt-shareFolders)",

@@ -490,7 +490,7 @@ class Notifications extends Component {
 
               <div className='form-group normal short'>
                 <header>{t('notifications.txt-emailSettings')}</header>
-                <button className='last' onClick={this.openEmailDialog}>{t('notifications.txt-testEmails')}</button>
+                <button className='last' onClick={this.openEmailDialog} disabled={activeContent === 'editMode'}>{t('notifications.txt-testEmails')}</button>
                 <div className='group'>
                   <label htmlFor='notificationsServer'>{t('notifications.txt-smtpServer')}</label>
                   <Input

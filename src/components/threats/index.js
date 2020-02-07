@@ -29,7 +29,7 @@ let et = null;
 const PRIVATE = 'private';
 const PUBLIC = 'public';
 const PRIVATE_API = {
-  name: 'Top10InternalMaskedIp',
+  name: 'InternalMaskedIp',
   path: 'srcIp'
 };
 const PUBLIC_API = {

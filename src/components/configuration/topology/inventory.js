@@ -2369,7 +2369,7 @@ class NetworkInventory extends Component {
                   readOnly={currentDeviceData.isHmd} />
               </div>
               <div className='group'>
-                <label htmlFor='addIPstepsUser'>{t('ipFields.owner')}</label>
+                <label htmlFor='addIPstepsUser'>{t('ipFields.userAccount')}</label>
                 <Input
                   id='addIPstepsUser'
                   onChange={this.handleAddIpChange.bind(this, 'userName')}

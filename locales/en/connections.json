@@ -565,6 +565,7 @@
     "ip": "IP",
     "mac": "MAC",
     "owner": "Owner",
+    "userAccount": "User Account",
     "userName": "User",
     "disks": "$t(txt-disks)",
     "shareFolders": "$t(txt-shareFolders)",
