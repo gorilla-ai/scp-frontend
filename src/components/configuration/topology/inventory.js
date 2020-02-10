@@ -102,7 +102,6 @@ class NetworkInventory extends Component {
         areaName: '',
         seatName: ''
       },
-      showHMDonly: false,
       hmdSearchOptions: {
         scanProcess: false,
         scanFile: false,
@@ -234,7 +233,7 @@ class NetworkInventory extends Component {
    */
   getDeviceData = (fromSearch, options, seatUUID) => {
     const {baseUrl} = this.context;
-    const {showHMDonly, hmdSearchOptions, deviceSearch, deviceData} = this.state;
+    const {hmdSearchOptions, deviceSearch, deviceData} = this.state;
     let dataParams = '';
 
     if (options === 'oneSeat') {
@@ -248,28 +247,31 @@ class NetworkInventory extends Component {
       const sort = deviceData.sort.desc ? 'desc' : 'asc';
       const orders = deviceData.sort.field + ' ' + sort;
 
-      if (showHMDonly) {
-        dataParams = 'isHmd=true';
-
-        if (hmdSearchOptions.scanProcess) {
-          dataParams += '&isScanProc=true';
+      _.forEach(hmdSearchOptions, (val, key) => {
+        if (hmdSearchOptions[key]) {
+          dataParams = 'isHmd=true'; //If HMD option is checked
+          return false;
         }
+      })
 
-        if (hmdSearchOptions.scanFile) {
-          dataParams += '&isScanFile=true';
-        }
+      if (hmdSearchOptions.scanProcess) {
+        dataParams += '&isScanProc=true';
+      }
 
-        if (hmdSearchOptions.malware) {
-          dataParams += '&isMalware=true';
-        }
+      if (hmdSearchOptions.scanFile) {
+        dataParams += '&isScanFile=true';
+      }
 
-        if (hmdSearchOptions.gcb) {
-          dataParams += '&isGCB=true';
-        }
+      if (hmdSearchOptions.malware) {
+        dataParams += '&isMalware=true';
+      }
 
-        if (hmdSearchOptions.ir) {
-          dataParams += '&isIR=true';
-        }
+      if (hmdSearchOptions.gcb) {
+        dataParams += '&isGCB=true';
+      }
+
+      if (hmdSearchOptions.ir) {
+        dataParams += '&isIR=true';
       }
 
       dataParams += `&page=${page}&pageSize=${pageSize}&orders=${orders}`;
@@ -837,16 +839,6 @@ class NetworkInventory extends Component {
     })
   }
   /**
-   * Toggle to show only HMD result
-   * @method
-   * @param {boolean} value - true/false
-   */
-  toggleHMDonly = (value) => {
-    this.setState({
-      showHMDonly: value
-    });
-  }
-  /**
    * Toggle HMD options
    * @method
    * @param {string} field - HMD option name
@@ -866,7 +858,7 @@ class NetworkInventory extends Component {
    * @returns HTML DOM
    */
   renderFilter = () => {
-    const {showFilter, showHMDonly, hmdSearchOptions, deviceSearch} = this.state;
+    const {showFilter, hmdSearchOptions, deviceSearch} = this.state;
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
@@ -930,53 +922,44 @@ class NetworkInventory extends Component {
               value={deviceSearch.seatName} />
           </div>
           <div className='group hmd'>
-            <div className='option'>
-              <label htmlFor='filterHMD'>HMD</label>
-              <Checkbox
-                id='filterHMD'
-                onChange={this.toggleHMDonly}
-                checked={showHMDonly} />
-            </div>
-
-            {showHMDonly &&
-              <div className='hmd-options'>
-                <div className='option'>
-                  <label htmlFor='hmdScanProcess'>Scan Process</label>
-                  <Checkbox
-                    id='hmdScanProcess'
-                    onChange={this.toggleHMDoptions.bind(this, 'scanProcess')}
-                    checked={hmdSearchOptions.scanProcess} />
-                </div>
-                <div className='option'>
-                  <label htmlFor='hmdScanProcess'>Scan File</label>
-                  <Checkbox
-                    id='hmdScanProcess'
-                    onChange={this.toggleHMDoptions.bind(this, 'scanFile')}
-                    checked={hmdSearchOptions.scanFile} />
-                </div>
-                <div className='option'>
-                  <label htmlFor='hmdScanProcess'>Malware</label>
-                  <Checkbox
-                    id='hmdScanProcess'
-                    onChange={this.toggleHMDoptions.bind(this, 'malware')}
-                    checked={hmdSearchOptions.malware} />
-                </div>
-                <div className='option'>
-                  <label htmlFor='hmdScanProcess'>GCB</label>
-                  <Checkbox
-                    id='hmdScanProcess'
-                    onChange={this.toggleHMDoptions.bind(this, 'gcb')}
-                    checked={hmdSearchOptions.gcb} />
-                </div>
-                <div className='option'>
-                  <label htmlFor='hmdScanProcess'>IR</label>
-                  <Checkbox
-                    id='hmdScanProcess'
-                    onChange={this.toggleHMDoptions.bind(this, 'ir')}
-                    checked={hmdSearchOptions.ir} />
-                </div>
+            <header>HMD</header>
+            <div className='hmd-options'>
+              <div className='option'>
+                <label htmlFor='hmdScanProcess'>Scan Process</label>
+                <Checkbox
+                  id='hmdScanProcess'
+                  onChange={this.toggleHMDoptions.bind(this, 'scanProcess')}
+                  checked={hmdSearchOptions.scanProcess} />
               </div>
-            }  
+              <div className='option'>
+                <label htmlFor='hmdScanProcess'>Scan File</label>
+                <Checkbox
+                  id='hmdScanProcess'
+                  onChange={this.toggleHMDoptions.bind(this, 'scanFile')}
+                  checked={hmdSearchOptions.scanFile} />
+              </div>
+              <div className='option'>
+                <label htmlFor='hmdScanProcess'>Malware</label>
+                <Checkbox
+                  id='hmdScanProcess'
+                  onChange={this.toggleHMDoptions.bind(this, 'malware')}
+                  checked={hmdSearchOptions.malware} />
+              </div>
+              <div className='option'>
+                <label htmlFor='hmdScanProcess'>GCB</label>
+                <Checkbox
+                  id='hmdScanProcess'
+                  onChange={this.toggleHMDoptions.bind(this, 'gcb')}
+                  checked={hmdSearchOptions.gcb} />
+              </div>
+              <div className='option'>
+                <label htmlFor='hmdScanProcess'>IR</label>
+                <Checkbox
+                  id='hmdScanProcess'
+                  onChange={this.toggleHMDoptions.bind(this, 'ir')}
+                  checked={hmdSearchOptions.ir} />
+              </div>
+            </div>
           </div>
         </div>
         <div className='button-group'>
@@ -1454,7 +1437,6 @@ class NetworkInventory extends Component {
         areaName: '',
         seatName: ''
       },
-      showHMDonly: false,
       hmdSearchOptions: {
         scanProcess: false,
         scanFile: false,
