@@ -138,7 +138,7 @@ class SearchOptions extends Component {
   handleIntervalConfirm = () => {
     this.props.handleDateChange({
       from: this.getCalculatedTime(this.props.searchInput.searchInterval),
-      to: Moment().local().format('YYYY-MM-DDTHH:mm') + ':00Z'
+      to: Moment().local().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
     });
   }
   /**

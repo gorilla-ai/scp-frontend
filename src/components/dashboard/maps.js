@@ -112,8 +112,8 @@ class DashboardMaps extends Component {
     const {baseUrl} = this.context;
     const {datetime, alertDetails} = this.state;
     const dateTime = {
-      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
-      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
+      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
     const url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=10000`;
     const requestData = {
@@ -317,8 +317,8 @@ class DashboardMaps extends Component {
       const {datetime, alertDetails, currentFloor} = this.state;
       const ip = id;
       const dateTime = {
-        from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
-        to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
+        from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+        to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
       };
       const url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=10000`;
       const requestData = {
@@ -578,8 +578,8 @@ class DashboardMaps extends Component {
     const {baseUrl} = this.context;
     const {datetime, alertDetails, currentFloor} = this.state;
     const dateTime = {
-      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
-      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
+      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
     const url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`;
     const requestData = {

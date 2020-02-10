@@ -663,8 +663,8 @@ class FloorMap extends Component {
   render() {
     const {floorPlan} = this.state;
     const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeDialog.bind(this, 'reload', 'cancel')},
-      confirm: {text: t('txt-confirm'), handler: this.handleFloorConfirm}
+      //cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeDialog.bind(this, 'reload', 'cancel')},
+      confirm: {text: t('txt-close'), handler: this.handleFloorConfirm}
     };
     let titleText = '';
 
@@ -681,8 +681,7 @@ class FloorMap extends Component {
         title={titleText}
         draggable={true}
         global={true}
-        actions={actions}
-        closeAction='cancel'>
+        actions={actions}>
         {this.displayAddFloor()}
       </ModalDialog>
     )

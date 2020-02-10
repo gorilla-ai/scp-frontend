@@ -888,13 +888,25 @@ footer.footer {
                 min-width: 185px;
               }
               &.hmd {
-                padding-top: 30px;
-                padding-left: 15px;
-                label {
-                  float: left;
-                  margin-right: 5px;
+                display: flex;
+                width: 100%;
+                .option {
+                  display: flex;
+                  margin-right: 15px;
+                  label {
+                    margin-right: 2px;
+                  }
                 }
               }
+              .hmd-options {
+                display: flex;
+                .option {
+                  margin-right: 15px;
+                }
+                label {
+                  margin-right: 2px;
+                }
+              }              
             }
           }
         }

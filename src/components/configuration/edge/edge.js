@@ -26,7 +26,7 @@ const SERVICE_TYPE_LIST = {
   'IPS-NETPROBE': ['lastAlertDataUpdDT', 'lastStatusUpdDT', 'threatIntellLastUpdDT', 'rx_pkts', 'tx_pkts', 'attackCnt'],
   'NETFLOW-IDS-SURICATA': ['lastAlertDataUpdDT', 'lastStatusUpdDT', 'threatIntellLastUpdDT', 'lastStatus', 'agentMode', 'TCPDUMP'],
   'IDS-SURICATA': ['lastAlertDataUpdDT', 'lastStatusUpdDT', 'threatIntellLastUpdDT'],
-  'DNS': ['lastAlertDataUpdDT', 'lastStatusUpdDT', 'threatIntellLastUpdDT']
+  'NETTRAP-DN': ['lastAlertDataUpdDT', 'lastStatusUpdDT', 'threatIntellLastUpdDT', 'attackCnt']
 };
 
 let t = null;

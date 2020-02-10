@@ -1470,8 +1470,8 @@ class AlertDetails extends Component {
     const eventDateTime = helper.getFormattedDate(alertData._eventDttm_, 'local');
     const eventDateFrom = helper.getSubstractDate(1, 'hours', eventDateTime);
     const datetime = {
-      from: Moment(eventDateFrom).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
-      to: Moment(eventDateTime).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
+      from: Moment(eventDateFrom).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: Moment(eventDateTime).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
     let apiArr = [];
 

@@ -63,8 +63,8 @@ class ThreatIntelligence extends Component {
     const {baseUrl} = this.context;
     const {datetime} = this.state;
     const dateTime = {
-      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
-      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
+      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
 
     if (Moment(dateTime.from).isAfter() || Moment(dateTime.to).isAfter()) {
