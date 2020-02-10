@@ -128,8 +128,8 @@ class DashboardStats extends Component {
     const {datetime, alertDetails} = this.state;
     const configSrcInfo = CHARTS_LIST[4];
     const dateTime = {
-      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
-      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
+      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
     const apiData = [
       {

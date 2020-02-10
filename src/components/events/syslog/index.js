@@ -363,8 +363,8 @@ class SyslogController extends Component {
     const {datetime} = this.state;
     const url = `${baseUrl}/api/log/event/fields`;
     const dateTime = {
-      startDttm: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
-      endDttm: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
+      startDttm: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      endDttm: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
 
     helper.getAjaxData('POST', url, dateTime)
@@ -518,8 +518,8 @@ class SyslogController extends Component {
   toQueryLanguage = (options) => {
     const {datetime, sort, filterData, markData} = this.state;
     const dateTime = {
-      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
-      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
+      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
     let dataObj = {
       '@timestamp': [dateTime.from, dateTime.to],

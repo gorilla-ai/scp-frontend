@@ -367,8 +367,8 @@ class AutoSettings extends Component {
   handleNetflowtest = () => {
     const {baseUrl} = this.context;
     const dateTime = {
-      from: Moment(helper.getSubstractDate(24, 'hour')).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
-      to: Moment().utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
+      from: Moment(helper.getSubstractDate(24, 'hour')).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: Moment().utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
 
     this.ah.one({
