@@ -102,6 +102,7 @@ class NetworkInventory extends Component {
         areaName: '',
         seatName: ''
       },
+      hmdSelectAll: false,
       hmdSearchOptions: {
         scanProcess: false,
         scanFile: false,
@@ -839,6 +840,37 @@ class NetworkInventory extends Component {
     })
   }
   /**
+   * Toggle HMD select all checkbox
+   * @method
+   */
+  toggleHMDcheckBox = (value) => {
+    if (value) {
+      this.setState({
+        hmdSearchOptions: {
+          scanProcess: true,
+          scanFile: true,
+          malware: true,
+          gcb: true,
+          ir: true
+        }
+      });
+    } else {
+      this.setState({
+        hmdSearchOptions: {
+          scanProcess: false,
+          scanFile: false,
+          malware: false,
+          gcb: false,
+          ir: false
+        }
+      });
+    }
+
+    this.setState({
+      hmdSelectAll: !this.state.hmdSelectAll
+    });
+  }  
+  /**
    * Toggle HMD options
    * @method
    * @param {string} field - HMD option name
@@ -848,8 +880,29 @@ class NetworkInventory extends Component {
     let tempHMDsearchOptions = {...this.state.hmdSearchOptions};
     tempHMDsearchOptions[field] = value;
 
+    if (!value) {
+      this.setState({
+        hmdSelectAll: false
+      });
+    }
+
     this.setState({
       hmdSearchOptions: tempHMDsearchOptions
+    }, () => {
+      const {hmdSearchOptions} = this.state;
+      let count = 0;
+
+      _.forEach(hmdSearchOptions, (val, key) => {
+        if (hmdSearchOptions[key]) {
+          count++;
+        }
+      })
+
+      if (count === 5) {
+        this.setState({
+          hmdSelectAll: true
+        });
+      }
     });
   }
   /**
@@ -858,7 +911,7 @@ class NetworkInventory extends Component {
    * @returns HTML DOM
    */
   renderFilter = () => {
-    const {showFilter, hmdSearchOptions, deviceSearch} = this.state;
+    const {showFilter, hmdSelectAll, hmdSearchOptions, deviceSearch} = this.state;
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
@@ -924,6 +977,13 @@ class NetworkInventory extends Component {
           <div className='group hmd'>
             <header>HMD</header>
             <div className='hmd-options'>
+              <div className='option'>
+                <label htmlFor='hmdCheckbox'>Select All</label>
+                <Checkbox
+                  id='hmdCheckbox'
+                  onChange={this.toggleHMDcheckBox}
+                  checked={hmdSelectAll} />
+              </div>
               <div className='option'>
                 <label htmlFor='hmdScanProcess'>Scan Process</label>
                 <Checkbox
@@ -1437,6 +1497,7 @@ class NetworkInventory extends Component {
         areaName: '',
         seatName: ''
       },
+      hmdSelectAll: false,
       hmdSearchOptions: {
         scanProcess: false,
         scanFile: false,

@@ -129,10 +129,12 @@ class HMDscanInfo extends Component {
     const {currentDeviceData} = this.props;
     const resultType = type + 'Result';
 
-    if (currentDeviceData[resultType].taskCreateDttm && currentDeviceData[resultType].taskResponseDttm) {
-      const createTime = helper.getFormattedDate(currentDeviceData[resultType].taskCreateDttm, 'local');
-      const responseTime = helper.getFormattedDate(currentDeviceData[resultType].taskResponseDttm, 'local');
-      return Moment(createTime).isAfter(responseTime);
+    if (currentDeviceData[resultType]) {
+      if (currentDeviceData[resultType].taskCreateDttm && currentDeviceData[resultType].taskResponseDttm) {
+        const createTime = helper.getFormattedDate(currentDeviceData[resultType].taskCreateDttm, 'local');
+        const responseTime = helper.getFormattedDate(currentDeviceData[resultType].taskResponseDttm, 'local');
+        return Moment(createTime).isAfter(responseTime);
+      }
     }
   }
   /**
@@ -521,7 +523,9 @@ class HMDscanInfo extends Component {
     } else if (activeTab === 'ir') {
       return (
         <div className='scan-content'>
-          <div className='header'>{t('network-inventory.txt-irMsg')}:</div>
+          {hmdInfo[activeTab].result &&
+            <div className='header'>{t('network-inventory.txt-irMsg')}:</div>
+          }
           <div className='empty-msg'>{hmdInfo[activeTab].result || NOT_AVAILABLE}</div>
         </div>
       )
