@@ -18,6 +18,7 @@ import Gis from 'react-gis/build/src/components'
 import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
+import {Progress} from 'react-ui'
 import RadioGroup from 'react-ui/build/src/components/radio-group'
 import Tabs from 'react-ui/build/src/components/tabs'
 import Textarea from 'react-ui/build/src/components/textarea'
@@ -225,6 +226,13 @@ class NetworkInventory extends Component {
       }
     }
   }
+  toggleSpin = (type) => {
+    if (type === 'start') {
+      Progress.startSpin();
+    } else if (type === 'stop') {
+      Progress.done();
+    }
+  }
   /**
    * Get and set device data
    * @method
@@ -314,6 +322,8 @@ class NetworkInventory extends Component {
     })
     .then(data => {
       if (data) {
+        this.toggleSpin('stop');
+
         if (options === 'oneSeat') {
           let currentDeviceData = {};
 
@@ -623,9 +633,9 @@ class NetworkInventory extends Component {
    * @method
    * @returns ModalDialog component
    */
-  showSeatData = () => {
+  showSeatDialog = () => {
     const actions = {
-      confirm: {text: t('txt-close'), handler: this.closeDialog.bind(this, 'reload')}
+      confirm: {text: t('txt-close'), handler: this.closeSeatDialog}
     };
 
     return (
@@ -639,6 +649,15 @@ class NetworkInventory extends Component {
         {this.displaySeatInfo()}
       </ModalDialog>
     )
+  }
+  /**
+   * Close seat dialog
+   * @method
+   */
+  closeSeatDialog = () => {
+    this.setState({
+      showSeatData: false
+    });
   }
   /**
    * Check table sortable fields
@@ -1205,6 +1224,7 @@ class NetworkInventory extends Component {
     })
     .then(data => {
       if (data.ret === 0) {
+        this.toggleSpin('start');
         this.getDeviceData();
         this.closeDialog('reload');
       }
@@ -1440,9 +1460,9 @@ class NetworkInventory extends Component {
    * @method
    * @returns HMDscanInfo component
    */
-  showScanInfo = () => {
+  showScanInfoDialog = () => {
     const actions = {
-      confirm: {text: t('txt-close'), handler: this.closeDialog}
+      confirm: {text: t('txt-close'), handler: this.closeScanInfoDialog}
     };
 
     return (
@@ -1459,6 +1479,15 @@ class NetworkInventory extends Component {
     )
   }
   /**
+   * Close scan info dialog
+   * @method
+   */
+  closeScanInfoDialog = () => {
+    this.setState({
+      showScanInfo: false
+    });
+  }
+  /**
    * Close HMD scan info dialog
    * @method
    * @param {string} options - option for 'reload'
@@ -1466,15 +1495,13 @@ class NetworkInventory extends Component {
    */
   closeDialog = (options, all) => {
     this.setState({
-      showScanInfo: false,
-      showSeatData: false,
       modalFloorOpen: false,
       currentDeviceData: {}
     }, () => {
       if (options === 'reload') {
         if (all === 'fromFloorMap') { //reload everything
           this.getFloorPlan('fromFloorMap');
-        } else { //reload area and seat only (no tree)
+        } else { //reload area and seat (no tree)
           const {floorPlan} = this.state;
           this.getAreaData(floorPlan.currentAreaUUID);
           this.getSeatData(floorPlan.currentAreaUUID);
@@ -2901,28 +2928,13 @@ class NetworkInventory extends Component {
     )
   }
   /**
-   * Close add seat dialog
-   * @method
-   */
-  closeSeatDialog = () => {
-    this.setState({
-      addSeatOpen: false,
-      addSeat: {
-        selectedSeatUUID: '',
-        name: '',
-        coordX: '',
-        coordY: ''
-      }
-    });
-  }
-  /**
    * Display add seat modal dialog
    * @method
    * @returns ModalDialog component
    */
   addSeatDialog = () => {
     const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeSeatDialog},
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeAddSeatDialog},
       confirm: {text: t('txt-confirm'), handler: this.handleAddSeatConfirm}
     };
     const titleText = t('network-topology.txt-addSeat');
@@ -2939,6 +2951,21 @@ class NetworkInventory extends Component {
         {this.displayAddSeat()}
       </ModalDialog>
     )
+  }
+  /**
+   * Close add seat dialog
+   * @method
+   */
+  closeAddSeatDialog = () => {
+    this.setState({
+      addSeatOpen: false,
+      addSeat: {
+        selectedSeatUUID: '',
+        name: '',
+        coordX: '',
+        coordY: ''
+      }
+    });
   }
   /**
    * Handle add seat confirm
@@ -3056,12 +3083,12 @@ class NetworkInventory extends Component {
 
     return (
       <div>
-        {showScanInfo &&
-          this.showScanInfo()
+        {showSeatData &&
+          this.showSeatDialog()
         }
 
-        {showSeatData &&
-          this.showSeatData()
+        {showScanInfo &&
+          this.showScanInfoDialog()
         }
 
         {modalFloorOpen &&
