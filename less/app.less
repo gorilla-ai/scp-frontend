@@ -908,6 +908,11 @@ footer.footer {
                   left: 0;
                   color: #004d93;
                 }
+                #hmdCheckbox {
+                  position: absolute;
+                  top: -25px;
+                  left: 40px;
+                }
                 .hmd-options {
                   display: flex;
                   .option {
@@ -915,7 +920,10 @@ footer.footer {
                     label {
                       float: right;
                       margin-right: 2px;
-                      color: #333;
+                      color: #ccc;
+                      &.active {
+                        color: #333;
+                      }
                     }
                     i {
                       float: left;

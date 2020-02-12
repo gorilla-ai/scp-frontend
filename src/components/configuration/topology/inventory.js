@@ -103,6 +103,7 @@ class NetworkInventory extends Component {
         areaName: '',
         seatName: ''
       },
+      hmdCheckbox: false,
       hmdSelectAll: false,
       hmdSearchOptions: {
         scanProcess: false,
@@ -232,13 +233,13 @@ class NetworkInventory extends Component {
       }
     }
   }
-  toggleSpin = (type) => {
-    if (type === 'start') {
-      Progress.startSpin();
-    } else if (type === 'stop') {
-      Progress.done();
-    }
-  }
+  // toggleSpin = (type) => {
+  //   if (type === 'start') {
+  //     Progress.startSpin();
+  //   } else if (type === 'stop') {
+  //     Progress.done();
+  //   }
+  // }
   /**
    * Get and set device data
    * @method
@@ -248,8 +249,10 @@ class NetworkInventory extends Component {
    */
   getDeviceData = (fromSearch, options, seatUUID) => {
     const {baseUrl} = this.context;
-    const {hmdSearchOptions, deviceSearch, deviceData} = this.state;
+    const {hmdCheckbox, hmdSearchOptions, deviceSearch, deviceData} = this.state;
     let dataParams = '';
+
+    //Progress.startSpin();
 
     if (options === 'oneSeat') {
       if (!seatUUID) {
@@ -262,32 +265,29 @@ class NetworkInventory extends Component {
       const sort = deviceData.sort.desc ? 'desc' : 'asc';
       const orders = deviceData.sort.field + ' ' + sort;
 
-      _.forEach(hmdSearchOptions, (val, key) => {
-        if (hmdSearchOptions[key]) {
-          dataParams = 'isHmd=true'; //If HMD option is checked
-          return false;
+      if (hmdCheckbox) {
+        dataParams = 'isHmd=true';
+
+        if (hmdSearchOptions.scanProcess) {
+          dataParams += '&isScanProc=true';
         }
-      })
 
-      // if (hmdSearchOptions.scanProcess) {
-      //   dataParams += '&isScanProc=true';
-      // }
+        if (hmdSearchOptions.scanFile) {
+          dataParams += '&isScanFile=true';
+        }
 
-      // if (hmdSearchOptions.scanFile) {
-      //   dataParams += '&isScanFile=true';
-      // }
+        if (hmdSearchOptions.malware) {
+          dataParams += '&isMalware=true';
+        }
 
-      // if (hmdSearchOptions.malware) {
-      //   dataParams += '&isMalware=true';
-      // }
+        if (hmdSearchOptions.gcb) {
+          dataParams += '&isGCB=true';
+        }
 
-      // if (hmdSearchOptions.gcb) {
-      //   dataParams += '&isGCB=true';
-      // }
-
-      // if (hmdSearchOptions.ir) {
-      //   dataParams += '&isIR=true';
-      // }
+        if (hmdSearchOptions.ir) {
+          dataParams += '&isIR=true';
+        }
+      }
 
       dataParams += `&page=${page}&pageSize=${pageSize}&orders=${orders}`;
 
@@ -328,8 +328,6 @@ class NetworkInventory extends Component {
     })
     .then(data => {
       if (data) {
-        this.toggleSpin('stop');
-
         if (options === 'oneSeat') {
           let currentDeviceData = {};
 
@@ -444,6 +442,8 @@ class NetworkInventory extends Component {
         this.setState({
           deviceData: tempDeviceData,
           activeIPdeviceUUID: ''
+        }, () => {
+          //Progress.done();
         });
       }
       return null;
@@ -672,7 +672,7 @@ class NetworkInventory extends Component {
    * @returns true for sortable or null
    */
   checkSortable = (field) => {
-    const unSortableFields = ['owner', 'areaName', 'seatName', 'yaraScan', '_menu'];
+    const unSortableFields = ['owner', 'areaName', 'seatName', 'yaraScan', '_menu', 'scanInfo'];
 
     if (_.includes(unSortableFields, field)) {
       return null;
@@ -868,31 +868,9 @@ class NetworkInventory extends Component {
    * Toggle HMD select all checkbox
    * @method
    */
-  toggleHMDcheckBox = (value) => {
-    if (value) {
-      this.setState({
-        hmdSearchOptions: {
-          scanProcess: true,
-          scanFile: true,
-          malware: true,
-          gcb: true,
-          ir: true
-        }
-      });
-    } else {
-      this.setState({
-        hmdSearchOptions: {
-          scanProcess: false,
-          scanFile: false,
-          malware: false,
-          gcb: false,
-          ir: false
-        }
-      });
-    }
-
+  toggleHMDcheckBox = () => {
     this.setState({
-      hmdSelectAll: !this.state.hmdSelectAll
+      hmdCheckbox: !this.state.hmdCheckbox
     });
   }  
   /**
@@ -911,24 +889,50 @@ class NetworkInventory extends Component {
       });
     }
 
-    this.setState({
-      hmdSearchOptions: tempHMDsearchOptions
-    }, () => {
-      const {hmdSearchOptions} = this.state;
-      let count = 0;
-
-      _.forEach(hmdSearchOptions, (val, key) => {
-        if (hmdSearchOptions[key]) {
-          count++;
-        }
-      })
-
-      if (count === 5) {
+    if (field === 'selectAll') {
+      if (value) {
         this.setState({
-          hmdSelectAll: true
+          hmdSelectAll: true,
+          hmdSearchOptions: {
+            scanProcess: true,
+            scanFile: true,
+            malware: true,
+            gcb: true,
+            ir: true
+          }
+        });
+      } else {
+        this.setState({
+          hmdSelectAll: false,
+          hmdSearchOptions: {
+            scanProcess: false,
+            scanFile: false,
+            malware: false,
+            gcb: false,
+            ir: false
+          }
         });
       }
-    });
+    } else {
+      this.setState({
+        hmdSearchOptions: tempHMDsearchOptions
+      }, () => {
+        const {hmdSearchOptions} = this.state;
+        let count = 0;
+
+        _.forEach(hmdSearchOptions, (val, key) => {
+          if (hmdSearchOptions[key]) {
+            count++;
+          }
+        })
+
+        if (count === 5) {
+          this.setState({
+            hmdSelectAll: true
+          });
+        }
+      });
+    }
   }
   /**
    * Display filter content
@@ -936,7 +940,7 @@ class NetworkInventory extends Component {
    * @returns HTML DOM
    */
   renderFilter = () => {
-    const {showFilter, hmdSelectAll, hmdSearchOptions, deviceSearch} = this.state;
+    const {showFilter, hmdCheckbox, hmdSelectAll, hmdSearchOptions, deviceSearch} = this.state;
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
@@ -1001,48 +1005,58 @@ class NetworkInventory extends Component {
           </div>
           <div className='group hmd'>
             <header>HMD</header>
+            <Checkbox
+              id='hmdCheckbox'
+              onChange={this.toggleHMDcheckBox}
+              checked={hmdCheckbox} />
             <div className='hmd-options'>
               <div className='option'>
-                <label htmlFor='hmdCheckbox'>{t('txt-selectAll')}</label>
+                <label htmlFor='hmdSelectAll' className={cx({'active': hmdCheckbox})}>{t('txt-selectAll')}</label>
                 <Checkbox
-                  id='hmdCheckbox'
-                  onChange={this.toggleHMDcheckBox}
-                  checked={hmdSelectAll} />
+                  id='hmdSelectAll'
+                  onChange={this.toggleHMDoptions.bind(this, 'selectAll')}
+                  checked={hmdSelectAll}
+                  disabled={!hmdCheckbox} />
               </div>
               <div className='option'>
-                <label htmlFor='hmdScanProcess'>Scan Process</label>
+                <label htmlFor='hmdScanProcess' className={cx({'active': hmdCheckbox})}>Scan Process</label>
                 <Checkbox
                   id='hmdScanProcess'
                   onChange={this.toggleHMDoptions.bind(this, 'scanProcess')}
-                  checked={hmdSearchOptions.scanProcess} />
+                  checked={hmdSearchOptions.scanProcess}
+                  disabled={!hmdCheckbox} />
               </div>
               <div className='option'>
-                <label htmlFor='hmdScanProcess'>Scan File</label>
+                <label htmlFor='hmdScanProcess' className={cx({'active': hmdCheckbox})}>Scan File</label>
                 <Checkbox
                   id='hmdScanProcess'
                   onChange={this.toggleHMDoptions.bind(this, 'scanFile')}
-                  checked={hmdSearchOptions.scanFile} />
+                  checked={hmdSearchOptions.scanFile}
+                  disabled={!hmdCheckbox} />
               </div>
               <div className='option'>
-                <label htmlFor='hmdScanProcess'>Malware</label>
+                <label htmlFor='hmdScanProcess' className={cx({'active': hmdCheckbox})}>Malware</label>
                 <Checkbox
                   id='hmdScanProcess'
                   onChange={this.toggleHMDoptions.bind(this, 'malware')}
-                  checked={hmdSearchOptions.malware} />
+                  checked={hmdSearchOptions.malware}
+                  disabled={!hmdCheckbox} />
               </div>
               <div className='option'>
-                <label htmlFor='hmdScanProcess'>GCB</label>
+                <label htmlFor='hmdScanProcess' className={cx({'active': hmdCheckbox})}>GCB</label>
                 <Checkbox
                   id='hmdScanProcess'
                   onChange={this.toggleHMDoptions.bind(this, 'gcb')}
-                  checked={hmdSearchOptions.gcb} />
+                  checked={hmdSearchOptions.gcb}
+                  disabled={!hmdCheckbox} />
               </div>
               <div className='option'>
-                <label htmlFor='hmdScanProcess'>IR</label>
+                <label htmlFor='hmdScanProcess' className={cx({'active': hmdCheckbox})}>IR</label>
                 <Checkbox
                   id='hmdScanProcess'
                   onChange={this.toggleHMDoptions.bind(this, 'ir')}
-                  checked={hmdSearchOptions.ir} />
+                  checked={hmdSearchOptions.ir}
+                  disabled={!hmdCheckbox} />
               </div>
             </div>
           </div>
@@ -1230,7 +1244,7 @@ class NetworkInventory extends Component {
     })
     .then(data => {
       if (data.ret === 0) {
-        this.toggleSpin('start');
+        //Progress.startSpin();
         this.getDeviceData();
         this.closeDialog('reload');
       }
@@ -1530,6 +1544,7 @@ class NetworkInventory extends Component {
         areaName: '',
         seatName: ''
       },
+      hmdCheckbox: false,
       hmdSelectAll: false,
       hmdSearchOptions: {
         scanProcess: false,

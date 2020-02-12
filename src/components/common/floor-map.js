@@ -668,7 +668,7 @@ class FloorMap extends Component {
     };
     let titleText = '';
 
-    if (floorPlan.type === 'edit' || floorPlan.type === 'map') {
+    if (floorPlan.type === 'edit' || floorPlan.currentAreaName) {
       titleText = t('network-topology.txt-editFloorMap');
     } else {
       titleText = t('network-topology.txt-addFloorMap');

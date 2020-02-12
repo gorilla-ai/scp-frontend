@@ -472,6 +472,7 @@ class NetworkMap extends Component {
     tempFloorPlan.type = 'edit';
 
     this.setState({
+      modalFloorOpen: false,
       floorPlan: tempFloorPlan
     }, () => {
       this.getAreaData(areaUUID);
