@@ -213,16 +213,22 @@ class NetworkInventory extends Component {
 
     if (scanType === 'gcb') {
       const filteredResult = _.filter(val.result, ['_CompareResult', true]);
-      let style = '#d10d25'; //Default red color
+      let colorStyle = '#d10d25'; //Default red color
 
       if (filteredResult.length === val.result.length) { //Show green color for all pass
-        style = '#22ac38';
+        colorStyle = '#22ac38';
       }
 
-      return <li key={scanType} style={{'color': style}}><span>{val.name} {t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}:</span> {filteredResult.length}/{val.result.length}</li>
+      return <li key={scanType} style={{'color': colorStyle}}><span>{val.name} {t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}:</span> {filteredResult.length}/{val.result.length}</li>
     } else {
-      if (val.result.length > 0) {
-        return <li key={scanType}><span>{val.name} {t('network-inventory.txt-suspiciousFileCount')}:</span> {val.result.length}</li>
+      let colorStyle = '#d10d25'; //Default red color
+
+      if (val.result.length === 0) { //Show green color
+        colorStyle = '#22ac38';
+      }
+
+      if (val.result) {
+        return <li key={scanType} style={{'color': colorStyle}}>{val.name} {t('network-inventory.txt-suspiciousFileCount')}: {val.result.length}</li>
       }
     }
   }
@@ -263,25 +269,25 @@ class NetworkInventory extends Component {
         }
       })
 
-      if (hmdSearchOptions.scanProcess) {
-        dataParams += '&isScanProc=true';
-      }
+      // if (hmdSearchOptions.scanProcess) {
+      //   dataParams += '&isScanProc=true';
+      // }
 
-      if (hmdSearchOptions.scanFile) {
-        dataParams += '&isScanFile=true';
-      }
+      // if (hmdSearchOptions.scanFile) {
+      //   dataParams += '&isScanFile=true';
+      // }
 
-      if (hmdSearchOptions.malware) {
-        dataParams += '&isMalware=true';
-      }
+      // if (hmdSearchOptions.malware) {
+      //   dataParams += '&isMalware=true';
+      // }
 
-      if (hmdSearchOptions.gcb) {
-        dataParams += '&isGCB=true';
-      }
+      // if (hmdSearchOptions.gcb) {
+      //   dataParams += '&isGCB=true';
+      // }
 
-      if (hmdSearchOptions.ir) {
-        dataParams += '&isIR=true';
-      }
+      // if (hmdSearchOptions.ir) {
+      //   dataParams += '&isIR=true';
+      // }
 
       dataParams += `&page=${page}&pageSize=${pageSize}&orders=${orders}`;
 
@@ -997,7 +1003,7 @@ class NetworkInventory extends Component {
             <header>HMD</header>
             <div className='hmd-options'>
               <div className='option'>
-                <label htmlFor='hmdCheckbox'>Select All</label>
+                <label htmlFor='hmdCheckbox'>{t('txt-selectAll')}</label>
                 <Checkbox
                   id='hmdCheckbox'
                   onChange={this.toggleHMDcheckBox}

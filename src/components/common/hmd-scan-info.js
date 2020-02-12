@@ -447,9 +447,14 @@ class HMDscanInfo extends Component {
    */
   getSuspiciousFileCount = (hmdInfo) => {
     const {activeTab} = this.state;
+    let colorStyle = '#d10d25'; //Default red color
 
-    if (hmdInfo[activeTab].count && hmdInfo[activeTab].count >= 0) {
-      return <div className='count'>{t('network-inventory.txt-suspiciousFileCount')}: {hmdInfo[activeTab].count}</div>
+    if (hmdInfo[activeTab].count === 0) { //Show green color
+      colorStyle = '#22ac38';
+    }
+
+    if (hmdInfo[activeTab].count >= 0) {
+      return <div className='count' style={{'color': colorStyle}}>{t('network-inventory.txt-suspiciousFileCount')}: {hmdInfo[activeTab].count}</div>
     }
   }
   /**
