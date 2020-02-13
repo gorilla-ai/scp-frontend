@@ -18,7 +18,6 @@ import Gis from 'react-gis/build/src/components'
 import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
-import {Progress} from 'react-ui'
 import RadioGroup from 'react-ui/build/src/components/radio-group'
 import Tabs from 'react-ui/build/src/components/tabs'
 import Textarea from 'react-ui/build/src/components/textarea'
@@ -109,8 +108,7 @@ class NetworkInventory extends Component {
         scanProcess: false,
         scanFile: false,
         malware: false,
-        gcb: false,
-        ir: false
+        gcb: false
       },
       deviceData: {
         dataFieldsArr: ['ip', 'mac', 'hostName', 'system', 'owner', 'areaName', 'seatName', 'scanInfo', '_menu'],
@@ -233,15 +231,8 @@ class NetworkInventory extends Component {
       }
     }
   }
-  // toggleSpin = (type) => {
-  //   if (type === 'start') {
-  //     Progress.startSpin();
-  //   } else if (type === 'stop') {
-  //     Progress.done();
-  //   }
-  // }
   /**
-   * Get and set device data
+   * Get and set device data / Handle delete IP device confirm
    * @method
    * @param {string} fromSearch - options for 'search'
    * @param {string} options - options for 'oneSeat'
@@ -249,10 +240,8 @@ class NetworkInventory extends Component {
    */
   getDeviceData = (fromSearch, options, seatUUID) => {
     const {baseUrl} = this.context;
-    const {hmdCheckbox, hmdSearchOptions, deviceSearch, deviceData} = this.state;
+    const {deviceSearch, hmdCheckbox, hmdSearchOptions, deviceData, currentDeviceData} = this.state;
     let dataParams = '';
-
-    //Progress.startSpin();
 
     if (options === 'oneSeat') {
       if (!seatUUID) {
@@ -282,10 +271,6 @@ class NetworkInventory extends Component {
 
         if (hmdSearchOptions.gcb) {
           dataParams += '&isGCB=true';
-        }
-
-        if (hmdSearchOptions.ir) {
-          dataParams += '&isIR=true';
         }
       }
 
@@ -320,19 +305,53 @@ class NetworkInventory extends Component {
           dataParams += `&seatName=${deviceSearch.seatName}`;
         }
       }
+
+      if (options === 'delete') {
+        if (!currentDeviceData.ipDeviceUUID) {
+          return;
+        }
+      }
     }
 
-    this.ah.one({
-      url: `${baseUrl}/api/u1/ipdevice/_search?${dataParams}`,
-      type: 'GET'
-    })
+    let apiArr = [
+      {
+        url: `${baseUrl}/api/u1/ipdevice/_search?${dataParams}`,
+        type: 'GET'
+      }
+    ];
+
+    if (options === 'delete') { //For deleting device
+      apiArr.unshift({
+        url: `${baseUrl}/api/u1/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}`,
+        type: 'DELETE'
+      });
+    }
+
+    ah.series(apiArr)
     .then(data => {
-      if (data) {
+      let ipRt = '';
+      let ipData = '';
+
+      if (options === 'delete') {
+        ipRt = data[1].ret;
+        ipData = data[1].rt;
+
+        if (data[0]) {
+          if (data.ret === 0) {
+            this.closeDialog('reload');
+          }
+        }
+      } else {
+        ipRt = data[0].ret;
+        ipData = data[0].rt;
+      }
+
+      if (ipRt === 0) {
         if (options === 'oneSeat') {
           let currentDeviceData = {};
 
-          if (data.counts > 0) {
-            currentDeviceData = data.rows[0];
+          if (ipData.counts > 0) {
+            currentDeviceData = ipData.rows[0];
           }
 
           this.setState({
@@ -343,20 +362,20 @@ class NetworkInventory extends Component {
         }
 
         let tempDeviceData = {...deviceData};
-        tempDeviceData.dataContent = _.map(data.rows, item => {
+        tempDeviceData.dataContent = _.map(ipData.rows, item => {
           return {
             ...item,
             _menu: true
           };
         });
 
-        tempDeviceData.totalCount = data.counts;
+        tempDeviceData.totalCount = ipData.counts;
         tempDeviceData.currentPage = fromSearch === 'search' ? 1 : deviceData.currentPage;
 
         //HMD only
         let hmdDataOnly = [];
 
-        _.forEach(data.rows, val => {
+        _.forEach(ipData.rows, val => {
           if (val.isHmd) {
             hmdDataOnly.push(val);
           }
@@ -429,7 +448,7 @@ class NetworkInventory extends Component {
         if (!fromSearch) {
           let ipListArr = [];
 
-          _.forEach(data.rows, val => {
+          _.forEach(ipData.rows, val => {
             ipListArr.push({
               value: val.ip,
               text: val.ip
@@ -442,8 +461,6 @@ class NetworkInventory extends Component {
         this.setState({
           deviceData: tempDeviceData,
           activeIPdeviceUUID: ''
-        }, () => {
-          //Progress.done();
         });
       }
       return null;
@@ -897,8 +914,7 @@ class NetworkInventory extends Component {
             scanProcess: true,
             scanFile: true,
             malware: true,
-            gcb: true,
-            ir: true
+            gcb: true
           }
         });
       } else {
@@ -908,8 +924,7 @@ class NetworkInventory extends Component {
             scanProcess: false,
             scanFile: false,
             malware: false,
-            gcb: false,
-            ir: false
+            gcb: false
           }
         });
       }
@@ -918,6 +933,7 @@ class NetworkInventory extends Component {
         hmdSearchOptions: tempHMDsearchOptions
       }, () => {
         const {hmdSearchOptions} = this.state;
+        const hmdOptions = ['scanProcess', 'scanFile', 'malware', 'gcb'];
         let count = 0;
 
         _.forEach(hmdSearchOptions, (val, key) => {
@@ -926,7 +942,7 @@ class NetworkInventory extends Component {
           }
         })
 
-        if (count === 5) {
+        if (count === hmdOptions.length) {
           this.setState({
             hmdSelectAll: true
           });
@@ -1048,14 +1064,6 @@ class NetworkInventory extends Component {
                   id='hmdScanProcess'
                   onChange={this.toggleHMDoptions.bind(this, 'gcb')}
                   checked={hmdSearchOptions.gcb}
-                  disabled={!hmdCheckbox} />
-              </div>
-              <div className='option'>
-                <label htmlFor='hmdScanProcess' className={cx({'active': hmdCheckbox})}>IR</label>
-                <Checkbox
-                  id='hmdScanProcess'
-                  onChange={this.toggleHMDoptions.bind(this, 'ir')}
-                  checked={hmdSearchOptions.ir}
                   disabled={!hmdCheckbox} />
               </div>
             </div>
@@ -1217,7 +1225,7 @@ class NetworkInventory extends Component {
       display: this.getDeleteDeviceContent(allValue),
       act: (confirmed, data) => {
         if (confirmed) {
-          this.deleteDevice();
+          this.getDeviceData('', 'delete');
         }
       }
     });
@@ -1225,34 +1233,6 @@ class NetworkInventory extends Component {
     this.setState({
       showSeatData: false
     });
-  }
-  /**
-   * Handle delete IP device confirm
-   * @method
-   */
-  deleteDevice = () => {
-    const {baseUrl} = this.context;
-    const {currentDeviceData} = this.state;
-
-    if (!currentDeviceData.ipDeviceUUID) {
-      return;
-    }
-
-    ah.one({
-      url: `${baseUrl}/api/u1/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}`,
-      type: 'DELETE'
-    })
-    .then(data => {
-      if (data.ret === 0) {
-        //Progress.startSpin();
-        this.getDeviceData();
-        this.closeDialog('reload');
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
   }
   /**
    * Handle table sort functionality
@@ -2075,6 +2055,8 @@ class NetworkInventory extends Component {
           mac: '',
           hostName: ''
         }
+      }, () => {
+        this.getDeviceData();
       });
     }
   }
@@ -2114,12 +2096,12 @@ class NetworkInventory extends Component {
     }
 
     this.ah.one({
-      url: `${baseUrl}/api/u1/ipdevice/_search?ip=${addIP.ip}`,
+      url: `${baseUrl}/api/u1/ipdevice/_search?exactIp=${addIP.ip}`,
       type: 'GET'
     })
     .then(data => {
       if (data) {
-        if (data.counts >= 1) {
+        if (data.counts > 0) {
           helper.showPopupMsg(t('network-inventory.txt-duplicatedIP'), t('txt-error'));
         } else {
           this.setState({

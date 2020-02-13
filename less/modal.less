@@ -1109,31 +1109,36 @@
   }
   .right {
     float: right;
-    width: 60%;
+    width: 61%;
     padding: 0;
     border: 1px solid #d9d9d9;
     border-radius: 5px;
     .field {
       float: left;
-      width: 32%;
-      margin-right: 15px;
+      width: 35%;
+      margin-right: 10px;
       label {
         font-size: 16px;
         font-weight: normal;
         color: #4a4a4a;
       }
-    }
-    .area-upload {
-      width: 282px;
-      button {
-        font-size: 15px;
+      &.upload {
+        width: 235px;
+        margin-right: 0;
       }
     }
+    .area-upload {
+      width: 235px;
+      button {
+        font-size: 15px;
+        min-width: 70px;
+      }
+    }
+    .fg-save,
     .fg-trashcan {
-      position: absolute;
-      top: 33px;
-      right: 10px;
+      float: left;
       font-size: 28px;
+      margin: 24px 0px 0 10px;
     }
     .map {
       text-align: center;

@@ -469,15 +469,14 @@
     "txt-deleteIP": "$t(txt-delete) $t(ipFields.ip)",
     "txt-deleteIPMsg": "$t(txt-delete-msg) $t(ipFields.ip)",
 
-    "txt-editFloorPlan": "$t(txt-edit) $t(txt-floorPlan)",
-    "txt-deleteFloorPlan": "$t(txt-delete) $t(txt-floorPlan)",
+    "txt-deleteFloorPlan": "$t(txt-delete) $t(txt-floorMap)",
 
     "txt-addFloor": "$t(txt-add) $t(txt-floor)",
     "txt-editFloor": "$t(txt-edit) $t(txt-floor)",
+    "txt-saveFloor": "$t(txt-save) $t(txt-floor)",
     "txt-deleteFloor": "$t(txt-delete) $t(txt-floor)",
     "txt-deleteFloorMsg": "$t(txt-delete-msg) $t(txt-floor)",
 
-    "txt-addFloorMap": "$t(txt-add) $t(txt-floorMap)",
     "txt-editFloorMap": "$t(txt-edit) $t(txt-floorMap)",
     "txt-deleteFloorMap": "$t(txt-delete) $t(txt-floorMap)",
     "txt-deleteFloorMapMsg": "$t(txt-delete-msg) $t(txt-floorMap)",

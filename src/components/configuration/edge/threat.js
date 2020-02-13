@@ -67,7 +67,7 @@ class ThreatIntelligence extends Component {
       to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
 
-    if (Moment(dateTime.from).isAfter() || Moment(dateTime.to).isAfter()) {
+    if (Moment(dateTime.from).isAfter()) {
       helper.showPopupMsg(t('edge-management.txt-threatDateErr'), t('txt-error'));
       return;
     }

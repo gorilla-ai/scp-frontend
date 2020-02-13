@@ -820,6 +820,11 @@ class Syslog extends Component {
     const configId = activeTimeline === 'configId' ? activeConfigId : '';
     let uri = '';
 
+    if (Moment(datetime.from).isAfter()) {
+      helper.showPopupMsg(t('edge-management.txt-threatDateErr'), t('txt-error'));
+      return;
+    }
+
     if (configId) {
       uri += `&configId=${configId}`;
     }
