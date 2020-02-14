@@ -80,8 +80,8 @@ class DashboardStats extends Component {
       },
       past24hTime: helper.getFormattedDate(helper.getSubstractDate(24, 'hours')),
       updatedTime: helper.getFormattedDate(Moment()),
-      alertDataArr: [],
-      internalMaskedIp: [],
+      alertDataArr: null,
+      internalMaskedIpArr: null,
       pieCharts: {},
       alertChartsList: [],
       dnsMetricData: {},
@@ -97,7 +97,37 @@ class DashboardStats extends Component {
 
     helper.getPrivilegesInfo(sessionRights, 'common', locale);
 
-    this.loadAlertData();
+    let alertChartsList = [];
+
+    _.forEach(CHARTS_LIST, val => {
+      alertChartsList.push({
+        chartID: val.id,
+        chartTitle: t('dashboard.txt-' + val.id),
+        chartKeyLabels: {
+          key: t('attacksFields.' + val.key),
+          doc_count: t('txt-count')
+        },
+        chartValueLabels: {
+          'Pie Chart': {
+            key: t('attacksFields.' + val.key),
+            doc_count: t('txt-count')
+          }
+        },
+        chartDataCfg: {
+          splitSlice: ['key'],
+          sliceSize: 'doc_count'
+        },
+        chartData: null,
+        type: 'pie'
+      });
+    })
+
+    this.setState({
+      alertChartsList
+    }, () => {
+      this.loadAlertData();
+    });
+
     intervalId = setInterval(this.loadAlertData, 300000); //5 minutes
   }
   componentWillUnmount() {
@@ -183,7 +213,7 @@ class DashboardStats extends Component {
         let rulesAll = [];
         let alertDataArr = [];
         let maskedIPdata = '';
-        let internalMaskedIp = [];
+        let internalMaskedIpArr = [];
 
         _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
           if (data[0].event_histogram) {
@@ -220,7 +250,7 @@ class DashboardStats extends Component {
           _.forEach(maskedIPdata, (key, val) => {
             if (val !== 'doc_count' && maskedIPdata[val].doc_count > 0) {
               _.forEach(maskedIPdata[val].srcIp.buckets, val2 => {
-                internalMaskedIp.push({
+                internalMaskedIpArr.push({
                   ip: val,
                   number: val2.doc_count,
                   severity: val2._severity_
@@ -329,7 +359,7 @@ class DashboardStats extends Component {
           past24hTime: helper.getFormattedDate(helper.getSubstractDate(24, 'hours')),
           updatedTime: helper.getFormattedDate(Moment()),
           alertDataArr,
-          internalMaskedIp,
+          internalMaskedIpArr,
           pieCharts,
           dnsMetricData
         }, () => {
@@ -348,34 +378,18 @@ class DashboardStats extends Component {
    * @method
    */
   getPieChartsData = () => {
-    const {pieCharts} = this.state;
-    let alertChartsList = [];
+    const {pieCharts, alertChartsList} = this.state;
+    let tempAlertChartsList = [];
 
-    _.forEach(CHARTS_LIST, val => {
-      alertChartsList.push({
-        chartID: val.id,
-        chartTitle: t('dashboard.txt-' + val.id),
-        chartKeyLabels: {
-          key: t('attacksFields.' + val.key),
-          doc_count: t('txt-count')
-        },
-        chartValueLabels: {
-          'Pie Chart': {
-            key: t('attacksFields.' + val.key),
-            doc_count: t('txt-count')
-          }
-        },
-        chartDataCfg: {
-          splitSlice: ['key'],
-          sliceSize: 'doc_count'
-        },
-        chartData: pieCharts[val.id],
-        type: 'pie'
+    _.forEach(alertChartsList, val => {
+      tempAlertChartsList.push({
+        ...val,
+        chartData: pieCharts[val.chartID]
       });
     })
 
     this.setState({
-      alertChartsList
+      alertChartsList: tempAlertChartsList
     });
   }
   /**
@@ -484,13 +498,13 @@ class DashboardStats extends Component {
     if (alertChartsList[i].type === 'pie') {
       return (
         <div className='chart-group c-box' key={alertChartsList[i].chartID}>
-          {alertChartsList[i].chartData.length === 0 &&
+          {(alertChartsList[i].chartData && alertChartsList[i].chartData.length === 0) &&
             <div className='empty-data'>
               <header>{alertChartsList[i].chartTitle}</header>
               <span>{t('txt-notFound')}</span>
             </div>
           }
-          {alertChartsList[i].chartData.length > 0 &&
+          {(!alertChartsList[i].chartData || alertChartsList[i].chartData && alertChartsList[i].chartData.length > 0) &&
             <PieChart
               id={alertChartsList[i].chartID}
               title={alertChartsList[i].chartTitle}
@@ -548,7 +562,7 @@ class DashboardStats extends Component {
       past24hTime,
       updatedTime,
       alertDataArr,
-      internalMaskedIp,
+      internalMaskedIpArr,
       alertChartsList,
       dnsMetricData,
       diskMetricData
@@ -566,13 +580,13 @@ class DashboardStats extends Component {
         <div className='main-dashboard'>
           <div className='charts'>
             <div className='chart-group bar'>
-              {alertDataArr.length === 0 &&
+              {alertDataArr && alertDataArr.length === 0 &&
                 <div className='empty-data'>
                   <header>{t('dashboard.txt-alertStatistics')}</header>
                   <span>{t('txt-notFound')}</span>
                 </div>
               }
-              {alertDataArr.length > 0 &&
+              {(!alertDataArr || alertDataArr.length > 0) &&
                 <BarChart
                   stacked
                   vertical
@@ -595,18 +609,18 @@ class DashboardStats extends Component {
             </div>
 
             <div className='chart-group bar'>
-              {internalMaskedIp.length === 0 &&
+              {internalMaskedIpArr && internalMaskedIpArr.length === 0 &&
                 <div className='empty-data'>
                   <header>{t('dashboard.txt-alertMaskedIpStatistics')}</header>
                   <span>{t('txt-notFound')}</span>
                 </div>
               }
-              {internalMaskedIp.length > 0 &&
+              {(!internalMaskedIpArr || internalMaskedIpArr.length > 0) &&
                 <BarChart
                   stacked
                   vertical
                   title={t('dashboard.txt-alertMaskedIpStatistics')}
-                  data={internalMaskedIp}
+                  data={internalMaskedIpArr}
                   colors={ALERT_LEVEL_COLORS}
                   onTooltip={true}
                   dataCfg={{

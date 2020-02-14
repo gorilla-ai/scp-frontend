@@ -38,9 +38,9 @@ class ThreatIntelligence extends Component {
         //from: '2019-03-08T00:00:00Z',
         //to: '2019-03-13T00:00:00Z'
       },
-      indicatorsData: [],
-      indicatorsTrendData: [],
-      acuIndicatorsTrendData: [],
+      indicatorsData: null,
+      indicatorsTrendData: null,
+      acuIndicatorsTrendData: null,
       uplaodOpen: false,
       file: {}
     };
@@ -299,13 +299,13 @@ class ThreatIntelligence extends Component {
               <div className='main-statistics'>
                 <div className='statistics-content'>
                   <div className='chart-group'>
-                    {indicatorsData.length === 0 &&
+                    {indicatorsData && indicatorsData.length === 0 &&
                       <div className='empty-data'>
                         <header>{t('edge-management.statistics.txt-sourceIndicators')}</header>
                         <span>{t('txt-notFound')}</span>
                       </div>
                     }
-                    {indicatorsData.length > 0 &&
+                    {(!indicatorsData || indicatorsData.length > 0) &&
                       <PieChart
                         title={t('edge-management.statistics.txt-sourceIndicators')}
                         data={indicatorsData}
@@ -327,13 +327,13 @@ class ThreatIntelligence extends Component {
                   </div>
 
                   <div className='chart-group'>
-                    {indicatorsTrendData.length === 0 &&
+                    {indicatorsTrendData && indicatorsTrendData.length === 0 &&
                       <div className='empty-data'>
                         <header>{t('edge-management.statistics.txt-indicatorsTrend')}</header>
                         <span>{t('txt-notFound')}</span>
                       </div>
                     }
-                    {indicatorsTrendData.length > 0 &&
+                    {(!indicatorsTrendData || indicatorsTrendData.length > 0) &&
                       <BarChart
                         stacked
                         vertical
@@ -358,13 +358,13 @@ class ThreatIntelligence extends Component {
                   </div>
 
                   <div className='chart-group'>
-                    {acuIndicatorsTrendData.length === 0 &&
+                    {acuIndicatorsTrendData && acuIndicatorsTrendData.length === 0 &&
                       <div className='empty-data'>
                         <header>{t('edge-management.statistics.txt-acuIndicatorsTrend')}</header>
                         <span>{t('txt-notFound')}</span>
                       </div>
                     }
-                    {acuIndicatorsTrendData.length > 0 &&                    
+                    {(!acuIndicatorsTrendData || acuIndicatorsTrendData.length > 0) &&
                       <LineChart
                         stacked
                         title={t('edge-management.statistics.txt-acuIndicatorsTrend')}

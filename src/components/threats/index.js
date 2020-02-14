@@ -331,6 +331,10 @@ class ThreatsController extends Component {
       } else if (field === 'destIp') {
         value = 'destinationIP: ' +  value;
       }
+    } else {
+      if (field === 'Collector') {
+        value = 'Collector: ' +  '"' + value + '"';
+      }
     }
 
     const menuItems = [

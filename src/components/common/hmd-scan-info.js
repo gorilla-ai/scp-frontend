@@ -65,7 +65,7 @@ class HMDscanInfo extends Component {
       activeRule: [],
       activeDLL: false,
       activeConnections: false,
-      malwareFieldsArr: ['_FileInfo._Filepath', '_FileInfo._Filesize', '_FileInfo._HashValues._MD5', '_IsPE', '_IsPEextension', '_IsVerifyTrust', 'hostIdArrCnt', 'totalHostCnt'],
+      malwareFieldsArr: ['_FileInfo._Filepath', '_FileInfo._Filesize', '_FileInfo._HashValues._MD5', '_IsPE', '_IsPEextension', '_IsVerifyTrust', 'hostIdArrCnt'],
       malwareSort: ['asc'],
       gcbFieldsArr: ['_CceId', '_OriginalKey', '_Type', '_CompareResult'],
       gcbSort: 'asc',
@@ -682,20 +682,10 @@ class HMDscanInfo extends Component {
           className: this.getFieldName(tempData),
           formatter: (value, allValue) => {
             if (tempData === '_FileInfo._Filepath') {
-              if (value.length > 25) {
-                const newValue = value.substr(0, 25) + '...';
-                return <span title={value}>{newValue}</span>
-              } else {
-                return <span>{value}</span>
-              }
+              return <span>{value}</span>
             }
             if (tempData === '_FileInfo._HashValues._MD5') {
-              if (value.length > 15) {
-                const newValue = value.substr(0, 15) + '...';
-                return <span title={value}>{newValue}</span>
-              } else {
-                return <span>{value}</span>
-              }
+              return <span>{value}</span>
             }
             if (tempData === '_FileInfo._Filesize') {
               value = value + ' KB';
@@ -713,8 +703,11 @@ class HMDscanInfo extends Component {
 
               return <span style={{color : styleStatus}}>{value}</span>
             }
-            if (tempData === 'hostIdArrCnt' || tempData === 'totalHostCnt') {
-              if (!allValue.hostIdArr) {
+            if (tempData === 'hostIdArrCnt') {
+              if (allValue.hostIdArr) {
+                const tooltip = f('malwareFields.hostIdArrCnt') + '/' + f('malwareFields.totalHostCnt') + ': ' + value + '/' + allValue.totalHostCnt;
+                return <span title={tooltip}>{value}</span>
+              } else {
                 value = NOT_AVAILABLE;
               }
             }

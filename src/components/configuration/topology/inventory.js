@@ -1043,7 +1043,7 @@ class NetworkInventory extends Component {
                   disabled={!hmdCheckbox} />
               </div>
               <div className='option'>
-                <label htmlFor='hmdScanProcess' className={cx({'active': hmdCheckbox})}>Scan File</label>
+                <label htmlFor='hmdScanProcess' className={cx({'active': hmdCheckbox})}>Scan File (Yara)</label>
                 <Checkbox
                   id='hmdScanProcess'
                   onChange={this.toggleHMDoptions.bind(this, 'scanFile')}
@@ -1051,7 +1051,7 @@ class NetworkInventory extends Component {
                   disabled={!hmdCheckbox} />
               </div>
               <div className='option'>
-                <label htmlFor='hmdScanProcess' className={cx({'active': hmdCheckbox})}>Malware</label>
+                <label htmlFor='hmdScanProcess' className={cx({'active': hmdCheckbox})}>Scan File (AI)</label>
                 <Checkbox
                   id='hmdScanProcess'
                   onChange={this.toggleHMDoptions.bind(this, 'malware')}
