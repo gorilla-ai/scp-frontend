@@ -851,6 +851,10 @@ class Syslog extends Component {
           clickTimeline: true,
           eventsData: tempEventsData
         });     
+      } else {
+        this.setState({
+          eventsData: {}
+        });
       }
       return null;
     })
