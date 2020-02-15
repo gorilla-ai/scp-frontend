@@ -42,11 +42,11 @@ const CHARTS_LIST = [
     key: 'srcCountry'
   },
   {
-    id: 'Top10InternalIp',
+    id: 'InternalIp',
     key: 'srcIp'
   },
   {
-    id: 'Top10InternalMaskedIp',
+    id: 'InternalMaskedIp',
     key: 'maskedIP'
   },
   {
@@ -170,7 +170,7 @@ class DashboardStats extends Component {
             condition: 'must',
             query: 'All'
           }],
-          search: ['Top10ExternalSrcCountry', 'Top10InternalIp', 'Top10InternalMaskedIp']
+          search: ['Top10ExternalSrcCountry', 'InternalIp', 'InternalMaskedIp']
         }
       },
       {
@@ -245,7 +245,7 @@ class DashboardStats extends Component {
         }, []);
 
         if (data[0].aggregations) {
-          maskedIPdata = data[0].aggregations.Top10InternalMaskedIp;
+          maskedIPdata = data[0].aggregations.InternalMaskedIp;
 
           _.forEach(maskedIPdata, (key, val) => {
             if (val !== 'doc_count' && maskedIPdata[val].doc_count > 0) {
@@ -267,10 +267,12 @@ class DashboardStats extends Component {
           if (i === 0) {
             if (data[0].aggregations) {
               _.forEach(SEVERITY_TYPE, val2 => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
-                tempArr.push({
-                  key: val2,
-                  doc_count: data[0].aggregations[val2].doc_count
-                });
+                if (data[0].aggregations[val2].doc_count > 0) {
+                  tempArr.push({
+                    key: val2,
+                    doc_count: data[0].aggregations[val2].doc_count
+                  });
+                }
               })
             }
           } else if (i === 3) {
@@ -382,10 +384,31 @@ class DashboardStats extends Component {
     let tempAlertChartsList = [];
 
     _.forEach(alertChartsList, val => {
-      tempAlertChartsList.push({
-        ...val,
-        chartData: pieCharts[val.chartID]
-      });
+      if (val.chartID === 'alertThreatLevel') { //Handle special case for Alert Threat Level
+        let chartData = [];
+        let i = 0;
+
+        _.forEach(pieCharts.alertThreatLevel, val2 => {
+          if (val2.doc_count > 0) {
+            i++;
+            return false;
+          }
+        })
+
+        if (i > 0) {
+          chartData = pieCharts[val.chartID];
+        }
+
+        tempAlertChartsList.push({
+          ...val,
+          chartData
+        });
+      } else {
+        tempAlertChartsList.push({
+          ...val,
+          chartData: pieCharts[val.chartID]
+        });
+      }
     })
 
     this.setState({
@@ -437,7 +460,7 @@ class DashboardStats extends Component {
   getChartRedirect = (chartID, chart, chartData, info) => {
     const {baseUrl, contextRoot, language} = this.context;
     const severityChart = ['alertThreatLevel'];
-    const ipChart = ['Top10InternalIp', 'Top10InternalMaskedIp', 'maskedIP'];
+    const ipChart = ['InternalIp', 'InternalMaskedIp', 'maskedIP'];
     const countryChart = ['Top10ExternalSrcCountry'];
     const syslogChart = ['Top10SyslogConfigSource'];
     let data = chartData[0].key;

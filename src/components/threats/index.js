@@ -1009,7 +1009,7 @@ class ThreatsController extends Component {
     }, () => {
       if (refresh === 'refresh') {
         this.loadTreeData();
-        this.loadTable(fromSearch);
+        this.loadTable('search');
       }
     });
   }
