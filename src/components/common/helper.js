@@ -323,7 +323,7 @@ const helper = {
 
     _.forEach(mainData, val => {
       const uniqueID = val.id + Math.floor((Math.random() * 1000000) + 1);
-      const timestamp = helper.getFormattedDate(val._eventDttm_, 'local');
+      const timestamp = helper.getFormattedDate(val._eventDttm_ || val.timestamp, 'local');
 
       if (val.srcLatitude && val.srcLongitude) {
         attacksDataArr.push({
@@ -337,7 +337,7 @@ const helper = {
             tag: 'red'
           },
           tooltip: () => {
-            return `<div>${t('payloadsFields.srcCountry')}: ${val.srcCountry}</div><div>${t('payloadsFields.srcCity')}: ${val.srcCity}</div><div>${t('payloadsFields.srcIp')}: ${val.srcIp}</div><div>${t('payloadsFields.timestamp')}: ${timestamp}</div>`
+            return `<div>${t('payloadsFields.srcCountry')}: ${val.srcCountry}</div><div>${t('payloadsFields.srcCity')}: ${val.srcCity}</div><div>${t('payloadsFields.srcIp')}: ${val.srcIp || val.ipSrc}</div><div>${t('payloadsFields.timestamp')}: ${timestamp}</div>`
           }
         });
       }
@@ -354,7 +354,7 @@ const helper = {
             tag: 'yellow'
           },
           tooltip: () => {
-            return `<div>${t('payloadsFields.destCountry')}: ${val.destCountry}</div><div>${t('payloadsFields.destCity')}: ${val.destCity}</div><div>${t('payloadsFields.destIp')}: ${val.destIp}</div><div>${t('payloadsFields.timestamp')}: ${timestamp}</div>`
+            return `<div>${t('payloadsFields.destCountry')}: ${val.destCountry}</div><div>${t('payloadsFields.destCity')}: ${val.destCity}</div><div>${t('payloadsFields.destIp')}: ${val.destIp || val.ipDst}</div><div>${t('payloadsFields.timestamp')}: ${timestamp}</div>`
           }
         });
       }

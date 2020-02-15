@@ -130,10 +130,14 @@ class HMDscanInfo extends Component {
     const resultType = type + 'Result';
 
     if (currentDeviceData[resultType]) {
-      if (currentDeviceData[resultType].taskCreateDttm && currentDeviceData[resultType].taskResponseDttm) {
-        const createTime = helper.getFormattedDate(currentDeviceData[resultType].taskCreateDttm, 'local');
-        const responseTime = helper.getFormattedDate(currentDeviceData[resultType].taskResponseDttm, 'local');
-        return Moment(createTime).isAfter(responseTime);
+      if (currentDeviceData[resultType].taskCreateDttm) {
+        if (currentDeviceData[resultType].taskResponseDttm) {
+          const createTime = helper.getFormattedDate(currentDeviceData[resultType].taskCreateDttm, 'local');
+          const responseTime = helper.getFormattedDate(currentDeviceData[resultType].taskResponseDttm, 'local');
+          return Moment(createTime).isAfter(responseTime);
+        } else {
+          return true; //Disable when create dttm is available and resonse dttm is N/A
+        }
       }
     }
   }

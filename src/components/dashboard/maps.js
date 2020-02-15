@@ -188,7 +188,7 @@ class DashboardMaps extends Component {
     });
 
     _.forEach(alertMapData, val => {
-      const timestamp = helper.getFormattedDate(val.timestamp, 'local');
+      const timestamp = helper.getFormattedDate(val._eventDttm_ || val.timestamp, 'local');
 
       if (val.srcLatitude && val.srcLongitude) {
         const count = alertDetails.publicFormatted.srcIp[val.srcIp].length;
