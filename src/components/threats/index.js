@@ -209,7 +209,7 @@ class ThreatsController extends Component {
         } else if (type === 'ip') {
           query = 'sourceIP: ' + data;
         } else if (type === 'country') {
-          query = 'srcCountry: ' + data;
+          query = 'srcCountry: "' + data + '"';
         }
 
         filterData = [{
@@ -856,7 +856,11 @@ class ThreatsController extends Component {
     }
 
     if (field) {
-      value = field + ': ' + value;
+      if (field === 'srcCountry') {
+        value = field + ': "' + value + '"';
+      } else {
+        value = field + ': ' + value;
+      }
     }
 
     _.forEach(filterData, (val, i) => {
