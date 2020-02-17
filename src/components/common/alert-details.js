@@ -942,24 +942,30 @@ class AlertDetails extends Component {
   displayRuleContent = () => {
     const {alertType, alertRule} = this.state;
 
-    if (alertRule.length === 0) {
+    if (!alertRule) {
+      return <i className='fg fg-loading-2'></i>
+    }
+
+    if (alertRule && alertRule.length === 0) {
       return <span>{NOT_AVAILABLE}</span>
     }
 
-    if (alertType === 'alert') {
-      return (
-        <ul className='alert-rule'>
-          {alertRule.map(this.showRuleContent)}
-          {this.showRuleRefsData()}
-        </ul>
-      )
-    } else {
-      return (
-        <section className='alert-rule'>
-          <span>{alertRule}</span>
-          {this.showRuleRefsData()}
-        </section>
-      )
+    if (alertRule && alertRule.length > 0) {
+      if (alertType === 'alert') {
+        return (
+          <ul className='alert-rule'>
+            {alertRule.map(this.showRuleContent)}
+            {this.showRuleRefsData()}
+          </ul>
+        )
+      } else {
+        return (
+          <section className='alert-rule'>
+            <span>{alertRule}</span>
+            {this.showRuleRefsData()}
+          </section>
+        )
+      }
     }
   }
   /**

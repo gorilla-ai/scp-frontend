@@ -84,8 +84,12 @@ class DashboardStats extends Component {
       internalMaskedIpArr: null,
       pieCharts: {},
       alertChartsList: [],
-      dnsMetricData: {},
-      diskMetricData: {}
+      dnsMetricData: {
+        id: 'dns-histogram'
+      },
+      diskMetricData: {
+        id: 'disk-usage'
+      }
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -155,7 +159,7 @@ class DashboardStats extends Component {
    */
   loadAlertData = () => {
     const {baseUrl} = this.context;
-    const {datetime, alertDetails} = this.state;
+    const {datetime, dnsMetricData} = this.state;
     const configSrcInfo = CHARTS_LIST[4];
     const dateTime = {
       from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
@@ -324,9 +328,8 @@ class DashboardStats extends Component {
         }
 
         const dnsInfo = CHARTS_LIST[5];
-        let dnsMetricData = {
-          id: 'dns-histogram'
-        };
+        let tempDnsMetricData = {...dnsMetricData};
+        tempDnsMetricData.data = [];
 
         if (data[2].aggregations) {
           let dnsQueryData = [];
@@ -343,13 +346,13 @@ class DashboardStats extends Component {
           if (data[2].aggregations.session_histogram) {
             dnsData = data[2].aggregations.session_histogram;
 
-            dnsMetricData.data = [{
+            tempDnsMetricData.data = [{
               doc_count: dnsData.doc_count,
               MegaPackages: dnsData.MegaPackages,
               MegaBytes: dnsData.MegaBytes
             }];
-            dnsMetricData.agg = ['doc_count', 'MegaPackages', 'MegaBytes'];
-            dnsMetricData.keyLabels = {
+            tempDnsMetricData.agg = ['doc_count', 'MegaPackages', 'MegaBytes'];
+            tempDnsMetricData.keyLabels = {
               doc_count: t('dashboard.txt-session'),
               MegaPackages: t('dashboard.txt-packet'),
               MegaBytes: t('dashboard.txt-databyte')
@@ -363,10 +366,9 @@ class DashboardStats extends Component {
           alertDataArr,
           internalMaskedIpArr,
           pieCharts,
-          dnsMetricData
+          dnsMetricData: tempDnsMetricData
         }, () => {
           this.getPieChartsData();
-          this.loadMetricData();
         });
       }
       return null;
@@ -374,6 +376,8 @@ class DashboardStats extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+
+    this.loadMetricData();    
   }
   /**
    * Construct and set the pie charts
@@ -429,21 +433,36 @@ class DashboardStats extends Component {
     .then(data => {
       if (data) {
         data = data.rt;
-        const diskMetricData = {
-          id: 'disk-usage',
-          data: [{
-            diskAvail: data['disk.avail'],
-            diskTotal: data['disk.total']
-          }],
-          agg: ['diskAvail', 'diskTotal'],
-          keyLabels: {
+
+        let validData = false;
+        let tempDiskMetricData = {...this.state.diskMetricData};
+        tempDiskMetricData.data = [{
+          diskAvail: '',
+          diskTotal: ''
+        }];
+
+        if (data['disk.avail'] && data['disk.avail'] >= 0) {
+          tempDiskMetricData.data[0].diskAvail = data['disk.avail'];
+          validData = true;
+        }
+
+        if (data['disk.total'] && data['disk.total'] >= 0) {
+          tempDiskMetricData.data[0].diskTotal = data['disk.total'];
+          validData = true;
+        }
+
+        if (validData) {
+          tempDiskMetricData.agg = ['diskAvail', 'diskTotal'];
+          tempDiskMetricData.keyLabels = {
             diskAvail: t('dashboard.txt-diskAvail'),
             diskTotal: t('dashboard.txt-diskTotal')
-          }
-        };
+          };
+        } else {
+          tempDiskMetricData.data = [];
+        }
 
         this.setState({
-          diskMetricData
+          diskMetricData: tempDiskMetricData
         });
       }
       return null;
@@ -521,13 +540,20 @@ class DashboardStats extends Component {
     if (alertChartsList[i].type === 'pie') {
       return (
         <div className='chart-group c-box' key={alertChartsList[i].chartID}>
+          {!alertChartsList[i].chartData &&
+            <div className='empty-data'>
+              <header>{alertChartsList[i].chartTitle}</header>
+              <span><i className='fg fg-loading-2'></i></span>
+            </div>
+          }
+
           {(alertChartsList[i].chartData && alertChartsList[i].chartData.length === 0) &&
             <div className='empty-data'>
               <header>{alertChartsList[i].chartTitle}</header>
               <span>{t('txt-notFound')}</span>
             </div>
           }
-          {(!alertChartsList[i].chartData || alertChartsList[i].chartData && alertChartsList[i].chartData.length > 0) &&
+          {alertChartsList[i].chartData && alertChartsList[i].chartData.length > 0 &&
             <PieChart
               id={alertChartsList[i].chartID}
               title={alertChartsList[i].chartTitle}
@@ -565,8 +591,27 @@ class DashboardStats extends Component {
    * @param {number} i - index of the alert chart data
    * @returns HTML DOM
    */
-  dispalyMetrics = (val, i) => {
-    if (val.id) {
+  displayMetrics = (val, i) => {
+    if (!val.data || (val.data && val.data.length === 0)) {
+      const content = val.data ? t('txt-notFound') : <span><i className='fg fg-loading-2'></i></span>;
+
+      return (
+        <div className='c-chart dns-histogram'>
+          <header>{t('dashboard.txt-' + val.id)}</header>
+          <div className='c-chart-metric'>
+            <div className='content'>
+              <div className='main-container'>
+                <div className='group-parent vertical'>
+                  <div className='group' style={{'margin-top': '25px'}}>
+                    {content}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )
+    } else if (val.data && val.data.length > 0) {
       return (
         <Metric
           key={val.id}
@@ -603,13 +648,19 @@ class DashboardStats extends Component {
         <div className='main-dashboard'>
           <div className='charts'>
             <div className='chart-group bar'>
+              {!alertDataArr &&
+                <div className='empty-data'>
+                  <header>{t('dashboard.txt-alertStatistics')}</header>
+                  <span><i className='fg fg-loading-2'></i></span>
+                </div>
+              }
               {alertDataArr && alertDataArr.length === 0 &&
                 <div className='empty-data'>
                   <header>{t('dashboard.txt-alertStatistics')}</header>
                   <span>{t('txt-notFound')}</span>
                 </div>
               }
-              {(!alertDataArr || alertDataArr.length > 0) &&
+              {alertDataArr && alertDataArr.length > 0 &&
                 <BarChart
                   stacked
                   vertical
@@ -632,13 +683,19 @@ class DashboardStats extends Component {
             </div>
 
             <div className='chart-group bar'>
+              {!internalMaskedIpArr &&
+                <div className='empty-data'>
+                  <header>{t('dashboard.txt-alertMaskedIpStatistics')}</header>
+                  <span><i className='fg fg-loading-2'></i></span>
+                </div>
+              }
               {internalMaskedIpArr && internalMaskedIpArr.length === 0 &&
                 <div className='empty-data'>
                   <header>{t('dashboard.txt-alertMaskedIpStatistics')}</header>
                   <span>{t('txt-notFound')}</span>
                 </div>
               }
-              {(!internalMaskedIpArr || internalMaskedIpArr.length > 0) &&
+              {internalMaskedIpArr && internalMaskedIpArr.length > 0 &&
                 <BarChart
                   stacked
                   vertical
@@ -665,11 +722,9 @@ class DashboardStats extends Component {
 
             {alertChartsList.map(this.displayCharts)}
 
-            {(metricsData[0].id || metricsData[1].id) &&
-              <div className='chart-group c-box'>
-                {metricsData.map(this.dispalyMetrics)}
-              </div>
-            }
+            <div className='chart-group c-box'>
+              {metricsData.map(this.displayMetrics)}
+            </div>
           </div>
         </div>
       </div>

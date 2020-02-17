@@ -72,55 +72,77 @@ class ThreatIntelligence extends Component {
       return;
     }
 
-    const apiArr = [
-      {
-        url: `${baseUrl}/api/indicators/summary`,
-        type: 'GET'
-      },
-      {
-        url: `${baseUrl}/api/indicators/trend?startDttm=${dateTime.from}&endDttm=${dateTime.to}`,
-        type: 'GET'
-      },
-      {
-        url: `${baseUrl}/api/indicators/trend/accum?startDttm=${dateTime.from}&endDttm=${dateTime.to}`,
-        type: 'GET'
-      }
-    ];
-
-    this.ah.all(apiArr)
+    this.ah.one({
+      url: `${baseUrl}/api/indicators/summary`,
+      type: 'GET'
+    })
     .then(data => {
       if (data) {
         let indicatorsData = [];
-        let indicatorsTrendData = [];
-        let acuIndicatorsTrendData = [];
 
-        _.keys(data[0])
+        _.keys(data)
         .forEach(key => {
-          if (data[0][key] > 0) {
+          if (data[key] > 0) {
             indicatorsData.push({
               key,
-              doc_count: data[0][key]
+              doc_count: data[key]
             });
           }
         });
 
-        _.keys(data[1])
+        this.setState({
+          indicatorsData
+        });        
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+
+    this.ah.one({
+      url: `${baseUrl}/api/indicators/trend?startDttm=${dateTime.from}&endDttm=${dateTime.to}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let indicatorsTrendData = [];
+
+        _.keys(data)
         .forEach(key => {
-          _.keys(data[1][key])
+          _.keys(data[key])
           .forEach(key2 => {
-            if (data[1][key][key2] > 0) {
+            if (data[key][key2] > 0) {
               indicatorsTrendData.push({
                 day: parseInt(Moment(helper.getFormattedDate(key2, 'local')).format('x')),
-                count: data[1][key][key2],
+                count: data[key][key2],
                 indicator: key
               })
             }
           })
         });
 
-        _.keys(data[2])
+        this.setState({
+          indicatorsTrendData
+        });        
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+
+    this.ah.one({
+      url: `${baseUrl}/api/indicators/trend/accum?startDttm=${dateTime.from}&endDttm=${dateTime.to}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let acuIndicatorsTrendData = [];
+
+        _.keys(data)
         .forEach(key => {
-          _.forEach(data[2][key], val => {
+          _.forEach(data[key], val => {
             if (val.counts > 0) {
               acuIndicatorsTrendData.push({
                 day: parseInt(Moment(helper.getFormattedDate(val.time, 'local')).format('x')),
@@ -132,10 +154,8 @@ class ThreatIntelligence extends Component {
         });
 
         this.setState({
-          indicatorsData,
-          indicatorsTrendData,
           acuIndicatorsTrendData
-        });
+        });        
       }
       return null;
     })
@@ -299,13 +319,19 @@ class ThreatIntelligence extends Component {
               <div className='main-statistics'>
                 <div className='statistics-content'>
                   <div className='chart-group'>
+                    {!indicatorsData &&
+                      <div className='empty-data'>
+                        <header>{t('edge-management.statistics.txt-sourceIndicators')}</header>
+                        <span><i className='fg fg-loading-2'></i></span>
+                      </div>
+                    }
                     {indicatorsData && indicatorsData.length === 0 &&
                       <div className='empty-data'>
                         <header>{t('edge-management.statistics.txt-sourceIndicators')}</header>
                         <span>{t('txt-notFound')}</span>
                       </div>
                     }
-                    {(!indicatorsData || indicatorsData.length > 0) &&
+                    {indicatorsData && indicatorsData.length > 0 &&
                       <PieChart
                         title={t('edge-management.statistics.txt-sourceIndicators')}
                         data={indicatorsData}
@@ -327,13 +353,19 @@ class ThreatIntelligence extends Component {
                   </div>
 
                   <div className='chart-group'>
+                    {!indicatorsTrendData &&
+                      <div className='empty-data'>
+                        <header>{t('edge-management.statistics.txt-indicatorsTrend')}</header>
+                        <span><i className='fg fg-loading-2'></i></span>
+                      </div>
+                    }
                     {indicatorsTrendData && indicatorsTrendData.length === 0 &&
                       <div className='empty-data'>
                         <header>{t('edge-management.statistics.txt-indicatorsTrend')}</header>
                         <span>{t('txt-notFound')}</span>
                       </div>
                     }
-                    {(!indicatorsTrendData || indicatorsTrendData.length > 0) &&
+                    {indicatorsTrendData && indicatorsTrendData.length > 0 &&
                       <BarChart
                         stacked
                         vertical
@@ -358,13 +390,19 @@ class ThreatIntelligence extends Component {
                   </div>
 
                   <div className='chart-group'>
+                    {!acuIndicatorsTrendData &&
+                      <div className='empty-data'>
+                        <header>{t('edge-management.statistics.txt-acuIndicatorsTrend')}</header>
+                        <span><i className='fg fg-loading-2'></i></span>
+                      </div>
+                    }
                     {acuIndicatorsTrendData && acuIndicatorsTrendData.length === 0 &&
                       <div className='empty-data'>
                         <header>{t('edge-management.statistics.txt-acuIndicatorsTrend')}</header>
                         <span>{t('txt-notFound')}</span>
                       </div>
                     }
-                    {(!acuIndicatorsTrendData || acuIndicatorsTrendData.length > 0) &&
+                    {acuIndicatorsTrendData && acuIndicatorsTrendData.length > 0 &&
                       <LineChart
                         stacked
                         title={t('edge-management.statistics.txt-acuIndicatorsTrend')}
