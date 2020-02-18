@@ -331,12 +331,13 @@ class NetworkOwner extends Component {
       return;
     }
 
-    this.ah.one({
-      url: `${baseUrl}/api/owner?uuid=${allValue.ownerUUID}`,
+    ah.one({
+      url: `${baseUrl}/api/u1/owner?uuid=${allValue.ownerUUID}`,
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data.rt) {
+        data = data.rt;
         tempOwner.info = {...data};
 
         this.setState({

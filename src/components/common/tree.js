@@ -102,19 +102,32 @@ class Tree extends Component {
 
     return (
       <div className={cx('left-nav tree', {'collapse': !showContent})}>
+        {activeTab === 'alert' && _.isEmpty(treeData.alert.data) &&
+          <span className='loading'><i className='fg fg-loading-2'></i></span>
+        }
+
+        {activeTab === 'logs' && !treeData &&
+          <span className='loading'><i className='fg fg-loading-2'></i></span>
+        }
+
+        {treeShowDropDown && tabData.length > 0 &&
+          <div>
+            <label htmlFor='analysisType' className={cx('header-text', {'hide': !showContent})}>{t('events.connections.txt-analysisType')}</label>
+            <DropDownList
+              id='analysisType'
+              className='analysis-type'
+              list={tabData}
+              required={true}
+              onChange={this.props.handleTabChange}
+              value={activeTab} />
+          </div>
+        }
+
+        {treeShowDropDown && !treeData &&
+          <span className='loading'><i className='fg fg-loading-2'></i></span>
+        }
+
         <div className='content'>
-          {treeShowDropDown && tabData.length > 0 &&
-            <div>
-              <label htmlFor='analysisType' className={cx('header-text', {'hide': !showContent})}>{t('events.connections.txt-analysisType')}</label>
-              <DropDownList
-                id='analysisType'
-                className='analysis-type'
-                list={tabData}
-                required={true}
-                onChange={this.props.handleTabChange}
-                value={activeTab} />
-            </div>
-          }
           {activeTab !== 'alert' && !_.isEmpty(treeData) &&
             <div>
               <label className={cx('header-text', {'hide': !showContent})}>{treeTitle}</label>
@@ -152,8 +165,7 @@ class Tree extends Component {
 }
 
 Tree.propTypes = {
-  activeTab: PropTypes.string.isRequired,
-  treeData: PropTypes.object.isRequired
+  activeTab: PropTypes.string.isRequired
 };
 
 const HocTree = withLocale(Tree);

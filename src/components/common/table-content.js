@@ -66,26 +66,34 @@ class TableContent extends Component {
       <div className='table-content'>
         {!hideTable &&
           <div className='table' style={this.getTableHight()}>
-            <DataTable
-              className={cx('main-table', {'with-pointer': withPointer})}
-              fields={dataTableFields}
-              data={dataTableData}
-              rowClassName={this.handleRowClass}
-              sort={dataTableData.length === 0 ? {} : dataTableSort}
-              onSort={this.props.handleTableSort}
-              onRowMouseOver={this.props.handleRowMouseOver}
-              onRowMouseOut={this.props.handleRowMouseOut}
-              onRowDoubleClick={this.props.handleRowDoubleClick} />
+            {!dataTableData &&
+              <span className='loading'><i className='fg fg-loading-2'></i></span>
+            }
+          
+            {dataTableData && dataTableData.length > 0 &&
+              <DataTable
+                className={cx('main-table', {'with-pointer': withPointer})}
+                fields={dataTableFields}
+                data={dataTableData}
+                rowClassName={this.handleRowClass}
+                sort={dataTableData.length === 0 ? {} : dataTableSort}
+                onSort={this.props.handleTableSort}
+                onRowMouseOver={this.props.handleRowMouseOver}
+                onRowMouseOut={this.props.handleRowMouseOut}
+                onRowDoubleClick={this.props.handleRowDoubleClick} />
+            }
           </div>
         }
         <footer>
-          <Pagination
-            paginationOptions={paginationOptions}
-            totalCount={paginationTotalCount}
-            pageSize={paginationPageSize}
-            currentPage={paginationCurrentPage}
-            onPageChange={this.props.paginationPageChange}
-            onDropDownChange={this.props.paginationDropDownChange} />
+          {dataTableData && dataTableData.length > 0 &&
+            <Pagination
+              paginationOptions={paginationOptions}
+              totalCount={paginationTotalCount}
+              pageSize={paginationPageSize}
+              currentPage={paginationCurrentPage}
+              onPageChange={this.props.paginationPageChange}
+              onDropDownChange={this.props.paginationDropDownChange} />
+          }
         </footer>
       </div>
     )
@@ -93,7 +101,6 @@ class TableContent extends Component {
 }
 
 TableContent.propTypes = {
-  dataTableData: PropTypes.array.isRequired,
   dataTableFields: PropTypes.object.isRequired,
   dataTableSort: PropTypes.object.isRequired,
   paginationPageSize: PropTypes.number.isRequired,

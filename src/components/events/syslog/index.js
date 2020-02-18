@@ -68,7 +68,7 @@ class SyslogController extends Component {
       },
       //Left nav
       treeRawData: {},
-      treeData: {},
+      treeData: null,
       currentTreeName: '',
       //Tab Menu
       subTabMenu: {
@@ -94,7 +94,7 @@ class SyslogController extends Component {
       //Sub sections
       subSectionsData: {
         mainData: {
-          logs: []
+          logs: null
         },
         fieldsData: {
           logs: {}
@@ -1723,7 +1723,7 @@ class SyslogController extends Component {
     const {activeTab} = this.state;
     const subSectionsData = {
       mainData: {
-        logs: []
+        logs: null
       },
       fieldsData: {
         logs: {}

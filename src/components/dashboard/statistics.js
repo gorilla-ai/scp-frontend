@@ -29,7 +29,6 @@ const ALERT_LEVEL_COLORS = {
   Warning: '#29CC7A',
   Notice: '#7ACC29'
 };
-let pieCharts = {};
 
 //Charts ID must be unique
 const CHARTS_LIST = [
@@ -82,8 +81,10 @@ class DashboardStats extends Component {
       updatedTime: helper.getFormattedDate(Moment()),
       alertDataArr: null,
       internalMaskedIpArr: null,
-      pieCharts: {},
       alertChartsList: [],
+      alertPieData: {},
+      syslogPieData: {},
+      dnsPieData: {},
       dnsMetricData: {
         id: 'dns-histogram'
       },
@@ -159,53 +160,25 @@ class DashboardStats extends Component {
    */
   loadAlertData = () => {
     const {baseUrl} = this.context;
-    const {datetime, dnsMetricData} = this.state;
-    const configSrcInfo = CHARTS_LIST[4];
+    const {datetime, alertPieData} = this.state;
     const dateTime = {
       from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
       to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
-    const apiData = [
-      {
-        url: `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`,
-        requestData: {
-          timestamp: [dateTime.from, dateTime.to],
-          filters: [{
-            condition: 'must',
-            query: 'All'
-          }],
-          search: ['Top10ExternalSrcCountry', 'InternalIp', 'InternalMaskedIp']
-        }
-      },
-      {
-        url: `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`,
-        requestData: {
-          timestamp: [dateTime.from, dateTime.to],
-          filters: [{
-            condition: 'must',
-            query: configSrcInfo.id
-          }]
-        }
-      },
-      {
-        url: `${baseUrl}/api/alert/dnsQuery?page=1&pageSize=0`,
-        requestData: {
-          timestamp: [dateTime.from, dateTime.to]
-        }
-      }
-    ];
-    const apiArr = _.map(apiData, val => {
-      return {
-        url: val.url,
-        data: JSON.stringify(val.requestData),
-        type: 'POST',
-        contentType: 'text/plain'
-      };
-    });
+    const url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`;
+    const requestData = {
+      timestamp: [dateTime.from, dateTime.to],
+      filters: [{
+        condition: 'must',
+        query: 'All'
+      }],
+      search: ['Top10ExternalSrcCountry', 'InternalIp', 'InternalMaskedIp']
+    };
 
-    this.ah.all(apiArr)
+    helper.getAjaxData('POST', url, requestData)
     .then(data => {
       if (data) {
+        let tempAlertPieData = {...alertPieData};
         let alertHistogram = {
           Emergency: {},
           Alert: {},
@@ -220,8 +193,8 @@ class DashboardStats extends Component {
         let internalMaskedIpArr = [];
 
         _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
-          if (data[0].event_histogram) {
-            _.forEach(data[0].event_histogram[val].buckets, val2 => {
+          if (data.event_histogram) {
+            _.forEach(data.event_histogram[val].buckets, val2 => {
               if (val2.doc_count > 0) {
                 alertHistogram[val][val2.key_as_string] = val2.doc_count;
               }
@@ -248,8 +221,8 @@ class DashboardStats extends Component {
           return accumulator.concat(currentValue)
         }, []);
 
-        if (data[0].aggregations) {
-          maskedIPdata = data[0].aggregations.InternalMaskedIp;
+        if (data.aggregations) {
+          maskedIPdata = data.aggregations.InternalMaskedIp;
 
           _.forEach(maskedIPdata, (key, val) => {
             if (val !== 'doc_count' && maskedIPdata[val].doc_count > 0) {
@@ -268,36 +241,23 @@ class DashboardStats extends Component {
         _.forEach(CHARTS_LIST, (val, i) => {
           let tempArr = [];
 
-          if (i === 0) {
-            if (data[0].aggregations) {
+          if (i === 0) { //alertThreatLevel
+            if (data.aggregations) {
               _.forEach(SEVERITY_TYPE, val2 => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
-                if (data[0].aggregations[val2].doc_count > 0) {
+                if (data.aggregations[val2].doc_count > 0) {
                   tempArr.push({
                     key: val2,
-                    doc_count: data[0].aggregations[val2].doc_count
+                    doc_count: data.aggregations[val2].doc_count
                   });
                 }
               })
             }
-          } else if (i === 3) {
-            if (data[0].aggregations) {
-              const chartData = data[0].aggregations[val.id];
-
-              _.forEach(_.keys(chartData), val2 => {
-                if (val2 !== 'doc_count' && chartData[val2].doc_count) {
-                  tempArr.push({
-                    key: val2,
-                    doc_count: chartData[val2].doc_count
-                  });
-                }
-              })
-            }
-          } else if (i < 3) {
-            if (data[0].aggregations) {
+          } else if (i === 1 || i === 2) { //Top10ExternalSrcCountry, InternalIp
+            if (data.aggregations) {
               let chartData = [];
 
-              if (data[0].aggregations[val.id]) {
-                chartData = data[0].aggregations[val.id][val.key].buckets;
+              if (data.aggregations[val.id]) {
+                chartData = data.aggregations[val.id][val.key].buckets;
               }
 
               if (chartData.length > 0) {
@@ -311,40 +271,126 @@ class DashboardStats extends Component {
                 })
               }
             }
+          } else if (i === 3) { //InternalMaskedIp
+            if (data.aggregations) {
+              const chartData = data.aggregations[val.id];
+
+              _.forEach(_.keys(chartData), val2 => {
+                if (val2 !== 'doc_count' && chartData[val2].doc_count) {
+                  tempArr.push({
+                    key: val2,
+                    doc_count: chartData[val2].doc_count
+                  });
+                }
+              })
+            }
+          } else {
+            return;
           }
-          pieCharts[val.id] = tempArr;
+          tempAlertPieData[val.id] = tempArr;
         })
 
-        if (data[1].aggregations) {
-          let configSrcData = [];
+        this.setState({
+          past24hTime: helper.getFormattedDate(helper.getSubstractDate(24, 'hours')),
+          updatedTime: helper.getFormattedDate(Moment()),
+          alertDataArr,
+          internalMaskedIpArr,
+          alertPieData: tempAlertPieData
+        }, () => {
+          this.getPieChartsData();
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
 
-          if (data[1].aggregations[configSrcInfo.id]) {
-            configSrcData = data[1].aggregations[configSrcInfo.id][configSrcInfo.path].buckets;
-          }
+    this.loadSyslogData();
+    this.loadDnsPieData();
+    this.loadMetricData();    
+  }
+  /**
+   * Construct and set the syslog config chart
+   * @method
+   */
+  loadSyslogData = () => {
+    const {baseUrl} = this.context;
+    const {datetime, syslogPieData} = this.state;
+    const configSrcInfo = CHARTS_LIST[4];
+    const dateTime = {
+      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    };
+    const url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`;
+    const requestData = {
+      timestamp: [dateTime.from, dateTime.to],
+      filters: [{
+        condition: 'must',
+        query: configSrcInfo.id
+      }]
+    };
 
-          if (configSrcData.length > 0) {
-            pieCharts[configSrcInfo.id] = configSrcData;
-          }
+    helper.getAjaxData('POST', url, requestData)
+    .then(data => {
+      if (data.aggregations) {
+        let configSrcData = [];
+        let tempSyslogPieData = {...syslogPieData};
+
+        if (data.aggregations[configSrcInfo.id]) {
+          configSrcData = data.aggregations[configSrcInfo.id][configSrcInfo.path].buckets;
         }
 
+        tempSyslogPieData[configSrcInfo.id] = configSrcData;
+
+        this.setState({
+          syslogPieData: tempSyslogPieData
+        }, () => {
+          this.getPieChartsData();
+        });        
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    });
+  }
+  /**
+   * Construct and set the DNS chart
+   * @method
+   */
+  loadDnsPieData = () => {
+    const {baseUrl} = this.context;
+    const {datetime, dnsPieData, dnsMetricData} = this.state;
+    const dateTime = {
+      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    };
+    const url = `${baseUrl}/api/alert/dnsQuery?page=1&pageSize=0`;
+    const requestData = {
+      timestamp: [dateTime.from, dateTime.to]
+    };
+
+    helper.getAjaxData('POST', url, requestData)
+    .then(data => {
+      if (data) {
         const dnsInfo = CHARTS_LIST[5];
+        let tempDnsPieData = {...dnsPieData};
         let tempDnsMetricData = {...dnsMetricData};
         tempDnsMetricData.data = [];
 
-        if (data[2].aggregations) {
+        if (data.aggregations) {
           let dnsQueryData = [];
           let dnsData = {};
 
-          if (data[2].aggregations[dnsInfo.id]) {
-            dnsQueryData = data[2].aggregations[dnsInfo.id][dnsInfo.path].buckets;
+          if (data.aggregations[dnsInfo.id]) {
+            dnsQueryData = data.aggregations[dnsInfo.id][dnsInfo.path].buckets;
           }
 
-          if (dnsQueryData.length > 0) {
-            pieCharts[dnsInfo.id] = dnsQueryData;
-          }
+          tempDnsPieData[dnsInfo.id] = dnsQueryData;
 
-          if (data[2].aggregations.session_histogram) {
-            dnsData = data[2].aggregations.session_histogram;
+          if (data.aggregations.session_histogram) {
+            dnsData = data.aggregations.session_histogram;
 
             tempDnsMetricData.data = [{
               doc_count: dnsData.doc_count,
@@ -361,11 +407,7 @@ class DashboardStats extends Component {
         }
 
         this.setState({
-          past24hTime: helper.getFormattedDate(helper.getSubstractDate(24, 'hours')),
-          updatedTime: helper.getFormattedDate(Moment()),
-          alertDataArr,
-          internalMaskedIpArr,
-          pieCharts,
+          dnsPieData: tempDnsPieData,
           dnsMetricData: tempDnsMetricData
         }, () => {
           this.getPieChartsData();
@@ -375,48 +417,6 @@ class DashboardStats extends Component {
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-
-    this.loadMetricData();    
-  }
-  /**
-   * Construct and set the pie charts
-   * @method
-   */
-  getPieChartsData = () => {
-    const {pieCharts, alertChartsList} = this.state;
-    let tempAlertChartsList = [];
-
-    _.forEach(alertChartsList, val => {
-      if (val.chartID === 'alertThreatLevel') { //Handle special case for Alert Threat Level
-        let chartData = [];
-        let i = 0;
-
-        _.forEach(pieCharts.alertThreatLevel, val2 => {
-          if (val2.doc_count > 0) {
-            i++;
-            return false;
-          }
-        })
-
-        if (i > 0) {
-          chartData = pieCharts[val.chartID];
-        }
-
-        tempAlertChartsList.push({
-          ...val,
-          chartData
-        });
-      } else {
-        tempAlertChartsList.push({
-          ...val,
-          chartData: pieCharts[val.chartID]
-        });
-      }
-    })
-
-    this.setState({
-      alertChartsList: tempAlertChartsList
     });
   }
   /**
@@ -467,6 +467,54 @@ class DashboardStats extends Component {
       }
       return null;
     })
+  }
+  /**
+   * Construct and set the pie charts
+   * @method
+   */
+  getPieChartsData = () => {
+    const {alertChartsList, alertPieData, syslogPieData, dnsPieData} = this.state;
+    let tempAlertChartsList = [];
+
+    _.forEach(alertChartsList, val => {
+      if (val.chartID === 'alertThreatLevel') { //Handle special case for Alert Threat Level
+        let chartData = null;
+        let i = 0;
+
+        _.forEach(alertPieData.alertThreatLevel, val2 => {
+          if (val2.doc_count > 0) {
+            i++;
+            return false;
+          }
+        })
+
+        if (i > 0) {
+          chartData = alertPieData[val.chartID];
+        }
+
+        tempAlertChartsList.push({
+          ...val,
+          chartData
+        });
+      } else {
+        let pieData = alertPieData[val.chartID];
+
+        if (val.chartID === 'Top10SyslogConfigSource') {
+          pieData = syslogPieData[val.chartID];
+        } else if (val.chartID === 'dnsQuery') {
+          pieData = dnsPieData[val.chartID];
+        }
+
+        tempAlertChartsList.push({
+          ...val,
+          chartData: pieData
+        });
+      }
+    })
+
+    this.setState({
+      alertChartsList: tempAlertChartsList
+    });
   }
   /**
    * Redirect to Alerts or Events page
@@ -596,13 +644,13 @@ class DashboardStats extends Component {
       const content = val.data ? t('txt-notFound') : <span><i className='fg fg-loading-2'></i></span>;
 
       return (
-        <div className='c-chart dns-histogram'>
+        <div className='c-chart dns-histogram' key={val.id}>
           <header>{t('dashboard.txt-' + val.id)}</header>
           <div className='c-chart-metric'>
             <div className='content'>
               <div className='main-container'>
                 <div className='group-parent vertical'>
-                  <div className='group' style={{'margin-top': '25px'}}>
+                  <div className='group' style={{'marginTop': '25px'}}>
                     {content}
                   </div>
                 </div>

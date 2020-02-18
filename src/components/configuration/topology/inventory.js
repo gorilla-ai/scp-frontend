@@ -2324,12 +2324,14 @@ class NetworkInventory extends Component {
       return;
     }
 
-    this.ah.one({
-      url: `${baseUrl}/api/owner?uuid=${value}`,
+    ah.one({
+      url: `${baseUrl}/api/u1/owner?uuid=${value}`,
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data.rt) {
+        data = data.rt;
+
         let tempAddIP = {...this.state.addIP};
         tempAddIP.ownerUUID = data.ownerUUID;
         tempAddIP.ownerID = data.ownerID;

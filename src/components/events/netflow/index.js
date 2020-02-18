@@ -93,7 +93,7 @@ class Netflow extends Component {
       //Left nav
       searchTreeObj: {},
       treeRawData: {},
-      treeData: {},
+      treeData: null,
       currentTreeName: '',
       //Tab Menu
       subTabMenu: {
@@ -123,14 +123,14 @@ class Netflow extends Component {
       //Sub sections
       subSectionsData: {
         mainData: {
-          connections: [],
-          dns: [],
-          http: [],
-          html: [],
-          email: [],
-          file: [],
-          cert: [],
-          ftp: []
+          connections: null,
+          dns: null,
+          http: null,
+          html: null,
+          email: null,
+          file: null,
+          cert: null,
+          ftp: null
         },
         fieldsData: {
           connections: {},
@@ -608,15 +608,14 @@ class Netflow extends Component {
     }
 
     tempSubSectionsData.mainData = {
-      connections: [],
-      dns: [],
-      http: [],
-      html: [],
-      email: [],
-      file: [],
-      cert: [],
-      ftp: [],
-      logs: []
+      connections: null,
+      dns: null,
+      http: null,
+      html: null,
+      email: null,
+      file: null,
+      cert: null,
+      ftp: null
     };
 
     this.setState({
@@ -635,7 +634,7 @@ class Netflow extends Component {
       filterData: tempFilterData,
       subSectionsData: tempSubSectionsData,
       treeRawData: {},
-      treeData: {},
+      treeData: null,
       showImgCheckbox: false,
       displayType: 'list',
       showChart: false,
@@ -2797,14 +2796,14 @@ class Netflow extends Component {
   clearData = () => {
     const subSectionsData = {
       mainData: {
-        connections: [],
-        dns: [],
-        http: [],
-        html: [],
-        email: [],
-        file: [],
-        cert: [],
-        ftp: []
+        connections: null,
+        dns: null,
+        http: null,
+        html: null,
+        email: null,
+        file: null,
+        cert: null,
+        ftp: null
       },
       fieldsData: {
         connections: {},

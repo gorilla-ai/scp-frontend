@@ -371,17 +371,21 @@ class AlertDetails extends Component {
       return;
     }
 
-    this.ah.one({
-      url: `${baseUrl}/api/owner?uuid=${ownerUUID}`,
+    ah.one({
+      url: `${baseUrl}/api/u1/owner?uuid=${ownerUUID}`,
       type: 'GET'
     })
     .then(data => {
-      if (data) {
-        tempAlertInfo[type].ownerPic = data.base64;
+      if (data.rt) {
+        data = data.rt;
 
-        this.setState({
-          alertInfo: tempAlertInfo
-        });
+        if (data.base64) {
+          tempAlertInfo[type].ownerPic = data.base64;
+
+          this.setState({
+            alertInfo: tempAlertInfo
+          });
+        }
       }
       return null;
     })

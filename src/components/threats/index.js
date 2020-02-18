@@ -48,7 +48,7 @@ const SUBSECTIONS_DATA = {
   //Sub sections
   subSectionsData: {
     mainData: {
-      alert: []
+      alert: null
     },
     fieldsData: {
       alert: {}
@@ -101,7 +101,7 @@ class ThreatsController extends Component {
         alert: {
           title: '',
           rawData: {},
-          data: {},
+          data: null,
           currentTreeName: ''
         },
         private: {
