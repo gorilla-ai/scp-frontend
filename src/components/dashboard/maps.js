@@ -38,7 +38,7 @@ const MAPS_PUBLIC_DATA = {
       destIp: {}
     },
     private: {
-      tree: [],
+      tree: null,
       data: '',
       currentFloorPrivateData: [],
       allFloorPrivateData: []
@@ -519,6 +519,7 @@ class DashboardMaps extends Component {
    */
   getAreaData = (areaUUID) => {
     const {baseUrl, contextRoot} = this.context;
+    const {alertDetails} = this.state;
     const floorPlan = areaUUID;
 
     if (!floorPlan) {
@@ -534,6 +535,8 @@ class DashboardMaps extends Component {
         const areaName = data.areaName;
         const areaUUID = data.areaUUID;
         let currentMap = '';
+        let tempAlertDetails = {...alertDetails};
+        tempAlertDetails.private.tree = null;
 
         if (data.picPath) {
           const picPath = `${baseUrl}${contextRoot}/api/area/_image?path=${data.picPath}`;
@@ -557,6 +560,7 @@ class DashboardMaps extends Component {
         };
 
         this.setState({
+          alertDetails: tempAlertDetails,
           currentMap,
           currentBaseLayers,
           currentFloor: areaUUID
@@ -774,11 +778,14 @@ class DashboardMaps extends Component {
                   required={true}
                   value={currentFloor} />
                 <div className='content'>
-                  <ul>
-                    {alertDetails.private.tree.length > 0 &&
-                      alertDetails.private.tree.map(this.displayPrivateHost)
-                    }
-                  </ul>
+                  {!alertDetails.private.tree &&
+                    <span className='loading'><i className='fg fg-loading-2'></i></span>
+                  }
+                  {alertDetails.private.tree && alertDetails.private.tree.length > 0 &&
+                    <ul>
+                      {alertDetails.private.tree.map(this.displayPrivateHost)}
+                    </ul>
+                  }
                   <div className='map'>
                     {currentMap &&
                       <Gis
