@@ -82,7 +82,8 @@ class AlertDetails extends Component {
           ownerPic: '',
           ownerMap: {},
           ownerBaseLayers: {},
-          ownerSeat: {}
+          ownerSeat: {},
+          exist: null
         },
         destIp: {
           locationType: '',
@@ -91,7 +92,8 @@ class AlertDetails extends Component {
           ownerPic: '',
           ownerMap: {},
           ownerBaseLayers: {},
-          ownerSeat: {}
+          ownerSeat: {},
+          exist: null
         }
       },
       ipDeviceInfo: {
@@ -330,7 +332,7 @@ class AlertDetails extends Component {
    */
   getHMDinfo = (type) => {
     const {baseUrl} = this.context;
-    const {ipDeviceInfo} = this.state;
+    const {alertInfo, ipDeviceInfo} = this.state;
     const ip = this.getIpPortData(type);
 
     if (ip === NOT_AVAILABLE) {
@@ -338,16 +340,30 @@ class AlertDetails extends Component {
     }
 
     this.ah.one({
-      url: `${baseUrl}/api/u1/ipdevice/_search?ip=${ip}`,
+      url: `${baseUrl}/api/u1/ipdevice/_search?exactIp=${ip}`,
       type: 'GET'
     })
     .then(data => {
-      if (data && data.rows.length > 0) {
+      if (data) {
+        let tempAlertInfo = {...alertInfo};
         let tempIPdeviceInfo = {...ipDeviceInfo};
-        tempIPdeviceInfo[type] = data.rows[0];
+        let deviceExist = '';
+
+        if (data.counts === 0) {
+          deviceExist = false;
+        } else {
+          deviceExist = true;
+          tempIPdeviceInfo[type] = data.rows[0];
+
+          this.setState({
+            ipDeviceInfo: tempIPdeviceInfo
+          });
+        }
+
+        alertInfo[type].exist = deviceExist;
 
         this.setState({
-          ipDeviceInfo: tempIPdeviceInfo
+          alertInfo: tempAlertInfo
         });
       }
       return null;
@@ -694,7 +710,7 @@ class AlertDetails extends Component {
       return;
     }
 
-    if (alertInfo[ipType].topology && alertInfo[ipType].topology.mac) {
+    if (alertInfo[ipType].exist) {
       type = 'edit';
       text = t('txt-edit');
     }
@@ -1223,22 +1239,10 @@ class AlertDetails extends Component {
    * @returns PrivateDetails component
    */
   getPrivateInfo = (type) => {
-    const {contextRoot, language} = this.context;
-    const {alertData} = this.props;
+    const {contextRoot} = this.context;
     const {alertInfo} = this.state;
     const topoInfo = alertInfo[type].topology;
     const picPath = alertInfo[type].ownerPic ? alertInfo[type].ownerPic : contextRoot + '/images/empty_profile.png';
-    const url_login = {
-      pathname: '/SCP/honeynet/employee-record',
-      search: `?lng=${language}`
-    };
-    const url_access = {
-      pathname: '/SCP/honeynet/employee-record',
-      search: `?eventDttm=${alertData._eventDttm_}&lng=${language}`,
-      state: {
-        alertData
-      }
-    };
     const srcDestType = type.replace('Ip', '');
 
     return (
