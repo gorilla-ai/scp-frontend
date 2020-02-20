@@ -57,32 +57,35 @@ class Roles extends Component {
       type: 'GET'
     })
     .then(data => {
-      let tempFields = {};
-      dataFieldsArr.forEach(tempData => {
-        tempFields[tempData] = {
-          hide: tempData === 'privilegeid' ? true : false,
-          label: tempData === '_menu' ? '' : t(`privilegeFields.${tempData}`),
-          sortable: tempData === 'name' ? true : null,
-          formatter: (value, allValue, i) => {
-            if (tempData === '_menu') {
-              return (
-                <div className={cx('table-menu', {'active': value})}>
-                  <button onClick={this.handleRowContextMenu.bind(this, allValue)}><i className='fg fg-more'></i></button>
-                </div>
-              )
-            } else if (tempData === 'permits') {
-              return <div className='flex-item'>{this.displayPermit(value)}</div>
-            } else {
-              return <span>{value}</span>;
+      if (data) {
+        let tempFields = {};
+        dataFieldsArr.forEach(tempData => {
+          tempFields[tempData] = {
+            hide: tempData === 'privilegeid' ? true : false,
+            label: tempData === '_menu' ? '' : t(`privilegeFields.${tempData}`),
+            sortable: tempData === 'name' ? true : null,
+            formatter: (value, allValue, i) => {
+              if (tempData === '_menu') {
+                return (
+                  <div className={cx('table-menu', {'active': value})}>
+                    <button onClick={this.handleRowContextMenu.bind(this, allValue)}><i className='fg fg-more'></i></button>
+                  </div>
+                )
+              } else if (tempData === 'permits') {
+                return <div className='flex-item'>{this.displayPermit(value)}</div>
+              } else {
+                return <span>{value}</span>;
+              }
             }
           }
-        }
-      })
+        })
 
-      this.setState({
-        data: data.rt,
-        dataFields: tempFields
-      });
+        this.setState({
+          data: data.rt,
+          dataFields: tempFields
+        });
+      }
+      return null;
     })
     .catch(err => {
       this.setState({
@@ -137,7 +140,7 @@ class Roles extends Component {
       cancelText: c('txt-cancel'),
       display: this.getDeletePrivilegeContent(allValue),
       act: (confirmed) => {
-        if (confirmed) {
+        if (confirmed && id) {
           ah.one({
             url: `${baseUrl}/api/account/privilege?privilegeId=${id}`,
             type: 'DELETE',
@@ -145,6 +148,7 @@ class Roles extends Component {
           })
           .then(data => {
             setTimeout(this.loadList, 1000);
+            return null;
           })
           .catch(err => {
             helper.showPopupMsg('', t('txt-error'), err.message);

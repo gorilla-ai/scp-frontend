@@ -147,12 +147,7 @@ class QueryOpenSave extends Component {
       helper.getAjaxData(requestType, url, data)
       .then(data => {
         if (data) {
-          PopupDialog.alert({
-            id: 'queryModal',
-            confirmText: t('txt-close'),
-            display: <div>{t('events.connections.txt-querySaved')}</div>
-          });
-
+          helper.showPopupMsg(t('events.connections.txt-querySaved'));
           this.props.getSavedQuery();
         }
         return null;
@@ -216,6 +211,10 @@ class QueryOpenSave extends Component {
     const {baseUrl} = this.context;
     const {activeTab, queryData} = this.props;
     let url = '';
+
+    if (!queryData.id) {
+      return;
+    }
 
     if (activeTab === 'alert') {
       url = `${baseUrl}/api/account/alert/queryText?id=${queryData.id}`;

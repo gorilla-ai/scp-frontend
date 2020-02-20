@@ -100,7 +100,7 @@ class TableCell extends Component {
               <i className='fg fg-network' title={tooltip}></i>
             }
             <span className='ip'>{fieldValue}</span>
-            <i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.showQueryOptions(fieldName, fieldValue)}></i>
+            <i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.showQueryOptions(fieldName, fieldValue, activeTab)}></i>
           </div>
         )
       } else {

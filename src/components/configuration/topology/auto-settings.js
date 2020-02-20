@@ -326,6 +326,7 @@ class AutoSettings extends Component {
       } else {
         helper.showPopupMsg(t('network-inventory.auto-settings.txt-connectionsFail'), t('txt-error'));
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg(t('network-inventory.auto-settings.txt-connectionsFail'), t('txt-error'));
@@ -366,8 +367,8 @@ class AutoSettings extends Component {
   handleNetflowtest = () => {
     const {baseUrl} = this.context;
     const dateTime = {
-      from: Moment(helper.getSubstractDate(24, 'hour')).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
-      to: Moment().utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
+      from: Moment(helper.getSubstractDate(24, 'hour')).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: Moment().utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
 
     this.ah.one({
@@ -423,6 +424,7 @@ class AutoSettings extends Component {
   }
   /**
    * Get and set Scanner test result
+   * @param {object} value - scanner test info
    * @method
    */
   handleScannerTest = (value) => {
@@ -535,10 +537,30 @@ class AutoSettings extends Component {
       if (data) {
         this.getSettingsInfo();
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'));
     });
+  }
+  getInputWidth = (type) => {
+    const {activeContent} = this.state;
+
+    if (type === 'ipRange') {
+      if (activeContent === 'viewMode') {
+        return '32%';
+      } else if (activeContent === 'editMode') {
+        return '30%';
+      }
+    }
+
+    if (type === 'scanner') {
+      if (activeContent === 'viewMode') {
+        return '28%';
+      } else if (activeContent === 'editMode') {
+        return '26%';
+      }
+    }
   }
   render() {
     const {
@@ -583,9 +605,9 @@ class AutoSettings extends Component {
               disabled={activeContent === 'viewMode'} />
             <div className='group full multi'>
               <label id='ipRangeLabel' htmlFor='autoSettingsIpRange'>
-                <span>Type</span>
-                <span>IP</span>
-                <span>Mask</span>
+                <span style={{width: this.getInputWidth('ipRange')}}>Type</span>
+                <span style={{width: this.getInputWidth('ipRange')}}>IP</span>
+                <span style={{width: this.getInputWidth('ipRange')}}>Mask</span>
               </label>
               <MultiInput
                 id='autoSettingsIpRange'
@@ -598,7 +620,8 @@ class AutoSettings extends Component {
                   mask: ''
                 }}
                 onChange={this.setIpRangeData}
-                value={ipRangeData} />
+                value={ipRangeData}
+                disabled={activeContent === 'viewMode'} />
             </div>
           </div>
           <div className='form-group normal short'>
@@ -699,9 +722,9 @@ class AutoSettings extends Component {
                 disabled={activeContent === 'viewMode'} />
               <div className='group full multi'>
                 <label id='scannerLabel' htmlFor='autoSettingsScanner'>
-                  <span>Edge</span>
-                  <span>IP</span>
-                  <span>Mask</span>
+                  <span style={{width: this.getInputWidth('scanner')}}>Edge</span>
+                  <span style={{width: this.getInputWidth('scanner')}}>IP</span>
+                  <span style={{width: this.getInputWidth('scanner')}}>Mask</span>
                 </label>
                 <MultiInput
                   id='autoSettingsScanner'
@@ -715,7 +738,8 @@ class AutoSettings extends Component {
                   }}
                   onChange={this.setScannerData}
                   handleScannertest={this.handleScannerTest}
-                  value={scannerData} />
+                  value={scannerData}
+                  disabled={activeContent === 'viewMode'} />
               </div>
             </div>
           }

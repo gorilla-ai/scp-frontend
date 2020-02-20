@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
 import Moment from 'moment'
+import moment from 'moment-timezone'
 import _ from 'lodash'
 import cx from 'classnames'
 import queryString from 'query-string'
@@ -28,7 +29,7 @@ let et = null;
 const PRIVATE = 'private';
 const PUBLIC = 'public';
 const PRIVATE_API = {
-  name: 'Top10InternalMaskedIp',
+  name: 'InternalMaskedIp',
   path: 'srcIp'
 };
 const PUBLIC_API = {
@@ -47,7 +48,7 @@ const SUBSECTIONS_DATA = {
   //Sub sections
   subSectionsData: {
     mainData: {
-      alert: []
+      alert: null
     },
     fieldsData: {
       alert: {}
@@ -100,7 +101,7 @@ class ThreatsController extends Component {
         alert: {
           title: '',
           rawData: {},
-          data: {},
+          data: null,
           currentTreeName: ''
         },
         private: {
@@ -208,7 +209,7 @@ class ThreatsController extends Component {
         } else if (type === 'ip') {
           query = 'sourceIP: ' + data;
         } else if (type === 'country') {
-          query = 'srcCountry: ' + data;
+          query = 'srcCountry: "' + data + '"';
         }
 
         filterData = [{
@@ -224,6 +225,20 @@ class ThreatsController extends Component {
       this.setState({
         searchInput: tempSearchInput,
         filterData,
+        showFilter: true
+      });
+    }
+
+    if (alertsParam.from && alertsParam.to) {
+      this.setState({
+        datetime: {
+          from: alertsParam.from,
+          to: alertsParam.to
+        },
+        filterData: [{
+          condition: 'must',
+          query: 'sourceIP:' + alertsParam.sourceIP
+        }],
         showFilter: true
       });
     }
@@ -306,9 +321,22 @@ class ThreatsController extends Component {
    * @method
    * @param {string} field - field name of selected field
    * @param {string | number} value - value of selected field
+   * @param {string} activeTab - currect active tab
    * @param {object} e - mouseClick events
    */
-  showQueryOptions = (field, value) => (e) => {
+  showQueryOptions = (field, value, activeTab) => (e) => {
+    if (activeTab && activeTab === 'alert') {
+      if (field === 'srcIp') {
+        value = 'sourceIP: ' +  value;
+      } else if (field === 'destIp') {
+        value = 'destinationIP: ' +  value;
+      }
+    } else {
+      if (field === 'Collector') {
+        value = 'Collector: ' +  '"' + value + '"';
+      }
+    }
+
     const menuItems = [
       {
         id: value + '_Must',
@@ -344,165 +372,154 @@ class ThreatsController extends Component {
 
     helper.getAjaxData('POST', url, requestData)
     .then(data => {
-      if (currentPage > 1 && data.data.rows.length === 0) {
-        helper.showPopupMsg('', t('txt-error'), t('events.connections.txt-maxDataMsg'));
+      if (data) {
+        if (currentPage > 1 && data.data.rows.length === 0) {
+          helper.showPopupMsg('', t('txt-error'), t('events.connections.txt-maxDataMsg'));
 
-        this.setState({
-          currentPage: oldPage
-        });
-        return;
-      }
+          this.setState({
+            currentPage: oldPage
+          });
+          return;
+        }
 
-      let alertHistogram = {
-        Emergency: {},
-        Alert: {},
-        Critical: {},
-        Warning: {},
-        Notice: {}
-      };
-      let tableData = data.data;
-      let tempArray = [];
-      let tempSubSectionsData = {...subSectionsData};
-
-      if (_.isEmpty(tableData) || (tableData && tableData.counts === 0)) {
-        helper.showPopupMsg(t('txt-notFound'));
-
-        let tempSubSectionsData = {...this.state.subSectionsData};
-        tempSubSectionsData.mainData[activeTab] = [];
-        tempSubSectionsData.totalCount[activeTab] = 0;
-
-        const resetObj = {
-          subSectionsData: tempSubSectionsData,
-          currentPage: 1,
-          oldPage: 1,
-          pageSize: 20
+        let alertHistogram = {
+          Emergency: {},
+          Alert: {},
+          Critical: {},
+          Warning: {},
+          Notice: {}
         };
+        let tableData = data.data;
+        let tempArray = [];
+        let tempSubSectionsData = {...subSectionsData};
 
-        this.setState({
-          ...resetObj,
-          alertHistogram: {}
+        if (_.isEmpty(tableData) || (tableData && tableData.counts === 0)) {
+          helper.showPopupMsg(t('txt-notFound'));
+
+          let tempSubSectionsData = {...this.state.subSectionsData};
+          tempSubSectionsData.mainData[activeTab] = [];
+          tempSubSectionsData.totalCount[activeTab] = 0;
+
+          const resetObj = {
+            subSectionsData: tempSubSectionsData,
+            currentPage: 1,
+            oldPage: 1,
+            pageSize: 20
+          };
+
+          this.setState({
+            ...resetObj,
+            alertHistogram: {}
+          });
+          return;
+        }
+
+        tempSubSectionsData.totalCount[activeTab] = tableData.counts;
+        tableData = tableData.rows;
+
+        tempArray = _.map(tableData, val => { //Re-construct the Alert data
+          val._source.id = val._id;
+          val._source.index = val._index;
+          return val._source;
         });
-        return;
-      }
 
-      tempSubSectionsData.totalCount[activeTab] = tableData.counts;
-      tableData = tableData.rows;
+        let tempAlertDetails = {...alertDetails};
+        tempAlertDetails.currentIndex = 0;
+        tempAlertDetails.currentLength = tableData.length < pageSize ? tableData.length : pageSize;
+        tempAlertDetails.all = tempArray;
 
-      tempArray = _.map(tableData, val => { //Re-construct the Alert data
-        val._source.id = val._id;
-        val._source.index = val._index;
-        return val._source;
-      });
-
-      let tempAlertDetails = {...alertDetails};
-      tempAlertDetails.currentIndex = 0;
-      tempAlertDetails.currentLength = tableData.length < pageSize ? tableData.length : pageSize;
-      tempAlertDetails.all = tempArray;
-
-      _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
-        _.forEach(data.event_histogram[val].buckets, val2 => {
-          if (val2.doc_count > 0) {
-            alertHistogram[val][val2.key_as_string] = val2.doc_count;
-          }
-        })
-      })
-
-      this.setState({
-        alertHistogram,
-        alertDetails: tempAlertDetails
-      });
-
-      let tempFields = {};
-      subSectionsData.tableColumns[activeTab].forEach(tempData => {
-        let tempFieldName = tempData;
-
-        tempFields[tempData] = {
-          hide: false,
-          label: f(`${activeTab}Fields.${tempFieldName}`),
-          sortable: tempData === '_eventDttm_' ? true : false,
-          formatter: (value, allValue) => {
-            if (tempData === 'Info') {
-              return <span>{value}</span>
-            } else {
-              if (tempData === '_eventDttm_') {
-                value = helper.getFormattedDate(value, 'local');
-              }
-              return (
-                <TableCell
-                  activeTab={activeTab}
-                  fieldValue={value}
-                  fieldName={tempData}
-                  allValue={allValue}
-                  alertLevelColors={ALERT_LEVEL_COLORS}
-                  showQueryOptions={this.showQueryOptions} />
-              )
+        _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
+          _.forEach(data.event_histogram[val].buckets, val2 => {
+            if (val2.doc_count > 0) {
+              alertHistogram[val][val2.key_as_string] = val2.doc_count;
             }
-          }
-        };
-      })
+          })
+        })
 
-      const tempCurrentPage = options === 'search' ? 1 : currentPage;
-      tempSubSectionsData.mainData[activeTab] = tempArray;
-      tempSubSectionsData.fieldsData[activeTab] = tempFields;
+        this.setState({
+          alertHistogram,
+          alertDetails: tempAlertDetails
+        });
 
-      this.setState({
-        currentPage: tempCurrentPage,
-        oldPage: tempCurrentPage,
-        subSectionsData: tempSubSectionsData
-      });
+        let tempFields = {};
+        subSectionsData.tableColumns[activeTab].forEach(tempData => {
+          let tempFieldName = tempData;
+
+          tempFields[tempData] = {
+            hide: false,
+            label: f(`${activeTab}Fields.${tempFieldName}`),
+            sortable: tempData === '_eventDttm_' ? true : false,
+            formatter: (value, allValue) => {
+              if (tempData === 'Info') {
+                return <span>{value}</span>
+              } else {
+                if (tempData === '_eventDttm_') {
+                  value = helper.getFormattedDate(value, 'local');
+                }
+                return (
+                  <TableCell
+                    activeTab={activeTab}
+                    fieldValue={value}
+                    fieldName={tempData}
+                    allValue={allValue}
+                    alertLevelColors={ALERT_LEVEL_COLORS}
+                    showQueryOptions={this.showQueryOptions} />
+                )
+              }
+            }
+          };
+        })
+
+        const tempCurrentPage = options === 'search' ? 1 : currentPage;
+        tempSubSectionsData.mainData[activeTab] = tempArray;
+        tempSubSectionsData.fieldsData[activeTab] = tempFields;
+
+        this.setState({
+          currentPage: tempCurrentPage,
+          oldPage: tempCurrentPage,
+          subSectionsData: tempSubSectionsData
+        });
+      }
       return null;
     });
   }
   /**
    * Construct the alert api request body
    * @method
-   * @param {string} [options] - option for 'search'
+   * @param {string} options - option for 'tree' or 'csv'
    * @returns requst data object
    */
   toQueryLanguage = (options) => {
-    const {datetime, activeLocationTab, filterData} = this.state;
-    const timeAttribute = 'timestamp';
-    const defaultCondition = {
-      condition: 'must',
-      query: 'All'
+    const {datetime, sort, filterData} = this.state;
+    const dateTime = {
+      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
-    const defaultSearch = [PRIVATE_API.name, PUBLIC_API.name];
-    let dateFrom = datetime.from;
-    let dateTo = datetime.to;
-    let dateTime = {};
-    let dataObj = {};
-
-    dateTime = {
-      from: Moment(dateFrom).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
-      to: Moment(dateTo).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
+    let dataObj = {
+      timestamp: [dateTime.from, dateTime.to]
     };
-    dataObj[timeAttribute] = [dateTime.from, dateTime.to];
 
     if (options === 'tree') {
-      dataObj['filters'] = [{
-        condition: 'must',
-        query: 'All'
-      }];
-      dataObj['search'] = defaultSearch;
+      dataObj.search = [PRIVATE_API.name, PUBLIC_API.name];
     } else {
-      let filterDataArr = [];
-
-      if (filterData.length === 1 && filterData[0].query === '') {
-        dataObj['filters'] = [defaultCondition];
-      } else {
-        filterDataArr = helper.buildFilterDataArray(filterData);
-      }
+      const filterDataArr = helper.buildFilterDataArray(filterData);
 
       if (filterDataArr.length > 0) {
-        dataObj['filters'] = filterDataArr;
+        dataObj.filters = filterDataArr;
       }
+
+      dataObj.sort = [{
+        '_eventDttm_': sort.desc ? 'desc' : 'asc'
+      }];
     }
 
-    const dataOptions = {
-      ...dataObj
-    };
+    if (options == 'csv') {
+      const timezone = moment.tz(moment.tz.guess()); //Get local timezone obj
+      const utc_offset = timezone._offset / 60; //Convert minute to hour
+      dataObj.timeZone = utc_offset;
+    }
 
-    return dataOptions;
+    return dataObj;
   }
   /**
    * Set the alert tree data based on alert type
@@ -839,7 +856,11 @@ class ThreatsController extends Component {
     }
 
     if (field) {
-      value = field + ': ' + value;
+      if (field === 'srcCountry') {
+        value = field + ': "' + value + '"';
+      } else {
+        value = field + ': ' + value;
+      }
     }
 
     _.forEach(filterData, (val, i) => {
@@ -872,6 +893,7 @@ class ThreatsController extends Component {
    */
   handleRowDoubleClick = (index, allValue, evt) => {
     this.openDetailInfo(index, allValue);
+
     evt.stopPropagation();
     return null;
   }
@@ -927,7 +949,6 @@ class ThreatsController extends Component {
       } else {
         data = alertDetails.all[index];
       }
-
       this.openDetailInfo(index, data);
     });
   }
@@ -992,7 +1013,7 @@ class ThreatsController extends Component {
     }, () => {
       if (refresh === 'refresh') {
         this.loadTreeData();
-        this.loadTable(fromSearch);
+        this.loadTable('search');
       }
     });
   }
@@ -1049,7 +1070,7 @@ class ThreatsController extends Component {
   getCSVfile = () => {
     const {baseUrl, contextRoot} = this.context;
     const url = `${baseUrl}${contextRoot}/api/u2/alert/_export`;
-    const requestData = this.toQueryLanguage('search');
+    const requestData = this.toQueryLanguage('csv');
 
     downloadWithForm(url, {payload: JSON.stringify(requestData)});
   }

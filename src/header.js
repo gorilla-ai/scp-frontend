@@ -129,14 +129,14 @@ class Header extends Component {
   }
   render() {
     const {sessionRights} = this.context;
-    const {companyName} = this.props;
+    const {productName} = this.props;
 
     return (
       <div className='header-wrapper'>
         <div className='main-header'>
           <header id='g-header'>
             <div className='title'>
-              <Link to='/SCP'>{companyName}</Link>
+              <Link to='/SCP'>{productName}</Link>
             </div>
 
             <div>
@@ -174,7 +174,7 @@ class Header extends Component {
 Header.contextType = BaseDataContext;
 
 Header.propTypes = {
-  companyName: PropTypes.string.isRequired
+  productName: PropTypes.string.isRequired
 };
 
 const HocHeader = withRouter(Header);

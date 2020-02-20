@@ -69,14 +69,17 @@ class PrivilegeEdit extends Component {
       type: 'GET'
     })
     .then(data => {
-      this.setState({
-        permits: _.map(data.rt, (permit) => {
-          return {
-            value: permit.permitid,
-            text: permit.dispname
-          };
-        })
-      });
+      if (data) {
+        this.setState({
+          permits: _.map(data.rt, (permit) => {
+            return {
+              value: permit.permitid,
+              text: permit.dispname
+            };
+          })
+        });
+      }
+      return null;
     })
     .catch(err => {
       this.setState({
@@ -109,6 +112,10 @@ class PrivilegeEdit extends Component {
     const {baseUrl} = this.context;
     const {selected, privilegeid} = this.state;
 
+    if (!privilegeid) {
+      return;
+    }
+
     ah.one({
       url: `${baseUrl}/api/account/privilege/permits?privilegeId=${privilegeid}&${queryString.stringify({permitIds:selected})}`,
       type: 'PATCH',
@@ -116,6 +123,7 @@ class PrivilegeEdit extends Component {
     })
     .then(data => {
       this.save();
+      return null;
     })
     .catch(err => {
       this.setState({

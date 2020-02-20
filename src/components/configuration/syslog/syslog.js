@@ -131,6 +131,7 @@ class Syslog extends Component {
           configRelationships: data.relationships
         });
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -203,7 +204,13 @@ class Syslog extends Component {
   getSyslogList = (flag) => {
     const {baseUrl} = this.context;
     const {dataFieldsArr, syslog, search} = this.state;
-    let uri = `?page=${syslog.currentPage}&pageSize=${syslog.pageSize}&sort=${syslog.sort.field}&order=${syslog.sort.desc ? 'desc' : 'asc'}`;
+    let uri = ''; 
+
+    if (_.isEmpty(syslog)) {
+      return;
+    } else {
+      uri = `?page=${syslog.currentPage}&pageSize=${syslog.pageSize}&sort=${syslog.sort.field}&order=${syslog.sort.desc ? 'desc' : 'asc'}`;
+    }
 
     // by filter
     if (flag) {
@@ -221,38 +228,41 @@ class Syslog extends Component {
       type: 'GET'
     })
     .then(data => {
-      let tempSyslog = {...syslog};
-      tempSyslog.dataContent = data.rows;
-      tempSyslog.totalCount = data.counts;
-      tempSyslog.currentPage = flag ? 1 : syslog.currentPage;
+      if (data) {
+        let tempSyslog = {...syslog};
+        tempSyslog.dataContent = data.rows;
+        tempSyslog.totalCount = data.counts;
+        tempSyslog.currentPage = flag ? 1 : syslog.currentPage;
 
-      let tempFields = {};
-      dataFieldsArr.forEach(tempData => {
-        tempFields[tempData] = {
-          label: tempData === '_menu' ? '' : t(`syslogFields.${tempData}`),
-          sortable: (tempData === '_menu' || tempData === 'property') ? null : true,
-          formatter: (value, allValue, i) => {
-            if (tempData === '_menu') {
-              return (
-                <div className={cx('table-menu', {'active': value})}>
-                  <button onClick={this.handleRowContextMenu.bind(this, allValue)}><i className='fg fg-more'></i></button>
-                </div>
-              )
-            } else if (tempData === 'property') {
-              return <div className='flex-item'>{this.displayProperty(value)}</div>
-            } else {
-              return <span>{value}</span>;
+        let tempFields = {};
+        dataFieldsArr.forEach(tempData => {
+          tempFields[tempData] = {
+            label: tempData === '_menu' ? '' : t(`syslogFields.${tempData}`),
+            sortable: (tempData === '_menu' || tempData === 'property') ? null : true,
+            formatter: (value, allValue, i) => {
+              if (tempData === '_menu') {
+                return (
+                  <div className={cx('table-menu', {'active': value})}>
+                    <button onClick={this.handleRowContextMenu.bind(this, allValue)}><i className='fg fg-more'></i></button>
+                  </div>
+                )
+              } else if (tempData === 'property') {
+                return <div className='flex-item'>{this.displayProperty(value)}</div>
+              } else {
+                return <span>{value}</span>;
+              }
             }
           }
-        }
-      })
+        })
 
-      this.setState({
-        syslog: tempSyslog,
-        dataFields: tempFields
-      }, () => {
-        this.closeSyslog();
-      });
+        this.setState({
+          syslog: tempSyslog,
+          dataFields: tempFields
+        }, () => {
+          this.closeSyslog();
+        });
+      }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -329,6 +339,7 @@ class Syslog extends Component {
           rawOptions
         });
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -394,6 +405,7 @@ class Syslog extends Component {
     })
     .then(data => {
       this.getSyslogList(false);
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -436,12 +448,17 @@ class Syslog extends Component {
   deleteSyslog = (id) => {
     const {baseUrl} = this.context;
 
+    if (!id) {
+      return;
+    }
+
     this.ah.one({
       url: `${baseUrl}/api/log/config?id=${id}`,
       type: 'DELETE'
     })
     .then(data => {
       this.getSyslogList(false);
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -497,6 +514,7 @@ class Syslog extends Component {
           modalTitle: t('txt-edit')
         });
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -607,23 +625,28 @@ class Syslog extends Component {
   getLatestInput = (configId) => {
     const {baseUrl} = this.context;
 
-    if (configId) {
-      this.ah.one({
-        url: `${baseUrl}/api/log/event/sample?configId=${configId}`,
-        type: 'GET'
-      })
-      .then(data => {
+    if (!configId) {
+      return;
+    }
+
+    this.ah.one({
+      url: `${baseUrl}/api/log/event/sample?configId=${configId}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
         let tempConfig = {...this.state.config};
         tempConfig.input = data;
 
         this.setState({
           config: tempConfig
         });
-      })
-      .catch(err => {
-        helper.showPopupMsg('', t('txt-error'), err.message);
-      })
-    }
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Display content for the Filter tab
@@ -794,19 +817,25 @@ class Syslog extends Component {
     const {activeTimeline, activeConfigId, datetime} = this.state;
     const startDttm = Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
     const endDttm = Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-    let configId = '';
+    const configId = activeTimeline === 'configId' ? activeConfigId : '';
+    let uri = '';
 
-    if (activeTimeline === 'configId') {
-      configId = activeConfigId;
+    if (Moment(datetime.from).isAfter()) {
+      helper.showPopupMsg(t('edge-management.txt-threatDateErr'), t('txt-error'));
+      return;
+    }
+
+    if (configId) {
+      uri += `&configId=${configId}`;
     }
 
     this.ah.one({
-      url: `${baseUrl}/api/log/event/_event_source_agg?startDttm=${startDttm}&endDttm=${endDttm}&configId=${configId}`,
+      url: `${baseUrl}/api/log/event/_event_source_agg?startDttm=${startDttm}&endDttm=${endDttm}${uri}`,
       type: 'GET'
     })
     .then(data => {
       if (data) {
-      const hostsArr = _.map(data.hosts, (key, value) => {
+        const hostsArr = _.map(data.hosts, (key, value) => {
           return {
             ip: value,
             events: key
@@ -822,7 +851,12 @@ class Syslog extends Component {
           clickTimeline: true,
           eventsData: tempEventsData
         });     
+      } else {
+        this.setState({
+          eventsData: {}
+        });
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);

@@ -26,7 +26,8 @@ const SERVICE_TYPE_LIST = {
   'IPS-NETPROBE': ['lastAlertDataUpdDT', 'lastStatusUpdDT', 'threatIntellLastUpdDT', 'rx_pkts', 'tx_pkts', 'attackCnt'],
   'NETFLOW-IDS-SURICATA': ['lastAlertDataUpdDT', 'lastStatusUpdDT', 'threatIntellLastUpdDT', 'lastStatus', 'agentMode', 'TCPDUMP'],
   'IDS-SURICATA': ['lastAlertDataUpdDT', 'lastStatusUpdDT', 'threatIntellLastUpdDT'],
-  'DNS': ['lastAlertDataUpdDT', 'lastStatusUpdDT', 'threatIntellLastUpdDT']
+  'NETTRAP-DN': ['lastAlertDataUpdDT', 'lastStatusUpdDT', 'threatIntellLastUpdDT', 'attackCnt'],
+  'IDS-NETPROBE': ['lastAlertDataUpdDT', 'lastStatusUpdDT', 'threatIntellLastUpdDT', 'rx_pkts', 'tx_pkts', 'attackCnt']
 };
 
 let t = null;
@@ -98,10 +99,9 @@ class Edge extends Component {
    */
   getEdgeServiceType = () => {
     const {baseUrl} = this.context;
-    const url = `${baseUrl}/api/edge/serviceType`;
 
     this.ah.one({
-      url: url,
+      url: `${baseUrl}/api/edge/serviceType`,
       type: 'GET'
     })
     .then(data => {
@@ -271,6 +271,7 @@ class Edge extends Component {
           edge: tempEdge
         });
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg(t('txt-error'));
@@ -283,10 +284,13 @@ class Edge extends Component {
    */
   agentAnalysis = (allValue) => {
     const {baseUrl} = this.context;
-    const url = `${baseUrl}/api/agent/_analyze?projectId=${allValue.projectId}`;
+
+    if (!allValue.projectId) {
+      return;
+    }
 
     ah.one({
-      url: url,
+      url: `${baseUrl}/api/agent/_analyze?projectId=${allValue.projectId}`,
       type: 'GET'
     })
     .then(data => {
@@ -443,19 +447,24 @@ class Edge extends Component {
   handleEdgeStatusChange = (type) => {
     const {baseUrl} = this.context;
     const {edge} = this.state;
-    const url = `${baseUrl}/api/agent/_${type}?id=${edge.info.id}&projectId=${edge.info.projectId}`;
+
+    if (_.isEmpty(edge.info)) {
+      return;
+    }
 
     this.ah.one({
-      url,
+      url: `${baseUrl}/api/agent/_${type}?id=${edge.info.id}&projectId=${edge.info.projectId}`,
       type: 'GET'
     })
     .then(data => {
-      let tempEdge = {...this.state.edge};
-      tempEdge.info.lastStatus = data;
+      if (data) {
+        let tempEdge = {...this.state.edge};
+        tempEdge.info.lastStatus = data;
 
-      this.setState({
-        edge: tempEdge
-      });
+        this.setState({
+          edge: tempEdge
+        });
+      }
       return null;
     })
     .catch(err => {
@@ -506,6 +515,10 @@ class Edge extends Component {
     const {baseUrl} = this.context;
     const {currentEdgeData} = this.state;
 
+    if (!currentEdgeData.agentId) {
+      return;
+    }
+
     ah.one({
       url: `${baseUrl}/api/edge?id=${currentEdgeData.agentId}`,
       type: 'DELETE'
@@ -514,6 +527,7 @@ class Edge extends Component {
       if (data.ret === 0) {
         this.getEdgeData();
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);

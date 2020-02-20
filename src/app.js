@@ -39,8 +39,8 @@ import 'react-la/build/css/react-la.css'
 const initialState = JSON.parse(document.getElementById('initial-state').innerHTML);
 const cfg = initialState.envCfg;
 const appcfg = initialState.appCfg;
-const companyName = initialState.companyName;
 const productName = initialState.productName;
+const companyName = initialState.companyName;
 const year = Moment().year();
 const session = initialState.session;
 const log = logger(cfg.env, loglevel, cfg.log);
@@ -49,7 +49,7 @@ const footerText = `Powered by ${companyName}. Copyright © ${companyName}. ${ye
 const HeaderComp = () => (
   <BaseDataContext.Provider value={baseData}>
     <Header
-      companyName={companyName} />
+      productName={productName} />
   </BaseDataContext.Provider>
 )
 

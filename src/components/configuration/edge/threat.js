@@ -38,9 +38,9 @@ class ThreatIntelligence extends Component {
         //from: '2019-03-08T00:00:00Z',
         //to: '2019-03-13T00:00:00Z'
       },
-      indicatorsData: [],
-      indicatorsTrendData: [],
-      acuIndicatorsTrendData: [],
+      indicatorsData: null,
+      indicatorsTrendData: null,
+      acuIndicatorsTrendData: null,
       uplaodOpen: false,
       file: {}
     };
@@ -63,64 +63,86 @@ class ThreatIntelligence extends Component {
     const {baseUrl} = this.context;
     const {datetime} = this.state;
     const dateTime = {
-      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
-      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
+      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
 
-    if (Moment(dateTime.from).isAfter() || Moment(dateTime.to).isAfter()) {
+    if (Moment(dateTime.from).isAfter()) {
       helper.showPopupMsg(t('edge-management.txt-threatDateErr'), t('txt-error'));
       return;
     }
 
-    const apiArr = [
-      {
-        url: `${baseUrl}/api/indicators/summary`,
-        type: 'GET'
-      },
-      {
-        url: `${baseUrl}/api/indicators/trend?startDttm=${dateTime.from}&endDttm=${dateTime.to}`,
-        type: 'GET'
-      },
-      {
-        url: `${baseUrl}/api/indicators/trend/accum?startDttm=${dateTime.from}&endDttm=${dateTime.to}`,
-        type: 'GET'
-      }
-    ];
-
-    this.ah.all(apiArr)
+    this.ah.one({
+      url: `${baseUrl}/api/indicators/summary`,
+      type: 'GET'
+    })
     .then(data => {
       if (data) {
         let indicatorsData = [];
-        let indicatorsTrendData = [];
-        let acuIndicatorsTrendData = [];
 
-        _.keys(data[0])
+        _.keys(data)
         .forEach(key => {
-          if (data[0][key] > 0) {
+          if (data[key] > 0) {
             indicatorsData.push({
               key,
-              doc_count: data[0][key]
+              doc_count: data[key]
             });
           }
         });
 
-        _.keys(data[1])
+        this.setState({
+          indicatorsData
+        });        
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+
+    this.ah.one({
+      url: `${baseUrl}/api/indicators/trend?startDttm=${dateTime.from}&endDttm=${dateTime.to}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let indicatorsTrendData = [];
+
+        _.keys(data)
         .forEach(key => {
-          _.keys(data[1][key])
+          _.keys(data[key])
           .forEach(key2 => {
-            if (data[1][key][key2] > 0) {
+            if (data[key][key2] > 0) {
               indicatorsTrendData.push({
                 day: parseInt(Moment(helper.getFormattedDate(key2, 'local')).format('x')),
-                count: data[1][key][key2],
+                count: data[key][key2],
                 indicator: key
               })
             }
           })
         });
 
-        _.keys(data[2])
+        this.setState({
+          indicatorsTrendData
+        });        
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+
+    this.ah.one({
+      url: `${baseUrl}/api/indicators/trend/accum?startDttm=${dateTime.from}&endDttm=${dateTime.to}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let acuIndicatorsTrendData = [];
+
+        _.keys(data)
         .forEach(key => {
-          _.forEach(data[2][key], val => {
+          _.forEach(data[key], val => {
             if (val.counts > 0) {
               acuIndicatorsTrendData.push({
                 day: parseInt(Moment(helper.getFormattedDate(val.time, 'local')).format('x')),
@@ -132,11 +154,10 @@ class ThreatIntelligence extends Component {
         });
 
         this.setState({
-          indicatorsData,
-          indicatorsTrendData,
           acuIndicatorsTrendData
-        });
+        });        
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -197,8 +218,6 @@ class ThreatIntelligence extends Component {
       this.setState({
         file
       });
-    } else {
-      helper.showPopupMsg(t('txt-selectFile'), t('txt-error'));
     }
   }
   /**
@@ -239,7 +258,7 @@ class ThreatIntelligence extends Component {
     const {baseUrl} = this.context;
     const {file} = this.state;
 
-    if (_.isEmpty(file)) {
+    if (!file.name) {
       helper.showPopupMsg(t('txt-selectFile'), t('txt-error'));
       return;
     }
@@ -260,6 +279,11 @@ class ThreatIntelligence extends Component {
       } else {
         helper.showPopupMsg('', t('txt-error'), t('txt-uploadFailed'));
       }
+
+      this.setState({
+        file: {}
+      });
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -295,68 +319,110 @@ class ThreatIntelligence extends Component {
               <div className='main-statistics'>
                 <div className='statistics-content'>
                   <div className='chart-group'>
-                    <PieChart
-                      title={t('edge-management.statistics.txt-sourceIndicators')}
-                      data={indicatorsData}
-                      keyLabels={{
-                        key: t('txt-indicator'),
-                        doc_count: t('txt-count')
-                      }}
-                      valueLabels={{
-                        'Pie Chart': {
+                    {!indicatorsData &&
+                      <div className='empty-data'>
+                        <header>{t('edge-management.statistics.txt-sourceIndicators')}</header>
+                        <span><i className='fg fg-loading-2'></i></span>
+                      </div>
+                    }
+                    {indicatorsData && indicatorsData.length === 0 &&
+                      <div className='empty-data'>
+                        <header>{t('edge-management.statistics.txt-sourceIndicators')}</header>
+                        <span>{t('txt-notFound')}</span>
+                      </div>
+                    }
+                    {indicatorsData && indicatorsData.length > 0 &&
+                      <PieChart
+                        title={t('edge-management.statistics.txt-sourceIndicators')}
+                        data={indicatorsData}
+                        keyLabels={{
                           key: t('txt-indicator'),
                           doc_count: t('txt-count')
-                        }
-                      }}
-                      dataCfg={{
-                        splitSlice: ['key'],
-                        sliceSize: 'doc_count'
-                      }} />
+                        }}
+                        valueLabels={{
+                          'Pie Chart': {
+                            key: t('txt-indicator'),
+                            doc_count: t('txt-count')
+                          }
+                        }}
+                        dataCfg={{
+                          splitSlice: ['key'],
+                          sliceSize: 'doc_count'
+                        }} />
+                    }
                   </div>
 
                   <div className='chart-group'>
-                    <header className='main-header'>{t('edge-management.statistics.txt-indicatorsTrend')}</header>
-                    <BarChart
-                      stacked
-                      vertical
-                      legend={{
-                        enabled:true
-                      }}
-                      data={indicatorsTrendData}
-                      onTooltip={this.onTooltip}
-                      dataCfg={{
-                        x: 'day',
-                        y: 'count',
-                        splitSeries: 'indicator'
-                      }}
-                      xAxis={{
-                        type: 'datetime',
-                        dateTimeLabelFormats: {
-                          day: '%Y-%m-%d'
-                        }
-                      }} />
+                    {!indicatorsTrendData &&
+                      <div className='empty-data'>
+                        <header>{t('edge-management.statistics.txt-indicatorsTrend')}</header>
+                        <span><i className='fg fg-loading-2'></i></span>
+                      </div>
+                    }
+                    {indicatorsTrendData && indicatorsTrendData.length === 0 &&
+                      <div className='empty-data'>
+                        <header>{t('edge-management.statistics.txt-indicatorsTrend')}</header>
+                        <span>{t('txt-notFound')}</span>
+                      </div>
+                    }
+                    {indicatorsTrendData && indicatorsTrendData.length > 0 &&
+                      <BarChart
+                        stacked
+                        vertical
+                        title={t('edge-management.statistics.txt-indicatorsTrend')}
+                        legend={{
+                          enabled:true
+                        }}
+                        data={indicatorsTrendData}
+                        onTooltip={this.onTooltip}
+                        dataCfg={{
+                          x: 'day',
+                          y: 'count',
+                          splitSeries: 'indicator'
+                        }}
+                        xAxis={{
+                          type: 'datetime',
+                          dateTimeLabelFormats: {
+                            day: '%Y-%m-%d'
+                          }
+                        }} />
+                    }
                   </div>
 
                   <div className='chart-group'>
-                    <header className='main-header'>{t('edge-management.statistics.txt-acuIndicatorsTrend')}</header>
-                    <LineChart
-                      stacked
-                      legend={{
-                        enabled: true
-                      }}
-                      data={acuIndicatorsTrendData}
-                      onTooltip={this.onTooltip}
-                      dataCfg={{
-                        x: 'day',
-                        y: 'count',
-                        splitSeries: 'indicator'
-                      }}
-                      xAxis={{
-                        type: 'datetime',
-                        dateTimeLabelFormats: {
-                          day: '%Y-%m-%d'
-                        }
-                      }} />
+                    {!acuIndicatorsTrendData &&
+                      <div className='empty-data'>
+                        <header>{t('edge-management.statistics.txt-acuIndicatorsTrend')}</header>
+                        <span><i className='fg fg-loading-2'></i></span>
+                      </div>
+                    }
+                    {acuIndicatorsTrendData && acuIndicatorsTrendData.length === 0 &&
+                      <div className='empty-data'>
+                        <header>{t('edge-management.statistics.txt-acuIndicatorsTrend')}</header>
+                        <span>{t('txt-notFound')}</span>
+                      </div>
+                    }
+                    {acuIndicatorsTrendData && acuIndicatorsTrendData.length > 0 &&
+                      <LineChart
+                        stacked
+                        title={t('edge-management.statistics.txt-acuIndicatorsTrend')}
+                        legend={{
+                          enabled: true
+                        }}
+                        data={acuIndicatorsTrendData}
+                        onTooltip={this.onTooltip}
+                        dataCfg={{
+                          x: 'day',
+                          y: 'count',
+                          splitSeries: 'indicator'
+                        }}
+                        xAxis={{
+                          type: 'datetime',
+                          dateTimeLabelFormats: {
+                            day: '%Y-%m-%d'
+                          }
+                        }} />
+                    }
                   </div>
                 </div>
               </div>

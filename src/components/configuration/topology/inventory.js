@@ -11,6 +11,7 @@ import XLSX from 'xlsx';
 
 import Checkbox from 'react-ui/build/src/components/checkbox'
 import ContextMenu from 'react-ui/build/src/components/contextmenu'
+import DataTable from 'react-ui/build/src/components/table'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import FileInput from 'react-ui/build/src/components/file-input'
 import Gis from 'react-gis/build/src/components'
@@ -101,7 +102,14 @@ class NetworkInventory extends Component {
         areaName: '',
         seatName: ''
       },
-      showHMDonly: false,
+      hmdCheckbox: false,
+      hmdSelectAll: false,
+      hmdSearchOptions: {
+        scanProcess: false,
+        scanFile: false,
+        malware: false,
+        gcb: false
+      },
       deviceData: {
         dataFieldsArr: ['ip', 'mac', 'hostName', 'system', 'owner', 'areaName', 'seatName', 'scanInfo', '_menu'],
         dataFields: {},
@@ -158,9 +166,11 @@ class NetworkInventory extends Component {
       csvColumns: {
         ip: '',
         mac: '',
-        host: ''
+        hostName: ''
       },
+      selectedTreeID: '',
       csvHeader: true,
+      ipUploadFields: ['ip', 'mac', 'hostName'],
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
     };
 
@@ -202,21 +212,27 @@ class NetworkInventory extends Component {
 
     if (scanType === 'gcb') {
       const filteredResult = _.filter(val.result, ['_CompareResult', true]);
-      let style = '#d10d25'; //Default red color
+      let colorStyle = '#d10d25'; //Default red color
 
       if (filteredResult.length === val.result.length) { //Show green color for all pass
-        style = '#22ac38';
+        colorStyle = '#22ac38';
       }
 
-      return <li key={scanType} style={{'color': style}}><span>{val.name} {t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}:</span> {filteredResult.length}/{val.result.length}</li>
+      return <li key={scanType} style={{'color': colorStyle}}><span>{val.name} {t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}:</span> {filteredResult.length}/{val.result.length}</li>
     } else {
-      if (val.result.length > 0) {
-        return <li key={scanType}><span>{val.name} {t('network-inventory.txt-suspiciousFileCount')}:</span> {val.result.length}</li>
+      let colorStyle = '#d10d25'; //Default red color
+
+      if (val.result.length === 0) { //Show green color
+        colorStyle = '#22ac38';
+      }
+
+      if (val.result) {
+        return <li key={scanType} style={{'color': colorStyle}}>{val.name} {t('network-inventory.txt-suspiciousFileCount')}: {val.result.length}</li>
       }
     }
   }
   /**
-   * Get and set device data
+   * Get and set device data / Handle delete IP device confirm
    * @method
    * @param {string} fromSearch - options for 'search'
    * @param {string} options - options for 'oneSeat'
@@ -224,7 +240,7 @@ class NetworkInventory extends Component {
    */
   getDeviceData = (fromSearch, options, seatUUID) => {
     const {baseUrl} = this.context;
-    const {showHMDonly, deviceSearch, deviceData} = this.state;
+    const {deviceSearch, hmdCheckbox, hmdSearchOptions, deviceData, currentDeviceData} = this.state;
     let dataParams = '';
 
     if (options === 'oneSeat') {
@@ -238,163 +254,216 @@ class NetworkInventory extends Component {
       const sort = deviceData.sort.desc ? 'desc' : 'asc';
       const orders = deviceData.sort.field + ' ' + sort;
 
-      if (showHMDonly) {
-        dataParams = 'isHmd=true&';
+      if (hmdCheckbox) {
+        dataParams = 'isHmd=true';
+
+        if (hmdSearchOptions.scanProcess) {
+          dataParams += '&isScanProc=true';
+        }
+
+        if (hmdSearchOptions.scanFile) {
+          dataParams += '&isScanFile=true';
+        }
+
+        if (hmdSearchOptions.malware) {
+          dataParams += '&isMalware=true';
+        }
+
+        if (hmdSearchOptions.gcb) {
+          dataParams += '&isGCB=true';
+        }
       }
 
-      dataParams += `page=${page}&pageSize=${pageSize}&orders=${orders}`
+      dataParams += `&page=${page}&pageSize=${pageSize}&orders=${orders}`;
+
+      if (fromSearch === 'search' || !_.isEmpty(deviceSearch)) {
+        if (deviceSearch.ip) {
+          dataParams += `&ip=${deviceSearch.ip}`;
+        }
+
+        if (deviceSearch.mac) {
+          dataParams += `&mac=${deviceSearch.mac}`;
+        }
+
+        if (deviceSearch.hostName) {
+          dataParams += `&hostName=${deviceSearch.hostName}`;
+        }
+
+        if (deviceSearch.system) {
+          dataParams += `&system=${deviceSearch.system}`;
+        }
+
+        if (deviceSearch.owner) {
+          dataParams += `&ownerName=${deviceSearch.owner}`;
+        }
+
+        if (deviceSearch.areaName) {
+          dataParams += `&areaName=${deviceSearch.areaName}`;
+        }
+
+        if (deviceSearch.seatName) {
+          dataParams += `&seatName=${deviceSearch.seatName}`;
+        }
+      }
+
+      if (options === 'delete') {
+        if (!currentDeviceData.ipDeviceUUID) {
+          return;
+        }
+      }
     }
 
-    if (fromSearch === 'search') {
-      if (deviceSearch.ip) {
-        dataParams += `&ip=${deviceSearch.ip}`;
+    let apiArr = [
+      {
+        url: `${baseUrl}/api/u1/ipdevice/_search?${dataParams}`,
+        type: 'GET'
       }
+    ];
 
-      if (deviceSearch.mac) {
-        dataParams += `&mac=${deviceSearch.mac}`;
-      }
-
-      if (deviceSearch.hostName) {
-        dataParams += `&hostName=${deviceSearch.hostName}`;
-      }
-
-      if (deviceSearch.system) {
-        dataParams += `&system=${deviceSearch.system}`;
-      }
-
-      if (deviceSearch.owner) {
-        dataParams += `&ownerName=${deviceSearch.owner}`;
-      }
-
-      if (deviceSearch.areaName) {
-        dataParams += `&areaName=${deviceSearch.areaName}`;
-      }
-
-      if (deviceSearch.seatName) {
-        dataParams += `&seatName=${deviceSearch.seatName}`;
-      }
+    if (options === 'delete') { //For deleting device
+      apiArr.unshift({
+        url: `${baseUrl}/api/u1/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}`,
+        type: 'DELETE'
+      });
     }
 
-    this.ah.one({
-      url: `${baseUrl}/api/u1/ipdevice/_search?${dataParams}`,
-      type: 'GET'
-    })
+    ah.series(apiArr)
     .then(data => {
-      if (options === 'oneSeat') {
-        let currentDeviceData = {};
+      let ipRt = '';
+      let ipData = '';
 
-        if (data.counts > 0) {
-          currentDeviceData = data.rows[0];
+      if (options === 'delete') {
+        ipRt = data[1].ret;
+        ipData = data[1].rt;
+
+        if (data[0]) {
+          if (data.ret === 0) {
+            this.closeDialog('reload');
+          }
         }
-
-        this.setState({
-          showSeatData: true,
-          currentDeviceData
-        });
-        return null;
+      } else {
+        ipRt = data[0].ret;
+        ipData = data[0].rt;
       }
 
-      let tempDeviceData = {...deviceData};
-      tempDeviceData.dataContent = _.map(data.rows, item => {
-        return {
-          ...item,
-          _menu: true
-        };
-      });
+      if (ipRt === 0) {
+        if (options === 'oneSeat') {
+          let currentDeviceData = {};
 
-      tempDeviceData.totalCount = data.counts;
-      tempDeviceData.currentPage = fromSearch === 'search' ? 1 : deviceData.currentPage;
+          if (ipData.counts > 0) {
+            currentDeviceData = ipData.rows[0];
+          }
 
-      //HMD only
-      let hmdDataOnly = [];
-
-      _.forEach(data.rows, val => {
-        if (val.isHmd) {
-          hmdDataOnly.push(val);
+          this.setState({
+            showSeatData: true,
+            currentDeviceData
+          });
+          return null;
         }
-      });
 
-      tempDeviceData.hmdOnly.dataContent = hmdDataOnly;
-      tempDeviceData.hmdOnly.currentIndex = 0;
-      tempDeviceData.hmdOnly.currentLength = hmdDataOnly.length;
+        let tempDeviceData = {...deviceData};
+        tempDeviceData.dataContent = _.map(ipData.rows, item => {
+          return {
+            ...item,
+            _menu: true
+          };
+        });
 
-      let tempFields = {};
-      deviceData.dataFieldsArr.forEach(tempData => {
-        tempFields[tempData] = {
-          label: tempData === '_menu' ? '' : t(`ipFields.${tempData}`),
-          sortable: this.checkSortable(tempData),
-          formatter: (value, allValue, i) => {
-            if (tempData === 'owner') {
-              if (allValue.ownerObj) {
-                return <span>{allValue.ownerObj.ownerName}</span>
+        tempDeviceData.totalCount = ipData.counts;
+        tempDeviceData.currentPage = fromSearch === 'search' ? 1 : deviceData.currentPage;
+
+        //HMD only
+        let hmdDataOnly = [];
+
+        _.forEach(ipData.rows, val => {
+          if (val.isHmd) {
+            hmdDataOnly.push(val);
+          }
+        });
+
+        tempDeviceData.hmdOnly.dataContent = hmdDataOnly;
+        tempDeviceData.hmdOnly.currentIndex = 0;
+        tempDeviceData.hmdOnly.currentLength = hmdDataOnly.length;
+
+        let tempFields = {};
+        deviceData.dataFieldsArr.forEach(tempData => {
+          tempFields[tempData] = {
+            label: tempData === '_menu' ? '' : t(`ipFields.${tempData}`),
+            sortable: this.checkSortable(tempData),
+            formatter: (value, allValue, i) => {
+              if (tempData === 'owner') {
+                if (allValue.ownerObj) {
+                  return <span>{allValue.ownerObj.ownerName}</span>
+                } else {
+                  return <span>{value}</span>
+                }
+              } else if (tempData === 'areaName') {
+                if (allValue.areaObj) {
+                  return <span>{allValue.areaObj.areaName}</span>
+                }
+              } else if (tempData === 'seatName') {
+                if (allValue.seatObj) {
+                  return <span>{allValue.seatObj.seatName}</span>
+                }
+              } else if (tempData === 'scanInfo') {
+                let hmdInfo = [];
+
+                _.forEach(SAFETY_SCAN_LIST, val => { //Construct the HMD info array
+                  const dataType = val.type + 'Result';
+                  const currentDataObj = allValue[dataType];
+
+                  if (!_.isEmpty(currentDataObj)) {
+                    hmdInfo.push({
+                      type: val.type,
+                      name: t('network-inventory.scan-list.txt-' + val.type),
+                      result: currentDataObj[val.path]
+                    });
+                  }
+                })
+
+                return (
+                  <ul>
+                    {hmdInfo.map(this.getHMDinfo)}
+                  </ul>
+                )
+              } else if (tempData === '_menu') {
+                return (
+                  <div className='table-menu menu active'>
+                    <i className='fg fg-eye' onClick={this.openMenu.bind(this, 'view', allValue, i)} title={t('network-inventory.txt-viewDevice')}></i>
+                    {allValue.isHmd &&
+                      <i className='fg fg-chart-kpi' onClick={this.openMenu.bind(this, 'hmd', allValue, i)} title={t('network-inventory.txt-viewHMD')}></i>
+                    }
+                    <i className='fg fg-trashcan' onClick={this.openMenu.bind(this, 'delete', allValue)} title={t('network-inventory.txt-deleteDevice')}></i>
+                  </div>
+                )
               } else {
                 return <span>{value}</span>
               }
-            } else if (tempData === 'areaName') {
-              if (allValue.areaObj) {
-                return <span>{allValue.areaObj.areaName}</span>
-              }
-            } else if (tempData === 'seatName') {
-              if (allValue.seatObj) {
-                return <span>{allValue.seatObj.seatName}</span>
-              }
-            } else if (tempData === 'scanInfo') {
-              let hmdInfo = [];
-
-              _.forEach(SAFETY_SCAN_LIST, val => { //Construct the HMD info array
-                const dataType = val.type + 'Result';
-                const currentDataObj = allValue[dataType];
-
-                if (!_.isEmpty(currentDataObj)) {
-                  hmdInfo.push({
-                    type: val.type,
-                    name: t('network-inventory.scan-list.txt-' + val.type),
-                    result: currentDataObj[val.path]
-                  });
-                }
-              })
-
-              return (
-                <ul>
-                  {hmdInfo.map(this.getHMDinfo)}
-                </ul>
-              )
-            } else if (tempData === '_menu') {
-              return (
-                <div className='table-menu menu active'>
-                  <i className='fg fg-eye' onClick={this.openMenu.bind(this, 'view', allValue, i)} title={t('network-inventory.txt-viewDevice')}></i>
-                  {allValue.isHmd &&
-                    <i className='fg fg-chart-kpi' onClick={this.openMenu.bind(this, 'hmd', allValue, i)} title={t('network-inventory.txt-viewHMD')}></i>
-                  }
-                  <i className='fg fg-trashcan' onClick={this.openMenu.bind(this, 'delete', allValue)} title={t('network-inventory.txt-deleteDevice')}></i>
-                </div>
-              )
-            } else {
-              return <span>{value}</span>
             }
-          }
-        };
-      })
-
-      tempDeviceData.dataFields = tempFields;
-
-      if (!fromSearch) {
-        let ipListArr = [];
-
-        _.forEach(data.rows, val => {
-          ipListArr.push({
-            value: val.ip,
-            text: val.ip
-          });
+          };
         })
 
-        tempDeviceData.ipListArr = ipListArr;
-      }
+        tempDeviceData.dataFields = tempFields;
 
-      this.setState({
-        deviceData: tempDeviceData,
-        activeIPdeviceUUID: ''
-      });
+        if (!fromSearch) {
+          let ipListArr = [];
+
+          _.forEach(ipData.rows, val => {
+            ipListArr.push({
+              value: val.ip,
+              text: val.ip
+            });
+          })
+
+          tempDeviceData.ipListArr = ipListArr;
+        }
+
+        this.setState({
+          deviceData: tempDeviceData,
+          activeIPdeviceUUID: ''
+        });
+      }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -432,6 +501,7 @@ class NetworkInventory extends Component {
           });
         }
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'));
@@ -464,8 +534,8 @@ class NetworkInventory extends Component {
         } else {
           this.getDeviceData(); //No device data is found
         }
-        return null;
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -497,47 +567,50 @@ class NetworkInventory extends Component {
 
     this.ah.all(apiArr)
     .then(data => {
-      let departmentList = [];
-      let titleList = [];
-      let tempAddIP = {...addIP};
+      if (data) {
+        let departmentList = [];
+        let titleList = [];
+        let tempAddIP = {...addIP};
 
-      if (!_.isEmpty(data[0])) {
-        _.forEach(data[0], val => {
-          departmentList.push({
-            value: val.nameUUID,
-            text: val.name
+        if (!_.isEmpty(data[0])) {
+          _.forEach(data[0], val => {
+            departmentList.push({
+              value: val.nameUUID,
+              text: val.name
+            });
+          })
+
+          if (departmentList[0]) {
+            tempAddIP.newDepartment = departmentList[0].value;
+          }
+
+          this.setState({
+            departmentList,
+            addIP: tempAddIP
           });
-        })
-
-        if (departmentList[0]) {
-          tempAddIP.newDepartment = departmentList[0].value;
         }
 
-        this.setState({
-          departmentList,
-          addIP: tempAddIP
-        });
-      }
+        if (!_.isEmpty(data[1])) {
+          _.forEach(data[1], val => {
+            titleList.push({
+              value: val.nameUUID,
+              text: val.name
+            });
+          })
 
-      if (!_.isEmpty(data[1])) {
-        _.forEach(data[1], val => {
-          titleList.push({
-            value: val.nameUUID,
-            text: val.name
+          if (titleList[0]) {
+            tempAddIP.newTitle = titleList[0].value;
+          }
+
+          this.setState({
+            titleList,
+            addIP: tempAddIP
+          }, () => {
+            this.getFloorPlan(options);
           });
-        })
-
-        if (titleList[0]) {
-          tempAddIP.newTitle = titleList[0].value;
         }
-
-        this.setState({
-          titleList,
-          addIP: tempAddIP
-        }, () => {
-          this.getFloorPlan(options);
-        });
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -583,9 +656,9 @@ class NetworkInventory extends Component {
    * @method
    * @returns ModalDialog component
    */
-  showSeatData = () => {
+  showSeatDialog = () => {
     const actions = {
-      confirm: {text: t('txt-close'), handler: this.closeDialog.bind(this, 'reload')}
+      confirm: {text: t('txt-close'), handler: this.closeSeatDialog}
     };
 
     return (
@@ -601,13 +674,22 @@ class NetworkInventory extends Component {
     )
   }
   /**
+   * Close seat dialog
+   * @method
+   */
+  closeSeatDialog = () => {
+    this.setState({
+      showSeatData: false
+    });
+  }
+  /**
    * Check table sortable fields
    * @method
    * @param {string} field - field name
    * @returns true for sortable or null
    */
   checkSortable = (field) => {
-    const unSortableFields = ['owner', 'areaName', 'seatName', 'yaraScan', '_menu'];
+    const unSortableFields = ['owner', 'areaName', 'seatName', 'yaraScan', '_menu', 'scanInfo'];
 
     if (_.includes(unSortableFields, field)) {
       return null;
@@ -642,6 +724,7 @@ class NetworkInventory extends Component {
           this.getFloorList(options);
         });
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -704,36 +787,40 @@ class NetworkInventory extends Component {
       type: 'GET'
     })
     .then(data => {
-      const areaName = data.areaName;
-      const areaUUID = data.areaUUID;
-      let currentMap = {};
+      if (data) {
+        const areaName = data.areaName;
+        const areaUUID = data.areaUUID;
+        let currentMap = {};
 
-      if (data.picPath) {
-        const picPath = `${baseUrl}${contextRoot}/api/area/_image?path=${data.picPath}`;
-        const picWidth = data.picWidth;
-        const picHeight = data.picHeight;
+        if (data.picPath) {
+          const picPath = `${baseUrl}${contextRoot}/api/area/_image?path=${data.picPath}`;
+          const picWidth = data.picWidth;
+          const picHeight = data.picHeight;
 
-        currentMap = {
-          label: areaName,
-          images: [
-            {
-              id: areaUUID,
-              url: picPath,
-              size: {width: picWidth, height: picHeight}
-            }
-          ]
+          currentMap = {
+            label: areaName,
+            images: [
+              {
+                id: areaUUID,
+                url: picPath,
+                size: {width: picWidth, height: picHeight}
+              }
+            ]
+          };
+        }
+
+        const currentBaseLayers = {
+          [mapAreaUUID]: currentMap
         };
+
+        this.setState({
+          mapAreaUUID,
+          currentMap,
+          currentBaseLayers,
+          currentFloor: areaUUID
+        });
       }
-
-      let currentBaseLayers = {};
-      currentBaseLayers[mapAreaUUID] = currentMap;
-
-      this.setState({
-        mapAreaUUID,
-        currentMap,
-        currentBaseLayers,
-        currentFloor: areaUUID
-      });
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -762,45 +849,106 @@ class NetworkInventory extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      const seatData = {};
-      let seatListArr = [];
+      if (data) {
+        const seatData = {};
+        let seatListArr = [];
 
-      _.forEach(data, val => {
-        seatListArr.push({
-          id: val.seatUUID,
-          type: 'marker',
-          xy: [val.coordX, val.coordY],
-          icon: {
-            iconUrl: `${contextRoot}/images/ic_person.png`,
-            iconSize: [25, 25],
-            iconAnchor: [12.5, 12.5]
-          },
-          label: val.seatName,
-          data: {
-            name: val.seatName
-          }
+        _.forEach(data, val => {
+          seatListArr.push({
+            id: val.seatUUID,
+            type: 'marker',
+            xy: [val.coordX, val.coordY],
+            icon: {
+              iconUrl: `${contextRoot}/images/ic_person.png`,
+              iconSize: [25, 25],
+              iconAnchor: [12.5, 12.5]
+            },
+            label: val.seatName,
+            data: {
+              name: val.seatName
+            }
+          });
+        })
+
+        seatData[area] = {
+          data: seatListArr
+        };
+
+        this.setState({
+          seatData
         });
-      })
-
-      seatData[area] = {
-        data: seatListArr
-      };
-
-      this.setState({
-        seatData
-      });
+      }
       return null;
     })
   }
   /**
-   * Toggle to show only HMD result
+   * Toggle HMD select all checkbox
    * @method
+   */
+  toggleHMDcheckBox = () => {
+    this.setState({
+      hmdCheckbox: !this.state.hmdCheckbox
+    });
+  }  
+  /**
+   * Toggle HMD options
+   * @method
+   * @param {string} field - HMD option name
    * @param {boolean} value - true/false
    */
-  toggleHMDonly = (value) => {
-    this.setState({
-      showHMDonly: value
-    });
+  toggleHMDoptions = (field, value) => {
+    let tempHMDsearchOptions = {...this.state.hmdSearchOptions};
+    tempHMDsearchOptions[field] = value;
+
+    if (!value) {
+      this.setState({
+        hmdSelectAll: false
+      });
+    }
+
+    if (field === 'selectAll') {
+      if (value) {
+        this.setState({
+          hmdSelectAll: true,
+          hmdSearchOptions: {
+            scanProcess: true,
+            scanFile: true,
+            malware: true,
+            gcb: true
+          }
+        });
+      } else {
+        this.setState({
+          hmdSelectAll: false,
+          hmdSearchOptions: {
+            scanProcess: false,
+            scanFile: false,
+            malware: false,
+            gcb: false
+          }
+        });
+      }
+    } else {
+      this.setState({
+        hmdSearchOptions: tempHMDsearchOptions
+      }, () => {
+        const {hmdSearchOptions} = this.state;
+        const hmdOptions = ['scanProcess', 'scanFile', 'malware', 'gcb'];
+        let count = 0;
+
+        _.forEach(hmdSearchOptions, (val, key) => {
+          if (hmdSearchOptions[key]) {
+            count++;
+          }
+        })
+
+        if (count === hmdOptions.length) {
+          this.setState({
+            hmdSelectAll: true
+          });
+        }
+      });
+    }
   }
   /**
    * Display filter content
@@ -808,7 +956,7 @@ class NetworkInventory extends Component {
    * @returns HTML DOM
    */
   renderFilter = () => {
-    const {showFilter, showHMDonly, deviceSearch} = this.state;
+    const {showFilter, hmdCheckbox, hmdSelectAll, hmdSearchOptions, deviceSearch} = this.state;
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
@@ -872,11 +1020,53 @@ class NetworkInventory extends Component {
               value={deviceSearch.seatName} />
           </div>
           <div className='group hmd'>
-            <label htmlFor='filterHMD'>HMD</label>
+            <header>HMD</header>
             <Checkbox
-              id='filterHMD'
-              onChange={this.toggleHMDonly}
-              checked={showHMDonly} />
+              id='hmdCheckbox'
+              onChange={this.toggleHMDcheckBox}
+              checked={hmdCheckbox} />
+            <div className='hmd-options'>
+              <div className='option'>
+                <label htmlFor='hmdSelectAll' className={cx({'active': hmdCheckbox})}>{t('txt-selectAll')}</label>
+                <Checkbox
+                  id='hmdSelectAll'
+                  onChange={this.toggleHMDoptions.bind(this, 'selectAll')}
+                  checked={hmdSelectAll}
+                  disabled={!hmdCheckbox} />
+              </div>
+              <div className='option'>
+                <label htmlFor='hmdScanProcess' className={cx({'active': hmdCheckbox})}>Scan Process</label>
+                <Checkbox
+                  id='hmdScanProcess'
+                  onChange={this.toggleHMDoptions.bind(this, 'scanProcess')}
+                  checked={hmdSearchOptions.scanProcess}
+                  disabled={!hmdCheckbox} />
+              </div>
+              <div className='option'>
+                <label htmlFor='hmdScanProcess' className={cx({'active': hmdCheckbox})}>Scan File (Yara)</label>
+                <Checkbox
+                  id='hmdScanProcess'
+                  onChange={this.toggleHMDoptions.bind(this, 'scanFile')}
+                  checked={hmdSearchOptions.scanFile}
+                  disabled={!hmdCheckbox} />
+              </div>
+              <div className='option'>
+                <label htmlFor='hmdScanProcess' className={cx({'active': hmdCheckbox})}>Scan File (AI)</label>
+                <Checkbox
+                  id='hmdScanProcess'
+                  onChange={this.toggleHMDoptions.bind(this, 'malware')}
+                  checked={hmdSearchOptions.malware}
+                  disabled={!hmdCheckbox} />
+              </div>
+              <div className='option'>
+                <label htmlFor='hmdScanProcess' className={cx({'active': hmdCheckbox})}>GCB</label>
+                <Checkbox
+                  id='hmdScanProcess'
+                  onChange={this.toggleHMDoptions.bind(this, 'gcb')}
+                  checked={hmdSearchOptions.gcb}
+                  disabled={!hmdCheckbox} />
+              </div>
+            </div>
           </div>
         </div>
         <div className='button-group'>
@@ -1035,7 +1225,7 @@ class NetworkInventory extends Component {
       display: this.getDeleteDeviceContent(allValue),
       act: (confirmed, data) => {
         if (confirmed) {
-          this.deleteDevice();
+          this.getDeviceData('', 'delete');
         }
       }
     });
@@ -1043,28 +1233,6 @@ class NetworkInventory extends Component {
     this.setState({
       showSeatData: false
     });
-  }
-  /**
-   * Handle delete IP device confirm
-   * @method
-   */
-  deleteDevice = () => {
-    const {baseUrl} = this.context;
-    const {currentDeviceData} = this.state;
-
-    ah.one({
-      url: `${baseUrl}/api/u1/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}`,
-      type: 'DELETE'
-    })
-    .then(data => {
-      if (data.ret === 0) {
-        this.getDeviceData();
-        this.closeDialog('reload');
-      }
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
   }
   /**
    * Handle table sort functionality
@@ -1175,6 +1343,7 @@ class NetworkInventory extends Component {
           activeIPdeviceUUID: ipDeviceUUID
         });
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -1184,8 +1353,9 @@ class NetworkInventory extends Component {
    * Handle trigger button for HMD
    * @method
    * @param {array.<string>} type - HMD scan type
+   * @param {string} options - option for 'fromInventory'
    */
-  triggerTask = (type) => {
+  triggerTask = (type, options) => {
     const {baseUrl} = this.context;
     const {currentDeviceData} = this.state;
     const url = `${baseUrl}/api/hmd/retrigger`;
@@ -1197,16 +1367,13 @@ class NetworkInventory extends Component {
     helper.getAjaxData('POST', url, requestData)
     .then(data => {
       if (data) {
-        PopupDialog.alert({
-          id: 'tiggerTaskModal',
-          confirmText: t('txt-close'),
-          display: <div>{t('txt-requestSent')}</div>
-        });
+        helper.showPopupMsg(t('txt-requestSent'));
 
-        if (type.length > 0 && !_.includes(type, 'getSystemInfo')) {
+        if (type.length > 0 && options !== 'fromInventory') {
           this.getIPdeviceInfo('', currentDeviceData.ipDeviceUUID);
         }
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'));
@@ -1293,9 +1460,9 @@ class NetworkInventory extends Component {
    * @method
    * @returns HMDscanInfo component
    */
-  showScanInfo = () => {
+  showScanInfoDialog = () => {
     const actions = {
-      confirm: {text: t('txt-close'), handler: this.closeDialog}
+      confirm: {text: t('txt-close'), handler: this.closeScanInfoDialog}
     };
 
     return (
@@ -1312,6 +1479,15 @@ class NetworkInventory extends Component {
     )
   }
   /**
+   * Close scan info dialog
+   * @method
+   */
+  closeScanInfoDialog = () => {
+    this.setState({
+      showScanInfo: false
+    });
+  }
+  /**
    * Close HMD scan info dialog
    * @method
    * @param {string} options - option for 'reload'
@@ -1319,22 +1495,13 @@ class NetworkInventory extends Component {
    */
   closeDialog = (options, all) => {
     this.setState({
-      showScanInfo: false,
-      showSeatData: false,
       modalFloorOpen: false,
-      addSeatOpen: false,
-      currentDeviceData: {},
-      addSeat: {
-        selectedSeatUUID: '',
-        name: '',
-        coordX: '',
-        coordY: ''
-      }
+      currentDeviceData: {}
     }, () => {
       if (options === 'reload') {
         if (all === 'fromFloorMap') { //reload everything
           this.getFloorPlan('fromFloorMap');
-        } else { //reload area and seat only (no tree)
+        } else { //reload area and seat (no tree)
           const {floorPlan} = this.state;
           this.getAreaData(floorPlan.currentAreaUUID);
           this.getSeatData(floorPlan.currentAreaUUID);
@@ -1357,7 +1524,15 @@ class NetworkInventory extends Component {
         areaName: '',
         seatName: ''
       },
-      showHMDonly: false
+      hmdCheckbox: false,
+      hmdSelectAll: false,
+      hmdSearchOptions: {
+        scanProcess: false,
+        scanFile: false,
+        malware: false,
+        gcb: false,
+        ir: false
+      }
     });
   }
   /**
@@ -1444,7 +1619,8 @@ class NetworkInventory extends Component {
         }
 
         this.setState({
-          currentDeviceData: {}
+          currentDeviceData: {},
+          selectedTreeID: ''
         });
 
         if (_.isEmpty(inventoryParam) || (!_.isEmpty(inventoryParam) && !inventoryParam.ip)) {
@@ -1572,8 +1748,12 @@ class NetworkInventory extends Component {
     reader.onerror = error => reject(error);
 
     if (rABS) {
-      if (check.encoding === 'Big5' || check.encoding === 'UTF-8') {
-        reader.readAsText(file, check.encoding.toUpperCase());
+      if (check.encoding) {
+        if (check.encoding === 'UTF-8') {
+          reader.readAsText(file, 'UTF-8');
+        } else { //If check.encoding is available, force to read as BIG5 encoding
+          reader.readAsText(file, 'BIG5');
+        }
       } else {
         reader.readAsBinaryString(file);
       }
@@ -1593,7 +1773,7 @@ class NetworkInventory extends Component {
         if (!csvHeader) { //Generate header for the user
           tempCsvData.unshift(_.map(tempCsvData[0], (val, i) => {
             i++;
-            return i.toString();
+            return t('txt-column') + ' ' + i.toString();
           }));
         }
 
@@ -1604,7 +1784,7 @@ class NetworkInventory extends Component {
           csvColumns: {
             ip: '',
             mac: '',
-            host: ''
+            hostName: ''
           }
         });
       } else {
@@ -1731,7 +1911,7 @@ class NetworkInventory extends Component {
   /**
    * Handle column change for CSV table dropdown
    * @method
-   * @param {string} type - dropdown selection type ('ip', 'mac' or 'host')
+   * @param {string} type - dropdown selection type ('ip', 'mac' or 'hostName')
    * @param {string} value - selected value from dropdown
    */
   handleColumnChange = (type, value) => {
@@ -1743,25 +1923,37 @@ class NetworkInventory extends Component {
     });
   }
   /**
-   * Display selected result
+   * Display upload failure list
    * @method
+   * @param {object} data - uploaded data with success and fail list
    * @returns HTML DOM
    */
-  displayResult = () => {
-    const {csvColumns} = this.state;
+  displayUploadStatus = (data) => {
+    const {ipUploadFields} = this.state;
+    let tableFields = {};
+    ipUploadFields.forEach(tempData => {
+      tableFields[tempData] = {
+        label: t(`ipFields.${tempData}`),
+        sortable: false,
+        formatter: (value, allValue, i) => {
+          return <span>{value}</span>
+        }
+      };
+    })
 
     return (
-      <ul>
-        {csvColumns.ip &&
-          <li>IP: {csvColumns.ip}</li>
-        }
-        {csvColumns.mac &&
-          <li>Mac: {csvColumns.mac}</li>
-        }
-        {csvColumns.host &&
-          <li>Host Name: {csvColumns.host}</li>
-        }
-      </ul>
+      <div>
+        <div>{t('network-inventory.txt-total')}: {data.successList.length + data.failureList.length}</div>
+        <div>{t('network-inventory.txt-success')}: {data.successList.length}</div>
+        <div>{t('network-inventory.txt-fail')}: {data.failureList.length}</div>
+        <div className='error-msg'>{t('network-inventory.txt-uploadFailed')}</div>
+        <div className='table-data'>
+          <DataTable
+            className='main-table'
+            fields={tableFields}
+            data={data.failureList} />
+        </div>
+      </div>
     )
   }
   /**
@@ -1769,15 +1961,90 @@ class NetworkInventory extends Component {
    * @method
    */
   uploadActions = (type) => {
-    const {csvColumns} = this.state;
+    const {baseUrl} = this.context;
+    const {csvData, csvColumns, csvHeader, ipUploadFields} = this.state;
+    const ipPattern = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
 
     if (type === 'upload') {
       if (!csvColumns.ip) {
         helper.showPopupMsg(t('network-inventory.txt-selectIP'), t('txt-error'));
       } else {
-        PopupDialog.alert({
-          confirmText: t('txt-close'),
-          display: this.displayResult()
+        const url = `${baseUrl}/api/ipdevices`;
+        let requestData = [];
+        let validate = true;
+
+        _.forEach(csvData, (val, i) => {
+          let dataObj = {
+            ip: '',
+            mac: '',
+            hostName: ''
+          };
+
+          if (i > 0) {
+            _.forEach(ipUploadFields, val2 => {
+              if (csvColumns[val2]) {
+                dataObj[val2] = val[Number(csvColumns[val2])].trim();
+              }
+            })
+          }
+
+          if (dataObj.ip) {
+            if (!ipPattern.test(dataObj.ip)) { //Check IP format
+              validate = false;
+              return false;
+            }
+
+            requestData.push({
+              ip: dataObj.ip,
+              mac: dataObj.mac,
+              hostName: dataObj.hostName
+            });
+          }
+        })
+
+        if (!validate) {
+          helper.showPopupMsg(t('network-inventory.txt-uploadFailedIP'));
+          return;
+        }
+
+        if (requestData.length === 0) {
+          helper.showPopupMsg(t('txt-uploadEmpty'));
+          return;
+        }
+
+        helper.getAjaxData('POST', url, requestData)
+        .then(data => {
+          if (data) {
+            if (data.successList.length > 0 && data.failureList.length === 0) {
+              helper.showPopupMsg(t('txt-uploadSuccess'));
+
+              this.setState({
+                csvData: [],
+                tempCsvData: [],
+                showCsvData: false,
+                csvColumns: {
+                  ip: '',
+                  mac: '',
+                  hostName: ''
+                }
+              }, () => {
+                this.getDeviceData();
+              });
+            } else if (data.failureList.length > 0) {
+              PopupDialog.alert({
+                title: t('txt-uploadStatus'),
+                id: 'batchUploadStatusModal',
+                confirmText: t('txt-close'),
+                display: this.displayUploadStatus(data)
+              });
+            } if (data.successList.length === 0 && data.failureList.length === 0) {
+              helper.showPopupMsg(t('txt-uploadEmpty'));
+            }
+          }
+          return null;
+        })
+        .catch(err => {
+          helper.showPopupMsg('', t('txt-error'));
         });
       }
     } else if (type === 'cancel') {
@@ -1786,8 +2053,10 @@ class NetworkInventory extends Component {
         csvColumns: {
           ip: '',
           mac: '',
-          host: ''
+          hostName: ''
         }
+      }, () => {
+        this.getDeviceData();
       });
     }
   }
@@ -1822,13 +2091,17 @@ class NetworkInventory extends Component {
     const {baseUrl} = this.context;
     const {addIP} = this.state;
 
+    if (!addIP.ip) {
+      return;
+    }
+
     this.ah.one({
-      url: `${baseUrl}/api/u1/ipdevice/_search?ip=${addIP.ip}`,
+      url: `${baseUrl}/api/u1/ipdevice/_search?exactIp=${addIP.ip}`,
       type: 'GET'
     })
     .then(data => {
       if (data) {
-        if (data.counts >= 1) {
+        if (data.counts > 0) {
           helper.showPopupMsg(t('network-inventory.txt-duplicatedIP'), t('txt-error'));
         } else {
           this.setState({
@@ -1836,6 +2109,7 @@ class NetworkInventory extends Component {
           });
         }
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -1854,8 +2128,7 @@ class NetworkInventory extends Component {
       tempActiveSteps--;
 
       this.setState({
-        activeSteps: tempActiveSteps,
-        changeAreaMap: false
+        activeSteps: tempActiveSteps
       });
     } else if (type === 'next') {
       if (activeSteps === 1) {
@@ -1923,6 +2196,7 @@ class NetworkInventory extends Component {
           const ownerUUID = data;
           this.handleIPdeviceConfirm(ownerUUID);
         }
+        return null;
       })
       .catch(err => {
         helper.showPopupMsg('', t('txt-error'), err.message);
@@ -1990,6 +2264,7 @@ class NetworkInventory extends Component {
           this.toggleContent('showList');
         }
       }
+      return null;
     })
     .catch(err => {
       this.showPopupMsg('', t('txt-error'), err.message);
@@ -2045,12 +2320,18 @@ class NetworkInventory extends Component {
     const inventoryParam = queryString.parse(location.search);
     const {baseUrl} = this.context;
 
-    this.ah.one({
-      url: `${baseUrl}/api/owner?uuid=${value}`,
+    if (!value) {
+      return;
+    }
+
+    ah.one({
+      url: `${baseUrl}/api/u1/owner?uuid=${value}`,
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data.rt) {
+        data = data.rt;
+
         let tempAddIP = {...this.state.addIP};
         tempAddIP.ownerUUID = data.ownerUUID;
         tempAddIP.ownerID = data.ownerID;
@@ -2066,6 +2347,7 @@ class NetworkInventory extends Component {
           addIP: tempAddIP
         });
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -2252,7 +2534,7 @@ class NetworkInventory extends Component {
                   readOnly={currentDeviceData.isHmd} />
               </div>
               <div className='group'>
-                <label htmlFor='addIPstepsUser'>{t('ipFields.owner')}</label>
+                <label htmlFor='addIPstepsUser'>{t('ipFields.userAccount')}</label>
                 <Input
                   id='addIPstepsUser'
                   onChange={this.handleAddIpChange.bind(this, 'userName')}
@@ -2473,7 +2755,7 @@ class NetworkInventory extends Component {
     )
   }
   /**
-   * Get default opened floor plan map
+   * Get default opened tree node
    * @method
    * @param {string} selectedID - selected area UUID
    * @returns default opened areaRoute array IDs
@@ -2533,7 +2815,8 @@ class NetworkInventory extends Component {
 
     this.setState({
       floorPlan: tempFloorPlan,
-      changeAreaMap: true
+      changeAreaMap: true,
+      selectedTreeID: areaUUID
     }, () => {
       this.getAreaData(areaUUID);
       this.getSeatData(areaUUID);
@@ -2542,20 +2825,32 @@ class NetworkInventory extends Component {
   /**
    * Display floor tree data
    * @method
-   * @param {object} value - floor plan data
+   * @param {object} tree - tree data
    * @param {string} selectedID - selected area UUID
    * @param {number} i - index of the floor plan data
    * @returns TreeView component
    */
-  getTreeView = (value, selectedID, i) => {
+  getTreeView = (tree, selectedID, i) => {
+    const {currentDeviceData, changeAreaMap, selectedTreeID} = this.state;
+    let defaultSelectedID = selectedTreeID || tree.areaUUID;
+
+    if (changeAreaMap) {
+      if (selectedID) {
+        defaultSelectedID = selectedID;
+      }
+    } else {
+      if (currentDeviceData && currentDeviceData.areaUUID) {
+        defaultSelectedID = currentDeviceData.areaUUID;
+      }
+    }
+
     return (
       <TreeView
-        id={value.areaUUID}
-        key={value.areaUUID}
-        data={value}
-        selected={selectedID}
-        defaultSelected={selectedID}
-        defaultOpened={this.getDefaultFloor(selectedID)}
+        id={tree.areaUUID}
+        key={tree.areaUUID}
+        data={tree}
+        selected={defaultSelectedID}
+        defaultOpened={this.getDefaultFloor(defaultSelectedID)}
         onSelect={this.selectTree.bind(this, i)} />
     )
   }
@@ -2569,12 +2864,12 @@ class NetworkInventory extends Component {
    */
   displayTree = (type, val, i) => {
     const {floorPlan, currentDeviceData, changeAreaMap} = this.state;
-    let currentAreaUUID = '';
+    let currentAreaUUID = floorPlan.currentAreaUUID;
 
-    if (type === 'deviceMap') {
-      currentAreaUUID = floorPlan.currentAreaUUID;
-    } else {
-      currentAreaUUID = changeAreaMap ? floorPlan.currentAreaUUID : currentDeviceData.areaUUID;
+    if (type === 'stepsFloor') {
+      if (!changeAreaMap && currentDeviceData.areaUUI) {
+        currentAreaUUID = currentDeviceData.areaUUID;
+      }
     }
 
     return this.getTreeView(val, currentAreaUUID, i);
@@ -2644,7 +2939,7 @@ class NetworkInventory extends Component {
    */
   addSeatDialog = () => {
     const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeDialog},
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeAddSeatDialog},
       confirm: {text: t('txt-confirm'), handler: this.handleAddSeatConfirm}
     };
     const titleText = t('network-topology.txt-addSeat');
@@ -2663,6 +2958,21 @@ class NetworkInventory extends Component {
     )
   }
   /**
+   * Close add seat dialog
+   * @method
+   */
+  closeAddSeatDialog = () => {
+    this.setState({
+      addSeatOpen: false,
+      addSeat: {
+        selectedSeatUUID: '',
+        name: '',
+        coordX: '',
+        coordY: ''
+      }
+    });
+  }
+  /**
    * Handle add seat confirm
    * @method
    */
@@ -2670,7 +2980,17 @@ class NetworkInventory extends Component {
     const {baseUrl} = this.context;
     const {floorPlan, currentDeviceData, addSeat, changeAreaMap} = this.state;
     const url = `${baseUrl}/api/seat`;
-    const currentAreaUUID = changeAreaMap ? floorPlan.currentAreaUUID : currentDeviceData.areaUUID;
+    let currentAreaUUID = floorPlan.currentAreaUUID;
+
+    if (!changeAreaMap && currentDeviceData.areaUUID) {
+      currentAreaUUID = currentDeviceData.areaUUID;
+    }
+
+    if (!addSeat.name) {
+      helper.showPopupMsg(t('network-topology.txt-seatNameEmpty'), t('txt-error'));
+      return;
+    }
+
     const requestData = {
       areaUUID: currentAreaUUID,
       seatName: addSeat.name,
@@ -2694,6 +3014,7 @@ class NetworkInventory extends Component {
           this.getSeatData(currentAreaUUID);
         });
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'));
@@ -2757,9 +3078,9 @@ class NetworkInventory extends Component {
     }
 
     if (!_.isEmpty(csvData)) {
-      _.forEach(csvData[0], val => {
+      _.forEach(csvData[0], (val, i) => {
         csvHeaderList.push({
-          value: val,
+          value: i,
           text: val
         })
       })
@@ -2767,12 +3088,12 @@ class NetworkInventory extends Component {
 
     return (
       <div>
-        {showScanInfo &&
-          this.showScanInfo()
+        {showSeatData &&
+          this.showSeatDialog()
         }
 
-        {showSeatData &&
-          this.showSeatData()
+        {showScanInfo &&
+          this.showScanInfoDialog()
         }
 
         {modalFloorOpen &&
@@ -2857,8 +3178,8 @@ class NetworkInventory extends Component {
                         <DropDownList
                           id='csvColumnHost'
                           list={csvHeaderList}
-                          onChange={this.handleColumnChange.bind(this, 'host')}
-                          value={csvColumns.host} />
+                          onChange={this.handleColumnChange.bind(this, 'hostName')}
+                          value={csvColumns.hostName} />
                       </div>
                     </section>
 

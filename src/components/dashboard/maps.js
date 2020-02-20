@@ -38,7 +38,7 @@ const MAPS_PUBLIC_DATA = {
       destIp: {}
     },
     private: {
-      tree: [],
+      tree: null,
       data: '',
       currentFloorPrivateData: [],
       allFloorPrivateData: []
@@ -112,8 +112,8 @@ class DashboardMaps extends Component {
     const {baseUrl} = this.context;
     const {datetime, alertDetails} = this.state;
     const dateTime = {
-      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
-      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
+      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
     const url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=10000`;
     const requestData = {
@@ -188,7 +188,7 @@ class DashboardMaps extends Component {
     });
 
     _.forEach(alertMapData, val => {
-      const timestamp = helper.getFormattedDate(val.timestamp, 'local');
+      const timestamp = helper.getFormattedDate(val._eventDttm_ || val.timestamp, 'local');
 
       if (val.srcLatitude && val.srcLongitude) {
         const count = alertDetails.publicFormatted.srcIp[val.srcIp].length;
@@ -274,7 +274,7 @@ class DashboardMaps extends Component {
    * Get and set selected alert data
    * @method
    * @param {string} type - alert type ('private' or 'public')
-   * @param {string} id - selected seat UUID
+   * @param {string} id - selected seat UUID or IP
    * @param {object} eventInfo - MouseClick events
    */
   showTopoDetail = (type, id, eventInfo) => {
@@ -299,13 +299,13 @@ class DashboardMaps extends Component {
     tempAlertDetails.currentID = id;
 
     if (type === PUBLIC) {
-      const uniqueIP = id;
+      const ip = id;
 
-      if (id.indexOf('.') < 0) {
+      if (ip.indexOf('.') < 0) { //Check if id is an IP address
         return;
       }
 
-      alertData = alertDetails.publicFormatted.srcIp[uniqueIP] || alertDetails.publicFormatted.destIp[uniqueIP];
+      alertData = alertDetails.publicFormatted.srcIp[ip] || alertDetails.publicFormatted.destIp[ip];
       tempAlertDetails.currentLength = alertData.length;
 
       this.setState({
@@ -315,35 +315,39 @@ class DashboardMaps extends Component {
       });
     } else if (type === PRIVATE) {
       const {datetime, alertDetails, currentFloor} = this.state;
+      const ip = id;
       const dateTime = {
-        from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
-        to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
+        from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+        to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
       };
       const url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=10000`;
       const requestData = {
         timestamp: [dateTime.from, dateTime.to],
         filters: [{
           condition: 'must',
-          query: 'sourceIP:' + id
+          query: 'sourceIP:' + ip
         }]
       };
 
       helper.getAjaxData('POST', url, requestData)
       .then(data => {
-        const tempArray = _.map(data.data.rows, val => {
-          val._source.id = val._id;
-          val._source.index = val._index;
-          return val._source;
-        });
-        tempAlertDetails.private.data = tempArray;
-        tempAlertDetails.currentLength = data.data.counts;
-        alertData = tempArray[0];
+        if (data) {
+          const tempArray = _.map(data.data.rows, val => {
+            val._source.id = val._id;
+            val._source.index = val._index;
+            return val._source;
+          });
+          tempAlertDetails.private.data = tempArray;
+          tempAlertDetails.currentLength = data.data.counts;
+          alertData = tempArray[0];
 
-        this.setState({
-          alertDetails: tempAlertDetails
-        }, () => {
-          this.openDetailInfo(type, alertData);
-        });
+          this.setState({
+            alertDetails: tempAlertDetails
+          }, () => {
+            this.openDetailInfo(type, alertData);
+          });
+        }
+        return null;
       });
     }
   }
@@ -475,6 +479,7 @@ class DashboardMaps extends Component {
           this.getFloorList();
         });
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -514,44 +519,56 @@ class DashboardMaps extends Component {
    */
   getAreaData = (areaUUID) => {
     const {baseUrl, contextRoot} = this.context;
+    const {alertDetails} = this.state;
     const floorPlan = areaUUID;
+
+    if (!floorPlan) {
+      return;
+    }
 
     this.ah.one({
       url: `${baseUrl}/api/area?uuid=${floorPlan}`,
       type: 'GET'
     })
     .then(data => {
-      const areaName = data.areaName;
-      const areaUUID = data.areaUUID;
-      let currentMap = '';
+      if (data) {
+        const areaName = data.areaName;
+        const areaUUID = data.areaUUID;
+        let currentMap = '';
+        let tempAlertDetails = {...alertDetails};
+        tempAlertDetails.private.tree = null;
 
-      if (data.picPath) {
-        const picPath = `${baseUrl}${contextRoot}/api/area/_image?path=${data.picPath}`;
-        const picWidth = data.picWidth;
-        const picHeight = data.picHeight;
+        if (data.picPath) {
+          const picPath = `${baseUrl}${contextRoot}/api/area/_image?path=${data.picPath}`;
+          const picWidth = data.picWidth;
+          const picHeight = data.picHeight;
 
-        currentMap = {
-          label: areaName,
-          images: [
-            {
-              id: areaUUID,
-              url: picPath,
-              size: {width: picWidth, height: picHeight}
-            }
-          ]
+          currentMap = {
+            label: areaName,
+            images: [
+              {
+                id: areaUUID,
+                url: picPath,
+                size: {width: picWidth, height: picHeight}
+              }
+            ]
+          };
+        }
+
+        const currentBaseLayers = {
+          [floorPlan]: currentMap
         };
+
+        this.setState({
+          alertDetails: tempAlertDetails,
+          currentMap,
+          currentBaseLayers,
+          currentFloor: areaUUID
+        }, () => {
+          this.loadAlertPrivateData();
+        });
       }
-
-      let currentBaseLayers = {};
-      currentBaseLayers[floorPlan] = currentMap;
-
-      this.setState({
-        currentMap,
-        currentBaseLayers,
-        currentFloor: areaUUID
-      }, () => {
-        this.loadAlertPrivateData();
-      });
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -565,46 +582,49 @@ class DashboardMaps extends Component {
     const {baseUrl} = this.context;
     const {datetime, alertDetails, currentFloor} = this.state;
     const dateTime = {
-      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm') + ':00Z',
-      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm') + ':00Z'
+      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
     const url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`;
     const requestData = {
       timestamp: [dateTime.from, dateTime.to],
       filters: [{
         condition: 'must',
-        query: 'Top10InternalMaskedIp'
+        query: 'InternalMaskedIp'
       }]
     };
 
     helper.getAjaxData('POST', url, requestData)
     .then(data => {
-      const allPrivateData = data.aggregations.Top10InternalMaskedIp;
-      let tempAlertDetails = {...alertDetails};
-      let currentFloorPrivateData = [];
-      let allFloorPrivateData = [];
+      if (data) {
+        const allPrivateData = data.aggregations.InternalMaskedIp;
+        let tempAlertDetails = {...alertDetails};
+        let currentFloorPrivateData = [];
+        let allFloorPrivateData = [];
 
-      _.forEach(_.keys(allPrivateData), val => {
-        if (val !== 'doc_count' && allPrivateData[val].doc_count) {
-          _.forEach(allPrivateData[val].srcIp.buckets, val2 => {
-            if (val2.srcTopoInfo && val2.srcTopoInfo.areaUUID === currentFloor) {
-              currentFloorPrivateData.push(val2);
-            } else if (!val2.srcTopoInfo.areaUUID) {
-              allFloorPrivateData.push(val2);
-            }
-          })
-        }
-      })
+        _.forEach(_.keys(allPrivateData), val => {
+          if (val !== 'doc_count' && allPrivateData[val].doc_count) {
+            _.forEach(allPrivateData[val].srcIp.buckets, val2 => {
+              if (val2.srcTopoInfo && val2.srcTopoInfo.areaUUID === currentFloor) {
+                currentFloorPrivateData.push(val2);
+              } else if (!val2.srcTopoInfo.areaUUID) {
+                allFloorPrivateData.push(val2);
+              }
+            })
+          }
+        })
 
-      tempAlertDetails.private.currentFloorPrivateData = currentFloorPrivateData;
-      tempAlertDetails.private.allFloorPrivateData = allFloorPrivateData;
-      tempAlertDetails.private.tree = _.concat(currentFloorPrivateData, allFloorPrivateData);
+        tempAlertDetails.private.currentFloorPrivateData = currentFloorPrivateData;
+        tempAlertDetails.private.allFloorPrivateData = allFloorPrivateData;
+        tempAlertDetails.private.tree = _.concat(currentFloorPrivateData, allFloorPrivateData);
 
-      this.setState({
-        alertDetails: tempAlertDetails
-      }, () => {
-        this.getSeatData();
-      });
+        this.setState({
+          alertDetails: tempAlertDetails
+        }, () => {
+          this.getSeatData();
+        });
+      }
+      return null;
     });
   }
   /**
@@ -758,11 +778,14 @@ class DashboardMaps extends Component {
                   required={true}
                   value={currentFloor} />
                 <div className='content'>
-                  <ul>
-                    {alertDetails.private.tree.length > 0 &&
-                      alertDetails.private.tree.map(this.displayPrivateHost)
-                    }
-                  </ul>
+                  {!alertDetails.private.tree &&
+                    <span className='loading'><i className='fg fg-loading-2'></i></span>
+                  }
+                  {alertDetails.private.tree && alertDetails.private.tree.length > 0 &&
+                    <ul>
+                      {alertDetails.private.tree.map(this.displayPrivateHost)}
+                    </ul>
+                  }
                   <div className='map'>
                     {currentMap &&
                       <Gis

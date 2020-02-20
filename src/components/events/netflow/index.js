@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
 import Moment from 'moment'
+import moment from 'moment-timezone'
 import _ from 'lodash'
 import cx from 'classnames'
 import queryString from 'query-string'
@@ -92,7 +93,7 @@ class Netflow extends Component {
       //Left nav
       searchTreeObj: {},
       treeRawData: {},
-      treeData: {},
+      treeData: null,
       currentTreeName: '',
       //Tab Menu
       subTabMenu: {
@@ -122,14 +123,14 @@ class Netflow extends Component {
       //Sub sections
       subSectionsData: {
         mainData: {
-          connections: [],
-          dns: [],
-          http: [],
-          html: [],
-          email: [],
-          file: [],
-          cert: [],
-          ftp: []
+          connections: null,
+          dns: null,
+          http: null,
+          html: null,
+          email: null,
+          file: null,
+          cert: null,
+          ftp: null
         },
         fieldsData: {
           connections: {},
@@ -217,8 +218,7 @@ class Netflow extends Component {
       currentTableIndex: '',
       currentLength: '',
       currentTableID: '',
-      loadNetflowData: true,
-      urlParams: {}
+      loadNetflowData: true
     };
 
     this.ah = getInstance('chewbacca');
@@ -227,8 +227,6 @@ class Netflow extends Component {
     const {locale, session, sessionRights} = this.context;
     const {datetime, filterData, account} = this.state;
     let urlParams = queryString.parse(location.search);
-    let tempDatetime = {...datetime};
-    let tempFilterData = {...filterData};
     let tempAccount = {...account};
 
     helper.getPrivilegesInfo(sessionRights, 'common', locale);
@@ -240,31 +238,44 @@ class Netflow extends Component {
       if (urlParams.eventDttm) {
         let ip = '';
 
-        tempDatetime = {
-          from: helper.getSubstractDate(30, 'minutes', urlParams.eventDttm),
-          to: helper.getAdditionDate(30, 'minutes', urlParams.eventDttm)
-        };
-
         if (urlParams.srcIp) {
           ip = 'ipSrc: ' + urlParams.srcIp;
         } else if (urlParams.destIp) {
           ip = 'ipDst: ' + urlParams.destIp;
         }
 
-        tempFilterData = [{
-          condition: 'must',
-          query: ip
-        }];
-        urlParams = _.omit(urlParams, ['lng']);
-
         this.setState({
-          datetime: tempDatetime,
-          filterData: tempFilterData,
+          datetime: {
+            from: helper.getSubstractDate(30, 'minutes', urlParams.eventDttm),
+            to: helper.getAdditionDate(30, 'minutes', urlParams.eventDttm)
+          },
+          filterData: [{
+            condition: 'must',
+            query: ip
+          }],
           account: tempAccount,
-          showFilter: true,
-          urlParams
+          showFilter: true
         }, () => {
           this.initialLoad();
+        });
+      } else if (urlParams.from && urlParams.to) {
+        this.setState({
+          datetime: {
+            from: urlParams.from,
+            to: urlParams.to
+          },
+          filterData: [{
+            condition: 'must',
+            query: 'ipSrc:' + urlParams.sourceIP
+          }],
+          account: tempAccount,
+          showFilter: true
+        }, () => {
+          this.initialLoad();
+
+          if (urlParams.type === 'dns') {
+            this.handleTabChange('dns');
+          }
         });
       } else {
         this.setState({
@@ -597,15 +608,14 @@ class Netflow extends Component {
     }
 
     tempSubSectionsData.mainData = {
-      connections: [],
-      dns: [],
-      http: [],
-      html: [],
-      email: [],
-      file: [],
-      cert: [],
-      ftp: [],
-      logs: []
+      connections: null,
+      dns: null,
+      http: null,
+      html: null,
+      email: null,
+      file: null,
+      cert: null,
+      ftp: null
     };
 
     this.setState({
@@ -624,7 +634,7 @@ class Netflow extends Component {
       filterData: tempFilterData,
       subSectionsData: tempSubSectionsData,
       treeRawData: {},
-      treeData: {},
+      treeData: null,
       showImgCheckbox: false,
       displayType: 'list',
       showChart: false,
@@ -691,111 +701,114 @@ class Netflow extends Component {
       contentType: 'text/plain'
     }])
     .then(data => {
-      if (currentPage > 1 && !data[0]) {
-        helper.showPopupMsg('', t('txt-error'), t('events.connections.txt-maxDataMsg'));
+      if (data) {
+        if (currentPage > 1 && !data[0]) {
+          helper.showPopupMsg('', t('txt-error'), t('events.connections.txt-maxDataMsg'));
 
-        this.setState({
-          currentPage: oldPage
-        });
-        return;
-      }
-
-      if (_.isEmpty(data[0]) || data[0].data.counts === 0) {
-        helper.showPopupMsg(t('txt-notFound', ''));
-
-        let tempSubSectionsData = {...this.state.subSectionsData};
-        tempSubSectionsData.mainData.connections = [];
-        tempSubSectionsData.laData.connections = [];
-        tempSubSectionsData.mapData.connections = [];
-        tempSubSectionsData.totalCount.connections = 0;
-
-        this.setState({
-          subSectionsData: tempSubSectionsData,
-          connectionsChartType: 'connections',
-          connectionsInterval: '1m',
-          sessionHistogram: {},
-          packageHistogram: {},
-          byteHistogram: {},
-          currentPage: 1,
-          oldPage: 1,
-          pageSize: 20,
-          treeRawData: {},
-          treeData: {}
-        });
-        return;
-      }
-
-      const tempArray = data[0].data.rows.map(tempData => {
-        tempData.content.id = tempData.id;
-
-        if (tempData.tag) {
-          tempData.content.tag = tempData.tag;
+          this.setState({
+            currentPage: oldPage
+          });
+          return;
         }
 
-        return tempData.content;
-      });
+        if (_.isEmpty(data[0]) || data[0].data.counts === 0) {
+          helper.showPopupMsg(t('txt-notFound', ''));
 
-      const currentLength = data[0].data.rows.length < pageSize ? data[0].data.rows.length : pageSize;
+          let tempSubSectionsData = {...this.state.subSectionsData};
+          tempSubSectionsData.mainData.connections = [];
+          tempSubSectionsData.laData.connections = [];
+          tempSubSectionsData.mapData.connections = [];
+          tempSubSectionsData.totalCount.connections = 0;
 
-      let tempFields = {};
-      subSectionsData.tableColumns.connections.forEach(tempData => {
-        tempFields[tempData] = {
-          hide: !this.checkDisplayFields(tempData),
-          label: f(`connectionsFields.${tempData}`),
-          sortable: this.checkSortable(tempData),
-          formatter: (value, allValue, i) => {
-            if (tempData === '_tableMenu_') {
+          this.setState({
+            subSectionsData: tempSubSectionsData,
+            connectionsChartType: 'connections',
+            connectionsInterval: '1m',
+            sessionHistogram: {},
+            packageHistogram: {},
+            byteHistogram: {},
+            currentPage: 1,
+            oldPage: 1,
+            pageSize: 20,
+            treeRawData: {},
+            treeData: {}
+          });
+          return;
+        }
+
+        const tempArray = data[0].data.rows.map(tempData => {
+          tempData.content.id = tempData.id;
+
+          if (tempData.tag) {
+            tempData.content.tag = tempData.tag;
+          }
+
+          return tempData.content;
+        });
+
+        const currentLength = data[0].data.rows.length < pageSize ? data[0].data.rows.length : pageSize;
+
+        let tempFields = {};
+        subSectionsData.tableColumns.connections.forEach(tempData => {
+          tempFields[tempData] = {
+            hide: !this.checkDisplayFields(tempData),
+            label: f(`connectionsFields.${tempData}`),
+            sortable: this.checkSortable(tempData),
+            formatter: (value, allValue, i) => {
+              if (tempData === '_tableMenu_') {
+                return (
+                  <div className={cx('table-menu', {'active': value})}>
+                    <button onClick={this.handleRowContextMenu.bind(this, allValue)}><i className='fg fg-more'></i></button>
+                  </div>
+                )
+              }
+              if (tempData === 'firstPacket' || tempData === 'lastPacket' || tempData === '_eventDttm_') {
+                value = helper.getFormattedDate(value, 'local');
+              }
               return (
-                <div className={cx('table-menu', {'active': value})}>
-                  <button onClick={this.handleRowContextMenu.bind(this, allValue)}><i className='fg fg-more'></i></button>
-                </div>
+                <TableCell
+                  activeTab={activeTab}
+                  fieldValue={value}
+                  fieldName={tempData}
+                  allValue={allValue}
+                  showQueryOptions={this.showQueryOptions} />
               )
             }
-            if (tempData === 'firstPacket' || tempData === 'lastPacket' || tempData === '_eventDttm_') {
-              value = helper.getFormattedDate(value, 'local');
+          }
+        })
+
+        const treeObj = this.getTreeData(data[1]);
+        let tempSubSectionsData = {...subSectionsData};
+        tempSubSectionsData.mainData.connections = tempArray;
+        tempSubSectionsData.fieldsData.connections = tempFields;
+        tempSubSectionsData.mapData.connections = data[0].data.rows;
+        tempSubSectionsData.totalCount.connections = data[0].data.counts;
+
+        const tempCurrentPage = options === 'search' ? 1 : currentPage;
+        const dataArray = tempSubSectionsData.mainData.connections;
+
+        for (var i = 0; i < dataArray.length; i++) {
+          for (var key in dataArray[i]) {
+            if (Array.isArray(dataArray[i][key])) {
+              tempSubSectionsData.mainData.connections[i][key] = helper.arrayDataJoin(dataArray[i][key], '', ', ');
             }
-            return (
-              <TableCell
-                activeTab={activeTab}
-                fieldValue={value}
-                fieldName={tempData}
-                allValue={allValue}
-                showQueryOptions={this.showQueryOptions} />
-            )
           }
         }
-      })
 
-      const treeObj = this.getTreeData(data[1]);
-      let tempSubSectionsData = {...subSectionsData};
-      tempSubSectionsData.mainData.connections = tempArray;
-      tempSubSectionsData.fieldsData.connections = tempFields;
-      tempSubSectionsData.mapData.connections = data[0].data.rows;
-      tempSubSectionsData.totalCount.connections = data[0].data.counts;
-
-      const tempCurrentPage = options === 'search' ? 1 : currentPage;
-      const dataArray = tempSubSectionsData.mainData.connections;
-
-      for (var i = 0; i < dataArray.length; i++) {
-        for (var key in dataArray[i]) {
-          if (Array.isArray(dataArray[i][key])) {
-            tempSubSectionsData.mainData.connections[i][key] = helper.arrayDataJoin(dataArray[i][key], '', ', ');
-          }
-        }
+        this.setState({
+          currentPage: tempCurrentPage,
+          oldPage: tempCurrentPage,
+          subSectionsData: tempSubSectionsData,
+          treeRawData: data[1],
+          treeData: treeObj,
+          searchTreeObj: treeObj,
+          sessionHistogram: data[0].sessionHistogram,
+          packageHistogram: data[0].packageHistogram,
+          byteHistogram: data[0].byteHistogram,
+          currentLength
+        });
       }
-
-      this.setState({
-        currentPage: tempCurrentPage,
-        oldPage: tempCurrentPage,
-        subSectionsData: tempSubSectionsData,
-        treeRawData: data[1],
-        treeData: treeObj,
-        searchTreeObj: treeObj,
-        sessionHistogram: data[0].sessionHistogram,
-        packageHistogram: data[0].packageHistogram,
-        byteHistogram: data[0].byteHistogram,
-        currentLength
-      });
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -827,138 +840,140 @@ class Netflow extends Component {
       contentType: 'text/plain'
     }])
     .then(data => {
-      if (currentPage > 1 && data[0].rows.length === 0) {
-        helper.showPopupMsg('', t('txt-error'), t('events.connections.txt-maxDataMsg'));
+      if (data) {
+        if (currentPage > 1 && data[0].rows.length === 0) {
+          helper.showPopupMsg('', t('txt-error'), t('events.connections.txt-maxDataMsg'));
+
+          this.setState({
+            currentPage: oldPage
+          });
+          return;
+        }
+
+        let tempSubSectionsData = {...subSectionsData};
+
+        if (_.isEmpty(data[0]) || data[0].counts === 0) {
+          helper.showPopupMsg(t('txt-notFound', ''));
+
+          let tempSubSectionsData = {...this.state.subSectionsData};
+          tempSubSectionsData.mainData[activeTab] = [];
+          tempSubSectionsData.totalCount[activeTab] = 0;
+          tempSubSectionsData.laData[activeTab] = [];
+          tempSubSectionsData.mapData[activeTab] = [];
+
+          const resetObj = {
+            subSectionsData: tempSubSectionsData,
+            currentPage: 1,
+            oldPage: 1,
+            pageSize: 20
+          };
+
+          this.setState({
+            ...resetObj,
+            treeRawData: {},
+            treeData: {}
+          });
+          return;
+        }
+
+        const tempArray = data[0].rows.map(tempData => {
+          if (activeTab === 'dns') {
+            tempData.content.id = tempData.id;
+          } else {
+            tempData.content.id = tempData.content.sessionId;
+          }
+
+          if (tempData.tag) {
+            tempData.content.tag = tempData.tag;
+          }
+
+          return tempData.content;
+        });
+
+        const currentLength = data[0].rows.length < pageSize ? data[0].rows.length : pageSize;
+
+        let tempFields = {};
+        subSectionsData.tableColumns[activeTab].forEach(tempData => {
+          let tempFieldName = tempData;
+
+          tempFields[tempData] = {
+            hide: !this.checkDisplayFields(tempData),
+            label: f(`${activeTab}Fields.${tempFieldName}`),
+            sortable: this.checkSortable(tempData),
+            formatter: (value, allValue) => {
+              if (tempData === '_tableMenu_') {
+                return (
+                  <div className={cx('table-menu', {'active': value})}>
+                    <button onClick={this.handleRowContextMenu.bind(this, allValue)}><i className='fg fg-more'></i></button>
+                  </div>
+                )
+              }
+              if (tempData === 'base64' && value) {
+                if (value.indexOf('data:image/') >= 0) {
+                  return <img src={value} className='file-image' onClick={this.openImageModal(value)} />
+                }
+              } else if (tempData === 'filePath') {
+                return <a href={baseUrl + contextRoot + '/api/network/file?path=' + value} download>{value}</a>
+              } else if (tempData === 'controlText') {
+                return <span title={value} onClick={this.showQueryOptions(tempData, value)}>{value.substr(0, 50) + '...'}</span>
+              } else if (tempData === 'htmlRelinkPath') {
+                return <span className='file-html' onClick={this.openHTMLModal.bind(this, value)}>{value}</span>
+              } else {
+                if (tempData === 'firstPacket' || tempData === 'lastPacket' || tempData === '_eventDttm_') {
+                  value = helper.getFormattedDate(value, 'local');
+                }
+                return (
+                  <TableCell
+                    activeTab={activeTab}
+                    fieldValue={value}
+                    fieldName={tempData}
+                    allValue={allValue}
+                    showQueryOptions={this.showQueryOptions} />
+                )
+              }
+            }
+          };
+        })
+
+        const treeObj = this.getTreeData(data[1]);
+        tempSubSectionsData.totalCount[activeTab] = data[0].counts;
+        tempSubSectionsData.mainData[activeTab] = tempArray;
+        tempSubSectionsData.fieldsData[activeTab] = tempFields;
+
+        const tempCurrentPage = options === 'search' ? 1 : currentPage;
+        let dataArray = tempSubSectionsData.mainData[activeTab];
+        let objectKey = '';
+
+        if (activeTab === 'dns' || activeTab === 'email' || activeTab === 'ftp') {
+          if (activeTab === 'email') {
+            objectKey = 'emailAddress';
+          } else if (activeTab === 'ftp') {
+            objectKey = 'text';
+          }
+
+          for (var i = 0; i < dataArray.length; i++) {
+            for (var key in dataArray[i]) {
+              let arraySeparator = ', ';
+
+              if (Array.isArray(dataArray[i][key])) {
+                if (key === 'controlText') {
+                  arraySeparator = ' ';
+                }
+                tempSubSectionsData.mainData[activeTab][i][key] = helper.arrayDataJoin(dataArray[i][key], objectKey, arraySeparator);
+              }
+            }
+          }
+        }
 
         this.setState({
-          currentPage: oldPage
-        });
-        return;
-      }
-
-      let tempSubSectionsData = {...subSectionsData};
-
-      if (_.isEmpty(data[0]) || data[0].counts === 0) {
-        helper.showPopupMsg(t('txt-notFound', ''));
-
-        let tempSubSectionsData = {...this.state.subSectionsData};
-        tempSubSectionsData.mainData[activeTab] = [];
-        tempSubSectionsData.totalCount[activeTab] = 0;
-        tempSubSectionsData.laData[activeTab] = [];
-        tempSubSectionsData.mapData[activeTab] = [];
-
-        const resetObj = {
+          currentPage: tempCurrentPage,
+          oldPage: tempCurrentPage,
+          treeRawData: data[1],
+          treeData: treeObj,
           subSectionsData: tempSubSectionsData,
-          currentPage: 1,
-          oldPage: 1,
-          pageSize: 20
-        };
-
-        this.setState({
-          ...resetObj,
-          treeRawData: {},
-          treeData: {}
+          currentLength
         });
-        return;
       }
-
-      const tempArray = data[0].rows.map(tempData => {
-        if (activeTab === 'dns') {
-          tempData.content.id = tempData.id;
-        } else {
-          tempData.content.id = tempData.content.sessionId;
-        }
-
-        if (tempData.tag) {
-          tempData.content.tag = tempData.tag;
-        }
-
-        return tempData.content;
-      });
-
-      const currentLength = data[0].rows.length < pageSize ? data[0].rows.length : pageSize;
-
-      let tempFields = {};
-      subSectionsData.tableColumns[activeTab].forEach(tempData => {
-        let tempFieldName = tempData;
-
-        tempFields[tempData] = {
-          hide: !this.checkDisplayFields(tempData),
-          label: f(`${activeTab}Fields.${tempFieldName}`),
-          sortable: this.checkSortable(tempData),
-          formatter: (value, allValue) => {
-            if (tempData === '_tableMenu_') {
-              return (
-                <div className={cx('table-menu', {'active': value})}>
-                  <button onClick={this.handleRowContextMenu.bind(this, allValue)}><i className='fg fg-more'></i></button>
-                </div>
-              )
-            }
-            if (tempData === 'base64' && value) {
-              if (value.indexOf('data:image/') >= 0) {
-                return <img src={value} className='file-image' onClick={this.openImageModal(value)} />
-              }
-            } else if (tempData === 'filePath') {
-              return <a href={baseUrl + contextRoot + '/api/network/file?path=' + value} download>{value}</a>
-            } else if (tempData === 'controlText') {
-              return <span title={value} onClick={this.showQueryOptions(tempData, value)}>{value.substr(0, 50) + '...'}</span>
-            } else if (tempData === 'htmlRelinkPath') {
-              return <span className='file-html' onClick={this.openHTMLModal.bind(this, value)}>{value}</span>
-            } else {
-              if (tempData === 'firstPacket' || tempData === 'lastPacket' || tempData === '_eventDttm_') {
-                value = helper.getFormattedDate(value, 'local');
-              }
-              return (
-                <TableCell
-                  activeTab={activeTab}
-                  fieldValue={value}
-                  fieldName={tempData}
-                  allValue={allValue}
-                  showQueryOptions={this.showQueryOptions} />
-              )
-            }
-          }
-        };
-      })
-
-      const treeObj = this.getTreeData(data[1]);
-      tempSubSectionsData.totalCount[activeTab] = data[0].counts;
-      tempSubSectionsData.mainData[activeTab] = tempArray;
-      tempSubSectionsData.fieldsData[activeTab] = tempFields;
-
-      const tempCurrentPage = options === 'search' ? 1 : currentPage;
-      let dataArray = tempSubSectionsData.mainData[activeTab];
-      let objectKey = '';
-
-      if (activeTab === 'dns' || activeTab === 'email' || activeTab === 'ftp') {
-        if (activeTab === 'email') {
-          objectKey = 'emailAddress';
-        } else if (activeTab === 'ftp') {
-          objectKey = 'text';
-        }
-
-        for (var i = 0; i < dataArray.length; i++) {
-          for (var key in dataArray[i]) {
-            let arraySeparator = ', ';
-
-            if (Array.isArray(dataArray[i][key])) {
-              if (key === 'controlText') {
-                arraySeparator = ' ';
-              }
-              tempSubSectionsData.mainData[activeTab][i][key] = helper.arrayDataJoin(dataArray[i][key], objectKey, arraySeparator);
-            }
-          }
-        }
-      }
-
-      this.setState({
-        currentPage: tempCurrentPage,
-        oldPage: tempCurrentPage,
-        treeRawData: data[1],
-        treeData: treeObj,
-        subSectionsData: tempSubSectionsData,
-        currentLength
-      });
       return null;
     })
     .catch(err => {
@@ -999,26 +1014,29 @@ class Netflow extends Component {
 
     helper.getAjaxData('POST', url, requestData)
     .then(data => {
-      let laData = [];
+      if (data) {
+        let laData = [];
 
-      if (data.rows) {
-        laData = data.rows;
+        if (data.rows) {
+          laData = data.rows;
 
-        _.forEach(laData, val => {
-          mainEventsData[val.id] = val.content;
-        })
+          _.forEach(laData, val => {
+            mainEventsData[val.id] = val.content;
+          })
 
-        tempSubSectionsData.laData[activeTab] = analyze(mainEventsData, LAconfig, {analyzeGis: false});
-        tempSubSectionsData.totalCount[activeTab] = laData.counts;
-      } else {
-        helper.showPopupMsg(t('txt-notFound', ''));
-        return;
+          tempSubSectionsData.laData[activeTab] = analyze(mainEventsData, LAconfig, {analyzeGis: false});
+          tempSubSectionsData.totalCount[activeTab] = laData.counts;
+        } else {
+          helper.showPopupMsg(t('txt-notFound', ''));
+          return;
+        }
+
+        this.setState({
+          mainEventsData,
+          subSectionsData: tempSubSectionsData
+        });
       }
-
-      this.setState({
-        mainEventsData,
-        subSectionsData: tempSubSectionsData
-      });
+      return null;
     });
   }
   /**
@@ -1037,19 +1055,22 @@ class Netflow extends Component {
 
     helper.getAjaxData('POST', url, requestData)
     .then(data => {
-      const tempArray = _.map(data.rows, val => {
-        val.content.id = val.id;
-        return val.content;
-      });
+      if (data) {
+        const tempArray = _.map(data.rows, val => {
+          val.content.id = val.id;
+          return val.content;
+        });
 
-      tempSubSectionsData.mapData[activeTab] = tempArray;
-      tempSubSectionsData.totalCount[activeTab] = data.counts;
+        tempSubSectionsData.mapData[activeTab] = tempArray;
+        tempSubSectionsData.totalCount[activeTab] = data.counts;
 
-      this.setState({
-        subSectionsData: tempSubSectionsData
-      }, () => {
-        this.getWorldMap();
-      });
+        this.setState({
+          subSectionsData: tempSubSectionsData
+        }, () => {
+          this.getWorldMap();
+        });
+      }
+      return null;
     });
   }
   /**
@@ -1067,39 +1088,34 @@ class Netflow extends Component {
   /**
    * Construct the netflow events api request body
    * @method
-   * @param {string} options - option for 'search'
+   * @param {string} options - option for time', 'images' or 'csv'
    * @returns requst data object
    */
   toQueryLanguage = (options) => {
     const {datetime, sort, filterData} = this.state;
-    const timeAttribute = 'lastPacket';
-    let time = {};
-    let dateFrom = datetime.from;
-    let dateTo = datetime.to;
-    let dateTime = {};
-    let dataObj = {};
+    const dateTime = {
+      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    };
+    let dataObj = {
+      query: {
+        lastPacket: {
+          op: 'BETWEEN',
+          arg: [dateTime.from, dateTime.to]
+        }
+      },
+      sort: [{
+        [sort.field]: sort.desc ? 'desc' : 'asc'
+      }]
+    };
     let filterDataArr = [];
-    let sortObj = {};
-
-    dateTime = {
-      from: Moment(dateFrom).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-      to: Moment(dateTo).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
-    };
-
-    time[timeAttribute] = {
-      op: 'BETWEEN',
-      arg: [dateTime.from, dateTime.to]
-    };
 
     if (options === 'time') {
-      return time;
+      return dataObj.query;
     }
 
-    dataObj[timeAttribute] = time[timeAttribute];
-    sortObj[sort.field] = sort.desc ? 'desc' : 'asc';
-
     if (options === 'images') {
-      dataObj['detectedType'] = {
+      dataObj.query.detectedType = {
         op: 'LIKE',
         arg: 'image'
       };
@@ -1110,15 +1126,16 @@ class Netflow extends Component {
     }
 
     if (filterDataArr.length > 0) {
-      dataObj['filter'] = filterDataArr;
+      dataObj.query.filter = filterDataArr;
     }
 
-    const dataOptions = {
-      query: dataObj,
-      sort: [sortObj]
-    };
+    if (options == 'csv') {
+      const timezone = moment.tz(moment.tz.guess()); //Get local timezone obj
+      const utc_offset = timezone._offset / 60; //Convert minute to hour
+      dataObj.timeZone = utc_offset;
+    }
 
-    return dataOptions;
+    return dataObj;
   }
   /**
    * Set the netflow events tree data
@@ -1395,6 +1412,7 @@ class Netflow extends Component {
       } else {
         window.location.assign(data.PcapFilelink);
       }
+      return null;
     });    
   }
   /**
@@ -2066,10 +2084,9 @@ class Netflow extends Component {
     const {pcapData} = this.state;
     const projectID = allValue ? allValue.projectName : pcapData.projectID;
     const sessionID = allValue ? allValue.id : pcapData.sessionID;
-    const url = `${baseUrl}/api/network/session/pcapContent?projectId=${projectID}&sessionId=${sessionID}&page=${pcapData.page}&pageSize=${pcapData.pageSize}`;
 
     this.ah.one({
-      url,
+      url: `${baseUrl}/api/network/session/pcapContent?projectId=${projectID}&sessionId=${sessionID}&page=${pcapData.page}&pageSize=${pcapData.pageSize}`,
       type: 'GET'
     })
     .then(data => {
@@ -2144,10 +2161,13 @@ class Netflow extends Component {
   deleteTag = () => {
     const {baseUrl} = this.context;
     const {tagData} = this.state;
-    const url = `${baseUrl}/api/account/flow/session?id=${tagData.id}`;
+
+    if (!tagData.id) {
+      return;
+    }
 
     this.ah.one({
-      url,
+      url: `${baseUrl}/api/account/flow/session?id=${tagData.id}`,
       type: 'DELETE'
     })
     .then(data => {
@@ -2327,18 +2347,23 @@ class Netflow extends Component {
    */
   openHTMLModal = (value) => {
     const {baseUrl} = this.context;
-    const url = `${baseUrl}/api/network/html/reLinkFile?path=${value}`;
+
+    if (!value) {
+      return;
+    }
 
     ah.one({
-      url,
+      url: `${baseUrl}/api/network/html/reLinkFile?path=${value}`,
       type: 'GET'
     })
     .then(data => {
-      PopupDialog.alert({
-        id: 'fileModal',
-        confirmText: t('txt-close'),
-        display: <div dangerouslySetInnerHTML={{__html: data}} />
-      });
+      if (data) {
+        PopupDialog.alert({
+          id: 'fileModal',
+          confirmText: t('txt-close'),
+          display: <div dangerouslySetInnerHTML={{__html: data}} />
+        });
+      }
       return null;
     })
     .catch(err => {
@@ -2606,7 +2631,7 @@ class Netflow extends Component {
     })
 
     const dataOptions = {
-      ...this.toQueryLanguage(),
+      ...this.toQueryLanguage('csv'),
       columns: tempColumns
     };
 
@@ -2771,14 +2796,14 @@ class Netflow extends Component {
   clearData = () => {
     const subSectionsData = {
       mainData: {
-        connections: [],
-        dns: [],
-        http: [],
-        html: [],
-        email: [],
-        file: [],
-        cert: [],
-        ftp: []
+        connections: null,
+        dns: null,
+        http: null,
+        html: null,
+        email: null,
+        file: null,
+        cert: null,
+        ftp: null
       },
       fieldsData: {
         connections: {},

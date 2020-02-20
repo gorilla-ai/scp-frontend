@@ -234,6 +234,7 @@ class Notifications extends Component {
         this.getMailServerInfo();
         this.toggleContent('viewMode');
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -419,7 +420,7 @@ class Notifications extends Component {
     })
 
     ah.one({
-      url: `${baseUrl}/api/notification/mailServer/_test?` + dataParams,
+      url: `${baseUrl}/api/notification/mailServer/_test?${dataParams}`,
       type: 'GET'
     })
     .then(data => {
@@ -429,6 +430,7 @@ class Notifications extends Component {
         helper.showPopupMsg(t('notifications.txt-sendFail'));
       }
       this.closeDialog();
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -488,7 +490,7 @@ class Notifications extends Component {
 
               <div className='form-group normal short'>
                 <header>{t('notifications.txt-emailSettings')}</header>
-                <button className='last' onClick={this.openEmailDialog}>{t('notifications.txt-testEmails')}</button>
+                <button className='last' onClick={this.openEmailDialog} disabled={activeContent === 'editMode'}>{t('notifications.txt-testEmails')}</button>
                 <div className='group'>
                   <label htmlFor='notificationsServer'>{t('notifications.txt-smtpServer')}</label>
                   <Input

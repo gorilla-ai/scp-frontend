@@ -166,12 +166,17 @@ class Manage extends Component {
     const {baseUrl} = this.context;
     const {tab} = this.state;
 
+    if (!nameUUID) {
+      return;
+    }
+
     this.ah.one({
       url: `${baseUrl}/api/name?uuid=${nameUUID}`,
       type: 'DELETE'
     })
     .then(data => {
       this.getNameList(tab.department ? 'department' : 'title');
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -314,12 +319,11 @@ class Manage extends Component {
   confirmName = () => {
     const {baseUrl} = this.context;
     const {tab, name, nameUUID} = this.state;
-    const url = `${baseUrl}/api/name`;
     let type = 'POST';
     let requestData = {};
 
     if (!name.trim()) {
-      helper.showPopupMsg('', t('txt-error'), t('txt-noEmpty'));
+      helper.showPopupMsg(t('txt-nameInvalid'), t('txt-error'));
       return;
     }
 
@@ -338,7 +342,7 @@ class Manage extends Component {
     }
 
     ah.one({
-      url,
+      url: `${baseUrl}/api/name`,
       data: JSON.stringify(requestData),
       type,
       contentType: 'text/plain'

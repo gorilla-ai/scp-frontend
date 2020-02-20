@@ -1,11 +1,9 @@
 #g-login {
   width:100%;
   background: linear-gradient(to top, #001549, #72aaff);
-
   #title, #form {
     width: 400px;
   }
-
   #title {
     color:#ffffff;
     margin-bottom:5px;
@@ -22,11 +20,9 @@
     padding: 30px 30px 10px 30px;
     background-color: #ffffff;
     color: #333333;
-
     &, input, button {
       border-radius:5px;
     }
-
     #username {
       margin-bottom:15px;
     }
@@ -42,7 +38,6 @@
       padding: 8px 43px;
     }
   }
-
   #g-footer {
     color: #ffffff;
     position: absolute;
@@ -50,8 +45,31 @@
     right: 0;
     bottom: 0;
   }
+  .lms {
+    display: grid;
+    color: white;
+    width: 30%;
+    margin-top: -5%;
+    .expire {
+      span.date {
+        margin-right: 10px;
+      }
+    }
+    .key {
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1.5;
+      margin-top: 20px;
+      input {
+        width: 50%;
+        margin-left: 10px;
+      }
+      button {
+        margin-left: 20px;
+      }
+    }
+  }
 }
-
 #g-user-resetPwd {
   .accounts-size-frame {
     min-width: 450px;

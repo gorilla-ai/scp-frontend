@@ -166,7 +166,7 @@ class HMDscanInfo extends Component {
       activeRule: [],
       activeDLL: false,
       activeConnections: false,
-      malwareFieldsArr: ['_FileInfo._Filepath', '_FileInfo._Filesize', '_FileInfo._HashValues._MD5', '_IsPE', '_IsPEextension', '_IsVerifyTrust'],
+      malwareFieldsArr: ['_FileInfo._Filepath', '_FileInfo._Filesize', '_FileInfo._HashValues._MD5', '_IsPE', '_IsPEextension', '_IsVerifyTrust', 'hostIdArrCnt'],
       malwareSort: ['asc'],
       gcbFieldsArr: ['_CceId', '_OriginalKey', '_Type', '_CompareResult'],
       gcbSort: 'asc',
@@ -238,11 +238,16 @@ class HMDscanInfo extends Component {
     const {currentDeviceData} = this.props;
     const resultType = type + 'Result';
 
-    if (currentDeviceData[resultType].taskCreateDttm && currentDeviceData[resultType].taskResponseDttm) {
-      const createTime = helper.getFormattedDate(currentDeviceData[resultType].taskCreateDttm, 'local');
-      const responseTime = helper.getFormattedDate(currentDeviceData[resultType].taskResponseDttm, 'local');
-
-      return Moment(createTime).isAfter(responseTime);
+    if (currentDeviceData[resultType]) {
+      if (currentDeviceData[resultType].taskCreateDttm) {
+        if (currentDeviceData[resultType].taskResponseDttm) {
+          const createTime = helper.getFormattedDate(currentDeviceData[resultType].taskCreateDttm, 'local');
+          const responseTime = helper.getFormattedDate(currentDeviceData[resultType].taskResponseDttm, 'local');
+          return Moment(createTime).isAfter(responseTime);
+        } else {
+          return true; //Disable when create dttm is available and resonse dttm is N/A
+        }
+      }
     }
   }
   /**
@@ -550,9 +555,14 @@ class HMDscanInfo extends Component {
    */
   getSuspiciousFileCount = (hmdInfo) => {
     const {activeTab} = this.state;
+    let colorStyle = '#d10d25'; //Default red color
 
-    if (hmdInfo[activeTab].count && hmdInfo[activeTab].count >= 0) {
-      return <div className='count'>{t('network-inventory.txt-suspiciousFileCount')}: {hmdInfo[activeTab].count}</div>
+    if (hmdInfo[activeTab].count === 0) { //Show green color
+      colorStyle = '#22ac38';
+    }
+
+    if (hmdInfo[activeTab].count >= 0) {
+      return <div className='count' style={{'color': colorStyle}}>{t('network-inventory.txt-suspiciousFileCount')}: {hmdInfo[activeTab].count}</div>
     }
   }
   /**
@@ -694,7 +704,9 @@ class HMDscanInfo extends Component {
     } else if (activeTab === 'ir') {
       return (
         <div className='scan-content'>
-          <div className='header'>{t('network-inventory.txt-irMsg')}:</div>
+          {hmdInfo[activeTab].result &&
+            <div className='header'>{t('network-inventory.txt-irMsg')}:</div>
+          }
           <div className='empty-msg'>{hmdInfo[activeTab].result || NOT_AVAILABLE}</div>
         </div>
       )
@@ -739,7 +751,7 @@ class HMDscanInfo extends Component {
   malwareDataTable = (activeTab, hmdInfo) => {
     return (
       <DataTable
-        className='main-table'
+        className='main-table maleware'
         fields={hmdInfo[activeTab].fields}
         data={hmdInfo[activeTab].result}
         onSort={this.handleTableSort} />
@@ -768,7 +780,7 @@ class HMDscanInfo extends Component {
    * @returns HTML DOM
    */
   getTableContent = (hmdInfo) => {
-    const {activeTab, malwareSort, gcbSort} = this.state;
+    const {activeTab} = this.state;
 
     if (!_.isEmpty(hmdInfo[activeTab].fields) && hmdInfo[activeTab].result.length > 0) {
       return (
@@ -846,20 +858,10 @@ class HMDscanInfo extends Component {
           className: this.getFieldName(tempData),
           formatter: (value, allValue) => {
             if (tempData === '_FileInfo._Filepath') {
-              if (value.length > 25) {
-                const newValue = value.substr(0, 25) + '...';
-                return <span title={value}>{newValue}</span>
-              } else {
-                return <span>{value}</span>
-              }
+              return <span>{value}</span>
             }
             if (tempData === '_FileInfo._HashValues._MD5') {
-              if (value.length > 15) {
-                const newValue = value.substr(0, 15) + '...';
-                return <span title={value}>{newValue}</span>
-              } else {
-                return <span>{value}</span>
-              }
+              return <span>{value}</span>
             }
             if (tempData === '_FileInfo._Filesize') {
               value = value + ' KB';
@@ -876,6 +878,14 @@ class HMDscanInfo extends Component {
               }
 
               return <span style={{color : styleStatus}}>{value}</span>
+            }
+            if (tempData === 'hostIdArrCnt') {
+              if (allValue.hostIdArr) {
+                const tooltip = f('malwareFields.hostIdArrCnt') + '/' + f('malwareFields.totalHostCnt') + ': ' + value + '/' + allValue.totalHostCnt;
+                return <span title={tooltip}>{value}</span>
+              } else {
+                value = NOT_AVAILABLE;
+              }
             }
             return <span>{value}</span>
           }

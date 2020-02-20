@@ -11,6 +11,8 @@ import $ from 'jquery'
 
 import DropDownList from 'react-ui/build/src/components/dropdown'
 
+import helper from './components/common/helper'
+import License from './license'
 import ResetPwd from './components/configuration/user/accounts/resetPwd'
 import withLocale from './hoc/locale-provider'
 
@@ -31,20 +33,64 @@ class Login extends Component {
 
     this.state = {
       info: null,
-      error: false
+      error: false,
+      license: true
     };
 
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    //this.checkLicense();
     this.username.focus();
+  }
+  /**
+   * Check license before login
+   * @method
+   */
+  checkLicense = () => {
+    const {baseUrl, contextRoot} = this.props;
+    const apiArr = [
+      {
+        url: `${baseUrl}/api/lms/verifyLocal`,
+        data: JSON.stringify({}),
+        type: 'POST',
+        contentType: 'text/plain'
+      },
+      {
+        url: `${baseUrl}/api/lms/verifyOnline`,
+        data: JSON.stringify({}),
+        type: 'POST',
+        contentType: 'text/plain'
+      }
+    ];
+
+    this.ah.all(apiArr)
+    .then(data => {
+      let licenseCheck = false;
+
+      if (data) {
+        if (data[0].returnCode === '0' && data[1].returnCode === '0') {
+          licenseCheck = data[0].isValid === '1' || data[1].isValid === '1';
+        }
+
+        this.setState({
+          license: licenseCheck
+        }, () => {
+          if (this.state.license) {
+            this.username.focus();
+          }
+        })
+      }
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Handle login confirm
    * @method
    */
   logon = () =>  {
-    const {contextRoot} = this.context;
     const username = this.username.value;
     const password = this.password.value;
     let error = '';
@@ -91,6 +137,7 @@ class Login extends Component {
     .then(data => {
       const redirectURL = contextRoot || '/SCP';
       window.location.href = redirectURL;
+      return null;
     })
     .catch(err => {
       if (err.message === et('-1005')) {
@@ -136,7 +183,23 @@ class Login extends Component {
 
     window.location.href = redirectURL + '/?' + qs.stringify({lng});
   }
-  render() {
+  /**
+   * Set license to true and display login form
+   * @method
+   */
+  onPass = () => {
+    this.setState({
+      license: true
+    }, () => {
+      this.username.focus();
+    });
+  }
+  /**
+   * Display login form
+   * @method
+   * @returns HTML DOM
+   */
+  renderLogin = () => {
     const {baseUrl, contextRoot, productName, locale} = this.props;
     const {info, error} = this.state;
 
@@ -175,9 +238,25 @@ class Login extends Component {
       </div>
     )
   }
+  render() {
+    const {baseUrl, contextRoot} = this.props;
+    const {license} = this.state;
+
+    if (license) {
+      return this.renderLogin();
+    } else {
+      return (
+        <License
+          baseUrl={baseUrl}
+          contextRoot={contextRoot}
+          onPass={this.onPass} />
+      )
+    }
+  }
 }
 
 Login.propTypes = {
+  productName: PropTypes.string.isRequired
 };
 
 export default withLocale(Login);

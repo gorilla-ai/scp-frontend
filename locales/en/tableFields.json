@@ -499,7 +499,9 @@
     },
     "_IsPE": "Is PE?",
     "_IsPEextension": "Is PEextension?",
-    "_IsVerifyTrust": "Is VerifyTrust?"
+    "_IsVerifyTrust": "Is VerifyTrust?",
+    "hostIdArrCnt": "Available Count in Host",
+    "totalHostCnt": "Total Host Count"
   },
   "edgeFields": {
     "agentName": "Name",

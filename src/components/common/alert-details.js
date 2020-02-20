@@ -5,7 +5,9 @@ import Moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
+import ButtonGroup from 'react-ui/build/src/components/button-group'
 import Checkbox from 'react-ui/build/src/components/checkbox'
+import DataTable from 'react-ui/build/src/components/table'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PageNav from 'react-ui/build/src/components/page-nav'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
@@ -22,6 +24,14 @@ import withLocale from '../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
+const ALERT_LEVEL_COLORS = {
+  Emergency: '#CC2943',
+  Alert: '#CC7B29',
+  Critical: '#29B0CC',
+  Warning: '#29CC7A',
+  Notice: '#7ACC29'
+};
 const PUBLIC_KEY = ['City', 'CountryCode', 'Latitude', 'Longitude'];
 const NOT_AVAILABLE = 'N/A';
 
@@ -48,6 +58,8 @@ class AlertDetails extends Component {
         destIp: false,
         srcSafety: false,
         destSafety: false,
+        srcNetwork: false,
+        destNetwork: false,
         json: false
       },
       alertRule: '',
@@ -70,7 +82,8 @@ class AlertDetails extends Component {
           ownerPic: '',
           ownerMap: {},
           ownerBaseLayers: {},
-          ownerSeat: {}
+          ownerSeat: {},
+          exist: null
         },
         destIp: {
           locationType: '',
@@ -79,7 +92,8 @@ class AlertDetails extends Component {
           ownerPic: '',
           ownerMap: {},
           ownerBaseLayers: {},
-          ownerSeat: {}
+          ownerSeat: {},
+          exist: null
         }
       },
       ipDeviceInfo: {
@@ -88,7 +102,66 @@ class AlertDetails extends Component {
       },
       showRedirectMenu: false,
       modalIRopen: false,
-      ipType: ''
+      ipType: '',
+      activeNetworkBehavior: 'alert',
+      networkBehavior: {
+        alert: {
+          fields: ['severity', 'count'],
+          srcIp: {
+            totalCount: 0,
+            data: []
+          },
+          destIp: {
+            totalCount: 0,
+            data: []
+          }
+        },
+        connections: {
+          fields: ['destIp', 'destPort', 'count'],
+          sort: {
+            field: 'destIp',
+            desc: true
+          },
+          srcIp: {
+            totalCount: 0,
+            data: []
+          },
+          destIp: {
+            totalCount: 0,
+            data: []
+          }
+        },
+        dns: {
+          fields: ['destIp', 'destPort', 'count'],
+          sort: {
+            field: 'destIp',
+            desc: true
+          },
+          srcIp: {
+            totalCount: 0,
+            data: []
+          },
+          destIp: {
+            totalCount: 0,
+            data: []
+          }
+        },
+        syslog: {
+          fields: ['configSource', 'count'],
+          sort: {
+            field: 'configSource',
+            desc: true
+          },
+          srcIp: {
+            totalCount: 0,
+            data: []
+          },
+          destIp: {
+            totalCount: 0,
+            data: []
+          }
+        }
+      }
     };
 
     t = chewbaccaI18n.getFixedT(null, 'connections');
@@ -156,6 +229,8 @@ class AlertDetails extends Component {
       destIp: false,
       srcSafety: false,
       destSafety: false,
+      srcNetwork: false,
+      destNetwork: false,
       json: false
     };
 
@@ -257,22 +332,41 @@ class AlertDetails extends Component {
    */
   getHMDinfo = (type) => {
     const {baseUrl} = this.context;
-    const {ipDeviceInfo} = this.state;
-    const IP = this.getIpPortData(type);
+    const {alertInfo, ipDeviceInfo} = this.state;
+    const ip = this.getIpPortData(type);
+
+    if (ip === NOT_AVAILABLE) {
+      return;
+    }
 
     this.ah.one({
-      url: `${baseUrl}/api/u1/ipdevice/_search?ip=${IP}`,
+      url: `${baseUrl}/api/u1/ipdevice/_search?exactIp=${ip}`,
       type: 'GET'
     })
     .then(data => {
-      if (data && data.rows.length > 0) {
+      if (data) {
+        let tempAlertInfo = {...alertInfo};
         let tempIPdeviceInfo = {...ipDeviceInfo};
-        tempIPdeviceInfo[type] = data.rows[0];
+        let deviceExist = '';
+
+        if (data.counts === 0) {
+          deviceExist = false;
+        } else {
+          deviceExist = true;
+          tempIPdeviceInfo[type] = data.rows[0];
+
+          this.setState({
+            ipDeviceInfo: tempIPdeviceInfo
+          });
+        }
+
+        alertInfo[type].exist = deviceExist;
 
         this.setState({
-          ipDeviceInfo: tempIPdeviceInfo
+          alertInfo: tempAlertInfo
         });
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -289,24 +383,31 @@ class AlertDetails extends Component {
     const ownerUUID = alertInfo[type].topology.ownerUUID;
     let tempAlertInfo = {...alertInfo};
 
-    if (ownerUUID) {
-      this.ah.one({
-        url: `${baseUrl}/api/owner?uuid=${ownerUUID}`,
-        type: 'GET'
-      })
-      .then(data => {
-        if (data) {
+    if (!ownerUUID) {
+      return;
+    }
+
+    ah.one({
+      url: `${baseUrl}/api/u1/owner?uuid=${ownerUUID}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data.rt) {
+        data = data.rt;
+
+        if (data.base64) {
           tempAlertInfo[type].ownerPic = data.base64;
 
           this.setState({
             alertInfo: tempAlertInfo
           });
         }
-      })
-      .catch(err => {
-        helper.showPopupMsg('', t('txt-error'), err.message);
-      })
-    }
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Set owner map and seat data for alertInfo
@@ -382,6 +483,10 @@ class AlertDetails extends Component {
             alertRule: data
           });
         }
+        return null;
+      })
+      .catch(err => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
       });
     } else {
       this.setState({
@@ -458,6 +563,7 @@ class AlertDetails extends Component {
           alertPCAP: tempAlertPCAP
         });
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -489,6 +595,8 @@ class AlertDetails extends Component {
         destIp: false,
         srcSafety: false,
         destSafety: false,
+        srcNetwork: false,
+        destNetwork: false,
         json: false
       }
     }, () => {
@@ -519,13 +627,22 @@ class AlertDetails extends Component {
         case 'destSafety':
           tempShowContent.destSafety = true;
           break;
+        case 'srcNetwork':
+          this.loadNetworkBehavior('srcIp');
+          tempShowContent.srcNetwork = true;
+          break;
+        case 'destNetwork':
+          this.loadNetworkBehavior('destIp');
+          tempShowContent.destNetwork = true;
+          break;
         case 'json':
           tempShowContent.json = true;
           break;
       }
 
       this.setState({
-        showContent: tempShowContent
+        showContent: tempShowContent,
+        activeNetworkBehavior: 'alert'
       });
     });
   }
@@ -593,7 +710,7 @@ class AlertDetails extends Component {
       return;
     }
 
-    if (alertInfo[ipType].topology && alertInfo[ipType].topology.mac) {
+    if (alertInfo[ipType].exist) {
       type = 'edit';
       text = t('txt-edit');
     }
@@ -690,12 +807,14 @@ class AlertDetails extends Component {
               </li>
               <li className='child' onClick={this.getContent.bind(this, 'srcIp')}><span className={cx({'active': showContent.srcIp})}>{t('alert.txt-ipBasicInfo')}</span></li>
               <li className='child' onClick={this.getContent.bind(this, 'srcSafety')}><span className={cx({'active': showContent.srcSafety})}>{t('alert.txt-safetyScanInfo')}</span></li>
+              <li className='child' onClick={this.getContent.bind(this, 'srcNetwork')}><span className={cx({'active': showContent.srcNetwork})}>{t('txt-networkBehavior')}</span></li>
               <li className='header'>
                 <span className='name'>{t('alert.txt-ipDst')}</span>
                 <span className='ip'>{this.getIpPortData('destIp')}</span>
               </li>
               <li className='child' onClick={this.getContent.bind(this, 'destIp')}><span className={cx({'active': showContent.destIp})}>{t('alert.txt-ipBasicInfo')}</span></li>
               <li className='child' onClick={this.getContent.bind(this, 'destSafety')}><span className={cx({'active': showContent.destSafety})}>{t('alert.txt-safetyScanInfo')}</span></li>
+              <li className='child' onClick={this.getContent.bind(this, 'destNetwork')}><span className={cx({'active': showContent.destNetwork})}>{t('txt-networkBehavior')}</span></li>
             </ul>
           </div>
           <div className='content'>
@@ -732,6 +851,10 @@ class AlertDetails extends Component {
               this.displayPCAPcontent()
             }
 
+            {showContent.json &&
+              this.displayJsonData()
+            }
+
             {showContent.attack && alertPayload &&
               this.displayPayloadcontent()
             }
@@ -752,8 +875,12 @@ class AlertDetails extends Component {
               this.displaySafetyScanContent('destIp')
             }
 
-            {showContent.json &&
-              this.displayJsonData()
+            {showContent.srcNetwork &&
+              this.displayNetworkBehaviorContent('srcIp')
+            }
+
+            {showContent.destNetwork &&
+              this.displayNetworkBehaviorContent('destIp')
             }
           </div>
         </div>
@@ -776,22 +903,12 @@ class AlertDetails extends Component {
    * @param {string} value - 'srcIp' or 'destIp'
    */
   redirectLink = (type, value) => {
-    const {language} = this.context;
-    const {alertData} = this.props;
-    const eventDatetime = helper.getFormattedDate(alertData._eventDttm_, 'local');
     const srcIp = this.getIpPortData('srcIp');
     const destIp = this.getIpPortData('destIp');
     let ipParam = '';
     let linkUrl ='';
  
-    if (type === 'events') {
-      if (value === 'srcIp') {
-        ipParam = `&srcIp=${srcIp}`;
-      } else if (value === 'destIp') {
-        ipParam = `&destIp=${destIp}`;
-      }
-      linkUrl = `/SCP/events/netflow?eventDttm=${eventDatetime}${ipParam}&lng=${language}`;
-    } else if (type === 'virustotal') {
+    if (type === 'virustotal') {
       if (value === 'srcIp') {
         ipParam = srcIp;
       } else if (value === 'destIp') {
@@ -811,7 +928,6 @@ class AlertDetails extends Component {
   displayRedirectMenu = (type) => {
     return (
       <ul className='redirect-menu' ref={this.setWrapperRef}>
-        <li onClick={this.redirectLink.bind(this, 'events', type)}>{t('alert.txt-queryEvents')}</li>
         <li onClick={this.redirectLink.bind(this, 'virustotal', type)}>{t('alert.txt-searthVirustotal')}</li>
       </ul>
     )
@@ -846,24 +962,30 @@ class AlertDetails extends Component {
   displayRuleContent = () => {
     const {alertType, alertRule} = this.state;
 
-    if (alertRule.length === 0) {
+    if (!alertRule) {
+      return <i className='fg fg-loading-2'></i>
+    }
+
+    if (alertRule && alertRule.length === 0) {
       return <span>{NOT_AVAILABLE}</span>
     }
 
-    if (alertType === 'alert') {
-      return (
-        <ul className='alert-rule'>
-          {alertRule.map(this.showRuleContent)}
-          {this.showRuleRefsData()}
-        </ul>
-      )
-    } else {
-      return (
-        <section className='alert-rule'>
-          <span>{alertRule}</span>
-          {this.showRuleRefsData()}
-        </section>
-      )
+    if (alertRule && alertRule.length > 0) {
+      if (alertType === 'alert') {
+        return (
+          <ul className='alert-rule'>
+            {alertRule.map(this.showRuleContent)}
+            {this.showRuleRefsData()}
+          </ul>
+        )
+      } else {
+        return (
+          <section className='alert-rule'>
+            <span>{alertRule}</span>
+            {this.showRuleRefsData()}
+          </section>
+        )
+      }
     }
   }
   /**
@@ -1117,22 +1239,10 @@ class AlertDetails extends Component {
    * @returns PrivateDetails component
    */
   getPrivateInfo = (type) => {
-    const {contextRoot, language} = this.context;
-    const {alertData} = this.props;
+    const {contextRoot} = this.context;
     const {alertInfo} = this.state;
     const topoInfo = alertInfo[type].topology;
     const picPath = alertInfo[type].ownerPic ? alertInfo[type].ownerPic : contextRoot + '/images/empty_profile.png';
-    const url_login = {
-      pathname: '/SCP/honeynet/employee-record',
-      search: `?lng=${language}`
-    };
-    const url_access = {
-      pathname: '/SCP/honeynet/employee-record',
-      search: `?eventDttm=${alertData._eventDttm_}&lng=${language}`,
-      state: {
-        alertData
-      }
-    };
     const srcDestType = type.replace('Ip', '');
 
     return (
@@ -1219,13 +1329,10 @@ class AlertDetails extends Component {
     helper.getAjaxData('POST', url, requestData)
     .then(data => {
       if (data) {
-        PopupDialog.alert({
-          id: 'tiggerTaskModal',
-          confirmText: t('txt-close'),
-          display: <div>{t('txt-requestSent')}</div>
-        });
+        helper.showPopupMsg(t('txt-requestSent'));
         this.getHMDinfo(type);
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'));
@@ -1262,6 +1369,444 @@ class AlertDetails extends Component {
     } else {
       return <span>{NOT_AVAILABLE}</span>
     }
+  }
+  /**
+   * Toggle network behavior button
+   * @method
+   * @param {string} type - 'threats' or 'syslog'
+   */
+  toggleNetworkBtn = (type) => {
+    this.setState({
+      activeNetworkBehavior: type
+    });
+  }
+  /**
+   * Redirect to netflow or syslog page
+   * @method
+   * @param {string} type - 'srcIp' or 'destIp'
+   */
+  redirectNewPage = (type) => {
+    const {baseUrl, contextRoot, language} = this.context;
+    const {alertData} = this.props;
+    const {activeNetworkBehavior} = this.state;
+    const datetime = {
+      from: helper.getFormattedDate(helper.getSubstractDate(1, 'hours', alertData._eventDttm_)),
+      to: helper.getFormattedDate(alertData._eventDttm_, 'local')
+    };
+    const srcIp = this.getIpPortData('srcIp');
+    const destIp = this.getIpPortData('destIp');
+    let ipParam = '';
+    let linkUrl ='';
+
+    if (type === 'srcIp') {
+      ipParam = `&sourceIP=${srcIp}`;
+    } else if (type === 'destIp') {
+      ipParam = `&sourceIP=${destIp}`;
+    }
+ 
+    if (activeNetworkBehavior === 'alert') {
+      linkUrl = `${baseUrl}${contextRoot}/threats?from=${datetime.from}&to=${datetime.to}${ipParam}&lng=${language}`;
+    } else if (activeNetworkBehavior === 'connections') {
+      linkUrl = `${baseUrl}${contextRoot}/events/netflow?from=${datetime.from}&to=${datetime.to}${ipParam}&type=connections&lng=${language}`;
+    } else if (activeNetworkBehavior === 'dns') {
+      linkUrl = `${baseUrl}${contextRoot}/events/netflow?from=${datetime.from}&to=${datetime.to}${ipParam}&type=dns&lng=${language}`;
+    } else if (activeNetworkBehavior === 'syslog') {
+      linkUrl = `${baseUrl}${contextRoot}/events/syslog?from=${datetime.from}&to=${datetime.to}${ipParam}&lng=${language}`;
+    }
+
+    window.open(linkUrl, '_blank');
+  }
+  /**
+   * Handle table sort for network behavior
+   * @method
+   * @param {string} type - network behavior type ('alert', 'connections', 'dns' or 'syslog')
+   * @param {object} sort - sort data object
+   */
+  handleNetworkBehaviorTableSort = (type, sort) => {
+    let tempNetworkBehavior = {...this.state.networkBehavior};
+    tempNetworkBehavior[type].sort.field = sort.field;
+    tempNetworkBehavior[type].sort.desc = sort.desc;
+
+    this.setState({
+      networkBehavior: tempNetworkBehavior
+    });
+  }
+  /**
+   * Get aggregated network behavior data
+   * @method
+   * @param {string} type - network behavior type ('alert', 'connections', 'dns' or 'syslog')
+   * @param {object | array.<object>} data - network behavior data
+   */
+  getNetworkBehaviorData = (type, data) => {
+    let tempData = [];
+
+    if (type === 'alert') {
+      _.forEach(SEVERITY_TYPE, val => {
+        _.forEach(data, (val2, key) => {
+          if (key !== 'default' && val === key) {
+            tempData.push({
+              severity: key,
+              count: val2.doc_count
+            });
+          }
+        })
+      })
+    } else if (type === 'connections' || type === 'dns') {
+      _.forEach(data, val => {
+        _.forEach(val.portDst.buckets, val2 => {
+          tempData.push({
+            destIp: val.key,
+            destPort: val2.key,
+            count: val.doc_count
+          });
+        })
+      })
+    } else if (type === 'syslog') {
+      _.forEach(data, val => {
+        tempData.push({
+          configSource: val.key,
+          count: val.doc_count
+        });
+      })
+    }
+
+    return tempData;
+  }
+  /**
+   * Load network behavior data
+   * @method
+   * @param {string} type - 'srcIp' or 'destIp'
+   */
+  loadNetworkBehavior = (type) => {
+    const {baseUrl} = this.context;
+    const {alertData} = this.props;
+    const {networkBehavior} = this.state;
+    const eventDateTime = helper.getFormattedDate(alertData._eventDttm_, 'local');
+    const eventDateFrom = helper.getSubstractDate(1, 'hours', eventDateTime);
+    const datetime = {
+      from: Moment(eventDateFrom).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: Moment(eventDateTime).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    };
+    let apiArr = [];
+
+    if (type === 'srcIp') {
+      apiArr = [
+        {
+          url: `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`, //Threats srcIp
+          data: JSON.stringify({
+            timestamp: [datetime.from, datetime.to],
+            filters: [
+              {
+                condition: 'must',
+                query: 'sourceIP:' + alertData.srcIp
+              }
+            ]
+          }),
+          type: 'POST',
+          contentType: 'text/plain'
+        },
+        {
+          url: `${baseUrl}/api/u1/network/session?pageSize=0`, //Connections srcIp
+          data: JSON.stringify({
+            timestamp: [datetime.from, datetime.to],
+            filters: [
+              {
+                condition: 'must',
+                query: 'sourceIP:' + alertData.srcIp
+              }
+            ],
+            search: [
+              'TopDestIpPortAgg'
+            ]
+          }),
+          type: 'POST',
+          contentType: 'text/plain'
+        },
+        {
+          url: `${baseUrl}/api/u1/network/session?pageSize=0`, //DNS srcIp
+          data: JSON.stringify({
+            timestamp: [datetime.from, datetime.to],
+            filters: [
+              {
+                condition: 'must',
+                query: 'sourceIP:' + alertData.srcIp
+              },
+              {
+                condition: 'must',
+                query: 'DNS' 
+              }
+            ],
+            search: [
+              'TopDestIpPortAgg'
+            ]
+          }),
+          type: 'POST',
+          contentType: 'text/plain'
+        },
+        {
+          url: `${baseUrl}/api/u2/alert/_search?pageSize=0`, //Syslog srcIp
+          data: JSON.stringify({
+            timestamp: [datetime.from, datetime.to],
+            filters: [
+              {
+                condition: 'must',
+                query: 'Top10SyslogConfigSource'
+              },
+              {
+                condition: 'must',
+                query: alertData.srcIp
+              }
+            ]
+          }),
+          type: 'POST',
+          contentType: 'text/plain'
+        }
+      ];
+    } else if (type === 'destIp') {
+      apiArr = [
+        {
+          url: `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`, //Threats destIp
+          data: JSON.stringify({
+            timestamp: [datetime.from, datetime.to],
+            filters: [
+              {
+                condition: 'must',
+                query: 'sourceIP:' + alertData.destIp
+              }
+            ]
+          }),
+          type: 'POST',
+          contentType: 'text/plain'
+        },
+        {
+          url: `${baseUrl}/api/u1/network/session?pageSize=0`, //Connections destIp
+          data: JSON.stringify({
+            timestamp: [datetime.from, datetime.to],
+            filters: [
+              {
+                condition: 'must',
+                query: 'sourceIP:' + alertData.destIp
+              }
+            ],
+            search: [
+              'TopDestIpPortAgg'
+            ]
+          }),
+          type: 'POST',
+          contentType: 'text/plain'
+        },
+        {
+          url: `${baseUrl}/api/u1/network/session?pageSize=0`, //DNS destIp
+          data: JSON.stringify({
+            timestamp: [datetime.from, datetime.to],
+            filters: [
+              {
+                condition: 'must',
+                query: 'sourceIP:' + alertData.destIp
+              },
+              {
+                condition: 'must',
+                query: 'DNS' 
+              }
+            ],
+            search: [
+              'TopDestIpPortAgg'
+            ]
+          }),
+          type: 'POST',
+          contentType: 'text/plain'
+        },
+        {
+          url: `${baseUrl}/api/u2/alert/_search?pageSize=0`, //Syslog destIp
+          data: JSON.stringify({
+            timestamp: [datetime.from, datetime.to],
+            filters: [
+              {
+                condition: 'must',
+                query: 'Top10SyslogConfigSource'
+              },
+              {
+                condition: 'must',
+                query: alertData.destIp
+              }
+            ]
+          }),
+          type: 'POST',
+          contentType: 'text/plain'
+        }
+      ];
+    }
+
+    this.ah.all(apiArr)
+    .then(data => {
+      if (data && data.length > 0) {
+        let tempNetworkBehavior = {...networkBehavior};
+        let tempFields = {};
+        networkBehavior.alert.fields.forEach(tempData => {
+          tempFields[tempData] = {
+            label: t(`txt-${tempData}`),
+            sortable: false,
+            formatter: (value, allValue, i) => {
+              if (tempData === 'severity') {
+                return (
+                  <span className='severity-level' style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>
+                )
+              } else {
+                return (
+                  <span>{value}</span>
+                )
+              }
+            }
+          }
+        })
+
+        tempNetworkBehavior.alert.fieldsData = tempFields;
+
+        if (type === 'srcIp') {
+          tempNetworkBehavior.alert.srcIp.totalCount = data[0].data.counts;
+
+          if (data[0].aggregations) {
+            tempNetworkBehavior.alert.srcIp.data = this.getNetworkBehaviorData('alert', data[0].aggregations);
+          }
+        } else if (type === 'destIp') {
+          tempNetworkBehavior.alert.destIp.totalCount = data[0].data.counts;
+
+          if (data[0].aggregations) {
+            tempNetworkBehavior.alert.destIp.data = this.getNetworkBehaviorData('alert', data[0].aggregations);
+          }
+        }
+
+        tempFields = {};
+        networkBehavior.connections.fields.forEach(tempData => {
+          tempFields[tempData] = {
+            label: t(`txt-${tempData}`),
+            sortable: true,
+            formatter: (value, allValue, i) => {
+              return (
+                <span>{value}</span>
+              )
+            }
+          }
+        })
+
+        tempNetworkBehavior.connections.fieldsData = tempFields;
+        tempNetworkBehavior.dns.fieldsData = tempFields;
+
+        if (type === 'srcIp') {
+          tempNetworkBehavior.connections.srcIp.totalCount = data[1].data.counts;
+
+          if (data[1].aggregations && data[1].aggregations.TopDestIpPortAgg) {
+            tempNetworkBehavior.connections.srcIp.data = this.getNetworkBehaviorData('connections', data[1].aggregations.TopDestIpPortAgg.buckets);
+          }
+
+          tempNetworkBehavior.dns.srcIp.totalCount = data[2].data.counts;
+
+          if (data[2].aggregations && data[2].aggregations.TopDestIpPortAgg) {
+            tempNetworkBehavior.dns.srcIp.data = this.getNetworkBehaviorData('dns', data[2].aggregations.TopDestIpPortAgg.buckets);
+          }
+        } else if (type === 'destIp') {
+          tempNetworkBehavior.connections.destIp.totalCount = data[1].data.counts;
+
+          if (data[1].aggregations && data[1].aggregations.TopDestIpPortAgg) {
+            tempNetworkBehavior.connections.destIp.data = this.getNetworkBehaviorData('connections', data[1].aggregations.TopDestIpPortAgg.buckets);
+          }
+
+          tempNetworkBehavior.dns.destIp.totalCount = data[2].data.counts;
+
+          if (data[2].aggregations && data[2].aggregations.TopDestIpPortAgg) {
+            tempNetworkBehavior.dns.destIp.data = this.getNetworkBehaviorData('dns', data[2].aggregations.TopDestIpPortAgg.buckets);
+          }
+        }
+
+        tempFields = {};
+        networkBehavior.syslog.fields.forEach(tempData => {
+          tempFields[tempData] = {
+            label: t(`txt-${tempData}`),
+            sortable: true,
+            formatter: (value, allValue, i) => {
+              return (
+                <span>{value}</span>
+              )
+            }
+          }
+        })
+
+        tempNetworkBehavior.syslog.fieldsData = tempFields;
+
+        if (type === 'srcIp') {
+          tempNetworkBehavior.syslog.srcIp.totalCount = data[3].data.counts;
+
+          if (data[3].aggregations && data[3].aggregations.Top10SyslogConfigSource) {
+            tempNetworkBehavior.syslog.srcIp.data = this.getNetworkBehaviorData('syslog', data[3].aggregations.Top10SyslogConfigSource.agg.buckets);
+          }
+        } else if (type === 'destIp') {
+          tempNetworkBehavior.syslog.destIp.totalCount = data[3].data.counts;
+
+          if (data[3].aggregations && data[3].aggregations.Top10SyslogConfigSource) {
+            tempNetworkBehavior.syslog.destIp.data = this.getNetworkBehaviorData('syslog', data[3].aggregations.Top10SyslogConfigSource.agg.buckets);
+          }
+        }
+
+        this.setState({
+          networkBehavior: tempNetworkBehavior
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Display network behavior content
+   * @method
+   * @param {string} type - 'srcIp' or 'destIp'
+   * @returns HTML DOM
+   */
+  displayNetworkBehaviorContent = (type) => {
+    const {alertData} = this.props;
+    const {activeNetworkBehavior, networkBehavior} = this.state;
+    let datetime = {};
+
+    if (alertData._eventDttm_) {
+      datetime = {
+        from: helper.getFormattedDate(helper.getSubstractDate(1, 'hours', alertData._eventDttm_)),
+        to: helper.getFormattedDate(alertData._eventDttm_, 'local')
+      };
+    }
+
+    if (this.getIpPortData(type) === NOT_AVAILABLE) {
+      return <span>{NOT_AVAILABLE}</span>
+    }
+
+    return (
+      <div className='network-behavior'>
+        <ButtonGroup
+          id='networkType'
+          list={[
+            {value: 'alert', text: t('txt-threats') + ' (' + networkBehavior.alert[type].totalCount + ')'},
+            {value: 'connections', text: t('txt-connections-eng') + ' (' + networkBehavior.connections[type].totalCount + ')'},
+            {value: 'dns', text: t('txt-dns') + ' (' + networkBehavior.dns[type].totalCount + ')'},
+            {value: 'syslog', text: t('txt-syslog') + ' (' + networkBehavior.syslog[type].totalCount + ')'}
+          ]}
+          onChange={this.toggleNetworkBtn}
+          value={activeNetworkBehavior} />
+
+        {datetime.from && datetime.to &&
+          <div className='msg'>{t('txt-alertHourBefore')}: {datetime.from} ~ {datetime.to}</div>
+        }
+        <button className='query-events' onClick={this.redirectNewPage.bind(this, type)}>{t('alert.txt-queryEvents')}</button>
+
+        <div className='table-data'>
+          <DataTable
+            className='main-table'
+            fields={networkBehavior[activeNetworkBehavior].fieldsData}
+            data={networkBehavior[activeNetworkBehavior][type].data}
+            sort={networkBehavior[activeNetworkBehavior][type].data.length === 0 ? {} : networkBehavior[activeNetworkBehavior].sort}
+            onSort={this.handleNetworkBehaviorTableSort.bind(this, activeNetworkBehavior)} />
+        </div>
+      </div>
+    )
   }
   /**
    * Display JSON Data content
@@ -1304,6 +1849,7 @@ class AlertDetails extends Component {
       } else {
         window.location.assign(data.PcapFilelink);
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
@@ -1317,12 +1863,14 @@ class AlertDetails extends Component {
   downloadFile = () => {
     const {baseUrl, contextRoot} = this.context;
     const {alertData} = this.props;
-    const dataObj = {
-      origFileId: alertData.origFileId,
-      md5: alertData.fileMD5
-    };
+    let dataObj = {};
 
-    if (!alertData.origFileId && !alertData.fileMD5) {
+    if (alertData.origFileId && alertData.fileMD5) {
+      dataObj = {
+        origFileId: alertData.origFileId,
+        md5: alertData.fileMD5
+      };
+    } else {
       return;
     }
 
@@ -1336,6 +1884,7 @@ class AlertDetails extends Component {
       if (data.id) {
         window.location.href = `${baseUrl}${contextRoot}/api/honeynet/attack/payload/file/${data.id}`;
       }
+      return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);

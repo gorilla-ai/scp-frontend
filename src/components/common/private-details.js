@@ -14,7 +14,7 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const NOT_AVAILABLE = 'N/A';
 const IP_INFO = ['ip', 'mac'];
-const HOST_INFO = ['hostName', 'system', 'deviceType', 'userName', 'cpu', 'ram', 'disks', 'shareFolders'];
+const HOST_INFO = ['hostName', 'system', 'deviceType', 'userAccount', 'cpu', 'ram', 'disks', 'shareFolders'];
 const OWNER_INFO = ['ownerName', 'ownerID', 'department', 'title'];
 
 let t = null;
@@ -183,7 +183,7 @@ class PrivateDetails extends Component {
             <div className='trigger-text'>{t('edge-management.txt-lastUpateTime')}: {helper.getFormattedDate(topoInfo.updateDttm, 'local')}</div>
           }
           {topoInfo && topoInfo.isHmd &&
-            <button className='btn trigger' onClick={this.props.triggerTask.bind(this, ['getSystemInfo'], '')}>{t('txt-reTrigger')}</button>
+            <button className='btn trigger' onClick={this.props.triggerTask.bind(this, ['getSystemInfo'], 'fromInventory')}>{t('txt-reTrigger')}</button>
           }
           <table className='c-table main-table host'>
             <tbody>

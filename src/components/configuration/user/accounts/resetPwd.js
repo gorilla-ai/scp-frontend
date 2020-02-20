@@ -85,6 +85,7 @@ class ResetPwd extends Component {
     })
     .then(data => {
       this.close();
+      return null;
     })
     .catch(err => {
       PopupDialog.alert({
