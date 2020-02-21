@@ -17,105 +17,6 @@ import withLocale from '../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
-
-const TEST_LIST = [
-  {
-    checkTime: '2019-11-25 13:49:40',
-    data: [
-      {
-        _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
-        _MatchedPid: "12345",
-        _MatchedRuleNameList: [],
-        _ProcessInfo: {},
-        _ScanType: "Yara"
-      },
-      {
-        _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
-        _MatchedPid: "67890",
-        _MatchedRuleNameList: [],
-        _ProcessInfo: {},
-        _ScanType: "Yara"
-      },
-      {
-        _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
-        _MatchedPid: "12345",
-        _MatchedRuleNameList: [],
-        _ProcessInfo: {},
-        _ScanType: "Yara"
-      },
-      {
-        _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
-        _MatchedPid: "67890",
-        _MatchedRuleNameList: [],
-        _ProcessInfo: {},
-        _ScanType: "Yara"
-      },
-      {
-        _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
-        _MatchedPid: "12345",
-        _MatchedRuleNameList: [],
-        _ProcessInfo: {},
-        _ScanType: "Yara"
-      }
-    ]
-  },
-  {
-    checkTime: '2019-11-30 13:49:40',
-    data: [
-      {
-        _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
-        _MatchedPid: "12345",
-        _MatchedRuleNameList: [],
-        _ProcessInfo: {},
-        _ScanType: "Yara"
-      },
-      {
-        _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
-        _MatchedPid: "67890",
-        _MatchedRuleNameList: [],
-        _ProcessInfo: {},
-        _ScanType: "Yara"
-      },
-      {
-        _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
-        _MatchedPid: "12345",
-        _MatchedRuleNameList: [],
-        _ProcessInfo: {},
-        _ScanType: "Yara"
-      },
-      {
-        _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
-        _MatchedPid: "67890",
-        _MatchedRuleNameList: [],
-        _ProcessInfo: {},
-        _ScanType: "Yara"
-      },
-      {
-        _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
-        _MatchedPid: "12345",
-        _MatchedRuleNameList: [],
-        _ProcessInfo: {},
-        _ScanType: "Yara"
-      },
-      {
-        _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
-        _MatchedPid: "67890",
-        _MatchedRuleNameList: [],
-        _ProcessInfo: {},
-        _ScanType: "Yara"
-      },
-      {
-        _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
-        _MatchedPid: "12345",
-        _MatchedRuleNameList: [],
-        _ProcessInfo: {},
-        _ScanType: "Yara"
-      }
-    ]
-  }
-];
-
-
 const NOT_AVAILABLE = 'N/A';
 const SAFETY_SCAN_LIST = [
   {
@@ -146,6 +47,7 @@ const TRIGGER_NAME = {
   [SAFETY_SCAN_LIST[3].type]: 'gcbDetection'
 };
 
+let scrollCount = 1;
 let t = null;
 let f = null;
 
@@ -170,13 +72,16 @@ class HMDscanInfo extends Component {
       malwareSort: ['asc'],
       gcbFieldsArr: ['_CceId', '_OriginalKey', '_Type', '_CompareResult'],
       gcbSort: 'asc',
-      testList: _.cloneDeep(TEST_LIST),
+      hmdInfo: {},
       hasMore: true
     };
 
     t = chewbaccaI18n.getFixedT(null, 'connections');
     f = chewbaccaI18n.getFixedT(null, 'tableFields');
     this.ah = getInstance('chewbacca');
+  }
+  componentDidMount() {
+    this.loadHMDdata();
   }
   componentDidUpdate(prevProps) {
     if (!prevProps || (this.props.currentDeviceData.ip !== prevProps.currentDeviceData.ip)) {
@@ -186,9 +91,134 @@ class HMDscanInfo extends Component {
     }
   }
   componentWillUnmount() {
+    scrollCount = 1;
+
     this.setState({
-      testList: _.cloneDeep(TEST_LIST),
       hasMore: true
+    });
+  }
+  loadHMDdata = () => {
+    const {locale} = this.context;
+    const {currentDeviceData} = this.props;
+    const {malwareFieldsArr, malwareSort, gcbFieldsArr, gcbSort} = this.state;
+    let hmdInfo = {};
+
+    _.forEach(SAFETY_SCAN_LIST, val => {
+      hmdInfo[val.type] = {}; //Create the hmdInfo object
+    });
+
+    _.forEach(SAFETY_SCAN_LIST, val => { //Construct the HMD info object
+      const currentDataObj = currentDeviceData[val.type + 'Result'];
+
+      if (!_.isEmpty(currentDataObj[0])) {
+        hmdInfo[val.type] = {
+          createTime: helper.getFormattedDate(currentDataObj[0].taskCreateDttm, 'local'),
+          responseTime: helper.getFormattedDate(currentDataObj[0].taskResponseDttm, 'local'),
+          data: currentDataObj
+        };
+      }
+    })
+
+    if (hmdInfo.malware && hmdInfo.malware.data) {
+      hmdInfo.malware.fields = {};
+      malwareFieldsArr.forEach(tempData => {
+        hmdInfo.malware.fields[tempData] = {
+          label: f(`malwareFields.${tempData}`),
+          sortable: true,
+          className: this.getFieldName(tempData),
+          formatter: (value, allValue) => {
+            if (tempData === '_FileInfo._Filepath') {
+              return <span>{value}</span>
+            }
+            if (tempData === '_FileInfo._HashValues._MD5') {
+              return <span>{value}</span>
+            }
+            if (tempData === '_FileInfo._Filesize') {
+              value = value + ' KB';
+            }
+            if (tempData === '_IsPE' || tempData === '_IsPEextension' || tempData === '_IsVerifyTrust') {
+              let styleStatus = '';
+
+              if (value) {
+                styleStatus = '#22ac38';
+                value = 'True';
+              } else {
+                styleStatus = '#d0021b';
+                value = 'False';
+              }
+
+              return <span style={{color : styleStatus}}>{value}</span>
+            }
+            if (tempData === 'hostIdArrCnt') {
+              if (allValue.hostIdArr) {
+                const tooltip = f('malwareFields.hostIdArrCnt') + '/' + f('malwareFields.totalHostCnt') + ': ' + value + '/' + allValue.totalHostCnt;
+                return <span title={tooltip}>{value}</span>
+              } else {
+                value = NOT_AVAILABLE;
+              }
+            }
+            return <span>{value}</span>
+          }
+        };
+      })
+    }
+
+    if (hmdInfo.gcb && hmdInfo.gcb.data) {
+      hmdInfo.gcb.filteredResult = _.filter(hmdInfo.gcb.data[0].GCBResult, ['_CompareResult', true]);
+
+      hmdInfo.gcb.fields = {};
+      gcbFieldsArr.forEach(tempData => {
+        hmdInfo.gcb.fields[tempData] = {
+          label: f(`gcbFields.${tempData}`),
+          sortable: true,
+          className: 'gcb' + tempData,
+          formatter: (value, allValue) => {
+            if (tempData === '_CceId') {
+              return <span>{value}</span>
+            }
+            if (tempData === '_OriginalKey') {
+              let content = value;
+
+              if (locale === 'zh' && allValue['_PolicyName_zh-tw']) {
+                content = allValue['_PolicyName_zh-tw'];
+              } else if (locale === 'en' && allValue['_PolicyName_en']) {
+                content = allValue['_PolicyName_en'];
+              }
+
+              if (content.length > 70) {
+                const newValue = content.substr(0, 70) + '...';
+                return <span title={content}>{newValue}</span>
+              } else {
+                return <span>{content}</span>
+              }
+            }
+            if (tempData === '_Type') {
+              return <span>{value}</span>
+            }
+            if (tempData === '_CompareResult') {
+              let styleStatus = '';
+              let tooltip = '';
+
+              if (value) {
+                styleStatus = '#22ac38';
+                value = 'Pass';
+              } else {
+                styleStatus = '#d0021b';
+                value = 'Fail';
+              }
+
+              tooltip += 'GPO Value: ' + (allValue._GpoValue || 'N/A');
+              tooltip += ' / GCB Value: ' + (allValue._GcbValue || 'N/A');
+
+              return <span style={{color : styleStatus}} title={tooltip}>{value}</span>
+            }
+          }
+        };
+      })
+    }
+
+    this.setState({
+      hmdInfo
     });
   }
   /**
@@ -256,10 +286,9 @@ class HMDscanInfo extends Component {
    * @param {string} type - scan type
    * @param {number} i - index of the rule array
    */
-  togglePathRule = (type, parentIndex, i) => {
+  togglePathRule = (type, i) => {
     const {activePath, activeRule} = this.state;
-    const uniqueKey = parentIndex.toString() + i.toString();
-    const tempActivePath = activePath === uniqueKey ? null : uniqueKey;
+    const tempActivePath = activePath === i ? null : i;
 
     if (type === 'path') {
       this.setState({
@@ -287,14 +316,16 @@ class HMDscanInfo extends Component {
    * Display rule for yara scan
    * @method
    * @param {array} nameList - scan rule list
+   * @param {string} val - scan file data
    * @param {number} i - index of the rule array
    * @returns HTML DOM
    */
   displayRule = (nameList, val, i) => {
     const {activeRule} = this.state;
+    const uniqueKey = val + i;
 
     return (
-      <div className='rule-content' key={val + i}>
+      <div className='rule-content' key={uniqueKey}>
         <div className='header' onClick={this.togglePathRule.bind(this, 'rule', i)}>
           <i className={cx('fg fg-play', {'rotate': _.includes(activeRule, i)})}></i>
           <span>{nameList[i]}</span>
@@ -316,8 +347,10 @@ class HMDscanInfo extends Component {
    * @returns HTML DOM
    */
   displayIndividualFile = (val, i) => {
+    const uniqueKey = val + i;
+
     return (
-      <div key={val + i}>{val}</div>
+      <div key={uniqueKey}>{val}</div>
     )
   }
   /**
@@ -357,8 +390,10 @@ class HMDscanInfo extends Component {
    * @returns HTML DOM
    */
   displayIndividualConnection = (val, i) => {
+    const uniqueKey = val + i;
+
     return (
-      <ul key={val + i}>
+      <ul key={uniqueKey}>
         <li><span>{t('attacksFields.protocolType')}:</span> {val.protocol || NOT_AVAILABLE}</li>
         <li><span>{t('attacksFields.srcIp')}:</span> {val.srcIp || NOT_AVAILABLE}</li>
         <li><span>{t('attacksFields.srcPort')}:</span> {val.srcPort || NOT_AVAILABLE}</li>
@@ -427,9 +462,9 @@ class HMDscanInfo extends Component {
    * @param {number} i - index of the scan process array
    * @returns HTML DOM
    */
-  displayScanProcessPath = (parentIndex, val, i) => {
+  displayScanProcessPath = (val, i) => {
     const {activePath, activeRuleHeader, activeDLL, activeConnections} = this.state;
-    const uniqueKey = parentIndex.toString() + i.toString();
+    const uniqueKey = val._ScanType + i;
     let displayInfo = '';
 
     if (val._MatchedRuleList && val._MatchedRuleList.length > 0 && val._MatchedRuleNameList) {
@@ -440,9 +475,9 @@ class HMDscanInfo extends Component {
 
     if (val._MatchedFile || val._MatchedPid) {
       return (
-        <div className='group' key={val._ScanType + i}>
-          <div className='path' onClick={this.togglePathRule.bind(this, 'path', parentIndex, i)}>
-            <i className={cx('fg fg-arrow-bottom', {'rotate': activePath === uniqueKey})}></i>
+        <div className='group' key={uniqueKey}>
+          <div className='path' onClick={this.togglePathRule.bind(this, 'path', i)}>
+            <i className={cx('fg fg-arrow-bottom', {'rotate': activePath === i})}></i>
             {val._MatchedFile &&
               <span>{t('txt-path')}: {val._MatchedFile}</span>
             }
@@ -453,7 +488,7 @@ class HMDscanInfo extends Component {
               <span>PID: {val._MatchedPid}</span>
             }
           </div>
-          <div className={cx('rule', {'hide': activePath !== uniqueKey})}>
+          <div className={cx('rule', {'hide': activePath !== i})}>
             <div className='rule-content'>
               <div className='header' onClick={this.toggleInfoHeader.bind(this, 'rule')}>
                 <i className={cx('fg fg-play', {'rotate': activeRuleHeader})}></i>
@@ -493,6 +528,7 @@ class HMDscanInfo extends Component {
    */
   displayScanFilePath = (val, i) => {
     const {activePath, activeRuleHeader} = this.state;
+    const uniqueKey = val._ScanType + i;
     let displayInfo = '';
 
     if (val._MatchedRuleList && val._MatchedRuleList.length > 0 && val._MatchedRuleNameList) {
@@ -503,7 +539,7 @@ class HMDscanInfo extends Component {
 
     if (val._MatchedFile || val._MatchedPid) {
       return (
-        <div className='group' key={val._ScanType + i}>
+        <div className='group' key={uniqueKey}>
           <div className='path' onClick={this.togglePathRule.bind(this, 'path', i)}>
             <i className={cx('fg fg-arrow-bottom', {'rotate': activePath === i})}></i>
             {val._MatchedFile &&
@@ -550,54 +586,45 @@ class HMDscanInfo extends Component {
   /**
    * Display suspicious file count content
    * @method
-   * @param {object} hmdInfo - HMD data
+   * @param {object} dataResult - HMD data
    * @returns HTML DOM
    */
-  getSuspiciousFileCount = (hmdInfo) => {
-    const {activeTab} = this.state;
-    let colorStyle = '#d10d25'; //Default red color
-
-    if (hmdInfo[activeTab].count === 0) { //Show green color
-      colorStyle = '#22ac38';
-    }
-
-    if (hmdInfo[activeTab].count >= 0) {
-      return <div className='count' style={{'color': colorStyle}}>{t('network-inventory.txt-suspiciousFileCount')}: {hmdInfo[activeTab].count}</div>
-    }
+  getSuspiciousFileCount = (dataResult) => {
+    const styleColor = dataResult.length === 0 ? '#22ac38' : '#d10d25'; //green : red
+    return <span style={{'color': styleColor}}>{t('network-inventory.txt-suspiciousFileCount')}: {dataResult.length}</span>
   }
   /**
    * Display pass / total count info
    * @method
-   * @param {object} hmdInfo - HMD data
    * @returns HTML DOM
    */
-  getPassTotalCount = (hmdInfo) => {
-    const {activeTab} = this.state;
+  getPassTotalCount = () => {
+    const {activeTab, hmdInfo} = this.state;
 
-    if (hmdInfo[activeTab].filteredResult) {
-      let style = '#d10d25'; //Default red color
+    if (!_.isEmpty(hmdInfo[activeTab])) {
+      const gcbDataResult = hmdInfo[activeTab].data[0].GCBResult;
+      const gcbFilteredResult = hmdInfo[activeTab].filteredResult;
 
-      if (hmdInfo[activeTab].filteredResult.length === hmdInfo[activeTab].result.length) { //Show green color for all pass
-        style = '#22ac38';
+      if (gcbFilteredResult) {
+        const styleColor = gcbFilteredResult.length === gcbDataResult.length ? '#22ac38' : '#d10d25'; //green : red
+
+        return <span className='pass-total' style={{'color': styleColor}}>{t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}: {gcbFilteredResult.length}/{gcbDataResult.length}</span>
       }
-
-      return <span className='pass-total' style={{'color': style}}>{t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}: {hmdInfo[activeTab].filteredResult.length}/{hmdInfo[activeTab].result.length}</span>
     }
   }
   /**
    * Display trigger button for scan type
    * @method
-   * @param {object} hmdInfo - HMD data
    * @returns HTML DOM
    */
-  getTriggerBtn = (hmdInfo) => {
+  getTriggerBtn = () => {
     const {ipType} = this.props;
-    const {activeTab} = this.state;
+    const {activeTab, hmdInfo} = this.state;
 
-    if (activeTab === 'ir') {
-      return <button className='btn' onClick={this.props.toggleSelectionIR.bind(this, ipType)} disabled={this.checkTriggerTime(activeTab)}>{t('network-inventory.txt-reCompress')}</button>
-    } else if (activeTab === 'gcb') {
+    if (activeTab === 'gcb') {
       return <button className='btn' onClick={this.props.triggerTask.bind(this, [TRIGGER_NAME[activeTab]], ipType)} disabled={this.checkTriggerTime(activeTab)}>{t('network-inventory.txt-reCheck')}</button>
+    } else if (activeTab === 'ir') {
+      return <button className='btn' onClick={this.props.toggleSelectionIR.bind(this, ipType)} disabled={this.checkTriggerTime(activeTab)}>{t('network-inventory.txt-reCompress')}</button>
     } else {
       return <button className='btn' onClick={this.props.triggerTask.bind(this, [TRIGGER_NAME[activeTab]], ipType)} disabled={this.checkTriggerTime(activeTab)}>{t('network-inventory.txt-reCheck')}</button>
     }
@@ -606,123 +633,78 @@ class HMDscanInfo extends Component {
    * Load more items when scrolling to the bottom of the dialog
    * @method
    */
-  loadMore = () => {
-    let tempTestList = this.state.testList;
+  loadMoreContent = () => {
+    const {baseUrl} = this.context;
+    const {currentDeviceData} = this.props;
+    const {activeTab, hmdInfo} = this.state;
+    let tempHmdInfo = {...hmdInfo};
+    scrollCount++;
 
-    if (tempTestList.length < 20) {
-      tempTestList.push(
-        {
-          checkTime: '2020-01-08 13:49:40',
-          data: [
-            {
-              _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
-              _MatchedPid: "12345",
-              _MatchedRuleNameList: [],
-              _ProcessInfo: {},
-              _ScanType: "Yara"
-            },
-            {
-              _MatchedFile: "C:\WINDOWS\system32\mstsc.exe",
-              _MatchedPid: "67890",
-              _MatchedRuleNameList: [],
-              _ProcessInfo: {},
-              _ScanType: "Yara"
-            }
-          ]
+    this.ah.one({
+      url: `${baseUrl}/api/u1/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}&page=${scrollCount}&pageSize=5`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        const hmdResult = data[activeTab + 'Result'];
+
+        if (hmdResult.length > 0) {
+          tempHmdInfo[activeTab].data = _.concat(hmdInfo[activeTab].data, hmdResult);
+
+          this.setState({
+            hmdInfo: tempHmdInfo,
+            hasMore: true
+          });
+        } else {
+          this.setState({
+            hasMore: false
+          });
         }
-      );
-
-      this.setState({
-        testList: tempTestList,
-        hasMore: true
-      });
-    } else {
-      this.setState({
-        hasMore: false
-      });
-    }
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
-  displayScanContent = (hmdInfo, val, i) => {
+  /**
+   * Display scan content
+   * @method
+   * @param {object} val - scan file data
+   * @param {number} i - index of the file array
+   * @returns HTML DOM
+   */  
+  displayScanContent = (val, i) => {
     const {activeTab} = this.state;
+    const dataResult = this.sortedRuleList(val.ScanResult);
+    let scanPath = '';
+
+    if (activeTab === 'yara') {
+      scanPath = this.displayScanProcessPath;
+    } else if (activeTab === 'yaraScanFile') {
+      scanPath = this.displayScanFilePath;
+    }
 
     return (
       <div className='scan-section' key={i}>
-        <span className='scan-header'>{t('network-inventory.txt-checkTime')}: {val.checkTime}</span>
+        <div className='scan-header'>
+          <span>{t('network-inventory.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local')}</span>
+          <span>{t('network-inventory.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local')}</span>
+          {this.getSuspiciousFileCount(dataResult)}
+        </div>
         <div className='scan-content'>
           <div className='header'>{t('network-inventory.txt-suspiciousFilePath')}</div>
-          {hmdInfo[activeTab].result && hmdInfo[activeTab].result.length > 0 &&
+          {dataResult && dataResult.length > 0 &&
             <div className='list'>
-              {val.data.map(this.displayScanProcessPath.bind(this, i))}
+              {dataResult.map(scanPath)}
             </div>
           }
-          {(!hmdInfo[activeTab].result || hmdInfo[activeTab].result.length === 0) &&
+          {(!dataResult || dataResult.length === 0) &&
             <div className='empty-msg'>{NOT_AVAILABLE}</div>
           }
         </div>
       </div>
     )
-  }
-  /**
-   * Display scan content for different scan type
-   * @method
-   * @param {object} hmdInfo - HMD data
-   * @returns HTML DOM
-   */
-  getScanContent = (hmdInfo) => {
-    const {activeTab, testList, hasMore} = this.state;
-    const loader = <div className='loader'>Loading...</div>;
-
-    if (activeTab === 'yara' || activeTab === 'yaraScanFile') {
-      if (activeTab === 'yara') {
-        return (
-          <div className='scan-wrapper'>
-            <InfiniteScroll
-              dataLength={testList.length}
-              next={this.loadMore}
-              hasMore={hasMore}
-              loader={loader}
-              height={435}>
-              {testList.map(this.displayScanContent.bind(this, hmdInfo))}
-            </InfiniteScroll>
-          </div>
-        )
-      } else if (activeTab === 'yaraScanFile') {
-        return (
-          <div className='scan-content'>
-            <div className='header'>{t('network-inventory.txt-suspiciousFilePath')}</div>
-            {hmdInfo[activeTab].result && hmdInfo[activeTab].result.length > 0 &&
-              <div className='list'>
-                {hmdInfo[activeTab].result.map(this.displayScanFilePath)}
-              </div>
-            }
-            {(!hmdInfo[activeTab].result || hmdInfo[activeTab].result.length === 0) &&
-              <div className='empty-msg'>{NOT_AVAILABLE}</div>
-            }
-          </div>
-        )
-      }
-    } else if (activeTab === 'ir') {
-      return (
-        <div className='scan-content'>
-          {hmdInfo[activeTab].result &&
-            <div className='header'>{t('network-inventory.txt-irMsg')}:</div>
-          }
-          <div className='empty-msg'>{hmdInfo[activeTab].result || NOT_AVAILABLE}</div>
-        </div>
-      )
-    }
-  }
-  /**
-   * Get formatted field name
-   * @method
-   * @param {string} tempData - original field name
-   * @returns formatted field name
-   */
-  getFieldName = (tempData) => {
-    if (tempData === '_FileInfo._Filesize') {
-      tempData = '_Filesize';
-    }
-    return 'scan-file' + tempData;
   }
   /**
    * Handle table sort for malware and gcb
@@ -742,209 +724,129 @@ class HMDscanInfo extends Component {
     }
   }
   /**
-   * Display table data for malware
+   * Display table data for malware and gcb
    * @method
    * @param {string} activeTab - current active tab
-   * @param {object} hmdInfo - HMD data
+   * @param {object} val - HMD data
    * @returns DataTable component
    */
-  malwareDataTable = (activeTab, hmdInfo) => {
+  displayDataTable = (activeTab, val) => {
+    const {hmdInfo, malwareSort, gcbSort} = this.state;
+    let data = '';
+
+    if (activeTab === 'malware') {
+      data = _.orderBy(val.DetectionResult, ['_IsVerifyTrust'], [malwareSort]);
+    } else if (activeTab === 'gcb') {
+      data = _.orderBy(val.GCBResult, ['_CompareResult'], [gcbSort]);
+    }
+
     return (
       <DataTable
-        className='main-table maleware'
+        className={cx('main-table', {'malware': activeTab === 'malware'})}
         fields={hmdInfo[activeTab].fields}
-        data={hmdInfo[activeTab].result}
+        data={data}
         onSort={this.handleTableSort} />
     )
   }
   /**
-   * Display table data for gcb
+   * Display table content for malware and gcb
    * @method
-   * @param {string} activeTab - current active tab
-   * @param {object} hmdInfo - HMD data
-   * @returns DataTable component
-   */
-  gcbDataTable = (activeTab, hmdInfo) => {
-    return (
-      <DataTable
-        className='main-table'
-        fields={hmdInfo[activeTab].fields}
-        data={hmdInfo[activeTab].result}
-        onSort={this.handleTableSort} />
-    )
-  }
-  /**
-   * Display table content
-   * @method
-   * @param {object} hmdInfo - HMD data
+   * @param {object} val - malware and gcb data
+   * @param {number} i - index of the file array
    * @returns HTML DOM
    */
-  getTableContent = (hmdInfo) => {
-    const {activeTab} = this.state;
+  displayTableContent = (val, i) => {
+    const {activeTab} = this.state;  
 
-    if (!_.isEmpty(hmdInfo[activeTab].fields) && hmdInfo[activeTab].result.length > 0) {
+    return (
+      <div className={cx('table', {'malware': activeTab === 'malware'})}>
+        <div className='scan-header'>
+          <span>{t('network-inventory.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local')}</span>
+          <span>{t('network-inventory.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local')}</span>
+          {activeTab === 'malware' && this.getSuspiciousFileCount(val.DetectionResult)}
+        </div>
+        {this.displayDataTable(activeTab, val)}
+      </div>
+    )
+  }
+  /**
+   * Display IR content
+   * @method
+   * @param {object} val - IR data
+   * @param {number} i - index of the IR array
+   * @returns HTML DOM
+   */
+  displayIrContent = (val, i) => {
+    return (
+      <div className='scan-section' key={i}>
+        <div className='scan-header'>
+          <span>{t('network-inventory.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local')}</span>
+          <span>{t('network-inventory.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local')}</span>
+        </div>
+        <div className='scan-content'>
+          <div className='header'>{t('network-inventory.txt-irMsg')}:</div>
+          <div className='empty-msg'>{val._ZipPath || NOT_AVAILABLE}</div>
+        </div>
+      </div>
+    )
+  }
+  /**
+   * Display content for HMD tabs
+   * @method
+   * @returns HTML DOM
+   */
+  getMainContent = () => {
+    const {activeTab, hmdInfo, hasMore} = this.state;
+    const hmdData = hmdInfo[activeTab].data;
+    const loader = <span><i className='fg fg-loading-2'></i></span>;
+    let displayContent = '';
+
+    if (activeTab === 'yara' || activeTab === 'yaraScanFile') {
+      displayContent = this.displayScanContent;
+    } else if (activeTab === 'malware' || activeTab === 'gcb') {
+      displayContent = this.displayTableContent;
+    } else if (activeTab === 'ir') {
+      displayContent = this.displayIrContent;
+    }
+
+    if (hmdData && displayContent) {
       return (
-        <div className='table'>
-          {activeTab === 'malware' &&
-            this.malwareDataTable(activeTab, hmdInfo)
-          }
-          {activeTab === 'gcb' &&
-            this.gcbDataTable(activeTab, hmdInfo)
-          }
+        <div className='scan-wrapper'>
+          <InfiniteScroll
+            dataLength={hmdData.length}
+            next={this.loadMoreContent}
+            hasMore={hasMore}
+            loader={loader}
+            height={435}>
+            {hmdData.map(displayContent)}
+          </InfiniteScroll>
         </div>
       )
     }
   }
+  /**
+   * Get formatted field name
+   * @method
+   * @param {string} tempData - original field name
+   * @returns formatted field name
+   */
+  getFieldName = (tempData) => {
+    if (tempData === '_FileInfo._Filesize') {
+      tempData = '_Filesize';
+    }
+    return 'scan-file' + tempData;
+  }
   render() {
-    const {locale} = this.context;
-    const {currentDeviceData} = this.props;
-    const {activeTab, malwareFieldsArr, gcbFieldsArr, malwareSort, gcbSort} = this.state;
-
-    let hmdInfo = {};
+    const {activeTab, hmdInfo} = this.state;
     let buttonGroupList = [];
 
-    _.forEach(SAFETY_SCAN_LIST, val => {
-      hmdInfo[val.type] = {}; //Create the hmdInfo object
-
-      buttonGroupList.push({ //Create list for Button group
-        value: val.type,
-        text: t('network-inventory.scan-list.txt-' + val.type)
+    if (!_.isEmpty(hmdInfo)) {
+      _.forEach(SAFETY_SCAN_LIST, val => {
+        buttonGroupList.push({ //Create list for Button group
+          value: val.type,
+          text: t('network-inventory.scan-list.txt-' + val.type)
+        });
       });
-    });
-
-    _.forEach(SAFETY_SCAN_LIST, val => { //Construct the HMD info object
-      const dataType = val.type + 'Result';
-      const currentDataObj = currentDeviceData[dataType];
-
-      if (!_.isEmpty(currentDataObj)) {
-        let dataResult = currentDataObj[val.path];
-
-        if (val.path === 'ScanResult') { //For Scan Process and Scan File
-          dataResult = this.sortedRuleList(dataResult);
-        }
-
-        if (val.type === 'malware') {
-          dataResult = _.orderBy(dataResult, ['_IsVerifyTrust'], [malwareSort]);
-        }
-
-        if (val.type ===  'gcb') {
-          dataResult = _.orderBy(dataResult, ['_CompareResult'], [gcbSort]);
-        }
-
-        hmdInfo[val.type] = {
-          createTime: helper.getFormattedDate(currentDataObj.taskCreateDttm, 'local'),
-          responseTime: helper.getFormattedDate(currentDataObj.taskResponseDttm, 'local'),
-          result: dataResult
-        };
-      }
-    })
-
-    if (hmdInfo.yara.result) {
-      hmdInfo.yara.count = Number(hmdInfo.yara.result.length);
-    }
-
-    if (hmdInfo.yaraScanFile.result) {
-      hmdInfo.yaraScanFile.count = Number(hmdInfo.yaraScanFile.result.length);
-    }
-
-    if (hmdInfo.malware.result) {
-      hmdInfo.malware.count = Number(hmdInfo.malware.result.length);
-
-      hmdInfo.malware.fields = {};
-      malwareFieldsArr.forEach(tempData => {
-        hmdInfo.malware.fields[tempData] = {
-          label: f(`malwareFields.${tempData}`),
-          sortable: true,
-          className: this.getFieldName(tempData),
-          formatter: (value, allValue) => {
-            if (tempData === '_FileInfo._Filepath') {
-              return <span>{value}</span>
-            }
-            if (tempData === '_FileInfo._HashValues._MD5') {
-              return <span>{value}</span>
-            }
-            if (tempData === '_FileInfo._Filesize') {
-              value = value + ' KB';
-            }
-            if (tempData === '_IsPE' || tempData === '_IsPEextension' || tempData === '_IsVerifyTrust') {
-              let styleStatus = '';
-
-              if (value) {
-                styleStatus = '#22ac38';
-                value = 'True';
-              } else {
-                styleStatus = '#d0021b';
-                value = 'False';
-              }
-
-              return <span style={{color : styleStatus}}>{value}</span>
-            }
-            if (tempData === 'hostIdArrCnt') {
-              if (allValue.hostIdArr) {
-                const tooltip = f('malwareFields.hostIdArrCnt') + '/' + f('malwareFields.totalHostCnt') + ': ' + value + '/' + allValue.totalHostCnt;
-                return <span title={tooltip}>{value}</span>
-              } else {
-                value = NOT_AVAILABLE;
-              }
-            }
-            return <span>{value}</span>
-          }
-        };
-      })
-    }
-
-    if (hmdInfo.gcb.result) {
-      hmdInfo.gcb.filteredResult = _.filter(hmdInfo.gcb.result, ['_CompareResult', true]);
-
-      hmdInfo.gcb.fields = {};
-      gcbFieldsArr.forEach(tempData => {
-        hmdInfo.gcb.fields[tempData] = {
-          label: f(`gcbFields.${tempData}`),
-          sortable: true,
-          className: 'gcb' + tempData,
-          formatter: (value, allValue) => {
-            if (tempData === '_CceId') {
-              return <span>{value}</span>
-            }
-            if (tempData === '_OriginalKey') {
-              let content = value;
-
-              if (locale === 'zh' && allValue['_PolicyName_zh-tw']) {
-                content = allValue['_PolicyName_zh-tw'];
-              } else if (locale === 'en' && allValue['_PolicyName_en']) {
-                content = allValue['_PolicyName_en'];
-              }
-
-              if (content.length > 70) {
-                const newValue = content.substr(0, 70) + '...';
-                return <span title={content}>{newValue}</span>
-              } else {
-                return <span>{content}</span>
-              }
-            }
-            if (tempData === '_Type') {
-              return <span>{value}</span>
-            }
-            if (tempData === '_CompareResult') {
-              let styleStatus = '';
-              let tooltip = '';
-
-              if (value) {
-                styleStatus = '#22ac38';
-                value = 'Pass';
-              } else {
-                styleStatus = '#d0021b';
-                value = 'Fail';
-              }
-
-              tooltip += 'GPO Value: ' + (allValue._GpoValue || 'N/A');
-              tooltip += ' / GCB Value: ' + (allValue._GcbValue || 'N/A');
-
-              return <span style={{color : styleStatus}} title={tooltip}>{value}</span>
-            }
-          }
-        };
-      })
     }
 
     return (
@@ -956,19 +858,19 @@ class HMDscanInfo extends Component {
           value={activeTab} />
 
         <div className='info-content'>
-          <div>
-            <div className='info'>
-              <div className='last-update'>
-                <span>{t('network-inventory.txt-createTime')}: {hmdInfo[activeTab].createTime || NOT_AVAILABLE}</span>
-                <span>{t('network-inventory.txt-responseTime')}: {hmdInfo[activeTab].responseTime || NOT_AVAILABLE}</span>
+          {!_.isEmpty(hmdInfo) &&
+            <div>
+              <div className='info'>
+                <div className='last-update'>
+                  <span>{t('network-inventory.txt-latestCreateTime')}: {hmdInfo[activeTab].latestCreateDttm || hmdInfo[activeTab].createTime || NOT_AVAILABLE}</span>
+                  <span>{t('network-inventory.txt-latestResponseTime')}: {hmdInfo[activeTab].responseTime || NOT_AVAILABLE}</span>
+                </div>
+                {activeTab === 'gcb' && this.getPassTotalCount()}
+                {this.getTriggerBtn()} {/*For all*/}
               </div>
-              {this.getSuspiciousFileCount(hmdInfo)} {/*For Scan Process, Yara and AI*/}
-              {this.getPassTotalCount(hmdInfo)} {/*For GCB*/}
-              {this.getTriggerBtn(hmdInfo)} {/*For all*/}
+              {this.getMainContent()}
             </div>
-            {this.getScanContent(hmdInfo)} {/*For Scan Process, Scan File(Yara) and IR*/}
-            {this.getTableContent(hmdInfo)} {/*For Scan File (AI) and GCB*/}
-          </div>
+          }
         </div>
       </div>
     )

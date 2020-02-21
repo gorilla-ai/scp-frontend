@@ -85,7 +85,7 @@ class NetworkInventory extends Component {
     this.state = {
       activeTab: 'deviceList', //deviceList, deviceMap
       activeContent: 'tableList', //tableList, dataInfo, addIPsteps, autoSettings
-      showFilter: true,
+      showFilter: false,
       showScanInfo: false,
       showSeatData: false,
       modalFloorOpen: false,
@@ -347,6 +347,8 @@ class NetworkInventory extends Component {
       }
 
       if (ipRt === 0) {
+        let tempDeviceData = {...deviceData};
+
         if (options === 'oneSeat') {
           let currentDeviceData = {};
 
@@ -361,7 +363,16 @@ class NetworkInventory extends Component {
           return null;
         }
 
-        let tempDeviceData = {...deviceData};
+        if (ipData.counts === 0) {
+          tempDeviceData.dataContent = [];
+          helper.showPopupMsg(t('txt-notFound'));
+
+          this.setState({
+            deviceData: tempDeviceData
+          });
+          return null;
+        }
+
         tempDeviceData.dataContent = _.map(ipData.rows, item => {
           return {
             ...item,
@@ -1326,7 +1337,7 @@ class NetworkInventory extends Component {
     }
 
     this.ah.one({
-      url: `${baseUrl}/api/ipdevice?uuid=${ipDeviceUUID}`,
+      url: `${baseUrl}/api/u1/ipdevice?uuid=${ipDeviceUUID}&page=1&pageSize=5`,
       type: 'GET'
     })
     .then(data => {
