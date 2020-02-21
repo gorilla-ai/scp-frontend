@@ -429,11 +429,13 @@ class ThreatsController extends Component {
         tempAlertDetails.all = tempArray;
 
         _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
-          _.forEach(data.event_histogram[val].buckets, val2 => {
-            if (val2.doc_count > 0) {
-              alertHistogram[val][val2.key_as_string] = val2.doc_count;
-            }
-          })
+          if (data.event_histogram[val]) {
+            _.forEach(data.event_histogram[val].buckets, val2 => {
+              if (val2.doc_count > 0) {
+                alertHistogram[val][val2.key_as_string] = val2.doc_count;
+              }
+            })
+          }
         })
 
         this.setState({

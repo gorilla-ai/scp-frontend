@@ -118,6 +118,11 @@
     button {
       margin-top: 10px;
     }
+    table.pattern {
+      span {
+        color: red;
+      }
+    }
   }
   footer {
     text-align: center;
@@ -978,11 +983,22 @@
         border: 1px solid #d9d9d9;
         border-radius: 5px;
       }
+      .syslog-content {
+        display: flex;
+        .main {
+          position: relative;
+          width: 90%;
+        }
+      }
       .fg-down {
         margin-top: 10px;
         margin-bottom: 10px;
         margin-left: 50%;
         visibility: hidden;
+      }
+      .fg-forward {
+        margin-top: 35%;
+        margin-left: 25px;
       }
       button {
         position: absolute;
@@ -990,6 +1006,15 @@
         top: -8px;
         padding: .2em .8em;
       }
+      .pattern {
+        label {
+          float: left;
+          margin-right: 2px;
+        }
+      }
+    }
+    .property {
+      margin-left: 530px;
     }
     .right-syslog {
       float: right;

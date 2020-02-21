@@ -648,6 +648,52 @@ class Syslog extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  showPatternContent = () => {
+    return (
+      <table className='c-table pattern'>
+        <tbody>
+          <tr>
+            <td valign='top'>
+              <div>Log: </div>
+              <div>Pattern: </div>
+            </td>
+            <td>
+              <div>EventReceivedTime:2020-02-18 10:03:33, SourceModuleName:dns3</div>
+              <div>EventReceivedTime:&#37;&#123;DATESTAMP:datestamp&#125;, SourceModuleName:&#37;&#123;WORD:word&#125;</div>
+            </td>
+          </tr>
+          <tr>
+            <td valign='top'>
+              <div>Log: </div>
+              <div>Pattern: </div>
+            </td>
+            <td>
+              <div><span>"</span>EventReceivedTime<span>"</span>:<span>"</span>2020-02-18 10:03:33<span>"</span>, <span>"</span>SourceModuleName<span>"</span>:<span>"</span>dns3<span>"</span></div>
+              <div><span>&#37;&#123;QUOTEDSTRING&#125;</span>:<span>&#37;&#123;QUOTEDSTRING</span>:datestamp<span>&#125;</span>, <span>&#37;&#123;QUOTEDSTRING&#125;</span>:<span>&#37;&#123;QUOTEDSTRING</span>:word<span>&#125;</span></div>
+            </td>
+          </tr>
+          <tr>
+            <td valign='top'>
+              <div>Log: </div>
+              <div>Pattern: </div>
+            </td>
+            <td>
+              <div><span>\"</span>EventReceivedTime<span>\"</span>:<span>\"</span>2020-02-18 10:03:33<span>\"</span>, <span>\"</span>SourceModuleName<span>\"</span>:<span>\"</span>dns3<span>\"</span></div>
+              <div><span>&#37;&#123;NOTSPACE&#125;&#37;&#123;NOTSPACE&#125;</span>EventReceivedTime<span>&#37;&#123;NOTSPACE&#125;&#37;&#123;NOTSPACE&#125;</span>:<span>&#37;&#123;NOTSPACE&#125;&#37;&#123;NOTSPACE&#125;</span>&#37;&#123;DATESTAMP:datestamp&#125;<span>&#37;&#123;NOTSPACE&#125;&#37;&#123;NOTSPACE&#125;</span>, <span>&#37;&#123;NOTSPACE&#125;&#37;&#123;NOTSPACE&#125;</span>SourceModuleName<span>&#37;&#123;NOTSPACE&#125;&#37; &#123;NOTSPACE&#125;</span>:<span>&#37;&#123;NOTSPACE&#125;&#37;&#123;NOTSPACE&#125;</span>&#37;&#123;WORD:word&#125;<span>&#37;&#123;NOTSPACE&#125;&#37;&#123;NOTSPACE&#125;</span></div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    )
+  }
+  showPatternHint = () => {
+    PopupDialog.alert({
+      id: 'modalWindowSmall',
+      title: t('txt-tips'),
+      confirmText: t('txt-close'),
+      display: this.showPatternContent()
+    });
+  }
   /**
    * Display content for the Filter tab
    * @method
@@ -659,8 +705,8 @@ class Syslog extends Component {
     return (
       <div className='filters'>
         <div className='left-syslog'>
-          <div style={{display: 'flex'}}>
-            <div style={{width: '90%', position: 'relative'}}>
+          <div className='syslog-content'>
+            <div className='main'>
               {config.id &&
                 <button onClick={this.getLatestInput.bind(this, config.id)}>{t('syslogFields.txt-getLatest')}</button>
               }
@@ -670,17 +716,19 @@ class Syslog extends Component {
                 value={config.input}
                 onChange={this.handleConfigChange.bind(this, 'input')} />
               <i className='c-link fg fg-down' />
-              <label>Match Pattern</label>
+              <div className='pattern'>
+                <label>Match Pattern</label><i className='c-link fg fg-help' onClick={this.showPatternHint} />
+              </div>
               <Textarea
                 rows={10}
                 value={config.pattern}
                 onChange={this.handleConfigChange.bind(this, 'pattern')} />
             </div>
-            <i className='c-link fg fg-forward' style={{marginTop: '35%', marginLeft: '25px'}} title={t('txt-parse')} onClick={this.getRaw} />
+            <i className='c-link fg fg-forward' title={t('txt-parse')} onClick={this.getRaw} />
           </div>
         </div>
         <div>
-          <label style={{marginLeft: '540px'}}>Data Property</label>
+          <label className='property'>Data Property</label>
           <div className='right-syslog scrollY'>
             {
               _.map(config.property, (val, key) => {
