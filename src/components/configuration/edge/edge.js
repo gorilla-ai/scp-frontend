@@ -882,6 +882,7 @@ class Edge extends Component {
     });
   }
   render() {
+    const {baseUrl, contextRoot} = this.context;
     const {activeContent, showFilter, edge} = this.state;
 
     return (
@@ -893,7 +894,9 @@ class Edge extends Component {
         </div>
 
         <div className='data-content'>
-          <Config />
+          <Config
+            baseUrl={baseUrl}
+            contextRoot={contextRoot} />
 
           <div className='parent-content'>
             { this.renderFilter() }

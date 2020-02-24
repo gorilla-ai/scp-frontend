@@ -148,6 +148,8 @@
   "txt-syslogManage": "系統日誌管理",
   "txt-serviceStatus": "服務狀態",
   "txt-networkInventory": "網路清單",
+  "txt-productInfo": "產品資訊",
+  "txt-issuesFeedback": "問題回報",
 
   "txt-edge": "Edge",
   "txt-threatIntelligence": "威脅情資",
@@ -182,6 +184,7 @@
   "txt-delete-msg": "確定要刪除",
   "txt-account-unlock": "確定要解鎖",
   "txt-commaSeparated": "用逗號(,)區隔",
+  "txt-privilegeError": "此角色還在被帳號使用中",
 
   "txt-statistics": "統計",
   "txt-table": "列表",

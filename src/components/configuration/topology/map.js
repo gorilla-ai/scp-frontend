@@ -959,6 +959,7 @@ class NetworkMap extends Component {
     )
   }
   render() {
+    const {baseUrl, contextRoot} = this.context;
     const {
       showFilter,
       modalFloorOpen,
@@ -995,7 +996,9 @@ class NetworkMap extends Component {
         </div>
 
         <div className='data-content'>
-          <Config />
+          <Config
+            baseUrl={baseUrl}
+            contextRoot={contextRoot} />
 
           <div className='parent-content'>
             { this.renderFilter() }

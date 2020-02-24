@@ -37,5 +37,7 @@
   "l-license-expiry": "授權到期日",
   "l-license-key": "授權碼",
   "l-activate": "啟用",
-  "l-activate-success": "啟用成功"
+  "l-activate-success": "啟用成功",
+
+  "key-acivated": "授權碼已啟用過"
 }

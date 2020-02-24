@@ -20,6 +20,7 @@ import {HocNetworkInventory as NetworkInventory} from './components/configuratio
 import {HocNetworkMap as NetworkMap} from './components/configuration/topology/map'
 import {HocNetworkOwner as NetworkOwner} from './components/configuration/topology/owner'
 import {HocNotifications as NotificationSettings} from './components/configuration/notifications'
+import {HocProductInfo as ProductInfo} from './components/configuration/product/product-info'
 import {HocStatus as ServiceStatus} from './components/configuration/service/status'
 import {HocSyslogController as Syslog} from './components/events/syslog/index'
 import {HocSyslog as SyslogConfig} from './components/configuration/syslog/syslog'
@@ -152,6 +153,12 @@ const serviceStatus = () => (
   </BaseDataContext.Provider>
 )
 
+const productInfo = () => (
+  <BaseDataContext.Provider value={baseData}>
+    <ProductInfo />
+  </BaseDataContext.Provider>
+)
+
 const Main = () => (
   <main className='main'>
     <Switch>
@@ -172,6 +179,7 @@ const Main = () => (
       <Route exact path='/SCP/configuration/user/account' component={userAccounts} />
       <Route exact path='/SCP/configuration/user/privileges' component={userPrivileges} />
       <Route exact path='/SCP/configuration/service-status' component={serviceStatus} />
+      <Route exact path='/SCP/configuration/product-info' component={productInfo} />
     </Switch>
   </main>
 )

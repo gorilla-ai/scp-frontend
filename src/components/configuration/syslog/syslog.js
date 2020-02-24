@@ -717,7 +717,7 @@ class Syslog extends Component {
                 onChange={this.handleConfigChange.bind(this, 'input')} />
               <i className='c-link fg fg-down' />
               <div className='pattern'>
-                <label>Match Pattern</label><i className='c-link fg fg-help' onClick={this.showPatternHint} />
+                <label>Match Pattern</label><i className='c-link fg fg-help' title={t('txt-tips')} onClick={this.showPatternHint} />
               </div>
               <Textarea
                 rows={10}
@@ -1231,6 +1231,7 @@ class Syslog extends Component {
     )
   }
   render() {
+    const {baseUrl, contextRoot} = this.context;
     const {openSyslog, openTimeline, openEditHosts, syslog, openFilter, dataFields} = this.state;
 
     return (
@@ -1256,7 +1257,9 @@ class Syslog extends Component {
         </div>
 
         <div className='data-content'>
-          <Config />
+          <Config
+            baseUrl={baseUrl}
+            contextRoot={contextRoot} />
 
           <div className='parent-content'>
             { this.renderFilter() }
