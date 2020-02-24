@@ -1,6 +1,9 @@
 #g-login {
   width:100%;
   background: linear-gradient(to top, #001549, #72aaff);
+  &.config {
+    position: relative;
+  }
   #title, #form {
     width: 400px;
   }
@@ -50,10 +53,11 @@
     color: white;
     width: 30%;
     margin-top: -5%;
-    .expire {
-      span.date {
-        margin-right: 10px;
-      }
+    .msg {
+      margin-right: 10px;
+    }
+    .error {
+      color: red;
     }
     .key {
       display: inline-block;

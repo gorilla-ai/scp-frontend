@@ -5,8 +5,12 @@ import PropTypes from 'prop-types'
 import cx from 'classnames'
 import _ from 'lodash'
 
+import {downloadWithForm} from 'react-ui/build/src/utils/download'
+
 import helper from './helper'
 import withLocale from '../../hoc/locale-provider'
+
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null;
 
@@ -32,6 +36,7 @@ class Config extends Component {
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
     const openEdgeManagement = this.getActiveFrame('edge') || this.getActiveFrame('threat');
@@ -73,7 +78,8 @@ class Config extends Component {
       syslog: '/SCP/configuration/syslog',
       account: '/SCP/configuration/user/account',
       privileges: '/SCP/configuration/user/privileges',
-      serviceStatus: '/SCP/configuration/service-status'
+      serviceStatus: '/SCP/configuration/service-status',
+      productInfo: '/SCP/configuration/product-info'
     };
 
     return path === pattern[frame];
@@ -90,6 +96,13 @@ class Config extends Component {
     this.setState({
       showContent: !this.state.showContent
     });
+  }
+  downloadLogs = () => {
+    const {baseUrl} = this.props;
+    const url = `${baseUrl}/api/common/logs/_export`;
+    const requestData = {};
+
+    downloadWithForm(url, {payload: JSON.stringify(requestData)});
   }
   /**
    * Set the menu class name
@@ -181,10 +194,20 @@ class Config extends Component {
           </div>
         }
 
-        <div className='item frame service-status last'>
+        <div className='item frame service-status'>
           <Link to='/SCP/configuration/service-status'>
             <span className={`${this.getActiveFrame('serviceStatus')}`}>{t('txt-serviceStatus')}</span>
           </Link>
+        </div>
+
+        {/*<div className='item frame product-info'>
+          <Link to='/SCP/configuration/product-info'>
+            <span className={`${this.getActiveFrame('productInfo')}`}>{t('txt-productInfo')}</span>
+          </Link>
+        </div>*/}
+
+        <div className='item frame issues-feedback last' onClick={this.downloadLogs}>
+          <span>{t('txt-issuesFeedback')}</span>
         </div>
 
         <div className={cx('expand-collapse', {'not-allowed': this.getActiveFrame('threat')})} onClick={this.toggleLeftNav}>

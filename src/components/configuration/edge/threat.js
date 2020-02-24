@@ -290,6 +290,7 @@ class ThreatIntelligence extends Component {
     })
   }
   render() {
+    const {baseUrl, contextRoot} = this.context;
     const {datetime, indicatorsData, indicatorsTrendData, acuIndicatorsTrendData, uplaodOpen} = this.state;
 
     return (
@@ -306,7 +307,9 @@ class ThreatIntelligence extends Component {
         </div>
 
         <div className='data-content'>
-          <Config />
+          <Config
+            baseUrl={baseUrl}
+            contextRoot={contextRoot} />
 
           <div className='parent-content'>
             <div className='main-content'>

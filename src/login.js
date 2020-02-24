@@ -249,6 +249,7 @@ class Login extends Component {
         <License
           baseUrl={baseUrl}
           contextRoot={contextRoot}
+          from='login'
           onPass={this.onPass} />
       )
     }

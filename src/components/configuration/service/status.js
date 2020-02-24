@@ -130,6 +130,7 @@ class Status extends Component {
     })
   }
   render() {
+    const {baseUrl, contextRoot} = this.context;
     const {serviceStatus} = this.state;
 
     return (
@@ -142,7 +143,9 @@ class Status extends Component {
         </div>
 
         <div className='data-content'>
-          <Config />
+          <Config
+            baseUrl={baseUrl}
+            contextRoot={contextRoot} />
 
           <div className='parent-content'>
             <div className='main-content'>

@@ -148,6 +148,8 @@
   "txt-syslogManage": "Syslog Management",
   "txt-serviceStatus": "Service Status",
   "txt-networkInventory": "Network Inventory",
+  "txt-productInfo": "Product Information",
+  "txt-issuesFeedback": "Feedback",
 
   "txt-edge": "Edge",
   "txt-threatIntelligence": "Threat Intelligence",
@@ -182,6 +184,7 @@
   "txt-delete-msg": "Are you sure you want to delete this",
   "txt-account-unlock": "Are you sure you want to unlcok the account",
   "txt-commaSeparated": "separated by comma ,",
+  "txt-privilegeError": "The privilege is still used by the account(s)",
 
   "txt-statistics": "Statistics",
   "txt-table": "Table",

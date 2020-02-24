@@ -147,11 +147,15 @@ class Roles extends Component {
             contentType: 'application/json'
           })
           .then(data => {
-            setTimeout(this.loadList, 1000);
+            if (!data.rt) {
+              helper.showPopupMsg(c('txt-privilegeError'), c('txt-error'));
+            }
+
+            this.loadList();
             return null;
           })
           .catch(err => {
-            helper.showPopupMsg('', t('txt-error'), err.message);
+            helper.showPopupMsg('', c('txt-error'), err.message);
           })
         }
       }
@@ -214,6 +218,7 @@ class Roles extends Component {
     });
   }
   render() {
+    const {baseUrl, contextRoot} = this.context;
     const {data, dataFields, info, error} = this.state;
 
     return (
@@ -224,7 +229,9 @@ class Roles extends Component {
           </div>
         </div>
         <div className='data-content'>
-          <Config />
+          <Config
+            baseUrl={baseUrl}
+            contextRoot={contextRoot} />
 
           <div className='parent-content'>
             <div className='main-content'>

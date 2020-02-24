@@ -331,6 +331,7 @@ class AccountList extends Component {
     )
   }
   render() {
+    const {baseUrl, contextRoot} = this.context;
     const {accountData, dataFields, showFilter} = this.state;
 
     return (
@@ -343,7 +344,9 @@ class AccountList extends Component {
         </div>
 
         <div className='data-content'>
-          <Config />
+          <Config
+            baseUrl={baseUrl}
+            contextRoot={contextRoot} />
 
           <div className='parent-content'>
             { this.renderFilter() }

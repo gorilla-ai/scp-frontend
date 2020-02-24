@@ -447,6 +447,7 @@ class Notifications extends Component {
     });
   }
   render() {
+    const {baseUrl, contextRoot} = this.context;
     const {activeContent, openEmailDialog, notifications, emails} = this.state;
     const EMAIL_SETTINGS = [
       {
@@ -476,7 +477,9 @@ class Notifications extends Component {
         </div>
 
         <div className='data-content'>
-          <Config />
+          <Config
+            baseUrl={baseUrl}
+            contextRoot={contextRoot} />
 
           <div className='parent-content'>
             <div className='main-content basic-form'>

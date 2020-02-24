@@ -28,6 +28,7 @@ class License extends Component {
         expireDate: null,
         isValid: null
       },
+      originalKey: '',
       key: ''
     };
 
@@ -63,6 +64,7 @@ class License extends Component {
     .then(data => {
       if (data) {
         this.setState({
+          originalKey: data[0],
           key: data[0],
           lms: data[1]
         });
@@ -87,9 +89,16 @@ class License extends Component {
    * @method
    */
   activateLicense = () => {
-    const {baseUrl, contextRoot} = this.props;
+    const {baseUrl, contextRoot, from} = this.props;
+    const {originalKey, key} = this.state;
+
+    if (originalKey === key) {
+      helper.showPopupMsg(lt('key-acivated'), t('txt-error'));
+      return;
+    }
+
     let formData = new FormData();
-    formData.append('key', this.state.key);
+    formData.append('key', key);
 
     const apiArr = [
       {
@@ -117,7 +126,7 @@ class License extends Component {
             <div className='content'><span>{lt('l-activate-success')}</span></div>
           ),
           act: (confirmed) => {
-            if (confirmed) {
+            if (confirmed && from === 'login') {
               this.props.onPass();
             }
           }
@@ -129,20 +138,36 @@ class License extends Component {
     })
   }
   render() {
+    const {from} = this.props;
     const {lms, key} = this.state;
-    let text = lt(`${lms.returnCode}`);
+    let text = lt('l-license-none');
+    let licenseDate = '';
+    let error = true;
 
-    if (lms.returnCode === '0') {
-      text = Moment(lms.expireDate, 'YYYYMMDD').format('YYYY-MM-DD');
+    if (lms.expireDate) {
+      licenseDate = Moment(lms.expireDate, 'YYYYMMDD').format('YYYY-MM-DD');
+
+      if (lms.returnCode === '0') {
+        text = lt('l-license-already');
+        error = false;
+      } else {
+        text = lt(`${lms.returnCode}`);
+      }
     }
 
     return (
-      <div id='g-login' className='c-center global c-flex fdc'>
+      <div id='g-login' className={cx('c-center global c-flex fdc', {'config': from === 'config'})}>
         <div className='lms'>
-          <div className='expire'>
-            <span className='date'>{lt('l-license-expiry')}:</span>
-            <span>{text}</span>
+          <div>
+            <span className='msg'>{lt('l-license-status')}:</span>
+            <span className={cx({'error': error})}>{text}</span>
           </div>
+          {licenseDate &&
+            <div>
+              <span className='msg'>{lt('l-license-expiry')}:</span>
+              <span>{licenseDate}</span>
+            </div>
+          }
           <div className='key'>
             <span>{lt('l-license-key')}</span>
             <Input

@@ -3054,7 +3054,7 @@ class NetworkInventory extends Component {
     });
   }
   render() {
-    const {contextRoot} = this.context;
+    const {baseUrl, contextRoot} = this.context;
     const {
       activeTab,
       activeContent,
@@ -3136,7 +3136,9 @@ class NetworkInventory extends Component {
         </div>
 
         <div className='data-content'>
-          <Config />
+          <Config
+            baseUrl={baseUrl}
+            contextRoot={contextRoot} />
 
           {activeContent === 'tableList' &&
             <div className='parent-content'>

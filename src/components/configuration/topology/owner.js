@@ -635,7 +635,7 @@ class NetworkOwner extends Component {
     )
   }
   render() {
-    const {contextRoot} = this.context;
+    const {baseUrl, contextRoot} = this.context;
     const {
       activeContent,
       list,
@@ -658,7 +658,9 @@ class NetworkOwner extends Component {
         </div>
 
         <div className='data-content'>
-          <Config />
+          <Config
+            baseUrl={baseUrl}
+            contextRoot={contextRoot} />
 
           <div className='parent-content'>
             { this.renderFilter() }
