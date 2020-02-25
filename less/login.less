@@ -3,6 +3,7 @@
   background: linear-gradient(to top, #001549, #72aaff);
   &.config {
     position: relative;
+    background: none;
   }
   #title, #form {
     width: 400px;
@@ -50,20 +51,25 @@
   }
   .lms {
     display: grid;
-    color: white;
+    color: #fff;
     width: 30%;
     margin-top: -5%;
-    .msg {
-      margin-right: 10px;
+    &.config {
+      color: #333;
     }
-    .error {
-      color: red;
+    section {
+      margin-bottom: 10px;
+      .msg {
+        margin-right: 10px;
+      }
+      .error {
+        color: red;
+      }
     }
     .key {
       display: inline-block;
       vertical-align: middle;
       line-height: 1.5;
-      margin-top: 20px;
       input {
         width: 50%;
         margin-left: 10px;

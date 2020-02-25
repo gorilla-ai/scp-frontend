@@ -157,19 +157,19 @@ class License extends Component {
 
     return (
       <div id='g-login' className={cx('c-center global c-flex fdc', {'config': from === 'config'})}>
-        <div className='lms'>
-          <div>
+        <div className={cx('lms', {'config': from === 'config'})}>
+          <section>
             <span className='msg'>{lt('l-license-status')}:</span>
             <span className={cx({'error': error})}>{text}</span>
-          </div>
+          </section>
           {licenseDate &&
-            <div>
+            <section>
               <span className='msg'>{lt('l-license-expiry')}:</span>
               <span>{licenseDate}</span>
-            </div>
+            </section>
           }
           <div className='key'>
-            <span>{lt('l-license-key')}</span>
+            <span>{lt('l-license-key')}:</span>
             <Input
               value={key}
               onChange={this.handleInputChange} />
