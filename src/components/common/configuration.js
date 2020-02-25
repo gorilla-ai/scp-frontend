@@ -98,8 +98,8 @@ class Config extends Component {
     });
   }
   downloadLogs = () => {
-    const {baseUrl} = this.props;
-    const url = `${baseUrl}/api/common/logs/_export`;
+    const {baseUrl, contextRoot} = this.props;
+    const url = `${baseUrl}${contextRoot}/api/common/logs/_export`;
     const requestData = {};
 
     downloadWithForm(url, {payload: JSON.stringify(requestData)});
@@ -200,11 +200,11 @@ class Config extends Component {
           </Link>
         </div>
 
-        {/*<div className='item frame product-info'>
+        <div className='item frame product-info'>
           <Link to='/SCP/configuration/product-info'>
             <span className={`${this.getActiveFrame('productInfo')}`}>{t('txt-productInfo')}</span>
           </Link>
-        </div>*/}
+        </div>
 
         <div className='item frame issues-feedback last' onClick={this.downloadLogs}>
           <span>{t('txt-issuesFeedback')}</span>

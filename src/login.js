@@ -34,14 +34,13 @@ class Login extends Component {
     this.state = {
       info: null,
       error: false,
-      license: true
+      license: false
     };
 
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    //this.checkLicense();
-    this.username.focus();
+    this.checkLicense();
   }
   /**
    * Check license before login

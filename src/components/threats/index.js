@@ -798,7 +798,7 @@ class ThreatsController extends Component {
       if (key && key !== 'doc_count') {
         _.forEach(treeData[path].buckets, val => {
           if (val.agentId) {
-            label = <span title={val.agentName}>{val.agentName} ({val.serviceType})</span>;
+            label = <span title={val.agentName}>{val.agentName} ({val.serviceType}) ({val.doc_count}) </span>;
 
             treeObj.children.push({
               id: val.agentId,
@@ -809,7 +809,7 @@ class ThreatsController extends Component {
       }
     })
 
-    treeObj.label = t('txt-all') + ' (' + treeData[path].buckets.length + ')';
+    treeObj.label = t('txt-all') + ' (' + treeData.doc_count + ')';
 
     return treeObj;
   }
