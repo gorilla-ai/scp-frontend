@@ -71,10 +71,31 @@ class Tree extends Component {
     });
   }
   /**
-   * Show multiple tree data for Alert page
+   * Show checkbox for Hierarchy component
    * @method
-   * @param {string} key - tree name for the Alert ('alert', 'private' and 'public')
-   * @param {object} treeData - tree data of the Alert
+   * @param {string} key - tree name for the Threats page ('alert', 'private', 'public' and 'edge')
+   * @returns enabled settings
+   */
+  showCheckBox = (key) => {
+    if (key === 'edge') {
+      return {
+        enabled: true
+      };
+    }
+  }
+  /**
+   * Handle checkbox selection change
+   * @method
+   * @param {array.<string>} selectedId - selected IDs for edge
+   */
+  handleSelectChange = (selected) => {
+    this.props.handleSelectChange(selected);
+  }
+  /**
+   * Show multiple tree data for Threats page
+   * @method
+   * @param {string} key - tree name for the Threats page ('alert', 'private', 'public' and 'edge')
+   * @param {object} treeData - tree data of the Threats
    * @returns HTML DOM
    */
   showAlertTree = (key, treeData) => {
@@ -90,6 +111,8 @@ class Tree extends Component {
             foldable={true}
             indent={[4, 0]}
             data={treeData[key].data}
+            selection={this.showCheckBox(key)}
+            onSelectionChange={this.handleSelectChange}
             defaultOpened={['all', 'All']}
             onLabelMouseOver={this.props.showTreeFilterBtn.bind(this, key)} />
         </div>

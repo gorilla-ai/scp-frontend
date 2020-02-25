@@ -285,12 +285,14 @@ class HMDscanInfo extends Component {
    * @method
    * @param {string} type - scan type
    * @param {number} i - index of the rule array
+   * @param {string} id - unique ID of the rule array
    */
-  togglePathRule = (type, i) => {
+  togglePathRule = (type, i, id) => {
     const {activePath, activeRule} = this.state;
-    const tempActivePath = activePath === i ? null : i;
 
     if (type === 'path') {
+      const tempActivePath = activePath === id ? null : id;
+
       this.setState({
         activePath: tempActivePath,
         activeRuleHeader: false,
@@ -458,11 +460,12 @@ class HMDscanInfo extends Component {
   /**
    * Display Yara Scan Process content
    * @method
+   * @param {number} parentIndex - parent index of the scan process array
    * @param {object} val - scan data content
    * @param {number} i - index of the scan process array
    * @returns HTML DOM
    */
-  displayScanProcessPath = (val, i) => {
+  displayScanProcessPath = (parentIndex, val, i) => {
     const {activePath, activeRuleHeader, activeDLL, activeConnections} = this.state;
     const uniqueKey = val._ScanType + i;
     let displayInfo = '';
@@ -474,10 +477,12 @@ class HMDscanInfo extends Component {
     }
 
     if (val._MatchedFile || val._MatchedPid) {
+      const uniqueID = parentIndex.toString() + i.toString() + (val._MatchedFile || val._MatchedPid);
+
       return (
         <div className='group' key={uniqueKey}>
-          <div className='path' onClick={this.togglePathRule.bind(this, 'path', i)}>
-            <i className={cx('fg fg-arrow-bottom', {'rotate': activePath === i})}></i>
+          <div className='path' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
+            <i className={cx('fg fg-arrow-bottom', {'rotate': activePath === uniqueID})}></i>
             {val._MatchedFile &&
               <span>{t('txt-path')}: {val._MatchedFile}</span>
             }
@@ -488,7 +493,7 @@ class HMDscanInfo extends Component {
               <span>PID: {val._MatchedPid}</span>
             }
           </div>
-          <div className={cx('rule', {'hide': activePath !== i})}>
+          <div className={cx('rule', {'hide': activePath !== uniqueID})}>
             <div className='rule-content'>
               <div className='header' onClick={this.toggleInfoHeader.bind(this, 'rule')}>
                 <i className={cx('fg fg-play', {'rotate': activeRuleHeader})}></i>
@@ -522,11 +527,12 @@ class HMDscanInfo extends Component {
   /**
    * Display Yara Scan File content
    * @method
+   * @param {number} parentIndex - parent index of the scan file array
    * @param {object} val - scan file content
    * @param {number} i - index of the scan file array
    * @returns HTML DOM
    */
-  displayScanFilePath = (val, i) => {
+  displayScanFilePath = (parentIndex, val, i) => {
     const {activePath, activeRuleHeader} = this.state;
     const uniqueKey = val._ScanType + i;
     let displayInfo = '';
@@ -538,10 +544,12 @@ class HMDscanInfo extends Component {
     }
 
     if (val._MatchedFile || val._MatchedPid) {
+      const uniqueID = parentIndex.toString() + i.toString() + (val._MatchedFile || val._MatchedPid);
+
       return (
         <div className='group' key={uniqueKey}>
-          <div className='path' onClick={this.togglePathRule.bind(this, 'path', i)}>
-            <i className={cx('fg fg-arrow-bottom', {'rotate': activePath === i})}></i>
+          <div className='path' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
+            <i className={cx('fg fg-arrow-bottom', {'rotate': activePath === uniqueID})}></i>
             {val._MatchedFile &&
               <span>{t('txt-path')}: {val._MatchedFile}</span>
             }
@@ -552,7 +560,7 @@ class HMDscanInfo extends Component {
               <span>PID: {val._MatchedPid}</span>
             }
           </div>
-          <div className={cx('rule', {'hide': activePath !== i})}>
+          <div className={cx('rule', {'hide': activePath !== uniqueID})}>
             <div className='rule-content'>
               <div className='header' onClick={this.toggleInfoHeader.bind(this, 'rule')}>
                 <i className={cx('fg fg-play', {'rotate': activeRuleHeader})}></i>
@@ -680,9 +688,9 @@ class HMDscanInfo extends Component {
     let scanPath = '';
 
     if (activeTab === 'yara') {
-      scanPath = this.displayScanProcessPath;
+      scanPath = this.displayScanProcessPath.bind(this, i);
     } else if (activeTab === 'yaraScanFile') {
-      scanPath = this.displayScanFilePath;
+      scanPath = this.displayScanFilePath.bind(this, i);
     }
 
     return (

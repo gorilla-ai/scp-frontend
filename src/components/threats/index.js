@@ -36,6 +36,10 @@ const PUBLIC_API = {
   name: 'Top10ExternalSrcCountry',
   path: 'srcCountry'
 };
+const EDGES_API = {
+  name: 'Edges',
+  path: 'agg'
+};
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const ALERT_LEVEL_COLORS = {
   Emergency: '#CC2943',
@@ -115,6 +119,11 @@ class ThreatsController extends Component {
           rawData: {},
           data: {},
           currentTreeName: ''
+        },
+        edge: {
+          title: '',
+          rawData: {},
+          data: {}
         }
       },
       //Search bar
@@ -128,6 +137,7 @@ class ThreatsController extends Component {
         condition: 'must',
         query: ''
       }],
+      edgeFilterData:[],
       ..._.cloneDeep(SUBSECTIONS_DATA),
       mainEventsData: {},
       queryData: {
@@ -293,6 +303,9 @@ class ThreatsController extends Component {
         tempTreeData.public.title = t('alert.txt-sourceCountry');
         tempTreeData.public.rawData = data[PUBLIC_API.name];
         tempTreeData.public.data = this.getPublicTreeData(data[PUBLIC_API.name]);
+        tempTreeData.edge.title = t('txt-edge');
+        tempTreeData.edge.rawData = data[EDGES_API.name];
+        tempTreeData.edge.data = this.getEdgesTreeData(data[EDGES_API.name]);
 
         this.setState({
           treeData: tempTreeData
@@ -492,7 +505,7 @@ class ThreatsController extends Component {
    * @returns requst data object
    */
   toQueryLanguage = (options) => {
-    const {datetime, sort, filterData} = this.state;
+    const {datetime, sort, filterData, edgeFilterData} = this.state;
     const dateTime = {
       from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
       to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
@@ -504,10 +517,11 @@ class ThreatsController extends Component {
     if (options === 'tree') {
       dataObj.search = [PRIVATE_API.name, PUBLIC_API.name];
     } else {
-      const filterDataArr = helper.buildFilterDataArray(filterData);
+      const filterDataArr = helper.buildFilterDataArray(filterData); //Remove empty filter array
+      const combinedFilterDataArr = _.concat(filterDataArr, edgeFilterData);
 
-      if (filterDataArr.length > 0) {
-        dataObj.filters = filterDataArr;
+      if (combinedFilterDataArr.length > 0) {
+        dataObj.filters = combinedFilterDataArr;
       }
 
       dataObj.sort = [{
@@ -543,6 +557,25 @@ class ThreatsController extends Component {
 
     this.setState({
       treeData: tempTreeData
+    });
+  }
+  /**
+   * Set filter options for edge
+   * @method
+   * @param {array.<string>} selectedId - selected IDs for edge
+   */  
+  handleTreeSelectChange = (selectedId) => {
+    let edgeFilterData = [];
+
+    _.forEach(selectedId, val => {
+      edgeFilterData.push({
+        condition: 'either',
+        query: '_edgeId: "' + val + '"'
+      })
+    })
+
+    this.setState({
+      edgeFilterData
     });
   }
   /**
@@ -741,6 +774,42 @@ class ThreatsController extends Component {
     })
 
     treeObj.label = t('txt-all') + ' (' + treeData.doc_count + ')';
+
+    return treeObj;
+  }
+  /**
+   * Set the edges tree data
+   * @method
+   * @param {string} treeData - edges tree data
+   * @returns tree data object
+   */
+  getEdgesTreeData = (treeData) => {
+    const path = EDGES_API.path;
+    let treeObj = { //Handle service tree data
+      id: 'All',
+      children: []
+    };
+
+    _.keys(treeData)
+    .forEach(key => {
+      let tempChild = [];
+      let label = '';
+
+      if (key && key !== 'doc_count') {
+        _.forEach(treeData[path].buckets, val => {
+          if (val.agentId) {
+            label = <span title={val.agentName}>{val.agentName} ({val.serviceType})</span>;
+
+            treeObj.children.push({
+              id: val.agentId,
+              label
+            });
+          }
+        })
+      }
+    })
+
+    treeObj.label = t('txt-all') + ' (' + treeData[path].buckets.length + ')';
 
     return treeObj;
   }
@@ -1044,6 +1113,7 @@ class ThreatsController extends Component {
       handleSearchSubmit: this.handleSearchSubmit,
       treeData: this.state.treeData,
       showTreeFilterBtn: this.showTreeFilterBtn,
+      handleSelectChange: this.handleTreeSelectChange,
       dataTableData: this.state.subSectionsData.mainData[activeTab],
       dataTableFields: this.state.subSectionsData.fieldsData[activeTab],
       mainEventsData: this.state.mainEventsData,
