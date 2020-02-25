@@ -27,6 +27,21 @@ footer.footer {
 .font-bold {
   font-weight: bold;
 }
+.c-hierarchy.tree {
+  i.c-checkbox {
+    color: #666;
+    &.fg-checkbox {
+      color: #001b34;
+      &.partial {
+        color: #a6a6a6;
+      }
+    }
+    &.fg-checkbox-outline:active:not(.disabled),
+    &.fg-checkbox-outline:hover:not(.disabled) {
+      color: #666;
+    }
+  }
+}
 #g-login {
   input,
   select {
