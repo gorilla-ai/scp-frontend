@@ -482,7 +482,7 @@ class HMDscanInfo extends Component {
       return (
         <div className='group' key={uniqueKey}>
           <div className='path' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
-            <i className={cx('fg fg-arrow-bottom', {'rotate': activePath === uniqueID})}></i>
+            <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`}></i>
             {val._MatchedFile &&
               <span>{t('txt-path')}: {val._MatchedFile}</span>
             }
@@ -549,7 +549,7 @@ class HMDscanInfo extends Component {
       return (
         <div className='group' key={uniqueKey}>
           <div className='path' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
-            <i className={cx('fg fg-arrow-bottom', {'rotate': activePath === uniqueID})}></i>
+            <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`}></i>
             {val._MatchedFile &&
               <span>{t('txt-path')}: {val._MatchedFile}</span>
             }
