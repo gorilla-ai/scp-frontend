@@ -116,7 +116,7 @@ class DashboardStats extends Component {
       if (val.id === 'IVAR') {
         alertChartsList.push({
           chartID: val.id,
-          chartTitle: 'IVAR',
+          chartTitle: 'IVA Events',
           type: 'table'
         });
       } else {

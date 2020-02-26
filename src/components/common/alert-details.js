@@ -750,7 +750,7 @@ class AlertDetails extends Component {
    * @method
    * @returns HTML DOM
    */
-  showIvarContent = () => {
+  showAlertContent = () => {
     const {alertData} = this.props;
     const picPath = alertData.photoBase64 ? 'data:image/png;base64,' + alertData.photoBase64 : '';
     const videoUrl = alertData.ivarVideoUrl ? alertData.ivarVideoUrl : '';
@@ -760,6 +760,7 @@ class AlertDetails extends Component {
         {picPath &&
           <img src={picPath} />
         }
+        <span className='msg'>{alertData.Info || NOT_AVAILABLE}</span>
         {videoUrl &&
           <button onClick={this.redirectVidoeURL.bind(this, videoUrl)}>{t('alert.txt-openVideo')}</button>
         }
@@ -798,11 +799,7 @@ class AlertDetails extends Component {
           </tbody>
         </table>
 
-        {(alertData.photoBase64 || alertData.ivarVideoUrl) &&
-          <div className='alert-info'>{this.showIvarContent()}</div>
-        }
-
-        <div className='alert-info'>{alertData.Info || NOT_AVAILABLE}</div>
+        <div className='alert-info'>{this.showAlertContent()}</div>
 
         <table className='c-table main-table top-info'>
           <thead>
