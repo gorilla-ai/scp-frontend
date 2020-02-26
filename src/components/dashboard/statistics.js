@@ -327,6 +327,11 @@ class DashboardStats extends Component {
     this.loadDnsPieData();
     this.loadMetricData();
   }
+  redirectIVA = (type) => {
+    const {baseUrl, contextRoot, language} = this.context;
+    const url = `${baseUrl}${contextRoot}/threats?iva=${type}&interval=24h&lng=${language}`;
+    window.open(url, '_blank');
+  }
   loadIvarData = () => {
     const {baseUrl} = this.context;
     const {datetime, ivar} = this.state;
@@ -350,7 +355,7 @@ class DashboardStats extends Component {
             label: t(`dashboard.txt-${tempData}`),
             sortable: false,
             formatter: (value, allValue, i) => {
-              return <span>{value}</span>
+              return <span className='c-link' onClick={this.redirectIVA.bind(this, tempData)}>{value}</span>
             }
           };
         })
@@ -694,7 +699,7 @@ class DashboardStats extends Component {
               <header className='main-header'>{alertChartsList[i].chartTitle}</header>
               <div id={alertChartsList[i].chartID} className='c-chart table'>
                 <DataTable
-                  className='main-table align-center overflow-scroll'
+                  className='main-table align-center ivr'
                   fields={ivar.dataFields}
                   data={ivar.dataContent} />
               </div>

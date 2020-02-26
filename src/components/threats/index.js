@@ -247,7 +247,26 @@ class ThreatsController extends Component {
         },
         filterData: [{
           condition: 'must',
-          query: 'sourceIP:' + alertsParam.sourceIP
+          query: 'sourceIP: ' + alertsParam.sourceIP
+        }],
+        showFilter: true
+      });
+    }
+
+    if (alertsParam.iva) {
+      const type = alertsParam.iva;
+      let query = '';
+
+      if (type === 'frmotp') {
+        query = '"FRMOTP Fail"';
+      } else if (type === 'intrusion') {
+        query = '"IVAR Suspicious Face Recognition"';
+      }
+
+      this.setState({
+        filterData: [{
+          condition: 'must',
+          query: 'patternId: ' + query
         }],
         showFilter: true
       });
