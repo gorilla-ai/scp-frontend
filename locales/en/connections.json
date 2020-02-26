@@ -201,6 +201,8 @@
     "txt-Top10InternalSrcIp": "Alert Internal Source IP",
     "txt-InternalIp": "Alert Internal IP",
     "txt-InternalMaskedIp": "Alert Internal Masked IP",
+    "txt-frmotp": "MOTP Unregnized Face",
+    "txt-intrusion": "IVAR Unregnized Face",
     "txt-Top10SyslogConfigSource": "Syslog Config Source",
     "txt-dnsQuery": "DNS Query",
     "txt-disk-usage": "Disk Usage",
@@ -220,6 +222,7 @@
   },
 
   "alert": {
+    "txt-openVideo": "Open Video",
     "txt-alertList": "Alert List",
     "txt-alertInfo": "Alert Info",
     "txt-alertTime": "Alert Time",

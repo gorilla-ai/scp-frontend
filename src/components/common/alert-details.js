@@ -738,6 +738,35 @@ class AlertDetails extends Component {
     }
   }
   /**
+   * Redirect to ivar link
+   * @method
+   * @param {string} videoUrl - redirect URL
+   */
+  redirectVidoeURL = (videoUrl) => {
+    window.open(videoUrl, '_blank');
+  }
+  /**
+   * Display IVAR content
+   * @method
+   * @returns HTML DOM
+   */
+  showIvarContent = () => {
+    const {alertData} = this.props;
+    const picPath = alertData.photoBase64 ? 'data:image/png;base64,' + alertData.photoBase64 : '';
+    const videoUrl = alertData.ivarVideoUrl ? alertData.ivarVideoUrl : '';
+
+    return (
+      <div className='ivar'>
+        {picPath &&
+          <img src={picPath} />
+        }
+        {videoUrl &&
+          <button onClick={this.redirectVidoeURL.bind(this, videoUrl)}>{t('alert.txt-openVideo')}</button>
+        }
+      </div>
+    )
+  }
+  /**
    * Display Alert information in dialog box
    * @method
    * @returns HTML DOM
@@ -768,6 +797,10 @@ class AlertDetails extends Component {
             </tr>
           </tbody>
         </table>
+
+        {(alertData.photoBase64 || alertData.ivarVideoUrl) &&
+          <div className='alert-info'>{this.showIvarContent()}</div>
+        }
 
         <div className='alert-info'>{alertData.Info || NOT_AVAILABLE}</div>
 

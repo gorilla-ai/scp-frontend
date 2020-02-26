@@ -201,6 +201,8 @@
     "txt-Top10InternalSrcIp": "內部主機告警統計",
     "txt-InternalIp": "內部主機告警統計",
     "txt-InternalMaskedIp": "內部網段告警統計",
+    "txt-frmotp": "MOTP Unregnized Face",
+    "txt-intrusion": "IVAR Unregnized Face",
     "txt-Top10SyslogConfigSource": "系統日誌類型統計",
     "txt-dnsQuery": "DNS Query",
     "txt-disk-usage": "系統可用空間狀態",
@@ -220,6 +222,7 @@
   },
 
   "alert": {
+    "txt-openVideo": "開啟攝影畫面",
     "txt-alertList": "告警清單",
     "txt-alertInfo": "告警資訊",
     "txt-alertTime": "告警時間",
