@@ -247,7 +247,7 @@ class ThreatsController extends Component {
         },
         filterData: [{
           condition: 'must',
-          query: 'sourceIP:' + alertsParam.sourceIP
+          query: 'sourceIP: ' + alertsParam.sourceIP
         }],
         showFilter: true
       });

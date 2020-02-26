@@ -537,9 +537,9 @@ class Syslog extends Component {
    * @param {object} allValue - syslog data
    */
   forwardSyslog = (allValue) => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl, contextRoot, language} = this.context;
 
-    window.location.href = `${baseUrl}${contextRoot}/events/syslog?configId=${allValue.id}`;
+    window.location.href = `${baseUrl}${contextRoot}/events/syslog?configId=${allValue.id}&lng=${language}`;
   }
   /**
    * Open edit hosts dialog

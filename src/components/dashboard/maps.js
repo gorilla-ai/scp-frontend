@@ -79,11 +79,12 @@ class DashboardMaps extends Component {
 
     this.state = {
       datetime: {
-        from: helper.getStartDate('day'),
+        from: helper.getSubstractDate(24, 'hours'),
         to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
         //from: '2019-08-06T01:00:00Z',
         //to: '2019-08-07T02:02:13Z'
       },
+      past24hTime: helper.getFormattedDate(helper.getSubstractDate(24, 'hours')),
       updatedTime: helper.getFormattedDate(Moment()),
       mapType: PRIVATE, //PRIVATE PUBLIC
       locationType: '',
@@ -154,6 +155,7 @@ class DashboardMaps extends Component {
         tempAlertDetails.publicFormatted.destIp = publicData.destIp;
 
         this.setState({
+          past24hTime: helper.getFormattedDate(helper.getSubstractDate(24, 'hours')),
           updatedTime: helper.getFormattedDate(Moment()),
           alertDetails: tempAlertDetails,
           alertMapData: tempArray
@@ -735,6 +737,7 @@ class DashboardMaps extends Component {
   }
   render() {
     const {
+      past24hTime,
       updatedTime,
       mapType,
       alertDetails,
@@ -746,6 +749,7 @@ class DashboardMaps extends Component {
       seatData,
       modalOpen
     } = this.state;
+    const displayTime = past24hTime + ' - ' + updatedTime;
 
     return (
       <div>
@@ -755,7 +759,7 @@ class DashboardMaps extends Component {
 
         <div className='sub-header'>
           {helper.getDashboardMenu('maps')}
-          <span className='date-time'>{updatedTime}</span>
+          <span className='date-time'>{displayTime}</span>
         </div>
 
         <div className='main-dashboard'>

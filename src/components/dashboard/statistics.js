@@ -534,7 +534,7 @@ class DashboardStats extends Component {
     let type = '';
 
     if (_.includes(syslogChart, chartID)) {
-      const url = `${baseUrl}${contextRoot}/events/syslog?configSource=${data}&interval=24h`;
+      const url = `${baseUrl}${contextRoot}/events/syslog?configSource=${data}&interval=24h&lng=${language}`;
       window.open(url, '_blank');
       return;
     }
