@@ -226,7 +226,7 @@ class ThreatsController extends Component {
           condition: 'must',
           query
         }];
-      } 
+      }
 
       if (alertsParam.interval) {
         tempSearchInput.searchInterval = alertsParam.interval;

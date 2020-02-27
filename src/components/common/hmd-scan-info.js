@@ -84,6 +84,10 @@ class HMDscanInfo extends Component {
     this.loadHMDdata();
   }
   componentDidUpdate(prevProps) {
+    if (!prevProps || (this.props.currentDeviceData !== prevProps.currentDeviceData)) {
+      this.loadHMDdata();
+    }
+
     if (!prevProps || (this.props.currentDeviceData.ip !== prevProps.currentDeviceData.ip)) {
       this.setState({
         activeTab: 'yara'
@@ -599,20 +603,22 @@ class HMDscanInfo extends Component {
    * @returns HTML DOM
    */
   getSuspiciousFileCount = (dataResult) => {
-    const styleColor = dataResult.length === 0 ? '#22ac38' : '#d10d25'; //green : red
-    return <span style={{'color': styleColor}}>{t('network-inventory.txt-suspiciousFileCount')}: {dataResult.length}</span>
+    if (dataResult) {
+      const styleColor = dataResult.length === 0 ? '#22ac38' : '#d10d25'; //green : red
+      return <span style={{'color': styleColor}}>{t('network-inventory.txt-suspiciousFileCount')}: {dataResult.length}</span>
+    }
   }
   /**
-   * Display pass / total count info
+   * Display pass / total count info for GCB
    * @method
    * @returns HTML DOM
    */
   getPassTotalCount = () => {
-    const {activeTab, hmdInfo} = this.state;
+    const {hmdInfo} = this.state;
 
-    if (!_.isEmpty(hmdInfo[activeTab])) {
-      const gcbDataResult = hmdInfo[activeTab].data[0].GCBResult;
-      const gcbFilteredResult = hmdInfo[activeTab].filteredResult;
+    if (hmdInfo.gcb.data[0] && hmdInfo.gcb.data[0].GCBResult) {
+      const gcbDataResult = hmdInfo.gcb.data[0].GCBResult;
+      const gcbFilteredResult = hmdInfo.gcb.filteredResult;
 
       if (gcbFilteredResult) {
         const styleColor = gcbFilteredResult.length === gcbDataResult.length ? '#22ac38' : '#d10d25'; //green : red
@@ -749,13 +755,19 @@ class HMDscanInfo extends Component {
       data = _.orderBy(val.GCBResult, ['_CompareResult'], [gcbSort]);
     }
 
-    return (
-      <DataTable
-        className={cx('main-table', {'malware': activeTab === 'malware'})}
-        fields={hmdInfo[activeTab].fields}
-        data={data}
-        onSort={this.handleTableSort} />
-    )
+    if (data.length === 0) {
+      return NOT_AVAILABLE;
+    }
+
+    if (data.length > 0) {
+      return (
+        <DataTable
+          className={cx('main-table', {'malware': activeTab === 'malware'})}
+          fields={hmdInfo[activeTab].fields}
+          data={data}
+          onSort={this.handleTableSort} />
+      )
+    }
   }
   /**
    * Display table content for malware and gcb
@@ -765,7 +777,7 @@ class HMDscanInfo extends Component {
    * @returns HTML DOM
    */
   displayTableContent = (val, i) => {
-    const {activeTab} = this.state;  
+    const {activeTab} = this.state;
 
     return (
       <div className={cx('table', {'malware': activeTab === 'malware'})}>
