@@ -226,7 +226,7 @@ class ThreatsController extends Component {
           condition: 'must',
           query
         }];
-      } 
+      }
 
       if (alertsParam.interval) {
         tempSearchInput.searchInterval = alertsParam.interval;
@@ -255,6 +255,7 @@ class ThreatsController extends Component {
 
     if (alertsParam.iva) {
       const type = alertsParam.iva;
+      let tempSearchInput = {...this.state.searchInput};
       let query = '';
 
       if (type === 'frmotp') {
@@ -263,7 +264,12 @@ class ThreatsController extends Component {
         query = '"IVAR Suspicious Face Recognition"';
       }
 
+      if (alertsParam.interval) {
+        tempSearchInput.searchInterval = alertsParam.interval;
+      }
+
       this.setState({
+        searchInput: tempSearchInput,
         filterData: [{
           condition: 'must',
           query: 'patternId: ' + query
