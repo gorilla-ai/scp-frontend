@@ -464,6 +464,7 @@
     "txt-selected-node": "Selected Node",
     "txt-ipValidationFail": "Please enter a valid IP address",
     "txt-seatNameEmpty": "Please enter a seat name",
+    "txt-saveSuccess": "Saved",
 
     "txt-addOwner": "$t(txt-add) $t(ipFields.owner)",
     "txt-editOwner": "$t(txt-edit) $t(ipFields.owner)",

@@ -464,6 +464,7 @@
     "txt-selected-node": "選擇樓層節點",
     "txt-ipValidationFail": "請輸入正確IP格式",
     "txt-seatNameEmpty": "請輸入座位名稱",
+    "txt-saveSuccess": "儲存成功",
 
     "txt-addOwner": "$t(txt-add)$t(ipFields.owner)",
     "txt-editOwner": "$t(txt-edit)$t(ipFields.owner)",

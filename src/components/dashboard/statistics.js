@@ -478,18 +478,24 @@ class DashboardStats extends Component {
 
     _.forEach(alertChartsList, val => {
       if (val.chartID === 'alertThreatLevel') { //Handle special case for Alert Threat Level
-        let chartData = null;
-        let i = 0;
+        let chartData = null; //Waiting for data, show spinning icon
+        let i = null;
 
         _.forEach(alertPieData.alertThreatLevel, val2 => {
+          i = 'loop';
+
           if (val2.doc_count > 0) {
-            i++;
+            i = 'data';
             return false;
           }
         })
 
-        if (i > 0) {
-          chartData = alertPieData[val.chartID];
+        if (i) {
+          if (i === 'data') {
+            chartData = alertPieData[val.chartID]; //Data is found, show data
+          } else if (i === 'loop') {
+            chartData = []; //Data is not found, show text
+          }
         }
 
         tempAlertChartsList.push({
