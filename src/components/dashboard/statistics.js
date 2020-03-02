@@ -244,12 +244,10 @@ class DashboardStats extends Component {
           if (i === 0) { //alertThreatLevel
             if (data.aggregations) {
               _.forEach(SEVERITY_TYPE, val2 => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
-                if (data.aggregations[val2].doc_count > 0) {
-                  tempArr.push({
-                    key: val2,
-                    doc_count: data.aggregations[val2].doc_count
-                  });
-                }
+                tempArr.push({
+                  key: val2,
+                  doc_count: data.aggregations[val2].doc_count
+                });
               })
             }
           } else if (i === 1 || i === 2) { //Top10ExternalSrcCountry, InternalIp
@@ -478,7 +476,7 @@ class DashboardStats extends Component {
 
     _.forEach(alertChartsList, val => {
       if (val.chartID === 'alertThreatLevel') { //Handle special case for Alert Threat Level
-        let chartData = null; //Waiting for data, show spinning icon
+        let chartData = null; //Data has not been loaded, show spinning icon
         let i = null;
 
         _.forEach(alertPieData.alertThreatLevel, val2 => {
@@ -494,7 +492,7 @@ class DashboardStats extends Component {
           if (i === 'data') {
             chartData = alertPieData[val.chartID]; //Data is found, show data
           } else if (i === 'loop') {
-            chartData = []; //Data is not found, show text
+            chartData = []; //Data is not found, show not found message
           }
         }
 
