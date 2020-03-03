@@ -221,6 +221,7 @@
 
   "alert": {
     "txt-alertList": "告警清單",
+    "txt-statistics": "統計報表",
     "txt-alertInfo": "告警資訊",
     "txt-alertTime": "告警時間",
     "txt-privateMaskedIp": "內部網段",
@@ -248,7 +249,9 @@
     "txt-loginRecord": "AD登入紀錄",
     "txt-accessRecord": "門禁紀錄",
     "txt-floorInfo": "樓層圖",
-    "txt-safetyScan": "安全掃描"
+    "txt-safetyScan": "安全掃描",
+    "txt-alertThreatLevel": "客戶威脅等級統計",
+    "txt-alertThreatCount": "客戶威脅來源統計"
   },
 
   "events": {

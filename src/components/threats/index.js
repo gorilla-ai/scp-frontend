@@ -40,6 +40,12 @@ const EDGES_API = {
   name: 'Edges',
   path: 'agg'
 };
+const PRIVATE_SEVERITY_API = {
+  name: 'InternalMaskedIpWithSeverity'
+};
+const PUBLIC_SEVERITY_API = {
+  name: 'ExternalSrcCountryWithSeverity'
+};
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const ALERT_LEVEL_COLORS = {
   Emergency: '#CC2943',
@@ -63,6 +69,17 @@ const SUBSECTIONS_DATA = {
     }
   }
 };
+//Charts ID must be unique
+const CHARTS_LIST = [
+  {
+    id: 'alertThreatLevel',
+    key: 'severity'
+  },
+  {
+    id: 'alertThreatCount',
+    key: 'srcIp'
+  }
+];
 
 /**
  * Threats
@@ -126,6 +143,12 @@ class ThreatsController extends Component {
           data: {}
         }
       },
+      //Tab Menu
+      subTabMenu: {
+        table: t('alert.txt-alertList'),
+        statistics: t('alert.txt-statistics')
+      },
+      activeSubTab: 'table',
       //Search bar
       searchInput: {
         searchType: 'manual',
@@ -170,7 +193,9 @@ class ThreatsController extends Component {
         currentLength: ''
       },
       alertData: {},
-      loadAlertData: true
+      loadAlertData: true,
+      alertPieData: {},
+      alertChartsList: []
     };
 
     this.ah = getInstance('chewbacca');
@@ -252,6 +277,35 @@ class ThreatsController extends Component {
         showFilter: true
       });
     }
+
+    let alertChartsList = [];
+
+    _.forEach(CHARTS_LIST, val => {
+      alertChartsList.push({
+        chartID: val.id,
+        chartTitle: t('alert.txt-' + val.id),
+        chartKeyLabels: {
+          key: t('attacksFields.' + val.key),
+          doc_count: t('txt-count')
+        },
+        chartValueLabels: {
+          'Pie Chart': {
+            key: t('attacksFields.' + val.key),
+            doc_count: t('txt-count')
+          }
+        },
+        chartDataCfg: {
+          splitSlice: ['key'],
+          sliceSize: 'doc_count'
+        },
+        chartData: null,
+        type: 'pie'
+      });
+    })
+
+    this.setState({
+      alertChartsList
+    });
   }
   /**
    * Get and set the account saved query
@@ -275,9 +329,9 @@ class ThreatsController extends Component {
    * Get and set the alert tree data
    * @method
    */
-  loadTreeData = () => {
+  loadTreeData = (options) => {
     const {baseUrl} = this.context;
-    const {treeData} = this.state;
+    const {treeData, alertPieData} = this.state;
     const url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`;
     const requestData = this.toQueryLanguage('tree');
 
@@ -307,8 +361,25 @@ class ThreatsController extends Component {
         tempTreeData.edge.rawData = data[EDGES_API.name];
         tempTreeData.edge.data = this.getEdgesTreeData(data[EDGES_API.name]);
 
+        let tempAlertPieData = {...alertPieData};
+        tempAlertPieData.alertThreatCount = [
+          {
+            key: t('dashboard.txt-private'),
+            doc_count: data[PRIVATE_API.name].doc_count
+          },
+          {
+            key: t('dashboard.txt-public'),
+            doc_count: data[PUBLIC_API.name].doc_count
+          }
+        ];
+
         this.setState({
-          treeData: tempTreeData
+          treeData: tempTreeData,
+          alertPieData: tempAlertPieData
+        }, () => {
+          if (options === 'statistics') {
+            this.loadTable(options);
+          }
         });
       }
       return null;
@@ -374,11 +445,11 @@ class ThreatsController extends Component {
   /**
    * Get and set alert data
    * @method
-   * @param {string} [options] - option for 'search'
+   * @param {string} [options] - option for 'search', 'tree' or 'statistics'
    */
   loadTable = (options) => {
     const {baseUrl} = this.context;
-    const {activeTab, currentPage, oldPage, pageSize, subSectionsData, account, alertDetails} = this.state;
+    const {activeTab, currentPage, oldPage, pageSize, treeData, subSectionsData, account, alertDetails, alertPieData} = this.state;
     const setPage = options === 'search' ? 1 : currentPage;
     const url = `${baseUrl}/api/u2/alert/_search?page=${setPage}&pageSize=${pageSize}`;
     const requestData = this.toQueryLanguage(options);
@@ -494,8 +565,76 @@ class ThreatsController extends Component {
           oldPage: tempCurrentPage,
           subSectionsData: tempSubSectionsData
         });
+
+        let tempAlertPieData = {...alertPieData};
+
+        if (options === 'statistics') {
+          let tempArr = [];
+
+          if (data.aggregations) {
+            _.forEach(SEVERITY_TYPE, val2 => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
+              tempArr.push({
+                key: val2,
+                doc_count: data.aggregations[val2].doc_count
+              });
+            })
+          }
+          tempAlertPieData.alertThreatLevel = tempArr;
+
+          this.setState({
+            alertPieData: tempAlertPieData
+          }, () => {
+            this.getPieChartsData();
+          });
+        }
       }
       return null;
+    });
+  }
+  /**
+   * Construct and set the pie charts
+   * @method
+   */
+  getPieChartsData = () => {
+    const {alertChartsList, alertPieData} = this.state;
+    let tempAlertChartsList = [];
+
+    _.forEach(alertChartsList, val => {
+      if (val.chartID === 'alertThreatLevel') { //Handle special case for Alert Threat Level
+        let chartData = null; //Data has not been loaded, show spinning icon
+        let i = null;
+
+        _.forEach(alertPieData.alertThreatLevel, val2 => {
+          i = 'loop';
+
+          if (val2.doc_count > 0) {
+            i = 'data';
+            return false;
+          }
+        })
+
+        if (i) {
+          if (i === 'data') {
+            chartData = alertPieData[val.chartID]; //Data is found, show data
+          } else if (i === 'loop') {
+            chartData = []; //Data is not found, show not found message
+          }
+        }
+
+        tempAlertChartsList.push({
+          ...val,
+          chartData
+        });
+      } else {
+        tempAlertChartsList.push({
+          ...val,
+          chartData: alertPieData[val.chartID]
+        });
+      }
+    })
+
+    this.setState({
+      alertChartsList: tempAlertChartsList
     });
   }
   /**
@@ -527,6 +666,10 @@ class ThreatsController extends Component {
       dataObj.sort = [{
         '_eventDttm_': sort.desc ? 'desc' : 'asc'
       }];
+    }
+
+    if (options === 'statistics') {
+      dataObj.search = [PRIVATE_SEVERITY_API.name, PUBLIC_SEVERITY_API.name];
     }
 
     if (options == 'csv') {
@@ -819,7 +962,7 @@ class ThreatsController extends Component {
    * @param {string} [fromSearch] - option for 'search'
    */
   handleSearchSubmit = (fromSearch) => {
-    const {activeTab, subSectionsData} = this.state;
+    const {activeTab, activeSubTab, subSectionsData, alertChartsList} = this.state;
     let tempSubSectionsData = {...subSectionsData};
     tempSubSectionsData.mainData[activeTab] = [];
 
@@ -827,13 +970,26 @@ class ThreatsController extends Component {
       subSectionsData: tempSubSectionsData
     });
 
-    if (fromSearch) {
+    if (activeSubTab === 'table') {
+      if (fromSearch) {
+        this.setState({
+          currentPage: 1,
+          oldPage: 1
+        }, () => {
+          this.loadTreeData();
+          this.loadTable(fromSearch);
+        });
+      }
+    } else if (activeSubTab === 'statistics') {
+      let tempAlertChartsList = alertChartsList;
+      tempAlertChartsList[0].chartData = null;
+      tempAlertChartsList[1].chartData = null;
+
       this.setState({
-        currentPage: 1,
-        oldPage: 1
+        alertPieData: tempAlertChartsList
       }, () => {
-        this.loadTreeData();
-        this.loadTable(fromSearch);
+        this.loadTreeData(activeSubTab);
+        //this.loadTable(activeSubTab);
       });
     }
   }
@@ -1084,8 +1240,37 @@ class ThreatsController extends Component {
     }, () => {
       if (refresh === 'refresh') {
         this.loadTreeData();
-        this.loadTable('search');
       }
+    });
+  }
+  /**
+   * Handle content tab change
+   * @method
+   * @param {string} newTab - content type ('table' or 'statistics')
+   */
+  handleSubTabChange = (newTab) => {
+    if (newTab === 'table') {
+      this.setState({
+        currentPage: 1,
+        pageSize: 20
+      }, () => {
+        this.loadTreeData();
+        this.loadTable();
+      });
+    } else if (newTab === 'statistics') {
+      let tempAlertChartsList = this.state.alertChartsList;
+      tempAlertChartsList[0].chartData = null;
+      tempAlertChartsList[1].chartData = null;
+
+      this.setState({
+        alertPieData: tempAlertChartsList
+      }, () => {
+        this.loadTreeData(newTab);
+      });
+    }
+
+    this.setState({
+      activeSubTab: newTab
     });
   }
   /**
@@ -1099,12 +1284,16 @@ class ThreatsController extends Component {
       activeTab,
       chartColors: ALERT_LEVEL_COLORS,
       tableUniqueID: 'id',
+      subTabMenu: this.state.subTabMenu,
+      activeSubTab: this.state.activeSubTab,
+      handleSubTabChange: this.handleSubTabChange,
       currentTableID: this.state.currentTableID,
       queryData: this.state.queryData,
       filterData: this.state.filterData,
       account: this.state.account,
       showFilter: this.state.showFilter,
       showChart: this.state.showChart,
+      alertChartsList: this.state.alertChartsList,
       toggleFilter: this.toggleFilter,
       toggleChart: this.toggleChart,
       openQuery: this.openQuery,
