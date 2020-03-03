@@ -13,6 +13,7 @@ import PieChart from 'react-chart/build/src/components/pie'
 
 import {BaseDataContext} from '../common/context';
 import helper from '../common/helper'
+import {HOC} from 'widget-builder'
 import withLocale from '../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -690,6 +691,51 @@ class DashboardStats extends Component {
     const metricsData = [dnsMetricData, diskMetricData];
     const displayTime = past24hTime + ' - ' + updatedTime;
 
+    const props = {
+      "type": "react-ui/Table",
+      "config": {
+        "defaultSort": {
+          "desc": false
+        },
+        "data": [
+          {
+            "channelName": "CH1",
+            "roiName": "ROI1",
+            "count": 83
+          },
+          {
+            "channelName": "CH1",
+            "roiName": "ROI2",
+            "count": 81
+          },
+          {
+            "channelName": "CH3",
+            "roiName": "ROI1",
+            "count": 62
+          },
+          {
+            "channelName": "CH4",
+            "roiName": "ROI1",
+            "count": 36
+          }
+        ],
+        "fields": {
+          "ID": {},
+          "channelName": {
+            "sortable": false
+          },
+          "roiName": {
+            "sortable": false,
+            "$labelOf": ""
+          },
+          "count": {
+            "$labelOf": "label_0",
+            "label": "次數"
+          }
+        }
+      }
+    };
+
     return (
       <div>
         <div className='sub-header'>
@@ -698,6 +744,10 @@ class DashboardStats extends Component {
         </div>
 
         <div className='main-dashboard'>
+          {/*<div className='ui-framework'>
+            <HOC $id={'NTC-Top5'} />
+          </div>*/}
+
           <div className='charts'>
             <div className='chart-group bar'>
               {!alertDataArr &&
