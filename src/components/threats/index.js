@@ -195,13 +195,28 @@ class ThreatsController extends Component {
       alertData: {},
       loadAlertData: true,
       alertPieData: {},
-      alertChartsList: []
+      alertChartsList: [],
+      alertTableCharts: {
+        private: {
+          subnet: {
+            dataFieldsArr: ['Subnet'],
+            dataFields: {},
+            dataContent: null
+          },
+          ip: {
+            dataFieldsArr: ['IP'],
+            dataFields: {},
+            dataContent: null
+          }
+        }
+      }
     };
 
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
     const {locale, session, sessionRights} = this.context;
+    const {alertTableCharts} = this.state;
     const alertsParam = queryString.parse(location.search);
     let tempAccount = {...this.state.account};
 
@@ -303,8 +318,16 @@ class ThreatsController extends Component {
       });
     })
 
+    let tempAlertTableCharts = {...alertTableCharts};
+
+    _.forEach(SEVERITY_TYPE, val => {
+      tempAlertTableCharts.private.subnet.dataFieldsArr.push(val);
+      tempAlertTableCharts.private.ip.dataFieldsArr.push(val);
+    })
+
     this.setState({
-      alertChartsList
+      alertChartsList,
+      alertTableCharts: tempAlertTableCharts
     });
   }
   /**
@@ -432,7 +455,7 @@ class ThreatsController extends Component {
    */
   loadTable = (options) => {
     const {baseUrl} = this.context;
-    const {activeTab, currentPage, oldPage, pageSize, treeData, subSectionsData, account, alertDetails, alertPieData} = this.state;
+    const {activeTab, currentPage, oldPage, pageSize, treeData, subSectionsData, account, alertDetails, alertPieData, alertTableCharts} = this.state;
     const setPage = options === 'search' ? 1 : currentPage;
     const url = `${baseUrl}/api/u2/alert/_search?page=${setPage}&pageSize=${pageSize}`;
     const requestData = this.toQueryLanguage(options);
@@ -574,8 +597,48 @@ class ThreatsController extends Component {
             }
           ];
 
+          const privateSubnetParent = data.aggregations[PRIVATE_SEVERITY_API.name];
+          let tempAlertTableCharts = {...alertTableCharts};
+          //tempAlertTableCharts.private.subnet.dataContent = data.aggregations[PRIVATE_SEVERITY_API.name];
+          let privateSubnetObj = {};
+
+          _.forEach(privateSubnetParent, (val, key) => {
+            if (key === 'doc_count') return;
+            if (privateSubnetParent[key].doc_count === 0) return;
+
+            privateSubnetObj[key] = {};
+
+            // privateSubnetArr.push({
+            //   [key]: {}
+            // });
+
+            _.forEach(privateSubnetParent[key], (val2, key2) => {
+              _.forEach(SEVERITY_TYPE, val3 => {
+                if (val3 === key2) {
+                  privateSubnetObj[key][val3] = privateSubnetParent[key][val3].doc_count;
+                }
+              })
+            })
+          })
+
+          console.log(privateSubnetObj);
+
+          let dataFields = {};
+          alertTableCharts.private.subnet.dataFieldsArr.forEach(tempData => {
+            dataFields[tempData] = {
+              label: tempData,
+              sortable: true,
+              formatter: (value, allValue, i) => {
+                return <span>{value}</span>
+              }
+            };
+          })
+
+          tempAlertTableCharts.private.subnet.dataFields = dataFields;
+
           this.setState({
-            alertPieData: tempAlertPieData
+            alertPieData: tempAlertPieData,
+            alertTableCharts: tempAlertTableCharts
           }, () => {
             this.getPieChartsData();
           });
