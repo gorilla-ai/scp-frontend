@@ -51,6 +51,8 @@ class TableContent extends Component {
   }
   render() {
     const {
+      projectID,
+      checkProjectID,
       hideTable,
       withPointer,
       dataTableData,
@@ -66,7 +68,7 @@ class TableContent extends Component {
       <div className='table-content'>
         {!hideTable &&
           <div className='table' style={this.getTableHight()}>
-            {!dataTableData &&
+            {((checkProjectID && projectID && !dataTableData) || (!checkProjectID && !dataTableData)) &&
               <span className='loading'><i className='fg fg-loading-2'></i></span>
             }
           

@@ -764,57 +764,58 @@ class DashboardMaps extends Component {
 
         <div className='main-dashboard'>
           <div className='maps'>
-          <ButtonGroup
-            className='left'
-            list={[
-              {value: PRIVATE, text: t('dashboard.txt-private')},
-              {value: PUBLIC, text: t('dashboard.txt-public')}
-            ]}
-            onChange={this.toggleMaps}
-            value={mapType} />
-
+            <ButtonGroup
+              list={[
+                {value: PRIVATE, text: t('dashboard.txt-private')},
+                {value: PUBLIC, text: t('dashboard.txt-public')}
+              ]}
+              onChange={this.toggleMaps}
+              value={mapType} />
+            <DropDownList
+              className='drop-down'
+              list={floorList}
+              onChange={this.getAreaData}
+              required={true}
+              value={currentFloor} />
             {mapType === PRIVATE &&
               <div className='floor-map'>
-                <DropDownList
-                  className='drop-down'
-                  list={floorList}
-                  onChange={this.getAreaData}
-                  required={true}
-                  value={currentFloor} />
-                <div className='content'>
+                <div className='left-tree'>
                   {!alertDetails.private.tree &&
-                    <span className='loading'><i className='fg fg-loading-2'></i></span>
+                    <span className='empty'><i className='fg fg-loading-2'></i></span>
+                  }
+                  {alertDetails.private.tree && alertDetails.private.tree.length === 0 &&
+                    <div className='empty'>{t('txt-notFound')}</div>
                   }
                   {alertDetails.private.tree && alertDetails.private.tree.length > 0 &&
                     <ul>
                       {alertDetails.private.tree.map(this.displayPrivateHost)}
                     </ul>
                   }
-                  <div className='map'>
-                    {currentMap &&
-                      <Gis
-                        className='floor-map-area'
-                        _ref={(ref) => {this.gisNode = ref}}
-                        data={_.get(seatData, [currentFloor, 'data'])}
-                        baseLayers={currentBaseLayers}
-                        baseLayer={currentFloor}
-                        layouts={['standard']}
-                        dragModes={['pan']}
-                        scale={{enabled: false}}
-                        onClick={this.showTopoDetail.bind(this, PRIVATE)}
-                        symbolOptions={[{
-                          match: {
-                            data: {tag: 'red'}
-                          },
-                          props: {
-                            backgroundColor: 'red',
-                            tooltip: ({data}) => {
-                              return this.showPrivateTooltip(data);
-                            }
+                </div>
+                <div className='map'>
+                  {currentMap &&
+                    <Gis
+                      className='floor-map-area'
+                      _ref={(ref) => {this.gisNode = ref}}
+                      data={_.get(seatData, [currentFloor, 'data'])}
+                      baseLayers={currentBaseLayers}
+                      baseLayer={currentFloor}
+                      layouts={['standard']}
+                      dragModes={['pan']}
+                      scale={{enabled: false}}
+                      onClick={this.showTopoDetail.bind(this, PRIVATE)}
+                      symbolOptions={[{
+                        match: {
+                          data: {tag: 'red'}
+                        },
+                        props: {
+                          backgroundColor: 'red',
+                          tooltip: ({data}) => {
+                            return this.showPrivateTooltip(data);
                           }
-                        }]} />
-                    }
-                  </div>
+                        }
+                      }]} />
+                  }
                 </div>
               </div>
             }

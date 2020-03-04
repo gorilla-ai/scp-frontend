@@ -2504,12 +2504,14 @@ class Netflow extends Component {
    * @returns events component
    */
   renderTabContent = () => {
-    const {activeTab, tableMouseOver} = this.state;
+    const {activeTab} = this.state;
     const mainContentData = {
       allTabData: ALL_TAB_DATA,
+      projectID: this.state.projectID,
       activeTab,
-      tableMouseOver,
       tableUniqueID: 'id',
+      checkProjectID: true,
+      tableMouseOver: this.state.tableMouseOver,
       subTabMenu: this.state.subTabMenu,
       activeSubTab: this.state.activeSubTab,
       handleSubTabChange: this.handleSubTabChange,
@@ -2571,7 +2573,7 @@ class Netflow extends Component {
             chartIntervalChange: this.handleIntervalChange,
             chartIntervalValue: this.state.connectionsInterval
           }}
-          tableMouseOver={tableMouseOver} />
+          tableMouseOver={this.state.tableMouseOver} />
       )
     } else if (activeTab === 'dns') {
       return (

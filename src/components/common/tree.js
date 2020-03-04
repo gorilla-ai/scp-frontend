@@ -120,7 +120,7 @@ class Tree extends Component {
     }
   }
   render() {
-    const {activeTab, treeTitle, treeShowDropDown, treeData} = this.props;
+    const {projectID, activeTab, treeTitle, treeShowDropDown, treeData} = this.props;
     const {showContent, tabData} = this.state;
 
     return (
@@ -146,7 +146,7 @@ class Tree extends Component {
           </div>
         }
 
-        {treeShowDropDown && !treeData &&
+        {projectID && treeShowDropDown && !treeData &&
           <span className='loading'><i className='fg fg-loading-2'></i></span>
         }
 
