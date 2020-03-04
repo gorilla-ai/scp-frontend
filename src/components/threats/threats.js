@@ -34,27 +34,7 @@ class Threats extends Component {
   constructor(props) {
     super(props);
 
-    this.state = {
-      alertCharts: []
-    };
-
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
-  }
-  componentDidMount() {
-    this.setAlertCharts();
-  }
-  componentDidUpdate(prevProps) {
-    if (prevProps && this.props.mainContentData.alertChartsList !== prevProps.mainContentData.alertChartsList) {
-      this.setAlertCharts();
-    }
-  }
-  ryan = () => {
-
-  }
-  setAlertCharts = () => {
-    this.setState({
-      alertCharts: this.props.mainContentData.alertChartsList
-    });
   }
   /**
    * Show tooltip info when mouseover the pie chart
@@ -80,49 +60,49 @@ class Threats extends Component {
    * @returns HTML DOM
    */
   displayCharts = (val, i) => {
-    const {alertCharts} = this.state;
+    const alertChartsList = this.props.mainContentData.alertChartsList;
 
-    if (alertCharts[i].type === 'pie') {
+    if (alertChartsList[i].type === 'pie') {
       return (
-        <div className='chart-group c-box' key={alertCharts[i].chartID}>
-          {!alertCharts[i].chartData &&
+        <div className='chart-group c-box' key={alertChartsList[i].chartID}>
+          {!alertChartsList[i].chartData &&
             <div className='empty-data'>
-              <header>{alertCharts[i].chartTitle}</header>
+              <header>{alertChartsList[i].chartTitle}</header>
               <span><i className='fg fg-loading-2'></i></span>
             </div>
           }
 
-          {(alertCharts[i].chartData && alertCharts[i].chartData.length === 0) &&
+          {(alertChartsList[i].chartData && alertChartsList[i].chartData.length === 0) &&
             <div className='empty-data'>
-              <header>{alertCharts[i].chartTitle}</header>
+              <header>{alertChartsList[i].chartTitle}</header>
               <span>{t('txt-notFound')}</span>
             </div>
           }
-          {alertCharts[i].chartData && alertCharts[i].chartData.length > 0 &&
+          {alertChartsList[i].chartData && alertChartsList[i].chartData.length > 0 &&
             <PieChart
-              id={alertCharts[i].chartID}
-              title={alertCharts[i].chartTitle}
-              data={alertCharts[i].chartData}
-              keyLabels={alertCharts[i].chartKeyLabels}
-              valueLabels={alertCharts[i].chartValueLabels}
-              dataCfg={alertCharts[i].chartDataCfg}
-              onTooltip={this.onPieChartTooltip.bind(this, alertCharts[i].chartKeyLabels)}
+              id={alertChartsList[i].chartID}
+              title={alertChartsList[i].chartTitle}
+              data={alertChartsList[i].chartData}
+              keyLabels={alertChartsList[i].chartKeyLabels}
+              valueLabels={alertChartsList[i].chartValueLabels}
+              dataCfg={alertChartsList[i].chartDataCfg}
+              onTooltip={this.onPieChartTooltip.bind(this, alertChartsList[i].chartKeyLabels)}
               colors={{
                 key: ALERT_LEVEL_COLORS
               }} />
           }
         </div>
       )
-    } else if (alertCharts[i].type === 'table') {
+    } else if (alertChartsList[i].type === 'table') {
       return (
-        <div className='chart-group' key={alertCharts[i].chartID}>
-          <header className='main-header'>{alertCharts[i].chartTitle}</header>
-          <div id={alertCharts[i].chartID} className='c-chart table'>
+        <div className='chart-group' key={alertChartsList[i].chartID}>
+          <header className='main-header'>{alertChartsList[i].chartTitle}</header>
+          <div id={alertChartsList[i].chartID} className='c-chart table'>
             <DataTable
               className='main-table overflow-scroll'
-              fields={alertCharts[i].chartFields}
-              data={alertCharts[i].chartData}
-              defaultSort={alertCharts[i].chartData ? alertCharts[i].sort : {}} />
+              fields={alertChartsList[i].chartFields}
+              data={alertChartsList[i].chartData}
+              defaultSort={alertChartsList[i].chartData ? alertChartsList[i].sort : {}} />
           </div>
         </div>
       )
@@ -130,7 +110,6 @@ class Threats extends Component {
   }  
   render() {
     const {mainContentData, tabChartData} = this.props;
-    const {alertCharts} = this.state;
 
     return (
       <div className='data-content'>
@@ -161,7 +140,7 @@ class Threats extends Component {
             {mainContentData.activeSubTab === 'statistics' &&
               <div className='main-dashboard threats'>
                 <div className='charts'>
-                  {alertCharts.map(this.displayCharts)}
+                  {mainContentData.alertChartsList.map(this.displayCharts)}
                 </div>
               </div>
             }

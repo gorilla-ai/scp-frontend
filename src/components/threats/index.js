@@ -329,7 +329,7 @@ class ThreatsController extends Component {
    * Get and set the alert tree data
    * @method
    */
-  loadTreeData = (options) => {
+  loadTreeData = () => {
     const {baseUrl} = this.context;
     const {treeData, alertPieData} = this.state;
     const url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`;
@@ -361,25 +361,8 @@ class ThreatsController extends Component {
         tempTreeData.edge.rawData = data[EDGES_API.name];
         tempTreeData.edge.data = this.getEdgesTreeData(data[EDGES_API.name]);
 
-        let tempAlertPieData = {...alertPieData};
-        tempAlertPieData.alertThreatCount = [
-          {
-            key: t('dashboard.txt-private'),
-            doc_count: data[PRIVATE_API.name].doc_count
-          },
-          {
-            key: t('dashboard.txt-public'),
-            doc_count: data[PUBLIC_API.name].doc_count
-          }
-        ];
-
         this.setState({
-          treeData: tempTreeData,
-          alertPieData: tempAlertPieData
-        }, () => {
-          if (options === 'statistics') {
-            this.loadTable(options);
-          }
+          treeData: tempTreeData
         });
       }
       return null;
@@ -580,6 +563,16 @@ class ThreatsController extends Component {
             })
           }
           tempAlertPieData.alertThreatLevel = tempArr;
+          tempAlertPieData.alertThreatCount = [
+            {
+              key: t('dashboard.txt-private'),
+              doc_count: data.aggregations[PRIVATE_API.name].doc_count
+            },
+            {
+              key: t('dashboard.txt-public'),
+              doc_count: data.aggregations[PUBLIC_API.name].doc_count
+            }
+          ];
 
           this.setState({
             alertPieData: tempAlertPieData
@@ -669,7 +662,7 @@ class ThreatsController extends Component {
     }
 
     if (options === 'statistics') {
-      dataObj.search = [PRIVATE_SEVERITY_API.name, PUBLIC_SEVERITY_API.name];
+      dataObj.search = [PRIVATE_API.name, PUBLIC_API.name, PRIVATE_SEVERITY_API.name, PUBLIC_SEVERITY_API.name];
     }
 
     if (options == 'csv') {
@@ -959,9 +952,8 @@ class ThreatsController extends Component {
   /**
    * Handle alert search submit
    * @method
-   * @param {string} [fromSearch] - option for 'search'
    */
-  handleSearchSubmit = (fromSearch) => {
+  handleSearchSubmit = () => {
     const {activeTab, activeSubTab, subSectionsData, alertChartsList} = this.state;
     let tempSubSectionsData = {...subSectionsData};
     tempSubSectionsData.mainData[activeTab] = [];
@@ -970,16 +962,15 @@ class ThreatsController extends Component {
       subSectionsData: tempSubSectionsData
     });
 
+    this.loadTreeData();
+
     if (activeSubTab === 'table') {
-      if (fromSearch) {
-        this.setState({
-          currentPage: 1,
-          oldPage: 1
-        }, () => {
-          this.loadTreeData();
-          this.loadTable(fromSearch);
-        });
-      }
+      this.setState({
+        currentPage: 1,
+        oldPage: 1
+      }, () => {
+        this.loadTable('search');
+      });
     } else if (activeSubTab === 'statistics') {
       let tempAlertChartsList = alertChartsList;
       tempAlertChartsList[0].chartData = null;
@@ -988,8 +979,7 @@ class ThreatsController extends Component {
       this.setState({
         alertPieData: tempAlertChartsList
       }, () => {
-        this.loadTreeData(activeSubTab);
-        //this.loadTable(activeSubTab);
+        this.loadTable(activeSubTab);
       });
     }
   }
@@ -1235,11 +1225,19 @@ class ThreatsController extends Component {
    * @param {string} [refresh] - option for 'refresh'
    */
   handleDateChange = (datetime, refresh) => {
+    const {activeSubTab} = this.state;
+
     this.setState({
       datetime
     }, () => {
       if (refresh === 'refresh') {
         this.loadTreeData();
+
+        if (activeSubTab === 'table') {
+          this.loadTable('search');
+        } else if (activeSubTab === 'statistics') {
+          this.loadTable(activeSubTab);
+        }
       }
     });
   }
@@ -1249,13 +1247,14 @@ class ThreatsController extends Component {
    * @param {string} newTab - content type ('table' or 'statistics')
    */
   handleSubTabChange = (newTab) => {
+    this.loadTreeData();
+
     if (newTab === 'table') {
       this.setState({
         currentPage: 1,
         pageSize: 20
       }, () => {
-        this.loadTreeData();
-        this.loadTable();
+        this.loadTable('search');
       });
     } else if (newTab === 'statistics') {
       let tempAlertChartsList = this.state.alertChartsList;
@@ -1265,7 +1264,7 @@ class ThreatsController extends Component {
       this.setState({
         alertPieData: tempAlertChartsList
       }, () => {
-        this.loadTreeData(newTab);
+        this.loadTable(newTab);
       });
     }
 
