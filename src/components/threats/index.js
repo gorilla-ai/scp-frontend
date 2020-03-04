@@ -321,7 +321,7 @@ class ThreatsController extends Component {
   loadAllFields = () => {
     const {activeTab} = this.state;
     let tempSubSectionsData = {...this.state.subSectionsData};
-    tempSubSectionsData.tableColumns[activeTab] = ['_eventDttm_', '_severity_', 'srcIp', 'destIp', 'Info', 'Collector'];
+    tempSubSectionsData.tableColumns[activeTab] = ['_eventDttm_', '_severity_', 'srcIp', 'destIp', 'Info', 'Collector', 'Source'];
 
     this.setState({
       subSectionsData: tempSubSectionsData
@@ -465,7 +465,7 @@ class ThreatsController extends Component {
             label: f(`${activeTab}Fields.${tempFieldName}`),
             sortable: tempData === '_eventDttm_' ? true : false,
             formatter: (value, allValue) => {
-              if (tempData === 'Info') {
+              if (tempData === 'Info' || tempData === 'Source') {
                 return <span>{value}</span>
               } else {
                 if (tempData === '_eventDttm_') {

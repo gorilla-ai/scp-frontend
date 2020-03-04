@@ -756,6 +756,7 @@ class AlertDetails extends Component {
               <th>{f('alertFields._severity_')}</th>
               <th>{f('alertFields.Collector')}</th>
               <th>{f('alertFields.Trigger')}</th>
+              <th>{f('alertFields.Source')}</th>
               <th>{f('alertFields._eventDttm_')}</th>
             </tr>
           </thead>
@@ -764,6 +765,7 @@ class AlertDetails extends Component {
               <td className='align-center severity-level'>{severity}</td>
               <td className='align-center collector'>{alertData.Collector || NOT_AVAILABLE}</td>
               <td className='align-center trigger'>{alertData.Trigger || NOT_AVAILABLE}</td>
+              <td className='align-center source'>{alertData.Source || NOT_AVAILABLE}</td>
               <td className='align-center datetime'>{eventDatetime}</td>
             </tr>
           </tbody>
