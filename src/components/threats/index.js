@@ -403,7 +403,7 @@ class ThreatsController extends Component {
    */
   loadTreeData = () => {
     const {baseUrl} = this.context;
-    const {treeData, alertPieData} = this.state;
+    const {treeData} = this.state;
     const url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`;
     const requestData = this.toQueryLanguage('tree');
 
@@ -1098,11 +1098,13 @@ class ThreatsController extends Component {
       });
     } else if (activeSubTab === 'statistics') {
       let tempAlertChartsList = alertChartsList;
-      tempAlertChartsList[0].chartData = null;
-      tempAlertChartsList[1].chartData = null;
+
+      _.forEach(tempAlertChartsList, (val, i) => {
+        tempAlertChartsList[i].chartData = null;
+      })
 
       this.setState({
-        alertPieData: tempAlertChartsList
+        alertChartsList: tempAlertChartsList
       }, () => {
         this.loadTable(activeSubTab);
       });
@@ -1383,11 +1385,13 @@ class ThreatsController extends Component {
       });
     } else if (newTab === 'statistics') {
       let tempAlertChartsList = this.state.alertChartsList;
-      tempAlertChartsList[0].chartData = null;
-      tempAlertChartsList[1].chartData = null;
+
+      _.forEach(tempAlertChartsList, (val, i) => {
+        tempAlertChartsList[i].chartData = null;
+      })
 
       this.setState({
-        alertPieData: tempAlertChartsList
+        alertChartsList: tempAlertChartsList
       }, () => {
         this.loadTable(newTab);
       });

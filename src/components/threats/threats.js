@@ -96,14 +96,30 @@ class Threats extends Component {
     } else if (alertChartsList[i].type === 'table') {
       return (
         <div className='chart-group' key={alertChartsList[i].chartID}>
-          <header className='main-header'>{alertChartsList[i].chartTitle}</header>
-          <div id={alertChartsList[i].chartID} className='c-chart table'>
-            <DataTable
-              className='main-table overflow-scroll'
-              fields={alertChartsList[i].chartFields}
-              data={alertChartsList[i].chartData}
-              defaultSort={alertChartsList[i].chartData ? alertChartsList[i].sort : {}} />
-          </div>
+          {!alertChartsList[i].chartData &&
+            <div className='empty-data'>
+              <header>{alertChartsList[i].chartTitle}</header>
+              <span><i className='fg fg-loading-2'></i></span>
+            </div>
+          }
+          {alertChartsList[i].chartData && alertChartsList[i].chartData.length === 0 &&
+            <div className='empty-data'>
+              <header>{alertChartsList[i].chartTitle}</header>
+              <span>{t('txt-notFound')}</span>
+            </div>
+          }
+          {alertChartsList[i].chartData && alertChartsList[i].chartData.length > 0 &&
+            <div>
+              <header className='main-header'>{alertChartsList[i].chartTitle}</header>
+              <div id={alertChartsList[i].chartID} className='c-chart table'>
+                <DataTable
+                  className='main-table overflow-scroll'
+                  fields={alertChartsList[i].chartFields}
+                  data={alertChartsList[i].chartData}
+                  defaultSort={alertChartsList[i].chartData ? alertChartsList[i].sort : {}} />
+              </div>
+            </div>
+          }
         </div>
       )
     }
