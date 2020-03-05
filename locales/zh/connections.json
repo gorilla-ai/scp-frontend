@@ -251,7 +251,11 @@
     "txt-floorInfo": "樓層圖",
     "txt-safetyScan": "安全掃描",
     "txt-alertThreatLevel": "客戶威脅等級統計",
-    "txt-alertThreatCount": "客戶威脅來源統計"
+    "txt-alertThreatCount": "客戶威脅來源統計",
+    "txt-alertThreatSubnet": "Threats in subnet",
+    "txt-alertThreatPrivate": "Threats in private IP",
+    "txt-alertThreatCountry": "Threats in global country",
+    "txt-alertThreatPublic": "Threats in public IP"
   },
 
   "events": {
