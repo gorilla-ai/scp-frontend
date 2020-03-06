@@ -514,118 +514,119 @@ class ThreatsController extends Component {
     helper.getAjaxData('POST', url, requestData)
     .then(data => {
       if (data) {
-        if (currentPage > 1 && data.data.rows.length === 0) {
-          helper.showPopupMsg('', t('txt-error'), t('events.connections.txt-maxDataMsg'));
+        if (options !== 'statistics') {
+          if (currentPage > 1 && data.data.rows.length === 0) {
+            helper.showPopupMsg('', t('txt-error'), t('events.connections.txt-maxDataMsg'));
 
-          this.setState({
-            currentPage: oldPage
-          });
-          return;
-        }
-
-        let alertHistogram = {
-          Emergency: {},
-          Alert: {},
-          Critical: {},
-          Warning: {},
-          Notice: {}
-        };
-        let tableData = data.data;
-        let tempArray = [];
-        let tempSubSectionsData = {...subSectionsData};
-
-        if (_.isEmpty(tableData) || (tableData && tableData.counts === 0)) {
-          helper.showPopupMsg(t('txt-notFound'));
-
-          let tempSubSectionsData = {...this.state.subSectionsData};
-          tempSubSectionsData.mainData[activeTab] = [];
-          tempSubSectionsData.totalCount[activeTab] = 0;
-
-          const resetObj = {
-            subSectionsData: tempSubSectionsData,
-            currentPage: 1,
-            oldPage: 1,
-            pageSize: 20
-          };
-
-          this.setState({
-            ...resetObj,
-            alertHistogram: {}
-          });
-          return;
-        }
-
-        tempSubSectionsData.totalCount[activeTab] = tableData.counts;
-        tableData = tableData.rows;
-
-        tempArray = _.map(tableData, val => { //Re-construct the Alert data
-          val._source.id = val._id;
-          val._source.index = val._index;
-          return val._source;
-        });
-
-        let tempAlertDetails = {...alertDetails};
-        tempAlertDetails.currentIndex = 0;
-        tempAlertDetails.currentLength = tableData.length < pageSize ? tableData.length : pageSize;
-        tempAlertDetails.all = tempArray;
-
-        _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
-          if (data.event_histogram[val]) {
-            _.forEach(data.event_histogram[val].buckets, val2 => {
-              if (val2.doc_count > 0) {
-                alertHistogram[val][val2.key_as_string] = val2.doc_count;
-              }
-            })
+            this.setState({
+              currentPage: oldPage
+            });
+            return;
           }
-        })
 
-        this.setState({
-          alertHistogram,
-          alertDetails: tempAlertDetails
-        });
-
-        let tempFields = {};
-        subSectionsData.tableColumns[activeTab].forEach(tempData => {
-          let tempFieldName = tempData;
-
-          tempFields[tempData] = {
-            hide: false,
-            label: f(`${activeTab}Fields.${tempFieldName}`),
-            sortable: tempData === '_eventDttm_' ? true : false,
-            formatter: (value, allValue) => {
-              if (tempData === 'Info' || tempData === 'Source') {
-                return <span>{value}</span>
-              } else {
-                if (tempData === '_eventDttm_') {
-                  value = helper.getFormattedDate(value, 'local');
-                }
-                return (
-                  <TableCell
-                    activeTab={activeTab}
-                    fieldValue={value}
-                    fieldName={tempData}
-                    allValue={allValue}
-                    alertLevelColors={ALERT_LEVEL_COLORS}
-                    showQueryOptions={this.showQueryOptions} />
-                )
-              }
-            }
+          let alertHistogram = {
+            Emergency: {},
+            Alert: {},
+            Critical: {},
+            Warning: {},
+            Notice: {}
           };
-        })
+          let tableData = data.data;
+          let tempArray = [];
+          let tempSubSectionsData = {...subSectionsData};
 
-        const tempCurrentPage = options === 'search' ? 1 : currentPage;
-        tempSubSectionsData.mainData[activeTab] = tempArray;
-        tempSubSectionsData.fieldsData[activeTab] = tempFields;
+          if (_.isEmpty(tableData) || (tableData && tableData.counts === 0)) {
+            helper.showPopupMsg(t('txt-notFound'));
 
-        this.setState({
-          currentPage: tempCurrentPage,
-          oldPage: tempCurrentPage,
-          subSectionsData: tempSubSectionsData
-        });
+            let tempSubSectionsData = {...this.state.subSectionsData};
+            tempSubSectionsData.mainData[activeTab] = [];
+            tempSubSectionsData.totalCount[activeTab] = 0;
 
-        let tempAlertPieData = {...alertPieData};
+            const resetObj = {
+              subSectionsData: tempSubSectionsData,
+              currentPage: 1,
+              oldPage: 1,
+              pageSize: 20
+            };
+
+            this.setState({
+              ...resetObj,
+              alertHistogram: {}
+            });
+            return;
+          }
+
+          tempSubSectionsData.totalCount[activeTab] = tableData.counts;
+          tableData = tableData.rows;
+
+          tempArray = _.map(tableData, val => { //Re-construct the Alert data
+            val._source.id = val._id;
+            val._source.index = val._index;
+            return val._source;
+          });
+
+          let tempAlertDetails = {...alertDetails};
+          tempAlertDetails.currentIndex = 0;
+          tempAlertDetails.currentLength = tableData.length < pageSize ? tableData.length : pageSize;
+          tempAlertDetails.all = tempArray;
+
+          _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
+            if (data.event_histogram[val]) {
+              _.forEach(data.event_histogram[val].buckets, val2 => {
+                if (val2.doc_count > 0) {
+                  alertHistogram[val][val2.key_as_string] = val2.doc_count;
+                }
+              })
+            }
+          })
+
+          this.setState({
+            alertHistogram,
+            alertDetails: tempAlertDetails
+          });
+
+          let tempFields = {};
+          subSectionsData.tableColumns[activeTab].forEach(tempData => {
+            let tempFieldName = tempData;
+
+            tempFields[tempData] = {
+              hide: false,
+              label: f(`${activeTab}Fields.${tempFieldName}`),
+              sortable: tempData === '_eventDttm_' ? true : false,
+              formatter: (value, allValue) => {
+                if (tempData === 'Info' || tempData === 'Source') {
+                  return <span>{value}</span>
+                } else {
+                  if (tempData === '_eventDttm_') {
+                    value = helper.getFormattedDate(value, 'local');
+                  }
+                  return (
+                    <TableCell
+                      activeTab={activeTab}
+                      fieldValue={value}
+                      fieldName={tempData}
+                      allValue={allValue}
+                      alertLevelColors={ALERT_LEVEL_COLORS}
+                      showQueryOptions={this.showQueryOptions} />
+                  )
+                }
+              }
+            };
+          })
+
+          const tempCurrentPage = options === 'search' ? 1 : currentPage;
+          tempSubSectionsData.mainData[activeTab] = tempArray;
+          tempSubSectionsData.fieldsData[activeTab] = tempFields;
+
+          this.setState({
+            currentPage: tempCurrentPage,
+            oldPage: tempCurrentPage,
+            subSectionsData: tempSubSectionsData
+          });
+        }
 
         if (options === 'statistics') {
+          let tempAlertPieData = {...alertPieData};
           let tempArr = [];
 
           if (data.aggregations) {
