@@ -1045,7 +1045,7 @@ class ThreatsController extends Component {
    * @method
    */
   handleSearchSubmit = () => {
-    const {activeTab, activeSubTab, subSectionsData, alertChartsList} = this.state;
+    const {activeTab, subSectionsData, alertChartsList} = this.state;
     let tempSubSectionsData = {...subSectionsData};
     let tempAlertChartsList = alertChartsList;
     tempSubSectionsData.mainData[activeTab] = [];
@@ -1302,7 +1302,7 @@ class ThreatsController extends Component {
     });
   }
   /**
-   * Set new datetime
+   * Set new datetime and reload page data
    * @method
    * @param {object} datetime - new datetime object
    * @param {string} [refresh] - option for 'refresh'
