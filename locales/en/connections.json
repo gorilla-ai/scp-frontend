@@ -221,6 +221,7 @@
 
   "alert": {
     "txt-alertList": "Alert List",
+    "txt-statistics": "Statistics",
     "txt-alertInfo": "Alert Info",
     "txt-alertTime": "Alert Time",
     "txt-privateMaskedIp": "Private Masked IP",
@@ -248,7 +249,13 @@
     "txt-loginRecord": "AD Login Behavior",
     "txt-accessRecord": "Access Control Behavior",
     "txt-floorInfo": "Floor",
-    "txt-safetyScan": "Safety Scan"
+    "txt-safetyScan": "Safety Scan",
+    "txt-alertThreatLevel": "Threats Level",
+    "txt-alertThreatCount": "Threats Count",
+    "txt-alertThreatSubnet": "Threats in subnet",
+    "txt-alertThreatPrivate": "Threats in private IP",
+    "txt-alertThreatCountry": "Threats in global country",
+    "txt-alertThreatPublic": "Threats in public IP"
   },
 
   "events": {
