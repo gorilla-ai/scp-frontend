@@ -81,10 +81,12 @@ const CHARTS_LIST = [
   {
     id: 'alertThreatCount',
     key: 'srcIp'
-  },
+  }
+];
+const TABLE_CHARTS_LIST = [
   {
     id: 'alertThreatSubnet',
-    key: 'subnet'
+    key: 'Subnet'
   },
   {
     id: 'alertThreatPrivate',
@@ -92,14 +94,13 @@ const CHARTS_LIST = [
   },
   {
     id: 'alertThreatCountry',
-    key: 'country'
+    key: 'Country'
   },
   {
     id: 'alertThreatPublic',
     key: 'IP'
   }
 ];
-const TABLE_CHARTS_LIST = ['alertThreatSubnet', 'alertThreatPrivate', 'alertThreatCountry', 'alertThreatPublic']
 
 /**
  * Threats
@@ -223,7 +224,6 @@ class ThreatsController extends Component {
   }
   componentDidMount() {
     const {locale, session, sessionRights} = this.context;
-    const {alertTableData} = this.state;
     const alertsParam = queryString.parse(location.search);
     let tempAccount = {...this.state.account};
 
@@ -239,6 +239,7 @@ class ThreatsController extends Component {
         this.getSavedQuery();
         this.loadTreeData();
         this.loadAllFields();
+        this.setStatisticsTab();
       });
     }
 
@@ -299,65 +300,6 @@ class ThreatsController extends Component {
         showFilter: true
       });
     }
-
-    let alertChartsList = [];
-
-    _.forEach(CHARTS_LIST, (val, i) => {
-      if (i <= 1) {
-        alertChartsList.push({
-          chartID: val.id,
-          chartTitle: t('alert.txt-' + val.id),
-          chartKeyLabels: {
-            key: t('attacksFields.' + val.key),
-            doc_count: t('txt-count')
-          },
-          chartValueLabels: {
-            'Pie Chart': {
-              key: t('attacksFields.' + val.key),
-              doc_count: t('txt-count')
-            }
-          },
-          chartDataCfg: {
-            splitSlice: ['key'],
-            sliceSize: 'doc_count'
-          },
-          chartData: null,
-          type: 'pie'
-        });
-      } else {
-        alertChartsList.push({
-          chartID: val.id,
-          chartTitle: t('alert.txt-' + val.id),
-          chartData: null,
-          type: 'table'
-        });
-      }
-    })
-
-    let tempAlertTableData = {...alertTableData};
-
-    _.forEach(TABLE_CHARTS_LIST, val => {
-      tempAlertTableData[val] = {
-        chartFieldsArr: ['key'],
-        chartFields: {},
-        chartData: null,
-        sort: {
-          field: 'key',
-          desc: false
-        }
-      };
-    })
-
-    _.forEach(SEVERITY_TYPE, val => {
-       _.forEach(TABLE_CHARTS_LIST, val2 => {
-        tempAlertTableData[val2].chartFieldsArr.push(val);
-      })
-    })
-
-    this.setState({
-      alertChartsList,
-      alertTableData: tempAlertTableData
-    });
   }
   /**
    * Get and set the account saved query
@@ -432,7 +374,69 @@ class ThreatsController extends Component {
     this.setState({
       subSectionsData: tempSubSectionsData
     }, () => {
-      this.loadTable();
+      this.loadThreatsData();
+    });
+  }
+  /**
+   * Set initial data for statistics tab
+   * @method
+   */
+  setStatisticsTab = () => {
+    let alertChartsList = [];
+
+    _.forEach(CHARTS_LIST, val => {
+      alertChartsList.push({
+        chartID: val.id,
+        chartTitle: t('alert.txt-' + val.id),
+        chartKeyLabels: {
+          key: t('attacksFields.' + val.key),
+          doc_count: t('txt-count')
+        },
+        chartValueLabels: {
+          'Pie Chart': {
+            key: t('attacksFields.' + val.key),
+            doc_count: t('txt-count')
+          }
+        },
+        chartDataCfg: {
+          splitSlice: ['key'],
+          sliceSize: 'doc_count'
+        },
+        chartData: null,
+        type: 'pie'
+      });
+    })
+
+    let tempAlertTableData = {...this.state.alertTableData};
+
+    _.forEach(TABLE_CHARTS_LIST, val => {
+      alertChartsList.push({
+        chartID: val.id,
+        chartTitle: t('alert.txt-' + val.id),
+        chartData: null,
+        type: 'table'
+      });
+
+      tempAlertTableData[val.id] = {
+        chartFieldsArr: ['key'],
+        chartFields: {},
+        chartData: null,
+        sort: {
+          field: 'key',
+          desc: false
+        }
+      };
+    })
+
+    _.forEach(SEVERITY_TYPE, val => {
+       _.forEach(TABLE_CHARTS_LIST, val2 => {
+        tempAlertTableData[val2.id].chartFieldsArr.push(val);
+      })
+    })
+
+    this.setState({
+      alertChartsList,
+      alertTableData: tempAlertTableData
     });
   }
   /**
@@ -502,9 +506,9 @@ class ThreatsController extends Component {
   /**
    * Get and set alert data
    * @method
-   * @param {string} [options] - option for 'search', 'tree' or 'statistics'
+   * @param {string} [options] - option for 'search' or 'tree'
    */
-  loadTable = (options) => {
+  loadThreatsData = (options) => {
     const {baseUrl} = this.context;
     const {activeTab, currentPage, oldPage, pageSize, treeData, subSectionsData, account, alertDetails, alertPieData, alertTableData} = this.state;
     const setPage = options === 'search' ? 1 : currentPage;
@@ -514,16 +518,13 @@ class ThreatsController extends Component {
     helper.getAjaxData('POST', url, requestData)
     .then(data => {
       if (data) {
-        if (options !== 'statistics') {
-          if (currentPage > 1 && data.data.rows.length === 0) {
-            helper.showPopupMsg('', t('txt-error'), t('events.connections.txt-maxDataMsg'));
+        if (currentPage > 1 && data.data.rows.length === 0) {
+          helper.showPopupMsg('', t('txt-error'), t('events.connections.txt-maxDataMsg'));
 
-            this.setState({
-              currentPage: oldPage
-            });
-            return;
-          }
-
+          this.setState({
+            currentPage: oldPage
+          });
+        } else {
           let alertHistogram = {
             Emergency: {},
             Alert: {},
@@ -553,120 +554,116 @@ class ThreatsController extends Component {
               ...resetObj,
               alertHistogram: {}
             });
-            return;
-          }
+          } else {
+            tempSubSectionsData.totalCount[activeTab] = tableData.counts;
+            tableData = tableData.rows;
 
-          tempSubSectionsData.totalCount[activeTab] = tableData.counts;
-          tableData = tableData.rows;
+            tempArray = _.map(tableData, val => { //Re-construct the Alert data
+              val._source.id = val._id;
+              val._source.index = val._index;
+              return val._source;
+            });
 
-          tempArray = _.map(tableData, val => { //Re-construct the Alert data
-            val._source.id = val._id;
-            val._source.index = val._index;
-            return val._source;
-          });
+            let tempAlertDetails = {...alertDetails};
+            tempAlertDetails.currentIndex = 0;
+            tempAlertDetails.currentLength = tableData.length < pageSize ? tableData.length : pageSize;
+            tempAlertDetails.all = tempArray;
 
-          let tempAlertDetails = {...alertDetails};
-          tempAlertDetails.currentIndex = 0;
-          tempAlertDetails.currentLength = tableData.length < pageSize ? tableData.length : pageSize;
-          tempAlertDetails.all = tempArray;
-
-          _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
-            if (data.event_histogram[val]) {
-              _.forEach(data.event_histogram[val].buckets, val2 => {
-                if (val2.doc_count > 0) {
-                  alertHistogram[val][val2.key_as_string] = val2.doc_count;
-                }
-              })
-            }
-          })
-
-          this.setState({
-            alertHistogram,
-            alertDetails: tempAlertDetails
-          });
-
-          let tempFields = {};
-          subSectionsData.tableColumns[activeTab].forEach(tempData => {
-            let tempFieldName = tempData;
-
-            tempFields[tempData] = {
-              hide: false,
-              label: f(`${activeTab}Fields.${tempFieldName}`),
-              sortable: tempData === '_eventDttm_' ? true : false,
-              formatter: (value, allValue) => {
-                if (tempData === 'Info' || tempData === 'Source') {
-                  return <span>{value}</span>
-                } else {
-                  if (tempData === '_eventDttm_') {
-                    value = helper.getFormattedDate(value, 'local');
+            _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
+              if (data.event_histogram[val]) {
+                _.forEach(data.event_histogram[val].buckets, val2 => {
+                  if (val2.doc_count > 0) {
+                    alertHistogram[val][val2.key_as_string] = val2.doc_count;
                   }
-                  return (
-                    <TableCell
-                      activeTab={activeTab}
-                      fieldValue={value}
-                      fieldName={tempData}
-                      allValue={allValue}
-                      alertLevelColors={ALERT_LEVEL_COLORS}
-                      showQueryOptions={this.showQueryOptions} />
-                  )
-                }
+                })
               }
-            };
-          })
-
-          const tempCurrentPage = options === 'search' ? 1 : currentPage;
-          tempSubSectionsData.mainData[activeTab] = tempArray;
-          tempSubSectionsData.fieldsData[activeTab] = tempFields;
-
-          this.setState({
-            currentPage: tempCurrentPage,
-            oldPage: tempCurrentPage,
-            subSectionsData: tempSubSectionsData
-          });
-        }
-
-        if (options === 'statistics') {
-          let tempAlertPieData = {...alertPieData};
-          let tempArr = [];
-
-          if (data.aggregations) {
-            _.forEach(SEVERITY_TYPE, val2 => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
-              tempArr.push({
-                key: val2,
-                doc_count: data.aggregations[val2].doc_count
-              });
             })
+
+            this.setState({
+              alertHistogram,
+              alertDetails: tempAlertDetails
+            });
+
+            let tempFields = {};
+            subSectionsData.tableColumns[activeTab].forEach(tempData => {
+              let tempFieldName = tempData;
+
+              tempFields[tempData] = {
+                hide: false,
+                label: f(`${activeTab}Fields.${tempFieldName}`),
+                sortable: tempData === '_eventDttm_' ? true : false,
+                formatter: (value, allValue) => {
+                  if (tempData === 'Info' || tempData === 'Source') {
+                    return <span>{value}</span>
+                  } else {
+                    if (tempData === '_eventDttm_') {
+                      value = helper.getFormattedDate(value, 'local');
+                    }
+                    return (
+                      <TableCell
+                        activeTab={activeTab}
+                        fieldValue={value}
+                        fieldName={tempData}
+                        allValue={allValue}
+                        alertLevelColors={ALERT_LEVEL_COLORS}
+                        showQueryOptions={this.showQueryOptions} />
+                    )
+                  }
+                }
+              };
+            })
+
+            const tempCurrentPage = options === 'search' ? 1 : currentPage;
+            tempSubSectionsData.mainData[activeTab] = tempArray;
+            tempSubSectionsData.fieldsData[activeTab] = tempFields;
+
+            this.setState({
+              currentPage: tempCurrentPage,
+              oldPage: tempCurrentPage,
+              subSectionsData: tempSubSectionsData
+            });
           }
-          tempAlertPieData.alertThreatLevel = tempArr;
-          tempAlertPieData.alertThreatCount = [
-            {
-              key: t('dashboard.txt-private'),
-              doc_count: data.aggregations[PRIVATE_API.name].doc_count
-            },
-            {
-              key: t('dashboard.txt-public'),
-              doc_count: data.aggregations[PUBLIC_API.name].doc_count
-            }
-          ];
-
-          let tempAlertTableData = {...alertTableData};
-          tempAlertTableData.alertThreatSubnet.chartData = data.aggregations[PRIVATE_SEVERITY_API.name].chartMaskedIpArr;
-          tempAlertTableData.alertThreatPrivate.chartData = data.aggregations[PRIVATE_SEVERITY_API.name].chartIpArr;
-          tempAlertTableData.alertThreatCountry.chartData = data.aggregations[PUBLIC_COUNTRY_SEVERITY_API.name];
-          tempAlertTableData.alertThreatPublic.chartData = data.aggregations[PUBLIC_IP_SEVERITY_API.name];
-
-          tempAlertTableData.alertThreatSubnet.chartFields = this.getThreatsTableData('alertThreatSubnet', 'Subnet');
-          tempAlertTableData.alertThreatPrivate.chartFields = this.getThreatsTableData('alertThreatPrivate', 'IP');
-          tempAlertTableData.alertThreatCountry.chartFields = this.getThreatsTableData('alertThreatCountry', t('attacksFields.srcCountry'));
-          tempAlertTableData.alertThreatPublic.chartFields = this.getThreatsTableData('alertThreatPublic', 'IP');
-
-          this.setState({
-            alertPieData: tempAlertPieData,
-            alertTableData: tempAlertTableData
-          }, () => {
-            this.getChartsData();
-          });
         }
+
+        let tempAlertPieData = {...alertPieData};
+        let tempArr = [];
+
+        if (data.aggregations) {
+          _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
+            tempArr.push({
+              key: val,
+              doc_count: data.aggregations[val].doc_count
+            });
+          })
+        }
+        tempAlertPieData.alertThreatLevel = tempArr;
+        tempAlertPieData.alertThreatCount = [
+          {
+            key: t('dashboard.txt-private'),
+            doc_count: data.aggregations[PRIVATE_API.name].doc_count
+          },
+          {
+            key: t('dashboard.txt-public'),
+            doc_count: data.aggregations[PUBLIC_API.name].doc_count
+          }
+        ];
+
+        let tempAlertTableData = {...alertTableData};
+        tempAlertTableData.alertThreatSubnet.chartData = data.aggregations[PRIVATE_SEVERITY_API.name].chartMaskedIpArr;
+        tempAlertTableData.alertThreatPrivate.chartData = data.aggregations[PRIVATE_SEVERITY_API.name].chartIpArr;
+        tempAlertTableData.alertThreatCountry.chartData = data.aggregations[PUBLIC_COUNTRY_SEVERITY_API.name];
+        tempAlertTableData.alertThreatPublic.chartData = data.aggregations[PUBLIC_IP_SEVERITY_API.name];
+
+        _.forEach(TABLE_CHARTS_LIST, val => {
+          tempAlertTableData[val.id].chartFields = this.getThreatsTableData(val.id, val.key);
+        })
+
+        this.setState({
+          alertPieData: tempAlertPieData,
+          alertTableData: tempAlertTableData
+        }, () => {
+          this.getChartsData();
+        });
       }
       return null;
     });
@@ -752,13 +749,11 @@ class ThreatsController extends Component {
         dataObj.filters = combinedFilterDataArr;
       }
 
+      dataObj.search = [PRIVATE_API.name, PUBLIC_API.name, PRIVATE_SEVERITY_API.name, PUBLIC_COUNTRY_SEVERITY_API.name, PUBLIC_IP_SEVERITY_API.name];
+
       dataObj.sort = [{
         '_eventDttm_': sort.desc ? 'desc' : 'asc'
       }];
-    }
-
-    if (options === 'statistics') {
-      dataObj.search = [PRIVATE_API.name, PUBLIC_API.name, PRIVATE_SEVERITY_API.name, PUBLIC_COUNTRY_SEVERITY_API.name, PUBLIC_IP_SEVERITY_API.name];
     }
 
     if (options == 'csv') {
@@ -1052,34 +1047,24 @@ class ThreatsController extends Component {
   handleSearchSubmit = () => {
     const {activeTab, activeSubTab, subSectionsData, alertChartsList} = this.state;
     let tempSubSectionsData = {...subSectionsData};
+    let tempAlertChartsList = alertChartsList;
     tempSubSectionsData.mainData[activeTab] = [];
 
-    this.setState({
-      subSectionsData: tempSubSectionsData
-    });
+    _.forEach(tempAlertChartsList, (val, i) => {
+      tempAlertChartsList[i].chartData = null;
+    })
 
     this.loadTreeData();
 
-    if (activeSubTab === 'table') {
-      this.setState({
-        currentPage: 1,
-        oldPage: 1
-      }, () => {
-        this.loadTable('search');
-      });
-    } else if (activeSubTab === 'statistics') {
-      let tempAlertChartsList = alertChartsList;
-
-      _.forEach(tempAlertChartsList, (val, i) => {
-        tempAlertChartsList[i].chartData = null;
-      })
-
-      this.setState({
-        alertChartsList: tempAlertChartsList
-      }, () => {
-        this.loadTable(activeSubTab);
-      });
-    }
+    this.setState({
+      currentPage: 1,
+      oldPage: 1,
+      pageSize: 20,
+      subSectionsData: tempSubSectionsData,
+      alertChartsList: tempAlertChartsList
+    }, () => {
+      this.loadThreatsData('search');
+    });
   }
   /**
    * Handle alert search reset
@@ -1110,7 +1095,7 @@ class ThreatsController extends Component {
     this.setState({
       currentPage
     }, () => {
-      this.loadTable();
+      this.loadThreatsData();
     });
   }
   /**
@@ -1123,7 +1108,7 @@ class ThreatsController extends Component {
       currentPage: 1,
       pageSize: Number(pageSize)
     }, () => {
-      this.loadTable();
+      this.loadThreatsData();
     });
   }
   /**
@@ -1139,7 +1124,7 @@ class ThreatsController extends Component {
     this.setState({
       sort: tempSort
     }, () => {
-      this.loadTable();
+      this.loadThreatsData();
     });
   }
   /**
@@ -1323,19 +1308,12 @@ class ThreatsController extends Component {
    * @param {string} [refresh] - option for 'refresh'
    */
   handleDateChange = (datetime, refresh) => {
-    const {activeSubTab} = this.state;
-
     this.setState({
       datetime
     }, () => {
       if (refresh === 'refresh') {
         this.loadTreeData();
-
-        if (activeSubTab === 'table') {
-          this.loadTable('search');
-        } else if (activeSubTab === 'statistics') {
-          this.loadTable(activeSubTab);
-        }
+        this.loadThreatsData('search');
       }
     });
   }
@@ -1345,29 +1323,6 @@ class ThreatsController extends Component {
    * @param {string} newTab - content type ('table' or 'statistics')
    */
   handleSubTabChange = (newTab) => {
-    this.loadTreeData();
-
-    if (newTab === 'table') {
-      this.setState({
-        currentPage: 1,
-        pageSize: 20
-      }, () => {
-        this.loadTable('search');
-      });
-    } else if (newTab === 'statistics') {
-      let tempAlertChartsList = this.state.alertChartsList;
-
-      _.forEach(tempAlertChartsList, (val, i) => {
-        tempAlertChartsList[i].chartData = null;
-      })
-
-      this.setState({
-        alertChartsList: tempAlertChartsList
-      }, () => {
-        this.loadTable(newTab);
-      });
-    }
-
     this.setState({
       activeSubTab: newTab
     });
