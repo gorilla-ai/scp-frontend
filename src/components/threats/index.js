@@ -671,7 +671,7 @@ class ThreatsController extends Component {
     });
   }
   /**
-   * Construct data pie charts
+   * Construct data for pie charts
    * @method
    * @param {string} type - pie chart name
    * @returns chart data

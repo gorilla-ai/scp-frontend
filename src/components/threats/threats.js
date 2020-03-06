@@ -95,7 +95,7 @@ class Threats extends Component {
       )
     } else if (alertChartsList[i].type === 'table') {
       return (
-        <div className='chart-group full-width' key={alertChartsList[i].chartID}>
+        <div className='chart-group' key={alertChartsList[i].chartID}>
           {!alertChartsList[i].chartData &&
             <div className='empty-data'>
               <header>{alertChartsList[i].chartTitle}</header>
