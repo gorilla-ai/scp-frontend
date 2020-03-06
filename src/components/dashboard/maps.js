@@ -480,6 +480,13 @@ class DashboardMaps extends Component {
         }, () => {
           this.getFloorList();
         });
+      } else {
+        let tempAlertDetails = {...this.state.alertDetails};
+        tempAlertDetails.private.tree = [];
+
+        this.setState({
+          alertDetails: tempAlertDetails
+        });
       }
       return null;
     })
@@ -771,12 +778,16 @@ class DashboardMaps extends Component {
               ]}
               onChange={this.toggleMaps}
               value={mapType} />
-            <DropDownList
-              className='drop-down'
-              list={floorList}
-              onChange={this.getAreaData}
-              required={true}
-              value={currentFloor} />
+
+            {floorList.length > 0 &&
+              <DropDownList
+                className='drop-down'
+                list={floorList}
+                onChange={this.getAreaData}
+                required={true}
+                value={currentFloor} />
+            }
+
             {mapType === PRIVATE &&
               <div className='floor-map'>
                 <div className='left-tree'>

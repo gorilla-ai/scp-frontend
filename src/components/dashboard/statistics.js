@@ -11,6 +11,8 @@ import DataTable from 'react-ui/build/src/components/table'
 import Metric from 'react-chart/build/src/components/metric'
 import PieChart from 'react-chart/build/src/components/pie'
 
+import Highcharts from 'highcharts'
+
 import {BaseDataContext} from '../common/context';
 import helper from '../common/helper'
 import {HOC} from 'widget-builder'
@@ -294,6 +296,11 @@ class DashboardStats extends Component {
           updatedTime: helper.getFormattedDate(Moment()),
           alertDataArr,
           internalMaskedIpArr,
+          // internalMaskedIpArr: [{
+          //   ip: "192.168.5.0/24",
+          //   number: 2,
+          //   severity: "Alert"
+          // }],
           alertPieData: tempAlertPieData
         }, () => {
           this.getPieChartsData();
