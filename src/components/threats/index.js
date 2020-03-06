@@ -43,8 +43,11 @@ const EDGES_API = {
 const PRIVATE_SEVERITY_API = {
   name: 'InternalMaskedIpWithSeverity'
 };
-const PUBLIC_SEVERITY_API = {
+const PUBLIC_COUNTRY_SEVERITY_API = {
   name: 'ExternalSrcCountryWithSeverity'
+};
+const PUBLIC_IP_SEVERITY_API = {
+  name: 'ExternalSrcIpWithSeverity'
 };
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const ALERT_LEVEL_COLORS = {
@@ -96,6 +99,7 @@ const CHARTS_LIST = [
     key: 'IP'
   }
 ];
+const TABLE_CHARTS_LIST = ['alertThreatSubnet', 'alertThreatPrivate', 'alertThreatCountry', 'alertThreatPublic']
 
 /**
  * Threats
@@ -211,44 +215,7 @@ class ThreatsController extends Component {
       alertData: {},
       loadAlertData: true,
       alertPieData: {},
-      alertTableData: {
-        alertThreatSubnet: {
-          chartFieldsArr: ['Subnet'],
-          chartFields: {},
-          chartData: null,
-          sort: {
-            field: 'Subnet',
-            desc: true
-          }
-        },
-        alertThreatPrivate: {
-          chartFieldsArr: ['IP'],
-          chartFields: {},
-          chartData: null,
-          sort: {
-            field: 'IP',
-            desc: true
-          }
-        },
-        alertThreatCountry: {
-          chartFieldsArr: ['Subnet'],
-          chartFields: {},
-          chartData: null,
-          sort: {
-            field: 'Subnet',
-            desc: true
-          }
-        },
-        alertThreatPublic: {
-          chartFieldsArr: ['IP'],
-          chartFields: {},
-          chartData: null,
-          sort: {
-            field: 'IP',
-            desc: true
-          }
-        }
-      },
+      alertTableData: {},
       alertChartsList: []
     };
 
@@ -369,9 +336,22 @@ class ThreatsController extends Component {
 
     let tempAlertTableData = {...alertTableData};
 
+    _.forEach(TABLE_CHARTS_LIST, val => {
+      tempAlertTableData[val] = {
+        chartFieldsArr: ['key'],
+        chartFields: {},
+        chartData: null,
+        sort: {
+          field: 'key',
+          desc: false
+        }
+      };
+    })
+
     _.forEach(SEVERITY_TYPE, val => {
-      tempAlertTableData.alertThreatSubnet.chartFieldsArr.push(val);
-      tempAlertTableData.alertThreatPrivate.chartFieldsArr.push(val);
+       _.forEach(TABLE_CHARTS_LIST, val2 => {
+        tempAlertTableData[val2].chartFieldsArr.push(val);
+      })
     })
 
     this.setState({
@@ -496,6 +476,28 @@ class ThreatsController extends Component {
 
     ContextMenu.open(e, menuItems, 'eventsQueryMenu');
     e.stopPropagation();
+  }
+  /**
+   * Construct table data for Threats
+   * @method
+   * @param {string} type - threats table name
+   * @param {string} key - threats table field name for key
+   * @returns chart fields object
+   */
+  getThreatsTableData = (type, key) => {
+    const {alertTableData} = this.state;
+
+    let chartFields = {};
+    alertTableData[type].chartFieldsArr.forEach(tempData => {
+      chartFields[tempData] = {
+        label: tempData === 'key' ? key : tempData,
+        sortable: true,
+        formatter: (value, allValue, i) => {
+          return <span>{value}</span>
+        }
+      };
+    })
+    return chartFields;
   }
   /**
    * Get and set alert data
@@ -646,50 +648,16 @@ class ThreatsController extends Component {
             }
           ];
 
-          const privateSubnetParent = data.aggregations[PRIVATE_SEVERITY_API.name];
-          const publicCountryParent = data.aggregations[PUBLIC_SEVERITY_API.name];
           let tempAlertTableData = {...alertTableData};
-          let privateSubnetObj = {};
-          let privateSubnetArr = [];
-          let publicCountryObj = {};
-          let publicCountryArr = [];
+          tempAlertTableData.alertThreatSubnet.chartData = data.aggregations[PRIVATE_SEVERITY_API.name].chartMaskedIpArr;
+          tempAlertTableData.alertThreatPrivate.chartData = data.aggregations[PRIVATE_SEVERITY_API.name].chartIpArr;
+          tempAlertTableData.alertThreatCountry.chartData = data.aggregations[PUBLIC_COUNTRY_SEVERITY_API.name];
+          tempAlertTableData.alertThreatPublic.chartData = data.aggregations[PUBLIC_IP_SEVERITY_API.name];
 
-          _.forEach(privateSubnetParent, (val, key) => {
-            if (key === 'doc_count') return;
-            if (privateSubnetParent[key].doc_count === 0) return;
-
-            privateSubnetObj[key] = {};
-
-            _.forEach(privateSubnetParent[key], (val2, key2) => {
-              _.forEach(SEVERITY_TYPE, val3 => {
-                if (val3 === key2) {
-                  privateSubnetObj[key][val3] = privateSubnetParent[key][val3].doc_count;
-                }
-              })
-            })
-          })
-
-          _.forEach(privateSubnetObj, (val, key) => {
-            privateSubnetArr.push({
-              Subnet: key,
-              ...val
-            });
-          })
-
-          tempAlertTableData.alertThreatSubnet.chartData = privateSubnetArr;
-
-          let chartFields = {};
-          alertTableData.alertThreatSubnet.chartFieldsArr.forEach(tempData => {
-            chartFields[tempData] = {
-              label: tempData,
-              sortable: true,
-              formatter: (value, allValue, i) => {
-                return <span>{value}</span>
-              }
-            };
-          })
-
-          tempAlertTableData.alertThreatSubnet.chartFields = chartFields;
+          tempAlertTableData.alertThreatSubnet.chartFields = this.getThreatsTableData('alertThreatSubnet', 'Subnet');
+          tempAlertTableData.alertThreatPrivate.chartFields = this.getThreatsTableData('alertThreatPrivate', 'IP');
+          tempAlertTableData.alertThreatCountry.chartFields = this.getThreatsTableData('alertThreatCountry', t('attacksFields.srcCountry'));
+          tempAlertTableData.alertThreatPublic.chartFields = this.getThreatsTableData('alertThreatPublic', 'IP');
 
           this.setState({
             alertPieData: tempAlertPieData,
@@ -703,6 +671,35 @@ class ThreatsController extends Component {
     });
   }
   /**
+   * Construct data pie charts
+   * @method
+   * @param {string} type - pie chart name
+   * @returns chart data
+   */
+  getPieChartData = (type) => {
+    const {alertPieData} = this.state;
+    let chartData = null; //Data has not been loaded, show spinning icon
+    let i = null;
+
+    _.forEach(alertPieData[type], val => {
+      i = 'loop';
+
+      if (val.doc_count > 0) {
+        i = 'data';
+        return false;
+      }
+    })
+
+    if (i) {
+      if (i === 'data') {
+        chartData = alertPieData[type]; //Data is found, show data
+      } else if (i === 'loop') {
+        chartData = []; //Data is not found, show not found message
+      }
+    }
+    return chartData;
+  }
+  /**
    * Construct and set the charts
    * @method
    */
@@ -712,37 +709,10 @@ class ThreatsController extends Component {
 
     _.forEach(alertChartsList, val => {
       if (val.type === 'pie') {
-        if (val.chartID === 'alertThreatLevel') { //Handle special case for Alert Threat Level
-          let chartData = null; //Data has not been loaded, show spinning icon
-          let i = null;
-
-          _.forEach(alertPieData.alertThreatLevel, val2 => {
-            i = 'loop';
-
-            if (val2.doc_count > 0) {
-              i = 'data';
-              return false;
-            }
-          })
-
-          if (i) {
-            if (i === 'data') {
-              chartData = alertPieData[val.chartID]; //Data is found, show data
-            } else if (i === 'loop') {
-              chartData = []; //Data is not found, show not found message
-            }
-          }
-
-          tempAlertChartsList.push({
-            ...val,
-            chartData
-          });
-        } else {
-          tempAlertChartsList.push({
-            ...val,
-            chartData: alertPieData[val.chartID]
-          });
-        }
+        tempAlertChartsList.push({
+          ...val,
+          chartData: this.getPieChartData(val.chartID)
+        });
       } else if (val.type === 'table') {
         tempAlertChartsList.push({
           ...val,
@@ -787,7 +757,7 @@ class ThreatsController extends Component {
     }
 
     if (options === 'statistics') {
-      dataObj.search = [PRIVATE_API.name, PUBLIC_API.name, PRIVATE_SEVERITY_API.name, PUBLIC_SEVERITY_API.name];
+      dataObj.search = [PRIVATE_API.name, PUBLIC_API.name, PRIVATE_SEVERITY_API.name, PUBLIC_COUNTRY_SEVERITY_API.name, PUBLIC_IP_SEVERITY_API.name];
     }
 
     if (options == 'csv') {
