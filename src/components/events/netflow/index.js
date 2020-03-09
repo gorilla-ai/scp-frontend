@@ -416,16 +416,6 @@ class Netflow extends Component {
 
         this.setState({
           eventsCount: tempEventsCount
-        }, () => {
-          if (options === 'loadFields') {
-            this.loadFields(activeTab);
-          } else {
-            if (activeTab === 'connections') {
-              this.loadActiveSubTab(options);
-            } else {
-              this.loadSubSections(options);
-            }
-          }
         });
       }
       return null;
@@ -433,6 +423,16 @@ class Netflow extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+
+    if (options === 'loadFields') {
+      this.loadFields(activeTab);
+    } else {
+      if (activeTab === 'connections') {
+        this.loadActiveSubTab(options);
+      } else {
+        this.loadSubSections(options);
+      }
+    }
   }
   /**
    * Get and set event fields of the account

@@ -262,8 +262,14 @@ class DashboardStats extends Component {
               if (chartData.length > 0) {
                 _.forEach(chartData, val2 => {
                   if (val2.key) { //Remove empty data
+                    let newValue = val2.key;
+
+                    if (newValue.length > 18) {
+                      newValue = newValue.substr(0, 18) + '...';
+                    }
+
                     tempArr.push({
-                      key: val2.key,
+                      key: newValue,
                       doc_count: val2.doc_count
                     });
                   }
@@ -785,6 +791,11 @@ class DashboardStats extends Component {
                     dateTimeLabelFormats: {
                       day: '%H:%M'
                     }
+                  }}
+                  plotOptions={{
+                    series: {
+                      maxPointWidth: 20
+                    }
                   }} />
               }
             </div>
@@ -817,6 +828,11 @@ class DashboardStats extends Component {
                   }}
                   xAxis={{
                     type:'category'
+                  }}
+                  plotOptions={{
+                    series: {
+                      maxPointWidth: 20
+                    }
                   }}
                   keyLabels={{
                     ip: 'IP',

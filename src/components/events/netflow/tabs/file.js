@@ -74,32 +74,34 @@ class File extends Component {
               onChange={mainContentData.handleSubTabChange}>
             </Tabs>
 
-            <div className='file-options'>
-              <div className='c-flex aic imgCheckBox'>
-                <label htmlFor='showImgCheckbox'>{t('events.connections.txt-showImageOnly')}</label>
-                <Checkbox
-                  id='showImgCheckbox'
-                  onChange={mainContentData.handleShowImgCheckbox}
-                  checked={mainContentData.showImageValue}
-                  disabled={mainContentData.displayImgType === 'grid'} />
+            {mainContentData.dataTableData && mainContentData.dataTableData.length > 0 &&
+              <div className='file-options'>
+                <div className='c-flex aic imgCheckBox'>
+                  <label htmlFor='showImgCheckbox'>{t('events.connections.txt-showImageOnly')}</label>
+                  <Checkbox
+                    id='showImgCheckbox'
+                    onChange={mainContentData.handleShowImgCheckbox}
+                    checked={mainContentData.showImageValue}
+                    disabled={mainContentData.displayImgType === 'grid'} />
+                </div>
+                {mainContentData.showImageValue &&
+                  <RadioGroup
+                    className='display-file-type'
+                    list={[
+                      {
+                        value: 'list',
+                        text: t('txt-list')
+                      },
+                      {
+                        value: 'grid',
+                        text: t('txt-grid')
+                      }
+                    ]}
+                    onChange={mainContentData.handleDisplayChange}
+                    value={mainContentData.displayImgType}/>
+                }
               </div>
-              {mainContentData.showImageValue &&
-                <RadioGroup
-                  className='display-file-type'
-                  list={[
-                    {
-                      value: 'list',
-                      text: t('txt-list')
-                    },
-                    {
-                      value: 'grid',
-                      text: t('txt-grid')
-                    }
-                  ]}
-                  onChange={mainContentData.handleDisplayChange}
-                  value={mainContentData.displayImgType}/>
-              }
-            </div>
+            }
 
             {mainContentData.displayImgType === 'grid' &&
               <div className='grid-flex'>

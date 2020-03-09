@@ -388,6 +388,11 @@ class ThreatIntelligence extends Component {
                           dateTimeLabelFormats: {
                             day: '%Y-%m-%d'
                           }
+                        }}
+                        plotOptions={{
+                          series: {
+                            maxPointWidth: 20
+                          }
                         }} />
                     }
                   </div>

@@ -132,6 +132,11 @@ class ChartContent extends Component {
         dateTimeLabelFormats: {
           day: '%H:%M'
         }
+      },
+      plotOptions: {
+        series: {
+          maxPointWidth: 20
+        }
       }
     };
 
