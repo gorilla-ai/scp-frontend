@@ -5,6 +5,7 @@ import { BrowserRouter, Switch, Route, Link } from 'react-router-dom'
 import Promise from 'bluebird'
 import $ from 'jquery'
 import i18n from 'i18next'
+import Highcharts from 'highcharts'
 import Moment from 'moment'
 
 import {HocDashboardMaps as DashboardMaps} from './components/dashboard/maps'
@@ -47,6 +48,10 @@ const year = Moment().year();
 const session = initialState.session;
 const log = logger(cfg.env, loglevel, cfg.log);
 const footerText = `Powered by ${companyName}. Copyright © ${companyName}. ${year} All Rights Reserved. ${cfg.version} For the best experience, use the latest version of Google Chrome`;
+
+Highcharts.setOptions({
+  colors: ['#069BDA', '#57C3D9', '#57D998', '#6CD957', '#C3D957', '#D99857', '#D9576C', '#D957C3', '#9857D9', '#576CD9', '#5798D9', '#57D9C3', '#57D96C', '#98D957', '#D9C357', '#D96C57', '#D95798', '#C357D9', '#6C57D9']
+});
 
 const HeaderComp = () => (
   <BaseDataContext.Provider value={baseData}>

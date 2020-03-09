@@ -11,8 +11,6 @@ import DataTable from 'react-ui/build/src/components/table'
 import Metric from 'react-chart/build/src/components/metric'
 import PieChart from 'react-chart/build/src/components/pie'
 
-import Highcharts from 'highcharts'
-
 import {BaseDataContext} from '../common/context';
 import helper from '../common/helper'
 import {HOC} from 'widget-builder'
