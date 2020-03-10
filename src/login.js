@@ -34,7 +34,7 @@ class Login extends Component {
     this.state = {
       info: null,
       error: false,
-      license: false
+      license: null
     };
 
     this.ah = getInstance('chewbacca');
@@ -241,7 +241,9 @@ class Login extends Component {
     const {baseUrl, contextRoot} = this.props;
     const {license} = this.state;
 
-    if (license) {
+    if (license === null) {
+      return <div id='g-login' className='c-center'></div>
+    } else if (license) {
       return this.renderLogin();
     } else {
       return (
