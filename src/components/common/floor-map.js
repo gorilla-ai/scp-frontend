@@ -29,7 +29,7 @@ class FloorMap extends Component {
 
     this.state = {
       floorPlan: {
-        treeData: {},
+        treeData: [],
         type: '',
         rootAreaUUID: '',
         currentAreaUUID: '',
@@ -82,10 +82,16 @@ class FloorMap extends Component {
             this.getAreaData(areaUUID);
           });
         } else {
-          tempFloorPlan.type = 'add';
-
           this.setState({
-            floorPlan: tempFloorPlan,
+            floorPlan: {
+              treeData: [],
+              type: 'add',
+              rootAreaUUID: '',
+              currentAreaUUID: '',
+              currentAreaName: '',
+              name: '',
+              map: null
+            },
             previewFloorMap: ''
           });
         }

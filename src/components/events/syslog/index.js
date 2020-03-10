@@ -788,7 +788,7 @@ class SyslogController extends Component {
   handleSearchSubmit = (fromSearch) => {
     const {activeTab, subSectionsData} = this.state;
     let tempSubSectionsData = {...subSectionsData};
-    tempSubSectionsData.mainData[activeTab] = [];
+    tempSubSectionsData.mainData[activeTab] = null;
 
     this.setState({
       subSectionsData: tempSubSectionsData

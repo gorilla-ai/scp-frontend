@@ -481,12 +481,7 @@ class DashboardMaps extends Component {
           this.getFloorList();
         });
       } else {
-        let tempAlertDetails = {...this.state.alertDetails};
-        tempAlertDetails.private.tree = [];
-
-        this.setState({
-          alertDetails: tempAlertDetails
-        });
+        this.loadAlertPrivateData(); //No floor map
       }
       return null;
     })

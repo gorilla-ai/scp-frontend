@@ -1178,30 +1178,14 @@ class NetworkInventory extends Component {
     }
 
     this.setState({
-      deviceData: tempDeviceData
+      deviceData: tempDeviceData,
+      showSeatData: false
     }, () => {
       const {deviceData} = this.state;
       const index = deviceData.hmdOnly.currentIndex;
       const allValue = deviceData.hmdOnly.dataContent[index];
 
-      this.openDetailInfo(index, allValue);
-    });
-  }
-  /**
-   * Set new IP device data
-   * @method
-   * @param {string} index - index of the IP device data
-   * @param {object} allValue - IP device data
-   */
-  openDetailInfo = (index, allValue) => {
-    let tempDeviceData = {...this.state.deviceData};
-    tempDeviceData.hmdOnly.currentIndex = Number(index);
-
-    this.setState({
-      showSeatData: false,
-      deviceData: tempDeviceData,
-      currentDeviceData: allValue,
-      activeIPdeviceUUID: allValue.ipDeviceUUID
+      this.getIPdeviceInfo(index, allValue.ipDeviceUUID);
     });
   }
   /**
@@ -1316,24 +1300,19 @@ class NetworkInventory extends Component {
    * Get and set IP device data (old api)
    * @method
    * @param {string} index - index of the IP devicde data
-   * @param {string} ipDeviceUUID - IP device UUID
+   * @param {string | number} ipDeviceUUID - IP device UUID
    * @param {string} options - option for 'oneDevice'
    */
   getIPdeviceInfo = (index, ipDeviceUUID, options) => {
     const {baseUrl} = this.context;
-    const {deviceData, currentDeviceData} = this.state;
-    let tempDeviceData = {...deviceData};
+    let tempDeviceData = {...this.state.deviceData};
 
     if (!ipDeviceUUID) {
       return;
     }
 
-    if (index) {
-      _.forEach(deviceData.hmdOnly.dataContent, (val, i) => {
-        if (val.ipDeviceUUID === ipDeviceUUID) {
-          tempDeviceData.hmdOnly.currentIndex = i;
-        }
-      })
+    if (index || index.toString()) {
+      tempDeviceData.hmdOnly.currentIndex = Number(index);
     }
 
     this.ah.one({

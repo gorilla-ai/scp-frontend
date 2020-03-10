@@ -1048,7 +1048,7 @@ class ThreatsController extends Component {
     const {activeTab, subSectionsData, alertChartsList} = this.state;
     let tempSubSectionsData = {...subSectionsData};
     let tempAlertChartsList = alertChartsList;
-    tempSubSectionsData.mainData[activeTab] = [];
+    tempSubSectionsData.mainData[activeTab] = null;
 
     _.forEach(tempAlertChartsList, (val, i) => {
       tempAlertChartsList[i].chartData = null;
