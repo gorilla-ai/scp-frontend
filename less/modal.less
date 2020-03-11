@@ -412,6 +412,16 @@
     border: 1px solid #ccc;
     border-radius: 5px;
     background-color: #f2f2f2;
+    .sync-status {
+      margin-bottom: 10px;
+      background-color: #d9d9d9;
+      color: #d10d25;
+      border-radius: 5px;
+      padding: 5px;
+      .fg-alert-1 {
+        float: left;
+      }
+    }
     .info-content {
       overflow: hidden;
       clear: both;
@@ -421,21 +431,12 @@
         padding-top: 15px;
         overflow: hidden;
         .last-update {
-          float: left;
+          float: right;
           margin-top: 5px;
-          span {
-            margin-right: 20px;
-          }
-        }
-        .pass-total {
-          position: absolute;
-          right: 95px;
-          top: 20px;
         }
         .btn {
-          position: absolute;
-          top: 15px;
-          right: 0;
+          float: right;
+          margin-left: 10px;
           padding: .3em .5em;
         }
       }
@@ -455,9 +456,12 @@
           min-width: 140px;
           text-align: center;
         }
+        .empty-msg {
+          margin-top: 10px;
+        }
       }
       .scan-content {
-        margin-top: 15px;
+        margin-top: 10px;
         border-top: 2px solid #ccc;
         border-bottom: 2px solid #ccc;
         & > .header {
@@ -542,6 +546,18 @@
               .sub-content.hide {
                 display: none;
               }
+            }
+          }
+        }
+      }
+      .scan-wrapper {
+        margin-top: 15px;
+        .scan-section {
+          margin-bottom: 25px;
+          .scan-header {
+            display: block;
+            span {
+              margin-right: 15px;
             }
           }
         }
@@ -782,17 +798,19 @@
   .scan-info {
     min-height: 365px;
     padding: 0;
+    margin-top: 0;
     border: none;
     .info-content {
       .table {
-        height: 265px;
         width: 705px;
       }
       .scan-content {
         .list {
-          max-height: 235px;
           width: 705px;
         }
+      }
+      .scan-wrapper {
+        margin-top: 5px;
       }
     }
   }
@@ -843,19 +861,6 @@
           margin-bottom: 5px;
           span {
             margin-right: 15px;
-          }
-        }
-      }
-      .scan-wrapper {
-        margin-top: 10px;
-        .scan-section {
-          margin-bottom: 25px;
-          .scan-header {
-            display: block;
-            margin-bottom: -10px;
-            span {
-              margin-right: 15px;
-            }
           }
         }
       }

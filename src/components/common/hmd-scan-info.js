@@ -63,6 +63,9 @@ class HMDscanInfo extends Component {
 
     this.state = {
       activeTab: 'yara', //yara, yaraScanFile, malware, gcb, ir
+      syncStatus: '',
+      syncTime: '',
+      buttonGroupList: [],
       activePath: null,
       activeRuleHeader: false,
       activeRule: [],
@@ -81,10 +84,12 @@ class HMDscanInfo extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    this.loadInitialContent();
     this.loadHMDdata();
   }
   componentDidUpdate(prevProps) {
     if (!prevProps || (this.props.currentDeviceData !== prevProps.currentDeviceData)) {
+      this.loadInitialContent();
       this.loadHMDdata();
     }
 
@@ -101,6 +106,40 @@ class HMDscanInfo extends Component {
       hasMore: true
     });
   }
+  /**
+   * Set sync status and button group list
+   * @method
+   */
+  loadInitialContent = () => {
+    const {currentDeviceData} = this.props;
+    let syncStatus = '';
+    let syncTime = '';
+    let buttonGroupList = [];
+
+    if (currentDeviceData.syncYaraResult && currentDeviceData.syncYaraResult.length > 0) {
+      if (currentDeviceData.syncYaraResult[0].status === 'failed') {
+        syncStatus = 'show';
+        syncTime = helper.getFormattedDate(currentDeviceData.syncYaraResult[0].latestCreateDttm, 'local');
+      }
+    }
+
+    _.forEach(SAFETY_SCAN_LIST, val => {
+      buttonGroupList.push({ //Create list for Button group
+        value: val.type,
+        text: t('network-inventory.scan-list.txt-' + val.type)
+      });
+    });
+
+    this.setState({
+      syncStatus,
+      syncTime,
+      buttonGroupList
+    });
+  }
+  /**
+   * Load and set HMD data
+   * @method
+   */
   loadHMDdata = () => {
     const {locale} = this.context;
     const {currentDeviceData} = this.props;
@@ -623,7 +662,7 @@ class HMDscanInfo extends Component {
       if (gcbFilteredResult) {
         const styleColor = gcbFilteredResult.length === gcbDataResult.length ? '#22ac38' : '#d10d25'; //green : red
 
-        return <span className='pass-total' style={{'color': styleColor}}>{t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}: {gcbFilteredResult.length}/{gcbDataResult.length}</span>
+        return <span style={{'color': styleColor}}>{t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}: {gcbFilteredResult.length}/{gcbDataResult.length}</span>
       }
     }
   }
@@ -703,8 +742,8 @@ class HMDscanInfo extends Component {
     return (
       <div className='scan-section' key={i}>
         <div className='scan-header'>
-          <span>{t('network-inventory.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local')}</span>
-          <span>{t('network-inventory.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local')}</span>
+          <span>{t('network-inventory.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local') || NOT_AVAILABLE}</span>
+          <span>{t('network-inventory.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}</span>
           {this.getSuspiciousFileCount(dataResult)}
         </div>
         <div className='scan-content'>
@@ -756,7 +795,7 @@ class HMDscanInfo extends Component {
     }
 
     if (data.length === 0) {
-      return NOT_AVAILABLE;
+      return <div className='empty-msg'>{NOT_AVAILABLE}</div>
     }
 
     if (data.length > 0) {
@@ -780,13 +819,16 @@ class HMDscanInfo extends Component {
     const {activeTab} = this.state;
 
     return (
-      <div className={cx('table', {'malware': activeTab === 'malware'})}>
-        <div className='scan-header'>
-          <span>{t('network-inventory.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local')}</span>
-          <span>{t('network-inventory.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local')}</span>
-          {activeTab === 'malware' && this.getSuspiciousFileCount(val.DetectionResult)}
+      <div className='scan-section' key={i}>
+        <div className={cx('table', {'malware': activeTab === 'malware'})}>
+          <div className='scan-header'>
+            <span>{t('network-inventory.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local') || NOT_AVAILABLE}</span>
+            <span>{t('network-inventory.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}</span>
+            {activeTab === 'malware' && this.getSuspiciousFileCount(val.DetectionResult)}
+            {activeTab === 'gcb' && this.getPassTotalCount()}
+          </div>
+          {this.displayDataTable(activeTab, val)}
         </div>
-        {this.displayDataTable(activeTab, val)}
       </div>
     )
   }
@@ -801,8 +843,8 @@ class HMDscanInfo extends Component {
     return (
       <div className='scan-section' key={i}>
         <div className='scan-header'>
-          <span>{t('network-inventory.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local')}</span>
-          <span>{t('network-inventory.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local')}</span>
+          <span>{t('network-inventory.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local') || NOT_AVAILABLE}</span>
+          <span>{t('network-inventory.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}</span>
         </div>
         <div className='scan-content'>
           <div className='header'>{t('network-inventory.txt-irMsg')}:</div>
@@ -810,6 +852,21 @@ class HMDscanInfo extends Component {
         </div>
       </div>
     )
+  }
+  /**
+   * Get table height for scan content
+   * @method
+   * @returns table height in px
+   */
+  getContentHeight = () => {
+    const {page} = this.props;
+    const {syncStatus} = this.state;
+
+    if (page === 'threats') {
+      return syncStatus ? 300 : 340;
+    } else if (page === 'inventory') {
+      return syncStatus ? 428 : 435;
+    }
   }
   /**
    * Display content for HMD tabs
@@ -838,7 +895,7 @@ class HMDscanInfo extends Component {
             next={this.loadMoreContent}
             hasMore={hasMore}
             loader={loader}
-            height={435}>
+            height={this.getContentHeight()}>
             {hmdData.map(displayContent)}
           </InfiniteScroll>
         </div>
@@ -858,20 +915,15 @@ class HMDscanInfo extends Component {
     return 'scan-file' + tempData;
   }
   render() {
-    const {activeTab, hmdInfo} = this.state;
-    let buttonGroupList = [];
-
-    if (!_.isEmpty(hmdInfo)) {
-      _.forEach(SAFETY_SCAN_LIST, val => {
-        buttonGroupList.push({ //Create list for Button group
-          value: val.type,
-          text: t('network-inventory.scan-list.txt-' + val.type)
-        });
-      });
-    }
+    const {activeTab, syncStatus, syncTime, buttonGroupList, hmdInfo} = this.state;
 
     return (
       <div className='scan-info'>
+        {syncStatus &&
+          <div className='sync-status'>
+            <span className='fg fg-alert-1'></span>Sync YARA rule fail: {syncTime}
+          </div>
+        }
         <ButtonGroup
           className='left'
           list={buttonGroupList}
@@ -882,12 +934,10 @@ class HMDscanInfo extends Component {
           {!_.isEmpty(hmdInfo) &&
             <div>
               <div className='info'>
-                <div className='last-update'>
-                  <span>{t('network-inventory.txt-latestCreateTime')}: {hmdInfo[activeTab].latestCreateDttm || hmdInfo[activeTab].createTime || NOT_AVAILABLE}</span>
-                  <span>{t('network-inventory.txt-latestResponseTime')}: {hmdInfo[activeTab].responseTime || NOT_AVAILABLE}</span>
-                </div>
-                {activeTab === 'gcb' && this.getPassTotalCount()}
                 {this.getTriggerBtn()} {/*For all*/}
+                <div className='last-update'>
+                  <span>{t('network-inventory.txt-createTime')}: {hmdInfo[activeTab].latestCreateDttm || hmdInfo[activeTab].createTime || NOT_AVAILABLE}</span>
+                </div>
               </div>
               {this.getMainContent()}
             </div>
@@ -901,6 +951,7 @@ class HMDscanInfo extends Component {
 HMDscanInfo.contextType = BaseDataContext;
 
 HMDscanInfo.propTypes = {
+  page: PropTypes.string.isRequired,
   currentDeviceData: PropTypes.object.isRequired,
   toggleSelectionIR: PropTypes.func.isRequired,
   triggerTask: PropTypes.func.isRequired

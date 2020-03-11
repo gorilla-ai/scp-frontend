@@ -417,7 +417,14 @@ class NetworkInventory extends Component {
                   return <span>{allValue.seatObj.seatName}</span>
                 }
               } else if (tempData === 'scanInfo') {
+                let syncStatus = '';
                 let hmdInfo = [];
+
+                if (allValue.syncYaraResult && allValue.syncYaraResult.length > 0) {
+                  if (allValue.syncYaraResult[0].status === 'failed') {
+                    syncStatus = 'show';
+                  }
+                }
 
                 _.forEach(SAFETY_SCAN_LIST, val => { //Construct the HMD info array
                   const dataType = val.type + 'Result';
@@ -427,13 +434,16 @@ class NetworkInventory extends Component {
                     hmdInfo.push({
                       type: val.type,
                       name: t('network-inventory.scan-list.txt-' + val.type),
-                      result: currentDataObj[val.path]
+                      result: currentDataObj[0][val.path]
                     });
                   }
                 })
 
                 return (
                   <ul>
+                    {syncStatus &&
+                      <li style={{'color': '#d10d25'}}><span>Error: Sync YARA rule fail</span></li>
+                    }
                     {hmdInfo.map(this.getHMDinfo)}
                   </ul>
                 )
@@ -1428,6 +1438,7 @@ class NetworkInventory extends Component {
         </table>
 
         <HMDscanInfo
+          page='inventory'
           currentDeviceData={currentDeviceData}
           toggleSelectionIR={this.toggleSelectionIR}
           showAlertData={this.showAlertData}

@@ -1362,6 +1362,7 @@ class AlertDetails extends Component {
     if (ipDeviceInfo[type].isHmd) {
       return (
         <HMDscanInfo
+          page='threats'
           ipType={type}
           currentDeviceData={ipDeviceInfo[type]}
           toggleSelectionIR={this.toggleSelectionIR}

@@ -393,8 +393,6 @@
     "txt-backToList": "$t(txt-back) to $t(txt-listText)",
     "txt-backToMap": "$t(txt-back) to $t(txt-map)",
     "txt-lastUpdate": "Last Update",
-    "txt-latestCreateTime": "Latest Create Time",
-    "txt-latestResponseTime": "Latest Response Time",
     "txt-createTime": "Create Time",
     "txt-responseTime": "Response Time",
     "txt-suspiciousFileCount": "Suspicious File Count",
