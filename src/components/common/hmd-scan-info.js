@@ -312,11 +312,11 @@ class HMDscanInfo extends Component {
     const {currentDeviceData} = this.props;
     const resultType = type + 'Result';
 
-    if (currentDeviceData[resultType]) {
-      if (currentDeviceData[resultType].latestCreateDttm) {
-        if (currentDeviceData[resultType].taskResponseDttm) {
-          const latestCreateTime = helper.getFormattedDate(currentDeviceData[resultType].latestCreateDttm, 'local');
-          const responseTime = helper.getFormattedDate(currentDeviceData[resultType].taskResponseDttm, 'local');
+    if (currentDeviceData[resultType] && currentDeviceData[resultType].length > 0) {
+      if (currentDeviceData[resultType][0].latestCreateDttm) {
+        if (currentDeviceData[resultType][0].taskResponseDttm) {
+          const latestCreateTime = helper.getFormattedDate(currentDeviceData[resultType][0].latestCreateDttm, 'local');
+          const responseTime = helper.getFormattedDate(currentDeviceData[resultType][0].taskResponseDttm, 'local');
           return Moment(latestCreateTime).isAfter(responseTime);
         } else {
           return true; //Disable when create dttm is available and resonse dttm is N/A
@@ -733,6 +733,10 @@ class HMDscanInfo extends Component {
     const dataResult = this.sortedRuleList(val.ScanResult);
     let scanPath = '';
 
+    if (!val.taskResponseDttm) {
+      return;
+    }
+
     if (activeTab === 'yara') {
       scanPath = this.displayScanProcessPath.bind(this, i);
     } else if (activeTab === 'yaraScanFile') {
@@ -817,6 +821,10 @@ class HMDscanInfo extends Component {
    */
   displayTableContent = (val, i) => {
     const {activeTab} = this.state;
+
+    if (!val.taskResponseDttm) {
+      return;
+    }
 
     return (
       <div className='scan-section' key={i}>
