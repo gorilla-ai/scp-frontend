@@ -430,7 +430,7 @@ class NetworkInventory extends Component {
                   const dataType = val.type + 'Result';
                   const currentDataObj = allValue[dataType];
 
-                  if (!_.isEmpty(currentDataObj)) {
+                  if (currentDataObj && currentDataObj.length > 0) {
                     hmdInfo.push({
                       type: val.type,
                       name: t('network-inventory.scan-list.txt-' + val.type),
