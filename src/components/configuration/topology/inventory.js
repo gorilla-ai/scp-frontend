@@ -1108,6 +1108,17 @@ class NetworkInventory extends Component {
     if (type === 'view') {
       this.getOwnerSeat(allValue);
     } else if (type === 'hmd') {
+      const {hmdCheckbox, deviceData} = this.state;
+
+      if (!hmdCheckbox) {
+        _.forEach(deviceData.hmdOnly.dataContent, (val, i) => {
+          if (val.ipDeviceUUID === allValue.ipDeviceUUID) {
+            index = i;
+            return false;
+          }
+        })
+      }
+
       this.getIPdeviceInfo(index, allValue.ipDeviceUUID);
     } else if (type === 'delete') {
       this.openDeleteDeviceModal(allValue);
@@ -3150,7 +3161,7 @@ class NetworkInventory extends Component {
                 <div className='content-header-btns'>
                   <button className='standard btn' onClick={this.handleRowContextMenu}>{t('network-inventory.txt-addIP')}</button>
                   <button className='standard btn' onClick={this.toggleContent.bind(this, 'showAuto')}>{t('network-inventory.txt-autoSettings')}</button>
-                  <button className='standard btn'><Link to='/SCP/configuration/notifications'>{t('notifications.txt-settings')}</Link></button>
+                  <Link to='/SCP/configuration/notifications'><button className='standard btn'>{t('notifications.txt-settings')}</button></Link>
                 </div>
 
                 {activeTab === 'deviceList' && showCsvData &&

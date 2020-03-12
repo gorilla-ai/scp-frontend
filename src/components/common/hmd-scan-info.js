@@ -801,7 +801,7 @@ class HMDscanInfo extends Component {
     if (data.length > 0) {
       return (
         <DataTable
-          className={cx('main-table', {'malware': activeTab === 'malware'})}
+          className='main-table'
           fields={hmdInfo[activeTab].fields}
           data={data}
           onSort={this.handleTableSort} />
@@ -876,7 +876,7 @@ class HMDscanInfo extends Component {
   getMainContent = () => {
     const {activeTab, hmdInfo, hasMore} = this.state;
     const hmdData = hmdInfo[activeTab].data;
-    const loader = <span><i className='fg fg-loading-2'></i></span>;
+    const loader = '';
     let displayContent = '';
 
     if (activeTab === 'yara' || activeTab === 'yaraScanFile') {

@@ -405,6 +405,23 @@
       text-align: center;
     }
   }
+  .main-table {
+    thead {
+      border-top: 1px solid #d9d9d9;
+      tr {
+        color: #185e9e;
+        background-color: #f7f7f7;
+      }
+    }
+    tbody {
+      tr.align-center td {
+        text-align: center;
+      }
+    }
+    span[title] {
+      cursor: default;
+    }
+  }
   .scan-info {
     overflow: hidden;
     margin-top: 10px;
@@ -554,8 +571,13 @@
         margin-top: 15px;
         .scan-section {
           margin-bottom: 25px;
+          padding: 10px;
+          border: 1px solid #ccc;
+          border-radius: 10px;
+          margin-bottom: 20px;
           .scan-header {
             display: block;
+            margin-bottom: 10px;
             span {
               margin-right: 15px;
             }
@@ -802,15 +824,19 @@
     border: none;
     .info-content {
       .table {
-        width: 705px;
+        max-height: 315px;
+        width: 670px;
       }
       .scan-content {
         .list {
-          width: 705px;
+          height: 260px;
         }
       }
       .scan-wrapper {
         margin-top: 5px;
+        .scan-section {
+          width: 690px;  
+        }
       }
     }
   }
@@ -828,40 +854,22 @@
         border: 1px solid #ccc !important;
       }
     }
-    &.malware {
-      width: 1070px;
-    }
-    thead {
-      border-top: 1px solid #d9d9d9;
-      tr {
-        color: #185e9e;
-        background-color: #f7f7f7;
-      }
-    }
-    tbody {
-      tr.align-center td {
-        text-align: center;
-      }
-    }
-    span[title] {
-      cursor: default;
-    }
   }
   .scan-info {
     min-height: 550px;
     .info-content {
       .table {
-        max-height: 425px;
-        min-height: 130px;
-        &.malware {
-          margin-bottom: 25px;
+        max-height: 405px;
+        width: 885px;
+      }
+      .scan-content {
+        .list {
+          height: 340px;
         }
-        .scan-header {
-          display: block;
-          margin-bottom: 5px;
-          span {
-            margin-right: 15px;
-          }
+      }
+      .scan-wrapper {
+        .scan-section {
+          width: 905px;  
         }
       }
     }

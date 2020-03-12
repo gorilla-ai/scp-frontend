@@ -906,7 +906,7 @@ class Edge extends Component {
                 <header className='main-header'>{t('txt-edge')}</header>
 
                 <div className='content-header-btns'>
-                  <button className='standard btn'><Link to='/SCP/configuration/notifications'>{t('notifications.txt-settings')}</Link></button>
+                  <Link to='/SCP/configuration/notifications'><button className='standard btn'>{t('notifications.txt-settings')}</button></Link>
                 </div>
 
                 <TableContent

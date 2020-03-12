@@ -594,158 +594,160 @@ class AutoSettings extends Component {
             </div>
           }
 
-          <div className='form-group normal'>
-            <header>{t('network-inventory.auto-settings.txt-ipRange')}</header>
-            <ToggleBtn
-              className='toggle-btn'
-              onText='On'
-              offText='Off'
-              on={statusEnable.ipRange}
-              onChange={this.handleStatusChange.bind(this, 'ipRange')}
-              disabled={activeContent === 'viewMode'} />
-            <div className='group full multi'>
-              <label id='ipRangeLabel' htmlFor='autoSettingsIpRange'>
-                <span style={{width: this.getInputWidth('ipRange')}}>Type</span>
-                <span style={{width: this.getInputWidth('ipRange')}}>IP</span>
-                <span style={{width: this.getInputWidth('ipRange')}}>Mask</span>
-              </label>
-              <MultiInput
-                id='autoSettingsIpRange'
-                className='ip-range-group'
-                base={IpRange}
-                props={data}
-                defaultItemValue={{
-                  type: 'private',
-                  ip: '',
-                  mask: ''
-                }}
-                onChange={this.setIpRangeData}
-                value={ipRangeData}
-                disabled={activeContent === 'viewMode'} />
-            </div>
-          </div>
-          <div className='form-group normal short'>
-            <header>{adFormTitle}</header>
-            <RadioGroup
-              id='autoSettingsAD'
-              className='radio-group'              
-              list={[
-                {value: 'AD', text: t('network-inventory.auto-settings.txt-AD')},
-                {value: 'LDAP', text: t('network-inventory.auto-settings.txt-LDAP')}
-              ]}
-              onChange={this.handleADchange.bind(this, 'type')}
-              value={adData.type}
-              disabled={activeContent === 'viewMode'} />
-            <button className='last' style={{right: '85px'}} onClick={this.handleADtest} disabled={!statusEnable.ad_ldap}>{t('network-inventory.txt-testQuery')}</button>
-            <ToggleBtn
-              className='toggle-btn'
-              onText='On'
-              offText='Off'
-              on={statusEnable.ad_ldap}
-              onChange={this.handleStatusChange.bind(this, 'ad_ldap')}
-              disabled={activeContent === 'viewMode'} />
-            <div className='group'>
-              <label htmlFor='autoSettingsIP'>IP</label>
-              <Input
-                id='autoSettingsIP'
-                onChange={this.handleADchange.bind(this, 'ip')}
-                value={adData.ip}
-                readOnly={activeContent === 'viewMode'} />
-            </div>
-            <div className='group'>
-              <label htmlFor='autoSettingsPort'>Port</label>
-              <Input
-                id='autoSettingsPort'
-                onChange={this.handleADchange.bind(this, 'port')}
-                value={adData.port}
-                readOnly={activeContent === 'viewMode'} />
-            </div>
-            <div className='group' style={{width: '50%'}}>
-              <label htmlFor='autoSettingsDomain'>Domain</label>
-              <Input
-                id='autoSettingsDomain'
-                onChange={this.handleADchange.bind(this, 'domain')}
-                value={adData.domain}
-                readOnly={activeContent === 'viewMode'} />
-            </div>
-            <div className='group' style={{width: '50%'}}>
-              <label htmlFor='autoSettingsUsername'>Username</label>
-              <Input
-                id='autoSettingsUsername'
-                onChange={this.handleADchange.bind(this, 'username')}
-                value={adData.username}
-                readOnly={activeContent === 'viewMode'} />
-            </div>
-            <div className='group' style={{width: '50%'}}>
-              <label htmlFor='autoSettingsPassword'>Password</label>
-              <Input
-                id='autoSettingsPassword'
-                type='password'
-                onChange={this.handleADchange.bind(this, 'password')}
-                value={adData.password}
-                readOnly={activeContent === 'viewMode'} />
-            </div>
-          </div>
-
-          <div className='form-group normal'>
-            <header>{t('network-inventory.auto-settings.txt-netflow')}</header>
-            <button className='last' style={{right: '85px'}} onClick={this.handleNetflowtest} disabled={!statusEnable.netflow}>{t('network-inventory.txt-testQuery')}</button>
-            <ToggleBtn
-              className='toggle-btn'
-              onText='On'
-              offText='Off'
-              on={statusEnable.netflow}
-              onChange={this.handleStatusChange.bind(this, 'netflow')}
-              disabled={activeContent === 'viewMode'} />
-            <div className='group'>
-              <label htmlFor='autoSettingsNetflow'>{t('txt-updateTime')}</label>
-              <DropDownList
-                id='autoSettingsNetflow'
-                required={true}
-                list={[
-                  {value: '24', text: t('events.connections.txt-last24h')}
-                ]}
-                value={netflowData.time}
-                readOnly={activeContent === 'viewMode'} />
-            </div>
-          </div>
-
-          {deviceList.length > 0 &&
+          <div className='auto-settings' style={{'height': activeContent === 'viewMode' ? '79vh' : '72vh'}}>
             <div className='form-group normal'>
-              <header>{t('network-inventory.auto-settings.txt-scanner')}</header>
+              <header>{t('network-inventory.auto-settings.txt-ipRange')}</header>
               <ToggleBtn
                 className='toggle-btn'
                 onText='On'
                 offText='Off'
-                on={statusEnable.scanner}
-                onChange={this.handleStatusChange.bind(this, 'scanner')}
+                on={statusEnable.ipRange}
+                onChange={this.handleStatusChange.bind(this, 'ipRange')}
                 disabled={activeContent === 'viewMode'} />
               <div className='group full multi'>
-                <label id='scannerLabel' htmlFor='autoSettingsScanner'>
-                  <span style={{width: this.getInputWidth('scanner')}}>Edge</span>
-                  <span style={{width: this.getInputWidth('scanner')}}>IP</span>
-                  <span style={{width: this.getInputWidth('scanner')}}>Mask</span>
+                <label id='ipRangeLabel' htmlFor='autoSettingsIpRange'>
+                  <span style={{width: this.getInputWidth('ipRange')}}>Type</span>
+                  <span style={{width: this.getInputWidth('ipRange')}}>IP</span>
+                  <span style={{width: this.getInputWidth('ipRange')}}>Mask</span>
                 </label>
                 <MultiInput
-                  id='autoSettingsScanner'
-                  className='scanner-group'
-                  base={Scanner}
+                  id='autoSettingsIpRange'
+                  className='ip-range-group'
+                  base={IpRange}
                   props={data}
                   defaultItemValue={{
-                    edge: deviceList[0].value,
+                    type: 'private',
                     ip: '',
                     mask: ''
                   }}
-                  onChange={this.setScannerData}
-                  handleScannertest={this.handleScannerTest}
-                  value={scannerData}
+                  onChange={this.setIpRangeData}
+                  value={ipRangeData}
                   disabled={activeContent === 'viewMode'} />
               </div>
             </div>
-          }
+            <div className='form-group normal short'>
+              <header>{adFormTitle}</header>
+              <RadioGroup
+                id='autoSettingsAD'
+                className='radio-group'              
+                list={[
+                  {value: 'AD', text: t('network-inventory.auto-settings.txt-AD')},
+                  {value: 'LDAP', text: t('network-inventory.auto-settings.txt-LDAP')}
+                ]}
+                onChange={this.handleADchange.bind(this, 'type')}
+                value={adData.type}
+                disabled={activeContent === 'viewMode'} />
+              <button className='last' style={{right: '85px'}} onClick={this.handleADtest} disabled={!statusEnable.ad_ldap}>{t('network-inventory.txt-testQuery')}</button>
+              <ToggleBtn
+                className='toggle-btn'
+                onText='On'
+                offText='Off'
+                on={statusEnable.ad_ldap}
+                onChange={this.handleStatusChange.bind(this, 'ad_ldap')}
+                disabled={activeContent === 'viewMode'} />
+              <div className='group'>
+                <label htmlFor='autoSettingsIP'>IP</label>
+                <Input
+                  id='autoSettingsIP'
+                  onChange={this.handleADchange.bind(this, 'ip')}
+                  value={adData.ip}
+                  readOnly={activeContent === 'viewMode'} />
+              </div>
+              <div className='group'>
+                <label htmlFor='autoSettingsPort'>Port</label>
+                <Input
+                  id='autoSettingsPort'
+                  onChange={this.handleADchange.bind(this, 'port')}
+                  value={adData.port}
+                  readOnly={activeContent === 'viewMode'} />
+              </div>
+              <div className='group' style={{width: '50%'}}>
+                <label htmlFor='autoSettingsDomain'>Domain</label>
+                <Input
+                  id='autoSettingsDomain'
+                  onChange={this.handleADchange.bind(this, 'domain')}
+                  value={adData.domain}
+                  readOnly={activeContent === 'viewMode'} />
+              </div>
+              <div className='group' style={{width: '50%'}}>
+                <label htmlFor='autoSettingsUsername'>Username</label>
+                <Input
+                  id='autoSettingsUsername'
+                  onChange={this.handleADchange.bind(this, 'username')}
+                  value={adData.username}
+                  readOnly={activeContent === 'viewMode'} />
+              </div>
+              <div className='group' style={{width: '50%'}}>
+                <label htmlFor='autoSettingsPassword'>Password</label>
+                <Input
+                  id='autoSettingsPassword'
+                  type='password'
+                  onChange={this.handleADchange.bind(this, 'password')}
+                  value={adData.password}
+                  readOnly={activeContent === 'viewMode'} />
+              </div>
+            </div>
+
+            <div className='form-group normal'>
+              <header>{t('network-inventory.auto-settings.txt-netflow')}</header>
+              <button className='last' style={{right: '85px'}} onClick={this.handleNetflowtest} disabled={!statusEnable.netflow}>{t('network-inventory.txt-testQuery')}</button>
+              <ToggleBtn
+                className='toggle-btn'
+                onText='On'
+                offText='Off'
+                on={statusEnable.netflow}
+                onChange={this.handleStatusChange.bind(this, 'netflow')}
+                disabled={activeContent === 'viewMode'} />
+              <div className='group'>
+                <label htmlFor='autoSettingsNetflow'>{t('txt-updateTime')}</label>
+                <DropDownList
+                  id='autoSettingsNetflow'
+                  required={true}
+                  list={[
+                    {value: '24', text: t('events.connections.txt-last24h')}
+                  ]}
+                  value={netflowData.time}
+                  readOnly={activeContent === 'viewMode'} />
+              </div>
+            </div>
+
+            {deviceList.length > 0 &&
+              <div className='form-group normal'>
+                <header>{t('network-inventory.auto-settings.txt-scanner')}</header>
+                <ToggleBtn
+                  className='toggle-btn'
+                  onText='On'
+                  offText='Off'
+                  on={statusEnable.scanner}
+                  onChange={this.handleStatusChange.bind(this, 'scanner')}
+                  disabled={activeContent === 'viewMode'} />
+                <div className='group full multi'>
+                  <label id='scannerLabel' htmlFor='autoSettingsScanner'>
+                    <span style={{width: this.getInputWidth('scanner')}}>Edge</span>
+                    <span style={{width: this.getInputWidth('scanner')}}>IP</span>
+                    <span style={{width: this.getInputWidth('scanner')}}>Mask</span>
+                  </label>
+                  <MultiInput
+                    id='autoSettingsScanner'
+                    className='scanner-group'
+                    base={Scanner}
+                    props={data}
+                    defaultItemValue={{
+                      edge: deviceList[0].value,
+                      ip: '',
+                      mask: ''
+                    }}
+                    onChange={this.setScannerData}
+                    handleScannertest={this.handleScannerTest}
+                    value={scannerData}
+                    disabled={activeContent === 'viewMode'} />
+                </div>
+              </div>
+            }
+          </div>
 
           {activeContent === 'editMode' &&
-            <footer className='no-fixed'>
+            <footer>
               <button className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</button>
               <button onClick={this.toggleContent.bind(this, 'save')}>{t('txt-save')}</button>
             </footer>

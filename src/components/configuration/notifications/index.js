@@ -491,89 +491,91 @@ class Notifications extends Component {
                 </div>
               }
 
-              <div className='form-group normal short'>
-                <header>{t('notifications.txt-emailSettings')}</header>
-                <button className='last' onClick={this.openEmailDialog} disabled={activeContent === 'editMode'}>{t('notifications.txt-testEmails')}</button>
-                <div className='group'>
-                  <label htmlFor='notificationsServer'>{t('notifications.txt-smtpServer')}</label>
-                  <Input
-                    id='notificationsServer'
-                    onChange={this.handleDataChange.bind(this, 'server')}
-                    value={notifications.server}
-                    readOnly={activeContent === 'viewMode'} />
+              <div className='config-notify' style={{'height': activeContent === 'viewMode' ? '79vh' : '72vh'}}>
+                <div className='form-group normal short'>
+                  <header>{t('notifications.txt-emailSettings')}</header>
+                  <button className='last' onClick={this.openEmailDialog} disabled={activeContent === 'editMode'}>{t('notifications.txt-testEmails')}</button>
+                  <div className='group'>
+                    <label htmlFor='notificationsServer'>{t('notifications.txt-smtpServer')}</label>
+                    <Input
+                      id='notificationsServer'
+                      onChange={this.handleDataChange.bind(this, 'server')}
+                      value={notifications.server}
+                      readOnly={activeContent === 'viewMode'} />
+                  </div>
+                  <div className='group'>
+                    <label htmlFor='notificationsPort'>{t('notifications.txt-smtpPort')}</label>
+                    <DropDownList
+                      id='notificationsPort'
+                      required={true}
+                      list={[
+                        {value: 25, text: 25},
+                        {value: 465, text: 465},
+                        {value: 587, text: 587}
+                      ]}
+                      onChange={this.handleDataChange.bind(this, 'port')}
+                      value={notifications.port}
+                      readOnly={activeContent === 'viewMode'} />
+                  </div>
+                  <div className='group' style={{width: '50%'}}>
+                    <label htmlFor='notificationsSender'>{t('notifications.txt-sender')}</label>
+                    <Input
+                      id='notificationsSender'
+                      onChange={this.handleDataChange.bind(this, 'sender')}
+                      value={notifications.sender}
+                      readOnly={activeContent === 'viewMode'} />
+                  </div>
+                  <div className='group'>
+                    <label htmlFor='notificationsSender'>{t('notifications.txt-smtpConnectType')}</label>
+                    <DropDownList
+                      id='notificationsSender'
+                      required={true}
+                      list={[
+                        {value: 'standard', text: 'Standard'},
+                        {value: 'ssl', text: 'SSL'},
+                        {value: 'tls', text: 'TLS'},
+                      ]}
+                      onChange={this.handleDataChange.bind(this, 'connectType')}
+                      value={notifications.connectType}
+                      readOnly={activeContent === 'viewMode'} />
+                  </div>
+                  <div className='group'>
+                    <label htmlFor='notificationsAuthentication'>{t('notifications.txt-authentication')}</label>
+                    <DropDownList
+                      id='notificationsAuthentication'
+                      required={true}
+                      list={[
+                        {value: 'true', text: 'True'},
+                        {value: 'false', text: 'False'}
+                      ]}
+                      onChange={this.handleDataChange.bind(this, 'authentication')}
+                      value={notifications.authentication}
+                      readOnly={activeContent === 'viewMode'} />
+                  </div>
+                  <div className='group'>
+                    <label htmlFor='notificationsSenderAccount'>{t('notifications.txt-senderAccount')}</label>
+                    <Input
+                      id='notificationsSenderAccount'
+                      onChange={this.handleDataChange.bind(this, 'senderAccount')}
+                      value={notifications.senderAccount}
+                      readOnly={activeContent === 'viewMode'} />
+                  </div>
+                  <div className='group'>
+                    <label htmlFor='notificationsSenderPassword'>{t('notifications.txt-senderPassword')}</label>
+                    <Input
+                      id='notificationsSenderPassword'
+                      type='password'
+                      onChange={this.handleDataChange.bind(this, 'senderPassword')}
+                      value={notifications.senderPassword}
+                      readOnly={activeContent === 'viewMode'} />
+                  </div>
                 </div>
-                <div className='group'>
-                  <label htmlFor='notificationsPort'>{t('notifications.txt-smtpPort')}</label>
-                  <DropDownList
-                    id='notificationsPort'
-                    required={true}
-                    list={[
-                      {value: 25, text: 25},
-                      {value: 465, text: 465},
-                      {value: 587, text: 587}
-                    ]}
-                    onChange={this.handleDataChange.bind(this, 'port')}
-                    value={notifications.port}
-                    readOnly={activeContent === 'viewMode'} />
-                </div>
-                <div className='group' style={{width: '50%'}}>
-                  <label htmlFor='notificationsSender'>{t('notifications.txt-sender')}</label>
-                  <Input
-                    id='notificationsSender'
-                    onChange={this.handleDataChange.bind(this, 'sender')}
-                    value={notifications.sender}
-                    readOnly={activeContent === 'viewMode'} />
-                </div>
-                <div className='group'>
-                  <label htmlFor='notificationsSender'>{t('notifications.txt-smtpConnectType')}</label>
-                  <DropDownList
-                    id='notificationsSender'
-                    required={true}
-                    list={[
-                      {value: 'standard', text: 'Standard'},
-                      {value: 'ssl', text: 'SSL'},
-                      {value: 'tls', text: 'TLS'},
-                    ]}
-                    onChange={this.handleDataChange.bind(this, 'connectType')}
-                    value={notifications.connectType}
-                    readOnly={activeContent === 'viewMode'} />
-                </div>
-                <div className='group'>
-                  <label htmlFor='notificationsAuthentication'>{t('notifications.txt-authentication')}</label>
-                  <DropDownList
-                    id='notificationsAuthentication'
-                    required={true}
-                    list={[
-                      {value: 'true', text: 'True'},
-                      {value: 'false', text: 'False'}
-                    ]}
-                    onChange={this.handleDataChange.bind(this, 'authentication')}
-                    value={notifications.authentication}
-                    readOnly={activeContent === 'viewMode'} />
-                </div>
-                <div className='group'>
-                  <label htmlFor='notificationsSenderAccount'>{t('notifications.txt-senderAccount')}</label>
-                  <Input
-                    id='notificationsSenderAccount'
-                    onChange={this.handleDataChange.bind(this, 'senderAccount')}
-                    value={notifications.senderAccount}
-                    readOnly={activeContent === 'viewMode'} />
-                </div>
-                <div className='group'>
-                  <label htmlFor='notificationsSenderPassword'>{t('notifications.txt-senderPassword')}</label>
-                  <Input
-                    id='notificationsSenderPassword'
-                    type='password'
-                    onChange={this.handleDataChange.bind(this, 'senderPassword')}
-                    value={notifications.senderPassword}
-                    readOnly={activeContent === 'viewMode'} />
-                </div>
+
+                {EMAIL_SETTINGS.map(this.getEmailsContent)}
               </div>
 
-              {EMAIL_SETTINGS.map(this.getEmailsContent)}
-
               {activeContent === 'editMode' &&
-                <footer className='no-fixed'>
+                <footer>
                   <button className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</button>
                   <button onClick={this.toggleContent.bind(this, 'save')}>{t('txt-save')}</button>
                 </footer>
