@@ -476,7 +476,7 @@ class Syslog extends Component {
       this.setState({
         openSyslog: true,
         config: INIT_CONFIG,
-        modalTitle: t('txt-add')
+        modalTitle: t('syslogFields.txt-addSyslog')
       });
       return;
     }
@@ -511,7 +511,7 @@ class Syslog extends Component {
           config,
           openSyslog: true,
           rawOptions,
-          modalTitle: t('txt-edit')
+          modalTitle: t('syslogFields.txt-editSyslog')
         });
       }
       return null;
@@ -648,6 +648,11 @@ class Syslog extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Display pattern hint
+   * @method
+   * @returns HTML DOM
+   */
   showPatternContent = () => {
     return (
       <table className='c-table pattern'>
@@ -696,6 +701,10 @@ class Syslog extends Component {
       </table>
     )
   }
+  /**
+   * Open dialog for pattern hint
+   * @method
+   */
   showPatternHint = () => {
     PopupDialog.alert({
       id: 'modalWindowSmall',
@@ -720,14 +729,14 @@ class Syslog extends Component {
               {config.id &&
                 <button onClick={this.getLatestInput.bind(this, config.id)}>{t('syslogFields.txt-getLatest')}</button>
               }
-              <label>Data Sample Input</label>
+              <label>{t('syslogFields.dataSampleInput')}</label>
               <Textarea
                 rows={8}
                 value={config.input}
                 onChange={this.handleConfigChange.bind(this, 'input')} />
               <i className='c-link fg fg-down' />
               <div className='pattern'>
-                <label>Match Pattern</label><i className='c-link fg fg-help' title={t('txt-tips')} onClick={this.showPatternHint} />
+                <label>{t('syslogFields.matchPattern')}</label><i className='c-link fg fg-help' title={t('txt-tips')} onClick={this.showPatternHint} />
               </div>
               <Textarea
                 rows={10}
@@ -738,7 +747,7 @@ class Syslog extends Component {
           </div>
         </div>
         <div>
-          <label className='property'>Data Property</label>
+          <label className='property'>{t('syslogFields.dataProperty')}</label>
           <div className='right-syslog scrollY'>
             {
               _.map(config.property, (val, key) => {
@@ -823,8 +832,8 @@ class Syslog extends Component {
         </div>
         <ButtonGroup
           list={[
-            {value:'filter', text:'Filter'},
-            {value:'relationship', text:'Relationship'}
+            {value: 'filter', text: t('syslogFields.filter')},
+            {value: 'relationship', text: t('syslogFields.relationship')}
           ]}
           onChange={this.handleConfigChange.bind(this, 'type')}
           value={config.type} />
@@ -860,7 +869,7 @@ class Syslog extends Component {
         global={true}
         actions={actions}
         closeAction='cancel'
-        infoClassName={cx({'c-error':error})}
+        infoClassName={cx({'c-error': error})}
         info={info}>
         {this.displaySyslogDialog()}
       </ModalDialog>

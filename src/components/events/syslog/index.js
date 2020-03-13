@@ -1388,17 +1388,17 @@ class SyslogController extends Component {
    * @method
    */
   tableDialog = () => {
+    const title = t('txt-syslog') + ' ' + t('events.connections.txt-fieldsSettings');
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeDialog},
       confirm: {text: t('txt-confirm'), handler: this.resetDataTable.bind(this, 'setFields')}
     };
-    const titleText = 'Logs ' + t('txt-table');
 
     return (
       <ModalDialog
         id='flowModalDialog'
         className='modal-dialog'
-        title={titleText}
+        title={title}
         draggable={true}
         global={true}
         actions={actions}
@@ -1441,7 +1441,6 @@ class SyslogController extends Component {
   viewJsonData = (allValue) => {
     const newData = this.handleDialogNavigation(allValue);
     const currentTableIndex = newData.tableRowIndex;
-    const title = 'Logs JSON';
     allValue = newData.allValue;
 
     this.setState({
@@ -1449,7 +1448,7 @@ class SyslogController extends Component {
       currentTableID: allValue.id
     }, () => {
       PopupDialog.alert({
-        title,
+        title: t('events.connections.txt-viewJSON'),
         id: 'viewJsonDialog',
         confirmText: t('txt-close'),
         display: this.displayJsonData(allValue),

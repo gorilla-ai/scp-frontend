@@ -21,6 +21,7 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 let t = null;
 let et = null;
 
+const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const PRIVATE = 'private';
 const PUBLIC = 'public';
 const ALERT_LEVEL_COLORS = {
@@ -579,6 +580,35 @@ class DashboardMaps extends Component {
     })
   }
   /**
+   * Get sorted tree array by severity, alert count, ip
+   * @method
+   * @param {array.<object>} treeArr - tree data
+   * @returns sorted tree array
+   */
+  getOrderedTree = (treeArr) => {
+    let alertTreeObj = {};
+    let finalPrivateTree = [];
+
+    _.forEach(SEVERITY_TYPE, val => { //Create object of array by severity
+      let orderedPrivateTree = [];
+
+      _.forEach(treeArr, val2 => {
+        if (val2._severity_ === val) {
+          orderedPrivateTree.push(val2);
+        }
+      })
+      alertTreeObj[val] = orderedPrivateTree;
+    })
+
+    _.forEach(SEVERITY_TYPE, val => { //Sort alert count and IP
+      alertTreeObj[val] = _.orderBy(alertTreeObj[val], ['doc_count', 'key'], ['desc', 'asc']);
+    })
+
+    finalPrivateTree = _.concat(alertTreeObj.Emergency, alertTreeObj.Alert, alertTreeObj.Critical, alertTreeObj.Warning, alertTreeObj.Notice);
+
+    return finalPrivateTree;
+  }
+  /**
    * Get and set the alert tree data
    * @method
    */
@@ -617,6 +647,9 @@ class DashboardMaps extends Component {
             })
           }
         })
+
+        currentFloorPrivateData = this.getOrderedTree(currentFloorPrivateData);
+        allFloorPrivateData = this.getOrderedTree(allFloorPrivateData);
 
         tempAlertDetails.private.currentFloorPrivateData = currentFloorPrivateData;
         tempAlertDetails.private.allFloorPrivateData = allFloorPrivateData;

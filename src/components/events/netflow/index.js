@@ -1848,17 +1848,17 @@ class Netflow extends Component {
    */
   tableDialog = () => {
     const {activeTab} = this.state;
+    const title = ALL_TAB_DATA[activeTab] + ' ' + t('events.connections.txt-fieldsSettings');
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeDialog},
       confirm: {text: t('txt-confirm'), handler: this.resetDataTable.bind(this, 'setFields')}
     };
-    const titleText = ALL_TAB_DATA[activeTab] + ' ' + t('txt-table');
 
     return (
       <ModalDialog
         id='flowModalDialog'
         className='modal-dialog'
-        title={titleText}
+        title={title}
         draggable={true}
         global={true}
         actions={actions}
@@ -1904,7 +1904,6 @@ class Netflow extends Component {
     const {activeTab} = this.state;
     const newData = this.handleDialogNavigation(allValue);
     const currentTableIndex = newData.tableRowIndex;
-    const title = ALL_TAB_DATA[activeTab] + ' JSON';
     allValue = newData.allValue;
 
     this.setState({
@@ -1912,7 +1911,7 @@ class Netflow extends Component {
       currentTableID: allValue.id
     }, () => {
       PopupDialog.alert({
-        title,
+        title: t('events.connections.txt-viewJSON'),
         id: 'viewJsonDialog',
         confirmText: t('txt-close'),
         display: this.displayJsonData(allValue),

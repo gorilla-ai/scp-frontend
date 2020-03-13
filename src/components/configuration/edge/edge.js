@@ -49,7 +49,7 @@ class Edge extends Component {
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
 
     this.state = {
-      activeContent: 'tableList', //tableList, editEdge
+      activeContent: 'tableList', //tableList, viewEdge, editEdge
       showFilter: false,
       currentEdgeData: '',
       serviceType: [],
@@ -63,6 +63,7 @@ class Edge extends Component {
         serviceType: 'all',
         connectionStatus: 'all'
       },
+      originalEdgeData: {},
       edge: {
         dataFieldsArr: ['agentName', 'ipPort', 'serviceType', 'description', '_menu'],
         dataFields: {},
@@ -254,7 +255,7 @@ class Edge extends Component {
               } else if (tempData === '_menu') {
                 return (
                   <div className='table-menu menu active'>
-                    <i className='fg fg-edit' onClick={this.toggleContent.bind(this, 'editEdge', allValue)} title={t('txt-edit')}></i>
+                    <i className='fg fg-eye' onClick={this.toggleContent.bind(this, 'viewEdge', allValue)} title={t('txt-view')}></i>
                     <i className='fg fg-trashcan' onClick={this.openDeleteMenu.bind(this, allValue)} title={t('txt-delete')}></i>
                   </div>
                 )
@@ -375,10 +376,11 @@ class Edge extends Component {
    * @param {object} allValue - Edge data
    */
   toggleContent = (type, allValue) => {
-    let tempEdge = {...this.state.edge};
+    const {originalEdgeData, edge} = this.state;
+    let tempEdge = {...edge};
     let showPage = type;
 
-    if (type === 'editEdge') {
+    if (type === 'viewEdge') {
       tempEdge.info = {
         name: allValue.agentName ? allValue.agentName : '',
         id: allValue.agentId,
@@ -407,13 +409,14 @@ class Edge extends Component {
       }
 
       this.setState({
-        showFilter: false
+        showFilter: false,
+        originalEdgeData: _.cloneDeep(tempEdge)
       });
     } else if (type === 'tableList') {
       tempEdge.info = {};
     } else if (type === 'cancel') {
-      showPage = 'tableList';
-      tempEdge.info = {};
+      showPage = 'viewEdge';
+      tempEdge = _.cloneDeep(originalEdgeData);
     }
 
     this.setState({
@@ -595,9 +598,6 @@ class Edge extends Component {
     })
     .then(data => {
       switch(data.ret) {
-        case 0:
-          helper.showPopupMsg(t('edge-management.txt-edgeEditSuccess'));
-          break;
         case -1:
           helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError1'));
           break;
@@ -621,7 +621,13 @@ class Edge extends Component {
         default:
           break;
       }
-      this.toggleContent('tableList');
+
+      this.setState({
+        originalEdgeData: _.cloneDeep(edge)
+      }, () => {
+        this.toggleContent('cancel');
+      })
+
       return null;
     })
     .catch(err => {
@@ -666,7 +672,15 @@ class Edge extends Component {
 
     return (
       <div className='main-content basic-form'>
-        <header className='main-header'>{t('edge-management.txt-editEdge')}</header>
+        <header className='main-header'>Edge</header>
+
+        <div className='content-header-btns'>
+          {activeContent === 'viewEdge' &&
+            <button className='standard btn list' onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</button>
+          }
+          <button className='standard btn edit' onClick={this.toggleContent.bind(this, 'editEdge')}>{t('txt-edit')}</button>
+        </div>
+
         <div className='form-group normal'>
           <header>
             <div className='text'>{t('edge-management.txt-basicInfo')}</div>
@@ -684,14 +698,15 @@ class Edge extends Component {
               offText='Off'
               on={btnStatusOn}
               onChange={this.handleEdgeStatusChange.bind(this, action)}
-              disabled={!edge.info.isConfigurable} />
+              disabled={activeContent === 'viewEdge' || !edge.info.isConfigurable} />
           }
           <div className='group'>
             <label htmlFor='edgeName'>{t('edge-management.txt-edgeName')}</label>
             <Input
               id='edgeName'
               onChange={this.handleDataChange.bind(this, 'name')}
-              value={edge.info.name} />
+              value={edge.info.name}
+              readOnly={activeContent === 'viewEdge'} />
           </div>
           <div className='group'>
             <label htmlFor='edgeID'>{t('edge-management.txt-edgeID')}</label>
@@ -726,7 +741,7 @@ class Edge extends Component {
               id='edgeIPlist'
               onChange={this.handleDataChange.bind(this, 'edgeIPlist')}
               value={edge.info.edgeIPlist}
-              readOnly={!edge.info.isConfigurable} />
+              readOnly={activeContent === 'viewEdge' || !edge.info.isConfigurable} />
           </div>
           <div className='group'>
             <label htmlFor='edgeVPNip'>{t('edge-management.txt-vpnIP')}</label>
@@ -769,7 +784,7 @@ class Edge extends Component {
               ]}
               onChange={this.handleDataChange.bind(this, 'serviceMode')}
               value={edge.info.serviceMode}
-              readOnly={!edge.info.isConfigurable} />
+              readOnly={activeContent === 'viewEdge' || !edge.info.isConfigurable} />
           </div>
           <div className='group'>
             <label>{t('edge-management.txt-activatTime')}</label>
@@ -782,7 +797,7 @@ class Edge extends Component {
               ]}
               onChange={this.handleDataChange.bind(this, 'edgeModeType')}
               value={edge.info.edgeModeType}
-              disabled={!edge.info.isConfigurable} />
+              disabled={activeContent === 'viewEdge' || !edge.info.isConfigurable} />
 
             {edge.info.edgeModeType === 'customTime' &&
               <DateRange
@@ -802,13 +817,17 @@ class Edge extends Component {
               rows={4}
               maxLength={250}
               value={edge.info.memo}
-              onChange={this.handleDataChange.bind(this, 'memo')} />
+              onChange={this.handleDataChange.bind(this, 'memo')}
+              readOnly={activeContent === 'viewEdge'} />
           </div>
         </div>
-        <footer>
-          <button className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</button>
-          <button onClick={this.handleEdgeSubmit}>{t('txt-save')}</button>
-        </footer>
+
+        {activeContent === 'editEdge' &&
+          <footer>
+            <button className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</button>
+            <button onClick={this.handleEdgeSubmit}>{t('txt-save')}</button>
+          </footer>
+        }
       </div>
     )
   }
@@ -922,7 +941,7 @@ class Edge extends Component {
               </div>
             }
 
-            {activeContent === 'editEdge' &&
+            {(activeContent === 'viewEdge' || activeContent === 'editEdge') &&
               this.displayEditEdgeContent()
             }
           </div>

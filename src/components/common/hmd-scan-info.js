@@ -828,7 +828,7 @@ class HMDscanInfo extends Component {
 
     return (
       <div className='scan-section' key={i}>
-        <div className={cx('table', {'malware': activeTab === 'malware'})}>
+        <div className='table'>
           <div className='scan-header'>
             <span>{t('network-inventory.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local') || NOT_AVAILABLE}</span>
             <span>{t('network-inventory.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}</span>
@@ -848,6 +848,10 @@ class HMDscanInfo extends Component {
    * @returns HTML DOM
    */
   displayIrContent = (val, i) => {
+    if (!val.taskResponseDttm) {
+      return;
+    }
+
     return (
       <div className='scan-section' key={i}>
         <div className='scan-header'>
@@ -871,7 +875,7 @@ class HMDscanInfo extends Component {
     const {syncStatus} = this.state;
 
     if (page === 'threats') {
-      return syncStatus ? 300 : 340;
+      return syncStatus ? 300 : 335;
     } else if (page === 'inventory') {
       return syncStatus ? 428 : 435;
     }
@@ -895,9 +899,9 @@ class HMDscanInfo extends Component {
       displayContent = this.displayIrContent;
     }
 
-    if (hmdData && displayContent) {
-      return (
-        <div className='scan-wrapper'>
+    return (
+      <div className='scan-wrapper'>
+        {hmdData && displayContent &&
           <InfiniteScroll
             dataLength={hmdData.length}
             next={this.loadMoreContent}
@@ -906,9 +910,9 @@ class HMDscanInfo extends Component {
             height={this.getContentHeight()}>
             {hmdData.map(displayContent)}
           </InfiniteScroll>
-        </div>
-      )
-    }
+        }
+      </div>
+    )
   }
   /**
    * Get formatted field name

@@ -69,14 +69,15 @@ class Header extends Component {
    * @method
    */
   logout = () => {
-    const {baseUrl} = this.context;
+    const {baseUrl, locale} = this.context;
     const url = `${baseUrl}/api/logout`;
 
-    Progress.startSpin()
+    Progress.startSpin();
+
     Promise.resolve($.post(url))
       .finally(() => {
-        Progress.done()
-        document.location.reload()
+        Progress.done();
+        window.location.href = '/SCP?lng=' + locale;
       })
   }
   /**

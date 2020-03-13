@@ -19,8 +19,8 @@ class Relationships extends Component {
     super(props);
 
     this.state = {
-      nodeA: 'srcNode',
-      nodeB: 'dstNode',
+      nodeA: '',
+      nodeB: '',
       nameOptions: []
     };
 
@@ -28,6 +28,11 @@ class Relationships extends Component {
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
   }
   componentDidMount() {
+    this.setState({
+      nodeA: t('syslogFields.srcNode'),
+      nodeB: t('syslogFields.dstNode')
+    });
+
     this.getOptions();
     this.setDefault();
   }
@@ -129,16 +134,25 @@ class Relationships extends Component {
         <div className='up'>
           <div className='item'>
             <label>{t('syslogFields.name')}</label>
-            <DropDownList list={nameOptions} onChange={this.handleDataChange.bind(this, 'name')} value={value.name} />
+            <DropDownList
+              list={nameOptions}
+              onChange={this.handleDataChange.bind(this, 'name')}
+              value={value.name} />
           </div>
           <div className='item'>
             <label>{nodeA}</label>
-            <DropDownList list={rawOptions} onChange={this.handleDataChange.bind(this, 'srcNode')} value={value.srcNode} />
+            <DropDownList
+              list={rawOptions}
+              onChange={this.handleDataChange.bind(this, 'srcNode')}
+              value={value.srcNode} />
           </div>
           <i className='fg fg-next' />
           <div className='item'>
             <label>{nodeB}</label>
-            <DropDownList list={rawOptions} onChange={this.handleDataChange.bind(this, 'dstNode')} value={value.dstNode} />
+            <DropDownList
+              list={rawOptions}
+              onChange={this.handleDataChange.bind(this, 'dstNode')}
+              value={value.dstNode} />
           </div>
         </div>
         <div className='down'>
