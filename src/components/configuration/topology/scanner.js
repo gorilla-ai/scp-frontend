@@ -37,7 +37,6 @@ class Scanner extends Component {
     return (
       <div className='group-content'>
         <DropDownList
-          required={true}
           onChange={this.handleDataChange.bind(this, 'edge')}
           list={deviceList}
           value={value.edge}

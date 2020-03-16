@@ -36,8 +36,11 @@
   "l-license-already": "已授權",
   "l-license-expiry": "授權到期日",
   "l-license-key": "授權碼",
+  "l-new-license-key": "新授權碼",
+  "l-license-renew-key": "更新授權碼",
   "l-activate": "啟用",
   "l-activate-success": "啟用成功",
 
-  "key-acivated": "授權碼已啟用過"
+  "key-acivated": "授權碼已啟用過",
+  "key-empty": "授權碼不得為空白"
 }

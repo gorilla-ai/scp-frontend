@@ -200,11 +200,6 @@ class AutoSettings extends Component {
           };
         });
 
-        deviceList.unshift({
-          value: '',
-          text: '--- ' + t('txt-plsSelect') + ' ---'
-        });
-
         this.setState({
           deviceList
         });
@@ -732,11 +727,6 @@ class AutoSettings extends Component {
                     className='scanner-group'
                     base={Scanner}
                     props={data}
-                    defaultItemValue={{
-                      edge: deviceList[0].value,
-                      ip: '',
-                      mask: ''
-                    }}
                     onChange={this.setScannerData}
                     handleScannertest={this.handleScannerTest}
                     value={scannerData}

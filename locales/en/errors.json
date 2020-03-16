@@ -55,6 +55,9 @@
   "-5001": "Port number is duplicated",
   "-5002": "IP is duplicated",
   "-5003": "Match pattern format error",
+  "-5004": "IP is Required",
+  "-5005": "Illegal IP format",
+  "-5006": "Add Ip Device Fail",
 
   "txt-param-null": "Parameter is NULL",
   "txt-account-fail" : "Fail to get accounts from AD"

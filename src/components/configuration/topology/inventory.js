@@ -170,7 +170,7 @@ class NetworkInventory extends Component {
       },
       selectedTreeID: '',
       csvHeader: true,
-      ipUploadFields: ['ip', 'mac', 'hostName'],
+      ipUploadFields: ['ip', 'mac', 'hostName', 'errMsg'],
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
     };
 
