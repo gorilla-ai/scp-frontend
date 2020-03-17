@@ -30,6 +30,7 @@ class ResetPwd extends Component {
 
     this.state = {
       open: false,
+      type: '',
       formData: {
         account: '',
         oldPwd: '',
@@ -48,7 +49,7 @@ class ResetPwd extends Component {
    */
   saveAccount = () => {
     const {baseUrl} = this.context;
-    const {formData} = this.state;
+    const {type, formData} = this.state;
     const PASSWORD = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@.$%^&*-]).{12,}$/;
 
     if (formData.account == '') {
@@ -77,9 +78,17 @@ class ResetPwd extends Component {
       newPassword: formData.newPwd1
     };
 
+    let requestType = '';
+
+    if (type === 'reset') {
+      requestType = 'PATCH';
+    } else if (type === 'newSet') {
+      requestType = 'POST';
+    }
+
     this.ah.one({
       url: `${baseUrl}/api/account/password`,
-      type: 'PATCH',
+      type: requestType,
       data: JSON.stringify(dataObj),
       contentType: 'application/json'
     })
@@ -100,11 +109,13 @@ class ResetPwd extends Component {
   }
   /**
    * Open reset password modal dialog
+   * @param {string} options - options for password type ('reset' or 'newSet')
    * @method
    */
-  openResetPwd = () => {
+  openResetPwd = (options) => {
     this.setState({
-      open: true
+      open: true,
+      type: options
     });
   }
   /**
@@ -158,60 +169,93 @@ class ResetPwd extends Component {
    * @returns HTML DOM
    */
   displayResetPassword = () => {
-    const {formData} = this.state;
+    const {type, formData} = this.state;
+    let fields = {};
+
+    if (type === 'reset') {
+      fields = {
+        account: {label: `${t('l-account')}`, editor: Input, props: {
+          className: cx('accounts-style-form', {invalid:_.isEmpty(formData.account)}),
+          maxLength: 32,
+          required: true,
+          validate: {
+            t: et
+          }
+        }},
+        oldPwd: {label: `${t('oldPwd')}`, editor: Input, props: {
+          className: cx('accounts-style-form', {invalid:_.isEmpty(formData.oldPwd)}),
+          maxLength: 64,
+          required: true,
+          type: 'password',
+          validate: {
+            t: et
+          }
+        }},
+        newPwd1: {label: `${t('newPwd')}`, editor: Input, props: {
+          className: cx('accounts-style-form', {invalid:_.isEmpty(formData.newPwd1)}),
+          maxLength: 64,
+          required: true,
+          type: 'password',
+          validate: {
+            t: et
+          }
+        }},
+        newPwd2: {label: `${t('rewritePwd')}`, editor: Input, props: {
+          className: cx('accounts-style-form', {invalid:_.isEmpty(formData.newPwd2)}),
+          maxLength: 64,
+          required: true,
+          type: 'password',
+          validate: {
+            t: et
+          }
+        }}
+      };
+    } else if (type === 'newSet') {
+      fields = {
+        newPwd1: {label: `${t('pwd')}`, editor: Input, props: {
+          className: cx('accounts-style-form', {invalid:_.isEmpty(formData.newPwd1)}),
+          maxLength: 64,
+          required: true,
+          type: 'password',
+          validate: {
+            t: et
+          }
+        }},
+        newPwd2: {label: `${t('reenterPwd')}`, editor: Input, props: {
+          className: cx('accounts-style-form', {invalid:_.isEmpty(formData.newPwd2)}),
+          maxLength: 64,
+          required: true,
+          type: 'password',
+          validate: {
+            t: et
+          }
+        }}
+      };
+    }
 
     return (
       <div className='accounts-size-frame'>
         <Form
           className='content'
-          fields={{
-            account: {label: `${t('l-account')}`, editor: Input, props: {
-              className: cx('accounts-style-form', {invalid:_.isEmpty(formData.account)}),
-              maxLength: 32,
-              required: true,
-              validate: {
-                t: et
-              }
-            }},
-            oldPwd: {label: `${t('oldPwd')}`, editor: Input, props: {
-              className: cx('accounts-style-form', {invalid:_.isEmpty(formData.oldPwd)}),
-              maxLength: 64,
-              required: true,
-              type: 'password',
-              validate: {
-                t: et
-              }
-            }},
-            newPwd1: {label: `${t('newPwd')}`, editor: Input, props: {
-              className: cx('accounts-style-form', {invalid:_.isEmpty(formData.newPwd1)}),
-              maxLength: 64,
-              required: true,
-              type: 'password',
-              validate: {
-                t: et
-              }
-            }},
-            newPwd2: {label: `${t('rewritePwd')}`, editor: Input, props: {
-              className: cx('accounts-style-form', {invalid:_.isEmpty(formData.newPwd2)}),
-              maxLength: 64,
-              required: true,
-              type: 'password',
-              validate: {
-                t: et
-              }
-            }}
-          }}
+          fields={fields}
           onChange={this.handleDataChange}
           value={formData} />
       </div>
     )
   }
   render() {
-    const {open, error, errInfo} = this.state;
+    const {open, type, error, errInfo} = this.state;
     const actions = {
       cancel: {text: at('btn-cancel'), className: 'standard', handler: this.close},
       confirm: {text: at('btn-ok'), handler: this.saveAccount}
     };
+    let title = '';
+
+    if (type === 'reset') {
+      title = t('change-expired-pwd');
+    } else if (type === 'newSet') {
+      title = t('setNewPwd');
+    }
 
     if (!open) {
       return null;
@@ -221,7 +265,7 @@ class ResetPwd extends Component {
       <ModalDialog
         id='resetPasswordDialog'
         className='modal-dialog'
-        title={t('change-expired-pwd')}
+        title={title}
         draggable={true}
         global={true}
         info={errInfo}

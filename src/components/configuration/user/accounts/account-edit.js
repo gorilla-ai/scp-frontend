@@ -67,13 +67,21 @@ class AccountEdit extends Component {
    * Get and set account data
    * @method
    * @param {string} id - selected account ID
+   * @param {string} options - options for where page is from ('fromHeader' or 'fromAccount')
    */
-  loadAccount = (id) => {
+  loadAccount = (id, options) => {
     const {baseUrl} = this.context;
+    let url = '';
+
+    if (options === 'fromHeader') {
+      url = `${baseUrl}/api/account?accountid=${id}`;
+    } else if (options === 'fromAccount') {
+      url = `${baseUrl}/api/account/v1?accountid=${id}`;
+    }
 
     ah.all([
       {
-        url: `${baseUrl}/api/account?accountid=${id}`,
+        url,
         type:'GET'
       },
       {
@@ -83,17 +91,20 @@ class AccountEdit extends Component {
     ])
     .then(data => {
       if (data) {
-        const accountData = {
+        let accountData = {
           accountid: data[0].rt.accountid,
           account: data[0].rt.account,
           name: data[0].rt.name,
-          password: data[0].rt.password,
           email: data[0].rt.email,
           unit: data[0].rt.unit,
           title: data[0].rt.title,
           phone: data[0].rt.phone,
           selected: _.map(data[1].rt, 'privilegeid')
         };
+
+        if (data[0].rt.password) {
+          accountData.password = data[0].rt.password;
+        }
 
         this.setState({
           accountData
@@ -140,19 +151,26 @@ class AccountEdit extends Component {
     const {baseUrl} = this.context;
     const {id, accountData, showPrivileges} = this.state;
     let validForm = true;
+    let url = '';
 
     if (_.isEmpty(accountData.account)) validForm = false;
     if (_.isEmpty(accountData.email)) validForm = false;
     if (_.isEmpty(accountData.name)) validForm = false;
-    if (_.isEmpty(accountData.password)) validForm = false;
+    if (!showPrivileges && _.isEmpty(accountData.password)) validForm = false;
     if (_.isEmpty(accountData.phone)) validForm = false;
     if (_.isEmpty(accountData.title)) validForm = false;
     if (_.isEmpty(accountData.unit)) validForm = false;
     if (showPrivileges && _.isEmpty(accountData.selected)) validForm = false;
 
+    if (showPrivileges) {
+      url = `${baseUrl}/api/account/v1`;
+    } else {
+      url = `${baseUrl}/api/account`;
+    }
+
     if (validForm) {
       this.ah.one({
-        url: `${baseUrl}/api/account`,
+        url,
         data: JSON.stringify(_.omit(accountData, 'selected')),
         type: id ? 'PATCH' : 'POST',
         contentType: 'application/json',
@@ -232,6 +250,7 @@ class AccountEdit extends Component {
     if (options === 'fromHeader') {
       showPrivileges = false;
     }
+
     this.setState({
       open: true,
       id,
@@ -240,7 +259,7 @@ class AccountEdit extends Component {
       this.loadPrivileges();
       
       if (id) {
-       this.loadAccount(id);
+       this.loadAccount(id, options);
       }
     });
   }
@@ -285,12 +304,18 @@ class AccountEdit extends Component {
       name: {label: t('l-name'), editor: Input, props: {
         required: true,
         validate: { t:et }
-      }},
+      }}
+    };
+
+    const formFieldsPassword = {
       password: {label: t('l-password'), editor: Input, props: {
         type: 'password',
         required: true,
         validate: { t:et }
-      }},
+      }}
+    };
+
+    const additionalFormFields = {
       email: {label: t('l-email'), editor: Input, props: {
         required: true,
         validate: {
@@ -321,7 +346,9 @@ class AccountEdit extends Component {
     };
 
     if (showPrivileges) {
-      formFieldsBasic = _.assign({}, formFieldsBasic, formFieldsPrivileges);
+      formFieldsBasic = _.assign({}, formFieldsBasic, additionalFormFields, formFieldsPrivileges);
+    } else {
+      formFieldsBasic = _.assign({}, formFieldsBasic, formFieldsPassword, additionalFormFields);
     }
 
     return (

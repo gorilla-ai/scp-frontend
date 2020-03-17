@@ -134,8 +134,17 @@ class Login extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      const redirectURL = contextRoot || '/SCP';
-      window.location.href = redirectURL;
+      if (data.ret === -2) {
+        this.setState({
+          info: null,
+          error: false
+        }, () => {
+          this.startResetPwd('newSet');
+        });
+      } else {
+        const redirectURL = contextRoot || '/SCP';
+        window.location.href = redirectURL;
+      }
       return null;
     })
     .catch(err => {
@@ -144,7 +153,7 @@ class Login extends Component {
           info: null,
           error: false
         }, () => {
-          this.startResetPwd();
+          this.startResetPwd('reset');
         });
       } else {
         this.setState({
@@ -156,10 +165,11 @@ class Login extends Component {
   }
   /**
    * Open reset password page
+   * @param {string} options - options for password type ('reset' or 'newSet')
    * @method
    */
-  startResetPwd = () => {
-    this.pageResetPwd.openResetPwd();
+  startResetPwd = (options) => {
+    this.pageResetPwd.openResetPwd(options);
   }
   /**
    * Handle enter key for login

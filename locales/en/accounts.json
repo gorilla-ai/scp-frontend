@@ -55,9 +55,12 @@
     "title": "$t(l-title)",
     "phone": "$t(l-phone)"
   },
+  "setNewPwd": "Set new password",
   "change-expired-pwd":"Please change your password because it has expired",
   "oldPwd":"Old password",
   "newPwd":"New password",
   "rewritePwd":"Retype new password",
+  "pwd": "Password",
+  "reenterPwd": "Retype password",
   "pwd-inconsistent":"First and second typing are different"
 }

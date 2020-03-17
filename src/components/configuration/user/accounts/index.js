@@ -62,7 +62,7 @@ class AccountList extends Component {
     const {dataFieldsArr} = this.state;
 
     ah.one({
-      url: `${baseUrl}/api/account/_search`,
+      url: `${baseUrl}/api/account/v1/_search`,
       type: 'POST',
       contentType: 'application/json',
       dataType: 'json'
@@ -177,7 +177,7 @@ class AccountList extends Component {
    * @param {string} id - selected account ID
    */
   showEditDialog = (id) => {
-    this.editor._component.openAccount(id);
+    this.editor._component.openAccount(id, 'fromAccount');
   }
   /**
    * Display delete and unlock content
