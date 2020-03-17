@@ -250,6 +250,7 @@ class FloorMap extends Component {
       floorPlan: tempFloorPlan,
       previewFloorMap: ''
     }, () => {
+      this.fileInput.handleClick();
       this.getAreaData(areaUUID);
     });
   }
@@ -438,7 +439,9 @@ class FloorMap extends Component {
         </div>
         <div className='left'>
           <header>
-            <i className='c-link fg fg-cancel' onClick={this.handleMapActions.bind(this, 'clear')} title={t('network-topology.txt-deselectTree')}></i>
+            {floorPlan.treeData.length > 0 &&
+              <i className='c-link fg fg-cancel' onClick={this.handleMapActions.bind(this, 'clear')} title={t('network-topology.txt-deselectTree')}></i>
+            }
             {floorPlan.type === 'add' &&
              <i className='c-link fg fg-add active' title={t('network-topology.txt-addTree')}></i>
             }
@@ -475,6 +478,7 @@ class FloorMap extends Component {
             <div className='field upload'>
               <label htmlFor='areaMapUpload'>{t('txt-network-map')}</label>
               <FileInput
+                ref={ref => { this.fileInput = ref }}
                 id='areaMapUpload'
                 className='area-upload'
                 name='file'
@@ -580,6 +584,7 @@ class FloorMap extends Component {
           floorPlan: this.clearFloorPlanData('edit'),
           currentMap: ''
         }, () => {
+          this.fileInput.handleClick();
           this.getFloorPlan();
           this.getAreaData(data.rt); //areaUUID
         });
@@ -629,6 +634,8 @@ class FloorMap extends Component {
       floorPlan: tempFloorPlan,
       previewFloorMap: ''
     }, () => {
+      this.fileInput.handleClick();
+
       if (type) {
         if (type === 'cancel') {
           this.props.closeDialog();

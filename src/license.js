@@ -28,6 +28,7 @@ class License extends Component {
         expireDate: null,
         isValid: null
       },
+      showKeyInput: false,
       originalKey: '',
       key: ''
     };
@@ -65,7 +66,6 @@ class License extends Component {
       if (data) {
         this.setState({
           originalKey: data[0],
-          key: data[0],
           lms: data[1]
         });
       }
@@ -91,6 +91,11 @@ class License extends Component {
   activateLicense = () => {
     const {baseUrl, contextRoot, from} = this.props;
     const {originalKey, key} = this.state;
+
+    if (!key) {
+      helper.showPopupMsg(lt('key-empty'), t('txt-error'));
+      return;
+    }
 
     if (originalKey === key) {
       helper.showPopupMsg(lt('key-acivated'), t('txt-error'));
@@ -126,8 +131,12 @@ class License extends Component {
             <div className='content'><span>{lt('l-activate-success')}</span></div>
           ),
           act: (confirmed) => {
-            if (confirmed && from === 'login') {
-              this.props.onPass();
+            if (confirmed) {
+              if (from === 'login') {
+                this.props.onPass();
+              } else if (from === 'config') {
+                this.loadData();
+              }
             }
           }
         });
@@ -137,9 +146,15 @@ class License extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  toggleKeyInput = () => {
+    this.setState({
+      key: '',
+      showKeyInput: !this.state.showKeyInput
+    });
+  }
   render() {
     const {from} = this.props;
-    const {lms, key} = this.state;
+    const {lms, showKeyInput, originalKey, key} = this.state;
     let text = lt('l-license-none');
     let licenseDate = '';
     let error = true;
@@ -162,19 +177,40 @@ class License extends Component {
             <span className='msg'>{lt('l-license-status')}:</span>
             <span className={cx({'error': error})}>{text}</span>
           </section>
-          {licenseDate &&
+          {from === 'login' &&
+            <div className='key'>
+              <span>{lt('l-license-key')}:</span>
+              <Input
+                value={key}
+                onChange={this.handleInputChange} />
+              <button onClick={this.activateLicense}>{lt('l-activate')}</button>
+            </div>
+          }
+          {from === 'config' && originalKey &&
+            <section>
+              <span className='msg'>{lt('l-license-key')}:</span>
+              <span>{originalKey}</span>
+            </section>
+          }
+          {from === 'config' && licenseDate &&
             <section>
               <span className='msg'>{lt('l-license-expiry')}:</span>
               <span>{licenseDate}</span>
             </section>
           }
-          <div className='key'>
-            <span>{lt('l-license-key')}:</span>
-            <Input
-              value={key}
-              onChange={this.handleInputChange} />
-            <button onClick={this.activateLicense}>{lt('l-activate')}</button>
-          </div>
+          {from === 'config' && !showKeyInput &&
+            <button className='renew-key' onClick={this.toggleKeyInput}>{lt('l-license-renew-key')}</button>
+          }
+          {from === 'config' && showKeyInput &&
+            <div className='key'>
+              <span>{lt('l-new-license-key')}:</span>
+              <Input
+                value={key}
+                onChange={this.handleInputChange} />
+              <button onClick={this.activateLicense}>{lt('l-activate')}</button>
+              <button className='standard btn' onClick={this.toggleKeyInput}>{t('txt-cancel')}</button>
+            </div>
+          }
         </div>
       </div>
     )

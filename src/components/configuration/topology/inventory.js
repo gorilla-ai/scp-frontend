@@ -1995,7 +1995,13 @@ class NetworkInventory extends Component {
           if (i > 0) {
             _.forEach(ipUploadFields, val2 => {
               if (csvColumns[val2]) {
-                dataObj[val2] = val[Number(csvColumns[val2])].trim();
+                let data = val[Number(csvColumns[val2])];
+
+                if (typeof data === 'string') {
+                  data = data.trim();
+                }
+
+                dataObj[val2] = data;
               }
             })
           }
