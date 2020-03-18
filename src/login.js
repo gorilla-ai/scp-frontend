@@ -16,10 +16,24 @@ import License from './license'
 import ResetPwd from './components/configuration/user/accounts/resetPwd'
 import withLocale from './hoc/locale-provider'
 
-import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+import {default as ah, getInstance, createInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const t = i18n.getFixedT(null, 'app');
 const et = i18n.getFixedT(null, 'errors');
+
+createInstance(
+  'login',
+  {
+    parseSuccess: resp => resp,
+    parseFail: resp => {
+      return {
+        code: _.get(resp, 'ret', -100),
+        message: _.get(resp, 'message')
+      }
+    },
+    et: i18n.getFixedT(null, 'errors')
+  }
+)
 
 /**
  * Login
@@ -37,7 +51,7 @@ class Login extends Component {
       license: null
     };
 
-    this.ah = getInstance('chewbacca');
+    this.ah = getInstance('login');
   }
   componentDidMount() {
     this.checkLicense();
@@ -68,8 +82,8 @@ class Login extends Component {
       let licenseCheck = false;
 
       if (data) {
-        if (data[0].returnCode === '0' && data[1].returnCode === '0') {
-          licenseCheck = data[0].isValid === '1' || data[1].isValid === '1';
+        if (data[0].rt.returnCode === '0' && data[1].rt.returnCode === '0') {
+          licenseCheck = data[0].rt.isValid === '1' || data[1].rt.isValid === '1';
         }
 
         this.setState({
@@ -228,7 +242,9 @@ class Login extends Component {
 
           <button className='end' onClick={this.logon}>{t('login.btn-login')}</button>
 
-          <div className={cx('c-info', {'c-error': error})}>{info}</div>
+          <div className='first-time' onClick={this.startResetPwd.bind(this, 'newSet')}>{t('txt-fist-login')}</div>
+
+          <div className={cx('c-info error-msg', {'c-error': error})}>{info}</div>
           <div className='end actions c-flex aic'>
             {!_.isEmpty(locale) && locale.length > 1 &&
               <DropDownList

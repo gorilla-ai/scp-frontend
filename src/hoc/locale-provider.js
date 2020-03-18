@@ -33,8 +33,9 @@ function withLocale(Component) {
         {
           parseSuccess: resp => resp.rt,
           parseFail: resp => ({
-              code: _.get(resp, 'ret', -100),
-              message: _.get(resp, 'message')
+            code: _.get(resp, 'ret', -100),
+            message: _.get(resp, 'message')
+            //message: _.get(resp, 'ret', -100)
           }),
           et: i18n.getFixedT(null, 'errors')
         }

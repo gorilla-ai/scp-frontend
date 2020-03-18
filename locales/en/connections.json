@@ -589,7 +589,7 @@
     "deviceType": "Type",
     "scanInfo": "Safety Scan Info",
     "keyword": "Keyword",
-    "errMsg": "Error",
+    "errCode": "Error",
     "connSize": "Connections Size",
     "unauthType": "Unauthorize Type"
   },

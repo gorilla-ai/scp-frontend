@@ -170,7 +170,7 @@ class NetworkInventory extends Component {
       },
       selectedTreeID: '',
       csvHeader: true,
-      ipUploadFields: ['ip', 'mac', 'hostName', 'errMsg'],
+      ipUploadFields: ['ip', 'mac', 'hostName', 'errCode'],
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
     };
 
@@ -1948,6 +1948,9 @@ class NetworkInventory extends Component {
         label: t(`ipFields.${tempData}`),
         sortable: false,
         formatter: (value, allValue, i) => {
+          if (tempData === 'errCode') {
+            value = et(value);
+          }
           return <span>{value}</span>
         }
       };

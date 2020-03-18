@@ -909,14 +909,14 @@ class Syslog extends Component {
           };
         });
 
-        const tempEventsData = {
-          events: data.events,
-          hosts: hostsArr
+        const eventsData = {
+          hosts: hostsArr,
+          hostOverTime: data.hostOverTime
         };
 
         this.setState({
           clickTimeline: true,
-          eventsData: tempEventsData
+          eventsData
         });     
       } else {
         this.setState({
@@ -941,7 +941,7 @@ class Syslog extends Component {
       <section>
         <span>{data[0].type}<br /></span>
         <span>{t('txt-time')}: {Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss')}<br /></span>
-        <span>{t('txt-count')}: {data[0].events}</span>
+        <span>{t('txt-count')}: {data[0].count}</span>
       </section>
     )
   }
@@ -971,20 +971,21 @@ class Syslog extends Component {
       type = 'overall';
     }
 
-    const dataArr = _.map(eventsData.events, (value, key) => {
+    const dataArr = _.map(eventsData.hostOverTime, val => {
       return {
-        time: parseInt(Moment(key, 'YYYY-MM-DDTHH:mm:ss.SSZ').utc(true).format('x')),
-        events: value,
-        type: type
+        time: parseInt(Moment(val.time, 'YYYY-MM-DDTHH:mm:ss.SSZ').utc(true).format('x')),
+        count: val.count,
+        IP: val.IP
       };
     });
+
     const chartAttributes = {
       data: dataArr,
       onTooltip: this.onTooltip,
       dataCfg: {
         x: 'time',
-        y: 'events',
-        splitSeries: 'type'
+        y: 'count',
+        splitSeries: 'IP'
       },
       xAxis: {
         type: 'datetime',
@@ -996,7 +997,7 @@ class Syslog extends Component {
     let showTimeline = false;
     let showTable = false;
 
-    if (!_.isEmpty(eventsData.events)) {
+    if (!_.isEmpty(eventsData.hostOverTime)) {
       showTimeline = true;
     }
 

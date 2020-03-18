@@ -30,7 +30,7 @@ class ResetPwd extends Component {
 
     this.state = {
       open: false,
-      type: '',
+      formType: '',
       formData: {
         account: '',
         oldPwd: '',
@@ -49,7 +49,7 @@ class ResetPwd extends Component {
    */
   saveAccount = () => {
     const {baseUrl} = this.context;
-    const {type, formData} = this.state;
+    const {formType, formData} = this.state;
     const PASSWORD = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@.$%^&*-]).{12,}$/;
 
     if (formData.account == '') {
@@ -57,9 +57,18 @@ class ResetPwd extends Component {
       return;
     }
 
-    if (formData.oldPwd == '' || formData.newPwd1 == '' || formData.newPwd2 == '') {
-      this.error(at('login.lbl-password'));
-      return;
+    if (formType === 'reset') {
+      if (formData.oldPwd == '' || formData.newPwd1 == '' || formData.newPwd2 == '') {
+        this.error(at('login.lbl-password'));
+        return;
+      }
+    }
+
+    if (formType === 'newSet') {
+      if (formData.newPwd1 == '' || formData.newPwd2 == '') {
+        this.error(at('login.lbl-password'));
+        return;
+      }
     }
 
     if (!formData.newPwd1.match(PASSWORD)) {
@@ -72,18 +81,22 @@ class ResetPwd extends Component {
       return;
     }
 
-    const dataObj = {
-      account: formData.account,
-      currentPassword: formData.oldPwd,
-      newPassword: formData.newPwd1
-    };
-
+    let dataObj = {};
     let requestType = '';
 
-    if (type === 'reset') {
+    if (formType === 'reset') {
       requestType = 'PATCH';
-    } else if (type === 'newSet') {
+      dataObj = {
+        account: formData.account,
+        currentPassword: formData.oldPwd,
+        newPassword: formData.newPwd1
+      };
+    } else if (formType === 'newSet') {
       requestType = 'POST';
+      dataObj = {
+        account: formData.account,
+        newPassword: formData.newPwd1
+      };
     }
 
     this.ah.one({
@@ -93,6 +106,11 @@ class ResetPwd extends Component {
       contentType: 'application/json'
     })
     .then(data => {
+      PopupDialog.alert({
+        id: 'modalWindowSmall',
+        confirmText: at('btn-ok'),
+        display: <div className='content'>{at('txt-passwordSuccess')}</div>
+      });
       this.close();
       return null;
     })
@@ -115,7 +133,7 @@ class ResetPwd extends Component {
   openResetPwd = (options) => {
     this.setState({
       open: true,
-      type: options
+      formType: options
     });
   }
   /**
@@ -153,7 +171,8 @@ class ResetPwd extends Component {
   clearData = () => {
     return {
       open: false,
-        formData: {
+      formType: '',
+      formData: {
         account: '',
         oldPwd: '',
         newPwd1: '',
@@ -169,20 +188,21 @@ class ResetPwd extends Component {
    * @returns HTML DOM
    */
   displayResetPassword = () => {
-    const {type, formData} = this.state;
-    let fields = {};
+    const {formType, formData} = this.state;
+    let fields = {
+      account: {label: `${t('l-account')}`, editor: Input, props: {
+        className: cx('accounts-style-form', {invalid:_.isEmpty(formData.account)}),
+        maxLength: 32,
+        required: true,
+        validate: {
+          t: et
+        }
+      }}
+    };
 
-    if (type === 'reset') {
-      fields = {
-        account: {label: `${t('l-account')}`, editor: Input, props: {
-          className: cx('accounts-style-form', {invalid:_.isEmpty(formData.account)}),
-          maxLength: 32,
-          required: true,
-          validate: {
-            t: et
-          }
-        }},
-        oldPwd: {label: `${t('oldPwd')}`, editor: Input, props: {
+    if (formType === 'reset') {
+      fields.oldPwd = {
+        label: `${t('oldPwd')}`, editor: Input, props: {
           className: cx('accounts-style-form', {invalid:_.isEmpty(formData.oldPwd)}),
           maxLength: 64,
           required: true,
@@ -190,48 +210,33 @@ class ResetPwd extends Component {
           validate: {
             t: et
           }
-        }},
-        newPwd1: {label: `${t('newPwd')}`, editor: Input, props: {
-          className: cx('accounts-style-form', {invalid:_.isEmpty(formData.newPwd1)}),
-          maxLength: 64,
-          required: true,
-          type: 'password',
-          validate: {
-            t: et
-          }
-        }},
-        newPwd2: {label: `${t('rewritePwd')}`, editor: Input, props: {
-          className: cx('accounts-style-form', {invalid:_.isEmpty(formData.newPwd2)}),
-          maxLength: 64,
-          required: true,
-          type: 'password',
-          validate: {
-            t: et
-          }
-        }}
-      };
-    } else if (type === 'newSet') {
-      fields = {
-        newPwd1: {label: `${t('pwd')}`, editor: Input, props: {
-          className: cx('accounts-style-form', {invalid:_.isEmpty(formData.newPwd1)}),
-          maxLength: 64,
-          required: true,
-          type: 'password',
-          validate: {
-            t: et
-          }
-        }},
-        newPwd2: {label: `${t('reenterPwd')}`, editor: Input, props: {
-          className: cx('accounts-style-form', {invalid:_.isEmpty(formData.newPwd2)}),
-          maxLength: 64,
-          required: true,
-          type: 'password',
-          validate: {
-            t: et
-          }
-        }}
+        }
       };
     }
+
+    fields.newPwd1 = {
+      label: `${t('pwd')}`, editor: Input, props: {
+        className: cx('accounts-style-form', {invalid:_.isEmpty(formData.newPwd1)}),
+        maxLength: 64,
+        required: true,
+        type: 'password',
+        validate: {
+          t: et
+        }
+      }
+    };
+
+    fields.newPwd2 = {
+      label: `${t('reenterPwd')}`, editor: Input, props: {
+        className: cx('accounts-style-form', {invalid:_.isEmpty(formData.newPwd2)}),
+        maxLength: 64,
+        required: true,
+        type: 'password',
+        validate: {
+          t: et
+        }
+      }
+    };    
 
     return (
       <div className='accounts-size-frame'>
@@ -244,16 +249,16 @@ class ResetPwd extends Component {
     )
   }
   render() {
-    const {open, type, error, errInfo} = this.state;
+    const {open, formType, error, errInfo} = this.state;
     const actions = {
       cancel: {text: at('btn-cancel'), className: 'standard', handler: this.close},
       confirm: {text: at('btn-ok'), handler: this.saveAccount}
     };
     let title = '';
 
-    if (type === 'reset') {
+    if (formType === 'reset') {
       title = t('change-expired-pwd');
-    } else if (type === 'newSet') {
+    } else if (formType === 'newSet') {
       title = t('setNewPwd');
     }
 

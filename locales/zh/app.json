@@ -21,6 +21,7 @@
   "tt-edit": "編輯",
   "tt-details": "查看內容",
 
+  "txt-fist-login": "首次登入",
   "txt-logging-in":"登入中...",
   "txt-loading":"讀取中...",
   "txt-saving":"儲存中...",
@@ -36,6 +37,7 @@
   "txt-memoryUsage": "記憶體使用",
   "txt-diskUsage": "磁碟機使用",
   "txt-updateSuccess": "帳號更新成功",
+  "txt-passwordSuccess": "密碼設定/更新成功",
 
   "hdr-search":"搜尋",
   "lbl-select-file":"請選擇上傳檔案",

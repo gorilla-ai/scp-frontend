@@ -21,6 +21,7 @@
   "tt-edit": "Edit",
   "tt-details": "View Details",
 
+  "txt-fist-login": "First time login",
   "txt-logging-in":"Logging in...",
   "txt-loading":"Loading...",
   "txt-saving":"Saving...",
@@ -36,6 +37,7 @@
   "txt-memoryUsage": "Memory Usage",
   "txt-diskUsage": "Disk Usage",
   "txt-updateSuccess": "Account has been updated",
+  "txt-passwordSuccess": "Password has been set/reset",
 
   "hdr-search":"Search",
   "lbl-page-size": "Page Size",

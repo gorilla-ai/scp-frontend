@@ -589,7 +589,7 @@
     "deviceType": "裝置類型",
     "scanInfo": "安全掃描資訊",
     "keyword": "關鍵字",
-    "errMsg": "錯誤訊息",
+    "errCode": "錯誤訊息",
     "connSize": "Connections Size",
     "unauthType": "Unauthorize Type"
   },
