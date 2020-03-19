@@ -20,6 +20,7 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null;
 let et = null;
+let l = null;
 let intervalId = null;
 
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
@@ -91,11 +92,17 @@ class DashboardStats extends Component {
       },
       diskMetricData: {
         id: 'disk-usage'
+      },
+      hmdData: {
+        dataFieldsArr: ['date', 'hmd', 'max', 'hosts'],
+        dataFields: {},
+        dataContent: null
       }
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
+    l = global.chewbaccaI18n.getFixedT(null, 'lms');
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
@@ -318,7 +325,8 @@ class DashboardStats extends Component {
 
     this.loadSyslogData();
     this.loadDnsPieData();
-    this.loadMetricData();    
+    this.loadMetricData();
+    this.loadHmdData();
   }
   /**
    * Construct and set the syslog config chart
@@ -473,6 +481,56 @@ class DashboardStats extends Component {
 
         this.setState({
           diskMetricData: tempDiskMetricData
+        });
+      }
+      return null;
+    })
+  }
+  /**
+   * Construct and set the HMD table chart
+   * @method
+   */
+  loadHmdData = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {hmdData} = this.state;
+    const apiArr = [
+      {
+        url: `${baseUrl}/api/lms/verifyOnline`,
+        data: JSON.stringify({}),
+        type: 'POST',
+        contentType: 'text/plain'
+      },
+      {
+        url: `${baseUrl}/api/dashboard/hmd`,
+        type: 'GET'
+      }
+    ];
+
+    this.ah.all(apiArr)
+    .then(data => {
+      if (data) {
+        const lms = data[0];
+        let tempHmdData = {...hmdData};
+        tempHmdData.dataContent = [data[1]];
+
+        let dataFields = {};
+        hmdData.dataFieldsArr.forEach(tempData => {
+          dataFields[tempData] = {
+            label: tempData === 'date' ? l('l-license-expiry') : t(`dashboard.txt-${tempData}`),
+            sortable: false,
+            formatter: (value, allValue, i) => {
+              if (tempData === 'date') {
+                value = Moment(lms.expireDate, 'YYYYMMDD').format('YYYY-MM-DD');
+              }
+              return <span>{value}</span>
+            }
+          };
+        })
+
+        tempHmdData.dataFields = dataFields;
+
+        this.setState({
+          hmdData: tempHmdData
         });
       }
       return null;
@@ -697,7 +755,8 @@ class DashboardStats extends Component {
       internalMaskedIpArr,
       alertChartsList,
       dnsMetricData,
-      diskMetricData
+      diskMetricData,
+      hmdData
     } = this.state;
     const metricsData = [dnsMetricData, diskMetricData];
     const displayTime = past24hTime + ' - ' + updatedTime;
@@ -844,6 +903,32 @@ class DashboardStats extends Component {
             </div>
 
             {alertChartsList.map(this.displayCharts)}
+
+            <div className='chart-group c-box'>
+              {!hmdData.dataContent &&
+                <div className='empty-data'>
+                  <header>HMD</header>
+                  <span><i className='fg fg-loading-2'></i></span>
+                </div>
+              }
+              {hmdData.dataContent && hmdData.dataContent.length === 0 &&
+                <div className='empty-data'>
+                  <header>HMD</header>
+                  <span>{t('txt-notFound')}</span>
+                </div>
+              }
+              {hmdData.dataContent && hmdData.dataContent.length > 0 &&
+                <div>
+                  <header className='main-header'>HMD</header>
+                  <div className='c-chart table'>
+                    <DataTable
+                      className='main-table align-center'
+                      fields={hmdData.dataFields}
+                      data={hmdData.dataContent} />
+                  </div>
+                </div>
+              }
+            </div>
 
             <div className='chart-group c-box'>
               {metricsData.map(this.displayMetrics)}

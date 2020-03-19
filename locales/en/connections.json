@@ -216,7 +216,10 @@
     "txt-srcCountry": "Source Country",
     "txt-srcCity": "Source City",
     "txt-private": "Private",
-    "txt-public": "Public"
+    "txt-public": "Public",
+    "txt-hmd": "HMD",
+    "txt-max": "Max",
+    "txt-hosts": "Hosts"
   },
 
   "alert": {

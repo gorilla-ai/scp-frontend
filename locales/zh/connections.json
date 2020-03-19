@@ -216,7 +216,10 @@
     "txt-srcCountry": "來源國家",
     "txt-srcCity": "來源城市",
     "txt-private": "內部",
-    "txt-public": "外部"
+    "txt-public": "外部",
+    "txt-hmd": "使用數",
+    "txt-max": "授權數",
+    "txt-hosts": "主機"
   },
 
   "alert": {

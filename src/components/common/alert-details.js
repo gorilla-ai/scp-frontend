@@ -796,7 +796,7 @@ class AlertDetails extends Component {
           <div className='nav'>
             <ul>
               <li onClick={this.getContent.bind(this, 'rule')}><span className={cx({'active': showContent.rule})}>{t('alert.txt-rule')}</span></li>
-              {alertType === 'alert' && alertData.Collector !== 'NetProbe' &&
+              {alertType === 'alert' && alertData.Collector === 'IDS-SURICATA' &&
                 <li onClick={this.getContent.bind(this, 'pcap')}><span className={cx({'active': showContent.pcap})}>PCAP</span></li>
               }
               {alertType === 'pot_attack' &&
@@ -1332,7 +1332,7 @@ class AlertDetails extends Component {
     .then(data => {
       if (data) {
         helper.showPopupMsg(t('txt-requestSent'));
-        this.getHMDinfo(type);
+        this.getHMDinfo(activeIP);
       }
       return null;
     })
@@ -1651,13 +1651,9 @@ class AlertDetails extends Component {
             sortable: false,
             formatter: (value, allValue, i) => {
               if (tempData === 'severity') {
-                return (
-                  <span className='severity-level' style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>
-                )
+                return <span className='severity-level' style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>
               } else {
-                return (
-                  <span>{value}</span>
-                )
+                return <span>{value}</span>
               }
             }
           }
@@ -1685,9 +1681,7 @@ class AlertDetails extends Component {
             label: t(`txt-${tempData}`),
             sortable: true,
             formatter: (value, allValue, i) => {
-              return (
-                <span>{value}</span>
-              )
+              return <span>{value}</span>
             }
           }
         })
@@ -1727,9 +1721,7 @@ class AlertDetails extends Component {
             label: t(`txt-${tempData}`),
             sortable: true,
             formatter: (value, allValue, i) => {
-              return (
-                <span>{value}</span>
-              )
+              return <span>{value}</span>
             }
           }
         })
