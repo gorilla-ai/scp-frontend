@@ -476,13 +476,24 @@ footer.footer {
           height: 345px;
           overflow-y: auto;
         }
+        .hmd-info,
+        .license-date,
         .dns-histogram,
         .disk-usage {
           height: 200px;
           .group {
             padding-top: 25px;
           }
+          span.show-empty {
+            display: block;
+            text-align: center;
+            margin-top: 50px;
+            &.date {
+              font-size: 25px;
+            }
+          }
         }
+        .hmd-info,
         .dns-histogram {
           border-bottom: 1px solid #ccc;
         }

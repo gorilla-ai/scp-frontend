@@ -93,11 +93,8 @@ class DashboardStats extends Component {
       diskMetricData: {
         id: 'disk-usage'
       },
-      hmdData: {
-        dataFieldsArr: ['date', 'hmd', 'max', 'hosts'],
-        dataFields: {},
-        dataContent: null
-      }
+      hmdData: {},
+      lms: ''
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -509,28 +506,28 @@ class DashboardStats extends Component {
     this.ah.all(apiArr)
     .then(data => {
       if (data) {
-        const lms = data[0];
+        let lms = t('txt-notFound');
+
+        if (data[0].expireDate) {
+          lms = Moment(data[0].expireDate, 'YYYYMMDD').format('YYYY-MM-DD');
+        }
+
         let tempHmdData = {...hmdData};
-        tempHmdData.dataContent = [data[1]];
-
-        let dataFields = {};
-        hmdData.dataFieldsArr.forEach(tempData => {
-          dataFields[tempData] = {
-            label: tempData === 'date' ? l('l-license-expiry') : t(`dashboard.txt-${tempData}`),
-            sortable: false,
-            formatter: (value, allValue, i) => {
-              if (tempData === 'date') {
-                value = Moment(lms.expireDate, 'YYYYMMDD').format('YYYY-MM-DD');
-              }
-              return <span>{value}</span>
-            }
-          };
-        })
-
-        tempHmdData.dataFields = dataFields;
+        tempHmdData.data = [{
+          hmd: data[1].hmd,
+          max: data[1].max,
+          hosts: data[1].hosts
+        }];
+        tempHmdData.agg = ['hmd', 'max', 'hosts'];
+        tempHmdData.keyLabels = {
+          hmd: t('dashboard.txt-hmd'),
+          max: t('dashboard.txt-max'),
+          hosts: t('dashboard.txt-hosts')
+        };
 
         this.setState({
-          hmdData: tempHmdData
+          hmdData: tempHmdData,
+          lms
         });
       }
       return null;
@@ -720,17 +717,7 @@ class DashboardStats extends Component {
       return (
         <div className='c-chart dns-histogram' key={val.id}>
           <header>{t('dashboard.txt-' + val.id)}</header>
-          <div className='c-chart-metric'>
-            <div className='content'>
-              <div className='main-container'>
-                <div className='group-parent vertical'>
-                  <div className='group' style={{'marginTop': '25px'}}>
-                    {content}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <span className='show-empty'>{content}</span>
         </div>
       )
     } else if (val.data && val.data.length > 0) {
@@ -747,6 +734,36 @@ class DashboardStats extends Component {
       )
     }
   }
+  /**
+   * Display HMD metrics chart
+   * @method
+   * @returns HTML DOM
+   */
+  displayHmdData = () => {
+    const {hmdData} = this.state;
+
+    if (!hmdData.data || (hmdData.data && hmdData.data.length === 0)) {
+      const content = hmdData.data ? t('txt-notFound') : <span><i className='fg fg-loading-2'></i></span>;
+
+      return (
+        <div className='c-chart hmd-info'>
+          <header>HMD</header>
+          <span className='show-empty'>{content}</span>
+        </div>
+      )
+    } else if (hmdData.data && hmdData.data.length > 0) {
+      return (
+        <Metric
+          className='hmd-info'
+          title='HMD'
+          data={hmdData.data}
+          dataCfg={{
+            agg: hmdData.agg
+          }}
+          keyLabels={hmdData.keyLabels} />
+      )
+    }
+  }
   render() {
     const {
       past24hTime,
@@ -756,7 +773,8 @@ class DashboardStats extends Component {
       alertChartsList,
       dnsMetricData,
       diskMetricData,
-      hmdData
+      hmdData,
+      lms
     } = this.state;
     const metricsData = [dnsMetricData, diskMetricData];
     const displayTime = past24hTime + ' - ' + updatedTime;
@@ -905,29 +923,12 @@ class DashboardStats extends Component {
             {alertChartsList.map(this.displayCharts)}
 
             <div className='chart-group c-box'>
-              {!hmdData.dataContent &&
-                <div className='empty-data'>
-                  <header>HMD</header>
-                  <span><i className='fg fg-loading-2'></i></span>
-                </div>
-              }
-              {hmdData.dataContent && hmdData.dataContent.length === 0 &&
-                <div className='empty-data'>
-                  <header>HMD</header>
-                  <span>{t('txt-notFound')}</span>
-                </div>
-              }
-              {hmdData.dataContent && hmdData.dataContent.length > 0 &&
-                <div>
-                  <header className='main-header'>HMD</header>
-                  <div className='c-chart table'>
-                    <DataTable
-                      className='main-table align-center'
-                      fields={hmdData.dataFields}
-                      data={hmdData.dataContent} />
-                  </div>
-                </div>
-              }
+              {this.displayHmdData()}
+
+              <div className='c-chart license-date'>
+                <header>{l('l-license-expiry')}</header>
+                <span className='show-empty date'>{lms}</span>
+              </div>
             </div>
 
             <div className='chart-group c-box'>
