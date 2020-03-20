@@ -408,6 +408,7 @@
     "txt-total": "總上傳筆數",
     "txt-success": "上傳成功筆數",
     "txt-fail": "上傳失敗筆數",
+    "txt-syncYaraFail": "同步YARA規則失敗",
     "txt-irMsg": "IR資料已上傳至",
     "txt-itemSelection": "電腦採證",
     "txt-duplicatedIP": "IP已存在，請重新輸入",
@@ -620,6 +621,6 @@
     "txt-viewEvents": "檢視日誌串流事件",
     "txt-overallDist": "日誌串流事件趨勢圖",
     "txt-editHosts": "編輯主機",
-    "txt-timelineUnavailable": "Timeline資料不存在"
+    "txt-timelineUnavailable": "趨勢圖資料不存在"
   }
 }

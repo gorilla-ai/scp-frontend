@@ -184,7 +184,7 @@ class NetworkInventory extends Component {
     const inventoryParam = queryString.parse(location.search);
 
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
-    
+
     if (_.isEmpty(inventoryParam) || (!_.isEmpty(inventoryParam) && !inventoryParam.ip)) {
       this.getDeviceData();
     }
@@ -980,7 +980,7 @@ class NetworkInventory extends Component {
     const {showFilter, hmdCheckbox, hmdSelectAll, hmdSearchOptions, deviceSearch} = this.state;
 
     return (
-      <div className={cx('main-filter', {'active': showFilter})}>
+      <div className={cx('main-filter', {'active': showFilter})} style={{'min-height' : '220px'}}>
         <i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}></i>
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
@@ -1040,12 +1040,14 @@ class NetworkInventory extends Component {
               onChange={this.handleDeviceSearch.bind(this, 'seatName')}
               value={deviceSearch.seatName} />
           </div>
-          <div className='group hmd'>
-            <header>HMD</header>
+          <div className='group last'>
+            <label htmlFor='hmdCheckbox'>HMD</label>
             <Checkbox
               id='hmdCheckbox'
               onChange={this.toggleHMDcheckBox}
               checked={hmdCheckbox} />
+          </div>
+          <div className='group hmd'>
             <div className='hmd-options'>
               <div className='option'>
                 <label htmlFor='hmdSelectAll' className={cx({'active': hmdCheckbox})}>{t('txt-selectAll')}</label>
@@ -1064,25 +1066,25 @@ class NetworkInventory extends Component {
                   disabled={!hmdCheckbox} />
               </div>
               <div className='option'>
-                <label htmlFor='hmdScanProcess' className={cx({'active': hmdCheckbox})}>Scan File (Yara)</label>
+                <label htmlFor='hmdScanFile' className={cx({'active': hmdCheckbox})}>Scan File (Yara)</label>
                 <Checkbox
-                  id='hmdScanProcess'
+                  id='hmdScanFile'
                   onChange={this.toggleHMDoptions.bind(this, 'scanFile')}
                   checked={hmdSearchOptions.scanFile}
                   disabled={!hmdCheckbox} />
               </div>
               <div className='option'>
-                <label htmlFor='hmdScanProcess' className={cx({'active': hmdCheckbox})}>Scan File (AI)</label>
+                <label htmlFor='hmdScanAI' className={cx({'active': hmdCheckbox})}>Scan File (AI)</label>
                 <Checkbox
-                  id='hmdScanProcess'
+                  id='hmdScanAI'
                   onChange={this.toggleHMDoptions.bind(this, 'malware')}
                   checked={hmdSearchOptions.malware}
                   disabled={!hmdCheckbox} />
               </div>
               <div className='option'>
-                <label htmlFor='hmdScanProcess' className={cx({'active': hmdCheckbox})}>GCB</label>
+                <label htmlFor='hmdGCB' className={cx({'active': hmdCheckbox})}>GCB</label>
                 <Checkbox
-                  id='hmdScanProcess'
+                  id='hmdGCB'
                   onChange={this.toggleHMDoptions.bind(this, 'gcb')}
                   checked={hmdSearchOptions.gcb}
                   disabled={!hmdCheckbox} />
@@ -1090,7 +1092,7 @@ class NetworkInventory extends Component {
             </div>
           </div>
         </div>
-        <div className='button-group'>
+        <div className='button-group inventory'>
           <button className='filter' onClick={this.getDeviceData.bind(this, 'search')}>{t('txt-filter')}</button>
           <button className='clear' onClick={this.clearFilter}>{t('txt-clear')}</button>
         </div>
@@ -1964,7 +1966,7 @@ class NetworkInventory extends Component {
         <div className='error-msg'>{t('network-inventory.txt-uploadFailed')}</div>
         <div className='table-data'>
           <DataTable
-            className='main-table'
+            className='main-table align-center'
             fields={tableFields}
             data={data.failureList} />
         </div>

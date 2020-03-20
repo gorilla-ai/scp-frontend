@@ -1493,6 +1493,10 @@ class AlertDetails extends Component {
     let apiArr = [];
 
     if (type === 'srcIp') {
+      if (!alertData.srcIp) {
+        return;
+      }
+
       apiArr = [
         {
           url: `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`, //Threats srcIp
@@ -1566,6 +1570,10 @@ class AlertDetails extends Component {
         }
       ];
     } else if (type === 'destIp') {
+      if (!alertData.destIp) {
+        return;
+      }
+
       apiArr = [
         {
           url: `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`, //Threats destIp

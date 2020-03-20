@@ -657,6 +657,9 @@ class SyslogController extends Component {
                   value = value;
                 }
               }
+              if (typeof value === 'boolean') {
+                value = value.toString();
+              }
               return (
                 <TableCell
                   activeTab={activeTab}

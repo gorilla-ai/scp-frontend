@@ -933,7 +933,7 @@ class HMDscanInfo extends Component {
       <div className='scan-info'>
         {syncStatus &&
           <div className='sync-status'>
-            <span className='fg fg-alert-1'></span>Sync YARA rule fail: {syncTime}
+            <span className='fg fg-alert-1'></span>{t('network-inventory.txt-syncYaraFail')}: {syncTime}
           </div>
         }
         <ButtonGroup

@@ -190,6 +190,14 @@ footer.footer {
     background: -webkit-linear-gradient(top, #021320, #03244b, #021320)
   }
 }
+.main-table {
+  &.align-center {
+    tbody td {
+      text-align: center;
+      padding-left: 0;
+    }
+  }
+}
 #app-container {
   .sub-header { //The blue bar
     position: relative;
@@ -437,14 +445,6 @@ footer.footer {
         &.bar {
           width: 49.32%;
           height: 460px;
-        }
-        .main-table {
-          &.align-center {
-            tbody td {
-              text-align: center;
-              padding-left: 0;
-            }
-          }
         }
         .empty-data {
           position: relative;
@@ -889,6 +889,11 @@ footer.footer {
         .button-group {
           margin-bottom: 5px;
           display: block;
+          &.inventory {
+            position: absolute;
+            right: 10px;
+            bottom: 10px;
+          }
           .open-query,
           .save-query {
             font-size: 15px;
@@ -942,36 +947,38 @@ footer.footer {
                 width: auto;
                 min-width: 185px;
               }
+              &.last {
+                width: 100%;
+                margin-top: 10px;
+                label {
+                  float: left;
+                  margin-top: 1px;
+                  margin-right: 5px;
+                }
+                i {
+                  float: left;
+                  margin-right: 3px;
+                }
+              }
               &.hmd {
                 position: relative;
                 display: flex;
-                width: 100%;
-                margin: 30px 5px 5px 5px;
+                margin: 0 5px 5px 5px;
                 padding: 10px;
                 border: 1px solid #d9d9d9;
                 border-radius: 5px;
                 background-color: #fff;
-                header {
-                  position: absolute;
-                  top: -25px;
-                  left: 0;
-                  color: #004d93;
-                }
-                #hmdCheckbox {
-                  position: absolute;
-                  top: -25px;
-                  left: 40px;
-                }
                 .hmd-options {
                   display: flex;
                   .option {
-                    margin-right: 15px;
+                    margin-right: 10px;
                     label {
-                      float: right;
-                      margin-right: 2px;
+                      float: left;
+                      margin-top: 1px;
+                      margin-right: 5px;
                       color: #ccc;
                       &.active {
-                        color: #333;
+                        color: #004d93;
                       }
                     }
                     i {

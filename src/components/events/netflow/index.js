@@ -765,6 +765,9 @@ class Netflow extends Component {
               if (tempData === 'firstPacket' || tempData === 'lastPacket' || tempData === '_eventDttm_') {
                 value = helper.getFormattedDate(value, 'local');
               }
+              if (typeof value === 'boolean') {
+                value = value.toString();
+              }
               return (
                 <TableCell
                   activeTab={activeTab}
@@ -921,6 +924,9 @@ class Netflow extends Component {
               } else {
                 if (tempData === 'firstPacket' || tempData === 'lastPacket' || tempData === '_eventDttm_') {
                   value = helper.getFormattedDate(value, 'local');
+                }
+                if (typeof value === 'boolean') {
+                  value = value.toString();
                 }
                 return (
                   <TableCell
