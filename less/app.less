@@ -1,9 +1,37 @@
 @charset"utf-8";
 
+html {
+  --primaryBackground: #ededed;
+  --primaryTextColor: #4a4a4a;
+  --primaryContentBackground: #fff;
+  --primaryContentHeader: #004d93;
+  --headerBg: #001b34;
+  --subHeaderBg: #004d93;
+  --primaryBorder: #ccc;
+  --chartTextColor: #333;
+  --chartAxisLabelColor: #666;
+  --buttonColor: #fff;
+  --buttonSelectedColor: #001b34;
+  --buttonBorderColor: #1a3248;
+}
+html[data-theme='dark'] {
+  --primaryBackground: #000;
+  --primaryTextColor: #fff;
+  --primaryContentBackground: #1f1e1e;
+  --primaryContentHeader: #069bda;
+  --headerBg: #089bda;
+  --subHeaderBg: #005580;
+  --primaryBorder: #4b4b4b;
+  --chartTextColor: #fff;
+  --chartAxisLabelColor: #fff;
+  --buttonColor: #1a668c;
+  --buttonSelectedColor: #069bda;
+  --buttonBorderColor: #4b4b4b;
+}
 html, body, #app-container {
-  color: rgb(51,51,51);
   font-family:"Segoe UI", "微軟正黑體", "新細明體";
   font-size: 1em;
+  color: var(--chartTextColor);
   min-width: 720px;
 }
 main.main {
@@ -61,7 +89,7 @@ footer.footer {
   color: #ffffff;
   padding: 0 20px;
   height: 45px;
-  background-color: #001b34;
+  background-color: var(--headerBg);
   .title { //Gorilla logo
     position: absolute;
     font-size: 1.6em;
@@ -76,7 +104,7 @@ footer.footer {
         background-color: #1a3248;
       }
       &.active {
-        background-color: #004d93;
+        background-color: var(--subHeaderBg);
         &:hover {
           opacity: .9;
         }
@@ -103,8 +131,21 @@ footer.footer {
   .thumb {
     padding-left: 25px;
     padding-right: 25px;
-    &:not(.selected):not(:disabled):hover {
-      background: #fff;
+    &.selected {
+      background-color: var(--buttonSelectedColor);
+      &:not(:disabled):hover {
+        background-color: var(--buttonSelectedColor);
+        border-top-color: var(--buttonBorderColor);
+        border-bottom-color: var(--buttonBorderColor);
+      }
+    }
+    &:not(.selected) {
+      &:not(:disabled):hover {
+        color: var(--primaryTextColor);
+        background-color: var(--buttonColor);
+      }
+      color: var(--primaryTextColor);
+      background-color: var(--buttonColor);
     }
     &:first-child {
       border-radius: 4px 0 0 4px;
@@ -202,9 +243,9 @@ footer.footer {
   .sub-header { //The blue bar
     position: relative;
     color: #fff;
-    padding: 3px 10px;
+    padding: 5px 10px;
     overflow: hidden;
-    background-color: #004d93;
+    background-color: var(--subHeaderBg);
     min-height: 42px;
     input:not([type=radio]), select {
       color: #000;
@@ -290,12 +331,29 @@ footer.footer {
   }
   header.main-header {
     position: relative;
-    color: #004d93;
+    color: var(--primaryContentHeader);
     font-size: 1.1em;
     font-weight: bold;
     padding: 15px;
-    border-bottom: 1px solid #ccc;
+    border-bottom: 1px solid var(--primaryBorder);
     background-color: #fff;
+  }
+  .highcharts-container {
+    rect {
+      &.highcharts-background {
+        fill: var(--primaryContentBackground);
+      }
+    }
+    .highcharts-legend-item {
+      text {
+        fill: var(--chartTextColor) !important;
+      }
+    }
+    .highcharts-axis-labels {
+      text {
+        fill: var(--chartAxisLabelColor) !important;
+      }
+    }
   }
   .main-statistics { //For all statistics page
     height: 79vh;
@@ -312,7 +370,7 @@ footer.footer {
         border: none;
         border-radius: 5px;
         overflow: hidden;
-        background-color: #fff;
+        background-color: var(--primaryContentBackground);
         .empty-data {
           position: relative;
           height: 458px;
@@ -326,12 +384,12 @@ footer.footer {
           }
         }
         header {
-          color: #004d93;
+          color: var(--primaryContentHeader);
           font-size: 1.1em;
           font-weight: bold;
           padding: 15px;
-          border-bottom: 1px solid #ccc;
-          background-color: #fff;
+          border-bottom: 1px solid var(--primaryBorder);
+          background-color: var(--primaryContentBackground);
         }
       }
     }
@@ -347,7 +405,7 @@ footer.footer {
     }
     button {
       padding: .3em .5em;
-      color: #4a4a4a;
+      color: var(--primaryTextColor);
       background-color: #fff;
     }
     &.menu {
@@ -429,7 +487,7 @@ footer.footer {
     height: 88vh;
     overflow-y: auto;    
     padding: 15px;
-    background-color: #ededed;
+    background-color: var(--primaryBackground);
     .charts {
       width: 100%;
       display: flex;
@@ -438,9 +496,9 @@ footer.footer {
         width: 24.4%;
         height: 400px;
         margin: 5px;
-        border: 1px solid #ccc;
+        border: 1px solid var(--primaryBorder);
         border-radius: 5px;
-        background-color: #fff;
+        background-color: var(--primaryContentBackground);
         overflow: hidden;
         &.bar {
           width: 49.32%;
@@ -459,12 +517,12 @@ footer.footer {
           }
         }
         header {
-          color: #004d93;
+          color: var(--primaryContentHeader);
           font-size: 1.1em;
           font-weight: bold;
           padding: 15px;
-          border-bottom: 1px solid #ccc;
-          background-color: #fff;
+          border-bottom: 1px solid var(--primaryBorder);
+          background-color: var(--primaryContentBackground);
         }
         .show-pointer table tbody tr {
           cursor: pointer;
@@ -495,7 +553,7 @@ footer.footer {
         }
         .hmd-info,
         .dns-histogram {
-          border-bottom: 1px solid #ccc;
+          border-bottom: 1px solid var(--primaryBorder);
         }
       }
     }
@@ -662,7 +720,7 @@ footer.footer {
         }
       }
       .header-text {
-        color: #004d93;
+        color: var(--primaryContentHeader);
         font-size: .9em;
         padding: 10px;
         margin-top: 0;
@@ -705,7 +763,7 @@ footer.footer {
         .button {
           display: none;
           font-size: .5em;
-          color: #4a4a4a;
+          color: var(--primaryTextColor);
           padding: .1em .8em;
           border-radius: 5px;
           background-color: #fff;
@@ -733,7 +791,7 @@ footer.footer {
         position: relative;
         width: 96%;
         height: 50px;
-        border-bottom: 1px solid #ccc;
+        border-bottom: 1px solid var(--primaryBorder);
         background-color: #fff;
         &.last {
           border-bottom: 0;
@@ -749,7 +807,7 @@ footer.footer {
           padding-top: 10px;
           padding-left: 15px;
           &.true {
-            color: #004d93;
+            color: var(--primaryContentHeader);
           }
         }
         .fg-arrow-top,
@@ -768,7 +826,7 @@ footer.footer {
           padding-top: 15px;
           padding-left: 20px;
           &.true {
-            color: #004d93;
+            color: var(--primaryContentHeader);
           }
         }
       }
@@ -782,7 +840,7 @@ footer.footer {
       overflow-x: auto;
       overflow: hidden;
       white-space: nowrap;
-      background-color: #ededed;
+      background-color: var(--primaryBackground);
       .main-filter,
       .main-mark,
       .main-chart {
@@ -801,7 +859,7 @@ footer.footer {
       .main-filter,
       .main-mark {
         padding: 5px 10px 10px 10px;
-        border-bottom: 1px solid #ccc;
+        border-bottom: 1px solid var(--primaryBorder);
         background-color: #fff;
         overflow: hidden;
         .filter-section,
@@ -921,7 +979,7 @@ footer.footer {
         .header-text {
           float: left;
           margin: 5px;
-          color: #004d93;
+          color: var(--primaryContentHeader);
         }
         .button-group.open-query {
           position: relative;
@@ -937,7 +995,7 @@ footer.footer {
               label {
                 display: block;
                 font-size: 15px;
-                color: #004d93;
+                color: var(--primaryContentHeader);
                 margin-bottom: 3px;
               }
               input {
@@ -978,7 +1036,7 @@ footer.footer {
                       margin-right: 5px;
                       color: #ccc;
                       &.active {
-                        color: #004d93;
+                        color: var(--primaryContentHeader);
                       }
                     }
                     i {
@@ -994,12 +1052,12 @@ footer.footer {
       }
       .main-mark {
         .header-text {
-          color: #004d93;
+          color: var(--primaryContentHeader);
           margin-bottom: 8px;
         }
       }
       .main-chart { //For main chart in Events and Syslog
-        border-bottom: 1px solid #ccc;
+        border-bottom: 1px solid var(--primaryBorder);
         .chart-content {
           position: absolute;
           background-color: #fff;
@@ -1033,7 +1091,7 @@ footer.footer {
         position: relative;
         margin: 15px;
         border-radius: 5px;
-        background-color: #ededed;
+        background-color: var(--primaryBackground);
         border: 1px solid #d9d9d9;
         overflow: hidden;
         &.basic-form { //For content with form input
@@ -1051,7 +1109,7 @@ footer.footer {
             width: 100%;
             text-align: right;
             padding: 15px;
-            border-top: 1px solid #ccc;
+            border-top: 1px solid var(--primaryBorder);
             button {
               margin: 0 5px;
             }
@@ -1068,7 +1126,7 @@ footer.footer {
             width: 70%;
             padding: 10px 10px 15px 10px;
             background-color: #f2f2f2;
-            border: 1px solid #ccc;
+            border: 1px solid var(--primaryBorder);
             border-radius: 5px;
             #edgeModeDatetime {
               text-align: left;
@@ -1174,7 +1232,7 @@ footer.footer {
                   width: 20%;
                   height: 100%;
                   background-color: #fff;
-                  border-right: 1px solid #ccc;
+                  border-right: 1px solid var(--primaryBorder);
                 }
                 .map {
                   float: left;
@@ -1199,7 +1257,7 @@ footer.footer {
               }
               .msg {
                 font-size: 10px;
-                color: #4a4a4a;
+                color: var(--primaryTextColor);
                 font-weight: normal;
                 margin-top: 5px;
                 display: block;
@@ -1256,7 +1314,7 @@ footer.footer {
                   margin: 3px 2px;
                   padding: 5px 10px;
                   border-radius: 5px;
-                  background-color: #004d93;
+                  background-color: var(--primaryContentHeader);
                 }
               }
               .react-multi-email {
@@ -1325,7 +1383,7 @@ footer.footer {
               height: 45px;
               text-align: center;
               border-radius: 50%;
-              border: 3px solid #ccc;
+              border: 3px solid var(--primaryBorder);
               cursor: default;
               &.active {
                 color: #fff;
@@ -1345,7 +1403,7 @@ footer.footer {
               }
               .text {
                 position: absolute;
-                color: #4a4a4a;
+                color: var(--primaryTextColor);
                 top: 55px;
                 font-size: 14px;
                 &.text1 {
@@ -1536,7 +1594,7 @@ footer.footer {
                   margin: 5px 2px;
                   padding: 5px 10px;
                   border-radius: 5px;
-                  background-color: #004d93;
+                  background-color: var(--primaryContentHeader);
                 }
               }
               &.align-center {
@@ -1561,7 +1619,7 @@ footer.footer {
               }
               &.description {
                 span {
-                  color: #004d93;
+                  color: var(--primaryContentHeader);
                 }
                 button {
                   margin: 5px 0;
@@ -1649,7 +1707,7 @@ footer.footer {
             max-height: 100px;
             margin-right: 20px;
             margin-bottom: 30px;
-            border: 1px solid #ccc;
+            border: 1px solid var(--primaryBorder);
             cursor: pointer;
           }
         }
@@ -1660,7 +1718,7 @@ footer.footer {
             width: 20%;
             ul.c-tree {
               min-height: 80vh;
-              border-right: 1px solid #ccc;
+              border-right: 1px solid var(--primaryBorder);
             }
           }
           .map {
@@ -1687,7 +1745,7 @@ footer.footer {
               padding: 10px 30px;
               label {
                 display: block;
-                color: #004d93;
+                color: var(--primaryContentHeader);
                 margin-bottom: 5px;
               }
               select {
@@ -1736,7 +1794,7 @@ footer.footer {
   }
   .map-tooltip { //For World map tooltip
     .key {
-      color: #004d93;
+      color: var(--primaryContentHeader);
     }
     .value {
       color: #000;
@@ -1753,10 +1811,10 @@ footer.footer {
     background-color: #fff;
     min-height: 84vh;
     header {
-      color: #004d93;
+      color: var(--primaryContentHeader);
       font-weight: bold;
       padding: 15px;
-      border-bottom: 1px solid #ccc;
+      border-bottom: 1px solid var(--primaryBorder);
       background-color: #fff;
     }
     .btn {
@@ -1786,7 +1844,7 @@ footer.footer {
       }
       th, td {
         padding: 10px !important;
-        border: 1px solid #ccc !important;
+        border: 1px solid var(--primaryBorder) !important;
         white-space: pre-wrap;
       }
     }

@@ -64,6 +64,8 @@
     "txt-account": "Account"
   },
 
+  "toggle-theme": "Toggle Theme",
+
   "op-types":{
     "EQ":"Equals",
     "LIKE":"Like",

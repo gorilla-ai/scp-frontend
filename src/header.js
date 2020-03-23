@@ -29,6 +29,10 @@ const l = i18n.getFixedT(null, 'app');
 class Header extends Component {
   constructor(props) {
     super(props);
+
+    this.state = {
+      theme: 'light'
+    };
   }
   /**
    * Determine the active page
@@ -80,6 +84,15 @@ class Header extends Component {
         window.location.href = '/SCP?lng=' + locale;
       })
   }
+  toggleTheme = () => {
+    const theme = this.state.theme === 'dark' ? 'light' : 'dark';
+
+    this.setState({
+      theme
+    });
+
+    document.documentElement.setAttribute('data-theme', theme);
+  }
   /**
    * Open and display account context menu
    * @method
@@ -92,8 +105,15 @@ class Header extends Component {
       action: this.changeLng.bind(this, i)
     }));
 
+    const themes = [{
+      id: 'themes',
+      text: l('toggle-theme'),
+      action: this.toggleTheme
+    }];
+
     const menuItems = [
       ...lngs,
+      ...themes,
       {
         id: 'account',
         text: l('login.txt-account'),
