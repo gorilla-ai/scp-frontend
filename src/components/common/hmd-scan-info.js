@@ -875,7 +875,7 @@ class HMDscanInfo extends Component {
     const {syncStatus} = this.state;
 
     if (page === 'threats') {
-      return syncStatus ? 300 : 335;
+      return syncStatus ? 300 : 295;
     } else if (page === 'inventory') {
       return syncStatus ? 428 : 435;
     }

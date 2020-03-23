@@ -53,18 +53,30 @@ class ThreatIntelligence extends Component {
 
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
 
-    this.getChartsData();
+    this.getChartsData('first');
   }
   /**
    * Get and set charts data
    * @method
+   * @param {string} options - options for 'first'
    */
-  getChartsData = (search) => {
+  getChartsData = (options) => {
     const {baseUrl} = this.context;
     const {datetime} = this.state;
+    let dateTimeFrom = datetime.from;
+    let dateTimeTo = datetime.to;
+
+    if (options === 'first') {
+      dateTimeFrom = datetime.from.substr(0, 11) + '00:00:00';
+      dateTimeTo = datetime.to.substr(0, 11) + '23:59:59';
+    } else {
+      dateTimeFrom = datetime.from + 'T00:00:00';
+      dateTimeTo = datetime.to + 'T23:59:59';
+    }
+
     const dateTime = {
-      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+      from: Moment(dateTimeFrom).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: Moment(dateTimeTo).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
 
     if (Moment(dateTime.from).isAfter()) {
@@ -302,6 +314,7 @@ class ThreatIntelligence extends Component {
         <div className='sub-header'>
           <SearchOptions
             datetime={datetime}
+            enableTime={false}
             handleDateChange={this.handleDateChange}
             handleSearchSubmit={this.getChartsData} />
         </div>

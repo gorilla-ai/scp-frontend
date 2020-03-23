@@ -148,13 +148,14 @@ class SearchOptions extends Component {
    */
   showDataRange = () => {
     const {locale} = this.context;
+    const {enableTime} = this.props;
 
     return (
       <DateRange
         id='datetime'
         className='daterange'
         onChange={this.props.handleDateChange}
-        enableTime={true}
+        enableTime={enableTime}
         value={this.props.datetime}
         locale={locale}
         t={et} />
@@ -261,6 +262,7 @@ SearchOptions.contextType = BaseDataContext;
 
 SearchOptions.propTypes = {
   datetime: PropTypes.object.isRequired,
+  enableTime: PropTypes.bool.isRequired,
   handleDateChange: PropTypes.func.isRequired,
   handleSearchSubmit: PropTypes.func.isRequired
 };

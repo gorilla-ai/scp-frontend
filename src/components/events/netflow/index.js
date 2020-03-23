@@ -2900,6 +2900,7 @@ class Netflow extends Component {
             datetime={datetime}
             searchInput={searchInput}
             showFilter={showFilter}
+            enableTime={true}
             showInterval={true}
             setSearchData={this.setSearchData}
             handleDateChange={this.handleDateChange}

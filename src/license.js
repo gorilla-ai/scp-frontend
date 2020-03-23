@@ -146,6 +146,10 @@ class License extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Handle license activate button
+   * @method
+   */
   toggleKeyInput = () => {
     this.setState({
       key: '',
