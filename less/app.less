@@ -5,28 +5,90 @@ html {
   --primaryTextColor: #4a4a4a;
   --primaryContentBackground: #fff;
   --primaryContentHeader: #004d93;
+
   --headerBg: #001b34;
   --subHeaderBg: #004d93;
   --primaryBorder: #ccc;
+
   --chartTextColor: #333;
   --chartAxisLabelColor: #666;
+
   --buttonColor: #fff;
   --buttonSelectedColor: #001b34;
   --buttonBorderColor: #1a3248;
+  --buttonTextColor: #001b34;
+  --buttonHoverColor: #e5e5e5;
+  --groupBorderColor: #d9d9d9;
+
+  --leftNavBackground: #d9d9d9;
+  --leftTreeGroup: #e6e6e6;
+  --leftExpandCollapse: #E4E4E4;
+
+  --tabMenuText: #9b9b9b;
+  --tabMenuHover: #e5e5e5;
+
+  --tableRowOdd: #f5f5f5;
+  --tableRowEven: #ffffff;
+
+  --pageCurrentHover: #1a3248;
+
+  --dashboardMapsText: #000;
+  --dashboardMapsHover: #e2ecfd;
+
+  --subFrameColor: #e8e9ed;
+
+  --formBackground: #fff;
+  --formGroupBackground: #f2f2f2;
+  --formEmailGroup: #004d99;
+  --formReadOnlyColor: #777;
+  --formReadOnlyBackground: #eee;
+  --reactMultiEmail: #fff;
+  --fadedColor: #fff;
 }
 html[data-theme='dark'] {
   --primaryBackground: #000;
   --primaryTextColor: #fff;
   --primaryContentBackground: #1f1e1e;
   --primaryContentHeader: #069bda;
+
   --headerBg: #089bda;
   --subHeaderBg: #005580;
   --primaryBorder: #4b4b4b;
+
   --chartTextColor: #fff;
   --chartAxisLabelColor: #fff;
+
   --buttonColor: #1a668c;
   --buttonSelectedColor: #069bda;
   --buttonBorderColor: #4b4b4b;
+  --buttonTextColor: #fff;
+  --buttonHoverColor: #1a668c;
+  --groupBorderColor: #4b4b4b;
+
+  --leftNavBackground: #000;
+  --leftTreeGroup: #1a1a1a;
+  --leftExpandCollapse: #1f1e1e;
+
+  --tabMenuText: #fff;
+  --tabMenuHover: #000;
+
+  --tableRowOdd: #1f1e1e;
+  --tableRowEven: #0f0f0f;
+
+  --pageCurrentHover: #005580;
+
+  --dashboardMapsText: #fff;
+  --dashboardMapsHover: #000;
+
+  --subFrameColor: #0f0f0f;
+
+  --formBackground: #474747;
+  --formGroupBackground: #333;
+  --formEmailGroup: #069bda;
+  --formReadOnlyColor: #fff;
+  --formReadOnlyBackground: #666;
+  --reactMultiEmail: #666;
+  --fadedColor: #999;
 }
 html, body, #app-container {
   font-family:"Segoe UI", "微軟正黑體", "新細明體";
@@ -40,11 +102,36 @@ main.main {
 footer.footer {
   padding: 2px 10px;
   font-size: .9em;
+  background-color: var(--primaryContentBackground);
   &.login {
     position: absolute;
     color: #fff;
     bottom: 2px;
   }
+}
+button {
+  background-color: var(--buttonSelectedColor);
+  &:hover:not([disabled]) {
+    background-color: var(--pageCurrentHover);
+  }
+  &.standard {
+    &:hover:not([disabled]) {
+      background-color: var(--buttonHoverColor);
+    }
+    color: var(--buttonTextColor);
+    background-color: var(--buttonColor);
+  }
+}
+.pure-form input,
+.pure-form select {
+  color: var(--primaryTextColor);
+  background-color: var(--formBackground);
+}
+.pure-form input[readonly],
+.pure-form select[readonly],
+.pure-form textarea[readonly] {
+  color: var(--formReadOnlyColor);
+  background-color: var(--formReadOnlyBackground);
 }
 /* Temporary Fix for Gis library bug */
 .leaflet-marker-icon.gis-divIcon > div.gis-spot {
@@ -55,19 +142,49 @@ footer.footer {
 .font-bold {
   font-weight: bold;
 }
-.c-hierarchy.tree {
-  i.c-checkbox {
-    color: #666;
-    &.fg-checkbox {
-      color: #001b34;
-      &.partial {
-        color: #a6a6a6;
-      }
+.c-tabs > .menu {
+  background-color: var(--primaryContentBackground);
+  border-bottom: 1.5px solid var(--leftNavBackground);
+  li {
+    color: var(--tabMenuText);
+    border-color: var(--primaryContentHeader);
+    background-color: var(--primaryContentBackground);
+    &:hover {
+      background-color: var(--tabMenuHover);
     }
-    &.fg-checkbox-outline:active:not(.disabled),
-    &.fg-checkbox-outline:hover:not(.disabled) {
-      color: #666;
-    }
+  }
+  .current {
+    color: var(--primaryContentHeader);
+    background-color: var(--primaryContentBackground);
+  }
+}
+.c-tree {
+  }
+  ul li:last-child:before {
+    background: var(--primaryContentBackground);
+  }
+  .selected,
+  .branch:hover:not(.selected) { {
+    color: var(--primaryContentHeader);
+  }
+  background-color: var(--primaryContentBackground);
+}
+.c-table {
+  thead {
+    color: var(--primaryContentHeader);
+    border-bottom: 1px solid var(--primaryBorder);
+  }
+  tbody {
+    color: var(--primaryTextColor);
+  }
+  &:not(.bland):not(.c-grid) tbody tr:nth-child(odd) {
+    background-color: var(--tableRowOdd);
+  }
+  &:not(.bland):not(.c-grid) tbody tr:nth-child(even) {
+    background-color: var(--tableRowEven);
+  }
+  &:not(.nohover) tbody tr:hover:not(.selected) {
+    background-color: var(--tabMenuHover) !important;
   }
 }
 #language-menu {
@@ -119,6 +236,23 @@ footer.footer {
     cursor: pointer;
   }
 }
+.c-menu.sub {
+  background-color: var(--primaryContentBackground)
+}
+.c-menu.sub > * {
+  color: var(--primaryTextColor);
+  border-bottom: 1px solid var(--primaryContentBackground);
+  &:hover {
+    background-color: var(--tabMenuHover);
+    border-bottom: 1px solid var(--primaryContentBackground);
+  }
+}
+.c-toggle-btn > input[type=checkbox] + div {
+  background: var(--fadedColor);
+}
+.c-toggle-btn > input[type=checkbox]:checked + div {
+  background: var(--headerBg);
+}
 .c-button-group {
   &.left {
     float: left;
@@ -133,19 +267,29 @@ footer.footer {
     padding-right: 25px;
     &.selected {
       background-color: var(--buttonSelectedColor);
+      border-top-color: var(--groupBorderColor);
+      border-bottom-color: var(--groupBorderColor);
+      border-left-color: var(--groupBorderColor);
+      border-right-color: var(--groupBorderColor);
       &:not(:disabled):hover {
         background-color: var(--buttonSelectedColor);
-        border-top-color: var(--buttonBorderColor);
-        border-bottom-color: var(--buttonBorderColor);
+        border-top-color: var(--groupBorderColor);
+        border-bottom-color: var(--groupBorderColor);
       }
     }
     &:not(.selected) {
       &:not(:disabled):hover {
         color: var(--primaryTextColor);
         background-color: var(--buttonColor);
+        border-top-color: var(--tabMenuHover);
+        border-bottom-color: var(--tabMenuHover);
       }
       color: var(--primaryTextColor);
       background-color: var(--buttonColor);
+      border-top-color: var(--groupBorderColor);
+      border-bottom-color: var(--groupBorderColor);
+      border-left-color: var(--groupBorderColor);
+      border-right-color: var(--groupBorderColor);
     }
     &:first-child {
       border-radius: 4px 0 0 4px;
@@ -170,16 +314,59 @@ footer.footer {
 .c-contextmenu {
   position: absolute;
 }
+i.c-checkbox.fg-checkbox {
+  color: var(--buttonSelectedColor);
+  &:hover:not(.disabled) {
+    color: var(--pageCurrentHover);
+  }
+}
 .c-hierarchy {
   background: none;
+  .node:hover:not(.current) {
+    color: var(--primaryContentHeader);
+  }
   &.tree {
     width: 100%;
     padding: 10px 5px;
     border-radius: 5px;
-    background-color: #e6e6e6;
+    background-color: var(--leftTreeGroup);
+    i.c-checkbox {
+      color: var(--buttonSelectedColor);
+      &.fg-checkbox {
+        &.partial {
+          color: #a6a6a6;
+        }
+      }
+      &.fg-checkbox-outline:active:not(.disabled),
+      &.fg-checkbox-outline:hover:not(.disabled) {
+        color: var(--chartAxisLabelColor);
+      }
+    }
     .children .branch:last-child:before,
     .leaf:last-child:before {
-      background-color: #e6e6e6;
+      background-color: var(--leftTreeGroup);
+    }
+  }
+}
+.c-page-nav .thumb {
+  &:not(.selected) {
+    background-color: var(--primaryContentBackground);
+    color: var(--primaryTextColor);
+    &:not(:disabled):hover {
+      background-color: var(--tabMenuHover);
+    }
+  }
+  &.current {
+    color: #fff;
+    background-color: var(--buttonSelectedColor);
+    border-top-color: var(--buttonSelectedColor);
+    border-bottom-color: var(--buttonSelectedColor);
+    border-left-color: var(--leftNavBackground);
+    border-right-color: var(--leftNavBackground);
+    &:not(:disabled):hover {
+      background-color: var(--pageCurrentHover);
+      border-top-color: var(--pageCurrentHover);
+      border-bottom-color: var(--pageCurrentHover);
     }
   }
 }
@@ -247,9 +434,6 @@ footer.footer {
     overflow: hidden;
     background-color: var(--subHeaderBg);
     min-height: 42px;
-    input:not([type=radio]), select {
-      color: #000;
-    }
     .secondary-btn-group {
       &.left {
         float: left;
@@ -259,13 +443,13 @@ footer.footer {
         margin-top: 1px;
       }
       button {
-        color: #001b34;
+        color: var(--buttonTextColor);
         padding: .3em .6em;
         margin-right: 5px;
-        background-color: #fff;
+        background-color: var(--buttonColor);
         &.active {
           color: #fff;
-          background-color: #001b34;
+          background-color: var(--buttonSelectedColor);
         }
         &.last {
           margin-right: 0;
@@ -294,6 +478,12 @@ footer.footer {
     }
     .search-options {
       position: absolute;
+      select,
+      input {
+        color: var(--primaryTextColor);
+        background-color: var(--buttonColor);
+        border: var(--buttonBorderColor);
+      }
       .search-type {
         float: left;
         margin-right: 10px;
@@ -326,6 +516,7 @@ footer.footer {
       }
       .search-button {
         margin-top: 2px;
+        background-color: var(--buttonSelectedColor);        
       }
     }
   }
@@ -336,7 +527,7 @@ footer.footer {
     font-weight: bold;
     padding: 15px;
     border-bottom: 1px solid var(--primaryBorder);
-    background-color: #fff;
+    background-color: var(--primaryContentBackground);
   }
   .highcharts-container {
     rect {
@@ -359,7 +550,7 @@ footer.footer {
     height: 79vh;
     overflow-y: auto;
     padding: 6px;
-    background-color: #d9d9d9;
+    background-color: var(--leftNavBackground);
     .statistics-content {
       display: flex;
       flex-grow: 12;
@@ -406,7 +597,7 @@ footer.footer {
     button {
       padding: .3em .5em;
       color: var(--primaryTextColor);
-      background-color: #fff;
+      background-color: var(--primaryContentBackground);
     }
     &.menu {
       i.fg {
@@ -570,10 +761,10 @@ footer.footer {
       position: relative;
       width: 100%;
       min-height: 85vh;
-      border: 1px solid #d9d9d9;
+      border: 1px solid var(--primaryBorder);
       border-radius: 5px;
       padding: 10px 5px;
-      background-color: #fff;
+      background-color: var(--primaryContentBackground);
       .c-button-group {
         margin: 5px 8px;
       }
@@ -600,21 +791,21 @@ footer.footer {
           ul {
             max-height: 77vh;
             overflow-y: auto;
-            border-top: 1px solid #d9d9d9;
-            border-right: 1px solid #d9d9d9;
-            border-left: 1px solid #d9d9d9;
+            border-top: 1px solid var(--primaryBorder);
+            border-right: 1px solid var(--primaryBorder);
+            border-left: 1px solid var(--primaryBorder);
             li {
               position: relative;
-              color: #5e5e5e;
+              color: var(----primaryTextColor);
               height: 70px;
-              background-color: #fff;
-              border-bottom: 2px solid #d9d9d9;
+              background-color: var(--primaryContentBackground);
+              border-bottom: 2px solid var(--primaryBorder);
               cursor: pointer;
               &:hover {
-                background-color: #e2ecfd;
+                background-color: var(--dashboardMapsHover);
               }
               .info {
-                color: #000;
+                color: var(--dashboardMapsText);
                 font-size: 18px;
                 padding: 8px 10px;
                 &.faded {
@@ -656,8 +847,8 @@ footer.footer {
       flex-shrink: 0;
       width: 360px;
       min-width: 15px;
-      border-right: 1px solid #d9d9d9;
-      background-color: #d9d9d9;
+      border-right: 1px solid var(--leftNavBackground);
+      background-color: var(--leftNavBackground);
       &.collapse {
         width: 0;
         & > .item {
@@ -687,8 +878,8 @@ footer.footer {
         right: 0;
         height: 100%;
         width: 15px;
-        background-color: #E4E4E4;
-        border-left: 1px solid #d9d9d9;
+        background-color: var(--leftExpandCollapse);
+        border-left: 1px solid var(--leftNavBackground);
         cursor: pointer;
         &.not-allowed {
           cursor: not-allowed;
@@ -697,7 +888,7 @@ footer.footer {
           position: absolute;
           top: 380px;
           left: -5px;
-          color: #666;
+          color: var(--chartAxisLabelColor);
           font-size: 1.5em;
         }
       }
@@ -766,7 +957,8 @@ footer.footer {
           color: var(--primaryTextColor);
           padding: .1em .8em;
           border-radius: 5px;
-          background-color: #fff;
+          color: var(--buttonTextColor);
+          background-color: var(--buttonColor);
           &.active {
             display: inline-block;
           }
@@ -784,7 +976,7 @@ footer.footer {
           height: 100%;
         }
         &:hover {
-          background-color: #e2ecfd;
+          background-color: var(--dashboardMapsHover);
         }
       }
       .frame {
@@ -792,7 +984,7 @@ footer.footer {
         width: 96%;
         height: 50px;
         border-bottom: 1px solid var(--primaryBorder);
-        background-color: #fff;
+        background-color: var(--primaryContentBackground);
         &.last {
           border-bottom: 0;
         }
@@ -820,7 +1012,7 @@ footer.footer {
       .subframe {
         width: 100%;
         height: 50px;
-        background-color: #e8e9ed;
+        background-color: var(--subFrameColor);
         span {
           display: block;
           padding-top: 15px;
@@ -860,7 +1052,7 @@ footer.footer {
       .main-mark {
         padding: 5px 10px 10px 10px;
         border-bottom: 1px solid var(--primaryBorder);
-        background-color: #fff;
+        background-color: var(--primaryContentBackground);
         overflow: hidden;
         .filter-section,
         .mark-section {
@@ -870,14 +1062,9 @@ footer.footer {
             & > span {
               margin: 3px 0;
             }
-            span {
-              i.c-link {
-                background-color: #fff;
-              }
-            }
             .group {
               .fg-add {
-                background-color: #001b34;
+                background-color: var(--headerBg);
                 color: #fff;
               }
             }
@@ -902,7 +1089,7 @@ footer.footer {
               width: 32px;
               padding: 5px 5px 6px 4px;
               margin-right: 3px;
-              border: 1px solid #d9d9d9;
+              border: 1px solid var(--leftNavBackground);
               border-radius: 5px;
               &.red {
                 color: #B80000;
@@ -955,7 +1142,7 @@ footer.footer {
           .open-query,
           .save-query {
             font-size: 15px;
-            color: #001b34;
+            color: var(--buttonTextColor);
             margin: 5px;
             padding: 0;
             background: none;
@@ -970,8 +1157,8 @@ footer.footer {
             font-size: 14px;
           }
           .clear {
-            color: #000;
-            background-color: #fff;
+            color: var(--buttonTextColor);
+            background-color: var(--buttonColor);
           }
         }
       }
@@ -1023,7 +1210,7 @@ footer.footer {
                 display: flex;
                 margin: 0 5px 5px 5px;
                 padding: 10px;
-                border: 1px solid #d9d9d9;
+                border: 1px solid var(--leftNavBackground);
                 border-radius: 5px;
                 background-color: #fff;
                 .hmd-options {
@@ -1080,7 +1267,7 @@ footer.footer {
         }
         .bar-chart {
           padding-top: 70px;
-          background-color: #fff;
+          background-color: var(--primaryContentBackground);
           .error {
             padding-left: 20px;
             margin-top: -45px;
@@ -1092,10 +1279,10 @@ footer.footer {
         margin: 15px;
         border-radius: 5px;
         background-color: var(--primaryBackground);
-        border: 1px solid #d9d9d9;
+        border: 1px solid var(--primaryBorder);
         overflow: hidden;
         &.basic-form { //For content with form input
-          background-color: #fff;
+          background-color: var(--primaryContentBackground);
           min-height: 85vh;
           input,
           select,
@@ -1125,7 +1312,7 @@ footer.footer {
             margin-bottom: 40px;
             width: 70%;
             padding: 10px 10px 15px 10px;
-            background-color: #f2f2f2;
+            background-color: var(--formGroupBackground);
             border: 1px solid var(--primaryBorder);
             border-radius: 5px;
             #edgeModeDatetime {
@@ -1247,7 +1434,7 @@ footer.footer {
               position: absolute;
               top: -40px;
               left: 0;
-              color: #185e9e;
+              color: var(--primaryContentHeader);
               font-size: 1.2em;
               font-weight: bold;
               .text,
@@ -1291,12 +1478,12 @@ footer.footer {
                   }
                 }
                 .fg-close {
-                  background-color: #fff;
+                  background-color: var(--formBackground);
                 }
               }
               label {
                 text-align: left;
-                color: #185e9e;
+                color: var(--primaryContentHeader);
                 font-size: .9em;
                 display: block;
                 margin-bottom: 3px;
@@ -1320,13 +1507,14 @@ footer.footer {
               .react-multi-email {
                 display: flex;
                 flex-wrap: wrap;
+                background-color: var(--reactMultiEmail);
                 [data-tag] {
                   font-size: 14px;
                   font-weight: normal;
                   color: #fff;
                   padding: 8px 10px;
                   margin: 2px;
-                  background-color: #004d99;
+                  background-color: var(--formEmailGroup);
                 }
               }
               .ip-range-group,
@@ -1387,8 +1575,8 @@ footer.footer {
               cursor: default;
               &.active {
                 color: #fff;
-                background-color: #004d99;
-                border: 3px solid #004d99;
+                background-color: var(--formEmailGroup);
+                border: 3px solid var(--formEmailGroup);
               }
               .wrapper {
                 width: 39px;
@@ -1426,7 +1614,7 @@ footer.footer {
               margin-top: 21px;
               background-color: #ccc;
               &.active {
-                background-color: #004d99;
+                background-color: var(--formEmailGroup);
               }
               &.line1 {
                 display: none;
@@ -1551,7 +1739,7 @@ footer.footer {
               text-align: left;
               padding-left: 30px;
               a {
-                color: #185e9e;
+                color: var(--primaryContentHeader);
                 text-decoration: underline;
                 &.no-underline {
                   text-decoration: none;
@@ -1566,7 +1754,7 @@ footer.footer {
               }
               span {
                 a {
-                  color: #185e9e;
+                  color: var(--primaryContentHeader);
                   text-decoration: underline;
                 }
                 &.link {
@@ -1736,7 +1924,7 @@ footer.footer {
             height: 78vh;
             width: 85%;
             overflow-y: auto;
-            border-right: 1px solid #d9d9d9;
+            border-right: 1px solid var(--leftNavBackground);
           }
           .csv-dropdown {
             float: left;
@@ -1769,7 +1957,7 @@ footer.footer {
       display: flex;
       min-height: 78vh;
       .left-nav {
-        background-color: #fff;
+        background-color: var(--primaryContentBackground);
         .tree-data {
           padding: 10px;
         }
@@ -1837,7 +2025,7 @@ footer.footer {
       width: 100%;
       overflow: hidden;
       thead tr {
-        color: #185e9e;
+        color: var(--primaryContentHeader);
       }
       tbody td:hover {
         cursor: text;
@@ -1864,7 +2052,7 @@ footer.footer {
         }
         .header {
           font-size: 20px;
-          color: #185e9e;
+          color: var(--primaryContentHeader);
           margin-bottom: 15px;
           &.trigger {
             float: left;

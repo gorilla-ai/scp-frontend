@@ -1,3 +1,10 @@
+html {
+  --lmsConfig: #333;
+}
+html[data-theme='dark'] {
+  --lmsConfig: #fff;
+}
+
 #g-login {
   width:100%;
   background: linear-gradient(to top, #001549, #72aaff);
@@ -17,7 +24,7 @@
     width: 400px;
   }
   #title {
-    color:#ffffff;
+    color: #fff;
     margin-bottom:5px;
     .title {
       font-weight: bold;
@@ -30,8 +37,8 @@
   }
   #form {
     padding: 30px 30px 10px 30px;
-    background-color: #ffffff;
-    color: #333333;
+    background-color: #fff;
+    color: #333;
     &, input, button {
       border-radius:5px;
     }
@@ -61,7 +68,7 @@
     }
   }
   #g-footer {
-    color: #ffffff;
+    color: #fff;
     position: absolute;
     left: 0;
     right: 0;
@@ -72,7 +79,7 @@
     color: #fff;
     margin-top: -5%;
     &.config {
-      color: #333;
+      color: var(--lmsConfig);
       width: 30%;
     }
     section {
