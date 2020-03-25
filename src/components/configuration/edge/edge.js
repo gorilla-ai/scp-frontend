@@ -676,9 +676,11 @@ class Edge extends Component {
 
         <div className='content-header-btns'>
           {activeContent === 'viewEdge' &&
-            <button className='standard btn list' onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</button>
+            <div>
+              <button className='standard btn list' onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</button>
+              <button className='standard btn edit' onClick={this.toggleContent.bind(this, 'editEdge')}>{t('txt-edit')}</button>
+            </div>
           }
-          <button className='standard btn edit' onClick={this.toggleContent.bind(this, 'editEdge')}>{t('txt-edit')}</button>
         </div>
 
         <div className='form-group normal'>
