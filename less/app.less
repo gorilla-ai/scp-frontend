@@ -8,7 +8,7 @@ html {
 
   --headerBg: #001b34;
   --subHeaderBg: #004d93;
-  --primaryBorder: #ccc;
+  --primaryBorder: #d9d9d9;
 
   --chartTextColor: #333;
   --chartAxisLabelColor: #666;
@@ -16,9 +16,8 @@ html {
   --buttonColor: #fff;
   --buttonSelectedColor: #001b34;
   --buttonBorderColor: #1a3248;
-  --buttonTextColor: #001b34;
+  --buttonTextColor: #4a4a4a;
   --buttonHoverColor: #e5e5e5;
-  --groupBorderColor: #d9d9d9;
 
   --leftNavBackground: #d9d9d9;
   --leftTreeGroup: #e6e6e6;
@@ -39,11 +38,14 @@ html {
 
   --formBackground: #fff;
   --formGroupBackground: #f2f2f2;
+  --formInputBorderColor: #d9d9d9;
   --formEmailGroup: #004d99;
   --formReadOnlyColor: #777;
   --formReadOnlyBackground: #eee;
-  --reactMultiEmail: #fff;
+  --formReadOnlyBorderColor: #d9d9d9;
   --fadedColor: #fff;
+
+  --gisMapBackground: #001b34;
 }
 html[data-theme='dark'] {
   --primaryBackground: #000;
@@ -63,7 +65,6 @@ html[data-theme='dark'] {
   --buttonBorderColor: #4b4b4b;
   --buttonTextColor: #fff;
   --buttonHoverColor: #1a668c;
-  --groupBorderColor: #4b4b4b;
 
   --leftNavBackground: #000;
   --leftTreeGroup: #1a1a1a;
@@ -84,17 +85,21 @@ html[data-theme='dark'] {
 
   --formBackground: #474747;
   --formGroupBackground: #333;
+  --formInputBorderColor: #474747;
   --formEmailGroup: #069bda;
   --formReadOnlyColor: #fff;
   --formReadOnlyBackground: #666;
-  --reactMultiEmail: #666;
+  --formReadOnlyBorderColor: #666;
   --fadedColor: #999;
+
+  --gisMapBackground: #1f1e1e;
 }
 html, body, #app-container {
   font-family:"Segoe UI", "微軟正黑體", "新細明體";
   font-size: 1em;
   color: var(--chartTextColor);
   min-width: 720px;
+  background-color: var(--primaryContentBackground);
 }
 main.main {
   min-height: 92vh;
@@ -108,6 +113,15 @@ footer.footer {
     color: #fff;
     bottom: 2px;
   }
+}
+/* Temporary Fix for Gis library bug */
+.leaflet-marker-icon.gis-divIcon > div.gis-spot {
+  margin-bottom: 0;
+  padding-bottom: 12px;
+}
+/*******/
+.font-bold {
+  font-weight: bold;
 }
 button {
   background-color: var(--buttonSelectedColor);
@@ -123,24 +137,30 @@ button {
   }
 }
 .pure-form input,
-.pure-form select {
+.pure-form select,
+.pure-form textarea,
+.c-file-input > input[type='text']:read-only {
   color: var(--primaryTextColor);
   background-color: var(--formBackground);
+  border: 1px solid var(--formInputBorderColor);
+}
+.pure-form input[type=text],
+.pure-form input[type=password],
+.pure-form input[type=email] {
+  border: 1px solid var(--formInputBorderColor);
 }
 .pure-form input[readonly],
 .pure-form select[readonly],
 .pure-form textarea[readonly] {
   color: var(--formReadOnlyColor);
   background-color: var(--formReadOnlyBackground);
+  border: 1px solid var(--formReadOnlyBorderColor);
 }
-/* Temporary Fix for Gis library bug */
-.leaflet-marker-icon.gis-divIcon > div.gis-spot {
-  margin-bottom: 0;
-  padding-bottom: 12px;
-}
-/*******/
-.font-bold {
-  font-weight: bold;
+.pure-form input[type='radio']:checked {
+  border: 6px solid var(--headerBg);
+  &:hover {
+    border: 6px solid var(--pageCurrentHover);
+  }
 }
 .c-tabs > .menu {
   background-color: var(--primaryContentBackground);
@@ -158,13 +178,16 @@ button {
     background-color: var(--primaryContentBackground);
   }
 }
+.c-popover {
+  color: var(--primaryTextColor);
+  background-color: var(--primaryContentBackground);
+}
 .c-tree {
-  }
   ul li:last-child:before {
     background: var(--primaryContentBackground);
   }
   .selected,
-  .branch:hover:not(.selected) { {
+  .branch:hover:not(.selected) {
     color: var(--primaryContentHeader);
   }
   background-color: var(--primaryContentBackground);
@@ -187,65 +210,19 @@ button {
     background-color: var(--tabMenuHover) !important;
   }
 }
-#language-menu {
-  left: auto !important;
-  top: 40px !important;
-  right: 10px;
-  li {
-    &:first-child {
-      border-top-left-radius: 8px;
-      border-top-right-radius: 8px;
-    }
-    &:last-child {
-      border-bottom-left-radius: 8px;
-      border-bottom-right-radius: 8px;
-    }
+.c-menu {
+  border: 1px solid var(--primaryBorder);
+  &.sub {
+    background-color: var(--primaryContentBackground);
   }
-}
-#g-header { //Top nav menu
-  color: #ffffff;
-  padding: 0 20px;
-  height: 45px;
-  background-color: var(--headerBg);
-  .title { //Gorilla logo
-    position: absolute;
-    font-size: 1.6em;
-    font-weight: bold;
-    letter-spacing: 1px;
-  }
-  .main-nav { //Main top nav
-    text-align: center;
-    .item {
-      padding: 12px 35px;
-      &:hover {
-        background-color: #1a3248;
-      }
-      &.active {
-        background-color: var(--subHeaderBg);
-        &:hover {
-          opacity: .9;
-        }
-      }
-    }
-  }
-  .account {
-    position: absolute;
-    font-size: 1.8em;
-    top: 0;
-    right: 15px;
-    cursor: pointer;
-  }
-}
-.c-menu.sub {
-  background-color: var(--primaryContentBackground)
-}
-.c-menu.sub > * {
-  color: var(--primaryTextColor);
-  border-bottom: 1px solid var(--primaryContentBackground);
-  &:hover {
-    background-color: var(--tabMenuHover);
+  &.sub > * {
+    color: var(--primaryTextColor);
     border-bottom: 1px solid var(--primaryContentBackground);
-  }
+    &:hover {
+      background-color: var(--tabMenuHover);
+      border-bottom: 1px solid var(--primaryContentBackground);
+    }
+  }  
 }
 .c-toggle-btn > input[type=checkbox] + div {
   background: var(--fadedColor);
@@ -267,14 +244,14 @@ button {
     padding-right: 25px;
     &.selected {
       background-color: var(--buttonSelectedColor);
-      border-top-color: var(--groupBorderColor);
-      border-bottom-color: var(--groupBorderColor);
-      border-left-color: var(--groupBorderColor);
-      border-right-color: var(--groupBorderColor);
+      border-top-color: var(--primaryBorder);
+      border-bottom-color: var(--primaryBorder);
+      border-left-color: var(--primaryBorder);
+      border-right-color: var(--primaryBorder);
       &:not(:disabled):hover {
         background-color: var(--buttonSelectedColor);
-        border-top-color: var(--groupBorderColor);
-        border-bottom-color: var(--groupBorderColor);
+        border-top-color: var(--primaryBorder);
+        border-bottom-color: var(--primaryBorder);
       }
     }
     &:not(.selected) {
@@ -286,10 +263,10 @@ button {
       }
       color: var(--primaryTextColor);
       background-color: var(--buttonColor);
-      border-top-color: var(--groupBorderColor);
-      border-bottom-color: var(--groupBorderColor);
-      border-left-color: var(--groupBorderColor);
-      border-right-color: var(--groupBorderColor);
+      border-top-color: var(--primaryBorder);
+      border-bottom-color: var(--primaryBorder);
+      border-left-color: var(--primaryBorder);
+      border-right-color: var(--primaryBorder);
     }
     &:first-child {
       border-radius: 4px 0 0 4px;
@@ -373,6 +350,73 @@ i.c-checkbox.fg-checkbox {
 .c-date-picker i.fg {
   height: 35px;
 }
+.c-box {
+  background-color: var(--primaryContentBackground);
+  border: 1px solid var(--primaryBorder);
+  & > header {
+    color: var(--primaryContentHeader);
+  }
+  & > footer {
+    border-top: 1px solid var(--primaryBorder);
+  }
+}
+.c-la {
+  & > .actions {
+    background-color: var(--tableRowOdd);
+  }
+  canvas {
+    background: var(--formGroupBackground) !important;
+  }
+}
+#language-menu {
+  left: auto !important;
+  top: 40px !important;
+  right: 10px;
+  li {
+    &:first-child {
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+    }
+    &:last-child {
+      border-bottom-left-radius: 8px;
+      border-bottom-right-radius: 8px;
+    }
+  }
+}
+#g-header { //Top nav menu
+  color: #fff;
+  padding: 0 20px;
+  height: 45px;
+  background-color: var(--headerBg);
+  .title { //Gorilla logo
+    position: absolute;
+    font-size: 1.6em;
+    font-weight: bold;
+    letter-spacing: 1px;
+  }
+  .main-nav { //Main top nav
+    text-align: center;
+    .item {
+      padding: 12px 35px;
+      &:hover {
+        background-color: #1a3248;
+      }
+      &.active {
+        background-color: var(--subHeaderBg);
+        &:hover {
+          opacity: .9;
+        }
+      }
+    }
+  }
+  .account {
+    position: absolute;
+    font-size: 1.8em;
+    top: 0;
+    right: 15px;
+    cursor: pointer;
+  }
+}
 #g-progress.c-modal.spin > .dialog {
   border: none;
 }
@@ -415,7 +459,7 @@ i.c-checkbox.fg-checkbox {
     display: none;
   }
   .leaflet-container {
-    background: -webkit-linear-gradient(top, #021320, #03244b, #021320)
+    background: -webkit-linear-gradient(top, var(--gisMapBackground), var(--subHeaderBg))
   }
 }
 .main-table {
@@ -495,7 +539,7 @@ i.c-checkbox.fg-checkbox {
         float: left;
         margin-right: 10px;
         .time-interval {
-          background-color: #fff;
+          background-color: var(--primaryContentBackground);
           height: 36px;
           box-shadow: none;
           cursor: pointer;
@@ -547,7 +591,7 @@ i.c-checkbox.fg-checkbox {
     }
   }
   .main-statistics { //For all statistics page
-    height: 79vh;
+    height: 78vh;
     overflow-y: auto;
     padding: 6px;
     background-color: var(--leftNavBackground);
@@ -760,7 +804,7 @@ i.c-checkbox.fg-checkbox {
     .maps {
       position: relative;
       width: 100%;
-      min-height: 85vh;
+      min-height: 84vh;
       border: 1px solid var(--primaryBorder);
       border-radius: 5px;
       padding: 10px 5px;
@@ -840,7 +884,7 @@ i.c-checkbox.fg-checkbox {
   }
   .data-content {
     display: flex;
-    min-height: 88vh;
+    min-height: 87vh;
     .left-nav {
       position: relative;
       flex-grow: 0;
@@ -869,7 +913,7 @@ i.c-checkbox.fg-checkbox {
       }
       .content {
         overflow-y: auto;
-        max-height: 85vh;
+        max-height: 84vh;
         padding-right: 10px;
       }
       .expand-collapse {
@@ -1212,7 +1256,7 @@ i.c-checkbox.fg-checkbox {
                 padding: 10px;
                 border: 1px solid var(--leftNavBackground);
                 border-radius: 5px;
-                background-color: #fff;
+                background-color: var(--primaryContentBackground);
                 .hmd-options {
                   display: flex;
                   .option {
@@ -1247,7 +1291,7 @@ i.c-checkbox.fg-checkbox {
         border-bottom: 1px solid var(--primaryBorder);
         .chart-content {
           position: absolute;
-          background-color: #fff;
+          background-color: var(--primaryContentBackground);
           &.connections {
             padding-left: 10px;
             padding-bottom: 20px;
@@ -1283,7 +1327,7 @@ i.c-checkbox.fg-checkbox {
         overflow: hidden;
         &.basic-form { //For content with form input
           background-color: var(--primaryContentBackground);
-          min-height: 85vh;
+          min-height: 84vh;
           input,
           select,
           textarea {
@@ -1418,7 +1462,7 @@ i.c-checkbox.fg-checkbox {
                   text-align: left;
                   width: 20%;
                   height: 100%;
-                  background-color: #fff;
+                  background-color: var(--primaryContentBackground);
                   border-right: 1px solid var(--primaryBorder);
                 }
                 .map {
@@ -1507,7 +1551,7 @@ i.c-checkbox.fg-checkbox {
               .react-multi-email {
                 display: flex;
                 flex-wrap: wrap;
-                background-color: var(--reactMultiEmail);
+                background-color: var(--formBackground);
                 [data-tag] {
                   font-size: 14px;
                   font-weight: normal;
@@ -1839,7 +1883,7 @@ i.c-checkbox.fg-checkbox {
           }
         }
         .table-content .table.no-pagination {
-          height: 79vh;
+          height: 78vh;
         }
         .table-content .table.normal {
           height: auto;
@@ -1861,7 +1905,7 @@ i.c-checkbox.fg-checkbox {
           }
         }
         .la-content {
-          height: 79vh;
+          height: 78vh;
           overflow-y: auto;
           .c-la {
             width: 100%;
@@ -1914,7 +1958,7 @@ i.c-checkbox.fg-checkbox {
             text-align: center;
             width: 80%;
             padding-top: 80px;
-            background-color: #f2f2f2;
+            background-color: var(--formGroupBackground);
             min-height: 80vh;
           }
         }
@@ -1996,14 +2040,14 @@ i.c-checkbox.fg-checkbox {
     }
   }
   .privateIp-info { //For Config Topology Network Inventory
-    background-color: #fff;
+    background-color: var(--primaryContentBackground);
     min-height: 84vh;
     header {
       color: var(--primaryContentHeader);
       font-weight: bold;
       padding: 15px;
       border-bottom: 1px solid var(--primaryBorder);
-      background-color: #fff;
+      background-color: var(--primaryContentBackground);
     }
     .btn {
       &.edit {
@@ -2094,7 +2138,7 @@ i.c-checkbox.fg-checkbox {
           position: relative;
           text-align: center;
           padding: 40px;
-          background-color: #f2f2f2;
+          background-color: var(--formGroupBackground);
           .floor-header {
             position: absolute;
             top: 10px;
