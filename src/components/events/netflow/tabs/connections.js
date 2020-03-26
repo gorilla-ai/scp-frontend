@@ -14,8 +14,6 @@ import {HocPagination as Pagination} from '../../../common/pagination'
 import TableContent from '../../../common/table-content'
 import {HocTree as Tree} from '../../../common/tree'
 
-import withLocale from '../../../../hoc/locale-provider'
-
 /**
  * Events Netflow Connections
  * @class
@@ -160,4 +158,4 @@ Connections.propTypes = {
   tabChartData: PropTypes.object.isRequired
 };
 
-export default withLocale(Connections);
+export default Connections;

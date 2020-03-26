@@ -3,8 +3,6 @@ import PropTypes from 'prop-types'
 
 import FileInput from 'react-ui/build/src/components/file-input'
 
-import withLocale from '../../hoc/locale-provider'
-
 let t = null;
 
 /**
@@ -85,5 +83,5 @@ FileUpload.propTypes = {
   handleFileChange: PropTypes.func.isRequired
 };
 
-const HocFileUpload = withLocale(FileUpload);
+const HocFileUpload = FileUpload;
 export { FileUpload, HocFileUpload };

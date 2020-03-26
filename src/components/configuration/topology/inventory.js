@@ -36,7 +36,6 @@ import {HocPagination as Pagination} from '../../common/pagination'
 import {HocPrivateDetails as PrivateDetails} from '../../common/private-details'
 import Manage from './manage'
 import TableContent from '../../common/table-content'
-import withLocale from '../../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -980,7 +979,7 @@ class NetworkInventory extends Component {
     const {showFilter, hmdCheckbox, hmdSelectAll, hmdSearchOptions, deviceSearch} = this.state;
 
     return (
-      <div className={cx('main-filter', {'active': showFilter})} style={{'min-height' : '220px'}}>
+      <div className={cx('main-filter', {'active': showFilter})} style={{'minHeight' : '220px'}}>
         <i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}></i>
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
@@ -3296,5 +3295,5 @@ NetworkInventory.contextType = BaseDataContext;
 NetworkInventory.propTypes = {
 };
 
-const HocNetworkInventory = withRouter(withLocale(NetworkInventory));
+const HocNetworkInventory = withRouter(NetworkInventory);
 export { NetworkInventory, HocNetworkInventory };

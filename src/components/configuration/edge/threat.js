@@ -15,7 +15,6 @@ import {HocConfig as Config} from '../../common/configuration'
 import {HocFileUpload as FileUpload} from '../../common/file-upload'
 import helper from '../../common/helper'
 import {HocSearchOptions as SearchOptions} from '../../common/search-options'
-import withLocale from '../../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -460,5 +459,5 @@ ThreatIntelligence.contextType = BaseDataContext;
 ThreatIntelligence.propTypes = {
 };
 
-const HocThreatIntelligence = withLocale(ThreatIntelligence);
+const HocThreatIntelligence = ThreatIntelligence;
 export { ThreatIntelligence, HocThreatIntelligence };

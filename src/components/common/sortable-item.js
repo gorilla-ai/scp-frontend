@@ -9,7 +9,6 @@ import Textarea from 'react-ui/build/src/components/textarea'
 import {SortableElement, SortableHandle} from 'react-sortable-hoc'
 
 import helper from './helper'
-import withLocale from '../../hoc/locale-provider'
 
 let t = null;
 let f = null;
@@ -92,5 +91,5 @@ SortableItem.propTypes = {
   showQueryOptions: PropTypes.func.isRequired
 };
 
-const HocSortableItem = withLocale(SortableElement(SortableItem));
+const HocSortableItem = SortableElement(SortableItem);
 export { SortableItem, HocSortableItem };

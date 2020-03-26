@@ -4,8 +4,6 @@ import cx from 'classnames'
 
 import MarkInput from './mark-input'
 
-import withLocale from '../../hoc/locale-provider'
-
 let t = null;
 
 /**
@@ -42,5 +40,5 @@ MarkContent.propTypes = {
   showMark: PropTypes.bool.isRequired
 };
 
-const HocMarkContent = withLocale(MarkContent);
+const HocMarkContent = MarkContent;
 export { MarkContent, HocMarkContent };

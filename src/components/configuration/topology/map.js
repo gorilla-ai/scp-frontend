@@ -18,7 +18,6 @@ import {BaseDataContext} from '../../common/context';
 import {HocConfig as Config} from '../../common/configuration'
 import {HocFloorMap as FloorMap} from '../../common/floor-map'
 import helper from '../../common/helper'
-import withLocale from '../../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -1059,5 +1058,5 @@ NetworkMap.contextType = BaseDataContext;
 NetworkMap.propTypes = {
 };
 
-const HocNetworkMap = withLocale(NetworkMap);
+const HocNetworkMap = NetworkMap;
 export { NetworkMap, HocNetworkMap };

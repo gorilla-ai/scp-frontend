@@ -25,7 +25,6 @@ import {HocSearchOptions as SearchOptions} from '../../common/search-options'
 import {HocSortableList as SortableList} from '../../common/sortable-list'
 import Syslog from './syslog'
 import {HocTableCell as TableCell} from '../../common/table-cell'
-import withLocale from '../../../hoc/locale-provider'
 import WORLDMAP from '../../../mock/world-map-low.json'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -1826,5 +1825,5 @@ SyslogController.contextType = BaseDataContext;
 SyslogController.propTypes = {
 };
 
-const HocSyslogController = withRouter(withLocale(SyslogController));
+const HocSyslogController = withRouter(SyslogController);
 export { SyslogController, HocSyslogController };

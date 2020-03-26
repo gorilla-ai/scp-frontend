@@ -3,8 +3,6 @@ import PropTypes from 'prop-types'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import withLocale from '../../hoc/locale-provider'
-
 // const TREE_DATA = {
 //   "id": "home",
 //   "children": [
@@ -157,5 +155,5 @@ ArrowTree.propTypes = {
   data: PropTypes.object.isRequired
 };
 
-const HocArrowTree = withLocale(ArrowTree);
+const HocArrowTree = ArrowTree;
 export { ArrowTree, HocArrowTree };

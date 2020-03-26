@@ -4,8 +4,6 @@ import cx from 'classnames'
 
 import FilterInput from './filter-input'
 
-import withLocale from '../../hoc/locale-provider'
-
 let t = null;
 
 /**
@@ -79,5 +77,5 @@ FilterContent.propTypes = {
   handleResetBtn: PropTypes.func.isRequired
 };
 
-const HocFilterContent = withLocale(FilterContent);
+const HocFilterContent = FilterContent;
 export { FilterContent, HocFilterContent };

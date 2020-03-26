@@ -11,7 +11,6 @@ import TreeView from 'react-ui/build/src/components/tree'
 
 import {BaseDataContext} from './context';
 import helper from './helper'
-import withLocale from '../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -671,5 +670,5 @@ FloorMap.contextType = BaseDataContext;
 FloorMap.propTypes = {
 };
 
-const HocFloorMap = withLocale(FloorMap);
+const HocFloorMap = FloorMap;
 export { FloorMap, HocFloorMap };

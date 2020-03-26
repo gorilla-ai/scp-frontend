@@ -8,7 +8,6 @@ import cx from 'classnames'
 import Gis from 'react-gis/build/src/components'
 
 import helper from './helper'
-import withLocale from '../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -239,5 +238,5 @@ PrivateDetails.propTypes = {
   topoInfo: PropTypes.object.isRequired
 };
 
-const HocPrivateDetails = withLocale(PrivateDetails);
+const HocPrivateDetails = PrivateDetails;
 export { PrivateDetails, HocPrivateDetails };

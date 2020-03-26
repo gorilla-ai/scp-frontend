@@ -15,7 +15,6 @@ import {BaseDataContext} from '../../common/context';
 import {HocConfig as Config} from '../../common/configuration'
 import helper from '../../common/helper'
 import TableContent from '../../common/table-content'
-import withLocale from '../../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 import 'react-multi-email/style.css';
@@ -593,5 +592,5 @@ Notifications.contextType = BaseDataContext;
 Notifications.propTypes = {
 };
 
-const HocNotifications = withRouter(withLocale(Notifications));
+const HocNotifications = withRouter(Notifications);
 export { Notifications, HocNotifications };

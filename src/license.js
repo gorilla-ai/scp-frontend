@@ -203,7 +203,7 @@ class License extends Component {
             </section>
           }
           {from === 'config' && !showKeyInput &&
-            <button className='renew-key' onClick={this.toggleKeyInput}>{lt('l-license-renew-key')}</button>
+            <button onClick={this.toggleKeyInput}>{lt('l-license-renew-key')}</button>
           }
           {from === 'config' && showKeyInput &&
             <div className='key'>

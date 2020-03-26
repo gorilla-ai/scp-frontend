@@ -17,7 +17,6 @@ import {BaseDataContext} from '../../common/context';
 import {HocConfig as Config} from '../../common/configuration'
 import helper from '../../common/helper'
 import TableContent from '../../common/table-content'
-import withLocale from '../../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -956,5 +955,5 @@ Edge.contextType = BaseDataContext;
 Edge.propTypes = {
 };
 
-const HocEdge = withRouter(withLocale(Edge));
+const HocEdge = withRouter(Edge);
 export { Edge, HocEdge };

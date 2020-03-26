@@ -6,7 +6,6 @@ import DropDownList from 'react-ui/build/src/components/dropdown'
 import Hierarchy from 'react-ui/build/src/components/hierarchy'
 
 import Pagination from './pagination'
-import withLocale from '../../hoc/locale-provider'
 
 let t = null;
 
@@ -191,5 +190,5 @@ Tree.propTypes = {
   activeTab: PropTypes.string.isRequired
 };
 
-const HocTree = withLocale(Tree);
+const HocTree = Tree;
 export { Tree, HocTree };

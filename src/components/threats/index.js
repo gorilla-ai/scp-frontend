@@ -17,7 +17,6 @@ import {HocQueryOpenSave as QueryOpenSave} from '../common/query-open-save'
 import {HocSearchOptions as SearchOptions} from '../common/search-options'
 import {HocTableCell as TableCell} from '../common/table-cell'
 import Threats from './threats'
-import withLocale from '../../hoc/locale-provider'
 import WORLDMAP from '../../mock/world-map-low.json'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -1578,5 +1577,5 @@ ThreatsController.contextType = BaseDataContext;
 ThreatsController.propTypes = {
 };
 
-const HocThreatsController = withRouter(withLocale(ThreatsController));
+const HocThreatsController = withRouter(ThreatsController);
 export { ThreatsController, HocThreatsController };

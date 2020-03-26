@@ -10,7 +10,6 @@ import License from '../../../license'
 import {BaseDataContext} from '../../common/context';
 import {HocConfig as Config} from '../../common/configuration'
 import helper from '../../common/helper'
-import withLocale from '../../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -80,5 +79,5 @@ ProductInfo.contextType = BaseDataContext;
 ProductInfo.propTypes = {
 };
 
-const HocProductInfo = withRouter(withLocale(ProductInfo));
+const HocProductInfo = withRouter(ProductInfo);
 export { ProductInfo, HocProductInfo };

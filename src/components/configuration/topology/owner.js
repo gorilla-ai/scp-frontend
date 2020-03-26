@@ -17,7 +17,6 @@ import {HocConfig as Config} from '../../common/configuration'
 import helper from '../../common/helper'
 import Manage from './manage'
 import TableContent from '../../common/table-content'
-import withLocale from '../../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -799,5 +798,5 @@ NetworkOwner.contextType = BaseDataContext;
 NetworkOwner.propTypes = {
 };
 
-const HocNetworkOwner = withRouter(withLocale(NetworkOwner));
+const HocNetworkOwner = withRouter(NetworkOwner);
 export { NetworkOwner, HocNetworkOwner };

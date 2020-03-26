@@ -12,7 +12,6 @@ import {BaseDataContext} from './context';
 import FilterInput from './filter-input'
 import helper from './helper'
 import MarkInput from './mark-input'
-import withLocale from '../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -537,5 +536,5 @@ QueryOpenSave.propTypes = {
   closeDialog: PropTypes.func.isRequired
 };
 
-const HocQueryOpenSave = withLocale(QueryOpenSave);
+const HocQueryOpenSave = QueryOpenSave;
 export { QueryOpenSave, HocQueryOpenSave };

@@ -201,7 +201,7 @@ class AccountList extends Component {
     });
 
     return (
-      <div className='content delete'>
+      <div className={cx('content', {'delete': type === 'delete'})}>
         <span>{msg}?</span>
       </div>
     )

@@ -4,8 +4,6 @@ import PropTypes from 'prop-types'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import PageNav from 'react-ui/build/src/components/page-nav'
 
-import withLocale from '../../hoc/locale-provider'
-
 let t = null;
 
 /**
@@ -66,5 +64,5 @@ Pagination.propTypes = {
   onDropDownChange: PropTypes.func.isRequired
 };
 
-const HocPagination = withLocale(Pagination);
+const HocPagination = Pagination;
 export { Pagination, HocPagination };

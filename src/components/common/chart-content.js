@@ -7,7 +7,6 @@ import BarChart from 'react-chart/build/src/components/bar'
 import LineChart from 'react-chart/build/src/components/line'
 
 import helper from './helper'
-import withLocale from '../../hoc/locale-provider'
 
 let t = null;
 
@@ -194,5 +193,5 @@ ChartContent.propTypes = {
   pageType: PropTypes.string.isRequired
 };
 
-const HocChartContent = withLocale(ChartContent);
+const HocChartContent = ChartContent;
 export { ChartContent, HocChartContent };

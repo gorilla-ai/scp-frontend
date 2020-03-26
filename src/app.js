@@ -33,6 +33,8 @@ import UserPrivileges from './components/configuration/user/privileges/index'
 import {setupConfigService} from 'widget-builder'
 import {BaseDataContext, baseData} from './components/common/context'
 
+import {createInstance, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
 import 'font-gorilla/css/font-gorilla.css'
 import 'purecss/build/pure-min.css'
 import 'react-chart/build/css/react-chart.css'
@@ -260,6 +262,23 @@ function start() {
         fallbackLng: lng,
         resources: {[lng]:resources}
       }, err => {
+        createInstance(
+          'chewbacca',
+          {
+            parseSuccess: resp => {
+              if (resp) return resp.rt;
+            },
+            parseFail: resp => ({
+              code: _.get(resp, 'ret', -100),
+              message: _.get(resp, 'message')
+              //message: _.get(resp, 'ret', -100)
+            }),
+            et: i18n.getFixedT(null, 'errors')
+          }
+        )
+
+        global.chewbaccaI18n = i18n;
+
         if (err) {
           log.error(err);
         }
@@ -269,6 +288,8 @@ function start() {
           </BrowserRouter>
         ), document.getElementById('app-container'))
       })
+
+
     })
 }
 

@@ -4,7 +4,6 @@ import PropTypes from 'prop-types'
 import {SortableContainer} from 'react-sortable-hoc'
 
 import {HocSortableItem as SortableItem} from '../common/sortable-item'
-import withLocale from '../../hoc/locale-provider'
 
 /**
  * Sortable List
@@ -60,5 +59,5 @@ SortableList.propTypes = {
   showQueryOptions: PropTypes.func.isRequired
 };
 
-const HocSortableList = withLocale(SortableContainer(SortableList));
+const HocSortableList = SortableContainer(SortableList);
 export { SortableList, HocSortableList };

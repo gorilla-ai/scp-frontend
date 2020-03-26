@@ -8,7 +8,6 @@ import ButtonGroup from 'react-ui/build/src/components/button-group'
 import {BaseDataContext} from './context';
 import {HocChartContent as ChartContent} from './chart-content'
 import helper from './helper'
-import withLocale from '../../hoc/locale-provider'
 
 let t = null;
 
@@ -194,5 +193,5 @@ DataChart.propTypes = {
   tabChartData: PropTypes.object.isRequired
 };
 
-const HocDataChart = withLocale(DataChart);
+const HocDataChart = DataChart;
 export { DataChart, HocDataChart };

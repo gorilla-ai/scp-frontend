@@ -14,7 +14,6 @@ import PieChart from 'react-chart/build/src/components/pie'
 import {BaseDataContext} from '../common/context';
 import helper from '../common/helper'
 import {HOC} from 'widget-builder'
-import withLocale from '../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -946,5 +945,5 @@ DashboardStats.contextType = BaseDataContext;
 DashboardStats.propTypes = {
 };
 
-const HocDashboardStats = withRouter(withLocale(DashboardStats));
+const HocDashboardStats = withRouter(DashboardStats);
 export { DashboardStats, HocDashboardStats };

@@ -10,7 +10,6 @@ import RadioGroup from 'react-ui/build/src/components/radio-group'
 
 import {BaseDataContext} from './context';
 import helper from './helper'
-import withLocale from '../../hoc/locale-provider'
 
 let t = null;
 let et = null;
@@ -267,5 +266,5 @@ SearchOptions.propTypes = {
   handleSearchSubmit: PropTypes.func.isRequired
 };
 
-const HocSearchOptions = withLocale(SearchOptions);
+const HocSearchOptions = SearchOptions;
 export { SearchOptions, HocSearchOptions };

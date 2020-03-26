@@ -11,7 +11,6 @@ import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import {BaseDataContext} from '../../common/context';
 import helper from '../../common/helper'
-import withLocale from '../../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -392,4 +391,4 @@ Manage.propTypes = {
   onDone: PropTypes.func.isRequired
 }
 
-export default withLocale(Manage);
+export default Manage;

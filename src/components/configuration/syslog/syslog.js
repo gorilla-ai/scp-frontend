@@ -24,7 +24,6 @@ import EditHosts from './edit-hosts'
 import helper from '../../common/helper'
 import Relationships from './relationships'
 import TableContent from '../../common/table-content'
-import withLocale from '../../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -1311,5 +1310,5 @@ Syslog.contextType = BaseDataContext;
 Syslog.propTypes = {
 }
 
-const HocSyslog = withLocale(Syslog);
+const HocSyslog = Syslog;
 export { Syslog, HocSyslog };

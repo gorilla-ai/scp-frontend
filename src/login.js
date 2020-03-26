@@ -89,7 +89,7 @@ class Login extends Component {
         this.setState({
           license: licenseCheck
         }, () => {
-          if (this.state.license) {
+          if (this.state.license && this.username) {
             this.username.focus();
           }
         })
@@ -214,7 +214,9 @@ class Login extends Component {
     this.setState({
       license: true
     }, () => {
-      this.username.focus();
+      if (this.username) {
+        this.username.focus();
+      }
     });
   }
   /**

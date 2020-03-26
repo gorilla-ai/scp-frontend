@@ -6,15 +6,16 @@ html {
   --primaryContentBackground: #fff;
   --primaryContentHeader: #004d93;
 
-  --headerBg: #001b34;
-  --subHeaderBg: #004d93;
+  --headerBackground: #001b34;
+  --subHeaderBackground: #004d93;
   --primaryBorder: #d9d9d9;
 
   --chartTextColor: #333;
   --chartAxisLabelColor: #666;
 
-  --buttonColor: #fff;
+  --buttonBackground: #fff;
   --buttonSelectedColor: #001b34;
+  --buttonSelectedHover: #1a3248;
   --buttonBorderColor: #1a3248;
   --buttonTextColor: #4a4a4a;
   --buttonHoverColor: #e5e5e5;
@@ -26,6 +27,7 @@ html {
   --tabMenuText: #9b9b9b;
   --tabMenuHover: #e5e5e5;
 
+  --tableHeaderColor: #4a4a4a;
   --tableRowOdd: #f5f5f5;
   --tableRowEven: #ffffff;
 
@@ -53,15 +55,16 @@ html[data-theme='dark'] {
   --primaryContentBackground: #1f1e1e;
   --primaryContentHeader: #069bda;
 
-  --headerBg: #089bda;
-  --subHeaderBg: #005580;
+  --headerBackground: #089bda;
+  --subHeaderBackground: #005580;
   --primaryBorder: #4b4b4b;
 
   --chartTextColor: #fff;
   --chartAxisLabelColor: #fff;
 
-  --buttonColor: #1a668c;
+  --buttonBackground: #1a668c;
   --buttonSelectedColor: #069bda;
+  --buttonSelectedHover: #089bda;
   --buttonBorderColor: #4b4b4b;
   --buttonTextColor: #fff;
   --buttonHoverColor: #1a668c;
@@ -73,6 +76,7 @@ html[data-theme='dark'] {
   --tabMenuText: #fff;
   --tabMenuHover: #000;
 
+  --tableHeaderColor: #069bda;
   --tableRowOdd: #1f1e1e;
   --tableRowEven: #0f0f0f;
 
@@ -125,15 +129,19 @@ footer.footer {
 }
 button {
   background-color: var(--buttonSelectedColor);
+  border: 1px solid var(--primaryBorder);
+  &[disabled] {
+    border: 1px solid var(--primaryBorder);
+  }
   &:hover:not([disabled]) {
-    background-color: var(--pageCurrentHover);
+    background-color: var(--buttonSelectedColor);
   }
   &.standard {
     &:hover:not([disabled]) {
       background-color: var(--buttonHoverColor);
     }
     color: var(--buttonTextColor);
-    background-color: var(--buttonColor);
+    background-color: var(--buttonBackground);
   }
 }
 .pure-form input,
@@ -157,7 +165,7 @@ button {
   border: 1px solid var(--formReadOnlyBorderColor);
 }
 .pure-form input[type='radio']:checked {
-  border: 6px solid var(--headerBg);
+  border: 6px solid var(--headerBackground);
   &:hover {
     border: 6px solid var(--pageCurrentHover);
   }
@@ -194,7 +202,7 @@ button {
 }
 .c-table {
   thead {
-    color: var(--primaryContentHeader);
+    color: var(--tableHeaderColor);
     border-bottom: 1px solid var(--primaryBorder);
   }
   tbody {
@@ -228,7 +236,10 @@ button {
   background: var(--fadedColor);
 }
 .c-toggle-btn > input[type=checkbox]:checked + div {
-  background: var(--headerBg);
+  background: var(--headerBackground);
+}
+.c-toggle-btn:hover input[type=checkbox]:checked + div {
+  background: var(--pageCurrentHover);
 }
 .c-button-group {
   &.left {
@@ -244,29 +255,29 @@ button {
     padding-right: 25px;
     &.selected {
       background-color: var(--buttonSelectedColor);
-      border-top-color: var(--primaryBorder);
-      border-bottom-color: var(--primaryBorder);
+      border-top-color: var(--buttonSelectedColor);
+      border-bottom-color: var(--buttonSelectedColor);
       border-left-color: var(--primaryBorder);
       border-right-color: var(--primaryBorder);
       &:not(:disabled):hover {
-        background-color: var(--buttonSelectedColor);
-        border-top-color: var(--primaryBorder);
-        border-bottom-color: var(--primaryBorder);
+        background-color: var(--buttonSelectedHover);
+        border-top-color: var(--buttonSelectedHover);
+        border-bottom-color: var(--buttonSelectedHover);
       }
     }
     &:not(.selected) {
-      &:not(:disabled):hover {
-        color: var(--primaryTextColor);
-        background-color: var(--buttonColor);
-        border-top-color: var(--tabMenuHover);
-        border-bottom-color: var(--tabMenuHover);
-      }
       color: var(--primaryTextColor);
-      background-color: var(--buttonColor);
+      background-color: var(--buttonBackground);
       border-top-color: var(--primaryBorder);
       border-bottom-color: var(--primaryBorder);
       border-left-color: var(--primaryBorder);
       border-right-color: var(--primaryBorder);
+      &:not(:disabled):hover {
+        color: var(--primaryTextColor);
+        background-color: var(--buttonBackground);
+        border-top-color: var(--primaryBorder);
+        border-bottom-color: var(--primaryBorder);
+      }
     }
     &:first-child {
       border-radius: 4px 0 0 4px;
@@ -327,10 +338,16 @@ i.c-checkbox.fg-checkbox {
 }
 .c-page-nav .thumb {
   &:not(.selected) {
-    background-color: var(--primaryContentBackground);
     color: var(--primaryTextColor);
+    background-color: var(--primaryContentBackground);
+    border-top-color: var(--primaryBorder);
+    border-bottom-color: var(--primaryBorder);
+    border-left-color: var(--primaryBorder);
+    border-right-color: var(--primaryBorder);
     &:not(:disabled):hover {
       background-color: var(--tabMenuHover);
+      border-top-color: var(--primaryBorder);
+      border-bottom-color: var(--primaryBorder);
     }
   }
   &.current {
@@ -387,7 +404,7 @@ i.c-checkbox.fg-checkbox {
   color: #fff;
   padding: 0 20px;
   height: 45px;
-  background-color: var(--headerBg);
+  background-color: var(--headerBackground);
   .title { //Gorilla logo
     position: absolute;
     font-size: 1.6em;
@@ -402,7 +419,7 @@ i.c-checkbox.fg-checkbox {
         background-color: #1a3248;
       }
       &.active {
-        background-color: var(--subHeaderBg);
+        background-color: var(--subHeaderBackground);
         &:hover {
           opacity: .9;
         }
@@ -459,7 +476,7 @@ i.c-checkbox.fg-checkbox {
     display: none;
   }
   .leaflet-container {
-    background: -webkit-linear-gradient(top, var(--gisMapBackground), var(--subHeaderBg))
+    background: -webkit-linear-gradient(top, var(--gisMapBackground), var(--subHeaderBackground))
   }
 }
 .main-table {
@@ -476,7 +493,7 @@ i.c-checkbox.fg-checkbox {
     color: #fff;
     padding: 5px 10px;
     overflow: hidden;
-    background-color: var(--subHeaderBg);
+    background-color: var(--subHeaderBackground);
     min-height: 42px;
     .secondary-btn-group {
       &.left {
@@ -490,7 +507,7 @@ i.c-checkbox.fg-checkbox {
         color: var(--buttonTextColor);
         padding: .3em .6em;
         margin-right: 5px;
-        background-color: var(--buttonColor);
+        background-color: var(--buttonBackground);
         &.active {
           color: #fff;
           background-color: var(--buttonSelectedColor);
@@ -516,7 +533,7 @@ i.c-checkbox.fg-checkbox {
     }
     .date-time {
       position: absolute;
-      top: 8px;
+      top: 10px;
       right: 15px;
       color: #fff;
     }
@@ -525,7 +542,7 @@ i.c-checkbox.fg-checkbox {
       select,
       input {
         color: var(--primaryTextColor);
-        background-color: var(--buttonColor);
+        background-color: var(--buttonBackground);
         border: var(--buttonBorderColor);
       }
       .search-type {
@@ -584,7 +601,8 @@ i.c-checkbox.fg-checkbox {
         fill: var(--chartTextColor) !important;
       }
     }
-    .highcharts-axis-labels {
+    .highcharts-axis-labels,
+    .highcharts-legend {
       text {
         fill: var(--chartAxisLabelColor) !important;
       }
@@ -1002,7 +1020,7 @@ i.c-checkbox.fg-checkbox {
           padding: .1em .8em;
           border-radius: 5px;
           color: var(--buttonTextColor);
-          background-color: var(--buttonColor);
+          background-color: var(--buttonBackground);
           &.active {
             display: inline-block;
           }
@@ -1108,7 +1126,7 @@ i.c-checkbox.fg-checkbox {
             }
             .group {
               .fg-add {
-                background-color: var(--headerBg);
+                background-color: var(--headerBackground);
                 color: #fff;
               }
             }
@@ -1133,7 +1151,7 @@ i.c-checkbox.fg-checkbox {
               width: 32px;
               padding: 5px 5px 6px 4px;
               margin-right: 3px;
-              border: 1px solid var(--leftNavBackground);
+              border: 1px solid var(--formReadOnlyBorderColor);
               border-radius: 5px;
               &.red {
                 color: #B80000;
@@ -1202,7 +1220,7 @@ i.c-checkbox.fg-checkbox {
           }
           .clear {
             color: var(--buttonTextColor);
-            background-color: var(--buttonColor);
+            background-color: var(--buttonBackground);
           }
         }
       }

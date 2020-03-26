@@ -13,7 +13,6 @@ import Gis from 'react-gis/build/src/components'
 import {HocAlertDetails as AlertDetails} from '../common/alert-details'
 import {BaseDataContext} from '../common/context';
 import helper from '../common/helper'
-import withLocale from '../../hoc/locale-provider'
 import WORLDMAP from '../../mock/world-map-low.json'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -918,5 +917,5 @@ DashboardMaps.contextType = BaseDataContext;
 DashboardMaps.propTypes = {
 };
 
-const HocDashboardMaps = withRouter(withLocale(DashboardMaps));
+const HocDashboardMaps = withRouter(DashboardMaps);
 export { DashboardMaps, HocDashboardMaps };

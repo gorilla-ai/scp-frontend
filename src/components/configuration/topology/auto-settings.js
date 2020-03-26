@@ -20,7 +20,6 @@ import {HocFloorMap as FloorMap} from '../../common/floor-map'
 import helper from '../../common/helper'
 import IpRange from './ip-range'
 import Scanner from './scanner'
-import withLocale from '../../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -753,5 +752,5 @@ AutoSettings.contextType = BaseDataContext;
 AutoSettings.propTypes = {
 };
 
-const HocAutoSettings = withLocale(AutoSettings);
+const HocAutoSettings = AutoSettings;
 export { AutoSettings, HocAutoSettings };

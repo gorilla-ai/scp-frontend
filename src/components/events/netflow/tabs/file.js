@@ -9,7 +9,6 @@ import {HocFilterContent as FilterContent} from '../../../common/filter-content'
 import helper from '../../../common/helper'
 import TableContent from '../../../common/table-content'
 import {HocTree as Tree} from '../../../common/tree'
-import withLocale from '../../../../hoc/locale-provider'
 
 let t = null;
 
@@ -128,4 +127,4 @@ File.propTypes = {
   mainContentData: PropTypes.object.isRequired
 };
 
-export default withLocale(File);
+export default File;

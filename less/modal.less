@@ -6,7 +6,6 @@ html {
 
   --alertInfoBckground: #f7f7f7;
   --linkColor: #004d93;
-  --deleteMsg: #d62238;
 
   --mainListColor: #4e4d4e;
   --mainListHover: #e2ecfd;
@@ -22,6 +21,7 @@ html {
   --paginationBtnBackground: #fff;
 
   --relationshipBackground: #e3f2f9;
+  --dialogFormGroup: #ededed;
 }
 html[data-theme='dark'] {
   --primaryContentHeader: #069bda;
@@ -31,7 +31,6 @@ html[data-theme='dark'] {
 
   --alertInfoBckground: #333;
   --linkColor: #069bda;
-  --deleteMsg: #fff;
 
   --mainListColor: #fff;
   --mainListHover: #000;
@@ -47,6 +46,7 @@ html[data-theme='dark'] {
   --paginationBtnBackground: #1a668c;
 
   --relationshipBackground: #1f1e1e;
+  --dialogFormGroup: #333;
 }
 
 .c-modal {
@@ -176,7 +176,7 @@ html[data-theme='dark'] {
       &.delete {
         span {
           display: block;
-          color: var(--deleteMsg);
+          color: #d62238;
         }
       }
       li {
@@ -221,6 +221,9 @@ html[data-theme='dark'] {
         float: left;
         margin-right: 10px;
         margin-top: 10px;
+        &:hover:not([disabled]) {
+          background-color: var(--buttonHoverColor);
+        }
       }
     }
     .count {
@@ -273,7 +276,7 @@ html[data-theme='dark'] {
     &.delete {
       span {
         display: block;
-        color: var(--deleteMsg);
+        color: #d62238;
         margin-top: 10px;
       }
     }
@@ -350,8 +353,9 @@ html[data-theme='dark'] {
       }
       .data {
         textarea {
-          background-color: #fff;
-          color: #666;
+          color: var(--primaryTextColor);
+          background-color: var(--formBackground);
+          border: 1px solid var(--formInputBorderColor);
         }
       }
     }
@@ -737,11 +741,6 @@ html[data-theme='dark'] {
         &:hover {
           background-color: var(--mainListHover);
         }
-        span {
-          &.active {
-            color: var(--primaryContentHeader);
-          }
-        }
         &.header {
           cursor: text;
           &:hover {
@@ -763,6 +762,17 @@ html[data-theme='dark'] {
           border: none;
           &:hover {
             background-color: var(--mainListHover);
+          }
+        }
+        &.not-allowed {
+          cursor: not-allowed;
+          span {
+            color: var(--primaryBorder);
+          }
+        }
+        span {
+          &.active {
+            color: var(--primaryContentHeader);
           }
         }
       }
@@ -901,7 +911,7 @@ html[data-theme='dark'] {
       }
       .scan-content {
         .list {
-          max-height: 205px;
+          max-height: 245px;
         }
       }
       .scan-wrapper {
@@ -953,7 +963,7 @@ html[data-theme='dark'] {
 #configSeatDialog-content {
   .main {
     font-size: 16px;
-    color: #004d93;
+    color: var(--linkColor);
     &.header {
       font-size: 14px;
       margin-bottom: 2px;
@@ -1296,7 +1306,7 @@ html[data-theme='dark'] {
 /* common/query-open-save */
 #queryDialog-dialog {
   label {
-    color: #004d93;
+    color: var(--linkColor);
   }
   .query-name {
     float: left;
@@ -1314,21 +1324,23 @@ html[data-theme='dark'] {
     padding: 5px 6px;
     margin-bottom: 10px;
     border-radius: 5px;
-    background-color: #ededed;
+    background-color: var(--dialogFormGroup);
   }
   .main-filter-group,
   .main-mark-group {
     padding: 0;
     background: none;
     select, input {
-      color: #5b5b5b;
-      background-color: #fff;
+      color: var(--primaryTextColor);
+      background-color: var(--formBackground);
+      border: 1px solid var(--formInputBorderColor);
     }
     .filter-select {
       width: 215px;
     }
     .condition-select {
       width: 100px;
+      margin-right: 3px;
     }
     .filter-inputbox {
       width: 293px;
