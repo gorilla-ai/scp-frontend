@@ -13,7 +13,6 @@ import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
 import {BaseDataContext} from './context';
 import helper from './helper'
-import withLocale from '../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -875,7 +874,7 @@ class HMDscanInfo extends Component {
     const {syncStatus} = this.state;
 
     if (page === 'threats') {
-      return syncStatus ? 300 : 295;
+      return syncStatus ? 300 : 335;
     } else if (page === 'inventory') {
       return syncStatus ? 428 : 435;
     }
@@ -969,5 +968,4 @@ HMDscanInfo.propTypes = {
   triggerTask: PropTypes.func.isRequired
 };
 
-const HocHMDscanInfo = withLocale(HMDscanInfo);
-export { HMDscanInfo, HocHMDscanInfo };
+export default HMDscanInfo;

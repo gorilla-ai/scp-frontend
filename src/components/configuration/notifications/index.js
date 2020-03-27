@@ -12,10 +12,9 @@ import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import {ReactMultiEmail} from 'react-multi-email';
 
 import {BaseDataContext} from '../../common/context';
-import {HocConfig as Config} from '../../common/configuration'
+import Config from '../../common/configuration'
 import helper from '../../common/helper'
 import TableContent from '../../common/table-content'
-import withLocale from '../../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 import 'react-multi-email/style.css';
@@ -491,7 +490,7 @@ class Notifications extends Component {
                 </div>
               }
 
-              <div className='config-notify' style={{'height': activeContent === 'viewMode' ? '79vh' : '72vh'}}>
+              <div className='config-notify' style={{'height': activeContent === 'viewMode' ? '78vh' : '71vh'}}>
                 <div className='form-group normal short'>
                   <header>{t('notifications.txt-emailSettings')}</header>
                   <button className='last' onClick={this.openEmailDialog} disabled={activeContent === 'editMode'}>{t('notifications.txt-testEmails')}</button>
@@ -593,5 +592,4 @@ Notifications.contextType = BaseDataContext;
 Notifications.propTypes = {
 };
 
-const HocNotifications = withRouter(withLocale(Notifications));
-export { Notifications, HocNotifications };
+export default withRouter(Notifications);

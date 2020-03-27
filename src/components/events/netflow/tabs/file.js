@@ -5,11 +5,10 @@ import Checkbox from 'react-ui/build/src/components/checkbox'
 import RadioGroup from 'react-ui/build/src/components/radio-group'
 import Tabs from 'react-ui/build/src/components/tabs'
 
-import {HocFilterContent as FilterContent} from '../../../common/filter-content'
+import FilterContent from '../../../common/filter-content'
 import helper from '../../../common/helper'
 import TableContent from '../../../common/table-content'
-import {HocTree as Tree} from '../../../common/tree'
-import withLocale from '../../../../hoc/locale-provider'
+import Tree from '../../../common/tree'
 
 let t = null;
 
@@ -128,4 +127,4 @@ File.propTypes = {
   mainContentData: PropTypes.object.isRequired
 };
 
-export default withLocale(File);
+export default File;

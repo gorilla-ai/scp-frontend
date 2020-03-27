@@ -9,15 +9,14 @@ import queryString from 'query-string'
 
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 
-import {HocAlertDetails as AlertDetails} from '../common/alert-details'
+import AlertDetails from '../common/alert-details'
 import {BaseDataContext} from '../common/context';
 import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import helper from '../common/helper'
-import {HocQueryOpenSave as QueryOpenSave} from '../common/query-open-save'
-import {HocSearchOptions as SearchOptions} from '../common/search-options'
-import {HocTableCell as TableCell} from '../common/table-cell'
+import QueryOpenSave from '../common/query-open-save'
+import SearchOptions from '../common/search-options'
+import TableCell from '../common/table-cell'
 import Threats from './threats'
-import withLocale from '../../hoc/locale-provider'
 import WORLDMAP from '../../mock/world-map-low.json'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -1578,5 +1577,4 @@ ThreatsController.contextType = BaseDataContext;
 ThreatsController.propTypes = {
 };
 
-const HocThreatsController = withRouter(withLocale(ThreatsController));
-export { ThreatsController, HocThreatsController };
+export default withRouter(ThreatsController);

@@ -8,9 +8,8 @@ import cx from 'classnames'
 import DataTable from 'react-ui/build/src/components/table'
 
 import {BaseDataContext} from '../../common/context';
-import {HocConfig as Config} from '../../common/configuration'
+import Config from '../../common/configuration'
 import helper from '../../common/helper'
-import withLocale from '../../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -171,5 +170,4 @@ Status.contextType = BaseDataContext;
 Status.propTypes = {
 };
 
-const HocStatus = withRouter(withLocale(Status));
-export { Status, HocStatus };
+export default withRouter(Status);

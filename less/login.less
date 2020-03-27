@@ -1,27 +1,40 @@
+html {
+  --primaryTextColor: #4a4a4a;
+  --primaryBorder: #d9d9d9;
+  --lmsConfig: #333;
+  --formBackground: #fff;
+}
+html[data-theme='dark'] {
+  --primaryTextColor: #fff;
+  --primaryBorder: #4b4b4b;
+  --lmsConfig: #fff;
+  --formBackground: #474747;
+}
+
 #g-login {
-  width:100%;
-  background: linear-gradient(to top, #001549, #72aaff);
+  width: 100%;
+  background: linear-gradient(top, #001549, #72aaff);
   &.config {
     position: relative;
     background: none;
   }
   input,
   select {
-    color: #000;
-    border: 1px solid #ccc;
+    color: var(--primaryTextColor);
+    border: 1px solid var(--primaryBorder);
   }
   select {
-    border: 1px solid #d9d9d9;
+    border: 1px solid var(--primaryBorder);
   }
   #title, #form {
     width: 400px;
   }
   #title {
-    color:#ffffff;
-    margin-bottom:5px;
+    color: #fff;
+    margin-bottom: 5px;
     .title {
       font-weight: bold;
-      font-size:2em;
+      font-size: 2em;
     }
     .subtitle {
       margin-left: 5px;
@@ -30,19 +43,19 @@
   }
   #form {
     padding: 30px 30px 10px 30px;
-    background-color: #ffffff;
-    color: #333333;
+    background-color: #fff;
+    color: #333;
     &, input, button {
-      border-radius:5px;
+      border-radius: 5px;
     }
     #username {
-      margin-bottom:15px;
+      margin-bottom: 15px;
     }
     #password {
-      margin-bottom:35px;
+      margin-bottom: 35px;
     }
     input {
-      width:100%;
+      width: 100%;
       margin-top: 7px;
       height: 40px;
     }
@@ -61,19 +74,17 @@
     }
   }
   #g-footer {
-    color: #ffffff;
+    color: #fff;
     position: absolute;
     left: 0;
     right: 0;
     bottom: 0;
   }
   .lms {
-    display: grid;
     color: #fff;
     margin-top: -5%;
     &.config {
-      color: #333;
-      width: 30%;
+      color: var(--lmsConfig);
     }
     section {
       margin-bottom: 10px;
@@ -88,19 +99,17 @@
       float: left;
       margin-right: 5px;
     }
-    .renew-key {
-      width: 145px;
-    }
     .key {
       display: inline-block;
       vertical-align: middle;
       line-height: 1.5;
       input {
-        width: 50%;
         margin-left: 10px;
       }
       button {
         margin-left: 10px;
+        float: right;
+        margin-top: -1px;
       }
     }
   }

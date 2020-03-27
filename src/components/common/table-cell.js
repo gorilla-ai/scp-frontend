@@ -4,7 +4,6 @@ import cx from 'classnames'
 
 import {BaseDataContext} from './context';
 import helper from './helper'
-import withLocale from '../../hoc/locale-provider'
 
 const FILTER_EXCLUDE_FIELDS = ['@timestamp', 'firstPacket', 'lastPacket', 'timestamp', '_eventDttm_'];
 
@@ -197,5 +196,4 @@ TableCell.propTypes = {
   allValue: PropTypes.object.isRequired
 };
 
-const HocTableCell = withLocale(TableCell);
-export { TableCell, HocTableCell };
+export default TableCell;

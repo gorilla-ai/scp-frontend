@@ -8,7 +8,6 @@ import _ from 'lodash'
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 
 import helper from './helper'
-import withLocale from '../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -221,5 +220,4 @@ class Config extends Component {
 Config.propTypes = {
 };
 
-const HocConfig = withLocale(Config);
-export { Config, HocConfig };
+export default Config;

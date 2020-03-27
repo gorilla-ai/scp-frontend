@@ -5,8 +5,6 @@ import CheckboxGroup from 'react-ui/build/src/components/checkbox-group'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
-import withLocale from '../../hoc/locale-provider'
-
 const IR_MAPPINGS = {
   1: 'dumpMemory',
   2: 'getSystemInfo',
@@ -156,5 +154,4 @@ IrSelections.propTypes = {
   toggleSelectionIR: PropTypes.func.isRequired
 };
 
-const HocIrSelections = withLocale(IrSelections);
-export { IrSelections, HocIrSelections };
+export default IrSelections;

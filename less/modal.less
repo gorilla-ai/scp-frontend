@@ -1,3 +1,73 @@
+html {
+  --primaryContentHeader: #185e9e;
+  --primaryTextColor: #4a4a4a;
+  --primaryContentBackground: #fff;
+  --primaryBorder: #d9d9d9;
+
+  --alertInfoBckground: #f7f7f7;
+  --linkColor: #004d93;
+
+  --mainListColor: #4e4d4e;
+  --mainListHover: #e2ecfd;
+  --subFrameColor: #e8e9ed;
+  --contentBackground: #f5f5f5;
+  --buttonSelectedColor: #001b34;
+
+  --formBackground: #fff;
+  --formInputBorderColor: #d9d9d9;
+  --formGroupBackground: #f2f2f2;
+
+  --paginationBtnColor: #5b5b5b;
+  --paginationBtnBackground: #fff;
+
+  --relationshipBackground: #e3f2f9;
+  --dialogFormGroup: #ededed;
+}
+html[data-theme='dark'] {
+  --primaryContentHeader: #069bda;
+  --primaryTextColor: #fff;
+  --primaryContentBackground: #1f1e1e;
+  --primaryBorder: #4b4b4b;
+
+  --alertInfoBckground: #333;
+  --linkColor: #069bda;
+
+  --mainListColor: #fff;
+  --mainListHover: #1a3248;
+  --subFrameColor: #0f0f0f;
+  --contentBackground: #1f1e1e;
+  --buttonSelectedColor: #069bda;
+
+  --formBackground: #474747;
+  --formInputBorderColor: #474747;
+  --formGroupBackground: #333;
+
+  --paginationBtnColor: #fff;
+  --paginationBtnBackground: #1a668c;
+
+  --relationshipBackground: #1f1e1e;
+  --dialogFormGroup: #333;
+}
+
+.c-modal {
+  & > .dialog > .content {
+    max-height: 715px;
+  }
+  .c-table {
+    thead tr {
+      color: var(--primaryContentHeader);
+      background-color: var(--primaryContentBackground);
+    }
+  }
+  .c-box {
+    & > header > i {
+      color: var(--primaryTextColor);
+    }
+    & > header:not(.legend) {
+      border-bottom: 1px solid var(--primaryBorder);
+    }
+  }
+}
 .c-gis {
   min-height: 500px;
   .actions {
@@ -13,10 +83,10 @@
 .table-sort-list {
   list-style-type: none;
   overflow: hidden;
-  color: #5b5b5b;
+  color: var(--primaryTextColor);
   padding: 5px;
-  background-color: #fff;
-  border: 1px solid #ccc;
+  background-color: var(--primaryContentBackground);
+  border: 1px solid var(--primaryBorder);
   z-index: 10000;
   user-select: none;
   .fg-filter,
@@ -53,7 +123,8 @@
       width: 68%;
       word-wrap: break-word;
       .value-input {
-        background-color: #fff;
+        color: var(--primaryTextColor);
+        background-color: var(--primaryContentBackground);
         border: none;
         padding: 0;
       }
@@ -132,7 +203,7 @@
 #viewJsonDialog-dialog {
   .json-data {
     overflow-y: auto;
-    border: 1px solid #ccc;
+    border: 1px solid var(--primaryBorder);
     border-radius: 5px;
     height: 680px;
     & > li {
@@ -148,11 +219,14 @@
     bottom: 10px;
     .buttons {
       button {
-        color: #5b5b5b;
-        background-color: #fff;
+        color: var(--paginationBtnColor);
+        background-color: var(--paginationBtnBackground);
         float: left;
         margin-right: 10px;
         margin-top: 10px;
+        &:hover:not([disabled]) {
+          background-color: var(--buttonHoverColor);
+        }
       }
     }
     .count {
@@ -175,12 +249,12 @@
   padding: 0;
   header {
     font-size: 1.2em;
-    color: #185e9e;
+    color: var(--primaryContentHeader);
     font-weight: bold;
     padding: 15px;
   }
   .content {
-    color: #5b5b5b;
+    color: var(--primaryTextColor);
     label {
       display: block;
       margin-bottom: 3px;
@@ -197,7 +271,7 @@
       }
     }
     textarea {
-      border: 1px solid #d9d9d9;
+      border: 1px solid var(--primaryBorder);
     }
     .c-combobox {
       width: 100%;
@@ -220,7 +294,7 @@
   }
   .json-data {
     &.alert {
-      height: 375px;
+      height: 425px;
       border: none;
       & > li {
         padding: 0;
@@ -249,7 +323,7 @@
         }
       }
       &.border {
-        border-bottom: 1px solid #ccc;
+        border-bottom: 1px solid var(--primaryBorder);
       }
     }
   }
@@ -269,7 +343,7 @@
         li {
           margin-bottom: 5px;
           &.active {
-            color: blue;
+            color: var(--linkColor);
             text-decoration: underline;
             cursor: pointer;
           }
@@ -282,8 +356,9 @@
       }
       .data {
         textarea {
-          background-color: #fff;
-          color: #666;
+          color: var(--primaryTextColor);
+          background-color: var(--formBackground);
+          border: 1px solid var(--formInputBorderColor);
         }
       }
     }
@@ -299,7 +374,8 @@
 #viewJsonDialog-dialog {
   header {
     font-size: 1.2em;
-    color: #185e9e;
+    color: var(--primaryContentHeader);
+    background-color: var(--primaryContentBackground);
     font-weight: bold;
     padding: 15px;
   }
@@ -407,10 +483,10 @@
   }
   .main-table {
     thead {
-      border-top: 1px solid #d9d9d9;
+      border-top: 1px solid var(--primaryBorder);
       tr {
-        color: #185e9e;
-        background-color: #f7f7f7;
+        color: var(--primaryContentHeader);
+        background-color: var(--primaryContentBackground);
       }
     }
     tbody {
@@ -426,12 +502,12 @@
     overflow: hidden;
     margin-top: 10px;
     padding: 10px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--primaryBorder);
     border-radius: 5px;
-    background-color: #f2f2f2;
+    background-color: var(--formGroupBackground);
     .sync-status {
       margin-bottom: 10px;
-      background-color: #d9d9d9;
+      background-color: var(--primaryBorder);
       color: #d10d25;
       border-radius: 5px;
       padding: 5px;
@@ -479,10 +555,10 @@
       }
       .scan-content {
         margin-top: 10px;
-        border-top: 2px solid #ccc;
-        border-bottom: 2px solid #ccc;
+        border-top: 2px solid var(--primaryBorder);
+        border-bottom: 2px solid var(--primaryBorder);
         & > .header {
-          color: #185e9e;
+          color: var(--primaryContentHeader);
           font-weight: bold;
           padding: 5px 10px;
         }
@@ -492,15 +568,16 @@
         .list {
           overflow-y: auto;
           .group {
-            border-top: 1px solid #ccc;
+            border-top: 1px solid var(--primaryBorder);
             .path {
               padding: 5px 10px 8px 10px;
-              background-color: #fff;
+              color: var(--primaryTextColor);
+              background-color: var(--primaryContentBackground);
               cursor: pointer;
               i.fg {
                 float: left;
                 margin-right: 10px;
-                border: 1px solid #ccc;
+                border: 1px solid var(--primaryBorder);
                 border-radius: 5px;
                 &.rotate {
                   transform: rotate(180deg);
@@ -509,7 +586,7 @@
             }
             .rule {
               padding: 5px 45px;
-              border-top: 1px solid #ccc;
+              border-top: 1px solid var(--primaryBorder);
               .rule-content {
                 margin-bottom: 2px;
                 .header,
@@ -519,7 +596,7 @@
                   cursor: default;
                 }
                 .header {
-                  color: #185e9e;
+                  color: var(--primaryContentHeader);
                   span {
                     padding-left: 18px;
                     display: inline-block;
@@ -548,7 +625,7 @@
                     padding: 10px;
                     width: 20%;
                     li span {
-                      color: #185e9e;
+                      color: var(--primaryContentHeader);
                     }
                   }
                 }
@@ -572,7 +649,7 @@
         .scan-section {
           margin-bottom: 25px;
           padding: 10px;
-          border: 1px solid #ccc;
+          border: 1px solid var(--primaryBorder);
           border-radius: 10px;
           margin-bottom: 20px;
           .scan-header {
@@ -596,7 +673,8 @@
     width: 100%;
     overflow: hidden;
     thead tr {
-      color: #185e9e;
+      color: var(--primaryContentHeader);
+      background-color: var(--primaryContentBackground);
     }
     tbody td:hover {
       cursor: text;
@@ -604,7 +682,7 @@
     &.top-info {
       th, td {
         padding: 10px !important;
-        border: 1px solid #ccc !important;
+        border: 1px solid var(--primaryBorder) !important;
       }
       .align-center {
         text-align: center;
@@ -641,7 +719,7 @@
   }
   .alert-info {
     margin: 7px 0;
-    background-color: #f7f7f7;
+    background-color: var(--alertInfoBckground);
     padding: 20px;
   }
   .main-content {
@@ -649,31 +727,27 @@
     justify-content: space-between;
     margin-top: 10px;
     min-height: 400px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--primaryBorder);
     border-radius: 5px;
     & > .nav {
       width: 280px;
-      border-right: 1px solid #ccc;
+      border-right: 1px solid var(--primaryBorder);
       ul li {
         overflow: hidden;
-        color: #4e4d4e;
+        color: var(--mainListColor);
         font-size: 15px;
         font-weight: bold;
         padding: 10px;
-        border-bottom: 1px solid #ccc;
+        border-bottom: 1px solid var(--primaryBorder);
+        background-color: var(--primaryContentBackground);
         cursor: pointer;
         &:hover {
-          background-color: #e2ecfd;
-        }
-        span {
-          &.active {
-            color: #185e9e;
-          }
+          background-color: var(--mainListHover);
         }
         &.header {
           cursor: text;
           &:hover {
-            background-color: #fff;
+            background-color: var(--mainListHover);
           }
           .name {
             float: left;
@@ -687,10 +761,21 @@
         &.child {
           clear: both;
           padding-left: 20px;
-          background-color: #e8e9ed;
+          background-color: var(--subFrameColor);
           border: none;
           &:hover {
-            background-color: #e2ecfd;
+            background-color: var(--mainListHover);
+          }
+        }
+        &.not-allowed {
+          cursor: not-allowed;
+          span {
+            color: var(--primaryBorder);
+          }
+        }
+        span {
+          &.active {
+            color: var(--primaryContentHeader);
           }
         }
       }
@@ -698,8 +783,8 @@
     & > .content {
       position: relative;
       width: 100%;
-      color: #666;
-      background-color: #f5f5f5;
+      color: var(--primaryTextColor);
+      background-color: var(--contentBackground);
       .options-buttons {
         position: absolute;
         top: 10px;
@@ -730,7 +815,7 @@
           position: absolute;
           top: 35px;
           right: 0;
-          border: 1px solid #ccc;
+          border: 1px solid var(--primaryBorder);
           border-radius: 5px;
           background-color: #fff;
           z-index: 100;
@@ -761,13 +846,13 @@
       .payload {
         padding: 0 10px;
         ul {
-          background-color: #f5f5f5 !important;
+          background-color: var(--contentBackground) !important;
         }
       }
       .srcIp-content,
       .destIp-content {
         margin-top: 30px;
-        max-height: 348px;
+        max-height: 395px;
         overflow-y: auto;
       }
       .srcIp-content,
@@ -778,7 +863,7 @@
             margin-bottom: 5px;
             .key {
               float: left;
-              color: #185e9e;
+              color: var(--primaryContentHeader);
               display: block;
             }
           }
@@ -802,7 +887,7 @@
         padding: .3em .5em;
       }
       .table-data {
-        max-height: 345px;
+        max-height: 395px;
         overflow-y: auto;
         .severity-level {
           display: block;
@@ -829,7 +914,7 @@
       }
       .scan-content {
         .list {
-          max-height: 205px;
+          max-height: 245px;
         }
       }
       .scan-wrapper {
@@ -851,7 +936,7 @@
     &.with-border {
       th, td {
         padding: 10px !important;
-        border: 1px solid #ccc !important;
+        border: 1px solid var(--primaryBorder) !important;
       }
     }
   }
@@ -881,7 +966,7 @@
 #configSeatDialog-content {
   .main {
     font-size: 16px;
-    color: #004d93;
+    color: var(--linkColor);
     &.header {
       font-size: 14px;
       margin-bottom: 2px;
@@ -892,7 +977,7 @@
     i {
       padding: 2px;
       margin: 0 2px;
-      border: 1px solid #ccc;
+      border: 1px solid var(--primaryBorder);
       border-radius: 5px;
     }
   }
@@ -999,7 +1084,7 @@
       width: 58%;
       min-height: 330px;
       &.border {
-        border: 1px solid #d9d9d9;
+        border: 1px solid var(--primaryBorder);
         border-radius: 5px;
       }
       .syslog-content {
@@ -1040,7 +1125,7 @@
       width: 40%;
       min-height: 450px;
       padding: 15px 15px 20px 15px;
-      border: 1px solid #d9d9d9;
+      border: 1px solid var(--primaryBorder);
       border-radius: 5px;
       &.no-padding {
         padding: 0;
@@ -1049,10 +1134,10 @@
   }
   .relationships {
     .group {
-      border: 1px solid #d9d9d9;
+      border: 1px solid var(--primaryBorder);
       border-radius: 5px;
       margin-top: 10px;
-      background-color: #e3f2f9;
+      background-color: var(--relationshipBackground);
     }
     .relationship {
       margin-top: 10px;
@@ -1090,7 +1175,7 @@
       height: 30px;
       width: 30px;
       margin-top: 10px;
-      background-color: white;
+      background-color: var(--primaryContentBackground);
     }
     .add {
       height: 30px;
@@ -1129,31 +1214,30 @@
     min-height: 20px;
     span {
       font-weight: bold;
-      color: #185e9e;
+      color: var(--primaryContentHeader);
     }
   }
   header {
     position: relative;
     padding: 10px;
     text-align: right;
-    border-bottom: 1px solid #ccc;
-    background-color: #f2f2f2;
+    border-bottom: 1px solid var(--primaryBorder);
+    background-color: var(--formGroupBackground);
     overflow: hidden;
     &.add-floor {
       text-align: left;
       font-weight: normal;
-      color: #5b5b5b;
     }
     .fg {
-      color: #4a4a4a;
+      color: var(--primaryTextColor);
       font-size: 1.8em;
-      border: 1px solid #ccc;
+      border: 1px solid var(--primaryBorder);
       padding: 2px;
       border-radius: 5px;
       margin-left: 10px;
-      background-color: #fff;
+      background-color: var(--primaryContentBackground);
       &.active {
-        background-color: #001b34;
+        background-color: var(--buttonSelectedColor);
         color: #ffffff;
         cursor: default;
       }
@@ -1166,7 +1250,7 @@
   .left {
     float: left;
     width: 38%;
-    border: 1px solid #d9d9d9;
+    border: 1px solid var(--primaryBorder);
     border-radius: 5px;
     .display-tree {
       margin-top: 10px;
@@ -1176,7 +1260,7 @@
     float: right;
     width: 61%;
     padding: 0;
-    border: 1px solid #d9d9d9;
+    border: 1px solid var(--primaryBorder);
     border-radius: 5px;
     .field {
       float: left;
@@ -1185,7 +1269,7 @@
       label {
         font-size: 16px;
         font-weight: normal;
-        color: #4a4a4a;
+        color: var(--primaryTextColor);
       }
       &.upload {
         width: 235px;
@@ -1224,7 +1308,7 @@
 /* common/query-open-save */
 #queryDialog-dialog {
   label {
-    color: #004d93;
+    color: var(--linkColor);
   }
   .query-name {
     float: left;
@@ -1242,21 +1326,23 @@
     padding: 5px 6px;
     margin-bottom: 10px;
     border-radius: 5px;
-    background-color: #ededed;
+    background-color: var(--dialogFormGroup);
   }
   .main-filter-group,
   .main-mark-group {
     padding: 0;
     background: none;
     select, input {
-      color: #5b5b5b;
-      background-color: #fff;
+      color: var(--primaryTextColor);
+      background-color: var(--formBackground);
+      border: 1px solid var(--formInputBorderColor);
     }
     .filter-select {
       width: 215px;
     }
     .condition-select {
       width: 100px;
+      margin-right: 3px;
     }
     .filter-inputbox {
       width: 293px;

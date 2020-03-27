@@ -10,10 +10,9 @@ import ButtonGroup from 'react-ui/build/src/components/button-group'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import Gis from 'react-gis/build/src/components'
 
-import {HocAlertDetails as AlertDetails} from '../common/alert-details'
+import AlertDetails from '../common/alert-details'
 import {BaseDataContext} from '../common/context';
 import helper from '../common/helper'
-import withLocale from '../../hoc/locale-provider'
 import WORLDMAP from '../../mock/world-map-low.json'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -918,5 +917,4 @@ DashboardMaps.contextType = BaseDataContext;
 DashboardMaps.propTypes = {
 };
 
-const HocDashboardMaps = withRouter(withLocale(DashboardMaps));
-export { DashboardMaps, HocDashboardMaps };
+export default withRouter(DashboardMaps);

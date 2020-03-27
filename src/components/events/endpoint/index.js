@@ -15,7 +15,6 @@ import Textarea from 'react-ui/build/src/components/textarea'
 import {BaseDataContext} from '../../common/context';
 import helper from '../../common/helper'
 import TableContent from '../../common/table-content'
-import withLocale from '../../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -529,5 +528,4 @@ Endpoint.contextType = BaseDataContext;
 Endpoint.propTypes = {
 };
 
-const HocEndpoint = withRouter(withLocale(Endpoint));
-export { Endpoint, HocEndpoint };
+export default withRouter(Endpoint);

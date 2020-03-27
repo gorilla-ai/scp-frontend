@@ -16,11 +16,11 @@ import Textarea from 'react-ui/build/src/components/textarea'
 import JSONTree from 'react-json-tree'
 
 import {BaseDataContext} from './context';
-import {HocPrivateDetails as PrivateDetails} from './private-details'
+
 import helper from './helper'
-import {HocHMDscanInfo as HMDscanInfo} from './hmd-scan-info'
-import {HocIrSelections as IrSelections} from './ir-selections'
-import withLocale from '../../hoc/locale-provider'
+import IrSelections from './ir-selections'
+import HMDscanInfo from './hmd-scan-info'
+import PrivateDetails from './private-details'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -583,9 +583,14 @@ class AlertDetails extends Component {
   /**
    * Set corresponding content based on content type
    * @method
-   * @param {string} the content type
+   * @param {string} type - the content type
+   * @param {object} alertData - Alert data type
    */
-  getContent = (type) => {
+  getContent = (type, alertData) => {
+    if (type === 'pcap' && alertData.Collector !== 'IDS-SURICATA') {
+      return;
+    }
+
     this.setState({
       showContent: {
         rule: false,
@@ -649,7 +654,7 @@ class AlertDetails extends Component {
   /**
    * Get alert severity
    * @method
-   * @param {value} - 'Emergency', 'Alert', 'Critical', 'Warning', 'Notice'
+   * @param {string} value - 'Emergency', 'Alert', 'Critical', 'Warning', 'Notice'
    * @returns HTML DOM
    */
   getSeverity = (value) => {
@@ -738,6 +743,17 @@ class AlertDetails extends Component {
     }
   }
   /**
+   * Get PCAP menu style
+   * @method
+   * @param {object} alertData - Alert data type
+   * @returns class name
+   */
+  getPCAPstyle = (alertData) => {
+    if (alertData.Collector !== 'IDS-SURICATA') {
+      return 'not-allowed';
+    }
+  }
+  /**
    * Display Alert information in dialog box
    * @method
    * @returns HTML DOM
@@ -796,9 +812,7 @@ class AlertDetails extends Component {
           <div className='nav'>
             <ul>
               <li onClick={this.getContent.bind(this, 'rule')}><span className={cx({'active': showContent.rule})}>{t('alert.txt-rule')}</span></li>
-              {alertType === 'alert' && alertData.Collector === 'IDS-SURICATA' &&
-                <li onClick={this.getContent.bind(this, 'pcap')}><span className={cx({'active': showContent.pcap})}>PCAP</span></li>
-              }
+              <li onClick={this.getContent.bind(this, 'pcap', alertData)} className={this.getPCAPstyle(alertData)}><span className={cx({'active': showContent.pcap})}>PCAP</span></li>
               {alertType === 'pot_attack' &&
                 <li onClick={this.getContent.bind(this, 'attack')}><span className={cx({'active': showContent.attack})}>{t('alert.txt-attack')}</span></li>
               }
@@ -1968,5 +1982,4 @@ AlertDetails.propTypes = {
   fromPage: PropTypes.string.isRequired
 };
 
-const HocAlertDetails = withLocale(AlertDetails);
-export { AlertDetails, HocAlertDetails };
+export default AlertDetails;

@@ -64,6 +64,8 @@
     "txt-account": "帳號"
   },
 
+  "toggle-theme": "切換布景",
+
   "op-types":{
     "EQ":"等於",
     "LIKE":"關鍵詞搜尋",

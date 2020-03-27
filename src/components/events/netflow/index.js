@@ -24,11 +24,10 @@ import JSONTree from 'react-json-tree'
 
 import helper from '../../common/helper'
 import {BaseDataContext} from '../../common/context';
-import {HocQueryOpenSave as QueryOpenSave} from '../../common/query-open-save'
-import {HocSearchOptions as SearchOptions} from '../../common/search-options'
-import {HocSortableList as SortableList} from '../../common/sortable-list'
-import {HocTableCell as TableCell} from '../../common/table-cell'
-import withLocale from '../../../hoc/locale-provider'
+import QueryOpenSave from '../../common/query-open-save'
+import SearchOptions from '../../common/search-options'
+import SortableList from '../../common/sortable-list'
+import TableCell from '../../common/table-cell'
 import WORLDMAP from '../../../mock/world-map-low.json'
 
 import Certification from './tabs/certification'
@@ -1954,7 +1953,7 @@ class Netflow extends Component {
   setPCAPpage = (currentPage) => {
     let tempPcapData = {...this.state.pcapData};
     tempPcapData.page = currentPage;
-    tempAlertPCAP.activeIndex = null;
+    tempPcapData.activeIndex = null;
     tempPcapData.hex = '';
     tempPcapData.filterEmpty = false;
 
@@ -2925,5 +2924,4 @@ Netflow.propTypes = {
   searchFields: PropTypes.object.isRequired
 };
 
-const HocNetflowController = withRouter(withLocale(Netflow));
-export { Netflow, HocNetflowController };
+export default withRouter(Netflow);

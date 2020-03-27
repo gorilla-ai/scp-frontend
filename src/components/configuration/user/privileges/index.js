@@ -9,7 +9,7 @@ import DataTable from 'react-ui/build/src/components/table'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import {BaseDataContext} from '../../../common/context';
-import {HocConfig as Config} from '../../../common/configuration'
+import Config from '../../../common/configuration'
 import helper from '../../../common/helper'
 import PrivilegeAdd from './add'
 import PrivilegeEdit from './edit'

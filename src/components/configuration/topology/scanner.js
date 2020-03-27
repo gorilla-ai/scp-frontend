@@ -56,7 +56,7 @@ class Scanner extends Component {
 }
 
 Scanner.propTypes = {
-  value: PropTypes.object.isRequired
+
 };
 
 export default Scanner;

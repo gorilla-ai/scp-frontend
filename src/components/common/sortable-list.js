@@ -3,8 +3,7 @@ import PropTypes from 'prop-types'
 
 import {SortableContainer} from 'react-sortable-hoc'
 
-import {HocSortableItem as SortableItem} from '../common/sortable-item'
-import withLocale from '../../hoc/locale-provider'
+import SortableItem from '../common/sortable-item'
 
 /**
  * Sortable List
@@ -60,5 +59,4 @@ SortableList.propTypes = {
   showQueryOptions: PropTypes.func.isRequired
 };
 
-const HocSortableList = withLocale(SortableContainer(SortableList));
-export { SortableList, HocSortableList };
+export default SortableContainer(SortableList);

@@ -8,30 +8,32 @@ import i18n from 'i18next'
 import Highcharts from 'highcharts'
 import Moment from 'moment'
 
-import {HocDashboardMaps as DashboardMaps} from './components/dashboard/maps'
-import {HocDashboardStats as DashboardStats} from './components/dashboard/statistics'
-import {HocEdge as EdgeManagement} from './components/configuration/edge/edge'
-import {HocEndpoint as Endpoint} from './components/events/endpoint/index'
-import {HocHeader as Header} from './header'
+import DashboardMaps from './components/dashboard/maps'
+import DashboardStats from './components/dashboard/statistics'
+import EdgeManagement from './components/configuration/edge/edge'
+import Endpoint from './components/events/endpoint/index'
+import Header from './header'
 import logger from 'loglevel-prefix-persist/client'
 import Login from './login'
 import loglevel from 'loglevel'
-import {HocNetflowController as Netflow} from './components/events/netflow/index'
-import {HocNetworkInventory as NetworkInventory} from './components/configuration/topology/inventory'
-import {HocNetworkMap as NetworkMap} from './components/configuration/topology/map'
-import {HocNetworkOwner as NetworkOwner} from './components/configuration/topology/owner'
-import {HocNotifications as NotificationSettings} from './components/configuration/notifications'
-import {HocProductInfo as ProductInfo} from './components/configuration/product/product-info'
-import {HocStatus as ServiceStatus} from './components/configuration/service/status'
-import {HocSyslogController as Syslog} from './components/events/syslog/index'
-import {HocSyslog as SyslogConfig} from './components/configuration/syslog/syslog'
-import {HocThreatsController as Threats} from './components/threats/index'
-import {HocThreatIntelligence as ThreatIntelligence} from './components/configuration/edge/threat'
+import Netflow from './components/events/netflow/index'
+import NetworkInventory from './components/configuration/topology/inventory'
+import NetworkMap from './components/configuration/topology/map'
+import NetworkOwner from './components/configuration/topology/owner'
+import NotificationSettings from './components/configuration/notifications'
+import ProductInfo from './components/configuration/product/product-info'
+import ServiceStatus from './components/configuration/service/status'
+import Syslog from './components/events/syslog/index'
+import SyslogConfig from './components/configuration/syslog/syslog'
+import Threats from './components/threats/index'
+import ThreatIntelligence from './components/configuration/edge/threat'
 import UserAccounts from './components/configuration/user/accounts/index'
 import UserPrivileges from './components/configuration/user/privileges/index'
 
 import {setupConfigService} from 'widget-builder'
 import {BaseDataContext, baseData} from './components/common/context'
+
+import {createInstance, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 import 'font-gorilla/css/font-gorilla.css'
 import 'purecss/build/pure-min.css'
@@ -260,6 +262,23 @@ function start() {
         fallbackLng: lng,
         resources: {[lng]:resources}
       }, err => {
+        createInstance(
+          'chewbacca',
+          {
+            parseSuccess: resp => {
+              if (resp) return resp.rt;
+            },
+            parseFail: resp => ({
+              code: _.get(resp, 'ret', -100),
+              message: _.get(resp, 'message')
+              //message: _.get(resp, 'ret', -100)
+            }),
+            et: i18n.getFixedT(null, 'errors')
+          }
+        )
+
+        global.chewbaccaI18n = i18n;
+
         if (err) {
           log.error(err);
         }
@@ -269,6 +288,8 @@ function start() {
           </BrowserRouter>
         ), document.getElementById('app-container'))
       })
+
+
     })
 }
 

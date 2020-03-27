@@ -10,7 +10,6 @@ import Input from 'react-ui/build/src/components/input'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import helper from './components/common/helper'
-import withLocale from './hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -203,7 +202,7 @@ class License extends Component {
             </section>
           }
           {from === 'config' && !showKeyInput &&
-            <button className='renew-key' onClick={this.toggleKeyInput}>{lt('l-license-renew-key')}</button>
+            <button onClick={this.toggleKeyInput}>{lt('l-license-renew-key')}</button>
           }
           {from === 'config' && showKeyInput &&
             <div className='key'>
@@ -224,4 +223,4 @@ class License extends Component {
 License.propTypes = {
 };
 
-export default withLocale(License);
+export default License;

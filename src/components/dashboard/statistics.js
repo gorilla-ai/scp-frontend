@@ -13,8 +13,6 @@ import PieChart from 'react-chart/build/src/components/pie'
 
 import {BaseDataContext} from '../common/context';
 import helper from '../common/helper'
-import {HOC} from 'widget-builder'
-import withLocale from '../../hoc/locale-provider'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -832,10 +830,6 @@ class DashboardStats extends Component {
         </div>
 
         <div className='main-dashboard'>
-          {/*<div className='ui-framework'>
-            <HOC $id={'NTC-Top5'} />
-          </div>*/}
-
           <div className='charts'>
             <div className='chart-group bar'>
               {!alertDataArr &&
@@ -946,5 +940,4 @@ DashboardStats.contextType = BaseDataContext;
 DashboardStats.propTypes = {
 };
 
-const HocDashboardStats = withRouter(withLocale(DashboardStats));
-export { DashboardStats, HocDashboardStats };
+export default withRouter(DashboardStats);

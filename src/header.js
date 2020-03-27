@@ -15,6 +15,7 @@ import Progress from 'react-ui/build/src/components/progress'
 import AccountEdit from './components/configuration/user/accounts/account-edit'
 import {BaseDataContext} from './components/common/context';
 import helper from './components/common/helper'
+
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const t = i18n.getFixedT(null, 'connections');
@@ -29,6 +30,36 @@ const l = i18n.getFixedT(null, 'app');
 class Header extends Component {
   constructor(props) {
     super(props);
+
+    this.state = {
+      theme: 'light'
+    };
+
+    this.ah = getInstance('chewbacca');
+  }
+  componentDidMount() {
+    this.getUserConfig();
+  }
+  getUserConfig = () => {
+    const {baseUrl, session} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/account/theme?accountId=${session.accountId}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          theme: data
+        });
+
+        document.documentElement.setAttribute('data-theme', data);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Determine the active page
@@ -45,6 +76,41 @@ class Header extends Component {
       return true;
     }
     return pathArr[2] === tab;
+  }
+  /**
+   * Handle logout
+   * @method
+   */
+  logout = () => {
+    const {baseUrl, locale} = this.context;
+    const url = `${baseUrl}/api/logout`;
+
+    Progress.startSpin();
+
+    Promise.resolve($.post(url))
+      .finally(() => {
+        Progress.done();
+        window.location.href = '/SCP?lng=' + locale;
+      })
+  }
+  /**
+   * Toggle theme for the site
+   * @method
+   */
+  toggleTheme = () => {
+    const {baseUrl, session} = this.context;
+    const theme = this.state.theme === 'dark' ? 'light' : 'dark';
+    const url = `${baseUrl}/api/account/theme?accountId=${session.accountId}&theme=${theme}`;
+
+    helper.getAjaxData('POST', url, {})
+    .then(data => {
+      this.setState({
+        theme
+      });
+      return null;
+    })
+
+    document.documentElement.setAttribute('data-theme', theme);
   }
   /**
    * Handle language change
@@ -65,35 +131,35 @@ class Header extends Component {
     window.location.href = window.location.pathname + '?' + urlString;
   }
   /**
-   * Handle logout
-   * @method
-   */
-  logout = () => {
-    const {baseUrl, locale} = this.context;
-    const url = `${baseUrl}/api/logout`;
-
-    Progress.startSpin();
-
-    Promise.resolve($.post(url))
-      .finally(() => {
-        Progress.done();
-        window.location.href = '/SCP?lng=' + locale;
-      })
-  }
-  /**
    * Open and display account context menu
    * @method
    * @param {object} evt - mouseClick events
    */
   showAccountMenu = (evt) => {
-    const lngs = _.map(['en', 'zh'], i => ({
-      id: i,
-      text: t('lng.' + i),
-      action: this.changeLng.bind(this, i)
-    }));
+    const {language} = this.context;
+    let showLanguage = '';
+
+    if (language === 'zh') {
+      showLanguage = 'en';
+    } else if (language === 'en') {
+      showLanguage = 'zh';
+    }
+
+    const lngs = [{
+      id: showLanguage,
+      text: t('lng.' + showLanguage),
+      action: this.changeLng.bind(this, showLanguage)
+    }];
+
+    const themes = [{
+      id: 'themes',
+      text: l('toggle-theme'),
+      action: this.toggleTheme
+    }];
 
     const menuItems = [
       ...lngs,
+      ...themes,
       {
         id: 'account',
         text: l('login.txt-account'),
@@ -178,5 +244,4 @@ Header.propTypes = {
   productName: PropTypes.string.isRequired
 };
 
-const HocHeader = withRouter(Header);
-export { Header, HocHeader };
+export default withRouter(Header);

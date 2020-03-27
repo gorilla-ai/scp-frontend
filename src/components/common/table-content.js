@@ -5,8 +5,7 @@ import cx from 'classnames'
 import DataTable from 'react-ui/build/src/components/table'
 
 import helper from '../common/helper'
-import {HocPagination as Pagination} from './pagination'
-import withLocale from '../../hoc/locale-provider'
+import Pagination from './pagination'
 
 /**
  * Table Content
