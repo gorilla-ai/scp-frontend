@@ -23,7 +23,7 @@ html {
 
   --leftNavBackground: #d9d9d9;
   --leftTreeGroup: #e6e6e6;
-  --leftExpandCollapse: #E4E4E4;
+  --leftExpandCollapse: #e4e4e4;
 
   --tabMenuText: #9b9b9b;
   --tabMenuHover: #e2ecfd;
@@ -47,6 +47,7 @@ html {
   --formReadOnlyColor: #777;
   --formReadOnlyBackground: #eee;
   --formReadOnlyBorderColor: #d9d9d9;
+  --formCheckRadioColor: #001b34;
   --fadedColor: #fff;
 
   --gisMapBackground: #001b34;
@@ -59,7 +60,7 @@ html[data-theme='dark'] {
   --primaryContentHeader: #069bda;
   --primarySubBackground: #1f1e1e;
 
-  --headerBackground: #089bda;
+  --headerBackground: #1a2640;
   --subHeaderBackground: #005580;
   --primaryBorder: #4b4b4b;
 
@@ -99,6 +100,7 @@ html[data-theme='dark'] {
   --formReadOnlyColor: #fff;
   --formReadOnlyBackground: #666;
   --formReadOnlyBorderColor: #666;
+  --formCheckRadioColor: #089bda;
   --fadedColor: #999;
 
   --gisMapBackground: #1f1e1e;
@@ -176,7 +178,7 @@ button {
   border: 1px solid var(--formReadOnlyBorderColor);
 }
 .pure-form input[type='radio']:checked {
-  border: 6px solid var(--headerBackground);
+  border: 6px solid var(--formCheckRadioColor);
   &:hover {
     border: 6px solid var(--pageCurrentHover);
   }
@@ -248,7 +250,7 @@ button {
   background: var(--fadedColor);
 }
 .c-toggle-btn > input[type=checkbox]:checked + div {
-  background: var(--headerBackground);
+  background: var(--formCheckRadioColor);
 }
 .c-toggle-btn:hover input[type=checkbox]:checked + div {
   background: var(--pageCurrentHover);
@@ -1137,8 +1139,8 @@ i.c-checkbox.fg-checkbox {
             }
             .group {
               .fg-add {
-                background-color: var(--headerBackground);
                 color: #fff;
+                background-color: var(--formCheckRadioColor);
               }
             }
             .filter-select {
