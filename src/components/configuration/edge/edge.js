@@ -14,7 +14,7 @@ import Textarea from 'react-ui/build/src/components/textarea'
 import ToggleBtn from 'react-ui/build/src/components/toggle-button'
 
 import {BaseDataContext} from '../../common/context';
-import {HocConfig as Config} from '../../common/configuration'
+import Config from '../../common/configuration'
 import helper from '../../common/helper'
 import TableContent from '../../common/table-content'
 
@@ -955,5 +955,4 @@ Edge.contextType = BaseDataContext;
 Edge.propTypes = {
 };
 
-const HocEdge = withRouter(Edge);
-export { Edge, HocEdge };
+export default withRouter(Edge);

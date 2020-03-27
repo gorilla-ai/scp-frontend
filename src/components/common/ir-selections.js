@@ -154,5 +154,4 @@ IrSelections.propTypes = {
   toggleSelectionIR: PropTypes.func.isRequired
 };
 
-const HocIrSelections = IrSelections;
-export { IrSelections, HocIrSelections };
+export default IrSelections;

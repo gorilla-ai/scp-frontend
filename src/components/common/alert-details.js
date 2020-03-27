@@ -16,10 +16,11 @@ import Textarea from 'react-ui/build/src/components/textarea'
 import JSONTree from 'react-json-tree'
 
 import {BaseDataContext} from './context';
-import {HocPrivateDetails as PrivateDetails} from './private-details'
+
 import helper from './helper'
-import {HocHMDscanInfo as HMDscanInfo} from './hmd-scan-info'
-import {HocIrSelections as IrSelections} from './ir-selections'
+import IrSelections from './ir-selections'
+import HMDscanInfo from './hmd-scan-info'
+import PrivateDetails from './private-details'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -1981,5 +1982,4 @@ AlertDetails.propTypes = {
   fromPage: PropTypes.string.isRequired
 };
 
-const HocAlertDetails = AlertDetails;
-export { AlertDetails, HocAlertDetails };
+export default AlertDetails;

@@ -13,7 +13,7 @@ import Input from 'react-ui/build/src/components/input'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import {BaseDataContext} from '../../common/context';
-import {HocConfig as Config} from '../../common/configuration'
+import Config from '../../common/configuration'
 import helper from '../../common/helper'
 import Manage from './manage'
 import TableContent from '../../common/table-content'
@@ -566,7 +566,7 @@ class NetworkOwner extends Component {
    * @method
    */
   openManage = () => {
-    this.name._component.openManage();
+    this.name.openManage();
   }
   /**
    * Handle close on department/title management modal dialog
@@ -798,5 +798,4 @@ NetworkOwner.contextType = BaseDataContext;
 NetworkOwner.propTypes = {
 };
 
-const HocNetworkOwner = withRouter(NetworkOwner);
-export { NetworkOwner, HocNetworkOwner };
+export default withRouter(NetworkOwner);

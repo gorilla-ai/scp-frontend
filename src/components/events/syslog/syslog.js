@@ -5,13 +5,13 @@ import Tabs from 'react-ui/build/src/components/tabs'
 import VbdaLA from 'vbda-ui/build/src/components/analysis/la'
 
 import {BaseDataContext} from '../../common/context';
-import {HocDataChart as DataChart} from '../../common/data-chart'
-import {HocFilterContent as FilterContent} from '../../common/filter-content'
+import DataChart from '../../common/data-chart'
+import FilterContent from '../../common/filter-content'
 import helper from '../../common/helper'
-import {HocMarkContent as MarkContent} from '../../common/mark-content'
-import {HocPagination as Pagination} from '../../common/pagination'
+import MarkContent from '../../common/mark-content'
+import Pagination from '../../common/pagination'
 import TableContent from '../../common/table-content'
-import {HocTree as Tree} from '../../common/tree'
+import Tree from '../../common/tree'
 
 /**
  * Events Syslog

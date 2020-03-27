@@ -20,11 +20,11 @@ import JSONTree from 'react-json-tree'
 
 import {BaseDataContext} from '../../common/context';
 import helper from '../../common/helper'
-import {HocQueryOpenSave as QueryOpenSave} from '../../common/query-open-save'
-import {HocSearchOptions as SearchOptions} from '../../common/search-options'
-import {HocSortableList as SortableList} from '../../common/sortable-list'
+import QueryOpenSave from '../../common/query-open-save'
+import SearchOptions from '../../common/search-options'
+import SortableList from '../../common/sortable-list'
 import Syslog from './syslog'
-import {HocTableCell as TableCell} from '../../common/table-cell'
+import TableCell from '../../common/table-cell'
 import WORLDMAP from '../../../mock/world-map-low.json'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -1825,5 +1825,4 @@ SyslogController.contextType = BaseDataContext;
 SyslogController.propTypes = {
 };
 
-const HocSyslogController = withRouter(SyslogController);
-export { SyslogController, HocSyslogController };
+export default withRouter(SyslogController);

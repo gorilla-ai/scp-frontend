@@ -155,5 +155,4 @@ ArrowTree.propTypes = {
   data: PropTypes.object.isRequired
 };
 
-const HocArrowTree = ArrowTree;
-export { ArrowTree, HocArrowTree };
+export default ArrowTree;

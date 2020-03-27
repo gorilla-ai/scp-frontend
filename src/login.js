@@ -14,7 +14,6 @@ import DropDownList from 'react-ui/build/src/components/dropdown'
 import helper from './components/common/helper'
 import License from './license'
 import ResetPwd from './components/configuration/user/accounts/resetPwd'
-import withLocale from './hoc/locale-provider'
 
 import {default as ah, getInstance, createInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -289,4 +288,4 @@ Login.propTypes = {
   productName: PropTypes.string.isRequired
 };
 
-export default withLocale(Login);
+export default Login;

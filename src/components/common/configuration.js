@@ -220,5 +220,4 @@ class Config extends Component {
 Config.propTypes = {
 };
 
-const HocConfig = Config;
-export { Config, HocConfig };
+export default Config;

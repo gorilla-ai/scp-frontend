@@ -193,5 +193,4 @@ ChartContent.propTypes = {
   pageType: PropTypes.string.isRequired
 };
 
-const HocChartContent = ChartContent;
-export { ChartContent, HocChartContent };
+export default ChartContent;

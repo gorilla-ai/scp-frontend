@@ -15,8 +15,8 @@ import RadioGroup from 'react-ui/build/src/components/radio-group'
 import ToggleBtn from 'react-ui/build/src/components/toggle-button'
 
 import {BaseDataContext} from '../../common/context';
-import {HocConfig as Config} from '../../common/configuration'
-import {HocFloorMap as FloorMap} from '../../common/floor-map'
+import Config from '../../common/configuration'
+import FloorMap from '../../common/floor-map'
 import helper from '../../common/helper'
 import IpRange from './ip-range'
 import Scanner from './scanner'
@@ -588,7 +588,7 @@ class AutoSettings extends Component {
             </div>
           }
 
-          <div className='auto-settings' style={{'height': activeContent === 'viewMode' ? '79vh' : '72vh'}}>
+          <div className='auto-settings' style={{'height': activeContent === 'viewMode' ? '78vh' : '71vh'}}>
             <div className='form-group normal'>
               <header>{t('network-inventory.auto-settings.txt-ipRange')}</header>
               <ToggleBtn
@@ -752,5 +752,4 @@ AutoSettings.contextType = BaseDataContext;
 AutoSettings.propTypes = {
 };
 
-const HocAutoSettings = AutoSettings;
-export { AutoSettings, HocAutoSettings };
+export default AutoSettings;

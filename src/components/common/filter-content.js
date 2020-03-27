@@ -77,5 +77,4 @@ FilterContent.propTypes = {
   handleResetBtn: PropTypes.func.isRequired
 };
 
-const HocFilterContent = FilterContent;
-export { FilterContent, HocFilterContent };
+export default FilterContent;

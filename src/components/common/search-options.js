@@ -266,5 +266,4 @@ SearchOptions.propTypes = {
   handleSearchSubmit: PropTypes.func.isRequired
 };
 
-const HocSearchOptions = SearchOptions;
-export { SearchOptions, HocSearchOptions };
+export default SearchOptions;

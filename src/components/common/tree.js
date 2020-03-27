@@ -190,5 +190,4 @@ Tree.propTypes = {
   activeTab: PropTypes.string.isRequired
 };
 
-const HocTree = Tree;
-export { Tree, HocTree };
+export default Tree;

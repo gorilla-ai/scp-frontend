@@ -19,7 +19,7 @@ import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import Textarea from 'react-ui/build/src/components/textarea'
 
 import {BaseDataContext} from '../../common/context';
-import {HocConfig as Config} from '../../common/configuration'
+import Config from '../../common/configuration'
 import EditHosts from './edit-hosts'
 import helper from '../../common/helper'
 import Relationships from './relationships'
@@ -1310,5 +1310,4 @@ Syslog.contextType = BaseDataContext;
 Syslog.propTypes = {
 }
 
-const HocSyslog = Syslog;
-export { Syslog, HocSyslog };
+export default Syslog;

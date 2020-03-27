@@ -196,5 +196,4 @@ TableCell.propTypes = {
   allValue: PropTypes.object.isRequired
 };
 
-const HocTableCell = TableCell;
-export { TableCell, HocTableCell };
+export default TableCell;

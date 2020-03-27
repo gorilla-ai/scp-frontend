@@ -670,5 +670,4 @@ FloorMap.contextType = BaseDataContext;
 FloorMap.propTypes = {
 };
 
-const HocFloorMap = FloorMap;
-export { FloorMap, HocFloorMap };
+export default FloorMap;

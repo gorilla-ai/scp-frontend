@@ -40,5 +40,4 @@ MarkContent.propTypes = {
   showMark: PropTypes.bool.isRequired
 };
 
-const HocMarkContent = MarkContent;
-export { MarkContent, HocMarkContent };
+export default MarkContent;

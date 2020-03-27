@@ -968,5 +968,4 @@ HMDscanInfo.propTypes = {
   triggerTask: PropTypes.func.isRequired
 };
 
-const HocHMDscanInfo = HMDscanInfo;
-export { HMDscanInfo, HocHMDscanInfo };
+export default HMDscanInfo;

@@ -33,7 +33,7 @@ html[data-theme='dark'] {
   --linkColor: #069bda;
 
   --mainListColor: #fff;
-  --mainListHover: #000;
+  --mainListHover: #1a3248;
   --subFrameColor: #0f0f0f;
   --contentBackground: #1f1e1e;
   --buttonSelectedColor: #069bda;
@@ -50,6 +50,9 @@ html[data-theme='dark'] {
 }
 
 .c-modal {
+  & > .dialog > .content {
+    max-height: 715px;
+  }
   .c-table {
     thead tr {
       color: var(--primaryContentHeader);
@@ -291,7 +294,7 @@ html[data-theme='dark'] {
   }
   .json-data {
     &.alert {
-      height: 375px;
+      height: 425px;
       border: none;
       & > li {
         padding: 0;
@@ -504,7 +507,7 @@ html[data-theme='dark'] {
     background-color: var(--formGroupBackground);
     .sync-status {
       margin-bottom: 10px;
-      background-color: #d9d9d9;
+      background-color: var(--primaryBorder);
       color: #d10d25;
       border-radius: 5px;
       padding: 5px;
@@ -849,7 +852,7 @@ html[data-theme='dark'] {
       .srcIp-content,
       .destIp-content {
         margin-top: 30px;
-        max-height: 348px;
+        max-height: 395px;
         overflow-y: auto;
       }
       .srcIp-content,
@@ -884,7 +887,7 @@ html[data-theme='dark'] {
         padding: .3em .5em;
       }
       .table-data {
-        max-height: 345px;
+        max-height: 395px;
         overflow-y: auto;
         .severity-level {
           display: block;
@@ -1224,7 +1227,6 @@ html[data-theme='dark'] {
     &.add-floor {
       text-align: left;
       font-weight: normal;
-      color: #5b5b5b;
     }
     .fg {
       color: var(--primaryTextColor);

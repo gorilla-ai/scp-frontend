@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 
 import {SortableContainer} from 'react-sortable-hoc'
 
-import {HocSortableItem as SortableItem} from '../common/sortable-item'
+import SortableItem from '../common/sortable-item'
 
 /**
  * Sortable List
@@ -59,5 +59,4 @@ SortableList.propTypes = {
   showQueryOptions: PropTypes.func.isRequired
 };
 
-const HocSortableList = SortableContainer(SortableList);
-export { SortableList, HocSortableList };
+export default SortableContainer(SortableList);

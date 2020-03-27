@@ -23,18 +23,18 @@ import Tabs from 'react-ui/build/src/components/tabs'
 import Textarea from 'react-ui/build/src/components/textarea'
 import TreeView from 'react-ui/build/src/components/tree'
 
-import {HocAutoSettings as AutoSettings} from './auto-settings'
+import AutoSettings from './auto-settings'
 import {BaseDataContext} from '../../common/context';
+import Config from '../../common/configuration'
+import FileUpload from '../../common/file-upload'
+import FilterContent from '../../common/filter-content'
+import FloorMap from '../../common/floor-map'
 import helper from '../../common/helper'
-import {HocConfig as Config} from '../../common/configuration'
-import {HocFileUpload as FileUpload} from '../../common/file-upload'
-import {HocFilterContent as FilterContent} from '../../common/filter-content'
-import {HocFloorMap as FloorMap} from '../../common/floor-map'
-import {HocHMDscanInfo as HMDscanInfo} from '../../common/hmd-scan-info'
-import {HocIrSelections as IrSelections} from '../../common/ir-selections'
-import {HocPagination as Pagination} from '../../common/pagination'
-import {HocPrivateDetails as PrivateDetails} from '../../common/private-details'
+import HMDscanInfo from '../../common/hmd-scan-info'
+import IrSelections from '../../common/ir-selections'
 import Manage from './manage'
+import Pagination from '../../common/pagination'
+import PrivateDetails from '../../common/private-details'
 import TableContent from '../../common/table-content'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -2406,7 +2406,7 @@ class NetworkInventory extends Component {
    * @method
    */
   openManage = () => {
-    this.manage._component.openManage();
+    this.manage.openManage();
   }
   /**
    * Open floor map edit dialog
@@ -3295,5 +3295,4 @@ NetworkInventory.contextType = BaseDataContext;
 NetworkInventory.propTypes = {
 };
 
-const HocNetworkInventory = withRouter(NetworkInventory);
-export { NetworkInventory, HocNetworkInventory };
+export default withRouter(NetworkInventory);

@@ -15,8 +15,8 @@ import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import TreeView from 'react-ui/build/src/components/tree'
 
 import {BaseDataContext} from '../../common/context';
-import {HocConfig as Config} from '../../common/configuration'
-import {HocFloorMap as FloorMap} from '../../common/floor-map'
+import Config from '../../common/configuration'
+import FloorMap from '../../common/floor-map'
 import helper from '../../common/helper'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -1058,5 +1058,4 @@ NetworkMap.contextType = BaseDataContext;
 NetworkMap.propTypes = {
 };
 
-const HocNetworkMap = NetworkMap;
-export { NetworkMap, HocNetworkMap };
+export default NetworkMap;

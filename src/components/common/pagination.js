@@ -64,5 +64,4 @@ Pagination.propTypes = {
   onDropDownChange: PropTypes.func.isRequired
 };
 
-const HocPagination = Pagination;
-export { Pagination, HocPagination };
+export default Pagination;

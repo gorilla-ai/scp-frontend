@@ -13,7 +13,7 @@ import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import AccountEdit from './account-edit'
 import {BaseDataContext} from '../../../common/context';
-import {HocConfig as Config} from '../../../common/configuration'
+import Config from '../../../common/configuration'
 import helper from '../../../common/helper'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -177,7 +177,7 @@ class AccountList extends Component {
    * @param {string} id - selected account ID
    */
   showEditDialog = (id) => {
-    this.editor._component.openAccount(id, 'fromAccount');
+    this.editor.openAccount(id, 'fromAccount');
   }
   /**
    * Display delete and unlock content

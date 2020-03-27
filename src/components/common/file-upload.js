@@ -83,5 +83,4 @@ FileUpload.propTypes = {
   handleFileChange: PropTypes.func.isRequired
 };
 
-const HocFileUpload = FileUpload;
-export { FileUpload, HocFileUpload };
+export default FileUpload;

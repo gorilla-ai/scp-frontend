@@ -528,5 +528,4 @@ Endpoint.contextType = BaseDataContext;
 Endpoint.propTypes = {
 };
 
-const HocEndpoint = withRouter(Endpoint);
-export { Endpoint, HocEndpoint };
+export default withRouter(Endpoint);

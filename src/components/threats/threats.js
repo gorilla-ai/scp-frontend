@@ -7,11 +7,11 @@ import DataTable from 'react-ui/build/src/components/table'
 import PieChart from 'react-chart/build/src/components/pie'
 import Tabs from 'react-ui/build/src/components/tabs'
 
-import {HocDataChart as DataChart} from '../common/data-chart'
-import {HocFilterContent as FilterContent} from '../common/filter-content'
+import DataChart from '../common/data-chart'
+import FilterContent from '../common/filter-content'
 import helper from '../common/helper'
 import TableContent from '../common/table-content'
-import {HocTree as Tree} from '../common/tree'
+import Tree from '../common/tree'
 
 let t = null;
 

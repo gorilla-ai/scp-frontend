@@ -6,7 +6,7 @@ import cx from 'classnames'
 import ButtonGroup from 'react-ui/build/src/components/button-group'
 
 import {BaseDataContext} from './context';
-import {HocChartContent as ChartContent} from './chart-content'
+import ChartContent from './chart-content'
 import helper from './helper'
 
 let t = null;
@@ -193,5 +193,4 @@ DataChart.propTypes = {
   tabChartData: PropTypes.object.isRequired
 };
 
-const HocDataChart = DataChart;
-export { DataChart, HocDataChart };
+export default DataChart;

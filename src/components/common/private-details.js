@@ -238,5 +238,4 @@ PrivateDetails.propTypes = {
   topoInfo: PropTypes.object.isRequired
 };
 
-const HocPrivateDetails = PrivateDetails;
-export { PrivateDetails, HocPrivateDetails };
+export default PrivateDetails;

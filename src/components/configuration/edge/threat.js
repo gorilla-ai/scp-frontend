@@ -11,10 +11,10 @@ import PieChart from 'react-chart/build/src/components/pie'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import {BaseDataContext} from '../../common/context';
-import {HocConfig as Config} from '../../common/configuration'
-import {HocFileUpload as FileUpload} from '../../common/file-upload'
+import Config from '../../common/configuration'
+import FileUpload from '../../common/file-upload'
 import helper from '../../common/helper'
-import {HocSearchOptions as SearchOptions} from '../../common/search-options'
+import SearchOptions from '../../common/search-options'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -459,5 +459,4 @@ ThreatIntelligence.contextType = BaseDataContext;
 ThreatIntelligence.propTypes = {
 };
 
-const HocThreatIntelligence = ThreatIntelligence;
-export { ThreatIntelligence, HocThreatIntelligence };
+export default ThreatIntelligence;

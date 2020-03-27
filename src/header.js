@@ -44,16 +44,16 @@ class Header extends Component {
     const {baseUrl, session} = this.context;
 
     this.ah.one({
-      url: `${baseUrl}/api/common/config?configId=theme&accountId=${session.accountId}`,
+      url: `${baseUrl}/api/account/theme?accountId=${session.accountId}`,
       type: 'GET'
     })
     .then(data => {
       if (data) {
-        //console.log(data);
+        this.setState({
+          theme: data
+        });
 
-        // this.setState({
-        //   alertInfo: tempAlertInfo
-        // });
+        document.documentElement.setAttribute('data-theme', data);
       }
       return null;
     })
@@ -98,11 +98,17 @@ class Header extends Component {
    * @method
    */
   toggleTheme = () => {
+    const {baseUrl, session} = this.context;
     const theme = this.state.theme === 'dark' ? 'light' : 'dark';
+    const url = `${baseUrl}/api/account/theme?accountId=${session.accountId}&theme=${theme}`;
 
-    this.setState({
-      theme
-    });
+    helper.getAjaxData('POST', url, {})
+    .then(data => {
+      this.setState({
+        theme
+      });
+      return null;
+    })
 
     document.documentElement.setAttribute('data-theme', theme);
   }
@@ -238,5 +244,4 @@ Header.propTypes = {
   productName: PropTypes.string.isRequired
 };
 
-const HocHeader = withRouter(Header);
-export { Header, HocHeader };
+export default withRouter(Header);

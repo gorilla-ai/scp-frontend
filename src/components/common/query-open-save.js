@@ -536,5 +536,4 @@ QueryOpenSave.propTypes = {
   closeDialog: PropTypes.func.isRequired
 };
 
-const HocQueryOpenSave = QueryOpenSave;
-export { QueryOpenSave, HocQueryOpenSave };
+export default QueryOpenSave;

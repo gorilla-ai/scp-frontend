@@ -91,5 +91,4 @@ SortableItem.propTypes = {
   showQueryOptions: PropTypes.func.isRequired
 };
 
-const HocSortableItem = SortableElement(SortableItem);
-export { SortableItem, HocSortableItem };
+export default SortableElement(SortableItem);

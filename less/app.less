@@ -5,6 +5,7 @@ html {
   --primaryTextColor: #4a4a4a;
   --primaryContentBackground: #fff;
   --primaryContentHeader: #004d93;
+  --primarySubBackground: #ededed;
 
   --headerBackground: #001b34;
   --subHeaderBackground: #004d93;
@@ -25,11 +26,12 @@ html {
   --leftExpandCollapse: #E4E4E4;
 
   --tabMenuText: #9b9b9b;
-  --tabMenuHover: #e5e5e5;
+  --tabMenuHover: #e2ecfd;
+  --tableActiveRow: #999;
 
   --tableHeaderColor: #4a4a4a;
   --tableRowOdd: #f5f5f5;
-  --tableRowEven: #ffffff;
+  --tableRowEven: #fff;
 
   --pageCurrentHover: #1a3248;
 
@@ -48,12 +50,14 @@ html {
   --fadedColor: #fff;
 
   --gisMapBackground: #001b34;
+  --laBackground: #fff;
 }
 html[data-theme='dark'] {
   --primaryBackground: #000;
   --primaryTextColor: #fff;
   --primaryContentBackground: #1f1e1e;
   --primaryContentHeader: #069bda;
+  --primarySubBackground: #1f1e1e;
 
   --headerBackground: #089bda;
   --subHeaderBackground: #005580;
@@ -74,16 +78,17 @@ html[data-theme='dark'] {
   --leftExpandCollapse: #1f1e1e;
 
   --tabMenuText: #fff;
-  --tabMenuHover: #000;
+  --tabMenuHover: #1a3248;
 
   --tableHeaderColor: #069bda;
   --tableRowOdd: #1f1e1e;
   --tableRowEven: #0f0f0f;
+  --tableActiveRow: #666;
 
   --pageCurrentHover: #005580;
 
   --dashboardMapsText: #fff;
-  --dashboardMapsHover: #000;
+  --dashboardMapsHover: #1a3248;
 
   --subFrameColor: #0f0f0f;
 
@@ -97,6 +102,7 @@ html[data-theme='dark'] {
   --fadedColor: #999;
 
   --gisMapBackground: #1f1e1e;
+  --laBackground: #333;
 }
 html, body, #app-container {
   font-family:"Segoe UI", "微軟正黑體", "新細明體";
@@ -126,6 +132,12 @@ footer.footer {
 /*******/
 .font-bold {
   font-weight: bold;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--buttonSelectedColor);
+  &:hover {
+    background: var(--pageCurrentHover)
+  }
 }
 button {
   background-color: var(--buttonSelectedColor);
@@ -203,6 +215,7 @@ button {
 .c-table {
   thead {
     color: var(--tableHeaderColor);
+    background-color: var(--primaryBackground);
     border-bottom: 1px solid var(--primaryBorder);
   }
   tbody {
@@ -382,7 +395,7 @@ i.c-checkbox.fg-checkbox {
     background-color: var(--tableRowOdd);
   }
   canvas {
-    background: var(--formGroupBackground) !important;
+    background: var(--laBackground) !important;
   }
 }
 #language-menu {
@@ -491,6 +504,7 @@ i.c-checkbox.fg-checkbox {
   .sub-header { //The blue bar
     position: relative;
     color: #fff;
+    height: 45px;
     padding: 5px 10px;
     overflow: hidden;
     background-color: var(--subHeaderBackground);
@@ -539,6 +553,7 @@ i.c-checkbox.fg-checkbox {
     }
     .search-options {
       position: absolute;
+      top: 5px;
       select,
       input {
         color: var(--primaryTextColor);
@@ -872,7 +887,7 @@ i.c-checkbox.fg-checkbox {
                 padding: 8px 10px;
                 &.faded {
                   font-style: italic;
-                  color: #999;
+                  color: var(--tableActiveRow);
                 }
                 span {
                   display: block;
@@ -1047,9 +1062,6 @@ i.c-checkbox.fg-checkbox {
         height: 50px;
         border-bottom: 1px solid var(--primaryBorder);
         background-color: var(--primaryContentBackground);
-        &.last {
-          border-bottom: 0;
-        }
         &.issues-feedback span {
           display: block;
           width: 100%;
@@ -1340,7 +1352,7 @@ i.c-checkbox.fg-checkbox {
         position: relative;
         margin: 15px;
         border-radius: 5px;
-        background-color: var(--primaryBackground);
+        background-color: var(--primarySubBackground);
         border: 1px solid var(--primaryBorder);
         overflow: hidden;
         &.basic-form { //For content with form input
@@ -1791,9 +1803,9 @@ i.c-checkbox.fg-checkbox {
               }
               &.grey {
                 color: #fff;
-                background-color: #999;
+                background-color: var(--tableActiveRow);
                 &:hover {
-                  background-color: #999 !important;
+                  background-color: var(--tableActiveRow) !important;
                 }
               }
             }
