@@ -1980,6 +1980,7 @@ class NetworkInventory extends Component {
     const {baseUrl} = this.context;
     const {csvData, csvColumns, csvHeader, ipUploadFields} = this.state;
     const ipPattern = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
+    const macPattern = /^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$/i;
 
     if (type === 'upload') {
       if (!csvColumns.ip) {
@@ -2013,6 +2014,13 @@ class NetworkInventory extends Component {
           if (dataObj.ip) {
             if (!ipPattern.test(dataObj.ip)) { //Check IP format
               validate = false;
+              helper.showPopupMsg(t('network-inventory.txt-uploadFailedIP'));
+              return false;
+            }
+
+            if (dataObj.mac && !macPattern.test(dataObj.mac)) { //Check MAC format
+              validate = false;
+              helper.showPopupMsg(t('network-inventory.txt-uploadFailedMAC'));
               return false;
             }
 
@@ -2025,7 +2033,6 @@ class NetworkInventory extends Component {
         })
 
         if (!validate) {
-          helper.showPopupMsg(t('network-inventory.txt-uploadFailedIP'));
           return;
         }
 

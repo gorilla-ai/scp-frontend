@@ -32,7 +32,7 @@ const PRIVATE_API = {
   path: 'srcIp'
 };
 const PUBLIC_API = {
-  name: 'Top10ExternalSrcCountry',
+  name: 'ExternalSrcCountry',
   path: 'srcCountry'
 };
 const EDGES_API = {

@@ -796,6 +796,7 @@ class AlertDetails extends Component {
               <th>{f('alertFields.srcPort')}</th>
               <th>{f('alertFields.destIp')}</th>
               <th>{f('alertFields.destPort')}</th>
+              <th>{f('alertFields.proto')}</th>
             </tr>
           </thead>
           <tbody>
@@ -804,6 +805,7 @@ class AlertDetails extends Component {
               <td className='align-center src-port'>{this.getIpPortData('srcPort')}</td>
               <td className='align-center dest-ip'>{this.getIpPortData('destIp')}</td>
               <td className='align-center dest-port'>{this.getIpPortData('destPort')}</td>
+              <td className='align-center protocol'>{alertData.proto || alertData.p || NOT_AVAILABLE}</td>
             </tr>
           </tbody>
         </table>

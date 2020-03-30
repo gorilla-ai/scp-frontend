@@ -416,14 +416,19 @@ i.c-checkbox.fg-checkbox {
 }
 #g-header { //Top nav menu
   color: #fff;
-  padding: 0 20px;
+  padding: 0 15px;
   height: 45px;
   background-color: var(--headerBackground);
-  .title { //Gorilla logo
+  .title {
     position: absolute;
+    top: 4px;
     font-size: 1.6em;
-    font-weight: bold;
     letter-spacing: 1px;
+    img {
+      float: left;
+      margin-top: 7px;
+      margin-right: 10px;
+    }
   }
   .main-nav { //Main top nav
     text-align: center;
@@ -1708,6 +1713,7 @@ i.c-checkbox.fg-checkbox {
           }
         }
         footer { //For pagination in Table, LA and Maps
+          min-height: 76px;
           padding: 20px;
           margin: 0;
           .dropdown-margin {

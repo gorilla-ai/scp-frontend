@@ -281,7 +281,7 @@
     "flow_id": "Flow ID",
     "ipSrc": "Source IP",
     "portSrc": "Source Port",
-    "proto": "Proto",
+    "proto": "Protocol",
     "path": "Path",
     "ipDst": "Destination IP",
     "@version": "Version",

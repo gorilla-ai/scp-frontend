@@ -281,7 +281,7 @@
     "flow_id": "Flow ID",
     "ipSrc": "來源IP",
     "portSrc": "來源Port",
-    "proto": "Proto",
+    "proto": "Protocol",
     "path": "路徑",
     "ipDst": "目的IP",
     "@version": "版號",

@@ -61,7 +61,9 @@
     "lbl-password": "請輸入密碼",
     "txt-username":"請輸入帳號",
     "txt-password":"請輸入密碼",
-    "txt-account": "帳號"
+    "txt-account": "帳號",
+    "txt-userAccount": "帳號",
+    "txt-userPassword": "密碼"
   },
 
   "toggle-theme": "切換布景",

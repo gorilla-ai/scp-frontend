@@ -121,7 +121,7 @@ class DashboardMaps extends Component {
       timestamp: [dateTime.from, dateTime.to],
       filters: [{
         condition: 'must',
-        query: 'Top10ExternalSrcCountry'
+        query: 'ExternalSrcCountry'
       }]
     };
 

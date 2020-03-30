@@ -230,15 +230,16 @@ class Login extends Component {
     return (
       <div id='g-login' className='c-center global c-flex fdc'>
         <div id='title'>
+          <img src='/images/nsguard-logo.png' />
           <span className='title'>{productName}</span>
           <span className='subtitle'></span>
         </div>
 
         <div id='form' className='c-flex fdc'>
-          <label htmlFor='username'>{t('login.lbl-username')}</label>
+          <label htmlFor='username'>{t('login.txt-userAccount')}</label>
           <input ref={ref => { this.username = ref }} id='username' type='text' />
 
-          <label htmlFor='password'>{t('login.lbl-password')}</label>
+          <label htmlFor='password'>{t('login.txt-userPassword')}</label>
           <input ref={ref => { this.password = ref }} id='password' type='password' onKeyDown={this.handleKeyDown.bind(this)} />
 
           <button className='end' onClick={this.logon}>{t('login.btn-login')}</button>

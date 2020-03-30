@@ -388,6 +388,7 @@
     "txt-batchUpload": "批次上傳",
     "txt-batchUploadIp": "批次上傳IP",
     "txt-uploadFailedIP": "IP格式有錯誤，請重新上傳",
+    "txt-uploadFailedMAC": "MAC格式有錯誤，請重新上傳",
     "txt-uploadFailed": "以下資料上傳失敗，請再試一次",
     "txt-autoSettings": "自動執行設定",
     "txt-withHeader": "包含表頭",

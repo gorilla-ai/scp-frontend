@@ -74,7 +74,7 @@ const helper = {
       if (val.query) {
         filterDataArr.push({
           condition: val.condition,
-          query: val.query
+          query: val.query.trim()
         });
       }
     })
@@ -285,7 +285,7 @@ const helper = {
 
               formattedQueryText.push({
                 condition: formattedValue,
-                query: val.query
+                query: val.query.trim()
               });
             })
 

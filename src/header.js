@@ -203,7 +203,9 @@ class Header extends Component {
         <div className='main-header'>
           <header id='g-header'>
             <div className='title'>
-              <Link to='/SCP'>{productName}</Link>
+              <Link to='/SCP'>
+                <img src='/images/nsguard-logo.png' />{productName}
+              </Link>
             </div>
 
             <div>

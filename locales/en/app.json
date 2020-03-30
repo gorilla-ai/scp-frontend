@@ -61,7 +61,9 @@
     "lbl-password": "Please Enter Password",
     "txt-username":"Please enter your username",
     "txt-password":"Please enter your password",
-    "txt-account": "Account"
+    "txt-account": "Account",
+    "txt-userAccount": "Username",
+    "txt-userPassword": "Password"
   },
 
   "toggle-theme": "Toggle Theme",

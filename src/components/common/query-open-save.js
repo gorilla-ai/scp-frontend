@@ -82,7 +82,7 @@ class QueryOpenSave extends Component {
         if (val.query) {
           tempFilterData.push({
             condition: val.condition,
-            query: val.query
+            query: val.query.trim()
           });
         }
       })
@@ -329,7 +329,7 @@ class QueryOpenSave extends Component {
 
             formattedQueryText.push({
               condition: formattedValue,
-              query: val.query
+              query: val.query.trim()
             });
           })
 
@@ -421,7 +421,7 @@ class QueryOpenSave extends Component {
         if (val.query) {
           tempFilterData.push({
             condition: val.condition,
-            query: val.query
+            query: val.query.trim()
           });
         }
       })
