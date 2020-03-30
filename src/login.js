@@ -230,7 +230,7 @@ class Login extends Component {
     return (
       <div id='g-login' className='c-center global c-flex fdc'>
         <div id='title'>
-          <img src='/images/nsguard-logo.png' />
+          <img src='/SCP/images/nsguard-logo.png' />
           <span className='title'>{productName}</span>
           <span className='subtitle'></span>
         </div>
