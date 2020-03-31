@@ -258,7 +258,8 @@
     "txt-alertThreatSubnet": "Threats in subnet",
     "txt-alertThreatPrivate": "Threats in private IP",
     "txt-alertThreatCountry": "Threats in global country",
-    "txt-alertThreatPublic": "Threats in public IP"
+    "txt-alertThreatPublic": "Threats in public IP",
+    "txt-alertNetTrapBlackList": "NetTrap Query Black List"
   },
 
   "events": {

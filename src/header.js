@@ -195,7 +195,7 @@ class Header extends Component {
     });
   }
   render() {
-    const {sessionRights} = this.context;
+    const {contextRoot, sessionRights} = this.context;
     const {productName} = this.props;
 
     return (
@@ -204,7 +204,7 @@ class Header extends Component {
           <header id='g-header'>
             <div className='title'>
               <Link to='/SCP'>
-                <img src='/SCP/images/nsguard-logo.png' />{productName}
+                <img src={contextRoot + '/images/nsguard-logo.png'} />{productName}
               </Link>
             </div>
 

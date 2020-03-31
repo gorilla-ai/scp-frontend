@@ -131,6 +131,8 @@
   "txt-configSource": "Config Source",
   "txt-alertHourBefore": "告警時間前一小時",
   "txt-column": "欄位",
+  "txt-ip": "IP",
+  "txt-domain": "Domain",
 
   "txt-dashboard": "Dashboard",
   "txt-threats": "Threats",
@@ -255,10 +257,11 @@
     "txt-safetyScan": "安全掃描",
     "txt-alertThreatLevel": "客戶威脅等級統計",
     "txt-alertThreatCount": "客戶威脅來源統計",
-    "txt-alertThreatSubnet": "Threats in subnet",
-    "txt-alertThreatPrivate": "Threats in private IP",
-    "txt-alertThreatCountry": "Threats in global country",
-    "txt-alertThreatPublic": "Threats in public IP"
+    "txt-alertThreatSubnet": "內部威脅網段",
+    "txt-alertThreatPrivate": "內部威脅IP",
+    "txt-alertThreatCountry": "外部威脅國家", 
+    "txt-alertThreatPublic": "外部威脅IP",
+    "txt-alertNetTrapBlackList": "NetTrap黑名單查詢紀錄"
   },
 
   "events": {

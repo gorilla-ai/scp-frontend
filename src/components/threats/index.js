@@ -48,6 +48,9 @@ const PUBLIC_COUNTRY_SEVERITY_API = {
 const PUBLIC_IP_SEVERITY_API = {
   name: 'ExternalSrcIpWithSeverity'
 };
+const NET_TRAP_QUERY = {
+  name: 'NetTrapQueryBlacklist'
+};
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const ALERT_LEVEL_COLORS = {
   Emergency: '#CC2943',
@@ -98,6 +101,10 @@ const TABLE_CHARTS_LIST = [
   {
     id: 'alertThreatPublic',
     key: 'IP'
+  },
+  {
+    id: 'alertNetTrapBlackList',
+    key: 'client'
   }
 ];
 
@@ -373,7 +380,8 @@ class ThreatsController extends Component {
     this.setState({
       subSectionsData: tempSubSectionsData
     }, () => {
-      this.loadThreatsData();
+      this.loadThreatsData('search');
+      this.loadThreatsData('statistics');
     });
   }
   /**
@@ -421,7 +429,7 @@ class ThreatsController extends Component {
         chartFields: {},
         chartData: null,
         sort: {
-          field: 'key',
+          field: val.id === 'alertNetTrapBlackList' ? 'ip' : 'key',
           desc: false
         }
       };
@@ -432,6 +440,8 @@ class ThreatsController extends Component {
         tempAlertTableData[val2.id].chartFieldsArr.push(val);
       })
     })
+
+    tempAlertTableData.alertNetTrapBlackList.chartFieldsArr = ['ip', 'domain', 'count'];
 
     this.setState({
       alertChartsList,
@@ -505,164 +515,208 @@ class ThreatsController extends Component {
   /**
    * Get and set alert data
    * @method
-   * @param {string} [options] - option for 'search' or 'tree'
+   * @param {string} [options] - option for 'search' or 'statistics'
    */
   loadThreatsData = (options) => {
     const {baseUrl} = this.context;
     const {activeTab, currentPage, oldPage, pageSize, treeData, subSectionsData, account, alertDetails, alertPieData, alertTableData} = this.state;
     const setPage = options === 'search' ? 1 : currentPage;
-    const url = `${baseUrl}/api/u2/alert/_search?page=${setPage}&pageSize=${pageSize}`;
     const requestData = this.toQueryLanguage(options);
+    let url = `${baseUrl}/api/u2/alert/_search?page=${setPage}&pageSize=`;
+    url += options === 'statistics' ? 0 : pageSize;
 
     helper.getAjaxData('POST', url, requestData)
     .then(data => {
       if (data) {
-        if (currentPage > 1 && data.data.rows.length === 0) {
-          helper.showPopupMsg('', t('txt-error'), t('events.connections.txt-maxDataMsg'));
-
-          this.setState({
-            currentPage: oldPage
-          });
-        } else {
-          let alertHistogram = {
-            Emergency: {},
-            Alert: {},
-            Critical: {},
-            Warning: {},
-            Notice: {}
-          };
-          let tableData = data.data;
-          let tempArray = [];
-          let tempSubSectionsData = {...subSectionsData};
-
-          if (_.isEmpty(tableData) || (tableData && tableData.counts === 0)) {
-            helper.showPopupMsg(t('txt-notFound'));
-
-            let tempSubSectionsData = {...this.state.subSectionsData};
-            tempSubSectionsData.mainData[activeTab] = [];
-            tempSubSectionsData.totalCount[activeTab] = 0;
-
-            const resetObj = {
-              subSectionsData: tempSubSectionsData,
-              currentPage: 1,
-              oldPage: 1,
-              pageSize: 20
-            };
+        if (!options || options === 'search') {
+          if (currentPage > 1 && data.data.rows.length === 0) {
+            helper.showPopupMsg('', t('txt-error'), t('events.connections.txt-maxDataMsg'));
 
             this.setState({
-              ...resetObj,
-              alertHistogram: {}
+              currentPage: oldPage
             });
           } else {
-            tempSubSectionsData.totalCount[activeTab] = tableData.counts;
-            tableData = tableData.rows;
+            let alertHistogram = {
+              Emergency: {},
+              Alert: {},
+              Critical: {},
+              Warning: {},
+              Notice: {}
+            };
+            let tableData = data.data;
+            let tempArray = [];
+            let tempSubSectionsData = {...subSectionsData};
 
-            tempArray = _.map(tableData, val => { //Re-construct the Alert data
-              val._source.id = val._id;
-              val._source.index = val._index;
-              return val._source;
-            });
+            if (_.isEmpty(tableData) || (tableData && tableData.counts === 0)) {
+              helper.showPopupMsg(t('txt-notFound'));
 
-            let tempAlertDetails = {...alertDetails};
-            tempAlertDetails.currentIndex = 0;
-            tempAlertDetails.currentLength = tableData.length < pageSize ? tableData.length : pageSize;
-            tempAlertDetails.all = tempArray;
+              let tempSubSectionsData = {...this.state.subSectionsData};
+              tempSubSectionsData.mainData[activeTab] = [];
+              tempSubSectionsData.totalCount[activeTab] = 0;
 
-            _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
-              if (data.event_histogram[val]) {
-                _.forEach(data.event_histogram[val].buckets, val2 => {
-                  if (val2.doc_count > 0) {
-                    alertHistogram[val][val2.key_as_string] = val2.doc_count;
-                  }
-                })
-              }
-            })
-
-            this.setState({
-              alertHistogram,
-              alertDetails: tempAlertDetails
-            });
-
-            let tempFields = {};
-            subSectionsData.tableColumns[activeTab].forEach(tempData => {
-              let tempFieldName = tempData;
-
-              tempFields[tempData] = {
-                hide: false,
-                label: f(`${activeTab}Fields.${tempFieldName}`),
-                sortable: tempData === '_eventDttm_' ? true : false,
-                formatter: (value, allValue) => {
-                  if (tempData === 'Info' || tempData === 'Source') {
-                    return <span>{value}</span>
-                  } else {
-                    if (tempData === '_eventDttm_') {
-                      value = helper.getFormattedDate(value, 'local');
-                    }
-                    return (
-                      <TableCell
-                        activeTab={activeTab}
-                        fieldValue={value}
-                        fieldName={tempData}
-                        allValue={allValue}
-                        alertLevelColors={ALERT_LEVEL_COLORS}
-                        showQueryOptions={this.showQueryOptions} />
-                    )
-                  }
-                }
+              const resetObj = {
+                subSectionsData: tempSubSectionsData,
+                currentPage: 1,
+                oldPage: 1,
+                pageSize: 20
               };
+
+              this.setState({
+                ...resetObj,
+                alertHistogram: {}
+              });
+            } else {
+              tempSubSectionsData.totalCount[activeTab] = tableData.counts;
+              tableData = tableData.rows;
+
+              tempArray = _.map(tableData, val => { //Re-construct the Alert data
+                val._source.id = val._id;
+                val._source.index = val._index;
+                return val._source;
+              });
+
+              let tempAlertDetails = {...alertDetails};
+              tempAlertDetails.currentIndex = 0;
+              tempAlertDetails.currentLength = tableData.length < pageSize ? tableData.length : pageSize;
+              tempAlertDetails.all = tempArray;
+
+              _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
+                if (data.event_histogram[val]) {
+                  _.forEach(data.event_histogram[val].buckets, val2 => {
+                    if (val2.doc_count > 0) {
+                      alertHistogram[val][val2.key_as_string] = val2.doc_count;
+                    }
+                  })
+                }
+              })
+
+              this.setState({
+                alertHistogram,
+                alertDetails: tempAlertDetails
+              });
+
+              let tempFields = {};
+              subSectionsData.tableColumns[activeTab].forEach(tempData => {
+                let tempFieldName = tempData;
+
+                tempFields[tempData] = {
+                  hide: false,
+                  label: f(`${activeTab}Fields.${tempFieldName}`),
+                  sortable: tempData === '_eventDttm_' ? true : false,
+                  formatter: (value, allValue) => {
+                    if (tempData === 'Info' || tempData === 'Source') {
+                      return <span>{value}</span>
+                    } else {
+                      if (tempData === '_eventDttm_') {
+                        value = helper.getFormattedDate(value, 'local');
+                      }
+                      return (
+                        <TableCell
+                          activeTab={activeTab}
+                          fieldValue={value}
+                          fieldName={tempData}
+                          allValue={allValue}
+                          alertLevelColors={ALERT_LEVEL_COLORS}
+                          showQueryOptions={this.showQueryOptions} />
+                      )
+                    }
+                  }
+                };
+              })
+
+              const tempCurrentPage = options === 'search' ? 1 : currentPage;
+              tempSubSectionsData.mainData[activeTab] = tempArray;
+              tempSubSectionsData.fieldsData[activeTab] = tempFields;
+
+              this.setState({
+                currentPage: tempCurrentPage,
+                oldPage: tempCurrentPage,
+                subSectionsData: tempSubSectionsData
+              });
+            }
+          }
+        }
+
+        if (options === 'statistics') {
+          let tempAlertPieData = {...alertPieData};
+          let tempArr = [];
+
+          if (data.aggregations) {
+            _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
+              tempArr.push({
+                key: val,
+                doc_count: data.aggregations[val].doc_count
+              });
             })
-
-            const tempCurrentPage = options === 'search' ? 1 : currentPage;
-            tempSubSectionsData.mainData[activeTab] = tempArray;
-            tempSubSectionsData.fieldsData[activeTab] = tempFields;
-
-            this.setState({
-              currentPage: tempCurrentPage,
-              oldPage: tempCurrentPage,
-              subSectionsData: tempSubSectionsData
-            });
           }
-        }
+          tempAlertPieData.alertThreatLevel = tempArr;
+          tempAlertPieData.alertThreatCount = [
+            {
+              key: t('dashboard.txt-private'),
+              doc_count: data.aggregations[PRIVATE_API.name].doc_count
+            },
+            {
+              key: t('dashboard.txt-public'),
+              doc_count: data.aggregations[PUBLIC_API.name].doc_count
+            }
+          ];
 
-        let tempAlertPieData = {...alertPieData};
-        let tempArr = [];
+          let tempAlertTableData = {...alertTableData};
+          tempAlertTableData.alertThreatSubnet.chartData = data.aggregations[PRIVATE_SEVERITY_API.name].chartMaskedIpArr;
+          tempAlertTableData.alertThreatPrivate.chartData = data.aggregations[PRIVATE_SEVERITY_API.name].chartIpArr;
+          tempAlertTableData.alertThreatCountry.chartData = data.aggregations[PUBLIC_COUNTRY_SEVERITY_API.name];
+          tempAlertTableData.alertThreatPublic.chartData = data.aggregations[PUBLIC_IP_SEVERITY_API.name];
 
-        if (data.aggregations) {
-          _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
-            tempArr.push({
-              key: val,
-              doc_count: data.aggregations[val].doc_count
-            });
+          _.forEach(TABLE_CHARTS_LIST, val => {
+            tempAlertTableData[val.id].chartFields = this.getThreatsTableData(val.id, val.key);
           })
+
+          /* for NetTrap black list table */
+          let chartFields = {};
+          alertTableData.alertNetTrapBlackList.chartFieldsArr.forEach(tempData => {
+            chartFields[tempData] = {
+              label: t(`txt-${tempData}`),
+              sortable: true,
+              formatter: (value, allValue, i) => {
+                return <span>{value}</span>
+              }
+            };
+          })
+
+          let queryBalackListObj = {};
+
+          _.forEach(data.aggregations[NET_TRAP_QUERY.name].client.buckets, val => { //Create black lsit object
+            queryBalackListObj[val.key] = [];
+
+            _.forEach(val.dn.buckets, val2 => {
+              queryBalackListObj[val.key].push({
+                domain: val2.key,
+                count: val2.doc_count
+              })
+            })
+          })
+
+          let queryBlackListArr = [];
+
+          _.forEach(queryBalackListObj, (val, key) => { //Create black lsit array for table data
+            _.forEach(queryBalackListObj[key], val2 => {
+              queryBlackListArr.push({
+                ip: key,
+                ...val2
+              })
+            })
+          })
+
+          tempAlertTableData.alertNetTrapBlackList.chartFields = chartFields;
+          tempAlertTableData.alertNetTrapBlackList.chartData = queryBlackListArr;
+
+          this.setState({
+            alertPieData: tempAlertPieData,
+            alertTableData: tempAlertTableData
+          }, () => {
+            this.getChartsData();
+          });
         }
-        tempAlertPieData.alertThreatLevel = tempArr;
-        tempAlertPieData.alertThreatCount = [
-          {
-            key: t('dashboard.txt-private'),
-            doc_count: data.aggregations[PRIVATE_API.name].doc_count
-          },
-          {
-            key: t('dashboard.txt-public'),
-            doc_count: data.aggregations[PUBLIC_API.name].doc_count
-          }
-        ];
-
-        let tempAlertTableData = {...alertTableData};
-        tempAlertTableData.alertThreatSubnet.chartData = data.aggregations[PRIVATE_SEVERITY_API.name].chartMaskedIpArr;
-        tempAlertTableData.alertThreatPrivate.chartData = data.aggregations[PRIVATE_SEVERITY_API.name].chartIpArr;
-        tempAlertTableData.alertThreatCountry.chartData = data.aggregations[PUBLIC_COUNTRY_SEVERITY_API.name];
-        tempAlertTableData.alertThreatPublic.chartData = data.aggregations[PUBLIC_IP_SEVERITY_API.name];
-
-        _.forEach(TABLE_CHARTS_LIST, val => {
-          tempAlertTableData[val.id].chartFields = this.getThreatsTableData(val.id, val.key);
-        })
-
-        this.setState({
-          alertPieData: tempAlertPieData,
-          alertTableData: tempAlertTableData
-        }, () => {
-          this.getChartsData();
-        });
       }
       return null;
     });
@@ -725,7 +779,7 @@ class ThreatsController extends Component {
   /**
    * Construct the alert api request body
    * @method
-   * @param {string} options - option for 'tree' or 'csv'
+   * @param {string} options - option for 'tree', 'search', 'statistics' or 'csv'
    * @returns requst data object
    */
   toQueryLanguage = (options) => {
@@ -748,11 +802,13 @@ class ThreatsController extends Component {
         dataObj.filters = combinedFilterDataArr;
       }
 
-      dataObj.search = [PRIVATE_API.name, PUBLIC_API.name, PRIVATE_SEVERITY_API.name, PUBLIC_COUNTRY_SEVERITY_API.name, PUBLIC_IP_SEVERITY_API.name];
-
-      dataObj.sort = [{
-        '_eventDttm_': sort.desc ? 'desc' : 'asc'
-      }];
+      if (options === 'statistics') {
+        dataObj.search = [PRIVATE_API.name, PUBLIC_API.name, PRIVATE_SEVERITY_API.name, PUBLIC_COUNTRY_SEVERITY_API.name, PUBLIC_IP_SEVERITY_API.name, NET_TRAP_QUERY.name];
+      } else {
+        dataObj.sort = [{
+          '_eventDttm_': sort.desc ? 'desc' : 'asc'
+        }];
+      }
     }
 
     if (options == 'csv') {
@@ -1063,6 +1119,7 @@ class ThreatsController extends Component {
       alertChartsList: tempAlertChartsList
     }, () => {
       this.loadThreatsData('search');
+      this.loadThreatsData('statistics');
     });
   }
   /**
