@@ -37,16 +37,19 @@ const CHARTS_LIST = [
     key: 'severity'
   },
   {
-    id: 'Top10ExternalSrcCountry',
-    key: 'srcCountry'
-  },
-  {
     id: 'InternalIp',
     key: 'srcIp'
   },
   {
     id: 'InternalMaskedIp',
     key: 'maskedIP'
+  },
+  {
+    id: 'IVAR'
+  },
+  {
+    id: 'Top10ExternalSrcCountry',
+    key: 'srcCountry'
   },
   {
     id: 'Top10SyslogConfigSource',
@@ -91,6 +94,11 @@ class DashboardStats extends Component {
       diskMetricData: {
         id: 'disk-usage'
       },
+      ivar: {
+        dataFieldsArr: ['frmotp', 'intrusion'],
+        dataFields: {},
+        dataContent: null
+      },
       hmdData: {},
       lms: ''
     };
@@ -108,26 +116,34 @@ class DashboardStats extends Component {
     let alertChartsList = [];
 
     _.forEach(CHARTS_LIST, val => {
-      alertChartsList.push({
-        chartID: val.id,
-        chartTitle: t('dashboard.txt-' + val.id),
-        chartKeyLabels: {
-          key: t('attacksFields.' + val.key),
-          doc_count: t('txt-count')
-        },
-        chartValueLabels: {
-          'Pie Chart': {
+      if (val.id === 'IVAR') {
+        alertChartsList.push({
+          chartID: val.id,
+          chartTitle: 'IVA Events',
+          type: 'table'
+        });
+      } else {
+        alertChartsList.push({
+          chartID: val.id,
+          chartTitle: t('dashboard.txt-' + val.id),
+          chartKeyLabels: {
             key: t('attacksFields.' + val.key),
             doc_count: t('txt-count')
-          }
-        },
-        chartDataCfg: {
-          splitSlice: ['key'],
-          sliceSize: 'doc_count'
-        },
-        chartData: null,
-        type: 'pie'
-      });
+          },
+          chartValueLabels: {
+            'Pie Chart': {
+              key: t('attacksFields.' + val.key),
+              doc_count: t('txt-count')
+            }
+          },
+          chartDataCfg: {
+            splitSlice: ['key'],
+            sliceSize: 'doc_count'
+          },
+          chartData: null,
+          type: 'pie'
+        });
+      }
     })
 
     this.setState({
@@ -253,7 +269,7 @@ class DashboardStats extends Component {
                 });
               })
             }
-          } else if (i === 1 || i === 2) { //Top10ExternalSrcCountry, InternalIp
+          } else if (i === 1 || i === 4) { //InternalIp, Top10ExternalSrcCountry
             if (data.aggregations) {
               let chartData = [];
 
@@ -278,7 +294,7 @@ class DashboardStats extends Component {
                 })
               }
             }
-          } else if (i === 3) { //InternalMaskedIp
+          } else if (i === 2) { //InternalMaskedIp
             if (data.aggregations) {
               const chartData = data.aggregations[val.id];
 
@@ -318,10 +334,64 @@ class DashboardStats extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
 
+    this.loadIvarData();
     this.loadSyslogData();
     this.loadDnsPieData();
     this.loadMetricData();
     this.loadHmdData();
+  }
+  /**
+   * Redirect IVA link
+   * @method
+   */
+  redirectIVA = (type) => {
+    const {baseUrl, contextRoot, language} = this.context;
+    const url = `${baseUrl}${contextRoot}/threats?iva=${type}&interval=24h&lng=${language}`;
+    window.open(url, '_blank');
+  }
+  /**
+   * Construct and set the IVAR data
+   * @method
+   */
+  loadIvarData = () => {
+    const {baseUrl} = this.context;
+    const {datetime, ivar} = this.state;
+    const dateTime = {
+      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    };
+
+    this.ah.one({
+      url: `${baseUrl}/api/dashboard/iva?startDttm=${dateTime.from}&endDttm=${dateTime.to}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let tempIvar = {...ivar};
+        tempIvar.dataContent = [data];
+
+        let dataFields = {};
+        ivar.dataFieldsArr.forEach(tempData => {
+          dataFields[tempData] = {
+            label: t(`dashboard.txt-${tempData}`),
+            sortable: false,
+            formatter: (value, allValue, i) => {
+              return <span className='c-link' onClick={this.redirectIVA.bind(this, tempData)}>{value}</span>
+            }
+          };
+        })
+
+        tempIvar.dataFields = dataFields;
+
+        this.setState({
+          ivar: tempIvar
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Construct and set the syslog config chart
@@ -330,7 +400,7 @@ class DashboardStats extends Component {
   loadSyslogData = () => {
     const {baseUrl} = this.context;
     const {datetime, syslogPieData} = this.state;
-    const configSrcInfo = CHARTS_LIST[4];
+    const configSrcInfo = CHARTS_LIST[5];
     const dateTime = {
       from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
       to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
@@ -387,7 +457,7 @@ class DashboardStats extends Component {
     helper.getAjaxData('POST', url, requestData)
     .then(data => {
       if (data) {
-        const dnsInfo = CHARTS_LIST[5];
+        const dnsInfo = CHARTS_LIST[6];
         let tempDnsPieData = {...dnsPieData};
         let tempDnsMetricData = {...dnsMetricData};
         tempDnsMetricData.data = [];
@@ -652,7 +722,7 @@ class DashboardStats extends Component {
    * @returns HTML DOM
    */
   displayCharts = (val, i) => {
-    const {alertChartsList} = this.state;
+    const {alertChartsList, ivar} = this.state;
 
     if (alertChartsList[i].type === 'pie') {
       return (
@@ -688,15 +758,30 @@ class DashboardStats extends Component {
       )
     } else if (alertChartsList[i].type === 'table') {
       return (
-        <div className='chart-group' key={alertChartsList[i].chartID}>
-          <header className='main-header'>{alertChartsList[i].chartTitle}</header>
-          <div id={alertChartsList[i].chartID} className='c-chart table'>
-            <DataTable
-              className='main-table overflow-scroll'
-              fields={alertChartsList[i].chartFields}
-              data={alertChartsList[i].chartData}
-              defaultSort={alertChartsList[i].chartData ? alertChartsList[i].sort : {}} />
-          </div>
+        <div className='chart-group c-box' key={alertChartsList[i].chartID}>
+          {!ivar.dataContent &&
+            <div className='empty-data'>
+              <header>{alertChartsList[i].chartTitle}</header>
+              <span><i className='fg fg-loading-2'></i></span>
+            </div>
+          }
+          {ivar.dataContent && ivar.dataContent.length === 0 &&
+            <div className='empty-data'>
+              <header>{alertChartsList[i].chartTitle}</header>
+              <span>{t('txt-notFound')}</span>
+            </div>
+          }
+          {ivar.dataContent && ivar.dataContent.length > 0 &&
+            <div>
+              <header className='main-header'>{alertChartsList[i].chartTitle}</header>
+              <div id={alertChartsList[i].chartID} className='c-chart table'>
+                <DataTable
+                  className='main-table align-center ivr'
+                  fields={ivar.dataFields}
+                  data={ivar.dataContent} />
+              </div>
+            </div>
+          }
         </div>
       )
     }

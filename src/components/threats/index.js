@@ -306,6 +306,32 @@ class ThreatsController extends Component {
         showFilter: true
       });
     }
+
+   if (alertsParam.iva) {
+      const type = alertsParam.iva;
+      let tempSearchInput = {...this.state.searchInput};
+      let query = '';
+
+
+      if (type === 'frmotp') {
+        query = '"FRMOTP Fail"';
+      } else if (type === 'intrusion') {
+        query = '"IVAR Suspicious Face Recognition"';
+      }
+
+      if (alertsParam.interval) {
+        tempSearchInput.searchInterval = alertsParam.interval;
+      }
+
+      this.setState({
+        searchInput: tempSearchInput,
+        filterData: [{
+          condition: 'must',
+          query: 'patternId: ' + query
+        }],
+        showFilter: true
+      });
+    }
   }
   /**
    * Get and set the account saved query

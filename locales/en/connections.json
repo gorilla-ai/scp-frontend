@@ -131,6 +131,8 @@
   "txt-configSource": "Config Source",
   "txt-alertHourBefore": "An hour before Alert time",
   "txt-column": "Column",
+  "txt-ip": "IP",
+  "txt-domain": "Domain",
 
   "txt-dashboard": "Dashboard",
   "txt-threats": "Threats",
@@ -201,6 +203,8 @@
     "txt-Top10InternalSrcIp": "Alert Internal Source IP",
     "txt-InternalIp": "Alert Internal IP",
     "txt-InternalMaskedIp": "Alert Internal Masked IP",
+    "txt-frmotp": "MOTP Unrecognized Face",
+    "txt-intrusion": "IVAR Unrecognized Face",
     "txt-Top10SyslogConfigSource": "Syslog Config Source",
     "txt-dnsQuery": "DNS Query",
     "txt-disk-usage": "Disk Usage",
@@ -223,6 +227,7 @@
   },
 
   "alert": {
+    "txt-openVideo": "Open Video",
     "txt-alertList": "Alert List",
     "txt-statistics": "Statistics",
     "txt-alertInfo": "Alert Info",

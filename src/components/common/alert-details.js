@@ -743,6 +743,36 @@ class AlertDetails extends Component {
     }
   }
   /**
+   * Redirect to ivar link
+   * @method
+   * @param {string} videoUrl - redirect URL
+   */
+  redirectVidoeURL = (videoUrl) => {
+    window.open(videoUrl, '_blank');
+  }
+  /**
+   * Display IVAR content
+   * @method
+   * @returns HTML DOM
+   */
+  showAlertContent = () => {
+    const {alertData} = this.props;
+    const picPath = alertData.photoBase64 ? 'data:image/png;base64,' + alertData.photoBase64 : '';
+    const videoUrl = alertData.ivarVideoUrl ? alertData.ivarVideoUrl : '';
+
+    return (
+      <div className='ivar'>
+        {picPath &&
+          <img src={picPath} />
+        }
+        <span className='msg'>{alertData.Info || NOT_AVAILABLE}</span>
+        {videoUrl &&
+          <button onClick={this.redirectVidoeURL.bind(this, videoUrl)}>{t('alert.txt-openVideo')}</button>
+        }
+      </div>
+    )
+  }
+  /**
    * Get PCAP menu style
    * @method
    * @param {object} alertData - Alert data type
@@ -787,7 +817,7 @@ class AlertDetails extends Component {
           </tbody>
         </table>
 
-        <div className='alert-info'>{alertData.Info || NOT_AVAILABLE}</div>
+        <div className='alert-info'>{this.showAlertContent()}</div>
 
         <table className='c-table main-table top-info'>
           <thead>
