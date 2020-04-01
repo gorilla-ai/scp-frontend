@@ -68,7 +68,9 @@ const SUBSECTIONS_DATA = {
     fieldsData: {
       alert: {}
     },
-    tableColumns: {},
+    tableColumns: {
+      alert: ['_eventDttm_', '_severity_', 'srcIp', 'destIp', 'Info', 'Collector', 'Source']
+    },
     totalCount: {
       alert: 0
     }
@@ -244,7 +246,6 @@ class ThreatsController extends Component {
       }, () => {
         this.getSavedQuery();
         this.loadTreeData();
-        this.loadAllFields();
         this.setStatisticsTab();
       });
     }
@@ -395,22 +396,6 @@ class ThreatsController extends Component {
     });
   }
   /**
-   * Copy search fields into table columns
-   * @method
-   */
-  loadAllFields = () => {
-    const {activeTab} = this.state;
-    let tempSubSectionsData = {...this.state.subSectionsData};
-    tempSubSectionsData.tableColumns[activeTab] = ['_eventDttm_', '_severity_', 'srcIp', 'destIp', 'Info', 'Collector', 'Source'];
-
-    this.setState({
-      subSectionsData: tempSubSectionsData
-    }, () => {
-      this.loadThreatsData('search');
-      this.loadThreatsData('statistics');
-    });
-  }
-  /**
    * Set initial data for statistics tab
    * @method
    */
@@ -472,6 +457,11 @@ class ThreatsController extends Component {
     this.setState({
       alertChartsList,
       alertTableData: tempAlertTableData
+    }, () => {
+      this.loadThreatsData('search');
+      this.loadThreatsData('statistics');
+      this.loadThreatsData(PUBLIC_IP_SEVERITY_API.name);
+      this.loadThreatsData(NET_TRAP_QUERY.name);
     });
   }
   /**
@@ -691,13 +681,32 @@ class ThreatsController extends Component {
           tempAlertTableData.alertThreatSubnet.chartData = data.aggregations[PRIVATE_SEVERITY_API.name].chartMaskedIpArr;
           tempAlertTableData.alertThreatPrivate.chartData = data.aggregations[PRIVATE_SEVERITY_API.name].chartIpArr;
           tempAlertTableData.alertThreatCountry.chartData = data.aggregations[PUBLIC_COUNTRY_SEVERITY_API.name];
-          tempAlertTableData.alertThreatPublic.chartData = data.aggregations[PUBLIC_IP_SEVERITY_API.name];
 
           _.forEach(TABLE_CHARTS_LIST, val => {
             tempAlertTableData[val.id].chartFields = this.getThreatsTableData(val.id, val.key);
           })
 
-          /* for NetTrap black list table */
+          this.setState({
+            alertPieData: tempAlertPieData,
+            alertTableData: tempAlertTableData
+          }, () => {
+            this.getChartsData();
+          });
+        }
+
+        if (options === PUBLIC_IP_SEVERITY_API.name) { //For ExternalSrcIpWithSeverity table
+          let tempAlertTableData = {...alertTableData};
+          tempAlertTableData.alertThreatPublic.chartData = data.aggregations[PUBLIC_IP_SEVERITY_API.name];
+          tempAlertTableData.alertThreatPublic.chartFields = this.getThreatsTableData('alertThreatPublic', 'IP');
+
+          this.setState({
+            alertTableData: tempAlertTableData
+          }, () => {
+            this.getChartsData();
+          });
+        }
+
+        if (options === NET_TRAP_QUERY.name) { //For NetTrap black list table
           let chartFields = {};
           alertTableData.alertNetTrapBlackList.chartFieldsArr.forEach(tempData => {
             chartFields[tempData] = {
@@ -711,7 +720,7 @@ class ThreatsController extends Component {
 
           let queryBalackListObj = {};
 
-          _.forEach(data.aggregations[NET_TRAP_QUERY.name].client.buckets, val => { //Create black lsit object
+          _.forEach(data.aggregations[NET_TRAP_QUERY.name].client.buckets, val => { //Create black list object
             queryBalackListObj[val.key] = [];
 
             _.forEach(val.dn.buckets, val2 => {
@@ -724,7 +733,7 @@ class ThreatsController extends Component {
 
           let queryBlackListArr = [];
 
-          _.forEach(queryBalackListObj, (val, key) => { //Create black lsit array for table data
+          _.forEach(queryBalackListObj, (val, key) => { //Create black list array for table data
             _.forEach(queryBalackListObj[key], val2 => {
               queryBlackListArr.push({
                 ip: key,
@@ -733,11 +742,11 @@ class ThreatsController extends Component {
             })
           })
 
+          let tempAlertTableData = {...alertTableData};
           tempAlertTableData.alertNetTrapBlackList.chartFields = chartFields;
           tempAlertTableData.alertNetTrapBlackList.chartData = queryBlackListArr;
 
           this.setState({
-            alertPieData: tempAlertPieData,
             alertTableData: tempAlertTableData
           }, () => {
             this.getChartsData();
@@ -829,7 +838,11 @@ class ThreatsController extends Component {
       }
 
       if (options === 'statistics') {
-        dataObj.search = [PRIVATE_API.name, PUBLIC_API.name, PRIVATE_SEVERITY_API.name, PUBLIC_COUNTRY_SEVERITY_API.name, PUBLIC_IP_SEVERITY_API.name, NET_TRAP_QUERY.name];
+        dataObj.search = [PRIVATE_API.name, PUBLIC_API.name, PRIVATE_SEVERITY_API.name, PUBLIC_COUNTRY_SEVERITY_API.name];
+      } else if (options === PUBLIC_IP_SEVERITY_API.name) {
+        dataObj.search = [PUBLIC_IP_SEVERITY_API.name];
+      } else if (options === NET_TRAP_QUERY.name) {
+        dataObj.search = [NET_TRAP_QUERY.name];
       } else {
         dataObj.sort = [{
           '_eventDttm_': sort.desc ? 'desc' : 'asc'
@@ -1135,17 +1148,42 @@ class ThreatsController extends Component {
       tempAlertChartsList[i].chartData = null;
     })
 
-    this.loadTreeData();
-
     this.setState({
       currentPage: 1,
       oldPage: 1,
       pageSize: 20,
+      treeData: {
+        alert: {
+          title: '',
+          rawData: {},
+          data: null,
+          currentTreeName: ''
+        },
+        private: {
+          title: '',
+          rawData: {},
+          data: {},
+          currentTreeName: ''
+        },
+        public: {
+          title: '',
+          rawData: {},
+          data: {},
+          currentTreeName: ''
+        },
+        edge: {
+          title: '',
+          rawData: {},
+          data: {}
+        }
+      },
       subSectionsData: tempSubSectionsData,
-      alertChartsList: tempAlertChartsList
+      alertChartsList: tempAlertChartsList,
+      alertPieData: {},
+      alertTableData: {}
     }, () => {
-      this.loadThreatsData('search');
-      this.loadThreatsData('statistics');
+      this.loadTreeData();
+      this.setStatisticsTab();
     });
   }
   /**
@@ -1582,17 +1620,6 @@ class ThreatsController extends Component {
 
     this.setState({
       queryData: tempQueryData
-    });
-  }
-  /**
-   * Reset subSections data
-   * @method
-   */
-  clearData = () => {
-    this.setState({
-      ..._.cloneDeep(SUBSECTIONS_DATA)
-    }, () => {
-      this.loadAllFields();
     });
   }
   render() {
