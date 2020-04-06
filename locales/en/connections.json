@@ -430,6 +430,7 @@
       "txt-LDAP": "LDAP",
       "txt-netflow": "Netflow",
       "txt-scanner": "Scanner",
+      "txt-noEdgeSelected": "Please select Edge",
       "txt-connectionsFail": "Connections Fail"
     },
     "scan-list": {

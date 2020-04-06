@@ -539,7 +539,12 @@ class ThreatsController extends Component {
     const setPage = options === 'search' ? 1 : currentPage;
     const requestData = this.toQueryLanguage(options);
     let url = `${baseUrl}/api/u2/alert/_search?page=${setPage}&pageSize=`;
-    url += options === 'statistics' ? 0 : pageSize;
+
+    if (!options || options === 'search') {
+      url += pageSize;
+    } else {
+      url += 0;
+    }
 
     helper.getAjaxData('POST', url, requestData)
     .then(data => {
