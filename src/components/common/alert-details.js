@@ -161,7 +161,8 @@ class AlertDetails extends Component {
             data: []
           }
         }
-      }
+      },
+      showHMDloading: false
     };
 
     t = chewbaccaI18n.getFixedT(null, 'connections');
@@ -326,7 +327,7 @@ class AlertDetails extends Component {
     }
   }
   /**
-   * Get IP device info for HMD section
+   * Check IP device info for HMD
    * @method
    * @param {string} type - 'srcIp' or 'destIp'
    */
@@ -346,24 +347,52 @@ class AlertDetails extends Component {
     .then(data => {
       if (data) {
         let tempAlertInfo = {...alertInfo};
-        let tempIPdeviceInfo = {...ipDeviceInfo};
-        let deviceExist = '';
 
         if (data.counts === 0) {
-          deviceExist = false;
-        } else {
-          deviceExist = true;
-          tempIPdeviceInfo[type] = data.rows[0];
+          tempAlertInfo[type].exist = false;
 
           this.setState({
-            ipDeviceInfo: tempIPdeviceInfo
+            alertInfo: tempAlertInfo
+          });
+        } else {
+          this.setState({
+            showHMDloading: true
+          }, () => {
+            this.getHMDdetailInfo(ip, type);
           });
         }
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get detail IP device info for HMD
+   * @method
+   * @param {string} ip - IP address
+   * @param {string} type - 'srcIp' or 'destIp'
+   */
+  getHMDdetailInfo = (ip, type) => {
+    const {baseUrl} = this.context;
+    const {alertInfo, ipDeviceInfo} = this.state;
 
-        alertInfo[type].exist = deviceExist;
+    this.ah.one({
+      url: `${baseUrl}/api/u1/ipdevice?exactIp=${ip}&page=1&pageSize=5`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let tempAlertInfo = {...alertInfo};
+        let tempIPdeviceInfo = {...ipDeviceInfo};
+        tempAlertInfo[type].exist = true;
+        tempIPdeviceInfo[type] = data;
 
         this.setState({
-          alertInfo: tempAlertInfo
+          alertInfo: tempAlertInfo,
+          ipDeviceInfo: tempIPdeviceInfo,
+          showHMDloading: false
         });
       }
       return null;
@@ -1403,7 +1432,7 @@ class AlertDetails extends Component {
    * @returns HMDscanInfo component
    */
   displaySafetyScanContent = (type) => {
-    const {ipDeviceInfo} = this.state;
+    const {ipDeviceInfo, showHMDloading} = this.state;
 
     if (ipDeviceInfo[type].isHmd) {
       return (
@@ -1415,6 +1444,8 @@ class AlertDetails extends Component {
           showAlertData={this.showAlertData}
           triggerTask={this.triggerTask} />
       )
+    } else if (showHMDloading) {
+      return <i className='fg fg-loading-2'></i>
     } else {
       return <span>{NOT_AVAILABLE}</span>
     }

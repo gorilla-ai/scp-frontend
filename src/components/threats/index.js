@@ -362,7 +362,7 @@ class ThreatsController extends Component {
     const url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`;
     const requestData = this.toQueryLanguage('tree');
 
-    helper.getAjaxData('POST', url, requestData)
+    helper.getAjaxData('POST', url, requestData, 'false')
     .then(data => {
       if (data) {
         data = data.aggregations;
@@ -546,7 +546,7 @@ class ThreatsController extends Component {
       url += 0;
     }
 
-    helper.getAjaxData('POST', url, requestData)
+    helper.getAjaxData('POST', url, requestData, 'false')
     .then(data => {
       if (data) {
         if (!options || options === 'search') {

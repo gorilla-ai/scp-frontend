@@ -125,7 +125,7 @@ class DashboardMaps extends Component {
       }]
     };
 
-    helper.getAjaxData('POST', url, requestData)
+    helper.getAjaxData('POST', url, requestData, 'false')
     .then(data => {
       if (data) {
         const tempArray = _.map(data.data.rows, val => {
@@ -465,7 +465,7 @@ class DashboardMaps extends Component {
     this.ah.one({
       url: `${baseUrl}/api/area/_tree`,
       type: 'GET'
-    })
+    }, {showProgress: false})
     .then(data => {
       if (data && data.length > 0) {
         const floorPlanData = data[0];
@@ -533,7 +533,7 @@ class DashboardMaps extends Component {
     this.ah.one({
       url: `${baseUrl}/api/area?uuid=${floorPlan}`,
       type: 'GET'
-    })
+    }, {showProgress: false})
     .then(data => {
       if (data) {
         const areaName = data.areaName;
@@ -627,7 +627,7 @@ class DashboardMaps extends Component {
       }]
     };
 
-    helper.getAjaxData('POST', url, requestData)
+    helper.getAjaxData('POST', url, requestData, 'false')
     .then(data => {
       if (data) {
         const allPrivateData = data.aggregations.InternalMaskedIp;
@@ -855,6 +855,11 @@ class DashboardMaps extends Component {
                       }]} />
                   }
                 </div>
+              </div>
+            }
+            {mapType === PUBLIC && geoJson.mapDataArr.length === 0 &&
+              <div className='loader-wrap'>
+                <i className='fg fg-loading-2'></i>
               </div>
             }
             {mapType === PUBLIC && geoJson.mapDataArr.length > 0 &&

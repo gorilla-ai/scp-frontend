@@ -194,8 +194,13 @@ const helper = {
       base0F: '#be643c'
     };
   },
-  getAjaxData: function(type, url, dataObj) {
+  getAjaxData: function(type, url, dataObj, show) {
     const t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    let showProgress = true;
+
+    if (show) {
+      showProgress = (show === 'true');
+    }
 
     if (type === 'POST' || type === 'PATCH') {
       return (
@@ -204,7 +209,7 @@ const helper = {
           data: JSON.stringify(dataObj),
           type: type,
           contentType: 'text/plain'
-        })
+        }, {showProgress})
         .then(data => {
           if (data.ret === 0) {
             return data.rt;
@@ -221,7 +226,7 @@ const helper = {
       ah.one({
         url: `${baseUrl}/api/cibd/configurations`,
         type: 'GET'
-      })
+      }, {showProgress: false})
       .then(data => {
         if (data.data_sources) {
           delete data.data_sources.chewbaccav2;
@@ -269,7 +274,7 @@ const helper = {
       ah.one({
         url: `${baseUrl}/api/account/${type}/queryText?accountId=${account.id}`,
         type: 'GET'
-      })
+      }, {showProgress: false})
       .then(data => {
         if (data.ret === 0) {
           data = data.rt;

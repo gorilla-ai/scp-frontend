@@ -57,7 +57,7 @@ class ThreatIntelligence extends Component {
   /**
    * Get and set charts data
    * @method
-   * @param {string} options - options for 'first'
+   * @param {string} options - options for 'first' or 'search'
    */
   getChartsData = (options) => {
     const {baseUrl} = this.context;
@@ -68,7 +68,7 @@ class ThreatIntelligence extends Component {
     if (options === 'first') {
       dateTimeFrom = datetime.from.substr(0, 11) + '00:00:00';
       dateTimeTo = datetime.to.substr(0, 11) + '23:59:59';
-    } else {
+    } else if (options === 'search') {
       dateTimeFrom = datetime.from + 'T00:00:00';
       dateTimeTo = datetime.to + 'T23:59:59';
     }
@@ -114,7 +114,7 @@ class ThreatIntelligence extends Component {
     this.ah.one({
       url: `${baseUrl}/api/indicators/trend?startDttm=${dateTime.from}&endDttm=${dateTime.to}`,
       type: 'GET'
-    })
+    }, {showProgress: false})
     .then(data => {
       if (data) {
         let indicatorsTrendData = [];
@@ -146,7 +146,7 @@ class ThreatIntelligence extends Component {
     this.ah.one({
       url: `${baseUrl}/api/indicators/trend/accum?startDttm=${dateTime.from}&endDttm=${dateTime.to}`,
       type: 'GET'
-    })
+    }, {showProgress: false})
     .then(data => {
       if (data) {
         let acuIndicatorsTrendData = [];
@@ -300,6 +300,15 @@ class ThreatIntelligence extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  clearData = (search) => {
+    this.setState({
+      indicatorsData: null,
+      indicatorsTrendData: null,
+      acuIndicatorsTrendData: null      
+    }, () => {
+      this.getChartsData(search);
+    });
+  }
   render() {
     const {baseUrl, contextRoot} = this.context;
     const {datetime, indicatorsData, indicatorsTrendData, acuIndicatorsTrendData, uplaodOpen} = this.state;
@@ -315,7 +324,7 @@ class ThreatIntelligence extends Component {
             datetime={datetime}
             enableTime={false}
             handleDateChange={this.handleDateChange}
-            handleSearchSubmit={this.getChartsData} />
+            handleSearchSubmit={this.clearData.bind(this, 'search')} />
         </div>
 
         <div className='data-content'>

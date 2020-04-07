@@ -152,7 +152,7 @@ class HMDscanInfo extends Component {
     _.forEach(SAFETY_SCAN_LIST, val => { //Construct the HMD info object
       const currentDataObj = currentDeviceData[val.type + 'Result'];
 
-      if (!_.isEmpty(currentDataObj[0])) {
+      if (currentDataObj && currentDataObj.length > 0 && !_.isEmpty(currentDataObj[0])) {
         hmdInfo[val.type] = {
           latestCreateDttm: helper.getFormattedDate(currentDataObj[0].latestCreateDttm, 'local'),
           createTime: helper.getFormattedDate(currentDataObj[0].taskCreateDttm, 'local'),

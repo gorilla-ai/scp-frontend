@@ -340,7 +340,7 @@ class Netflow extends Component {
       pageSize: 10000
     };
 
-    helper.getAjaxData('POST', url, agentData)
+    helper.getAjaxData('POST', url, agentData, 'false')
     .then(data => {
       if (data.rows.length > 0) {
         const projectID = data.rows.map(tempData => {
@@ -397,7 +397,7 @@ class Netflow extends Component {
       });
     })
 
-    this.ah.all(apiArr)
+    this.ah.all(apiArr, {showProgress: false})
     .then(data => {
       if (data) {
         let i = 0;
@@ -461,7 +461,7 @@ class Netflow extends Component {
     this.ah.one({
       url,
       type: 'GET'
-    })
+    }, {showProgress: false})
     .then(data => {
       if (data.length > 0) {
         let filedsArr = [];
@@ -698,7 +698,7 @@ class Netflow extends Component {
       data: JSON.stringify(this.toQueryLanguage('time')),
       type: 'POST',
       contentType: 'text/plain'
-    }])
+    }], {showProgress: false})
     .then(data => {
       if (data) {
         if (currentPage > 1 && !data[0]) {
@@ -840,7 +840,7 @@ class Netflow extends Component {
       data: JSON.stringify(this.toQueryLanguage('time')),
       type: 'POST',
       contentType: 'text/plain'
-    }])
+    }], {showProgress: false})
     .then(data => {
       if (data) {
         if (currentPage > 1 && data[0].rows.length === 0) {
@@ -1657,7 +1657,7 @@ class Netflow extends Component {
     ah.one({
       url,
       type: 'POST'
-    })
+    }, {showProgress: false})
     .then(data => {
       if (data.status === 'success') {
         this.setState({
@@ -2173,7 +2173,7 @@ class Netflow extends Component {
     this.ah.one({
       url: `${baseUrl}/api/account/flow/session?id=${tagData.id}`,
       type: 'DELETE'
-    })
+    }, {showProgress: false})
     .then(data => {
       if (data) {
         this.clearTagData();
@@ -2359,7 +2359,7 @@ class Netflow extends Component {
     ah.one({
       url: `${baseUrl}/api/network/html/reLinkFile?path=${value}`,
       type: 'GET'
-    })
+    }, {showProgress: false})
     .then(data => {
       if (data) {
         PopupDialog.alert({
