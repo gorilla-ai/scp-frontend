@@ -172,7 +172,7 @@ class ThreatsController extends Component {
           data: {}
         }
       },
-      //Tab Menu
+      //Tab IncidentDevice
       subTabMenu: {
         table: t('alert.txt-alertList'),
         statistics: t('alert.txt-statistics')

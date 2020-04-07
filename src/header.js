@@ -222,6 +222,9 @@ class Header extends Component {
                 {sessionRights.Module_Config &&
                   <Link to='/SCP/configuration/edge/edge' className={cx('item', {'active': this.getActiveTab('configuration')})}>{t('txt-configuration')}</Link>
                 }
+
+                <Link to='/SCP/soc/device' className={cx('item', {'active': this.getActiveTab('soc')})}>SOC</Link>
+
               </div>
             </div>
 

@@ -1,6 +1,6 @@
 import React from 'react'
-import { render } from 'react-dom'
-import { BrowserRouter, Switch, Route, Link } from 'react-router-dom'
+import {render} from 'react-dom'
+import {BrowserRouter, Route, Switch} from 'react-router-dom'
 
 import Promise from 'bluebird'
 import $ from 'jquery'
@@ -29,11 +29,13 @@ import Threats from './components/threats/index'
 import ThreatIntelligence from './components/configuration/edge/threat'
 import UserAccounts from './components/configuration/user/accounts/index'
 import UserPrivileges from './components/configuration/user/privileges/index'
+import IncidentDevice from './components/soc/incident-device'
+import Incident from './components/soc/Incident'
 
 import {setupConfigService} from 'widget-builder'
-import {BaseDataContext, baseData} from './components/common/context'
+import {baseData, BaseDataContext} from './components/common/context'
 
-import {createInstance, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+import {createInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 import 'font-gorilla/css/font-gorilla.css'
 import 'purecss/build/pure-min.css'
@@ -157,38 +159,53 @@ const userPrivileges = () => (
 
 const serviceStatus = () => (
   <BaseDataContext.Provider value={baseData}>
-    <ServiceStatus />
+      <ServiceStatus/>
   </BaseDataContext.Provider>
 )
 
 const productInfo = () => (
-  <BaseDataContext.Provider value={baseData}>
-    <ProductInfo />
-  </BaseDataContext.Provider>
+    <BaseDataContext.Provider value={baseData}>
+        <ProductInfo/>
+    </BaseDataContext.Provider>
 )
 
+const incidentDevice = () => (
+    <BaseDataContext.Provider value={baseData}>
+        <IncidentDevice/>
+    </BaseDataContext.Provider>
+);
+
+const incident = () => (
+    <BaseDataContext.Provider value={baseData}>
+        <Incident/>
+    </BaseDataContext.Provider>
+);
+
+
 const Main = () => (
-  <main className='main'>
-    <Switch>
-      <Route exact path='/SCP' component={DashboardStatsComp} />
-      <Route exact path='/SCP/dashboard/statistics' component={DashboardStatsComp} />
-      <Route exact path='/SCP/dashboard/maps' component={DashboardMapsComp} />
-      <Route exact path='/SCP/threats' component={ThreatsComp} />
-      <Route exact path='/SCP/events/netflow' component={NetflowComp} />
-      <Route exact path='/SCP/events/syslog' component={SyslogComp} />
+    <main className='main'>
+        <Switch>
+            <Route exact path='/SCP' component={DashboardStatsComp}/>
+            <Route exact path='/SCP/dashboard/statistics' component={DashboardStatsComp}/>
+            <Route exact path='/SCP/dashboard/maps' component={DashboardMapsComp}/>
+            <Route exact path='/SCP/threats' component={ThreatsComp}/>
+            <Route exact path='/SCP/events/netflow' component={NetflowComp}/>
+            <Route exact path='/SCP/events/syslog' component={SyslogComp}/>
       <Route exact path='/SCP/events/endpoint' component={EndpointComp} />
       <Route exact path='/SCP/configuration/notifications' component={Notifications} />
-      <Route exact path='/SCP/configuration/edge/edge' component={Edge} />
-      <Route exact path='/SCP/configuration/edge/threat' component={Threat} />
-      <Route exact path='/SCP/configuration/topology/inventory' component={NetworkTopologyInventory} />
-      <Route exact path='/SCP/configuration/topology/owner' component={NetworkTopologyOwner} />
-      <Route exact path='/SCP/configuration/topology/map' component={NetworkTopologyMap} />
-      <Route exact path='/SCP/configuration/syslog' component={Syslogs} />
-      <Route exact path='/SCP/configuration/user/account' component={userAccounts} />
-      <Route exact path='/SCP/configuration/user/privileges' component={userPrivileges} />
-      <Route exact path='/SCP/configuration/service-status' component={serviceStatus} />
-      <Route exact path='/SCP/configuration/product-info' component={productInfo} />
-    </Switch>
+            <Route exact path='/SCP/configuration/edge/edge' component={Edge}/>
+            <Route exact path='/SCP/configuration/edge/threat' component={Threat}/>
+            <Route exact path='/SCP/configuration/topology/inventory' component={NetworkTopologyInventory}/>
+            <Route exact path='/SCP/configuration/topology/owner' component={NetworkTopologyOwner}/>
+            <Route exact path='/SCP/configuration/topology/map' component={NetworkTopologyMap}/>
+            <Route exact path='/SCP/configuration/syslog' component={Syslogs}/>
+            <Route exact path='/SCP/configuration/user/account' component={userAccounts}/>
+            <Route exact path='/SCP/configuration/user/privileges' component={userPrivileges}/>
+            <Route exact path='/SCP/configuration/service-status' component={serviceStatus}/>
+            <Route exact path='/SCP/configuration/product-info' component={productInfo}/>
+            <Route exact path='/SCP/soc/incident-device' component={incidentDevice}/>
+            <Route exact path='/SCP/soc/incident' component={incident}/>
+        </Switch>
   </main>
 )
 

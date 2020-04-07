@@ -1,0 +1,19 @@
+{
+	"txt-incident": "Incident",
+	"txt-incident-device": "Incident Device",
+	"txt-incident-management": "Incident Management",
+	"txt-incident-device-management": "Incident Device Management",
+	"unit": {
+		"txt-name": "Unit",
+		"txt-oid": "Unit OID",
+		"txt-level": "Unit Level"
+	},
+	"device": {
+		"txt-name": "Device Name",
+		"txt-id": "Device Id"
+	},
+	"txt-protect-type": "Protect Type",
+	"txt-protect-type-info": "Other Info",
+	"txt-frequency": "Frequency",
+	"txt-note": "Note"
+}

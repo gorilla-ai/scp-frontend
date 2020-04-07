@@ -525,5 +525,14 @@
   "serviceStatusFields": {
     "status": "Status",
     "serviceName": "Service Name"
+  },
+  "incidentFields": {
+    "deviceId": "Device ID",
+    "deviceName": "Device Name",
+    "protectTypeInfo": "Protect Type",
+    "unitName": "Unit Name",
+    "unitLevel": "Unit Level",
+    "frequency": "Trigger Frequency",
+    "updateDttm": "Last Update Time"
   }
 }
