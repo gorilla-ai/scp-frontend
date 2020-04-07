@@ -52,30 +52,28 @@ class ThreatIntelligence extends Component {
 
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
 
-    this.getChartsData('first');
+    this.getChartsData();
   }
   /**
    * Get and set charts data
    * @method
-   * @param {string} options - options for 'first' or 'search'
    */
-  getChartsData = (options) => {
+  getChartsData = () => {
     const {baseUrl} = this.context;
     const {datetime} = this.state;
     let dateTimeFrom = datetime.from;
     let dateTimeTo = datetime.to;
 
-    if (options === 'first') {
+    if (datetime.from.indexOf('T') > 0) {
       dateTimeFrom = datetime.from.substr(0, 11) + '00:00:00';
-      dateTimeTo = datetime.to.substr(0, 11) + '23:59:59';
-    } else if (options === 'search') {
-      if (datetime.from.indexOf('T') === -1) {
-        dateTimeFrom = datetime.from + 'T00:00:00';
-      }
+    } else {
+      dateTimeFrom = datetime.from + 'T00:00:00';
+    }
 
-      if (datetime.to.indexOf('T') === -1) {
-        dateTimeTo = datetime.to + 'T23:59:59';
-      }
+    if (datetime.to.indexOf('T') > 0) {
+      dateTimeTo = datetime.to.substr(0, 11) + '23:59:59';
+    } else {
+      dateTimeTo = datetime.to + 'T23:59:59';
     }
 
     const dateTime = {
@@ -305,13 +303,13 @@ class ThreatIntelligence extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  clearData = (search) => {
+  clearData = () => {
     this.setState({
       indicatorsData: null,
       indicatorsTrendData: null,
       acuIndicatorsTrendData: null      
     }, () => {
-      this.getChartsData(search);
+      this.getChartsData();
     });
   }
   render() {
@@ -329,7 +327,7 @@ class ThreatIntelligence extends Component {
             datetime={datetime}
             enableTime={false}
             handleDateChange={this.handleDateChange}
-            handleSearchSubmit={this.clearData.bind(this, 'search')} />
+            handleSearchSubmit={this.clearData} />
         </div>
 
         <div className='data-content'>
