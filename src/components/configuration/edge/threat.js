@@ -69,8 +69,13 @@ class ThreatIntelligence extends Component {
       dateTimeFrom = datetime.from.substr(0, 11) + '00:00:00';
       dateTimeTo = datetime.to.substr(0, 11) + '23:59:59';
     } else if (options === 'search') {
-      dateTimeFrom = datetime.from + 'T00:00:00';
-      dateTimeTo = datetime.to + 'T23:59:59';
+      if (datetime.from.indexOf('T') === -1) {
+        dateTimeFrom = datetime.from + 'T00:00:00';
+      }
+
+      if (datetime.to.indexOf('T') === -1) {
+        dateTimeTo = datetime.to + 'T23:59:59';
+      }
     }
 
     const dateTime = {
