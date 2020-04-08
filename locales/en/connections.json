@@ -435,8 +435,7 @@
     },
     "scan-list": {
       "txt-yara": "Scan Process",
-      "txt-yaraScanFile": "Scan File (Yara)",
-      "txt-malware": "Scan File (AI)",
+      "txt-scanFile": "Scan File",
       "txt-gcb": "GCB",
       "txt-ir": "IR"
     },
