@@ -525,5 +525,10 @@
   "serviceStatusFields": {
     "status": "Status",
     "serviceName": "Service Name"
+  },
+  "severityTableFields": {
+    "dataSourceType": "Type",
+    "severityLevel": "Severity",
+    "updateDttm": "Last Update"
   }
 }

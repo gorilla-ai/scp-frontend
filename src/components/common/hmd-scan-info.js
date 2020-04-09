@@ -510,17 +510,17 @@ class HMDscanInfo extends Component {
    */
   displayScanProcessPath = (parentIndex, val, i) => {
     const {activePath, activeRuleHeader, activeDLL, activeConnections} = this.state;
-    const uniqueKey = val._ScanType + i;
-    let displayInfo = '';
-
-    if (val._MatchedRuleList && val._MatchedRuleList.length > 0 && val._MatchedRuleNameList) {
-      displayInfo = val._MatchedRuleList.map(this.displayRule.bind(this, val._MatchedRuleNameList));
-    } else {
-      displayInfo = NOT_AVAILABLE;
-    }
 
     if (val._MatchedFile || val._MatchedPid) {
+      const uniqueKey = val._ScanType + i;
       const uniqueID = parentIndex.toString() + i.toString() + (val._MatchedFile || val._MatchedPid);
+      let displayInfo = '';
+
+      if (val._MatchedRuleList && val._MatchedRuleList.length > 0 && val._MatchedRuleNameList) {
+        displayInfo = val._MatchedRuleList.map(this.displayRule.bind(this, val._MatchedRuleNameList));
+      } else {
+        displayInfo = NOT_AVAILABLE;
+      }      
 
       return (
         <div className='group' key={uniqueKey}>
@@ -567,19 +567,21 @@ class HMDscanInfo extends Component {
       )
     }
   }
+  /**
+   * Display boolean value
+   * @method
+   * @param {boolean} val - true/false value
+   * @returns HTML DOM
+   */
   getBoolValue = (val) => {
-    let styleStatus = '';
-
-    if (val) {
-      styleStatus = '#22ac38';
-      val = 'True';
-    } else {
-      styleStatus = '#d0021b';
-      val = 'False';
-    }
-
-    return <span style={{color : styleStatus}}>{val}</span>
+    return <span style={{color : val ? '#22ac38' : '#d0021b'}}>{val.toString()}</span>
   }
+  /**
+   * Get host ID count and tooltip
+   * @method
+   * @param {object} val - AI data object
+   * @returns HTML DOM
+   */
   getHostIdCnt = (val) => {
     const tooltip = f('malwareFields.hostIdArrCnt') + '/' + f('malwareFields.totalHostCnt') + ': ' + val.hostIdArrCnt + '/' + val.totalHostCnt;
 
@@ -595,52 +597,35 @@ class HMDscanInfo extends Component {
    */
   displayScanFilePath = (parentIndex, val, i) => {
     const {activePath, activeRuleHeader} = this.state;
-    const uniqueKey = val._ScanType + i;
+    let uniqueKey = '';
+    let uniqueID = '';
     let displayInfo = NOT_AVAILABLE;
+    let showFilePath = false;
 
     if (val._FileInfo) { //For AI
-      //const aiFieldsArr = ['_FileInfo._Filepath', '_FileInfo._Filesize', '_FileInfo._HashValues._MD5', '_IsPE', '_IsPEextension', '_IsVerifyTrust', 'hostIdArrCnt'];
-      const uniqueID = parentIndex.toString() + i.toString() + val._FileInfo._Filepath +  val._FileInfo._Filesize;
-      //displayInfo = aiFieldsArr.map(this.displayDetectionResult.bind(this, val));
-
-      return (
-        <div className='group' key={uniqueKey}>
-          <div className='path' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
-            <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`}></i>
-            {val._FileInfo._Filepath &&
-              <span>{t('txt-path')}: {val._FileInfo._Filepath}</span>
-            }
-          </div>
-          <div className={cx('rule', {'hide': activePath !== uniqueID})}>
-            <div className='rule-content'>
-              <div className='header'>
-                <ul>
-                  <li>{f('malwareFields._FileInfo._Filepath')}: {val._FileInfo._Filepath}</li>
-                  <li>{f('malwareFields._FileInfo._Filesize')}: {val._FileInfo._Filesize  + ' KB'}</li>
-                  <li>{f('malwareFields._FileInfo._HashValues._MD5')}: {val._FileInfo._HashValues._MD5}</li>
-                  <li>{f('malwareFields._IsPE')}: {this.getBoolValue(val._IsPE)}</li>
-                  <li>{f('malwareFields._IsPEextension')}: {this.getBoolValue(val._IsPEextension)}</li>
-                  <li>{f('malwareFields._IsVerifyTrust')}: {this.getBoolValue(val._IsVerifyTrust)}</li>
-                  <li>{f('malwareFields.hostIdArrCnt')}: {this.getHostIdCnt(val)}</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      )
+      uniqueKey = (val._CompanyName || val._FileInfo._Filepath) + i;
+      uniqueID = parentIndex.toString() + i.toString() + val._FileInfo._Filepath;
+      showFilePath = true;
     }
 
     if (val._MatchedFile || val._MatchedPid) { //For Yara
-      const uniqueID = parentIndex.toString() + i.toString() + (val._MatchedFile || val._MatchedPid);
+      uniqueKey = val._ScanType + i;
+      uniqueID = parentIndex.toString() + i.toString() + (val._MatchedFile || val._MatchedPid);
+      showFilePath = true;
 
       if (val._MatchedRuleList && val._MatchedRuleList.length > 0 && val._MatchedRuleNameList) {
         displayInfo = val._MatchedRuleList.map(this.displayRule.bind(this, val._MatchedRuleNameList));
       }
+    }
 
+    if (showFilePath) {
       return (
         <div className='group' key={uniqueKey}>
           <div className='path' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
             <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`}></i>
+            {val._FileInfo && val._FileInfo._Filepath &&
+              <span>{t('txt-path')}: {val._FileInfo._Filepath}</span>
+            }
             {val._MatchedFile &&
               <span>{t('txt-path')}: {val._MatchedFile}</span>
             }
@@ -650,16 +635,39 @@ class HMDscanInfo extends Component {
             {val._MatchedPid &&
               <span>PID: {val._MatchedPid}</span>
             }
+            {val._CompanyName &&
+              <span className='right'>AI</span>
+            }
+            {val._ScanType &&
+              <span className='right'>Yara</span>
+            }
           </div>
           <div className={cx('rule', {'hide': activePath !== uniqueID})}>
             <div className='rule-content'>
-              <div className='header' onClick={this.toggleInfoHeader.bind(this, 'rule')}>
-                <i className={cx('fg fg-play', {'rotate': activeRuleHeader})}></i>
-                <span>{t('txt-rule')}</span>
-              </div>
-              <div className={cx('sub-content', {'hide': !activeRuleHeader})}>
-                {displayInfo}
-              </div>
+              {val._FileInfo && val._FileInfo._Filepath &&
+                <div className='header'>
+                  <ul>
+                    <li>{f('malwareFields._FileInfo._Filepath')}: {val._FileInfo._Filepath}</li>
+                    <li>{f('malwareFields._FileInfo._Filesize')}: {val._FileInfo._Filesize  + 'KB'}</li>
+                    <li>{f('malwareFields._FileInfo._HashValues._MD5')}: {val._FileInfo._HashValues._MD5}</li>
+                    <li>{f('malwareFields._IsPE')}: {this.getBoolValue(val._IsPE)}</li>
+                    <li>{f('malwareFields._IsPEextension')}: {this.getBoolValue(val._IsPEextension)}</li>
+                    <li>{f('malwareFields._IsVerifyTrust')}: {this.getBoolValue(val._IsVerifyTrust)}</li>
+                    <li>{f('malwareFields.hostIdArrCnt')}: {this.getHostIdCnt(val)}</li>
+                  </ul>
+                </div>
+              }
+              {(val._MatchedFile || val._MatchedPid) &&
+                <div>
+                  <div className='header' onClick={this.toggleInfoHeader.bind(this, 'rule')}>
+                    <i className={cx('fg fg-play', {'rotate': activeRuleHeader})}></i>
+                    <span>{t('txt-rule')}</span>
+                  </div>
+                  <div className={cx('sub-content', {'hide': !activeRuleHeader})}>
+                    {displayInfo}
+                  </div>
+                </div>
+              }
             </div>
           </div>
         </div>
@@ -788,18 +796,7 @@ class HMDscanInfo extends Component {
       dataResult = this.sortedRuleList(val.ScanResult);
       scanPath = this.displayScanProcessPath.bind(this, i);
     } else if (activeTab === 'scanFile') {
-      const combinedDataResult = _.map(val.DetectionResult, (val2, i) => {
-        return {
-          ai: val2,
-          yara: val.ScanResult[i]
-        }
-      });
-
-      _.forEach(combinedDataResult, val => {
-        dataResult.push(val.ai);
-        dataResult.push(val.yara);
-      })
-
+      dataResult = _.concat(val.DetectionResult, val.ScanResult);
       scanPath = this.displayScanFilePath.bind(this, i);
     }
 
@@ -808,7 +805,7 @@ class HMDscanInfo extends Component {
         <div className='scan-header'>
           <span>{t('network-inventory.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local') || NOT_AVAILABLE}</span>
           <span>{t('network-inventory.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}</span>
-          {activeTab === 'yara' && this.getSuspiciousFileCount(dataResult)}
+          {this.getSuspiciousFileCount(dataResult)}
         </div>
         <div className='scan-content'>
           <div className='header rule'>{t('network-inventory.txt-suspiciousFilePath')}</div>

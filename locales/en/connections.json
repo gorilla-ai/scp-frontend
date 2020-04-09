@@ -155,6 +155,8 @@
 
   "txt-edge": "Edge",
   "txt-threatIntelligence": "Threat Intelligence",
+  "txt-severityTable": "Severity Table",
+  "txt-addSeverityTable": "Add Type",
   "txt-addDepartment": "Add Department",
   "txt-addTitle": "Add Title",
   "txt-updateDepartment": "Update Department",

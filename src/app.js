@@ -27,6 +27,7 @@ import Syslog from './components/events/syslog/index'
 import SyslogConfig from './components/configuration/syslog/syslog'
 import Threats from './components/threats/index'
 import ThreatIntelligence from './components/configuration/edge/threat'
+import SeverityTable from './components/configuration/edge/severity'
 import UserAccounts from './components/configuration/user/accounts/index'
 import UserPrivileges from './components/configuration/user/privileges/index'
 
@@ -119,6 +120,12 @@ const Threat = () => (
   </BaseDataContext.Provider>
 )
 
+const Severity = () => (
+  <BaseDataContext.Provider value={baseData}>
+    <SeverityTable />
+  </BaseDataContext.Provider>
+)
+
 const NetworkTopologyInventory = () => (
   <BaseDataContext.Provider value={baseData}>
     <NetworkInventory />
@@ -180,6 +187,7 @@ const Main = () => (
       <Route exact path='/SCP/configuration/notifications' component={Notifications} />
       <Route exact path='/SCP/configuration/edge/edge' component={Edge} />
       <Route exact path='/SCP/configuration/edge/threat' component={Threat} />
+      <Route exact path='/SCP/configuration/edge/severity' component={Severity} />
       <Route exact path='/SCP/configuration/topology/inventory' component={NetworkTopologyInventory} />
       <Route exact path='/SCP/configuration/topology/owner' component={NetworkTopologyOwner} />
       <Route exact path='/SCP/configuration/topology/map' component={NetworkTopologyMap} />

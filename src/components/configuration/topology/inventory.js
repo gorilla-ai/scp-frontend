@@ -987,7 +987,6 @@ class NetworkInventory extends Component {
             <label htmlFor='deviceSearchIP' className='first-label'>{t('ipFields.ip')}</label>
             <Input
               id='deviceSearchIP'
-              className='search-textarea'
               onChange={this.handleDeviceSearch.bind(this, 'ip')}
               value={deviceSearch.ip} />
           </div>
@@ -995,7 +994,6 @@ class NetworkInventory extends Component {
             <label htmlFor='deviceSearchMac'>{t('ipFields.mac')}</label>
             <Input
               id='deviceSearchMac'
-              className='search-textarea'
               onChange={this.handleDeviceSearch.bind(this, 'mac')}
               value={deviceSearch.mac} />
           </div>
@@ -1003,7 +1001,6 @@ class NetworkInventory extends Component {
             <label htmlFor='deviceSearchHostName'>{t('ipFields.hostName')}</label>
             <Input
               id='deviceSearchHostName'
-              className='search-textarea'
               onChange={this.handleDeviceSearch.bind(this, 'hostName')}
               value={deviceSearch.hostName} />
           </div>
@@ -1011,7 +1008,6 @@ class NetworkInventory extends Component {
             <label htmlFor='deviceSearchSystem'>{t('ipFields.system')}</label>
             <Input
               id='deviceSearchSystem'
-              className='search-textarea'
               onChange={this.handleDeviceSearch.bind(this, 'system')}
               value={deviceSearch.system} />
           </div>
@@ -1019,7 +1015,6 @@ class NetworkInventory extends Component {
             <label htmlFor='deviceSearchOwner'>{t('ipFields.owner')}</label>
             <Input
               id='deviceSearchOwner'
-              className='search-textarea'
               onChange={this.handleDeviceSearch.bind(this, 'owner')}
               value={deviceSearch.owner} />
           </div>
@@ -1027,7 +1022,6 @@ class NetworkInventory extends Component {
             <label htmlFor='deviceSearchAreaName'>{t('ipFields.areaName')}</label>
             <Input
               id='deviceSearchAreaName'
-              className='search-textarea'
               onChange={this.handleDeviceSearch.bind(this, 'areaName')}
               value={deviceSearch.areaName} />
           </div>
@@ -1035,7 +1029,6 @@ class NetworkInventory extends Component {
             <label htmlFor='deviceSearchSeatName'>{t('ipFields.seatName')}</label>
             <Input
               id='deviceSearchSeatName'
-              className='search-textarea'
               onChange={this.handleDeviceSearch.bind(this, 'seatName')}
               value={deviceSearch.seatName} />
           </div>
@@ -1046,8 +1039,8 @@ class NetworkInventory extends Component {
               onChange={this.toggleHMDcheckBox}
               checked={hmdCheckbox} />
           </div>
-          <div className='group hmd'>
-            <div className='hmd-options'>
+          <div className='group group-checkbox'>
+            <div className='group-options'>
               <div className='option'>
                 <label htmlFor='hmdSelectAll' className={cx({'active': hmdCheckbox})}>{t('txt-selectAll')}</label>
                 <Checkbox
@@ -1091,7 +1084,7 @@ class NetworkInventory extends Component {
             </div>
           </div>
         </div>
-        <div className='button-group inventory'>
+        <div className='button-group group-aligned'>
           <button className='filter' onClick={this.getDeviceData.bind(this, 'search')}>{t('txt-filter')}</button>
           <button className='clear' onClick={this.clearFilter}>{t('txt-clear')}</button>
         </div>

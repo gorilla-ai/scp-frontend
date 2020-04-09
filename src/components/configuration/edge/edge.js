@@ -849,7 +849,6 @@ class Edge extends Component {
             <label htmlFor='edgeSearchKeyword' className='first-label'>{f('edgeFields.keywords')}</label>
             <Input
               id='edgeSearchKeyword'
-              className='search-textarea'
               onChange={this.handleEdgeSearch.bind(this, 'keyword')}
               value={edgeSearch.keyword} />
           </div>

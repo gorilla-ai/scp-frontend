@@ -525,5 +525,10 @@
   "serviceStatusFields": {
     "status": "狀態",
     "serviceName": "服務名稱"
+  },
+  "severityTableFields": {
+    "dataSourceType": "Type",
+    "severityLevel": "Severity",
+    "updateDttm": "最後更新"
   }
 }

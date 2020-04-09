@@ -155,6 +155,8 @@
 
   "txt-edge": "Edge",
   "txt-threatIntelligence": "威脅情資",
+  "txt-severityTable": "Severity Table",
+  "txt-addSeverityTable": "新增Type",
   "txt-addDepartment": "新增部門",
   "txt-addTitle": "新增職稱",
   "txt-updateDepartment": "編輯部門",

@@ -1237,7 +1237,7 @@ i.c-checkbox.fg-checkbox {
         .button-group {
           margin-bottom: 5px;
           display: block;
-          &.inventory {
+          &.group-aligned {
             position: absolute;
             right: 10px;
             bottom: 10px;
@@ -1308,7 +1308,7 @@ i.c-checkbox.fg-checkbox {
                   margin-right: 3px;
                 }
               }
-              &.hmd {
+              &.group-checkbox {
                 position: relative;
                 display: flex;
                 margin: 0 5px 5px 5px;
@@ -1316,7 +1316,10 @@ i.c-checkbox.fg-checkbox {
                 border: 1px solid var(--leftNavBackground);
                 border-radius: 5px;
                 background-color: var(--primaryContentBackground);
-                .hmd-options {
+                &.narrow {
+                  padding: 5px;
+                }
+                .group-options {
                   display: flex;
                   .option {
                     margin-right: 10px;
@@ -1336,6 +1339,11 @@ i.c-checkbox.fg-checkbox {
                   }
                 }
               }
+            }
+            .severity label {
+              color: var(--primaryContentHeader);
+              display: block;
+              margin: 4px 0 2px 5px;
             }
           }
         }
