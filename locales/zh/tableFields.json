@@ -531,6 +531,7 @@
       "name": "機關名稱",
       "level": "機關等級"
     },
+    "keywords": "關鍵字",
     "deviceId": "設備代號",
     "deviceName": "設備名稱與型號",
     "protectTypeInfo": "資安防護類型",

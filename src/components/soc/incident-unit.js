@@ -93,8 +93,9 @@ class IncidentUnit extends Component {
             showFilter: false,
             currentIncidentDeviceData: {},
             originalIncidentDeviceData: {},
-            deviceSearch: {
-                keyword: ''
+            unitSearch: {
+                keyword: '',
+                industryType: 99
             },
             incidentUnit: {
                 dataFieldsArr: ['oid', 'name', 'level', 'industryType', '_menu'],
@@ -131,12 +132,15 @@ class IncidentUnit extends Component {
      */
     getData = (fromSearch) => {
         const {baseUrl, contextRoot} = this.context;
-        const {deviceSearch, incidentUnit: incidentUnit} = this.state;
+        const {unitSearch, incidentUnit: incidentUnit} = this.state;
         const url = `${baseUrl}/api/soc/unit/_search`;
         let data = {};
 
-        if (deviceSearch.keyword) {
-            data.keyword = deviceSearch.keyword;
+        if (unitSearch.keyword) {
+            data.keyword = unitSearch.keyword;
+        }
+        if (unitSearch.industryType) {
+            data.industryType = unitSearch.industryType;
         }
 
         helper.getAjaxData('POST', url, data)
@@ -482,7 +486,7 @@ class IncidentUnit extends Component {
      * @returns HTML DOM
      */
     renderFilter = () => {
-        const {showFilter, deviceSearch} = this.state;
+        const {showFilter, unitSearch} = this.state;
 
         return (
             <div className={cx('main-filter', {'active': showFilter})}>
@@ -490,12 +494,21 @@ class IncidentUnit extends Component {
                 <div className='header-text'>{t('txt-filter')}</div>
                 <div className='filter-section config'>
                     <div className='group'>
-                        <label htmlFor='edgeSearchKeyword' className='first-label'>{f('edgeFields.keywords')}</label>
+                        <label htmlFor='keyword' className='first-label'>{f('incidentFields.keywords')}</label>
                         <Input
-                            id='edgeSearchKeyword'
+                            id='keyword'
                             className='search-textarea'
-                            onChange={this.handleDeviceSearch.bind(this, 'keyword')}
-                            value={deviceSearch.keyword}/>
+                            onChange={this.handleUnitSearch.bind(this, 'keyword')}
+                            value={unitSearch.keyword}/>
+                    </div>
+                    <div className='group'>
+                        <label htmlFor='industryType' className='first-label'>{f('incidentFields.industryType')}</label>
+                        <DropDownList
+                            id='industryType'
+                            list={INDUSTRY_TYPE_LIST}
+                            onChange={this.handleUnitSearch.bind(this, 'industryType')}
+                            value={unitSearch.industryType}/>
+
                     </div>
                 </div>
                 <div className='button-group'>
@@ -669,12 +682,12 @@ class IncidentUnit extends Component {
      * @param {string} type - input type
      * @param {string} value - input value
      */
-    handleDeviceSearch = (type, value) => {
-        let tempDeviceSearch = {...this.state.deviceSearch};
-        tempDeviceSearch[type] = value;
+    handleUnitSearch = (type, value) => {
+        let tempUnitSearch = {...this.state.unitSearch};
+        tempUnitSearch[type] = value;
 
         this.setState({
-            deviceSearch: tempDeviceSearch
+            unitSearch: tempUnitSearch
         });
     };
 
@@ -694,8 +707,9 @@ class IncidentUnit extends Component {
      */
     clearFilter = () => {
         this.setState({
-            deviceSearch: {
-                keyword: ''
+            unitSearch: {
+                keyword: '',
+                industryType: 99
             }
         });
     };

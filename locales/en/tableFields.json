@@ -531,6 +531,7 @@
       "name": "Unit Name",
       "level": "Unit Level"
     },
+    "keywords": "Keywords",
     "deviceId": "Device ID",
     "deviceName": "Device Name",
     "protectTypeInfo": "Protect Type",
