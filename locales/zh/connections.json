@@ -155,8 +155,6 @@
 
   "txt-edge": "Edge",
   "txt-threatIntelligence": "威脅情資",
-  "txt-severityTable": "Severity Table",
-  "txt-addSeverityTable": "新增Type",
   "txt-addDepartment": "新增部門",
   "txt-addTitle": "新增職稱",
   "txt-updateDepartment": "編輯部門",
@@ -386,6 +384,15 @@
       "txt-indicatorsTrend": "每日情資更新數量長條圖",
       "txt-acuIndicatorsTrend": "每日情資數量曲線圖"
     }
+  },
+
+  "severity-table": {
+    "txt-severityTable": "Severity Table",
+    "txt-addSeverityTable": "新增Type",
+    "txt-typeInfo": "Type Info",
+    "txt-lastUpateTime": "最近更新時間",
+    "txt-severityMissing": "Severity type不得為空白",
+    "txt-deleteSeverity": "$t(txt-delete)Severity Type"
   },
 
   "network-inventory": {

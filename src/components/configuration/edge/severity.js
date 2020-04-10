@@ -22,29 +22,40 @@ import TableContent from '../../common/table-content'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
+const ALERT_LEVEL_COLORS = {
+  Emergency: '#CC2943',
+  Alert: '#CC7B29',
+  Critical: '#29B0CC',
+  Warning: '#29CC7A',
+  Notice: '#7ACC29'
+};
 
 let t = null;
 let f = null;
 let et = null;
 
 /**
- * Edge
+ * Severity
  * @class
  * @author Ryan Chen <ryanchen@telmediatech.com>
- * @summary A react component to show the Config Edge page
+ * @summary A react component to show the Config Edge Severity table page
  */
 class Severity extends Component {
   constructor(props) {
     super(props);
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
-    f = chewbaccaI18n.getFixedT(null, 'tableFields');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
 
     this.state = {
+      activeContent: 'tableList', //tableList, viewSeverity, addSeverity, editSeverity
       showFilter: false,
       severitySearchType: '',
       severitySearchOptions: {},
+      originalSeverityData: {},
+      severityList: [],
+      currentSeverityData: '',
       severity: {
         dataFieldsArr: ['dataSourceType', 'severityLevel', 'updateDttm', '_menu'],
         dataFields: {},
@@ -56,7 +67,10 @@ class Severity extends Component {
         totalCount: 0,
         currentPage: 1,
         pageSize: 20,
-        info: {}
+        info: {
+          type: '',
+          severity: 'Emergency'
+        }
       }
     };
 
@@ -68,22 +82,35 @@ class Severity extends Component {
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
 
     this.setDefaultSearchOptions();
-    this.getSeverityMapping();
   }
-  ryan = () => {
-
-  }
+  /**
+   * Set Severity checkbox filter and dropdown list
+   * @method
+   */
   setDefaultSearchOptions = () => {
     let tempSeveritySearchOptions = {...this.state.severitySearchOptions};
+    let severityList = [];   
 
     _.forEach(SEVERITY_TYPE, val => {
       tempSeveritySearchOptions[val] = false;
+      severityList.push({
+        value: val,
+        text: val
+      });
     })
 
     this.setState({
-      severitySearchOptions: tempSeveritySearchOptions
+      severitySearchOptions: tempSeveritySearchOptions,
+      severityList
+    }, () => {
+      this.getSeverityMapping();
     });
   }
+  /**
+   * Get and set severity table data
+   * @method
+   * @param {string} fromSearch - option for 'search'
+   */
   getSeverityMapping = (fromSearch) => {
     const {baseUrl} = this.context;
     const {severitySearchType, severitySearchOptions, severity} = this.state;
@@ -119,15 +146,17 @@ class Severity extends Component {
             label: tempData === '_menu' ? '' : f(`severityTableFields.${tempData}`),
             sortable: tempData === '_menu' ? null : true,
             formatter: (value, allValue, i) => {
-              if (tempData === '_menu') {
-                return (
-                  <div className='table-menu menu active'>
-                    <i className='fg fg-edit' title={t('txt-edit')}></i>
-                    <i className='fg fg-trashcan' title={t('txt-delete')}></i>
-                  </div>
-                )
+              if (tempData === 'severityLevel') {
+                return <span className='severity' style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>
               } else if (tempData === 'updateDttm') {
                 value = helper.getFormattedDate(value, 'local');
+              } else if (tempData === '_menu') {
+                return (
+                  <div className='table-menu menu active'>
+                    <i className='fg fg-eye' onClick={this.toggleContent.bind(this, 'viewSeverity', allValue)} title={t('txt-view')}></i>
+                    <i className='fg fg-trashcan' onClick={this.openDeleteMenu.bind(this, allValue)} title={t('txt-delete')}></i>
+                  </div>
+                )
               }
               return <span>{value}</span>
             }
@@ -147,17 +176,44 @@ class Severity extends Component {
     });
   }
   /**
-   * Toggle filter content on/off
+   * Toggle different content
    * @method
+   * @param {string} type - page type ('tableList', 'viewSeverity', 'addSeverity', editSeverity' and 'cancel')
+   * @param {object} allValue - Severity data
    */
-  toggleFilter = () => {
+  toggleContent = (type, allValue) => {
+    const {originalSeverityData, severity} = this.state;
+    let tempSeverity = {...severity};
+    let showPage = type;
+
+    if (type === 'tableList') {
+      tempSeverity.info = {
+        type: '',
+        severity: 'Emergency'
+      };
+    } else if (type === 'viewSeverity') {
+      tempSeverity.info = {
+        type: allValue.dataSourceType,
+        severity: allValue.severityLevel,
+        updateDttm: allValue.updateDttm
+      };
+
+      this.setState({
+        showFilter: false,
+        originalSeverityData: _.cloneDeep(tempSeverity)
+      });
+    } else if (type === 'cancel') {
+      showPage = 'viewSeverity';
+      tempSeverity = _.cloneDeep(originalSeverityData);
+    }
+
     this.setState({
-      showFilter: !this.state.showFilter
-    });
-  }
-  handleSearchType = (type) => {
-    this.setState({
-      severitySearchType: type
+      activeContent: showPage,
+      severity: tempSeverity
+    }, () => {
+      if (type === 'tableList') {
+        this.getSeverityMapping();
+      }
     });
   }
   /**
@@ -174,6 +230,226 @@ class Severity extends Component {
       severitySearchOptions: tempSeveritySearchOptions
     });
   }
+  /**
+   * Handle Severity edit input data change
+   * @method
+   * @param {string} type - input type
+   * @param {string} value - input value
+   */
+  handleDataChange = (type, value) => {
+    let tempSeverity = {...this.state.severity};
+    tempSeverity.info[type] = value;
+
+    this.setState({
+      severity: tempSeverity
+    });
+  }
+  /**
+   * Display edit Severity content
+   * @method
+   * @returns HTML DOM
+   */
+  displayEditSeverityContent = () => {
+    const {contextRoot, locale} = this.context;
+    const {activeContent, severityList, severity} = this.state;
+    let pageType = '';
+
+    if (activeContent === 'addSeverity') {
+      pageType = 'tableList';
+    } else if (activeContent === 'editSeverity') {
+      pageType = 'cancel';
+    }
+
+    return (
+      <div className='main-content basic-form'>
+        <header className='main-header'>Severity</header>
+
+        <div className='content-header-btns'>
+          {activeContent === 'viewSeverity' &&
+            <div>
+              <button className='standard btn list' onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</button>
+              <button className='standard btn edit' onClick={this.toggleContent.bind(this, 'editSeverity')}>{t('txt-edit')}</button>
+            </div>
+          }
+        </div>
+
+        <div className='form-group normal'>
+          <header>
+            <div className='text'>{t('severity-table.txt-typeInfo')}</div>
+            {severity.info.updateDttm &&
+              <span className='msg'>{t('severity-table.txt-lastUpateTime')} {helper.getFormattedDate(severity.info.updateDttm, 'local')}</span>
+            }
+          </header>
+          <div className='group'>
+            <label htmlFor='severityType'>Type</label>
+            <Input
+              id='severityType'
+              onChange={this.handleDataChange.bind(this, 'type')}
+              value={severity.info.type}
+              readOnly={activeContent === 'viewSeverity'} />
+          </div>
+          <div className='group severity-level'>
+            <label htmlFor='severityLevel'>Severity</label>
+            <i className='fg fg-recode' style={{color: ALERT_LEVEL_COLORS[severity.info.severity]}}></i>
+            <DropDownList
+              id='severityLevel'
+              required={true}
+              list={severityList}
+              onChange={this.handleDataChange.bind(this, 'severity')}
+              value={severity.info.severity}
+              readOnly={activeContent === 'viewSeverity'} />
+          </div>
+        </div>
+
+        {(activeContent === 'addSeverity' || activeContent === 'editSeverity') &&
+          <footer>
+            <button className='standard' onClick={this.toggleContent.bind(this, pageType)}>{t('txt-cancel')}</button>
+            <button onClick={this.handleSeveritySubmit}>{t('txt-save')}</button>
+          </footer>
+        }
+      </div>
+    )
+  }
+  /**
+   * Display delete Severity content
+   * @method
+   * @param {object} allValue - Severity data
+   * @returns HTML DOM
+   */
+  getDeleteSeverityContent = (allValue) => {
+    this.setState({
+      currentSeverityData: allValue
+    });
+
+    return (
+      <div className='content delete'>
+        <span>{t('txt-delete-msg')}: {allValue.dataSourceType}?</span>
+      </div>
+    )
+  }
+  /**
+   * Show Delete Severity dialog
+   * @method
+   * @param {object} allValue - Severity data
+   */
+  openDeleteMenu = (allValue) => {
+    PopupDialog.prompt({
+      title: t('severity-table.txt-deleteSeverity'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: this.getDeleteSeverityContent(allValue),
+      act: (confirmed, data) => {
+        if (confirmed) {
+          this.deleteSeverity();
+        }
+      }
+    });
+  }
+  /**
+   * Handle delete Severity confirm
+   * @method
+   */
+  deleteSeverity = () => {
+    const {baseUrl} = this.context;
+    const {currentSeverityData} = this.state;
+
+    if (!currentSeverityData.dataSourceType) {
+      return;
+    }
+
+    ah.one({
+      url: `${baseUrl}/api/severityMapping?dataSourceType=${currentSeverityData.dataSourceType}`,
+      type: 'DELETE'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        this.getSeverityMapping();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle Severity add/edit confirm
+   * @method
+   */
+  handleSeveritySubmit = () => {
+    const {baseUrl} = this.context;
+    const {activeContent, severity} = this.state;
+    let requestType = '';
+
+    if (!severity.info.type) {
+      helper.showPopupMsg(t('severity-table.txt-severityMissing'), t('txt-error'));
+      return;
+    }
+
+    if (activeContent === 'addSeverity') {
+      requestType = 'POST';
+    } else if (activeContent === 'editSeverity') {
+      requestType = 'PATCH';
+    }
+
+    let data = {
+      dataSourceType: severity.info.type,
+      severityLevel: severity.info.severity
+    };
+
+    ah.one({
+      url: `${baseUrl}/api/severityMapping`,
+      data: JSON.stringify(data),
+      type: requestType,
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      this.setState({
+        originalSeverityData: _.cloneDeep(severity)
+      }, () => {
+        let showPage = '';
+
+        if (activeContent === 'addSeverity') {
+          showPage = 'tableList';
+        } else if (activeContent === 'editSeverity') {
+          showPage = 'cancel';
+        }
+
+        this.toggleContent(showPage);
+      })
+
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Toggle filter content on/off
+   * @method
+   */
+  toggleFilter = () => {
+    this.setState({
+      showFilter: !this.state.showFilter
+    });
+  }
+  /**
+   * Toggle filter content on/off
+   * @method
+   * @param {string} type - Severity type input from user
+   */
+  handleSearchType = (type) => {
+    this.setState({
+      severitySearchType: type
+    });
+  }
+  /**
+   * Display Severity checkbox group
+   * @method
+   * @param {string} val - severity level
+   * @param {number} i - index of the severity level list
+   * @returns HTML DOM
+   */
   displaySeverityCheckbox = (val, i) => {
     return (
       <div className='option' key={val + i}>
@@ -271,13 +547,15 @@ class Severity extends Component {
   }
   render() {
     const {baseUrl, contextRoot} = this.context;
-    const {showFilter, severity} = this.state;
+    const {activeContent, showFilter, severity} = this.state;
 
     return (
       <div>
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
+            {activeContent === 'tableList' &&
+              <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
+            }
           </div>
         </div>
 
@@ -289,24 +567,30 @@ class Severity extends Component {
           <div className='parent-content'>
             { this.renderFilter() }
 
-            <div className='main-content'>
-              <header className='main-header'>{t('txt-severityTable')}</header>
+            {activeContent === 'tableList' &&
+              <div className='main-content'>
+                <header className='main-header'>{t('severity-table.txt-severityTable')}</header>
 
-              <div className='content-header-btns'>
-                <button className='standard btn'>{t('txt-addSeverityTable')}</button>
+                <div className='content-header-btns'>
+                  <button className='standard btn' onClick={this.toggleContent.bind(this, 'addSeverity')}>{t('severity-table.txt-addSeverityTable')}</button>
+                </div>
+
+                <TableContent
+                  dataTableData={severity.dataContent}
+                  dataTableFields={severity.dataFields}
+                  dataTableSort={severity.sort}
+                  paginationTotalCount={severity.totalCount}
+                  paginationPageSize={severity.pageSize}
+                  paginationCurrentPage={severity.currentPage}
+                  handleTableSort={this.handleTableSort}
+                  paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
+                  paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
               </div>
+            }
 
-              <TableContent
-                dataTableData={severity.dataContent}
-                dataTableFields={severity.dataFields}
-                dataTableSort={severity.sort}
-                paginationTotalCount={severity.totalCount}
-                paginationPageSize={severity.pageSize}
-                paginationCurrentPage={severity.currentPage}
-                handleTableSort={this.handleTableSort}
-                paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
-            </div>
+            {(activeContent === 'viewSeverity' || activeContent === 'addSeverity' || activeContent === 'editSeverity') &&
+              this.displayEditSeverityContent()
+            }
           </div>
         </div>
       </div>

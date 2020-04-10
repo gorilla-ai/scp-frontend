@@ -155,8 +155,6 @@
 
   "txt-edge": "Edge",
   "txt-threatIntelligence": "Threat Intelligence",
-  "txt-severityTable": "Severity Table",
-  "txt-addSeverityTable": "Add Type",
   "txt-addDepartment": "Add Department",
   "txt-addTitle": "Add Title",
   "txt-updateDepartment": "Update Department",
@@ -386,6 +384,15 @@
       "txt-indicatorsTrend": "Indicators Trend",
       "txt-acuIndicatorsTrend": "Accumulated Indicators Trend"
     }
+  },
+
+  "severity-table": {
+    "txt-severityTable": "Severity Table",
+    "txt-addSeverityTable": "Add Type",
+    "txt-typeInfo": "Type Info",
+    "txt-lastUpateTime": "Last Update Time",
+    "txt-severityMissing": "Severity type cannot be empty",
+    "txt-deleteSeverity": "$t(txt-delete) Severity Type"
   },
 
   "network-inventory": {

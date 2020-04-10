@@ -165,8 +165,8 @@ class AlertDetails extends Component {
       showHMDloading: false
     };
 
-    t = chewbaccaI18n.getFixedT(null, 'connections');
-    f = chewbaccaI18n.getFixedT(null, 'tableFields');
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {

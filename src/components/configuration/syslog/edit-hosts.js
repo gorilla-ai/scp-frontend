@@ -16,7 +16,7 @@ class EditHosts extends Component {
   constructor(props) {
     super(props);
 
-    t = chewbaccaI18n.getFixedT(null, 'connections');
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
   }
   /**
    * Set edit host input

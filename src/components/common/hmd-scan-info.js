@@ -26,10 +26,6 @@ const SAFETY_SCAN_LIST = [
     type: 'scanFile',
     path: 'scanFileResult'
   },
-  // {
-  //   type: 'malware',
-  //   path: 'DetectionResult'
-  // },
   {
     type: 'gcb',
     path: 'GCBResult'
@@ -42,7 +38,6 @@ const SAFETY_SCAN_LIST = [
 const TRIGGER_NAME = {
   [SAFETY_SCAN_LIST[0].type]: 'compareIOC',
   [SAFETY_SCAN_LIST[1].type]: 'scanFile',
-  //[SAFETY_SCAN_LIST[2].type]: 'malwareDetection',
   [SAFETY_SCAN_LIST[2].type]: 'gcbDetection'
 };
 
@@ -70,16 +65,14 @@ class HMDscanInfo extends Component {
       activeRule: [],
       activeDLL: false,
       activeConnections: false,
-      //malwareFieldsArr: ['_FileInfo._Filepath', '_FileInfo._Filesize', '_FileInfo._HashValues._MD5', '_IsPE', '_IsPEextension', '_IsVerifyTrust', 'hostIdArrCnt'],
-      //malwareSort: ['asc'],
       gcbFieldsArr: ['_CceId', '_OriginalKey', '_Type', '_CompareResult'],
       gcbSort: 'asc',
       hmdInfo: {},
       hasMore: true
     };
 
-    t = chewbaccaI18n.getFixedT(null, 'connections');
-    f = chewbaccaI18n.getFixedT(null, 'tableFields');
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
@@ -161,50 +154,6 @@ class HMDscanInfo extends Component {
         };
       }
     })
-
-    // if (hmdInfo.malware && hmdInfo.malware.data) {
-    //   hmdInfo.malware.fields = {};
-    //   malwareFieldsArr.forEach(tempData => {
-    //     hmdInfo.malware.fields[tempData] = {
-    //       label: f(`malwareFields.${tempData}`),
-    //       sortable: true,
-    //       className: this.getFieldName(tempData),
-    //       formatter: (value, allValue) => {
-    //         if (tempData === '_FileInfo._Filepath') {
-    //           return <span>{value}</span>
-    //         }
-    //         if (tempData === '_FileInfo._HashValues._MD5') {
-    //           return <span>{value}</span>
-    //         }
-    //         if (tempData === '_FileInfo._Filesize') {
-    //           value = value + ' KB';
-    //         }
-    //         if (tempData === '_IsPE' || tempData === '_IsPEextension' || tempData === '_IsVerifyTrust') {
-    //           let styleStatus = '';
-
-    //           if (value) {
-    //             styleStatus = '#22ac38';
-    //             value = 'True';
-    //           } else {
-    //             styleStatus = '#d0021b';
-    //             value = 'False';
-    //           }
-
-    //           return <span style={{color : styleStatus}}>{value}</span>
-    //         }
-    //         if (tempData === 'hostIdArrCnt') {
-    //           if (allValue.hostIdArr) {
-    //             const tooltip = f('malwareFields.hostIdArrCnt') + '/' + f('malwareFields.totalHostCnt') + ': ' + value + '/' + allValue.totalHostCnt;
-    //             return <span title={tooltip}>{value}</span>
-    //           } else {
-    //             value = NOT_AVAILABLE;
-    //           }
-    //         }
-    //         return <span>{value}</span>
-    //       }
-    //     };
-    //   })
-    // }
 
     if (hmdInfo.gcb && hmdInfo.gcb.data) {
       hmdInfo.gcb.filteredResult = _.filter(hmdInfo.gcb.data[0].GCBResult, ['_CompareResult', true]);
@@ -603,7 +552,7 @@ class HMDscanInfo extends Component {
     let showFilePath = false;
 
     if (val._FileInfo) { //For AI
-      uniqueKey = (val._CompanyName || val._FileInfo._Filepath) + i;
+      uniqueKey = val._FileInfo._Filepath + i;
       uniqueID = parentIndex.toString() + i.toString() + val._FileInfo._Filepath;
       showFilePath = true;
     }
@@ -635,7 +584,7 @@ class HMDscanInfo extends Component {
             {val._MatchedPid &&
               <span>PID: {val._MatchedPid}</span>
             }
-            {val._CompanyName &&
+            {val._FileInfo && val._FileInfo._Filepath &&
               <span className='right'>AI</span>
             }
             {val._ScanType &&

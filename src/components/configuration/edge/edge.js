@@ -44,7 +44,7 @@ class Edge extends Component {
     super(props);
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
-    f = chewbaccaI18n.getFixedT(null, 'tableFields');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
 
     this.state = {
@@ -369,9 +369,9 @@ class Edge extends Component {
     });
   }
   /**
-   * Handle filter input data change
+   * Toggle different content
    * @method
-   * @param {string} type - page type ('tableList', 'editEdge' and 'cancel')
+   * @param {string} type - page type ('tableList', 'viewEdge', 'editEdge' and 'cancel')
    * @param {object} allValue - Edge data
    */
   toggleContent = (type, allValue) => {
@@ -536,7 +536,7 @@ class Edge extends Component {
     })
   }
   /**
-   * Handle Edge Edit confirm
+   * Handle Edge edit confirm
    * @method
    */
   handleEdgeSubmit = () => {
@@ -908,7 +908,9 @@ class Edge extends Component {
       <div>
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
+            {activeContent === 'tableList' &&
+              <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
+            }
           </div>
         </div>
 

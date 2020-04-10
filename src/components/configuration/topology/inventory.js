@@ -173,9 +173,9 @@ class NetworkInventory extends Component {
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
     };
 
-    t = chewbaccaI18n.getFixedT(null, 'connections');
-    f = chewbaccaI18n.getFixedT(null, 'tableFields');
-    et = chewbaccaI18n.getFixedT(null, 'errors');
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+    et = global.chewbaccaI18n.getFixedT(null, 'errors');
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
@@ -233,7 +233,7 @@ class NetworkInventory extends Component {
   /**
    * Get and set device data / Handle delete IP device confirm
    * @method
-   * @param {string} fromSearch - options for 'search'
+   * @param {string} fromSearch - option for 'search'
    * @param {string} options - options for 'oneSeat'
    * @param {string} seatUUID - seat UUID
    */

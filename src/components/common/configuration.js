@@ -142,7 +142,7 @@ class Config extends Component {
             </div>
             <div className='subframe'>
               <Link to='/SCP/configuration/edge/severity'>
-                <span className={`${this.getActiveFrame('severity')}`}>{t('txt-severityTable')}</span>
+                <span className={`${this.getActiveFrame('severity')}`}>{t('severity-table.txt-severityTable')}</span>
               </Link>
             </div>
           </div>

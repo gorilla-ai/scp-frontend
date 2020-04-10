@@ -23,7 +23,7 @@ class TableCell extends Component {
       showIcon: false
     };
 
-    t = chewbaccaI18n.getFixedT(null, 'connections');
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
   }
   /**
    * Toggle the filter icon on/off
