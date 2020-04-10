@@ -9,45 +9,69 @@ import Input from "react-ui/build/src/components/input";
 import PopupDialog from "react-ui/build/src/components/popup-dialog";
 import TableContent from "../common/table-content";
 import DropDownList from "react-ui/build/src/components/dropdown";
-import Textarea from "react-ui/build/src/components/textarea";
-
-const INCIDENT = "incident";
-const DEVICE = "device";
-const PROTECT_TYPE_LIST = [
-    {
-        value: '0',
-        text: '防毒軟體'
-    },
-    {
-        value: '1',
-        text: '網路防火牆'
-    },
-    {
-        value: '2',
-        text: '電子郵件過濾機制'
-    },
-    {
-        value: '3',
-        text: '入侵偵測及防禦機制'
-    },
-    {
-        value: '4',
-        text: '應用程式防火牆'
-    },
-    {
-        value: '5',
-        text: '進階持續性威脅攻擊防禦措施'
-    },
-    {
-        value: '6',
-        text: '其他'
-    },
-];
 
 let t = null;
 let f = null;
 let et = null;
 let it = null;
+
+const INDUSTRY_TYPE_LIST = [
+    {
+        value: '0',
+        text: '能源'
+    },
+    {
+        value: '1',
+        text: '水資源'
+    },
+    {
+        value: '2',
+        text: '通訊傳播'
+    },
+    {
+        value: '3',
+        text: '交通'
+    },
+    {
+        value: '4',
+        text: '金融'
+    },
+    {
+        value: '5',
+        text: '緊急救援及醫院'
+    },
+    {
+        value: '6',
+        text: '中央及地方政府'
+    }, {
+        value: '7',
+        text: '科學園區與工業區'
+    },
+    {
+        value: '8',
+        text: '臺北區域聯防中心'
+    },
+    {
+        value: '9',
+        text: '新北區域聯防中心'
+    },
+    {
+        value: '10',
+        text: '桃園區域聯防中心'
+    },
+    {
+        value: '11',
+        text: '臺中區域聯防中心'
+    },
+    {
+        value: '12',
+        text: '臺南區域聯防中心'
+    },
+    {
+        value: '13',
+        text: '高雄區域聯防中心'
+    },
+];
 
 /**
  * Settings - IncidentDevice
@@ -55,7 +79,7 @@ let it = null;
  * @author Kenneth Chiao <kennethchiao@telmediatech.com>
  * @summary A react component to show the Config IncidentDevice page
  */
-class IncidentDevice extends Component {
+class IncidentUnit extends Component {
     constructor(props) {
         super(props);
 
@@ -69,19 +93,16 @@ class IncidentDevice extends Component {
             showFilter: false,
             currentIncidentDeviceData: {},
             originalIncidentDeviceData: {},
-            deviceSearch: {
-                keyword: ''
+            unitSearch: {
+                keyword: '',
+                industryType: 99
             },
-            unitList: [{
-                value: '',
-                text: ''
-            }],
-            incidentDevice: {
-                dataFieldsArr: ['deviceId', 'deviceName', 'protectTypeInfo', 'incidentUnitDTO.name', 'incidentUnitDTO.level', 'frequency', 'updateDttm', '_menu'],
+            incidentUnit: {
+                dataFieldsArr: ['oid', 'name', 'level', 'industryType', '_menu'],
                 dataFields: {},
                 dataContent: [],
                 sort: {
-                    field: 'deviceId',
+                    field: 'oid',
                     desc: false
                 },
                 totalCount: 0,
@@ -89,18 +110,10 @@ class IncidentDevice extends Component {
                 pageSize: 20,
                 info: {
                     id: '',
-                    unitId: '',
-                    deviceId: '',
-                    deviceName: '',
-                    deviceCompany:'',
-                    unitOid: '',
-                    unitName: '',
-                    unitLevel: 'A',
-                    frequency: null,
-                    protectType: '0',
-                    protectTypeInfo: '',
-                    note: '',
-                    updateDttm: ''
+                    oid: '',
+                    name: '',
+                    level: 'A',
+                    industryType: '',
                 }
             }
         };
@@ -109,8 +122,7 @@ class IncidentDevice extends Component {
     }
 
     componentDidMount() {
-        this.getDeviceData();
-        this.getUnitList();
+        this.getData();
     }
 
     /**
@@ -118,32 +130,34 @@ class IncidentDevice extends Component {
      * @method
      * @param {string} fromSearch - option for the 'search'
      */
-    getDeviceData = (fromSearch) => {
+    getData = (fromSearch) => {
         const {baseUrl, contextRoot} = this.context;
-        const {deviceSearch, incidentDevice} = this.state;
-        const url = `${baseUrl}/api/soc/device/_search?page=${incidentDevice.currentPage}&pageSize=${incidentDevice.pageSize}`;
+        const {unitSearch, incidentUnit: incidentUnit} = this.state;
+        const url = `${baseUrl}/api/soc/unit/_search`;
         let data = {};
 
-        if (deviceSearch.keyword) {
-            data.keyword = deviceSearch.keyword;
+        if (unitSearch.keyword) {
+            data.keyword = unitSearch.keyword;
+        }
+        if (unitSearch.industryType) {
+            data.industryType = unitSearch.industryType;
         }
 
         helper.getAjaxData('POST', url, data)
             .then(data => {
                 if (data) {
-                    let tempEdge = {...incidentDevice};
+                    let tempEdge = {...incidentUnit};
                     tempEdge.dataContent = data.rows;
                     tempEdge.totalCount = data.counts;
-                    tempEdge.currentPage = fromSearch === 'search' ? 1 : incidentDevice.currentPage;
 
                     let dataFields = {};
-                    incidentDevice.dataFieldsArr.forEach(tempData => {
+                    incidentUnit.dataFieldsArr.forEach(tempData => {
                         dataFields[tempData] = {
                             label: tempData === '_menu' ? '' : f(`incidentFields.${tempData}`),
                             sortable: this.checkSortable(tempData),
                             formatter: (value, allValue, i) => {
-                                if (tempData === 'ipPort') {
-
+                                if (tempData === 'industryType') {
+                                    return <span>{this.mappingType(value)}</span>
                                 } else if (tempData === 'updateDttm') {
                                     return <span>{helper.getFormattedDate(value, 'local')}</span>
                                 } else if (tempData === '_menu') {
@@ -167,7 +181,7 @@ class IncidentDevice extends Component {
                     tempEdge.dataFields = dataFields;
 
                     this.setState({
-                        incidentDevice: tempEdge
+                        incidentUnit: tempEdge
                     });
                 }
                 return null;
@@ -175,40 +189,60 @@ class IncidentDevice extends Component {
             .catch(err => {
                 helper.showPopupMsg(t('txt-error'));
             });
-
-
     };
 
-    getUnitList = () => {
-        const {baseUrl, contextRoot} = this.context;
-        const url = `${baseUrl}/api/soc/unit/_search`;
-        let data = {};
-
-        helper.getAjaxData('POST', url, data)
-            .then(data => {
-                if (data) {
-                    let list = [];
-                    _.forEach(data.rows, val => {
-                        let tmp = {
-                            value: val.id, text: val.name
-                        };
-                        list.push(tmp)
-                    });
-                    this.setState({
-                        unitList: list
-                    });
-
-                }
-                return null;
-            })
-            .catch(err => {
-                helper.showPopupMsg(t('txt-error'), err);
-            });
+    mappingType = (value) => {
+        let info = '';
+        switch (value) {
+            case 0:
+                info = "能源";
+                break;
+            case 1:
+                info = "水資源";
+                break;
+            case 2:
+                info = "通訊傳播";
+                break;
+            case 3:
+                info = "交通";
+                break;
+            case 4:
+                info = "金融";
+                break;
+            case 5:
+                info = "緊急救援及醫院";
+                break;
+            case 6:
+                info = "中央及地方政府";
+                break;
+            case 7:
+                info = "科學園區與工業區";
+                break;
+            case 8:
+                info = "臺北區域聯防中心";
+                break;
+            case 9:
+                info = "新北區域聯防中心";
+                break;
+            case 10:
+                info = "桃園區域聯防中心";
+                break;
+            case 11:
+                info = "臺中區域聯防中心";
+                break;
+            case 12:
+                info = "臺南區域聯防中心";
+                break;
+            case 13:
+                info = "高雄區域聯防中心";
+                break;
+        }
+        return info;
     };
 
     /* ------------------ View ------------------- */
     render() {
-        const {activeContent, baseUrl, contextRoot, showFilter, incidentDevice} = this.state;
+        const {activeContent, baseUrl, contextRoot, showFilter, incidentUnit: incidentUnit} = this.state;
 
         return (
             <div>
@@ -241,12 +275,12 @@ class IncidentDevice extends Component {
                                         onClick={this.toggleContent.bind(this, 'addDevice')}>{t('txt-add')}</button>
                             </div>
                             <TableContent
-                                dataTableData={incidentDevice.dataContent}
-                                dataTableFields={incidentDevice.dataFields}
-                                dataTableSort={incidentDevice.sort}
-                                paginationTotalCount={incidentDevice.totalCount}
-                                paginationPageSize={incidentDevice.pageSize}
-                                paginationCurrentPage={incidentDevice.currentPage}
+                                dataTableData={incidentUnit.dataContent}
+                                dataTableFields={incidentUnit.dataFields}
+                                dataTableSort={incidentUnit.sort}
+                                paginationTotalCount={incidentUnit.totalCount}
+                                paginationPageSize={incidentUnit.pageSize}
+                                paginationCurrentPage={incidentUnit.currentPage}
                                 handleTableSort={this.handleTableSort}
                                 paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
                                 paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')}/>
@@ -262,14 +296,34 @@ class IncidentDevice extends Component {
         );
     }
 
+    /**
+     * Handle table pagination change
+     * @method
+     * @param {string} type - page type ('currentPage' or 'pageSize')
+     * @param {string | number} value - new page number
+     */
+    handlePaginationChange = (type, value) => {
+        let tempDevice = {...this.state.incidentDevice};
+        tempDevice[type] = Number(value);
+
+        if (type === 'pageSize') {
+            tempDevice.currentPage = 1;
+        }
+
+        this.setState({
+            incidentDevice: tempDevice
+        }, () => {
+            this.getData();
+        });
+    };
 
     /** TODO
-     * Display edit IncidentDevice content
+     * Display edit incidentUnit content
      * @method
      * @returns HTML DOM
      */
     displayEditDeviceContent = () => {
-        const {activeContent, incidentDevice, unitList} = this.state;
+        const {activeContent, incidentUnit} = this.state;
 
         return (
             <div className='main-content basic-form'>
@@ -289,100 +343,68 @@ class IncidentDevice extends Component {
                 <div className='form-group normal'>
                     <header>
                         <div className='text'>{t('edge-management.txt-basicInfo')}</div>
-
-                        {activeContent !== 'addDevice' &&
-                        <span
-                            className='msg'>{t('edge-management.txt-lastUpateTime')} {helper.getFormattedDate(incidentDevice.info.updateDttm, 'local')}</span>
-                        }
                     </header>
 
                     <div className='group'>
-                        <label htmlFor='deviceId'>{it('device.txt-id')}</label>
+                        <label htmlFor='oid'>{it('unit.txt-oid')}</label>
                         <Input
-                            id='deviceId'
-                            onChange={this.handleDataChange.bind(this, 'deviceId')}
-                            value={incidentDevice.info.deviceId}
-                            required={true}
+                            id='oid'
+                            onChange={this.handleDataChange.bind(this, 'oid')}
+                            value={incidentUnit.info.oid}
                             readOnly={activeContent === 'viewDevice'}/>
                     </div>
                     <div className='group'>
-                        <label htmlFor='deviceName'>{it('device.txt-name')}</label>
+                        <label htmlFor='name'>{it('unit.txt-name')}</label>
                         <Input
-                            id='deviceName'
-                            onChange={this.handleDataChange.bind(this, 'deviceName')}
-                            value={incidentDevice.info.deviceName}
-                            required={true}
+                            id='name'
+                            onChange={this.handleDataChange.bind(this, 'name')}
+                            value={incidentUnit.info.name}
                             readOnly={activeContent === 'viewDevice'}/>
                     </div>
 
                     <div className='group'>
-                        <label htmlFor='deviceCompany'>{it('device.txt-company')}</label>
-                        <Input
-                            id='deviceCompany'
-                            required={true}
-                            onChange={this.handleDataChange.bind(this, 'deviceCompany')}
-                            value={incidentDevice.info.deviceCompany}
-                            readOnly={activeContent === 'viewDevice'}/>
-                    </div>
-
-
-                    <div className='group'>
-                        <label htmlFor='protectType'>{it('txt-protect-type')}</label>
+                        <label htmlFor='level'>{it('unit.txt-level')}</label>
                         <DropDownList
-                            id='protectType'
+                            id='level'
                             required={true}
-                            list={PROTECT_TYPE_LIST}
-                            onChange={this.handleDataChange.bind(this, 'protectType')}
-                            value={incidentDevice.info.protectType}
+                            list={[
+                                {
+                                    value: 'A',
+                                    text: 'A'
+                                },
+                                {
+                                    value: 'B',
+                                    text: 'B'
+                                },
+                                {
+                                    value: 'C',
+                                    text: 'C'
+                                },
+                                {
+                                    value: 'D',
+                                    text: 'D'
+                                },
+                                {
+                                    value: 'E',
+                                    text: 'E'
+                                },
+                            ]}
+
+                            onChange={this.handleDataChange.bind(this, 'level')}
+                            value={incidentUnit.info.level}
                             readOnly={activeContent === 'viewDevice'}/>
                     </div>
 
-                    {incidentDevice.info.protectType === '6' &&
                     <div className='group'>
-                        <label htmlFor='protectTypeInfo'>{it('txt-protect-type-info')}</label>
-                        <Input
-                            id='protectTypeInfo'
-                            onChange={this.handleDataChange.bind(this, 'protectTypeInfo')}
-                            value={incidentDevice.info.protectTypeInfo}
-                            readOnly={activeContent === 'viewDevice'}/>
-                    </div>
-                    }
-
-
-
-                    <div className='group'>
-                        <label htmlFor='unitId'>{it('unit.txt-name')}</label>
+                        <label htmlFor='industryType'>{it('unit.txt-type')}</label>
                         <DropDownList
-                            id='unitId'
+                            id='industryType'
                             required={true}
-                            list={unitList}
-                            onChange={this.handleDataChange.bind(this, 'unitId')}
-                            value={incidentDevice.info.unitId}
+                            list={INDUSTRY_TYPE_LIST}
+                            onChange={this.handleDataChange.bind(this, 'industryType')}
+                            value={incidentUnit.info.industryType}
                             readOnly={activeContent === 'viewDevice'}/>
                     </div>
-
-                    {activeContent !== 'addDevice' &&
-                    <div className='group'>
-                        <label htmlFor='frequency'>{it('txt-frequency')}</label>
-                        <Input
-                            id='frequency'
-                            onChange={this.handleDataChange.bind(this, 'frequency')}
-                            value={incidentDevice.info.frequency}
-                            readOnly={activeContent === 'viewDevice'}/>
-                    </div>
-                    }
-                    {activeContent !== 'addDevice' &&
-                    <div className='group full'>
-                        <label htmlFor='note'>{it('txt-note')} ({t('txt-memoMaxLength')})</label>
-                        <Textarea
-                            id='note'
-                            rows={4}
-                            maxLength={250}
-                            value={incidentDevice.info.note}
-                            onChange={this.handleDataChange.bind(this, 'note')}
-                            readOnly={activeContent === 'viewDevice'}/>
-                    </div>
-                    }
                 </div>
 
                 {activeContent === 'editDevice' &&
@@ -398,12 +420,12 @@ class IncidentDevice extends Component {
                     <button className='standard'
                             onClick={this.toggleContent.bind(this, 'cancel-add')}>{t('txt-cancel')}</button>
                     <button onClick={this.handleDeviceSubmit}>{t('txt-save')}</button>
+
                 </footer>
                 }
             </div>
         )
     };
-
 
     /**
      * Handle IncidentDevice Edit confirm
@@ -411,27 +433,27 @@ class IncidentDevice extends Component {
      */
     handleDeviceSubmit = () => {
         const {baseUrl} = this.context;
-        const {incidentDevice} = this.state;
+        const {incidentUnit} = this.state;
 
-        if (!this.checkAddData(incidentDevice)) {
+        if (!this.checkAddData(incidentUnit)) {
             return
         }
 
         let apiType = 'POST';
 
-        if (incidentDevice.info.id) {
+        if (incidentUnit.info.id) {
             apiType = 'PATCH'
         }
 
         ah.one({
-            url: `${baseUrl}/api/soc/device`,
-            data: JSON.stringify(incidentDevice.info),
+            url: `${baseUrl}/api/soc/unit`,
+            data: JSON.stringify(incidentUnit.info),
             type: apiType,
             contentType: 'text/plain'
         })
             .then(data => {
                 this.setState({
-                    originalIncidentDeviceData: _.cloneDeep(incidentDevice)
+                    originalIncidentDeviceData: _.cloneDeep(incidentUnit)
                 }, () => {
                     this.toggleContent('cancel');
                 });
@@ -444,11 +466,13 @@ class IncidentDevice extends Component {
     };
 
 
-    checkAddData = (incidentDevice) => {
+    checkAddData = (incidentUnit) => {
 
-        if (!incidentDevice.info.unitId || !incidentDevice.info.deviceId ||  !incidentDevice.info.deviceCompany ||
-            !incidentDevice.info.deviceName || !incidentDevice.info.protectType) {
-            helper.showPopupMsg('', t('txt-error'), '[Unit],[Device ID],[Device Name] and [Device Type] is required');
+        if (!incidentUnit.info.oid ||
+            !incidentUnit.info.name ||
+            !incidentUnit.info.level ||
+            !incidentUnit.info.industryType) {
+            helper.showPopupMsg('', t('txt-error'), '[Unit OID],[Unit Name],[Unit Level] and [Unit Industry] is required');
             return false;
         }
 
@@ -462,7 +486,7 @@ class IncidentDevice extends Component {
      * @returns HTML DOM
      */
     renderFilter = () => {
-        const {showFilter, deviceSearch} = this.state;
+        const {showFilter, unitSearch} = this.state;
 
         return (
             <div className={cx('main-filter', {'active': showFilter})}>
@@ -470,17 +494,26 @@ class IncidentDevice extends Component {
                 <div className='header-text'>{t('txt-filter')}</div>
                 <div className='filter-section config'>
                     <div className='group'>
-                        <label htmlFor='edgeSearchKeyword' className='first-label'>{f('edgeFields.keywords')}</label>
+                        <label htmlFor='keyword' className='first-label'>{f('incidentFields.keywords')}</label>
                         <Input
-                            id='edgeSearchKeyword'
+                            id='keyword'
                             className='search-textarea'
-                            onChange={this.handleDeviceSearch.bind(this, 'keyword')}
-                            value={deviceSearch.keyword}/>
+                            onChange={this.handleUnitSearch.bind(this, 'keyword')}
+                            value={unitSearch.keyword}/>
+                    </div>
+                    <div className='group'>
+                        <label htmlFor='industryType' className='first-label'>{f('incidentFields.industryType')}</label>
+                        <DropDownList
+                            id='industryType'
+                            list={INDUSTRY_TYPE_LIST}
+                            onChange={this.handleUnitSearch.bind(this, 'industryType')}
+                            value={unitSearch.industryType}/>
+
                     </div>
                 </div>
                 <div className='button-group'>
                     <button className='filter'
-                            onClick={this.getDeviceData.bind(this, 'search')}>{t('txt-filter')}</button>
+                            onClick={this.getData.bind(this, 'search')}>{t('txt-filter')}</button>
                     <button className='clear' onClick={this.clearFilter}>{t('txt-clear')}</button>
                 </div>
             </div>
@@ -502,7 +535,7 @@ class IncidentDevice extends Component {
             display: this.getDeleteIncidentDeviceContent(allValue),
             act: (confirmed, data) => {
                 if (confirmed) {
-                    this.deleteDevice();
+                    this.deleteUnit();
                 }
             }
         });
@@ -521,7 +554,7 @@ class IncidentDevice extends Component {
 
         return (
             <div className='content delete'>
-                <span>{t('txt-delete-msg')}: {allValue.deviceName + ': ID(' + allValue.deviceId + ')'} ?</span>
+                <span>{t('txt-delete-msg')}:{allValue.name} ?</span>
             </div>
         )
     };
@@ -530,7 +563,7 @@ class IncidentDevice extends Component {
      * Handle delete IncidentDevice confirm
      * @method
      */
-    deleteDevice = () => {
+    deleteUnit = () => {
         const {baseUrl} = this.context;
         const {currentIncidentDeviceData} = this.state;
 
@@ -539,12 +572,12 @@ class IncidentDevice extends Component {
         }
 
         ah.one({
-            url: `${baseUrl}/api/soc/device?id=${currentIncidentDeviceData.id}`,
+            url: `${baseUrl}/api/soc/unit?id=${currentIncidentDeviceData.id}`,
             type: 'DELETE'
         })
             .then(data => {
                 if (data.ret === 0) {
-                    this.getDeviceData();
+                    this.getData();
                 }
                 return null;
             })
@@ -554,40 +587,19 @@ class IncidentDevice extends Component {
     };
 
     /**
-     * Handle table pagination change
-     * @method
-     * @param {string} type - page type ('currentPage' or 'pageSize')
-     * @param {string | number} value - new page number
-     */
-    handlePaginationChange = (type, value) => {
-        let tempDevice = {...this.state.incidentDevice};
-        tempDevice[type] = Number(value);
-
-        if (type === 'pageSize') {
-            tempDevice.currentPage = 1;
-        }
-
-        this.setState({
-            incidentDevice: tempDevice
-        }, () => {
-            this.getDeviceData();
-        });
-    };
-
-    /**
      * Handle table sort
      * @method
      * @param {object} sort - sort data object
      */
     handleTableSort = (sort) => {
-        let tempDevice = {...this.state.incidentDevice};
+        let tempDevice = {...this.state.incidentUnit};
         tempDevice.sort.field = sort.field;
         tempDevice.sort.desc = sort.desc;
 
         this.setState({
-            incidentDevice: tempDevice
+            incidentUnit: tempDevice
         }, () => {
-            this.getDeviceData();
+            this.getData();
         });
     };
 
@@ -614,22 +626,17 @@ class IncidentDevice extends Component {
      * @param {object} allValue - Edge data
      */
     toggleContent = (type, allValue) => {
-        const {originalIncidentDeviceData, incidentDevice} = this.state;
-        let tempIncidentDevice = {...incidentDevice};
+        const {originalIncidentDeviceData, incidentUnit} = this.state;
+        let tempIncidentDevice = {...incidentUnit};
         let showPage = type;
 
         if (type === 'viewDevice') {
             tempIncidentDevice.info = {
                 id: allValue.id,
-                deviceId: allValue.deviceId,
-                deviceCompany:allValue.deviceCompany,
-                deviceName: allValue.deviceName,
-                unitId:allValue.unitId,
-                frequency: allValue.frequency,
-                protectType: allValue.protectType,
-                protectTypeInfo: allValue.protectTypeInfo,
-                note: allValue.note,
-                updateDttm: allValue.updateDttm
+                oid: allValue.oid,
+                name: allValue.name,
+                level: allValue.level,
+                industryType: allValue.industryType,
             };
             this.setState({
                 showFilter: false,
@@ -639,15 +646,10 @@ class IncidentDevice extends Component {
         } else if (type === 'addDevice') {
             tempIncidentDevice.info = {
                 id: allValue.id,
-                deviceId: allValue.deviceId,
-                deviceName: allValue.deviceName,
-                deviceCompany:allValue.deviceCompany,
-                unitId:allValue.unitId,
-                frequency: allValue.frequency,
-                protectType: allValue.protectType,
-                protectTypeInfo: allValue.protectTypeInfo,
-                note: allValue.note,
-                updateDttm: allValue.updateDttm
+                oid: allValue.oid,
+                name: allValue.name,
+                level: allValue.level,
+                industryType: allValue.industryType,
             };
             this.setState({
                 showFilter: false,
@@ -655,7 +657,7 @@ class IncidentDevice extends Component {
                 originalIncidentDeviceData: _.cloneDeep(tempIncidentDevice)
             });
         } else if (type === 'tableList') {
-            tempIncidentDevice.info = _.cloneDeep(incidentDevice.info);
+            tempIncidentDevice.info = _.cloneDeep(incidentUnit.info);
         } else if (type === 'cancel-add') {
             showPage = 'tableList';
             tempIncidentDevice = _.cloneDeep(originalIncidentDeviceData);
@@ -666,10 +668,10 @@ class IncidentDevice extends Component {
 
         this.setState({
             activeContent: showPage,
-            incidentDevice: tempIncidentDevice
+            incidentUnit: tempIncidentDevice
         }, () => {
             if (type === 'tableList') {
-                this.getDeviceData();
+                this.getData();
             }
         });
     };
@@ -680,12 +682,12 @@ class IncidentDevice extends Component {
      * @param {string} type - input type
      * @param {string} value - input value
      */
-    handleDeviceSearch = (type, value) => {
-        let tempDeviceSearch = {...this.state.deviceSearch};
-        tempDeviceSearch[type] = value;
+    handleUnitSearch = (type, value) => {
+        let tempUnitSearch = {...this.state.unitSearch};
+        tempUnitSearch[type] = value;
 
         this.setState({
-            deviceSearch: tempDeviceSearch
+            unitSearch: tempUnitSearch
         });
     };
 
@@ -705,8 +707,9 @@ class IncidentDevice extends Component {
      */
     clearFilter = () => {
         this.setState({
-            deviceSearch: {
-                keyword: ''
+            unitSearch: {
+                keyword: '',
+                industryType: 99
             }
         });
     };
@@ -718,20 +721,20 @@ class IncidentDevice extends Component {
      * @param {string} value - input value
      */
     handleDataChange = (type, value) => {
-        let tempDevice = {...this.state.incidentDevice};
+        let tempDevice = {...this.state.incidentUnit};
         tempDevice.info[type] = value;
 
         this.setState({
-            incidentDevice: tempDevice
+            incidentUnit: tempDevice
         });
     };
 
 }
 
-IncidentDevice.contextType = BaseDataContext;
+IncidentUnit.contextType = BaseDataContext;
 
-IncidentDevice.propTypes = {
+IncidentUnit.propTypes = {
     // nodeBaseUrl: PropTypes.string.isRequired
 };
 
-export default IncidentDevice;
+export default IncidentUnit;

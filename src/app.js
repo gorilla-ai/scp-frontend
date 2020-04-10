@@ -30,6 +30,7 @@ import ThreatIntelligence from './components/configuration/edge/threat'
 import UserAccounts from './components/configuration/user/accounts/index'
 import UserPrivileges from './components/configuration/user/privileges/index'
 import IncidentDevice from './components/soc/incident-device'
+import IncidentUnit from './components/soc/incident-unit'
 import Incident from './components/soc/Incident'
 
 import {setupConfigService} from 'widget-builder'
@@ -181,6 +182,12 @@ const incident = () => (
     </BaseDataContext.Provider>
 );
 
+const incidentUnit = () => (
+    <BaseDataContext.Provider value={baseData}>
+        <IncidentUnit/>
+    </BaseDataContext.Provider>
+);
+
 
 const Main = () => (
     <main className='main'>
@@ -204,6 +211,7 @@ const Main = () => (
             <Route exact path='/SCP/configuration/service-status' component={serviceStatus}/>
             <Route exact path='/SCP/configuration/product-info' component={productInfo}/>
             <Route exact path='/SCP/soc/incident-device' component={incidentDevice}/>
+            <Route exact path='/SCP/soc/incident-unit' component={incidentUnit}/>
             <Route exact path='/SCP/soc/incident' component={incident}/>
         </Switch>
   </main>

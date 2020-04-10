@@ -533,11 +533,18 @@
     "victimName": "Victim",
     "reporter": "Reporter",
     "createDttm": "Create Datetime",
+    "incidentUnitDTO": {
+      "name": "Unit Name",
+      "level": "Unit Level"
+    },
+    "keywords": "Keywords",
     "deviceId": "Device ID",
     "deviceName": "Device Name",
     "protectTypeInfo": "Protect Type",
-    "unitName": "Unit Name",
-    "unitLevel": "Unit Level",
+    "oid": "Unit OID",
+    "name": "Unit Name",
+    "level": "Unit Level",
+    "industryType": "Unit Industry",
     "frequency": "Trigger Frequency",
     "updateDttm": "Last Update Time"
   }

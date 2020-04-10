@@ -2,16 +2,19 @@
 	"txt-soc": "SOC",
 	"txt-incident": "Incident",
 	"txt-incident-device": "Incident Device",
+	"txt-incident-unit": "Incident Unit",
 	"txt-incident-management": "Incident Management",
 	"txt-incident-device-management": "Incident Device Management",
 	"unit": {
 		"txt-name": "Unit",
 		"txt-oid": "Unit OID",
-		"txt-level": "Unit Level"
+		"txt-level": "Unit Level",
+		"txt-type": "Unit Industry"
 	},
 	"device": {
 		"txt-name": "Device Name",
-		"txt-id": "Device Id"
+		"txt-id": "Device Id",
+		"txt-company": "Device Company"
 	},
 	"txt-protect-type": "Protect Type",
 	"txt-protect-type-info": "Other Info",
