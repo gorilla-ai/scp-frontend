@@ -16,5 +16,15 @@
 	"txt-protect-type": "Protect Type",
 	"txt-protect-type-info": "Other Info",
 	"txt-frequency": "Frequency",
-	"txt-note": "Note"
+	"txt-note": "Note",
+	"category": {
+		"1": "入侵攻擊類",
+		"2": "惡意程式類",
+		"3": "掃描刺探類",
+		"4": "經同意之網路攻防演練類",
+		"5": "阻斷服務類",
+		"6": "政策規則類",
+		"7": "尚需調查類",
+		"8": "系統服務類"
+	}
 }

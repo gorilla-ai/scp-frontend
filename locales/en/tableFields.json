@@ -527,6 +527,12 @@
     "serviceName": "Service Name"
   },
   "incidentFields": {
+    "id": "ID",
+    "title": "Title",
+    "category": "Category",
+    "victimName": "Victim",
+    "reporter": "Reporter",
+    "createDttm": "Create Datetime",
     "deviceId": "Device ID",
     "deviceName": "Device Name",
     "protectTypeInfo": "Protect Type",

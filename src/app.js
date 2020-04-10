@@ -191,8 +191,8 @@ const Main = () => (
             <Route exact path='/SCP/threats' component={ThreatsComp}/>
             <Route exact path='/SCP/events/netflow' component={NetflowComp}/>
             <Route exact path='/SCP/events/syslog' component={SyslogComp}/>
-      <Route exact path='/SCP/events/endpoint' component={EndpointComp} />
-      <Route exact path='/SCP/configuration/notifications' component={Notifications} />
+            <Route exact path='/SCP/events/endpoint' component={EndpointComp} />
+            <Route exact path='/SCP/configuration/notifications' component={Notifications} />
             <Route exact path='/SCP/configuration/edge/edge' component={Edge}/>
             <Route exact path='/SCP/configuration/edge/threat' component={Threat}/>
             <Route exact path='/SCP/configuration/topology/inventory' component={NetworkTopologyInventory}/>
