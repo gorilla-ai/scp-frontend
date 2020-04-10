@@ -527,11 +527,17 @@
     "serviceName": "服務名稱"
   },
   "incidentFields": {
+    "incidentUnitDTO": {
+      "name": "機關名稱",
+      "level": "機關等級"
+    },
     "deviceId": "設備代號",
     "deviceName": "設備名稱與型號",
     "protectTypeInfo": "資安防護類型",
-    "unitName": "機關名稱",
-    "unitLevel": "機關等級",
+    "oid": "機關OID",
+    "name": "機關名稱",
+    "level": "機關等級",
+    "industryType": "機關領域",
     "frequency": "觸發次數",
     "updateDttm": "最後更新時間"
   }

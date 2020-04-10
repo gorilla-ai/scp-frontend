@@ -223,7 +223,7 @@ class Header extends Component {
                   <Link to='/SCP/configuration/edge/edge' className={cx('item', {'active': this.getActiveTab('configuration')})}>{t('txt-configuration')}</Link>
                 }
 
-                <Link to='/SCP/soc/device' className={cx('item', {'active': this.getActiveTab('soc')})}>{it('txt-soc')}</Link>
+                <Link to='/SCP/soc/incident' className={cx('item', {'active': this.getActiveTab('soc')})}>{it('txt-soc')}</Link>
 
               </div>
             </div>
