@@ -202,6 +202,10 @@ class Severity extends Component {
         showFilter: false,
         originalSeverityData: _.cloneDeep(tempSeverity)
       });
+    } else if (type === 'addSeverity') {
+      this.setState({
+        showFilter: false
+      });      
     } else if (type === 'cancel') {
       showPage = 'viewSeverity';
       tempSeverity = _.cloneDeep(originalSeverityData);
