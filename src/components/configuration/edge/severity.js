@@ -541,8 +541,6 @@ class Severity extends Component {
     this.setState({
       severitySearchType: '',
       severitySearchOptions: {}
-    }, () => {
-      this.setDefaultSearchOptions();
     });
   }
   render() {
