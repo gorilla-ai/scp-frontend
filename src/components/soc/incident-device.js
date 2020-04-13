@@ -10,6 +10,7 @@ import PopupDialog from "react-ui/build/src/components/popup-dialog";
 import TableContent from "../common/table-content";
 import DropDownList from "react-ui/build/src/components/dropdown";
 import Textarea from "react-ui/build/src/components/textarea";
+import {downloadWithForm} from "react-ui/build/src/utils/download";
 
 const INCIDENT = "incident";
 const DEVICE = "device";
@@ -215,9 +216,11 @@ class IncidentDevice extends Component {
 
                 <div className="sub-header">
                     <div className='secondary-btn-group right'>
-                        <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter}
-                                title={t('txt-filter')}><i className='fg fg-filter'/></button>
+                        <button className={cx('', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'/></button>
+
+                        <button className='' onClick={this.getCSV_File} title={t('events.connections.txt-exportCSV')}><i className='fg fg-data-download'/></button>
                     </div>
+
                 </div>
 
                 <div className='data-content'>
@@ -725,6 +728,19 @@ class IncidentDevice extends Component {
             incidentDevice: tempDevice
         });
     };
+
+    /**
+     * Handle CSV download
+     * @method
+     */
+    getCSV_File = () => {
+        const {baseUrl, contextRoot} = this.context;
+        const url = `${baseUrl}${contextRoot}/api/soc/device/_export`;
+        let requestData = {
+            "columns": []
+        };
+        downloadWithForm(url, {payload: JSON.stringify(requestData)});
+    }
 
 }
 

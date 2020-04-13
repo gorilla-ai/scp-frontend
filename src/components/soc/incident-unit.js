@@ -265,7 +265,7 @@ class IncidentUnit extends Component {
 
                         {activeContent === 'tableList' &&
                         <div className='main-content'>
-                            <header className='main-header'>{it('txt-incident-device')}</header>
+                            <header className='main-header'>{it('txt-incident-unit')}</header>
                             <div className='content-header-btns'>
                                 {activeContent === 'viewDevice' &&
                                 <button className='standard btn list'
