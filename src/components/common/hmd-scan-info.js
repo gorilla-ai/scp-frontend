@@ -23,12 +23,8 @@ const SAFETY_SCAN_LIST = [
     path: 'ScanResult'
   },
   {
-    type: 'yaraScanFile',
-    path: 'ScanResult'
-  },
-  {
-    type: 'malware',
-    path: 'DetectionResult'
+    type: 'scanFile',
+    path: 'scanFileResult'
   },
   {
     type: 'gcb',
@@ -41,9 +37,8 @@ const SAFETY_SCAN_LIST = [
 ];
 const TRIGGER_NAME = {
   [SAFETY_SCAN_LIST[0].type]: 'compareIOC',
-  [SAFETY_SCAN_LIST[1].type]: 'yaraScanFile',
-  [SAFETY_SCAN_LIST[2].type]: 'malwareDetection',
-  [SAFETY_SCAN_LIST[3].type]: 'gcbDetection'
+  [SAFETY_SCAN_LIST[1].type]: 'scanFile',
+  [SAFETY_SCAN_LIST[2].type]: 'gcbDetection'
 };
 
 let scrollCount = 1;
@@ -61,7 +56,7 @@ class HMDscanInfo extends Component {
     super(props);
 
     this.state = {
-      activeTab: 'yara', //yara, yaraScanFile, malware, gcb, ir
+      activeTab: 'yara', //yara, scanFile, gcb, ir
       syncStatus: '',
       syncTime: '',
       buttonGroupList: [],
@@ -70,16 +65,14 @@ class HMDscanInfo extends Component {
       activeRule: [],
       activeDLL: false,
       activeConnections: false,
-      malwareFieldsArr: ['_FileInfo._Filepath', '_FileInfo._Filesize', '_FileInfo._HashValues._MD5', '_IsPE', '_IsPEextension', '_IsVerifyTrust', 'hostIdArrCnt'],
-      malwareSort: ['asc'],
       gcbFieldsArr: ['_CceId', '_OriginalKey', '_Type', '_CompareResult'],
       gcbSort: 'asc',
       hmdInfo: {},
       hasMore: true
     };
 
-    t = chewbaccaI18n.getFixedT(null, 'connections');
-    f = chewbaccaI18n.getFixedT(null, 'tableFields');
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
@@ -142,7 +135,7 @@ class HMDscanInfo extends Component {
   loadHMDdata = () => {
     const {locale} = this.context;
     const {currentDeviceData} = this.props;
-    const {malwareFieldsArr, malwareSort, gcbFieldsArr, gcbSort} = this.state;
+    const {gcbFieldsArr, gcbSort} = this.state;
     let hmdInfo = {};
 
     _.forEach(SAFETY_SCAN_LIST, val => {
@@ -152,7 +145,7 @@ class HMDscanInfo extends Component {
     _.forEach(SAFETY_SCAN_LIST, val => { //Construct the HMD info object
       const currentDataObj = currentDeviceData[val.type + 'Result'];
 
-      if (!_.isEmpty(currentDataObj[0])) {
+      if (currentDataObj && currentDataObj.length > 0 && !_.isEmpty(currentDataObj[0])) {
         hmdInfo[val.type] = {
           latestCreateDttm: helper.getFormattedDate(currentDataObj[0].latestCreateDttm, 'local'),
           createTime: helper.getFormattedDate(currentDataObj[0].taskCreateDttm, 'local'),
@@ -161,50 +154,6 @@ class HMDscanInfo extends Component {
         };
       }
     })
-
-    if (hmdInfo.malware && hmdInfo.malware.data) {
-      hmdInfo.malware.fields = {};
-      malwareFieldsArr.forEach(tempData => {
-        hmdInfo.malware.fields[tempData] = {
-          label: f(`malwareFields.${tempData}`),
-          sortable: true,
-          className: this.getFieldName(tempData),
-          formatter: (value, allValue) => {
-            if (tempData === '_FileInfo._Filepath') {
-              return <span>{value}</span>
-            }
-            if (tempData === '_FileInfo._HashValues._MD5') {
-              return <span>{value}</span>
-            }
-            if (tempData === '_FileInfo._Filesize') {
-              value = value + ' KB';
-            }
-            if (tempData === '_IsPE' || tempData === '_IsPEextension' || tempData === '_IsVerifyTrust') {
-              let styleStatus = '';
-
-              if (value) {
-                styleStatus = '#22ac38';
-                value = 'True';
-              } else {
-                styleStatus = '#d0021b';
-                value = 'False';
-              }
-
-              return <span style={{color : styleStatus}}>{value}</span>
-            }
-            if (tempData === 'hostIdArrCnt') {
-              if (allValue.hostIdArr) {
-                const tooltip = f('malwareFields.hostIdArrCnt') + '/' + f('malwareFields.totalHostCnt') + ': ' + value + '/' + allValue.totalHostCnt;
-                return <span title={tooltip}>{value}</span>
-              } else {
-                value = NOT_AVAILABLE;
-              }
-            }
-            return <span>{value}</span>
-          }
-        };
-      })
-    }
 
     if (hmdInfo.gcb && hmdInfo.gcb.data) {
       hmdInfo.gcb.filteredResult = _.filter(hmdInfo.gcb.data[0].GCBResult, ['_CompareResult', true]);
@@ -510,17 +459,17 @@ class HMDscanInfo extends Component {
    */
   displayScanProcessPath = (parentIndex, val, i) => {
     const {activePath, activeRuleHeader, activeDLL, activeConnections} = this.state;
-    const uniqueKey = val._ScanType + i;
-    let displayInfo = '';
-
-    if (val._MatchedRuleList && val._MatchedRuleList.length > 0 && val._MatchedRuleNameList) {
-      displayInfo = val._MatchedRuleList.map(this.displayRule.bind(this, val._MatchedRuleNameList));
-    } else {
-      displayInfo = NOT_AVAILABLE;
-    }
 
     if (val._MatchedFile || val._MatchedPid) {
+      const uniqueKey = val._ScanType + i;
       const uniqueID = parentIndex.toString() + i.toString() + (val._MatchedFile || val._MatchedPid);
+      let displayInfo = '';
+
+      if (val._MatchedRuleList && val._MatchedRuleList.length > 0 && val._MatchedRuleNameList) {
+        displayInfo = val._MatchedRuleList.map(this.displayRule.bind(this, val._MatchedRuleNameList));
+      } else {
+        displayInfo = NOT_AVAILABLE;
+      }      
 
       return (
         <div className='group' key={uniqueKey}>
@@ -568,7 +517,27 @@ class HMDscanInfo extends Component {
     }
   }
   /**
-   * Display Yara Scan File content
+   * Display boolean value
+   * @method
+   * @param {boolean} val - true/false value
+   * @returns HTML DOM
+   */
+  getBoolValue = (val) => {
+    return <span style={{color : val ? '#22ac38' : '#d0021b'}}>{val.toString()}</span>
+  }
+  /**
+   * Get host ID count and tooltip
+   * @method
+   * @param {object} val - AI data object
+   * @returns HTML DOM
+   */
+  getHostIdCnt = (val) => {
+    const tooltip = f('malwareFields.hostIdArrCnt') + '/' + f('malwareFields.totalHostCnt') + ': ' + val.hostIdArrCnt + '/' + val.totalHostCnt;
+
+    return <span title={tooltip}>{val.hostIdArrCnt}</span>
+  }
+  /**
+   * Display Scan File content
    * @method
    * @param {number} parentIndex - parent index of the scan file array
    * @param {object} val - scan file content
@@ -577,22 +546,35 @@ class HMDscanInfo extends Component {
    */
   displayScanFilePath = (parentIndex, val, i) => {
     const {activePath, activeRuleHeader} = this.state;
-    const uniqueKey = val._ScanType + i;
-    let displayInfo = '';
+    let uniqueKey = '';
+    let uniqueID = '';
+    let displayInfo = NOT_AVAILABLE;
+    let showFilePath = false;
 
-    if (val._MatchedRuleList && val._MatchedRuleList.length > 0 && val._MatchedRuleNameList) {
-      displayInfo = val._MatchedRuleList.map(this.displayRule.bind(this, val._MatchedRuleNameList));
-    } else {
-      displayInfo = NOT_AVAILABLE;
+    if (val._FileInfo) { //For AI
+      uniqueKey = val._FileInfo._Filepath + i;
+      uniqueID = parentIndex.toString() + i.toString() + val._FileInfo._Filepath;
+      showFilePath = true;
     }
 
-    if (val._MatchedFile || val._MatchedPid) {
-      const uniqueID = parentIndex.toString() + i.toString() + (val._MatchedFile || val._MatchedPid);
+    if (val._MatchedFile || val._MatchedPid) { //For Yara
+      uniqueKey = val._ScanType + i;
+      uniqueID = parentIndex.toString() + i.toString() + (val._MatchedFile || val._MatchedPid);
+      showFilePath = true;
 
+      if (val._MatchedRuleList && val._MatchedRuleList.length > 0 && val._MatchedRuleNameList) {
+        displayInfo = val._MatchedRuleList.map(this.displayRule.bind(this, val._MatchedRuleNameList));
+      }
+    }
+
+    if (showFilePath) {
       return (
         <div className='group' key={uniqueKey}>
           <div className='path' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
             <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`}></i>
+            {val._FileInfo && val._FileInfo._Filepath &&
+              <span>{t('txt-path')}: {val._FileInfo._Filepath}</span>
+            }
             {val._MatchedFile &&
               <span>{t('txt-path')}: {val._MatchedFile}</span>
             }
@@ -602,16 +584,39 @@ class HMDscanInfo extends Component {
             {val._MatchedPid &&
               <span>PID: {val._MatchedPid}</span>
             }
+            {val._FileInfo && val._FileInfo._Filepath &&
+              <span className='right'>AI</span>
+            }
+            {val._ScanType &&
+              <span className='right'>Yara</span>
+            }
           </div>
           <div className={cx('rule', {'hide': activePath !== uniqueID})}>
             <div className='rule-content'>
-              <div className='header' onClick={this.toggleInfoHeader.bind(this, 'rule')}>
-                <i className={cx('fg fg-play', {'rotate': activeRuleHeader})}></i>
-                <span>{t('txt-rule')}</span>
-              </div>
-              <div className={cx('sub-content', {'hide': !activeRuleHeader})}>
-                {displayInfo}
-              </div>
+              {val._FileInfo && val._FileInfo._Filepath &&
+                <div className='header'>
+                  <ul>
+                    <li>{f('malwareFields._FileInfo._Filepath')}: {val._FileInfo._Filepath}</li>
+                    <li>{f('malwareFields._FileInfo._Filesize')}: {val._FileInfo._Filesize  + 'KB'}</li>
+                    <li>{f('malwareFields._FileInfo._HashValues._MD5')}: {val._FileInfo._HashValues._MD5}</li>
+                    <li>{f('malwareFields._IsPE')}: {this.getBoolValue(val._IsPE)}</li>
+                    <li>{f('malwareFields._IsPEextension')}: {this.getBoolValue(val._IsPEextension)}</li>
+                    <li>{f('malwareFields._IsVerifyTrust')}: {this.getBoolValue(val._IsVerifyTrust)}</li>
+                    <li>{f('malwareFields.hostIdArrCnt')}: {this.getHostIdCnt(val)}</li>
+                  </ul>
+                </div>
+              }
+              {(val._MatchedFile || val._MatchedPid) &&
+                <div>
+                  <div className='header' onClick={this.toggleInfoHeader.bind(this, 'rule')}>
+                    <i className={cx('fg fg-play', {'rotate': activeRuleHeader})}></i>
+                    <span>{t('txt-rule')}</span>
+                  </div>
+                  <div className={cx('sub-content', {'hide': !activeRuleHeader})}>
+                    {displayInfo}
+                  </div>
+                </div>
+              }
             </div>
           </div>
         </div>
@@ -729,7 +734,7 @@ class HMDscanInfo extends Component {
    */  
   displayScanContent = (val, i) => {
     const {activeTab} = this.state;
-    const dataResult = this.sortedRuleList(val.ScanResult);
+    let dataResult = [];
     let scanPath = '';
 
     if (!val.taskResponseDttm) {
@@ -737,8 +742,10 @@ class HMDscanInfo extends Component {
     }
 
     if (activeTab === 'yara') {
+      dataResult = this.sortedRuleList(val.ScanResult);
       scanPath = this.displayScanProcessPath.bind(this, i);
-    } else if (activeTab === 'yaraScanFile') {
+    } else if (activeTab === 'scanFile') {
+      dataResult = _.concat(val.DetectionResult, val.ScanResult);
       scanPath = this.displayScanFilePath.bind(this, i);
     }
 
@@ -750,7 +757,7 @@ class HMDscanInfo extends Component {
           {this.getSuspiciousFileCount(dataResult)}
         </div>
         <div className='scan-content'>
-          <div className='header'>{t('network-inventory.txt-suspiciousFilePath')}</div>
+          <div className='header rule'>{t('network-inventory.txt-suspiciousFilePath')}</div>
           {dataResult && dataResult.length > 0 &&
             <div className='list'>
               {dataResult.map(scanPath)}
@@ -764,36 +771,30 @@ class HMDscanInfo extends Component {
     )
   }
   /**
-   * Handle table sort for malware and gcb
+   * Handle table sort for gcb
    * @method
    */
   handleTableSort = () => {
-    const {activeTab, malwareSort, gcbSort} = this.state;
+    const {activeTab, gcbSort} = this.state;
 
-    if (activeTab === 'malware') {
-      this.setState({
-        malwareSort: malwareSort === 'asc' ? 'desc' : 'asc'
-      });
-    } else if (activeTab === 'gcb') {
+    if (activeTab === 'gcb') {
       this.setState({
         gcbSort: gcbSort === 'asc' ? 'desc' : 'asc'
       });
     }
   }
   /**
-   * Display table data for malware and gcb
+   * Display table data for gcb
    * @method
    * @param {string} activeTab - current active tab
    * @param {object} val - HMD data
    * @returns DataTable component
    */
   displayDataTable = (activeTab, val) => {
-    const {hmdInfo, malwareSort, gcbSort} = this.state;
+    const {hmdInfo, gcbSort} = this.state;
     let data = '';
 
-    if (activeTab === 'malware') {
-      data = _.orderBy(val.DetectionResult, ['_IsVerifyTrust'], [malwareSort]);
-    } else if (activeTab === 'gcb') {
+    if (activeTab === 'gcb') {
       data = _.orderBy(val.GCBResult, ['_CompareResult'], [gcbSort]);
     }
 
@@ -812,9 +813,9 @@ class HMDscanInfo extends Component {
     }
   }
   /**
-   * Display table content for malware and gcb
+   * Display table content for gcb
    * @method
-   * @param {object} val - malware and gcb data
+   * @param {object} val - gcb data
    * @param {number} i - index of the file array
    * @returns HTML DOM
    */
@@ -831,7 +832,6 @@ class HMDscanInfo extends Component {
           <div className='scan-header'>
             <span>{t('network-inventory.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local') || NOT_AVAILABLE}</span>
             <span>{t('network-inventory.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}</span>
-            {activeTab === 'malware' && this.getSuspiciousFileCount(val.DetectionResult)}
             {activeTab === 'gcb' && this.getPassTotalCount()}
           </div>
           {this.displayDataTable(activeTab, val)}
@@ -858,7 +858,7 @@ class HMDscanInfo extends Component {
           <span>{t('network-inventory.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}</span>
         </div>
         <div className='scan-content'>
-          <div className='header'>{t('network-inventory.txt-irMsg')}:</div>
+          <div className='header rule'>{t('network-inventory.txt-irMsg')}:</div>
           <div className='empty-msg'>{val._ZipPath || NOT_AVAILABLE}</div>
         </div>
       </div>
@@ -890,9 +890,9 @@ class HMDscanInfo extends Component {
     const loader = '';
     let displayContent = '';
 
-    if (activeTab === 'yara' || activeTab === 'yaraScanFile') {
+    if (activeTab === 'yara' || activeTab === 'scanFile') {
       displayContent = this.displayScanContent;
-    } else if (activeTab === 'malware' || activeTab === 'gcb') {
+    } else if (activeTab === 'gcb') {
       displayContent = this.displayTableContent;
     } else if (activeTab === 'ir') {
       displayContent = this.displayIrContent;

@@ -27,6 +27,7 @@ import Syslog from './components/events/syslog/index'
 import SyslogConfig from './components/configuration/syslog/syslog'
 import Threats from './components/threats/index'
 import ThreatIntelligence from './components/configuration/edge/threat'
+import SeverityTable from './components/configuration/edge/severity'
 import UserAccounts from './components/configuration/user/accounts/index'
 import UserPrivileges from './components/configuration/user/privileges/index'
 import IncidentDevice from './components/soc/incident-device'
@@ -111,26 +112,32 @@ const Notifications = () => (
 )
 
 const Edge = () => (
-  <BaseDataContext.Provider value={baseData}>
-    <EdgeManagement />
-  </BaseDataContext.Provider>
+    <BaseDataContext.Provider value={baseData}>
+        <EdgeManagement/>
+    </BaseDataContext.Provider>
 )
 
 const Threat = () => (
-  <BaseDataContext.Provider value={baseData}>
-    <ThreatIntelligence />
-  </BaseDataContext.Provider>
+    <BaseDataContext.Provider value={baseData}>
+        <ThreatIntelligence/>
+    </BaseDataContext.Provider>
+)
+
+const Severity = () => (
+    <BaseDataContext.Provider value={baseData}>
+        <SeverityTable/>
+    </BaseDataContext.Provider>
 )
 
 const NetworkTopologyInventory = () => (
-  <BaseDataContext.Provider value={baseData}>
-    <NetworkInventory />
-  </BaseDataContext.Provider>
+    <BaseDataContext.Provider value={baseData}>
+        <NetworkInventory/>
+    </BaseDataContext.Provider>
 )
 
 const NetworkTopologyOwner = () => (
-  <BaseDataContext.Provider value={baseData}>
-    <NetworkOwner />
+    <BaseDataContext.Provider value={baseData}>
+        <NetworkOwner/>
   </BaseDataContext.Provider>
 )
 
@@ -188,7 +195,6 @@ const incidentUnit = () => (
     </BaseDataContext.Provider>
 );
 
-
 const Main = () => (
     <main className='main'>
         <Switch>
@@ -198,10 +204,11 @@ const Main = () => (
             <Route exact path='/SCP/threats' component={ThreatsComp}/>
             <Route exact path='/SCP/events/netflow' component={NetflowComp}/>
             <Route exact path='/SCP/events/syslog' component={SyslogComp}/>
-            <Route exact path='/SCP/events/endpoint' component={EndpointComp} />
-            <Route exact path='/SCP/configuration/notifications' component={Notifications} />
+            <Route exact path='/SCP/events/endpoint' component={EndpointComp}/>
+            <Route exact path='/SCP/configuration/notifications' component={Notifications}/>
             <Route exact path='/SCP/configuration/edge/edge' component={Edge}/>
             <Route exact path='/SCP/configuration/edge/threat' component={Threat}/>
+            <Route exact path='/SCP/configuration/edge/severity' component={Severity}/>
             <Route exact path='/SCP/configuration/topology/inventory' component={NetworkTopologyInventory}/>
             <Route exact path='/SCP/configuration/topology/owner' component={NetworkTopologyOwner}/>
             <Route exact path='/SCP/configuration/topology/map' component={NetworkTopologyMap}/>
@@ -214,7 +221,7 @@ const Main = () => (
             <Route exact path='/SCP/soc/incident-unit' component={incidentUnit}/>
             <Route exact path='/SCP/soc/incident' component={incident}/>
         </Switch>
-  </main>
+    </main>
 )
 
 const App = () => {

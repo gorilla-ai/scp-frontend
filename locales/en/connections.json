@@ -386,6 +386,15 @@
     }
   },
 
+  "severity-table": {
+    "txt-severityTable": "Severity Table",
+    "txt-addSeverityTable": "Add Type",
+    "txt-typeInfo": "Type Info",
+    "txt-lastUpateTime": "Last Update Time",
+    "txt-severityMissing": "Severity type cannot be empty",
+    "txt-deleteSeverity": "$t(txt-delete) Severity Type"
+  },
+
   "network-inventory": {
     "txt-deviceList": "Device List",
     "txt-deviceMap": "Device Map",
@@ -430,12 +439,12 @@
       "txt-LDAP": "LDAP",
       "txt-netflow": "Netflow",
       "txt-scanner": "Scanner",
+      "txt-noEdgeSelected": "Please select Edge",
       "txt-connectionsFail": "Connections Fail"
     },
     "scan-list": {
       "txt-yara": "Scan Process",
-      "txt-yaraScanFile": "Scan File (Yara)",
-      "txt-malware": "Scan File (AI)",
+      "txt-scanFile": "Scan File",
       "txt-gcb": "GCB",
       "txt-ir": "IR"
     },

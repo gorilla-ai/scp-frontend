@@ -28,8 +28,8 @@ class SortableItem extends Component {
   constructor(props) {
     super(props);
 
-    t = chewbaccaI18n.getFixedT(null, 'connections');
-    f = chewbaccaI18n.getFixedT(null, 'tableFields');
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
   }
   /**
    * Get input value in the table row

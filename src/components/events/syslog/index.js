@@ -43,9 +43,9 @@ class SyslogController extends Component {
   constructor(props) {
     super(props);
 
-    t = chewbaccaI18n.getFixedT(null, 'connections');
-    f = chewbaccaI18n.getFixedT(null, 'tableFields');
-    et = chewbaccaI18n.getFixedT(null, 'errors');
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+    et = global.chewbaccaI18n.getFixedT(null, 'errors');
 
     this.state = {
       activeTab: 'logs',
@@ -212,7 +212,7 @@ class SyslogController extends Component {
     this.ah.one({
       url: `${baseUrl}/api/u1/log/event/_event_source_tree`,
       type: 'GET'
-    })
+    }, {showProgress: false})
     .then(data => {
       if (data) {
         const treeObj = this.getTreeData(data);
@@ -318,7 +318,7 @@ class SyslogController extends Component {
     this.ah.one({
       url,
       type: 'GET'
-    })
+    }, {showProgress: false})
     .then(data => {
       if (data.length > 0) {
         let filedsArr = [];
@@ -366,7 +366,7 @@ class SyslogController extends Component {
       endDttm: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
 
-    helper.getAjaxData('POST', url, dateTime)
+    helper.getAjaxData('POST', url, dateTime, 'false')
     .then(data => {
       if (data) {
         let filedsArr = ['_tableMenu_'];
@@ -399,7 +399,7 @@ class SyslogController extends Component {
     this.ah.one({
       url: `${baseUrl}/api/account/log/locales?accountId=${account.id}`,
       type: 'GET'
-    })
+    }, {showProgress: false})
     .then(data => {
       if (data) {
         let tempAccount = {...account};
@@ -486,7 +486,7 @@ class SyslogController extends Component {
     let logEventsData = {};
     let eventHistogram = {};
 
-    helper.getAjaxData('POST', url, requestData)
+    helper.getAjaxData('POST', url, requestData, 'false')
     .then(data => {
       if (data.data.rows) {
         const logsData = data.data;
@@ -593,7 +593,7 @@ class SyslogController extends Component {
       data: JSON.stringify(this.toQueryLanguage()),
       type: 'POST',
       contentType: 'text/plain'
-    }])
+    }], {showProgress: false})
     .then(data => {
       if (data) {
         if (currentPage > 1 && !data[0].data) {
@@ -1080,7 +1080,7 @@ class SyslogController extends Component {
     ah.one({
       url: `${baseUrl}/api/account/log/fields?accountId=${account.id}${fieldString}`,
       type: 'POST'
-    })
+    }, {showProgress: false})
     .then(data => {
       if (data.status === 'success') {
         this.setState({
@@ -1288,7 +1288,7 @@ class SyslogController extends Component {
       locale: logCustomLocal
     };
 
-    helper.getAjaxData('POST', url, dataObj)
+    helper.getAjaxData('POST', url, dataObj, 'false')
     .then(data => {
       this.closeLocaleChange('reload');
       return null;

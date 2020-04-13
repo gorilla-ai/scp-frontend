@@ -7,7 +7,7 @@ import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
 const IR_MAPPINGS = {
   1: 'dumpMemory',
-  2: 'getSystemInfo',
+  2: 'getSystemInfoFile',
   3: 'getFileInfo',
   4: 'getProcessInfo',
   5: 'getAutoruns',

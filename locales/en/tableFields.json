@@ -526,6 +526,7 @@
     "status": "Status",
     "serviceName": "Service Name"
   },
+
   "incidentFields": {
     "id": "ID",
     "title": "Title",
@@ -547,5 +548,10 @@
     "industryType": "Unit Industry",
     "frequency": "Trigger Frequency",
     "updateDttm": "Last Update Time"
+  },
+  "severityTableFields": {
+    "dataSourceType": "Type",
+    "severityLevel": "Severity",
+    "updateDttm": "Last Update"
   }
 }
