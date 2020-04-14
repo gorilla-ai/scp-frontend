@@ -757,33 +757,33 @@ class DashboardStats extends Component {
         </div>
       )
     } else if (alertChartsList[i].type === 'table') {
-      return (
-        <div className='chart-group c-box' key={alertChartsList[i].chartID}>
-          {!ivar.dataContent &&
-            <div className='empty-data'>
-              <header>{alertChartsList[i].chartTitle}</header>
-              <span><i className='fg fg-loading-2'></i></span>
-            </div>
-          }
-          {ivar.dataContent && ivar.dataContent.length === 0 &&
-            <div className='empty-data'>
-              <header>{alertChartsList[i].chartTitle}</header>
-              <span>{t('txt-notFound')}</span>
-            </div>
-          }
-          {ivar.dataContent && ivar.dataContent.length > 0 &&
-            <div>
-              <header className='main-header'>{alertChartsList[i].chartTitle}</header>
-              <div id={alertChartsList[i].chartID} className='c-chart table'>
-                <DataTable
-                  className='main-table align-center ivr'
-                  fields={ivar.dataFields}
-                  data={ivar.dataContent} />
-              </div>
-            </div>
-          }
-        </div>
-      )
+      // return (
+      //   <div className='chart-group c-box' key={alertChartsList[i].chartID}>
+      //     {!ivar.dataContent &&
+      //       <div className='empty-data'>
+      //         <header>{alertChartsList[i].chartTitle}</header>
+      //         <span><i className='fg fg-loading-2'></i></span>
+      //       </div>
+      //     }
+      //     {ivar.dataContent && ivar.dataContent.length === 0 &&
+      //       <div className='empty-data'>
+      //         <header>{alertChartsList[i].chartTitle}</header>
+      //         <span>{t('txt-notFound')}</span>
+      //       </div>
+      //     }
+      //     {ivar.dataContent && ivar.dataContent.length > 0 &&
+      //       <div>
+      //         <header className='main-header'>{alertChartsList[i].chartTitle}</header>
+      //         <div id={alertChartsList[i].chartID} className='c-chart table'>
+      //           <DataTable
+      //             className='main-table align-center ivr'
+      //             fields={ivar.dataFields}
+      //             data={ivar.dataContent} />
+      //         </div>
+      //       </div>
+      //     }
+      //   </div>
+      // )
     }
   }
   /**

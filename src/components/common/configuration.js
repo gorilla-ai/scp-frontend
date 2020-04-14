@@ -140,11 +140,11 @@ class Config extends Component {
                 <span className={`${this.getActiveFrame('threat')}`}>{t('txt-threatIntelligence')}</span>
               </Link>
             </div>
-            <div className='subframe'>
+            {/*<div className='subframe'>
               <Link to='/SCP/configuration/edge/severity'>
                 <span className={`${this.getActiveFrame('severity')}`}>{t('severity-table.txt-severityTable')}</span>
               </Link>
-            </div>
+            </div>*/}
           </div>
         }
 
