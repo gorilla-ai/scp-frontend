@@ -2,11 +2,14 @@
 	"txt-soc": "事件申報",
 	"txt-incident": "情資事件",
 	"txt-incident-device": "資安事件設備",
-	"txt-incident-device": "資安事件設備",
 	"txt-incident-unit": "資安事件申報機關",
 	"txt-incident-management": "情資事件管理",
 	"txt-incident-device-management": "設備管理",
-	"txt-incident-unit-management": "機關管理",
+	"txt-incident-events": "監控觸發紀錄",
+	"txt-incident-ttps": "攻擊手法",
+	"txt-prev-page": "上一頁",
+	"txt-next-page": "下一頁",
+
 	"unit": {
 		"txt-default": "預設機關",
 		"txt-isDefault": "是",
