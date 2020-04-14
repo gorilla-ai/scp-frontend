@@ -148,6 +148,8 @@
   "txt-topology": "網路拓樸",
   "txt-accountManage": "帳號管理",
   "txt-syslogManage": "系統日誌管理",
+  "txt-syslogConfig": "系統日誌設定",
+  "txt-syslogPattern": "系統日誌Pattern",
   "txt-serviceStatus": "服務狀態",
   "txt-networkInventory": "網路清單",
   "txt-productInfo": "產品資訊",
@@ -393,6 +395,16 @@
     "txt-lastUpateTime": "最近更新時間",
     "txt-severityMissing": "Severity type不得為空白",
     "txt-deleteSeverity": "$t(txt-delete)Severity Type"
+  },
+
+  "syslog-pattern": {
+    "txt-patternScript": "Pattern Script",
+    "txt-addPatternScript": "新增Pattern",
+    "txt-patternInfo": "Pattern Info",
+    "txt-lastUpateTime": "最近更新時間",
+    "txt-patternMissing": "Pattern名稱不得為空白",
+    "txt-queryScriptMissing": "Query Script不得為空白",
+    "txt-deletePattern": "$t(txt-delete)Pattern"
   },
 
   "network-inventory": {

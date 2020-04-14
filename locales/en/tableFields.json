@@ -530,5 +530,12 @@
     "dataSourceType": "Type",
     "severityLevel": "Severity",
     "updateDttm": "Last Update"
+  },
+  "syslogPatternTableFields": {
+    "patternName": "Pattern Name",
+    "periodMin": "Period Minutes",
+    "lastUpdateDttm": "Last Update",
+    "queryScript": "Query Script",
+    "severity": "Severity"
   }
 }

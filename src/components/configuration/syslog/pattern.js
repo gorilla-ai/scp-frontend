@@ -9,6 +9,7 @@ import Checkbox from 'react-ui/build/src/components/checkbox'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import Input from 'react-ui/build/src/components/input'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
+import Textarea from 'react-ui/build/src/components/textarea'
 
 import {BaseDataContext} from '../../common/context';
 import Config from '../../common/configuration'
@@ -36,7 +37,7 @@ let et = null;
  * @author Ryan Chen <ryanchen@telmediatech.com>
  * @summary A react component to show the Config Edge Severity table page
  */
-class Severity extends Component {
+class Pattern extends Component {
   constructor(props) {
     super(props);
 
@@ -45,26 +46,34 @@ class Severity extends Component {
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
 
     this.state = {
-      activeContent: 'tableList', //tableList, viewSeverity, addSeverity, editSeverity
-      showFilter: false,
-      severitySearchType: '',
-      severitySearchOptions: {},
-      originalSeverityData: {},
+      activeContent: 'tableList', //tableList, viewPattern, addPattern, editPattern
+      showFilter: true,
+      patternSearch: {
+        name: '',
+        queryScript: '',
+        severity: {}
+      },
+      originalPatternData: {},
       severityList: [],
-      currentSeverityData: '',
-      severity: {
-        dataFieldsArr: ['dataSourceType', 'severityLevel', 'updateDttm', '_menu'],
+      currentPatternData: '',
+      pattern: {
+        dataFieldsArr: ['patternName', 'lastUpdateDttm', 'queryScript', 'severity', 'periodMin', '_menu'],
         dataFields: {},
         dataContent: [],
         sort: {
-          field: 'dataSourceType',
+          field: 'patternName',
           desc: false
         },
         totalCount: 0,
         currentPage: 1,
         pageSize: 20,
         info: {
-          type: '',
+          id: '',
+          name: '',
+          lastUpdateDttm: '',
+          severity: '',
+          periodMin: '',
+          queryScript: '',
           severity: 'Emergency'
         }
       }
@@ -79,16 +88,19 @@ class Severity extends Component {
 
     this.setDefaultSearchOptions();
   }
+  ryan = () => {
+
+  }
   /**
    * Set Severity checkbox filter and dropdown list
    * @method
    */
   setDefaultSearchOptions = () => {
-    let tempSeveritySearchOptions = {...this.state.severitySearchOptions};
+    let tempPatternSearch = {...this.state.patternSearch};
     let severityList = [];   
 
     _.forEach(SEVERITY_TYPE, val => {
-      tempSeveritySearchOptions[val] = false;
+      tempPatternSearch.severity[val] = false;
       severityList.push({
         value: val,
         text: val
@@ -96,10 +108,10 @@ class Severity extends Component {
     })
 
     this.setState({
-      severitySearchOptions: tempSeveritySearchOptions,
+      patternSearch: tempPatternSearch,
       severityList
     }, () => {
-      this.getSeverityMapping();
+      this.getPatternScript();
     });
   }
   /**
@@ -107,49 +119,35 @@ class Severity extends Component {
    * @method
    * @param {string} fromSearch - option for 'search'
    */
-  getSeverityMapping = (fromSearch) => {
+  getPatternScript = (fromSearch) => {
     const {baseUrl} = this.context;
-    const {severitySearchType, severitySearchOptions, severity} = this.state;
-    const url = `${baseUrl}/api/severityMapping/_search`;
-    let requestData = {};
-    let searchArr = [];
+    const {patternSearch, pattern} = this.state;
 
-    if (severitySearchType !== '') {
-      requestData.keyword = severitySearchType;
-    }
-
-    _.forEach(severitySearchOptions, (val, key) => {
-      if (val) {
-        searchArr.push(key);
-      }
+    this.ah.one({
+      url: `${baseUrl}/api/alert/pattern`,
+      type: 'GET'
     })
-
-    if (searchArr.length > 0) {
-      requestData.severityLevelList = searchArr;
-    }
-    
-    helper.getAjaxData('POST', url, requestData)
     .then(data => {
       if (data) {
-        let tempSeverity = {...severity};
-        tempSeverity.dataContent = data.rows;
-        tempSeverity.totalCount = data.counts;
-        tempSeverity.currentPage = fromSearch === 'search' ? 1 : severity.currentPage;
+        let tempPattern = {...pattern};
+        tempPattern.dataContent = data;
+        tempPattern.totalCount = data.length;
+        tempPattern.currentPage = fromSearch === 'search' ? 1 : pattern.currentPage;
 
         let dataFields = {};
-        severity.dataFieldsArr.forEach(tempData => {
+        pattern.dataFieldsArr.forEach(tempData => {
           dataFields[tempData] = {
-            label: tempData === '_menu' ? '' : f(`severityTableFields.${tempData}`),
+            label: tempData === '_menu' ? '' : f(`syslogPatternTableFields.${tempData}`),
             sortable: tempData === '_menu' ? null : true,
             formatter: (value, allValue, i) => {
-              if (tempData === 'severityLevel') {
+              if (tempData === 'severity') {
                 return <span className='severity' style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>
-              } else if (tempData === 'updateDttm') {
+              } else if (tempData === 'lastUpdateDttm') {
                 value = helper.getFormattedDate(value, 'local');
               } else if (tempData === '_menu') {
                 return (
                   <div className='table-menu menu active'>
-                    <i className='fg fg-eye' onClick={this.toggleContent.bind(this, 'viewSeverity', allValue)} title={t('txt-view')}></i>
+                    <i className='fg fg-eye' onClick={this.toggleContent.bind(this, 'viewPattern', allValue)} title={t('txt-view')}></i>
                     <i className='fg fg-trashcan' onClick={this.openDeleteMenu.bind(this, allValue)} title={t('txt-delete')}></i>
                   </div>
                 )
@@ -159,60 +157,67 @@ class Severity extends Component {
           };
         })
 
-        tempSeverity.dataFields = dataFields;
+        tempPattern.dataFields = dataFields;
 
         this.setState({
-          severity: tempSeverity
+          pattern: tempPattern
         });
       }
       return null;
     })
     .catch(err => {
-      helper.showPopupMsg('', t('txt-error'));
-    });
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Toggle different content
    * @method
-   * @param {string} type - page type ('tableList', 'viewSeverity', 'addSeverity', editSeverity' and 'cancel')
+   * @param {string} type - page type ('tableList', 'viewPattern', 'addPattern', editPattern' and 'cancel')
    * @param {object} allValue - Severity data
    */
   toggleContent = (type, allValue) => {
-    const {originalSeverityData, severity} = this.state;
-    let tempSeverity = {...severity};
+    const {originalPatternData, pattern} = this.state;
+    let tempPattern = {...pattern};
     let showPage = type;
 
     if (type === 'tableList') {
-      tempSeverity.info = {
-        type: '',
-        severity: 'Emergency'
+      tempPattern.info = {
+        id: '',
+        name: '',
+        lastUpdateDttm: '',
+        severity: 'Emergency',
+        periodMin: '',
+        queryScript: ''
       };
-    } else if (type === 'viewSeverity') {
-      tempSeverity.info = {
-        type: allValue.dataSourceType,
-        severity: allValue.severityLevel,
-        updateDttm: allValue.updateDttm
+    } else if (type === 'viewPattern') {
+      tempPattern.info = {
+        id: allValue.patternId,
+        name: allValue.patternName,
+        lastUpdateDttm: allValue.lastUpdateDttm,
+        severity: allValue.severity,
+        periodMin: allValue.periodMin,
+        queryScript: allValue.queryScript
       };
 
       this.setState({
         showFilter: false,
-        originalSeverityData: _.cloneDeep(tempSeverity)
+        originalPatternData: _.cloneDeep(tempPattern)
       });
-    } else if (type === 'addSeverity') {
+    } else if (type === 'addPattern') {
       this.setState({
         showFilter: false
       });      
     } else if (type === 'cancel') {
-      showPage = 'viewSeverity';
-      tempSeverity = _.cloneDeep(originalSeverityData);
+      showPage = 'viewPattern';
+      tempPattern = _.cloneDeep(originalPatternData);
     }
 
     this.setState({
       activeContent: showPage,
-      severity: tempSeverity
+      pattern: tempPattern
     }, () => {
       if (type === 'tableList') {
-        this.getSeverityMapping();
+        this.getPatternScript();
       }
     });
   }
@@ -223,11 +228,11 @@ class Severity extends Component {
    * @param {boolean} value - true/false
    */
   toggleSeverityOptions = (field, value) => {
-    let tempSeveritySearchOptions = {...this.state.severitySearchOptions};
-    tempSeveritySearchOptions[field] = value;
+    let tempPatternSearch = {...this.state.patternSearch};
+    tempPatternSearch.severity[field] = value;
 
     this.setState({
-      severitySearchOptions: tempSeveritySearchOptions
+      patternSearch: tempPatternSearch
     });
   }
   /**
@@ -237,11 +242,11 @@ class Severity extends Component {
    * @param {string} value - input value
    */
   handleDataChange = (type, value) => {
-    let tempSeverity = {...this.state.severity};
-    tempSeverity.info[type] = value;
+    let tempPattern = {...this.state.pattern};
+    tempPattern.info[type] = value;
 
     this.setState({
-      severity: tempSeverity
+      pattern: tempPattern
     });
   }
   /**
@@ -249,14 +254,14 @@ class Severity extends Component {
    * @method
    * @returns HTML DOM
    */
-  displayEditSeverityContent = () => {
+  displayEditPatternContent = () => {
     const {contextRoot, locale} = this.context;
-    const {activeContent, severityList, severity} = this.state;
+    const {activeContent, severityList, pattern} = this.state;
     let pageType = '';
 
-    if (activeContent === 'addSeverity') {
+    if (activeContent === 'addPattern') {
       pageType = 'tableList';
-    } else if (activeContent === 'editSeverity') {
+    } else if (activeContent === 'editPattern') {
       pageType = 'cancel';
     }
 
@@ -265,46 +270,56 @@ class Severity extends Component {
         <header className='main-header'>Severity</header>
 
         <div className='content-header-btns'>
-          {activeContent === 'viewSeverity' &&
+          {activeContent === 'viewPattern' &&
             <div>
               <button className='standard btn list' onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</button>
-              <button className='standard btn edit' onClick={this.toggleContent.bind(this, 'editSeverity')}>{t('txt-edit')}</button>
+              <button className='standard btn edit' onClick={this.toggleContent.bind(this, 'editPattern')}>{t('txt-edit')}</button>
             </div>
           }
-        </div>
+        </div>       
 
         <div className='form-group normal'>
           <header>
-            <div className='text'>{t('severity-table.txt-typeInfo')}</div>
-            {severity.info.updateDttm &&
-              <span className='msg'>{t('severity-table.txt-lastUpateTime')} {helper.getFormattedDate(severity.info.updateDttm, 'local')}</span>
+            <div className='text'>{t('syslog-pattern.txt-patternInfo')}</div>
+            {pattern.info.lastUpdateDttm &&
+              <span className='msg'>{t('syslog-pattern.txt-lastUpateTime')} {helper.getFormattedDate(pattern.info.lastUpdateDttm, 'local')}</span>
             }
           </header>
           <div className='group'>
-            <label htmlFor='severityType'>{f('severityTableFields.dataSourceType')}</label>
+            <label htmlFor='patternName'>{f('syslogPatternTableFields.patternName')}</label>
             <Input
-              id='severityType'
-              onChange={this.handleDataChange.bind(this, 'type')}
-              value={severity.info.type}
-              readOnly={activeContent === 'viewSeverity'} />
+              id='patternName'
+              onChange={this.handleDataChange.bind(this, 'name')}
+              value={pattern.info.name}
+              readOnly={activeContent === 'viewPattern'} />
           </div>
           <div className='group severity-level'>
-            <label htmlFor='severityLevel'>{f('severityTableFields.severityLevel')}</label>
-            <i className='fg fg-recode' style={{color: ALERT_LEVEL_COLORS[severity.info.severity]}}></i>
+            <label htmlFor='severityLevel'>{f('syslogPatternTableFields.severity')}</label>
+            <i className='fg fg-recode' style={{color: ALERT_LEVEL_COLORS[pattern.info.severity]}}></i>
             <DropDownList
               id='severityLevel'
               required={true}
               list={severityList}
               onChange={this.handleDataChange.bind(this, 'severity')}
-              value={severity.info.severity}
-              readOnly={activeContent === 'viewSeverity'} />
+              value={pattern.info.severity}
+              readOnly={activeContent === 'viewPattern'} />
+          </div>
+          <div className='group'>
+            <label htmlFor='queryScript'>{f('syslogPatternTableFields.queryScript')}</label>
+            <Textarea
+              id='queryScript'
+              rows={4}
+              maxLength={250}
+              value={pattern.info.queryScript}
+              onChange={this.handleDataChange.bind(this, 'queryScript')}
+              readOnly={activeContent === 'viewPattern'} />
           </div>
         </div>
 
-        {(activeContent === 'addSeverity' || activeContent === 'editSeverity') &&
+        {(activeContent === 'addPattern' || activeContent === 'editPattern') &&
           <footer>
             <button className='standard' onClick={this.toggleContent.bind(this, pageType)}>{t('txt-cancel')}</button>
-            <button onClick={this.handleSeveritySubmit}>{t('txt-save')}</button>
+            <button onClick={this.handlePatternSubmit}>{t('txt-save')}</button>
           </footer>
         }
       </div>
@@ -316,14 +331,14 @@ class Severity extends Component {
    * @param {object} allValue - Severity data
    * @returns HTML DOM
    */
-  getDeleteSeverityContent = (allValue) => {
+  getDeletePatternContent = (allValue) => {
     this.setState({
-      currentSeverityData: allValue
+      currentPatternData: allValue
     });
 
     return (
       <div className='content delete'>
-        <span>{t('txt-delete-msg')}: {allValue.dataSourceType}?</span>
+        <span>{t('txt-delete-msg')}: {allValue.patternName}?</span>
       </div>
     )
   }
@@ -334,11 +349,11 @@ class Severity extends Component {
    */
   openDeleteMenu = (allValue) => {
     PopupDialog.prompt({
-      title: t('severity-table.txt-deleteSeverity'),
+      title: t('syslog-pattern.txt-deletePattern'),
       id: 'modalWindowSmall',
       confirmText: t('txt-delete'),
       cancelText: t('txt-cancel'),
-      display: this.getDeleteSeverityContent(allValue),
+      display: this.getDeletePatternContent(allValue),
       act: (confirmed, data) => {
         if (confirmed) {
           this.deleteSeverity();
@@ -352,19 +367,19 @@ class Severity extends Component {
    */
   deleteSeverity = () => {
     const {baseUrl} = this.context;
-    const {currentSeverityData} = this.state;
+    const {currentPatternData} = this.state;
 
-    if (!currentSeverityData.dataSourceType) {
+    if (!currentPatternData.patternId) {
       return;
     }
 
     ah.one({
-      url: `${baseUrl}/api/severityMapping?dataSourceType=${currentSeverityData.dataSourceType}`,
+      url: `${baseUrl}/api/alert/pattern?patternId=${currentPatternData.patternId}`,
       type: 'DELETE'
     })
     .then(data => {
       if (data.ret === 0) {
-        this.getSeverityMapping();
+        this.getPatternScript();
       }
       return null;
     })
@@ -376,42 +391,50 @@ class Severity extends Component {
    * Handle Severity add/edit confirm
    * @method
    */
-  handleSeveritySubmit = () => {
+  handlePatternSubmit = () => {
     const {baseUrl} = this.context;
-    const {activeContent, severity} = this.state;
+    const {activeContent, pattern} = this.state;
     let requestType = '';
 
-    if (!severity.info.type) {
-      helper.showPopupMsg(t('severity-table.txt-severityMissing'), t('txt-error'));
+    if (!pattern.info.name) {
+      helper.showPopupMsg(t('syslog-pattern.txt-patternMissing'), t('txt-error'));
       return;
     }
 
-    if (activeContent === 'addSeverity') {
-      requestType = 'POST';
-    } else if (activeContent === 'editSeverity') {
-      requestType = 'PATCH';
+    if (!pattern.info.queryScript) {
+      helper.showPopupMsg(t('syslog-pattern.txt-queryScriptMissing'), t('txt-error'));
+      return;
     }
 
     let data = {
-      dataSourceType: severity.info.type,
-      severityLevel: severity.info.severity
+      patternName: pattern.info.name,
+      queryScript: pattern.info.queryScript,
+      periodMin: pattern.info.periodMin,
+      severity: pattern.info.severity
     };
 
+    if (activeContent === 'addPattern') {
+      requestType = 'POST';
+    } else if (activeContent === 'editPattern') {
+      requestType = 'PATCH';
+      data.patternId = pattern.info.id;
+    }
+
     ah.one({
-      url: `${baseUrl}/api/severityMapping`,
+      url: `${baseUrl}/api/alert/pattern`,
       data: JSON.stringify(data),
       type: requestType,
       contentType: 'text/plain'
     })
     .then(data => {
       this.setState({
-        originalSeverityData: _.cloneDeep(severity)
+        originalPatternData: _.cloneDeep(pattern)
       }, () => {
         let showPage = '';
 
-        if (activeContent === 'addSeverity') {
+        if (activeContent === 'addPattern') {
           showPage = 'tableList';
-        } else if (activeContent === 'editSeverity') {
+        } else if (activeContent === 'editPattern') {
           showPage = 'cancel';
         }
 
@@ -438,9 +461,9 @@ class Severity extends Component {
    * @method
    * @param {string} type - Severity type input from user
    */
-  handleSearchType = (type) => {
+  handlePatternSearch = (type) => {
     this.setState({
-      severitySearchType: type
+      patternSearchType: type
     });
   }
   /**
@@ -457,7 +480,7 @@ class Severity extends Component {
         <Checkbox
           id={val}
           onChange={this.toggleSeverityOptions.bind(this, val)}
-          checked={this.state.severitySearchOptions[val]} />
+          checked={this.state.patternSearch.severity[val]} />
       </div>
     )
   }
@@ -467,7 +490,7 @@ class Severity extends Component {
    * @returns HTML DOM
    */
   renderFilter = () => {
-    const {showFilter, severitySearchType} = this.state;
+    const {showFilter, patternSearch} = this.state;
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
@@ -475,14 +498,21 @@ class Severity extends Component {
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group'>
-            <label htmlFor='severityType' className='first-label'>{f('severityTableFields.dataSourceType')}</label>
+            <label htmlFor='patternSearchName' className='first-label'>{f('syslogPatternTableFields.patternName')}</label>
             <Input
-              id='severityType'
-              onChange={this.handleSearchType}
-              value={severitySearchType} />
+              id='patternSearchName'
+              onChange={this.handlePatternSearch.bind(this, 'name')}
+              value={patternSearch.name} />
+          </div>
+          <div className='group'>
+            <label htmlFor='patternSearchQueryScript'>{f('syslogPatternTableFields.queryScript')}</label>
+            <Input
+              id='patternSearchQueryScript'
+              onChange={this.handlePatternSearch.bind(this, 'queryScript')}
+              value={patternSearch.queryScript} />
           </div>
           <div className='severity'>
-            <label>{f('severityTableFields.severityLevel')}</label>
+            <label>{f('syslogPatternTableFields.severity')}</label>
             <div className='group group-checkbox narrow'>
               <div className='group-options'>
                 {SEVERITY_TYPE.map(this.displaySeverityCheckbox)}
@@ -491,7 +521,7 @@ class Severity extends Component {
           </div>
         </div>
         <div className='button-group group-aligned'>
-          <button className='filter' onClick={this.getSeverityMapping.bind(this, 'search')}>{t('txt-filter')}</button>
+          <button className='filter' onClick={this.getPatternScript.bind(this, 'search')}>{t('txt-filter')}</button>
           <button className='clear' onClick={this.clearFilter}>{t('txt-clear')}</button>
         </div>
       </div>
@@ -503,14 +533,14 @@ class Severity extends Component {
    * @param {object} sort - sort data object
    */
   handleTableSort = (sort) => {
-    let tempSeverity = {...this.state.severity};
-    tempSeverity.sort.field = sort.field;
-    tempSeverity.sort.desc = sort.desc;
+    let tempPattern = {...this.state.pattern};
+    tempPattern.sort.field = sort.field;
+    tempPattern.sort.desc = sort.desc;
 
     this.setState({
-      severity: tempSeverity
+      pattern: tempPattern
     }, () => {
-      this.getSeverityMapping();
+      this.getPatternScript();
     });
   }
   /**
@@ -520,17 +550,17 @@ class Severity extends Component {
    * @param {string | number} value - new page number
    */
   handlePaginationChange = (type, value) => {
-    let tempSeverity = {...this.state.severity};
-    tempSeverity[type] = Number(value);
+    let tempPattern = {...this.state.pattern};
+    tempPattern[type] = Number(value);
 
     if (type === 'pageSize') {
-      tempSeverity.currentPage = 1;
+      tempPattern.currentPage = 1;
     }
 
     this.setState({
-      severity: tempSeverity
+      pattern: tempPattern
     }, () => {
-      this.getSeverityMapping();
+      this.getPatternScript();
     });
   }
   /**
@@ -539,13 +569,16 @@ class Severity extends Component {
    */
   clearFilter = () => {
     this.setState({
-      severitySearchType: '',
-      severitySearchOptions: {}
+      patternSearch: {
+        name: '',
+        queryScript: '',
+        severity: ''
+      }
     });
   }
   render() {
     const {baseUrl, contextRoot} = this.context;
-    const {activeContent, showFilter, severity} = this.state;
+    const {activeContent, showFilter, pattern} = this.state;
 
     return (
       <div>
@@ -567,27 +600,27 @@ class Severity extends Component {
 
             {activeContent === 'tableList' &&
               <div className='main-content'>
-                <header className='main-header'>{t('severity-table.txt-severityTable')}</header>
+                <header className='main-header'>{t('syslog-pattern.txt-patternScript')}</header>
 
                 <div className='content-header-btns'>
-                  <button className='standard btn' onClick={this.toggleContent.bind(this, 'addSeverity')}>{t('severity-table.txt-addSeverityTable')}</button>
+                  <button className='standard btn' onClick={this.toggleContent.bind(this, 'addPattern')}>{t('syslog-pattern.txt-addPatternScript')}</button>
                 </div>
 
                 <TableContent
-                  dataTableData={severity.dataContent}
-                  dataTableFields={severity.dataFields}
-                  dataTableSort={severity.sort}
-                  paginationTotalCount={severity.totalCount}
-                  paginationPageSize={severity.pageSize}
-                  paginationCurrentPage={severity.currentPage}
+                  dataTableData={pattern.dataContent}
+                  dataTableFields={pattern.dataFields}
+                  dataTableSort={pattern.sort}
+                  paginationTotalCount={pattern.totalCount}
+                  paginationPageSize={pattern.pageSize}
+                  paginationCurrentPage={pattern.currentPage}
                   handleTableSort={this.handleTableSort}
                   paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
                   paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
               </div>
             }
 
-            {(activeContent === 'viewSeverity' || activeContent === 'addSeverity' || activeContent === 'editSeverity') &&
-              this.displayEditSeverityContent()
+            {(activeContent === 'viewPattern' || activeContent === 'addPattern' || activeContent === 'editPattern') &&
+              this.displayEditPatternContent()
             }
           </div>
         </div>
@@ -596,9 +629,9 @@ class Severity extends Component {
   }
 }
 
-Severity.contextType = BaseDataContext;
+Pattern.contextType = BaseDataContext;
 
-Severity.propTypes = {
+Pattern.propTypes = {
 };
 
-export default withRouter(Severity);
+export default withRouter(Pattern);
