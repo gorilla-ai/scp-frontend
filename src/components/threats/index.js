@@ -120,9 +120,9 @@ class ThreatsController extends Component {
   constructor(props) {
     super(props);
 
-    t = chewbaccaI18n.getFixedT(null, 'connections');
-    f = chewbaccaI18n.getFixedT(null, 'tableFields');
-    et = chewbaccaI18n.getFixedT(null, 'errors');
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+    et = global.chewbaccaI18n.getFixedT(null, 'errors');
 
     this.state = {
       activeTab: 'alert',
@@ -362,7 +362,7 @@ class ThreatsController extends Component {
     const url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`;
     const requestData = this.toQueryLanguage('tree');
 
-    helper.getAjaxData('POST', url, requestData)
+    helper.getAjaxData('POST', url, requestData, 'false')
     .then(data => {
       if (data) {
         data = data.aggregations;
@@ -539,9 +539,14 @@ class ThreatsController extends Component {
     const setPage = options === 'search' ? 1 : currentPage;
     const requestData = this.toQueryLanguage(options);
     let url = `${baseUrl}/api/u2/alert/_search?page=${setPage}&pageSize=`;
-    url += options === 'statistics' ? 0 : pageSize;
 
-    helper.getAjaxData('POST', url, requestData)
+    if (!options || options === 'search') {
+      url += pageSize;
+    } else {
+      url += 0;
+    }
+
+    helper.getAjaxData('POST', url, requestData, 'false')
     .then(data => {
       if (data) {
         if (!options || options === 'search') {

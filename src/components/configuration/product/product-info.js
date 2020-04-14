@@ -31,8 +31,8 @@ class ProductInfo extends Component {
       license: false
     };
 
-    t = chewbaccaI18n.getFixedT(null, 'connections');
-    et = chewbaccaI18n.getFixedT(null, 'errors');
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    et = global.chewbaccaI18n.getFixedT(null, 'errors');
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {

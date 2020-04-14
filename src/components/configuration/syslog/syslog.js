@@ -100,9 +100,9 @@ class Syslog extends Component {
 
     this.state = _.cloneDeep(INIT);
 
-    t = chewbaccaI18n.getFixedT(null, 'connections');
-    f = chewbaccaI18n.getFixedT(null, 'tableFields');
-    et = chewbaccaI18n.getFixedT(null, 'errors')
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+    et = global.chewbaccaI18n.getFixedT(null, 'errors')
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {

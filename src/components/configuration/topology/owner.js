@@ -75,7 +75,7 @@ class NetworkOwner extends Component {
 
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
 
-   this.getSearchData();
+   this.getSearchData('first');
    this.getOwnerData();
   }
   componentWillReceiveProps(nextProps) {
@@ -85,11 +85,12 @@ class NetworkOwner extends Component {
   }
   /**
    * Get and set department and title data
+   * @param {string} options - option for 'first' or 'fromManage'
    * @method
    */
-  getSearchData = () => {
+  getSearchData = (options) => {
     const {baseUrl} = this.context;
-    const {list} = this.state;
+    const {activeContent, list} = this.state;
     const apiNameType = [1, 2]; //1: Department, 2: Title
     let apiArr = [];
 
@@ -127,8 +128,11 @@ class NetworkOwner extends Component {
 
         tempList.department = _.cloneDeep(departmentList);
         tempList.title = _.cloneDeep(titleList);
-        tempList.department.unshift({value: 'all', text: t('txt-all')});
-        tempList.title.unshift({value: 'all', text: t('txt-all')});
+
+        if (options === 'first' || (options === 'fromManage' && activeContent === 'tableList')) {
+          tempList.department.unshift({value: 'all', text: t('txt-all')});
+          tempList.title.unshift({value: 'all', text: t('txt-all')});
+        }
 
         this.setState({
           list: tempList
@@ -365,8 +369,13 @@ class NetworkOwner extends Component {
     let addOwnerTitle = '';
 
     if (type === 'addOwner') {
-      tempList.department.shift(); //Remove 'all' option
-      tempList.title.shift(); //Remove 'all' option
+      if (_.find(tempList.department, {'value': 'all'})) {
+        tempList.department.shift(); //Remove 'all' option
+      }
+
+      if (_.find(tempList.title, {'value': 'all'})) {
+        tempList.title.shift(); //Remove 'all' option
+      }
 
       if (options === 'new') {
         addOwnerType = 'new';
@@ -570,10 +579,11 @@ class NetworkOwner extends Component {
   }
   /**
    * Handle close on department/title management modal dialog
+   * @param {string} options - option for 'fromManage'
    * @method
    */
-  onDone = () => {
-    this.getSearchData();
+  onDone = (options) => {
+    this.getSearchData(options);
     this.getOwnerData();
   }
   /**

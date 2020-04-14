@@ -10,6 +10,9 @@
 	"txt-prev-page": "Prev",
 	"txt-next-page": "Next",
 	"unit": {
+		"txt-default": "Default Unit",
+		"txt-isDefault": "Yes",
+		"txt-isNotDefault": "No",
 		"txt-name": "Unit",
 		"txt-oid": "Unit OID",
 		"txt-level": "Unit Level",

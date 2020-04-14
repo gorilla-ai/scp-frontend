@@ -424,7 +424,8 @@ class AutoSettings extends Component {
   handleScannerTest = (value) => {
     const {baseUrl} = this.context;
 
-    if (_.isEmpty(value)) {
+    if (!value.edge) {
+      helper.showPopupMsg(t('network-inventory.auto-settings.txt-noEdgeSelected'), t('txt-error'));
       return;
     }
 
@@ -522,7 +523,7 @@ class AutoSettings extends Component {
       return {
         edge: val.edge,
         target: val.ip,
-        mask: Number(val.mask)
+        mask: val.mask ? Number(val.mask) : ''
       };
     });
 
@@ -588,7 +589,7 @@ class AutoSettings extends Component {
             </div>
           }
 
-          <div className='auto-settings' style={{'height': activeContent === 'viewMode' ? '78vh' : '71vh'}}>
+          <div className='auto-settings' style={{'height': activeContent === 'viewMode' ? '78vh' : '70vh'}}>
             <div className='form-group normal'>
               <header>{t('network-inventory.auto-settings.txt-ipRange')}</header>
               <ToggleBtn
@@ -726,6 +727,11 @@ class AutoSettings extends Component {
                     className='scanner-group'
                     base={Scanner}
                     props={data}
+                    defaultItemValue={{
+                      edge: '',
+                      ip: '',
+                      mask: ''
+                    }}
                     onChange={this.setScannerData}
                     handleScannertest={this.handleScannerTest}
                     value={scannerData}

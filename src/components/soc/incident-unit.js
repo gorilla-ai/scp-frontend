@@ -9,6 +9,7 @@ import Input from "react-ui/build/src/components/input";
 import PopupDialog from "react-ui/build/src/components/popup-dialog";
 import TableContent from "../common/table-content";
 import DropDownList from "react-ui/build/src/components/dropdown";
+import Checkbox from "react-ui/build/src/components/checkbox";
 
 let t = null;
 let f = null;
@@ -98,7 +99,7 @@ class IncidentUnit extends Component {
                 industryType: 99
             },
             incidentUnit: {
-                dataFieldsArr: ['oid', 'name', 'level', 'industryType', '_menu'],
+                dataFieldsArr: ['isDefault', 'oid', 'name', 'level', 'industryType', '_menu'],
                 dataFields: {},
                 dataContent: [],
                 sort: {
@@ -114,6 +115,8 @@ class IncidentUnit extends Component {
                     name: '',
                     level: 'A',
                     industryType: '',
+                    isUse: false,
+                    isDefault: false
                 }
             }
         };
@@ -160,6 +163,8 @@ class IncidentUnit extends Component {
                                     return <span>{this.mappingType(value)}</span>
                                 } else if (tempData === 'updateDttm') {
                                     return <span>{helper.getFormattedDate(value, 'local')}</span>
+                                } else if (tempData === 'isDefault') {
+                                    return <span>{this.checkDefault(value)}</span>
                                 } else if (tempData === '_menu') {
                                     return (
                                         <div className='table-menu menu active'>
@@ -189,6 +194,14 @@ class IncidentUnit extends Component {
             .catch(err => {
                 helper.showPopupMsg(t('txt-error'));
             });
+    };
+
+    checkDefault = (value) => {
+        let info = it('unit.txt-isNotDefault');
+        if (value) {
+            info = it('unit.txt-isDefault')
+        }
+        return info;
     };
 
     mappingType = (value) => {
@@ -265,7 +278,7 @@ class IncidentUnit extends Component {
 
                         {activeContent === 'tableList' &&
                         <div className='main-content'>
-                            <header className='main-header'>{it('txt-incident-device')}</header>
+                            <header className='main-header'>{it('txt-incident-unit')}</header>
                             <div className='content-header-btns'>
                                 {activeContent === 'viewDevice' &&
                                 <button className='standard btn list'
@@ -327,7 +340,7 @@ class IncidentUnit extends Component {
 
         return (
             <div className='main-content basic-form'>
-                <header className='main-header'>{it('txt-incident-device')}</header>
+                <header className='main-header'>{it('txt-incident-unit')}</header>
 
                 <div className='content-header-btns'>
                     {activeContent === 'viewDevice' &&
@@ -404,6 +417,15 @@ class IncidentUnit extends Component {
                             onChange={this.handleDataChange.bind(this, 'industryType')}
                             value={incidentUnit.info.industryType}
                             readOnly={activeContent === 'viewDevice'}/>
+                    </div>
+
+                    <div className='group'>
+                        <label htmlFor='isDefault' className='checkbox'>{it('unit.txt-default')}</label>
+                        <Checkbox
+                            id='isDefault'
+                            onChange={this.handleDataChange.bind(this, 'isDefault')}
+                            checked={incidentUnit.info.isDefault}
+                            disabled={activeContent === 'viewDevice'}/>
                     </div>
                 </div>
 
@@ -636,7 +658,9 @@ class IncidentUnit extends Component {
                 oid: allValue.oid,
                 name: allValue.name,
                 level: allValue.level,
+                isUse: allValue.isUse,
                 industryType: allValue.industryType,
+                isDefault: allValue.isDefault
             };
             this.setState({
                 showFilter: false,
@@ -649,7 +673,9 @@ class IncidentUnit extends Component {
                 oid: allValue.oid,
                 name: allValue.name,
                 level: allValue.level,
+                isUse: allValue.isUse,
                 industryType: allValue.industryType,
+                isDefault: allValue.isDefault
             };
             this.setState({
                 showFilter: false,

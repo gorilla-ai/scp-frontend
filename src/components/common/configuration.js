@@ -38,7 +38,7 @@ class Config extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const openEdgeManagement = this.getActiveFrame('edge') || this.getActiveFrame('threat');
+    const openEdgeManagement = this.getActiveFrame('edge') || this.getActiveFrame('threat') || this.getActiveFrame('severity');
     const openTopology = this.getActiveFrame('inventory') || this.getActiveFrame('owner') || this.getActiveFrame('map');
     const openAccount = this.getActiveFrame('account') || this.getActiveFrame('privileges');
 
@@ -71,6 +71,7 @@ class Config extends Component {
       notifications: '/SCP/configuration/notifications',
       edge: '/SCP/configuration/edge/edge',
       threat: '/SCP/configuration/edge/threat',
+      severity: '/SCP/configuration/edge/severity',
       inventory: '/SCP/configuration/topology/inventory',
       owner: '/SCP/configuration/topology/owner',
       map: '/SCP/configuration/topology/map',
@@ -137,6 +138,11 @@ class Config extends Component {
             <div className='subframe'>
               <Link to='/SCP/configuration/edge/threat'>
                 <span className={`${this.getActiveFrame('threat')}`}>{t('txt-threatIntelligence')}</span>
+              </Link>
+            </div>
+            <div className='subframe'>
+              <Link to='/SCP/configuration/edge/severity'>
+                <span className={`${this.getActiveFrame('severity')}`}>{t('severity-table.txt-severityTable')}</span>
               </Link>
             </div>
           </div>

@@ -46,7 +46,7 @@ class Header extends Component {
     this.ah.one({
       url: `${baseUrl}/api/account/theme?accountId=${session.accountId}`,
       type: 'GET'
-    })
+    }, {showProgress: false})
     .then(data => {
       if (data) {
         this.setState({

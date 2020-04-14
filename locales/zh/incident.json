@@ -10,6 +10,9 @@
 	"txt-prev-page": "上一頁",
 	"txt-next-page": "下一頁",
 	"unit": {
+		"txt-default": "預設機關",
+		"txt-isDefault": "是",
+		"txt-isNotDefault": "否",
 		"txt-name": "機關名稱",
 		"txt-oid": "機關OID",
 		"txt-level": "機關等級",

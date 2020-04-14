@@ -48,10 +48,11 @@ html {
   --formReadOnlyBackground: #eee;
   --formReadOnlyBorderColor: #d9d9d9;
   --formCheckRadioColor: #001b34;
-  --fadedColor: #fff;
 
   --gisMapBackground: #001b34;
   --laBackground: #fff;
+  --fadedColor: #fff;
+  --disabledColor: #ccc;
 }
 html[data-theme='dark'] {
   --primaryBackground: #000;
@@ -101,10 +102,11 @@ html[data-theme='dark'] {
   --formReadOnlyBackground: #666;
   --formReadOnlyBorderColor: #666;
   --formCheckRadioColor: #089bda;
-  --fadedColor: #999;
 
   --gisMapBackground: #1f1e1e;
   --laBackground: #333;
+  --fadedColor: #999;
+  --disabledColor: #666;
 }
 html, body, #app-container {
   font-family:"Segoe UI", "微軟正黑體", "新細明體";
@@ -935,6 +937,14 @@ i.c-checkbox.fg-checkbox {
         }
       }
     }
+    .loader-wrap {
+      text-align: center;
+      margin-top: 200px;
+      display: block;
+      .fg-loading-2 {
+        font-size: 30px;
+      }
+    }
   }
   .data-content {
     display: flex;
@@ -1229,7 +1239,7 @@ i.c-checkbox.fg-checkbox {
         .button-group {
           margin-bottom: 5px;
           display: block;
-          &.inventory {
+          &.group-aligned {
             position: absolute;
             right: 10px;
             bottom: 10px;
@@ -1300,15 +1310,18 @@ i.c-checkbox.fg-checkbox {
                   margin-right: 3px;
                 }
               }
-              &.hmd {
+              &.group-checkbox {
                 position: relative;
                 display: flex;
                 margin: 0 5px 5px 5px;
                 padding: 10px;
-                border: 1px solid var(--leftNavBackground);
+                border: 1px solid var(--primaryBorder);
                 border-radius: 5px;
                 background-color: var(--primaryContentBackground);
-                .hmd-options {
+                &.narrow {
+                  padding: 5px;
+                }
+                .group-options {
                   display: flex;
                   .option {
                     margin-right: 10px;
@@ -1316,7 +1329,7 @@ i.c-checkbox.fg-checkbox {
                       float: left;
                       margin-top: 1px;
                       margin-right: 5px;
-                      color: #ccc;
+                      color: var(--disabledColor);
                       &.active {
                         color: var(--primaryContentHeader);
                       }
@@ -1328,6 +1341,11 @@ i.c-checkbox.fg-checkbox {
                   }
                 }
               }
+            }
+            .severity label {
+              color: var(--primaryContentHeader);
+              display: block;
+              margin: 4px 0 2px 5px;
             }
           }
         }
@@ -1582,6 +1600,16 @@ i.c-checkbox.fg-checkbox {
                   background-color: var(--formBackground);
                 }
               }
+              &.severity-level {
+                .fg-recode {
+                  float: left;
+                  margin-right: 5px;
+                  margin-top: 5px;
+                }
+              }
+              #severityLevel {
+                width: 94.5%;
+              }
               label {
                 text-align: left;
                 color: var(--primaryContentHeader);
@@ -1794,7 +1822,7 @@ i.c-checkbox.fg-checkbox {
             display: block;
             text-align: center;
             margin-top: 160px;
-            i {
+            .fg-loading-2 {
               font-size: 30px;
             }
           }
@@ -1942,7 +1970,8 @@ i.c-checkbox.fg-checkbox {
               &._tableMenu_ {
                 width: 1px;
               }
-              &._severity_ {
+              &._severity_,
+              &.severityLevel {
                 span.severity {
                   float: left;
                   color: #fff;

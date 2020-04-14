@@ -194,7 +194,7 @@ class DashboardStats extends Component {
       search: ['Top10ExternalSrcCountry', 'InternalIp', 'InternalMaskedIp']
     };
 
-    helper.getAjaxData('POST', url, requestData)
+    helper.getAjaxData('POST', url, requestData, 'false')
     .then(data => {
       if (data) {
         let tempAlertPieData = {...alertPieData};
@@ -364,7 +364,7 @@ class DashboardStats extends Component {
     this.ah.one({
       url: `${baseUrl}/api/dashboard/iva?startDttm=${dateTime.from}&endDttm=${dateTime.to}`,
       type: 'GET'
-    })
+    }, {showProgress: false})
     .then(data => {
       if (data) {
         let tempIvar = {...ivar};
@@ -414,7 +414,7 @@ class DashboardStats extends Component {
       }]
     };
 
-    helper.getAjaxData('POST', url, requestData)
+    helper.getAjaxData('POST', url, requestData, 'false')
     .then(data => {
       if (data.aggregations) {
         let configSrcData = [];
@@ -454,7 +454,7 @@ class DashboardStats extends Component {
       timestamp: [dateTime.from, dateTime.to]
     };
 
-    helper.getAjaxData('POST', url, requestData)
+    helper.getAjaxData('POST', url, requestData, 'false')
     .then(data => {
       if (data) {
         const dnsInfo = CHARTS_LIST[6];
@@ -512,7 +512,7 @@ class DashboardStats extends Component {
     ah.one({
       url: `${baseUrl}/api/alert/diskUsage`,
       type: 'GET'
-    })
+    }, {showProgress: false})
     .then(data => {
       if (data) {
         data = data.rt;
@@ -571,7 +571,7 @@ class DashboardStats extends Component {
       }
     ];
 
-    this.ah.all(apiArr)
+    this.ah.all(apiArr, {showProgress: false})
     .then(data => {
       if (data) {
         let lms = t('txt-notFound');
