@@ -5,6 +5,10 @@
 	"txt-incident-unit": "Incident Unit",
 	"txt-incident-management": "Incident Management",
 	"txt-incident-device-management": "Incident Device Management",
+	"txt-incident-events": "Incident Events",
+	"txt-incident-ttps": "TTPs",
+	"txt-prev-page": "Prev",
+	"txt-next-page": "Next",
 	"unit": {
 		"txt-name": "Unit",
 		"txt-oid": "Unit OID",
