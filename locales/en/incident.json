@@ -6,6 +6,9 @@
 	"txt-incident-management": "Incident Management",
 	"txt-incident-device-management": "Incident Device Management",
 	"unit": {
+		"txt-default": "Default Unit",
+		"txt-isDefault": "Yes",
+		"txt-isNotDefault": "No",
 		"txt-name": "Unit",
 		"txt-oid": "Unit OID",
 		"txt-level": "Unit Level",

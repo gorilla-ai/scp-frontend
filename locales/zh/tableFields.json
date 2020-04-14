@@ -527,6 +527,7 @@
     "serviceName": "服務名稱"
   },
   "incidentFields": {
+    "isDefault": "預設機關",
     "id": "事件單編號",
     "title": "事件主旨",
     "category": "事件類別",

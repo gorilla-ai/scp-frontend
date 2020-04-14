@@ -528,6 +528,7 @@
   },
 
   "incidentFields": {
+    "isDefault": "Default Unit",
     "id": "ID",
     "title": "Title",
     "category": "Category",
