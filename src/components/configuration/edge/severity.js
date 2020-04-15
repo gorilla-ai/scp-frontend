@@ -250,7 +250,6 @@ class Severity extends Component {
    * @returns HTML DOM
    */
   displayEditSeverityContent = () => {
-    const {contextRoot, locale} = this.context;
     const {activeContent, severityList, severity} = this.state;
     let pageType = '';
 
@@ -262,7 +261,7 @@ class Severity extends Component {
 
     return (
       <div className='main-content basic-form'>
-        <header className='main-header'>Severity</header>
+        <header className='main-header'>{t('severity-table.txt-severityTable')}</header>
 
         <div className='content-header-btns'>
           {activeContent === 'viewSeverity' &&

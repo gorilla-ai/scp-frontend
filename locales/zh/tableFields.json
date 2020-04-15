@@ -534,6 +534,7 @@
   "syslogPatternTableFields": {
     "patternName": "Pattern名稱",
     "periodMin": "時期 (分鐘)",
+    "threshold": "臨界值",
     "lastUpdateDttm": "最後更新",
     "queryScript": "Query Script",
     "severity": "Severity"

@@ -32,10 +32,10 @@ let f = null;
 let et = null;
 
 /**
- * Severity
+ * Pattern
  * @class
  * @author Ryan Chen <ryanchen@telmediatech.com>
- * @summary A react component to show the Config Edge Severity table page
+ * @summary A react component to show the Config Syslog Pattern page
  */
 class Pattern extends Component {
   constructor(props) {
@@ -47,7 +47,7 @@ class Pattern extends Component {
 
     this.state = {
       activeContent: 'tableList', //tableList, viewPattern, addPattern, editPattern
-      showFilter: true,
+      showFilter: false,
       patternSearch: {
         name: '',
         queryScript: '',
@@ -57,7 +57,7 @@ class Pattern extends Component {
       severityList: [],
       currentPatternData: '',
       pattern: {
-        dataFieldsArr: ['patternName', 'lastUpdateDttm', 'queryScript', 'severity', 'periodMin', '_menu'],
+        dataFieldsArr: ['patternName', 'severity', 'queryScript', 'periodMin', 'threshold', 'lastUpdateDttm', '_menu'],
         dataFields: {},
         dataContent: [],
         sort: {
@@ -73,10 +73,12 @@ class Pattern extends Component {
           lastUpdateDttm: '',
           severity: '',
           periodMin: '',
+          threshold: '',
           queryScript: '',
           severity: 'Emergency'
         }
-      }
+      },
+      periodCheckbox: false
     };
 
     this.ah = getInstance('chewbacca');
@@ -87,9 +89,6 @@ class Pattern extends Component {
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
 
     this.setDefaultSearchOptions();
-  }
-  ryan = () => {
-
   }
   /**
    * Set Severity checkbox filter and dropdown list
@@ -115,16 +114,41 @@ class Pattern extends Component {
     });
   }
   /**
-   * Get and set severity table data
+   * Get and set pattern script data
    * @method
    * @param {string} fromSearch - option for 'search'
    */
   getPatternScript = (fromSearch) => {
     const {baseUrl} = this.context;
     const {patternSearch, pattern} = this.state;
+    let query = '';
+
+    if (patternSearch.name) {
+      query += `&patternName=${patternSearch.name}`;
+    }
+
+    if (patternSearch.queryScript) {
+      query += `&queryScript=${patternSearch.queryScript}`;
+    } 
+
+    if (!_.isEmpty(patternSearch.severity)) {
+      let severityArr = [];
+
+      _.forEach(patternSearch.severity, (val, key) => {
+        if (val) {
+          severityArr.push(key);
+        }
+      })
+
+      const severityOptions = severityArr.join();
+
+      if (severityOptions) {
+        query += `&severity=${severityOptions}`;
+      }
+    }
 
     this.ah.one({
-      url: `${baseUrl}/api/alert/pattern`,
+      url: `${baseUrl}/api/alert/pattern?${query}&page=${pattern.currentPage}&pageSize=${pattern.pageSize}`,
       type: 'GET'
     })
     .then(data => {
@@ -187,21 +211,26 @@ class Pattern extends Component {
         lastUpdateDttm: '',
         severity: 'Emergency',
         periodMin: '',
+        threshold: '',
         queryScript: ''
       };
     } else if (type === 'viewPattern') {
+      const periodCheckbox = (allValue.periodMin || allValue.threshold) ? true : false;
+
       tempPattern.info = {
         id: allValue.patternId,
         name: allValue.patternName,
         lastUpdateDttm: allValue.lastUpdateDttm,
         severity: allValue.severity,
         periodMin: allValue.periodMin,
+        threshold: allValue.threshold,
         queryScript: allValue.queryScript
       };
 
       this.setState({
         showFilter: false,
-        originalPatternData: _.cloneDeep(tempPattern)
+        originalPatternData: _.cloneDeep(tempPattern),
+        periodCheckbox
       });
     } else if (type === 'addPattern') {
       this.setState({
@@ -236,7 +265,7 @@ class Pattern extends Component {
     });
   }
   /**
-   * Handle Severity edit input data change
+   * Handle Pattern edit input data change
    * @method
    * @param {string} type - input type
    * @param {string} value - input value
@@ -250,13 +279,36 @@ class Pattern extends Component {
     });
   }
   /**
-   * Display edit Severity content
+   * Handle Pattern edit input number change
+   * @method
+   * @param {string} type - input type
+   * @param {string} event - input value
+   */
+  handleNumberChange = (type, event) => {
+    let tempPattern = {...this.state.pattern};
+    tempPattern.info[type] = event.target.value;
+
+    this.setState({
+      pattern: tempPattern
+    });
+  }
+  /**
+   * Toggle pattern period checkbox
+   * @method
+   */
+  togglePeriodCheckbox = () => {
+    this.setState({
+      periodCheckbox: !this.state.periodCheckbox
+    });
+  }
+  /**
+   * Display edit Pattern content
    * @method
    * @returns HTML DOM
    */
   displayEditPatternContent = () => {
-    const {contextRoot, locale} = this.context;
-    const {activeContent, severityList, pattern} = this.state;
+    const {locale} = this.context;
+    const {activeContent, severityList, pattern, periodCheckbox} = this.state;
     let pageType = '';
 
     if (activeContent === 'addPattern') {
@@ -267,7 +319,7 @@ class Pattern extends Component {
 
     return (
       <div className='main-content basic-form'>
-        <header className='main-header'>Severity</header>
+        <header className='main-header'>{t('syslog-pattern.txt-patternScript')}</header>
 
         <div className='content-header-btns'>
           {activeContent === 'viewPattern' &&
@@ -276,7 +328,7 @@ class Pattern extends Component {
               <button className='standard btn edit' onClick={this.toggleContent.bind(this, 'editPattern')}>{t('txt-edit')}</button>
             </div>
           }
-        </div>       
+        </div>
 
         <div className='form-group normal'>
           <header>
@@ -304,7 +356,7 @@ class Pattern extends Component {
               value={pattern.info.severity}
               readOnly={activeContent === 'viewPattern'} />
           </div>
-          <div className='group'>
+          <div className='group full'>
             <label htmlFor='queryScript'>{f('syslogPatternTableFields.queryScript')}</label>
             <Textarea
               id='queryScript'
@@ -313,6 +365,66 @@ class Pattern extends Component {
               value={pattern.info.queryScript}
               onChange={this.handleDataChange.bind(this, 'queryScript')}
               readOnly={activeContent === 'viewPattern'} />
+          </div>
+          <div className='group full'>
+            {locale === 'zh' &&
+              <div className='period'>
+                <Checkbox
+                  id='periodCheckbox'
+                  className='period-checkbox'
+                  onChange={this.togglePeriodCheckbox}
+                  checked={periodCheckbox}
+                  disabled={(activeContent === 'viewPattern')} />
+                <span>在 </span>
+                <input
+                  id='periodMin'
+                  className='number'
+                  type='number'
+                  min='1'
+                  onChange={this.handleNumberChange.bind(this, 'periodMin')}
+                  value={pattern.info.periodMin}
+                  readOnly={(activeContent === 'viewPattern') || !periodCheckbox} />
+                <span> 分鐘內超過或等於 </span>
+                <input
+                  id='threshold'
+                  className='number'
+                  type='number'
+                  min='1'
+                  onChange={this.handleNumberChange.bind(this, 'threshold')}
+                  value={pattern.info.threshold}
+                  readOnly={(activeContent === 'viewPattern') || !periodCheckbox} />
+                <span> 次</span>
+              </div>
+            }
+            {locale === 'en' &&
+              <div className='period'>
+                <Checkbox
+                  id='periodCheckbox'
+                  className='period-checkbox'
+                  onChange={this.togglePeriodCheckbox}
+                  checked={periodCheckbox}
+                  disabled={(activeContent === 'viewPattern')} />
+                <span>Occurs more than or equal to </span>
+                <input
+                  id='threshold'
+                  className='number'
+                  type='number'
+                  min='1'
+                  onChange={this.handleNumberChange.bind(this, 'threshold')}
+                  value={pattern.info.threshold}
+                  readOnly={(activeContent === 'viewPattern') || !periodCheckbox} />
+                <span> times in </span>
+                <input
+                  id='periodMin'
+                  className='number'
+                  type='number'
+                  min='1'
+                  onChange={this.handleNumberChange.bind(this, 'periodMin')}
+                  value={pattern.info.periodMin}
+                  readOnly={(activeContent === 'viewPattern') || !periodCheckbox} />
+                <span> minutes</span>
+              </div>
+            }
           </div>
         </div>
 
@@ -326,9 +438,9 @@ class Pattern extends Component {
     )
   }
   /**
-   * Display delete Severity content
+   * Display delete Pattern content
    * @method
-   * @param {object} allValue - Severity data
+   * @param {object} allValue - Pattern data
    * @returns HTML DOM
    */
   getDeletePatternContent = (allValue) => {
@@ -343,9 +455,9 @@ class Pattern extends Component {
     )
   }
   /**
-   * Show Delete Severity dialog
+   * Show Delete Pattern dialog
    * @method
-   * @param {object} allValue - Severity data
+   * @param {object} allValue - Pattern data
    */
   openDeleteMenu = (allValue) => {
     PopupDialog.prompt({
@@ -362,7 +474,7 @@ class Pattern extends Component {
     });
   }
   /**
-   * Handle delete Severity confirm
+   * Handle delete Pattern confirm
    * @method
    */
   deleteSeverity = () => {
@@ -388,12 +500,12 @@ class Pattern extends Component {
     })
   }
   /**
-   * Handle Severity add/edit confirm
+   * Handle Pattern add/edit confirm
    * @method
    */
   handlePatternSubmit = () => {
     const {baseUrl} = this.context;
-    const {activeContent, pattern} = this.state;
+    const {activeContent, pattern, periodCheckbox} = this.state;
     let requestType = '';
 
     if (!pattern.info.name) {
@@ -408,16 +520,20 @@ class Pattern extends Component {
 
     let data = {
       patternName: pattern.info.name,
-      queryScript: pattern.info.queryScript,
-      periodMin: pattern.info.periodMin,
-      severity: pattern.info.severity
+      severity: pattern.info.severity,
+      queryScript: pattern.info.queryScript
     };
+
+    if (periodCheckbox) {
+      data.periodMin = pattern.info.periodMin;
+      data.threshold = pattern.info.threshold;
+    }
 
     if (activeContent === 'addPattern') {
       requestType = 'POST';
     } else if (activeContent === 'editPattern') {
-      requestType = 'PATCH';
       data.patternId = pattern.info.id;
+      requestType = 'PATCH';
     }
 
     ah.one({
@@ -457,13 +573,17 @@ class Pattern extends Component {
     });
   }
   /**
-   * Toggle filter content on/off
+   * Handle filter input data change
    * @method
-   * @param {string} type - Severity type input from user
+   * @param {string} type - input type
+   * @param {string} value - input value
    */
-  handlePatternSearch = (type) => {
+  handlePatternSearch = (type, value) => {
+    let tempPatternSearch = {...this.state.patternSearch};
+    tempPatternSearch[type] = value;
+
     this.setState({
-      patternSearchType: type
+      patternSearch: tempPatternSearch
     });
   }
   /**
@@ -572,7 +692,7 @@ class Pattern extends Component {
       patternSearch: {
         name: '',
         queryScript: '',
-        severity: ''
+        severity: {}
       }
     });
   }
