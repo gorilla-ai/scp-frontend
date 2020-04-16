@@ -546,7 +546,7 @@ class ThreatsController extends Component {
       url += 0;
     }
 
-    helper.getAjaxData('POST', url, requestData, 'false')
+    helper.getAjaxData('POST', url, requestData)
     .then(data => {
       if (data) {
         if (!options || options === 'search') {

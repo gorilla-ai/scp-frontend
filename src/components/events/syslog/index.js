@@ -593,7 +593,7 @@ class SyslogController extends Component {
       data: JSON.stringify(this.toQueryLanguage()),
       type: 'POST',
       contentType: 'text/plain'
-    }], {showProgress: false})
+    }])
     .then(data => {
       if (data) {
         if (currentPage > 1 && !data[0].data) {
@@ -1721,25 +1721,23 @@ class SyslogController extends Component {
    * @method
    */
   clearData = () => {
-    const {activeTab} = this.state;
-    const subSectionsData = {
-      mainData: {
-        logs: null
-      },
-      fieldsData: {
-        logs: {}
-      },
-      laData: {
-        logs: []
-      },
-      tableColumns: {},
-      totalCount: {
-        logs: 0
-      }
+    const {activeTab, subSectionsData} = this.state;
+    let tempSubSectionsData = {...subSectionsData};
+    tempSubSectionsData.mainData = {
+      logs: null
+    };
+    tempSubSectionsData.fieldsData = {
+      logs: {}
+    };
+    tempSubSectionsData.laData = {
+      logs: []
+    };
+    tempSubSectionsData.totalCount = {
+      logs: 0
     };
 
     this.setState({
-      subSectionsData
+      subSectionsData: tempSubSectionsData
     }, () => {
       this.loadFields(activeTab);
     });
