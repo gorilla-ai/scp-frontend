@@ -18,13 +18,16 @@
 		"txt-name": "機關名稱",
 		"txt-oid": "機關OID",
 		"txt-level": "機關等級",
-		"txt-type": "機關領域"
+		"txt-type": "機關領域",
+		"txt-abbreviation": "機關英文縮寫"
 	},
 	"device": {
 		"txt-name": "設備名稱與型號",
 		"txt-id": "設備代號",
 		"txt-company": "設備廠商"
 	},
+	"txt-downloadEvent": "下載監控事件單範例XML",
+	"txt-downloadRelated": "下載關聯事件單範例XML",
 	"txt-protect-type": "資安防護類型",
 	"txt-protect-type-info": "其他類型名稱",
 	"txt-frequency": "觸發次數",

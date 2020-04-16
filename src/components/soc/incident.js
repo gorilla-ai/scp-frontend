@@ -18,6 +18,7 @@ import helper from "../common/helper"
 
 import Events from './common/events'
 import Ttps from './common/ttps'
+import {downloadWithForm} from "react-ui/build/src/utils/download";
 
 
 let t = null;
@@ -71,9 +72,19 @@ class Incident extends Component {
     }
 
     componentDidMount() {
-        this.loadData()
-        this.getOptions()
+        let alertData = sessionStorage.getItem('alertData');
+        if (alertData) {
+
+            // console.log("redirectIncident = ", redirectIncident);
+            this.toggleContent('redirect',alertData);
+            sessionStorage.clear()
+        }else{
+            console.log("componentDidMount = else");
+            this.loadData()
+            this.getOptions()
+        }
     }
+
 
     /**
      * Get and set Incident Device table data
@@ -175,8 +186,12 @@ class Incident extends Component {
         return <div>
             <div className="sub-header">
                 <div className='secondary-btn-group right'>
-                    <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter}
+                    <button className={cx('', {'active': showFilter})} onClick={this.toggleFilter}
                             title={t('txt-filter')}><i className='fg fg-filter'/></button>
+                    <button className='' onClick={this.getIncidentSTIXFile.bind(this, 'event')}
+                            title={it('txt-downloadEvent')}><i className='fg fg-data-download'/></button>
+                    <button className='' onClick={this.getIncidentSTIXFile.bind(this, 'related')}
+                            title={it('txt-downloadRelated')}><i className='fg fg-data-download'/></button>
                 </div>
             </div>
 
@@ -629,6 +644,25 @@ class Incident extends Component {
         else if (type === 'cancel') {
             showPage = 'viewDevice';
             tempIncident = _.cloneDeep(originalIncident)
+        } else if (type === 'redirect') {
+            let alertData = JSON.parse(allValue);
+            console.log("alertData = " ,alertData)
+            tempIncident.info = {
+                /**
+                 * TODO make redirect incident
+                 */
+                // title: allValue.title,
+                // category: allValue.category,
+                // reporter: allValue.reporter,
+                // description: allValue.description,
+                // impactAssessment: allValue.impactAssessment,
+                // createDttm: allValue.createDttm,
+                // relatedList: allValue.relatedList,
+                // ttpList: allValue.ttpList,
+                // eventList: allValue.eventList
+            }
+            showPage = 'addIncident';
+            this.setState({showFilter: false, originalIncident: _.cloneDeep(tempIncident)})
         }
 
         this.setState({
@@ -718,18 +752,28 @@ class Incident extends Component {
             contentType: 'application/json',
             dataType: 'json'
         })
-        .then(data => {
-            if (data) {
-                let list = _.map(data.rows, val => {
-                    return {value: val.id, text: val.name}
-                })
-                
-                this.setState({unitListOptions: list})
-            }
-        })
-        .catch(err => {
-            helper.showPopupMsg('', t('txt-error'), err.message)
-        })
+            .then(data => {
+                if (data) {
+                    let list = _.map(data.rows, val => {
+                        return {value: val.id, text: val.name}
+                    })
+
+                    this.setState({unitListOptions: list})
+                }
+            })
+            .catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message)
+            })
+    }
+
+    /**
+     * Handle XML download
+     * @method
+     */
+    getIncidentSTIXFile = (option) => {
+        const {baseUrl, contextRoot} = this.context;
+        const url = `${baseUrl}${contextRoot}/api/soc/incident/example/_export`;
+        downloadWithForm(url, {payload: JSON.stringify(option)});
     }
 }
 
