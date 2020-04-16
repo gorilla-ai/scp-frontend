@@ -270,7 +270,17 @@ class AlertDetails extends Component {
     }, () => {
       const {alertInfo} = this.state;
 
-      if (!_.isEmpty(alertInfo[type].topology)) {
+      if (_.isEmpty(alertInfo[type].topology)) { //Reset to default value if no Topology info
+        let tempAlertInfo = {...alertInfo};
+        tempAlertInfo[type].ownerPic = '';
+        tempAlertInfo[type].ownerMap = {};
+        tempAlertInfo[type].ownerBaseLayers = {};
+        tempAlertInfo[type].ownerSeat = {};
+
+        this.setState({
+          alertInfo: tempAlertInfo
+        });
+      } else {
         this.getOwnerPic(type);
         this.getOwnerSeat(type);
       }

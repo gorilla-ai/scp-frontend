@@ -46,12 +46,8 @@ const SAFETY_SCAN_LIST = [
     path: 'ScanResult'
   },
   {
-    type: 'yaraScanFile',
-    path: 'ScanResult'
-  },
-  {
-    type: 'malware',
-    path: 'DetectionResult'
+    type: 'scanFile',
+    path: ['ScanResult', 'DetectionResult']
   },
   {
     type: 'gcb',
@@ -106,7 +102,6 @@ class NetworkInventory extends Component {
       hmdSearchOptions: {
         scanProcess: false,
         scanFile: false,
-        malware: false,
         gcb: false
       },
       deviceData: {
@@ -219,15 +214,26 @@ class NetworkInventory extends Component {
 
       return <li key={scanType} style={{'color': colorStyle}}><span>{val.name} {t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}:</span> {filteredResult.length}/{val.result.length}</li>
     } else {
-      let colorStyle = '#d10d25'; //Default red color
+      let totalLength = 0;
+      let colorStyle = '#22ac38'; //Default green color
 
-      if (val.result.length === 0) { //Show green color
-        colorStyle = '#22ac38';
+      if (val.type === 'scanFile') {
+        if (val.result.ScanResult) {
+          totalLength = val.result.ScanResult.length;
+        }
+
+        if (val.result.DetectionResult) {
+          totalLength += val.result.DetectionResult.length;
+        }
+      } else {
+        totalLength = val.result.length;
       }
 
-      if (val.result) {
-        return <li key={scanType} style={{'color': colorStyle}}>{val.name} {t('network-inventory.txt-suspiciousFileCount')}: {val.result.length}</li>
+      if (totalLength > 0) { //Show red color
+        colorStyle = '#d10d25';
       }
+
+      return <li key={scanType} style={{'color': colorStyle}}>{val.name} {t('network-inventory.txt-suspiciousFileCount')}: {totalLength}</li>
     }
   }
   /**
@@ -262,10 +268,6 @@ class NetworkInventory extends Component {
 
         if (hmdSearchOptions.scanFile) {
           dataParams += '&isScanFile=true';
-        }
-
-        if (hmdSearchOptions.malware) {
-          dataParams += '&isMalware=true';
         }
 
         if (hmdSearchOptions.gcb) {
@@ -430,10 +432,16 @@ class NetworkInventory extends Component {
                   const currentDataObj = allValue[dataType];
 
                   if (currentDataObj && currentDataObj.length > 0) {
+                    let result = currentDataObj[0][val.path];
+
+                    if (val.type === 'scanFile') {
+                      result = currentDataObj[0];
+                    }
+
                     hmdInfo.push({
                       type: val.type,
                       name: t('network-inventory.scan-list.txt-' + val.type),
-                      result: currentDataObj[0][val.path]
+                      result
                     });
                   }
                 })
@@ -933,7 +941,6 @@ class NetworkInventory extends Component {
           hmdSearchOptions: {
             scanProcess: true,
             scanFile: true,
-            malware: true,
             gcb: true
           }
         });
@@ -943,7 +950,6 @@ class NetworkInventory extends Component {
           hmdSearchOptions: {
             scanProcess: false,
             scanFile: false,
-            malware: false,
             gcb: false
           }
         });
@@ -953,7 +959,7 @@ class NetworkInventory extends Component {
         hmdSearchOptions: tempHMDsearchOptions
       }, () => {
         const {hmdSearchOptions} = this.state;
-        const hmdOptions = ['scanProcess', 'scanFile', 'malware', 'gcb'];
+        const hmdOptions = ['scanProcess', 'scanFile', 'gcb'];
         let count = 0;
 
         _.forEach(hmdSearchOptions, (val, key) => {
@@ -1058,19 +1064,11 @@ class NetworkInventory extends Component {
                   disabled={!hmdCheckbox} />
               </div>
               <div className='option'>
-                <label htmlFor='hmdScanFile' className={cx({'active': hmdCheckbox})}>Scan File (Yara)</label>
+                <label htmlFor='hmdScanFile' className={cx({'active': hmdCheckbox})}>Scan File</label>
                 <Checkbox
                   id='hmdScanFile'
                   onChange={this.toggleHMDoptions.bind(this, 'scanFile')}
                   checked={hmdSearchOptions.scanFile}
-                  disabled={!hmdCheckbox} />
-              </div>
-              <div className='option'>
-                <label htmlFor='hmdScanAI' className={cx({'active': hmdCheckbox})}>Scan File (AI)</label>
-                <Checkbox
-                  id='hmdScanAI'
-                  onChange={this.toggleHMDoptions.bind(this, 'malware')}
-                  checked={hmdSearchOptions.malware}
                   disabled={!hmdCheckbox} />
               </div>
               <div className='option'>
@@ -1535,7 +1533,6 @@ class NetworkInventory extends Component {
       hmdSearchOptions: {
         scanProcess: false,
         scanFile: false,
-        malware: false,
         gcb: false,
         ir: false
       }

@@ -6,13 +6,9 @@ import Moment from 'moment'
 import cx from 'classnames'
 
 import Checkbox from 'react-ui/build/src/components/checkbox'
-import DateRange from 'react-ui/build/src/components/date-range'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import Input from 'react-ui/build/src/components/input'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
-import RadioGroup from 'react-ui/build/src/components/radio-group'
-import Textarea from 'react-ui/build/src/components/textarea'
-import ToggleBtn from 'react-ui/build/src/components/toggle-button'
 
 import {BaseDataContext} from '../../common/context';
 import Config from '../../common/configuration'
@@ -114,7 +110,7 @@ class Severity extends Component {
   getSeverityMapping = (fromSearch) => {
     const {baseUrl} = this.context;
     const {severitySearchType, severitySearchOptions, severity} = this.state;
-    const url = `${baseUrl}/api/severityMapping/_search`;
+    const url = `${baseUrl}/api/severityMapping/_search?&page=${severity.currentPage}&pageSize=${severity.pageSize}`;
     let requestData = {};
     let searchArr = [];
 
@@ -254,7 +250,6 @@ class Severity extends Component {
    * @returns HTML DOM
    */
   displayEditSeverityContent = () => {
-    const {contextRoot, locale} = this.context;
     const {activeContent, severityList, severity} = this.state;
     let pageType = '';
 
@@ -266,7 +261,7 @@ class Severity extends Component {
 
     return (
       <div className='main-content basic-form'>
-        <header className='main-header'>Severity</header>
+        <header className='main-header'>{t('severity-table.txt-severityTable')}</header>
 
         <div className='content-header-btns'>
           {activeContent === 'viewSeverity' &&
@@ -285,7 +280,7 @@ class Severity extends Component {
             }
           </header>
           <div className='group'>
-            <label htmlFor='severityType'>Type</label>
+            <label htmlFor='severityType'>{f('severityTableFields.dataSourceType')}</label>
             <Input
               id='severityType'
               onChange={this.handleDataChange.bind(this, 'type')}
@@ -293,7 +288,7 @@ class Severity extends Component {
               readOnly={activeContent === 'viewSeverity'} />
           </div>
           <div className='group severity-level'>
-            <label htmlFor='severityLevel'>Severity</label>
+            <label htmlFor='severityLevel'>{f('severityTableFields.severityLevel')}</label>
             <i className='fg fg-recode' style={{color: ALERT_LEVEL_COLORS[severity.info.severity]}}></i>
             <DropDownList
               id='severityLevel'

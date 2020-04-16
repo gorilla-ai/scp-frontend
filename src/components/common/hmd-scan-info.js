@@ -551,13 +551,13 @@ class HMDscanInfo extends Component {
     let displayInfo = NOT_AVAILABLE;
     let showFilePath = false;
 
-    if (val._FileInfo) { //For AI
+    if (val && val._FileInfo) { //For AI
       uniqueKey = val._FileInfo._Filepath + i;
       uniqueID = parentIndex.toString() + i.toString() + val._FileInfo._Filepath;
       showFilePath = true;
     }
 
-    if (val._MatchedFile || val._MatchedPid) { //For Yara
+    if (val && (val._MatchedFile || val._MatchedPid)) { //For Yara
       uniqueKey = val._ScanType + i;
       uniqueID = parentIndex.toString() + i.toString() + (val._MatchedFile || val._MatchedPid);
       showFilePath = true;
@@ -567,61 +567,63 @@ class HMDscanInfo extends Component {
       }
     }
 
-    if (showFilePath) {
-      return (
-        <div className='group' key={uniqueKey}>
-          <div className='path' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
-            <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`}></i>
+    if (!showFilePath) {
+      return;
+    }
+
+    return (
+      <div className='group' key={uniqueKey}>
+        <div className='path' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
+          <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`}></i>
+          {val._FileInfo && val._FileInfo._Filepath &&
+            <span>{t('txt-path')}: {val._FileInfo._Filepath}</span>
+          }
+          {val._MatchedFile &&
+            <span>{t('txt-path')}: {val._MatchedFile}</span>
+          }
+          {val._MatchedFile && val._MatchedPid &&
+            <span>, </span>
+          }
+          {val._MatchedPid &&
+            <span>PID: {val._MatchedPid}</span>
+          }
+          {val._FileInfo && val._FileInfo._Filepath &&
+            <span className='right'>AI</span>
+          }
+          {val._ScanType &&
+            <span className='right'>Yara</span>
+          }
+        </div>
+        <div className={cx('rule', {'hide': activePath !== uniqueID})}>
+          <div className='rule-content'>
             {val._FileInfo && val._FileInfo._Filepath &&
-              <span>{t('txt-path')}: {val._FileInfo._Filepath}</span>
+              <div className='header'>
+                <ul>
+                  <li>{f('malwareFields._FileInfo._Filepath')}: {val._FileInfo._Filepath}</li>
+                  <li>{f('malwareFields._FileInfo._Filesize')}: {val._FileInfo._Filesize  + 'KB'}</li>
+                  <li>{f('malwareFields._FileInfo._HashValues._MD5')}: {val._FileInfo._HashValues._MD5}</li>
+                  <li>{f('malwareFields._IsPE')}: {this.getBoolValue(val._IsPE)}</li>
+                  <li>{f('malwareFields._IsPEextension')}: {this.getBoolValue(val._IsPEextension)}</li>
+                  <li>{f('malwareFields._IsVerifyTrust')}: {this.getBoolValue(val._IsVerifyTrust)}</li>
+                  <li>{f('malwareFields.hostIdArrCnt')}: {this.getHostIdCnt(val)}</li>
+                </ul>
+              </div>
             }
-            {val._MatchedFile &&
-              <span>{t('txt-path')}: {val._MatchedFile}</span>
-            }
-            {val._MatchedFile && val._MatchedPid &&
-              <span>, </span>
-            }
-            {val._MatchedPid &&
-              <span>PID: {val._MatchedPid}</span>
-            }
-            {val._FileInfo && val._FileInfo._Filepath &&
-              <span className='right'>AI</span>
-            }
-            {val._ScanType &&
-              <span className='right'>Yara</span>
-            }
-          </div>
-          <div className={cx('rule', {'hide': activePath !== uniqueID})}>
-            <div className='rule-content'>
-              {val._FileInfo && val._FileInfo._Filepath &&
-                <div className='header'>
-                  <ul>
-                    <li>{f('malwareFields._FileInfo._Filepath')}: {val._FileInfo._Filepath}</li>
-                    <li>{f('malwareFields._FileInfo._Filesize')}: {val._FileInfo._Filesize  + 'KB'}</li>
-                    <li>{f('malwareFields._FileInfo._HashValues._MD5')}: {val._FileInfo._HashValues._MD5}</li>
-                    <li>{f('malwareFields._IsPE')}: {this.getBoolValue(val._IsPE)}</li>
-                    <li>{f('malwareFields._IsPEextension')}: {this.getBoolValue(val._IsPEextension)}</li>
-                    <li>{f('malwareFields._IsVerifyTrust')}: {this.getBoolValue(val._IsVerifyTrust)}</li>
-                    <li>{f('malwareFields.hostIdArrCnt')}: {this.getHostIdCnt(val)}</li>
-                  </ul>
+            {(val._MatchedFile || val._MatchedPid) &&
+              <div>
+                <div className='header' onClick={this.toggleInfoHeader.bind(this, 'rule')}>
+                  <i className={cx('fg fg-play', {'rotate': activeRuleHeader})}></i>
+                  <span>{t('txt-rule')}</span>
                 </div>
-              }
-              {(val._MatchedFile || val._MatchedPid) &&
-                <div>
-                  <div className='header' onClick={this.toggleInfoHeader.bind(this, 'rule')}>
-                    <i className={cx('fg fg-play', {'rotate': activeRuleHeader})}></i>
-                    <span>{t('txt-rule')}</span>
-                  </div>
-                  <div className={cx('sub-content', {'hide': !activeRuleHeader})}>
-                    {displayInfo}
-                  </div>
+                <div className={cx('sub-content', {'hide': !activeRuleHeader})}>
+                  {displayInfo}
                 </div>
-              }
-            </div>
+              </div>
+            }
           </div>
         </div>
-      )
-    }
+      </div>
+    )
   }
   /**
    * Reset the activeTab and rule data
