@@ -10,6 +10,9 @@
 	"txt-incident-ttps": "TTPs",
 	"txt-prev-page": "Prev",
 	"txt-next-page": "Next",
+	"txt-audit": "Audit",
+	"txt-send": "Send",
+	"txt-download": "Download",
 	"unit": {
 		"txt-default": "Default Unit",
 		"txt-isDefault": "Yes",

@@ -64,6 +64,8 @@ class Incident extends Component {
                 currentPage: 1,
                 pageSize: 20,
                 info: {
+                    status: 0,
+                    socType: 1
                 }
             }
         };
@@ -72,17 +74,25 @@ class Incident extends Component {
     }
 
     componentDidMount() {
-        let alertData = sessionStorage.getItem('alertData');
+        let alertDataId = this.getQueryString('alertDataId');
+        let alertData = sessionStorage.getItem(alertDataId);
         if (alertData) {
 
-            // console.log("redirectIncident = ", redirectIncident);
-            this.toggleContent('redirect',alertData);
-            sessionStorage.clear()
-        }else{
+            this.toggleContent('redirect', alertData);
+            sessionStorage.removeItem(alertDataId)
+        } else {
             console.log("componentDidMount = else");
             this.loadData()
             this.getOptions()
         }
+    }
+
+
+    getQueryString(name) {
+        let reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        let r = window.location.search.substr(1).match(reg);
+        if (r != null) return unescape(r[2]);
+        return null;
     }
 
 
@@ -158,15 +168,36 @@ class Incident extends Component {
                 action: () => this.toggleContent.bind(this, 'viewDevice', allValue)
             },
             {
+                id: 'download',
+                text: it('txt-download'),
+                action: () => this.getIncidentSTIXFile(allValue.id)
+            },
+            {
                 id: 'delete',
                 text: t('txt-delete'),
                 action: () => this.openDeleteMenu(allValue)
             }
-        ]
+        ];
+        let item = {};
+        if (allValue.status === 1) {
+            item = {
+                id: 'audit',
+                text: it('txt-audit'),
+                action: () => this.toggleContent.bind(this, 'audit', allValue)
+            };
+            menuItems.push(item);
+        } else if (allValue.status === 2) {
+            item = {
+                id: 'send',
+                text: it('txt-send'),
+                action: () => this.toggleContent.bind(this, 'send', allValue)
+            };
+            menuItems.push(item);
+        }
 
         ContextMenu.open(evt, menuItems, 'incidentMenu');
         evt.stopPropagation();
-  }
+    }
 
 
     handleRowMouseOver = (index, allValue, evt) => {
@@ -188,9 +219,9 @@ class Incident extends Component {
                 <div className='secondary-btn-group right'>
                     <button className={cx('', {'active': showFilter})} onClick={this.toggleFilter}
                             title={t('txt-filter')}><i className='fg fg-filter'/></button>
-                    <button className='' onClick={this.getIncidentSTIXFile.bind(this, 'event')}
+                    <button className='' onClick={this.getIncidentSTIXFileExample.bind(this, 'event')}
                             title={it('txt-downloadEvent')}><i className='fg fg-data-download'/></button>
-                    <button className='' onClick={this.getIncidentSTIXFile.bind(this, 'related')}
+                    <button className='' onClick={this.getIncidentSTIXFileExample.bind(this, 'related')}
                             title={it('txt-downloadRelated')}><i className='fg fg-data-download'/></button>
                 </div>
             </div>
@@ -252,6 +283,14 @@ class Incident extends Component {
                     <button className='standard btn list'
                             onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</button>
                     }
+
+
+                    {activeContent === 'viewIncident' && incident.info.state !== 0 &&
+                    <button className='standard btn list'
+                            onClick={this.toggleContent.bind(this, 'audit')}>{it('txt-audit')}</button>
+                    }
+
+
                     {activeContent !== 'addIncident' &&
                     <button className='standard btn edit'
                             onClick={this.toggleContent.bind(this, 'editIncident')}>{t('txt-edit')}</button>
@@ -392,7 +431,7 @@ class Incident extends Component {
 
     handleEventsChange = (val) => {
         let temp = {...this.state.incident}
-        temp.info.relatedList = val
+        temp.info.eventList = val
         this.setState({incident: temp})
     }
     displayEventsPage = () => {
@@ -416,7 +455,7 @@ class Incident extends Component {
                     className='incident-group'
                     base={Events}
                     defaultItemValue={{description: '', deviceId: '', time: {from: nowTime, to: nowTime}, frequency: 0}}
-                    value={incident.info.relatedList}
+                    value={incident.info.eventList}
                     props={{activeContent: activeContent, locale: locale}}
                     onChange={this.handleEventsChange} />
             </div>
@@ -454,6 +493,8 @@ class Incident extends Component {
 
 
     handleSubmit = () => {
+        const {incident} = this.state;
+        console.log("incident ==", incident.info)
     }
 
 
@@ -594,9 +635,11 @@ class Incident extends Component {
      * @param {object} allValue - Edge data
      */
     toggleContent = (type, allValue) => {
+        const {baseUrl, contextRoot} = this.context
         const {originalIncident, incident} = this.state
         let tempIncident = {...incident}
         let showPage = type
+
 
         if (type === 'viewIncident') {
             tempIncident.info = {
@@ -611,9 +654,15 @@ class Incident extends Component {
                 createDttm: allValue.createDttm,
                 relatedList: allValue.relatedList,
                 ttpList: allValue.ttpList,
-                eventList: allValue.eventList
+                eventList: allValue.eventList,
+                socType: allValue.socType
             }
-            
+
+
+            if (!tempIncident.info.socType) {
+                tempIncident.info.socType = 1
+            }
+
             this.setState({showFilter: false, originalIncident: _.cloneDeep(tempIncident)})
         } 
         else if (type === 'addIncident') {
@@ -629,9 +678,14 @@ class Incident extends Component {
                 createDttm: allValue.createDttm,
                 relatedList: allValue.relatedList,
                 ttpList: allValue.ttpList,
-                eventList: allValue.eventList
+                eventList: allValue.eventList,
+                socType: allValue.socType
             }
 
+            if (!tempIncident.info.socType) {
+                tempIncident.info.socType = 1
+            }
+            console.log("tempIncident = ", tempIncident)
             this.setState({showFilter: false, originalIncident: _.cloneDeep(tempIncident)})
         } 
         else if (type === 'tableList') {
@@ -646,25 +700,75 @@ class Incident extends Component {
             tempIncident = _.cloneDeep(originalIncident)
         } else if (type === 'redirect') {
             let alertData = JSON.parse(allValue);
-            console.log("alertData = " ,alertData)
+            console.log("alertData = ", alertData)
             tempIncident.info = {
                 /**
                  * TODO make redirect incident
                  */
-                // title: allValue.title,
-                // category: allValue.category,
-                // reporter: allValue.reporter,
-                // description: allValue.description,
-                // impactAssessment: allValue.impactAssessment,
-                // createDttm: allValue.createDttm,
+                title: alertData.Info,
+                reporter: alertData.Collector,
+
                 // relatedList: allValue.relatedList,
                 // ttpList: allValue.ttpList,
                 // eventList: allValue.eventList
+            };
+
+
+            if (!tempIncident.info.socType) {
+                tempIncident.info.socType = 1
             }
+
+            // make incident.info
+            let eventNetworkList = [];
+            let eventNetworkItem = {
+                srcIp: alertData.ipSrc,
+                srcPort: parseInt(alertData.portSrc),
+                dstIp: alertData.ipDst,
+                dstPort: parseInt(alertData.destPort),
+                srcHostname: '',
+                dstHostname: ''
+            };
+            eventNetworkList.push(eventNetworkItem);
+
+            let eventList = [];
+            let eventListItem = {
+                description: alertData.trailName,
+                deviceId: '',
+                frequency: 1,
+                startDttm: helper.getFormattedDate_incident(alertData._eventDttm_, 'utc'),
+                endDttm: helper.getFormattedDate_incident(alertData._eventDttm_, 'utc'),
+                eventConnectionList: eventNetworkList
+            };
+            // 2020-01-01T00:00:00Z
+            if (alertData._edgeInfo) {
+                let searchRequestData = {
+                    deviceName: alertData._edgeInfo.agentName
+                };
+
+                ah.one({
+                    url: `${baseUrl}/api/soc/device/redirect/_search`,
+                    data: JSON.stringify(searchRequestData),
+                    type: 'POST',
+                    contentType: 'application/json',
+                    dataType: 'json'
+                }).then(data => {
+                    // console.log("data=", data)
+                    eventListItem.deviceId = data.rt.device.id;
+                })
+            }
+
+            eventList.push(eventListItem);
+            tempIncident.info.eventList = eventList;
+            console.log("tempIncident == ", tempIncident.info)
             showPage = 'addIncident';
             this.setState({showFilter: false, originalIncident: _.cloneDeep(tempIncident)})
+        } else if (type === 'audit') {
+// 1. show viewIncident
+// 2. could complement Incident
+// 3. could decide send nccst or not (different status)
+        } else if (type === 'download') {
+            this.getIncidentSTIXFile(allValue.id);
         }
-
         this.setState({
             activeContent: showPage,
             incident: tempIncident
@@ -768,13 +872,31 @@ class Incident extends Component {
 
     /**
      * Handle XML download
-     * @method
+     * @param {Example-Type} option
      */
-    getIncidentSTIXFile = (option) => {
+    getIncidentSTIXFileExample = (option) => {
         const {baseUrl, contextRoot} = this.context;
         const url = `${baseUrl}${contextRoot}/api/soc/incident/example/_export`;
-        downloadWithForm(url, {payload: JSON.stringify(option)});
+        let requestData = {
+            example: option
+        };
+        downloadWithForm(url, {payload: JSON.stringify(requestData)});
     }
+
+    /**
+     * Incident-ID
+     * @param {Incident-ID} incidentId
+     */
+    getIncidentSTIXFile = (incidentId) => {
+        const {baseUrl, contextRoot} = this.context;
+        const url = `${baseUrl}${contextRoot}/api/soc/_export`;
+        let requestData = {
+            id: incidentId
+        };
+
+        downloadWithForm(url, {payload: JSON.stringify(requestData)});
+    }
+
 }
 
 Incident.contextType = BaseDataContext
