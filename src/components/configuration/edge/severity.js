@@ -110,7 +110,7 @@ class Severity extends Component {
   getSeverityMapping = (fromSearch) => {
     const {baseUrl} = this.context;
     const {severitySearchType, severitySearchOptions, severity} = this.state;
-    const url = `${baseUrl}/api/severityMapping/_search`;
+    const url = `${baseUrl}/api/severityMapping/_search?&page=${severity.currentPage}&pageSize=${severity.pageSize}`;
     let requestData = {};
     let searchArr = [];
 

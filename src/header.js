@@ -181,7 +181,7 @@ class Header extends Component {
   editAccount = () => {
     const {session} = this.context;
 
-    this.editor._component.openAccount(session.accountId, 'fromHeader');
+    this.editor.openAccount(session.accountId, 'fromHeader');
   }
   /**
    * Show account edit success message

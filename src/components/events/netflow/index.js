@@ -698,7 +698,7 @@ class Netflow extends Component {
       data: JSON.stringify(this.toQueryLanguage('time')),
       type: 'POST',
       contentType: 'text/plain'
-    }], {showProgress: false})
+    }])
     .then(data => {
       if (data) {
         if (currentPage > 1 && !data[0]) {
@@ -840,7 +840,7 @@ class Netflow extends Component {
       data: JSON.stringify(this.toQueryLanguage('time')),
       type: 'POST',
       contentType: 'text/plain'
-    }], {showProgress: false})
+    }])
     .then(data => {
       if (data) {
         if (currentPage > 1 && data[0].rows.length === 0) {

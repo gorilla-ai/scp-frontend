@@ -9,6 +9,7 @@ import _ from 'lodash'
 import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import DataTable from 'react-ui/build/src/components/table'
 import Input from 'react-ui/build/src/components/input'
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import AccountEdit from './account-edit'
@@ -34,6 +35,7 @@ class AccountList extends Component {
     super(props);
 
     this.state = {
+      showFilter: false,
       originalAccountData: [],
       accountData: [],
       dataFieldsArr: ['_menu', 'accountid', 'account', 'name', 'email', 'unit', 'title', 'phone'],
@@ -42,9 +44,14 @@ class AccountList extends Component {
         account: ''
       },
       accountID: '',
+      accountName: '',
       dataFields: {},
-      showFilter: false
+      showNewPassword: false,
+      newPassword: '',
+      info: ''
     };
+
+    this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
     const {locale, sessionRights} = this.context;
@@ -125,6 +132,11 @@ class AccountList extends Component {
         id: 'unlock',
         text: c('txt-unlock'),
         action: () => this.showDialog('unlock', allValue, allValue.accountid)
+      },
+      {
+        id: 'resetPassword',
+        text: c('txt-resetPassword'),
+        action: () => this.showResetPassword(allValue.account)
       }
     ];
 
@@ -267,6 +279,113 @@ class AccountList extends Component {
     }
   }
   /**
+   * Show reset password dialog and set active account name
+   * @method
+   * @returns HTML DOM
+   */
+  showResetPassword = (accountName) => {
+    this.setState({
+      accountName,
+      showNewPassword: true
+    });
+  }
+  /**
+   * Handle password input box
+   * @method
+   * @param {string} value - password entered by the user
+   */
+  handlePasswordChange = (value) => {
+    this.setState({
+      newPassword: value
+    });
+  }
+  /**
+   * Display new password content
+   * @method
+   * @returns HTML DOM
+   */
+  displayNewPassword = () => {
+    return (
+      <div className='group'>
+        <label htmlFor='resetPassword'></label>
+        <Input
+          id='resetPassword'
+          type='password'
+          onChange={this.handlePasswordChange}
+          value={this.state.newPassword} />
+      </div>
+    )    
+  }
+  /**
+   * Show password reset dialog
+   * @method
+   * @returns ModalDialog
+   */
+  showNewPasswordDialog = () => {
+    const actions = {
+      cancel: {text: c('txt-cancel'), className: 'standard', handler: this.closeResetPasswordDialog},
+      confirm: {text: c('txt-confirm'), handler: this.handleResetPasswordConfirm}
+    };
+    const titleText = c('txt-resetPassword');
+
+    return (
+      <ModalDialog
+        id='resetPasswordDialog'
+        className='modal-dialog'
+        title={titleText}
+        draggable={true}
+        global={true}
+        actions={actions}
+        info={this.state.info}
+        closeAction='cancel'>
+        {this.displayNewPassword()}
+      </ModalDialog>
+    )
+  }
+  /**
+   * Handle reset password confirm
+   * @method
+   */
+  handleResetPasswordConfirm = () => {
+    const {baseUrl} = this.context;
+    const {accountName, newPassword} = this.state;
+    const url = `${baseUrl}/api/account/password/_reset`;
+    const requestData = {
+      account: accountName,
+      newPassword
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(c('txt-resetPasswordSuccess'));
+        this.closeResetPasswordDialog();
+      }
+      return null;
+    })
+    .catch(err => {
+      this.setState({
+        info: err.message
+      });
+    })
+  }
+  /**
+   * Handle reset password cancel
+   * @method
+   */
+  closeResetPasswordDialog = () => {
+    this.setState({
+      showNewPassword: false,
+      newPassword: '',
+      info: ''
+    });
+  }
+  /**
    * Handle filter input value change
    * @method
    * @param {string} type - input type
@@ -316,11 +435,19 @@ class AccountList extends Component {
         <div className='filter-section config'>
           <div className='group'>
             <label htmlFor='account' >{t('l-account')}</label>
-            <Input id='account' placeholder={t('ph-account')} onChange={this.handleSearchChange.bind(this, 'account')} value={param.account} />
+            <Input
+              id='account'
+              placeholder={t('ph-account')}
+              onChange={this.handleSearchChange.bind(this, 'account')}
+              value={param.account} />
           </div>
           <div className='group'>
             <label htmlFor='name'>{t('l-name')}</label>
-            <Input id='name' placeholder={t('ph-name')} onChange={this.handleSearchChange.bind(this, 'name')} value={param.name} />
+            <Input
+              id='name'
+              placeholder={t('ph-name')}
+              onChange={this.handleSearchChange.bind(this, 'name')}
+              value={param.name} />
           </div>
         </div>
         <div className='button-group'>
@@ -332,10 +459,14 @@ class AccountList extends Component {
   }
   render() {
     const {baseUrl, contextRoot} = this.context;
-    const {accountData, dataFields, showFilter} = this.state;
+    const {accountData, dataFields, showFilter, showNewPassword} = this.state;
 
     return (
       <div>
+        {showNewPassword &&
+          this.showNewPasswordDialog()
+        }
+
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
             <button onClick={this.showEditDialog.bind(this, null)} title={t('txt-add-account')}><i className='fg fg-add'></i></button>
