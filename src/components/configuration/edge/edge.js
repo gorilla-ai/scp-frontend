@@ -369,6 +369,17 @@ class Edge extends Component {
     });
   }
   /**
+   * Show filter if search keyword or selection is present
+   * @method
+   */
+  checkFilterStatus = () => {
+    const {edgeSearch} = this.state;
+
+    if (edgeSearch.keyword || edgeSearch.serviceType !== 'all' || edgeSearch.connectionStatus !== 'all' ) {
+      return true;
+    }
+  }
+  /**
    * Toggle different content
    * @method
    * @param {string} type - page type ('tableList', 'viewEdge', 'editEdge' and 'cancel')
@@ -408,10 +419,15 @@ class Edge extends Component {
       }
 
       this.setState({
-        showFilter: false,
         originalEdgeData: _.cloneDeep(tempEdge)
       });
     } else if (type === 'tableList') {
+      if (this.checkFilterStatus()) {
+        this.setState({
+          showFilter: true
+        });
+      }
+
       tempEdge.info = {};
     } else if (type === 'cancel') {
       showPage = 'viewEdge';
@@ -920,7 +936,9 @@ class Edge extends Component {
             contextRoot={contextRoot} />
 
           <div className='parent-content'>
-            { this.renderFilter() }
+            {activeContent === 'tableList' &&
+              this.renderFilter()
+            }
 
             {activeContent === 'tableList' &&
               <div className='main-content'>

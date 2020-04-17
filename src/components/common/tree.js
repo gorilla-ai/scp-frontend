@@ -21,7 +21,8 @@ class Tree extends Component {
 
     this.state = {
       showContent: true,
-      tabData: []
+      tabData: [],
+      edgeSelectedNode: ''
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -88,6 +89,10 @@ class Tree extends Component {
    * @param {array.<string>} selectedId - selected IDs for edge
    */
   handleSelectChange = (selected) => {
+    this.setState({
+      edgeSelectedNode: selected
+    });
+
     this.props.handleSelectChange(selected);
   }
   /**
@@ -98,7 +103,7 @@ class Tree extends Component {
    * @returns HTML DOM
    */
   showAlertTree = (key, treeData) => {
-    const {showContent} = this.state;
+    const {showContent, edgeSelectedNode} = this.state;
     const className = key + '-tree';
 
     if (!_.isEmpty(treeData[key].data)) {
@@ -112,6 +117,7 @@ class Tree extends Component {
             data={treeData[key].data}
             selection={this.showCheckBox(key)}
             onSelectionChange={this.handleSelectChange}
+            selected={edgeSelectedNode}
             defaultOpened={['all', 'All']}
             onLabelMouseOver={this.props.showTreeFilterBtn.bind(this, key)} />
         </div>
