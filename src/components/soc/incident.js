@@ -735,7 +735,7 @@ class Incident extends Component {
         }
 
         ah.one({
-            url: `${baseUrl}/api/soc?id=${id}`,
+            url: `${baseUrl}/api/soc/_delete?id=${id}`,
             type: 'DELETE'
         })
         .then(data => {

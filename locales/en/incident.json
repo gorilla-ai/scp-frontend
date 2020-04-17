@@ -56,6 +56,7 @@
 		"0": "All",
 		"1": "Unreviewed",
 		"2": "Reviewed",
-		"3": "Submitted"
+		"3": "Submitted",
+		"4": "Deleted"
 	}
 }
