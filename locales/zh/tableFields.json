@@ -570,7 +570,8 @@
     "level": "機關等級",
     "industryType": "機關領域",
     "frequency": "觸發次數",
-    "updateDttm": "最後更新時間"
+    "updateDttm": "最後更新時間",
+    "abbreviation": "機關英文簡稱"
   },
   "severityTableFields": {
     "dataSourceType": "Type",

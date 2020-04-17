@@ -5,6 +5,7 @@
 	"txt-incident-unit": "Incident Unit",
 	"txt-incident-management": "Incident Management",
 	"txt-incident-device-management": "Incident Device Management",
+	"txt-incident-unit-management": "Incident Unit Management",
 	"txt-incident-events": "Incident Events",
 	"txt-incident-ttps": "TTPs",
 	"txt-prev-page": "Prev",
@@ -23,13 +24,16 @@
 		"txt-name": "Unit",
 		"txt-oid": "Unit OID",
 		"txt-level": "Unit Level",
-		"txt-type": "Unit Industry"
+		"txt-type": "Unit Industry",
+		"txt-abbreviation": "Unit Abbreviation"
 	},
 	"device": {
 		"txt-name": "Device Name",
 		"txt-id": "Device Id",
 		"txt-company": "Device Company"
 	},
+	"txt-downloadEvent": "Download Event Incident Example XML",
+	"txt-downloadRelated": "Download Related Incident Example XML",
 	"txt-protect-type": "Protect Type",
 	"txt-protect-type-info": "Other Info",
 	"txt-frequency": "Frequency",

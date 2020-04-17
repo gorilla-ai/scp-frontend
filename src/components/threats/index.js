@@ -1,6 +1,5 @@
-import React, { Component } from 'react'
-import { withRouter } from 'react-router'
-import PropTypes from 'prop-types'
+import React, {Component} from 'react'
+import {Redirect, withRouter} from 'react-router'
 import Moment from 'moment'
 import moment from 'moment-timezone'
 import _ from 'lodash'
@@ -17,9 +16,8 @@ import QueryOpenSave from '../common/query-open-save'
 import SearchOptions from '../common/search-options'
 import TableCell from '../common/table-cell'
 import Threats from './threats'
-import WORLDMAP from '../../mock/world-map-low.json'
 
-import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+import {getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null;
 let f = null;
@@ -1330,6 +1328,7 @@ class ThreatsController extends Component {
   alertDialog = () => {
     const {alertDetails, alertData} = this.state;
     const actions = {
+      makeIncident: {text: 'Create Incident', handler: this.incidentRedirect},
       confirm: {text: t('txt-close'), handler: this.closeDialog}
     };
 
@@ -1425,6 +1424,20 @@ class ThreatsController extends Component {
     }, () => {
       this.clearQueryData();
     });
+  }
+  /**
+   * redirect to incident page
+   * @method
+   */
+  incidentRedirect = () => {
+    const {alertData} = this.state;
+    console.log("into incidentRedirect");
+    sessionStorage.setItem('alertData',JSON.stringify(alertData));
+    window.location.href = '/SCP/soc/incident'
+    // return (<Redirect to={{
+    //   pathname: '/SCP/soc/incident',
+    //   state: {referrer: incident}
+    // }}/>)
   }
   /**
    * Set new datetime and reload page data

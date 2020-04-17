@@ -110,19 +110,19 @@ class SocConfig extends Component {
 
                 <div className='item frame incident'>
                     <Link to='/SCP/soc/incident'>
-                        <span className={`${this.getActiveFrame('incident')}`}>{it('txt-incident')}</span>
+                        <span className={`${this.getActiveFrame('incident')}`}>{it('txt-incident-management')}</span>
                     </Link>
                 </div>
 
                 <div className='item frame incident-device'>
                     <Link to='/SCP/soc/incident-device'>
-                        <span className={`${this.getActiveFrame('incidentDevice')}`}>{it('txt-incident-device')}</span>
+                        <span className={`${this.getActiveFrame('incidentDevice')}`}>{it('txt-incident-device-management')}</span>
                     </Link>
                 </div>
 
                 <div className='item frame incident-unit'>
                     <Link to='/SCP/soc/incident-unit'>
-                        <span className={`${this.getActiveFrame('incidentUnit')}`}>{it('txt-incident-unit')}</span>
+                        <span className={`${this.getActiveFrame('incidentUnit')}`}>{it('txt-incident-unit-management')}</span>
                     </Link>
                 </div>
 

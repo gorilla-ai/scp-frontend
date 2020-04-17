@@ -99,7 +99,7 @@ class IncidentUnit extends Component {
                 industryType: 99
             },
             incidentUnit: {
-                dataFieldsArr: ['isDefault', 'oid', 'name', 'level', 'industryType', '_menu'],
+                dataFieldsArr: ['isDefault', 'oid', 'name', 'abbreviation', 'level', 'industryType', '_menu'],
                 dataFields: {},
                 dataContent: [],
                 sort: {
@@ -116,7 +116,8 @@ class IncidentUnit extends Component {
                     level: 'A',
                     industryType: '',
                     isUse: false,
-                    isDefault: false
+                    isDefault: false,
+                    abbreviation: ''
                 }
             }
         };
@@ -337,7 +338,6 @@ class IncidentUnit extends Component {
      */
     displayEditDeviceContent = () => {
         const {activeContent, incidentUnit} = this.state;
-
         return (
             <div className='main-content basic-form'>
                 <header className='main-header'>{it('txt-incident-unit')}</header>
@@ -374,6 +374,14 @@ class IncidentUnit extends Component {
                             value={incidentUnit.info.name}
                             readOnly={activeContent === 'viewDevice'}/>
                     </div>
+                    <div className='group'>
+                        <label htmlFor='abbreviation'>{it('unit.txt-abbreviation')}</label>
+                        <Input
+                            id='abbreviation'
+                            onChange={this.handleDataChange.bind(this, 'abbreviation')}
+                            value={incidentUnit.info.abbreviation}
+                            readOnly={activeContent === 'viewDevice'}/>
+                    </div>
 
                     <div className='group'>
                         <label htmlFor='level'>{it('unit.txt-level')}</label>
@@ -402,7 +410,6 @@ class IncidentUnit extends Component {
                                     text: 'E'
                                 },
                             ]}
-
                             onChange={this.handleDataChange.bind(this, 'level')}
                             value={incidentUnit.info.level}
                             readOnly={activeContent === 'viewDevice'}/>
@@ -456,6 +463,7 @@ class IncidentUnit extends Component {
     handleDeviceSubmit = () => {
         const {baseUrl} = this.context;
         const {incidentUnit} = this.state;
+        let tmpincidentUnit = incidentUnit;
 
         if (!this.checkAddData(incidentUnit)) {
             return
@@ -494,10 +502,17 @@ class IncidentUnit extends Component {
             !incidentUnit.info.name ||
             !incidentUnit.info.level ||
             !incidentUnit.info.industryType) {
-            helper.showPopupMsg('', t('txt-error'), '[Unit OID],[Unit Name],[Unit Level] and [Unit Industry] is required');
+            helper.showPopupMsg('', t('txt-error'), '[Unit OID],[Unit Name],[Unit Level],[Unit Industry] and [Unit Abbreviation] is required');
             return false;
         }
 
+
+        if (!incidentUnit.info.isDefault) {
+            incidentUnit.info.isDefault = false;
+            this.setState({
+                incidentUnit: incidentUnit
+            });
+        }
 
         return true;
     };
@@ -660,7 +675,8 @@ class IncidentUnit extends Component {
                 level: allValue.level,
                 isUse: allValue.isUse,
                 industryType: allValue.industryType,
-                isDefault: allValue.isDefault
+                isDefault: allValue.isDefault,
+                abbreviation: allValue.abbreviation
             };
             this.setState({
                 showFilter: false,
@@ -675,7 +691,8 @@ class IncidentUnit extends Component {
                 level: allValue.level,
                 isUse: allValue.isUse,
                 industryType: allValue.industryType,
-                isDefault: allValue.isDefault
+                isDefault: allValue.isDefault,
+                abbreviation: allValue.abbreviation
             };
             this.setState({
                 showFilter: false,
