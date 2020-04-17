@@ -86,7 +86,7 @@ class Status extends Component {
                   color = '#22ac38';
                   title = t('txt-online');
                 } else if (value.toLowerCase() === 'inactive') {
-                  color = '#d30020';
+                  color = '#d10d25';
                   title = t('txt-offline');
                 } else if (value.toLowerCase() === 'unstable') {
                   color = '#e6e448';
@@ -155,7 +155,7 @@ class Status extends Component {
               <div className='table-content'>
                 <div className='table no-pagination'>
                   <DataTable
-                    className='main-table align-center'
+                    className='main-table'
                     fields={serviceStatus.dataFields}
                     data={serviceStatus.dataContent} />
                 </div>

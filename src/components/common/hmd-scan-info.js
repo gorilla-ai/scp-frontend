@@ -469,7 +469,7 @@ class HMDscanInfo extends Component {
         displayInfo = val._MatchedRuleList.map(this.displayRule.bind(this, val._MatchedRuleNameList));
       } else {
         displayInfo = NOT_AVAILABLE;
-      }      
+      }
 
       return (
         <div className='group' key={uniqueKey}>
@@ -549,25 +549,36 @@ class HMDscanInfo extends Component {
     let uniqueKey = '';
     let uniqueID = '';
     let displayInfo = NOT_AVAILABLE;
-    let showFilePath = false;
+    let filePath = '';
+    let matchPID = '';
+    let scanType = '';
 
     if (val && val._FileInfo) { //For AI
       uniqueKey = val._FileInfo._Filepath + i;
       uniqueID = parentIndex.toString() + i.toString() + val._FileInfo._Filepath;
-      showFilePath = true;
+      filePath = val._FileInfo._Filepath;
+      scanType += 'AI';
     }
 
-    if (val && (val._MatchedFile || val._MatchedPid)) { //For Yara
-      uniqueKey = val._ScanType + i;
-      uniqueID = parentIndex.toString() + i.toString() + (val._MatchedFile || val._MatchedPid);
-      showFilePath = true;
+    if (val && val._YaraResult) { //For Yara
+      uniqueKey = val._YaraResult._MatchedFile + i;
+      uniqueID = parentIndex.toString() + i.toString() + (val._YaraResult._MatchedFile || val._YaraResult._MatchedPid);
 
-      if (val._MatchedRuleList && val._MatchedRuleList.length > 0 && val._MatchedRuleNameList) {
-        displayInfo = val._MatchedRuleList.map(this.displayRule.bind(this, val._MatchedRuleNameList));
+      if (val._YaraResult._MatchedRuleList && val._YaraResult._MatchedRuleList.length > 0 && val._YaraResult._MatchedRuleNameList) {
+        displayInfo = val._YaraResult._MatchedRuleList.map(this.displayRule.bind(this, val._YaraResult._MatchedRuleNameList));
       }
+
+      if (!filePath) {
+        filePath = val._YaraResult._MatchedFile;
+      }
+
+      if (val._YaraResult._MatchedPid) {
+        matchPID = ', PID: ' + val._YaraResult._MatchedPid;
+      }
+      scanType += ' / Yara';
     }
 
-    if (!showFilePath) {
+    if (!filePath) {
       return;
     }
 
@@ -575,23 +586,14 @@ class HMDscanInfo extends Component {
       <div className='group' key={uniqueKey}>
         <div className='path' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
           <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`}></i>
-          {val._FileInfo && val._FileInfo._Filepath &&
-            <span>{t('txt-path')}: {val._FileInfo._Filepath}</span>
+          {filePath &&
+            <span>{t('txt-path')}: {filePath}</span>
           }
-          {val._MatchedFile &&
-            <span>{t('txt-path')}: {val._MatchedFile}</span>
+          {matchPID &&
+            <span>{matchPID}</span>
           }
-          {val._MatchedFile && val._MatchedPid &&
-            <span>, </span>
-          }
-          {val._MatchedPid &&
-            <span>PID: {val._MatchedPid}</span>
-          }
-          {val._FileInfo && val._FileInfo._Filepath &&
-            <span className='right'>AI</span>
-          }
-          {val._ScanType &&
-            <span className='right'>Yara</span>
+          {scanType &&
+            <span className='right'>{scanType}</span>
           }
         </div>
         <div className={cx('rule', {'hide': activePath !== uniqueID})}>
@@ -609,7 +611,7 @@ class HMDscanInfo extends Component {
                 </ul>
               </div>
             }
-            {(val._MatchedFile || val._MatchedPid) &&
+            {val._YaraResult && (val._YaraResult._MatchedFile || val._YaraResult._MatchedPid) &&
               <div>
                 <div className='header' onClick={this.toggleInfoHeader.bind(this, 'rule')}>
                   <i className={cx('fg fg-play', {'rotate': activeRuleHeader})}></i>
@@ -747,7 +749,7 @@ class HMDscanInfo extends Component {
       dataResult = this.sortedRuleList(val.ScanResult);
       scanPath = this.displayScanProcessPath.bind(this, i);
     } else if (activeTab === 'scanFile') {
-      dataResult = _.concat(val.DetectionResult, val.ScanResult);
+      dataResult = val.DetectionResult;
       scanPath = this.displayScanFilePath.bind(this, i);
     }
 
