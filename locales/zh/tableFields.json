@@ -537,6 +537,7 @@
     "impactAssessment": "影響等級",
     "description": "相關手法描述",
     "socType": "回報類型",
+    "status": "狀態",
     "relatedList": "關聯事件單",
     "rule": "觸發規則",
     "dateRange": "起訖時間",

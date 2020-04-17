@@ -9,6 +9,13 @@
 	"txt-incident-ttps": "TTPs",
 	"txt-prev-page": "Prev",
 	"txt-next-page": "Next",
+	"txt-required": "Empty Required Fields",
+	"txt-addIncident-events": "Add Incident Events",
+	"txt-addIncident-ttps": "Add Incident Ttps",
+	"txt-viewIncident-events": "View Incident Events",
+	"txt-viewIncident-ttps": "View Incident Ttps",
+	"txt-editIncident-events": "Edit Incident Events",
+	"txt-editIncident-ttps": "Edit Incident Ttps",
 	"unit": {
 		"txt-default": "Default Unit",
 		"txt-isDefault": "Yes",
@@ -28,6 +35,7 @@
 	"txt-frequency": "Frequency",
 	"txt-note": "Note",
 	"category": {
+		"0": "全部",
 		"1": "入侵攻擊類",
 		"2": "惡意程式類",
 		"3": "掃描刺探類",
@@ -36,5 +44,11 @@
 		"6": "政策規則類",
 		"7": "尚需調查類",
 		"8": "系統服務類"
+	},
+	"status": {
+		"0": "All",
+		"1": "Unreviewed",
+		"2": "Reviewed",
+		"3": "Submitted"
 	}
 }

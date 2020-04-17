@@ -538,6 +538,7 @@
     "impactAssessment": "Impact Assessment",
     "description": "Description",
     "socType": "SOC Type",
+    "status": "Status",
     "relatedList": "Related List",
     "rule": "Rule",
     "dateRange": "Time Range",
