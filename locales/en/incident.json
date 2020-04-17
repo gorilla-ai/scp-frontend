@@ -10,6 +10,9 @@
 	"txt-incident-ttps": "TTPs",
 	"txt-prev-page": "Prev",
 	"txt-next-page": "Next",
+	"txt-audit": "Audit",
+	"txt-send": "Send",
+	"txt-download": "Download",
 	"txt-required": "Empty Required Fields",
 	"txt-addIncident-events": "Add Incident Events",
 	"txt-addIncident-ttps": "Add Incident Ttps",
@@ -53,6 +56,7 @@
 		"0": "All",
 		"1": "Unreviewed",
 		"2": "Reviewed",
-		"3": "Submitted"
+		"3": "Submitted",
+		"4": "Deleted"
 	}
 }

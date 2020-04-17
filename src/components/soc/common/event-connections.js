@@ -33,6 +33,7 @@ class EventConnections extends Component {
 	                    id='srcIp'
 	                    onChange={this.handleDataChange.bind(this, 'srcIp')}
 	                    value={srcIp}
+						required={true}
 	                    readOnly={activeContent === 'viewIncident'}/>
 	            </div>
 	            <div className='group'>
@@ -41,6 +42,7 @@ class EventConnections extends Component {
 	                    id='srcPort'
 	                    onChange={this.handleDataChange.bind(this, 'srcPort')}
 	                    value={srcPort}
+						required={true}
 	                    readOnly={activeContent === 'viewIncident'}/>
 	            </div>
 	            <div className='group'>
@@ -49,6 +51,7 @@ class EventConnections extends Component {
 	                    id='srcHostname'
 	                    onChange={this.handleDataChange.bind(this, 'srcHostname')}
 	                    value={srcHostname}
+
 	                    readOnly={activeContent === 'viewIncident'}/>
 	            </div>
 	        </div>
@@ -60,6 +63,7 @@ class EventConnections extends Component {
 	                    id='dstIp'
 	                    onChange={this.handleDataChange.bind(this, 'dstIp')}
 	                    value={dstIp}
+						required={true}
 	                    readOnly={activeContent === 'viewIncident'}/>
 	            </div>
 	            <div className='group'>
@@ -68,6 +72,7 @@ class EventConnections extends Component {
 	                    id='dstPort'
 	                    onChange={this.handleDataChange.bind(this, 'dstPort')}
 	                    value={dstPort}
+						required={true}
 	                    readOnly={activeContent === 'viewIncident'}/>
 	            </div>
 	            <div className='group'>

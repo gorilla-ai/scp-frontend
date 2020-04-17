@@ -10,6 +10,9 @@
 	"txt-incident-ttps": "攻擊手法",
 	"txt-prev-page": "上一頁",
 	"txt-next-page": "下一頁",
+	"txt-audit": "審核",
+	"txt-send": "發布",
+	"txt-download": "下載",
 	"txt-required": "必填欄位為空",
 	"txt-addIncident-events": "新增事件單",
 	"txt-addIncident-ttps": "新增關聯單",
@@ -53,6 +56,7 @@
 		"0": "全部",
 		"1": "未審核",
 		"2": "已審核",
-		"3": "已提交"
+		"3": "已提交",
+		"4": "已刪除"
 	}
 }

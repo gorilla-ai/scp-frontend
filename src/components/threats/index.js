@@ -1,5 +1,5 @@
 import React, {Component} from 'react'
-import {Redirect, withRouter} from 'react-router'
+import {withRouter} from 'react-router'
 import Moment from 'moment'
 import moment from 'moment-timezone'
 import _ from 'lodash'
@@ -1431,13 +1431,9 @@ class ThreatsController extends Component {
    */
   incidentRedirect = () => {
     const {alertData} = this.state;
-    console.log("into incidentRedirect");
-    sessionStorage.setItem('alertData',JSON.stringify(alertData));
-    window.location.href = '/SCP/soc/incident'
-    // return (<Redirect to={{
-    //   pathname: '/SCP/soc/incident',
-    //   state: {referrer: incident}
-    // }}/>)
+    let timeInMss = Date.now();
+    sessionStorage.setItem(timeInMss, JSON.stringify(alertData));
+    window.location.href = '/SCP/soc/incident?alertDataId=' + timeInMss
   }
   /**
    * Set new datetime and reload page data
