@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import _ from 'lodash'
 
 import DateRange from 'react-ui/build/src/components/date-range'
+import DropDownList from 'react-ui/build/src/components/dropdown'
 import Input from 'react-ui/build/src/components/input'
 import MultiInput from 'react-ui/build/src/components/multi-input'
 
@@ -27,7 +28,7 @@ class Events extends Component {
         onChange({...curValue, [field]: value})
     }
 	render() {
-		let {activeContent, locale, value: {description, deviceId, time, frequency, connectionList}} = this.props
+		let {activeContent, locale, deviceListOptions, value: {description, deviceId, time, frequency, connectionList}} = this.props
 
 		return <div className='event-content'>
 			<div className='line'>
@@ -37,14 +38,19 @@ class Events extends Component {
 	                    id='rule'
 	                    onChange={this.handleDataChange.bind(this, 'description')}
 	                    value={description}
+	                    required={true}
+	                    validate={{t: et}}
 	                    readOnly={activeContent === 'viewIncident'}/>
 	            </div>
 	            <div className='group'>
 	                <label htmlFor='deviceId'>{f('incidentFields.deviceId')}</label>
-	                <Input
+	                <DropDownList
 	                    id='deviceId'
 	                    onChange={this.handleDataChange.bind(this, 'deviceId')}
+	                    list={deviceListOptions}
 	                    value={deviceId}
+	                    required={true}
+	                    validate={{t: et}}
 	                    readOnly={activeContent === 'viewIncident'}/>
 	            </div>
 	        </div>
@@ -57,8 +63,11 @@ class Events extends Component {
 				        className='daterange'
 				        onChange={this.handleDataChange.bind(this, 'time')}
 				        enableTime={true}
+				        required={true}
+				        validate={{t: et}}
 				        value={time}
-				        locale={locale} />
+				        locale={locale}
+				        readOnly={activeContent === 'viewIncident'} />
 		        </div>
 		        <div className='group'>
 	                <label htmlFor='frequency'>{f('incidentFields.frequency')}</label>
@@ -66,20 +75,21 @@ class Events extends Component {
 	                    id='frequency'
 	                    onChange={this.handleDataChange.bind(this, 'frequency')}
 	                    value={frequency}
+	                    required={true}
+	                    validate={{t: et}}
 	                    readOnly={activeContent === 'viewIncident'}/>
 	            </div>
 	        </div>
 
 	        <div className='line'>
-
-	                <MultiInput
-	                    id='eventConnections'
-	                    className='event-connection-group'
-	                    base={EventConnections}
-	                    value={connectionList}
-	                    props={{activeContent: activeContent}}
-	                    onChange={this.handleDataChange.bind(this, 'connectionList')} />
-
+                <MultiInput
+                    id='eventConnections'
+                    className='event-connection-group'
+                    base={EventConnections}
+                    value={connectionList}
+                    props={{activeContent: activeContent}}
+                    onChange={this.handleDataChange.bind(this, 'connectionList')} 
+                    readOnly={activeContent === 'viewIncident'} />
 	        </div>
 		</div>
 	}

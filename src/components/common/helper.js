@@ -27,22 +27,6 @@ const helper = {
       return Moment(date).format('YYYY-MM-DD HH:mm:ss');
     }
   },
-  getFormattedDate_incident: function(val, timezone) {
-    if (!val) {
-      return '';
-    }
-    if (timezone === 'local') {
-      val = Moment.utc(val).toDate();
-      return Moment(val).local().format('YYYY-MM-DD HH:mm');
-    } else if (timezone === 'utc') {
-      return Moment(val).utc().format('YYYY-MM-DD HH:mm');
-    } else if (timezone === 'unix') {
-      return Moment.unix(val).format('YYYY-MM-DD HH:mm');
-    } else {
-      const date = new Date(val);
-      return Moment(date).format('YYYY-MM-DD HH:mm');
-    }
-  },
   getSubstractDate: function(val, type, date) {
     const dateTime = date ? date : new Date();
     return Moment(dateTime).local().subtract(val, type).format('YYYY-MM-DDTHH:mm:ss');

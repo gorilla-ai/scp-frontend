@@ -13,6 +13,13 @@
 	"txt-audit": "審核",
 	"txt-send": "發布",
 	"txt-download": "下載",
+	"txt-required": "必填欄位為空",
+	"txt-addIncident-events": "新增事件單",
+	"txt-addIncident-ttps": "新增關聯單",
+	"txt-viewIncident-events": "檢視事件單",
+	"txt-viewIncident-ttps": "檢視關聯單",
+	"txt-editIncident-events": "編輯事件單",
+	"txt-editIncident-ttps": "編輯關聯單",
 	"unit": {
 		"txt-default": "預設機關",
 		"txt-isDefault": "是",
@@ -35,6 +42,7 @@
 	"txt-frequency": "觸發次數",
 	"txt-note": "備註",
 	"category": {
+		"0": "全部",
 		"1": "入侵攻擊類",
 		"2": "惡意程式類",
 		"3": "掃描刺探類",
@@ -43,5 +51,11 @@
 		"6": "政策規則類",
 		"7": "尚需調查類",
 		"8": "系統服務類"
+	},
+	"status": {
+		"0": "全部",
+		"1": "未審核",
+		"2": "已審核",
+		"3": "已提交"
 	}
 }

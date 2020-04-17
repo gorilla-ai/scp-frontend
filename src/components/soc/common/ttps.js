@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 
+import DropDownList from 'react-ui/build/src/components/dropdown'
 import Input from 'react-ui/build/src/components/input'
 import MultiInput from 'react-ui/build/src/components/multi-input'
 
@@ -39,14 +40,21 @@ class Ttps extends Component {
 	                    id='title'
 	                    onChange={this.handleDataChange.bind(this, 'title')}
 	                    value={title}
+	                    required={true}
+	                    validate={{t: et}}
 	                    readOnly={activeContent === 'viewIncident'}/>
 	            </div>
 	            <div className='group'>
 	                <label htmlFor='infrastructureType'>{f('incidentFields.infrastructureType')}</label>
-	                <Input
+	                <DropDownList
 	                    id='infrastructureType'
 	                    onChange={this.handleDataChange.bind(this, 'infrastructureType')}
+	                    list={[
+	                    	{value: 0, text: 'IOC'}, {value: 1, text: 'IOA'}
+                    	]}
 	                    value={infrastructureType}
+	                    required={true}
+	                    validate={{t: et}}
 	                    readOnly={activeContent === 'viewIncident'}/>
 	            </div>
 
@@ -60,7 +68,8 @@ class Ttps extends Component {
 	                    base={TtpEts}
 	                    value={etsList}
 	                    props={{activeContent: activeContent}}
-	                    onChange={this.handleDataChange.bind(this, 'etsList')} />
+	                    onChange={this.handleDataChange.bind(this, 'etsList')}
+	                    readOnly={activeContent === 'viewIncident'} />
 	            </div>
             </div>
 
@@ -72,7 +81,8 @@ class Ttps extends Component {
 	                    base={TtpObsFile}
 	                    value={obsFileList}
 	                    props={{activeContent: activeContent}}
-	                    onChange={this.handleDataChange.bind(this, 'obsFileList')} />
+	                    onChange={this.handleDataChange.bind(this, 'obsFileList')}
+	                    readOnly={activeContent === 'viewIncident'} />
 	            </div>
             </div>
 
@@ -84,7 +94,8 @@ class Ttps extends Component {
 	                    base={TtpObsUri}
 	                    value={obsUriList}
 	                    props={{activeContent: activeContent}}
-	                    onChange={this.handleDataChange.bind(this, 'obsUriList')} />
+	                    onChange={this.handleDataChange.bind(this, 'obsUriList')}
+	                    readOnly={activeContent === 'viewIncident'} />
 	            </div>
             </div>
 
@@ -96,7 +107,8 @@ class Ttps extends Component {
 	                    base={TtpObsSocket}
 	                    value={obsSocketList}
 	                    props={{activeContent: activeContent}}
-	                    onChange={this.handleDataChange.bind(this, 'obsSocketList')} />
+	                    onChange={this.handleDataChange.bind(this, 'obsSocketList')}
+	                    readOnly={activeContent === 'viewIncident'} />
 	            </div>
             </div>
 
