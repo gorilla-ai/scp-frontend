@@ -218,15 +218,17 @@ class NetworkInventory extends Component {
       let colorStyle = '#22ac38'; //Default green color
 
       if (val.type === 'scanFile') {
-        if (val.result.ScanResult) {
-          totalLength = val.result.ScanResult.length;
-        }
-
-        if (val.result.DetectionResult) {
-          totalLength += val.result.DetectionResult.length;
+        if (val.result && val.result.DetectionResult) {
+          totalLength = val.result.DetectionResult.length;
+        } else {
+          return;
         }
       } else {
-        totalLength = val.result.length;
+        if (val.result) {
+          totalLength = val.result.length;
+        } else {
+          return;
+        }
       }
 
       if (totalLength > 0) { //Show red color
@@ -449,7 +451,7 @@ class NetworkInventory extends Component {
                 return (
                   <ul>
                     {syncStatus &&
-                      <li style={{'color': '#d10d25'}}><span>Error: Sync YARA rule fail</span></li>
+                      <li style={{'color': '#d10d25'}}><span>{t('network-inventory.txt-syncYaraFail')}</span></li>
                     }
                     {hmdInfo.map(this.getHMDinfo)}
                   </ul>
@@ -1955,7 +1957,7 @@ class NetworkInventory extends Component {
         <div className='error-msg'>{t('network-inventory.txt-uploadFailed')}</div>
         <div className='table-data'>
           <DataTable
-            className='main-table align-center'
+            className='main-table'
             fields={tableFields}
             data={data.failureList} />
         </div>
