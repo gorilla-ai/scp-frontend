@@ -68,8 +68,8 @@ class Incident extends Component {
                 currentPage: 1,
                 pageSize: 20,
                 info: {
-                    status: 0,
-                    socType: 1
+                    status: 1,
+                    socType: 1,
                 }
             }
         };
@@ -78,17 +78,17 @@ class Incident extends Component {
     }
 
     componentDidMount() {
+
+
         let alertDataId = this.getQueryString('alertDataId');
         let alertData = sessionStorage.getItem(alertDataId);
         if (alertData) {
-
             this.toggleContent('redirect', alertData);
             sessionStorage.removeItem(alertDataId)
         } else {
-            console.log("componentDidMount = else");
             this.loadData()
-            this.getOptions()
         }
+        this.getOptions()
     }
 
 
@@ -395,7 +395,8 @@ class Incident extends Component {
                     value={incident.info.impactAssessment}
                     readOnly={activeContent === 'viewIncident'}/>
             </div>
-            <div className='group'>
+
+            {incidentType === 'ttps' && <div className='group'>
                 <label htmlFor='description'>{f('incidentFields.description')}</label>
                 <Textarea
                     id='description'
@@ -405,7 +406,8 @@ class Incident extends Component {
                     value={incident.info.description}
                     rows={3}
                     readOnly={activeContent === 'viewIncident'}/>
-            </div>
+            </div>}
+
             <div className='group'>
                 <label htmlFor='socType'>{f('incidentFields.socType')}</label>
                 <DropDownList
@@ -419,6 +421,8 @@ class Incident extends Component {
                     value={incident.info.socType}
                     readOnly={activeContent === 'viewIncident'}/>
             </div>
+
+            {incidentType === 'ttps' &&
             <div className='group full'>
                 <label htmlFor='relatedList'>{f('incidentFields.relatedList')}</label>
                 <ComboBox
@@ -430,6 +434,7 @@ class Incident extends Component {
                     value={incident.info.relatedList}
                     disabled={activeContent === 'viewIncident'}/>
             </div>
+            }
         </div>
     }
 
@@ -458,7 +463,7 @@ class Incident extends Component {
                     id='incidentEvent'
                     className='incident-group'
                     base={Events}
-                    defaultItemValue={{description: '', deviceId: '', time: {from: nowTime, to: nowTime}, frequency: 0}}
+                    defaultItemValue={{description: '', deviceId: '', time: {from: nowTime, to: nowTime}, frequency: 1}}
                     value={incident.info.eventList}
                     props={{activeContent: activeContent, locale: locale, deviceListOptions: deviceListOptions}}
                     onChange={this.handleEventsChange}
@@ -503,6 +508,7 @@ class Incident extends Component {
         let incident = {...this.state.incident.info}
 
         if (!this.checkRequired(incident)) {
+            console.log("incident == " , incident)
             PopupDialog.alert({
                 title: t('txt-tips'),
                 display: it('txt-required'),
@@ -548,7 +554,7 @@ class Incident extends Component {
     checkRequired(incident) {
         const {incidentType} = this.state
 
-        if (!incident.title || !incident.category || !incident.reporter || !incident.impactAssessment || !incident.description || !incident.socType) {
+        if (!incident.title || !incident.category || !incident.reporter || !incident.impactAssessment || !incident.socType) {
             return false
         }
 
@@ -569,6 +575,12 @@ class Incident extends Component {
 
         // check ttp list
         if (incidentType === 'ttps') {
+
+            if (!incident.description) {
+                return false
+            }
+
+
             if (!incident.ttpList) {
                 return false
             } else {
@@ -853,12 +865,11 @@ class Incident extends Component {
                 deviceId: '',
                 frequency: 1,
                 time: {
-                    from: Moment(alertData._eventDttm_, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss'),
-                    to: Moment(alertData._eventDttm_, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss')
+                    from: helper.getFormattedDate(alertData._eventDttm_, 'local'),
+                    to: helper.getFormattedDate(alertData._eventDttm_, 'local')
                 },
-                eventConnectionList: eventNetworkList
+                connectionList: eventNetworkList
             };
-            // 2020-01-01T00:00:00Z
             if (alertData._edgeInfo) {
                 let searchRequestData = {
                     deviceName: alertData._edgeInfo.agentName
@@ -879,20 +890,28 @@ class Incident extends Component {
             eventList.push(eventListItem);
             tempIncident.info.eventList = eventList;
             console.log("tempIncident == ", tempIncident.info)
+
             showPage = 'addIncident';
-            this.setState({showFilter: false, originalIncident: _.cloneDeep(tempIncident)})
+            this.setState({
+                showFilter: false,
+                originalIncident: _.cloneDeep(tempIncident),
+                incidentType: 'events',
+                displayPage: 'main'
+            })
         } else if (type === 'audit') {
-// 1. show viewIncident
-// 2. could complement Incident
-// 3. could decide send nccst or not (different status)
+            // 1. show viewIncident
+            // 2. could complement Incident
+            // 3. could decide send nccst or not (different status)
         } else if (type === 'download') {
             this.getIncidentSTIXFile(allValue.id);
         }
+        console.log("showPage ==", showPage);
+        console.log("showPage ==", showPage);
         this.setState({
             activeContent: showPage,
             incident: tempIncident
         }, () => {
-            if (type === 'tableList') {
+            if (showPage === 'tableList' || showPage === 'cancel-add') {
                 this.loadData()
             }
         })
