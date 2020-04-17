@@ -28,7 +28,7 @@ class Events extends Component {
         onChange({...curValue, [field]: value})
     }
 	render() {
-		let {activeContent, locale, deviceListOptions, value: {description, deviceId, time, frequency, connectionList}} = this.props
+		let {activeContent, locale, deviceListOptions, value: {description, deviceId, time, frequency, eventConnectionList}} = this.props
 
 		return <div className='event-content'>
 			<div className='line'>
@@ -86,9 +86,9 @@ class Events extends Component {
                     id='eventConnections'
                     className='event-connection-group'
                     base={EventConnections}
-                    value={connectionList}
+                    value={eventConnectionList}
                     props={{activeContent: activeContent}}
-                    onChange={this.handleDataChange.bind(this, 'connectionList')} 
+                    onChange={this.handleDataChange.bind(this, 'eventConnectionList')} 
                     readOnly={activeContent === 'viewIncident'} />
 	        </div>
 		</div>

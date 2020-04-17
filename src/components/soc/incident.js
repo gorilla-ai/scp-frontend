@@ -262,6 +262,8 @@ class Incident extends Component {
                         onClick={this.toggleContent.bind(this, 'editIncident')}>{t('txt-edit')}</button>
                 }
             </div>
+            
+            <div className='auto-settings' style={{height: '70vh'}}>
             {
                 displayPage === 'main' && this.displayMainPage()
             }
@@ -271,6 +273,8 @@ class Incident extends Component {
             {
                 displayPage === 'ttps' && this.displayTtpPage()
             }
+            </div>
+            
             {
                 activeContent === 'editIncident' &&
                 <footer>
@@ -297,14 +301,14 @@ class Incident extends Component {
     }
 
     displayMainPage = () => {
-        const {incidentType, activeContent, incident, unitListOptions, relatedListOptions} = this.state
+        const {activeContent, incident, unitListOptions, relatedListOptions} = this.state
 
         return <div className='form-group normal'>
             <header>
                 <div className='text'>{t('edge-management.txt-basicInfo')}</div>
             </header>
 
-            <button className='last' onClick={this.handleIncidentPageChange.bind(this, incidentType)}>{it('txt-next-page')}</button>
+            <button className='last' onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-next-page')}</button>
 
             <div className='group'>
                 <label htmlFor='title'>{f('incidentFields.title')}</label>
@@ -411,7 +415,11 @@ class Incident extends Component {
                 <div className='text'>{it('txt-incident-events')}</div>
             </header>
 
-            <button className='last' onClick={this.handleIncidentPageChange.bind(this, 'main')}>{it('txt-prev-page')}</button>
+            <button className={incidentType === 'events' ? 'last' : 'last-left'} onClick={this.handleIncidentPageChange.bind(this, 'main')}>{it('txt-prev-page')}</button>
+            {
+                incidentType === 'ttps' &&
+                <button className='last' onClick={this.handleIncidentPageChange.bind(this, 'ttps')}>{it('txt-next-page')}</button>
+            }
 
             <div className='group full multi'>
                 <MultiInput
@@ -440,7 +448,7 @@ class Incident extends Component {
                 <div className='text'>{it('txt-incident-ttps')}</div>
             </header>
             
-            <button className='last' onClick={this.handleIncidentPageChange.bind(this, 'main')}>{it('txt-prev-page')}</button>
+            <button className='last' onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}</button>
 
             <div className='group full multi'>
                 <MultiInput
@@ -508,19 +516,17 @@ class Incident extends Component {
             return false
         }
 
-        // check event list
-        if (incidentType === 'events') {
-            if (!incident.eventList) {
-                return false
-            }
-            else {
-                let empty = _.filter(incident.eventList, function(o){
-                    return !o.description || !o.deviceId
-                }) 
+        // always check event list
+        if (!incident.eventList) {
+            return false
+        }
+        else {
+            let empty = _.filter(incident.eventList, function(o){
+                return !o.description || !o.deviceId
+            }) 
 
-                if (_.size(empty) > 0) {
-                    return false
-                }
+            if (_.size(empty) > 0) {
+                return false
             }
         }
 
@@ -576,7 +582,7 @@ class Incident extends Component {
                 })
             }
 
-            let incidentType = temp.eventList ? 'events' : 'ttps'
+            let incidentType = _.size(temp.ttpList) > 0  ? 'ttps' : 'events'
 
             incident.info = temp
             this.setState({incident, incidentType}, () => {
