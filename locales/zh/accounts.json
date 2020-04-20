@@ -62,5 +62,6 @@
   "rewritePwd":"再次輸入新密碼",
   "pwd": "密碼",
   "reenterPwd": "再次輸入密碼",
-  "pwd-inconsistent":"兩次輸入的內容不相同"
+  "pwd-inconsistent":"兩次輸入的內容不相同",
+  "pwd-empty": "密碼不得為空白"
 }

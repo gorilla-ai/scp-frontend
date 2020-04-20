@@ -475,15 +475,17 @@ class HMDscanInfo extends Component {
         <div className='group' key={uniqueKey}>
           <div className='path' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
             <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`}></i>
-            {val._MatchedFile &&
-              <span>{t('txt-path')}: {val._MatchedFile}</span>
-            }
-            {val._MatchedFile && val._MatchedPid &&
-              <span>, </span>
-            }
-            {val._MatchedPid &&
-              <span>PID: {val._MatchedPid}</span>
-            }
+            <div className='path-header'>
+              {val._MatchedFile &&
+                <span>{t('txt-path')}: {val._MatchedFile}</span>
+              }
+              {val._MatchedFile && val._MatchedPid &&
+                <span>, </span>
+              }
+              {val._MatchedPid &&
+                <span>PID: {val._MatchedPid}</span>
+              }
+            </div>
           </div>
           <div className={cx('rule', {'hide': activePath !== uniqueID})}>
             <div className='rule-content'>
@@ -586,15 +588,17 @@ class HMDscanInfo extends Component {
       <div className='group' key={uniqueKey}>
         <div className='path' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
           <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`}></i>
-          {filePath &&
-            <span>{t('txt-path')}: {filePath}</span>
-          }
-          {matchPID &&
-            <span>{matchPID}</span>
-          }
-          {scanType &&
-            <span className='right'>{scanType}</span>
-          }
+          <div className='path-header'>
+            {filePath &&
+              <span>{t('txt-path')}: {filePath}</span>
+            }
+            {matchPID &&
+              <span>{matchPID}</span>
+            }
+            {scanType &&
+              <span className='right'>{scanType}</span>
+            }
+          </div>
         </div>
         <div className={cx('rule', {'hide': activePath !== uniqueID})}>
           <div className='rule-content'>

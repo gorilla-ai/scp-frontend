@@ -330,7 +330,7 @@ class AccountList extends Component {
 
     return (
       <ModalDialog
-        id='resetPasswordDialog'
+        id='adminResetPasswordDialog'
         className='modal-dialog'
         title={titleText}
         draggable={true}
@@ -354,6 +354,13 @@ class AccountList extends Component {
       account: accountName,
       newPassword
     };
+
+    if (!newPassword) {
+      this.setState({
+        info: t('pwd-empty')
+      });
+      return;
+    }
 
     this.ah.one({
       url,
