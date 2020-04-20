@@ -55,7 +55,6 @@ class Incident extends Component {
             },
             relatedListOptions: [],
             deviceListOptions: [],
-            // unitListOptions: [],
             incident: {
                 dataFieldsArr: ['_menu', 'id', 'title', 'category', 'reporter', 'createDttm', 'status'],
                 dataFields: {},
@@ -78,8 +77,6 @@ class Incident extends Component {
     }
 
     componentDidMount() {
-
-
         let alertDataId = this.getQueryString('alertDataId');
         let alertData = sessionStorage.getItem(alertDataId);
         if (alertData) {
@@ -337,7 +334,7 @@ class Incident extends Component {
     }
 
     displayMainPage = () => {
-        const {activeContent, incident, relatedListOptions} = this.state
+        const {activeContent, incidentType, incident, relatedListOptions} = this.state
 
         return <div className='form-group normal'>
             <header>
@@ -511,7 +508,6 @@ class Incident extends Component {
         let incident = {...this.state.incident.info}
 
         if (!this.checkRequired(incident)) {
-            console.log("incident == " , incident)
             PopupDialog.alert({
                 title: t('txt-tips'),
                 display: it('txt-required'),
@@ -544,13 +540,13 @@ class Incident extends Component {
             contentType: 'application/json',
             dataType: 'json'
         })
-            .then(data => {
-                console.log(data)
-                this.loadData()
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            })
+        .then(data => {
+            console.log(data)
+            this.loadData()
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+        })
     }
 
 
@@ -602,46 +598,42 @@ class Incident extends Component {
     getIncident = (id) => {
         const {baseUrl} = this.context
 
-        if (!id) {
-            return
-        }
-
         ah.one({
             url: `${baseUrl}/api/soc?id=${id}`,
             type: 'GET'
         })
-            .then(data => {
-                let {incident} = this.state
-                let temp = data.rt
+        .then(data => {
+            let {incident} = this.state
+            let temp = data.rt
 
-                if (temp.relatedList) {
-                    temp.relatedList = _.map(temp.relatedList, el => {
-                        return el.incidentRelatedId
-                    })
-                }
-
-                if (temp.eventList) {
-                    temp.eventList = _.map(temp.eventList, el => {
-                        return {
-                            ...el,
-                            time: {
-                                from: Moment(el.startDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss'),
-                                to: Moment(el.endDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss')
-                            }
-                        }
-                    })
-                }
-
-            let incidentType = _.size(temp.ttpList) > 0  ? 'ttps' : 'events'
-
-            incident.info = temp
-                this.setState({incident, incidentType}, () => {
-                    this.toggleContent('viewIncident', temp)
+            if (temp.relatedList) {
+                temp.relatedList = _.map(temp.relatedList, el => {
+                    return el.incidentRelatedId
                 })
+            }
+
+            if (temp.eventList) {
+                temp.eventList = _.map(temp.eventList, el => {
+                    return {
+                        ...el,
+                        time: {
+                            from: Moment(el.startDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss'),
+                            to: Moment(el.endDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss')
+                        }
+                    }
+                })
+            }
+
+        let incidentType = _.size(temp.ttpList) > 0  ? 'ttps' : 'events'
+
+        incident.info = temp
+            this.setState({incident, incidentType}, () => {
+                this.toggleContent('viewIncident', temp)
             })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            })
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+        })
     }
 
 
@@ -732,12 +724,8 @@ class Incident extends Component {
     deleteIncident = (id) => {
         const {baseUrl} = this.context
 
-        if (!id) {
-            return
-        }
-
         ah.one({
-            url: `${baseUrl}/api/soc/_delete?id=${id}`,
+            url: `${baseUrl}/api/soc?id=${id}`,
             type: 'DELETE'
         })
         .then(data => {
@@ -975,39 +963,19 @@ class Incident extends Component {
             contentType: 'application/json',
             dataType: 'json'
         })
-            .then(data => {
-                if (data) {
-                    let list = _.map(data.rt.rows, val => {
-                        return {value: val.id, text: val.id}
-                    })
+        .then(data => {
+            if (data) {
+                let list = _.map(data.rt.rows, val => {
+                    return {value: val.id, text: val.id}
+                })
 
-                    this.setState({relatedListOptions: list})
-                }
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            })
+                this.setState({relatedListOptions: list})
+            }
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+        })
 
-
-        // ah.one({
-        //     url: `${baseUrl}/api/soc/unit/_search`,
-        //     data: JSON.stringify({}),
-        //     type: 'POST',
-        //     contentType: 'application/json',
-        //     dataType: 'json'
-        // })
-        // .then(data => {
-        //     if (data) {
-        //         let list = _.map(data.rows, val => {
-        //             return {value: val.id, text: val.name}
-        //         })
-
-        //         this.setState({unitListOptions: list})
-        //     }
-        // })
-        // .catch(err => {
-        //     helper.showPopupMsg('', t('txt-error'), err.message)
-        // })
 
         ah.one({
             url: `${baseUrl}/api/soc/device/_search`,
@@ -1016,18 +984,18 @@ class Incident extends Component {
             contentType: 'application/json',
             dataType: 'json'
         })
-            .then(data => {
-                if (data) {
-                    let list = _.map(data.rt.rows, val => {
-                        return {value: val.id, text: val.deviceName}
-                    })
+        .then(data => {
+            if (data) {
+                let list = _.map(data.rt.rows, val => {
+                    return {value: val.id, text: val.deviceName}
+                })
 
-                    this.setState({deviceListOptions: list})
-                }
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            })
+                this.setState({deviceListOptions: list})
+            }
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+        })
     }
 
     /**
