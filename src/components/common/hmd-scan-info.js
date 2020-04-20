@@ -265,9 +265,20 @@ class HMDscanInfo extends Component {
         if (currentDeviceData[resultType][0].taskResponseDttm) {
           const latestCreateTime = helper.getFormattedDate(currentDeviceData[resultType][0].latestCreateDttm, 'local');
           const responseTime = helper.getFormattedDate(currentDeviceData[resultType][0].taskResponseDttm, 'local');
-          return Moment(latestCreateTime).isAfter(responseTime);
+          const currentDateTime = helper.getFormattedDate(Moment(), 'local');
+          const oneDayAfter = helper.getAdditionDate(1, 'day', latestCreateTime);
+
+          if (Moment(latestCreateTime).isAfter(responseTime)) {
+            if (Moment(currentDateTime).isAfter(oneDayAfter)) {
+              return false; //Enable trigger button if current time is 1 day after latest create time
+            } else {
+              return true; //Disable trigger button
+            }
+          } else {
+            return false; //Enable trigger button if latest create time is after response time
+          }
         } else {
-          return true; //Disable when create dttm is available and resonse dttm is N/A
+          return true; //Disable trigger button when create dttm is available and resonse dttm is N/A
         }
       }
     }
@@ -475,15 +486,17 @@ class HMDscanInfo extends Component {
         <div className='group' key={uniqueKey}>
           <div className='path' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
             <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`}></i>
-            {val._MatchedFile &&
-              <span>{t('txt-path')}: {val._MatchedFile}</span>
-            }
-            {val._MatchedFile && val._MatchedPid &&
-              <span>, </span>
-            }
-            {val._MatchedPid &&
-              <span>PID: {val._MatchedPid}</span>
-            }
+            <div className='path-header'>
+              {val._MatchedFile &&
+                <span>{t('txt-path')}: {val._MatchedFile}</span>
+              }
+              {val._MatchedFile && val._MatchedPid &&
+                <span>, </span>
+              }
+              {val._MatchedPid &&
+                <span>PID: {val._MatchedPid}</span>
+              }
+            </div>
           </div>
           <div className={cx('rule', {'hide': activePath !== uniqueID})}>
             <div className='rule-content'>
@@ -586,15 +599,17 @@ class HMDscanInfo extends Component {
       <div className='group' key={uniqueKey}>
         <div className='path' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
           <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`}></i>
-          {filePath &&
-            <span>{t('txt-path')}: {filePath}</span>
-          }
-          {matchPID &&
-            <span>{matchPID}</span>
-          }
-          {scanType &&
-            <span className='right'>{scanType}</span>
-          }
+          <div className='path-header'>
+            {filePath &&
+              <span>{t('txt-path')}: {filePath}</span>
+            }
+            {matchPID &&
+              <span>{matchPID}</span>
+            }
+            {scanType &&
+              <span className='right'>{scanType}</span>
+            }
+          </div>
         </div>
         <div className={cx('rule', {'hide': activePath !== uniqueID})}>
           <div className='rule-content'>

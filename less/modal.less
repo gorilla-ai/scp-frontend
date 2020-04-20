@@ -53,6 +53,9 @@ html[data-theme='dark'] {
   & > .dialog > .content {
     max-height: 715px;
   }
+  & > .dialog > footer > button {
+    margin: 0 0.3em;
+  }
   .c-table {
     thead tr {
       color: var(--primaryContentHeader);
@@ -570,12 +573,14 @@ html[data-theme='dark'] {
           .group {
             border-top: 1px solid var(--primaryBorder);
             .path {
+              display: flex;
+              overflow-wrap: break-word;
               padding: 5px 10px 8px 10px;
               color: var(--primaryTextColor);
               background-color: var(--primaryContentBackground);
               cursor: pointer;
               i.fg {
-                float: left;
+                height: 24px;
                 margin-right: 10px;
                 border: 1px solid var(--primaryBorder);
                 border-radius: 5px;
@@ -583,9 +588,9 @@ html[data-theme='dark'] {
                   transform: rotate(180deg);
                 }
               }
-              span.right {
-                float: right;
-                color: #b1b1b1;
+              .path-header {
+                width: 96%;
+                margin-top: 1px;
               }
             }
             .rule {
