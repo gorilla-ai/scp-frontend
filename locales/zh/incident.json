@@ -6,6 +6,7 @@
 	"txt-incident-management": "情資事件管理",
 	"txt-incident-device-management": "設備管理",
 	"txt-incident-unit-management": "機關管理",
+	"txt-incident-config-management": "情資事件參數設定",
 	"txt-incident-events": "監控觸發紀錄",
 	"txt-incident-ttps": "攻擊手法",
 	"txt-prev-page": "上一頁",
@@ -20,6 +21,7 @@
 	"txt-viewIncident-ttps": "檢視關聯單",
 	"txt-editIncident-events": "編輯事件單",
 	"txt-editIncident-ttps": "編輯關聯單",
+	"txt-id": "編號:",
 	"unit": {
 		"txt-default": "預設機關",
 		"txt-isDefault": "是",

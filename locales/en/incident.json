@@ -6,6 +6,7 @@
 	"txt-incident-management": "Incident Management",
 	"txt-incident-device-management": "Incident Device Management",
 	"txt-incident-unit-management": "Incident Unit Management",
+	"txt-incident-config-management": "Incident Config Management",
 	"txt-incident-events": "Incident Events",
 	"txt-incident-ttps": "TTPs",
 	"txt-prev-page": "Prev",
@@ -20,6 +21,7 @@
 	"txt-viewIncident-ttps": "View Incident Ttps",
 	"txt-editIncident-events": "Edit Incident Events",
 	"txt-editIncident-ttps": "Edit Incident Ttps",
+	"txt-id": "ID:",
 	"unit": {
 		"txt-default": "Default Unit",
 		"txt-isDefault": "Yes",
@@ -54,7 +56,7 @@
 	},
 	"status": {
 		"0": "All",
-		"1": "Unreviewed",
+		"1": "UnReviewed",
 		"2": "Reviewed",
 		"3": "Submitted",
 		"4": "Deleted"

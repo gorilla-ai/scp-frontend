@@ -57,7 +57,7 @@ class Incident extends Component {
             deviceListOptions: [],
             // unitListOptions: [],
             incident: {
-                dataFieldsArr: ['_menu', 'id', 'title', 'category', 'reporter', 'createDttm', 'status'],
+                dataFieldsArr: ['_menu', 'id', 'status', 'title', 'category', 'reporter', 'createDttm'],
                 dataFields: {},
                 dataContent: [],
                 sort: {
@@ -136,7 +136,8 @@ class Incident extends Component {
                         formatter: (value, allValue, i) => {
                             if (tempData === '_menu') {
                                 return <div className={cx('table-menu', {'active': value})}>
-                                    <button onClick={this.handleRowContextMenu.bind(this, allValue)}><i className='fg fg-more'></i></button>
+                                    <button onClick={this.handleRowContextMenu.bind(this, allValue)}><i
+                                        className='fg fg-more'/></button>
                                 </div>
                             } 
                             else if (tempData === 'category') {
@@ -276,9 +277,14 @@ class Incident extends Component {
      */
     displayEditContent = () => {
         const {activeContent, incidentType, incident, displayPage} = this.state
-
         return <div className='main-content basic-form'>
-            <header className='main-header'>{it(`txt-${activeContent}-${incidentType}`)}</header>
+            <header className='main-header'>
+                {it(`txt-${activeContent}-${incidentType}`)}
+                {activeContent !== 'addIncident' &&
+                <span
+                    className='msg'>{it('txt-id')}{incident.info.id}</span>
+                }
+            </header>
 
             <div className='content-header-btns'>
                 {activeContent === 'viewIncident' &&
@@ -287,7 +293,7 @@ class Incident extends Component {
                 }
 
 
-                {activeContent === 'viewIncident' && incident.info.state !== 0 &&
+                {activeContent === 'viewIncident' &&
                 <button className='standard btn list'
                         onClick={this.toggleContent.bind(this, 'audit')}>{it('txt-audit')}</button>
                 }
@@ -337,11 +343,15 @@ class Incident extends Component {
     }
 
     displayMainPage = () => {
-        const {activeContent, incident, relatedListOptions} = this.state
+        const {activeContent, incident, relatedListOptions, incidentType} = this.state
 
         return <div className='form-group normal'>
             <header>
                 <div className='text'>{t('edge-management.txt-basicInfo')}</div>
+                {activeContent !== 'addIncident' &&
+                <span
+                    className='msg'>{f('incidentFields.updateDttm')} {helper.getFormattedDate(incident.info.updateDttm, 'local')}</span>
+                }
             </header>
 
             <button className='last' onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-next-page')}</button>
@@ -508,10 +518,9 @@ class Incident extends Component {
     handleSubmit = () => {
         const {baseUrl, contextRoot} = this.context
         const {activeContent, incidentType} = this.state
-        let incident = {...this.state.incident.info}
+        let incident = {...this.state.incident}
 
-        if (!this.checkRequired(incident)) {
-            console.log("incident == " , incident)
+        if (!this.checkRequired(incident.info)) {
             PopupDialog.alert({
                 title: t('txt-tips'),
                 display: it('txt-required'),
@@ -521,14 +530,14 @@ class Incident extends Component {
             return
         }
 
-        if (incident.relatedList) {
-            incident.relatedList = _.map(incident.relatedList, el => {
+        if (incident.info.relatedList) {
+            incident.info.relatedList = _.map(incident.info.relatedList, el => {
                 return {incidentRelatedId: el}
             })
         }
 
-        if (incident.eventList) {
-            incident.eventList = _.map(incident.eventList, el => {
+        if (incident.info.eventList) {
+            incident.info.eventList = _.map(incident.info.eventList, el => {
                 return {
                     ...el,
                     startDttm: Moment(el.time.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
@@ -539,14 +548,22 @@ class Incident extends Component {
 
         ah.one({
             url: `${baseUrl}/api/soc`,
-            data: JSON.stringify(incident),
+            data: JSON.stringify(incident.info),
             type: activeContent === 'addIncident' ? 'POST' : 'PATCH',
             contentType: 'application/json',
             dataType: 'json'
         })
             .then(data => {
-                console.log(data)
-                this.loadData()
+                console.log('data ==', data)
+                incident.info.id = data.rt.id;
+                incident.info.updateDttm = data.rt.updateDttm;
+                this.setState({
+                    originalIncident: _.cloneDeep(incident)
+                }, () => {
+                    this.toggleContent('cancel');
+                });
+
+                return null;
             })
             .catch(err => {
                 helper.showPopupMsg('', t('txt-error'), err.message)
@@ -686,7 +703,7 @@ class Incident extends Component {
                             onChange={this.handleSearch.bind(this, 'status')}
                             required={true}
                             list={
-                                _.map(_.range(0, 4), el => {
+                                _.map(_.range(0, 5), el => {
                                     return {text: it(`status.${el}`), value: el}
                                 })
                             }
@@ -788,9 +805,11 @@ class Incident extends Component {
                 impactAssessment: allValue.impactAssessment,
                 socType: allValue.socType,
                 createDttm: allValue.createDttm,
+                updateDttm: allValue.updateDttm,
                 relatedList: allValue.relatedList,
                 ttpList: allValue.ttpList,
                 eventList: allValue.eventList,
+                status: allValue.status
             }
 
             if (!tempIncident.info.socType) {
@@ -831,7 +850,6 @@ class Incident extends Component {
             tempIncident = _.cloneDeep(originalIncident)
         } else if (type === 'redirect') {
             let alertData = JSON.parse(allValue);
-            console.log("alertData = ", alertData)
             tempIncident.info = {
                 /**
                  * TODO make redirect incident
@@ -843,7 +861,6 @@ class Incident extends Component {
                 // ttpList: allValue.ttpList,
                 // eventList: allValue.eventList
             };
-
 
             if (!tempIncident.info.socType) {
                 tempIncident.info.socType = 1
@@ -870,7 +887,7 @@ class Incident extends Component {
                     from: helper.getFormattedDate(alertData._eventDttm_, 'local'),
                     to: helper.getFormattedDate(alertData._eventDttm_, 'local')
                 },
-                connectionList: eventNetworkList
+                eventConnectionList: eventNetworkList
             };
             if (alertData._edgeInfo) {
                 let searchRequestData = {
@@ -884,15 +901,12 @@ class Incident extends Component {
                     contentType: 'application/json',
                     dataType: 'json'
                 }).then(data => {
-                    // console.log("data=", data)
                     eventListItem.deviceId = data.rt.device.id;
                 })
             }
 
             eventList.push(eventListItem);
             tempIncident.info.eventList = eventList;
-            console.log("tempIncident == ", tempIncident.info)
-
             showPage = 'addIncident';
             this.setState({
                 showFilter: false,
@@ -907,8 +921,7 @@ class Incident extends Component {
         } else if (type === 'download') {
             this.getIncidentSTIXFile(allValue.id);
         }
-        console.log("showPage ==", showPage);
-        console.log("showPage ==", showPage);
+
         this.setState({
             activeContent: showPage,
             incident: tempIncident

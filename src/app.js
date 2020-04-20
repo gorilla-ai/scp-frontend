@@ -32,6 +32,7 @@ import UserAccounts from './components/configuration/user/accounts/index'
 import UserPrivileges from './components/configuration/user/privileges/index'
 import IncidentDevice from './components/soc/incident-device'
 import IncidentUnit from './components/soc/incident-unit'
+import IncidentConfig from './components/soc/incident-config'
 import Incident from './components/soc/Incident'
 
 import {setupConfigService} from 'widget-builder'
@@ -195,6 +196,12 @@ const incidentUnit = () => (
     </BaseDataContext.Provider>
 );
 
+const incidentConfig = () => (
+    <BaseDataContext.Provider value={baseData}>
+        <IncidentConfig/>
+    </BaseDataContext.Provider>
+);
+
 const Main = () => (
     <main className='main'>
         <Switch>
@@ -219,6 +226,7 @@ const Main = () => (
             <Route exact path='/SCP/configuration/product-info' component={productInfo}/>
             <Route exact path='/SCP/soc/incident-device' component={incidentDevice}/>
             <Route exact path='/SCP/soc/incident-unit' component={incidentUnit}/>
+            <Route exact path='/SCP/soc/incident-config' component={incidentConfig}/>
             <Route exact path='/SCP/soc/incident' component={incident}/>
         </Switch>
     </main>
