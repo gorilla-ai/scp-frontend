@@ -265,9 +265,20 @@ class HMDscanInfo extends Component {
         if (currentDeviceData[resultType][0].taskResponseDttm) {
           const latestCreateTime = helper.getFormattedDate(currentDeviceData[resultType][0].latestCreateDttm, 'local');
           const responseTime = helper.getFormattedDate(currentDeviceData[resultType][0].taskResponseDttm, 'local');
-          return Moment(latestCreateTime).isAfter(responseTime);
+          const currentDateTime = helper.getFormattedDate(Moment(), 'local');
+          const oneDayAfter = helper.getAdditionDate(1, 'day', latestCreateTime);
+
+          if (Moment(latestCreateTime).isAfter(responseTime)) {
+            if (Moment(currentDateTime).isAfter(oneDayAfter)) {
+              return false; //Enable trigger button if current time is 1 day after latest create time
+            } else {
+              return true; //Disable trigger button
+            }
+          } else {
+            return false; //Enable trigger button if latest create time is after response time
+          }
         } else {
-          return true; //Disable when create dttm is available and resonse dttm is N/A
+          return true; //Disable trigger button when create dttm is available and resonse dttm is N/A
         }
       }
     }
