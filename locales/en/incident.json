@@ -1,6 +1,7 @@
 {
 	"txt-soc": "SOC",
 	"txt-incident": "Incident",
+	"txt-createIncident": "Create Incident",
 	"txt-incident-device": "Incident Device",
 	"txt-incident-unit": "Incident Unit",
 	"txt-incident-management": "Incident Management",

@@ -1,6 +1,7 @@
 {
 	"txt-soc": "事件申報",
 	"txt-incident": "情資事件",
+	"txt-createIncident": "通報事件",
 	"txt-incident-device": "資安事件設備",
 	"txt-incident-unit": "資安事件申報機關",
 	"txt-incident-management": "情資事件管理",

@@ -22,6 +22,7 @@ import {getInstance} from 'react-ui/build/src/utils/ajax-helper'
 let t = null;
 let f = null;
 let et = null;
+let it = null;
 
 const PRIVATE = 'private';
 const PUBLIC = 'public';
@@ -121,6 +122,7 @@ class ThreatsController extends Component {
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
+    it = global.chewbaccaI18n.getFixedT(null, "incident");
 
     this.state = {
       activeTab: 'alert',
@@ -1328,7 +1330,7 @@ class ThreatsController extends Component {
   alertDialog = () => {
     const {alertDetails, alertData} = this.state;
     const actions = {
-      makeIncident: {text: 'Create Incident', handler: this.incidentRedirect},
+      makeIncident: {text: it('txt-createIncident'), handler: this.incidentRedirect},
       confirm: {text: t('txt-close'), handler: this.closeDialog}
     };
 
@@ -1425,6 +1427,7 @@ class ThreatsController extends Component {
       this.clearQueryData();
     });
   }
+
   /**
    * redirect to incident page
    * @method
@@ -1434,7 +1437,8 @@ class ThreatsController extends Component {
     let timeInMss = Date.now();
     sessionStorage.setItem(timeInMss, JSON.stringify(alertData));
     window.location.href = '/SCP/soc/incident?alertDataId=' + timeInMss
-  }
+  };
+
   /**
    * Set new datetime and reload page data
    * @method
