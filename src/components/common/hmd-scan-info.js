@@ -68,7 +68,8 @@ class HMDscanInfo extends Component {
       gcbFieldsArr: ['_CceId', '_OriginalKey', '_Type', '_CompareResult'],
       gcbSort: 'asc',
       hmdInfo: {},
-      hasMore: true
+      hasMore: true,
+      disabledBtn: false
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -247,8 +248,25 @@ class HMDscanInfo extends Component {
       activeRuleHeader: false,
       activeRule: [],
       activeDLL: false,
-      activeConnections: false
+      activeConnections: false,
+      disabledBtn: false
     });
+  }
+  /**
+   * Compare the current datetime and the 24h after latest create time
+   * @method
+   * @param {string} latestCreateTime - latest create time
+   * @returns boolean true/false
+   */
+  checkOneDayAfter = (latestCreateTime) => {
+    const currentDateTime = helper.getFormattedDate(Moment(), 'local');
+    const oneDayAfter = helper.getAdditionDate(1, 'day', latestCreateTime);
+
+    if (Moment(currentDateTime).isAfter(oneDayAfter)) {
+      return false; //Enable trigger button if current time is 1 day after latest create time
+    } else {
+      return true; //Disable trigger button
+    }
   }
   /**
    * Compare the task create datetime and task response datetime
@@ -257,28 +275,28 @@ class HMDscanInfo extends Component {
    * @returns boolean true/false
    */
   checkTriggerTime = (type) => {
+    const {disabledBtn} = this.state;
     const {currentDeviceData} = this.props;
     const resultType = type + 'Result';
 
+    if (disabledBtn) {
+      return true;
+    }
+
     if (currentDeviceData[resultType] && currentDeviceData[resultType].length > 0) {
       if (currentDeviceData[resultType][0].latestCreateDttm) {
+        const latestCreateTime = helper.getFormattedDate(currentDeviceData[resultType][0].latestCreateDttm, 'local');
+
         if (currentDeviceData[resultType][0].taskResponseDttm) {
-          const latestCreateTime = helper.getFormattedDate(currentDeviceData[resultType][0].latestCreateDttm, 'local');
           const responseTime = helper.getFormattedDate(currentDeviceData[resultType][0].taskResponseDttm, 'local');
-          const currentDateTime = helper.getFormattedDate(Moment(), 'local');
-          const oneDayAfter = helper.getAdditionDate(1, 'day', latestCreateTime);
 
           if (Moment(latestCreateTime).isAfter(responseTime)) {
-            if (Moment(currentDateTime).isAfter(oneDayAfter)) {
-              return false; //Enable trigger button if current time is 1 day after latest create time
-            } else {
-              return true; //Disable trigger button
-            }
+            return this.checkOneDayAfter(latestCreateTime);
           } else {
             return false; //Enable trigger button if latest create time is after response time
           }
         } else {
-          return true; //Disable trigger button when create dttm is available and resonse dttm is N/A
+          return this.checkOneDayAfter(latestCreateTime);
         }
       }
     }
@@ -570,10 +588,13 @@ class HMDscanInfo extends Component {
       uniqueKey = val._FileInfo._Filepath + i;
       uniqueID = parentIndex.toString() + i.toString() + val._FileInfo._Filepath;
       filePath = val._FileInfo._Filepath;
-      scanType += 'AI';
+
+      if (val._MalwarePredictScore >= 0.5) {
+        scanType += 'AI';
+      }
     }
 
-    if (val && val._YaraResult) { //For Yara
+    if (val && val._YaraResult && !_.isEmpty(val._YaraResult)) { //For Yara
       uniqueKey = val._YaraResult._MatchedFile + i;
       uniqueID = parentIndex.toString() + i.toString() + (val._YaraResult._MatchedFile || val._YaraResult._MatchedPid);
 
@@ -588,7 +609,12 @@ class HMDscanInfo extends Component {
       if (val._YaraResult._MatchedPid) {
         matchPID = ', PID: ' + val._YaraResult._MatchedPid;
       }
-      scanType += ' / Yara';
+
+      if (scanType) {
+        scanType += ' / ';
+      }
+
+      scanType += 'Yara';
     }
 
     if (!filePath) {
@@ -606,8 +632,10 @@ class HMDscanInfo extends Component {
             {matchPID &&
               <span>{matchPID}</span>
             }
+          </div>
+          <div className='scan-type'>
             {scanType &&
-              <span className='right'>{scanType}</span>
+              <span>{scanType}</span>
             }
           </div>
         </div>
@@ -690,21 +718,33 @@ class HMDscanInfo extends Component {
     }
   }
   /**
+   * Handle trigger task button
+   * @method
+   * @param {string} type - scan type
+   */
+  getTriggerTask = (type) => {
+    const {ipType} = this.props;
+
+    if (type === 'ir') {
+      this.props.toggleSelectionIR(ipType);
+    } else {
+      this.props.triggerTask([TRIGGER_NAME[this.state.activeTab]], ipType);
+
+      this.setState({
+        disabledBtn: true
+      });
+    }
+  }
+  /**
    * Display trigger button for scan type
    * @method
    * @returns HTML DOM
    */
   getTriggerBtn = () => {
-    const {ipType} = this.props;
-    const {activeTab, hmdInfo} = this.state;
+    const {activeTab} = this.state;
+    const btnText = activeTab === 'ir' ? t('network-inventory.txt-reCompress') : t('network-inventory.txt-reCheck');
 
-    if (activeTab === 'gcb') {
-      return <button className='btn' onClick={this.props.triggerTask.bind(this, [TRIGGER_NAME[activeTab]], ipType)} disabled={this.checkTriggerTime(activeTab)}>{t('network-inventory.txt-reCheck')}</button>
-    } else if (activeTab === 'ir') {
-      return <button className='btn' onClick={this.props.toggleSelectionIR.bind(this, ipType)} disabled={this.checkTriggerTime(activeTab)}>{t('network-inventory.txt-reCompress')}</button>
-    } else {
-      return <button className='btn' onClick={this.props.triggerTask.bind(this, [TRIGGER_NAME[activeTab]], ipType)} disabled={this.checkTriggerTime(activeTab)}>{t('network-inventory.txt-reCheck')}</button>
-    }
+    return <button className='btn' onClick={this.getTriggerTask.bind(this, activeTab)} disabled={this.checkTriggerTime(activeTab)}>{btnText}</button>
   }
   /**
    * Load more items when scrolling to the bottom of the dialog
