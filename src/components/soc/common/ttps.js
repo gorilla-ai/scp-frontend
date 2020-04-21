@@ -14,6 +14,7 @@ import TtpObsSocket from './ttp-obs-socket'
 let t = null
 let et = null
 let f = null
+let it = null
 
 class Ttps extends Component {
 	constructor(props) {
@@ -22,6 +23,7 @@ class Ttps extends Component {
 		t = global.chewbaccaI18n.getFixedT(null, 'connections')
     	et = global.chewbaccaI18n.getFixedT(null, 'errors')
     	f = chewbaccaI18n.getFixedT(null, "tableFields");
+    	it = global.chewbaccaI18n.getFixedT(null, "incident")
 	}
 	componentDidMount() {
 	}
@@ -60,7 +62,8 @@ class Ttps extends Component {
 
 	        </div>
 
-	        <div className='line'>
+	        <div className='event-sub'>
+	        	<label className='ttp-header' htmlFor='TtpEts'>{it('txt-ttp-ets')}</label>
 				<div className='group full'>
 	            	<MultiInput
 	                    id='ttpEts'
@@ -73,7 +76,8 @@ class Ttps extends Component {
 	            </div>
             </div>
 
-            <div className='line'>
+            <div className='event-sub'>
+            <label className='ttp-header' htmlFor='obsFile'>{it('txt-ttp-obs-file')}</label>
 				<div className='group full'>
 	            	<MultiInput
 	                    id='obsFile'
@@ -86,7 +90,8 @@ class Ttps extends Component {
 	            </div>
             </div>
 
-            <div className='line'>
+            <div className='event-sub'>
+            <label className='ttp-header' htmlFor='obsUri'>{it('txt-ttp-obs-uri')}</label>
 				<div className='group full'>
 	            	<MultiInput
 	                    id='obsUri'
@@ -99,7 +104,8 @@ class Ttps extends Component {
 	            </div>
             </div>
 
-            <div className='line'>
+            <div className='event-sub'>
+            <label className='ttp-header' htmlFor='obsSocket'>{it('txt-ttp-obs-socket')}</label>
 				<div className='group full'>
 	            	<MultiInput
 	                    id='obsSocket'

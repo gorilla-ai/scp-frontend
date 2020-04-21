@@ -20,6 +20,10 @@
 	"txt-viewIncident-ttps": "檢視關聯單",
 	"txt-editIncident-events": "編輯事件單",
 	"txt-editIncident-ttps": "編輯關聯單",
+	"txt-ttp-ets": "漏洞資訊",
+	"txt-ttp-obs-file": "惡意程式",
+	"txt-ttp-obs-uri": "URI",
+	"txt-ttp-obs-socket": "Socket",
 	"unit": {
 		"txt-default": "預設機關",
 		"txt-isDefault": "是",

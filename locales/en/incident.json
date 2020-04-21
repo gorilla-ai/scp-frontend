@@ -20,6 +20,10 @@
 	"txt-viewIncident-ttps": "View Incident Ttps",
 	"txt-editIncident-events": "Edit Incident Events",
 	"txt-editIncident-ttps": "Edit Incident Ttps",
+	"txt-ttp-ets": "ETS",
+	"txt-ttp-obs-file": "File",
+	"txt-ttp-obs-uri": "URI",
+	"txt-ttp-obs-socket": "Socket",
 	"unit": {
 		"txt-default": "Default Unit",
 		"txt-isDefault": "Yes",
