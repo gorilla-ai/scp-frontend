@@ -589,7 +589,7 @@ class HMDscanInfo extends Component {
       uniqueID = parentIndex.toString() + i.toString() + val._FileInfo._Filepath;
       filePath = val._FileInfo._Filepath;
 
-      if (val._MalwarePredictScore >= 0.5) {
+      if (val.isAI) {
         scanType += 'AI';
       }
     }
