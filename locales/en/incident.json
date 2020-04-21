@@ -12,6 +12,8 @@
 	"txt-prev-page": "Prev",
 	"txt-next-page": "Next",
 	"txt-audit": "Audit",
+	"txt-audit-success": "Audit Success",
+	"txt-audit-fail": "Audit Fail",
 	"txt-send": "Send",
 	"txt-download": "Download",
 	"txt-required": "Empty Required Fields",

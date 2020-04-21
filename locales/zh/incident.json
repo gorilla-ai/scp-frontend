@@ -12,6 +12,8 @@
 	"txt-prev-page": "上一頁",
 	"txt-next-page": "下一頁",
 	"txt-audit": "審核",
+	"txt-audit-success": "審核成功",
+	"txt-audit-fail": "審核失敗",
 	"txt-send": "發布",
 	"txt-download": "下載",
 	"txt-required": "必填欄位為空",

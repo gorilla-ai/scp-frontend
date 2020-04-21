@@ -169,27 +169,29 @@ class Incident extends Component {
                 id: 'download',
                 text: it('txt-download'),
                 action: () => this.getIncidentSTIXFile(allValue.id)
-            },
-            {
-                id: 'delete',
-                text: t('txt-delete'),
-                action: () => this.openDeleteMenu(allValue)
             }
         ];
         let item = {};
+        let itemDelete = {
+            id: 'delete',
+            text: t('txt-delete'),
+            action: () => this.openDeleteMenu(allValue)
+        };
         if (allValue.status === 1) {
             item = {
                 id: 'audit',
                 text: it('txt-audit'),
-                action: () => this.toggleContent.bind(this, 'audit', allValue)
+                action: () => this.getIncident(allValue.id)
             };
             menuItems.push(item);
+            menuItems.push(itemDelete)
         } else if (allValue.status === 2) {
             item = {
                 id: 'send',
                 text: it('txt-send'),
-                action: () => this.toggleContent.bind(this, 'send', allValue)
+                action: () => this.toggleContent('send', allValue)
             };
+            menuItems.push(itemDelete);
             menuItems.push(item);
         }
 
@@ -289,7 +291,7 @@ class Incident extends Component {
 
                 {activeContent === 'viewIncident' &&
                 <button className='standard btn list'
-                        onClick={this.toggleContent.bind(this, 'audit')}>{it('txt-audit')}</button>
+                        onClick={this.auditIncident.bind(this, incident.info.id)}>{it('txt-audit')}</button>
                 }
 
 
@@ -580,9 +582,9 @@ class Incident extends Component {
             return false
         }
         else {
-            let empty = _.filter(incident.eventList, function(o){
+            let empty = _.filter(incident.eventList, function (o) {
                 return !o.description || !o.deviceId
-            }) 
+            });
 
             if (_.size(empty) > 0) {
                 return false
@@ -896,30 +898,6 @@ class Incident extends Component {
                 displayPage: 'main'
             })
         } else if (type === 'audit') {
-            // 1. show viewIncident
-            tempIncident.info = {
-                id: allValue.id,
-                title: allValue.title,
-                category: allValue.category,
-                reporter: allValue.reporter,
-                description: allValue.description,
-                impactAssessment: allValue.impactAssessment,
-                socType: allValue.socType,
-                createDttm: allValue.createDttm,
-                updateDttm: allValue.updateDttm,
-                relatedList: allValue.relatedList,
-                ttpList: allValue.ttpList,
-                eventList: allValue.eventList,
-                status: allValue.status
-            };
-
-            if (!tempIncident.info.socType) {
-                tempIncident.info.socType = 1
-            }
-
-            this.setState({showFilter: false, originalIncident: _.cloneDeep(tempIncident)})
-
-            this.auditIncidetn(allValue.id)
         } else if (type === 'download') {
             this.getIncidentSTIXFile(allValue.id);
         }
@@ -933,11 +911,12 @@ class Incident extends Component {
             }
         })
     };
+
     /**
      *
-     * @param {incident-ID}id
+     * @param {string} id
      */
-    auditIncidetn = (id) => {
+    auditIncident = (id) => {
         const {baseUrl} = this.context;
         let tmp = {
             id: id
@@ -950,16 +929,13 @@ class Incident extends Component {
             dataType: 'json'
         })
             .then(data => {
-                console.log('data = ' ,data);
-
+                helper.showPopupMsg(it('txt-audit-success'), it('txt-audit'));
                 return null
             })
             .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
+                helper.showPopupMsg(it('txt-audit-fail'), it('txt-audit'));
             })
     };
-
-
 
     /**
      * Handle filter input data change
