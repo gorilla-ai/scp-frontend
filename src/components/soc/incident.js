@@ -56,7 +56,7 @@ class Incident extends Component {
             relatedListOptions: [],
             deviceListOptions: [],
             incident: {
-                dataFieldsArr: ['_menu', 'id', 'status', 'title', 'category', 'reporter', 'createDttm'],
+                dataFieldsArr: ['_menu', 'id', 'status', 'type', 'title', 'category', 'reporter', 'createDttm'],
                 dataFields: {},
                 dataContent: [],
                 sort: {
@@ -127,15 +127,22 @@ class Incident extends Component {
                 incident.dataFieldsArr.forEach(tempData => {
                     dataFields[tempData] = {
                         label: tempData === '_menu' ? '' : f(`incidentFields.${tempData}`),
-                        // sortable: this.checkSortable(tempData),
+                        sortable: this.checkSortable(tempData),
                         formatter: (value, allValue, i) => {
                             if (tempData === '_menu') {
                                 return <div className={cx('table-menu', {'active': value})}>
                                     <button onClick={this.handleRowContextMenu.bind(this, allValue)}><i
                                         className='fg fg-more'/></button>
                                 </div>
-                            } 
-                            else if (tempData === 'category') {
+                            } else if (tempData === 'type') {
+                                let tmpList = [];
+                                tmpList = allValue.ttpList;
+                                if (tmpList.length === 0) {
+                                    return <span>{it('txt-incident-event')}</span>
+                                } else {
+                                    return <span>{it('txt-incident-related')}</span>
+                                }
+                            } else if (tempData === 'category') {
                                 return <span>{it(`category.${value}`)}</span>
                             } else if (tempData === 'status') {
                                 return <span>{it(`status.${value}`)}</span>
@@ -250,7 +257,7 @@ class Incident extends Component {
                             paginationTotalCount={incident.totalCount}
                             paginationPageSize={incident.pageSize}
                             paginationCurrentPage={incident.currentPage}
-                            // handleTableSort={this.handleTableSort}
+                            handleTableSort={this.handleTableSort}
                             handleRowMouseOver={this.handleRowMouseOver}
                             paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
                             paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')}/>
@@ -1066,6 +1073,39 @@ class Incident extends Component {
 
         downloadWithForm(url, {payload: JSON.stringify(requestData)});
     }
+
+    /**
+     * Check table sort
+     * @method
+     * @param {string} field - table field name
+     * @returns true for sortable or null
+     */
+    checkSortable = (field) => {
+        const unSortableFields = ['description', '_menu'];
+
+        if (_.includes(unSortableFields, field)) {
+            return null;
+        } else {
+            return true;
+        }
+    };
+
+    /**
+     * Handle table sort
+     * @method
+     * @param {object} sort - sort data object
+     */
+    handleTableSort = (sort) => {
+        let tmpIncident = {...this.state.incident};
+        tmpIncident.sort.field = sort.field;
+        tmpIncident.sort.desc = sort.desc;
+
+        this.setState({
+            incident: tmpIncident
+        }, () => {
+            this.loadData();
+        });
+    };
 
 }
 
