@@ -126,7 +126,6 @@ class SocConfig extends Component {
                     </Link>
                 </div>
 
-
                 <div className={cx('expand-collapse', {'not-allowed': this.getActiveFrame('threat')})}
                      onClick={this.toggleLeftNav}>
                     <i className={this.getClassName()}/>

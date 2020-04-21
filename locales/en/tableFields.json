@@ -572,7 +572,8 @@
     "industryType": "Unit Industry",
     "frequency": "Trigger Frequency",
     "updateDttm": "Last Update Time",
-    "abbreviation": "Unit Abbreviation"
+    "abbreviation": "Unit Abbreviation",
+    "type": "Incident Type"
   },
   "severityTableFields": {
     "dataSourceType": "Type",
