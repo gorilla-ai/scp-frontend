@@ -26,12 +26,7 @@ let f = null;
 let et = null;
 let it = null;
 
-/**
- * Settings - IncidentDevice
- * @class
- * @author Kenneth Chiao <kennethchiao@telmediatech.com>
- * @summary A react component to show the Config IncidentDevice page
- */
+
 class Incident extends Component {
     constructor(props) {
         super(props);

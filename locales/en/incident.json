@@ -27,6 +27,10 @@
 	"txt-editIncident-events": "Edit Security Monitoring Incident",
 	"txt-editIncident-ttps": "Edit Correlation Analysis Incident",
 	"txt-id": "ID:",
+	"txt-ttp-ets": "ETS",
+	"txt-ttp-obs-file": "File",
+	"txt-ttp-obs-uri": "URI",
+	"txt-ttp-obs-socket": "Socket",
 	"unit": {
 		"txt-default": "Default Unit",
 		"txt-isDefault": "Yes",
