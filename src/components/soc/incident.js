@@ -438,7 +438,8 @@ class Incident extends Component {
                     className='relatedList'
                     onChange={this.handleDataChange.bind(this, 'relatedList')}
                     list={relatedListOptions}
-                    multiSelect={{enabled: true, toggleAll: true}}
+                    search={{enabled: true, placeholder: '', interactive: true}}
+                    multiSelect={{enabled: true}}
                     value={incident.info.relatedList}
                     disabled={activeContent === 'viewIncident'}/>
             </div>
@@ -557,17 +558,28 @@ class Incident extends Component {
         }).then(data => {
             incident.info.id = data.rt.id;
             incident.info.updateDttm = data.rt.updateDttm;
+
+            if (incident.info.relatedList) {
+                incident.info.relatedList = _.map(incident.info.relatedList, el => {
+                    return el.incidentRelatedId
+                })
+            }
+
             this.setState({
                 originalIncident: _.cloneDeep(incident)
             }, () => {
+                // this.loadData();
+                // this.getIncident(incident.info.id);
                 this.toggleContent('cancel');
+                //
             });
 
             return null;
         })
             .catch(err => {
                 helper.showPopupMsg('', t('txt-error'), err.message)
-            })
+            });
+
     };
 
     checkRequired(incident) {
