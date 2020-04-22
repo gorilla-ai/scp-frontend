@@ -54,8 +54,8 @@ class Edge extends Component {
       serviceType: [],
       connectionStatus: [
         {value: 'all', text: t('txt-all')},
-        {value: 'Normal', text: 'Normal'},
-        {value: 'Error', text: 'Error'}
+        {value: 'Normal', text: t('txt-normal')},
+        {value: 'Error', text: t('txt-error')},
       ],
       edgeSearch: {
         keyword: '',
