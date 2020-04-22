@@ -990,7 +990,7 @@ class Syslog extends Component {
       xAxis: {
         type: 'datetime',
         dateTimeLabelFormats: {
-          day: '%H:%M'
+          day: '%m-%d %H:%M'
         }
       }
     };
@@ -1021,7 +1021,6 @@ class Syslog extends Component {
         <div className='chart-section'>
           {showTimeline &&
             <LineChart
-              stacked
               className='chart fixed'
               {...chartAttributes} />
           }

@@ -945,7 +945,7 @@ class DashboardStats extends Component {
                   xAxis={{
                     type: 'datetime',
                     dateTimeLabelFormats: {
-                      day: '%H:%M'
+                      day: '%m-%d %H:%M'
                     }
                   }}
                   plotOptions={{

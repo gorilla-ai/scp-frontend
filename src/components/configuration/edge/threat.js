@@ -436,7 +436,6 @@ class ThreatIntelligence extends Component {
                     }
                     {acuIndicatorsTrendData && acuIndicatorsTrendData.length > 0 &&
                       <LineChart
-                        stacked
                         title={t('edge-management.statistics.txt-acuIndicatorsTrend')}
                         legend={{
                           enabled: true
