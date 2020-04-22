@@ -270,7 +270,10 @@ class AlertDetails extends Component {
     }, () => {
       const {alertInfo} = this.state;
 
-      if (_.isEmpty(alertInfo[type].topology)) { //Reset to default value if no Topology info
+      if (alertInfo[type].topology && alertInfo[type].topology.ownerUUID) {
+        this.getOwnerPic(type, alertInfo[type].topology.ownerUUID);
+        this.getOwnerSeat(type);
+      } else { //Reset to default if no Topology or owner is not present
         let tempAlertInfo = {...alertInfo};
         tempAlertInfo[type].ownerPic = '';
         tempAlertInfo[type].ownerMap = {};
@@ -280,9 +283,6 @@ class AlertDetails extends Component {
         this.setState({
           alertInfo: tempAlertInfo
         });
-      } else {
-        this.getOwnerPic(type);
-        this.getOwnerSeat(type);
       }
     });
   }
@@ -415,16 +415,12 @@ class AlertDetails extends Component {
    * Get owner picture based on location type
    * @method
    * @param {string} type - 'srcIp' or 'destIp'
+   * @param {string} ownerUUID - ownerUUID
    */
-  getOwnerPic = (type) => {
+  getOwnerPic = (type, ownerUUID) => {
     const {baseUrl} = this.context;
     const {alertInfo} = this.state;
-    const ownerUUID = alertInfo[type].topology.ownerUUID;
     let tempAlertInfo = {...alertInfo};
-
-    if (!ownerUUID) {
-      return;
-    }
 
     ah.one({
       url: `${baseUrl}/api/u1/owner?uuid=${ownerUUID}`,
