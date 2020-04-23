@@ -33,6 +33,11 @@ class TtpObsSocket extends Component {
 	                    id='ip'
 	                    onChange={this.handleDataChange.bind(this, 'ip')}
 	                    value={ip}
+						validate={{
+							pattern: /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/,
+							patternReadable: 'xxx.xxx.xxx.xxx',
+							t: this.getErrorMsg
+						}}
 	                    readOnly={activeContent === 'viewIncident'}/>
 	            </div>
 	            <div className='group'>
@@ -45,6 +50,18 @@ class TtpObsSocket extends Component {
 	            </div>
 	        </div>
 		</div>
+	}
+
+	/**
+	 * Input validation
+	 * @method
+	 * @param {array} code - error code
+	 * @returns error message
+	 */
+	getErrorMsg = (code, {value, pattern}) => {
+		if (code[0] === 'no-match') {
+			return t('network-topology.txt-ipValidationFail');
+		}
 	}
 }
 
