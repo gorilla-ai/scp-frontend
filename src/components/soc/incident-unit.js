@@ -130,7 +130,7 @@ class IncidentUnit extends Component {
     }
 
     /**
-     * Get and set Incident Device table data
+     * Get and set Incident Unit table data
      * @method
      * @param {string} fromSearch - option for the 'search'
      */
@@ -331,7 +331,7 @@ class IncidentUnit extends Component {
         });
     };
 
-    /** TODO
+    /**
      * Display edit incidentUnit content
      * @method
      * @returns HTML DOM
@@ -440,7 +440,7 @@ class IncidentUnit extends Component {
                 <footer>
                     <button className='standard'
                             onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</button>
-                    <button onClick={this.handleDeviceSubmit}>{t('txt-save')}</button>
+                    <button onClick={this.handleUnitSubmit}>{t('txt-save')}</button>
 
                 </footer>
                 }
@@ -448,7 +448,7 @@ class IncidentUnit extends Component {
                 <footer>
                     <button className='standard'
                             onClick={this.toggleContent.bind(this, 'cancel-add')}>{t('txt-cancel')}</button>
-                    <button onClick={this.handleDeviceSubmit}>{t('txt-save')}</button>
+                    <button onClick={this.handleUnitSubmit}>{t('txt-save')}</button>
 
                 </footer>
                 }
@@ -457,33 +457,34 @@ class IncidentUnit extends Component {
     };
 
     /**
-     * Handle IncidentDevice Edit confirm
+     * Handle IncidentUnit Edit confirm
      * @method
      */
-    handleDeviceSubmit = () => {
+    handleUnitSubmit = () => {
         const {baseUrl} = this.context;
-        const {incidentUnit} = this.state;
-        let tmpincidentUnit = incidentUnit;
-
-        if (!this.checkAddData(incidentUnit)) {
+        let tmpIncidentUnit = {...this.state.incidentUnit};
+        if (!this.checkAddData(tmpIncidentUnit)) {
             return
         }
 
         let apiType = 'POST';
-
-        if (incidentUnit.info.id) {
+        if (tmpIncidentUnit.info.id) {
             apiType = 'PATCH'
         }
 
         ah.one({
             url: `${baseUrl}/api/soc/unit`,
-            data: JSON.stringify(incidentUnit.info),
+            data: JSON.stringify(tmpIncidentUnit.info),
             type: apiType,
             contentType: 'text/plain'
         })
             .then(data => {
+                console.log("data = ", data)
+                tmpIncidentUnit.info.isUse = data.rt.isUse;
+                tmpIncidentUnit.info.isDefault = data.rt.isDefault;
+
                 this.setState({
-                    originalIncidentDeviceData: _.cloneDeep(incidentUnit)
+                    originalIncidentDeviceData: _.cloneDeep(tmpIncidentUnit)
                 }, () => {
                     this.toggleContent('cancel');
                 });

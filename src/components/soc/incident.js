@@ -19,6 +19,7 @@ import helper from "../common/helper"
 import Events from './common/events'
 import Ttps from './common/ttps'
 import {downloadWithForm} from "react-ui/build/src/utils/download";
+import ModalDialog from "react-ui/build/src/components/modal-dialog";
 
 
 let t = null;
@@ -191,7 +192,7 @@ class Incident extends Component {
             item = {
                 id: 'send',
                 text: it('txt-send'),
-                action: () => this.toggleContent('send', allValue)
+                action: () => this.sendIncident(allValue.id)
             };
             menuItems.push(itemDelete);
             menuItems.push(item);
@@ -866,9 +867,9 @@ class Incident extends Component {
             // make incident.info
             let eventNetworkList = [];
             let eventNetworkItem = {
-                srcIp: alertData.ipSrc,
+                srcIp: alertData.ipSrc || alertData.srcIp,
                 srcPort: parseInt(alertData.portSrc),
-                dstIp: alertData.ipDst,
+                dstIp: alertData.ipDst || alertData.dstIp,
                 dstPort: parseInt(alertData.destPort),
                 srcHostname: '',
                 dstHostname: ''
@@ -888,7 +889,7 @@ class Incident extends Component {
             };
             if (alertData._edgeInfo) {
                 let searchRequestData = {
-                    deviceName: alertData._edgeInfo.agentName
+                    deviceId: alertData._edgeInfo.agentId
                 };
 
                 ah.one({
@@ -943,13 +944,75 @@ class Incident extends Component {
             dataType: 'json'
         })
             .then(data => {
-                helper.showPopupMsg(it('txt-audit-success'), it('txt-audit'));
+                this.afterAuditDialog(id)
+                // helper.showPopupMsg(it('txt-audit-success'), it('txt-audit'));
                 return null
             })
             .catch(err => {
                 helper.showPopupMsg(it('txt-audit-fail'), it('txt-audit'));
             })
     };
+
+    /**
+     *
+     * @param {string} id
+     */
+    sendIncident = (id) => {
+        const {baseUrl} = this.context;
+        let tmp = {
+            id: id
+        }
+        ah.one({
+            url: `${baseUrl}/api/soc/_send`,
+            data: JSON.stringify(tmp),
+            type: 'POST',
+            contentType: 'application/json',
+            dataType: 'json'
+        })
+            .then(data => {
+                helper.showPopupMsg(it('txt-send-success'), it('txt-send'));
+                return null
+            })
+            .catch(err => {
+                helper.showPopupMsg(it('txt-send-fail'), it('txt-send'));
+            })
+    };
+
+    /**
+     * Open audit finish dialog
+     * @method
+     * @returns ModalDialog component
+     */
+    afterAuditDialog = (incidentId) => {
+        const titleText = it('txt-send');
+        PopupDialog.prompt({
+            id: 'afterAuditDialog',
+            title: titleText,
+            cancelText: 'No!',
+            confirmText: it('txt-send'),
+            display: this.displayAfterAudit(),
+            act: (confirmed) => {
+                if (confirmed) {
+                    this.sendIncident(incidentId);
+                } else {
+                    this.loadData()
+                }
+            }
+        });
+    }
+
+    /**
+     * Display audit finish dialog content
+     * @method
+     * @returns HTML DOM
+     */
+    displayAfterAudit = () => {
+        return (
+            <div>
+                <label>{it('txt-sendCheck')}</label>
+            </div>
+        )
+    }
 
     /**
      * Handle filter input data change

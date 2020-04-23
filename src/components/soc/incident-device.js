@@ -88,12 +88,14 @@ class IncidentDevice extends Component {
                 totalCount: 0,
                 currentPage: 1,
                 pageSize: 20,
+                edgeItem: '',
+                usedDeviceIdList: [],
                 info: {
                     id: '',
                     unitId: '',
                     deviceId: '',
                     deviceName: '',
-                    deviceCompany:'',
+                    deviceCompany: '',
                     unitOid: '',
                     unitName: '',
                     unitLevel: 'A',
@@ -121,7 +123,7 @@ class IncidentDevice extends Component {
      */
     getDeviceData = (fromSearch) => {
         const {baseUrl, contextRoot} = this.context;
-        const {deviceSearch, incidentDevice} = this.state;
+        const {deviceSearch, incidentDevice, edgeList} = this.state;
         const url = `${baseUrl}/api/soc/device/_search?page=${incidentDevice.currentPage}&pageSize=${incidentDevice.pageSize}`;
         let data = {};
 
@@ -132,10 +134,22 @@ class IncidentDevice extends Component {
         helper.getAjaxData('POST', url, data)
             .then(data => {
                 if (data) {
+
                     let tempEdge = {...incidentDevice};
                     tempEdge.dataContent = data.rows;
                     tempEdge.totalCount = data.counts;
                     tempEdge.currentPage = fromSearch === 'search' ? 1 : incidentDevice.currentPage;
+
+                    let usedDeviceIdList = [];
+                    _.forEach(tempEdge.dataContent, deviceItem => {
+                        let tmp = {
+                            deviceId: deviceItem.deviceId
+                        }
+                        usedDeviceIdList.push(tmp);
+                    })
+                    this.setState({
+                        usedDeviceIdList: usedDeviceIdList
+                    });
 
                     let dataFields = {};
                     incidentDevice.dataFieldsArr.forEach(tempData => {
@@ -272,7 +286,7 @@ class IncidentDevice extends Component {
      * @returns HTML DOM
      */
     displayEditDeviceContent = () => {
-        const {activeContent, incidentDevice, unitList} = this.state;
+        const {activeContent, incidentDevice, unitList, edgeList} = this.state;
 
         return (
             <div className='main-content basic-form'>
@@ -298,6 +312,17 @@ class IncidentDevice extends Component {
                             className='msg'>{t('edge-management.txt-lastUpateTime')} {helper.getFormattedDate(incidentDevice.info.updateDttm, 'local')}</span>
                         }
                     </header>
+
+                    <div className='group'>
+                        <label htmlFor='edgeDevice'>edgeDevice</label>
+                        <DropDownList
+                            id='edgeDevice'
+                            required={false}
+                            list={edgeList}
+                            onChange={this.handleDataChange.bind(this, 'edgeDevice')}
+                            value={incidentDevice.edgeItem}
+                            readOnly={activeContent === 'viewDevice'}/>
+                    </div>
 
                     <div className='group'>
                         <label htmlFor='deviceId'>{it('device.txt-id')}</label>
@@ -351,8 +376,6 @@ class IncidentDevice extends Component {
                     </div>
                     }
 
-
-
                     <div className='group'>
                         <label htmlFor='unitId'>{it('unit.txt-name')}</label>
                         <DropDownList
@@ -364,17 +387,17 @@ class IncidentDevice extends Component {
                             readOnly={activeContent === 'viewDevice'}/>
                     </div>
 
-                    {activeContent !== 'addDevice' &&
-                    <div className='group'>
-                        <label htmlFor='frequency'>{it('txt-frequency')}</label>
-                        <Input
-                            id='frequency'
-                            onChange={this.handleDataChange.bind(this, 'frequency')}
-                            value={incidentDevice.info.frequency}
-                            readOnly={activeContent === 'viewDevice'}/>
-                    </div>
-                    }
-                    {activeContent !== 'addDevice' &&
+                    {/*{activeContent !== 'addDevice' &&*/}
+                    {/*<div className='group'>*/}
+                    {/*    <label htmlFor='frequency'>{it('txt-frequency')}</label>*/}
+                    {/*    <Input*/}
+                    {/*        id='frequency'*/}
+                    {/*        onChange={this.handleDataChange.bind(this, 'frequency')}*/}
+                    {/*        value={incidentDevice.info.frequency}*/}
+                    {/*        readOnly={activeContent === 'viewDevice'}/>*/}
+                    {/*</div>*/}
+                    {/*}*/}
+                    {activeContent !== 'addDevice' && incidentDevice.info.frequency === 0 &&
                     <div className='group full'>
                         <label htmlFor='note'>{it('txt-note')} ({t('txt-memoMaxLength')})</label>
                         <Textarea
@@ -433,6 +456,8 @@ class IncidentDevice extends Component {
             contentType: 'text/plain'
         })
             .then(data => {
+                incidentDevice.edgeItem = '';
+                incidentDevice.edgeList = [];
                 this.setState({
                     originalIncidentDeviceData: _.cloneDeep(incidentDevice)
                 }, () => {
@@ -446,10 +471,14 @@ class IncidentDevice extends Component {
             })
     };
 
-
+    /**
+     *
+     * @param incidentDevice
+     * @returns {boolean}
+     */
     checkAddData = (incidentDevice) => {
 
-        if (!incidentDevice.info.unitId || !incidentDevice.info.deviceId ||  !incidentDevice.info.deviceCompany ||
+        if (!incidentDevice.info.unitId || !incidentDevice.info.deviceId || !incidentDevice.info.deviceCompany ||
             !incidentDevice.info.deviceName || !incidentDevice.info.protectType) {
             helper.showPopupMsg('', t('txt-error'), '[Unit],[Device ID],[Device Name] and [Device Type] is required');
             return false;
@@ -617,17 +646,23 @@ class IncidentDevice extends Component {
      * @param {object} allValue - Edge data
      */
     toggleContent = (type, allValue) => {
-        const {originalIncidentDeviceData, incidentDevice} = this.state;
+        const {originalIncidentDeviceData, incidentDevice, edgeList} = this.state;
         let tempIncidentDevice = {...incidentDevice};
         let showPage = type;
+        this.getOptions()
 
         if (type === 'viewDevice') {
+            _.forEach(edgeList, val => {
+                if (val.agentId === allValue.deviceId) {
+                    tempIncidentDevice.edgeItem = allValue.deviceId
+                }
+            })
             tempIncidentDevice.info = {
                 id: allValue.id,
                 deviceId: allValue.deviceId,
-                deviceCompany:allValue.deviceCompany,
+                deviceCompany: allValue.deviceCompany,
                 deviceName: allValue.deviceName,
-                unitId:allValue.unitId,
+                unitId: allValue.unitId,
                 frequency: allValue.frequency,
                 protectType: allValue.protectType,
                 protectTypeInfo: allValue.protectTypeInfo,
@@ -640,12 +675,17 @@ class IncidentDevice extends Component {
                 originalIncidentDeviceData: _.cloneDeep(tempIncidentDevice)
             });
         } else if (type === 'addDevice') {
+            _.forEach(edgeList, val => {
+                if (val.agentId === allValue.deviceId) {
+                    tempIncidentDevice.edgeItem = allValue.deviceId
+                }
+            })
             tempIncidentDevice.info = {
                 id: allValue.id,
                 deviceId: allValue.deviceId,
                 deviceName: allValue.deviceName,
-                deviceCompany:allValue.deviceCompany,
-                unitId:allValue.unitId,
+                deviceCompany: allValue.deviceCompany,
+                unitId: allValue.unitId,
                 frequency: allValue.frequency,
                 protectType: allValue.protectType,
                 protectTypeInfo: allValue.protectTypeInfo,
@@ -722,11 +762,30 @@ class IncidentDevice extends Component {
      */
     handleDataChange = (type, value) => {
         let tempDevice = {...this.state.incidentDevice};
-        tempDevice.info[type] = value;
+        let edgeItemList = {...this.state.edgeList}
+        if (type === 'edgeDevice') {
+            tempDevice.edgeItem = value;
+            _.forEach(edgeItemList, val => {
+                if (val.agentId === value) {
+                    tempDevice.info.deviceId = val.agentId
+                    tempDevice.info.deviceName = val.agentName
+                    tempDevice.info.deviceCompany = val.agentCompany
+                } else {
+                    tempDevice.info.deviceId = ''
+                    tempDevice.info.deviceName = ''
+                    tempDevice.info.deviceCompany = ''
+                }
+            })
 
-        this.setState({
-            incidentDevice: tempDevice
-        });
+            this.setState({
+                incidentDevice: tempDevice
+            });
+        } else {
+            tempDevice.info[type] = value;
+            this.setState({
+                incidentDevice: tempDevice
+            });
+        }
     };
 
     /**
@@ -742,6 +801,50 @@ class IncidentDevice extends Component {
         downloadWithForm(url, {payload: JSON.stringify(requestData)});
     }
 
+    getOptions = () => {
+        const {baseUrl, contextRoot} = this.context;
+        let usedDeviceIdList = {...this.state.usedDeviceIdList}
+
+        ah.one({
+            url: `${baseUrl}/api/edge/_search`,
+            data: JSON.stringify({}),
+            type: 'POST',
+            contentType: 'application/json',
+            dataType: 'json'
+        })
+            .then(data => {
+                if (data) {
+                    let edgeList = [];
+
+
+                    let lookup = _.keyBy(usedDeviceIdList, function (o) {
+                        return o.deviceId
+                    });
+
+                    let result = _.filter(data.rt.rows, function (u) {
+                        return lookup[u.agentId] === undefined;
+                    });
+
+                    _.forEach(result, val => {
+                        let edge = {
+                            text: val.agentName,
+                            value: val.agentId,
+                            agentName: val.agentName,
+                            agentId: val.agentId,
+                            agentCompany: 'NSGUARD'
+                        }
+                        edgeList.push(edge)
+                    })
+
+                    this.setState({
+                        edgeList: edgeList,
+                    });
+                }
+            })
+            .catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message)
+            });
+    }
 }
 
 IncidentDevice.contextType = BaseDataContext;
