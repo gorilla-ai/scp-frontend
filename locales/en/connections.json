@@ -304,6 +304,7 @@
       "txt-addQuery": "Add New Query",
       "txt-noSavedQuery": "No Saved Query Found",
       "txt-noOpenQuery": "Query can not be Blank",
+      "txt-addPatternScript": "Add to Pattern Script",
       "txt-mark": "Filter / Mark",
       "txt-clear": "Clear",
       "txt-top10text": "TOP 10 Dst. Service/Dst. Host/Dst. IP",

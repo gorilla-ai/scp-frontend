@@ -1357,7 +1357,7 @@ html[data-theme='dark'] {
     clear: both;
     overflow-y: hidden;
     padding: 5px 6px;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
     border-radius: 5px;
     background-color: var(--dialogFormGroup);
   }
@@ -1399,6 +1399,38 @@ html[data-theme='dark'] {
     .mark-inputbox {
       width: 196px;
     }
+  }
+  .severity-level {
+    padding: 10px;
+    border-radius: 5px;
+    background-color: var(--dialogFormGroup);
+    clear: both;
+    .fg-recode {
+      float: left;
+      margin-right: 5px;
+      margin-top: 5px;
+    }
+    .period {
+      color: var(--primaryContentHeader);
+      margin-top: 5px;
+      input.number {
+        width: 65px;
+      }
+    }
+  }
+  #patternCheckbox {
+    float: left;
+    margin-right: 3px;
+    margin-bottom: 5px;
+  }
+  #periodCheckbox {
+    float: left;
+    margin-top: 3px;
+    margin-right: 5px;
+  }
+  #severityLevel {
+    width: 360px;
+    margin-bottom: 10px;
   }
   .delete-query {
     margin-top: 15px;

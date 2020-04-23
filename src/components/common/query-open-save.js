@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
 
+import Checkbox from 'react-ui/build/src/components/checkbox'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
@@ -15,7 +16,17 @@ import MarkInput from './mark-input'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
+const ALERT_LEVEL_COLORS = {
+  Emergency: '#CC2943',
+  Alert: '#CC7B29',
+  Critical: '#29B0CC',
+  Warning: '#29CC7A',
+  Notice: '#7ACC29'
+};
+
 let t = null;
+let f = null;
 let et = null;
 
 /**
@@ -29,12 +40,45 @@ class QueryOpenSave extends Component {
     super(props);
 
     this.state = {
+      severityList: [],
       newQueryName: true,
-      info: '',
+      pattern: {
+        name: '',
+        severity: '',
+        periodMin: '',
+        threshold: '',
+        severity: 'Emergency'
+      },
+      patternCheckbox: false,
+      periodCheckbox: false,
+      info: ''
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
+    et = global.chewbaccaI18n.getFixedT(null, 'errors');
     this.ah = getInstance('chewbacca');
+  }
+  componentDidMount() {
+    this.setSeverityList();
+  }
+  /**
+   * Set Severity list
+   * @method
+   */
+  setSeverityList = () => {
+    let severityList = [];   
+
+    _.forEach(SEVERITY_TYPE, val => {
+      severityList.push({
+        value: val,
+        text: val
+      });
+    })
+
+    this.setState({
+      severityList
+    });
   }
   /**
    * Set and close query menu
@@ -42,7 +86,8 @@ class QueryOpenSave extends Component {
    * @param {string} type - query type ('open' or 'save')
    */
   handleQueryAction = (type) => {
-    const {activeTab, filterData, queryData, markData} = this.props;
+    const {pattern} = this.state;
+    const {activeTab, filterData, queryData, markData} = this.props;   
 
     if (type === 'open') {
       let tempQueryData = {...queryData};
@@ -108,7 +153,7 @@ class QueryOpenSave extends Component {
         };
       } else if (activeTab === 'logs') {
         let markDataArr = [];
-        url = `${baseUrl}/api/account/syslog/queryText`;
+        url = `${baseUrl}/api/v1/account/syslog/queryText`;
 
         _.forEach(markData, val => {
           if (val.data) {
@@ -141,6 +186,20 @@ class QueryOpenSave extends Component {
           name: this.getQueryName(),
           queryText
         };
+      }
+
+      if (activeTab === 'logs') {
+        if (pattern.periodMin) {
+          data.periodMin = pattern.periodMin;
+        }
+
+        if (pattern.threshold) {
+          data.threshold = pattern.threshold;
+        }
+
+        if (pattern.severity) {
+          data.severity = pattern.severity;
+        }
       }
 
       helper.getAjaxData(requestType, url, data)
@@ -302,6 +361,67 @@ class QueryOpenSave extends Component {
         inline={false} />
     )
   }
+  getPatternInfo = (value) => {
+    const {baseUrl} = this.context;
+    const {queryData} = this.props;
+    let tempQueryData = {...queryData};
+    let patternId = '';
+
+    _.forEach(queryData.list, val => {
+      if (val.id === value && val.patternId) {
+        patternId = val.patternId;
+        return false;
+      }
+    })
+
+    if (!patternId) {
+      this.handleQueryChange('id', value);
+      return;
+    }
+
+    this.ah.one({
+      url: `${baseUrl}/api/alert/pattern?patternId=${patternId}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        tempQueryData.id = value;
+        tempQueryData.openFlag = true;
+        tempQueryData.pattern.name = data.patternName;
+        tempQueryData.pattern.periodMin = data.periodMin;
+        tempQueryData.pattern.threshold = data.threshold;
+        tempQueryData.pattern.severity = data.severity;
+
+        _.forEach(queryData.list, val => {
+          if (val.id === value) {
+            let formattedQueryText = [];
+            tempQueryData.name = val.name;
+
+            _.forEach(val.queryText.filter, val => {
+              let formattedValue = val.condition.toLowerCase();
+              formattedValue = formattedValue.replace(' ', '_');
+
+              formattedQueryText.push({
+                condition: formattedValue,
+                query: val.query.trim()
+              });
+            })
+
+            tempQueryData.query = {
+              filter: formattedQueryText
+            };
+            return false;
+          }
+        })
+
+        this.props.setQueryData(tempQueryData);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
   /**
    * Set query data for new selected saved query
    * @method
@@ -317,6 +437,12 @@ class QueryOpenSave extends Component {
     if (type === 'id') {
       tempQueryData.id = value;
       tempQueryData.openFlag = true;
+      tempQueryData.pattern = {
+        name: '',
+        periodMin: '',
+        threshold: '',
+        severity: ''
+      };
 
       _.forEach(queryData.list, val => {
         if (val.id === value) {
@@ -336,8 +462,9 @@ class QueryOpenSave extends Component {
           tempQueryData.query = {
             filter: formattedQueryText
           };
+          return false;
         }
-      })
+      })    
 
       if (value === 'new') {
         queryName = true;
@@ -354,13 +481,58 @@ class QueryOpenSave extends Component {
     });
   }
   /**
+   * Handle Pattern edit input data change
+   * @method
+   * @param {string} type - input type
+   * @param {string} value - input value
+   */
+  handleDataChange = (type, value) => {
+    let tempPattern = {...this.state.pattern};
+    tempPattern[type] = value;
+
+    this.setState({
+      pattern: tempPattern
+    });
+  }
+  /**
+   * Handle Pattern edit input number change
+   * @method
+   * @param {string} type - input type
+   * @param {string} event - input value
+   */
+  handleNumberChange = (type, event) => {
+    let tempPattern = {...this.state.pattern};
+    tempPattern[type] = event.target.value;
+
+    this.setState({
+      pattern: tempPattern
+    });
+  }
+  /**
+   * Toggle pattern period checkbox
+   * @method
+   */
+  toggleCheckbox = (type) => {
+    if (type === 'pattern') {
+      this.setState({
+        patternCheckbox: !this.state.patternCheckbox
+      });
+    } else if (type === 'period') {
+      this.setState({
+        periodCheckbox: !this.state.periodCheckbox
+      });
+    }
+  }
+  /**
    * Display query menu content
    * @method
    * @param {string} type - query type ('open' or 'save')
    * @returns HTML DOM
    */
   displayQueryContent = (type) => {
+    const {locale} = this.context;
     const {activeTab, queryData, filterData, markData} = this.props;
+    const {pattern, severityList, patternCheckbox, periodCheckbox} = this.state;
     let displayList = [];
     let tempFilterData = [];
     let tempMarkData = [];
@@ -396,7 +568,7 @@ class QueryOpenSave extends Component {
             className='query-name'
             list={displayList}
             required={true}
-            onChange={this.handleQueryChange.bind(this, 'id')}
+            onChange={this.getPatternInfo}
             value={queryData.id} />
 
           {queryDataList && queryDataList.length > 0 &&
@@ -408,6 +580,93 @@ class QueryOpenSave extends Component {
           {queryDataMark && queryDataMark.length > 0 &&
             <div className='filter-group'>
               {queryDataMark.map(this.displayMarkSearch)}
+            </div>
+          }
+
+          {activeTab === 'logs' &&
+            <div>
+              <Checkbox
+                id='patternCheckbox'
+                onChange={this.toggleCheckbox.bind(this, 'pattern')}
+                checked={patternCheckbox} />
+              <span>{t('events.connections.txt-addPatternScript')}</span>
+
+              {locale === 'zh' &&
+                <div className='group severity-level'>
+                  <label htmlFor='severityLevel'>{f('syslogPatternTableFields.severity')}</label>
+                  <i className='fg fg-recode' style={{color: ALERT_LEVEL_COLORS[pattern.severity]}}></i>
+                  <DropDownList
+                    id='severityLevel'
+                    required={true}
+                    list={severityList}
+                    value={queryData.pattern.severity}
+                    readOnly={true} />
+                  <div className='period'>
+                    <Checkbox
+                      id='periodCheckbox'
+                      className='period-checkbox'
+                      onChange={this.toggleCheckbox.bind(this, 'period')}
+                      checked={periodCheckbox} />
+                    <span>在 </span>
+                    <input
+                      id='periodMin'
+                      className='number'
+                      type='number'
+                      min='1'
+                      onChange={this.handleNumberChange.bind(this, 'periodMin')}
+                      value={queryData.pattern.periodMin}
+                      readOnly={true} />
+                    <span> 分鐘內超過或等於 </span>
+                    <input
+                      id='threshold'
+                      className='number'
+                      type='number'
+                      min='1'
+                      onChange={this.handleNumberChange.bind(this, 'threshold')}
+                      value={queryData.pattern.threshold}
+                      readOnly={true} />
+                    <span> 次</span>
+                  </div>
+                </div>
+              }
+              {locale === 'en' &&
+                <div className='group severity-level'>
+                  <label htmlFor='severityLevel'>{f('syslogPatternTableFields.severity')}</label>
+                  <i className='fg fg-recode' style={{color: ALERT_LEVEL_COLORS[pattern.severity]}}></i>
+                  <DropDownList
+                    id='severityLevel'
+                    required={true}
+                    list={severityList}
+                    value={queryData.pattern.severity}
+                    readOnly={true} />
+                  <div className='period'>
+                    <Checkbox
+                      id='periodCheckbox'
+                      className='period-checkbox'
+                      onChange={this.toggleCheckbox.bind(this, 'period')}
+                      checked={periodCheckbox} />
+                    <span>Occurs more than or equal to </span>
+                    <input
+                      id='periodMin'
+                      className='number'
+                      type='number'
+                      min='1'
+                      onChange={this.handleNumberChange.bind(this, 'periodMin')}
+                      value={queryData.pattern.periodMin}
+                      readOnly={true} />
+                    <span> times in </span>
+                    <input
+                      id='threshold'
+                      className='number'
+                      type='number'
+                      min='1'
+                      onChange={this.handleNumberChange.bind(this, 'threshold')}
+                      value={queryData.pattern.threshold}
+                      readOnly={true} />
+                    <span> minutes</span>
+                  </div>
+                </div>
+              }
             </div>
           }
 
@@ -485,6 +744,95 @@ class QueryOpenSave extends Component {
           {tempMarkData.length > 0 &&
             <div className='filter-group'>
               {tempMarkData.map(this.displayMarkSearch)}
+            </div>
+          }
+
+          {activeTab === 'logs' &&
+            <div>
+              <Checkbox
+                id='patternCheckbox'
+                onChange={this.toggleCheckbox.bind(this, 'pattern')}
+                checked={patternCheckbox} />
+              <span>{t('events.connections.txt-addPatternScript')}</span>
+
+              {locale === 'zh' &&
+                <div className='group severity-level'>
+                  <label htmlFor='severityLevel'>{f('syslogPatternTableFields.severity')}</label>
+                  <i className='fg fg-recode' style={{color: ALERT_LEVEL_COLORS[pattern.severity]}}></i>
+                  <DropDownList
+                    id='severityLevel'
+                    required={true}
+                    list={severityList}
+                    onChange={this.handleDataChange.bind(this, 'severity')}
+                    value={pattern.severity}
+                    readOnly={!patternCheckbox} />
+                  <div className='period'>
+                    <Checkbox
+                      id='periodCheckbox'
+                      className='period-checkbox'
+                      onChange={this.toggleCheckbox.bind(this, 'period')}
+                      checked={periodCheckbox} />
+                    <span>在 </span>
+                    <input
+                      id='periodMin'
+                      className='number'
+                      type='number'
+                      min='1'
+                      onChange={this.handleNumberChange.bind(this, 'periodMin')}
+                      value={pattern.periodMin}
+                      readOnly={!patternCheckbox || !periodCheckbox} />
+                    <span> 分鐘內超過或等於 </span>
+                    <input
+                      id='threshold'
+                      className='number'
+                      type='number'
+                      min='1'
+                      onChange={this.handleNumberChange.bind(this, 'threshold')}
+                      value={pattern.threshold}
+                      readOnly={!patternCheckbox || !periodCheckbox} />
+                    <span> 次</span>
+                  </div>
+                </div>
+              }
+              {locale === 'en' &&
+                <div className='group severity-level'>
+                  <label htmlFor='severityLevel'>{f('syslogPatternTableFields.severity')}</label>
+                  <i className='fg fg-recode' style={{color: ALERT_LEVEL_COLORS[pattern.severity]}}></i>
+                  <DropDownList
+                    id='severityLevel'
+                    required={true}
+                    list={severityList}
+                    onChange={this.handleDataChange.bind(this, 'severity')}
+                    value={pattern.severity}
+                    readOnly={!periodCheckbox} />
+                  <div className='period'>
+                    <Checkbox
+                      id='periodCheckbox'
+                      className='period-checkbox'
+                      onChange={this.toggleCheckbox.bind(this, 'period')}
+                      checked={periodCheckbox} />
+                    <span>Occurs more than or equal to </span>
+                    <input
+                      id='periodMin'
+                      className='number'
+                      type='number'
+                      min='1'
+                      onChange={this.handleNumberChange.bind(this, 'periodMin')}
+                      value={pattern.periodMin}
+                      readOnly={!periodCheckbox} />
+                    <span> times in </span>
+                    <input
+                      id='threshold'
+                      className='number'
+                      type='number'
+                      min='1'
+                      onChange={this.handleNumberChange.bind(this, 'threshold')}
+                      value={pattern.threshold}
+                      readOnly={!periodCheckbox} />
+                    <span> minutes</span>
+                  </div>
+                </div>
+              }
             </div>
           }
         </div>
