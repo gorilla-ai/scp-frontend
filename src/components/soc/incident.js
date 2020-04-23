@@ -970,8 +970,9 @@ class Incident extends Component {
             dataType: 'json'
         })
             .then(data => {
+                this.loadData()
                 helper.showPopupMsg(it('txt-send-success'), it('txt-send'));
-                return null
+
             })
             .catch(err => {
                 helper.showPopupMsg(it('txt-send-fail'), it('txt-send'));
@@ -988,7 +989,7 @@ class Incident extends Component {
         PopupDialog.prompt({
             id: 'afterAuditDialog',
             title: titleText,
-            cancelText: 'No!',
+            cancelText: t('txt-close'),
             confirmText: it('txt-send'),
             display: this.displayAfterAudit(),
             act: (confirmed) => {
