@@ -29,6 +29,8 @@
 	"txt-viewIncident-ttps": "View Correlation Analysis Incident",
 	"txt-editIncident-events": "Edit Security Monitoring Incident",
 	"txt-editIncident-ttps": "Edit Correlation Analysis Incident",
+	"txt-sendHealthCsv": "Send Health Status Statistic csv",
+	"txt-exportHealthCsv": "Export Health Status Statistic csv",
 	"txt-id": "ID:",
 	"txt-ttp-ets": "ETS",
 	"txt-ttp-obs-file": "File",
@@ -45,6 +47,7 @@
 		"txt-abbreviation": "Unit Abbreviation"
 	},
 	"device": {
+		"txt-edgeDevice": "Available Edge Device",
 		"txt-name": "Device Name",
 		"txt-id": "Device Id",
 		"txt-company": "Device Company"

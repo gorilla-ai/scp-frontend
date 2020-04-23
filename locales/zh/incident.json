@@ -29,6 +29,8 @@
 	"txt-viewIncident-ttps": "檢視關聯分析事件單",
 	"txt-editIncident-events": "編輯資安監控事件單",
 	"txt-editIncident-ttps": "編輯關聯分析事件單",
+	"txt-sendHealthCsv": "發布健康狀態統計單",
+	"txt-exportHealthCsv": "匯出健康狀態統計單",
 	"txt-id": "編號:",
 	"txt-ttp-ets": "漏洞資訊",
 	"txt-ttp-obs-file": "惡意程式",
@@ -45,8 +47,9 @@
 		"txt-abbreviation": "機關英文縮寫"
 	},
 	"device": {
+		"txt-edgeDevice": "可收錄之Edge設備",
 		"txt-name": "設備名稱與型號",
-		"txt-id": "設備代號",
+		"txt-id": "設備代號(Edge設備請勿隨意更改)",
 		"txt-company": "設備廠商"
 	},
 	"txt-downloadEvent": "下載監控事件單範例XML",

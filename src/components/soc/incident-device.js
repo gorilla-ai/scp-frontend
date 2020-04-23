@@ -232,7 +232,7 @@ class IncidentDevice extends Component {
                     <div className='secondary-btn-group right'>
                         <button className={cx('', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'/></button>
 
-                        <button className='' onClick={this.getCSV_File} title={t('events.connections.txt-exportCSV')}><i className='fg fg-data-download'/></button>
+                        <button className='' onClick={this.getCSV_File} title={it('txt-exportHealthCsv')}><i className='fg fg-data-download'/></button>
                     </div>
 
                 </div>
@@ -250,12 +250,19 @@ class IncidentDevice extends Component {
                         <div className='main-content'>
                             <header className='main-header'>{it('txt-incident-device')}</header>
                             <div className='content-header-btns'>
+
+                                {activeContent === 'tableList' &&
+                                <button className='standard btn list'
+                                        onClick={this.sendCsv.bind()}>{it('txt-sendHealthCsv')}</button>
+                                }
+
                                 {activeContent === 'viewDevice' &&
                                 <button className='standard btn list'
                                         onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</button>
                                 }
                                 <button className='standard btn edit'
                                         onClick={this.toggleContent.bind(this, 'addDevice')}>{t('txt-add')}</button>
+
                             </div>
                             <TableContent
                                 dataTableData={incidentDevice.dataContent}
@@ -314,7 +321,7 @@ class IncidentDevice extends Component {
                     </header>
 
                     <div className='group'>
-                        <label htmlFor='edgeDevice'>edgeDevice</label>
+                        <label htmlFor='edgeDevice'>{it('device.txt-edgeDevice')}</label>
                         <DropDownList
                             id='edgeDevice'
                             required={false}
@@ -715,6 +722,29 @@ class IncidentDevice extends Component {
                 this.getDeviceData();
             }
         });
+    };
+
+    /**
+     *
+     * @param {string} id
+     */
+    sendCsv = () => {
+        const {baseUrl} = this.context;
+
+        ah.one({
+            url: `${baseUrl}/api/soc/device/_send`,
+            data: JSON.stringify({}),
+            type: 'POST',
+            contentType: 'application/json',
+            dataType: 'json'
+        })
+            .then(data => {
+                helper.showPopupMsg(it('txt-send-success'), it('txt-send'));
+                return null
+            })
+            .catch(err => {
+                helper.showPopupMsg(it('txt-send-fail'), it('txt-send'));
+            })
     };
 
     /**
