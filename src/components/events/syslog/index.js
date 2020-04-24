@@ -203,42 +203,10 @@ class SyslogController extends Component {
       if (!_.isEmpty(data)) {
         this.setState({
           queryData: data
-        }, () => {
-          const {queryData} = this.state;
-
-          if (queryData.patternId) {
-            this.getPatternInfo();
-          }
         });
       }
       return null;
     });
-  }
-  getPatternInfo = () => {
-    const {baseUrl} = this.context;
-    const {queryData} = this.state;
-    let tempQueryData = {...queryData};
-
-    this.ah.one({
-      url: `${baseUrl}/api/alert/pattern?patternId=${queryData.patternId}`,
-      type: 'GET'
-    })
-    .then(data => {
-      if (data) {
-        tempQueryData.pattern.name = data.patternName;
-        tempQueryData.pattern.periodMin = data.periodMin;
-        tempQueryData.pattern.threshold = data.threshold;
-        tempQueryData.pattern.severity = data.severity;
-
-        this.setState({
-          queryData: tempQueryData
-        });
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
   }
   /**
    * Get and set syslog tree data

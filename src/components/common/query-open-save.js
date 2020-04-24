@@ -44,11 +44,11 @@ class QueryOpenSave extends Component {
       newQueryName: true,
       pattern: {
         name: '',
-        severity: '',
         periodMin: '',
         threshold: '',
         severity: 'Emergency'
       },
+      activePatternId: '',
       patternCheckbox: false,
       periodCheckbox: false,
       info: ''
@@ -86,7 +86,7 @@ class QueryOpenSave extends Component {
    * @param {string} type - query type ('open' or 'save')
    */
   handleQueryAction = (type) => {
-    const {pattern} = this.state;
+    const {pattern, patternCheckbox, periodCheckbox} = this.state;
     const {activeTab, filterData, queryData, markData} = this.props;   
 
     if (type === 'open') {
@@ -110,7 +110,6 @@ class QueryOpenSave extends Component {
           })
           this.props.setMarkData(formattedMarkData);
         }
-
         this.props.setFilterData(queryData.query.filter);
       }
     } else if (type === 'save') {
@@ -189,16 +188,24 @@ class QueryOpenSave extends Component {
       }
 
       if (activeTab === 'logs') {
-        if (pattern.periodMin) {
-          data.periodMin = pattern.periodMin;
-        }
+        if (patternCheckbox) {
+          if (pattern.severity) {
+            data.severity = pattern.severity;
+          }
 
-        if (pattern.threshold) {
-          data.threshold = pattern.threshold;
-        }
+          if (periodCheckbox) {
+            if (pattern.periodMin) {
+              data.periodMin = pattern.periodMin;
+            }
 
-        if (pattern.severity) {
-          data.severity = pattern.severity;
+            if (pattern.threshold) {
+              data.threshold = pattern.threshold;
+            }
+          }
+        } else { //Pattern script checkbox is unchecked
+          this.setState({
+            activePatternId: ''
+          });
         }
       }
 
@@ -361,67 +368,6 @@ class QueryOpenSave extends Component {
         inline={false} />
     )
   }
-  getPatternInfo = (value) => {
-    const {baseUrl} = this.context;
-    const {queryData} = this.props;
-    let tempQueryData = {...queryData};
-    let patternId = '';
-
-    _.forEach(queryData.list, val => {
-      if (val.id === value && val.patternId) {
-        patternId = val.patternId;
-        return false;
-      }
-    })
-
-    if (!patternId) {
-      this.handleQueryChange('id', value);
-      return;
-    }
-
-    this.ah.one({
-      url: `${baseUrl}/api/alert/pattern?patternId=${patternId}`,
-      type: 'GET'
-    })
-    .then(data => {
-      if (data) {
-        tempQueryData.id = value;
-        tempQueryData.openFlag = true;
-        tempQueryData.pattern.name = data.patternName;
-        tempQueryData.pattern.periodMin = data.periodMin;
-        tempQueryData.pattern.threshold = data.threshold;
-        tempQueryData.pattern.severity = data.severity;
-
-        _.forEach(queryData.list, val => {
-          if (val.id === value) {
-            let formattedQueryText = [];
-            tempQueryData.name = val.name;
-
-            _.forEach(val.queryText.filter, val => {
-              let formattedValue = val.condition.toLowerCase();
-              formattedValue = formattedValue.replace(' ', '_');
-
-              formattedQueryText.push({
-                condition: formattedValue,
-                query: val.query.trim()
-              });
-            })
-
-            tempQueryData.query = {
-              filter: formattedQueryText
-            };
-            return false;
-          }
-        })
-
-        this.props.setQueryData(tempQueryData);
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
   /**
    * Set query data for new selected saved query
    * @method
@@ -430,18 +376,28 @@ class QueryOpenSave extends Component {
    */
   handleQueryChange = (type, value) => {
     const {activeTab, queryData} = this.props;
-    const {newQueryName} = this.state;
+    const {newQueryName, pattern} = this.state;
     let tempQueryData = {...queryData};
-    let queryName = newQueryName;
+    let tempPattern = {...pattern};
+    let patternCheckbox = false;
+    let periodCheckbox = false;
+    let queryName = '';
 
     if (type === 'id') {
-      tempQueryData.id = value;
+      tempQueryData.id = value;    
       tempQueryData.openFlag = true;
+
       tempQueryData.pattern = {
         name: '',
         periodMin: '',
         threshold: '',
         severity: ''
+      };
+      tempPattern = {
+        name: '',
+        periodMin: '',
+        threshold: '',
+        severity: 'Emergency'
       };
 
       _.forEach(queryData.list, val => {
@@ -462,9 +418,32 @@ class QueryOpenSave extends Component {
           tempQueryData.query = {
             filter: formattedQueryText
           };
+
+          if (val.patternName) {
+            tempQueryData.pattern.name = val.patternName;
+            tempPattern.name = val.patternName;
+          }
+
+          if (val.periodMin) {
+            tempQueryData.pattern.periodMin = val.periodMin;
+            tempPattern.periodMin = val.periodMin;
+            periodCheckbox = true;
+          }
+
+          if (val.threshold) {
+            tempQueryData.pattern.threshold = val.threshold;
+            tempPattern.threshold = val.threshold;
+            periodCheckbox = true;
+          }
+
+          if (val.severity) {
+            tempQueryData.pattern.severity = val.severity;
+            tempPattern.severity = val.severity;
+            patternCheckbox = true;
+          }
           return false;
         }
-      })    
+      })
 
       if (value === 'new') {
         queryName = true;
@@ -472,12 +451,16 @@ class QueryOpenSave extends Component {
         queryName = false;
       }
     } else if (type === 'name') {
+      queryName = newQueryName;
       tempQueryData.inputName = value;
     }
 
     this.props.setQueryData(tempQueryData);
     this.setState({
-      newQueryName: queryName
+      newQueryName: queryName,
+      pattern: tempPattern,
+      patternCheckbox,
+      periodCheckbox
     });
   }
   /**
@@ -568,7 +551,7 @@ class QueryOpenSave extends Component {
             className='query-name'
             list={displayList}
             required={true}
-            onChange={this.getPatternInfo}
+            onChange={this.handleQueryChange.bind(this, 'id')}
             value={queryData.id} />
 
           {queryDataList && queryDataList.length > 0 &&
@@ -583,18 +566,19 @@ class QueryOpenSave extends Component {
             </div>
           }
 
-          {activeTab === 'logs' &&
+          {activeTab === 'logs' && queryData.pattern.severity &&
             <div>
               <Checkbox
                 id='patternCheckbox'
                 onChange={this.toggleCheckbox.bind(this, 'pattern')}
-                checked={patternCheckbox} />
+                checked={true}
+                disabled={true} />
               <span>{t('events.connections.txt-addPatternScript')}</span>
 
               {locale === 'zh' &&
                 <div className='group severity-level'>
                   <label htmlFor='severityLevel'>{f('syslogPatternTableFields.severity')}</label>
-                  <i className='fg fg-recode' style={{color: ALERT_LEVEL_COLORS[pattern.severity]}}></i>
+                  <i className='fg fg-recode' style={{color: ALERT_LEVEL_COLORS[queryData.pattern.severity]}}></i>
                   <DropDownList
                     id='severityLevel'
                     required={true}
@@ -606,7 +590,8 @@ class QueryOpenSave extends Component {
                       id='periodCheckbox'
                       className='period-checkbox'
                       onChange={this.toggleCheckbox.bind(this, 'period')}
-                      checked={periodCheckbox} />
+                      checked={queryData.pattern.periodMin !== '' || queryData.pattern.threshold !== ''}
+                      disabled={true} />
                     <span>在 </span>
                     <input
                       id='periodMin'
@@ -632,7 +617,7 @@ class QueryOpenSave extends Component {
               {locale === 'en' &&
                 <div className='group severity-level'>
                   <label htmlFor='severityLevel'>{f('syslogPatternTableFields.severity')}</label>
-                  <i className='fg fg-recode' style={{color: ALERT_LEVEL_COLORS[pattern.severity]}}></i>
+                  <i className='fg fg-recode' style={{color: ALERT_LEVEL_COLORS[queryData.pattern.severity]}}></i>
                   <DropDownList
                     id='severityLevel'
                     required={true}
@@ -644,7 +629,8 @@ class QueryOpenSave extends Component {
                       id='periodCheckbox'
                       className='period-checkbox'
                       onChange={this.toggleCheckbox.bind(this, 'period')}
-                      checked={periodCheckbox} />
+                      checked={queryData.pattern.periodMin !== '' || queryData.pattern.threshold !== ''}
+                      disabled={true} />
                     <span>Occurs more than or equal to </span>
                     <input
                       id='periodMin'
@@ -716,7 +702,7 @@ class QueryOpenSave extends Component {
         <div>
           <label>{t('events.connections.txt-queryName')}</label>
           <DropDownList
-            className='query-name dropdown'
+            className='query-name'
             list={displayList}
             required={true}
             onChange={this.handleQueryChange.bind(this, 'id')}
@@ -771,7 +757,8 @@ class QueryOpenSave extends Component {
                       id='periodCheckbox'
                       className='period-checkbox'
                       onChange={this.toggleCheckbox.bind(this, 'period')}
-                      checked={periodCheckbox} />
+                      checked={periodCheckbox}
+                      disabled={!patternCheckbox} />
                     <span>在 </span>
                     <input
                       id='periodMin'
@@ -780,7 +767,7 @@ class QueryOpenSave extends Component {
                       min='1'
                       onChange={this.handleNumberChange.bind(this, 'periodMin')}
                       value={pattern.periodMin}
-                      readOnly={!patternCheckbox || !periodCheckbox} />
+                      readOnly={!periodCheckbox} />
                     <span> 分鐘內超過或等於 </span>
                     <input
                       id='threshold'
@@ -789,7 +776,7 @@ class QueryOpenSave extends Component {
                       min='1'
                       onChange={this.handleNumberChange.bind(this, 'threshold')}
                       value={pattern.threshold}
-                      readOnly={!patternCheckbox || !periodCheckbox} />
+                      readOnly={!periodCheckbox} />
                     <span> 次</span>
                   </div>
                 </div>
@@ -810,7 +797,8 @@ class QueryOpenSave extends Component {
                       id='periodCheckbox'
                       className='period-checkbox'
                       onChange={this.toggleCheckbox.bind(this, 'period')}
-                      checked={periodCheckbox} />
+                      checked={periodCheckbox || (pattern.periodMin || pattern.threshold)}
+                      disabled={!patternCheckbox} />
                     <span>Occurs more than or equal to </span>
                     <input
                       id='periodMin'

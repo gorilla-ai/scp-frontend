@@ -272,7 +272,7 @@ const helper = {
 
     return (
       ah.one({
-        url: `${baseUrl}/api/account/${type}/queryText?accountId=${account.id}`,
+        url: `${baseUrl}/api/v1/account/${type}/queryText?accountId=${account.id}`,
         type: 'GET'
       }, {showProgress: false})
       .then(data => {
@@ -299,6 +299,29 @@ const helper = {
               filter: formattedQueryText
             };
             tempQueryData.list = data;
+            tempQueryData.pattern = {
+              name: '',
+              periodMin: '',
+              threshold: '',
+              severity: 'Emergency'
+            };
+
+            if (data[0].patternName) {
+              tempQueryData.pattern.name = data[0].patternName;
+            }
+
+            if (data[0].periodMin) {
+              tempQueryData.pattern.periodMin = data[0].periodMin;
+            }
+
+            if (data[0].threshold) {
+              tempQueryData.pattern.threshold = data[0].threshold;
+            }
+
+            if (data[0].severity) {
+              tempQueryData.pattern.severity = data[0].severity;
+            }
+
             return tempQueryData;
           }
         }

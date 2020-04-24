@@ -297,7 +297,7 @@
       "txt-connections60m": "60分",
       "txt-chartExceedMaxMsg": "查詢資料超過可顯示的圖表數量，請重新選擇時間區間",
       "txt-enterQueryName": "輸入查詢條件名稱",
-      "txt-openQuery": "已存查詢條件",
+      "txt-openQuery": "開啟查詢條件",
       "txt-saveQuery": "儲存查詢條件",
       "txt-querySaved": "查詢條件已儲存",
       "txt-queryName": "查詢條件名稱",
