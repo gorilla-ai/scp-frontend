@@ -227,7 +227,6 @@ const Main = () => (
             <Route exact path='/SCP/configuration/product-info' component={productInfo} />
             <Route exact path='/SCP/soc/incident-device' component={incidentDevice}/>
             <Route exact path='/SCP/soc/incident-unit' component={incidentUnit}/>
-
             <Route exact path='/SCP/soc/incident' component={incident}/>
         </Switch>
     </main>
