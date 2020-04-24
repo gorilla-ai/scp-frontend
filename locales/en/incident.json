@@ -44,13 +44,15 @@
 		"txt-oid": "Unit OID",
 		"txt-level": "Unit Level",
 		"txt-type": "Unit Industry",
-		"txt-abbreviation": "Unit Abbreviation"
+		"txt-abbreviation": "Unit Abbreviation",
+		"txt-exists": "OID already exists"
 	},
 	"device": {
 		"txt-edgeDevice": "Available Edge Device",
 		"txt-name": "Device Name",
-		"txt-id": "Device Id",
-		"txt-company": "Device Company"
+		"txt-id": "Device ID",
+		"txt-company": "Device Company",
+		"txt-exists": "Device ID already exists"
 	},
 	"txt-downloadEvent": "Download Event Incident Example XML",
 	"txt-downloadRelated": "Download Related Incident Example XML",

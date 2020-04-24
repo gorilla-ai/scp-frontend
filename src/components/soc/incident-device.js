@@ -68,6 +68,7 @@ class IncidentDevice extends Component {
         this.state = {
             activeContent: 'tableList', //tableList, viewDevice, editDevice
             showFilter: false,
+            dataFromEdgeDevice: false,
             currentIncidentDeviceData: {},
             originalIncidentDeviceData: {},
             deviceSearch: {
@@ -293,8 +294,7 @@ class IncidentDevice extends Component {
      * @returns HTML DOM
      */
     displayEditDeviceContent = () => {
-        const {activeContent, incidentDevice, unitList, edgeList} = this.state;
-
+        const {activeContent, dataFromEdgeDevice, incidentDevice, unitList, edgeList} = this.state;
         return (
             <div className='main-content basic-form'>
                 <header className='main-header'>{it('txt-incident-device')}</header>
@@ -338,7 +338,7 @@ class IncidentDevice extends Component {
                             onChange={this.handleDataChange.bind(this, 'deviceId')}
                             value={incidentDevice.info.deviceId}
                             required={true}
-                            readOnly={activeContent === 'viewDevice'}/>
+                            readOnly={activeContent === 'viewDevice' || dataFromEdgeDevice}/>
                     </div>
                     <div className='group'>
                         <label htmlFor='deviceName'>{it('device.txt-name')}</label>
@@ -347,7 +347,7 @@ class IncidentDevice extends Component {
                             onChange={this.handleDataChange.bind(this, 'deviceName')}
                             value={incidentDevice.info.deviceName}
                             required={true}
-                            readOnly={activeContent === 'viewDevice'}/>
+                            readOnly={activeContent === 'viewDevice' || dataFromEdgeDevice}/>
                     </div>
 
                     <div className='group'>
@@ -357,7 +357,7 @@ class IncidentDevice extends Component {
                             required={true}
                             onChange={this.handleDataChange.bind(this, 'deviceCompany')}
                             value={incidentDevice.info.deviceCompany}
-                            readOnly={activeContent === 'viewDevice'}/>
+                            readOnly={activeContent === 'viewDevice' || dataFromEdgeDevice}/>
                     </div>
 
 
@@ -445,7 +445,7 @@ class IncidentDevice extends Component {
     handleDeviceSubmit = () => {
         const {baseUrl} = this.context;
         const {incidentDevice} = this.state;
-
+        let dataFromEdgeDevice = this.state.dataFromEdgeDevice;
         if (!this.checkAddData(incidentDevice)) {
             return
         }
@@ -456,7 +456,7 @@ class IncidentDevice extends Component {
             apiType = 'PATCH'
         }
 
-        ah.one({
+        this.ah.one({
             url: `${baseUrl}/api/soc/device`,
             data: JSON.stringify(incidentDevice.info),
             type: apiType,
@@ -465,6 +465,8 @@ class IncidentDevice extends Component {
             .then(data => {
                 incidentDevice.edgeItem = '';
                 incidentDevice.edgeList = [];
+                incidentDevice.info.updateDttm = data.updateDttm;
+                dataFromEdgeDevice = false;
                 this.setState({
                     originalIncidentDeviceData: _.cloneDeep(incidentDevice)
                 }, () => {
@@ -655,6 +657,7 @@ class IncidentDevice extends Component {
     toggleContent = (type, allValue) => {
         const {originalIncidentDeviceData, incidentDevice, edgeList} = this.state;
         let tempIncidentDevice = {...incidentDevice};
+        let dataFromEdgeDevice = this.state.dataFromEdgeDevice;
         let showPage = type;
         this.getOptions()
 
@@ -708,15 +711,18 @@ class IncidentDevice extends Component {
             tempIncidentDevice.info = _.cloneDeep(incidentDevice.info);
         } else if (type === 'cancel-add') {
             showPage = 'tableList';
+            dataFromEdgeDevice = false;
             tempIncidentDevice = _.cloneDeep(originalIncidentDeviceData);
         } else if (type === 'cancel') {
             showPage = 'viewDevice';
+            dataFromEdgeDevice = false;
             tempIncidentDevice = _.cloneDeep(originalIncidentDeviceData);
         }
 
         this.setState({
             activeContent: showPage,
-            incidentDevice: tempIncidentDevice
+            incidentDevice: tempIncidentDevice,
+            dataFromEdgeDevice: dataFromEdgeDevice
         }, () => {
             if (type === 'tableList') {
                 this.getDeviceData();
@@ -792,7 +798,8 @@ class IncidentDevice extends Component {
      */
     handleDataChange = (type, value) => {
         let tempDevice = {...this.state.incidentDevice};
-        let edgeItemList = {...this.state.edgeList}
+        let edgeItemList = {...this.state.edgeList};
+        let dataFromEdgeDevice = this.state.dataFromEdgeDevice;
         if (type === 'edgeDevice') {
             tempDevice.edgeItem = value;
             _.forEach(edgeItemList, val => {
@@ -807,8 +814,15 @@ class IncidentDevice extends Component {
                 }
             })
 
+            if (tempDevice.info.deviceId.length !== 0) {
+                dataFromEdgeDevice = true;
+            } else {
+                dataFromEdgeDevice = false;
+            }
+
             this.setState({
-                incidentDevice: tempDevice
+                incidentDevice: tempDevice,
+                dataFromEdgeDevice: dataFromEdgeDevice
             });
         } else {
             tempDevice.info[type] = value;

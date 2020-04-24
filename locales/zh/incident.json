@@ -44,13 +44,15 @@
 		"txt-oid": "機關OID",
 		"txt-level": "機關等級",
 		"txt-type": "機關領域",
-		"txt-abbreviation": "機關英文縮寫"
+		"txt-abbreviation": "機關英文縮寫",
+		"txt-exists": "OID 已存在"
 	},
 	"device": {
 		"txt-edgeDevice": "可收錄之Edge設備",
 		"txt-name": "設備名稱與型號",
 		"txt-id": "設備代號(Edge設備請勿隨意更改)",
-		"txt-company": "設備廠商"
+		"txt-company": "設備廠商",
+		"txt-exists": "設備代號已存在"
 	},
 	"txt-downloadEvent": "下載監控事件單範例XML",
 	"txt-downloadRelated": "下載關聯事件單範例XML",

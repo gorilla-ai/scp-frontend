@@ -488,11 +488,10 @@ class IncidentUnit extends Component {
                 }, () => {
                     this.toggleContent('cancel');
                 });
-
                 return null;
             })
             .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message);
+                helper.showPopupMsg('', t('txt-error'), it('unit.txt-exists'));
             })
     };
 
