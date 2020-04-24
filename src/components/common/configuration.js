@@ -16,6 +16,7 @@ let t = null;
 const INIT = {
   openEdgeManagement: false,
   openTopology: false,
+  openSyslog: false,
   openAccount: false
 };
 
@@ -40,11 +41,13 @@ class Config extends Component {
   componentDidMount() {
     const openEdgeManagement = this.getActiveFrame('edge') || this.getActiveFrame('threat') || this.getActiveFrame('severity');
     const openTopology = this.getActiveFrame('inventory') || this.getActiveFrame('owner') || this.getActiveFrame('map');
+    const openSyslog = this.getActiveFrame('config') || this.getActiveFrame('pattern');
     const openAccount = this.getActiveFrame('account') || this.getActiveFrame('privileges');
 
     this.setState({
       openEdgeManagement,
       openTopology,
+      openSyslog,
       openAccount
     });
   }
@@ -75,7 +78,8 @@ class Config extends Component {
       inventory: '/SCP/configuration/topology/inventory',
       owner: '/SCP/configuration/topology/owner',
       map: '/SCP/configuration/topology/map',
-      syslog: '/SCP/configuration/syslog',
+      config: '/SCP/configuration/syslog/config',
+      pattern: '/SCP/configuration/syslog/pattern',
       account: '/SCP/configuration/user/account',
       privileges: '/SCP/configuration/user/privileges',
       serviceStatus: '/SCP/configuration/service-status',
@@ -113,7 +117,7 @@ class Config extends Component {
     return this.state.showContent ? 'fg fg-arrow-left' : 'fg fg-arrow-right';
   }
   render() {
-    const {showContent, openEdgeManagement, openTopology, openAccount, selected} = this.state;
+    const {showContent, openEdgeManagement, openTopology, openSyslog, openAccount, selected} = this.state;
 
     return (
       <div className={cx('left-nav', {'collapse': !showContent})}>
@@ -125,7 +129,7 @@ class Config extends Component {
 
         <div className='item frame edge-manage' onClick={this.handleOpen.bind(this, 'openEdgeManagement', openEdgeManagement)}>
           <span className={`${this.getActiveFrame('edge') || this.getActiveFrame('threat')}`}>{t('txt-edgeManage')}</span>
-          <i className={`c-link fg fg-arrow-${openEdgeManagement?'top':'bottom'}`}></i>
+          <i className={`c-link fg fg-arrow-${openEdgeManagement ? 'top' : 'bottom'}`}></i>
         </div>
 
         {openEdgeManagement &&
@@ -150,7 +154,7 @@ class Config extends Component {
 
         <div className='item frame network-topology' onClick={this.handleOpen.bind(this, 'openTopology', openTopology)}>
           <span className={`${this.getActiveFrame('inventory') || this.getActiveFrame('owner') || this.getActiveFrame('map')}`}>{t('txt-topology')}</span>
-          <i className={`c-link fg fg-arrow-${openTopology?'top':'bottom'}`}></i>
+          <i className={`c-link fg fg-arrow-${openTopology ? 'top' : 'bottom'}`}></i>
         </div>
 
         {openTopology &&
@@ -173,15 +177,29 @@ class Config extends Component {
           </div>
         }
 
-        <div className='item frame syslog-manage'>
-          <Link to='/SCP/configuration/syslog'>
-            <span className={`${this.getActiveFrame('syslog')}`}>{t('txt-syslogManage')}</span>
-          </Link>
+        <div className='item frame syslog' onClick={this.handleOpen.bind(this, 'openSyslog', openSyslog)}>
+          <span className={`${this.getActiveFrame('config') || this.getActiveFrame('pattern')}`}>{t('txt-syslogManage')}</span>
+          <i className={`c-link fg fg-arrow-${openSyslog ? 'top' : 'bottom'}`}></i>
         </div>
+
+        {openSyslog &&
+          <div className='item open-syslog'>
+            <div className='subframe'>
+              <Link to='/SCP/configuration/syslog/config'>
+                <span className={`${this.getActiveFrame('config')}`}>{t('txt-syslogConfig')}</span>
+              </Link>
+            </div>
+            <div className='subframe'>
+              <Link to='/SCP/configuration/syslog/pattern'>
+                <span className={`${this.getActiveFrame('pattern')}`}>{t('txt-syslogPattern')}</span>
+              </Link>
+            </div>
+          </div>
+        }
 
         <div className='item frame account-manage' onClick={this.handleOpen.bind(this, 'openAccount', openAccount)}>
           <span className={`${this.getActiveFrame('account') || this.getActiveFrame('privileges')}`}>{t('txt-accountManage')}</span>
-          <i className={`c-link fg fg-arrow-${openAccount?'top':'bottom'}`}></i>
+          <i className={`c-link fg fg-arrow-${openAccount ? 'top' : 'bottom'}`}></i>
         </div>
 
         {openAccount &&

@@ -1414,6 +1414,9 @@ i.c-checkbox.fg-checkbox {
               margin: 0 5px;
             }
           }
+          input.number {
+            width: 65px;
+          }
           .form-group { //For individual form group
             position: relative;
             display: flex;
@@ -1609,6 +1612,15 @@ i.c-checkbox.fg-checkbox {
               }
               #severityLevel {
                 width: 94.5%;
+              }
+              .period {
+                color: var(--primaryContentHeader);
+                margin-top: 5px;
+                .period-checkbox {
+                  float: left;
+                  margin-top: 3px;
+                  margin-right: 5px;
+                }
               }
               label {
                 text-align: left;
@@ -1947,21 +1959,6 @@ i.c-checkbox.fg-checkbox {
                   text-decoration: underline;
                   cursor: pointer;
                 }
-                // &.blue {
-                //   color: #2164a0;
-                // }
-                // &.green {
-                //   color: #2fb046;
-                //   font-weight: bold;
-                // }
-                // &.orange {
-                //   color: #f7af3a;
-                //   font-weight: bold;
-                // }
-                // &.red {
-                //   color: #d1152e;
-                //   font-weight: bold;
-                // }
                 &.permit {
                   color: #fff;
                   font-size: 15px;
@@ -1981,7 +1978,8 @@ i.c-checkbox.fg-checkbox {
                 width: 1px;
               }
               &._severity_,
-              &.severityLevel {
+              &.severityLevel,
+              &.severity {
                 span.severity {
                   float: left;
                   color: #fff;

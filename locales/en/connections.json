@@ -148,6 +148,8 @@
   "txt-topology": "Network Topology",
   "txt-accountManage": "Account Management",
   "txt-syslogManage": "Syslog Management",
+  "txt-syslogConfig": "Syslog Config",
+  "txt-syslogPattern": "Syslog Pattern",
   "txt-serviceStatus": "Service Status",
   "txt-networkInventory": "Network Inventory",
   "txt-productInfo": "Product Information",
@@ -393,6 +395,16 @@
     "txt-lastUpateTime": "Last Update Time",
     "txt-severityMissing": "Severity type cannot be empty",
     "txt-deleteSeverity": "$t(txt-delete) Severity Type"
+  },
+
+  "syslog-pattern": {
+    "txt-patternScript": "Pattern Script",
+    "txt-addPatternScript": "Add Pattern",
+    "txt-patternInfo": "Pattern Info",
+    "txt-lastUpateTime": "Last Update Time",
+    "txt-patternMissing": "Pattern cannot be empty",
+    "txt-queryScriptMissing": "Query Script cannot be empty",
+    "txt-deletePattern": "$t(txt-delete) Pattern"
   },
 
   "network-inventory": {
