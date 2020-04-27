@@ -8,7 +8,6 @@ import cx from 'classnames'
 
 import BarChart from 'react-chart/build/src/components/bar'
 import DataTable from 'react-ui/build/src/components/table'
-import LineChart from 'react-chart/build/src/components/line'
 import Metric from 'react-chart/build/src/components/metric'
 import PieChart from 'react-chart/build/src/components/pie'
 
@@ -377,109 +376,34 @@ class DashboardStats extends Component {
       accountId: session.accountId
     };
 
-    const alertPatternObj = {
-      "event_histogram": {
-        "AD Account Created": {
-          "doc_count": 0,
-          "event_histogram": {
-            "buckets": [
-              {
-                "key_as_string": "2020-04-23T02:00:00.000Z",
-                "key": 1587607200000,
-                "doc_count": 20
-              },
-              {
-                "key_as_string": "2020-04-23T02:10:00.000Z",
-                "key": 1587607800000,
-                "doc_count": 50
-              },
-              {
-                "key_as_string": "2020-04-23T02:20:00.000Z",
-                "key": 1587608400000,
-                "doc_count": 10
-              },
-              {
-                "key_as_string": "2020-04-23T02:30:00.000Z",
-                "key": 1587609000000,
-                "doc_count": 30
-              },
-              {
-                "key_as_string": "2020-04-23T02:40:00.000Z",
-                "key": 1587609600000,
-                "doc_count": 20
-              }
-            ]
-          }
-        },
-        "AD Login Fail": {
-          "doc_count": 5,
-          "event_histogram": {
-            "buckets": [
-              {
-                "key_as_string": "2020-04-23T02:00:00.000Z",
-                "key": 1587607200000,
-                "doc_count": 10
-              },
-              {
-                "key_as_string": "2020-04-23T02:10:00.000Z",
-                "key": 1587607800000,
-                "doc_count": 20
-              },
-              {
-                "key_as_string": "2020-04-23T02:20:00.000Z",
-                "key": 1587608400000,
-                "doc_count": 30
-              },
-              {
-                "key_as_string": "2020-04-23T02:30:00.000Z",
-                "key": 1587609000000,
-                "doc_count": 20
-              },
-              {
-                "key_as_string": "2020-04-23T02:40:00.000Z",
-                "key": 1587609600000,
-                "doc_count": 70
-              }
-            ]
-          }
-        }
-      }
-    };
+    helper.getAjaxData('POST', url, requestData, 'false')
+    .then(data => {
+      if (data) {
+        let alertPatternData = [];
 
-    let alertPatternData = [];
-
-    _.forEach(alertPatternObj.event_histogram, (val, key) => {
-      if (val.event_histogram.buckets.length > 0) {
-        _.forEach(val.event_histogram.buckets, val2 => {
-          if (val2.doc_count > 0) {
-            alertPatternData.push({
-              time: parseInt(Moment(val2.key_as_string, 'YYYY-MM-DDTHH:mm:ss.SSZ').utc(true).format('x')),
-              count: val2.doc_count,
-              patternName: key
-            });
+        _.forEach(data.event_histogram, (val, key) => {
+          if (val.event_histogram.buckets.length > 0) {
+            _.forEach(val.event_histogram.buckets, val2 => {
+              if (val2.doc_count > 0) {
+                alertPatternData.push({
+                  time: parseInt(Moment(val2.key_as_string, 'YYYY-MM-DDTHH:mm:ss.SSZ').utc(true).format('x')),
+                  count: val2.doc_count,
+                  patternName: key
+                });
+              }
+            })
           }
         })
+
+        this.setState({
+          alertPatternData
+        });
       }
+      return null;
     })
-
-    this.setState({
-      alertPatternData
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
     });
-
-    // helper.getAjaxData('POST', url, requestData, 'false')
-    // .then(data => {
-    //   if (data) {
-
-
-    //     this.setState({
-    //       alertPatternData: tempSyslogPieData
-    //     });
-    //   }
-    //   return null;
-    // })
-    // .catch(err => {
-    //   helper.showPopupMsg('', t('txt-error'), err.message);
-    // });
   }
   /**
    * Redirect IVA link
@@ -1144,22 +1068,21 @@ class DashboardStats extends Component {
             <div className='chart-group line'>
               {!alertPatternData &&
                 <div className='empty-data'>
-                  <header>{t('dashboard.txt-alertPatternStat')}</header>
+                  <header>{t('dashboard.txt-customAlertStat')}</header>
                   <span><i className='fg fg-loading-2'></i></span>
                 </div>
               }
               {alertPatternData && alertPatternData.length === 0 &&
                 <div className='empty-data'>
-                  <header>{t('dashboard.txt-alertPatternStat')}</header>
+                  <header>{t('dashboard.txt-customAlertStat')}</header>
                   <span>{t('txt-notFound')}</span>
                 </div>
               }
               {alertPatternData && alertPatternData.length > 0 &&
-                <LineChart
-                  title={t('dashboard.txt-alertPatternStat')}
-                  legend={{
-                    enabled: true
-                  }}
+                <BarChart
+                  stacked
+                  vertical
+                  title={t('dashboard.txt-customAlertStat')}
                   data={alertPatternData}
                   onTooltip={this.onTooltip.bind(this, 'lineChart')}
                   dataCfg={{
@@ -1171,6 +1094,11 @@ class DashboardStats extends Component {
                     type: 'datetime',
                     dateTimeLabelFormats: {
                       day: '%m-%d %H:%M'
+                    }
+                  }}
+                  plotOptions={{
+                    series: {
+                      maxPointWidth: 20
                     }
                   }} />
               }
