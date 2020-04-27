@@ -8,6 +8,7 @@ import cx from 'classnames'
 
 import BarChart from 'react-chart/build/src/components/bar'
 import DataTable from 'react-ui/build/src/components/table'
+import LineChart from 'react-chart/build/src/components/line'
 import Metric from 'react-chart/build/src/components/metric'
 import PieChart from 'react-chart/build/src/components/pie'
 
@@ -87,6 +88,7 @@ class DashboardStats extends Component {
       alertChartsList: [],
       alertPieData: {},
       syslogPieData: {},
+      alertPatternData: null,
       dnsPieData: {},
       dnsMetricData: {
         id: 'dns-histogram'
@@ -160,18 +162,29 @@ class DashboardStats extends Component {
   /**
    * Show tooltip info when mouseover the chart
    * @method
+   * @param {string} type - chart type ('barChart' or 'lineChart')
    * @param {object} eventInfo - MouseoverEvents
    * @param {object} data - chart data
    * @returns HTML DOM
    */
-  onTooltip = (eventInfo, data) => {
+  onTooltip = (type, eventInfo, data) => {
+    if (type === 'barChart') {
+      return (
+        <section>
+          <span>{t('txt-severity')}: {data[0].rule}<br /></span>
+          <span>{t('txt-time')}: {Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss')}<br /></span>
+          <span>{t('txt-count')}: {data[0].number}</span>
+        </section>
+      )
+    } else if (type === 'lineChart') {
     return (
       <section>
-        <span>{t('txt-severity')}: {data[0].rule}<br /></span>
-        <span>{t('txt-time')}: {Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss')}<br /></span>
-        <span>{t('txt-count')}: {data[0].number}</span>
+        <span>{t('dashboard.txt-patternName')}: {data[0].patternName}<br /></span>
+        <span>{t('txt-date')}: {Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss')}<br /></span>
+        <span>{t('txt-count')}: {data[0].count}</span>
       </section>
     )
+    }
   }
   /**
    * Get and set alert charts data
@@ -334,11 +347,139 @@ class DashboardStats extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
 
+    this.loadPatternData();
     this.loadIvarData();
     this.loadSyslogData();
     this.loadDnsPieData();
     this.loadMetricData();
     this.loadHmdData();
+  }
+  /**
+   * Construct and set the pattern data
+   * @method
+   */
+  loadPatternData = () => {
+    const {baseUrl, session} = this.context;
+    const {datetime} = this.state;
+    const dateTime = {
+      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    };
+    const url = `${baseUrl}/api/alert/pattern/histogram`;
+    let requestData = {};
+
+    if (!session.accountId) {
+      return;
+    }
+
+    requestData = {
+      timestamp: [dateTime.from, dateTime.to],
+      accountId: session.accountId
+    };
+
+    const alertPatternObj = {
+      "event_histogram": {
+        "AD Account Created": {
+          "doc_count": 0,
+          "event_histogram": {
+            "buckets": [
+              {
+                "key_as_string": "2020-04-23T02:00:00.000Z",
+                "key": 1587607200000,
+                "doc_count": 20
+              },
+              {
+                "key_as_string": "2020-04-23T02:10:00.000Z",
+                "key": 1587607800000,
+                "doc_count": 50
+              },
+              {
+                "key_as_string": "2020-04-23T02:20:00.000Z",
+                "key": 1587608400000,
+                "doc_count": 10
+              },
+              {
+                "key_as_string": "2020-04-23T02:30:00.000Z",
+                "key": 1587609000000,
+                "doc_count": 30
+              },
+              {
+                "key_as_string": "2020-04-23T02:40:00.000Z",
+                "key": 1587609600000,
+                "doc_count": 20
+              }
+            ]
+          }
+        },
+        "AD Login Fail": {
+          "doc_count": 5,
+          "event_histogram": {
+            "buckets": [
+              {
+                "key_as_string": "2020-04-23T02:00:00.000Z",
+                "key": 1587607200000,
+                "doc_count": 10
+              },
+              {
+                "key_as_string": "2020-04-23T02:10:00.000Z",
+                "key": 1587607800000,
+                "doc_count": 20
+              },
+              {
+                "key_as_string": "2020-04-23T02:20:00.000Z",
+                "key": 1587608400000,
+                "doc_count": 30
+              },
+              {
+                "key_as_string": "2020-04-23T02:30:00.000Z",
+                "key": 1587609000000,
+                "doc_count": 20
+              },
+              {
+                "key_as_string": "2020-04-23T02:40:00.000Z",
+                "key": 1587609600000,
+                "doc_count": 70
+              }
+            ]
+          }
+        }
+      }
+    };
+
+    let alertPatternData = [];
+
+    _.forEach(alertPatternObj.event_histogram, (val, key) => {
+      if (val.event_histogram.buckets.length > 0) {
+        _.forEach(val.event_histogram.buckets, val2 => {
+          if (val2.doc_count > 0) {
+            alertPatternData.push({
+              time: parseInt(Moment(val2.key_as_string, 'YYYY-MM-DDTHH:mm:ss.SSZ').utc(true).format('x')),
+              count: val2.doc_count,
+              patternName: key
+            });
+          }
+        })
+      }
+    })
+
+    this.setState({
+      alertPatternData
+    });
+
+    // helper.getAjaxData('POST', url, requestData, 'false')
+    // .then(data => {
+    //   if (data) {
+
+
+    //     this.setState({
+    //       alertPatternData: tempSyslogPieData
+    //     });
+    //   }
+    //   return null;
+    // })
+    // .catch(err => {
+    //   helper.showPopupMsg('', t('txt-error'), err.message);
+    // });
   }
   /**
    * Redirect IVA link
@@ -430,7 +571,7 @@ class DashboardStats extends Component {
           syslogPieData: tempSyslogPieData
         }, () => {
           this.getPieChartsData();
-        });        
+        });
       }
       return null;
     })
@@ -854,6 +995,7 @@ class DashboardStats extends Component {
       alertDataArr,
       internalMaskedIpArr,
       alertChartsList,
+      alertPatternData,
       dnsMetricData,
       diskMetricData,
       hmdData,
@@ -936,7 +1078,7 @@ class DashboardStats extends Component {
                   title={t('dashboard.txt-alertStatistics')}
                   data={alertDataArr}
                   colors={ALERT_LEVEL_COLORS}
-                  onTooltip={this.onTooltip}
+                  onTooltip={this.onTooltip.bind(this, 'barChart')}
                   dataCfg={{
                     x: 'time',
                     y: 'number',
@@ -996,6 +1138,41 @@ class DashboardStats extends Component {
                     severity: t('txt-severity')
                   }}
                   onClick={this.getChartRedirect.bind(this, 'maskedIP')} />
+              }
+            </div>
+
+            <div className='chart-group line'>
+              {!alertPatternData &&
+                <div className='empty-data'>
+                  <header>{t('dashboard.txt-alertPatternStat')}</header>
+                  <span><i className='fg fg-loading-2'></i></span>
+                </div>
+              }
+              {alertPatternData && alertPatternData.length === 0 &&
+                <div className='empty-data'>
+                  <header>{t('dashboard.txt-alertPatternStat')}</header>
+                  <span>{t('txt-notFound')}</span>
+                </div>
+              }
+              {alertPatternData && alertPatternData.length > 0 &&
+                <LineChart
+                  title={t('dashboard.txt-alertPatternStat')}
+                  legend={{
+                    enabled: true
+                  }}
+                  data={alertPatternData}
+                  onTooltip={this.onTooltip.bind(this, 'lineChart')}
+                  dataCfg={{
+                    x: 'time',
+                    y: 'count',
+                    splitSeries: 'patternName'
+                  }}
+                  xAxis={{
+                    type: 'datetime',
+                    dateTimeLabelFormats: {
+                      day: '%m-%d %H:%M'
+                    }
+                  }} />
               }
             </div>
 

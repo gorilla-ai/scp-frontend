@@ -202,10 +202,12 @@
 
   "dashboard": {
     "txt-statisticsInfo": "Statistics Info",
+    "txt-patternName": "Pattern Name",
     "txt-attacksMap": "Attacks Map",
     "txt-alertStatistics": "Alert Statistics",
     "txt-alertMaskedIpStatistics": "Masked IP Alert Statistics",
     "txt-alertThreatLevel": "Alert Threat Level",
+    "txt-alertPatternStat": "Pattern Name Stat",
     "txt-Top10ExternalSrcCountry": "Alert Source Country",
     "txt-Top10InternalSrcIp": "Alert Internal Source IP",
     "txt-InternalIp": "Alert Internal IP",

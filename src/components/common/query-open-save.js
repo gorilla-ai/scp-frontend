@@ -548,7 +548,7 @@ class QueryOpenSave extends Component {
         <div>
           <label>{t('events.connections.txt-queryName')}</label>
           <DropDownList
-            className='query-name'
+            className='query-name dropdown'
             list={displayList}
             required={true}
             onChange={this.handleQueryChange.bind(this, 'id')}
@@ -566,7 +566,7 @@ class QueryOpenSave extends Component {
             </div>
           }
 
-          {activeTab === 'logs' && queryData.pattern.severity &&
+          {activeTab === 'logs' && queryData.patternId &&
             <div>
               <Checkbox
                 id='patternCheckbox'
@@ -702,7 +702,7 @@ class QueryOpenSave extends Component {
         <div>
           <label>{t('events.connections.txt-queryName')}</label>
           <DropDownList
-            className='query-name'
+            className='query-name dropdown'
             list={displayList}
             required={true}
             onChange={this.handleQueryChange.bind(this, 'id')}

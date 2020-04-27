@@ -202,10 +202,12 @@
 
   "dashboard": {
     "txt-statisticsInfo": "統計資料",
+    "txt-patternName": "Pattern名稱",
     "txt-attacksMap": "攻擊地圖",
     "txt-alertStatistics": "告警數量統計",
     "txt-alertMaskedIpStatistics": "網段威脅等級統計",
     "txt-alertThreatLevel": "告警威脅等級統計",
+    "txt-alertPatternStat": "Pattern名稱統計",
     "txt-Top10ExternalSrcCountry": "外部國家告警統計",
     "txt-Top10InternalSrcIp": "內部主機告警統計",
     "txt-InternalIp": "內部主機告警統計",
