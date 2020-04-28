@@ -268,11 +268,12 @@ const helper = {
     )
   },
   getSavedQuery: function(baseUrl, account, queryData, type) {
+    const urlParam = type === 'syslog' ? 'v1/' : '';
     let tempQueryData = {...queryData};
 
     return (
       ah.one({
-        url: `${baseUrl}/api/v1/account/${type}/queryText?accountId=${account.id}`,
+        url: `${baseUrl}/api/${urlParam}account/${type}/queryText?accountId=${account.id}`,
         type: 'GET'
       }, {showProgress: false})
       .then(data => {
