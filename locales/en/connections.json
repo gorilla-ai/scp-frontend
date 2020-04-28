@@ -153,6 +153,8 @@
   "txt-topology": "Network Topology",
   "txt-accountManage": "Account Management",
   "txt-syslogManage": "Syslog Management",
+  "txt-syslogConfig": "Syslog Config",
+  "txt-syslogPattern": "Syslog Pattern",
   "txt-serviceStatus": "Service Status",
   "txt-networkInventory": "Network Inventory",
   "txt-productInfo": "Product Information",
@@ -200,10 +202,12 @@
 
   "dashboard": {
     "txt-statisticsInfo": "Statistics Info",
+    "txt-patternName": "Pattern Name",
     "txt-attacksMap": "Attacks Map",
     "txt-alertStatistics": "Alert Statistics",
     "txt-alertMaskedIpStatistics": "Masked IP Alert Statistics",
     "txt-alertThreatLevel": "Alert Threat Level",
+    "txt-customAlertStat": "Custom Alert Statistics",
     "txt-Top10ExternalSrcCountry": "Alert Source Country",
     "txt-Top10InternalSrcIp": "Alert Internal Source IP",
     "txt-InternalIp": "Alert Internal IP",
@@ -302,6 +306,7 @@
       "txt-addQuery": "Add New Query",
       "txt-noSavedQuery": "No Saved Query Found",
       "txt-noOpenQuery": "Query can not be Blank",
+      "txt-addPatternScript": "Custom Alert Query",
       "txt-mark": "Filter / Mark",
       "txt-clear": "Clear",
       "txt-top10text": "TOP 10 Dst. Service/Dst. Host/Dst. IP",
@@ -398,6 +403,16 @@
     "txt-lastUpateTime": "Last Update Time",
     "txt-severityMissing": "Severity type cannot be empty",
     "txt-deleteSeverity": "$t(txt-delete) Severity Type"
+  },
+
+  "syslog-pattern": {
+    "txt-patternScript": "Pattern Script",
+    "txt-addPatternScript": "Add Pattern",
+    "txt-patternInfo": "Pattern Info",
+    "txt-lastUpateTime": "Last Update Time",
+    "txt-patternMissing": "Pattern cannot be empty",
+    "txt-queryScriptMissing": "Query Script cannot be empty",
+    "txt-deletePattern": "$t(txt-delete) Pattern"
   },
 
   "network-inventory": {

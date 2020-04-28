@@ -773,15 +773,14 @@ i.c-checkbox.fg-checkbox {
       flex-wrap: wrap;
       .chart-group {
         width: 24.4%;
-        height: 400px;
         margin: 5px;
+        background-color: var(--primaryContentBackground);
         border: 1px solid var(--primaryBorder);
         border-radius: 5px;
-        background-color: var(--primaryContentBackground);
         overflow: hidden;
-        &.bar {
+        &.bar,
+        &.line {
           width: 49.32%;
-          height: 460px;
         }
         .main-table {
           &.align-center {
@@ -832,7 +831,7 @@ i.c-checkbox.fg-checkbox {
         .license-date,
         .dns-histogram,
         .disk-usage {
-          height: 200px;
+          height: 229px;
           .group {
             padding-top: 25px;
           }
@@ -1417,6 +1416,9 @@ i.c-checkbox.fg-checkbox {
               margin: 0 5px;
             }
           }
+          input.number {
+            width: 65px;
+          }
           .form-group { //For individual form group
             position: relative;
             display: flex;
@@ -1606,6 +1608,15 @@ i.c-checkbox.fg-checkbox {
               }
               #severityLevel {
                 width: 94.5%;
+              }
+              .period {
+                color: var(--primaryContentHeader);
+                margin-top: 5px;
+              }
+              #periodCheckbox {
+                float: left;
+                margin-top: 3px;
+                margin-right: 5px;
               }
               label {
                 text-align: left;
