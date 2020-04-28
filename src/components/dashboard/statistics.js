@@ -365,16 +365,14 @@ class DashboardStats extends Component {
       to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
     const url = `${baseUrl}/api/alert/pattern/histogram`;
-    let requestData = {};
+    const requestData = {
+      timestamp: [dateTime.from, dateTime.to],
+      accountId: session.accountId
+    };
 
     if (!session.accountId) {
       return;
     }
-
-    requestData = {
-      timestamp: [dateTime.from, dateTime.to],
-      accountId: session.accountId
-    };
 
     helper.getAjaxData('POST', url, requestData, 'false')
     .then(data => {
