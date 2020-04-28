@@ -381,19 +381,21 @@ class DashboardStats extends Component {
       if (data) {
         let alertPatternData = [];
 
-        _.forEach(data.event_histogram, (val, key) => {
-          if (val.event_histogram.buckets.length > 0) {
-            _.forEach(val.event_histogram.buckets, val2 => {
-              if (val2.doc_count > 0) {
-                alertPatternData.push({
-                  time: parseInt(Moment(val2.key_as_string, 'YYYY-MM-DDTHH:mm:ss.SSZ').utc(true).format('x')),
-                  count: val2.doc_count,
-                  patternName: key
-                });
-              }
-            })
-          }
-        })
+        if (data.event_histogram) {
+          _.forEach(data.event_histogram, (val, key) => {
+            if (val.event_histogram.buckets.length > 0) {
+              _.forEach(val.event_histogram.buckets, val2 => {
+                if (val2.doc_count > 0) {
+                  alertPatternData.push({
+                    time: parseInt(Moment(val2.key_as_string, 'YYYY-MM-DDTHH:mm:ss.SSZ').utc(true).format('x')),
+                    count: val2.doc_count,
+                    patternName: key
+                  });
+                }
+              })
+            }
+          })
+        }
 
         this.setState({
           alertPatternData
