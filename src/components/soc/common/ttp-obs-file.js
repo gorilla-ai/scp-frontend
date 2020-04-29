@@ -53,6 +53,7 @@ class TtpObsFile extends Component {
 	                    id='md5'
 	                    onChange={this.handleDataChange.bind(this, 'md5')}
 	                    value={md5}
+						maxLength={32}
 	                    readOnly={activeContent === 'viewIncident'}/>
 	            </div>
 	            <div className='group'>
@@ -61,6 +62,7 @@ class TtpObsFile extends Component {
 	                    id='sha1'
 	                    onChange={this.handleDataChange.bind(this, 'sha1')}
 	                    value={sha1}
+						maxLength={40}
 	                    readOnly={activeContent === 'viewIncident'}/>
 	            </div>
 	        </div>
@@ -72,6 +74,7 @@ class TtpObsFile extends Component {
 	                    id='sha256'
 	                    onChange={this.handleDataChange.bind(this, 'sha256')}
 	                    value={sha256}
+						maxLength={64}
 	                    readOnly={activeContent === 'viewIncident'}/>
 	            </div>
 	        </div>
