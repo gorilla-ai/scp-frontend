@@ -561,7 +561,7 @@ class Incident extends Component {
         }).then(data => {
             incident.info.id = data.rt.id;
             incident.info.updateDttm = data.rt.updateDttm;
-
+            incident.info.status = data.rt.status;
             if (incident.info.relatedList) {
                 incident.info.relatedList = _.map(incident.info.relatedList, el => {
                     return el.incidentRelatedId
