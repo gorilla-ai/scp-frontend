@@ -292,7 +292,7 @@ class Incident extends Component {
                 }
 
 
-                {activeContent === 'viewIncident' &&
+                {activeContent === 'viewIncident' && incident.info.status === 1 &&
                 <button className='standard btn list'
                         onClick={this.auditIncident.bind(this, incident.info.id)}>{it('txt-audit')}</button>
                 }
