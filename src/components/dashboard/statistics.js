@@ -100,7 +100,7 @@ class DashboardStats extends Component {
         dataContent: null
       },
       hmdData: {},
-      lms: ''
+      lms: null
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -574,7 +574,7 @@ class DashboardStats extends Component {
     this.ah.all(apiArr, {showProgress: false})
     .then(data => {
       if (data) {
-        let lms = t('txt-notFound');
+        let lms = 'empty';
 
         if (data[0].expireDate) {
           lms = Moment(data[0].expireDate, 'YYYYMMDD').format('YYYY-MM-DD');
@@ -1006,7 +1006,15 @@ class DashboardStats extends Component {
 
               <div className='c-chart license-date'>
                 <header>{l('l-license-expiry')}</header>
-                <span className='show-empty date'>{lms}</span>
+                {!lms &&
+                  <span className='show-empty'><span><i className='fg fg-loading-2'></i></span></span>
+                }
+                {lms && lms === 'empty' &&
+                  <span className='show-empty'>{t('txt-notFound')}</span>
+                }
+                {lms && lms !== 'empty' &&
+                  <span className='show-empty date'>{lms}</span>
+                }
               </div>
             </div>
 

@@ -831,7 +831,7 @@ class AlertDetails extends Component {
 
     return (
       <div>
-        <table className='c-table main-table top-info'>
+        <table className='c-table main-table top-info align-center'>
           <thead>
             <tr>
               <th>{f('alertFields._severity_')}</th>
@@ -854,7 +854,7 @@ class AlertDetails extends Component {
 
         <div className='alert-info'>{this.showAlertContent()}</div>
 
-        <table className='c-table main-table top-info'>
+        <table className='c-table main-table top-info align-center'>
           <thead>
             <tr>
               <th>{f('alertFields.srcIp')}</th>
