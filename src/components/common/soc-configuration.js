@@ -126,6 +126,12 @@ class SocConfig extends Component {
                     </Link>
                 </div>
 
+                <div className='item frame incident-log'>
+                    <Link to='/SCP/soc/incident-log'>
+                        <span className={`${this.getActiveFrame('incidentLog')}`}>{it('txt-incident-log-management')}</span>
+                    </Link>
+                </div>
+
                 <div className={cx('expand-collapse', {'not-allowed': this.getActiveFrame('threat')})}
                      onClick={this.toggleLeftNav}>
                     <i className={this.getClassName()}/>

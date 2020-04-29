@@ -11,6 +11,7 @@ import TableContent from "../common/table-content";
 import DropDownList from "react-ui/build/src/components/dropdown";
 import Textarea from "react-ui/build/src/components/textarea";
 import {downloadWithForm} from "react-ui/build/src/utils/download";
+import {Link} from "react-router-dom";
 
 const INCIDENT = "incident";
 const DEVICE = "device";
@@ -254,7 +255,7 @@ class IncidentDevice extends Component {
 
                                 {activeContent === 'tableList' &&
                                 <button className='standard btn list'
-                                        onClick={this.sendCsv.bind()}>{it('txt-sendHealthCsv')}</button>
+                                        onClick={this.openSendMenu.bind()}>{it('txt-sendHealthCsv')}</button>
                                 }
 
                                 {activeContent === 'viewDevice' &&
@@ -263,6 +264,8 @@ class IncidentDevice extends Component {
                                 }
                                 <button className='standard btn edit'
                                         onClick={this.toggleContent.bind(this, 'addDevice')}>{t('txt-add')}</button>
+
+                                <Link to='/SCP/configuration/notifications'><button className='standard btn'>{t('notifications.txt-settings')}</button></Link>
 
                             </div>
                             <TableContent
@@ -751,6 +754,29 @@ class IncidentDevice extends Component {
             .catch(err => {
                 helper.showPopupMsg(it('txt-send-fail'), it('txt-send'));
             })
+    };
+
+
+    /**
+     * Show Delete IncidentDevice dialog
+     * @method
+     * @param {object} allValue - IncidentDevice data
+     */
+    openSendMenu = () => {
+        PopupDialog.prompt({
+            title: it('txt-send'),
+            id: 'modalWindowSmall',
+            confirmText: it('txt-send'),
+            cancelText: t('txt-cancel'),
+            display: <div className='content delete'>
+                <span>{it('txt-sendCheckHealth')}?</span>
+            </div>,
+            act: (confirmed) => {
+                if (confirmed) {
+                    this.sendCsv()
+                }
+            }
+        })
     };
 
     /**

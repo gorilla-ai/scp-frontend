@@ -535,6 +535,8 @@
     "victimName": "Victim",
     "reporter": "Reporter",
     "createDttm": "Create Datetime",
+    "sendTime": "Send Datetime",
+    "createdDttm": "Create Datetime",
     "impactAssessment": "Impact Assessment",
     "description": "Description",
     "socType": "SOC Type",
