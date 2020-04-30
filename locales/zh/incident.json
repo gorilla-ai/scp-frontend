@@ -49,7 +49,8 @@
 		"txt-level": "機關等級",
 		"txt-type": "機關領域",
 		"txt-abbreviation": "機關英文縮寫",
-		"txt-exists": "OID 已存在"
+		"txt-exists": "OID 已存在",
+		"txt-defaultDelete": "預設機關無法刪除"
 	},
 	"device": {
 		"txt-edgeDevice": "可收錄之Edge設備",

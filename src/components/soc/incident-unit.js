@@ -563,6 +563,12 @@ class IncidentUnit extends Component {
      * @param {object} allValue - IncidentDevice data
      */
     openDeleteMenu = (allValue) => {
+
+        if (allValue.isDefault){
+            helper.showPopupMsg('', t('txt-fail'), it('unit.txt-defaultDelete'));
+            return;
+        }
+
         PopupDialog.prompt({
             title: t('txt-delete'),
             id: 'modalWindowSmall',

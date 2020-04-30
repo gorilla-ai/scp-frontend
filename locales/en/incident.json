@@ -49,7 +49,8 @@
 		"txt-level": "Unit Level",
 		"txt-type": "Unit Industry",
 		"txt-abbreviation": "Unit Abbreviation",
-		"txt-exists": "OID already exists"
+		"txt-exists": "OID already exists",
+		"txt-defaultDelete": "Default Unit can't delete"
 	},
 	"device": {
 		"txt-edgeDevice": "Available Edge Device",
