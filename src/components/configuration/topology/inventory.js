@@ -515,12 +515,14 @@ class NetworkInventory extends Component {
     .then(data => {
       if (data) {
         if (data.rows.length > 0) {
-          const ownerList = _.map(data.rows, val => {
+          let ownerList = _.map(data.rows, val => {
             return {
               value: val.ownerUUID,
               text: val.ownerName
             };
           });
+
+          ownerList = _.orderBy(ownerList, ['text'], ['asc']);
 
           this.setState({
             ownerList
@@ -1497,18 +1499,29 @@ class NetworkInventory extends Component {
    * Close HMD scan info dialog
    * @method
    * @param {string} options - option for 'reload'
-   * @param {string} all - option for 'all'
+   * @param {string} page - page type
    */
-  closeDialog = (options, all) => {
+  closeDialog = (options, page) => {
+    const {currentDeviceData, floorPlan} = this.state;
+
+    if (page === 'fromFloorMap' && floorPlan.treeData[0]) {
+      let tempCurrentDeviceData = {...currentDeviceData};
+      tempCurrentDeviceData.areaUUID = floorPlan.treeData[0].areaUUID; //Reset selected tree to parent areaUUID
+      
+      this.setState({
+        currentDeviceData: tempCurrentDeviceData
+      });
+    }
+
     this.setState({
-      modalFloorOpen: false,
-      currentDeviceData: {}
+      modalFloorOpen: false
     }, () => {
       if (options === 'reload') {
-        if (all === 'fromFloorMap') { //reload everything
+        if (page === 'fromFloorMap') { //reload everything
           this.getFloorPlan('fromFloorMap');
         } else { //reload area and seat (no tree)
           const {floorPlan} = this.state;
+
           this.getAreaData(floorPlan.currentAreaUUID);
           this.getSeatData(floorPlan.currentAreaUUID);
         }
@@ -2888,7 +2901,7 @@ class NetworkInventory extends Component {
     let currentAreaUUID = floorPlan.currentAreaUUID;
 
     if (type === 'stepsFloor') {
-      if (!changeAreaMap && currentDeviceData.areaUUI) {
+      if (!changeAreaMap && currentDeviceData.areaUUID) {
         currentAreaUUID = currentDeviceData.areaUUID;
       }
     }
@@ -3173,7 +3186,7 @@ class NetworkInventory extends Component {
                   <Link to='/SCP/configuration/notifications'><button className='standard btn'>{t('notifications.txt-settings')}</button></Link>
                 </div>
 
-                {activeTab === 'deviceList' && showCsvData &&
+                {showCsvData &&
                   <div className='csv-section'>
                     <div className='csv-table'>
                       {this.displayCSVtable()}
@@ -3228,7 +3241,7 @@ class NetworkInventory extends Component {
                     paginationDropDownChange={this.handlePageDropdown} />
                 }
 
-                {activeTab === 'deviceMap' &&
+                {activeTab === 'deviceMap' && !showCsvData &&
                   <div className='inventory-map'>
                     <div className='tree'>
                       {floorPlan.treeData && floorPlan.treeData.length > 0 &&

@@ -424,11 +424,6 @@ class AutoSettings extends Component {
   handleScannerTest = (value) => {
     const {baseUrl} = this.context;
 
-    if (!value.edge) {
-      helper.showPopupMsg(t('network-inventory.auto-settings.txt-noEdgeSelected'), t('txt-error'));
-      return;
-    }
-
     this.ah.one({
       url: `${baseUrl}/api/u1/ipdevice/_scan?edge=${value.edge}&target=${value.ip}&mask=${value.mask}`,
       type: 'GET'

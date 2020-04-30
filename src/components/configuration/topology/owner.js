@@ -729,7 +729,7 @@ class NetworkOwner extends Component {
                       {previewOwnerPic &&
                         <img src={previewOwnerPic} title={t('network-topology.txt-profileImage')} />
                       }
-                      {owner.info.base64 &&
+                      {!previewOwnerPic && owner.info.base64 &&
                         <div>
                           <img src={owner.info.base64} title={t('network-topology.txt-profileImage')} />
                           <div className='removePhoto'>

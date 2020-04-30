@@ -49,7 +49,7 @@ class Scanner extends Component {
           onChange={this.handleDataChange.bind(this, 'mask')}
           value={value.mask}
           readOnly={activeContent === 'viewMode' || !statusEnable.scanner} />
-        <button onClick={this.props.handleScannerTest.bind(this, value)} disabled={!statusEnable.scanner}>{t('network-inventory.txt-testQuery')}</button>
+        <button onClick={this.props.handleScannerTest.bind(this, value)} disabled={!statusEnable.scanner || !value.edge}>{t('network-inventory.txt-testQuery')}</button>
       </div>
     )
   }
