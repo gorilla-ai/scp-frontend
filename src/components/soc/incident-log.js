@@ -32,8 +32,6 @@ class IncidentLog extends Component {
         this.state = {
             activeContent: 'tableList', //tableList, viewDevice, editDevice
             showFilter: false,
-            currentIncidentDeviceData: {},
-            originalIncidentDeviceData: {},
             logSearch: {
                 keyword: ''
             },
@@ -71,7 +69,7 @@ class IncidentLog extends Component {
     getData = (fromSearch) => {
         const {baseUrl, contextRoot} = this.context;
         const {logSearch, incidentLog} = this.state;
-        const url = `${baseUrl}/api/soc/log/_search`;
+        const url = `${baseUrl}/api/soc/log/_search?page=${incidentLog.currentPage}&pageSize=${incidentLog.pageSize}`;
         let data = {};
 
         if (logSearch.keyword) {
@@ -85,6 +83,7 @@ class IncidentLog extends Component {
                     let tempLog = {...incidentLog};
                     tempLog.dataContent = data.rows;
                     tempLog.totalCount = data.counts;
+                    tempLog.currentPage = fromSearch === 'search' ? 1 : incidentLog.currentPage;
 
                     let dataFields = {};
                     incidentLog.dataFieldsArr.forEach(tempData => {
