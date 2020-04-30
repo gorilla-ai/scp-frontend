@@ -52,7 +52,7 @@ class Incident extends Component {
             relatedListOptions: [],
             deviceListOptions: [],
             incident: {
-                dataFieldsArr: ['_menu', 'id', 'status', 'type', 'title', 'category', 'reporter', 'createDttm'],
+                dataFieldsArr: ['_menu', 'id', 'status', 'type', 'createDttm', 'title', 'category', 'reporter'],
                 dataFields: {},
                 dataContent: [],
                 sort: {
