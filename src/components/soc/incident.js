@@ -878,7 +878,7 @@ class Incident extends Component {
 
             let eventList = [];
             let eventListItem = {
-                description: alertData.trailName,
+                description: alertData.trailName || alertData.__index_name,
                 deviceId: '',
                 frequency: 1,
                 time: {
@@ -954,7 +954,7 @@ class Incident extends Component {
     };
 
     /**
-     *
+     * Send Incident
      * @param {string} id
      */
     sendIncident = (id) => {
@@ -1010,7 +1010,7 @@ class Incident extends Component {
     displayAfterAudit = () => {
         return (
             <div>
-                <label>{it('txt-sendCheck')}</label>
+                <label>{it('txt-audit-success')}{it('txt-sendCheck')}</label>
             </div>
         )
     }
