@@ -106,9 +106,9 @@ class IncidentLog extends Component {
                                     }
                                 } else if (tempData === 'status') {
                                     if (value === 'success') {
-                                        return <span>{it('txt-send-success')}</span>
+                                        return <span style={{color: '#008B02'}}>{it('txt-send-success')}</span>
                                     } else if (value === 'fail') {
-                                        return <span>{it('txt-send-fail')}</span>
+                                        return <span style={{color: '#DB3E00'}}>{it('txt-send-fail')}</span>
                                     }
                                 } else {
                                     return <span>{value}</span>
