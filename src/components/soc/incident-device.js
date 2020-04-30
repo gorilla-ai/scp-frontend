@@ -769,7 +769,7 @@ class IncidentDevice extends Component {
             confirmText: it('txt-send'),
             cancelText: t('txt-cancel'),
             display: <div className='content delete'>
-                <span>{it('txt-sendCheckHealth')}?</span>
+                <span>{it('txt-sendCheckHealth')}</span>
             </div>,
             act: (confirmed) => {
                 if (confirmed) {
