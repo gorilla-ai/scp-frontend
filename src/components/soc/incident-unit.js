@@ -165,7 +165,13 @@ class IncidentUnit extends Component {
                                 } else if (tempData === 'updateDttm') {
                                     return <span>{helper.getFormattedDate(value, 'local')}</span>
                                 } else if (tempData === 'isDefault') {
-                                    return <span>{this.checkDefault(value)}</span>
+
+                                    if (value){
+                                        return <span style={{color:'#0833d5'}}>{this.checkDefault(value)}</span>
+                                    }else {
+                                        return <span>{this.checkDefault(value)}</span>
+                                    }
+
                                 } else if (tempData === '_menu') {
                                     return (
                                         <div className='table-menu menu active'>
