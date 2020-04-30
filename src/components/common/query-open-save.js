@@ -317,6 +317,7 @@ class QueryOpenSave extends Component {
     if (type === 'id') {
       tempQueryData.id = value;
       tempQueryData.openFlag = true;
+      tempQueryData.query = {};
 
       _.forEach(queryData.list, val => {
         if (val.id === value) {
@@ -333,9 +334,11 @@ class QueryOpenSave extends Component {
             });
           })
 
-          tempQueryData.query = {
-            filter: formattedQueryText
-          };
+          tempQueryData.query.filter = formattedQueryText;
+
+          if (activeTab === 'logs') {
+            tempQueryData.query.search = val.queryText.search;
+          }
         }
       })
 
