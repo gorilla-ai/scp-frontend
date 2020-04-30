@@ -164,11 +164,6 @@ class Incident extends Component {
     handleRowContextMenu = (allValue, evt) => {
         const menuItems = [
             {
-                id: 'view',
-                text: t('txt-view'),
-                action: () => this.getIncident(allValue.id)
-            },
-            {
                 id: 'download',
                 text: it('txt-download'),
                 action: () => this.getIncidentSTIXFile(allValue.id)
@@ -180,20 +175,29 @@ class Incident extends Component {
             text: t('txt-delete'),
             action: () => this.openDeleteMenu(allValue)
         };
+        let viewItem = {
+            id: 'view',
+            text: t('txt-view'),
+            action: () => this.getIncident(allValue.id)
+        }
+
         if (allValue.status === 1) {
             item = {
                 id: 'audit',
                 text: it('txt-audit'),
                 action: () => this.getIncident(allValue.id)
             };
+            menuItems.push(viewItem);
             menuItems.push(item);
-            menuItems.push(itemDelete)
+            menuItems.push(itemDelete);
+
         } else if (allValue.status === 2) {
             item = {
                 id: 'send',
                 text: it('txt-send'),
                 action: () => this.sendIncident(allValue.id)
             };
+            menuItems.push(viewItem);
             menuItems.push(itemDelete);
             menuItems.push(item);
         }
