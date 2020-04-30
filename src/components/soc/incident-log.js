@@ -79,7 +79,6 @@ class IncidentLog extends Component {
         helper.getAjaxData('POST', url, data)
             .then(data => {
                 if (data) {
-                    console.log("data = ", data)
                     let tempLog = {...incidentLog};
                     tempLog.dataContent = data.rows;
                     tempLog.totalCount = data.counts;

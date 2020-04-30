@@ -101,7 +101,6 @@ class Notifications extends Component {
       if (data) {
         const data1 = data[0];
         const data2 = data[1];
-        console.log("data = ", data)
         const notifications = {
           server: data1.smtpServer,
           port: data1.smtpPort,

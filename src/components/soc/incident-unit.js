@@ -479,7 +479,6 @@ class IncidentUnit extends Component {
             contentType: 'text/plain'
         })
             .then(data => {
-                console.log("data = ", data)
                 tmpIncidentUnit.info.isUse = data.rt.isUse;
                 tmpIncidentUnit.info.isDefault = data.rt.isDefault;
 
