@@ -284,7 +284,7 @@ const helper = {
             let formattedQueryText = [];
             tempQueryData.id = data[0].id;
             tempQueryData.name = data[0].name;
-            tempQueryData.patternId = data[0].patternId;
+            tempQueryData.query = {};
 
             _.forEach(data[0].queryText.filter, val => {
               let formattedValue = val.condition.toLowerCase();
@@ -296,9 +296,12 @@ const helper = {
               });
             })
 
-            tempQueryData.query = {
-              filter: formattedQueryText
-            };
+            tempQueryData.query.filter = formattedQueryText;
+
+            if (type === 'syslog') {
+              tempQueryData.query.search = data[0].queryText.search;
+            }
+
             tempQueryData.list = data;
             tempQueryData.pattern = {
               name: '',

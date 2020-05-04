@@ -32,7 +32,6 @@ import SeverityTable from './components/configuration/edge/severity'
 import UserAccounts from './components/configuration/user/accounts/index'
 import UserPrivileges from './components/configuration/user/privileges/index'
 
-import {setupConfigService} from 'widget-builder'
 import {BaseDataContext, baseData} from './components/common/context'
 
 import {createInstance, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -236,8 +235,6 @@ function start() {
   const customLocale = cfg.customLocale;
   let url = '';
 
-  setupConfigService('http:\//192.168.11.230:4001');
-
   $.ajaxPrefilter((options) => {
     options.url = cfg.contextRoot + options.url;
   });
@@ -304,8 +301,6 @@ function start() {
           </BrowserRouter>
         ), document.getElementById('app-container'))
       })
-
-
     })
 }
 

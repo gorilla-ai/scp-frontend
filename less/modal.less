@@ -22,6 +22,7 @@ html {
 
   --relationshipBackground: #e3f2f9;
   --dialogFormGroup: #ededed;
+  --syncRule: #d9d9d9;
 }
 html[data-theme='dark'] {
   --primaryContentHeader: #069bda;
@@ -47,6 +48,7 @@ html[data-theme='dark'] {
 
   --relationshipBackground: #1f1e1e;
   --dialogFormGroup: #333;
+  --syncRule: #333;
 }
 
 .c-modal {
@@ -116,8 +118,8 @@ html[data-theme='dark'] {
       text-decoration: underline;
     }
     &.key {
-      font-weight: bold;
       float: left;
+      font-weight: bold;
       width: 18%;
       display: inline-block;
     }
@@ -127,15 +129,15 @@ html[data-theme='dark'] {
       word-wrap: break-word;
       .value-input {
         color: var(--primaryTextColor);
-        background-color: var(--primaryContentBackground);
-        border: none;
         padding: 0;
+        border: none;
+        background-color: var(--primaryContentBackground);
       }
     }
   }
   i.fg-menu {
-    width: 28px;
     font-size: 26px;
+    width: 28px;
     cursor: row-resize;
     &.flow {
       float: right;
@@ -205,10 +207,10 @@ html[data-theme='dark'] {
 .modal-dialog,
 #viewJsonDialog-dialog {
   .json-data {
+    height: 680px;
     overflow-y: auto;
     border: 1px solid var(--primaryBorder);
     border-radius: 5px;
-    height: 680px;
     & > li {
       padding: 5px 10px;
       ul {
@@ -222,11 +224,11 @@ html[data-theme='dark'] {
     bottom: 10px;
     .buttons {
       button {
-        color: var(--paginationBtnColor);
-        background-color: var(--paginationBtnBackground);
         float: left;
+        color: var(--paginationBtnColor);
         margin-right: 10px;
         margin-top: 10px;
+        background-color: var(--paginationBtnBackground);
         &:hover:not([disabled]) {
           background-color: var(--buttonHoverColor);
         }
@@ -234,12 +236,12 @@ html[data-theme='dark'] {
     }
     .count {
       float: left;
-      background-color: #d0021b;
-      color: #fff;
-      border-radius: 50%;
       font-size: 5px;
-      margin-top: 12px;
+      color: #fff;
       padding: 5px;
+      margin-top: 12px;
+      border-radius: 50%;
+      background-color: #d0021b;
     }
   }
   footer {
@@ -252,8 +254,8 @@ html[data-theme='dark'] {
   padding: 0;
   header {
     font-size: 1.2em;
-    color: var(--primaryContentHeader);
     font-weight: bold;
+    color: var(--primaryContentHeader);
     padding: 15px;
   }
   .content {
@@ -309,9 +311,9 @@ html[data-theme='dark'] {
           text-decoration: underline;
         }
         &.key {
-          font-weight: bold;
           float: left;
           width: 25%;
+          font-weight: bold;
           display: inline-block;
           &.short {
             width: 15%;
@@ -352,16 +354,16 @@ html[data-theme='dark'] {
           }
           i {
             float: right;
-            margin-top: 1px;
             color: grey;
+            margin-top: 1px;
           }
         }
       }
       .data {
         textarea {
           color: var(--primaryTextColor);
-          background-color: var(--formBackground);
           border: 1px solid var(--formInputBorderColor);
+          background-color: var(--formBackground);
         }
       }
     }
@@ -377,10 +379,10 @@ html[data-theme='dark'] {
 #viewJsonDialog-dialog {
   header {
     font-size: 1.2em;
-    color: var(--primaryContentHeader);
-    background-color: var(--primaryContentBackground);
     font-weight: bold;
+    color: var(--primaryContentHeader);
     padding: 15px;
+    background-color: var(--primaryContentBackground);
   }
   footer {
     padding: 10px;
@@ -503,17 +505,17 @@ html[data-theme='dark'] {
   }
   .scan-info {
     overflow: hidden;
-    margin-top: 10px;
     padding: 10px;
+    margin-top: 10px;
     border: 1px solid var(--primaryBorder);
     border-radius: 5px;
-    background-color: var(--formGroupBackground);
+    background-color: var(--contentBackground);
     .sync-status {
-      margin-bottom: 10px;
-      background-color: var(--primaryBorder);
       color: #d10d25;
-      border-radius: 5px;
       padding: 5px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      background-color: var(--syncRule);
       .fg-alert-1 {
         float: left;
       }
@@ -532,8 +534,8 @@ html[data-theme='dark'] {
         }
         .btn {
           float: right;
-          margin-left: 10px;
           padding: .3em .5em;
+          margin-left: 10px;
         }
       }
       .table {
@@ -541,16 +543,16 @@ html[data-theme='dark'] {
         .gcb_CceId,
         .gcb_Type,
         .gcb_CompareResult {
-          min-width: 120px;
           text-align: center;
+          min-width: 120px;
         }
         .scan-file_Filesize,
         .scan-file_IsPE,
         .scan-file_IsPEextension,
         .scan-file_IsVerifyTrust,
         .hostIdArrCnt {
-          min-width: 140px;
           text-align: center;
+          min-width: 140px;
         }
         .empty-msg {
           margin-top: 10px;
@@ -575,8 +577,8 @@ html[data-theme='dark'] {
             .path {
               display: flex;
               overflow-wrap: break-word;
-              padding: 5px 10px 8px 10px;
               color: var(--primaryTextColor);
+              padding: 5px 10px 8px 10px;
               background-color: var(--primaryContentBackground);
               cursor: pointer;
               i.fg {
@@ -665,11 +667,10 @@ html[data-theme='dark'] {
       .scan-wrapper {
         margin-top: 15px;
         .scan-section {
-          margin-bottom: 25px;
+          margin-bottom: 20px;
           padding: 10px;
           border: 1px solid var(--primaryBorder);
           border-radius: 10px;
-          margin-bottom: 20px;
           .scan-header {
             display: block;
             margin-bottom: 10px;
@@ -687,8 +688,8 @@ html[data-theme='dark'] {
   width: 965px;
   max-height: 725px;
   .main-table {
-    border-radius: 5px;
     width: 100%;
+    border-radius: 5px;
     overflow: hidden;
     thead tr {
       color: var(--primaryContentHeader);
@@ -727,29 +728,29 @@ html[data-theme='dark'] {
       }
       .severity {
         display: block;
+        color: #fff;
         width: 90px;
         padding: 2px;
-        color: #fff;
-        border-radius: 10px;
         margin: 0 auto;
         text-align: center;
+        border-radius: 10px;
       }
     }
   }
   .alert-info {
+    padding: 20px;
     margin: 7px 0;
     background-color: var(--alertInfoBckground);
-    padding: 20px;
   }
   .ivar {
     display: flex;
     align-items: center;
     img {
+      float: left;
       width: 100px;
       height: 100px;
-      border-radius: 50%;
-      float: left;
       margin-right: 15px;
+      border-radius: 50%;
     }
     .msg {
       margin-right: 15px;
@@ -815,8 +816,8 @@ html[data-theme='dark'] {
     }
     & > .content {
       position: relative;
-      width: 100%;
       color: var(--primaryTextColor);
+      width: 100%;
       background-color: var(--contentBackground);
       .options-buttons {
         position: absolute;
@@ -924,9 +925,9 @@ html[data-theme='dark'] {
         overflow-y: auto;
         .severity-level {
           display: block;
+          color: #fff;
           width: 90px;
           padding: 2px;
-          color: #fff;
           border-radius: 10px;
           text-align: center;
         }
@@ -1167,15 +1168,15 @@ html[data-theme='dark'] {
   }
   .relationships {
     .group {
+      margin-top: 10px;
       border: 1px solid var(--primaryBorder);
       border-radius: 5px;
-      margin-top: 10px;
       background-color: var(--relationshipBackground);
     }
     .relationship {
+      width: 90%;
       margin-top: 10px;
       margin-bottom: 10px;
-      width: 90%;
       .up {
         display: flex;
         padding: 5px 5px;
@@ -1264,14 +1265,14 @@ html[data-theme='dark'] {
     .fg {
       color: var(--primaryTextColor);
       font-size: 1.8em;
-      border: 1px solid var(--primaryBorder);
       padding: 2px;
-      border-radius: 5px;
       margin-left: 10px;
+      border: 1px solid var(--primaryBorder);
+      border-radius: 5px;
       background-color: var(--primaryContentBackground);
       &.active {
-        background-color: var(--buttonSelectedColor);
         color: #ffffff;
+        background-color: var(--buttonSelectedColor);
         cursor: default;
       }
     }
@@ -1367,8 +1368,8 @@ html[data-theme='dark'] {
     background: none;
     select, input {
       color: var(--primaryTextColor);
-      background-color: var(--formBackground);
       border: 1px solid var(--formInputBorderColor);
+      background-color: var(--formBackground);
     }
     .filter-select {
       width: 215px;

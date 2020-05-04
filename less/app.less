@@ -119,18 +119,18 @@ main.main {
   min-height: 92vh;
 }
 footer.footer {
-  padding: 2px 10px;
   font-size: .9em;
+  padding: 2px 10px;
   &.login {
     position: absolute;
-    color: #fff;
     bottom: 2px;
+    color: #fff;
   }
 }
 /* Temporary Fix for Gis library bug */
 .leaflet-marker-icon.gis-divIcon > div.gis-spot {
-  margin-bottom: 0;
   padding-bottom: 12px;
+  margin-bottom: 0;
 }
 /*******/
 .font-bold {
@@ -143,8 +143,8 @@ footer.footer {
   }
 }
 button {
-  background-color: var(--buttonSelectedColor);
   border: 1px solid var(--primaryBorder);
+  background-color: var(--buttonSelectedColor);
   &[disabled] {
     border: 1px solid var(--primaryBorder);
   }
@@ -164,8 +164,8 @@ button {
 .pure-form textarea,
 .c-file-input > input[type='text']:read-only {
   color: var(--primaryTextColor);
-  background-color: var(--formBackground);
   border: 1px solid var(--formInputBorderColor);
+  background-color: var(--formBackground);
 }
 .pure-form input[type=text],
 .pure-form input[type=password],
@@ -176,8 +176,8 @@ button {
 .pure-form select[readonly],
 .pure-form textarea[readonly] {
   color: var(--formReadOnlyColor);
-  background-color: var(--formReadOnlyBackground);
   border: 1px solid var(--formReadOnlyBorderColor);
+  background-color: var(--formReadOnlyBackground);
 }
 .pure-form input[type='radio']:checked {
   border: 6px solid var(--formCheckRadioColor);
@@ -186,8 +186,8 @@ button {
   }
 }
 .c-tabs > .menu {
-  background-color: var(--primaryContentBackground);
   border-bottom: 1.5px solid var(--leftNavBackground);
+  background-color: var(--primaryContentBackground);
   li {
     color: var(--tabMenuText);
     border-color: var(--primaryContentHeader);
@@ -218,8 +218,8 @@ button {
 .c-table {
   thead {
     color: var(--tableHeaderColor);
-    background-color: var(--primaryBackground);
     border-bottom: 1px solid var(--primaryBorder);
+    background-color: var(--primaryBackground);
   }
   tbody {
     color: var(--primaryTextColor);
@@ -243,8 +243,8 @@ button {
     color: var(--primaryTextColor);
     border-bottom: 1px solid var(--primaryContentBackground);
     &:hover {
-      background-color: var(--tabMenuHover);
       border-bottom: 1px solid var(--primaryContentBackground);
+      background-color: var(--tabMenuHover);
     }
   }  
 }
@@ -270,29 +270,29 @@ button {
     padding-left: 25px;
     padding-right: 25px;
     &.selected {
-      background-color: var(--buttonSelectedColor);
       border-top-color: var(--buttonSelectedColor);
       border-bottom-color: var(--buttonSelectedColor);
       border-left-color: var(--primaryBorder);
       border-right-color: var(--primaryBorder);
+      background-color: var(--buttonSelectedColor);
       &:not(:disabled):hover {
-        background-color: var(--buttonSelectedHover);
         border-top-color: var(--buttonSelectedHover);
         border-bottom-color: var(--buttonSelectedHover);
+        background-color: var(--buttonSelectedHover);
       }
     }
     &:not(.selected) {
       color: var(--primaryTextColor);
-      background-color: var(--buttonBackground);
       border-top-color: var(--primaryBorder);
       border-bottom-color: var(--primaryBorder);
       border-left-color: var(--primaryBorder);
       border-right-color: var(--primaryBorder);
+      background-color: var(--buttonBackground);
       &:not(:disabled):hover {
         color: var(--primaryTextColor);
-        background-color: var(--buttonBackground);
         border-top-color: var(--primaryBorder);
         border-bottom-color: var(--primaryBorder);
+        background-color: var(--buttonBackground);
       }
     }
     &:first-child {
@@ -308,9 +308,7 @@ button {
       a {
         width: 100%;
         height: 100%;
-        padding: 0.3em 0.5em;
-        padding-left: 25px;
-        padding-right: 25px;
+        padding: 0.3em 25px 0.5em 25px;
       }
     }
   }
@@ -355,28 +353,28 @@ i.c-checkbox.fg-checkbox {
 .c-page-nav .thumb {
   &:not(.selected) {
     color: var(--primaryTextColor);
-    background-color: var(--primaryContentBackground);
     border-top-color: var(--primaryBorder);
     border-bottom-color: var(--primaryBorder);
     border-left-color: var(--primaryBorder);
     border-right-color: var(--primaryBorder);
+    background-color: var(--primaryContentBackground);
     &:not(:disabled):hover {
-      background-color: var(--tabMenuHover);
       border-top-color: var(--primaryBorder);
       border-bottom-color: var(--primaryBorder);
+      background-color: var(--tabMenuHover);
     }
   }
   &.current {
     color: #fff;
-    background-color: var(--buttonSelectedColor);
     border-top-color: var(--buttonSelectedColor);
     border-bottom-color: var(--buttonSelectedColor);
     border-left-color: var(--leftNavBackground);
     border-right-color: var(--leftNavBackground);
+    background-color: var(--buttonSelectedColor);
     &:not(:disabled):hover {
-      background-color: var(--pageCurrentHover);
       border-top-color: var(--pageCurrentHover);
       border-bottom-color: var(--pageCurrentHover);
+      background-color: var(--pageCurrentHover);
     }
   }
 }
@@ -384,8 +382,8 @@ i.c-checkbox.fg-checkbox {
   height: 35px;
 }
 .c-box {
-  background-color: var(--primaryContentBackground);
   border: 1px solid var(--primaryBorder);
+  background-color: var(--primaryContentBackground);
   & > header {
     color: var(--primaryContentHeader);
   }
@@ -452,9 +450,9 @@ i.c-checkbox.fg-checkbox {
   }
   .account {
     position: absolute;
-    font-size: 1.8em;
     top: 0;
     right: 15px;
+    font-size: 1.8em;
     cursor: pointer;
   }
 }
@@ -504,7 +502,13 @@ i.c-checkbox.fg-checkbox {
   }
 }
 .main-table {
+  thead th,
+  tbody td {
+    text-align: left;
+    padding-left: 30px;
+  }
   &.align-center {
+    thead th,
     tbody td {
       text-align: center;
       padding-left: 0;
@@ -516,10 +520,10 @@ i.c-checkbox.fg-checkbox {
     position: relative;
     color: #fff;
     height: 45px;
+    min-height: 42px;
     padding: 5px 10px;
     overflow: hidden;
     background-color: var(--subHeaderBackground);
-    min-height: 42px;
     .secondary-btn-group {
       &.left {
         float: left;
@@ -568,8 +572,8 @@ i.c-checkbox.fg-checkbox {
       select,
       input {
         color: var(--primaryTextColor);
-        background-color: var(--buttonBackground);
         border: var(--buttonBorderColor);
+        background-color: var(--buttonBackground);
       }
       .search-type {
         float: left;
@@ -582,9 +586,9 @@ i.c-checkbox.fg-checkbox {
         float: left;
         margin-right: 10px;
         .time-interval {
-          background-color: var(--primaryContentBackground);
           height: 36px;
           box-shadow: none;
+          background-color: var(--primaryContentBackground);
           cursor: pointer;
         }
       }
@@ -609,9 +613,9 @@ i.c-checkbox.fg-checkbox {
   }
   header.main-header {
     position: relative;
-    color: var(--primaryContentHeader);
     font-size: 1.1em;
     font-weight: bold;
+    color: var(--primaryContentHeader);
     padding: 15px;
     border-bottom: 1px solid var(--primaryBorder);
     background-color: var(--primaryContentBackground);
@@ -636,8 +640,8 @@ i.c-checkbox.fg-checkbox {
   }
   .main-statistics { //For all statistics page
     height: 78vh;
-    overflow-y: auto;
     padding: 6px;
+    overflow-y: auto;
     background-color: var(--leftNavBackground);
     .statistics-content {
       display: flex;
@@ -658,14 +662,14 @@ i.c-checkbox.fg-checkbox {
             position: absolute;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%);
             font-size: 1.2em;
+            transform: translate(-50%, -50%);
           }
         }
         header {
-          color: var(--primaryContentHeader);
           font-size: 1.1em;
           font-weight: bold;
+          color: var(--primaryContentHeader);
           padding: 15px;
           border-bottom: 1px solid var(--primaryBorder);
           background-color: var(--primaryContentBackground);
@@ -712,53 +716,53 @@ i.c-checkbox.fg-checkbox {
     span {
       &.red {
         color: #fff;
-        background-color: #B80000;
         padding-left: 10px;
+        background-color: #B80000;
       }
       &.yellow {
         color: #fff;
-        background-color: #FCCB00;
         padding-left: 10px;
+        background-color: #FCCB00;
       }
       &.green {
         color: #fff;
-        background-color: #008B02;
         padding-left: 10px;
+        background-color: #008B02;
       }
       &.darkGreen {
         color: #fff;
-        background-color: #006B76;
         padding-left: 10px;
+        background-color: #006B76;
       }
       &.blue {
         color: #fff;
-        background-color: #1273DE;
         padding-left: 10px;
+        background-color: #1273DE;
       }
       &.orange {
         color: #fff;
-        background-color: #DB3E00;
         padding-left: 10px;
+        background-color: #DB3E00;
       }
       &.darkBlue {
         color: #fff;
-        background-color: #004DCF;
         padding-left: 10px;
+        background-color: #004DCF;
       }
       &.purple {
         color: #fff;
-        background-color: #5300EB;
         padding-left: 10px;
+        background-color: #5300EB;
       }
       &.soil {
         color: #fff;
-        background-color: #C1B748;
         padding-left: 10px;
+        background-color: #C1B748;
       }
       &.brown {
         color: #fff;
-        background-color: #660000;
         padding-left: 10px;
+        background-color: #660000;
       }
     }
   }
@@ -774,10 +778,10 @@ i.c-checkbox.fg-checkbox {
       .chart-group {
         width: 24.4%;
         margin: 5px;
-        background-color: var(--primaryContentBackground);
+        overflow: hidden;
         border: 1px solid var(--primaryBorder);
         border-radius: 5px;
-        overflow: hidden;
+        background-color: var(--primaryContentBackground);
         &.bar,
         &.line {
           width: 49.32%;
@@ -805,14 +809,14 @@ i.c-checkbox.fg-checkbox {
             position: absolute;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%);
             font-size: 1.2em;
+            transform: translate(-50%, -50%);
           }
         }
         header {
-          color: var(--primaryContentHeader);
           font-size: 1.1em;
           font-weight: bold;
+          color: var(--primaryContentHeader);
           padding: 15px;
           border-bottom: 1px solid var(--primaryBorder);
           background-color: var(--primaryContentBackground);
@@ -863,9 +867,9 @@ i.c-checkbox.fg-checkbox {
       position: relative;
       width: 100%;
       min-height: 84vh;
+      padding: 10px 5px;
       border: 1px solid var(--primaryBorder);
       border-radius: 5px;
-      padding: 10px 5px;
       background-color: var(--primaryContentBackground);
       .c-button-group {
         margin: 5px 8px;
@@ -882,9 +886,9 @@ i.c-checkbox.fg-checkbox {
           float: left;
           width: 330px;
           margin-top: 25px;
-          overflow: hidden;
           padding-left: 10px;
           padding-right: 10px;
+          overflow: hidden;
           .empty {
             display: block;
             text-align: center;
@@ -900,15 +904,15 @@ i.c-checkbox.fg-checkbox {
               position: relative;
               color: var(----primaryTextColor);
               height: 70px;
-              background-color: var(--primaryContentBackground);
               border-bottom: 2px solid var(--primaryBorder);
+              background-color: var(--primaryContentBackground);
               cursor: pointer;
               &:hover {
                 background-color: var(--dashboardMapsHover);
               }
               .info {
-                color: var(--dashboardMapsText);
                 font-size: 18px;
+                color: var(--dashboardMapsText);
                 padding: 8px 10px;
                 &.faded {
                   font-style: italic;
@@ -924,8 +928,8 @@ i.c-checkbox.fg-checkbox {
                 top: 10px;
                 right: 10px;
                 width: 70px;
-                padding: 2px;
                 color: #fff;
+                padding: 2px;
                 text-align: center;
                 border-radius: 15px;
               }
@@ -988,8 +992,8 @@ i.c-checkbox.fg-checkbox {
         right: 0;
         height: 100%;
         width: 15px;
-        background-color: var(--leftExpandCollapse);
         border-left: 1px solid var(--leftNavBackground);
+        background-color: var(--leftExpandCollapse);
         cursor: pointer;
         &.not-allowed {
           cursor: not-allowed;
@@ -998,8 +1002,8 @@ i.c-checkbox.fg-checkbox {
           position: absolute;
           top: 380px;
           left: -5px;
-          color: var(--chartAxisLabelColor);
           font-size: 1.5em;
+          color: var(--chartAxisLabelColor);
         }
       }
       label {
@@ -1021,8 +1025,8 @@ i.c-checkbox.fg-checkbox {
         }
       }
       .header-text {
-        color: var(--primaryContentHeader);
         font-size: .9em;
+        color: var(--primaryContentHeader);
         padding: 10px;
         margin-top: 0;
         margin-bottom: 0;
@@ -1064,10 +1068,9 @@ i.c-checkbox.fg-checkbox {
         .button {
           display: none;
           font-size: .5em;
-          color: var(--primaryTextColor);
+          color: var(--buttonTextColor);
           padding: .1em .8em;
           border-radius: 5px;
-          color: var(--buttonTextColor);
           background-color: var(--buttonBackground);
           &.active {
             display: inline-block;
@@ -1251,17 +1254,16 @@ i.c-checkbox.fg-checkbox {
             font-size: 15px;
             color: var(--buttonTextColor);
             margin: 5px;
-            padding: 0;
-            background: none;
             padding: 0 10px;
+            background: none;
           }
           .clear,
           .filter {
             float: right;
+            font-size: 14px;
+            padding: .2em 1em;
             margin-top: 5px;
             margin-left: 5px;
-            padding: .2em 1em;
-            font-size: 14px;
           }
           .clear {
             color: var(--buttonTextColor);
@@ -1315,8 +1317,8 @@ i.c-checkbox.fg-checkbox {
               &.group-checkbox {
                 position: relative;
                 display: flex;
-                margin: 0 5px 5px 5px;
                 padding: 10px;
+                margin: 0 5px 5px 5px;
                 border: 1px solid var(--primaryBorder);
                 border-radius: 5px;
                 background-color: var(--primaryContentBackground);
@@ -1329,9 +1331,9 @@ i.c-checkbox.fg-checkbox {
                     margin-right: 10px;
                     label {
                       float: left;
+                      color: var(--disabledColor);
                       margin-top: 1px;
                       margin-right: 5px;
-                      color: var(--disabledColor);
                       &.active {
                         color: var(--primaryContentHeader);
                       }
@@ -1392,13 +1394,13 @@ i.c-checkbox.fg-checkbox {
       .main-content { //Content below the filter or charts
         position: relative;
         margin: 15px;
+        border: 1px solid var(--primaryBorder);
         border-radius: 5px;
         background-color: var(--primarySubBackground);
-        border: 1px solid var(--primaryBorder);
         overflow: hidden;
         &.basic-form { //For content with form input
-          background-color: var(--primaryContentBackground);
           min-height: 84vh;
+          background-color: var(--primaryContentBackground);
           input,
           select,
           textarea {
@@ -1409,8 +1411,8 @@ i.c-checkbox.fg-checkbox {
             position: absolute;
             bottom: 0;
             width: 100%;
-            text-align: right;
             padding: 15px;
+            text-align: right;
             border-top: 1px solid var(--primaryBorder);
             button {
               margin: 0 5px;
@@ -1425,14 +1427,14 @@ i.c-checkbox.fg-checkbox {
             flex-wrap: wrap;
             justify-content: left;
             text-align: center;
+            width: 70%;
+            padding: 10px 10px 15px 10px;
             margin: 0 auto;
             margin-top: 70px;
             margin-bottom: 40px;
-            width: 70%;
-            padding: 10px 10px 15px 10px;
-            background-color: var(--formGroupBackground);
             border: 1px solid var(--primaryBorder);
             border-radius: 5px;
+            background-color: var(--formGroupBackground);
             #edgeModeDatetime {
               text-align: left;
             }
@@ -1536,8 +1538,8 @@ i.c-checkbox.fg-checkbox {
                   text-align: left;
                   width: 20%;
                   height: 100%;
-                  background-color: var(--primaryContentBackground);
                   border-right: 1px solid var(--primaryBorder);
+                  background-color: var(--primaryContentBackground);
                 }
                 .map {
                   float: left;
@@ -1552,20 +1554,20 @@ i.c-checkbox.fg-checkbox {
               position: absolute;
               top: -40px;
               left: 0;
-              color: var(--primaryContentHeader);
               font-size: 1.2em;
               font-weight: bold;
+              color: var(--primaryContentHeader);
               .text,
               .status {
                 float: left;
                 margin-right: 15px;
               }
               .msg {
-                font-size: 10px;
-                color: var(--primaryTextColor);
-                font-weight: normal;
-                margin-top: 5px;
                 display: block;
+                font-size: 10px;
+                font-weight: normal;
+                color: var(--primaryTextColor);
+                margin-top: 5px;
               }
             }
             button {
@@ -1619,10 +1621,10 @@ i.c-checkbox.fg-checkbox {
                 margin-right: 5px;
               }
               label {
-                text-align: left;
-                color: var(--primaryContentHeader);
-                font-size: .9em;
                 display: block;
+                text-align: left;
+                font-size: .9em;
+                color: var(--primaryContentHeader);
                 margin-bottom: 3px;
                 &.checkbox {
                   float: left;
@@ -1633,10 +1635,10 @@ i.c-checkbox.fg-checkbox {
                 display: flex;
                 flex-wrap: wrap;
                 span {
-                  color: #fff;
                   font-size: 14px;
-                  margin: 3px 2px;
+                  color: #fff;
                   padding: 5px 10px;
+                  margin: 3px 2px;
                   border-radius: 5px;
                   background-color: var(--primaryContentHeader);
                 }
@@ -1712,8 +1714,8 @@ i.c-checkbox.fg-checkbox {
               cursor: default;
               &.active {
                 color: #fff;
-                background-color: var(--formEmailGroup);
                 border: 3px solid var(--formEmailGroup);
+                background-color: var(--formEmailGroup);
               }
               .wrapper {
                 width: 39px;
@@ -1728,9 +1730,9 @@ i.c-checkbox.fg-checkbox {
               }
               .text {
                 position: absolute;
-                color: var(--primaryTextColor);
                 top: 55px;
                 font-size: 14px;
+                color: var(--primaryTextColor);
                 &.text1 {
                   left: -4px;
                 }
@@ -1916,10 +1918,10 @@ i.c-checkbox.fg-checkbox {
                 //   font-weight: bold;
                 // }
                 &.permit {
-                  color: #fff;
                   font-size: 15px;
-                  margin: 5px 2px;
+                  color: #fff;
                   padding: 5px 10px;
+                  margin: 5px 2px;
                   border-radius: 5px;
                   background-color: var(--primaryContentHeader);
                 }
@@ -1938,8 +1940,8 @@ i.c-checkbox.fg-checkbox {
               &.severityLevel {
                 span.severity {
                   float: left;
-                  color: #fff;
                   width: 90px;
+                  color: #fff;
                   padding: 2px;
                   text-align: center;
                   border-radius: 10px;
@@ -2051,11 +2053,11 @@ i.c-checkbox.fg-checkbox {
           }
           .map {
             float: left;
-            text-align: center;
             width: 80%;
+            min-height: 80vh;
+            text-align: center;
             padding-top: 80px;
             background-color: var(--formGroupBackground);
-            min-height: 80vh;
           }
         }
         .csv-section {
@@ -2128,19 +2130,19 @@ i.c-checkbox.fg-checkbox {
       color: #000;
     }
     .count {
-      background-color: #d0021b;
-      color: #fff;
-      border-radius: 100%;
       font-size: 5px;
+      color: #fff;
       padding: 2px;
+      border-radius: 100%;
+      background-color: #d0021b;
     }
   }
   .privateIp-info { //For Config Topology Network Inventory
-    background-color: var(--primaryContentBackground);
     min-height: 84vh;
+    background-color: var(--primaryContentBackground);
     header {
-      color: var(--primaryContentHeader);
       font-weight: bold;
+      color: var(--primaryContentHeader);
       padding: 15px;
       border-bottom: 1px solid var(--primaryBorder);
       background-color: var(--primaryContentBackground);
@@ -2154,15 +2156,15 @@ i.c-checkbox.fg-checkbox {
       }
     }
     .private {
-      margin: 0 auto;
       padding: 20px 0;
+      margin: 0 auto;
       section {
         padding-right: 0 !important;
       }
     }
     .main-table {
-      border-radius: 5px;
       width: 100%;
+      border-radius: 5px;
       overflow: hidden;
       thead tr {
         color: var(--primaryContentHeader);
@@ -2183,8 +2185,8 @@ i.c-checkbox.fg-checkbox {
     .private {
       section {
         position: relative;
-        margin-bottom: 30px;
         padding-right: 10px;
+        margin-bottom: 30px;
         overflow: hidden;
         clear: both;
         &.last {
@@ -2205,12 +2207,12 @@ i.c-checkbox.fg-checkbox {
         }
         img.owner-pic {
           float: left;
-          display: block;
           width: 20%;
-          border-radius: 50%;
-          margin-bottom: 20px;
+          display: block;
           margin-right: 5%;
+          margin-bottom: 20px;
           margin-left: 5%;
+          border-radius: 50%;
         }
         .btn.trigger {
           position: absolute;

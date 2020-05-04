@@ -386,6 +386,7 @@ class QueryOpenSave extends Component {
     if (type === 'id') {
       tempQueryData.id = value;    
       tempQueryData.openFlag = true;
+      tempQueryData.query = {};
 
       tempQueryData.pattern = {
         name: '',
@@ -415,9 +416,11 @@ class QueryOpenSave extends Component {
             });
           })
 
-          tempQueryData.query = {
-            filter: formattedQueryText
-          };
+          tempQueryData.query.filter = formattedQueryText;
+
+          if (activeTab === 'logs') {
+            tempQueryData.query.search = val.queryText.search;
+          }
 
           if (val.patternName) {
             tempQueryData.pattern.name = val.patternName;
