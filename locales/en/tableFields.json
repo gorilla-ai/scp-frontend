@@ -544,7 +544,6 @@
     "relatedList": "Related List",
     "rule": "Rule",
     "dateRange": "Time Range",
-    "frequency": "Frequency",
     "srcIp": "Source IP",
     "srcPort": "Source Port",
     "srcHostname": "Source Hostname",
@@ -573,9 +572,11 @@
     "level": "Unit Level",
     "industryType": "Unit Industry",
     "frequency": "Trigger Frequency",
+    "note": "Note",
     "updateDttm": "Last Update Time",
     "abbreviation": "Unit Abbreviation",
-    "type": "Incident Type"
+    "type": "Incident Type",
+    "select": "Send or Not"
   },
   "severityTableFields": {
     "dataSourceType": "Type",

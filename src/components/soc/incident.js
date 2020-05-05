@@ -1078,7 +1078,22 @@ class Incident extends Component {
             .then(data => {
                 if (data) {
                     let list = _.map(data.rt.rows, val => {
-                        return {value: val.id, text: val.id}
+                        let ipContent = '';
+
+                        if (val.eventList) {
+                            val.eventList = _.map(val.eventList, el => {
+                                if (el.eventConnectionList) {
+                                    el.eventConnectionList = _.map(el.eventConnectionList, ecl => {
+                                        ipContent += '(' + it('txt-srcIp')+ ': ' + ecl.srcIp + ')'
+                                    })
+                                }
+                            })
+                        }
+
+                        return {
+                            value: val.id,
+                            text: val.id + ' (' + it(`category.${val.category}`) + ')' + ipContent
+                        }
                     });
 
                     this.setState({relatedListOptions: list})
@@ -1087,7 +1102,6 @@ class Incident extends Component {
             .catch(err => {
                 helper.showPopupMsg('', t('txt-error'), err.message)
             });
-
 
         ah.one({
             url: `${baseUrl}/api/soc/device/_search`,

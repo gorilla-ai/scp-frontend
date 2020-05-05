@@ -40,6 +40,7 @@
 	"txt-ttp-obs-file": "File",
 	"txt-ttp-obs-uri": "URI",
 	"txt-ttp-obs-socket": "Socket",
+	"txt-srcIp": "Source IP",
 	"unit": {
 		"txt-default": "Default Unit",
 		"txt-isDefault": "Yes",

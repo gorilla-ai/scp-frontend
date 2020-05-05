@@ -40,6 +40,7 @@
 	"txt-ttp-obs-file": "惡意程式",
 	"txt-ttp-obs-uri": "URI",
 	"txt-ttp-obs-socket": "Socket",
+	"txt-srcIp": "來源IP",
 	"unit": {
 		"txt-default": "預設機關",
 		"txt-isDefault": "是",

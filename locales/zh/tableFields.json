@@ -543,7 +543,6 @@
     "relatedList": "關聯事件單",
     "rule": "觸發規則",
     "dateRange": "起訖時間",
-    "frequency": "觸發事件量",
     "srcIp": "來源IP",
     "srcPort": "來源Port",
     "srcHostname": "來源主機",
@@ -571,10 +570,12 @@
     "name": "機關名稱",
     "level": "機關等級",
     "industryType": "機關領域",
+    "note": "備註",
     "frequency": "觸發次數",
     "updateDttm": "最後更新時間",
     "abbreviation": "機關英文簡稱",
-    "type": "事件單類型"
+    "type": "事件單類型",
+    "select": "是否發布"
   },
   "severityTableFields": {
     "dataSourceType": "Type",

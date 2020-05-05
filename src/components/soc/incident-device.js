@@ -12,6 +12,8 @@ import DropDownList from "react-ui/build/src/components/dropdown";
 import Textarea from "react-ui/build/src/components/textarea";
 import {downloadWithForm} from "react-ui/build/src/utils/download";
 import {Link} from "react-router-dom";
+import Checkbox from "react-ui/build/src/components/checkbox";
+import SelecTableContent from "../common/selectable-content";
 
 const INCIDENT = "incident";
 const DEVICE = "device";
@@ -79,6 +81,48 @@ class IncidentDevice extends Component {
                 value: '',
                 text: ''
             }],
+            sendCheck: {
+                sendStatus: false,
+            },
+            healthStatistic: {
+                dataFieldsArr: ['select', 'deviceId', 'deviceName', 'frequency', 'note', 'protectTypeInfo', 'incidentUnitDTO.name', 'incidentUnitDTO.level'],
+                dataFields: {},
+                dataContent: [],
+                rowIdField: [],
+                sort: {
+                    field: 'deviceId',
+                    desc: false
+                },
+                totalCount: 0,
+                currentPage: 1,
+                pageSize: 20,
+                edgeItem: '',
+                usedDeviceIdList: [],
+                sendDataDeviceList: [],
+                selected: {
+                    ids: [],
+                    eventInfo: {
+                        before: [],
+                        id: null,
+                        selected: true
+                    }
+                },
+                info: {
+                    id: '',
+                    unitId: '',
+                    deviceId: '',
+                    deviceName: '',
+                    deviceCompany: '',
+                    unitOid: '',
+                    unitName: '',
+                    unitLevel: 'A',
+                    frequency: null,
+                    protectType: '0',
+                    protectTypeInfo: '',
+                    note: '',
+                    updateDttm: ''
+                }
+            },
             incidentDevice: {
                 dataFieldsArr: ['deviceId', 'deviceName', 'protectTypeInfo', 'incidentUnitDTO.name', 'incidentUnitDTO.level', 'frequency', 'updateDttm', '_menu'],
                 dataFields: {},
@@ -116,6 +160,28 @@ class IncidentDevice extends Component {
     componentDidMount() {
         this.getDeviceData();
         this.getUnitList();
+        this.getSendCheck();
+    }
+
+    getSendCheck() {
+        const {baseUrl, contextRoot} = this.context;
+        let tempSendCheck = {...this.state.sendCheck};
+        ah.one({
+            url: `${baseUrl}/api/soc/device/_status`,
+            type: 'GET'
+        })
+            .then(data => {
+                if (data) {
+                    tempSendCheck.sendStatus = data.rt
+                    this.setState({
+                        sendCheck: tempSendCheck
+                    })
+                }
+            })
+            .catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message)
+            });
+
     }
 
     /**
@@ -192,8 +258,112 @@ class IncidentDevice extends Component {
             .catch(err => {
                 helper.showPopupMsg(t('txt-error'));
             });
+    };
 
 
+    /**
+     * Set Incident Device table data before send to FTP
+     * @method
+     * @param {string} fromSearch - option for the 'search'
+     */
+    setupHealthStatisticData = (fromSearch) => {
+        const {baseUrl, contextRoot} = this.context;
+        const {deviceSearch, healthStatistic} = this.state;
+        const url = `${baseUrl}/api/soc/device/_search?page=${healthStatistic.currentPage}&pageSize=${healthStatistic.pageSize}`;
+        let data = {};
+
+        if (deviceSearch.keyword) {
+            data.keyword = deviceSearch.keyword;
+        }
+
+        helper.getAjaxData('POST', url, data)
+            .then(data => {
+                if (data) {
+
+                    let tempStatistic = {...healthStatistic};
+                    tempStatistic.dataContent = data.rows;
+                    tempStatistic.totalCount = data.counts;
+                    tempStatistic.currentPage = fromSearch === 'search' ? 1 : healthStatistic.currentPage;
+
+                    let sendDeviceDateList = [];
+                    let usedDeviceIdList = [];
+                    _.forEach(tempStatistic.dataContent, deviceItem => {
+                        deviceItem.select = true;
+
+                        let tempSend = {
+                            id: deviceItem.id,
+                            deviceId: deviceItem.deviceId,
+                            frequency: deviceItem.frequency,
+                            note: deviceItem.note
+                        }
+                        sendDeviceDateList.push(tempSend);
+                        let tmp = {
+                            deviceId: deviceItem.deviceId
+                        }
+                        usedDeviceIdList.push(tmp);
+                    })
+
+                    tempStatistic.usedDeviceIdList = usedDeviceIdList
+
+                    this.setState({
+                        usedDeviceIdList: usedDeviceIdList
+                    });
+
+
+                    tempStatistic.sendDataDeviceList = sendDeviceDateList;
+
+
+                    let dataFields = {};
+                    tempStatistic.dataFieldsArr.forEach(tempData => {
+                        dataFields[tempData] = {
+                            label: tempData === '_menu' ? '' : f(`incidentFields.${tempData}`),
+                            sortable: this.checkSortable(tempData),
+                            formatter: (value, allValue, i) => {
+
+                                if (tempData === 'select') {
+                                    return <Checkbox
+                                        id={allValue.deviceId + '_che'}
+                                        onChange={this.handleSendDataChange.bind(this, 'select', allValue.deviceId)}
+                                        checked={value}
+                                    />
+                                }
+
+                                if (tempData === 'frequency') {
+                                    return <Input
+                                        id={allValue.deviceId + '_fre'}
+                                        onChange={this.handleSendDataChange.bind(this, "frequency", allValue.deviceId)}
+                                        value={value}
+                                        readOnly={!allValue.select}
+                                    />
+                                } else if (tempData === 'note') {
+                                    return <Input
+                                        id={allValue.deviceId + '_note'}
+                                        onChange={this.handleSendDataChange.bind(this, "note", allValue.deviceId)}
+                                        value={value}
+                                        readOnly={!allValue.select}
+                                    />
+                                } else if (tempData === 'updateDttm') {
+                                    return <span>{helper.getFormattedDate(value, 'local')}</span>
+                                } else {
+                                    return <span>{value}</span>
+                                }
+                            }
+                        };
+                    });
+
+                    tempStatistic.dataFields = dataFields;
+
+                    this.setState({
+                        healthStatistic: tempStatistic,
+                        activeContent: "sendList",
+                    });
+
+                }
+                return null;
+            })
+            .catch(err => {
+                helper.showPopupMsg(t('txt-error'));
+            });
     };
 
     getUnitList = () => {
@@ -225,7 +395,7 @@ class IncidentDevice extends Component {
 
     /* ------------------ View ------------------- */
     render() {
-        const {activeContent, baseUrl, contextRoot, showFilter, incidentDevice} = this.state;
+        const {activeContent, baseUrl, contextRoot, sendCheck, showFilter, incidentDevice, healthStatistic} = this.state;
 
         return (
             <div>
@@ -252,10 +422,21 @@ class IncidentDevice extends Component {
                         <div className='main-content'>
                             <header className='main-header'>{it('txt-incident-device')}</header>
                             <div className='content-header-btns'>
+                                {activeContent === 'tableList' &&
+                                <span>自動發布</span>
+                                }
+                                {activeContent === 'tableList' &&
+                                <Checkbox
+                                    id='isDefault'
+                                    onChange={this.handleStatusChange.bind(this, 'isDefault')}
+                                    checked={sendCheck.sendStatus}
+                                    disabled={activeContent === 'viewDevice'}/>
+                                }
 
                                 {activeContent === 'tableList' &&
                                 <button className='standard btn list'
                                         onClick={this.openSendMenu.bind()}>{it('txt-sendHealthCsv')}</button>
+
                                 }
 
                                 {activeContent === 'viewDevice' &&
@@ -281,6 +462,32 @@ class IncidentDevice extends Component {
                         </div>
                         }
 
+                        {activeContent === 'sendList' &&
+                        <div className='main-content'>
+
+                            <header className='main-header'>{it('txt-incident-device')}</header>
+                            <div className='content-header-btns'>
+
+                                <button className='standard btn edit'
+                                        onClick={this.sendCsv_v2.bind(this)}>{it('txt-send')}</button>
+                                <button className='standard  btn edit'
+                                        onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-cancel')}</button>
+                            </div>
+
+                            <SelecTableContent
+                                dataTableData={healthStatistic.dataContent}
+                                dataTableFields={healthStatistic.dataFields}
+                                dataTableSort={healthStatistic.sort}
+                                paginationTotalCount={healthStatistic.totalCount}
+                                paginationPageSize={healthStatistic.pageSize}
+                                paginationCurrentPage={healthStatistic.currentPage}
+                                handleTableSort={this.handleTableSort}
+                                paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
+                                paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')}
+                            />
+                        </div>
+                        }
+
                         {(activeContent === 'viewDevice' || activeContent === 'editDevice' || activeContent === 'addDevice') &&
                         this.displayEditDeviceContent()
                         }
@@ -291,7 +498,7 @@ class IncidentDevice extends Component {
     }
 
 
-    /** TODO
+    /**
      * Display edit IncidentDevice content
      * @method
      * @returns HTML DOM
@@ -635,6 +842,19 @@ class IncidentDevice extends Component {
         });
     };
 
+
+    // handleSelectionChange = (type, value, eventInfo) => {
+    //     console.log("type = ", type)
+    //     console.log("value = ", value[0])
+    //     console.log("eventInfo = ", eventInfo)
+    //     let tempHealthStatistic = {...this.state.healthStatistic};
+    //     tempHealthStatistic.selected.ids.push(value[0])
+    //     console.log("tempHealthStatistic.selected.ids = ", tempHealthStatistic.selected.ids)
+    //     this.setState({
+    //         healthStatistic: tempHealthStatistic
+    //     });
+    // }
+
     /**
      * Check table sort
      * @method
@@ -749,7 +969,49 @@ class IncidentDevice extends Component {
         })
             .then(data => {
                 helper.showPopupMsg(it('txt-send-success'), it('txt-send'));
-                return null
+                this.setState({
+                    activeContent: "tableList",
+                }, () => {
+                    this.getDeviceData();
+                });
+            })
+            .catch(err => {
+                helper.showPopupMsg(it('txt-send-fail'), it('txt-send'));
+            })
+    };
+
+    /**
+     *
+     */
+    sendCsv_v2 = () => {
+        const {baseUrl} = this.context;
+        let tempList = {...this.state.healthStatistic.dataContent}
+
+        let sendList = []
+        _.forEach(tempList, sendTemp => {
+            let tmp = {
+                id: sendTemp.id,
+                select: sendTemp.select,
+                frequency: sendTemp.frequency,
+                note: sendTemp.note
+            }
+            sendList.push(tmp)
+        })
+
+        ah.one({
+            url: `${baseUrl}/api/soc/device/_sendV2`,
+            data: JSON.stringify(sendList),
+            type: 'POST',
+            contentType: 'application/json',
+            dataType: 'json'
+        })
+            .then(data => {
+                helper.showPopupMsg(it('txt-send-success'), it('txt-send'));
+                // this.setState({
+                //     activeContent: "tableList",
+                // }, () => {
+                //     this.getDeviceData();
+                // });
             })
             .catch(err => {
                 helper.showPopupMsg(it('txt-send-fail'), it('txt-send'));
@@ -763,20 +1025,21 @@ class IncidentDevice extends Component {
      * @param {object} allValue - IncidentDevice data
      */
     openSendMenu = () => {
-        PopupDialog.prompt({
-            title: it('txt-send'),
-            id: 'modalWindowSmall',
-            confirmText: it('txt-send'),
-            cancelText: t('txt-cancel'),
-            display: <div className='content delete'>
-                <span>{it('txt-sendCheckHealth')}</span>
-            </div>,
-            act: (confirmed) => {
-                if (confirmed) {
-                    this.sendCsv()
-                }
-            }
-        })
+        this.setupHealthStatisticData();
+        // PopupDialog.prompt({
+        //     title: it('txt-send'),
+        //     id: 'modalWindowSmall',
+        //     confirmText: it('txt-send'),
+        //     cancelText: t('txt-cancel'),
+        //     display: <div className='content delete'>
+        //         <span>{it('txt-sendCheckHealth')}</span>
+        //     </div>,
+        //     act: (confirmed) => {
+        //         if (confirmed) {
+        //             this.sendCsv()
+        //         }
+        //     }
+        // })
     };
 
     /**
@@ -856,6 +1119,105 @@ class IncidentDevice extends Component {
                 incidentDevice: tempDevice
             });
         }
+    };
+
+    /**
+     * Handle Incident Device edit input data change
+     * @method
+     * @param {string} type - input type
+     * @param {string} value - input value
+     * @param {string} deviceId - input value
+     */
+    handleSendDataChange = (type, deviceId, value) => {
+        console.log("type", type)
+        console.log("deviceId", deviceId)
+        console.log("value", value)
+        let tempSendDevice = {...this.state.healthStatistic};
+        let edgeItemList = {...this.state.edgeList};
+        let dataFromEdgeDevice = this.state.dataFromEdgeDevice;
+
+
+        if (type === 'edgeDevice') {
+            tempSendDevice.edgeItem = value;
+            _.forEach(edgeItemList, val => {
+                if (val.agentId === value) {
+                    tempSendDevice.info.deviceId = val.agentId
+                    tempSendDevice.info.deviceName = val.agentName
+                    tempSendDevice.info.deviceCompany = val.agentCompany
+                } else {
+                    tempSendDevice.info.deviceId = ''
+                    tempSendDevice.info.deviceName = ''
+                    tempSendDevice.info.deviceCompany = ''
+                }
+            })
+
+            if (tempSendDevice.info.deviceId.length !== 0) {
+                dataFromEdgeDevice = true;
+            } else {
+                dataFromEdgeDevice = false;
+            }
+
+            this.setState({
+                healthStatistic: tempSendDevice,
+                dataFromEdgeDevice: dataFromEdgeDevice
+            });
+        } else {
+
+            _.forEach(tempSendDevice.dataContent, data => {
+
+                if (deviceId === data.deviceId) {
+                    if (type === 'frequency') {
+                        data.frequency = value
+                    } else if (type === 'note') {
+                        data.note = value
+                    } else if (type === 'select') {
+                        data.select = value;
+                    }
+                }
+
+            })
+
+            // tempSendDevice.info[type] = value;
+            this.setState({
+                healthStatistic: tempSendDevice
+            });
+        }
+
+
+    };
+
+
+    /**
+     * Handle Incident Device edit checkBox data change
+     * @method
+     * @param {string} type - input type
+     * @param {string} value - input value
+     */
+    handleStatusChange = (type, value) => {
+        let tempSendCheck = {...this.state.sendCheck};
+        const {baseUrl, contextRoot} = this.context;
+
+        tempSendCheck.sendStatus = !this.state.sendCheck.sendStatus;
+
+
+        ah.one({
+            url: `${baseUrl}/api/soc/device/_override`,
+            data: JSON.stringify(tempSendCheck),
+            type: 'POST',
+            contentType: 'application/json',
+            dataType: 'json'
+        })
+            .then(data => {
+                if (data) {
+                    tempSendCheck.sendStatus = data.rt
+                    this.setState({
+                        sendCheck: tempSendCheck
+                    })
+                }
+            })
+            .catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message)
+            });
     };
 
     /**
