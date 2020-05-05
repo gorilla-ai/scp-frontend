@@ -41,6 +41,7 @@
 	"txt-ttp-obs-uri": "URI",
 	"txt-ttp-obs-socket": "Socket",
 	"txt-srcIp": "Source IP",
+	"txt-autoSend": "Monthly Auto",
 	"unit": {
 		"txt-default": "Default Unit",
 		"txt-isDefault": "Yes",

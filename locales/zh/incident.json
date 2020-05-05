@@ -41,6 +41,7 @@
 	"txt-ttp-obs-uri": "URI",
 	"txt-ttp-obs-socket": "Socket",
 	"txt-srcIp": "來源IP",
+	"txt-autoSend": "每月自動發布",
 	"unit": {
 		"txt-default": "預設機關",
 		"txt-isDefault": "是",

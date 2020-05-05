@@ -423,7 +423,7 @@ class IncidentDevice extends Component {
                             <header className='main-header'>{it('txt-incident-device')}</header>
                             <div className='content-header-btns'>
                                 {activeContent === 'tableList' &&
-                                <span>自動發布</span>
+                                <span>{it('txt-autoSend')}</span>
                                 }
                                 {activeContent === 'tableList' &&
                                 <Checkbox
