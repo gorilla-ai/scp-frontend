@@ -73,6 +73,9 @@ class Incident extends Component {
     }
 
     componentDidMount() {
+        const {locale, sessionRights} = this.context;
+        helper.getPrivilegesInfo(sessionRights, 'config', locale);
+
         let alertDataId = this.getQueryString('alertDataId');
         let alertData = sessionStorage.getItem(alertDataId);
         if (alertData) {

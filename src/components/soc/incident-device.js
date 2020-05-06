@@ -158,6 +158,10 @@ class IncidentDevice extends Component {
     }
 
     componentDidMount() {
+        const {locale, sessionRights} = this.context;
+
+        helper.getPrivilegesInfo(sessionRights, 'config', locale);
+
         this.getDeviceData();
         this.getUnitList();
         this.getSendCheck();
