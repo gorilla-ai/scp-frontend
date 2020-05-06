@@ -16,64 +16,6 @@ let f = null;
 let et = null;
 let it = null;
 
-const INDUSTRY_TYPE_LIST = [
-    {
-        value: '0',
-        text: '能源'
-    },
-    {
-        value: '1',
-        text: '水資源'
-    },
-    {
-        value: '2',
-        text: '通訊傳播'
-    },
-    {
-        value: '3',
-        text: '交通'
-    },
-    {
-        value: '4',
-        text: '金融'
-    },
-    {
-        value: '5',
-        text: '緊急救援及醫院'
-    },
-    {
-        value: '6',
-        text: '中央及地方政府'
-    }, {
-        value: '7',
-        text: '科學園區與工業區'
-    },
-    {
-        value: '8',
-        text: '臺北區域聯防中心'
-    },
-    {
-        value: '9',
-        text: '新北區域聯防中心'
-    },
-    {
-        value: '10',
-        text: '桃園區域聯防中心'
-    },
-    {
-        value: '11',
-        text: '臺中區域聯防中心'
-    },
-    {
-        value: '12',
-        text: '臺南區域聯防中心'
-    },
-    {
-        value: '13',
-        text: '高雄區域聯防中心'
-    },
-];
-
 /**
  * Settings - IncidentDevice
  * @class
@@ -429,7 +371,9 @@ class IncidentUnit extends Component {
                         <DropDownList
                             id='industryType'
                             required={true}
-                            list={INDUSTRY_TYPE_LIST}
+                            list={_.map(_.range(0, 14), el => {
+                                return {text: it(`industryType.${el}`), value: el}
+                            })}
                             onChange={this.handleDataChange.bind(this, 'industryType')}
                             value={incidentUnit.info.industryType}
                             readOnly={activeContent === 'viewDevice'}/>
@@ -550,7 +494,9 @@ class IncidentUnit extends Component {
                         <label htmlFor='industryType' className='first-label'>{f('incidentFields.industryType')}</label>
                         <DropDownList
                             id='industryType'
-                            list={INDUSTRY_TYPE_LIST}
+                            list={_.map(_.range(0, 14), el => {
+                                return {text: it(`industryType.${el}`), value: el}
+                            })}
                             onChange={this.handleUnitSearch.bind(this, 'industryType')}
                             value={unitSearch.industryType}/>
 

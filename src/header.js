@@ -38,7 +38,7 @@ class Header extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    // this.getUserConfig();
+    this.getUserConfig();
   }
   getUserConfig = () => {
     const {baseUrl, session} = this.context;

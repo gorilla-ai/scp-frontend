@@ -15,39 +15,6 @@ import {Link} from "react-router-dom";
 import Checkbox from "react-ui/build/src/components/checkbox";
 import SelecTableContent from "../common/selectable-content";
 
-const INCIDENT = "incident";
-const DEVICE = "device";
-const PROTECT_TYPE_LIST = [
-    {
-        value: '0',
-        text: '防毒軟體'
-    },
-    {
-        value: '1',
-        text: '網路防火牆'
-    },
-    {
-        value: '2',
-        text: '電子郵件過濾機制'
-    },
-    {
-        value: '3',
-        text: '入侵偵測及防禦機制'
-    },
-    {
-        value: '4',
-        text: '應用程式防火牆'
-    },
-    {
-        value: '5',
-        text: '進階持續性威脅攻擊防禦措施'
-    },
-    {
-        value: '6',
-        text: '其他'
-    },
-];
-
 let t = null;
 let f = null;
 let et = null;
@@ -578,7 +545,9 @@ class IncidentDevice extends Component {
                         <DropDownList
                             id='protectType'
                             required={true}
-                            list={PROTECT_TYPE_LIST}
+                            list={_.map(_.range(0, 7), el => {
+                                return {text: it(`protectType.${el}`), value: el}
+                            })}
                             onChange={this.handleDataChange.bind(this, 'protectType')}
                             value={incidentDevice.info.protectType}
                             readOnly={activeContent === 'viewDevice'}/>
