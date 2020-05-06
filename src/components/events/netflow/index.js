@@ -94,7 +94,7 @@ class Netflow extends Component {
       treeRawData: {},
       treeData: null,
       currentTreeName: '',
-      //Tab IncidentDevice
+      //Tab Menu
       subTabMenu: {
         table: t('txt-table'),
         linkAnalysis: t('txt-linkAnalysis'),
