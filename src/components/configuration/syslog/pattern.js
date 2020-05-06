@@ -371,7 +371,6 @@ class Pattern extends Component {
               <div className='period'>
                 <Checkbox
                   id='periodCheckbox'
-                  className='period-checkbox'
                   onChange={this.togglePeriodCheckbox}
                   checked={periodCheckbox}
                   disabled={(activeContent === 'viewPattern')} />
@@ -400,7 +399,6 @@ class Pattern extends Component {
               <div className='period'>
                 <Checkbox
                   id='periodCheckbox'
-                  className='period-checkbox'
                   onChange={this.togglePeriodCheckbox}
                   checked={periodCheckbox}
                   disabled={(activeContent === 'viewPattern')} />

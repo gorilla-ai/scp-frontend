@@ -62,5 +62,6 @@
   "rewritePwd":"Retype new password",
   "pwd": "Password",
   "reenterPwd": "Retype password",
-  "pwd-inconsistent":"First and second typing are different"
+  "pwd-inconsistent":"First and second typing are different",
+  "pwd-empty": "Password cannot be empty"
 }

@@ -125,6 +125,12 @@ class SyslogController extends Component {
         list: [],
         query: '',
         formattedQuery: '',
+        pattern: {
+          name: '',
+          periodMin: '',
+          threshold: '',
+          severity: ''
+        },
         openFlag: false
       },
       newQueryName: true,
@@ -559,17 +565,14 @@ class SyslogController extends Component {
    * Get custom field name
    * @method
    * @param {string} field - field name
-   * @param {string} page - option for 'logs'
    */
-  getCustomFieldName = (field, page) => {
+  getCustomFieldName = (field) => {
     const {account} = this.state;
 
     if (_.has(account.logsLocale, field)) {
       return account.logsLocale[field];
     } else {
-      if (page === 'logs') {
-        return f(`logsFields.${field}`);
-      }
+      return f(`logsFields.${field}`);
     }
   }
   /**
@@ -593,7 +596,7 @@ class SyslogController extends Component {
       data: JSON.stringify(this.toQueryLanguage()),
       type: 'POST',
       contentType: 'text/plain'
-    }], {showProgress: false})
+    }])
     .then(data => {
       if (data) {
         if (currentPage > 1 && !data[0].data) {
@@ -636,7 +639,7 @@ class SyslogController extends Component {
         subSectionsData.tableColumns.logs.forEach(tempData => {
           tempFields[tempData] = {
             hide: !this.checkDisplayFields(tempData),
-            label: this.getCustomFieldName(tempData, 'logs'),
+            label: this.getCustomFieldName(tempData),
             sortable: this.checkSortable(tempData),
             formatter: (value, allValue) => {
               if (tempData === '_tableMenu_') {
@@ -1573,17 +1576,16 @@ class SyslogController extends Component {
     const {activeTab, account} = this.state;
     const url = `${baseUrl}${contextRoot}/api/u1/log/event/_export`;
     let tempColumns = [];
-    let dataOptions = {};
 
     _.forEach(account.fields, val => {
       if (val !== 'alertRule' && val != '_tableMenu_') {
         tempColumns.push({
-          [val]: f(`${activeTab}Fields.${val}`)
+          [val]: this.getCustomFieldName(val)
         });
       }
     })
 
-    dataOptions = {
+    const dataOptions = {
       ...this.toQueryLanguage('csv'),
       columns: tempColumns
     };
@@ -1721,25 +1723,23 @@ class SyslogController extends Component {
    * @method
    */
   clearData = () => {
-    const {activeTab} = this.state;
-    const subSectionsData = {
-      mainData: {
-        logs: null
-      },
-      fieldsData: {
-        logs: {}
-      },
-      laData: {
-        logs: []
-      },
-      tableColumns: {},
-      totalCount: {
-        logs: 0
-      }
+    const {activeTab, subSectionsData} = this.state;
+    let tempSubSectionsData = {...subSectionsData};
+    tempSubSectionsData.mainData = {
+      logs: null
+    };
+    tempSubSectionsData.fieldsData = {
+      logs: {}
+    };
+    tempSubSectionsData.laData = {
+      logs: []
+    };
+    tempSubSectionsData.totalCount = {
+      logs: 0
     };
 
     this.setState({
-      subSectionsData
+      subSectionsData: tempSubSectionsData
     }, () => {
       this.loadFields(activeTab);
     });

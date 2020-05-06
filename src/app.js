@@ -36,9 +36,7 @@ import IncidentUnit from './components/soc/incident-unit'
 import IncidentLog from './components/soc/incident-log'
 import Incident from './components/soc/Incident'
 
-import {setupConfigService} from 'widget-builder'
-import {baseData, BaseDataContext} from './components/common/context'
-
+import {BaseDataContext, baseData} from './components/common/context'
 import {createInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 import 'font-gorilla/css/font-gorilla.css'
@@ -268,8 +266,6 @@ function start() {
   const customLocale = cfg.customLocale;
   let url = '';
 
-  setupConfigService('http:\//192.168.11.230:4001');
-
   $.ajaxPrefilter((options) => {
     options.url = cfg.contextRoot + options.url;
   });
@@ -336,8 +332,6 @@ function start() {
           </BrowserRouter>
         ), document.getElementById('app-container'))
       })
-
-
     })
 }
 

@@ -40,6 +40,7 @@ class SearchMark extends Component {
   render() {
     const {value, queryType} = this.props;
     const formStatus = queryType === 'query' ? true : false;
+    const inputValue = typeof value.data === 'object' ? value.data.data : value.data;
 
     return (
       <div>
@@ -47,7 +48,7 @@ class SearchMark extends Component {
         <Input
           className='mark-inputbox'
           onChange={this.handleDataChange}
-          value={value.data}
+          value={inputValue}
           disabled={formStatus} />
       </div>
     )

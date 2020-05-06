@@ -17,6 +17,7 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const log = require('loglevel').getLogger('user/privileges/edit');
 const t = i18n.getFixedT(null, 'privileges');
+const c = i18n.getFixedT(null, 'connections');
 const gt =  i18n.getFixedT(null, 'app');
 
 const initialState = JSON.parse(document.getElementById('initial-state').innerHTML || '{}')
@@ -58,6 +59,20 @@ class PrivilegeEdit extends Component {
     )}, this.loadPermits)
   }
   /**
+   * Get locale name for module
+   * @method
+   * @param {string} name - module name
+   * @returns locale name
+   */
+  getLocaleName = (name) => {
+    if (name === 'Common Module') {
+      return c('txt-commonModule');
+    }
+    if (name === 'Configuration Module') {
+      return c('txt-configModule');
+    }
+  }
+  /**
    * Get and set privilege permits data
    * @method
    */
@@ -74,7 +89,7 @@ class PrivilegeEdit extends Component {
           permits: _.map(data.rt, (permit) => {
             return {
               value: permit.permitid,
-              text: permit.dispname
+              text: this.getLocaleName(permit.dispname)
             };
           })
         });
@@ -110,14 +125,15 @@ class PrivilegeEdit extends Component {
    */
   editPrivilege = () => {
     const {baseUrl} = this.context;
-    const {selected, privilegeid} = this.state;
+    const {name, selected, privilegeid} = this.state;
 
     if (!privilegeid) {
       return;
     }
 
     ah.one({
-      url: `${baseUrl}/api/account/privilege/permits?privilegeId=${privilegeid}&${queryString.stringify({permitIds:selected})}`,
+      url: `${baseUrl}/api/account/privilege/permits/v1?privilegeId=${privilegeid}&${queryString.stringify({permitIds:selected})}`,
+      data: JSON.stringify({name}),
       type: 'PATCH',
       contentType: 'application/json'
     })
@@ -137,9 +153,9 @@ class PrivilegeEdit extends Component {
    * @method
    * @param {array} selected - selected checkboxs value
    */
-  handleDataChange = (selected) => {
+  handleDataChange = (type, value) => {
     this.setState({
-      selected
+      [type]: value
     });
   }
   /**
@@ -156,14 +172,14 @@ class PrivilegeEdit extends Component {
           <label className='required'>{t('l-name')}</label>
           <Input
             type='text'
-            readOnly
+            onChange={this.handleDataChange.bind(this, 'name')}
             value={name} />
         </div>
         <div className='group'>
           <label className='required'>{t('l-permits')}</label>
           <CheckboxGroup
             list={permits}
-            onChange={this.handleDataChange}
+            onChange={this.handleDataChange.bind(this, 'selected')}
             value={selected} />
         </div>
       </div>

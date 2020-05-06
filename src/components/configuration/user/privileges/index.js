@@ -185,6 +185,20 @@ class Roles extends Component {
     evt.stopPropagation();
   }
   /**
+   * Get locale name for module
+   * @method
+   * @param {string} name - module name
+   * @returns locale name
+   */
+  getLocaleName = (name) => {
+    if (name === 'Common Module') {
+      return c('txt-commonModule');
+    }
+    if (name === 'Configuration Module') {
+      return c('txt-configModule');
+    }
+  }
+  /**
    * Display role privilege data
    * @method
    * @param {array} value - role list
@@ -192,7 +206,7 @@ class Roles extends Component {
    */
   displayPermit = (value) => {
     const permitList = _.map(value, (val, i) => {
-      return <span key={i} className='permit'>{val.dispname}</span>
+      return <span key={i} className='permit'>{this.getLocaleName(val.dispname)}</span>
     });
 
     return permitList;

@@ -58,8 +58,7 @@ const ALERT_LEVEL_COLORS = {
   Warning: '#29CC7A',
   Notice: '#7ACC29'
 };
-const SUBSECTIONS_DATA = {
-  //Sub sections
+const SUBSECTIONS_DATA = { //Sub sections
   subSectionsData: {
     mainData: {
       alert: null
@@ -546,7 +545,7 @@ class ThreatsController extends Component {
       url += 0;
     }
 
-    helper.getAjaxData('POST', url, requestData, 'false')
+    helper.getAjaxData('POST', url, requestData)
     .then(data => {
       if (data) {
         if (!options || options === 'search') {
@@ -1532,9 +1531,20 @@ class ThreatsController extends Component {
   getCSVfile = () => {
     const {baseUrl, contextRoot} = this.context;
     const url = `${baseUrl}${contextRoot}/api/u2/alert/_export`;
-    const requestData = this.toQueryLanguage('csv');
+    let tempColumns = [];
 
-    downloadWithForm(url, {payload: JSON.stringify(requestData)});
+    _.forEach(SUBSECTIONS_DATA.subSectionsData.tableColumns.alert, val => {
+      tempColumns.push({
+        [val]: f(`alertFields.${val}`)
+      });
+    })
+
+    const dataOptions = {
+      ...this.toQueryLanguage('csv'),
+      columns: tempColumns
+    };
+
+    downloadWithForm(url, {payload: JSON.stringify(dataOptions)});
   }
   /**
    * Toggle filter content on/off

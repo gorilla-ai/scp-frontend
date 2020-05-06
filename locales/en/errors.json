@@ -10,6 +10,8 @@
 
   "-100":"Call web service fail{{message}}",
   "-1":"System Error {{code}} {{message}}",
+  "-2": "Password incorrect",
+  "11101":"Right already exists",
   "11101":"Right already exists",
   "11102":"Right does not exist",
   "11201":"Role already exists",
@@ -50,7 +52,7 @@
   "-1002": "User already exists.",
   "-1004": "password must contain at least one lower-case alphabet/upper-case alphabet/digital/special character and have length more than 12.",
   "-1005": "Password is expired",
-  "-1006": "Login fails exceed 5 times",
+  "-1006": "Login fails exceed 5 times. The account has been locked, please contact administrator.",
   "-1007": "Account service fails",
   "-5001": "Port number is duplicated",
   "-5002": "IP is duplicated",
@@ -58,6 +60,7 @@
   "-5004": "IP is Required",
   "-5005": "Illegal IP format",
   "-5006": "Add Ip Device Fail",
+  "-5007": "Name already exist",
 
   "txt-param-null": "Parameter is NULL",
   "txt-account-fail" : "Fail to get accounts from AD",

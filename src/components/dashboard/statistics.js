@@ -87,6 +87,7 @@ class DashboardStats extends Component {
       alertChartsList: [],
       alertPieData: {},
       syslogPieData: {},
+      alertPatternData: null,
       dnsPieData: {},
       dnsMetricData: {
         id: 'dns-histogram'
@@ -100,7 +101,7 @@ class DashboardStats extends Component {
         dataContent: null
       },
       hmdData: {},
-      lms: ''
+      lms: null
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -160,18 +161,29 @@ class DashboardStats extends Component {
   /**
    * Show tooltip info when mouseover the chart
    * @method
+   * @param {string} type - chart type ('barChart' or 'lineChart')
    * @param {object} eventInfo - MouseoverEvents
    * @param {object} data - chart data
    * @returns HTML DOM
    */
-  onTooltip = (eventInfo, data) => {
+  onTooltip = (type, eventInfo, data) => {
+    if (type === 'barChart') {
+      return (
+        <section>
+          <span>{t('txt-severity')}: {data[0].rule}<br /></span>
+          <span>{t('txt-time')}: {Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss')}<br /></span>
+          <span>{t('txt-count')}: {data[0].number}</span>
+        </section>
+      )
+    } else if (type === 'lineChart') {
     return (
       <section>
-        <span>{t('txt-severity')}: {data[0].rule}<br /></span>
-        <span>{t('txt-time')}: {Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss')}<br /></span>
-        <span>{t('txt-count')}: {data[0].number}</span>
+        <span>{t('dashboard.txt-patternName')}: {data[0].patternName}<br /></span>
+        <span>{t('txt-date')}: {Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss')}<br /></span>
+        <span>{t('txt-count')}: {data[0].count}</span>
       </section>
     )
+    }
   }
   /**
    * Get and set alert charts data
@@ -334,11 +346,64 @@ class DashboardStats extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
 
+    this.loadPatternData();
     this.loadIvarData();
     this.loadSyslogData();
     this.loadDnsPieData();
     this.loadMetricData();
     this.loadHmdData();
+  }
+  /**
+   * Construct and set the pattern data
+   * @method
+   */
+  loadPatternData = () => {
+    const {baseUrl, session} = this.context;
+    const {datetime} = this.state;
+    const dateTime = {
+      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    };
+    const url = `${baseUrl}/api/alert/pattern/histogram`;
+    const requestData = {
+      timestamp: [dateTime.from, dateTime.to],
+      accountId: session.accountId
+    };
+
+    if (!session.accountId) {
+      return;
+    }
+
+    helper.getAjaxData('POST', url, requestData, 'false')
+    .then(data => {
+      if (data) {
+        let alertPatternData = [];
+
+        if (data.event_histogram) {
+          _.forEach(data.event_histogram, (val, key) => {
+            if (val.event_histogram.buckets.length > 0) {
+              _.forEach(val.event_histogram.buckets, val2 => {
+                if (val2.doc_count > 0) {
+                  alertPatternData.push({
+                    time: parseInt(Moment(val2.key_as_string, 'YYYY-MM-DDTHH:mm:ss.SSZ').utc(true).format('x')),
+                    count: val2.doc_count,
+                    patternName: key
+                  });
+                }
+              })
+            }
+          })
+        }
+
+        this.setState({
+          alertPatternData
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    });
   }
   /**
    * Redirect IVA link
@@ -430,7 +495,7 @@ class DashboardStats extends Component {
           syslogPieData: tempSyslogPieData
         }, () => {
           this.getPieChartsData();
-        });        
+        });
       }
       return null;
     })
@@ -574,7 +639,7 @@ class DashboardStats extends Component {
     this.ah.all(apiArr, {showProgress: false})
     .then(data => {
       if (data) {
-        let lms = t('txt-notFound');
+        let lms = 'empty';
 
         if (data[0].expireDate) {
           lms = Moment(data[0].expireDate, 'YYYYMMDD').format('YYYY-MM-DD');
@@ -757,33 +822,33 @@ class DashboardStats extends Component {
         </div>
       )
     } else if (alertChartsList[i].type === 'table') {
-      // return (
-      //   <div className='chart-group c-box' key={alertChartsList[i].chartID}>
-      //     {!ivar.dataContent &&
-      //       <div className='empty-data'>
-      //         <header>{alertChartsList[i].chartTitle}</header>
-      //         <span><i className='fg fg-loading-2'></i></span>
-      //       </div>
-      //     }
-      //     {ivar.dataContent && ivar.dataContent.length === 0 &&
-      //       <div className='empty-data'>
-      //         <header>{alertChartsList[i].chartTitle}</header>
-      //         <span>{t('txt-notFound')}</span>
-      //       </div>
-      //     }
-      //     {ivar.dataContent && ivar.dataContent.length > 0 &&
-      //       <div>
-      //         <header className='main-header'>{alertChartsList[i].chartTitle}</header>
-      //         <div id={alertChartsList[i].chartID} className='c-chart table'>
-      //           <DataTable
-      //             className='main-table align-center ivr'
-      //             fields={ivar.dataFields}
-      //             data={ivar.dataContent} />
-      //         </div>
-      //       </div>
-      //     }
-      //   </div>
-      // )
+      return (
+        <div className='chart-group c-box' key={alertChartsList[i].chartID}>
+          {!ivar.dataContent &&
+            <div className='empty-data'>
+              <header>{alertChartsList[i].chartTitle}</header>
+              <span><i className='fg fg-loading-2'></i></span>
+            </div>
+          }
+          {ivar.dataContent && ivar.dataContent.length === 0 &&
+            <div className='empty-data'>
+              <header>{alertChartsList[i].chartTitle}</header>
+              <span>{t('txt-notFound')}</span>
+            </div>
+          }
+          {ivar.dataContent && ivar.dataContent.length > 0 &&
+            <div>
+              <header className='main-header'>{alertChartsList[i].chartTitle}</header>
+              <div id={alertChartsList[i].chartID} className='c-chart table'>
+                <DataTable
+                  className='main-table align-center ivr'
+                  fields={ivar.dataFields}
+                  data={ivar.dataContent} />
+              </div>
+            </div>
+          }
+        </div>
+      )
     }
   }
   /**
@@ -854,6 +919,7 @@ class DashboardStats extends Component {
       alertDataArr,
       internalMaskedIpArr,
       alertChartsList,
+      alertPatternData,
       dnsMetricData,
       diskMetricData,
       hmdData,
@@ -936,7 +1002,7 @@ class DashboardStats extends Component {
                   title={t('dashboard.txt-alertStatistics')}
                   data={alertDataArr}
                   colors={ALERT_LEVEL_COLORS}
-                  onTooltip={this.onTooltip}
+                  onTooltip={this.onTooltip.bind(this, 'barChart')}
                   dataCfg={{
                     x: 'time',
                     y: 'number',
@@ -945,7 +1011,7 @@ class DashboardStats extends Component {
                   xAxis={{
                     type: 'datetime',
                     dateTimeLabelFormats: {
-                      day: '%H:%M'
+                      day: '%m-%d %H:%M'
                     }
                   }}
                   plotOptions={{
@@ -999,6 +1065,45 @@ class DashboardStats extends Component {
               }
             </div>
 
+            <div className='chart-group line'>
+              {!alertPatternData &&
+                <div className='empty-data'>
+                  <header>{t('dashboard.txt-customAlertStat')}</header>
+                  <span><i className='fg fg-loading-2'></i></span>
+                </div>
+              }
+              {alertPatternData && alertPatternData.length === 0 &&
+                <div className='empty-data'>
+                  <header>{t('dashboard.txt-customAlertStat')}</header>
+                  <span>{t('txt-notFound')}</span>
+                </div>
+              }
+              {alertPatternData && alertPatternData.length > 0 &&
+                <BarChart
+                  stacked
+                  vertical
+                  title={t('dashboard.txt-customAlertStat')}
+                  data={alertPatternData}
+                  onTooltip={this.onTooltip.bind(this, 'lineChart')}
+                  dataCfg={{
+                    x: 'time',
+                    y: 'count',
+                    splitSeries: 'patternName'
+                  }}
+                  xAxis={{
+                    type: 'datetime',
+                    dateTimeLabelFormats: {
+                      day: '%m-%d %H:%M'
+                    }
+                  }}
+                  plotOptions={{
+                    series: {
+                      maxPointWidth: 20
+                    }
+                  }} />
+              }
+            </div>
+
             {alertChartsList.map(this.displayCharts)}
 
             <div className='chart-group c-box'>
@@ -1006,7 +1111,15 @@ class DashboardStats extends Component {
 
               <div className='c-chart license-date'>
                 <header>{l('l-license-expiry')}</header>
-                <span className='show-empty date'>{lms}</span>
+                {!lms &&
+                  <span className='show-empty'><span><i className='fg fg-loading-2'></i></span></span>
+                }
+                {lms && lms === 'empty' &&
+                  <span className='show-empty'>{t('txt-notFound')}</span>
+                }
+                {lms && lms !== 'empty' &&
+                  <span className='show-empty date'>{lms}</span>
+                }
               </div>
             </div>
 

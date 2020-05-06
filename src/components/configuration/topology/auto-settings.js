@@ -424,11 +424,6 @@ class AutoSettings extends Component {
   handleScannerTest = (value) => {
     const {baseUrl} = this.context;
 
-    if (!value.edge) {
-      helper.showPopupMsg(t('network-inventory.auto-settings.txt-noEdgeSelected'), t('txt-error'));
-      return;
-    }
-
     this.ah.one({
       url: `${baseUrl}/api/u1/ipdevice/_scan?edge=${value.edge}&target=${value.ip}&mask=${value.mask}`,
       type: 'GET'
@@ -657,7 +652,7 @@ class AutoSettings extends Component {
                   readOnly={activeContent === 'viewMode'} />
               </div>
               <div className='group' style={{width: '50%'}}>
-                <label htmlFor='autoSettingsDomain'>Domain</label>
+                <label htmlFor='autoSettingsDomain'>{t('txt-domain')}</label>
                 <Input
                   id='autoSettingsDomain'
                   onChange={this.handleADchange.bind(this, 'domain')}
@@ -665,7 +660,7 @@ class AutoSettings extends Component {
                   readOnly={activeContent === 'viewMode'} />
               </div>
               <div className='group' style={{width: '50%'}}>
-                <label htmlFor='autoSettingsUsername'>Username</label>
+                <label htmlFor='autoSettingsUsername'>{t('network-inventory.auto-settings.txt-username')}</label>
                 <Input
                   id='autoSettingsUsername'
                   onChange={this.handleADchange.bind(this, 'username')}
@@ -673,7 +668,7 @@ class AutoSettings extends Component {
                   readOnly={activeContent === 'viewMode'} />
               </div>
               <div className='group' style={{width: '50%'}}>
-                <label htmlFor='autoSettingsPassword'>Password</label>
+                <label htmlFor='autoSettingsPassword'>{t('network-inventory.auto-settings.txt-password')}</label>
                 <Input
                   id='autoSettingsPassword'
                   type='password'

@@ -22,6 +22,8 @@
   "txt-accountPassword": "Account/Password",
   "txt-privileges": "Privileges",
   "txt-unlock": "Unlock",
+  "txt-resetPassword": "Reset Password",
+  "txt-resetPasswordSuccess": "Reset Password Success",
   "txt-connections": "Connections",
   "txt-packets": "Packets",
   "txt-databytes": "Databytes",
@@ -122,6 +124,7 @@
   "txt-online": "Online",
   "txt-offline": "Offline",
   "txt-unstable": "Unstable",
+  "txt-unknown": "Unknown",
   "txt-severity": "Severity",
   "txt-data": "Data",
   "txt-selectFile": "Please select file",
@@ -133,6 +136,8 @@
   "txt-column": "Column",
   "txt-ip": "IP",
   "txt-domain": "Domain",
+  "txt-commonModule": "Common Module",
+  "txt-configModule": "Configuration Module",
 
   "txt-dashboard": "Dashboard",
   "txt-threats": "Threats",
@@ -197,10 +202,12 @@
 
   "dashboard": {
     "txt-statisticsInfo": "Statistics Info",
+    "txt-patternName": "Pattern Name",
     "txt-attacksMap": "Attacks Map",
     "txt-alertStatistics": "Alert Statistics",
     "txt-alertMaskedIpStatistics": "Masked IP Alert Statistics",
     "txt-alertThreatLevel": "Alert Threat Level",
+    "txt-customAlertStat": "Custom Alert Statistics",
     "txt-Top10ExternalSrcCountry": "Alert Source Country",
     "txt-Top10InternalSrcIp": "Alert Internal Source IP",
     "txt-InternalIp": "Alert Internal IP",
@@ -299,6 +306,7 @@
       "txt-addQuery": "Add New Query",
       "txt-noSavedQuery": "No Saved Query Found",
       "txt-noOpenQuery": "Query can not be Blank",
+      "txt-addPatternScript": "Custom Alert Query",
       "txt-mark": "Filter / Mark",
       "txt-clear": "Clear",
       "txt-top10text": "TOP 10 Dst. Service/Dst. Host/Dst. IP",
@@ -451,9 +459,10 @@
       "txt-ipRange": "IP Range",
       "txt-AD": "AD",
       "txt-LDAP": "LDAP",
+      "txt-username": "Admin Username",
+      "txt-password": "Admin Password",
       "txt-netflow": "Netflow",
       "txt-scanner": "Scanner",
-      "txt-noEdgeSelected": "Please select Edge",
       "txt-connectionsFail": "Connections Fail"
     },
     "scan-list": {

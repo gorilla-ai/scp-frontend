@@ -79,21 +79,24 @@ class Status extends Component {
             sortable: true,
             formatter: (value, allValue, i) => {
               if (tempData === 'status') {
-                let styleStatus = '';
+                let color = '';
                 let title = '';
 
                 if (value.toLowerCase() === 'active') {
-                  styleStatus = '#22ac38';
+                  color = '#22ac38';
                   title = t('txt-online');
-                } else if (value.toLowerCase() === 'unstable') {
-                  styleStatus = '#e6e448';
+                } else if (value.toLowerCase() === 'inactive') {
+                  color = '#d10d25';
                   title = t('txt-offline');
-                } else {
-                  styleStatus = '#d0021b';
+                } else if (value.toLowerCase() === 'unstable') {
+                  color = '#e6e448';
                   title = t('txt-unstable');
+                } else if (value.toLowerCase() === 'unknown') {
+                  color = '#999';
+                  title = t('txt-unknown');
                 }
 
-                return <div style={{color : styleStatus}}><i className='fg fg-recode' title={title} /></div>
+                return <div style={{color}}><i className='fg fg-recode' title={title} /></div>
               }
               if (tempData === 'serviceName') {
                 let tooltip = '';
@@ -152,7 +155,7 @@ class Status extends Component {
               <div className='table-content'>
                 <div className='table no-pagination'>
                   <DataTable
-                    className='main-table align-center'
+                    className='main-table'
                     fields={serviceStatus.dataFields}
                     data={serviceStatus.dataContent} />
                 </div>
