@@ -229,19 +229,17 @@ class IncidentDevice extends Component {
                             label: tempData === '_menu' ? '' : f(`incidentFields.${tempData}`),
                             sortable: this.checkSortable(tempData),
                             formatter: (value, allValue, i) => {
-                                if (tempData === 'ipPort') {
-
-                                } else if (tempData === 'updateDttm') {
-                                    return <span>{helper.getFormattedDate(value, 'local')}</span>
-                                } else if (tempData === '_menu') {
-                                    return (
-                                        <div className='table-menu menu active'>
-                                            <i className='fg fg-edit'
-                                               onClick={this.toggleContent.bind(this, 'viewDevice', allValue)}
-                                               title={t('txt-view')}/>
-                                            <i className='fg fg-trashcan'
-                                               onClick={this.openDeleteMenu.bind(this, allValue)}
-                                               title={t('txt-delete')}/>
+                                 if (tempData === 'updateDttm') {
+                                     return <span>{helper.getFormattedDate(value, 'local')}</span>
+                                 } else if (tempData === '_menu') {
+                                     return (
+                                         <div className='table-menu menu active'>
+                                             <i className='fg fg-edit'
+                                                onClick={this.toggleContent.bind(this, 'viewDevice', allValue)}
+                                                title={t('txt-view')}/>
+                                             <i className='fg fg-trashcan'
+                                                onClick={this.openDeleteMenu.bind(this, allValue)}
+                                                title={t('txt-delete')}/>
                                         </div>
                                     )
                                 } else {
