@@ -471,7 +471,7 @@ class IncidentDevice extends Component {
                             <div className='content-header-btns'>
 
                                 <button className='standard btn edit'
-                                        onClick={this.sendCsv_v2.bind(this)}>{it('txt-send')}</button>
+                                        onClick={this.sendCsvWithOnlineEditData.bind(this)}>{it('txt-send')}</button>
                                 <button className='standard  btn edit'
                                         onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-cancel')}</button>
                             </div>
@@ -844,19 +844,6 @@ class IncidentDevice extends Component {
         });
     };
 
-
-    // handleSelectionChange = (type, value, eventInfo) => {
-    //     console.log("type = ", type)
-    //     console.log("value = ", value[0])
-    //     console.log("eventInfo = ", eventInfo)
-    //     let tempHealthStatistic = {...this.state.healthStatistic};
-    //     tempHealthStatistic.selected.ids.push(value[0])
-    //     console.log("tempHealthStatistic.selected.ids = ", tempHealthStatistic.selected.ids)
-    //     this.setState({
-    //         healthStatistic: tempHealthStatistic
-    //     });
-    // }
-
     /**
      * Check table sort
      * @method
@@ -956,8 +943,7 @@ class IncidentDevice extends Component {
     };
 
     /**
-     *
-     * @param {string} id
+     * Call API Send csv to NCCST with real data
      */
     sendCsv = () => {
         const {baseUrl} = this.context;
@@ -983,9 +969,9 @@ class IncidentDevice extends Component {
     };
 
     /**
-     *
+     * Send edit CSV data to backend
      */
-    sendCsv_v2 = () => {
+    sendCsvWithOnlineEditData = () => {
         const {baseUrl} = this.context;
         let tempList = {...this.state.healthStatistic.dataContent}
 
@@ -1131,9 +1117,6 @@ class IncidentDevice extends Component {
      * @param {string} deviceId - input value
      */
     handleSendDataChange = (type, deviceId, value) => {
-        console.log("type", type)
-        console.log("deviceId", deviceId)
-        console.log("value", value)
         let tempSendDevice = {...this.state.healthStatistic};
         let edgeItemList = {...this.state.edgeList};
         let dataFromEdgeDevice = this.state.dataFromEdgeDevice;
