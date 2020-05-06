@@ -1,5 +1,5 @@
 {
-	"txt-soc": "事件申報",
+	"txt-soc": "SOC",
 	"txt-incident": "情資事件",
 	"txt-createIncident": "通報事件",
 	"txt-incident-device": "資安事件設備",
@@ -9,7 +9,7 @@
 	"txt-incident-device-management": "設備管理",
 	"txt-incident-unit-management": "機關管理",
 	"txt-incident-config-management": "事件參數設定",
-	"txt-incident-log-management": "事件發布紀錄管理",
+	"txt-incident-log-management": "事件發布紀錄",
 	"txt-incident-events": "監控觸發紀錄",
 	"txt-incident-ttps": "攻擊手法",
 	"txt-prev-page": "上一頁",
