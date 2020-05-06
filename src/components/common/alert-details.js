@@ -2028,7 +2028,6 @@ class AlertDetails extends Component {
           draggable={true}
           global={true}
           actions={actions}
-
           closeAction='confirm'>
           {this.displayAlertData()}
         </ModalDialog>

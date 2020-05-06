@@ -10,7 +10,7 @@ import Pagination from './pagination'
 /**
  * Table Content
  * @class
- * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @author Kenneth Chiao <kennethchiao@ns-guard.com>
  * @summary A react component to show the table content
  */
 class SelecTableContent extends Component {
@@ -48,10 +48,6 @@ class SelecTableContent extends Component {
                 height: tableHeight
             };
         }
-    }
-
-    handleSelect(selected) {
-      console.log("selected",selected)
     }
 
     render() {

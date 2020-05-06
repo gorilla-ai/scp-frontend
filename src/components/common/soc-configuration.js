@@ -34,18 +34,6 @@ class SocConfig extends Component {
         this.ah = getInstance('chewbacca');
     }
 
-    componentDidMount() {
-        // const openEdgeManagement = this.getActiveFrame('edge') || this.getActiveFrame('threat');
-        // const openTopology = this.getActiveFrame('inventory') || this.getActiveFrame('owner') || this.getActiveFrame('map');
-        // const openAccount = this.getActiveFrame('account') || this.getActiveFrame('privileges');
-        //
-        // this.setState({
-        //   openEdgeManagement,
-        //   openTopology,
-        //   openAccount
-        // });
-    }
-
     /**
      * Toggle the submenu on/off
      * @method
