@@ -157,7 +157,7 @@ class IncidentUnit extends Component {
                     let dataFields = {};
                     incidentUnit.dataFieldsArr.forEach(tempData => {
                         dataFields[tempData] = {
-                            label: tempData === '_menu' ? '' : f(`incidentFields.${tempData}`),
+                            label: tempData === '_menu' ? ' ' : f(`incidentFields.${tempData}`),
                             sortable: this.checkSortable(tempData),
                             formatter: (value, allValue, i) => {
                                 if (tempData === 'industryType') {
@@ -167,7 +167,7 @@ class IncidentUnit extends Component {
                                 } else if (tempData === 'isDefault') {
 
                                     if (value){
-                                        return <span style={{color:'#0833d5'}}>{this.checkDefault(value)}</span>
+                                        return <span style={{color:'#4662ff'}}>{this.checkDefault(value)}</span>
                                     }else {
                                         return <span>{this.checkDefault(value)}</span>
                                     }
