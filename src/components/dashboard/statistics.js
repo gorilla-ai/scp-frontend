@@ -11,6 +11,8 @@ import DataTable from 'react-ui/build/src/components/table'
 import Metric from 'react-chart/build/src/components/metric'
 import PieChart from 'react-chart/build/src/components/pie'
 
+import {HOC} from 'widget-builder'
+
 import {BaseDataContext} from '../common/context';
 import helper from '../common/helper'
 
@@ -913,6 +915,7 @@ class DashboardStats extends Component {
     }
   }
   render() {
+    const {baseUrl} = this.context;
     const {
       past24hTime,
       updatedTime,
@@ -928,50 +931,69 @@ class DashboardStats extends Component {
     const metricsData = [dnsMetricData, diskMetricData];
     const displayTime = past24hTime + ' - ' + updatedTime;
 
-    const props = {
-      "type": "react-ui/Table",
-      "config": {
-        "defaultSort": {
-          "desc": false
-        },
-        "data": [
-          {
-            "channelName": "CH1",
-            "roiName": "ROI1",
-            "count": 83
-          },
-          {
-            "channelName": "CH1",
-            "roiName": "ROI2",
-            "count": 81
-          },
-          {
-            "channelName": "CH3",
-            "roiName": "ROI1",
-            "count": 62
-          },
-          {
-            "channelName": "CH4",
-            "roiName": "ROI1",
-            "count": 36
-          }
-        ],
-        "fields": {
-          "ID": {},
-          "channelName": {
-            "sortable": false
-          },
-          "roiName": {
-            "sortable": false,
-            "$labelOf": ""
-          },
-          "count": {
-            "$labelOf": "label_0",
-            "label": "次數"
-          }
-        }
-      }
-    };
+    let cfg = {}
+
+    _.set(cfg, ['config.layoutCfg.isDraggable'], false)
+    _.set(cfg, ['config.layoutCfg.isResizable'], false)
+
+    if (alertChartsList[1] && alertChartsList[1].chartData) {
+      _.set(cfg, ['config.widgets.alert-internal-ip.widgetConfig.config.data'], alertChartsList[1].chartData)
+    }
+    _.set(cfg, ['config.widgets.alert-internal-ip.widgetConfig.config.keyLabels'], {key: t('attacksFields.srcIp'), doc_count: t('txt-count')})
+    _.set(cfg, ['config.widgets.alert-internal-ip.widgetConfig.config.valueLabels'], {'Pie Chart': {key: t('attacksFields.srcIp'), doc_count: t('txt-count')}})
+    _.set(cfg, ['config.widgets.alert-internal-ip.boxTitle'], t('dashboard.txt-InternalIp'))
+
+    // _.set(cfg, ['config.storeCfg.ff.query.url'], `${url}/expert/domainStatusRecord?startDttm=${startDttm}&endDttm=${endDttm}&status=FASTFLUX`)
+    // _.set(cfg, ['config.storeCfg.ff.query.type'], 'GET')
+    // _.set(cfg, ['config.storeCfg.ff.type'], 'request')
+    // _.set(cfg, ['config.storeCfg.ff.selectKey'], 'rt.rows')
+    // _.set(cfg, ['config.widgets.table-ff.widgetConfig.config.fields.domainName.label'], t('l-domain'))
+    // _.set(cfg, ['config.widgets.table-ff.widgetConfig.config.fields.updateDttm.label'], t('l-update-time'))
+    // _.set(cfg, ['config.widgets.table-ff.widgetConfig.config.fields.dataSourceType.label'], t('l-data-source-type'))
+    // _.set(cfg, ['config.widgets.table-ff.boxTitle'], t('l-status-record-ff'))
+
+    // _.set(cfg, ['config.storeCfg.week.query.url'], ``)
+    // _.set(cfg, ['config.storeCfg.week.query.type'], 'GET')
+    // _.set(cfg, ['config.storeCfg.week.type'], 'request')
+    // _.set(cfg, ['config.storeCfg.week.selectKey'], 'rt')
+    // _.set(cfg, ['config.widgets.table-week.widgetConfig.config.fields.createTime.label'], t('l-create-time'))
+    // _.set(cfg, ['config.widgets.table-week.widgetConfig.config.fields.threat.label'], t('l-target-ip-domain'))
+    // _.set(cfg, ['config.widgets.table-week.widgetConfig.config.fields.lastTraceResult.label'], t('l-last-trace-result'))
+    // _.set(cfg, ['config.widgets.table-week.widgetConfig.config.fields.updateTime.label'], t('l-update-time'))
+    // _.set(cfg, ['config.widgets.table-week.widgetConfig.config.fields.lastSource.label'], t('l-last-source'))
+    // _.set(cfg, ['config.widgets.table-week.boxTitle'], t('l-week-activity'))
+
+    // _.set(cfg, ['config.storeCfg.domainStatus.query.url'], `${url}/expert/domainStatusTrend?startDttm=${startDttm}&endDttm=${endDttm}&interval=month`)
+    // _.set(cfg, ['config.storeCfg.domainStatus.query.type'], 'GET')
+    // _.set(cfg, ['config.storeCfg.domainStatus.type'], 'request')
+    // _.set(cfg, ['config.storeCfg.domainStatus.selectKey'], 'rt')
+    // _.set(cfg, ['config.widgets.chart-domain-status.widgetConfig.config.keyLabels'], keyLabels)
+    // _.set(cfg, ['config.widgets.chart-domain-status.widgetConfig.config.valueLabels'], valueLabels)
+    // _.set(cfg, ['config.widgets.chart-domain-status.boxTitle'], t('l-domain-status-trend'))
+
+    // _.set(cfg, ['config.storeCfg.domainIp.query.url'], `${url}/expert/domainToIPsTrend?startDttm=${startDttm}&endDttm=${endDttm}&interval=month`)
+    // _.set(cfg, ['config.storeCfg.domainIp.query.type'], 'GET')
+    // _.set(cfg, ['config.storeCfg.domainIp.type'], 'request')
+    // _.set(cfg, ['config.storeCfg.domainIp.selectKey'], 'rt')
+    // _.set(cfg, ['config.widgets.chart-domain-ip.widgetConfig.config.keyLabels'], keyLabels)
+    // _.set(cfg, ['config.widgets.chart-domain-ip.widgetConfig.config.valueLabels'], valueLabels)
+    // _.set(cfg, ['config.widgets.chart-domain-ip.boxTitle'], t('l-domain-ip-trend'))
+
+    // _.set(cfg, ['config.storeCfg.ipDomain.query.url'], `${url}/expert/ipToDomainsTrend?startDttm=${startDttm}&endDttm=${endDttm}&interval=month`)
+    // _.set(cfg, ['config.storeCfg.ipDomain.query.type'], 'GET')
+    // _.set(cfg, ['config.storeCfg.ipDomain.type'], 'request')
+    // _.set(cfg, ['config.storeCfg.ipDomain.selectKey'], 'rt')
+    // _.set(cfg, ['config.widgets.chart-ip-domain.widgetConfig.config.keyLabels'], keyLabels)
+    // _.set(cfg, ['config.widgets.chart-ip-domain.widgetConfig.config.valueLabels'], valueLabels)
+    // _.set(cfg, ['config.widgets.chart-ip-domain.boxTitle'], t('l-ip-domain-trend'))
+
+    // // layout
+    // _.set(cfg, ['config.widgets.table-dga.layout'], {x: 0, y: 0, w: 4, h: 1.7})
+    // _.set(cfg, ['config.widgets.table-ff.layout'], {x: 4, y: 0, w: 3, h: 1.7})
+    // _.set(cfg, ['config.widgets.table-week.layout'], {x: 7, y: 0, w: 5, h: 1.7})
+    // _.set(cfg, ['config.widgets.chart-domain-status.layout'], {x: 0, y: 1.7, w: 4, h: 2.3})
+    // _.set(cfg, ['config.widgets.chart-domain-ip.layout'], {x: 4, y: 1.7, w: 4, h: 2.3})
+    // _.set(cfg, ['config.widgets.chart-ip-domain.layout'], {x: 8, y: 1.7, w: 4, h: 2.3})
 
     return (
       <div>
@@ -981,6 +1003,8 @@ class DashboardStats extends Component {
         </div>
 
         <div className='main-dashboard'>
+          <HOC $id={'dashboard/SCP-dashboard'} $appendConfig={cfg} />
+
           <div className='charts'>
             <div className='chart-group bar'>
               {!alertDataArr &&

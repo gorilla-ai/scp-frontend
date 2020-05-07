@@ -201,6 +201,9 @@ button {
     background-color: var(--primaryContentBackground);
   }
 }
+.c-chart-dashboard {
+  background: none;
+}
 .c-popover {
   color: var(--primaryTextColor);
   background-color: var(--primaryContentBackground);
@@ -771,6 +774,13 @@ i.c-checkbox.fg-checkbox {
     overflow-y: auto;
     padding: 15px;
     background-color: var(--primaryBackground);
+    .dashboard-item {
+      width: 100%;
+      height: 100%;
+      div {
+        height: 100%;
+      }
+    }
     .charts {
       width: 100%;
       display: flex;
