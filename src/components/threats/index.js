@@ -17,7 +17,7 @@ import SearchOptions from '../common/search-options'
 import TableCell from '../common/table-cell'
 import Threats from './threats'
 
-import {getInstance} from 'react-ui/build/src/utils/ajax-helper'
+import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null;
 let f = null;
