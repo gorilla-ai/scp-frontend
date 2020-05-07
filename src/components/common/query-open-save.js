@@ -309,6 +309,36 @@ class QueryOpenSave extends Component {
           tempQueryData.name = newQueryList[0].name;
           tempQueryData.list = newQueryList;
           tempQueryData.query = newQueryList[0].queryText;
+
+          if (activeTab === 'logs') {
+            tempQueryData.patternId = '';
+            tempQueryData.pattern = {
+              name: '',
+              periodMin: '',
+              threshold: '',
+              severity: ''
+            };
+
+            if (newQueryList[0].patternId) {
+              tempQueryData.patternId = newQueryList[0].patternId;
+            }
+
+            if (newQueryList[0].patternName) {
+              tempQueryData.pattern.name = newQueryList[0].patternName;
+            }
+
+            if (newQueryList[0].periodMin) {
+              tempQueryData.pattern.periodMin = newQueryList[0].periodMin;
+            }
+
+            if (newQueryList[0].threshold) {
+              tempQueryData.pattern.threshold = newQueryList[0].threshold;
+            }
+
+            if (newQueryList[0].severity) {
+              tempQueryData.pattern.severity = newQueryList[0].severity;
+            }
+          }
         } else {
           tempQueryData.id = '';
           tempQueryData.name = '';
@@ -387,7 +417,7 @@ class QueryOpenSave extends Component {
       tempQueryData.id = value;    
       tempQueryData.openFlag = true;
       tempQueryData.query = {};
-
+      tempQueryData.patternId = '';
       tempQueryData.pattern = {
         name: '',
         periodMin: '',
@@ -420,6 +450,10 @@ class QueryOpenSave extends Component {
 
           if (activeTab === 'logs') {
             tempQueryData.query.search = val.queryText.search;
+          }
+
+          if (val.patternId) {
+            tempQueryData.patternId = val.patternId;
           }
 
           if (val.patternName) {
