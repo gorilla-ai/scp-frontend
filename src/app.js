@@ -29,6 +29,7 @@ import {HocThreatIntelligence as ThreatIntelligence} from './components/configur
 import UserAccounts from './components/configuration/user/accounts/index'
 import UserPrivileges from './components/configuration/user/privileges/index'
 
+import {setupConfigService} from 'widget-builder'
 import {BaseDataContext, baseData} from './components/common/context'
 
 import 'font-gorilla/css/font-gorilla.css'
@@ -211,6 +212,8 @@ function start() {
   const lng = cfg.lng || 'zh';
   const customLocale = cfg.customLocale;
   let url = '';
+
+  setupConfigService('http:\//192.168.11.230:4001');
 
   $.ajaxPrefilter((options) => {
     options.url = cfg.contextRoot + options.url;
