@@ -925,75 +925,76 @@ class DashboardStats extends Component {
       alertPatternData,
       dnsMetricData,
       diskMetricData,
+      ivar,
       hmdData,
       lms
     } = this.state;
     const metricsData = [dnsMetricData, diskMetricData];
     const displayTime = past24hTime + ' - ' + updatedTime;
+    let cfg = {};
 
-    let cfg = {}
-
-    _.set(cfg, ['config.layoutCfg.isDraggable'], false)
-    _.set(cfg, ['config.layoutCfg.isResizable'], false)
-
-    if (alertChartsList[1] && alertChartsList[1].chartData) {
-      _.set(cfg, ['config.widgets.alert-internal-ip.widgetConfig.config.data'], alertChartsList[1].chartData)
+    _.set(cfg, ['config.layoutCfg.isDraggable'], false);
+    _.set(cfg, ['config.layoutCfg.isResizable'], false);
+    
+    if (alertDataArr && alertDataArr.length > 0 && alertChartsList[0] && alertChartsList[0].chartData && alertChartsList[1] && alertChartsList[1].chartData && alertChartsList[2] && alertChartsList[2].chartData && alertChartsList[4] && alertChartsList[4].chartData && alertChartsList[5] && alertChartsList[5].chartData && ivar.dataContent) {
+      _.set(cfg, ['config.widgets.alert-threat-count.widgetConfig.config.data'], alertDataArr);
+      _.set(cfg, ['config.widgets.alert-masked-ip.widgetConfig.config.data'], internalMaskedIpArr);
+      _.set(cfg, ['config.widgets.alert-pattern.widgetConfig.config.data'], alertPatternData);
+      _.set(cfg, ['config.widgets.alert-threat-level.widgetConfig.config.data'], alertChartsList[0].chartData);
+      _.set(cfg, ['config.widgets.alert-internal-ip.widgetConfig.config.data'], alertChartsList[1].chartData);
+      _.set(cfg, ['config.widgets.alert-internal-masked-ip.widgetConfig.config.data'], alertChartsList[2].chartData);
+      _.set(cfg, ['config.widgets.alert-external-source-country.widgetConfig.config.data'], alertChartsList[4].chartData);
+      _.set(cfg, ['config.widgets.alert-syslog-config-source.widgetConfig.config.data'], alertChartsList[5].chartData);
+      _.set(cfg, ['config.widgets.alert-dns-query.widgetConfig.config.data'], alertChartsList[6].chartData);
+      _.set(cfg, ['config.widgets.iva-table.widgetConfig.config.data'], ivar.dataContent);
     }
-    _.set(cfg, ['config.widgets.alert-internal-ip.widgetConfig.config.keyLabels'], {key: t('attacksFields.srcIp'), doc_count: t('txt-count')})
-    _.set(cfg, ['config.widgets.alert-internal-ip.widgetConfig.config.valueLabels'], {'Pie Chart': {key: t('attacksFields.srcIp'), doc_count: t('txt-count')}})
-    _.set(cfg, ['config.widgets.alert-internal-ip.boxTitle'], t('dashboard.txt-InternalIp'))
 
-    // _.set(cfg, ['config.storeCfg.ff.query.url'], `${url}/expert/domainStatusRecord?startDttm=${startDttm}&endDttm=${endDttm}&status=FASTFLUX`)
-    // _.set(cfg, ['config.storeCfg.ff.query.type'], 'GET')
-    // _.set(cfg, ['config.storeCfg.ff.type'], 'request')
-    // _.set(cfg, ['config.storeCfg.ff.selectKey'], 'rt.rows')
-    // _.set(cfg, ['config.widgets.table-ff.widgetConfig.config.fields.domainName.label'], t('l-domain'))
-    // _.set(cfg, ['config.widgets.table-ff.widgetConfig.config.fields.updateDttm.label'], t('l-update-time'))
-    // _.set(cfg, ['config.widgets.table-ff.widgetConfig.config.fields.dataSourceType.label'], t('l-data-source-type'))
-    // _.set(cfg, ['config.widgets.table-ff.boxTitle'], t('l-status-record-ff'))
+    /* alertThreatLevel */
+    _.set(cfg, ['config.widgets.alert-threat-count.widgetConfig.config.keyLabels'], {rule: t('txt-severity'), time: t('txt-time'), number: t('txt-count')});
+    _.set(cfg, ['config.widgets.alert-threat-count.boxTitle'], t('dashboard.txt-alertStatistics'));
 
-    // _.set(cfg, ['config.storeCfg.week.query.url'], ``)
-    // _.set(cfg, ['config.storeCfg.week.query.type'], 'GET')
-    // _.set(cfg, ['config.storeCfg.week.type'], 'request')
-    // _.set(cfg, ['config.storeCfg.week.selectKey'], 'rt')
-    // _.set(cfg, ['config.widgets.table-week.widgetConfig.config.fields.createTime.label'], t('l-create-time'))
-    // _.set(cfg, ['config.widgets.table-week.widgetConfig.config.fields.threat.label'], t('l-target-ip-domain'))
-    // _.set(cfg, ['config.widgets.table-week.widgetConfig.config.fields.lastTraceResult.label'], t('l-last-trace-result'))
-    // _.set(cfg, ['config.widgets.table-week.widgetConfig.config.fields.updateTime.label'], t('l-update-time'))
-    // _.set(cfg, ['config.widgets.table-week.widgetConfig.config.fields.lastSource.label'], t('l-last-source'))
-    // _.set(cfg, ['config.widgets.table-week.boxTitle'], t('l-week-activity'))
+    /* alertInteralMaskedIP */
+    _.set(cfg, ['config.widgets.alert-masked-ip.widgetConfig.config.keyLabels'], {ip: 'IP', number: t('txt-count'), severity: t('txt-severity')});
+    _.set(cfg, ['config.widgets.alert-masked-ip.boxTitle'], t('dashboard.txt-alertMaskedIpStatistics'));
 
-    // _.set(cfg, ['config.storeCfg.domainStatus.query.url'], `${url}/expert/domainStatusTrend?startDttm=${startDttm}&endDttm=${endDttm}&interval=month`)
-    // _.set(cfg, ['config.storeCfg.domainStatus.query.type'], 'GET')
-    // _.set(cfg, ['config.storeCfg.domainStatus.type'], 'request')
-    // _.set(cfg, ['config.storeCfg.domainStatus.selectKey'], 'rt')
-    // _.set(cfg, ['config.widgets.chart-domain-status.widgetConfig.config.keyLabels'], keyLabels)
-    // _.set(cfg, ['config.widgets.chart-domain-status.widgetConfig.config.valueLabels'], valueLabels)
-    // _.set(cfg, ['config.widgets.chart-domain-status.boxTitle'], t('l-domain-status-trend'))
+    /* alert-pattern */
+    _.set(cfg, ['config.widgets.alert-pattern.widgetConfig.config.keyLabels'], {patternName: t('dashboard.txt-patternName'), time: t('txt-date'), count: t('txt-count')});
+    _.set(cfg, ['config.widgets.alert-pattern.boxTitle'], t('dashboard.txt-customAlertStat'));
 
-    // _.set(cfg, ['config.storeCfg.domainIp.query.url'], `${url}/expert/domainToIPsTrend?startDttm=${startDttm}&endDttm=${endDttm}&interval=month`)
-    // _.set(cfg, ['config.storeCfg.domainIp.query.type'], 'GET')
-    // _.set(cfg, ['config.storeCfg.domainIp.type'], 'request')
-    // _.set(cfg, ['config.storeCfg.domainIp.selectKey'], 'rt')
-    // _.set(cfg, ['config.widgets.chart-domain-ip.widgetConfig.config.keyLabels'], keyLabels)
-    // _.set(cfg, ['config.widgets.chart-domain-ip.widgetConfig.config.valueLabels'], valueLabels)
-    // _.set(cfg, ['config.widgets.chart-domain-ip.boxTitle'], t('l-domain-ip-trend'))
+    /* alertThreatLevel */
+    _.set(cfg, ['config.widgets.alert-threat-level.widgetConfig.config.keyLabels'], {key: t('attacksFields.severity'), doc_count: t('txt-count')});
+    _.set(cfg, ['config.widgets.alert-threat-level.widgetConfig.config.valueLabels'], {'Pie Chart': {key: t('attacksFields.severity'), doc_count: t('txt-count')}});
+    _.set(cfg, ['config.widgets.alert-threat-level.boxTitle'], t('dashboard.txt-alertThreatLevel'));
 
-    // _.set(cfg, ['config.storeCfg.ipDomain.query.url'], `${url}/expert/ipToDomainsTrend?startDttm=${startDttm}&endDttm=${endDttm}&interval=month`)
-    // _.set(cfg, ['config.storeCfg.ipDomain.query.type'], 'GET')
-    // _.set(cfg, ['config.storeCfg.ipDomain.type'], 'request')
-    // _.set(cfg, ['config.storeCfg.ipDomain.selectKey'], 'rt')
-    // _.set(cfg, ['config.widgets.chart-ip-domain.widgetConfig.config.keyLabels'], keyLabels)
-    // _.set(cfg, ['config.widgets.chart-ip-domain.widgetConfig.config.valueLabels'], valueLabels)
-    // _.set(cfg, ['config.widgets.chart-ip-domain.boxTitle'], t('l-ip-domain-trend'))
+    /* InternalIp */
+    _.set(cfg, ['config.widgets.alert-internal-ip.widgetConfig.config.keyLabels'], {key: t('attacksFields.srcIp'), doc_count: t('txt-count')});
+    _.set(cfg, ['config.widgets.alert-internal-ip.widgetConfig.config.valueLabels'], {'Pie Chart': {key: t('attacksFields.srcIp'), doc_count: t('txt-count')}});
+    _.set(cfg, ['config.widgets.alert-internal-ip.boxTitle'], t('dashboard.txt-InternalIp'));
 
-    // // layout
-    // _.set(cfg, ['config.widgets.table-dga.layout'], {x: 0, y: 0, w: 4, h: 1.7})
-    // _.set(cfg, ['config.widgets.table-ff.layout'], {x: 4, y: 0, w: 3, h: 1.7})
-    // _.set(cfg, ['config.widgets.table-week.layout'], {x: 7, y: 0, w: 5, h: 1.7})
-    // _.set(cfg, ['config.widgets.chart-domain-status.layout'], {x: 0, y: 1.7, w: 4, h: 2.3})
-    // _.set(cfg, ['config.widgets.chart-domain-ip.layout'], {x: 4, y: 1.7, w: 4, h: 2.3})
-    // _.set(cfg, ['config.widgets.chart-ip-domain.layout'], {x: 8, y: 1.7, w: 4, h: 2.3})
+    /* InternalMaskedIp */
+    _.set(cfg, ['config.widgets.alert-internal-masked-ip.widgetConfig.config.keyLabels'], {key: t('attacksFields.maskedIP'), doc_count: t('txt-count')});
+    _.set(cfg, ['config.widgets.alert-internal-masked-ip.widgetConfig.config.valueLabels'], {'Pie Chart': {key: t('attacksFields.maskedIP'), doc_count: t('txt-count')}});
+    _.set(cfg, ['config.widgets.alert-internal-masked-ip.boxTitle'], t('dashboard.txt-InternalMaskedIp'));
+
+    /* Top10ExternalSrcCountry */
+    _.set(cfg, ['config.widgets.alert-external-source-country.widgetConfig.config.keyLabels'], {key: t('attacksFields.srcCountry'), doc_count: t('txt-count')});
+    _.set(cfg, ['config.widgets.alert-external-source-country.widgetConfig.config.valueLabels'], {'Pie Chart': {key: t('attacksFields.srcCountry'), doc_count: t('txt-count')}});
+    _.set(cfg, ['config.widgets.alert-external-source-country.boxTitle'], t('dashboard.txt-Top10ExternalSrcCountry'));
+
+    /* Top10SyslogConfigSource */
+    _.set(cfg, ['config.widgets.alert-syslog-config-source.widgetConfig.config.keyLabels'], {key: t('attacksFields.configSrc'), doc_count: t('txt-count')});
+    _.set(cfg, ['config.widgets.alert-syslog-config-source.widgetConfig.config.valueLabels'], {'Pie Chart': {key: t('attacksFields.configSrc'), doc_count: t('txt-count')}});
+    _.set(cfg, ['config.widgets.alert-syslog-config-source.boxTitle'], t('dashboard.txt-Top10SyslogConfigSource'));
+
+    /* dnsQuery */
+    _.set(cfg, ['config.widgets.alert-dns-query.widgetConfig.config.keyLabels'], {key: t('attacksFields.query'), doc_count: t('txt-count')});
+    _.set(cfg, ['config.widgets.alert-dns-query.widgetConfig.config.valueLabels'], {'Pie Chart': {key: t('attacksFields.query'), doc_count: t('txt-count')}});
+    _.set(cfg, ['config.widgets.alert-dns-query.boxTitle'], t('dashboard.txt-dnsQuery'));
+
+    /* IVA table */
+    _.set(cfg, ['config.widgets.iva-table.widgetConfig.config.fields.frmotp.label'], t('dashboard.txt-frmotp'))
+    _.set(cfg, ['config.widgets.iva-table.widgetConfig.config.fields.intrusion.label'], t('dashboard.txt-intrusion'))
+    _.set(cfg, ['config.widgets.iva-table.boxTitle'], 'IVA Events')
 
     return (
       <div>
