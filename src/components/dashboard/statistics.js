@@ -176,13 +176,13 @@ class DashboardStats extends Component {
         </section>
       )
     } else if (type === 'lineChart') {
-    return (
-      <section>
-        <span>{t('dashboard.txt-patternName')}: {data[0].patternName}<br /></span>
-        <span>{t('txt-date')}: {Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss')}<br /></span>
-        <span>{t('txt-count')}: {data[0].count}</span>
-      </section>
-    )
+      return (
+        <section>
+          <span>{t('dashboard.txt-patternName')}: {data[0].patternName}<br /></span>
+          <span>{t('txt-date')}: {Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss')}<br /></span>
+          <span>{t('txt-count')}: {data[0].count}</span>
+        </section>
+      )
     }
   }
   /**
