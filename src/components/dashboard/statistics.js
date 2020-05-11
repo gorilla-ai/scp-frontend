@@ -936,7 +936,7 @@ class DashboardStats extends Component {
     _.set(cfg, ['config.layoutCfg.isDraggable'], false);
     _.set(cfg, ['config.layoutCfg.isResizable'], false);
     
-    if (alertDataArr && alertDataArr.length > 0 && alertChartsList[0] && alertChartsList[0].chartData && alertChartsList[1] && alertChartsList[1].chartData && alertChartsList[2] && alertChartsList[2].chartData && alertChartsList[4] && alertChartsList[4].chartData && alertChartsList[5] && alertChartsList[5].chartData && ivar.dataContent) {
+    if (alertDataArr && alertDataArr.length > 0) {
       _.set(cfg, ['config.widgets.alert-threat-count.widgetConfig.config.data'], alertDataArr);
       _.set(cfg, ['config.widgets.alert-masked-ip.widgetConfig.config.data'], internalMaskedIpArr);
       _.set(cfg, ['config.widgets.alert-pattern.widgetConfig.config.data'], alertPatternData);
@@ -952,6 +952,7 @@ class DashboardStats extends Component {
     /* alertThreatLevel */
     _.set(cfg, ['config.widgets.alert-threat-count.widgetConfig.config.keyLabels'], {rule: t('txt-severity'), time: t('txt-time'), number: t('txt-count')});
     _.set(cfg, ['config.widgets.alert-threat-count.boxTitle'], t('dashboard.txt-alertStatistics'));
+    _.set(cfg, ['config.widgets.alert-threat-count.widgetConfig.config.onTooltip'], this.onTooltip.bind(this, 'barChart'));
 
     /* alertInteralMaskedIP */
     _.set(cfg, ['config.widgets.alert-masked-ip.widgetConfig.config.keyLabels'], {ip: 'IP', number: t('txt-count'), severity: t('txt-severity')});
