@@ -512,11 +512,16 @@ class NetworkMap extends Component {
    * Handle filter input value change
    * @method
    * @param {string} type - input type
-   * @param {string} value - input value
+   * @param {string | object} value - input value
    */
   handleSearchChange = (type, value) => {
     let tempSearch = {...this.state.search};
-    tempSearch[type] = value.trim();
+
+    if (type === 'keyword') { //value is an object type
+      tempSearch[type] = value.target.value.trim();
+    } else {
+      tempSearch[type] = value.trim();
+    }
 
     this.setState({
       search: tempSearch
@@ -667,8 +672,8 @@ class NetworkMap extends Component {
         <label htmlFor='addSeat'>{t('txt-name')}</label>
         <Input
           id='addSeat'
-          onChange={this.handleDataChange.bind(this, 'addSeat', 'name')}
-          value={this.state.addSeat.name} />
+          value={this.state.addSeat.name}
+          onChange={this.handleDataChange.bind(this, 'addSeat', 'name')} />
       </div>
     )
   }
@@ -939,15 +944,30 @@ class NetworkMap extends Component {
         <div className='filter-section config'>
           <div className='group'>
             <label htmlFor='MAPkeyword' className='first-label'>{t('ipFields.keyword')}</label>
-            <Input id='MAPkeyword' placeholder={t('txt-enterKeyword')} onChange={this.handleSearchChange.bind(this, 'keyword')} value={search.keyword} />
+            <input
+              id='MAPkeyword'
+              type='text'
+              placeholder={t('txt-enterKeyword')}
+              value={search.keyword}
+              onChange={this.handleSearchChange.bind(this, 'keyword')} />
           </div>
           <div className='group'>
             <label htmlFor='MAPsystem'>{t('ipFields.system')}</label>
-            <DropDownList id='MAPsystem' list={list.system} required={true} onChange={this.handleSearchChange.bind(this, 'system')} value={search.system}/>
+            <DropDownList
+              id='MAPsystem'
+              list={list.system}
+              required={true}
+              value={search.system}
+              onChange={this.handleSearchChange.bind(this, 'system')} />
           </div>
           <div className='group'>
             <label htmlFor='MAPdevice'>{t('txt-device')}</label>
-            <DropDownList id='MAPdevice' list={list.deviceType} required={true} onChange={this.handleSearchChange.bind(this, 'deviceType')} value={search.deviceType}/>
+            <DropDownList
+              id='MAPdevice'
+              list={list.deviceType}
+              required={true}
+              value={search.deviceType}
+              onChange={this.handleSearchChange.bind(this, 'deviceType')} />
           </div>
         </div>
         <div className='button-group'>

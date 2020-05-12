@@ -358,11 +358,16 @@ class Edge extends Component {
    * Handle filter input data change
    * @method
    * @param {string} type - input type
-   * @param {string} value - input value
+   * @param {string | object} value - input value
    */
   handleEdgeSearch = (type, value) => {
     let tempEdgeSearch = {...this.state.edgeSearch};
-    tempEdgeSearch[type] = value;
+
+    if (type === 'keyword') { //value is an object type
+      tempEdgeSearch[type] = value.target.value.trim();
+    } else {
+      tempEdgeSearch[type] = value.trim();
+    }
 
     this.setState({
       edgeSearch: tempEdgeSearch
@@ -721,23 +726,22 @@ class Edge extends Component {
             <label htmlFor='edgeName'>{t('edge-management.txt-edgeName')}</label>
             <Input
               id='edgeName'
-              onChange={this.handleDataChange.bind(this, 'name')}
               value={edge.info.name}
+              onChange={this.handleDataChange.bind(this, 'name')}
               readOnly={activeContent === 'viewEdge'} />
           </div>
           <div className='group'>
             <label htmlFor='edgeID'>{t('edge-management.txt-edgeID')}</label>
             <Input
               id='edgeID'
-              onChange={this.handleDataChange.bind(this, 'id')}
               value={edge.info.id}
+              onChange={this.handleDataChange.bind(this, 'id')}
               readOnly={true} />
           </div>
           <div className='group'>
             <label htmlFor='edgeIP'>{t('edge-management.txt-ip')}</label>
             <Input
               id='edgeIP'
-              onChange={this.handleDataChange.bind(this, 'ip')}
               validate={{
                 pattern:/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?):(\d+)$/,
                 patternReadable:'xxx.xxx.xxx.xxx:xxx',
@@ -750,38 +754,39 @@ class Edge extends Component {
                 }
               }}
               value={edge.info.ip}
+              onChange={this.handleDataChange.bind(this, 'ip')}
               readOnly={true} />
           </div>
           <div className='group'>
             <label htmlFor='edgeIPlist'>{t('edge-management.txt-ipList')} ({t('txt-commaSeparated')}</label>
             <Input
               id='edgeIPlist'
-              onChange={this.handleDataChange.bind(this, 'edgeIPlist')}
               value={edge.info.edgeIPlist}
+              onChange={this.handleDataChange.bind(this, 'edgeIPlist')}
               readOnly={activeContent === 'viewEdge' || !edge.info.isConfigurable} />
           </div>
           <div className='group'>
             <label htmlFor='edgeVPNip'>{t('edge-management.txt-vpnIP')}</label>
             <Input
               id='edgeVPNip'
-              onChange={this.handleDataChange.bind(this, 'vpnIP')}
               value={edge.info.vpnIP}
+              onChange={this.handleDataChange.bind(this, 'vpnIP')}
               readOnly={true} />
           </div>
           <div className='group'>
             <label htmlFor='edgeLicenseName'>{t('edge-management.txt-vpnLicenseName')}</label>
             <Input
               id='edgeLicenseName'
-              onChange={this.handleDataChange.bind(this, 'licenseName')}
               value={edge.info.licenseName}
+              onChange={this.handleDataChange.bind(this, 'licenseName')}
               readOnly={true} />
           </div>
           <div className='group'>
             <label htmlFor='edgeServiceType'>{t('edge-management.txt-serviceType')}</label>
             <Input
               id='edgeServiceType'
-              onChange={this.handleDataChange.bind(this, 'serviceType')}
               value={edge.info.serviceType}
+              onChange={this.handleDataChange.bind(this, 'serviceType')}
               readOnly={true} />
           </div>
           <div className='group'>
@@ -799,8 +804,8 @@ class Edge extends Component {
                   text: t('txt-tcpdump')
                 }
               ]}
-              onChange={this.handleDataChange.bind(this, 'serviceMode')}
               value={edge.info.serviceMode}
+              onChange={this.handleDataChange.bind(this, 'serviceMode')}
               readOnly={activeContent === 'viewEdge' || !edge.info.isConfigurable} />
           </div>
           <div className='group'>
@@ -812,17 +817,17 @@ class Edge extends Component {
                 {value: 'anyTime', text: t('edge-management.txt-anyTime')},
                 {value: 'customTime', text: t('edge-management.txt-customTime')}
               ]}
-              onChange={this.handleDataChange.bind(this, 'edgeModeType')}
               value={edge.info.edgeModeType}
+              onChange={this.handleDataChange.bind(this, 'edgeModeType')}
               disabled={activeContent === 'viewEdge' || !edge.info.isConfigurable} />
 
             {edge.info.edgeModeType === 'customTime' &&
               <DateRange
                 id='edgeModeDatetime'
                 className='daterange'
-                onChange={this.handleDataChange.bind(this, 'edgeModeDatetime')}
                 enableTime={true}
                 value={edge.info.edgeModeDatetime}
+                onChange={this.handleDataChange.bind(this, 'edgeModeDatetime')}
                 locale={locale}
                 t={et} />
             }
@@ -863,10 +868,11 @@ class Edge extends Component {
         <div className='filter-section config'>
           <div className='group'>
             <label htmlFor='edgeSearchKeyword' className='first-label'>{f('edgeFields.keywords')}</label>
-            <Input
+            <input
               id='edgeSearchKeyword'
-              onChange={this.handleEdgeSearch.bind(this, 'keyword')}
-              value={edgeSearch.keyword} />
+              type='text'
+              value={edgeSearch.keyword}
+              onChange={this.handleEdgeSearch.bind(this, 'keyword')} />
           </div>
           <div className='group'>
             <label htmlFor='edgeSearchServiceType'>{f('edgeFields.serviceType')}</label>
@@ -874,8 +880,8 @@ class Edge extends Component {
               id='edgeSearchServiceType'
               list={serviceType}
               required={true}
-              onChange={this.handleEdgeSearch.bind(this, 'serviceType')}
-              value={edgeSearch.serviceType} />
+              value={edgeSearch.serviceType}
+              onChange={this.handleEdgeSearch.bind(this, 'serviceType')} />
           </div>
           <div className='group'>
             <label htmlFor='edgeSearchConnectionStatus'>{f('edgeFields.connectionStatus')}</label>
@@ -883,8 +889,8 @@ class Edge extends Component {
               id='edgeSearchConnectionStatus'
               list={connectionStatus}
               required={true}
-              onChange={this.handleEdgeSearch.bind(this, 'connectionStatus')}
-              value={edgeSearch.connectionStatus} />
+              value={edgeSearch.connectionStatus}
+              onChange={this.handleEdgeSearch.bind(this, 'connectionStatus')} />
           </div>
         </div>
         <div className='button-group'>

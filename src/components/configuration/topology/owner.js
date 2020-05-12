@@ -291,11 +291,16 @@ class NetworkOwner extends Component {
    * Handle filter input value change
    * @method
    * @param {string} type - input type
-   * @param {string} value - input value
+   * @param {string | object} value - input value
    */
   handleSearchChange = (type, value) => {
     let tempSearch = {...this.state.search};
-    tempSearch[type] = value.trim();
+
+    if (type === 'name') { //value is an object type
+      tempSearch[type] = value.target.value.trim();
+    } else {
+      tempSearch[type] = value.trim();
+    }
 
     this.setState({
       search: tempSearch
@@ -616,7 +621,7 @@ class NetworkOwner extends Component {
    * @returns HTML DOM
    */
   renderFilter = () => {
-    const {list, search, showFilter} = this.state
+    const {list, search, showFilter} = this.state;
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
@@ -625,15 +630,30 @@ class NetworkOwner extends Component {
         <div className='filter-section config'>
           <div className='group'>
             <label htmlFor='ownerName' className='first-label'>{t('ownerFields.ownerName')}</label>
-            <Input id='ownerName' placeholder={t('txt-enterName')} onChange={this.handleSearchChange.bind(this, 'name')} value={search.name} />
+            <input
+              id='ownerName'
+              type='text'
+              placeholder={t('txt-enterName')}
+              value={search.name}
+              onChange={this.handleSearchChange.bind(this, 'name')} />
           </div>
           <div className='group'>
             <label htmlFor='ownerDept'>{t('ownerFields.department')}</label>
-            <DropDownList id='ownerDept' list={list.department} required={true} onChange={this.handleSearchChange.bind(this, 'department')} value={search.department} />
+            <DropDownList
+              id='ownerDept'
+              list={list.department}
+              required={true}
+              value={search.department}
+              onChange={this.handleSearchChange.bind(this, 'department')} />
           </div>
           <div className='group'>
             <label htmlFor='ownerTitle'>{t('ownerFields.title')}</label>
-            <DropDownList id='ownerTitle' list={list.title} required={true} onChange={this.handleSearchChange.bind(this, 'title')} value={search.title} />
+            <DropDownList
+              id='ownerTitle'
+              list={list.title}
+              required={true}
+              value={search.title}
+              onChange={this.handleSearchChange.bind(this, 'title')} />
           </div>
         </div>
         <div className='button-group'>
@@ -736,8 +756,8 @@ class NetworkOwner extends Component {
                             <label htmlFor='removePhoto'>{t('network-topology.txt-removePhoto')}</label>
                             <Checkbox
                               id='removePhoto'
-                              onChange={this.handleRemovePhoto}
-                              checked={owner.removePhoto} />
+                              checked={owner.removePhoto}
+                              onChange={this.handleRemovePhoto} />
                           </div>
                         </div>
                       }
@@ -751,23 +771,23 @@ class NetworkOwner extends Component {
                       <label htmlFor='ownerName'>{t('ownerFields.ownerName')}</label>
                       <Input
                         id='ownerName'
-                        onChange={this.handleDataChange.bind(this, 'ownerName')}
                         required={true}
                         validate={{
                           t: et
                         }}
-                        value={owner.info.ownerName} />
+                        value={owner.info.ownerName}
+                        onChange={this.handleDataChange.bind(this, 'ownerName')} />
                     </div>
                     <div className='group'>
                       <label htmlFor='ownerID'>{t('ownerFields.ownerID')}</label>
                       <Input
                         id='ownerID'
-                        onChange={this.handleDataChange.bind(this, 'ownerID')}
                         required={true}
                         validate={{
                           t: et
                         }}
-                        value={owner.info.ownerID} />
+                        value={owner.info.ownerID}
+                        onChange={this.handleDataChange.bind(this, 'ownerID')} />
                     </div>
                     <div className='group'>
                       <label htmlFor='ownerDepartment'>{t('ownerFields.department')}</label>
@@ -776,8 +796,8 @@ class NetworkOwner extends Component {
                         list={list.department}
                         required={true}
                         validate={{t: et}}
-                        onChange={this.handleDataChange.bind(this, 'department')}
-                        value={owner.info.department} />
+                        value={owner.info.department}
+                        onChange={this.handleDataChange.bind(this, 'department')} />
                     </div>
                     <div className='group'>
                       <label htmlFor='ownerTitle'>{t('ownerFields.title')}</label>
@@ -785,8 +805,8 @@ class NetworkOwner extends Component {
                         id='ownerTitle'
                         list={list.title}
                         required={true}
-                        onChange={this.handleDataChange.bind(this, 'title')}
-                        value={owner.info.title} />
+                        value={owner.info.title}
+                        onChange={this.handleDataChange.bind(this, 'title')} />
                     </div>
                   </div>
                 </div>

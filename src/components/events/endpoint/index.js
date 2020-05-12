@@ -285,8 +285,8 @@ class Endpoint extends Component {
             }
           ]}
           required={true}
-          onChange={this.handleTaskChange.bind(this, 'reqType')}
-          value={task.reqType} />
+          value={task.reqType}
+          onChange={this.handleTaskChange.bind(this, 'reqType')} />
 
         <label>{f('hmdFields.reqCommand')}</label>
         <Textarea
@@ -433,9 +433,9 @@ class Endpoint extends Component {
       showFilter: !this.state.showFilter
     });
   }
-  handleSearchChange = (type, value) => {
+  handleSearchChange = (type, event) => {
     let tempSearch = {...this.state.search};
-    tempSearch[type] = value.trim();
+    tempSearch[type] = event.target.value.trim();
 
     this.setState({
       search: tempSearch
@@ -460,15 +460,27 @@ class Endpoint extends Component {
         <div className='filter-section config'>
           <div className='group'>
             <label htmlFor='HMDhostName' className='first-label'>{f('hmdFields.hostName')}</label>
-            <Input id='HMDhostName' onChange={this.handleSearchChange.bind(this, 'hostName')} value={search.hostName} />
+            <input
+              id='HMDhostName'
+              type='text'
+              value={search.hostName}
+              onChange={this.handleSearchChange.bind(this, 'hostName')} />
           </div>
           <div className='group'>
             <label htmlFor='HMDip' className='first-label'>{f('hmdFields.ip')}</label>
-            <Input id='HMDip' onChange={this.handleSearchChange.bind(this, 'ip')} value={search.ip} />
+            <input
+              id='HMDip'
+              type='text'
+              value={search.ip}
+              onChange={this.handleSearchChange.bind(this, 'ip')} />
           </div>
           <div className='group'>
             <label htmlFor='HMDmac' className='first-label'>{f('hmdFields.mac')}</label>
-            <Input id='HMDmac' onChange={this.handleSearchChange.bind(this, 'mac')} value={search.mac} />
+            <input
+              id='HMDmac'
+              type='text'
+              value={search.mac}
+              onChange={this.handleSearchChange.bind(this, 'mac')} />
           </div>
         </div>
         <div className='button-group'>

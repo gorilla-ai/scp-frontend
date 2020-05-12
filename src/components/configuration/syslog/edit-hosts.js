@@ -49,8 +49,8 @@ class EditHosts extends Component {
           patternReadable: 'xxx.xxx.xxx.xxx',
           t: this.getErrorMsg
         }}
-        onChange={this.handleDataChange.bind(this, 'host')}
-        value={this.props.value.host} />
+        value={this.props.value.host}
+        onChange={this.handleDataChange.bind(this, 'host')} />
     )
   }
 }

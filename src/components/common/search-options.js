@@ -213,8 +213,8 @@ class SearchOptions extends Component {
                     {value: '600000', text: t('events.connections.txt-10m')}
                   ]}
                   required={true}
-                  onChange={this.props.setSearchData.bind(this, 'refreshTime')}
-                  value={searchInput.refreshTime} />
+                  value={searchInput.refreshTime}
+                  onChange={this.props.setSearchData.bind(this, 'refreshTime')} />
                 <DropDownList
                   id='timeInterval'
                   list={[
@@ -224,8 +224,8 @@ class SearchOptions extends Component {
                     {value: '12h', text: t('events.connections.txt-last12h')}
                   ]}
                   required={true}
-                  onChange={this.props.setSearchData.bind(this, 'searchInterval')}
-                  value={searchInput.searchInterval} />          
+                  value={searchInput.searchInterval}
+                  onChange={this.props.setSearchData.bind(this, 'searchInterval')} />          
               </div>
             }
             {searchInput.searchType === 'manual' &&
@@ -240,8 +240,8 @@ class SearchOptions extends Component {
                   {value: 'week', text: t('events.connections.txt-week')}
                 ]}
                 required={true}
-                onChange={this.props.setSearchData.bind(this, 'searchInterval')}
-                value={searchInput.searchInterval} />
+                value={searchInput.searchInterval}
+                onChange={this.props.setSearchData.bind(this, 'searchInterval')} />
             }
           </div>
         }
