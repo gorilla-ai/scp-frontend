@@ -623,14 +623,14 @@ class DashboardMaps extends Component {
       timestamp: [dateTime.from, dateTime.to],
       filters: [{
         condition: 'must',
-        query: 'InternalMaskedIp'
+        query: 'InternalMaskedIpWithLoc'
       }]
     };
 
     helper.getAjaxData('POST', url, requestData, 'false')
     .then(data => {
       if (data) {
-        const allPrivateData = data.aggregations.InternalMaskedIp;
+        const allPrivateData = data.aggregations.InternalMaskedIpWithLoc;
         let tempAlertDetails = {...alertDetails};
         let currentFloorPrivateData = [];
         let allFloorPrivateData = [];
