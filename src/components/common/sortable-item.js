@@ -67,8 +67,8 @@ class SortableItem extends Component {
         }
         <Checkbox
           className='data-field flow'
-          onChange={this.props.setFieldsChange.bind(this, key)}
           checked={this.props.checkDisplayFields(key)}
+          onChange={this.props.setFieldsChange.bind(this, key)}
           disabled={_.includes(TIME_FIELDS, key)} />
         {activeTab === 'logs' &&
           <i className='fg fg-edit' title={t('syslogFields.txt-customFieldName')} onClick={this.props.toggleLocaleEdit.bind(this, key, localeField)}></i>

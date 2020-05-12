@@ -105,12 +105,12 @@ class IrSelections extends Component {
           id='irComboList'
           list={dropDownList}
           required={true}
-          onChange={this.handleIrComboChange}
-          value={irComboSelected} />
+          value={irComboSelected}
+          onChange={this.handleIrComboChange} />
         <CheckboxGroup
           list={checkBoxList}
-          onChange={this.handleIrSelectionChange}
-          value={irItemSelected} />
+          value={irItemSelected}
+          onChange={this.handleIrSelectionChange} />
       </div>
     )
   }

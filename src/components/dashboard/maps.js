@@ -810,9 +810,9 @@ class DashboardMaps extends Component {
               <DropDownList
                 className='drop-down'
                 list={floorList}
-                onChange={this.getAreaData}
                 required={true}
-                value={currentFloor} />
+                value={currentFloor}
+                onChange={this.getAreaData} />
             }
 
             {mapType === PRIVATE &&

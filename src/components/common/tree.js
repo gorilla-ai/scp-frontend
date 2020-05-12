@@ -146,8 +146,8 @@ class Tree extends Component {
               className='analysis-type'
               list={tabData}
               required={true}
-              onChange={this.props.handleTabChange}
-              value={activeTab} />
+              value={activeTab}
+              onChange={this.props.handleTabChange} />
           </div>
         }
 

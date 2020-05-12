@@ -79,8 +79,8 @@ class File extends Component {
                   <label htmlFor='showImgCheckbox'>{t('events.connections.txt-showImageOnly')}</label>
                   <Checkbox
                     id='showImgCheckbox'
-                    onChange={mainContentData.handleShowImgCheckbox}
                     checked={mainContentData.showImageValue}
+                    onChange={mainContentData.handleShowImgCheckbox}
                     disabled={mainContentData.displayImgType === 'grid'} />
                 </div>
                 {mainContentData.showImageValue &&

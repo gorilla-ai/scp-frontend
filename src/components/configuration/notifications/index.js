@@ -332,8 +332,8 @@ class Notifications extends Component {
           <label htmlFor='serviceError' className='checkbox'>{val.checkboxText}</label>
           <Checkbox
             id='serviceError'
-            onChange={this.toggleEmailCheckbox.bind(this, val.type)}
             checked={emails[val.type].enable}
+            onChange={this.toggleEmailCheckbox.bind(this, val.type)}
             disabled={activeContent === 'viewMode'} />
         </div>
       </div>
@@ -498,8 +498,8 @@ class Notifications extends Component {
                     <label htmlFor='notificationsServer'>{t('notifications.txt-smtpServer')}</label>
                     <Input
                       id='notificationsServer'
-                      onChange={this.handleDataChange.bind(this, 'server')}
                       value={notifications.server}
+                      onChange={this.handleDataChange.bind(this, 'server')}
                       readOnly={activeContent === 'viewMode'} />
                   </div>
                   <div className='group'>
@@ -512,16 +512,16 @@ class Notifications extends Component {
                         {value: 465, text: 465},
                         {value: 587, text: 587}
                       ]}
-                      onChange={this.handleDataChange.bind(this, 'port')}
                       value={notifications.port}
+                      onChange={this.handleDataChange.bind(this, 'port')}
                       readOnly={activeContent === 'viewMode'} />
                   </div>
                   <div className='group' style={{width: '50%'}}>
                     <label htmlFor='notificationsSender'>{t('notifications.txt-sender')}</label>
                     <Input
                       id='notificationsSender'
-                      onChange={this.handleDataChange.bind(this, 'sender')}
                       value={notifications.sender}
+                      onChange={this.handleDataChange.bind(this, 'sender')}
                       readOnly={activeContent === 'viewMode'} />
                   </div>
                   <div className='group'>
@@ -534,8 +534,8 @@ class Notifications extends Component {
                         {value: 'ssl', text: 'SSL'},
                         {value: 'tls', text: 'TLS'},
                       ]}
-                      onChange={this.handleDataChange.bind(this, 'connectType')}
                       value={notifications.connectType}
+                      onChange={this.handleDataChange.bind(this, 'connectType')}
                       readOnly={activeContent === 'viewMode'} />
                   </div>
                   <div className='group'>
@@ -547,16 +547,16 @@ class Notifications extends Component {
                         {value: 'true', text: 'True'},
                         {value: 'false', text: 'False'}
                       ]}
-                      onChange={this.handleDataChange.bind(this, 'authentication')}
                       value={notifications.authentication}
+                      onChange={this.handleDataChange.bind(this, 'authentication')}
                       readOnly={activeContent === 'viewMode'} />
                   </div>
                   <div className='group'>
                     <label htmlFor='notificationsSenderAccount'>{t('notifications.txt-senderAccount')}</label>
                     <Input
                       id='notificationsSenderAccount'
-                      onChange={this.handleDataChange.bind(this, 'senderAccount')}
                       value={notifications.senderAccount}
+                      onChange={this.handleDataChange.bind(this, 'senderAccount')}
                       readOnly={activeContent === 'viewMode'} />
                   </div>
                   <div className='group'>
@@ -564,8 +564,8 @@ class Notifications extends Component {
                     <Input
                       id='notificationsSenderPassword'
                       type='password'
-                      onChange={this.handleDataChange.bind(this, 'senderPassword')}
                       value={notifications.senderPassword}
+                      onChange={this.handleDataChange.bind(this, 'senderPassword')}
                       readOnly={activeContent === 'viewMode'} />
                   </div>
                 </div>

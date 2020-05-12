@@ -835,8 +835,8 @@ class Syslog extends Component {
             {value: 'filter', text: t('syslogFields.filter')},
             {value: 'relationship', text: t('syslogFields.relationship')}
           ]}
-          onChange={this.handleConfigChange.bind(this, 'type')}
-          value={config.type} />
+          value={config.type}
+          onChange={this.handleConfigChange.bind(this, 'type')} />
 
         {config.type === 'filter' && 
           this.renderTabFilter()
@@ -1166,11 +1166,11 @@ class Syslog extends Component {
    * Handle filter input value change
    * @method
    * @param {string} type - input type
-   * @param {string} value - input value
+   * @param {object} event - input value
    */
-  handleSearchChange = (type, value) => {
+  handleSearchChange = (type, event) => {
     let tempSearch = {...this.state.search};
-    tempSearch[type] = value.trim();
+    tempSearch[type] = event.target.value.trim();
 
     this.setState({
       search: tempSearch
@@ -1235,11 +1235,17 @@ class Syslog extends Component {
         <div className='filter-section config'>
           <div className='group'>
             <label className='first-label'>{t('syslogFields.port')}</label>
-            <Input onChange={this.handleSearchChange.bind(this, 'port')} value={search.port} />
+            <input
+              type='text'
+              value={search.port}
+              onChange={this.handleSearchChange.bind(this, 'port')} />
           </div>
           <div className='group'>
             <label className='first-label'>{t('syslogFields.format')}</label>
-            <Input onChange={this.handleSearchChange.bind(this, 'format')} value={search.format} />
+            <input
+              type='text'
+              value={search.format}
+              onChange={this.handleSearchChange.bind(this, 'format')} />
           </div>
         </div>
         <div className='button-group'>

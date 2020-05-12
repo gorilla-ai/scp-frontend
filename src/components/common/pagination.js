@@ -45,8 +45,8 @@ class Pagination extends Component {
               id='pageSize'
               list={paginationOptions || defaultPaginationOptions}
               required={true}
-              onChange={this.props.onDropDownChange}
-              value={pageSize} />
+              value={pageSize}
+              onChange={this.props.onDropDownChange} />
           </div>
         }
       </div>

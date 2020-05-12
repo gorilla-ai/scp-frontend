@@ -399,8 +399,8 @@ class QueryOpenSave extends Component {
             className='query-name'
             list={displayList}
             required={true}
-            onChange={this.handleQueryChange.bind(this, 'id')}
-            value={queryData.id} />
+            value={queryData.id}
+            onChange={this.handleQueryChange.bind(this, 'id')} />
 
           {queryDataList && queryDataList.length > 0 &&
             <div className='filter-group'>
@@ -463,8 +463,8 @@ class QueryOpenSave extends Component {
             className='query-name dropdown'
             list={displayList}
             required={true}
-            onChange={this.handleQueryChange.bind(this, 'id')}
-            value={dropDownValue} />
+            value={dropDownValue}
+            onChange={this.handleQueryChange.bind(this, 'id')} />
 
           {dropDownValue === 'new' &&
             <Input
@@ -475,8 +475,8 @@ class QueryOpenSave extends Component {
               validate={{
                 t: et
               }}
-              onChange={this.handleQueryChange.bind(this, 'name')}
-              value={queryData.inputName} />
+              value={queryData.inputName}
+              onChange={this.handleQueryChange.bind(this, 'name')} />
           }
 
           {tempFilterData.length > 0 &&

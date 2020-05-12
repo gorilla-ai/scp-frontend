@@ -470,8 +470,8 @@ class FloorMap extends Component {
                 id='areaMapName'
                 className='add'
                 required={true}
-                onChange={this.handleDataChange.bind(this, 'name')}
-                value={floorPlan.name} />
+                value={floorPlan.name}
+                onChange={this.handleDataChange.bind(this, 'name')} />
             </div>
 
             <div className='field upload'>
