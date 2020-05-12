@@ -284,7 +284,7 @@ class QueryOpenSave extends Component {
     if (activeTab === 'alert') {
       url = `${baseUrl}/api/account/alert/queryText?id=${queryData.id}`;
     } else if (activeTab === 'logs') {
-      url = `${baseUrl}/api/account/syslog/queryText?id=${queryData.id}`;
+      url = `${baseUrl}/api/v1/account/syslog/queryText?id=${queryData.id}`;
     } else {
       url = `${baseUrl}/api/account/event/queryText?id=${queryData.id}`;
     }
