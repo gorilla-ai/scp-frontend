@@ -1066,7 +1066,13 @@ class Incident extends Component {
      * @method
      */
     clearFilter = () => {
-        this.setState({search: {keyword: ''}})
+        this.setState({
+            search: {
+                keyword: '',
+                category: 0,
+                status: 0
+            }
+        })
     };
 
     /**
