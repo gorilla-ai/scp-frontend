@@ -694,37 +694,38 @@ class Incident extends Component {
                 <div className='filter-section config'>
                     <div className='group'>
                         <label htmlFor='searchKeyword' className='first-label'>{f('edgeFields.keywords')}</label>
-                        <Input
+                        <input
                             id='searchKeyword'
+                            type='text'
                             className='search-textarea'
-                            onChange={this.handleSearch.bind(this, 'keyword')}
-                            value={search.keyword}/>
+                            value={search.keyword}
+                            onChange={this.handleInputSearch.bind(this, 'keyword')}/>
                     </div>
                     <div className='group'>
                         <label htmlFor='searchCategory' className='first-label'>{f('incidentFields.category')}</label>
                         <DropDownList
                             id='searchCategory'
-                            onChange={this.handleSearch.bind(this, 'category')}
                             required={true}
                             list={
                                 _.map(_.range(0, 9), el => {
                                     return {text: it(`category.${el}`), value: el}
                                 })
                             }
-                            value={search.category}/>
+                            value={search.category}
+                            onChange={this.handleSearch.bind(this, 'category')}/>
                     </div>
                     <div className='group'>
                         <label htmlFor='searchStatus' className='first-label'>{f('incidentFields.status')}</label>
                         <DropDownList
                             id='searchStatus'
-                            onChange={this.handleSearch.bind(this, 'status')}
                             required={true}
                             list={
                                 _.map(_.range(0, 5), el => {
                                     return {text: it(`status.${el}`), value: el}
                                 })
                             }
-                            value={search.status}/>
+                            value={search.status}
+                            onChange={this.handleSearch.bind(this, 'status')}/>
                     </div>
                 </div>
                 <div className='button-group'>
@@ -1021,6 +1022,21 @@ class Incident extends Component {
             </div>
         )
     }
+
+    /**
+     * Handle filter input data change
+     * @method
+     * @param {string} type - input type
+     * @param {Object} event - input value
+     */
+    handleInputSearch = (type, event) => {
+        let tempSearch = {...this.state.search};
+        tempSearch[type] = event.target.value.trim();
+
+        this.setState({
+            search: tempSearch
+        });
+    };
 
     /**
      * Handle filter input data change

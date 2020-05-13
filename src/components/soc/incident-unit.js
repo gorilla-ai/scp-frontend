@@ -484,11 +484,11 @@ class IncidentUnit extends Component {
                 <div className='filter-section config'>
                     <div className='group'>
                         <label htmlFor='keyword' className='first-label'>{f('incidentFields.keywords')}</label>
-                        <Input
+                        <input
                             id='keyword'
                             className='search-textarea'
-                            onChange={this.handleUnitSearch.bind(this, 'keyword')}
-                            value={unitSearch.keyword}/>
+                            value={unitSearch.keyword}
+                            onChange={this.handleUnitInputSearch.bind(this, 'keyword')}/>
                     </div>
                     <div className='group'>
                         <label htmlFor='industryType' className='first-label'>{f('incidentFields.industryType')}</label>
@@ -497,8 +497,8 @@ class IncidentUnit extends Component {
                             list={_.map(_.range(0, 14), el => {
                                 return {text: it(`industryType.${el}`), value: el}
                             })}
-                            onChange={this.handleUnitSearch.bind(this, 'industryType')}
-                            value={unitSearch.industryType}/>
+                            value={unitSearch.industryType}
+                            onChange={this.handleUnitSearch.bind(this, 'industryType')}/>
 
                     </div>
                 </div>
@@ -681,6 +681,21 @@ class IncidentUnit extends Component {
 
     /**
      * Handle filter input data change
+     * @method
+     * @param {string} type - input type
+     * @param {object} event - input value
+     */
+    handleUnitInputSearch = (type, event) => {
+        let tempUnitSearch = {...this.state.unitSearch};
+        tempUnitSearch[type] = event.target.value.trim();
+
+        this.setState({
+            unitSearch: tempUnitSearch
+        });
+    };
+
+    /**
+     * Handle filter DropDown data change
      * @method
      * @param {string} type - input type
      * @param {string} value - input value

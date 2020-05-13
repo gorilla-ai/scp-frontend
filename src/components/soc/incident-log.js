@@ -229,13 +229,11 @@ class IncidentLog extends Component {
                 <div className='filter-section config'>
                     <div className='group'>
                         <label htmlFor='keyword' className='first-label'>{f('incidentFields.keywords')}</label>
-                        <Input
+                        <input
                             id='keyword'
                             className='search-textarea'
-                            onChange={this.handleLogSearch.bind(this, 'keyword')}
-                            value={logSearch.keyword}/>
-
-
+                            value={logSearch.keyword}
+                            onChange={this.handleLogInputSearch.bind(this, 'keyword')}/>
                     </div>
                     <div className='group'>
                         <label htmlFor='type' className='first-label'>{it('txt-send-type')}</label>
@@ -255,8 +253,8 @@ class IncidentLog extends Component {
                                     text: it('txt-incident-health')
                                 }
                             ]}
-                            onChange={this.handleLogSearch.bind(this, 'type')}
-                            value={logSearch.type}/>
+                            value={logSearch.type}
+                            onChange={this.handleLogSearch.bind(this, 'type')}/>
 
                     </div>
                     <div className='group'>
@@ -273,8 +271,8 @@ class IncidentLog extends Component {
                                     text: it('txt-send-fail')
                                 }
                             ]}
-                            onChange={this.handleLogSearch.bind(this, 'status')}
-                            value={logSearch.status}/>
+                            value={logSearch.status}
+                            onChange={this.handleLogSearch.bind(this, 'status')}/>
                     </div>
                 </div>
                 <div className='button-group'>
@@ -319,6 +317,21 @@ class IncidentLog extends Component {
         } else {
             return true;
         }
+    };
+
+    /**
+     * Handle filter input data change
+     * @method
+     * @param {string} type - input type
+     * @param {object} event - input value
+     */
+    handleLogInputSearch = (type, event) => {
+        let tempLogSearch = {...this.state.logSearch};
+        tempLogSearch[type] = event.target.value.trim();
+
+        this.setState({
+            logSearch: tempLogSearch
+        });
     };
 
     /**

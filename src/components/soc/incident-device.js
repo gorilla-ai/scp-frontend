@@ -693,11 +693,11 @@ class IncidentDevice extends Component {
                 <div className='filter-section config'>
                     <div className='group'>
                         <label htmlFor='edgeSearchKeyword' className='first-label'>{f('edgeFields.keywords')}</label>
-                        <Input
+                        <input
                             id='edgeSearchKeyword'
                             className='search-textarea'
-                            onChange={this.handleDeviceSearch.bind(this, 'keyword')}
-                            value={deviceSearch.keyword}/>
+                            value={deviceSearch.keyword}
+                            onChange={this.handleDeviceInputSearch.bind(this, 'keyword')}/>
                     </div>
                 </div>
                 <div className='button-group'>
@@ -1003,11 +1003,11 @@ class IncidentDevice extends Component {
      * Handle filter input data change
      * @method
      * @param {string} type - input type
-     * @param {string} value - input value
+     * @param {object} event - input value
      */
-    handleDeviceSearch = (type, value) => {
+    handleDeviceInputSearch = (type, event) => {
         let tempDeviceSearch = {...this.state.deviceSearch};
-        tempDeviceSearch[type] = value;
+        tempDeviceSearch[type] =  event.target.value.trim();
 
         this.setState({
             deviceSearch: tempDeviceSearch
