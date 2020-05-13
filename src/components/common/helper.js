@@ -303,12 +303,17 @@ const helper = {
             }
 
             tempQueryData.list = data;
+            tempQueryData.patternId = '';
             tempQueryData.pattern = {
               name: '',
               periodMin: '',
               threshold: '',
               severity: 'Emergency'
             };
+
+            if (data[0].patternId) {
+              tempQueryData.patternId = data[0].patternId;
+            }
 
             if (data[0].patternName) {
               tempQueryData.pattern.name = data[0].patternName;

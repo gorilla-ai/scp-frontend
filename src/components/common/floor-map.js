@@ -15,6 +15,7 @@ import helper from './helper'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null;
+let et = null;
 
 /**
  * Floor Map
@@ -43,6 +44,7 @@ class FloorMap extends Component {
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    et = global.chewbaccaI18n.getFixedT(null, 'errors');
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
@@ -470,8 +472,11 @@ class FloorMap extends Component {
                 id='areaMapName'
                 className='add'
                 required={true}
-                onChange={this.handleDataChange.bind(this, 'name')}
-                value={floorPlan.name} />
+                validate={{
+                  t: et
+                }}
+                value={floorPlan.name}
+                onChange={this.handleDataChange.bind(this, 'name')} />
             </div>
 
             <div className='field upload'>

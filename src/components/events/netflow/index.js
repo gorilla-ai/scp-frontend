@@ -2024,8 +2024,8 @@ class Netflow extends Component {
             <label htmlFor='filterEmpty'>{t('alert.txt-filterEmpty')}</label>
             <Checkbox
               id='filterEmpty'
-              onChange={this.toggleFilterEmpty}
-              checked={pcapData.filterEmpty} />
+              checked={pcapData.filterEmpty}
+              onChange={this.toggleFilterEmpty} />
           </div>
         }
         <div className='pcap'>

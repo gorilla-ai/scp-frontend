@@ -172,15 +172,15 @@ class PrivilegeEdit extends Component {
           <label className='required'>{t('l-name')}</label>
           <Input
             type='text'
-            onChange={this.handleDataChange.bind(this, 'name')}
-            value={name} />
+            value={name}
+            onChange={this.handleDataChange.bind(this, 'name')} />
         </div>
         <div className='group'>
           <label className='required'>{t('l-permits')}</label>
           <CheckboxGroup
             list={permits}
-            onChange={this.handleDataChange.bind(this, 'selected')}
-            value={selected} />
+            value={selected}
+            onChange={this.handleDataChange.bind(this, 'selected')} />
         </div>
       </div>
     )

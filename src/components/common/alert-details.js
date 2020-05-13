@@ -1173,8 +1173,8 @@ class AlertDetails extends Component {
           <label htmlFor='filterEmpty'>{t('alert.txt-filterEmpty')}</label>
           <Checkbox
             id='filterEmpty'
-            onChange={this.toggleFilterEmpty}
-            checked={alertPCAP.filterEmpty} />
+            checked={alertPCAP.filterEmpty}
+            onChange={this.toggleFilterEmpty} />
         </div>
         <div className='pcap'>
           <div className='list'>

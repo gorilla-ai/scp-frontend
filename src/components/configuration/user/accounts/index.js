@@ -311,8 +311,8 @@ class AccountList extends Component {
         <Input
           id='resetPassword'
           type='password'
-          onChange={this.handlePasswordChange}
-          value={this.state.newPassword} />
+          value={this.state.newPassword}
+          onChange={this.handlePasswordChange} />
       </div>
     )    
   }
@@ -396,11 +396,11 @@ class AccountList extends Component {
    * Handle filter input value change
    * @method
    * @param {string} type - input type
-   * @param {string} value - input value
+   * @param {object} event - input value
    */
-  handleSearchChange = (type, value) => {
-    let tempParam = {...this.state.param}
-    tempParam[type] = value.trim()
+  handleSearchChange = (type, event) => {
+    let tempParam = {...this.state.param};
+    tempParam[type] = event.target.value.trim();
 
     this.setState({
       param: tempParam
@@ -433,7 +433,7 @@ class AccountList extends Component {
    * @returns HTML DOM
    */
   renderFilter = () => {
-    const {param, showFilter} = this.state
+    const {showFilter, param} = this.state;
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
@@ -442,19 +442,21 @@ class AccountList extends Component {
         <div className='filter-section config'>
           <div className='group'>
             <label htmlFor='account' >{t('l-account')}</label>
-            <Input
+            <input
               id='account'
+              type='text'
               placeholder={t('ph-account')}
-              onChange={this.handleSearchChange.bind(this, 'account')}
-              value={param.account} />
+              value={param.account}
+              onChange={this.handleSearchChange.bind(this, 'account')} />
           </div>
           <div className='group'>
             <label htmlFor='name'>{t('l-name')}</label>
-            <Input
+            <input
               id='name'
+              type='text'
               placeholder={t('ph-name')}
-              onChange={this.handleSearchChange.bind(this, 'name')}
-              value={param.name} />
+              value={param.name}
+              onChange={this.handleSearchChange.bind(this, 'name')} />
           </div>
         </div>
         <div className='button-group'>

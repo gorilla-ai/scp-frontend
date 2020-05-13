@@ -1256,8 +1256,8 @@ class SyslogController extends Component {
           validate={{
             t: et
           }}
-          onChange={this.handleLocaleChange}
-          value={logCustomLocal} />
+          value={logCustomLocal}
+          onChange={this.handleLocaleChange} />
       </ModalDialog>
     )
   }

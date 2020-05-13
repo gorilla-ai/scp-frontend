@@ -47,13 +47,13 @@ class SearchFilter extends Component {
           className='condition-select'
           list={filterList}
           required={true}
-          onChange={this.handleDataChange.bind(this, 'condition')}
           value={value.condition}
+          onChange={this.handleDataChange.bind(this, 'condition')}
           disabled={formStatus} />
         <Input
           className='filter-inputbox'
-          onChange={this.handleDataChange.bind(this, 'query')}
           value={value.query}
+          onChange={this.handleDataChange.bind(this, 'query')}
           disabled={formStatus} />
       </div>
     )

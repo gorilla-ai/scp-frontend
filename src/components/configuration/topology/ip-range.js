@@ -34,20 +34,20 @@ class IpRange extends Component {
       <div className='group-content'>
         <DropDownList
           required={true}
-          onChange={this.handleDataChange.bind(this, 'type')}
           list={[
             {value: 'private', text: 'Private'},
             {value: 'public', text: 'Public'}
           ]}
           value={value.type}
+          onChange={this.handleDataChange.bind(this, 'type')}
           readOnly={activeContent === 'viewMode'} />
         <Input
-          onChange={this.handleDataChange.bind(this, 'ip')}
           value={value.ip}
+          onChange={this.handleDataChange.bind(this, 'ip')}
           readOnly={activeContent === 'viewMode'} />
         <Input
-          onChange={this.handleDataChange.bind(this, 'mask')}
           value={value.mask}
+          onChange={this.handleDataChange.bind(this, 'mask')}
           readOnly={activeContent === 'viewMode'} />
       </div>
     )

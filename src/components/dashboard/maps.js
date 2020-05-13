@@ -98,10 +98,6 @@ class DashboardMaps extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {locale, sessionRights} = this.context;
-
-    helper.getPrivilegesInfo(sessionRights, 'common', locale);
-
     this.loadAlertData();
     this.getFloorPlan();
   }
@@ -623,14 +619,14 @@ class DashboardMaps extends Component {
       timestamp: [dateTime.from, dateTime.to],
       filters: [{
         condition: 'must',
-        query: 'InternalMaskedIp'
+        query: 'InternalMaskedIpWithLoc'
       }]
     };
 
     helper.getAjaxData('POST', url, requestData, 'false')
     .then(data => {
       if (data) {
-        const allPrivateData = data.aggregations.InternalMaskedIp;
+        const allPrivateData = data.aggregations.InternalMaskedIpWithLoc;
         let tempAlertDetails = {...alertDetails};
         let currentFloorPrivateData = [];
         let allFloorPrivateData = [];
@@ -810,9 +806,9 @@ class DashboardMaps extends Component {
               <DropDownList
                 className='drop-down'
                 list={floorList}
-                onChange={this.getAreaData}
                 required={true}
-                value={currentFloor} />
+                value={currentFloor}
+                onChange={this.getAreaData} />
             }
 
             {mapType === PRIVATE &&

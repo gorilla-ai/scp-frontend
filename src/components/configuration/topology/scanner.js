@@ -37,17 +37,17 @@ class Scanner extends Component {
     return (
       <div className='group-content'>
         <DropDownList
-          onChange={this.handleDataChange.bind(this, 'edge')}
           list={deviceList}
           value={value.edge}
+          onChange={this.handleDataChange.bind(this, 'edge')}
           readOnly={activeContent === 'viewMode' || !statusEnable.scanner} />
         <Input
-          onChange={this.handleDataChange.bind(this, 'ip')}
           value={value.ip}
+          onChange={this.handleDataChange.bind(this, 'ip')}
           readOnly={activeContent === 'viewMode' || !statusEnable.scanner} />
         <Input
-          onChange={this.handleDataChange.bind(this, 'mask')}
           value={value.mask}
+          onChange={this.handleDataChange.bind(this, 'mask')}
           readOnly={activeContent === 'viewMode' || !statusEnable.scanner} />
         <button onClick={this.props.handleScannerTest.bind(this, value)} disabled={!statusEnable.scanner || !value.edge}>{t('network-inventory.txt-testQuery')}</button>
       </div>

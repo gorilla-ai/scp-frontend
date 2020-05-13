@@ -283,8 +283,8 @@ class Severity extends Component {
             <label htmlFor='severityType'>{f('severityTableFields.dataSourceType')}</label>
             <Input
               id='severityType'
-              onChange={this.handleDataChange.bind(this, 'type')}
               value={severity.info.type}
+              onChange={this.handleDataChange.bind(this, 'type')}
               readOnly={activeContent === 'viewSeverity'} />
           </div>
           <div className='group severity-level'>
@@ -294,8 +294,8 @@ class Severity extends Component {
               id='severityLevel'
               required={true}
               list={severityList}
-              onChange={this.handleDataChange.bind(this, 'severity')}
               value={severity.info.severity}
+              onChange={this.handleDataChange.bind(this, 'severity')}
               readOnly={activeContent === 'viewSeverity'} />
           </div>
         </div>
@@ -435,11 +435,11 @@ class Severity extends Component {
   /**
    * Toggle filter content on/off
    * @method
-   * @param {string} type - Severity type input from user
+   * @param {string} event - Severity type input from user
    */
-  handleSearchType = (type) => {
+  handleSearchType = (event) => {
     this.setState({
-      severitySearchType: type
+      severitySearchType: event.target.value
     });
   }
   /**
@@ -455,8 +455,8 @@ class Severity extends Component {
         <label htmlFor={val} className='active'>{val}</label>
         <Checkbox
           id={val}
-          onChange={this.toggleSeverityOptions.bind(this, val)}
-          checked={this.state.severitySearchOptions[val]} />
+          checked={this.state.severitySearchOptions[val]}
+          onChange={this.toggleSeverityOptions.bind(this, val)} />
       </div>
     )
   }
@@ -475,10 +475,11 @@ class Severity extends Component {
         <div className='filter-section config'>
           <div className='group'>
             <label htmlFor='severityType' className='first-label'>{f('severityTableFields.dataSourceType')}</label>
-            <Input
+            <input
               id='severityType'
-              onChange={this.handleSearchType}
-              value={severitySearchType} />
+              type='text'
+              value={severitySearchType}
+              onChange={this.handleSearchType} />
           </div>
           <div className='severity'>
             <label>{f('severityTableFields.severityLevel')}</label>

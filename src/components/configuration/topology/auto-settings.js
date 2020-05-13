@@ -639,32 +639,32 @@ class AutoSettings extends Component {
                 <label htmlFor='autoSettingsIP'>IP</label>
                 <Input
                   id='autoSettingsIP'
-                  onChange={this.handleADchange.bind(this, 'ip')}
                   value={adData.ip}
+                  onChange={this.handleADchange.bind(this, 'ip')}
                   readOnly={activeContent === 'viewMode'} />
               </div>
               <div className='group'>
                 <label htmlFor='autoSettingsPort'>Port</label>
                 <Input
                   id='autoSettingsPort'
-                  onChange={this.handleADchange.bind(this, 'port')}
                   value={adData.port}
+                  onChange={this.handleADchange.bind(this, 'port')}
                   readOnly={activeContent === 'viewMode'} />
               </div>
               <div className='group' style={{width: '50%'}}>
                 <label htmlFor='autoSettingsDomain'>{t('txt-domain')}</label>
                 <Input
                   id='autoSettingsDomain'
-                  onChange={this.handleADchange.bind(this, 'domain')}
                   value={adData.domain}
+                  onChange={this.handleADchange.bind(this, 'domain')}
                   readOnly={activeContent === 'viewMode'} />
               </div>
               <div className='group' style={{width: '50%'}}>
                 <label htmlFor='autoSettingsUsername'>{t('network-inventory.auto-settings.txt-username')}</label>
                 <Input
                   id='autoSettingsUsername'
-                  onChange={this.handleADchange.bind(this, 'username')}
                   value={adData.username}
+                  onChange={this.handleADchange.bind(this, 'username')}
                   readOnly={activeContent === 'viewMode'} />
               </div>
               <div className='group' style={{width: '50%'}}>
@@ -672,8 +672,8 @@ class AutoSettings extends Component {
                 <Input
                   id='autoSettingsPassword'
                   type='password'
-                  onChange={this.handleADchange.bind(this, 'password')}
                   value={adData.password}
+                  onChange={this.handleADchange.bind(this, 'password')}
                   readOnly={activeContent === 'viewMode'} />
               </div>
             </div>
@@ -692,10 +692,10 @@ class AutoSettings extends Component {
                 <label htmlFor='autoSettingsNetflow'>{t('txt-updateTime')}</label>
                 <DropDownList
                   id='autoSettingsNetflow'
-                  required={true}
                   list={[
                     {value: '24', text: t('events.connections.txt-last24h')}
                   ]}
+                  required={true}
                   value={netflowData.time}
                   readOnly={activeContent === 'viewMode'} />
               </div>
@@ -727,9 +727,9 @@ class AutoSettings extends Component {
                       ip: '',
                       mask: ''
                     }}
+                    value={scannerData}
                     onChange={this.setScannerData}
                     handleScannertest={this.handleScannerTest}
-                    value={scannerData}
                     disabled={activeContent === 'viewMode'} />
                 </div>
               </div>

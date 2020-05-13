@@ -136,23 +136,23 @@ class Relationships extends Component {
             <label>{t('syslogFields.name')}</label>
             <DropDownList
               list={nameOptions}
-              onChange={this.handleDataChange.bind(this, 'name')}
-              value={value.name} />
+              value={value.name}
+              onChange={this.handleDataChange.bind(this, 'name')} />
           </div>
           <div className='item'>
             <label>{t('syslogFields.srcNode')}</label>
             <DropDownList
               list={rawOptions}
-              onChange={this.handleDataChange.bind(this, 'srcNode')}
-              value={value.srcNode} />
+              value={value.srcNode}
+              onChange={this.handleDataChange.bind(this, 'srcNode')} />
           </div>
           <i className='fg fg-next' />
           <div className='item'>
             <label>{t('syslogFields.dstNode')}</label>
             <DropDownList
               list={rawOptions}
-              onChange={this.handleDataChange.bind(this, 'dstNode')}
-              value={value.dstNode} />
+              value={value.dstNode}
+              onChange={this.handleDataChange.bind(this, 'dstNode')} />
           </div>
         </div>
         <div className='down'>

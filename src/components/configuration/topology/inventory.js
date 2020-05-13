@@ -981,6 +981,20 @@ class NetworkInventory extends Component {
     }
   }
   /**
+   * Handle filter input value change
+   * @method
+   * @param {string} type - input type
+   * @param {object} event - input value
+   */
+  handleDeviceSearch = (type, event) => {
+    let tempDeviceSearch = {...this.state.deviceSearch};
+    tempDeviceSearch[type] = event.target.value.trim();
+
+    this.setState({
+      deviceSearch: tempDeviceSearch
+    });
+  }
+  /**
    * Display filter content
    * @method
    * @returns HTML DOM
@@ -995,59 +1009,66 @@ class NetworkInventory extends Component {
         <div className='filter-section config'>
           <div className='group'>
             <label htmlFor='deviceSearchIP' className='first-label'>{t('ipFields.ip')}</label>
-            <Input
+            <input
               id='deviceSearchIP'
-              onChange={this.handleDeviceSearch.bind(this, 'ip')}
-              value={deviceSearch.ip} />
+              type='text'
+              value={deviceSearch.ip}
+              onChange={this.handleDeviceSearch.bind(this, 'ip')} />
           </div>
           <div className='group'>
             <label htmlFor='deviceSearchMac'>{t('ipFields.mac')}</label>
-            <Input
+            <input
               id='deviceSearchMac'
-              onChange={this.handleDeviceSearch.bind(this, 'mac')}
-              value={deviceSearch.mac} />
+              type='text'
+              value={deviceSearch.mac}
+              onChange={this.handleDeviceSearch.bind(this, 'mac')} />
           </div>
           <div className='group'>
             <label htmlFor='deviceSearchHostName'>{t('ipFields.hostName')}</label>
-            <Input
+            <input
               id='deviceSearchHostName'
-              onChange={this.handleDeviceSearch.bind(this, 'hostName')}
-              value={deviceSearch.hostName} />
+              type='text'
+              value={deviceSearch.hostName}
+              onChange={this.handleDeviceSearch.bind(this, 'hostName')} />
           </div>
           <div className='group'>
             <label htmlFor='deviceSearchSystem'>{t('ipFields.system')}</label>
-            <Input
+            <input
               id='deviceSearchSystem'
-              onChange={this.handleDeviceSearch.bind(this, 'system')}
-              value={deviceSearch.system} />
+              type='text'
+              value={deviceSearch.system}
+              onChange={this.handleDeviceSearch.bind(this, 'system')} />
           </div>
           <div className='group'>
             <label htmlFor='deviceSearchOwner'>{t('ipFields.owner')}</label>
-            <Input
+            <input
               id='deviceSearchOwner'
-              onChange={this.handleDeviceSearch.bind(this, 'owner')}
-              value={deviceSearch.owner} />
+              type='text'
+              value={deviceSearch.owner}
+              onChange={this.handleDeviceSearch.bind(this, 'owner')} />
           </div>
           <div className='group'>
             <label htmlFor='deviceSearchAreaName'>{t('ipFields.areaName')}</label>
-            <Input
+            <input
               id='deviceSearchAreaName'
-              onChange={this.handleDeviceSearch.bind(this, 'areaName')}
-              value={deviceSearch.areaName} />
+              type='text'
+              value={deviceSearch.areaName}
+              onChange={this.handleDeviceSearch.bind(this, 'areaName')} />
           </div>
           <div className='group'>
             <label htmlFor='deviceSearchSeatName'>{t('ipFields.seatName')}</label>
-            <Input
+            <input
               id='deviceSearchSeatName'
-              onChange={this.handleDeviceSearch.bind(this, 'seatName')}
-              value={deviceSearch.seatName} />
+              type='text'
+              value={deviceSearch.seatName}
+              onChange={this.handleDeviceSearch.bind(this, 'seatName')} />
           </div>
           <div className='group last'>
             <label htmlFor='hmdCheckbox'>HMD</label>
             <Checkbox
               id='hmdCheckbox'
-              onChange={this.toggleHMDcheckBox}
-              checked={hmdCheckbox} />
+              checked={hmdCheckbox}
+              onChange={this.toggleHMDcheckBox} />
           </div>
           <div className='group group-checkbox'>
             <div className='group-options'>
@@ -1055,32 +1076,32 @@ class NetworkInventory extends Component {
                 <label htmlFor='hmdSelectAll' className={cx({'active': hmdCheckbox})}>{t('txt-selectAll')}</label>
                 <Checkbox
                   id='hmdSelectAll'
-                  onChange={this.toggleHMDoptions.bind(this, 'selectAll')}
                   checked={hmdSelectAll}
+                  onChange={this.toggleHMDoptions.bind(this, 'selectAll')}
                   disabled={!hmdCheckbox} />
               </div>
               <div className='option'>
                 <label htmlFor='hmdScanProcess' className={cx({'active': hmdCheckbox})}>Scan Process</label>
                 <Checkbox
                   id='hmdScanProcess'
-                  onChange={this.toggleHMDoptions.bind(this, 'scanProcess')}
                   checked={hmdSearchOptions.scanProcess}
+                  onChange={this.toggleHMDoptions.bind(this, 'scanProcess')}
                   disabled={!hmdCheckbox} />
               </div>
               <div className='option'>
                 <label htmlFor='hmdScanFile' className={cx({'active': hmdCheckbox})}>Scan File</label>
                 <Checkbox
                   id='hmdScanFile'
-                  onChange={this.toggleHMDoptions.bind(this, 'scanFile')}
                   checked={hmdSearchOptions.scanFile}
+                  onChange={this.toggleHMDoptions.bind(this, 'scanFile')}
                   disabled={!hmdCheckbox} />
               </div>
               <div className='option'>
                 <label htmlFor='hmdGCB' className={cx({'active': hmdCheckbox})}>GCB</label>
                 <Checkbox
                   id='hmdGCB'
-                  onChange={this.toggleHMDoptions.bind(this, 'gcb')}
                   checked={hmdSearchOptions.gcb}
+                  onChange={this.toggleHMDoptions.bind(this, 'gcb')}
                   disabled={!hmdCheckbox} />
               </div>
             </div>
@@ -1554,20 +1575,6 @@ class NetworkInventory extends Component {
     });
   }
   /**
-   * Handle filter input value change
-   * @method
-   * @param {string} type - input type
-   * @param {string} value - input value
-   */
-  handleDeviceSearch = (type, value) => {
-    let tempDeviceSearch = {...this.state.deviceSearch};
-    tempDeviceSearch[type] = value;
-
-    this.setState({
-      deviceSearch: tempDeviceSearch
-    });
-  }
-  /**
    * Toggle Inventory content
    * @method
    * @param {string} type - content type
@@ -1866,8 +1873,8 @@ class NetworkInventory extends Component {
             <label htmlFor='csvHeaderOption'>{t('network-inventory.txt-withHeader')}</label>
             <Checkbox
               id='csvHeaderOption'
-              onChange={this.toggleCsvHeader}
-              checked={csvHeader} />
+              checked={csvHeader}
+              onChange={this.toggleCsvHeader} />
           </div>
       </ModalDialog>
     )
@@ -2514,8 +2521,8 @@ class NetworkInventory extends Component {
                     patternReadable: 'xxx.xxx.xxx.xxx',
                     t: et
                   }}
-                  onChange={this.handleAddIpChange.bind(this, 'ip')}
                   value={addIP.ip}
+                  onChange={this.handleAddIpChange.bind(this, 'ip')}
                   readOnly={formTypeEdit} />
               </div>
               <div className='group'>
@@ -2528,8 +2535,8 @@ class NetworkInventory extends Component {
                     patternReadable: '1)MM:MM:MM:SS:SS:SS 2)MM-MM-MM-SS-SS-SS',
                     t: et
                   }}
-                  onChange={this.handleAddIpChange.bind(this, 'mac')}
-                  value={addIP.mac} />
+                  value={addIP.mac}
+                  onChange={this.handleAddIpChange.bind(this, 'mac')} />
               </div>
             </div>
           }
@@ -2540,8 +2547,8 @@ class NetworkInventory extends Component {
                 <label htmlFor='addIPstepsHostname'>{t('ipFields.hostName')}</label>
                 <Input
                   id='addIPstepsHostname'
-                  onChange={this.handleAddIpChange.bind(this, 'hostName')}
                   value={addIP.hostName}
+                  onChange={this.handleAddIpChange.bind(this, 'hostName')}
                   readOnly={currentDeviceData.isHmd} />
               </div>
               <div className='group'>
@@ -2555,40 +2562,40 @@ class NetworkInventory extends Component {
                 <label htmlFor='addIPstepsSystem'>{t('ipFields.system')}</label>
                 <Input
                   id='addIPstepsSystem'
-                  onChange={this.handleAddIpChange.bind(this, 'system')}
                   value={addIP.system}
+                  onChange={this.handleAddIpChange.bind(this, 'system')}
                   readOnly={currentDeviceData.isHmd} />
               </div>
               <div className='group'>
                 <label htmlFor='addIPstepsDeviceType'>{t('ipFields.deviceType')}</label>
                 <Input
                   id='addIPstepsDeviceType'
-                  onChange={this.handleAddIpChange.bind(this, 'deviceType')}
                   value={addIP.deviceType}
+                  onChange={this.handleAddIpChange.bind(this, 'deviceType')}
                   readOnly={currentDeviceData.isHmd} />
               </div>
               <div className='group'>
                 <label htmlFor='addIPstepsUser'>{t('ipFields.userAccount')}</label>
                 <Input
                   id='addIPstepsUser'
-                  onChange={this.handleAddIpChange.bind(this, 'userName')}
                   value={addIP.userName}
+                  onChange={this.handleAddIpChange.bind(this, 'userName')}
                   readOnly={currentDeviceData.isHmd} />
               </div>
               <div className='group'>
                 <label htmlFor='addIPstepsCPU'>{t('txt-cpu')}</label>
                 <Input
                   id='addIPstepsCPU'
-                  onChange={this.handleAddIpChange.bind(this, 'cpu')}
                   value={addIP.cpu}
+                  onChange={this.handleAddIpChange.bind(this, 'cpu')}
                   readOnly={currentDeviceData.isHmd} />
               </div>
               <div className='group'>
                 <label htmlFor='addIPstepsRam'>{t('txt-ram')}</label>
                 <Input
                   id='addIPstepsRam'
-                  onChange={this.handleAddIpChange.bind(this, 'ram')}
                   value={addIP.ram}
+                  onChange={this.handleAddIpChange.bind(this, 'ram')}
                   readOnly={currentDeviceData.isHmd} />
               </div>
               <div className='group'>
@@ -2596,8 +2603,8 @@ class NetworkInventory extends Component {
                 <Textarea
                   id='addIPstepsDisks'
                   rows={3}
-                  onChange={this.handleAddIpChange.bind(this, 'disks')}
                   value={addIP.disks}
+                  onChange={this.handleAddIpChange.bind(this, 'disks')}
                   readOnly={currentDeviceData.isHmd} />
               </div>
               <div className='group'>
@@ -2605,8 +2612,8 @@ class NetworkInventory extends Component {
                 <Textarea
                   id='addIPstepsFolders'
                   rows={3}
-                  onChange={this.handleAddIpChange.bind(this, 'shareFolders')}
                   value={addIP.shareFolders}
+                  onChange={this.handleAddIpChange.bind(this, 'shareFolders')}
                   readOnly={currentDeviceData.isHmd} />
               </div>
             </div>
@@ -2617,8 +2624,8 @@ class NetworkInventory extends Component {
               <RadioGroup
                 className='owner-type'
                 list={this.getOwnerType()}
-                onChange={this.handleOwnerTypeChange}
-                value={ownerType} />
+                value={ownerType}
+                onChange={this.handleOwnerTypeChange} />
               {ownerType === 'new' &&
                 <button className='standard manage' onClick={this.openManage}>{t('txt-manageDepartmentTitle')}</button>
               }
@@ -2665,8 +2672,8 @@ class NetworkInventory extends Component {
                       id='addIPstepsOwnerName'
                       list={ownerList}
                       required={true}
-                      onChange={this.handleOwnerChange}
-                      value={addIP.ownerUUID} />
+                      value={addIP.ownerUUID}
+                      onChange={this.handleOwnerChange} />
                   </div>
                 }
                 {ownerType === 'new' &&
@@ -2674,12 +2681,12 @@ class NetworkInventory extends Component {
                     <label htmlFor='addIPstepsOwnerName'>{t('ownerFields.ownerName')}</label>
                     <Input
                       id='addIPstepsOwnerName'
-                      onChange={this.handleAddIpChange.bind(this, 'newOwnerName')}
                       required={true}
                       validate={{
                         t: et
                       }}
-                      value={addIP.newOwnerName} />
+                      value={addIP.newOwnerName}
+                      onChange={this.handleAddIpChange.bind(this, 'newOwnerName')} />
                   </div>
                 }
                 {ownerType === 'existing' && !_.isEmpty(ownerList) &&
@@ -2697,12 +2704,12 @@ class NetworkInventory extends Component {
                     <Input
                       id='addIPstepsOwnerID'
                       className={cx({'invalid': ownerIDduplicated})}
-                      onChange={this.handleAddIpChange.bind(this, 'newOwnerID')}
                       required={true}
                       validate={{
                         t: et
                       }}
-                      value={addIP.newOwnerID} />
+                      value={addIP.newOwnerID}
+                      onChange={this.handleAddIpChange.bind(this, 'newOwnerID')} />
                   </div>
                 }
                 {ownerType === 'existing' && !_.isEmpty(ownerList) &&
@@ -2721,9 +2728,8 @@ class NetworkInventory extends Component {
                       id='addIPstepsDepartment'
                       list={departmentList}
                       required={true}
-                      validate={{t: et}}
-                      onChange={this.handleDepartmentChange}
-                      value={addIP.newDepartment} />
+                      value={addIP.newDepartment}
+                      onChange={this.handleDepartmentChange} />
                   </div>
                 }
                 {ownerType === 'existing' && !_.isEmpty(ownerList) &&
@@ -2731,8 +2737,8 @@ class NetworkInventory extends Component {
                     <label htmlFor='addIPstepsTitle'>{t('ownerFields.title')}</label>
                     <Input
                       id='addIPstepsTitle'
-                      readOnly={true}
-                      value={addIP.title} />
+                      value={addIP.title}
+                      readOnly={true} />
                   </div>
                 }
                 {ownerType === 'new' &&
@@ -2742,8 +2748,8 @@ class NetworkInventory extends Component {
                       id='addIPstepsTitle'
                       list={titleList}
                       required={true}
-                      onChange={this.handleTitleChange}
-                      value={addIP.newTitle} />
+                      value={addIP.newTitle}
+                      onChange={this.handleTitleChange} />
                   </div>
                 }
               </div>
@@ -3196,26 +3202,26 @@ class NetworkInventory extends Component {
                         <label htmlFor='csvColumnIP'>{t('ipFields.ip')}*</label>
                         <DropDownList
                           id='csvColumnIP'
-                          required={true}
                           list={csvHeaderList}
-                          onChange={this.handleColumnChange.bind(this, 'ip')}
-                          value={csvColumns.ip} />
+                          required={true}
+                          value={csvColumns.ip}
+                          onChange={this.handleColumnChange.bind(this, 'ip')} />
                       </div>
                       <div className='group'>
                         <label htmlFor='csvColumnMac'>{t('ipFields.mac')}</label>
                         <DropDownList
                           id='csvColumnMac'
                           list={csvHeaderList}
-                          onChange={this.handleColumnChange.bind(this, 'mac')}
-                          value={csvColumns.mac} />
+                          value={csvColumns.mac}
+                          onChange={this.handleColumnChange.bind(this, 'mac')} />
                       </div>
                       <div className='group'>
                         <label htmlFor='csvColumnHost'>{t('ipFields.hostName')}</label>
                         <DropDownList
                           id='csvColumnHost'
                           list={csvHeaderList}
-                          onChange={this.handleColumnChange.bind(this, 'hostName')}
-                          value={csvColumns.hostName} />
+                          value={csvColumns.hostName}
+                          onChange={this.handleColumnChange.bind(this, 'hostName')} />
                       </div>
                     </section>
 
