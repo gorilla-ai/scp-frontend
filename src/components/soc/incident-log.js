@@ -8,6 +8,7 @@ import cx from "classnames";
 import Input from "react-ui/build/src/components/input";
 import TableContent from "../common/table-content";
 import {Link} from "react-router-dom";
+import DropDownList from "react-ui/build/src/components/dropdown";
 
 let t = null;
 let f = null;
@@ -33,7 +34,9 @@ class IncidentLog extends Component {
             activeContent: 'tableList', //tableList, viewDevice, editDevice
             showFilter: false,
             logSearch: {
-                keyword: ''
+                keyword: '',
+                type: '',
+                status: ''
             },
             incidentLog: {
                 dataFieldsArr: ['id', 'type', 'status', 'createDttm', 'updateDttm', 'sendTime'],
@@ -78,6 +81,15 @@ class IncidentLog extends Component {
         if (logSearch.keyword) {
             data.keyword = logSearch.keyword;
         }
+
+        if (logSearch.type) {
+            data.type = logSearch.type;
+        }
+
+        if (logSearch.status) {
+            data.status = logSearch.status;
+        }
+
 
         helper.getAjaxData('POST', url, data)
             .then(data => {
@@ -222,6 +234,47 @@ class IncidentLog extends Component {
                             className='search-textarea'
                             onChange={this.handleLogSearch.bind(this, 'keyword')}
                             value={logSearch.keyword}/>
+
+
+                    </div>
+                    <div className='group'>
+                        <label htmlFor='type' className='first-label'>{it('txt-send-type')}</label>
+                        <DropDownList
+                            id='type'
+                            list={[
+                                {
+                                    value: 'event',
+                                    text: it('txt-incident-event')
+                                },
+                                {
+                                    value: 'related',
+                                    text: it('txt-incident-related')
+                                },
+                                {
+                                    value: 'health',
+                                    text: it('txt-incident-health')
+                                }
+                            ]}
+                            onChange={this.handleLogSearch.bind(this, 'type')}
+                            value={logSearch.type}/>
+
+                    </div>
+                    <div className='group'>
+                        <label htmlFor='status' className='first-label'>{it('txt-send-status')}</label>
+                        <DropDownList
+                            id='status'
+                            list={[
+                                {
+                                    value: 'success',
+                                    text: it('txt-send-success')
+                                },
+                                {
+                                    value: 'fail',
+                                    text: it('txt-send-fail')
+                                }
+                            ]}
+                            onChange={this.handleLogSearch.bind(this, 'status')}
+                            value={logSearch.status}/>
                     </div>
                 </div>
                 <div className='button-group'>
@@ -300,7 +353,9 @@ class IncidentLog extends Component {
     clearFilter = () => {
         this.setState({
             logSearch: {
-                keyword: ''
+                keyword: '',
+                type: '',
+                status: ''
             }
         });
     };

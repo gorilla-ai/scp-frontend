@@ -22,6 +22,8 @@
 	"txt-send-fail": "發布失敗",
 	"txt-sendCheck": "，是否直接發布?",
 	"txt-sendCheckHealth": "是否手動發布健康狀態統計單?",
+	"txt-send-status": "發布狀態",
+	"txt-send-type": "事件單類型",
 	"txt-download": "下載",
 	"txt-required": "必填欄位為空",
 	"txt-incident-event": "資安監控",

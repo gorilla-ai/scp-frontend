@@ -38,7 +38,7 @@ class IncidentUnit extends Component {
             originalIncidentDeviceData: {},
             unitSearch: {
                 keyword: '',
-                industryType: 99
+                industryType: ''
             },
             incidentUnit: {
                 dataFieldsArr: ['isDefault', 'oid', 'name', 'abbreviation', 'level', 'industryType', '_menu'],
@@ -712,7 +712,7 @@ class IncidentUnit extends Component {
         this.setState({
             unitSearch: {
                 keyword: '',
-                industryType: 99
+                industryType: ''
             }
         });
     };
