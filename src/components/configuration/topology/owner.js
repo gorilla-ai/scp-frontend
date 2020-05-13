@@ -795,7 +795,6 @@ class NetworkOwner extends Component {
                         id='ownerDepartment'
                         list={list.department}
                         required={true}
-                        validate={{t: et}}
                         value={owner.info.department}
                         onChange={this.handleDataChange.bind(this, 'department')} />
                     </div>

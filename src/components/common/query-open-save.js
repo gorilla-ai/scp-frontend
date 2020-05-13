@@ -34,6 +34,7 @@ class QueryOpenSave extends Component {
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    et = global.chewbaccaI18n.getFixedT(null, 'errors');
     this.ah = getInstance('chewbacca');
   }
   /**

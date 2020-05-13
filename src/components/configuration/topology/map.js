@@ -938,7 +938,7 @@ class NetworkMap extends Component {
     const {showFilter, IP, floorPlan, list, search} = this.state;
 
     return (
-      <div className={cx('main-filter', {'active': showFilter && IP.dataContent.length > 0})}>
+      <div className={cx('main-filter', {'active': showFilter})}>
         <i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}></i>
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
@@ -1010,7 +1010,7 @@ class NetworkMap extends Component {
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')} disabled={IP.dataContent.length === 0}><i className='fg fg-filter'></i></button>
+            <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
           </div>
         </div>
 

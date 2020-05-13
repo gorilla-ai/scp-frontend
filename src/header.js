@@ -210,9 +210,8 @@ class Header extends Component {
 
             <div>
               <div className='main-nav'>
-                {sessionRights.Module_Common &&
-                  <Link to='/SCP/dashboard/statistics' className={cx('item', {'active': this.getActiveTab('dashboard')})}>{t('txt-dashboard')}</Link>
-                }
+                <Link to='/SCP/dashboard/statistics' className={cx('item', {'active': this.getActiveTab('dashboard')})}>{t('txt-dashboard')}</Link>
+
                 {sessionRights.Module_Common &&
                   <Link to='/SCP/threats' className={cx('item', {'active': this.getActiveTab('threats')})}>{t('txt-threats')}</Link>
                 }
