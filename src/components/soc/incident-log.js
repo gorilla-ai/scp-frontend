@@ -231,6 +231,7 @@ class IncidentLog extends Component {
                         <label htmlFor='keyword' className='first-label'>{f('incidentFields.keywords')}</label>
                         <input
                             id='keyword'
+                            type='text'
                             className='search-textarea'
                             value={logSearch.keyword}
                             onChange={this.handleLogInputSearch.bind(this, 'keyword')}/>
