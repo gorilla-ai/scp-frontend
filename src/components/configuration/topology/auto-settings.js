@@ -692,10 +692,10 @@ class AutoSettings extends Component {
                 <label htmlFor='autoSettingsNetflow'>{t('txt-updateTime')}</label>
                 <DropDownList
                   id='autoSettingsNetflow'
-                  required={true}
                   list={[
                     {value: '24', text: t('events.connections.txt-last24h')}
                   ]}
+                  required={true}
                   value={netflowData.time}
                   readOnly={activeContent === 'viewMode'} />
               </div>

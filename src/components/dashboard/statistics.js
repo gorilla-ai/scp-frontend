@@ -110,10 +110,6 @@ class DashboardStats extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {locale, sessionRights} = this.context;
-
-    helper.getPrivilegesInfo(sessionRights, 'common', locale);
-
     let alertChartsList = [];
 
     _.forEach(CHARTS_LIST, val => {

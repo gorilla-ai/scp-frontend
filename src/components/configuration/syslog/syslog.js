@@ -809,8 +809,10 @@ class Syslog extends Component {
           <div className='syslog'>
             <label>{t('syslogFields.name')}</label>
             <Input 
-              required={true} 
-              validate={{t: et}}
+              required={true}
+              validate={{
+                t: et
+              }}
               value={config.name}
               onChange={this.handleConfigChange.bind(this, 'name')} />
           </div>
@@ -818,7 +820,9 @@ class Syslog extends Component {
             <label>{t('syslogFields.port')}</label>
             <Input
               required={true}
-              validate={{t: et}}
+              validate={{
+                t: et
+              }}
               value={config.port}
               onChange={this.handleConfigChange.bind(this, 'port')} />
           </div>

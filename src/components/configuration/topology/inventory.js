@@ -2728,7 +2728,6 @@ class NetworkInventory extends Component {
                       id='addIPstepsDepartment'
                       list={departmentList}
                       required={true}
-                      validate={{t: et}}
                       value={addIP.newDepartment}
                       onChange={this.handleDepartmentChange} />
                   </div>
@@ -2738,8 +2737,8 @@ class NetworkInventory extends Component {
                     <label htmlFor='addIPstepsTitle'>{t('ownerFields.title')}</label>
                     <Input
                       id='addIPstepsTitle'
-                      readOnly={true}
-                      value={addIP.title} />
+                      value={addIP.title}
+                      readOnly={true} />
                   </div>
                 }
                 {ownerType === 'new' &&
@@ -3203,8 +3202,8 @@ class NetworkInventory extends Component {
                         <label htmlFor='csvColumnIP'>{t('ipFields.ip')}*</label>
                         <DropDownList
                           id='csvColumnIP'
-                          required={true}
                           list={csvHeaderList}
+                          required={true}
                           value={csvColumns.ip}
                           onChange={this.handleColumnChange.bind(this, 'ip')} />
                       </div>

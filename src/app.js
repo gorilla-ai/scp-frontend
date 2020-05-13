@@ -11,7 +11,6 @@ import Moment from 'moment'
 import DashboardMaps from './components/dashboard/maps'
 import DashboardStats from './components/dashboard/statistics'
 import EdgeManagement from './components/configuration/edge/edge'
-import Endpoint from './components/events/endpoint/index'
 import Header from './header'
 import logger from 'loglevel-prefix-persist/client'
 import Login from './login'
@@ -93,12 +92,6 @@ const SyslogComp = () => (
   <BaseDataContext.Provider value={baseData}>
     <Syslog
       searchFields={appcfg.searchFields} />
-  </BaseDataContext.Provider>
-)
-
-const EndpointComp = () => (
-  <BaseDataContext.Provider value={baseData}>
-    <Endpoint />
   </BaseDataContext.Provider>
 )
 
@@ -187,9 +180,8 @@ const Main = () => (
       <Route exact path='/SCP/dashboard/statistics' component={DashboardStatsComp} />
       <Route exact path='/SCP/dashboard/maps' component={DashboardMapsComp} />
       <Route exact path='/SCP/threats' component={ThreatsComp} />
-      <Route exact path='/SCP/events/netflow' component={NetflowComp} />
       <Route exact path='/SCP/events/syslog' component={SyslogComp} />
-      <Route exact path='/SCP/events/endpoint' component={EndpointComp} />
+      <Route exact path='/SCP/events/netflow' component={NetflowComp} />
       <Route exact path='/SCP/configuration/notifications' component={Notifications} />
       <Route exact path='/SCP/configuration/edge/edge' component={Edge} />
       <Route exact path='/SCP/configuration/edge/threat' component={Threat} />

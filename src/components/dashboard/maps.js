@@ -98,10 +98,6 @@ class DashboardMaps extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {locale, sessionRights} = this.context;
-
-    helper.getPrivilegesInfo(sessionRights, 'common', locale);
-
     this.loadAlertData();
     this.getFloorPlan();
   }
