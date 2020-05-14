@@ -228,7 +228,7 @@ class IncidentLog extends Component {
                 <div className='header-text'>{t('txt-filter')}</div>
                 <div className='filter-section config'>
                     <div className='group'>
-                        <label htmlFor='keyword' className='first-label'>{f('incidentFields.keywords')}</label>
+                        <label htmlFor='keyword' className='first-label'>{f('incidentFields.id')}</label>
                         <input
                             id='keyword'
                             type='text'
