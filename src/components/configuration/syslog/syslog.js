@@ -48,46 +48,6 @@ const INIT_CONFIG = {
   ]
 };
 
-const INIT = {
-  openFilter: false,
-  dataFieldsArr: ['_menu', 'name', 'port', 'format', 'property'],
-  dataFields: {},
-  syslog: {
-    dataContent: [],
-    sort: {
-      field: 'name',
-      desc: false
-    },
-    totalCount: 0,
-    currentPage: 1,
-    pageSize: 20,
-  },
-  openFilter: false,
-  search: {
-    port: '',
-    format: ''
-  },
-  openSyslog: false,
-  openTimeline: false,
-  openEditHosts: false,
-  clickTimeline: false,
-  activeTimeline: '',
-  activeConfigId: '',
-  activeConfigName: '',
-  datetime: {
-    from: helper.getStartDate('day'),
-    to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
-  },
-  eventsData: {},
-  hostsData: {},
-  modalTitle: '',
-  config: INIT_CONFIG,
-  configRelationships: [],
-  rawOptions: [],
-  error: false,
-  info: ''
-};
-
 /**
  * Syslog Management
  * @class
@@ -98,7 +58,47 @@ class Syslog extends Component {
   constructor(props) {
     super(props);
 
-    this.state = _.cloneDeep(INIT);
+    this.state = {
+      openFilter: false,
+      activeContent: 'syslogData', //syslogData, hostInfo
+      dataFieldsArr: ['_menu', 'name', 'port', 'format', 'property'],
+      dataFields: {},
+      syslog: {
+        dataContent: [],
+        sort: {
+          field: 'name',
+          desc: false
+        },
+        totalCount: 0,
+        currentPage: 1,
+        pageSize: 20,
+      },
+      openFilter: false,
+      search: {
+        port: '',
+        format: ''
+      },
+      openSyslog: false,
+      openTimeline: false,
+      openEditHosts: false,
+      clickTimeline: false,
+      activeTimeline: '',
+      activeConfigId: '',
+      activeConfigName: '',
+      datetime: {
+        from: helper.getStartDate('day'),
+        to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+      },
+      eventsData: {},
+      hostsData: {},
+      modalTitle: '',
+      config: INIT_CONFIG,
+      configRelationships: [],
+      rawOptions: [],
+      activeHost: '',
+      error: false,
+      info: ''
+    };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
@@ -111,6 +111,7 @@ class Syslog extends Component {
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
 
     this.getRelationship();
+    //this.getSyslogData();
     this.getSyslogList(false);
   }
   /**
@@ -176,12 +177,24 @@ class Syslog extends Component {
       {
         id: 'hosts',
         text: t('syslogFields.txt-editHosts'),
-        action: () => this.openEditHosts(allValue)
+        action: () => this.toggleContent('hostInfo', allValue)
+        //action: () => this.openEditHosts(allValue)
       }
     ];
 
     ContextMenu.open(evt, menuItems, 'configSyslogMenu');
     evt.stopPropagation();
+  }
+  toggleContent = (activeContent, allValue) => {
+    if (activeContent === 'hostInfo') {
+      this.setState({
+        activeHost: allValue
+      });
+    }
+
+    this.setState({
+      activeContent
+    });
   }
   /**
    * Display list for property table column
@@ -194,6 +207,47 @@ class Syslog extends Component {
     });
 
     return propertyList;
+  }
+  getSyslogData = () => {
+    const {baseUrl} = this.context;
+    const {dataFieldsArr, syslog} = this.state;
+
+    this.ah.one({
+      url: `${baseUrl}/api/log/config`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let tempSyslog = {...syslog};
+        tempSyslog.dataContent = data.rows;
+
+        let tempFields = {};
+        dataFieldsArr.forEach(tempData => {
+          tempFields[tempData] = {
+            label: tempData === '_menu' ? '' : t(`syslogFields.${tempData}`),
+            sortable: (tempData === '_menu' || tempData === 'property') ? null : true,
+            formatter: (value, allValue, i) => {
+              if (tempData === 'property') {
+                return <div className='flex-item'>{this.displayProperty(value)}</div>
+              } else if (tempData === '_menu') {
+                return '';
+              } else {
+                return <span>{value}</span>;
+              }
+            }
+          }
+        })
+
+        this.setState({
+          syslog: tempSyslog,
+          dataFields: tempFields
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Get and set syslog data
@@ -1259,9 +1313,38 @@ class Syslog extends Component {
       </div>
     )
   }
+  displayHostInfo = (val, i) => {
+
+    console.log(val, i)
+
+    return (
+      <div className='host-info'>
+        <header>Host IP: 172.18.0.120</header>
+        <div className='host-content'>
+          <span className='status'>Syslog Status: normal</span>
+          <header>{t('syslogFields.txt-syslog')}</header>
+
+          {syslog && syslog.dataContent &&
+            <DataTable
+              className='main-table'
+              fields={dataFields}
+              data={syslog.dataContent}
+              defaultSort={syslog.sort}
+              onRowMouseOver={this.handleTableRowMouseOver} />
+          }
+
+          <div className='content-header-btns'>
+            <button className='standard btn'>{t('syslogFields.txt-addSyslog')}</button>
+            <button className='standard btn'>{t('syslogFields.txt-viewEvents')}</button>
+            <button className='standard btn'>{t('syslogFields.txt-overallDist')}</button>
+          </div>
+        </div>
+      </div>
+    )
+  }
   render() {
     const {baseUrl, contextRoot} = this.context;
-    const {openSyslog, openTimeline, openEditHosts, syslog, openFilter, dataFields} = this.state;
+    const {activeContent, openSyslog, openTimeline, openEditHosts, syslog, openFilter, dataFields, activeHost} = this.state;
 
     return (
       <div>
@@ -1290,24 +1373,49 @@ class Syslog extends Component {
             baseUrl={baseUrl}
             contextRoot={contextRoot} />
 
-          <div className='parent-content'>
-            { this.renderFilter() }
+          {activeContent === 'syslogData' &&
+            <div className='parent-content'>
+              { this.renderFilter() }
 
-            <div className='main-content'>
-              <header className='main-header'>{t('txt-syslogManage')}</header>
-              <TableContent
-                dataTableData={syslog.dataContent}
-                dataTableFields={dataFields}
-                dataTableSort={syslog.sort}
-                paginationTotalCount={syslog.totalCount}
-                paginationPageSize={syslog.pageSize}
-                paginationCurrentPage={syslog.currentPage}
-                handleTableSort={this.handleTableSort}
-                handleRowMouseOver={this.handleRowMouseOver}
-                paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
+              <div className='main-content'>
+                <header className='main-header'>{t('txt-syslogManage')}</header>
+                <TableContent
+                  dataTableData={syslog.dataContent}
+                  dataTableFields={dataFields}
+                  dataTableSort={syslog.sort}
+                  paginationTotalCount={syslog.totalCount}
+                  paginationPageSize={syslog.pageSize}
+                  paginationCurrentPage={syslog.currentPage}
+                  handleTableSort={this.handleTableSort}
+                  handleRowMouseOver={this.handleRowMouseOver}
+                  paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
+                  paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />              
+
+                {/*<div className='config-syslog'>
+                  {syslog.dataContent.map(this.displayHostInfo)}
+                </div>*/}
+              </div>
             </div>
-          </div>
+          }
+
+          {activeContent === 'hostInfo' &&
+            <div className='parent-content'>
+              <div className='main-content'>
+                <header className='main-header'>{t('syslogFields.txt-syslogHost')}</header>
+
+                <div className='content-header-btns'>
+                  <button className='standard btn list' onClick={this.toggleContent.bind(this, 'syslogData')}>{t('txt-back')}</button>
+                </div>
+
+                <span>{activeHost.id}</span>
+
+                <DataTable
+                  className='main-table'
+                  fields={dataFields}
+                  data={syslog.dataContent} />
+              </div>
+            </div>
+          }
         </div>
       </div>
     )
@@ -1317,6 +1425,6 @@ class Syslog extends Component {
 Syslog.contextType = BaseDataContext;
 
 Syslog.propTypes = {
-}
+};
 
 export default Syslog;

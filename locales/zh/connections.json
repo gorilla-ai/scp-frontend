@@ -651,12 +651,14 @@
     "dstNode": "目的節點",
     "txt-getLatest": "取得最新串流資料",
     "txt-customFieldName": "自訂欄位名稱",
-    "txt-addSyslog": "新增系統日誌",
+    "txt-syslog": "日誌串流",
+    "txt-addSyslog": "新增日誌串流",
     "txt-editSyslog": "編輯系統日誌",
     "txt-deleteSyslog": "刪除系統日誌",
     "txt-eventDist": "日誌串流事件趨勢圖",
-    "txt-viewEvents": "檢視日誌串流事件",
+    "txt-viewEvents": "日誌串流事件",
     "txt-overallDist": "日誌串流事件趨勢圖",
+    "txt-syslogHost": "日誌所屬主機",
     "txt-editHosts": "編輯主機",
     "txt-timelineUnavailable": "趨勢圖資料不存在"
   }

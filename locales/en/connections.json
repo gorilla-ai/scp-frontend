@@ -651,12 +651,14 @@
     "dstNode": "Destination Node",
     "txt-getLatest": "Get Latest Input Text",
     "txt-customFieldName": "Custom Field Name",
+    "txt-syslog": "Syslog",
     "txt-addSyslog": "Add Syslog",
     "txt-editSyslog": "Edit Syslog",
     "txt-deleteSyslogdeleteSyslog": "Delete Syslog",
     "txt-eventDist": " Event Distribution",
     "txt-viewEvents": "View Events",
     "txt-overallDist": "Overall Distribution",
+    "txt-syslogHost": "Syslog Host",
     "txt-editHosts": "Edit Hosts",
     "txt-timelineUnavailable": "Timeline data is not available"
   }
