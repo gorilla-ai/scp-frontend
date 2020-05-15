@@ -202,7 +202,7 @@ const helper = {
       showProgress = (show === 'true');
     }
 
-    if (type === 'POST' || type === 'PATCH') {
+    if (type === 'POST' || type === 'PATCH' || type === 'DELETE') {
       return (
         ah.one({
           url: url,

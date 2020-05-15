@@ -138,6 +138,7 @@
   "txt-domain": "Domain",
   "txt-commonModule": "Common Module",
   "txt-configModule": "Configuration Module",
+  "txt-host": "Host",
 
   "txt-dashboard": "Dashboard",
   "txt-threats": "Threats",
@@ -638,6 +639,7 @@
     "port": "Received Port",
     "format": "Data Format",
     "property": "Data Property",
+    "ip": "IP",
     "name": "Name",
     "value": "Value",
     "conditions": "Conditions",
@@ -659,7 +661,12 @@
     "txt-viewEvents": "View Events",
     "txt-overallDist": "Overall Distribution",
     "txt-syslogHost": "Syslog Host",
+    "txt-syslogInfo": "Syslog Info",
+    "txt-syslogHostList": "Syslog Host List",
     "txt-editHosts": "Edit Hosts",
-    "txt-timelineUnavailable": "Timeline data is not available"
+    "txt-timelineUnavailable": "Timeline data is not available",
+    "txt-backToList": "$t(txt-back) to $t(txt-syslogManage)",
+    "txt-addHost": "Add Host",
+    "txt-deleteHost": "$t(txt-delete) $t(txt-host)"
   }
 }
