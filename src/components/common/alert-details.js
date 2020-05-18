@@ -49,7 +49,7 @@ class AlertDetails extends Component {
     super(props);
 
     this.state = {
-      alertType: '',
+      alertType: '', //'alert', 'pot_attack' or 'syslog'
       showContent: {
         rule: false,
         pcap: false,
@@ -495,11 +495,18 @@ class AlertDetails extends Component {
   getAlertRule = () => {
     const {baseUrl} = this.context;
     const {alertData} = this.props;
-    const {alertType} = this.state;
     const index = alertData.index;
     const projectId = alertData.projectName;
 
-    if (alertType === 'alert') {
+    if (_.isEmpty(alertData)) {
+      return;
+    }
+
+    if (alertData.Rule) {
+      this.setState({
+        alertRule: alertData.Rule
+      });
+    } else {
       const url = `${baseUrl}/api/network/alert/rule?projectId=${projectId}`;
       let alertInfo = {
         alert: {}
@@ -522,10 +529,6 @@ class AlertDetails extends Component {
       })
       .catch(err => {
         helper.showPopupMsg('', t('txt-error'), err.message);
-      });
-    } else {
-      this.setState({
-        alertRule: alertData.Rule
       });
     }
   }
@@ -1043,25 +1046,21 @@ class AlertDetails extends Component {
    * @returns HTML DOM
    */
   displayRuleContent = () => {
-    const {alertType, alertRule} = this.state;
+    const {alertRule} = this.state;
 
-    if (!alertRule) {
-      return <i className='fg fg-loading-2'></i>
-    }
-
-    if (alertRule && alertRule.length === 0) {
-      return <span>{NOT_AVAILABLE}</span>
-    }
-
-    if (alertRule && alertRule.length > 0) {
-      if (alertType === 'alert') {
-        return (
-          <ul className='alert-rule'>
-            {alertRule.map(this.showRuleContent)}
-            {this.showRuleRefsData()}
-          </ul>
-        )
-      } else {
+    if (alertRule) {
+      if (_.isArray(alertRule)) { //alertRule is an array
+        if (alertRule.length === 0) {
+          return <span>{NOT_AVAILABLE}</span>
+        } else {
+          return (
+            <ul className='alert-rule'>
+              {alertRule.map(this.showRuleContent)}
+              {this.showRuleRefsData()}
+            </ul>
+          )
+        }
+      } else { //alertRule is a string
         return (
           <section className='alert-rule'>
             <span>{alertRule}</span>
@@ -1069,6 +1068,8 @@ class AlertDetails extends Component {
           </section>
         )
       }
+    } else {
+      return <i className='fg fg-loading-2'></i>
     }
   }
   /**
