@@ -1577,6 +1577,12 @@ i.c-checkbox.fg-checkbox {
                 right: 0;
                 padding: .3em 1em;
               }
+              &.last-left {
+                position: absolute;
+                top: -45px;
+                right: 100px;
+                padding: .3em 1em;
+              }
             }
             .toggle-btn {
               position: absolute;
@@ -1657,7 +1663,8 @@ i.c-checkbox.fg-checkbox {
                 }
               }
               .ip-range-group,
-              .scanner-group {
+              .scanner-group,
+              .incident-group {
                 .group {
                   width: auto;
                   .group-content {
@@ -1688,6 +1695,61 @@ i.c-checkbox.fg-checkbox {
                   }
                 }
               }
+              .incident-group {
+                .group {
+                  &.full {
+                    width: 100% !important;
+                  }
+                  .fg-add, .fg-close {
+                    height: 30px;
+                    margin-top: 30px;
+                  }
+                  .event-content {
+                    width: 100%;
+                    .line {
+                      width: 100%;
+                      display: flex;
+                      .group {
+                        width: 50%;
+                      }
+                    }
+                    .event-sub {
+                      margin-top: 20px;
+                      .ttp-header {
+                        font-size: large;
+                        font-weight: bold;
+                      }
+                    }
+                  }
+                  .event-connection-group {
+                    width: 100%;
+                    span.group {
+                      width: 100% !important;
+                      margin-bottom: 10px;
+                    }
+                  }
+                  .connection-content {
+                    width: 100%;
+                    .line {
+                      width: 100%;
+                      display: flex;
+                      .group {
+                        width: 33%;
+                      }
+                    }
+                  }
+                  .ttp-group {
+                    width: 100%;
+                    span.group {
+                      width: 100% !important;
+                      margin-bottom: 10px;
+                    }
+                  }
+                }
+              }
+            }
+            .relatedList {
+              width: 100%;
             }
           }
           .steps-indicator { //For Config Topology Inventory page

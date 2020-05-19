@@ -1,0 +1,758 @@
+import React, {Component} from "react";
+
+import {default as ah, getInstance} from "react-ui/build/src/utils/ajax-helper";
+import {BaseDataContext} from "../common/context";
+import SocConfig from "../common/soc-configuration";
+import helper from "../common/helper";
+import cx from "classnames";
+import Input from "react-ui/build/src/components/input";
+import PopupDialog from "react-ui/build/src/components/popup-dialog";
+import TableContent from "../common/table-content";
+import DropDownList from "react-ui/build/src/components/dropdown";
+import Checkbox from "react-ui/build/src/components/checkbox";
+
+let t = null;
+let f = null;
+let et = null;
+let it = null;
+
+/**
+ * Settings - IncidentDevice
+ * @class
+ * @author Kenneth Chiao <kennethchiao@telmediatech.com>
+ * @summary A react component to show the Config IncidentDevice page
+ */
+class IncidentUnit extends Component {
+    constructor(props) {
+        super(props);
+
+        t = global.chewbaccaI18n.getFixedT(null, "connections");
+        f = chewbaccaI18n.getFixedT(null, "tableFields");
+        et = global.chewbaccaI18n.getFixedT(null, "errors");
+        it = global.chewbaccaI18n.getFixedT(null, "incident");
+
+        this.state = {
+            activeContent: 'tableList', //tableList, viewDevice, editDevice
+            showFilter: false,
+            currentIncidentDeviceData: {},
+            originalIncidentDeviceData: {},
+            unitSearch: {
+                keyword: '',
+                industryType: ''
+            },
+            incidentUnit: {
+                dataFieldsArr: ['isDefault', 'oid', 'name', 'abbreviation', 'level', 'industryType', '_menu'],
+                dataFields: {},
+                dataContent: [],
+                sort: {
+                    field: 'oid',
+                    desc: false
+                },
+                totalCount: 0,
+                currentPage: 1,
+                pageSize: 20,
+                info: {
+                    id: '',
+                    oid: '',
+                    name: '',
+                    level: 'A',
+                    industryType: '',
+                    isUse: false,
+                    isDefault: false,
+                    abbreviation: ''
+                }
+            }
+        };
+
+        this.ah = getInstance("chewbacca");
+    }
+
+    componentDidMount() {
+        const {locale, sessionRights} = this.context;
+
+        helper.getPrivilegesInfo(sessionRights, 'config', locale);
+        this.getData();
+    }
+
+    /**
+     * Get and set Incident Unit table data
+     * @method
+     * @param {string} fromSearch - option for the 'search'
+     */
+    getData = (fromSearch) => {
+        const {baseUrl, contextRoot} = this.context;
+        const {unitSearch, incidentUnit: incidentUnit} = this.state;
+        const url = `${baseUrl}/api/soc/unit/_search`;
+        let data = {};
+
+        if (unitSearch.keyword) {
+            data.keyword = unitSearch.keyword;
+        }
+        if (unitSearch.industryType) {
+            data.industryType = unitSearch.industryType;
+        }
+
+        helper.getAjaxData('POST', url, data)
+            .then(data => {
+                if (data) {
+                    let tempEdge = {...incidentUnit};
+                    tempEdge.dataContent = data.rows;
+                    tempEdge.totalCount = data.counts;
+
+                    let dataFields = {};
+                    incidentUnit.dataFieldsArr.forEach(tempData => {
+                        dataFields[tempData] = {
+                            label: tempData === '_menu' ? ' ' : f(`incidentFields.${tempData}`),
+                            sortable: this.checkSortable(tempData),
+                            formatter: (value, allValue, i) => {
+                                if (tempData === 'industryType') {
+                                    return <span>{this.mappingType(value)}</span>
+                                } else if (tempData === 'updateDttm') {
+                                    return <span>{helper.getFormattedDate(value, 'local')}</span>
+                                } else if (tempData === 'isDefault') {
+
+                                    if (value){
+                                        return <span style={{color:'#4662ff'}}>{this.checkDefault(value)}</span>
+                                    }else {
+                                        return <span>{this.checkDefault(value)}</span>
+                                    }
+
+                                } else if (tempData === '_menu') {
+                                    return (
+                                        <div className='table-menu menu active'>
+                                            <i className='fg fg-edit'
+                                               onClick={this.toggleContent.bind(this, 'viewDevice', allValue)}
+                                               title={t('txt-view')}/>
+                                            <i className='fg fg-trashcan'
+                                               onClick={this.openDeleteMenu.bind(this, allValue)}
+                                               title={t('txt-delete')}/>
+                                        </div>
+                                    )
+                                } else {
+                                    return <span>{value}</span>
+                                }
+                            }
+                        };
+                    });
+
+                    tempEdge.dataFields = dataFields;
+
+                    this.setState({
+                        incidentUnit: tempEdge
+                    });
+                }
+                return null;
+            })
+            .catch(err => {
+                helper.showPopupMsg(t('txt-error'));
+            });
+    };
+
+    checkDefault = (value) => {
+        let info = it('unit.txt-isNotDefault');
+        if (value) {
+            info = it('unit.txt-isDefault')
+        }
+        return info;
+    };
+
+    mappingType = (value) => {
+        let info = '';
+        switch (value) {
+            case 0:
+                info = "能源";
+                break;
+            case 1:
+                info = "水資源";
+                break;
+            case 2:
+                info = "通訊傳播";
+                break;
+            case 3:
+                info = "交通";
+                break;
+            case 4:
+                info = "金融";
+                break;
+            case 5:
+                info = "緊急救援及醫院";
+                break;
+            case 6:
+                info = "中央及地方政府";
+                break;
+            case 7:
+                info = "科學園區與工業區";
+                break;
+            case 8:
+                info = "臺北區域聯防中心";
+                break;
+            case 9:
+                info = "新北區域聯防中心";
+                break;
+            case 10:
+                info = "桃園區域聯防中心";
+                break;
+            case 11:
+                info = "臺中區域聯防中心";
+                break;
+            case 12:
+                info = "臺南區域聯防中心";
+                break;
+            case 13:
+                info = "高雄區域聯防中心";
+                break;
+        }
+        return info;
+    };
+
+    /* ------------------ View ------------------- */
+    render() {
+        const {activeContent, baseUrl, contextRoot, showFilter, incidentUnit: incidentUnit} = this.state;
+
+        return (
+            <div>
+
+                <div className="sub-header">
+                    <div className='secondary-btn-group right'>
+                        <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter}
+                                title={t('txt-filter')}><i className='fg fg-filter'/></button>
+                    </div>
+                </div>
+
+                <div className='data-content'>
+                    <SocConfig
+                        baseUrl={baseUrl}
+                        contextRoot={contextRoot}
+                    />
+
+                    <div className='parent-content'>
+                        {this.renderFilter()}
+
+                        {activeContent === 'tableList' &&
+                        <div className='main-content'>
+                            <header className='main-header'>{it('txt-incident-unit')}</header>
+                            <div className='content-header-btns'>
+                                {activeContent === 'viewDevice' &&
+                                <button className='standard btn list'
+                                        onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</button>
+                                }
+                                <button className='standard btn edit'
+                                        onClick={this.toggleContent.bind(this, 'addDevice')}>{t('txt-add')}</button>
+                            </div>
+                            <TableContent
+                                dataTableData={incidentUnit.dataContent}
+                                dataTableFields={incidentUnit.dataFields}
+                                dataTableSort={incidentUnit.sort}
+                                paginationTotalCount={incidentUnit.totalCount}
+                                paginationPageSize={incidentUnit.pageSize}
+                                paginationCurrentPage={incidentUnit.currentPage}
+                                handleTableSort={this.handleTableSort}
+                                paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
+                                paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')}/>
+                        </div>
+                        }
+
+                        {(activeContent === 'viewDevice' || activeContent === 'editDevice' || activeContent === 'addDevice') &&
+                        this.displayEditDeviceContent()
+                        }
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    /**
+     * Handle table pagination change
+     * @method
+     * @param {string} type - page type ('currentPage' or 'pageSize')
+     * @param {string | number} value - new page number
+     */
+    handlePaginationChange = (type, value) => {
+        let tempDevice = {...this.state.incidentDevice};
+        tempDevice[type] = Number(value);
+
+        if (type === 'pageSize') {
+            tempDevice.currentPage = 1;
+        }
+
+        this.setState({
+            incidentDevice: tempDevice
+        }, () => {
+            this.getData();
+        });
+    };
+
+    /**
+     * Display edit incidentUnit content
+     * @method
+     * @returns HTML DOM
+     */
+    displayEditDeviceContent = () => {
+        const {activeContent, incidentUnit} = this.state;
+        return (
+            <div className='main-content basic-form'>
+                <header className='main-header'>{it('txt-incident-unit')}</header>
+
+                <div className='content-header-btns'>
+                    {activeContent === 'viewDevice' &&
+                    <button className='standard btn list'
+                            onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</button>
+                    }
+                    {activeContent !== 'addDevice' &&
+                    <button className='standard btn edit'
+                            onClick={this.toggleContent.bind(this, 'editDevice')}>{t('txt-edit')}</button>
+                    }
+                </div>
+
+                <div className='form-group normal'>
+                    <header>
+                        <div className='text'>{t('edge-management.txt-basicInfo')}</div>
+                    </header>
+
+                    <div className='group'>
+                        <label htmlFor='oid'>{it('unit.txt-oid')}</label>
+                        <Input
+                            id='oid'
+                            onChange={this.handleDataChange.bind(this, 'oid')}
+                            value={incidentUnit.info.oid}
+                            readOnly={activeContent === 'viewDevice'}/>
+                    </div>
+                    <div className='group'>
+                        <label htmlFor='name'>{it('unit.txt-name')}</label>
+                        <Input
+                            id='name'
+                            onChange={this.handleDataChange.bind(this, 'name')}
+                            value={incidentUnit.info.name}
+                            readOnly={activeContent === 'viewDevice'}/>
+                    </div>
+                    <div className='group'>
+                        <label htmlFor='abbreviation'>{it('unit.txt-abbreviation')}</label>
+                        <Input
+                            id='abbreviation'
+                            onChange={this.handleDataChange.bind(this, 'abbreviation')}
+                            value={incidentUnit.info.abbreviation}
+                            readOnly={activeContent === 'viewDevice'}/>
+                    </div>
+
+                    <div className='group'>
+                        <label htmlFor='level'>{it('unit.txt-level')}</label>
+                        <DropDownList
+                            id='level'
+                            required={true}
+                            list={[
+                                {
+                                    value: 'A',
+                                    text: 'A'
+                                },
+                                {
+                                    value: 'B',
+                                    text: 'B'
+                                },
+                                {
+                                    value: 'C',
+                                    text: 'C'
+                                },
+                                {
+                                    value: 'D',
+                                    text: 'D'
+                                },
+                                {
+                                    value: 'E',
+                                    text: 'E'
+                                },
+                            ]}
+                            onChange={this.handleDataChange.bind(this, 'level')}
+                            value={incidentUnit.info.level}
+                            readOnly={activeContent === 'viewDevice'}/>
+                    </div>
+
+                    <div className='group'>
+                        <label htmlFor='industryType'>{it('unit.txt-type')}</label>
+                        <DropDownList
+                            id='industryType'
+                            required={true}
+                            list={_.map(_.range(0, 14), el => {
+                                return {text: it(`industryType.${el}`), value: el}
+                            })}
+                            onChange={this.handleDataChange.bind(this, 'industryType')}
+                            value={incidentUnit.info.industryType}
+                            readOnly={activeContent === 'viewDevice'}/>
+                    </div>
+
+                    <div className='group'>
+                        <label htmlFor='isDefault' className='checkbox'>{it('unit.txt-default')}</label>
+                        <Checkbox
+                            id='isDefault'
+                            onChange={this.handleDataChange.bind(this, 'isDefault')}
+                            checked={incidentUnit.info.isDefault}
+                            disabled={activeContent === 'viewDevice'}/>
+                    </div>
+                </div>
+
+                {activeContent === 'editDevice' &&
+                <footer>
+                    <button className='standard'
+                            onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</button>
+                    <button onClick={this.handleUnitSubmit}>{t('txt-save')}</button>
+
+                </footer>
+                }
+                {activeContent === 'addDevice' &&
+                <footer>
+                    <button className='standard'
+                            onClick={this.toggleContent.bind(this, 'cancel-add')}>{t('txt-cancel')}</button>
+                    <button onClick={this.handleUnitSubmit}>{t('txt-save')}</button>
+
+                </footer>
+                }
+            </div>
+        )
+    };
+
+    /**
+     * Handle IncidentUnit Edit confirm
+     * @method
+     */
+    handleUnitSubmit = () => {
+        const {baseUrl} = this.context;
+        let tmpIncidentUnit = {...this.state.incidentUnit};
+        if (!this.checkAddData(tmpIncidentUnit)) {
+            return
+        }
+
+        let apiType = 'POST';
+        if (tmpIncidentUnit.info.id) {
+            apiType = 'PATCH'
+        }
+
+        ah.one({
+            url: `${baseUrl}/api/soc/unit`,
+            data: JSON.stringify(tmpIncidentUnit.info),
+            type: apiType,
+            contentType: 'text/plain'
+        })
+            .then(data => {
+                tmpIncidentUnit.info.isUse = data.rt.isUse;
+                tmpIncidentUnit.info.isDefault = data.rt.isDefault;
+
+                this.setState({
+                    originalIncidentDeviceData: _.cloneDeep(tmpIncidentUnit)
+                }, () => {
+                    this.toggleContent('cancel');
+                });
+                return null;
+            })
+            .catch(err => {
+                helper.showPopupMsg('', t('txt-error'), it('unit.txt-exists'));
+            })
+    };
+
+
+    checkAddData = (incidentUnit) => {
+
+        if (!incidentUnit.info.oid ||
+            !incidentUnit.info.name ||
+            !incidentUnit.info.level ||
+            !incidentUnit.info.industryType) {
+            helper.showPopupMsg('', t('txt-error'), '[Unit OID],[Unit Name],[Unit Level],[Unit Industry] and [Unit Abbreviation] is required');
+            return false;
+        }
+
+
+        if (!incidentUnit.info.isDefault) {
+            incidentUnit.info.isDefault = false;
+            this.setState({
+                incidentUnit: incidentUnit
+            });
+        }
+
+        return true;
+    };
+
+    /**
+     * Display filter content
+     * @method
+     * @returns HTML DOM
+     */
+    renderFilter = () => {
+        const {showFilter, unitSearch} = this.state;
+
+        return (
+            <div className={cx('main-filter', {'active': showFilter})}>
+                <i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}/>
+                <div className='header-text'>{t('txt-filter')}</div>
+                <div className='filter-section config'>
+                    <div className='group'>
+                        <label htmlFor='keyword' className='first-label'>{f('incidentFields.keywords')}</label>
+                        <input
+                            id='keyword'
+                            className='search-textarea'
+                            value={unitSearch.keyword}
+                            onChange={this.handleUnitInputSearch.bind(this, 'keyword')}/>
+                    </div>
+                    <div className='group'>
+                        <label htmlFor='industryType' className='first-label'>{f('incidentFields.industryType')}</label>
+                        <DropDownList
+                            id='industryType'
+                            list={_.map(_.range(0, 14), el => {
+                                return {text: it(`industryType.${el}`), value: el}
+                            })}
+                            value={unitSearch.industryType}
+                            onChange={this.handleUnitSearch.bind(this, 'industryType')}/>
+
+                    </div>
+                </div>
+                <div className='button-group'>
+                    <button className='filter'
+                            onClick={this.getData.bind(this, 'search')}>{t('txt-filter')}</button>
+                    <button className='clear' onClick={this.clearFilter}>{t('txt-clear')}</button>
+                </div>
+            </div>
+        )
+    };
+
+    /* ---- Func Space ---- */
+    /**
+     * Show Delete IncidentDevice dialog
+     * @method
+     * @param {object} allValue - IncidentDevice data
+     */
+    openDeleteMenu = (allValue) => {
+
+        if (allValue.isDefault){
+            helper.showPopupMsg('', t('txt-fail'), it('unit.txt-defaultDelete'));
+            return;
+        }
+
+        PopupDialog.prompt({
+            title: t('txt-delete'),
+            id: 'modalWindowSmall',
+            confirmText: t('txt-delete'),
+            cancelText: t('txt-cancel'),
+            display: this.getDeleteIncidentDeviceContent(allValue),
+            act: (confirmed, data) => {
+                if (confirmed) {
+                    this.deleteUnit();
+                }
+            }
+        });
+    };
+
+    /**
+     * Display delete IncidentDevice content
+     * @method
+     * @param {object} allValue - IncidentDevice data
+     * @returns HTML DOM
+     */
+    getDeleteIncidentDeviceContent = (allValue) => {
+        this.setState({
+            currentIncidentDeviceData: allValue
+        });
+
+        return (
+            <div className='content delete'>
+                <span>{t('txt-delete-msg')}:{allValue.name} ?</span>
+            </div>
+        )
+    };
+
+    /**
+     * Handle delete IncidentDevice confirm
+     * @method
+     */
+    deleteUnit = () => {
+        const {baseUrl} = this.context;
+        const {currentIncidentDeviceData} = this.state;
+
+        if (!currentIncidentDeviceData.id) {
+            return;
+        }
+
+        ah.one({
+            url: `${baseUrl}/api/soc/unit?id=${currentIncidentDeviceData.id}`,
+            type: 'DELETE'
+        })
+            .then(data => {
+                if (data.ret === 0) {
+                    this.getData();
+                }
+                return null;
+            })
+            .catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message);
+            })
+    };
+
+    /**
+     * Handle table sort
+     * @method
+     * @param {object} sort - sort data object
+     */
+    handleTableSort = (sort) => {
+        let tempDevice = {...this.state.incidentUnit};
+        tempDevice.sort.field = sort.field;
+        tempDevice.sort.desc = sort.desc;
+
+        this.setState({
+            incidentUnit: tempDevice
+        }, () => {
+            this.getData();
+        });
+    };
+
+    /**
+     * Check table sort
+     * @method
+     * @param {string} field - table field name
+     * @returns true for sortable or null
+     */
+    checkSortable = (field) => {
+        const unSortableFields = ['description', '_menu'];
+
+        if (_.includes(unSortableFields, field)) {
+            return null;
+        } else {
+            return true;
+        }
+    };
+
+    /**
+     * Handle filter input data change
+     * @method
+     * @param {string} type - page type ('tableList', 'editEdge' and 'cancel')
+     * @param {object} allValue - Edge data
+     */
+    toggleContent = (type, allValue) => {
+        const {originalIncidentDeviceData, incidentUnit} = this.state;
+        let tempIncidentDevice = {...incidentUnit};
+        let showPage = type;
+
+        if (type === 'viewDevice') {
+            tempIncidentDevice.info = {
+                id: allValue.id,
+                oid: allValue.oid,
+                name: allValue.name,
+                level: allValue.level,
+                isUse: allValue.isUse,
+                industryType: allValue.industryType,
+                isDefault: allValue.isDefault,
+                abbreviation: allValue.abbreviation
+            };
+            this.setState({
+                showFilter: false,
+                // currentIncidentDeviceData:_.cloneDeep(tempIncidentDevice),
+                originalIncidentDeviceData: _.cloneDeep(tempIncidentDevice)
+            });
+        } else if (type === 'addDevice') {
+            tempIncidentDevice.info = {
+                id: allValue.id,
+                oid: allValue.oid,
+                name: allValue.name,
+                level: allValue.level,
+                isUse: allValue.isUse,
+                industryType: allValue.industryType,
+                isDefault: allValue.isDefault,
+                abbreviation: allValue.abbreviation
+            };
+            this.setState({
+                showFilter: false,
+                // currentIncidentDeviceData:_.cloneDeep(tempIncidentDevice),
+                originalIncidentDeviceData: _.cloneDeep(tempIncidentDevice)
+            });
+        } else if (type === 'tableList') {
+            tempIncidentDevice.info = _.cloneDeep(incidentUnit.info);
+        } else if (type === 'cancel-add') {
+            showPage = 'tableList';
+            tempIncidentDevice = _.cloneDeep(originalIncidentDeviceData);
+        } else if (type === 'cancel') {
+            showPage = 'viewDevice';
+            tempIncidentDevice = _.cloneDeep(originalIncidentDeviceData);
+        }
+
+        this.setState({
+            activeContent: showPage,
+            incidentUnit: tempIncidentDevice
+        }, () => {
+            if (type === 'tableList') {
+                this.getData();
+            }
+        });
+    };
+
+    /**
+     * Handle filter input data change
+     * @method
+     * @param {string} type - input type
+     * @param {object} event - input value
+     */
+    handleUnitInputSearch = (type, event) => {
+        let tempUnitSearch = {...this.state.unitSearch};
+        tempUnitSearch[type] = event.target.value.trim();
+
+        this.setState({
+            unitSearch: tempUnitSearch
+        });
+    };
+
+    /**
+     * Handle filter DropDown data change
+     * @method
+     * @param {string} type - input type
+     * @param {string} value - input value
+     */
+    handleUnitSearch = (type, value) => {
+        let tempUnitSearch = {...this.state.unitSearch};
+        tempUnitSearch[type] = value;
+
+        this.setState({
+            unitSearch: tempUnitSearch
+        });
+    };
+
+    /**
+     * Toggle filter content on/off
+     * @method
+     */
+    toggleFilter = () => {
+        this.setState({
+            showFilter: !this.state.showFilter
+        });
+    };
+
+    /**
+     * Clear filter input value
+     * @method
+     */
+    clearFilter = () => {
+        this.setState({
+            unitSearch: {
+                keyword: '',
+                industryType: ''
+            }
+        });
+    };
+
+    /**
+     * Handle Incident Device edit input data change
+     * @method
+     * @param {string} type - input type
+     * @param {string} value - input value
+     */
+    handleDataChange = (type, value) => {
+        let tempDevice = {...this.state.incidentUnit};
+        tempDevice.info[type] = value;
+
+        this.setState({
+            incidentUnit: tempDevice
+        });
+    };
+
+}
+
+IncidentUnit.contextType = BaseDataContext;
+
+IncidentUnit.propTypes = {
+    // nodeBaseUrl: PropTypes.string.isRequired
+};
+
+export default IncidentUnit;

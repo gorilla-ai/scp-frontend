@@ -1,6 +1,6 @@
 import React from 'react'
-import { render } from 'react-dom'
-import { BrowserRouter, Switch, Route, Link } from 'react-router-dom'
+import {render} from 'react-dom'
+import {BrowserRouter, Route, Switch} from 'react-router-dom'
 
 import Promise from 'bluebird'
 import $ from 'jquery'
@@ -30,10 +30,13 @@ import ThreatIntelligence from './components/configuration/edge/threat'
 import SeverityTable from './components/configuration/edge/severity'
 import UserAccounts from './components/configuration/user/accounts/index'
 import UserPrivileges from './components/configuration/user/privileges/index'
+import IncidentDevice from './components/soc/incident-device'
+import IncidentUnit from './components/soc/incident-unit'
+import IncidentLog from './components/soc/incident-log'
+import Incident from './components/soc/Incident'
 
 import {BaseDataContext, baseData} from './components/common/context'
-
-import {createInstance, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+import {createInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 import 'font-gorilla/css/font-gorilla.css'
 import 'purecss/build/pure-min.css'
@@ -102,32 +105,32 @@ const Notifications = () => (
 )
 
 const Edge = () => (
-  <BaseDataContext.Provider value={baseData}>
-    <EdgeManagement />
-  </BaseDataContext.Provider>
+    <BaseDataContext.Provider value={baseData}>
+        <EdgeManagement/>
+    </BaseDataContext.Provider>
 )
 
 const Threat = () => (
-  <BaseDataContext.Provider value={baseData}>
-    <ThreatIntelligence />
-  </BaseDataContext.Provider>
+    <BaseDataContext.Provider value={baseData}>
+        <ThreatIntelligence/>
+    </BaseDataContext.Provider>
 )
 
 const Severity = () => (
-  <BaseDataContext.Provider value={baseData}>
-    <SeverityTable />
-  </BaseDataContext.Provider>
+    <BaseDataContext.Provider value={baseData}>
+        <SeverityTable/>
+    </BaseDataContext.Provider>
 )
 
 const NetworkTopologyInventory = () => (
-  <BaseDataContext.Provider value={baseData}>
-    <NetworkInventory />
-  </BaseDataContext.Provider>
+    <BaseDataContext.Provider value={baseData}>
+        <NetworkInventory/>
+    </BaseDataContext.Provider>
 )
 
 const NetworkTopologyOwner = () => (
-  <BaseDataContext.Provider value={baseData}>
-    <NetworkOwner />
+    <BaseDataContext.Provider value={baseData}>
+        <NetworkOwner/>
   </BaseDataContext.Provider>
 )
 
@@ -163,17 +166,42 @@ const userPrivileges = () => (
 
 const serviceStatus = () => (
   <BaseDataContext.Provider value={baseData}>
-    <ServiceStatus />
+      <ServiceStatus/>
   </BaseDataContext.Provider>
 )
 
 const productInfo = () => (
-  <BaseDataContext.Provider value={baseData}>
-    <ProductInfo />
-  </BaseDataContext.Provider>
+    <BaseDataContext.Provider value={baseData}>
+        <ProductInfo/>
+    </BaseDataContext.Provider>
 )
 
+const incidentDevice = () => (
+    <BaseDataContext.Provider value={baseData}>
+        <IncidentDevice/>
+    </BaseDataContext.Provider>
+);
+
+const incident = () => (
+    <BaseDataContext.Provider value={baseData}>
+        <Incident/>
+    </BaseDataContext.Provider>
+);
+
+const incidentUnit = () => (
+    <BaseDataContext.Provider value={baseData}>
+        <IncidentUnit/>
+    </BaseDataContext.Provider>
+);
+
+const incidentLog = () => (
+    <BaseDataContext.Provider value={baseData}>
+        <IncidentLog/>
+    </BaseDataContext.Provider>
+);
+
 const Main = () => (
+
   <main className='main'>
     <Switch>
       <Route exact path='/SCP' component={DashboardStatsComp} />
@@ -195,8 +223,13 @@ const Main = () => (
       <Route exact path='/SCP/configuration/user/privileges' component={userPrivileges} />
       <Route exact path='/SCP/configuration/service-status' component={serviceStatus} />
       <Route exact path='/SCP/configuration/product-info' component={productInfo} />
+        <Route exact path='/SCP/soc/incident-device' component={incidentDevice}/>
+        <Route exact path='/SCP/soc/incident-unit' component={incidentUnit}/>
+        <Route exact path='/SCP/soc/incident-log' component={incidentLog}/>
+        <Route exact path='/SCP/soc/incident' component={incident}/>
     </Switch>
   </main>
+
 )
 
 const App = () => {

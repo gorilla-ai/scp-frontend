@@ -63,5 +63,8 @@
   "-5007": "Name already exist",
 
   "txt-param-null": "Parameter is NULL",
-  "txt-account-fail" : "Fail to get accounts from AD"
+  "txt-account-fail" : "Fail to get accounts from AD",
+
+  "-10222": "Device ID is already exist",
+  "-10322": "Unit OID is already exist"
 }

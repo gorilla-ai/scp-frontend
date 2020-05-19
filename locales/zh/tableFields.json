@@ -1,5 +1,5 @@
 {
-  "txt-add": "新增",  
+  "txt-add": "新增",
   "txt-view": "瀏覽",
   "connectionsFields": {
     "_tableMenu_": "",
@@ -105,8 +105,8 @@
     "as1": "AS1",
     "tlscipher-term": "TLSCIPHER Term",
     "dns": {
-        "opcode-term": "DNS OPCODE Term",
-        "status-term": "DNS STATUS Term"
+      "opcode-term": "DNS OPCODE Term",
+      "status-term": "DNS STATUS Term"
     },
     "icmpType": "ICMP Type",
     "icmpCode": "ICMP Code"
@@ -125,7 +125,7 @@
       "opcode-term": "DNS Server的指令",
       "status-term": "回傳的狀態碼"
     },
-    "dstSvcname":  "目標服務",
+    "dstSvcname": "目標服務",
     "dstHostname": "目標主機",
     "srcHostname": "來源主機",
     "srcSvcname": "來源服務",
@@ -460,6 +460,7 @@
     "ip": "IP",
     "mac": "MAC",
     "createDttm": "建立時間",
+    "createdDttm": "建立時間",
     "runningTaskCount": "Running Task Count",
     "waitingTaskCount": "Waiting Task Count",
     "completeTaskCount": "Complete Task Count",
@@ -525,6 +526,56 @@
   "serviceStatusFields": {
     "status": "狀態",
     "serviceName": "服務名稱"
+  },
+  "incidentFields": {
+    "isDefault": "預設機關",
+    "id": "事件單編號",
+    "title": "事件主旨",
+    "category": "事件類別",
+    "victimName": "單位",
+    "reporter": "通報者",
+    "createDttm": "建立時間",
+    "sendTime": "發布時間",
+    "impactAssessment": "影響等級",
+    "description": "相關手法描述",
+    "socType": "回報類型",
+    "status": "狀態",
+    "relatedList": "關聯事件單",
+    "rule": "觸發規則",
+    "dateRange": "起訖時間",
+    "srcIp": "來源IP",
+    "srcPort": "來源Port",
+    "srcHostname": "來源主機",
+    "dstIp": "目標IP",
+    "dstPort": "目標Port",
+    "dstHostname": "目標主機",
+    "cveId": "CVE ID",
+    "etsDescription": "漏洞描述",
+    "fileName": "檔案名稱",
+    "fileExtension": "檔案類型",
+    "uriType": "URI類型",
+    "uriValue": "URI內容",
+    "domain": "網域",
+    "technique": "手法描述",
+    "infrastructureType": "指標類型",
+    "incidentUnitDTO": {
+      "name": "機關名稱",
+      "level": "機關等級"
+    },
+    "keywords": "關鍵字",
+    "deviceId": "設備代號",
+    "deviceName": "設備名稱與型號",
+    "protectTypeInfo": "資安防護類型",
+    "oid": "機關OID",
+    "name": "機關名稱",
+    "level": "機關等級",
+    "industryType": "機關領域",
+    "note": "備註",
+    "frequency": "觸發次數",
+    "updateDttm": "最後更新時間",
+    "abbreviation": "機關英文簡稱",
+    "type": "事件單類型",
+    "select": "是否發布"
   },
   "severityTableFields": {
     "dataSourceType": "Type",

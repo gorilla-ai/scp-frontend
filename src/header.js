@@ -20,7 +20,7 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const t = i18n.getFixedT(null, 'connections');
 const l = i18n.getFixedT(null, 'app');
-
+const it = i18n.getFixedT(null, 'incident');
 /**
  * Header
  * @class
@@ -219,14 +219,20 @@ class Header extends Component {
                   <Link to='/SCP/events/syslog' className={cx('item', {'active': this.getActiveTab('events')})}>{t('txt-events')}</Link>
                 }
                 {sessionRights.Module_Config &&
+                  <Link to='/SCP/soc/incident' className={cx('item', {'active': this.getActiveTab('soc')})}>{it('txt-soc')}</Link>
+                }
+                {sessionRights.Module_Config &&
                   <Link to='/SCP/configuration/edge/edge' className={cx('item', {'active': this.getActiveTab('configuration')})}>{t('txt-configuration')}</Link>
                 }
+
+
+
               </div>
             </div>
 
             <div className='account' onClick={this.showAccountMenu}>
-              <i className='fg fg-globe'></i>
-              <i className='fg fg-arrow-bottom'></i>
+              <i className='fg fg-globe'/>
+              <i className='fg fg-arrow-bottom'/>
             </div>
           </header>
         </div>

@@ -1,6 +1,5 @@
-import React, { Component } from 'react'
-import { withRouter } from 'react-router'
-import PropTypes from 'prop-types'
+import React, {Component} from 'react'
+import {withRouter} from 'react-router'
 import Moment from 'moment'
 import moment from 'moment-timezone'
 import _ from 'lodash'
@@ -17,13 +16,13 @@ import QueryOpenSave from '../common/query-open-save'
 import SearchOptions from '../common/search-options'
 import TableCell from '../common/table-cell'
 import Threats from './threats'
-import WORLDMAP from '../../mock/world-map-low.json'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null;
 let f = null;
 let et = null;
+let it = null;
 
 const PRIVATE = 'private';
 const PUBLIC = 'public';
@@ -122,6 +121,7 @@ class ThreatsController extends Component {
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
+    it = global.chewbaccaI18n.getFixedT(null, "incident");
 
     this.state = {
       activeTab: 'alert',
@@ -171,7 +171,7 @@ class ThreatsController extends Component {
           data: {}
         }
       },
-      //Tab Menu
+      //Tab IncidentDevice
       subTabMenu: {
         table: t('alert.txt-alertList'),
         statistics: t('alert.txt-statistics')
@@ -1328,18 +1328,27 @@ class ThreatsController extends Component {
    */
   alertDialog = () => {
     const {alertDetails, alertData} = this.state;
-    const actions = {
-      confirm: {text: t('txt-close'), handler: this.closeDialog}
-    };
+    const {contextRoot, sessionRights} = this.context;
+    let actions = {};
+    if (sessionRights.Module_Config) {
+      actions = {
+        makeIncident: {text: it('txt-createIncident'), handler: this.incidentRedirect},
+        confirm: {text: t('txt-close'), handler: this.closeDialog}
+      };
+    } else {
+      actions = {
+        confirm: {text: t('txt-close'), handler: this.closeDialog}
+      };
+    }
 
     return (
-      <AlertDetails
-        titleText={t('alert.txt-alertInfo')}
-        actions={actions}
-        alertDetails={alertDetails}
-        alertData={alertData}
-        showAlertData={this.showAlertData}
-        fromPage='threats' />
+        <AlertDetails
+            titleText={t('alert.txt-alertInfo')}
+            actions={actions}
+            alertDetails={alertDetails}
+            alertData={alertData}
+            showAlertData={this.showAlertData}
+            fromPage='threats'/>
     )
   }
   /**
@@ -1425,6 +1434,18 @@ class ThreatsController extends Component {
       this.clearQueryData();
     });
   }
+
+  /**
+   * redirect to incident page
+   * @method
+   */
+  incidentRedirect = () => {
+    const {alertData} = this.state;
+    let timeInMss = Date.now();
+    sessionStorage.setItem(timeInMss, JSON.stringify(alertData));
+    window.location.href = '/SCP/soc/incident?alertDataId=' + timeInMss
+  };
+
   /**
    * Set new datetime and reload page data
    * @method

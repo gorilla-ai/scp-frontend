@@ -1,8 +1,5 @@
-import React, { Component } from 'react'
-import { withRouter } from 'react-router'
-import PropTypes from 'prop-types'
-import Moment from 'moment'
-import cx from 'classnames'
+import React, {Component} from 'react'
+import {withRouter} from 'react-router'
 
 import Checkbox from 'react-ui/build/src/components/checkbox'
 import DropDownList from 'react-ui/build/src/components/dropdown'
@@ -14,7 +11,6 @@ import {ReactMultiEmail} from 'react-multi-email';
 import {BaseDataContext} from '../../common/context';
 import Config from '../../common/configuration'
 import helper from '../../common/helper'
-import TableContent from '../../common/table-content'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 import 'react-multi-email/style.css';
@@ -59,6 +55,10 @@ class Notifications extends Component {
         alert: {
           emails: [],
           enable: true
+        },
+        soc: {
+          emails: [],
+          enable: true
         }
       }
     };
@@ -101,7 +101,6 @@ class Notifications extends Component {
       if (data) {
         const data1 = data[0];
         const data2 = data[1];
-
         const notifications = {
           server: data1.smtpServer,
           port: data1.smtpPort,
@@ -127,6 +126,11 @@ class Notifications extends Component {
         if (data2['notify.alert.report.id']) {
           tempEmails.alert.emails = data2['notify.alert.report.id'].receipts;
           tempEmails.alert.enable = data2['notify.alert.report.id'].enable;
+        }
+
+        if (data2['notify.soc.send.id']) {
+          tempEmails.soc.emails = data2['notify.soc.send.id'].receipts;
+          tempEmails.soc.enable = data2['notify.soc.send.id'].enable;
         }
 
         this.setState({
@@ -210,6 +214,10 @@ class Notifications extends Component {
       'notify.alert.report.id': {
         receipts: emails.alert.emails,
         enable: emails.alert.enable
+      },
+      'notify.soc.send.id': {
+        receipts: emails.soc.emails,
+        enable: emails.soc.enable
       }
     };
     const apiArr = [
@@ -463,6 +471,11 @@ class Notifications extends Component {
         type: 'alert',
         headerText: t('notifications.txt-alertNotifications'),
         checkboxText: t('notifications.txt-dailyAlert')
+      },
+      {
+        type: 'soc',
+        headerText: t('notifications.txt-socNotifications'),
+        checkboxText: t('notifications.txt-sendResult')
       }
     ];
 
