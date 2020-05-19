@@ -658,6 +658,7 @@
     "txt-viewEvents": "檢視日誌串流事件",
     "txt-overallDist": "日誌串流事件趨勢圖",
     "txt-editHosts": "編輯主機",
-    "txt-timelineUnavailable": "趨勢圖資料不存在"
+    "txt-timelineUnavailable": "趨勢圖資料不存在",
+    "txt-portNotAllowed": "系統服務預設埠號不允許使用"
   }
 }

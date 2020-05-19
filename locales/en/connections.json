@@ -658,6 +658,7 @@
     "txt-viewEvents": "View Events",
     "txt-overallDist": "Overall Distribution",
     "txt-editHosts": "Edit Hosts",
-    "txt-timelineUnavailable": "Timeline data is not available"
+    "txt-timelineUnavailable": "Timeline data is not available",
+    "txt-portNotAllowed": "Default port for system service is not allowed to use"
   }
 }
