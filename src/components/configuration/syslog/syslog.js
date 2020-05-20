@@ -20,7 +20,6 @@ import Textarea from 'react-ui/build/src/components/textarea'
 
 import {BaseDataContext} from '../../common/context';
 import Config from '../../common/configuration'
-import EditHosts from './edit-hosts'
 import helper from '../../common/helper'
 import Relationships from './relationships'
 import TableContent from '../../common/table-content'
@@ -48,46 +47,6 @@ const INIT_CONFIG = {
   ]
 };
 
-const INIT = {
-  openFilter: false,
-  dataFieldsArr: ['_menu', 'name', 'port', 'format', 'property'],
-  dataFields: {},
-  syslog: {
-    dataContent: [],
-    sort: {
-      field: 'name',
-      desc: false
-    },
-    totalCount: 0,
-    currentPage: 1,
-    pageSize: 20,
-  },
-  openFilter: false,
-  search: {
-    port: '',
-    format: ''
-  },
-  openSyslog: false,
-  openTimeline: false,
-  openEditHosts: false,
-  clickTimeline: false,
-  activeTimeline: '',
-  activeConfigId: '',
-  activeConfigName: '',
-  datetime: {
-    from: helper.getStartDate('day'),
-    to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
-  },
-  eventsData: {},
-  hostsData: {},
-  modalTitle: '',
-  config: INIT_CONFIG,
-  configRelationships: [],
-  rawOptions: [],
-  error: false,
-  info: ''
-};
-
 /**
  * Syslog Management
  * @class
@@ -98,7 +57,62 @@ class Syslog extends Component {
   constructor(props) {
     super(props);
 
-    this.state = _.cloneDeep(INIT);
+    this.state = {
+      openFilter: false,
+      activeContent: 'syslogData', //syslogData, hostInfo
+      dataFieldsArr: ['_menu', 'name', 'port', 'format', 'property'],
+      dataFields: {},
+      syslog: {
+        dataContent: [],
+        sort: {
+          field: 'name',
+          desc: false
+        },
+        totalCount: 0,
+        currentPage: 1,
+        pageSize: 20,
+      },
+      hostsFieldsArr: ['id', 'ip', 'name', '_menu'],
+      hostsFields: {}, 
+      hosts: {
+        dataContent: [],
+        sort: {
+          field: 'ip',
+          desc: false
+        }
+      },
+      openFilter: false,
+      search: {
+        port: '',
+        format: ''
+      },
+      editHostsType: '',
+      editHosts: {
+        ip: '',
+        name: ''
+      },
+      openSyslog: false,
+      openTimeline: false,
+      openEditHosts: false,
+      clickTimeline: false,
+      activeTimeline: '',
+      activeConfigId: '',
+      activeConfigName: '',
+      datetime: {
+        from: helper.getStartDate('day'),
+        to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+      },
+      eventsData: {},
+      hostsData: {},
+      modalTitle: '',
+      config: INIT_CONFIG,
+      configRelationships: [],
+      rawOptions: [],
+      activeHost: '',
+      currentHostData: '',
+      error: false,
+      info: ''
+    };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
@@ -111,6 +125,7 @@ class Syslog extends Component {
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
 
     this.getRelationship();
+    //this.getSyslogData();
     this.getSyslogList(false);
   }
   /**
@@ -176,12 +191,22 @@ class Syslog extends Component {
       {
         id: 'hosts',
         text: t('syslogFields.txt-editHosts'),
-        action: () => this.openEditHosts(allValue)
+        action: () => this.getHostsInfoById(allValue.id)
       }
     ];
 
     ContextMenu.open(evt, menuItems, 'configSyslogMenu');
     evt.stopPropagation();
+  }
+  /**
+   * Toggle different content
+   * @method
+   * @param {string} activeContent - page type ('syslogData' or 'hostInfo')
+   */
+  toggleContent = (activeContent) => {
+    this.setState({
+      activeContent
+    });
   }
   /**
    * Display list for property table column
@@ -194,6 +219,51 @@ class Syslog extends Component {
     });
 
     return propertyList;
+  }
+  /**
+   * Get and set syslog data
+   * @method
+   */
+  getSyslogData = () => {
+    const {baseUrl} = this.context;
+    const {dataFieldsArr, syslog} = this.state;
+
+    this.ah.one({
+      url: `${baseUrl}/api/log/config`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let tempSyslog = {...syslog};
+        tempSyslog.dataContent = data.rows;
+
+        let tempFields = {};
+        dataFieldsArr.forEach(tempData => {
+          tempFields[tempData] = {
+            label: tempData === '_menu' ? '' : t(`syslogFields.${tempData}`),
+            sortable: (tempData === '_menu' || tempData === 'property') ? null : true,
+            formatter: (value, allValue, i) => {
+              if (tempData === 'property') {
+                return <div className='flex-item'>{this.displayProperty(value)}</div>
+              } else if (tempData === '_menu') {
+                return '';
+              } else {
+                return <span>{value}</span>;
+              }
+            }
+          }
+        })
+
+        this.setState({
+          syslog: tempSyslog,
+          dataFields: tempFields
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Get and set syslog data
@@ -544,29 +614,24 @@ class Syslog extends Component {
   /**
    * Open edit hosts dialog
    * @method
+   * @param {string} type - edit type ('add' or 'edit')
    * @param {object} allValue - syslog data
    */
-  openEditHosts = (allValue) => {
-    const splitHostsData = allValue.hosts.split(', ');
-    let formattedHostsData = [];
+  openEditHosts = (type, allValue) => {
+    let tempEditHosts = {...this.state.editHosts};
 
-    _.forEach(splitHostsData, val => {
-      val = val.replace('[', '');
-      val = val.replace(']', '');
-
-      formattedHostsData.push({
-        host: val
-      });
-    })
-
-    const hostsData = {
-      ...allValue,
-      formattedHostsData
-    };
+    if (type === 'add') {
+      tempEditHosts.ip = '';
+      tempEditHosts.name = '';
+    } else if (type === 'edit') {
+      tempEditHosts.ip = allValue.ip;
+      tempEditHosts.name = allValue.name;
+    }
 
     this.setState({
       openEditHosts: true,
-      hostsData
+      editHostsType: type,
+      editHosts: tempEditHosts
     });
   }
   /**
@@ -1082,17 +1147,112 @@ class Syslog extends Component {
     )
   }
   /**
-   * Display Events timeline modal dialog
+   * Get Hosts info by config ID
    * @method
-   * @param {array} data - edit host input data
+   * @param {string} id - config ID
    */
-  handleEditHostsChange = (data) => {
-    let tempHostsData = {...this.state.hostsData};
-    tempHostsData.formattedHostsData = data;
+  getHostsInfoById = (id) => {
+    const {baseUrl} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/log/config?id=${id}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        const {hostsFieldsArr, hosts} = this.state;
+        let tempHosts = {...hosts};
+        let hostsDataArr = [];
+
+        _.forEach(data.hostname, (val, key) => {
+          hostsDataArr.push({
+            id: data.id,
+            ip: key,
+            name: val
+          });
+        })
+
+        tempHosts.dataContent = hostsDataArr;
+
+        let tempFields = {};
+        hostsFieldsArr.forEach(tempData => {
+          tempFields[tempData] = {
+            hide: tempData === 'id' ? true : false,
+            label: tempData === '_menu' ? '' : t(`syslogFields.${tempData}`),
+            sortable: tempData === '_menu' ? null : true,
+            formatter: (value, allValue, i) => {
+              if (tempData === '_menu') {
+                return (
+                  <div className='table-menu menu active'>
+                    <i className='fg fg-edit' onClick={this.openEditHosts.bind(this, 'edit', allValue)} title={t('txt-edit')}></i>
+                    <i className='fg fg-trashcan' onClick={this.openDeleteMenu.bind(this, allValue)} title={t('txt-delete')}></i>
+                  </div>
+                )
+              } else {
+                return <span>{value}</span>;
+              }
+            }
+          }
+        })
+
+        this.setState({
+          hosts: tempHosts,
+          hostsFields: tempFields,
+          activeHost: data
+        }, () => {
+          this.toggleContent('hostInfo');
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle edit hosts input value change
+   * @method
+   * @param {string} type - input type
+   * @param {string} value - input value
+   */
+  handleEditHostsChange = (type, value) => {
+    let tempEditHosts = {...this.state.editHosts};
+    tempEditHosts[type] = value.trim();
 
     this.setState({
-      hostsData: tempHostsData
+      editHosts: tempEditHosts
     });
+  }
+  /**
+   * Display edit hosts content
+   * @method
+   */
+  displayEditHosts = () => {
+    const {editHostsType, editHosts} = this.state;
+
+    return (
+      <div className='syslog'>
+        <div className='group'>
+          <label>{t('syslogFields.ip')}</label>
+          <Input
+            required={true}
+            validate={{
+              pattern: /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/,
+              patternReadable: 'xxx.xxx.xxx.xxx',
+              t: et
+            }}
+            value={editHosts.ip}
+            onChange={this.handleEditHostsChange.bind(this, 'ip')}
+            readOnly={editHostsType === 'edit'} />
+        </div>
+        <div className='group'>
+          <label>{t('syslogFields.name')}</label>
+          <Input
+            value={editHosts.name}
+            onChange={this.handleEditHostsChange.bind(this, 'name')} />
+        </div>
+      </div>
+    )
   }
   /**
    * Display edit hosts modal dialog
@@ -1105,9 +1265,6 @@ class Syslog extends Component {
       confirm: {text: t('txt-confirm'), handler: this.confirmEditHosts}
     }
     const title = t('syslogFields.txt-editHosts');
-    const data = {
-      ...hostsData
-    };
 
     return (
       <ModalDialog
@@ -1118,12 +1275,7 @@ class Syslog extends Component {
         global={true}
         actions={actions}
         closeAction='confirm'>
-        <MultiInput
-          className='edit-hosts-group'
-          base={EditHosts}
-          props={data}
-          value={hostsData.formattedHostsData}
-          onChange={this.handleEditHostsChange} />
+        {this.displayEditHosts()}
       </ModalDialog>
     )
   }
@@ -1133,25 +1285,18 @@ class Syslog extends Component {
    */
   confirmEditHosts = () => {
     const {baseUrl} = this.context;
-    const {hostsData} = this.state;
-    const url = `${baseUrl}/api/log/config/hosts`;
-    let hostsArray = [];
-
-    _.forEach(hostsData.formattedHostsData, val => {
-      if (val.host) {
-        hostsArray.push(val.host);
-      }
-    })
-
-    const data = {
-      id: hostsData.id,
-      hosts: hostsArray
+    const {editHosts, activeHost} = this.state;
+    const url = `${baseUrl}/api/log/config/hosts/u1`;
+    const requestData = {
+      id: activeHost.id,
+      hostip: editHosts.ip,
+      hostname: editHosts.name
     };
 
-    helper.getAjaxData('PATCH', url, data)
+    helper.getAjaxData('PATCH', url, requestData)
     .then(data => {
       if (data) {
-        this.getSyslogList(false);
+        this.getHostsInfoById(activeHost.id);
       }
       return null;
     });
@@ -1164,6 +1309,67 @@ class Syslog extends Component {
   closeEditHosts = () => {
     this.setState({
       openEditHosts: false
+    });
+  }
+  /**
+   * Display delete Host content
+   * @method
+   * @param {object} allValue - Host data
+   * @returns HTML DOM
+   */
+  getDeleteHostContent = (allValue) => {
+    this.setState({
+      currentHostData: allValue
+    });
+
+    return (
+      <div className='content delete'>
+        <span>{t('txt-delete-msg')}: {allValue.ip}?</span>
+      </div>
+    )
+  }
+  /**
+   * Show Delete Host IP dialog
+   * @method
+   * @param {object} allValue - Host data
+   */
+  openDeleteMenu = (allValue) => {
+    PopupDialog.prompt({
+      title: t('syslogFields.txt-deleteHost'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: this.getDeleteHostContent(allValue),
+      act: (confirmed, data) => {
+        if (confirmed) {
+          this.deleteHost();
+        }
+      }
+    });
+  }
+  /**
+   * Handle delete Host confirm
+   * @method
+   */
+  deleteHost = () => {
+    const {baseUrl} = this.context;
+    const {activeHost, currentHostData} = this.state;
+    const url = `${baseUrl}/api/log/config/hosts`;
+    const requestData = {
+      id: currentHostData.id,
+      hosts: currentHostData.ip
+    }
+
+    if (!currentHostData.id) {
+      return;
+    }
+
+    helper.getAjaxData('DELETE', url, requestData)
+    .then(data => {
+      if (data) {
+        this.getHostsInfoById(activeHost.id);
+      }
+      return null;
     });
   }
   /**
@@ -1259,9 +1465,48 @@ class Syslog extends Component {
       </div>
     )
   }
+  displayHostInfo = (val, i) => {
+    //console.log(val, i)
+
+    return (
+      <div className='host-info'>
+        <header>Host IP: 172.18.0.120</header>
+        <div className='host-content'>
+          <span className='status'>Syslog Status: normal</span>
+          <header>{t('syslogFields.txt-syslog')}</header>
+
+          {syslog && syslog.dataContent &&
+            <DataTable
+              className='main-table'
+              fields={dataFields}
+              data={syslog.dataContent}
+              defaultSort={syslog.sort}
+              onRowMouseOver={this.handleTableRowMouseOver} />
+          }
+
+          <div className='content-header-btns'>
+            <button className='standard btn'>{t('syslogFields.txt-addSyslog')}</button>
+            <button className='standard btn'>{t('syslogFields.txt-viewEvents')}</button>
+            <button className='standard btn'>{t('syslogFields.txt-overallDist')}</button>
+          </div>
+        </div>
+      </div>
+    )
+  }
   render() {
     const {baseUrl, contextRoot} = this.context;
-    const {openSyslog, openTimeline, openEditHosts, syslog, openFilter, dataFields} = this.state;
+    const {
+      activeContent,
+      dataFields,
+      syslog,
+      hostsFields,
+      hosts,
+      openFilter,
+      openSyslog,
+      openTimeline,
+      openEditHosts,
+      activeHost
+    } = this.state;
 
     return (
       <div>
@@ -1290,24 +1535,67 @@ class Syslog extends Component {
             baseUrl={baseUrl}
             contextRoot={contextRoot} />
 
-          <div className='parent-content'>
-            { this.renderFilter() }
+          {activeContent === 'syslogData' &&
+            <div className='parent-content'>
+              { this.renderFilter() }
 
-            <div className='main-content'>
-              <header className='main-header'>{t('txt-syslogManage')}</header>
-              <TableContent
-                dataTableData={syslog.dataContent}
-                dataTableFields={dataFields}
-                dataTableSort={syslog.sort}
-                paginationTotalCount={syslog.totalCount}
-                paginationPageSize={syslog.pageSize}
-                paginationCurrentPage={syslog.currentPage}
-                handleTableSort={this.handleTableSort}
-                handleRowMouseOver={this.handleRowMouseOver}
-                paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
+              <div className='main-content'>
+                <header className='main-header'>{t('txt-syslogManage')}</header>
+                <TableContent
+                  dataTableData={syslog.dataContent}
+                  dataTableFields={dataFields}
+                  dataTableSort={syslog.sort}
+                  paginationTotalCount={syslog.totalCount}
+                  paginationPageSize={syslog.pageSize}
+                  paginationCurrentPage={syslog.currentPage}
+                  handleTableSort={this.handleTableSort}
+                  handleRowMouseOver={this.handleRowMouseOver}
+                  paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
+                  paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />              
+
+                {/*<div className='config-syslog'>
+                  {syslog.dataContent.map(this.displayHostInfo)}
+                </div>*/}
+              </div>
             </div>
-          </div>
+          }
+
+          {activeContent === 'hostInfo' &&
+            <div className='parent-content'>
+              <div className='main-content'>
+                <header className='main-header'>{t('syslogFields.txt-syslogHost')}</header>
+
+                <div className='content-header-btns'>
+                  <button className='standard btn list' onClick={this.toggleContent.bind(this, 'syslogData')}>{t('syslogFields.txt-backToList')}</button>
+                </div>
+
+                <div className='config-syslog'>
+                  <div className='host-list'>
+                    <header>{t('syslogFields.txt-syslogInfo')}</header>
+                    <table className='c-table main-table info'>
+                      <tbody>
+                        <tr>
+                          <td style={{width: '30%'}}>IP</td>
+                          <td></td>
+                        </tr>
+                        <tr>
+                          <td style={{width: '30%'}}>Config Name</td>
+                          <td>{activeHost.name}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+
+                    <header>{t('syslogFields.txt-syslogHostList')}</header>
+                    <button className='standard btn add-host' onClick={this.openEditHosts.bind(this, 'add')}>{t('syslogFields.txt-addHost')}</button>
+                    <DataTable
+                      className='main-table'
+                      fields={hostsFields}
+                      data={hosts.dataContent} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
         </div>
       </div>
     )
@@ -1317,6 +1605,6 @@ class Syslog extends Component {
 Syslog.contextType = BaseDataContext;
 
 Syslog.propTypes = {
-}
+};
 
 export default Syslog;

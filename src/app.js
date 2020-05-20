@@ -33,7 +33,7 @@ import UserPrivileges from './components/configuration/user/privileges/index'
 import IncidentDevice from './components/soc/incident-device'
 import IncidentUnit from './components/soc/incident-unit'
 import IncidentLog from './components/soc/incident-log'
-import Incident from './components/soc/Incident'
+import Incident from './components/soc/incident'
 
 import {BaseDataContext, baseData} from './components/common/context'
 import {createInstance} from 'react-ui/build/src/utils/ajax-helper'

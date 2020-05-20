@@ -1823,6 +1823,58 @@ i.c-checkbox.fg-checkbox {
             }
           }
         }
+        .config-syslog {
+          header {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: var(--primaryContentHeader);
+          }
+          .host-info {
+            margin: 10px;
+            background-color: var(--primaryContentBackground);
+            & > header {
+              padding: 10px 15px;
+              border-bottom: 1px solid var(--primaryBorder);
+            }
+            .host-content {
+              position: relative;
+              padding: 15px;
+              .status {
+                display: block;
+                margin-bottom: 15px;
+              }
+              .main-table {
+                width: 100%;
+                margin-top: 15px;
+              }
+              .content-header-btns {
+                top: 35px;
+              }
+            }
+          }
+          .host-list {
+            position: relative;
+            height: 78vh;
+            overflow-y: auto;
+            padding: 20px 100px;
+            background-color: #fff;
+            header {
+              margin-bottom: 15px;
+            }
+            table {
+              width: 100%;
+              &.info {
+                margin-bottom: 50px;
+              }
+            }
+            .add-host {
+              position: absolute;
+              top: 185px;
+              right: 100px;
+              padding: .3em 1em;
+            }
+          }
+        }
         .subtab-menu {
           li {
             font-size: 1.1em;
@@ -1839,6 +1891,25 @@ i.c-checkbox.fg-checkbox {
           margin: 0;
           .dropdown-margin {
             margin-left: 50px;
+          }
+        }
+        .main-table {
+          tbody tr {
+            height: 45px;
+          }
+          td.property {
+            .flex-item {
+              display: flex;
+              flex-wrap: wrap;
+            }
+            .permit {
+              font-size: 15px;
+              color: #fff;
+              padding: 5px 10px;
+              margin: 5px 2px;
+              border-radius: 5px;
+              background-color: var(--primaryContentHeader);
+            }
           }
         }
         .table-content .table {
@@ -1979,14 +2050,6 @@ i.c-checkbox.fg-checkbox {
                 //   color: #d1152e;
                 //   font-weight: bold;
                 // }
-                &.permit {
-                  font-size: 15px;
-                  color: #fff;
-                  padding: 5px 10px;
-                  margin: 5px 2px;
-                  border-radius: 5px;
-                  background-color: var(--primaryContentHeader);
-                }
               }
               &.align-center {
                 text-align: center;
