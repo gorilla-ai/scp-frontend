@@ -1053,10 +1053,6 @@ class IncidentDevice extends Component {
                     tempDevice.info.deviceId = val.agentId
                     tempDevice.info.deviceName = val.agentName
                     tempDevice.info.deviceCompany = val.agentCompany
-                } else {
-                    tempDevice.info.deviceId = ''
-                    tempDevice.info.deviceName = ''
-                    tempDevice.info.deviceCompany = ''
                 }
             })
 
