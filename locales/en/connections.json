@@ -138,6 +138,8 @@
   "txt-domain": "Domain",
   "txt-commonModule": "Common Module",
   "txt-configModule": "Configuration Module",
+  "txt-maxDataMsg": "The maximum data count is 10,000",
+  "txt-es-data-over-limit": "Exceed max queried number, please revise filters",
 
   "txt-dashboard": "Dashboard",
   "txt-threats": "Threats",
@@ -327,8 +329,7 @@
       "txt-addFilter": "$t(txt-add2) $t(txt-filter)",
       "txt-deleteFilter": "$t(txt-delete) Query Filter",
       "txt-viewRule": "$t(txt-view) $t(txt-alert) $t(txt-rule)",
-      "txt-downloadMalware": "$t(txt-download) Malware",
-      "txt-maxDataMsg": "The maximum data count is 10,000"
+      "txt-downloadMalware": "$t(txt-download) Malware"
     }
   },
 
@@ -658,7 +659,6 @@
     "txt-viewEvents": "View Events",
     "txt-overallDist": "Overall Distribution",
     "txt-editHosts": "Edit Hosts",
-    "txt-timelineUnavailable": "Timeline data is not available",
-    "txt-portNotAllowed": "Default port for system service is not allowed to use"
+    "txt-timelineUnavailable": "Timeline data is not available"
   }
 }

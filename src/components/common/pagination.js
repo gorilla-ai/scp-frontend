@@ -28,14 +28,20 @@ class Pagination extends Component {
       {value: 500, text: '500'},
       {value: 1000, text: '1000'}
     ];
+    const allowedTotalCount = totalCount <= 10000 ? totalCount : 10000;
+    const pages = Math.ceil(allowedTotalCount / pageSize);
 
     return (
-      <div className='c-flex jcc'>
+      <div className='c-flex jcc page-nav'>
         {totalCount > 0 &&
           <PageNav
-            pages={Math.ceil(totalCount / pageSize)}
+            pages={pages}
             current={currentPage}
             onChange={this.props.onPageChange} />
+        }
+
+        {totalCount > 10000 &&
+          <div className='c-info'>{t('txt-es-data-over-limit')}</div>
         }
 
         {totalCount > 0 &&
