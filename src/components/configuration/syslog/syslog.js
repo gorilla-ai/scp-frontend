@@ -214,7 +214,7 @@ class Syslog extends Component {
    * @param {string} value - property data
    */
   displayProperty = (value) => {
-    const propertyList = _.map(JSON.parse(value), (val, key) => { //Convert data string to array
+    const propertyList = _.map(value, (val, key) => { //Convert data string to array
       return <span key={key} className='permit'>{key}</span>
     });
 
@@ -421,34 +421,43 @@ class Syslog extends Component {
   confirmSyslog = () => {
     const {baseUrl} = this.context;
     const {config} = this.state;
-    let flag = false;
+    const portNotAllowedList = [22, 80, 443, 3515, 5432, 5543, 5544, 6666, 7001, 8797, 15544];
+    let valid = true;
 
     if (!config.port || !config.input || !config.pattern) {
-      flag = true;
+      valid = false;
+    }
+
+    if (config.port && _.includes(portNotAllowedList, Number(config.port))) {
+      this.setState({
+        error: true,
+        info: t('syslogFields.txt-portNotAllowed')
+      });
+      return;
     }
 
     _.forEach(config.relationship, el => {
       if (!el.name || !el.srcNode || !el.dstNode) {
-        flag = true;
+        valid = false;
       }
       _.forEach(el.conditions, cond => {
         if (!cond.node) {
-          flag = true;
+          valid = false;
         }
       })
     })
 
-    if (flag) {
+    if (valid) {
+      this.setState({
+        error: false,
+        info: ''
+      });
+    } else {
       this.setState({
         error: true,
         info: et('fill-required-fields')
       });
       return;
-    } else {
-      this.setState({
-        error: false,
-        info: ''
-      });
     }
 
     let dataObj = {
@@ -564,8 +573,8 @@ class Syslog extends Component {
           format: data.format,
           input: data.input,
           pattern: data.pattern,
-          property: JSON.parse(data.property),
-          relationships: JSON.parse(data.relationships)
+          property: data.property,
+          relationships: data.relationships
         };
         let rawOptions = [];
 
@@ -872,8 +881,9 @@ class Syslog extends Component {
       <div>
         <div className='syslogs'>
           <div className='syslog'>
-            <label>{t('syslogFields.name')}</label>
-            <Input 
+            <label htmlFor='syslogName'>{t('syslogFields.name')}</label>
+            <Input
+              id='syslogName'
               required={true}
               validate={{
                 t: et
@@ -882,8 +892,9 @@ class Syslog extends Component {
               onChange={this.handleConfigChange.bind(this, 'name')} />
           </div>
           <div className='syslog'>
-            <label>{t('syslogFields.port')}</label>
+            <label htmlFor='syslogPort'>{t('syslogFields.port')}</label>
             <Input
+              id='syslogPort'
               required={true}
               validate={{
                 t: et
@@ -892,8 +903,9 @@ class Syslog extends Component {
               onChange={this.handleConfigChange.bind(this, 'port')} />
           </div>
           <div className='syslog'>
-            <label>{t('syslogFields.format')}</label>
+            <label htmlFor='syslogFormat'>{t('syslogFields.format')}</label>
             <Input
+              id='syslogFormat'
               validate={{t: et}}
               value={config.format}
               onChange={this.handleConfigChange.bind(this, 'format')} />
@@ -915,7 +927,7 @@ class Syslog extends Component {
           this.renderTabRelationship()
         }
       </div>
-    )    
+    )
   }
   /**
    * Display syslog modal dialog

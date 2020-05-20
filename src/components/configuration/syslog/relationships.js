@@ -73,10 +73,12 @@ class Relationships extends Component {
     } else {
       const rs = _.find(relationships, {name: curValue.name});
 
-      this.setState({
-        nodeA: rs.node_a,
-        nodeB: rs.node_b
-      });
+      if (rs) {
+        this.setState({
+          nodeA: rs.node_a,
+          nodeB: rs.node_b
+        });
+      }
     }
   }
   /**
