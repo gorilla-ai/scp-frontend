@@ -1196,7 +1196,6 @@ class IncidentDevice extends Component {
         })
             .then(data => {
                 if (data) {
-
                     let edgeList = [];
 
 
