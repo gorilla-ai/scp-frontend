@@ -421,19 +421,10 @@ class Syslog extends Component {
   confirmSyslog = () => {
     const {baseUrl} = this.context;
     const {config} = this.state;
-    const portNotAllowedList = [22, 80, 443, 3515, 5432, 5543, 5544, 6666, 7001, 8797, 15544];
     let valid = true;
 
     if (!config.port || !config.input || !config.pattern) {
       valid = false;
-    }
-
-    if (config.port && _.includes(portNotAllowedList, Number(config.port))) {
-      this.setState({
-        error: true,
-        info: t('syslogFields.txt-portNotAllowed')
-      });
-      return;
     }
 
     _.forEach(config.relationship, el => {
@@ -1588,7 +1579,7 @@ class Syslog extends Component {
                       <tbody>
                         <tr>
                           <td style={{width: '30%'}}>IP</td>
-                          <td></td>
+                          <td>{activeHost.loghostIp}</td>
                         </tr>
                         <tr>
                           <td style={{width: '30%'}}>Config Name</td>

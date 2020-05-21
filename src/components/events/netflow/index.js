@@ -702,7 +702,7 @@ class Netflow extends Component {
     .then(data => {
       if (data) {
         if (currentPage > 1 && !data[0]) {
-          helper.showPopupMsg('', t('txt-error'), t('events.connections.txt-maxDataMsg'));
+          helper.showPopupMsg('', t('txt-error'), t('txt-maxDataMsg'));
 
           this.setState({
             currentPage: oldPage
@@ -844,7 +844,7 @@ class Netflow extends Component {
     .then(data => {
       if (data) {
         if (currentPage > 1 && data[0].rows.length === 0) {
-          helper.showPopupMsg('', t('txt-error'), t('events.connections.txt-maxDataMsg'));
+          helper.showPopupMsg('', t('txt-error'), t('txt-maxDataMsg'));
 
           this.setState({
             currentPage: oldPage

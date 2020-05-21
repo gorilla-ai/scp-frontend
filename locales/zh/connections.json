@@ -139,6 +139,8 @@
   "txt-commonModule": "一般模組",
   "txt-configModule": "設定模組",
   "txt-host": "主機",
+  "txt-maxDataMsg": "資料筆數最大為10,000筆",
+  "txt-es-data-over-limit": "超出搜尋範圍，請修改查詢條件",
 
   "txt-dashboard": "Dashboard",
   "txt-threats": "Threats",
@@ -328,8 +330,7 @@
       "txt-addFilter": "$t(txt-add2)$t(txt-filter)",
       "txt-deleteFilter": "$t(txt-delete)查詢條件",
       "txt-viewRule": "$t(txt-view)$t(txt-alert)$t(txt-rule)",
-      "txt-downloadMalware": "$t(txt-download)惡意程式",
-      "txt-maxDataMsg": "資料筆數最大為10,000筆"
+      "txt-downloadMalware": "$t(txt-download)惡意程式"
     }
   },
 
@@ -669,7 +670,6 @@
     "txt-timelineUnavailable": "趨勢圖資料不存在",
     "txt-backToList": "$t(txt-back)$t(txt-syslogManage)",
     "txt-addHost": "新增所屬主機",
-    "txt-deleteHost": "$t(txt-delete)$t(txt-host)",
-    "txt-portNotAllowed": "系統服務預設埠號不允許使用"
+    "txt-deleteHost": "$t(txt-delete)$t(txt-host)"
   }
 }

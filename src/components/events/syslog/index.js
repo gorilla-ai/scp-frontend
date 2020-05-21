@@ -600,7 +600,7 @@ class SyslogController extends Component {
     .then(data => {
       if (data) {
         if (currentPage > 1 && !data[0].data) {
-          helper.showPopupMsg('', t('txt-error'), t('events.connections.txt-maxDataMsg'));
+          helper.showPopupMsg('', t('txt-error'), t('txt-maxDataMsg'));
 
           this.setState({
             currentPage: oldPage
