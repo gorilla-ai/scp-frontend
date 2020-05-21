@@ -198,7 +198,7 @@ class Incident extends Component {
             item = {
                 id: 'send',
                 text: it('txt-send'),
-                action: () => this.sendIncident(allValue.id)
+                action: () => this.openSendMenu(allValue.id)
             };
             menuItems.push(viewItem);
             menuItems.push(itemDelete);
@@ -739,7 +739,7 @@ class Incident extends Component {
 
     /* ---- Func Space ---- */
     /**
-     * Show Delete IncidentDevice dialog
+     * Show Delete Incident dialog
      * @method
      * @param {object} allValue - IncidentDevice data
      */
@@ -755,6 +755,28 @@ class Incident extends Component {
             act: (confirmed, data) => {
                 if (confirmed) {
                     this.deleteIncident(allValue.id)
+                }
+            }
+        })
+    };
+
+    /**
+     * Show Send Incident dialog
+     * @method
+     * @param {object} allValue - IncidentDevice data
+     */
+    openSendMenu = (id) => {
+        PopupDialog.prompt({
+            title: it('txt-send'),
+            id: 'modalWindowSmall',
+            confirmText: it('txt-send'),
+            cancelText: t('txt-cancel'),
+            display: <div className='content delete'>
+                <span>{it('txt-send-msg')}: {id} ?</span>
+            </div>,
+            act: (confirmed, data) => {
+                if (confirmed) {
+                    this.sendIncident(id)
                 }
             }
         })
