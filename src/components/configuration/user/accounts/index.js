@@ -91,6 +91,8 @@ class AccountList extends Component {
                     <button onClick={this.handleRowContextMenu.bind(this, allValue)}><i className='fg fg-more'></i></button>
                   </div>
                 )
+              } else if (tempData === 'account' && allValue.isLock) {
+                return <span><i className='fg fg-key' title={c('txt-account-unlocked')}></i>{value}</span>;
               } else {
                 return <span>{value}</span>;
               }
@@ -117,7 +119,7 @@ class AccountList extends Component {
    * @param {object} evt - mouseClick events
    */
   handleRowContextMenu = (allValue, evt) => {
-    const menuItems = [
+    let menuItems = [
       {
         id: 'edit',
         text: c('txt-edit'),
@@ -129,16 +131,19 @@ class AccountList extends Component {
         action: () => this.showDialog('delete', allValue, allValue.accountid)
       },
       {
-        id: 'unlock',
-        text: c('txt-unlock'),
-        action: () => this.showDialog('unlock', allValue, allValue.accountid)
-      },
-      {
         id: 'resetPassword',
         text: c('txt-resetPassword'),
         action: () => this.showResetPassword(allValue.account)
       }
     ];
+
+    if (allValue.isLock) {
+      menuItems.push({
+        id: 'unlock',
+        text: c('txt-unlock'),
+        action: () => this.showDialog('unlock', allValue, allValue.accountid)
+      });
+    }
 
     ContextMenu.open(evt, menuItems, 'configUserAccountsMenu');
     evt.stopPropagation();
@@ -203,7 +208,7 @@ class AccountList extends Component {
     let msg = '';
 
     if (type === 'delete') {
-      msg = c('txt-delete-msg') + ': ' + allValue.account;
+      msg = c('txt-account-delete') + ': ' + allValue.account;
     } else if (type === 'unlock') {
       msg = c('txt-account-unlock') + ': ' + allValue.account;
     }
