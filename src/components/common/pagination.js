@@ -40,7 +40,7 @@ class Pagination extends Component {
             onChange={this.props.onPageChange} />
         }
 
-        {totalCount > 10000 &&
+        {totalCount > 10000 && currentPage === pages &&
           <div className='c-info'>{t('txt-es-data-over-limit')}</div>
         }
 
