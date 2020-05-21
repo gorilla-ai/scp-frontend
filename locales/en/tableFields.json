@@ -571,7 +571,7 @@
     "name": "Unit Name",
     "level": "Unit Level",
     "industryType": "Unit Industry",
-    "frequency": "Trigger Frequency",
+    "frequency": "Last Month Trigger Frequency",
     "note": "Note",
     "updateDttm": "Last Update Time",
     "abbreviation": "Unit Abbreviation",
