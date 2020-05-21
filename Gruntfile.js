@@ -18,7 +18,7 @@ module.exports = function(grunt) {
                 BABEL_ENV : 'production'
             }
         },
-        webpack: { 
+        webpack: {
             options: webpackConfig,
             watch: {
                 watch: true,
@@ -109,11 +109,11 @@ module.exports = function(grunt) {
                 tasks: ['build-locales']
             },
             styles: {
-              files: ['less/**/*.less', '../chewbacca-ui/less/**/*.less'], // which files to watch
-              tasks: ['build-less'],
-              options: {
-                nospawn: true
-              }
+                files: ['less/**/*.less', '../chewbacca-ui/less/**/*.less'], // which files to watch
+                tasks: ['build-less'],
+                options: {
+                    nospawn: true
+                }
             }
         }
     });
