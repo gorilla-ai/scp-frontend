@@ -20,6 +20,7 @@
 	"txt-send": "Send",
 	"txt-send-success": "Send Success",
 	"txt-send-fail": "Send Fail",
+	"txt-send-msg": "Whether to Send Incident",
 	"txt-sendCheck": ", Whether to Send Incident directly?",
 	"txt-sendCheckHealth": "whether to Send Health Status Statistic CSV ?",
 	"txt-send-status": "Send Status",
