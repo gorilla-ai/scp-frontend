@@ -189,7 +189,7 @@ class Syslog extends Component {
    * @param {string} value - property data
    */
   displayProperty = (value) => {
-    const propertyList = _.map(value, (val, key) => { //Convert data string to array
+    const propertyList = _.map(JSON.parse(value), (val, key) => { //Convert data string to array
       return <span key={key} className='permit'>{key}</span>
     });
 
@@ -494,8 +494,8 @@ class Syslog extends Component {
           format: data.format,
           input: data.input,
           pattern: data.pattern,
-          property: data.property,
-          relationships: data.relationships
+          property: JSON.parse(data.property),
+          relationships: JSON.parse(data.relationships)
         };
         let rawOptions = [];
 
@@ -547,11 +547,17 @@ class Syslog extends Component {
    * @param {object} allValue - syslog data
    */
   openEditHosts = (allValue) => {
-    const formattedHostsData = _.map(allValue.hosts, val => {
-      return {
+    const splitHostsData = allValue.hosts.split(', ');
+    let formattedHostsData = [];
+
+    _.forEach(splitHostsData, val => {
+      val = val.replace('[', '');
+      val = val.replace(']', '');
+
+      formattedHostsData.push({
         host: val
-      }
-    });
+      });
+    })
 
     const hostsData = {
       ...allValue,
