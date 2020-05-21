@@ -293,7 +293,7 @@ class Syslog extends Component {
     }
 
     this.ah.one({
-      url: `${baseUrl}/api/log/config${uri}`,
+      url: `${baseUrl}/api/log/config/u1${uri}`,
       type: 'GET'
     })
     .then(data => {
@@ -551,7 +551,7 @@ class Syslog extends Component {
     }
 
     this.ah.one({ //Edit existing syslog
-      url: `${baseUrl}/api/log/config?id=${id}`,
+      url: `${baseUrl}/api/log/config/u1?id=${id}`,
       type: 'GET'
     })
     .then(data => {
