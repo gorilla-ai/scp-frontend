@@ -2108,10 +2108,11 @@ class NetworkInventory extends Component {
    * @returns true if form is invalid
    */
   checkFormValidation = (step) => {
+    const inventoryParam = queryString.parse(location.search);
     const {addIP, ownerType} = this.state;
 
     if (step === 1) {
-      if (!addIP.ip || !addIP.mac) {
+      if (!addIP.ip || (!_.has(inventoryParam, 'hostName') && !addIP.mac)) {
         return true;
       }
     }
@@ -2455,6 +2456,11 @@ class NetworkInventory extends Component {
   getBtnText = () => {
     return this.state.activeSteps === 4 ? t('txt-confirm') : t('txt-nextStep');
   }
+  /**
+   * Get owner type for radio group
+   * @method
+   * @returns owner type array
+   */
   getOwnerType = () => {
     const {ownerList} = this.state;
 
@@ -2473,6 +2479,16 @@ class NetworkInventory extends Component {
     }
 
     return ownerType;
+  }
+  /**
+   * Check if MAC is required field or not
+   * @method
+   * @returns boolean true/false
+   */
+  checkMacRequired = () => {
+    const inventoryParam = queryString.parse(location.search);
+
+    return !_.has(inventoryParam, 'hostName');
   }
   /**
    * Display add/edit IP device form content
@@ -2500,6 +2516,14 @@ class NetworkInventory extends Component {
       ownerIDduplicated
     } = this.state;
     const addIPtext = [t('txt-ipAddress'), t('alert.txt-systemInfo'), t('ipFields.owner'), t('alert.txt-floorInfo')];
+    const inventoryParam = queryString.parse(location.search);
+    let hostNameField = addIP.hostName;
+    let hostNameReadyOnly = currentDeviceData.isHmd;
+
+    if (_.has(inventoryParam, 'hostName')) {
+      hostNameField = inventoryParam.hostName;
+      hostNameReadyOnly = true;
+    }
 
     return (
       <div className='parent-content'>
@@ -2529,7 +2553,7 @@ class NetworkInventory extends Component {
                 <label htmlFor='addIPstepsMac'>{t('ipFields.mac')}</label>
                 <Input
                   id='addIPstepsMac'
-                  required={true}
+                  required={this.checkMacRequired()}
                   validate={{
                     pattern: /^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$/i,
                     patternReadable: '1)MM:MM:MM:SS:SS:SS 2)MM-MM-MM-SS-SS-SS',
@@ -2547,9 +2571,9 @@ class NetworkInventory extends Component {
                 <label htmlFor='addIPstepsHostname'>{t('ipFields.hostName')}</label>
                 <Input
                   id='addIPstepsHostname'
-                  value={addIP.hostName}
+                  value={hostNameField}
                   onChange={this.handleAddIpChange.bind(this, 'hostName')}
-                  readOnly={currentDeviceData.isHmd} />
+                  readOnly={hostNameReadyOnly} />
               </div>
               <div className='group'>
                 <label htmlFor='addIPstepsHostID'>{t('ipFields.hostID')}</label>

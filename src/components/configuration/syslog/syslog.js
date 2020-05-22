@@ -1150,6 +1150,16 @@ class Syslog extends Component {
     )
   }
   /**
+   * Open new tab for Inventory page
+   * @method
+   * @param {object} allValue - Host data
+   */
+  redirectIp = (allValue) => {
+    const {baseUrl, contextRoot, language} = this.context;
+    const url = `${baseUrl}${contextRoot}/configuration/topology/inventory?ip=${allValue.ip}&type=edit&hostName=${allValue.name}&lng=${language}`;
+    window.open(url, '_blank');
+  }
+  /**
    * Get Hosts info by config ID
    * @method
    * @param {string} id - config ID
@@ -1188,6 +1198,7 @@ class Syslog extends Component {
                 return (
                   <div className='table-menu menu active'>
                     <i className='fg fg-edit' onClick={this.openEditHostsV1.bind(this, 'edit', allValue)} title={t('txt-edit')}></i>
+                    <i className='fg fg-setting' onClick={this.redirectIp.bind(this, allValue)} title={t('txt-settings')}></i>
                     <i className='fg fg-trashcan' onClick={this.openDeleteMenu.bind(this, allValue)} title={t('txt-delete')}></i>
                   </div>
                 )
