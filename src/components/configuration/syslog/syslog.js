@@ -170,7 +170,7 @@ class Syslog extends Component {
       {
         id: 'edit',
         text: t('txt-edit'),
-        action: () => this.openSyslog(allValue.id)
+        action: () => this.openSyslogV2(allValue.id)
       },
       {
         id: 'delete',
@@ -213,7 +213,7 @@ class Syslog extends Component {
    * @method
    * @param {string} value - property data
    */
-  displayProperty = (value) => {
+  displayPropertyV2 = (value) => {
     const propertyList = _.map(value, (val, key) => { //Convert data string to array
       return <span key={key} className='permit'>{key}</span>
     });
@@ -244,7 +244,7 @@ class Syslog extends Component {
             sortable: (tempData === '_menu' || tempData === 'property') ? null : true,
             formatter: (value, allValue, i) => {
               if (tempData === 'property') {
-                return <div className='flex-item'>{this.displayProperty(value)}</div>
+                return <div className='flex-item'>{this.displayPropertyV2(value)}</div>
               } else if (tempData === '_menu') {
                 return '';
               } else {
@@ -316,7 +316,7 @@ class Syslog extends Component {
                   </div>
                 )
               } else if (tempData === 'property') {
-                return <div className='flex-item'>{this.displayProperty(value)}</div>
+                return <div className='flex-item'>{this.displayPropertyV2(value)}</div>
               } else {
                 return <span>{value}</span>;
               }
@@ -538,7 +538,7 @@ class Syslog extends Component {
    * @method
    * @param {string} id - syslog id
    */
-  openSyslog = (id) => {
+  openSyslogV2 = (id) => {
     const {baseUrl} = this.context
 
     if (!id) { //Add new syslog
@@ -617,7 +617,7 @@ class Syslog extends Component {
    * @param {string} type - edit type ('add' or 'edit')
    * @param {object} allValue - syslog data
    */
-  openEditHosts = (type, allValue) => {
+  openEditHostsV1 = (type, allValue) => {
     let tempEditHosts = {...this.state.editHosts};
 
     if (type === 'add') {
@@ -1187,7 +1187,7 @@ class Syslog extends Component {
               if (tempData === '_menu') {
                 return (
                   <div className='table-menu menu active'>
-                    <i className='fg fg-edit' onClick={this.openEditHosts.bind(this, 'edit', allValue)} title={t('txt-edit')}></i>
+                    <i className='fg fg-edit' onClick={this.openEditHostsV1.bind(this, 'edit', allValue)} title={t('txt-edit')}></i>
                     <i className='fg fg-trashcan' onClick={this.openDeleteMenu.bind(this, allValue)} title={t('txt-delete')}></i>
                   </div>
                 )
@@ -1528,7 +1528,7 @@ class Syslog extends Component {
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
             <button onClick={this.openTimeline.bind(this, 'overall')} title={t('syslogFields.txt-overallDist')}><i className='fg fg-chart-kpi'></i></button>
-            <button onClick={this.openSyslog.bind(this, null)} title={t('syslogFields.txt-addSyslog')}><i className='fg fg-add'></i></button>
+            <button onClick={this.openSyslogV2.bind(this, null)} title={t('syslogFields.txt-addSyslog')}><i className='fg fg-add'></i></button>
             <button className={cx('last', {'active': openFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
           </div>
         </div>
