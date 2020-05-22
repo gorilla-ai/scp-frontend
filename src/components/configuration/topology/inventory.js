@@ -2455,6 +2455,11 @@ class NetworkInventory extends Component {
   getBtnText = () => {
     return this.state.activeSteps === 4 ? t('txt-confirm') : t('txt-nextStep');
   }
+  /**
+   * Get owner type for radio group
+   * @method
+   * @returns owner type array
+   */
   getOwnerType = () => {
     const {ownerList} = this.state;
 
