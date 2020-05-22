@@ -1158,7 +1158,7 @@ class Syslog extends Component {
     const {baseUrl} = this.context;
 
     this.ah.one({
-      url: `${baseUrl}/api/log/config?id=${id}`,
+      url: `${baseUrl}/api/log/config/u1?id=${id}`,
       type: 'GET'
     })
     .then(data => {
@@ -1589,7 +1589,7 @@ class Syslog extends Component {
                     </table>
 
                     <header>{t('syslogFields.txt-syslogHostList')}</header>
-                    <button className='standard btn add-host' onClick={this.openEditHosts.bind(this, 'add')}>{t('syslogFields.txt-addHost')}</button>
+                    <button className='standard btn add-host' onClick={this.openEditHostsV1.bind(this, 'add')}>{t('syslogFields.txt-addHost')}</button>
                     <DataTable
                       className='main-table'
                       fields={hostsFields}
