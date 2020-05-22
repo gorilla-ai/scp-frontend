@@ -715,7 +715,7 @@ class AlertDetails extends Component {
     return <span className='severity' style={{backgroundColor: styleStatus}}>{value}</span>
   }
   /**
-   * Display redirect IP menu for source IP and dest. IP
+   * Redirect URL
    * @method
    * @param {string} url - url to be redirected
    */
@@ -723,7 +723,7 @@ class AlertDetails extends Component {
     window.open(url, '_blank');
   }
   /**
-   * Display redirect IP menu for source IP and dest. IP
+   * Display redirect IP menu for source IP and destination IP
    * @method
    * @returns HTML DOM
    */

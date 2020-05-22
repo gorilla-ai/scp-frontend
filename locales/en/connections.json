@@ -139,6 +139,7 @@
   "txt-commonModule": "Common Module",
   "txt-configModule": "Configuration Module",
   "txt-host": "Host",
+  "txt-settings": "Settings",
   "txt-maxDataMsg": "The maximum data count is 10,000",
   "txt-es-data-over-limit": "Exceed max queried number, please revise filters",
 

@@ -139,6 +139,7 @@
   "txt-commonModule": "一般模組",
   "txt-configModule": "設定模組",
   "txt-host": "主機",
+  "txt-settings": "設定",
   "txt-maxDataMsg": "資料筆數最大為10,000筆",
   "txt-es-data-over-limit": "超出搜尋範圍，請修改查詢條件",
 
