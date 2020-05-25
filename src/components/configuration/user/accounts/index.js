@@ -252,36 +252,36 @@ class AccountList extends Component {
   accountAction = (type) => {
     const {baseUrl} = this.context;
     const {accountID} = this.state;
+    let url = '';
+    let requestType = '';
+    let msg = '';
 
     if (!accountID) {
       return;
     }
 
     if (type === 'delete') {
-      ah.one({
-        url: `${baseUrl}/api/account/?accountid=${accountID}`,
-        type: 'DELETE'
-      })
-      .then(() => {
-        this.loadAccounts();
-        return null;
-      })
-      .catch(err => {
-        helper.showPopupMsg('', t('txt-error'), err.message);
-      })
+      url = `${baseUrl}/api/account/?accountid=${accountID}`;
+      requestType = 'DELETE';
+      msg = t('txt-deleteAccountSuccess');
     } else if (type === 'unlock') {
-      ah.one({
-        url: `${baseUrl}/api/account/_unlock?accountid=${accountID}`,
-        type: 'PATCH'
-      })
-      .then(() => {
-        helper.showPopupMsg(t('txt-unlockAccountSuccess', ''));
-        return null;
-      })
-      .catch(err => {
-        helper.showPopupMsg('', t('txt-error'), err.message);
-      })
+      url = `${baseUrl}/api/account/_unlock?accountid=${accountID}`;
+      requestType = 'PATCH';
+      msg = t('txt-unlockAccountSuccess');
     }
+
+    ah.one({
+      url,
+      type: requestType
+    })
+    .then(() => {
+      helper.showPopupMsg(msg);
+      this.loadAccounts();
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Show reset password dialog and set active account name
