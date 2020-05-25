@@ -1479,6 +1479,42 @@ class ThreatsController extends Component {
    */
   renderTabContent = () => {
     const {activeTab} = this.state;
+    const polarChartParams = {
+      chart: {
+        polar: true,
+        type: 'line'
+      },
+      title: {
+        text: ''
+      },
+      credits: {
+        enabled: false
+      },
+      xAxis: {
+        categories: ['GCB', 'Scan File', 'OS Version', 'NetProbe/NetTrap', 'NetFlow'],
+        tickmarkPlacement: 'on',
+        lineWidth: 0
+      },
+      yAxis: {
+        gridLineInterpolation: 'polygon',
+        lineWidth: 0,
+        min: 0
+      },
+      legend: {
+        align: 'right',
+        verticalAlign: 'top',
+        layout: 'vertical'
+      },
+      series: [{
+        name: 'Data 1',
+        data: [5, 3, 5, 2, 4],
+        pointPlacement: 'on'
+      }, {
+        name: 'Data 2',
+        data: [3, 2, 3, 4, 0],
+        pointPlacement: 'on'
+      }]
+    };
     const mainContentData = {
       activeTab,
       chartColors: ALERT_LEVEL_COLORS,
@@ -1513,7 +1549,8 @@ class ThreatsController extends Component {
       paginationPageSize: this.state.pageSize,
       paginationCurrentPage: this.state.currentPage,
       paginationPageChange: this.handlePaginationChange,
-      paginationDropDownChange: this.handlePageDropdown
+      paginationDropDownChange: this.handlePageDropdown,
+      polarChartParams
     };
 
     return (
