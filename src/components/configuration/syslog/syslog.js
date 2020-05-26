@@ -60,7 +60,7 @@ class Syslog extends Component {
     this.state = {
       openFilter: false,
       activeContent: 'syslogData', //syslogData, hostInfo
-      dataFieldsArr: ['_menu', 'name', 'port', 'format', 'property'],
+      dataFieldsArr: ['name', 'port', 'format', 'avgLogSizeB', 'property', '_menu'],
       dataFields: {},
       syslog: {
         dataContent: [],
@@ -125,8 +125,8 @@ class Syslog extends Component {
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
 
     this.getRelationship();
-    //this.getSyslogData();
-    this.getSyslogList(false);
+    this.getSyslogData();
+    //this.getSyslogList(false);
   }
   /**
    * Get and set the relationships data
@@ -229,13 +229,31 @@ class Syslog extends Component {
     const {dataFieldsArr, syslog} = this.state;
 
     this.ah.one({
-      url: `${baseUrl}/api/log/config`,
+      url: `${baseUrl}/api/log/config/u1`,
       type: 'GET'
     })
     .then(data => {
       if (data) {
         let tempSyslog = {...syslog};
-        tempSyslog.dataContent = data.rows;
+        let formattedSyslogObj = {};
+        let formattedSyslogArr = [];
+
+        _.forEach(data.rows, val => {
+          if (formattedSyslogObj[val.loghostIp]) {
+            formattedSyslogObj[val.loghostIp].push(val);
+          } else {
+            formattedSyslogObj[val.loghostIp] = [val];
+          }
+        })
+
+        _.forEach(formattedSyslogObj, (val, key) => {
+          formattedSyslogArr.push({
+            ip: key,
+            data: val
+          })
+        })
+
+        tempSyslog.dataContent = formattedSyslogArr;
 
         let tempFields = {};
         dataFieldsArr.forEach(tempData => {
@@ -243,10 +261,23 @@ class Syslog extends Component {
             label: tempData === '_menu' ? '' : t(`syslogFields.${tempData}`),
             sortable: (tempData === '_menu' || tempData === 'property') ? null : true,
             formatter: (value, allValue, i) => {
-              if (tempData === 'property') {
+              if (tempData === 'avgLogSizeB') {
+                const size = value > 0 ? value : 'N/A';
+                return <span>{size}</span>;
+              } else if (tempData === 'property') {
                 return <div className='flex-item'>{this.displayPropertyV2(value)}</div>
               } else if (tempData === '_menu') {
-                return '';
+                return (
+                  <div className='table-menu menu active'>
+                    <i className='fg fg-edit' title={t('txt-edit')}></i>
+                    {allValue.name !== 'syslog' && allValue.name !== 'eventlog' &&
+                      <i className='fg fg-trashcan' onClick={this.modalDelete.bind(this, allValue)} title={t('txt-delete')}></i>
+                    }
+                    <i className='fg fg-chart-kpi' onClick={this.openTimeline.bind(this, 'configId', allValue)} title={t('syslogFields.txt-viewEvents')}></i>
+                    <i className='fg fg-list' onClick={this.forwardSyslog.bind(this, allValue)} title={t('syslogFields.txt-overallDist')}></i>
+                    <i className='fg fg-network' onClick={this.getHostsInfoById.bind(this, allValue.id)} title={t('txt-settings')}></i>
+                  </div>
+                )
               } else {
                 return <span>{value}</span>;
               }
@@ -257,6 +288,44 @@ class Syslog extends Component {
         this.setState({
           syslog: tempSyslog,
           dataFields: tempFields
+        }, () => {
+          this.getSyslogStatus();
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get and set syslog status
+   * @method
+   */
+  getSyslogStatus = () => {
+    const {baseUrl} = this.context;
+    const {syslog} = this.state;
+
+    this.ah.one({
+      url: `${baseUrl}/api/log/config/status`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let tempSyslog = {...syslog};
+        let formattedSyslogArr = [];
+
+        _.forEach(syslog.dataContent, val => {
+          formattedSyslogArr.push({
+            ...val,
+            status: data[val.ip]
+          });
+        })
+
+        tempSyslog.dataContent = formattedSyslogArr;
+
+        this.setState({
+          syslog: tempSyslog
         });
       }
       return null;
@@ -1480,28 +1549,38 @@ class Syslog extends Component {
     )
   }
   displayHostInfo = (val, i) => {
-    //console.log(val, i)
+    const {syslog, dataFields} = this.state;
+    let color = '';
+    let title = '';
+    let statusText = '';
+
+    if (val.status && val.status.logstashStatus.toLowerCase() === 'active') {
+      color = '#22ac38';
+      title = t('txt-online');
+    } else if (val.status && val.status.logstashStatus.toLowerCase() === 'inactive') {
+      color = '#d10d25';
+      title = t('txt-offline');
+      statusText = val.status.inactive.join(', ');
+    }
 
     return (
-      <div className='host-info'>
-        <header>Host IP: 172.18.0.120</header>
+      <div className='host-info' key={i}>
+        <header>{t('syslogFields.txt-hostIP')}: {val.ip}</header>
         <div className='host-content'>
-          <span className='status'>Syslog Status: normal</span>
+          <span className='status'>{t('txt-status')}: <i className='fg fg-recode' style={{color}} title={title} /> <span className='text' style={{color}}>{statusText}</span></span>
           <header>{t('syslogFields.txt-syslog')}</header>
 
           {syslog && syslog.dataContent &&
             <DataTable
               className='main-table'
               fields={dataFields}
-              data={syslog.dataContent}
+              data={val.data}
               defaultSort={syslog.sort}
               onRowMouseOver={this.handleTableRowMouseOver} />
-          }
+          }         
 
           <div className='content-header-btns'>
             <button className='standard btn'>{t('syslogFields.txt-addSyslog')}</button>
-            <button className='standard btn'>{t('syslogFields.txt-viewEvents')}</button>
-            <button className='standard btn'>{t('syslogFields.txt-overallDist')}</button>
           </div>
         </div>
       </div>
@@ -1555,7 +1634,7 @@ class Syslog extends Component {
 
               <div className='main-content'>
                 <header className='main-header'>{t('txt-syslogManage')}</header>
-                <TableContent
+                {/*<TableContent
                   dataTableData={syslog.dataContent}
                   dataTableFields={dataFields}
                   dataTableSort={syslog.sort}
@@ -1565,11 +1644,11 @@ class Syslog extends Component {
                   handleTableSort={this.handleTableSort}
                   handleRowMouseOver={this.handleRowMouseOver}
                   paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                  paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />              
+                  paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />*/}
 
-                {/*<div className='config-syslog'>
+                <div className='config-syslog'>
                   {syslog.dataContent.map(this.displayHostInfo)}
-                </div>*/}
+                </div>
               </div>
             </div>
           }

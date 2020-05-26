@@ -644,6 +644,7 @@
   "syslogFields": {
     "port": "Received Port",
     "format": "Data Format",
+    "avgLogSizeB": "Averge Log Size (byte)",
     "property": "Data Property",
     "ip": "IP",
     "name": "Name",
@@ -657,6 +658,7 @@
     "dataProperty": "Data Property",
     "srcNode": "Source Node",
     "dstNode": "Destination Node",
+    "txt-hostIP": "Host IP",
     "txt-getLatest": "Get Latest Input Text",
     "txt-customFieldName": "Custom Field Name",
     "txt-syslog": "Syslog",

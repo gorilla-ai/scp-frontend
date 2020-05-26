@@ -644,6 +644,7 @@
   "syslogFields": {
     "port": "接收Port",
     "format": "資料類型",
+    "avgLogSizeB": "平均資料大小(byte)",
     "property": "資料屬性",
     "ip": "IP",
     "name": "名稱",
@@ -657,6 +658,7 @@
     "dataProperty": "資料解譯結果",
     "srcNode": "來源節點",
     "dstNode": "目的節點",
+    "txt-hostIP": "主機IP",
     "txt-getLatest": "取得最新串流資料",
     "txt-customFieldName": "自訂欄位名稱",
     "txt-syslog": "日誌串流",
