@@ -59,7 +59,7 @@ class Syslog extends Component {
 
     this.state = {
       openFilter: false,
-      activeContent: 'syslogData', //syslogData, hostInfo
+      activeContent: 'syslogData', //syslogData, hostInfo, editSyslog
       dataFieldsArr: ['name', 'port', 'format', 'avgLogSizeB', 'property', '_menu'],
       dataFields: {},
       syslog: {
@@ -86,12 +86,13 @@ class Syslog extends Component {
         port: '',
         format: ''
       },
+      activeSyslogData: {},
+      editSyslogType: '',
       editHostsType: '',
       editHosts: {
         ip: '',
         name: ''
       },
-      openSyslog: false,
       openTimeline: false,
       openEditHosts: false,
       clickTimeline: false,
@@ -104,7 +105,6 @@ class Syslog extends Component {
       },
       eventsData: {},
       hostsData: {},
-      modalTitle: '',
       config: INIT_CONFIG,
       configRelationships: [],
       rawOptions: [],
@@ -201,11 +201,13 @@ class Syslog extends Component {
   /**
    * Toggle different content
    * @method
-   * @param {string} activeContent - page type ('syslogData' or 'hostInfo')
+   * @param {string} activeContent - page type ('syslogData', 'hostInfo' or 'editSyslog')
+   * @param {string} type - edit syslog type ('new' or 'edit')
    */
-  toggleContent = (activeContent) => {
+  toggleContent = (activeContent, type) => {
     this.setState({
-      activeContent
+      activeContent,
+      editSyslogType: type
     });
   }
   /**
@@ -262,14 +264,13 @@ class Syslog extends Component {
             sortable: (tempData === '_menu' || tempData === 'property') ? null : true,
             formatter: (value, allValue, i) => {
               if (tempData === 'avgLogSizeB') {
-                const size = value > 0 ? value : 'N/A';
-                return <span>{size}</span>;
+                return <span>{value > 0 ? value : 'N/A'}</span>;
               } else if (tempData === 'property') {
                 return <div className='flex-item'>{this.displayPropertyV2(value)}</div>
               } else if (tempData === '_menu') {
                 return (
                   <div className='table-menu menu active'>
-                    <i className='fg fg-edit' title={t('txt-edit')}></i>
+                    <i className='fg fg-edit' onClick={this.openSyslogV2.bind(this, allValue.id)} title={t('txt-edit')}></i>
                     {allValue.name !== 'syslog' && allValue.name !== 'eventlog' &&
                       <i className='fg fg-trashcan' onClick={this.modalDelete.bind(this, allValue)} title={t('txt-delete')}></i>
                     }
@@ -612,9 +613,7 @@ class Syslog extends Component {
 
     if (!id) { //Add new syslog
       this.setState({
-        openSyslog: true,
-        config: INIT_CONFIG,
-        modalTitle: t('syslogFields.txt-addSyslog')
+        config: INIT_CONFIG
       });
       return;
     }
@@ -625,9 +624,17 @@ class Syslog extends Component {
     })
     .then(data => {
       if (data) {
+        const logHostList = _.map(data.logHostList, val => {
+          return {
+            value: val,
+            text: val
+          }
+        });
         const config = {
           type: 'filter',
           id: data.id,
+          hostIpList: logHostList,
+          hostIP: data.loghostIp,
           name: data.name,
           port: data.port,
           format: data.format,
@@ -647,9 +654,9 @@ class Syslog extends Component {
 
         this.setState({
           config,
-          openSyslog: true,
-          rawOptions,
-          modalTitle: t('syslogFields.txt-editSyslog')
+          rawOptions
+        }, () => {
+          this.toggleContent('editSyslog', 'edit')
         });
       }
       return null;
@@ -664,7 +671,6 @@ class Syslog extends Component {
    */
   closeSyslog = () => {
     this.setState({
-      openSyslog: false,
       error: false,
       info: ''
     });
@@ -995,7 +1001,7 @@ class Syslog extends Component {
    * @returns ModalDialog component
    */
   modalSyslog = () => {
-    const {error, info, modalTitle} = this.state;
+    const {error, info} = this.state;
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeSyslog},
       confirm: {text: t('txt-confirm'), handler: this.confirmSyslog}
@@ -1005,7 +1011,6 @@ class Syslog extends Component {
       <ModalDialog
         id='syslogModalDialog'
         className='modal-dialog'
-        title={modalTitle}
         draggable={true}
         global={true}
         actions={actions}
@@ -1586,6 +1591,26 @@ class Syslog extends Component {
       </div>
     )
   }
+  /**
+   * Display syslog parsed input data
+   * @method
+   * @param {string} val - syslog parsed data value
+   * @param {string} key - syslog parsed data key
+   * @returns HTML DOM
+   */
+  displayParsedData = (val, key) => {
+    if (key != '_Raw') {
+      return (
+        <div className='group' key={key}>
+          <label htmlFor={key}>{key}</label>
+          <Input
+            id={key}
+            value={val}
+            onChange={this.handleConfigChange.bind(this, 'format')} />
+        </div>
+      )
+    }
+  }
   render() {
     const {baseUrl, contextRoot} = this.context;
     const {
@@ -1595,18 +1620,16 @@ class Syslog extends Component {
       hostsFields,
       hosts,
       openFilter,
-      openSyslog,
+      config,
+      rawOptions,
       openTimeline,
+      editSyslogType,
       openEditHosts,
       activeHost
     } = this.state;
 
     return (
       <div>
-        {openSyslog &&
-          this.modalSyslog()
-        }
-
         {openTimeline &&
           this.modalTimeline()
         }
@@ -1634,20 +1657,98 @@ class Syslog extends Component {
 
               <div className='main-content'>
                 <header className='main-header'>{t('txt-syslogManage')}</header>
-                {/*<TableContent
-                  dataTableData={syslog.dataContent}
-                  dataTableFields={dataFields}
-                  dataTableSort={syslog.sort}
-                  paginationTotalCount={syslog.totalCount}
-                  paginationPageSize={syslog.pageSize}
-                  paginationCurrentPage={syslog.currentPage}
-                  handleTableSort={this.handleTableSort}
-                  handleRowMouseOver={this.handleRowMouseOver}
-                  paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                  paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />*/}
-
                 <div className='config-syslog'>
                   {syslog.dataContent.map(this.displayHostInfo)}
+                </div>
+              </div>
+            </div>
+          }
+
+          {activeContent === 'editSyslog' &&
+            <div className='parent-content'>
+              <div className='main-content basic-form'>
+                <header className='main-header'>{t('syslogFields.txt-editSyslogInfo')}</header>
+                <div className='edit-syslog-config'>
+                  <div className='form-group normal'>
+                    <header>{t('syslogFields.txt-syslogInfo')}</header>
+                    <div className='group'>
+                      <label htmlFor='syslogHostIP'>{t('syslogFields.txt-hostIP')}</label>
+                      <DropDownList
+                        id='syslogHostIP'
+                        required={true}
+                        list={config.hostIpList}
+                        value={config.hostIP}
+                        onChange={this.handleConfigChange.bind(this, 'hostIP')}
+                        readOnly={editSyslogType === 'edit'} />
+                      <button className='syslog-addIP' disabled={editSyslogType === 'edit'}>{t('syslogFields.txt-addHostIP')}</button>
+                    </div>
+                    <div className='group'>
+                      <label htmlFor='syslogName'>{t('syslogFields.name')}</label>
+                      <Input
+                        id='syslogName'
+                        value={config.name}
+                        onChange={this.handleConfigChange.bind(this, 'name')} />
+                    </div>
+                    <div className='group'>
+                      <label htmlFor='syslogReceivedPort'>{t('syslogFields.port')}</label>
+                      <Input
+                        id='syslogReceivedPort'
+                        value={config.port}
+                        onChange={this.handleConfigChange.bind(this, 'port')} />
+                    </div>
+                    <div className='group'>
+                      <label htmlFor='syslogDataFormat'>{t('syslogFields.format')}</label>
+                      <Input
+                        id='syslogDataFormat'
+                        value={config.format}
+                        onChange={this.handleConfigChange.bind(this, 'format')} />
+                    </div>
+                  </div>
+
+                  <div className='filters'>
+                    <div className='left-syslog'>
+                      <div className='form-group normal long full-width syslog-config'>
+                        <header>{t('syslogFields.txt-originalData')}</header>
+                        <div className='group'>
+                          <label htmlFor='syslogInput'>{t('syslogFields.dataSampleInput')}</label>
+                          {config.id &&
+                            <button onClick={this.getLatestInput.bind(this, config.id)}>{t('syslogFields.txt-getLatest')}</button>
+                          }
+                          <Textarea
+                            id='syslogInput'
+                            rows={8}
+                            value={config.input}
+                            onChange={this.handleConfigChange.bind(this, 'input')} />
+                        </div>
+                        <div className='group'>
+                          <div className='pattern'>
+                            <label>{t('syslogFields.matchPattern')}</label><i className='c-link fg fg-help' title={t('txt-tips')} onClick={this.showPatternHint} />
+                          </div>
+                          <Textarea
+                            id='syslogPattern'
+                            rows={10}
+                            value={config.pattern}
+                            onChange={this.handleConfigChange.bind(this, 'pattern')} />
+                        </div>
+                      </div>
+                    </div>
+                    <i className='c-link fg fg-forward' title={t('txt-parse')} onClick={this.getRaw} />
+                    <div className='left-syslog'>
+                      <div className='form-group normal long full-width syslog-config'>
+                        <header>{t('syslogFields.txt-originalData')}</header>
+                        <div className='parsed-list'>
+                          {_.map(config.property, this.displayParsedData)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {editSyslogType === 'edit' &&
+                    <footer>
+                      <button className='standard' onClick={this.toggleContent.bind(this, 'syslogData')}>{t('txt-cancel')}</button>
+                      <button onClick={this.toggleContent.bind(this, 'save')}>{t('txt-save')}</button>
+                    </footer>
+                  }
                 </div>
               </div>
             </div>

@@ -1466,6 +1466,13 @@ i.c-checkbox.fg-checkbox {
                 width: 25%;
               }
             }
+            &.full-width {
+              width: 100%;
+            }
+            &.syslog-config {
+              margin: 0;
+              margin-top: 35px;
+            }
             &.steps-owner {
               .removePhoto {
                 label {
@@ -1616,6 +1623,13 @@ i.c-checkbox.fg-checkbox {
               }
               #severityLevel {
                 width: 94.5%;
+              }
+              #syslogHostIP {
+                width: 395px;
+              }
+              .syslog-addIP {
+                float: right;
+                margin-top: 1px;
               }
               .period {
                 color: var(--primaryContentHeader);
@@ -1820,6 +1834,115 @@ i.c-checkbox.fg-checkbox {
               &.line1 {
                 display: none;
               }
+            }
+          }
+        }
+        .edit-syslog-config {
+          height: 70vh;
+          overflow-y: auto;
+          .syslogs {
+            display: flex;
+            margin-bottom: 15px;
+            .syslog {
+              flex: 1;
+            }
+            input {
+              width: 95%;
+            }
+          }
+          .filters {
+            overflow: hidden;
+            width: 70%;
+            margin: 0 auto;
+            margin-top: 10px;
+            margin-bottom: 40px;
+            .left-syslog {
+              float: left;
+              width: 45%;
+              min-height: 330px;
+              button {
+                position: absolute;
+                right: 15px;
+                top: 5px;
+                font-size: .9em;
+                padding: .2em .8em;
+              }
+              .pattern {
+                label {
+                  float: left;
+                  margin-right: 2px;
+                }
+              }
+              .parsed-list {
+                width: 100%;
+                max-height: 455px;
+                overflow-y: auto;
+              }
+            }
+            .fg-forward {
+              float: left;
+              width: 10%;
+              margin-top: 250px;
+              text-align: center;
+            }
+            .property {
+              margin-left: 530px;
+            }
+            .right-syslog {
+              float: right;
+              width: 58%;
+              min-height: 330px;
+            }
+          }
+          .relationships {
+            .group {
+              margin-top: 10px;
+              border: 1px solid var(--primaryBorder);
+              border-radius: 5px;
+              background-color: var(--relationshipBackground);
+            }
+            .relationship {
+              width: 90%;
+              margin-top: 10px;
+              margin-bottom: 10px;
+              .up {
+                display: flex;
+                padding: 5px 5px;
+              }
+              .down {
+                padding: 5px 5px;
+                .table-100 {
+                  width: 100%;
+                }
+                table {
+                  border: 1px solid #CCCCCC;
+                  border-radius: 5px;
+                }
+              }
+              .item {
+                margin-left: 10px;
+                label {
+                  color: #4d86e2;
+                }
+                select {
+                  width: 200px;
+                }
+              }
+              .fg-next {
+                margin-top: 30px;
+                margin-left: 10px;
+              }
+            }
+            .remove {
+              height: 30px;
+              width: 30px;
+              margin-top: 10px;
+              background-color: var(--primaryContentBackground);
+            }
+            .add {
+              height: 30px;
+              width: 30px;
+              margin-top: 10px;
             }
           }
         }
