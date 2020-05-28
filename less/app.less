@@ -695,6 +695,9 @@ i.c-checkbox.fg-checkbox {
       i.fg {
         font-size: 26px;
         margin-right: 8px;
+        &.not-allowed {
+          cursor: not-allowed;
+        }
       }
     }
   }
@@ -1624,13 +1627,6 @@ i.c-checkbox.fg-checkbox {
               #severityLevel {
                 width: 94.5%;
               }
-              #syslogHostIP {
-                width: 395px;
-              }
-              .syslog-addIP {
-                float: right;
-                margin-top: 1px;
-              }
               .period {
                 color: var(--primaryContentHeader);
                 margin-top: 5px;
@@ -1875,7 +1871,7 @@ i.c-checkbox.fg-checkbox {
               }
               .parsed-list {
                 width: 100%;
-                max-height: 455px;
+                height: 455px;
                 overflow-y: auto;
               }
             }
@@ -1894,7 +1890,15 @@ i.c-checkbox.fg-checkbox {
               min-height: 330px;
             }
           }
+          .group-btn {
+            width: 70%;
+            margin: 0 auto;
+            margin-top: -5px;
+            margin-bottom: 25px;
+          }
           .relationships {
+            margin: 0 auto;
+            width: 70%;
             .group {
               margin-top: 10px;
               border: 1px solid var(--primaryBorder);
@@ -1953,14 +1957,17 @@ i.c-checkbox.fg-checkbox {
             color: var(--primaryContentHeader);
           }
           .host-info {
+            position: relative;
             margin: 10px;
             background-color: var(--primaryContentBackground);
             & > header {
               padding: 10px 15px;
               border-bottom: 1px solid var(--primaryBorder);
             }
+            .content-header-btns {
+              top: 0;
+            }
             .host-content {
-              position: relative;
               padding: 15px;
               .status {
                 position: relative;
@@ -1977,9 +1984,6 @@ i.c-checkbox.fg-checkbox {
               .main-table {
                 width: 100%;
                 margin-top: 15px;
-              }
-              .content-header-btns {
-                top: 35px;
               }
             }
           }
@@ -2040,6 +2044,11 @@ i.c-checkbox.fg-checkbox {
               margin: 5px 2px;
               border-radius: 5px;
               background-color: var(--primaryContentHeader);
+            }
+          }
+          &.syslog-config {
+            tr th.property {
+              width: 48%;
             }
           }
         }
