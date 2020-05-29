@@ -125,9 +125,6 @@ class Syslog extends Component {
     this.getRelationship();
     this.getSyslogData();
   }
-  ryan = () => {
-
-  }
   /**
    * Get and set the relationships data
    * @method
@@ -298,13 +295,82 @@ class Syslog extends Component {
    * Toggle different content
    * @method
    * @param {string} activeContent - page type ('syslogData', 'hostInfo' or 'editSyslog')
-   * @param {string} type - edit syslog type ('new' or 'edit')
+   * @param {string} type - edit syslog type ('new', 'edit' or 'save')
    */
   toggleContent = (activeContent, type) => {
+    const editSyslogType = type === 'save' ? '' : type;
+
+    if (type) {
+      this.setState({
+        editSyslogType
+      });
+    }
+
     this.setState({
-      activeContent,
-      editSyslogType: type
+      activeContent
     });
+  }
+  /**
+   * Display main syslog host info
+   * @method
+   * @param {object} val - syslog data
+   * @param {number} i - index of the syslog data
+   * @returns HTML DOM
+   */
+  displayHostInfo = (val, i) => {
+    const {syslog, dataFields} = this.state;
+    let color = '';
+    let title = '';
+    let errorText = '';
+
+    if (val.status && val.status.logstashStatus.toLowerCase() === 'active') {
+      color = '#22ac38';
+      title = t('txt-online');
+    } else if (val.status && val.status.logstashStatus.toLowerCase() === 'inactive') {
+      color = '#d10d25';
+      title = t('txt-offline');
+      errorText = val.status.inactive.join(', ');
+    }
+
+    return (
+      <div className='host-info' key={i}>
+        <header>{t('syslogFields.txt-hostIP')}: {val.ip}</header>
+        <span className='status'>{t('txt-status')}: <i className='fg fg-recode' style={{color}} title={title} /></span>
+        <div className='content-header-btns'>
+          <button className='standard btn' onClick={this.openNewSyslog.bind(this, 'edit-exist', val)}>{t('syslogFields.txt-addSyslog')}</button>
+        </div>
+        <div className='host-content'>
+          {errorText &&
+            <span className='error-text'><i className='fg fg-alert-1'></i>{errorText}</span>
+          }
+          <DataTable
+            className='main-table syslog-config'
+            fields={dataFields}
+            data={val.data}
+            defaultSort={syslog.sort} />
+        </div>
+      </div>
+    )
+  }
+  /**
+   * Display syslog parsed input data
+   * @method
+   * @param {string} val - syslog parsed data value
+   * @param {string} key - syslog parsed data key
+   * @returns HTML DOM
+   */
+  displayParsedData = (val, key) => {
+    if (key != '_Raw') {
+      return (
+        <div className='group' key={key}>
+          <label htmlFor={key}>{key}</label>
+          <Input
+            id={key}
+            value={val}
+            onChange={this.handleConfigChange.bind(this, 'format')} />
+        </div>
+      )
+    }
   }
   /**
    * Get and set syslog grok data
@@ -485,7 +551,7 @@ class Syslog extends Component {
     }
 
     this.ah.one({
-      url: `${baseUrl}/api/log/config?id=${id}`,
+      url: `${baseUrl}/api/log/config/u1?id=${id}`,
       type: 'DELETE'
     })
     .then(data => {
@@ -669,40 +735,20 @@ class Syslog extends Component {
     });
   }
   /**
-   * Display contnet for the relationship tab
-   * @method
-   * @returns MultiInput component
-   */
-  renderTabRelationship = () => {
-    const {config, configRelationships, rawOptions} = this.state;
-    const data = {
-      relationships: configRelationships,
-      rawOptions
-    };
-
-    return (
-      <MultiInput
-        className='relationships'
-        base={Relationships}
-        value={config.relationships}
-        props={data}
-        onChange={this.handleRelationshipChange} />
-    )
-  }
-  /**
    * Handle syslog edit confirm
    * @method
    */
   confirmSyslog = () => {
     const {baseUrl} = this.context;
     const {config} = this.state;
+    const url = `${baseUrl}/api/log/config/u1`;
     let valid = true;
 
     if (!config.port || !config.input || !config.pattern) {
       valid = false;
     }
 
-    _.forEach(config.relationship, el => {
+    _.forEach(config.relationships, el => {
       if (!el.name || !el.srcNode || !el.dstNode) {
         valid = false;
       }
@@ -726,7 +772,8 @@ class Syslog extends Component {
       return;
     }
 
-    let dataObj = {
+    let requestData = {
+      loghostIp: config.hostIP,
       name: config.name,
       port: config.port,
       format: config.format,
@@ -734,26 +781,18 @@ class Syslog extends Component {
       pattern: config.pattern,
       relationships: JSON.stringify(config.relationships)
     };
-    let method = 'POST';
+    let requestType = 'POST';
 
     if (config.id) {
-      method = 'PATCH';
-      dataObj.id = config.id;
+      requestData.id = config.id;
+      requestType = 'PATCH';
     }
 
-    this.ah.one({
-      url: `${baseUrl}/api/log/config`,
-      data: JSON.stringify(dataObj),
-      type: method,
-      contentType: 'text/plain'
-    })
+    helper.getAjaxData(requestType, url, requestData)
     .then(data => {
-      this.getSyslogData();
+      this.toggleContent('syslogData', 'save');
       return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
+    });
   }
   /**
    * Get and set timeline events data
@@ -1282,58 +1321,6 @@ class Syslog extends Component {
       </div>
     )
   }
-  displayHostInfo = (val, i) => {
-    const {syslog, dataFields} = this.state;
-    let color = '';
-    let title = '';
-    let statusText = '';
-
-    if (val.status && val.status.logstashStatus.toLowerCase() === 'active') {
-      color = '#22ac38';
-      title = t('txt-online');
-    } else if (val.status && val.status.logstashStatus.toLowerCase() === 'inactive') {
-      color = '#d10d25';
-      title = t('txt-offline');
-      statusText = val.status.inactive.join(', ');
-    }
-
-    return (
-      <div className='host-info' key={i}>
-        <header>{t('syslogFields.txt-hostIP')}: {val.ip}</header>
-        <div className='content-header-btns'>
-          <button className='standard btn' onClick={this.openNewSyslog.bind(this, 'edit-exist', val)}>{t('syslogFields.txt-addSyslog')}</button>
-        </div>
-        <div className='host-content'>
-          <span className='status'>{t('txt-status')}: <i className='fg fg-recode' style={{color}} title={title} /> <span className='text' style={{color}}>{statusText}</span></span>
-          <DataTable
-            className='main-table syslog-config'
-            fields={dataFields}
-            data={val.data}
-            defaultSort={syslog.sort} />
-        </div>
-      </div>
-    )
-  }
-  /**
-   * Display syslog parsed input data
-   * @method
-   * @param {string} val - syslog parsed data value
-   * @param {string} key - syslog parsed data key
-   * @returns HTML DOM
-   */
-  displayParsedData = (val, key) => {
-    if (key != '_Raw') {
-      return (
-        <div className='group' key={key}>
-          <label htmlFor={key}>{key}</label>
-          <Input
-            id={key}
-            value={val}
-            onChange={this.handleConfigChange.bind(this, 'format')} />
-        </div>
-      )
-    }
-  }
   render() {
     const {baseUrl, contextRoot} = this.context;
     const {
@@ -1481,16 +1468,15 @@ class Syslog extends Component {
 
                   {config.type === 'relationship' &&
                     <MultiInput
-                        className='relationships'
-                        base={Relationships}
-                        value={config.relationships}
-                        props={data}
-                        onChange={this.handleRelationshipChange} />
+                      className='relationships'
+                      base={Relationships}
+                      value={config.relationships}
+                      props={data}
+                      onChange={this.handleRelationshipChange} />
                   }
-
                   <footer>
                     <button className='standard' onClick={this.toggleContent.bind(this, 'syslogData')}>{t('txt-cancel')}</button>
-                    <button onClick={this.toggleContent.bind(this, 'save')}>{t('txt-save')}</button>
+                    <button onClick={this.confirmSyslog}>{t('txt-save')}</button>
                   </footer>
                 </div>
               </div>

@@ -199,9 +199,11 @@ button {
   .current {
     color: var(--primaryContentHeader);
     background-color: var(--primaryContentBackground);
+    border-color: var(--primaryContentHeader);
   }
 }
-.c-popover {
+.c-popover,
+.pure-form legend {
   color: var(--primaryTextColor);
   background-color: var(--primaryContentBackground);
 }
@@ -1836,16 +1838,6 @@ i.c-checkbox.fg-checkbox {
         .edit-syslog-config {
           height: 70vh;
           overflow-y: auto;
-          .syslogs {
-            display: flex;
-            margin-bottom: 15px;
-            .syslog {
-              flex: 1;
-            }
-            input {
-              width: 95%;
-            }
-          }
           .filters {
             overflow: hidden;
             width: 70%;
@@ -1897,16 +1889,16 @@ i.c-checkbox.fg-checkbox {
             margin-bottom: 25px;
           }
           .relationships {
-            margin: 0 auto;
             width: 70%;
+            margin: 0 auto;
             .group {
-              margin-top: 10px;
+              margin-bottom: 10px;
               border: 1px solid var(--primaryBorder);
               border-radius: 5px;
-              background-color: var(--relationshipBackground);
+              background-color: var(--formGroupBackground);
             }
             .relationship {
-              width: 90%;
+              width: 92%;
               margin-top: 10px;
               margin-bottom: 10px;
               .up {
@@ -1919,17 +1911,21 @@ i.c-checkbox.fg-checkbox {
                   width: 100%;
                 }
                 table {
-                  border: 1px solid #CCCCCC;
+                  border: 1px solid var(--primaryBorder);
                   border-radius: 5px;
                 }
               }
               .item {
                 margin-left: 10px;
                 label {
-                  color: #4d86e2;
+                  display: block;
+                  font-size: .9em;
+                  color: var(--primaryContentHeader);
+                  margin-bottom: 3px;
+                  text-align: left;
                 }
                 select {
-                  width: 200px;
+                  width: 250px;
                 }
               }
               .fg-next {
@@ -1937,16 +1933,14 @@ i.c-checkbox.fg-checkbox {
                 margin-left: 10px;
               }
             }
+            .add,
             .remove {
-              height: 30px;
               width: 30px;
+              height: 30px;
               margin-top: 10px;
-              background-color: var(--primaryContentBackground);
             }
-            .add {
-              height: 30px;
-              width: 30px;
-              margin-top: 10px;
+            .remove {
+              background-color: var(--primaryContentBackground);
             }
           }
         }
@@ -1964,26 +1958,33 @@ i.c-checkbox.fg-checkbox {
               padding: 10px 15px;
               border-bottom: 1px solid var(--primaryBorder);
             }
+            .status {
+              display: block;
+              position: absolute;
+              top: 12px;
+              left: 250px;
+              .fg-recode {
+                position: absolute;
+                top: 0;
+              }
+            }
             .content-header-btns {
               top: 0;
             }
             .host-content {
               padding: 15px;
-              .status {
-                position: relative;
+              .error-text {
                 display: block;
+                color: #d10d25;
+                white-space: pre-wrap;
+                word-break: break-all;
                 margin-bottom: 15px;
-                .fg-recode {
-                  position: absolute;
-                  top: 0;
-                }
-                .text {
-                  margin-left: 22px;
+                .fg-alert-1 {
+                  float: left;
                 }
               }
               .main-table {
                 width: 100%;
-                margin-top: 15px;
               }
             }
           }

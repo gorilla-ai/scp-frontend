@@ -20,7 +20,6 @@ html {
   --paginationBtnColor: #5b5b5b;
   --paginationBtnBackground: #fff;
 
-  --relationshipBackground: #e3f2f9;
   --dialogFormGroup: #ededed;
   --syncRule: #d9d9d9;
 }
@@ -46,13 +45,16 @@ html[data-theme='dark'] {
   --paginationBtnColor: #fff;
   --paginationBtnBackground: #1a668c;
 
-  --relationshipBackground: #1f1e1e;
   --dialogFormGroup: #333;
   --syncRule: #333;
 }
 
 .c-modal {
+  & > #overlay {
+    background-color: rgba(0, 0, 0, 1);
+  }
   & > .dialog > .content {
+    max-width: 1280px;
     max-height: 715px;
   }
   & > .dialog > footer > button {
@@ -125,7 +127,7 @@ html[data-theme='dark'] {
     }
     &.value {
       float: left;
-      width: 68%;
+      width: 70%;
       word-wrap: break-word;
       .value-input {
         color: var(--primaryTextColor);
@@ -388,12 +390,12 @@ html[data-theme='dark'] {
     padding: 10px;
   }
   #viewJsonDialog-content {
-    width: 1000px;
+    width: 1280px;
   }
 }
 /* events/netflow/index */
 #flowModalDialog-content {
-  width: 1000px;
+  width: 1280px;
 }
 /* events/netflow/index */
 #pcapModalDialog-dialog {
@@ -685,7 +687,7 @@ html[data-theme='dark'] {
 }
 /* common/alert-details */
 #dashboardModalDialog-content {
-  width: 965px;
+  width: 1280px;
   max-height: 725px;
   .main-table {
     width: 100%;
@@ -962,7 +964,7 @@ html[data-theme='dark'] {
 }
 /* configuration/topology/inventory */
 #configScanModalDialog-content {
-  width: 965px;
+  width: 1280px;
   .main-table {
     border-radius: 5px;
     width: 100%;
@@ -1056,7 +1058,7 @@ html[data-theme='dark'] {
 }
 /* configuration/syslog/syslog */
 #viewEventsTimeline-content {
-  width: 1000px;
+  width: 1280px;
   .calendar-section {
     overflow: hidden;
     width: 625px;
@@ -1082,7 +1084,7 @@ html[data-theme='dark'] {
   }
   .table-section {
     float: right;
-    width: 20%;
+    width: 25%;
     height: 430px;
     overflow-y: auto;
   }
