@@ -228,7 +228,7 @@ class IncidentLog extends Component {
                 <div className='header-text'>{t('txt-filter')}</div>
                 <div className='filter-section config'>
                     <div className='group'>
-                        <label htmlFor='keyword' className='first-label'>{f('incidentFields.id')}</label>
+                        <label htmlFor='keyword'>{f('incidentFields.id')}</label>
                         <input
                             id='keyword'
                             type='text'
@@ -237,7 +237,7 @@ class IncidentLog extends Component {
                             onChange={this.handleLogInputSearch.bind(this, 'keyword')}/>
                     </div>
                     <div className='group'>
-                        <label htmlFor='type' className='first-label'>{it('txt-send-type')}</label>
+                        <label htmlFor='type'>{it('txt-send-type')}</label>
                         <DropDownList
                             id='type'
                             list={[
@@ -259,7 +259,7 @@ class IncidentLog extends Component {
 
                     </div>
                     <div className='group'>
-                        <label htmlFor='status' className='first-label'>{it('txt-send-status')}</label>
+                        <label htmlFor='status'>{it('txt-send-status')}</label>
                         <DropDownList
                             id='status'
                             list={[

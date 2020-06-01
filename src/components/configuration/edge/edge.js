@@ -867,7 +867,7 @@ class Edge extends Component {
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group'>
-            <label htmlFor='edgeSearchKeyword' className='first-label'>{f('edgeFields.keywords')}</label>
+            <label htmlFor='edgeSearchKeyword'>{f('edgeFields.keywords')}</label>
             <input
               id='edgeSearchKeyword'
               type='text'

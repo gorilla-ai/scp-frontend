@@ -693,7 +693,7 @@ class Incident extends Component {
                 <div className='header-text'>{t('txt-filter')}</div>
                 <div className='filter-section config'>
                     <div className='group'>
-                        <label htmlFor='searchKeyword' className='first-label'>{f('edgeFields.keywords')}</label>
+                        <label htmlFor='searchKeyword'>{f('edgeFields.keywords')}</label>
                         <input
                             id='searchKeyword'
                             type='text'
@@ -702,7 +702,7 @@ class Incident extends Component {
                             onChange={this.handleInputSearch.bind(this, 'keyword')}/>
                     </div>
                     <div className='group'>
-                        <label htmlFor='searchCategory' className='first-label'>{f('incidentFields.category')}</label>
+                        <label htmlFor='searchCategory'>{f('incidentFields.category')}</label>
                         <DropDownList
                             id='searchCategory'
                             required={true}
@@ -715,7 +715,7 @@ class Incident extends Component {
                             onChange={this.handleSearch.bind(this, 'category')}/>
                     </div>
                     <div className='group'>
-                        <label htmlFor='searchStatus' className='first-label'>{f('incidentFields.status')}</label>
+                        <label htmlFor='searchStatus'>{f('incidentFields.status')}</label>
                         <DropDownList
                             id='searchStatus'
                             required={true}

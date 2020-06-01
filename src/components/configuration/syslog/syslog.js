@@ -34,6 +34,7 @@ const DEFAULT_PATTERN = '%{GREEDYDATA}';
 const INIT_CONFIG = {
   type: 'formatSettings',
   id: '',
+  hostIP: '',
   name: '',
   port: '',
   format: '',
@@ -79,10 +80,9 @@ class Syslog extends Component {
           desc: false
         }
       },
-      openFilter: false,
       search: {
-        port: '',
-        format: ''
+        loghostip: '',
+        port: ''
       },
       activeSyslogData: {},
       editSyslogType: '',
@@ -107,10 +107,13 @@ class Syslog extends Component {
       configRelationships: [],
       rawOptions: [],
       activeHost: '',
-      currentHostData: '',
-      error: false,
-      info: ''
+      currentHostData: ''
     };
+
+
+
+
+
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
@@ -154,10 +157,23 @@ class Syslog extends Component {
    */
   getSyslogData = () => {
     const {baseUrl} = this.context;
-    const {dataFieldsArr, syslog} = this.state;
+    const {dataFieldsArr, syslog, search} = this.state;
+    let urlParams = '';
+
+    if (search.loghostip || search.port) {
+      urlParams += '?';
+
+      if (search.loghostip) {
+        urlParams += `&loghostip=${search.loghostip}`;
+      }
+
+      if (search.port) {
+        urlParams += `&port=${search.port}`;
+      }
+    }
 
     this.ah.one({
-      url: `${baseUrl}/api/log/config/u1`,
+      url: `${baseUrl}/api/v1/log/config${urlParams}`,
       type: 'GET'
     })
     .then(data => {
@@ -304,6 +320,10 @@ class Syslog extends Component {
       this.setState({
         editSyslogType
       });
+
+      if (type === 'save') {
+        this.getSyslogData();
+      }
     }
 
     this.setState({
@@ -423,15 +443,7 @@ class Syslog extends Component {
     let config = {};
 
     if (type === 'new') {
-      config = {
-        id: '',
-        hostIP: '',
-        name: '',
-        port: '',
-        format: '',
-        property: '',
-        relationships: ''
-      };
+      config = INIT_CONFIG;
     } else if (type === 'edit-exist') {
       config = {
         hostIP: val.ip
@@ -470,7 +482,7 @@ class Syslog extends Component {
     }
 
     this.ah.one({ //Edit existing syslog
-      url: `${baseUrl}/api/log/config/u1?id=${id}`,
+      url: `${baseUrl}/api/v1/log/config?id=${id}`,
       type: 'GET'
     })
     .then(data => {
@@ -551,7 +563,7 @@ class Syslog extends Component {
     }
 
     this.ah.one({
-      url: `${baseUrl}/api/log/config/u1?id=${id}`,
+      url: `${baseUrl}/api/v1/log/config?id=${id}`,
       type: 'DELETE'
     })
     .then(data => {
@@ -741,34 +753,19 @@ class Syslog extends Component {
   confirmSyslog = () => {
     const {baseUrl} = this.context;
     const {config} = this.state;
-    const url = `${baseUrl}/api/log/config/u1`;
+    const url = `${baseUrl}/api/v1/log/config`;
+    const requiredFields = ['hostIP', 'name', 'port', 'input', 'pattern'];
     let valid = true;
 
-    if (!config.port || !config.input || !config.pattern) {
-      valid = false;
-    }
-
-    _.forEach(config.relationships, el => {
-      if (!el.name || !el.srcNode || !el.dstNode) {
+    _.forEach(requiredFields, val => {
+      if (!config[val]) {
         valid = false;
+        return false;
       }
-      _.forEach(el.conditions, cond => {
-        if (!cond.node) {
-          valid = false;
-        }
-      })
     })
 
-    if (valid) {
-      this.setState({
-        error: false,
-        info: ''
-      });
-    } else {
-      this.setState({
-        error: true,
-        info: et('fill-required-fields')
-      });
+    if (!valid) {
+      helper.showPopupMsg(et('fill-required-fields'), t('txt-error'));
       return;
     }
 
@@ -1033,7 +1030,7 @@ class Syslog extends Component {
     const {baseUrl} = this.context;
 
     this.ah.one({
-      url: `${baseUrl}/api/log/config/u1?id=${id}`,
+      url: `${baseUrl}/api/v1/log/config?id=${id}`,
       type: 'GET'
     })
     .then(data => {
@@ -1165,7 +1162,7 @@ class Syslog extends Component {
   confirmEditHosts = () => {
     const {baseUrl} = this.context;
     const {editHosts, activeHost} = this.state;
-    const url = `${baseUrl}/api/log/config/hosts/u1`;
+    const url = `${baseUrl}/api/v1/log/config/hosts`;
     const requestData = {
       id: activeHost.id,
       hostip: editHosts.ip,
@@ -1281,8 +1278,8 @@ class Syslog extends Component {
   clearFilter = () => {
     this.setState({
       search: {
-        port: '',
-        format: ''
+        loghostip: '',
+        port: ''
       }
     });
   }
@@ -1300,18 +1297,20 @@ class Syslog extends Component {
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group'>
-            <label className='first-label'>{t('syslogFields.port')}</label>
+            <label htmlFor='syslogLogHostIP'>{t('syslogFields.txt-hostIP')}</label>
             <input
+              id='syslogLogHostIP'
+              type='text'
+              value={search.loghostip}
+              onChange={this.handleSearchChange.bind(this, 'loghostip')} />
+          </div>
+          <div className='group'>
+            <label htmlFor='syslogPort'>{t('syslogFields.port')}</label>
+            <input
+              id='syslogPort'
               type='text'
               value={search.port}
               onChange={this.handleSearchChange.bind(this, 'port')} />
-          </div>
-          <div className='group'>
-            <label className='first-label'>{t('syslogFields.format')}</label>
-            <input
-              type='text'
-              value={search.format}
-              onChange={this.handleSearchChange.bind(this, 'format')} />
           </div>
         </div>
         <div className='button-group'>
@@ -1324,18 +1323,18 @@ class Syslog extends Component {
   render() {
     const {baseUrl, contextRoot} = this.context;
     const {
+      openFilter,
       activeContent,
       dataFields,
       syslog,
       hostsFields,
       hosts,
-      openFilter,
+      editSyslogType,
+      openTimeline,
+      openEditHosts,
       config,
       configRelationships,
       rawOptions,
-      openTimeline,
-      editSyslogType,
-      openEditHosts,
       activeHost
     } = this.state;
     const data = {
@@ -1355,9 +1354,13 @@ class Syslog extends Component {
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            <button onClick={this.openTimeline.bind(this, 'overall')} title={t('syslogFields.txt-overallDist')}><i className='fg fg-chart-kpi'></i></button>
-            <button onClick={this.openNewSyslog.bind(this, 'new')} title={t('syslogFields.txt-addSyslog')}><i className='fg fg-add'></i></button>
-            <button className={cx('last', {'active': openFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
+            {activeContent === 'syslogData' &&
+              <div>
+                <button onClick={this.openTimeline.bind(this, 'overall')} title={t('syslogFields.txt-overallDist')}><i className='fg fg-chart-kpi'></i></button>
+                <button onClick={this.openNewSyslog.bind(this, 'new')} title={t('syslogFields.txt-addSyslog')}><i className='fg fg-add'></i></button>
+                <button className={cx('last', {'active': openFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
+              </div>
+            }
           </div>
         </div>
 
@@ -1390,7 +1393,13 @@ class Syslog extends Component {
                       <label htmlFor='syslogHostIP'>{t('syslogFields.txt-hostIP')}</label>
                       <Input
                         id='syslogHostIP'
+                        validate={{
+                          pattern: /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/,
+                          patternReadable: 'xxx.xxx.xxx.xxx',
+                          t: et
+                        }}
                         value={config.hostIP}
+                        required={true}
                         onChange={this.handleConfigChange.bind(this, 'hostIP')}
                         readOnly={editSyslogType === 'edit' || editSyslogType === 'edit-exist'} />
                     </div>
@@ -1398,6 +1407,10 @@ class Syslog extends Component {
                       <label htmlFor='syslogName'>{t('syslogFields.name')}</label>
                       <Input
                         id='syslogName'
+                        required={true}
+                        validate={{
+                          t: et
+                        }}
                         value={config.name}
                         onChange={this.handleConfigChange.bind(this, 'name')} />
                     </div>
@@ -1405,6 +1418,10 @@ class Syslog extends Component {
                       <label htmlFor='syslogReceivedPort'>{t('syslogFields.port')}</label>
                       <Input
                         id='syslogReceivedPort'
+                        required={true}
+                        validate={{
+                          t: et
+                        }}
                         value={config.port}
                         onChange={this.handleConfigChange.bind(this, 'port')} />
                     </div>

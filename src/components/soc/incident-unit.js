@@ -483,7 +483,7 @@ class IncidentUnit extends Component {
                 <div className='header-text'>{t('txt-filter')}</div>
                 <div className='filter-section config'>
                     <div className='group'>
-                        <label htmlFor='keyword' className='first-label'>{f('incidentFields.keywords')}</label>
+                        <label htmlFor='keyword'>{f('incidentFields.keywords')}</label>
                         <input
                             id='keyword'
                             className='search-textarea'
@@ -491,7 +491,7 @@ class IncidentUnit extends Component {
                             onChange={this.handleUnitInputSearch.bind(this, 'keyword')}/>
                     </div>
                     <div className='group'>
-                        <label htmlFor='industryType' className='first-label'>{f('incidentFields.industryType')}</label>
+                        <label htmlFor='industryType'>{f('incidentFields.industryType')}</label>
                         <DropDownList
                             id='industryType'
                             list={_.map(_.range(0, 14), el => {

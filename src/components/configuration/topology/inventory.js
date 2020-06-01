@@ -1008,7 +1008,7 @@ class NetworkInventory extends Component {
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group'>
-            <label htmlFor='deviceSearchIP' className='first-label'>{t('ipFields.ip')}</label>
+            <label htmlFor='deviceSearchIP'>{t('ipFields.ip')}</label>
             <input
               id='deviceSearchIP'
               type='text'

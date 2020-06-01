@@ -943,7 +943,7 @@ class NetworkMap extends Component {
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group'>
-            <label htmlFor='MAPkeyword' className='first-label'>{t('ipFields.keyword')}</label>
+            <label htmlFor='MAPkeyword'>{t('ipFields.keyword')}</label>
             <input
               id='MAPkeyword'
               type='text'

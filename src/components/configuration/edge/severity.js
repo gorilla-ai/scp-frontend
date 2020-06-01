@@ -474,7 +474,7 @@ class Severity extends Component {
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group'>
-            <label htmlFor='severityType' className='first-label'>{f('severityTableFields.dataSourceType')}</label>
+            <label htmlFor='severityType'>{f('severityTableFields.dataSourceType')}</label>
             <input
               id='severityType'
               type='text'

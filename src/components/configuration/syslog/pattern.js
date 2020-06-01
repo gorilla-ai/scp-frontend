@@ -616,7 +616,7 @@ class Pattern extends Component {
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group'>
-            <label htmlFor='patternSearchName' className='first-label'>{f('syslogPatternTableFields.patternName')}</label>
+            <label htmlFor='patternSearchName'>{f('syslogPatternTableFields.patternName')}</label>
             <Input
               id='patternSearchName'
               onChange={this.handlePatternSearch.bind(this, 'name')}

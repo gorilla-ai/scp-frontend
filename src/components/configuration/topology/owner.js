@@ -629,7 +629,7 @@ class NetworkOwner extends Component {
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group'>
-            <label htmlFor='ownerName' className='first-label'>{t('ownerFields.ownerName')}</label>
+            <label htmlFor='ownerName'>{t('ownerFields.ownerName')}</label>
             <input
               id='ownerName'
               type='text'
