@@ -785,11 +785,19 @@ class Syslog extends Component {
       requestType = 'PATCH';
     }
 
-    helper.getAjaxData(requestType, url, requestData)
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: requestType,
+      contentType: 'text/plain'
+    })
     .then(data => {
       this.toggleContent('syslogData', 'save');
       return null;
-    });
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Get and set timeline events data
