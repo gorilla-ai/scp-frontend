@@ -7,9 +7,11 @@ import cx from 'classnames'
 
 import DateRange from 'react-ui/build/src/components/date-range'
 import DropDownList from 'react-ui/build/src/components/dropdown'
+import Gis from 'react-gis/build/src/components'
 import Input from 'react-ui/build/src/components/input'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import RadioGroup from 'react-ui/build/src/components/radio-group'
+import Tabs from 'react-ui/build/src/components/tabs'
 import Textarea from 'react-ui/build/src/components/textarea'
 import ToggleBtn from 'react-ui/build/src/components/toggle-button'
 
@@ -17,6 +19,7 @@ import {BaseDataContext} from '../../common/context';
 import Config from '../../common/configuration'
 import helper from '../../common/helper'
 import TableContent from '../../common/table-content'
+import WORLDMAP from '../../../mock/world-map-low.json'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -48,6 +51,7 @@ class Edge extends Component {
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
 
     this.state = {
+      activeTab: 'edge', //edge, geography
       activeContent: 'tableList', //tableList, viewEdge, editEdge
       showFilter: false,
       currentEdgeData: '',
@@ -75,6 +79,10 @@ class Edge extends Component {
         currentPage: 1,
         pageSize: 20,
         info: {}
+      },
+      geoJson: {
+        mapDataArr: [],
+        edgeDataArr: []
       }
     };
 
@@ -274,6 +282,8 @@ class Edge extends Component {
 
         this.setState({
           edge: tempEdge
+        }, () => {
+          this.getWorldMap();
         });
       }
       return null;
@@ -281,6 +291,56 @@ class Edge extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+  }
+  /**
+   * Set map geoJson and attacks data
+   * @method
+   */
+  getWorldMap = () => {
+    const {edge, geoJson} = this.state;
+    let tempGeoJson = {...geoJson};
+
+    _.forEach(WORLDMAP.features, val => {
+      const countryObj = {
+        type: 'geojson',
+        id: val.properties.name,
+        weight: 0.6,
+        fillColor: 'white',
+        color: '#182f48',
+        fillOpacity: 1
+      };
+
+      countryObj.geojson = val.geometry;
+      tempGeoJson.mapDataArr.push(countryObj);
+    });
+
+    _.forEach(edge.dataContent, val => {
+      if (val.honeyPotHostDTO && val.honeyPotHostDTO.longitude && val.honeyPotHostDTO.latitude) {
+        tempGeoJson.edgeDataArr.push({
+          type: 'spot',
+          id: val.agentId,
+          latlng: [
+            val.honeyPotHostDTO.latitude,
+            val.honeyPotHostDTO.longitude
+          ],
+          data: {
+            tag: 'red'
+          },
+          tooltip: () => {
+            return `
+              <div class='map-tooltip'>
+                <div><span class='key'>${t('edge-management.txt-edgeName')}:</span> <span class='count'>${val.agentName}</span></div>
+                <div><span class='key'>${t('edge-management.txt-serviceType')}:</span> <span class='value'>${val.serviceType}</span></div>
+              </div>
+              `
+          }
+        });
+      }
+    });
+
+    this.setState({
+      geoJson: tempGeoJson
+    });
   }
   /**
    * Handle Analyze button and reload the table
@@ -390,6 +450,16 @@ class Edge extends Component {
     }
   }
   /**
+   * Handle content tab change
+   * @method
+   * @param {string} type - content type ('edge' or 'geography')
+   */
+  handleSubTabChange = (type) => {
+    this.setState({
+      activeTab: type
+    });
+  }  
+  /**
    * Toggle different content
    * @method
    * @param {string} type - page type ('tableList', 'viewEdge', 'editEdge' and 'cancel')
@@ -410,6 +480,8 @@ class Edge extends Component {
         licenseName: allValue.vpnName,
         serviceType: allValue.serviceType,
         serviceMode: allValue.agentMode,
+        longitude: 0,
+        latitude: 0,
         edgeModeType: 'anyTime',
         edgeModeDatetime: {
           from: '',
@@ -421,6 +493,11 @@ class Edge extends Component {
         lastStatus: allValue.lastStatus,
         isConfigurable: allValue.isConfigurable
       };
+
+      if (allValue.honeyPotHostDTO) {
+        tempEdge.info.longitude = allValue.honeyPotHostDTO.longitude;
+        tempEdge.info.latitude = allValue.honeyPotHostDTO.latitude;
+      }
 
       if (allValue.agentStartDT &&  allValue.agentEndDT) {
         tempEdge.info.edgeModeType = 'customTime';
@@ -568,25 +645,27 @@ class Edge extends Component {
   handleEdgeSubmit = () => {
     const {baseUrl} = this.context;
     const {edge} = this.state;
-    let data = {
+    let requestData = {
       id: edge.info.id,
       agentName: edge.info.name,
-      memo: edge.info.memo
+      memo: edge.info.memo,
+      longitude: edge.info.longitude,
+      latitude: edge.info.latitude
     };
 
     if (edge.info.isConfigurable) {
       if (edge.info.edgeIPlist) {
-        data.ipList = edge.info.edgeIPlist;
+        requestData.ipList = edge.info.edgeIPlist;
       }
 
       if (edge.info.serviceMode) {
-        data.agentMode = edge.info.serviceMode;
+        requestData.agentMode = edge.info.serviceMode;
       }
 
       if (edge.info.edgeModeType === 'customTime') {
         if (edge.info.edgeModeDatetime.from) {
           if (edge.info.edgeModeDatetime.to) {
-            data.agentStartDt = Moment(edge.info.edgeModeDatetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+            requestData.agentStartDt = Moment(edge.info.edgeModeDatetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
           } else { //End date is empty
             helper.showPopupMsg(t('edge-management.txt-edgeEditNoEndDate'), t('txt-error'));
             return;
@@ -598,7 +677,7 @@ class Edge extends Component {
 
         if (edge.info.edgeModeDatetime.to) {
           if (edge.info.edgeModeDatetime.from) {
-            data.agentEndDt = Moment(edge.info.edgeModeDatetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+            requestData.agentEndDt = Moment(edge.info.edgeModeDatetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
           } else { //Start date is empty
             helper.showPopupMsg(t('edge-management.txt-edgeEditNoStartDate'), t('txt-error'));
             return;
@@ -617,7 +696,7 @@ class Edge extends Component {
 
     ah.one({
       url: `${baseUrl}/api/agent`,
-      data: JSON.stringify(data),
+      data: JSON.stringify(requestData),
       type: 'PATCH',
       contentType: 'text/plain'
     })
@@ -763,7 +842,7 @@ class Edge extends Component {
               readOnly={true} />
           </div>
           <div className='group'>
-            <label htmlFor='edgeIPlist'>{t('edge-management.txt-ipList')} ({t('txt-commaSeparated')}</label>
+            <label htmlFor='edgeIPlist'>{t('edge-management.txt-ipList')} ({t('txt-commaSeparated')})</label>
             <Input
               id='edgeIPlist'
               value={edge.info.edgeIPlist}
@@ -812,6 +891,22 @@ class Edge extends Component {
               value={edge.info.serviceMode}
               onChange={this.handleDataChange.bind(this, 'serviceMode')}
               readOnly={activeContent === 'viewEdge' || !edge.info.isConfigurable} />
+          </div>
+          <div className='group'>
+            <label htmlFor='edgeLongitude'>{t('edge-management.txt-longitude')}</label>
+            <Input
+              id='edgeLongitude'
+              value={edge.info.longitude}
+              onChange={this.handleDataChange.bind(this, 'longitude')}
+              readOnly={activeContent === 'viewEdge'} />
+          </div>
+          <div className='group'>
+            <label htmlFor='edgeLatitude'>{t('edge-management.txt-latitude')}</label>
+            <Input
+              id='edgeLatitude'
+              value={edge.info.latitude}
+              onChange={this.handleDataChange.bind(this, 'latitude')}
+              readOnly={activeContent === 'viewEdge'} />
           </div>
           <div className='group'>
             <label>{t('edge-management.txt-activatTime')}</label>
@@ -929,7 +1024,7 @@ class Edge extends Component {
   }
   render() {
     const {baseUrl, contextRoot} = this.context;
-    const {activeContent, showFilter, edge} = this.state;
+    const {activeTab, activeContent, showFilter, edge, geoJson} = this.state;
 
     return (
       <div>
@@ -953,22 +1048,80 @@ class Edge extends Component {
 
             {activeContent === 'tableList' &&
               <div className='main-content'>
-                <header className='main-header'>{t('txt-edge')}</header>
+                <Tabs
+                  className='subtab-menu'
+                  menu={{
+                    edge: t('txt-edge'),
+                    geography: t('edge-management.txt-geography')
+                  }}
+                  current={activeTab}
+                  onChange={this.handleSubTabChange}>
+                </Tabs>
 
                 <div className='content-header-btns'>
                   <Link to='/SCP/configuration/notifications'><button className='standard btn'>{t('notifications.txt-settings')}</button></Link>
                 </div>
 
-                <TableContent
-                  dataTableData={edge.dataContent}
-                  dataTableFields={edge.dataFields}
-                  dataTableSort={edge.sort}
-                  paginationTotalCount={edge.totalCount}
-                  paginationPageSize={edge.pageSize}
-                  paginationCurrentPage={edge.currentPage}
-                  handleTableSort={this.handleTableSort}
-                  paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                  paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
+                {activeTab === 'edge' &&
+                  <TableContent
+                    dataTableData={edge.dataContent}
+                    dataTableFields={edge.dataFields}
+                    dataTableSort={edge.sort}
+                    paginationTotalCount={edge.totalCount}
+                    paginationPageSize={edge.pageSize}
+                    paginationCurrentPage={edge.currentPage}
+                    handleTableSort={this.handleTableSort}
+                    paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
+                    paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
+                }
+
+                {activeTab === 'geography' &&
+                  <Gis
+                    id='gisMap'
+                    data={geoJson.mapDataArr}
+                    layers={{
+                      world: {
+                        label: 'World Map',
+                        interactive: false,
+                        data: geoJson.edgeDataArr
+                      }
+                    }}
+                    activeLayers={['world']}
+                    baseLayers={{
+                      standard: {
+                        id: 'world',
+                        layer: 'world'
+                      }
+                    }}
+                    mapOptions={{
+                      crs: L.CRS.Simple
+                    }}
+                    symbolOptions={[{
+                      match: {
+                        type:'geojson'
+                      },
+                      selectedProps: {
+                        'fill-color': 'white',
+                        color: 'black',
+                        weight: 0.6,
+                        'fill-opacity': 1
+                      }
+                    },
+                    {
+                      match: {
+                        type: 'spot'
+                      },
+                      props: {
+                        'background-color': ({data}) => {
+                          return data.tag === 'red' ? 'red' : 'yellow';
+                        },
+                        'border-color': '#333',
+                        'border-width': '1px'
+                      }
+                    }]}
+                    layouts={['standard']}
+                    dragModes={['pan']} />
+                }
               </div>
             }
 

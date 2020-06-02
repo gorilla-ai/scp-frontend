@@ -198,7 +198,7 @@
   "txt-account-unlocked": "帳號已鎖住",
   "txt-account-unlock": "確定要解鎖帳號",
   "txt-account-delete": "確定要刪除帳號",
-  "txt-commaSeparated": "用逗號(,)區隔",
+  "txt-commaSeparated": "用逗號,區隔",
   "txt-privilegeError": "此角色還在被帳號使用中",
 
   "txt-statistics": "統計",
@@ -363,6 +363,7 @@
   },
 
   "edge-management": {
+    "txt-geography": "地理分布",
     "txt-uploadThreat": "上傳威脅情資",
     "txt-basicInfo": "基本資訊",
     "txt-editEdge": "編輯Edge",
@@ -375,6 +376,8 @@
     "txt-deleteEdge": "$t(txt-delete)$t(txt-edge)",
     "txt-serviceType": "服務類型",
     "txt-serviceMode": "服務模式",
+    "txt-longitude": "經度",
+    "txt-latitude": "緯度",
     "txt-activatTime": "啟用時間",
     "txt-lastUpateTime": "最近更新時間",
     "txt-anyTime": "不限時段",

@@ -363,6 +363,7 @@
   },
 
   "edge-management": {
+    "txt-geography": "Geography",
     "txt-uploadThreat": "Upload Threat",
     "txt-basicInfo": "Info",
     "txt-editEdge": "Edit Edge",
@@ -375,6 +376,8 @@
     "txt-deleteEdge": "$t(txt-delete)$t(txt-edge)",
     "txt-serviceType": "Service Type",
     "txt-serviceMode": "Service Mode",
+    "txt-longitude": "Longitude",
+    "txt-latitude": "Latitude",
     "txt-activatTime": "Datetime",
     "txt-lastUpateTime": "Last Update Time",
     "txt-anyTime": "Any Time",
