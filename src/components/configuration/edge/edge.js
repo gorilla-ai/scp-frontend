@@ -198,21 +198,26 @@ class Edge extends Component {
     const {baseUrl, contextRoot} = this.context;
     const {edgeSearch, edge} = this.state;
     const url = `${baseUrl}/api/edge/_search?page=${edge.currentPage}&pageSize=${edge.pageSize}`;
-    let data = {};
+    let requestData = {};
 
     if (edgeSearch.keyword) {
-      data.keyword = edgeSearch.keyword;
+      requestData.keyword = edgeSearch.keyword;
     }
 
     if (edgeSearch.serviceType && edgeSearch.serviceType !== 'all') {
-      data.serviceType = edgeSearch.serviceType;
+      requestData.serviceType = edgeSearch.serviceType;
     }
 
     if (edgeSearch.connectionStatus && edgeSearch.connectionStatus !== 'all') {
-      data.connectionStatus = edgeSearch.connectionStatus;
+      requestData.connectionStatus = edgeSearch.connectionStatus;
     }
 
-    helper.getAjaxData('POST', url, data)
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
     .then(data => {
       if (data) {
         let tempEdge = {...edge};
@@ -274,8 +279,8 @@ class Edge extends Component {
       return null;
     })
     .catch(err => {
-      helper.showPopupMsg(t('txt-error'));
-    });
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Handle Analyze button and reload the table

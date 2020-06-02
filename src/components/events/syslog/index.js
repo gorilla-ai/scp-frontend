@@ -367,12 +367,17 @@ class SyslogController extends Component {
     const {baseUrl} = this.context;
     const {datetime} = this.state;
     const url = `${baseUrl}/api/log/event/fields`;
-    const dateTime = {
+    const requestData = {
       startDttm: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
       endDttm: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
 
-    helper.getAjaxData('POST', url, dateTime, 'false')
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }, {showProgress: false})
     .then(data => {
       if (data) {
         let filedsArr = ['_tableMenu_'];
@@ -388,7 +393,10 @@ class SyslogController extends Component {
         });
       }
       return null;
-    });
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Get and set the customized locales name for fields
@@ -492,7 +500,12 @@ class SyslogController extends Component {
     let logEventsData = {};
     let eventHistogram = {};
 
-    helper.getAjaxData('POST', url, requestData, 'false')
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }, {showProgress: false})
     .then(data => {
       if (data.data.rows) {
         const logsData = data.data;
@@ -512,7 +525,10 @@ class SyslogController extends Component {
         helper.showPopupMsg(t('txt-notFound'));
       }
       return null;
-    });
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Construct the netflow events api request body
@@ -1285,17 +1301,25 @@ class SyslogController extends Component {
     const {baseUrl} = this.context;
     const {account, logActiveField, logCustomLocal} = this.state;
     const url = `${baseUrl}/api/account/log/locale`;
-    const dataObj = {
+    const requestData = {
       accountId: account.id,
       field: logActiveField,
       locale: logCustomLocal
     };
 
-    helper.getAjaxData('POST', url, dataObj, 'false')
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }, {showProgress: false})
     .then(data => {
       this.closeLocaleChange('reload');
       return null;
-    });
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Handle table field sort action

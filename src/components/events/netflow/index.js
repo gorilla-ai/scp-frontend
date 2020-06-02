@@ -336,11 +336,16 @@ class Netflow extends Component {
   getProjectId = () => {
     const {baseUrl} = this.context;
     const url = `${baseUrl}/api/agent/_search`;
-    const agentData = {
+    const requestData = {
       pageSize: 10000
     };
 
-    helper.getAjaxData('POST', url, agentData, 'false')
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }, {showProgress: false})
     .then(data => {
       if (data.rows.length > 0) {
         const projectID = data.rows.map(tempData => {
@@ -356,7 +361,10 @@ class Netflow extends Component {
         helper.showPopupMsg(t('txt-notFound'));
       }
       return null;
-    });
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Copy search fields into table columns
@@ -1017,7 +1025,12 @@ class Netflow extends Component {
     let tempSubSectionsData = {...subSectionsData};
     let mainEventsData = {};
 
-    helper.getAjaxData('POST', url, requestData)
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
     .then(data => {
       if (data) {
         let laData = [];
@@ -1042,7 +1055,10 @@ class Netflow extends Component {
         });
       }
       return null;
-    });
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Get and set data for the world map
@@ -1058,7 +1074,12 @@ class Netflow extends Component {
     const requestData = this.toQueryLanguage();
     let tempSubSectionsData = {...subSectionsData};
 
-    helper.getAjaxData('POST', url, requestData)
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
     .then(data => {
       if (data) {
         const tempArray = _.map(data.rows, val => {
@@ -1076,7 +1097,10 @@ class Netflow extends Component {
         });
       }
       return null;
-    });
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Get and set world map geoJson data
@@ -1404,13 +1428,18 @@ class Netflow extends Component {
     const {baseUrl} = this.context;
     const projectId = value.projectName;
     const url = `${baseUrl}/api/network/session/pcapFile`;
-    const data = {
+    const requestData = {
       ro : (value.id || value.sessionId),
       _id : '',
       projectId : projectId
     };
 
-    helper.getAjaxData('POST', url, data)
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
     .then(data => {
       if (data.ResultMessage === 'fail') {
         helper.showPopupMsg(t('txt-pcapDownloadFail'), t('txt-error'), data.ErrorMessage);
@@ -1418,7 +1447,10 @@ class Netflow extends Component {
         window.location.assign(data.PcapFilelink);
       }
       return null;
-    });    
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Handle table row mouse over to show menu button and tag memo
@@ -2296,31 +2328,37 @@ class Netflow extends Component {
     const {baseUrl} = this.context;
     const {account, tagData} = this.state;
     const url = `${baseUrl}/api/account/flow/session`;
-    let data = {};
-    let requestType = 'POST';
+    let requestData = {};
+    let requestType = '';
 
     if (tagData.color.indexOf('#') < 0) {
       tagData.color = '#' + tagData.color;
     }
 
     if (tagData.id) {
-      data = {
+      requestData = {
         id: tagData.id,
         color: tagData.color,
         memo: tagData.memo
       };
       requestType = 'PATCH';
     } else {
-      data = {
+      requestData = {
         accountId: account.id,
         projectId: tagData.projectID,
         sessionId: tagData.sessionID,
         color: tagData.color,
         memo: tagData.memo
       };
+      requestType = 'POST';
     }
 
-    helper.getAjaxData(requestType, url, data)
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: requestType,
+      contentType: 'text/plain'
+    })
     .then(data => {
       if (data) {
         this.clearTagData();
@@ -2329,7 +2367,10 @@ class Netflow extends Component {
         helper.showPopupMsg('', t('txt-error'), err.message);
       }
       return null;
-    });
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Handle open image modal dialog in File events

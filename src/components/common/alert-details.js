@@ -508,17 +508,22 @@ class AlertDetails extends Component {
       });
     } else {
       const url = `${baseUrl}/api/network/alert/rule?projectId=${projectId}`;
-      let alertInfo = {
+      let requestData = {
         alert: {}
       };
 
       if (alertData.alert && alertData.alert.signature_id) {
-        alertInfo.alert.signature_id = alertData.alert.signature_id;
+        requestData.alert.signature_id = alertData.alert.signature_id;
       } else if (alertData.trailName) {
-        alertInfo.alert.trailName = alertData.trailName;
+        requestData.alert.trailName = alertData.trailName;
       }
 
-      helper.getAjaxData('POST', url, alertInfo)
+      this.ah.one({
+        url,
+        data: JSON.stringify(requestData),
+        type: 'POST',
+        contentType: 'text/plain'
+      })
       .then(data => {
         if (data) {
           this.setState({
@@ -529,7 +534,7 @@ class AlertDetails extends Component {
       })
       .catch(err => {
         helper.showPopupMsg('', t('txt-error'), err.message);
-      });
+      })
     }
   }
   /**
@@ -581,7 +586,7 @@ class AlertDetails extends Component {
     const {alertPCAP} = this.state;
     const projectId = alertData.projectName;
     const url = `${baseUrl}/api/alert/pcapContent?projectId=${projectId}&page=${alertPCAP.page}&pageSize=${alertPCAP.pageSize}`;
-    const data = {
+    const requestData = {
       ipSrc: this.getIpPortData('srcIp'),
       portSrc: this.getIpPortData('srcPort'),
       ipDst: this.getIpPortData('destIp'),
@@ -589,7 +594,12 @@ class AlertDetails extends Component {
       lastPacket: alertData.lastPacket
     };
 
-    helper.getAjaxData('POST', url, data)
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
     .then(data => {
       if (data) {
         let tempAlertPCAP = {...alertPCAP};
@@ -605,7 +615,7 @@ class AlertDetails extends Component {
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
-    });
+    })
   }
   /**
    * Set Alert payload data
@@ -1410,7 +1420,12 @@ class AlertDetails extends Component {
       cmds: type
     };
 
-    helper.getAjaxData('POST', url, requestData)
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
     .then(data => {
       if (data) {
         helper.showPopupMsg(t('txt-requestSent'));
@@ -1419,8 +1434,8 @@ class AlertDetails extends Component {
       return null;
     })
     .catch(err => {
-      helper.showPopupMsg('', t('txt-error'));
-    });
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Toggle IR combo selection dialog
@@ -1920,7 +1935,7 @@ class AlertDetails extends Component {
     const {alertData} = this.props;
     const projectId = alertData.projectName;
     const url = `${baseUrl}/api/network/alert/pcap?projectId=${projectId}`;
-    const data = {
+    const requestData = {
       projectId : projectId,
       ipSrc: this.getIpPortData('srcIp'),
       portSrc: this.getIpPortData('srcPort'),
@@ -1929,7 +1944,12 @@ class AlertDetails extends Component {
       lastPacket: alertData.lastPacket
     };
 
-    helper.getAjaxData('POST', url, data)
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
     .then(data => {
       if (data.ResultMessage === 'fail') {
         helper.showPopupMsg(t('txt-pcapDownloadFail'), t('txt-error'), data.ErrorMessage);
@@ -1940,7 +1960,7 @@ class AlertDetails extends Component {
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
-    });
+    })
   }
   /**
    * Download paylaod file
@@ -1950,10 +1970,10 @@ class AlertDetails extends Component {
   downloadFile = () => {
     const {baseUrl, contextRoot} = this.context;
     const {alertData} = this.props;
-    let dataObj = {};
+    let requestData = {};
 
     if (alertData.origFileId && alertData.fileMD5) {
-      dataObj = {
+      requestData = {
         origFileId: alertData.origFileId,
         md5: alertData.fileMD5
       };
@@ -1963,7 +1983,7 @@ class AlertDetails extends Component {
 
     this.ah.one({
       url: `${baseUrl}/api/honeynet/attack/payload/file`,
-      data: JSON.stringify(dataObj),
+      data: JSON.stringify(requestData),
       type: 'POST',
       contentType: 'text/plain'
     })

@@ -506,12 +506,17 @@ class NetworkInventory extends Component {
   getOwnerData = () => {
     const {baseUrl} = this.context;
     const url = `${baseUrl}/api/owner/_search`;
-    const data = {
+    const requestData = {
       sort: 'ownerID',
       order: 'asc'
     };
 
-    helper.getAjaxData('POST', url, data)
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
     .then(data => {
       if (data) {
         if (data.rows.length > 0) {
@@ -536,8 +541,8 @@ class NetworkInventory extends Component {
       return null;
     })
     .catch(err => {
-      helper.showPopupMsg('', t('txt-error'));
-    });
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Get single device data from URL parameter
@@ -866,7 +871,7 @@ class NetworkInventory extends Component {
   getSeatData = (areaUUID) => {
     const {baseUrl, contextRoot} = this.context;
     const area = areaUUID.trim() || this.state.floorPlan.currentAreaUUID;
-    const dataObj = {
+    const requestData = {
       areaUUID: area
     };
 
@@ -876,7 +881,7 @@ class NetworkInventory extends Component {
 
     this.ah.one({
       url: `${baseUrl}/api/seat/_search`,
-      data: JSON.stringify(dataObj),
+      data: JSON.stringify(requestData),
       type: 'POST',
       contentType: 'text/plain'
     })
@@ -1392,7 +1397,12 @@ class NetworkInventory extends Component {
       cmds: type
     };
 
-    helper.getAjaxData('POST', url, requestData)
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
     .then(data => {
       if (data) {
         helper.showPopupMsg(t('txt-requestSent'));
@@ -1404,8 +1414,8 @@ class NetworkInventory extends Component {
       return null;
     })
     .catch(err => {
-      helper.showPopupMsg('', t('txt-error'));
-    });
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Toggle IR combo selection dialog
@@ -2053,7 +2063,12 @@ class NetworkInventory extends Component {
           return;
         }
 
-        helper.getAjaxData('POST', url, requestData)
+        this.ah.one({
+          url,
+          data: JSON.stringify(requestData),
+          type: 'POST',
+          contentType: 'text/plain'
+        })
         .then(data => {
           if (data) {
             if (data.successList.length > 0 && data.failureList.length === 0) {
@@ -2085,8 +2100,8 @@ class NetworkInventory extends Component {
           return null;
         })
         .catch(err => {
-          helper.showPopupMsg('', t('txt-error'));
-        });
+          helper.showPopupMsg('', t('txt-error'), err.message);
+        })
       }
     } else if (type === 'cancel') {
       this.setState({
@@ -3062,7 +3077,12 @@ class NetworkInventory extends Component {
       coordY: addSeat.coordY
     };
 
-    helper.getAjaxData('POST', url, requestData)
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
     .then(data => {
       if (data) {
         this.setState({
@@ -3081,8 +3101,8 @@ class NetworkInventory extends Component {
       return null;
     })
     .catch(err => {
-      helper.showPopupMsg('', t('txt-error'));
-    });
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Handle Add IP form input value change

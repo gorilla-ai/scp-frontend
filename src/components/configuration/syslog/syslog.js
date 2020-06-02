@@ -399,14 +399,14 @@ class Syslog extends Component {
   getSyslogGrok = () => {
     const {baseUrl} = this.context;
     const {config} = this.state;
-    const dataObj = {
+    const requestData = {
       input: config.input,
       pattern: config.pattern
     };
 
     this.ah.one({
       url: `${baseUrl}/api/log/grok`,
-      data: JSON.stringify(dataObj),
+      data: JSON.stringify(requestData),
       type: 'POST',
       contentType: 'text/plain'
     })
@@ -1177,13 +1177,21 @@ class Syslog extends Component {
       hostname: editHosts.name
     };
 
-    helper.getAjaxData('PATCH', url, requestData)
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'PATCH',
+      contentType: 'text/plain'
+    })
     .then(data => {
       if (data) {
         this.getHostsInfoById(activeHost.id);
       }
       return null;
-    });
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
     this.closeEditHosts();
   }
   /**
@@ -1248,13 +1256,21 @@ class Syslog extends Component {
       return;
     }
 
-    helper.getAjaxData('DELETE', url, requestData)
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'DELETE',
+      contentType: 'text/plain'
+    })
     .then(data => {
       if (data) {
         this.getHostsInfoById(activeHost.id);
       }
       return null;
-    });
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Handle filter input value change

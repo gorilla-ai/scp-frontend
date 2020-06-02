@@ -127,8 +127,13 @@ class Severity extends Component {
     if (searchArr.length > 0) {
       requestData.severityLevelList = searchArr;
     }
-    
-    helper.getAjaxData('POST', url, requestData)
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
     .then(data => {
       if (data) {
         let tempSeverity = {...severity};
@@ -168,8 +173,8 @@ class Severity extends Component {
       return null;
     })
     .catch(err => {
-      helper.showPopupMsg('', t('txt-error'));
-    });
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Toggle different content

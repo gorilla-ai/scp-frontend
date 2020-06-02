@@ -194,33 +194,6 @@ const helper = {
       base0F: '#be643c'
     };
   },
-  getAjaxData: function(type, url, dataObj, show) {
-    const t = global.chewbaccaI18n.getFixedT(null, 'connections');
-    let showProgress = true;
-
-    if (show) {
-      showProgress = (show === 'true');
-    }
-
-    if (type === 'POST' || type === 'PATCH' || type === 'DELETE') {
-      return (
-        ah.one({
-          url: url,
-          data: JSON.stringify(dataObj),
-          type: type,
-          contentType: 'text/plain'
-        }, {showProgress})
-        .then(data => {
-          if (data.ret === 0) {
-            return data.rt;
-          }
-        })
-        .catch(err => {
-          this.showPopupMsg('', t('txt-error'), err.message);
-        })
-      )
-    }
-  },
   getLAconfig: function(baseUrl) {
     return (
       ah.one({

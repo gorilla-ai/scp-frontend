@@ -119,8 +119,8 @@ class QueryOpenSave extends Component {
       let tempFilterData = [];
       let url = '';
       let queryText = {};
+      let requestData = {};
       let requestType = '';
-      let data = {};
 
       _.forEach(filterData, val => {
         if (val.query) {
@@ -172,34 +172,34 @@ class QueryOpenSave extends Component {
       }
 
       if (newQueryName) {
-        requestType = 'POST';
-        data = {
+        requestData = {
           accountId: account.id,
           name: queryData.inputName,
           queryText
         };
+        requestType = 'POST';
       } else {
-        requestType = 'PATCH';
-        data = {
+        requestData = {
           id: queryData.id,
           name: this.getQueryName(),
           queryText
         };
+        requestType = 'PATCH';
       }
 
       if (activeTab === 'logs') {
         if (patternCheckbox) {
           if (pattern.severity) {
-            data.severity = pattern.severity;
+            requestData.severity = pattern.severity;
           }
 
           if (periodCheckbox) {
             if (pattern.periodMin) {
-              data.periodMin = pattern.periodMin;
+              requestData.periodMin = pattern.periodMin;
             }
 
             if (pattern.threshold) {
-              data.threshold = pattern.threshold;
+              requestData.threshold = pattern.threshold;
             }
           }
         } else { //Pattern script checkbox is unchecked
@@ -209,14 +209,22 @@ class QueryOpenSave extends Component {
         }
       }
 
-      helper.getAjaxData(requestType, url, data)
+      this.ah.one({
+        url,
+        data: JSON.stringify(requestData),
+        type: requestType,
+        contentType: 'text/plain'
+      })
       .then(data => {
         if (data) {
           helper.showPopupMsg(t('events.connections.txt-querySaved'));
           this.props.getSavedQuery();
         }
         return null;
-      });
+      })
+      .catch(err => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
+      })
     }
     this.props.closeDialog();
   }

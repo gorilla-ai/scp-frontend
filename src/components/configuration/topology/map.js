@@ -287,7 +287,7 @@ class NetworkMap extends Component {
   getSeatData = (areaUUID) => {
     const {baseUrl, contextRoot} = this.context;
     const area = areaUUID || this.state.floorPlan.currentAreaUUID;
-    const dataObj = {
+    const requestData = {
       areaUUID: area
     };
 
@@ -297,7 +297,7 @@ class NetworkMap extends Component {
 
     this.ah.one({
       url: `${baseUrl}/api/seat/_search`,
-      data: JSON.stringify(dataObj),
+      data: JSON.stringify(requestData),
       type: 'POST',
       contentType: 'text/plain'
     })
@@ -358,38 +358,38 @@ class NetworkMap extends Component {
   getIPData = (areaUUID) => {
     const {baseUrl} = this.context;
     const {IP, floorPlan, search} = this.state;
-    let dataObj = {};
+    let requestData = {};
     let area = areaUUID || floorPlan.currentAreaUUID;
 
     if (!area) {
       return;
     }
 
-    dataObj = {
+    requestData = {
       page: IP.currentPage,
       pageSize: IP.pageSize
     };
 
     if (area) {
-      dataObj = {
-        ...dataObj,
+      requestData = {
+        ...requestData,
         areaUUID: area
       }
     }
     
-    dataObj.keyword = search.keyword;
+    requestData.keyword = search.keyword;
 
     if (search.system != 'all') {
-      dataObj.system = search.system;
+      requestData.system = search.system;
     }
 
     if (search.deviceType != 'all') {
-      dataObj.deviceType = search.deviceType;
+      requestData.deviceType = search.deviceType;
     }
 
     this.ah.one({
       url: `${baseUrl}/api/ipdevice/_search`,
-      data: JSON.stringify(dataObj),
+      data: JSON.stringify(requestData),
       type: 'POST',
       contentType: 'text/plain'
     })
@@ -722,7 +722,12 @@ class NetworkMap extends Component {
       return;
     }
 
-    helper.getAjaxData('POST', url, requestData)
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
     .then(data => {
       if (data) {
         this.setState({
@@ -741,8 +746,8 @@ class NetworkMap extends Component {
       return null;
     })
     .catch(err => {
-      helper.showPopupMsg('', t('txt-error'));
-    });
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Get and set seat name based on seat UUID

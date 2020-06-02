@@ -76,73 +76,77 @@ class IncidentLog extends Component {
         const {baseUrl, contextRoot} = this.context;
         const {logSearch, incidentLog} = this.state;
         const url = `${baseUrl}/api/soc/log/_search?page=${incidentLog.currentPage}&pageSize=${incidentLog.pageSize}`;
-        let data = {};
+        let requestData = {};
 
         if (logSearch.keyword) {
-            data.keyword = logSearch.keyword;
+            requestData.keyword = logSearch.keyword;
         }
 
         if (logSearch.type) {
-            data.type = logSearch.type;
+            requestData.type = logSearch.type;
         }
 
         if (logSearch.status) {
-            data.status = logSearch.status;
+            requestData.status = logSearch.status;
         }
 
+        this.ah.one({
+            url,
+            data: JSON.stringify(requestData),
+            type: 'POST',
+            contentType: 'text/plain'
+        })
+        .then(data => {
+            if (data) {
+                let tempLog = {...incidentLog};
+                tempLog.dataContent = data.rows;
+                tempLog.totalCount = data.counts;
+                tempLog.currentPage = fromSearch === 'search' ? 1 : incidentLog.currentPage;
 
-        helper.getAjaxData('POST', url, data)
-            .then(data => {
-                if (data) {
-                    let tempLog = {...incidentLog};
-                    tempLog.dataContent = data.rows;
-                    tempLog.totalCount = data.counts;
-                    tempLog.currentPage = fromSearch === 'search' ? 1 : incidentLog.currentPage;
-
-                    let dataFields = {};
-                    incidentLog.dataFieldsArr.forEach(tempData => {
-                        dataFields[tempData] = {
-                            label: tempData === '_menu' ? '' : f(`incidentFields.${tempData}`),
-                            sortable: this.checkSortable(tempData),
-                            formatter: (value, allValue, i) => {
-                                if (tempData === 'updateDttm') {
-                                    return <span>{helper.getFormattedDate(value, 'local')}</span>
-                                } else if (tempData === 'createDttm') {
-                                    return <span>{helper.getFormattedDate(value, 'local')}</span>
-                                } else if (tempData === 'sendTime') {
-                                    return <span>{helper.getFormattedDate(value, 'local')}</span>
-                                } else if (tempData === 'type') {
-                                    if (value === 'event') {
-                                        return <span>{it('txt-incident-event')}</span>
-                                    } else if (value === 'related') {
-                                        return <span>{it('txt-incident-related')}</span>
-                                    } else if (value === 'health') {
-                                        return <span>{it('txt-incident-health')}</span>
-                                    }
-                                } else if (tempData === 'status') {
-                                    if (value === 'success') {
-                                        return <span style={{color: '#008B02'}}>{it('txt-send-success')}</span>
-                                    } else if (value === 'fail') {
-                                        return <span style={{color: '#DB3E00'}}>{it('txt-send-fail')}</span>
-                                    }
-                                } else {
-                                    return <span>{value}</span>
+                let dataFields = {};
+                incidentLog.dataFieldsArr.forEach(tempData => {
+                    dataFields[tempData] = {
+                        label: tempData === '_menu' ? '' : f(`incidentFields.${tempData}`),
+                        sortable: this.checkSortable(tempData),
+                        formatter: (value, allValue, i) => {
+                            if (tempData === 'updateDttm') {
+                                return <span>{helper.getFormattedDate(value, 'local')}</span>
+                            } else if (tempData === 'createDttm') {
+                                return <span>{helper.getFormattedDate(value, 'local')}</span>
+                            } else if (tempData === 'sendTime') {
+                                return <span>{helper.getFormattedDate(value, 'local')}</span>
+                            } else if (tempData === 'type') {
+                                if (value === 'event') {
+                                    return <span>{it('txt-incident-event')}</span>
+                                } else if (value === 'related') {
+                                    return <span>{it('txt-incident-related')}</span>
+                                } else if (value === 'health') {
+                                    return <span>{it('txt-incident-health')}</span>
                                 }
+                            } else if (tempData === 'status') {
+                                if (value === 'success') {
+                                    return <span style={{color: '#008B02'}}>{it('txt-send-success')}</span>
+                                } else if (value === 'fail') {
+                                    return <span style={{color: '#DB3E00'}}>{it('txt-send-fail')}</span>
+                                }
+                            } else {
+                                return <span>{value}</span>
                             }
-                        };
-                    });
+                        }
+                    };
+                });
 
-                    tempLog.dataFields = dataFields;
+                tempLog.dataFields = dataFields;
 
-                    this.setState({
-                        incidentLog: tempLog
-                    });
-                }
-                return null;
-            })
-            .catch(err => {
-                helper.showPopupMsg(t('txt-error'));
-            });
+                this.setState({
+                    incidentLog: tempLog
+                });
+            }
+            return null;
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message);
+        })
     };
 
     /* ------------------ View ------------------- */

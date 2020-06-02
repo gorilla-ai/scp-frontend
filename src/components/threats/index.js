@@ -361,7 +361,12 @@ class ThreatsController extends Component {
     const url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`;
     const requestData = this.toQueryLanguage('tree');
 
-    helper.getAjaxData('POST', url, requestData, 'false')
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }, {showProgress: false})
     .then(data => {
       if (data) {
         data = data.aggregations;
@@ -392,7 +397,10 @@ class ThreatsController extends Component {
         });
       }
       return null;
-    });
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Set initial data for statistics tab
@@ -545,7 +553,12 @@ class ThreatsController extends Component {
       url += 0;
     }
 
-    helper.getAjaxData('POST', url, requestData)
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
     .then(data => {
       if (data) {
         if (!options || options === 'search') {
@@ -758,7 +771,10 @@ class ThreatsController extends Component {
         }
       }
       return null;
-    });
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Construct data for pie charts

@@ -135,14 +135,14 @@ class Login extends Component {
    */
   getLogin = (username, password) => {
     const {baseUrl, contextRoot} = this.props;
-    const dataObj = {
+    const requestData = {
       account: username,
       password: password
     };
 
     this.ah.one({
       url: `${baseUrl}/api/login`,
-      data: JSON.stringify(dataObj),
+      data: JSON.stringify(requestData),
       type: 'POST',
       contentType: 'text/plain'
     })

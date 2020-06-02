@@ -101,13 +101,22 @@ class Header extends Component {
     const {baseUrl, session} = this.context;
     const theme = this.state.theme === 'dark' ? 'light' : 'dark';
     const url = `${baseUrl}/api/account/theme?accountId=${session.accountId}&theme=${theme}`;
+    const requestData = {};
 
-    helper.getAjaxData('POST', url, {})
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
     .then(data => {
       this.setState({
         theme
       });
       return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
     })
 
     document.documentElement.setAttribute('data-theme', theme);

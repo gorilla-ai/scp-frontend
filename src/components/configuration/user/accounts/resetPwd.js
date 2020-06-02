@@ -81,19 +81,19 @@ class ResetPwd extends Component {
       return;
     }
 
-    let dataObj = {};
+    let requestData = {};
     let requestType = '';
 
     if (formType === 'reset') {
       requestType = 'PATCH';
-      dataObj = {
+      requestData = {
         account: formData.account,
         currentPassword: formData.oldPwd,
         newPassword: formData.newPwd1
       };
     } else if (formType === 'newSet') {
       requestType = 'POST';
-      dataObj = {
+      requestData = {
         account: formData.account,
         newPassword: formData.newPwd1
       };
@@ -101,8 +101,8 @@ class ResetPwd extends Component {
 
     this.ah.one({
       url: `${baseUrl}/api/account/password`,
+      data: JSON.stringify(requestData),
       type: requestType,
-      data: JSON.stringify(dataObj),
       contentType: 'application/json'
     })
     .then(data => {

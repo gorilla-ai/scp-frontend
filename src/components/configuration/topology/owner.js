@@ -152,7 +152,7 @@ class NetworkOwner extends Component {
   getOwnerData = (fromSearch) => {
     const {baseUrl} = this.context;
     const {owner, search} = this.state;
-    let dataObj = {
+    let requestData = {
       sort: owner.sort.field,
       order: owner.sort.desc ? 'desc' : 'asc',
       page: fromSearch === 'search' ? 1 : owner.currentPage,
@@ -160,20 +160,20 @@ class NetworkOwner extends Component {
     };
 
     if (fromSearch === 'search') {
-      dataObj.ownerName = '%' + search.name + '%';
+      requestData.ownerName = '%' + search.name + '%';
 
       if (search.department != 'all') {
-        dataObj.department = search.department;
+        requestData.department = search.department;
       }
 
       if (search.title != 'all') {
-        dataObj.title = search.title;
+        requestData.title = search.title;
       }
     }
 
     this.ah.one({
       url: `${baseUrl}/api/owner/_search`,
-      data: JSON.stringify(dataObj),
+      data: JSON.stringify(requestData),
       type: 'POST',
       contentType: 'text/plain'
     })

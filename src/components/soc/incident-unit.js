@@ -83,69 +83,74 @@ class IncidentUnit extends Component {
         const {baseUrl, contextRoot} = this.context;
         const {unitSearch, incidentUnit: incidentUnit} = this.state;
         const url = `${baseUrl}/api/soc/unit/_search`;
-        let data = {};
+        let requestData = {};
 
         if (unitSearch.keyword) {
-            data.keyword = unitSearch.keyword;
+            requestData.keyword = unitSearch.keyword;
         }
         if (unitSearch.industryType) {
-            data.industryType = unitSearch.industryType;
+            requestData.industryType = unitSearch.industryType;
         }
 
-        helper.getAjaxData('POST', url, data)
-            .then(data => {
-                if (data) {
-                    let tempEdge = {...incidentUnit};
-                    tempEdge.dataContent = data.rows;
-                    tempEdge.totalCount = data.counts;
+        this.ah.one({
+            url,
+            data: JSON.stringify(requestData),
+            type: 'POST',
+            contentType: 'text/plain'
+        })
+        .then(data => {
+            if (data) {
+                let tempEdge = {...incidentUnit};
+                tempEdge.dataContent = data.rows;
+                tempEdge.totalCount = data.counts;
 
-                    let dataFields = {};
-                    incidentUnit.dataFieldsArr.forEach(tempData => {
-                        dataFields[tempData] = {
-                            label: tempData === '_menu' ? ' ' : f(`incidentFields.${tempData}`),
-                            sortable: this.checkSortable(tempData),
-                            formatter: (value, allValue, i) => {
-                                if (tempData === 'industryType') {
-                                    return <span>{this.mappingType(value)}</span>
-                                } else if (tempData === 'updateDttm') {
-                                    return <span>{helper.getFormattedDate(value, 'local')}</span>
-                                } else if (tempData === 'isDefault') {
+                let dataFields = {};
+                incidentUnit.dataFieldsArr.forEach(tempData => {
+                    dataFields[tempData] = {
+                        label: tempData === '_menu' ? ' ' : f(`incidentFields.${tempData}`),
+                        sortable: this.checkSortable(tempData),
+                        formatter: (value, allValue, i) => {
+                            if (tempData === 'industryType') {
+                                return <span>{this.mappingType(value)}</span>
+                            } else if (tempData === 'updateDttm') {
+                                return <span>{helper.getFormattedDate(value, 'local')}</span>
+                            } else if (tempData === 'isDefault') {
 
-                                    if (value){
-                                        return <span style={{color:'#4662ff'}}>{this.checkDefault(value)}</span>
-                                    }else {
-                                        return <span>{this.checkDefault(value)}</span>
-                                    }
-
-                                } else if (tempData === '_menu') {
-                                    return (
-                                        <div className='table-menu menu active'>
-                                            <i className='fg fg-edit'
-                                               onClick={this.toggleContent.bind(this, 'viewDevice', allValue)}
-                                               title={t('txt-view')}/>
-                                            <i className='fg fg-trashcan'
-                                               onClick={this.openDeleteMenu.bind(this, allValue)}
-                                               title={t('txt-delete')}/>
-                                        </div>
-                                    )
-                                } else {
-                                    return <span>{value}</span>
+                                if (value){
+                                    return <span style={{color:'#4662ff'}}>{this.checkDefault(value)}</span>
+                                }else {
+                                    return <span>{this.checkDefault(value)}</span>
                                 }
+
+                            } else if (tempData === '_menu') {
+                                return (
+                                    <div className='table-menu menu active'>
+                                        <i className='fg fg-edit'
+                                           onClick={this.toggleContent.bind(this, 'viewDevice', allValue)}
+                                           title={t('txt-view')}/>
+                                        <i className='fg fg-trashcan'
+                                           onClick={this.openDeleteMenu.bind(this, allValue)}
+                                           title={t('txt-delete')}/>
+                                    </div>
+                                )
+                            } else {
+                                return <span>{value}</span>
                             }
-                        };
-                    });
+                        }
+                    };
+                });
 
-                    tempEdge.dataFields = dataFields;
+                tempEdge.dataFields = dataFields;
 
-                    this.setState({
-                        incidentUnit: tempEdge
-                    });
-                }
-                return null;
-            })
-            .catch(err => {
-                helper.showPopupMsg(t('txt-error'));
-            });
+                this.setState({
+                    incidentUnit: tempEdge
+                });
+            }
+            return null;
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message);
+        })
     };
 
     checkDefault = (value) => {

@@ -121,7 +121,12 @@ class DashboardMaps extends Component {
       }]
     };
 
-    helper.getAjaxData('POST', url, requestData, 'false')
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }, {showProgress: false})
     .then(data => {
       if (data) {
         const tempArray = _.map(data.data.rows, val => {
@@ -160,7 +165,10 @@ class DashboardMaps extends Component {
         });
       }
       return null;
-    });
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Set map geoJson and attacks data
@@ -327,7 +335,12 @@ class DashboardMaps extends Component {
         }]
       };
 
-      helper.getAjaxData('POST', url, requestData)
+      this.ah.one({
+        url,
+        data: JSON.stringify(requestData),
+        type: 'POST',
+        contentType: 'text/plain'
+      })
       .then(data => {
         if (data) {
           const tempArray = _.map(data.data.rows, val => {
@@ -346,7 +359,10 @@ class DashboardMaps extends Component {
           });
         }
         return null;
-      });
+      })
+      .catch(err => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
+      })
     }
   }
   /**
@@ -623,7 +639,12 @@ class DashboardMaps extends Component {
       }]
     };
 
-    helper.getAjaxData('POST', url, requestData, 'false')
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }, {showProgress: false})
     .then(data => {
       if (data) {
         const allPrivateData = data.aggregations.InternalMaskedIpWithLoc;
@@ -657,7 +678,10 @@ class DashboardMaps extends Component {
         });
       }
       return null;
-    });
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Get and set individual floor area data

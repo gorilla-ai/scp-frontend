@@ -202,7 +202,12 @@ class DashboardStats extends Component {
       search: ['Top10ExternalSrcCountry', 'InternalIp', 'InternalMaskedIp']
     };
 
-    helper.getAjaxData('POST', url, requestData, 'false')
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }, {showProgress: false})
     .then(data => {
       if (data) {
         let tempAlertPieData = {...alertPieData};
@@ -370,7 +375,12 @@ class DashboardStats extends Component {
       return;
     }
 
-    helper.getAjaxData('POST', url, requestData, 'false')
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }, {showProgress: false})
     .then(data => {
       if (data) {
         let alertPatternData = [];
@@ -399,7 +409,7 @@ class DashboardStats extends Component {
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
-    });
+    })
   }
   /**
    * Redirect IVA link
@@ -475,7 +485,12 @@ class DashboardStats extends Component {
       }]
     };
 
-    helper.getAjaxData('POST', url, requestData, 'false')
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }, {showProgress: false})
     .then(data => {
       if (data.aggregations) {
         let configSrcData = [];
@@ -497,7 +512,7 @@ class DashboardStats extends Component {
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
-    });
+    })
   }
   /**
    * Construct and set the DNS chart
@@ -515,7 +530,12 @@ class DashboardStats extends Component {
       timestamp: [dateTime.from, dateTime.to]
     };
 
-    helper.getAjaxData('POST', url, requestData, 'false')
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }, {showProgress: false})
     .then(data => {
       if (data) {
         const dnsInfo = CHARTS_LIST[6];
@@ -561,7 +581,7 @@ class DashboardStats extends Component {
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
-    });
+    })
   }
   /**
    * Construct and set the metric chart

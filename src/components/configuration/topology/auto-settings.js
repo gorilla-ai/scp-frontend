@@ -522,7 +522,12 @@ class AutoSettings extends Component {
       };
     });
 
-    helper.getAjaxData('POST', url, requestData)
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
     .then(data => {
       if (data) {
         this.getSettingsInfo();
@@ -530,8 +535,8 @@ class AutoSettings extends Component {
       return null;
     })
     .catch(err => {
-      helper.showPopupMsg('', t('txt-error'));
-    });
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   getInputWidth = (type) => {
     const {activeContent} = this.state;

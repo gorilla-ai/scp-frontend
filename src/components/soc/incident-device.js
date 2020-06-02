@@ -164,69 +164,73 @@ class IncidentDevice extends Component {
         const {baseUrl, contextRoot} = this.context;
         const {deviceSearch, incidentDevice, edgeList} = this.state;
         const url = `${baseUrl}/api/soc/device/_search?page=${incidentDevice.currentPage}&pageSize=${incidentDevice.pageSize}`;
-        let data = {};
+        let requestData = {};
 
         if (deviceSearch.keyword) {
-            data.keyword = deviceSearch.keyword;
+            requestData.keyword = deviceSearch.keyword;
         }
 
-        helper.getAjaxData('POST', url, data)
-            .then(data => {
-                if (data) {
+        this.ah.one({
+            url,
+            data: JSON.stringify(requestData),
+            type: 'POST',
+            contentType: 'text/plain'
+        })
+        .then(data => {
+            if (data) {
+                let tempEdge = {...incidentDevice};
+                tempEdge.dataContent = data.rows;
+                tempEdge.totalCount = data.counts;
+                tempEdge.currentPage = fromSearch === 'search' ? 1 : incidentDevice.currentPage;
 
-                    let tempEdge = {...incidentDevice};
-                    tempEdge.dataContent = data.rows;
-                    tempEdge.totalCount = data.counts;
-                    tempEdge.currentPage = fromSearch === 'search' ? 1 : incidentDevice.currentPage;
+                let usedDeviceIdList = [];
+                _.forEach(tempEdge.dataContent, deviceItem => {
+                    let tmp = {
+                        deviceId: deviceItem.deviceId
+                    }
+                    usedDeviceIdList.push(tmp);
+                })
+                this.setState({
+                    usedDeviceIdList: usedDeviceIdList
+                });
 
-                    let usedDeviceIdList = [];
-                    _.forEach(tempEdge.dataContent, deviceItem => {
-                        let tmp = {
-                            deviceId: deviceItem.deviceId
-                        }
-                        usedDeviceIdList.push(tmp);
-                    })
-                    this.setState({
-                        usedDeviceIdList: usedDeviceIdList
-                    });
-
-                    let dataFields = {};
-                    incidentDevice.dataFieldsArr.forEach(tempData => {
-                        dataFields[tempData] = {
-                            label: tempData === '_menu' ? '' : f(`incidentFields.${tempData}`),
-                            sortable: this.checkSortable(tempData),
-                            formatter: (value, allValue, i) => {
-                                 if (tempData === 'updateDttm') {
-                                     return <span>{helper.getFormattedDate(value, 'local')}</span>
-                                 } else if (tempData === '_menu') {
-                                     return (
-                                         <div className='table-menu menu active'>
-                                             <i className='fg fg-edit'
-                                                onClick={this.toggleContent.bind(this, 'viewDevice', allValue)}
-                                                title={t('txt-view')}/>
-                                             <i className='fg fg-trashcan'
-                                                onClick={this.openDeleteMenu.bind(this, allValue)}
-                                                title={t('txt-delete')}/>
-                                        </div>
-                                    )
-                                } else {
-                                    return <span>{value}</span>
-                                }
+                let dataFields = {};
+                incidentDevice.dataFieldsArr.forEach(tempData => {
+                    dataFields[tempData] = {
+                        label: tempData === '_menu' ? '' : f(`incidentFields.${tempData}`),
+                        sortable: this.checkSortable(tempData),
+                        formatter: (value, allValue, i) => {
+                             if (tempData === 'updateDttm') {
+                                 return <span>{helper.getFormattedDate(value, 'local')}</span>
+                             } else if (tempData === '_menu') {
+                                 return (
+                                     <div className='table-menu menu active'>
+                                         <i className='fg fg-edit'
+                                            onClick={this.toggleContent.bind(this, 'viewDevice', allValue)}
+                                            title={t('txt-view')}/>
+                                         <i className='fg fg-trashcan'
+                                            onClick={this.openDeleteMenu.bind(this, allValue)}
+                                            title={t('txt-delete')}/>
+                                    </div>
+                                )
+                            } else {
+                                return <span>{value}</span>
                             }
-                        };
-                    });
+                        }
+                    };
+                });
 
-                    tempEdge.dataFields = dataFields;
+                tempEdge.dataFields = dataFields;
 
-                    this.setState({
-                        incidentDevice: tempEdge
-                    });
-                }
-                return null;
-            })
-            .catch(err => {
-                helper.showPopupMsg(t('txt-error'));
-            });
+                this.setState({
+                    incidentDevice: tempEdge
+                });
+            }
+            return null;
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message);
+        })
     };
 
 
@@ -239,127 +243,134 @@ class IncidentDevice extends Component {
         const {baseUrl, contextRoot} = this.context;
         const {deviceSearch, healthStatistic} = this.state;
         const url = `${baseUrl}/api/soc/device/_search?page=${healthStatistic.currentPage}&pageSize=${healthStatistic.pageSize}`;
-        let data = {};
+        let requestData = {};
 
         if (deviceSearch.keyword) {
-            data.keyword = deviceSearch.keyword;
+            requestData.keyword = deviceSearch.keyword;
         }
 
-        helper.getAjaxData('POST', url, data)
-            .then(data => {
-                if (data) {
+        this.ah.one({
+            url,
+            data: JSON.stringify(requestData),
+            type: 'POST',
+            contentType: 'text/plain'
+        })
+        .then(data => {
+            if (data) {
+                let tempStatistic = {...healthStatistic};
+                tempStatistic.dataContent = data.rows;
+                tempStatistic.totalCount = data.counts;
+                tempStatistic.currentPage = fromSearch === 'search' ? 1 : healthStatistic.currentPage;
 
-                    let tempStatistic = {...healthStatistic};
-                    tempStatistic.dataContent = data.rows;
-                    tempStatistic.totalCount = data.counts;
-                    tempStatistic.currentPage = fromSearch === 'search' ? 1 : healthStatistic.currentPage;
+                let sendDeviceDateList = [];
+                let usedDeviceIdList = [];
+                _.forEach(tempStatistic.dataContent, deviceItem => {
+                    deviceItem.select = true;
 
-                    let sendDeviceDateList = [];
-                    let usedDeviceIdList = [];
-                    _.forEach(tempStatistic.dataContent, deviceItem => {
-                        deviceItem.select = true;
+                    let tempSend = {
+                        id: deviceItem.id,
+                        deviceId: deviceItem.deviceId,
+                        frequency: deviceItem.frequency,
+                        note: deviceItem.note
+                    }
+                    sendDeviceDateList.push(tempSend);
+                    let tmp = {
+                        deviceId: deviceItem.deviceId
+                    }
+                    usedDeviceIdList.push(tmp);
+                })
 
-                        let tempSend = {
-                            id: deviceItem.id,
-                            deviceId: deviceItem.deviceId,
-                            frequency: deviceItem.frequency,
-                            note: deviceItem.note
-                        }
-                        sendDeviceDateList.push(tempSend);
-                        let tmp = {
-                            deviceId: deviceItem.deviceId
-                        }
-                        usedDeviceIdList.push(tmp);
-                    })
+                tempStatistic.usedDeviceIdList = usedDeviceIdList
 
-                    tempStatistic.usedDeviceIdList = usedDeviceIdList
-
-                    this.setState({
-                        usedDeviceIdList: usedDeviceIdList
-                    });
+                this.setState({
+                    usedDeviceIdList: usedDeviceIdList
+                });
 
 
-                    tempStatistic.sendDataDeviceList = sendDeviceDateList;
+                tempStatistic.sendDataDeviceList = sendDeviceDateList;
 
 
-                    let dataFields = {};
-                    tempStatistic.dataFieldsArr.forEach(tempData => {
-                        dataFields[tempData] = {
-                            label: tempData === '_menu' ? '' : f(`incidentFields.${tempData}`),
-                            sortable: this.checkSortable(tempData),
-                            formatter: (value, allValue, i) => {
+                let dataFields = {};
+                tempStatistic.dataFieldsArr.forEach(tempData => {
+                    dataFields[tempData] = {
+                        label: tempData === '_menu' ? '' : f(`incidentFields.${tempData}`),
+                        sortable: this.checkSortable(tempData),
+                        formatter: (value, allValue, i) => {
 
-                                if (tempData === 'select') {
-                                    return <Checkbox
-                                        id={allValue.deviceId + '_che'}
-                                        onChange={this.handleSendDataChange.bind(this, 'select', allValue.deviceId)}
-                                        checked={value}
-                                    />
-                                }
-
-                                if (tempData === 'frequency') {
-                                    return <Input
-                                        id={allValue.deviceId + '_fre'}
-                                        onChange={this.handleSendDataChange.bind(this, "frequency", allValue.deviceId)}
-                                        value={value}
-                                        readOnly={!allValue.select}
-                                    />
-                                } else if (tempData === 'note') {
-                                    return <Input
-                                        id={allValue.deviceId + '_note'}
-                                        onChange={this.handleSendDataChange.bind(this, "note", allValue.deviceId)}
-                                        value={value}
-                                        readOnly={!allValue.select}
-                                    />
-                                } else if (tempData === 'updateDttm') {
-                                    return <span>{helper.getFormattedDate(value, 'local')}</span>
-                                } else {
-                                    return <span>{value}</span>
-                                }
+                            if (tempData === 'select') {
+                                return <Checkbox
+                                    id={allValue.deviceId + '_che'}
+                                    onChange={this.handleSendDataChange.bind(this, 'select', allValue.deviceId)}
+                                    checked={value}
+                                />
                             }
-                        };
-                    });
 
-                    tempStatistic.dataFields = dataFields;
+                            if (tempData === 'frequency') {
+                                return <Input
+                                    id={allValue.deviceId + '_fre'}
+                                    onChange={this.handleSendDataChange.bind(this, "frequency", allValue.deviceId)}
+                                    value={value}
+                                    readOnly={!allValue.select}
+                                />
+                            } else if (tempData === 'note') {
+                                return <Input
+                                    id={allValue.deviceId + '_note'}
+                                    onChange={this.handleSendDataChange.bind(this, "note", allValue.deviceId)}
+                                    value={value}
+                                    readOnly={!allValue.select}
+                                />
+                            } else if (tempData === 'updateDttm') {
+                                return <span>{helper.getFormattedDate(value, 'local')}</span>
+                            } else {
+                                return <span>{value}</span>
+                            }
+                        }
+                    };
+                });
 
-                    this.setState({
-                        healthStatistic: tempStatistic,
-                        activeContent: "sendList",
-                    });
+                tempStatistic.dataFields = dataFields;
 
-                }
-                return null;
-            })
-            .catch(err => {
-                helper.showPopupMsg(t('txt-error'));
-            });
+                this.setState({
+                    healthStatistic: tempStatistic,
+                    activeContent: "sendList",
+                });
+            }
+            return null;
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message);
+        })
     };
 
     getUnitList = () => {
         const {baseUrl, contextRoot} = this.context;
         const url = `${baseUrl}/api/soc/unit/_search`;
-        let data = {};
+        let requestData = {};
 
-        helper.getAjaxData('POST', url, data)
-            .then(data => {
-                if (data) {
-                    let list = [];
-                    _.forEach(data.rows, val => {
-                        let tmp = {
-                            value: val.id, text: val.name
-                        };
-                        list.push(tmp)
-                    });
-                    this.setState({
-                        unitList: list
-                    });
-
-                }
-                return null;
-            })
-            .catch(err => {
-                helper.showPopupMsg(t('txt-error'), err);
-            });
+        this.ah.one({
+            url,
+            data: JSON.stringify(requestData),
+            type: 'POST',
+            contentType: 'text/plain'
+        })
+        .then(data => {
+            if (data) {
+                let list = [];
+                _.forEach(data.rows, val => {
+                    let tmp = {
+                        value: val.id, text: val.name
+                    };
+                    list.push(tmp)
+                });
+                this.setState({
+                    unitList: list
+                });
+            }
+            return null;
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message);
+        })
     };
 
     /* ------------------ View ------------------- */

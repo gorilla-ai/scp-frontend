@@ -69,7 +69,12 @@ class Manage extends Component {
       nameType
     };
 
-    helper.getAjaxData('POST', url, requestData)
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
     .then(data => {
       if (data) {
         this.setState({
@@ -77,7 +82,10 @@ class Manage extends Component {
         });
       }
       return null;
-    });
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Get department data and set open manage modal
@@ -318,8 +326,9 @@ class Manage extends Component {
   confirmName = () => {
     const {baseUrl} = this.context;
     const {tab, name, nameUUID} = this.state;
-    let type = 'POST';
+    const url = `${baseUrl}/api/name`;
     let requestData = {};
+    let requestType = '';
 
     if (!name.trim()) {
       helper.showPopupMsg(t('txt-nameInvalid'), t('txt-error'));
@@ -327,36 +336,38 @@ class Manage extends Component {
     }
 
     if (nameUUID) {
-      type = 'PATCH';
       requestData = {
         nameUUID: nameUUID,
         name: name,
         nameType: tab.department ? DEPARTMENT : TITLE
       };
+      requestType = 'PATCH';
     } else {
       requestData = {
         name: name,
         nameType: tab.department ? DEPARTMENT : TITLE
       };
+      requestType = 'POST';
     }
 
-    ah.one({
-      url: `${baseUrl}/api/name`,
+    this.ah.one({
+      url,
       data: JSON.stringify(requestData),
-      type,
+      type: requestType,
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data.ret === 0) {
+      if (data) {
         this.setState({
           openName: false
         });
+
         this.getNameList(tab.department ? 'department' : 'title');
       }
       return null;
     })
     .catch(err => {
-      this.showPopupMsg('', t('txt-error'), err.message);
+      helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
   /**
