@@ -614,7 +614,9 @@ class HMDscanInfo extends Component {
         scanType += ' / ';
       }
 
-      scanType += 'Yara';
+      if (val.isYARA) {
+        scanType += 'YARA';
+      }
     }
 
     if (!filePath) {

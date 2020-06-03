@@ -40,20 +40,7 @@ import TableContent from '../../common/table-content'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const NOT_AVAILABLE = 'N/A';
-const SAFETY_SCAN_LIST = [
-  {
-    type: 'yara',
-    path: 'ScanResult'
-  },
-  {
-    type: 'scanFile',
-    path: ['ScanResult', 'DetectionResult']
-  },
-  {
-    type: 'gcb',
-    path: 'GCBResult'
-  }
-];
+const SAFETY_SCAN_LIST = ['yara', 'scanFile', 'gcb'];
 const MAPS_PRIVATE_DATA = {
   floorList: [],
   currentFloor: '',
@@ -198,44 +185,35 @@ class NetworkInventory extends Component {
    * @returns HTML DOM
    */
   getHMDinfo = (val, i) => {
-    const scanType = val.type;
-
     if (!val.result) {
       return;
     }
 
-    if (scanType === 'gcb') {
-      const filteredResult = _.filter(val.result, ['_CompareResult', true]);
+    if (val.type === 'gcb' && val.result.GCBResultTotalCnt >= 0 && val.result.GCBResultPassCnt >= 0) {
       let colorStyle = '#d10d25'; //Default red color
 
-      if (filteredResult.length === val.result.length) { //Show green color for all pass
+      if (val.result.GCBResultTotalCnt === val.result.GCBResultPassCnt) { //Show green color for all pass
         colorStyle = '#22ac38';
       }
 
-      return <li key={scanType} style={{'color': colorStyle}}><span>{val.name} {t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}:</span> {filteredResult.length}/{val.result.length}</li>
+      return <li key={i} style={{'color': colorStyle}}><span>{val.name} {t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}:</span> {val.result.GCBResultPassCnt}/{val.result.GCBResultTotalCnt}</li>
     } else {
-      let totalLength = 0;
-      let colorStyle = '#22ac38'; //Default green color
+      if (val.result.ScanResultTotalCnt >= 0 || val.result.DetectionResultTotalCnt >= 0) {
+        let totalLength = 0;
+        let colorStyle = '#22ac38'; //Default green color
 
-      if (val.type === 'scanFile') {
-        if (val.result && val.result.DetectionResult) {
-          totalLength = val.result.DetectionResult.length;
-        } else {
-          return;
+        if (val.type === 'yara') {
+          totalLength = val.result.ScanResultTotalCnt;
+        } else if (val.type === 'scanFile') {
+          totalLength = val.result.DetectionResultTotalCnt;
         }
-      } else {
-        if (val.result) {
-          totalLength = val.result.length;
-        } else {
-          return;
+
+        if (totalLength > 0) { //Show red color
+          colorStyle = '#d10d25';
         }
-      }
 
-      if (totalLength > 0) { //Show red color
-        colorStyle = '#d10d25';
+        return <li key={i} style={{'color': colorStyle}}>{val.name} {t('network-inventory.txt-suspiciousFileCount')}: {totalLength}</li>
       }
-
-      return <li key={scanType} style={{'color': colorStyle}}>{val.name} {t('network-inventory.txt-suspiciousFileCount')}: {totalLength}</li>
     }
   }
   /**
@@ -430,20 +408,14 @@ class NetworkInventory extends Component {
                 }
 
                 _.forEach(SAFETY_SCAN_LIST, val => { //Construct the HMD info array
-                  const dataType = val.type + 'Result';
+                  const dataType = val + 'Result';
                   const currentDataObj = allValue[dataType];
 
-                  if (currentDataObj && currentDataObj.length > 0) {
-                    let result = currentDataObj[0][val.path];
-
-                    if (val.type === 'scanFile') {
-                      result = currentDataObj[0];
-                    }
-
+                  if (currentDataObj) {
                     hmdInfo.push({
-                      type: val.type,
-                      name: t('network-inventory.scan-list.txt-' + val.type),
-                      result
+                      type: val,
+                      name: t('network-inventory.scan-list.txt-' + val),
+                      result: allValue[dataType][0]
                     });
                   }
                 })
