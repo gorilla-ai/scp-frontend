@@ -214,8 +214,8 @@ class Syslog extends Component {
                   <div className='table-menu menu active'>
                     <i className={this.getSyslogMenuClass('edit', allValue)} onClick={this.openSyslogV2.bind(this, allValue)} title={t('txt-edit')}></i>
                     <i className={this.getSyslogMenuClass('delete', allValue)} onClick={this.openDeleteSyslogMenu.bind(this, allValue)} title={t('txt-delete')}></i>
-                    <i className='fg fg-chart-kpi' onClick={this.openTimeline.bind(this, 'configId', allValue)} title={t('syslogFields.txt-viewEvents')}></i>
-                    <i className='fg fg-list' onClick={this.forwardSyslog.bind(this, allValue)} title={t('syslogFields.txt-overallDist')}></i>
+                    <i className='fg fg-chart-kpi' onClick={this.openTimeline.bind(this, 'configId', allValue)} title={t('syslogFields.txt-overallDist')}></i>
+                    <i className='fg fg-list' onClick={this.forwardSyslog.bind(this, allValue)} title={t('syslogFields.txt-viewEvents')}></i>
                     <i className='fg fg-network' onClick={this.getHostsInfoById.bind(this, allValue.id)} title={t('txt-settings')}></i>
                   </div>
                 )
