@@ -399,6 +399,7 @@
     "txt-edgeEditPastEndDate": "Edge end date must be a future date",
     "txt-ipValidationFail": "Please enter a valid IP:Port address",
     "txt-threatDateErr": "Date cannot be a future date",
+    "txt-coordinateErr": "Please enter a valid longitude/latitude value",
     "statistics": {
       "txt-sourceIndicators": "Source Indicators",
       "txt-indicatorsTrend": "Indicators Trend",

@@ -297,8 +297,11 @@ class Edge extends Component {
    * @method
    */
   getWorldMap = () => {
-    const {edge, geoJson} = this.state;
-    let tempGeoJson = {...geoJson};
+    const {edge} = this.state;
+    let geoJson = {
+      mapDataArr: [],
+      edgeDataArr: []
+    };
 
     _.forEach(WORLDMAP.features, val => {
       const countryObj = {
@@ -311,12 +314,12 @@ class Edge extends Component {
       };
 
       countryObj.geojson = val.geometry;
-      tempGeoJson.mapDataArr.push(countryObj);
+      geoJson.mapDataArr.push(countryObj);
     });
 
     _.forEach(edge.dataContent, val => {
       if (val.honeyPotHostDTO && val.honeyPotHostDTO.longitude && val.honeyPotHostDTO.latitude) {
-        tempGeoJson.edgeDataArr.push({
+        geoJson.edgeDataArr.push({
           type: 'spot',
           id: val.agentId,
           latlng: [
@@ -329,7 +332,7 @@ class Edge extends Component {
           tooltip: () => {
             return `
               <div class='map-tooltip'>
-                <div><span class='key'>${t('edge-management.txt-edgeName')}:</span> <span class='count'>${val.agentName}</span></div>
+                <div><span class='key'>${t('edge-management.txt-edgeName')}:</span> <span class='value'>${val.agentName}</span></div>
                 <div><span class='key'>${t('edge-management.txt-serviceType')}:</span> <span class='value'>${val.serviceType}</span></div>
               </div>
               `
@@ -339,7 +342,7 @@ class Edge extends Component {
     });
 
     this.setState({
-      geoJson: tempGeoJson
+      geoJson
     });
   }
   /**
@@ -480,8 +483,8 @@ class Edge extends Component {
         licenseName: allValue.vpnName,
         serviceType: allValue.serviceType,
         serviceMode: allValue.agentMode,
-        longitude: 0,
-        latitude: 0,
+        longitude: '',
+        latitude: '',
         edgeModeType: 'anyTime',
         edgeModeDatetime: {
           from: '',
@@ -495,8 +498,13 @@ class Edge extends Component {
       };
 
       if (allValue.honeyPotHostDTO) {
-        tempEdge.info.longitude = allValue.honeyPotHostDTO.longitude;
-        tempEdge.info.latitude = allValue.honeyPotHostDTO.latitude;
+        if (allValue.honeyPotHostDTO.longitude >= -180 && allValue.honeyPotHostDTO.longitude <= 180) {
+          tempEdge.info.longitude = allValue.honeyPotHostDTO.longitude;
+        }
+
+        if (allValue.honeyPotHostDTO.latitude >= -90 && allValue.honeyPotHostDTO.latitude <= 90) {
+          tempEdge.info.latitude = allValue.honeyPotHostDTO.latitude;
+        }
       }
 
       if (allValue.agentStartDT &&  allValue.agentEndDT) {
@@ -648,10 +656,26 @@ class Edge extends Component {
     let requestData = {
       id: edge.info.id,
       agentName: edge.info.name,
-      memo: edge.info.memo,
-      longitude: edge.info.longitude,
-      latitude: edge.info.latitude
+      memo: edge.info.memo
     };
+
+    if (edge.info.longitude) {
+      if (edge.info.longitude >= -180 && edge.info.longitude <= 180) {
+        requestData.longitude = edge.info.longitude;
+      } else {
+        helper.showPopupMsg(t('edge-management.txt-coordinateErr'), t('txt-error'));
+        return;
+      }
+    }
+
+    if (edge.info.latitude) {
+      if (edge.info.latitude >= -90 && edge.info.latitude <= 90) {
+        requestData.latitude = edge.info.latitude;
+      } else {
+        helper.showPopupMsg(t('edge-management.txt-coordinateErr'), t('txt-error'));
+        return;
+      }
+    }
 
     if (edge.info.isConfigurable) {
       if (edge.info.edgeIPlist) {

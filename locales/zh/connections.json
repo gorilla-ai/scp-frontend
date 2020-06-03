@@ -367,7 +367,7 @@
     "txt-uploadThreat": "上傳威脅情資",
     "txt-basicInfo": "基本資訊",
     "txt-editEdge": "編輯Edge",
-    "txt-edgeName": "Edge Name",
+    "txt-edgeName": "Edge名稱",
     "txt-edgeID": "Edge ID",
     "txt-ip": "IP",
     "txt-ipList": "IP列表",
@@ -399,6 +399,7 @@
     "txt-edgeEditPastEndDate": "Edge結束時間不得為過去時間",
     "txt-ipValidationFail": "請輸入正確IP:Port格式",
     "txt-threatDateErr": "時間不得為未來時間",
+    "txt-coordinateErr": "請輸入正確的經緯度",
     "statistics": {
       "txt-sourceIndicators": "情資類型統計圓餅圖",
       "txt-indicatorsTrend": "每日情資更新數量長條圖",
