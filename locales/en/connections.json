@@ -383,6 +383,7 @@
     "txt-anyTime": "Any Time",
     "txt-customTime": "Custom Time",
     "txt-memo": "Memo",
+    "txt-serviceName": "Service Name",
     "txt-edgeUpdateSuccess": "Edge is updated successfully",
     "txt-edgeUpdateFail": "Error, please try again",
     "txt-edgeEditSuccess": "Edge is added/updated successfully",

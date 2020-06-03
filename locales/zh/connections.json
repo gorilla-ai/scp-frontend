@@ -383,6 +383,7 @@
     "txt-anyTime": "不限時段",
     "txt-customTime": "自訂時段",
     "txt-memo": "備忘錄",
+    "txt-serviceName": "服務名稱",
     "txt-edgeUpdateSuccess": "Edge更新成功",
     "txt-edgeUpdateFail": "Edge更新失敗",
     "txt-edgeEditSuccess": "Edge新增/編輯成功",

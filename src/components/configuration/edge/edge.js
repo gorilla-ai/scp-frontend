@@ -198,6 +198,27 @@ class Edge extends Component {
     )
   }
   /**
+   * Get service name and status
+   * @method
+   * @param {object} val - service module data
+   * @param {number} i - index of the service module
+   * @returns HTML DOM
+   */
+  getServiceStatus = (val, i) => {
+    let colorStyle = '#22ac38'; //Default green color
+
+    if (val.isNoted) { //Show red color
+      colorStyle = '#d10d25';
+    }
+
+    return (
+      <ul key={i} style={{'color': colorStyle}}>
+        <li><span>{t('edge-management.txt-serviceName')}:</span> {val.serviceName}</li>
+        <li><span>{t('txt-status')}:</span> {val.status}</li>
+      </ul>
+    )
+  }
+  /**
    * Get and set Edge table data
    * @method
    * @param {string} fromSearch - option for the 'search'
@@ -260,9 +281,18 @@ class Edge extends Component {
                 return <span><img src={icon.src} title={icon.title} />{value}</span>
               } else if (tempData === 'description') {
                 const serviceDescList = SERVICE_TYPE_LIST[allValue.serviceType];
+                let serviceArr = [];
+                let moduleArr = [];
 
                 if (serviceDescList) {
-                  return this.getServiceDesc(allValue, serviceDescList);
+                  serviceArr = this.getServiceDesc(allValue, serviceDescList);
+                }
+
+                if (allValue.modules) {
+                  moduleArr = allValue.modules.map(this.getServiceStatus);
+                  return _.concat(serviceArr, moduleArr);
+                } else {
+                  return serviceArr;
                 }
               } else if (tempData === '_menu') {
                 return (
