@@ -72,7 +72,7 @@ class Events extends Component {
 				        readOnly={activeContent === 'viewIncident'} />
 		        </div>
 		        <div className='group'>
-	                <label htmlFor='frequency'>{it('txt.frequency')}</label>
+	                <label htmlFor='frequency'>{it('txt-frequency')}</label>
 	                <Input
 	                    id='frequency'
 	                    onChange={this.handleDataChange.bind(this, 'frequency')}
