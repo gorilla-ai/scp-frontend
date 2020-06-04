@@ -212,9 +212,8 @@ class Edge extends Component {
     }
 
     return (
-      <ul key={i} style={{'color': colorStyle}}>
-        <li><span>{t('edge-management.txt-serviceName')}:</span> {val.serviceName}</li>
-        <li><span>{t('txt-status')}:</span> {val.status}</li>
+      <ul key={i}>
+        <li key={val}><span>{val.serviceName}:</span> <span style={{'color': colorStyle}}>{val.status}</span></li>
       </ul>
     )
   }
