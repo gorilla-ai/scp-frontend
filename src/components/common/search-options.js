@@ -182,11 +182,10 @@ class SearchOptions extends Component {
     }
   }
   render() {
-    const {position, showFilter, showInterval, searchInput} = this.props;
-    const searchStyle = position ? position : '10px';
+    const {showFilter, showInterval, searchInput} = this.props;
 
     return (
-      <div className='search-options' style={{right: searchStyle}}>
+      <div className='search-options'>
         {showInterval &&
           <DropDownList
             className='search-type'

@@ -48,6 +48,7 @@
   "txt-edit": "Edit",
   "txt-add": "Add",
   "txt-add2": "Add",
+  "txt-query": "Search",
   "txt-remove": "Remove",
   "txt-refresh": "Refresh",
   "txt-plsSelect": "Please select one",
@@ -364,6 +365,7 @@
 
   "edge-management": {
     "txt-geography": "Geography",
+    "txt-addThreat": "Add Threat",
     "txt-uploadThreat": "Upload Threat",
     "txt-basicInfo": "Info",
     "txt-editEdge": "Edit Edge",

@@ -7,9 +7,11 @@ import cx from 'classnames'
 import BarChart from 'react-chart/build/src/components/bar'
 import LineChart from 'react-chart/build/src/components/line'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import MultiInput from 'react-ui/build/src/components/multi-input'
 import PieChart from 'react-chart/build/src/components/pie'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
+import AddThreats from './add-threats'
 import {BaseDataContext} from '../../common/context';
 import Config from '../../common/configuration'
 import FileUpload from '../../common/file-upload'
@@ -19,6 +21,12 @@ import SearchOptions from '../../common/search-options'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null;
+
+const DEFINED_IOC_EMERGENCY = 'DEFINED_IOC_EMERGENCY';
+const DEFINED_IOC_CRITICAL = 'DEFINED_IOC_CRITICAL';
+const DEFINED_IOC_ALERT = 'DEFINED_IOC_ALERT';
+const DEFINED_IOC_WARNING = 'DEFINED_IOC_WARNING';
+const DEFINED_IOC_NOTICE = 'DEFINED_IOC_NOTICE';
 
 /**
  * Threat Intelligence
@@ -34,14 +42,16 @@ class ThreatIntelligence extends Component {
       datetime: {
         from: helper.getSubstractDate(1, 'week'),
         to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
-        //from: '2019-03-08T00:00:00Z',
-        //to: '2019-03-13T00:00:00Z'
+        //from: '2020-06-04T00:00:00Z',
+        //to: '2020-06-04T01:00:00Z'
       },
       indicatorsData: null,
       indicatorsTrendData: null,
       acuIndicatorsTrendData: null,
       uplaodOpen: false,
-      file: {}
+      file: {},
+      addThreatsOpen: false,
+      threats: []
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -86,33 +96,33 @@ class ThreatIntelligence extends Component {
       return;
     }
 
-    this.ah.one({
-      url: `${baseUrl}/api/indicators/summary`,
-      type: 'GET'
-    })
-    .then(data => {
-      if (data) {
-        let indicatorsData = [];
+    // this.ah.one({
+    //   url: `${baseUrl}/api/indicators/summary`,
+    //   type: 'GET'
+    // })
+    // .then(data => {
+    //   if (data) {
+    //     let indicatorsData = [];
 
-        _.keys(data)
-        .forEach(key => {
-          if (data[key] > 0) {
-            indicatorsData.push({
-              key,
-              doc_count: data[key]
-            });
-          }
-        });
+    //     _.keys(data)
+    //     .forEach(key => {
+    //       if (data[key] > 0) {
+    //         indicatorsData.push({
+    //           key,
+    //           doc_count: data[key]
+    //         });
+    //       }
+    //     });
 
-        this.setState({
-          indicatorsData
-        });        
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
+    //     this.setState({
+    //       indicatorsData
+    //     });        
+    //   }
+    //   return null;
+    // })
+    // .catch(err => {
+    //   helper.showPopupMsg('', t('txt-error'), err.message);
+    // })
 
     this.ah.one({
       url: `${baseUrl}/api/indicators/trend?startDttm=${dateTime.from}&endDttm=${dateTime.to}`,
@@ -146,36 +156,36 @@ class ThreatIntelligence extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
 
-    this.ah.one({
-      url: `${baseUrl}/api/indicators/trend/accum?startDttm=${dateTime.from}&endDttm=${dateTime.to}`,
-      type: 'GET'
-    }, {showProgress: false})
-    .then(data => {
-      if (data) {
-        let acuIndicatorsTrendData = [];
+    // this.ah.one({
+    //   url: `${baseUrl}/api/indicators/trend/accum?startDttm=${dateTime.from}&endDttm=${dateTime.to}`,
+    //   type: 'GET'
+    // }, {showProgress: false})
+    // .then(data => {
+    //   if (data) {
+    //     let acuIndicatorsTrendData = [];
 
-        _.keys(data)
-        .forEach(key => {
-          _.forEach(data[key], val => {
-            if (val.counts > 0) {
-              acuIndicatorsTrendData.push({
-                day: parseInt(Moment(helper.getFormattedDate(val.time, 'local')).format('x')),
-                count: val.counts,
-                indicator: key
-              })
-            }
-          })
-        });
+    //     _.keys(data)
+    //     .forEach(key => {
+    //       _.forEach(data[key], val => {
+    //         if (val.counts > 0) {
+    //           acuIndicatorsTrendData.push({
+    //             day: parseInt(Moment(helper.getFormattedDate(val.time, 'local')).format('x')),
+    //             count: val.counts,
+    //             indicator: key
+    //           })
+    //         }
+    //       })
+    //     });
 
-        this.setState({
-          acuIndicatorsTrendData
-        });        
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
+    //     this.setState({
+    //       acuIndicatorsTrendData
+    //     });        
+    //   }
+    //   return null;
+    // })
+    // .catch(err => {
+    //   helper.showPopupMsg('', t('txt-error'), err.message);
+    // })
   }
   /**
    * Show tooltip info when mouseover the chart
@@ -303,6 +313,10 @@ class ThreatIntelligence extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  /**
+   * Reset indicators data
+   * @method
+   */
   clearData = () => {
     this.setState({
       indicatorsData: null,
@@ -312,17 +326,98 @@ class ThreatIntelligence extends Component {
       this.getChartsData();
     });
   }
-  render() {
-    const {baseUrl, contextRoot} = this.context;
-    const {datetime, indicatorsData, indicatorsTrendData, acuIndicatorsTrendData, uplaodOpen} = this.state;
+  /**
+   * Toggle add indicator modal on/off
+   * @method
+   */  
+  toggleAddThreats = () => {
+    this.setState({
+      addThreatsOpen: !this.state.addThreatsOpen
+    });
+  }
+  /**
+   * Handle add/remove for the relationship box
+   * @method
+   * @param {array} val - relationship list array
+   */
+  handleAddThreatsChange = (data) => {
+    _.forEach(data, val => {
+
+    })
+
+    this.setState({
+      threats: data
+    });
+  }
+  displayAddThreatsContent = () => {
+    const {threats} = this.state;
 
     return (
       <div>
+        <button className='standard btn upload-btn' onClick={this.toggleUploadThreat}><i className='fg fg-data-upload'/>{t('edge-management.txt-uploadThreat')}</button>
+
+        <MultiInput
+          id='threatMultiInputs'
+          base={AddThreats}
+          defaultItemValue={{
+            value: '',
+            validate: true,
+            type: DEFINED_IOC_ALERT
+          }}
+          value={threats}
+          onChange={this.handleAddThreatsChange}/>
+      </div>
+    )
+  }
+  addThreatsDialog = () => {
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleAddThreats},
+      confirm: {text: t('txt-confirm'), handler: this.confirmAddThreats}
+    };
+
+    return (
+      <ModalDialog
+        id='addThreatsDialog'
+        className='modal-dialog'
+        title={t('edge-management.txt-addThreat')}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        {this.displayAddThreatsContent()}
+      </ModalDialog>
+    )
+  }
+  confirmAddThreats = () => {
+
+  }
+  render() {
+    const {baseUrl, contextRoot} = this.context;
+    const {
+      datetime,
+      indicatorsData,
+      indicatorsTrendData,
+      acuIndicatorsTrendData,
+      uplaodOpen,
+      addThreatsOpen
+    } = this.state;
+
+    return (
+      <div>
+        {addThreatsOpen &&
+          this.addThreatsDialog()
+        }
+
         {uplaodOpen &&
           this.uploadDialog()
         }
 
         <div className='sub-header'>
+          <div className='secondary-btn-group right'>
+            <button onClick={this.toggleAddThreats} title={t('events.connections.txt-toggleFilter')}><i className='fg fg-add'/><span>{t('edge-management.txt-addThreat')}</span></button>
+            <button title={t('events.connections.txt-toggleChart')}><i className='fg fg-search'/><span>{t('txt-query')}</span></button>
+          </div>
+
           <SearchOptions
             datetime={datetime}
             enableTime={false}
@@ -339,12 +434,9 @@ class ThreatIntelligence extends Component {
             <div className='main-content'>
               <header className='main-header'>{t('txt-threatIntelligence')}</header>
 
-              <div className='content-header-btns'>
-                <button className='standard btn' onClick={this.toggleUploadThreat}>{t('edge-management.txt-uploadThreat')}</button>
-              </div>
-
               <div className='main-statistics'>
                 <div className='statistics-content'>
+                  {/*}
                   <div className='chart-group'>
                     {!indicatorsData &&
                       <div className='empty-data'>
@@ -377,7 +469,7 @@ class ThreatIntelligence extends Component {
                           sliceSize: 'doc_count'
                         }} />
                     }
-                  </div>
+                  </div>*/}
 
                   <div className='chart-group'>
                     {!indicatorsTrendData &&
@@ -421,6 +513,7 @@ class ThreatIntelligence extends Component {
                     }
                   </div>
 
+                  {/*}
                   <div className='chart-group'>
                     {!acuIndicatorsTrendData &&
                       <div className='empty-data'>
@@ -454,7 +547,7 @@ class ThreatIntelligence extends Component {
                           }
                         }} />
                     }
-                  </div>
+                  </div> */}
                 </div>
               </div>
             </div>

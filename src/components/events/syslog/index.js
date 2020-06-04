@@ -1820,8 +1820,13 @@ class SyslogController extends Component {
         <div className='sub-header'>
           {helper.getEventsMenu('syslog')}
 
+          <div className='secondary-btn-group right'>
+            <button className={cx({'active': showMark})} onClick={this.toggleMark}><i className='fg fg-filter'></i><span>({filterDataCount})</span> <i className='fg fg-edit'></i><span>({markDataCount})</span></button>
+            <button className={cx({'active': showChart})} onClick={this.toggleChart} title={t('events.connections.txt-toggleChart')}><i className='fg fg-chart-columns'></i></button>
+            <button className='last' onClick={this.getCSVfile} title={t('events.connections.txt-exportCSV')}><i className='fg fg-data-download'></i></button>
+          </div>
+
           <SearchOptions
-            position='226px'
             datetime={datetime}
             searchInput={searchInput}
             showFilter={showFilter}
@@ -1830,12 +1835,6 @@ class SyslogController extends Component {
             setSearchData={this.setSearchData}
             handleDateChange={this.handleDateChange}
             handleSearchSubmit={this.handleSearchSubmit} />
-
-          <div className='secondary-btn-group right'>
-            <button className={cx({'active': showMark})} onClick={this.toggleMark}><i className='fg fg-filter'></i><span>({filterDataCount})</span> <i className='fg fg-edit'></i><span>({markDataCount})</span></button>
-            <button className={cx({'active': showChart})} onClick={this.toggleChart} title={t('events.connections.txt-toggleChart')}><i className='fg fg-chart-columns'></i></button>
-            <button className='last' onClick={this.getCSVfile} title={t('events.connections.txt-exportCSV')}><i className='fg fg-data-download'></i></button>
-          </div>
         </div>
 
         {this.renderTabContent()}
