@@ -12,6 +12,7 @@ import EventConnections from './event-connections'
 let t = null
 let et = null
 let f = null
+let it = null;
 
 class Events extends Component {
 	constructor(props) {
@@ -20,6 +21,7 @@ class Events extends Component {
 		t = global.chewbaccaI18n.getFixedT(null, 'connections')
     	et = global.chewbaccaI18n.getFixedT(null, 'errors')
     	f = chewbaccaI18n.getFixedT(null, "tableFields");
+		it = global.chewbaccaI18n.getFixedT(null, "incident");
 	}
 	componentDidMount() {
 	}
@@ -70,7 +72,7 @@ class Events extends Component {
 				        readOnly={activeContent === 'viewIncident'} />
 		        </div>
 		        <div className='group'>
-	                <label htmlFor='frequency'>{f('incidentFields.frequency')}</label>
+	                <label htmlFor='frequency'>{it('txt.frequency')}</label>
 	                <Input
 	                    id='frequency'
 	                    onChange={this.handleDataChange.bind(this, 'frequency')}
