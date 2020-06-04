@@ -149,38 +149,38 @@ class Edge extends Component {
 
     if (val === 'attackCnt') {
       if (allValue.honeyPotHostDTO) {
-        return <li key={val}><span>{descHeader}:</span> {allValue.honeyPotHostDTO[val]}</li>
+        return <li key={val}><span className='header'>{descHeader}:</span> {allValue.honeyPotHostDTO[val]}</li>
       }
     } else if (val === 'lastAlertDataUpdDT' || val === 'lastStatusUpdDT' || val === 'threatIntellLastUpdDT') {
-      return <li key={val}><span>{descHeader}:</span> {helper.getFormattedDate(allValue[val], 'local')}</li>
+      return <li key={val}><span className='header'>{descHeader}:</span> {helper.getFormattedDate(allValue[val], 'local')}</li>
     } else if (val === 'TCPDUMP') {
       if (allValue.agentMode === 'TCPDUMP') {
         return (
           <section key={val}>
             {allValue.agentStartDT &&
-              <li><span>{t('txt-start')}:</span> {helper.getFormattedDate(allValue.agentStartDT)}</li>
+              <li><span className='header'>{t('txt-start')}:</span> {helper.getFormattedDate(allValue.agentStartDT)}</li>
             }
             {allValue.agentEndDT &&
-              <li><span>{t('txt-stop')}:</span> {helper.getFormattedDate(allValue.agentEndDT)}</li>
+              <li><span className='header'>{t('txt-stop')}:</span> {helper.getFormattedDate(allValue.agentEndDT)}</li>
             }
             {allValue.lastAnalyzedStatus && allValue.lastAnalyzedStatus !== 'ANALYZED' &&
               <button onClick={this.agentAnalysis.bind(this, allValue)}>{t('txt-analyze')}</button>
             }
             {allValue.lastAnalyzedStatus &&
-              <li><span>lastAnalyzedStatus:</span> {allValue.lastAnalyzedStatus}</li>
+              <li><span className='header'>lastAnalyzedStatus:</span> {allValue.lastAnalyzedStatus}</li>
             }
             {allValue.lastAnalyzedStatusUpdDT &&
-              <li><span>lastAnalyzedStatusUpdDT:</span> {helper.getFormattedDate(allValue.lastAnalyzedStatusUpdDT, 'local')}</li>
+              <li><span className='header'>lastAnalyzedStatusUpdDT:</span> {helper.getFormattedDate(allValue.lastAnalyzedStatusUpdDT, 'local')}</li>
             }
           </section>
         )
       }
     } else if (val === 'rx_pkts' || val === 'tx_pkts') {
       if (allValue.statistics && allValue.statistics[val]) {
-        return <li key={val}><span>{descHeader}:</span> {allValue.statistics[val]}</li>
+        return <li key={val}><span className='header'>{descHeader}:</span> {allValue.statistics[val]}</li>
       }
     } else {
-      return <li key={val}><span>{descHeader}:</span> {allValue[val]}</li>
+      return <li key={val}><span className='header'>{descHeader}:</span> {allValue[val]}</li>
     }
   }
   /**
@@ -205,7 +205,7 @@ class Edge extends Component {
    * @returns HTML DOM
    */
   getServiceStatus = (val, i) => {
-    let colorStyle = '#22ac38'; //Default green color
+    let colorStyle = ''; //Default no color
 
     if (val.isNoted) { //Show red color
       colorStyle = '#d10d25';
@@ -213,7 +213,7 @@ class Edge extends Component {
 
     return (
       <ul key={i}>
-        <li key={val}><span>{val.serviceName}:</span> <span style={{'color': colorStyle}}>{val.status}</span></li>
+        <li key={val}><span className='header'>{val.serviceName}:</span> <span style={{'color': colorStyle}}>{val.status}</span></li>
       </ul>
     )
   }
