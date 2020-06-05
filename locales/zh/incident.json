@@ -41,10 +41,11 @@
 	"txt-id": "編號:",
 	"txt-ttp-ets": "漏洞資訊",
 	"txt-ttp-obs-file": "惡意程式",
-	"txt-ttp-obs-uri": "URI",
-	"txt-ttp-obs-socket": "Socket",
+	"txt-ttp-obs-uri": "惡意URI",
+	"txt-ttp-obs-socket": "惡意IP連線",
 	"txt-srcIp": "來源IP",
 	"txt-autoSend": "每月自動發布",
+	"txt-mustOne": "擇一惡意資訊必填",
 	"unit": {
 		"txt-default": "預設機關",
 		"txt-isDefault": "是",
