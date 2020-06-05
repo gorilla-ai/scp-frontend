@@ -92,8 +92,8 @@ html[data-theme='dark'] {
   overflow: hidden;
   color: var(--primaryTextColor);
   padding: 5px;
-  background-color: var(--primaryContentBackground);
   border: 1px solid var(--primaryBorder);
+  background-color: var(--primaryContentBackground);
   z-index: 10000;
   user-select: none;
   .fg-filter,
@@ -1392,132 +1392,36 @@ html[data-theme='dark'] {
       float: left;
     }
   }
-  .syslogs {
+  .add-threats {
     display: flex;
-    margin-bottom: 5px;
     width: 55em;
-    .syslog {
-      flex: 1;
-    }
+    margin-right: 5px;
+    margin-bottom: 5px;
     input {
       margin-top: 0.55em;
       margin-left: 1em;
     }
-    select{
+    select {
+      width: 18%;
       margin-top: 0.55em;
       margin-left: 0.5em;
-      width: 18%;
-      &.DEFINED_IOC_ALERT{
-        color: #D99857;
-      }
-      &.DEFINED_IOC_WARNING{
-        color: #76bc29;
-      }
-      &.DEFINED_IOC_NOTICE{
-        color: #57D998;
-      }
-      &.DEFINED_IOC_CRITICAL{
-        color: #57C3D9;
-      }
-      &.DEFINED_IOC_EMERGENCY{
-        color: #CC2943;
-      }
-    }
-  }
-  .filters {
-    margin-top: 10px;
-    label {
-      color: #4d86e2;
-    }
-    textarea {
-      resize: none;
-    }
-    .scrollY {
-      max-height: 410px;
-      overflow-y: auto;
-    }
-    .left-syslog {
-      float: left;
-      width: 58%;
-      min-height: 330px;
-      &.border {
-        border: 1px solid #d9d9d9;
-        border-radius: 5px;
-      }
-      .fg-down {
-        margin-top: 10px;
-        margin-bottom: 10px;
-        margin-left: 50%;
-        visibility: hidden;
-      }
-      button {
-        position: absolute;
-        right: 0;
-        top: -8px;
-        padding: .2em .8em;
-      }
-    }
-    .right-syslog {
-      float: right;
-      width: 40%;
-      min-height: 450px;
-      padding: 15px 15px 20px 15px;
-      border: 1px solid #d9d9d9;
-      border-radius: 5px;
-      &.no-padding {
-        padding: 0;
-      }
     }
   }
   #threatMultiInputs {
     .group {
-      border: 1px solid #d9d9d9;
+      margin-top: 10px;
+      border: 1px solid var(--primaryBorder);
       border-radius: 5px;
-      margin-top: 10px;
-      background-color: #f5f5f5;
+      background-color: var(--contentBackground);
     }
-    .relationship {
-      margin-top: 10px;
-      margin-bottom: 10px;
-      width: 90%;
-      .up {
-        display: flex;
-        padding: 5px 5px;
-      }
-      .down {
-        padding: 5px 5px;
-        .table-100 {
-          width: 100%;
-        }
-        table {
-          border: 1px solid #CCCCCC;
-          border-radius: 5px;
-        }
-      }
-      .item {
-        margin-left: 10px;
-        label {
-          color: #4d86e2;
-        }
-        select {
-          width: 200px;
-        }
-      }
-      .fg-next {
-        margin-top: 30px;
-        margin-left: 10px;
-      }
-    }
-    .remove {
+    .fg-add,
+    .fg-close {
       height: 30px;
       width: 30px;
       margin-top: 10px;
-      background-color: white;
     }
-    .add {
-      height: 30px;
-      width: 30px;
-      margin-top: 10px;
+    .fg-close {
+      background-color: var(--formBackground);
     }
   }
 }

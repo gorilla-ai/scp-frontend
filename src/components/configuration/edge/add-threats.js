@@ -29,30 +29,35 @@ const DEFINED_IOC_CRITICAL = 'DEFINED_IOC_CRITICAL';
 const DEFINED_IOC_ALERT = 'DEFINED_IOC_ALERT';
 const DEFINED_IOC_WARNING = 'DEFINED_IOC_WARNING';
 const DEFINED_IOC_NOTICE = 'DEFINED_IOC_NOTICE';
-
 const SeverityTypeList = [
   {
     value: DEFINED_IOC_EMERGENCY,
-    text: 'EMERGENCY'
-  },
-  {
-    value: DEFINED_IOC_CRITICAL,
-    text: 'CRITICAL'
+    text: 'Emergency'
   },
   {
     value: DEFINED_IOC_ALERT,
-    text: 'ALERT'
+    text: 'Alert'
+  },
+  {
+    value: DEFINED_IOC_CRITICAL,
+    text: 'Critical'
   },
   {
     value: DEFINED_IOC_WARNING,
-    text: 'WARNING'
+    text: 'Warning'
   },
   {
     value: DEFINED_IOC_NOTICE,
-    text: 'NOTICE'
+    text: 'Notice'
   }
 ];
 
+/**
+ * Add Threats
+ * @class
+ * @author Ryan Chen <ryanchen@telmediatech.com>
+ * @summary A react component to show the Add Threats content
+ */
 class AddThreats extends Component {
   constructor(props) {
     super(props);
@@ -86,7 +91,7 @@ class AddThreats extends Component {
     const {value} = this.props;
 
     return (
-      <div className='syslogs'>
+      <div className='add-threats'>
         <Input
           className={cx({'error': !value.validate})}
           onChange={this.handleDataChange.bind(this, 'value')}
@@ -95,6 +100,7 @@ class AddThreats extends Component {
           id='threatType'
           className={value.type}
           list={SeverityTypeList}
+          required={true}
           value={value.type}
           onChange={this.handleDataChange.bind(this, 'type')}
           />
