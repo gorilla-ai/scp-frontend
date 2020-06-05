@@ -509,9 +509,10 @@ class Incident extends Component {
 
         return <div className='form-group normal'>
             <header>
-                <div className='text'>{it('txt-incident-ttps')}</div>
+                <div
+                    className='text'>{it('txt-incident-ttps')} ({it('txt-ttp-obs-file')}/{it('txt-ttp-obs-uri')}/{it('txt-ttp-obs-socket')} {it('txt-mustOne')})
+                </div>
             </header>
-
             <button className='last'
                     onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}</button>
 
@@ -624,13 +625,45 @@ class Incident extends Component {
             if (!incident.ttpList) {
                 return false
             } else {
+                let sizeCheck = false
+                _.forEach(incident.ttpList, ttp => {
+
+                    if (_.size(ttp.obsFileList) > 0) {
+                        _.forEach(ttp.obsFileList, file => {
+                            if (file.fileName && file.fileExtension) {
+                                if (file.md5 || file.sha1 || file.sha256) {
+                                    sizeCheck = true
+                                }
+                            }
+                        })
+                    }
+
+                    if (_.size(ttp.obsUriList) > 0) {
+                        _.forEach(ttp.obsUriList, uri => {
+                            if (uri.uriType && uri.uriValue) {
+                                sizeCheck = true
+                            }
+                        })
+                    }
+
+                    if (_.size(ttp.obsSocketList) > 0) {
+                        _.forEach(ttp.obsSocketList, socket => {
+                            if (socket.ip && socket.port) {
+                                sizeCheck = true
+                            }
+                        })
+                    }
+                })
+
                 let empty = _.filter(incident.ttpList, function (o) {
                     return !o.title || !o.infrastructureType
                 });
 
                 if (_.size(empty) > 0) {
-                    return false
+                    sizeCheck = false
                 }
+
+                return sizeCheck
             }
         }
 
