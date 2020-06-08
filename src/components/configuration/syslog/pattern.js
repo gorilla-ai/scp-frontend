@@ -18,6 +18,10 @@ import TableContent from '../../common/table-content'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+let t = null;
+let f = null;
+let et = null;
+
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const ALERT_LEVEL_COLORS = {
   Emergency: '#CC2943',
@@ -26,10 +30,6 @@ const ALERT_LEVEL_COLORS = {
   Warning: '#29CC7A',
   Notice: '#7ACC29'
 };
-
-let t = null;
-let f = null;
-let et = null;
 
 /**
  * Pattern

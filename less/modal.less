@@ -1400,11 +1400,19 @@ html[data-theme='dark'] {
     input {
       margin-top: 0.55em;
       margin-left: 1em;
+      &.error {
+        border-color: #da364a;
+      }
     }
     select {
-      width: 18%;
       margin-top: 0.55em;
       margin-left: 0.5em;
+      &.type {
+        width: 175px;
+      }
+      &.severity {
+        width: 110px;
+      }
     }
   }
   #threatMultiInputs {

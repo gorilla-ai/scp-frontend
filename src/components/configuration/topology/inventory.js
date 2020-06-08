@@ -5,7 +5,7 @@ import PropTypes from 'prop-types'
 import Moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
-import jschardet from "jschardet";
+import jschardet from 'jschardet'
 import queryString from 'query-string'
 import XLSX from 'xlsx';
 

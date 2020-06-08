@@ -24,6 +24,9 @@ import PrivateDetails from './private-details'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+let t = null;
+let f = null;
+
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const ALERT_LEVEL_COLORS = {
   Emergency: '#CC2943',
@@ -34,9 +37,6 @@ const ALERT_LEVEL_COLORS = {
 };
 const PUBLIC_KEY = ['City', 'CountryCode', 'Latitude', 'Longitude'];
 const NOT_AVAILABLE = 'N/A';
-
-let t = null;
-let f = null;
 
 /**
  * Alert Details

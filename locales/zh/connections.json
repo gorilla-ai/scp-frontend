@@ -401,7 +401,7 @@
     "txt-edgeEditNoStartDate": "Edge起始時間不得為空白",
     "txt-edgeEditNoEndDate": "Edge結束時間不得為空白",
     "txt-edgeEditPastEndDate": "Edge結束時間不得為過去時間",
-    "txt-ipValidationFail": "請輸入正確IP:Port格式",
+    "txt-ipValidationFail": "請輸入正確IP/Domain格式",
     "txt-threatDateErr": "時間不得為未來時間",
     "txt-coordinateErr": "請輸入正確的經緯度",
     "statistics": {

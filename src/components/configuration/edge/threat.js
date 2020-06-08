@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
+import jschardet from 'jschardet'
+import XLSX from 'xlsx';
 
 import BarChart from 'react-chart/build/src/components/bar'
 import DropDownList from 'react-ui/build/src/components/dropdown'
@@ -25,11 +27,7 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 let t = null;
 let f = null;
 
-const DEFINED_IOC_EMERGENCY = 'DEFINED_IOC_EMERGENCY';
-const DEFINED_IOC_CRITICAL = 'DEFINED_IOC_CRITICAL';
-const DEFINED_IOC_ALERT = 'DEFINED_IOC_ALERT';
-const DEFINED_IOC_WARNING = 'DEFINED_IOC_WARNING';
-const DEFINED_IOC_NOTICE = 'DEFINED_IOC_NOTICE';
+const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 
 /**
  * Threat Intelligence
@@ -72,7 +70,8 @@ class ThreatIntelligence extends Component {
         currentPage: 1,
         pageSize: 20,
         info: {}
-      }
+      },
+      tempTxtData: ''
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -255,15 +254,76 @@ class ThreatIntelligence extends Component {
     });
   }
   /**
-   * Handle file change
+   * Handle file change and set the file
    * @method
-   * @param {object} file - file info object
+   * @param {object} file - file uploaded by the user
+   * @param {object} check - a returned promise for the encode info
    */
-  handleFileChange = (file) => {
-    if (file) {
+  handleFileChange = (file, check) => {
+    let reader = new FileReader();
+    const rABS = !!reader.readAsBinaryString;
+
+    reader.onload = (e) => {
+      const bstr = e.target.result;
+      const wb = XLSX.read(bstr, {type: rABS ? 'binary' : 'array'});
+      /* Get first worksheet */
+      const wsname = wb.SheetNames[0];
+      const ws = wb.Sheets[wsname];
+      /* Convert array of arrays */
+      const data = XLSX.utils.sheet_to_json(ws, {header: 1});
+      let result = data.filter(o => Object.keys(o).length);
+
       this.setState({
-        file
+        tempTxtData: result
       });
+    }
+    reader.onerror = error => reject(error);
+
+    if (rABS) {
+      if (check.encoding) {
+        if (check.encoding === 'UTF-8') {
+          reader.readAsText(file, 'UTF-8');
+        } else { //If check.encoding is available, force to read as BIG5 encoding
+          reader.readAsText(file, 'BIG5');
+        }
+      } else {
+        reader.readAsBinaryString(file);
+      }
+    } else {
+      reader.readAsArrayBuffer(file);
+    }
+  }
+  /**
+   * Check file encoding
+   * @method
+   * @param {object} file - file uploaded by the user
+   * @returns promise of the file reader
+   */
+  checkEncode = async (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      const rABS = !!reader.readAsBinaryString;
+
+      reader.onload = async (e) => {
+        resolve(jschardet.detect(e.target.result));
+      }
+      reader.onerror = error => reject(error);
+
+      if (rABS) {
+        reader.readAsBinaryString(file);
+      } else {
+        reader.readAsArrayBuffer(file);
+      }
+    });
+  }
+  /**
+   * Handle CSV batch upload
+   * @method
+   * @param {object} file - file uploaded by the user
+   */
+  parseFile = async (file) => {
+    if (file) {
+      this.handleFileChange(file, await this.checkEncode(file));
     }
   }
   /**
@@ -290,9 +350,9 @@ class ThreatIntelligence extends Component {
         <FileUpload
           supportText={titleText}
           id='uploadThreat'
-          fileType='indicators'
+          fileType='text'
           btnText={t('txt-upload')}
-          handleFileChange={this.handleFileChange} />
+          handleFileChange={this.parseFile} />
       </ModalDialog>
     )
   }
@@ -301,39 +361,27 @@ class ThreatIntelligence extends Component {
    * @method
    */
   confirmThreatUpload = () => {
-    const {baseUrl} = this.context;
-    const {file} = this.state;
+    const {addThreats, tempTxtData} = this.state;
+    let tempAddThreats = addThreats;
 
-    if (!file.name) {
+    if (tempTxtData.length > 0) {
+      _.forEach(tempTxtData, val => {
+        tempAddThreats.push({
+          input: val[0],
+          type: '',
+          severity: 'ALERT',
+          validate: true
+        });
+      })
+
+      this.setState({
+        uplaodOpen: false,
+        addThreats: tempAddThreats
+      });
+    } else {
       helper.showPopupMsg(t('txt-selectFile'), t('txt-error'));
       return;
     }
-
-    let formData = new FormData();
-    formData.append('file', file);
-
-    ah.one({
-      url: `${baseUrl}/api/threat/upload`,
-      data: formData,
-      type: 'POST',
-      processData: false,
-      contentType: false
-    })
-    .then(data => {
-      if (data.ret === 0) {
-        this.toggleUploadThreat('showMsg');
-      } else {
-        helper.showPopupMsg('', t('txt-error'), t('txt-uploadFailed'));
-      }
-
-      this.setState({
-        file: {}
-      });
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
   }
   /**
    * Reset indicators data
@@ -353,8 +401,16 @@ class ThreatIntelligence extends Component {
    * @method
    */  
   toggleAddThreats = () => {
+    const {addThreatsOpen} = this.state;
+
+    if (addThreatsOpen) {
+      this.setState({
+        addThreats: []
+      });
+    }
+
     this.setState({
-      addThreatsOpen: !this.state.addThreatsOpen
+      addThreatsOpen: !addThreatsOpen
     });
   }
   /**
@@ -373,21 +429,19 @@ class ThreatIntelligence extends Component {
    * @returns HTML DOM
    */
   displayAddThreatsContent = () => {
-    const {addThreats} = this.state;
-
     return (
       <div>
         <button className='standard btn upload-btn' onClick={this.toggleUploadThreat}><i className='fg fg-data-upload'/>{t('edge-management.txt-uploadThreat')}</button>
-
         <MultiInput
           id='threatMultiInputs'
           defaultItemValue={{
-            value: '',
-            validate: true,
-            type: DEFINED_IOC_ALERT
+            input: '',
+            type: '',
+            severity: 'ALERT',
+            validate: true
           }}
           base={AddThreats}
-          value={addThreats}
+          value={this.state.addThreats}
           onChange={this.handleAddThreatsChange}/>
       </div>
     )
@@ -422,7 +476,82 @@ class ThreatIntelligence extends Component {
    * @returns HTML DOM
    */
   confirmAddThreats = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {addThreats} = this.state;
+    let formData = new FormData();
+    let requestData = {};
+    let tempAddThreats = [];
+    let validation = true;
 
+    if (addThreats.length === 0) {
+      return;
+    }
+
+    _.forEach(addThreats, val => {
+      let validate = true;
+
+      if (val.type !== '' && !helper.validateInputRuleData(val.type, val.input)) {
+        validate = false;
+        validation = false;
+      }
+
+      tempAddThreats.push({
+        ...val,
+        validate
+      });
+    })
+
+    if (!validation) {
+      this.setState({
+        addThreats: tempAddThreats
+      });
+      return;
+    }
+
+    // _.forEach(addThreats, val => {
+    //   if (requestData[val.type]) {
+    //     requestData[val.type].push(val.input);
+    //   } else {
+    //     requestData[val.type] = [val.input];
+    //   }
+    // })
+
+    _.forEach(SEVERITY_TYPE, val => {
+      _.forEach(addThreats, val2 => {
+        if (val.toUpperCase() === val2.severity) {
+          if (requestData[val]) {
+            requestData[val].push(val2);
+          } else {
+            requestData[val] = [val2];
+          }
+        }
+      })
+    })
+
+    console.log(requestData);
+
+    // _.forEach(requestData, (val, key) => {
+    //   formData.append(key, val.toString());
+    // })
+
+    // this.ah.one({
+    //   url: `${baseUrl}/api/indicators`,
+    //   data: formData,
+    //   type: 'POST',
+    //   processData: false,
+    //   contentType: false
+    // })
+    // .then(data => {
+    //   if (data) {
+    //     this.setState({
+    //       addThreatsOpen: false
+    //     });
+    //   }
+    //   return null;
+    // })
+    // .catch(err => {
+    //   helper.showPopupMsg('', t('txt-error'), err.message);
+    // })
   }
   /**
    * Toggle search content on/off
@@ -620,7 +749,7 @@ class ThreatIntelligence extends Component {
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group edge-threats'>
-            <label htmlFor='threatsSearchKeyword'>{f('edgeFields.keywords')}</label>
+            <label htmlFor='threatsSearchType'>{f('edgeFields.keywords')}</label>
             <DropDownList
               id='threatsSearchType'
               list={[

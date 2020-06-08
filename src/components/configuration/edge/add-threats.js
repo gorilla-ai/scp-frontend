@@ -11,46 +11,9 @@ import helper from '../../common/helper'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null;
+let et = null;
 
-const validationIp_Domain = {
-  pattern: /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$|^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)+([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/,
-  // patternReadable: 'xxx.xxx.xxx.xxx',
-  t: (code, {value, pattern}) => {
-    if (code[0] === 'missing') {
-      return t('txt-required');
-    } else if (code[0] === 'no-match') {
-      return t('threat.txt-mode1-ValidationFail');
-    }
-  }
-}
-
-const DEFINED_IOC_EMERGENCY = 'DEFINED_IOC_EMERGENCY';
-const DEFINED_IOC_CRITICAL = 'DEFINED_IOC_CRITICAL';
-const DEFINED_IOC_ALERT = 'DEFINED_IOC_ALERT';
-const DEFINED_IOC_WARNING = 'DEFINED_IOC_WARNING';
-const DEFINED_IOC_NOTICE = 'DEFINED_IOC_NOTICE';
-const SeverityTypeList = [
-  {
-    value: DEFINED_IOC_EMERGENCY,
-    text: 'Emergency'
-  },
-  {
-    value: DEFINED_IOC_ALERT,
-    text: 'Alert'
-  },
-  {
-    value: DEFINED_IOC_CRITICAL,
-    text: 'Critical'
-  },
-  {
-    value: DEFINED_IOC_WARNING,
-    text: 'Warning'
-  },
-  {
-    value: DEFINED_IOC_NOTICE,
-    text: 'Notice'
-  }
-];
+const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 
 /**
  * Add Threats
@@ -63,47 +26,79 @@ class AddThreats extends Component {
     super(props);
 
     this.state = {
-
+      severityList: []
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    et = global.chewbaccaI18n.getFixedT(null, 'errors')
     this.ah = getInstance('chewbacca');
   }
-  ryan = () => {
+  componentDidMount() {
+    let severityList = [];
 
+    _.forEach(SEVERITY_TYPE, val => {
+      severityList.push({
+        value: val.toUpperCase(),
+        text: val
+      });
+    })
+
+    this.setState({
+      severityList
+    });
   }
   /**
-   * Handle relationships input value change
+   * Set add threats input value change
    * @method
-   * @param {string} field - input field
+   * @param {string} field - input type ('input' , 'severity' and 'type')
    * @param {string} value - input value
    */
   handleDataChange = (field, value) => {
-    let {value: curValue, threats} = this.props;
-
-    if (field === 'name') {
-
-    } else {
-      this.props.onChange({...curValue, [field]: value});
-    }
+    this.props.onChange({
+      ...this.props.value,
+      [field]: value
+    });
   }
   render() {
     const {value} = this.props;
+    const {severityList} = this.state;
 
     return (
       <div className='add-threats'>
+        <label htmlFor='addThreatsText'></label>
         <Input
+          id='addThreatsText'
           className={cx({'error': !value.validate})}
-          onChange={this.handleDataChange.bind(this, 'value')}
-          value={value.value}/>
+          value={value.input}
+          onChange={this.handleDataChange.bind(this, 'input')} />
+        <label htmlFor='addThreatsType'></label>
         <DropDownList
-          id='threatType'
-          className={value.type}
-          list={SeverityTypeList}
+          id='addThreatsType'
+          className='type'
+          list={[
+            {value: 'ip', text: 'IP'},
+            {value: 'domainName', text: 'DomainName'},
+            {value: 'url', text: 'URL'},
+            {value: 'snort', text: 'SNORT'},
+            {value: 'yara', text: 'YARA'},
+            {value: 'certMd5', text: 'Certification (MD5)'},
+            {value: 'certSha1', text: 'Certification (Sha1)'},
+            {value: 'certSha256', text: 'Certification (Sha256)'},
+            {value: 'fileHashMd5', text: 'FileHash (MD5)'},
+            {value: 'fileHashSha1', text: 'FileHash (Sha1)'},
+            {value: 'fileHashSha256', text: 'FileHash (Sha256)'}
+          ]}
           required={true}
           value={value.type}
-          onChange={this.handleDataChange.bind(this, 'type')}
-          />
+          onChange={this.handleDataChange.bind(this, 'type')} />
+        <label htmlFor='addThreatsSeverity'></label>  
+        <DropDownList
+          id='addThreatsSeverity'
+          className='severity'
+          list={severityList}
+          required={true}
+          value={value.severity}
+          onChange={this.handleDataChange.bind(this, 'severity')} />
       </div>
     )
   }

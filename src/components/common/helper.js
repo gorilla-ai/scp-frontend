@@ -313,6 +313,29 @@ const helper = {
       })
     )
   },
+  validateInputRuleData: function(type, data) {
+    let pattern = '';
+
+    if (type === 'snort') {
+      return data.indexOf('sid') > 0 ? true : false;
+    }
+
+    if (type === 'ip') {
+      pattern = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+    } else if (type === 'domainName') {
+      pattern = /^(?!:\/\/)([a-zA-Z0-9-_]+\.)*[a-zA-Z0-9][a-zA-Z0-9-_]+\.[a-zA-Z]{2,11}?$/;
+    } else if (type === 'url') {
+      pattern = /^\w+[^\s]+(\.[^\s]+){1,}$/;
+    } else if (type === 'certMd5' || type === 'fileHashMd5') {
+      pattern = /^[a-fA-F0-9]{32}$/;
+    } else if (type === 'certSha1' || type === 'fileHashSha1') {
+      pattern = /^[a-fA-F0-9]{40}$/;
+    } else if (type === 'certSha256' || type === 'fileHashSha256') {
+      pattern = /^[a-fA-F0-9]{64}$/;
+    }
+
+    return pattern.test(data);
+  },
   getWorldMap: function(WORLDMAP, geoJson, mainData) {
     const t = global.chewbaccaI18n.getFixedT(null, 'connections');
     let tempGeoJson = {...geoJson};
