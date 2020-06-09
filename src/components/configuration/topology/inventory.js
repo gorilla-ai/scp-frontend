@@ -5,7 +5,7 @@ import PropTypes from 'prop-types'
 import Moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
-import jschardet from "jschardet";
+import jschardet from 'jschardet'
 import queryString from 'query-string'
 import XLSX from 'xlsx';
 
@@ -220,7 +220,7 @@ class NetworkInventory extends Component {
    * Get and set device data / Handle delete IP device confirm
    * @method
    * @param {string} fromSearch - option for 'search'
-   * @param {string} options - options for 'oneSeat'
+   * @param {string} options - options for 'oneSeat' and 'delete'
    * @param {string} seatUUID - seat UUID
    */
   getDeviceData = (fromSearch, options, seatUUID) => {
@@ -301,6 +301,7 @@ class NetworkInventory extends Component {
       }
     ];
 
+    //Combine the two APIs to show the loading icon
     if (options === 'delete') { //For deleting device
       apiArr.unshift({
         url: `${baseUrl}/api/u1/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}`,
@@ -317,10 +318,8 @@ class NetworkInventory extends Component {
         ipRt = data[1].ret;
         ipData = data[1].rt;
 
-        if (data[0]) {
-          if (data.ret === 0) {
-            this.closeDialog('reload');
-          }
+        if (data[0] && data[0].ret === 0) {
+          this.closeDialog('reload');
         }
       } else {
         ipRt = data[0].ret;

@@ -533,6 +533,7 @@ i.c-checkbox.fg-checkbox {
       &.right {
         float: right;
         margin-top: 1px;
+        margin-left: 10px;
       }
       button {
         color: var(--buttonTextColor);
@@ -569,8 +570,7 @@ i.c-checkbox.fg-checkbox {
       color: #fff;
     }
     .search-options {
-      position: absolute;
-      top: 5px;
+      float: right;
       select,
       input {
         color: var(--primaryTextColor);
@@ -1301,6 +1301,7 @@ i.c-checkbox.fg-checkbox {
               }
               input {
                 width: 185px;
+                height: 36px;
               }
               select {
                 width: auto;
@@ -1348,6 +1349,15 @@ i.c-checkbox.fg-checkbox {
                       margin-right: 3px;
                     }
                   }
+                }
+              }
+              &.edge-threats {
+                select {
+                  min-width: auto;
+                  width: 130px
+                }
+                input {
+                  width: 250px;
                 }
               }
             }

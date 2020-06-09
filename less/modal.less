@@ -92,8 +92,8 @@ html[data-theme='dark'] {
   overflow: hidden;
   color: var(--primaryTextColor);
   padding: 5px;
-  background-color: var(--primaryContentBackground);
   border: 1px solid var(--primaryBorder);
+  background-color: var(--primaryContentBackground);
   z-index: 10000;
   user-select: none;
   .fg-filter,
@@ -981,7 +981,7 @@ html[data-theme='dark'] {
     .info-content {
       .table {
         max-height: 405px;
-        width: 885px;
+        width: 100%;
       }
       .scan-content {
         .list {
@@ -1381,4 +1381,75 @@ html[data-theme='dark'] {
 }
 #adminResetPasswordDialog-dialog {
   width: 260px;
+}
+#addThreatsDialog-content {
+  width: 900px;
+  height: 620px;
+  .upload-btn {
+    font-size: 16px;
+    margin: 5px 0;
+    .fg-data-upload {
+      float: left;
+    }
+  }
+  .add-threats {
+    display: flex;
+    width: 55em;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    input {
+      margin-top: 0.55em;
+      margin-left: 1em;
+      &.error {
+        border-color: #da364a;
+      }
+    }
+    select {
+      margin-top: 0.55em;
+      margin-left: 0.5em;
+      &.type {
+        width: 175px;
+      }
+      &.severity {
+        color: #fff;
+        width: 110px;
+        &.emergency {
+          background-color:  #CC2943;
+        }
+        &.alert {
+          background-color: #CC7B29;
+        }
+        &.critical {
+          background-color: #29B0CC;
+        }
+        &.warning {
+          background-color: #29CC7A;
+        }
+        &.notice {
+          background-color: #7ACC29;
+        }
+        option {
+          color: var(--primaryTextColor);
+          background-color: var(--formBackground);
+        }
+      }
+    }
+  }
+  #threatMultiInputs {
+    .group {
+      margin-top: 10px;
+      border: 1px solid var(--primaryBorder);
+      border-radius: 5px;
+      background-color: var(--contentBackground);
+    }
+    .fg-add,
+    .fg-close {
+      height: 30px;
+      width: 30px;
+      margin-top: 10px;
+    }
+    .fg-close {
+      background-color: var(--formBackground);
+    }
+  }
 }

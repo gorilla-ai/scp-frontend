@@ -459,7 +459,7 @@
     "taskId": "Task ID",
     "ip": "IP",
     "mac": "MAC",
-    "createDttm": "Create Date",
+    "createDttm": "Create Datetime",
     "runningTaskCount": "Running Task Count",
     "waitingTaskCount": "Waiting Task Count",
     "completeTaskCount": "Complete Task Count",
@@ -590,5 +590,11 @@
     "lastUpdateDttm": "Last Update",
     "queryScript": "Query Script",
     "severity": "Severity"
+  },
+  "threatsTableFields": {
+    "threatText": "Threat Info",
+    "threatType": "threat Type",
+    "dataSourceType": "Threat Severity Type",
+    "createDttm": "Create Datetime"
   }
 }

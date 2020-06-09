@@ -62,6 +62,13 @@ class FileUpload extends Component {
       };
     }
 
+    if (fileType === 'text') {
+      validate = {
+        extension: ['.txt'],
+        t: this.getErrorMsg
+      };
+    }
+
     return (
       <div className='content'>
         <label htmlFor={id}>{supportText}</label>

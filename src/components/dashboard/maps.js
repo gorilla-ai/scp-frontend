@@ -30,7 +30,6 @@ const ALERT_LEVEL_COLORS = {
   Warning: '#29CC7A',
   Notice: '#7ACC29'
 };
-
 const MAPS_PUBLIC_DATA = {
   alertDetails: {
     publicFormatted: {

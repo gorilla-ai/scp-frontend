@@ -812,7 +812,7 @@ class Syslog extends Component {
     let uri = '';
 
     if (Moment(datetime.from).isAfter()) {
-      helper.showPopupMsg(t('edge-management.txt-threatDateErr'), t('txt-error'));
+      helper.showPopupMsg(t('edge-management.txt-threatDateError'), t('txt-error'));
       return;
     }
 
