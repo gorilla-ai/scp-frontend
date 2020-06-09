@@ -50,7 +50,7 @@ class AddThreats extends Component {
   /**
    * Set add threats input value change
    * @method
-   * @param {string} field - input type ('input' , 'severity' and 'type')
+   * @param {string} field - input type ('input' , 'type' and 'severity')
    * @param {string} value - input value
    */
   handleDataChange = (field, value) => {

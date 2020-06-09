@@ -117,33 +117,33 @@ class ThreatIntelligence extends Component {
       return;
     }
 
-    // this.ah.one({
-    //   url: `${baseUrl}/api/indicators/summary`,
-    //   type: 'GET'
-    // })
-    // .then(data => {
-    //   if (data) {
-    //     let indicatorsData = [];
+    this.ah.one({
+      url: `${baseUrl}/api/indicators/summary`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let indicatorsData = [];
 
-    //     _.keys(data)
-    //     .forEach(key => {
-    //       if (data[key] > 0) {
-    //         indicatorsData.push({
-    //           key,
-    //           doc_count: data[key]
-    //         });
-    //       }
-    //     });
+        _.keys(data)
+        .forEach(key => {
+          if (data[key] > 0) {
+            indicatorsData.push({
+              key,
+              doc_count: data[key]
+            });
+          }
+        });
 
-    //     this.setState({
-    //       indicatorsData
-    //     });        
-    //   }
-    //   return null;
-    // })
-    // .catch(err => {
-    //   helper.showPopupMsg('', t('txt-error'), err.message);
-    // })
+        this.setState({
+          indicatorsData
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
 
     this.ah.one({
       url: `${baseUrl}/api/indicators/trend?startDttm=${dateTime.from}&endDttm=${dateTime.to}`,
@@ -177,36 +177,36 @@ class ThreatIntelligence extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
 
-    // this.ah.one({
-    //   url: `${baseUrl}/api/indicators/trend/accum?startDttm=${dateTime.from}&endDttm=${dateTime.to}`,
-    //   type: 'GET'
-    // }, {showProgress: false})
-    // .then(data => {
-    //   if (data) {
-    //     let acuIndicatorsTrendData = [];
+    this.ah.one({
+      url: `${baseUrl}/api/indicators/trend/accum?startDttm=${dateTime.from}&endDttm=${dateTime.to}`,
+      type: 'GET'
+    }, {showProgress: false})
+    .then(data => {
+      if (data) {
+        let acuIndicatorsTrendData = [];
 
-    //     _.keys(data)
-    //     .forEach(key => {
-    //       _.forEach(data[key], val => {
-    //         if (val.counts > 0) {
-    //           acuIndicatorsTrendData.push({
-    //             day: parseInt(Moment(helper.getFormattedDate(val.time, 'local')).format('x')),
-    //             count: val.counts,
-    //             indicator: key
-    //           })
-    //         }
-    //       })
-    //     });
+        _.keys(data)
+        .forEach(key => {
+          _.forEach(data[key], val => {
+            if (val.counts > 0) {
+              acuIndicatorsTrendData.push({
+                day: parseInt(Moment(helper.getFormattedDate(val.time, 'local')).format('x')),
+                count: val.counts,
+                indicator: key
+              })
+            }
+          })
+        });
 
-    //     this.setState({
-    //       acuIndicatorsTrendData
-    //     });        
-    //   }
-    //   return null;
-    // })
-    // .catch(err => {
-    //   helper.showPopupMsg('', t('txt-error'), err.message);
-    // })
+        this.setState({
+          acuIndicatorsTrendData
+        });        
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Show tooltip info when mouseover the chart
@@ -884,7 +884,6 @@ class ThreatIntelligence extends Component {
 
                 <div className='main-statistics'>
                   <div className='statistics-content'>
-                    {/*}
                     <div className='chart-group'>
                       {!indicatorsData &&
                         <div className='empty-data'>
@@ -917,7 +916,7 @@ class ThreatIntelligence extends Component {
                             sliceSize: 'doc_count'
                           }} />
                       }
-                    </div>*/}
+                    </div>
 
                     <div className='chart-group'>
                       {!indicatorsTrendData &&
@@ -961,7 +960,6 @@ class ThreatIntelligence extends Component {
                       }
                     </div>
 
-                    {/*}
                     <div className='chart-group'>
                       {!acuIndicatorsTrendData &&
                         <div className='empty-data'>
@@ -995,7 +993,7 @@ class ThreatIntelligence extends Component {
                             }
                           }} />
                       }
-                    </div> */}
+                    </div>
                   </div>
                 </div>
               </div>
