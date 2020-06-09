@@ -1411,7 +1411,27 @@ html[data-theme='dark'] {
         width: 175px;
       }
       &.severity {
+        color: #fff;
         width: 110px;
+        &.emergency {
+          background-color:  #CC2943;
+        }
+        &.alert {
+          background-color: #CC7B29;
+        }
+        &.critical {
+          background-color: #29B0CC;
+        }
+        &.warning {
+          background-color: #29CC7A;
+        }
+        &.notice {
+          background-color: #7ACC29;
+        }
+        option {
+          color: var(--primaryTextColor);
+          background-color: var(--formBackground);
+        }
       }
     }
   }

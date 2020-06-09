@@ -692,7 +692,7 @@ class Edge extends Component {
       if (edge.info.longitude >= -180 && edge.info.longitude <= 180) {
         requestData.longitude = edge.info.longitude;
       } else {
-        helper.showPopupMsg(t('edge-management.txt-coordinateErr'), t('txt-error'));
+        helper.showPopupMsg(t('edge-management.txt-coordinateError'), t('txt-error'));
         return;
       }
     }
@@ -701,7 +701,7 @@ class Edge extends Component {
       if (edge.info.latitude >= -90 && edge.info.latitude <= 90) {
         requestData.latitude = edge.info.latitude;
       } else {
-        helper.showPopupMsg(t('edge-management.txt-coordinateErr'), t('txt-error'));
+        helper.showPopupMsg(t('edge-management.txt-coordinateError'), t('txt-error'));
         return;
       }
     }

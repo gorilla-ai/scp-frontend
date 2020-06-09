@@ -68,9 +68,9 @@ class ThreatIntelligence extends Component {
         },
         totalCount: 0,
         currentPage: 1,
-        pageSize: 20,
-        info: {}
+        pageSize: 20
       },
+      info: '',
       tempTxtData: ''
     };
 
@@ -113,7 +113,7 @@ class ThreatIntelligence extends Component {
     };
 
     if (Moment(dateTime.from).isAfter()) {
-      helper.showPopupMsg(t('edge-management.txt-threatDateErr'), t('txt-error'));
+      helper.showPopupMsg(t('edge-management.txt-threatDateError'), t('txt-error'));
       return;
     }
 
@@ -403,9 +403,10 @@ class ThreatIntelligence extends Component {
   toggleAddThreats = () => {
     const {addThreatsOpen} = this.state;
 
-    if (addThreatsOpen) {
+    if (addThreatsOpen) { //Clear threats info and error msg
       this.setState({
-        addThreats: []
+        addThreats: [],
+        info: ''
       });
     }
 
@@ -452,6 +453,7 @@ class ThreatIntelligence extends Component {
    * @returns HTML DOM
    */
   addThreatsDialog = () => {
+    const {info} = this.state;
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleAddThreats},
       confirm: {text: t('txt-confirm'), handler: this.confirmAddThreats}
@@ -465,6 +467,7 @@ class ThreatIntelligence extends Component {
         draggable={true}
         global={true}
         actions={actions}
+        info={info}
         closeAction='cancel'>
         {this.displayAddThreatsContent()}
       </ModalDialog>
@@ -478,19 +481,22 @@ class ThreatIntelligence extends Component {
   confirmAddThreats = () => {
     const {baseUrl, contextRoot} = this.context;
     const {addThreats} = this.state;
-    let formData = new FormData();
-    let requestData = {};
     let tempAddThreats = [];
     let validation = true;
+    let formattedData = {};
+    let requestData = {};
 
     if (addThreats.length === 0) {
+      this.setState({
+        info: t('edge-management.txt-edgeFormatError')
+      });
       return;
     }
 
-    _.forEach(addThreats, val => {
+    _.forEach(addThreats, val => { //Validate threats input based on threats type
       let validate = true;
-
-      if (val.type !== '' && !helper.validateInputRuleData(val.type, val.input)) {
+      
+      if (val.type !== '' && !helper.validateInputRuleData(val.type, val.input)) { //Threats input validation is not valid
         validate = false;
         validation = false;
       }
@@ -501,57 +507,84 @@ class ThreatIntelligence extends Component {
       });
     })
 
-    if (!validation) {
-      this.setState({
-        addThreats: tempAddThreats
-      });
-      return;
-    }
-
-    // _.forEach(addThreats, val => {
-    //   if (requestData[val.type]) {
-    //     requestData[val.type].push(val.input);
-    //   } else {
-    //     requestData[val.type] = [val.input];
-    //   }
-    // })
-
-    _.forEach(SEVERITY_TYPE, val => {
+    _.forEach(SEVERITY_TYPE, val => { //Create formattedData object for input data based on severity
       _.forEach(addThreats, val2 => {
         if (val.toUpperCase() === val2.severity) {
-          if (requestData[val]) {
-            requestData[val].push(val2);
-          } else {
-            requestData[val] = [val2];
+          if (val2.type) {
+            if (formattedData[val]) {
+              formattedData[val].push({
+                input: val2.input,
+                type: val2.type + 'Array'
+              });
+            } else {
+              formattedData[val] = [{
+                input: val2.input,
+                type: val2.type + 'Array'
+              }];
+            }
+          } else { //Threats type is missing
+            validation = false;
+            return false;
           }
         }
       })
     })
 
-    console.log(requestData);
+    if (validation) {
+      this.setState({ //Threats input and type are valid
+        info: ''
+      });
+    } else { //Prompt to the user if threats input is invalid
+      this.setState({
+        addThreats: tempAddThreats,
+        info: t('edge-management.txt-edgeFormatError')
+      });
+      return;
+    }
 
-    // _.forEach(requestData, (val, key) => {
-    //   formData.append(key, val.toString());
-    // })
+    _.forEach(formattedData, (val, key) => { //Create requestData object for aggregated input data
+      requestData[key] = {};
 
-    // this.ah.one({
-    //   url: `${baseUrl}/api/indicators`,
-    //   data: formData,
-    //   type: 'POST',
-    //   processData: false,
-    //   contentType: false
-    // })
-    // .then(data => {
-    //   if (data) {
-    //     this.setState({
-    //       addThreatsOpen: false
-    //     });
-    //   }
-    //   return null;
-    // })
-    // .catch(err => {
-    //   helper.showPopupMsg('', t('txt-error'), err.message);
-    // })
+      _.forEach(val, val2 => {
+        if (requestData[key][val2.type]) {
+          requestData[key][val2.type].push(val2.input);
+        } else {
+          requestData[key][val2.type] = [val2.input];
+        }
+      })
+    })
+
+    _.forEach(requestData, (val, key) => { //Generate formData for multiple APIs call
+      let formData = new FormData();
+      formData.append('severity', key.toUpperCase());
+
+      _.forEach(val, (val2, key2) => {
+        formData.append(key2, val2.toString());
+      })
+
+      this.ah.one({
+        url: `${baseUrl}/api/indicators`,
+        data: formData,
+        type: 'POST',
+        processData: false,
+        contentType: false
+      })
+      .then(data => {
+        if (data) {
+          helper.showPopupMsg(t('edge-management.txt-addSuccess'));
+
+          this.setState({ //Clear threats info and error msg
+            addThreatsOpen: false,
+            addThreats: [],
+            info: ''
+          });
+        }
+        return null;
+      })
+      .catch(err => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
+      })
+    })
   }
   /**
    * Toggle search content on/off
@@ -611,23 +644,56 @@ class ThreatIntelligence extends Component {
    * Get and set Threats table data
    * @method
    * @param {string} fromSearch - option for the 'search'
+   * @param {string} type - option for 'delete'
+   * @param {object} allValue - threats data
    */
-  handleThreatsSearch = (fromSearch) => {
+  handleThreatsSearch = (fromSearch, type, allValue) => {
     const {baseUrl, contextRoot} = this.context;
     const {threatsSearch, threats} = this.state;
-    const url = `${baseUrl}/api/indicators/_search?text=${threatsSearch.keyword}&threatTypeArray=${threatsSearch.type}&page=${threats.currentPage}&pageSize=${threats.pageSize}`;
 
     if (!threatsSearch.keyword) {
       helper.showPopupMsg(t('txt-plsEnterKeyword'));
       return;
     }
 
-    this.ah.one({
-      url,
-      type: 'GET'
-    })
+    let apiArr = [
+      {
+        url: `${baseUrl}/api/indicators/_search?text=${threatsSearch.keyword}&threatTypeArray=${threatsSearch.type}&page=${threats.currentPage}&pageSize=${threats.pageSize}`,
+        type: 'GET'
+      }
+    ];
+
+    //Combine the two APIs to show the loading icon
+    if (type === 'delete') { //For deleting threat
+      apiArr.unshift({
+        url: `${baseUrl}/api/indicator?id=${allValue.id}&threatType=${allValue.threatType}`,
+        type: 'DELETE'
+      });
+    }
+
+    ah.series(apiArr)
     .then(data => {
       if (data) {
+        if (type === 'delete') {
+          if (data[0] && data[0].ret === 0) {
+            let tempThreats = {...threats};
+            tempThreats.dataContent = [];
+            tempThreats.totalCount = 0;
+            tempThreats.sort = {
+              field: 'threatText',
+              desc: false
+            };
+
+            this.setState({
+              threats: tempThreats
+            }, () => {
+              data = data[1].rt;
+            });
+          }
+        } else {
+          data = data[0].rt;
+        }
+
         let tempThreats = {...threats};
         tempThreats.dataContent = data[threatsSearch.type].rows;
         tempThreats.totalCount = data[threatsSearch.type].counts;
@@ -639,14 +705,18 @@ class ThreatIntelligence extends Component {
             label: tempData === '_menu' ? '' : f(`threatsTableFields.${tempData}`),
             sortable: tempData === '_menu' ? null : true,
             formatter: (value, allValue, i) => {
-              if (tempData === 'createDttm') {
+              if (tempData === 'threatText' && allValue.score === -999) {
+                return <span style={{'text-decoration': 'line-through'}}>{value}</span>
+              } else if (tempData === 'createDttm') {
                 return <span>{helper.getFormattedDate(value, 'local')}</span>
               } else if (tempData === '_menu') {
-                return (
-                  <div className='table-menu menu active'>
-                    <i className='fg fg-trashcan' onClick={this.openDeleteThreats.bind(this, allValue)} title={t('txt-delete')}></i>
-                  </div>
-                )
+                if (allValue.score !== -999) {
+                  return (
+                    <div className='table-menu menu active'>
+                      <i className='fg fg-trashcan' onClick={this.openDeleteThreats.bind(this, allValue)} title={t('txt-delete')}></i>
+                    </div>
+                  )
+                }
               } else {
                 return <span>{value}</span>
               }
@@ -688,33 +758,9 @@ class ThreatIntelligence extends Component {
       ),
       act: (confirmed) => {
         if (confirmed) {
-          this.deleteThreats(allValue)
+          this.handleThreatsSearch('', 'delete', allValue);
         }
       }
-    })
-  }
-  /**
-   * Handle delete threats confirm
-   * @method
-   * @param {object} allValue - threats data
-   */
-  deleteThreats = (allValue) => {
-    const {baseUrl} = this.context;
-
-    if (!allValue.id) {
-      return;
-    }
-
-    this.ah.one({
-      url: `${baseUrl}/api/indicator?id=${allValue.id}&threatType=${allValue.threatType}`,
-      type: 'DELETE'
-    })
-    .then(data => {
-      this.handleThreatsSearch();
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
   /**
@@ -754,13 +800,12 @@ class ThreatIntelligence extends Component {
               id='threatsSearchType'
               list={[
                 {value: 'IP', text: 'IP'},
-                {value: 'DOMAIN', text: 'Domain'},
+                {value: 'DOMAIN', text: 'DomainName'},
                 {value: 'URL', text: 'URL'},
-                {value: 'FILEHASH', text: 'FileHash'},
-                {value: 'CERT', text: 'Cert'},
-                {value: 'SNORT', text: 'Snort'},
-                {value: 'YARA', text: 'Yara'},
-                {value: 'DOMAINWHITE', text: 'Domain White'}
+                {value: 'SNORT', text: 'SNORT'},
+                {value: 'YARA', text: 'YARA'},
+                {value: 'CERT', text: 'Certification'},
+                {value: 'FILEHASH', text: 'FileHash'}
               ]}
               required={true}
               value={threatsSearch.type}

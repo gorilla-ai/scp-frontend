@@ -69,6 +69,7 @@ class AddThreats extends Component {
         <Input
           id='addThreatsText'
           className={cx({'error': !value.validate})}
+          required={true}
           value={value.input}
           onChange={this.handleDataChange.bind(this, 'input')} />
         <label htmlFor='addThreatsType'></label>
@@ -94,7 +95,7 @@ class AddThreats extends Component {
         <label htmlFor='addThreatsSeverity'></label>  
         <DropDownList
           id='addThreatsSeverity'
-          className='severity'
+          className={'severity ' + value.severity.toLowerCase()}
           list={severityList}
           required={true}
           value={value.severity}
