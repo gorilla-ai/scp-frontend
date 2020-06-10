@@ -1008,7 +1008,7 @@ class ThreatsController extends Component {
             }
           })
 
-          label = <span title={key}><i className={'fg fg-recode ' + key} /> {key} ({totalHostCount}) <button className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, '')}>{t('events.connections.txt-addFilter')}</button></span>;
+          label = <span title={key}><i className={'fg fg-recode ' + key.toLowerCase()} /> {key} ({totalHostCount}) <button className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, '')}>{t('events.connections.txt-addFilter')}</button></span>;
 
           let treeProperty = {
             id: key,
@@ -1068,7 +1068,7 @@ class ThreatsController extends Component {
               let nodeClass = 'fg fg-recode';
 
               if (val._severity_) {
-                nodeClass += ' ' + val._severity_;
+                nodeClass += ' ' + val._severity_.toLowerCase();
               }
 
               label = <span title={val.key}><i className={nodeClass} />{val.key} ({val.doc_count}) <button className={cx('button', {'active': treeName === val.key})} onClick={this.selectTree.bind(this, val.key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</button></span>;
@@ -1084,7 +1084,7 @@ class ThreatsController extends Component {
         let nodeClass = 'fg fg-recode';
 
         if (treeData[key]._severity_) {
-          nodeClass += ' ' + treeData[key]._severity_;
+          nodeClass += ' ' + treeData[key]._severity_.toLowerCase();
         }
 
         label = <span title={key}><i className={nodeClass} style={this.showSeverity(treeData[key]._severity_)}/> {key} ({treeData[key].doc_count}) <button className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</button></span>;
