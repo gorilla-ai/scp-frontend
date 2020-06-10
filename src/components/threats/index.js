@@ -920,6 +920,23 @@ class ThreatsController extends Component {
     });
   }
   /**
+   * Get tree label
+   * @method
+   * @param {string} text - tree node name
+   * @param {string} query - search query
+   * @param {string} currentTreeName - current tree node name
+   * @param {number} count - tree node length
+   */
+  getTreeLabel = (text, query, currentTreeName, count) => {
+    let serviceCount = '';
+
+    if (!isNaN(count)) {
+      serviceCount = ' (' + count + ')';
+    }
+
+    return <span title={text}>{text}{serviceCount}<button className={cx('button', {'active': currentTreeName === text})} onClick={this.selectTree.bind(this, text, query)}>{t('events.connections.txt-addFilter')}</button></span>;
+  }
+  /**
    * Set the alert tree data
    * @method
    * @param {string} treeData - alert tree data
@@ -965,23 +982,19 @@ class ThreatsController extends Component {
             if (key === 'doc_count') {
               totalHostCount += val;
             } else {
-              label = <span title={key}>{key} ({val.doc_count}) <button className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, '')}>{t('events.connections.txt-addFilter')}</button></span>;
-
               if (_.size(val) === 1) {
                 tempChild.push({
                   id: key,
-                  label
+                  label: this.getTreeLabel(key, '', treeName, val.doc_count)
                 });
               } else {
                 let tempChild2 = [];
 
                 _.forEach(val, (val2, key2) => {
                   if (key2 !== 'doc_count') {
-                    label2 = <span title={key2}>{key2} ({val2.doc_count}) <button className={cx('button', {'active': treeName === key2})} onClick={this.selectTree.bind(this, key2, '')}>{t('events.connections.txt-addFilter')}</button></span>;
-
                     tempChild2.push({
                       id: key2,
-                      label: label2
+                      label: this.getTreeLabel(key2, '', treeName, val2.doc_count)
                     });
                   }
                 })
@@ -1052,7 +1065,13 @@ class ThreatsController extends Component {
         if (treeData[key][path].buckets.length > 0) {
           _.forEach(treeData[key][path].buckets, val => {
             if (val.key) {
-              label = <span title={val.key}><i className={'fg fg-recode ' + val._severity_} />{val.key} ({val.doc_count}) <button className={cx('button', {'active': treeName === val.key})} onClick={this.selectTree.bind(this, val.key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</button></span>;
+              let nodeClass = 'fg fg-recode';
+
+              if (val._severity_) {
+                nodeClass += ' ' + val._severity_;
+              }
+
+              label = <span title={val.key}><i className={nodeClass} />{val.key} ({val.doc_count}) <button className={cx('button', {'active': treeName === val.key})} onClick={this.selectTree.bind(this, val.key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</button></span>;
 
               tempChild.push({
                 id: val.key,
@@ -1062,7 +1081,13 @@ class ThreatsController extends Component {
           })
         }
 
-        label = <span title={key}><i className={'fg fg-recode ' + treeData[key]._severity_} style={this.showSeverity(treeData[key]._severity_)}/> {key} ({treeData[key].doc_count}) <button className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</button></span>;
+        let nodeClass = 'fg fg-recode';
+
+        if (treeData[key]._severity_) {
+          nodeClass += ' ' + treeData[key]._severity_;
+        }
+
+        label = <span title={key}><i className={nodeClass} style={this.showSeverity(treeData[key]._severity_)}/> {key} ({treeData[key].doc_count}) <button className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</button></span>;
 
         treeProperty = {
           id: key,
@@ -1103,11 +1128,9 @@ class ThreatsController extends Component {
       if (key && key !== 'doc_count') {
         _.forEach(treeData[path].buckets, val => {
           if (val.key) {
-            label = <span title={val.key}>{val.key} ({val.doc_count}) <button className={cx('button', {'active': treeName === val.key})} onClick={this.selectTree.bind(this, val.key, 'srcCountry')}>{t('events.connections.txt-addFilter')}</button></span>;
-
             treeObj.children.push({
               id: val.key,
-              label
+              label: this.getTreeLabel(val.key, 'srcCountry', treeName, val.doc_count)
             });
           }
         })
@@ -1495,42 +1518,42 @@ class ThreatsController extends Component {
    */
   renderTabContent = () => {
     const {activeTab} = this.state;
-    const polarChartParams = {
-      chart: {
-        polar: true,
-        type: 'line'
-      },
-      title: {
-        text: ''
-      },
-      credits: {
-        enabled: false
-      },
-      xAxis: {
-        categories: ['GCB', 'Scan File', 'OS Version', 'NetProbe/NetTrap', 'NetFlow'],
-        tickmarkPlacement: 'on',
-        lineWidth: 0
-      },
-      yAxis: {
-        gridLineInterpolation: 'polygon',
-        lineWidth: 0,
-        min: 0
-      },
-      legend: {
-        align: 'right',
-        verticalAlign: 'top',
-        layout: 'vertical'
-      },
-      series: [{
-        name: 'Data 1',
-        data: [5, 3, 5, 2, 4],
-        pointPlacement: 'on'
-      }, {
-        name: 'Data 2',
-        data: [3, 2, 3, 4, 0],
-        pointPlacement: 'on'
-      }]
-    };
+    // const polarChartParams = {
+    //   chart: {
+    //     polar: true,
+    //     type: 'line'
+    //   },
+    //   title: {
+    //     text: ''
+    //   },
+    //   credits: {
+    //     enabled: false
+    //   },
+    //   xAxis: {
+    //     categories: ['GCB', 'Scan File', 'OS Version', 'NetProbe/NetTrap', 'NetFlow'],
+    //     tickmarkPlacement: 'on',
+    //     lineWidth: 0
+    //   },
+    //   yAxis: {
+    //     gridLineInterpolation: 'polygon',
+    //     lineWidth: 0,
+    //     min: 0
+    //   },
+    //   legend: {
+    //     align: 'right',
+    //     verticalAlign: 'top',
+    //     layout: 'vertical'
+    //   },
+    //   series: [{
+    //     name: 'Data 1',
+    //     data: [5, 3, 5, 2, 4],
+    //     pointPlacement: 'on'
+    //   }, {
+    //     name: 'Data 2',
+    //     data: [3, 2, 3, 4, 0],
+    //     pointPlacement: 'on'
+    //   }]
+    // };
     const mainContentData = {
       activeTab,
       chartColors: ALERT_LEVEL_COLORS,
@@ -1565,8 +1588,8 @@ class ThreatsController extends Component {
       paginationPageSize: this.state.pageSize,
       paginationCurrentPage: this.state.currentPage,
       paginationPageChange: this.handlePaginationChange,
-      paginationDropDownChange: this.handlePageDropdown,
-      polarChartParams
+      paginationDropDownChange: this.handlePageDropdown
+      //polarChartParams
     };
 
     return (

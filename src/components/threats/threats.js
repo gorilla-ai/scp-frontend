@@ -43,7 +43,7 @@ class Threats extends Component {
     const {mainContentData} = this.props;
 
     if (mainContentData.activeSubTab === 'statistics') {
-      Highcharts.chart(this.chartNode, mainContentData.polarChartParams);
+      //Highcharts.chart(this.chartNode, mainContentData.polarChartParams);
     }
   }
   /**
@@ -168,10 +168,10 @@ class Threats extends Component {
                 <div className='charts'>
                   {mainContentData.alertChartsList.map(this.displayCharts)}
 
-                  <div className='chart-group c-box'>
+                  {/*<div className='chart-group c-box'>
                     <header className='main-header'>HMD Comparsion</header>
                     <div ref={node => { this.chartNode = node }}></div>
-                  </div>
+                  </div>*/}
                 </div>
               </div>
             }

@@ -110,11 +110,6 @@ class Syslog extends Component {
       currentHostData: ''
     };
 
-
-
-
-
-
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
     et = global.chewbaccaI18n.getFixedT(null, 'errors')
@@ -440,23 +435,14 @@ class Syslog extends Component {
    * @param {object} val - syslog data
    */
   openNewSyslog = (type, val) => {
-    let config = {};
+    let config = _.cloneDeep(INIT_CONFIG);
 
-    if (type === 'new') {
-      config = INIT_CONFIG;
-    } else if (type === 'edit-exist') {
-      config = {
-        hostIP: val.ip
-      };
+    if (type === 'edit-exist') {
+      config.hostIP = val.ip;
     }
 
     this.setState({
-      config: {
-        type: 'formatSettings',
-        input: DEFAULT_INPUT,
-        pattern: DEFAULT_PATTERN,
-        ...config
-      }
+      config
     }, () => {
       this.toggleContent('editSyslog', type);
     });
@@ -476,7 +462,7 @@ class Syslog extends Component {
 
     if (!id) { //Add new syslog
       this.setState({
-        config: INIT_CONFIG
+        config: _.cloneDeep(INIT_CONFIG)
       });
       return;
     }

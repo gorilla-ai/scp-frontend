@@ -318,6 +318,8 @@ const helper = {
 
     if (type === 'snort') {
       return data.indexOf('sid') > 0 ? true : false;
+    } else if (type === 'yara') {
+      return true;
     }
 
     if (type === 'ip') {

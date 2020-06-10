@@ -137,7 +137,7 @@ class SearchOptions extends Component {
   handleIntervalConfirm = () => {
     this.props.handleDateChange({
       from: this.getCalculatedTime(this.props.searchInput.searchInterval),
-      to: Moment().local().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
     });
   }
   /**
@@ -147,7 +147,7 @@ class SearchOptions extends Component {
    */
   showDataRange = () => {
     const {locale} = this.context;
-    const {enableTime} = this.props;
+    const {enableTime, datetime} = this.props;
 
     return (
       <DateRange
@@ -155,7 +155,7 @@ class SearchOptions extends Component {
         className='daterange'
         onChange={this.props.handleDateChange}
         enableTime={enableTime}
-        value={this.props.datetime}
+        value={datetime}
         locale={locale}
         t={et} />
     )
@@ -168,8 +168,7 @@ class SearchOptions extends Component {
    */
   getInputWidth = (type) => {
     const {locale} = this.context;
-    const {searchInput} = this.props;
-    const searchType = searchInput.searchType;
+    const searchType = this.props.searchInput.searchType;
 
     if (searchType === 'manual') {
       return '110px';

@@ -216,16 +216,14 @@ class SyslogController extends Component {
     const {baseUrl} = this.context;
 
     this.ah.one({
-      url: `${baseUrl}/api/u1/log/event/_event_source_tree`,
+      url: `${baseUrl}/api/u2/log/event/_event_source_tree`,
       type: 'GET'
     }, {showProgress: false})
     .then(data => {
       if (data) {
-        const treeObj = this.getTreeData(data);
-
         this.setState({
           treeRawData: data,
-          treeData: treeObj
+          treeData: this.getTreeData(data)
         });
       }
       return null;
@@ -753,6 +751,23 @@ class SyslogController extends Component {
     });
   }
   /**
+   * Get tree label
+   * @method
+   * @param {string} text - tree node name
+   * @param {string} query - search query
+   * @param {string} currentTreeName - current tree node name
+   * @param {number} count - tree node length
+   */
+  getTreeLabel = (text, query, currentTreeName, count) => {
+    let serviceCount = '';
+
+    if (!isNaN(count)) {
+      serviceCount = ' (' + count + ')';
+    }
+
+    return <span title={text}>{text}{serviceCount}<button className={cx('button', {'active': currentTreeName === text})} onClick={this.selectTree.bind(this, text, query)}>{t('events.connections.txt-addFilter')}</button></span>;
+  }
+  /**
    * Set the netflow tree data
    * @method
    * @param {string} treeData - alert tree data
@@ -772,20 +787,32 @@ class SyslogController extends Component {
       let label = '';
 
       if (key) {
-        _.forEach(val, val2 => {
-          label = <span title={val2}>{val2} <button className={cx('button', {'active': currentTreeName === val2})} onClick={this.selectTree.bind(this, val2, '_host')}>{t('events.connections.txt-addFilter')}</button></span>;
+        let i = 0;
+
+        _.forEach(val, (val2, key2) => {
+          let tempChild2 = [];
+          i++;
+
+          _.forEach(val2, val3 => {
+            tempChild2.push({
+              id: val3,
+              label: this.getTreeLabel(val3, '_host', currentTreeName)
+            });
+          })
 
           tempChild.push({
-            id: val2,
-            label
+            id: key2,
+            label: this.getTreeLabel(key2, 'configSource', currentTreeName, val2.length)
           });
-        })
 
-        label = <span title={key}>{key} ({val.length}) <button className={cx('button', {'active': currentTreeName === key})} onClick={this.selectTree.bind(this, key, 'configSource')}>{t('events.connections.txt-addFilter')}</button></span>;
+          if (tempChild2.length > 0) {
+            tempChild[tempChild.length - 1].children = tempChild2;
+          }
+        })
 
         let treeProperty = {
           id: key,
-          label
+          label: this.getTreeLabel(key, 'LoghostIp', currentTreeName, i)
         };
 
         if (tempChild.length > 0) {
@@ -793,7 +820,7 @@ class SyslogController extends Component {
         }
 
         treeObj.children.push(treeProperty);
-        allServiceCount += val.length;
+        allServiceCount += i;
       }
     })
 

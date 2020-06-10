@@ -571,13 +571,15 @@ class ThreatIntelligence extends Component {
       })
       .then(data => {
         if (data) {
-          helper.showPopupMsg(t('edge-management.txt-addSuccess'));
+          if (addThreats.length > 0) {
+            helper.showPopupMsg(t('edge-management.txt-addSuccess'));
 
-          this.setState({ //Clear threats info and error msg
-            addThreatsOpen: false,
-            addThreats: [],
-            info: ''
-          });
+            this.setState({ //Clear threats info and error msg
+              addThreatsOpen: false,
+              addThreats: [],
+              info: ''
+            });
+          }
         }
         return null;
       })
