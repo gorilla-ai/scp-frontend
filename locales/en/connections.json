@@ -201,6 +201,9 @@
   "txt-linkAnalysis": "Link Analysis",
   "txt-map": "Map",  
 
+  "txt-decoder": "Decoder",
+  "txt-protocol": "Protocol",
+
   "dashboard": {
     "txt-alertIndicator": "Alert Summary",
     "txt-privateAlert": "Latest 10 Private Alert",

@@ -206,7 +206,10 @@ class Network extends Component {
       currentTableIndex: '',
       currentLength: '',
       currentTableID: '',
-      loadNetworkData: true
+      loadNetworkData: true,
+      openChartKpi: false,
+      payloadKpi: null,
+      protocols: []
     };
 
     this.ah = getInstance('chewbacca');
@@ -676,7 +679,8 @@ class Network extends Component {
         sessionHistogram: data[0].sessionHistogram,
         packageHistogram: data[0].packageHistogram,
         byteHistogram: data[0].byteHistogram,
-        currentLength
+        currentLength,
+        payloadKpi: this.toQueryLanguage(options)
       });
     })
     .catch(err => {
@@ -2067,7 +2071,8 @@ class Network extends Component {
   }
   renderTabContent = () => {
     const {baseUrl, contextRoot, language, searchFields} = this.props;
-    const {activeTab, tableMouseOver} = this.state;
+    const {activeTab, tableMouseOver, openChartKpi} = this.state;
+    
     const mainContentData = {
       allTabData: ALL_TAB_DATA,
       searchFields,
@@ -2118,7 +2123,10 @@ class Network extends Component {
       paginationPageChange: this.handlePageChange,
       paginationDropDownChange: this.handlePageDropdown,
       paginationAlertPageChange: this.handleLargePageChange,
-      paginationAlertDropDownChange: this.handleLargePageDropdown
+      paginationAlertDropDownChange: this.handleLargePageDropdown,
+      openChartKpi,
+      toggleChartKpi: this.toggleChartKpi,
+      protocols: this.state.protocols
     };
 
     if (activeTab === 'connections') {
@@ -2241,6 +2249,33 @@ class Network extends Component {
       showChart: !this.state.showChart
     });
   }
+  toggleChartKpi = () => {
+    const {baseUrl} = this.props
+    const {projectID, openChartKpi, payloadKpi} = this.state
+    const projectIDstring = this.getProjectURL(projectID);
+
+    if (openChartKpi) { // close
+      this.setState({openChartKpi: false})
+    }
+    else { // open
+      ah.one({
+        url: `${baseUrl}/api/network/session/statistic/protocol?${projectIDstring}`,
+        data: JSON.stringify(payloadKpi),
+        type: 'POST',
+        contentType: 'text/plain'
+      })
+      .then(data => {
+        const protocols = _.map(data.rt, (v, k) => {
+          return {decoder: k, protocol: v.toString()}
+        })
+
+        this.setState({protocols, openChartKpi: true})
+      })
+      .catch(err => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
+      })
+    }
+  }
   clearTagData = () => {
     const tagData = {
       id: '',
@@ -2340,7 +2375,8 @@ class Network extends Component {
       filterData,
       pcapOpen,
       showChart,
-      showFilter
+      showFilter,
+      openChartKpi
     } = this.state;
     let filterDataCount = 0;
 
@@ -2382,7 +2418,19 @@ class Network extends Component {
           <div className='secondary-btn-group'>
             <button onClick={this.getCSVfile} title={t('network.connections.txt-exportCSV')}><i className='fg fg-data-download'></i></button>
             <button onClick={this.toggleFilter} className={cx({'active': showFilter})} title={t('network.connections.txt-toggleFilter')}><i className='fg fg-filter'></i><span>({filterDataCount})</span></button>
-            <button onClick={this.toggleChart} className={cx('last', {'active': showChart})} disabled={activeTab !== 'connections'} title={t('network.connections.txt-toggleChart')}><i className='fg fg-chart-columns'></i></button>
+            {
+              activeTab !== 'connections' && 
+              <button onClick={this.toggleChart} className={cx('last', {'active': showChart})} disabled={activeTab !== 'connections'} title={t('network.connections.txt-toggleChart')}><i className='fg fg-chart-columns'></i></button>
+            }
+            {
+              activeTab === 'connections' && 
+              <button onClick={this.toggleChart} className={cx({'active': showChart})} disabled={activeTab !== 'connections'} title={t('network.connections.txt-toggleChart')}><i className='fg fg-chart-columns'></i></button>
+            }
+            {
+              activeTab === 'connections' &&
+              <button onClick={this.toggleChartKpi} className={cx('last', {'active': openChartKpi})} ><i className='fg fg-chart-kpi'/></button>
+            }
+
           </div>
         </div>
 

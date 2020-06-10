@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 
 import Gis from 'react-gis/build/src/components'
+import Table from 'react-ui/build/src/components/table'
 import Tabs from 'react-ui/build/src/components/tabs'
 import Timebar from 'react-timebar/build/src/components'
 
@@ -15,6 +16,7 @@ import Statistic from './statistic'
 import VbdaLA from 'vbda-ui/build/src/components/analysis/la'
 
 import withLocale from '../../../hoc/locale-provider'
+
 
 let t = null;
 
@@ -35,6 +37,18 @@ class Connections extends Component {
             {...mainContentData} />
 
           <div className='data-table'>
+            {
+              mainContentData.openChartKpi &&
+              <div className='table-kpi'>
+                <i className='c-link fg fg-close' title={t('txt-close')} onClick={mainContentData.toggleChartKpi} />
+                <Table data={mainContentData.protocols} 
+                  fields={{
+                    decoder: { label: t('txt-decoder'), style: {textAlign: 'left', width: '15%'} },
+                    protocol: { label: t('txt-protocol'), style: {textAlign: 'left', width: '85%'} }
+                  }}/>
+              </div>
+            }
+
             <FilterContent
               {...mainContentData} />
 

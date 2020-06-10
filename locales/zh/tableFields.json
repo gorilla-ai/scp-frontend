@@ -107,7 +107,8 @@
         "status-term": "DNS STATUS Term"
     },
     "icmpType": "ICMP Type",
-    "icmpCode": "ICMP Code"
+    "icmpCode": "ICMP Code",
+    "decoderType": "解譯器"
   },
   "dnsFields": {
     "_tableMenu_": "",

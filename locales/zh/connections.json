@@ -201,6 +201,9 @@
   "txt-linkAnalysis": "關聯",
   "txt-map": "地圖",
 
+  "txt-decoder": "解碼器",
+  "txt-protocol": "協定",
+
   "dashboard": {
     "txt-alertIndicator": "告警指標種類摘要",
     "txt-privateAlert": "最新10筆內部告警",
