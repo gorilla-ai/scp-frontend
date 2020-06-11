@@ -209,7 +209,8 @@ class Network extends Component {
       loadNetworkData: true,
       openChartKpi: false,
       payloadKpi: null,
-      protocols: []
+      protocols: [],
+      decoders: []
     };
 
     this.ah = getInstance('chewbacca');
@@ -2126,7 +2127,8 @@ class Network extends Component {
       paginationAlertDropDownChange: this.handleLargePageDropdown,
       openChartKpi,
       toggleChartKpi: this.toggleChartKpi,
-      protocols: this.state.protocols
+      protocols: this.state.protocols,
+      decoders: this.state.decoders
     };
 
     if (activeTab === 'connections') {
@@ -2265,11 +2267,28 @@ class Network extends Component {
         contentType: 'text/plain'
       })
       .then(data => {
-        const protocols = _.map(data.rt, (v, k) => {
-          return {decoder: k, protocol: v.toString()}
+        let protocols = []
+        _.forEach(data.rt, (v, k) => {
+          _.forEach(v, el => {
+            protocols.push(el)
+          })
+        })
+        protocols = _.orderBy(_.uniq(protocols))
+
+        let decoders = _.map(data.rt, (v, k) => {
+          return k
         })
 
-        this.setState({protocols, openChartKpi: true})
+        let tableData = _.map(protocols, p => {
+          let row = {protocol: p}
+          _.forEach(decoders, d => {
+            row[d] = _.includes(data.rt[d], p)
+          })
+  
+          return row
+        })
+
+        this.setState({protocols: tableData, decoders, openChartKpi: true})
       })
       .catch(err => {
         helper.showPopupMsg('', t('txt-error'), err.message);

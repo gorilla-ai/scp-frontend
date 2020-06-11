@@ -29,6 +29,15 @@ class Connections extends Component {
   render() {
     const {baseUrl, contextRoot, language, mainContentData, tabChartData, tableMouseOver} = this.props;
     const assetsPath = `${contextRoot}/lib/keylines/assets/`;
+    const FIELDS = {
+      protocol: { label: t('txt-protocol'), style: {textAlign: 'left'}, sortable: true }
+    }
+
+    _.forEach(mainContentData.decoders, el => {
+      FIELDS[el] = { label: el, style: {textAlign: 'left'}, sortable: true, formatter: (val) => {
+        return val ? <i className='fg fg-check'/> : ''
+      }}
+    })
 
     return (
       <div>
@@ -41,11 +50,7 @@ class Connections extends Component {
               mainContentData.openChartKpi &&
               <div className='table-kpi'>
                 <i className='c-link fg fg-close' title={t('txt-close')} onClick={mainContentData.toggleChartKpi} />
-                <Table data={mainContentData.protocols} 
-                  fields={{
-                    decoder: { label: t('txt-decoder'), style: {textAlign: 'left', width: '15%'} },
-                    protocol: { label: t('txt-protocol'), style: {textAlign: 'left', width: '85%'} }
-                  }}/>
+                <Table data={mainContentData.protocols} fields={FIELDS}/>
               </div>
             }
 
