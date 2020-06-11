@@ -844,7 +844,7 @@ class AlertDetails extends Component {
 
     return (
       <div>
-        <table className='c-table main-table top-info align-center'>
+        <table className='c-table main-table align-center with-border'>
           <thead>
             <tr>
               <th>{f('alertFields._severity_')}</th>
@@ -856,18 +856,18 @@ class AlertDetails extends Component {
           </thead>
           <tbody>
             <tr>
-              <td className='align-center severity-level'>{severity}</td>
-              <td className='align-center collector'>{alertData.Collector || NOT_AVAILABLE}</td>
-              <td className='align-center trigger'>{alertData.Trigger || NOT_AVAILABLE}</td>
-              <td className='align-center source'>{alertData.Source || NOT_AVAILABLE}</td>
-              <td className='align-center datetime'>{eventDatetime}</td>
+              <td className='severity-level'>{severity}</td>
+              <td className='collector'>{alertData.Collector || NOT_AVAILABLE}</td>
+              <td className='trigger'>{alertData.Trigger || NOT_AVAILABLE}</td>
+              <td className='source'>{alertData.Source || NOT_AVAILABLE}</td>
+              <td className='datetime'>{eventDatetime}</td>
             </tr>
           </tbody>
         </table>
 
         <div className='alert-info'>{this.showAlertContent()}</div>
 
-        <table className='c-table main-table top-info align-center'>
+        <table className='c-table main-table align-center with-border'>
           <thead>
             <tr>
               <th>{f('alertFields.srcIp')}</th>
@@ -879,11 +879,11 @@ class AlertDetails extends Component {
           </thead>
           <tbody>
             <tr>
-              <td className='align-center src-ip'>{this.getIpPortData('srcIp')}</td>
-              <td className='align-center src-port'>{this.getIpPortData('srcPort')}</td>
-              <td className='align-center dest-ip'>{this.getIpPortData('destIp')}</td>
-              <td className='align-center dest-port'>{this.getIpPortData('destPort')}</td>
-              <td className='align-center protocol'>{alertData.proto || alertData.p || NOT_AVAILABLE}</td>
+              <td className='src-ip'>{this.getIpPortData('srcIp')}</td>
+              <td className='src-port'>{this.getIpPortData('srcPort')}</td>
+              <td className='dest-ip'>{this.getIpPortData('destIp')}</td>
+              <td className='dest-port'>{this.getIpPortData('destPort')}</td>
+              <td className='protocol'>{alertData.proto || alertData.p || NOT_AVAILABLE}</td>
             </tr>
           </tbody>
         </table>

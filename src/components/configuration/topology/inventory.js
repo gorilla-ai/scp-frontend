@@ -1425,7 +1425,7 @@ class NetworkInventory extends Component {
 
     return (
       <div>
-        <table className='c-table main-table with-border'>
+        <table className='c-table main-table align-center with-border'>
           <thead>
             <tr>
               <th>{t('ipFields.ip')}</th>

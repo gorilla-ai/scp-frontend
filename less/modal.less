@@ -152,6 +152,24 @@ html[data-theme='dark'] {
   }
 }
 .modal-dialog {
+  .main-table {
+    width: 100%;
+    border-radius: 5px;
+    overflow: hidden;
+    thead tr {
+      color: var(--primaryContentHeader);
+      background-color: var(--primaryContentBackground);
+    }
+    tbody td:hover {
+      cursor: text;
+    }
+    &.with-border {
+      th, td {
+        padding: 10px !important;
+        border: 1px solid var(--primaryBorder) !important;
+      }
+    }
+  }
   .content {
     padding: 10px;
   }
@@ -491,10 +509,6 @@ html[data-theme='dark'] {
   .main-table {
     thead {
       border-top: 1px solid var(--primaryBorder);
-      tr {
-        color: var(--primaryContentHeader);
-        background-color: var(--primaryContentBackground);
-      }
     }
     tbody {
       tr.align-center td {
@@ -690,53 +704,36 @@ html[data-theme='dark'] {
   width: 1280px;
   max-height: 725px;
   .main-table {
-    width: 100%;
-    border-radius: 5px;
-    overflow: hidden;
-    thead tr {
-      color: var(--primaryContentHeader);
-      background-color: var(--primaryContentBackground);
+    td {
+      &.severity-level,
+      &.collector,
+      &.trigger {
+        width: 15%;
+      }
+      &.datetime {
+        width: 20%;
+      }
+      &.source {
+        width: 35%;
+      }
+      &.src-ip,
+      &.dest-ip,
+      &.src-port,
+      &.dest-port {
+        width: 20%;
+      }
+      &.protocol {
+        width: 10%;
+      }
     }
-    tbody td:hover {
-      cursor: text;
-    }
-    &.top-info {
-      th, td {
-        padding: 10px !important;
-        border: 1px solid var(--primaryBorder) !important;
-      }
-      .align-center {
-        text-align: center;
-        &.severity-level,
-        &.collector,
-        &.trigger {
-          width: 15%;
-        }
-        &.datetime {
-          width: 20%;
-        }
-        &.source {
-          width: 35%;
-        }
-        &.src-ip,
-        &.dest-ip,
-        &.src-port,
-        &.dest-port {
-          width: 20%;
-        }
-        &.protocol {
-          width: 10%;
-        }
-      }
-      .severity {
-        display: block;
-        color: #fff;
-        width: 90px;
-        padding: 2px;
-        margin: 0 auto;
-        text-align: center;
-        border-radius: 10px;
-      }
+    .severity {
+      display: block;
+      color: #fff;
+      width: 90px;
+      padding: 2px;
+      margin: 0 auto;
+      text-align: center;
+      border-radius: 10px;
     }
   }
   .alert-info {
@@ -965,17 +962,6 @@ html[data-theme='dark'] {
 /* configuration/topology/inventory */
 #configScanModalDialog-content {
   width: 1280px;
-  .main-table {
-    border-radius: 5px;
-    width: 100%;
-    overflow: hidden;
-    &.with-border {
-      th, td {
-        padding: 10px !important;
-        border: 1px solid var(--primaryBorder) !important;
-      }
-    }
-  }
   .scan-info {
     min-height: 550px;
     .info-content {
