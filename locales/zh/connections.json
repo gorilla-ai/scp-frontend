@@ -142,6 +142,8 @@
   "txt-configModule": "設定模組",
   "txt-host": "主機",
   "txt-settings": "設定",
+  "txt-item": "項目",
+  "txt-score": "評分",
   "txt-maxDataMsg": "資料筆數最大為10,000筆",
   "txt-es-data-over-limit": "超出搜尋範圍，請修改查詢條件",
 
@@ -484,7 +486,8 @@
       "txt-yara": "Scan Process",
       "txt-scanFile": "Scan File",
       "txt-gcb": "GCB",
-      "txt-ir": "IR"
+      "txt-ir": "IR",
+      "txt-fileIntegrity": "File Integrity"
     },
     "ir-type": {
       "txt-quick": "快速採證",

@@ -1,5 +1,7 @@
 import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
+import Highcharts from 'highcharts'
+import HighchartsMore from 'highcharts/highcharts-more'
 import PropTypes from 'prop-types'
 import Moment from 'moment'
 import _ from 'lodash'
@@ -15,6 +17,8 @@ import {BaseDataContext} from './context';
 import helper from './helper'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+HighchartsMore(Highcharts) //init module
 
 const NOT_AVAILABLE = 'N/A';
 const SAFETY_SCAN_LIST = [
@@ -34,6 +38,10 @@ const SAFETY_SCAN_LIST = [
     type: 'ir',
     path: '_ZipPath'
   }
+  // {
+  //   type: 'fileIntegrity',
+  //   path: 'fileIntegrityResult'
+  // }
 ];
 const TRIGGER_NAME = {
   [SAFETY_SCAN_LIST[0].type]: 'compareIOC',
@@ -56,15 +64,25 @@ class HMDscanInfo extends Component {
     super(props);
 
     this.state = {
-      activeTab: 'yara', //yara, scanFile, gcb, ir
+      activeTab: 'dashboard', //dashboard, yara, scanFile, gcb, ir, fileIntegrity
       syncStatus: '',
       syncTime: '',
       buttonGroupList: [],
+      polarChartSettings: {},
       activePath: null,
       activeRuleHeader: false,
       activeRule: [],
       activeDLL: false,
       activeConnections: false,
+      dashboardInfo: {
+        dataFieldsArr: ['item', 'score'],
+        dataFields: {},
+        dataContent: [],
+        sort: {
+          field: 'score',
+          desc: true
+        }
+      },
       gcbFieldsArr: ['_CceId', '_OriginalKey', '_Type', '_CompareResult'],
       gcbSort: 'asc',
       hmdInfo: {},
@@ -78,6 +96,7 @@ class HMDscanInfo extends Component {
   }
   componentDidMount() {
     this.loadInitialContent();
+    this.loadDashboardCharts();
     this.loadHMDdata();
   }
   componentDidUpdate(prevProps) {
@@ -90,6 +109,10 @@ class HMDscanInfo extends Component {
       this.setState({
         activeTab: 'yara'
       });
+    }
+
+    if (this.chartNode) {
+      Highcharts.chart(this.chartNode, this.state.polarChartSettings);
     }
   }
   componentWillUnmount() {
@@ -107,7 +130,10 @@ class HMDscanInfo extends Component {
     const {currentDeviceData} = this.props;
     let syncStatus = '';
     let syncTime = '';
-    let buttonGroupList = [];
+    let buttonGroupList = [{
+      value: 'dashboard',
+      text: t('txt-dashboard')
+    }];
 
     if (currentDeviceData.syncYaraResult && currentDeviceData.syncYaraResult.length > 0) {
       if (currentDeviceData.syncYaraResult[0].status === 'failed') {
@@ -130,13 +156,87 @@ class HMDscanInfo extends Component {
     });
   }
   /**
+   * Set spider and table chart for Dashboard tab
+   * @method
+   */
+  loadDashboardCharts = () => {
+    const {currentDeviceData} = this.props;
+    let polarData = {
+      categories: [],
+      data: []
+    };
+    let tempDashboardInfo = {...this.state.dashboardInfo};
+
+    _.forEach(currentDeviceData.radarResult, val => {
+      polarData.categories.push(val.key);
+      polarData.data.push(val.value);
+      tempDashboardInfo.dataContent.push({
+        item: val.key,
+        score: val.value
+      });
+    })
+
+    const polarChartSettings = {
+      chart: {
+        polar: true,
+        type: 'line'
+      },
+      title: {
+        text: ''
+      },
+      credits: {
+        enabled: false
+      },
+      xAxis: {
+        categories: polarData.categories,
+        tickmarkPlacement: 'on',
+        lineWidth: 0
+      },
+      yAxis: {
+        gridLineInterpolation: 'polygon',
+        lineWidth: 0,
+        min: 0
+      },
+      legend: {
+        align: 'right',
+        verticalAlign: 'top',
+        layout: 'vertical'
+      },
+      series: [{
+        name: t('txt-score'),
+        data: polarData.data,
+        pointPlacement: 'on'
+      }]
+    };
+
+    Highcharts.chart(this.chartNode, polarChartSettings);
+
+    let tempFields = {};
+    tempDashboardInfo.dataFieldsArr.forEach(tempData => {
+      tempFields[tempData] = {
+        label: t(`txt-${tempData}`),
+        sortable: true,
+        formatter: (value, allValue, i) => {
+          return <span>{value}</span>
+        }
+      }
+    })
+
+    tempDashboardInfo.dataFields = tempFields;
+
+    this.setState({
+      polarChartSettings,
+      dashboardInfo: tempDashboardInfo
+    });
+  }
+  /**
    * Load and set HMD data
    * @method
    */
   loadHMDdata = () => {
     const {locale} = this.context;
     const {currentDeviceData} = this.props;
-    const {gcbFieldsArr, gcbSort} = this.state;
+    const {gcbFieldsArr} = this.state;
     let hmdInfo = {};
 
     _.forEach(SAFETY_SCAN_LIST, val => {
@@ -832,15 +932,24 @@ class HMDscanInfo extends Component {
     )
   }
   /**
-   * Handle table sort for gcb
+   * Handle table sort
    * @method
+   * @param {object} sort - sort data object
    */
-  handleTableSort = () => {
-    const {activeTab, gcbSort} = this.state;
+  handleTableSort = (sort) => {
+    const {activeTab, dashboardInfo, gcbSort} = this.state;
 
     if (activeTab === 'gcb') {
       this.setState({
         gcbSort: gcbSort === 'asc' ? 'desc' : 'asc'
+      });
+    } else {
+      let tempDashboardInfo = {...dashboardInfo};
+      tempDashboardInfo.sort.field = sort.field;
+      tempDashboardInfo.sort.desc = sort.desc;
+
+      this.setState({
+        dashboardInfo: tempDashboardInfo
       });
     }
   }
@@ -987,7 +1096,14 @@ class HMDscanInfo extends Component {
     return 'scan-file' + tempData;
   }
   render() {
-    const {activeTab, syncStatus, syncTime, buttonGroupList, hmdInfo} = this.state;
+    const {
+      activeTab,
+      syncStatus,
+      syncTime,
+      buttonGroupList,
+      dashboardInfo,
+      hmdInfo
+    } = this.state;
 
     return (
       <div className='scan-info'>
@@ -1003,7 +1119,22 @@ class HMDscanInfo extends Component {
           value={activeTab} />
 
         <div className='info-content'>
-          {!_.isEmpty(hmdInfo) &&
+          {activeTab === 'dashboard' &&
+            <div className='dashboard-wrapper'>
+              <div className='chart-group c-box spider-chart'>
+                <div ref={node => { this.chartNode = node }}></div>
+              </div>
+
+              <DataTable
+                className='main-table'
+                fields={dashboardInfo.dataFields}
+                data={dashboardInfo.dataContent}
+                sort={dashboardInfo.dataContent.length === 0 ? {} : dashboardInfo.sort}
+                onSort={this.handleTableSort} />
+            </div>
+          }
+
+          {activeTab !== 'dashboard' && !_.isEmpty(hmdInfo) &&
             <div>
               <div className='info'>
                 {this.getTriggerBtn()} {/*For all*/}
