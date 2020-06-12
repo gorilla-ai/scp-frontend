@@ -456,6 +456,7 @@
     "txt-suspiciousFileCount": "可疑檔案數",
     "txt-suspiciousFileName": "可疑檔案名稱",
     "txt-suspiciousFilePath": "可疑檔案路徑",
+    "txt-modifiedFileCount": "異動檔案數",
     "txt-_MissingFile": "刪除檔案路徑",
     "txt-_ModifyFile": "修改檔案路徑",
     "txt-_NewCreateFile": "新增檔案路徑",

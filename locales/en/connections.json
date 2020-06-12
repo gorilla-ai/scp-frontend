@@ -456,6 +456,7 @@
     "txt-suspiciousFileCount": "Suspicious File Count",
     "txt-suspiciousFileName": "Suspicious Filename",
     "txt-suspiciousFilePath": "Suspicious File Path",
+    "txt-modifiedFileCount": "Modified files",
     "txt-_MissingFile": "Missing File Path",
     "txt-_ModifyFile": "Modify File Path",
     "txt-_NewCreateFile": "New Create File Path",

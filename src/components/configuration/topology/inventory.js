@@ -40,7 +40,7 @@ import TableContent from '../../common/table-content'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const NOT_AVAILABLE = 'N/A';
-const SAFETY_SCAN_LIST = ['yara', 'scanFile', 'gcb'];
+const SAFETY_SCAN_LIST = ['yara', 'scanFile', 'gcb', 'fileIntegrity'];
 const MAPS_PRIVATE_DATA = {
   floorList: [],
   currentFloor: '',
@@ -198,21 +198,25 @@ class NetworkInventory extends Component {
 
       return <li key={i} style={{'color': colorStyle}}><span>{val.name} {t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}:</span> {val.result.GCBResultPassCnt}/{val.result.GCBResultTotalCnt}</li>
     } else {
-      if (val.result.ScanResultTotalCnt >= 0 || val.result.DetectionResultTotalCnt >= 0) {
-        let totalLength = 0;
+      if (val.result.ScanResultTotalCnt >= 0 || val.result.DetectionResultTotalCnt >= 0 || val.result.getFileIntegrityTotalCnt >= 0) {
+        let totalCount = 0;
         let colorStyle = '#22ac38'; //Default green color
+        let text = t('network-inventory.txt-suspiciousFileCount');
 
         if (val.type === 'yara') {
-          totalLength = val.result.ScanResultTotalCnt;
+          totalCount = val.result.ScanResultTotalCnt;
         } else if (val.type === 'scanFile') {
-          totalLength = val.result.DetectionResultTotalCnt;
+          totalCount = val.result.DetectionResultTotalCnt;
+        } else if (val.type === 'fileIntegrity') {
+          totalCount = val.result.getFileIntegrityTotalCnt;
+          text = t('network-inventory.txt-modifiedFileCount');
         }
 
-        if (totalLength > 0) { //Show red color
+        if (totalCount > 0) { //Show red color
           colorStyle = '#d10d25';
         }
 
-        return <li key={i} style={{'color': colorStyle}}>{val.name} {t('network-inventory.txt-suspiciousFileCount')}: {totalLength}</li>
+        return <li key={i} style={{'color': colorStyle}}>{val.name} {text}: {totalCount}</li>
       }
     }
   }
