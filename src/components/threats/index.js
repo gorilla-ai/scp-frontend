@@ -1001,7 +1001,7 @@ class ThreatsController extends Component {
 
                 tempChild.push({
                   id: key,
-                  label,
+                  label: this.getTreeLabel(key, '', treeName, val.doc_count),
                   children: tempChild2
                 });
               }

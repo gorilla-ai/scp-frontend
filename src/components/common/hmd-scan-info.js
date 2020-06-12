@@ -37,16 +37,18 @@ const SAFETY_SCAN_LIST = [
   {
     type: 'ir',
     path: '_ZipPath'
+  },
+  {
+    type: 'fileIntegrity',
+    path: 'fileIntegrityResult'
   }
-  // {
-  //   type: 'fileIntegrity',
-  //   path: 'fileIntegrityResult'
-  // }
 ];
 const TRIGGER_NAME = {
   [SAFETY_SCAN_LIST[0].type]: 'compareIOC',
   [SAFETY_SCAN_LIST[1].type]: 'scanFile',
-  [SAFETY_SCAN_LIST[2].type]: 'gcbDetection'
+  [SAFETY_SCAN_LIST[2].type]: 'gcbDetection',
+  [SAFETY_SCAN_LIST[4].type]: 'getFileIntegrity',
+  snapshot: 'getSnapshot'
 };
 
 let scrollCount = 1;
@@ -393,7 +395,7 @@ class HMDscanInfo extends Component {
           if (Moment(latestCreateTime).isAfter(responseTime)) {
             return this.checkOneDayAfter(latestCreateTime);
           } else {
-            return false; //Enable trigger button if latest create time is after response time
+            return false; //Enable trigger button if latest create time is later than response time
           }
         } else {
           return this.checkOneDayAfter(latestCreateTime);
@@ -887,14 +889,90 @@ class HMDscanInfo extends Component {
     })
   }
   /**
-   * Display scan content
+   * Display File Integrity path
+   * @method
+   * @param {number} parentIndex - parent index of the file integrity array
+   * @param {object} val - file integrity content
+   * @param {number} i - index of the file integrity array
+   * @returns HTML DOM
+   */
+  displayFileIntegrityPath = (parentIndex, val, i) => {
+    const {activePath, activeRuleHeader} = this.state;
+    let uniqueKey = '';
+    let uniqueID = '';
+    let filePath = '';
+
+    if (val && val._FileIntegrityResultPath) {
+      uniqueKey = val._FileIntegrityResultPath + i;
+      uniqueID = parentIndex.toString() + i.toString() + val._FileIntegrityResultPath;
+      filePath = val._FileIntegrityResultPath;
+    }
+
+    if (!filePath) {
+      return;
+    }
+
+    return (
+      <div className='group' key={uniqueKey}>
+        <div className='path' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
+          <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`}></i>
+          <div className='path-header'>
+            {filePath &&
+              <span>{t('txt-path')}: {filePath}</span>
+            }
+          </div>
+        </div>
+        <div className={cx('rule', {'hide': activePath !== uniqueID})}>
+          <div className='rule-content'>
+            {val.Md5HashInfo &&
+              <div className='header'>
+                <ul>
+                  {val.Md5HashInfo._BaselineMd5Hash &&
+                    <li>Baseline MD5: {val.Md5HashInfo._BaselineMd5Hash}</li>
+                  }
+                  {val.Md5HashInfo._RealMd5Hash &&
+                    <li>Real MD5: {val.Md5HashInfo._RealMd5Hash}</li>
+                  }
+                </ul>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    )
+  }
+  /**
+   * Display File Integrity content
+   * @method
+   * @param {object} data - file integrity data object
+   * @param {string} val - file integrity path type
+   * @param {number} i - index of the file integrity path array
+   * @returns HTML DOM
+   */
+  getFileIntegrityContent = (data, val, i) => {
+    const dataResult = data[val];
+
+    if (dataResult && dataResult.length > 0) {
+      return (
+        <div className='scan-content'>
+          <div className='header rule'>{t(`network-inventory.txt-${val}`)}</div>
+            <div className='list'>
+              {dataResult.map(this.displayFileIntegrityPath.bind(this, i))}
+            </div>
+        </div>
+      )
+    }
+  }
+  /**
+   * Display content for accordion type
    * @method
    * @param {object} val - scan file data
    * @param {number} i - index of the file array
    * @returns HTML DOM
-   */  
-  displayScanContent = (val, i) => {
+   */
+  displayAccordionContent = (val, i) => {
     const {activeTab} = this.state;
+    const fileIntegrityArr = ['_NewCreateFile', '_MissingFile', '_ModifyFile'];
     let dataResult = [];
     let scanPath = '';
 
@@ -915,19 +993,26 @@ class HMDscanInfo extends Component {
         <div className='scan-header'>
           <span>{t('network-inventory.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local') || NOT_AVAILABLE}</span>
           <span>{t('network-inventory.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}</span>
-          {this.getSuspiciousFileCount(dataResult)}
-        </div>
-        <div className='scan-content'>
-          <div className='header rule'>{t('network-inventory.txt-suspiciousFilePath')}</div>
-          {dataResult && dataResult.length > 0 &&
-            <div className='list'>
-              {dataResult.map(scanPath)}
-            </div>
-          }
-          {(!dataResult || dataResult.length === 0) &&
-            <div className='empty-msg'>{NOT_AVAILABLE}</div>
+          {(activeTab === 'yara' || activeTab === 'scanFile') &&
+            this.getSuspiciousFileCount(dataResult)
           }
         </div>
+        {(activeTab === 'yara' || activeTab === 'scanFile') &&
+          <div className='scan-content'>
+            <div className='header rule'>{t('network-inventory.txt-suspiciousFilePath')}</div>
+            {dataResult && dataResult.length > 0 &&
+              <div className='list'>
+                {dataResult.map(scanPath)}
+              </div>
+            }
+            {(!dataResult || dataResult.length === 0) &&
+              <div className='empty-msg'>{NOT_AVAILABLE}</div>
+            }
+          </div>
+        }
+        {activeTab === 'fileIntegrity' &&
+          fileIntegrityArr.map(this.getFileIntegrityContent.bind(this, val))
+        }
       </div>
     )
   }
@@ -1060,8 +1145,8 @@ class HMDscanInfo extends Component {
     const loader = '';
     let displayContent = '';
 
-    if (activeTab === 'yara' || activeTab === 'scanFile') {
-      displayContent = this.displayScanContent;
+    if (activeTab === 'yara' || activeTab === 'scanFile' || activeTab === 'fileIntegrity') {
+      displayContent = this.displayAccordionContent;
     } else if (activeTab === 'gcb') {
       displayContent = this.displayTableContent;
     } else if (activeTab === 'ir') {
@@ -1126,7 +1211,7 @@ class HMDscanInfo extends Component {
               </div>
 
               <DataTable
-                className='main-table'
+                className='main-table score'
                 fields={dashboardInfo.dataFields}
                 data={dashboardInfo.dataContent}
                 sort={dashboardInfo.dataContent.length === 0 ? {} : dashboardInfo.sort}
