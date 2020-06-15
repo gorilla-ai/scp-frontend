@@ -696,6 +696,68 @@ html[data-theme='dark'] {
           }
         }
       }
+      .settings {
+        position: relative;
+        .options-btn {
+          float: right;
+          margin-top: 10px;
+          .restore-default,
+          .save,
+          .cancel {
+            float: right;
+            padding: .3em .5em;
+          }
+          .restore-default,
+          .save {
+            margin-right: 5px;
+          }
+        }
+        .toggle-btn {
+          position: absolute;
+          top: 65px;
+          left: 135px;
+          label {
+            display: inherit;
+          }
+        }
+        .settings-form {
+          margin: 0 10px;
+          .form-group {
+            margin-bottom: 20px;
+            label {
+              display: block;
+              text-align: left;
+              font-size: .9em;
+              color: var(--primaryContentHeader);
+              margin-bottom: 3px;
+            }
+            .flex-item {
+              margin-top: 10px;
+              span {
+                font-size: 14px;
+                color: #fff;
+                padding: 5px 10px;
+                margin: 3px 2px;
+                border-radius: 5px;
+                background-color: var(--primaryContentHeader);
+              }
+            }
+          }
+          .react-multi-email {
+            display: flex;
+            flex-wrap: wrap;
+            background-color: var(--formBackground);
+            [data-tag] {
+              font-size: 14px;
+              font-weight: normal;
+              color: #fff;
+              padding: 8px 10px;
+              margin: 2px;
+              background-color: var(--primaryContentHeader);
+            }
+          }
+        }
+      }
     }
   }
 }
