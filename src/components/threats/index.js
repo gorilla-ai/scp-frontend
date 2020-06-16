@@ -737,27 +737,32 @@ class ThreatsController extends Component {
 
           let queryBalackListObj = {};
 
-          _.forEach(data.aggregations[NET_TRAP_QUERY.name].client.buckets, val => { //Create black list object
-            queryBalackListObj[val.key] = [];
 
-            _.forEach(val.dn.buckets, val2 => {
-              queryBalackListObj[val.key].push({
-                domain: val2.key,
-                count: val2.doc_count
+          if (data.aggregations[NET_TRAP_QUERY.name]) {
+            _.forEach(data.aggregations[NET_TRAP_QUERY.name].client.buckets, val => { //Create black list object
+              queryBalackListObj[val.key] = [];
+
+              _.forEach(val.dn.buckets, val2 => {
+                queryBalackListObj[val.key].push({
+                  domain: val2.key,
+                  count: val2.doc_count
+                })
               })
             })
-          })
+          }
 
           let queryBlackListArr = [];
 
-          _.forEach(queryBalackListObj, (val, key) => { //Create black list array for table data
-            _.forEach(queryBalackListObj[key], val2 => {
-              queryBlackListArr.push({
-                ip: key,
-                ...val2
+          if (!_.isEmpty(queryBalackListObj)) {
+            _.forEach(queryBalackListObj, (val, key) => { //Create black list array for table data
+              _.forEach(queryBalackListObj[key], val2 => {
+                queryBlackListArr.push({
+                  ip: key,
+                  ...val2
+                })
               })
             })
-          })
+          }
 
           let tempAlertTableData = {...alertTableData};
           tempAlertTableData.alertNetTrapBlackList.chartFields = chartFields;

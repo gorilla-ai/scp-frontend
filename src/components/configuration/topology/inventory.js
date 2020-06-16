@@ -1398,19 +1398,6 @@ class NetworkInventory extends Component {
     });
   }
   /**
-   * Display IR selection modal dialog
-   * @method
-   * @returns IrSelections component
-   */
-  irSelectionDialog = () => {
-    return (
-      <IrSelections
-        triggerTask={this.triggerTask}
-        toggleSelectionIR={this.toggleSelectionIR}
-      />
-    )
-  }
-  /**
    * Display device info and HMD scan results
    * @method
    * @returns HTML DOM
@@ -2424,17 +2411,6 @@ class NetworkInventory extends Component {
     });
   }
   /**
-   * Display floor map modal dialog
-   * @method
-   * @returns FloorMap component
-   */
-  modalFloorDialog = () => {
-    return (
-      <FloorMap
-        closeDialog={this.closeDialog} />
-    )
-  }
-  /**
    * Get show form button text
    * @method
    * @returns button text
@@ -3151,20 +3127,23 @@ class NetworkInventory extends Component {
           this.showScanInfoDialog()
         }
 
-        {modalFloorOpen &&
-          this.modalFloorDialog()
-        }
-
-        {modalIRopen &&
-          this.irSelectionDialog()
-        }
-
         {addSeatOpen &&
           this.addSeatDialog()
         }
 
         {uploadOpen &&
           this.uploadDialog()
+        }
+
+        {modalFloorOpen &&
+          <FloorMap
+            closeDialog={this.closeDialog} />
+        }
+
+        {modalIRopen &&
+          <IrSelections
+            triggerTask={this.triggerTask}
+            toggleSelectionIR={this.toggleSelectionIR} />
         }
 
         <Manage

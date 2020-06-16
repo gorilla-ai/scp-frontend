@@ -115,7 +115,14 @@ class HMDscanInfo extends Component {
   }
   componentDidUpdate(prevProps) {
     if (!prevProps || (this.props.currentDeviceData !== prevProps.currentDeviceData)) {
-      this.loadInitialData();
+      let tempDashboardInfo = {...this.state.dashboardInfo};
+      tempDashboardInfo.dataContent = [];
+
+      this.setState({ //Reset Dashboard data content
+        dashboardInfo: tempDashboardInfo
+      }, () => {
+        this.loadInitialData();
+      });
     }
 
     if (!prevProps || (this.props.currentDeviceData.ip !== prevProps.currentDeviceData.ip)) {
@@ -877,6 +884,14 @@ class HMDscanInfo extends Component {
     }
   }
   /**
+   * Get current active tab name
+   * @method
+   * @returns current active tab
+   */
+  getActiveTab = () => {
+    return this.state.activeTab === 'settings' ? 'snapshot' : this.state.activeTab;
+  }
+  /**
    * Handle trigger task button
    * @method
    * @param {string} type - scan type
@@ -887,7 +902,7 @@ class HMDscanInfo extends Component {
     if (type === 'ir') {
       this.props.toggleSelectionIR(ipType);
     } else {
-      this.props.triggerTask([TRIGGER_NAME[this.state.activeTab]], ipType);
+      this.props.triggerTask([TRIGGER_NAME[this.getActiveTab()]], ipType);
 
       this.setState({
         disabledBtn: true
@@ -900,9 +915,8 @@ class HMDscanInfo extends Component {
    * @returns HTML DOM
    */
   getTriggerBtn = () => {
-    const {activeTab} = this.state;
-    const btnText = activeTab === 'ir' ? t('network-inventory.txt-reCompress') : t('network-inventory.txt-reCheck');
-    const currentTab = activeTab === 'settings' ? 'snapshot' : activeTab;
+    const btnText = this.state.activeTab === 'ir' ? t('network-inventory.txt-reCompress') : t('network-inventory.txt-reCheck');
+    const currentTab = this.getActiveTab();
 
     return <button className='btn' onClick={this.getTriggerTask.bind(this, currentTab)} disabled={this.checkTriggerTime(currentTab)}>{btnText}</button>
   }
@@ -912,12 +926,12 @@ class HMDscanInfo extends Component {
    * @returns HTML DOM
    */
   getTriggerBtnInfo = () => {
-    const {activeTab, hmdInfo} = this.state;
-    const currentTab = activeTab === 'settings' ? 'snapshot' : activeTab;
+    const {hmdInfo} = this.state;
+    const currentTab = this.getActiveTab();
 
     return (
       <div className='info'>
-        {this.getTriggerBtn()} {/*For all*/}
+        {this.getTriggerBtn()}
         <div className='last-update'>
           <span>{t('network-inventory.txt-createTime')}: {hmdInfo[currentTab].latestCreateDttm || hmdInfo[currentTab].createTime || NOT_AVAILABLE}</span>
         </div>
@@ -1366,13 +1380,13 @@ class HMDscanInfo extends Component {
   saveSettings = () => {
     const {baseUrl} = this.context;
     const {currentDeviceData} = this.props;
-    const {settingsPath} = this.state;
+    const {fileIntegrityEnable, settingsPath} = this.state;
     const url = `${baseUrl}/api/hmd/snapshotSettings`;
     const requestData = {
       ipDeviceUUID: currentDeviceData.ipDeviceUUID,
+      _isEnable: fileIntegrityEnable,
       _IncludePathList: settingsPath.includePath.join(),
-      _ExcludePathList: settingsPath.excludePath.join(),
-      _isEnable: true
+      _ExcludePathList: settingsPath.excludePath.join()
     };
 
     this.ah.one({
@@ -1382,23 +1396,19 @@ class HMDscanInfo extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      data = [{
-        _Parameters: {
-          _IncludePathList: ['C:\\windows\\system32\\setup\\', 'abc'],
-          _ExcludePathList: ['C:\\windows\\system32\\setup\\en-US', 'cde'],
-          _isEnable: true
-        }
-      }];
+      if (data) {
+        data = data[0]._Parameters;
 
-      this.setState({
-        fileIntegrityEnable: data[0]._Parameters._isEnable,
-        settingsPath: {
-          includePath: data[0]._Parameters._IncludePathList,
-          excludePath: data[0]._Parameters._ExcludePathList
-        }
-      }, () => {
-        this.toggleSettingsContent('save');
-      });
+        this.setState({
+          fileIntegrityEnable: data._isEnable,
+          settingsPath: {
+            includePath: data._IncludePathList,
+            excludePath: data._ExcludePathList
+          }
+        }, () => {
+          this.toggleSettingsContent('save');
+        });
+      }
       return null;
     })
     .catch(err => {
@@ -1505,29 +1515,31 @@ class HMDscanInfo extends Component {
             <div className='settings'>
               {this.getTriggerBtnInfo()}
 
-              <div className='options-btn'>
-                {settingsActiveContent === 'viewMode' &&
-                  <button className='btn standard edit' onClick={this.toggleSettingsContent.bind(this, 'edit')}>{t('txt-edit')}</button>
-                }
-                {settingsActiveContent === 'editMode' &&
-                  <div>
-                    <button className='btn standard cancel' onClick={this.toggleSettingsContent.bind(this, 'cancel')}>{t('txt-cancel')}</button>
-                    <button className='btn save' onClick={this.saveSettings}>{t('network-inventory.txt-saveSettings')}</button>
-                    <button className='btn standard restore-default' onClick={this.restoreDefaultSettings}>{t('network-inventory.txt-restoreDefault')}</button>
-                  </div>
-                }
-              </div>
+              <div className='settings-wrapper'>
+                <div className='options-btn'>
+                  {settingsActiveContent === 'viewMode' &&
+                    <button className='btn standard edit' onClick={this.toggleSettingsContent.bind(this, 'edit')}>{t('txt-edit')}</button>
+                  }
+                  {settingsActiveContent === 'editMode' &&
+                    <div>
+                      <button className='btn standard cancel' onClick={this.toggleSettingsContent.bind(this, 'cancel')}>{t('txt-cancel')}</button>
+                      <button className='btn save' onClick={this.saveSettings}>{t('network-inventory.txt-saveSettings')}</button>
+                      <button className='btn standard restore-default' onClick={this.restoreDefaultSettings}>{t('network-inventory.txt-restoreDefault')}</button>
+                    </div>
+                  }
+                </div>
 
-              <header>{t('network-inventory.scan-list.txt-fileIntegrity')}</header>
-              <ToggleBtn
-                className='toggle-btn'
-                onText='On'
-                offText='Off'
-                on={fileIntegrityEnable}
-                onChange={this.handleStatusChange}
-                disabled={settingsActiveContent === 'viewMode'} />
-              <div className='settings-form'>
-                {FILE_INTEGRITY_SETTINGS.map(this.getSettingsPathContent)}
+                <header>{t('network-inventory.scan-list.txt-fileIntegrity')}</header>
+                <ToggleBtn
+                  className='toggle-btn'
+                  onText='On'
+                  offText='Off'
+                  on={fileIntegrityEnable}
+                  onChange={this.handleStatusChange}
+                  disabled={settingsActiveContent === 'viewMode'} />
+                <div className='settings-form'>
+                  {FILE_INTEGRITY_SETTINGS.map(this.getSettingsPathContent)}
+                </div>
               </div>
             </div>
           }
