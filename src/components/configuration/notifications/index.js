@@ -1,12 +1,12 @@
 import React, {Component} from 'react'
 import {withRouter} from 'react-router'
 
+import {ReactMultiEmail} from 'react-multi-email';
+
 import Checkbox from 'react-ui/build/src/components/checkbox'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
-
-import {ReactMultiEmail} from 'react-multi-email';
 
 import {BaseDataContext} from '../../common/context';
 import Config from '../../common/configuration'
@@ -332,8 +332,7 @@ class Notifications extends Component {
             <ReactMultiEmail
               emails={emails[val.type].emails}
               onChange={this.handleEmailChange.bind(this, val)}
-              getLabel={this.getLabel}
-            />
+              getLabel={this.getLabel} />
           }
         </div>
         <div className='group'>

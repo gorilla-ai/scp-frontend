@@ -102,7 +102,6 @@ class AlertDetails extends Component {
       },
       showRedirectMenu: false,
       modalIRopen: false,
-      ipType: '',
       activeNetworkBehavior: 'alert',
       networkBehavior: {
         alert: {
@@ -161,8 +160,7 @@ class AlertDetails extends Component {
             data: []
           }
         }
-      },
-      showHMDloading: false
+      }
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -173,8 +171,7 @@ class AlertDetails extends Component {
     this.loadAlertContent();
     this.getIPcontent('srcIp');
     this.getIPcontent('destIp');
-    this.getHMDinfo('srcIp');
-    this.getHMDinfo('destIp');
+
     document.addEventListener('mousedown', this.handleClickOutside);
   }
   componentDidUpdate(prevProps) {
@@ -182,6 +179,7 @@ class AlertDetails extends Component {
   }
   componentWillUnmount() {
     this.closeDialog();
+
     document.addEventListener('mousedown', this.handleClickOutside);
   }
   /**
@@ -262,23 +260,23 @@ class AlertDetails extends Component {
    * Set source or destination topology data to alertInfo
    * @method
    * @param {object} alertInfo - Alert Info to be set
-   * @param {string} type - 'srcIp' or 'destIp'
+   * @param {string} ipType - 'srcIp' or 'destIp'
    */
-  setTopologyInfo = (alertInfo, type) => {
+  setTopologyInfo = (alertInfo, ipType) => {
     this.setState({
       alertInfo
     }, () => {
       const {alertInfo} = this.state;
 
-      if (alertInfo[type].topology && alertInfo[type].topology.ownerUUID) {
-        this.getOwnerPic(type, alertInfo[type].topology.ownerUUID);
-        this.getOwnerSeat(type);
+      if (alertInfo[ipType].topology && alertInfo[ipType].topology.ownerUUID) {
+        this.getOwnerPic(ipType, alertInfo[ipType].topology.ownerUUID);
+        this.getOwnerSeat(ipType);
       } else { //Reset to default if no Topology or owner is not present
         let tempAlertInfo = {...alertInfo};
-        tempAlertInfo[type].ownerPic = '';
-        tempAlertInfo[type].ownerMap = {};
-        tempAlertInfo[type].ownerBaseLayers = {};
-        tempAlertInfo[type].ownerSeat = {};
+        tempAlertInfo[ipType].ownerPic = '';
+        tempAlertInfo[ipType].ownerMap = {};
+        tempAlertInfo[ipType].ownerBaseLayers = {};
+        tempAlertInfo[ipType].ownerSeat = {};
 
         this.setState({
           alertInfo: tempAlertInfo
@@ -289,121 +287,98 @@ class AlertDetails extends Component {
   /**
    * Get source or destination topology data
    * @method
-   * @param {string} type - 'srcIp' or 'destIp'
+   * @param {string} ipType - 'srcIp' or 'destIp'
    */
-  getIPcontent = (type) => {
+  getIPcontent = (ipType) => {
     const {baseUrl} = this.context;
     const {alertData, fromPage, locationType} = this.props;
-    const {alertInfo} = this.state;
-    const srcDestType = type.replace('Ip', '');
-    let tempAlertInfo = {...alertInfo};
+    const srcDestType = ipType.replace('Ip', '');
+    let tempAlertInfo = {...this.state.alertInfo};
 
     if (fromPage === 'dashboard') { //Get topo info for Dashboard page
       if (locationType === 'public') {
-        tempAlertInfo[type].locationType = alertData[srcDestType + 'LocType'];
-        tempAlertInfo[type].topology = alertData[srcDestType + 'TopoInfo'];
+        tempAlertInfo[ipType].locationType = alertData[srcDestType + 'LocType'];
+        tempAlertInfo[ipType].topology = alertData[srcDestType + 'TopoInfo'];
 
-        if (type === 'srcIp' && alertData.srcLocType) {
-          tempAlertInfo[type].locationType = alertData.srcLocType;
+        if (ipType === 'srcIp' && alertData.srcLocType) {
+          tempAlertInfo[ipType].locationType = alertData.srcLocType;
         }
 
-        if (type === 'destIp' && alertData.destLocType) {
-          tempAlertInfo[type].locationType = alertData.destLocType;
+        if (ipType === 'destIp' && alertData.destLocType) {
+          tempAlertInfo[ipType].locationType = alertData.destLocType;
         }
 
         _.forEach(PUBLIC_KEY, val => {
           if (alertData[srcDestType + val]) {
-            tempAlertInfo[type].location[val] = alertData[srcDestType + val];
+            tempAlertInfo[ipType].location[val] = alertData[srcDestType + val];
           }
         })
       } else if (locationType === 'private') {
-        tempAlertInfo[type].locationType = alertData[srcDestType + 'LocType'];
-        tempAlertInfo[type].topology = alertData[srcDestType + 'TopoInfo'];
+        tempAlertInfo[ipType].locationType = alertData[srcDestType + 'LocType'];
+        tempAlertInfo[ipType].topology = alertData[srcDestType + 'TopoInfo'];
       }
-      this.setTopologyInfo(tempAlertInfo, type);
+      this.setTopologyInfo(tempAlertInfo, ipType);
     } else if (fromPage === 'threats') { //Get topo info for Threats page
-      if (this.getIpPortData(type)) {
-        tempAlertInfo[type].locationType = alertData[srcDestType + 'LocType'];
-        tempAlertInfo[type].topology = alertData[srcDestType + 'TopoInfo'];
+      if (this.getIpPortData(ipType)) {
+        tempAlertInfo[ipType].locationType = alertData[srcDestType + 'LocType'];
+        tempAlertInfo[ipType].topology = alertData[srcDestType + 'TopoInfo'];
 
         _.forEach(PUBLIC_KEY, val => {
           if (alertData[srcDestType + val]) {
-            tempAlertInfo[type].location[val] = alertData[srcDestType + val];
+            tempAlertInfo[ipType].location[val] = alertData[srcDestType + val];
           }
         })
 
-        this.setTopologyInfo(tempAlertInfo, type);
+        this.setTopologyInfo(tempAlertInfo, ipType);
       }
     }
   }
   /**
    * Check IP device info for HMD
    * @method
-   * @param {string} type - 'srcIp' or 'destIp'
+   * @param {string} ipType - 'srcIp' or 'destIp'
    */
-  getHMDinfo = (type) => {
+  getHMDinfo = (ipType) => {
     const {baseUrl} = this.context;
     const {alertInfo, ipDeviceInfo} = this.state;
-    const ip = this.getIpPortData(type);
+    const ip = this.getIpPortData(ipType);
+    const apiArr = [
+      {
+        url: `${baseUrl}/api/u1/ipdevice/_search?exactIp=${ip}`,
+        type: 'GET'
+      },
+      {
+        url: `${baseUrl}/api/u1/ipdevice?exactIp=${ip}&page=1&pageSize=5`,
+        type: 'GET'
+      }
+    ];
 
     if (ip === NOT_AVAILABLE) {
       return;
     }
+    let tempAlertInfo = {...alertInfo};
+    let tempIPdeviceInfo = {...ipDeviceInfo};
 
-    this.ah.one({
-      url: `${baseUrl}/api/u1/ipdevice/_search?exactIp=${ip}`,
-      type: 'GET'
-    })
+    this.ah.series(apiArr)
     .then(data => {
       if (data) {
-        let tempAlertInfo = {...alertInfo};
-
-        if (data.counts === 0) {
-          tempAlertInfo[type].exist = false;
+        if (data[0] && data[0].counts === 0) {
+          tempAlertInfo[ipType].exist = false;
 
           this.setState({
             alertInfo: tempAlertInfo
           });
-        } else {
+        }
+
+        if (data[1] && data[0].counts > 0) {
+          tempAlertInfo[ipType].exist = true;
+          tempIPdeviceInfo[ipType] = data[1];
+
           this.setState({
-            showHMDloading: true
-          }, () => {
-            this.getHMDdetailInfo(ip, type);
+            alertInfo: tempAlertInfo,
+            ipDeviceInfo: tempIPdeviceInfo
           });
         }
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
-   * Get detail IP device info for HMD
-   * @method
-   * @param {string} ip - IP address
-   * @param {string} type - 'srcIp' or 'destIp'
-   */
-  getHMDdetailInfo = (ip, type) => {
-    const {baseUrl} = this.context;
-    const {alertInfo, ipDeviceInfo} = this.state;
-
-    this.ah.one({
-      url: `${baseUrl}/api/u1/ipdevice?exactIp=${ip}&page=1&pageSize=5`,
-      type: 'GET'
-    })
-    .then(data => {
-      if (data) {
-        let tempAlertInfo = {...alertInfo};
-        let tempIPdeviceInfo = {...ipDeviceInfo};
-        tempAlertInfo[type].exist = true;
-        tempIPdeviceInfo[type] = data;
-
-        this.setState({
-          alertInfo: tempAlertInfo,
-          ipDeviceInfo: tempIPdeviceInfo,
-          showHMDloading: false
-        });
       }
       return null;
     })
@@ -414,13 +389,16 @@ class AlertDetails extends Component {
   /**
    * Get owner picture based on location type
    * @method
-   * @param {string} type - 'srcIp' or 'destIp'
+   * @param {string} ipType - 'srcIp' or 'destIp'
    * @param {string} ownerUUID - ownerUUID
    */
-  getOwnerPic = (type, ownerUUID) => {
+  getOwnerPic = (ipType, ownerUUID) => {
     const {baseUrl} = this.context;
-    const {alertInfo} = this.state;
-    let tempAlertInfo = {...alertInfo};
+    let tempAlertInfo = {...this.state.alertInfo};
+
+    if (!ownerUUID) {
+      return;
+    }
 
     ah.one({
       url: `${baseUrl}/api/u1/owner?uuid=${ownerUUID}`,
@@ -431,7 +409,7 @@ class AlertDetails extends Component {
         data = data.rt;
 
         if (data.base64) {
-          tempAlertInfo[type].ownerPic = data.base64;
+          tempAlertInfo[ipType].ownerPic = data.base64;
 
           this.setState({
             alertInfo: tempAlertInfo
@@ -447,12 +425,12 @@ class AlertDetails extends Component {
   /**
    * Set owner map and seat data for alertInfo
    * @method
-   * @param {string} type - 'srcIp' or 'destIp'
+   * @param {string} ipType - 'srcIp' or 'destIp'
    */
-  getOwnerSeat = (type) => {
+  getOwnerSeat = (ipType) => {
     const {baseUrl, contextRoot} = this.context;
     const {alertInfo} = this.state;
-    const topoInfo = alertInfo[type].topology;
+    const topoInfo = alertInfo[ipType].topology;
     let tempAlertInfo = {...alertInfo};
     let ownerMap = {};
 
@@ -469,9 +447,9 @@ class AlertDetails extends Component {
       };
     }
     
-    tempAlertInfo[type].ownerMap = ownerMap;
-    tempAlertInfo[type].ownerBaseLayers[topoInfo.areaUUID] = ownerMap;
-    tempAlertInfo[type].ownerSeat[topoInfo.areaUUID] = {
+    tempAlertInfo[ipType].ownerMap = ownerMap;
+    tempAlertInfo[ipType].ownerBaseLayers[topoInfo.areaUUID] = ownerMap;
+    tempAlertInfo[ipType].ownerSeat[topoInfo.areaUUID] = {
       data: [{
         id: topoInfo.seatUUID,
         type: 'spot',
@@ -540,19 +518,19 @@ class AlertDetails extends Component {
   /**
    * Get IP and Port data
    * @method
-   * @param {string} type - 'srcIp', 'destIp', 'srcPort', 'destPort'
+   * @param {string} ipType - 'srcIp', 'destIp', 'srcPort', 'destPort'
    * @returns IP or port
    */
-  getIpPortData = (type) => {
+  getIpPortData = (ipType) => {
     const {alertData} = this.props;
 
-    if (type === 'srcIp') {
+    if (ipType === 'srcIp') {
       return alertData.srcIp || alertData.ipSrc || NOT_AVAILABLE;
-    } else if (type === 'destIp') {
+    } else if (ipType === 'destIp') {
       return alertData.destIp || alertData.ipDst || NOT_AVAILABLE;
-    } else if (type === 'srcPort') {
+    } else if (ipType === 'srcPort') {
       return alertData.srcPort || alertData.portSrc || NOT_AVAILABLE;
-    } else if (type === 'destPort') {
+    } else if (ipType === 'destPort') {
       return alertData.destPort || alertData.portDst || NOT_AVAILABLE;
     }
   }
@@ -675,9 +653,11 @@ class AlertDetails extends Component {
           tempShowContent.destIp = true;
           break;
         case 'srcSafety':
+          this.getHMDinfo('srcIp');
           tempShowContent.srcSafety = true;
           break;
         case 'destSafety':
+          this.getHMDinfo('destIp');
           tempShowContent.destSafety = true;
           break;
         case 'srcNetwork':
@@ -1018,13 +998,13 @@ class AlertDetails extends Component {
   /**
    * Display redirect menu
    * @method
-   * @param {string} type - 'srcIp' or 'destIp'
+   * @param {string} ipType - 'srcIp' or 'destIp'
    * @returns HTML DOM
    */
-  displayRedirectMenu = (type) => {
+  displayRedirectMenu = (ipType) => {
     return (
       <ul className='redirect-menu' ref={this.setWrapperRef}>
-        <li onClick={this.redirectLink.bind(this, 'virustotal', type)}>{t('alert.txt-searthVirustotal')}</li>
+        <li onClick={this.redirectLink.bind(this, 'virustotal', ipType)}>{t('alert.txt-searthVirustotal')}</li>
       </ul>
     )
   }
@@ -1218,12 +1198,10 @@ class AlertDetails extends Component {
    * @returns HTML DOM
    */
   displayPayloadcontent = () => {
-    const {alertPayload} = this.state;
-
     return (
       <div className='payload'>
         <ul>
-          <li><JSONTree data={alertPayload} theme={helper.getJsonViewTheme()} /></li>
+          <li><JSONTree data={this.state.alertPayload} theme={helper.getJsonViewTheme()} /></li>
         </ul>
       </div>
     )
@@ -1266,20 +1244,21 @@ class AlertDetails extends Component {
   /**
    * Display Alert public info
    * @method
+   * @param {string} ipType - 'srcIp' or 'destIp'
    * @param {string} item - key of the public info
    * @param {number} i - index 
    * @returns HTML DOM
    */
-  showPuclicInfo = (type, item, i) => {
+  showPublicInfo = (ipType, item, i) => {
     const {contextRoot} = this.context;
     const {alertInfo} = this.state;
     const countryCodeType = 'CountryCode';
     const countryType = 'CountryName';
     let validDataCount = 0;
 
-    if (alertInfo[type]['location'][item]) {
+    if (alertInfo[ipType]['location'][item]) {
       if (item === countryCodeType) { //Display country flag
-        const countryCode = alertInfo[type]['location'][item].toLowerCase();
+        const countryCode = alertInfo[ipType]['location'][item].toLowerCase();
         const picPath = `${contextRoot}/images/flag/${countryCode}.png`;
 
         if (countryCode && countryCode != '-') {
@@ -1288,12 +1267,12 @@ class AlertDetails extends Component {
           return (
             <li key={item + i}>
               <span className='key' style={{width: this.getListWidth()}}>{t('payloadsFields.' + item)}</span>
-              <span className='value'><img src={picPath} title={alertInfo[type]['location'][countryType]} /></span>
+              <span className='value'><img src={picPath} title={alertInfo[ipType]['location'][countryType]} /></span>
             </li>
           )
         }
       } else { //Display location info
-        const data = alertInfo[type]['location'][item];
+        const data = alertInfo[ipType]['location'][item];
         const validData = this.checkLocationData(item, data);
 
         if (validData) {
@@ -1310,38 +1289,38 @@ class AlertDetails extends Component {
     }
 
     if (validDataCount === 0) {
-      <li>{t('txt-notFound')} {this.getIpPortData(type)}</li>
+      <li>{t('txt-notFound')} {this.getIpPortData(ipType)}</li>
     }
   }
   /**
    * Display Alert public info
    * @method
-   * @param {string} type - 'srcIp' or 'destIp'
+   * @param {string} ipType - 'srcIp' or 'destIp'
    * @returns HTML DOM
    */
-  getPublicInfo = (type) => {
+  getPublicInfo = (ipType) => {
     return (
       <ul className='public'>
-        {PUBLIC_KEY.map(this.showPuclicInfo.bind(this, type))}
+        {PUBLIC_KEY.map(this.showPublicInfo.bind(this, ipType))}
       </ul>
     )
   }
   /**
    * Display Alert private info
    * @method
-   * @param {string} type - 'srcIp' or 'destIp'
+   * @param {string} ipType - 'srcIp' or 'destIp'
    * @returns PrivateDetails component
    */
-  getPrivateInfo = (type) => {
+  getPrivateInfo = (ipType) => {
     const {contextRoot} = this.context;
     const {alertInfo} = this.state;
-    const topoInfo = alertInfo[type].topology;
-    const picPath = alertInfo[type].ownerPic ? alertInfo[type].ownerPic : contextRoot + '/images/empty_profile.png';
-    const srcDestType = type.replace('Ip', '');
+    const topoInfo = alertInfo[ipType].topology;
+    const picPath = alertInfo[ipType].ownerPic ? alertInfo[ipType].ownerPic : contextRoot + '/images/empty_profile.png';
+    const srcDestType = ipType.replace('Ip', '');
 
     return (
       <PrivateDetails
-        type={type}
+        type={ipType}
         alertInfo={alertInfo}
         topoInfo={topoInfo}
         picPath={picPath}
@@ -1351,14 +1330,14 @@ class AlertDetails extends Component {
   /**
    * Get content for the public IP
    * @method
-   * @param {string} type - 'srcIp' or 'destIp'
+   * @param {string} ipType - 'srcIp' or 'destIp'
    * @returns HTML DOM
    */
-  getPublicIPcontent = (type) => {
+  getPublicIPcontent = (ipType) => {
     const {alertInfo} = this.state;
 
-    if (alertInfo[type].location.City !== '-' && alertInfo[type].location.CountryCode !== '-') {
-      return this.getPublicInfo(type);
+    if (alertInfo[ipType].location.City !== '-' && alertInfo[ipType].location.CountryCode !== '-') {
+      return this.getPublicInfo(ipType);
     } else {
       return <span>{NOT_AVAILABLE}</span>
     }
@@ -1366,39 +1345,39 @@ class AlertDetails extends Component {
   /**
    * Display IP content
    * @method
-   * @param {string} type - 'srcIp' or 'destIp'
+   * @param {string} ipType - 'srcIp' or 'destIp'
    * @returns HTML DOM
    */
-  displayIPcontent = (type) => {
+  displayIPcontent = (ipType) => {
     const {alertInfo} = this.state;
 
     return (
       <div>
-        {(_.isEmpty(alertInfo[type].topology) && _.isEmpty(alertInfo[type].location)) && 
+        {(_.isEmpty(alertInfo[ipType].topology) && _.isEmpty(alertInfo[ipType].location)) && 
           <span>{NOT_AVAILABLE}</span>
         }
 
-        {type === 'srcIp' && alertInfo[type].locationType === 1 && //Public
+        {ipType === 'srcIp' && alertInfo[ipType].locationType === 1 && //Public
           <div className='srcIp-content'>
-            {this.getPublicIPcontent(type)}
+            {this.getPublicIPcontent(ipType)}
           </div>
         }
 
-        {type === 'srcIp' && alertInfo[type].locationType === 2 && //Private
+        {ipType === 'srcIp' && alertInfo[ipType].locationType === 2 && //Private
           <div className='srcIp-content'>
-            {this.getPrivateInfo(type)}
+            {this.getPrivateInfo(ipType)}
           </div>
         }
 
-        {type === 'destIp' && alertInfo[type].locationType === 1 && //Public
+        {ipType === 'destIp' && alertInfo[ipType].locationType === 1 && //Public
           <div className='destIp-content'>
-            {this.getPublicIPcontent(type)}
+            {this.getPublicIPcontent(ipType)}
           </div>
         }
 
-        {type === 'destIp' && alertInfo[type].locationType === 2 && //Private
+        {ipType === 'destIp' && alertInfo[ipType].locationType === 2 && //Private
           <div className='destIp-content'>
-            {this.getPrivateInfo(type)}
+            {this.getPrivateInfo(ipType)}
           </div>
         }
       </div>
@@ -1408,15 +1387,13 @@ class AlertDetails extends Component {
    * Handle trigger button for HMD
    * @method
    * @param {array.<string>} type - HMD scan type
-   * @param {string} [activeIP] - IP type ('srcIp' or 'destIp')
+   * @param {string} [ipType] - IP type ('srcIp' or 'destIp')
    */
-  triggerTask = (type, activeIP) => {
+  triggerTask = (type, ipType) => {
     const {baseUrl} = this.context;
-    const {ipDeviceInfo, ipType} = this.state;
     const url = `${baseUrl}/api/hmd/retrigger`;
-    const activeIPtype = activeIP || ipType;
     const requestData = {
-      hostId: ipDeviceInfo[activeIPtype].ipDeviceUUID,
+      hostId: this.state.ipDeviceInfo[ipType].ipDeviceUUID,
       cmds: type
     };
 
@@ -1429,7 +1406,7 @@ class AlertDetails extends Component {
     .then(data => {
       if (data) {
         helper.showPopupMsg(t('txt-requestSent'));
-        this.getHMDinfo(activeIP);
+        this.getHMDinfo(ipType);
       }
       return null;
     })
@@ -1450,24 +1427,22 @@ class AlertDetails extends Component {
   /**
    * Display safety scan content
    * @method
-   * @param {string} type - 'srcIp' or 'destIp'
+   * @param {string} ipType - 'srcIp' or 'destIp'
    * @returns HMDscanInfo component
    */
-  displaySafetyScanContent = (type) => {
-    const {ipDeviceInfo, showHMDloading} = this.state;
+  displaySafetyScanContent = (ipType) => {
+    const {ipDeviceInfo} = this.state;
 
-    if (ipDeviceInfo[type].isHmd) {
+    if (ipDeviceInfo[ipType].isHmd) {
       return (
         <HMDscanInfo
           page='threats'
-          ipType={type}
-          currentDeviceData={ipDeviceInfo[type]}
+          ipType={ipType}
+          currentDeviceData={ipDeviceInfo[ipType]}
           toggleSelectionIR={this.toggleSelectionIR}
           showAlertData={this.showAlertData}
           triggerTask={this.triggerTask} />
       )
-    } else if (showHMDloading) {
-      return <i className='fg fg-loading-2'></i>
     } else {
       return <span>{NOT_AVAILABLE}</span>
     }
@@ -1485,9 +1460,9 @@ class AlertDetails extends Component {
   /**
    * Redirect to netflow or syslog page
    * @method
-   * @param {string} type - 'srcIp' or 'destIp'
+   * @param {string} ipType - 'srcIp' or 'destIp'
    */
-  redirectNewPage = (type) => {
+  redirectNewPage = (ipType) => {
     const {baseUrl, contextRoot, language} = this.context;
     const {alertData} = this.props;
     const {activeNetworkBehavior} = this.state;
@@ -1500,9 +1475,9 @@ class AlertDetails extends Component {
     let ipParam = '';
     let linkUrl ='';
 
-    if (type === 'srcIp') {
+    if (ipType === 'srcIp') {
       ipParam = `&sourceIP=${srcIp}`;
-    } else if (type === 'destIp') {
+    } else if (ipType === 'destIp') {
       ipParam = `&sourceIP=${destIp}`;
     }
  
@@ -1577,9 +1552,9 @@ class AlertDetails extends Component {
   /**
    * Load network behavior data
    * @method
-   * @param {string} type - 'srcIp' or 'destIp'
+   * @param {string} ipType - 'srcIp' or 'destIp'
    */
-  loadNetworkBehavior = (type) => {
+  loadNetworkBehavior = (ipType) => {
     const {baseUrl} = this.context;
     const {alertData} = this.props;
     const {networkBehavior} = this.state;
@@ -1591,7 +1566,7 @@ class AlertDetails extends Component {
     };
     let apiArr = [];
 
-    if (type === 'srcIp') {
+    if (ipType === 'srcIp') {
       if (!alertData.srcIp) {
         return;
       }
@@ -1668,7 +1643,7 @@ class AlertDetails extends Component {
           contentType: 'text/plain'
         }
       ];
-    } else if (type === 'destIp') {
+    } else if (ipType === 'destIp') {
       if (!alertData.destIp) {
         return;
       }
@@ -1768,13 +1743,13 @@ class AlertDetails extends Component {
 
         tempNetworkBehavior.alert.fieldsData = tempFields;
 
-        if (type === 'srcIp') {
+        if (ipType === 'srcIp') {
           tempNetworkBehavior.alert.srcIp.totalCount = data[0].data.counts;
 
           if (data[0].aggregations) {
             tempNetworkBehavior.alert.srcIp.data = this.getNetworkBehaviorData('alert', data[0].aggregations);
           }
-        } else if (type === 'destIp') {
+        } else if (ipType === 'destIp') {
           tempNetworkBehavior.alert.destIp.totalCount = data[0].data.counts;
 
           if (data[0].aggregations) {
@@ -1796,7 +1771,7 @@ class AlertDetails extends Component {
         tempNetworkBehavior.connections.fieldsData = tempFields;
         tempNetworkBehavior.dns.fieldsData = tempFields;
 
-        if (type === 'srcIp') {
+        if (ipType === 'srcIp') {
           tempNetworkBehavior.connections.srcIp.totalCount = data[1].data.counts;
 
           if (data[1].aggregations && data[1].aggregations.TopDestIpPortAgg) {
@@ -1808,7 +1783,7 @@ class AlertDetails extends Component {
           if (data[2].aggregations && data[2].aggregations.TopDestIpPortAgg) {
             tempNetworkBehavior.dns.srcIp.data = this.getNetworkBehaviorData('dns', data[2].aggregations.TopDestIpPortAgg.buckets);
           }
-        } else if (type === 'destIp') {
+        } else if (ipType === 'destIp') {
           tempNetworkBehavior.connections.destIp.totalCount = data[1].data.counts;
 
           if (data[1].aggregations && data[1].aggregations.TopDestIpPortAgg) {
@@ -1835,13 +1810,13 @@ class AlertDetails extends Component {
 
         tempNetworkBehavior.syslog.fieldsData = tempFields;
 
-        if (type === 'srcIp') {
+        if (ipType === 'srcIp') {
           tempNetworkBehavior.syslog.srcIp.totalCount = data[3].data.counts;
 
           if (data[3].aggregations && data[3].aggregations.Top10SyslogConfigSource) {
             tempNetworkBehavior.syslog.srcIp.data = this.getNetworkBehaviorData('syslog', data[3].aggregations.Top10SyslogConfigSource.agg.buckets);
           }
-        } else if (type === 'destIp') {
+        } else if (ipType === 'destIp') {
           tempNetworkBehavior.syslog.destIp.totalCount = data[3].data.counts;
 
           if (data[3].aggregations && data[3].aggregations.Top10SyslogConfigSource) {
@@ -1862,10 +1837,10 @@ class AlertDetails extends Component {
   /**
    * Display network behavior content
    * @method
-   * @param {string} type - 'srcIp' or 'destIp'
+   * @param {string} ipType - 'srcIp' or 'destIp'
    * @returns HTML DOM
    */
-  displayNetworkBehaviorContent = (type) => {
+  displayNetworkBehaviorContent = (ipType) => {
     const {alertData} = this.props;
     const {activeNetworkBehavior, networkBehavior} = this.state;
     let datetime = {};
@@ -1877,7 +1852,7 @@ class AlertDetails extends Component {
       };
     }
 
-    if (this.getIpPortData(type) === NOT_AVAILABLE) {
+    if (this.getIpPortData(ipType) === NOT_AVAILABLE) {
       return <span>{NOT_AVAILABLE}</span>
     }
 
@@ -1886,10 +1861,10 @@ class AlertDetails extends Component {
         <ButtonGroup
           id='networkType'
           list={[
-            {value: 'alert', text: t('txt-threats') + ' (' + networkBehavior.alert[type].totalCount + ')'},
-            {value: 'connections', text: t('txt-connections-eng') + ' (' + networkBehavior.connections[type].totalCount + ')'},
-            {value: 'dns', text: t('txt-dns') + ' (' + networkBehavior.dns[type].totalCount + ')'},
-            {value: 'syslog', text: t('txt-syslog') + ' (' + networkBehavior.syslog[type].totalCount + ')'}
+            {value: 'alert', text: t('txt-threats') + ' (' + networkBehavior.alert[ipType].totalCount + ')'},
+            {value: 'connections', text: t('txt-connections-eng') + ' (' + networkBehavior.connections[ipType].totalCount + ')'},
+            {value: 'dns', text: t('txt-dns') + ' (' + networkBehavior.dns[ipType].totalCount + ')'},
+            {value: 'syslog', text: t('txt-syslog') + ' (' + networkBehavior.syslog[ipType].totalCount + ')'}
           ]}
           onChange={this.toggleNetworkBtn}
           value={activeNetworkBehavior} />
@@ -1897,14 +1872,14 @@ class AlertDetails extends Component {
         {datetime.from && datetime.to &&
           <div className='msg'>{t('txt-alertHourBefore')}: {datetime.from} ~ {datetime.to}</div>
         }
-        <button className='query-events' onClick={this.redirectNewPage.bind(this, type)}>{t('alert.txt-queryEvents')}</button>
+        <button className='query-events' onClick={this.redirectNewPage.bind(this, ipType)}>{t('alert.txt-queryEvents')}</button>
 
         <div className='table-data'>
           <DataTable
-            className='main-table'
+            className='main-table network-behavior'
             fields={networkBehavior[activeNetworkBehavior].fieldsData}
-            data={networkBehavior[activeNetworkBehavior][type].data}
-            sort={networkBehavior[activeNetworkBehavior][type].data.length === 0 ? {} : networkBehavior[activeNetworkBehavior].sort}
+            data={networkBehavior[activeNetworkBehavior][ipType].data}
+            sort={networkBehavior[activeNetworkBehavior][ipType].data.length === 0 ? {} : networkBehavior[activeNetworkBehavior].sort}
             onSort={this.handleNetworkBehaviorTableSort.bind(this, activeNetworkBehavior)} />
         </div>
       </div>
@@ -2023,19 +1998,6 @@ class AlertDetails extends Component {
       alertPayload: ''
     });
   }
-  /**
-   * Display IR selection modal dialog
-   * @method
-   * @returns IrSelections component
-   */
-  irSelectionDialog = () => {
-    return (
-      <IrSelections
-        triggerTask={this.triggerTask}
-        toggleSelectionIR={this.toggleSelectionIR}
-      />
-    )
-  }
   render() {
     const {titleText, actions} = this.props;
     const {modalIRopen} = this.state;
@@ -2054,7 +2016,9 @@ class AlertDetails extends Component {
         </ModalDialog>
 
         {modalIRopen &&
-          this.irSelectionDialog()
+          <IrSelections
+            triggerTask={this.triggerTask}
+            toggleSelectionIR={this.toggleSelectionIR} />
         }
       </div>
     )
