@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, withRouter } from 'react-router-dom'
 import Highcharts from 'highcharts'
 import HighchartsMore from 'highcharts/highcharts-more'
 import PropTypes from 'prop-types'
@@ -157,7 +157,7 @@ class HMDscanInfo extends Component {
    * @method
    */
   loadInitialContent = () => {
-    const {currentDeviceData} = this.props;
+    const {location, currentDeviceData} = this.props;
     let syncStatus = '';
     let syncTime = '';
     let buttonGroupList = [{
@@ -181,10 +181,12 @@ class HMDscanInfo extends Component {
       });
     });
 
-    buttonGroupList.push({
-      value: 'settings',
-      text: t('txt-settings')
-    });
+    if (location.pathname.indexOf('configuration') > 0) { //Add Settings tab for Config section
+      buttonGroupList.push({
+        value: 'settings',
+        text: t('txt-settings')
+      });
+    }
 
     this.setState({
       syncStatus,
@@ -1558,4 +1560,4 @@ HMDscanInfo.propTypes = {
   triggerTask: PropTypes.func.isRequired
 };
 
-export default HMDscanInfo;
+export default withRouter(HMDscanInfo);
