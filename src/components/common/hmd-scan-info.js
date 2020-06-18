@@ -361,24 +361,23 @@ class HMDscanInfo extends Component {
    */
   loadSettingsData = () => {
     const {currentDeviceData} = this.props;
-    const {settingsPath} = this.state;
+    let tempSettingsPath = {...this.state.settingsPath};
+    let status = false;
     let pathData = '';
 
     if (currentDeviceData.hmdSetting && currentDeviceData.hmdSetting.length > 0) {
-      const status = currentDeviceData.hmdSetting[0]._Parameters._isEnable;
+      status = currentDeviceData.hmdSetting[0]._Parameters._isEnable;
       pathData = currentDeviceData.hmdSetting[0]._Parameters;
-
-      let tempSettingsPath = {...settingsPath};
       tempSettingsPath.includePath = pathData._IncludePathList;
       tempSettingsPath.excludePath = pathData._ExcludePathList;
-
-      this.setState({
-        originalFileIntegrityEnableData: status,
-        fileIntegrityEnable: status,
-        originalSettingsPathData: _.cloneDeep(tempSettingsPath),
-        settingsPath: tempSettingsPath
-      });
     }
+
+    this.setState({
+      originalFileIntegrityEnableData: status,
+      fileIntegrityEnable: status,
+      originalSettingsPathData: _.cloneDeep(tempSettingsPath),
+      settingsPath: tempSettingsPath
+    });
   }
   /**
    * Sort the Yara and Yara Scan File by matched file availablility
@@ -1475,7 +1474,7 @@ class HMDscanInfo extends Component {
         type: 'excludePath',
         headerText: t('network-inventory.txt-excludePath')
       }
-    ];    
+    ];
 
     return (
       <div className='scan-info'>
