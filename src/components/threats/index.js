@@ -937,7 +937,7 @@ class ThreatsController extends Component {
     const serviceCount = !isNaN(count) ? ' (' + count + ')' : '';
     const searchQuery = query ? query : '';
 
-    return <span>{name}{serviceCount} <button className={cx('button', {'active': currentTreeName === id})} onClick={this.selectTree.bind(this, id, searchQuery)}>{t('events.connections.txt-addFilter')}</button></span>;
+    return <span>{name}{serviceCount} <button className={cx('button', {'active': currentTreeName === id})} onClick={this.selectTree.bind(this, name, searchQuery)}>{t('events.connections.txt-addFilter')}</button></span>;
   }
   /**
    * Set the alert tree data
