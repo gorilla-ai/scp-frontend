@@ -113,7 +113,6 @@ class Tree extends Component {
           <Hierarchy
             layout='tree'
             foldable={true}
-            indent={[4, 0]}
             data={treeData[key].data}
             selection={this.showCheckBox(key)}
             onSelectionChange={this.handleSelectChange}
@@ -162,7 +161,6 @@ class Tree extends Component {
               <Hierarchy
                 layout='tree'
                 foldable={true}
-                indent={[4, 0]}
                 data={treeData}
                 defaultOpened={['all', 'All']}
                 onLabelMouseOver={this.props.showTreeFilterBtn} />

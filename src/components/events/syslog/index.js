@@ -753,19 +753,16 @@ class SyslogController extends Component {
   /**
    * Get tree label
    * @method
-   * @param {string} text - tree node name
-   * @param {string} query - search query
+   * @param {string} name - tree node name
    * @param {string} currentTreeName - current tree node name
    * @param {number} count - tree node length
+   * @param {string} query - search query
    */
-  getTreeLabel = (text, query, currentTreeName, count) => {
-    let serviceCount = '';
+  getTreeLabel = (name, currentTreeName, count, query) => {
+    const serviceCount = !isNaN(count) ? ' (' + count + ')' : '';
+    const searchQuery = query ? query : '';
 
-    if (!isNaN(count)) {
-      serviceCount = ' (' + count + ')';
-    }
-
-    return <span title={text}>{text}{serviceCount}<button className={cx('button', {'active': currentTreeName === text})} onClick={this.selectTree.bind(this, text, query)}>{t('events.connections.txt-addFilter')}</button></span>;
+    return <span>{name}{serviceCount} <button className={cx('button', {'active': currentTreeName === name})} onClick={this.selectTree.bind(this, name, searchQuery)}>{t('events.connections.txt-addFilter')}</button></span>;
   }
   /**
    * Set the netflow tree data
@@ -796,13 +793,13 @@ class SyslogController extends Component {
           _.forEach(val2, val3 => {
             tempChild2.push({
               id: val3,
-              label: this.getTreeLabel(val3, '_host', currentTreeName)
+              label: this.getTreeLabel(val3, currentTreeName, '', '_host')
             });
           })
 
           tempChild.push({
             id: key2,
-            label: this.getTreeLabel(key2, 'configSource', currentTreeName, val2.length)
+            label: this.getTreeLabel(key2, currentTreeName, val2.length, 'configSource')
           });
 
           if (tempChild2.length > 0) {
@@ -812,7 +809,7 @@ class SyslogController extends Component {
 
         let treeProperty = {
           id: key,
-          label: this.getTreeLabel(key, 'LoghostIp', currentTreeName, i)
+          label: this.getTreeLabel(key, currentTreeName, i, 'LoghostIp')
         };
 
         if (tempChild.length > 0) {

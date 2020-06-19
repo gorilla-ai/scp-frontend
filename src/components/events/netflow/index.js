@@ -1210,7 +1210,7 @@ class Netflow extends Component {
 
             totalHostCount += hostCount;
 
-            label = <span title={key3}>{key3} ({hostCount}) <button className={cx('button', {'active': currentTreeName === key3})} onClick={this.selectTree.bind(this, key3, 'dstHostname')}>{t('events.connections.txt-addFilter')}</button></span>;
+            label = <span>{key3} ({hostCount}) <button className={cx('button', {'active': currentTreeName === key3})} onClick={this.selectTree.bind(this, key3, 'dstHostname')}>{t('events.connections.txt-addFilter')}</button></span>;
 
             tempChild.push({
               id: key3,
@@ -1220,14 +1220,14 @@ class Netflow extends Component {
         })
 
         if (key === 'unknown') { //Add an export button for Unknown service
-          label = <span title={key}>{key} ({totalHostCount}) <button className='button active' onClick={this.handleTreeExport}>{t('txt-export')}</button> <button className={cx('button', {'active': currentTreeName === key})} onClick={this.selectTree.bind(this, key, 'dstSvcname')}>{t('events.connections.txt-addFilter')}</button></span>;
+          label = <span>{key} ({totalHostCount}) <button className='button active' onClick={this.handleTreeExport}>{t('txt-export')}</button> <button className={cx('button', {'active': currentTreeName === key})} onClick={this.selectTree.bind(this, key, 'dstSvcname')}>{t('events.connections.txt-addFilter')}</button></span>;
         } else {
           let formattedKey = key;
 
           if (key.length > 25) {
             formattedKey = key.substr(0, 28) + '...';
           }
-          label = <span title={key}>{formattedKey} ({totalHostCount}) <button className={cx('button', {'active': currentTreeName === key})} onClick={this.selectTree.bind(this, key, 'dstSvcname')}>{t('events.connections.txt-addFilter')}</button></span>;
+          label = <span>{formattedKey} ({totalHostCount}) <button className={cx('button', {'active': currentTreeName === key})} onClick={this.selectTree.bind(this, key, 'dstSvcname')}>{t('events.connections.txt-addFilter')}</button></span>;
         }
 
         let treeProperty = {

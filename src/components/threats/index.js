@@ -927,19 +927,17 @@ class ThreatsController extends Component {
   /**
    * Get tree label
    * @method
-   * @param {string} text - tree node name
-   * @param {string} query - search query
+   * @param {string} id - tree node ID
+   * @param {string} name - tree node name
    * @param {string} currentTreeName - current tree node name
    * @param {number} count - tree node length
+   * @param {string} query - search query
    */
-  getTreeLabel = (text, query, currentTreeName, count) => {
-    let serviceCount = '';
+  getTreeLabel = (id, name, currentTreeName, count, query) => {
+    const serviceCount = !isNaN(count) ? ' (' + count + ')' : '';
+    const searchQuery = query ? query : '';
 
-    if (!isNaN(count)) {
-      serviceCount = ' (' + count + ')';
-    }
-
-    return <span title={text}>{text}{serviceCount}<button className={cx('button', {'active': currentTreeName === text})} onClick={this.selectTree.bind(this, text, query)}>{t('events.connections.txt-addFilter')}</button></span>;
+    return <span>{name}{serviceCount} <button className={cx('button', {'active': currentTreeName === id})} onClick={this.selectTree.bind(this, id, searchQuery)}>{t('events.connections.txt-addFilter')}</button></span>;
   }
   /**
    * Set the alert tree data
@@ -983,37 +981,43 @@ class ThreatsController extends Component {
         let totalHostCount = 0;
 
         if (key && key !== 'default') {
-          _.forEach(treeData[key], (val, key) => {
-            if (key === 'doc_count') {
+          _.forEach(treeData[key], (val, key2) => {
+            if (key2 === 'doc_count') {
               totalHostCount += val;
             } else {
               if (_.size(val) === 1) {
+                const id = key + key2;
+
                 tempChild.push({
-                  id: key,
-                  label: this.getTreeLabel(key, '', treeName, val.doc_count)
+                  id,
+                  label: this.getTreeLabel(id, key2, treeName, val.doc_count)
                 });
               } else {
                 let tempChild2 = [];
 
-                _.forEach(val, (val2, key2) => {
-                  if (key2 !== 'doc_count') {
+                _.forEach(val, (val2, key3) => {
+                  if (key3 !== 'doc_count') {
+                    const id = key + key2 + key3;
+
                     tempChild2.push({
-                      id: key2,
-                      label: this.getTreeLabel(key2, '', treeName, val2.doc_count)
+                      id,
+                      label: this.getTreeLabel(id, key3, treeName, val2.doc_count)
                     });
                   }
                 })
 
+                const id = key + key2;
+
                 tempChild.push({
-                  id: key,
-                  label: this.getTreeLabel(key, '', treeName, val.doc_count),
+                  id,
+                  label: this.getTreeLabel(id, key2, treeName, val.doc_count),
                   children: tempChild2
                 });
               }
             }
           })
 
-          label = <span title={key}><i className={'fg fg-recode ' + key.toLowerCase()} /> {key} ({totalHostCount}) <button className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, '')}>{t('events.connections.txt-addFilter')}</button></span>;
+          label = <span><i className={'fg fg-recode ' + key.toLowerCase()} /> {key} ({totalHostCount}) <button className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, '')}>{t('events.connections.txt-addFilter')}</button></span>;
 
           let treeProperty = {
             id: key,
@@ -1076,7 +1080,7 @@ class ThreatsController extends Component {
                 nodeClass += ' ' + val._severity_.toLowerCase();
               }
 
-              label = <span title={val.key}><i className={nodeClass} />{val.key} ({val.doc_count}) <button className={cx('button', {'active': treeName === val.key})} onClick={this.selectTree.bind(this, val.key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</button></span>;
+              label = <span><i className={nodeClass} />{val.key} ({val.doc_count}) <button className={cx('button', {'active': treeName === val.key})} onClick={this.selectTree.bind(this, val.key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</button></span>;
 
               tempChild.push({
                 id: val.key,
@@ -1092,7 +1096,7 @@ class ThreatsController extends Component {
           nodeClass += ' ' + treeData[key]._severity_.toLowerCase();
         }
 
-        label = <span title={key}><i className={nodeClass} style={this.showSeverity(treeData[key]._severity_)}/> {key} ({treeData[key].doc_count}) <button className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</button></span>;
+        label = <span><i className={nodeClass} style={this.showSeverity(treeData[key]._severity_)}/> {key} ({treeData[key].doc_count}) <button className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</button></span>;
 
         treeProperty = {
           id: key,
@@ -1135,7 +1139,7 @@ class ThreatsController extends Component {
           if (val.key) {
             treeObj.children.push({
               id: val.key,
-              label: this.getTreeLabel(val.key, 'srcCountry', treeName, val.doc_count)
+              label: this.getTreeLabel(val.key, val.key, treeName, val.doc_count, 'srcCountry')
             });
           }
         })
@@ -1167,7 +1171,7 @@ class ThreatsController extends Component {
       if (key && key !== 'doc_count') {
         _.forEach(treeData[path].buckets, val => {
           if (val.agentId) {
-            label = <span title={val.agentName}>{val.agentName} ({val.serviceType}) ({val.doc_count}) </span>;
+            label = <span>{val.agentName} ({val.serviceType}) ({val.doc_count}) </span>;
 
             treeObj.children.push({
               id: val.agentId,
