@@ -214,6 +214,9 @@ class PrivateDetails extends Component {
                 layouts={['standard']}
                 dragModes={['pan']}
                 scale={{enabled: false}}
+                mapOptions={{
+                  maxZoom: 2
+                }}
                 symbolOptions={[{
                   match: {
                     data: {tag: 'red'}

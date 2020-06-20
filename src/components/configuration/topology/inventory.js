@@ -2765,6 +2765,9 @@ class NetworkInventory extends Component {
                       layouts={['standard']}
                       dragModes={['pan']}
                       scale={{enabled: false}}
+                      mapOptions={{
+                        maxZoom: 2
+                      }}
                       selected={[addSeat.selectedSeatUUID]}
                       defaultSelected={[currentDeviceData.seatUUID]}
                       onClick={this.handleFloorMapClick} />
@@ -3262,6 +3265,9 @@ class NetworkInventory extends Component {
                           layouts={['standard']}
                           dragModes={['pan']}
                           scale={{enabled: false}}
+                          mapOptions={{
+                            maxZoom: 2
+                          }}
                           onClick={this.getDeviceData.bind(this, '', 'oneSeat')} />
                       }
                     </div>

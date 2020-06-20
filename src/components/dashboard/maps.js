@@ -860,6 +860,9 @@ class DashboardMaps extends Component {
                       layouts={['standard']}
                       dragModes={['pan']}
                       scale={{enabled: false}}
+                      mapOptions={{
+                        maxZoom: 2
+                      }}
                       onClick={this.showTopoDetail.bind(this, PRIVATE)}
                       symbolOptions={[{
                         match: {
