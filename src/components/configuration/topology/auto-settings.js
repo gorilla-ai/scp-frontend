@@ -624,7 +624,7 @@ class AutoSettings extends Component {
               <header>{adFormTitle}</header>
               <RadioGroup
                 id='autoSettingsAD'
-                className='radio-group'              
+                className='radio-group'
                 list={[
                   {value: 'AD', text: t('network-inventory.auto-settings.txt-AD')},
                   {value: 'LDAP', text: t('network-inventory.auto-settings.txt-LDAP')}

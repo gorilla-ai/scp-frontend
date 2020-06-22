@@ -1330,7 +1330,7 @@ class HMDscanInfo extends Component {
   /**
    * Handle settings path delete
    * @method
-   * @param {string} email - individual settings path
+   * @param {string} path - individual settings path
    * @param {number} index - index of the settings path list array
    * @param {function} removePath - function to remove settings path
    * @returns HTML DOM

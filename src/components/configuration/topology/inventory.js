@@ -30,6 +30,7 @@ import FileUpload from '../../common/file-upload'
 import FilterContent from '../../common/filter-content'
 import FloorMap from '../../common/floor-map'
 import helper from '../../common/helper'
+import HMDsettings from './hmd-settings'
 import HMDscanInfo from '../../common/hmd-scan-info'
 import IrSelections from '../../common/ir-selections'
 import Manage from './manage'
@@ -66,7 +67,7 @@ class NetworkInventory extends Component {
 
     this.state = {
       activeTab: 'deviceList', //deviceList, deviceMap
-      activeContent: 'tableList', //tableList, dataInfo, addIPsteps, autoSettings
+      activeContent: 'tableList', //tableList, dataInfo, addIPsteps, hmdSettings, autoSettings
       showFilter: false,
       showScanInfo: false,
       showSeatData: false,
@@ -1565,8 +1566,8 @@ class NetworkInventory extends Component {
       }
     } else if (type === 'showList') {
       activeContent = 'tableList';
-    } else if (type === 'showAuto') {
-      activeContent = 'autoSettings';
+    } else if (type === 'hmdSettings' || type === 'autoSettings') {
+      activeContent = type;
     } else if (type === 'showData') {
       activeContent = 'dataInfo';
     } else if (type === 'showForm') {
@@ -3189,7 +3190,8 @@ class NetworkInventory extends Component {
 
                 <div className='content-header-btns'>
                   <button className='standard btn' onClick={this.handleRowContextMenu}>{t('network-inventory.txt-addIP')}</button>
-                  <button className='standard btn' onClick={this.toggleContent.bind(this, 'showAuto')}>{t('network-inventory.txt-autoSettings')}</button>
+                  <button className='standard btn' onClick={this.toggleContent.bind(this, 'hmdSettings')}>{t('network-inventory.txt-hmdSettings')}</button>
+                  <button className='standard btn' onClick={this.toggleContent.bind(this, 'autoSettings')}>{t('network-inventory.txt-autoSettings')}</button>
                   <Link to='/SCP/configuration/notifications'><button className='standard btn'>{t('notifications.txt-settings')}</button></Link>
                 </div>
 
@@ -3302,9 +3304,12 @@ class NetworkInventory extends Component {
             this.displayAddIpSteps()
           }
 
+          {activeContent === 'hmdSettings' &&
+            <HMDsettings />
+          }
+
           {activeContent === 'autoSettings' &&
-            <AutoSettings
-              toggleContent={this.toggleContent} />
+            <AutoSettings />
           }
         </div>
       </div>
