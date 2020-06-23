@@ -267,7 +267,7 @@
     "txt-queryMore": "Query",
     "txt-queryEvents": "View Details Infomation",
     "txt-searthVirustotal": "Search Virustotal",
-    "txt-downloadPCAP": "Download PCAP",
+    "txt-downloadPCAP": "$t(txt-download) PCAP",
     "txt-downloadFile": "Download File",
     "txt-filterEmpty": "Filter empty packet",
     "txt-ipInfo": "IP Information",

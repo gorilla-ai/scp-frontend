@@ -53,14 +53,14 @@ class AlertDetails extends Component {
       showContent: {
         rule: false,
         pcap: false,
+        json: false,
         attack: false,
         srcIp: false,
         destIp: false,
         srcSafety: false,
         destSafety: false,
         srcNetwork: false,
-        destNetwork: false,
-        json: false
+        destNetwork: false
       },
       alertRule: '',
       alertPCAP: {
@@ -627,7 +627,7 @@ class AlertDetails extends Component {
         srcSafety: false,
         destSafety: false,
         srcNetwork: false,
-        destNetwork: false,
+        destNetwork: false, 
         json: false
       }
     }, () => {
@@ -703,6 +703,51 @@ class AlertDetails extends Component {
     }
 
     return <span className='severity' style={{backgroundColor: styleStatus}}>{value}</span>
+  }
+  /**
+   * Download Alert PCAP file
+   * @method
+   */
+  downloadPcapFile = () => {
+    const {baseUrl} = this.context;
+    const {alertData} = this.props;
+    const projectId = alertData.projectName;
+    const url = `${baseUrl}/api/network/alert/pcap?projectId=${projectId}`;
+    const requestData = {
+      projectId : projectId,
+      ipSrc: this.getIpPortData('srcIp'),
+      portSrc: this.getIpPortData('srcPort'),
+      ipDst: this.getIpPortData('destIp'),
+      portDst: this.getIpPortData('destPort'),
+      lastPacket: alertData.lastPacket
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data.ResultMessage === 'fail') {
+        helper.showPopupMsg(t('txt-pcapDownloadFail'), t('txt-error'), data.ErrorMessage);
+      } else {
+        window.location.assign(data.PcapFilelink);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Display PCAP download link
+   * @method
+   * @returns HTML DOM
+   */
+  getPCAPdownload = () => {
+
+    return <div onClick={this.downloadPcapFile}>{t('alert.txt-downloadPCAP')}</div>
   }
   /**
    * Redirect URL
@@ -895,10 +940,9 @@ class AlertDetails extends Component {
           </div>
           <div className='content'>
             <div className='options-buttons'>
-              {(showContent.srcIp || showContent.destIp) &&
+              {showContent.rule &&
                 <section>
-                  {this.getRedirectIp()}
-                  {this.getQueryMore()}
+                  {this.getPCAPdownload()}
                 </section>
               }
 
@@ -908,6 +952,13 @@ class AlertDetails extends Component {
 
               {showContent.attack && alertData.fileMD5 &&
                 <div onClick={this.downloadFile}>{t('alert.txt-downloadFile')}</div>
+              }
+
+              {(showContent.srcIp || showContent.destIp) &&
+                <section>
+                  {this.getRedirectIp()}
+                  {this.getQueryMore()}
+                </section>
               }
             </div>
 
@@ -1900,42 +1951,6 @@ class AlertDetails extends Component {
         <li><JSONTree data={allData} theme={helper.getJsonViewTheme()} /></li>
       </ul>
     )
-  }
-  /**
-   * Get Alert PCAP file
-   * @method
-   */
-  getPcapFile = () => {
-    const {baseUrl} = this.context;
-    const {alertData} = this.props;
-    const projectId = alertData.projectName;
-    const url = `${baseUrl}/api/network/alert/pcap?projectId=${projectId}`;
-    const requestData = {
-      projectId : projectId,
-      ipSrc: this.getIpPortData('srcIp'),
-      portSrc: this.getIpPortData('srcPort'),
-      ipDst: this.getIpPortData('destIp'),
-      portDst: this.getIpPortData('destPort'),
-      lastPacket: alertData.lastPacket
-    };
-
-    this.ah.one({
-      url,
-      data: JSON.stringify(requestData),
-      type: 'POST',
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      if (data.ResultMessage === 'fail') {
-        helper.showPopupMsg(t('txt-pcapDownloadFail'), t('txt-error'), data.ErrorMessage);
-      } else {
-        window.location.assign(data.PcapFilelink);
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
   }
   /**
    * Download paylaod file

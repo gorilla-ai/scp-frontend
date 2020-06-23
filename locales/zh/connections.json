@@ -267,7 +267,7 @@
     "txt-queryMore": "查詢更多",
     "txt-queryEvents": "查看詳細資料",
     "txt-searthVirustotal": "查詢 Virustotal",
-    "txt-downloadPCAP": "下載檔案",
+    "txt-downloadPCAP": "$t(txt-download)PCAP",
     "txt-downloadFile": "下載惡意程式",
     "txt-filterEmpty": "過濾無內容封包",
     "txt-ipInfo": "IP資訊",

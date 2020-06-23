@@ -924,13 +924,6 @@ html[data-theme='dark'] {
           }
         }
       }
-      section.alert-rule {
-        height: 375px;
-        overflow-y: auto;
-        ul {
-          background: none !important;
-        }
-      }
       ul {
         &.redirect-menu {
           position: absolute;
@@ -949,6 +942,7 @@ html[data-theme='dark'] {
           }
         }
         &.alert-rule {
+          margin-top: 30px;
           li {
             overflow-y: auto;
             max-height: 340px;
@@ -970,11 +964,17 @@ html[data-theme='dark'] {
           background-color: var(--contentBackground) !important;
         }
       }
+      section.alert-rule,
       .srcIp-content,
       .destIp-content {
         margin-top: 30px;
         height: 370px;
         overflow-y: auto;
+      }
+      section.alert-rule {
+        ul {
+          background: none !important;
+        }
       }
       .srcIp-content,
       .destIp-content {

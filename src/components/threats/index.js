@@ -1375,28 +1375,27 @@ class ThreatsController extends Component {
    * @returns AlertDetails component
    */
   alertDialog = () => {
+    const {sessionRights} = this.context;
     const {alertDetails, alertData} = this.state;
-    const {contextRoot, sessionRights} = this.context;
-    let actions = {};
+    let actions = {
+      confirm: {text: t('txt-close'), handler: this.closeDialog}
+    };
+
     if (sessionRights.Module_Config) {
       actions = {
         makeIncident: {text: it('txt-createIncident'), handler: this.incidentRedirect},
         confirm: {text: t('txt-close'), handler: this.closeDialog}
       };
-    } else {
-      actions = {
-        confirm: {text: t('txt-close'), handler: this.closeDialog}
-      };
     }
 
     return (
-        <AlertDetails
-            titleText={t('alert.txt-alertInfo')}
-            actions={actions}
-            alertDetails={alertDetails}
-            alertData={alertData}
-            showAlertData={this.showAlertData}
-            fromPage='threats'/>
+      <AlertDetails
+        titleText={t('alert.txt-alertInfo')}
+        actions={actions}
+        alertDetails={alertDetails}
+        alertData={alertData}
+        showAlertData={this.showAlertData}
+        fromPage='threats'/>
     )
   }
   /**
