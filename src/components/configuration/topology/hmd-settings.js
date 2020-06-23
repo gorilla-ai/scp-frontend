@@ -29,7 +29,8 @@ class HMDsettings extends Component {
     this.state = {
       activeContent: 'viewMode', //viewMode, editMode
       originalScanFiles: [],
-      scanFiles: []
+      scanFiles: [],
+      pathError: false
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -76,14 +77,14 @@ class HMDsettings extends Component {
    * @param {string} type - content type ('editMode', 'save' or 'cancel')
    */
   toggleContent = (type) => {
-    const {originalScanFiles} = this.state;
+    const {originalScanFiles, pathError} = this.state;
     let showPage = type;
 
     if (type === 'save') {
-      if (this.validateScanFilesPath()) {
-        this.handleScanFilesConfirm();
-      } else {
+      if (pathError) {
         helper.showPopupMsg(t('network-inventory.txt-pathFormatError'), t('txt-error'));
+      } else {
+        this.handleScanFilesConfirm();
       }
       return;
     } else if (type === 'cancel') {
@@ -99,36 +100,15 @@ class HMDsettings extends Component {
     });
   }
   /**
-   * Validate scan files input
-   * @method
-   */
-  validateScanFilesPath = () => {
-    const {scanFiles} = this.state;
-    let valid = true;
-
-    _.forEach(scanFiles, val => {
-      if (val.indexOf('/') > 0) { //Slash is not allowed
-        valid = false;
-      }
-
-      if (val[val.length - 1] !== '\\') { //Path has to end with '\'
-        valid = false;
-      }
-    })
-
-    return valid;
-  }
-  /**
    * Handle scan files confirm
    * @method
    */
   handleScanFilesConfirm = () => {
     const {baseUrl} = this.context;
-    const {scanFiles} = this.state;
     const url = `${baseUrl}/api/common/config`;
     const requestData = {
       configId: 'hmd.scanFile.path',
-      value: scanFiles.join()
+      value: this.state.scanFiles.join()
     };
 
     this.ah.one({
@@ -177,6 +157,43 @@ class HMDsettings extends Component {
     removePath(index);
   }
   /**
+   * Validate scan files input
+   * @method
+   * @param {function} path - path from user's input
+   */
+  validatePathInput = (path) => {
+    let valid = true;
+
+    _.forEach(path, (val, i) => {
+      if (val === '\\') {
+        if (path[i - 1] !== '\\' && path[i + 1] !== '\\') {
+          valid = false;
+          return false;
+        }
+      }
+    })
+
+    if (path.indexOf('/') > 0) { //Slash is not allowed
+      valid = false;
+    }
+
+    if (path[path.length - 1] !== '\\') { //Path has to end with '\\'
+      valid = false;
+    } else {
+      if (path[path.length - 2] !== '\\') {
+        valid = false;
+      }
+    }
+
+    this.setState({
+      pathError: !valid
+    });
+
+    if (valid) {
+      return path;
+    }
+  }
+  /**
    * Handle file scan path delete
    * @method
    * @param {string} path - individual file scan path
@@ -220,9 +237,7 @@ class HMDsettings extends Component {
                 {activeContent === 'editMode' &&
                   <ReactMultiEmail
                     emails={scanFiles}
-                    validateEmail={path => {
-                      return path;
-                    }}
+                    validateEmail={this.validatePathInput.bind(this)}
                     onChange={this.handleScanFilesChange}
                     getLabel={this.getLabel} />
                 }
