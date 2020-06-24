@@ -623,11 +623,11 @@ class AlertDetails extends Component {
    * @method
    */
   displayPCAPdownload = () => {
-    const {baseUrl} = this.context;
+    const {baseUrl, contextRoot} = this.context;
     const {alertData} = this.props;
     const startDttm = Moment(helper.getSubstractDate(10, 'minutes', alertData._eventDttm_)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
     const endDttm = Moment(helper.getAdditionDate(10, 'minutes', alertData._eventDttm_)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-    const downloadLink = `${baseUrl}/api/alert/pcap?agentId=${alertData._edgeInfo.agentId}&startDttm=${startDttm}&endDttm=${endDttm}&targetIp=${alertData.srcIp || alertData.ipSrc}&infoType=${alertData['alertInformation.type']}`;
+    const downloadLink = `${baseUrl}${contextRoot}/api/alert/pcap?agentId=${alertData._edgeInfo.agentId}&startDttm=${startDttm}&endDttm=${endDttm}&targetIp=${alertData.srcIp || alertData.ipSrc}&infoType=${alertData['alertInformation.type']}`;
 
     return <a href={downloadLink} target='_blank' download>{t('alert.txt-downloadPCAP')}</a>
   }
