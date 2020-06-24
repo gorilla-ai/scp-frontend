@@ -1666,25 +1666,54 @@ class NetworkInventory extends Component {
     });
   }
   /**
+   * Handle HMD download buttons
+   * @method
+   * @param {string} type - download type ('windows' or 'linux')
+   */
+  hmdDownload = (type) => {
+
+  }
+  /**
    * Construct and display add IP context menu
    * @method
+   * @param {string} type - context menu type ('addIP' or 'download')
    * @param {object} evt - mouseClick events
    */
-  handleRowContextMenu = (evt) => {
-    const menuItems = [
-      {
-        id: 'showForm',
-        text: t('network-inventory.txt-manuallyEnter'),
-        action: () => this.toggleContent('showForm', 'new')
-      },
-      {
-        id: 'showUpload',
-        text: t('network-inventory.txt-batchUpload'),
-        action: () => this.toggleContent('showUpload')
-      }
-    ];
+  handleRowContextMenu = (type, evt) => {
+    let menuItems = [];
+    let menuType = '';
 
-    ContextMenu.open(evt, menuItems, 'addIpMenu');
+    if (type === 'addIP') {
+      menuItems = [
+        {
+          id: 'showForm',
+          text: t('network-inventory.txt-manuallyEnter'),
+          action: () => this.toggleContent('showForm', 'new')
+        },
+        {
+          id: 'showUpload',
+          text: t('network-inventory.txt-batchUpload'),
+          action: () => this.toggleContent('showUpload')
+        }
+      ];
+      menuType = 'addIpMenu';
+    } else if (type === 'download') {
+      menuItems = [
+        {
+          id: 'windows',
+          text: 'Windows',
+          action: () => this.hmdDownload('windows')
+        },
+        {
+          id: 'linux',
+          text: 'Linux',
+          action: () => this.hmdDownload('linux')
+        }
+      ];
+      menuType = 'downloadMenu';
+    }
+
+    ContextMenu.open(evt, menuItems, menuType);
     evt.stopPropagation();
   }
   /**
@@ -3189,8 +3218,9 @@ class NetworkInventory extends Component {
                 </Tabs>
 
                 <div className='content-header-btns'>
-                  <button className='standard btn' onClick={this.handleRowContextMenu}>{t('network-inventory.txt-addIP')}</button>
+                  <button className='standard btn' onClick={this.handleRowContextMenu.bind(this, 'addIP')}>{t('network-inventory.txt-addIP')}</button>
                   <button className='standard btn' onClick={this.toggleContent.bind(this, 'hmdSettings')}>{t('network-inventory.txt-hmdSettings')}</button>
+                  <button className='standard btn' onClick={this.handleRowContextMenu.bind(this, 'download')}>{t('network-inventory.txt-hmdDownload')}</button>
                   <button className='standard btn' onClick={this.toggleContent.bind(this, 'autoSettings')}>{t('network-inventory.txt-autoSettings')}</button>
                   <Link to='/SCP/configuration/notifications'><button className='standard btn'>{t('notifications.txt-settings')}</button></Link>
                 </div>

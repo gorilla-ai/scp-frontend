@@ -923,7 +923,7 @@ class Netflow extends Component {
                   return <img src={value} className='file-image' onClick={this.openImageModal(value)} />
                 }
               } else if (tempData === 'filePath') {
-                return <a href={baseUrl + contextRoot + '/api/network/file?path=' + value} download>{value}</a>
+                return <a href={baseUrl + contextRoot + '/api/network/file?path=' + value} target='_blank' download>{value}</a>
               } else if (tempData === 'controlText') {
                 return <span title={value} onClick={this.showQueryOptions(tempData, value)}>{value.substr(0, 50) + '...'}</span>
               } else if (tempData === 'htmlRelinkPath') {

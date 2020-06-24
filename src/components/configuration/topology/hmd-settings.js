@@ -8,6 +8,8 @@ import _ from 'lodash'
 
 import {ReactMultiEmail} from 'react-multi-email';
 
+import RadioGroup from 'react-ui/build/src/components/radio-group'
+
 import {BaseDataContext} from '../../common/context';
 import helper from '../../common/helper'
 
@@ -30,7 +32,9 @@ class HMDsettings extends Component {
       activeContent: 'viewMode', //viewMode, editMode
       originalScanFiles: [],
       scanFiles: [],
-      pathError: false
+      pathError: false,
+      originalGcbVersion: '',
+      gcbVersion: 'tw'
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -43,6 +47,7 @@ class HMDsettings extends Component {
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
 
     this.getScanFile();
+    this.getGcbVersion();
   }
   /**
    * Get and set scan file data
@@ -72,12 +77,24 @@ class HMDsettings extends Component {
     })
   }
   /**
+   * Get and set scan GCB version
+   * @method
+   */
+  getGcbVersion = () => {
+    const {gcbVersion} = this.state;
+
+    this.setState({
+      originalGcbVersion: _.cloneDeep(gcbVersion),
+      gcbVersion
+    });
+  }
+  /**
    * Toggle content type
    * @method
    * @param {string} type - content type ('editMode', 'save' or 'cancel')
    */
   toggleContent = (type) => {
-    const {originalScanFiles, pathError} = this.state;
+    const {originalScanFiles, pathError, originalGcbVersion} = this.state;
     let showPage = type;
 
     if (type === 'save') {
@@ -91,7 +108,8 @@ class HMDsettings extends Component {
       showPage = 'viewMode';
 
       this.setState({
-        scanFiles: _.cloneDeep(originalScanFiles)
+        scanFiles: _.cloneDeep(originalScanFiles),
+        gcbVersion: _.cloneDeep(originalGcbVersion)
       });
     }
 
@@ -105,10 +123,11 @@ class HMDsettings extends Component {
    */
   handleScanFilesConfirm = () => {
     const {baseUrl} = this.context;
+    const {scanFiles} = this.state;
     const url = `${baseUrl}/api/common/config`;
     const requestData = {
       configId: 'hmd.scanFile.path',
-      value: this.state.scanFiles.join()
+      value: scanFiles.join()
     };
 
     this.ah.one({
@@ -120,6 +139,7 @@ class HMDsettings extends Component {
     .then(data => {
       if (data) {
         this.getScanFile();
+        this.getGcbVersion();        
       }
       return null;
     })
@@ -209,8 +229,18 @@ class HMDsettings extends Component {
       </div>
     )
   }
+  /**
+   * Handle GCB version change
+   * @method
+   * @param {string} gcbVersion - GCB version ('tw' or 'us')
+   */
+  handleGcbVersionChange = (gcbVersion) => {
+    this.setState({
+      gcbVersion
+    });
+  }
   render() {
-    const {activeContent, scanFiles} = this.state;
+    const {activeContent, scanFiles, gcbVersion} = this.state;
 
     return (
       <div className='parent-content'>
@@ -226,7 +256,7 @@ class HMDsettings extends Component {
             </div>
           }
 
-          <div className='hmd-settings' style={{'height': activeContent === 'viewMode' ? '78vh' : '70vh'}}>
+          <div className='hmd-settings' style={{'height': activeContent === 'viewMode' ? '70vh' : '70vh'}}>
             <div className='form-group normal long'>
               <header>{t('network-inventory.scan-list.txt-scanFile')}</header>
               <div className='group'>
@@ -241,6 +271,21 @@ class HMDsettings extends Component {
                     onChange={this.handleScanFilesChange}
                     getLabel={this.getLabel} />
                 }
+              </div>
+            </div>
+            <div className='form-group normal long'>
+              <header>{t('network-inventory.scan-list.txt-gcb')}</header>
+              <div className='group'>
+                <label>{t('network-inventory.txt-gcbVersion')}</label>
+                <RadioGroup
+                  className='radio-group'
+                  list={[
+                    {value: 'tw', text: 'TW'},
+                    {value: 'us', text: 'US'}
+                  ]}
+                  value={gcbVersion}
+                  onChange={this.handleGcbVersionChange}
+                  disabled={activeContent === 'viewMode'} />
               </div>
             </div>
           </div>

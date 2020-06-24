@@ -6,12 +6,8 @@ import _ from 'lodash'
 import cx from 'classnames'
 
 import ButtonGroup from 'react-ui/build/src/components/button-group'
-import Checkbox from 'react-ui/build/src/components/checkbox'
 import DataTable from 'react-ui/build/src/components/table'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
-import PageNav from 'react-ui/build/src/components/page-nav'
-import PopupDialog from 'react-ui/build/src/components/popup-dialog'
-import Textarea from 'react-ui/build/src/components/textarea'
 
 import JSONTree from 'react-json-tree'
 
@@ -52,7 +48,6 @@ class AlertDetails extends Component {
       alertType: '', //'alert', 'pot_attack' or 'syslog'
       showContent: {
         rule: false,
-        pcap: false,
         json: false,
         attack: false,
         srcIp: false,
@@ -63,16 +58,6 @@ class AlertDetails extends Component {
         destNetwork: false
       },
       alertRule: '',
-      alertPCAP: {
-        origData: [],
-        data: [],
-        page: 1,
-        pageSize: 10,
-        totalCount: 0,
-        activeIndex: null,
-        hex: '',
-        filterEmpty: false
-      },
       alertPayload: '',
       alertInfo: {
         srcIp: {
@@ -222,7 +207,6 @@ class AlertDetails extends Component {
     let alertType = '';
     let showContent = {
       rule: false,
-      pcap: false,
       attack: false,
       srcIp: false,
       destIp: false,
@@ -535,67 +519,6 @@ class AlertDetails extends Component {
     }
   }
   /**
-   * Reset PCAP data
-   * @method
-   */
-  resetPCAPcontent = () => {
-    this.setState({
-      alertPCAP: {
-        origData: [],
-        data: [],
-        page: 1,
-        pageSize: 10,
-        totalCount: 0,
-        activeIndex: null,
-        hex: '',
-        filterEmpty: false
-      }
-    }, () => {
-      this.getPCAPcontent();
-    });
-  }
-  /**
-   * Get and set PCAP data
-   * @method
-   */
-  getPCAPcontent = () => {
-    const {baseUrl} = this.context;
-    const {alertData} = this.props;
-    const {alertPCAP} = this.state;
-    const projectId = alertData.projectName;
-    const url = `${baseUrl}/api/alert/pcapContent?projectId=${projectId}&page=${alertPCAP.page}&pageSize=${alertPCAP.pageSize}`;
-    const requestData = {
-      ipSrc: this.getIpPortData('srcIp'),
-      portSrc: this.getIpPortData('srcPort'),
-      ipDst: this.getIpPortData('destIp'),
-      portDst: this.getIpPortData('destPort'),
-      lastPacket: alertData.lastPacket
-    };
-
-    this.ah.one({
-      url,
-      data: JSON.stringify(requestData),
-      type: 'POST',
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      if (data) {
-        let tempAlertPCAP = {...alertPCAP};
-        tempAlertPCAP.totalCount = data.counts;
-        tempAlertPCAP.origData = data.rows;
-        tempAlertPCAP.data = data.rows;
-
-        this.setState({
-          alertPCAP: tempAlertPCAP
-        });
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
    * Set Alert payload data
    * @method
    */
@@ -613,14 +536,9 @@ class AlertDetails extends Component {
    * @param {object} alertData - Alert data type
    */
   getContent = (type, alertData) => {
-    if (type === 'pcap' && alertData.Collector !== 'IDS-SURICATA') {
-      return;
-    }
-
     this.setState({
       showContent: {
         rule: false,
-        pcap: false,
         attack: false,
         srcIp: false,
         destIp: false,
@@ -637,10 +555,6 @@ class AlertDetails extends Component {
         case 'rule':
           this.getAlertRule();
           tempShowContent.rule = true;
-          break;
-        case 'pcap':
-          this.resetPCAPcontent();
-          tempShowContent.pcap = true;
           break;
         case 'attack':
           this.getAttackJson();
@@ -705,49 +619,17 @@ class AlertDetails extends Component {
     return <span className='severity' style={{backgroundColor: styleStatus}}>{value}</span>
   }
   /**
-   * Download Alert PCAP file
-   * @method
-   */
-  downloadPcapFile = () => {
-    const {baseUrl} = this.context;
-    const {alertData} = this.props;
-    const projectId = alertData.projectName;
-    const url = `${baseUrl}/api/network/alert/pcap?projectId=${projectId}`;
-    const requestData = {
-      projectId : projectId,
-      ipSrc: this.getIpPortData('srcIp'),
-      portSrc: this.getIpPortData('srcPort'),
-      ipDst: this.getIpPortData('destIp'),
-      portDst: this.getIpPortData('destPort'),
-      lastPacket: alertData.lastPacket
-    };
-
-    this.ah.one({
-      url,
-      data: JSON.stringify(requestData),
-      type: 'POST',
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      if (data.ResultMessage === 'fail') {
-        helper.showPopupMsg(t('txt-pcapDownloadFail'), t('txt-error'), data.ErrorMessage);
-      } else {
-        window.location.assign(data.PcapFilelink);
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
    * Display PCAP download link
    * @method
-   * @returns HTML DOM
    */
-  getPCAPdownload = () => {
+  displayPCAPdownload = () => {
+    const {baseUrl} = this.context;
+    const {alertData} = this.props;
+    const startDttm = Moment(helper.getSubstractDate(10, 'minutes', alertData._eventDttm_)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    const endDttm = Moment(helper.getAdditionDate(10, 'minutes', alertData._eventDttm_)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    const downloadLink = `${baseUrl}/api/alert/pcap?agentId=${alertData._edgeInfo.agentId}&startDttm=${startDttm}&endDttm=${endDttm}&targetIp=${alertData.srcIp || alertData.ipSrc}&infoType=${alertData['alertInformation.type']}`;
 
-    return <div onClick={this.downloadPcapFile}>{t('alert.txt-downloadPCAP')}</div>
+    return <a href={downloadLink} target='_blank' download>{t('alert.txt-downloadPCAP')}</a>
   }
   /**
    * Redirect URL
@@ -846,24 +728,13 @@ class AlertDetails extends Component {
     )
   }
   /**
-   * Get PCAP menu style
-   * @method
-   * @param {object} alertData - Alert data type
-   * @returns class name
-   */
-  getPCAPstyle = (alertData) => {
-    if (alertData.Collector !== 'IDS-SURICATA') {
-      return 'not-allowed';
-    }
-  }
-  /**
    * Display Alert information in dialog box
    * @method
    * @returns HTML DOM
    */
   displayAlertData = () => {
     const {alertDetails, alertData} = this.props;
-    const {alertType, showContent, alertRule, alertPCAP, alertPayload, showRedirectMenu} = this.state;
+    const {alertType, showContent, alertRule, alertPayload, showRedirectMenu} = this.state;
     const severity = alertData._severity_ ? this.getSeverity(alertData._severity_) : NOT_AVAILABLE;
     const eventDatetime = alertData._eventDttm_ ? helper.getFormattedDate(alertData._eventDttm_, 'local') : NOT_AVAILABLE;
 
@@ -917,7 +788,6 @@ class AlertDetails extends Component {
           <div className='nav'>
             <ul>
               <li onClick={this.getContent.bind(this, 'rule')}><span className={cx({'active': showContent.rule})}>{t('alert.txt-rule')}</span></li>
-              <li onClick={this.getContent.bind(this, 'pcap', alertData)} className={this.getPCAPstyle(alertData)}><span className={cx({'active': showContent.pcap})}>PCAP</span></li>
               {alertType === 'pot_attack' &&
                 <li onClick={this.getContent.bind(this, 'attack')}><span className={cx({'active': showContent.attack})}>{t('alert.txt-attack')}</span></li>
               }
@@ -940,14 +810,10 @@ class AlertDetails extends Component {
           </div>
           <div className='content'>
             <div className='options-buttons'>
-              {showContent.rule &&
+              {showContent.rule && alertData.pcapFlag &&
                 <section>
-                  {this.getPCAPdownload()}
+                  {this.displayPCAPdownload()}
                 </section>
-              }
-
-              {showContent.pcap && alertPCAP.data.length > 0 &&
-                <div onClick={this.getPcapFile}>{t('alert.txt-downloadPCAP')}</div>
               }
 
               {showContent.attack && alertData.fileMD5 &&
@@ -972,10 +838,6 @@ class AlertDetails extends Component {
 
             {showContent.rule &&
               this.displayRuleContent()
-            }
-
-            {showContent.pcap &&
-              this.displayPCAPcontent()
             }
 
             {showContent.json &&
@@ -1112,136 +974,6 @@ class AlertDetails extends Component {
     } else {
       return <i className='fg fg-loading-2'></i>
     }
-  }
-  /**
-   * Set PCAP hex value
-   * @method
-   * @param {string} [hex] - original string value
-   * @param {number} index - active index of the Alert PCAP array
-   */
-  setPCAPhex = (hex, index) => {
-    let tempAlertPCAP = {...this.state.alertPCAP};
-
-    if (hex) {
-      tempAlertPCAP.hex = hex.replace(/\s/g, '');
-    } else {
-      return false;
-    }
-    tempAlertPCAP.activeIndex = index;
-
-    this.setState({
-      alertPCAP: tempAlertPCAP
-    });
-  }
-  /**
-   * Set PCAP page
-   * @method
-   * @param {string} currentPage - current page of the PCAP info
-   */
-  setPCAPpage = (currentPage) => {
-    let tempAlertPCAP = {...this.state.alertPCAP};
-    tempAlertPCAP.page = currentPage;
-    tempAlertPCAP.activeIndex = null;
-    tempAlertPCAP.hex = '';
-    tempAlertPCAP.filterEmpty = false;
-
-    this.setState({
-      alertPCAP: tempAlertPCAP
-    }, () => {
-      this.getPCAPcontent();
-    });
-  }
-  /**
-   * Toggle (check/uncheck) to show/hide the PCAP data
-   * @method
-   */
-  toggleFilterEmpty = () => {
-    const {alertPCAP} = this.state;
-    let tempAlertPCAP = {...alertPCAP};
-    tempAlertPCAP.activeIndex = null;
-    tempAlertPCAP.hex = '';
-    tempAlertPCAP.filterEmpty = !tempAlertPCAP.filterEmpty;
-
-    if (tempAlertPCAP.filterEmpty) {
-      let alertPCAPdata = [];
-
-      _.forEach(alertPCAP.data, val => {
-        if (val.hex) {
-          alertPCAPdata.push(val);
-        }
-      })
-      tempAlertPCAP.data = alertPCAPdata;
-    } else {
-      tempAlertPCAP.data = _.cloneDeep(alertPCAP.origData);
-    }
-
-    this.setState({
-      alertPCAP: tempAlertPCAP
-    });
-  }
-  /**
-   * Display individual PCAP data
-   * @method
-   * @param {object} val - PCAP data
-   * @param {number} i - index
-   * @returns HTML DOM
-   */
-  showPCAPcontent = (val, i) => {
-    return <li key={i} className={cx({'active': val.hex})} onClick={this.setPCAPhex.bind(this, val.hex, i)}>{val.protocol}<i className={cx('fg', {'fg-arrow-left': this.state.alertPCAP.activeIndex === i})}></i></li> 
-  }
-  /**
-   * Display PCAP content
-   * @method
-   * @returns HTML DOM
-   */
-  displayPCAPcontent = () => {
-    const {alertPCAP} = this.state;
-    const hex = alertPCAP.hex;
-    let str = '';
-
-    if (hex) {
-      for (let i = 0; i < hex.length; i += 2) {
-        str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
-      }
-    }
-
-    if (alertPCAP.data.length === 0) {
-      return <span>{NOT_AVAILABLE}</span>
-    }
-
-    return (
-      <div className='pcap-content'>
-        <div className='c-flex aic filter-empty'>
-          <label htmlFor='filterEmpty'>{t('alert.txt-filterEmpty')}</label>
-          <Checkbox
-            id='filterEmpty'
-            checked={alertPCAP.filterEmpty}
-            onChange={this.toggleFilterEmpty} />
-        </div>
-        <div className='pcap'>
-          <div className='list'>
-            <ul>
-              {alertPCAP.data.map(this.showPCAPcontent)}
-            </ul>
-          </div>
-          <div className='data'>
-            {str &&
-              <Textarea
-                value={str} 
-                readOnly={true} />
-            }
-          </div>
-        </div>
-        {alertPCAP.totalCount > alertPCAP.pageSize &&
-          <footer>
-            <PageNav
-              pages={Math.ceil(alertPCAP.totalCount / alertPCAP.pageSize)}
-              current={alertPCAP.page}
-              onChange={this.setPCAPpage} />
-          </footer>
-        }
-      </div>
-    )
   }
   /**
    * Display PCAP payload content
@@ -1995,21 +1727,11 @@ class AlertDetails extends Component {
     this.setState({
       showContent: {
         rule: false,
-        pcap: false,
         attack: false,
         srcIp: false,
         destIp: false
       },
       alertRule: '',
-      alertPCAP: {
-        data: [],
-        page: 1,
-        pageSize: 10,
-        totalCount: 0,
-        activeIndex: null,
-        hex: '',
-        filterEmpty: false
-      },
       alertPayload: ''
     });
   }
