@@ -145,6 +145,7 @@ class StatisticsUIF extends Component {
 			</div>
 
 {
+      !_.isEmpty(appendConfig) &&
       <div className='uif-dashboard'>
          <HOC $id={'dashboard/SCP-Overview'} $appendConfig={appendConfig} />
       </div>
