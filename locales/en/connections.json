@@ -163,7 +163,7 @@
   "txt-accountManage": "Account Management",
   "txt-syslogManage": "Syslog Management",
   "txt-syslogConfig": "Syslog Config",
-  "txt-syslogPattern": "Syslog Pattern",
+  "txt-systemDefinedPattern": "System Defined Pattern",
   "txt-serviceStatus": "Service Status",
   "txt-networkInventory": "Network Inventory",
   "txt-productInfo": "Product Information",
@@ -415,8 +415,8 @@
     }
   },
 
-  "severity-table": {
-    "txt-severityTable": "Severity Table",
+  "threat-severity-mapping": {
+    "txt-severityMapping": "Threat Severity Mapping",
     "txt-addSeverityTable": "Add Type",
     "txt-typeInfo": "Type Info",
     "txt-lastUpateTime": "Last Update Time",
@@ -424,8 +424,7 @@
     "txt-deleteSeverity": "$t(txt-delete) Severity Type"
   },
 
-  "syslog-pattern": {
-    "txt-patternScript": "Pattern Script",
+  "system-defined-pattern": {
     "txt-addPatternScript": "Add Pattern",
     "txt-patternInfo": "Pattern Info",
     "txt-lastUpateTime": "Last Update Time",
