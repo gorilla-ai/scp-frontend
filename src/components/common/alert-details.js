@@ -619,6 +619,14 @@ class AlertDetails extends Component {
     return <span className='severity' style={{backgroundColor: styleStatus}}>{value}</span>
   }
   /**
+   * Handle pcap download button
+   * @method
+   * @param {string} url - pcap download link
+   */
+  pcapDownload = (url) => {
+    window.open(url, '_blank');
+  }
+  /**
    * Display PCAP download link
    * @method
    */
@@ -629,7 +637,7 @@ class AlertDetails extends Component {
     const endDttm = Moment(helper.getAdditionDate(10, 'minutes', alertData._eventDttm_)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
     const downloadLink = `${baseUrl}${contextRoot}/api/alert/pcap?agentId=${alertData._edgeInfo.agentId}&startDttm=${startDttm}&endDttm=${endDttm}&targetIp=${alertData.srcIp || alertData.ipSrc}&infoType=${alertData['alertInformation.type']}`;
 
-    return <a href={downloadLink} target='_blank' download>{t('alert.txt-downloadPCAP')}</a>
+    return <span onClick={this.pcapDownload.bind(this, downloadLink)}>{t('alert.txt-downloadPCAP')}</span>
   }
   /**
    * Redirect URL

@@ -1666,12 +1666,14 @@ class NetworkInventory extends Component {
     });
   }
   /**
-   * Handle HMD download buttons
+   * Handle HMD download button
    * @method
    * @param {string} type - download type ('windows' or 'linux')
    */
   hmdDownload = (type) => {
-
+    const {baseUrl, contextRoot} = this.context;
+    const url = `${baseUrl}${contextRoot}/api/hmd/download?ver=${type}`;
+    window.open(url, '_blank');
   }
   /**
    * Construct and display add IP context menu
