@@ -352,47 +352,6 @@ html[data-theme='dark'] {
       }
     }
   }
-  .pcap-content {
-    .filter-empty {
-      width: 200px;
-      margin-bottom: 10px;
-      label {
-        margin-right: 5px;
-      }
-    }
-    .pcap {
-      display: flex;
-      justify-content: space-between;
-      .list {
-        font-size: 16px;
-        li {
-          margin-bottom: 5px;
-          &.active {
-            color: var(--linkColor);
-            text-decoration: underline;
-            cursor: pointer;
-          }
-          i {
-            float: right;
-            color: grey;
-            margin-top: 1px;
-          }
-        }
-      }
-      .data {
-        textarea {
-          color: var(--primaryTextColor);
-          border: 1px solid var(--formInputBorderColor);
-          background-color: var(--formBackground);
-        }
-      }
-    }
-    footer {
-      display: flex;
-      justify-content: center;
-      margin: 5px;
-    }
-  }
 }
 /* events/netflow/index */
 /* events/syslog/index */
@@ -486,6 +445,9 @@ html[data-theme='dark'] {
   .react-multi-email {
     display: flex;
     flex-wrap: wrap;
+    input {
+      margin-left: 2px;
+    }
     [data-tag] {
       font-size: 14px;
       font-weight: normal;
@@ -573,6 +535,20 @@ html[data-theme='dark'] {
         .empty-msg {
           margin-top: 10px;
         }
+      }
+      .dashboard-wrapper {
+        width: 100%;
+        margin-top: 25px;
+        overflow-y: auto;
+      }
+      .spider-chart {
+        float: left;
+        width: 65%;
+      }
+      .main-table.score {
+        float: right;
+        width: 32%;
+        margin-right: 1%;
       }
       .scan-content {
         margin-top: 10px;
@@ -692,6 +668,77 @@ html[data-theme='dark'] {
             margin-bottom: 10px;
             span {
               margin-right: 15px;
+            }
+          }
+        }
+      }
+      .settings {
+        position: relative;
+        .settings-wrapper {
+          overflow-y: auto;
+        }
+        .options-btn {
+          float: right;
+          margin-top: 10px;
+          margin-right: 10px;
+          .btn {
+            padding: .3em .5em;
+          }
+          .restore-default,
+          .save,
+          .cancel {
+            float: right;
+          }
+          .restore-default,
+          .save {
+            margin-right: 5px;
+          }
+        }
+        .toggle-btn {
+          position: absolute;
+          top: 65px;
+          left: 135px;
+          label {
+            display: inherit;
+          }
+        }
+        .settings-form {
+          margin: 0 10px;
+          .form-group {
+            margin-bottom: 20px;
+            label {
+              display: block;
+              text-align: left;
+              font-size: .9em;
+              color: var(--primaryContentHeader);
+              margin-bottom: 3px;
+            }
+            .flex-item {
+              margin-top: 10px;
+              span {
+                font-size: 14px;
+                color: #fff;
+                padding: 5px 10px;
+                margin: 3px 2px;
+                border-radius: 5px;
+                background-color: var(--primaryContentHeader);
+              }
+            }
+          }
+          .react-multi-email {
+            display: flex;
+            flex-wrap: wrap;
+            background-color: var(--formBackground);
+            input {
+              margin-left: 2px;
+            }
+            [data-tag] {
+              font-size: 14px;
+              font-weight: normal;
+              color: #fff;
+              padding: 8px 10px;
+              margin: 2px;
+              background-color: var(--primaryContentHeader);
             }
           }
         }
@@ -819,11 +866,7 @@ html[data-theme='dark'] {
       width: 100%;
       background-color: var(--contentBackground);
       .options-buttons {
-        position: absolute;
-        top: 10px;
-        right: 10px;
         text-align: right;
-        min-width: 100px;
         cursor: pointer;
         div {
           cursor: pointer;
@@ -834,13 +877,6 @@ html[data-theme='dark'] {
           &.query-more {
             float: left;
           }
-        }
-      }
-      section.alert-rule {
-        height: 375px;
-        overflow-y: auto;
-        ul {
-          background: none !important;
         }
       }
       ul {
@@ -861,6 +897,7 @@ html[data-theme='dark'] {
           }
         }
         &.alert-rule {
+          margin-top: 5px;
           li {
             overflow-y: auto;
             max-height: 340px;
@@ -882,11 +919,17 @@ html[data-theme='dark'] {
           background-color: var(--contentBackground) !important;
         }
       }
+      section.alert-rule,
       .srcIp-content,
       .destIp-content {
-        margin-top: 30px;
-        max-height: 395px;
+        margin-top: 5px;
+        height: 370px;
         overflow-y: auto;
+      }
+      section.alert-rule {
+        ul {
+          background: none !important;
+        }
       }
       .srcIp-content,
       .destIp-content {
@@ -902,11 +945,6 @@ html[data-theme='dark'] {
           }
         }
       }
-      .pcap-content {
-        footer {
-          margin-top: 15px;
-        }
-      }
     }
     .network-behavior {
       position: relative;
@@ -920,8 +958,11 @@ html[data-theme='dark'] {
         padding: .3em .5em;
       }
       .table-data {
-        max-height: 395px;
+        height: 345px;
         overflow-y: auto;
+        .network-behavior {
+          width: 50%;
+        }
         .severity-level {
           display: block;
           color: #fff;
@@ -933,8 +974,6 @@ html[data-theme='dark'] {
       }
     }
   }
-}
-#dashboardModalDialog-content {
   .scan-info {
     min-height: 365px;
     padding: 0;
@@ -942,19 +981,25 @@ html[data-theme='dark'] {
     border: none;
     .info-content {
       .table {
+        width: 100%;
         max-height: 315px;
-        width: 670px;
       }
       .scan-content {
         .list {
           max-height: 245px;
         }
       }
+      .dashboard-wrapper {
+        height: 365px;
+      }
       .scan-wrapper {
         margin-top: 5px;
         .scan-section {
           width: 99%;
         }
+      }
+      .settings-wrapper {
+        height: 340px;
       }
     }
   }
@@ -974,12 +1019,18 @@ html[data-theme='dark'] {
           max-height: 340px;
         }
       }
+      .dashboard-wrapper {
+        height: 480px;
+      }
       .scan-wrapper {
         min-height: 440px;
         .scan-section {
           width: 99%;
         }
       }
+      .settings-wrapper {
+        height: 455px;
+      }      
     }
   }
 }

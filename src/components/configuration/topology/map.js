@@ -1056,6 +1056,9 @@ class NetworkMap extends Component {
                         layouts={['standard']}
                         dragModes={['pan']}
                         scale={{enabled: false}}
+                        mapOptions={{
+                          maxZoom: 2
+                        }}
                         selected={[addSeat.selectedSeatUUID]}
                         onClick={this.handleFloorMapClick} />
                     }

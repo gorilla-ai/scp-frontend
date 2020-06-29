@@ -334,6 +334,14 @@ i.c-checkbox.fg-checkbox {
     padding: 10px 5px;
     border-radius: 5px;
     background-color: var(--leftTreeGroup);
+    .branch,
+    .leaf {
+      padding: 0 0 0 .7em;
+    }
+    & > .branch,
+    & > .leaf {
+      padding-left: 0;
+    }
     i.c-checkbox {
       color: var(--buttonSelectedColor);
       &.fg-checkbox {
@@ -345,6 +353,10 @@ i.c-checkbox.fg-checkbox {
       &.fg-checkbox-outline:hover:not(.disabled) {
         color: var(--chartAxisLabelColor);
       }
+    }
+    .children .branch:before,
+    .leaf:before {
+      width: .7em;
     }
     .children .branch:last-child:before,
     .leaf:last-child:before {
@@ -1072,9 +1084,9 @@ i.c-checkbox.fg-checkbox {
       .c-hierarchy {
         .button {
           display: none;
-          font-size: .5em;
+          font-size: .4em;
           color: var(--buttonTextColor);
-          padding: .1em .8em;
+          padding: .1em .5em;
           border-radius: 5px;
           background-color: var(--buttonBackground);
           &.active {
@@ -1585,11 +1597,9 @@ i.c-checkbox.fg-checkbox {
                 margin-right: 15px;
               }
               .msg {
-                display: block;
                 font-size: 10px;
                 font-weight: normal;
                 color: var(--primaryTextColor);
-                margin-top: 5px;
               }
             }
             button {
@@ -1675,13 +1685,16 @@ i.c-checkbox.fg-checkbox {
                 display: flex;
                 flex-wrap: wrap;
                 background-color: var(--formBackground);
+                input {
+                  margin-left: 2px;
+                }
                 [data-tag] {
                   font-size: 14px;
                   font-weight: normal;
                   color: #fff;
                   padding: 8px 10px;
                   margin: 2px;
-                  background-color: var(--formEmailGroup);
+                  background-color: var(--primaryContentHeader);
                 }
               }
               .ip-range-group,

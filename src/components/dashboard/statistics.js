@@ -5,6 +5,7 @@ import PropTypes from 'prop-types'
 import Moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
+import queryString from 'query-string'
 
 import BarChart from 'react-chart/build/src/components/bar'
 import DataTable from 'react-ui/build/src/components/table'
@@ -59,7 +60,7 @@ const CHARTS_LIST = [
   {
     id: 'dnsQuery',
     key: 'query',
-    path: 'dns.status-term'
+    path: 'dns-status-term'
   }
 ];
 
@@ -80,8 +81,6 @@ class DashboardStats extends Component {
         //from: '2019-08-06T01:00:00Z',
         //to: '2019-08-07T02:02:13Z'
       },
-      past24hTime: helper.getFormattedDate(helper.getSubstractDate(24, 'hours')),
-      updatedTime: helper.getFormattedDate(Moment()),
       alertDataArr: null,
       internalMaskedIpArr: null,
       alertChartsList: [],
@@ -110,6 +109,7 @@ class DashboardStats extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    const statisticsParam = queryString.parse(location.search);
     let alertChartsList = [];
 
     _.forEach(CHARTS_LIST, val => {
@@ -142,6 +142,15 @@ class DashboardStats extends Component {
         });
       }
     })
+
+    if (!_.isEmpty(statisticsParam)) { //For internal use only
+      let tempDatetime = {...this.state.datetime};
+      tempDatetime.from = helper.getSubstractDate(statisticsParam.unit, statisticsParam.type);
+
+      this.setState({
+        datetime: tempDatetime
+      });
+    }
 
     this.setState({
       alertChartsList
@@ -327,8 +336,6 @@ class DashboardStats extends Component {
         })
 
         this.setState({
-          past24hTime: helper.getFormattedDate(helper.getSubstractDate(24, 'hours')),
-          updatedTime: helper.getFormattedDate(Moment()),
           alertDataArr,
           internalMaskedIpArr,
           // internalMaskedIpArr: [{
@@ -605,13 +612,13 @@ class DashboardStats extends Component {
           diskTotal: ''
         }];
 
-        if (data['disk.avail'] && data['disk.avail'] >= 0) {
-          tempDiskMetricData.data[0].diskAvail = data['disk.avail'];
+        if (data['disk-avail'] && data['disk-avail'] >= 0) {
+          tempDiskMetricData.data[0].diskAvail = data['disk-avail'];
           validData = true;
         }
 
-        if (data['disk.total'] && data['disk.total'] >= 0) {
-          tempDiskMetricData.data[0].diskTotal = data['disk.total'];
+        if (data['disk-total'] && data['disk-total'] >= 0) {
+          tempDiskMetricData.data[0].diskTotal = data['disk-total'];
           validData = true;
         }
 
@@ -930,8 +937,7 @@ class DashboardStats extends Component {
   }
   render() {
     const {
-      past24hTime,
-      updatedTime,
+      datetime,
       alertDataArr,
       internalMaskedIpArr,
       alertChartsList,
@@ -941,59 +947,12 @@ class DashboardStats extends Component {
       hmdData,
       lms
     } = this.state;
-    const metricsData = [dnsMetricData, diskMetricData];
-    const displayTime = past24hTime + ' - ' + updatedTime;
-
-    const props = {
-      "type": "react-ui/Table",
-      "config": {
-        "defaultSort": {
-          "desc": false
-        },
-        "data": [
-          {
-            "channelName": "CH1",
-            "roiName": "ROI1",
-            "count": 83
-          },
-          {
-            "channelName": "CH1",
-            "roiName": "ROI2",
-            "count": 81
-          },
-          {
-            "channelName": "CH3",
-            "roiName": "ROI1",
-            "count": 62
-          },
-          {
-            "channelName": "CH4",
-            "roiName": "ROI1",
-            "count": 36
-          }
-        ],
-        "fields": {
-          "ID": {},
-          "channelName": {
-            "sortable": false
-          },
-          "roiName": {
-            "sortable": false,
-            "$labelOf": ""
-          },
-          "count": {
-            "$labelOf": "label_0",
-            "label": "次數"
-          }
-        }
-      }
-    };
 
     return (
       <div>
         <div className='sub-header'>
           {helper.getDashboardMenu('statistics')}
-          <span className='date-time'>{displayTime}</span>
+          <span className='date-time'>{helper.getFormattedDate(datetime.from) + ' - ' + helper.getFormattedDate(datetime.to)}</span>
         </div>
 
         <div className='main-dashboard'>
@@ -1140,7 +1099,7 @@ class DashboardStats extends Component {
             </div>
 
             <div className='chart-group c-box'>
-              {metricsData.map(this.displayMetrics)}
+              {[dnsMetricData, diskMetricData].map(this.displayMetrics)}
             </div>
           </div>
         </div>

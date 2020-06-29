@@ -30,6 +30,7 @@ import FileUpload from '../../common/file-upload'
 import FilterContent from '../../common/filter-content'
 import FloorMap from '../../common/floor-map'
 import helper from '../../common/helper'
+import HMDsettings from './hmd-settings'
 import HMDscanInfo from '../../common/hmd-scan-info'
 import IrSelections from '../../common/ir-selections'
 import Manage from './manage'
@@ -40,7 +41,7 @@ import TableContent from '../../common/table-content'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const NOT_AVAILABLE = 'N/A';
-const SAFETY_SCAN_LIST = ['yara', 'scanFile', 'gcb'];
+const SAFETY_SCAN_LIST = ['yara', 'scanFile', 'gcb', 'fileIntegrity'];
 const MAPS_PRIVATE_DATA = {
   floorList: [],
   currentFloor: '',
@@ -66,7 +67,7 @@ class NetworkInventory extends Component {
 
     this.state = {
       activeTab: 'deviceList', //deviceList, deviceMap
-      activeContent: 'tableList', //tableList, dataInfo, addIPsteps, autoSettings
+      activeContent: 'tableList', //tableList, dataInfo, addIPsteps, hmdSettings, autoSettings
       showFilter: false,
       showScanInfo: false,
       showSeatData: false,
@@ -198,21 +199,25 @@ class NetworkInventory extends Component {
 
       return <li key={i} style={{'color': colorStyle}}><span>{val.name} {t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}:</span> {val.result.GCBResultPassCnt}/{val.result.GCBResultTotalCnt}</li>
     } else {
-      if (val.result.ScanResultTotalCnt >= 0 || val.result.DetectionResultTotalCnt >= 0) {
-        let totalLength = 0;
+      if (val.result.ScanResultTotalCnt >= 0 || val.result.DetectionResultTotalCnt >= 0 || val.result.getFileIntegrityTotalCnt >= 0) {
+        let totalCount = 0;
         let colorStyle = '#22ac38'; //Default green color
+        let text = t('network-inventory.txt-suspiciousFileCount');
 
         if (val.type === 'yara') {
-          totalLength = val.result.ScanResultTotalCnt;
+          totalCount = val.result.ScanResultTotalCnt;
         } else if (val.type === 'scanFile') {
-          totalLength = val.result.DetectionResultTotalCnt;
+          totalCount = val.result.DetectionResultTotalCnt;
+        } else if (val.type === 'fileIntegrity') {
+          totalCount = val.result.getFileIntegrityTotalCnt;
+          text = t('network-inventory.txt-modifiedFileCount');
         }
 
-        if (totalLength > 0) { //Show red color
+        if (totalCount > 0) { //Show red color
           colorStyle = '#d10d25';
         }
 
-        return <li key={i} style={{'color': colorStyle}}>{val.name} {t('network-inventory.txt-suspiciousFileCount')}: {totalLength}</li>
+        return <li key={i} style={{'color': colorStyle}}>{val.name} {text}: {totalCount}</li>
       }
     }
   }
@@ -1398,19 +1403,6 @@ class NetworkInventory extends Component {
     });
   }
   /**
-   * Display IR selection modal dialog
-   * @method
-   * @returns IrSelections component
-   */
-  irSelectionDialog = () => {
-    return (
-      <IrSelections
-        triggerTask={this.triggerTask}
-        toggleSelectionIR={this.toggleSelectionIR}
-      />
-    )
-  }
-  /**
    * Display device info and HMD scan results
    * @method
    * @returns HTML DOM
@@ -1574,8 +1566,8 @@ class NetworkInventory extends Component {
       }
     } else if (type === 'showList') {
       activeContent = 'tableList';
-    } else if (type === 'showAuto') {
-      activeContent = 'autoSettings';
+    } else if (type === 'hmdSettings' || type === 'autoSettings') {
+      activeContent = type;
     } else if (type === 'showData') {
       activeContent = 'dataInfo';
     } else if (type === 'showForm') {
@@ -1674,25 +1666,54 @@ class NetworkInventory extends Component {
     });
   }
   /**
+   * Handle HMD download buttons
+   * @method
+   * @param {string} type - download type ('windows' or 'linux')
+   */
+  hmdDownload = (type) => {
+
+  }
+  /**
    * Construct and display add IP context menu
    * @method
+   * @param {string} type - context menu type ('addIP' or 'download')
    * @param {object} evt - mouseClick events
    */
-  handleRowContextMenu = (evt) => {
-    const menuItems = [
-      {
-        id: 'showForm',
-        text: t('network-inventory.txt-manuallyEnter'),
-        action: () => this.toggleContent('showForm', 'new')
-      },
-      {
-        id: 'showUpload',
-        text: t('network-inventory.txt-batchUpload'),
-        action: () => this.toggleContent('showUpload')
-      }
-    ];
+  handleRowContextMenu = (type, evt) => {
+    let menuItems = [];
+    let menuType = '';
 
-    ContextMenu.open(evt, menuItems, 'addIpMenu');
+    if (type === 'addIP') {
+      menuItems = [
+        {
+          id: 'showForm',
+          text: t('network-inventory.txt-manuallyEnter'),
+          action: () => this.toggleContent('showForm', 'new')
+        },
+        {
+          id: 'showUpload',
+          text: t('network-inventory.txt-batchUpload'),
+          action: () => this.toggleContent('showUpload')
+        }
+      ];
+      menuType = 'addIpMenu';
+    } else if (type === 'download') {
+      menuItems = [
+        {
+          id: 'windows',
+          text: 'Windows',
+          action: () => this.hmdDownload('windows')
+        },
+        {
+          id: 'linux',
+          text: 'Linux',
+          action: () => this.hmdDownload('linux')
+        }
+      ];
+      menuType = 'downloadMenu';
+    }
+
+    ContextMenu.open(evt, menuItems, menuType);
     evt.stopPropagation();
   }
   /**
@@ -2424,17 +2445,6 @@ class NetworkInventory extends Component {
     });
   }
   /**
-   * Display floor map modal dialog
-   * @method
-   * @returns FloorMap component
-   */
-  modalFloorDialog = () => {
-    return (
-      <FloorMap
-        closeDialog={this.closeDialog} />
-    )
-  }
-  /**
    * Get show form button text
    * @method
    * @returns button text
@@ -2785,6 +2795,9 @@ class NetworkInventory extends Component {
                       layouts={['standard']}
                       dragModes={['pan']}
                       scale={{enabled: false}}
+                      mapOptions={{
+                        maxZoom: 2
+                      }}
                       selected={[addSeat.selectedSeatUUID]}
                       defaultSelected={[currentDeviceData.seatUUID]}
                       onClick={this.handleFloorMapClick} />
@@ -3151,20 +3164,23 @@ class NetworkInventory extends Component {
           this.showScanInfoDialog()
         }
 
-        {modalFloorOpen &&
-          this.modalFloorDialog()
-        }
-
-        {modalIRopen &&
-          this.irSelectionDialog()
-        }
-
         {addSeatOpen &&
           this.addSeatDialog()
         }
 
         {uploadOpen &&
           this.uploadDialog()
+        }
+
+        {modalFloorOpen &&
+          <FloorMap
+            closeDialog={this.closeDialog} />
+        }
+
+        {modalIRopen &&
+          <IrSelections
+            triggerTask={this.triggerTask}
+            toggleSelectionIR={this.toggleSelectionIR} />
         }
 
         <Manage
@@ -3202,8 +3218,10 @@ class NetworkInventory extends Component {
                 </Tabs>
 
                 <div className='content-header-btns'>
-                  <button className='standard btn' onClick={this.handleRowContextMenu}>{t('network-inventory.txt-addIP')}</button>
-                  <button className='standard btn' onClick={this.toggleContent.bind(this, 'showAuto')}>{t('network-inventory.txt-autoSettings')}</button>
+                  <button className='standard btn' onClick={this.handleRowContextMenu.bind(this, 'addIP')}>{t('network-inventory.txt-addIP')}</button>
+                  <button className='standard btn' onClick={this.toggleContent.bind(this, 'hmdSettings')}>{t('network-inventory.txt-hmdSettings')}</button>
+                  <button className='standard btn' onClick={this.handleRowContextMenu.bind(this, 'download')}>{t('network-inventory.txt-hmdDownload')}</button>
+                  <button className='standard btn' onClick={this.toggleContent.bind(this, 'autoSettings')}>{t('network-inventory.txt-autoSettings')}</button>
                   <Link to='/SCP/configuration/notifications'><button className='standard btn'>{t('notifications.txt-settings')}</button></Link>
                 </div>
 
@@ -3279,6 +3297,9 @@ class NetworkInventory extends Component {
                           layouts={['standard']}
                           dragModes={['pan']}
                           scale={{enabled: false}}
+                          mapOptions={{
+                            maxZoom: 2
+                          }}
                           onClick={this.getDeviceData.bind(this, '', 'oneSeat')} />
                       }
                     </div>
@@ -3313,9 +3334,12 @@ class NetworkInventory extends Component {
             this.displayAddIpSteps()
           }
 
+          {activeContent === 'hmdSettings' &&
+            <HMDsettings />
+          }
+
           {activeContent === 'autoSettings' &&
-            <AutoSettings
-              toggleContent={this.toggleContent} />
+            <AutoSettings />
           }
         </div>
       </div>

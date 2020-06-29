@@ -1,20 +1,26 @@
 import React, { Component } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, withRouter } from 'react-router-dom'
+import Highcharts from 'highcharts'
+import HighchartsMore from 'highcharts/highcharts-more'
 import PropTypes from 'prop-types'
 import Moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
 import InfiniteScroll from 'react-infinite-scroll-component'
+import {ReactMultiEmail} from 'react-multi-email';
 
 import ButtonGroup from 'react-ui/build/src/components/button-group'
 import DataTable from 'react-ui/build/src/components/table'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import ToggleBtn from 'react-ui/build/src/components/toggle-button'
 
 import {BaseDataContext} from './context';
 import helper from './helper'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
+
+HighchartsMore(Highcharts) //init module
 
 const NOT_AVAILABLE = 'N/A';
 const SAFETY_SCAN_LIST = [
@@ -33,12 +39,22 @@ const SAFETY_SCAN_LIST = [
   {
     type: 'ir',
     path: '_ZipPath'
+  },
+  {
+    type: 'fileIntegrity',
+    path: 'fileIntegrityResult'
+  },
+  {
+    type: 'snapshot',
+    path: 'snapshotResult'
   }
 ];
 const TRIGGER_NAME = {
   [SAFETY_SCAN_LIST[0].type]: 'compareIOC',
   [SAFETY_SCAN_LIST[1].type]: 'scanFile',
-  [SAFETY_SCAN_LIST[2].type]: 'gcbDetection'
+  [SAFETY_SCAN_LIST[2].type]: 'gcbDetection',
+  [SAFETY_SCAN_LIST[4].type]: 'getFileIntegrity',
+  [SAFETY_SCAN_LIST[5].type]: 'getSnapshot'
 };
 
 let scrollCount = 1;
@@ -56,20 +72,38 @@ class HMDscanInfo extends Component {
     super(props);
 
     this.state = {
-      activeTab: 'yara', //yara, scanFile, gcb, ir
+      activeTab: 'dashboard', //dashboard, yara, scanFile, gcb, ir, fileIntegrity, settings
       syncStatus: '',
       syncTime: '',
       buttonGroupList: [],
+      polarChartSettings: {},
       activePath: null,
       activeRuleHeader: false,
       activeRule: [],
       activeDLL: false,
       activeConnections: false,
+      dashboardInfo: {
+        dataFieldsArr: ['item', 'score'],
+        dataFields: {},
+        dataContent: [],
+        sort: {
+          field: 'score',
+          desc: true
+        }
+      },
       gcbFieldsArr: ['_CceId', '_OriginalKey', '_Type', '_CompareResult'],
       gcbSort: 'asc',
       hmdInfo: {},
       hasMore: true,
-      disabledBtn: false
+      disabledBtn: false,
+      settingsActiveContent: 'viewMode',
+      originalFileIntegrityEnableData: '',
+      fileIntegrityEnable: '',
+      originalSettingsPathData: {},
+      settingsPath: {
+        includePath: [],
+        excludePath: []
+      }
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -77,19 +111,28 @@ class HMDscanInfo extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    this.loadInitialContent();
-    this.loadHMDdata();
+    this.loadInitialData();
   }
   componentDidUpdate(prevProps) {
     if (!prevProps || (this.props.currentDeviceData !== prevProps.currentDeviceData)) {
-      this.loadInitialContent();
-      this.loadHMDdata();
+      let tempDashboardInfo = {...this.state.dashboardInfo};
+      tempDashboardInfo.dataContent = [];
+
+      this.setState({ //Reset Dashboard data content
+        dashboardInfo: tempDashboardInfo
+      }, () => {
+        this.loadInitialData();
+      });
     }
 
     if (!prevProps || (this.props.currentDeviceData.ip !== prevProps.currentDeviceData.ip)) {
       this.setState({
         activeTab: 'yara'
       });
+    }
+
+    if (this.chartNode) {
+      Highcharts.chart(this.chartNode, this.state.polarChartSettings);
     }
   }
   componentWillUnmount() {
@@ -100,14 +143,27 @@ class HMDscanInfo extends Component {
     });
   }
   /**
+   * Load initial data for HMD dialog
+   * @method
+   */
+  loadInitialData = () => {
+    this.loadInitialContent();
+    this.loadDashboardCharts();
+    this.loadHMDdata();
+    this.loadSettingsData();
+  }
+  /**
    * Set sync status and button group list
    * @method
    */
   loadInitialContent = () => {
-    const {currentDeviceData} = this.props;
+    const {location, currentDeviceData} = this.props;
     let syncStatus = '';
     let syncTime = '';
-    let buttonGroupList = [];
+    let buttonGroupList = [{
+      value: 'dashboard',
+      text: t('txt-dashboard')
+    }];
 
     if (currentDeviceData.syncYaraResult && currentDeviceData.syncYaraResult.length > 0) {
       if (currentDeviceData.syncYaraResult[0].status === 'failed') {
@@ -117,16 +173,101 @@ class HMDscanInfo extends Component {
     }
 
     _.forEach(SAFETY_SCAN_LIST, val => {
+      if (val.type === 'snapshot') return; //Ignore 'snapshot' tab
+
       buttonGroupList.push({ //Create list for Button group
         value: val.type,
         text: t('network-inventory.scan-list.txt-' + val.type)
       });
     });
 
+    if (location.pathname.indexOf('configuration') > 0) { //Add Settings tab for Config section
+      buttonGroupList.push({
+        value: 'settings',
+        text: t('txt-settings')
+      });
+    }
+
     this.setState({
       syncStatus,
       syncTime,
       buttonGroupList
+    });
+  }
+  /**
+   * Set spider and table chart for Dashboard tab
+   * @method
+   */
+  loadDashboardCharts = () => {
+    const {currentDeviceData} = this.props;
+    let polarData = {
+      categories: [],
+      data: []
+    };
+    let tempDashboardInfo = {...this.state.dashboardInfo};
+
+    _.forEach(currentDeviceData.radarResult, val => {
+      polarData.categories.push(val.key);
+      polarData.data.push(val.value);
+      tempDashboardInfo.dataContent.push({
+        item: val.key,
+        score: val.value
+      });
+    })
+
+    const polarChartSettings = {
+      chart: {
+        polar: true,
+        type: 'line'
+      },
+      title: {
+        text: ''
+      },
+      credits: {
+        enabled: false
+      },
+      xAxis: {
+        categories: polarData.categories,
+        tickmarkPlacement: 'on',
+        lineWidth: 0
+      },
+      yAxis: {
+        gridLineInterpolation: 'polygon',
+        lineWidth: 0,
+        min: 0
+      },
+      legend: {
+        align: 'right',
+        verticalAlign: 'top',
+        layout: 'vertical'
+      },
+      series: [{
+        name: t('txt-score'),
+        data: polarData.data,
+        pointPlacement: 'on'
+      }]
+    };
+
+    if (this.chartNode) {
+      Highcharts.chart(this.chartNode, polarChartSettings);
+    }
+
+    let tempFields = {};
+    tempDashboardInfo.dataFieldsArr.forEach(tempData => {
+      tempFields[tempData] = {
+        label: t(`txt-${tempData}`),
+        sortable: true,
+        formatter: (value, allValue, i) => {
+          return <span>{value}</span>
+        }
+      }
+    })
+
+    tempDashboardInfo.dataFields = tempFields;
+
+    this.setState({
+      polarChartSettings,
+      dashboardInfo: tempDashboardInfo
     });
   }
   /**
@@ -136,7 +277,7 @@ class HMDscanInfo extends Component {
   loadHMDdata = () => {
     const {locale} = this.context;
     const {currentDeviceData} = this.props;
-    const {gcbFieldsArr, gcbSort} = this.state;
+    const {gcbFieldsArr} = this.state;
     let hmdInfo = {};
 
     _.forEach(SAFETY_SCAN_LIST, val => {
@@ -212,6 +353,30 @@ class HMDscanInfo extends Component {
 
     this.setState({
       hmdInfo
+    });
+  }
+  /**
+   * Load and set Settings data
+   * @method
+   */
+  loadSettingsData = () => {
+    const {currentDeviceData} = this.props;
+    let tempSettingsPath = {...this.state.settingsPath};
+    let status = false;
+    let pathData = '';
+
+    if (currentDeviceData.hmdSetting && currentDeviceData.hmdSetting.length > 0) {
+      status = currentDeviceData.hmdSetting[0]._Parameters._isEnable;
+      pathData = currentDeviceData.hmdSetting[0]._Parameters;
+      tempSettingsPath.includePath = pathData._IncludePathList;
+      tempSettingsPath.excludePath = pathData._ExcludePathList;
+    }
+
+    this.setState({
+      originalFileIntegrityEnableData: status,
+      fileIntegrityEnable: status,
+      originalSettingsPathData: _.cloneDeep(tempSettingsPath),
+      settingsPath: tempSettingsPath
     });
   }
   /**
@@ -293,7 +458,7 @@ class HMDscanInfo extends Component {
           if (Moment(latestCreateTime).isAfter(responseTime)) {
             return this.checkOneDayAfter(latestCreateTime);
           } else {
-            return false; //Enable trigger button if latest create time is after response time
+            return false; //Enable trigger button if latest create time is later than response time
           }
         } else {
           return this.checkOneDayAfter(latestCreateTime);
@@ -720,6 +885,14 @@ class HMDscanInfo extends Component {
     }
   }
   /**
+   * Get current active tab name
+   * @method
+   * @returns current active tab
+   */
+  getActiveTab = () => {
+    return this.state.activeTab === 'settings' ? 'snapshot' : this.state.activeTab;
+  }
+  /**
    * Handle trigger task button
    * @method
    * @param {string} type - scan type
@@ -730,7 +903,7 @@ class HMDscanInfo extends Component {
     if (type === 'ir') {
       this.props.toggleSelectionIR(ipType);
     } else {
-      this.props.triggerTask([TRIGGER_NAME[this.state.activeTab]], ipType);
+      this.props.triggerTask([TRIGGER_NAME[this.getActiveTab()]], ipType);
 
       this.setState({
         disabledBtn: true
@@ -743,10 +916,28 @@ class HMDscanInfo extends Component {
    * @returns HTML DOM
    */
   getTriggerBtn = () => {
-    const {activeTab} = this.state;
-    const btnText = activeTab === 'ir' ? t('network-inventory.txt-reCompress') : t('network-inventory.txt-reCheck');
+    const btnText = this.state.activeTab === 'ir' ? t('network-inventory.txt-reCompress') : t('network-inventory.txt-reCheck');
+    const currentTab = this.getActiveTab();
 
-    return <button className='btn' onClick={this.getTriggerTask.bind(this, activeTab)} disabled={this.checkTriggerTime(activeTab)}>{btnText}</button>
+    return <button className='btn' onClick={this.getTriggerTask.bind(this, currentTab)} disabled={this.checkTriggerTime(currentTab)}>{btnText}</button>
+  }
+  /**
+   * Display trigger button info for scan type
+   * @method
+   * @returns HTML DOM
+   */
+  getTriggerBtnInfo = () => {
+    const {hmdInfo} = this.state;
+    const currentTab = this.getActiveTab();
+
+    return (
+      <div className='info'>
+        {this.getTriggerBtn()}
+        <div className='last-update'>
+          <span>{t('network-inventory.txt-createTime')}: {hmdInfo[currentTab].latestCreateDttm || hmdInfo[currentTab].createTime || NOT_AVAILABLE}</span>
+        </div>
+      </div>
+    )
   }
   /**
    * Load more items when scrolling to the bottom of the dialog
@@ -787,14 +978,90 @@ class HMDscanInfo extends Component {
     })
   }
   /**
-   * Display scan content
+   * Display File Integrity path
+   * @method
+   * @param {number} parentIndex - parent index of the file integrity array
+   * @param {object} val - file integrity content
+   * @param {number} i - index of the file integrity array
+   * @returns HTML DOM
+   */
+  displayFileIntegrityPath = (parentIndex, val, i) => {
+    const {activePath, activeRuleHeader} = this.state;
+    let uniqueKey = '';
+    let uniqueID = '';
+    let filePath = '';
+
+    if (val && val._FileIntegrityResultPath) {
+      uniqueKey = val._FileIntegrityResultPath + i;
+      uniqueID = parentIndex.toString() + i.toString() + val._FileIntegrityResultPath;
+      filePath = val._FileIntegrityResultPath;
+    }
+
+    if (!filePath) {
+      return;
+    }
+
+    return (
+      <div className='group' key={uniqueKey}>
+        <div className='path' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
+          <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`}></i>
+          <div className='path-header'>
+            {filePath &&
+              <span>{t('txt-path')}: {filePath}</span>
+            }
+          </div>
+        </div>
+        <div className={cx('rule', {'hide': activePath !== uniqueID})}>
+          <div className='rule-content'>
+            {val.Md5HashInfo &&
+              <div className='header'>
+                <ul>
+                  {val.Md5HashInfo._BaselineMd5Hash &&
+                    <li>Baseline MD5: {val.Md5HashInfo._BaselineMd5Hash}</li>
+                  }
+                  {val.Md5HashInfo._RealMd5Hash &&
+                    <li>Real MD5: {val.Md5HashInfo._RealMd5Hash}</li>
+                  }
+                </ul>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    )
+  }
+  /**
+   * Display File Integrity content
+   * @method
+   * @param {object} data - file integrity data object
+   * @param {string} val - file integrity path type
+   * @param {number} i - index of the file integrity path array
+   * @returns HTML DOM
+   */
+  getFileIntegrityContent = (data, val, i) => {
+    const dataResult = data[val];
+
+    if (dataResult && dataResult.length > 0) {
+      return (
+        <div className='scan-content'>
+          <div className='header rule'>{t(`network-inventory.txt-${val}`)}</div>
+            <div className='list'>
+              {dataResult.map(this.displayFileIntegrityPath.bind(this, i))}
+            </div>
+        </div>
+      )
+    }
+  }
+  /**
+   * Display content for accordion type
    * @method
    * @param {object} val - scan file data
    * @param {number} i - index of the file array
    * @returns HTML DOM
-   */  
-  displayScanContent = (val, i) => {
+   */
+  displayAccordionContent = (val, i) => {
     const {activeTab} = this.state;
+    const fileIntegrityArr = ['_NewCreateFile', '_MissingFile', '_ModifyFile'];
     let dataResult = [];
     let scanPath = '';
 
@@ -815,32 +1082,48 @@ class HMDscanInfo extends Component {
         <div className='scan-header'>
           <span>{t('network-inventory.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local') || NOT_AVAILABLE}</span>
           <span>{t('network-inventory.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}</span>
-          {this.getSuspiciousFileCount(dataResult)}
-        </div>
-        <div className='scan-content'>
-          <div className='header rule'>{t('network-inventory.txt-suspiciousFilePath')}</div>
-          {dataResult && dataResult.length > 0 &&
-            <div className='list'>
-              {dataResult.map(scanPath)}
-            </div>
-          }
-          {(!dataResult || dataResult.length === 0) &&
-            <div className='empty-msg'>{NOT_AVAILABLE}</div>
+          {(activeTab === 'yara' || activeTab === 'scanFile') &&
+            this.getSuspiciousFileCount(dataResult)
           }
         </div>
+        {(activeTab === 'yara' || activeTab === 'scanFile') &&
+          <div className='scan-content'>
+            <div className='header rule'>{t('network-inventory.txt-suspiciousFilePath')}</div>
+            {dataResult && dataResult.length > 0 &&
+              <div className='list'>
+                {dataResult.map(scanPath)}
+              </div>
+            }
+            {(!dataResult || dataResult.length === 0) &&
+              <div className='empty-msg'>{NOT_AVAILABLE}</div>
+            }
+          </div>
+        }
+        {activeTab === 'fileIntegrity' &&
+          fileIntegrityArr.map(this.getFileIntegrityContent.bind(this, val))
+        }
       </div>
     )
   }
   /**
-   * Handle table sort for gcb
+   * Handle table sort
    * @method
+   * @param {object} sort - sort data object
    */
-  handleTableSort = () => {
-    const {activeTab, gcbSort} = this.state;
+  handleTableSort = (sort) => {
+    const {activeTab, dashboardInfo, gcbSort} = this.state;
 
     if (activeTab === 'gcb') {
       this.setState({
         gcbSort: gcbSort === 'asc' ? 'desc' : 'asc'
+      });
+    } else {
+      let tempDashboardInfo = {...dashboardInfo};
+      tempDashboardInfo.sort.field = sort.field;
+      tempDashboardInfo.sort.desc = sort.desc;
+
+      this.setState({
+        dashboardInfo: tempDashboardInfo
       });
     }
   }
@@ -951,8 +1234,8 @@ class HMDscanInfo extends Component {
     const loader = '';
     let displayContent = '';
 
-    if (activeTab === 'yara' || activeTab === 'scanFile') {
-      displayContent = this.displayScanContent;
+    if (activeTab === 'yara' || activeTab === 'scanFile' || activeTab === 'fileIntegrity') {
+      displayContent = this.displayAccordionContent;
     } else if (activeTab === 'gcb') {
       displayContent = this.displayTableContent;
     } else if (activeTab === 'ir') {
@@ -986,8 +1269,212 @@ class HMDscanInfo extends Component {
     }
     return 'scan-file' + tempData;
   }
+  /**
+   * Toggle Settings active content
+   * @method
+   * @param {string} type - page type ('edit, 'save' and 'cancel')
+   */
+  toggleSettingsContent = (type) => {
+    const {originalFileIntegrityEnableData, originalSettingsPathData} = this.state;
+    let tempActiveContent = '';
+
+    if (type === 'edit') {
+      tempActiveContent = 'editMode';
+    } else if (type === 'save') {
+      tempActiveContent = 'viewMode';
+    } else if (type === 'cancel') {
+      tempActiveContent = 'viewMode';
+      this.setState({
+        fileIntegrityEnable: _.cloneDeep(originalFileIntegrityEnableData),
+        settingsPath: _.cloneDeep(originalSettingsPathData)
+      });
+    }
+
+    this.setState({
+      settingsActiveContent: tempActiveContent
+    });
+  }
+  /**
+   * Display list of settings path
+   * @method
+   * @param {string} val - settings path value
+   * @param {string} i - index of the settings path array
+   * @returns HTML DOM
+   */
+  displaySettingsPath = (val, i) => {
+    return <span key={i}>{val}</span>
+  }
+  /**
+   * Handle settings path input change
+   * @method
+   * @param {object} val - FILE_INTEGRITY_SETTINGS object
+   * @param {array} newPath - new settings path list
+   */
+  handleSettingsPathChange = (val, newSettingsPath) => {
+    let tempSettingsPath = {...this.state.settingsPath};
+    tempSettingsPath[val.type] = newSettingsPath;
+
+    this.setState({
+      settingsPath: tempSettingsPath
+    });
+  }
+  /**
+   * Handle settings path delete
+   * @method
+   * @param {function} removePath - function to remove settings path
+   * @param {number} index - index of the settings path list array
+   */
+  deleteSettingsPath = (removePath, index) => {
+    removePath(index);
+  }
+  /**
+   * Handle settings path delete
+   * @method
+   * @param {string} path - individual settings path
+   * @param {number} index - index of the settings path list array
+   * @param {function} removePath - function to remove settings path
+   * @returns HTML DOM
+   */
+  getLabel = (path, index, removePath) => {
+    return (
+      <div data-tag key={index}>
+        {path}
+        <span data-tag-handle onClick={this.deleteSettingsPath.bind(this, removePath, index)}> <span className='font-bold'>x</span></span>
+      </div>
+    )
+  }
+  /**
+   * Display File Integrity settings content
+   * @method
+   * @param {object} val - FILE_INTEGRITY_SETTINGS object
+   * @param {number} i - index of the FILE_INTEGRITY_SETTINGS array
+   * @returns HTML DOM
+   */
+  getSettingsPathContent = (val, i) => {
+    const {settingsActiveContent, settingsPath} = this.state;
+
+    return (
+      <div className='form-group' key={val.type}>
+        <label>{val.headerText} ({t('txt-commaSeparated')})</label>
+        {settingsActiveContent === 'viewMode' && settingsPath[val.type].length > 0 &&
+          <div className='flex-item'>{settingsPath[val.type].map(this.displaySettingsPath)}</div>
+        }
+        {settingsActiveContent === 'viewMode' && settingsPath[val.type].length === 0 &&
+          <div>{NOT_AVAILABLE}</div>
+        }
+        {settingsActiveContent === 'editMode' &&
+          <ReactMultiEmail
+            emails={settingsPath[val.type]}
+            validateEmail={path => {
+              return path;
+            }}
+            onChange={this.handleSettingsPathChange.bind(this, val)}
+            getLabel={this.getLabel} />
+        }
+      </div>
+    )
+  }
+  /**
+   * Handle settings save confirm
+   * @method
+   */
+  saveSettings = () => {
+    const {baseUrl} = this.context;
+    const {currentDeviceData} = this.props;
+    const {fileIntegrityEnable, settingsPath} = this.state;
+    const url = `${baseUrl}/api/hmd/snapshotSettings`;
+    const requestData = {
+      ipDeviceUUID: currentDeviceData.ipDeviceUUID,
+      _isEnable: fileIntegrityEnable,
+      _IncludePathList: settingsPath.includePath.join(),
+      _ExcludePathList: settingsPath.excludePath.join()
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'PATCH',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        data = data[0]._Parameters;
+
+        this.setState({
+          fileIntegrityEnable: data._isEnable,
+          settingsPath: {
+            includePath: data._IncludePathList,
+            excludePath: data._ExcludePathList
+          }
+        }, () => {
+          this.toggleSettingsContent('save');
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Restore to default path
+   * @method
+   */
+  restoreDefaultSettings = () => {
+    const {baseUrl} = this.context;
+    const {settingsPath} = this.props;
+
+    this.ah.one({
+      url: `${baseUrl}/api/hmd/defaultSnapshotSettings`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          fileIntegrityEnable: data._isEnable,
+          settingsPath: {
+            includePath: [data._IncludePathList],
+            excludePath: [data._ExcludePathList]
+          }
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Set file integrity status data
+   * @method
+   * @param {boolean} value - status data
+   */
+  handleStatusChange = (value) => {
+    this.setState({
+      fileIntegrityEnable: value
+    });
+  }
   render() {
-    const {activeTab, syncStatus, syncTime, buttonGroupList, hmdInfo} = this.state;
+    const {
+      activeTab,
+      syncStatus,
+      syncTime,
+      buttonGroupList,
+      dashboardInfo,
+      hmdInfo,
+      settingsActiveContent,
+      fileIntegrityEnable
+    } = this.state;
+    const FILE_INTEGRITY_SETTINGS = [
+      {
+        type: 'includePath',
+        headerText: t('network-inventory.txt-includePath')
+      },
+      {
+        type: 'excludePath',
+        headerText: t('network-inventory.txt-excludePath')
+      }
+    ];
 
     return (
       <div className='scan-info'>
@@ -1003,15 +1490,58 @@ class HMDscanInfo extends Component {
           value={activeTab} />
 
         <div className='info-content'>
-          {!_.isEmpty(hmdInfo) &&
+          {activeTab === 'dashboard' &&
+            <div className='dashboard-wrapper'>
+              <div className='chart-group c-box spider-chart'>
+                <div ref={node => { this.chartNode = node }}></div>
+              </div>
+
+              <DataTable
+                className='main-table score'
+                fields={dashboardInfo.dataFields}
+                data={dashboardInfo.dataContent}
+                sort={dashboardInfo.dataContent.length === 0 ? {} : dashboardInfo.sort}
+                onSort={this.handleTableSort} />
+            </div>
+          }
+
+          {activeTab !== 'dashboard' && activeTab !== 'settings' && !_.isEmpty(hmdInfo) &&
             <div>
-              <div className='info'>
-                {this.getTriggerBtn()} {/*For all*/}
-                <div className='last-update'>
-                  <span>{t('network-inventory.txt-createTime')}: {hmdInfo[activeTab].latestCreateDttm || hmdInfo[activeTab].createTime || NOT_AVAILABLE}</span>
+              {this.getTriggerBtnInfo()}
+              {this.getMainContent()}
+            </div>
+          }
+
+          {activeTab === 'settings' &&
+            <div className='settings'>
+              {this.getTriggerBtnInfo()}
+
+              <div className='settings-wrapper'>
+                <div className='options-btn'>
+                  {settingsActiveContent === 'viewMode' &&
+                    <button className='btn standard edit' onClick={this.toggleSettingsContent.bind(this, 'edit')}>{t('txt-edit')}</button>
+                  }
+                  {settingsActiveContent === 'editMode' &&
+                    <div>
+                      <button className='btn standard cancel' onClick={this.toggleSettingsContent.bind(this, 'cancel')}>{t('txt-cancel')}</button>
+                      <button className='btn save' onClick={this.saveSettings}>{t('network-inventory.txt-saveSettings')}</button>
+                      <button className='btn standard restore-default' onClick={this.restoreDefaultSettings}>{t('network-inventory.txt-restoreDefault')}</button>
+                    </div>
+                  }
+                </div>
+
+                <header>{t('network-inventory.scan-list.txt-fileIntegrity')}</header>
+                <ToggleBtn
+                  className='toggle-btn'
+                  onText='On'
+                  offText='Off'
+                  on={fileIntegrityEnable}
+                  onChange={this.handleStatusChange}
+                  disabled={settingsActiveContent === 'viewMode'} />
+                <div className='settings-form'>
+                  {FILE_INTEGRITY_SETTINGS.map(this.getSettingsPathContent)}
                 </div>
               </div>
-              {this.getMainContent()}
             </div>
           }
         </div>
@@ -1029,4 +1559,4 @@ HMDscanInfo.propTypes = {
   triggerTask: PropTypes.func.isRequired
 };
 
-export default HMDscanInfo;
+export default withRouter(HMDscanInfo);

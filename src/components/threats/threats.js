@@ -1,7 +1,5 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
-import Highcharts from 'highcharts'
-import HighchartsMore from 'highcharts/highcharts-more'
 import Moment from 'moment'
 import cx from 'classnames'
 
@@ -14,8 +12,6 @@ import FilterContent from '../common/filter-content'
 import helper from '../common/helper'
 import TableContent from '../common/table-content'
 import Tree from '../common/tree'
-
-HighchartsMore(Highcharts) //init module
 
 let t = null;
 
@@ -38,13 +34,6 @@ class Threats extends Component {
     super(props);
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
-  }
-  componentDidUpdate() {
-    const {mainContentData} = this.props;
-
-    if (mainContentData.activeSubTab === 'statistics') {
-      //Highcharts.chart(this.chartNode, mainContentData.polarChartParams);
-    }
   }
   /**
    * Show tooltip info when mouseover the pie chart
@@ -167,11 +156,6 @@ class Threats extends Component {
               <div className='main-dashboard threats'>
                 <div className='charts'>
                   {mainContentData.alertChartsList.map(this.displayCharts)}
-
-                  {/*<div className='chart-group c-box'>
-                    <header className='main-header'>HMD Comparsion</header>
-                    <div ref={node => { this.chartNode = node }}></div>
-                  </div>*/}
                 </div>
               </div>
             }
