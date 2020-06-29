@@ -222,6 +222,9 @@ const helper = {
         <button className={cx('thumb', {'selected': page === 'maps'})}>
           <Link to='/SCP/dashboard/maps'>{t('dashboard.txt-attacksMap')}</Link>
         </button>
+        <button className={cx('thumb', {'selected': page === 'statisticsUIF'})}>
+          <Link to='/SCP/dashboard/statisticsUIF'>{t('dashboard.txt-statisticsInfo')}</Link>
+        </button>
       </div>
     )
   },

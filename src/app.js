@@ -8,6 +8,7 @@ import i18n from 'i18next'
 import Highcharts from 'highcharts'
 import Moment from 'moment'
 
+import StatisticsUIF from './components/dashboard/statisticsUIF'
 import DashboardMaps from './components/dashboard/maps'
 import DashboardStats from './components/dashboard/statistics'
 import EdgeManagement from './components/configuration/edge/edge'
@@ -37,6 +38,7 @@ import Incident from './components/soc/incident'
 
 import {BaseDataContext, baseData} from './components/common/context'
 import {createInstance} from 'react-ui/build/src/utils/ajax-helper'
+import {setupConfigService} from 'widget-builder'
 
 import 'font-gorilla/css/font-gorilla.css'
 import 'purecss/build/pure-min.css'
@@ -62,6 +64,12 @@ const HeaderComp = () => (
   <BaseDataContext.Provider value={baseData}>
     <Header
       productName={productName} />
+  </BaseDataContext.Provider>
+)
+
+const StatisticsUIFComp = () => (
+  <BaseDataContext.Provider value={baseData}>
+    <StatisticsUIF />
   </BaseDataContext.Provider>
 )
 
@@ -205,6 +213,7 @@ const Main = () => (
   <main className='main'>
     <Switch>
       <Route exact path='/SCP' component={DashboardStatsComp} />
+      <Route exact path='/SCP/dashboard/statisticsUIF' component={StatisticsUIFComp} />
       <Route exact path='/SCP/dashboard/statistics' component={DashboardStatsComp} />
       <Route exact path='/SCP/dashboard/maps' component={DashboardMapsComp} />
       <Route exact path='/SCP/threats' component={ThreatsComp} />
@@ -281,6 +290,10 @@ function start() {
   } else {
     url = `/build/locales/${lng}.json`;
   }
+
+  // set uif
+  setupConfigService(baseUrl)
+
 
   Promise.resolve($.get(url))
     .then(data => {
