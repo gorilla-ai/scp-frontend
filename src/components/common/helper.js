@@ -307,6 +307,10 @@ const helper = {
               tempQueryData.pattern.severity = data[0].severity;
             }
 
+            if (data[0].emailList) {
+              tempQueryData.emailList = data[0].emailList;
+            }
+
             return tempQueryData;
           }
         }

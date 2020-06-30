@@ -202,6 +202,7 @@ class ThreatsController extends Component {
         formattedQuery: '',
         openFlag: false
       },
+      notifyEmailData: [],
       newQueryName: true,
       showFilter: false,
       showChart: false,
@@ -1639,13 +1640,23 @@ class ThreatsController extends Component {
     });
   }
   /**
+   * Set notify email data
+   * @method
+   * @param {object} queryData - query data to be set
+   */
+  setNotifyEmailData = (notifyEmailData) => {
+    this.setState({
+      notifyEmailData
+    });
+  }
+  /**
    * Display query menu modal dialog
    * @method
    * @param {string} type - query type ('open' or 'save')
    * @returns QueryOpenSave component
    */
   queryDialog = (type) => {
-    const {activeTab, account, filterData, queryData} = this.state;
+    const {activeTab, account, filterData, queryData, notifyEmailData} = this.state;
 
     return (
       <QueryOpenSave
@@ -1654,8 +1665,10 @@ class ThreatsController extends Component {
         account={account}
         filterData={filterData}
         queryData={queryData}
+        notifyEmailData={notifyEmailData}
         setFilterData={this.setFilterData}
         setQueryData={this.setQueryData}
+        setNotifyEmailData={this.setNotifyEmailData}
         getSavedQuery={this.getSavedQuery}
         closeDialog={this.closeDialog} />
     )

@@ -87,6 +87,22 @@ html[data-theme='dark'] {
 .leaflet-container {
   background: #fff;
 }
+.react-multi-email {
+  display: flex;
+  flex-wrap: wrap;
+  background-color: var(--formBackground);
+  input {
+    margin-left: 2px;
+  }
+  [data-tag] {
+    font-size: 14px;
+    font-weight: normal;
+    color: #fff;
+    padding: 8px 10px;
+    margin: 2px;
+    background-color: var(--primaryContentHeader);
+  }
+}
 .table-sort-list {
   list-style-type: none;
   overflow: hidden;
@@ -442,21 +458,6 @@ html[data-theme='dark'] {
 #testEmailDialog-content {
   width: 500px;
   padding: 20px 20px 25px 20px;
-  .react-multi-email {
-    display: flex;
-    flex-wrap: wrap;
-    input {
-      margin-left: 2px;
-    }
-    [data-tag] {
-      font-size: 14px;
-      font-weight: normal;
-      color: #fff;
-      padding: 8px 10px;
-      margin: 2px;
-      background-color: #004d99;
-    }
-  }
 }
 /* configuration/topology/inventory */
 /* configuration/common/alert-details */
@@ -723,22 +724,6 @@ html[data-theme='dark'] {
                 border-radius: 5px;
                 background-color: var(--primaryContentHeader);
               }
-            }
-          }
-          .react-multi-email {
-            display: flex;
-            flex-wrap: wrap;
-            background-color: var(--formBackground);
-            input {
-              margin-left: 2px;
-            }
-            [data-tag] {
-              font-size: 14px;
-              font-weight: normal;
-              color: #fff;
-              padding: 8px 10px;
-              margin: 2px;
-              background-color: var(--primaryContentHeader);
             }
           }
         }
@@ -1249,6 +1234,9 @@ html[data-theme='dark'] {
 }
 /* common/query-open-save */
 #queryDialog-dialog {
+  #queryDialog-content {
+    max-width: 428px;
+  }
   label {
     color: var(--linkColor);
   }
@@ -1311,6 +1299,7 @@ html[data-theme='dark'] {
   }
   .severity-level {
     padding: 10px;
+    margin-bottom: 15px;
     border-radius: 5px;
     background-color: var(--dialogFormGroup);
     clear: both;
@@ -1337,9 +1326,24 @@ html[data-theme='dark'] {
     margin-top: 3px;
     margin-right: 5px;
   }
+  .pattern-header {
+    color: var(--linkColor);
+  }
   #severityLevel {
     width: 360px;
     margin-bottom: 10px;
+  }
+  .flex-item {
+    display: flex;
+    flex-wrap: wrap;
+    span {
+      font-size: 14px;
+      color: #fff;
+      padding: 5px 10px;
+      margin: 3px 2px;
+      border-radius: 5px;
+      background-color: var(--primaryContentHeader);
+    }
   }
   .delete-query {
     margin-top: 15px;

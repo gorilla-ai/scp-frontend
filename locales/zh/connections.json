@@ -361,6 +361,7 @@
     "txt-senderAccount": "寄件者帳號",
     "txt-senderPassword": "寄件者密碼",
     "txt-recipientEmail": "收件者郵件信箱",
+    "txt-notifyEmail": "通知郵件信箱",
     "txt-emailInvalid": "請輸入正確email",
     "txt-sendSuccess": "寄送成功",
     "txt-sendFail": "寄送失敗"

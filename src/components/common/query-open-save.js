@@ -3,6 +3,8 @@ import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
 
+import {ReactMultiEmail} from 'react-multi-email';
+
 import Checkbox from 'react-ui/build/src/components/checkbox'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import Input from 'react-ui/build/src/components/input'
@@ -114,11 +116,12 @@ class QueryOpenSave extends Component {
       }
     } else if (type === 'save') {
       const {baseUrl} = this.context;
-      const {account, queryData} = this.props;
+      const {account, queryData, notifyEmailData} = this.props;
       const {newQueryName} = this.state;
       let tempFilterData = [];
       let url = '';
       let queryText = {};
+      let emailList = [];
       let requestData = {};
       let requestType = '';
 
@@ -150,6 +153,7 @@ class QueryOpenSave extends Component {
         queryText = {
           filter: filterData
         };
+        emailList = notifyEmailData;
       } else if (activeTab === 'logs') {
         let markDataArr = [];
         url = `${baseUrl}/api/v1/account/syslog/queryText`;
@@ -164,6 +168,7 @@ class QueryOpenSave extends Component {
           filter: filterData,
           search: markDataArr
         };
+        emailList = notifyEmailData;
       } else {
         url = `${baseUrl}/api/account/event/queryText`;
         queryText = {
@@ -175,14 +180,16 @@ class QueryOpenSave extends Component {
         requestData = {
           accountId: account.id,
           name: queryData.inputName,
-          queryText
+          queryText,
+          emailList
         };
         requestType = 'POST';
       } else {
         requestData = {
           id: queryData.id,
           name: this.getQueryName(),
-          queryText
+          queryText,
+          emailList
         };
         requestType = 'PATCH';
       }
@@ -422,9 +429,9 @@ class QueryOpenSave extends Component {
     let queryName = '';
 
     if (type === 'id') {
-      tempQueryData.id = value;    
+      tempQueryData.id = value;
       tempQueryData.openFlag = true;
-      tempQueryData.query = {};
+      tempQueryData.query = {}; //Reset data to empty
       tempQueryData.patternId = '';
       tempQueryData.pattern = {
         name: '',
@@ -438,6 +445,7 @@ class QueryOpenSave extends Component {
         threshold: '',
         severity: 'Emergency'
       };
+      tempQueryData.emailList = [];
 
       _.forEach(queryData.list, val => {
         if (val.id === value) {
@@ -486,6 +494,10 @@ class QueryOpenSave extends Component {
             tempPattern.severity = val.severity;
             patternCheckbox = true;
           }
+
+          if (val.emailList.length > 0) {
+            tempQueryData.emailList = val.emailList;
+          }
           return false;
         }
       })
@@ -501,6 +513,8 @@ class QueryOpenSave extends Component {
     }
 
     this.props.setQueryData(tempQueryData);
+    this.props.setNotifyEmailData(tempQueryData.emailList);
+
     this.setState({
       newQueryName: queryName,
       pattern: tempPattern,
@@ -552,6 +566,41 @@ class QueryOpenSave extends Component {
     }
   }
   /**
+   * Handle email delete
+   * @method
+   * @param {function} removeEmail - function to remove email
+   * @param {number} index - index of the emails list array
+   */
+  deleteEmail = (removeEmail, index) => {
+    removeEmail(index);
+  }
+  /**
+   * Handle email delete
+   * @method
+   * @param {string} email - individual email
+   * @param {number} index - index of the emails list array
+   * @param {function} removeEmail - function to remove email
+   * @returns HTML DOM
+   */
+  getLabel = (email, index, removeEmail) => {
+    return (
+      <div data-tag key={index}>
+        {email}
+        <span data-tag-handle onClick={this.deleteEmail.bind(this, removeEmail, index)}> <span className='font-bold'>x</span></span>
+      </div>
+    )
+  }
+  /**
+   * Display individual email
+   * @method
+   * @param {string} val - email value
+   * @param {string} i - index of the emails array
+   * @returns HTML DOM
+   */
+  displayEmail = (val, i) => {
+    return <span key={i}>{val}</span>
+  }
+  /**
    * Display query menu content
    * @method
    * @param {string} type - query type ('open' or 'save')
@@ -559,7 +608,7 @@ class QueryOpenSave extends Component {
    */
   displayQueryContent = (type) => {
     const {locale} = this.context;
-    const {activeTab, queryData, filterData, markData} = this.props;
+    const {activeTab, queryData, filterData, notifyEmailData, markData} = this.props;
     const {pattern, severityList, patternCheckbox, periodCheckbox} = this.state;
     let displayList = [];
     let tempFilterData = [];
@@ -577,6 +626,7 @@ class QueryOpenSave extends Component {
     if (type === 'open') {
       let queryDataList = [];
       let queryDataMark = [];
+      let notifyEmailDataList = [];
 
       if (queryData.list.length === 0) {
         return <div className='error-msg'>{t('events.connections.txt-noSavedQuery')}</div>
@@ -588,6 +638,8 @@ class QueryOpenSave extends Component {
       } else {
         queryDataList = queryData.query.filter;
       }
+
+      notifyEmailDataList = queryData.emailList;
 
       return (
         <div>
@@ -618,7 +670,7 @@ class QueryOpenSave extends Component {
                 onChange={this.toggleCheckbox.bind(this, 'pattern')}
                 checked={true}
                 disabled={true} />
-              <span>{t('events.connections.txt-addPatternScript')}</span>
+              <span className='pattern-header'>{t('events.connections.txt-addPatternScript')}</span>
 
               {locale === 'zh' &&
                 <div className='group severity-level'>
@@ -698,6 +750,13 @@ class QueryOpenSave extends Component {
                   </div>
                 </div>
               }
+            </div>
+          }
+
+          {notifyEmailDataList.length > 0 &&
+            <div>
+              <label>{t('notifications.txt-notifyEmail')}</label>
+              <div className='flex-item'>{notifyEmailDataList.map(this.displayEmail)}</div>            
             </div>
           }
 
@@ -784,7 +843,7 @@ class QueryOpenSave extends Component {
                 id='patternCheckbox'
                 onChange={this.toggleCheckbox.bind(this, 'pattern')}
                 checked={patternCheckbox} />
-              <span>{t('events.connections.txt-addPatternScript')}</span>
+              <span className='pattern-header'>{t('events.connections.txt-addPatternScript')}</span>
 
               {locale === 'zh' &&
                 <div className='group severity-level'>
@@ -866,6 +925,16 @@ class QueryOpenSave extends Component {
                   </div>
                 </div>
               }
+            </div>
+          }
+
+          {(activeTab === 'alert' || activeTab === 'logs') &&
+            <div>
+              <label>{t('notifications.txt-notifyEmail')}</label>
+              <ReactMultiEmail
+                emails={notifyEmailData}
+                onChange={this.props.setNotifyEmailData}
+                getLabel={this.getLabel} />
             </div>
           }
         </div>

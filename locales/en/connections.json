@@ -361,6 +361,7 @@
     "txt-senderAccount": "Sender Account",
     "txt-senderPassword": "Sender Password",
     "txt-recipientEmail": "Recipient Email",
+    "txt-notifyEmail": "Notify Email Address",
     "txt-emailInvalid": "Please enter correct email address",
     "txt-sendSuccess": "Email has been sent successfully",
     "txt-sendFail": "Email delivery failed"

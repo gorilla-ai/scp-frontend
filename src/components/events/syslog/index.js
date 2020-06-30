@@ -133,6 +133,7 @@ class SyslogController extends Component {
         },
         openFlag: false
       },
+      notifyEmailData: [],
       newQueryName: true,
       showFilter: false,
       showMark: false,
@@ -1697,13 +1698,23 @@ class SyslogController extends Component {
     });
   }
   /**
+   * Set notify email data
+   * @method
+   * @param {object} queryData - query data to be set
+   */
+  setNotifyEmailData = (notifyEmailData) => {
+    this.setState({
+      notifyEmailData
+    });
+  }
+  /**
    * Display query menu modal dialog
    * @method
    * @param {string} type - query type ('open' or 'save')
    * @returns QueryOpenSave component
    */
   queryDialog = (type) => {
-    const {activeTab, account, filterData, markData, queryData} = this.state;
+    const {activeTab, account, filterData, markData, queryData, notifyEmailData} = this.state;
 
     return (
       <QueryOpenSave
@@ -1713,9 +1724,11 @@ class SyslogController extends Component {
         filterData={filterData}
         markData={markData}
         queryData={queryData}
+        notifyEmailData={notifyEmailData}
         setFilterData={this.setFilterData}
-        setQueryData={this.setQueryData}
         setMarkData={this.setMarkData}
+        setQueryData={this.setQueryData}
+        setNotifyEmailData={this.setNotifyEmailData}
         getSavedQuery={this.getSavedQuery}
         closeDialog={this.closeDialog} />
     )
