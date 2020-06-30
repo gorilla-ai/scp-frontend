@@ -83,6 +83,24 @@ class StatisticsUIF extends Component {
         // set tool tip
         if (widgetName === 'AlertStatistics-bar') {
           _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.onTooltip`], this.onTooltip.bind(this, 'AlertStatistics-bar'))
+          _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.xAxis`], {
+            labels: {
+              formatter() {
+                return Moment(this.value, 'x').local().format('MM/DD HH:mm')
+              }
+            }
+          })
+        }
+
+        if (widgetName === 'CustomAlertStatistics') {
+          _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.onTooltip`], this.onTooltip.bind(this, 'CustomAlertStatistics'))
+          _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.xAxis`], {
+            labels: {
+              formatter() {
+                return Moment(this.value, 'x').local().format('MM/DD HH:mm')
+              }
+            }
+          })
         }
 
         if (widgetName === 'MaskedIPAlertStatistics-bar') {
@@ -102,33 +120,25 @@ class StatisticsUIF extends Component {
   }
   onTooltip = (type, eventInfo, data) => {
     if (type === 'AlertStatistics-bar') {
-      return (
-        <section>
-          <span>{t('txt-severity')}: {data[0].severity}<br /></span>
-          <span>{t('txt-time')}: {Moment(data[0].key, 'x').utc().format('YYYY/MM/DD HH:mm:ss')}<br /></span>
-          <span>{t('txt-count')}: {data[0].doc_count}</span>
-        </section>
-      )
-    } 
+      return <section>
+        <span>{t('txt-severity')}: {data[0].severity}<br /></span>
+        <span>{t('txt-time')}: {Moment(data[0].key, 'x').local().format('YYYY/MM/DD HH:mm:ss')}<br /></span>
+        <span>{t('txt-count')}: {data[0].doc_count}</span>
+      </section>
+    }
+    if (type === 'CustomAlertStatistics') {
+      return <section>
+        <span>{t('dashboard.txt-patternName')}: {data[0].patternName}<br /></span>
+        <span>{t('txt-time')}: {Moment(data[0].key, 'x').local().format('YYYY/MM/DD HH:mm:ss')}<br /></span>
+        <span>{t('txt-count')}: {data[0].doc_count}</span>
+      </section>
+    }
     else if (type === 'MaskedIPAlertStatistics-bar') {
-      return (
-        <section>
-          <span>{t('txt-subnet')}: {data[0].subnet}<br /></span>
-          <span>{t('txt-count')}: {data[0].doc_count}</span>
-        </section>
-      )
+      return <section>
+        <span>{t('txt-subnet')}: {data[0].subnet}<br /></span>
+        <span>{t('txt-count')}: {data[0].doc_count}</span>
+      </section>
     } 
-
-
-    // else if (type === 'lineChart') {
-    //   return (
-    //     <section>
-    //       <span>{t('dashboard.txt-patternName')}: {data[0].patternName}<br /></span>
-    //       <span>{t('txt-date')}: {Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss')}<br /></span>
-    //       <span>{t('txt-count')}: {data[0].count}</span>
-    //     </section>
-    //   )
-    // }
   }
 	render() {
     const {locale} = this.context
