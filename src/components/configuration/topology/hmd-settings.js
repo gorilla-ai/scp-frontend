@@ -32,9 +32,8 @@ class HMDsettings extends Component {
       activeContent: 'viewMode', //viewMode, editMode
       originalScanFiles: [],
       scanFiles: [],
-      pathError: false,
       originalGcbVersion: '',
-      gcbVersion: 'tw'
+      gcbVersion: ''
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -46,29 +45,43 @@ class HMDsettings extends Component {
 
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
 
-    this.getScanFile();
-    this.getGcbVersion();
+    this.getSettingsInfo();
   }
   /**
-   * Get and set scan file data
+   * Get and set HMD settings data
    * @method
    */
-  getScanFile = () => {
+  getSettingsInfo = () => {
     const {baseUrl} = this.context;
+    const scanType = ['hmd.scanFile.path', 'hmd.gcb.version'];
+    let apiArr = [];
 
-    this.ah.one({
-      url: `${baseUrl}/api/common/config?configId=hmd.scanFile.path`,
-      type: 'GET'
-    })
+    _.forEach(scanType, val => {
+      apiArr.push({
+        url: `${baseUrl}/api/common/config?configId=${val}`,
+        type: 'GET'
+      });
+    })  
+
+    this.ah.all(apiArr)
     .then(data => {
-      if (data && data.value) {
-        const scanFiles = data.value.split(',');
+      if (data) {
+        if (data[0] && data[0].value) {
+          const scanFiles = data[0].value.split(',');
 
-        this.setState({
-          activeContent: 'viewMode',
-          originalScanFiles: _.cloneDeep(scanFiles),
-          scanFiles
-        });
+          this.setState({
+            activeContent: 'viewMode',
+            originalScanFiles: _.cloneDeep(scanFiles),
+            scanFiles
+          });
+        }
+
+        if (data[1] && data[1].value) {
+          this.setState({
+            originalGcbVersion: _.cloneDeep(data[1].value),
+            gcbVersion: data[1].value
+          });
+        }
       }
       return null;
     })
@@ -77,32 +90,16 @@ class HMDsettings extends Component {
     })
   }
   /**
-   * Get and set scan GCB version
-   * @method
-   */
-  getGcbVersion = () => {
-    const {gcbVersion} = this.state;
-
-    this.setState({
-      originalGcbVersion: _.cloneDeep(gcbVersion),
-      gcbVersion
-    });
-  }
-  /**
    * Toggle content type
    * @method
    * @param {string} type - content type ('editMode', 'save' or 'cancel')
    */
   toggleContent = (type) => {
-    const {originalScanFiles, pathError, originalGcbVersion} = this.state;
+    const {originalScanFiles, originalGcbVersion} = this.state;
     let showPage = type;
 
     if (type === 'save') {
-      if (pathError) {
-        helper.showPopupMsg(t('network-inventory.txt-pathFormatError'), t('txt-error'));
-      } else {
-        this.handleScanFilesConfirm();
-      }
+      this.handleScanFilesConfirm();
       return;
     } else if (type === 'cancel') {
       showPage = 'viewMode';
@@ -123,23 +120,38 @@ class HMDsettings extends Component {
    */
   handleScanFilesConfirm = () => {
     const {baseUrl} = this.context;
-    const {scanFiles} = this.state;
+    const {scanFiles, gcbVersion} = this.state;
+    const scanType = [
+      {
+        type: 'hmd.scanFile.path',
+        value: scanFiles.join()
+      },
+      {
+        type: 'hmd.gcb.version',
+        value: gcbVersion
+      }
+    ];
     const url = `${baseUrl}/api/common/config`;
-    const requestData = {
-      configId: 'hmd.scanFile.path',
-      value: scanFiles.join()
-    };
+    let apiArr = [];
 
-    this.ah.one({
-      url,
-      data: JSON.stringify(requestData),
-      type: 'POST',
-      contentType: 'text/plain'
+    _.forEach(scanType, val => {
+      const requestData = {
+        configId: val.type,
+        value: val.value
+      };
+
+      apiArr.push({
+        url,
+        data: JSON.stringify(requestData),
+        type: 'POST',
+        contentType: 'text/plain'
+      });
     })
+
+    this.ah.all(apiArr)
     .then(data => {
       if (data) {
-        this.getScanFile();
-        this.getGcbVersion();        
+        this.getSettingsInfo();
       }
       return null;
     })
@@ -205,12 +217,10 @@ class HMDsettings extends Component {
       }
     }
 
-    this.setState({
-      pathError: !valid
-    });
-
     if (valid) {
       return path;
+    } else {
+      helper.showPopupMsg(t('network-inventory.txt-pathFormatError'), t('txt-error'));
     }
   }
   /**
@@ -232,7 +242,7 @@ class HMDsettings extends Component {
   /**
    * Handle GCB version change
    * @method
-   * @param {string} gcbVersion - GCB version ('tw' or 'us')
+   * @param {string} gcbVersion - GCB version ('TW' or 'US')
    */
   handleGcbVersionChange = (gcbVersion) => {
     this.setState({
@@ -280,8 +290,8 @@ class HMDsettings extends Component {
                 <RadioGroup
                   className='radio-group'
                   list={[
-                    {value: 'tw', text: 'TW'},
-                    {value: 'us', text: 'US'}
+                    {value: 'TW', text: 'TW'},
+                    {value: 'US', text: 'US'}
                   ]}
                   value={gcbVersion}
                   onChange={this.handleGcbVersionChange}

@@ -319,7 +319,7 @@ class Pattern extends Component {
 
     return (
       <div className='main-content basic-form'>
-        <header className='main-header'>{t('syslog-pattern.txt-patternScript')}</header>
+        <header className='main-header'>{t('txt-systemDefinedPattern')}</header>
 
         <div className='content-header-btns'>
           {activeContent === 'viewPattern' &&
@@ -332,9 +332,9 @@ class Pattern extends Component {
 
         <div className='form-group normal'>
           <header>
-            <div className='text'>{t('syslog-pattern.txt-patternInfo')}</div>
+            <div className='text'>{t('system-defined-pattern.txt-patternInfo')}</div>
             {pattern.info.lastUpdateDttm &&
-              <span className='msg'>{t('syslog-pattern.txt-lastUpateTime')} {helper.getFormattedDate(pattern.info.lastUpdateDttm, 'local')}</span>
+              <span className='msg'>{t('system-defined-pattern.txt-lastUpateTime')} {helper.getFormattedDate(pattern.info.lastUpdateDttm, 'local')}</span>
             }
           </header>
           <div className='group'>
@@ -459,7 +459,7 @@ class Pattern extends Component {
    */
   openDeleteMenu = (allValue) => {
     PopupDialog.prompt({
-      title: t('syslog-pattern.txt-deletePattern'),
+      title: t('system-defined-pattern.txt-deletePattern'),
       id: 'modalWindowSmall',
       confirmText: t('txt-delete'),
       cancelText: t('txt-cancel'),
@@ -507,12 +507,12 @@ class Pattern extends Component {
     let requestType = '';
 
     if (!pattern.info.name) {
-      helper.showPopupMsg(t('syslog-pattern.txt-patternMissing'), t('txt-error'));
+      helper.showPopupMsg(t('system-defined-pattern.txt-patternMissing'), t('txt-error'));
       return;
     }
 
     if (!pattern.info.queryScript) {
-      helper.showPopupMsg(t('syslog-pattern.txt-queryScriptMissing'), t('txt-error'));
+      helper.showPopupMsg(t('system-defined-pattern.txt-queryScriptMissing'), t('txt-error'));
       return;
     }
 
@@ -718,10 +718,10 @@ class Pattern extends Component {
 
             {activeContent === 'tableList' &&
               <div className='main-content'>
-                <header className='main-header'>{t('syslog-pattern.txt-patternScript')}</header>
+                <header className='main-header'>{t('txt-systemDefinedPattern')}</header>
 
                 <div className='content-header-btns'>
-                  <button className='standard btn' onClick={this.toggleContent.bind(this, 'addPattern')}>{t('syslog-pattern.txt-addPatternScript')}</button>
+                  <button className='standard btn' onClick={this.toggleContent.bind(this, 'addPattern')}>{t('system-defined-pattern.txt-addPatternScript')}</button>
                 </div>
 
                 <TableContent

@@ -266,7 +266,7 @@ class Severity extends Component {
 
     return (
       <div className='main-content basic-form'>
-        <header className='main-header'>{t('severity-table.txt-severityTable')}</header>
+        <header className='main-header'>{t('threat-severity-mapping.txt-severityMapping')}</header>
 
         <div className='content-header-btns'>
           {activeContent === 'viewSeverity' &&
@@ -279,9 +279,9 @@ class Severity extends Component {
 
         <div className='form-group normal'>
           <header>
-            <div className='text'>{t('severity-table.txt-typeInfo')}</div>
+            <div className='text'>{t('threat-severity-mapping.txt-typeInfo')}</div>
             {severity.info.updateDttm &&
-              <span className='msg'>{t('severity-table.txt-lastUpateTime')} {helper.getFormattedDate(severity.info.updateDttm, 'local')}</span>
+              <span className='msg'>{t('threat-severity-mapping.txt-lastUpateTime')} {helper.getFormattedDate(severity.info.updateDttm, 'local')}</span>
             }
           </header>
           <div className='group'>
@@ -338,7 +338,7 @@ class Severity extends Component {
    */
   openDeleteMenu = (allValue) => {
     PopupDialog.prompt({
-      title: t('severity-table.txt-deleteSeverity'),
+      title: t('threat-severity-mapping.txt-deleteSeverity'),
       id: 'modalWindowSmall',
       confirmText: t('txt-delete'),
       cancelText: t('txt-cancel'),
@@ -386,7 +386,7 @@ class Severity extends Component {
     let requestType = '';
 
     if (!severity.info.type) {
-      helper.showPopupMsg(t('severity-table.txt-severityMissing'), t('txt-error'));
+      helper.showPopupMsg(t('threat-severity-mapping.txt-severityMissing'), t('txt-error'));
       return;
     }
 
@@ -572,10 +572,10 @@ class Severity extends Component {
 
             {activeContent === 'tableList' &&
               <div className='main-content'>
-                <header className='main-header'>{t('severity-table.txt-severityTable')}</header>
+                <header className='main-header'>{t('threat-severity-mapping.txt-severityMapping')}</header>
 
                 <div className='content-header-btns'>
-                  <button className='standard btn' onClick={this.toggleContent.bind(this, 'addSeverity')}>{t('severity-table.txt-addSeverityTable')}</button>
+                  <button className='standard btn' onClick={this.toggleContent.bind(this, 'addSeverity')}>{t('threat-severity-mapping.txt-addSeverityTable')}</button>
                 </div>
 
                 <TableContent

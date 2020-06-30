@@ -146,7 +146,7 @@ class Config extends Component {
             </div>
             <div className='subframe'>
               <Link to='/SCP/configuration/edge/severity'>
-                <span className={`${this.getActiveFrame('severity')}`}>{t('severity-table.txt-severityTable')}</span>
+                <span className={`${this.getActiveFrame('severity')}`}>{t('threat-severity-mapping.txt-severityMapping')}</span>
               </Link>
             </div>
           </div>
@@ -191,7 +191,7 @@ class Config extends Component {
             </div>
             <div className='subframe'>
               <Link to='/SCP/configuration/syslog/pattern'>
-                <span className={`${this.getActiveFrame('pattern')}`}>{t('txt-syslogPattern')}</span>
+                <span className={`${this.getActiveFrame('pattern')}`}>{t('txt-systemDefinedPattern')}</span>
               </Link>
             </div>
           </div>
