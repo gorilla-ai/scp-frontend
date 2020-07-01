@@ -2070,7 +2070,9 @@ class Netflow extends Component {
           </div>
           <div className='data'>
             {str &&
-              <Textarea value={str} readOnly={true} />
+              <Textarea
+                value={str}
+                readOnly={true} />
             }
           </div>
         </div>
