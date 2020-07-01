@@ -516,27 +516,27 @@ class Pattern extends Component {
       return;
     }
 
-    let data = {
+    let requestData = {
       patternName: pattern.info.name,
       severity: pattern.info.severity,
       queryScript: pattern.info.queryScript
     };
 
     if (periodCheckbox) {
-      data.periodMin = pattern.info.periodMin;
-      data.threshold = pattern.info.threshold;
+      requestData.periodMin = pattern.info.periodMin;
+      requestData.threshold = pattern.info.threshold;
     }
 
     if (activeContent === 'addPattern') {
       requestType = 'POST';
     } else if (activeContent === 'editPattern') {
-      data.patternId = pattern.info.id;
+      requestData.patternId = pattern.info.id;
       requestType = 'PATCH';
     }
 
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/alert/pattern`,
-      data: JSON.stringify(data),
+      data: JSON.stringify(requestData),
       type: requestType,
       contentType: 'text/plain'
     })
@@ -554,7 +554,6 @@ class Pattern extends Component {
 
         this.toggleContent(showPage);
       })
-
       return null;
     })
     .catch(err => {

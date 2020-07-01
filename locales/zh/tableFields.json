@@ -580,6 +580,8 @@
   "severityTableFields": {
     "dataSourceType": "Type",
     "severityLevel": "Severity",
+    "nickname": "名稱",
+    "description": "說明",
     "updateDttm": "最後更新"
   },
   "syslogPatternTableFields": {

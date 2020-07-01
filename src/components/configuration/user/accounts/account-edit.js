@@ -123,7 +123,7 @@ class AccountEdit extends Component {
   loadPrivileges = () => {
     const {baseUrl} = this.context;
 
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/account/privileges`
     })
     .then(data => {
@@ -217,7 +217,7 @@ class AccountEdit extends Component {
       return;
     }
 
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/account/privileges?accountId=${id}&${queryString.stringify({privilegeIds:selected})}`,
       type: 'PATCH',
       contentType: 'application/json',

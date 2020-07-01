@@ -200,6 +200,7 @@ class ThreatsController extends Component {
         list: [],
         query: '',
         formattedQuery: '',
+        emailList: [],
         openFlag: false
       },
       notifyEmailData: [],
@@ -1610,7 +1611,15 @@ class ThreatsController extends Component {
    */
   openQuery = (type) => {
     if (type === 'open') {
+      const {queryData} = this.state;
+      let tempQueryData = {...queryData};
+      tempQueryData.id = queryData.list[0].id;
+      tempQueryData.name = queryData.list[0].name;
+      tempQueryData.query = queryData.list[0].queryText;
+      tempQueryData.emailList = queryData.list[0].emailList;
+
       this.setState({
+        queryData: tempQueryData,
         openQueryOpen: true
       });
     } else if (type === 'save') {
@@ -1715,7 +1724,8 @@ class ThreatsController extends Component {
     tempQueryData.openFlag = false;
 
     this.setState({
-      queryData: tempQueryData
+      queryData: tempQueryData,
+      notifyEmailData: []
     });
   }
   render() {

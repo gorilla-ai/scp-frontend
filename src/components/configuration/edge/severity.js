@@ -53,7 +53,7 @@ class Severity extends Component {
       severityList: [],
       currentSeverityData: '',
       severity: {
-        dataFieldsArr: ['dataSourceType', 'severityLevel', 'updateDttm', '_menu'],
+        dataFieldsArr: ['dataSourceType', 'severityLevel', 'nickname', 'description', 'updateDttm', '_menu'],
         dataFields: {},
         dataContent: [],
         sort: {
@@ -155,7 +155,6 @@ class Severity extends Component {
                 return (
                   <div className='table-menu menu active'>
                     <i className='fg fg-eye' onClick={this.toggleContent.bind(this, 'viewSeverity', allValue)} title={t('txt-view')}></i>
-                    <i className='fg fg-trashcan' onClick={this.openDeleteMenu.bind(this, allValue)} title={t('txt-delete')}></i>
                   </div>
                 )
               }
@@ -200,19 +199,15 @@ class Severity extends Component {
       };
 
       this.setState({
-        showFilter: false,
         originalSeverityData: _.cloneDeep(tempSeverity)
       });
-    } else if (type === 'addSeverity') {
-      this.setState({
-        showFilter: false
-      });      
     } else if (type === 'cancel') {
       showPage = 'viewSeverity';
       tempSeverity = _.cloneDeep(originalSeverityData);
     }
 
     this.setState({
+      showFilter: false,
       activeContent: showPage,
       severity: tempSeverity
     }, () => {
@@ -290,7 +285,7 @@ class Severity extends Component {
               id='severityType'
               value={severity.info.type}
               onChange={this.handleDataChange.bind(this, 'type')}
-              readOnly={activeContent === 'viewSeverity'} />
+              readOnly={activeContent === 'viewSeverity' || activeContent === 'editSeverity'} />
           </div>
           <div className='group severity-level'>
             <label htmlFor='severityLevel'>{f('severityTableFields.severityLevel')}</label>
@@ -315,68 +310,6 @@ class Severity extends Component {
     )
   }
   /**
-   * Display delete Severity content
-   * @method
-   * @param {object} allValue - Severity data
-   * @returns HTML DOM
-   */
-  getDeleteSeverityContent = (allValue) => {
-    this.setState({
-      currentSeverityData: allValue
-    });
-
-    return (
-      <div className='content delete'>
-        <span>{t('txt-delete-msg')}: {allValue.dataSourceType}?</span>
-      </div>
-    )
-  }
-  /**
-   * Show Delete Severity dialog
-   * @method
-   * @param {object} allValue - Severity data
-   */
-  openDeleteMenu = (allValue) => {
-    PopupDialog.prompt({
-      title: t('threat-severity-mapping.txt-deleteSeverity'),
-      id: 'modalWindowSmall',
-      confirmText: t('txt-delete'),
-      cancelText: t('txt-cancel'),
-      display: this.getDeleteSeverityContent(allValue),
-      act: (confirmed, data) => {
-        if (confirmed) {
-          this.deleteSeverity();
-        }
-      }
-    });
-  }
-  /**
-   * Handle delete Severity confirm
-   * @method
-   */
-  deleteSeverity = () => {
-    const {baseUrl} = this.context;
-    const {currentSeverityData} = this.state;
-
-    if (!currentSeverityData.dataSourceType) {
-      return;
-    }
-
-    ah.one({
-      url: `${baseUrl}/api/severityMapping?dataSourceType=${currentSeverityData.dataSourceType}`,
-      type: 'DELETE'
-    })
-    .then(data => {
-      if (data.ret === 0) {
-        this.getSeverityMapping();
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
    * Handle Severity add/edit confirm
    * @method
    */
@@ -396,14 +329,14 @@ class Severity extends Component {
       requestType = 'PATCH';
     }
 
-    let data = {
+    const requestData = {
       dataSourceType: severity.info.type,
       severityLevel: severity.info.severity
     };
 
     ah.one({
       url: `${baseUrl}/api/severityMapping`,
-      data: JSON.stringify(data),
+      data: JSON.stringify(requestData),
       type: requestType,
       contentType: 'text/plain'
     })
@@ -421,7 +354,6 @@ class Severity extends Component {
 
         this.toggleContent(showPage);
       })
-
       return null;
     })
     .catch(err => {

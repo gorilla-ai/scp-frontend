@@ -421,8 +421,7 @@
     "txt-addSeverityTable": "Add Type",
     "txt-typeInfo": "Type Info",
     "txt-lastUpateTime": "Last Update Time",
-    "txt-severityMissing": "Severity type cannot be empty",
-    "txt-deleteSeverity": "$t(txt-delete) Severity Type"
+    "txt-severityMissing": "Severity type cannot be empty"
   },
 
   "system-defined-pattern": {

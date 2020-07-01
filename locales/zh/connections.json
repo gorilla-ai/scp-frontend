@@ -421,8 +421,7 @@
     "txt-addSeverityTable": "新增Type",
     "txt-typeInfo": "Type Info",
     "txt-lastUpateTime": "最近更新時間",
-    "txt-severityMissing": "Severity type不得為空白",
-    "txt-deleteSeverity": "$t(txt-delete)Severity Type"
+    "txt-severityMissing": "Severity type不得為空白"
   },
 
   "system-defined-pattern": {

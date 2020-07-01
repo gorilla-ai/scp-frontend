@@ -581,6 +581,8 @@
   "severityTableFields": {
     "dataSourceType": "Type",
     "severityLevel": "Severity",
+    "nickname": "Name",
+    "description": "Description",
     "updateDttm": "Last Update"
   },
   "syslogPatternTableFields": {

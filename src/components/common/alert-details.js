@@ -389,16 +389,12 @@ class AlertDetails extends Component {
       type: 'GET'
     })
     .then(data => {
-      if (data.rt) {
-        data = data.rt;
+      if (data.rt && data.rt.base64) {
+        tempAlertInfo[ipType].ownerPic = data.rt.base64;
 
-        if (data.base64) {
-          tempAlertInfo[ipType].ownerPic = data.base64;
-
-          this.setState({
-            alertInfo: tempAlertInfo
-          });
-        }
+        this.setState({
+          alertInfo: tempAlertInfo
+        });
       }
       return null;
     })

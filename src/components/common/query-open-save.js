@@ -943,15 +943,7 @@ class QueryOpenSave extends Component {
   }
   render() {
     const {type} = this.props;
-    const {info} = this.state;
-    let titleText = '';
-
-    if (type === 'open') {
-      titleText = t('events.connections.txt-openQuery');
-    } else if (type === 'save') {
-      titleText = t('events.connections.txt-saveQuery');
-    }
-
+    const titleText = t(`events.connections.txt-${type}Query`);
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.props.closeDialog},
       confirm: {text: t('txt-confirm'), handler: this.handleQueryAction.bind(this, type)}
@@ -965,7 +957,7 @@ class QueryOpenSave extends Component {
         draggable={true}
         global={true}
         actions={actions}
-        info={info}
+        info={this.state.info}
         closeAction='cancel'>
         {this.displayQueryContent(type)}
       </ModalDialog>

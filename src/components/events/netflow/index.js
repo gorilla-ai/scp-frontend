@@ -2700,7 +2700,14 @@ class Netflow extends Component {
    */
   openQuery = (type) => {
     if (type === 'open') {
+      const {queryData} = this.state;
+      let tempQueryData = {...queryData};
+      tempQueryData.id = queryData.list[0].id;
+      tempQueryData.name = queryData.list[0].name;
+      tempQueryData.query = queryData.list[0].queryText;
+
       this.setState({
+        queryData: tempQueryData,
         openQueryOpen: true
       });
     } else if (type === 'save') {
