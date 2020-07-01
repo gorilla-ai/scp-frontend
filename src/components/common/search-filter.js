@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import _ from 'lodash'
 
 import DropDownList from 'react-ui/build/src/components/dropdown'
-import Input from 'react-ui/build/src/components/input'
+import Textarea from 'react-ui/build/src/components/textarea'
 
 /**
  * Search Filter
@@ -50,7 +50,7 @@ class SearchFilter extends Component {
           value={value.condition}
           onChange={this.handleDataChange.bind(this, 'condition')}
           disabled={formStatus} />
-        <Input
+        <Textarea
           className='filter-inputbox'
           value={value.query}
           onChange={this.handleDataChange.bind(this, 'query')}
