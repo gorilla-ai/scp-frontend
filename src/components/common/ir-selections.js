@@ -119,13 +119,11 @@ class IrSelections extends Component {
    * @method
    */
   confirmIRselection = () => {
-    const {irItemSelected} = this.state;
-    const selectedIrArr = _.map(irItemSelected, val => {
+    const selectedIrArr = _.map(this.state.irItemSelected, val => {
       return IR_MAPPINGS[val];
     });
 
     this.props.triggerTask(selectedIrArr);
-    this.props.toggleSelectionIR();
   }
   render() {
     const titleText = t('network-inventory.txt-itemSelection');
@@ -150,8 +148,8 @@ class IrSelections extends Component {
 }
 
 IrSelections.propTypes = {
-  triggerTask: PropTypes.func.isRequired,
-  toggleSelectionIR: PropTypes.func.isRequired
+  toggleSelectionIR: PropTypes.func.isRequired,
+  triggerTask: PropTypes.func.isRequired
 };
 
 export default IrSelections;

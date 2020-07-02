@@ -37,6 +37,7 @@ import Manage from './manage'
 import Pagination from '../../common/pagination'
 import PrivateDetails from '../../common/private-details'
 import TableContent from '../../common/table-content'
+import YaraRule from '../../common/yara-rule'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -68,8 +69,9 @@ class NetworkInventory extends Component {
     this.state = {
       activeTab: 'deviceList', //deviceList, deviceMap
       activeContent: 'tableList', //tableList, dataInfo, addIPsteps, hmdSettings, autoSettings
-      showFilter: false,
+      showFilter: true,
       showScanInfo: false,
+      yaraRuleOpen: false,
       showSeatData: false,
       modalFloorOpen: false,
       modalIRopen: false,
@@ -1359,19 +1361,46 @@ class NetworkInventory extends Component {
     })
   }
   /**
+   * Toggle yara rule modal dialog on/off
+   * @method
+   */
+  toggleYaraRule = () => {
+    this.setState({
+      yaraRuleOpen: !this.state.yaraRuleOpen
+    });
+  }
+  /**
+   * Toggle IR combo selection dialog on/off
+   * @method
+   */
+  toggleSelectionIR = () => {
+    this.setState({
+      modalIRopen: !this.state.modalIRopen
+    });
+  }
+  /**
    * Handle trigger button for HMD
    * @method
    * @param {array.<string>} type - HMD scan type
-   * @param {string} options - option for 'fromInventory'
+   * @param {string | object} options - option for 'fromInventory' or yara rule object
    */
   triggerTask = (type, options) => {
     const {baseUrl} = this.context;
     const {currentDeviceData} = this.state;
     const url = `${baseUrl}/api/hmd/retrigger`;
-    const requestData = {
+    let requestData = {
       hostId: currentDeviceData.ipDeviceUUID,
       cmds: type
     };
+
+    if (type[0] === 'compareIOC') {
+      const yaraRule = _.cloneDeep(options);
+
+      requestData.paras = {
+        _FilepathList: yaraRule.path,
+        _RuleString: yaraRule.rule
+      };
+    }
 
     this.ah.one({
       url,
@@ -1383,6 +1412,14 @@ class NetworkInventory extends Component {
       if (data) {
         helper.showPopupMsg(t('txt-requestSent'));
 
+        if (type[0] === 'compareIOC') {
+          this.toggleYaraRule();
+        }
+
+        if (type[0] === 'ir') {
+          this.toggleSelectionIR();
+        }
+
         if (type.length > 0 && options !== 'fromInventory') {
           this.getIPdeviceInfo('', currentDeviceData.ipDeviceUUID);
         }
@@ -1392,15 +1429,6 @@ class NetworkInventory extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
-  }
-  /**
-   * Toggle IR combo selection dialog
-   * @method
-   */
-  toggleSelectionIR = () => {
-    this.setState({
-      modalIRopen: !this.state.modalIRopen
-    });
   }
   /**
    * Display device info and HMD scan results
@@ -1443,7 +1471,8 @@ class NetworkInventory extends Component {
           currentDeviceData={currentDeviceData}
           toggleSelectionIR={this.toggleSelectionIR}
           showAlertData={this.showAlertData}
-          triggerTask={this.triggerTask} />
+          triggerTask={this.triggerTask}
+          toggleYaraRule={this.toggleYaraRule} />
 
         {deviceData.hmdOnly.currentLength > 1 &&
           <div className='pagination'>
@@ -3119,6 +3148,7 @@ class NetworkInventory extends Component {
       activeContent,
       showFilter,
       showScanInfo,
+      yaraRuleOpen,
       showSeatData,
       modalFloorOpen,
       modalIRopen,
@@ -3166,6 +3196,12 @@ class NetworkInventory extends Component {
           this.showScanInfoDialog()
         }
 
+        {yaraRuleOpen &&
+          <YaraRule
+            toggleYaraRule={this.toggleYaraRule}
+            triggerTask={this.triggerTask} />
+        }
+
         {addSeatOpen &&
           this.addSeatDialog()
         }
@@ -3181,8 +3217,8 @@ class NetworkInventory extends Component {
 
         {modalIRopen &&
           <IrSelections
-            triggerTask={this.triggerTask}
-            toggleSelectionIR={this.toggleSelectionIR} />
+            toggleSelectionIR={this.toggleSelectionIR}
+            triggerTask={this.triggerTask} />
         }
 
         <Manage

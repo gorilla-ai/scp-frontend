@@ -468,6 +468,7 @@
     "txt-restoreDefault": "Restore Default",
     "txt-reCheck": "Re-check",
     "txt-reCompress": "Re-compress",
+    "txt-yaraRule": "Yara Rule",
     "txt-passCount": "Pass",
     "txt-totalItem": "Total",
     "txt-total": "Total upload count",

@@ -902,6 +902,8 @@ class HMDscanInfo extends Component {
 
     if (type === 'ir') {
       this.props.toggleSelectionIR(ipType);
+    } else if (type === 'yara') {
+      this.props.toggleYaraRule();
     } else {
       this.props.triggerTask([TRIGGER_NAME[this.getActiveTab()]], ipType);
 
@@ -1556,7 +1558,8 @@ HMDscanInfo.propTypes = {
   page: PropTypes.string.isRequired,
   currentDeviceData: PropTypes.object.isRequired,
   toggleSelectionIR: PropTypes.func.isRequired,
-  triggerTask: PropTypes.func.isRequired
+  triggerTask: PropTypes.func.isRequired,
+  toggleYaraRule: PropTypes.func.isRequired
 };
 
 export default withRouter(HMDscanInfo);
