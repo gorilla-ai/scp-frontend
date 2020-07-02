@@ -9,6 +9,7 @@ import Checkbox from 'react-ui/build/src/components/checkbox'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import Input from 'react-ui/build/src/components/input'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
+import Textarea from 'react-ui/build/src/components/textarea'
 
 import {BaseDataContext} from '../../common/context';
 import Config from '../../common/configuration'
@@ -65,7 +66,9 @@ class Severity extends Component {
         pageSize: 20,
         info: {
           type: '',
-          severity: 'Emergency'
+          severity: 'Emergency',
+          nickname: '',
+          description: ''
         }
       }
     };
@@ -195,6 +198,8 @@ class Severity extends Component {
       tempSeverity.info = {
         type: allValue.dataSourceType,
         severity: allValue.severityLevel,
+        nickname: allValue.nickname,
+        description: allValue.description,
         updateDttm: allValue.updateDttm
       };
 
@@ -298,6 +303,23 @@ class Severity extends Component {
               onChange={this.handleDataChange.bind(this, 'severity')}
               readOnly={activeContent === 'viewSeverity'} />
           </div>
+          <div className='group'>
+            <label htmlFor='severityNickname'>{f('severityTableFields.nickname')}</label>
+            <Input
+              id='severityNickname'
+              value={severity.info.nickname}
+              onChange={this.handleDataChange.bind(this, 'nickname')}
+              readOnly={activeContent === 'viewSeverity'} />
+          </div>
+          <div className='group'>
+            <label htmlFor='severityDescription'>{f('severityTableFields.description')}</label>
+            <Textarea
+              id='severityDescription'
+              rows={4}
+              value={severity.info.description}
+              onChange={this.handleDataChange.bind(this, 'description')}
+              readOnly={activeContent === 'viewSeverity'} />
+          </div>
         </div>
 
         {(activeContent === 'addSeverity' || activeContent === 'editSeverity') &&
@@ -331,7 +353,9 @@ class Severity extends Component {
 
     const requestData = {
       dataSourceType: severity.info.type,
-      severityLevel: severity.info.severity
+      severityLevel: severity.info.severity,
+      nickname: severity.info.nickname,
+      description: severity.info.description
     };
 
     ah.one({
