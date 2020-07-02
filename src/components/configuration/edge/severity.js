@@ -309,7 +309,7 @@ class Severity extends Component {
               id='severityNickname'
               value={severity.info.nickname}
               onChange={this.handleDataChange.bind(this, 'nickname')}
-              readOnly={activeContent === 'viewSeverity'} />
+              readOnly={activeContent === 'viewSeverity' || activeContent === 'editSeverity'} />
           </div>
           <div className='group'>
             <label htmlFor='severityDescription'>{f('severityTableFields.description')}</label>
