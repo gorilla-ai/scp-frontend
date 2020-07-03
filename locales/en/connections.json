@@ -264,6 +264,8 @@
     "txt-attack": "Attack",
     "txt-ipBasicInfo": "IP Info",
     "txt-safetyScanInfo": "Safety Scan Info",
+    "txt-severityType": "Type",
+    "txt-severityDesc": "Description",
     "txt-viewJSON": "$t(txt-view)JSON",
     "txt-queryMore": "Query",
     "txt-queryEvents": "View Details Infomation",

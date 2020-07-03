@@ -196,25 +196,12 @@ class HMDsettings extends Component {
   validatePathInput = (path) => {
     let valid = true;
 
-    _.forEach(path, (val, i) => {
-      if (val === '\\') {
-        if (path[i - 1] !== '\\' && path[i + 1] !== '\\') {
-          valid = false;
-          return false;
-        }
-      }
-    })
-
     if (path.indexOf('/') > 0) { //Slash is not allowed
       valid = false;
     }
 
     if (path[path.length - 1] !== '\\') { //Path has to end with '\\'
       valid = false;
-    } else {
-      if (path[path.length - 2] !== '\\') {
-        valid = false;
-      }
     }
 
     if (valid) {

@@ -253,6 +253,9 @@ html[data-theme='dark'] {
   footer {
     text-align: center;
   }
+  .c-table .header {
+    min-width: 50px;
+  }
 }
 .modal-dialog,
 #viewJsonDialog-dialog {
@@ -922,8 +925,15 @@ html[data-theme='dark'] {
       .srcIp-content,
       .destIp-content {
         margin-top: 5px;
-        height: 370px;
+        height: 400px;
         overflow-y: auto;
+        .rule-text {
+          float: left;
+          margin-right: 2px;
+        }
+        .fg-info {
+          cursor: pointer;
+        }
       }
       section.alert-rule {
         ul {

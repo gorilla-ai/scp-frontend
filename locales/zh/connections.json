@@ -264,6 +264,8 @@
     "txt-attack": "攻擊行為",
     "txt-ipBasicInfo": "IP基本資訊",
     "txt-safetyScanInfo": "安全掃描資訊",
+    "txt-severityType": "代碼",
+    "txt-severityDesc": "說明",
     "txt-viewJSON": "$t(txt-view)JSON",
     "txt-queryMore": "查詢更多",
     "txt-queryEvents": "查看詳細資料",
