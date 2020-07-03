@@ -665,8 +665,8 @@ class Syslog extends Component {
         <tbody>
           <tr>
             <td valign='top'>
-              <div>Log: </div>
-              <div>Pattern: </div>
+              <div>Log:</div>
+              <div>Pattern:</div>
             </td>
             <td>
               <div>EventReceivedTime:2020-02-18 10:03:33, SourceModuleName:dns3</div>
@@ -675,8 +675,8 @@ class Syslog extends Component {
           </tr>
           <tr>
             <td valign='top'>
-              <div>Log: </div>
-              <div>Pattern: </div>
+              <div>Log:</div>
+              <div>Pattern:</div>
             </td>
             <td>
               <div><span>"</span>EventReceivedTime<span>"</span>:<span>"</span>2020-02-18 10:03:33<span>"</span>, <span>"</span>SourceModuleName<span>"</span>:<span>"</span>dns3<span>"</span></div>
@@ -685,8 +685,8 @@ class Syslog extends Component {
           </tr>
           <tr>
             <td valign='top'>
-              <div>Log: </div>
-              <div>Pattern: </div>
+              <div>Log:</div>
+              <div>Pattern:</div>
             </td>
             <td>
               <div><span>\"</span>EventReceivedTime<span>\"</span>:<span>\"</span>2020-02-18 10:03:33<span>\"</span>, <span>\"</span>SourceModuleName<span>\"</span>:<span>\"</span>dns3<span>\"</span></div>
@@ -695,8 +695,8 @@ class Syslog extends Component {
           </tr>
           <tr>
             <td valign='top'>
-              <div>Log: </div>
-              <div>Pattern: </div>
+              <div>Log:</div>
+              <div>Pattern:</div>
             </td>
             <td>
               <div>"EventReceivedTime":"2020-02-18 10:03:33", "SourceModuleName<span>":</span>"dns3"</div>

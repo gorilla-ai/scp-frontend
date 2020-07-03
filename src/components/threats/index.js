@@ -6,11 +6,12 @@ import _ from 'lodash'
 import cx from 'classnames'
 import queryString from 'query-string'
 
+import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import AlertDetails from '../common/alert-details'
 import {BaseDataContext} from '../common/context';
-import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import helper from '../common/helper'
 import QueryOpenSave from '../common/query-open-save'
 import SearchOptions from '../common/search-options'
@@ -24,6 +25,7 @@ let f = null;
 let et = null;
 let it = null;
 
+const NOT_AVAILABLE = 'N/A';
 const PRIVATE = 'private';
 const PUBLIC = 'public';
 const PRIVATE_API = {
@@ -942,6 +944,43 @@ class ThreatsController extends Component {
     return <span>{name}{serviceCount} <button className={cx('button', {'active': currentTreeName === id})} onClick={this.selectTree.bind(this, name, searchQuery)}>{t('events.connections.txt-addFilter')}</button></span>;
   }
   /**
+   * Display severity info content
+   * @method
+   * @param {object} alertData - alert data
+   * @returns HTML DOM
+   */
+  getSeverityInfoContent = (alertData) => {
+    return (
+      <table className='c-table'>
+        <tbody>
+          <tr>
+            <td valign='top' className='header'>
+              <div>{t('alert.txt-severityType')}:</div>
+              <div>{t('alert.txt-severityDesc')}:</div>
+            </td>
+            <td>
+              <div>{alertData.severity_type}</div>
+              <div>{alertData.severity_type_description || NOT_AVAILABLE}</div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    )
+  }
+  /**
+   * Open dialog to show severity info
+   * @method
+   * @param {object} alertData - alert data
+   */
+  showSeverityInfo = (alertData) => {
+    PopupDialog.alert({
+      title: alertData.severity_type_name,
+      id: 'modalWindowSmall',
+      confirmText: t('txt-close'),
+      display: this.getSeverityInfoContent(alertData)
+    });
+  }
+  /**
    * Set the alert tree data
    * @method
    * @param {string} treeData - alert tree data
@@ -1000,10 +1039,11 @@ class ThreatsController extends Component {
                 _.forEach(val, (val2, key3) => {
                   if (key3 !== 'doc_count') {
                     const id = key + key2 + key3;
+                    const serviceCount = !isNaN(val2.doc_count) ? ' (' + val2.doc_count + ')' : '';
 
                     tempChild2.push({
                       id,
-                      label: this.getTreeLabel(id, key3, treeName, val2.doc_count)
+                      label: <span>{key3}{serviceCount} <button className={cx('button', {'active': treeName === id})} onClick={this.selectTree.bind(this, key3, '')}>{t('events.connections.txt-addFilter')}</button><i className={cx('fg fg-info', {'active': treeName === id})} title={t('txt-info')} onClick={this.showSeverityInfo.bind(this, val2)}></i></span>
                     });
                   }
                 })

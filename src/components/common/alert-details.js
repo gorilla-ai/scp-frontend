@@ -8,6 +8,7 @@ import cx from 'classnames'
 import ButtonGroup from 'react-ui/build/src/components/button-group'
 import DataTable from 'react-ui/build/src/components/table'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import JSONTree from 'react-json-tree'
 
@@ -948,6 +949,43 @@ class AlertDetails extends Component {
     }
   }
   /**
+   * Display severity info content
+   * @method
+   * @returns HTML DOM
+   */
+  getSeverityInfoContent = () => {
+    const {alertData} = this.props;
+
+    return (
+      <table className='c-table'>
+        <tbody>
+          <tr>
+            <td valign='top' className='header'>
+              <div>{t('alert.txt-severityType')}:</div>
+              <div>{t('alert.txt-severityDesc')}:</div>
+            </td>
+            <td>
+              <div>{alertData.severity_type}</div>
+              <div>{alertData.severity_type_description || NOT_AVAILABLE}</div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    )
+  }
+  /**
+   * Open dialog to show severity info
+   * @method
+   */
+  showSeverityInfo = () => {
+    PopupDialog.alert({
+      title: this.props.alertData.severity_type_name,
+      id: 'modalWindowSmall',
+      confirmText: t('txt-close'),
+      display: this.getSeverityInfoContent()
+    });
+  }
+  /**
    * Display rule content
    * @method
    * @returns HTML DOM
@@ -963,6 +1001,7 @@ class AlertDetails extends Component {
           return (
             <ul className='alert-rule'>
               {alertRule.map(this.showRuleContent)}
+              <span className='rule-text'>{alertRule}</span><i className='fg fg-info' title={t('txt-info')} onClick={this.showSeverityInfo}></i>
               {this.showRuleRefsData()}
             </ul>
           )
@@ -970,7 +1009,7 @@ class AlertDetails extends Component {
       } else { //alertRule is a string
         return (
           <section className='alert-rule'>
-            <span>{alertRule}</span>
+            <span className='rule-text'>{alertRule}</span><i className='fg fg-info' title={t('txt-info')} onClick={this.showSeverityInfo}></i>
             {this.showRuleRefsData()}
           </section>
         )
