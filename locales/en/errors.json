@@ -55,6 +55,7 @@
   "-1005": "Password is expired",
   "-1006": "Login fails exceed 5 times. The account has been locked, please contact administrator.",
   "-1007": "Account service fails",
+  "-5000": "Format is incorrect",
   "-5001": "Port number is duplicated",
   "-5002": "IP is duplicated",
   "-5003": "Match pattern format error",

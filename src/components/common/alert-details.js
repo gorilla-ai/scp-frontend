@@ -18,6 +18,7 @@ import helper from './helper'
 import IrSelections from './ir-selections'
 import HMDscanInfo from './hmd-scan-info'
 import PrivateDetails from './private-details'
+import YaraRule from './yara-rule'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -86,7 +87,9 @@ class AlertDetails extends Component {
         srcIp: {},
         destIp: {}
       },
+      ipType: '',
       showRedirectMenu: false,
+      modalYaraRuleOpen: false,
       modalIRopen: false,
       activeNetworkBehavior: 'alert',
       networkBehavior: {
@@ -1072,7 +1075,7 @@ class AlertDetails extends Component {
    * @method
    * @param {string} ipType - 'srcIp' or 'destIp'
    * @param {string} item - key of the public info
-   * @param {number} i - index 
+   * @param {number} i - index
    * @returns HTML DOM
    */
   showPublicInfo = (ipType, item, i) => {
@@ -1210,6 +1213,16 @@ class AlertDetails extends Component {
     )
   }
   /**
+   * Toggle yara rule dialog
+   * @method
+   */
+  toggleYaraRule = (ipType) => {
+    this.setState({
+      modalYaraRuleOpen: !this.state.modalYaraRuleOpen,
+      ipType
+    });
+  }
+  /**
    * Toggle IR combo selection dialog
    * @method
    */
@@ -1219,6 +1232,55 @@ class AlertDetails extends Component {
       ipType
     });
   }
+  /**
+   * Handle trigger button for HMD
+   * @method
+   * @param {array.<string>} type - HMD scan type
+   * @param {string} [ipTypeParam] - IP type ('srcIp' or 'destIp')
+   * @param {object} [yaraRule] - yara rule data
+   */
+  triggerTask = (type, ipTypeParam, yaraRule) => {
+    const {baseUrl} = this.context;
+    const {ipDeviceInfo, ipType} = this.state;
+    const url = `${baseUrl}/api/hmd/retrigger`;
+    let requestData = {
+      hostId: this.state.ipDeviceInfo[ipTypeParam || ipType].ipDeviceUUID,
+      cmds: type
+    };
+
+    if (type[0] === 'compareIOC') {
+      requestData.paras = {
+        _FilepathList: yaraRule.path,
+        _RuleString: yaraRule.rule
+      };
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('txt-requestSent'));
+
+        if (type[0] === 'compareIOC') {
+          this.toggleYaraRule();
+        }
+
+        if (type[0] === 'ir') {
+          this.toggleSelectionIR();
+        }
+
+        this.getHMDinfo(ipType);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }  
   /**
    * Display safety scan content
    * @method
@@ -1234,9 +1296,10 @@ class AlertDetails extends Component {
           page='threats'
           ipType={ipType}
           currentDeviceData={ipDeviceInfo[ipType]}
-          toggleSelectionIR={this.toggleSelectionIR}
           showAlertData={this.showAlertData}
-          triggerTask={this.props.triggerTask} />
+          toggleYaraRule={this.toggleYaraRule}
+          toggleSelectionIR={this.toggleSelectionIR}
+          triggerTask={this.triggerTask} />
       )
     } else {
       return <span>{NOT_AVAILABLE}</span>
@@ -1749,7 +1812,7 @@ class AlertDetails extends Component {
   }
   render() {
     const {titleText, actions} = this.props;
-    const {modalIRopen} = this.state;
+    const {modalYaraRuleOpen, modalIRopen} = this.state;
 
     return (
       <div>
@@ -1764,10 +1827,16 @@ class AlertDetails extends Component {
           {this.displayAlertData()}
         </ModalDialog>
 
+        {modalYaraRuleOpen &&
+          <YaraRule
+            toggleYaraRule={this.toggleYaraRule}
+            triggerTask={this.triggerTask} />
+        }
+
         {modalIRopen &&
           <IrSelections
-            triggerTask={this.props.triggerTask}
-            toggleSelectionIR={this.toggleSelectionIR} />
+            toggleSelectionIR={this.toggleSelectionIR}
+            triggerTask={this.triggerTask} />
         }
       </div>
     )

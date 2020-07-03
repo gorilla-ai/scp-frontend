@@ -900,12 +900,14 @@ class HMDscanInfo extends Component {
   getTriggerTask = (type) => {
     const {ipType} = this.props;
 
-    if (type === 'ir') {
+    if (type === 'ir') { //Special case for IR
       this.props.toggleSelectionIR(ipType);
-    } else if (type === 'yara') {
-      this.props.toggleYaraRule();
     } else {
-      this.props.triggerTask([TRIGGER_NAME[this.getActiveTab()]], ipType);
+      if (type === 'yara') { //Special case for Yara
+        this.props.toggleYaraRule(ipType);
+      } else {
+        this.props.triggerTask([TRIGGER_NAME[this.getActiveTab()]], ipType);
+      }
 
       this.setState({
         disabledBtn: true

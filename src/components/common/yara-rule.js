@@ -106,7 +106,7 @@ class YaraRule extends Component {
   render() {
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.props.toggleYaraRule},
-      confirm: {text: t('txt-confirm'), handler: this.props.triggerTask.bind(this, ['compareIOC'], this.state.yaraRule)}
+      confirm: {text: t('txt-confirm'), handler: this.props.triggerTask.bind(this, ['compareIOC'], '', this.state.yaraRule)}
     };
 
     return (

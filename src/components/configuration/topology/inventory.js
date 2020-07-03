@@ -1469,10 +1469,10 @@ class NetworkInventory extends Component {
         <HMDscanInfo
           page='inventory'
           currentDeviceData={currentDeviceData}
-          toggleSelectionIR={this.toggleSelectionIR}
           showAlertData={this.showAlertData}
-          triggerTask={this.triggerTask}
-          toggleYaraRule={this.toggleYaraRule} />
+          toggleYaraRule={this.toggleYaraRule}
+          toggleSelectionIR={this.toggleSelectionIR}
+          triggerTask={this.triggerTask} />
 
         {deviceData.hmdOnly.currentLength > 1 &&
           <div className='pagination'>

@@ -14,7 +14,6 @@ import AlertDetails from '../common/alert-details'
 import {BaseDataContext} from '../common/context';
 import helper from '../common/helper'
 import WORLDMAP from '../../mock/world-map-low.json'
-import YaraRule from '../common/yara-rule'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -90,8 +89,7 @@ class DashboardMaps extends Component {
       locationType: '',
       ..._.cloneDeep(MAPS_PUBLIC_DATA),
       ..._.cloneDeep(MAPS_PRIVATE_DATA),
-      modalOpen: false,
-      yaraRuleOpen: false
+      modalOpen: false
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -446,10 +444,9 @@ class DashboardMaps extends Component {
         actions={actions}
         alertDetails={alertDetails}
         alertData={alertData}
+        locationType={locationType}
         showAlertData={this.showAlertData}
-        triggerTask={this.triggerTask}
-        fromPage='dashboard'
-        locationType={locationType} />
+        fromPage='dashboard' />
     )
   }
   /**
@@ -791,60 +788,6 @@ class DashboardMaps extends Component {
       </li>
     )
   }
-  /**
-   * Toggle yara rule modal dialog on/off
-   * @method
-   */
-  toggleYaraRule = () => {
-    this.setState({
-      yaraRuleOpen: !this.state.yaraRuleOpen
-    });
-  }
-  /**
-   * Handle trigger button for HMD
-   * @method
-   * @param {array.<string>} type - HMD scan type
-   * @param {string} [ipType] - IP type ('srcIp' or 'destIp')
-   */
-  triggerTask = (type, ipType) => {
-    const {baseUrl} = this.context;
-    const url = `${baseUrl}/api/hmd/retrigger`;
-    let requestData = {
-      hostId: this.state.ipDeviceInfo[ipType].ipDeviceUUID,
-      cmds: type
-    };
-
-    if (type[0] === 'compareIOC') {
-      const yaraRule = _.cloneDeep(options);
-
-      requestData.paras = {
-        _FilepathList: yaraRule.path,
-        _RuleString: yaraRule.rule
-      };
-    }    
-
-    this.ah.one({
-      url,
-      data: JSON.stringify(requestData),
-      type: 'POST',
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      if (data) {
-        helper.showPopupMsg(t('txt-requestSent'));
-
-        if (type[0] === 'compareIOC') {
-          this.toggleYaraRule();
-        }
-
-        this.getHMDinfo(ipType);
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
   render() {
     const {
       past24hTime,
@@ -857,8 +800,7 @@ class DashboardMaps extends Component {
       currentMap,
       currentBaseLayers,
       seatData,
-      modalOpen,
-      yaraRuleOpen
+      modalOpen
     } = this.state;
     const displayTime = past24hTime + ' - ' + updatedTime;
 
@@ -866,12 +808,6 @@ class DashboardMaps extends Component {
       <div>
         {modalOpen &&
           this.alertDialog()
-        }
-
-        {yaraRuleOpen &&
-          <YaraRule
-            toggleYaraRule={this.toggleYaraRule}
-            triggerTask={this.triggerTask} />
         }
 
         <div className='sub-header'>

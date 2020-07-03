@@ -17,7 +17,6 @@ import QueryOpenSave from '../common/query-open-save'
 import SearchOptions from '../common/search-options'
 import TableCell from '../common/table-cell'
 import Threats from './threats'
-import YaraRule from '../common/yara-rule'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -208,7 +207,7 @@ class ThreatsController extends Component {
       },
       notifyEmailData: [],
       newQueryName: true,
-      showFilter: false,
+      showFilter: true,
       showChart: false,
       openQueryOpen: false,
       saveQueryOpen: false,
@@ -229,8 +228,7 @@ class ThreatsController extends Component {
       loadAlertData: true,
       alertPieData: {},
       alertTableData: {},
-      alertChartsList: [],
-      yaraRuleOpen: false
+      alertChartsList: []
     };
 
     this.ah = getInstance('chewbacca');
@@ -1439,7 +1437,6 @@ class ThreatsController extends Component {
         alertDetails={alertDetails}
         alertData={alertData}
         showAlertData={this.showAlertData}
-        triggerTask={this.triggerTask}
         fromPage='threats'/>
     )
   }
@@ -1758,60 +1755,6 @@ class ThreatsController extends Component {
     }
   }
   /**
-   * Toggle yara rule modal dialog on/off
-   * @method
-   */
-  toggleYaraRule = () => {
-    this.setState({
-      yaraRuleOpen: !this.state.yaraRuleOpen
-    });
-  }
-  /**
-   * Handle trigger button for HMD
-   * @method
-   * @param {array.<string>} type - HMD scan type
-   * @param {string} [ipType] - IP type ('srcIp' or 'destIp')
-   */
-  triggerTask = (type, ipType) => {
-    const {baseUrl} = this.context;
-    const url = `${baseUrl}/api/hmd/retrigger`;
-    let requestData = {
-      hostId: this.state.ipDeviceInfo[ipType].ipDeviceUUID,
-      cmds: type
-    };
-
-    if (type[0] === 'compareIOC') {
-      const yaraRule = _.cloneDeep(options);
-
-      requestData.paras = {
-        _FilepathList: yaraRule.path,
-        _RuleString: yaraRule.rule
-      };
-    }
-
-    this.ah.one({
-      url,
-      data: JSON.stringify(requestData),
-      type: 'POST',
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      if (data) {
-        helper.showPopupMsg(t('txt-requestSent'));
-
-        if (type[0] === 'compareIOC') {
-          this.toggleYaraRule();
-        }
-
-        this.getHMDinfo(ipType);
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
    * Reset query data
    * @method
    */
@@ -1836,8 +1779,7 @@ class ThreatsController extends Component {
       filterData,
       showChart,
       showFilter,
-      alertDetailsOpen,
-      yaraRuleOpen
+      alertDetailsOpen
     } = this.state;
     let filterDataCount = 0;
 
@@ -1859,12 +1801,6 @@ class ThreatsController extends Component {
 
         {alertDetailsOpen &&
           this.alertDialog()
-        }
-
-        {yaraRuleOpen &&
-          <YaraRule
-            toggleYaraRule={this.toggleYaraRule}
-            triggerTask={this.triggerTask} />
         }
 
         <div className='sub-header'>
