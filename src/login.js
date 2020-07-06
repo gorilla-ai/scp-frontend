@@ -81,9 +81,17 @@ class Login extends Component {
       let licenseCheck = false;
 
       if (data) {
-        if (data[0].rt.returnCode === '0' && data[1].rt.returnCode === '0') {
-          licenseCheck = data[0].rt.isValid === '1' || data[1].rt.isValid === '1';
+        if (data[0].rt.returnCode === '0') {
+          licenseCheck = data[0].rt.isValid === '1'
         }
+
+        if (!licenseCheck && data[1].rt.returnCode === '0') {
+          licenseCheck = data[1].rt.isValid === '1'
+        }
+
+        // if (data[0].rt.returnCode === '0' && data[1].rt.returnCode === '0') {
+        //   licenseCheck = data[0].rt.isValid === '1' || data[1].rt.isValid === '1';
+        // }
 
         this.setState({
           license: licenseCheck
