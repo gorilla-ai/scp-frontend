@@ -207,7 +207,7 @@ class ThreatsController extends Component {
       },
       notifyEmailData: [],
       newQueryName: true,
-      showFilter: true,
+      showFilter: false,
       showChart: false,
       openQueryOpen: false,
       saveQueryOpen: false,

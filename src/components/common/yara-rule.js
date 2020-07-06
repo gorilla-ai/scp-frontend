@@ -83,7 +83,7 @@ class YaraRule extends Component {
     return (
       <div className='form-group normal'>
         <div className='group'>
-          <label htmlFor='yaraRuleContent'>{t('network-inventory.txt-yaraRule')}</label>
+          <label htmlFor='yaraRuleContent'>{t('network-inventory.txt-yaraRules')}</label>
           <Textarea
             id='yaraRuleContent'
             rows={10}

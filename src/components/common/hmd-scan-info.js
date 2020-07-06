@@ -667,7 +667,7 @@ class HMDscanInfo extends Component {
 
       return (
         <div className='group' key={uniqueKey}>
-          <div className='path' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
+          <div className='path pointer' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
             <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`}></i>
             <div className='path-header'>
               {val._MatchedFile &&
@@ -790,7 +790,7 @@ class HMDscanInfo extends Component {
 
     return (
       <div className='group' key={uniqueKey}>
-        <div className='path' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
+        <div className='path pointer' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
           <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`}></i>
           <div className='path-header'>
             {filePath &&
@@ -831,6 +831,74 @@ class HMDscanInfo extends Component {
                   {displayInfo}
                 </div>
               </div>
+            }
+          </div>
+        </div>
+      </div>
+    )
+  }
+  /**
+   * Display File Path List content
+   * @method
+   * @param {object} val - file path content
+   * @param {number} i - index of the file path array
+   * @returns HTML DOM
+   */
+  displayFilePathList = (val, i) => {
+    const uniqueKey = val + i;
+
+    if (!val) {
+      return;
+    }
+
+    return (
+      <div className='group' key={uniqueKey}>
+        <div className='path'>
+          <div className='path-header'>
+            {val &&
+              <span>{val}</span>
+            }
+          </div>
+        </div>
+      </div>
+    )
+  }
+  /**
+   * Display Yara Rules List content
+   * @method
+   * @param {number} parentIndex - parent index of the yara rules array
+   * @param {object} val - yara rules content
+   * @param {number} i - index of the yara rules array
+   * @returns HTML DOM
+   */
+  displayYaraRuleList = (parentIndex, val, i) => {
+    const {activePath} = this.state;
+    const uniqueKey = val.ruleName + i;
+    const uniqueID = parentIndex.toString() + i.toString() + val.ruleName;
+    const ruleName = val.ruleName;
+    const yaraRule = val.yaraRule;
+
+    if (!ruleName) {
+      return;
+    }
+
+    return (
+      <div className='group' key={uniqueKey}>
+        <div className='path pointer' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
+          <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`}></i>
+          <div className='path-header'>
+            {ruleName &&
+              <span>{t('txt-name')}: {ruleName}</span>
+            }
+          </div>
+        </div>
+        <div className={cx('rule', {'hide': activePath !== uniqueID})}>
+          <div className='rule-content'>
+            {yaraRule &&
+              <pre>{yaraRule}</pre>
+            }
+            {!yaraRule &&
+              <div>NOT_AVAILABLE</div>
             }
           </div>
         </div>
@@ -907,11 +975,11 @@ class HMDscanInfo extends Component {
         this.props.toggleYaraRule(ipType);
       } else {
         this.props.triggerTask([TRIGGER_NAME[this.getActiveTab()]], ipType);
-      }
 
-      this.setState({
-        disabledBtn: true
-      });
+        this.setState({
+          disabledBtn: true
+        });
+      }
     }
   }
   /**
@@ -1007,7 +1075,7 @@ class HMDscanInfo extends Component {
 
     return (
       <div className='group' key={uniqueKey}>
-        <div className='path' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
+        <div className='path pointer' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
           <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`}></i>
           <div className='path-header'>
             {filePath &&
@@ -1048,7 +1116,7 @@ class HMDscanInfo extends Component {
     if (dataResult && dataResult.length > 0) {
       return (
         <div className='scan-content'>
-          <div className='header rule'>{t(`network-inventory.txt-${val}`)}</div>
+          <div className='header'>{t(`network-inventory.txt-${val}`)}</div>
             <div className='list'>
               {dataResult.map(this.displayFileIntegrityPath.bind(this, i))}
             </div>
@@ -1068,6 +1136,8 @@ class HMDscanInfo extends Component {
     const fileIntegrityArr = ['_NewCreateFile', '_MissingFile', '_ModifyFile'];
     let dataResult = [];
     let scanPath = '';
+    let filePathList = [];
+    let yaraRuleList = [];
 
     if (!val.taskResponseDttm) {
       return;
@@ -1076,6 +1146,11 @@ class HMDscanInfo extends Component {
     if (activeTab === 'yara') {
       dataResult = this.sortedRuleList(val.ScanResult);
       scanPath = this.displayScanProcessPath.bind(this, i);
+
+      if (val._Parameters) {
+        filePathList = val._Parameters._FilepathList;
+        yaraRuleList = val._Parameters._RulesList;
+      }
     } else if (activeTab === 'scanFile') {
       dataResult = val.DetectionResult;
       scanPath = this.displayScanFilePath.bind(this, i);
@@ -1092,13 +1167,39 @@ class HMDscanInfo extends Component {
         </div>
         {(activeTab === 'yara' || activeTab === 'scanFile') &&
           <div className='scan-content'>
-            <div className='header rule'>{t('network-inventory.txt-suspiciousFilePath')}</div>
+            <div className='header'>{t('network-inventory.txt-suspiciousFilePath')}</div>
             {dataResult && dataResult.length > 0 &&
               <div className='list'>
                 {dataResult.map(scanPath)}
               </div>
             }
             {(!dataResult || dataResult.length === 0) &&
+              <div className='empty-msg'>{NOT_AVAILABLE}</div>
+            }
+          </div>
+        }
+        {activeTab === 'yara' &&
+          <div className='scan-content'>
+            <div className='header'>{t('network-inventory.txt-filePathList')}</div>
+            {filePathList && filePathList.length > 0 &&
+              <div className='list'>
+                {filePathList.map(this.displayFilePathList)}
+              </div>
+            }
+            {(!filePathList || filePathList.length === 0) &&
+              <div className='empty-msg'>{NOT_AVAILABLE}</div>
+            }
+          </div>
+        }
+        {activeTab === 'yara' &&
+          <div className='scan-content'>
+            <div className='header'>{t('network-inventory.txt-yaraRules')}</div>
+            {yaraRuleList && yaraRuleList.length > 0 &&
+              <div className='list'>
+                {yaraRuleList.map(this.displayYaraRuleList.bind(this, i))}
+              </div>
+            }
+            {(!yaraRuleList || yaraRuleList.length === 0) &&
               <div className='empty-msg'>{NOT_AVAILABLE}</div>
             }
           </div>
@@ -1206,7 +1307,7 @@ class HMDscanInfo extends Component {
           <span>{t('network-inventory.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}</span>
         </div>
         <div className='scan-content'>
-          <div className='header rule'>{t('network-inventory.txt-irMsg')}:</div>
+          <div className='header'>{t('network-inventory.txt-irMsg')}:</div>
           <div className='empty-msg'>{val._ZipPath || NOT_AVAILABLE}</div>
         </div>
       </div>
