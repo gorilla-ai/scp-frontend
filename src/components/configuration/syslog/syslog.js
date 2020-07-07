@@ -81,6 +81,7 @@ class Syslog extends Component {
         }
       },
       search: {
+        name: '',
         loghostip: '',
         port: ''
       },
@@ -155,20 +156,20 @@ class Syslog extends Component {
     const {dataFieldsArr, syslog, search} = this.state;
     let urlParams = '';
 
-    if (search.loghostip || search.port) {
-      urlParams += '?';
+    if (search.name) {
+      urlParams += `&name=${search.name}`;
+    }
 
-      if (search.loghostip) {
-        urlParams += `&loghostip=${search.loghostip}`;
-      }
+    if (search.loghostip) {
+      urlParams += `&loghostip=${search.loghostip}`;
+    }
 
-      if (search.port) {
-        urlParams += `&port=${search.port}`;
-      }
+    if (search.port) {
+      urlParams += `&port=${search.port}`;
     }
 
     this.ah.one({
-      url: `${baseUrl}/api/v1/log/config${urlParams}`,
+      url: `${baseUrl}/api/v1/log/config?${urlParams}`,
       type: 'GET'
     })
     .then(data => {
@@ -1288,6 +1289,7 @@ class Syslog extends Component {
   clearFilter = () => {
     this.setState({
       search: {
+        name: '',
         loghostip: '',
         port: ''
       }
@@ -1306,6 +1308,14 @@ class Syslog extends Component {
         <i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}></i>
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
+          <div className='group'>
+            <label htmlFor='syslogName'>{t('syslogFields.name')}</label>
+            <input
+              id='syslogName'
+              type='text'
+              value={search.name}
+              onChange={this.handleSearchChange.bind(this, 'name')} />
+          </div>
           <div className='group'>
             <label htmlFor='syslogLogHostIP'>{t('syslogFields.txt-hostIP')}</label>
             <input
