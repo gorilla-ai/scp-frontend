@@ -194,12 +194,15 @@ class HMDscanInfo extends Component {
     let tempDashboardInfo = {...this.state.dashboardInfo};
 
     _.forEach(currentDeviceData.radarResult, val => {
-      polarData.categories.push(val.key);
-      polarData.data.push(val.value);
-      tempDashboardInfo.dataContent.push({
+      tempDashboardInfo.dataContent.push({ //For Dashboard table chart
         item: val.key,
         score: val.value
       });
+
+      if (val.value !== 'N/A') { //For Dashboard radar chart (filter out 'N/A')
+        polarData.categories.push(val.key);
+        polarData.data.push(val.value);
+      }
     })
 
     const polarChartSettings = {
