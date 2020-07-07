@@ -73,8 +73,6 @@ class HMDscanInfo extends Component {
 
     this.state = {
       activeTab: 'dashboard', //dashboard, yara, scanFile, gcb, ir, fileIntegrity, settings
-      syncStatus: '',
-      syncTime: '',
       buttonGroupList: [],
       polarChartSettings: {},
       activePath: null,
@@ -158,19 +156,10 @@ class HMDscanInfo extends Component {
    */
   loadInitialContent = () => {
     const {location, currentDeviceData} = this.props;
-    let syncStatus = '';
-    let syncTime = '';
     let buttonGroupList = [{
       value: 'dashboard',
       text: t('txt-dashboard')
     }];
-
-    if (currentDeviceData.syncYaraResult && currentDeviceData.syncYaraResult.length > 0) {
-      if (currentDeviceData.syncYaraResult[0].status === 'failed') {
-        syncStatus = 'show';
-        syncTime = helper.getFormattedDate(currentDeviceData.syncYaraResult[0].latestCreateDttm, 'local');
-      }
-    }
 
     _.forEach(SAFETY_SCAN_LIST, val => {
       if (val.type === 'snapshot') return; //Ignore 'snapshot' tab
@@ -184,13 +173,11 @@ class HMDscanInfo extends Component {
     if (location.pathname.indexOf('configuration') > 0) { //Add Settings tab for Config section
       buttonGroupList.push({
         value: 'settings',
-        text: t('txt-settings')
+        text: t('txt-setting-eng')
       });
     }
 
     this.setState({
-      syncStatus,
-      syncTime,
       buttonGroupList
     });
   }
@@ -1320,12 +1307,11 @@ class HMDscanInfo extends Component {
    */
   getContentHeight = () => {
     const {page} = this.props;
-    const {syncStatus} = this.state;
 
     if (page === 'threats') {
-      return syncStatus ? 300 : 335;
+      return 335;
     } else if (page === 'inventory') {
-      return syncStatus ? 428 : 435;
+      return 435;
     }
   }
   /**
@@ -1562,8 +1548,6 @@ class HMDscanInfo extends Component {
   render() {
     const {
       activeTab,
-      syncStatus,
-      syncTime,
       buttonGroupList,
       dashboardInfo,
       hmdInfo,
@@ -1583,11 +1567,6 @@ class HMDscanInfo extends Component {
 
     return (
       <div className='scan-info'>
-        {syncStatus &&
-          <div className='sync-status'>
-            <span className='fg fg-alert-1'></span>{t('network-inventory.txt-syncYaraFail')}: {syncTime}
-          </div>
-        }
         <ButtonGroup
           className='left'
           list={buttonGroupList}

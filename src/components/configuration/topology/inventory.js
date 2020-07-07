@@ -404,14 +404,7 @@ class NetworkInventory extends Component {
                   return <span>{allValue.seatObj.seatName}</span>
                 }
               } else if (tempData === 'scanInfo') {
-                let syncStatus = '';
                 let hmdInfo = [];
-
-                if (allValue.syncYaraResult && allValue.syncYaraResult.length > 0) {
-                  if (allValue.syncYaraResult[0].status === 'failed') {
-                    syncStatus = 'show';
-                  }
-                }
 
                 _.forEach(SAFETY_SCAN_LIST, val => { //Construct the HMD info array
                   const dataType = val + 'Result';
@@ -428,9 +421,6 @@ class NetworkInventory extends Component {
 
                 return (
                   <ul>
-                    {syncStatus &&
-                      <li style={{'color': '#d10d25'}}><span>{t('network-inventory.txt-syncYaraFail')}</span></li>
-                    }
                     {hmdInfo.map(this.getHMDinfo)}
                   </ul>
                 )
@@ -1382,9 +1372,10 @@ class NetworkInventory extends Component {
    * Handle trigger button for HMD
    * @method
    * @param {array.<string>} type - HMD scan type
-   * @param {string | object} options - option for 'fromInventory' or yara rule object
+   * @param {string} [options] - option for 'fromInventory'
+   * @param {object} [yaraRule] - yara rule data
    */
-  triggerTask = (type, options) => {
+  triggerTask = (type, options, yaraRule) => {
     const {baseUrl} = this.context;
     const {currentDeviceData} = this.state;
     const url = `${baseUrl}/api/hmd/retrigger`;
@@ -1394,8 +1385,6 @@ class NetworkInventory extends Component {
     };
 
     if (type[0] === 'compareIOC') {
-      const yaraRule = _.cloneDeep(options);
-
       requestData.paras = {
         _FilepathList: yaraRule.path,
         _RuleString: yaraRule.rule

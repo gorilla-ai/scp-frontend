@@ -30,9 +30,6 @@ class YaraRule extends Component {
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     this.ah = getInstance('chewbacca');
   }
-  ryan = () => {
-
-  }
   /**
    * Handle yara rule input data change
    * @method

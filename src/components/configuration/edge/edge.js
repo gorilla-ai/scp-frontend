@@ -520,6 +520,7 @@ class Edge extends Component {
           to: ''
         },
         memo: allValue.memo,
+        isNetTrapUpgrade: allValue.isNetTrapUpgrade,
         agentApiStatus: allValue.agentApiStatus,
         lastUpdateTime: allValue.lastStatusUpdDT,
         lastStatus: allValue.lastStatus,
@@ -792,6 +793,30 @@ class Edge extends Component {
     })
   }
   /**
+   * Handle NetTrap upgrade button
+   * @method
+   */
+  handleNetTrapUpgrade = () => {
+    const {baseUrl} = this.context;
+    const {edge} = this.state;
+
+    if (!edge.info.id) {
+      return;
+    }
+
+    ah.one({
+      url: `${baseUrl}/api/edge/nettrap/_upgrade?id=${edge.info.id}`,
+      type: 'GET'
+    })
+    .then(data => {
+      helper.showPopupMsg(t('txt-upgradeSuccess'));
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Display edit Edge content
    * @method
    * @returns HTML DOM
@@ -850,6 +875,7 @@ class Edge extends Component {
               <span className='msg'>{t('edge-management.txt-lastUpateTime')} {helper.getFormattedDate(edge.info.lastUpdateTime, 'local')}</span>
             }
           </header>
+          <button className='btn nettrap-upgrade' onClick={this.handleNetTrapUpgrade} disabled={activeContent === 'viewEdge' || !edge.info.isNetTrapUpgrade}>{t('txt-upgrade')}</button>
           {edge.info.lastStatus &&
             <ToggleBtn
               className='toggle-btn'
