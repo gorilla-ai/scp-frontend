@@ -498,6 +498,20 @@ i.c-checkbox.fg-checkbox {
     opacity: 0.5;
   }
 }
+#gisMapNew {
+  width: 100%;
+  height: 77vh;
+  &.full {
+    height: 95vh;
+  }
+  &.fit {
+    height: 70vh;
+    overflow-y: auto;
+  }
+  .actions {
+    display: none;
+  }
+}
 #gisMap {
   width: 100%;
   height: 77vh;
@@ -894,7 +908,7 @@ i.c-checkbox.fg-checkbox {
       .drop-down {
         position: absolute;
         top: 14px;
-        left: 200px;
+        left: 320px;
         width: 145px;
       }
       .floor-map {

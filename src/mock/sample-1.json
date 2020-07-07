@@ -1,0 +1,82 @@
+[
+  {
+    "type": "polyline",
+    "id": "set1-polyline_1",
+    "latlng": [
+      [
+        25.032969,
+        121.565414
+      ],
+      [
+        40.712776,
+        -74.005974
+      ]
+    ],
+    "directed": true,
+    "popup": "Polyline, directed, arrow at the end of path"
+  },
+  {
+    "type": "polyline",
+    "id": "set1-polyline_2",
+    "latlng": [
+      [
+        34.054215,
+        -118.242607
+      ],
+      [
+        60.039237,
+        10.730774
+      ]
+    ],
+    "directed": true,
+    "popup": "Polyline, directed, arrow at the end of path"
+  },
+  {
+    "type": "polyline",
+    "id": "set1-polyline_3",
+    "latlng": [
+      [
+        -37.835401,
+        144.921146
+      ],
+      [
+        22.652868,
+        120.339327
+      ]
+    ],
+    "directed": true,
+    "popup": "Polyline, directed, arrow at the end of path"
+  },
+  {
+    "type": "polyline",
+    "id": "set1-polyline_4",
+    "latlng": [
+      [
+        34.054215,
+        -118.242607
+      ],
+      [
+        51.501449,
+        -0.093887
+      ]
+    ],
+    "directed": true,
+    "popup": "Polyline, directed, arrow at the end of path"
+  },
+  {
+    "type": "polyline",
+    "id": "set1-polyline_5",
+    "latlng": [
+      [
+        -8.679770,
+        13.034816
+      ],
+      [
+        59.436207,
+        24.756470
+      ]
+    ],
+    "directed": true,
+    "popup": "Polyline, directed, arrow at the end of path"
+  }
+]

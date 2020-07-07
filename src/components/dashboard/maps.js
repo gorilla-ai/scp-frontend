@@ -6,6 +6,8 @@ import Moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
+import SAMPLE_1 from '../../mock/sample-1.json'
+
 import ButtonGroup from 'react-ui/build/src/components/button-group'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import Gis from 'react-gis/build/src/components'
@@ -85,11 +87,12 @@ class DashboardMaps extends Component {
       },
       past24hTime: helper.getFormattedDate(helper.getSubstractDate(24, 'hours')),
       updatedTime: helper.getFormattedDate(Moment()),
-      mapType: PRIVATE, //PRIVATE PUBLIC
+      mapType: 'new', //PRIVATE PUBLIC
       locationType: '',
       ..._.cloneDeep(MAPS_PUBLIC_DATA),
       ..._.cloneDeep(MAPS_PRIVATE_DATA),
-      modalOpen: false
+      modalOpen: false,
+      sample: ''
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -99,6 +102,9 @@ class DashboardMaps extends Component {
   componentDidMount() {
     this.loadAlertData();
     this.getFloorPlan();
+
+    //new
+    this.loadNewMap();
   }
   /**
    * Get and set alert maps data
@@ -500,6 +506,11 @@ class DashboardMaps extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  loadNewMap = () => {
+    this.setState({
+      sample: SAMPLE_1
+    });
+  }
   /**
    * Get and set floor list data
    * @method
@@ -800,7 +811,8 @@ class DashboardMaps extends Component {
       currentMap,
       currentBaseLayers,
       seatData,
-      modalOpen
+      modalOpen,
+      sample
     } = this.state;
     const displayTime = past24hTime + ' - ' + updatedTime;
 
@@ -820,12 +832,13 @@ class DashboardMaps extends Component {
             <ButtonGroup
               list={[
                 {value: PRIVATE, text: t('dashboard.txt-private')},
-                {value: PUBLIC, text: t('dashboard.txt-public')}
+                {value: PUBLIC, text: t('dashboard.txt-public')},
+                {value: 'new', text: 'New Map'}
               ]}
               onChange={this.toggleMaps}
               value={mapType} />
 
-            {floorList.length > 0 &&
+            {floorList.length > 0 && mapType === PRIVATE &&
               <DropDownList
                 className='drop-down'
                 list={floorList}
@@ -931,6 +944,27 @@ class DashboardMaps extends Component {
                 }]}
                 layouts={['standard']}
                 dragModes={['pan']} />
+            }
+            {mapType === 'new' &&
+              <Gis
+                id='gisMapNew'
+                data={sample}
+                symbolOptions={[
+                  {
+                    match: {
+                      type: 'marker'
+                    },
+                    props: {
+                      heatmap: true
+                    }
+                  }
+                ]}
+                onClick={(id)=>{
+                    console.log('clicked', id)
+                }}
+                heatmapOptions={{
+                    radius: 500
+                }} />
             }
           </div>
         </div>
