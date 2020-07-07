@@ -61,37 +61,51 @@ class Login extends Component {
    */
   checkLicense = () => {
     const {baseUrl, contextRoot} = this.props;
-    const apiArr = [
-      {
-        url: `${baseUrl}/api/lms/verifyLocal`,
-        data: JSON.stringify({}),
-        type: 'POST',
-        contentType: 'text/plain'
-      },
-      {
-        url: `${baseUrl}/api/lms/verifyOnline`,
-        data: JSON.stringify({}),
-        type: 'POST',
-        contentType: 'text/plain'
-      }
-    ];
+    const apiLocal = {
+      url: `${baseUrl}/api/lms/verifyLocal`,
+      data: JSON.stringify({}),
+      type: 'POST',
+      contentType: 'text/plain'
+    }
 
-    this.ah.all(apiArr)
+    const apiOnline = {
+      url: `${baseUrl}/api/lms/verifyOnline`,
+      data: JSON.stringify({}),
+      type: 'POST',
+      contentType: 'text/plain'
+    }
+
+    let licenseCheck = false
+
+    this.ah.one(apiLocal)
     .then(data => {
-      let licenseCheck = false;
-
       if (data) {
-        if (data[0].rt.returnCode === '0' && data[1].rt.returnCode === '0') {
-          licenseCheck = data[0].rt.isValid === '1' || data[1].rt.isValid === '1';
+        if (data.rt.returnCode === '0') {
+          licenseCheck = data.rt.isValid === '1'
         }
+      }
 
+      if (!licenseCheck) {
+        this.ah.one(apiOnline)
+        .then(data => {
+          if (data) {
+            if (data.rt.returnCode === '0') {
+              licenseCheck = data.rt.isValid === '1'
+            }
+          }          
+        })
+        .catch(err => {
+          helper.showPopupMsg('', t('txt-error'), err.message);
+        })
+      }
+      else {
         this.setState({
           license: licenseCheck
         }, () => {
           if (this.state.license && this.username) {
             this.username.focus();
           }
-        })
+        })  
       }
     })
     .catch(err => {
