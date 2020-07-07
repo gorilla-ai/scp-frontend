@@ -809,7 +809,9 @@ class Edge extends Component {
       type: 'GET'
     })
     .then(data => {
-      helper.showPopupMsg(t('txt-upgradeSuccess'));
+      if (data.ret === 0) {
+        helper.showPopupMsg(t('txt-upgradeSuccess'));
+      }
       return null;
     })
     .catch(err => {
