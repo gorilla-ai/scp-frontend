@@ -669,7 +669,8 @@
     "keyword": "Keyword",
     "errCode": "Error",
     "connSize": "Connections Size",
-    "unauthType": "Unauthorize Type"
+    "unauthType": "Unauthorize Type",
+    "version": "Version"
   },
   "syslogFields": {
     "port": "Received Port",

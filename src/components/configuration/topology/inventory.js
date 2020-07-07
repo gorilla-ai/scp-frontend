@@ -1431,6 +1431,7 @@ class NetworkInventory extends Component {
     const hostName = currentDeviceData.hostName || NOT_AVAILABLE;
     const system = currentDeviceData.system || NOT_AVAILABLE;
     const ownerName = currentDeviceData.ownerObj ? currentDeviceData.ownerObj.ownerName : NOT_AVAILABLE;
+    const version = currentDeviceData.version || NOT_AVAILABLE;
 
     return (
       <div>
@@ -1442,6 +1443,7 @@ class NetworkInventory extends Component {
               <th>{t('ipFields.hostName')}</th>
               <th>{t('ipFields.system')}</th>
               <th>{t('ipFields.owner')}</th>
+              <th>{t('ipFields.version')}</th>
             </tr>
           </thead>
           <tbody>
@@ -1451,6 +1453,7 @@ class NetworkInventory extends Component {
               <td>{hostName}</td>
               <td>{system}</td>
               <td>{ownerName}</td>
+              <td>{version}</td>
             </tr>
           </tbody>
         </table>

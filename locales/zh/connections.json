@@ -669,7 +669,8 @@
     "keyword": "關鍵字",
     "errCode": "錯誤訊息",
     "connSize": "Connections Size",
-    "unauthType": "Unauthorize Type"
+    "unauthType": "Unauthorize Type",
+    "version": "版本"
   },
   "syslogFields": {
     "port": "接收Port",
