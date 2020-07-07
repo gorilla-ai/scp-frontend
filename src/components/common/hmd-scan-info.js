@@ -1100,13 +1100,18 @@ class HMDscanInfo extends Component {
   getFileIntegrityContent = (data, val, i) => {
     const dataResult = data[val];
 
-    if (dataResult && dataResult.length > 0) {
+    if (dataResult) {
       return (
         <div className='scan-content'>
           <div className='header'>{t(`network-inventory.txt-${val}`)}</div>
-            <div className='list'>
-              {dataResult.map(this.displayFileIntegrityPath.bind(this, i))}
-            </div>
+            {dataResult.length > 0 &&
+              <div className='list'>
+                {dataResult.map(this.displayFileIntegrityPath.bind(this, i))}
+              </div>
+            }
+            {dataResult.length === 0 &&
+              <div className='empty-msg'>{NOT_AVAILABLE}</div>
+            }
         </div>
       )
     }
