@@ -148,6 +148,7 @@
   "txt-setting-eng": "Setting",
   "txt-item": "項目",
   "txt-score": "評分",
+  "txt-maxScore": "最高分",
   "txt-maxDataMsg": "資料筆數最大為10,000筆",
   "txt-es-data-over-limit": "超出搜尋範圍，請修改查詢條件",
 
