@@ -90,8 +90,8 @@ class NetworkInventory extends Component {
       hmdCheckbox: false,
       hmdSelectAll: false,
       hmdSearchOptions: {
-        scanProcess: false,
-        scanFile: false,
+        yaraScan: false,
+        malware: false,
         gcb: false
       },
       deviceData: {
@@ -249,11 +249,11 @@ class NetworkInventory extends Component {
       if (hmdCheckbox) {
         dataParams = 'isHmd=true';
 
-        if (hmdSearchOptions.scanProcess) {
+        if (hmdSearchOptions.yaraScan) {
           dataParams += '&isScanProc=true';
         }
 
-        if (hmdSearchOptions.scanFile) {
+        if (hmdSearchOptions.malware) {
           dataParams += '&isScanFile=true';
         }
 
@@ -916,8 +916,8 @@ class NetworkInventory extends Component {
         this.setState({
           hmdSelectAll: true,
           hmdSearchOptions: {
-            scanProcess: true,
-            scanFile: true,
+            yaraScan: true,
+            malware: true,
             gcb: true
           }
         });
@@ -925,8 +925,8 @@ class NetworkInventory extends Component {
         this.setState({
           hmdSelectAll: false,
           hmdSearchOptions: {
-            scanProcess: false,
-            scanFile: false,
+            yaraScan: false,
+            malware: false,
             gcb: false
           }
         });
@@ -936,7 +936,6 @@ class NetworkInventory extends Component {
         hmdSearchOptions: tempHMDsearchOptions
       }, () => {
         const {hmdSearchOptions} = this.state;
-        const hmdOptions = ['scanProcess', 'scanFile', 'gcb'];
         let count = 0;
 
         _.forEach(hmdSearchOptions, (val, key) => {
@@ -945,7 +944,7 @@ class NetworkInventory extends Component {
           }
         })
 
-        if (count === hmdOptions.length) {
+        if (count === _.size(hmdSearchOptions)) { //Checked for Select All
           this.setState({
             hmdSelectAll: true
           });
@@ -1054,19 +1053,19 @@ class NetworkInventory extends Component {
                   disabled={!hmdCheckbox} />
               </div>
               <div className='option'>
-                <label htmlFor='hmdScanProcess' className={cx({'active': hmdCheckbox})}>Scan Process</label>
+                <label htmlFor='hmdScanProcess' className={cx({'active': hmdCheckbox})}>Yara Scan</label>
                 <Checkbox
                   id='hmdScanProcess'
-                  checked={hmdSearchOptions.scanProcess}
-                  onChange={this.toggleHMDoptions.bind(this, 'scanProcess')}
+                  checked={hmdSearchOptions.yaraScan}
+                  onChange={this.toggleHMDoptions.bind(this, 'yaraScan')}
                   disabled={!hmdCheckbox} />
               </div>
               <div className='option'>
-                <label htmlFor='hmdScanFile' className={cx({'active': hmdCheckbox})}>Scan File</label>
+                <label htmlFor='hmdScanFile' className={cx({'active': hmdCheckbox})}>Malware</label>
                 <Checkbox
                   id='hmdScanFile'
-                  checked={hmdSearchOptions.scanFile}
-                  onChange={this.toggleHMDoptions.bind(this, 'scanFile')}
+                  checked={hmdSearchOptions.malware}
+                  onChange={this.toggleHMDoptions.bind(this, 'malware')}
                   disabled={!hmdCheckbox} />
               </div>
               <div className='option'>
@@ -1561,10 +1560,9 @@ class NetworkInventory extends Component {
       hmdCheckbox: false,
       hmdSelectAll: false,
       hmdSearchOptions: {
-        scanProcess: false,
-        scanFile: false,
-        gcb: false,
-        ir: false
+        yaraScan: false,
+        malware: false,
+        gcb: false
       }
     });
   }

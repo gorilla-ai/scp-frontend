@@ -148,6 +148,7 @@
   "txt-setting-eng": "Setting",
   "txt-item": "Item",
   "txt-score": "Score",
+  "txt-maxScore": "max. score",
   "txt-maxDataMsg": "The maximum data count is 10,000",
   "txt-es-data-over-limit": "Exceed max queried number, please revise filters",
 

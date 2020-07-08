@@ -192,6 +192,7 @@ class HMDscanInfo extends Component {
       data: []
     };
     let tempDashboardInfo = {...this.state.dashboardInfo};
+    let totalScore = '';
 
     _.forEach(currentDeviceData.radarResult, val => {
       polarData.categories.push(val.key);
@@ -200,6 +201,7 @@ class HMDscanInfo extends Component {
         item: val.key,
         score: val.value
       });
+      totalScore = val.total;
     })
 
     const polarChartSettings = {
@@ -221,7 +223,8 @@ class HMDscanInfo extends Component {
       yAxis: {
         gridLineInterpolation: 'polygon',
         lineWidth: 0,
-        min: 0
+        min: 0,
+        max: totalScore
       },
       legend: {
         align: 'right',
@@ -229,7 +232,7 @@ class HMDscanInfo extends Component {
         layout: 'vertical'
       },
       series: [{
-        name: t('txt-score'),
+        name: t('txt-score') + '(' + t('txt-maxScore') + ':' + totalScore + ')',
         data: polarData.data,
         pointPlacement: 'on'
       }]
