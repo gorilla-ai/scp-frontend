@@ -68,7 +68,7 @@ class Edge extends Component {
       },
       originalEdgeData: {},
       edge: {
-        dataFieldsArr: ['agentName', 'ipPort', 'serviceType', 'description', '_menu'],
+        dataFieldsArr: ['agentName', 'ipPort', 'serviceType', 'descriptionEdge', '_menu'],
         dataFields: {},
         dataContent: [],
         sort: {
@@ -278,7 +278,7 @@ class Edge extends Component {
                 };
 
                 return <span><img src={icon.src} title={icon.title} />{value}</span>
-              } else if (tempData === 'description') {
+              } else if (tempData === 'descriptionEdge') {
                 const serviceDescList = SERVICE_TYPE_LIST[allValue.serviceType];
                 let serviceArr = [];
                 let moduleArr = [];

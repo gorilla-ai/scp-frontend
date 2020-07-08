@@ -450,7 +450,12 @@
     "_host": "Data Source",
     "configId": "Config ID",
     "configSource": "Config Source",
-    "msg": "Message"
+    "msg": "Message",
+    "_eventDttm_": "Received Event Time",
+    "LoghostIp": "Received Host",
+    "Source": "Event Source",
+    "matchFlag": "Match Flag",
+    "__insertTime": "Insert Time"
   },
   "hmdFields": {
     "ipDeviceUUID": "Host ID",
@@ -507,7 +512,7 @@
   "edgeFields": {
     "agentName": "Name",
     "ipPort": "VPN IP",
-    "description": "Description",
+    "descriptionEdge": "Description",
     "keywords": "Keywords",
     "serviceType": "Service Type",
     "connectionStatus": "Connection Status",
