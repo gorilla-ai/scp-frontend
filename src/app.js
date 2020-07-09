@@ -214,7 +214,9 @@ const Main = () => (
     <Switch>
       <Route exact path='/SCP' component={DashboardStatsComp} />
       <Route exact path='/SCP/dashboard/statisticsUIF' component={StatisticsUIFComp} />
-      <Route exact path='/SCP/dashboard/statistics' component={DashboardStatsComp} />
+      {
+      // <Route exact path='/SCP/dashboard/statistics' component={DashboardStatsComp} />
+      }
       <Route exact path='/SCP/dashboard/maps' component={DashboardMapsComp} />
       <Route exact path='/SCP/threats' component={ThreatsComp} />
       <Route exact path='/SCP/events/syslog' component={SyslogComp} />

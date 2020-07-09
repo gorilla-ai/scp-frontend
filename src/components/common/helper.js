@@ -216,15 +216,18 @@ const helper = {
 
     return (
       <div className='c-button-group left menu'>
-        <button className={cx('thumb', {'selected': page === 'statistics'})}>
-          <Link to='/SCP/dashboard/statistics'>{t('dashboard.txt-statisticsInfo')}</Link>
-        </button>
-        <button className={cx('thumb', {'selected': page === 'maps'})}>
-          <Link to='/SCP/dashboard/maps'>{t('dashboard.txt-attacksMap')}</Link>
-        </button>
         <button className={cx('thumb', {'selected': page === 'statisticsUIF'})}>
           <Link to='/SCP/dashboard/statisticsUIF'>{t('dashboard.txt-statisticsInfo')}</Link>
         </button>
+        {
+        // <button className={cx('thumb', {'selected': page === 'statistics'})}>
+        //   <Link to='/SCP/dashboard/statistics'>{t('dashboard.txt-statisticsInfo')}</Link>
+        // </button>
+        }
+        <button className={cx('thumb', {'selected': page === 'maps'})}>
+          <Link to='/SCP/dashboard/maps'>{t('dashboard.txt-attacksMap')}</Link>
+        </button>
+        
       </div>
     )
   },
