@@ -22,6 +22,79 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 let t = null;
 let et = null;
 
+//const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
+const worldMapAttackData = [
+  {
+    severity: 'Emergency',
+    srcLatitude: 25.032969,
+    srcLongitude: 121.565414,
+    destLatitude: 40.712776,
+    destLongitude: -74.005974
+  },
+  {
+    severity: 'Alert',
+    srcLatitude: 34.054215,
+    srcLongitude: -118.242607,
+    destLatitude: 60.039237,
+    destLongitude: 10.730774
+  },
+  {
+    severity: 'Critical',
+    srcLatitude: -37.835401,
+    srcLongitude: 144.921146,
+    destLatitude: 22.652868,
+    destLongitude: 120.339327
+  },
+  {
+    severity: 'Warning',
+    srcLatitude: 34.054215,
+    srcLongitude: -118.242607,
+    destLatitude: 51.501449,
+    destLongitude: -0.093887
+  },
+  {
+    severity: 'Notice',
+    srcLatitude: -8.679770,
+    srcLongitude: 13.034816,
+    destLatitude: 59.436207,
+    destLongitude: 24.756470
+  },
+  {
+    severity: 'Emergency',
+    srcLatitude: 25.086329,
+    srcLongitude: 121.557753,
+    destLatitude: 40.247413,
+    destLongitude: 116.283446
+  },
+  {
+    severity: 'Warning',
+    srcLatitude: -33.901517,
+    srcLongitude: 18.388492,
+    destLatitude: 25.086329,
+    destLongitude: 121.557753
+  },
+  {
+    severity: 'Emergency',
+    srcLatitude: 52.533549,
+    srcLongitude: 13.413821,
+    destLatitude: -34.601110,
+    destLongitude: -58.435017
+  },
+  {
+    severity: 'Alert',
+    srcLatitude: 39.934335,
+    srcLongitude: 116.385070,
+    destLatitude: 50.488218,
+    destLongitude: 30.485919
+  },
+  {
+    severity: 'Notice',
+    srcLatitude: 25.933448,
+    srcLongitude: -80.167724,
+    destLatitude: 37.926115,
+    destLongitude: -122.429825
+  }
+];
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const PRIVATE = 'private';
 const PUBLIC = 'public';
@@ -92,7 +165,7 @@ class DashboardMaps extends Component {
       ..._.cloneDeep(MAPS_PUBLIC_DATA),
       ..._.cloneDeep(MAPS_PRIVATE_DATA),
       modalOpen: false,
-      sample: ''
+      worldAttackData: []
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -103,7 +176,7 @@ class DashboardMaps extends Component {
     this.loadAlertData();
     this.getFloorPlan();
 
-    //new
+    //new map
     this.loadNewMap();
   }
   /**
@@ -507,8 +580,66 @@ class DashboardMaps extends Component {
     })
   }
   loadNewMap = () => {
+    let worldAttackData = [];   
+
+    _.forEach(worldMapAttackData, (val, i) => {
+      if (val.srcLatitude && val.srcLongitude) {
+        worldAttackData.push({
+          type: 'polyline',
+          id: 'set-polyline_' + i,
+          color: ALERT_LEVEL_COLORS[val.severity],
+          latlng: [
+            [val.srcLatitude, val.srcLongitude],
+            [val.destLatitude, val.destLongitude]
+          ],
+          directed: false,
+          popup: "Polyline, directed, arrow at the end of path"
+        });
+      }
+
+      if (val.destLatitude && val.destLongitude) {
+        worldAttackData.push({
+          type: 'spot',
+          id: 'setSpotSmall' + i,
+          className: 'spot-small',
+          latlng: [
+            val.destLatitude,
+            val.destLongitude
+          ],
+          data: {
+            type: 'small',
+            color: ALERT_LEVEL_COLORS[val.severity]
+          }
+        });
+
+        worldAttackData.push({
+          type: 'spot',
+          id: 'setSpotBig' + i,
+          className: 'spot-big',
+          latlng: [
+            val.destLatitude,
+            val.destLongitude
+          ],
+          data: {
+            type: 'big',
+            color: ALERT_LEVEL_COLORS[val.severity]
+          }
+        });
+      }
+    })
+
     this.setState({
-      sample: SAMPLE_1
+      worldAttackData
+    }, () => {
+      setTimeout(() => {
+        const svgTag = this.gisMapData._renderer._container;
+        const defs = document.createElement('defs');
+        const lg = document.createElement('linearGradient');
+        lg.setAttribute('id', 'gradient');
+        defs.appendChild(lg);
+        svgTag.appendChild(defs);
+
+      }, 2000);
     });
   }
   /**
@@ -812,7 +943,7 @@ class DashboardMaps extends Component {
       currentBaseLayers,
       seatData,
       modalOpen,
-      sample
+      worldAttackData
     } = this.state;
     const displayTime = past24hTime + ' - ' + updatedTime;
 
@@ -919,51 +1050,65 @@ class DashboardMaps extends Component {
                   crs: L.CRS.Simple
                 }}
                 onClick={this.showTopoDetail.bind(this, PUBLIC)}
-                symbolOptions={[{
-                  match: {
-                    type:'geojson'
-                  },
-                  selectedProps: {
-                    'fill-color': 'white',
-                    color: 'black',
-                    weight: 0.6,
-                    'fill-opacity': 1
-                  }
-                },
-                {
-                  match: {
-                    type: 'spot'
-                  },
-                  props: {
-                    'background-color': ({data}) => {
-                      return data.tag === 'red' ? 'red' : 'yellow';
+                symbolOptions={[
+                  {
+                    match: {
+                      type:'geojson'
                     },
-                    'border-color': '#333',
-                    'border-width': '1px'
+                    selectedProps: {
+                      'fill-color': 'white',
+                      color: 'black',
+                      weight: 0.6,
+                      'fill-opacity': 1
+                    }
+                  },
+                  {
+                    match: {
+                      type: 'spot'
+                    },
+                    props: {
+                      'background-color': ({data}) => {
+                        return data.tag === 'red' ? 'red' : 'yellow';
+                      },
+                      'border-color': '#333',
+                      'border-width': '1px'
+                    }
                   }
-                }]}
+                ]}
                 layouts={['standard']}
                 dragModes={['pan']} />
             }
             {mapType === 'new' &&
               <Gis
                 id='gisMapNew'
-                data={sample}
+                ref={(ref) => {
+                  const gis = _.get(ref, '_component._component._component._component.gis');
+                  this.gisMapData = gis ? gis._map : null;
+                }}
+                data={worldAttackData}
                 symbolOptions={[
                   {
                     match: {
-                      type: 'marker'
+                      type: 'spot'
                     },
                     props: {
-                      heatmap: true
+                      'background-color': ({data}) => {
+                        return data.color;
+                      },                      
+                      width: ({data}) => {
+                        return data.type === 'small' ? '12px' : '36px';
+                      },
+                      height: ({data}) => {
+                        return data.type === 'small' ? '12px' : '36px';
+                      },
+                      opacity: ({data}) => {
+                        return data.type === 'small' ? '1' : '.3';
+                      }
                     }
                   }
                 ]}
-                onClick={(id)=>{
-                    console.log('clicked', id)
-                }}
-                heatmapOptions={{
-                    radius: 500
+                onClick={(id) => {
+                  console.log('clicked', id)
                 }} />
             }
           </div>

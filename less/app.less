@@ -511,6 +511,29 @@ i.c-checkbox.fg-checkbox {
   .actions {
     display: none;
   }
+  .leaflet-tile-container img,
+  .leaflet-overlay-pane img {
+    filter: grayscale(100%);
+  }
+  .gis-spot {
+    border-width: 0;
+  }
+  .leaflet-marker-icon.leaflet-interactive,
+  .leaflet-image-layer.leaflet-interactive,
+  .leaflet-pane > svg path.leaflet-interactive {
+    stroke-opacity: .8;
+    stroke-width: 2;
+  }
+  .spot-big .gis-spot {
+    animation-name: spotChange;
+    animation-duration: 1s;
+    animation-iteration-count: 5;
+  }
+  @keyframes spotChange {
+    0%   {opacity: 1;}
+    50%  {opacity: .3;}
+    100% {opacity: 1;}
+  }
 }
 #gisMap {
   width: 100%;
