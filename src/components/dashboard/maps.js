@@ -6,8 +6,6 @@ import Moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import SAMPLE_1 from '../../mock/sample-1.json'
-
 import ButtonGroup from 'react-ui/build/src/components/button-group'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import Gis from 'react-gis/build/src/components'
@@ -593,7 +591,7 @@ class DashboardMaps extends Component {
             [val.destLatitude, val.destLongitude]
           ],
           directed: false,
-          popup: "Polyline, directed, arrow at the end of path"
+          popup: 'Polyline, directed, arrow at the end of path'
         });
       }
 
@@ -632,13 +630,27 @@ class DashboardMaps extends Component {
       worldAttackData
     }, () => {
       setTimeout(() => {
-        const svgTag = this.gisMapData._renderer._container;
+        const svgTag = _.get(this.gisMapData, '_renderer._container');
         const defs = document.createElement('defs');
         const lg = document.createElement('linearGradient');
-        lg.setAttribute('id', 'gradient');
+        const stop1 = document.createElement('stop');
+        const stop2 = document.createElement('stop');
+        const polyLine = document.getElementsByClassName('gis-polyline');
+
+        lg.setAttribute('id', 'polylineGradient');
+        stop1.setAttribute('offset', '5%');
+        stop1.setAttribute('stopColor', '#F60');
+        stop2.setAttribute('offset', '95%');
+        stop2.setAttribute('stopColor', '#FF6');
+
+        _.forEach(polyLine, val => {
+          val.setAttribute('fill', 'url("#polylineGradient")');
+        })
+
+        lg.appendChild(stop1);
+        lg.appendChild(stop2);
         defs.appendChild(lg);
         svgTag.appendChild(defs);
-
       }, 2000);
     });
   }
