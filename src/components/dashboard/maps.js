@@ -822,8 +822,8 @@ class DashboardMaps extends Component {
                 {value: PRIVATE, text: t('dashboard.txt-private')},
                 {value: PUBLIC, text: t('dashboard.txt-public')}
               ]}
-              onChange={this.toggleMaps}
-              value={mapType} />
+              value={mapType}
+              onChange={this.toggleMaps} />
 
             {floorList.length > 0 &&
               <DropDownList

@@ -1578,8 +1578,8 @@ class HMDscanInfo extends Component {
         <ButtonGroup
           className='left'
           list={buttonGroupList}
-          onChange={this.toggleScanType}
-          value={activeTab} />
+          value={activeTab}
+          onChange={this.toggleScanType} />
 
         <div className='info-content'>
           {activeTab === 'dashboard' &&

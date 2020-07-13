@@ -695,8 +695,8 @@ class QueryOpenSave extends Component {
                       className='number'
                       type='number'
                       min='1'
-                      onChange={this.handleNumberChange.bind(this, 'periodMin')}
                       value={queryData.pattern.periodMin}
+                      onChange={this.handleNumberChange.bind(this, 'periodMin')}
                       readOnly={true} />
                     <span> 分鐘內超過或等於 </span>
                     <input
@@ -704,8 +704,8 @@ class QueryOpenSave extends Component {
                       className='number'
                       type='number'
                       min='1'
-                      onChange={this.handleNumberChange.bind(this, 'threshold')}
                       value={queryData.pattern.threshold}
+                      onChange={this.handleNumberChange.bind(this, 'threshold')}
                       readOnly={true} />
                     <span> 次</span>
                   </div>
@@ -734,8 +734,8 @@ class QueryOpenSave extends Component {
                       className='number'
                       type='number'
                       min='1'
-                      onChange={this.handleNumberChange.bind(this, 'periodMin')}
                       value={queryData.pattern.periodMin}
+                      onChange={this.handleNumberChange.bind(this, 'periodMin')}
                       readOnly={true} />
                     <span> times in </span>
                     <input
@@ -743,8 +743,8 @@ class QueryOpenSave extends Component {
                       className='number'
                       type='number'
                       min='1'
-                      onChange={this.handleNumberChange.bind(this, 'threshold')}
                       value={queryData.pattern.threshold}
+                      onChange={this.handleNumberChange.bind(this, 'threshold')}
                       readOnly={true} />
                     <span> minutes</span>
                   </div>
@@ -853,8 +853,8 @@ class QueryOpenSave extends Component {
                     id='severityLevel'
                     required={true}
                     list={severityList}
-                    onChange={this.handleDataChange.bind(this, 'severity')}
                     value={pattern.severity}
+                    onChange={this.handleDataChange.bind(this, 'severity')}
                     readOnly={!patternCheckbox} />
                   <div className='period'>
                     <Checkbox
@@ -869,8 +869,8 @@ class QueryOpenSave extends Component {
                       className='number'
                       type='number'
                       min='1'
-                      onChange={this.handleNumberChange.bind(this, 'periodMin')}
                       value={pattern.periodMin}
+                      onChange={this.handleNumberChange.bind(this, 'periodMin')}
                       readOnly={!periodCheckbox} />
                     <span> 分鐘內超過或等於 </span>
                     <input
@@ -878,8 +878,8 @@ class QueryOpenSave extends Component {
                       className='number'
                       type='number'
                       min='1'
-                      onChange={this.handleNumberChange.bind(this, 'threshold')}
                       value={pattern.threshold}
+                      onChange={this.handleNumberChange.bind(this, 'threshold')}
                       readOnly={!periodCheckbox} />
                     <span> 次</span>
                   </div>
@@ -893,8 +893,8 @@ class QueryOpenSave extends Component {
                     id='severityLevel'
                     required={true}
                     list={severityList}
-                    onChange={this.handleDataChange.bind(this, 'severity')}
                     value={pattern.severity}
+                    onChange={this.handleDataChange.bind(this, 'severity')}
                     readOnly={!periodCheckbox} />
                   <div className='period'>
                     <Checkbox
@@ -909,8 +909,8 @@ class QueryOpenSave extends Component {
                       className='number'
                       type='number'
                       min='1'
-                      onChange={this.handleNumberChange.bind(this, 'periodMin')}
                       value={pattern.periodMin}
+                      onChange={this.handleNumberChange.bind(this, 'periodMin')}
                       readOnly={!periodCheckbox} />
                     <span> times in </span>
                     <input
@@ -918,8 +918,8 @@ class QueryOpenSave extends Component {
                       className='number'
                       type='number'
                       min='1'
-                      onChange={this.handleNumberChange.bind(this, 'threshold')}
                       value={pattern.threshold}
+                      onChange={this.handleNumberChange.bind(this, 'threshold')}
                       readOnly={!periodCheckbox} />
                     <span> minutes</span>
                   </div>

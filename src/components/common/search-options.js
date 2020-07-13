@@ -151,9 +151,9 @@ class SearchOptions extends Component {
       <DateRange
         id='datetime'
         className='daterange'
-        onChange={this.props.handleDateChange}
         enableTime={enableTime}
         value={datetime}
+        onChange={this.props.handleDateChange}
         locale={locale}
         t={et} />
     )
@@ -191,8 +191,8 @@ class SearchOptions extends Component {
               {value: 'auto', text: t('events.connections.txt-search-auto')}
             ]}
             required={true}
-            onChange={this.handleSearchTypeChange}
-            value={searchInput.searchType} />
+            value={searchInput.searchType}
+            onChange={this.handleSearchTypeChange} />
         }
 
         {showInterval &&

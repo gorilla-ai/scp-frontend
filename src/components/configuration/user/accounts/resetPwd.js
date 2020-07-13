@@ -243,8 +243,8 @@ class ResetPwd extends Component {
         <Form
           className='content'
           fields={fields}
-          onChange={this.handleDataChange}
-          value={formData} />
+          value={formData}
+          onChange={this.handleDataChange} />
       </div>
     )
   }

@@ -226,8 +226,8 @@ class Manage extends Component {
             {value: 'department', text: t('ownerFields.department')},
             {value: 'title', text: t('ownerFields.title')}
           ]}
-          onChange={this.handleTabChange}
-          value={tab.department ? 'department' : 'title'} />
+          value={tab.department ? 'department' : 'title'}
+          onChange={this.handleTabChange} />
 
         <i className='c-link fg fg-add' onClick={this.openName.bind(this, 'add')} title={tab.department ? t('txt-addDepartment') : t('txt-addTitle')}></i>
 
