@@ -23,11 +23,18 @@ let et = null;
 //const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const worldMapAttackData = [
   {
-    severity: 'Emergency',
+    severity: 'Notice',
     srcLatitude: 25.032969,
     srcLongitude: 121.565414,
-    destLatitude: 40.712776,
-    destLongitude: -74.005974
+    destLatitude: 35.715368,
+    destLongitude: 139.773948
+  },
+  {
+    severity: 'Critical',
+    srcLatitude: 40.712776,
+    srcLongitude: -74.005974,
+    destLatitude: 33.985814,
+    destLongitude: -6.901699
   },
   {
     severity: 'Alert',
@@ -631,25 +638,25 @@ class DashboardMaps extends Component {
     }, () => {
       setTimeout(() => {
         const svgTag = _.get(this.gisMapData, '_renderer._container');
-        const defs = document.createElement('defs');
-        const lg = document.createElement('linearGradient');
-        const stop1 = document.createElement('stop');
-        const stop2 = document.createElement('stop');
+        const NS = 'http:\//www.w3.org/2000/svg';
+        const svg = document.createElementNS(NS, 'svg');
+        const defs = document.createElementNS(NS, 'defs');
         const polyLine = document.getElementsByClassName('gis-polyline');
+        const ft = document.createElementNS(NS, 'filter');
+        const fg = document.createElementNS(NS, 'feGaussianBlur');
 
-        lg.setAttribute('id', 'polylineGradient');
-        stop1.setAttribute('offset', '5%');
-        stop1.setAttribute('stopColor', '#F60');
-        stop2.setAttribute('offset', '95%');
-        stop2.setAttribute('stopColor', '#FF6');
+        ft.setAttribute('id', 'attackPath');
+        ft.setAttribute('x', 0);
+        ft.setAttribute('y', 0);
+        fg.setAttribute('in', 'SourceGraphic');
+        fg.setAttribute('stdDeviation', 0);
 
         _.forEach(polyLine, val => {
-          val.setAttribute('fill', 'url("#polylineGradient")');
+          val.setAttribute('filter', 'url("#attackPath")');
         })
 
-        lg.appendChild(stop1);
-        lg.appendChild(stop2);
-        defs.appendChild(lg);
+        ft.appendChild(fg);
+        defs.appendChild(ft);
         svgTag.appendChild(defs);
       }, 2000);
     });
