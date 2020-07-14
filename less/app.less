@@ -1876,10 +1876,10 @@ i.c-checkbox.fg-checkbox {
           overflow-y: auto;
           .filters {
             overflow: hidden;
-            width: 70%;
+            width: 96%;
             margin: 0 auto;
             margin-top: 10px;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             .left-syslog {
               float: left;
               width: 45%;
@@ -1918,15 +1918,32 @@ i.c-checkbox.fg-checkbox {
               min-height: 330px;
             }
           }
-          .group-btn {
+          .pattern-content {
             width: 70%;
             margin: 0 auto;
-            margin-top: -5px;
-            margin-bottom: 25px;
+            margin-top: 65px;
+            margin-bottom: 30px;
+            border: 1px solid var(--primaryBorder);
+            & > .group-btn {
+              margin-top: -33px;
+              margin-left: -1px;
+              .thumb:first-child,
+              .thumb:last-child {
+                border-radius: 0;
+              }
+              .thumb:last-child {
+                padding-left: 10px;
+                padding-right: 10px;
+              }
+            }
+          }
+          .group-btn.settings {
+            margin: 25px 0 25px 20px;
           }
           .relationships {
-            width: 70%;
+            width: 96.5%;
             margin: 0 auto;
+            margin-bottom: 20px;
             .group {
               margin-bottom: 10px;
               border: 1px solid var(--primaryBorder);

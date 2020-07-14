@@ -14,12 +14,11 @@ import LineChart from 'react-chart/build/src/components/line'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import MultiInput from 'react-ui/build/src/components/multi-input'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
-import Textarea from 'react-ui/build/src/components/textarea'
 
 import {BaseDataContext} from '../../common/context';
 import Config from '../../common/configuration'
 import helper from '../../common/helper'
-import Relationships from './relationships'
+import SyslogConfig from './syslog-config'
 import TableContent from '../../common/table-content'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -104,11 +103,17 @@ class Syslog extends Component {
       },
       eventsData: {},
       hostsData: {},
-      config: _.cloneDeep(INIT_CONFIG),
+      //config: _.cloneDeep(INIT_CONFIG),
       configRelationships: [],
-      rawOptions: [],
+      //rawOptions: [],
       activeHost: '',
-      currentHostData: ''
+      currentHostData: '',
+      configPatternList: [{
+        name: 'pattern1',
+        config: _.cloneDeep(INIT_CONFIG),
+        rawOptions: []
+      }],
+      activePattern: 'pattern1'
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -324,7 +329,12 @@ class Syslog extends Component {
 
     if (activeContent === 'syslogData') { //Reset config data
       this.setState({
-        config: _.cloneDeep(INIT_CONFIG)
+        //config: _.cloneDeep(INIT_CONFIG),
+        configPatternList: [{
+          name: 'pattern1',
+          config: _.cloneDeep(INIT_CONFIG),
+        }],
+        activePattern: 'pattern1'
       });
     }
 
@@ -375,36 +385,16 @@ class Syslog extends Component {
     )
   }
   /**
-   * Display syslog parsed input data
-   * @method
-   * @param {string} val - syslog parsed data value
-   * @param {string} key - syslog parsed data key
-   * @returns HTML DOM
-   */
-  displayParsedData = (val, key) => {
-    if (key != '_Raw') {
-      return (
-        <div className='group' key={key}>
-          <label htmlFor={key}>{key}</label>
-          <Input
-            id={key}
-            value={val}
-            onChange={this.handleConfigChange.bind(this, 'format')}
-            readOnly={true} />
-        </div>
-      )
-    }
-  }
-  /**
    * Get and set syslog grok data
    * @method
+   * @param {number} i - index of the config pattern list
    */
-  getSyslogGrok = () => {
+  getSyslogGrok = (i) => {
     const {baseUrl} = this.context;
-    const {config} = this.state;
+    const {configPatternList} = this.state;
     const requestData = {
-      input: config.input,
-      pattern: config.pattern
+      input: configPatternList[i].config.input,
+      pattern: configPatternList[i].config.pattern
     };
 
     this.ah.one({
@@ -415,7 +405,9 @@ class Syslog extends Component {
     })
     .then(data => {
       if (data) {
-        config.property = data;
+        let tempConfigPatternList = configPatternList;
+        tempConfigPatternList[i].config.property = data;
+        //config.property = data;
         let rawOptions = [];
 
         _.forEach(data, (value, key) => {
@@ -425,9 +417,12 @@ class Syslog extends Component {
           });
         })
 
+        tempConfigPatternList[i].rawOptions = rawOptions;
+
         this.setState({
-          config,
-          rawOptions
+          //config,
+          //rawOptions,
+          configPatternList: tempConfigPatternList
         });
       }
       return null;
@@ -462,6 +457,7 @@ class Syslog extends Component {
    */
   openSyslogV2 = (allValue) => {
     const {baseUrl} = this.context
+    const {configPatternList} = this.state;
     let id = allValue.id;
 
     if (_.includes(DEFAULT_SYSLOG, allValue.name)) {
@@ -470,7 +466,12 @@ class Syslog extends Component {
 
     if (!id) { //Add new syslog
       this.setState({
-        config: _.cloneDeep(INIT_CONFIG)
+        configPatternList: [{
+          name: 'pattern1',
+          config: _.cloneDeep(INIT_CONFIG),
+          rawOptions: []
+        }]
+        //config: _.cloneDeep(INIT_CONFIG)
       });
       return;
     }
@@ -494,6 +495,7 @@ class Syslog extends Component {
           relationships: data.relationships
         };
         let rawOptions = [];
+        let tempConfigPatternList = configPatternList;
 
         _.forEach(config.property, (value, key) => {
           rawOptions.push({
@@ -502,9 +504,14 @@ class Syslog extends Component {
           });
         })
 
+        tempConfigPatternList[0].name = 'pattern1';
+        tempConfigPatternList[0].config = config;
+        tempConfigPatternList[0].rawOptions = rawOptions;
+
         this.setState({
-          config,
-          rawOptions
+          configPatternList: tempConfigPatternList
+          //config,
+          //rawOptions
         }, () => {
           this.toggleContent('editSyslog', 'edit');
         });
@@ -620,23 +627,29 @@ class Syslog extends Component {
   /**
    * Handle syslog edit input value change
    * @method
+   * @param {number} i - index of the config pattern list
    * @param {string} type - input type
    * @param {string} value - input value
    */
-  handleConfigChange = (type, value) => {
-    let tempConfig = {...this.state.config};
-    tempConfig[type] = value;
+  handleConfigChange = (i, type, value) => {
+    let tempConfigPatternList = this.state.configPatternList;
+    tempConfigPatternList[i].config[type] = value;
+
+    //let tempConfig = {...this.state.config};
+    //tempConfig[type] = value;
 
     this.setState({
-      config: tempConfig
+      configPatternList: tempConfigPatternList
+      //config: tempConfig
     });
   }
   /**
    * Get and set the latest event sample data
    * @method
+   * @param {number} i - index of the config pattern list
    * @param {string} configId - config ID
    */
-  getLatestInput = (configId) => {
+  getLatestInput = (i, configId) => {
     const {baseUrl} = this.context;
 
     if (!configId) {
@@ -649,11 +662,15 @@ class Syslog extends Component {
     })
     .then(data => {
       if (data) {
-        let tempConfig = {...this.state.config};
-        tempConfig.input = data;
+        let tempConfigPatternList = this.state.configPatternList;
+        tempConfigPatternList[i].config.input = data;
+        
+        //let tempConfig = {...this.state.config};
+        //tempConfig.input = data;
 
         this.setState({
-          config: tempConfig
+          configPatternList: tempConfigPatternList
+          //config: tempConfig
         });
       }
       return null;
@@ -663,81 +680,21 @@ class Syslog extends Component {
     })
   }
   /**
-   * Display pattern hint
-   * @method
-   * @returns HTML DOM
-   */
-  showPatternContent = () => {
-    return (
-      <table className='c-table pattern'>
-        <tbody>
-          <tr>
-            <td valign='top'>
-              <div>Log:</div>
-              <div>Pattern:</div>
-            </td>
-            <td>
-              <div>EventReceivedTime:2020-02-18 10:03:33, SourceModuleName:dns3</div>
-              <div>EventReceivedTime:&#37;&#123;DATESTAMP:datestamp&#125;, SourceModuleName:&#37;&#123;WORD:word&#125;</div>
-            </td>
-          </tr>
-          <tr>
-            <td valign='top'>
-              <div>Log:</div>
-              <div>Pattern:</div>
-            </td>
-            <td>
-              <div><span>"</span>EventReceivedTime<span>"</span>:<span>"</span>2020-02-18 10:03:33<span>"</span>, <span>"</span>SourceModuleName<span>"</span>:<span>"</span>dns3<span>"</span></div>
-              <div><span>&#37;&#123;QUOTEDSTRING&#125;</span>:<span>&#37;&#123;QUOTEDSTRING</span>:datestamp<span>&#125;</span>, <span>&#37;&#123;QUOTEDSTRING&#125;</span>:<span>&#37;&#123;QUOTEDSTRING</span>:word<span>&#125;</span></div>
-            </td>
-          </tr>
-          <tr>
-            <td valign='top'>
-              <div>Log:</div>
-              <div>Pattern:</div>
-            </td>
-            <td>
-              <div><span>\"</span>EventReceivedTime<span>\"</span>:<span>\"</span>2020-02-18 10:03:33<span>\"</span>, <span>\"</span>SourceModuleName<span>\"</span>:<span>\"</span>dns3<span>\"</span></div>
-              <div><span>&#37;&#123;NOTSPACE&#125;&#37;&#123;NOTSPACE&#125;</span>EventReceivedTime<span>&#37;&#123;NOTSPACE&#125;&#37;&#123;NOTSPACE&#125;</span>:<span>&#37;&#123;NOTSPACE&#125;&#37;&#123;NOTSPACE&#125;</span>&#37;&#123;DATESTAMP:datestamp&#125;<span>&#37;&#123;NOTSPACE&#125;&#37;&#123;NOTSPACE&#125;</span>, <span>&#37;&#123;NOTSPACE&#125;&#37;&#123;NOTSPACE&#125;</span>SourceModuleName<span>&#37;&#123;NOTSPACE&#125;&#37; &#123;NOTSPACE&#125;</span>:<span>&#37;&#123;NOTSPACE&#125;&#37;&#123;NOTSPACE&#125;</span>&#37;&#123;WORD:word&#125;<span>&#37;&#123;NOTSPACE&#125;&#37;&#123;NOTSPACE&#125;</span></div>
-            </td>
-          </tr>
-          <tr>
-            <td valign='top'>
-              <div>Log:</div>
-              <div>Pattern:</div>
-            </td>
-            <td>
-              <div>"EventReceivedTime":"2020-02-18 10:03:33", "SourceModuleName<span>":</span>"dns3"</div>
-              <div>&#37;&#123;GREEDYDATA&#125;SourceModuleName<span>&#37;&#123;DOUBLEQUOTESCOLON&#125;</span>&#37;&#123;QUOTEDSTRING:word&#125;</div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    )
-  }
-  /**
-   * Open dialog for pattern hint
-   * @method
-   */
-  showPatternHint = () => {
-    PopupDialog.alert({
-      id: 'modalWindowSmall',
-      title: t('txt-tips'),
-      confirmText: t('txt-close'),
-      display: this.showPatternContent()
-    });
-  }
-  /**
    * Handle add/remove for the relationship box
    * @method
+   * @param {number} i - index of the config pattern list
    * @param {array} val - relationship list array
    */
-  handleRelationshipChange = (val) => {
-    let tempConfig = {...this.state.config};
-    tempConfig.relationships = val;
+  handleRelationshipChange = (i, val) => {
+    let tempConfigPatternList = this.state.configPatternList;
+    tempConfigPatternList[i].config.relationships = val;
+
+    //let tempConfig = {...this.state.config};
+    //tempConfig.relationships = val;
 
     this.setState({
-      config: tempConfig
+      configPatternList: tempConfigPatternList
+      //config: tempConfig
     });
   }
   /**
@@ -1347,6 +1304,76 @@ class Syslog extends Component {
       </div>
     )
   }
+  /**
+   * Display Syslog Config content
+   * @method
+   * @param {object} val - content of the configPatternList
+   * @param {number} i - index of the configPatternList
+   * @returns Syslog Config component
+   */
+  getSyslogConfig = (val, i) => {
+    const {configRelationships, configPatternList, activePattern} = this.state;
+
+    if (val.name === activePattern) {
+      return (
+        <SyslogConfig
+          key={val.name + i}
+          config={configPatternList[i].config}
+          data={{
+            relationships: configRelationships,
+            rawOptions: configPatternList[i].rawOptions
+          }}
+          handleConfigChange={this.handleConfigChange.bind(this, i)}
+          getLatestInput={this.getLatestInput.bind(this, i)}
+          getSyslogGrok={this.getSyslogGrok.bind(this, i)}
+          handleRelationshipChange={this.handleRelationshipChange.bind(this, i)} />
+      )
+    }
+  }
+  /**
+   * Handle active pattern change
+   * @method
+   * @param {string} activePattern - active pattern name
+   */
+  handleActivePatternChange = (activePattern) => {
+    const {configPatternList} = this.state;
+    let tempConfigPatternList = configPatternList;
+
+    if (activePattern === '+') {
+      const newConfigName = 'pattern' + (configPatternList.length + 1);
+
+      if (configPatternList[0].config.id) {
+        let newConfig = _.cloneDeep(configPatternList[0].config);
+        newConfig.input = DEFAULT_INPUT;
+        newConfig.pattern = DEFAULT_PATTERN;
+        newConfig.property = {};
+        newConfig.relationships = [
+          {name: '', srcNode: '', dstNode: '', conditions:[]}
+        ];
+
+        tempConfigPatternList.push({
+          name: newConfigName,
+          config: newConfig,
+          rawOptions: []
+        });
+      } else {
+        tempConfigPatternList.push({
+          name: newConfigName,
+          config: _.cloneDeep(INIT_CONFIG),
+          rawOptions: []
+        });
+      }
+
+      this.setState({
+        activePattern: newConfigName,
+        configPatternList: tempConfigPatternList
+      });
+    } else {
+      this.setState({
+        activePattern
+      });
+    }
+  }
   render() {
     const {baseUrl, contextRoot} = this.context;
     const {
@@ -1359,15 +1386,24 @@ class Syslog extends Component {
       editSyslogType,
       openTimeline,
       openEditHosts,
-      config,
+      //config,
       configRelationships,
-      rawOptions,
-      activeHost
+      //rawOptions,
+      activeHost,
+      configPatternList,
+      activePattern
     } = this.state;
-    const data = {
-      relationships: configRelationships,
-      rawOptions
-    };    
+
+    let patternList = _.map(configPatternList, val => {
+      return {
+        value: val.name,
+        text: val.name
+      };
+    });
+    patternList.push({
+      value: '+',
+      text: '+'
+    });
 
     return (
       <div>
@@ -1426,7 +1462,7 @@ class Syslog extends Component {
                           patternReadable: 'xxx.xxx.xxx.xxx',
                           t: et
                         }}
-                        value={config.hostIP}
+                        value={configPatternList[0].config.hostIP}
                         onChange={this.handleConfigChange.bind(this, 'hostIP')}
                         readOnly={editSyslogType === 'edit' || editSyslogType === 'edit-exist'} />
                     </div>
@@ -1438,7 +1474,7 @@ class Syslog extends Component {
                         validate={{
                           t: et
                         }}
-                        value={config.name}
+                        value={configPatternList[0].config.name}
                         onChange={this.handleConfigChange.bind(this, 'name')} />
                     </div>
                     <div className='group'>
@@ -1449,81 +1485,27 @@ class Syslog extends Component {
                         validate={{
                           t: et
                         }}
-                        value={config.port}
+                        value={configPatternList[0].config.port}
                         onChange={this.handleConfigChange.bind(this, 'port')} />
                     </div>
                     <div className='group'>
                       <label htmlFor='syslogDataFormat'>{t('syslogFields.format')}</label>
                       <Input
                         id='syslogDataFormat'
-                        value={config.format}
+                        value={configPatternList[0].config.format}
                         onChange={this.handleConfigChange.bind(this, 'format')} />
                     </div>
                   </div>
 
-                  <ButtonGroup
-                    className='group-btn'
-                    list={[
-                      {value: 'formatSettings', text: t('syslogFields.txt-formatSettings')},
-                      {value: 'relationship', text: t('syslogFields.txt-relationship')}
-                    ]}
-                    value={config.type}
-                    onChange={this.handleConfigChange.bind(this, 'type')} />
+                  <div className='pattern-content'>
+                    <ButtonGroup
+                      className='group-btn'
+                      list={patternList}
+                      value={activePattern}
+                      onChange={this.handleActivePatternChange} />
 
-                  {config.type === 'formatSettings' &&
-                    <div className='filters'>
-                      <div className='left-syslog'>
-                        <div className='form-group normal long full-width syslog-config'>
-                          <header>{t('syslogFields.txt-originalData')}</header>
-                          <div className='group'>
-                            <label htmlFor='syslogInput'>{t('syslogFields.dataSampleInput')}</label>
-                            {config.id &&
-                              <button onClick={this.getLatestInput.bind(this, config.id)}>{t('syslogFields.txt-getLatest')}</button>
-                            }
-                            <Textarea
-                              id='syslogInput'
-                              rows={8}
-                              value={config.input}
-                              onChange={this.handleConfigChange.bind(this, 'input')} />
-                          </div>
-                          <div className='group'>
-                            <div className='pattern'>
-                              <label>{t('syslogFields.matchPattern')}</label><i className='c-link fg fg-help' title={t('txt-tips')} onClick={this.showPatternHint} />
-                            </div>
-                            <Textarea
-                              id='syslogPattern'
-                              rows={10}
-                              value={config.pattern}
-                              onChange={this.handleConfigChange.bind(this, 'pattern')} />
-                          </div>
-                        </div>
-                      </div>
-                      <i className='c-link fg fg-forward' title={t('txt-parse')} onClick={this.getSyslogGrok} />
-                      <div className='left-syslog'>
-                        <div className='form-group normal long full-width syslog-config'>
-                          <header>{t('syslogFields.txt-originalData')}</header>
-                          <div className='parsed-list'>
-                            {_.map(config.property, this.displayParsedData)}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  }
-
-                  {config.type === 'relationship' &&
-                    <MultiInput
-                      className='relationships'
-                      base={Relationships}
-                      props={data}
-                      defaultItemValue={{
-                        name: '',
-                        srcNode: '',
-                        dstNode: '',
-                        conditions:[]
-                      }}
-                      value={config.relationships}
-                      onChange={this.handleRelationshipChange} />
-                  }
+                    {configPatternList.map(this.getSyslogConfig)}
+                  </div>
                   <footer>
                     <button className='standard' onClick={this.toggleContent.bind(this, 'syslogData', '')}>{t('txt-cancel')}</button>
                     <button onClick={this.confirmSyslog}>{t('txt-save')}</button>
