@@ -601,6 +601,34 @@ class QueryOpenSave extends Component {
     return <span key={i}>{val}</span>
   }
   /**
+   * Display React Email input
+   * @method
+   * @returns ReactMultiEmail component
+   */
+  displayEmailInput = () => {
+    const {activeTab, notifyEmailData} = this.props;
+    const {patternCheckbox} = this.state;
+
+    return (
+      <div>
+        <label>{t('notifications.txt-notifyEmail')}</label>
+        {(activeTab === 'alert' || (activeTab === 'logs' && patternCheckbox)) &&
+          <ReactMultiEmail
+            emails={notifyEmailData}
+            onChange={this.props.setNotifyEmailData}
+            getLabel={this.getLabel} />
+        }
+        {activeTab === 'logs' && !patternCheckbox &&
+          <input
+            className='email-disabled'
+            type='text'
+            value=''
+            disabled={true} />
+        }
+      </div>
+    )
+  }
+  /**
    * Display query menu content
    * @method
    * @param {string} type - query type ('open' or 'save')
@@ -608,7 +636,7 @@ class QueryOpenSave extends Component {
    */
   displayQueryContent = (type) => {
     const {locale} = this.context;
-    const {activeTab, queryData, filterData, notifyEmailData, markData} = this.props;
+    const {activeTab, queryData, filterData, markData} = this.props;
     const {pattern, severityList, patternCheckbox, periodCheckbox} = this.state;
     let displayList = [];
     let tempFilterData = [];
@@ -855,7 +883,7 @@ class QueryOpenSave extends Component {
                     list={severityList}
                     value={pattern.severity}
                     onChange={this.handleDataChange.bind(this, 'severity')}
-                    readOnly={!patternCheckbox} />
+                    disabled={!patternCheckbox} />
                   <div className='period'>
                     <Checkbox
                       id='periodCheckbox'
@@ -871,7 +899,7 @@ class QueryOpenSave extends Component {
                       min='1'
                       value={pattern.periodMin}
                       onChange={this.handleNumberChange.bind(this, 'periodMin')}
-                      readOnly={!periodCheckbox} />
+                      disabled={!periodCheckbox} />
                     <span> 分鐘內超過或等於 </span>
                     <input
                       id='threshold'
@@ -880,9 +908,10 @@ class QueryOpenSave extends Component {
                       min='1'
                       value={pattern.threshold}
                       onChange={this.handleNumberChange.bind(this, 'threshold')}
-                      readOnly={!periodCheckbox} />
+                      disabled={!periodCheckbox} />
                     <span> 次</span>
                   </div>
+                  {this.displayEmailInput()}
                 </div>
               }
               {locale === 'en' &&
@@ -895,7 +924,7 @@ class QueryOpenSave extends Component {
                     list={severityList}
                     value={pattern.severity}
                     onChange={this.handleDataChange.bind(this, 'severity')}
-                    readOnly={!periodCheckbox} />
+                    disabled={!periodCheckbox} />
                   <div className='period'>
                     <Checkbox
                       id='periodCheckbox'
@@ -911,7 +940,7 @@ class QueryOpenSave extends Component {
                       min='1'
                       value={pattern.periodMin}
                       onChange={this.handleNumberChange.bind(this, 'periodMin')}
-                      readOnly={!periodCheckbox} />
+                      disabled={!periodCheckbox} />
                     <span> times in </span>
                     <input
                       id='threshold'
@@ -920,22 +949,17 @@ class QueryOpenSave extends Component {
                       min='1'
                       value={pattern.threshold}
                       onChange={this.handleNumberChange.bind(this, 'threshold')}
-                      readOnly={!periodCheckbox} />
+                      disabled={!periodCheckbox} />
                     <span> minutes</span>
                   </div>
+                  {this.displayEmailInput()}
                 </div>
               }
             </div>
           }
 
-          {(activeTab === 'alert' || activeTab === 'logs') &&
-            <div>
-              <label>{t('notifications.txt-notifyEmail')}</label>
-              <ReactMultiEmail
-                emails={notifyEmailData}
-                onChange={this.props.setNotifyEmailData}
-                getLabel={this.getLabel} />
-            </div>
+          {activeTab === 'alert' &&
+            this.displayEmailInput()
           }
         </div>
       )
