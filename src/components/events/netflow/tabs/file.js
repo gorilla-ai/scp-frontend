@@ -96,8 +96,8 @@ class File extends Component {
                         text: t('txt-grid')
                       }
                     ]}
-                    onChange={mainContentData.handleDisplayChange}
-                    value={mainContentData.displayImgType}/>
+                    value={mainContentData.displayImgType}
+                    onChange={mainContentData.handleDisplayChange} />
                 }
               </div>
             }

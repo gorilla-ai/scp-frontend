@@ -3011,8 +3011,8 @@ class NetworkInventory extends Component {
         <label htmlFor='addAreaSeat'>{t('txt-name')}</label>
         <Input
           id='addAreaSeat'
-          onChange={this.handleDataChange.bind(this, 'name')}
-          value={addSeat.name} />
+          value={addSeat.name}
+          onChange={this.handleDataChange.bind(this, 'name')} />
       </div>
     )
   }

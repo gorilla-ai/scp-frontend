@@ -144,8 +144,8 @@ class DataChart extends Component {
                 {value: 'packets', text: t('txt-packets')},
                 {value: 'databytes', text: t('txt-databytes')}
               ]}
-              onChange={tabChartData.chartTypeChange}
-              value={tabChartData.chartTypeValue} />
+              value={tabChartData.chartTypeValue}
+              onChange={tabChartData.chartTypeChange} />
             <ButtonGroup
               id='chartType'
               className='interval-btn'
@@ -155,8 +155,8 @@ class DataChart extends Component {
                 {value: '30m', text: t('events.connections.txt-connections30m')},
                 {value: '60m', text: t('events.connections.txt-connections60m')}
               ]}
-              onChange={tabChartData.chartIntervalChange}
-              value={tabChartData.chartIntervalValue} />
+              value={tabChartData.chartIntervalValue}
+              onChange={tabChartData.chartIntervalChange} />
           </div>
 
           {chartData &&

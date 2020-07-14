@@ -62,8 +62,8 @@ class MarkInput extends Component {
             inline={inline}
             props={data}
             defaultItemValue={defaultMark}
-            onChange={this.props.setMarkData}
-            value={tempMarkData} />
+            value={tempMarkData}
+            onChange={this.props.setMarkData} />
         </div>
       )
     }

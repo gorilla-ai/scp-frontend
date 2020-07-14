@@ -1037,7 +1037,7 @@ class ThreatsController extends Component {
                 let tempChild2 = [];
 
                 _.forEach(val, (val2, key3) => {
-                  if (key3 !== 'doc_count') {
+                  if (key3 !== 'doc_count' && val2 && val2.doc_count) {
                     const id = key + key2 + key3;
                     const serviceCount = !isNaN(val2.doc_count) ? ' (' + val2.doc_count + ')' : '';
 
@@ -1050,11 +1050,16 @@ class ThreatsController extends Component {
 
                 const id = key + key2;
 
-                tempChild.push({
+                let childProperty = {
                   id,
-                  label: this.getTreeLabel(id, key2, treeName, val.doc_count),
-                  children: tempChild2
-                });
+                  label: this.getTreeLabel(id, key2, treeName, val.doc_count)
+                };
+
+                if (tempChild2.length > 0) { //Push child only if child is not empty (ie. 'Pattern' doesn't have child)
+                  childProperty.children = tempChild2;
+                }
+
+                tempChild.push(childProperty);
               }
             }
           })

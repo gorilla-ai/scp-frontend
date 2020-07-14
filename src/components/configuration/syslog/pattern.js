@@ -341,8 +341,8 @@ class Pattern extends Component {
             <label htmlFor='patternName'>{f('syslogPatternTableFields.patternName')}</label>
             <Input
               id='patternName'
-              onChange={this.handleDataChange.bind(this, 'name')}
               value={pattern.info.name}
+              onChange={this.handleDataChange.bind(this, 'name')}
               readOnly={activeContent === 'viewPattern'} />
           </div>
           <div className='group severity-level'>
@@ -352,8 +352,8 @@ class Pattern extends Component {
               id='severityLevel'
               required={true}
               list={severityList}
-              onChange={this.handleDataChange.bind(this, 'severity')}
               value={pattern.info.severity}
+              onChange={this.handleDataChange.bind(this, 'severity')}
               readOnly={activeContent === 'viewPattern'} />
           </div>
           <div className='group full'>
@@ -371,8 +371,8 @@ class Pattern extends Component {
               <div className='period'>
                 <Checkbox
                   id='periodCheckbox'
-                  onChange={this.togglePeriodCheckbox}
                   checked={periodCheckbox}
+                  onChange={this.togglePeriodCheckbox}
                   disabled={(activeContent === 'viewPattern')} />
                 <span>在 </span>
                 <input
@@ -380,8 +380,8 @@ class Pattern extends Component {
                   className='number'
                   type='number'
                   min='1'
-                  onChange={this.handleNumberChange.bind(this, 'periodMin')}
                   value={pattern.info.periodMin}
+                  onChange={this.handleNumberChange.bind(this, 'periodMin')}
                   readOnly={(activeContent === 'viewPattern') || !periodCheckbox} />
                 <span> 分鐘內超過或等於 </span>
                 <input
@@ -389,8 +389,8 @@ class Pattern extends Component {
                   className='number'
                   type='number'
                   min='1'
-                  onChange={this.handleNumberChange.bind(this, 'threshold')}
                   value={pattern.info.threshold}
+                  onChange={this.handleNumberChange.bind(this, 'threshold')}
                   readOnly={(activeContent === 'viewPattern') || !periodCheckbox} />
                 <span> 次</span>
               </div>
@@ -399,8 +399,8 @@ class Pattern extends Component {
               <div className='period'>
                 <Checkbox
                   id='periodCheckbox'
-                  onChange={this.togglePeriodCheckbox}
                   checked={periodCheckbox}
+                  onChange={this.togglePeriodCheckbox}
                   disabled={(activeContent === 'viewPattern')} />
                 <span>Occurs more than or equal to </span>
                 <input
@@ -408,8 +408,8 @@ class Pattern extends Component {
                   className='number'
                   type='number'
                   min='1'
-                  onChange={this.handleNumberChange.bind(this, 'threshold')}
                   value={pattern.info.threshold}
+                  onChange={this.handleNumberChange.bind(this, 'threshold')}
                   readOnly={(activeContent === 'viewPattern') || !periodCheckbox} />
                 <span> times in </span>
                 <input
@@ -417,8 +417,8 @@ class Pattern extends Component {
                   className='number'
                   type='number'
                   min='1'
-                  onChange={this.handleNumberChange.bind(this, 'periodMin')}
                   value={pattern.info.periodMin}
+                  onChange={this.handleNumberChange.bind(this, 'periodMin')}
                   readOnly={(activeContent === 'viewPattern') || !periodCheckbox} />
                 <span> minutes</span>
               </div>
@@ -596,8 +596,8 @@ class Pattern extends Component {
         <label htmlFor={val} className='active'>{val}</label>
         <Checkbox
           id={val}
-          onChange={this.toggleSeverityOptions.bind(this, val)}
-          checked={this.state.patternSearch.severity[val]} />
+          checked={this.state.patternSearch.severity[val]}
+          onChange={this.toggleSeverityOptions.bind(this, val)} />
       </div>
     )
   }
@@ -618,15 +618,15 @@ class Pattern extends Component {
             <label htmlFor='patternSearchName'>{f('syslogPatternTableFields.patternName')}</label>
             <Input
               id='patternSearchName'
-              onChange={this.handlePatternSearch.bind(this, 'name')}
-              value={patternSearch.name} />
+              value={patternSearch.name}
+              onChange={this.handlePatternSearch.bind(this, 'name')} />
           </div>
           <div className='group'>
             <label htmlFor='patternSearchQueryScript'>{f('syslogPatternTableFields.queryScript')}</label>
             <Input
               id='patternSearchQueryScript'
-              onChange={this.handlePatternSearch.bind(this, 'queryScript')}
-              value={patternSearch.queryScript} />
+              value={patternSearch.queryScript}
+              onChange={this.handlePatternSearch.bind(this, 'queryScript')} />
           </div>
           <div className='severity'>
             <label>{f('syslogPatternTableFields.severity')}</label>
