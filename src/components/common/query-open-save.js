@@ -601,6 +601,34 @@ class QueryOpenSave extends Component {
     return <span key={i}>{val}</span>
   }
   /**
+   * Display React Email input
+   * @method
+   * @returns ReactMultiEmail component
+   */
+  displayEmailInput = () => {
+    const {activeTab, notifyEmailData} = this.props;
+    const {patternCheckbox} = this.state;
+
+    return (
+      <div>
+        <label>{t('notifications.txt-notifyEmail')}</label>
+        {(activeTab === 'alert' || (activeTab === 'logs' && patternCheckbox)) &&
+          <ReactMultiEmail
+            emails={notifyEmailData}
+            onChange={this.props.setNotifyEmailData}
+            getLabel={this.getLabel} />
+        }
+        {activeTab === 'logs' && !patternCheckbox &&
+          <input
+            className='email-disabled'
+            type='text'
+            value=''
+            disabled={true} />
+        }
+      </div>
+    )
+  }
+  /**
    * Display query menu content
    * @method
    * @param {string} type - query type ('open' or 'save')
@@ -608,7 +636,7 @@ class QueryOpenSave extends Component {
    */
   displayQueryContent = (type) => {
     const {locale} = this.context;
-    const {activeTab, queryData, filterData, notifyEmailData, markData} = this.props;
+    const {activeTab, queryData, filterData, markData} = this.props;
     const {pattern, severityList, patternCheckbox, periodCheckbox} = this.state;
     let displayList = [];
     let tempFilterData = [];
@@ -695,8 +723,8 @@ class QueryOpenSave extends Component {
                       className='number'
                       type='number'
                       min='1'
-                      onChange={this.handleNumberChange.bind(this, 'periodMin')}
                       value={queryData.pattern.periodMin}
+                      onChange={this.handleNumberChange.bind(this, 'periodMin')}
                       readOnly={true} />
                     <span> 分鐘內超過或等於 </span>
                     <input
@@ -704,8 +732,8 @@ class QueryOpenSave extends Component {
                       className='number'
                       type='number'
                       min='1'
-                      onChange={this.handleNumberChange.bind(this, 'threshold')}
                       value={queryData.pattern.threshold}
+                      onChange={this.handleNumberChange.bind(this, 'threshold')}
                       readOnly={true} />
                     <span> 次</span>
                   </div>
@@ -734,8 +762,8 @@ class QueryOpenSave extends Component {
                       className='number'
                       type='number'
                       min='1'
-                      onChange={this.handleNumberChange.bind(this, 'periodMin')}
                       value={queryData.pattern.periodMin}
+                      onChange={this.handleNumberChange.bind(this, 'periodMin')}
                       readOnly={true} />
                     <span> times in </span>
                     <input
@@ -743,8 +771,8 @@ class QueryOpenSave extends Component {
                       className='number'
                       type='number'
                       min='1'
-                      onChange={this.handleNumberChange.bind(this, 'threshold')}
                       value={queryData.pattern.threshold}
+                      onChange={this.handleNumberChange.bind(this, 'threshold')}
                       readOnly={true} />
                     <span> minutes</span>
                   </div>
@@ -853,9 +881,9 @@ class QueryOpenSave extends Component {
                     id='severityLevel'
                     required={true}
                     list={severityList}
-                    onChange={this.handleDataChange.bind(this, 'severity')}
                     value={pattern.severity}
-                    readOnly={!patternCheckbox} />
+                    onChange={this.handleDataChange.bind(this, 'severity')}
+                    disabled={!patternCheckbox} />
                   <div className='period'>
                     <Checkbox
                       id='periodCheckbox'
@@ -869,20 +897,21 @@ class QueryOpenSave extends Component {
                       className='number'
                       type='number'
                       min='1'
-                      onChange={this.handleNumberChange.bind(this, 'periodMin')}
                       value={pattern.periodMin}
-                      readOnly={!periodCheckbox} />
+                      onChange={this.handleNumberChange.bind(this, 'periodMin')}
+                      disabled={!periodCheckbox} />
                     <span> 分鐘內超過或等於 </span>
                     <input
                       id='threshold'
                       className='number'
                       type='number'
                       min='1'
-                      onChange={this.handleNumberChange.bind(this, 'threshold')}
                       value={pattern.threshold}
-                      readOnly={!periodCheckbox} />
+                      onChange={this.handleNumberChange.bind(this, 'threshold')}
+                      disabled={!periodCheckbox} />
                     <span> 次</span>
                   </div>
+                  {this.displayEmailInput()}
                 </div>
               }
               {locale === 'en' &&
@@ -893,9 +922,9 @@ class QueryOpenSave extends Component {
                     id='severityLevel'
                     required={true}
                     list={severityList}
-                    onChange={this.handleDataChange.bind(this, 'severity')}
                     value={pattern.severity}
-                    readOnly={!periodCheckbox} />
+                    onChange={this.handleDataChange.bind(this, 'severity')}
+                    disabled={!periodCheckbox} />
                   <div className='period'>
                     <Checkbox
                       id='periodCheckbox'
@@ -909,33 +938,28 @@ class QueryOpenSave extends Component {
                       className='number'
                       type='number'
                       min='1'
-                      onChange={this.handleNumberChange.bind(this, 'periodMin')}
                       value={pattern.periodMin}
-                      readOnly={!periodCheckbox} />
+                      onChange={this.handleNumberChange.bind(this, 'periodMin')}
+                      disabled={!periodCheckbox} />
                     <span> times in </span>
                     <input
                       id='threshold'
                       className='number'
                       type='number'
                       min='1'
-                      onChange={this.handleNumberChange.bind(this, 'threshold')}
                       value={pattern.threshold}
-                      readOnly={!periodCheckbox} />
+                      onChange={this.handleNumberChange.bind(this, 'threshold')}
+                      disabled={!periodCheckbox} />
                     <span> minutes</span>
                   </div>
+                  {this.displayEmailInput()}
                 </div>
               }
             </div>
           }
 
-          {(activeTab === 'alert' || activeTab === 'logs') &&
-            <div>
-              <label>{t('notifications.txt-notifyEmail')}</label>
-              <ReactMultiEmail
-                emails={notifyEmailData}
-                onChange={this.props.setNotifyEmailData}
-                getLabel={this.getLabel} />
-            </div>
+          {activeTab === 'alert' &&
+            this.displayEmailInput()
           }
         </div>
       )

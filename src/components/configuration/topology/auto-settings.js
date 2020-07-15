@@ -615,8 +615,8 @@ class AutoSettings extends Component {
                     ip: '',
                     mask: ''
                   }}
-                  onChange={this.setIpRangeData}
                   value={ipRangeData}
+                  onChange={this.setIpRangeData}
                   disabled={activeContent === 'viewMode'} />
               </div>
             </div>
@@ -629,8 +629,8 @@ class AutoSettings extends Component {
                   {value: 'AD', text: t('network-inventory.auto-settings.txt-AD')},
                   {value: 'LDAP', text: t('network-inventory.auto-settings.txt-LDAP')}
                 ]}
-                onChange={this.handleADchange.bind(this, 'type')}
                 value={adData.type}
+                onChange={this.handleADchange.bind(this, 'type')}
                 disabled={activeContent === 'viewMode'} />
               <button className='last' style={{right: '85px'}} onClick={this.handleADtest} disabled={!statusEnable.ad_ldap}>{t('network-inventory.txt-testQuery')}</button>
               <ToggleBtn

@@ -1724,8 +1724,8 @@ class AlertDetails extends Component {
             {value: 'dns', text: t('txt-dns') + ' (' + networkBehavior.dns[ipType].totalCount + ')'},
             {value: 'syslog', text: t('txt-syslog') + ' (' + networkBehavior.syslog[ipType].totalCount + ')'}
           ]}
-          onChange={this.toggleNetworkBtn}
-          value={activeNetworkBehavior} />
+          value={activeNetworkBehavior}
+          onChange={this.toggleNetworkBtn} />
 
         {datetime.from && datetime.to &&
           <div className='msg'>{t('txt-alertHourBefore')}: {datetime.from} ~ {datetime.to}</div>

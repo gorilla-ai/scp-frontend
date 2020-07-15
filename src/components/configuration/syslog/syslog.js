@@ -104,7 +104,7 @@ class Syslog extends Component {
       },
       eventsData: {},
       hostsData: {},
-      config: INIT_CONFIG,
+      config: _.cloneDeep(INIT_CONFIG),
       configRelationships: [],
       rawOptions: [],
       activeHost: '',
@@ -322,6 +322,12 @@ class Syslog extends Component {
       }
     }
 
+    if (activeContent === 'syslogData') { //Reset config data
+      this.setState({
+        config: _.cloneDeep(INIT_CONFIG)
+      });
+    }
+
     this.setState({
       activeContent
     });
@@ -383,7 +389,8 @@ class Syslog extends Component {
           <Input
             id={key}
             value={val}
-            onChange={this.handleConfigChange.bind(this, 'format')} />
+            onChange={this.handleConfigChange.bind(this, 'format')}
+            readOnly={true} />
         </div>
       )
     }
@@ -922,9 +929,9 @@ class Syslog extends Component {
           <DateRange
             id='datetime'
             className='daterange'
-            onChange={this.handleDateChange}
             enableTime={true}
             value={datetime}
+            onChange={this.handleDateChange}
             locale={locale}
             t={et} />
           <button onClick={this.getTimeline}>{t('txt-search')}</button>
@@ -1413,13 +1420,13 @@ class Syslog extends Component {
                       <label htmlFor='syslogHostIP'>{t('syslogFields.txt-hostIP')}</label>
                       <Input
                         id='syslogHostIP'
+                        required={true}
                         validate={{
                           pattern: /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/,
                           patternReadable: 'xxx.xxx.xxx.xxx',
                           t: et
                         }}
                         value={config.hostIP}
-                        required={true}
                         onChange={this.handleConfigChange.bind(this, 'hostIP')}
                         readOnly={editSyslogType === 'edit' || editSyslogType === 'edit-exist'} />
                     </div>
@@ -1507,12 +1514,18 @@ class Syslog extends Component {
                     <MultiInput
                       className='relationships'
                       base={Relationships}
-                      value={config.relationships}
                       props={data}
+                      defaultItemValue={{
+                        name: '',
+                        srcNode: '',
+                        dstNode: '',
+                        conditions:[]
+                      }}
+                      value={config.relationships}
                       onChange={this.handleRelationshipChange} />
                   }
                   <footer>
-                    <button className='standard' onClick={this.toggleContent.bind(this, 'syslogData')}>{t('txt-cancel')}</button>
+                    <button className='standard' onClick={this.toggleContent.bind(this, 'syslogData', '')}>{t('txt-cancel')}</button>
                     <button onClick={this.confirmSyslog}>{t('txt-save')}</button>
                   </footer>
                 </div>
@@ -1526,7 +1539,7 @@ class Syslog extends Component {
                 <header className='main-header'>{t('syslogFields.txt-syslogHost')}</header>
 
                 <div className='content-header-btns'>
-                  <button className='standard btn list' onClick={this.toggleContent.bind(this, 'syslogData')}>{t('syslogFields.txt-backToList')}</button>
+                  <button className='standard btn list' onClick={this.toggleContent.bind(this, 'syslogData', '')}>{t('syslogFields.txt-backToList')}</button>
                 </div>
 
                 <div className='config-syslog'>

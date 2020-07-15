@@ -69,8 +69,8 @@ class FilterInput extends Component {
             inline={inline}
             props={data}
             defaultItemValue={defaultFilter}
-            onChange={this.props.setFilterData}
-            value={filterData} />
+            value={filterData}
+            onChange={this.props.setFilterData} />
         </div>
       )
     }

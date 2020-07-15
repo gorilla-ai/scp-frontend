@@ -128,7 +128,7 @@ class AccountEdit extends Component {
     })
     .then(data => {
       if (data) {
-        const privileges = _.map(data.rt, el => {
+        const privileges = _.map(data, el => {
           return {
             value: el.privilegeid,
             text: el.name

@@ -424,18 +424,18 @@
 
   "threat-severity-mapping": {
     "txt-severityMapping": "情資嚴重等級管理",
-    "txt-addSeverityTable": "新增Type",
-    "txt-typeInfo": "Type Info",
+    "txt-addSeverityTable": "新增類型",
+    "txt-typeInfo": "類型內容",
     "txt-lastUpateTime": "最近更新時間",
-    "txt-severityMissing": "Severity type不得為空白"
+    "txt-severityMissing": "嚴重等級類型不得為空白"
   },
 
   "system-defined-pattern": {
     "txt-addPatternScript": "新增Pattern",
-    "txt-patternInfo": "Pattern Info",
+    "txt-patternInfo": "Pattern內容",
     "txt-lastUpateTime": "最近更新時間",
     "txt-patternMissing": "Pattern名稱不得為空白",
-    "txt-queryScriptMissing": "Query Script不得為空白",
+    "txt-queryScriptMissing": "查詢條件不得為空白",
     "txt-deletePattern": "$t(txt-delete)Pattern"
   },
 

@@ -435,13 +435,13 @@ class ThreatIntelligence extends Component {
         <button className='standard btn upload-btn' onClick={this.toggleUploadThreat}><i className='fg fg-data-upload'/>{t('edge-management.txt-uploadThreat')}</button>
         <MultiInput
           id='threatMultiInputs'
+          base={AddThreats}
           defaultItemValue={{
             input: '',
             type: '',
             severity: 'ALERT',
             validate: true
           }}
-          base={AddThreats}
           value={this.state.addThreats}
           onChange={this.handleAddThreatsChange}/>
       </div>
