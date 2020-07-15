@@ -122,7 +122,8 @@ class syslogConfig extends Component {
           className='group-btn settings'
           list={[
             {value: 'formatSettings', text: t('syslogFields.txt-formatSettings')},
-            {value: 'relationship', text: t('syslogFields.txt-relationship')}
+            {value: 'relationship', text: t('syslogFields.txt-relationship')},
+            {value: 'deleteTab', text: 'Delete'}
           ]}
           value={config.type}
           onChange={this.props.handleConfigChange.bind(this, 'type')} />

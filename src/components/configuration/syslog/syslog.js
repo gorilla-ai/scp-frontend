@@ -7,6 +7,7 @@ import cx from 'classnames'
 import _ from 'lodash'
 
 import ButtonGroup from 'react-ui/build/src/components/button-group'
+import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import DataTable from 'react-ui/build/src/components/table'
 import DateRange from 'react-ui/build/src/components/date-range'
 import Input from 'react-ui/build/src/components/input'
@@ -93,6 +94,7 @@ class Syslog extends Component {
       },
       openTimeline: false,
       openEditHosts: false,
+      openEditName: false,
       clickTimeline: false,
       activeTimeline: '',
       activeConfigId: '',
@@ -632,11 +634,29 @@ class Syslog extends Component {
    * @param {string} value - input value
    */
   handleConfigChange = (i, type, value) => {
-    let tempConfigPatternList = this.state.configPatternList;
-    tempConfigPatternList[i].config[type] = value;
+    const {configPatternList} = this.state;
+    let tempConfigPatternList = configPatternList;
 
-    //let tempConfig = {...this.state.config};
-    //tempConfig[type] = value;
+    if (value === 'deleteTab') {
+      let activePattern = '';
+      tempConfigPatternList.splice(i, 1);
+      activePattern = tempConfigPatternList[tempConfigPatternList.length - 1].name;
+
+      this.setState({
+        activePattern
+      });
+    } else if (value === 'editName') {
+      tempConfigPatternList[i].name;
+
+      this.setState({
+        activePattern
+      });
+    } else {
+      tempConfigPatternList[i].config[type] = value;
+
+      //let tempConfig = {...this.state.config};
+      //tempConfig[type] = value;
+    }
 
     this.setState({
       configPatternList: tempConfigPatternList
@@ -949,6 +969,42 @@ class Syslog extends Component {
         actions={actions}
         closeAction='confirm'>
         {this.displayEventsTimeline()}    
+      </ModalDialog>
+    )
+  }
+  closeEditName = () => {
+    this.setState({
+      openEditName: false
+    });
+  }
+  displayEditName = () => {
+
+    return (
+      <div>
+        <label>Edit Name</label>
+        <Input
+          value={editHosts.name}
+          onChange={this.handleEditHostsChange.bind(this, 'name')} />
+      </div>
+    )
+  }
+  modalEditName = () => {
+    const {activeTimeline, activeConfigName} = this.state;
+    const actions = {
+      confirm: {text: t('txt-close'), handler: this.closeEditName}
+    };
+    let title = 'Edit Name';
+
+    return (
+      <ModalDialog
+        id='editPatternName'
+        className='modal-dialog'
+        title={title}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='confirm'>
+        {this.displayEditName()}    
       </ModalDialog>
     )
   }
