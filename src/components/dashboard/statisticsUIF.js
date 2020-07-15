@@ -16,6 +16,7 @@ import {HOC} from 'widget-builder'
 
 let t = null
 let et = null
+let intervalId = null
 
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const ALERT_LEVEL_COLORS = {Emergency: '#CC2943', Alert: '#CC7B29', Critical: '#29B0CC', Warning: '#29CC7A', Notice: '#7ACC29'}
@@ -41,12 +42,27 @@ class StatisticsUIF extends Component {
 	}
   componentDidMount() {
     this.loadUIF()
+
+    intervalId = setInterval(this.loadUIF.bind(this, true), 300000) // 5 mins
   }
-  loadUIF() {
+  componentWillUnmount() {
+    clearInterval(intervalId)
+  }
+  loadUIF(isAutoRefresh) {
     const {baseUrl, session} = this.context
-    const {datetime} = this.state
     const url = `${baseUrl}/api/uif?id=SCP-Overview`
+
+    let {datetime} = this.state
     let appendConfig = {}
+
+    if (isAutoRefresh) {
+      datetime = {
+        from: helper.getSubstractDate(1, 'days', Moment().local()),
+        to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+      }
+
+      this.setState({datetime})
+    }
 
     this.ah.one({url})
     .then(data => {
@@ -150,16 +166,16 @@ class StatisticsUIF extends Component {
         <div style={{display: 'flex', float: 'right'}}>
           <DateRange id='datetime' className='daterange' onChange={this.handleChange.bind(this, 'datetime')}
             enableTime={true} value={datetime} locale={locale} t={et} />
-          <button style={{marginLeft: '5px'}} onClick={this.loadUIF.bind(this)}>{t('txt-filter')}</button>
+          <button style={{marginLeft: '5px'}} onClick={this.loadUIF.bind(this, false)}>{t('txt-query')}</button>
         </div>
 			</div>
 
-{
-      !_.isEmpty(appendConfig) &&
-      <div className='uif-dashboard'>
-         <HOC $id={'dashboard/SCP-Overview'} $appendConfig={appendConfig} />
-      </div>
-}
+      {
+        !_.isEmpty(appendConfig) &&
+        <div className='uif-dashboard'>
+           <HOC $id={'dashboard/SCP-Overview'} $appendConfig={appendConfig} />
+        </div>
+      }
 		</div>
 	}
 }
