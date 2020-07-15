@@ -583,8 +583,8 @@
     "select": "是否發布"
   },
   "severityTableFields": {
-    "dataSourceType": "Type",
-    "severityLevel": "Severity",
+    "dataSourceType": "類型",
+    "severityLevel": "嚴重等級",
     "nickname": "名稱",
     "description": "說明",
     "updateDttm": "最後更新"
@@ -594,8 +594,8 @@
     "periodMin": "時期 (分鐘)",
     "threshold": "臨界值",
     "lastUpdateDttm": "最後更新",
-    "queryScript": "Query Script",
-    "severity": "Severity"
+    "queryScript": "查詢條件",
+    "severity": "嚴重等級"
   },
   "threatsTableFields": {
     "threatText": "情資內容",
