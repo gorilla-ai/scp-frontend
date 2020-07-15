@@ -24,10 +24,7 @@ const COLORS = ['#069BDA', '#57C3D9', '#57D998', '#6CD957', '#C3D957', '#D99857'
 
 const INIT = {
   appendConfig: {},
-  datetime: {
-    from: helper.getSubstractDate(1, 'days', Moment().local()),
-    to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
-  }
+  datetime: {}
 }
 
 class StatisticsUIF extends Component {
@@ -41,7 +38,14 @@ class StatisticsUIF extends Component {
       this.state = _.cloneDeep(INIT)
 	}
   componentDidMount() {
-    this.loadUIF()
+    const datetime = {
+      from: helper.getSubstractDate(1, 'days', Moment().local()),
+      to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+    }
+
+    this.setState({datetime}, () => {
+      this.loadUIF()  
+    })
 
     intervalId = setInterval(this.loadUIF.bind(this, true), 300000) // 5 mins
   }
