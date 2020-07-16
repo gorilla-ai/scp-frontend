@@ -534,9 +534,10 @@ i.c-checkbox.fg-checkbox {
     animation-fill-mode: forwards;
   }
   @keyframes dash {
-    to {
-      stroke-dashoffset: 0;
-    }
+    0%   {opacity: .3;}
+    30%  {opacity: .5;}
+    60%  {opacity: .7;}
+    100% {opacity: 1; stroke-dashoffset: 0;}
   }  
   .spot-big .gis-spot {
     animation-name: spotChange;
