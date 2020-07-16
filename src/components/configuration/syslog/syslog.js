@@ -6,7 +6,6 @@ import Moment from 'moment'
 import cx from 'classnames'
 import _ from 'lodash'
 
-import ButtonGroup from 'react-ui/build/src/components/button-group'
 import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import DataTable from 'react-ui/build/src/components/table'
 import DateRange from 'react-ui/build/src/components/date-range'
@@ -115,7 +114,9 @@ class Syslog extends Component {
         config: _.cloneDeep(INIT_CONFIG),
         rawOptions: []
       }],
-      activePattern: 'pattern1'
+      activePattern: 'pattern1',
+      activePatternMouse: '',
+      showLeftNav: true
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -1361,6 +1362,23 @@ class Syslog extends Component {
     )
   }
   /**
+   * Toggle (show/hide) the left menu
+   * @method
+   */
+  toggleLeftNav = () => {
+    this.setState({
+      showLeftNav: !this.state.showLeftNav
+    });
+  }
+  /**
+   * Set left menu arrow class name
+   * @method
+   * @returns {string} - class name
+   */
+  getArrowClassName = () => {
+    return this.state.showLeftNav ? 'fg fg-arrow-left' : 'fg fg-arrow-right';
+  }
+  /**
    * Display Syslog Config content
    * @method
    * @param {object} val - content of the configPatternList
@@ -1368,12 +1386,13 @@ class Syslog extends Component {
    * @returns Syslog Config component
    */
   getSyslogConfig = (val, i) => {
-    const {configRelationships, configPatternList, activePattern} = this.state;
+    const {configRelationships, configPatternList, activePattern, showLeftNav} = this.state;
 
     if (val.name === activePattern) {
       return (
         <SyslogConfig
           key={val.name + i}
+          showLeftNav={showLeftNav}
           config={configPatternList[i].config}
           data={{
             relationships: configRelationships,
@@ -1387,48 +1406,121 @@ class Syslog extends Component {
     }
   }
   /**
-   * Handle active pattern change
+   * Handle add new pattern button
    * @method
-   * @param {string} activePattern - active pattern name
    */
-  handleActivePatternChange = (activePattern) => {
+  handleAddPattern = () => {
     const {configPatternList} = this.state;
+    const newConfigName = 'pattern' + (configPatternList.length + 1);
     let tempConfigPatternList = configPatternList;
 
-    if (activePattern === '+') {
-      const newConfigName = 'pattern' + (configPatternList.length + 1);
+    if (configPatternList[0].config.id) {
+      let newConfig = _.cloneDeep(configPatternList[0].config);
+      newConfig.type = 'formatSettings';
+      newConfig.input = DEFAULT_INPUT;
+      newConfig.pattern = DEFAULT_PATTERN;
+      newConfig.property = {};
+      newConfig.relationships = [
+        {name: '', srcNode: '', dstNode: '', conditions:[]}
+      ];
 
-      if (configPatternList[0].config.id) {
-        let newConfig = _.cloneDeep(configPatternList[0].config);
-        newConfig.input = DEFAULT_INPUT;
-        newConfig.pattern = DEFAULT_PATTERN;
-        newConfig.property = {};
-        newConfig.relationships = [
-          {name: '', srcNode: '', dstNode: '', conditions:[]}
-        ];
-
-        tempConfigPatternList.push({
-          name: newConfigName,
-          config: newConfig,
-          rawOptions: []
-        });
-      } else {
-        tempConfigPatternList.push({
-          name: newConfigName,
-          config: _.cloneDeep(INIT_CONFIG),
-          rawOptions: []
-        });
-      }
-
-      this.setState({
-        activePattern: newConfigName,
-        configPatternList: tempConfigPatternList
+      tempConfigPatternList.push({
+        name: newConfigName,
+        config: newConfig,
+        rawOptions: []
       });
     } else {
-      this.setState({
-        activePattern
+      tempConfigPatternList.push({
+        name: newConfigName,
+        config: _.cloneDeep(INIT_CONFIG),
+        rawOptions: []
       });
     }
+
+    this.setState({
+      activePattern: newConfigName,
+      configPatternList: tempConfigPatternList
+    });
+  }
+  /**
+   * Handle active pattern change
+   * @method
+   * @param {number} i - index of the configPatternList
+   * @param {string} activePattern - active pattern name
+   */
+  handleActivePatternChange = (i , activePattern) => {
+    let tempConfigPatternList = this.state.configPatternList;
+    tempConfigPatternList[i].config.type = 'formatSettings';
+
+    this.setState({
+      activePattern,
+      configPatternList: tempConfigPatternList
+    });
+  }
+  /**
+   * Handle pattern item mouse over
+   * @method
+   * @param {string} activePatternMouse - active pattern mouse over name
+   */
+  handlePatternMouseOver = (activePatternMouse) => {
+    this.setState({
+      activePatternMouse
+    });
+  }
+  /**
+   * Handle context menu action
+   * @method
+   * @param {object} val - active mouse over pattern data
+   */
+  handleContextMenu = (val, evt) => {
+    const menuItems = [
+      {
+        id: 'editPattern',
+        text: t('syslogFields.txt-editName'),
+        action: () => this.handleContextMenuAction('edit')
+      },
+      {
+        id: 'deletePattern',
+        text: t('txt-delete'),
+        action: () => this.handleContextMenuAction('delete')
+      }
+    ];
+
+    ContextMenu.open(evt, menuItems, 'patternAction');
+    evt.stopPropagation();
+  }
+  /**
+   * Display Syslog Config content
+   * @method
+   * @param {object} val - content of the configPatternList
+   * @param {number} i - index of the configPatternList
+   * @returns Syslog Config component
+   */
+  getPatternItem = (val, i) => {
+    const {activePattern, activePatternMouse} = this.state;
+
+    return (
+      <div className='item'>
+        <div key={i} className='item frame' onClick={this.handleActivePatternChange.bind(this, i, val.name)} onMouseOver={this.handlePatternMouseOver.bind(this, val.name)} onMouseOut={this.handlePatternMouseOver.bind(this, '')}>
+          <span>{val.name}</span>
+          {//activePatternMouse === val.name &&
+            <i className='fg fg-more' onClick={this.handleContextMenu.bind(this, val)}></i>
+          }
+          <i className={`c-link fg fg-arrow-${activePattern === val.name ? 'top' : 'bottom'}`}></i>
+        </div>
+
+        {activePattern === val.name &&
+          <div className='item'>
+            <div className='subframe' onClick={this.handleConfigChange.bind(this, i, 'type', 'formatSettings')}>
+              <span className={val.config.type === 'formatSettings' ? 'true' : ''}>{t('syslogFields.txt-formatSettings')}</span>
+            </div>
+            <div className='subframe' onClick={this.handleConfigChange.bind(this, i, 'type', 'relationship')}>
+              <span className={val.config.type === 'relationship' ? 'true' : ''}>{t('syslogFields.txt-relationship')}</span>
+            </div>
+          </div>
+        }
+      </div>
+    )
   }
   render() {
     const {baseUrl, contextRoot} = this.context;
@@ -1447,7 +1539,8 @@ class Syslog extends Component {
       //rawOptions,
       activeHost,
       configPatternList,
-      activePattern
+      activePattern,
+      showLeftNav
     } = this.state;
 
     let patternList = _.map(configPatternList, val => {
@@ -1554,13 +1647,16 @@ class Syslog extends Component {
                   </div>
 
                   <div className='pattern-content'>
-                    <ButtonGroup
-                      className='group-btn'
-                      list={patternList}
-                      value={activePattern}
-                      onChange={this.handleActivePatternChange} />
+                    <header>{t('syslogFields.matchPattern')}</header>
+                    <button className='standard add-pattern' onClick={this.handleAddPattern}>{t('syslogFields.txt-addPattern')}</button>
 
-                    {configPatternList.map(this.getSyslogConfig)}
+                    <div className='syslog-config'>
+                      <div className={cx('left-nav', {'collapse': !showLeftNav})}>
+                        {configPatternList.map(this.getPatternItem)}
+                        <div className='expand-collapse' onClick={this.toggleLeftNav}><i className={this.getArrowClassName()}></i></div>
+                      </div>
+                      {configPatternList.map(this.getSyslogConfig)}
+                    </div>
                   </div>
                   <footer>
                     <button className='standard' onClick={this.toggleContent.bind(this, 'syslogData', '')}>{t('txt-cancel')}</button>

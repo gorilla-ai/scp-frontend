@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
+import cx from 'classnames'
 
-import ButtonGroup from 'react-ui/build/src/components/button-group'
 import Input from 'react-ui/build/src/components/input'
 import MultiInput from 'react-ui/build/src/components/multi-input'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
@@ -22,7 +22,6 @@ class syslogConfig extends Component {
     super(props);
 
     this.state = {
-
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -113,55 +112,58 @@ class syslogConfig extends Component {
       )
     }
   }
+  /**
+   * Get filter width based on props
+   * @method
+   */
+  getFilterWidth = () => {
+    return this.props.showLeftNav ? '80%' : '93%';
+  }
   render() {
-    const {config, data} = this.props;
+    const {showLeftNav, config, data} = this.props;
 
     return (
-      <div>
-        <ButtonGroup
-          className='group-btn settings'
-          list={[
-            {value: 'formatSettings', text: t('syslogFields.txt-formatSettings')},
-            {value: 'relationship', text: t('syslogFields.txt-relationship')},
-            {value: 'deleteTab', text: 'Delete'}
-          ]}
-          value={config.type}
-          onChange={this.props.handleConfigChange.bind(this, 'type')} />
-
+      <div className='filters' style={{width: this.getFilterWidth()}}>
         {config.type === 'formatSettings' &&
-          <div className='filters'>
-            <div className='left-syslog'>
-              <div className='form-group normal long full-width syslog-config'>
-                <header>{t('syslogFields.txt-originalData')}</header>
-                <div className='group'>
-                  <label htmlFor='syslogInput'>{t('syslogFields.dataSampleInput')}</label>
-                  {config.id &&
-                    <button onClick={this.props.getLatestInput.bind(this, config.id)}>{t('syslogFields.txt-getLatest')}</button>
-                  }
-                  <Textarea
-                    id='syslogInput'
-                    rows={8}
-                    value={config.input}
-                    onChange={this.props.handleConfigChange.bind(this, 'input')} />
+          <div>
+            <div className='pattern-format'>
+              <header>{t('syslogFields.txt-patternFormat')}</header>
+              <div className='group'>
+                <div className='pattern'>
+                  <label>{t('syslogFields.matchPattern')}</label><i className='c-link fg fg-help' title={t('txt-tips')} onClick={this.showPatternHint} />
                 </div>
-                <div className='group'>
-                  <div className='pattern'>
-                    <label>{t('syslogFields.matchPattern')}</label><i className='c-link fg fg-help' title={t('txt-tips')} onClick={this.showPatternHint} />
-                  </div>
-                  <Textarea
-                    id='syslogPattern'
-                    rows={10}
-                    value={config.pattern}
-                    onChange={this.props.handleConfigChange.bind(this, 'pattern')} />
-                </div>
+                <Textarea
+                  id='syslogPattern'
+                  rows={6}
+                  value={config.pattern}
+                  onChange={this.props.handleConfigChange.bind(this, 'pattern')} />
               </div>
             </div>
-            <i className='c-link fg fg-forward' title={t('txt-parse')} onClick={this.props.getSyslogGrok} />
-            <div className='left-syslog'>
-              <div className='form-group normal long full-width syslog-config'>
-                <header>{t('syslogFields.txt-originalData')}</header>
-                <div className='parsed-list'>
-                  {_.map(config.property, this.displayParsedData)}
+
+            <div className='data-result'>
+              <div className='left-syslog'>
+                <div className='form-group normal long full-width syslog-config'>
+                  <header>{t('syslogFields.txt-originalData')}</header>
+                  <div className='group'>
+                    <label htmlFor='syslogInput'>{t('syslogFields.dataSampleInput')}</label>
+                    {config.id &&
+                      <button className='standard' onClick={this.props.getLatestInput.bind(this, config.id)}>{t('syslogFields.txt-getLatest')}</button>
+                    }
+                    <Textarea
+                      id='syslogInput'
+                      rows={20}
+                      value={config.input}
+                      onChange={this.props.handleConfigChange.bind(this, 'input')} />
+                  </div>
+                </div>
+              </div>
+              <i className='c-link fg fg-forward' title={t('txt-parse')} onClick={this.props.getSyslogGrok} />
+              <div className='left-syslog'>
+                <div className='form-group normal long full-width syslog-config'>
+                  <header>{t('syslogFields.txt-originalData')}</header>
+                  <div className='parsed-list'>
+                    {_.map(config.property, this.displayParsedData)}
+                  </div>
                 </div>
               </div>
             </div>

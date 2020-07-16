@@ -1137,10 +1137,17 @@ i.c-checkbox.fg-checkbox {
           }
         }
         .fg-arrow-top,
-        .fg-arrow-bottom {
+        .fg-arrow-bottom,
+        .fg-more {
           position: absolute;
           top: 10px;
+        }
+        .fg-arrow-top,
+        .fg-arrow-bottom {
           right: 10px;
+        }
+        .fg-more {
+          right: 40px;
         }
       }
       .subframe {
@@ -1874,74 +1881,111 @@ i.c-checkbox.fg-checkbox {
         .edit-syslog-config {
           height: 70vh;
           overflow-y: auto;
-          .filters {
-            overflow: hidden;
-            width: 96%;
-            margin: 0 auto;
-            margin-top: 10px;
-            margin-bottom: 30px;
-            .left-syslog {
-              float: left;
-              width: 45%;
-              min-height: 330px;
-              button {
-                position: absolute;
-                right: 15px;
-                top: 5px;
-                font-size: .9em;
-                padding: .2em .8em;
-              }
-              .pattern {
-                label {
-                  float: left;
-                  margin-right: 2px;
-                }
-              }
-              .parsed-list {
-                width: 100%;
-                height: 455px;
-                overflow-y: auto;
-              }
-            }
-            .fg-forward {
-              float: left;
-              width: 10%;
-              margin-top: 250px;
-              text-align: center;
-            }
-            .property {
-              margin-left: 530px;
-            }
-            .right-syslog {
-              float: right;
-              width: 58%;
-              min-height: 330px;
-            }
-          }
           .pattern-content {
+            position: relative;
             width: 70%;
             margin: 0 auto;
-            margin-top: 65px;
+            margin-top: 70px;
             margin-bottom: 30px;
             border: 1px solid var(--primaryBorder);
-            & > .group-btn {
-              margin-top: -33px;
-              margin-left: -1px;
-              .thumb:first-child,
-              .thumb:last-child {
-                border-radius: 0;
+            & > header {
+              position: absolute;
+              top: -40px;
+              left: 0;
+              font-size: 1.2em;
+              font-weight: bold;
+              color: var(--primaryContentHeader);
+            }
+            button {
+              &.add-pattern {
+                position: absolute;
+                top: -45px;
+                right: 0;
               }
-              .thumb:last-child {
-                padding-left: 10px;
-                padding-right: 10px;
+            }
+            .syslog-config {
+              display: flex;
+              background-color: var(--formGroupBackground);
+              .left-nav {
+                width: 170px;
+                border-right: 1px solid var(--primaryBorder);
+                background-color: var(--primaryContentBackground);
+                &.collapse {
+                  width: 0;
+                }
+              }
+              .frame {
+              }
+              .expand-collapse {
+                border-left: 1px solid var(--primaryBorder);
+                .fg {
+                  top: 400px;
+                }
+              }
+              .filters {
+                overflow: hidden;
+                min-height: 740px;
+                margin: 0 auto;
+                margin-top: 10px;
+                margin-bottom: 30px;
+                .pattern-format {
+                  & > header {
+                    font-size: 1.2em;
+                    font-weight: bold;
+                    color: var(--primaryContentHeader);
+                    margin: 5px 0 15px 0;
+                  }
+                  label {
+                    float: left;
+                    font-size: .9em;
+                    color: var(--primaryContentHeader);
+                  }
+                }
+                .data-result {
+                  overflow: hidden;
+                  margin-top: 25px;
+                  .left-syslog {
+                    float: left;
+                    width: 45%;
+                    min-height: 330px;
+                    button {
+                      position: absolute;
+                      right: 15px;
+                      top: 5px;
+                      font-size: .9em;
+                      padding: .2em .8em;
+                    }
+                    .pattern {
+                      label {
+                        float: left;
+                        margin-right: 2px;
+                      }
+                    }
+                    .parsed-list {
+                      width: 100%;
+                      height: 445px;
+                      overflow-y: auto;
+                    }
+                  }
+                  .fg-forward {
+                    float: left;
+                    width: 10%;
+                    margin-top: 250px;
+                    text-align: center;
+                  }
+                  .property {
+                    margin-left: 530px;
+                  }
+                  .right-syslog {
+                    float: right;
+                    width: 58%;
+                    min-height: 330px;
+                  }
+                }
               }
             }
           }
-          .group-btn.settings {
-            margin: 25px 0 25px 20px;
-          }
           .relationships {
-            width: 96.5%;
             margin: 0 auto;
             margin-bottom: 20px;
             .group {
