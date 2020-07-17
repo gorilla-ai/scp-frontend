@@ -1907,14 +1907,18 @@ i.c-checkbox.fg-checkbox {
               display: flex;
               background-color: var(--formGroupBackground);
               .left-nav {
-                width: 170px;
+                width: 180px;
                 border-right: 1px solid var(--primaryBorder);
                 background-color: var(--primaryContentBackground);
                 &.collapse {
                   width: 0;
                 }
-              }
-              .frame {
+                .fg-more {
+                  display: none;
+                  &.show {
+                    display: inline-block;
+                  }
+                }
               }
               .expand-collapse {
                 border-left: 1px solid var(--primaryBorder);
@@ -2021,20 +2025,26 @@ i.c-checkbox.fg-checkbox {
                   margin-bottom: 3px;
                   text-align: left;
                 }
-                select {
-                  width: 250px;
+                .select-big {
+                  width: 278px;
+                }
+                .select-small {
+                  width: 230px;
                 }
               }
               .fg-next {
                 margin-top: 30px;
                 margin-left: 10px;
               }
-            }
+            }        
             .add,
             .remove {
               width: 30px;
               height: 30px;
-              margin-top: 10px;
+              margin-top: 40px;
+            }
+            .add {
+              margin-right: 10px;
             }
             .remove {
               background-color: var(--primaryContentBackground);

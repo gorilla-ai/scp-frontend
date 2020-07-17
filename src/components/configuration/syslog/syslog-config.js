@@ -115,12 +115,13 @@ class syslogConfig extends Component {
   /**
    * Get filter width based on props
    * @method
+   * @returns filter width
    */
   getFilterWidth = () => {
-    return this.props.showLeftNav ? '80%' : '93%';
+    return this.props.data.showPatternLeftNav ? '78%' : '93%';
   }
   render() {
-    const {showLeftNav, config, data} = this.props;
+    const {config} = this.props;
 
     return (
       <div className='filters' style={{width: this.getFilterWidth()}}>
@@ -174,7 +175,7 @@ class syslogConfig extends Component {
           <MultiInput
             className='relationships'
             base={Relationships}
-            props={data}
+            props={this.props.data}
             defaultItemValue={{
               name: '',
               srcNode: '',

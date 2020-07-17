@@ -91,9 +91,10 @@ class Syslog extends Component {
         ip: '',
         name: ''
       },
+      showPatternLeftNav: true,
       openTimeline: false,
       openEditHosts: false,
-      openEditName: false,
+      openEditPatternName: false,
       clickTimeline: false,
       activeTimeline: '',
       activeConfigId: '',
@@ -114,9 +115,10 @@ class Syslog extends Component {
         config: _.cloneDeep(INIT_CONFIG),
         rawOptions: []
       }],
-      activePattern: 'pattern1',
+      activePatternIndex: '',
+      activePatternName: 'pattern1',
       activePatternMouse: '',
-      showLeftNav: true
+      newPatternName: ''
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -337,7 +339,7 @@ class Syslog extends Component {
           name: 'pattern1',
           config: _.cloneDeep(INIT_CONFIG),
         }],
-        activePattern: 'pattern1'
+        activePatternName: 'pattern1'
       });
     }
 
@@ -635,29 +637,11 @@ class Syslog extends Component {
    * @param {string} value - input value
    */
   handleConfigChange = (i, type, value) => {
-    const {configPatternList} = this.state;
-    let tempConfigPatternList = configPatternList;
+    let tempConfigPatternList = this.state.configPatternList;
+    tempConfigPatternList[i].config[type] = value;
 
-    if (value === 'deleteTab') {
-      let activePattern = '';
-      tempConfigPatternList.splice(i, 1);
-      activePattern = tempConfigPatternList[tempConfigPatternList.length - 1].name;
-
-      this.setState({
-        activePattern
-      });
-    } else if (value === 'editName') {
-      tempConfigPatternList[i].name;
-
-      this.setState({
-        activePattern
-      });
-    } else {
-      tempConfigPatternList[i].config[type] = value;
-
-      //let tempConfig = {...this.state.config};
-      //tempConfig[type] = value;
-    }
+    //let tempConfig = {...this.state.config};
+    //tempConfig[type] = value;
 
     this.setState({
       configPatternList: tempConfigPatternList
@@ -973,28 +957,61 @@ class Syslog extends Component {
       </ModalDialog>
     )
   }
-  closeEditName = () => {
+  /**
+   * Toggle pattern edit name dialog on/off
+   * @method
+   */
+  toggleEditPatternName = () => {
+    const {openEditPatternName} = this.state;
+
+    if (openEditPatternName) {
+      this.setState({
+        activePatternIndex: '',
+        newPatternName: ''
+      });
+    };
+
     this.setState({
-      openEditName: false
+      openEditPatternName: !openEditPatternName
     });
   }
-  displayEditName = () => {
-
+  /**
+   * Handle Pattern name input value change
+   * @method
+   * @param {string} newPatternName - input name
+   */
+  handleEditPatternNameChange = (newPatternName) => {
+    this.setState({
+      newPatternName
+    });
+  }
+  /**
+   * Display Pattern name edit content
+   * @method
+   * @returns HTML DOM
+   */
+  displayEditPatternName = () => {
     return (
       <div>
-        <label>Edit Name</label>
+        <label>{t('syslogFields.txt-patternName')}</label>
         <Input
-          value={editHosts.name}
-          onChange={this.handleEditHostsChange.bind(this, 'name')} />
+          value={this.state.newPatternName}
+          onChange={this.handleEditPatternNameChange} />
       </div>
     )
   }
-  modalEditName = () => {
-    const {activeTimeline, activeConfigName} = this.state;
+  /**
+   * Display Pattern name edit dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  modalEditPatternName = () => {
+    const {} = this.state;
     const actions = {
-      confirm: {text: t('txt-close'), handler: this.closeEditName}
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleEditPatternName},
+      confirm: {text: t('txt-confirm'), handler: this.confirmEditPatternName}
     };
-    let title = 'Edit Name';
+    const title = t('syslogFields.txt-editName');
 
     return (
       <ModalDialog
@@ -1005,9 +1022,85 @@ class Syslog extends Component {
         global={true}
         actions={actions}
         closeAction='confirm'>
-        {this.displayEditName()}    
+        {this.displayEditPatternName()}    
       </ModalDialog>
     )
+  }
+  /**
+   * Handle Pattern edit name confirm
+   * @method
+   */
+  confirmEditPatternName = () => {
+    const {configPatternList, activePatternIndex, activePatternName, newPatternName} = this.state;
+    let tempConfigPatternList = configPatternList;
+
+    _.forEach(tempConfigPatternList, (val, i) => {
+      if (i === activePatternIndex) {
+        tempConfigPatternList[i].name = newPatternName;
+        return false;
+      }
+    })
+
+    this.setState({
+      configPatternList: tempConfigPatternList,
+      activePatternName: newPatternName
+    });
+
+    this.toggleEditPatternName();
+  }
+  /**
+   * Display delete Pattern content
+   * @method
+   * @param {object} val - active pattern data
+   * @param {number} i - index of the configPatternList
+   * @returns HTML DOM
+   */
+  displayDeletePattern = (val, i) => {
+    this.setState({
+      activePatternIndex: i
+    });
+
+    return (
+      <div className='content delete'>
+        <span>{t('txt-delete-msg')}: {val.name}?</span>
+      </div>
+    )
+  }
+  /**
+   * Display delete Pattern dialog
+   * @method
+   * @param {object} val - active pattern data
+   * @param {number} i - index of the configPatternList
+   */
+  openDeletePattern = (val, i) => {
+    PopupDialog.prompt({
+      title: t('syslogFields.txt-deletePattern'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: this.displayDeletePattern(val, i),
+      act: (confirmed, data) => {
+        if (confirmed) {
+          this.confirmDeletePattern();
+        }
+      }
+    });
+  }  
+  /**
+   * Handle delete Pattern confirm
+   * @method
+   */
+  confirmDeletePattern = () => {
+    const {configPatternList, activePatternIndex} = this.state;
+    let tempConfigPatternList = configPatternList;
+    let activePatternName = '';
+    tempConfigPatternList.splice(activePatternIndex, 1);
+    activePatternName = tempConfigPatternList[tempConfigPatternList.length - 1].name;
+
+    this.setState({
+      configPatternList: tempConfigPatternList,
+      activePatternName
+    });
   }
   /**
    * Close syslog events chart dialog
@@ -1217,7 +1310,7 @@ class Syslog extends Component {
    * @param {object} allValue - Host data
    * @returns HTML DOM
    */
-  getDeleteHostContent = (allValue) => {
+  displayDeleteHostContent = (allValue) => {
     this.setState({
       currentHostData: allValue
     });
@@ -1239,7 +1332,7 @@ class Syslog extends Component {
       id: 'modalWindowSmall',
       confirmText: t('txt-delete'),
       cancelText: t('txt-cancel'),
-      display: this.getDeleteHostContent(allValue),
+      display: this.displayDeleteHostContent(allValue),
       act: (confirmed, data) => {
         if (confirmed) {
           this.deleteHost();
@@ -1367,7 +1460,7 @@ class Syslog extends Component {
    */
   toggleLeftNav = () => {
     this.setState({
-      showLeftNav: !this.state.showLeftNav
+      showPatternLeftNav: !this.state.showPatternLeftNav
     });
   }
   /**
@@ -1376,7 +1469,7 @@ class Syslog extends Component {
    * @returns {string} - class name
    */
   getArrowClassName = () => {
-    return this.state.showLeftNav ? 'fg fg-arrow-left' : 'fg fg-arrow-right';
+    return this.state.showPatternLeftNav ? 'fg fg-arrow-left' : 'fg fg-arrow-right';
   }
   /**
    * Display Syslog Config content
@@ -1386,17 +1479,17 @@ class Syslog extends Component {
    * @returns Syslog Config component
    */
   getSyslogConfig = (val, i) => {
-    const {configRelationships, configPatternList, activePattern, showLeftNav} = this.state;
+    const {showPatternLeftNav, configRelationships, configPatternList, activePatternName} = this.state;
 
-    if (val.name === activePattern) {
+    if (val.name === activePatternName) {
       return (
         <SyslogConfig
           key={val.name + i}
-          showLeftNav={showLeftNav}
           config={configPatternList[i].config}
           data={{
             relationships: configRelationships,
-            rawOptions: configPatternList[i].rawOptions
+            rawOptions: configPatternList[i].rawOptions,
+            showPatternLeftNav
           }}
           handleConfigChange={this.handleConfigChange.bind(this, i)}
           getLatestInput={this.getLatestInput.bind(this, i)}
@@ -1438,23 +1531,23 @@ class Syslog extends Component {
     }
 
     this.setState({
-      activePattern: newConfigName,
-      configPatternList: tempConfigPatternList
+      configPatternList: tempConfigPatternList,
+      activePatternName: newConfigName
     });
   }
   /**
    * Handle active pattern change
    * @method
    * @param {number} i - index of the configPatternList
-   * @param {string} activePattern - active pattern name
+   * @param {string} activePatternName - active pattern name
    */
-  handleActivePatternChange = (i , activePattern) => {
+  handleActivePatternChange = (i , activePatternName) => {
     let tempConfigPatternList = this.state.configPatternList;
     tempConfigPatternList[i].config.type = 'formatSettings';
 
     this.setState({
-      activePattern,
-      configPatternList: tempConfigPatternList
+      configPatternList: tempConfigPatternList,
+      activePatternName
     });
   }
   /**
@@ -1471,23 +1564,43 @@ class Syslog extends Component {
    * Handle context menu action
    * @method
    * @param {object} val - active mouse over pattern data
+   * @param {number} i - index of the configPatternList
    */
-  handleContextMenu = (val, evt) => {
+  handleContextMenu = (val, i, evt) => {
     const menuItems = [
       {
         id: 'editPattern',
         text: t('syslogFields.txt-editName'),
-        action: () => this.handleContextMenuAction('edit')
+        action: () => this.handleContextMenuAction('edit', val, i)
       },
       {
         id: 'deletePattern',
         text: t('txt-delete'),
-        action: () => this.handleContextMenuAction('delete')
+        action: () => this.openDeletePattern(val, i)
       }
     ];
 
     ContextMenu.open(evt, menuItems, 'patternAction');
     evt.stopPropagation();
+  }
+  /**
+   * Handle content menu action
+   * @method
+   * @param {string} type - action type ('edit' or 'delete')
+   * @param {object} val - active mouse over pattern data
+   * @param {number} i - index of the configPatternList
+   */
+  handleContextMenuAction = (type, val, i) => {
+    if (type === 'edit') {
+      this.setState({
+        activePatternIndex: i,
+        newPatternName: val.name
+      }, () => {
+        this.toggleEditPatternName();
+      });
+    } else if (type === 'delete') {
+
+    }
   }
   /**
    * Display Syslog Config content
@@ -1497,19 +1610,23 @@ class Syslog extends Component {
    * @returns Syslog Config component
    */
   getPatternItem = (val, i) => {
-    const {activePattern, activePatternMouse} = this.state;
+    const {activePatternName, activePatternMouse} = this.state;
+    const patternName = val.name;
+    let formattedPatternName = '';
+
+    if (patternName.length > 9) {
+      formattedPatternName = patternName.substr(0, 9) + '...';
+    }
 
     return (
       <div className='item'>
-        <div key={i} className='item frame' onClick={this.handleActivePatternChange.bind(this, i, val.name)} onMouseOver={this.handlePatternMouseOver.bind(this, val.name)} onMouseOut={this.handlePatternMouseOver.bind(this, '')}>
-          <span>{val.name}</span>
-          {//activePatternMouse === val.name &&
-            <i className='fg fg-more' onClick={this.handleContextMenu.bind(this, val)}></i>
-          }
-          <i className={`c-link fg fg-arrow-${activePattern === val.name ? 'top' : 'bottom'}`}></i>
+        <div key={i} className='item frame' onClick={this.handleActivePatternChange.bind(this, i, patternName)} onMouseOver={this.handlePatternMouseOver.bind(this, patternName)} onMouseOut={this.handlePatternMouseOver.bind(this, '')}>
+          <span title={patternName}>{formattedPatternName || patternName}</span>
+          <i className={cx('fg fg-more', {'show': activePatternMouse === patternName})} onClick={this.handleContextMenu.bind(this, val, i)}></i>
+          <i className={`c-link fg fg-arrow-${activePatternName === patternName ? 'top' : 'bottom'}`}></i>
         </div>
 
-        {activePattern === val.name &&
+        {activePatternName === patternName &&
           <div className='item'>
             <div className='subframe' onClick={this.handleConfigChange.bind(this, i, 'type', 'formatSettings')}>
               <span className={val.config.type === 'formatSettings' ? 'true' : ''}>{t('syslogFields.txt-formatSettings')}</span>
@@ -1527,20 +1644,18 @@ class Syslog extends Component {
     const {
       openFilter,
       activeContent,
-      dataFields,
       syslog,
       hostsFields,
       hosts,
       editSyslogType,
+      showPatternLeftNav,
       openTimeline,
       openEditHosts,
+      openEditPatternName,
       //config,
-      configRelationships,
       //rawOptions,
       activeHost,
-      configPatternList,
-      activePattern,
-      showLeftNav
+      configPatternList
     } = this.state;
 
     let patternList = _.map(configPatternList, val => {
@@ -1562,6 +1677,10 @@ class Syslog extends Component {
 
         {openEditHosts &&
           this.modalEditHosts()
+        }
+
+        {openEditPatternName &&
+          this.modalEditPatternName()
         }
 
         <div className='sub-header'>
@@ -1651,7 +1770,7 @@ class Syslog extends Component {
                     <button className='standard add-pattern' onClick={this.handleAddPattern}>{t('syslogFields.txt-addPattern')}</button>
 
                     <div className='syslog-config'>
-                      <div className={cx('left-nav', {'collapse': !showLeftNav})}>
+                      <div className={cx('left-nav', {'collapse': !showPatternLeftNav})}>
                         {configPatternList.map(this.getPatternItem)}
                         <div className='expand-collapse' onClick={this.toggleLeftNav}><i className={this.getArrowClassName()}></i></div>
                       </div>

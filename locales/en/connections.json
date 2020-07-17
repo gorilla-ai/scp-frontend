@@ -688,6 +688,7 @@
     "dataProperty": "Data Property",
     "srcNode": "Source Node",
     "dstNode": "Destination Node",
+    "txt-patternName": "Pattern $t(txt-name)",
     "txt-editName": "$t(txt-edit) $t(txt-name)",
     "txt-addPattern": "Add Pattern",
     "txt-patternFormat": "Pattern Format",
@@ -712,6 +713,7 @@
     "txt-timelineUnavailable": "Timeline data is not available",
     "txt-backToList": "$t(txt-back) to $t(txt-syslogManage)",
     "txt-addHost": "Add Host",
-    "txt-deleteHost": "$t(txt-delete) $t(txt-host)"
+    "txt-deleteHost": "$t(txt-delete) $t(txt-host)",
+    "txt-deletePattern": "$t(txt-delete) Pattern"
   }
 }

@@ -688,6 +688,7 @@
     "dataProperty": "資料解譯結果",
     "srcNode": "來源節點",
     "dstNode": "目的節點",
+    "txt-patternName": "Pattern$t(txt-name)",
     "txt-editName": "$t(txt-edit)$t(txt-name)",
     "txt-addPattern": "新增Pattern",
     "txt-patternFormat": "Pattern格式",
@@ -712,6 +713,7 @@
     "txt-timelineUnavailable": "趨勢圖資料不存在",
     "txt-backToList": "$t(txt-back)$t(txt-syslogManage)",
     "txt-addHost": "新增所屬主機",
-    "txt-deleteHost": "$t(txt-delete)$t(txt-host)"
+    "txt-deleteHost": "$t(txt-delete)$t(txt-host)",
+    "txt-deletePattern": "$t(txt-delete)Pattern"
   }
 }

@@ -127,6 +127,14 @@ class Relationships extends Component {
 
     this.props.onChange(curValue);
   }
+  /**
+   * Get select width based on props
+   * @method
+   * @returns {string} - class name
+   */
+  getSelectClass = () => {
+    return this.props.showPatternLeftNav ? 'select-small' : 'select-big';
+  }
   render() {
     const {value, rawOptions} = this.props;
     const {nodeA, nodeB, nameOptions} = this.state;
@@ -137,6 +145,7 @@ class Relationships extends Component {
           <div className='item'>
             <label>{t('syslogFields.name')}</label>
             <DropDownList
+              className={this.getSelectClass()}
               list={nameOptions}
               value={value.name}
               onChange={this.handleDataChange.bind(this, 'name')} />
@@ -144,6 +153,7 @@ class Relationships extends Component {
           <div className='item'>
             <label>{t('syslogFields.srcNode')}</label>
             <DropDownList
+              className={this.getSelectClass()}
               list={rawOptions}
               value={value.srcNode}
               onChange={this.handleDataChange.bind(this, 'srcNode')} />
@@ -152,6 +162,7 @@ class Relationships extends Component {
           <div className='item'>
             <label>{t('syslogFields.dstNode')}</label>
             <DropDownList
+              className={this.getSelectClass()}
               list={rawOptions}
               value={value.dstNode}
               onChange={this.handleDataChange.bind(this, 'dstNode')} />
