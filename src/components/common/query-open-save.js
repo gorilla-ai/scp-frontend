@@ -113,6 +113,7 @@ class QueryOpenSave extends Component {
           this.props.setMarkData(formattedMarkData);
         }
         this.props.setFilterData(queryData.query.filter);
+        this.props.setNotifyEmailData([]);
       }
     } else if (type === 'save') {
       const {baseUrl} = this.context;
@@ -153,7 +154,6 @@ class QueryOpenSave extends Component {
         queryText = {
           filter: filterData
         };
-        emailList = notifyEmailData;
       } else if (activeTab === 'logs') {
         let markDataArr = [];
         url = `${baseUrl}/api/v1/account/syslog/queryText`;
@@ -168,7 +168,6 @@ class QueryOpenSave extends Component {
           filter: filterData,
           search: markDataArr
         };
-        emailList = notifyEmailData;
       } else {
         url = `${baseUrl}/api/account/event/queryText`;
         queryText = {
@@ -180,22 +179,28 @@ class QueryOpenSave extends Component {
         requestData = {
           accountId: account.id,
           name: queryData.inputName,
-          queryText,
-          emailList
+          queryText
         };
+
         requestType = 'POST';
       } else {
         requestData = {
           id: queryData.id,
+          patternId: queryData.patternId,
           name: this.getQueryName(),
-          queryText,
-          emailList
+          queryText
         };
         requestType = 'PATCH';
       }
 
+      if (activeTab === 'alert') {
+        requestData.emailList = notifyEmailData;
+      }
+
       if (activeTab === 'logs') {
         if (patternCheckbox) {
+          requestData.emailList = notifyEmailData;
+
           if (pattern.severity) {
             requestData.severity = pattern.severity;
           }
@@ -210,6 +215,8 @@ class QueryOpenSave extends Component {
             }
           }
         } else { //Pattern script checkbox is unchecked
+          requestData.emailList = [];
+
           this.setState({
             activePatternId: ''
           });
@@ -226,6 +233,7 @@ class QueryOpenSave extends Component {
         if (data) {
           helper.showPopupMsg(t('events.connections.txt-querySaved'));
           this.props.getSavedQuery();
+          this.props.setNotifyEmailData([]);
         }
         return null;
       })
@@ -324,6 +332,7 @@ class QueryOpenSave extends Component {
           tempQueryData.name = newQueryList[0].name;
           tempQueryData.list = newQueryList;
           tempQueryData.query = newQueryList[0].queryText;
+          tempQueryData.emailList = newQueryList[0].emailList;
 
           if (activeTab === 'logs') {
             tempQueryData.patternId = '';
@@ -497,6 +506,9 @@ class QueryOpenSave extends Component {
 
           if (val.emailList.length > 0) {
             tempQueryData.emailList = val.emailList;
+            this.props.setNotifyEmailData(val.emailList);
+          } else {
+            this.props.setNotifyEmailData([]);
           }
           return false;
         }
@@ -504,6 +516,7 @@ class QueryOpenSave extends Component {
 
       if (value === 'new') {
         queryName = true;
+        this.props.setNotifyEmailData([]);
       } else {
         queryName = false;
       }
@@ -513,7 +526,6 @@ class QueryOpenSave extends Component {
     }
 
     this.props.setQueryData(tempQueryData);
-    this.props.setNotifyEmailData(tempQueryData.emailList);
 
     this.setState({
       newQueryName: queryName,

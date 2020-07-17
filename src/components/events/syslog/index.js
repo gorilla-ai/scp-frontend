@@ -119,6 +119,7 @@ class SyslogController extends Component {
       queryData: {
         id: '',
         name: '',
+        patternId: '',
         inputName: '',
         displayId: '',
         displayName: '',
@@ -1714,7 +1715,7 @@ class SyslogController extends Component {
   /**
    * Set notify email data
    * @method
-   * @param {object} queryData - query data to be set
+   * @param {array.<string>} notifyEmailData - email data to be set
    */
   setNotifyEmailData = (notifyEmailData) => {
     this.setState({
