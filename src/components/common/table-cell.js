@@ -5,7 +5,7 @@ import cx from 'classnames'
 import {BaseDataContext} from './context';
 import helper from './helper'
 
-const FILTER_EXCLUDE_FIELDS = ['@timestamp', 'firstPacket', 'lastPacket', 'timestamp', '_eventDttm_'];
+const FILTER_EXCLUDE_FIELDS = ['@timestamp', 'firstPacket', 'lastPacket', 'timestamp', '_eventDttm_', '_Raw', 'message', 'msg'];
 
 let t = null;
 
@@ -76,6 +76,18 @@ class TableCell extends Component {
     return color;
   }
   /**
+   * Get title for specific fields
+   * @method
+   * @param {string} fieldName - field name
+   * @param {string} fieldValue - field value
+   * @returns title content
+   */
+  getTitleContent = (fieldName, fieldValue) => {
+    if (fieldName === '_Raw' || fieldName === 'message' || fieldName === 'msg') {
+      return fieldValue;
+    }
+  }
+  /**
    * Get table field content
    * @method
    * @param {object} type - field type ('internet' or 'intranet')
@@ -104,7 +116,7 @@ class TableCell extends Component {
         )
       } else {
         if (_.includes(FILTER_EXCLUDE_FIELDS, fieldName)) { //Filter icon not show
-          return <span className={this.getBackgroundColor(fieldValue)}>{fieldValue}</span>
+          return <span className={this.getBackgroundColor(fieldValue)} title={this.getTitleContent(fieldName, fieldValue)}>{displayValue || fieldValue}</span>
         } else if (activeTab === 'alert' && fieldName === '_severity_') {
           return ( //Special case for Severity in Alerts
             <div>
@@ -113,7 +125,7 @@ class TableCell extends Component {
             </div>
           )
         } else { //Everythig else
-          return <span className={this.getBackgroundColor(fieldValue)}>{displayValue || fieldValue}<i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.showQueryOptions(fieldName, fieldValue)}></i></span>
+          return <span className={this.getBackgroundColor(fieldValue)}>{displayValue}<i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.showQueryOptions(fieldName, fieldValue)}></i></span>
         }
       }
     }
