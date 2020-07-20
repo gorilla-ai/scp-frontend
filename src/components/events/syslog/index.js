@@ -659,6 +659,8 @@ class SyslogController extends Component {
             label: this.getCustomFieldName(tempData),
             sortable: this.checkSortable(tempData),
             formatter: (value, allValue) => {
+              let displayValue = value;
+
               if (tempData === '_tableMenu_') {
                 return (
                   <div className={cx('table-menu', {'active': value})}>
@@ -670,10 +672,8 @@ class SyslogController extends Component {
                 value = helper.getFormattedDate(value, 'local');
               }
               if (tempData === '_Raw' || tempData === 'message' || tempData === 'msg') {
-                if (value) {
-                  value = value.substr(0, 50) + '...';
-                } else {
-                  value = value;
+                if (value && value.length > 50) {
+                  displayValue = value.substr(0, 50) + '...';
                 }
               }
               if (typeof value === 'boolean') {
@@ -683,6 +683,7 @@ class SyslogController extends Component {
                 <TableCell
                   activeTab={activeTab}
                   fieldValue={value}
+                  displayValue={displayValue}
                   fieldName={tempData}
                   allValue={allValue}
                   markData={markData}

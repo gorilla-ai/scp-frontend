@@ -85,7 +85,7 @@ class TableCell extends Component {
    * @returns HTML DOM
    */
   getFieldContent = (type, tooltip, picPath, country) => {
-    const {activeTab, fieldName, fieldValue, alertLevelColors} = this.props;
+    const {activeTab, fieldName, fieldValue, displayValue, alertLevelColors} = this.props;
     const {showIcon} = this.state;
 
     if (fieldValue) {
@@ -103,7 +103,7 @@ class TableCell extends Component {
           </div>
         )
       } else {
-        if (_.includes(FILTER_EXCLUDE_FIELDS, fieldName)) { //Dont' show filter icon
+        if (_.includes(FILTER_EXCLUDE_FIELDS, fieldName)) { //Filter icon not show
           return <span className={this.getBackgroundColor(fieldValue)}>{fieldValue}</span>
         } else if (activeTab === 'alert' && fieldName === '_severity_') {
           return ( //Special case for Severity in Alerts
@@ -113,7 +113,7 @@ class TableCell extends Component {
             </div>
           )
         } else { //Everythig else
-          return <span className={this.getBackgroundColor(fieldValue)}>{fieldValue}<i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.showQueryOptions(fieldName, fieldValue)}></i></span>
+          return <span className={this.getBackgroundColor(fieldValue)}>{displayValue || fieldValue}<i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.showQueryOptions(fieldName, fieldValue)}></i></span>
         }
       }
     }
