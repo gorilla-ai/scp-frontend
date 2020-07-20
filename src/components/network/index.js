@@ -1069,7 +1069,8 @@ class Network extends Component {
         this.setState({
           currentPage: 1,
           oldPage: 1,
-          tableMouseOver: false
+          tableMouseOver: false,
+          openChartKpi: false
         }, () => {
           this.loadEventsCount(fromSearch);
         });
