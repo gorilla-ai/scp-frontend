@@ -1006,7 +1006,6 @@ class Syslog extends Component {
    * @returns ModalDialog component
    */
   modalEditPatternName = () => {
-    const {} = this.state;
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleEditPatternName},
       confirm: {text: t('txt-confirm'), handler: this.confirmEditPatternName}
@@ -1031,7 +1030,7 @@ class Syslog extends Component {
    * @method
    */
   confirmEditPatternName = () => {
-    const {configPatternList, activePatternIndex, activePatternName, newPatternName} = this.state;
+    const {configPatternList, activePatternIndex, newPatternName} = this.state;
     let tempConfigPatternList = configPatternList;
 
     _.forEach(tempConfigPatternList, (val, i) => {
@@ -1244,7 +1243,6 @@ class Syslog extends Component {
    * @method
    */
   modalEditHosts = () => {
-    const {hostsData} = this.state;
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeEditHosts},
       confirm: {text: t('txt-confirm'), handler: this.confirmEditHosts}
