@@ -170,6 +170,7 @@ class DashboardMaps extends Component {
       ..._.cloneDeep(MAPS_PUBLIC_DATA),
       ..._.cloneDeep(MAPS_PRIVATE_DATA),
       modalOpen: false,
+      mapData: [],
       worldAttackData: []
     };
 
@@ -585,7 +586,22 @@ class DashboardMaps extends Component {
     })
   }
   loadNewMap = () => {
-    let worldAttackData = [];   
+    let mapData = [];
+    let worldAttackData = [];
+
+    _.forEach(WORLDMAP.features, val => {
+      const countryObj = {
+        type: 'geojson',
+        id: val.properties.name,
+        weight: 0.6,
+        fillColor: 'white',
+        color: '#182f48',
+        fillOpacity: 1
+      };
+
+      countryObj.geojson = val.geometry;
+      mapData.push(countryObj);
+    });
 
     _.forEach(worldMapAttackData, (val, i) => {
       if (val.srcLatitude && val.srcLongitude) {
@@ -634,6 +650,7 @@ class DashboardMaps extends Component {
     })
 
     this.setState({
+      mapData,
       worldAttackData
     }, () => {
       setTimeout(() => {
@@ -962,6 +979,7 @@ class DashboardMaps extends Component {
       currentBaseLayers,
       seatData,
       modalOpen,
+      mapData,
       worldAttackData
     } = this.state;
     const displayTime = past24hTime + ' - ' + updatedTime;
@@ -1104,7 +1122,24 @@ class DashboardMaps extends Component {
                   const gis = _.get(ref, '_component._component._component._component.gis');
                   this.gisMapData = gis ? gis._map : null;
                 }}
-                data={worldAttackData}
+                data={mapData}
+                layers={{
+                  world: {
+                    label: 'World Map',
+                    interactive: false,
+                    data: worldAttackData
+                  }
+                }}
+                activeLayers={['world']}
+                baseLayers={{
+                  standard: {
+                    id: 'world',
+                    layer: 'world'
+                  }
+                }}
+                mapOptions={{
+                  crs: L.CRS.Simple
+                }}
                 symbolOptions={[
                   {
                     match: {
@@ -1113,7 +1148,7 @@ class DashboardMaps extends Component {
                     props: {
                       'background-color': ({data}) => {
                         return data.color;
-                      },                      
+                      },
                       width: ({data}) => {
                         return data.type === 'small' ? '12px' : '36px';
                       },
@@ -1127,7 +1162,7 @@ class DashboardMaps extends Component {
                   }
                 ]}
                 onClick={(id) => {
-                  console.log('clicked', id)
+                  //console.log('clicked', id)
                 }} />
             }
           </div>

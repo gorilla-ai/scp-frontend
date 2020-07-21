@@ -511,6 +511,9 @@ i.c-checkbox.fg-checkbox {
   .actions {
     display: none;
   }
+  .leaflet-container {
+    //background: -webkit-linear-gradient(top, var(--gisMapBackground), var(--subHeaderBackground))
+  }
   .leaflet-tile-container img,
   .leaflet-overlay-pane img {
     filter: grayscale(100%);
@@ -534,11 +537,11 @@ i.c-checkbox.fg-checkbox {
     animation-fill-mode: forwards;
   }
   @keyframes dash {
-    0%   {opacity: .3;}
+    0%   {opacity: .1;}
     30%  {opacity: .5;}
     60%  {opacity: .7;}
     100% {opacity: 1; stroke-dashoffset: 0;}
-  }  
+  }
   .spot-big .gis-spot {
     animation-name: spotChange;
     animation-duration: 1s;
@@ -546,8 +549,8 @@ i.c-checkbox.fg-checkbox {
   }
   @keyframes spotChange {
     0%   {opacity: 1;}
-    50%  {opacity: .3;}
-    100% {opacity: 1;}
+    50%  {opacity: .3; }
+    100% {opacity: 1; }
   }
 }
 #gisMap {
