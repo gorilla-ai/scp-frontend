@@ -281,12 +281,17 @@ class Pattern extends Component {
   /**
    * Handle Pattern edit input number change
    * @method
-   * @param {string} type - input type
-   * @param {string} event - input value
+   * @param {string} type - input type ('periodMin' or 'threshold')
+   * @param {object | string} value - input value
    */
-  handleNumberChange = (type, event) => {
+  handleNumberChange = (type, value) => {
     let tempPattern = {...this.state.pattern};
-    tempPattern.info[type] = event.target.value;
+
+    if (type === 'periodMin') {
+      tempPattern[type] = value;
+    } else if (type === 'threshold') {
+      tempPattern[type] = value.target.value;
+    }
 
     this.setState({
       pattern: tempPattern
@@ -374,25 +379,32 @@ class Pattern extends Component {
                   checked={periodCheckbox}
                   onChange={this.togglePeriodCheckbox}
                   disabled={(activeContent === 'viewPattern')} />
-                <span>在 </span>
-                <input
+                <span>統整 </span>
+                <DropDownList
                   id='periodMin'
                   className='number'
-                  type='number'
-                  min='1'
-                  value={pattern.info.periodMin}
+                  list={[
+                    {value: 10, text: 10},
+                    {value: 15, text: 15},
+                    {value: 30, text: 30},
+                    {value: 60, text: 60}
+                  ]}
+                  required={true}
+                  value={pattern.periodMin}
                   onChange={this.handleNumberChange.bind(this, 'periodMin')}
                   readOnly={(activeContent === 'viewPattern') || !periodCheckbox} />
-                <span> 分鐘內超過或等於 </span>
+                <span> 分鐘資料，超過或等於 </span>
                 <input
                   id='threshold'
                   className='number'
                   type='number'
                   min='1'
-                  value={pattern.info.threshold}
+                  max='1000'
+                  required={periodCheckbox}
+                  value={pattern.threshold}
                   onChange={this.handleNumberChange.bind(this, 'threshold')}
                   readOnly={(activeContent === 'viewPattern') || !periodCheckbox} />
-                <span> 次</span>
+                <span> 次成為告警</span>
               </div>
             }
             {locale === 'en' &&
@@ -403,22 +415,29 @@ class Pattern extends Component {
                   onChange={this.togglePeriodCheckbox}
                   disabled={(activeContent === 'viewPattern')} />
                 <span>Occurs more than or equal to </span>
+                <DropDownList
+                  id='periodMin'
+                  className='number'
+                  list={[
+                    {value: 10, text: 10},
+                    {value: 15, text: 15},
+                    {value: 30, text: 30},
+                    {value: 60, text: 60}
+                  ]}
+                  required={true}
+                  value={pattern.periodMin}
+                  onChange={this.handleNumberChange.bind(this, 'periodMin')}
+                  readOnly={(activeContent === 'viewPattern') || !periodCheckbox} />
+                <span> times in </span>
                 <input
                   id='threshold'
                   className='number'
                   type='number'
                   min='1'
-                  value={pattern.info.threshold}
+                  max='1000'
+                  required={periodCheckbox}
+                  value={pattern.threshold}
                   onChange={this.handleNumberChange.bind(this, 'threshold')}
-                  readOnly={(activeContent === 'viewPattern') || !periodCheckbox} />
-                <span> times in </span>
-                <input
-                  id='periodMin'
-                  className='number'
-                  type='number'
-                  min='1'
-                  value={pattern.info.periodMin}
-                  onChange={this.handleNumberChange.bind(this, 'periodMin')}
                   readOnly={(activeContent === 'viewPattern') || !periodCheckbox} />
                 <span> minutes</span>
               </div>
@@ -513,6 +532,11 @@ class Pattern extends Component {
 
     if (!pattern.info.queryScript) {
       helper.showPopupMsg(t('system-defined-pattern.txt-queryScriptMissing'), t('txt-error'));
+      return;
+    }
+
+    if (periodCheckbox && !pattern.info.threshold) {
+      helper.showPopupMsg(t('txt-allRequired'), t('txt-error'));
       return;
     }
 

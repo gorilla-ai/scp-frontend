@@ -200,6 +200,7 @@
   "txt-listText": "列表",
   "txt-uploadPhoto": "上傳照片",
   "txt-required": "此為必填欄位",
+  "txt-allRequired": "請檢查必填欄位",
   "txt-pcapDownloadFail": "檔案下載失敗",
   "txt-pcapNotAvailable": "找不到PCAP檔案",
   "txt-file-format-error": "檔案格式必須為",

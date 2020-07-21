@@ -46,7 +46,7 @@ class QueryOpenSave extends Component {
       newQueryName: true,
       pattern: {
         name: '',
-        periodMin: '',
+        periodMin: 10,
         threshold: '',
         severity: 'Emergency'
       },
@@ -140,12 +140,29 @@ class QueryOpenSave extends Component {
         return;
       }
 
-      if (newQueryName) {
-        if (!queryData.inputName) {
+      if (newQueryName) { //Form validation
+        if (queryData.inputName) {
+          this.setState({
+            info: ''
+          });
+        } else {
           this.setState({
             info: t('events.connections.txt-noOpenQuery')
           });
           return;
+        }
+      }
+
+      if (activeTab === 'logs') { //Form validation
+        if (patternCheckbox && periodCheckbox && !pattern.threshold) {
+          this.setState({
+            info: t('txt-allRequired')
+          });
+          return;
+        } else {
+          this.setState({
+            info: ''
+          });
         }
       }
 
@@ -207,11 +224,11 @@ class QueryOpenSave extends Component {
 
           if (periodCheckbox) {
             if (pattern.periodMin) {
-              requestData.periodMin = pattern.periodMin;
+              requestData.periodMin = Number(pattern.periodMin);
             }
 
             if (pattern.threshold) {
-              requestData.threshold = pattern.threshold;
+              requestData.threshold = Number(pattern.threshold);
             }
           }
         } else { //Pattern script checkbox is unchecked
@@ -338,7 +355,7 @@ class QueryOpenSave extends Component {
             tempQueryData.patternId = '';
             tempQueryData.pattern = {
               name: '',
-              periodMin: '',
+              periodMin: 10,
               threshold: '',
               severity: ''
             };
@@ -444,13 +461,13 @@ class QueryOpenSave extends Component {
       tempQueryData.patternId = '';
       tempQueryData.pattern = {
         name: '',
-        periodMin: '',
+        periodMin: 10,
         threshold: '',
         severity: ''
       };
       tempPattern = {
         name: '',
-        periodMin: '',
+        periodMin: 10,
         threshold: '',
         severity: 'Emergency'
       };
@@ -551,12 +568,17 @@ class QueryOpenSave extends Component {
   /**
    * Handle Pattern edit input number change
    * @method
-   * @param {string} type - input type
-   * @param {string} event - input value
+   * @param {string} type - input type ('periodMin' or 'threshold')
+   * @param {object | string} value - input value
    */
-  handleNumberChange = (type, event) => {
+  handleNumberChange = (type, value) => {
     let tempPattern = {...this.state.pattern};
-    tempPattern[type] = event.target.value;
+
+    if (type === 'periodMin') {
+      tempPattern[type] = value;
+    } else if (type === 'threshold') {
+      tempPattern[type] = value.target.value;
+    }
 
     this.setState({
       pattern: tempPattern
@@ -729,25 +751,31 @@ class QueryOpenSave extends Component {
                       onChange={this.toggleCheckbox.bind(this, 'period')}
                       checked={queryData.pattern.periodMin !== '' || queryData.pattern.threshold !== ''}
                       disabled={true} />
-                    <span>在 </span>
-                    <input
+                    <span>統整 </span>
+                    <DropDownList
                       id='periodMin'
                       className='number'
-                      type='number'
-                      min='1'
-                      value={queryData.pattern.periodMin}
+                      list={[
+                        {value: 10, text: 10},
+                        {value: 15, text: 15},
+                        {value: 30, text: 30},
+                        {value: 60, text: 60}
+                      ]}
+                      required={true}
+                      value={pattern.periodMin}
                       onChange={this.handleNumberChange.bind(this, 'periodMin')}
                       readOnly={true} />
-                    <span> 分鐘內超過或等於 </span>
+                    <span> 分鐘資料，超過或等於 </span>
                     <input
                       id='threshold'
                       className='number'
                       type='number'
                       min='1'
-                      value={queryData.pattern.threshold}
+                      max='1000'
+                      value={pattern.threshold}
                       onChange={this.handleNumberChange.bind(this, 'threshold')}
                       readOnly={true} />
-                    <span> 次</span>
+                    <span> 次成為告警</span>
                   </div>
                 </div>
               }
@@ -769,12 +797,17 @@ class QueryOpenSave extends Component {
                       checked={queryData.pattern.periodMin !== '' || queryData.pattern.threshold !== ''}
                       disabled={true} />
                     <span>Occurs more than or equal to </span>
-                    <input
+                    <DropDownList
                       id='periodMin'
                       className='number'
-                      type='number'
-                      min='1'
-                      value={queryData.pattern.periodMin}
+                      list={[
+                        {value: 10, text: 10},
+                        {value: 15, text: 15},
+                        {value: 30, text: 30},
+                        {value: 60, text: 60}
+                      ]}
+                      required={true}
+                      value={pattern.periodMin}
                       onChange={this.handleNumberChange.bind(this, 'periodMin')}
                       readOnly={true} />
                     <span> times in </span>
@@ -783,6 +816,7 @@ class QueryOpenSave extends Component {
                       className='number'
                       type='number'
                       min='1'
+                      max='1000'
                       value={queryData.pattern.threshold}
                       onChange={this.handleNumberChange.bind(this, 'threshold')}
                       readOnly={true} />
@@ -903,25 +937,32 @@ class QueryOpenSave extends Component {
                       onChange={this.toggleCheckbox.bind(this, 'period')}
                       checked={periodCheckbox}
                       disabled={!patternCheckbox} />
-                    <span>在 </span>
-                    <input
+                    <span>統整 </span>
+                    <DropDownList
                       id='periodMin'
                       className='number'
-                      type='number'
-                      min='1'
+                      list={[
+                        {value: 10, text: 10},
+                        {value: 15, text: 15},
+                        {value: 30, text: 30},
+                        {value: 60, text: 60}
+                      ]}
+                      required={true}
                       value={pattern.periodMin}
                       onChange={this.handleNumberChange.bind(this, 'periodMin')}
                       disabled={!periodCheckbox} />
-                    <span> 分鐘內超過或等於 </span>
+                    <span> 分鐘資料，超過或等於 </span>
                     <input
                       id='threshold'
                       className='number'
                       type='number'
                       min='1'
+                      max='1000'
+                      required={periodCheckbox}
                       value={pattern.threshold}
                       onChange={this.handleNumberChange.bind(this, 'threshold')}
                       disabled={!periodCheckbox} />
-                    <span> 次</span>
+                    <span> 次成為告警</span>
                   </div>
                   {this.displayEmailInput()}
                 </div>
@@ -942,14 +983,19 @@ class QueryOpenSave extends Component {
                       id='periodCheckbox'
                       className='period-checkbox'
                       onChange={this.toggleCheckbox.bind(this, 'period')}
-                      checked={periodCheckbox || (pattern.periodMin || pattern.threshold)}
+                      checked={periodCheckbox}
                       disabled={!patternCheckbox} />
                     <span>Occurs more than or equal to </span>
-                    <input
+                    <DropDownList
                       id='periodMin'
                       className='number'
-                      type='number'
-                      min='1'
+                      list={[
+                        {value: 10, text: 10},
+                        {value: 15, text: 15},
+                        {value: 30, text: 30},
+                        {value: 60, text: 60}
+                      ]}
+                      required={true}
                       value={pattern.periodMin}
                       onChange={this.handleNumberChange.bind(this, 'periodMin')}
                       disabled={!periodCheckbox} />
@@ -959,6 +1005,8 @@ class QueryOpenSave extends Component {
                       className='number'
                       type='number'
                       min='1'
+                      max='1000'
+                      required={periodCheckbox}
                       value={pattern.threshold}
                       onChange={this.handleNumberChange.bind(this, 'threshold')}
                       disabled={!periodCheckbox} />
