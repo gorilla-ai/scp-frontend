@@ -125,7 +125,7 @@ class TableCell extends Component {
             </div>
           )
         } else { //Everythig else
-          return <span className={this.getBackgroundColor(fieldValue)}>{displayValue}<i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.showQueryOptions(fieldName, fieldValue)}></i></span>
+          return <span className={this.getBackgroundColor(fieldValue)}>{fieldValue}<i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.showQueryOptions(fieldName, fieldValue)}></i></span>
         }
       }
     }

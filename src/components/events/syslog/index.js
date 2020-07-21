@@ -659,7 +659,7 @@ class SyslogController extends Component {
             label: this.getCustomFieldName(tempData),
             sortable: this.checkSortable(tempData),
             formatter: (value, allValue) => {
-              let displayValue = value;
+              let displayValue = '';
 
               if (tempData === '_tableMenu_') {
                 return (
@@ -672,7 +672,9 @@ class SyslogController extends Component {
                 value = helper.getFormattedDate(value, 'local');
               }
               if (tempData === '_Raw' || tempData === 'message' || tempData === 'msg') {
-                if (value && value.length > 50) {
+                displayValue = value;
+
+                if (value.length > 50) {
                   displayValue = value.substr(0, 50) + '...';
                 }
               }
