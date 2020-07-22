@@ -153,9 +153,9 @@ class QueryOpenSave extends Component {
       }
 
       if (activeTab === 'logs') { //Form validation
-        if (patternCheckbox && !pattern.threshold) {
+        if (patternCheckbox && pattern.threshold > 1000) {
           this.setState({
-            info: t('txt-allRequired')
+            info: t('events.connections.txt-threasholdMax')
           });
           return;
         } else {

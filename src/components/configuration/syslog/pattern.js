@@ -479,6 +479,11 @@ class Pattern extends Component {
       return;
     }
 
+    if (pattern.info.threshold > 1000) {
+      helper.showPopupMsg(t('events.connections.txt-threasholdMax'));
+      return;
+    }
+
     let requestData = {
       patternName: pattern.info.name,
       severity: pattern.info.severity,
