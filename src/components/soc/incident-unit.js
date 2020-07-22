@@ -56,7 +56,7 @@ class IncidentUnit extends Component {
                     oid: '',
                     name: '',
                     level: 'A',
-                    industryType: '',
+                    industryType: '0',
                     isUse: false,
                     isDefault: false,
                     abbreviation: ''
@@ -425,6 +425,8 @@ class IncidentUnit extends Component {
             return
         }
 
+        tmpIncidentUnit.info.industryType = tmpIncidentUnit.info.industryType.toString()
+
         let apiType = 'POST';
         if (tmpIncidentUnit.info.id) {
             apiType = 'PATCH'
@@ -452,15 +454,23 @@ class IncidentUnit extends Component {
             })
     };
 
-
     checkAddData = (incidentUnit) => {
 
+
+
         if (!incidentUnit.info.oid ||
-            !incidentUnit.info.name ||
-            !incidentUnit.info.level ||
-            !incidentUnit.info.industryType) {
-            helper.showPopupMsg('', t('txt-error'), '[Unit OID],[Unit Name],[Unit Level],[Unit Industry] and [Unit Abbreviation] is required');
+            !incidentUnit.info.name||
+            !incidentUnit.info.abbreviation) {
+            helper.showPopupMsg('', t('txt-error'), '[Unit OID],[Unit Name], and [Unit Abbreviation] is required');
             return false;
+        }
+
+        if (!incidentUnit.info.level){
+            helper.showPopupMsg('', t('txt-error'), '[Unit Level] is required');
+        }
+
+        if (incidentUnit.info.industryType.toString() === ''){
+            helper.showPopupMsg('', t('txt-error'), '[Unit Industry] is required');
         }
 
 
