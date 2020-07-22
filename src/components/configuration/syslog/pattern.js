@@ -72,13 +72,12 @@ class Pattern extends Component {
           name: '',
           lastUpdateDttm: '',
           severity: '',
-          periodMin: '',
-          threshold: '',
+          periodMin: 10,
+          threshold: 1,
           queryScript: '',
           severity: 'Emergency'
         }
-      },
-      periodCheckbox: false
+      }
     };
 
     this.ah = getInstance('chewbacca');
@@ -210,13 +209,11 @@ class Pattern extends Component {
         name: '',
         lastUpdateDttm: '',
         severity: 'Emergency',
-        periodMin: '',
-        threshold: '',
+        periodMin: 10,
+        threshold: 1,
         queryScript: ''
       };
     } else if (type === 'viewPattern') {
-      const periodCheckbox = (allValue.periodMin || allValue.threshold) ? true : false;
-
       tempPattern.info = {
         id: allValue.patternId,
         name: allValue.patternName,
@@ -229,8 +226,7 @@ class Pattern extends Component {
 
       this.setState({
         showFilter: false,
-        originalPatternData: _.cloneDeep(tempPattern),
-        periodCheckbox
+        originalPatternData: _.cloneDeep(tempPattern)
       });
     } else if (type === 'addPattern') {
       this.setState({
@@ -288,22 +284,13 @@ class Pattern extends Component {
     let tempPattern = {...this.state.pattern};
 
     if (type === 'periodMin') {
-      tempPattern[type] = value;
+      tempPattern.info[type] = value;
     } else if (type === 'threshold') {
-      tempPattern[type] = value.target.value;
+      tempPattern.info[type] = value.target.value;
     }
 
     this.setState({
       pattern: tempPattern
-    });
-  }
-  /**
-   * Toggle pattern period checkbox
-   * @method
-   */
-  togglePeriodCheckbox = () => {
-    this.setState({
-      periodCheckbox: !this.state.periodCheckbox
     });
   }
   /**
@@ -313,7 +300,7 @@ class Pattern extends Component {
    */
   displayEditPatternContent = () => {
     const {locale} = this.context;
-    const {activeContent, severityList, pattern, periodCheckbox} = this.state;
+    const {activeContent, severityList, pattern} = this.state;
     let pageType = '';
 
     if (activeContent === 'addPattern') {
@@ -372,76 +359,33 @@ class Pattern extends Component {
               readOnly={activeContent === 'viewPattern'} />
           </div>
           <div className='group full'>
-            {locale === 'zh' &&
-              <div className='period'>
-                <Checkbox
-                  id='periodCheckbox'
-                  checked={periodCheckbox}
-                  onChange={this.togglePeriodCheckbox}
-                  disabled={(activeContent === 'viewPattern')} />
-                <span>統整 </span>
-                <DropDownList
-                  id='periodMin'
-                  className='number'
-                  list={[
-                    {value: 10, text: 10},
-                    {value: 15, text: 15},
-                    {value: 30, text: 30},
-                    {value: 60, text: 60}
-                  ]}
-                  required={true}
-                  value={pattern.periodMin}
-                  onChange={this.handleNumberChange.bind(this, 'periodMin')}
-                  readOnly={(activeContent === 'viewPattern') || !periodCheckbox} />
-                <span> 分鐘資料，超過或等於 </span>
-                <input
-                  id='threshold'
-                  className='number'
-                  type='number'
-                  min='1'
-                  max='1000'
-                  required={periodCheckbox}
-                  value={pattern.threshold}
-                  onChange={this.handleNumberChange.bind(this, 'threshold')}
-                  readOnly={(activeContent === 'viewPattern') || !periodCheckbox} />
-                <span> 次成為告警</span>
-              </div>
-            }
-            {locale === 'en' &&
-              <div className='period'>
-                <Checkbox
-                  id='periodCheckbox'
-                  checked={periodCheckbox}
-                  onChange={this.togglePeriodCheckbox}
-                  disabled={(activeContent === 'viewPattern')} />
-                <span>Occurs more than or equal to </span>
-                <DropDownList
-                  id='periodMin'
-                  className='number'
-                  list={[
-                    {value: 10, text: 10},
-                    {value: 15, text: 15},
-                    {value: 30, text: 30},
-                    {value: 60, text: 60}
-                  ]}
-                  required={true}
-                  value={pattern.periodMin}
-                  onChange={this.handleNumberChange.bind(this, 'periodMin')}
-                  readOnly={(activeContent === 'viewPattern') || !periodCheckbox} />
-                <span> times in </span>
-                <input
-                  id='threshold'
-                  className='number'
-                  type='number'
-                  min='1'
-                  max='1000'
-                  required={periodCheckbox}
-                  value={pattern.threshold}
-                  onChange={this.handleNumberChange.bind(this, 'threshold')}
-                  readOnly={(activeContent === 'viewPattern') || !periodCheckbox} />
-                <span> minutes</span>
-              </div>
-            }
+            <div className='period'>
+              <span>{t('events.connections.txt-patternQuery1')} </span>
+              <DropDownList
+                className='number'
+                list={[
+                  {value: 10, text: 10},
+                  {value: 15, text: 15},
+                  {value: 30, text: 30},
+                  {value: 60, text: 60}
+                ]}
+                required={true}
+                value={pattern.info.periodMin}
+                onChange={this.handleNumberChange.bind(this, 'periodMin')}
+                readOnly={activeContent === 'viewPattern'} />
+              <span> {t('events.connections.txt-patternQuery2')} </span>
+              <input
+                id='threshold'
+                className='number'
+                type='number'
+                min='1'
+                max='1000'
+                required={true}
+                value={pattern.info.threshold}
+                onChange={this.handleNumberChange.bind(this, 'threshold')}
+                readOnly={activeContent === 'viewPattern'} />
+              <span> {t('events.connections.txt-patternQuery3')}</span>
+            </div>
           </div>
         </div>
 
@@ -522,7 +466,7 @@ class Pattern extends Component {
    */
   handlePatternSubmit = () => {
     const {baseUrl} = this.context;
-    const {activeContent, pattern, periodCheckbox} = this.state;
+    const {activeContent, pattern} = this.state;
     let requestType = '';
 
     if (!pattern.info.name) {
@@ -535,21 +479,13 @@ class Pattern extends Component {
       return;
     }
 
-    if (periodCheckbox && !pattern.info.threshold) {
-      helper.showPopupMsg(t('txt-allRequired'), t('txt-error'));
-      return;
-    }
-
     let requestData = {
       patternName: pattern.info.name,
       severity: pattern.info.severity,
-      queryScript: pattern.info.queryScript
+      queryScript: pattern.info.queryScript,
+      periodMin: Number(pattern.info.periodMin),
+      threshold: Number(pattern.info.threshold)
     };
-
-    if (periodCheckbox) {
-      requestData.periodMin = pattern.info.periodMin;
-      requestData.threshold = pattern.info.threshold;
-    }
 
     if (activeContent === 'addPattern') {
       requestType = 'POST';

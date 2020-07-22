@@ -1251,19 +1251,20 @@ html[data-theme='dark'] {
 /* common/query-open-save */
 #queryDialog-dialog {
   #queryDialog-content {
-    max-width: 460px;
+    min-width: 435px;
   }
   label {
     color: var(--linkColor);
   }
   .query-name {
     float: left;
-    width: 200px;
+    width: 58%;
     height: 35px;
     margin-bottom: 10px;
     &.dropdown {
-      width: 200px;
+      width: 40%;
       margin-right: 5px;
+      margin-bottom: 15px;
     }
   }
   .filter-group {
@@ -1283,15 +1284,18 @@ html[data-theme='dark'] {
       border: 1px solid var(--formInputBorderColor);
       background-color: var(--formBackground);
     }
+    .group > div {
+      width: 100%;
+    }
     .filter-select {
       width: 215px;
     }
     .condition-select {
-      width: 100px;
+      width: 25%;
       margin-right: 3px;
     }
     .filter-inputbox {
-      width: 293px;
+      width: 74%;
       height: 35px;
       color: var(--primaryTextColor);
       border: 1px solid var(--formInputBorderColor);
@@ -1344,17 +1348,15 @@ html[data-theme='dark'] {
     margin-right: 3px;
     margin-bottom: 5px;
   }
-  #periodCheckbox {
-    float: left;
-    margin-top: 3px;
-    margin-right: 5px;
-  }
   .pattern-header {
     color: var(--linkColor);
   }
   #severityLevel {
-    width: 360px;
+    width: 93%;
     margin-bottom: 10px;
+  }
+  .email-list {
+    margin-bottom: 15px;
   }
   .flex-item {
     display: flex;
@@ -1367,9 +1369,6 @@ html[data-theme='dark'] {
       border-radius: 5px;
       background-color: var(--primaryContentHeader);
     }
-  }
-  .delete-query {
-    margin-top: 15px;
   }
   .error-msg {
     text-align: center;
