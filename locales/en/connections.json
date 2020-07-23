@@ -486,6 +486,7 @@
     "txt-success": "Total success count",
     "txt-fail": "Total fail count",
     "txt-pathFormatError": "Please check the path format",
+    "txt-includePathEmpty": "Include Path is required",
     "txt-irMsg": "IR data has been uploaded to",
     "txt-itemSelection": "Select IR Set",
     "txt-duplicatedIP": "IP already exists, please enter another IP",

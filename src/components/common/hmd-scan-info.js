@@ -1489,6 +1489,11 @@ class HMDscanInfo extends Component {
       _ExcludePathList: settingsPath.excludePath.join()
     };
 
+    if (!settingsPath.includePath.join()) {
+      helper.showPopupMsg(t('network-inventory.txt-includePathEmpty'), t('txt-error'));
+      return;
+    }
+
     this.ah.one({
       url,
       data: JSON.stringify(requestData),

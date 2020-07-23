@@ -913,23 +913,23 @@ html[data-theme='dark'] {
           background-color: var(--contentBackground) !important;
         }
       }
-      section.alert-rule,
+      .alert-rule,
       .srcIp-content,
       .destIp-content {
         margin-top: 5px;
         height: 400px;
         overflow-y: auto;
-        .rule-text {
-          float: left;
-          margin-right: 2px;
-        }
         .fg-info {
           cursor: pointer;
         }
       }
-      section.alert-rule {
+      .alert-rule {
         ul {
           background: none !important;
+        }
+        .fg-info {
+          position: absolute;
+          margin-left: 2px;
         }
       }
       .srcIp-content,

@@ -536,6 +536,10 @@ class AlertDetails extends Component {
    * @param {object} alertData - Alert data type
    */
   getContent = (type, alertData) => {
+    if (type === 'attack' && this.state.alertType !== 'pot_attack') {
+      return;
+    }
+
     this.setState({
       showContent: {
         rule: false,
@@ -796,9 +800,7 @@ class AlertDetails extends Component {
           <div className='nav'>
             <ul>
               <li onClick={this.getContent.bind(this, 'rule')}><span className={cx({'active': showContent.rule})}>{t('alert.txt-rule')}</span></li>
-              {alertType === 'pot_attack' &&
-                <li onClick={this.getContent.bind(this, 'attack')}><span className={cx({'active': showContent.attack})}>{t('alert.txt-attack')}</span></li>
-              }
+              <li className={cx({'not-allowed': alertType !== 'pot_attack'})} onClick={this.getContent.bind(this, 'attack')}><span className={cx({'active': showContent.attack})}>{t('alert.txt-attack')}</span></li>
               <li onClick={this.getContent.bind(this, 'json')}><span className={cx({'active': showContent.json})}>{t('alert.txt-viewJSON')}</span></li>
               <li className='header'>
                 <span className='name'>{t('alert.txt-ipSrc')}</span>
@@ -937,7 +939,7 @@ class AlertDetails extends Component {
    * @returns HTML DOM
    */
   showRuleContent = (val, i) => {
-    return <li key={i}>{val.rule}</li>
+    return <li key={i}>{val.rule}<i className='fg fg-info' title={t('txt-info')} onClick={this.showSeverityInfo}></i></li>
   }
   /**
    * Display pattern refs data
@@ -1004,17 +1006,16 @@ class AlertDetails extends Component {
           return (
             <ul className='alert-rule'>
               {alertRule.map(this.showRuleContent)}
-              <span className='rule-text'>{alertRule}</span><i className='fg fg-info' title={t('txt-info')} onClick={this.showSeverityInfo}></i>
               {this.showRuleRefsData()}
             </ul>
           )
         }
       } else { //alertRule is a string
         return (
-          <section className='alert-rule'>
-            <span className='rule-text'>{alertRule}</span><i className='fg fg-info' title={t('txt-info')} onClick={this.showSeverityInfo}></i>
+          <div className='alert-rule'>
+            <span>{alertRule}</span><i className='fg fg-info' title={t('txt-info')} onClick={this.showSeverityInfo}></i>
             {this.showRuleRefsData()}
-          </section>
+          </div>
         )
       }
     } else {
@@ -1215,21 +1216,33 @@ class AlertDetails extends Component {
   /**
    * Toggle yara rule dialog
    * @method
+   * @param {string} [ipType] - 'srcIp' or 'destIp'
    */
   toggleYaraRule = (ipType) => {
+    if (ipType) {
+      this.setState({
+        ipType
+      });
+    }
+
     this.setState({
-      modalYaraRuleOpen: !this.state.modalYaraRuleOpen,
-      ipType
+      modalYaraRuleOpen: !this.state.modalYaraRuleOpen
     });
   }
   /**
    * Toggle IR combo selection dialog
    * @method
+   * @param {string} [ipType] - 'srcIp' or 'destIp'
    */
   toggleSelectionIR = (ipType) => {
+    if (ipType) {
+      this.setState({
+        ipType
+      });
+    }
+
     this.setState({
-      modalIRopen: !this.state.modalIRopen,
-      ipType
+      modalIRopen: !this.state.modalIRopen
     });
   }
   /**
@@ -1274,6 +1287,10 @@ class AlertDetails extends Component {
         }
 
         this.getHMDinfo(ipType);
+
+        this.setState({
+          modalIRopen: !this.state.modalIRopen
+        });
       }
       return null;
     })
