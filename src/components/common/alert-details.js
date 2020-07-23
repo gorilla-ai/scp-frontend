@@ -364,7 +364,8 @@ class AlertDetails extends Component {
 
           this.setState({
             alertInfo: tempAlertInfo,
-            ipDeviceInfo: tempIPdeviceInfo
+            ipDeviceInfo: tempIPdeviceInfo,
+            modalIRopen: false
           });
         }
       }
@@ -565,9 +566,11 @@ class AlertDetails extends Component {
           tempShowContent.attack = true;
           break;
         case 'srcIp':
+          this.getHMDinfo(type);
           tempShowContent.srcIp = true;
           break;
         case 'destIp':
+          this.getHMDinfo(type);
           tempShowContent.destIp = true;
           break;
         case 'srcSafety':
@@ -706,7 +709,7 @@ class AlertDetails extends Component {
     }
 
     if (ip && ip !== NOT_AVAILABLE) {
-      return <div className='qurey-more' onClick={this.toggleRedirectMenu}>{t('alert.txt-queryMore')}</div>
+      return <div className='query-more' onClick={this.toggleRedirectMenu}>{t('alert.txt-queryMore')}</div>
     }
   }
   /**
@@ -832,8 +835,8 @@ class AlertDetails extends Component {
 
               {(showContent.srcIp || showContent.destIp) &&
                 <section>
-                  {this.getRedirectIp()}
                   {this.getQueryMore()}
+                  {this.getRedirectIp()}
                 </section>
               }
             </div>
@@ -1181,37 +1184,37 @@ class AlertDetails extends Component {
   displayIPcontent = (ipType) => {
     const {alertInfo} = this.state;
 
-    return (
-      <div>
-        {(_.isEmpty(alertInfo[ipType].topology) && _.isEmpty(alertInfo[ipType].location)) && 
-          <span>{NOT_AVAILABLE}</span>
-        }
+    if (_.isEmpty(alertInfo[ipType].topology) && _.isEmpty(alertInfo[ipType].location)) {
+      return <span>{NOT_AVAILABLE}</span>;
+    } else {
+      return (
+        <div>
+          {ipType === 'srcIp' && alertInfo[ipType].locationType === 1 && //Public
+            <div className='srcIp-content'>
+              {this.getPublicIPcontent(ipType)}
+            </div>
+          }
 
-        {ipType === 'srcIp' && alertInfo[ipType].locationType === 1 && //Public
-          <div className='srcIp-content'>
-            {this.getPublicIPcontent(ipType)}
-          </div>
-        }
+          {ipType === 'srcIp' && alertInfo[ipType].locationType === 2 && //Private
+            <div className='srcIp-content'>
+              {this.getPrivateInfo(ipType)}
+            </div>
+          }
 
-        {ipType === 'srcIp' && alertInfo[ipType].locationType === 2 && //Private
-          <div className='srcIp-content'>
-            {this.getPrivateInfo(ipType)}
-          </div>
-        }
+          {ipType === 'destIp' && alertInfo[ipType].locationType === 1 && //Public
+            <div className='destIp-content'>
+              {this.getPublicIPcontent(ipType)}
+            </div>
+          }
 
-        {ipType === 'destIp' && alertInfo[ipType].locationType === 1 && //Public
-          <div className='destIp-content'>
-            {this.getPublicIPcontent(ipType)}
-          </div>
-        }
-
-        {ipType === 'destIp' && alertInfo[ipType].locationType === 2 && //Private
-          <div className='destIp-content'>
-            {this.getPrivateInfo(ipType)}
-          </div>
-        }
-      </div>
-    )
+          {ipType === 'destIp' && alertInfo[ipType].locationType === 2 && //Private
+            <div className='destIp-content'>
+              {this.getPrivateInfo(ipType)}
+            </div>
+          }
+        </div>
+      )
+    }
   }
   /**
    * Toggle yara rule dialog
@@ -1287,10 +1290,6 @@ class AlertDetails extends Component {
         }
 
         this.getHMDinfo(ipType);
-
-        this.setState({
-          modalIRopen: !this.state.modalIRopen
-        });
       }
       return null;
     })

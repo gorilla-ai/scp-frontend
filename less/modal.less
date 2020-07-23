@@ -860,16 +860,15 @@ html[data-theme='dark'] {
       width: 100%;
       background-color: var(--contentBackground);
       .options-buttons {
-        text-align: right;
-        cursor: pointer;
+        overflow: hidden;
         div {
           cursor: pointer;
-          &.redirect-ip {
-            float: left;
-            margin-right: 10px;
-          }
           &.query-more {
-            float: left;
+            float: right;
+          }
+          &.redirect-ip {
+            float: right;
+            margin-right: 5px;
           }
         }
       }

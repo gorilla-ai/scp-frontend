@@ -1338,6 +1338,7 @@ class NetworkInventory extends Component {
 
         this.setState({
           showScanInfo: true,
+          modalIRopen: false,
           deviceData: tempDeviceData,
           currentDeviceData: data,
           activeIPdeviceUUID: ipDeviceUUID
@@ -1411,10 +1412,6 @@ class NetworkInventory extends Component {
         if (type.length > 0 && options !== 'fromInventory') {
           this.getIPdeviceInfo('', currentDeviceData.ipDeviceUUID);
         }
-
-        this.setState({
-          modalIRopen: !this.state.modalIRopen
-        });
       }
       return null;
     })
