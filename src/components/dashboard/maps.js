@@ -1140,6 +1140,9 @@ class DashboardMaps extends Component {
                 mapOptions={{
                   crs: L.CRS.Simple
                 }}
+                onClick={(id) => {
+                  //console.log('clicked', id)
+                }}
                 symbolOptions={[
                   {
                     match: {
@@ -1161,9 +1164,8 @@ class DashboardMaps extends Component {
                     }
                   }
                 ]}
-                onClick={(id) => {
-                  //console.log('clicked', id)
-                }} />
+                layouts={['standard']}
+                dragModes={['pan']} />
             }
           </div>
         </div>
