@@ -253,7 +253,7 @@ class HMDsettings extends Component {
             </div>
           }
 
-          <div className='hmd-settings' style={{'height': activeContent === 'viewMode' ? '70vh' : '70vh'}}>
+          <div className='hmd-settings' style={{height: activeContent === 'viewMode' ? '70vh' : '70vh'}}>
             <div className='form-group normal long'>
               <header>{t('network-inventory.scan-list.txt-scanFile')}</header>
               <div className='group'>

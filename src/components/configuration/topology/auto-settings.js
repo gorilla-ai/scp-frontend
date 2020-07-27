@@ -589,7 +589,7 @@ class AutoSettings extends Component {
             </div>
           }
 
-          <div className='auto-settings' style={{'height': activeContent === 'viewMode' ? '78vh' : '70vh'}}>
+          <div className='auto-settings' style={{height: activeContent === 'viewMode' ? '78vh' : '70vh'}}>
             <div className='form-group normal'>
               <header>{t('network-inventory.auto-settings.txt-ipRange')}</header>
               <ToggleBtn
