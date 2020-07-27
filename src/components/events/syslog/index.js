@@ -119,6 +119,7 @@ class SyslogController extends Component {
       queryData: {
         id: '',
         name: '',
+        patternId: '',
         inputName: '',
         displayId: '',
         displayName: '',
@@ -658,6 +659,8 @@ class SyslogController extends Component {
             label: this.getCustomFieldName(tempData),
             sortable: this.checkSortable(tempData),
             formatter: (value, allValue) => {
+              let displayValue = '';
+
               if (tempData === '_tableMenu_') {
                 return (
                   <div className={cx('table-menu', {'active': value})}>
@@ -669,10 +672,10 @@ class SyslogController extends Component {
                 value = helper.getFormattedDate(value, 'local');
               }
               if (tempData === '_Raw' || tempData === 'message' || tempData === 'msg') {
-                if (value) {
-                  value = value.substr(0, 50) + '...';
-                } else {
-                  value = value;
+                displayValue = value;
+
+                if (value && value.length > 50) {
+                  displayValue = value.substr(0, 50) + '...';
                 }
               }
               if (typeof value === 'boolean') {
@@ -682,6 +685,7 @@ class SyslogController extends Component {
                 <TableCell
                   activeTab={activeTab}
                   fieldValue={value}
+                  displayValue={displayValue}
                   fieldName={tempData}
                   allValue={allValue}
                   markData={markData}
@@ -1714,7 +1718,7 @@ class SyslogController extends Component {
   /**
    * Set notify email data
    * @method
-   * @param {object} queryData - query data to be set
+   * @param {array.<string>} notifyEmailData - email data to be set
    */
   setNotifyEmailData = (notifyEmailData) => {
     this.setState({

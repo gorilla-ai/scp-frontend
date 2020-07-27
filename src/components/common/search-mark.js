@@ -3,8 +3,6 @@ import PropTypes from 'prop-types'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import Input from 'react-ui/build/src/components/input'
-
 import helper from './helper'
 
 /**
@@ -20,9 +18,9 @@ class SearchMark extends Component {
   /**
    * Set search mark input
    * @method
-   * @param {string} value - input value
+   * @param {object} event - input value
    */
-  handleDataChange = (value) => {
+  handleDataChange = (event) => {
     const {markData} = this.props;
     let index = '';
 
@@ -33,7 +31,7 @@ class SearchMark extends Component {
     })
 
     this.props.onChange({
-      data: value,
+      data: event.target.value.trim(),
       color: helper.getColor(index)
     });
   }
@@ -45,9 +43,9 @@ class SearchMark extends Component {
     return (
       <div>
         <i className={'c-link fg fg-recode ' + value.color}></i>
-        <Input
-          className='mark-inputbox'
-          value={inputValue}
+        <input
+          id='mark-inputbox'
+          type='text'
           onChange={this.handleDataChange}
           disabled={formStatus} />
       </div>

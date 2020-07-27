@@ -171,7 +171,7 @@ class Relationships extends Component {
                   },
                   value: {
                     label: t('syslogFields.value'),
-                    style:{textAlign: 'left'}
+                    style: {textAlign: 'left'}
                   },
                   node: {
                     label: '',

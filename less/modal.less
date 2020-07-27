@@ -860,16 +860,15 @@ html[data-theme='dark'] {
       width: 100%;
       background-color: var(--contentBackground);
       .options-buttons {
-        text-align: right;
-        cursor: pointer;
+        overflow: hidden;
         div {
           cursor: pointer;
-          &.redirect-ip {
-            float: left;
-            margin-right: 10px;
-          }
           &.query-more {
-            float: left;
+            float: right;
+          }
+          &.redirect-ip {
+            float: right;
+            margin-right: 5px;
           }
         }
       }
@@ -913,23 +912,23 @@ html[data-theme='dark'] {
           background-color: var(--contentBackground) !important;
         }
       }
-      section.alert-rule,
+      .alert-rule,
       .srcIp-content,
       .destIp-content {
         margin-top: 5px;
         height: 400px;
         overflow-y: auto;
-        .rule-text {
-          float: left;
-          margin-right: 2px;
-        }
         .fg-info {
           cursor: pointer;
         }
       }
-      section.alert-rule {
+      .alert-rule {
         ul {
           background: none !important;
+        }
+        .fg-info {
+          position: absolute;
+          margin-left: 2px;
         }
       }
       .srcIp-content,
@@ -1251,19 +1250,20 @@ html[data-theme='dark'] {
 /* common/query-open-save */
 #queryDialog-dialog {
   #queryDialog-content {
-    max-width: 428px;
+    min-width: 435px;
   }
   label {
     color: var(--linkColor);
   }
   .query-name {
     float: left;
-    width: 200px;
+    width: 58%;
     height: 35px;
     margin-bottom: 10px;
     &.dropdown {
-      width: 200px;
+      width: 40%;
       margin-right: 5px;
+      margin-bottom: 15px;
     }
   }
   .filter-group {
@@ -1283,15 +1283,18 @@ html[data-theme='dark'] {
       border: 1px solid var(--formInputBorderColor);
       background-color: var(--formBackground);
     }
+    .group > div {
+      width: 100%;
+    }
     .filter-select {
       width: 215px;
     }
     .condition-select {
-      width: 100px;
+      width: 25%;
       margin-right: 3px;
     }
     .filter-inputbox {
-      width: 293px;
+      width: 74%;
       height: 35px;
       color: var(--primaryTextColor);
       border: 1px solid var(--formInputBorderColor);
@@ -1331,7 +1334,7 @@ html[data-theme='dark'] {
       color: var(--primaryContentHeader);
       margin-top: 5px;
       margin-bottom: 10px;
-      input.number {
+      .number {
         width: 65px;
       }
     }
@@ -1344,17 +1347,15 @@ html[data-theme='dark'] {
     margin-right: 3px;
     margin-bottom: 5px;
   }
-  #periodCheckbox {
-    float: left;
-    margin-top: 3px;
-    margin-right: 5px;
-  }
   .pattern-header {
     color: var(--linkColor);
   }
   #severityLevel {
-    width: 360px;
+    width: 93%;
     margin-bottom: 10px;
+  }
+  .email-list {
+    margin-bottom: 15px;
   }
   .flex-item {
     display: flex;
@@ -1367,9 +1368,6 @@ html[data-theme='dark'] {
       border-radius: 5px;
       background-color: var(--primaryContentHeader);
     }
-  }
-  .delete-query {
-    margin-top: 15px;
   }
   .error-msg {
     text-align: center;

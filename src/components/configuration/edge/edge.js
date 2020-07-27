@@ -205,15 +205,15 @@ class Edge extends Component {
    * @returns HTML DOM
    */
   getServiceStatus = (val, i) => {
-    let colorStyle = ''; //Default no color
+    let color = ''; //Default no color
 
     if (val.isNoted) { //Show red color
-      colorStyle = '#d10d25';
+      color = '#d10d25';
     }
 
     return (
       <ul key={i}>
-        <li key={val}><span className='header'>{val.serviceName}:</span> <span style={{'color': colorStyle}}>{val.status}</span></li>
+        <li key={val}><span className='header'>{val.serviceName}:</span> <span style={{color}}>{val.status}</span></li>
       </ul>
     )
   }

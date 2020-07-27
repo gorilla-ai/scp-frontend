@@ -193,17 +193,17 @@ class NetworkInventory extends Component {
     }
 
     if (val.type === 'gcb' && val.result.GCBResultTotalCnt >= 0 && val.result.GCBResultPassCnt >= 0) {
-      let colorStyle = '#d10d25'; //Default red color
+      let color = '#d10d25'; //Default red color
 
       if (val.result.GCBResultTotalCnt === val.result.GCBResultPassCnt) { //Show green color for all pass
-        colorStyle = '#22ac38';
+        color = '#22ac38';
       }
 
-      return <li key={i} style={{'color': colorStyle}}><span>{val.name} {t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}:</span> {val.result.GCBResultPassCnt}/{val.result.GCBResultTotalCnt}</li>
+      return <li key={i} style={{color}}><span>{val.name} {t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}:</span> {val.result.GCBResultPassCnt}/{val.result.GCBResultTotalCnt}</li>
     } else {
       if (val.result.ScanResultTotalCnt >= 0 || val.result.DetectionResultTotalCnt >= 0 || val.result.getFileIntegrityTotalCnt >= 0) {
         let totalCount = 0;
-        let colorStyle = '#22ac38'; //Default green color
+        let color = '#22ac38'; //Default green color
         let text = t('network-inventory.txt-suspiciousFileCount');
 
         if (val.type === 'yara') {
@@ -216,10 +216,10 @@ class NetworkInventory extends Component {
         }
 
         if (totalCount > 0) { //Show red color
-          colorStyle = '#d10d25';
+          color = '#d10d25';
         }
 
-        return <li key={i} style={{'color': colorStyle}}>{val.name} {text}: {totalCount}</li>
+        return <li key={i} style={{color}}>{val.name} {text}: {totalCount}</li>
       }
     }
   }
@@ -975,7 +975,7 @@ class NetworkInventory extends Component {
     const {showFilter, hmdCheckbox, hmdSelectAll, hmdSearchOptions, deviceSearch} = this.state;
 
     return (
-      <div className={cx('main-filter', {'active': showFilter})} style={{'minHeight' : '220px'}}>
+      <div className={cx('main-filter', {'active': showFilter})} style={{minHeight : '220px'}}>
         <i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}></i>
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
@@ -1338,6 +1338,7 @@ class NetworkInventory extends Component {
 
         this.setState({
           showScanInfo: true,
+          modalIRopen: false,
           deviceData: tempDeviceData,
           currentDeviceData: data,
           activeIPdeviceUUID: ipDeviceUUID
