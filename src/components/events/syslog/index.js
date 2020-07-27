@@ -674,7 +674,7 @@ class SyslogController extends Component {
               if (tempData === '_Raw' || tempData === 'message' || tempData === 'msg') {
                 displayValue = value;
 
-                if (value.length > 50) {
+                if (value && value.length > 50) {
                   displayValue = value.substr(0, 50) + '...';
                 }
               }

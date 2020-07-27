@@ -364,7 +364,8 @@ class AlertDetails extends Component {
 
           this.setState({
             alertInfo: tempAlertInfo,
-            ipDeviceInfo: tempIPdeviceInfo
+            ipDeviceInfo: tempIPdeviceInfo,
+            modalIRopen: false
           });
         }
       }
@@ -536,6 +537,10 @@ class AlertDetails extends Component {
    * @param {object} alertData - Alert data type
    */
   getContent = (type, alertData) => {
+    if (type === 'attack' && this.state.alertType !== 'pot_attack') {
+      return;
+    }
+
     this.setState({
       showContent: {
         rule: false,
@@ -561,9 +566,11 @@ class AlertDetails extends Component {
           tempShowContent.attack = true;
           break;
         case 'srcIp':
+          this.getHMDinfo(type);
           tempShowContent.srcIp = true;
           break;
         case 'destIp':
+          this.getHMDinfo(type);
           tempShowContent.destIp = true;
           break;
         case 'srcSafety':
@@ -600,23 +607,23 @@ class AlertDetails extends Component {
    * @returns HTML DOM
    */
   getSeverity = (value) => {
-    let styleStatus = '';
+    let backgroundColor = '';
 
     if (value === 'Emergency') {
-      styleStatus = '#CC2943';
+      backgroundColor = '#CC2943';
     } else if (value === 'Alert') {
-      styleStatus = '#CC7B29';
+      backgroundColor = '#CC7B29';
     } else if (value === 'Critical') {
-      styleStatus = '#29B0CC';
+      backgroundColor = '#29B0CC';
     } else if (value === 'Warning') {
-      styleStatus = '#29CC7A';
+      backgroundColor = '#29CC7A';
     } else if (value === 'Notice') {
-      styleStatus = '#7ACC29';
+      backgroundColor = '#7ACC29';
     } else if (value === NOT_AVAILABLE) {
       return {NOT_AVAILABLE}
     }
 
-    return <span className='severity' style={{backgroundColor: styleStatus}}>{value}</span>
+    return <span className='severity' style={{backgroundColor}}>{value}</span>
   }
   /**
    * Handle pcap download button
@@ -702,7 +709,7 @@ class AlertDetails extends Component {
     }
 
     if (ip && ip !== NOT_AVAILABLE) {
-      return <div className='qurey-more' onClick={this.toggleRedirectMenu}>{t('alert.txt-queryMore')}</div>
+      return <div className='query-more' onClick={this.toggleRedirectMenu}>{t('alert.txt-queryMore')}</div>
     }
   }
   /**
@@ -796,9 +803,7 @@ class AlertDetails extends Component {
           <div className='nav'>
             <ul>
               <li onClick={this.getContent.bind(this, 'rule')}><span className={cx({'active': showContent.rule})}>{t('alert.txt-rule')}</span></li>
-              {alertType === 'pot_attack' &&
-                <li onClick={this.getContent.bind(this, 'attack')}><span className={cx({'active': showContent.attack})}>{t('alert.txt-attack')}</span></li>
-              }
+              <li className={cx({'not-allowed': alertType !== 'pot_attack'})} onClick={this.getContent.bind(this, 'attack')}><span className={cx({'active': showContent.attack})}>{t('alert.txt-attack')}</span></li>
               <li onClick={this.getContent.bind(this, 'json')}><span className={cx({'active': showContent.json})}>{t('alert.txt-viewJSON')}</span></li>
               <li className='header'>
                 <span className='name'>{t('alert.txt-ipSrc')}</span>
@@ -830,8 +835,8 @@ class AlertDetails extends Component {
 
               {(showContent.srcIp || showContent.destIp) &&
                 <section>
-                  {this.getRedirectIp()}
                   {this.getQueryMore()}
+                  {this.getRedirectIp()}
                 </section>
               }
             </div>
@@ -937,7 +942,7 @@ class AlertDetails extends Component {
    * @returns HTML DOM
    */
   showRuleContent = (val, i) => {
-    return <li key={i}>{val.rule}</li>
+    return <li key={i}>{val.rule}<i className='fg fg-info' title={t('txt-info')} onClick={this.showSeverityInfo}></i></li>
   }
   /**
    * Display pattern refs data
@@ -1004,17 +1009,16 @@ class AlertDetails extends Component {
           return (
             <ul className='alert-rule'>
               {alertRule.map(this.showRuleContent)}
-              <span className='rule-text'>{alertRule}</span><i className='fg fg-info' title={t('txt-info')} onClick={this.showSeverityInfo}></i>
               {this.showRuleRefsData()}
             </ul>
           )
         }
       } else { //alertRule is a string
         return (
-          <section className='alert-rule'>
-            <span className='rule-text'>{alertRule}</span><i className='fg fg-info' title={t('txt-info')} onClick={this.showSeverityInfo}></i>
+          <div className='alert-rule'>
+            <span>{alertRule}</span><i className='fg fg-info' title={t('txt-info')} onClick={this.showSeverityInfo}></i>
             {this.showRuleRefsData()}
-          </section>
+          </div>
         )
       }
     } else {
@@ -1180,56 +1184,68 @@ class AlertDetails extends Component {
   displayIPcontent = (ipType) => {
     const {alertInfo} = this.state;
 
-    return (
-      <div>
-        {(_.isEmpty(alertInfo[ipType].topology) && _.isEmpty(alertInfo[ipType].location)) && 
-          <span>{NOT_AVAILABLE}</span>
-        }
+    if (_.isEmpty(alertInfo[ipType].topology) && _.isEmpty(alertInfo[ipType].location)) {
+      return <span>{NOT_AVAILABLE}</span>;
+    } else {
+      return (
+        <div>
+          {ipType === 'srcIp' && alertInfo[ipType].locationType === 1 && //Public
+            <div className='srcIp-content'>
+              {this.getPublicIPcontent(ipType)}
+            </div>
+          }
 
-        {ipType === 'srcIp' && alertInfo[ipType].locationType === 1 && //Public
-          <div className='srcIp-content'>
-            {this.getPublicIPcontent(ipType)}
-          </div>
-        }
+          {ipType === 'srcIp' && alertInfo[ipType].locationType === 2 && //Private
+            <div className='srcIp-content'>
+              {this.getPrivateInfo(ipType)}
+            </div>
+          }
 
-        {ipType === 'srcIp' && alertInfo[ipType].locationType === 2 && //Private
-          <div className='srcIp-content'>
-            {this.getPrivateInfo(ipType)}
-          </div>
-        }
+          {ipType === 'destIp' && alertInfo[ipType].locationType === 1 && //Public
+            <div className='destIp-content'>
+              {this.getPublicIPcontent(ipType)}
+            </div>
+          }
 
-        {ipType === 'destIp' && alertInfo[ipType].locationType === 1 && //Public
-          <div className='destIp-content'>
-            {this.getPublicIPcontent(ipType)}
-          </div>
-        }
-
-        {ipType === 'destIp' && alertInfo[ipType].locationType === 2 && //Private
-          <div className='destIp-content'>
-            {this.getPrivateInfo(ipType)}
-          </div>
-        }
-      </div>
-    )
+          {ipType === 'destIp' && alertInfo[ipType].locationType === 2 && //Private
+            <div className='destIp-content'>
+              {this.getPrivateInfo(ipType)}
+            </div>
+          }
+        </div>
+      )
+    }
   }
   /**
    * Toggle yara rule dialog
    * @method
+   * @param {string} [ipType] - 'srcIp' or 'destIp'
    */
   toggleYaraRule = (ipType) => {
+    if (ipType) {
+      this.setState({
+        ipType
+      });
+    }
+
     this.setState({
-      modalYaraRuleOpen: !this.state.modalYaraRuleOpen,
-      ipType
+      modalYaraRuleOpen: !this.state.modalYaraRuleOpen
     });
   }
   /**
    * Toggle IR combo selection dialog
    * @method
+   * @param {string} [ipType] - 'srcIp' or 'destIp'
    */
   toggleSelectionIR = (ipType) => {
+    if (ipType) {
+      this.setState({
+        ipType
+      });
+    }
+
     this.setState({
-      modalIRopen: !this.state.modalIRopen,
-      ipType
+      modalIRopen: !this.state.modalIRopen
     });
   }
   /**
