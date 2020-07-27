@@ -1227,6 +1227,7 @@ class Netflow extends Component {
           if (key.length > 25) {
             formattedKey = key.substr(0, 28) + '...';
           }
+
           label = <span>{formattedKey} ({totalHostCount}) <button className={cx('button', {'active': currentTreeName === key})} onClick={this.selectTree.bind(this, key, 'dstSvcname')}>{t('events.connections.txt-addFilter')}</button></span>;
         }
 
