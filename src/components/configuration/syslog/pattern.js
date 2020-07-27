@@ -30,6 +30,7 @@ const ALERT_LEVEL_COLORS = {
   Warning: '#29CC7A',
   Notice: '#7ACC29'
 };
+const PERIOD_MIN = [10, 15, 30, 60];
 
 /**
  * Pattern
@@ -55,6 +56,7 @@ class Pattern extends Component {
       },
       originalPatternData: {},
       severityList: [],
+      periodMinList: [],
       currentPatternData: '',
       pattern: {
         dataFieldsArr: ['patternName', 'severity', 'queryScript', 'periodMin', 'threshold', 'lastUpdateDttm', '_menu'],
@@ -95,7 +97,8 @@ class Pattern extends Component {
    */
   setDefaultSearchOptions = () => {
     let tempPatternSearch = {...this.state.patternSearch};
-    let severityList = [];   
+    let severityList = [];
+    let periodMinList = [];
 
     _.forEach(SEVERITY_TYPE, val => {
       tempPatternSearch.severity[val] = false;
@@ -105,9 +108,14 @@ class Pattern extends Component {
       });
     })
 
+    periodMinList = _.map(PERIOD_MIN, val => {
+      return { value: val, text: val }
+    });
+
     this.setState({
       patternSearch: tempPatternSearch,
-      severityList
+      severityList,
+      periodMinList
     }, () => {
       this.getPatternScript();
     });
@@ -300,7 +308,7 @@ class Pattern extends Component {
    */
   displayEditPatternContent = () => {
     const {locale} = this.context;
-    const {activeContent, severityList, pattern} = this.state;
+    const {activeContent, severityList, periodMinList, pattern} = this.state;
     let pageType = '';
 
     if (activeContent === 'addPattern') {
@@ -363,12 +371,7 @@ class Pattern extends Component {
               <span>{t('events.connections.txt-patternQuery1')} </span>
               <DropDownList
                 className='number'
-                list={[
-                  {value: 10, text: 10},
-                  {value: 15, text: 15},
-                  {value: 30, text: 30},
-                  {value: 60, text: 60}
-                ]}
+                list={periodMinList}
                 required={true}
                 value={pattern.info.periodMin}
                 onChange={this.handleNumberChange.bind(this, 'periodMin')}
@@ -476,6 +479,11 @@ class Pattern extends Component {
 
     if (!pattern.info.queryScript) {
       helper.showPopupMsg(t('system-defined-pattern.txt-queryScriptMissing'), t('txt-error'));
+      return;
+    }
+
+    if (!pattern.info.threshold || !_.includes(PERIOD_MIN, Number(pattern.info.periodMin))) {
+      helper.showPopupMsg(t('txt-allRequired'));
       return;
     }
 
