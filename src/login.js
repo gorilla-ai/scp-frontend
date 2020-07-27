@@ -92,7 +92,15 @@ class Login extends Component {
             if (data.rt.returnCode === '0') {
               licenseCheck = data.rt.isValid === '1'
             }
-          }          
+          }
+
+          this.setState({
+            license: licenseCheck
+          }, () => {
+            if (this.state.license && this.username) {
+              this.username.focus();
+            }
+          })
         })
         .catch(err => {
           helper.showPopupMsg('', t('txt-error'), err.message);
