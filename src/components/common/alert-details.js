@@ -607,23 +607,23 @@ class AlertDetails extends Component {
    * @returns HTML DOM
    */
   getSeverity = (value) => {
-    let styleStatus = '';
+    let backgroundColor = '';
 
     if (value === 'Emergency') {
-      styleStatus = '#CC2943';
+      backgroundColor = '#CC2943';
     } else if (value === 'Alert') {
-      styleStatus = '#CC7B29';
+      backgroundColor = '#CC7B29';
     } else if (value === 'Critical') {
-      styleStatus = '#29B0CC';
+      backgroundColor = '#29B0CC';
     } else if (value === 'Warning') {
-      styleStatus = '#29CC7A';
+      backgroundColor = '#29CC7A';
     } else if (value === 'Notice') {
-      styleStatus = '#7ACC29';
+      backgroundColor = '#7ACC29';
     } else if (value === NOT_AVAILABLE) {
       return {NOT_AVAILABLE}
     }
 
-    return <span className='severity' style={{backgroundColor: styleStatus}}>{value}</span>
+    return <span className='severity' style={{backgroundColor}}>{value}</span>
   }
   /**
    * Handle pcap download button

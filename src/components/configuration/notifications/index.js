@@ -502,7 +502,7 @@ class Notifications extends Component {
                 </div>
               }
 
-              <div className='config-notify' style={{'height': activeContent === 'viewMode' ? '78vh' : '70vh'}}>
+              <div className='config-notify' style={{height: activeContent === 'viewMode' ? '78vh' : '70vh'}}>
                 <div className='form-group normal short'>
                   <header>{t('notifications.txt-emailSettings')}</header>
                   <button className='last' onClick={this.openEmailDialog} disabled={activeContent === 'editMode'}>{t('notifications.txt-testEmails')}</button>

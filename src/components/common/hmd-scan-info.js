@@ -320,21 +320,21 @@ class HMDscanInfo extends Component {
               return <span>{value}</span>
             }
             if (tempData === '_CompareResult') {
-              let styleStatus = '';
+              let color = '';
               let tooltip = '';
 
               if (value) {
-                styleStatus = '#22ac38';
+                color = '#22ac38';
                 value = 'Pass';
               } else {
-                styleStatus = '#d0021b';
+                color = '#d0021b';
                 value = 'Fail';
               }
 
               tooltip += 'GPO Value: ' + (allValue._GpoValue || 'N/A');
               tooltip += ' / GCB Value: ' + (allValue._GcbValue || 'N/A');
 
-              return <span style={{color : styleStatus}} title={tooltip}>{value}</span>
+              return <span style={{color}} title={tooltip}>{value}</span>
             }
           }
         };
@@ -919,8 +919,8 @@ class HMDscanInfo extends Component {
    */
   getSuspiciousFileCount = (dataResult) => {
     if (dataResult) {
-      const styleColor = dataResult.length === 0 ? '#22ac38' : '#d10d25'; //green : red
-      return <span style={{'color': styleColor}}>{t('network-inventory.txt-suspiciousFileCount')}: {dataResult.length}</span>
+      const color = dataResult.length === 0 ? '#22ac38' : '#d10d25'; //green : red
+      return <span style={{color}}>{t('network-inventory.txt-suspiciousFileCount')}: {dataResult.length}</span>
     }
   }
   /**
@@ -936,9 +936,9 @@ class HMDscanInfo extends Component {
       const gcbFilteredResult = hmdInfo.gcb.filteredResult;
 
       if (gcbFilteredResult) {
-        const styleColor = gcbFilteredResult.length === gcbDataResult.length ? '#22ac38' : '#d10d25'; //green : red
+        const color = gcbFilteredResult.length === gcbDataResult.length ? '#22ac38' : '#d10d25'; //green : red
 
-        return <span style={{'color': styleColor}}>{t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}: {gcbFilteredResult.length}/{gcbDataResult.length}</span>
+        return <span style={{color}}>{t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}: {gcbFilteredResult.length}/{gcbDataResult.length}</span>
       }
     }
   }

@@ -708,7 +708,7 @@ class ThreatIntelligence extends Component {
             sortable: tempData === '_menu' ? null : true,
             formatter: (value, allValue, i) => {
               if (tempData === 'threatText' && allValue.score === -999) {
-                return <span style={{'text-decoration': 'line-through'}}>{value}</span>
+                return <span style={{textDecoration: 'line-through'}}>{value}</span>
               } else if (tempData === 'createDttm') {
                 return <span>{helper.getFormattedDate(value, 'local')}</span>
               } else if (tempData === '_menu') {
