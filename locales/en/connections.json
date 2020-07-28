@@ -200,6 +200,7 @@
   "txt-listText": "List",
   "txt-uploadPhoto": "Upload Photo",
   "txt-required": "This field is required",
+  "txt-allRequired": "Please check all the required fields",
   "txt-pcapDownloadFail": "Error, please try again",
   "txt-pcapNotAvailable": "PCAP content is not available",
   "txt-file-format-error": "File format should be in ",

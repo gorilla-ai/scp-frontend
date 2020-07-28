@@ -30,6 +30,7 @@ const ALERT_LEVEL_COLORS = {
   Warning: '#29CC7A',
   Notice: '#7ACC29'
 };
+const PERIOD_MIN = [10, 15, 30, 60];
 
 /**
  * Query open/save
@@ -43,6 +44,7 @@ class QueryOpenSave extends Component {
 
     this.state = {
       severityList: [],
+      periodMinList: [],
       newQueryName: true,
       pattern: {
         name: '',
@@ -68,7 +70,8 @@ class QueryOpenSave extends Component {
    * @method
    */
   setSeverityList = () => {
-    let severityList = [];   
+    let severityList = [];
+    let periodMinList = [];
 
     _.forEach(SEVERITY_TYPE, val => {
       severityList.push({
@@ -77,8 +80,22 @@ class QueryOpenSave extends Component {
       });
     })
 
+    periodMinList = _.map(PERIOD_MIN, val => {
+      return { value: val, text: val }
+    });
+
     this.setState({
-      severityList
+      severityList,
+      periodMinList
+    });
+  }
+  /**
+   * Clear error info message
+   * @method
+   */
+  clearErrorInfo = () => {
+    this.setState({
+      info: ''
     });
   }
   /**
@@ -141,9 +158,7 @@ class QueryOpenSave extends Component {
 
       if (newQueryName) { //Form validation
         if (queryData.inputName) {
-          this.setState({
-            info: ''
-          });
+          this.clearErrorInfo();
         } else {
           this.setState({
             info: t('events.connections.txt-noOpenQuery')
@@ -153,15 +168,24 @@ class QueryOpenSave extends Component {
       }
 
       if (activeTab === 'logs') { //Form validation
-        if (patternCheckbox && pattern.threshold > 1000) {
-          this.setState({
-            info: t('events.connections.txt-threasholdMax')
-          });
-          return;
-        } else {
-          this.setState({
-            info: ''
-          });
+        if (patternCheckbox) {
+          if (!pattern.threshold || !_.includes(PERIOD_MIN, Number(pattern.periodMin))) {
+            this.setState({
+              info: t('txt-allRequired')
+            });
+            return;
+          } else {
+            this.clearErrorInfo();
+          }
+
+          if (pattern.threshold > 1000) {
+            this.setState({
+              info: t('events.connections.txt-threasholdMax')
+            });
+            return;
+          } else {
+            this.clearErrorInfo();
+          }
         }
       }
 
@@ -537,6 +561,7 @@ class QueryOpenSave extends Component {
     }
 
     this.props.setQueryData(tempQueryData);
+    this.clearErrorInfo();
 
     this.setState({
       newQueryName: queryName,
@@ -657,7 +682,7 @@ class QueryOpenSave extends Component {
    */
   getQueryAlertContent = (type) => {
     const {queryData} = this.props;
-    const {pattern, severityList, patternCheckbox} = this.state;
+    const {pattern, severityList, periodMinList, patternCheckbox} = this.state;
     let severityType = '';
     let checkboxChecked = '';
     let checkboxDisabled = '';
@@ -697,12 +722,7 @@ class QueryOpenSave extends Component {
             <span>{t('events.connections.txt-patternQuery1')} </span>
             <DropDownList
               className='number'
-              list={[
-                {value: 10, text: 10},
-                {value: 15, text: 15},
-                {value: 30, text: 30},
-                {value: 60, text: 60}
-              ]}
+              list={periodMinList}
               required={true}
               value={pattern.periodMin}
               onChange={this.handleNumberChange.bind(this, 'periodMin')}
