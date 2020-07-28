@@ -44,6 +44,7 @@ const INIT_CONFIG = {
     {name: '', srcNode: '', dstNode: '', conditions:[]}
   ]
 };
+const INIT_PATTERN_NAME = 'Pattern1';
 
 /**
  * Syslog Management
@@ -58,7 +59,7 @@ class Syslog extends Component {
     this.state = {
       openFilter: false,
       activeContent: 'syslogData', //syslogData, hostInfo, editSyslog
-      dataFieldsArr: ['name', 'port', 'format', 'avgLogSizeB', 'property', '_menu'],
+      dataFieldsArr: ['name', 'port', 'format', 'avgLogSizeB', 'patternName', '_menu'],
       dataFields: {},
       syslog: {
         dataContent: [],
@@ -108,15 +109,11 @@ class Syslog extends Component {
       //config: _.cloneDeep(INIT_CONFIG),
       configRelationships: [],
       //rawOptions: [],
-      activeHost: '',
+      activeHost: {},
       currentHostData: '',
-      configPatternList: [{
-        name: 'pattern1',
-        config: _.cloneDeep(INIT_CONFIG),
-        rawOptions: []
-      }],
+      configPatternList: [],
       activePatternIndex: '',
-      activePatternName: 'pattern1',
+      activePatternName: INIT_PATTERN_NAME,
       activePatternMouse: '',
       newPatternName: ''
     };
@@ -179,7 +176,7 @@ class Syslog extends Component {
     }
 
     this.ah.one({
-      url: `${baseUrl}/api/v1/log/config?${urlParams}`,
+      url: `${baseUrl}/api/v2/log/config?${urlParams}`,
       type: 'GET'
     })
     .then(data => {
@@ -188,12 +185,14 @@ class Syslog extends Component {
         let formattedSyslogObj = {};
         let formattedSyslogArr = [];
 
-        _.forEach(data.rows, val => {
-          if (formattedSyslogObj[val.loghostIp]) {
-            formattedSyslogObj[val.loghostIp].push(val);
-          } else {
-            formattedSyslogObj[val.loghostIp] = [val];
-          }
+        _.forEach(data.loghostList, val => {
+          formattedSyslogObj[val] = [];
+
+          _.forEach(data.rows, val2 => {
+            if (val2.loghostIp === val) {
+              formattedSyslogObj[val].push(val2);
+            }
+          })
         })
 
         _.forEach(formattedSyslogObj, (val, key) => {
@@ -209,12 +208,12 @@ class Syslog extends Component {
         dataFieldsArr.forEach(tempData => {
           tempFields[tempData] = {
             label: tempData === '_menu' ? '' : t(`syslogFields.${tempData}`),
-            sortable: (tempData === '_menu' || tempData === 'property') ? null : true,
+            sortable: tempData === '_menu' ? null : true,
             formatter: (value, allValue, i) => {
               if (tempData === 'avgLogSizeB') {
                 return <span>{value > 0 ? value : 'N/A'}</span>;
-              } else if (tempData === 'property') {
-                return <div className='flex-item'>{this.displayPropertyV2(value)}</div>
+              } else if (tempData === 'patternName') {
+                return <span>{allValue.patternSetting.patternName}</span>;
               } else if (tempData === '_menu') {
                 return (
                   <div className='table-menu menu active'>
@@ -314,6 +313,20 @@ class Syslog extends Component {
     return propertyList;
   }
   /**
+   * Reset config value to initial value
+   * @method
+   */
+  resetConfigValue = () => {
+    this.setState({
+      configPatternList: [{
+        name: INIT_PATTERN_NAME,
+        config: _.cloneDeep(INIT_CONFIG),
+        rawOptions: []
+      }],
+      activePatternName: INIT_PATTERN_NAME
+    });
+  }
+  /**
    * Toggle different content
    * @method
    * @param {string} activeContent - page type ('syslogData', 'hostInfo' or 'editSyslog')
@@ -333,14 +346,8 @@ class Syslog extends Component {
     }
 
     if (activeContent === 'syslogData') { //Reset config data
-      this.setState({
-        //config: _.cloneDeep(INIT_CONFIG),
-        configPatternList: [{
-          name: 'pattern1',
-          config: _.cloneDeep(INIT_CONFIG),
-        }],
-        activePatternName: 'pattern1'
-      });
+      this.resetConfigValue();
+      this.getSyslogData(); //Reload table content
     }
 
     this.setState({
@@ -450,7 +457,12 @@ class Syslog extends Component {
     }
 
     this.setState({
-      config
+      configPatternList: [{
+        name: INIT_PATTERN_NAME,
+        config,
+        rawOptions: []
+      }],
+      activePatternName: INIT_PATTERN_NAME
     }, () => {
       this.toggleContent('editSyslog', type);
     });
@@ -461,60 +473,60 @@ class Syslog extends Component {
    * @param {object} allValue - syslog data
    */
   openSyslogV2 = (allValue) => {
-    const {baseUrl} = this.context
-    const {configPatternList} = this.state;
-    let id = allValue.id;
+    const {baseUrl} = this.context;
 
     if (_.includes(DEFAULT_SYSLOG, allValue.name)) {
       return null;
     }
 
-    if (!id) { //Add new syslog
-      this.setState({
-        configPatternList: [{
-          name: 'pattern1',
-          config: _.cloneDeep(INIT_CONFIG),
-          rawOptions: []
-        }]
-        //config: _.cloneDeep(INIT_CONFIG)
-      });
+    if (!allValue.id) { //Add new syslog
+      this.resetConfigValue();
       return;
     }
 
+    if (allValue.patternSetting.length > 0) {
+      this.setState({
+        activePatternName: allValue.patternSetting[0].patternName
+      });
+    }
+
     this.ah.one({ //Edit existing syslog
-      url: `${baseUrl}/api/v1/log/config?id=${id}`,
+      url: `${baseUrl}/api/v2/log/config?id=${allValue.id}`,
       type: 'GET'
     })
     .then(data => {
       if (data) {
-        const config = {
-          type: 'formatSettings',
-          id: data.id,
-          hostIP: data.loghostIp,
-          name: data.name,
-          port: data.port,
-          format: data.format,
-          input: data.input,
-          pattern: data.pattern,
-          property: data.property,
-          relationships: data.relationships
-        };
-        let rawOptions = [];
-        let tempConfigPatternList = configPatternList;
+        let configPatternList = [];        
 
-        _.forEach(config.property, (value, key) => {
-          rawOptions.push({
-            value: key,
-            text: key
+        _.forEach(data.patternSetting, val => {
+          const config = {
+            type: 'formatSettings',
+            id: data.id,
+            hostIP: data.loghostIp,
+            name: data.name,
+            port: data.port,
+            format: data.format,
+            input: val.input,
+            pattern: val.pattern,
+            property: val.property,
+            relationships: val.relationships
+          };
+          const rawOptions = _.map(val.property, (val, key) => {
+            return {
+              value: key,
+              text: key
+            }
+          });
+
+          configPatternList.push({
+            name: val.patternName,
+            config,
+            rawOptions
           });
         })
 
-        tempConfigPatternList[0].name = 'pattern1';
-        tempConfigPatternList[0].config = config;
-        tempConfigPatternList[0].rawOptions = rawOptions;
-
         this.setState({
-          configPatternList: tempConfigPatternList
+          configPatternList
           //config,
           //rawOptions
         }, () => {
@@ -1030,22 +1042,48 @@ class Syslog extends Component {
    * @method
    */
   confirmEditPatternName = () => {
+    const {baseUrl} = this.context;
     const {configPatternList, activePatternIndex, newPatternName} = this.state;
+    const url = `${baseUrl}/api/log/config/patternname`;
     let tempConfigPatternList = configPatternList;
+    let patternID = '';
+    let newPatternNameList = [];
 
     _.forEach(tempConfigPatternList, (val, i) => {
       if (i === activePatternIndex) {
         tempConfigPatternList[i].name = newPatternName;
-        return false;
+        patternID = val.config.id;
+        newPatternNameList.push(newPatternName);
+      } else {
+        newPatternNameList.push(val.name);
       }
     })
+    
+    const requestData = {
+      id: patternID,
+      patternName: newPatternNameList
+    };
 
-    this.setState({
-      configPatternList: tempConfigPatternList,
-      activePatternName: newPatternName
-    });
+    ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'PATCH',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data && data.ret === 0) {
+        this.setState({
+          configPatternList: tempConfigPatternList,
+          activePatternName: newPatternName
+        });
 
-    this.toggleEditPatternName();
+        this.toggleEditPatternName();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Display delete Pattern content
@@ -1502,7 +1540,7 @@ class Syslog extends Component {
    */
   handleAddPattern = () => {
     const {configPatternList} = this.state;
-    const newConfigName = 'pattern' + (configPatternList.length + 1);
+    const newConfigName = 'Pattern' + (configPatternList.length + 1);
     let tempConfigPatternList = configPatternList;
 
     if (configPatternList[0].config.id) {

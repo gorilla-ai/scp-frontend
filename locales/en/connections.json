@@ -684,6 +684,7 @@
     "format": "Data Format",
     "avgLogSizeB": "Averge Log Size (byte)",
     "property": "Data Property",
+    "patternName": "Pattern",
     "ip": "IP",
     "name": "Name",
     "value": "Value",

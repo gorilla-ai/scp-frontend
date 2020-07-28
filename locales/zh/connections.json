@@ -684,6 +684,7 @@
     "format": "資料類型",
     "avgLogSizeB": "平均資料大小(byte)",
     "property": "資料屬性",
+    "patternName": "Pattern",
     "ip": "IP",
     "name": "名稱",
     "value": "數值",

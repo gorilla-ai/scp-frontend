@@ -180,7 +180,7 @@ class syslogConfig extends Component {
               name: '',
               srcNode: '',
               dstNode: '',
-              conditions:[]
+              conditions: []
             }}
             value={config.relationships}
             onChange={this.props.handleRelationshipChange} />
