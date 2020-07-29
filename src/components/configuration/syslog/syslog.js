@@ -619,7 +619,7 @@ class Syslog extends Component {
   handleConfigChange = (i, type, value) => {
     let tempSyslogPatternConfig = {...this.state.syslogPatternConfig};
 
-    if (i && typeof i === 'number') {
+    if (typeof i === 'number') {
       tempSyslogPatternConfig.patternSetting[i][type] = value;
     } else {
       tempSyslogPatternConfig[type] = value;
