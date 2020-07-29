@@ -152,6 +152,7 @@
   "txt-maxDataMsg": "資料筆數最大為10,000筆",
   "txt-es-data-over-limit": "超出搜尋範圍，請修改查詢條件",
   "txt-duplicatedName": "名稱不得重複",
+  "txt-checkRequiredFieldType": "請檢查格式及必填欄位",
 
   "txt-dashboard": "Dashboard",
   "txt-threats": "Threats",

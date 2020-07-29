@@ -700,8 +700,12 @@ class Syslog extends Component {
       }
     })
 
+    if (!Number(syslogPatternConfig.port)) { //Port has to be a number type
+      valid = false;
+    }
+
     if (!valid) {
-      helper.showPopupMsg(et('fill-required-fields'), t('txt-error'));
+      helper.showPopupMsg(t('txt-checkRequiredFieldType'), t('txt-error'));
       return;
     }
 

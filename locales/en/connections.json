@@ -152,6 +152,7 @@
   "txt-maxDataMsg": "The maximum data count is 10,000",
   "txt-es-data-over-limit": "Exceed max queried number, please revise filters",
   "txt-duplicatedName": "Name is duplicated",
+  "txt-checkRequiredFieldType": "Please check all the required fields and its format",
 
   "txt-dashboard": "Dashboard",
   "txt-threats": "Threats",
