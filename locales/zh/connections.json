@@ -151,6 +151,7 @@
   "txt-maxScore": "最高分",
   "txt-maxDataMsg": "資料筆數最大為10,000筆",
   "txt-es-data-over-limit": "超出搜尋範圍，請修改查詢條件",
+  "txt-duplicatedName": "名稱不得重複",
 
   "txt-dashboard": "Dashboard",
   "txt-threats": "Threats",
@@ -720,7 +721,6 @@
     "txt-timelineUnavailable": "趨勢圖資料不存在",
     "txt-backToList": "$t(txt-back)$t(txt-syslogManage)",
     "txt-addHost": "新增所屬主機",
-    "txt-deleteHost": "$t(txt-delete)$t(txt-host)",
-    "txt-deletePattern": "$t(txt-delete)Pattern"
+    "txt-deleteHost": "$t(txt-delete)$t(txt-host)"
   }
 }

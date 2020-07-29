@@ -151,6 +151,7 @@
   "txt-maxScore": "max. score",
   "txt-maxDataMsg": "The maximum data count is 10,000",
   "txt-es-data-over-limit": "Exceed max queried number, please revise filters",
+  "txt-duplicatedName": "Name is duplicated",
 
   "txt-dashboard": "Dashboard",
   "txt-threats": "Threats",
@@ -720,7 +721,6 @@
     "txt-timelineUnavailable": "Timeline data is not available",
     "txt-backToList": "$t(txt-back) to $t(txt-syslogManage)",
     "txt-addHost": "Add Host",
-    "txt-deleteHost": "$t(txt-delete) $t(txt-host)",
-    "txt-deletePattern": "$t(txt-delete) Pattern"
+    "txt-deleteHost": "$t(txt-delete) $t(txt-host)"
   }
 }

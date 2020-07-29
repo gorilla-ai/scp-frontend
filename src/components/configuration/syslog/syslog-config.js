@@ -121,7 +121,7 @@ class syslogConfig extends Component {
     return this.props.data.showPatternLeftNav ? '78%' : '93%';
   }
   render() {
-    const {config} = this.props;
+    const {config, index} = this.props;
 
     return (
       <div className='filters' style={{width: this.getFilterWidth()}}>
@@ -136,7 +136,7 @@ class syslogConfig extends Component {
                 <Textarea
                   id='syslogPattern'
                   rows={6}
-                  value={config.pattern}
+                  value={config.patternSetting[index].pattern}
                   onChange={this.props.handleConfigChange.bind(this, 'pattern')} />
               </div>
             </div>
@@ -153,7 +153,7 @@ class syslogConfig extends Component {
                     <Textarea
                       id='syslogInput'
                       rows={20}
-                      value={config.input}
+                      value={config.patternSetting[index].input}
                       onChange={this.props.handleConfigChange.bind(this, 'input')} />
                   </div>
                 </div>
@@ -163,7 +163,7 @@ class syslogConfig extends Component {
                 <div className='form-group normal long full-width syslog-config'>
                   <header>{t('syslogFields.txt-originalData')}</header>
                   <div className='parsed-list'>
-                    {_.map(config.property, this.displayParsedData)}
+                    {_.map(config.patternSetting[index].property, this.displayParsedData)}
                   </div>
                 </div>
               </div>
@@ -182,7 +182,7 @@ class syslogConfig extends Component {
               dstNode: '',
               conditions: []
             }}
-            value={config.relationships}
+            value={config.patternSetting[index].relationships}
             onChange={this.props.handleRelationshipChange} />
         }
       </div>
