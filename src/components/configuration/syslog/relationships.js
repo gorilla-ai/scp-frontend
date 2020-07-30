@@ -190,7 +190,9 @@ class Relationships extends Component {
                       return <DropDownList
                         list={rawOptions}
                         required={true}
-                        validate={{t: et}}
+                        validate={{
+                          t: et
+                        }}
                         value={val}
                         onChange={this.handleNodeChange.bind(this, allValue)} />
                     }

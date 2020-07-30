@@ -693,16 +693,16 @@ class Syslog extends Component {
       }
     })
 
+    if (!Number(syslogPatternConfig.port)) { //Port has to be a number type
+      valid = false;
+    }
+
     _.forEach(syslogPatternConfig.patternSetting, val => { //Check input and pattern for each pattern
       if (!val.input || !val.pattern) {
         valid = false;
         return false;
       }
     })
-
-    if (!Number(syslogPatternConfig.port)) { //Port has to be a number type
-      valid = false;
-    }
 
     if (!valid) {
       helper.showPopupMsg(t('txt-checkRequiredFieldType'), t('txt-error'));
@@ -726,7 +726,7 @@ class Syslog extends Component {
       }
     });
 
-    if (syslogPatternConfig.id) {
+    if (syslogPatternConfig.id) { //Update existing pattern
       requestType = 'PATCH';
       requestData.id = syslogPatternConfig.id;
     }
@@ -950,11 +950,10 @@ class Syslog extends Component {
   /**
    * Toggle pattern edit name dialog on/off
    * @method
-   * @param {string>} type - edit type ('new' or 'edit')
+   * @param {string>} [type] - edit type ('new')
    */
   toggleEditPatternName = (type) => {
     const {openEditPatternName} = this.state;
-    let editPatternType = 'edit';
 
     if (openEditPatternName) {
       this.setState({
@@ -963,14 +962,10 @@ class Syslog extends Component {
       });
     };
 
-    if (type === 'new') {
-      editPatternType = type;
-    }
-
     this.setState({
       openEditPatternName: !openEditPatternName,
       info: '',
-      editPatternType
+      editPatternType: type || 'edit'
     });
   }
   /**
@@ -993,6 +988,10 @@ class Syslog extends Component {
       <div>
         <label>{t('syslogFields.txt-patternName')}</label>
         <Input
+          required={true}
+          validate={{
+            t: et
+          }}
           value={this.state.newPatternName}
           onChange={this.handleEditPatternNameChange} />
       </div>
@@ -1029,11 +1028,16 @@ class Syslog extends Component {
    * @method
    */
   confirmEditPatternName = () => {
-    const {baseUrl} = this.context;
     const {syslogPatternConfig, activePatternIndex, newPatternName, editPatternType} = this.state;
-    const url = `${baseUrl}/api/log/config/patternname_is_unique`;
     let tempSyslogPatternConfig = _.cloneDeep(syslogPatternConfig);
     let newPatternNameList = [];
+
+    if (!newPatternName) {
+      this.setState({
+        info: t('txt-checkRequiredFieldType')
+      });
+      return;
+    }
 
     if (editPatternType === 'new') { //For adding new pattern
       tempSyslogPatternConfig.type = 'formatSettings';
@@ -1063,35 +1067,19 @@ class Syslog extends Component {
       })
     }
 
-    const requestData = {
-      patternName: newPatternNameList
-    };
+    if (_.uniq(newPatternNameList).length === newPatternNameList.length) { //Check duplicated pattern name
+      this.setState({
+        syslogPatternConfig: tempSyslogPatternConfig,
+        activePatternName: newPatternName,
+        info: ''
+      });
 
-    this.ah.one({
-      url,
-      data: JSON.stringify(requestData),
-      type: 'POST',
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      if (data) {
-        this.setState({
-          syslogPatternConfig: tempSyslogPatternConfig,
-          activePatternName: newPatternName,
-          info: ''
-        });
-
-        this.toggleEditPatternName();
-      } else {
-        this.setState({
-          info: t('txt-duplicatedName')
-        });
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
+      this.toggleEditPatternName();
+    } else { //Pattern name is duplicated
+      this.setState({
+        info: t('txt-duplicatedName')
+      });
+    }
   }
   /**
    * Close syslog events chart dialog
@@ -1496,7 +1484,7 @@ class Syslog extends Component {
    * @param {string} activePatternName - active pattern name
    */
   handleActivePatternChange = (i , activePatternName) => {
-    let tempSyslogPatternConfig = this.state.syslogPatternConfig;
+    let tempSyslogPatternConfig = {...this.state.syslogPatternConfig};
     tempSyslogPatternConfig.type = 'formatSettings';
 
     this.setState({
@@ -1529,7 +1517,7 @@ class Syslog extends Component {
       }
     ];
 
-    if (this.state.syslogPatternConfig.patternSetting.length > 1) {
+    if (this.state.syslogPatternConfig.patternSetting.length > 1) { //Add Delete Pattern menu
       menuItems.push({
         id: 'deletePattern',
         text: t('txt-delete'),
@@ -1700,6 +1688,7 @@ class Syslog extends Component {
                       <label htmlFor='syslogReceivedPort'>{t('syslogFields.port')}</label>
                       <Input
                         id='syslogReceivedPort'
+                        type='number'
                         required={true}
                         validate={{
                           t: et
