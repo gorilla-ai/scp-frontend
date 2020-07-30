@@ -212,7 +212,7 @@ class Syslog extends Component {
         dataFieldsArr.forEach(tempData => {
           tempFields[tempData] = {
             label: tempData === '_menu' ? '' : t(`syslogFields.${tempData}`),
-            sortable: tempData === '_menu' ? null : true,
+            sortable: (tempData === '_menu' || tempData === 'patternName') ? null : true,
             formatter: (value, allValue, i) => {
               if (tempData === 'avgLogSizeB') {
                 return <span>{value > 0 ? value : 'N/A'}</span>;

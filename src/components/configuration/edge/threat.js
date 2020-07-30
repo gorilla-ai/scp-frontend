@@ -47,7 +47,7 @@ class ThreatIntelligence extends Component {
       },
       datetime: {
         from: helper.getSubstractDate(1, 'week'),
-        to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+        to: helper.getSubstractDate(1, 'day', Moment().local().format('YYYY-MM-DDTHH:mm:ss'))
         //from: '2020-06-04T00:00:00Z',
         //to: '2020-06-04T01:00:00Z'
       },
@@ -395,6 +395,21 @@ class ThreatIntelligence extends Component {
     }, () => {
       this.getChartsData();
     });
+  }
+  /**
+   * Handle search submit
+   * @method
+   */
+  handleSearchSubmit = () => {
+    const dateTimeTo = Moment(this.state.datetime.to).format('YYYY-MM-DD');
+    const yesterday = Moment(helper.getSubstractDate(1, 'day', Moment().local())).format('YYYY-MM-DD');
+
+    if (Moment(dateTimeTo).isAfter(yesterday)) { //Show error message
+      helper.showPopupMsg(t('edge-management.txt-threatEndTimeError'), t('txt-error'));
+      return;
+    } else {
+      this.clearIndicatorsData();
+    }
   }
   /**
    * Toggle add threats modal on/off
@@ -871,7 +886,7 @@ class ThreatIntelligence extends Component {
             datetime={datetime}
             enableTime={false}
             handleDateChange={this.handleDateChange}
-            handleSearchSubmit={this.clearIndicatorsData} />
+            handleSearchSubmit={this.handleSearchSubmit} />
         </div>
 
         <div className='data-content'>
