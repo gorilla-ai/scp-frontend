@@ -45,9 +45,9 @@ const INIT_CONFIG = {
     property: null,
     relationships: [
       {name: '', srcNode: '', dstNode: '', conditions:[]}
-    ]
-  }],
-  rawOptions: []
+    ],
+    rawOptions: []
+  }]
 };
 
 /**
@@ -118,7 +118,8 @@ class Syslog extends Component {
       activePatternName: INIT_PATTERN_NAME,
       activePatternMouse: '',
       newPatternName: '',
-      info: ''
+      info: '',
+      editPatternType: 'edit'
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -414,10 +415,9 @@ class Syslog extends Component {
     })
     .then(data => {
       if (data) {
-        let rawOptions = [];
         let tempSyslogPatternConfig = {...syslogPatternConfig};
         tempSyslogPatternConfig.patternSetting[i].property = data;
-        tempSyslogPatternConfig.rawOptions = _.map(data, (value, key) => {
+        tempSyslogPatternConfig.patternSetting[i].rawOptions = _.map(data, (value, key) => {
           return {
             value: key,
             text: key
@@ -486,8 +486,8 @@ class Syslog extends Component {
         let syslogPatternConfig = {...data};
         syslogPatternConfig.type = 'formatSettings';
 
-        _.forEach(data.patternSetting, val => {
-          syslogPatternConfig.rawOptions = _.map(val.property, (val, key) => {
+        _.forEach(data.patternSetting, (val, i) => {
+          syslogPatternConfig.patternSetting[i].rawOptions = _.map(val.property, (val, key) => {
             return {
               value: key,
               text: key
@@ -950,9 +950,11 @@ class Syslog extends Component {
   /**
    * Toggle pattern edit name dialog on/off
    * @method
+   * @param {string>} type - edit type ('new' or 'edit')
    */
-  toggleEditPatternName = () => {
+  toggleEditPatternName = (type) => {
     const {openEditPatternName} = this.state;
+    let editPatternType = 'edit';
 
     if (openEditPatternName) {
       this.setState({
@@ -961,9 +963,14 @@ class Syslog extends Component {
       });
     };
 
+    if (type === 'new') {
+      editPatternType = type;
+    }
+
     this.setState({
       openEditPatternName: !openEditPatternName,
-      info: ''
+      info: '',
+      editPatternType
     });
   }
   /**
@@ -1001,7 +1008,7 @@ class Syslog extends Component {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleEditPatternName},
       confirm: {text: t('txt-confirm'), handler: this.confirmEditPatternName}
     };
-    const title = t('syslogFields.txt-editName');
+    const title = this.state.editPatternType === 'new' ? t('syslogFields.txt-addPattern') : t('syslogFields.txt-editName');
 
     return (
       <ModalDialog
@@ -1023,20 +1030,39 @@ class Syslog extends Component {
    */
   confirmEditPatternName = () => {
     const {baseUrl} = this.context;
-    const {syslogPatternConfig, activePatternIndex, newPatternName} = this.state;
+    const {syslogPatternConfig, activePatternIndex, newPatternName, editPatternType} = this.state;
     const url = `${baseUrl}/api/log/config/patternname_is_unique`;
     let tempSyslogPatternConfig = _.cloneDeep(syslogPatternConfig);
     let newPatternNameList = [];
 
-    _.forEach(syslogPatternConfig.patternSetting, (val, i) => {
-      if (i === activePatternIndex) {
-        tempSyslogPatternConfig.patternSetting[i].patternName = newPatternName;
-        newPatternNameList.push(newPatternName);
-      } else {
+    if (editPatternType === 'new') { //For adding new pattern
+      tempSyslogPatternConfig.type = 'formatSettings';
+      tempSyslogPatternConfig.patternSetting.push({
+        input: DEFAULT_INPUT,
+        pattern: DEFAULT_PATTERN,
+        patternName: newPatternName,
+        property: {},
+        relationships: [
+          {name: '', srcNode: '', dstNode: '', conditions:[]}
+        ]
+      });
+
+      _.forEach(syslogPatternConfig.patternSetting, (val, i) => {
         newPatternNameList.push(val.patternName);
-      }
-    })
-    
+      })
+
+      newPatternNameList.push(newPatternName);
+    } else if (editPatternType === 'edit') { //For editing existing pattern
+      _.forEach(syslogPatternConfig.patternSetting, (val, i) => {
+        if (i === activePatternIndex) {
+          tempSyslogPatternConfig.patternSetting[i].patternName = newPatternName;
+          newPatternNameList.push(newPatternName);
+        } else {
+          newPatternNameList.push(val.patternName);
+        }
+      })
+    }
+
     const requestData = {
       patternName: newPatternNameList
     };
@@ -1104,7 +1130,7 @@ class Syslog extends Component {
     const {baseUrl} = this.context;
 
     this.ah.one({
-      url: `${baseUrl}/api/v1/log/config?id=${id}`,
+      url: `${baseUrl}/api/v2/log/config?id=${id}`,
       type: 'GET'
     })
     .then(data => {
@@ -1453,7 +1479,7 @@ class Syslog extends Component {
           index={i}
           data={{
             relationships: configRelationships,
-            rawOptions: syslogPatternConfig.rawOptions,
+            rawOptions: syslogPatternConfig.patternSetting[i].rawOptions,
             showPatternLeftNav
           }}
           handleConfigChange={this.handleConfigChange.bind(this, i)}
@@ -1462,30 +1488,6 @@ class Syslog extends Component {
           handleRelationshipChange={this.handleRelationshipChange.bind(this, i)} />
       )
     }
-  }
-  /**
-   * Handle add new pattern button
-   * @method
-   */
-  handleAddPattern = () => {
-    const {syslogPatternConfig} = this.state;
-    const newConfigName = 'Pattern' + (syslogPatternConfig.patternSetting.length + 1);
-    let tempSyslogPatternConfig = {...syslogPatternConfig};
-    tempSyslogPatternConfig.type = 'formatSettings';
-    tempSyslogPatternConfig.patternSetting.push({
-      input: DEFAULT_INPUT,
-      pattern: DEFAULT_PATTERN,
-      patternName: newConfigName,
-      property: {},
-      relationships: [
-        {name: '', srcNode: '', dstNode: '', conditions:[]}
-      ]
-    });
-
-    this.setState({
-      syslogPatternConfig: tempSyslogPatternConfig,
-      activePatternName: newConfigName
-    });
   }
   /**
    * Handle active pattern change
@@ -1716,7 +1718,7 @@ class Syslog extends Component {
 
                   <div className='pattern-content'>
                     <header>{t('syslogFields.matchPattern')}</header>
-                    <button className='standard add-pattern' onClick={this.handleAddPattern}>{t('syslogFields.txt-addPattern')}</button>
+                    <button className='standard add-pattern' onClick={this.toggleEditPatternName.bind(this, 'new')}>{t('syslogFields.txt-addPattern')}</button>
 
                     <div className='syslog-config'>
                       <div className={cx('left-nav', {'collapse': !showPatternLeftNav})}>
