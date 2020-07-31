@@ -721,7 +721,6 @@
     "txt-editSyslogInfo": "Edit Syslog Info",
     "txt-editHosts": "Edit Hosts",
     "txt-timelineUnavailable": "Timeline data is not available",
-    "txt-backToList": "$t(txt-back) to $t(txt-syslogManage)",
     "txt-addHost": "Add Host",
     "txt-deleteHost": "$t(txt-delete) $t(txt-host)"
   }

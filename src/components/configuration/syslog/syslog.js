@@ -985,7 +985,7 @@ class Syslog extends Component {
    */
   displayEditPatternName = () => {
     return (
-      <div>
+      <div className='parent'>
         <label>{t('syslogFields.txt-patternName')}</label>
         <Input
           required={true}
@@ -1018,7 +1018,7 @@ class Syslog extends Component {
         global={true}
         actions={actions}
         info={this.state.info}
-        closeAction='confirm'>
+        closeAction='cancel'>
         {this.displayEditPatternName()}    
       </ModalDialog>
     )
@@ -1195,7 +1195,7 @@ class Syslog extends Component {
     const {editHostsType, editHosts} = this.state;
 
     return (
-      <div className='syslog'>
+      <div className='parent'>
         <div className='group'>
           <label>{t('syslogFields.ip')}</label>
           <Input
@@ -1237,7 +1237,7 @@ class Syslog extends Component {
         draggable={true}
         global={true}
         actions={actions}
-        closeAction='confirm'>
+        closeAction='cancel'>
         {this.displayEditHosts()}
       </ModalDialog>
     )
@@ -1732,7 +1732,7 @@ class Syslog extends Component {
                 <header className='main-header'>{t('syslogFields.txt-syslogHost')}</header>
 
                 <div className='content-header-btns'>
-                  <button className='standard btn list' onClick={this.toggleContent.bind(this, 'syslogData', '')}>{t('syslogFields.txt-backToList')}</button>
+                  <button className='standard btn list' onClick={this.toggleContent.bind(this, 'syslogData', '')}>{t('txt-back')}</button>
                 </div>
 
                 <div className='config-syslog'>
