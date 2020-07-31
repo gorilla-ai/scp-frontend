@@ -762,13 +762,12 @@ class SyslogController extends Component {
    * @param {string} name - tree node name
    * @param {string} currentTreeName - current tree node name
    * @param {number} count - tree node length
-   * @param {string} query - search query
+   * @param {string} [query] - search query
    */
   getTreeLabel = (name, currentTreeName, count, query) => {
-    const serviceCount = !isNaN(count) ? ' (' + count + ')' : '';
-    const searchQuery = query ? query : '';
+    const serviceCount = count !== '' ? ' (' + count + ')' : '';
 
-    return <span>{name}{serviceCount} <button className={cx('button', {'active': currentTreeName === name})} onClick={this.selectTree.bind(this, name, searchQuery)}>{t('events.connections.txt-addFilter')}</button></span>;
+    return <span>{name}{serviceCount} <button className={cx('button', {'active': currentTreeName === name})} onClick={this.selectTree.bind(this, name, query)}>{t('events.connections.txt-addFilter')}</button></span>;
   }
   /**
    * Set the netflow tree data

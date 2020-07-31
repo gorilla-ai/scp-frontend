@@ -935,13 +935,12 @@ class ThreatsController extends Component {
    * @param {string} name - tree node name
    * @param {string} currentTreeName - current tree node name
    * @param {number} count - tree node length
-   * @param {string} query - search query
+   * @param {string} [query] - search query
    */
   getTreeLabel = (id, name, currentTreeName, count, query) => {
-    const serviceCount = !isNaN(count) ? ' (' + count + ')' : '';
-    const searchQuery = query ? query : '';
+    const serviceCount = count !== '' ? ' (' + count + ')' : '';
 
-    return <span>{name}{serviceCount} <button className={cx('button', {'active': currentTreeName === id})} onClick={this.selectTree.bind(this, name, searchQuery)}>{t('events.connections.txt-addFilter')}</button></span>;
+    return <span>{name}{serviceCount} <button className={cx('button', {'active': currentTreeName === id})} onClick={this.selectTree.bind(this, name, query)}>{t('events.connections.txt-addFilter')}</button></span>;
   }
   /**
    * Display severity info content
@@ -1039,7 +1038,7 @@ class ThreatsController extends Component {
                 _.forEach(val, (val2, key3) => {
                   if (key3 !== 'doc_count' && val2 && val2.doc_count) {
                     const id = key + key2 + key3;
-                    const serviceCount = !isNaN(val2.doc_count) ? ' (' + val2.doc_count + ')' : '';
+                    const serviceCount = val2.doc_count !== '' ? ' (' + val2.doc_count + ')' : '';
 
                     tempChild2.push({
                       id,
