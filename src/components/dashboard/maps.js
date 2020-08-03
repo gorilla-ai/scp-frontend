@@ -20,86 +20,6 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 let t = null;
 let et = null;
 
-//const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
-const worldMapAttackData = [
-  {
-    severity: 'Notice',
-    srcLatitude: 25.032969,
-    srcLongitude: 121.565414,
-    destLatitude: 35.715368,
-    destLongitude: 139.773948
-  },
-  {
-    severity: 'Critical',
-    srcLatitude: 40.712776,
-    srcLongitude: -74.005974,
-    destLatitude: 33.985814,
-    destLongitude: -6.901699
-  },
-  {
-    severity: 'Alert',
-    srcLatitude: 34.054215,
-    srcLongitude: -118.242607,
-    destLatitude: 60.039237,
-    destLongitude: 10.730774
-  },
-  {
-    severity: 'Critical',
-    srcLatitude: -37.835401,
-    srcLongitude: 144.921146,
-    destLatitude: 22.652868,
-    destLongitude: 120.339327
-  },
-  {
-    severity: 'Warning',
-    srcLatitude: 34.054215,
-    srcLongitude: -118.242607,
-    destLatitude: 51.501449,
-    destLongitude: -0.093887
-  },
-  {
-    severity: 'Notice',
-    srcLatitude: -8.679770,
-    srcLongitude: 13.034816,
-    destLatitude: 59.436207,
-    destLongitude: 24.756470
-  },
-  {
-    severity: 'Emergency',
-    srcLatitude: 25.086329,
-    srcLongitude: 121.557753,
-    destLatitude: 40.247413,
-    destLongitude: 116.283446
-  },
-  {
-    severity: 'Warning',
-    srcLatitude: -33.901517,
-    srcLongitude: 18.388492,
-    destLatitude: 25.086329,
-    destLongitude: 121.557753
-  },
-  {
-    severity: 'Emergency',
-    srcLatitude: 52.533549,
-    srcLongitude: 13.413821,
-    destLatitude: -34.601110,
-    destLongitude: -58.435017
-  },
-  {
-    severity: 'Alert',
-    srcLatitude: 39.934335,
-    srcLongitude: 116.385070,
-    destLatitude: 50.488218,
-    destLongitude: 30.485919
-  },
-  {
-    severity: 'Notice',
-    srcLatitude: 25.933448,
-    srcLongitude: -80.167724,
-    destLatitude: 37.926115,
-    destLongitude: -122.429825
-  }
-];
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const PRIVATE = 'private';
 const PUBLIC = 'public';
@@ -146,6 +66,9 @@ const MAPS_PRIVATE_DATA = {
   seatData: {}
 };
 
+const mapLimit = 50;
+let mapCounter = 1;
+
 /**
  * Dashboard Maps
  * @class
@@ -160,8 +83,8 @@ class DashboardMaps extends Component {
       datetime: {
         from: helper.getSubstractDate(24, 'hours'),
         to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
-        //from: '2019-08-06T01:00:00Z',
-        //to: '2019-08-07T02:02:13Z'
+        //from: '2020-08-02T01:00:00Z',
+        //to: '2020-08-02T01:10:00Z'
       },
       past24hTime: helper.getFormattedDate(helper.getSubstractDate(24, 'hours')),
       updatedTime: helper.getFormattedDate(Moment()),
@@ -182,8 +105,7 @@ class DashboardMaps extends Component {
     this.loadAlertData();
     this.getFloorPlan();
 
-    //new map
-    this.loadNewMap();
+    setInterval(this.getAttackData, 5000);
   }
   /**
    * Get and set alert maps data
@@ -246,6 +168,7 @@ class DashboardMaps extends Component {
           alertMapData: tempArray
         }, () => {
           this.getWorldMap();
+          this.loadNewMap();          
         });
       }
       return null;
@@ -586,8 +509,9 @@ class DashboardMaps extends Component {
     })
   }
   loadNewMap = () => {
+    //const {alertMapData} = this.state;
+    //let worldAttackData = [];
     let mapData = [];
-    let worldAttackData = [];
 
     _.forEach(WORLDMAP.features, val => {
       const countryObj = {
@@ -603,12 +527,37 @@ class DashboardMaps extends Component {
       mapData.push(countryObj);
     });
 
-    _.forEach(worldMapAttackData, (val, i) => {
+
+    this.setState({
+      mapData
+    });
+
+    //setInterval(this.getAttackData(), 5000);
+  }
+  getAttackData = () => {
+    const x = mapLimit * mapCounter;
+    let worldAttackData = [];
+
+    //mapCounter = 3
+    //x = 150
+
+    if (this.state.alertMapData.length === 0) {
+      return;
+    }
+
+    _.forEach(this.state.alertMapData, (val, i) => {
+      if (x === mapLimit) {
+        if (i >= mapLimit) return false;
+      } else {
+        if (i < (x - mapLimit)) return;
+        if (i > x) return false;
+      }
+
       if (val.srcLatitude && val.srcLongitude) {
         worldAttackData.push({
           type: 'polyline',
           id: 'set-polyline_' + i,
-          color: ALERT_LEVEL_COLORS[val.severity],
+          color: ALERT_LEVEL_COLORS[val._severity_],
           latlng: [
             [val.srcLatitude, val.srcLongitude],
             [val.destLatitude, val.destLongitude]
@@ -629,7 +578,7 @@ class DashboardMaps extends Component {
           ],
           data: {
             type: 'small',
-            color: ALERT_LEVEL_COLORS[val.severity]
+            color: ALERT_LEVEL_COLORS[val._severity_]
           }
         });
 
@@ -643,14 +592,15 @@ class DashboardMaps extends Component {
           ],
           data: {
             type: 'big',
-            color: ALERT_LEVEL_COLORS[val.severity]
+            color: ALERT_LEVEL_COLORS[val._severity_]
           }
         });
       }
     })
 
+    mapCounter++;
+
     this.setState({
-      mapData,
       worldAttackData
     }, () => {
       setTimeout(() => {
