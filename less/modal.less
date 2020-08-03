@@ -315,6 +315,7 @@ html[data-theme='dark'] {
     color: var(--primaryTextColor);
     label {
       display: block;
+      color: var(--primaryContentHeader);
       margin-bottom: 3px;
       span {
         color: #da364a;
@@ -1385,13 +1386,20 @@ html[data-theme='dark'] {
     height: 270px;
   }
 }
-#editHostDialog-content {
-  width: 350px;
-  .syslog {
+#editPatternName-content {
+  width: 300px;
+  .pattern {
     width: 90%;
-    margin: 0 auto;
-    margin-top: 10px;
-    margin-bottom: 20px;
+    margin: 10px auto;
+  }
+}
+#editPatternName-content,
+#editHostDialog-content {
+  width: 300px;
+  .parent {
+    width: 90%;
+    margin: 10px auto;
+    margin-bottom: 15px;
     .group {
       margin-bottom: 15px;
     }
