@@ -64,7 +64,7 @@ class Header extends Component {
   /**
    * Determine the active page
    * @method
-   * @param {string} tab - page sections ('dashboard', 'alert', 'events' and 'configuration')
+   * @param {string} tab - page sections ('overview', 'dashboard', 'threats', 'events', 'soc' and 'configuration')
    * @returns true/false boolean value
    */
   getActiveTab = (tab) => {
@@ -72,7 +72,7 @@ class Header extends Component {
     const pattern = /^(\/SCP[\/]?)$/i;
     const pathArr = activeRoute.split('/');
 
-    if (activeRoute.match(pattern) && tab === 'dashboard') {
+    if (activeRoute.match(pattern) && tab === 'overview') {
       return true;
     }
     return pathArr[2] === tab;
@@ -219,6 +219,8 @@ class Header extends Component {
 
             <div>
               <div className='main-nav'>
+                <Link to='/SCP/overview' className={cx('item', {'active': this.getActiveTab('overview')})}>{t('txt-overview')}</Link>
+
                 <Link to='/SCP/dashboard/statisticsUIF' className={cx('item', {'active': this.getActiveTab('dashboard')})}>{t('txt-dashboard')}</Link>
 
                 {sessionRights.Module_Common &&

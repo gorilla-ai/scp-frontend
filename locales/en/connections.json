@@ -154,6 +154,7 @@
   "txt-duplicatedName": "Name is duplicated",
   "txt-checkRequiredFieldType": "Please check all the required fields and its format",
 
+  "txt-overview": "Overview",
   "txt-dashboard": "Dashboard",
   "txt-threats": "Threats",
   "txt-syslog": "Syslog",

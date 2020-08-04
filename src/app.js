@@ -8,11 +8,14 @@ import i18n from 'i18next'
 import Highcharts from 'highcharts'
 import Moment from 'moment'
 
-import StatisticsUIF from './components/dashboard/statisticsUIF'
 import DashboardMaps from './components/dashboard/maps'
 import DashboardStats from './components/dashboard/statistics'
 import EdgeManagement from './components/configuration/edge/edge'
 import Header from './header'
+import IncidentDevice from './components/soc/incident-device'
+import IncidentUnit from './components/soc/incident-unit'
+import IncidentLog from './components/soc/incident-log'
+import Incident from './components/soc/incident'
 import logger from 'loglevel-prefix-persist/client'
 import Login from './login'
 import loglevel from 'loglevel'
@@ -21,20 +24,18 @@ import NetworkInventory from './components/configuration/topology/inventory'
 import NetworkMap from './components/configuration/topology/map'
 import NetworkOwner from './components/configuration/topology/owner'
 import NotificationSettings from './components/configuration/notifications'
+import Overview from './components/overview/index'
 import ProductInfo from './components/configuration/product/product-info'
 import ServiceStatus from './components/configuration/service/status'
+import SeverityTable from './components/configuration/edge/severity'
+import StatisticsUIF from './components/dashboard/statisticsUIF'
 import Syslog from './components/events/syslog/index'
 import SyslogConfig from './components/configuration/syslog/syslog'
 import SyslogPattern from './components/configuration/syslog/pattern'
 import Threats from './components/threats/index'
 import ThreatIntelligence from './components/configuration/edge/threat'
-import SeverityTable from './components/configuration/edge/severity'
 import UserAccounts from './components/configuration/user/accounts/index'
 import UserPrivileges from './components/configuration/user/privileges/index'
-import IncidentDevice from './components/soc/incident-device'
-import IncidentUnit from './components/soc/incident-unit'
-import IncidentLog from './components/soc/incident-log'
-import Incident from './components/soc/incident'
 
 import {BaseDataContext, baseData} from './components/common/context'
 import {createInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -64,6 +65,12 @@ const HeaderComp = () => (
   <BaseDataContext.Provider value={baseData}>
     <Header
       productName={productName} />
+  </BaseDataContext.Provider>
+)
+
+const OverviewComp = () => (
+  <BaseDataContext.Provider value={baseData}>
+    <Overview />
   </BaseDataContext.Provider>
 )
 
@@ -212,11 +219,10 @@ const Main = () => (
 
   <main className='main'>
     <Switch>
-      <Route exact path='/SCP' component={StatisticsUIFComp} />
+      <Route exact path='/SCP' component={OverviewComp} />
+      <Route exact path='/SCP/overview' component={OverviewComp} />
       <Route exact path='/SCP/dashboard/statisticsUIF' component={StatisticsUIFComp} />
-      {
-      // <Route exact path='/SCP/dashboard/statistics' component={DashboardStatsComp} />
-      }
+      {/*<Route exact path='/SCP/dashboard/statistics' component={DashboardStatsComp} />*/}
       <Route exact path='/SCP/dashboard/maps' component={DashboardMapsComp} />
       <Route exact path='/SCP/threats' component={ThreatsComp} />
       <Route exact path='/SCP/events/syslog' component={SyslogComp} />

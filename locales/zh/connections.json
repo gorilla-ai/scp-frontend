@@ -154,6 +154,7 @@
   "txt-duplicatedName": "名稱不得重複",
   "txt-checkRequiredFieldType": "請檢查格式及必填欄位",
 
+  "txt-overview": "Overview",
   "txt-dashboard": "Dashboard",
   "txt-threats": "Threats",
   "txt-syslog": "Syslog",

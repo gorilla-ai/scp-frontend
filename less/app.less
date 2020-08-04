@@ -500,24 +500,13 @@ i.c-checkbox.fg-checkbox {
 }
 #gisMapNew {
   width: 100%;
-  height: 77vh;
-  &.full {
-    height: 95vh;
-  }
-  &.fit {
-    height: 70vh;
-    overflow-y: auto;
-  }
+  height: 87vh;
   .actions {
     display: none;
   }
   .leaflet-container {
     background-color: #303030;
   }
-  // .leaflet-tile-container img,
-  // .leaflet-overlay-pane img {
-  //   filter: grayscale(100%);
-  // }
   .gis-spot {
     border-width: 0;
   }
@@ -530,13 +519,12 @@ i.c-checkbox.fg-checkbox {
   .gis-geojson {
     stroke: #303030;
     fill: #424242;
-    fill-opacity: 0.8;
   }
   .gis-polyline {
     stroke-dasharray: 1000;
     stroke-dashoffset: 1000;
     animation-name: dash;
-    animation-duration: 4s;
+    animation-duration: 5s;
     animation-iteration-count: infinite;
     animation-timing-function: linear;
     animation-fill-mode: forwards;
@@ -709,6 +697,23 @@ i.c-checkbox.fg-checkbox {
     .highcharts-legend {
       text {
         fill: var(--chartAxisLabelColor) !important;
+      }
+    }
+  }
+  .main-overview { //Overall section
+    .loader-wrap {
+      position: absolute;
+      top: 45%;
+      left: 50%;
+      z-index: 3000;
+      color: #fff;
+      background-color: #000;
+      border-radius: 50% 50%;
+      opacity: .6;
+      .fg-loading-2 {
+        font-size: 1.8em;
+        margin: 10px;
+        padding: 5px;
       }
     }
   }

@@ -66,9 +66,6 @@ const MAPS_PRIVATE_DATA = {
   seatData: {}
 };
 
-const mapLimit = 50;
-let mapCounter = 1;
-
 /**
  * Dashboard Maps
  * @class
@@ -88,13 +85,11 @@ class DashboardMaps extends Component {
       },
       past24hTime: helper.getFormattedDate(helper.getSubstractDate(24, 'hours')),
       updatedTime: helper.getFormattedDate(Moment()),
-      mapType: 'new', //PRIVATE PUBLIC
+      mapType: PRIVATE, //'private' or 'public'
       locationType: '',
       ..._.cloneDeep(MAPS_PUBLIC_DATA),
       ..._.cloneDeep(MAPS_PRIVATE_DATA),
-      modalOpen: false,
-      mapData: [],
-      worldAttackData: []
+      modalOpen: false
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -104,8 +99,6 @@ class DashboardMaps extends Component {
   componentDidMount() {
     this.loadAlertData();
     this.getFloorPlan();
-
-    setInterval(this.getAttackData, 5000);
   }
   /**
    * Get and set alert maps data
@@ -168,7 +161,6 @@ class DashboardMaps extends Component {
           alertMapData: tempArray
         }, () => {
           this.getWorldMap();
-          this.loadNewMap();          
         });
       }
       return null;
@@ -508,126 +500,6 @@ class DashboardMaps extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  loadNewMap = () => {
-    //const {alertMapData} = this.state;
-    //let worldAttackData = [];
-    let mapData = [];
-
-    _.forEach(WORLDMAP.features, val => {
-      const countryObj = {
-        type: 'geojson',
-        id: val.properties.name,
-        weight: 0.6,
-        fillColor: 'white',
-        color: '#182f48',
-        fillOpacity: 1
-      };
-
-      countryObj.geojson = val.geometry;
-      mapData.push(countryObj);
-    });
-
-
-    this.setState({
-      mapData
-    });
-
-    //setInterval(this.getAttackData(), 5000);
-  }
-  getAttackData = () => {
-    const x = mapLimit * mapCounter;
-    let worldAttackData = [];
-
-    //mapCounter = 3
-    //x = 150
-
-    if (this.state.alertMapData.length === 0) {
-      return;
-    }
-
-    _.forEach(this.state.alertMapData, (val, i) => {
-      if (x === mapLimit) {
-        if (i >= mapLimit) return false;
-      } else {
-        if (i < (x - mapLimit)) return;
-        if (i > x) return false;
-      }
-
-      if (val.srcLatitude && val.srcLongitude) {
-        worldAttackData.push({
-          type: 'polyline',
-          id: 'set-polyline_' + i,
-          color: ALERT_LEVEL_COLORS[val._severity_],
-          latlng: [
-            [val.srcLatitude, val.srcLongitude],
-            [val.destLatitude, val.destLongitude]
-          ],
-          directed: false,
-          popup: 'Polyline, directed, arrow at the end of path'
-        });
-      }
-
-      if (val.destLatitude && val.destLongitude) {
-        worldAttackData.push({
-          type: 'spot',
-          id: 'setSpotSmall' + i,
-          className: 'spot-small',
-          latlng: [
-            val.destLatitude,
-            val.destLongitude
-          ],
-          data: {
-            type: 'small',
-            color: ALERT_LEVEL_COLORS[val._severity_]
-          }
-        });
-
-        worldAttackData.push({
-          type: 'spot',
-          id: 'setSpotBig' + i,
-          className: 'spot-big',
-          latlng: [
-            val.destLatitude,
-            val.destLongitude
-          ],
-          data: {
-            type: 'big',
-            color: ALERT_LEVEL_COLORS[val._severity_]
-          }
-        });
-      }
-    })
-
-    mapCounter++;
-
-    this.setState({
-      worldAttackData
-    }, () => {
-      setTimeout(() => {
-        const svgTag = _.get(this.gisMapData, '_renderer._container');
-        const NS = 'http:\//www.w3.org/2000/svg';
-        const svg = document.createElementNS(NS, 'svg');
-        const defs = document.createElementNS(NS, 'defs');
-        const polyLine = document.getElementsByClassName('gis-polyline');
-        const ft = document.createElementNS(NS, 'filter');
-        const fg = document.createElementNS(NS, 'feGaussianBlur');
-
-        ft.setAttribute('id', 'attackPath');
-        ft.setAttribute('x', 0);
-        ft.setAttribute('y', 0);
-        fg.setAttribute('in', 'SourceGraphic');
-        fg.setAttribute('stdDeviation', 0);
-
-        _.forEach(polyLine, val => {
-          val.setAttribute('filter', 'url("#attackPath")');
-        })
-
-        ft.appendChild(fg);
-        defs.appendChild(ft);
-        svgTag.appendChild(defs);
-      }, 2000);
-    });
-  }
   /**
    * Get and set floor list data
    * @method
@@ -928,9 +800,7 @@ class DashboardMaps extends Component {
       currentMap,
       currentBaseLayers,
       seatData,
-      modalOpen,
-      mapData,
-      worldAttackData
+      modalOpen
     } = this.state;
     const displayTime = past24hTime + ' - ' + updatedTime;
 
@@ -950,8 +820,7 @@ class DashboardMaps extends Component {
             <ButtonGroup
               list={[
                 {value: PRIVATE, text: t('dashboard.txt-private')},
-                {value: PUBLIC, text: t('dashboard.txt-public')},
-                {value: 'new', text: 'New Map'}
+                {value: PUBLIC, text: t('dashboard.txt-public')}
               ]}
               value={mapType}
               onChange={this.toggleMaps} />
@@ -1059,58 +928,6 @@ class DashboardMaps extends Component {
                       },
                       'border-color': '#333',
                       'border-width': '1px'
-                    }
-                  }
-                ]}
-                layouts={['standard']}
-                dragModes={['pan']} />
-            }
-            {mapType === 'new' &&
-              <Gis
-                id='gisMapNew'
-                ref={(ref) => {
-                  const gis = _.get(ref, '_component._component._component._component.gis');
-                  this.gisMapData = gis ? gis._map : null;
-                }}
-                data={mapData}
-                layers={{
-                  world: {
-                    label: 'World Map',
-                    interactive: false,
-                    data: worldAttackData
-                  }
-                }}
-                activeLayers={['world']}
-                baseLayers={{
-                  standard: {
-                    id: 'world',
-                    layer: 'world'
-                  }
-                }}
-                mapOptions={{
-                  crs: L.CRS.Simple
-                }}
-                onClick={(id) => {
-                  //console.log('clicked', id)
-                }}
-                symbolOptions={[
-                  {
-                    match: {
-                      type: 'spot'
-                    },
-                    props: {
-                      'background-color': ({data}) => {
-                        return data.color;
-                      },
-                      width: ({data}) => {
-                        return data.type === 'small' ? '12px' : '36px';
-                      },
-                      height: ({data}) => {
-                        return data.type === 'small' ? '12px' : '36px';
-                      },
-                      opacity: ({data}) => {
-                        return data.type === 'small' ? '1' : '.3';
-                      }
                     }
                   }
                 ]}
