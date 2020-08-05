@@ -6,7 +6,9 @@ import Moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
+import DropDownList from 'react-ui/build/src/components/dropdown'
 import Gis from 'react-gis/build/src/components'
+import RadioGroup from 'react-ui/build/src/components/radio-group'
 
 import {BaseDataContext} from '../common/context';
 import helper from '../common/helper'
@@ -24,10 +26,6 @@ const ALERT_LEVEL_COLORS = {
   Warning: '#29CC7A',
   Notice: '#7ACC29'
 };
-
-const mapInterval = 5; //seconds
-const mapLimit = 20; //count
-let mapCounter = 1;
 
 /**
  * Overview
@@ -50,7 +48,12 @@ class Overview extends Component {
       updatedTime: helper.getFormattedDate(Moment()),
       alertMapData: [],
       worldMapData: [],
-      worldAttackData: []
+      worldAttackData: [],
+      mapInterval: 5,
+      mapLimit: 20,
+      mapCounter: 1,
+      pathSpeed: 1000,
+      countDown: ''
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -60,12 +63,27 @@ class Overview extends Component {
   componentDidMount() {
     this.getWorldMap();
     this.loadAlertData();
-
-    this.intervalId = setInterval(this.getAttackData, mapInterval * 1000);
+    this.setInterval();
   }
   componentWillUnmount() {
-    this.intervalId && clearInterval(this.intervalId);
-    this.intervalId = null;
+    this.clearInterval('mapInterval');
+    this.clearInterval('timer');
+  }
+  /**
+   * Set time interval for each data to be displayed
+   * @method
+   */
+  setInterval = () => {
+    this.mapInterval = setInterval(this.getAttackData, this.state.mapInterval * 1000);
+  }
+  /**
+   * Clear time interval
+   * @method
+   * @param {string} type - 'mapInterval' or 'timer'
+   */
+  clearInterval = (type) => {
+    this[type] && clearInterval(this[type]);
+    this[type] = null;
   }
   /**
    * Get world map data
@@ -96,7 +114,7 @@ class Overview extends Component {
    * Get and set alert maps data
    * @method
    */
-  loadAlertData = (type) => {
+  loadAlertData = () => {
     const {baseUrl} = this.context;
     const {datetime} = this.state;
     const dateTime = {
@@ -159,7 +177,7 @@ class Overview extends Component {
    * @method
    */
   getAttackData = () => {
-    const {alertMapData} = this.state;
+    const {alertMapData, mapLimit, mapCounter} = this.state;
     const dataSet = mapLimit * mapCounter; //Data set to be shown on map
     let worldAttackData = [];
 
@@ -231,19 +249,135 @@ class Overview extends Component {
       }
     })
 
-    mapCounter++;
+    this.clearInterval('timer');
+
+    let setCounter = mapCounter;
 
     this.setState({
-      worldAttackData
+      worldAttackData,
+      mapCounter: ++setCounter
+    }, () => {
+      this.setAnimationConfig();
+      this.startTimer();
+    });
+  }
+  /**
+   * Set attack path animation
+   * @method
+   */
+  setAnimationConfig = () => {
+    const polyLine = document.getElementsByClassName('gis-polyline');
+
+    _.forEach(polyLine, val => {
+      val.setAttribute('style', `stroke-dasharray: ${this.state.pathSpeed}; animation-duration: ${this.state.mapInterval}s;`);
+    })
+  }
+  /**
+   * Start timer for countdown display
+   * @method
+   */
+  startTimer = () => {
+    this.setState({
+      countDown: this.state.mapInterval
+    }, () => {
+      this.timer = setInterval(this.displayCountDown, 1000); //Every 1 second
+    });
+  }
+  /**
+   * Set countdown
+   * @method
+   */
+  displayCountDown = () => {
+    this.setState({
+      countDown: this.state.countDown - 1
+    });
+  }
+  /**
+   * Set attack path speed
+   * @method
+   * @param {string} val - path speed
+   */
+  handlePathSpeedChange = (val) => {
+    this.setState({
+      pathSpeed: Number(val)
+    }, () => {
+      this.setAnimationConfig();
+    });
+  }
+  /**
+   * Set map config
+   * @method
+   * @param {string} type - 'mapLimit' or 'mapInterval'
+   * @param {string} val - map config data
+   */
+  handleMapConfigChange = (type, val) => {
+    this.setState({
+      worldAttackData: [],
+      [type]: Number(val),
+      mapCounter: 1,
+      countDown: ''
+    }, () => {
+      this.clearInterval('mapInterval');
+      this.clearInterval('timer');
+      this.setInterval();
     });
   }
   render() {
-    const {past24hTime, updatedTime, worldMapData, worldAttackData} = this.state;
+    const {
+      past24hTime,
+      updatedTime,
+      worldMapData,
+      worldAttackData,
+      mapInterval,
+      mapLimit,
+      pathSpeed,
+      countDown
+    } = this.state;
     const displayTime = past24hTime + ' - ' + updatedTime;
 
     return (
       <div>
-        <div className='sub-header'>
+        <div className='sub-header overview'>
+          <RadioGroup
+            id='attackPathType'
+            className='radio-group'
+            list={[
+              {value: 1000, text: 'Slow'},
+              {value: 100, text: 'Fast'},
+              {value: 50, text: 'Faster'},
+              {value: 0, text: 'Stop animation'}
+            ]}
+            value={pathSpeed}
+            onChange={this.handlePathSpeedChange} />
+          <div className='dropdown'>
+            <label>Data count: </label>
+            <DropDownList
+              id='mapLimitList'
+              required={true}
+              list={[
+                {value: 10, text: 10},
+                {value: 20, text: 20},
+                {value: 50, text: 50}
+              ]}
+              value={mapLimit}
+              onChange={this.handleMapConfigChange.bind(this, 'mapLimit')} />
+          </div>
+          <div className='dropdown'>
+            <label>Interval: </label>
+            <DropDownList
+              id='mapIntervalList'
+              required={true}
+              list={[
+                {value: 5, text: 5},
+                {value: 10, text: 10},
+                {value: 15, text: 15}
+              ]}
+              value={mapInterval}
+              onChange={this.handleMapConfigChange.bind(this, 'mapInterval')} />
+          </div>
+          {countDown && countDown >= 0 &&
+            <span className='count-down'>Timer: {countDown}s</span>
+          }
           <span className='date-time'>{displayTime}</span>
         </div>
 
@@ -256,6 +390,10 @@ class Overview extends Component {
 
           <Gis
             id='gisMapNew'
+            ref={(ref) => {
+              const gis = _.get(ref, '_component._component._component._component.gis');
+              this.gisMapData = gis ? gis._map : null;
+            }}
             data={worldMapData}
             layers={{
               world: {

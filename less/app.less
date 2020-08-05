@@ -521,18 +521,18 @@ i.c-checkbox.fg-checkbox {
     fill: #424242;
   }
   .gis-polyline {
-    stroke-dasharray: 1000;
+    //stroke-dasharray: 1000;
     stroke-dashoffset: 1000;
     animation-name: dash;
-    animation-duration: 5s;
+    //animation-duration: 5s;
     animation-iteration-count: infinite;
     animation-timing-function: linear;
     animation-fill-mode: forwards;
   }
   @keyframes dash {
-    0%   {opacity: .1;}
-    30%  {opacity: .5;}
-    60%  {opacity: .7;}
+    //0%   {opacity: .1;}
+    //30%  {opacity: .5;}
+    //60%  {opacity: .7;}
     100% {opacity: 1; stroke-dashoffset: 0;}
   }
   .spot-big .gis-spot {
@@ -670,6 +670,29 @@ i.c-checkbox.fg-checkbox {
       .search-button {
         margin-top: 2px;
         background-color: var(--buttonSelectedColor);        
+      }
+    }
+    .radio-group {
+      flex-direction: row;
+      margin: 5px 0;
+      .list-item {
+        margin: 0;
+        margin-right: 10px;
+      }
+    }
+    &.overview {
+      #attackPathType {
+        float: left;
+        width: 370px;
+      }
+      .dropdown {
+        float: left;
+        margin-right: 10px;
+      }
+      .count-down {
+        display: inline-block;
+        margin-top: 5px;
+        margin-left: 5px;
       }
     }
   }
