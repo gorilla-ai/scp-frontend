@@ -637,7 +637,7 @@ class AlertDetails extends Component {
    * Display PCAP download link
    * @method
    */
-  displayPCAPdownload = () => {
+  getPCAPdownloadContent = () => {
     const {baseUrl, contextRoot} = this.context;
     const {alertData} = this.props;
     const startDttm = Moment(helper.getSubstractDate(10, 'minutes', alertData._eventDttm_)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
@@ -645,6 +645,34 @@ class AlertDetails extends Component {
     const downloadLink = `${baseUrl}${contextRoot}/api/alert/pcap?agentId=${alertData._edgeInfo.agentId}&startDttm=${startDttm}&endDttm=${endDttm}&targetIp=${alertData.srcIp || alertData.ipSrc}&infoType=${alertData['alertInformation.type']}`;
 
     return <span onClick={this.pcapDownload.bind(this, downloadLink)}>{t('alert.txt-downloadPCAP')}</span>
+  }
+  /**
+   * Display Download File link
+   * @method
+   */
+  getDownloadFileContent = () => {
+    return (
+      <div onClick={this.downloadFile}>{t('alert.txt-downloadFile')}</div>
+    )
+  }
+  /**
+   * Display Query More menu
+   * @method
+   * @returns HTML DOM
+   */
+  getQueryMoreContent = () => {
+    const {showContent} = this.state;
+    let ip = '';
+
+    if (showContent.srcIp) {
+      ip = this.getIpPortData('srcIp');
+    } else if (showContent.destIp) {
+      ip = this.getIpPortData('destIp');
+    }
+
+    if (ip && ip !== NOT_AVAILABLE) {
+      return <div onClick={this.toggleRedirectMenu}>{t('alert.txt-queryMore')}</div>
+    }
   }
   /**
    * Redirect URL
@@ -659,7 +687,7 @@ class AlertDetails extends Component {
    * @method
    * @returns HTML DOM
    */
-  getRedirectIp = () => {
+  getRedirectIpContent = () => {
     const {baseUrl, contextRoot, language} = this.context;
     const {showContent, alertInfo} = this.state;
     let ipType = '';
@@ -691,26 +719,7 @@ class AlertDetails extends Component {
     }
 
     const url = `${baseUrl}${contextRoot}/configuration/topology/inventory?ip=${ip}&type=${type}&lng=${language}`;
-    return <div className='redirect-ip' onClick={this.redirectIp.bind(this, url)}>{text}</div>
-  }
-  /**
-   * Display Query More menu
-   * @method
-   * @returns HTML DOM
-   */
-  getQueryMore = () => {
-    const {showContent} = this.state;
-    let ip = '';
-
-    if (showContent.srcIp) {
-      ip = this.getIpPortData('srcIp');
-    } else if (showContent.destIp) {
-      ip = this.getIpPortData('destIp');
-    }
-
-    if (ip && ip !== NOT_AVAILABLE) {
-      return <div className='query-more' onClick={this.toggleRedirectMenu}>{t('alert.txt-queryMore')}</div>
-    }
+    return <div onClick={this.redirectIp.bind(this, url)}>{text}</div>
   }
   /**
    * Redirect to ivar link
@@ -823,22 +832,23 @@ class AlertDetails extends Component {
           </div>
           <div className='content'>
             <div className='options-buttons'>
-              {showContent.rule && alertData.pcapFlag &&
-                <section>
-                  {this.displayPCAPdownload()}
-                </section>
-              }
+              <section>
+                {showContent.rule && alertData.pcapFlag &&
+                  this.getPCAPdownloadContent()
+                }
 
-              {showContent.attack && alertData.fileMD5 &&
-                <div onClick={this.downloadFile}>{t('alert.txt-downloadFile')}</div>
-              }
+                {showContent.attack && alertData.fileMD5 &&
+                  this.getDownloadFileContent()
+                }
 
-              {(showContent.srcIp || showContent.destIp) &&
-                <section>
-                  {this.getQueryMore()}
-                  {this.getRedirectIp()}
-                </section>
-              }
+                {(showContent.srcIp || showContent.destIp) &&
+                  this.getQueryMoreContent()
+                }
+
+                {(showContent.srcIp || showContent.destIp) &&
+                  this.getRedirectIpContent()
+                }
+              </section>
             </div>
 
             {showRedirectMenu && showContent.srcIp &&
