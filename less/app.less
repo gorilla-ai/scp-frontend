@@ -516,20 +516,16 @@ i.c-checkbox.fg-checkbox {
     stroke-opacity: 1;
     stroke-width: 2;
   }
-  .gis-geojson {
-    stroke: #303030;
-    fill: #424242;
-  }
   .gis-polyline {
+    animation-name: path;
     //stroke-dasharray: 1000;
     stroke-dashoffset: 1000;
-    animation-name: dash;
     //animation-duration: 5s;
     animation-iteration-count: infinite;
     animation-timing-function: linear;
     animation-fill-mode: forwards;
   }
-  @keyframes dash {
+  @keyframes path {
     //0%   {opacity: .1;}
     //30%  {opacity: .5;}
     //60%  {opacity: .7;}

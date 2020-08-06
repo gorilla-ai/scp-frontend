@@ -90,20 +90,16 @@ class Overview extends Component {
    * @method
    */
   getWorldMap = () => {
-    let worldMapData = [];
-
-    _.forEach(WORLDMAP.features, val => {
-      const countryObj = {
-        type: 'geojson',
+    const worldMapData = _.map(WORLDMAP.features, val => {
+      return {
         id: val.properties.name,
+        type: 'geojson',
+        geojson: val.geometry,
         weight: 0.6,
-        fillColor: 'white',
-        color: '#182f48',
+        fillColor: '#424242',
+        color: '#303030',
         fillOpacity: 1
-      };
-
-      countryObj.geojson = val.geometry;
-      worldMapData.push(countryObj);
+      }
     });
 
     this.setState({
@@ -363,7 +359,7 @@ class Overview extends Component {
               onChange={this.handleMapConfigChange.bind(this, 'mapLimit')} />
           </div>
           <div className='dropdown'>
-            <label>Interval(s): </label>
+            <label>Interval: </label>
             <DropDownList
               id='mapIntervalList'
               required={true}
