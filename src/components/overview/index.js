@@ -342,10 +342,10 @@ class Overview extends Component {
             id='attackPathType'
             className='radio-group'
             list={[
-              {value: 1000, text: 'Slow'},
+              {value: 1000, text: 'Normal'},
               {value: 100, text: 'Fast'},
               {value: 50, text: 'Faster'},
-              {value: 0, text: 'Stop animation'}
+              {value: 0, text: 'No animation'}
             ]}
             value={pathSpeed}
             onChange={this.handlePathSpeedChange} />
@@ -363,7 +363,7 @@ class Overview extends Component {
               onChange={this.handleMapConfigChange.bind(this, 'mapLimit')} />
           </div>
           <div className='dropdown'>
-            <label>Interval: </label>
+            <label>Interval(s): </label>
             <DropDownList
               id='mapIntervalList'
               required={true}
@@ -376,7 +376,7 @@ class Overview extends Component {
               onChange={this.handleMapConfigChange.bind(this, 'mapInterval')} />
           </div>
           {countDown && countDown >= 0 &&
-            <span className='count-down'>Timer: {countDown}s</span>
+            <span className='count-down'>{countDown}s</span>
           }
           <span className='date-time'>{displayTime}</span>
         </div>
