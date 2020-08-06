@@ -384,6 +384,7 @@
     "txt-geography": "Geography",
     "txt-addThreat": "Add Threat",
     "txt-uploadThreat": "Upload Threat",
+    "txt-importThreat": "Import Threat",
     "txt-basicInfo": "Info",
     "txt-editEdge": "Edit Edge",
     "txt-edgeName": "Edge Name",
