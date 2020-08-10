@@ -480,6 +480,8 @@
     "txt-_NewCreateFile": "New Create File Path",
     "txt-includePath": "Include Path",
     "txt-excludePath": "Exclude Path",
+    "txt-scanProcess": "Scan Process",
+    "txt-scanFilePath": "Scan File Path",
     "txt-saveSettings": "Save",
     "txt-restoreDefault": "Restore Default",
     "txt-reCheck": "Re-check",

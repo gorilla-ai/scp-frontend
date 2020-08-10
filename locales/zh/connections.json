@@ -480,6 +480,8 @@
     "txt-_NewCreateFile": "新增檔案路徑",
     "txt-includePath": "偵測路徑",
     "txt-excludePath": "偵測排除路徑",
+    "txt-scanProcess": "掃描Process",
+    "txt-scanFilePath": "掃描檔案路徑",
     "txt-saveSettings": "儲存設定",
     "txt-restoreDefault": "還原預設值",
     "txt-reCheck": "重新檢測",
