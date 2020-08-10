@@ -33,7 +33,7 @@ const ALERT_LEVEL_COLORS = {
  * @author Ryan Chen <ryanchen@telmediatech.com>
  * @summary A react component to show the Overview page
  */
-class Overview extends Component {
+class DashboardOverview extends Component {
   constructor(props) {
     super(props);
 
@@ -334,6 +334,8 @@ class Overview extends Component {
     return (
       <div>
         <div className='sub-header overview'>
+          {helper.getDashboardMenu('overview')}
+
           <RadioGroup
             id='attackPathType'
             className='radio-group'
@@ -440,9 +442,9 @@ class Overview extends Component {
   }
 }
 
-Overview.contextType = BaseDataContext;
+DashboardOverview.contextType = BaseDataContext;
 
-Overview.propTypes = {
+DashboardOverview.propTypes = {
 };
 
-export default Overview;
+export default DashboardOverview;

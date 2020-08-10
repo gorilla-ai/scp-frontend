@@ -9,6 +9,7 @@ import Highcharts from 'highcharts'
 import Moment from 'moment'
 
 import DashboardMaps from './components/dashboard/maps'
+import DashboardOverview from './components/dashboard/overview'
 import DashboardStats from './components/dashboard/statistics'
 import EdgeManagement from './components/configuration/edge/edge'
 import Header from './header'
@@ -24,7 +25,6 @@ import NetworkInventory from './components/configuration/topology/inventory'
 import NetworkMap from './components/configuration/topology/map'
 import NetworkOwner from './components/configuration/topology/owner'
 import NotificationSettings from './components/configuration/notifications'
-import Overview from './components/overview/index'
 import ProductInfo from './components/configuration/product/product-info'
 import ServiceStatus from './components/configuration/service/status'
 import SeverityTable from './components/configuration/edge/severity'
@@ -68,9 +68,9 @@ const HeaderComp = () => (
   </BaseDataContext.Provider>
 )
 
-const OverviewComp = () => (
+const DashboardOverviewComp = () => (
   <BaseDataContext.Provider value={baseData}>
-    <Overview />
+    <DashboardOverview />
   </BaseDataContext.Provider>
 )
 
@@ -219,8 +219,8 @@ const Main = () => (
 
   <main className='main'>
     <Switch>
-      <Route exact path='/SCP' component={OverviewComp} />
-      <Route exact path='/SCP/overview' component={OverviewComp} />
+      <Route exact path='/SCP' component={DashboardOverviewComp} />
+      <Route exact path='/SCP/dashboard/overview' component={DashboardOverviewComp} />
       <Route exact path='/SCP/dashboard/statisticsUIF' component={StatisticsUIFComp} />
       {/*<Route exact path='/SCP/dashboard/statistics' component={DashboardStatsComp} />*/}
       <Route exact path='/SCP/dashboard/maps' component={DashboardMapsComp} />

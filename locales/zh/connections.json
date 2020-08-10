@@ -154,7 +154,6 @@
   "txt-duplicatedName": "名稱不得重複",
   "txt-checkRequiredFieldType": "請檢查格式及必填欄位",
 
-  "txt-overview": "Overview",
   "txt-dashboard": "Dashboard",
   "txt-threats": "Threats",
   "txt-syslog": "Syslog",
@@ -220,6 +219,7 @@
   "txt-map": "地圖",
 
   "dashboard": {
+    "txt-overview": "Overview",
     "txt-statisticsInfo": "統計資料",
     "txt-patternName": "Pattern名稱",
     "txt-attacksMap": "攻擊地圖",
