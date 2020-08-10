@@ -62,6 +62,11 @@ class ResetPwd extends Component {
         this.error(at('login.lbl-password'));
         return;
       }
+
+      if (formData.oldPwd === formData.newPwd1) {
+        this.error(t('pwd-samePass'));
+        return;
+      }
     }
 
     if (formType === 'newSet') {

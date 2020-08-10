@@ -4,6 +4,7 @@ import PropTypes from 'prop-types'
 import {ReactMultiEmail} from 'react-multi-email';
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import RadioGroup from 'react-ui/build/src/components/radio-group'
 import Textarea from 'react-ui/build/src/components/textarea'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -24,7 +25,9 @@ class YaraRule extends Component {
       yaraRule: {
         rule: '',
         path: []
-      }
+      },
+      scanType: 'process', //'process' or 'filePath'
+      info: ''
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -37,11 +40,32 @@ class YaraRule extends Component {
    * @param {string} value - input value
    */
   handleDataChange = (type, value) => {
-    let tempRaraRule = {...this.state.yaraRule};
-    tempRaraRule[type] = value;
+    let tempYaraRule = {...this.state.yaraRule};
+    tempYaraRule[type] = value;
 
     this.setState({
-      yaraRule: tempRaraRule
+      yaraRule: tempYaraRule
+    });
+  }
+  /**
+   * Handle scan type data change
+   * @method
+   * @param {string} val - scan type ('process' or 'filePath')
+   */
+  handleScanTypeChange = (val) => {
+    let tempYaraRule = {...this.state.yaraRule};
+
+    if (val === 'process') {
+      tempYaraRule.path = [];
+
+      this.setState({
+        yaraRule: tempYaraRule
+      });
+    }
+
+    this.setState({
+      scanType: val,
+      info: ''
     });
   }
   /**
@@ -70,12 +94,55 @@ class YaraRule extends Component {
     )
   }
   /**
+   * Validate include path input
+   * @method
+   * @param {function} path - path from user's input
+   */
+  validatePathInput = (path) => {
+    let valid = true;
+
+    if (path.indexOf('/') > 0) { //Slash is not allowed
+      valid = false;
+    }
+
+    if (path[path.length - 1] !== '\\') { //Path has to end with '\\'
+      valid = false;
+    }
+
+    if (valid) {
+      this.setState({
+        info: ''
+      });
+      return path;
+    } else {
+      this.setState({
+        info: t('network-inventory.txt-pathFormatError')
+      });
+    }
+  }
+  /**
+   * Validate input data
+   * @method
+   */
+  validateInputData = () => {
+    const {yaraRule, scanType} = this.state;
+
+    if (!yaraRule.rule || (scanType === 'filePath' && yaraRule.path.length === 0)) {
+      this.setState({
+        info: t('txt-checkRequiredFieldType')
+      });
+      return;
+    }
+
+    this.props.triggerTask(['compareIOC'], '', this.state.yaraRule);
+  }
+  /**
    * Display yara rule content
    * @method
    * @returns HTML DOM
    */
   displayYaraRule = () => {
-    const {yaraRule} = this.state;
+    const {yaraRule, scanType} = this.state;
 
     return (
       <div className='form-group normal'>
@@ -84,26 +151,38 @@ class YaraRule extends Component {
           <Textarea
             id='yaraRuleContent'
             rows={10}
+            required={true}
             value={yaraRule.rule}
             onChange={this.handleDataChange.bind(this, 'rule')} />
         </div>
         <div className='group'>
-          <label>{t('network-inventory.txt-includePath')} ({t('txt-commaSeparated')})</label>
-          <ReactMultiEmail
-            emails={yaraRule.path}
-            validateEmail={path => {
-              return path;
-            }}
-            onChange={this.handleDataChange.bind(this, 'path')}
-            getLabel={this.getLabel} />
+          <RadioGroup
+            id='yaraScanType'
+            className='radio-group'
+            list={[
+              {value: 'process', text: t('network-inventory.txt-scanProcess')},
+              {value: 'filePath', text: t('network-inventory.txt-scanFilePath')}
+            ]}
+            value={scanType}
+            onChange={this.handleScanTypeChange} />
         </div>
+        {scanType === 'filePath' &&
+          <div className='group'>
+            <label>{t('network-inventory.txt-includePath')} ({t('txt-commaSeparated')})</label>
+            <ReactMultiEmail
+              emails={yaraRule.path}
+              validateEmail={this.validatePathInput}
+              onChange={this.handleDataChange.bind(this, 'path')}
+              getLabel={this.getLabel} />
+          </div>
+        }
       </div>
     )
   }
   render() {
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.props.toggleYaraRule},
-      confirm: {text: t('txt-confirm'), handler: this.props.triggerTask.bind(this, ['compareIOC'], '', this.state.yaraRule)}
+      confirm: {text: t('txt-confirm'), handler: this.validateInputData}
     };
 
     return (
@@ -113,6 +192,7 @@ class YaraRule extends Component {
         draggable={true}
         global={true}
         actions={actions}
+        info={this.state.info}
         closeAction='cancel'>
         {this.displayYaraRule()}
       </ModalDialog>

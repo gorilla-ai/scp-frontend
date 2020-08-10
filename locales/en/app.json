@@ -46,8 +46,8 @@
   "txt-phone-wc-pattern":"Phone number of 10 characters, composed of digits and * (wildcard), making up 10 characters. Eg. 09123456**",
   "txt-phone-pattern":"Phone number composed of 10 digits. Eg 0912345678",
   "txt-phone-international-pattern":"(International) Phone number composed of at least 10 digits. Eg 0912345678, +85212345678",
-  "txt-password-pattern":"Length need 12, contain special character, also english uppercase and lowercase",
-  "txt-id-no-pattern":"Fisrt character need english uppercase, and then add digital, tatal need 10 characters",
+  "txt-password-pattern":"Password needs to be at least 12 characters long, contains uppercase and lowercase letter, and at least one special character and number",
+  "txt-id-no-pattern":"Fisrt character need english uppercase, and then add digital, total need 10 characters",
   "txt-email-pattern":"Email format",
 
   "txt-password-due-to-expire":"Your password is due to expire after {{days}} days, please change your password",

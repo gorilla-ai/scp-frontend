@@ -54,10 +54,11 @@ class ThreatIntelligence extends Component {
       indicatorsData: null,
       indicatorsTrendData: null,
       acuIndicatorsTrendData: null,
-      uplaodOpen: false,
-      file: {},
       addThreatsOpen: false,
+      uplaodThreatsOpen: false,
+      importThreatsOpen: false,
       addThreats: [],
+      threatsFile: {},
       threats: {
         dataFieldsArr: ['threatText', 'threatType', 'dataSourceType', 'createDttm', '_menu'],
         dataFields: {},
@@ -241,7 +242,7 @@ class ThreatIntelligence extends Component {
    */
   toggleUploadThreat = (options) => {
     this.setState({
-      uplaodOpen: !this.state.uplaodOpen
+      uplaodThreatsOpen: !this.state.uplaodThreatsOpen
     }, () => {
       if (options === 'showMsg') {
         PopupDialog.alert({
@@ -321,7 +322,7 @@ class ThreatIntelligence extends Component {
    * @method
    * @param {object} file - file uploaded by the user
    */
-  parseFile = async (file) => {
+  parseUploadFile = async (file) => {
     if (file) {
       this.handleFileChange(file, await this.checkEncode(file));
     }
@@ -331,7 +332,7 @@ class ThreatIntelligence extends Component {
    * @method
    * @returns ModalDialog component
    */
-  uploadDialog = () => {
+  uploadThreatsDialog = () => {
     const titleText = t('edge-management.txt-uploadThreat');
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleUploadThreat},
@@ -352,7 +353,7 @@ class ThreatIntelligence extends Component {
           id='uploadThreat'
           fileType='text'
           btnText={t('txt-upload')}
-          handleFileChange={this.parseFile} />
+          handleFileChange={this.parseUploadFile} />
       </ModalDialog>
     )
   }
@@ -375,7 +376,7 @@ class ThreatIntelligence extends Component {
       })
 
       this.setState({
-        uplaodOpen: false,
+        uplaodThreatsOpen: false,
         addThreats: tempAddThreats
       });
     } else {
@@ -622,6 +623,89 @@ class ThreatIntelligence extends Component {
     });
   }
   /**
+   * Toggle Import Threats dialog on/off
+   * @method
+   */
+  toggleImportThreats = () => {
+    this.setState({
+      importThreatsOpen: !this.state.importThreatsOpen
+    });
+  }
+  /**
+   * Set import threats file
+   * @method
+   * @param {object} file - indicators file uploaded by the user
+   */
+  getIndicatorsFile = (file) => {
+    this.setState({
+      threatsFile: file
+    });
+  }
+  /**
+   * Display threat import modal dialog and its content
+   * @method
+   * @returns ModalDialog component
+   */
+  importThreatsDialog = () => {
+    const titleText = t('edge-management.txt-importThreat');
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleImportThreats},
+      confirm: {text: t('txt-confirm'), handler: this.confirmThreatImport}
+    };
+
+    return (
+      <ModalDialog
+        id='uploadThreatDialog'
+        className='modal-dialog'
+        title={titleText}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        <FileUpload
+          supportText={titleText}
+          id='importThreat'
+          fileType='indicators'
+          btnText={t('txt-upload')}
+          handleFileChange={this.getIndicatorsFile} />
+      </ModalDialog>
+    )
+  }
+  /**
+   * Handle Threats Import dialog confirm
+   * @method
+   */
+  confirmThreatImport = () => {
+    const {baseUrl} = this.context;
+    const {threatsFile} = this.state;
+    let formData = new FormData();
+    formData.append('file', threatsFile);
+
+    ah.one({
+      url: `${baseUrl}/api/threat/upload`,
+      data: formData,
+      type: 'POST',
+      processData: false,
+      contentType: false
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        helper.showPopupMsg(t('edge-management.txt-addSuccess'));
+        this.toggleImportThreats();
+
+        this.setState({
+          indicatorsData: null
+        }, () => {
+          this.getChartsData();
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Handle table sort
    * @method
    * @param {object} sort - sort data object
@@ -861,8 +945,9 @@ class ThreatIntelligence extends Component {
       indicatorsData,
       indicatorsTrendData,
       acuIndicatorsTrendData,
-      uplaodOpen,
+      uplaodThreatsOpen,
       addThreatsOpen,
+      importThreatsOpen,
       threats
     } = this.state;
 
@@ -872,8 +957,12 @@ class ThreatIntelligence extends Component {
           this.addThreatsDialog()
         }
 
-        {uplaodOpen &&
-          this.uploadDialog()
+        {uplaodThreatsOpen &&
+          this.uploadThreatsDialog()
+        }
+
+        {importThreatsOpen &&
+          this.importThreatsDialog()
         }
 
         <div className='sub-header'>
@@ -898,6 +987,9 @@ class ThreatIntelligence extends Component {
             {activeContent === 'charts' &&
               <div className='main-content'>
                 <header className='main-header'>{t('txt-threatIntelligence')}</header>
+                <div className='content-header-btns'>
+                  <button className='standard btn' onClick={this.toggleImportThreats}>{t('edge-management.txt-importThreat')}</button>
+                </div>
 
                 <div className='main-statistics'>
                   <div className='statistics-content'>
