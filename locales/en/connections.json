@@ -384,6 +384,7 @@
     "txt-geography": "Geography",
     "txt-addThreat": "Add Threat",
     "txt-uploadThreat": "Upload Threat",
+    "txt-importThreat": "Import Threat",
     "txt-basicInfo": "Info",
     "txt-editEdge": "Edit Edge",
     "txt-edgeName": "Edge Name",
@@ -479,6 +480,8 @@
     "txt-_NewCreateFile": "New Create File Path",
     "txt-includePath": "Include Path",
     "txt-excludePath": "Exclude Path",
+    "txt-scanProcess": "Scan Process",
+    "txt-scanFilePath": "Scan File Path",
     "txt-saveSettings": "Save",
     "txt-restoreDefault": "Restore Default",
     "txt-reCheck": "Re-check",
@@ -724,4 +727,3 @@
     "txt-addHost": "Add Host",
     "txt-deleteHost": "$t(txt-delete) $t(txt-host)"
   }
-}
