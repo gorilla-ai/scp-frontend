@@ -19,6 +19,7 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 let t = null;
 let et = null;
 
+const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const ALERT_LEVEL_COLORS = {
   Emergency: '#CC2943',
   Alert: '#CC7B29',
@@ -49,10 +50,12 @@ class DashboardOverview extends Component {
       alertMapData: [],
       worldMapData: [],
       worldAttackData: [],
+      alertDisplayData: [],
+      threatsCountData: [],
       mapInterval: 5,
       mapLimit: 20,
       mapCounter: 1,
-      pathSpeed: 1000,
+      pathSpeed: 200,
       countDown: ''
     };
 
@@ -63,7 +66,8 @@ class DashboardOverview extends Component {
   componentDidMount() {
     this.getWorldMap();
     this.loadAlertData();
-    this.setInterval();
+    //this.setInterval();
+    this.loadThreatsCount();
   }
   componentWillUnmount() {
     this.clearInterval('mapInterval');
@@ -138,28 +142,20 @@ class DashboardOverview extends Component {
           val._source.id = val._id;
           return val._source;
         });
-        let publicData = {
-          srcIp: {},
-          destIp: {}
-        };
+        let alertMapData = [];
 
         _.forEach(tempArray, val => {
-          if (!publicData.srcIp[val.srcIp]) {
-            publicData.srcIp[val.srcIp] = [];
+          if (val.srcLatitude && val.srcLatitude && val.destLatitude && val.destLongitude) {
+            alertMapData.push(val);
           }
-
-          if (!publicData.destIp[val.destIp]) {
-            publicData.destIp[val.destIp] = [];
-          }
-
-          publicData.srcIp[val.srcIp].push(val);
-          publicData.destIp[val.destIp].push(val);
         })
 
         this.setState({
           past24hTime: helper.getFormattedDate(helper.getSubstractDate(24, 'hours')),
           updatedTime: helper.getFormattedDate(Moment()),
-          alertMapData: tempArray
+          alertMapData
+        }, () => {
+          this.getAttackData();
         });
       }
       return null;
@@ -169,6 +165,22 @@ class DashboardOverview extends Component {
     })
   }
   /**
+   * Get and set threats count data
+   * @method
+   */
+  loadThreatsCount = () => {
+    const threatsCountData = _.map(SEVERITY_TYPE, val => {
+      return {
+        name: val,
+        count: Math.floor((Math.random() * 100) + 1)
+      }
+    });
+
+    this.setState({
+      threatsCountData
+    });
+  }
+  /**
    * Get and set attack data for new map (based on interval)
    * @method
    */
@@ -176,6 +188,7 @@ class DashboardOverview extends Component {
     const {alertMapData, mapLimit, mapCounter} = this.state;
     const dataSet = mapLimit * mapCounter; //Data set to be shown on map
     let worldAttackData = [];
+    let alertDisplayData = [];
 
     if (alertMapData.length === 0) {
       return;
@@ -191,59 +204,68 @@ class DashboardOverview extends Component {
 
       const timestamp = helper.getFormattedDate(val._eventDttm_ || val.timestamp, 'local');
 
-      if (val.srcLatitude && val.srcLongitude) {
-        worldAttackData.push({
-          type: 'polyline',
-          id: 'set-polyline_' + i,
-          color: ALERT_LEVEL_COLORS[val._severity_],
-          latlng: [
-            [val.srcLatitude, val.srcLongitude],
-            [val.destLatitude, val.destLongitude]
-          ],
-          directed: false
-        });
-      }
+      worldAttackData.push({
+        type: 'polyline',
+        id: 'set-polyline_' + i,
+        color: ALERT_LEVEL_COLORS[val._severity_],
+        latlng: [
+          [val.srcLatitude, val.srcLongitude],
+          [val.destLatitude, val.destLongitude]
+        ],
+        directed: false
+      });
 
-      if (val.destLatitude && val.destLongitude) {
-        worldAttackData.push({
-          type: 'spot',
-          id: 'setSpotSmall' + i,
-          className: 'spot-small',
-          latlng: [
-            val.destLatitude,
-            val.destLongitude
-          ],
-          data: {
-            type: 'small',
-            color: ALERT_LEVEL_COLORS[val._severity_]
-          }
-        });
+      worldAttackData.push({
+        type: 'spot',
+        id: 'setSpotSmall' + i,
+        className: 'spot-small',
+        latlng: [
+          val.destLatitude,
+          val.destLongitude
+        ],
+        data: {
+          type: 'small',
+          color: ALERT_LEVEL_COLORS[val._severity_]
+        }
+      });
 
-        worldAttackData.push({
-          type: 'spot',
-          id: 'setSpotBig' + i,
-          className: 'spot-big',
-          latlng: [
-            val.destLatitude,
-            val.destLongitude
-          ],
-          data: {
-            type: 'big',
-            color: ALERT_LEVEL_COLORS[val._severity_]
-          },
-          tooltip: () => {
-            return `
-              <div class='map-tooltip'>
-                <div><span class='key'>${t('payloadsFields.destCountry')}:</span> <span class='value'>${val.destCountry}</span></div>
-                <div><span class='key'>${t('payloadsFields.destCity')}:</span> <span class='value'>${val.destCity}</span></div>
-                <div><span class='key'>${t('payloadsFields.destIp')}:</span> <span class='value'>${val.destIp}</span></div>
-                <div><span class='key'>${t('payloadsFields.timestamp')}:</span> <span class='value'>${timestamp}</span></div>
-              </div>
-              `
-          }
-        });
-      }
-    })
+      worldAttackData.push({
+        type: 'spot',
+        id: 'setSpotBig' + i,
+        className: 'spot-big',
+        latlng: [
+          val.destLatitude,
+          val.destLongitude
+        ],
+        data: {
+          type: 'big',
+          color: ALERT_LEVEL_COLORS[val._severity_]
+        },
+        tooltip: () => {
+          return `
+            <div class='map-tooltip'>
+              <div><span class='key'>${t('payloadsFields.destCountry')}:</span> <span class='value'>${val.destCountry}</span></div>
+              <div><span class='key'>${t('payloadsFields.destCity')}:</span> <span class='value'>${val.destCity}</span></div>
+              <div><span class='key'>${t('payloadsFields.destIp')}:</span> <span class='value'>${val.destIp}</span></div>
+              <div><span class='key'>${t('payloadsFields.timestamp')}:</span> <span class='value'>${timestamp}</span></div>
+            </div>
+            `
+        }
+      });
+
+      alertDisplayData.push({
+        collector: val.Collector,
+        info: val.Info,
+        rule: val.Rule,
+        source: val.Source,
+        severity: val._severity_,
+        srcCountry: val.srcCountry,
+        srcCity: val.srcCity,
+        destCountry: val.destCountry,
+        destCity: val.destCity,
+        datetime: val._eventDttm_
+      });
+    });
 
     this.clearInterval('timer');
 
@@ -251,6 +273,7 @@ class DashboardOverview extends Component {
 
     this.setState({
       worldAttackData,
+      alertDisplayData,
       mapCounter: ++setCounter
     }, () => {
       this.setAnimationConfig();
@@ -318,12 +341,49 @@ class DashboardOverview extends Component {
       this.setInterval();
     });
   }
+  /**
+   * Display alert info in map
+   * @method
+   * @param {object} val - alert data
+   * @param {number} i - index of the alert info data
+   */
+  displayAlertInfo = (val, i) => {
+    if (val.srcCountry && val.destCountry) {
+      return (
+        <li key={i}>
+          <div className='count' style={{backgroundColor: ALERT_LEVEL_COLORS[val.severity]}}>2</div>
+          <div className='data'>
+            <div>{val.info}</div>
+            <div className='datetime'>{Moment(val.datetime).local().format('HH:mm:ss')}</div>
+            <div className='country'>{val.srcCountry} <i className='fg fg-next' style={{color: ALERT_LEVEL_COLORS[val.severity]}}></i> {val.destCountry}</div>
+          </div>
+
+        </li>
+      )
+    }
+  }
+  /**
+   * Display threats count in map
+   * @method
+   * @param {object} val - threats data
+   * @param {number} i - index of the threats count data
+   */
+  displayThreatsCount = (val, i) => {
+    return (
+      <div key={i} className='item'>
+        <i className='fg fg-checkbox-fill' style={{color: ALERT_LEVEL_COLORS[val.name]}}></i>
+        <div className='threats'>{val.name}<span>{val.count}</span></div>
+      </div>
+    )
+  }
   render() {
     const {
       past24hTime,
       updatedTime,
       worldMapData,
       worldAttackData,
+      alertDisplayData,
+      threatsCountData,
       mapInterval,
       mapLimit,
       pathSpeed,
@@ -336,17 +396,17 @@ class DashboardOverview extends Component {
         <div className='sub-header overview'>
           {helper.getDashboardMenu('overview')}
 
-          <RadioGroup
+          {/*<RadioGroup
             id='attackPathType'
             className='radio-group'
             list={[
               {value: 1000, text: 'Normal'},
-              {value: 100, text: 'Fast'},
+              {value: 200, text: 'Fast'},
               {value: 50, text: 'Faster'},
               {value: 0, text: 'No animation'}
             ]}
             value={pathSpeed}
-            onChange={this.handlePathSpeedChange} />
+            onChange={this.handlePathSpeedChange} />*/}
           <div className='dropdown'>
             <label>Data count: </label>
             <DropDownList
@@ -383,6 +443,18 @@ class DashboardOverview extends Component {
           {worldAttackData.length === 0 &&
             <div className='loader-wrap'>
               <i className='fg fg-loading-2'></i>
+            </div>
+          }
+
+          {alertDisplayData.length > 0 &&
+            <ul className='alert-info'>
+              {alertDisplayData.map(this.displayAlertInfo)}
+            </ul>
+          }
+
+          {threatsCountData.length > 0 &&
+            <div className='alert-count'>
+              {threatsCountData.map(this.displayThreatsCount)}
             </div>
           }
 

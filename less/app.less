@@ -737,6 +737,79 @@ i.c-checkbox.fg-checkbox {
         padding: 5px;
       }
     }
+    ul.alert-info {
+      position: absolute;
+      top: 150px;
+      left: 40px;
+      height: 60vh;
+      width: 350px;
+      padding-right: 5px;
+      overflow-y: scroll;
+      z-index: 3000;
+      li {
+        display: block;
+        color: #fff;
+        border-radius: 5px;
+        padding: 10px;
+        margin-bottom: 6px;
+        opacity: .6;
+        background-color: #000;
+        overflow: hidden;
+        .count {
+          float: left;
+          width: 15px;
+          font-size: 10px;
+          color: #fff;
+          margin-top: 3px;
+          margin-right: 8px;
+          text-align: center;
+          border-radius: 4px;
+        }
+        .data {
+          float: left;
+          font-size: 14px;
+          .datetime {
+            float: left;
+            margin-right: 10px;
+          }
+          .country {
+            float: left;
+            .fg-next {
+              font-size: 1em;
+            }
+          }
+        }
+      }
+    }
+    .alert-count {
+      position: absolute;
+      left: 50%;
+      bottom: 5%;
+      transform: translate(-50%, -50%);
+      z-index: 3000;
+      display: flex;
+      .item {
+        color: #fff;
+        width: 170px;
+        margin: 10px 15px;
+        padding: 10px 20px;
+        line-height: 25px;
+        opacity: 0.6;
+        background-color: #000;
+        border-radius: 5px;
+        .fg-checkbox-fill {
+          float: left;
+          margin-right: 15px;
+          margin-top: 15px;
+        }
+        .threats {
+          float: left;
+          span {
+            display: block;
+          }
+        }
+      }
+    }
   }
   .main-statistics { //For all statistics page
     height: 78vh;
