@@ -133,7 +133,6 @@
   "txt-subnet": "Subnet",
   "txt-data": "Data",
   "txt-selectFile": "Please select file",
-  "txt-severity": "Severity",
   "txt-destIp": "Destination IP",
   "txt-destPort": "Destination Port",
   "txt-configSource": "Config Source",

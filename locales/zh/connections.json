@@ -129,11 +129,10 @@
   "txt-offline": "離線",
   "txt-unstable": "不穩定",
   "txt-unknown": "未知",
-  "txt-severity": "嚴重性",
+  "txt-severity": "嚴重等級",
   "txt-subnet": "網段",
   "txt-data": "資料",
   "txt-selectFile": "請選擇檔案",
-  "txt-severity": "嚴重等級",
   "txt-destIp": "目的IP",
   "txt-destPort": "目的Port",
   "txt-configSource": "Config Source",
@@ -573,7 +572,7 @@
     "txt-deleteIP": "$t(txt-delete)$t(ipFields.ip)",
     "txt-deleteIPMsg": "$t(txt-delete-msg)$t(ipFields.ip)",
 
-    "txt-deleteFloorMap": "$t(txt-delete)$t(txt-floorMap)",
+    "txt-deleteFloorPlan": "$t(txt-delete)$t(txt-floorMap)",
 
     "txt-addFloor": "$t(txt-add)$t(txt-floor)",
     "txt-editFloor": "$t(txt-edit)$t(txt-floor)",
