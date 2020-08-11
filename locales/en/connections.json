@@ -726,3 +726,4 @@
     "txt-addHost": "Add Host",
     "txt-deleteHost": "$t(txt-delete) $t(txt-host)"
   }
+}

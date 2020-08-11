@@ -571,7 +571,7 @@
     "txt-deleteIP": "$t(txt-delete)$t(ipFields.ip)",
     "txt-deleteIPMsg": "$t(txt-delete-msg)$t(ipFields.ip)",
 
-    "txt-deleteFloorMap": "$t(txt-delete)$t(txt-floorMap)",
+    "txt-deleteFloorPlan": "$t(txt-delete)$t(txt-floorMap)",
 
     "txt-addFloor": "$t(txt-add)$t(txt-floor)",
     "txt-editFloor": "$t(txt-edit)$t(txt-floor)",
