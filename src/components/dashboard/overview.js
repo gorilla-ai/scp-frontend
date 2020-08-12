@@ -27,6 +27,8 @@ const ALERT_LEVEL_COLORS = {
   Warning: '#29CC7A',
   Notice: '#7ACC29'
 };
+const PAGE_RESET_INTERVAL = 300000; //5 minutes
+const PATH_SPEED = 100;
 
 /**
  * Overview
@@ -39,24 +41,19 @@ class DashboardOverview extends Component {
     super(props);
 
     this.state = {
-      datetime: {
-        from: helper.getSubstractDate(24, 'hours'),
-        to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
-        //from: '2020-08-02T01:00:00Z',
-        //to: '2020-08-02T01:10:00Z'
-      },
       past24hTime: helper.getFormattedDate(helper.getSubstractDate(24, 'hours')),
       updatedTime: helper.getFormattedDate(Moment()),
       alertMapData: [],
       worldMapData: [],
-      worldAttackData: [],
+      worldAttackData: null,
       alertDisplayData: [],
+      alertAggregationsData: {},
       threatsCountData: [],
       mapInterval: 5,
       mapLimit: 20,
       mapCounter: 1,
-      pathSpeed: 200,
-      countDown: ''
+      countDown: '',
+      showAlertInfo: true
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -66,12 +63,33 @@ class DashboardOverview extends Component {
   componentDidMount() {
     this.getWorldMap();
     this.loadAlertData();
-    //this.setInterval();
-    this.loadThreatsCount();
+    this.setInterval();
+
+    this.pageRefresh = setInterval(this.resetData, PAGE_RESET_INTERVAL);
   }
   componentWillUnmount() {
+    this.clearInterval('pageRefresh');
     this.clearInterval('mapInterval');
     this.clearInterval('timer');
+  }
+  /**
+   * Reset data for page refresh
+   * @method
+   */
+  resetData = () => {
+    const {worldAttackData} = this.state;
+
+    if (worldAttackData && worldAttackData.length > 0) {
+      this.setState({
+        worldAttackData: null,
+        alertDisplayData: [],
+        mapCounter: 1,
+        countDown: '',
+        showAlertInfo: true
+      }, () => {
+        this.loadAlertData();
+      });
+    }
   }
   /**
    * Set time interval for each data to be displayed
@@ -116,7 +134,12 @@ class DashboardOverview extends Component {
    */
   loadAlertData = () => {
     const {baseUrl} = this.context;
-    const {datetime} = this.state;
+    const datetime = {
+      from: helper.getSubstractDate(24, 'hours'),
+      to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+      //from: '2020-08-02T01:00:00Z',
+      //to: '2020-08-02T01:10:00Z'
+    };
     const dateTime = {
       from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
       to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
@@ -153,9 +176,11 @@ class DashboardOverview extends Component {
         this.setState({
           past24hTime: helper.getFormattedDate(helper.getSubstractDate(24, 'hours')),
           updatedTime: helper.getFormattedDate(Moment()),
-          alertMapData
+          alertMapData,
+          alertAggregationsData: data.aggregations
         }, () => {
-          this.getAttackData();
+          //this.getAttackData();
+          this.loadThreatsCount();
         });
       }
       return null;
@@ -169,12 +194,19 @@ class DashboardOverview extends Component {
    * @method
    */
   loadThreatsCount = () => {
-    const threatsCountData = _.map(SEVERITY_TYPE, val => {
-      return {
-        name: val,
-        count: Math.floor((Math.random() * 100) + 1)
-      }
-    });
+    const {alertAggregationsData} = this.state;
+    let threatsCountData = [];
+
+    _.forEach(SEVERITY_TYPE, val => {
+      _.forEach(alertAggregationsData, (val2, key) => {
+        if (key === val) {
+          threatsCountData.push({
+            name: key,
+            count: alertAggregationsData[key].doc_count
+          });
+        }
+      })
+    })
 
     this.setState({
       threatsCountData
@@ -187,19 +219,42 @@ class DashboardOverview extends Component {
   getAttackData = () => {
     const {alertMapData, mapLimit, mapCounter} = this.state;
     const dataSet = mapLimit * mapCounter; //Data set to be shown on map
+    const alertCount = alertMapData.length;
     let worldAttackData = [];
     let alertDisplayData = [];
 
-    if (alertMapData.length === 0) {
+    if (alertCount === 0) {
+      return;
+    }
+
+    if (dataSet - alertCount >= mapLimit) { //No more data to show, restart over the data
+      this.clearInterval('mapInterval');
+
+      this.setState({
+        worldAttackData: null,
+        alertDisplayData: [],
+        mapCounter: 1,
+        countDown: '',
+        showAlertInfo: true
+      }, () => {
+        this.setInterval();
+      });
       return;
     }
 
     _.forEach(alertMapData, (val, i) => {
       if (mapCounter === 1) { //Initial set of data
-        if (i >= mapLimit) return false; //Index greater than first set, exit the loop
+        if (i >= mapLimit) { //Index is greater than the first set, exit the loop
+          return false;
+        }
       } else {
-        if (i < dataSet - mapLimit) return; //Index is small than initial data set, continue the loop
-        if (i > dataSet) return false; //Index is greater than data set, exit the loop
+        if (i < dataSet - mapLimit) { //Index is smaller than the initial data set, continue the loop
+          return;
+        }
+
+        if (i > dataSet) { //Index is greater than the data set, exit the loop
+          return false;
+        }
       }
 
       const timestamp = helper.getFormattedDate(val._eventDttm_ || val.timestamp, 'local');
@@ -253,18 +308,7 @@ class DashboardOverview extends Component {
         }
       });
 
-      alertDisplayData.push({
-        collector: val.Collector,
-        info: val.Info,
-        rule: val.Rule,
-        source: val.Source,
-        severity: val._severity_,
-        srcCountry: val.srcCountry,
-        srcCity: val.srcCity,
-        destCountry: val.destCountry,
-        destCity: val.destCity,
-        datetime: val._eventDttm_
-      });
+      alertDisplayData.push(val);
     });
 
     this.clearInterval('timer');
@@ -288,7 +332,7 @@ class DashboardOverview extends Component {
     const polyLine = document.getElementsByClassName('gis-polyline');
 
     _.forEach(polyLine, val => {
-      val.setAttribute('style', `stroke-dasharray: ${this.state.pathSpeed}; animation-duration: ${this.state.mapInterval}s;`);
+      val.setAttribute('style', `stroke-dasharray: ${PATH_SPEED}; animation-duration: ${this.state.mapInterval}s;`);
     })
   }
   /**
@@ -312,18 +356,6 @@ class DashboardOverview extends Component {
     });
   }
   /**
-   * Set attack path speed
-   * @method
-   * @param {string} val - path speed
-   */
-  handlePathSpeedChange = (val) => {
-    this.setState({
-      pathSpeed: Number(val)
-    }, () => {
-      this.setAnimationConfig();
-    });
-  }
-  /**
    * Set map config
    * @method
    * @param {string} type - 'mapLimit' or 'mapInterval'
@@ -331,10 +363,12 @@ class DashboardOverview extends Component {
    */
   handleMapConfigChange = (type, val) => {
     this.setState({
-      worldAttackData: [],
+      worldAttackData: null,
+      alertDisplayData: [],
       [type]: Number(val),
       mapCounter: 1,
-      countDown: ''
+      countDown: '',
+      showAlertInfo: true
     }, () => {
       this.clearInterval('mapInterval');
       this.clearInterval('timer');
@@ -349,13 +383,15 @@ class DashboardOverview extends Component {
    */
   displayAlertInfo = (val, i) => {
     if (val.srcCountry && val.destCountry) {
+      const count = val.doc_count ? val.doc_count : 1;
+
       return (
         <li key={i}>
-          <div className='count' style={{backgroundColor: ALERT_LEVEL_COLORS[val.severity]}}>2</div>
+          <div className='count' style={{backgroundColor: ALERT_LEVEL_COLORS[val._severity_]}}>{count}</div>
           <div className='data'>
-            <div>{val.info}</div>
-            <div className='datetime'>{Moment(val.datetime).local().format('HH:mm:ss')}</div>
-            <div className='country'>{val.srcCountry} <i className='fg fg-next' style={{color: ALERT_LEVEL_COLORS[val.severity]}}></i> {val.destCountry}</div>
+            <div className='info'>{val.Info}</div>
+            <div className='datetime'>{Moment(val._eventDttm_).local().format('HH:mm:ss')}</div>
+            <div className='country'>{val.srcCountry} <i className='fg fg-next' style={{color: ALERT_LEVEL_COLORS[val._severity_]}}></i> {val.destCountry}</div>
           </div>
 
         </li>
@@ -376,6 +412,15 @@ class DashboardOverview extends Component {
       </div>
     )
   }
+  /**
+   * Toggle alert info on/off
+   * @method
+   */  
+  toggleShowAlertInfo = () => {
+    this.setState({
+      showAlertInfo: !this.state.showAlertInfo
+    });
+  }
   render() {
     const {
       past24hTime,
@@ -386,8 +431,8 @@ class DashboardOverview extends Component {
       threatsCountData,
       mapInterval,
       mapLimit,
-      pathSpeed,
-      countDown
+      countDown,
+      showAlertInfo
     } = this.state;
     const displayTime = past24hTime + ' - ' + updatedTime;
 
@@ -396,17 +441,6 @@ class DashboardOverview extends Component {
         <div className='sub-header overview'>
           {helper.getDashboardMenu('overview')}
 
-          {/*<RadioGroup
-            id='attackPathType'
-            className='radio-group'
-            list={[
-              {value: 1000, text: 'Normal'},
-              {value: 200, text: 'Fast'},
-              {value: 50, text: 'Faster'},
-              {value: 0, text: 'No animation'}
-            ]}
-            value={pathSpeed}
-            onChange={this.handlePathSpeedChange} />*/}
           <div className='dropdown'>
             <label>Data count: </label>
             <DropDownList
@@ -426,9 +460,9 @@ class DashboardOverview extends Component {
               id='mapIntervalList'
               required={true}
               list={[
+                {value: 1, text: 1},
                 {value: 5, text: 5},
-                {value: 10, text: 10},
-                {value: 15, text: 15}
+                {value: 10, text: 10}
               ]}
               value={mapInterval}
               onChange={this.handleMapConfigChange.bind(this, 'mapInterval')} />
@@ -440,19 +474,23 @@ class DashboardOverview extends Component {
         </div>
 
         <div className='main-overview'>
-          {worldAttackData.length === 0 &&
+          {!worldAttackData &&
             <div className='loader-wrap'>
               <i className='fg fg-loading-2'></i>
             </div>
           }
 
           {alertDisplayData.length > 0 &&
+            <i className={`toggle-info fg fg-arrow-${showAlertInfo ? 'top' : 'bottom'}`} onClick={this.toggleShowAlertInfo}></i>
+          }
+
+          {showAlertInfo && alertDisplayData.length > 0 &&
             <ul className='alert-info'>
               {alertDisplayData.map(this.displayAlertInfo)}
             </ul>
           }
 
-          {threatsCountData.length > 0 &&
+          {alertDisplayData.length > 0 &&
             <div className='alert-count'>
               {threatsCountData.map(this.displayThreatsCount)}
             </div>

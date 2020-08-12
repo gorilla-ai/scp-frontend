@@ -678,10 +678,6 @@ i.c-checkbox.fg-checkbox {
       }
     }
     &.overview {
-      #attackPathType {
-        float: left;
-        width: 370px;
-      }
       .dropdown {
         float: left;
         margin-right: 10px;
@@ -737,6 +733,17 @@ i.c-checkbox.fg-checkbox {
         padding: 5px;
       }
     }
+    .toggle-info {
+      position: absolute;
+      top: 125px;
+      left: 40px;
+      color: #fff;
+      opacity: .6;
+      cursor: pointer;
+      border-radius: 5px;
+      background-color: #000;
+      z-index: 3000;
+    }
     ul.alert-info {
       position: absolute;
       top: 150px;
@@ -744,7 +751,7 @@ i.c-checkbox.fg-checkbox {
       height: 60vh;
       width: 350px;
       padding-right: 5px;
-      overflow-y: scroll;
+      overflow-y: auto;
       z-index: 3000;
       li {
         display: block;
@@ -767,7 +774,11 @@ i.c-checkbox.fg-checkbox {
         }
         .data {
           float: left;
+          width: 290px;
           font-size: 14px;
+          .info {
+            margin-bottom: 6px;
+          }
           .datetime {
             float: left;
             margin-right: 10px;
@@ -790,17 +801,19 @@ i.c-checkbox.fg-checkbox {
       display: flex;
       .item {
         color: #fff;
-        width: 170px;
-        margin: 10px 15px;
-        padding: 10px 20px;
+        width: 220px;
+        margin: 10px 20px;
+        padding: 10px 30px;
         line-height: 25px;
         opacity: 0.6;
         background-color: #000;
         border-radius: 5px;
         .fg-checkbox-fill {
           float: left;
-          margin-right: 15px;
+          margin-right: 20px;
           margin-top: 15px;
+          padding-right: 20px;
+          border-right: 1px solid #999;
         }
         .threats {
           float: left;
