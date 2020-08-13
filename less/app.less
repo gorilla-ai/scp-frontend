@@ -553,11 +553,14 @@ i.c-checkbox.fg-checkbox {
     height: 70vh;
     overflow-y: auto;
   }
+  &.fit,
+  &.custom-bg {
+    .leaflet-container {
+      background: -webkit-linear-gradient(top, var(--gisMapBackground), var(--subHeaderBackground))
+    }
+  }
   .actions {
     display: none;
-  }
-  .leaflet-container {
-    background: -webkit-linear-gradient(top, var(--gisMapBackground), var(--subHeaderBackground))
   }
 }
 .main-table {

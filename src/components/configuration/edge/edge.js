@@ -1159,47 +1159,44 @@ class Edge extends Component {
                 {activeTab === 'geography' &&
                   <Gis
                     id='gisMap'
-                    data={geoJson.mapDataArr}
-                    layers={{
-                      world: {
-                        label: 'World Map',
-                        interactive: false,
-                        data: geoJson.edgeDataArr
-                      }
-                    }}
-                    activeLayers={['world']}
                     baseLayers={{
                       standard: {
-                        id: 'world',
-                        layer: 'world'
+                        label:'地圖',
+                        layer:'https://mt0.google.com/vt/lyrs=m&hl=zh-TW&x={x}&y={y}&z={z}'
                       }
                     }}
                     mapOptions={{
-                      crs: L.CRS.Simple
+                      zoom: 8,
+                      center: [
+                        23.6978,
+                        120.9605
+                      ]
                     }}
-                    symbolOptions={[{
-                      match: {
-                        type:'geojson'
-                      },
-                      selectedProps: {
-                        'fill-color': 'white',
-                        color: 'black',
-                        weight: 0.6,
-                        'fill-opacity': 1
-                      }
-                    },
-                    {
-                      match: {
-                        type: 'spot'
-                      },
-                      props: {
-                        'background-color': ({data}) => {
-                          return data.tag === 'red' ? 'red' : 'yellow';
-                        },
-                        'border-color': '#333',
-                        'border-width': '1px'
-                      }
-                    }]}
+                    symbolOptions={[
+                    //   {
+                    //   match: {
+                    //     type:'geojson'
+                    //   },
+                    //   selectedProps: {
+                    //     'fill-color': 'white',
+                    //     color: 'black',
+                    //     weight: 0.6,
+                    //     'fill-opacity': 1
+                    //   }
+                    // },
+                    // {
+                    //   match: {
+                    //     type: 'spot'
+                    //   },
+                    //   props: {
+                    //     'background-color': ({data}) => {
+                    //       return data.tag === 'red' ? 'red' : 'yellow';
+                    //     },
+                    //     'border-color': '#333',
+                    //     'border-width': '1px'
+                    //   }
+                    // }
+                    ]}
                     layouts={['standard']}
                     dragModes={['pan']} />
                 }
