@@ -47,7 +47,6 @@ class DashboardOverview extends Component {
       worldMapData: [],
       worldAttackData: null,
       alertDisplayData: [],
-      alertAggregationsData: {},
       threatsCountData: [],
       mapInterval: 5,
       mapLimit: 20,
@@ -144,26 +143,17 @@ class DashboardOverview extends Component {
       from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
       to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
-    const url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=10000`;
-    const requestData = {
-      timestamp: [dateTime.from, dateTime.to],
-      filters: [{
-        condition: 'must',
-        query: 'ExternalSrcCountry'
-      }]
-    };
+    const url = `${baseUrl}/api/alert/overview?startDttm=${dateTime.from}&endDttm=${dateTime.to}`;
 
     this.ah.one({
       url,
-      data: JSON.stringify(requestData),
-      type: 'POST',
-      contentType: 'text/plain'
-    }, {showProgress: true})
+      type: 'GET'
+    })
     .then(data => {
       if (data) {
         const tempArray = _.map(data.data.rows, val => {
-          val._source.id = val._id;
-          return val._source;
+          val.id = val.srcCity + '-' + val.destCity + '-' + val._eventDttm_;
+          return val;
         });
         let alertMapData = [];
 
@@ -172,15 +162,27 @@ class DashboardOverview extends Component {
             alertMapData.push(val);
           }
         })
+        
+        let threatsCountData = [];
+
+        _.forEach(SEVERITY_TYPE, val => {
+          _.forEach(data.aggregations, (val2, key) => {
+            if (key === val) {
+              threatsCountData.push({
+                name: key,
+                count: data.aggregations[key].doc_count
+              });
+            }
+          })
+        })
 
         this.setState({
           past24hTime: helper.getFormattedDate(helper.getSubstractDate(24, 'hours')),
           updatedTime: helper.getFormattedDate(Moment()),
           alertMapData,
-          alertAggregationsData: data.aggregations
+          threatsCountData
         }, () => {
           //this.getAttackData();
-          this.loadThreatsCount();
         });
       }
       return null;
@@ -188,29 +190,6 @@ class DashboardOverview extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
-  }
-  /**
-   * Get and set threats count data
-   * @method
-   */
-  loadThreatsCount = () => {
-    const {alertAggregationsData} = this.state;
-    let threatsCountData = [];
-
-    _.forEach(SEVERITY_TYPE, val => {
-      _.forEach(alertAggregationsData, (val2, key) => {
-        if (key === val) {
-          threatsCountData.push({
-            name: key,
-            count: alertAggregationsData[key].doc_count
-          });
-        }
-      })
-    })
-
-    this.setState({
-      threatsCountData
-    });
   }
   /**
    * Get and set attack data for new map (based on interval)
@@ -383,11 +362,9 @@ class DashboardOverview extends Component {
    */
   displayAlertInfo = (val, i) => {
     if (val.srcCountry && val.destCountry) {
-      const count = val.doc_count ? val.doc_count : 1;
-
       return (
         <li key={i}>
-          <div className='count' style={{backgroundColor: ALERT_LEVEL_COLORS[val._severity_]}}>{count}</div>
+          <div className='count' style={{backgroundColor: ALERT_LEVEL_COLORS[val._severity_]}}>{val.srcDestCityCnt}</div>
           <div className='data'>
             <div className='info'>{val.Info}</div>
             <div className='datetime'>{Moment(val._eventDttm_).local().format('HH:mm:ss')}</div>
@@ -449,7 +426,7 @@ class DashboardOverview extends Component {
               list={[
                 {value: 10, text: 10},
                 {value: 20, text: 20},
-                {value: 50, text: 50}
+                {value: 30, text: 30}
               ]}
               value={mapLimit}
               onChange={this.handleMapConfigChange.bind(this, 'mapLimit')} />
