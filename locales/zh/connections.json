@@ -218,6 +218,7 @@
   "txt-map": "地圖",
 
   "dashboard": {
+    "txt-overview": "Overview",
     "txt-statisticsInfo": "統計資料",
     "txt-patternName": "Pattern名稱",
     "txt-attacksMap": "攻擊地圖",

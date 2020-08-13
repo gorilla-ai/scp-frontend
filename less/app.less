@@ -263,6 +263,7 @@ button {
   &.left {
     float: left;
     margin-top: 1px;
+    margin-right: 20px;
   }
   &.right {
     float: right;
@@ -498,6 +499,50 @@ i.c-checkbox.fg-checkbox {
     opacity: 0.5;
   }
 }
+#gisMapNew {
+  width: 100%;
+  height: 87vh;
+  .actions {
+    display: none;
+  }
+  .leaflet-container {
+    background-color: #303030;
+  }
+  .gis-spot {
+    border-width: 0;
+  }
+  .leaflet-marker-icon.leaflet-interactive,
+  .leaflet-image-layer.leaflet-interactive,
+  .leaflet-pane > svg path.leaflet-interactive {
+    stroke-opacity: 1;
+    stroke-width: 2;
+  }
+  .gis-polyline {
+    animation-name: path;
+    //stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+    //animation-duration: 5s;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+  }
+  @keyframes path {
+    //0%   {opacity: .1;}
+    //30%  {opacity: .5;}
+    //60%  {opacity: .7;}
+    100% {opacity: 1; stroke-dashoffset: 0;}
+  }
+  .spot-big .gis-spot {
+    animation-name: spotChange;
+    animation-duration: 1s;
+    animation-iteration-count: infinite;
+  }
+  @keyframes spotChange {
+    0%   {opacity: 1;}
+    50%  {opacity: .3;}
+    100% {opacity: 1;}
+  }
+}
 #gisMap {
   width: 100%;
   height: 77vh;
@@ -624,6 +669,26 @@ i.c-checkbox.fg-checkbox {
         background-color: var(--buttonSelectedColor);        
       }
     }
+    .radio-group {
+      flex-direction: row;
+      margin: 5px 0;
+      .list-item {
+        margin: 0;
+        margin-right: 10px;
+      }
+    }
+    &.overview {
+      .dropdown {
+        float: left;
+        margin-right: 10px;
+      }
+      .count-down {
+        display: inline-block;
+        margin-top: 2px;
+        margin-left: 5px;
+        font-size: 1.2em;
+      }
+    }
   }
   header.main-header {
     position: relative;
@@ -649,6 +714,113 @@ i.c-checkbox.fg-checkbox {
     .highcharts-legend {
       text {
         fill: var(--chartAxisLabelColor) !important;
+      }
+    }
+  }
+  .main-overview { //Overall section
+    .loader-wrap {
+      position: absolute;
+      top: 45%;
+      left: 50%;
+      z-index: 3000;
+      color: #fff;
+      background-color: #000;
+      border-radius: 50% 50%;
+      opacity: .6;
+      .fg-loading-2 {
+        font-size: 1.8em;
+        margin: 10px;
+        padding: 5px;
+      }
+    }
+    .toggle-info {
+      position: absolute;
+      top: 125px;
+      left: 40px;
+      color: #fff;
+      opacity: .6;
+      cursor: pointer;
+      border-radius: 5px;
+      background-color: #000;
+      z-index: 3000;
+    }
+    ul.alert-info {
+      position: absolute;
+      top: 150px;
+      left: 40px;
+      height: 60vh;
+      width: 350px;
+      padding-right: 5px;
+      overflow-y: auto;
+      z-index: 3000;
+      li {
+        display: block;
+        color: #fff;
+        border-radius: 5px;
+        padding: 10px;
+        margin-bottom: 6px;
+        opacity: .6;
+        background-color: #000;
+        overflow: hidden;
+        .count {
+          float: left;
+          width: 15px;
+          font-size: 10px;
+          color: #fff;
+          margin-top: 3px;
+          margin-right: 8px;
+          text-align: center;
+          border-radius: 4px;
+        }
+        .data {
+          float: left;
+          width: 290px;
+          font-size: 14px;
+          .info {
+            margin-bottom: 6px;
+          }
+          .datetime {
+            float: left;
+            margin-right: 10px;
+          }
+          .country {
+            float: left;
+            .fg-next {
+              font-size: 1em;
+            }
+          }
+        }
+      }
+    }
+    .alert-count {
+      position: absolute;
+      left: 50%;
+      bottom: 5%;
+      transform: translate(-50%, -50%);
+      z-index: 3000;
+      display: flex;
+      .item {
+        color: #fff;
+        width: 220px;
+        margin: 10px 20px;
+        padding: 10px 30px;
+        line-height: 25px;
+        opacity: 0.6;
+        background-color: #000;
+        border-radius: 5px;
+        .fg-checkbox-fill {
+          float: left;
+          margin-right: 20px;
+          margin-top: 15px;
+          padding-right: 20px;
+          border-right: 1px solid #999;
+        }
+        .threats {
+          float: left;
+          span {
+            display: block;
+          }
+        }
       }
     }
   }
@@ -895,7 +1067,7 @@ i.c-checkbox.fg-checkbox {
       .drop-down {
         position: absolute;
         top: 14px;
-        left: 200px;
+        left: 320px;
         width: 145px;
       }
       .floor-map {

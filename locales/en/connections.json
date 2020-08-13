@@ -218,6 +218,7 @@
   "txt-map": "Map",  
 
   "dashboard": {
+    "txt-overview": "Overview",
     "txt-statisticsInfo": "Statistics Info",
     "txt-patternName": "Pattern Name",
     "txt-attacksMap": "Attacks Map",
