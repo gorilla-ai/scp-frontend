@@ -78,7 +78,8 @@ function renderApp(req, res, next) {
     appCfg: cfg.app,
     companyName: cfg.companyName,
     productName: cfg.productName,
-    session: cfg.session
+    session: cfg.session,
+    mapUrl: cfg.mapUrl
   }
 
   log.info('renderApp',initialState)
