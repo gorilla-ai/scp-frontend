@@ -50,7 +50,8 @@ const cfg = _.assign({
     name: null,
     account: "admin",
     accountId: "DPIR-00000000-0000-0000-0000-000000000000"
-  }
+  },
+  mapUrl: 'https://mt0.google.com/vt/lyrs=m&hl=en-US&x={x}&y={y}&z={z}'
   // session: {
   //   rights: [],
   //   name: null,
@@ -77,7 +78,8 @@ function renderApp(req, res, next) {
     appCfg: cfg.app,
     companyName: cfg.companyName,
     productName: cfg.productName,
-    session: cfg.session
+    session: cfg.session,
+    mapUrl: cfg.mapUrl
   }
 
   log.info('renderApp',initialState)

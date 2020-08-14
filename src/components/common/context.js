@@ -3,6 +3,7 @@ import React from 'react'
 const initialState = JSON.parse(document.getElementById('initial-state').innerHTML);
 const cfg = initialState.envCfg;
 const session = initialState.session;
+const mapUrl = initialState.mapUrl;
 let sessionRights = {};
 
 _.forEach(session.rights, val => {
@@ -15,7 +16,8 @@ export const baseData = {
   language: cfg.lng,
   locale: cfg.lng,
   session,
-  sessionRights
+  sessionRights,
+  mapUrl
 };
 
 export const BaseDataContext = React.createContext(
