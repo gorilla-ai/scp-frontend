@@ -29,6 +29,7 @@ const ALERT_LEVEL_COLORS = {
 };
 const PAGE_RESET_INTERVAL = 300000; //5 minutes
 const PATH_SPEED = 100;
+const PATH_DURATION = 5; //5 seconds
 
 /**
  * Overview
@@ -48,8 +49,8 @@ class DashboardOverview extends Component {
       worldAttackData: null,
       alertDisplayData: [],
       threatsCountData: [],
-      mapInterval: 5,
-      mapLimit: 20,
+      mapInterval: 5, //5
+      mapLimit: 20, //20
       mapCounter: 1,
       countDown: '',
       showAlertInfo: true
@@ -95,7 +96,7 @@ class DashboardOverview extends Component {
    * @method
    */
   setInterval = () => {
-    this.mapInterval = setInterval(this.getAttackData, this.state.mapInterval * 1000);
+    this.mapInterval = setInterval(this.setAttackData, this.state.mapInterval * 1000);
   }
   /**
    * Clear time interval
@@ -182,7 +183,7 @@ class DashboardOverview extends Component {
           alertMapData,
           threatsCountData
         }, () => {
-          //this.getAttackData();
+          //this.setAttackData();
         });
       }
       return null;
@@ -192,32 +193,34 @@ class DashboardOverview extends Component {
     })
   }
   /**
+   * Determine the data loop to show on map
+   * @method
+   */
+  setAttackData = () =>{
+    const {alertMapData, mapLimit, mapCounter} = this.state;
+    const dataSet = mapLimit * mapCounter; //Data set to be shown on map
+
+    if (dataSet - alertMapData.length >= mapLimit) { //No more data to show, restart the counter
+      this.setState({
+        mapCounter: 1
+      }, () => {
+        this.getAttackData();
+      });
+    } else {
+      this.getAttackData();
+    }
+  }
+  /**
    * Get and set attack data for new map (based on interval)
    * @method
    */
   getAttackData = () => {
-    const {alertMapData, mapLimit, mapCounter} = this.state;
+    const {alertMapData, mapLimit, mapInterval, mapCounter} = this.state;
     const dataSet = mapLimit * mapCounter; //Data set to be shown on map
-    const alertCount = alertMapData.length;
     let worldAttackData = [];
     let alertDisplayData = [];
 
-    if (alertCount === 0) {
-      return;
-    }
-
-    if (dataSet - alertCount >= mapLimit) { //No more data to show, restart over the data
-      this.clearInterval('mapInterval');
-
-      this.setState({
-        worldAttackData: null,
-        alertDisplayData: [],
-        mapCounter: 1,
-        countDown: '',
-        showAlertInfo: true
-      }, () => {
-        this.setInterval();
-      });
+    if (alertMapData.length === 0) {
       return;
     }
 
@@ -311,7 +314,7 @@ class DashboardOverview extends Component {
     const polyLine = document.getElementsByClassName('gis-polyline');
 
     _.forEach(polyLine, val => {
-      val.setAttribute('style', `stroke-dasharray: ${PATH_SPEED};`);
+      val.setAttribute('style', `stroke-dasharray: ${PATH_SPEED}; animation-duration: ${PATH_DURATION}s;`);
     })
   }
   /**
@@ -437,9 +440,9 @@ class DashboardOverview extends Component {
               id='mapIntervalList'
               required={true}
               list={[
-                {value: 1, text: 1},
-                {value: 5, text: 5},
-                {value: 10, text: 10}
+                {value: 1, text: '1s'},
+                {value: 5, text: '5s'},
+                {value: 10, text: '10s'}
               ]}
               value={mapInterval}
               onChange={this.handleMapConfigChange.bind(this, 'mapInterval')} />
