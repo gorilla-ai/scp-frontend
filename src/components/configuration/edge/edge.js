@@ -356,7 +356,7 @@ class Edge extends Component {
             val.honeyPotHostDTO.longitude
           ],
           data: {
-            tag: 'red'
+            tag: 'blue'
           },
           tooltip: () => {
             return `
@@ -1180,7 +1180,7 @@ class Edge extends Component {
                         },
                         props: {
                           'background-color': ({data}) => {
-                            return data.tag === 'red' ? 'red' : 'yellow';
+                            return data.tag;
                           },
                           'border-color': '#333',
                           'border-width': '1px'
