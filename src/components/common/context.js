@@ -15,7 +15,8 @@ export const baseData = {
   language: cfg.lng,
   locale: cfg.lng,
   session,
-  sessionRights
+  sessionRights,
+  mapUrl: cfg.mapUrl
 };
 
 export const BaseDataContext = React.createContext(

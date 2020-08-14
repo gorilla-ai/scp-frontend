@@ -887,6 +887,7 @@ class DashboardMaps extends Component {
             {mapType === PUBLIC && geoJson.mapDataArr.length > 0 &&
               <Gis
                 id='gisMap'
+                className='custom-bg'
                 data={geoJson.mapDataArr}
                 layers={{
                   world: {

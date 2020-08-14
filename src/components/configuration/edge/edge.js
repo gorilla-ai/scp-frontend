@@ -192,7 +192,7 @@ class Edge extends Component {
    */
   getServiceDesc = (allValue, desc) => {
     return (
-      <ul>
+      <ul key={allValue.agentId}>
         {desc.map(this.getIndividualDesc.bind(this, allValue))}
       </ul>
     )
@@ -213,7 +213,7 @@ class Edge extends Component {
 
     return (
       <ul key={i}>
-        <li key={val}><span className='header'>{val.serviceName}:</span> <span style={{color}}>{val.status}</span></li>
+        <li key={i + val.serviceName}><span className='header'>{val.serviceName}:</span> <span style={{color}}>{val.status}</span></li>
       </ul>
     )
   }
@@ -1104,7 +1104,7 @@ class Edge extends Component {
     });
   }
   render() {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl, contextRoot, mapUrl} = this.context;
     const {activeTab, activeContent, showFilter, edge, geoJson} = this.state;
 
     return (
@@ -1159,47 +1159,34 @@ class Edge extends Component {
                 {activeTab === 'geography' &&
                   <Gis
                     id='gisMap'
-                    data={geoJson.mapDataArr}
-                    layers={{
-                      world: {
-                        label: 'World Map',
-                        interactive: false,
-                        data: geoJson.edgeDataArr
-                      }
-                    }}
-                    activeLayers={['world']}
+                    data={geoJson.edgeDataArr}
                     baseLayers={{
                       standard: {
-                        id: 'world',
-                        layer: 'world'
+                        label: 'worldMap',
+                        layer: mapUrl
                       }
                     }}
                     mapOptions={{
-                      crs: L.CRS.Simple
+                      zoom: 8,
+                      center: [
+                        23.6978,
+                        120.9605
+                      ]
                     }}
-                    symbolOptions={[{
-                      match: {
-                        type:'geojson'
-                      },
-                      selectedProps: {
-                        'fill-color': 'white',
-                        color: 'black',
-                        weight: 0.6,
-                        'fill-opacity': 1
-                      }
-                    },
-                    {
-                      match: {
-                        type: 'spot'
-                      },
-                      props: {
-                        'background-color': ({data}) => {
-                          return data.tag === 'red' ? 'red' : 'yellow';
+                    symbolOptions={[
+                      {
+                        match: {
+                          type: 'spot'
                         },
-                        'border-color': '#333',
-                        'border-width': '1px'
+                        props: {
+                          'background-color': ({data}) => {
+                            return data.tag === 'red' ? 'red' : 'yellow';
+                          },
+                          'border-color': '#333',
+                          'border-width': '1px'
+                        }
                       }
-                    }]}
+                    ]}
                     layouts={['standard']}
                     dragModes={['pan']} />
                 }
