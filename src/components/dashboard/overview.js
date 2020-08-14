@@ -311,7 +311,7 @@ class DashboardOverview extends Component {
     const polyLine = document.getElementsByClassName('gis-polyline');
 
     _.forEach(polyLine, val => {
-      val.setAttribute('style', `stroke-dasharray: ${PATH_SPEED}; animation-duration: ${this.state.mapInterval}s;`);
+      val.setAttribute('style', `stroke-dasharray: ${PATH_SPEED};`);
     })
   }
   /**
