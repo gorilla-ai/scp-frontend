@@ -947,8 +947,8 @@ class AlertDetails extends Component {
   /**
    * Display rule content
    * @method
-   * @param {string} val - val for the rule content
-   * @param {number} i - index
+   * @param {object} val - rule data
+   * @param {number} i - index of the rule data
    * @returns HTML DOM
    */
   showRuleContent = (val, i) => {

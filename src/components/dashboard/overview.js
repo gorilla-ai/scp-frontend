@@ -8,6 +8,7 @@ import cx from 'classnames'
 
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import Gis from 'react-gis/build/src/components'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import RadioGroup from 'react-ui/build/src/components/radio-group'
 
 import {BaseDataContext} from '../common/context';
@@ -42,13 +43,20 @@ class DashboardOverview extends Component {
     super(props);
 
     this.state = {
+      dateTime: {
+        from: '',
+        to: ''
+      },
       past24hTime: helper.getFormattedDate(helper.getSubstractDate(24, 'hours')),
       updatedTime: helper.getFormattedDate(Moment()),
       alertMapData: [],
       worldMapData: [],
+      countryData: [],
       worldAttackData: null,
       alertDisplayData: [],
       threatsCountData: [],
+      countryTopList: [],
+      selectedAttackData: [],
       mapInterval: 5, //5
       mapLimit: 20, //20
       mapCounter: 1,
@@ -114,7 +122,7 @@ class DashboardOverview extends Component {
   getWorldMap = () => {
     const worldMapData = _.map(WORLDMAP.features, val => {
       return {
-        id: val.properties.name,
+        id: val.properties.iso_a2,
         type: 'geojson',
         geojson: val.geometry,
         weight: 0.6,
@@ -124,8 +132,15 @@ class DashboardOverview extends Component {
       }
     });
 
+    let countryData = {};
+
+    _.forEach(WORLDMAP.features, val => {
+      countryData[val.properties.iso_a2] = val.properties.name;
+    });
+
     this.setState({
-      worldMapData
+      worldMapData,
+      countryData
     });
   }
   /**
@@ -137,8 +152,8 @@ class DashboardOverview extends Component {
     const datetime = {
       from: helper.getSubstractDate(24, 'hours'),
       to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
-      //from: '2020-08-02T01:00:00Z',
-      //to: '2020-08-02T01:10:00Z'
+      //from: '2020-08-11T01:00:00Z',
+      //to: '2020-08-13T01:10:00Z'
     };
     const dateTime = {
       from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
@@ -178,6 +193,10 @@ class DashboardOverview extends Component {
         })
 
         this.setState({
+          dateTime: {
+            from: dateTime.from,
+            to: dateTime.to
+          },
           past24hTime: helper.getFormattedDate(helper.getSubstractDate(24, 'hours')),
           updatedTime: helper.getFormattedDate(Moment()),
           alertMapData,
@@ -367,13 +386,12 @@ class DashboardOverview extends Component {
     if (val.srcCountry && val.destCountry) {
       return (
         <li key={i}>
-          <div className='count' style={{backgroundColor: ALERT_LEVEL_COLORS[val._severity_]}}>{val.srcDestCityCnt}</div>
+          <div className='count' style={{backgroundColor: ALERT_LEVEL_COLORS[val._severity_]}}>{helper.numberWithCommas(val.srcDestCityCnt)}</div>
           <div className='data'>
             <div className='info'>{val.Info}</div>
             <div className='datetime'>{Moment(val._eventDttm_).local().format('HH:mm:ss')}</div>
             <div className='country'>{val.srcCountry} <i className='fg fg-next' style={{color: ALERT_LEVEL_COLORS[val._severity_]}}></i> {val.destCountry}</div>
           </div>
-
         </li>
       )
     }
@@ -388,7 +406,7 @@ class DashboardOverview extends Component {
     return (
       <div key={i} className='item'>
         <i className='fg fg-checkbox-fill' style={{color: ALERT_LEVEL_COLORS[val.name]}}></i>
-        <div className='threats'>{val.name}<span>{val.count}</span></div>
+        <div className='threats'>{val.name}<span>{helper.numberWithCommas(val.count)}</span></div>
       </div>
     )
   }
@@ -399,6 +417,169 @@ class DashboardOverview extends Component {
   toggleShowAlertInfo = () => {
     this.setState({
       showAlertInfo: !this.state.showAlertInfo
+    });
+  }
+  /**
+   * Get attack data for specific country
+   * @method
+   * @param {string} countryCode - country code from user's selection
+   */
+  getCountryAttackData = (countryCode) => {
+    const {baseUrl} = this.context;
+    const {dateTime} = this.state;
+    const url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`;
+    const apiArr = [
+      {
+        url,
+        data: JSON.stringify({
+          timestamp: [dateTime.from, dateTime.to],
+          filters: [
+            {
+              condition: 'must',
+              query: 'ExternalSrcCountryCode'
+            }
+          ]
+        }),
+        type: 'POST',
+        contentType: 'text/plain'
+      },
+      {
+        url,
+        data: JSON.stringify({
+          timestamp: [dateTime.from, dateTime.to],
+          filters: [
+            {
+              condition: 'must',
+              query: 'ExternalSrcCountry'
+            },
+            {
+              condition: 'must',
+              query: 'srcCountryCode: ' + countryCode
+            }
+          ]
+        }),
+        type: 'POST',
+        contentType: 'text/plain'
+      }
+    ];
+
+    if (!countryCode || countryCode.length > 2) { //If clicking on spots, don't show dialog
+      return;
+    }
+
+    this.ah.all(apiArr)
+    .then(data => {
+      if (data[0] && data[1]) {
+        let countryTopList = [];
+        let selectedAttackData = [];
+
+        if (data[0].aggregations) {
+          countryTopList = data[0].aggregations.ExternalSrcCountryCode.srcCountryCode.buckets;
+        }
+
+        if (data[1].aggregations) {
+          _.forEach(SEVERITY_TYPE, val => {
+            _.forEach(data[1].aggregations, (val2, key) => {
+              if (key === val) {
+                selectedAttackData.push({
+                  name: key,
+                  count: data[1].aggregations[key].doc_count
+                });
+              }
+            })
+          })
+        }
+
+        this.setState({
+          countryTopList,
+          selectedAttackData
+        }, () => {
+          this.showCountryAttackInfo(countryCode);
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Display attack table
+   * @param {string} val - attack data
+   * @param {number} i - index of the attack data
+   * @method
+   */
+  displayAttackCount = (val, i) => {
+    const {selectedAttackData} = this.state;
+    let totalCount = 0;
+    let percentage = 0;
+
+    _.forEach(selectedAttackData, val => {
+      totalCount += val.count;
+    })
+
+    if (totalCount > 0) {
+      percentage = (val.count / totalCount) * 100;
+    }
+
+    return (
+      <tr key={i}>
+        <td>
+          <i className='fg fg-checkbox-fill' style={{color: ALERT_LEVEL_COLORS[val.name]}}></i>{val.name}
+        </td>
+        <td>{helper.numberWithCommas(val.count)}</td>
+        <td>{percentage.toFixed(0)}%</td>
+      </tr>
+    )
+  }
+  /**
+   * Get country attack content
+   * @method
+   * @param {string} countryCode - selected country code from user
+   */
+  displayCountryAttackContent = (countryCode) => {
+    const {countryTopList, selectedAttackData} = this.state;
+    let rank = 0;
+
+    _.forEach(countryTopList, (val, i) => {
+      if (countryCode === val.key) {
+        rank = i + 1;
+        return false;
+      }
+    })
+
+    return (
+      <div>
+        {rank > 0 &&
+          <span className='country-rank'>{t('txt-threatsSrcCountryRank')}: {rank}</span>
+        }
+
+        <table className='c-table main-table severity'>
+          <thead>
+            <tr>
+              <th>{t('txt-severity')}</th>
+              <th>{t('txt-count')}</th>
+              <th>%</th>
+            </tr>
+          </thead>
+          <tbody>
+            {selectedAttackData.map(this.displayAttackCount)}
+          </tbody>
+        </table>
+      </div>
+    )
+  }
+  /**
+   * Open dialog to show country attack info
+   * @method
+   * @param {string} countryCode - selected country code from user
+   */
+  showCountryAttackInfo = (countryCode) => {
+    PopupDialog.alert({
+      title: this.state.countryData[countryCode],
+      id: 'modalWindowSmall',
+      confirmText: t('txt-close'),
+      display: this.displayCountryAttackContent(countryCode)
     });
   }
   render() {
@@ -501,7 +682,7 @@ class DashboardOverview extends Component {
               crs: L.CRS.Simple
             }}
             onClick={(id) => {
-              //console.log('clicked', id)
+              this.getCountryAttackData(id);
             }}
             symbolOptions={[
               {

@@ -221,6 +221,12 @@ html[data-theme='dark'] {
     }
     .main-table {
       margin: 0 auto;
+      &.severity {
+        .fg-checkbox-fill {
+          float: left;
+          margin-right: 5px;
+        }
+      }
     }
     .content {
       margin: 25px 0;
@@ -255,6 +261,12 @@ html[data-theme='dark'] {
   }
   .c-table .header {
     min-width: 50px;
+  }
+  .country-rank {
+    display: block;
+    color: var(--primaryContentHeader);
+    text-align: left;
+    margin: 10px 0 10px 0;
   }
 }
 .modal-dialog,
