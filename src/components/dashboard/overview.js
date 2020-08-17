@@ -159,10 +159,45 @@ class DashboardOverview extends Component {
       from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
       to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
-    const url = `${baseUrl}/api/alert/overview?startDttm=${dateTime.from}&endDttm=${dateTime.to}`;
+
+    /* Get Country top ranks data */
+    const requestData = {
+      timestamp: [dateTime.from, dateTime.to],
+      filters: [
+        {
+          condition: 'must',
+          query: 'ExternalSrcCountryCode'
+        }
+      ]
+    };
 
     this.ah.one({
-      url,
+      url: `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'application/json'
+    })
+    .then(data => {
+      if (data) {
+        let countryTopList = [];
+
+        if (data.aggregations) {
+          countryTopList = data.aggregations.ExternalSrcCountryCode.srcCountryCode.buckets;
+        }
+
+        this.setState({
+          countryTopList
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+
+    /* Get Alert data */
+    this.ah.one({
+      url: `${baseUrl}/api/alert/overview?startDttm=${dateTime.from}&endDttm=${dateTime.to}`,
       type: 'GET'
     })
     .then(data => {
@@ -193,12 +228,6 @@ class DashboardOverview extends Component {
         })
 
         this.setState({
-          dateTime: {
-            from: dateTime.from,
-            to: dateTime.to
-          },
-          past24hTime: helper.getFormattedDate(helper.getSubstractDate(24, 'hours')),
-          updatedTime: helper.getFormattedDate(Moment()),
           alertMapData,
           threatsCountData
         }, () => {
@@ -210,6 +239,16 @@ class DashboardOverview extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+
+    /* Set Datetime */
+    this.setState({
+      dateTime: {
+        from: dateTime.from,
+        to: dateTime.to
+      },
+      past24hTime: helper.getFormattedDate(helper.getSubstractDate(24, 'hours')),
+      updatedTime: helper.getFormattedDate(Moment())
+    });
   }
   /**
    * Determine the data loop to show on map
@@ -428,62 +467,42 @@ class DashboardOverview extends Component {
     const {baseUrl} = this.context;
     const {dateTime} = this.state;
     const url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`;
-    const apiArr = [
-      {
-        url,
-        data: JSON.stringify({
-          timestamp: [dateTime.from, dateTime.to],
-          filters: [
-            {
-              condition: 'must',
-              query: 'ExternalSrcCountryCode'
-            }
-          ]
-        }),
-        type: 'POST',
-        contentType: 'text/plain'
-      },
-      {
-        url,
-        data: JSON.stringify({
-          timestamp: [dateTime.from, dateTime.to],
-          filters: [
-            {
-              condition: 'must',
-              query: 'ExternalSrcCountry'
-            },
-            {
-              condition: 'must',
-              query: 'srcCountryCode: ' + countryCode
-            }
-          ]
-        }),
-        type: 'POST',
-        contentType: 'text/plain'
-      }
-    ];
 
     if (!countryCode || countryCode.length > 2) { //If clicking on spots, don't show dialog
       return;
     }
 
-    this.ah.all(apiArr)
+    const requestData = {
+      timestamp: [dateTime.from, dateTime.to],
+      filters: [
+        {
+          condition: 'must',
+          query: 'ExternalSrcCountry'
+        },
+        {
+          condition: 'must',
+          query: 'srcCountryCode: ' + countryCode
+        }
+      ]
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'application/json'
+    })
     .then(data => {
-      if (data[0] && data[1]) {
-        let countryTopList = [];
+      if (data) {
         let selectedAttackData = [];
 
-        if (data[0].aggregations) {
-          countryTopList = data[0].aggregations.ExternalSrcCountryCode.srcCountryCode.buckets;
-        }
-
-        if (data[1].aggregations) {
+        if (data.aggregations) {
           _.forEach(SEVERITY_TYPE, val => {
-            _.forEach(data[1].aggregations, (val2, key) => {
+            _.forEach(data.aggregations, (val2, key) => {
               if (key === val) {
                 selectedAttackData.push({
                   name: key,
-                  count: data[1].aggregations[key].doc_count
+                  count: data.aggregations[key].doc_count
                 });
               }
             })
@@ -491,7 +510,6 @@ class DashboardOverview extends Component {
         }
 
         this.setState({
-          countryTopList,
           selectedAttackData
         }, () => {
           this.showCountryAttackInfo(countryCode);
