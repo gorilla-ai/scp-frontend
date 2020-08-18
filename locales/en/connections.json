@@ -152,6 +152,7 @@
   "txt-es-data-over-limit": "Exceed max queried number, please revise filters",
   "txt-duplicatedName": "Name is duplicated",
   "txt-checkRequiredFieldType": "Please check all the required fields and its format",
+  "txt-threatsSrcCountryRank": "Source Country Alert Rank",
 
   "txt-dashboard": "Dashboard",
   "txt-threats": "Threats",
@@ -218,6 +219,7 @@
   "txt-map": "Map",  
 
   "dashboard": {
+    "txt-overview": "Overview",
     "txt-statisticsInfo": "Statistics Info",
     "txt-patternName": "Pattern Name",
     "txt-attacksMap": "Attacks Map",

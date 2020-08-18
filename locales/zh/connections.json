@@ -152,6 +152,7 @@
   "txt-es-data-over-limit": "超出搜尋範圍，請修改查詢條件",
   "txt-duplicatedName": "名稱不得重複",
   "txt-checkRequiredFieldType": "請檢查格式及必填欄位",
+  "txt-threatsSrcCountryRank": "威脅來源國家排名",
 
   "txt-dashboard": "Dashboard",
   "txt-threats": "Threats",
@@ -218,6 +219,7 @@
   "txt-map": "地圖",
 
   "dashboard": {
+    "txt-overview": "Overview",
     "txt-statisticsInfo": "統計資料",
     "txt-patternName": "Pattern名稱",
     "txt-attacksMap": "攻擊地圖",
