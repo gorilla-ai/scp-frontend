@@ -40,14 +40,23 @@ const EDGES_API = {
   name: 'Edges',
   path: 'agg'
 };
-const PRIVATE_SEVERITY_API = {
+const INTERNAL_MASKED_SRC_IP_API = {
   name: 'InternalMaskedIpWithSeverity'
 };
-const PUBLIC_COUNTRY_SEVERITY_API = {
+const EXTERNAL_SRC_COUNTRY_API = {
   name: 'ExternalSrcCountryWithSeverity'
 };
-const PUBLIC_IP_SEVERITY_API = {
+const EXTERNAL_SRC_IP_API = {
   name: 'ExternalSrcIpWithSeverity'
+};
+const INTERNAL_MASKED_DEST_IP_API = {
+  name: 'InternalMaskedDestIpWithSeverity'
+};
+const EXTERNAL_DEST_COUNTRY_API = {
+  name: 'ExternalDestCountryWithSeverity'
+};
+const EXTERNAL_DEST_IP_API = {
+  name: 'ExternalDestIpWithSeverity'
 };
 const NET_TRAP_QUERY = {
   name: 'NetTrapQueryBlacklist'
@@ -79,29 +88,45 @@ const SUBSECTIONS_DATA = { //Sub sections
 //Charts ID must be unique
 const CHARTS_LIST = [
   {
-    id: 'alertThreatLevel',
+    id: 'alertThreatLevelSrc',
     key: 'severity'
   },
   {
-    id: 'alertThreatCount',
+    id: 'alertThreatCountSrc',
     key: 'srcIp'
   }
 ];
 const TABLE_CHARTS_LIST = [
   {
-    id: 'alertThreatSubnet',
+    id: 'alertThreatSubnetSrc',
     key: 'Subnet'
   },
   {
-    id: 'alertThreatPrivate',
+    id: 'alertThreatPrivateSrc',
     key: 'IP'
   },
   {
-    id: 'alertThreatCountry',
+    id: 'alertThreatCountrySrc',
     key: 'Country'
   },
   {
-    id: 'alertThreatPublic',
+    id: 'alertThreatPublicSrc',
+    key: 'IP'
+  },
+  {
+    id: 'alertThreatSubnetDest',
+    key: 'Subnet'
+  },
+  {
+    id: 'alertThreatPrivateDest',
+    key: 'IP'
+  },
+  {
+    id: 'alertThreatCountryDest',
+    key: 'Country'
+  },
+  {
+    id: 'alertThreatPublicDest',
     key: 'IP'
   },
   {
@@ -471,7 +496,6 @@ class ThreatsController extends Component {
     }, () => {
       this.loadThreatsData('search');
       this.loadThreatsData('statistics');
-      this.loadThreatsData(PUBLIC_IP_SEVERITY_API.name);
       this.loadThreatsData(NET_TRAP_QUERY.name);
     });
   }
@@ -686,8 +710,8 @@ class ThreatsController extends Component {
               });
             })
           }
-          tempAlertPieData.alertThreatLevel = tempArr;
-          tempAlertPieData.alertThreatCount = [
+          tempAlertPieData.alertThreatLevelSrc = tempArr;
+          tempAlertPieData.alertThreatCountSrc = [
             {
               key: t('dashboard.txt-private'),
               doc_count: data.aggregations[PRIVATE_API.name].doc_count
@@ -699,9 +723,15 @@ class ThreatsController extends Component {
           ];
 
           let tempAlertTableData = {...alertTableData};
-          tempAlertTableData.alertThreatSubnet.chartData = data.aggregations[PRIVATE_SEVERITY_API.name].chartMaskedIpArr;
-          tempAlertTableData.alertThreatPrivate.chartData = data.aggregations[PRIVATE_SEVERITY_API.name].chartIpArr;
-          tempAlertTableData.alertThreatCountry.chartData = data.aggregations[PUBLIC_COUNTRY_SEVERITY_API.name];
+          tempAlertTableData.alertThreatSubnetSrc.chartData = data.aggregations[INTERNAL_MASKED_SRC_IP_API.name].chartMaskedIpArr;
+          tempAlertTableData.alertThreatPrivateSrc.chartData = data.aggregations[INTERNAL_MASKED_SRC_IP_API.name].chartIpArr;
+          tempAlertTableData.alertThreatCountrySrc.chartData = data.aggregations[EXTERNAL_SRC_COUNTRY_API.name];
+          tempAlertTableData.alertThreatPublicSrc.chartData = data.aggregations[EXTERNAL_SRC_IP_API.name];
+
+          tempAlertTableData.alertThreatSubnetDest.chartData = data.aggregations[INTERNAL_MASKED_DEST_IP_API.name].chartMaskedIpArr;
+          tempAlertTableData.alertThreatPrivateDest.chartData = data.aggregations[INTERNAL_MASKED_DEST_IP_API.name].chartIpArr;
+          tempAlertTableData.alertThreatCountryDest.chartData = data.aggregations[EXTERNAL_DEST_COUNTRY_API.name];
+          tempAlertTableData.alertThreatPublicDest.chartData = data.aggregations[EXTERNAL_DEST_IP_API.name];
 
           _.forEach(TABLE_CHARTS_LIST, val => {
             tempAlertTableData[val.id].chartFields = this.getThreatsTableData(val.id, val.key);
@@ -709,18 +739,6 @@ class ThreatsController extends Component {
 
           this.setState({
             alertPieData: tempAlertPieData,
-            alertTableData: tempAlertTableData
-          }, () => {
-            this.getChartsData();
-          });
-        }
-
-        if (options === PUBLIC_IP_SEVERITY_API.name) { //For ExternalSrcIpWithSeverity table
-          let tempAlertTableData = {...alertTableData};
-          tempAlertTableData.alertThreatPublic.chartData = data.aggregations[PUBLIC_IP_SEVERITY_API.name];
-          tempAlertTableData.alertThreatPublic.chartFields = this.getThreatsTableData('alertThreatPublic', 'IP');
-
-          this.setState({
             alertTableData: tempAlertTableData
           }, () => {
             this.getChartsData();
@@ -867,9 +885,7 @@ class ThreatsController extends Component {
       }
 
       if (options === 'statistics') {
-        dataObj.search = [PRIVATE_API.name, PUBLIC_API.name, PRIVATE_SEVERITY_API.name, PUBLIC_COUNTRY_SEVERITY_API.name];
-      } else if (options === PUBLIC_IP_SEVERITY_API.name) {
-        dataObj.search = [PUBLIC_IP_SEVERITY_API.name];
+        dataObj.search = [PRIVATE_API.name, PUBLIC_API.name, INTERNAL_MASKED_SRC_IP_API.name, EXTERNAL_SRC_COUNTRY_API.name, EXTERNAL_SRC_IP_API.name, INTERNAL_MASKED_DEST_IP_API.name, EXTERNAL_DEST_COUNTRY_API.name, EXTERNAL_DEST_IP_API.name];
       } else if (options === NET_TRAP_QUERY.name) {
         dataObj.search = [NET_TRAP_QUERY.name];
       } else {
