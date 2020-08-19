@@ -1423,8 +1423,12 @@ html[data-theme='dark'] {
 #fileModal-content {
   text-align: center;
 }
-#uploadThreatDialog-content {
-  width: 350px;
+#uploadThreatDialog-dialog {
+  width: 1280px;
+  height: 85vh;
+  #uploadThreatDialog-content {
+    width: 100%;
+  }
 }
 #batchUploadDialog-content {
   #csvFileInput {
@@ -1458,13 +1462,6 @@ html[data-theme='dark'] {
 #addThreatsDialog-content {
   width: 900px;
   height: 620px;
-  .upload-btn {
-    font-size: 16px;
-    margin: 5px 0;
-    .fg-data-upload {
-      float: left;
-    }
-  }
   .add-threats {
     display: flex;
     width: 55em;

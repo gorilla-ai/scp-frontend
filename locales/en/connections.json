@@ -386,10 +386,17 @@
   },
 
   "edge-management": {
+    "txt-today": "Today",
+    "txt-past7days": "Past 7 Days",
+    "txt-customDate": "Custom Date",
+    "txt-addManually": "Add Manually",
+    "txt-addMultiple": "Add Multiple",
+    "txt-importTIMAP": "Import TIMAP File",
+    "txt-threatsFile": "Threats File",
     "txt-geography": "Geography",
     "txt-addThreat": "Add Threat",
-    "txt-uploadThreat": "Upload Threat",
     "txt-importThreat": "Import Threat",
+    "txt-searchThreat": "Search Threat",
     "txt-basicInfo": "Info",
     "txt-editEdge": "Edit Edge",
     "txt-edgeName": "Edge Name",

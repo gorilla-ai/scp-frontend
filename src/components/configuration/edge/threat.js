@@ -7,6 +7,8 @@ import jschardet from 'jschardet'
 import XLSX from 'xlsx';
 
 import BarChart from 'react-chart/build/src/components/bar'
+import ButtonGroup from 'react-ui/build/src/components/button-group'
+import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import LineChart from 'react-chart/build/src/components/line'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
@@ -51,12 +53,15 @@ class ThreatIntelligence extends Component {
         //from: '2020-06-04T00:00:00Z',
         //to: '2020-06-04T01:00:00Z'
       },
+      activeDateType: 'past7days',
       indicatorsData: null,
       indicatorsTrendData: null,
       acuIndicatorsTrendData: null,
+      todaysIndicatorsData: null,
       addThreatsOpen: false,
       uplaodThreatsOpen: false,
       importThreatsOpen: false,
+      searchThreatsOpen: false,
       addThreats: [],
       threatsFile: {},
       threats: {
@@ -85,6 +90,29 @@ class ThreatIntelligence extends Component {
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
 
     this.getChartsData();
+  }
+  ryan = () =>{
+
+  }
+  /**
+   * Format the object data into array type
+   * @method
+   * @param {object} data - chart data
+   */
+  formatPieChartData = (data) => {
+    let indicatorsData = [];
+
+    _.keys(data)
+    .forEach(key => {
+      if (data[key] > 0) {
+        indicatorsData.push({
+          key,
+          doc_count: data[key]
+        });
+      }
+    });
+
+    return indicatorsData;
   }
   /**
    * Get and set charts data
@@ -124,20 +152,8 @@ class ThreatIntelligence extends Component {
     })
     .then(data => {
       if (data) {
-        let indicatorsData = [];
-
-        _.keys(data)
-        .forEach(key => {
-          if (data[key] > 0) {
-            indicatorsData.push({
-              key,
-              doc_count: data[key]
-            });
-          }
-        });
-
         this.setState({
-          indicatorsData
+          indicatorsData: this.formatPieChartData(data)
         });
       }
       return null;
@@ -202,6 +218,33 @@ class ThreatIntelligence extends Component {
         this.setState({
           acuIndicatorsTrendData
         });        
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get and set today's charts data
+   * @method
+   */
+  getTodayChartsData = () => {
+    const {baseUrl} = this.context;
+    const dateTime = {
+      from: Moment(helper.getStartDate('day')).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: Moment().utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    };
+
+    this.ah.one({
+      url: `${baseUrl}/api//indicators/summary/period?startDttm=${dateTime.from}&endDttm=${dateTime.to}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          todaysIndicatorsData: this.formatPieChartData(data)
+        });
       }
       return null;
     })
@@ -333,23 +376,24 @@ class ThreatIntelligence extends Component {
    * @returns ModalDialog component
    */
   uploadThreatsDialog = () => {
-    const titleText = t('edge-management.txt-uploadThreat');
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleUploadThreat},
       confirm: {text: t('txt-confirm'), handler: this.confirmThreatUpload}
     };
+    const title = t('edge-management.txt-addThreat') + ' - ' + t('edge-management.txt-addMultiple');
+    const fileTitle = t('edge-management.txt-threatsFile') + '(.json)';
 
     return (
       <ModalDialog
         id='uploadThreatDialog'
         className='modal-dialog'
-        title={titleText}
+        title={title}
         draggable={true}
         global={true}
         actions={actions}
         closeAction='cancel'>
         <FileUpload
-          supportText={titleText}
+          supportText={fileTitle}
           id='uploadThreat'
           fileType='text'
           btnText={t('txt-upload')}
@@ -448,7 +492,6 @@ class ThreatIntelligence extends Component {
   displayAddThreatsContent = () => {
     return (
       <div>
-        <button className='standard btn upload-btn' onClick={this.toggleUploadThreat}><i className='fg fg-data-upload'/>{t('edge-management.txt-uploadThreat')}</button>
         <MultiInput
           id='threatMultiInputs'
           base={AddThreats}
@@ -474,12 +517,13 @@ class ThreatIntelligence extends Component {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleAddThreats},
       confirm: {text: t('txt-confirm'), handler: this.confirmAddThreats}
     };
+    const title = t('edge-management.txt-addThreat') + ' - ' + t('edge-management.txt-addManually');
 
     return (
       <ModalDialog
         id='addThreatsDialog'
         className='modal-dialog'
-        title={t('edge-management.txt-addThreat')}
+        title={title}
         draggable={true}
         global={true}
         actions={actions}
@@ -647,23 +691,24 @@ class ThreatIntelligence extends Component {
    * @returns ModalDialog component
    */
   importThreatsDialog = () => {
-    const titleText = t('edge-management.txt-importThreat');
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.toggleImportThreats},
       confirm: {text: t('txt-confirm'), handler: this.confirmThreatImport}
     };
+    const title = t('edge-management.txt-addThreat') + ' - ' + t('edge-management.txt-importTIMAP');
+    const fileTitle = t('edge-management.txt-threatsFile') + '(.zip)';
 
     return (
       <ModalDialog
         id='uploadThreatDialog'
         className='modal-dialog'
-        title={titleText}
+        title={title}
         draggable={true}
         global={true}
         actions={actions}
         closeAction='cancel'>
         <FileUpload
-          supportText={titleText}
+          supportText={fileTitle}
           id='importThreat'
           fileType='indicators'
           btnText={t('txt-upload')}
@@ -704,6 +749,117 @@ class ThreatIntelligence extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+  }
+  /**
+   * Toggle Search Threats dialog on/off
+   * @method
+   */
+  toggleSearchThreats = () => {
+    this.setState({
+      searchThreatsOpen: !this.state.searchThreatsOpen
+    });
+  }
+  /**
+   * Display filter content
+   * @method
+   * @returns HTML DOM
+   */
+  renderFilter = () => {
+    const {threatsSearch} = this.state;
+
+    return (
+      <div>
+        <div className='filter-section'>
+          <div className='group edge-threats'>
+            <DropDownList
+              id='threatsSearchType'
+              list={[
+                {value: 'IP', text: 'IP'},
+                {value: 'DOMAIN', text: 'DomainName'},
+                {value: 'URL', text: 'URL'},
+                {value: 'SNORT', text: 'SNORT'},
+                {value: 'YARA', text: 'YARA'},
+                {value: 'CERT', text: 'Certification'},
+                {value: 'FILEHASH', text: 'FileHash'}
+              ]}
+              required={true}
+              value={threatsSearch.type}
+              onChange={this.handleThreatsChange.bind(this, 'type')} />
+            <input
+              id='threatsSearchKeyword'
+              type='text'
+              value={threatsSearch.keyword}
+              onChange={this.handleThreatsChange.bind(this, 'keyword')} />  
+          </div>
+        </div>
+        <div className='button-group'>
+          <button className='filter' onClick={this.handleThreatsSearch.bind(this, 'search')}>{t('txt-filter')}</button>
+          <button className='clear' onClick={this.clearFilter}>{t('txt-clear')}</button>
+        </div>
+      </div>
+    )
+  }
+  /**
+   * Clear filter input value
+   * @method
+   */
+  clearFilter = () => {
+    this.setState({
+      threatsSearch: {
+        keyword: '',
+        type: 'IP'
+      }
+    });
+  }
+  /**
+   * Display search threats content
+   * @method
+   * @returns HTML DOM
+   */
+  displaySearchThreatsContent = () => {
+    const {threats} = this.state;
+
+    return (
+      <div>
+        {this.renderFilter()}
+
+        {threats.dataContent.length > 0 &&
+          <TableContent
+            dataTableData={threats.dataContent}
+            dataTableFields={threats.dataFields}
+            dataTableSort={threats.sort}
+            paginationTotalCount={threats.totalCount}
+            paginationPageSize={threats.pageSize}
+            paginationCurrentPage={threats.currentPage}
+            handleTableSort={this.handleTableSort}
+            paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
+            paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
+        }
+      </div>
+    )
+  }
+  /**
+   * Display search threats modal dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  searchThreatsDialog = () => {
+    const actions = {
+      cancel: {text: t('txt-close'), className: 'standard', handler: this.toggleSearchThreats}
+    };
+
+    return (
+      <ModalDialog
+        id='uploadThreatDialog'
+        className='modal-dialog'
+        title={t('edge-management.txt-searchThreat')}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='cancel'>
+        {this.displaySearchThreatsContent()}
+      </ModalDialog>
+    )
   }
   /**
    * Handle table sort
@@ -884,70 +1040,204 @@ class ThreatIntelligence extends Component {
     });
   }
   /**
-   * Display filter content
+   * Toggle date options buttons
    * @method
-   * @returns HTML DOM
+   * @param {string} type - 'today', 'past7days' or 'custom'
    */
-  renderFilter = () => {
-    const {threatsSearch} = this.state;
+  toggleDateBtns = (type) => {
+    if (type === 'today') {
+      this.getTodayChartsData();
+    } else if (type === 'past7days') {
+      this.setState({
+        datetime: {
+          from: helper.getSubstractDate(1, 'week'),
+          to: helper.getSubstractDate(1, 'day', Moment().local().format('YYYY-MM-DDTHH:mm:ss'))
+        }
+      }, () => {
+        this.getChartsData();
+      });
+    }
 
+    this.setState({
+      activeDateType: type
+    });
+  }
+  /**
+   * Show pie chart
+   * @method
+   * @param {array.<object>} indicatorsData - indicators data
+   */
+  showPieChart = (indicatorsData) => {
     return (
-      <div className='main-filter active'>
-        <div className='header-text'>{t('txt-filter')}</div>
-        <div className='filter-section config'>
-          <div className='group edge-threats'>
-            <label htmlFor='threatsSearchType'>{f('edgeFields.keywords')}</label>
-            <DropDownList
-              id='threatsSearchType'
-              list={[
-                {value: 'IP', text: 'IP'},
-                {value: 'DOMAIN', text: 'DomainName'},
-                {value: 'URL', text: 'URL'},
-                {value: 'SNORT', text: 'SNORT'},
-                {value: 'YARA', text: 'YARA'},
-                {value: 'CERT', text: 'Certification'},
-                {value: 'FILEHASH', text: 'FileHash'}
-              ]}
-              required={true}
-              value={threatsSearch.type}
-              onChange={this.handleThreatsChange.bind(this, 'type')} />
-            <input
-              id='threatsSearchKeyword'
-              type='text'
-              value={threatsSearch.keyword}
-              onChange={this.handleThreatsChange.bind(this, 'keyword')} />  
+      <div className='chart-group'>
+        {!indicatorsData &&
+          <div className='empty-data'>
+            <header>{t('edge-management.statistics.txt-sourceIndicators')}</header>
+            <span><i className='fg fg-loading-2'></i></span>
           </div>
-        </div>
-        <div className='button-group'>
-          <button className='filter' onClick={this.handleThreatsSearch.bind(this, 'search')}>{t('txt-filter')}</button>
-          <button className='clear' onClick={this.clearFilter}>{t('txt-clear')}</button>
-        </div>
+        }
+        {indicatorsData && indicatorsData.length === 0 &&
+          <div className='empty-data'>
+            <header>{t('edge-management.statistics.txt-sourceIndicators')}</header>
+            <span>{t('txt-notFound')}</span>
+          </div>
+        }
+        {indicatorsData && indicatorsData.length > 0 &&
+          <PieChart
+            title={t('edge-management.statistics.txt-sourceIndicators')}
+            data={indicatorsData}
+            keyLabels={{
+              key: t('txt-indicator'),
+              doc_count: t('txt-count')
+            }}
+            valueLabels={{
+              'Pie Chart': {
+                key: t('txt-indicator'),
+                doc_count: t('txt-count')
+              }
+            }}
+            dataCfg={{
+              splitSlice: ['key'],
+              sliceSize: 'doc_count'
+            }} />
+        }
+      </div>      
+    )
+  }
+  /**
+   * Show bar chart
+   * @method
+   * @param {array.<object>} indicatorsData - indicators data
+   */
+  showBarChart = (indicatorsData) => {
+    return (
+      <div className='chart-group'>
+        {!indicatorsData &&
+          <div className='empty-data'>
+            <header>{t('edge-management.statistics.txt-indicatorsTrend')}</header>
+            <span><i className='fg fg-loading-2'></i></span>
+          </div>
+        }
+        {indicatorsData && indicatorsData.length === 0 &&
+          <div className='empty-data'>
+            <header>{t('edge-management.statistics.txt-indicatorsTrend')}</header>
+            <span>{t('txt-notFound')}</span>
+          </div>
+        }
+        {indicatorsData && indicatorsData.length > 0 &&
+          <BarChart
+            stacked
+            vertical
+            title={t('edge-management.statistics.txt-indicatorsTrend')}
+            legend={{
+              enabled:true
+            }}
+            data={indicatorsData}
+            onTooltip={this.onTooltip}
+            dataCfg={{
+              x: 'day',
+              y: 'count',
+              splitSeries: 'indicator'
+            }}
+            xAxis={{
+              type: 'datetime',
+              dateTimeLabelFormats: {
+                day: '%Y-%m-%d'
+              }
+            }}
+            plotOptions={{
+              series: {
+                maxPointWidth: 20
+              }
+            }} />
+        }
       </div>
     )
   }
   /**
-   * Clear filter input value
+   * Show line chart
    * @method
+   * @param {array.<object>} indicatorsData - indicators data
    */
-  clearFilter = () => {
-    this.setState({
-      threatsSearch: {
-        keyword: '',
-        type: 'IP'
+  showLineChart = (indicatorsData) => {
+    return (
+      <div className='chart-group'>
+        {!indicatorsData &&
+          <div className='empty-data'>
+            <header>{t('edge-management.statistics.txt-acuIndicatorsTrend')}</header>
+            <span><i className='fg fg-loading-2'></i></span>
+          </div>
+        }
+        {indicatorsData && indicatorsData.length === 0 &&
+          <div className='empty-data'>
+            <header>{t('edge-management.statistics.txt-acuIndicatorsTrend')}</header>
+            <span>{t('txt-notFound')}</span>
+          </div>
+        }
+        {indicatorsData && indicatorsData.length > 0 &&
+          <LineChart
+            title={t('edge-management.statistics.txt-acuIndicatorsTrend')}
+            legend={{
+              enabled: true
+            }}
+            data={indicatorsData}
+            onTooltip={this.onTooltip}
+            dataCfg={{
+              x: 'day',
+              y: 'count',
+              splitSeries: 'indicator'
+            }}
+            xAxis={{
+              type: 'datetime',
+              dateTimeLabelFormats: {
+                day: '%Y-%m-%d'
+              }
+            }} />
+        }
+      </div>
+    )
+  }
+  /**
+   * Construct and display Add Threats context menu
+   * @method
+   * @param {object} evt - mouseClick events
+   */
+  handleRowContextMenu = (evt) => {
+    const menuItems = [
+      {
+        id: 'addManually',
+        text: t('edge-management.txt-addManually'),
+        action: () => this.toggleAddThreats()
+      },
+      {
+        id: 'addMultiple',
+        text: t('edge-management.txt-addMultiple') + '(.json)',
+        action: () => this.toggleUploadThreat()
+      },
+      {
+        id: 'importThreats',
+        text: t('edge-management.txt-importTIMAP') + '(.zip)',
+        action: () => this.toggleImportThreats()
       }
-    });
+    ];
+
+    ContextMenu.open(evt, menuItems, 'addThreatsType');
+    evt.stopPropagation();
   }
   render() {
     const {baseUrl, contextRoot} = this.context;
     const {
       activeContent,
       datetime,
+      activeDateType,
       indicatorsData,
       indicatorsTrendData,
       acuIndicatorsTrendData,
+      todaysIndicatorsData,
       uplaodThreatsOpen,
       addThreatsOpen,
       importThreatsOpen,
+      searchThreatsOpen,
       threats
     } = this.state;
 
@@ -965,17 +1255,28 @@ class ThreatIntelligence extends Component {
           this.importThreatsDialog()
         }
 
-        <div className='sub-header'>
-          <div className='secondary-btn-group right'>
-            <button onClick={this.toggleAddThreats} title={t('events.connections.txt-toggleFilter')}><i className='fg fg-add'/><span>{t('edge-management.txt-addThreat')}</span></button>
-            <button className={cx({'active': activeContent === 'search'})} onClick={this.toggleSearch} title={t('events.connections.txt-toggleChart')}><i className='fg fg-search'/><span>{t('txt-query')}</span></button>
-          </div>
+        {searchThreatsOpen &&
+          this.searchThreatsDialog()
+        }
 
-          <SearchOptions
-            datetime={datetime}
-            enableTime={false}
-            handleDateChange={this.handleDateChange}
-            handleSearchSubmit={this.handleSearchSubmit} />
+        <div className='sub-header edge-options'>
+          <ButtonGroup
+            id='edgeBtns'
+            list={[
+              {value: 'today', text: t('edge-management.txt-today')},
+              {value: 'past7days', text: t('edge-management.txt-past7days')},
+              {value: 'custom', text: t('edge-management.txt-customDate')}
+            ]}
+            value={activeDateType}
+            onChange={this.toggleDateBtns} />
+
+          {activeDateType === 'custom' &&
+            <SearchOptions
+              datetime={datetime}
+              enableTime={false}
+              handleDateChange={this.handleDateChange}
+              handleSearchSubmit={this.handleSearchSubmit} />
+          }
         </div>
 
         <div className='data-content'>
@@ -988,142 +1289,32 @@ class ThreatIntelligence extends Component {
               <div className='main-content'>
                 <header className='main-header'>{t('txt-threatIntelligence')}</header>
                 <div className='content-header-btns'>
-                  <button className='standard btn' onClick={this.toggleImportThreats}>{t('edge-management.txt-importThreat')}</button>
+                  <button className='standard btn' onClick={this.handleRowContextMenu}><span>{t('edge-management.txt-addThreat')}</span></button>
+                  <button className='standard btn' onClick={this.toggleSearchThreats}>{t('edge-management.txt-searchThreat')}</button>
+
+                  <button className={cx({'active': activeContent === 'search'})} onClick={this.toggleSearch}><span>{t('txt-query')}</span></button>
+
                 </div>
 
                 <div className='main-statistics'>
                   <div className='statistics-content'>
-                    <div className='chart-group'>
-                      {!indicatorsData &&
-                        <div className='empty-data'>
-                          <header>{t('edge-management.statistics.txt-sourceIndicators')}</header>
-                          <span><i className='fg fg-loading-2'></i></span>
-                        </div>
-                      }
-                      {indicatorsData && indicatorsData.length === 0 &&
-                        <div className='empty-data'>
-                          <header>{t('edge-management.statistics.txt-sourceIndicators')}</header>
-                          <span>{t('txt-notFound')}</span>
-                        </div>
-                      }
-                      {indicatorsData && indicatorsData.length > 0 &&
-                        <PieChart
-                          title={t('edge-management.statistics.txt-sourceIndicators')}
-                          data={indicatorsData}
-                          keyLabels={{
-                            key: t('txt-indicator'),
-                            doc_count: t('txt-count')
-                          }}
-                          valueLabels={{
-                            'Pie Chart': {
-                              key: t('txt-indicator'),
-                              doc_count: t('txt-count')
-                            }
-                          }}
-                          dataCfg={{
-                            splitSlice: ['key'],
-                            sliceSize: 'doc_count'
-                          }} />
-                      }
-                    </div>
+                    {activeDateType === 'today' &&
+                      this.showPieChart(todaysIndicatorsData)
+                    }
 
-                    <div className='chart-group'>
-                      {!indicatorsTrendData &&
-                        <div className='empty-data'>
-                          <header>{t('edge-management.statistics.txt-indicatorsTrend')}</header>
-                          <span><i className='fg fg-loading-2'></i></span>
-                        </div>
-                      }
-                      {indicatorsTrendData && indicatorsTrendData.length === 0 &&
-                        <div className='empty-data'>
-                          <header>{t('edge-management.statistics.txt-indicatorsTrend')}</header>
-                          <span>{t('txt-notFound')}</span>
-                        </div>
-                      }
-                      {indicatorsTrendData && indicatorsTrendData.length > 0 &&
-                        <BarChart
-                          stacked
-                          vertical
-                          title={t('edge-management.statistics.txt-indicatorsTrend')}
-                          legend={{
-                            enabled:true
-                          }}
-                          data={indicatorsTrendData}
-                          onTooltip={this.onTooltip}
-                          dataCfg={{
-                            x: 'day',
-                            y: 'count',
-                            splitSeries: 'indicator'
-                          }}
-                          xAxis={{
-                            type: 'datetime',
-                            dateTimeLabelFormats: {
-                              day: '%Y-%m-%d'
-                            }
-                          }}
-                          plotOptions={{
-                            series: {
-                              maxPointWidth: 20
-                            }
-                          }} />
-                      }
-                    </div>
+                    {activeDateType !== 'today' &&
+                      this.showPieChart(indicatorsData)
+                    }
 
-                    <div className='chart-group'>
-                      {!acuIndicatorsTrendData &&
-                        <div className='empty-data'>
-                          <header>{t('edge-management.statistics.txt-acuIndicatorsTrend')}</header>
-                          <span><i className='fg fg-loading-2'></i></span>
-                        </div>
-                      }
-                      {acuIndicatorsTrendData && acuIndicatorsTrendData.length === 0 &&
-                        <div className='empty-data'>
-                          <header>{t('edge-management.statistics.txt-acuIndicatorsTrend')}</header>
-                          <span>{t('txt-notFound')}</span>
-                        </div>
-                      }
-                      {acuIndicatorsTrendData && acuIndicatorsTrendData.length > 0 &&
-                        <LineChart
-                          title={t('edge-management.statistics.txt-acuIndicatorsTrend')}
-                          legend={{
-                            enabled: true
-                          }}
-                          data={acuIndicatorsTrendData}
-                          onTooltip={this.onTooltip}
-                          dataCfg={{
-                            x: 'day',
-                            y: 'count',
-                            splitSeries: 'indicator'
-                          }}
-                          xAxis={{
-                            type: 'datetime',
-                            dateTimeLabelFormats: {
-                              day: '%Y-%m-%d'
-                            }
-                          }} />
-                      }
-                    </div>
+                    {activeDateType !== 'today' &&
+                      this.showBarChart(indicatorsTrendData)
+                    }
+
+                    {activeDateType !== 'today' &&
+                      this.showLineChart(acuIndicatorsTrendData)
+                    }
                   </div>
                 </div>
-              </div>
-            }
-
-            {activeContent === 'search' &&
-              this.renderFilter()
-            }
-
-            {activeContent === 'search' && threats.dataContent.length > 0 &&
-              <div className='main-content'>
-                <TableContent
-                  dataTableData={threats.dataContent}
-                  dataTableFields={threats.dataFields}
-                  dataTableSort={threats.sort}
-                  paginationTotalCount={threats.totalCount}
-                  paginationPageSize={threats.pageSize}
-                  paginationCurrentPage={threats.currentPage}
-                  handleTableSort={this.handleTableSort}
-                  paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                  paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
               </div>
             }
           </div>
