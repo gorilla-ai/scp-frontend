@@ -42,7 +42,6 @@ class ThreatIntelligence extends Component {
     super(props);
 
     this.state = {
-      activeContent: 'charts', //'charts' or 'search'
       threatsSearch: {
         keyword: '',
         type: 'IP'
@@ -90,9 +89,6 @@ class ThreatIntelligence extends Component {
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
 
     this.getChartsData();
-  }
-  ryan = () =>{
-
   }
   /**
    * Format the object data into array type
@@ -149,7 +145,7 @@ class ThreatIntelligence extends Component {
     this.ah.one({
       url: `${baseUrl}/api/indicators/summary`,
       type: 'GET'
-    })
+    }, {showProgress: false})
     .then(data => {
       if (data) {
         this.setState({
@@ -186,7 +182,7 @@ class ThreatIntelligence extends Component {
 
         this.setState({
           indicatorsTrendData
-        });        
+        });
       }
       return null;
     })
@@ -217,7 +213,7 @@ class ThreatIntelligence extends Component {
 
         this.setState({
           acuIndicatorsTrendData
-        });        
+        });
       }
       return null;
     })
@@ -239,7 +235,7 @@ class ThreatIntelligence extends Component {
     this.ah.one({
       url: `${baseUrl}/api//indicators/summary/period?startDttm=${dateTime.from}&endDttm=${dateTime.to}`,
       type: 'GET'
-    })
+    }, {showProgress: false})
     .then(data => {
       if (data) {
         this.setState({
@@ -253,20 +249,51 @@ class ThreatIntelligence extends Component {
     })
   }
   /**
-   * Show tooltip info when mouseover the chart
+   * Reset indicators data
    * @method
-   * @param {object} eventInfo - MouseoverEvents
-   * @param {array.<object>} data - chart data
-   * @returns HTML DOM
+   * @param {string} type - data type to be cleared ('today', 'past7days' or 'search')
    */
-  onTooltip = (eventInfo, data) => {
-    return (
-      <section>
-        <span>{t('txt-indicator')}: {data[0].indicator}<br /></span>
-        <span>{t('txt-date')}: {Moment(data[0].day, 'x').utc().format('YYYY/MM/DD')}<br /></span>
-        <span>{t('txt-count')}: {data[0].count}</span>
-      </section>
-    )
+  clearIndicatorsData = (type) => {
+    if (type === 'today') {
+      this.setState({
+        todaysIndicatorsData: null
+      }, () => {
+        this.getTodayChartsData();
+      })
+    } else {
+      let indicatorsObj = {
+        indicatorsData: null,
+        indicatorsTrendData: null,
+        acuIndicatorsTrendData: null
+      };
+
+      if (type === 'past7days') {
+        indicatorsObj.datetime = {
+          from: helper.getSubstractDate(1, 'week'),
+          to: helper.getSubstractDate(1, 'day', Moment().local().format('YYYY-MM-DDTHH:mm:ss'))
+        };
+      }
+
+      this.setState({
+        ...indicatorsObj
+      }, () => {
+        this.getChartsData();
+      });
+    }
+  }
+  /**
+   * Toggle date options buttons
+   * @method
+   * @param {string} type - 'today', 'past7days' or 'custom'
+   */
+  toggleDateRangeButtons = (type) => {
+    if (type === 'today' || type === 'past7days') {
+      this.clearIndicatorsData(type);
+    }
+
+    this.setState({
+      activeDateType: type
+    });
   }
   /**
    * Set new datetime
@@ -277,6 +304,33 @@ class ThreatIntelligence extends Component {
     this.setState({
       datetime
     });
+  }
+  /**
+   * Construct and display Add Threats context menu
+   * @method
+   * @param {object} evt - mouseClick events
+   */
+  handleRowContextMenu = (evt) => {
+    const menuItems = [
+      {
+        id: 'addManually',
+        text: t('edge-management.txt-addManually'),
+        action: () => this.toggleAddThreats()
+      },
+      {
+        id: 'addMultiple',
+        text: t('edge-management.txt-addMultiple') + '(.txt)',
+        action: () => this.toggleUploadThreat()
+      },
+      {
+        id: 'importThreats',
+        text: t('edge-management.txt-importTIMAP') + '(.zip)',
+        action: () => this.toggleImportThreats()
+      }
+    ];
+
+    ContextMenu.open(evt, menuItems, 'addThreatsType');
+    evt.stopPropagation();
   }
   /**
    * Toggle upload modal dialog on/off
@@ -381,11 +435,11 @@ class ThreatIntelligence extends Component {
       confirm: {text: t('txt-confirm'), handler: this.confirmThreatUpload}
     };
     const title = t('edge-management.txt-addThreat') + ' - ' + t('edge-management.txt-addMultiple');
-    const fileTitle = t('edge-management.txt-threatsFile') + '(.json)';
+    const fileTitle = t('edge-management.txt-threatsFile') + '(.txt)';
 
     return (
       <ModalDialog
-        id='uploadThreatDialog'
+        id='uploadThreatsDialog'
         className='modal-dialog'
         title={title}
         draggable={true}
@@ -422,24 +476,13 @@ class ThreatIntelligence extends Component {
       this.setState({
         uplaodThreatsOpen: false,
         addThreats: tempAddThreats
+      }, () => {
+        this.toggleAddThreats();
       });
     } else {
       helper.showPopupMsg(t('txt-selectFile'), t('txt-error'));
       return;
     }
-  }
-  /**
-   * Reset indicators data
-   * @method
-   */
-  clearIndicatorsData = () => {
-    this.setState({
-      indicatorsData: null,
-      indicatorsTrendData: null,
-      acuIndicatorsTrendData: null      
-    }, () => {
-      this.getChartsData();
-    });
   }
   /**
    * Handle search submit
@@ -453,13 +496,13 @@ class ThreatIntelligence extends Component {
       helper.showPopupMsg(t('edge-management.txt-threatEndTimeError'), t('txt-error'));
       return;
     } else {
-      this.clearIndicatorsData();
+      this.clearIndicatorsData('search');
     }
   }
   /**
    * Toggle add threats modal on/off
    * @method
-   */  
+   */
   toggleAddThreats = () => {
     const {addThreatsOpen} = this.state;
 
@@ -649,24 +692,6 @@ class ThreatIntelligence extends Component {
     })
   }
   /**
-   * Toggle search content on/off
-   * @method
-   */
-  toggleSearch = () => {
-    const {activeContent} = this.state;
-    let newContent = '';
-
-    if (activeContent === 'search') {
-      newContent = 'charts';
-    } else if (activeContent === 'charts') {
-      newContent = 'search'
-    }
-
-    this.setState({
-      activeContent: newContent
-    });
-  }
-  /**
    * Toggle Import Threats dialog on/off
    * @method
    */
@@ -700,7 +725,7 @@ class ThreatIntelligence extends Component {
 
     return (
       <ModalDialog
-        id='uploadThreatDialog'
+        id='importThreatsDialog'
         className='modal-dialog'
         title={title}
         draggable={true}
@@ -760,17 +785,36 @@ class ThreatIntelligence extends Component {
     });
   }
   /**
-   * Display filter content
+   * Handle filter input data change
+   * @method
+   * @param {string} type - input type
+   * @param {string | object} value - input value
+   */
+  handleThreatsChange = (type, value) => {
+    let tempThreatsSearch = {...this.state.threatsSearch};
+
+    if (type === 'keyword') { //value is an object type
+      tempThreatsSearch[type] = value.target.value.trim();
+    } else {
+      tempThreatsSearch[type] = value;
+    }
+
+    this.setState({
+      threatsSearch: tempThreatsSearch
+    });
+  }
+  /**
+   * Display search threats content
    * @method
    * @returns HTML DOM
    */
-  renderFilter = () => {
-    const {threatsSearch} = this.state;
+  displaySearchThreatsContent = () => {
+    const {threatsSearch, threats} = this.state;
 
     return (
-      <div>
-        <div className='filter-section'>
-          <div className='group edge-threats'>
+      <div className='filter'>
+        <div className='filter-wrapper'>
+          <div className='filter-section'>
             <DropDownList
               id='threatsSearchType'
               list={[
@@ -789,39 +833,12 @@ class ThreatIntelligence extends Component {
               id='threatsSearchKeyword'
               type='text'
               value={threatsSearch.keyword}
-              onChange={this.handleThreatsChange.bind(this, 'keyword')} />  
+              onChange={this.handleThreatsChange.bind(this, 'keyword')} />
+          </div>
+          <div className='button-group'>
+            <button className='btn' onClick={this.handleThreatsSearch.bind(this, 'search')}>{t('txt-search')}</button>
           </div>
         </div>
-        <div className='button-group'>
-          <button className='filter' onClick={this.handleThreatsSearch.bind(this, 'search')}>{t('txt-filter')}</button>
-          <button className='clear' onClick={this.clearFilter}>{t('txt-clear')}</button>
-        </div>
-      </div>
-    )
-  }
-  /**
-   * Clear filter input value
-   * @method
-   */
-  clearFilter = () => {
-    this.setState({
-      threatsSearch: {
-        keyword: '',
-        type: 'IP'
-      }
-    });
-  }
-  /**
-   * Display search threats content
-   * @method
-   * @returns HTML DOM
-   */
-  displaySearchThreatsContent = () => {
-    const {threats} = this.state;
-
-    return (
-      <div>
-        {this.renderFilter()}
 
         {threats.dataContent.length > 0 &&
           <TableContent
@@ -850,7 +867,7 @@ class ThreatIntelligence extends Component {
 
     return (
       <ModalDialog
-        id='uploadThreatDialog'
+        id='searchThreatsDialog'
         className='modal-dialog'
         title={t('edge-management.txt-searchThreat')}
         draggable={true}
@@ -1021,48 +1038,6 @@ class ThreatIntelligence extends Component {
     })
   }
   /**
-   * Handle filter input data change
-   * @method
-   * @param {string} type - input type
-   * @param {string | object} value - input value
-   */
-  handleThreatsChange = (type, value) => {
-    let tempThreatsSearch = {...this.state.threatsSearch};
-
-    if (type === 'keyword') { //value is an object type
-      tempThreatsSearch[type] = value.target.value.trim();
-    } else {
-      tempThreatsSearch[type] = value;
-    }
-
-    this.setState({
-      threatsSearch: tempThreatsSearch
-    });
-  }
-  /**
-   * Toggle date options buttons
-   * @method
-   * @param {string} type - 'today', 'past7days' or 'custom'
-   */
-  toggleDateBtns = (type) => {
-    if (type === 'today') {
-      this.getTodayChartsData();
-    } else if (type === 'past7days') {
-      this.setState({
-        datetime: {
-          from: helper.getSubstractDate(1, 'week'),
-          to: helper.getSubstractDate(1, 'day', Moment().local().format('YYYY-MM-DDTHH:mm:ss'))
-        }
-      }, () => {
-        this.getChartsData();
-      });
-    }
-
-    this.setState({
-      activeDateType: type
-    });
-  }
-  /**
    * Show pie chart
    * @method
    * @param {array.<object>} indicatorsData - indicators data
@@ -1101,7 +1076,23 @@ class ThreatIntelligence extends Component {
               sliceSize: 'doc_count'
             }} />
         }
-      </div>      
+      </div>
+    )
+  }
+  /**
+   * Show tooltip info when mouseover the chart
+   * @method
+   * @param {object} eventInfo - MouseoverEvents
+   * @param {array.<object>} data - chart data
+   * @returns HTML DOM
+   */
+  onTooltip = (eventInfo, data) => {
+    return (
+      <section>
+        <span>{t('txt-indicator')}: {data[0].indicator}<br /></span>
+        <span>{t('txt-date')}: {Moment(data[0].day, 'x').utc().format('YYYY/MM/DD')}<br /></span>
+        <span>{t('txt-count')}: {data[0].count}</span>
+      </section>
     )
   }
   /**
@@ -1197,37 +1188,9 @@ class ThreatIntelligence extends Component {
       </div>
     )
   }
-  /**
-   * Construct and display Add Threats context menu
-   * @method
-   * @param {object} evt - mouseClick events
-   */
-  handleRowContextMenu = (evt) => {
-    const menuItems = [
-      {
-        id: 'addManually',
-        text: t('edge-management.txt-addManually'),
-        action: () => this.toggleAddThreats()
-      },
-      {
-        id: 'addMultiple',
-        text: t('edge-management.txt-addMultiple') + '(.json)',
-        action: () => this.toggleUploadThreat()
-      },
-      {
-        id: 'importThreats',
-        text: t('edge-management.txt-importTIMAP') + '(.zip)',
-        action: () => this.toggleImportThreats()
-      }
-    ];
-
-    ContextMenu.open(evt, menuItems, 'addThreatsType');
-    evt.stopPropagation();
-  }
   render() {
     const {baseUrl, contextRoot} = this.context;
     const {
-      activeContent,
       datetime,
       activeDateType,
       indicatorsData,
@@ -1268,7 +1231,7 @@ class ThreatIntelligence extends Component {
               {value: 'custom', text: t('edge-management.txt-customDate')}
             ]}
             value={activeDateType}
-            onChange={this.toggleDateBtns} />
+            onChange={this.toggleDateRangeButtons} />
 
           {activeDateType === 'custom' &&
             <SearchOptions
@@ -1285,38 +1248,33 @@ class ThreatIntelligence extends Component {
             contextRoot={contextRoot} />
 
           <div className='parent-content'>
-            {activeContent === 'charts' &&
-              <div className='main-content'>
-                <header className='main-header'>{t('txt-threatIntelligence')}</header>
-                <div className='content-header-btns'>
-                  <button className='standard btn' onClick={this.handleRowContextMenu}><span>{t('edge-management.txt-addThreat')}</span></button>
-                  <button className='standard btn' onClick={this.toggleSearchThreats}>{t('edge-management.txt-searchThreat')}</button>
+            <div className='main-content'>
+              <header className='main-header'>{t('txt-threatIntelligence')}</header>
+              <div className='content-header-btns'>
+                <button className='standard btn' onClick={this.handleRowContextMenu}><span>{t('edge-management.txt-addThreat')}</span></button>
+                <button className='standard btn' onClick={this.toggleSearchThreats}>{t('edge-management.txt-searchThreat')}</button>
+              </div>
 
-                  <button className={cx({'active': activeContent === 'search'})} onClick={this.toggleSearch}><span>{t('txt-query')}</span></button>
+              <div className='main-statistics'>
+                <div className='statistics-content'>
+                  {activeDateType === 'today' &&
+                    this.showPieChart(todaysIndicatorsData)
+                  }
 
-                </div>
+                  {activeDateType !== 'today' &&
+                    this.showPieChart(indicatorsData)
+                  }
 
-                <div className='main-statistics'>
-                  <div className='statistics-content'>
-                    {activeDateType === 'today' &&
-                      this.showPieChart(todaysIndicatorsData)
-                    }
+                  {activeDateType !== 'today' &&
+                    this.showBarChart(indicatorsTrendData)
+                  }
 
-                    {activeDateType !== 'today' &&
-                      this.showPieChart(indicatorsData)
-                    }
-
-                    {activeDateType !== 'today' &&
-                      this.showBarChart(indicatorsTrendData)
-                    }
-
-                    {activeDateType !== 'today' &&
-                      this.showLineChart(acuIndicatorsTrendData)
-                    }
-                  </div>
+                  {activeDateType !== 'today' &&
+                    this.showLineChart(acuIndicatorsTrendData)
+                  }
                 </div>
               </div>
-            }
+            </div>
           </div>
         </div>
       </div>

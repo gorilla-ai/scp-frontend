@@ -1075,8 +1075,8 @@ class Edge extends Component {
           </div>
         </div>
         <div className='button-group'>
-          <button className='filter' onClick={this.getEdgeData.bind(this, 'search')}>{t('txt-filter')}</button>
-          <button className='clear' onClick={this.clearFilter}>{t('txt-clear')}</button>
+          <button className='btn' onClick={this.getEdgeData.bind(this, 'search')}>{t('txt-filter')}</button>
+          <button className='standard btn' onClick={this.clearFilter}>{t('txt-clear')}</button>
         </div>
       </div>
     )

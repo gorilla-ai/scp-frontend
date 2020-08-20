@@ -1423,11 +1423,55 @@ html[data-theme='dark'] {
 #fileModal-content {
   text-align: center;
 }
-#uploadThreatDialog-dialog {
+#uploadThreatsDialog-content,
+#addThreatsDialog-content {
+  width: 350px;
+}
+#searchThreatsDialog-dialog {
   width: 1280px;
   height: 85vh;
-  #uploadThreatDialog-content {
-    width: 100%;
+  .filter-wrapper {
+    overflow: hidden;
+    margin: 10px 0;
+    .filter-section {
+      float: left;
+      margin-right: 10px;
+      select {
+        width: auto;
+      }
+      input {
+        width: 250px;
+        height: 36px;
+      }
+    }
+    .button-group {
+      margin-top: 0;
+      button {
+        min-width: auto;
+        margin-top: 3px;
+      }
+    }
+  }
+  .table-content {
+    .table {
+      height: 530px;
+      overflow-y: auto;
+      margin-bottom: 30px;
+    }
+    .pagination {
+      position: relative;
+      width: auto;
+      bottom: auto;
+      display: flex;
+      margin-left: 20px;
+      label {
+        float: left;
+        margin-top: 6px;
+      }
+      select {
+        width: auto;
+      }
+    }
   }
 }
 #batchUploadDialog-content {
