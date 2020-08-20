@@ -240,13 +240,13 @@ class Manage extends Component {
     )
   }
   /**
-   * Display department/title manage content in modal dialog
+   * Display title manage content in modal dialog
    * @method
    * @returns ModalDialog component
    */
-  departmentTitleManageModal = () => {
+  titleManageModal = () => {
     const actions = {
-      cancel: {text: t('txt-close'), handler: this.closeManage}
+      cancel: {text: t('txt-close'), handler: this.closeTitleManage}
     };
 
     return (
@@ -266,7 +266,7 @@ class Manage extends Component {
    * Handle close manage confirm
    * @method
    */
-  closeManage = () => {
+  closeTitleManage = () => {
     this.setState(_.cloneDeep(INIT));
     this.props.onDone('fromManage');
   }
@@ -282,11 +282,11 @@ class Manage extends Component {
     });
   }
   /**
-   * Display name content
+   * Display title name content
    * @method
    * @returns HTML DOM
    */
-  displayName = () => {
+  displayTitleName = () => {
     return (
       <Input
         placeholder={t('txt-enterName')}
@@ -299,11 +299,11 @@ class Manage extends Component {
    * @method
    * @returns ModalDialog component
    */
-  departmentTitleNameModal = () => {
+  titleNameModal = () => {
     const {header} = this.state;
     const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeName},
-      confirm: {text: t('txt-confirm'), handler: this.confirmName}
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeTitleName},
+      confirm: {text: t('txt-confirm'), handler: this.confirmTitleName}
     };
 
     return (
@@ -315,7 +315,7 @@ class Manage extends Component {
         global={true}
         actions={actions}
         closeAction='cancel'>
-        {this.displayName()}
+        {this.displayTitleName()}
       </ModalDialog>
     )
   }
@@ -323,7 +323,7 @@ class Manage extends Component {
    * Handle name modal confirm
    * @method
    */
-  confirmName = () => {
+  confirmTitleName = () => {
     const {baseUrl} = this.context;
     const {tab, name, nameUUID} = this.state;
     const url = `${baseUrl}/api/name`;
@@ -350,14 +350,14 @@ class Manage extends Component {
       requestType = 'POST';
     }
 
-    this.ah.one({
+    ah.one({
       url,
       data: JSON.stringify(requestData),
       type: requestType,
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
+      if (data.ret === 0) {
         this.setState({
           openName: false
         });
@@ -374,7 +374,7 @@ class Manage extends Component {
    * Close open name dialog
    * @method
    */
-  closeName = () => {
+  closeTitleName = () => {
     this.setState({
       openName: false
     });
@@ -385,11 +385,11 @@ class Manage extends Component {
     return (
       <div>
         {openManage &&
-          this.departmentTitleManageModal()
+          this.titleManageModal()
         }
 
         {openName &&
-          this.departmentTitleNameModal()
+          this.titleNameModal()
         }
       </div>
     )
