@@ -465,6 +465,7 @@
   "network-inventory": {
     "txt-deviceList": "裝置列表",
     "txt-deviceMap": "裝置地圖",
+    "txt-triggerAll": "全部檢測(HMD)",
     "txt-addIP": "新增IP",
     "txt-manuallyEnter": "單筆輸入",
     "txt-batchUpload": "批次上傳",

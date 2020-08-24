@@ -465,6 +465,7 @@
   "network-inventory": {
     "txt-deviceList": "Device List",
     "txt-deviceMap": "Device Map",
+    "txt-triggerAll": "Trigger All (HMD)",
     "txt-addIP": "Add IP",
     "txt-manuallyEnter": "Manually Enter",
     "txt-batchUpload": "Batch Upload",
