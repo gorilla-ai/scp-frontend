@@ -803,7 +803,7 @@ class AlertDetails extends Component {
               <td className='src-port'>{this.getIpPortData('srcPort')}</td>
               <td className='dest-ip'>{this.getIpPortData('destIp')}</td>
               <td className='dest-port'>{this.getIpPortData('destPort')}</td>
-              <td className='protocol'>{alertData.proto || alertData.p || NOT_AVAILABLE}</td>
+              <td className='protocol'>{alertData.proto || alertData.p || alertData.protocol || NOT_AVAILABLE}</td>
             </tr>
           </tbody>
         </table>
