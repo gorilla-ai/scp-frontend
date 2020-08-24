@@ -881,8 +881,8 @@ class Edge extends Component {
           {edge.info.lastStatus &&
             <ToggleBtn
               className='toggle-btn'
-              onText='On'
-              offText='Off'
+              onText={t('txt-on')}
+              offText={t('txt-off')}
               on={btnStatusOn}
               onChange={this.handleEdgeStatusChange.bind(this, action)}
               disabled={activeContent === 'viewEdge' || !edge.info.isConfigurable} />

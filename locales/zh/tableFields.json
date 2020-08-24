@@ -513,7 +513,7 @@
   "edgeFields": {
     "agentName": "名稱",
     "ipPort": "VPN IP",
-    "descriptionEdge": "Description",
+    "descriptionEdge": "說明",
     "keywords": "關鍵字",
     "serviceType": "服務種類",
     "connectionStatus": "連線狀態",

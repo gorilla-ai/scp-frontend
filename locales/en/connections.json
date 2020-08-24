@@ -4,6 +4,8 @@
     "zh":"中文"
   },
 
+  "txt-on": "On",
+  "txt-off": "Off",
   "txt-ok": "OK",
   "txt-time": "Time",
   "txt-date": "Date",

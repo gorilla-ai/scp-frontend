@@ -1630,8 +1630,8 @@ class HMDscanInfo extends Component {
                 <header>{t('network-inventory.scan-list.txt-fileIntegrity')}</header>
                 <ToggleBtn
                   className='toggle-btn'
-                  onText='On'
-                  offText='Off'
+                  onText={t('txt-on')}
+                  offText={t('txt-off')}
                   on={fileIntegrityEnable}
                   onChange={this.handleStatusChange}
                   disabled={settingsActiveContent === 'viewMode'} />

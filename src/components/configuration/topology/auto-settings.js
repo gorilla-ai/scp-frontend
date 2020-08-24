@@ -594,8 +594,8 @@ class AutoSettings extends Component {
               <header>{t('network-inventory.auto-settings.txt-ipRange')}</header>
               <ToggleBtn
                 className='toggle-btn'
-                onText='On'
-                offText='Off'
+                onText={t('txt-on')}
+                offText={t('txt-off')}
                 on={statusEnable.ipRange}
                 onChange={this.handleStatusChange.bind(this, 'ipRange')}
                 disabled={activeContent === 'viewMode'} />
@@ -635,8 +635,8 @@ class AutoSettings extends Component {
               <button className='last' style={{right: '85px'}} onClick={this.handleADtest} disabled={!statusEnable.ad_ldap}>{t('network-inventory.txt-testQuery')}</button>
               <ToggleBtn
                 className='toggle-btn'
-                onText='On'
-                offText='Off'
+                onText={t('txt-on')}
+                offText={t('txt-off')}
                 on={statusEnable.ad_ldap}
                 onChange={this.handleStatusChange.bind(this, 'ad_ldap')}
                 disabled={activeContent === 'viewMode'} />
@@ -688,8 +688,8 @@ class AutoSettings extends Component {
               <button className='last' style={{right: '85px'}} onClick={this.handleNetflowtest} disabled={!statusEnable.netflow}>{t('network-inventory.txt-testQuery')}</button>
               <ToggleBtn
                 className='toggle-btn'
-                onText='On'
-                offText='Off'
+                onText={t('txt-on')}
+                offText={t('txt-off')}
                 on={statusEnable.netflow}
                 onChange={this.handleStatusChange.bind(this, 'netflow')}
                 disabled={activeContent === 'viewMode'} />
@@ -711,8 +711,8 @@ class AutoSettings extends Component {
                 <header>{t('network-inventory.auto-settings.txt-scanner')}</header>
                 <ToggleBtn
                   className='toggle-btn'
-                  onText='On'
-                  offText='Off'
+                  onText={t('txt-on')}
+                  offText={t('txt-off')}
                   on={statusEnable.scanner}
                   onChange={this.handleStatusChange.bind(this, 'scanner')}
                   disabled={activeContent === 'viewMode'} />
