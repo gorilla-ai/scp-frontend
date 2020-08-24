@@ -1372,7 +1372,7 @@ class NetworkInventory extends Component {
   /**
    * Toggle yara rule modal dialog on/off
    * @method
-   * @param {string} value - yara trigger flag ('true' or 'false')
+   * @param {string} [value] - yara trigger flag ('true' or 'false')
    */
   toggleYaraRule = (value) => {
     if (value) {
