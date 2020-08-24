@@ -4,6 +4,8 @@
     "zh":"中文"
   },
 
+  "txt-on": "開",
+  "txt-off": "關",
   "txt-ok": "確認",
   "txt-time": "時間",
   "txt-date": "日期",
@@ -31,8 +33,8 @@
   "txt-alert": "告警",
   "txt-rule": "規則",
   "txt-update": "更新",
-  "txt-upgrade": "Upgrade",
-  "txt-upgradeSuccess": "Upgrade Success",
+  "txt-upgrade": "升級",
+  "txt-upgradeSuccess": "升級成功",
   "txt-upload": "上傳",
   "txt-uploadStatus": "上傳狀態",
   "txt-uploadSuccess": "上傳成功",
