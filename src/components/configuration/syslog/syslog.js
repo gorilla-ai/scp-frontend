@@ -1507,6 +1507,7 @@ class Syslog extends Component {
    * @method
    * @param {object} val - active mouse over pattern data
    * @param {number} i - index of the syslogPatternConfig pattern list
+   * @param {object} evt - mouseClick events
    */
   handleContextMenu = (val, i, evt) => {
     let menuItems = [

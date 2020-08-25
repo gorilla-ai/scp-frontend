@@ -149,6 +149,8 @@
   "txt-setting-eng": "Setting",
   "txt-item": "項目",
   "txt-score": "評分",
+  "txt-text": "文字",
+  "txt-result": "結果",
   "txt-maxScore": "最高分",
   "txt-maxDataMsg": "資料筆數最大為10,000筆",
   "txt-es-data-over-limit": "超出搜尋範圍，請修改查詢條件",
@@ -257,6 +259,8 @@
   },
 
   "alert": {
+    "txt-encodeDecode": "編碼轉譯",
+    "txt-toLocalTime": "轉換本地時間",
     "txt-openVideo": "開啟攝影畫面",
     "txt-alertList": "告警清單",
     "txt-statistics": "統計報表",

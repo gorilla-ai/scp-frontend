@@ -149,6 +149,8 @@
   "txt-setting-eng": "Setting",
   "txt-item": "Item",
   "txt-score": "Score",
+  "txt-text": "Text",
+  "txt-result": "Result",
   "txt-maxScore": "max. score",
   "txt-maxDataMsg": "The maximum data count is 10,000",
   "txt-es-data-over-limit": "Exceed max queried number, please revise filters",
@@ -257,6 +259,8 @@
   },
 
   "alert": {
+    "txt-encodeDecode": "Encode / Decode",
+    "txt-toLocalTime": "Convert to local time",
     "txt-openVideo": "Open Video",
     "txt-alertList": "Alert List",
     "txt-statistics": "Statistics",

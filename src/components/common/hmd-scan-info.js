@@ -1616,13 +1616,13 @@ class HMDscanInfo extends Component {
               <div className='settings-wrapper'>
                 <div className='options-btn'>
                   {settingsActiveContent === 'viewMode' &&
-                    <button className='btn standard edit' onClick={this.toggleSettingsContent.bind(this, 'edit')}>{t('txt-edit')}</button>
+                    <button className='standard btn edit' onClick={this.toggleSettingsContent.bind(this, 'edit')}>{t('txt-edit')}</button>
                   }
                   {settingsActiveContent === 'editMode' &&
                     <div>
-                      <button className='btn standard cancel' onClick={this.toggleSettingsContent.bind(this, 'cancel')}>{t('txt-cancel')}</button>
+                      <button className='standard btn cancel' onClick={this.toggleSettingsContent.bind(this, 'cancel')}>{t('txt-cancel')}</button>
                       <button className='btn save' onClick={this.saveSettings}>{t('network-inventory.txt-saveSettings')}</button>
-                      <button className='btn standard restore-default' onClick={this.restoreDefaultSettings}>{t('network-inventory.txt-restoreDefault')}</button>
+                      <button className='standard btn restore-default' onClick={this.restoreDefaultSettings}>{t('network-inventory.txt-restoreDefault')}</button>
                     </div>
                   }
                 </div>
