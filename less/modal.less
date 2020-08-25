@@ -915,6 +915,12 @@ html[data-theme='dark'] {
       }
       .payload {
         padding: 0 10px;
+        .encode {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          padding: .3em .5em;
+        }
         ul {
           background-color: var(--contentBackground) !important;
         }
@@ -1272,6 +1278,7 @@ html[data-theme='dark'] {
   }
   .filter-group {
     clear: both;
+    min-width: 400px;
     overflow-y: hidden;
     padding: 5px 6px;
     margin-bottom: 15px;
@@ -1580,4 +1587,21 @@ html[data-theme='dark'] {
       width: 20px;
     }
   }
+}
+#encodeDecodeDialog-content {
+  width: 780px;
+  .text-area {
+    height: 130px;
+  }
+  .drop-down {
+    float: left;
+    margin-top: 16px;
+    margin-right: 5px;
+  }
+  button {
+    margin: 20px 3px;
+  }
+}
+#encodeDecodeAction {
+  z-index: 10000;
 }

@@ -6,6 +6,7 @@ import _ from 'lodash'
 import cx from 'classnames'
 
 import ButtonGroup from 'react-ui/build/src/components/button-group'
+import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import DataTable from 'react-ui/build/src/components/table'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
@@ -15,6 +16,7 @@ import JSONTree from 'react-json-tree'
 import {BaseDataContext} from './context';
 
 import helper from './helper'
+import EncodeDecode from './encode-decode'
 import IrSelections from './ir-selections'
 import HMDscanInfo from './hmd-scan-info'
 import PrivateDetails from './private-details'
@@ -91,6 +93,8 @@ class AlertDetails extends Component {
       showRedirectMenu: false,
       modalYaraRuleOpen: false,
       modalIRopen: false,
+      modalEncodeOpen: false,
+      highlightedText: '',
       activeNetworkBehavior: 'alert',
       networkBehavior: {
         alert: {
@@ -947,8 +951,8 @@ class AlertDetails extends Component {
   /**
    * Display rule content
    * @method
-   * @param {string} val - val for the rule content
-   * @param {number} i - index
+   * @param {object} val - rule data
+   * @param {number} i - index of the rule data
    * @returns HTML DOM
    */
   showRuleContent = (val, i) => {
@@ -1036,6 +1040,58 @@ class AlertDetails extends Component {
     }
   }
   /**
+   * Toggle encode dialog on/off
+   * @method
+   * @returns HTML DOM
+   */
+  openEncodeDialog = () => {
+    const {modalEncodeOpen} = this.state;
+
+    if (modalEncodeOpen) {
+      this.setState({
+        highlightedText: ''
+      });
+    }
+
+    this.setState({
+      modalEncodeOpen: !modalEncodeOpen
+    });
+  }
+  /**
+   * Get hightlighted text from user
+   * @method
+   */
+  getHighlightedText = () => {
+    let highlightedText = '';
+
+    if (window.getSelection) {
+      highlightedText = window.getSelection().toString();
+
+      if (highlightedText) {
+        this.setState({
+          highlightedText
+        });
+      }
+    }
+  }
+  /**
+   * Handle context menu action
+   * @method
+   * @param {object} evt - mouseClick events
+   */
+  handleContextMenu = (evt) => {
+    const menuItems = [
+      {
+        id: 'encodeDecodeMenu',
+        text: t('alert.txt-encodeDecode'),
+        action: () => this.openEncodeDialog()
+      }
+    ];
+
+    ContextMenu.open(evt, menuItems, 'encodeDecodeAction');
+    evt.stopPropagation();
+  }
+  /**
    * Display PCAP payload content
    * @method
    * @returns HTML DOM
@@ -1044,8 +1100,9 @@ class AlertDetails extends Component {
     return (
       <div className='payload'>
         <ul>
-          <li><JSONTree data={this.state.alertPayload} theme={helper.getJsonViewTheme()} /></li>
+          <li onMouseUp={this.getHighlightedText} onContextMenu={this.handleContextMenu}><JSONTree data={this.state.alertPayload} theme={helper.getJsonViewTheme()} /></li>
         </ul>
+        <button className='standard btn encode' onClick={this.openEncodeDialog}>{t('alert.txt-encodeDecode')}</button>
       </div>
     )
   }
@@ -1756,7 +1813,7 @@ class AlertDetails extends Component {
         {datetime.from && datetime.to &&
           <div className='msg'>{t('txt-alertHourBefore')}: {datetime.from} ~ {datetime.to}</div>
         }
-        <button className='query-events' onClick={this.redirectNewPage.bind(this, ipType)}>{t('alert.txt-queryEvents')}</button>
+        <button className='standard btn query-events' onClick={this.redirectNewPage.bind(this, ipType)}>{t('alert.txt-queryEvents')}</button>
 
         <div className='table-data'>
           <DataTable
@@ -1838,7 +1895,7 @@ class AlertDetails extends Component {
   }
   render() {
     const {titleText, actions} = this.props;
-    const {modalYaraRuleOpen, modalIRopen} = this.state;
+    const {modalYaraRuleOpen, modalIRopen, modalEncodeOpen, highlightedText} = this.state;
 
     return (
       <div>
@@ -1863,6 +1920,12 @@ class AlertDetails extends Component {
           <IrSelections
             toggleSelectionIR={this.toggleSelectionIR}
             triggerTask={this.triggerTask} />
+        }
+
+        {modalEncodeOpen &&
+          <EncodeDecode
+            highlightedText={highlightedText}
+            openEncodeDialog={this.openEncodeDialog} />
         }
       </div>
     )
