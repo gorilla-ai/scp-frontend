@@ -499,6 +499,7 @@
     "txt-_NewCreateFile": "新增檔案路徑",
     "txt-includePath": "偵測路徑",
     "txt-excludePath": "偵測排除路徑",
+    "txt-processKeyword": "處理程序關鍵字掃描",
     "txt-scanProcess": "掃描Process",
     "txt-scanFilePath": "掃描檔案路徑",
     "txt-saveSettings": "儲存設定",

@@ -1316,6 +1316,34 @@ class AlertDetails extends Component {
     });
   }
   /**
+   * Check yara rule before submit for trigger
+   * @method
+   * @param {object} yaraRule - yara rule data
+   */
+  checkYaraRule = (yaraRule) => {
+    const {baseUrl} = this.context;
+    const url = `${baseUrl}/api/hmd/compileYara`;
+    const requestData = {
+      _RuleString: yaraRule.rule
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.triggerTask(['compareIOC'], '', yaraRule);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Handle trigger button for HMD
    * @method
    * @param {array.<string>} type - HMD scan type
@@ -1913,7 +1941,7 @@ class AlertDetails extends Component {
         {modalYaraRuleOpen &&
           <YaraRule
             toggleYaraRule={this.toggleYaraRule}
-            triggerTask={this.triggerTask} />
+            checkYaraRule={this.checkYaraRule} />
         }
 
         {modalIRopen &&
