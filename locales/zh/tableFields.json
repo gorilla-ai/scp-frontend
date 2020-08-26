@@ -593,7 +593,7 @@
     "patternName": "Pattern名稱",
     "periodMin": "時期 (分鐘)",
     "threshold": "臨界值",
-    "lastUpdateDttm": "最後更新",
+    "lastUpdateDttm": "資料最近更新時間",
     "queryScript": "查詢條件",
     "severity": "嚴重等級"
   },
