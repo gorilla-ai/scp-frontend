@@ -1928,7 +1928,7 @@ class NetworkInventory extends Component {
         reader.readAsBinaryString(file);
       }
     } else {
-      reader.readAsArrayBuffer(file); 
+      reader.readAsArrayBuffer(file);
     }
   }
   /**
@@ -1980,7 +1980,7 @@ class NetworkInventory extends Component {
   /**
    * Toggle CSV header checkbox
    * @method
-   */  
+   */
   toggleCsvHeader = () => {
     this.setState({
       csvHeader: !this.state.csvHeader
@@ -3004,7 +3004,7 @@ class NetworkInventory extends Component {
     }
 
     _.forEach(tempArr, val => {
-      pathStr += 'children[' + val + '].'
+      pathStr += 'children[' + val + '].';
     })
 
     pathNameStr = pathStr + 'label';
