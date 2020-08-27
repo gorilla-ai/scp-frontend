@@ -100,7 +100,8 @@ class HMDscanInfo extends Component {
       originalSettingsPathData: {},
       settingsPath: {
         includePath: [],
-        excludePath: []
+        excludePath: [],
+        processKeyword: []
       }
     };
 
@@ -356,10 +357,11 @@ class HMDscanInfo extends Component {
     let pathData = '';
 
     if (currentDeviceData.hmdSetting && currentDeviceData.hmdSetting.length > 0) {
-      status = currentDeviceData.hmdSetting[0]._Parameters._isEnable;
+      status = currentDeviceData.hmdSetting[0]._Parameters.isJobEnable;
       pathData = currentDeviceData.hmdSetting[0]._Parameters;
-      tempSettingsPath.includePath = pathData._IncludePathList;
-      tempSettingsPath.excludePath = pathData._ExcludePathList;
+      tempSettingsPath.includePath = pathData._IncludePathList ? pathData._IncludePathList : [];
+      tempSettingsPath.excludePath = pathData._ExcludePathList ? pathData._ExcludePathList : [];
+      tempSettingsPath.processKeyword = pathData._ProcessKeyword ? pathData._ProcessKeyword : [];
     }
 
     this.setState({
@@ -1483,10 +1485,11 @@ class HMDscanInfo extends Component {
     const {fileIntegrityEnable, settingsPath} = this.state;
     const url = `${baseUrl}/api/hmd/snapshotSettings`;
     const requestData = {
-      ipDeviceUUID: currentDeviceData.ipDeviceUUID,
-      _isEnable: fileIntegrityEnable,
+      hostId: currentDeviceData.ipDeviceUUID,
+      isJobEnable: fileIntegrityEnable,
       _IncludePathList: settingsPath.includePath.join(),
-      _ExcludePathList: settingsPath.excludePath.join()
+      _ExcludePathList: settingsPath.excludePath.join(),
+      _ProcessKeyword: settingsPath.processKeyword.join()
     };
 
     if (!settingsPath.includePath.join()) {
@@ -1505,10 +1508,11 @@ class HMDscanInfo extends Component {
         data = data[0]._Parameters;
 
         this.setState({
-          fileIntegrityEnable: data._isEnable,
+          fileIntegrityEnable: data.isJobEnable,
           settingsPath: {
             includePath: data._IncludePathList,
-            excludePath: data._ExcludePathList
+            excludePath: data._ExcludePathList,
+            processKeyword: data._ProcessKeyword
           }
         }, () => {
           this.toggleSettingsContent('save');
@@ -1534,11 +1538,13 @@ class HMDscanInfo extends Component {
     })
     .then(data => {
       if (data) {
+
         this.setState({
-          fileIntegrityEnable: data._isEnable,
+          fileIntegrityEnable: data.isJobEnable,
           settingsPath: {
-            includePath: [data._IncludePathList],
-            excludePath: [data._ExcludePathList]
+            includePath: data._IncludePathList.split(','),
+            excludePath: data._ExcludePathList.split(','),
+            processKeyword: data._ProcessKeyword.split(',')
           }
         });
       }
@@ -1575,6 +1581,10 @@ class HMDscanInfo extends Component {
       {
         type: 'excludePath',
         headerText: t('network-inventory.txt-excludePath')
+      },
+      {
+        type: 'processKeyword',
+        headerText: t('network-inventory.txt-processKeyword')
       }
     ];
 

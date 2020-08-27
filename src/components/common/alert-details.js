@@ -648,15 +648,26 @@ class AlertDetails extends Component {
     const endDttm = Moment(helper.getAdditionDate(10, 'minutes', alertData._eventDttm_)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
     const downloadLink = `${baseUrl}${contextRoot}/api/alert/pcap?agentId=${alertData._edgeInfo.agentId}&startDttm=${startDttm}&endDttm=${endDttm}&targetIp=${alertData.srcIp || alertData.ipSrc}&infoType=${alertData['alertInformation.type']}`;
 
-    return <span onClick={this.pcapDownload.bind(this, downloadLink)}>{t('alert.txt-downloadPCAP')}</span>
+    return (
+      <div className='multi-items'>
+        <span onClick={this.pcapDownload.bind(this, downloadLink)}>{t('alert.txt-downloadPCAP')}</span>
+      </div>
+    )
   }
   /**
-   * Display Download File link
+   * Display Download File link and encode option
    * @method
    */
   getDownloadFileContent = () => {
+    const {alertData} = this.props;
+
     return (
-      <div onClick={this.downloadFile}>{t('alert.txt-downloadFile')}</div>
+      <div className='multi-items'>
+        {alertData.fileMD5 &&
+          <span onClick={this.downloadFile}>{t('alert.txt-downloadFile')}</span>
+        }
+        <span onClick={this.openEncodeDialog}>{t('alert.txt-encodeDecode')}</span>
+      </div>
     )
   }
   /**
@@ -675,7 +686,11 @@ class AlertDetails extends Component {
     }
 
     if (ip && ip !== NOT_AVAILABLE) {
-      return <div onClick={this.toggleRedirectMenu}>{t('alert.txt-queryMore')}</div>
+      return (
+        <div className='multi-items'>
+          <span onClick={this.toggleRedirectMenu}>{t('alert.txt-queryMore')}</span>
+        </div>
+      )
     }
   }
   /**
@@ -723,7 +738,12 @@ class AlertDetails extends Component {
     }
 
     const url = `${baseUrl}${contextRoot}/configuration/topology/inventory?ip=${ip}&type=${type}&lng=${language}`;
-    return <div onClick={this.redirectIp.bind(this, url)}>{text}</div>
+
+    return (
+      <div className='multi-items'>
+        <span onClick={this.redirectIp.bind(this, url)}>{text}</span>
+      </div>
+    )
   }
   /**
    * Redirect to ivar link
@@ -841,7 +861,7 @@ class AlertDetails extends Component {
                   this.getPCAPdownloadContent()
                 }
 
-                {showContent.attack && alertData.fileMD5 &&
+                {showContent.attack &&
                   this.getDownloadFileContent()
                 }
 
@@ -1102,7 +1122,6 @@ class AlertDetails extends Component {
         <ul>
           <li onMouseUp={this.getHighlightedText} onContextMenu={this.handleContextMenu}><JSONTree data={this.state.alertPayload} theme={helper.getJsonViewTheme()} /></li>
         </ul>
-        <button className='standard btn encode' onClick={this.openEncodeDialog}>{t('alert.txt-encodeDecode')}</button>
       </div>
     )
   }
@@ -1314,6 +1333,34 @@ class AlertDetails extends Component {
     this.setState({
       modalIRopen: !this.state.modalIRopen
     });
+  }
+  /**
+   * Check yara rule before submit for trigger
+   * @method
+   * @param {object} yaraRule - yara rule data
+   */
+  checkYaraRule = (yaraRule) => {
+    const {baseUrl} = this.context;
+    const url = `${baseUrl}/api/hmd/compileYara`;
+    const requestData = {
+      _RuleString: yaraRule.rule
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.triggerTask(['compareIOC'], '', yaraRule);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Handle trigger button for HMD
@@ -1913,7 +1960,7 @@ class AlertDetails extends Component {
         {modalYaraRuleOpen &&
           <YaraRule
             toggleYaraRule={this.toggleYaraRule}
-            triggerTask={this.triggerTask} />
+            checkYaraRule={this.checkYaraRule} />
         }
 
         {modalIRopen &&
