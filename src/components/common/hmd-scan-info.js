@@ -359,9 +359,9 @@ class HMDscanInfo extends Component {
     if (currentDeviceData.hmdSetting && currentDeviceData.hmdSetting.length > 0) {
       status = currentDeviceData.hmdSetting[0]._Parameters.isJobEnable;
       pathData = currentDeviceData.hmdSetting[0]._Parameters;
-      tempSettingsPath.includePath = pathData._IncludePathList;
-      tempSettingsPath.excludePath = pathData._ExcludePathList;
-      tempSettingsPath.processKeyword = pathData._ProcessKeyword;
+      tempSettingsPath.includePath = pathData._IncludePathList ? pathData._IncludePathList : [];
+      tempSettingsPath.excludePath = pathData._ExcludePathList ? pathData._ExcludePathList : [];
+      tempSettingsPath.processKeyword = pathData._ProcessKeyword ? pathData._ProcessKeyword : [];
     }
 
     this.setState({

@@ -1772,13 +1772,14 @@ class NetworkInventory extends Component {
       contentType: 'text/plain'
     }, {showProgress: false})
     .then(data => {
-      helper.showPopupMsg(t('txt-requestSent'));
       this.toggleYaraRule('false');
       return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+
+    helper.showPopupMsg(t('txt-requestSent'));
   }
   /**
    * Construct and display HMD context menu
