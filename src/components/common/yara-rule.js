@@ -134,7 +134,7 @@ class YaraRule extends Component {
       return;
     }
 
-    this.props.triggerTask(['compareIOC'], '', this.state.yaraRule);
+    this.props.checkYaraRule(yaraRule);
   }
   /**
    * Display yara rule content
@@ -202,7 +202,7 @@ class YaraRule extends Component {
 
 YaraRule.propTypes = {
   toggleYaraRule: PropTypes.func.isRequired,
-  triggerTask: PropTypes.func.isRequired
+  checkYaraRule: PropTypes.func.isRequired
 };
 
 export default YaraRule;
