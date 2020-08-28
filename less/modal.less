@@ -618,7 +618,7 @@ html[data-theme='dark'] {
             .rule {
               padding: 5px 45px;
               border-top: 1px solid var(--primaryBorder);
-              .rule-content {
+              .item-content {
                 margin-bottom: 2px;
                 .header,
                 .tree-content {
@@ -657,11 +657,15 @@ html[data-theme='dark'] {
                     display: none;
                   }
                   ul {
-                    padding: 10px;
                     width: 20%;
+                    padding: 10px;
                     li span {
                       color: var(--primaryContentHeader);
                     }
+                    &.no-padding {
+                      width: 100%;
+                      padding: 0;
+                    } 
                   }
                 }
                 i.fg {

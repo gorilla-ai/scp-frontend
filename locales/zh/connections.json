@@ -125,6 +125,7 @@
   "txt-analyze": "分析",
   "txt-send": "寄出",
   "txt-networkBehavior": "網路行為",
+  "txt-executableInfo": "執行內容",
   "txt-logSource": "日誌來源",
   "txt-indicator": "Indicator",
   "txt-online": "連線",
@@ -537,7 +538,8 @@
       "txt-scanFile": "Malware",
       "txt-gcb": "GCB",
       "txt-ir": "IR",
-      "txt-fileIntegrity": "File Integrity"
+      "txt-fileIntegrity": "File Integrity",
+      "txt-procMonitor": "Process Monitor"
     },
     "ir-type": {
       "txt-quick": "快速採證",
@@ -561,6 +563,19 @@
       "txt-list14": "影像搜尋",
       "txt-list15": "微軟檔案搜尋",
       "txt-list16": "關鍵字檔案搜尋"
+    },
+    "executable-list": {
+      "txt-_AutorunLocation": "自動執行路徑",
+      "txt-_CommandLine": "執行語法",
+      "txt-_CompanyName": "公司名稱",
+      "txt-_Filepath": "檔案路徑",
+      "txt-_Filesize": "檔案大小",
+      "txt-_MD5": "MD5",
+      "txt-_SHA1" : "SHA1",
+      "txt-_SHA256": "SHA256",
+      "txt-_IsPE": "PE檔",
+      "txt-_OwnerSID": "使用者SID",
+      "txt-_Signatures": "簽章"      
     }
   },
 

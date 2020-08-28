@@ -125,6 +125,7 @@
   "txt-analyze": "Analyze",
   "txt-send": "Send",
   "txt-networkBehavior": "Network Behavior",
+  "txt-executableInfo": "Executable Info",
   "txt-logSource": "Log Source",
   "txt-indicator": "Indicator",
   "txt-online": "Online",
@@ -537,7 +538,8 @@
       "txt-scanFile": "Malware",
       "txt-gcb": "GCB",
       "txt-ir": "IR",
-      "txt-fileIntegrity": "File Integrity"
+      "txt-fileIntegrity": "File Integrity",
+      "txt-procMonitor": "Process Monitor"
     },
     "ir-type": {
       "txt-quick": "Quick IR",
@@ -561,6 +563,19 @@
       "txt-list14": "Video Search",
       "txt-list15": "Microsoft File Search",
       "txt-list16": "Keyword File Search"
+    },
+    "executable-list": {
+      "txt-_AutorunLocation": "Autorun Location",
+      "txt-_CommandLine": "Command Line",
+      "txt-_CompanyName": "Company Name",
+      "txt-_Filepath": "File Path",
+      "txt-_Filesize": "File Size",
+      "txt-_MD5": "MD5",
+      "txt-_SHA1" : "SHA1",
+      "txt-_SHA256": "SHA256",
+      "txt-_IsPE": "PE File",
+      "txt-_OwnerSID": "User SID",
+      "txt-_Signatures": "Signature"
     }
   },
 

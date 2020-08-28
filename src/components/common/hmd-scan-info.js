@@ -45,6 +45,10 @@ const SAFETY_SCAN_LIST = [
     path: 'fileIntegrityResult'
   },
   {
+    type: 'procMonitor',
+    path: 'getProcessMonitorResult'
+  },
+  {
     type: 'snapshot',
     path: 'snapshotResult'
   }
@@ -54,7 +58,8 @@ const TRIGGER_NAME = {
   [SAFETY_SCAN_LIST[1].type]: 'scanFile',
   [SAFETY_SCAN_LIST[2].type]: 'gcbDetection',
   [SAFETY_SCAN_LIST[4].type]: 'getFileIntegrity',
-  [SAFETY_SCAN_LIST[5].type]: 'getSnapshot'
+  [SAFETY_SCAN_LIST[5].type]: 'getProcessMonitorResult',
+  [SAFETY_SCAN_LIST[6].type]: 'getSnapshot'
 };
 
 let scrollCount = 1;
@@ -72,7 +77,7 @@ class HMDscanInfo extends Component {
     super(props);
 
     this.state = {
-      activeTab: 'dashboard', //dashboard, yara, scanFile, gcb, ir, fileIntegrity, settings
+      activeTab: 'dashboard', //dashboard, yara, scanFile, gcb, ir, fileIntegrity, Process Monitor, and settings
       buttonGroupList: [],
       polarChartSettings: {},
       activePath: null,
@@ -80,6 +85,7 @@ class HMDscanInfo extends Component {
       activeRule: [],
       activeDLL: false,
       activeConnections: false,
+      activeExecutableInfo: false,
       dashboardInfo: {
         dataFieldsArr: ['item', 'score'],
         dataFields: {},
@@ -406,6 +412,7 @@ class HMDscanInfo extends Component {
       activeRule: [],
       activeDLL: false,
       activeConnections: false,
+      activeExecutableInfo: false,
       disabledBtn: false
     });
   }
@@ -476,7 +483,8 @@ class HMDscanInfo extends Component {
         activeRuleHeader: false,
         activeRule: [],
         activeDLL: false,
-        activeConnections: false
+        activeConnections: false,
+        activeExecutableInfo: false
       });
     } else if (type === 'rule') {
       let tempActiveRule = activeRule;
@@ -505,7 +513,7 @@ class HMDscanInfo extends Component {
     const uniqueKey = val + i;
 
     return (
-      <div className='rule-content' key={uniqueKey}>
+      <div className='item-content' key={uniqueKey}>
         <div className='header' onClick={this.togglePathRule.bind(this, 'rule', i)}>
           <i className={cx('fg fg-play', {'rotate': _.includes(activeRule, i)})}></i>
           <span>{nameList[i]}</span>
@@ -534,7 +542,7 @@ class HMDscanInfo extends Component {
     )
   }
   /**
-   * Display file path
+   * Display file path for Yara Scan and Process Monitor
    * @method
    * @param {object} val - scan file data
    * @returns HTML DOM
@@ -563,7 +571,7 @@ class HMDscanInfo extends Component {
     )
   }
   /**
-   * Display individual connection for Yara Scan
+   * Display individual connection for Yara Scan and Process Monitor
    * @method
    * @param {object} val - connection data
    * @param {number} i - index of the connections array
@@ -583,7 +591,7 @@ class HMDscanInfo extends Component {
     )
   }
   /**
-   * Display connections for Yara Scan
+   * Display connections for Yara Scan and Process Monitor
    * @method
    * @param {object} val - connection data
    * @returns HTML DOM
@@ -616,6 +624,51 @@ class HMDscanInfo extends Component {
     )
   }
   /**
+   * Display item for Executable Info
+   * @method
+   * @param {object} info - executable data
+   * @param {string} val - executable list
+   * @param {number} i - index of the executable list array
+   * @returns HTML DOM
+   */
+  displayExecutableList = (info, val, i) => {
+    let value = info._ProcessInfo._ExecutableInfo[val];
+
+    if (val === '_AutorunLocation' || val === '_CommandLine') { //Special case for _AutorunLocation and _CommandLine
+      value = info._ProcessInfo[val];
+    }
+
+    if (val === '_IsPE') {
+      value = this.getBoolValue(value);
+    }
+
+    if (val === '_Signatures') { //Signature is an array type
+      value = info._ProcessInfo._ExecutableInfo[val].toString();
+    }
+
+    return <li key={i}>{t('network-inventory.executable-list.txt-' + val)}: {value || NOT_AVAILABLE}</li>
+  }
+  /**
+   * Display Executable Info for Process Monitor
+   * @method
+   * @param {object} val - process monitor data
+   * @returns HTML DOM
+   */
+  displayExecutableInfo = (val) => {
+    const {activeExecutableInfo} = this.state;
+    const executableList = ['_AutorunLocation', '_CommandLine', '_CompanyName', '_Filepath', '_Filesize', '_MD5', '_SHA1', '_SHA256', '_IsPE', '_OwnerSID', '_Signatures'];
+
+    if (val._ProcessInfo && val._ProcessInfo._ExecutableInfo) {
+      return (
+        <div className={cx('sub-content', {'hide': !activeExecutableInfo})}>
+          <ul className='no-padding'>
+            {executableList.map(this.displayExecutableList.bind(this, val))}
+          </ul>
+        </div>
+      )
+    }
+  }
+  /**
    * Toggle scan rule item on/off
    * @method
    * @param {string} type - item type ('rule', 'dll' or 'connections')
@@ -633,6 +686,10 @@ class HMDscanInfo extends Component {
       this.setState({
         activeConnections: !this.state.activeConnections
       });
+    } else if (type === 'executableInfo') {
+      this.setState({
+        activeExecutableInfo: !this.state.activeExecutableInfo
+      });
     }
   }
   /**
@@ -644,7 +701,7 @@ class HMDscanInfo extends Component {
    * @returns HTML DOM
    */
   displayScanProcessPath = (parentIndex, val, i) => {
-    const {activePath, activeRuleHeader, activeDLL, activeConnections} = this.state;
+    const {activeTab, activePath, activeRuleHeader, activeDLL, activeConnections, activeExecutableInfo} = this.state;
 
     if (val._MatchedFile || val._MatchedPid) {
       const uniqueKey = val._ScanType + i;
@@ -674,17 +731,19 @@ class HMDscanInfo extends Component {
             </div>
           </div>
           <div className={cx('rule', {'hide': activePath !== uniqueID})}>
-            <div className='rule-content'>
-              <div className='header' onClick={this.toggleInfoHeader.bind(this, 'rule')}>
-                <i className={cx('fg fg-play', {'rotate': activeRuleHeader})}></i>
-                <span>{t('txt-rule')}</span>
+            {activeTab === 'yara' &&
+              <div className='item-content'>
+                <div className='header' onClick={this.toggleInfoHeader.bind(this, 'rule')}>
+                  <i className={cx('fg fg-play', {'rotate': activeRuleHeader})}></i>
+                  <span>{t('txt-rule')}</span>
+                </div>
+                <div className={cx('sub-content', {'hide': !activeRuleHeader})}>
+                  {displayInfo}
+                </div>
               </div>
-              <div className={cx('sub-content', {'hide': !activeRuleHeader})}>
-                {displayInfo}
-              </div>
-            </div>
+            }
 
-            <div className='rule-content'>
+            <div className='item-content'>
               <div className='header' onClick={this.toggleInfoHeader.bind(this, 'dll')}>
                 <i className={cx('fg fg-play', {'rotate': activeDLL})}></i>
                 <span>DLLs</span>
@@ -692,13 +751,23 @@ class HMDscanInfo extends Component {
               {this.displayFilePath(val)}
             </div>
 
-            <div className='rule-content'>
+            <div className='item-content'>
               <div className='header' onClick={this.toggleInfoHeader.bind(this, 'connections')}>
                 <i className={cx('fg fg-play', {'rotate': activeConnections})}></i>
                 <span>{t('txt-networkBehavior')}</span>
               </div>
               {this.displayConnections(val)}
             </div>
+
+            {activeTab === 'procMonitor' &&
+              <div className='item-content'>
+                <div className='header' onClick={this.toggleInfoHeader.bind(this, 'executableInfo')}>
+                  <i className={cx('fg fg-play', {'rotate': activeExecutableInfo})}></i>
+                  <span>{t('txt-executableInfo')}</span>
+                </div>
+                {this.displayExecutableInfo(val)}
+              </div>
+            }
           </div>
         </div>
       )
@@ -799,7 +868,7 @@ class HMDscanInfo extends Component {
           </div>
         </div>
         <div className={cx('rule', {'hide': activePath !== uniqueID})}>
-          <div className='rule-content'>
+          <div className='item-content'>
             {val._FileInfo && val._FileInfo._Filepath &&
               <div className='header'>
                 <ul>
@@ -885,7 +954,7 @@ class HMDscanInfo extends Component {
           </div>
         </div>
         <div className={cx('rule', {'hide': activePath !== uniqueID})}>
-          <div className='rule-content'>
+          <div className='item-content'>
             {yaraRule &&
               <pre>{yaraRule}</pre>
             }
@@ -908,7 +977,8 @@ class HMDscanInfo extends Component {
       activePath: null,
       activeRuleHeader: false,
       activeDLL: false,
-      activeConnections: false
+      activeConnections: false,
+      activeExecutableInfo: false
     }, () => {
       this.props.showAlertData(type);
     });
@@ -1076,7 +1146,7 @@ class HMDscanInfo extends Component {
           </div>
         </div>
         <div className={cx('rule', {'hide': activePath !== uniqueID})}>
-          <div className='rule-content'>
+          <div className='item-content'>
             {val.Md5HashInfo &&
               <div className='header'>
                 <ul>
@@ -1151,6 +1221,9 @@ class HMDscanInfo extends Component {
     } else if (activeTab === 'scanFile') {
       dataResult = val.DetectionResult;
       scanPath = this.displayScanFilePath.bind(this, i);
+    } else if (activeTab === 'procMonitor') {
+      dataResult = val.getProcessMonitorResult;
+      scanPath = this.displayScanProcessPath.bind(this, i);
     }
 
     return (
@@ -1158,11 +1231,11 @@ class HMDscanInfo extends Component {
         <div className='scan-header'>
           <span>{t('network-inventory.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local') || NOT_AVAILABLE}</span>
           <span>{t('network-inventory.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}</span>
-          {(activeTab === 'yara' || activeTab === 'scanFile') &&
+          {(activeTab === 'yara' || activeTab === 'scanFile' || activeTab === 'procMonitor') &&
             this.getSuspiciousFileCount(dataResult)
           }
         </div>
-        {(activeTab === 'yara' || activeTab === 'scanFile') &&
+        {(activeTab === 'yara' || activeTab === 'scanFile' || activeTab === 'procMonitor') &&
           <div className='scan-content'>
             <div className='header'>{t('network-inventory.txt-suspiciousFilePath')}</div>
             {dataResult && dataResult.length > 0 &&
@@ -1335,7 +1408,7 @@ class HMDscanInfo extends Component {
     const loader = '';
     let displayContent = '';
 
-    if (activeTab === 'yara' || activeTab === 'scanFile' || activeTab === 'fileIntegrity') {
+    if (activeTab === 'yara' || activeTab === 'scanFile' || activeTab === 'fileIntegrity' || activeTab === 'procMonitor') {
       displayContent = this.displayAccordionContent;
     } else if (activeTab === 'gcb') {
       displayContent = this.displayTableContent;
