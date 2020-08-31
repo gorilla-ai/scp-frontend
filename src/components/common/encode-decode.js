@@ -68,6 +68,13 @@ class EncodeDecode extends Component {
     const {encodeType, originalText} = this.state;
     let tempFormattedText = '';
 
+    if (!originalText) {
+      this.setState({
+        formattedText: ''
+      });
+      return;
+    }
+
     if (type === 'encode') {
       if (encodeType === 'url') {
         tempFormattedText = encodeURI(originalText);
