@@ -34,7 +34,7 @@
   "txt-rule": "Rule",
   "txt-update": "Update",
   "txt-upgrade": "Upgrade",
-  "txt-upgradeSuccess": "Upgrade Success",
+  "txt-upgradeScheduleAdded": "Upgrade schedule has been added",
   "txt-upload": "Upload",
   "txt-uploadStatus": "Upload Status",
   "txt-uploadSuccess": "Upload Success",
@@ -261,6 +261,7 @@
   "alert": {
     "txt-encodeDecode": "Encode / Decode",
     "txt-toLocalTime": "Convert to local time",
+    "txt-invalidDate": "Invalid Date Format",
     "txt-openVideo": "Open Video",
     "txt-alertList": "Alert List",
     "txt-statistics": "Statistics",

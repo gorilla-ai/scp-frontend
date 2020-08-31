@@ -22,7 +22,7 @@ class EncodeDecode extends Component {
 
     this.state = {
       dropDownList: [],
-      encodeType: 'uri',
+      encodeType: 'url',
       originalText: '',
       formattedText: ''
     };
@@ -31,7 +31,7 @@ class EncodeDecode extends Component {
   }
   componentDidMount() {
     const {highlightedText} = this.props;
-    const dropDownList = _.map(['URI', 'Timestamp', 'BASE64'], val => {
+    const dropDownList = _.map(['URL', 'Timestamp', 'BASE64'], val => {
       return {
         value: val.toLowerCase(),
         text: val
@@ -69,7 +69,7 @@ class EncodeDecode extends Component {
     let tempFormattedText = '';
 
     if (type === 'encode') {
-      if (encodeType === 'uri') {
+      if (encodeType === 'url') {
         tempFormattedText = encodeURI(originalText);
       } else if (encodeType === 'timestamp') {
 
@@ -77,7 +77,7 @@ class EncodeDecode extends Component {
         tempFormattedText = window.btoa(unescape(encodeURIComponent(originalText)));
       }
     } else if (type === 'decode') {
-      if (encodeType === 'uri') {
+      if (encodeType === 'url') {
         tempFormattedText = decodeURI(originalText);
       } else if (encodeType === 'timestamp') {
 
@@ -85,10 +85,16 @@ class EncodeDecode extends Component {
         tempFormattedText = decodeURIComponent(escape(window.atob(originalText)));
       }
     } else if (type === 'timestamp') {
+      tempFormattedText = t('alert.txt-invalidDate');
+
       if (originalText.length === 10) {
         tempFormattedText = Moment.unix(Number(originalText)).local().format();
       } else if (originalText.length === 13) {
         tempFormattedText = Moment(Number(originalText)).local().format();
+      }
+
+      if (tempFormattedText === 'Invalid date') {
+        tempFormattedText = t('alert.txt-invalidDate');
       }
     }
 
@@ -99,7 +105,7 @@ class EncodeDecode extends Component {
   /**
    * Handle encode type dropdown list selection change
    * @method
-   * @param {string} value - encode type ('uri' 'timestamp', or 'base64')
+   * @param {string} value - encode type ('url' 'timestamp', or 'base64')
    */
   handleEncodeListChange = (value) => {
     this.setState({
@@ -129,10 +135,10 @@ class EncodeDecode extends Component {
             value={encodeType}
             onChange={this.handleEncodeListChange} />
         </div>
-        {(encodeType === 'uri' || encodeType === 'base64') &&
+        {(encodeType === 'url' || encodeType === 'base64') &&
           <button onClick={this.handleTextEncode.bind(this, 'encode')}>Encode</button>
         }
-        {(encodeType === 'uri' || encodeType === 'base64') &&
+        {(encodeType === 'url' || encodeType === 'base64') &&
           <button onClick={this.handleTextEncode.bind(this, 'decode')}>Decode</button>
         }
         {encodeType === 'timestamp'&&

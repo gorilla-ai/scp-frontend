@@ -34,7 +34,7 @@
   "txt-rule": "規則",
   "txt-update": "更新",
   "txt-upgrade": "升級",
-  "txt-upgradeSuccess": "升級成功",
+  "txt-upgradeScheduleAdded": "已加入更新排程",
   "txt-upload": "上傳",
   "txt-uploadStatus": "上傳狀態",
   "txt-uploadSuccess": "上傳成功",
@@ -261,6 +261,7 @@
   "alert": {
     "txt-encodeDecode": "編碼轉譯",
     "txt-toLocalTime": "轉換本地時間",
+    "txt-invalidDate": "時間格式錯誤",
     "txt-openVideo": "開啟攝影畫面",
     "txt-alertList": "告警清單",
     "txt-statistics": "統計報表",

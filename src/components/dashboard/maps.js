@@ -12,6 +12,7 @@ import Gis from 'react-gis/build/src/components'
 
 import AlertDetails from '../common/alert-details'
 import {BaseDataContext} from '../common/context';
+import SearchOptions from '../common/search-options'
 import helper from '../common/helper'
 import WORLDMAP from '../../mock/world-map-low.json'
 
@@ -83,8 +84,6 @@ class DashboardMaps extends Component {
         //from: '2020-08-02T01:00:00Z',
         //to: '2020-08-02T01:10:00Z'
       },
-      past24hTime: helper.getFormattedDate(helper.getSubstractDate(24, 'hours')),
-      updatedTime: helper.getFormattedDate(Moment()),
       mapType: PRIVATE, //'private' or 'public'
       locationType: '',
       ..._.cloneDeep(MAPS_PUBLIC_DATA),
@@ -155,8 +154,6 @@ class DashboardMaps extends Component {
         tempAlertDetails.publicFormatted.destIp = publicData.destIp;
 
         this.setState({
-          past24hTime: helper.getFormattedDate(helper.getSubstractDate(24, 'hours')),
-          updatedTime: helper.getFormattedDate(Moment()),
           alertDetails: tempAlertDetails,
           alertMapData: tempArray
         }, () => {
@@ -253,6 +250,29 @@ class DashboardMaps extends Component {
 
     this.setState({
       geoJson: tempGeoJson
+    });
+  }
+  /**
+   * Set new datetime
+   * @method
+   * @param {object} datetime - new datetime object
+   */
+  handleDateChange = (datetime) => {
+    this.setState({
+      datetime
+    });
+  }
+  /**
+   * Handle search submit
+   * @method
+   */
+  handleSearchSubmit = () => {
+    this.setState({
+      ..._.cloneDeep(MAPS_PUBLIC_DATA),
+      ..._.cloneDeep(MAPS_PRIVATE_DATA)
+    }, () => {
+      this.loadAlertData();
+      this.getFloorPlan();
     });
   }
   /**
@@ -790,8 +810,7 @@ class DashboardMaps extends Component {
   }
   render() {
     const {
-      past24hTime,
-      updatedTime,
+      datetime,
       mapType,
       alertDetails,
       geoJson,
@@ -802,7 +821,6 @@ class DashboardMaps extends Component {
       seatData,
       modalOpen
     } = this.state;
-    const displayTime = past24hTime + ' - ' + updatedTime;
 
     return (
       <div>
@@ -812,7 +830,11 @@ class DashboardMaps extends Component {
 
         <div className='sub-header'>
           {helper.getDashboardMenu('maps')}
-          <span className='date-time'>{displayTime}</span>
+
+          <SearchOptions
+            datetime={datetime}
+            handleDateChange={this.handleDateChange}
+            handleSearchSubmit={this.handleSearchSubmit} />
         </div>
 
         <div className='main-dashboard'>

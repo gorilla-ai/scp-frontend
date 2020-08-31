@@ -569,6 +569,9 @@ class AlertDetails extends Component {
           this.getAttackJson();
           tempShowContent.attack = true;
           break;
+        case 'json':
+          tempShowContent.json = true;
+          break;
         case 'srcIp':
           this.getHMDinfo(type);
           tempShowContent.srcIp = true;
@@ -592,9 +595,6 @@ class AlertDetails extends Component {
         case 'destNetwork':
           this.loadNetworkBehavior('destIp');
           tempShowContent.destNetwork = true;
-          break;
-        case 'json':
-          tempShowContent.json = true;
           break;
       }
 
@@ -666,6 +666,17 @@ class AlertDetails extends Component {
         {alertData.fileMD5 &&
           <span onClick={this.downloadFile}>{t('alert.txt-downloadFile')}</span>
         }
+        <span onClick={this.openEncodeDialog}>{t('alert.txt-encodeDecode')}</span>
+      </div>
+    )
+  }
+  /**
+   * Display encode and encode option
+   * @method
+   */
+  getEncodeContent = () => {
+    return (
+      <div className='multi-items'>
         <span onClick={this.openEncodeDialog}>{t('alert.txt-encodeDecode')}</span>
       </div>
     )
@@ -865,6 +876,10 @@ class AlertDetails extends Component {
                   this.getDownloadFileContent()
                 }
 
+                {showContent.json &&
+                  this.getEncodeContent()
+                }
+
                 {(showContent.srcIp || showContent.destIp) &&
                   this.getQueryMoreContent()
                 }
@@ -887,12 +902,12 @@ class AlertDetails extends Component {
               this.displayRuleContent()
             }
 
-            {showContent.json &&
-              this.displayJsonData()
-            }
-
             {showContent.attack && alertPayload &&
               this.displayPayloadcontent()
+            }
+
+            {showContent.json &&
+              this.displayJsonData()
             }
 
             {showContent.srcIp &&
@@ -1095,11 +1110,11 @@ class AlertDetails extends Component {
     }
   }
   /**
-   * Handle context menu action
+   * Handle encode context menu action
    * @method
    * @param {object} evt - mouseClick events
    */
-  handleContextMenu = (evt) => {
+  handleEncodeContextMenu = (evt) => {
     const menuItems = [
       {
         id: 'encodeDecodeMenu',
@@ -1120,9 +1135,25 @@ class AlertDetails extends Component {
     return (
       <div className='payload'>
         <ul>
-          <li onMouseUp={this.getHighlightedText} onContextMenu={this.handleContextMenu}><JSONTree data={this.state.alertPayload} theme={helper.getJsonViewTheme()} /></li>
+          <li onMouseUp={this.getHighlightedText} onContextMenu={this.handleEncodeContextMenu}><JSONTree data={this.state.alertPayload} theme={helper.getJsonViewTheme()} /></li>
         </ul>
       </div>
+    )
+  }
+  /**
+   * Display JSON content
+   * @method
+   * @returns HTML DOM
+   */
+  displayJsonData = () => {
+    const {alertData} = this.props;
+    const hiddenFields = ['id', '_tableMenu_'];
+    const allData = _.omit(alertData, hiddenFields);
+
+    return (
+      <ul className='json-data alert'>
+        <li onMouseUp={this.getHighlightedText} onContextMenu={this.handleEncodeContextMenu}><JSONTree data={allData} theme={helper.getJsonViewTheme()} /></li>
+      </ul>
     )
   }
   /**
@@ -1871,22 +1902,6 @@ class AlertDetails extends Component {
             onSort={this.handleNetworkBehaviorTableSort.bind(this, activeNetworkBehavior)} />
         </div>
       </div>
-    )
-  }
-  /**
-   * Display JSON Data content
-   * @method
-   * @returns HTML DOM
-   */
-  displayJsonData = () => {
-    const {alertData} = this.props;
-    const hiddenFields = ['id', '_tableMenu_'];
-    const allData = _.omit(alertData, hiddenFields);
-
-    return (
-      <ul className='json-data alert'>
-        <li><JSONTree data={allData} theme={helper.getJsonViewTheme()} /></li>
-      </ul>
     )
   }
   /**
