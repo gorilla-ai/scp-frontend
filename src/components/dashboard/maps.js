@@ -12,6 +12,7 @@ import Gis from 'react-gis/build/src/components'
 
 import AlertDetails from '../common/alert-details'
 import {BaseDataContext} from '../common/context';
+import SearchOptions from '../common/search-options'
 import helper from '../common/helper'
 import WORLDMAP from '../../mock/world-map-low.json'
 
@@ -80,12 +81,10 @@ class DashboardMaps extends Component {
       datetime: {
         from: helper.getSubstractDate(24, 'hours'),
         to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
-        //from: '2019-08-06T01:00:00Z',
-        //to: '2019-08-07T02:02:13Z'
+        //from: '2020-08-02T01:00:00Z',
+        //to: '2020-08-02T01:10:00Z'
       },
-      past24hTime: helper.getFormattedDate(helper.getSubstractDate(24, 'hours')),
-      updatedTime: helper.getFormattedDate(Moment()),
-      mapType: PRIVATE, //PRIVATE PUBLIC
+      mapType: PRIVATE, //'private' or 'public'
       locationType: '',
       ..._.cloneDeep(MAPS_PUBLIC_DATA),
       ..._.cloneDeep(MAPS_PRIVATE_DATA),
@@ -155,8 +154,6 @@ class DashboardMaps extends Component {
         tempAlertDetails.publicFormatted.destIp = publicData.destIp;
 
         this.setState({
-          past24hTime: helper.getFormattedDate(helper.getSubstractDate(24, 'hours')),
-          updatedTime: helper.getFormattedDate(Moment()),
           alertDetails: tempAlertDetails,
           alertMapData: tempArray
         }, () => {
@@ -253,6 +250,29 @@ class DashboardMaps extends Component {
 
     this.setState({
       geoJson: tempGeoJson
+    });
+  }
+  /**
+   * Set new datetime
+   * @method
+   * @param {object} datetime - new datetime object
+   */
+  handleDateChange = (datetime) => {
+    this.setState({
+      datetime
+    });
+  }
+  /**
+   * Handle search submit
+   * @method
+   */
+  handleSearchSubmit = () => {
+    this.setState({
+      ..._.cloneDeep(MAPS_PUBLIC_DATA),
+      ..._.cloneDeep(MAPS_PRIVATE_DATA)
+    }, () => {
+      this.loadAlertData();
+      this.getFloorPlan();
     });
   }
   /**
@@ -790,8 +810,7 @@ class DashboardMaps extends Component {
   }
   render() {
     const {
-      past24hTime,
-      updatedTime,
+      datetime,
       mapType,
       alertDetails,
       geoJson,
@@ -802,7 +821,6 @@ class DashboardMaps extends Component {
       seatData,
       modalOpen
     } = this.state;
-    const displayTime = past24hTime + ' - ' + updatedTime;
 
     return (
       <div>
@@ -812,7 +830,11 @@ class DashboardMaps extends Component {
 
         <div className='sub-header'>
           {helper.getDashboardMenu('maps')}
-          <span className='date-time'>{displayTime}</span>
+
+          <SearchOptions
+            datetime={datetime}
+            handleDateChange={this.handleDateChange}
+            handleSearchSubmit={this.handleSearchSubmit} />
         </div>
 
         <div className='main-dashboard'>
@@ -825,7 +847,7 @@ class DashboardMaps extends Component {
               value={mapType}
               onChange={this.toggleMaps} />
 
-            {floorList.length > 0 &&
+            {floorList.length > 0 && mapType === PRIVATE &&
               <DropDownList
                 className='drop-down'
                 list={floorList}
@@ -907,29 +929,31 @@ class DashboardMaps extends Component {
                   crs: L.CRS.Simple
                 }}
                 onClick={this.showTopoDetail.bind(this, PUBLIC)}
-                symbolOptions={[{
-                  match: {
-                    type:'geojson'
-                  },
-                  selectedProps: {
-                    'fill-color': 'white',
-                    color: 'black',
-                    weight: 0.6,
-                    'fill-opacity': 1
-                  }
-                },
-                {
-                  match: {
-                    type: 'spot'
-                  },
-                  props: {
-                    'background-color': ({data}) => {
-                      return data.tag === 'red' ? 'red' : 'yellow';
+                symbolOptions={[
+                  {
+                    match: {
+                      type:'geojson'
                     },
-                    'border-color': '#333',
-                    'border-width': '1px'
+                    selectedProps: {
+                      'fill-color': 'white',
+                      color: 'black',
+                      weight: 0.6,
+                      'fill-opacity': 1
+                    }
+                  },
+                  {
+                    match: {
+                      type: 'spot'
+                    },
+                    props: {
+                      'background-color': ({data}) => {
+                        return data.tag === 'red' ? 'red' : 'yellow';
+                      },
+                      'border-color': '#333',
+                      'border-width': '1px'
+                    }
                   }
-                }]}
+                ]}
                 layouts={['standard']}
                 dragModes={['pan']} />
             }
