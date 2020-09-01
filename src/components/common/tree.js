@@ -178,12 +178,7 @@ class Tree extends Component {
         </div>
 
         <div className='expand-collapse' onClick={this.toggleLeftNav}>
-          {showContent &&
-            <i className='fg fg-arrow-left'></i>
-          }
-          {!showContent &&
-            <i className='fg fg-arrow-right'></i>
-          }
+          <i className={`fg fg-arrow-${showContent ? 'left' : 'right'}`}></i>
         </div>
       </div>
     )

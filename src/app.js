@@ -13,6 +13,7 @@ import DashboardOverview from './components/dashboard/overview'
 import DashboardStats from './components/dashboard/statistics'
 import EdgeManagement from './components/configuration/edge/edge'
 import Header from './header'
+import Host from './components/host/index'
 import IncidentDevice from './components/soc/incident-device'
 import IncidentUnit from './components/soc/incident-unit'
 import IncidentLog from './components/soc/incident-log'
@@ -89,6 +90,12 @@ const DashboardStatsComp = () => (
 const DashboardMapsComp = () => (
   <BaseDataContext.Provider value={baseData}>
     <DashboardMaps />
+  </BaseDataContext.Provider>
+)
+
+const HostComp = () => (
+  <BaseDataContext.Provider value={baseData}>
+    <Host />
   </BaseDataContext.Provider>
 )
 
@@ -224,6 +231,7 @@ const Main = () => (
       <Route exact path='/SCP/dashboard/statisticsUIF' component={StatisticsUIFComp} />
       {/*<Route exact path='/SCP/dashboard/statistics' component={DashboardStatsComp} />*/}
       <Route exact path='/SCP/dashboard/maps' component={DashboardMapsComp} />
+      <Route exact path='/SCP/host' component={HostComp} />
       <Route exact path='/SCP/threats' component={ThreatsComp} />
       <Route exact path='/SCP/events/syslog' component={SyslogComp} />
       <Route exact path='/SCP/events/netflow' component={NetflowComp} />

@@ -159,6 +159,7 @@
   "txt-threatsSrcCountryRank": "威脅來源國家排名",
 
   "txt-dashboard": "Dashboard",
+  "txt-host": "Host",
   "txt-threats": "Threats",
   "txt-syslog": "Syslog",
   "txt-netflow": "Netflow",
@@ -256,6 +257,11 @@
     "txt-hmd": "使用數",
     "txt-max": "授權數",
     "txt-hosts": "主機"
+  },
+
+  "host": {
+    "txt-hostList": "主機列表",
+    "txt-deviceMap": "裝置地圖"
   },
 
   "alert": {

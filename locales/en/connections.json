@@ -159,6 +159,7 @@
   "txt-threatsSrcCountryRank": "Source Country Alert Rank",
 
   "txt-dashboard": "Dashboard",
+  "txt-host": "Host",
   "txt-threats": "Threats",
   "txt-syslog": "Syslog",
   "txt-netflow": "Netflow",
@@ -256,6 +257,11 @@
     "txt-hmd": "HMD",
     "txt-max": "Max",
     "txt-hosts": "Hosts"
+  },
+
+  "host": {
+    "txt-hostList": "Host List",
+    "txt-deviceMap": "Device Map"
   },
 
   "alert": {
