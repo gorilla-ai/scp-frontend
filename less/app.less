@@ -1630,6 +1630,88 @@ i.c-checkbox.fg-checkbox {
         border-radius: 5px;
         background-color: var(--primarySubBackground);
         overflow: hidden;
+        &.host {
+          ul.host-list {
+            & > li {
+              padding: 15px 10px;
+              overflow: hidden;
+              border: 1px solid var(--primaryBorder);
+              background-color: var(--primaryContentBackground);
+              .device {
+                float: left;
+                width: 115px;
+                margin-top: 30px;
+                margin-right: 20px;
+                text-align: center;
+                .fg {
+                  font-size: 2em;
+                }
+              }
+              .info {
+                float: left;
+                & > header:first-child  {
+                  color: #004d99;
+                  font-size: 1.3em;
+                  font-weight: bold;
+                  margin-bottom: 5px;
+                }
+                ul {
+                  margin-bottom: 15px;
+                  li {
+                    display: inline-block;
+                    color: #565656;
+                    margin-right: 10px;
+                    padding-right: 10px;
+                    border-right: 1px solid #d8d8d8;
+                    &.last {
+                      border: none;
+                    }
+                    i.fg {
+                      float: left;
+                      font-size: 20px;
+                      margin-right: 5px;
+                    }
+                  }
+                }
+                .sub-item {
+                  margin-top: 10px;
+                  clear: both;
+                  header {
+                    float: left;
+                    color: #4d4d4d;
+                    font-size: 15px;
+                    font-weight: bold;
+                    margin-right: 10px;
+                  }
+                  .flex-item {
+                    display: flex;
+                    flex-wrap: wrap;
+                    width: 100%;
+                    margin: 2px 0;
+                    span {
+                      color: #fff;
+                      padding: 5px 10px;
+                      margin: 3px 2px;
+                      border-radius: 5px;
+                      background-color: var(--primaryContentHeader);                      
+                    }
+                  }
+                }
+              }
+              .details {
+                float: right;
+                color: #999;
+                font-weight: bold;
+                margin-top: 15px;
+                margin-right: 20px;
+                padding: 6px 12px;
+                border: 2px solid #d9d9d9;
+                border-radius: 15px;
+                cursor: pointer;
+              }
+            }
+          }
+        }
         &.basic-form { //For content with form input
           min-height: 84vh;
           background-color: var(--primaryContentBackground);

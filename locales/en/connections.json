@@ -261,7 +261,8 @@
 
   "host": {
     "txt-hostList": "Host List",
-    "txt-deviceMap": "Device Map"
+    "txt-deviceMap": "Device Map",
+    "txt-viewInfo": "View Info"
   },
 
   "alert": {

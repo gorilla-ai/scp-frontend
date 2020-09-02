@@ -261,7 +261,8 @@
 
   "host": {
     "txt-hostList": "主機列表",
-    "txt-deviceMap": "裝置地圖"
+    "txt-deviceMap": "裝置地圖",
+    "txt-viewInfo": "查看內容"
   },
 
   "alert": {
