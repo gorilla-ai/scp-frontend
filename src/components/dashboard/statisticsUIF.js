@@ -8,6 +8,7 @@ import cx from 'classnames'
 
 import DateRange from 'react-ui/build/src/components/date-range'
 
+import SearchOptions from '../common/search-options'
 import {BaseDataContext} from '../common/context';
 import helper from '../common/helper'
 
@@ -24,7 +25,12 @@ const COLORS = ['#069BDA', '#57C3D9', '#57D998', '#6CD957', '#C3D957', '#D99857'
 
 const INIT = {
   appendConfig: {},
-  datetime: {}
+  datetime: {},
+  searchInput: {
+    searchType: 'manual',
+    searchInterval: '1h',
+    refreshTime: '600000' //10 minutes
+  }
 }
 
 class StatisticsUIF extends Component {
@@ -46,27 +52,16 @@ class StatisticsUIF extends Component {
     this.setState({datetime}, () => {
       this.loadUIF()  
     })
-
-    intervalId = setInterval(this.loadUIF.bind(this, true), 300000) // 5 mins
   }
   componentWillUnmount() {
-    clearInterval(intervalId)
+
   }
-  loadUIF(isAutoRefresh) {
+  loadUIF = () => {
     const {baseUrl, session} = this.context
     const url = `${baseUrl}/api/uif?id=SCP-Overview`
 
     let {datetime} = this.state
     let appendConfig = {}
-
-    if (isAutoRefresh) {
-      datetime = {
-        from: helper.getSubstractDate(1, 'days', Moment().local()),
-        to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
-      }
-
-      this.setState({datetime})
-    }
 
     this.ah.one({url})
     .then(data => {
@@ -138,6 +133,32 @@ class StatisticsUIF extends Component {
   handleChange(field, value) {
     this.setState({[field]: value})
   }
+  handleDateChange = (datetime, refresh) => {
+    this.setState({
+      datetime
+    }, () => {
+      if (refresh === 'refresh') {
+        this.loadUIF()
+      }
+    });
+  }
+  setSearchData = (type, value) => {
+    if (type === 'all') {
+      this.setState({
+        searchInput: value
+      });
+    } else {
+      let tempSearchInput = {...this.state.searchInput};
+
+      if (value) {
+        tempSearchInput[type] = value;
+
+        this.setState({
+          searchInput: tempSearchInput
+        });
+      }
+    }
+  }
   onTooltip = (type, eventInfo, data) => {
     if (type === 'AlertStatistics-bar') {
       return <section>
@@ -162,18 +183,21 @@ class StatisticsUIF extends Component {
   }
 	render() {
     const {locale} = this.context
-    const {appendConfig, datetime} = this.state
+    const {appendConfig, datetime, searchInput} = this.state
 
 		return <div>
 			<div className='sub-header'>
 				{helper.getDashboardMenu('statisticsUIF')}
-        <div style={{display: 'flex', float: 'right'}}>
-          <DateRange id='datetime' className='daterange' onChange={this.handleChange.bind(this, 'datetime')}
-            enableTime={true} value={datetime} locale={locale} t={et} />
-          <button style={{marginLeft: '5px'}} onClick={this.loadUIF.bind(this, false)}>{t('txt-query')}</button>
-        </div>
+        
+        <SearchOptions
+          datetime={datetime}
+          searchInput={searchInput}
+          enableTime={true}
+          showInterval={true}
+          setSearchData={this.setSearchData}
+          handleDateChange={this.handleDateChange}
+          handleSearchSubmit={this.loadUIF} />
 			</div>
-
       {
         !_.isEmpty(appendConfig) &&
         <div className='uif-dashboard'>
