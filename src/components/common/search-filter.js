@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
+import cx from 'classnames'
 
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import Textarea from 'react-ui/build/src/components/textarea'
@@ -28,18 +29,46 @@ class SearchFilter extends Component {
     });
   }
   render() {
-    const {queryType, value} = this.props;
-    const conditionList = ['Must', 'Must Not', 'Either'];
+    const {queryType, activeTab, value} = this.props;
     const formStatus = queryType === 'query' ? true : false;
-    const filterList = _.map(conditionList, val => {
-      let formattedValue = val.toLowerCase();
-      formattedValue = formattedValue.replace(' ', '_');
+    let conditionList = [];
+    let filterList = [];
 
-      return {
-        value: formattedValue,
-        text: val
-      };
-    });
+    if (activeTab === 'host') {
+      filterList = [
+        {
+          value: 'ip',
+          text: 'IP'
+        },
+        {
+          value: 'mac',
+          text: 'MAC'
+        },
+        {
+          value: 'hostName',
+          text: 'Host Name'
+        },
+        {
+          value: 'deviceType',
+          text: 'Device Type'
+        },
+        {
+          value: 'system',
+          text: 'System'
+        }
+      ];
+    } else {
+      conditionList = ['Must', 'Must Not', 'Either'];
+      filterList = _.map(conditionList, val => {
+        let formattedValue = val.toLowerCase();
+        formattedValue = formattedValue.replace(' ', '_');
+
+        return {
+          value: formattedValue,
+          text: val
+        };
+      });
+    }
 
     return (
       <div>

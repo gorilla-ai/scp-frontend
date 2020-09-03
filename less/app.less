@@ -1188,6 +1188,17 @@ i.c-checkbox.fg-checkbox {
           text-align: center;
           margin-top: 50px;
         }
+        .c-checkbox-group {
+          width: 100%;
+          padding: 10px 5px;
+          border-radius: 5px;
+          background-color: var(--leftTreeGroup);
+        }
+        .list-item {
+          i.c-checkbox {
+            color: var(--buttonSelectedColor);
+          }
+        }
       }
       .content {
         overflow-y: auto;
@@ -1216,7 +1227,7 @@ i.c-checkbox.fg-checkbox {
       }
       label {
         display: block;
-        margin: 15px 0 3px 0;
+        //margin: 15px 0 3px 0;
         &.first-label {
           margin-top: 0;
         }
@@ -1404,7 +1415,7 @@ i.c-checkbox.fg-checkbox {
               width: 215px;
             }
             .condition-select {
-              width: 100px;
+              width: auto;
               height: 35px;
               margin-right: 3px;
             }
@@ -1637,10 +1648,16 @@ i.c-checkbox.fg-checkbox {
               overflow: hidden;
               border: 1px solid var(--primaryBorder);
               background-color: var(--primaryContentBackground);
+              &:hover {
+                background-color: var(--dashboardMapsHover);
+                .details {
+                  color: var(--buttonTextColor);
+                }
+              }
               .device {
                 float: left;
                 width: 115px;
-                margin-top: 30px;
+                margin-top: 5px;
                 margin-right: 20px;
                 text-align: center;
                 .fg {
@@ -1650,7 +1667,7 @@ i.c-checkbox.fg-checkbox {
               .info {
                 float: left;
                 & > header:first-child  {
-                  color: #004d99;
+                  color: var(--formEmailGroup);
                   font-size: 1.3em;
                   font-weight: bold;
                   margin-bottom: 5px;
@@ -1659,11 +1676,12 @@ i.c-checkbox.fg-checkbox {
                   margin-bottom: 15px;
                   li {
                     display: inline-block;
-                    color: #565656;
+                    color: var(--primaryTextColor);
                     margin-right: 10px;
-                    padding-right: 10px;
-                    border-right: 1px solid #d8d8d8;
-                    &.last {
+                    padding-left: 10px;
+                    border-left: 1px solid #d8d8d8;
+                    &.first {
+                      padding-left: 0;
                       border: none;
                     }
                     i.fg {
@@ -1678,7 +1696,7 @@ i.c-checkbox.fg-checkbox {
                   clear: both;
                   header {
                     float: left;
-                    color: #4d4d4d;
+                    color: var(--primaryTextColor);
                     font-size: 15px;
                     font-weight: bold;
                     margin-right: 10px;
@@ -1690,6 +1708,7 @@ i.c-checkbox.fg-checkbox {
                     margin: 2px 0;
                     span {
                       color: #fff;
+                      font-size: 14px;
                       padding: 5px 10px;
                       margin: 3px 2px;
                       border-radius: 5px;
@@ -1700,14 +1719,14 @@ i.c-checkbox.fg-checkbox {
               }
               .details {
                 float: right;
-                color: #999;
+                color: var(--tableActiveRow);
                 font-weight: bold;
                 margin-top: 15px;
                 margin-right: 20px;
                 padding: 6px 12px;
                 border: 2px solid #d9d9d9;
                 border-radius: 15px;
-                cursor: pointer;
+                cursor: not-allowed;
               }
             }
           }

@@ -74,7 +74,8 @@ MarkInput.propTypes = {
   activeTab: PropTypes.string.isRequired,
   logFields: PropTypes.array.isRequired,
   markData: PropTypes.array.isRequired,
-  inline: PropTypes.bool.isRequired
+  inline: PropTypes.bool.isRequired,
+  setMarkData: PropTypes.func.isRequired
 };
 
 export default MarkInput;

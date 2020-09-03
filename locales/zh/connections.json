@@ -696,6 +696,7 @@
     "ip": "IP",
     "mac": "MAC",
     "owner": "所屬人員",
+    "floorName": "樓層名稱",
     "userAccount": "使用者帳號",
     "userName": "人員",
     "disks": "$t(txt-disks)",

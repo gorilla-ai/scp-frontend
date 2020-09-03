@@ -696,6 +696,7 @@
     "ip": "IP",
     "mac": "MAC",
     "owner": "Owner",
+    "floorName": "Floor Name",
     "userAccount": "User Account",
     "userName": "User",
     "disks": "$t(txt-disks)",

@@ -56,7 +56,7 @@ class FilterInput extends Component {
         };
 
         defaultFilter = {
-          condition: 'must',
+          condition: activeTab === 'host' ? 'ip' : 'must',
           query: ''
         };
       }
@@ -80,7 +80,8 @@ class FilterInput extends Component {
 FilterInput.propTypes = {
   activeTab: PropTypes.string.isRequired,
   filterData: PropTypes.array.isRequired,
-  inline: PropTypes.bool.isRequired
+  inline: PropTypes.bool.isRequired,
+  setFilterData: PropTypes.func.isRequired
 };
 
 export default FilterInput;
