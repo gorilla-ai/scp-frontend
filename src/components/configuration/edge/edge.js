@@ -810,7 +810,7 @@ class Edge extends Component {
     })
     .then(data => {
       if (data.ret === 0) {
-        helper.showPopupMsg(t('txt-upgradeSuccess'));
+        helper.showPopupMsg(t('txt-upgradeScheduleAdded'));
       }
       return null;
     })

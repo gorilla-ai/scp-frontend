@@ -6,6 +6,7 @@ import _ from 'lodash'
 import cx from 'classnames'
 
 import ButtonGroup from 'react-ui/build/src/components/button-group'
+import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import DataTable from 'react-ui/build/src/components/table'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
@@ -15,6 +16,7 @@ import JSONTree from 'react-json-tree'
 import {BaseDataContext} from './context';
 
 import helper from './helper'
+import EncodeDecode from './encode-decode'
 import IrSelections from './ir-selections'
 import HMDscanInfo from './hmd-scan-info'
 import PrivateDetails from './private-details'
@@ -91,6 +93,8 @@ class AlertDetails extends Component {
       showRedirectMenu: false,
       modalYaraRuleOpen: false,
       modalIRopen: false,
+      modalEncodeOpen: false,
+      highlightedText: '',
       activeNetworkBehavior: 'alert',
       networkBehavior: {
         alert: {
@@ -565,6 +569,9 @@ class AlertDetails extends Component {
           this.getAttackJson();
           tempShowContent.attack = true;
           break;
+        case 'json':
+          tempShowContent.json = true;
+          break;
         case 'srcIp':
           this.getHMDinfo(type);
           tempShowContent.srcIp = true;
@@ -588,9 +595,6 @@ class AlertDetails extends Component {
         case 'destNetwork':
           this.loadNetworkBehavior('destIp');
           tempShowContent.destNetwork = true;
-          break;
-        case 'json':
-          tempShowContent.json = true;
           break;
       }
 
@@ -644,15 +648,37 @@ class AlertDetails extends Component {
     const endDttm = Moment(helper.getAdditionDate(10, 'minutes', alertData._eventDttm_)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
     const downloadLink = `${baseUrl}${contextRoot}/api/alert/pcap?agentId=${alertData._edgeInfo.agentId}&startDttm=${startDttm}&endDttm=${endDttm}&targetIp=${alertData.srcIp || alertData.ipSrc}&infoType=${alertData['alertInformation.type']}`;
 
-    return <span onClick={this.pcapDownload.bind(this, downloadLink)}>{t('alert.txt-downloadPCAP')}</span>
+    return (
+      <div className='multi-items'>
+        <span onClick={this.pcapDownload.bind(this, downloadLink)}>{t('alert.txt-downloadPCAP')}</span>
+      </div>
+    )
   }
   /**
-   * Display Download File link
+   * Display Download File link and encode option
    * @method
    */
   getDownloadFileContent = () => {
+    const {alertData} = this.props;
+
     return (
-      <div onClick={this.downloadFile}>{t('alert.txt-downloadFile')}</div>
+      <div className='multi-items'>
+        {alertData.fileMD5 &&
+          <span onClick={this.downloadFile}>{t('alert.txt-downloadFile')}</span>
+        }
+        <span onClick={this.openEncodeDialog}>{t('alert.txt-encodeDecode')}</span>
+      </div>
+    )
+  }
+  /**
+   * Display encode and encode option
+   * @method
+   */
+  getEncodeContent = () => {
+    return (
+      <div className='multi-items'>
+        <span onClick={this.openEncodeDialog}>{t('alert.txt-encodeDecode')}</span>
+      </div>
     )
   }
   /**
@@ -671,7 +697,11 @@ class AlertDetails extends Component {
     }
 
     if (ip && ip !== NOT_AVAILABLE) {
-      return <div onClick={this.toggleRedirectMenu}>{t('alert.txt-queryMore')}</div>
+      return (
+        <div className='multi-items'>
+          <span onClick={this.toggleRedirectMenu}>{t('alert.txt-queryMore')}</span>
+        </div>
+      )
     }
   }
   /**
@@ -719,7 +749,12 @@ class AlertDetails extends Component {
     }
 
     const url = `${baseUrl}${contextRoot}/configuration/topology/inventory?ip=${ip}&type=${type}&lng=${language}`;
-    return <div onClick={this.redirectIp.bind(this, url)}>{text}</div>
+
+    return (
+      <div className='multi-items'>
+        <span onClick={this.redirectIp.bind(this, url)}>{text}</span>
+      </div>
+    )
   }
   /**
    * Redirect to ivar link
@@ -803,7 +838,7 @@ class AlertDetails extends Component {
               <td className='src-port'>{this.getIpPortData('srcPort')}</td>
               <td className='dest-ip'>{this.getIpPortData('destIp')}</td>
               <td className='dest-port'>{this.getIpPortData('destPort')}</td>
-              <td className='protocol'>{alertData.proto || alertData.p || NOT_AVAILABLE}</td>
+              <td className='protocol'>{alertData.proto || alertData.p || alertData.protocol || NOT_AVAILABLE}</td>
             </tr>
           </tbody>
         </table>
@@ -837,8 +872,12 @@ class AlertDetails extends Component {
                   this.getPCAPdownloadContent()
                 }
 
-                {showContent.attack && alertData.fileMD5 &&
+                {showContent.attack &&
                   this.getDownloadFileContent()
+                }
+
+                {showContent.json &&
+                  this.getEncodeContent()
                 }
 
                 {(showContent.srcIp || showContent.destIp) &&
@@ -863,12 +902,12 @@ class AlertDetails extends Component {
               this.displayRuleContent()
             }
 
-            {showContent.json &&
-              this.displayJsonData()
-            }
-
             {showContent.attack && alertPayload &&
               this.displayPayloadcontent()
+            }
+
+            {showContent.json &&
+              this.displayJsonData()
             }
 
             {showContent.srcIp &&
@@ -1036,6 +1075,58 @@ class AlertDetails extends Component {
     }
   }
   /**
+   * Toggle encode dialog on/off
+   * @method
+   * @returns HTML DOM
+   */
+  openEncodeDialog = () => {
+    const {modalEncodeOpen} = this.state;
+
+    if (modalEncodeOpen) {
+      this.setState({
+        highlightedText: ''
+      });
+    }
+
+    this.setState({
+      modalEncodeOpen: !modalEncodeOpen
+    });
+  }
+  /**
+   * Get hightlighted text from user
+   * @method
+   */
+  getHighlightedText = () => {
+    let highlightedText = '';
+
+    if (window.getSelection) {
+      highlightedText = window.getSelection().toString();
+
+      if (highlightedText) {
+        this.setState({
+          highlightedText
+        });
+      }
+    }
+  }
+  /**
+   * Handle encode context menu action
+   * @method
+   * @param {object} evt - mouseClick events
+   */
+  handleEncodeContextMenu = (evt) => {
+    const menuItems = [
+      {
+        id: 'encodeDecodeMenu',
+        text: t('alert.txt-encodeDecode'),
+        action: () => this.openEncodeDialog()
+      }
+    ];
+
+    ContextMenu.open(evt, menuItems, 'encodeDecodeAction');
+    evt.stopPropagation();
+  }
+  /**
    * Display PCAP payload content
    * @method
    * @returns HTML DOM
@@ -1044,9 +1135,25 @@ class AlertDetails extends Component {
     return (
       <div className='payload'>
         <ul>
-          <li><JSONTree data={this.state.alertPayload} theme={helper.getJsonViewTheme()} /></li>
+          <li onMouseUp={this.getHighlightedText} onContextMenu={this.handleEncodeContextMenu}><JSONTree data={this.state.alertPayload} theme={helper.getJsonViewTheme()} /></li>
         </ul>
       </div>
+    )
+  }
+  /**
+   * Display JSON content
+   * @method
+   * @returns HTML DOM
+   */
+  displayJsonData = () => {
+    const {alertData} = this.props;
+    const hiddenFields = ['id', '_tableMenu_'];
+    const allData = _.omit(alertData, hiddenFields);
+
+    return (
+      <ul className='json-data alert'>
+        <li onMouseUp={this.getHighlightedText} onContextMenu={this.handleEncodeContextMenu}><JSONTree data={allData} theme={helper.getJsonViewTheme()} /></li>
+      </ul>
     )
   }
   /**
@@ -1257,6 +1364,34 @@ class AlertDetails extends Component {
     this.setState({
       modalIRopen: !this.state.modalIRopen
     });
+  }
+  /**
+   * Check yara rule before submit for trigger
+   * @method
+   * @param {object} yaraRule - yara rule data
+   */
+  checkYaraRule = (yaraRule) => {
+    const {baseUrl} = this.context;
+    const url = `${baseUrl}/api/hmd/compileYara`;
+    const requestData = {
+      _RuleString: yaraRule.rule
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.triggerTask(['compareIOC'], '', yaraRule);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Handle trigger button for HMD
@@ -1756,7 +1891,7 @@ class AlertDetails extends Component {
         {datetime.from && datetime.to &&
           <div className='msg'>{t('txt-alertHourBefore')}: {datetime.from} ~ {datetime.to}</div>
         }
-        <button className='query-events' onClick={this.redirectNewPage.bind(this, ipType)}>{t('alert.txt-queryEvents')}</button>
+        <button className='standard btn query-events' onClick={this.redirectNewPage.bind(this, ipType)}>{t('alert.txt-queryEvents')}</button>
 
         <div className='table-data'>
           <DataTable
@@ -1767,22 +1902,6 @@ class AlertDetails extends Component {
             onSort={this.handleNetworkBehaviorTableSort.bind(this, activeNetworkBehavior)} />
         </div>
       </div>
-    )
-  }
-  /**
-   * Display JSON Data content
-   * @method
-   * @returns HTML DOM
-   */
-  displayJsonData = () => {
-    const {alertData} = this.props;
-    const hiddenFields = ['id', '_tableMenu_'];
-    const allData = _.omit(alertData, hiddenFields);
-
-    return (
-      <ul className='json-data alert'>
-        <li><JSONTree data={allData} theme={helper.getJsonViewTheme()} /></li>
-      </ul>
     )
   }
   /**
@@ -1838,7 +1957,7 @@ class AlertDetails extends Component {
   }
   render() {
     const {titleText, actions} = this.props;
-    const {modalYaraRuleOpen, modalIRopen} = this.state;
+    const {modalYaraRuleOpen, modalIRopen, modalEncodeOpen, highlightedText} = this.state;
 
     return (
       <div>
@@ -1856,13 +1975,19 @@ class AlertDetails extends Component {
         {modalYaraRuleOpen &&
           <YaraRule
             toggleYaraRule={this.toggleYaraRule}
-            triggerTask={this.triggerTask} />
+            checkYaraRule={this.checkYaraRule} />
         }
 
         {modalIRopen &&
           <IrSelections
             toggleSelectionIR={this.toggleSelectionIR}
             triggerTask={this.triggerTask} />
+        }
+
+        {modalEncodeOpen &&
+          <EncodeDecode
+            highlightedText={highlightedText}
+            openEncodeDialog={this.openEncodeDialog} />
         }
       </div>
     )

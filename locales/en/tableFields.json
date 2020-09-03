@@ -594,7 +594,7 @@
     "patternName": "Pattern Name",
     "periodMin": "Period Minutes",
     "threshold": "Threshold",
-    "lastUpdateDttm": "Last Update",
+    "lastUpdateDttm": "Last Updated Date Time",
     "queryScript": "Query Script",
     "severity": "Severity"
   },

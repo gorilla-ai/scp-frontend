@@ -44,8 +44,9 @@ class SearchMark extends Component {
       <div>
         <i className={'c-link fg fg-recode ' + value.color}></i>
         <input
-          id='mark-inputbox'
+          className='mark-inputbox'
           type='text'
+          value={inputValue}
           onChange={this.handleDataChange}
           disabled={formStatus} />
       </div>

@@ -365,7 +365,7 @@ html[data-theme='dark'] {
   }
   .json-data {
     &.alert {
-      height: 425px;
+      height: 395px;
       border: none;
       & > li {
         padding: 0;
@@ -813,7 +813,7 @@ html[data-theme='dark'] {
     display: flex;
     justify-content: space-between;
     margin-top: 10px;
-    min-height: 400px;
+    min-height: 395px;
     border: 1px solid var(--primaryBorder);
     border-radius: 5px;
     & > .nav {
@@ -874,9 +874,18 @@ html[data-theme='dark'] {
       background-color: var(--contentBackground);
       .options-buttons {
         overflow: hidden;
+        margin-bottom: 10px;
         section {
           float: right;
           cursor: pointer;
+          .multi-items {
+            overflow: hidden;
+            span {
+              display: block;
+              float: left;
+              margin-left: 10px;
+            }
+          }
         }
       }
       ul {
@@ -914,7 +923,10 @@ html[data-theme='dark'] {
         }
       }
       .payload {
+        height: 395px;
+        overflow-y: auto;
         padding: 0 10px;
+        border: none;
         ul {
           background-color: var(--contentBackground) !important;
         }
@@ -923,7 +935,7 @@ html[data-theme='dark'] {
       .srcIp-content,
       .destIp-content {
         margin-top: 5px;
-        height: 400px;
+        height: 395px;
         overflow-y: auto;
         .fg-info {
           cursor: pointer;
@@ -965,7 +977,7 @@ html[data-theme='dark'] {
         padding: .3em .5em;
       }
       .table-data {
-        height: 345px;
+        height: 330px;
         overflow-y: auto;
         .network-behavior {
           width: 50%;
@@ -1272,6 +1284,7 @@ html[data-theme='dark'] {
   }
   .filter-group {
     clear: both;
+    min-width: 400px;
     overflow-y: hidden;
     padding: 5px 6px;
     margin-bottom: 15px;
@@ -1580,4 +1593,21 @@ html[data-theme='dark'] {
       width: 20px;
     }
   }
+}
+#encodeDecodeDialog-content {
+  width: 780px;
+  .text-area {
+    height: 130px;
+  }
+  .drop-down {
+    float: left;
+    margin-top: 16px;
+    margin-right: 5px;
+  }
+  button {
+    margin: 20px 3px;
+  }
+}
+#encodeDecodeAction {
+  z-index: 10000;
 }

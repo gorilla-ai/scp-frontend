@@ -34,7 +34,7 @@
   "txt-rule": "規則",
   "txt-update": "更新",
   "txt-upgrade": "升級",
-  "txt-upgradeSuccess": "升級成功",
+  "txt-upgradeScheduleAdded": "已加入更新排程",
   "txt-upload": "上傳",
   "txt-uploadStatus": "上傳狀態",
   "txt-uploadSuccess": "上傳成功",
@@ -149,6 +149,8 @@
   "txt-setting-eng": "Setting",
   "txt-item": "項目",
   "txt-score": "評分",
+  "txt-text": "文字",
+  "txt-result": "結果",
   "txt-maxScore": "最高分",
   "txt-maxDataMsg": "資料筆數最大為10,000筆",
   "txt-es-data-over-limit": "超出搜尋範圍，請修改查詢條件",
@@ -257,6 +259,9 @@
   },
 
   "alert": {
+    "txt-encodeDecode": "編碼轉譯",
+    "txt-toLocalTime": "轉換本地時間",
+    "txt-invalidDate": "時間格式錯誤",
     "txt-openVideo": "開啟攝影畫面",
     "txt-alertList": "告警清單",
     "txt-statistics": "統計報表",
@@ -465,6 +470,7 @@
   "network-inventory": {
     "txt-deviceList": "裝置列表",
     "txt-deviceMap": "裝置地圖",
+    "txt-triggerAll": "全部檢測(HMD)",
     "txt-addIP": "新增IP",
     "txt-manuallyEnter": "單筆輸入",
     "txt-batchUpload": "批次上傳",
@@ -494,6 +500,7 @@
     "txt-_NewCreateFile": "新增檔案路徑",
     "txt-includePath": "偵測路徑",
     "txt-excludePath": "偵測排除路徑",
+    "txt-processKeyword": "處理程序關鍵字掃描",
     "txt-scanProcess": "掃描Process",
     "txt-scanFilePath": "掃描檔案路徑",
     "txt-saveSettings": "儲存設定",

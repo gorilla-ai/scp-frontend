@@ -43,6 +43,24 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const NOT_AVAILABLE = 'N/A';
 const SAFETY_SCAN_LIST = ['yara', 'scanFile', 'gcb', 'fileIntegrity'];
+const HMD_LIST = [
+  {
+    name: 'Yara Scan',
+    cmds: 'compareIOC'
+  },
+  {
+    name: 'Malware',
+    cmds: 'scanFile'
+  },
+  {
+    name: 'GCB',
+    cmds: 'gcbDetection'
+  },
+  {
+    name: 'File Integrity',
+    cmds: 'getFileIntegrity'
+  }
+];
 const MAPS_PRIVATE_DATA = {
   floorList: [],
   currentFloor: '',
@@ -155,6 +173,7 @@ class NetworkInventory extends Component {
       selectedTreeID: '',
       csvHeader: true,
       ipUploadFields: ['ip', 'mac', 'hostName', 'errCode'],
+      yaraTriggerAll: false,
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
     };
 
@@ -1353,8 +1372,15 @@ class NetworkInventory extends Component {
   /**
    * Toggle yara rule modal dialog on/off
    * @method
+   * @param {string} [value] - yara trigger flag ('true' or 'false')
    */
-  toggleYaraRule = () => {
+  toggleYaraRule = (value) => {
+    if (value) {
+      this.setState({
+        yaraTriggerAll: value === 'true'
+      });
+    }
+
     this.setState({
       yaraRuleOpen: !this.state.yaraRuleOpen
     });
@@ -1369,6 +1395,34 @@ class NetworkInventory extends Component {
     });
   }
   /**
+   * Check yara rule before submit for trigger
+   * @method
+   * @param {object} yaraRule - yara rule data
+   */
+  checkYaraRule = (yaraRule) => {
+    const {baseUrl} = this.context;
+    const url = `${baseUrl}/api/hmd/compileYara`;
+    const requestData = {
+      _RuleString: yaraRule.rule
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.triggerTask(['compareIOC'], '', yaraRule);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Handle trigger button for HMD
    * @method
    * @param {array.<string>} type - HMD scan type
@@ -1377,8 +1431,14 @@ class NetworkInventory extends Component {
    */
   triggerTask = (type, options, yaraRule) => {
     const {baseUrl} = this.context;
-    const {currentDeviceData} = this.state;
+    const {currentDeviceData, yaraTriggerAll} = this.state;
     const url = `${baseUrl}/api/hmd/retrigger`;
+
+    if (yaraTriggerAll) {
+      this.triggerHmdAll(HMD_LIST[0], yaraRule);
+      return;
+    }
+
     let requestData = {
       hostId: currentDeviceData.ipDeviceUUID,
       cmds: type
@@ -1686,6 +1746,67 @@ class NetworkInventory extends Component {
     });
   }
   /**
+   * Handle trigger button for HMD trigger all
+   * @method
+   * @param {object} hmdObj - HMD object
+   * @param {object} [yaraRule] - yara rule data
+   */
+  triggerHmdAll = (hmdObj, yaraRule) => {
+    const {baseUrl} = this.context;
+    const url = `${baseUrl}/api/hmd/retriggerAll`;
+    let requestData = {
+      cmds: [hmdObj.cmds]
+    };
+
+    if (hmdObj.cmds === 'compareIOC') {
+      requestData.paras = {
+        _FilepathList: yaraRule.path,
+        _RuleString: yaraRule.rule
+      };
+    }
+
+    ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }, {showProgress: false})
+    .then(data => {
+      this.toggleYaraRule('false');
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+
+    helper.showPopupMsg(t('txt-requestSent'));
+  }
+  /**
+   * Construct and display HMD context menu
+   * @method
+   * @param {object} evt - mouseClick events
+   */
+  handleHmdContextMenu = (evt) => {
+    const menuItems = _.map(HMD_LIST, val => {
+      if (val.cmds === 'compareIOC') {
+        return {
+          id: val.name,
+          text: val.name,
+          action: () => this.toggleYaraRule('true')
+        }
+      } else {
+        return {
+          id: val.name,
+          text: val.name,
+          action: () => this.triggerHmdAll(val)
+        }
+      }
+    });
+
+    ContextMenu.open(evt, menuItems, 'HMDmenu');
+    evt.stopPropagation();
+  }
+  /**
    * Handle HMD download button
    * @method
    * @param {string} type - download type ('windows' or 'linux')
@@ -1807,7 +1928,7 @@ class NetworkInventory extends Component {
         reader.readAsBinaryString(file);
       }
     } else {
-      reader.readAsArrayBuffer(file); 
+      reader.readAsArrayBuffer(file);
     }
   }
   /**
@@ -1859,7 +1980,7 @@ class NetworkInventory extends Component {
   /**
    * Toggle CSV header checkbox
    * @method
-   */  
+   */
   toggleCsvHeader = () => {
     this.setState({
       csvHeader: !this.state.csvHeader
@@ -2883,7 +3004,7 @@ class NetworkInventory extends Component {
     }
 
     _.forEach(tempArr, val => {
-      pathStr += 'children[' + val + '].'
+      pathStr += 'children[' + val + '].';
     })
 
     pathNameStr = pathStr + 'label';
@@ -3190,7 +3311,7 @@ class NetworkInventory extends Component {
         {yaraRuleOpen &&
           <YaraRule
             toggleYaraRule={this.toggleYaraRule}
-            triggerTask={this.triggerTask} />
+            checkYaraRule={this.checkYaraRule} />
         }
 
         {addSeatOpen &&
@@ -3247,6 +3368,7 @@ class NetworkInventory extends Component {
                 </Tabs>
 
                 <div className='content-header-btns'>
+                  <button className='standard btn' onClick={this.handleHmdContextMenu}>{t('network-inventory.txt-triggerAll')}</button>
                   <button className='standard btn' onClick={this.handleRowContextMenu.bind(this, 'addIP')}>{t('network-inventory.txt-addIP')}</button>
                   <button className='standard btn' onClick={this.toggleContent.bind(this, 'hmdSettings')}>{t('network-inventory.txt-hmdSettings')}</button>
                   <button className='standard btn' onClick={this.handleRowContextMenu.bind(this, 'download')}>{t('network-inventory.txt-hmdDownload')}</button>

@@ -1543,7 +1543,6 @@ class ThreatsController extends Component {
       this.clearQueryData();
     });
   }
-
   /**
    * redirect to incident page
    * @method
@@ -1554,7 +1553,6 @@ class ThreatsController extends Component {
     sessionStorage.setItem(timeInMss, JSON.stringify(alertData));
     window.location.href = '/SCP/soc/incident?alertDataId=' + timeInMss
   };
-
   /**
    * Set new datetime and reload page data
    * @method
@@ -1834,7 +1832,6 @@ class ThreatsController extends Component {
             datetime={datetime}
             searchInput={searchInput}
             showFilter={showFilter}
-            enableTime={true}
             showInterval={true}
             setSearchData={this.setSearchData}
             handleDateChange={this.handleDateChange}
