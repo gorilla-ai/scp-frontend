@@ -151,6 +151,7 @@
   "txt-score": "Score",
   "txt-text": "Text",
   "txt-result": "Result",
+  "txt-total": "Total",
   "txt-maxScore": "max. score",
   "txt-maxDataMsg": "The maximum data count is 10,000",
   "txt-es-data-over-limit": "Exceed max queried number, please revise filters",
@@ -262,7 +263,8 @@
   "host": {
     "txt-hostList": "Host List",
     "txt-deviceMap": "Device Map",
-    "txt-viewInfo": "View Info"
+    "txt-viewInfo": "View Info",
+    "txt-hostList2": "Host"
   },
 
   "alert": {

@@ -151,6 +151,7 @@
   "txt-score": "評分",
   "txt-text": "文字",
   "txt-result": "結果",
+  "txt-total": "總數",
   "txt-maxScore": "最高分",
   "txt-maxDataMsg": "資料筆數最大為10,000筆",
   "txt-es-data-over-limit": "超出搜尋範圍，請修改查詢條件",
@@ -262,7 +263,8 @@
   "host": {
     "txt-hostList": "主機列表",
     "txt-deviceMap": "裝置地圖",
-    "txt-viewInfo": "查看內容"
+    "txt-viewInfo": "查看內容",
+    "txt-hostList2": "主機清單"
   },
 
   "alert": {

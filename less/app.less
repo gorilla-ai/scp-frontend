@@ -1634,6 +1634,22 @@ i.c-checkbox.fg-checkbox {
           }
         }
       }
+      & > .host-list {
+        margin-top: 20px;
+        margin-left: 20px;
+        overflow: hidden;
+        header {
+          float: left;
+          font-size: 1.2em;
+          font-weight: bold;
+          color: var(--formEmailGroup);
+          margin-right: 15px;
+        }
+        span {
+          display: block;
+          margin-top: 3px;
+        }
+      }
       .main-content { //Content below the filter or charts
         position: relative;
         margin: 15px;
@@ -1644,6 +1660,7 @@ i.c-checkbox.fg-checkbox {
         &.host {
           ul.host-list {
             & > li {
+              min-height: 100px;
               padding: 15px 10px;
               overflow: hidden;
               border: 1px solid var(--primaryBorder);
@@ -1660,8 +1677,8 @@ i.c-checkbox.fg-checkbox {
                 margin-top: 5px;
                 margin-right: 20px;
                 text-align: center;
-                .fg {
-                  font-size: 2em;
+                img {
+                  width: 3.5em;
                 }
               }
               .info {
@@ -1684,10 +1701,35 @@ i.c-checkbox.fg-checkbox {
                       padding-left: 0;
                       border: none;
                     }
-                    i.fg {
+                    .fg-bg {
                       float: left;
+                      margin-right: 3px;
+                      width: 20px;
+                      height: 20px;
+                      background-color: var(--primaryTextColor);
+                      &.mac {
+                        -webkit-mask: url('/images/ic_mac_address.svg');
+                        mask: url('/images/ic_mac_address.svg');
+                      }
+                      &.windows {
+                        -webkit-mask: url('/images/ic_windows.svg');
+                        mask: url('/images/ic_windows.svg');
+                      }
+                      &.linux {
+                        -webkit-mask: url('/images/ic_linux.svg');
+                        mask: url('/images/ic_linux.svg');
+                      }
+                    }
+                    i.fg,
+                    img {
+                      float: left;
+                      margin-right: 3px;
+                    }
+                    i.fg {
                       font-size: 20px;
-                      margin-right: 5px;
+                    }
+                    img {
+                      width: 20px;
                     }
                   }
                 }
@@ -1719,7 +1761,7 @@ i.c-checkbox.fg-checkbox {
               }
               .details {
                 float: right;
-                color: var(--tableActiveRow);
+                color: var(--tabMenuText);
                 font-weight: bold;
                 margin-top: 15px;
                 margin-right: 20px;

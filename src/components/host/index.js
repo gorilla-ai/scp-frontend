@@ -20,6 +20,7 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 let t = null;
 let f = null;
 
+const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const ALERT_LEVEL_COLORS = {
   Emergency: '#CC2943',
   Alert: '#CC7B29',
@@ -71,9 +72,13 @@ class HostController extends Component {
         from: helper.getSubstractDate(1, 'hour'),
         to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
       },
+      severityList: [],
       hmdList: [],
+      privateMaskedIPlist: [],
       filterNav: {
-        hmdSelected: []
+        severitySelected: [],
+        hmdSelected: [],
+        maskedIPSelected: []
       },
       subTabMenu: {
         table: t('host.txt-hostList'),
@@ -94,12 +99,34 @@ class HostController extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    this.getSeverityList();
     this.getHMDlist();
+    this.getPrivateMaskedIp();
     this.getHostData();
   }
   ryan = () => {
 
   }
+  /**
+   * Get and set Severity list
+   * @method
+   */
+  getSeverityList = () => {
+    const severityList = _.map(SEVERITY_TYPE, val => {
+      return {
+        value: val.toLowerCase(),
+        text: val
+      };
+    })
+
+    this.setState({
+      severityList
+    });
+  }
+  /**
+   * Get and set HMD list
+   * @method
+   */
   getHMDlist = () => {
     const hmdList = [
       {
@@ -133,6 +160,34 @@ class HostController extends Component {
     });
   }
   /**
+   * Get and set Private Masked IP list
+   * @method
+   */
+  getPrivateMaskedIp = () => {
+    const privateMaskedIPlist = [
+      {
+        value: '192.168.0.xx',
+        text: '192.168.0.xx'
+      },
+      {
+        value: '192.168.20.xx',
+        text: '192.168.20.xx'
+      },
+      {
+        value: '172.18.100.xx',
+        text: '172.18.100.xx'
+      },
+      {
+        value: '172.18.0.xx',
+        text: '172.18.0.xx'
+      }
+    ];
+
+    this.setState({
+      privateMaskedIPlist
+    });
+  }
+  /**
    * Get and set host info data
    * @method
    */
@@ -145,8 +200,11 @@ class HostController extends Component {
         Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
         Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
       ]
-      //exactIp: '10.0.10.103
     };
+
+    if (filterNav.severitySelected.length > 0) {
+      return;
+    }
 
     if (filterNav.hmdSelected.length > 0) {
       requestData.isHmd = true;
@@ -154,6 +212,10 @@ class HostController extends Component {
       _.forEach(filterNav.hmdSelected, val => {
         requestData[val] = true;
       })
+    }
+
+    if (filterNav.maskedIPSelected.length > 0) {
+      return;
     }
 
     if (filterData.length > 0) {
@@ -299,8 +361,28 @@ class HostController extends Component {
    * @returns HTML DOM
    */
   getInfoList = (dataInfo, val, i) => {
+    const {contextRoot} = this.context;
+    let context = '';
+
     if (dataInfo[val.path]) {
-      return <li key={i} className={cx({'first': val.name === 'hostName'})} title={t('ipFields.' + val.name)}><i className={`fg fg-${val.icon}`}></i>{dataInfo[val.path]}</li>
+      if (val.path === 'mac') {
+        context = <div className={`fg-bg ${val.path}`}></div>;
+      } else if (val.path === 'system') {
+        const system = dataInfo[val.path].toLowerCase();
+        let os = 'windows';
+
+        if (system.indexOf('linux') > -1) {
+          os = 'linux';
+        } else if (system.indexOf('windows') > -1) {
+          os = 'windows';
+        }
+
+        context = <div className={`fg-bg ${os}`}></div>;
+      } else {
+        context = <i className={`fg fg-${val.icon}`}></i>;
+      }
+
+      return <li key={i} className={cx({'first': val.first})} title={t('ipFields.' + val.name)}>{context}{dataInfo[val.path]}</li>
     }
   }
   /**
@@ -311,21 +393,15 @@ class HostController extends Component {
    * @returns HTML DOM
    */
   getHostList = (val, i) => {
+    const {contextRoot} = this.context;
     const infoList = [
       {
-        name: 'hostName',
-        path: 'hostName',
-        icon: 'id-card'
-      },
-      {
         name: 'mac',
-        path: 'mac',
-        icon: 'database'
+        path: 'mac'
       },
       {
         name: 'system',
-        path: 'system',
-        icon: 'coupon'
+        path: 'system'
       },
       {
         name: 'owner',
@@ -338,10 +414,28 @@ class HostController extends Component {
         icon: 'map'
       }
     ];
+    let newInfoList = [];
+    let firstItem = false;
     let safetyScanInfo = '';
     let safetyData = false;
     let severityType = '';
     let severityCount = 0;
+    let itemHeader = val.ip;
+
+    _.forEach(infoList, val2 => { //Determine the first item in the list
+      if (!firstItem && val[val2.path]) {
+        firstItem = true; //Upate flag
+        newInfoList.push({
+          ...val2,
+          first: true
+        });
+      } else {
+        newInfoList.push({
+          ...val2,
+          first: false
+        });
+      }
+    })
 
     if (val.safetyScanInfo) {
       safetyScanInfo = val.safetyScanInfo;
@@ -361,15 +455,19 @@ class HostController extends Component {
       severityCount = helper.numberWithCommas(val.networkBehaviorInfo.doc_count);
     }
 
+    if (val.hostName) {
+      itemHeader += ' / ' + val.hostName;
+    }
+
     return (
       <li key={i}>
         <div className='device'>
-          <i className='fg fg-network'></i>
+          <img src={`${contextRoot}/images/ic_host.svg`} />
         </div>
         <div className='info'>
-          <header>{val.ip}</header>
+          <header>{itemHeader}</header>
           <ul>
-            {infoList.map(this.getInfoList.bind(this, val))}
+            {newInfoList.map(this.getInfoList.bind(this, val))}
           </ul>
 
           {safetyData &&
@@ -421,15 +519,12 @@ class HostController extends Component {
   /**
    * Handle Host data filter change
    * @method
-   * @param {string} type - filter type ('hmdSelected')
+   * @param {string} type - filter type ('severitySelected', hmdSelected', 'maskedIPSelected')
    * @param {array} value - selected hmd array
    */
   handleFilterNavChange = (type, value) => {
     let tempFilterNav = {...this.state.filterNav};
-    
-    if (type === 'hmdSelected') {
-      tempFilterNav[type] = value;
-    }
+    tempFilterNav[type] = value;
 
     this.setState({
       filterNav: tempFilterNav
@@ -443,7 +538,9 @@ class HostController extends Component {
       showLeftNav,
       showFilter,
       datetime,
+      severityList,
       hmdList,
+      privateMaskedIPlist,
       filterNav,
       filterData,
       hostInfo
@@ -473,11 +570,26 @@ class HostController extends Component {
           <div className={cx('left-nav tree', {'collapse': !showLeftNav})}>
             <div className='content'>
               <div>
+                <label className={cx('header-text', {'hide': !showLeftNav})}>{t('alert.txt-threatLevel')}</label>
+                <CheckboxGroup
+                  list={severityList}
+                  value={filterNav.severitySelected}
+                  onChange={this.handleFilterNavChange.bind(this, 'severitySelected')} />
+              </div>
+              <div>
                 <label className={cx('header-text', {'hide': !showLeftNav})}>HMD</label>
                 <CheckboxGroup
                   list={hmdList}
                   value={filterNav.hmdSelected}
                   onChange={this.handleFilterNavChange.bind(this, 'hmdSelected')} />
+              </div>
+
+              <div>
+                <label className={cx('header-text', {'hide': !showLeftNav})}>{t('alert.txt-privateMaskedIp')}</label>
+                <CheckboxGroup
+                  list={privateMaskedIPlist}
+                  value={filterNav.maskedIPSelected}
+                  onChange={this.handleFilterNavChange.bind(this, 'maskedIPSelected')} />
               </div>
             </div>
             <div className='expand-collapse' onClick={this.toggleLeftNav}>
@@ -494,6 +606,12 @@ class HostController extends Component {
               toggleFilter={this.toggleFilter}
               handleSearchSubmit={this.handleSearchSubmit}
               handleResetBtn={this.handleResetBtn} />
+            <div className='host-list'>
+              <header>{t('host.txt-hostList2')}</header>
+              {hostInfo.totalCount > 0 &&
+                <span>{t('txt-total')}: {helper.numberWithCommas(hostInfo.totalCount)}</span>
+              }
+            </div>
             <div className='main-content host'>
               <Tabs
                 className='subtab-menu'

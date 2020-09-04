@@ -37,6 +37,10 @@ class SearchFilter extends Component {
     if (activeTab === 'host') {
       filterList = [
         {
+          value: 'exactIp',
+          text: 'Exact IP'
+        },
+        {
           value: 'ip',
           text: 'IP'
         },
