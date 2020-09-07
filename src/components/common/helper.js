@@ -175,6 +175,25 @@ const helper = {
         return 'yellow';
     }
   },
+  getSeverityColor: function(value) {
+    let backgroundColor = '';
+
+    if (value === 'Emergency') {
+      backgroundColor = '#CC2943';
+    } else if (value === 'Alert') {
+      backgroundColor = '#CC7B29';
+    } else if (value === 'Critical') {
+      backgroundColor = '#29B0CC';
+    } else if (value === 'Warning') {
+      backgroundColor = '#29CC7A';
+    } else if (value === 'Notice') {
+      backgroundColor = '#7ACC29';
+    } else {
+      return 'N/A'
+    }
+
+    return <span className='severity' style={{backgroundColor}}>{value}</span>
+  },
   getJsonViewTheme: function() {
     return {
       scheme: 'bright',

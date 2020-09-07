@@ -605,31 +605,6 @@ class AlertDetails extends Component {
     });
   }
   /**
-   * Get alert severity
-   * @method
-   * @param {string} value - 'Emergency', 'Alert', 'Critical', 'Warning', 'Notice'
-   * @returns HTML DOM
-   */
-  getSeverity = (value) => {
-    let backgroundColor = '';
-
-    if (value === 'Emergency') {
-      backgroundColor = '#CC2943';
-    } else if (value === 'Alert') {
-      backgroundColor = '#CC7B29';
-    } else if (value === 'Critical') {
-      backgroundColor = '#29B0CC';
-    } else if (value === 'Warning') {
-      backgroundColor = '#29CC7A';
-    } else if (value === 'Notice') {
-      backgroundColor = '#7ACC29';
-    } else if (value === NOT_AVAILABLE) {
-      return {NOT_AVAILABLE}
-    }
-
-    return <span className='severity' style={{backgroundColor}}>{value}</span>
-  }
-  /**
    * Handle pcap download button
    * @method
    * @param {string} url - pcap download link
@@ -794,7 +769,6 @@ class AlertDetails extends Component {
   displayAlertData = () => {
     const {alertDetails, alertData} = this.props;
     const {alertType, showContent, alertRule, alertPayload, showRedirectMenu} = this.state;
-    const severity = alertData._severity_ ? this.getSeverity(alertData._severity_) : NOT_AVAILABLE;
     const eventDatetime = alertData._eventDttm_ ? helper.getFormattedDate(alertData._eventDttm_, 'local') : NOT_AVAILABLE;
 
     return (
@@ -811,7 +785,7 @@ class AlertDetails extends Component {
           </thead>
           <tbody>
             <tr>
-              <td className='severity-level'>{severity}</td>
+              <td className='severity-level'>{helper.getSeverityColor(alertData._severity_)}</td>
               <td className='collector'>{alertData.Collector || NOT_AVAILABLE}</td>
               <td className='trigger'>{alertData.Trigger || NOT_AVAILABLE}</td>
               <td className='source'>{alertData.Source || NOT_AVAILABLE}</td>

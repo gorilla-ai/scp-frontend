@@ -47,6 +47,9 @@ class PrivateDetails extends Component {
   componentDidUpdate(prevProps) {
     this.getDataInfo(prevProps);
   }
+  ryan = () => {
+
+  }
   /**
    * Get and set the ip, owner, area and host information
    * @method
@@ -59,8 +62,8 @@ class PrivateDetails extends Component {
     }
 
     const ip = {
-      ip: topoInfo[type] ? topoInfo[type] : (topoInfo.ip || topoInfo.srcIp),
-      mac: topoInfo[srcDestType + 'Mac'] ? topoInfo[srcDestType + 'Mac'] : (topoInfo.mac || topoInfo.srcMac)
+      ip: topoInfo[type] ? topoInfo[type] : (topoInfo.ip || topoInfo.srcIp || alertInfo.ip),
+      mac: topoInfo[srcDestType + 'Mac'] ? topoInfo[srcDestType + 'Mac'] : (topoInfo.mac || topoInfo.srcMac || alertInfo.mac)
     };
     const owner = {
       id: topoInfo.ownerObj ? topoInfo.ownerObj.ownerID : topoInfo.ownerID,

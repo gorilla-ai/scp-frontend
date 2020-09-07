@@ -491,8 +491,10 @@ html[data-theme='dark'] {
 }
 /* configuration/topology/inventory */
 /* configuration/common/alert-details */
+/* host/index */
 #dashboardModalDialog-content,
-#configScanModalDialog-content {
+#configScanModalDialog-content,
+#hostModalDialog-content, {
   #g-progress-container {
     .fg-loading-2 {
       display: block;
@@ -754,7 +756,9 @@ html[data-theme='dark'] {
   }
 }
 /* common/alert-details */
-#dashboardModalDialog-content {
+/* host/index */
+#dashboardModalDialog-content,
+#hostModalDialog-content {
   width: 1280px;
   max-height: 725px;
   .main-table {
@@ -879,6 +883,7 @@ html[data-theme='dark'] {
           float: right;
           cursor: pointer;
           .multi-items {
+            float: right;
             overflow: hidden;
             span {
               display: block;
@@ -1019,6 +1024,18 @@ html[data-theme='dark'] {
       }
       .settings-wrapper {
         height: 340px;
+      }
+    }
+  }
+}
+#hostModalDialog-content {
+  .main-content {
+    & > .content {
+      min-height: 580px;
+      .srcIp-content,
+      .scan-info,
+      .network-behavior {
+        height: 580px;
       }
     }
   }

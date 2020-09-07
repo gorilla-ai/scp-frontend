@@ -12,6 +12,7 @@ import Tabs from 'react-ui/build/src/components/tabs'
 import {BaseDataContext} from '../common/context';
 import FilterContent from '../common/filter-content'
 import helper from '../common/helper'
+import HostAnalysis from '../common/host-analysis'
 import Pagination from '../common/pagination'
 import SearchOptions from '../common/search-options'
 
@@ -66,12 +67,13 @@ class HostController extends Component {
 
     this.state = {
       activeSubTab: 'hostList', //'hostList', 'deviceMap'
-      showFilter: false,
+      showFilter: true,
       showLeftNav: true,
       datetime: {
         from: helper.getSubstractDate(1, 'hour'),
         to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
       },
+      hostAnalysisOpen: false,
       severityList: [],
       hmdList: [],
       privateMaskedIPlist: [],
@@ -93,7 +95,8 @@ class HostController extends Component {
         totalCount: 0,
         currentPage: 1,
         pageSize: 20
-      }
+      },
+      activeHostData: {}
     };
 
     this.ah = getInstance('chewbacca');
@@ -386,6 +389,17 @@ class HostController extends Component {
     }
   }
   /**
+   * Toggle Host Analysis dialog on/off
+   * @method
+   * @param {object} hostData - active Host data
+   */
+  toggleHostAnalysis = (hostData) => {
+    this.setState({
+      hostAnalysisOpen: !this.state.hostAnalysisOpen,
+      activeHostData: hostData
+    });
+  }
+  /**
    * Display Host content
    * @method
    * @param {object} val - Host data
@@ -490,7 +504,7 @@ class HostController extends Component {
             </div>
           }
         </div>
-        <div className='details'>
+        <div className='view-details' onClick={this.toggleHostAnalysis.bind(this, val)}>
           {t('host.txt-viewInfo')}
         </div>
       </li>
@@ -532,12 +546,31 @@ class HostController extends Component {
       this.getHostData();
     });
   }
+  /**
+   * Display Host Analysis modal dialog 
+   * @method
+   * @returns HostAnalysis component
+   */
+  hostAnalysisDialog = () => {
+    const {activeHostData} = this.state;
+    const actions = {
+      confirm: {text: t('txt-close'), handler: this.toggleHostAnalysis}
+    };
+
+    return (
+      <HostAnalysis
+        titleText={t('host.txt-hostAnalysis')}
+        actions={actions}
+        hostInfo={activeHostData} />
+    )
+  }
   render() {
     const {
       activeSubTab,
       showLeftNav,
       showFilter,
       datetime,
+      hostAnalysisOpen,
       severityList,
       hmdList,
       privateMaskedIPlist,
@@ -555,6 +588,10 @@ class HostController extends Component {
 
     return (
       <div>
+        {hostAnalysisOpen &&
+          this.hostAnalysisDialog()
+        }
+
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
             <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i><span>({filterDataCount})</span></button>

@@ -1457,7 +1457,7 @@ class ThreatsController extends Component {
         alertDetails={alertDetails}
         alertData={alertData}
         showAlertData={this.showAlertData}
-        fromPage='threats'/>
+        fromPage='threats' />
     )
   }
   /**
