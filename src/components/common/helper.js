@@ -282,9 +282,11 @@ const helper = {
 
     _.forEach(subSectionsData.mapData[activeTab], val => {
       const uniqueID = val.id + Math.floor((Math.random() * 1000000) + 1);
-      const timestamp = helper.getFormattedDate(val._eventDttm_, 'local');
+      const timestamp = helper.getFormattedDate(val.lastPacket, 'local');
 
       if (val.srcLatitude && val.srcLongitude) {
+        const country = _.includes(val.srcCountry, 'Taiwan') ? 'Taiwan' : val.srcCountry
+
         attacksDataArr.push({
           type: 'spot',
           id: `${uniqueID}_src`,
@@ -296,12 +298,14 @@ const helper = {
             tag: 'red'
           },
           tooltip: () => {
-            return `<div>${t('payloadsFields.srcCountry')}: ${val.srcCountry}</div><div>${t('payloadsFields.srcCity')}: ${val.srcCity}</div><div>${t('payloadsFields.srcIp')}: ${val.srcIp}</div><div>${t('payloadsFields.timestamp')}: ${timestamp}</div>`
+            return `<div>${t('payloadsFields.srcCountry')}: ${country}</div><div>${t('payloadsFields.srcCity')}: ${val.srcCity}</div><div>${t('payloadsFields.srcIp')}: ${val.ipSrc}</div><div>${t('payloadsFields.timestamp')}: ${timestamp}</div>`
           }
         });
       }
 
       if (val.destLatitude && val.destLongitude) {
+        const country = _.includes(val.destCountry, 'Taiwan') ? 'Taiwan' : val.destCountry
+
         attacksDataArr.push({
           type: 'spot',
           id: `${uniqueID}_dest`,
@@ -313,7 +317,7 @@ const helper = {
             tag: 'yellow'
           },
           tooltip: () => {
-            return `<div>${t('payloadsFields.destCountry')}: ${val.destCountry}</div><div>${t('payloadsFields.destCity')}: ${val.destCity}</div><div>${t('payloadsFields.destIp')}: ${val.destIp}</div><div>${t('payloadsFields.timestamp')}: ${timestamp}</div>`
+            return `<div>${t('payloadsFields.destCountry')}: ${country}</div><div>${t('payloadsFields.destCity')}: ${val.destCity}</div><div>${t('payloadsFields.destIp')}: ${val.ipDst}</div><div>${t('payloadsFields.timestamp')}: ${timestamp}</div>`
           }
         });
       }
