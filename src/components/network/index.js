@@ -210,7 +210,8 @@ class Network extends Component {
       openChartKpi: false,
       payloadKpi: null,
       protocols: [],
-      decoders: []
+      decoders: [],
+      sortProtocol: {}
     };
 
     this.ah = getInstance('chewbacca');
@@ -2129,7 +2130,9 @@ class Network extends Component {
       openChartKpi,
       toggleChartKpi: this.toggleChartKpi,
       protocols: this.state.protocols,
-      decoders: this.state.decoders
+      decoders: this.state.decoders,
+      sortProtocol: this.state.sortProtocol,
+      onSortProtocol: this.onSortProtocol.bind(this)
     };
 
     if (activeTab === 'connections') {
@@ -2289,12 +2292,29 @@ class Network extends Component {
           return row
         })
 
-        this.setState({protocols: tableData, decoders, openChartKpi: true})
+        let sortProtocol = {
+          protocol: '▲'
+        }
+        _.forEach(decoders, el => {
+          sortProtocol[el] = '▲'
+        })
+
+        this.setState({protocols: tableData, decoders, openChartKpi: true, sortProtocol})
       })
       .catch(err => {
         helper.showPopupMsg('', t('txt-error'), err.message);
       })
     }
+  }
+  onSortProtocol(key) {
+    let {sortProtocol, protocols} = this.state
+    let mark = sortProtocol[key] === '▲' ? '▼' : '▲'
+    let order = sortProtocol[key] === '▲' ? 'desc' : 'asc'
+
+    _.set(sortProtocol, key, mark)
+    protocols = _.orderBy(protocols, [key], [order])
+
+    this.setState({sortProtocol, protocols})
   }
   clearTagData = () => {
     const tagData = {

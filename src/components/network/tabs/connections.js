@@ -30,14 +30,7 @@ class Connections extends Component {
     const {baseUrl, contextRoot, language, mainContentData, tabChartData, tableMouseOver} = this.props;
     const assetsPath = `${contextRoot}/lib/keylines/assets/`;
     
-    const per = 60 / _.size(mainContentData.decoders)
-    const FIELDS_HEAD = {
-      protocol: { label: t('txt-protocol'), style: {textAlign: 'left', width: '40%'} }
-    }
-    _.forEach(mainContentData.decoders, el => {
-      FIELDS_HEAD[el] = { label: el, style: {textAlign: 'left', width: `${per}%`} }
-    })
-
+    const per = _.size(mainContentData.decoders) === 0 ? 0 : 60 / _.size(mainContentData.decoders)
     const FIELDS = {
       protocol: { label: '', style: {textAlign: 'left', width: '40%'}}
     }
@@ -58,7 +51,25 @@ class Connections extends Component {
               mainContentData.openChartKpi &&
               <div className='table-kpi'>
                 <i className='c-link fg fg-close' title={t('txt-close')} onClick={mainContentData.toggleChartKpi} />
-                <Table className='head' data={[]} fields={FIELDS_HEAD}/>
+                <table className='c-table table-fit-width head'>
+                  <thead>
+                    <tr id='header'>
+                      <th id='protocol' className='c-link' style={{textAlign: 'left', width: '40%'}} 
+                        onClick={mainContentData.onSortProtocol.bind(this, 'protocol')}>
+                        {t('txt-protocol')}<span className='dir selected'>{mainContentData.sortProtocol['protocol']}</span>
+                      </th>
+                      {
+                        _.map(mainContentData.decoders, decoder => {
+                          return <th key={decoder} id={decoder} className='c-link' style={{textAlign: 'left', width: `${per}%`}} 
+                            onClick={mainContentData.onSortProtocol.bind(this, decoder)}>
+                            {decoder}<span className='dir selected'>{mainContentData.sortProtocol[decoder]}</span>
+                          </th>
+                        })
+                      }
+                    </tr>
+                  </thead>
+                </table>
+
                 <div className='pdata'>
                   <Table className='data' data={mainContentData.protocols} fields={FIELDS}/>
                 </div>
