@@ -1,22 +1,19 @@
-If you run this demo from the filesystem, some functionality may not work. You should serve it from a web server instead.
+To run this demo you must serve it from a server rather than the file system.
 
-If you are using Node.js as your web server, you should first install Express by running:
+This demo requires webpack to build and run. To install webpack (and other dependencies) run:
 
-> npm install express
+> npm install
 
-You can then start your web server by running:
+To run the demo, install and run Live Server:
 
-> node server.js
+> npm install -g live-server
+> live-server
 
-If you can't run Node or Express, just use a simple Python server:
-
- > python -m SimpleHTTPServer 8080
-
-Then you can navigate to http://localhost:8080 in your web browser to see the demo running.
+Live Server will automatically open a new browser tab at http://localhost:8080 to show the demo folder.
+Click index.htm to see the demo running.
 
 File Name           Description
 angular/*           Angular integration code
-assets/             KeyLines image assets directory
 css/keylines.css    KeyLines style settings
 fonts/              Default KeyLines font files
 images/             Icon, glyph and flag images for use with KeyLines
@@ -24,7 +21,10 @@ index.htm           A 'hello world' sample file
 js/keylines.js      The KeyLines JavaScript component
 map/*               Map display code
 ng/*                AngularJS integration code
+package.json        NPM package file. To install KeyLines as an npm package in your project, run
+                      npm install <folder>
+                    replacing <folder> with the path to this folder.
+                    You can then import or require the 'keylines' package in your project.
 react/*             React integration code
-ts/keylines.d.ts    TypeScript definition file for KeyLines (alpha)
+ts/keylines.d.ts    TypeScript definition file for KeyLines
 vue/*               VueJS integration code
-server.js           A simple NodeJS webserver for testing the zip contents
