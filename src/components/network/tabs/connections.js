@@ -29,12 +29,20 @@ class Connections extends Component {
   render() {
     const {baseUrl, contextRoot, language, mainContentData, tabChartData, tableMouseOver} = this.props;
     const assetsPath = `${contextRoot}/lib/keylines/assets/`;
-    const FIELDS = {
-      protocol: { label: t('txt-protocol'), style: {textAlign: 'left'}, sortable: true }
+    
+    const per = 60 / _.size(mainContentData.decoders)
+    const FIELDS_HEAD = {
+      protocol: { label: t('txt-protocol'), style: {textAlign: 'left', width: '40%'} }
     }
-
     _.forEach(mainContentData.decoders, el => {
-      FIELDS[el] = { label: el, style: {textAlign: 'left'}, sortable: true, formatter: (val) => {
+      FIELDS_HEAD[el] = { label: el, style: {textAlign: 'left', width: `${per}%`} }
+    })
+
+    const FIELDS = {
+      protocol: { label: '', style: {textAlign: 'left', width: '40%'}}
+    }
+    _.forEach(mainContentData.decoders, el => {
+      FIELDS[el] = { label: '', style: {textAlign: 'left', width: `${per}%`}, formatter: (val) => {
         return val ? <i className='fg fg-check'/> : ''
       }}
     })
@@ -50,7 +58,10 @@ class Connections extends Component {
               mainContentData.openChartKpi &&
               <div className='table-kpi'>
                 <i className='c-link fg fg-close' title={t('txt-close')} onClick={mainContentData.toggleChartKpi} />
-                <Table data={mainContentData.protocols} fields={FIELDS}/>
+                <Table className='head' data={[]} fields={FIELDS_HEAD}/>
+                <div className='pdata'>
+                  <Table className='data' data={mainContentData.protocols} fields={FIELDS}/>
+                </div>
               </div>
             }
 

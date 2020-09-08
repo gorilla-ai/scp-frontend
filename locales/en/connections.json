@@ -202,7 +202,7 @@
   "txt-map": "Map",  
 
   "txt-decoder": "Decoder",
-  "txt-protocol": "Protocol",
+  "txt-protocol": "Protocol/Service",
 
   "dashboard": {
     "txt-alertIndicator": "Alert Summary",

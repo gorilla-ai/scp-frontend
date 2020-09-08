@@ -202,7 +202,7 @@
   "txt-map": "地圖",
 
   "txt-decoder": "解碼器",
-  "txt-protocol": "協定",
+  "txt-protocol": "協定/服務",
 
   "dashboard": {
     "txt-alertIndicator": "告警指標種類摘要",
