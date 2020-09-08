@@ -784,7 +784,7 @@ html[data-theme='dark'] {
         width: 10%;
       }
     }
-    .severity {
+    .severity-level .severity {
       display: block;
       color: #fff;
       width: 90px;
@@ -1031,13 +1031,15 @@ html[data-theme='dark'] {
 #hostModalDialog-content {
   .main-content {
     & > .content {
-      min-height: 580px;
       .srcIp-content,
       .scan-info,
-      .network-behavior {
-        height: 580px;
+      & > .network-behavior {
+        height: 550px;
       }
     }
+  }
+  .scan-info .info-content .dashboard-wrapper {
+    height: 100%;
   }
 }
 /* configuration/topology/inventory */

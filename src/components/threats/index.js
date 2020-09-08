@@ -20,11 +20,6 @@ import Threats from './threats'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
-let t = null;
-let f = null;
-let et = null;
-let it = null;
-
 const NOT_AVAILABLE = 'N/A';
 const PRIVATE = 'private';
 const PUBLIC = 'public';
@@ -134,6 +129,11 @@ const TABLE_CHARTS_LIST = [
     key: 'client'
   }
 ];
+
+let t = null;
+let f = null;
+let et = null;
+let it = null;
 
 /**
  * Threats

@@ -5,27 +5,18 @@ import Moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import ButtonGroup from 'react-ui/build/src/components/button-group'
-import ContextMenu from 'react-ui/build/src/components/contextmenu'
-import DataTable from 'react-ui/build/src/components/table'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
-import PopupDialog from 'react-ui/build/src/components/popup-dialog'
-
-import JSONTree from 'react-json-tree'
 
 import {BaseDataContext} from './context';
 
 import helper from './helper'
-import EncodeDecode from './encode-decode'
-import IrSelections from './ir-selections'
 import HMDscanInfo from './hmd-scan-info'
+import IrSelections from './ir-selections'
+import NetworkBehavior from './network-behavior'
 import PrivateDetails from './private-details'
 import YaraRule from './yara-rule'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
-
-let t = null;
-let f = null;
 
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const ALERT_LEVEL_COLORS = {
@@ -36,6 +27,9 @@ const ALERT_LEVEL_COLORS = {
   Notice: '#7ACC29'
 };
 const NOT_AVAILABLE = 'N/A';
+
+let t = null;
+let f = null;
 
 /**
  * Host Analysis
@@ -52,7 +46,9 @@ class HostAnalysis extends Component {
         info: true,
         safety: false,
         network: false
-      }
+      },
+      modalYaraRuleOpen: false,
+      modalIRopen: false
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -157,33 +153,13 @@ class HostAnalysis extends Component {
    * @returns HMDscanInfo component
    */
   displaySafetyScanContent = () => {
-    //const {ipDeviceInfo} = this.state;
-
     return (
-      <div className='scan-info'>Ryan</div>
-    )
-  }
-  /**
-   * Display network behavior content
-   * @method
-   * @returns HTML DOM
-   */
-  displayNetworkBehaviorContent = () => {
-    // const {alertData} = this.props;
-    // const {activeNetworkBehavior, networkBehavior} = this.state;
-    // let datetime = {};
-
-    // if (alertData._eventDttm_) {
-    //   datetime = {
-    //     from: helper.getFormattedDate(helper.getSubstractDate(1, 'hours', alertData._eventDttm_)),
-    //     to: helper.getFormattedDate(alertData._eventDttm_, 'local')
-    //   };
-    // }
-
-    return (
-      <div className='network-behavior'>
-        Ryan2
-      </div>
+      <HMDscanInfo
+        page='threats'
+        currentDeviceData={this.props.hostInfo}
+        toggleYaraRule={this.toggleYaraRule}
+        toggleSelectionIR={this.toggleSelectionIR}
+        triggerTask={this.triggerTask} />
     )
   }
   /**
@@ -245,15 +221,113 @@ class HostAnalysis extends Component {
             }
 
             {showContent.network &&
-              this.displayNetworkBehaviorContent()
+              <NetworkBehavior
+                ipType='srcIp'
+                alertData={hostInfo} />
             }
           </div>
         </div>
       </div>
     )
   }
+  /**
+   * Toggle yara rule dialog
+   * @method
+   */
+  toggleYaraRule = () => {
+    this.setState({
+      modalYaraRuleOpen: !this.state.modalYaraRuleOpen
+    });
+  }
+  /**
+   * Check yara rule before submit for trigger
+   * @method
+   * @param {object} yaraRule - yara rule data
+   */
+  checkYaraRule = (yaraRule) => {
+    const {baseUrl} = this.context;
+    const url = `${baseUrl}/api/hmd/compileYara`;
+    const requestData = {
+      _RuleString: yaraRule.rule
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.triggerTask(['compareIOC'], '', yaraRule);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Toggle IR combo selection dialog
+   * @method
+   */
+  toggleSelectionIR = () => {
+    this.setState({
+      modalIRopen: !this.state.modalIRopen
+    });
+  }
+  /**
+   * Handle trigger button for HMD
+   * @method
+   * @param {array.<string>} type - HMD scan type
+   * @param {string} [ipTypeParam] - IP type ('srcIp' or 'destIp')
+   * @param {object} [yaraRule] - yara rule data
+   */
+  triggerTask = (type, ipTypeParam, yaraRule) => {
+    const {baseUrl} = this.context;
+    const {hostInfo} = this.props;
+    const url = `${baseUrl}/api/hmd/retrigger`;
+    let requestData = {
+      hostId: hostInfo.ipDeviceUUID,
+      cmds: type
+    };
+
+    if (type[0] === 'compareIOC') {
+      requestData.paras = {
+        _FilepathList: yaraRule.path,
+        _RuleString: yaraRule.rule
+      };
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('txt-requestSent'));
+
+        if (type[0] === 'compareIOC') {
+          this.toggleYaraRule();
+        }
+
+        if (type[0] === 'ir') {
+          this.toggleSelectionIR();
+        }
+
+        //this.getHMDinfo(ipType);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
   render() {
     const {titleText, actions} = this.props;
+    const {modalYaraRuleOpen, modalIRopen} = this.state;
 
     return (
       <div>
@@ -267,6 +341,18 @@ class HostAnalysis extends Component {
           closeAction='confirm'>
           {this.displayHostAnalysisData()}
         </ModalDialog>
+
+        {modalYaraRuleOpen &&
+          <YaraRule
+            toggleYaraRule={this.toggleYaraRule}
+            checkYaraRule={this.checkYaraRule} />
+        }
+
+        {modalIRopen &&
+          <IrSelections
+            toggleSelectionIR={this.toggleSelectionIR}
+            triggerTask={this.triggerTask} />
+        }
       </div>
     )
   }

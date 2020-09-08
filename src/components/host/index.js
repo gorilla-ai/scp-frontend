@@ -18,9 +18,6 @@ import SearchOptions from '../common/search-options'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
-let t = null;
-let f = null;
-
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
 const ALERT_LEVEL_COLORS = {
   Emergency: '#CC2943',
@@ -51,6 +48,9 @@ const SCAN_RESULT = [
   result: 'fileIntegrityResult',
   count: 'getFileIntegrityTotalCnt'
 }];
+
+let t = null;
+let f = null;
 
 /**
  * Host
@@ -476,7 +476,6 @@ class HostController extends Component {
     return (
       <li key={i}>
         <div className='device'>
-          <img src={`${contextRoot}/images/ic_host.svg`} />
         </div>
         <div className='info'>
           <header>{itemHeader}</header>
@@ -552,7 +551,6 @@ class HostController extends Component {
    * @returns HostAnalysis component
    */
   hostAnalysisDialog = () => {
-    const {activeHostData} = this.state;
     const actions = {
       confirm: {text: t('txt-close'), handler: this.toggleHostAnalysis}
     };
@@ -561,7 +559,7 @@ class HostController extends Component {
       <HostAnalysis
         titleText={t('host.txt-hostAnalysis')}
         actions={actions}
-        hostInfo={activeHostData} />
+        hostInfo={this.state.activeHostData} />
     )
   }
   render() {

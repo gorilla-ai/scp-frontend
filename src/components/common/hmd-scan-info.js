@@ -147,7 +147,7 @@ class HMDscanInfo extends Component {
    */
   loadInitialData = () => {
     this.loadInitialContent();
-    this.loadDashboardCharts();
+    this.loadRadarCharts();
     this.loadHMDdata();
     this.loadSettingsData();
   }
@@ -186,8 +186,9 @@ class HMDscanInfo extends Component {
    * Set spider and table chart for Dashboard tab
    * @method
    */
-  loadDashboardCharts = () => {
+  loadRadarCharts = () => {
     const {currentDeviceData} = this.props;
+    const radarResult = currentDeviceData.radarResult || currentDeviceData.safetyScanInfo.radarResult;
     let polarData = {
       categories: [],
       data: []
@@ -195,7 +196,7 @@ class HMDscanInfo extends Component {
     let tempDashboardInfo = {...this.state.dashboardInfo};
     let totalScore = '';
 
-    _.forEach(currentDeviceData.radarResult, val => {
+    _.forEach(radarResult, val => {
       polarData.categories.push(val.key);
       polarData.data.push(val.value);
       tempDashboardInfo.dataContent.push({ //For Dashboard table chart
@@ -276,7 +277,7 @@ class HMDscanInfo extends Component {
     });
 
     _.forEach(SAFETY_SCAN_LIST, val => { //Construct the HMD info object
-      const currentDataObj = currentDeviceData[val.type + 'Result'];
+      const currentDataObj = currentDeviceData[val.type + 'Result'] || currentDeviceData.safetyScanInfo[val.type + 'Result'];
 
       if (currentDataObj && currentDataObj.length > 0 && !_.isEmpty(currentDataObj[0])) {
         hmdInfo[val.type] = {
@@ -435,17 +436,18 @@ class HMDscanInfo extends Component {
     const {disabledBtn} = this.state;
     const {currentDeviceData} = this.props;
     const resultType = type + 'Result';
+    const currentDevice = currentDeviceData[resultType] || currentDeviceData.safetyScanInfo[resultType];
 
     if (disabledBtn) {
       return true;
     }
 
-    if (currentDeviceData[resultType] && currentDeviceData[resultType].length > 0) {
-      if (currentDeviceData[resultType][0].latestCreateDttm) {
-        const latestCreateTime = helper.getFormattedDate(currentDeviceData[resultType][0].latestCreateDttm, 'local');
+    if (currentDevice && currentDevice.length > 0) {
+      if (currentDevice[0].latestCreateDttm) {
+        const latestCreateTime = helper.getFormattedDate(currentDevice[0].latestCreateDttm, 'local');
 
-        if (currentDeviceData[resultType][0].taskResponseDttm) {
-          const responseTime = helper.getFormattedDate(currentDeviceData[resultType][0].taskResponseDttm, 'local');
+        if (currentDevice[0].taskResponseDttm) {
+          const responseTime = helper.getFormattedDate(currentDevice[0].taskResponseDttm, 'local');
 
           if (Moment(latestCreateTime).isAfter(responseTime)) {
             return this.checkOneDayAfter(latestCreateTime);
@@ -1662,9 +1664,9 @@ HMDscanInfo.contextType = BaseDataContext;
 HMDscanInfo.propTypes = {
   page: PropTypes.string.isRequired,
   currentDeviceData: PropTypes.object.isRequired,
+  toggleYaraRule: PropTypes.func.isRequired,
   toggleSelectionIR: PropTypes.func.isRequired,
-  triggerTask: PropTypes.func.isRequired,
-  toggleYaraRule: PropTypes.func.isRequired
+  triggerTask: PropTypes.func.isRequired
 };
 
 export default withRouter(HMDscanInfo);
