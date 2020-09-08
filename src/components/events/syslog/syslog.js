@@ -24,9 +24,8 @@ class Syslog extends Component {
     super(props);
   }
   render() {
-    const {contextRoot, language} = this.context;
+    const {language} = this.context;
     const {mainContentData, tabChartData, markData, tableMouseOver} = this.props;
-    const assetsPath = `${contextRoot}/lib/keylines/assets/`;
     const eventsData = mainContentData.logEventsData;
 
     return (
@@ -63,7 +62,6 @@ class Syslog extends Component {
             {mainContentData.activeSubTab === 'linkAnalysis' &&
               <div className='la-content'>
                 <VbdaLA
-                  assetsPath={assetsPath}
                   sourceCfg={mainContentData.LAconfig}
                   events={eventsData}
                   source={mainContentData.LAdata}
