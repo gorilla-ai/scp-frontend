@@ -25,8 +25,9 @@ class Connections extends Component {
     super(props);
   }
   render() {
-    const {language} = this.context;
+    const {contextRoot, language} = this.context;
     const {mainContentData, tabChartData, tableMouseOver} = this.props;
+    const assetsPath = `${contextRoot}/lib/keylines/assets/`;
 
     return (
       <div className='data-content'>
@@ -58,6 +59,7 @@ class Connections extends Component {
             {mainContentData.activeSubTab === 'linkAnalysis' &&
               <div className='la-content'>
                 <VbdaLA
+                  assetsPath={assetsPath}
                   sourceCfg={mainContentData.LAconfig}
                   events={mainContentData.mainEventsData}
                   source={mainContentData.LAdata}

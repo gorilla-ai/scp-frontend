@@ -7,7 +7,10 @@
     <script type="text/javascript">
 
       window.onload = function () {
-        KeyLines.create({ container: 'kl' }, function(err, chart) {
+
+        KeyLines.paths({ assets: 'assets/' });
+
+        KeyLines.create('kl', function(err, chart) {
           chart.load({
             type: 'LinkChart',
             items: [{id:'id1', type: 'node', x:150, y: 150, t:'Hello World!'}]
@@ -22,7 +25,7 @@
   
   <body>
 
-    <!-- This is the HTML element that will contain the KeyLines component -->
+    <!-- This is the HTML element that will be used to render the KeyLines component -->
     <div id="kl" style="width: 818px; height: 586px;" ></div>
 
   </body>
