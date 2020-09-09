@@ -1,7 +1,7 @@
 //
-//     Angular components KeyLines v5.10.2-53142
+//     Angular components KeyLines v4.6.0-9745
 //
-//     Copyright © 2011-2020 Cambridge Intelligence Limited.
+//     Copyright © 2011-2018 Cambridge Intelligence Limited.
 //     All rights reserved.
 //
 
@@ -10,21 +10,17 @@ import {
   OnChanges, SimpleChange, ContentChildren, HostListener, ViewChild
 } from '@angular/core';
 
-// This file works with these ways of using the KeyLines library:
-// - Installing 'keylines' as an npm package
-// - Including keylines.js as a script tag in the page. For this, you will also need to add a paths
-//   entry to tsconfig that resolves 'keylines' to the file keylines.d.ts
-
-declare const KeyLines: import('keylines').KeyLines;
-
-// Promisify KeyLines
-KeyLines.promisify();
+// allow KeyLines global
+declare const KeyLines: KeyLines.KeyLines;
+// Promisify Keylines
+KeyLines.promisify(Promise);
 
 @Injectable()
 export class KlComponentsService {
 
   private _klPaths(base: string = '', images: string) {
     const paths: KeyLines.PathsOptions = {
+      assets: base + 'assets/',
       images: base // default if not separately defined
     };
     if (images) {
@@ -45,11 +41,9 @@ export class KlComponentsService {
 
 @Component({
   selector: 'kl-component',
-  template: '<div #container [ngClass]="containerClass" [ngStyle]="style"></div>'
+  template: '<div [ngClass]="containerClass"><div #container><div [ngStyle]="style"></div></div></div>'
 })
 export class KlComponent implements OnChanges, OnDestroy {
-  @Input() id: string = ""; //optional
-
   @Input('ngStyle') style: any; //optional
 
   @Input('klType') type: "chart" | "timebar" = "chart"; // optional
@@ -61,10 +55,16 @@ export class KlComponent implements OnChanges, OnDestroy {
   @Output('klEvents') klEvents = new EventEmitter(); // optional
 
   // Save the reference of the container element: see #container in the template
-  @ViewChild('container', { static: false })
-  private containerElement?: ElementRef;
+  @ViewChild('container')
+  private containerElement: ElementRef;
   // The KeyLines component
-  private component?: KeyLines.Chart | KeyLines.TimeBar;
+  private component: KeyLines.Chart | KeyLines.TimeBar;
+
+  // constructor
+  constructor(el: ElementRef) {
+    // Remove KL id to the parent
+    el.nativeElement.removeAttribute("id");
+  }
 
   isChart(component: KeyLines.Chart | KeyLines.TimeBar): component is KeyLines.Chart {
     return this.type === "chart";
@@ -79,24 +79,20 @@ export class KlComponent implements OnChanges, OnDestroy {
     }
   }
   ngOnDestroy() {
-    if (this.component) {
-      // ensure the component cleans up its resources
-      this.component.destroy();
-    }
+    // unbind all the events
+    this.component.unbind('all', null);
   }
 
   // Kl instructions
   getHeader(): KeyLines.Component {
-    return { 
-      container: this.containerElement ? this.containerElement.nativeElement : undefined,
-      type: this.type,
-      options: this.options 
-    };
+    return { element: this.containerElement.nativeElement, type: this.type, options: this.options };
   }
 
   setUpComponent(component: KeyLines.Chart | KeyLines.TimeBar) {
     // save the reference of the component
     this.component = component;
+    // resize the component
+    this.onResize(false /* don't fit to the chart */);
     // trigger a klReady event with the component reference
     this.klReady.emit(component);
     // bind the component events
@@ -104,29 +100,39 @@ export class KlComponent implements OnChanges, OnDestroy {
   }
 
   registerEvent() {
-    if (this.component) {
-      this.component.bind('all', (name?: string, ...args: string[]) => {
-        if (name !== 'redraw') {
-          // define the event
-          const klEvent = { name, args, preventDefault: false };
-          // dispatch the event to the parent
-          this.klEvents.emit(klEvent);
-          // return the preventDefault value
-          return klEvent.preventDefault;
-        }
-        return false;
-      });
-    }
+    this.component.bind('all', (name: string, ...args: string[]) => {
+      if (name !== 'redraw') {
+        // define the event
+        const klEvent = { name, args, preventDefault: false };
+        // dispatch the event to the parent
+        this.klEvents.emit(klEvent);
+        // return the preventDefault value
+        return klEvent.preventDefault;
+      }
+    });
   }
 
   refreshOptions(options: KeyLines.ChartOptions | KeyLines.TimeBarOptions) {
+    // Use type guard to allow TypeScript to infer type and prevent errors
+    if (this.isChart(this.component)) {
+      this.component.options(options);
+    }
+    else {
+      this.component.options(options);
+    }
+  }
+
+  onResize(doFit: boolean = true) {
     if (this.component) {
-      // Use type guard to allow TypeScript to infer type and prevent errors
-      if (this.isChart(this.component)) {
-        this.component.options(options);
-      }
-      else {
-        this.component.options(options);
+      // find containing dimensions
+      const w = this.containerElement.nativeElement.offsetWidth;
+      const h = this.containerElement.nativeElement.offsetHeight;
+      const { width, height } = this.containerElement.nativeElement.children[0];
+      if ((w > 0 && h > 0) && (w !== width || h !== height)) {
+        KeyLines.setSize(this.containerElement.nativeElement, w, h);
+        if (doFit && this.isChart(this.component)) {
+          this.component.zoom('fit');
+        }
       }
     }
   }
@@ -146,7 +152,7 @@ export class KlComponents implements AfterViewInit {
   // get the list of the children components
   // http://blog.thoughtram.io/angular/2015/09/03/forward-references-in-angular-2.html
   @ContentChildren(KlComponent)
-  private components?: KlComponent[];
+  private components: KlComponent[];
 
   // constructor
   constructor(KlComponentsService: KlComponentsService) {
@@ -155,7 +161,6 @@ export class KlComponents implements AfterViewInit {
 
   // lifecycle hooks
   ngAfterViewInit() {
-    if (this.components === undefined) throw 'Could not find kl-component declaration';
     // iterate over the list of children components to create the KeyLines definition of components
     const toCreate: KeyLines.Component[] = this.components.map((component: KlComponent) => component.getHeader());
     this.makeComponents(toCreate);
@@ -169,7 +174,7 @@ export class KlComponents implements AfterViewInit {
       .catch((error: any) => error);
   }
 
-  notifyComponents(components: (KeyLines.Chart | KeyLines.TimeBar)[] | KeyLines.Chart | KeyLines.TimeBar) {
+  notifyComponents(components: (KeyLines.Chart | KeyLines.TimeBar)[]) {
     // ensure that we have an array of components
     if (!Array.isArray(components)) {
       components = [components];
@@ -178,8 +183,6 @@ export class KlComponents implements AfterViewInit {
     this.klReady.emit(components);
     // for each components registered as children
     // we finalise the set up of the component
-    if (this.components){
-      this.components.forEach((component: KlComponent, index: number) => component.setUpComponent(components[index]));
-    }
+    this.components.forEach((component: KlComponent, index: number) => component.setUpComponent(components[index]));
   }
 }
