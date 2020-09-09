@@ -410,17 +410,17 @@ class HMDscanInfo extends Component {
     });
   }
   /**
-   * Compare the current datetime and the 24h after latest create time
+   * Compare the current datetime and the 10 minutes after latest create time
    * @method
    * @param {string} latestCreateTime - latest create time
    * @returns boolean true/false
    */
-  checkOneDayAfter = (latestCreateTime) => {
+  checkTimeAfter = (latestCreateTime) => {
     const currentDateTime = helper.getFormattedDate(Moment(), 'local');
-    const oneDayAfter = helper.getAdditionDate(1, 'day', latestCreateTime);
+    const oneDayAfter = helper.getAdditionDate(10, 'minutes', latestCreateTime);
 
     if (Moment(currentDateTime).isAfter(oneDayAfter)) {
-      return false; //Enable trigger button if current time is 1 day after latest create time
+      return false; //Enable trigger button if current time is 10 minutes after latest create time
     } else {
       return true; //Disable trigger button
     }
@@ -448,12 +448,12 @@ class HMDscanInfo extends Component {
           const responseTime = helper.getFormattedDate(currentDeviceData[resultType][0].taskResponseDttm, 'local');
 
           if (Moment(latestCreateTime).isAfter(responseTime)) {
-            return this.checkOneDayAfter(latestCreateTime);
+            return this.checkTimeAfter(latestCreateTime);
           } else {
             return false; //Enable trigger button if latest create time is later than response time
           }
         } else {
-          return this.checkOneDayAfter(latestCreateTime);
+          return this.checkTimeAfter(latestCreateTime);
         }
       }
     }
@@ -991,11 +991,13 @@ class HMDscanInfo extends Component {
    * @returns HTML DOM
    */
   getTriggerBtnInfo = () => {
+    const {ipType} = this.props;
     const {hmdInfo} = this.state;
     const currentTab = this.getActiveTab();
 
     return (
       <div className='info'>
+        <button className='btn refresh' onClick={this.props.getHMDinfo.bind(this, ipType)}>{t('network-inventory.txt-refresh')}</button>
         {this.getTriggerBtn()}
         <div className='last-update'>
           <span>{t('network-inventory.txt-createTime')}: {hmdInfo[currentTab].latestCreateDttm || hmdInfo[currentTab].createTime || NOT_AVAILABLE}</span>
@@ -1319,7 +1321,7 @@ class HMDscanInfo extends Component {
     const {page} = this.props;
 
     if (page === 'threats') {
-      return 335;
+      return 330;
     } else if (page === 'inventory') {
       return 435;
     }
@@ -1664,7 +1666,8 @@ HMDscanInfo.propTypes = {
   currentDeviceData: PropTypes.object.isRequired,
   toggleSelectionIR: PropTypes.func.isRequired,
   triggerTask: PropTypes.func.isRequired,
-  toggleYaraRule: PropTypes.func.isRequired
+  toggleYaraRule: PropTypes.func.isRequired,
+  getHMDinfo: PropTypes.func.isRequired
 };
 
 export default withRouter(HMDscanInfo);

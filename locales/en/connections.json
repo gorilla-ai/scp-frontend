@@ -505,6 +505,7 @@
     "txt-scanFilePath": "Scan File Path",
     "txt-saveSettings": "Save",
     "txt-restoreDefault": "Restore Default",
+    "txt-refresh": "Refresh",
     "txt-reCheck": "Re-check",
     "txt-reCompress": "Re-compress",
     "txt-yaraRules": "Yara Rules",
