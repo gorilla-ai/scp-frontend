@@ -107,9 +107,6 @@ class HostController extends Component {
     this.getPrivateMaskedIp();
     this.getHostData();
   }
-  ryan = () => {
-
-  }
   /**
    * Get and set Severity list
    * @method

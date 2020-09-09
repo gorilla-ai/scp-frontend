@@ -47,9 +47,6 @@ class PrivateDetails extends Component {
   componentDidUpdate(prevProps) {
     this.getDataInfo(prevProps);
   }
-  ryan = () => {
-
-  }
   /**
    * Get and set the ip, owner, area and host information
    * @method

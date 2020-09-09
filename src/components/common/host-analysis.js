@@ -58,9 +58,6 @@ class HostAnalysis extends Component {
   componentDidMount() {
 
   }
-  ryan = () => {
-
-  }
   /**
    * Set corresponding content based on content type
    * @method

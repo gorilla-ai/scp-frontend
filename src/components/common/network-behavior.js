@@ -107,9 +107,6 @@ class NetworkBehavior extends Component {
 
     this.loadNetworkBehavior(ipType);
   }
-  ryan = () => {
-
-  }
   /**
    * Load network behavior data
    * @method
