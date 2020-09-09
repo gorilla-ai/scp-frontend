@@ -48,7 +48,8 @@ class HostAnalysis extends Component {
         network: false
       },
       modalYaraRuleOpen: false,
-      modalIRopen: false
+      modalIRopen: false,
+      hmdInfo: {}
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -56,7 +57,31 @@ class HostAnalysis extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    this.getHMDinfo(this.props.hostInfo.ipDeviceUUID);
+  }
+  /**
+   * Get and set HMD info
+   * @method
+   * @param {string} ipDeviceUUID - IP device UUID
+   */
+  getHMDinfo = (ipDeviceUUID) => {
+    const {baseUrl} = this.context;
 
+    this.ah.one({
+      url: `${baseUrl}/api/u1/ipdevice?uuid=${ipDeviceUUID}&page=1&pageSize=5`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          hmdInfo: data
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Set corresponding content based on content type
@@ -121,42 +146,32 @@ class HostAnalysis extends Component {
         ]
       };
     }
-    
+
     alertInfo.ownerMap = ownerMap;
     alertInfo.ownerBaseLayers[topoInfo.areaUUID] = ownerMap;
-    alertInfo.ownerSeat[topoInfo.areaUUID] = {
-      data: [{
-        id: topoInfo.seatUUID,
-        type: 'spot',
-        xy: [topoInfo.coordX, topoInfo.coordY],
-        label: topoInfo.seatName,
-        data: {
-          name: topoInfo.seatName,
-          tag: 'red'
-        }
-      }]
-    };    
+
+    if (topoInfo.seatUUID) {
+      alertInfo.ownerSeat[topoInfo.areaUUID] = {
+        data: [{
+          id: topoInfo.seatUUID,
+          type: 'spot',
+          xy: [topoInfo.coordX, topoInfo.coordY],
+          label: topoInfo.seatName,
+          data: {
+            name: topoInfo.seatName,
+            tag: 'red'
+          }
+        }]
+      };
+    }
 
     return (
-      <PrivateDetails
-        alertInfo={alertInfo}
-        topoInfo={topoInfo}
-        picPath={picPath} />
-    )
-  }
-  /**
-   * Display safety scan content
-   * @method
-   * @returns HMDscanInfo component
-   */
-  displaySafetyScanContent = () => {
-    return (
-      <HMDscanInfo
-        page='threats'
-        currentDeviceData={this.props.hostInfo}
-        toggleYaraRule={this.toggleYaraRule}
-        toggleSelectionIR={this.toggleSelectionIR}
-        triggerTask={this.triggerTask} />
+      <div className='srcIp-content'>
+        <PrivateDetails
+          alertInfo={alertInfo}
+          topoInfo={topoInfo}
+          picPath={picPath} />
+      </div>
     )
   }
   /**
@@ -208,13 +223,16 @@ class HostAnalysis extends Component {
           </div>
           <div className='content'>
             {showContent.info &&
-              <div className='srcIp-content'>
-                {this.displayInfoContent()}
-              </div>
+              this.displayInfoContent()
             }
 
             {showContent.safety &&
-              this.displaySafetyScanContent()
+              <HMDscanInfo
+                page='host'
+                currentDeviceData={this.state.hmdInfo}
+                toggleYaraRule={this.toggleYaraRule}
+                toggleSelectionIR={this.toggleSelectionIR}
+                triggerTask={this.triggerTask} />
             }
 
             {showContent.network &&
@@ -314,7 +332,7 @@ class HostAnalysis extends Component {
           this.toggleSelectionIR();
         }
 
-        //this.getHMDinfo(ipType);
+        this.getHMDinfo(hostInfo.ipDeviceUUID);
       }
       return null;
     })
@@ -323,15 +341,17 @@ class HostAnalysis extends Component {
     })
   }
   render() {
-    const {titleText, actions} = this.props;
     const {modalYaraRuleOpen, modalIRopen} = this.state;
+    const actions = {
+      confirm: {text: t('txt-close'), handler: this.props.toggleHostAnalysis}
+    };
 
     return (
       <div>
         <ModalDialog
           id='hostModalDialog'
           className='modal-dialog'
-          title={titleText}
+          title={t('host.txt-hostAnalysis')}
           draggable={true}
           global={true}
           actions={actions}

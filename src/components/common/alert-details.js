@@ -370,18 +370,21 @@ class AlertDetails extends Component {
     
     tempAlertInfo[ipType].ownerMap = ownerMap;
     tempAlertInfo[ipType].ownerBaseLayers[topoInfo.areaUUID] = ownerMap;
-    tempAlertInfo[ipType].ownerSeat[topoInfo.areaUUID] = {
-      data: [{
-        id: topoInfo.seatUUID,
-        type: 'spot',
-        xy: [topoInfo.seatCoordX, topoInfo.seatCoordY],
-        label: topoInfo.seatName,
-        data: {
-          name: topoInfo.seatName,
-          tag: 'red'
-        }
-      }]
-    };
+
+    if (topoInfo.seatUUID) {
+      tempAlertInfo[ipType].ownerSeat[topoInfo.areaUUID] = {
+        data: [{
+          id: topoInfo.seatUUID,
+          type: 'spot',
+          xy: [topoInfo.seatCoordX, topoInfo.seatCoordY],
+          label: topoInfo.seatName,
+          data: {
+            name: topoInfo.seatName,
+            tag: 'red'
+          }
+        }]
+      };
+    }
 
     this.setState({
       alertInfo: tempAlertInfo

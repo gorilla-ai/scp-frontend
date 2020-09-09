@@ -67,7 +67,7 @@ class HostController extends Component {
 
     this.state = {
       activeSubTab: 'hostList', //'hostList', 'deviceMap'
-      showFilter: true,
+      showFilter: false,
       showLeftNav: true,
       datetime: {
         from: helper.getSubstractDate(1, 'hour'),
@@ -542,23 +542,6 @@ class HostController extends Component {
       this.getHostData();
     });
   }
-  /**
-   * Display Host Analysis modal dialog 
-   * @method
-   * @returns HostAnalysis component
-   */
-  hostAnalysisDialog = () => {
-    const actions = {
-      confirm: {text: t('txt-close'), handler: this.toggleHostAnalysis}
-    };
-
-    return (
-      <HostAnalysis
-        titleText={t('host.txt-hostAnalysis')}
-        actions={actions}
-        hostInfo={this.state.activeHostData} />
-    )
-  }
   render() {
     const {
       activeSubTab,
@@ -584,7 +567,9 @@ class HostController extends Component {
     return (
       <div>
         {hostAnalysisOpen &&
-          this.hostAnalysisDialog()
+          <HostAnalysis
+            toggleHostAnalysis={this.toggleHostAnalysis}
+            hostInfo={this.state.activeHostData} />
         }
 
         <div className='sub-header'>
@@ -692,4 +677,4 @@ HostController.contextType = BaseDataContext;
 HostController.propTypes = {
 };
 
-export default withRouter(HostController);
+export default HostController;

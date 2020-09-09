@@ -188,13 +188,19 @@ class HMDscanInfo extends Component {
    */
   loadRadarCharts = () => {
     const {currentDeviceData} = this.props;
-    const radarResult = currentDeviceData.radarResult || currentDeviceData.safetyScanInfo.radarResult;
+    let radarResult = currentDeviceData.radarResult;
     let polarData = {
       categories: [],
       data: []
     };
     let tempDashboardInfo = {...this.state.dashboardInfo};
     let totalScore = '';
+
+    if (!radarResult && currentDeviceData.safetyScanInfo) {
+      radarResult = currentDeviceData.safetyScanInfo.radarResult;
+    } else {
+      return;
+    }
 
     _.forEach(radarResult, val => {
       polarData.categories.push(val.key);
@@ -277,7 +283,13 @@ class HMDscanInfo extends Component {
     });
 
     _.forEach(SAFETY_SCAN_LIST, val => { //Construct the HMD info object
-      const currentDataObj = currentDeviceData[val.type + 'Result'] || currentDeviceData.safetyScanInfo[val.type + 'Result'];
+      let currentDataObj = currentDeviceData[val.type + 'Result'];
+
+      if (!currentDataObj && currentDeviceData.safetyScanInfo) {
+        currentDataObj = currentDeviceData.safetyScanInfo[val.type + 'Result'];
+      } else {
+        return;
+      }
 
       if (currentDataObj && currentDataObj.length > 0 && !_.isEmpty(currentDataObj[0])) {
         hmdInfo[val.type] = {
@@ -436,7 +448,13 @@ class HMDscanInfo extends Component {
     const {disabledBtn} = this.state;
     const {currentDeviceData} = this.props;
     const resultType = type + 'Result';
-    const currentDevice = currentDeviceData[resultType] || currentDeviceData.safetyScanInfo[resultType];
+    let currentDevice = currentDeviceData[resultType];
+
+    if (!currentDevice && currentDeviceData.safetyScanInfo) {
+      currentDevice = currentDeviceData.safetyScanInfo[resultType];
+    } else {
+      return;
+    }
 
     if (disabledBtn) {
       return true;
@@ -1324,6 +1342,8 @@ class HMDscanInfo extends Component {
       return 335;
     } else if (page === 'inventory') {
       return 435;
+    } else if (page === 'host') {
+      return 460;
     }
   }
   /**
