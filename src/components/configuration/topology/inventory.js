@@ -1334,18 +1334,18 @@ class NetworkInventory extends Component {
    */
   getIPdeviceInfo = (index, ipDeviceUUID, options) => {
     const {baseUrl} = this.context;
+    const {currentDeviceData} = this.state;
+    let ipDeviceID = ipDeviceUUID;
     let tempDeviceData = {...this.state.deviceData};
 
-    if (!ipDeviceUUID) {
-      return;
-    }
-
-    if (index || index.toString()) {
+    if (index && index.toString()) {
       tempDeviceData.hmdOnly.currentIndex = Number(index);
+    } else {
+      ipDeviceID = currentDeviceData.ipDeviceUUID;
     }
 
     this.ah.one({
-      url: `${baseUrl}/api/u1/ipdevice?uuid=${ipDeviceUUID}&page=1&pageSize=5`,
+      url: `${baseUrl}/api/u1/ipdevice?uuid=${ipDeviceID}&page=1&pageSize=5`,
       type: 'GET'
     })
     .then(data => {
@@ -1360,7 +1360,7 @@ class NetworkInventory extends Component {
           modalIRopen: false,
           deviceData: tempDeviceData,
           currentDeviceData: data,
-          activeIPdeviceUUID: ipDeviceUUID
+          activeIPdeviceUUID: ipDeviceID
         });
       }
       return null;
@@ -1431,8 +1431,7 @@ class NetworkInventory extends Component {
    */
   triggerTask = (type, options, yaraRule) => {
     const {baseUrl} = this.context;
-    const {currentDeviceData, yaraTriggerAll} = this.state;
-    const url = `${baseUrl}/api/hmd/retrigger`;
+    const {deviceData, currentDeviceData, yaraTriggerAll} = this.state;
 
     if (yaraTriggerAll) {
       this.triggerHmdAll(HMD_LIST[0], yaraRule);
@@ -1451,26 +1450,42 @@ class NetworkInventory extends Component {
       };
     }
 
-    this.ah.one({
-      url,
+    let apiArr = [{
+      url: `${baseUrl}/api/hmd/retrigger`,
       data: JSON.stringify(requestData),
       type: 'POST',
       contentType: 'text/plain'
-    })
+    }];
+
+    if (type.length > 0 && options !== 'fromInventory') { //Get updated HMD data for scan info type
+      apiArr.push({
+        url: `${baseUrl}/api/u1/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}&page=1&pageSize=5`,
+        type: 'GET'
+      });
+    }
+
+    this.ah.series(apiArr)
     .then(data => {
       if (data) {
-        helper.showPopupMsg(t('txt-requestSent'));
+        if (data[0]) {
+          helper.showPopupMsg(t('txt-requestSent'));
 
-        if (type[0] === 'compareIOC') {
-          this.toggleYaraRule();
+          if (type[0] === 'compareIOC') {
+            this.toggleYaraRule();
+          }
+
+          if (type[0] === 'ir') {
+            this.toggleSelectionIR();
+          }
         }
 
-        if (type[0] === 'ir') {
-          this.toggleSelectionIR();
-        }
-
-        if (type.length > 0 && options !== 'fromInventory') {
-          this.getIPdeviceInfo('', currentDeviceData.ipDeviceUUID);
+        if (data[1]) {
+          this.setState({
+            showScanInfo: true,
+            modalIRopen: false,
+            currentDeviceData: data[1],
+            activeIPdeviceUUID: currentDeviceData.ipDeviceUUID
+          });
         }
       }
       return null;
@@ -1524,7 +1539,8 @@ class NetworkInventory extends Component {
           showAlertData={this.showAlertData}
           toggleYaraRule={this.toggleYaraRule}
           toggleSelectionIR={this.toggleSelectionIR}
-          triggerTask={this.triggerTask} />
+          triggerTask={this.triggerTask}
+          getHMDinfo={this.getIPdeviceInfo} />
 
         {deviceData.hmdOnly.currentLength > 1 &&
           <div className='pagination'>
@@ -1772,7 +1788,6 @@ class NetworkInventory extends Component {
       contentType: 'text/plain'
     }, {showProgress: false})
     .then(data => {
-      this.toggleYaraRule('false');
       return null;
     })
     .catch(err => {
@@ -1780,6 +1795,10 @@ class NetworkInventory extends Component {
     })
 
     helper.showPopupMsg(t('txt-requestSent'));
+
+    if (hmdObj.cmds === 'compareIOC') {
+      this.toggleYaraRule('false');
+    }
   }
   /**
    * Construct and display HMD context menu

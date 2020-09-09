@@ -135,7 +135,6 @@ class YaraRule extends Component {
     }
 
     this.props.checkYaraRule(yaraRule);
-    this.props.toggleYaraRule();
   }
   /**
    * Display yara rule content
