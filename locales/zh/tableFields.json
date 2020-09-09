@@ -538,7 +538,8 @@
     "title": "事件主旨",
     "category": "事件類別",
     "victimName": "單位",
-    "reporter": "通報者",
+    "reporter": "通報來源",
+    "suggestion": "簽核意見",
     "createDttm": "建立時間",
     "sendTime": "發布時間",
     "impactAssessment": "影響等級",
@@ -558,6 +559,8 @@
     "etsDescription": "漏洞描述",
     "fileName": "檔案名稱",
     "fileExtension": "檔案類型",
+    "fileSize": "檔案大小",
+    "fileMemo": "附件說明",
     "uriType": "URI類型",
     "uriValue": "URI內容",
     "domain": "網域",
@@ -580,7 +583,9 @@
     "updateDttm": "最後更新時間",
     "abbreviation": "機關英文簡稱",
     "type": "事件單類型",
-    "select": "是否發布"
+    "select": "是否發布",
+    "Suggestion": "事件單處理意見",
+    "finalDate": "逾期時間"
   },
   "severityTableFields": {
     "dataSourceType": "類型",

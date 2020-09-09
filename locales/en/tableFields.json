@@ -538,7 +538,8 @@
     "title": "Title",
     "category": "Category",
     "victimName": "Victim",
-    "reporter": "Reporter",
+    "reporter": "Report Source",
+    "suggestion": "Sign-off Suggestion",
     "createDttm": "Create Datetime",
     "sendTime": "Send Datetime",
     "createdDttm": "Create Datetime",
@@ -559,6 +560,8 @@
     "etsDescription": "Loophole",
     "fileName": "File Name",
     "fileExtension": "File Extension",
+    "fileSize": "File Size",
+    "fileMemo": "File Description",
     "uriType": "URI Type",
     "uriValue": "URI Value",
     "domain": "Domain",
@@ -581,7 +584,9 @@
     "updateDttm": "Last Update Time",
     "abbreviation": "Unit Abbreviation",
     "type": "Incident Type",
-    "select": "Send or Not"
+    "select": "Send or Not",
+    "Suggestion": "Event Handling Suggestion",
+    "finalDate": "Limit DateTime"
   },
   "severityTableFields": {
     "dataSourceType": "Type",

@@ -20,6 +20,11 @@ import Events from './common/events'
 import Ttps from './common/ttps'
 import {downloadWithForm} from "react-ui/build/src/utils/download";
 import ModalDialog from "react-ui/build/src/components/modal-dialog";
+import FileUpload from "../common/file-upload";
+import DataTable from "react-ui/build/src/components/table";
+import _ from "lodash";
+import DateRange from "react-ui/build/src/components/date-range";
+import DatePicker from "react-ui/build/src/components/date-picker";
 
 
 let t = null;
@@ -27,6 +32,13 @@ let f = null;
 let et = null;
 let it = null;
 
+const INCIDENT_STATUS_ALL = 0
+const INCIDENT_STATUS_SIGNING_OFF = 1
+const INCIDENT_STATUS_SIGNED_OFF = 2
+const INCIDENT_STATUS_CLOSE_PUBLISHED = 3
+const INCIDENT_STATUS_DELETE = 4
+const INCIDENT_STATUS_EDITING = 5
+const INCIDENT_STATUS_CLOSE_UNPUBLISHED = 6
 
 class Incident extends Component {
     constructor(props) {
@@ -38,9 +50,108 @@ class Incident extends Component {
         it = global.chewbaccaI18n.getFixedT(null, "incident");
 
         this.state = {
+            incident_accident_list : [
+                {
+                    text:it('accident.txt-webAttack'),
+                    value:'1'
+                },
+                {
+                    text:it('accident.txt-illegalInvasion'),
+                    value:'2'
+                },
+                {
+                    text:it('accident.txt-dos'),
+                    value:'3'
+                },
+                {
+                    text:it('accident.txt-deviceProblem'),
+                    value:'4'
+                },
+                {
+                    text:it('accident.txt-other'),
+                    value:'5'
+                }
+            ],
+            INCIDENT_SUB_ACCIDENT_WEB_LIST : [
+                {
+                    text:it('accident.web.txt-webDefacement'),
+                    value:'1'
+                },
+                {
+                    text:it('accident.web.txt-maliciousMessage'),
+                    value:'2'
+                },
+                {
+                    text:it('accident.web.txt-maliciousPage'),
+                    value:'3'
+                },
+                {
+                    text:it('accident.web.txt-aptPage'),
+                    value:'4'
+                },
+                {
+                    text:it('accident.web.txt-trojan'),
+                    value:'5'
+                },
+                {
+                    text:it('accident.web.txt-leak'),
+                    value:'6'
+                }
+            ],
+            INCIDENT_SUB_ACCIDENT_INVASION_LIST : [
+                {
+                    text:it('accident.invasion.txt-systemInvasion'),
+                    value:'7'
+                },
+                {
+                    text:it('accident.invasion.txt-implantMalware'),
+                    value:'8'
+                },
+                {
+                    text:it('accident.invasion.txt-abnormalConnection'),
+                    value:'9'
+                },
+                {
+                    text:it('accident.invasion.txt-aptMail'),
+                    value:'10'
+                },
+                {
+                    text:it('accident.invasion.txt-leak'),
+                    value:'11'
+                }
+            ],
+            INCIDENT_SUB_ACCIDENT_DOS_LIST : [
+                {
+                    text:it('accident.dos.txt-serviceInterruption'),
+                    value:'12'
+                },
+                {
+                    text:it('accident.dos.txt-lowPerformance'),
+                    value:'13'
+                }
+            ],
+            INCIDENT_SUB_ACCIDENT_DEVICE_LIST : [
+                {
+                    text:it('accident.device.txt-damage'),
+                    value:'14'
+                },
+                {
+                    text:it('accident.device.txt-abnormalPower'),
+                    value:'15'
+                },
+                {
+                    text:it('accident.device.txt-internetInterruption'),
+                    value:'16'
+                },
+                {
+                    text:it('accident.device.txt-miss'),
+                    value:'17'
+                }
+            ],
             activeContent: 'tableList', //tableList, viewIncident, editIncident, addIncident
             displayPage: 'main', /* main, events, ttps */
             incidentType: '',
+            toggleType:'',
             showFilter: false,
             currentIncident: {},
             originalIncident: {},
@@ -51,8 +162,11 @@ class Incident extends Component {
             },
             relatedListOptions: [],
             deviceListOptions: [],
+            accountData:{},
             incident: {
                 dataFieldsArr: ['_menu', 'id', 'status', 'type', 'createDttm', 'title', 'category', 'reporter'],
+                fileFieldsArr: ['fileName', 'fileExtension', 'fileSize','fileMemo'],
+                flowFieldsArr: ['id', 'status', 'createDttm', 'suggestion'],
                 dataFields: {},
                 dataContent: [],
                 sort: {
@@ -65,6 +179,7 @@ class Incident extends Component {
                 info: {
                     status: 1,
                     socType: 1,
+                    flowList:[]
                 }
             }
         };
@@ -165,14 +280,152 @@ class Incident extends Component {
     };
 
     handleRowContextMenu = (allValue, evt) => {
-        const menuItems = [
-            {
-                id: 'download',
-                text: it('txt-download'),
-                action: () => this.getIncidentSTIXFile(allValue.id)
+        let menuItems = [];
+
+        menuItems = this.generateClickMenu(allValue)
+
+        ContextMenu.open(evt, menuItems, 'incidentMenu');
+        evt.stopPropagation();
+    };
+
+    /**
+     * Construct and display Add Threats context menu
+     * @method
+     * @param {object} evt - mouseClick events
+     */
+    handleRowContextMenuByView = (evt) => {
+        const menuItems = [];
+        const {accountData,incident} = this.state;
+        // in View Interface(page)
+
+        let itemEdit =  {
+            id: 'edit',
+            text: t('txt-edit'),
+            action: () => this.toggleContent('editIncident')
+        }
+        let itemDownload =  {
+            id: 'download',
+            text: it('txt-download'),
+            action: () => this.getIncidentSTIXFile(incident.info.id)
+        }
+        let itemWithdraw = {
+            id: 'withdraw',
+            text: it('txt-withdraw'),
+            action: () => this.openWithdrawMenu(incident.info)
+        };
+        let itemDelete = {
+            id: 'delete',
+            text: t('txt-delete'),
+            action: () => this.openDeleteMenu(incident.info)
+        };
+        let viewItem = {
+            id: 'view',
+            text: t('txt-view'),
+            action: () => this.getIncident(incident.info.id,'view')
+        }
+        let itemAudit = {
+            id: 'audit',
+            text: it('txt-audit'),
+            action: () => this.getIncident(incident.info.id,'audit')
+        };
+        let itemSubmit = {
+            id: 'submit',
+            text: it('txt-submit'),
+            action: () => this.getIncident(incident.info.id,'submit')
+        };
+        let itemClose =  {
+            id: 'close',
+            text: t('txt-close'),
+            action: () => this.getIncident(incident.info.id,'close')
+        }
+        let itemPublish = {
+            id: 'send',
+            text: it('txt-send'),
+            action: () => this.openSendMenu(incident.info.id)
+        };
+        let itemReturn = {
+            id: 'return',
+            text: it('txt-return'),
+            action: () => this.getIncident(incident.info.id,'return')
+        };
+
+        if (incident.info.status === INCIDENT_STATUS_EDITING) {
+            if (accountData.privilegeid === 'user'){
+                menuItems.push(itemEdit)
+                menuItems.push(itemSubmit)
+            }else if(accountData.privilegeid.includes('DPIR')){
+                menuItems.push(itemEdit)
+                menuItems.push(itemSubmit)
+                menuItems.push(itemClose)
             }
-        ];
-        let item = {};
+        } else if (incident.info.status === INCIDENT_STATUS_SIGNING_OFF) {
+            if (accountData === incident.info.creater_id){
+                menuItems.push(itemWithdraw)
+            }else{
+                if (accountData.privilegeid === 'user'){
+
+                }else if(accountData.privilegeid.includes('DPIR')){
+                    // edit (type -> INCIDENT_STATUS_EDITING)
+                    menuItems.push(itemEdit)
+                    // return
+                    menuItems.push(itemReturn)
+                    // close
+                    menuItems.push(itemClose)
+                    // audit
+                    menuItems.push(itemAudit)
+                }
+            }
+
+        } else if (incident.info.status === INCIDENT_STATUS_SIGNED_OFF) {
+
+            if (accountData === incident.info.creater_id){
+                // withdraw
+                menuItems.push(itemWithdraw)
+            }else{
+                if (accountData.privilegeid === 'user'){
+
+                }else if(accountData.privilegeid.includes('DPIR')){
+                    // edit (type -> INCIDENT_STATUS_EDITING)
+                    menuItems.push(itemEdit)
+                    // return
+                    menuItems.push(itemReturn)
+                    // close
+                    menuItems.push(itemClose)
+                    // publish
+                    menuItems.push(itemPublish)
+                }
+            }
+
+        } else if (incident.info.status === INCIDENT_STATUS_CLOSE_PUBLISHED){
+
+        } else if (incident.info.status === INCIDENT_STATUS_CLOSE_UNPUBLISHED){
+            if (accountData.privilegeid === 'user'){
+
+            }else if(accountData.privilegeid.includes('DPIR')){
+                // edit (type -> INCIDENT_STATUS_EDITING)
+                menuItems.push(itemEdit)
+            }
+        }
+
+
+        ContextMenu.open(evt, menuItems, 'modifyEvent');
+        evt.stopPropagation();
+    }
+
+    generateClickMenu = (allValue)=>{
+        const {accountData} = this.state;
+        let menuItems = [];
+
+        let itemDownload =  {
+            id: 'download',
+            text: it('txt-download'),
+            action: () => this.getIncidentSTIXFile(allValue.id)
+        }
+        let itemWithdraw = {
+            id: 'withdraw',
+            text: it('txt-withdraw'),
+            action: () => this.openWithdrawMenu(allValue)
+        };
         let itemDelete = {
             id: 'delete',
             text: t('txt-delete'),
@@ -181,33 +434,84 @@ class Incident extends Component {
         let viewItem = {
             id: 'view',
             text: t('txt-view'),
-            action: () => this.getIncident(allValue.id)
+            action: () => this.getIncident(allValue.id,'view')
+        }
+        let itemAudit = {
+            id: 'audit',
+            text: it('txt-audit'),
+            action: () => this.getIncident(allValue.id,'audit')
+        };
+        let itemSubmit = {
+            id: 'submit',
+            text: it('txt-submit'),
+            action: () => this.getIncident(allValue.id,'submit')
+        };
+        let itemClose =  {
+            id: 'close',
+            text: it('txt-close'),
+            action: () => this.getIncident(allValue.id,'close')
+        }
+        let itemPublish = {
+            id: 'send',
+            text: it('txt-send'),
+            action: () => this.openSendMenu(allValue.id)
+        };
+        let itemReturn = {
+            id: 'return',
+            text: it('txt-return'),
+            action: () => this.getIncident(allValue.id,'return')
+        };
+
+        if (allValue.status === INCIDENT_STATUS_EDITING) {
+            menuItems.push(viewItem)
+
+            if (accountData.privilegeid === 'user'){
+                menuItems.push(itemSubmit)
+            }else if(accountData.privilegeid.includes('DPIR')){
+                menuItems.push(itemClose)
+            }
+
+        } else if (allValue.status === INCIDENT_STATUS_SIGNING_OFF) {
+            menuItems.push(viewItem)
+            if (accountData === allValue.creater_id){
+
+                menuItems.push(itemWithdraw)
+            }else{
+                if (accountData.privilegeid === 'user'){
+                }else if(accountData.privilegeid.includes('DPIR')){
+                    menuItems.push(itemClose)
+                    menuItems.push(itemAudit)
+                    menuItems.push(itemReturn)
+                }
+            }
+
+        } else if (allValue.status === INCIDENT_STATUS_SIGNED_OFF) {
+            menuItems.push(viewItem)
+
+            if (accountData === allValue.creater_id){
+                menuItems.push(itemWithdraw)
+            }else{
+                if (accountData.privilegeid === 'user'){
+
+                }else if(accountData.privilegeid.includes('DPIR')){
+                    menuItems.push(itemClose)
+                    menuItems.push(itemPublish)
+                }
+            }
+
+        } else if (allValue.status === INCIDENT_STATUS_CLOSE_PUBLISHED){
+            menuItems.push(viewItem)
+            menuItems.push(itemDownload)
+        }else if (allValue.status === INCIDENT_STATUS_CLOSE_UNPUBLISHED){
+            menuItems.push(viewItem)
+            if (accountData.privilegeid === 'user'){
+            }else if(accountData.privilegeid.includes('DPIR')){
+                menuItems.push(itemReturn)
+            }
         }
 
-        if (allValue.status === 1) {
-            item = {
-                id: 'audit',
-                text: it('txt-audit'),
-                action: () => this.getIncident(allValue.id)
-            };
-            menuItems.push(viewItem);
-            menuItems.push(item);
-            menuItems.push(itemDelete);
-
-        } else if (allValue.status === 2) {
-            item = {
-                id: 'send',
-                text: it('txt-send'),
-                action: () => this.openSendMenu(allValue.id)
-            };
-            menuItems.push(viewItem);
-            menuItems.push(itemDelete);
-            menuItems.push(item);
-        }
-
-        ContextMenu.open(evt, menuItems, 'incidentMenu');
-        evt.stopPropagation();
-    };
+        return menuItems
+    }
 
     handleRowMouseOver = (index, allValue, evt) => {
         let tempIncident = {...this.state.incident};
@@ -282,7 +586,89 @@ class Incident extends Component {
      * @returns HTML DOM
      */
     displayEditContent = () => {
-        const {activeContent, incidentType, incident, displayPage} = this.state;
+        const {activeContent, incidentType, incident, toggleType, accountData, displayPage} = this.state;
+
+        let tempFile ={
+            fileName:incident.info.fileName,
+            fileExtension:incident.info.fileExtension,
+            fileSize:incident.info.fileSize,
+            fileMemo:incident.info.fileMemo
+        }
+        incident.fileList = []
+
+        if (tempFile.fileName !== ''){
+            incident.fileList.push(tempFile)
+        }
+
+        let editCheck = false
+        let withdrawCheck = false
+        let submitCheck = false
+        let auditCheck = false
+        let returnCheck = false
+        let closeCheck = false
+        let publishCheck = false
+
+
+        if (incident.info.status === INCIDENT_STATUS_EDITING) {
+            if (accountData.privilegeid === 'user'){
+                editCheck = true
+                submitCheck = true
+            }else if(accountData.privilegeid.includes('DPIR')){
+                editCheck = true
+                submitCheck = true
+                closeCheck = true
+            }
+        } else if (incident.info.status === INCIDENT_STATUS_SIGNING_OFF) {
+            if (accountData === incident.info.creater_id){
+                withdrawCheck = true
+            }else{
+                if (accountData.privilegeid === 'user'){
+
+                }else if(accountData.privilegeid.includes('DPIR')){
+                    // edit (type -> INCIDENT_STATUS_EDITING)
+                    editCheck = true
+                    // return
+                    returnCheck = true
+                    // close
+                    closeCheck = true
+                    // audit
+                    auditCheck = true
+                }
+            }
+
+        } else if (incident.info.status === INCIDENT_STATUS_SIGNED_OFF) {
+
+            if (accountData === incident.info.creater_id){
+                // withdraw
+                withdrawCheck = true
+            }else{
+                if (accountData.privilegeid === 'user'){
+
+                }else if(accountData.privilegeid.includes('DPIR')){
+                    // edit (type -> INCIDENT_STATUS_EDITING)
+                    editCheck = true
+                    // return
+                    returnCheck = true
+                    // close
+                    closeCheck = true
+                    // publish
+                    publishCheck = true
+                }
+            }
+
+        } else if (incident.info.status === INCIDENT_STATUS_CLOSE_PUBLISHED){
+
+        } else if (incident.info.status === INCIDENT_STATUS_CLOSE_UNPUBLISHED){
+            if (accountData.privilegeid === 'user'){
+
+            }else if(accountData.privilegeid.includes('DPIR')){
+                // edit (type -> INCIDENT_STATUS_EDITING)
+                editCheck = true
+            }
+        }
+
+
+
         return <div className='main-content basic-form'>
             <header className='main-header'>
                 {it(`txt-${activeContent}-${incidentType}`)}
@@ -292,28 +678,22 @@ class Incident extends Component {
                 }
             </header>
 
-            <div className='content-header-btns'>
-                {activeContent === 'viewIncident' &&
-                <button className='standard btn list'
-                        onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</button>
-                }
 
-
-                {activeContent === 'viewIncident' && incident.info.status === 1 &&
-                <button className='standard btn list'
-                        onClick={this.auditIncident.bind(this, incident.info.id)}>{it('txt-audit')}</button>
-                }
-
-
-                {activeContent !== 'addIncident' &&
-                <button className='standard btn edit'
-                        onClick={this.toggleContent.bind(this, 'editIncident')}>{t('txt-edit')}</button>
-                }
-            </div>
-            
             <div className='auto-settings' style={{height: '70vh'}}>
             {
                 displayPage === 'main' && this.displayMainPage()
+            }
+                {
+                    activeContent === 'addIncident' && displayPage === 'main' && this.displayAttached()
+                }
+                {
+                    activeContent === 'editIncident' && displayPage === 'main' &&  incident.fileList.length > 0 && this.displayAttached()
+                }
+                {
+                    activeContent !== 'addIncident' &&  displayPage === 'main' && this.displayFlow()
+                }
+            {
+                displayPage === 'notice' && this.displayNoticePage()
             }
             {
                 displayPage === 'events' && this.displayEventsPage()
@@ -322,7 +702,42 @@ class Incident extends Component {
                 displayPage === 'ttps' && this.displayTtpPage()
             }
             </div>
-            
+
+            {activeContent === 'viewIncident' &&
+                <footer style={{'text-align':'center'}}>
+                    <button className='standard btn list'
+                            onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</button>
+                    {editCheck &&
+                        <button className='standard btn list'
+                                onClick={this.toggleContent.bind(this, 'editIncident')}>{t('txt-edit')}</button>
+                    }
+                    {withdrawCheck &&
+                        <button className='standard btn list'
+                                onClick={this.openWithdrawMenu.bind(this, incident.info)}>{it('txt-withdraw')}</button>
+                    }
+                    {submitCheck &&
+                        <button className='standard btn list'
+                                onClick={this.openSubmitMenu.bind(this, incident.info)}>{it('txt-submit')}</button>
+                    }
+                    {returnCheck &&
+                       <button className='standard btn list'
+                                onClick={this.openReturnMenu.bind(this, incident.info)}>{it('txt-return')}</button>
+                    }
+                    {closeCheck &&
+                        <button className='standard btn list'
+                                onClick={this.openCloseMenu.bind(this, incident.info)}>{it('txt-close')}</button>
+                    }
+                    {auditCheck &&
+                        <button className='standard btn list'
+                                onClick={this.openAuditMenu.bind(this, incident.info)}>{it('txt-audit')}</button>
+                    }
+                    {publishCheck &&
+                        <button className='standard btn list'
+                                onClick={this.openSendMenu.bind(this, incident.info.id)}>{it('txt-send')}</button>
+                    }
+                </footer>
+            }
+
             {
                 activeContent === 'editIncident' &&
                 <footer>
@@ -350,6 +765,7 @@ class Incident extends Component {
 
     displayMainPage = () => {
         const {activeContent, incidentType, incident, relatedListOptions} = this.state;
+        const {locale} = this.context;
 
         return <div className='form-group normal'>
             <header>
@@ -398,7 +814,7 @@ class Incident extends Component {
                     value={incident.info.reporter}
                     readOnly={activeContent === 'viewIncident'}/>
             </div>
-            <div className='group'>
+            <div className='group' style={{width: '25vh'}}>
                 <label htmlFor='impactAssessment'>{f('incidentFields.impactAssessment')}</label>
                 <DropDownList
                     id='impactAssessment'
@@ -414,7 +830,21 @@ class Incident extends Component {
                     readOnly={activeContent === 'viewIncident'}/>
             </div>
 
-            {incidentType === 'ttps' && <div className='group'>
+            <div className='group' style={{width: '25vh'}}>
+                <label htmlFor='finalDate'>{f('incidentFields.finalDate')}</label>
+                <DatePicker
+                    id='finalDate'
+                    className='daterange'
+                    onChange={this.handleDataChange.bind(this, 'finalDate')}
+                    enableTime={true}
+                    required={true}
+                    validate={{t: et}}
+                    value={incident.info.finalDate}
+                    locale={locale}
+                    readOnly={activeContent === 'viewIncident'} />
+            </div>
+
+            {incidentType === 'ttps' && <div className='group full'>
                 <label htmlFor='description'>{f('incidentFields.description')}</label>
                 <Textarea
                     id='description'
@@ -425,20 +855,6 @@ class Incident extends Component {
                     rows={3}
                     readOnly={activeContent === 'viewIncident'}/>
             </div>}
-
-            <div className='group'>
-                <label htmlFor='socType'>{f('incidentFields.socType')}</label>
-                <DropDownList
-                    id='socType'
-                    onChange={this.handleDataChange.bind(this, 'socType')}
-                    list={[
-                        {text: 'N-SOC', value: 0}, {text: 'G-SOC', value: 1}
-                    ]}
-                    required={true}
-                    validate={{t: et}}
-                    value={incident.info.socType}
-                    readOnly={activeContent === 'viewIncident'}/>
-            </div>
 
             {incidentType === 'ttps' &&
             <div className='group full'>
@@ -454,8 +870,272 @@ class Incident extends Component {
                     disabled={activeContent === 'viewIncident'}/>
             </div>
             }
+
+            <div className='group full'>
+                <label htmlFor='description'>{f('incidentFields.Suggestion')}</label>
+                <Textarea
+                    id='suggestion'
+                    onChange={this.handleDataChange.bind(this, 'suggestion')}
+                    required={true}
+                    validate={{t: et}}
+                    value={incident.info.suggestion}
+                    rows={3}
+                    readOnly={activeContent === 'viewIncident'}/>
+            </div>
         </div>
     };
+
+    formatBytes = (bytes, decimals = 2) => {
+        // console.log("bytes == " , bytes)
+        if (bytes === 0 || bytes === '0'){
+            // console.log("into bytes == 0 ")
+            return '0 Bytes';
+        }
+
+        const k = 1024;
+        const dm = decimals < 0 ? 0 : decimals;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+    }
+
+    displayAttached = () => {
+        const {activeContent, incidentType, incident, relatedListOptions} = this.state;
+        let dataFields = {};
+        incident.fileFieldsArr.forEach(tempData => {
+            dataFields[tempData] = {
+                label: tempData === '_menu' ? '' : f(`incidentFields.${tempData}`),
+                sortable: this.checkSortable(tempData),
+                formatter: (value, allValue, i) => {
+                    if (tempData === 'size') {
+                        return <span>{this.formatBytes(value)}</span>
+                    }else {
+                        return <span>{value}</span>
+                    }
+                }
+            }
+        });
+
+        let tempFile ={
+            fileName:incident.info.fileName,
+            fileExtension:incident.info.fileExtension,
+            fileSize:incident.info.fileSize,
+            fileMemo:incident.info.fileMemo
+        }
+        incident.fileList = []
+
+        if (tempFile.fileName !== ''){
+            incident.fileList.push(tempFile)
+        }
+        incident.fileFields = dataFields;
+
+        return <div className='form-group normal'>
+            <header>
+                <div className='text'>{it('txt-attachedFile')}<span style={{color:'red','font-size':'0.8em'}}>{it('txt-attachedFileHint')}</span></div>
+            </header>
+            {(activeContent === 'editIncident' || activeContent === 'addIncident') &&
+                <div className='group'>
+                    <FileUpload
+                        supportText={'Attached File'}
+                        id='attachedFileInput'
+                        fileType='attached'
+                        btnText={t('txt-upload')}
+                        handleFileChange={this.handleDataChange.bind(this, 'file')}
+                        readOnly={activeContent === 'viewIncident'}/>
+                </div>
+            }
+            {(activeContent === 'editIncident' || activeContent === 'addIncident') &&
+            <div className='group'>
+                <label htmlFor='fileMemo'>{it('txt-fileMemo')}</label>
+                <Textarea
+                    id='fileMemo'
+                    onChange={this.handleDataChange.bind(this, 'fileMemo')}
+                    required={true}
+                    validate={{t: et}}
+                    value={incident.info.fileMemo}
+                    rows={2}
+                    readOnly={activeContent === 'viewIncident'}/>
+            </div>
+            }
+            {incident.fileList.length > 0 &&
+                <div className='group full'>
+                    <DataTable
+                        style={{width: '100%'}}
+                        className='main-table full '
+                        fields={incident.fileFields}
+                        data={incident.fileList}
+                    />
+                </div>
+            }
+        </div>
+    }
+
+    displayFlow = () => {
+        const {activeContent, incidentType, incident, relatedListOptions} = this.state;
+
+        let dataFields = {};
+        incident.flowFieldsArr.forEach(tempData => {
+            dataFields[tempData] = {
+                hide: tempData === 'id',
+                label: tempData === '_menu' ? '' : f(`incidentFields.${tempData}`),
+                sortable: this.checkSortable(tempData),
+                formatter: (value, allValue, i) => {
+                    if (tempData === 'size') {
+                        return <span>{this.formatBytes(value)}</span>
+                    }else {
+                        return <span>{value}</span>
+                    }
+                }
+            }
+        });
+        incident.flowFields = dataFields;
+        return <div className='form-group normal'>
+            <header>
+                <div className='text'>{it('txt-flowTitle')}</div>
+            </header>
+
+            <div className='group full'>
+                <DataTable
+                    style={{width: '100%'}}
+                    className='main-table full'
+                    fields={incident.flowFields}
+                    data={incident.flowList}
+                />
+            </div>
+
+        </div>
+    }
+
+    displayNoticePage = () => {
+        const {activeContent, incident_accident_list, INCIDENT_SUB_ACCIDENT_DEVICE_LIST,INCIDENT_SUB_ACCIDENT_DOS_LIST, INCIDENT_SUB_ACCIDENT_INVASION_LIST, INCIDENT_SUB_ACCIDENT_WEB_LIST,incidentType, incident, relatedListOptions} = this.state;
+
+        return <div className='form-group normal'>
+            <header>
+                <div className='text'>{it('txt-accidentTitle')}</div>
+            </header>
+
+            <button className={incidentType === 'events' ? 'last' : 'last-left'}
+                    onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}</button>
+
+            {
+                incidentType === 'ttps' &&
+                <button className='last'
+                        onClick={this.handleIncidentPageChange.bind(this, 'ttps')}>{it('txt-next-page')}</button>
+            }
+
+            <div className='group'>
+                <label htmlFor='accident'>{it('txt-accidentClassification')}</label>
+                <DropDownList
+                    id='accident'
+                    onChange={this.handleDataChange.bind(this, 'accident')}
+                    required={true}
+                    validate={{t: et}}
+                    list={incident_accident_list}
+                    value={incident.info.accident}
+                    readOnly={activeContent === 'viewIncident'}/>
+            </div>
+            {incident.info.accident === '5' &&
+                <div className='group'>
+                    <label htmlFor='subAccident'>{it('txt-reason')}</label>
+                    <Input
+                        id='subAccident'
+                        onChange={this.handleDataChange.bind(this, 'subAccident')}
+                        required={true}
+                        validate={{t: et}}
+                        value={incident.info.subAccident}
+                        readOnly={activeContent === 'viewIncident'}/>
+                </div>
+            }
+            {incident.info.accident === '4' &&
+            <div className='group'>
+                <label htmlFor='subAccident'>{it('txt-reason')}</label>
+                <DropDownList
+                    id='subAccident'
+                    onChange={this.handleDataChange.bind(this, 'subAccident')}
+                    required={true}
+                    validate={{t: et}}
+                    list={INCIDENT_SUB_ACCIDENT_DEVICE_LIST}
+                    value={incident.info.subAccident}
+                    readOnly={activeContent === 'viewIncident'}/>
+            </div>
+            }
+            {incident.info.accident === '3' &&
+            <div className='group'>
+                <label htmlFor='subAccident'>{it('txt-reason')}</label>
+                <DropDownList
+                    id='subAccident'
+                    onChange={this.handleDataChange.bind(this, 'subAccident')}
+                    required={true}
+                    validate={{t: et}}
+                    list={INCIDENT_SUB_ACCIDENT_DOS_LIST}
+                    value={incident.info.subAccident}
+                    readOnly={activeContent === 'viewIncident'}/>
+            </div>
+            }
+            {incident.info.accident === '2' &&
+            <div className='group'>
+                <label htmlFor='subAccident'>{it('txt-reason')}</label>
+                <DropDownList
+                    id='subAccident'
+                    onChange={this.handleDataChange.bind(this, 'subAccident')}
+                    required={true}
+                    validate={{t: et}}
+                    list={INCIDENT_SUB_ACCIDENT_INVASION_LIST}
+                    value={incident.info.subAccident}
+                    readOnly={activeContent === 'viewIncident'}/>
+            </div>
+            }
+            {incident.info.accident === '1' &&
+            <div className='group'>
+                <label htmlFor='subAccident'>{it('txt-reason')}</label>
+                <DropDownList
+                    id='subAccident'
+                    onChange={this.handleDataChange.bind(this, 'subAccident')}
+                    required={true}
+                    validate={{t: et}}
+                    list={INCIDENT_SUB_ACCIDENT_WEB_LIST}
+                    value={incident.info.subAccident}
+                    readOnly={activeContent === 'viewIncident'}/>
+            </div>
+            }
+
+            <div className='group full'>
+                <label htmlFor='accidentDescr'>{it('txt-accidentDescr')}</label>
+                <Textarea
+                    id='accidentDescr'
+                    onChange={this.handleDataChange.bind(this, 'accidentDescr')}
+                    required={true}
+                    validate={{t: et}}
+                    value={incident.info.accidentDescr}
+                    rows={3}
+                    readOnly={activeContent === 'viewIncident'}/>
+            </div>
+            <div className='group full'>
+                <label htmlFor='reasonDescr'>{it('txt-reasonDescr')}</label>
+                <Textarea
+                    id='reasonDescr'
+                    onChange={this.handleDataChange.bind(this, 'reasonDescr')}
+                    required={true}
+                    validate={{t: et}}
+                    value={incident.info.reasonDescr}
+                    rows={3}
+                    readOnly={activeContent === 'viewIncident'}/>
+            </div>
+            <div className='group full'>
+                <label htmlFor='accidentInvestigation'>{it('txt-accidentInvestigation')}</label>
+                <Textarea
+                    id='accidentInvestigation'
+                    onChange={this.handleDataChange.bind(this, 'accidentInvestigation')}
+                    required={true}
+                    validate={{t: et}}
+                    value={incident.info.accidentInvestigation}
+                    rows={3}
+                    readOnly={activeContent === 'viewIncident'}/>
+            </div>
+        </div>
+    }
 
     handleEventsChange = (val) => {
         let temp = {...this.state.incident};
@@ -475,13 +1155,12 @@ class Incident extends Component {
                 <div className='text'>{it('txt-incident-events')}</div>
             </header>
 
-            <button className={incidentType === 'events' ? 'last' : 'last-left'}
+            <button className='last-left '
                     onClick={this.handleIncidentPageChange.bind(this, 'main')}>{it('txt-prev-page')}</button>
-            {
-                incidentType === 'ttps' &&
-                <button className='last'
-                        onClick={this.handleIncidentPageChange.bind(this, 'ttps')}>{it('txt-next-page')}</button>
-            }
+
+            <button className='last'
+                    onClick={this.handleIncidentPageChange.bind(this, 'notice')}>{it('txt-next-page')}</button>
+
 
             <div className='group full multi'>
                 <MultiInput
@@ -514,7 +1193,7 @@ class Incident extends Component {
                 </div>
             </header>
             <button className='last'
-                    onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}</button>
+                    onClick={this.handleIncidentPageChange.bind(this, 'notice')}>{it('txt-prev-page')}</button>
 
             <div className='group full multi'>
                 <MultiInput
@@ -670,7 +1349,7 @@ class Incident extends Component {
         return true
     }
 
-    getIncident = (id) => {
+    getIncident = (id,type) => {
         const {baseUrl} = this.context;
 
         ah.one({
@@ -700,9 +1379,9 @@ class Incident extends Component {
                 }
 
                 let incidentType = _.size(temp.ttpList) > 0 ? 'ttps' : 'events';
-
+                let toggleType = type
                 incident.info = temp;
-                this.setState({incident, incidentType}, () => {
+                this.setState({incident, incidentType,toggleType}, () => {
                     this.toggleContent('viewIncident', temp)
                 })
             })
@@ -794,6 +1473,116 @@ class Incident extends Component {
     };
 
     /**
+     * Show Withdraw Incident dialog
+     * @method
+     * @param {object} allValue - IncidentDevice data
+     */
+    openWithdrawMenu = (allValue) => {
+        PopupDialog.prompt({
+            title: it('txt-withdraw'),
+            id: 'modalWindowSmall',
+            confirmText: it('txt-withdraw'),
+            cancelText: t('txt-cancel'),
+            display: <div className='content delete'>
+                <span>{it('txt-withdraw-msg')}: {allValue.id}?</span>
+            </div>,
+            act: (confirmed, data) => {
+                if (confirmed) {
+                    // this.deleteIncident(allValue.id)
+                }
+            }
+        })
+    };
+
+    /**
+     * Show Submit Incident dialog
+     * @method
+     * @param {object} allValue - IncidentDevice data
+     */
+    openSubmitMenu = (allValue) => {
+        PopupDialog.prompt({
+            title: it('txt-submit'),
+            id: 'modalWindowSmall',
+            confirmText: it('txt-submit'),
+            cancelText: t('txt-cancel'),
+            display: <div className='content delete'>
+                <span>{it('txt-submit-msg')}: {allValue.id}?</span>
+            </div>,
+            act: (confirmed, data) => {
+                if (confirmed) {
+                    // this.deleteIncident(allValue.id)
+                }
+            }
+        })
+    };
+
+    /**
+     * Show Return Incident dialog
+     * @method
+     * @param {object} allValue - IncidentDevice data
+     */
+    openReturnMenu = (allValue) => {
+        PopupDialog.prompt({
+            title: it('txt-return'),
+            id: 'modalWindowSmall',
+            confirmText: it('txt-return'),
+            cancelText: t('txt-cancel'),
+            display: <div className='content delete'>
+                <span>{it('txt-return-msg')}: {allValue.id}?</span>
+            </div>,
+            act: (confirmed, data) => {
+                if (confirmed) {
+                    // this.deleteIncident(allValue.id)
+                }
+            }
+        })
+    };
+
+    /**
+     * Show Return Incident dialog
+     * @method
+     * @param {object} allValue - IncidentDevice data
+     */
+    openCloseMenu = (allValue) => {
+        PopupDialog.prompt({
+            title: it('txt-close'),
+            id: 'modalWindowSmall',
+            confirmText: it('txt-close'),
+            cancelText: t('txt-cancel'),
+            display: <div className='content delete'>
+                <span>{it('txt-close-msg')}: {allValue.id}?</span>
+            </div>,
+            act: (confirmed, data) => {
+                if (confirmed) {
+                    // this.deleteIncident(allValue.id)
+                }
+            }
+        })
+    };
+
+    /**
+     * Show Return Incident dialog
+     * @method
+     * @param {object} allValue - IncidentDevice data
+     */
+    openAuditMenu = (allValue) => {
+        PopupDialog.prompt({
+            title: it('txt-audit'),
+            id: 'modalWindowSmall',
+            confirmText: it('txt-audit'),
+            cancelText: t('txt-cancel'),
+            display: <div className='content delete'>
+                <span>{it('txt-audit-msg')}: {allValue.id}?</span>
+            </div>,
+            act: (confirmed, data) => {
+                if (confirmed) {
+                    // this.deleteIncident(allValue.id)
+                }
+            }
+        })
+    };
+
+    /**
      * Show Send Incident dialog
      * @method
      * @param {object} allValue - IncidentDevice data
@@ -825,6 +1614,28 @@ class Incident extends Component {
         ah.one({
             url: `${baseUrl}/api/soc?id=${id}`,
             type: 'DELETE'
+        })
+            .then(data => {
+                if (data.ret === 0) {
+                    this.loadData()
+                }
+                return null
+            })
+            .catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message)
+            })
+    };
+
+    /**
+     * Handle withdraw Incident confirm
+     * @method
+     */
+    withdrawIncident = (id) => {
+        const {baseUrl} = this.context;
+
+        ah.one({
+            url: `${baseUrl}/api/soc/_withdraw?id=${id}`,
+            type: 'get'
         })
             .then(data => {
                 if (data.ret === 0) {
@@ -877,7 +1688,12 @@ class Incident extends Component {
                 relatedList: allValue.relatedList,
                 ttpList: allValue.ttpList,
                 eventList: allValue.eventList,
-                status: allValue.status
+                status: allValue.status,
+                suggestion:allValue.suggestion,
+                fileName: allValue.fileName||'',
+                fileType: allValue.fileType||'',
+                fileSize: allValue.fileSize|| 0 ,
+                fileMemo: allValue.fileMemo||''
             };
 
             if (!tempIncident.info.socType) {
@@ -897,7 +1713,12 @@ class Incident extends Component {
                 createDttm: null,
                 relatedList: null,
                 ttpList: null,
-                eventList: null
+                eventList: null,
+                suggestion: null,
+                fileName: '',
+                fileType: '',
+                fileSize:  0 ,
+                fileMemo: ''
             };
             if (!tempIncident.info.socType) {
                 tempIncident.info.socType = 1
@@ -921,6 +1742,12 @@ class Incident extends Component {
             tempIncident.info = {
                 title: alertData.Info,
                 reporter: alertData.Collector,
+                rawData:alertData,
+                suggestion:alertData.toString(),
+                fileName: '',
+                fileType: '',
+                fileSize:  0 ,
+                fileMemo: ''
             };
 
             if (!tempIncident.info.socType) {
@@ -1017,6 +1844,61 @@ class Incident extends Component {
     };
 
     /**
+     *
+     * @param {string} id
+     */
+    submittedIncident = (id) => {
+        const {baseUrl} = this.context;
+        let tmp = {
+            id: id
+        }
+        ah.one({
+            url: `${baseUrl}/api/soc/_submit`,
+            data: JSON.stringify(tmp),
+            type: 'POST',
+            contentType: 'application/json',
+            dataType: 'json'
+        })
+            .then(data => {
+                if (data) {
+                    helper.showPopupMsg(it('txt-submit-success'), it('txt-submit'));
+                    this.loadData()
+                }
+            })
+            .catch(err => {
+                helper.showPopupMsg(it('txt-submit-fail'), it('txt-submit'));
+            })
+    };
+
+    /**
+     *
+     * @param {string} id
+     */
+    returnIncident = (id) => {
+        const {baseUrl} = this.context;
+        let tmp = {
+            id: id
+        }
+        ah.one({
+            url: `${baseUrl}/api/soc/_return`,
+            data: JSON.stringify(tmp),
+            type: 'POST',
+            contentType: 'application/json',
+            dataType: 'json'
+        })
+            .then(data => {
+
+                if (data){
+                    helper.showPopupMsg(it('txt-return-success'), it('txt-return'));
+                    this.loadData()
+                }
+            })
+            .catch(err => {
+                helper.showPopupMsg(it('txt-return-fail'), it('txt-return'));
+            })
+    };
+
+    /**
      * Send Incident
      * @param {string} id
      */
@@ -1077,6 +1959,7 @@ class Incident extends Component {
             </div>
         )
     }
+
 
     /**
      * Handle filter input data change
@@ -1140,6 +2023,23 @@ class Incident extends Component {
         let temp = {...this.state.incident};
         temp.info[type] = value;
 
+        if (type === 'impactAssessment'){
+            switch (value){
+                case '1':
+                    temp.info.finalDate = helper.getAdditionDate(48, 'hours')
+                    break;
+                case '2':
+                    temp.info.finalDate = helper.getAdditionDate(48, 'hours')
+                    break;
+                case '3':
+                    temp.info.finalDate = helper.getAdditionDate(24, 'hours')
+                    break;
+                case '4':
+                    temp.info.finalDate = helper.getAdditionDate(8, 'hours')
+                    break;
+            }
+        }
+
         this.setState({
             incident: temp
         })
@@ -1202,6 +2102,40 @@ class Incident extends Component {
             .catch(err => {
                 helper.showPopupMsg('', t('txt-error'), err.message)
             })
+
+        //利用 account_id 查詢 privilege_id
+        const {session} = this.context;
+
+        ah.all([
+            {
+                url:`${baseUrl}/api/account?accountid=${session.accountId}`,
+                type:'GET'
+            },
+            {
+                url: `${baseUrl}/api/account/privileges?accountId=${session.accountId}`,
+                type:'GET'
+            }
+        ])
+            .then(data => {
+                if (data) {
+
+                    let privilegeidList =  _.map(data[1].rt, 'privilegeid')
+                    let accountData = {
+                        accountid: data[0].rt.accountid,
+                        privilegeid: privilegeidList[0]
+                    };
+                    // console.log("accountData == ",accountData)
+                    this.setState({
+                        accountData
+                    });
+                }
+                return null;
+            })
+            .catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message);
+                this.close();
+            })
+
     };
 
     /**

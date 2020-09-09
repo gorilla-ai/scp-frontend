@@ -38,8 +38,9 @@ class FileUpload extends Component {
     this.props.handleFileChange(file);
   }
   render() {
-    const {supportText, id, fileType, btnText} = this.props;
+    const {supportText, id, fileType, btnText, readOnly} = this.props;
     let validate = {};
+    let disabled = readOnly || false;
 
     if (fileType == 'indicators') {
       validate = {
@@ -69,11 +70,20 @@ class FileUpload extends Component {
       };
     }
 
+
+    if (fileType === 'attached') {
+      validate = {
+        extension: ['.txt', '.zip', '.xls','.csv','.xlsx','.doc','.docx'],
+        t: this.getErrorMsg
+      };
+    }
+
     return (
       <div className='content'>
         <label htmlFor={id}>{supportText}</label>
         <FileInput
           id={id}
+          disabled={disabled}
           validate={validate}
           onChange={this.handleFileChange}
           btnText={btnText} />
