@@ -39,9 +39,9 @@ class InputPath extends Component {
     });
   }
   /**
-   * Validate include path input
+   * Validate path input
    * @method
-   * @param {function} path - path from user's input
+   * @param {string} path - path from user's input
    */
   validatePathInput = (path) => {
     this.handleDataChange(path);
