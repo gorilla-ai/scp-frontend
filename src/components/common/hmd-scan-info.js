@@ -714,17 +714,6 @@ class HMDscanInfo extends Component {
     return <span style={{color : val ? '#22ac38' : '#d0021b'}}>{val.toString()}</span>
   }
   /**
-   * Get host ID count and tooltip
-   * @method
-   * @param {object} val - AI data object
-   * @returns HTML DOM
-   */
-  getHostIdCnt = (val) => {
-    const tooltip = f('malwareFields.hostIdArrCnt') + '/' + f('malwareFields.totalHostCnt') + ': ' + val.hostIdArrCnt + '/' + val.totalHostCnt;
-
-    return <span title={tooltip}>{val.hostIdArrCnt}</span>
-  }
-  /**
    * Display Scan File content
    * @method
    * @param {number} parentIndex - parent index of the scan file array
@@ -803,13 +792,27 @@ class HMDscanInfo extends Component {
             {val._FileInfo && val._FileInfo._Filepath &&
               <div className='header'>
                 <ul>
-                  <li>{f('malwareFields._FileInfo._Filepath')}: {val._FileInfo._Filepath}</li>
-                  <li>{f('malwareFields._FileInfo._Filesize')}: {val._FileInfo._Filesize  + 'KB'}</li>
-                  <li>{f('malwareFields._FileInfo._HashValues._MD5')}: {val._FileInfo._HashValues._MD5}</li>
-                  <li>{f('malwareFields._IsPE')}: {this.getBoolValue(val._IsPE)}</li>
-                  <li>{f('malwareFields._IsPEextension')}: {this.getBoolValue(val._IsPEextension)}</li>
-                  <li>{f('malwareFields._IsVerifyTrust')}: {this.getBoolValue(val._IsVerifyTrust)}</li>
-                  <li>{f('malwareFields.hostIdArrCnt')}: {this.getHostIdCnt(val)}</li>
+                  {val._FileInfo._Filepath &&
+                    <li>{f('malwareFields._FileInfo._Filepath')}: {val._FileInfo._Filepath}</li>
+                  }
+                  {val._FileInfo._Filesize &&
+                    <li>{f('malwareFields._FileInfo._Filesize')}: {helper.numberWithCommas(val._FileInfo._Filesize) + 'KB'}</li>
+                  }
+                  {val._FileInfo._HashValues._MD5 &&
+                    <li>{f('malwareFields._FileInfo._HashValues._MD5')}: {val._FileInfo._HashValues._MD5}</li>
+                  }
+                  {val._IsPE &&
+                    <li>{f('malwareFields._IsPE')}: {this.getBoolValue(val._IsPE)}</li>
+                  }
+                  {val._IsPEextension &&
+                    <li>{f('malwareFields._IsPEextension')}: {this.getBoolValue(val._IsPEextension)}</li>
+                  }
+                  {val._IsVerifyTrust &&
+                    <li>{f('malwareFields._IsVerifyTrust')}: {this.getBoolValue(val._IsVerifyTrust)}</li>
+                  }
+                  {val.hostIdArrCnt &&
+                    <li>{f('malwareFields.hostIdArrCnt')}: {helper.numberWithCommas(val.hostIdArrCnt)}</li>
+                  }
                 </ul>
               </div>
             }
@@ -922,7 +925,7 @@ class HMDscanInfo extends Component {
   getSuspiciousFileCount = (dataResult) => {
     if (dataResult) {
       const color = dataResult.length === 0 ? '#22ac38' : '#d10d25'; //green : red
-      return <span style={{color}}>{t('network-inventory.txt-suspiciousFileCount')}: {dataResult.length}</span>
+      return <span style={{color}}>{t('network-inventory.txt-suspiciousFileCount')}: {helper.numberWithCommas(dataResult.length)}</span>
     }
   }
   /**
@@ -940,7 +943,7 @@ class HMDscanInfo extends Component {
       if (gcbFilteredResult) {
         const color = gcbFilteredResult.length === gcbDataResult.length ? '#22ac38' : '#d10d25'; //green : red
 
-        return <span style={{color}}>{t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}: {gcbFilteredResult.length}/{gcbDataResult.length}</span>
+        return <span style={{color}}>{t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}: {helper.numberWithCommas(gcbFilteredResult.length)}/{helper.numberWithCommas(gcbDataResult.length)}</span>
       }
     }
   }

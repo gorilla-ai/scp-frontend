@@ -238,7 +238,7 @@ class NetworkInventory extends Component {
           color = '#d10d25';
         }
 
-        return <li key={i} style={{color}}>{val.name} {text}: {totalCount}</li>
+        return <li key={i} style={{color}}>{val.name} {text}: {helper.numberWithCommas(totalCount)}</li>
       }
     }
   }
@@ -1784,10 +1784,15 @@ class NetworkInventory extends Component {
     };
 
     if (hmdObj.cmds === 'compareIOC') {
-      requestData.paras = {
-        _FilepathList: yaraRule.path,
-        _RuleString: yaraRule.rule
-      };
+      if (yaraRule.pathData.length > 0) {
+        requestData.paras = {
+          _FilepathList: yaraRule.pathData,
+          _RuleString: yaraRule.rule
+        };
+      } else {
+        helper.showPopupMsg(t('network-inventory.txt-pathFormatError'));
+        return;
+      }
     }
 
     ah.one({
