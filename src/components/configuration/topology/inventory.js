@@ -1328,7 +1328,7 @@ class NetworkInventory extends Component {
   /**
    * Get and set IP device data (old api)
    * @method
-   * @param {string} index - index of the IP devicde data
+   * @param {string} [index] - index of the IP devicde data
    * @param {string | number} ipDeviceUUID - IP device UUID
    * @param {string} options - option for 'oneDevice'
    */
@@ -1338,7 +1338,7 @@ class NetworkInventory extends Component {
     let ipDeviceID = ipDeviceUUID;
     let tempDeviceData = {...this.state.deviceData};
 
-    if (index && index.toString()) {
+    if (index === 0 || index.toString()) { //If index is available
       tempDeviceData.hmdOnly.currentIndex = Number(index);
     } else {
       ipDeviceID = currentDeviceData.ipDeviceUUID;
