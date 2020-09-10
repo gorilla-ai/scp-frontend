@@ -1337,11 +1337,20 @@ class NetworkInventory extends Component {
     const {currentDeviceData} = this.state;
     let ipDeviceID = ipDeviceUUID;
     let tempDeviceData = {...this.state.deviceData};
+    let setCurrentIndex = false;
 
-    if (index === 0 || index.toString()) { //If index is available
-      tempDeviceData.hmdOnly.currentIndex = Number(index);
+    if (index) { //index is available
+      setCurrentIndex = true;
     } else {
-      ipDeviceID = currentDeviceData.ipDeviceUUID;
+      if (index === 0) {
+        setCurrentIndex = true;
+      } else {
+        ipDeviceID = currentDeviceData.ipDeviceUUID;
+      }
+    }
+
+    if (setCurrentIndex) {
+      tempDeviceData.hmdOnly.currentIndex = Number(index);
     }
 
     this.ah.one({
