@@ -69,28 +69,30 @@ class StatisticsUIF extends Component {
       let uifCfg = JSON.parse(dataJson.data)
 
       _.forEach(uifCfg.config.widgets, (widgetValue, widgetName) => {
-
         const oldUrl = widgetValue.widgetConfig.config.dataSource.query.url
         const pattern = _.includes(oldUrl, '?') ? oldUrl.substring(oldUrl.indexOf('/api'), oldUrl.indexOf('?')) : oldUrl.substring(oldUrl.indexOf('/api'))
+        const params = _.includes(oldUrl, '?') ? oldUrl.substring(oldUrl.indexOf('?') + 1) : ''
         let newUrl = `${baseUrl}${pattern}`
 
-        if (_.includes(oldUrl, 'startDttm') && _.includes(oldUrl, 'endDttm')) {
-          const startDttm = Moment(datetime.from, 'YYYY-MM-DD hh:mm:ss').utc().format('YYYY-MM-DDTHH:mm:ss[Z]')
-          const endDttm = Moment(datetime.to, 'YYYY-MM-DD hh:mm:ss').utc().format('YYYY-MM-DDTHH:mm:ss[Z]')  
+        if (params) {
+          _.forEach(params.split('&'), param => {
+            _.includes(newUrl, '?') ? newUrl += '&' : newUrl += '?'
 
-          newUrl += `?startDttm=${startDttm}&endDttm=${endDttm}`
-        }
-
-        if (_.includes(oldUrl, 'page') && _.includes(oldUrl, 'pageSize')) {
-          newUrl += `&page=1&pageSize=0`
-        }
-
-        if (_.includes(oldUrl, 'topSize')) {
-          newUrl += `&topSize=10`
-        }
-
-        if (_.includes(oldUrl, 'accountId')) {
-          newUrl += `&accountId=${session.accountId}` 
+            if (_.includes(param, 'startDttm')) {
+              const startDttm = Moment(datetime.from, 'YYYY-MM-DD hh:mm:ss').utc().format('YYYY-MM-DDTHH:mm:ss[Z]')
+              newUrl += `startDttm=${startDttm}`
+            }
+            else if (_.includes(param, 'endDttm')) {
+              const endDttm = Moment(datetime.to, 'YYYY-MM-DD hh:mm:ss').utc().format('YYYY-MM-DDTHH:mm:ss[Z]')
+              newUrl += `endDttm=${endDttm}`
+            }
+            else if (_.includes(param, 'accountId')) {
+              newUrl += `accountId=${session.accountId}` 
+            }
+            else {
+              newUrl += param
+            }
+          })
         }
 
         _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.dataSource.query.url`], newUrl)
