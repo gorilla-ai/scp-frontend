@@ -351,6 +351,10 @@ const helper = {
   validatePathInput: function(path) {
     let valid = true;
 
+    if (!path) {
+      return;
+    }
+
     if (path.indexOf('/') > 0) { //Slash is not allowed
       valid = false;
     }

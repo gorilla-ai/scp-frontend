@@ -1,8 +1,6 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 
-import {ReactMultiEmail} from 'react-multi-email';
-
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import MultiInput from 'react-ui/build/src/components/multi-input'
 import RadioGroup from 'react-ui/build/src/components/radio-group'

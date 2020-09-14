@@ -1371,6 +1371,8 @@ class NetworkInventory extends Component {
           currentDeviceData: data,
           activeIPdeviceUUID: ipDeviceID
         });
+      } else {
+        helper.showPopupMsg(t('txt-notFound'));
       }
       return null;
     })
@@ -1452,9 +1454,17 @@ class NetworkInventory extends Component {
       cmds: type
     };
 
+    let pathData = [];
+
+    _.forEach(yaraRule.pathData, val => {
+      if (val.path) {
+        pathData.push(val.path);
+      }
+    })
+
     if (type[0] === 'compareIOC') {
       requestData.paras = {
-        _FilepathList: yaraRule.path,
+        _FilepathList: pathData,
         _RuleString: yaraRule.rule
       };
     }
@@ -1784,9 +1794,17 @@ class NetworkInventory extends Component {
     };
 
     if (hmdObj.cmds === 'compareIOC') {
+      let pathData = [];
+
+      _.forEach(yaraRule.pathData, val => {
+        if (val.path) {
+          pathData.push(val.path);
+        }
+      })
+
       if (yaraRule.pathData.length > 0) {
         requestData.paras = {
-          _FilepathList: yaraRule.pathData,
+          _FilepathList: pathData,
           _RuleString: yaraRule.rule
         };
       } else {

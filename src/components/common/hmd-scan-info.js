@@ -8,15 +8,16 @@ import _ from 'lodash'
 import cx from 'classnames'
 
 import InfiniteScroll from 'react-infinite-scroll-component'
-import {ReactMultiEmail} from 'react-multi-email';
 
 import ButtonGroup from 'react-ui/build/src/components/button-group'
 import DataTable from 'react-ui/build/src/components/table'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import MultiInput from 'react-ui/build/src/components/multi-input'
 import ToggleBtn from 'react-ui/build/src/components/toggle-button'
 
 import {BaseDataContext} from './context';
 import helper from './helper'
+import InputPath from './input-path'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -99,9 +100,15 @@ class HMDscanInfo extends Component {
       fileIntegrityEnable: '',
       originalSettingsPathData: {},
       settingsPath: {
-        includePath: [],
-        excludePath: [],
-        processKeyword: []
+        includePath: [{
+          path: ''
+        }],
+        excludePath: [{
+          path: ''
+        }],
+        processKeyword: [{
+          path: ''
+        }]
       }
     };
 
@@ -347,6 +354,31 @@ class HMDscanInfo extends Component {
     });
   }
   /**
+   * Get parsed path list data
+   * @method
+   * @param {object} pathData - path list data
+   * @returns parsed path list
+   */
+  getParsedPathData = (pathData) => {
+    let pathList = [];
+
+    if (pathData.length > 0) {
+      _.forEach(pathData, val => {
+        if (val) {
+          pathList.push({
+            path: val
+          })
+        }
+      })
+    } else {
+      pathList.push({
+        path: ''
+      });
+    }
+
+    return pathList;
+  }
+  /**
    * Load and set Settings data
    * @method
    */
@@ -354,14 +386,16 @@ class HMDscanInfo extends Component {
     const {currentDeviceData} = this.props;
     let tempSettingsPath = {...this.state.settingsPath};
     let status = false;
+    let includePathList = [];
+    let excludePathList = [];
     let pathData = '';
 
     if (currentDeviceData.hmdSetting && currentDeviceData.hmdSetting.length > 0) {
       status = currentDeviceData.hmdSetting[0]._Parameters.isJobEnable;
       pathData = currentDeviceData.hmdSetting[0]._Parameters;
-      tempSettingsPath.includePath = pathData._IncludePathList ? pathData._IncludePathList : [];
-      tempSettingsPath.excludePath = pathData._ExcludePathList ? pathData._ExcludePathList : [];
-      tempSettingsPath.processKeyword = pathData._ProcessKeyword ? pathData._ProcessKeyword : [];
+      tempSettingsPath.includePath = this.getParsedPathData(pathData._IncludePathList);
+      tempSettingsPath.excludePath = this.getParsedPathData(pathData._ExcludePathList);
+      tempSettingsPath.processKeyword = this.getParsedPathData(pathData._ProcessKeyword);
     }
 
     this.setState({
@@ -1401,53 +1435,18 @@ class HMDscanInfo extends Component {
     });
   }
   /**
-   * Display list of settings path
+   * Set path data
    * @method
-   * @param {string} val - settings path value
-   * @param {string} i - index of the settings path array
-   * @returns HTML DOM
+   * @param {string} type - path data type ('includePath', 'excludePath' or 'processKeyword')
+   * @param {array} pathData - path data to be set
    */
-  displaySettingsPath = (val, i) => {
-    return <span key={i}>{val}</span>
-  }
-  /**
-   * Handle settings path input change
-   * @method
-   * @param {object} val - FILE_INTEGRITY_SETTINGS object
-   * @param {array} newPath - new settings path list
-   */
-  handleSettingsPathChange = (val, newSettingsPath) => {
+  setPathData = (type, pathData) => {
     let tempSettingsPath = {...this.state.settingsPath};
-    tempSettingsPath[val.type] = newSettingsPath;
+    tempSettingsPath[type] = pathData;
 
     this.setState({
       settingsPath: tempSettingsPath
     });
-  }
-  /**
-   * Handle settings path delete
-   * @method
-   * @param {function} removePath - function to remove settings path
-   * @param {number} index - index of the settings path list array
-   */
-  deleteSettingsPath = (removePath, index) => {
-    removePath(index);
-  }
-  /**
-   * Handle settings path delete
-   * @method
-   * @param {string} path - individual settings path
-   * @param {number} index - index of the settings path list array
-   * @param {function} removePath - function to remove settings path
-   * @returns HTML DOM
-   */
-  getLabel = (path, index, removePath) => {
-    return (
-      <div data-tag key={index}>
-        {path}
-        <span data-tag-handle onClick={this.deleteSettingsPath.bind(this, removePath, index)}> <span className='font-bold'>x</span></span>
-      </div>
-    )
   }
   /**
    * Display File Integrity settings content
@@ -1457,29 +1456,95 @@ class HMDscanInfo extends Component {
    * @returns HTML DOM
    */
   getSettingsPathContent = (val, i) => {
-    const {settingsActiveContent, settingsPath} = this.state;
+    return (
+      <div className='path-group' key={i}>
+        <label>{val.headerText}</label>
+        <MultiInput
+          base={InputPath}
+          inline={true}
+          value={this.state.settingsPath[val.type]}
+          onChange={this.setPathData.bind(this, val.type)} />
+      </div>
+    )
+  }
+  /**
+   * Display list of settings path
+   * @method
+   * @param {string} type - settings path type ('includePath', 'excludePath', or 'processKeyword')
+   * @param {string | object} val - settings path value
+   * @param {string} i - index of the settings path array
+   * @returns HTML DOM
+   */
+  displaySettingsPath = (type, val, i) => {
+    if (val) {
+      if (val.path) {
+        return <span key={i}>{val.path}</span>
+      } else {
+        return <span key={i}>{val}</span>
+      }
+    }
+  }
+  /**
+   * Display File Integrity settings view only content
+   * @method
+   * @param {object} val - FILE_INTEGRITY_SETTINGS object
+   * @param {number} i - index of the FILE_INTEGRITY_SETTINGS array
+   * @returns HTML DOM
+   */
+  viewSettingsPathContent = (val, i) => {
+    const {settingsPath} = this.state;
 
     return (
-      <div className='form-group' key={val.type}>
-        <label>{val.headerText} ({t('txt-commaSeparated')})</label>
-        {settingsActiveContent === 'viewMode' && settingsPath[val.type].length > 0 &&
-          <div className='flex-item'>{settingsPath[val.type].map(this.displaySettingsPath)}</div>
+      <div className='form-group' key={i}>
+        <label>{val.headerText}</label>
+        {settingsPath[val.type].length > 0 &&
+          <div className='flex-item'>{settingsPath[val.type].map(this.displaySettingsPath.bind(this, [val.type]))}</div>
         }
-        {settingsActiveContent === 'viewMode' && settingsPath[val.type].length === 0 &&
+        {settingsPath[val.type].length === 0 &&
           <div>{NOT_AVAILABLE}</div>
-        }
-        {settingsActiveContent === 'editMode' &&
-          <ReactMultiEmail
-            emails={settingsPath[val.type]}
-            validateEmail={path => {
-              return path;
-            }}
-            onChange={this.handleSettingsPathChange.bind(this, val)}
-            getLabel={this.getLabel} />
         }
       </div>
     )
   }
+  /**
+   * Get parsed path list data
+   * @method
+   * @param {string} type - path list type
+   * @param {array.<object>} pathData - path list data
+   * @returns parsed path list
+   */
+  getSavedSettings = (type, pathData) => {
+    let pathList = [];
+    let validPath = true;
+
+    _.forEach(pathData, val => {
+      if (val.path) {
+        if (type === 'includePath' || type === 'excludePath') {
+          validPath = helper.validatePathInput(val.path);
+
+          if (validPath) {
+            pathList.push(val.path);
+          } else {
+            helper.showPopupMsg(t('network-inventory.txt-pathFormatError'), t('txt-error'));
+            return false;
+          }
+        } else {
+          pathList.push(val.path);
+        }
+      }
+    })
+
+    if (type === 'includePath' && pathData.length === 0) {
+      helper.showPopupMsg(t('network-inventory.txt-includePathEmpty'), t('txt-error'));
+      validPath = false;
+    }
+
+    if (!validPath) {
+      return validPath;
+    }
+
+    return pathList.toString();
+}
   /**
    * Handle settings save confirm
    * @method
@@ -1492,13 +1557,12 @@ class HMDscanInfo extends Component {
     const requestData = {
       hostId: currentDeviceData.ipDeviceUUID,
       isJobEnable: fileIntegrityEnable,
-      _IncludePathList: settingsPath.includePath.join(),
-      _ExcludePathList: settingsPath.excludePath.join(),
-      _ProcessKeyword: settingsPath.processKeyword.join()
+      _IncludePathList: this.getSavedSettings('includePath', settingsPath.includePath),
+      _ExcludePathList: this.getSavedSettings('excludePath', settingsPath.excludePath),
+      _ProcessKeyword: this.getSavedSettings('processKeyword', settingsPath.processKeyword)
     };
 
-    if (!settingsPath.includePath.join()) {
-      helper.showPopupMsg(t('network-inventory.txt-includePathEmpty'), t('txt-error'));
+    if (!requestData._IncludePathList || !requestData._ExcludePathList) { //Invalid path data
       return;
     }
 
@@ -1515,9 +1579,9 @@ class HMDscanInfo extends Component {
         this.setState({
           fileIntegrityEnable: data.isJobEnable,
           settingsPath: {
-            includePath: data._IncludePathList,
-            excludePath: data._ExcludePathList,
-            processKeyword: data._ProcessKeyword
+            includePath: this.getParsedPathData(data._IncludePathList),
+            excludePath: this.getParsedPathData(data._ExcludePathList),
+            processKeyword: this.getParsedPathData(data._ProcessKeyword)
           }
         }, () => {
           this.toggleSettingsContent('save');
@@ -1535,7 +1599,6 @@ class HMDscanInfo extends Component {
    */
   restoreDefaultSettings = () => {
     const {baseUrl} = this.context;
-    const {settingsPath} = this.props;
 
     this.ah.one({
       url: `${baseUrl}/api/hmd/defaultSnapshotSettings`,
@@ -1543,13 +1606,12 @@ class HMDscanInfo extends Component {
     })
     .then(data => {
       if (data) {
-
         this.setState({
           fileIntegrityEnable: data.isJobEnable,
           settingsPath: {
-            includePath: data._IncludePathList.split(','),
-            excludePath: data._ExcludePathList.split(','),
-            processKeyword: data._ProcessKeyword.split(',')
+            includePath: this.getParsedPathData(data._IncludePathList.split(',')),
+            excludePath: this.getParsedPathData(data._ExcludePathList.split(',')),
+            processKeyword: this.getParsedPathData(data._ProcessKeyword.split(','))
           }
         });
       }
@@ -1576,7 +1638,8 @@ class HMDscanInfo extends Component {
       dashboardInfo,
       hmdInfo,
       settingsActiveContent,
-      fileIntegrityEnable
+      fileIntegrityEnable,
+      settingsPath
     } = this.state;
     const FILE_INTEGRITY_SETTINGS = [
       {
@@ -1651,7 +1714,12 @@ class HMDscanInfo extends Component {
                   onChange={this.handleStatusChange}
                   disabled={settingsActiveContent === 'viewMode'} />
                 <div className='settings-form'>
-                  {FILE_INTEGRITY_SETTINGS.map(this.getSettingsPathContent)}
+                  {settingsActiveContent === 'viewMode' && 
+                    FILE_INTEGRITY_SETTINGS.map(this.viewSettingsPathContent)
+                  }
+                  {settingsActiveContent === 'editMode' &&
+                    FILE_INTEGRITY_SETTINGS.map(this.getSettingsPathContent)
+                  }
                 </div>
               </div>
             </div>

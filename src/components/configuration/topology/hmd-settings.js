@@ -6,8 +6,7 @@ import Moment from 'moment'
 import cx from 'classnames'
 import _ from 'lodash'
 
-import {ReactMultiEmail} from 'react-multi-email';
-
+import MultiInput from 'react-ui/build/src/components/multi-input'
 import RadioGroup from 'react-ui/build/src/components/radio-group'
 
 import {BaseDataContext} from '../../common/context';
@@ -180,15 +179,6 @@ class HMDsettings extends Component {
     return <span key={i}>{val}</span>
   }
   /**
-   * Handle file scan path delete
-   * @method
-   * @param {function} removePath - function to remove path
-   * @param {number} index - index of the emails list array
-   */
-  deleteFileScanPath = (removePath, index) => {
-    removePath(index);
-  }
-  /**
    * Validate scan files input
    * @method
    * @param {function} path - path from user's input
@@ -209,22 +199,6 @@ class HMDsettings extends Component {
     } else {
       helper.showPopupMsg(t('network-inventory.txt-pathFormatError'), t('txt-error'));
     }
-  }
-  /**
-   * Handle file scan path delete
-   * @method
-   * @param {string} path - individual file scan path
-   * @param {number} index - index of the file scan path list array
-   * @param {function} removePath - function to remove file scan path
-   * @returns HTML DOM
-   */
-  getLabel = (path, index, removePath) => {
-    return (
-      <div data-tag key={index}>
-        {path}
-        <span data-tag-handle onClick={this.deleteFileScanPath.bind(this, removePath, index)}> <span className='font-bold'>x</span></span>
-      </div>
-    )
   }
   /**
    * Handle GCB version change
