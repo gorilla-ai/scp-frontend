@@ -507,8 +507,7 @@
     "_IsPE": "是否為PE檔",
     "_IsPEextension": "是否為PE副檔名",
     "_IsVerifyTrust": "是否為有效簽章",
-    "hostIdArrCnt": "存在主機數",
-    "totalHostCnt": "主機總數"
+    "hostIdArrCnt": "存在主機數"
   },
   "edgeFields": {
     "agentName": "名稱",
