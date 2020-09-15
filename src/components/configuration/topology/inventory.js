@@ -1454,15 +1454,15 @@ class NetworkInventory extends Component {
       cmds: type
     };
 
-    let pathData = [];
-
-    _.forEach(yaraRule.pathData, val => {
-      if (val.path) {
-        pathData.push(val.path);
-      }
-    })
-
     if (type[0] === 'compareIOC') {
+      let pathData = [];
+
+      _.forEach(yaraRule.pathData, val => {
+        if (val.path) {
+          pathData.push(val.path);
+        }
+      })
+
       requestData.paras = {
         _FilepathList: pathData,
         _RuleString: yaraRule.rule
