@@ -72,7 +72,7 @@ class Config extends Component {
     const path = window.location.pathname;
     const pattern = {
       notifications: '/SCP/configuration/notifications',
-      threat: '/SCP/configuration/edge/threat',
+      threat: '/SCP/configuration/threat/threat',
       edge: '/SCP/configuration/edge/edge',
       severity: '/SCP/configuration/edge/severity',
       inventory: '/SCP/configuration/topology/inventory',
@@ -128,7 +128,7 @@ class Config extends Component {
         </div>
 
         <div className='item frame threat'>
-          <Link to={{pathname: '/SCP/configuration/edge/threat', state: 'viewMode'}}>
+          <Link to={{pathname: '/SCP/configuration/threat/threat', state: 'viewMode'}}>
             <span className={`${this.getActiveFrame('threat')}`}>{t('txt-threatIntelligence')}</span>
           </Link>
         </div>
