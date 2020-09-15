@@ -753,6 +753,15 @@ html[data-theme='dark'] {
               }
             }
           }
+          .path-group {
+            margin-bottom: 20px;
+            .path-input {
+              width: 255px;
+              .error {
+                border-color: #da364a;
+              }
+            }
+          }
         }
       }
     }
@@ -1586,6 +1595,7 @@ html[data-theme='dark'] {
   }
 }
 #yaraRuleDialog-content {
+  max-height: 500px;
   width: 600px;
   .radio-group {
     flex-direction: row;
@@ -1596,6 +1606,12 @@ html[data-theme='dark'] {
     margin-right: 10px;
     input {
       width: 20px;
+    }
+  }
+  .path-input {
+    width: 100%;
+    .error {
+      border-color: #d0021b;
     }
   }
 }

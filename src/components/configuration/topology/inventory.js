@@ -238,7 +238,7 @@ class NetworkInventory extends Component {
           color = '#d10d25';
         }
 
-        return <li key={i} style={{color}}>{val.name} {text}: {totalCount}</li>
+        return <li key={i} style={{color}}>{val.name} {text}: {helper.numberWithCommas(totalCount)}</li>
       }
     }
   }
@@ -1371,6 +1371,8 @@ class NetworkInventory extends Component {
           currentDeviceData: data,
           activeIPdeviceUUID: ipDeviceID
         });
+      } else {
+        helper.showPopupMsg(t('txt-notFound'));
       }
       return null;
     })
@@ -1452,9 +1454,17 @@ class NetworkInventory extends Component {
       cmds: type
     };
 
+    let pathData = [];
+
+    _.forEach(yaraRule.pathData, val => {
+      if (val.path) {
+        pathData.push(val.path);
+      }
+    })
+
     if (type[0] === 'compareIOC') {
       requestData.paras = {
-        _FilepathList: yaraRule.path,
+        _FilepathList: pathData,
         _RuleString: yaraRule.rule
       };
     }
@@ -1784,10 +1794,23 @@ class NetworkInventory extends Component {
     };
 
     if (hmdObj.cmds === 'compareIOC') {
-      requestData.paras = {
-        _FilepathList: yaraRule.path,
-        _RuleString: yaraRule.rule
-      };
+      let pathData = [];
+
+      _.forEach(yaraRule.pathData, val => {
+        if (val.path) {
+          pathData.push(val.path);
+        }
+      })
+
+      if (yaraRule.pathData.length > 0) {
+        requestData.paras = {
+          _FilepathList: pathData,
+          _RuleString: yaraRule.rule
+        };
+      } else {
+        helper.showPopupMsg(t('network-inventory.txt-pathFormatError'));
+        return;
+      }
     }
 
     ah.one({

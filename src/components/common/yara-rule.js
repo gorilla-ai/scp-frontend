@@ -1,11 +1,13 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 
-import {ReactMultiEmail} from 'react-multi-email';
-
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import MultiInput from 'react-ui/build/src/components/multi-input'
 import RadioGroup from 'react-ui/build/src/components/radio-group'
 import Textarea from 'react-ui/build/src/components/textarea'
+
+import helper from './helper'
+import InputPath from './input-path'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -24,7 +26,9 @@ class YaraRule extends Component {
     this.state = {
       yaraRule: {
         rule: '',
-        path: []
+        pathData: [{
+          path: ''
+        }]
       },
       scanType: 'process', //'process' or 'filePath'
       info: ''
@@ -56,7 +60,9 @@ class YaraRule extends Component {
     let tempYaraRule = {...this.state.yaraRule};
 
     if (val === 'process') {
-      tempYaraRule.path = [];
+      tempYaraRule.pathData = [{
+        path: ''
+      }];
 
       this.setState({
         yaraRule: tempYaraRule
@@ -69,72 +75,49 @@ class YaraRule extends Component {
     });
   }
   /**
-   * Handle yara rule path delete
-   * @method
-   * @param {function} removePath - function to remove yara rule path
-   * @param {number} index - index of the yara rule path list array
-   */
-  deleteSettingsPath = (removePath, index) => {
-    removePath(index);
-  }
-  /**
-   * Handle yara rule path delete
-   * @method
-   * @param {string} path - individual yara rule path
-   * @param {number} index - index of the yara rule path list array
-   * @param {function} removePath - function to remove yara rule path
-   * @returns HTML DOM
-   */
-  getLabel = (path, index, removePath) => {
-    return (
-      <div data-tag key={index}>
-        {path}
-        <span data-tag-handle onClick={this.deleteSettingsPath.bind(this, removePath, index)}> <span className='font-bold'>x</span></span>
-      </div>
-    )
-  }
-  /**
-   * Validate include path input
-   * @method
-   * @param {function} path - path from user's input
-   */
-  validatePathInput = (path) => {
-    let valid = true;
-
-    if (path.indexOf('/') > 0) { //Slash is not allowed
-      valid = false;
-    }
-
-    if (path[path.length - 1] !== '\\') { //Path has to end with '\\'
-      valid = false;
-    }
-
-    if (valid) {
-      this.setState({
-        info: ''
-      });
-      return path;
-    } else {
-      this.setState({
-        info: t('network-inventory.txt-pathFormatError')
-      });
-    }
-  }
-  /**
    * Validate input data
    * @method
    */
   validateInputData = () => {
     const {yaraRule, scanType} = this.state;
+    let validPath = true;
 
-    if (!yaraRule.rule || (scanType === 'filePath' && yaraRule.path.length === 0)) {
+    if (!yaraRule.rule || (scanType === 'filePath' && yaraRule.pathData.length === 0)) {
       this.setState({
         info: t('txt-checkRequiredFieldType')
       });
       return;
     }
 
-    this.props.checkYaraRule(yaraRule);
+    if (scanType === 'filePath' && yaraRule.pathData.length > 0) {
+      _.forEach(yaraRule.pathData, val => {
+        validPath = helper.validatePathInput(val.path);
+
+        if (!validPath) {
+          this.setState({
+            info: t('network-inventory.txt-pathFormatError')
+          });
+          return false;
+        }
+      })
+    }
+
+    if (validPath) {
+      this.props.checkYaraRule(yaraRule);
+    }
+  }
+  /**
+   * Set path data
+   * @method
+   * @param {array} pathData - path data to be set
+   */
+  setPathData = (pathData) => {
+    let tempYaraRule = {...this.state.yaraRule};
+    tempYaraRule.pathData = pathData;
+
+    this.setState({
+      yaraRule: tempYaraRule
+    });
   }
   /**
    * Display yara rule content
@@ -168,12 +151,12 @@ class YaraRule extends Component {
         </div>
         {scanType === 'filePath' &&
           <div className='group'>
-            <label>{t('network-inventory.txt-includePath')} ({t('txt-commaSeparated')})</label>
-            <ReactMultiEmail
-              emails={yaraRule.path}
-              validateEmail={this.validatePathInput}
-              onChange={this.handleDataChange.bind(this, 'path')}
-              getLabel={this.getLabel} />
+            <label>{t('network-inventory.txt-includePath')}</label>
+            <MultiInput
+              base={InputPath}
+              inline={false}
+              value={yaraRule.pathData}
+              onChange={this.setPathData} />
           </div>
         }
       </div>

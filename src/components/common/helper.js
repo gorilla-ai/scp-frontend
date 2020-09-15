@@ -42,6 +42,9 @@ const helper = {
     string = string.toLowerCase();
     return string.charAt(0).toUpperCase() + string.slice(1);
   },
+  numberWithCommas: function(n) {
+    return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  },
   setChartData: function(data, property) {
     let innerObj = {};
     let dataArray = [];
@@ -216,18 +219,15 @@ const helper = {
 
     return (
       <div className='c-button-group left menu'>
+        <button className={cx('thumb', {'selected': page === 'overview'})}>
+          <Link to='/SCP/dashboard/overview'>{t('dashboard.txt-overview')}</Link>
+        </button>
         <button className={cx('thumb', {'selected': page === 'statisticsUIF'})}>
           <Link to='/SCP/dashboard/statisticsUIF'>{t('dashboard.txt-statisticsInfo')}</Link>
         </button>
-        {
-        // <button className={cx('thumb', {'selected': page === 'statistics'})}>
-        //   <Link to='/SCP/dashboard/statistics'>{t('dashboard.txt-statisticsInfo')}</Link>
-        // </button>
-        }
         <button className={cx('thumb', {'selected': page === 'maps'})}>
           <Link to='/SCP/dashboard/maps'>{t('dashboard.txt-attacksMap')}</Link>
         </button>
-        
       </div>
     )
   },
@@ -347,6 +347,23 @@ const helper = {
     }
 
     return pattern.test(data);
+  },
+  validatePathInput: function(path) {
+    let valid = true;
+
+    if (!path) {
+      return;
+    }
+
+    if (path.indexOf('/') > 0) { //Slash is not allowed
+      valid = false;
+    }
+
+    if (path[path.length - 1] !== '\\') { //Path has to be ended with '\\'
+      valid = false;
+    }
+
+    return valid;
   },
   getWorldMap: function(WORLDMAP, geoJson, mainData) {
     const t = global.chewbaccaI18n.getFixedT(null, 'connections');
