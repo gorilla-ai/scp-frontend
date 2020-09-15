@@ -27,7 +27,7 @@ import Syslog from './components/events/syslog/index'
 import SyslogConfig from './components/configuration/syslog/syslog'
 import SyslogPattern from './components/configuration/syslog/pattern'
 import Threats from './components/threats/index'
-import ThreatIntelligence from './components/configuration/edge/threat'
+import ThreatIntelligence from './components/configuration/threat/threat'
 import SeverityTable from './components/configuration/edge/severity'
 import UserAccounts from './components/configuration/user/accounts/index'
 import UserPrivileges from './components/configuration/user/privileges/index'
@@ -222,8 +222,8 @@ const Main = () => (
       <Route exact path='/SCP/events/syslog' component={SyslogComp} />
       <Route exact path='/SCP/events/netflow' component={NetflowComp} />
       <Route exact path='/SCP/configuration/notifications' component={Notifications} />
+      <Route exact path='/SCP/configuration/threat/threat' component={Threat} />
       <Route exact path='/SCP/configuration/edge/edge' component={Edge} />
-      <Route exact path='/SCP/configuration/edge/threat' component={Threat} />
       <Route exact path='/SCP/configuration/edge/severity' component={Severity} />
       <Route exact path='/SCP/configuration/topology/inventory' component={NetworkTopologyInventory} />
       <Route exact path='/SCP/configuration/topology/owner' component={NetworkTopologyOwner} />
