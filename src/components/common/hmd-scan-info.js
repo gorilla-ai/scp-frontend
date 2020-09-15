@@ -154,7 +154,7 @@ class HMDscanInfo extends Component {
    */
   loadInitialData = () => {
     this.loadInitialContent();
-    this.loadDashboardCharts();
+    this.loadRadarCharts();
     this.loadHMDdata();
     this.loadSettingsData();
   }
@@ -193,7 +193,7 @@ class HMDscanInfo extends Component {
    * Set spider and table chart for Dashboard tab
    * @method
    */
-  loadDashboardCharts = () => {
+  loadRadarCharts = () => {
     const {currentDeviceData} = this.props;
     let polarData = {
       categories: [],
@@ -202,7 +202,7 @@ class HMDscanInfo extends Component {
     let tempDashboardInfo = {...this.state.dashboardInfo};
     let totalScore = '';
 
-    _.forEach(currentDeviceData.radarResult, val => {
+    _.forEach(currentDeviceData.safetyScanInfo.radarResult, val => {
       polarData.categories.push(val.key);
       polarData.data.push(val.value);
       tempDashboardInfo.dataContent.push({ //For Dashboard table chart
@@ -283,7 +283,7 @@ class HMDscanInfo extends Component {
     });
 
     _.forEach(SAFETY_SCAN_LIST, val => { //Construct the HMD info object
-      const currentDataObj = currentDeviceData[val.type + 'Result'];
+      const currentDataObj = currentDeviceData.safetyScanInfo[val.type + 'Result'];
 
       if (currentDataObj && currentDataObj.length > 0 && !_.isEmpty(currentDataObj[0])) {
         hmdInfo[val.type] = {
@@ -466,20 +466,19 @@ class HMDscanInfo extends Component {
    * @returns boolean true/false
    */
   checkTriggerTime = (type) => {
-    const {disabledBtn} = this.state;
-    const {currentDeviceData} = this.props;
     const resultType = type + 'Result';
+    const currentDevice = this.props.currentDeviceData.safetyScanInfo[resultType];
 
-    if (disabledBtn) {
+    if (this.state.disabledBtn) {
       return true;
     }
 
-    if (currentDeviceData[resultType] && currentDeviceData[resultType].length > 0) {
-      if (currentDeviceData[resultType][0].latestCreateDttm) {
-        const latestCreateTime = helper.getFormattedDate(currentDeviceData[resultType][0].latestCreateDttm, 'local');
+    if (currentDevice && currentDevice.length > 0) {
+      if (currentDevice[0].latestCreateDttm) {
+        const latestCreateTime = helper.getFormattedDate(currentDevice[0].latestCreateDttm, 'local');
 
-        if (currentDeviceData[resultType][0].taskResponseDttm) {
-          const responseTime = helper.getFormattedDate(currentDeviceData[resultType][0].taskResponseDttm, 'local');
+        if (currentDevice[0].taskResponseDttm) {
+          const responseTime = helper.getFormattedDate(currentDevice[0].taskResponseDttm, 'local');
 
           if (Moment(latestCreateTime).isAfter(responseTime)) {
             return this.checkTimeAfter(latestCreateTime);

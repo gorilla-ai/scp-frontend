@@ -322,7 +322,7 @@ class NetworkInventory extends Component {
 
     let apiArr = [
       {
-        url: `${baseUrl}/api/u1/ipdevice/_search?${dataParams}`,
+        url: `${baseUrl}/api/v2/ipdevice/_search?${dataParams}`,
         type: 'GET'
       }
     ];
@@ -330,7 +330,7 @@ class NetworkInventory extends Component {
     //Combine the two APIs to show the loading icon
     if (options === 'delete') { //For deleting device
       apiArr.unshift({
-        url: `${baseUrl}/api/u1/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}`,
+        url: `${baseUrl}/api/v2/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}`,
         type: 'DELETE'
       });
     }
@@ -426,14 +426,18 @@ class NetworkInventory extends Component {
                 let hmdInfo = [];
 
                 _.forEach(SAFETY_SCAN_LIST, val => { //Construct the HMD info array
-                  const dataType = val + 'Result';
-                  const currentDataObj = allValue[dataType];
+                  const dataType = val + 'Result';  
+                  let currentDataObj = {};
 
-                  if (currentDataObj) {
+                  if (allValue.safetyScanInfo) {
+                    currentDataObj = allValue.safetyScanInfo[dataType];
+                  }
+
+                  if (!_.isEmpty(currentDataObj)) {
                     hmdInfo.push({
                       type: val,
                       name: t('network-inventory.scan-list.txt-' + val),
-                      result: allValue[dataType][0]
+                      result: allValue.safetyScanInfo[dataType][0]
                     });
                   }
                 })
@@ -544,7 +548,7 @@ class NetworkInventory extends Component {
     }
 
     this.ah.one({
-      url: `${baseUrl}/api/u1/ipdevice/_search?ip=${inventoryParam.ip}`,
+      url: `${baseUrl}/api/v2/ipdevice/_search?ip=${inventoryParam.ip}`,
       type: 'GET'
     })
     .then(data => {
@@ -1354,7 +1358,7 @@ class NetworkInventory extends Component {
     }
 
     this.ah.one({
-      url: `${baseUrl}/api/u1/ipdevice?uuid=${ipDeviceID}&page=1&pageSize=5`,
+      url: `${baseUrl}/api/v2/ipdevice?uuid=${ipDeviceID}&page=1&pageSize=5`,
       type: 'GET'
     })
     .then(data => {
@@ -1478,7 +1482,7 @@ class NetworkInventory extends Component {
 
     if (type.length > 0 && options !== 'fromInventory') { //Get updated HMD data for scan info type
       apiArr.push({
-        url: `${baseUrl}/api/u1/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}&page=1&pageSize=5`,
+        url: `${baseUrl}/api/v2/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}&page=1&pageSize=5`,
         type: 'GET'
       });
     }
@@ -2339,7 +2343,7 @@ class NetworkInventory extends Component {
     }
 
     this.ah.one({
-      url: `${baseUrl}/api/u1/ipdevice/_search?exactIp=${addIP.ip}`,
+      url: `${baseUrl}/api/v2/ipdevice/_search?exactIp=${addIP.ip}`,
       type: 'GET'
     })
     .then(data => {
