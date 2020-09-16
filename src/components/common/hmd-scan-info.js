@@ -1519,18 +1519,7 @@ class HMDscanInfo extends Component {
 
     _.forEach(pathData, val => {
       if (val.path) {
-        if (type === 'includePath' || type === 'excludePath') {
-          validPath = helper.validatePathInput(val.path);
-
-          if (validPath) {
-            pathList.push(val.path);
-          } else {
-            helper.showPopupMsg(t('network-inventory.txt-pathFormatError'), t('txt-error'));
-            return false;
-          }
-        } else {
-          pathList.push(val.path);
-        }
+        pathList.push(val.path);
       }
     })
 

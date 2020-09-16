@@ -157,22 +157,12 @@ class HMDsettings extends Component {
     const {scanFiles, gcbVersion} = this.state;
     const url = `${baseUrl}/api/common/config`;
     let parsedScanFiles = [];
-    let validPath = true;
 
     _.forEach(scanFiles, val => {
-      validPath = helper.validatePathInput(val.path);
-
-      if (validPath) {
+      if (val.path) {
         parsedScanFiles.push(val.path);
-      } else {
-        helper.showPopupMsg(t('network-inventory.txt-pathFormatError'), t('txt-error'));
-        return false;
       }
     });
-
-    if (!validPath) {
-      return;
-    }
 
     const scanType = [
       {

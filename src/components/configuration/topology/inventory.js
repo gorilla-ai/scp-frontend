@@ -1802,15 +1802,10 @@ class NetworkInventory extends Component {
         }
       })
 
-      if (yaraRule.pathData.length > 0) {
-        requestData.paras = {
-          _FilepathList: pathData,
-          _RuleString: yaraRule.rule
-        };
-      } else {
-        helper.showPopupMsg(t('network-inventory.txt-pathFormatError'));
-        return;
-      }
+      requestData.paras = {
+        _FilepathList: pathData,
+        _RuleString: yaraRule.rule
+      };
     }
 
     ah.one({

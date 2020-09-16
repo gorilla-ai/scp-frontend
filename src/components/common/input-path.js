@@ -21,7 +21,6 @@ class InputPath extends Component {
     super(props);
 
     this.state = {
-      validPath: true
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -38,21 +37,8 @@ class InputPath extends Component {
       path: value
     });
   }
-  /**
-   * Validate path input
-   * @method
-   * @param {string} path - path from user's input
-   */
-  validatePathInput = (path) => {
-    this.handleDataChange(path);
-
-    this.setState({
-      validPath: helper.validatePathInput(path)
-    });
-  }
   render() {
     const {value} = this.props;
-    const {validPath} = this.state;
 
     return (
       <div className='path-input'>
@@ -62,8 +48,7 @@ class InputPath extends Component {
             t: et
           }}
           value={value.path}
-          className={cx({'error': !validPath})}
-          onChange={this.validatePathInput} />
+          onChange={this.handleDataChange} />
       </div>
     )
   }
