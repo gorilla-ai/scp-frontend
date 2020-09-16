@@ -1315,7 +1315,12 @@ class HMDscanInfo extends Component {
           <div className='scan-header'>
             <span>{t('network-inventory.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local') || NOT_AVAILABLE}</span>
             <span>{t('network-inventory.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}</span>
-            {activeTab === 'gcb' && this.getPassTotalCount()}
+            {val.taskStatus && val.taskStatus === 'Failure' &&
+              <span style={{color: '#d10d25'}}>{t('network-inventory.txt-taskFailure')}</span>
+            }
+            {activeTab === 'gcb' && (!val.taskStatus || val.taskStatus && val.taskStatus === 'Complete') &&
+              this.getPassTotalCount()
+            }
           </div>
           {this.displayDataTable(activeTab, val)}
         </div>
@@ -1339,6 +1344,9 @@ class HMDscanInfo extends Component {
         <div className='scan-header'>
           <span>{t('network-inventory.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local') || NOT_AVAILABLE}</span>
           <span>{t('network-inventory.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}</span>
+          {val.taskStatus && val.taskStatus === 'Failure' &&
+            <span style={{color: '#d10d25'}}>{t('network-inventory.txt-taskFailure')}</span>
+          }
         </div>
         <div className='scan-content'>
           <div className='header'>{t('network-inventory.txt-irMsg')}:</div>
