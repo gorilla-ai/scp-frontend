@@ -336,11 +336,11 @@ class AlertDetails extends Component {
     const ip = this.getIpPortData(ipType);
     const apiArr = [
       {
-        url: `${baseUrl}/api/u1/ipdevice/_search?exactIp=${ip}`,
+        url: `${baseUrl}/api/v2/ipdevice/_search?exactIp=${ip}`,
         type: 'GET'
       },
       {
-        url: `${baseUrl}/api/u1/ipdevice?exactIp=${ip}&page=1&pageSize=5`,
+        url: `${baseUrl}/api/v2/ipdevice?exactIp=${ip}&page=1&pageSize=5`,
         type: 'GET'
       }
     ];
@@ -1437,11 +1437,11 @@ class AlertDetails extends Component {
         contentType: 'text/plain'
       },
       {
-        url: `${baseUrl}/api/u1/ipdevice/_search?exactIp=${ip}`,
+        url: `${baseUrl}/api/v2/ipdevice/_search?exactIp=${ip}`,
         type: 'GET'
       },
       {
-        url: `${baseUrl}/api/u1/ipdevice?exactIp=${ip}&page=1&pageSize=5`,
+        url: `${baseUrl}/api/v2/ipdevice?exactIp=${ip}&page=1&pageSize=5`,
         type: 'GET'
       }
     ];

@@ -952,14 +952,14 @@ class HMDscanInfo extends Component {
   /**
    * Display suspicious file count content
    * @method
-   * @param {object} dataResult - HMD data
+   * @param {array} dataResult - HMD data
    * @returns HTML DOM
    */
   getSuspiciousFileCount = (dataResult) => {
-    if (dataResult) {
-      const color = dataResult.length === 0 ? '#22ac38' : '#d10d25'; //green : red
-      return <span style={{color}}>{t('network-inventory.txt-suspiciousFileCount')}: {helper.numberWithCommas(dataResult.length)}</span>
-    }
+    const count = dataResult.length;
+    const color = count === 0 ? '#22ac38' : '#d10d25'; //green : red
+
+    return <span style={{color}}>{t('network-inventory.txt-suspiciousFileCount')}: {helper.numberWithCommas(count)}</span>
   }
   /**
    * Display pass / total count info for GCB
@@ -1053,12 +1053,12 @@ class HMDscanInfo extends Component {
     scrollCount++;
 
     this.ah.one({
-      url: `${baseUrl}/api/u1/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}&page=${scrollCount}&pageSize=5`,
+      url: `${baseUrl}/api/v2/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}&page=${scrollCount}&pageSize=5`,
       type: 'GET'
     })
     .then(data => {
       if (data) {
-        const hmdResult = data[activeTab + 'Result'];
+        const hmdResult = data.safetyScanInfo[activeTab + 'Result'];
 
         if (hmdResult.length > 0) {
           tempHmdInfo[activeTab].data = _.concat(hmdInfo[activeTab].data, hmdResult);
@@ -1196,7 +1196,10 @@ class HMDscanInfo extends Component {
         <div className='scan-header'>
           <span>{t('network-inventory.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local') || NOT_AVAILABLE}</span>
           <span>{t('network-inventory.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}</span>
-          {(activeTab === 'yara' || activeTab === 'scanFile') &&
+          {val.taskStatus && val.taskStatus === 'Failure' &&
+            <span style={{color: '#d10d25'}}>{t('network-inventory.txt-taskFailure')}</span>
+          }
+          {(activeTab === 'yara' || activeTab === 'scanFile') && dataResult &&
             this.getSuspiciousFileCount(dataResult)
           }
         </div>

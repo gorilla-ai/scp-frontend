@@ -207,13 +207,17 @@ class NetworkInventory extends Component {
    * @returns HTML DOM
    */
   getHMDinfo = (val, i) => {
+    let color = '#d10d25'; //Default red color
+
     if (!val.result) {
       return;
     }
 
-    if (val.type === 'gcb' && val.result.GCBResultTotalCnt >= 0 && val.result.GCBResultPassCnt >= 0) {
-      let color = '#d10d25'; //Default red color
+    if (val.result.taskStatus && val.result.taskStatus === 'Failure') {
+      return <li key={i} style={{color}}>{val.name}: {t('network-inventory.txt-taskFailure')}</li>
+    }
 
+    if (val.type === 'gcb' && val.result.GCBResultTotalCnt >= 0 && val.result.GCBResultPassCnt >= 0) {
       if (val.result.GCBResultTotalCnt === val.result.GCBResultPassCnt) { //Show green color for all pass
         color = '#22ac38';
       }
