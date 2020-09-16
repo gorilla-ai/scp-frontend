@@ -80,31 +80,15 @@ class YaraRule extends Component {
    */
   validateInputData = () => {
     const {yaraRule, scanType} = this.state;
-    let validPath = true;
 
     if (!yaraRule.rule || (scanType === 'filePath' && yaraRule.pathData.length === 0)) {
       this.setState({
-        info: t('txt-checkRequiredFieldType')
+        info: t('network-inventory.txt-includePathEmpty')
       });
       return;
     }
 
-    if (scanType === 'filePath' && yaraRule.pathData.length > 0) {
-      _.forEach(yaraRule.pathData, val => {
-        validPath = helper.validatePathInput(val.path);
-
-        if (!validPath) {
-          this.setState({
-            info: t('network-inventory.txt-pathFormatError')
-          });
-          return false;
-        }
-      })
-    }
-
-    if (validPath) {
-      this.props.checkYaraRule(yaraRule);
-    }
+    this.props.checkYaraRule(yaraRule);
   }
   /**
    * Set path data

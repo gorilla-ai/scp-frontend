@@ -514,7 +514,6 @@
     "txt-total": "總上傳筆數",
     "txt-success": "上傳成功筆數",
     "txt-fail": "上傳失敗筆數",
-    "txt-pathFormatError": "請檢查路徑格式",
     "txt-includePathEmpty": "偵測路徑為必填",
     "txt-irMsg": "IR資料已上傳至",
     "txt-itemSelection": "電腦採證",
