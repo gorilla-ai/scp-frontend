@@ -1690,12 +1690,12 @@ i.c-checkbox.fg-checkbox {
               }
             }
             &.long {
-              .group {
+              & > .group {
                 width: 100%;
               }
             }
             &.short {
-              .group {
+              & > .group {
                 width: 25%;
               }
             }
@@ -1833,7 +1833,7 @@ i.c-checkbox.fg-checkbox {
               top: -40px;
               right: 0;
             }
-            .group {
+            & > .group {
               width: 50%;
               padding: 5px;
               text-align: left;
@@ -2658,11 +2658,8 @@ i.c-checkbox.fg-checkbox {
         .hmd-settings {
           height: 70vh;
           overflow-y: auto;
-          .file-path .group {
-            width: 207px !important;
-          }
-          .path-input .error {
-            border-color: #d10d25;
+          .path-input {
+            width: 297px;
           }
         }
       }
