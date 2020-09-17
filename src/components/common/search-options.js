@@ -146,12 +146,13 @@ class SearchOptions extends Component {
   showDataRange = () => {
     const {locale} = this.context;
     const {enableTime, datetime} = this.props;
+    const showTime = typeof enableTime === 'boolean' ? enableTime : true;
 
     return (
       <DateRange
         id='datetime'
         className='daterange'
-        enableTime={enableTime}
+        enableTime={showTime}
         value={datetime}
         onChange={this.props.handleDateChange}
         locale={locale}
@@ -247,7 +248,7 @@ class SearchOptions extends Component {
           {this.showDataRange()}
         </div>
 
-        <button className='search-button' onClick={this.loadSearchOptions.bind(this, 'search')} disabled={showFilter}>{t('events.connections.txt-toggleFilter')}</button>
+        <button className='search-button' onClick={this.loadSearchOptions.bind(this, 'search')} disabled={showFilter || false}>{t('events.connections.txt-toggleFilter')}</button>
       </div>
     )
   }
@@ -257,7 +258,6 @@ SearchOptions.contextType = BaseDataContext;
 
 SearchOptions.propTypes = {
   datetime: PropTypes.object.isRequired,
-  enableTime: PropTypes.bool.isRequired,
   handleDateChange: PropTypes.func.isRequired,
   handleSearchSubmit: PropTypes.func.isRequired
 };

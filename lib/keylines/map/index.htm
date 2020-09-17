@@ -37,10 +37,7 @@
       };
 
       window.onload = function () {
-
-        KeyLines.paths({ assets: '../assets/' });
-
-        KeyLines.create('kl', function(err, loadedChart) {
+        KeyLines.create({ container: 'kl' }, function(err, loadedChart) {
           chart = loadedChart;
 
           chart.load(chartData, chart.map().show);

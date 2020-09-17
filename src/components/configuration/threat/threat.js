@@ -824,7 +824,8 @@ class ThreatIntelligence extends Component {
                 {value: 'SNORT', text: 'SNORT'},
                 {value: 'YARA', text: 'YARA'},
                 {value: 'CERT', text: 'Certification'},
-                {value: 'FILEHASH', text: 'FileHash'}
+                {value: 'FILEHASH', text: 'FileHash'},
+                {value: 'FILEHASHWHITE', text: 'FileHashWhite'}
               ]}
               required={true}
               value={threatsSearch.type}

@@ -365,7 +365,7 @@ html[data-theme='dark'] {
   }
   .json-data {
     &.alert {
-      height: 425px;
+      height: 395px;
       border: none;
       & > li {
         padding: 0;
@@ -527,6 +527,11 @@ html[data-theme='dark'] {
         height: 50px;
         padding-top: 15px;
         overflow: hidden;
+        .refresh {
+          position: absolute;
+          top: 15px;
+          left: -5px;
+        }
         .last-update {
           float: right;
           margin-top: 5px;
@@ -752,6 +757,15 @@ html[data-theme='dark'] {
               }
             }
           }
+          .path-group {
+            margin-bottom: 20px;
+            .path-input {
+              width: 255px;
+              .error {
+                border-color: #da364a;
+              }
+            }
+          }
         }
       }
     }
@@ -817,7 +831,7 @@ html[data-theme='dark'] {
     display: flex;
     justify-content: space-between;
     margin-top: 10px;
-    min-height: 400px;
+    min-height: 395px;
     border: 1px solid var(--primaryBorder);
     border-radius: 5px;
     & > .nav {
@@ -878,10 +892,12 @@ html[data-theme='dark'] {
       background-color: var(--contentBackground);
       .options-buttons {
         overflow: hidden;
+        margin-bottom: 10px;
         section {
           float: right;
           cursor: pointer;
           .multi-items {
+            float: right;
             overflow: hidden;
             span {
               display: block;
@@ -926,7 +942,10 @@ html[data-theme='dark'] {
         }
       }
       .payload {
+        height: 395px;
+        overflow-y: auto;
         padding: 0 10px;
+        border: none;
         ul {
           background-color: var(--contentBackground) !important;
         }
@@ -935,7 +954,7 @@ html[data-theme='dark'] {
       .srcIp-content,
       .destIp-content {
         margin-top: 5px;
-        height: 400px;
+        height: 395px;
         overflow-y: auto;
         .fg-info {
           cursor: pointer;
@@ -977,7 +996,7 @@ html[data-theme='dark'] {
         padding: .3em .5em;
       }
       .table-data {
-        height: 345px;
+        height: 330px;
         overflow-y: auto;
         .network-behavior {
           width: 50%;
@@ -1009,7 +1028,7 @@ html[data-theme='dark'] {
         }
       }
       .dashboard-wrapper {
-        height: 365px;
+        height: 360px;
       }
       .scan-wrapper {
         margin-top: 5px;
@@ -1581,6 +1600,7 @@ html[data-theme='dark'] {
   }
 }
 #yaraRuleDialog-content {
+  max-height: 500px;
   width: 600px;
   .radio-group {
     flex-direction: row;
@@ -1592,6 +1612,9 @@ html[data-theme='dark'] {
     input {
       width: 20px;
     }
+  }
+  .path-input {
+    width: 100%;
   }
 }
 #encodeDecodeDialog-content {

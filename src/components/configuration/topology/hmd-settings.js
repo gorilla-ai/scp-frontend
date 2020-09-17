@@ -6,12 +6,12 @@ import Moment from 'moment'
 import cx from 'classnames'
 import _ from 'lodash'
 
-import {ReactMultiEmail} from 'react-multi-email';
-
 import RadioGroup from 'react-ui/build/src/components/radio-group'
 
 import {BaseDataContext} from '../../common/context';
 import helper from '../../common/helper'
+import InputPath from '../../common/input-path'
+import MultiInput from 'react-ui/build/src/components/multi-input'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -31,7 +31,9 @@ class HMDsettings extends Component {
     this.state = {
       activeContent: 'viewMode', //viewMode, editMode
       originalScanFiles: [],
-      scanFiles: [],
+      scanFiles: [{
+        path: ''
+      }],
       originalGcbVersion: '',
       gcbVersion: ''
     };
@@ -67,7 +69,16 @@ class HMDsettings extends Component {
     .then(data => {
       if (data) {
         if (data[0] && data[0].value) {
-          const scanFiles = data[0].value.split(',');
+          const scanData = data[0].value.split(',');
+          let scanFiles = [];
+
+          _.forEach(scanData, val => {
+            if (val) {
+              scanFiles.push({
+                path: val
+              });
+            }
+          })
 
           this.setState({
             activeContent: 'viewMode',
@@ -115,23 +126,54 @@ class HMDsettings extends Component {
     });
   }
   /**
+   * Display individual scan file
+   * @method
+   * @param {object} val - scan file object
+   * @param {string} i - index of the scan files array
+   * @returns HTML DOM
+   */
+  displayScanFile = (val, i) => {
+    return <span key={i}>{val.path}</span>
+  }
+  /**
+   * Set path data
+   * @method
+   * @param {array} pathData - path data to be set
+   */
+  setScanFiles = (pathData) => {
+    let tempScanFiles = {...this.state.scanFiles};
+    tempScanFiles = pathData;
+
+    this.setState({
+      scanFiles: tempScanFiles
+    });
+  }
+  /**
    * Handle scan files confirm
    * @method
    */
   handleScanFilesConfirm = () => {
     const {baseUrl} = this.context;
     const {scanFiles, gcbVersion} = this.state;
+    const url = `${baseUrl}/api/common/config`;
+    let parsedScanFiles = [];
+
+    _.forEach(scanFiles, val => {
+      if (val.path) {
+        parsedScanFiles.push(val.path);
+      }
+    });
+
     const scanType = [
       {
         type: 'hmd.scanFile.path',
-        value: scanFiles.join()
+        value: parsedScanFiles.join()
       },
       {
         type: 'hmd.gcb.version',
         value: gcbVersion
       }
     ];
-    const url = `${baseUrl}/api/common/config`;
     let apiArr = [];
 
     _.forEach(scanType, val => {
@@ -158,73 +200,6 @@ class HMDsettings extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
-  }
-  /**
-   * Handle scan files input change
-   * @method
-   * @param {array} newScanFilesPath - new scan files path list
-   */
-  handleScanFilesChange = (newScanFilesPath) => {
-    this.setState({
-      scanFiles: newScanFilesPath
-    });
-  }
-  /**
-   * Display individual scan file
-   * @method
-   * @param {string} val - scan file value
-   * @param {string} i - index of the scan files array
-   * @returns HTML DOM
-   */
-  displayScanFile = (val, i) => {
-    return <span key={i}>{val}</span>
-  }
-  /**
-   * Handle file scan path delete
-   * @method
-   * @param {function} removePath - function to remove path
-   * @param {number} index - index of the emails list array
-   */
-  deleteFileScanPath = (removePath, index) => {
-    removePath(index);
-  }
-  /**
-   * Validate scan files input
-   * @method
-   * @param {function} path - path from user's input
-   */
-  validatePathInput = (path) => {
-    let valid = true;
-
-    if (path.indexOf('/') > 0) { //Slash is not allowed
-      valid = false;
-    }
-
-    if (path[path.length - 1] !== '\\') { //Path has to end with '\\'
-      valid = false;
-    }
-
-    if (valid) {
-      return path;
-    } else {
-      helper.showPopupMsg(t('network-inventory.txt-pathFormatError'), t('txt-error'));
-    }
-  }
-  /**
-   * Handle file scan path delete
-   * @method
-   * @param {string} path - individual file scan path
-   * @param {number} index - index of the file scan path list array
-   * @param {function} removePath - function to remove file scan path
-   * @returns HTML DOM
-   */
-  getLabel = (path, index, removePath) => {
-    return (
-      <div data-tag key={index}>
-        {path}
-        <span data-tag-handle onClick={this.deleteFileScanPath.bind(this, removePath, index)}> <span className='font-bold'>x</span></span>
-      </div>
-    )
   }
   /**
    * Handle GCB version change
@@ -262,11 +237,12 @@ class HMDsettings extends Component {
                   <div className='flex-item'>{scanFiles.map(this.displayScanFile)}</div>
                 }
                 {activeContent === 'editMode' &&
-                  <ReactMultiEmail
-                    emails={scanFiles}
-                    validateEmail={this.validatePathInput.bind(this)}
-                    onChange={this.handleScanFilesChange}
-                    getLabel={this.getLabel} />
+                  <MultiInput
+                    className='file-path'
+                    base={InputPath}
+                    inline={true}
+                    value={scanFiles}
+                    onChange={this.setScanFiles} />
                 }
               </div>
             </div>

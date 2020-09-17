@@ -207,13 +207,17 @@ class NetworkInventory extends Component {
    * @returns HTML DOM
    */
   getHMDinfo = (val, i) => {
+    let color = '#d10d25'; //Default red color
+
     if (!val.result) {
       return;
     }
 
-    if (val.type === 'gcb' && val.result.GCBResultTotalCnt >= 0 && val.result.GCBResultPassCnt >= 0) {
-      let color = '#d10d25'; //Default red color
+    if (val.result.taskStatus && val.result.taskStatus === 'Failure') {
+      return <li key={i} style={{color}}>{val.name}: {t('network-inventory.txt-taskFailure')}</li>
+    }
 
+    if (val.type === 'gcb' && val.result.GCBResultTotalCnt >= 0 && val.result.GCBResultPassCnt >= 0) {
       if (val.result.GCBResultTotalCnt === val.result.GCBResultPassCnt) { //Show green color for all pass
         color = '#22ac38';
       }
@@ -238,7 +242,7 @@ class NetworkInventory extends Component {
           color = '#d10d25';
         }
 
-        return <li key={i} style={{color}}>{val.name} {text}: {totalCount}</li>
+        return <li key={i} style={{color}}>{val.name} {text}: {helper.numberWithCommas(totalCount)}</li>
       }
     }
   }
@@ -322,7 +326,7 @@ class NetworkInventory extends Component {
 
     let apiArr = [
       {
-        url: `${baseUrl}/api/u1/ipdevice/_search?${dataParams}`,
+        url: `${baseUrl}/api/v2/ipdevice/_search?${dataParams}`,
         type: 'GET'
       }
     ];
@@ -330,7 +334,7 @@ class NetworkInventory extends Component {
     //Combine the two APIs to show the loading icon
     if (options === 'delete') { //For deleting device
       apiArr.unshift({
-        url: `${baseUrl}/api/u1/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}`,
+        url: `${baseUrl}/api/v2/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}`,
         type: 'DELETE'
       });
     }
@@ -426,14 +430,18 @@ class NetworkInventory extends Component {
                 let hmdInfo = [];
 
                 _.forEach(SAFETY_SCAN_LIST, val => { //Construct the HMD info array
-                  const dataType = val + 'Result';
-                  const currentDataObj = allValue[dataType];
+                  const dataType = val + 'Result';  
+                  let currentDataObj = {};
 
-                  if (currentDataObj) {
+                  if (allValue.safetyScanInfo) {
+                    currentDataObj = allValue.safetyScanInfo[dataType];
+                  }
+
+                  if (!_.isEmpty(currentDataObj)) {
                     hmdInfo.push({
                       type: val,
                       name: t('network-inventory.scan-list.txt-' + val),
-                      result: allValue[dataType][0]
+                      result: allValue.safetyScanInfo[dataType][0]
                     });
                   }
                 })
@@ -544,7 +552,7 @@ class NetworkInventory extends Component {
     }
 
     this.ah.one({
-      url: `${baseUrl}/api/u1/ipdevice/_search?ip=${inventoryParam.ip}`,
+      url: `${baseUrl}/api/v2/ipdevice/_search?ip=${inventoryParam.ip}`,
       type: 'GET'
     })
     .then(data => {
@@ -1328,24 +1336,33 @@ class NetworkInventory extends Component {
   /**
    * Get and set IP device data (old api)
    * @method
-   * @param {string} index - index of the IP devicde data
+   * @param {string} [index] - index of the IP devicde data
    * @param {string | number} ipDeviceUUID - IP device UUID
    * @param {string} options - option for 'oneDevice'
    */
   getIPdeviceInfo = (index, ipDeviceUUID, options) => {
     const {baseUrl} = this.context;
+    const {currentDeviceData} = this.state;
+    let ipDeviceID = ipDeviceUUID;
     let tempDeviceData = {...this.state.deviceData};
+    let setCurrentIndex = false;
 
-    if (!ipDeviceUUID) {
-      return;
+    if (index) { //index is available
+      setCurrentIndex = true;
+    } else {
+      if (index === 0) {
+        setCurrentIndex = true;
+      } else {
+        ipDeviceID = currentDeviceData.ipDeviceUUID;
+      }
     }
 
-    if (index || index.toString()) {
+    if (setCurrentIndex) {
       tempDeviceData.hmdOnly.currentIndex = Number(index);
     }
 
     this.ah.one({
-      url: `${baseUrl}/api/u1/ipdevice?uuid=${ipDeviceUUID}&page=1&pageSize=5`,
+      url: `${baseUrl}/api/v2/ipdevice?uuid=${ipDeviceID}&page=1&pageSize=5`,
       type: 'GET'
     })
     .then(data => {
@@ -1360,8 +1377,10 @@ class NetworkInventory extends Component {
           modalIRopen: false,
           deviceData: tempDeviceData,
           currentDeviceData: data,
-          activeIPdeviceUUID: ipDeviceUUID
+          activeIPdeviceUUID: ipDeviceID
         });
+      } else {
+        helper.showPopupMsg(t('txt-notFound'));
       }
       return null;
     })
@@ -1431,8 +1450,7 @@ class NetworkInventory extends Component {
    */
   triggerTask = (type, options, yaraRule) => {
     const {baseUrl} = this.context;
-    const {currentDeviceData, yaraTriggerAll} = this.state;
-    const url = `${baseUrl}/api/hmd/retrigger`;
+    const {deviceData, currentDeviceData, yaraTriggerAll} = this.state;
 
     if (yaraTriggerAll) {
       this.triggerHmdAll(HMD_LIST[0], yaraRule);
@@ -1445,32 +1463,56 @@ class NetworkInventory extends Component {
     };
 
     if (type[0] === 'compareIOC') {
+      let pathData = [];
+
+      _.forEach(yaraRule.pathData, val => {
+        if (val.path) {
+          pathData.push(val.path);
+        }
+      })
+
       requestData.paras = {
-        _FilepathList: yaraRule.path,
+        _FilepathList: pathData,
         _RuleString: yaraRule.rule
       };
     }
 
-    this.ah.one({
-      url,
+    let apiArr = [{
+      url: `${baseUrl}/api/hmd/retrigger`,
       data: JSON.stringify(requestData),
       type: 'POST',
       contentType: 'text/plain'
-    })
+    }];
+
+    if (type.length > 0 && options !== 'fromInventory') { //Get updated HMD data for scan info type
+      apiArr.push({
+        url: `${baseUrl}/api/v2/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}&page=1&pageSize=5`,
+        type: 'GET'
+      });
+    }
+
+    this.ah.series(apiArr)
     .then(data => {
       if (data) {
-        helper.showPopupMsg(t('txt-requestSent'));
+        if (data[0]) {
+          helper.showPopupMsg(t('txt-requestSent'));
 
-        if (type[0] === 'compareIOC') {
-          this.toggleYaraRule();
+          if (type[0] === 'compareIOC') {
+            this.toggleYaraRule();
+          }
+
+          if (type[0] === 'ir') {
+            this.toggleSelectionIR();
+          }
         }
 
-        if (type[0] === 'ir') {
-          this.toggleSelectionIR();
-        }
-
-        if (type.length > 0 && options !== 'fromInventory') {
-          this.getIPdeviceInfo('', currentDeviceData.ipDeviceUUID);
+        if (data[1]) {
+          this.setState({
+            showScanInfo: true,
+            modalIRopen: false,
+            currentDeviceData: data[1],
+            activeIPdeviceUUID: currentDeviceData.ipDeviceUUID
+          });
         }
       }
       return null;
@@ -1524,7 +1566,8 @@ class NetworkInventory extends Component {
           showAlertData={this.showAlertData}
           toggleYaraRule={this.toggleYaraRule}
           toggleSelectionIR={this.toggleSelectionIR}
-          triggerTask={this.triggerTask} />
+          triggerTask={this.triggerTask}
+          getHMDinfo={this.getIPdeviceInfo} />
 
         {deviceData.hmdOnly.currentLength > 1 &&
           <div className='pagination'>
@@ -1759,8 +1802,16 @@ class NetworkInventory extends Component {
     };
 
     if (hmdObj.cmds === 'compareIOC') {
+      let pathData = [];
+
+      _.forEach(yaraRule.pathData, val => {
+        if (val.path) {
+          pathData.push(val.path);
+        }
+      })
+
       requestData.paras = {
-        _FilepathList: yaraRule.path,
+        _FilepathList: pathData,
         _RuleString: yaraRule.rule
       };
     }
@@ -1772,7 +1823,6 @@ class NetworkInventory extends Component {
       contentType: 'text/plain'
     }, {showProgress: false})
     .then(data => {
-      this.toggleYaraRule('false');
       return null;
     })
     .catch(err => {
@@ -1780,6 +1830,10 @@ class NetworkInventory extends Component {
     })
 
     helper.showPopupMsg(t('txt-requestSent'));
+
+    if (hmdObj.cmds === 'compareIOC') {
+      this.toggleYaraRule('false');
+    }
   }
   /**
    * Construct and display HMD context menu
@@ -2288,7 +2342,7 @@ class NetworkInventory extends Component {
     }
 
     this.ah.one({
-      url: `${baseUrl}/api/u1/ipdevice/_search?exactIp=${addIP.ip}`,
+      url: `${baseUrl}/api/v2/ipdevice/_search?exactIp=${addIP.ip}`,
       type: 'GET'
     })
     .then(data => {
