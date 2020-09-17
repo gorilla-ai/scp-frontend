@@ -708,6 +708,16 @@ html[data-theme='dark'] {
         position: relative;
         .settings-wrapper {
           overflow-y: auto;
+          header {
+            float: left;
+          }
+          .toggle-btn {
+            float: left;
+            margin-top: 15px;
+            label {
+              display: inherit;
+            }
+          }
         }
         .options-btn {
           float: right;
@@ -726,16 +736,9 @@ html[data-theme='dark'] {
             margin-right: 5px;
           }
         }
-        .toggle-btn {
-          position: absolute;
-          top: 65px;
-          left: 135px;
-          label {
-            display: inherit;
-          }
-        }
         .settings-form {
           margin: 0 10px;
+          clear: both;
           .form-group {
             margin-bottom: 20px;
             label {

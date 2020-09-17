@@ -106,15 +106,22 @@ class HMDscanInfo extends Component {
       fileIntegrityEnable: '',
       originalSettingsPathData: {},
       settingsPath: {
-        includePath: [{
-          path: ''
-        }],
-        excludePath: [{
-          path: ''
-        }],
-        processKeyword: [{
-          path: ''
-        }]
+        fileIntegrity: {
+          includePath: [{
+            path: ''
+          }],
+          excludePath: [{
+            path: ''
+          }],
+          processKeyword: [{
+            path: ''
+          }]
+        },
+        procMonitor: {
+          includePath: [{
+            path: ''
+          }]
+        }
       }
     };
 
@@ -399,9 +406,9 @@ class HMDscanInfo extends Component {
     if (currentDeviceData.hmdSetting && currentDeviceData.hmdSetting.length > 0) {
       status = currentDeviceData.hmdSetting[0]._Parameters.isJobEnable;
       pathData = currentDeviceData.hmdSetting[0]._Parameters;
-      tempSettingsPath.includePath = this.getParsedPathData(pathData._IncludePathList);
-      tempSettingsPath.excludePath = this.getParsedPathData(pathData._ExcludePathList);
-      tempSettingsPath.processKeyword = this.getParsedPathData(pathData._ProcessKeyword);
+      tempSettingsPath.fileIntegrity.includePath = this.getParsedPathData(pathData._IncludePathList);
+      tempSettingsPath.fileIntegrity.excludePath = this.getParsedPathData(pathData._ExcludePathList);
+      tempSettingsPath.fileIntegrity.processKeyword = this.getParsedPathData(pathData._ProcessKeyword);
     }
 
     this.setState({
@@ -1518,14 +1525,50 @@ class HMDscanInfo extends Component {
     });
   }
   /**
+   * Display list of settings path
+   * @method
+   * @param {object} val - settings path object
+   * @param {string} i - index of the settings path array
+   * @returns HTML DOM
+   */
+  displaySettingsPath = (val, i) => {
+    if (val.path) {
+      return <span key={i}>{val.path}</span>
+    }
+  }
+  /**
+   * Display File Integrity settings view only content
+   * @method
+   * @param {string} type - path type ('fileIntegrity', 'procMonitor')
+   * @param {object} val - settings object
+   * @param {number} i - index of the settings array
+   * @returns HTML DOM
+   */
+  viewSettingsPathContent = (type, val, i) => {
+    const {settingsPath} = this.state;
+
+    return (
+      <div className='form-group' key={i}>
+        <label>{val.headerText}</label>
+        {settingsPath[type][val.type].length > 0 &&
+          <div className='flex-item'>{settingsPath[type][val.type].map(this.displaySettingsPath)}</div>
+        }
+        {settingsPath[type][val.type].length === 0 &&
+          <div>{NOT_AVAILABLE}</div>
+        }
+      </div>
+    )
+  }
+  /**
    * Set path data
    * @method
-   * @param {string} type - path data type ('includePath', 'excludePath' or 'processKeyword')
+   * @param {string} type - path type ('fileIntegrity', 'procMonitor')
+   * @param {string} pathType - path data type ('includePath', 'excludePath' or 'processKeyword')
    * @param {array} pathData - path data to be set
    */
-  setPathData = (type, pathData) => {
+  setPathData = (type, pathType, pathData) => {
     let tempSettingsPath = {...this.state.settingsPath};
-    tempSettingsPath[type] = pathData;
+    tempSettingsPath[type][pathType] = pathData;
 
     this.setState({
       settingsPath: tempSettingsPath
@@ -1534,58 +1577,55 @@ class HMDscanInfo extends Component {
   /**
    * Display File Integrity settings content
    * @method
-   * @param {object} val - FILE_INTEGRITY_SETTINGS object
-   * @param {number} i - index of the FILE_INTEGRITY_SETTINGS array
+   * @param {string} type - path type ('fileIntegrity', 'procMonitor')
+   * @param {object} val - settings object
+   * @param {number} i - index of the settings array
    * @returns HTML DOM
    */
-  getSettingsPathContent = (val, i) => {
+  editSettingsPathContent = (type, val, i) => {
+    const {settingsPath} = this.state;
+
     return (
       <div className='path-group' key={i}>
         <label>{val.headerText}</label>
         <MultiInput
           base={InputPath}
           inline={true}
-          value={this.state.settingsPath[val.type]}
-          onChange={this.setPathData.bind(this, val.type)} />
+          value={settingsPath[type][val.type]}
+          onChange={this.setPathData.bind(this, type, val.type)} />
       </div>
     )
   }
   /**
-   * Display list of settings path
+   * Display view/edit settings content
    * @method
-   * @param {string} type - settings path type ('includePath', 'excludePath', or 'processKeyword')
-   * @param {string | object} val - settings path value
-   * @param {string} i - index of the settings path array
+   * @param {object} val - settings object
+   * @param {number} i - index of the settings array
    * @returns HTML DOM
    */
-  displaySettingsPath = (type, val, i) => {
-    if (val) {
-      if (val.path) {
-        return <span key={i}>{val.path}</span>
-      } else {
-        return <span key={i}>{val}</span>
-      }
-    }
-  }
-  /**
-   * Display File Integrity settings view only content
-   * @method
-   * @param {object} val - FILE_INTEGRITY_SETTINGS object
-   * @param {number} i - index of the FILE_INTEGRITY_SETTINGS array
-   * @returns HTML DOM
-   */
-  viewSettingsPathContent = (val, i) => {
-    const {settingsPath} = this.state;
+  displaySettingsContent = (val, i) => {
+    const {settingsActiveContent, fileIntegrityEnable} = this.state;
 
     return (
-      <div className='form-group' key={i}>
-        <label>{val.headerText}</label>
-        {settingsPath[val.type].length > 0 &&
-          <div className='flex-item'>{settingsPath[val.type].map(this.displaySettingsPath.bind(this, [val.type]))}</div>
+      <div key={i}>
+        <header>{t('network-inventory.scan-list.txt-' + val.type)} {t('txt-settings')}</header>
+        {val.type === 'fileIntegrity' &&
+          <ToggleBtn
+            className='toggle-btn'
+            onText={t('txt-on')}
+            offText={t('txt-off')}
+            on={fileIntegrityEnable}
+            onChange={this.handleStatusChange}
+            disabled={settingsActiveContent === 'viewMode'} />
         }
-        {settingsPath[val.type].length === 0 &&
-          <div>{NOT_AVAILABLE}</div>
-        }
+        <div className='settings-form'>
+          {settingsActiveContent === 'viewMode' && 
+            val.settings.map(this.viewSettingsPathContent.bind(this, val.type))
+          }
+          {settingsActiveContent === 'editMode' &&
+            val.settings.map(this.editSettingsPathContent.bind(this, val.type))
+          }
+        </div>
       </div>
     )
   }
@@ -1629,9 +1669,9 @@ class HMDscanInfo extends Component {
     const requestData = {
       hostId: currentDeviceData.ipDeviceUUID,
       isJobEnable: fileIntegrityEnable,
-      _IncludePathList: this.getSavedSettings('includePath', settingsPath.includePath),
-      _ExcludePathList: this.getSavedSettings('excludePath', settingsPath.excludePath),
-      _ProcessKeyword: this.getSavedSettings('processKeyword', settingsPath.processKeyword)
+      _IncludePathList: this.getSavedSettings('includePath', settingsPath.fileIntegrity.includePath),
+      _ExcludePathList: this.getSavedSettings('excludePath', settingsPath.fileIntegrity.excludePath),
+      _ProcessKeyword: this.getSavedSettings('processKeyword', settingsPath.fileIntegrity.processKeyword)
     };
 
     if (!requestData._IncludePathList || !requestData._ExcludePathList) { //Invalid path data
@@ -1651,9 +1691,16 @@ class HMDscanInfo extends Component {
         this.setState({
           fileIntegrityEnable: data.isJobEnable,
           settingsPath: {
-            includePath: this.getParsedPathData(data._IncludePathList),
-            excludePath: this.getParsedPathData(data._ExcludePathList),
-            processKeyword: this.getParsedPathData(data._ProcessKeyword)
+            fileIntegrity: {
+              includePath: this.getParsedPathData(data._IncludePathList),
+              excludePath: this.getParsedPathData(data._ExcludePathList),
+              processKeyword: this.getParsedPathData(data._ProcessKeyword)
+            },
+            procMonitor: {
+              includePath: [{
+                path: ''
+              }]
+            }
           }
         }, () => {
           this.toggleSettingsContent('save');
@@ -1681,9 +1728,11 @@ class HMDscanInfo extends Component {
         this.setState({
           fileIntegrityEnable: data.isJobEnable,
           settingsPath: {
-            includePath: this.getParsedPathData(data._IncludePathList.split(',')),
-            excludePath: this.getParsedPathData(data._ExcludePathList.split(',')),
-            processKeyword: this.getParsedPathData(data._ProcessKeyword.split(','))
+            fileIntegrity: {
+              includePath: this.getParsedPathData(data._IncludePathList.split(',')),
+              excludePath: this.getParsedPathData(data._ExcludePathList.split(',')),
+              processKeyword: this.getParsedPathData(data._ProcessKeyword.split(','))
+            }
           }
         });
       }
@@ -1709,22 +1758,34 @@ class HMDscanInfo extends Component {
       buttonGroupList,
       dashboardInfo,
       hmdInfo,
-      settingsActiveContent,
-      fileIntegrityEnable,
-      settingsPath
+      settingsActiveContent
     } = this.state;
-    const FILE_INTEGRITY_SETTINGS = [
+    const SETTINGS_LIST = [
       {
-        type: 'includePath',
-        headerText: t('network-inventory.txt-includePath')
+        type: 'fileIntegrity',
+        settings: [
+          {
+            type: 'includePath',
+            headerText: t('network-inventory.txt-includePath')
+          },
+          {
+            type: 'excludePath',
+            headerText: t('network-inventory.txt-excludePath')
+          },
+          {
+            type: 'processKeyword',
+            headerText: t('network-inventory.txt-processKeyword')
+          }
+        ]
       },
       {
-        type: 'excludePath',
-        headerText: t('network-inventory.txt-excludePath')
-      },
-      {
-        type: 'processKeyword',
-        headerText: t('network-inventory.txt-processKeyword')
+        type: 'procMonitor',
+        settings: [
+          {
+            type: 'includePath',
+            headerText: t('network-inventory.txt-includePath')
+          }
+        ]
       }
     ];
 
@@ -1776,23 +1837,7 @@ class HMDscanInfo extends Component {
                     </div>
                   }
                 </div>
-
-                <header>{t('network-inventory.scan-list.txt-fileIntegrity')}</header>
-                <ToggleBtn
-                  className='toggle-btn'
-                  onText={t('txt-on')}
-                  offText={t('txt-off')}
-                  on={fileIntegrityEnable}
-                  onChange={this.handleStatusChange}
-                  disabled={settingsActiveContent === 'viewMode'} />
-                <div className='settings-form'>
-                  {settingsActiveContent === 'viewMode' && 
-                    FILE_INTEGRITY_SETTINGS.map(this.viewSettingsPathContent)
-                  }
-                  {settingsActiveContent === 'editMode' &&
-                    FILE_INTEGRITY_SETTINGS.map(this.getSettingsPathContent)
-                  }
-                </div>
+                {SETTINGS_LIST.map(this.displaySettingsContent)}
               </div>
             </div>
           }
