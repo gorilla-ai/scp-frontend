@@ -447,9 +447,9 @@ class HMDscanInfo extends Component {
    */
   checkTimeAfter = (latestCreateTime) => {
     const currentDateTime = helper.getFormattedDate(Moment(), 'local');
-    const oneDayAfter = helper.getAdditionDate(10, 'minutes', latestCreateTime);
+    const tenMinutesAfter = helper.getAdditionDate(10, 'minutes', latestCreateTime);
 
-    if (Moment(currentDateTime).isAfter(oneDayAfter)) {
+    if (Moment(currentDateTime).isAfter(tenMinutesAfter)) {
       return false; //Enable trigger button if current time is 10 minutes after latest create time
     } else {
       return true; //Disable trigger button
@@ -466,7 +466,7 @@ class HMDscanInfo extends Component {
     const currentDevice = this.props.currentDeviceData.safetyScanInfo[resultType];
 
     if (this.state.disabledBtn) {
-      return true;
+      return true; //Disable trigger button
     }
 
     if (currentDevice && currentDevice.length > 0) {
