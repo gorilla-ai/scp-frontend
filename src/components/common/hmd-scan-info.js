@@ -1732,6 +1732,11 @@ class HMDscanInfo extends Component {
               includePath: this.getParsedPathData(data._IncludePathList.split(',')),
               excludePath: this.getParsedPathData(data._ExcludePathList.split(',')),
               processKeyword: this.getParsedPathData(data._ProcessKeyword.split(','))
+            },
+            procMonitor: {
+              includePath: [{
+                path: ''
+              }]
             }
           }
         });
