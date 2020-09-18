@@ -29,6 +29,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@material-ui/core": "^4.11.0",
+    "@material-ui/icons": "^4.9.1",
+    "@material-ui/lab": "^4.0.0-alpha.56",
+    "axios": "^0.20.0",
     "babel-jest": "^23.6.0",
     "babel-polyfill": "^6.26.0",
     "bluebird": "^3.5.1",
@@ -78,6 +82,7 @@
     "sockjs-client": "^1.1.5",
     "stomp-websocket": "^2.3.4-next",
     "stompjs": "^2.3.3",
+    "styled-components": "^5.2.0",
     "underscore.string": "^3.2.1",
     "vbda-ui": "git+ssh://git@git.gorilla-technology.com:scrd01/vbda-ui.git#upgrade-react-v16",
     "widget-builder": "git+ssh://git@git.gorilla-technology.com:scrd01/widget-builder.git#react-v16-merge",

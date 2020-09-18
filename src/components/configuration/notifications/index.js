@@ -3,6 +3,8 @@ import {withRouter} from 'react-router'
 
 import {ReactMultiEmail} from 'react-multi-email';
 
+import Button from '@material-ui/core/Button';
+
 import Checkbox from 'react-ui/build/src/components/checkbox'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import Input from 'react-ui/build/src/components/input'
@@ -505,7 +507,7 @@ class Notifications extends Component {
               <div className='config-notify' style={{height: activeContent === 'viewMode' ? '78vh' : '70vh'}}>
                 <div className='form-group normal short'>
                   <header>{t('notifications.txt-emailSettings')}</header>
-                  <button className='last' onClick={this.openEmailDialog} disabled={activeContent === 'editMode'}>{t('notifications.txt-testEmails')}</button>
+                  <Button variant='contained' color='primary' className='last' onClick={this.openEmailDialog} disabled={activeContent === 'editMode'}>{t('notifications.txt-testEmails')}</Button>
                   <div className='group'>
                     <label htmlFor='notificationsServer'>{t('notifications.txt-smtpServer')}</label>
                     <Input
