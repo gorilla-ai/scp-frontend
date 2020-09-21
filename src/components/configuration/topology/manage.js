@@ -289,7 +289,6 @@ class Manage extends Component {
   displayTitleName = () => {
     return (
       <Input
-        placeholder={t('txt-enterName')}
         value={this.state.name}
         onChange={this.handleDataChange.bind(this, 'name')} />
     )

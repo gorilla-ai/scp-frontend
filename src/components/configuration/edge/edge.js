@@ -70,7 +70,7 @@ class Edge extends Component {
       },
       originalEdgeData: {},
       edge: {
-        dataFieldsArr: ['agentName', 'ipPort', 'serviceType', 'descriptionEdge', '_menu'],
+        dataFieldsArr: ['agentName', 'groupList', 'ipPort', 'serviceType', 'descriptionEdge', '_menu'],
         dataFields: {},
         dataContent: [],
         sort: {
@@ -85,9 +85,6 @@ class Edge extends Component {
       geoJson: {
         mapDataArr: [],
         edgeDataArr: []
-      },
-      edgeGroup: {
-        list: []
       }
     };
 
@@ -223,6 +220,15 @@ class Edge extends Component {
     )
   }
   /**
+   * Display list for group name
+   * @method
+   * @param {object} val - group data
+   * @param {number} i - index of group name array
+   */
+  displayGroupName = (val, i) => {
+    return <span key={i} className='item'>{val}</span>
+  }
+  /**
    * Get and set Edge table data
    * @method
    * @param {string} fromSearch - option for the 'search'
@@ -283,6 +289,10 @@ class Edge extends Component {
                 };
 
                 return <span><img src={icon.src} title={icon.title} />{value}</span>
+              } else if (tempData === 'groupList') {
+                if (allValue.groupList.length > 0) {
+                  return <div className='flex-item'>{allValue.groupList.map(this.displayGroupName)}</div>
+                }
               } else if (tempData === 'descriptionEdge') {
                 const serviceDescList = SERVICE_TYPE_LIST[allValue.serviceType];
                 let serviceArr = [];
@@ -519,6 +529,7 @@ class Edge extends Component {
         serviceMode: allValue.agentMode,
         longitude: '',
         latitude: '',
+        edgeGroupList: allValue.groupList,
         edgeModeType: 'anyTime',
         edgeModeDatetime: {
           from: '',
@@ -753,65 +764,89 @@ class Edge extends Component {
       }
     }
 
-    ah.one({
-      url: `${baseUrl}/api/agent`,
-      data: JSON.stringify(requestData),
-      type: 'PATCH',
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      switch(data.ret) {
-        case -1:
-          helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError1'));
-          break;
-        case -11:
-          helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError2'));
-          break;
-        case -21:
-          helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError3'));
-          break;
-        case -22:
-          helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError4'));
-          break;
-        case -31:
-          helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError5'));
-          break;
-        case -32:
-          helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError6'));
-        case -33:
-          helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError7'));
-          break;
-        default:
-          break;
+    const requestData2 = {
+      groupName: edge.info.edgeGroupList
+    };
+
+    ah.all([
+      {
+        url: `${baseUrl}/api/agent`,
+        data: JSON.stringify(requestData),
+        type: 'PATCH',
+        contentType: 'text/plain'
+      },
+      {
+        url: `${baseUrl}/api/edge/groups/_edge?edgeId=${edge.info.id}`,
+        data: JSON.stringify(requestData2),
+        type: 'POST',
+        contentType: 'text/plain'
       }
+    ])
+    .then(data => {
+      if (data) {
+        if (data[0]) {
+          switch(data[0].ret) {
+            case -1:
+              helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError1'));
+              break;
+            case -11:
+              helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError2'));
+              break;
+            case -21:
+              helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError3'));
+              break;
+            case -22:
+              helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError4'));
+              break;
+            case -31:
+              helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError5'));
+              break;
+            case -32:
+              helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError6'));
+            case -33:
+              helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError7'));
+              break;
+            default:
+              break;
+          }
 
-      this.setState({
-        originalEdgeData: _.cloneDeep(edge)
-      }, () => {
-        this.toggleContent('cancel');
-      })
-
+          this.setState({
+            originalEdgeData: _.cloneDeep(edge)
+          }, () => {
+            this.toggleContent('cancel');
+          })
+        }
+      }
       return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
+      this.close();
     })
   }
   /**
    * Handle Edit Group button
    * @method
    */
-  toggleEditGroup = () => {
+  toggleManageGroup = () => {
     this.setState({
       openEditGroupDialog: !this.state.openEditGroupDialog
     });
   }
   /**
-   * Edit group button confirm
+   * Manage group button confirm
+   * @param {array.<string>} edgeGroupList - List of selected groups
    * @method
    */
-  editGroupConfirm = () => {
-    this.toggleEditGroup();
+  manageGroupConfirm = (edgeGroupList) => {
+    let tempEdge = {...this.state.edge};
+    tempEdge.info.edgeGroupList = edgeGroupList;
+
+    this.setState({
+      edge: tempEdge
+    });
+
+    this.toggleManageGroup();
   }
   /**
    * Handle NetTrap upgrade button
@@ -840,6 +875,14 @@ class Edge extends Component {
     })
   }
   /**
+   * Display individual group
+   * @method
+   * @returns HTML DOM
+   */
+  displayGroup = (val, i) => {
+    return <span key={i}>{val}</span>
+  }
+  /**
    * Display edit Edge content
    * @method
    * @returns HTML DOM
@@ -851,6 +894,7 @@ class Edge extends Component {
     let btnStatusOn = false;
     let action = 'start';
     let icon = '';
+    let groupText = '';
 
     if (edge.info.agentApiStatus) {
       if (edge.info.agentApiStatus === 'Normal') {
@@ -873,6 +917,12 @@ class Edge extends Component {
         btnStatusOn = true;
         action = 'stop';
       }
+    }
+
+    if (edge.info.edgeGroupList.length > 0) {
+      groupText = t('txt-edit');
+    } else {
+      groupText = t('txt-add');
     }
 
     return (
@@ -1013,10 +1063,10 @@ class Edge extends Component {
             </div>
             <div className='group full'>
               {activeContent === 'editEdge' &&
-                <button className='btn add-group' onClick={this.toggleEditGroup}>{t('txt-edit')}</button>
+                <button className='btn add-group standard' onClick={this.toggleManageGroup}>{groupText}</button>
               }
               <label>{t('txt-group')}</label>
-              <div className='flex-item'><span>123</span><span>456</span></div>
+              <div className='flex-item'>{edge.info.edgeGroupList.map(this.displayGroup)}</div>
             </div>
             <div className='group'>
               <label>{t('edge-management.txt-activatTime')}</label>
@@ -1105,8 +1155,8 @@ class Edge extends Component {
           </div>
         </div>
         <div className='button-group'>
-          <button className='btn' onClick={this.getEdgeData.bind(this, 'search')}>{t('txt-filter')}</button>
-          <button className='standard btn' onClick={this.clearFilter}>{t('txt-clear')}</button>
+          <button className='filter' onClick={this.getEdgeData.bind(this, 'search')}>{t('txt-filter')}</button>
+          <button className='clear' onClick={this.clearFilter}>{t('txt-clear')}</button>
         </div>
       </div>
     )
@@ -1135,14 +1185,22 @@ class Edge extends Component {
   }
   render() {
     const {baseUrl, contextRoot, mapUrl} = this.context;
-    const {activeTab, activeContent, showFilter, openEditGroupDialog, edge, geoJson} = this.state;
+    const {
+      activeTab,
+      activeContent,
+      showFilter,
+      openEditGroupDialog,
+      edge,
+      geoJson
+    } = this.state;
 
     return (
       <div>
         {openEditGroupDialog &&
           <ManageGroup
-          toggleEditGroup={this.toggleEditGroup}
-          editGroupConfirm={this.editGroupConfirm} />
+            edgeGroupList={edge.info.edgeGroupList}
+            toggleManageGroup={this.toggleManageGroup}
+            manageGroupConfirm={this.manageGroupConfirm} />
         }
 
         <div className='sub-header'>

@@ -511,6 +511,7 @@
   "edgeFields": {
     "agentName": "Name",
     "ipPort": "VPN IP",
+    "groupList": "Group",
     "descriptionEdge": "Description",
     "keywords": "Keywords",
     "serviceType": "Service Type",

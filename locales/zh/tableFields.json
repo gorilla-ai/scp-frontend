@@ -512,6 +512,7 @@
   "edgeFields": {
     "agentName": "名稱",
     "ipPort": "VPN IP",
+    "groupList": "群組",
     "descriptionEdge": "說明",
     "keywords": "關鍵字",
     "serviceType": "服務種類",
