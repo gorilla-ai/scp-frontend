@@ -1093,7 +1093,6 @@ html[data-theme='dark'] {
 #departmentTitleDialog-content {
   width: 350px;
   height: 400px;
-  overflow-y: auto;
   .button-group {
     position: relative;
     margin: 0;
@@ -1629,4 +1628,32 @@ html[data-theme='dark'] {
 }
 #encodeDecodeAction {
   z-index: 10000;
+}
+#selectGroupDialog-content {
+  width: 350px;
+  height: 400px;
+  .fg-add {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 24px;
+  }
+  table {
+    width: 100%;
+    thead th {
+      text-align: left;
+    }
+  }
+  .table-data {
+    height: 340px;
+    margin-top: 35px;
+    overflow-y: auto;
+    td.group {
+      width: 90%;
+      font-size: 15px;
+    }
+    .fg {
+      font-size: 26px;
+    }
+  }
 }

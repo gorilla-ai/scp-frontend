@@ -18,6 +18,7 @@ import ToggleBtn from 'react-ui/build/src/components/toggle-button'
 import {BaseDataContext} from '../../common/context';
 import Config from '../../common/configuration'
 import helper from '../../common/helper'
+import ManageGroup from '../../common/manage-group'
 import TableContent from '../../common/table-content'
 import WORLDMAP from '../../../mock/world-map-low.json'
 
@@ -54,6 +55,7 @@ class Edge extends Component {
       activeTab: 'edge', //edge, geography
       activeContent: 'tableList', //tableList, viewEdge, editEdge
       showFilter: false,
+      openEditGroupDialog: false,
       currentEdgeData: '',
       serviceType: [],
       connectionStatus: [
@@ -68,7 +70,7 @@ class Edge extends Component {
       },
       originalEdgeData: {},
       edge: {
-        dataFieldsArr: ['agentName', 'ipPort', 'serviceType', 'descriptionEdge', '_menu'],
+        dataFieldsArr: ['agentName', 'groupList', 'ipPort', 'serviceType', 'descriptionEdge', '_menu'],
         dataFields: {},
         dataContent: [],
         sort: {
@@ -218,6 +220,15 @@ class Edge extends Component {
     )
   }
   /**
+   * Display list for group name
+   * @method
+   * @param {object} val - group data
+   * @param {number} i - index of group name array
+   */
+  displayGroupName = (val, i) => {
+    return <span key={i} className='item'>{val}</span>
+  }
+  /**
    * Get and set Edge table data
    * @method
    * @param {string} fromSearch - option for the 'search'
@@ -278,6 +289,10 @@ class Edge extends Component {
                 };
 
                 return <span><img src={icon.src} title={icon.title} />{value}</span>
+              } else if (tempData === 'groupList') {
+                if (allValue.groupList.length > 0) {
+                  return <div className='flex-item'>{allValue.groupList.map(this.displayGroupName)}</div>
+                }
               } else if (tempData === 'descriptionEdge') {
                 const serviceDescList = SERVICE_TYPE_LIST[allValue.serviceType];
                 let serviceArr = [];
@@ -514,6 +529,7 @@ class Edge extends Component {
         serviceMode: allValue.agentMode,
         longitude: '',
         latitude: '',
+        edgeGroupList: allValue.groupList,
         edgeModeType: 'anyTime',
         edgeModeDatetime: {
           from: '',
@@ -748,49 +764,89 @@ class Edge extends Component {
       }
     }
 
-    ah.one({
-      url: `${baseUrl}/api/agent`,
-      data: JSON.stringify(requestData),
-      type: 'PATCH',
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      switch(data.ret) {
-        case -1:
-          helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError1'));
-          break;
-        case -11:
-          helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError2'));
-          break;
-        case -21:
-          helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError3'));
-          break;
-        case -22:
-          helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError4'));
-          break;
-        case -31:
-          helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError5'));
-          break;
-        case -32:
-          helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError6'));
-        case -33:
-          helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError7'));
-          break;
-        default:
-          break;
+    const requestData2 = {
+      groupName: edge.info.edgeGroupList
+    };
+
+    ah.all([
+      {
+        url: `${baseUrl}/api/agent`,
+        data: JSON.stringify(requestData),
+        type: 'PATCH',
+        contentType: 'text/plain'
+      },
+      {
+        url: `${baseUrl}/api/edge/groups/_edge?edgeId=${edge.info.id}`,
+        data: JSON.stringify(requestData2),
+        type: 'POST',
+        contentType: 'text/plain'
       }
+    ])
+    .then(data => {
+      if (data) {
+        if (data[0]) {
+          switch(data[0].ret) {
+            case -1:
+              helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError1'));
+              break;
+            case -11:
+              helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError2'));
+              break;
+            case -21:
+              helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError3'));
+              break;
+            case -22:
+              helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError4'));
+              break;
+            case -31:
+              helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError5'));
+              break;
+            case -32:
+              helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError6'));
+            case -33:
+              helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError7'));
+              break;
+            default:
+              break;
+          }
 
-      this.setState({
-        originalEdgeData: _.cloneDeep(edge)
-      }, () => {
-        this.toggleContent('cancel');
-      })
-
+          this.setState({
+            originalEdgeData: _.cloneDeep(edge)
+          }, () => {
+            this.toggleContent('cancel');
+          })
+        }
+      }
       return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
+      this.close();
     })
+  }
+  /**
+   * Handle Edit Group button
+   * @method
+   */
+  toggleManageGroup = () => {
+    this.setState({
+      openEditGroupDialog: !this.state.openEditGroupDialog
+    });
+  }
+  /**
+   * Manage group button confirm
+   * @param {array.<string>} edgeGroupList - List of selected groups
+   * @method
+   */
+  manageGroupConfirm = (edgeGroupList) => {
+    let tempEdge = {...this.state.edge};
+    tempEdge.info.edgeGroupList = edgeGroupList;
+
+    this.setState({
+      edge: tempEdge
+    });
+
+    this.toggleManageGroup();
   }
   /**
    * Handle NetTrap upgrade button
@@ -819,6 +875,14 @@ class Edge extends Component {
     })
   }
   /**
+   * Display individual group
+   * @method
+   * @returns HTML DOM
+   */
+  displayGroup = (val, i) => {
+    return <span key={i}>{val}</span>
+  }
+  /**
    * Display edit Edge content
    * @method
    * @returns HTML DOM
@@ -830,6 +894,7 @@ class Edge extends Component {
     let btnStatusOn = false;
     let action = 'start';
     let icon = '';
+    let groupText = '';
 
     if (edge.info.agentApiStatus) {
       if (edge.info.agentApiStatus === 'Normal') {
@@ -854,6 +919,12 @@ class Edge extends Component {
       }
     }
 
+    if (edge.info.edgeGroupList.length > 0) {
+      groupText = t('txt-edit');
+    } else {
+      groupText = t('txt-add');
+    }
+
     return (
       <div className='main-content basic-form'>
         <header className='main-header'>Edge</header>
@@ -867,161 +938,170 @@ class Edge extends Component {
           }
         </div>
 
-        <div className='form-group normal'>
-          <header>
-            <div className='text'>{t('edge-management.txt-basicInfo')}</div>
-            {icon &&
-              <img className='status' src={icon.src} title={icon.title} />
+        <div className='edge-settings' style={{height: activeContent === 'viewEdge' ? '78vh' : '70vh'}}>
+          <div className='form-group normal'>
+            <header>
+              <div className='text'>{t('edge-management.txt-basicInfo')}</div>
+              {icon &&
+                <img className='status' src={icon.src} title={icon.title} />
+              }
+              {edge.info.lastUpdateTime &&
+                <span className='msg'>{t('edge-management.txt-lastUpateTime')} {helper.getFormattedDate(edge.info.lastUpdateTime, 'local')}</span>
+              }
+            </header>
+            <button className='btn nettrap-upgrade' onClick={this.handleNetTrapUpgrade} disabled={activeContent === 'viewEdge' || !edge.info.isNetTrapUpgrade}>{t('txt-upgrade')}</button>
+            {edge.info.lastStatus &&
+              <ToggleBtn
+                className='toggle-btn'
+                onText={t('txt-on')}
+                offText={t('txt-off')}
+                on={btnStatusOn}
+                onChange={this.handleEdgeStatusChange.bind(this, action)}
+                disabled={activeContent === 'viewEdge' || !edge.info.isConfigurable} />
             }
-            {edge.info.lastUpdateTime &&
-              <span className='msg'>{t('edge-management.txt-lastUpateTime')} {helper.getFormattedDate(edge.info.lastUpdateTime, 'local')}</span>
-            }
-          </header>
-          <button className='btn nettrap-upgrade' onClick={this.handleNetTrapUpgrade} disabled={activeContent === 'viewEdge' || !edge.info.isNetTrapUpgrade}>{t('txt-upgrade')}</button>
-          {edge.info.lastStatus &&
-            <ToggleBtn
-              className='toggle-btn'
-              onText={t('txt-on')}
-              offText={t('txt-off')}
-              on={btnStatusOn}
-              onChange={this.handleEdgeStatusChange.bind(this, action)}
-              disabled={activeContent === 'viewEdge' || !edge.info.isConfigurable} />
-          }
-          <div className='group'>
-            <label htmlFor='edgeName'>{t('edge-management.txt-edgeName')}</label>
-            <Input
-              id='edgeName'
-              value={edge.info.name}
-              onChange={this.handleDataChange.bind(this, 'name')}
-              readOnly={activeContent === 'viewEdge'} />
-          </div>
-          <div className='group'>
-            <label htmlFor='edgeID'>{t('edge-management.txt-edgeID')}</label>
-            <Input
-              id='edgeID'
-              value={edge.info.id}
-              onChange={this.handleDataChange.bind(this, 'id')}
-              readOnly={true} />
-          </div>
-          <div className='group'>
-            <label htmlFor='edgeIP'>{t('edge-management.txt-ip')}</label>
-            <Input
-              id='edgeIP'
-              validate={{
-                pattern:/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?):(\d+)$/,
-                patternReadable:'xxx.xxx.xxx.xxx:xxx',
-                t:(code, {value, pattern}) => {
-                  if (code[0] === 'missing') {
-                    return t('txt-required');
-                  } else if (code[0] === 'no-match') {
-                    return t('edge-management.txt-ipValidationFail');
+            <div className='group'>
+              <label htmlFor='edgeName'>{t('edge-management.txt-edgeName')}</label>
+              <Input
+                id='edgeName'
+                value={edge.info.name}
+                onChange={this.handleDataChange.bind(this, 'name')}
+                readOnly={activeContent === 'viewEdge'} />
+            </div>
+            <div className='group'>
+              <label htmlFor='edgeID'>{t('edge-management.txt-edgeID')}</label>
+              <Input
+                id='edgeID'
+                value={edge.info.id}
+                onChange={this.handleDataChange.bind(this, 'id')}
+                readOnly={true} />
+            </div>
+            <div className='group'>
+              <label htmlFor='edgeIP'>{t('edge-management.txt-ip')}</label>
+              <Input
+                id='edgeIP'
+                validate={{
+                  pattern:/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?):(\d+)$/,
+                  patternReadable:'xxx.xxx.xxx.xxx:xxx',
+                  t:(code, {value, pattern}) => {
+                    if (code[0] === 'missing') {
+                      return t('txt-required');
+                    } else if (code[0] === 'no-match') {
+                      return t('edge-management.txt-ipValidationFail');
+                    }
                   }
-                }
-              }}
-              value={edge.info.ip}
-              onChange={this.handleDataChange.bind(this, 'ip')}
-              readOnly={true} />
-          </div>
-          <div className='group'>
-            <label htmlFor='edgeIPlist'>{t('edge-management.txt-ipList')} ({t('txt-commaSeparated')})</label>
-            <Input
-              id='edgeIPlist'
-              value={edge.info.edgeIPlist}
-              onChange={this.handleDataChange.bind(this, 'edgeIPlist')}
-              readOnly={activeContent === 'viewEdge' || !edge.info.isConfigurable} />
-          </div>
-          <div className='group'>
-            <label htmlFor='edgeVPNip'>{t('edge-management.txt-vpnIP')}</label>
-            <Input
-              id='edgeVPNip'
-              value={edge.info.vpnIP}
-              onChange={this.handleDataChange.bind(this, 'vpnIP')}
-              readOnly={true} />
-          </div>
-          <div className='group'>
-            <label htmlFor='edgeLicenseName'>{t('edge-management.txt-vpnLicenseName')}</label>
-            <Input
-              id='edgeLicenseName'
-              value={edge.info.licenseName}
-              onChange={this.handleDataChange.bind(this, 'licenseName')}
-              readOnly={true} />
-          </div>
-          <div className='group'>
-            <label htmlFor='edgeServiceType'>{t('edge-management.txt-serviceType')}</label>
-            <Input
-              id='edgeServiceType'
-              value={edge.info.serviceType}
-              onChange={this.handleDataChange.bind(this, 'serviceType')}
-              readOnly={true} />
-          </div>
-          <div className='group'>
-            <label htmlFor='edgeServiceMode'>{t('edge-management.txt-serviceMode')}</label>
-            <DropDownList
-              id='edgeServiceMode'
-              required={true}
-              list={[
-                {
-                  value: 'REALTIME',
-                  text: t('txt-realtime')
-                },
-                {
-                  value: 'TCPDUMP',
-                  text: t('txt-tcpdump')
-                }
-              ]}
-              value={edge.info.serviceMode}
-              onChange={this.handleDataChange.bind(this, 'serviceMode')}
-              readOnly={activeContent === 'viewEdge' || !edge.info.isConfigurable} />
-          </div>
-          <div className='group'>
-            <label htmlFor='edgeLongitude'>{t('edge-management.txt-longitude')}</label>
-            <Input
-              id='edgeLongitude'
-              value={edge.info.longitude}
-              onChange={this.handleDataChange.bind(this, 'longitude')}
-              readOnly={activeContent === 'viewEdge'} />
-          </div>
-          <div className='group'>
-            <label htmlFor='edgeLatitude'>{t('edge-management.txt-latitude')}</label>
-            <Input
-              id='edgeLatitude'
-              value={edge.info.latitude}
-              onChange={this.handleDataChange.bind(this, 'latitude')}
-              readOnly={activeContent === 'viewEdge'} />
-          </div>
-          <div className='group'>
-            <label>{t('edge-management.txt-activatTime')}</label>
-            <RadioGroup
-              id='edgeModeType'
-              className='radio-group'
-              list={[
-                {value: 'anyTime', text: t('edge-management.txt-anyTime')},
-                {value: 'customTime', text: t('edge-management.txt-customTime')}
-              ]}
-              value={edge.info.edgeModeType}
-              onChange={this.handleDataChange.bind(this, 'edgeModeType')}
-              disabled={activeContent === 'viewEdge' || !edge.info.isConfigurable} />
+                }}
+                value={edge.info.ip}
+                onChange={this.handleDataChange.bind(this, 'ip')}
+                readOnly={true} />
+            </div>
+            <div className='group'>
+              <label htmlFor='edgeIPlist'>{t('edge-management.txt-ipList')} ({t('txt-commaSeparated')})</label>
+              <Input
+                id='edgeIPlist'
+                value={edge.info.edgeIPlist}
+                onChange={this.handleDataChange.bind(this, 'edgeIPlist')}
+                readOnly={activeContent === 'viewEdge' || !edge.info.isConfigurable} />
+            </div>
+            <div className='group'>
+              <label htmlFor='edgeVPNip'>{t('edge-management.txt-vpnIP')}</label>
+              <Input
+                id='edgeVPNip'
+                value={edge.info.vpnIP}
+                onChange={this.handleDataChange.bind(this, 'vpnIP')}
+                readOnly={true} />
+            </div>
+            <div className='group'>
+              <label htmlFor='edgeLicenseName'>{t('edge-management.txt-vpnLicenseName')}</label>
+              <Input
+                id='edgeLicenseName'
+                value={edge.info.licenseName}
+                onChange={this.handleDataChange.bind(this, 'licenseName')}
+                readOnly={true} />
+            </div>
+            <div className='group'>
+              <label htmlFor='edgeServiceType'>{t('edge-management.txt-serviceType')}</label>
+              <Input
+                id='edgeServiceType'
+                value={edge.info.serviceType}
+                onChange={this.handleDataChange.bind(this, 'serviceType')}
+                readOnly={true} />
+            </div>
+            <div className='group'>
+              <label htmlFor='edgeServiceMode'>{t('edge-management.txt-serviceMode')}</label>
+              <DropDownList
+                id='edgeServiceMode'
+                required={true}
+                list={[
+                  {
+                    value: 'REALTIME',
+                    text: t('txt-realtime')
+                  },
+                  {
+                    value: 'TCPDUMP',
+                    text: t('txt-tcpdump')
+                  }
+                ]}
+                value={edge.info.serviceMode}
+                onChange={this.handleDataChange.bind(this, 'serviceMode')}
+                readOnly={activeContent === 'viewEdge' || !edge.info.isConfigurable} />
+            </div>
+            <div className='group'>
+              <label htmlFor='edgeLongitude'>{t('edge-management.txt-longitude')}</label>
+              <Input
+                id='edgeLongitude'
+                value={edge.info.longitude}
+                onChange={this.handleDataChange.bind(this, 'longitude')}
+                readOnly={activeContent === 'viewEdge'} />
+            </div>
+            <div className='group'>
+              <label htmlFor='edgeLatitude'>{t('edge-management.txt-latitude')}</label>
+              <Input
+                id='edgeLatitude'
+                value={edge.info.latitude}
+                onChange={this.handleDataChange.bind(this, 'latitude')}
+                readOnly={activeContent === 'viewEdge'} />
+            </div>
+            <div className='group full'>
+              {activeContent === 'editEdge' &&
+                <button className='btn add-group standard' onClick={this.toggleManageGroup}>{groupText}</button>
+              }
+              <label>{t('txt-group')}</label>
+              <div className='flex-item'>{edge.info.edgeGroupList.map(this.displayGroup)}</div>
+            </div>
+            <div className='group'>
+              <label>{t('edge-management.txt-activatTime')}</label>
+              <RadioGroup
+                id='edgeModeType'
+                className='radio-group'
+                list={[
+                  {value: 'anyTime', text: t('edge-management.txt-anyTime')},
+                  {value: 'customTime', text: t('edge-management.txt-customTime')}
+                ]}
+                value={edge.info.edgeModeType}
+                onChange={this.handleDataChange.bind(this, 'edgeModeType')}
+                disabled={activeContent === 'viewEdge' || !edge.info.isConfigurable} />
 
-            {edge.info.edgeModeType === 'customTime' &&
-              <DateRange
-                id='edgeModeDatetime'
-                className='daterange'
-                enableTime={true}
-                value={edge.info.edgeModeDatetime}
-                onChange={this.handleDataChange.bind(this, 'edgeModeDatetime')}
-                locale={locale}
-                t={et} />
-            }
-          </div>
-          <div className='group full'>
-            <label htmlFor='edgeMemo'>{t('txt-memo')} ({t('txt-memoMaxLength')})</label>
-            <Textarea
-              id='edgeMemo'
-              rows={4}
-              maxLength={250}
-              value={edge.info.memo}
-              onChange={this.handleDataChange.bind(this, 'memo')}
-              readOnly={activeContent === 'viewEdge'} />
+              {edge.info.edgeModeType === 'customTime' &&
+                <DateRange
+                  id='edgeModeDatetime'
+                  className='daterange'
+                  enableTime={true}
+                  value={edge.info.edgeModeDatetime}
+                  onChange={this.handleDataChange.bind(this, 'edgeModeDatetime')}
+                  locale={locale}
+                  t={et} />
+              }
+            </div>
+            <div className='group full'>
+              <label htmlFor='edgeMemo'>{t('txt-memo')} ({t('txt-memoMaxLength')})</label>
+              <Textarea
+                id='edgeMemo'
+                rows={4}
+                maxLength={250}
+                value={edge.info.memo}
+                onChange={this.handleDataChange.bind(this, 'memo')}
+                readOnly={activeContent === 'viewEdge'} />
+            </div>
           </div>
         </div>
 
@@ -1075,8 +1155,8 @@ class Edge extends Component {
           </div>
         </div>
         <div className='button-group'>
-          <button className='btn' onClick={this.getEdgeData.bind(this, 'search')}>{t('txt-filter')}</button>
-          <button className='standard btn' onClick={this.clearFilter}>{t('txt-clear')}</button>
+          <button className='filter' onClick={this.getEdgeData.bind(this, 'search')}>{t('txt-filter')}</button>
+          <button className='clear' onClick={this.clearFilter}>{t('txt-clear')}</button>
         </div>
       </div>
     )
@@ -1105,10 +1185,24 @@ class Edge extends Component {
   }
   render() {
     const {baseUrl, contextRoot, mapUrl} = this.context;
-    const {activeTab, activeContent, showFilter, edge, geoJson} = this.state;
+    const {
+      activeTab,
+      activeContent,
+      showFilter,
+      openEditGroupDialog,
+      edge,
+      geoJson
+    } = this.state;
 
     return (
       <div>
+        {openEditGroupDialog &&
+          <ManageGroup
+            edgeGroupList={edge.info.edgeGroupList}
+            toggleManageGroup={this.toggleManageGroup}
+            manageGroupConfirm={this.manageGroupConfirm} />
+        }
+
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
             {activeContent === 'tableList' &&

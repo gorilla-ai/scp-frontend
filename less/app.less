@@ -1356,7 +1356,8 @@ i.c-checkbox.fg-checkbox {
       }
     }
     .config-notify,
-    .auto-settings {
+    .auto-settings,
+    .edge-settings {
       overflow-y: auto;
       #autoSettingsIpRange {
         .group {
@@ -1839,6 +1840,7 @@ i.c-checkbox.fg-checkbox {
               right: 0;
             }
             & > .group {
+              position: relative;
               width: 50%;
               padding: 5px;
               text-align: left;
@@ -1993,6 +1995,13 @@ i.c-checkbox.fg-checkbox {
                     }
                   }
                 }
+              }
+              .btn.add-group {
+                position: absolute;
+                top: 4px;
+                left: 40px;
+                padding: .2em .5em;
+                font-size: 12px;
               }
             }
             .relatedList {
@@ -2332,7 +2341,8 @@ i.c-checkbox.fg-checkbox {
           tbody tr {
             height: 45px;
           }
-          td.patternName {
+          td.patternName,
+          td.groupList {
             .flex-item {
               display: flex;
               flex-wrap: wrap;
