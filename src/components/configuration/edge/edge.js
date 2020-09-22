@@ -5,6 +5,7 @@ import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
 
+import Combobox from 'react-ui/build/src/components/combobox'
 import DateRange from 'react-ui/build/src/components/date-range'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import Gis from 'react-gis/build/src/components'
@@ -56,6 +57,7 @@ class Edge extends Component {
       activeContent: 'tableList', //tableList, viewEdge, editEdge
       showFilter: false,
       openEditGroupDialog: false,
+      allGroupList: [],
       currentEdgeData: '',
       serviceType: [],
       connectionStatus: [
@@ -65,6 +67,7 @@ class Edge extends Component {
       ],
       edgeSearch: {
         keyword: '',
+        groups: [],
         serviceType: 'all',
         connectionStatus: 'all'
       },
@@ -95,6 +98,7 @@ class Edge extends Component {
 
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
 
+    this.getGroupList();
     this.getEdgeServiceType();
     this.getEdgeData();
   }
@@ -102,6 +106,29 @@ class Edge extends Component {
     if (nextProps.location.state === 'tableList') {
       this.toggleContent('tableList');
     }
+  }
+  /**
+   * Get and set group list
+   * @method
+   */
+  getGroupList = () => {
+    const {baseUrl} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/edge/groups`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          allGroupList: data.rows
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Get Edge service type for filter dropdown
@@ -241,6 +268,10 @@ class Edge extends Component {
 
     if (edgeSearch.keyword) {
       requestData.keyword = edgeSearch.keyword;
+    }
+
+    if (edgeSearch.groups.length > 0) {
+      requestData.groups = edgeSearch.groups;
     }
 
     if (edgeSearch.serviceType && edgeSearch.serviceType !== 'all') {
@@ -477,6 +508,8 @@ class Edge extends Component {
 
     if (type === 'keyword') { //value is an object type
       tempEdgeSearch[type] = value.target.value.trim();
+    } else if (type === 'groups') {
+      tempEdgeSearch[type] = value;
     } else {
       tempEdgeSearch[type] = value.trim();
     }
@@ -693,6 +726,31 @@ class Edge extends Component {
     })
   }
   /**
+   * Handle Edge group confirm
+   * @method
+   */
+  handleGroupSubmit = () => {
+    const {baseUrl} = this.context;
+    const {edge} = this.state;
+    const url = `${baseUrl}/api/edge/groups/_edge?edgeId=${edge.info.id}`;
+    const requestData = {
+      groupName: edge.info.edgeGroupList
+    };
+
+    this.ah.one({
+        url,
+        data: JSON.stringify(requestData),
+        type: 'POST',
+        contentType: 'text/plain'
+    })
+    .then(data => {
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Handle Edge edit confirm
    * @method
    */
@@ -834,19 +892,23 @@ class Edge extends Component {
     });
   }
   /**
-   * Manage group button confirm
+   * Set group list
    * @param {array.<string>} edgeGroupList - List of selected groups
+   * @param {string} [options] - options for 'confirm'
    * @method
    */
-  manageGroupConfirm = (edgeGroupList) => {
+  setGroupList = (edgeGroupList, options) => {
     let tempEdge = {...this.state.edge};
     tempEdge.info.edgeGroupList = edgeGroupList;
 
     this.setState({
+      originalEdgeData: _.cloneDeep(tempEdge),
       edge: tempEdge
     });
 
-    this.toggleManageGroup();
+    if (options === 'confirm') {
+      this.toggleManageGroup();
+    }
   }
   /**
    * Handle NetTrap upgrade button
@@ -1120,7 +1182,13 @@ class Edge extends Component {
    * @returns HTML DOM
    */
   renderFilter = () => {
-    const {showFilter, serviceType, connectionStatus, edgeSearch} = this.state;
+    const {showFilter, allGroupList, serviceType, connectionStatus, edgeSearch} = this.state;
+    const allGroup = _.map(allGroupList, val => {
+      return {
+        value: val,
+        text: val
+      }
+    });
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
@@ -1134,6 +1202,18 @@ class Edge extends Component {
               type='text'
               value={edgeSearch.keyword}
               onChange={this.handleEdgeSearch.bind(this, 'keyword')} />
+          </div>
+          <div className='group'>
+            <label htmlFor='edgeSearchGroups'>{f('edgeFields.groups')}</label>
+            <Combobox
+                id='edgeSearchGroups'
+                list={allGroup}
+                multiSelect={{
+                  enabled: true,
+                  toggleAll: true
+                }}
+                value={edgeSearch.groups}
+                onChange={this.handleEdgeSearch.bind(this, 'groups')} />
           </div>
           <div className='group'>
             <label htmlFor='edgeSearchServiceType'>{f('edgeFields.serviceType')}</label>
@@ -1189,6 +1269,7 @@ class Edge extends Component {
       activeTab,
       activeContent,
       showFilter,
+      allGroupList,
       openEditGroupDialog,
       edge,
       geoJson
@@ -1198,9 +1279,11 @@ class Edge extends Component {
       <div>
         {openEditGroupDialog &&
           <ManageGroup
+            allGroupList={allGroupList}
             edgeGroupList={edge.info.edgeGroupList}
-            toggleManageGroup={this.toggleManageGroup}
-            manageGroupConfirm={this.manageGroupConfirm} />
+            setGroupList={this.setGroupList}
+            getGroupList={this.getGroupList}
+            handleGroupSubmit={this.handleGroupSubmit} />
         }
 
         <div className='sub-header'>

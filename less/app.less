@@ -1742,9 +1742,15 @@ i.c-checkbox.fg-checkbox {
                   width: 20px;
                 }
               }
-              .user-pic {
+              .user-pic,
+              .user-info {
                 width: 50%;
-                .group,
+                padding: 0px 15px;
+                & > .group {
+                  padding: 5px;
+                }
+              }
+              .user-pic {
                 #ownerPhotoUpload {
                   width: 100%;
                   text-align: center;
@@ -1760,12 +1766,6 @@ i.c-checkbox.fg-checkbox {
                   &.existing {
                     margin-top: 30px;
                   }
-                }
-              }
-              .user-info {
-                width: 50%;
-                .group {
-                  width: 100%;
                 }
               }
             }
@@ -1839,6 +1839,19 @@ i.c-checkbox.fg-checkbox {
               top: -40px;
               right: 0;
             }
+            .group {
+              label {
+                display: block;
+                text-align: left;
+                font-size: .9em;
+                color: var(--primaryContentHeader);
+                margin-bottom: 3px;
+                &.checkbox {
+                  float: left;
+                  margin-right: 5px;
+                }
+              }
+            }
             & > .group {
               position: relative;
               width: 50%;
@@ -1871,17 +1884,6 @@ i.c-checkbox.fg-checkbox {
               .period {
                 color: var(--primaryContentHeader);
                 margin-top: 5px;
-              }
-              label {
-                display: block;
-                text-align: left;
-                font-size: .9em;
-                color: var(--primaryContentHeader);
-                margin-bottom: 3px;
-                &.checkbox {
-                  float: left;
-                  margin-right: 5px;
-                }
               }
               .flex-item {
                 display: flex;
