@@ -514,6 +514,7 @@
     "groupList": "Group",
     "descriptionEdge": "Description",
     "keywords": "Keywords",
+    "groups": "Group",
     "serviceType": "Service Type",
     "connectionStatus": "Connection Status",
     "txt-lastAlertDataUpdDT": "Latest alert data update time",

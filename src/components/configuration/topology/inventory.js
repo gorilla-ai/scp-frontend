@@ -324,17 +324,15 @@ class NetworkInventory extends Component {
       }
     }
 
-    let apiArr = [
-      {
-        url: `${baseUrl}/api/v2/ipdevice/_search?${dataParams}`,
-        type: 'GET'
-      }
-    ];
+    let apiArr = [{
+      url: `${baseUrl}/api/v2/ipdevice/_search?${dataParams}`,
+      type: 'GET'
+    }];
 
     //Combine the two APIs to show the loading icon
     if (options === 'delete') { //For deleting device
       apiArr.unshift({
-        url: `${baseUrl}/api/v2/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}`,
+        url: `${baseUrl}/api/u1/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}`,
         type: 'DELETE'
       });
     }
@@ -2684,6 +2682,16 @@ class NetworkInventory extends Component {
     return !_.has(inventoryParam, 'hostName');
   }
   /**
+   * Get owner name
+   * @method
+   * @param {ownerUUID} string - ownerUUID
+   * @returns owner name
+   */
+  getOwnerName = (ownerUUID) => {
+    const owner = _.find(this.state.ownerList, {'value': ownerUUID});
+    return owner.text;
+  }
+  /**
    * Display add/edit IP device form content
    * @method
    * @returns HTML DOM
@@ -2868,7 +2876,7 @@ class NetworkInventory extends Component {
                 }
                 <div className='group'>
                   {ownerType === 'existing' && addIP.ownerPic && !_.isEmpty(ownerList) &&
-                    <img src={addIP.ownerPic} className='existing' title={t('network-topology.txt-profileImage')} />
+                    <img src={addIP.ownerPic} className='existing' title={this.getOwnerName(addIP.ownerUUID)} />
                   }
                   {ownerType === 'new' && previewOwnerPic &&
                     <img src={previewOwnerPic} title={t('network-topology.txt-profileImage')} />

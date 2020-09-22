@@ -38,67 +38,43 @@ class ManageGroup extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    this.getGroupList();
+    this.getFormattedGroupList();
+    this.getDefaultSelected();
+  }
+  componentDidUpdate(prevProps) {
+    const {allGroupList} = this.props;
+
+    if (!prevProps || (prevProps && allGroupList != prevProps.allGroupList)) {
+      this.getFormattedGroupList();
+    }
   }
   /**
    * Get and set group list
    * @method
    */
-  getGroupList = () => {
-    const {baseUrl} = this.context;
-
-    this.ah.one({
-      url: `${baseUrl}/api/edge/groups`,
-      type: 'GET'
+  getFormattedGroupList = () => {
+    const {allGroupList} = this.props;
+    const groupList = _.map(allGroupList, val => {
+      return {
+        group: val
+      };
     })
-    .then(data => {
-      if (data) {
-        let groupList = [];
 
-        _.forEach(data.rows, val => {
-          if (val) {
-            groupList.push({
-              group: val
-            });
-          }
-        })
-
-        this.setState({
-          groupList
-        }, () => {
-          this.getDefaultSelected();
-
-          this.setState({
-            openManageGroup: true
-          });
-        });
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
+    this.setState({
+      groupList
+    }, () => {
+      this.setState({
+        openManageGroup: true
+      });
+    });
   }
   /**
    * Get and set default selected group
    * @method
    */
   getDefaultSelected = () => {
-    const {edgeGroupList} = this.props;
-    const {groupList} = this.state;
-
-    let groupSelected = [];
-
-    _.forEach(edgeGroupList, val => {
-      _.forEach(groupList, (val2, i) => {
-        if (val === val2.group) {
-          groupSelected.push(i.toString());
-        }
-      })
-    })
-
     this.setState({
-      groupSelected
+      groupSelected: this.props.edgeGroupList
     });
   }
   /**
@@ -188,7 +164,7 @@ class ManageGroup extends Component {
     .then(data => {
       if (data) {
         this.toggleAddGroup();
-        this.getGroupList();
+        this.props.getGroupList();
 
         this.setState({
           info: ''
@@ -234,6 +210,7 @@ class ManageGroup extends Component {
    */
   deleteGroup = (group) => {
     const {baseUrl} = this.context;
+    const {groupSelected} = this.state;
     const url = `${baseUrl}/api/edge/group`;
     const requestData = {
       groupName: group
@@ -246,7 +223,23 @@ class ManageGroup extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      this.getGroupList();
+      if (data) {
+        const index = groupSelected.indexOf(group);
+        let tempGroupSelected = groupSelected;
+
+        if (index > -1) { //Update selected group
+          tempGroupSelected.splice(index, 1);
+
+          this.setState({
+            groupSelected: tempGroupSelected
+          }, () => {
+            this.props.setGroupList(groupSelected);
+            
+          });
+        }
+
+        this.props.getGroupList();
+      }
       return null;
     })
     .catch(err => {
@@ -299,8 +292,10 @@ class ManageGroup extends Component {
             fields={dataFields}
             data={groupList}
             selection={{
-              enabled: true
+              enabled: true,
+              toggleAll: true
             }}
+            rowIdField='group'
             defaultSelected={groupSelected}
             onSelectionChange={this.handleTableSelection} />
         </div>
@@ -314,8 +309,7 @@ class ManageGroup extends Component {
    */
   openManageGroupDialog = () => {
     const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.props.toggleManageGroup},
-      confirm: {text: t('txt-confirm'), handler: this.confirmManageGroup}
+      confirm: {text: t('txt-confirm'), handler: this.handleGroupConfirm}
     };
 
     return (
@@ -326,7 +320,7 @@ class ManageGroup extends Component {
         draggable={true}
         global={true}
         actions={actions}
-        closeAction='cancel'>
+        closeAction='confirm'>
         {this.displayManageGroup()}
       </ModalDialog>
     )
@@ -335,13 +329,9 @@ class ManageGroup extends Component {
    * Handle confirm manage group
    * @method
    */
-  confirmManageGroup = () => {
-    const {groupList, groupSelected} = this.state;
-    const selectedGroupName = _.map(groupSelected, val => {
-      return groupList[Number(val)].group;
-    });
-
-    this.props.manageGroupConfirm(selectedGroupName);
+  handleGroupConfirm = () => {
+    this.props.setGroupList(this.state.groupSelected, 'confirm');
+    this.props.handleGroupSubmit();
   }
   render() {
     const {openManageGroup, openAddGroup} = this.state;
@@ -363,9 +353,11 @@ class ManageGroup extends Component {
 ManageGroup.contextType = BaseDataContext;
 
 ManageGroup.propTypes = {
+  allGroupList: PropTypes.array.isRequired,
   edgeGroupList: PropTypes.array.isRequired,
-  toggleManageGroup: PropTypes.func.isRequired,
-  manageGroupConfirm: PropTypes.func.isRequired
+  setGroupList: PropTypes.func.isRequired,
+  getGroupList: PropTypes.func.isRequired,
+  handleGroupSubmit: PropTypes.func.isRequired
 };
 
 export default ManageGroup;
