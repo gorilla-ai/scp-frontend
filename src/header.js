@@ -40,6 +40,10 @@ class Header extends Component {
   componentDidMount() {
     this.getUserConfig();
   }
+  /**
+   * Get and set user config for site theme
+   * @method
+   */
   getUserConfig = () => {
     const {baseUrl, session} = this.context;
 
@@ -64,7 +68,7 @@ class Header extends Component {
   /**
    * Determine the active page
    * @method
-   * @param {string} tab - page sections ('dashboard', 'alert', 'events' and 'configuration')
+   * @param {string} tab - page sections ('dashboard', 'threats', 'events', 'soc' and 'configuration')
    * @returns true/false boolean value
    */
   getActiveTab = (tab) => {
