@@ -200,7 +200,7 @@
   "txt-network-map": "Map",
   "txt-selected-node": "Selected Node",
   "txt-mixName": "Department & Title Management",
-  "txt-nameInvalid": "Please enter a name",
+  "txt-plsEnterName": "Please enter a name",
   "txt-memoMaxLength": "maximum 250 characters",
   "txt-updateTime": "Update Time",
 

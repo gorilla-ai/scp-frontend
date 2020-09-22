@@ -30,7 +30,8 @@ class ManageGroup extends Component {
       groupTableFields: ['group', 'option'],
       groupList: [],
       groupName: '',
-      groupSelected: []
+      groupSelected: [],
+      info: ''
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -65,6 +66,8 @@ class ManageGroup extends Component {
         this.setState({
           groupList
         }, () => {
+          this.getDefaultSelected();
+
           this.setState({
             openManageGroup: true
           });
@@ -74,7 +77,29 @@ class ManageGroup extends Component {
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
-    })    
+    })
+  }
+  /**
+   * Get and set default selected group
+   * @method
+   */
+  getDefaultSelected = () => {
+    const {edgeGroupList} = this.props;
+    const {groupList} = this.state;
+
+    let groupSelected = [];
+
+    _.forEach(edgeGroupList, val => {
+      _.forEach(groupList, (val2, i) => {
+        if (val === val2.group) {
+          groupSelected.push(i.toString());
+        }
+      })
+    })
+
+    this.setState({
+      groupSelected
+    });
   }
   /**
    * Toggle add group dialog on/off
@@ -112,6 +137,7 @@ class ManageGroup extends Component {
   displayAddGroup = () => {
     return (
       <Input
+        placeholder={t('txt-plsEnterName')}
         value={this.state.groupName}
         onChange={this.handleDataChange.bind(this, 'groupName')} />
     )
@@ -135,6 +161,7 @@ class ManageGroup extends Component {
         draggable={true}
         global={true}
         actions={actions}
+        info={this.state.info}
         closeAction='cancel'>
         {this.displayAddGroup()}
       </ModalDialog>
@@ -162,6 +189,14 @@ class ManageGroup extends Component {
       if (data) {
         this.toggleAddGroup();
         this.getGroupList();
+
+        this.setState({
+          info: ''
+        });
+      } else {
+        this.setState({
+          info: t('txt-duplicatedName')
+        });
       }
       return null;
     })
@@ -234,8 +269,7 @@ class ManageGroup extends Component {
    * @returns HTML DOM
    */
   displayManageGroup = () => {
-    const {edgeGroupList} = this.props;
-    const {groupTableFields, groupList} = this.state;
+    const {groupTableFields, groupList, groupSelected} = this.state;
 
     let dataFields = {};
     groupTableFields.forEach(tempData => {
@@ -256,16 +290,6 @@ class ManageGroup extends Component {
       };
     })
 
-    let selectedGroup = [];
-
-    _.forEach(edgeGroupList, val => {
-      _.forEach(groupList, (val2, i) => {
-        if (val === val2.group) {
-          selectedGroup.push(i.toString());
-        }
-      })
-    })
-
     return (
       <div>
         <i className='c-link fg fg-add' onClick={this.toggleAddGroup} title={t('edge-management.txt-addGroup')}></i>
@@ -277,7 +301,7 @@ class ManageGroup extends Component {
             selection={{
               enabled: true
             }}
-            defaultSelected={selectedGroup}
+            defaultSelected={groupSelected}
             onSelectionChange={this.handleTableSelection} />
         </div>
       </div>

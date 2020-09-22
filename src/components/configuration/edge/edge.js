@@ -768,7 +768,7 @@ class Edge extends Component {
       groupName: edge.info.edgeGroupList
     };
 
-    ah.all([
+    ah.series([
       {
         url: `${baseUrl}/api/agent`,
         data: JSON.stringify(requestData),

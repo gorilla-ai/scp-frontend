@@ -200,7 +200,7 @@
   "txt-network-map": "樓層圖",
   "txt-selected-node": "選擇樓層節點",
   "txt-mixName":"部門與職稱管理",
-  "txt-nameInvalid": "請輸入名稱",
+  "txt-plsEnterName": "請輸入名稱",
   "txt-memoMaxLength": "上限250字",
   "txt-updateTime": "更新時間",
 
