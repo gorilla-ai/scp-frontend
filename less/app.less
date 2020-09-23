@@ -2878,3 +2878,62 @@ i.c-checkbox.fg-checkbox {
     }
   }
 }
+
+.incident-tag-square {
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+  margin-right: 3px;
+}
+
+.incident-tag-modal {
+  .dialog {
+    width: 500px;
+    min-height: 500px;
+    
+    .c-checkbox-group {
+      padding: 15px;
+    }
+    .tagArray {
+      width: 100%;
+      display: contents;
+
+      .tagColor {
+        width: 15%;
+      }
+      .tagName {
+        width: 75%;
+        margin-left: 10px;
+      }
+    }
+  }
+}
+
+.incident-review {
+  .dialog {
+    width: 600px;
+    min-height: 400px;
+  }
+}
+
+.incident-comment {
+  .dialog {
+    width: 600px;
+    min-height: 400px;
+
+    .content {
+      display: flex;
+
+      .left {
+        width: 30%;
+
+        select {
+          width: 100%;
+        }
+      }
+      .right {
+        width: 70%;
+      }
+    }
+  }
+}

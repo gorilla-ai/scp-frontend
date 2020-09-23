@@ -18,6 +18,10 @@
 	"txt-audit-success": "Audit Success",
 	"txt-audit-fail": "Audit Fail",
 	"txt-audit-msg": "Whether to Audit Incident",
+	"txt-auditV2": "Audit",
+	"txt-auditV2-success": "Audit Success",
+	"txt-auditV2-fail": "Audit Fail",
+	"txt-auditV2-msg": "Whether to Audit Incident",
 	"txt-close": "Close",
 	"txt-close-success": "Close Success",
 	"txt-close-fail": "Close Fail",
@@ -33,7 +37,7 @@
 	"txt-send": "Send",
 	"txt-send-success": "Send Success",
 	"txt-send-fail": "Send Fail",
-	"txt-withdraw-msg": "Whether to Withdraw Incident",
+	"txt-draw-msg": "Whether to Draw Incident",
 	"txt-send-msg": "Whether to Send Incident",
 	"txt-sendCheck": ", Whether to Send Incident directly?",
 	"txt-sendCheckHealth": "whether to Send Health Status Statistic CSV ?",
@@ -70,37 +74,39 @@
 	"txt-reasonDescr": "Accident Reason Description",
 	"txt-accidentDescr": "Accident Description",
 	"txt-accidentInvestigation": "Accident Investigation",
+	"txt-custom-tag": "Custom Tag",
+	"txt-tag": "Tag",
+	"txt-title": "Title",
+	"txt-comment": "Comment",
+	"txt-comment-example": "Comment Example",
+	"txt-comment-example-edit": "Edit Comment Example",
+	"txt-comment-none": "Not Use Example",
+	"txt-comment-new": "New Example",
+	"txt-edit-msg": "Really Edit ?",
+
 	"accident":{
-		"txt-webAttack": "Web Attack",
-		"web": {
-			"txt-webDefacement": "Web Defacement",
-			"txt-maliciousMessage": "Malicious Message",
-			"txt-maliciousPage": "Malicious Page",
-			"txt-aptPage": "Phishing Page",
-			"txt-trojan": "Web Trojan",
-			"txt-leak": "Personal Information Leak"
-		},
-		"txt-illegalInvasion": "Illegal Invasion",
-		"invasion": {
-			"txt-systemInvasion": "System Invasion",
-			"txt-implantMalware": "Implant Malware",
-			"txt-abnormalConnection": "Abnormal Connection",
-			"txt-aptMail": "Spam Mail",
-			"txt-leak": "Information Leak"
-		},
-		"txt-dos": "Denial of Service(DDoS/DoS)",
-		"dos": {
-			"txt-serviceInterruption": "Service Interruption",
-			"txt-lowPerformance": "Low Performance"
-		},
-		"txt-deviceProblem": "Device Problem",
-		"device": {
-			"txt-damage": "Device Damage",
-			"txt-abnormalPower": "Abnormal Power",
-			"txt-internetInterruption": "Internet Interruption",
-			"txt-miss": "Device Missing"
-		},
-		"txt-other": "Other"
+		"1": "Web Attack",
+		"11": "Web Defacement",
+		"12": "Malicious Message",
+		"13": "Malicious Page",
+		"14": "Phishing Page",
+		"15": "Web Trojan",
+		"16": "Personal Information Leak",
+		"2": "Illegal Invasion",
+		"21": "System Invasion",
+		"22": "Implant Malware",
+		"23": "Abnormal Connection",
+		"24": "Spam Mail",
+		"25": "Information Leak",
+		"3": "Denial of Service(DDoS/DoS)",
+		"31": "Service Interruption",
+		"32": "Low Performance",
+		"4": "Device Problem",
+		"41": "Device Damage",
+		"42": "Abnormal Power",
+		"43": "Internet Interruption",
+		"44": "Device Missing",
+		"5": "Other"
 	},
 	"unit": {
 		"txt-default": "Default Unit",
@@ -140,12 +146,11 @@
 	},
 	"status": {
 		"0": "All",
-		"1": "Signing off",
-		"2": "Signed off",
-		"3": "Closed(Published)",
-		"4": "Deleted",
-		"5": "Editing",
-		"6": "Closed(Unpublished)"
+		"1": "Unreviewed",
+		"2": "Reviewed (Unpublished)",
+		"3": "Closed (Published)",
+		"4": "Submitted",
+		"5": "Deleted"
 	},
 	"protectType": {
 		"0": "防毒軟體",

@@ -561,6 +561,7 @@
     "fileExtension": "檔案類型",
     "fileSize": "檔案大小",
     "fileMemo": "附件說明",
+    "fileDttm": "上傳時間",
     "uriType": "URI類型",
     "uriValue": "URI內容",
     "domain": "網域",
@@ -585,7 +586,10 @@
     "type": "事件單類型",
     "select": "是否發布",
     "Suggestion": "事件單處理意見",
-    "finalDate": "逾期時間"
+    "finalDate": "逾期時間",
+    "tag": "標籤",
+    "reviewDttm": "處理時間",
+    "reviewerName": "處理人"
   },
   "severityTableFields": {
     "dataSourceType": "類型",

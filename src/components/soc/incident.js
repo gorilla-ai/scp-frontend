@@ -18,7 +18,7 @@ import helper from "../common/helper"
 
 import Events from './common/events'
 import Ttps from './common/ttps'
-import {downloadWithForm} from "react-ui/build/src/utils/download";
+import {downloadWithForm, downloadLink} from "react-ui/build/src/utils/download";
 import ModalDialog from "react-ui/build/src/components/modal-dialog";
 import FileUpload from "../common/file-upload";
 import DataTable from "react-ui/build/src/components/table";
@@ -26,6 +26,9 @@ import _ from "lodash";
 import DateRange from "react-ui/build/src/components/date-range";
 import DatePicker from "react-ui/build/src/components/date-picker";
 
+import IncidentComment from './common/comment'
+import IncidentTag from './common/tag'
+import IncidentReview from './common/review'
 
 let t = null;
 let f = null;
@@ -33,12 +36,11 @@ let et = null;
 let it = null;
 
 const INCIDENT_STATUS_ALL = 0
-const INCIDENT_STATUS_SIGNING_OFF = 1
-const INCIDENT_STATUS_SIGNED_OFF = 2
-const INCIDENT_STATUS_CLOSE_PUBLISHED = 3
-const INCIDENT_STATUS_DELETE = 4
-const INCIDENT_STATUS_EDITING = 5
-const INCIDENT_STATUS_CLOSE_UNPUBLISHED = 6
+const INCIDENT_STATUS_UNREVIEWED = 1
+const INCIDENT_STATUS_REVIEWED = 2
+const INCIDENT_STATUS_CLOSED = 3
+const INCIDENT_STATUS_SUBMITTED = 4
+const INCIDENT_STATUS_DELETED = 5
 
 class Incident extends Component {
     constructor(props) {
@@ -50,103 +52,22 @@ class Incident extends Component {
         it = global.chewbaccaI18n.getFixedT(null, "incident");
 
         this.state = {
-            incident_accident_list : [
-                {
-                    text:it('accident.txt-webAttack'),
-                    value:'1'
-                },
-                {
-                    text:it('accident.txt-illegalInvasion'),
-                    value:'2'
-                },
-                {
-                    text:it('accident.txt-dos'),
-                    value:'3'
-                },
-                {
-                    text:it('accident.txt-deviceProblem'),
-                    value:'4'
-                },
-                {
-                    text:it('accident.txt-other'),
-                    value:'5'
-                }
-            ],
-            INCIDENT_SUB_ACCIDENT_WEB_LIST : [
-                {
-                    text:it('accident.web.txt-webDefacement'),
-                    value:'1'
-                },
-                {
-                    text:it('accident.web.txt-maliciousMessage'),
-                    value:'2'
-                },
-                {
-                    text:it('accident.web.txt-maliciousPage'),
-                    value:'3'
-                },
-                {
-                    text:it('accident.web.txt-aptPage'),
-                    value:'4'
-                },
-                {
-                    text:it('accident.web.txt-trojan'),
-                    value:'5'
-                },
-                {
-                    text:it('accident.web.txt-leak'),
-                    value:'6'
-                }
-            ],
-            INCIDENT_SUB_ACCIDENT_INVASION_LIST : [
-                {
-                    text:it('accident.invasion.txt-systemInvasion'),
-                    value:'7'
-                },
-                {
-                    text:it('accident.invasion.txt-implantMalware'),
-                    value:'8'
-                },
-                {
-                    text:it('accident.invasion.txt-abnormalConnection'),
-                    value:'9'
-                },
-                {
-                    text:it('accident.invasion.txt-aptMail'),
-                    value:'10'
-                },
-                {
-                    text:it('accident.invasion.txt-leak'),
-                    value:'11'
-                }
-            ],
-            INCIDENT_SUB_ACCIDENT_DOS_LIST : [
-                {
-                    text:it('accident.dos.txt-serviceInterruption'),
-                    value:'12'
-                },
-                {
-                    text:it('accident.dos.txt-lowPerformance'),
-                    value:'13'
-                }
-            ],
-            INCIDENT_SUB_ACCIDENT_DEVICE_LIST : [
-                {
-                    text:it('accident.device.txt-damage'),
-                    value:'14'
-                },
-                {
-                    text:it('accident.device.txt-abnormalPower'),
-                    value:'15'
-                },
-                {
-                    text:it('accident.device.txt-internetInterruption'),
-                    value:'16'
-                },
-                {
-                    text:it('accident.device.txt-miss'),
-                    value:'17'
-                }
+            INCIDENT_ACCIDENT_LIST: _.map(_.range(1, 6), el => {
+                return { text: it(`accident.${el}`), value: el }
+            }),
+            INCIDENT_ACCIDENT_SUB_LIST: [
+                _.map(_.range(11, 17), el => {
+                    return { text: it(`accident.${el}`), value: el }
+                }),
+                _.map(_.range(21, 26), el => {
+                    return { text: it(`accident.${el}`), value: el }
+                }),
+                _.map(_.range(31, 33), el => {
+                    return { text: it(`accident.${el}`), value: el }
+                }),
+                _.map(_.range(41, 45), el => {
+                    return { text: it(`accident.${el}`), value: el }
+                })
             ],
             activeContent: 'tableList', //tableList, viewIncident, editIncident, addIncident
             displayPage: 'main', /* main, events, ttps */
@@ -162,24 +83,22 @@ class Incident extends Component {
             },
             relatedListOptions: [],
             deviceListOptions: [],
-            accountData:{},
             incident: {
-                dataFieldsArr: ['_menu', 'id', 'status', 'type', 'createDttm', 'title', 'category', 'reporter'],
-                fileFieldsArr: ['fileName', 'fileExtension', 'fileSize','fileMemo'],
-                flowFieldsArr: ['id', 'status', 'createDttm', 'suggestion'],
+                dataFieldsArr: ['_menu', 'id', 'tag', 'status', 'type', 'createDttm', 'title', 'category', 'reporter'],
+                fileFieldsArr: ['fileName', 'fileSize', 'fileDttm', 'fileMemo', 'action'],
+                flowFieldsArr: ['id', 'status', 'reviewDttm', 'reviewerName', 'suggestion'],
                 dataFields: {},
                 dataContent: [],
                 sort: {
-                    field: 'id',
-                    desc: false
+                    field: 'createDttm',
+                    desc: true
                 },
                 totalCount: 0,
                 currentPage: 1,
                 pageSize: 20,
                 info: {
                     status: 1,
-                    socType: 1,
-                    flowList:[]
+                    socType: 1
                 }
             }
         };
@@ -262,6 +181,10 @@ class Incident extends Component {
                                 return <span>{it(`status.${value}`)}</span>
                             } else if (tempData === 'createDttm') {
                                 return <span>{helper.getFormattedDate(value, 'local')}</span>
+                            } else if (tempData === 'tag') {
+                                const tags = _.map(allValue.tagList, 'tag.tag')
+
+                                return <span>{tags.toString()}</span>
                             } else {
                                 return <span>{value}</span>
                             }
@@ -288,132 +211,7 @@ class Incident extends Component {
         evt.stopPropagation();
     };
 
-    /**
-     * Construct and display Add Threats context menu
-     * @method
-     * @param {object} evt - mouseClick events
-     */
-    handleRowContextMenuByView = (evt) => {
-        const menuItems = [];
-        const {accountData,incident} = this.state;
-        // in View Interface(page)
-
-        let itemEdit =  {
-            id: 'edit',
-            text: t('txt-edit'),
-            action: () => this.toggleContent('editIncident')
-        }
-        let itemDownload =  {
-            id: 'download',
-            text: it('txt-download'),
-            action: () => this.getIncidentSTIXFile(incident.info.id)
-        }
-        let itemWithdraw = {
-            id: 'withdraw',
-            text: it('txt-withdraw'),
-            action: () => this.openWithdrawMenu(incident.info)
-        };
-        let itemDelete = {
-            id: 'delete',
-            text: t('txt-delete'),
-            action: () => this.openDeleteMenu(incident.info)
-        };
-        let viewItem = {
-            id: 'view',
-            text: t('txt-view'),
-            action: () => this.getIncident(incident.info.id,'view')
-        }
-        let itemAudit = {
-            id: 'audit',
-            text: it('txt-audit'),
-            action: () => this.getIncident(incident.info.id,'audit')
-        };
-        let itemSubmit = {
-            id: 'submit',
-            text: it('txt-submit'),
-            action: () => this.getIncident(incident.info.id,'submit')
-        };
-        let itemClose =  {
-            id: 'close',
-            text: t('txt-close'),
-            action: () => this.getIncident(incident.info.id,'close')
-        }
-        let itemPublish = {
-            id: 'send',
-            text: it('txt-send'),
-            action: () => this.openSendMenu(incident.info.id)
-        };
-        let itemReturn = {
-            id: 'return',
-            text: it('txt-return'),
-            action: () => this.getIncident(incident.info.id,'return')
-        };
-
-        if (incident.info.status === INCIDENT_STATUS_EDITING) {
-            if (accountData.privilegeid === 'user'){
-                menuItems.push(itemEdit)
-                menuItems.push(itemSubmit)
-            }else if(accountData.privilegeid.includes('DPIR')){
-                menuItems.push(itemEdit)
-                menuItems.push(itemSubmit)
-                menuItems.push(itemClose)
-            }
-        } else if (incident.info.status === INCIDENT_STATUS_SIGNING_OFF) {
-            if (accountData === incident.info.creater_id){
-                menuItems.push(itemWithdraw)
-            }else{
-                if (accountData.privilegeid === 'user'){
-
-                }else if(accountData.privilegeid.includes('DPIR')){
-                    // edit (type -> INCIDENT_STATUS_EDITING)
-                    menuItems.push(itemEdit)
-                    // return
-                    menuItems.push(itemReturn)
-                    // close
-                    menuItems.push(itemClose)
-                    // audit
-                    menuItems.push(itemAudit)
-                }
-            }
-
-        } else if (incident.info.status === INCIDENT_STATUS_SIGNED_OFF) {
-
-            if (accountData === incident.info.creater_id){
-                // withdraw
-                menuItems.push(itemWithdraw)
-            }else{
-                if (accountData.privilegeid === 'user'){
-
-                }else if(accountData.privilegeid.includes('DPIR')){
-                    // edit (type -> INCIDENT_STATUS_EDITING)
-                    menuItems.push(itemEdit)
-                    // return
-                    menuItems.push(itemReturn)
-                    // close
-                    menuItems.push(itemClose)
-                    // publish
-                    menuItems.push(itemPublish)
-                }
-            }
-
-        } else if (incident.info.status === INCIDENT_STATUS_CLOSE_PUBLISHED){
-
-        } else if (incident.info.status === INCIDENT_STATUS_CLOSE_UNPUBLISHED){
-            if (accountData.privilegeid === 'user'){
-
-            }else if(accountData.privilegeid.includes('DPIR')){
-                // edit (type -> INCIDENT_STATUS_EDITING)
-                menuItems.push(itemEdit)
-            }
-        }
-
-
-        ContextMenu.open(evt, menuItems, 'modifyEvent');
-        evt.stopPropagation();
-    }
-
-    generateClickMenu = (allValue)=>{
-        const {accountData} = this.state;
+    generateClickMenu = (allValue) => {
         let menuItems = [];
 
         let itemDownload =  {
@@ -421,94 +219,104 @@ class Incident extends Component {
             text: it('txt-download'),
             action: () => this.getIncidentSTIXFile(allValue.id)
         }
-        let itemWithdraw = {
-            id: 'withdraw',
-            text: it('txt-withdraw'),
-            action: () => this.openWithdrawMenu(allValue)
-        };
-        let itemDelete = {
-            id: 'delete',
-            text: t('txt-delete'),
-            action: () => this.openDeleteMenu(allValue)
-        };
+        // let itemDraw = {
+        //     id: 'draw',
+        //     text: it('txt-draw'),
+        //     action: () => this.openReviewModal(allValue, 'draw')
+        // };
+        // let itemDelete = {
+        //     id: 'delete',
+        //     text: t('txt-delete'),
+        //     action: () => this.openDeleteMenu(allValue)
+        // };
         let viewItem = {
             id: 'view',
             text: t('txt-view'),
             action: () => this.getIncident(allValue.id,'view')
         }
-        let itemAudit = {
-            id: 'audit',
-            text: it('txt-audit'),
-            action: () => this.getIncident(allValue.id,'audit')
+        // let itemAudit = {
+        //     id: 'audit',
+        //     text: it('txt-audit'),
+        //     action: () => this.getIncident(allValue.id,'audit')
+        // };
+        // let itemSubmit = {
+        //     id: 'submit',
+        //     text: it('txt-submit'),
+        //     action: () => this.getIncident(allValue.id,'submit')
+        // };
+        // let itemClose =  {
+        //     id: 'close',
+        //     text: it('txt-close'),
+        //     action: () => this.getIncident(allValue.id,'close')
+        // }
+        // let itemPublish = {
+        //     id: 'send',
+        //     text: it('txt-send'),
+        //     action: () => this.openSendMenu(allValue.id)
+        // };
+        // let itemReturn = {
+        //     id: 'return',
+        //     text: it('txt-return'),
+        //     action: () => this.getIncident(allValue.id,'return')
+        // };
+        let itemTag = {
+            id: 'tag',
+            text: it('txt-tag'),
+            action: () => this.openIncidentTag(allValue.id)
         };
-        let itemSubmit = {
-            id: 'submit',
-            text: it('txt-submit'),
-            action: () => this.getIncident(allValue.id,'submit')
-        };
-        let itemClose =  {
-            id: 'close',
-            text: it('txt-close'),
-            action: () => this.getIncident(allValue.id,'close')
-        }
-        let itemPublish = {
-            id: 'send',
-            text: it('txt-send'),
-            action: () => this.openSendMenu(allValue.id)
-        };
-        let itemReturn = {
-            id: 'return',
-            text: it('txt-return'),
-            action: () => this.getIncident(allValue.id,'return')
-        };
 
-        if (allValue.status === INCIDENT_STATUS_EDITING) {
-            menuItems.push(viewItem)
+        menuItems.push(itemTag)
+        menuItems.push(viewItem)
 
-            if (accountData.privilegeid === 'user'){
-                menuItems.push(itemSubmit)
-            }else if(accountData.privilegeid.includes('DPIR')){
-                menuItems.push(itemClose)
-            }
-
-        } else if (allValue.status === INCIDENT_STATUS_SIGNING_OFF) {
-            menuItems.push(viewItem)
-            if (accountData === allValue.creater_id){
-
-                menuItems.push(itemWithdraw)
-            }else{
-                if (accountData.privilegeid === 'user'){
-                }else if(accountData.privilegeid.includes('DPIR')){
-                    menuItems.push(itemClose)
-                    menuItems.push(itemAudit)
-                    menuItems.push(itemReturn)
-                }
-            }
-
-        } else if (allValue.status === INCIDENT_STATUS_SIGNED_OFF) {
-            menuItems.push(viewItem)
-
-            if (accountData === allValue.creater_id){
-                menuItems.push(itemWithdraw)
-            }else{
-                if (accountData.privilegeid === 'user'){
-
-                }else if(accountData.privilegeid.includes('DPIR')){
-                    menuItems.push(itemClose)
-                    menuItems.push(itemPublish)
-                }
-            }
-
-        } else if (allValue.status === INCIDENT_STATUS_CLOSE_PUBLISHED){
-            menuItems.push(viewItem)
+        if (allValue.status === INCIDENT_STATUS_CLOSED) {
             menuItems.push(itemDownload)
-        }else if (allValue.status === INCIDENT_STATUS_CLOSE_UNPUBLISHED){
-            menuItems.push(viewItem)
-            if (accountData.privilegeid === 'user'){
-            }else if(accountData.privilegeid.includes('DPIR')){
-                menuItems.push(itemReturn)
-            }
         }
+
+        // if (allValue.status === INCIDENT_STATUS_EDITING) {
+        //     if (accountData.privilegeid === 'user'){
+        //         menuItems.push(itemSubmit)
+        //     }else if(accountData.privilegeid.includes('DPIR')){
+        //         menuItems.push(itemClose)
+        //     }
+
+        // } else if (allValue.status === INCIDENT_STATUS_SIGNING_OFF) {
+
+        //     if (accountData === allValue.creater_id){
+
+        //         menuItems.push(itemDraw)
+        //     }else{
+        //         if (accountData.privilegeid === 'user'){
+        //         }else if(accountData.privilegeid.includes('DPIR')){
+        //             menuItems.push(itemClose)
+        //             menuItems.push(itemAudit)
+        //             menuItems.push(itemReturn)
+        //         }
+        //     }
+
+        // } else if (allValue.status === INCIDENT_STATUS_SIGNED_OFF) {
+
+
+        //     if (accountData === allValue.creater_id){
+        //         menuItems.push(itemDraw)
+        //     }else{
+        //         if (accountData.privilegeid === 'user'){
+
+        //         }else if(accountData.privilegeid.includes('DPIR')){
+        //             menuItems.push(itemClose)
+        //             menuItems.push(itemPublish)
+        //         }
+        //     }
+
+        // } else if (allValue.status === INCIDENT_STATUS_CLOSE_PUBLISHED){
+
+        //     menuItems.push(itemDownload)
+        // } else if (allValue.status === INCIDENT_STATUS_CLOSE_UNPUBLISHED){
+
+        //     if (accountData.privilegeid === 'user'){
+        //     }else if(accountData.privilegeid.includes('DPIR')){
+        //         menuItems.push(itemReturn)
+        //     }
+        // }
 
         return menuItems
     }
@@ -527,6 +335,10 @@ class Incident extends Component {
         const {activeContent, incidentType, baseUrl, contextRoot, showFilter, incident} = this.state
 
         return <div>
+            <IncidentComment ref={ref => { this.incidentComment=ref }} />
+            <IncidentTag ref={ref => { this.incidentTag=ref }} onLoad={this.loadData.bind(this)} />
+            <IncidentReview ref={ref => { this.incidentReview=ref }} onLoad={this.getIncident.bind(this)} />
+
             <div className="sub-header">
                 <div className='secondary-btn-group right'>
                     <button className={cx('', {'active': showFilter})} onClick={this.toggleFilter}
@@ -535,6 +347,10 @@ class Incident extends Component {
                             title={it('txt-downloadEvent')}><i className='fg fg-data-download'/></button>
                     <button className='' onClick={this.getIncidentSTIXFileExample.bind(this, 'related')}
                             title={it('txt-downloadRelated')}><i className='fg fg-data-download'/></button>
+                    <button className='' onClick={this.openIncidentTag.bind(this, null)}
+                            title={it('txt-custom-tag')}><i className='fg fg-color-ruler'/></button>
+                    <button className='' onClick={this.openIncidentComment.bind(this)}
+                            title={it('txt-comment-example-edit')}><i className='fg fg-report'/></button>
                 </div>
             </div>
 
@@ -586,87 +402,56 @@ class Incident extends Component {
      * @returns HTML DOM
      */
     displayEditContent = () => {
-        const {activeContent, incidentType, incident, toggleType, accountData, displayPage} = this.state;
-
-        let tempFile ={
-            fileName:incident.info.fileName,
-            fileExtension:incident.info.fileExtension,
-            fileSize:incident.info.fileSize,
-            fileMemo:incident.info.fileMemo
-        }
-        incident.fileList = []
-
-        if (tempFile.fileName !== ''){
-            incident.fileList.push(tempFile)
-        }
+        const {session} = this.context
+        const {activeContent, incidentType, incident, toggleType, displayPage} = this.state;
 
         let editCheck = false
-        let withdrawCheck = false
+        let drawCheck = false
         let submitCheck = false
-        let auditCheck = false
-        let returnCheck = false
-        let closeCheck = false
+        let auditCheck = false // ***
+        let returnCheck = false // ***
         let publishCheck = false
 
+        const isExecutor = _.includes(session.roles, 'SOC Executor')
 
-        if (incident.info.status === INCIDENT_STATUS_EDITING) {
-            if (accountData.privilegeid === 'user'){
+
+        if (incident.info.status === INCIDENT_STATUS_UNREVIEWED) {
+            editCheck = true
+            submitCheck = true
+        }
+        else if (incident.info.status === INCIDENT_STATUS_REVIEWED) {
+            if (session.accountId === incident.info.creator) {
+                drawCheck = true
+            }
+
+            if (isExecutor) {
                 editCheck = true
-                submitCheck = true
-            }else if(accountData.privilegeid.includes('DPIR')){
-                editCheck = true
-                submitCheck = true
-                closeCheck = true
+                returnCheck = true
+                auditCheck = true
             }
-        } else if (incident.info.status === INCIDENT_STATUS_SIGNING_OFF) {
-            if (accountData === incident.info.creater_id){
-                withdrawCheck = true
-            }else{
-                if (accountData.privilegeid === 'user'){
-
-                }else if(accountData.privilegeid.includes('DPIR')){
-                    // edit (type -> INCIDENT_STATUS_EDITING)
-                    editCheck = true
-                    // return
-                    returnCheck = true
-                    // close
-                    closeCheck = true
-                    // audit
-                    auditCheck = true
-                }
+        }
+        else if (incident.info.status === INCIDENT_STATUS_CLOSED) {
+            if (session.accountId === incident.info.creator) {
+                drawCheck = true
             }
 
-        } else if (incident.info.status === INCIDENT_STATUS_SIGNED_OFF) {
-
-            if (accountData === incident.info.creater_id){
-                // withdraw
-                withdrawCheck = true
-            }else{
-                if (accountData.privilegeid === 'user'){
-
-                }else if(accountData.privilegeid.includes('DPIR')){
-                    // edit (type -> INCIDENT_STATUS_EDITING)
-                    editCheck = true
-                    // return
-                    returnCheck = true
-                    // close
-                    closeCheck = true
-                    // publish
-                    publishCheck = true
-                }
-            }
-
-        } else if (incident.info.status === INCIDENT_STATUS_CLOSE_PUBLISHED){
-
-        } else if (incident.info.status === INCIDENT_STATUS_CLOSE_UNPUBLISHED){
-            if (accountData.privilegeid === 'user'){
-
-            }else if(accountData.privilegeid.includes('DPIR')){
-                // edit (type -> INCIDENT_STATUS_EDITING)
+            if (isExecutor) {
                 editCheck = true
             }
         }
+        else if (incident.info.status === INCIDENT_STATUS_SUBMITTED) {
+            if (session.accountId === incident.info.creator) {
+                drawCheck = true
+            }
 
+            if (isExecutor) {
+                editCheck = true
+                returnCheck = true
+                publishCheck = true
+            }
+        }
+        else if (incident.info.status === INCIDENT_STATUS_DELETED) {
+        }
 
 
         return <div className='main-content basic-form'>
@@ -680,15 +465,18 @@ class Incident extends Component {
 
 
             <div className='auto-settings' style={{height: '70vh'}}>
-            {
-                displayPage === 'main' && this.displayMainPage()
-            }
                 {
-                    activeContent === 'addIncident' && displayPage === 'main' && this.displayAttached()
+                    displayPage === 'main' && this.displayMainPage()
                 }
+
                 {
-                    activeContent === 'editIncident' && displayPage === 'main' &&  incident.fileList.length > 0 && this.displayAttached()
+                    _.includes(['addIncident', 'editIncident', 'viewIncident'], activeContent) && displayPage === 'main' && this.displayTag()
                 }
+
+                {
+                    _.includes(['addIncident', 'editIncident', 'viewIncident'], activeContent) && displayPage === 'main' && this.displayAttached()
+                }
+
                 {
                     activeContent !== 'addIncident' &&  displayPage === 'main' && this.displayFlow()
                 }
@@ -704,32 +492,28 @@ class Incident extends Component {
             </div>
 
             {activeContent === 'viewIncident' &&
-                <footer style={{'text-align':'center'}}>
+                <footer style={{'textAlign':'center'}}>
                     <button className='standard btn list'
                             onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</button>
                     {editCheck &&
                         <button className='standard btn list'
                                 onClick={this.toggleContent.bind(this, 'editIncident')}>{t('txt-edit')}</button>
                     }
-                    {withdrawCheck &&
+                    {drawCheck &&
                         <button className='standard btn list'
-                                onClick={this.openWithdrawMenu.bind(this, incident.info)}>{it('txt-withdraw')}</button>
+                                onClick={this.openReviewModal.bind(this, incident.info, 'draw')}>{it('txt-draw')}</button>
                     }
                     {submitCheck &&
                         <button className='standard btn list'
-                                onClick={this.openSubmitMenu.bind(this, incident.info)}>{it('txt-submit')}</button>
+                                onClick={this.openReviewModal.bind(this, incident.info, 'submit')}>{it('txt-submit')}</button>
                     }
                     {returnCheck &&
                        <button className='standard btn list'
-                                onClick={this.openReturnMenu.bind(this, incident.info)}>{it('txt-return')}</button>
-                    }
-                    {closeCheck &&
-                        <button className='standard btn list'
-                                onClick={this.openCloseMenu.bind(this, incident.info)}>{it('txt-close')}</button>
+                                onClick={this.openReviewModal.bind(this, incident.info, 'return')}>{it('txt-return')}</button>
                     }
                     {auditCheck &&
                         <button className='standard btn list'
-                                onClick={this.openAuditMenu.bind(this, incident.info)}>{it('txt-audit')}</button>
+                                onClick={this.openReviewModal.bind(this, incident.info, 'auditV2')}>{it('txt-audit')}</button>
                     }
                     {publishCheck &&
                         <button className='standard btn list'
@@ -831,15 +615,15 @@ class Incident extends Component {
             </div>
 
             <div className='group' style={{width: '25vh'}}>
-                <label htmlFor='finalDate'>{f('incidentFields.finalDate')}</label>
+                <label htmlFor='expireDttm'>{f('incidentFields.finalDate')}</label>
                 <DatePicker
-                    id='finalDate'
+                    id='expireDttm'
                     className='daterange'
-                    onChange={this.handleDataChange.bind(this, 'finalDate')}
+                    onChange={this.handleDataChange.bind(this, 'expireDttm')}
                     enableTime={true}
                     required={true}
                     validate={{t: et}}
-                    value={incident.info.finalDate}
+                    value={incident.info.expireDttm}
                     locale={locale}
                     readOnly={activeContent === 'viewIncident'} />
             </div>
@@ -871,17 +655,6 @@ class Incident extends Component {
             </div>
             }
 
-            <div className='group full'>
-                <label htmlFor='description'>{f('incidentFields.Suggestion')}</label>
-                <Textarea
-                    id='suggestion'
-                    onChange={this.handleDataChange.bind(this, 'suggestion')}
-                    required={true}
-                    validate={{t: et}}
-                    value={incident.info.suggestion}
-                    rows={3}
-                    readOnly={activeContent === 'viewIncident'}/>
-            </div>
         </div>
     };
 
@@ -906,69 +679,100 @@ class Incident extends Component {
         let dataFields = {};
         incident.fileFieldsArr.forEach(tempData => {
             dataFields[tempData] = {
-                label: tempData === '_menu' ? '' : f(`incidentFields.${tempData}`),
+                label: tempData === 'action' ? '' : f(`incidentFields.${tempData}`),
                 sortable: this.checkSortable(tempData),
                 formatter: (value, allValue, i) => {
-                    if (tempData === 'size') {
+                    if (tempData === 'fileSize') {
                         return <span>{this.formatBytes(value)}</span>
-                    }else {
+                    }
+                    else if (tempData === 'fileDttm') {
+                        return <span>{Moment(value).local().format('YYYY-MM-DD HH:mm:ss')}</span>
+                    }
+                    else if (tempData === 'fileMemo') {
+                        const target = _.find(JSON.parse(incident.info.attachmentDescription), {fileName: allValue.fileName})
+                        return <span>{target.fileMemo}</span>
+                    }
+                    else if (tempData === 'action') {
+                        return <div>
+                            <i className='c-link fg fg-data-download' title={t('txt-download')} onClick={this.downloadAttachment.bind(this, allValue)} />
+                            <i className='c-link fg fg-trashcan' title={t('txt-delete')} onClick={this.deleteAttachment.bind(this, allValue)} />
+                        </div>
+                    }
+                    else {
                         return <span>{value}</span>
                     }
                 }
             }
         });
 
-        let tempFile ={
-            fileName:incident.info.fileName,
-            fileExtension:incident.info.fileExtension,
-            fileSize:incident.info.fileSize,
-            fileMemo:incident.info.fileMemo
-        }
-        incident.fileList = []
-
-        if (tempFile.fileName !== ''){
-            incident.fileList.push(tempFile)
-        }
         incident.fileFields = dataFields;
 
         return <div className='form-group normal'>
             <header>
-                <div className='text'>{it('txt-attachedFile')}<span style={{color:'red','font-size':'0.8em'}}>{it('txt-attachedFileHint')}</span></div>
+                <div className='text'>{it('txt-attachedFile')}<span style={{color:'red','fontSize':'0.8em'}}>{it('txt-attachedFileHint')}</span></div>
             </header>
-            {(activeContent === 'editIncident' || activeContent === 'addIncident') &&
+            {
                 <div className='group'>
                     <FileUpload
-                        supportText={'Attached File'}
+                        supportText={t('txt-upload')}
                         id='attachedFileInput'
                         fileType='attached'
-                        btnText={t('txt-upload')}
-                        handleFileChange={this.handleDataChange.bind(this, 'file')}
-                        readOnly={activeContent === 'viewIncident'}/>
+                        btnText={t('txt-selectFile')}
+                        handleFileChange={this.handleDataChange.bind(this, 'file')} />
                 </div>
             }
-            {(activeContent === 'editIncident' || activeContent === 'addIncident') &&
-            <div className='group'>
-                <label htmlFor='fileMemo'>{it('txt-fileMemo')}</label>
-                <Textarea
-                    id='fileMemo'
-                    onChange={this.handleDataChange.bind(this, 'fileMemo')}
-                    required={true}
-                    validate={{t: et}}
-                    value={incident.info.fileMemo}
-                    rows={2}
-                    readOnly={activeContent === 'viewIncident'}/>
-            </div>
+            {
+                <div className='group'>
+                    <label htmlFor='fileMemo'>{it('txt-fileMemo')}</label>
+                    <Textarea
+                        id='fileMemo'
+                        onChange={this.handleDataChange.bind(this, 'fileMemo')}
+                        value={incident.info.fileMemo}
+                        rows={2} />
+                </div>
             }
-            {incident.fileList.length > 0 &&
+            {
+                activeContent !== 'addIncident' &&
+                <div className='group'>
+                    <button onClick={this.uploadAttachment.bind(this)}>{t('txt-upload')}</button>
+                </div>
+            }
+            {
+                _.size(incident.info.fileList) > 0 &&
                 <div className='group full'>
                     <DataTable
                         style={{width: '100%'}}
                         className='main-table full '
                         fields={incident.fileFields}
-                        data={incident.fileList}
+                        data={incident.info.fileList}
                     />
                 </div>
             }
+        </div>
+    }
+
+    displayTag = () => {
+        const {incident} = this.state
+
+        if (_.size(incident.info.tagList) == 0) {
+            return null
+        }
+
+        return <div className='form-group normal'>
+            <header>
+                <div className='text'>{it('txt-tag')}</div>
+            </header>
+
+            <div className='group full' style={{display: 'flex'}}>
+            {
+                _.map(incident.info.tagList, el => {
+                    return <div style={{display: 'flex', marginRight: '30px'}}>
+                        <div className='incident-tag-square' style={{backgroundColor: el.tag.color}}></div>
+                        &nbsp;{el.tag.tag}
+                    </div>
+                })
+            }
+            </div>
         </div>
     }
 
@@ -982,9 +786,13 @@ class Incident extends Component {
                 label: tempData === '_menu' ? '' : f(`incidentFields.${tempData}`),
                 sortable: this.checkSortable(tempData),
                 formatter: (value, allValue, i) => {
-                    if (tempData === 'size') {
-                        return <span>{this.formatBytes(value)}</span>
-                    }else {
+                    if (tempData === 'reviewDttm') {
+                        return <span>{Moment(value).local().format('YYYY-MM-DD HH:mm:ss')}</span>
+                    }
+                    else if (tempData === 'status') {
+                        return <span>{it(`status.${value}`)}</span>
+                    }
+                    else {
                         return <span>{value}</span>
                     }
                 }
@@ -1001,7 +809,7 @@ class Incident extends Component {
                     style={{width: '100%'}}
                     className='main-table full'
                     fields={incident.flowFields}
-                    data={incident.flowList}
+                    data={incident.info.historyList}
                 />
             </div>
 
@@ -1009,7 +817,7 @@ class Incident extends Component {
     }
 
     displayNoticePage = () => {
-        const {activeContent, incident_accident_list, INCIDENT_SUB_ACCIDENT_DEVICE_LIST,INCIDENT_SUB_ACCIDENT_DOS_LIST, INCIDENT_SUB_ACCIDENT_INVASION_LIST, INCIDENT_SUB_ACCIDENT_WEB_LIST,incidentType, incident, relatedListOptions} = this.state;
+        const {activeContent, INCIDENT_ACCIDENT_LIST, INCIDENT_ACCIDENT_SUB_LIST,incidentType, incident, relatedListOptions} = this.state;
 
         return <div className='form-group normal'>
             <header>
@@ -1026,100 +834,51 @@ class Incident extends Component {
             }
 
             <div className='group'>
-                <label htmlFor='accident'>{it('txt-accidentClassification')}</label>
+                <label htmlFor='accidentCatogory'>{it('txt-accidentClassification')}</label>
                 <DropDownList
-                    id='accident'
-                    onChange={this.handleDataChange.bind(this, 'accident')}
-                    required={true}
-                    validate={{t: et}}
-                    list={incident_accident_list}
-                    value={incident.info.accident}
+                    id='accidentCatogory'
+                    onChange={this.handleDataChange.bind(this, 'accidentCatogory')}
+                    list={INCIDENT_ACCIDENT_LIST}
+                    value={incident.info.accidentCatogory}
                     readOnly={activeContent === 'viewIncident'}/>
             </div>
-            {incident.info.accident === '5' &&
+            {incident.info.accidentCatogory === '5' &&
                 <div className='group'>
-                    <label htmlFor='subAccident'>{it('txt-reason')}</label>
+                    <label htmlFor='accidentAbnormal'>{it('txt-reason')}</label>
                     <Input
-                        id='subAccident'
-                        onChange={this.handleDataChange.bind(this, 'subAccident')}
-                        required={true}
-                        validate={{t: et}}
-                        value={incident.info.subAccident}
+                        id='accidentAbnormal'
+                        onChange={this.handleDataChange.bind(this, 'accidentAbnormalOther')}
+                        value={incident.info.accidentAbnormalOther}
                         readOnly={activeContent === 'viewIncident'}/>
                 </div>
             }
-            {incident.info.accident === '4' &&
+            {incident.info.accidentCatogory !== '5' &&
             <div className='group'>
-                <label htmlFor='subAccident'>{it('txt-reason')}</label>
+                <label htmlFor='accidentAbnormal'>{it('txt-reason')}</label>
                 <DropDownList
-                    id='subAccident'
-                    onChange={this.handleDataChange.bind(this, 'subAccident')}
-                    required={true}
-                    validate={{t: et}}
-                    list={INCIDENT_SUB_ACCIDENT_DEVICE_LIST}
-                    value={incident.info.subAccident}
-                    readOnly={activeContent === 'viewIncident'}/>
-            </div>
-            }
-            {incident.info.accident === '3' &&
-            <div className='group'>
-                <label htmlFor='subAccident'>{it('txt-reason')}</label>
-                <DropDownList
-                    id='subAccident'
-                    onChange={this.handleDataChange.bind(this, 'subAccident')}
-                    required={true}
-                    validate={{t: et}}
-                    list={INCIDENT_SUB_ACCIDENT_DOS_LIST}
-                    value={incident.info.subAccident}
-                    readOnly={activeContent === 'viewIncident'}/>
-            </div>
-            }
-            {incident.info.accident === '2' &&
-            <div className='group'>
-                <label htmlFor='subAccident'>{it('txt-reason')}</label>
-                <DropDownList
-                    id='subAccident'
-                    onChange={this.handleDataChange.bind(this, 'subAccident')}
-                    required={true}
-                    validate={{t: et}}
-                    list={INCIDENT_SUB_ACCIDENT_INVASION_LIST}
-                    value={incident.info.subAccident}
-                    readOnly={activeContent === 'viewIncident'}/>
-            </div>
-            }
-            {incident.info.accident === '1' &&
-            <div className='group'>
-                <label htmlFor='subAccident'>{it('txt-reason')}</label>
-                <DropDownList
-                    id='subAccident'
-                    onChange={this.handleDataChange.bind(this, 'subAccident')}
-                    required={true}
-                    validate={{t: et}}
-                    list={INCIDENT_SUB_ACCIDENT_WEB_LIST}
-                    value={incident.info.subAccident}
+                    id='accidentAbnormal'
+                    onChange={this.handleDataChange.bind(this, 'accidentAbnormal')}
+                    list={INCIDENT_ACCIDENT_SUB_LIST[incident.info.accidentCatogory - 1]}
+                    value={incident.info.accidentAbnormal}
                     readOnly={activeContent === 'viewIncident'}/>
             </div>
             }
 
             <div className='group full'>
-                <label htmlFor='accidentDescr'>{it('txt-accidentDescr')}</label>
+                <label htmlFor='accidentDescription'>{it('txt-accidentDescr')}</label>
                 <Textarea
-                    id='accidentDescr'
-                    onChange={this.handleDataChange.bind(this, 'accidentDescr')}
-                    required={true}
-                    validate={{t: et}}
-                    value={incident.info.accidentDescr}
+                    id='accidentDescription'
+                    onChange={this.handleDataChange.bind(this, 'accidentDescription')}
+                    value={incident.info.accidentDescription}
                     rows={3}
                     readOnly={activeContent === 'viewIncident'}/>
             </div>
             <div className='group full'>
-                <label htmlFor='reasonDescr'>{it('txt-reasonDescr')}</label>
+                <label htmlFor='accidentReason'>{it('txt-reasonDescr')}</label>
                 <Textarea
-                    id='reasonDescr'
-                    onChange={this.handleDataChange.bind(this, 'reasonDescr')}
-                    required={true}
-                    validate={{t: et}}
-                    value={incident.info.reasonDescr}
+                    id='accidentReason'
+                    onChange={this.handleDataChange.bind(this, 'accidentReason')}
+                    value={incident.info.accidentReason}
                     rows={3}
                     readOnly={activeContent === 'viewIncident'}/>
             </div>
@@ -1128,8 +887,6 @@ class Incident extends Component {
                 <Textarea
                     id='accidentInvestigation'
                     onChange={this.handleDataChange.bind(this, 'accidentInvestigation')}
-                    required={true}
-                    validate={{t: et}}
                     value={incident.info.accidentInvestigation}
                     rows={3}
                     readOnly={activeContent === 'viewIncident'}/>
@@ -1239,6 +996,19 @@ class Incident extends Component {
             })
         }
 
+        if (incident.info.accidentCatogory) {
+            if (incident.info.accidentCatogory === 5) {
+                incident.info.accidentAbnormal = null
+            }
+            else {
+                incident.info.accidentAbnormalOther = null
+            }
+        }
+
+        if (incident.info.expireDttm) {
+            incident.info.expireDttm = Moment(incident.info.expireDttm).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+        }
+
         ah.one({
             url: `${baseUrl}/api/soc`,
             data: JSON.stringify(incident.info),
@@ -1249,6 +1019,7 @@ class Incident extends Component {
             incident.info.id = data.rt.id;
             incident.info.updateDttm = data.rt.updateDttm;
             incident.info.status = data.rt.status;
+
             if (incident.info.relatedList) {
                 incident.info.relatedList = _.map(incident.info.relatedList, el => {
                     return el.incidentRelatedId
@@ -1258,6 +1029,8 @@ class Incident extends Component {
             this.setState({
                 originalIncident: _.cloneDeep(incident)
             }, () => {
+                this.uploadAttachment()
+
                 // this.loadData();
                 // this.getIncident(incident.info.id);
                 this.toggleContent('cancel');
@@ -1266,10 +1039,9 @@ class Incident extends Component {
 
             return null;
         })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            });
-
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+        });
     };
 
     checkRequired(incident) {
@@ -1349,47 +1121,47 @@ class Incident extends Component {
         return true
     }
 
-    getIncident = (id,type) => {
+    getIncident = (id, type) => {
         const {baseUrl} = this.context;
 
         ah.one({
             url: `${baseUrl}/api/soc?id=${id}`,
             type: 'GET'
         })
-            .then(data => {
-                let {incident} = this.state;
-                let temp = data.rt;
+        .then(data => {
+            let {incident} = this.state;
+            let temp = data.rt;
 
-                if (temp.relatedList) {
-                    temp.relatedList = _.map(temp.relatedList, el => {
-                        return el.incidentRelatedId
-                    })
-                }
-
-                if (temp.eventList) {
-                    temp.eventList = _.map(temp.eventList, el => {
-                        return {
-                            ...el,
-                            time: {
-                                from: Moment(el.startDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss'),
-                                to: Moment(el.endDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss')
-                            }
-                        }
-                    })
-                }
-
-                let incidentType = _.size(temp.ttpList) > 0 ? 'ttps' : 'events';
-                let toggleType = type
-                incident.info = temp;
-                this.setState({incident, incidentType,toggleType}, () => {
-                    this.toggleContent('viewIncident', temp)
+            if (temp.relatedList) {
+                temp.relatedList = _.map(temp.relatedList, el => {
+                    return el.incidentRelatedId
                 })
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            })
-    };
+            }
 
+            if (temp.eventList) {
+                temp.eventList = _.map(temp.eventList, el => {
+                    return {
+                        ...el,
+                        time: {
+                            from: Moment(el.startDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss'),
+                            to: Moment(el.endDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss')
+                        }
+                    }
+                })
+            }
+
+            let incidentType = _.size(temp.ttpList) > 0 ? 'ttps' : 'events';
+            let toggleType = type
+            incident.info = temp;
+
+            this.setState({incident, incidentType, toggleType}, () => {
+                this.toggleContent('viewIncident', temp)
+            })
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+        })
+    };
 
     /**
      * Display filter content
@@ -1472,115 +1244,22 @@ class Incident extends Component {
         })
     };
 
-    /**
-     * Show Withdraw Incident dialog
-     * @method
-     * @param {object} allValue - IncidentDevice data
-     */
-    openWithdrawMenu = (allValue) => {
-        PopupDialog.prompt({
-            title: it('txt-withdraw'),
-            id: 'modalWindowSmall',
-            confirmText: it('txt-withdraw'),
-            cancelText: t('txt-cancel'),
-            display: <div className='content delete'>
-                <span>{it('txt-withdraw-msg')}: {allValue.id}?</span>
-            </div>,
-            act: (confirmed, data) => {
-                if (confirmed) {
-                    // this.deleteIncident(allValue.id)
-                }
-            }
-        })
-    };
 
-    /**
-     * Show Submit Incident dialog
-     * @method
-     * @param {object} allValue - IncidentDevice data
-     */
-    openSubmitMenu = (allValue) => {
+    openReviewModal= (allValue, reviewType) => {
         PopupDialog.prompt({
-            title: it('txt-submit'),
-            id: 'modalWindowSmall',
-            confirmText: it('txt-submit'),
+            title: it(`txt-${reviewType}`),
+            confirmText: t('txt-confirm'),
             cancelText: t('txt-cancel'),
             display: <div className='content delete'>
-                <span>{it('txt-submit-msg')}: {allValue.id}?</span>
+                <span>{it(`txt-${reviewType}-msg`)}: {allValue.id}?</span>
             </div>,
             act: (confirmed, data) => {
                 if (confirmed) {
-                    // this.deleteIncident(allValue.id)
+                    this.openIncidentReview(allValue.id, reviewType)
                 }
             }
         })
-    };
-
-    /**
-     * Show Return Incident dialog
-     * @method
-     * @param {object} allValue - IncidentDevice data
-     */
-    openReturnMenu = (allValue) => {
-        PopupDialog.prompt({
-            title: it('txt-return'),
-            id: 'modalWindowSmall',
-            confirmText: it('txt-return'),
-            cancelText: t('txt-cancel'),
-            display: <div className='content delete'>
-                <span>{it('txt-return-msg')}: {allValue.id}?</span>
-            </div>,
-            act: (confirmed, data) => {
-                if (confirmed) {
-                    // this.deleteIncident(allValue.id)
-                }
-            }
-        })
-    };
-
-    /**
-     * Show Return Incident dialog
-     * @method
-     * @param {object} allValue - IncidentDevice data
-     */
-    openCloseMenu = (allValue) => {
-        PopupDialog.prompt({
-            title: it('txt-close'),
-            id: 'modalWindowSmall',
-            confirmText: it('txt-close'),
-            cancelText: t('txt-cancel'),
-            display: <div className='content delete'>
-                <span>{it('txt-close-msg')}: {allValue.id}?</span>
-            </div>,
-            act: (confirmed, data) => {
-                if (confirmed) {
-                    // this.deleteIncident(allValue.id)
-                }
-            }
-        })
-    };
-
-    /**
-     * Show Return Incident dialog
-     * @method
-     * @param {object} allValue - IncidentDevice data
-     */
-    openAuditMenu = (allValue) => {
-        PopupDialog.prompt({
-            title: it('txt-audit'),
-            id: 'modalWindowSmall',
-            confirmText: it('txt-audit'),
-            cancelText: t('txt-cancel'),
-            display: <div className='content delete'>
-                <span>{it('txt-audit-msg')}: {allValue.id}?</span>
-            </div>,
-            act: (confirmed, data) => {
-                if (confirmed) {
-                    // this.deleteIncident(allValue.id)
-                }
-            }
-        })
-    };
+    }
 
     /**
      * Show Send Incident dialog
@@ -1626,27 +1305,6 @@ class Incident extends Component {
             })
     };
 
-    /**
-     * Handle withdraw Incident confirm
-     * @method
-     */
-    withdrawIncident = (id) => {
-        const {baseUrl} = this.context;
-
-        ah.one({
-            url: `${baseUrl}/api/soc/_withdraw?id=${id}`,
-            type: 'get'
-        })
-            .then(data => {
-                if (data.ret === 0) {
-                    this.loadData()
-                }
-                return null
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            })
-    };
 
     /**
      * Handle table pagination change
@@ -1689,11 +1347,20 @@ class Incident extends Component {
                 ttpList: allValue.ttpList,
                 eventList: allValue.eventList,
                 status: allValue.status,
-                suggestion:allValue.suggestion,
-                fileName: allValue.fileName||'',
-                fileType: allValue.fileType||'',
-                fileSize: allValue.fileSize|| 0 ,
-                fileMemo: allValue.fileMemo||''
+                fileList: allValue.fileList,
+                fileMemo: allValue.fileMemo,
+                tagList: allValue.tagList,
+                historyList: allValue.historyList,
+                creator: allValue.creator,
+                announceSource: allValue.announceSource,
+                expireDttm: allValue.expireDttm,
+                attachmentDescription: allValue.attachmentDescription,
+                accidentCatogory: allValue.accidentCatogory,
+                accidentDescription: allValue.accidentDescription,
+                accidentReason: allValue.accidentReason,
+                accidentInvestigation: allValue.accidentInvestigation,
+                accidentAbnormal: allValue.accidentAbnormal,
+                accidentAbnormalOther: allValue.accidentAbnormalOther
             };
 
             if (!tempIncident.info.socType) {
@@ -1714,11 +1381,19 @@ class Incident extends Component {
                 relatedList: null,
                 ttpList: null,
                 eventList: null,
-                suggestion: null,
-                fileName: '',
-                fileType: '',
-                fileSize:  0 ,
-                fileMemo: ''
+                fileMemo: '',
+                tagList: null,
+                historyList: null,
+                creator: null,
+                announceSource: null,
+                expireDttm: null,
+                attachmentDescription: null,
+                accidentCatogory: null,
+                accidentDescription: null,
+                accidentReason: null,
+                accidentInvestigation: null,
+                accidentAbnormal: null,
+                accidentAbnormalOther: null
             };
             if (!tempIncident.info.socType) {
                 tempIncident.info.socType = 1
@@ -1742,12 +1417,7 @@ class Incident extends Component {
             tempIncident.info = {
                 title: alertData.Info,
                 reporter: alertData.Collector,
-                rawData:alertData,
-                suggestion:alertData.toString(),
-                fileName: '',
-                fileType: '',
-                fileSize:  0 ,
-                fileMemo: ''
+                rawData:alertData
             };
 
             if (!tempIncident.info.socType) {
@@ -1833,70 +1503,17 @@ class Incident extends Component {
             contentType: 'application/json',
             dataType: 'json'
         })
-            .then(data => {
-                this.afterAuditDialog(id)
-                // helper.showPopupMsg(it('txt-audit-success'), it('txt-audit'));
-                return null
-            })
-            .catch(err => {
-                helper.showPopupMsg(it('txt-audit-fail'), it('txt-audit'));
-            })
-    };
-
-    /**
-     *
-     * @param {string} id
-     */
-    submittedIncident = (id) => {
-        const {baseUrl} = this.context;
-        let tmp = {
-            id: id
-        }
-        ah.one({
-            url: `${baseUrl}/api/soc/_submit`,
-            data: JSON.stringify(tmp),
-            type: 'POST',
-            contentType: 'application/json',
-            dataType: 'json'
+        .then(data => {
+            this.afterAuditDialog(id)
+            // helper.showPopupMsg(it('txt-audit-success'), it('txt-audit'));
+            return null
         })
-            .then(data => {
-                if (data) {
-                    helper.showPopupMsg(it('txt-submit-success'), it('txt-submit'));
-                    this.loadData()
-                }
-            })
-            .catch(err => {
-                helper.showPopupMsg(it('txt-submit-fail'), it('txt-submit'));
-            })
-    };
-
-    /**
-     *
-     * @param {string} id
-     */
-    returnIncident = (id) => {
-        const {baseUrl} = this.context;
-        let tmp = {
-            id: id
-        }
-        ah.one({
-            url: `${baseUrl}/api/soc/_return`,
-            data: JSON.stringify(tmp),
-            type: 'POST',
-            contentType: 'application/json',
-            dataType: 'json'
+        .catch(err => {
+            helper.showPopupMsg(it('txt-audit-fail'), it('txt-audit'));
         })
-            .then(data => {
-
-                if (data){
-                    helper.showPopupMsg(it('txt-return-success'), it('txt-return'));
-                    this.loadData()
-                }
-            })
-            .catch(err => {
-                helper.showPopupMsg(it('txt-return-fail'), it('txt-return'));
-            })
     };
+
+
 
     /**
      * Send Incident
@@ -2023,21 +1640,8 @@ class Incident extends Component {
         let temp = {...this.state.incident};
         temp.info[type] = value;
 
-        if (type === 'impactAssessment'){
-            switch (value){
-                case '1':
-                    temp.info.finalDate = helper.getAdditionDate(48, 'hours')
-                    break;
-                case '2':
-                    temp.info.finalDate = helper.getAdditionDate(48, 'hours')
-                    break;
-                case '3':
-                    temp.info.finalDate = helper.getAdditionDate(24, 'hours')
-                    break;
-                case '4':
-                    temp.info.finalDate = helper.getAdditionDate(8, 'hours')
-                    break;
-            }
+        if (type === 'impactAssessment') {
+            temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * value), 'hours')
         }
 
         this.setState({
@@ -2055,33 +1659,33 @@ class Incident extends Component {
             contentType: 'application/json',
             dataType: 'json'
         })
-            .then(data => {
-                if (data) {
-                    let list = _.map(data.rt.rows, val => {
-                        let ipContent = '';
+        .then(data => {
+            if (data) {
+                let list = _.map(data.rt.rows, val => {
+                    let ipContent = '';
 
-                        if (val.eventList) {
-                            val.eventList = _.map(val.eventList, el => {
-                                if (el.eventConnectionList) {
-                                    el.eventConnectionList = _.map(el.eventConnectionList, ecl => {
-                                        ipContent += '(' + it('txt-srcIp')+ ': ' + ecl.srcIp + ')'
-                                    })
-                                }
-                            })
-                        }
+                    if (val.eventList) {
+                        val.eventList = _.map(val.eventList, el => {
+                            if (el.eventConnectionList) {
+                                el.eventConnectionList = _.map(el.eventConnectionList, ecl => {
+                                    ipContent += '(' + it('txt-srcIp')+ ': ' + ecl.srcIp + ')'
+                                })
+                            }
+                        })
+                    }
 
-                        return {
-                            value: val.id,
-                            text: val.id + ' (' + it(`category.${val.category}`) + ')' + ipContent
-                        }
-                    });
+                    return {
+                        value: val.id,
+                        text: val.id + ' (' + it(`category.${val.category}`) + ')' + ipContent
+                    }
+                });
 
-                    this.setState({relatedListOptions: list})
-                }
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            });
+                this.setState({relatedListOptions: list})
+            }
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+        });
 
         ah.one({
             url: `${baseUrl}/api/soc/device/_search`,
@@ -2090,51 +1694,18 @@ class Incident extends Component {
             contentType: 'application/json',
             dataType: 'json'
         })
-            .then(data => {
-                if (data) {
-                    let list = _.map(data.rt.rows, val => {
-                        return {value: val.id, text: val.deviceName}
-                    });
+        .then(data => {
+            if (data) {
+                let list = _.map(data.rt.rows, val => {
+                    return {value: val.id, text: val.deviceName}
+                });
 
-                    this.setState({deviceListOptions: list})
-                }
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            })
-
-        //利用 account_id 查詢 privilege_id
-        const {session} = this.context;
-
-        ah.all([
-            {
-                url:`${baseUrl}/api/account?accountid=${session.accountId}`,
-                type:'GET'
-            },
-            {
-                url: `${baseUrl}/api/account/privileges?accountId=${session.accountId}`,
-                type:'GET'
+                this.setState({deviceListOptions: list})
             }
-        ])
-            .then(data => {
-                if (data) {
-
-                    let privilegeidList =  _.map(data[1].rt, 'privilegeid')
-                    let accountData = {
-                        accountid: data[0].rt.accountid,
-                        privilegeid: privilegeidList[0]
-                    };
-                    // console.log("accountData == ",accountData)
-                    this.setState({
-                        accountData
-                    });
-                }
-                return null;
-            })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message);
-                this.close();
-            })
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+        })
 
     };
 
@@ -2172,7 +1743,7 @@ class Incident extends Component {
      * @returns true for sortable or null
      */
     checkSortable = (field) => {
-        const unSortableFields = ['description', '_menu'];
+        const unSortableFields = ['description', '_menu', 'action', 'tag'];
 
         if (_.includes(unSortableFields, field)) {
             return null;
@@ -2198,6 +1769,81 @@ class Incident extends Component {
         });
     };
 
+    openIncidentComment() {
+        this.incidentComment.open()
+    }
+
+    openIncidentTag(id) {
+        this.incidentTag.open(id)
+    }
+
+    openIncidentReview(incidentId, reviewType) {
+        this.incidentReview.open(incidentId, reviewType)
+    }
+
+    uploadAttachment() {
+        const {baseUrl} = this.context
+        let {incident} = this.state
+
+        if (incident.info.file) {
+            let formData = new FormData()
+            formData.append('id', incident.info.id)
+            formData.append('file', incident.info.file)
+            formData.append('fileMemo', incident.info.fileMemo)
+
+            ah.one({
+                url: `${baseUrl}/api/soc/attachment/_upload`,
+                data: formData,
+                type: 'POST',
+                processData: false,
+                contentType: false
+            })
+            .then(data => {
+                this.getIncident(incident.info.id, 'view')
+            })
+            .catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message)
+            })
+        }
+    }
+
+    downloadAttachment(allValue) {
+        const {baseUrl, contextRoot} = this.context
+        const {incident} = this.state
+        const url = `${baseUrl}${contextRoot}/api/soc/attachment/_download?id=${incident.info.id}&fileName=${allValue.fileName}`
+
+        downloadLink(url)
+    }
+
+    deleteAttachment(allValue) {
+        const {baseUrl} = this.context
+        let {incident} = this.state
+
+        PopupDialog.prompt({
+            title: t('txt-delete'),
+            confirmText: t('txt-delete'),
+            cancelText: t('txt-cancel'),
+            display: <div className='content delete'>
+                <span>{t('txt-delete-msg')}: {allValue.fileName}?</span>
+            </div>,
+            act: (confirmed, data) => {
+                if (confirmed) {
+                    ah.one({
+                        url: `${baseUrl}/api//soc/attachment/_delete?id=${incident.info.id}&fileName=${allValue.fileName}`,
+                        type: 'DELETE'
+                    })
+                    .then(data => {
+                        if (data.ret === 0) {
+                            this.getIncident(incident.info.id, 'view')
+                        }
+                    })
+                    .catch(err => {
+                        helper.showPopupMsg('', t('txt-error'), err.message)
+                    })
+                }
+            }
+        })
+    }
 }
 
 Incident.contextType = BaseDataContext;

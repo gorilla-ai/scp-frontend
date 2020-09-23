@@ -562,6 +562,7 @@
     "fileExtension": "File Extension",
     "fileSize": "File Size",
     "fileMemo": "File Description",
+    "fileDttm": "Upload Time",
     "uriType": "URI Type",
     "uriValue": "URI Value",
     "domain": "Domain",
@@ -586,7 +587,10 @@
     "type": "Incident Type",
     "select": "Send or Not",
     "Suggestion": "Event Handling Suggestion",
-    "finalDate": "Limit DateTime"
+    "finalDate": "Limit DateTime",
+    "tag": "Tag",
+    "reviewDttm": "Review Time",
+    "reviewerName": "Reviewer"
   },
   "severityTableFields": {
     "dataSourceType": "Type",

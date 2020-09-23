@@ -14,11 +14,15 @@
 	"txt-incident-ttps": "攻擊手法",
 	"txt-prev-page": "上一頁",
 	"txt-next-page": "下一頁",
-	"txt-withdraw": "抽單",
+	"txt-draw": "抽單",
 	"txt-audit": "審核",
 	"txt-audit-success": "審核成功",
 	"txt-audit-fail": "審核失敗",
 	"txt-audit-msg": "是否審核",
+	"txt-auditV2": "審核",
+	"txt-auditV2-success": "審核成功",
+	"txt-auditV2-fail": "審核失敗",
+	"txt-auditV2-msg": "是否審核",
 	"txt-close": "結案",
 	"txt-close-success": "結案成功",
 	"txt-close-fail": "結案失敗",
@@ -34,7 +38,7 @@
 	"txt-return-success": "退單成功",
 	"txt-return-fail": "退單失敗",
 	"txt-return-msg": "是否退單",
-	"txt-withdraw-msg": "是否抽單",
+	"txt-draw-msg": "是否抽單",
 	"txt-send-msg": "是否發布",
 	"txt-sendCheck": "，是否直接發布?",
 	"txt-sendCheckHealth": "是否手動發布健康狀態統計單?",
@@ -71,37 +75,39 @@
 	"txt-accidentClassification": "事故分類",
 	"txt-accidentDescr": "事故說明",
 	"txt-accidentInvestigation": "事故調查情況",
-	"accident":{
-		"txt-webAttack": "網頁攻擊",
-		"web": {
-			"txt-webDefacement": "網頁置換",
-			"txt-maliciousMessage": "惡意留言",
-			"txt-maliciousPage": "惡意網頁",
-			"txt-aptPage": "釣魚網頁",
-			"txt-trojan": "網頁木馬",
-			"txt-leak": "個資外洩"
-		},
-		"txt-illegalInvasion": "非法入侵",
-		"invasion": {
-			"txt-systemInvasion": "系統遭入侵",
-			"txt-implantMalware": "植入惡意程式",
-			"txt-abnormalConnection": "異常連線",
-			"txt-aptMail": "發送垃圾郵件",
-			"txt-leak": "資料外洩"
-		},
-		"txt-dos": "阻斷服務(DDoS/DoS)",
-		"dos": {
-			"txt-serviceInterruption": "服務中斷",
-			"txt-lowPerformance": "效能降低"
-		},
-		"txt-deviceProblem": "設備問題",
-		"device": {
-			"txt-damage": "損毀",
-			"txt-abnormalPower": "電力異常",
-			"txt-internetInterruption": "網路服務中斷",
-			"txt-miss": "設備遺失"
-		},
-		"txt-other": "其他"
+	"txt-custom-tag": "自訂標籤",
+	"txt-tag": "標籤",
+	"txt-title": "標題",
+	"txt-comment": "意見",
+	"txt-comment-example": "意見範本",
+	"txt-comment-example-edit": "意見範本編輯",
+	"txt-comment-none": "不使用範本",
+	"txt-comment-new": "新範本",
+	"txt-edit-msg": "是否確認編輯 ?",
+
+	"accident": {
+		"1": "網頁攻擊",
+		"11": "網頁置換",
+		"12": "惡意留言",
+		"13": "惡意網頁",
+		"14": "釣魚網頁",
+		"15": "網頁木馬",
+		"16": "個資外洩",
+		"2": "非法入侵",
+		"21": "系統遭入侵",
+		"22": "植入惡意程式",
+		"23": "異常連線",
+		"24": "發送垃圾郵件",
+		"25": "資料外洩",
+		"3": "阻斷服務(DDoS/DoS)",
+		"31": "服務中斷",
+		"32": "效能降低",
+		"4": "設備問題",
+		"41": "損毀",
+		"42": "電力異常",
+		"43": "網路服務中斷",
+		"44": "設備遺失",
+		"5": "其他"
 	},
 
 	"unit": {
@@ -145,9 +151,8 @@
 		"1": "待審核",
 		"2": "已審核(待發布)",
 		"3": "結案(已發布)",
-		"4": "已刪除",
-		"5": "編輯中",
-		"6": "結案(未發布)"
+		"4": "已送出",
+		"5": "已刪除"
 	},
 	"protectType": {
 		"0": "防毒軟體",
