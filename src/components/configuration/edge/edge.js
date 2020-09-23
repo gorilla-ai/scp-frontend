@@ -56,7 +56,7 @@ class Edge extends Component {
       activeTab: 'edge', //edge, geography
       activeContent: 'tableList', //tableList, viewEdge, editEdge
       showFilter: false,
-      openEditGroupDialog: false,
+      openManageGroupDialog: false,
       allGroupList: [],
       currentEdgeData: '',
       serviceType: [],
@@ -888,27 +888,30 @@ class Edge extends Component {
    */
   toggleManageGroup = () => {
     this.setState({
-      openEditGroupDialog: !this.state.openEditGroupDialog
+      openManageGroupDialog: !this.state.openManageGroupDialog
     });
   }
   /**
-   * Set group list
-   * @param {array.<string>} edgeGroupList - List of selected groups
-   * @param {string} [options] - options for 'confirm'
+   * Update group list
+   * @param {string} group - group to be removed
    * @method
    */
-  setGroupList = (edgeGroupList, options) => {
+  updateGroupList = (group) => {
     let tempEdge = {...this.state.edge};
-    tempEdge.info.edgeGroupList = edgeGroupList;
+    const index = tempEdge.info.edgeGroupList.indexOf(group);
 
-    this.setState({
-      originalEdgeData: _.cloneDeep(tempEdge),
-      edge: tempEdge
-    });
+    if (index > -1) { //Update selected group
+      tempEdge.info.edgeGroupList.splice(index, 1);
 
-    if (options === 'confirm') {
-      this.toggleManageGroup();
+      this.setState({
+        originalEdgeData: _.cloneDeep(tempEdge),
+        edge: tempEdge
+      }, () => {
+        this.handleGroupSubmit();
+      });
     }
+
+    this.getGroupList();
   }
   /**
    * Handle NetTrap upgrade button
@@ -951,12 +954,17 @@ class Edge extends Component {
    */
   displayEditEdgeContent = () => {
     const {contextRoot, locale} = this.context;
-    const {activeContent, edge} = this.state;
+    const {activeContent, allGroupList, edge} = this.state;
+    const allGroup = _.map(allGroupList, val => {
+      return {
+        value: val,
+        text: val
+      }
+    });
     let iconType = '';
     let btnStatusOn = false;
     let action = 'start';
     let icon = '';
-    let groupText = '';
 
     if (edge.info.agentApiStatus) {
       if (edge.info.agentApiStatus === 'Normal') {
@@ -979,12 +987,6 @@ class Edge extends Component {
         btnStatusOn = true;
         action = 'stop';
       }
-    }
-
-    if (edge.info.edgeGroupList.length > 0) {
-      groupText = t('txt-edit');
-    } else {
-      groupText = t('txt-add');
     }
 
     return (
@@ -1125,10 +1127,22 @@ class Edge extends Component {
             </div>
             <div className='group full'>
               {activeContent === 'editEdge' &&
-                <button className='btn add-group standard' onClick={this.toggleManageGroup}>{groupText}</button>
+                <button className='btn add-group' onClick={this.toggleManageGroup}>{t('txt-manage')}</button>
               }
               <label>{t('txt-group')}</label>
-              <div className='flex-item'>{edge.info.edgeGroupList.map(this.displayGroup)}</div>
+              {activeContent === 'viewEdge' &&
+                <div className='flex-item'>{edge.info.edgeGroupList.map(this.displayGroup)}</div>
+              }
+              {activeContent === 'editEdge' &&
+                <Combobox
+                  list={allGroup}
+                  multiSelect={{
+                    enabled: true,
+                    toggleAll: true
+                  }}
+                  value={edge.info.edgeGroupList}
+                  onChange={this.handleDataChange.bind(this, 'edgeGroupList')} />
+              }
             </div>
             <div className='group'>
               <label>{t('edge-management.txt-activatTime')}</label>
@@ -1206,14 +1220,14 @@ class Edge extends Component {
           <div className='group'>
             <label htmlFor='edgeSearchGroups'>{f('edgeFields.groups')}</label>
             <Combobox
-                id='edgeSearchGroups'
-                list={allGroup}
-                multiSelect={{
-                  enabled: true,
-                  toggleAll: true
-                }}
-                value={edgeSearch.groups}
-                onChange={this.handleEdgeSearch.bind(this, 'groups')} />
+              id='edgeSearchGroups'
+              list={allGroup}
+              multiSelect={{
+                enabled: true,
+                toggleAll: true
+              }}
+              value={edgeSearch.groups}
+              onChange={this.handleEdgeSearch.bind(this, 'groups')} />
           </div>
           <div className='group'>
             <label htmlFor='edgeSearchServiceType'>{f('edgeFields.serviceType')}</label>
@@ -1270,20 +1284,19 @@ class Edge extends Component {
       activeContent,
       showFilter,
       allGroupList,
-      openEditGroupDialog,
+      openManageGroupDialog,
       edge,
       geoJson
     } = this.state;
 
     return (
       <div>
-        {openEditGroupDialog &&
+        {openManageGroupDialog &&
           <ManageGroup
             allGroupList={allGroupList}
-            edgeGroupList={edge.info.edgeGroupList}
-            setGroupList={this.setGroupList}
-            getGroupList={this.getGroupList}
-            handleGroupSubmit={this.handleGroupSubmit} />
+            toggleManageGroup={this.toggleManageGroup}
+            updateGroupList={this.updateGroupList}
+            getGroupList={this.getGroupList} />
         }
 
         <div className='sub-header'>
