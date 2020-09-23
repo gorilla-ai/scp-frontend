@@ -1101,27 +1101,10 @@ class HMDscanInfo extends Component {
 
     return (
       <div className='group' key={uniqueKey}>
-        <div className='path pointer' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
-          <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`}></i>
+        <div className='path' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
           <div className='path-header'>
             {filePath &&
               <span>{t('txt-path')}: {filePath}</span>
-            }
-          </div>
-        </div>
-        <div className={cx('rule', {'hide': activePath !== uniqueID})}>
-          <div className='rule-content'>
-            {val.Md5HashInfo &&
-              <div className='header'>
-                <ul>
-                  {val.Md5HashInfo._BaselineMd5Hash &&
-                    <li>Baseline MD5: {val.Md5HashInfo._BaselineMd5Hash}</li>
-                  }
-                  {val.Md5HashInfo._RealMd5Hash &&
-                    <li>Real MD5: {val.Md5HashInfo._RealMd5Hash}</li>
-                  }
-                </ul>
-              </div>
             }
           </div>
         </div>
