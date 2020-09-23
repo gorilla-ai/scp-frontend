@@ -28,9 +28,8 @@ class ManageGroup extends Component {
       openManageGroup: false,
       openAddGroup: false,
       groupTableFields: ['group', 'option'],
-      groupList: [],
+      formattedGroupList: [],
       groupName: '',
-      groupSelected: [],
       info: ''
     };
 
@@ -39,7 +38,6 @@ class ManageGroup extends Component {
   }
   componentDidMount() {
     this.getFormattedGroupList();
-    this.getDefaultSelected();
   }
   componentDidUpdate(prevProps) {
     const {allGroupList} = this.props;
@@ -54,14 +52,14 @@ class ManageGroup extends Component {
    */
   getFormattedGroupList = () => {
     const {allGroupList} = this.props;
-    const groupList = _.map(allGroupList, val => {
+    const formattedGroupList = _.map(allGroupList, val => {
       return {
         group: val
       };
     })
 
     this.setState({
-      groupList
+      formattedGroupList
     }, () => {
       this.setState({
         openManageGroup: true
@@ -69,13 +67,65 @@ class ManageGroup extends Component {
     });
   }
   /**
-   * Get and set default selected group
+   * Display manage group content
    * @method
+   * @returns HTML DOM
    */
-  getDefaultSelected = () => {
-    this.setState({
-      groupSelected: this.props.edgeGroupList
-    });
+  displayManageGroup = () => {
+    const {groupTableFields, formattedGroupList} = this.state;
+
+    let dataFields = {};
+    groupTableFields.forEach(tempData => {
+      dataFields[tempData] = {
+        label: tempData === 'group' ? t('txt-group') : '',
+        sortable: false,
+        formatter: (value, allValue) => {
+          if (tempData === 'option') {
+            return (
+              <div>
+                <i className='c-link fg fg-trashcan' onClick={this.openDeleteGroup.bind(this, allValue.group)} title={t('txt-delete')} />
+              </div>
+            )
+          } else {
+            return <span>{value}</span>
+          }
+        }
+      };
+    })
+
+    return (
+      <div>
+        <i className='c-link fg fg-add' onClick={this.toggleAddGroup} title={t('edge-management.txt-addGroup')}></i>
+        <div className='table-data'>
+          <DataTable
+            fields={dataFields}
+            data={formattedGroupList} />
+        </div>
+      </div>
+    )
+  }
+  /**
+   * Display manage group dialog
+   * @method
+   * @returns ModalDialog component
+   */
+  openManageGroupDialog = () => {
+    const actions = {
+      confirm: {text: t('txt-close'), handler: this.props.toggleManageGroup}
+    };
+
+    return (
+      <ModalDialog
+        id='selectGroupDialog'
+        className='modal-dialog'
+        title={t('edge-management.txt-manageGroup')}
+        draggable={true}
+        global={true}
+        actions={actions}
+        closeAction='confirm'>
+        {this.displayManageGroup()}
+      </ModalDialog>
+    )
   }
   /**
    * Toggle add group dialog on/off
@@ -210,7 +260,6 @@ class ManageGroup extends Component {
    */
   deleteGroup = (group) => {
     const {baseUrl} = this.context;
-    const {groupSelected} = this.state;
     const url = `${baseUrl}/api/edge/group`;
     const requestData = {
       groupName: group
@@ -224,114 +273,13 @@ class ManageGroup extends Component {
     })
     .then(data => {
       if (data) {
-        const index = groupSelected.indexOf(group);
-        let tempGroupSelected = groupSelected;
-
-        if (index > -1) { //Update selected group
-          tempGroupSelected.splice(index, 1);
-
-          this.setState({
-            groupSelected: tempGroupSelected
-          }, () => {
-            this.props.setGroupList(groupSelected);
-            
-          });
-        }
-
-        this.props.getGroupList();
+        this.props.updateGroupList(group);
       }
       return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
-  }
-  /**
-   * Handle table group selection
-   * @method
-   * @param {array.<string>} value - selected group
-   */
-  handleTableSelection = (value) => {
-    this.setState({
-      groupSelected: value
-    });
-  }
-  /**
-   * Display manage group content
-   * @method
-   * @returns HTML DOM
-   */
-  displayManageGroup = () => {
-    const {groupTableFields, groupList, groupSelected} = this.state;
-
-    let dataFields = {};
-    groupTableFields.forEach(tempData => {
-      dataFields[tempData] = {
-        label: tempData === 'group' ? t('txt-group') : '',
-        sortable: false,
-        formatter: (value, allValue) => {
-          if (tempData === 'option') {
-            return (
-              <div>
-                <i className='c-link fg fg-trashcan' onClick={this.openDeleteGroup.bind(this, allValue.group)} title={t('txt-delete')} />
-              </div>
-            )
-          } else {
-            return <span>{value}</span>
-          }
-        }
-      };
-    })
-
-    return (
-      <div>
-        <i className='c-link fg fg-add' onClick={this.toggleAddGroup} title={t('edge-management.txt-addGroup')}></i>
-
-        <div className='table-data'>
-          <DataTable
-            fields={dataFields}
-            data={groupList}
-            selection={{
-              enabled: true,
-              toggleAll: true
-            }}
-            rowIdField='group'
-            defaultSelected={groupSelected}
-            onSelectionChange={this.handleTableSelection} />
-        </div>
-      </div>
-    )
-  }
-  /**
-   * Display manage group dialog
-   * @method
-   * @returns ModalDialog component
-   */
-  openManageGroupDialog = () => {
-    const actions = {
-      confirm: {text: t('txt-confirm'), handler: this.handleGroupConfirm}
-    };
-
-    return (
-      <ModalDialog
-        id='selectGroupDialog'
-        className='modal-dialog'
-        title={t('edge-management.txt-manageGroup')}
-        draggable={true}
-        global={true}
-        actions={actions}
-        closeAction='confirm'>
-        {this.displayManageGroup()}
-      </ModalDialog>
-    )
-  }
-  /**
-   * Handle confirm manage group
-   * @method
-   */
-  handleGroupConfirm = () => {
-    this.props.setGroupList(this.state.groupSelected, 'confirm');
-    this.props.handleGroupSubmit();
   }
   render() {
     const {openManageGroup, openAddGroup} = this.state;
@@ -354,10 +302,9 @@ ManageGroup.contextType = BaseDataContext;
 
 ManageGroup.propTypes = {
   allGroupList: PropTypes.array.isRequired,
-  edgeGroupList: PropTypes.array.isRequired,
-  setGroupList: PropTypes.func.isRequired,
-  getGroupList: PropTypes.func.isRequired,
-  handleGroupSubmit: PropTypes.func.isRequired
+  toggleManageGroup: PropTypes.func.isRequired,
+  updateGroupList: PropTypes.func.isRequired,
+  getGroupList: PropTypes.func.isRequired
 };
 
 export default ManageGroup;
