@@ -432,24 +432,18 @@ class Incident extends Component {
         }
         else if (incident.info.status === INCIDENT_STATUS_CLOSED) {
             if (session.accountId === incident.info.creator) {
-                drawCheck = true
+                // drawCheck = true
             }
 
             if (isExecutor) {
-                editCheck = true
-            }
-        }
-        else if (incident.info.status === INCIDENT_STATUS_SUBMITTED) {
-            if (session.accountId === incident.info.creator) {
-                drawCheck = true
-            }
-
-            if (isExecutor) {
-                editCheck = true
-                returnCheck = true
+                // editCheck = true
                 publishCheck = true
             }
         }
+        else if (incident.info.status === INCIDENT_STATUS_SUBMITTED) {
+            // editCheck = true
+        }
+
         else if (incident.info.status === INCIDENT_STATUS_DELETED) {
         }
 
@@ -790,7 +784,7 @@ class Incident extends Component {
                         return <span>{Moment(value).local().format('YYYY-MM-DD HH:mm:ss')}</span>
                     }
                     else if (tempData === 'status') {
-                        return <span>{it(`status.${value}`)}</span>
+                        return <span>{it(`action.${value}`)}</span>
                     }
                     else {
                         return <span>{value}</span>
@@ -965,7 +959,7 @@ class Incident extends Component {
     };
 
     handleSubmit = () => {
-        const {baseUrl, contextRoot} = this.context;
+        const {baseUrl, contextRoot,session} = this.context;
         const {activeContent, incidentType} = this.state;
         let incident = {...this.state.incident};
 
@@ -1007,6 +1001,11 @@ class Incident extends Component {
 
         if (incident.info.expireDttm) {
             incident.info.expireDttm = Moment(incident.info.expireDttm).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+        }
+
+
+        if (!incident.info.creator) {
+            incident.info.creator = session.accountId;
         }
 
         ah.one({
