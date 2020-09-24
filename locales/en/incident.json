@@ -168,7 +168,8 @@
 		"3": "Submit",
 		"4": "Close",
 		"5": "Add",
-		"6": "Edit"
+		"6": "Edit",
+		"7": "To Analyzer"
 	},
 	"protectType": {
 		"0": "防毒軟體",
