@@ -76,26 +76,32 @@ class IncidentReview extends Component {
     	const {baseUrl, session} = this.context
     	const {incidentId, comment, reviewType} = this.state
 
-    	const payload = {
-    		incidentId,
-    		opinion: comment,
-    		userId: session.accountId
-    	}
+	    if (comment){
+		    const payload = {
+			    incidentId,
+			    opinion: comment,
+			    userId: session.accountId
+		    }
 
-    	ah.one({
-            url: `${baseUrl}/api/soc/_${reviewType}`,
-            data: JSON.stringify(payload),
-            type: 'POST',
-            contentType: 'application/json',
-            dataType: 'json'
-        }).then(data => {
-        	helper.showPopupMsg(it(`txt-${reviewType}-success`), it(`txt-${reviewType}`));
-            this.close()
-            this.props.onLoad(incidentId, 'view')
-        })
-        .catch(err => {
-            helper.showPopupMsg('', t('txt-error'), err.message)
-        })
+		    ah.one({
+			    url: `${baseUrl}/api/soc/_${reviewType}`,
+			    data: JSON.stringify(payload),
+			    type: 'POST',
+			    contentType: 'application/json',
+			    dataType: 'json'
+		    }).then(data => {
+			    helper.showPopupMsg(it(`txt-${reviewType}-success`), it(`txt-${reviewType}`));
+			    this.close()
+			    this.props.onLoad(incidentId, 'view')
+		    })
+			    .catch(err => {
+				    helper.showPopupMsg('', t('txt-error'), err.message)
+			    })
+	    }else{
+		    helper.showPopupMsg( it(`txt-required`),t(`txt-fail`));
+	    }
+
+
     }
     render() {
     	const {open, reviewType, comments, selected, comment} = this.state
