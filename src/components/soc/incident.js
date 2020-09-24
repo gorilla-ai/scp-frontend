@@ -151,7 +151,6 @@ class Incident extends Component {
         const {baseUrl, contextRoot} = this.context;
         const {search, incident} = this.state;
 
-        console.log(search.datetime)
         if (search.datetime) {
             search.startDttm = Moment(search.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
             search.endDttm = Moment(search.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
@@ -312,8 +311,6 @@ class Incident extends Component {
             }
         ])
         .then(data => {
-console.log(data)
-
             let dashboard = {
                 all: data[0].rt.counts,
                 expired: data[1].rt.rows[0].expireCount,
