@@ -289,7 +289,7 @@ class Manage extends Component {
   displayTitleName = () => {
     return (
       <Input
-        placeholder={t('txt-enterName')}
+        placeholder={t('txt-plsEnterName')}
         value={this.state.name}
         onChange={this.handleDataChange.bind(this, 'name')} />
     )
@@ -331,7 +331,7 @@ class Manage extends Component {
     let requestType = '';
 
     if (!name.trim()) {
-      helper.showPopupMsg(t('txt-nameInvalid'), t('txt-error'));
+      helper.showPopupMsg(t('txt-plsEnterName'), t('txt-error'));
       return;
     }
 
