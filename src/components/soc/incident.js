@@ -74,6 +74,7 @@ class Incident extends Component {
             incidentType: '',
             toggleType:'',
             showFilter: false,
+            showChart: false,
             currentIncident: {},
             originalIncident: {},
             search: {
@@ -338,7 +339,7 @@ class Incident extends Component {
 
     /* ------------------ View ------------------- */
     render() {
-        const {activeContent, incidentType, baseUrl, contextRoot, showFilter, incident} = this.state
+        const {activeContent, incidentType, baseUrl, contextRoot, showFilter, showChart, incident} = this.state
 
         return <div>
             <IncidentComment ref={ref => { this.incidentComment=ref }} />
@@ -349,6 +350,12 @@ class Incident extends Component {
                 <div className='secondary-btn-group right'>
                     <button className={cx('', {'active': showFilter})} onClick={this.toggleFilter}
                             title={t('txt-filter')}><i className='fg fg-filter'/></button>
+                    <button className={cx('', {'active': showChart})} onClick={this.toggleChart}
+                            title={it('txt-statistics')}><i className='fg fg-chart-columns'/></button>
+                    <button className='' onClick={this.getIncidentSTIXFileExample.bind(this, 'event')}
+                            title={it('txt-downloadEvent')}><i className='fg fg-data-download'/></button>
+                    <button className='' onClick={this.getIncidentSTIXFileExample.bind(this, 'related')}
+                            title={it('txt-downloadRelated')}><i className='fg fg-data-download'/></button>
                     {/*<button className='' onClick={this.getIncidentSTIXFileExample.bind(this, 'event')}*/}
                     {/*        title={it('txt-downloadEvent')}><i className='fg fg-data-download'/></button>*/}
                     {/*<button className='' onClick={this.getIncidentSTIXFileExample.bind(this, 'related')}*/}
@@ -1654,6 +1661,10 @@ class Incident extends Component {
         this.setState({showFilter: !this.state.showFilter})
     };
 
+    toggleChart = () => {
+        this.setState({showChart: !this.state.showChart})
+    };
+
     /**
      * Clear filter input value
      * @method
@@ -1748,6 +1759,7 @@ class Incident extends Component {
         .catch(err => {
             helper.showPopupMsg('', t('txt-error'), err.message)
         })
+
 
     };
 
