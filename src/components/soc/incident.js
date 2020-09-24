@@ -151,6 +151,7 @@ class Incident extends Component {
         const {baseUrl, contextRoot} = this.context;
         const {search, incident} = this.state;
 
+        console.log(search.datetime)
         if (search.datetime) {
             search.startDttm = Moment(search.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
             search.endDttm = Moment(search.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
@@ -216,12 +217,82 @@ class Incident extends Component {
             })
     };
 
+    /**
+     * Get and set Incident Device table data
+     * @method
+     * @param {string} fromSearch - option for the 'search'
+     */
+    loadWithoutDateTimeData = (fromSearch,searchPayload) => {
+        const {baseUrl, contextRoot} = this.context;
+        const {incident} = this.state;
+
+        ah.one({
+            url: `${baseUrl}/api/soc/_searchV2?page=${incident.currentPage}&pageSize=${incident.pageSize}`,
+            data: JSON.stringify(searchPayload),
+            type: 'POST',
+            contentType: 'application/json',
+            dataType: 'json'
+        })
+            .then(data => {
+                if (data) {
+                    let tempEdge = {...incident};
+                    tempEdge.dataContent = data.rt.rows;
+                    tempEdge.totalCount = data.rt.counts;
+                    tempEdge.currentPage = fromSearch === 'search' ? 1 : incident.currentPage;
+
+                    let dataFields = {};
+                    incident.dataFieldsArr.forEach(tempData => {
+                        dataFields[tempData] = {
+                            label: tempData === '_menu' ? '' : f(`incidentFields.${tempData}`),
+                            sortable: this.checkSortable(tempData),
+                            formatter: (value, allValue, i) => {
+                                if (tempData === '_menu') {
+                                    return <div className={cx('table-menu', {'active': value})}>
+                                        <button onClick={this.handleRowContextMenu.bind(this, allValue)}><i
+                                            className='fg fg-more'/></button>
+                                    </div>
+                                } else if (tempData === 'type') {
+                                    let tmpList = [];
+                                    tmpList = allValue.ttpList;
+                                    if (tmpList.length === 0) {
+                                        return <span>{it('txt-incident-event')}</span>
+                                    } else {
+                                        return <span>{it('txt-incident-related')}</span>
+                                    }
+                                } else if (tempData === 'category') {
+                                    return <span>{it(`category.${value}`)}</span>
+                                } else if (tempData === 'status') {
+                                    return <span>{it(`status.${value}`)}</span>
+                                } else if (tempData === 'createDttm') {
+                                    return <span>{helper.getFormattedDate(value, 'local')}</span>
+                                } else if (tempData === 'tag') {
+                                    const tags = _.map(allValue.tagList, 'tag.tag')
+
+                                    return <span>{tags.toString()}</span>
+                                } else {
+                                    return <span>{value}</span>
+                                }
+                            }
+                        }
+                    });
+
+                    tempEdge.dataFields = dataFields;
+                    this.setState({incident: tempEdge, activeContent: 'tableList'})
+                }
+                return null
+            })
+            .catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message)
+            })
+    };
+
     loadDashboard = () => {
         const {baseUrl, session} = this.context
         const isExecutor = _.includes(session.roles, 'SOC Executor') ? 'executor' : 'analyzer'
         const payload = {
             keyword: '',
             category: 0,
+            // status: isExecutor ? 2 : 1,
             status: 0,
             startDttm: Moment(helper.getSubstractDate(1, 'month')).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
             endDttm: Moment(Moment().local().format('YYYY-MM-DDTHH:mm:ss')).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
@@ -259,19 +330,18 @@ console.log(data)
 
     loadCondition = (type) => {
         const {session} = this.context
+        const isExecutor = _.includes(session.roles, 'SOC Executor') ? 'executor' : 'analyzer'
         let search = {
             keyword: '',
             category: 0,
             status: 0,
-            datetime:{
-                from: helper.getSubstractDate(1, 'month'),
-                to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
-            },
             isExpired: 2
         }
 
         if (type === 'expired') {
+            search.status = isExecutor ? 2 : 1,
             search.isExpired = 1
+            this.loadWithoutDateTimeData('search',search)
         }
         else if (type === 'unhandled') {
             if (_.includes(session.roles, 'SOC Executor')) {
@@ -280,14 +350,17 @@ console.log(data)
             else {
                 search.status = 1
             }
+            this.loadWithoutDateTimeData('search',search)
         }
         else if (type === 'mine') {
+            search.status = 0
+            search.isExpired = 2
             search.creator = session.accountId
+            this.loadWithoutDateTimeData('search',search)
+        }else{
+            // this.loadData('search')
         }
 
-        this.setState({search}, () => {
-            this.loadData('search')
-        })
     }
 
     handleRowContextMenu = (allValue, evt) => {
