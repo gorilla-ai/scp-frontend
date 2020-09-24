@@ -84,6 +84,10 @@
 	"txt-comment-new": "New Example",
 	"txt-edit-msg": "Really Edit ?",
 	"txt-statistics": "Statistics",
+	"txt-incident-all": "All",
+	"txt-incident-expired": "Expired",
+	"txt-incident-unhandled": "Unhandled",
+	"txt-incident-mine": "Mine",
 
 	"accident":{
 		"1": "Web Attack",

@@ -85,6 +85,10 @@
 	"txt-comment-new": "新範本",
 	"txt-edit-msg": "是否確認編輯 ?",
 	"txt-statistics": "統計",
+	"txt-incident-all": "全部事件單",
+	"txt-incident-expired": "逾期事件單",
+	"txt-incident-unhandled": "未處理事件單",
+	"txt-incident-mine": "我的事件單",
 
 	"accident": {
 		"1": "網頁攻擊",

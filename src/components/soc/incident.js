@@ -366,6 +366,7 @@ class Incident extends Component {
 
                 <div className='parent-content'>
                     {this.renderFilter()}
+                    {this.renderStatistics()}
 
                     {activeContent === 'tableList' &&
                     <div className='main-content'>
@@ -1226,6 +1227,32 @@ class Incident extends Component {
             </div>
         )
     };
+
+    renderStatistics = () => {
+        const {showChart} = this.state
+
+        return <div className={cx('main-filter', {'active': showChart})}>
+            <i className='fg fg-close' onClick={this.toggleChart} title={t('txt-close')}/>
+            <div className='incident-statistics'>
+                <div className='block'>
+                    <div className='category'>{it('txt-incident-all')}</div>
+                    <div className='counts'>45</div>
+                </div>
+                <div className='block'>
+                    <div className='category'>{it('txt-incident-expired')}</div>
+                    <div className='counts'>6</div>
+                </div>
+                <div className='block'>
+                    <div className='category'>{it('txt-incident-unhandled')}</div>
+                    <div className='counts'>18</div>
+                </div>
+                <div className='block'>
+                    <div className='category'>{it('txt-incident-mine')}</div>
+                    <div className='counts'>9</div>
+                </div>
+            </div>
+        </div>
+    }
 
     /* ---- Func Space ---- */
     /**
