@@ -148,10 +148,19 @@
 	"status": {
 		"0": "All",
 		"1": "Unreviewed",
-		"2": "Reviewed (Unpublished)",
-		"3": "Closed (Published)",
+		"2": "Reviewed",
+		"3": "Closed",
 		"4": "Submitted",
 		"5": "Deleted"
+	},
+	"action": {
+		"0": "All",
+		"1": "Draw",
+		"2": "Return",
+		"3": "Submit",
+		"4": "Close",
+		"5": "Add",
+		"6": "Edit"
 	},
 	"protectType": {
 		"0": "防毒軟體",
