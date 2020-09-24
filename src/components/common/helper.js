@@ -43,7 +43,7 @@ const helper = {
     return string.charAt(0).toUpperCase() + string.slice(1);
   },
   numberWithCommas: function(n) {
-    return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return n === 0 ? n : n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   },
   setChartData: function(data, property) {
     let innerObj = {};

@@ -42,7 +42,7 @@ import YaraRule from '../../common/yara-rule'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const NOT_AVAILABLE = 'N/A';
-const SAFETY_SCAN_LIST = ['yara', 'scanFile', 'gcb', 'fileIntegrity'];
+const SAFETY_SCAN_LIST = ['yara', 'scanFile', 'gcb', 'fileIntegrity', 'procMonitor'];
 const HMD_LIST = [
   {
     name: 'Yara Scan',
@@ -59,6 +59,10 @@ const HMD_LIST = [
   {
     name: 'File Integrity',
     cmds: 'getFileIntegrity'
+  },
+  {
+    name: 'Process Monitor',
+    cmds: 'setProcessWhiteList'
   }
 ];
 const MAPS_PRIVATE_DATA = {
@@ -87,7 +91,7 @@ class NetworkInventory extends Component {
     this.state = {
       activeTab: 'deviceList', //deviceList, deviceMap
       activeContent: 'tableList', //tableList, dataInfo, addIPsteps, hmdSettings, autoSettings
-      showFilter: false,
+      showFilter: true,
       showScanInfo: false,
       yaraRuleOpen: false,
       showSeatData: false,
@@ -224,7 +228,7 @@ class NetworkInventory extends Component {
 
       return <li key={i} style={{color}}><span>{val.name} {t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}:</span> {val.result.GCBResultPassCnt}/{val.result.GCBResultTotalCnt}</li>
     } else {
-      if (val.result.ScanResultTotalCnt >= 0 || val.result.DetectionResultTotalCnt >= 0 || val.result.getFileIntegrityTotalCnt >= 0) {
+      if (val.result.ScanResultTotalCnt >= 0 || val.result.DetectionResultTotalCnt >= 0 || val.result.getFileIntegrityTotalCnt >= 0 || val.result.getProcessMonitorResultTotalCnt >= 0) {
         let totalCount = 0;
         let color = '#22ac38'; //Default green color
         let text = t('network-inventory.txt-suspiciousFileCount');
@@ -236,6 +240,8 @@ class NetworkInventory extends Component {
         } else if (val.type === 'fileIntegrity') {
           totalCount = val.result.getFileIntegrityTotalCnt;
           text = t('network-inventory.txt-modifiedFileCount');
+        } else if (val.type === 'procMonitor') {
+          totalCount = val.result.getProcessMonitorResultTotalCnt;
         }
 
         if (totalCount > 0) { //Show red color
@@ -1360,7 +1366,7 @@ class NetworkInventory extends Component {
     }
 
     this.ah.one({
-      url: `${baseUrl}/api/v2/ipdevice?uuid=${ipDeviceID}&page=1&pageSize=5`,
+      url: `${baseUrl}/api/v2/ipdevice?uuid=${ipDeviceID}&page=1&pageSize=1`,
       type: 'GET'
     })
     .then(data => {
@@ -1443,7 +1449,7 @@ class NetworkInventory extends Component {
    * Handle trigger button for HMD
    * @method
    * @param {array.<string>} type - HMD scan type
-   * @param {string} [options] - option for 'fromInventory'
+   * @param {string || array.<string>} [options] - option for 'fromInventory' or Process Monitor settings
    * @param {object} [yaraRule] - yara rule data
    */
   triggerTask = (type, options, yaraRule) => {
@@ -1475,6 +1481,14 @@ class NetworkInventory extends Component {
       };
     }
 
+    if (type[0] === 'setProcessWhiteList') {
+      if (options.length > 0) {
+        requestData.paras = {
+          _WhiteList: options
+        };
+      }
+    }
+
     let apiArr = [{
       url: `${baseUrl}/api/hmd/retrigger`,
       data: JSON.stringify(requestData),
@@ -1488,6 +1502,8 @@ class NetworkInventory extends Component {
         type: 'GET'
       });
     }
+
+    return;
 
     this.ah.series(apiArr)
     .then(data => {
@@ -1565,7 +1581,7 @@ class NetworkInventory extends Component {
           toggleYaraRule={this.toggleYaraRule}
           toggleSelectionIR={this.toggleSelectionIR}
           triggerTask={this.triggerTask}
-          getHMDinfo={this.getIPdeviceInfo} />
+          getIPdeviceInfo={this.getIPdeviceInfo} />
 
         {deviceData.hmdOnly.currentLength > 1 &&
           <div className='pagination'>

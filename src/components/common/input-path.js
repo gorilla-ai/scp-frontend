@@ -38,17 +38,26 @@ class InputPath extends Component {
     });
   }
   render() {
-    const {value} = this.props;
+    const {scanType, pathType, value} = this.props;
+    let inputProps = {
+      value: value.path,
+      onChange: this.handleDataChange
+    };
+
+    if (scanType === 'fileIntegrity' && pathType === 'includePath') {
+      inputProps = {
+        ...inputProps,
+        required: true,
+        validate: {
+          t: et
+        }
+      };
+    }
 
     return (
-      <div className='path-input'>
+      <div className={cx('path-input', {'short': pathType === 'processKeyword'})}>
         <Input
-          required={true}
-          validate={{
-            t: et
-          }}
-          value={value.path}
-          onChange={this.handleDataChange} />
+          {...inputProps} />
       </div>
     )
   }
