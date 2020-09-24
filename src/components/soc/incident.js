@@ -268,7 +268,7 @@ class Incident extends Component {
         menuItems.push(itemTag)
         menuItems.push(viewItem)
 
-        if (allValue.status === INCIDENT_STATUS_CLOSED) {
+        if (allValue.status === INCIDENT_STATUS_CLOSED || allValue.status === INCIDENT_STATUS_SUBMITTED) {
             menuItems.push(itemDownload)
         }
 
@@ -343,10 +343,10 @@ class Incident extends Component {
                 <div className='secondary-btn-group right'>
                     <button className={cx('', {'active': showFilter})} onClick={this.toggleFilter}
                             title={t('txt-filter')}><i className='fg fg-filter'/></button>
-                    <button className='' onClick={this.getIncidentSTIXFileExample.bind(this, 'event')}
-                            title={it('txt-downloadEvent')}><i className='fg fg-data-download'/></button>
-                    <button className='' onClick={this.getIncidentSTIXFileExample.bind(this, 'related')}
-                            title={it('txt-downloadRelated')}><i className='fg fg-data-download'/></button>
+                    {/*<button className='' onClick={this.getIncidentSTIXFileExample.bind(this, 'event')}*/}
+                    {/*        title={it('txt-downloadEvent')}><i className='fg fg-data-download'/></button>*/}
+                    {/*<button className='' onClick={this.getIncidentSTIXFileExample.bind(this, 'related')}*/}
+                    {/*        title={it('txt-downloadRelated')}><i className='fg fg-data-download'/></button>*/}
                     <button className='' onClick={this.openIncidentTag.bind(this, null)}
                             title={it('txt-custom-tag')}><i className='fg fg-color-ruler'/></button>
                     <button className='' onClick={this.openIncidentComment.bind(this)}

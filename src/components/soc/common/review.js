@@ -122,7 +122,7 @@ class IncidentReview extends Component {
     			</div>
     			<div>
     				<label>{it('txt-comment')}</label>
-    				<Textarea rows={6} value={comment} onChange={this.handleChange.bind(this, 'comment')} />
+    				<Textarea rows={6} required={true} value={comment} onChange={this.handleChange.bind(this, 'comment')} />
     			</div>
     		</div>
     	</ModalDialog>
