@@ -74,7 +74,7 @@ class Incident extends Component {
             incidentType: '',
             toggleType:'',
             showFilter: false,
-            showChart: false,
+            showChart: true,
             currentIncident: {},
             originalIncident: {},
             search: {
@@ -86,6 +86,12 @@ class Incident extends Component {
                     to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
                 },
                 isExpired: 2
+            },
+            dashboard: {
+                all: 0,
+                expired: 0,
+                unhandled: 0,
+                mine: 0
             },
             relatedListOptions: [],
             deviceListOptions: [],
@@ -126,6 +132,7 @@ class Incident extends Component {
             this.loadData()
         }
         this.getOptions()
+        this.loadDashboard()
     }
 
     getQueryString(name) {
@@ -145,8 +152,8 @@ class Incident extends Component {
         const {search, incident} = this.state;
 
         if (search.datetime) {
-            search.startDttm =   Moment(search.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-            search.endDttm =   Moment(search.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+            search.startDttm = Moment(search.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+            search.endDttm = Moment(search.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
         }
 
         ah.one({
@@ -208,6 +215,80 @@ class Incident extends Component {
                 helper.showPopupMsg('', t('txt-error'), err.message)
             })
     };
+
+    loadDashboard = () => {
+        const {baseUrl, session} = this.context
+        const isExecutor = _.includes(session.roles, 'SOC Executor') ? 'executor' : 'analyzer'
+        const payload = {
+            keyword: '',
+            category: 0,
+            status: 0,
+            startDttm: Moment(helper.getSubstractDate(1, 'month')).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+            endDttm: Moment(Moment().local().format('YYYY-MM-DDTHH:mm:ss')).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+            isExpired: 2
+        }
+        
+        ah.all([
+            {
+                url: `${baseUrl}/api/soc/_searchV2?page=1&pageSize=20`,
+                data: JSON.stringify(payload),
+                type: 'POST',
+                contentType: 'application/json',
+                dataType: 'json'
+            },
+            {
+                url: `${baseUrl}/api/soc/statistic/${isExecutor}/_search?createrId=${session.accountId}`
+            }
+        ])
+        .then(data => {
+console.log(data)
+
+            let dashboard = {
+                all: data[0].rt.counts,
+                expired: data[1].rt.rows[0].expireCount,
+                unhandled: data[1].rt.rows[0].dealCount,
+                mine: data[1].rt.rows[0].myCount,
+            }
+
+            this.setState({dashboard})
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+        })
+    }
+
+    loadCondition = (type) => {
+        const {session} = this.context
+        let search = {
+            keyword: '',
+            category: 0,
+            status: 0,
+            datetime:{
+                from: helper.getSubstractDate(1, 'month'),
+                to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+            },
+            isExpired: 2
+        }
+
+        if (type === 'expired') {
+            search.isExpired = 1
+        }
+        else if (type === 'unhandled') {
+            if (_.includes(session.roles, 'SOC Executor')) {
+                search.status = 2
+            }
+            else {
+                search.status = 1
+            }
+        }
+        else if (type === 'mine') {
+            search.creator = session.accountId
+        }
+
+        this.setState({search}, () => {
+            this.loadData('search')
+        })
+    }
 
     handleRowContextMenu = (allValue, evt) => {
         let menuItems = [];
@@ -1268,26 +1349,26 @@ class Incident extends Component {
     };
 
     renderStatistics = () => {
-        const {showChart} = this.state
+        const {showChart, dashboard} = this.state
 
         return <div className={cx('main-filter', {'active': showChart})}>
             <i className='fg fg-close' onClick={this.toggleChart} title={t('txt-close')}/>
             <div className='incident-statistics'>
-                <div className='block'>
+                <div className='block c-link' onClick={this.loadCondition.bind(this, 'all')}>
                     <div className='category'>{it('txt-incident-all')}</div>
-                    <div className='counts'>45</div>
+                    <div className='counts'>{dashboard.all}</div>
                 </div>
-                <div className='block'>
+                <div className='block c-link' onClick={this.loadCondition.bind(this, 'expired')}>
                     <div className='category'>{it('txt-incident-expired')}</div>
-                    <div className='counts'>6</div>
+                    <div className='counts'>{dashboard.expired}</div>
                 </div>
-                <div className='block'>
+                <div className='block c-link' onClick={this.loadCondition.bind(this, 'unhandled')}>
                     <div className='category'>{it('txt-incident-unhandled')}</div>
-                    <div className='counts'>18</div>
+                    <div className='counts'>{dashboard.unhandled}</div>
                 </div>
-                <div className='block'>
+                <div className='block c-link' onClick={this.loadCondition.bind(this, 'mine')}>
                     <div className='category'>{it('txt-incident-mine')}</div>
-                    <div className='counts'>9</div>
+                    <div className='counts'>{dashboard.mine}</div>
                 </div>
             </div>
         </div>
@@ -1705,7 +1786,8 @@ class Incident extends Component {
                 datetime:{
                     from: helper.getSubstractDate(1, 'month'),
                     to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
-                }
+                },
+                isExpired: 2
             }
         })
     };
