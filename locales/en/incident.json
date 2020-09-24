@@ -133,6 +133,10 @@
 	"txt-protect-type-info": "Other Info",
 	"txt-frequency": "Frequency",
 	"txt-note": "Note",
+	"txt-searchDttm": "Search Time",
+	"txt-searchDttmType": "Search Time Type",
+	"txt-expired": "Is Expired",
+	"txt-allSearch": "All Search",
 	"category": {
 		"0": "全部",
 		"1": "入侵攻擊類",

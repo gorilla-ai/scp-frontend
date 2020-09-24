@@ -135,6 +135,10 @@
 	"txt-protect-type-info": "其他類型名稱",
 	"txt-frequency": "觸發次數",
 	"txt-note": "備註",
+	"txt-searchDttm": "查詢時間",
+	"txt-searchDttmType": "查詢時間類型",
+	"txt-expired": "是否逾期",
+	"txt-allSearch": "全部查詢",
 	"category": {
 		"0": "全部",
 		"1": "入侵攻擊類",

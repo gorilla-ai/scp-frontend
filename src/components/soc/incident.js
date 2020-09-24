@@ -79,7 +79,12 @@ class Incident extends Component {
             search: {
                 keyword: '',
                 category: 0,
-                status: 0
+                status: 0,
+                datetime: {
+                    from: helper.getSubstractDate(1, 'month'),
+                    to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+                },
+                isExpired: 2
             },
             relatedListOptions: [],
             deviceListOptions: [],
@@ -100,7 +105,8 @@ class Incident extends Component {
                     status: 1,
                     socType: 1
                 }
-            }
+            },
+
         };
 
         this.ah = getInstance("chewbacca");
@@ -136,14 +142,14 @@ class Incident extends Component {
     loadData = (fromSearch) => {
         const {baseUrl, contextRoot} = this.context;
         const {search, incident} = this.state;
-        let data = {};
 
-        if (search.keyword) {
-            data.keyword = search.keyword
+        if (search.datetime) {
+            search.startDttm =   Moment(search.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+            search.endDttm =   Moment(search.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
         }
 
         ah.one({
-            url: `${baseUrl}/api/soc/_search?page=${incident.currentPage}&pageSize=${incident.pageSize}`,
+            url: `${baseUrl}/api/soc/_searchV2?page=${incident.currentPage}&pageSize=${incident.pageSize}`,
             data: JSON.stringify(search),
             type: 'POST',
             contentType: 'application/json',
@@ -1169,7 +1175,7 @@ class Incident extends Component {
      */
     renderFilter = () => {
         const {showFilter, search} = this.state;
-
+        const {locale} = this.context;
         return (
             <div className={cx('main-filter', {'active': showFilter})}>
                 <i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}/>
@@ -1209,6 +1215,39 @@ class Incident extends Component {
                             }
                             value={search.status}
                             onChange={this.handleSearch.bind(this, 'status')}/>
+                    </div>
+                    <div className='group'>
+                        <label htmlFor='isExpired'>{it('txt-expired')}</label>
+                        <DropDownList
+                            id='isExpired'
+                            list={[
+                                {
+                                    value: 2,
+                                    text: it('txt-allSearch')
+                                },
+                                {
+                                    value: 1,
+                                    text: it('unit.txt-isDefault')
+                                },
+                                {
+                                    value: 0,
+                                    text: it('unit.txt-isNotDefault')
+                                }
+                            ]}
+                            required={true}
+                            value={search.isExpired}
+                            onChange={this.handleSearch.bind(this, 'isExpired')}/>
+                    </div>
+                    <div className='group'>
+                        <label htmlFor='searchDttm'>{f('incidentFields.createDttm')}</label>
+                        <DateRange
+                            id='datetime'
+                            className='daterange'
+                            enableTime={true}
+                            value={search.datetime}
+                            onChange={this.handleSearch.bind(this, 'datetime')}
+                            locale={locale}
+                            t={et} />
                     </div>
                 </div>
                 <div className='button-group'>
@@ -1624,7 +1663,11 @@ class Incident extends Component {
             search: {
                 keyword: '',
                 category: 0,
-                status: 0
+                status: 0,
+                datetime:{
+                    from: helper.getSubstractDate(1, 'month'),
+                    to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+                }
             }
         })
     };
