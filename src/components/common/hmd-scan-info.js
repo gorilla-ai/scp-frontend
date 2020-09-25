@@ -1570,7 +1570,21 @@ class HMDscanInfo extends Component {
    */
   setPathData = (type, listType, pathData) => {
     let tempSettingsPath = {...this.state.settingsPath};
-    tempSettingsPath[type][listType] = pathData;
+    let setPathData = pathData;
+
+    if (pathData.length === 0) {
+      if (listType === 'processKeyword') {
+        setPathData = [{
+          keyword: ''
+        }];
+      } else {
+        setPathData = [{
+          path: ''
+        }];
+      }
+    }
+
+    tempSettingsPath[type][listType] = setPathData;
 
     this.setState({
       settingsPath: tempSettingsPath
