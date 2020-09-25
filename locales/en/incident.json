@@ -159,7 +159,9 @@
 		"2": "Reviewed",
 		"3": "Closed",
 		"4": "Submitted",
-		"5": "Deleted"
+		"5": "Deleted",
+		"6": "Not Analyzed",
+		"7": "Untreated"
 	},
 	"action": {
 		"0": "All",
