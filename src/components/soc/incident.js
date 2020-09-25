@@ -1764,7 +1764,15 @@ class Incident extends Component {
             dataType: 'json'
         })
             .then(data => {
-                this.loadData()
+                if (this.state.loadListType === 0){
+                    this.loadCondition('expired')
+                }else if (this.state.loadListType === 1){
+                    this.loadCondition('unhandled')
+                }else if (this.state.loadListType === 2){
+                    this.loadCondition('mine')
+                }else if (this.state.loadListType === 3){
+                    this.loadData()
+                }
                 helper.showPopupMsg(it('txt-send-success'), it('txt-send'));
 
             })
@@ -1790,7 +1798,15 @@ class Incident extends Component {
                 if (confirmed) {
                     this.sendIncident(incidentId);
                 } else {
-                    this.loadData()
+                    if (this.state.loadListType === 0){
+                        this.loadCondition('expired')
+                    }else if (this.state.loadListType === 1){
+                        this.loadCondition('unhandled')
+                    }else if (this.state.loadListType === 2){
+                        this.loadCondition('mine')
+                    }else if (this.state.loadListType === 3){
+                        this.loadData()
+                    }
                 }
             }
         });
@@ -2007,7 +2023,15 @@ class Incident extends Component {
         this.setState({
             incident: tmpIncident
         }, () => {
-            this.loadData();
+            if (this.state.loadListType === 0){
+                this.loadCondition('expired')
+            }else if (this.state.loadListType === 1){
+                this.loadCondition('unhandled')
+            }else if (this.state.loadListType === 2){
+                this.loadCondition('mine')
+            }else if (this.state.loadListType === 3){
+                this.loadData()
+            }
         });
     };
 
