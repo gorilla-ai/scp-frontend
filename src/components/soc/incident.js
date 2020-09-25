@@ -6,6 +6,7 @@ import Moment from 'moment'
 import ComboBox from 'react-ui/build/src/components/combobox'
 import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import DropDownList from 'react-ui/build/src/components/dropdown'
+import FileInput from 'react-ui/build/src/components/file-input'
 import Input from 'react-ui/build/src/components/input'
 import MultiInput from 'react-ui/build/src/components/multi-input'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
@@ -113,7 +114,7 @@ class Incident extends Component {
                     socType: 1
                 }
             },
-
+            attach: null
         };
 
         this.ah = getInstance("chewbacca");
@@ -148,13 +149,15 @@ class Incident extends Component {
      * @param {string} fromSearch - option for the 'search'
      */
     loadData = (fromSearch) => {
-        const {baseUrl, contextRoot} = this.context;
+        const {baseUrl, contextRoot, session} = this.context;
         const {search, incident} = this.state;
 
         if (search.datetime) {
             search.startDttm = Moment(search.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
             search.endDttm = Moment(search.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
         }
+
+        search.isExecutor = _.includes(session.roles, 'SOC Executor')
 
         ah.one({
             url: `${baseUrl}/api/soc/_searchV2?page=${incident.currentPage}&pageSize=${incident.pageSize}`,
@@ -198,7 +201,17 @@ class Incident extends Component {
                             } else if (tempData === 'tag') {
                                 const tags = _.map(allValue.tagList, 'tag.tag')
 
-                                return <span>{tags.toString()}</span>
+                                return <div>
+                                {
+                                    _.map(allValue.tagList, el => {
+                                        return <div style={{display: 'flex', marginRight: '30px'}}>
+                                            <div className='incident-tag-square' style={{backgroundColor: el.tag.color}}></div>
+                                            &nbsp;{el.tag.tag}
+                                        </div>
+                                    })
+                                }
+                                </div>
+
                             } else {
                                 return <span>{value}</span>
                             }
@@ -216,14 +229,17 @@ class Incident extends Component {
             })
     };
 
+
     /**
      * Get and set Incident Device table data
      * @method
      * @param {string} fromSearch - option for the 'search'
      */
-    loadWithoutDateTimeData = (fromSearch,searchPayload) => {
-        const {baseUrl, contextRoot} = this.context;
+    loadWithoutDateTimeData = (fromSearch, searchPayload) => {
+        const {baseUrl, contextRoot, session} = this.context;
         const {incident} = this.state;
+
+        searchPayload.isExecutor = _.includes(session.roles, 'SOC Executor')
 
         ah.one({
             url: `${baseUrl}/api/soc/_searchV2?page=${incident.currentPage}&pageSize=${incident.pageSize}`,
@@ -295,7 +311,8 @@ class Incident extends Component {
             status: 0,
             startDttm: Moment(helper.getSubstractDate(1, 'month')).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
             endDttm: Moment(Moment().local().format('YYYY-MM-DDTHH:mm:ss')).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-            isExpired: 2
+            isExpired: 2,
+            isExecutor
         }
         
         ah.all([
@@ -377,46 +394,11 @@ class Incident extends Component {
             text: it('txt-download'),
             action: () => this.getIncidentSTIXFile(allValue.id)
         }
-        // let itemDraw = {
-        //     id: 'draw',
-        //     text: it('txt-draw'),
-        //     action: () => this.openReviewModal(allValue, 'draw')
-        // };
-        // let itemDelete = {
-        //     id: 'delete',
-        //     text: t('txt-delete'),
-        //     action: () => this.openDeleteMenu(allValue)
-        // };
         let viewItem = {
             id: 'view',
             text: t('txt-view'),
             action: () => this.getIncident(allValue.id,'view')
         }
-        // let itemAudit = {
-        //     id: 'audit',
-        //     text: it('txt-audit'),
-        //     action: () => this.getIncident(allValue.id,'audit')
-        // };
-        // let itemSubmit = {
-        //     id: 'submit',
-        //     text: it('txt-submit'),
-        //     action: () => this.getIncident(allValue.id,'submit')
-        // };
-        // let itemClose =  {
-        //     id: 'close',
-        //     text: it('txt-close'),
-        //     action: () => this.getIncident(allValue.id,'close')
-        // }
-        // let itemPublish = {
-        //     id: 'send',
-        //     text: it('txt-send'),
-        //     action: () => this.openSendMenu(allValue.id)
-        // };
-        // let itemReturn = {
-        //     id: 'return',
-        //     text: it('txt-return'),
-        //     action: () => this.getIncident(allValue.id,'return')
-        // };
         let itemTag = {
             id: 'tag',
             text: it('txt-tag'),
@@ -429,52 +411,6 @@ class Incident extends Component {
         if (allValue.status === INCIDENT_STATUS_CLOSED || allValue.status === INCIDENT_STATUS_SUBMITTED) {
             menuItems.push(itemDownload)
         }
-
-        // if (allValue.status === INCIDENT_STATUS_EDITING) {
-        //     if (accountData.privilegeid === 'user'){
-        //         menuItems.push(itemSubmit)
-        //     }else if(accountData.privilegeid.includes('DPIR')){
-        //         menuItems.push(itemClose)
-        //     }
-
-        // } else if (allValue.status === INCIDENT_STATUS_SIGNING_OFF) {
-
-        //     if (accountData === allValue.creater_id){
-
-        //         menuItems.push(itemDraw)
-        //     }else{
-        //         if (accountData.privilegeid === 'user'){
-        //         }else if(accountData.privilegeid.includes('DPIR')){
-        //             menuItems.push(itemClose)
-        //             menuItems.push(itemAudit)
-        //             menuItems.push(itemReturn)
-        //         }
-        //     }
-
-        // } else if (allValue.status === INCIDENT_STATUS_SIGNED_OFF) {
-
-
-        //     if (accountData === allValue.creater_id){
-        //         menuItems.push(itemDraw)
-        //     }else{
-        //         if (accountData.privilegeid === 'user'){
-
-        //         }else if(accountData.privilegeid.includes('DPIR')){
-        //             menuItems.push(itemClose)
-        //             menuItems.push(itemPublish)
-        //         }
-        //     }
-
-        // } else if (allValue.status === INCIDENT_STATUS_CLOSE_PUBLISHED){
-
-        //     menuItems.push(itemDownload)
-        // } else if (allValue.status === INCIDENT_STATUS_CLOSE_UNPUBLISHED){
-
-        //     if (accountData.privilegeid === 'user'){
-        //     }else if(accountData.privilegeid.includes('DPIR')){
-        //         menuItems.push(itemReturn)
-        //     }
-        // }
 
         return menuItems
     }
@@ -503,10 +439,6 @@ class Incident extends Component {
                             title={t('txt-filter')}><i className='fg fg-filter'/></button>
                     <button className={cx('', {'active': showChart})} onClick={this.toggleChart}
                             title={it('txt-statistics')}><i className='fg fg-chart-columns'/></button>
-                    <button className='' onClick={this.getIncidentSTIXFileExample.bind(this, 'event')}
-                            title={it('txt-downloadEvent')}><i className='fg fg-data-download'/></button>
-                    <button className='' onClick={this.getIncidentSTIXFileExample.bind(this, 'related')}
-                            title={it('txt-downloadRelated')}><i className='fg fg-data-download'/></button>
                     {/*<button className='' onClick={this.getIncidentSTIXFileExample.bind(this, 'event')}*/}
                     {/*        title={it('txt-downloadEvent')}><i className='fg fg-data-download'/></button>*/}
                     {/*<button className='' onClick={this.getIncidentSTIXFileExample.bind(this, 'related')}*/}
@@ -522,8 +454,8 @@ class Incident extends Component {
                 <SocConfig baseUrl={baseUrl} contextRoot={contextRoot} />
 
                 <div className='parent-content'>
-                    {this.renderFilter()}
                     {this.renderStatistics()}
+                    {this.renderFilter()}
 
                     {activeContent === 'tableList' &&
                     <div className='main-content'>
@@ -614,11 +546,22 @@ class Incident extends Component {
 
 
         return <div className='main-content basic-form'>
-            <header className='main-header'>
+            <header className='main-header' style={{display: 'flex'}}>
                 {it(`txt-${activeContent}-${incidentType}`)}
-                {activeContent !== 'addIncident' &&
-                <span
-                    className='msg'>{it('txt-id')}{incident.info.id}</span>
+                {
+                    activeContent !== 'addIncident' &&
+                    <div className='msg' style={{display: 'flex'}}>{it('txt-id')}{incident.info.id}
+                        <div style={{display: 'flex', marginLeft: '30px'}}>
+                        {
+                            _.map(incident.info.tagList, el => {
+                                return <div style={{display: 'flex', marginRight: '30px'}}>
+                                    <div className='incident-tag-square' style={{backgroundColor: el.tag.color}}></div>
+                                    &nbsp;{el.tag.tag}
+                                </div>
+                            })
+                        }
+                        </div>
+                    </div>
                 }
             </header>
 
@@ -627,15 +570,9 @@ class Incident extends Component {
                 {
                     displayPage === 'main' && this.displayMainPage()
                 }
-
-                {
-                    _.includes(['addIncident', 'editIncident', 'viewIncident'], activeContent) && displayPage === 'main' && this.displayTag()
-                }
-
                 {
                     _.includes(['addIncident', 'editIncident', 'viewIncident'], activeContent) && displayPage === 'main' && this.displayAttached()
                 }
-
                 {
                     activeContent !== 'addIncident' &&  displayPage === 'main' && this.displayFlow()
                 }
@@ -833,8 +770,35 @@ class Incident extends Component {
         return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
     }
 
+    handleAttachChange = (val) => {
+        this.setState({attach: val})
+    }
+
+    uploadAttachmentModal() {
+        PopupDialog.prompt({
+            title: t('txt-upload'),
+            confirmText: t('txt-confirm'),
+            cancelText: t('txt-cancel'),
+            display: <div className='c-form content'>
+                <div>
+                    <FileInput id='attach' name='file' btnText={t('txt-selectFile')} />
+                </div>
+                <div>
+                    <label>{it('txt-fileMemo')}</label>
+                    <Textarea id='comment' rows={3} />
+                </div>
+            </div>,
+            act: (confirmed, data) => {
+                if (confirmed) {
+                    this.uploadAttachmentByModal(data.file, data.comment)
+                }
+            }
+        })
+    }
+
+
     displayAttached = () => {
-        const {activeContent, incidentType, incident, relatedListOptions} = this.state;
+        const {activeContent, incidentType, incident, relatedListOptions, attach} = this.state;
         let dataFields = {};
         incident.fileFieldsArr.forEach(tempData => {
             dataFields[tempData] = {
@@ -852,9 +816,20 @@ class Incident extends Component {
                         return <span>{target.fileMemo}</span>
                     }
                     else if (tempData === 'action') {
+                        let isShow = true
+
+                        if (incident.info.status === 3 || incident.info.status === 4) {
+                            if (Moment(allValue.fileDttm).valueOf() < Moment(incident.info.updateDttm).valueOf()) {
+                                isShow = false
+                            }
+                        }
+
                         return <div>
                             <i className='c-link fg fg-data-download' title={t('txt-download')} onClick={this.downloadAttachment.bind(this, allValue)} />
-                            <i className='c-link fg fg-trashcan' title={t('txt-delete')} onClick={this.deleteAttachment.bind(this, allValue)} />
+                            {
+                                isShow &&
+                                <i className='c-link fg fg-trashcan' title={t('txt-delete')} onClick={this.deleteAttachment.bind(this, allValue)} />
+                            }
                         </div>
                     }
                     else {
@@ -871,16 +846,24 @@ class Incident extends Component {
                 <div className='text'>{it('txt-attachedFile')}<span style={{color:'red','fontSize':'0.8em'}}>{it('txt-attachedFileHint')}</span></div>
             </header>
             {
+                activeContent === 'addIncident' &&
                 <div className='group'>
-                    <FileUpload
-                        supportText={t('txt-upload')}
-                        id='attachedFileInput'
-                        fileType='attached'
+                {
+                    // <FileUpload
+                    //     supportText={t('txt-upload')}
+                    //     id='attachedFileInput'
+                    //     fileType='attached'
+                    //     btnText={t('txt-selectFile')}
+                    //     handleFileChange={this.handleDataChange.bind(this, 'file')} />
+                }
+                   <FileInput
                         btnText={t('txt-selectFile')}
-                        handleFileChange={this.handleDataChange.bind(this, 'file')} />
+                        value={attach}
+                        onChange={this.handleAttachChange.bind(this)} />
                 </div>
             }
             {
+                activeContent === 'addIncident' &&
                 <div className='group'>
                     <label htmlFor='fileMemo'>{it('txt-fileMemo')}</label>
                     <Textarea
@@ -893,7 +876,7 @@ class Incident extends Component {
             {
                 activeContent !== 'addIncident' &&
                 <div className='group'>
-                    <button onClick={this.uploadAttachment.bind(this)}>{t('txt-upload')}</button>
+                    <button onClick={this.uploadAttachmentModal.bind(this)}>{t('txt-upload')}</button>
                 </div>
             }
             {
@@ -907,31 +890,6 @@ class Incident extends Component {
                     />
                 </div>
             }
-        </div>
-    }
-
-    displayTag = () => {
-        const {incident} = this.state
-
-        if (_.size(incident.info.tagList) == 0) {
-            return null
-        }
-
-        return <div className='form-group normal'>
-            <header>
-                <div className='text'>{it('txt-tag')}</div>
-            </header>
-
-            <div className='group full' style={{display: 'flex'}}>
-            {
-                _.map(incident.info.tagList, el => {
-                    return <div style={{display: 'flex', marginRight: '30px'}}>
-                        <div className='incident-tag-square' style={{backgroundColor: el.tag.color}}></div>
-                        &nbsp;{el.tag.tag}
-                    </div>
-                })
-            }
-            </div>
         </div>
     }
 
@@ -1124,7 +1082,7 @@ class Incident extends Component {
     };
 
     handleSubmit = () => {
-        const {baseUrl, contextRoot,session} = this.context;
+        const {baseUrl, contextRoot, session} = this.context;
         const {activeContent, incidentType} = this.state;
         let incident = {...this.state.incident};
 
@@ -1171,6 +1129,11 @@ class Incident extends Component {
 
         if (!incident.info.creator) {
             incident.info.creator = session.accountId;
+        }
+
+        // add by soc executer
+        if (activeContent === 'addIncident') {
+            incident.info.status = _.includes(session.roles, 'SOC Executor') ? 6 : 1
         }
 
         ah.one({
@@ -1424,19 +1387,15 @@ class Incident extends Component {
         return <div className={cx('main-filter', {'active': showChart})}>
             <i className='fg fg-close' onClick={this.toggleChart} title={t('txt-close')}/>
             <div className='incident-statistics'>
-                <div className='block c-link' onClick={this.loadCondition.bind(this, 'all')}>
-                    <div className='category'>{it('txt-incident-all')}</div>
-                    <div className='counts'>{dashboard.all}</div>
-                </div>
-                <div className='block c-link' onClick={this.loadCondition.bind(this, 'expired')}>
+                <div className='block c-link' style={{backgroundColor: '#ec8f8f'}} onClick={this.loadCondition.bind(this, 'expired')}>
                     <div className='category'>{it('txt-incident-expired')}</div>
                     <div className='counts'>{dashboard.expired}</div>
                 </div>
-                <div className='block c-link' onClick={this.loadCondition.bind(this, 'unhandled')}>
+                <div className='block c-link' style={{backgroundColor: '#f5f77a'}} onClick={this.loadCondition.bind(this, 'unhandled')}>
                     <div className='category'>{it('txt-incident-unhandled')}</div>
                     <div className='counts'>{dashboard.unhandled}</div>
                 </div>
-                <div className='block c-link' onClick={this.loadCondition.bind(this, 'mine')}>
+                <div className='block c-link' style={{backgroundColor: '#99ea8a'}} onClick={this.loadCondition.bind(this, 'mine')}>
                     <div className='category'>{it('txt-incident-mine')}</div>
                     <div className='counts'>{dashboard.mine}</div>
                 </div>
@@ -2016,13 +1975,39 @@ class Incident extends Component {
 
     uploadAttachment() {
         const {baseUrl} = this.context
-        let {incident} = this.state
+        let {incident, attach} = this.state
 
-        if (incident.info.file) {
+        if (attach) {
             let formData = new FormData()
             formData.append('id', incident.info.id)
-            formData.append('file', incident.info.file)
+            formData.append('file', attach)
             formData.append('fileMemo', incident.info.fileMemo)
+
+            ah.one({
+                url: `${baseUrl}/api/soc/attachment/_upload`,
+                data: formData,
+                type: 'POST',
+                processData: false,
+                contentType: false
+            })
+            .then(data => {
+                this.getIncident(incident.info.id, 'view')
+            })
+            .catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message)
+            })
+        }
+    }
+
+    uploadAttachmentByModal(file, fileMemo) {
+        const {baseUrl} = this.context
+        let {incident} = this.state
+
+        if (file) {
+            let formData = new FormData()
+            formData.append('id', incident.info.id)
+            formData.append('file', file)
+            formData.append('fileMemo', fileMemo)
 
             ah.one({
                 url: `${baseUrl}/api/soc/attachment/_upload`,
