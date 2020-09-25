@@ -2940,8 +2940,36 @@ i.c-checkbox.fg-checkbox {
 
 .incident-statistics {
   display: flex;
+  justify-content: center;
 
-  .block {
+  .item {
+    color: #fff;
+    width: 220px;
+    margin: 10px 20px;
+    padding: 10px 30px;
+    line-height: 25px;
+    opacity: 0.6;
+    background-color: #000;
+    border-radius: 5px;
+    
+    .fg-checkbox-fill {
+      float: left;
+      margin-right: 20px;
+      margin-top: 15px;
+      padding-right: 20px;
+      border-right: 1px solid #999;
+    }
+    .threats {
+      float: left;
+
+      span {
+        display: block;
+        font-size: 28px;
+      }
+    }
+  }
+
+/*  .block {
     width: 30%;
     margin: 10px 30px;
     padding: 10px;
@@ -2950,4 +2978,4 @@ i.c-checkbox.fg-checkbox {
     text-align: center;
 
   }
-}
+*/}

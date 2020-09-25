@@ -43,7 +43,6 @@ const INCIDENT_STATUS_CLOSED = 3
 const INCIDENT_STATUS_SUBMITTED = 4
 const INCIDENT_STATUS_DELETED = 5
 const INCIDENT_STATUS_ANALYZED = 6
-const INCIDENT_STATUS_EXECUTOR_UNREVIEWED = 7
 
 class Incident extends Component {
     constructor(props) {
@@ -558,8 +557,6 @@ class Incident extends Component {
         else if (incident.info.status === INCIDENT_STATUS_DELETED) {
         }
         else if (incident.info.status === INCIDENT_STATUS_ANALYZED) {
-        }
-        else if (incident.info.status === INCIDENT_STATUS_EXECUTOR_UNREVIEWED) {
             transferCheck = true
         }
 
@@ -726,7 +723,7 @@ class Incident extends Component {
                     validate={{t: et}}
                     list={
                         _.map(_.range(1, 5), el => {
-                            return {text: el, value: el}
+                            return {text: `${el} (${(9 - 2 * el)} ${it('txt-day')})`, value: el}
                         })
                     }
                     value={incident.info.impactAssessment}
@@ -1407,20 +1404,23 @@ class Incident extends Component {
     renderStatistics = () => {
         const {showChart, dashboard} = this.state
 
+
         return <div className={cx('main-filter', {'active': showChart})}>
             <i className='fg fg-close' onClick={this.toggleChart} title={t('txt-close')}/>
             <div className='incident-statistics'>
-                <div className='block c-link' style={{backgroundColor: '#ec8f8f'}} onClick={this.loadCondition.bind(this, 'expired')}>
-                    <div className='category'>{it('txt-incident-expired')}</div>
-                    <div className='counts'>{dashboard.expired}</div>
+                <div className='item c-link'>
+                    <i className='fg fg-checkbox-fill' style={{color: '#ec8f8f'}}></i>
+                    <div className='threats'>{it('txt-incident-expired')}<span>{dashboard.expired}</span></div>
                 </div>
-                <div className='block c-link' style={{backgroundColor: '#f5f77a'}} onClick={this.loadCondition.bind(this, 'unhandled')}>
-                    <div className='category'>{it('txt-incident-unhandled')}</div>
-                    <div className='counts'>{dashboard.unhandled}</div>
+
+                <div className='item c-link'>
+                    <i className='fg fg-checkbox-fill' style={{color: '#f5f77a'}}></i>
+                    <div className='threats'>{it('txt-incident-unhandled')}<span>{dashboard.unhandled}</span></div>
                 </div>
-                <div className='block c-link' style={{backgroundColor: '#99ea8a'}} onClick={this.loadCondition.bind(this, 'mine')}>
-                    <div className='category'>{it('txt-incident-mine')}</div>
-                    <div className='counts'>{dashboard.mine}</div>
+
+                <div className='item c-link'>
+                    <i className='fg fg-checkbox-fill' style={{color: '#99ea8a'}}></i>
+                    <div className='threats'>{it('txt-incident-mine')}<span>{dashboard.mine}</span></div>
                 </div>
             </div>
         </div>
