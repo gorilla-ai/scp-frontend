@@ -115,6 +115,7 @@ class Incident extends Component {
                     socType: 1
                 }
             },
+            loadListType:1,
             attach: null
         };
 
@@ -131,7 +132,8 @@ class Incident extends Component {
             this.toggleContent('redirect', alertData);
             sessionStorage.removeItem(alertDataId)
         } else {
-            this.loadData()
+            // this.loadData()
+            this.loadCondition('unhandled')
         }
         this.getOptions()
         this.loadDashboard()
@@ -221,7 +223,7 @@ class Incident extends Component {
                 });
 
                 tempEdge.dataFields = dataFields;
-                this.setState({incident: tempEdge, activeContent: 'tableList'})
+                this.setState({incident: tempEdge, activeContent: 'tableList',loadListType :3,})
             }
             return null
         })
@@ -240,7 +242,7 @@ class Incident extends Component {
         const {baseUrl, contextRoot, session} = this.context;
         const {incident} = this.state;
 
-        searchPayload.isExecutor = _.includes(session.roles, 'SOC Executor')
+        // searchPayload.isExecutor = _.includes(session.roles, 'SOC Executor')
 
         ah.one({
             url: `${baseUrl}/api/soc/_searchV2?page=${incident.currentPage}&pageSize=${incident.pageSize}`,
@@ -354,31 +356,29 @@ class Incident extends Component {
 
     loadCondition = (type) => {
         const {session} = this.context
-        const isExecutor = _.includes(session.roles, 'SOC Executor') ? 'executor' : 'analyzer'
         let search = {
             keyword: '',
             category: 0,
-            status: 0,
-            isExpired: 2
+            isExpired: 2,
+            isExecutor : _.includes(session.roles, 'SOC Executor')
         }
-
         if (type === 'expired') {
-            search.status = isExecutor ? 2 : 1,
-            search.isExpired = 1
+            this.setState({loadListType: 0})
+            search.status = 0
+            search.isExpired = 1;
             this.loadWithoutDateTimeData('search',search)
-        }
-        else if (type === 'unhandled') {
-            if (_.includes(session.roles, 'SOC Executor')) {
+        } else if (type === 'unhandled') {
+            this.setState({loadListType: 1})
+            if (search.isExecutor){
                 search.status = 2
-            }
-            else {
+            }else{
                 search.status = 1
             }
             this.loadWithoutDateTimeData('search',search)
         }
         else if (type === 'mine') {
+            this.setState({loadListType: 2})
             search.status = 0
-            search.isExpired = 2
             search.creator = session.accountId
             this.loadWithoutDateTimeData('search',search)
         }else{
@@ -1404,22 +1404,21 @@ class Incident extends Component {
     renderStatistics = () => {
         const {showChart, dashboard} = this.state
 
-
         return <div className={cx('main-filter', {'active': showChart})}>
             <i className='fg fg-close' onClick={this.toggleChart} title={t('txt-close')}/>
             <div className='incident-statistics'>
-                <div className='item c-link'>
-                    <i className='fg fg-checkbox-fill' style={{color: '#ec8f8f'}}></i>
+                <div className='item c-link' onClick={this.loadCondition.bind(this,'expired')}>
+                    <i className='fg fg-checkbox-fill' style={{color: '#ec8f8f'}}/>
                     <div className='threats'>{it('txt-incident-expired')}<span>{dashboard.expired}</span></div>
                 </div>
 
-                <div className='item c-link'>
-                    <i className='fg fg-checkbox-fill' style={{color: '#f5f77a'}}></i>
+                <div className='item c-link' onClick={this.loadCondition.bind(this,'unhandled')}>
+                    <i className='fg fg-checkbox-fill' style={{color: '#f5f77a'}}/>
                     <div className='threats'>{it('txt-incident-unhandled')}<span>{dashboard.unhandled}</span></div>
                 </div>
 
-                <div className='item c-link'>
-                    <i className='fg fg-checkbox-fill' style={{color: '#99ea8a'}}></i>
+                <div className='item c-link' onClick={this.loadCondition.bind(this,'mine')}>
+                    <i className='fg fg-checkbox-fill' style={{color: '#99ea8a'}}/>
                     <div className='threats'>{it('txt-incident-mine')}<span>{dashboard.mine}</span></div>
                 </div>
             </div>
@@ -1501,7 +1500,16 @@ class Incident extends Component {
         })
             .then(data => {
                 if (data.ret === 0) {
-                    this.loadData()
+                    // this.loadData()
+                    if (this.state.loadListType === 0){
+                        this.loadCondition('expired')
+                    }else if (this.state.loadListType === 1){
+                        this.loadCondition('unhandled')
+                    }else if (this.state.loadListType === 2){
+                        this.loadCondition('mine')
+                    }else if (this.state.loadListType === 3){
+                        this.loadData()
+                    }
                 }
                 return null
             })
@@ -1526,7 +1534,16 @@ class Incident extends Component {
         }
 
         this.setState({incident: temp}, () => {
-            this.loadData()
+            // this.loadData()
+            if (this.state.loadListType === 0){
+                this.loadCondition('expired')
+            }else if (this.state.loadListType === 1){
+                this.loadCondition('unhandled')
+            }else if (this.state.loadListType === 2){
+                this.loadCondition('mine')
+            }else if (this.state.loadListType === 3){
+                this.loadData()
+            }
         })
     };
 
@@ -1687,7 +1704,17 @@ class Incident extends Component {
             incident: tempIncident
         }, () => {
             if (showPage === 'tableList' || showPage === 'cancel-add') {
-                this.loadData()
+                // console.log("this.state.loadListType == " , this.state.loadListType)
+                if (this.state.loadListType === 0){
+                    this.loadCondition('expired')
+                }else if (this.state.loadListType === 1){
+                    this.loadCondition('unhandled')
+                }else if (this.state.loadListType === 2){
+                    this.loadCondition('mine')
+                }else if (this.state.loadListType === 3){
+                    this.loadData()
+                }
+                this.loadDashboard()
             }
         })
     };
