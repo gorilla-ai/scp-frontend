@@ -1366,7 +1366,7 @@ class NetworkInventory extends Component {
     }
 
     this.ah.one({
-      url: `${baseUrl}/api/v2/ipdevice?uuid=${ipDeviceID}&page=1&pageSize=1`,
+      url: `${baseUrl}/api/v2/ipdevice?uuid=${ipDeviceID}&page=1&pageSize=5`,
       type: 'GET'
     })
     .then(data => {
