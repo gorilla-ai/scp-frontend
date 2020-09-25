@@ -40,6 +40,10 @@ class Header extends Component {
   componentDidMount() {
     this.getUserConfig();
   }
+  /**
+   * Get and set user config for site theme
+   * @method
+   */
   getUserConfig = () => {
     const {baseUrl, session} = this.context;
 

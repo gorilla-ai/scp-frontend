@@ -87,7 +87,8 @@ class AddThreats extends Component {
             {value: 'certSha256', text: 'Certification (Sha256)'},
             {value: 'fileHashMd5', text: 'FileHash (MD5)'},
             {value: 'fileHashSha1', text: 'FileHash (Sha1)'},
-            {value: 'fileHashSha256', text: 'FileHash (Sha256)'}
+            {value: 'fileHashSha256', text: 'FileHash (Sha256)'},
+            {value: 'fileHashWhiteMd5', text: 'FileHashWhite (MD5)'}
           ]}
           required={true}
           value={value.type}

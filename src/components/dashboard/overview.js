@@ -29,8 +29,8 @@ const ALERT_LEVEL_COLORS = {
   Notice: '#7ACC29'
 };
 const PAGE_RESET_INTERVAL = 300000; //5 minutes
-const PATH_SPEED = 100;
-const PATH_DURATION = 5; //5 seconds
+const PATH_SPEED = '50,5,10,5';
+const PATH_DURATION = 10; //10 seconds
 
 /**
  * Overview

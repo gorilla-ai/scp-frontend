@@ -125,6 +125,7 @@
   "txt-analyze": "分析",
   "txt-send": "寄出",
   "txt-networkBehavior": "網路行為",
+  "txt-executableInfo": "執行內容",
   "txt-logSource": "日誌來源",
   "txt-indicator": "Indicator",
   "txt-online": "連線",
@@ -145,8 +146,9 @@
   "txt-commonModule": "一般模組",
   "txt-configModule": "設定模組",
   "txt-host": "主機",
+  "txt-group": "群組",
   "txt-settings": "設定",
-  "txt-setting-eng": "Setting",
+  "txt-setting-eng": "Settings",
   "txt-item": "項目",
   "txt-score": "評分",
   "txt-text": "文字",
@@ -201,7 +203,7 @@
   "txt-network-map": "樓層圖",
   "txt-selected-node": "選擇樓層節點",
   "txt-mixName":"部門與職稱管理",
-  "txt-nameInvalid": "請輸入名稱",
+  "txt-plsEnterName": "請輸入名稱",
   "txt-memoMaxLength": "上限250字",
   "txt-updateTime": "更新時間",
 
@@ -425,6 +427,9 @@
     "txt-deleteEdge": "$t(txt-delete)$t(txt-edge)",
     "txt-serviceType": "服務類型",
     "txt-serviceMode": "服務模式",
+    "txt-addGroup": "$t(txt-add)$t(txt-group)",
+    "txt-manageGroup": "$t(txt-group)$t(txt-manage)",
+    "txt-deleteGroup": "$t(txt-delete)$t(txt-group)",
     "txt-longitude": "經度",
     "txt-latitude": "緯度",
     "txt-activatTime": "啟用時間",
@@ -505,6 +510,7 @@
     "txt-suspiciousFilePath": "可疑檔案路徑",
     "txt-filePathList": "掃描路徑",
     "txt-modifiedFileCount": "異動檔案數",
+    "txt-taskFailure": "執行異常",
     "txt-_MissingFile": "刪除檔案路徑",
     "txt-_ModifyFile": "修改檔案路徑",
     "txt-_NewCreateFile": "新增檔案路徑",
@@ -515,6 +521,7 @@
     "txt-scanFilePath": "掃描檔案路徑",
     "txt-saveSettings": "儲存設定",
     "txt-restoreDefault": "還原預設值",
+    "txt-refresh": "重新載入",
     "txt-reCheck": "重新檢測",
     "txt-reCompress": "重新壓縮",
     "txt-yaraRules": "Yara Rules",
@@ -523,7 +530,6 @@
     "txt-total": "總上傳筆數",
     "txt-success": "上傳成功筆數",
     "txt-fail": "上傳失敗筆數",
-    "txt-pathFormatError": "請檢查路徑格式",
     "txt-includePathEmpty": "偵測路徑為必填",
     "txt-irMsg": "IR資料已上傳至",
     "txt-itemSelection": "電腦採證",
@@ -548,7 +554,8 @@
       "txt-scanFile": "Malware",
       "txt-gcb": "GCB",
       "txt-ir": "IR",
-      "txt-fileIntegrity": "File Integrity"
+      "txt-fileIntegrity": "File Integrity",
+      "txt-procMonitor": "Process Monitor"
     },
     "ir-type": {
       "txt-quick": "快速採證",
@@ -572,6 +579,19 @@
       "txt-list14": "影像搜尋",
       "txt-list15": "微軟檔案搜尋",
       "txt-list16": "關鍵字檔案搜尋"
+    },
+    "executable-list": {
+      "txt-_AutorunLocation": "自動執行路徑",
+      "txt-_CommandLine": "執行語法",
+      "txt-_CompanyName": "公司名稱",
+      "txt-_Filepath": "檔案路徑",
+      "txt-_Filesize": "檔案大小",
+      "txt-_MD5": "MD5",
+      "txt-_SHA1" : "SHA1",
+      "txt-_SHA256": "SHA256",
+      "txt-_IsPE": "PE檔",
+      "txt-_OwnerSID": "使用者SID",
+      "txt-_Signatures": "簽章"      
     }
   },
 

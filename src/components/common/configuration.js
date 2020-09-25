@@ -39,7 +39,7 @@ class Config extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const openEdgeManagement = this.getActiveFrame('edge') || this.getActiveFrame('threat') || this.getActiveFrame('severity');
+    const openEdgeManagement = this.getActiveFrame('edge') || this.getActiveFrame('severity');
     const openTopology = this.getActiveFrame('inventory') || this.getActiveFrame('owner') || this.getActiveFrame('map');
     const openSyslog = this.getActiveFrame('config') || this.getActiveFrame('pattern');
     const openAccount = this.getActiveFrame('account') || this.getActiveFrame('privileges');
@@ -72,8 +72,8 @@ class Config extends Component {
     const path = window.location.pathname;
     const pattern = {
       notifications: '/SCP/configuration/notifications',
+      threat: '/SCP/configuration/threat/threat',
       edge: '/SCP/configuration/edge/edge',
-      threat: '/SCP/configuration/edge/threat',
       severity: '/SCP/configuration/edge/severity',
       inventory: '/SCP/configuration/topology/inventory',
       owner: '/SCP/configuration/topology/owner',
@@ -127,8 +127,14 @@ class Config extends Component {
           </Link>
         </div>
 
+        <div className='item frame threat'>
+          <Link to={{pathname: '/SCP/configuration/threat/threat', state: 'viewMode'}}>
+            <span className={`${this.getActiveFrame('threat')}`}>{t('txt-threatIntelligence')}</span>
+          </Link>
+        </div>
+
         <div className='item frame edge-manage' onClick={this.handleOpen.bind(this, 'openEdgeManagement', openEdgeManagement)}>
-          <span className={`${this.getActiveFrame('edge') || this.getActiveFrame('threat')}`}>{t('txt-edgeManage')}</span>
+          <span className={`${this.getActiveFrame('edge')}`}>{t('txt-edgeManage')}</span>
           <i className={`c-link fg fg-arrow-${openEdgeManagement ? 'top' : 'bottom'}`}></i>
         </div>
 
@@ -137,11 +143,6 @@ class Config extends Component {
             <div className='subframe'>
               <Link to={{pathname: '/SCP/configuration/edge/edge', state: 'tableList'}}>
                 <span className={`${this.getActiveFrame('edge')}`}>{t('txt-edge')}</span>
-              </Link>
-            </div>
-            <div className='subframe'>
-              <Link to='/SCP/configuration/edge/threat'>
-                <span className={`${this.getActiveFrame('threat')}`}>{t('txt-threatIntelligence')}</span>
               </Link>
             </div>
             <div className='subframe'>

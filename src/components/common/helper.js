@@ -43,7 +43,7 @@ const helper = {
     return string.charAt(0).toUpperCase() + string.slice(1);
   },
   numberWithCommas: function(n) {
-    return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return n === 0 ? n : n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   },
   setChartData: function(data, property) {
     let innerObj = {};
@@ -357,7 +357,7 @@ const helper = {
       pattern = /^(?!:\/\/)([a-zA-Z0-9-_]+\.)*[a-zA-Z0-9][a-zA-Z0-9-_]+\.[a-zA-Z]{2,11}?$/;
     } else if (type === 'url') {
       pattern = /^\w+[^\s]+(\.[^\s]+){1,}$/;
-    } else if (type === 'certMd5' || type === 'fileHashMd5') {
+    } else if (type === 'certMd5' || type === 'fileHashMd5' || type === 'fileHashWhiteMd5') {
       pattern = /^[a-fA-F0-9]{32}$/;
     } else if (type === 'certSha1' || type === 'fileHashSha1') {
       pattern = /^[a-fA-F0-9]{40}$/;

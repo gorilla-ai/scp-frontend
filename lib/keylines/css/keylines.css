@@ -12,6 +12,11 @@
  * into the browser page by the time the chart is created: using a font loader will
  * guarantee KeyLines has the resources it needs.
  */
+ /*  Ensure Flexbox and cssgrid can shrink in size */
+ * {
+    min-height: 0;
+    min-width: 0;
+}
 
 @font-face {
   font-family: 'Ubuntu';

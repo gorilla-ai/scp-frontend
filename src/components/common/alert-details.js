@@ -268,11 +268,11 @@ class AlertDetails extends Component {
     const ip = this.getIpPortData(ipType);
     const apiArr = [
       {
-        url: `${baseUrl}/api/u1/ipdevice/_search?exactIp=${ip}`,
+        url: `${baseUrl}/api/v2/ipdevice/_search?exactIp=${ip}`,
         type: 'GET'
       },
       {
-        url: `${baseUrl}/api/u1/ipdevice?exactIp=${ip}&page=1&pageSize=5`,
+        url: `${baseUrl}/api/v2/ipdevice?exactIp=${ip}&page=1&pageSize=5`,
         type: 'GET'
       }
     ];
@@ -280,6 +280,7 @@ class AlertDetails extends Component {
     if (ip === NOT_AVAILABLE) {
       return;
     }
+
     let tempAlertInfo = {...alertInfo};
     let tempIPdeviceInfo = {...ipDeviceInfo};
 
@@ -1308,39 +1309,89 @@ class AlertDetails extends Component {
    */
   triggerTask = (type, ipTypeParam, yaraRule) => {
     const {baseUrl} = this.context;
-    const {ipDeviceInfo, ipType} = this.state;
-    const url = `${baseUrl}/api/hmd/retrigger`;
+    const {alertInfo, ipDeviceInfo, ipType} = this.state;
+    const ip = this.getIpPortData(ipTypeParam || ipType);
     let requestData = {
       hostId: this.state.ipDeviceInfo[ipTypeParam || ipType].ipDeviceUUID,
       cmds: type
     };
 
     if (type[0] === 'compareIOC') {
+      let pathData = [];
+
+      _.forEach(yaraRule.pathData, val => {
+        if (val.path) {
+          pathData.push(val.path);
+        }
+      })
+
       requestData.paras = {
-        _FilepathList: yaraRule.path,
+        _FilepathList: pathData,
         _RuleString: yaraRule.rule
       };
     }
 
-    this.ah.one({
-      url,
-      data: JSON.stringify(requestData),
-      type: 'POST',
-      contentType: 'text/plain'
-    })
+    if (!ip) {
+      return;
+    }
+
+    const apiArr = [
+      {
+        url: `${baseUrl}/api/hmd/retrigger`,
+        data: JSON.stringify(requestData),
+        type: 'POST',
+        contentType: 'text/plain'
+      },
+      {
+        url: `${baseUrl}/api/v2/ipdevice/_search?exactIp=${ip}`,
+        type: 'GET'
+      },
+      {
+        url: `${baseUrl}/api/v2/ipdevice?exactIp=${ip}&page=1&pageSize=5`,
+        type: 'GET'
+      }
+    ];
+
+    if (ip === NOT_AVAILABLE) {
+      return;
+    }
+
+    let tempAlertInfo = {...alertInfo};
+    let tempIPdeviceInfo = {...ipDeviceInfo};
+
+    this.ah.series(apiArr)
     .then(data => {
       if (data) {
-        helper.showPopupMsg(t('txt-requestSent'));
+        if (data[0]) {
+          helper.showPopupMsg(t('txt-requestSent'));
 
-        if (type[0] === 'compareIOC') {
-          this.toggleYaraRule();
+          if (type[0] === 'compareIOC') {
+            this.toggleYaraRule();
+          }
+
+          if (type[0] === 'ir') {
+            this.toggleSelectionIR();
+          }
         }
 
-        if (type[0] === 'ir') {
-          this.toggleSelectionIR();
+        if (data[1] && data[1].counts === 0) {
+          tempAlertInfo[ipTypeParam || ipType].exist = false;
+
+          this.setState({
+            alertInfo: tempAlertInfo
+          });
         }
 
-        this.getHMDinfo(ipType);
+        if (data[2] && data[1].counts > 0) {
+          tempAlertInfo[ipTypeParam || ipType].exist = true;
+          tempIPdeviceInfo[ipTypeParam || ipType] = data[2];
+
+          this.setState({
+            alertInfo: tempAlertInfo,
+            ipDeviceInfo: tempIPdeviceInfo,
+            modalIRopen: false
+          });
+        }
       }
       return null;
     })
@@ -1366,7 +1417,8 @@ class AlertDetails extends Component {
           showAlertData={this.showAlertData}
           toggleYaraRule={this.toggleYaraRule}
           toggleSelectionIR={this.toggleSelectionIR}
-          triggerTask={this.triggerTask} />
+          triggerTask={this.triggerTask}
+          getHMDinfo={this.getHMDinfo} />
       )
     } else {
       return <span>{NOT_AVAILABLE}</span>
