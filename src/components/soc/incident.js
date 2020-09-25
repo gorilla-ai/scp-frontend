@@ -1414,11 +1414,11 @@ class Incident extends Component {
                     <div className='category'>{it('txt-incident-expired')}</div>
                     <div className='counts'>{dashboard.expired}</div>
                 </div>
-                <div className='block c-link' style={{backgroundColor: '#c3d957'}} onClick={this.loadCondition.bind(this, 'unhandled')}>
+                <div className='block c-link' style={{backgroundColor: '#e3ea2d'}} onClick={this.loadCondition.bind(this, 'unhandled')}>
                     <div className='category'>{it('txt-incident-unhandled')}</div>
                     <div className='counts'>{dashboard.unhandled}</div>
                 </div>
-                <div className='block c-link' style={{backgroundColor: '#29cc7a'}} onClick={this.loadCondition.bind(this, 'mine')}>
+                <div className='block c-link' style={{backgroundColor: '#52d94a'}} onClick={this.loadCondition.bind(this, 'mine')}>
                     <div className='category'>{it('txt-incident-mine')}</div>
                     <div className='counts'>{dashboard.mine}</div>
                 </div>
