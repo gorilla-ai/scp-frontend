@@ -159,7 +159,9 @@
 		"2": "Reviewed",
 		"3": "Closed",
 		"4": "Submitted",
-		"5": "Deleted"
+		"5": "Deleted",
+		"6": "Not Analyzed",
+		"7": "Untreated"
 	},
 	"action": {
 		"0": "All",
@@ -168,7 +170,8 @@
 		"3": "Submit",
 		"4": "Close",
 		"5": "Add",
-		"6": "Edit"
+		"6": "Edit",
+		"7": "To Analyzer"
 	},
 	"protectType": {
 		"0": "防毒軟體",
