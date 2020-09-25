@@ -18,7 +18,7 @@ let t = null
 let et = null
 let it = null
 
-const RAINBOW = ['#FF0000', '#FF7F00', '#FFFF00', '#00FF00', '#00FFFF', '#0000FF', '#8B00FF']
+const RAINBOW = ['#cc2943', '#cc7b29', '#e3ea2d', '#52d94a', '#29b0cc', '#d95798', '#9857d9']
 
 const INIT = {
 	open: false,
