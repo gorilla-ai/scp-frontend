@@ -1410,15 +1410,15 @@ class Incident extends Component {
         return <div className={cx('main-filter', {'active': showChart})}>
             <i className='fg fg-close' onClick={this.toggleChart} title={t('txt-close')}/>
             <div className='incident-statistics'>
-                <div className='block c-link' style={{backgroundColor: '#ec8f8f'}} onClick={this.loadCondition.bind(this, 'expired')}>
+                <div className='block c-link' style={{backgroundColor: '#cc2943'}} onClick={this.loadCondition.bind(this, 'expired')}>
                     <div className='category'>{it('txt-incident-expired')}</div>
                     <div className='counts'>{dashboard.expired}</div>
                 </div>
-                <div className='block c-link' style={{backgroundColor: '#f5f77a'}} onClick={this.loadCondition.bind(this, 'unhandled')}>
+                <div className='block c-link' style={{backgroundColor: '#c3d957'}} onClick={this.loadCondition.bind(this, 'unhandled')}>
                     <div className='category'>{it('txt-incident-unhandled')}</div>
                     <div className='counts'>{dashboard.unhandled}</div>
                 </div>
-                <div className='block c-link' style={{backgroundColor: '#99ea8a'}} onClick={this.loadCondition.bind(this, 'mine')}>
+                <div className='block c-link' style={{backgroundColor: '#29cc7a'}} onClick={this.loadCondition.bind(this, 'mine')}>
                     <div className='category'>{it('txt-incident-mine')}</div>
                     <div className='counts'>{dashboard.mine}</div>
                 </div>
