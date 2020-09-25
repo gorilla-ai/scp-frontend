@@ -83,8 +83,14 @@ class IncidentReview extends Component {
 			    userId: session.accountId
 		    }
 
+            let url = `${baseUrl}/api/soc/_${reviewType}`
+
+            if (reviewType === 'draw') {
+                url = _.includes(session.roles, 'SOC Executor') ? `${baseUrl}/api/soc/executor/_draw` : `${baseUrl}/api/soc/analyzer/_draw`
+            }
+
 		    ah.one({
-			    url: `${baseUrl}/api/soc/_${reviewType}`,
+			    url: url,
 			    data: JSON.stringify(payload),
 			    type: 'POST',
 			    contentType: 'application/json',

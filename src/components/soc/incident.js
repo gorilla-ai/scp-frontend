@@ -42,6 +42,8 @@ const INCIDENT_STATUS_REVIEWED = 2
 const INCIDENT_STATUS_CLOSED = 3
 const INCIDENT_STATUS_SUBMITTED = 4
 const INCIDENT_STATUS_DELETED = 5
+const INCIDENT_STATUS_ANALYZED = 6
+const INCIDENT_STATUS_EXECUTOR_UNREVIEWED = 7
 
 class Incident extends Component {
     constructor(props) {
@@ -283,7 +285,16 @@ class Incident extends Component {
                                 } else if (tempData === 'tag') {
                                     const tags = _.map(allValue.tagList, 'tag.tag')
 
-                                    return <span>{tags.toString()}</span>
+                                    return <div>
+                                    {
+                                        _.map(allValue.tagList, el => {
+                                            return <div style={{display: 'flex', marginRight: '30px'}}>
+                                                <div className='incident-tag-square' style={{backgroundColor: el.tag.color}}></div>
+                                                &nbsp;{el.tag.tag}
+                                            </div>
+                                        })
+                                    }
+                                </div>
                                 } else {
                                     return <span>{value}</span>
                                 }
@@ -505,9 +516,12 @@ class Incident extends Component {
         let editCheck = false
         let drawCheck = false
         let submitCheck = false
-        let auditCheck = false // ***
-        let returnCheck = false // ***
+        let auditCheck = false
+        let returnCheck = false
         let publishCheck = false
+
+        let transferCheck = false
+
 
         const isExecutor = _.includes(session.roles, 'SOC Executor')
 
@@ -542,6 +556,11 @@ class Incident extends Component {
         }
 
         else if (incident.info.status === INCIDENT_STATUS_DELETED) {
+        }
+        else if (incident.info.status === INCIDENT_STATUS_ANALYZED) {
+        }
+        else if (incident.info.status === INCIDENT_STATUS_EXECUTOR_UNREVIEWED) {
+            transferCheck = true
         }
 
 
@@ -614,6 +633,10 @@ class Incident extends Component {
                     {publishCheck &&
                         <button className='standard btn list'
                                 onClick={this.openSendMenu.bind(this, incident.info.id)}>{it('txt-send')}</button>
+                    }
+                    {transferCheck &&
+                        <button className='standard btn list'
+                                onClick={this.openReviewModal.bind(this, incident.info, 'analyze')}>{it('txt-transfer')}</button>
                     }
                 </footer>
             }
