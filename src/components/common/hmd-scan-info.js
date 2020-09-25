@@ -184,7 +184,7 @@ class HMDscanInfo extends Component {
       });
     });
 
-    if (location.pathname.indexOf('configuration') > 0) { //Add Settings tab for Config section
+    if (location.pathname.indexOf('host') > 0 || location.pathname.indexOf('configuration') > 0) { //Add Settings tab for Config section
       buttonGroupList.push({
         value: 'settings',
         text: t('txt-setting-eng')
@@ -1129,7 +1129,7 @@ class HMDscanInfo extends Component {
     return (
       <div className='info'>
         {activeTab !== 'settings' &&
-          <button className='btn refresh' onClick={this.props.getIPdeviceInfo.bind(this, ipType)}>{t('network-inventory.txt-refresh')}</button>
+          <button className='btn refresh' onClick={this.props.getHMDinfo.bind(this, ipType)}>{t('network-inventory.txt-refresh')}</button>
         }
         <button className='btn' onClick={this.getTriggerTask.bind(this, currentTab)} disabled={this.checkTriggerTime(currentTab)}>{btnText}</button>
         <div className='last-update'>
@@ -1706,7 +1706,7 @@ class HMDscanInfo extends Component {
     })
     .then(data => {
       if (data.ret === 0) {
-        this.props.getIPdeviceInfo('');
+        this.props.getHMDinfo('');
         this.toggleSettingsContent('save');
       }
       return null;
@@ -1830,7 +1830,7 @@ class HMDscanInfo extends Component {
 
           {activeTab === 'settings' &&
             <div className='settings'>
-              <button className='btn refresh' onClick={this.props.getIPdeviceInfo.bind(this, '')}>{t('network-inventory.txt-refresh')}</button>
+              <button className='btn refresh' onClick={this.props.getHMDinfo.bind(this, '')}>{t('network-inventory.txt-refresh')}</button>
               {settingsActiveContent === 'viewMode' &&
                 <button className='btn edit' onClick={this.toggleSettingsContent.bind(this, 'edit')}>{t('txt-edit')}</button>
               }
@@ -1860,7 +1860,7 @@ HMDscanInfo.propTypes = {
   toggleSelectionIR: PropTypes.func.isRequired,
   triggerTask: PropTypes.func.isRequired,
   toggleYaraRule: PropTypes.func.isRequired,
-  getIPdeviceInfo: PropTypes.func.isRequired
+  getHMDinfo: PropTypes.func.isRequired
 };
 
 export default withRouter(HMDscanInfo);

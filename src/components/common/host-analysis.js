@@ -48,40 +48,12 @@ class HostAnalysis extends Component {
         network: false
       },
       modalYaraRuleOpen: false,
-      modalIRopen: false,
-      hmdInfo: {}
+      modalIRopen: false
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
     this.ah = getInstance('chewbacca');
-  }
-  componentDidMount() {
-    this.getHMDinfo(this.props.hostInfo.ipDeviceUUID);
-  }
-  /**
-   * Get and set HMD info
-   * @method
-   * @param {string} ipDeviceUUID - IP device UUID
-   */
-  getHMDinfo = (ipDeviceUUID) => {
-    const {baseUrl} = this.context;
-
-    this.ah.one({
-      url: `${baseUrl}/api/u1/ipdevice?uuid=${ipDeviceUUID}&page=1&pageSize=5`,
-      type: 'GET'
-    })
-    .then(data => {
-      if (data) {
-        this.setState({
-          hmdInfo: data
-        });
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
   }
   /**
    * Set corresponding content based on content type
@@ -122,14 +94,14 @@ class HostAnalysis extends Component {
    */
   displayInfoContent = () => {
     const {baseUrl, contextRoot} = this.context;
-    const {hostInfo} = this.props;
+    const {hostData} = this.props;
     const topoInfo = {
-      ...hostInfo.areaObj,
-      ...hostInfo.ownerObj,
-      ...hostInfo.seatObj
+      ...hostData.areaObj,
+      ...hostData.ownerObj,
+      ...hostData.seatObj
     };
     const picPath = topoInfo.ownerPic ? topoInfo.ownerPic : contextRoot + '/images/empty_profile.png';
-    let alertInfo = {...hostInfo};
+    let alertInfo = {...hostData};
     let ownerMap = {};
     alertInfo.ownerBaseLayers = {};
     alertInfo.ownerSeat = {};  
@@ -180,7 +152,7 @@ class HostAnalysis extends Component {
    * @returns HTML DOM
    */
   displayHostAnalysisData = () => {
-    const {hostInfo} = this.props;
+    const {hostData} = this.props;
     const {showContent} = this.state;
     
     return (
@@ -199,13 +171,13 @@ class HostAnalysis extends Component {
           </thead>
           <tbody>
             <tr>
-              <td className='severity-level'>{helper.getSeverityColor(hostInfo.networkBehaviorInfo.severityLevel)}</td>
-              <td>{hostInfo.hostName || NOT_AVAILABLE}</td>
-              <td>{hostInfo.ip || NOT_AVAILABLE}</td>
-              <td>{hostInfo.mac || NOT_AVAILABLE}</td>
-              <td>{hostInfo.system || NOT_AVAILABLE}</td>
-              <td>{hostInfo.ownerObj && hostInfo.ownerObj.ownerName || NOT_AVAILABLE}</td>
-              <td>{hostInfo.areaOb && hostInfo.areaObj.areaFullName || NOT_AVAILABLE}</td>
+              <td className='severity-level'>{helper.getSeverityColor(hostData.severityLevel)}</td>
+              <td>{hostData.hostName || NOT_AVAILABLE}</td>
+              <td>{hostData.ip || NOT_AVAILABLE}</td>
+              <td>{hostData.mac || NOT_AVAILABLE}</td>
+              <td>{hostData.system || NOT_AVAILABLE}</td>
+              <td>{hostData.ownerObj && hostData.ownerObj.ownerName || NOT_AVAILABLE}</td>
+              <td>{hostData.areaOb && hostData.areaObj.areaFullName || NOT_AVAILABLE}</td>
             </tr>
           </tbody>
         </table>
@@ -226,19 +198,20 @@ class HostAnalysis extends Component {
               this.displayInfoContent()
             }
 
-            {showContent.safety &&
+            {showContent.safety && hostData.safetyScanInfo &&
               <HMDscanInfo
                 page='host'
-                currentDeviceData={this.state.hmdInfo}
+                currentDeviceData={hostData}
                 toggleYaraRule={this.toggleYaraRule}
                 toggleSelectionIR={this.toggleSelectionIR}
-                triggerTask={this.triggerTask} />
+                triggerTask={this.triggerTask}
+                getHMDinfo={this.props.getIPdeviceInfo} />
             }
 
             {showContent.network &&
               <NetworkBehavior
                 ipType='srcIp'
-                alertData={hostInfo} />
+                alertData={hostData} />
             }
           </div>
         </div>
@@ -300,10 +273,10 @@ class HostAnalysis extends Component {
    */
   triggerTask = (type, ipTypeParam, yaraRule) => {
     const {baseUrl} = this.context;
-    const {hostInfo} = this.props;
+    const {hostData} = this.props;
     const url = `${baseUrl}/api/hmd/retrigger`;
     let requestData = {
-      hostId: hostInfo.ipDeviceUUID,
+      hostId: hostData.ipDeviceUUID,
       cmds: type
     };
 
@@ -332,7 +305,7 @@ class HostAnalysis extends Component {
           this.toggleSelectionIR();
         }
 
-        this.getHMDinfo(hostInfo.ipDeviceUUID);
+        this.getHMDinfo(hostData.ipDeviceUUID);
       }
       return null;
     })
@@ -378,7 +351,9 @@ class HostAnalysis extends Component {
 HostAnalysis.contextType = BaseDataContext;
 
 HostAnalysis.propTypes = {
-  hostInfo: PropTypes.object.isRequired
+  hostData: PropTypes.object.isRequired,
+  getIPdeviceInfo: PropTypes.func.isRequired,
+  toggleHostAnalysis: PropTypes.func.isRequired
 };
 
 export default HostAnalysis;

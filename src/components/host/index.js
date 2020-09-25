@@ -67,12 +67,9 @@ class HostController extends Component {
 
     this.state = {
       activeSubTab: 'hostList', //'hostList', 'deviceMap'
-      showFilter: false,
+      showFilter: true,
       showLeftNav: true,
-      datetime: {
-        from: helper.getSubstractDate(1, 'hour'),
-        to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
-      },
+      datetime: Moment().local().format('YYYY-MM-DDTHH:mm:ss'),
       hostAnalysisOpen: false,
       severityList: [],
       hmdList: [],
@@ -96,7 +93,7 @@ class HostController extends Component {
         currentPage: 1,
         pageSize: 20
       },
-      activeHostData: {}
+      hostData: {}
     };
 
     this.ah = getInstance('chewbacca');
@@ -197,8 +194,8 @@ class HostController extends Component {
     let url = `${baseUrl}/api/ipdevice/assessment/_search?page=${hostInfo.currentPage}&pageSize=${hostInfo.pageSize}`;
     let requestData = {
       timestamp: [
-        Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-        Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+        Moment(helper.getSubstractDate(1, 'day', datetime)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+        Moment(datetime).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
       ]
     };
 
@@ -386,14 +383,49 @@ class HostController extends Component {
     }
   }
   /**
+   * Get IP device data info
+   * @method
+   * @param {object} host - active Host data
+   */
+  getIPdeviceInfo = (host) => {
+    const {baseUrl} = this.context;
+    const {datetime, hostInfo} = this.state;
+    const dateTime = {
+      from: Moment(helper.getSubstractDate(1, 'day', datetime)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: Moment(datetime).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    };
+
+    this.ah.one({
+      url: `${baseUrl}/api/v2/ipdevice?uuid=${host.ipDeviceUUID}&page=1&pageSize=1&startDttm=${dateTime.from}&endDttm=${dateTime.to}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        const activeHostInfo = _.find(hostInfo.dataContent, {ipDeviceUUID: host.ipDeviceUUID});
+        const hostData = {
+          ...data,
+          severityLevel: activeHostInfo.networkBehaviorInfo.severityLevel
+        };
+
+        this.setState({
+          hostData
+        }, () => {
+          this.toggleHostAnalysis();
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Toggle Host Analysis dialog on/off
    * @method
-   * @param {object} hostData - active Host data
    */
-  toggleHostAnalysis = (hostData) => {
+  toggleHostAnalysis = () => {
     this.setState({
-      hostAnalysisOpen: !this.state.hostAnalysisOpen,
-      activeHostData: hostData
+      hostAnalysisOpen: !this.state.hostAnalysisOpen
     });
   }
   /**
@@ -500,7 +532,7 @@ class HostController extends Component {
             </div>
           }
         </div>
-        <div className='view-details' onClick={this.toggleHostAnalysis.bind(this, val)}>
+        <div className='view-details' onClick={this.getIPdeviceInfo.bind(this, val)}>
           {t('host.txt-viewInfo')}
         </div>
       </li>
@@ -554,7 +586,8 @@ class HostController extends Component {
       privateMaskedIPlist,
       filterNav,
       filterData,
-      hostInfo
+      hostInfo,
+      hostData
     } = this.state;
     let filterDataCount = 0;
 
@@ -568,8 +601,9 @@ class HostController extends Component {
       <div>
         {hostAnalysisOpen &&
           <HostAnalysis
-            toggleHostAnalysis={this.toggleHostAnalysis}
-            hostInfo={this.state.activeHostData} />
+            hostData={hostData}
+            getIPdeviceInfo={this.getIPdeviceInfo}
+            toggleHostAnalysis={this.toggleHostAnalysis} />
         }
 
         <div className='sub-header'>
@@ -578,6 +612,7 @@ class HostController extends Component {
           </div>
 
           <SearchOptions
+            dateType='datepicker'
             datetime={datetime}
             handleDateChange={this.handleDateChange}
             handleSearchSubmit={this.handleSearchSubmit} />
