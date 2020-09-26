@@ -571,7 +571,7 @@ class HMDscanInfo extends Component {
     const uniqueKey = val + i;
 
     return (
-      <div className='item-content' key={uniqueKey}>
+      <div key={uniqueKey} className='item-content'>
         <div className='header' onClick={this.togglePathRule.bind(this, 'rule', i)}>
           <i className={cx('fg fg-play', {'rotate': _.includes(activeRule, i)})}></i>
           <span>{nameList[i]}</span>
@@ -786,7 +786,7 @@ class HMDscanInfo extends Component {
       }
 
       return (
-        <div className='group' key={uniqueKey}>
+        <div key={uniqueKey} className='group'>
           <div className='path pointer' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
             <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`}></i>
             <div className='path-header'>
@@ -910,7 +910,7 @@ class HMDscanInfo extends Component {
     }
 
     return (
-      <div className='group' key={uniqueKey}>
+      <div key={uniqueKey} className='group'>
         <div className='path pointer' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
           <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`}></i>
           <div className='path-header'>
@@ -987,7 +987,7 @@ class HMDscanInfo extends Component {
     }
 
     return (
-      <div className='group' key={uniqueKey}>
+      <div key={uniqueKey} className='group'>
         <div className='path'>
           <div className='path-header'>
             {val &&
@@ -1018,7 +1018,7 @@ class HMDscanInfo extends Component {
     }
 
     return (
-      <div className='group' key={uniqueKey}>
+      <div key={uniqueKey} className='group'>
         <div className='path pointer' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
           <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`}></i>
           <div className='path-header'>
@@ -1219,7 +1219,7 @@ class HMDscanInfo extends Component {
     }
 
     return (
-      <div className='group' key={uniqueKey}>
+      <div key={uniqueKey} className='group'>
         <div className='path' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
           <div className='path-header'>
             {filePath &&
@@ -1293,7 +1293,7 @@ class HMDscanInfo extends Component {
     }
 
     return (
-      <div className='scan-section' key={i}>
+      <div key={i} className='scan-section'>
         <div className='scan-header'>
           <span>{t('network-inventory.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local') || NOT_AVAILABLE}</span>
           <span>{t('network-inventory.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}</span>
@@ -1415,7 +1415,7 @@ class HMDscanInfo extends Component {
     }
 
     return (
-      <div className='scan-section' key={i}>
+      <div key={i} className='scan-section'>
         <div className='table'>
           <div className='scan-header'>
             <span>{t('network-inventory.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local') || NOT_AVAILABLE}</span>
@@ -1445,7 +1445,7 @@ class HMDscanInfo extends Component {
     }
 
     return (
-      <div className='scan-section' key={i}>
+      <div key={i} className='scan-section'>
         <div className='scan-header'>
           <span>{t('network-inventory.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local') || NOT_AVAILABLE}</span>
           <span>{t('network-inventory.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}</span>
@@ -1568,7 +1568,7 @@ class HMDscanInfo extends Component {
     const dataType = val.type === 'processKeyword' ? 'keyword' : 'path';
 
     return (
-      <div className='form-group' key={i}>
+      <div key={i} className='form-group'>
         <label>{val.headerText}</label>
         {settingsPath[type][val.type][0][dataType] !== '' &&
           <div className='path-item'>{settingsPath[type][val.type].map(this.displaySettingsPath)}</div>

@@ -10,7 +10,6 @@ import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import Tabs from 'react-ui/build/src/components/tabs'
 
 import {BaseDataContext} from '../common/context';
-import FilterContent from '../common/filter-content'
 import helper from '../common/helper'
 import HostAnalysis from '../common/host-analysis'
 import Pagination from '../common/pagination'
@@ -48,6 +47,54 @@ const SCAN_RESULT = [
   result: 'fileIntegrityResult',
   count: 'getFileIntegrityTotalCnt'
 }];
+const HMD_LIST = [
+  {
+    value: 'isScanProc',
+    text: 'Yara Scan'
+  },
+  {
+    value: 'isScanFile',
+    text: 'Malware'
+  },
+  {
+    value: 'isGCB',
+    text: 'GCB'
+  },
+  {
+    value: 'isFileIntegrity',
+    text: 'File Integrity'
+  },
+  {
+    value: 'isProcessMonitor',
+    text: 'Process Monitor'
+  },
+  {
+    value: 'isIR',
+    text: 'IR'
+  }
+];
+const HMD_STATUS_LIST = [
+  {
+    value: 'isLatestVersion',
+    text: 'Latest Version'
+  },
+  {
+    value: 'isOldVersion',
+    text: 'Old Version'
+  },
+  {
+    value: 'isOwnerNull',
+    text: 'No Owner'
+  },
+  {
+    value: 'isAreaNull',
+    text: 'No Area'
+  },
+  {
+    value: 'isSeatNull',
+    text: 'No Seat'
+  }
+];
 
 let t = null;
 let f = null;
@@ -72,21 +119,24 @@ class HostController extends Component {
       datetime: Moment().local().format('YYYY-MM-DDTHH:mm:ss'),
       hostAnalysisOpen: false,
       severityList: [],
-      hmdList: [],
       privateMaskedIPlist: [],
       filterNav: {
         severitySelected: [],
         hmdSelected: [],
+        hmdStatusSelected: [],
         maskedIPSelected: []
+      },
+      deviceSearch: {
+        ip: '',
+        mac: '',
+        hostName: '',
+        deviceType: '',
+        system: ''
       },
       subTabMenu: {
         table: t('host.txt-hostList'),
         statistics: t('host.txt-deviceMap')
       },
-      filterData: [{
-        condition: 'ip',
-        query: ''
-      }],
       hostInfo: {
         dataContent: [],
         totalCount: 0,
@@ -99,90 +149,10 @@ class HostController extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    this.getSeverityList();
-    this.getHMDlist();
-    this.getPrivateMaskedIp();
     this.getHostData();
   }
-  /**
-   * Get and set Severity list
-   * @method
-   */
-  getSeverityList = () => {
-    const severityList = _.map(SEVERITY_TYPE, val => {
-      return {
-        value: val.toLowerCase(),
-        text: val
-      };
-    })
+  ryan = () => {
 
-    this.setState({
-      severityList
-    });
-  }
-  /**
-   * Get and set HMD list
-   * @method
-   */
-  getHMDlist = () => {
-    const hmdList = [
-      {
-        value: 'isScanProc',
-        text: 'Yara Scan'
-      },
-      {
-        value: 'isScanFile',
-        text: 'Malware'
-      },
-      {
-        value: 'isGCB',
-        text: 'GCB'
-      },
-      {
-        value: 'isFileIntegrity',
-        text: 'File Integrity'
-      },
-      {
-        value: 'isProcessMonitor',
-        text: 'Process Monitor'
-      },
-      {
-        value: 'isIR',
-        text: 'IR'
-      }
-    ];
-
-    this.setState({
-      hmdList
-    });
-  }
-  /**
-   * Get and set Private Masked IP list
-   * @method
-   */
-  getPrivateMaskedIp = () => {
-    const privateMaskedIPlist = [
-      {
-        value: '192.168.0.xx',
-        text: '192.168.0.xx'
-      },
-      {
-        value: '192.168.20.xx',
-        text: '192.168.20.xx'
-      },
-      {
-        value: '172.18.100.xx',
-        text: '172.18.100.xx'
-      },
-      {
-        value: '172.18.0.xx',
-        text: '172.18.0.xx'
-      }
-    ];
-
-    this.setState({
-      privateMaskedIPlist
-    });
   }
   /**
    * Get and set host info data
@@ -190,37 +160,50 @@ class HostController extends Component {
    */
   getHostData = () => {
     const {baseUrl} = this.context;
-    const {datetime, filterNav, filterData, hostInfo} = this.state;
+    const {datetime, filterNav, deviceSearch, hostInfo} = this.state;
     let url = `${baseUrl}/api/ipdevice/assessment/_search?page=${hostInfo.currentPage}&pageSize=${hostInfo.pageSize}`;
     let requestData = {
       timestamp: [
-        Moment(helper.getSubstractDate(1, 'day', datetime)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-        Moment(datetime).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+        '2020-09-23T16:00:00Z', '2020-09-24T16:00:00Z'
+        //Moment(helper.getSubstractDate(1, 'day', datetime)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+        //Moment(datetime).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
       ]
     };
 
     if (filterNav.severitySelected.length > 0) {
-      return;
+      requestData.severityLevel = filterNav.severitySelected;
     }
 
     if (filterNav.hmdSelected.length > 0) {
-      requestData.isHmd = true;
+      requestData.scanInfo = filterNav.hmdSelected;
+    }
 
-      _.forEach(filterNav.hmdSelected, val => {
-        requestData[val] = true;
-      })
+    if (filterNav.hmdStatusSelected.length > 0) {
+      requestData.devInfo = filterNav.hmdStatusSelected;
     }
 
     if (filterNav.maskedIPSelected.length > 0) {
-      return;
+      requestData.maskedIp = filterNav.maskedIPSelected;
     }
 
-    if (filterData.length > 0) {
-      _.forEach(filterData, val => {
-        if (val.query) {
-          requestData[val.condition] = val.query.trim();
-        }
-      })
+    if (deviceSearch.ip) {
+      requestData.ip = deviceSearch.ip;
+    }
+
+    if (deviceSearch.mac) {
+      requestData.mac = deviceSearch.mac;
+    }
+
+    if (deviceSearch.hostName) {
+      requestData.hostName = deviceSearch.hostName;
+    }
+
+    if (deviceSearch.deviceType) {
+      requestData.deviceType = deviceSearch.deviceType;
+    }
+
+    if (deviceSearch.system) {
+      requestData.system = deviceSearch.system;
     }
 
     this.ah.one({
@@ -231,11 +214,35 @@ class HostController extends Component {
     })
     .then(data => {
       if (data) {
+        let severityList = [];
+        let privateMaskedIPlist = [];
         let tempHostInfo = {...hostInfo};
         tempHostInfo.dataContent = data.rows;
         tempHostInfo.totalCount = data.counts;
 
+        _.forEach(SEVERITY_TYPE, val => { //Create formattedSeverityType object for input data based on severity
+          _.forEach(data.severityAgg, (val2, key) => {
+            if (val === key) {
+              severityList.push({
+                value: val,
+                text: val + ' (' + helper.numberWithCommas(val2) + ')'
+              });
+            }
+          })
+        })
+
+        _.forEach(data.InternalMaskedIpWithDevCount, val => {
+          if (val.key) {
+            privateMaskedIPlist.push({
+              value: val.key,
+              text: val.key + ' (' + helper.numberWithCommas(val.doc_count) + ')'
+            });
+          }
+        });
+
         this.setState({
+          severityList,
+          privateMaskedIPlist,
           hostInfo: tempHostInfo
         });
 
@@ -278,16 +285,6 @@ class HostController extends Component {
     });
   }
   /**
-   * Set filter data
-   * @method
-   * @param {array.<object>} filterData - filter data to be set
-   */
-  setFilterData = (filterData) => {
-    this.setState({
-      filterData
-    });
-  }
-  /**
    * Handle search submit
    * @method
    */
@@ -304,20 +301,6 @@ class HostController extends Component {
     });
   }
   /**
-   * Handle Host filter reset
-   * @method
-   */
-  handleResetBtn = () => {
-    const filterData = [{
-      condition: 'ip',
-      query: ''
-    }];
-
-    this.setState({
-      filterData
-    });
-  }
-  /**
    * Handle content tab change
    * @method
    * @param {string} type - content type ('hostList' or 'deviceMap')
@@ -325,6 +308,112 @@ class HostController extends Component {
   handleSubTabChange = (type) => {
     this.setState({
       activeSubTab: type
+    });
+  }
+  /**
+   * Handle Host data filter change
+   * @method
+   * @param {string} type - filter type ('severitySelected', hmdSelected', 'maskedIPSelected')
+   * @param {array} value - selected hmd array
+   */
+  handleFilterNavChange = (type, value) => {
+    let tempFilterNav = {...this.state.filterNav};
+    tempFilterNav[type] = value;
+
+    this.setState({
+      filterNav: tempFilterNav
+    }, () => {
+      this.getHostData();
+    });
+  }
+  /**
+   * Handle filter input value change
+   * @method
+   * @param {string} type - input type
+   * @param {object} event - input value
+   */
+  handleDeviceSearch = (type, event) => {
+    let tempDeviceSearch = {...this.state.deviceSearch};
+    tempDeviceSearch[type] = event.target.value.trim();
+
+    this.setState({
+      deviceSearch: tempDeviceSearch
+    });
+  }
+  /**
+   * Display filter content
+   * @method
+   * @returns HTML DOM
+   */
+  renderFilter = () => {
+    const {showFilter, deviceSearch} = this.state;
+
+    return (
+      <div className={cx('main-filter', {'active': showFilter})}>
+        <i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}></i>
+        <div className='header-text'>{t('txt-filter')}</div>
+        <div className='filter-section config'>
+          <div className='group'>
+            <label htmlFor='deviceSearchIP'>{t('ipFields.ip')}</label>
+            <input
+              id='deviceSearchIP'
+              type='text'
+              value={deviceSearch.ip}
+              onChange={this.handleDeviceSearch.bind(this, 'ip')} />
+          </div>
+          <div className='group'>
+            <label htmlFor='deviceSearchMac'>{t('ipFields.mac')}</label>
+            <input
+              id='deviceSearchMac'
+              type='text'
+              value={deviceSearch.mac}
+              onChange={this.handleDeviceSearch.bind(this, 'mac')} />
+          </div>
+          <div className='group'>
+            <label htmlFor='deviceSearchHostName'>{t('ipFields.hostName')}</label>
+            <input
+              id='deviceSearchHostName'
+              type='text'
+              value={deviceSearch.hostName}
+              onChange={this.handleDeviceSearch.bind(this, 'hostName')} />
+          </div>
+          <div className='group'>
+            <label htmlFor='deviceSearchDeviceType'>{t('ipFields.deviceType')}</label>
+            <input
+              id='deviceSearchDeviceType'
+              type='text'
+              value={deviceSearch.deviceType}
+              onChange={this.handleDeviceSearch.bind(this, 'deviceType')} />
+          </div>
+          <div className='group'>
+            <label htmlFor='deviceSearchSystem'>{t('ipFields.system')}</label>
+            <input
+              id='deviceSearchSystem'
+              type='text'
+              value={deviceSearch.system}
+              onChange={this.handleDeviceSearch.bind(this, 'system')} />
+          </div>
+        </div>
+        <div className='button-group'>
+          <button className='filter' onClick={this.handleSearchSubmit}>{t('txt-filter')}</button>
+          <button className='clear' onClick={this.clearFilter}>{t('txt-clear')}</button>
+        </div>
+      </div>
+    )
+  }
+  /**
+   * Clear filter input value
+   * @method
+   */
+  clearFilter = () => {
+    this.setState({
+      deviceSearch: {
+        ip: '',
+        mac: '',
+        hostName: '',
+        deviceType: '',
+        system: ''
+      }
     });
   }
   /**
@@ -558,22 +647,6 @@ class HostController extends Component {
       this.getHostData();
     });
   }
-  /**
-   * Handle Host data filter change
-   * @method
-   * @param {string} type - filter type ('severitySelected', hmdSelected', 'maskedIPSelected')
-   * @param {array} value - selected hmd array
-   */
-  handleFilterNavChange = (type, value) => {
-    let tempFilterNav = {...this.state.filterNav};
-    tempFilterNav[type] = value;
-
-    this.setState({
-      filterNav: tempFilterNav
-    }, () => {
-      this.getHostData();
-    });
-  }
   render() {
     const {
       activeSubTab,
@@ -582,20 +655,11 @@ class HostController extends Component {
       datetime,
       hostAnalysisOpen,
       severityList,
-      hmdList,
       privateMaskedIPlist,
       filterNav,
-      filterData,
       hostInfo,
       hostData
     } = this.state;
-    let filterDataCount = 0;
-
-    _.forEach(filterData, val => {
-      if (val.query) {
-        filterDataCount++;
-      }
-    })  
 
     return (
       <div>
@@ -608,7 +672,7 @@ class HostController extends Component {
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i><span>({filterDataCount})</span></button>
+            <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
           </div>
 
           <SearchOptions
@@ -629,13 +693,19 @@ class HostController extends Component {
                   onChange={this.handleFilterNavChange.bind(this, 'severitySelected')} />
               </div>
               <div>
-                <label className={cx('header-text', {'hide': !showLeftNav})}>HMD</label>
+                <label className={cx('header-text', {'hide': !showLeftNav})}>Scan Status</label>
                 <CheckboxGroup
-                  list={hmdList}
+                  list={HMD_LIST}
                   value={filterNav.hmdSelected}
                   onChange={this.handleFilterNavChange.bind(this, 'hmdSelected')} />
               </div>
-
+              <div>
+                <label className={cx('header-text', {'hide': !showLeftNav})}>HMD Status</label>
+                <CheckboxGroup
+                  list={HMD_STATUS_LIST}
+                  value={filterNav.hmdStatusSelected}
+                  onChange={this.handleFilterNavChange.bind(this, 'hmdStatusSelected')} />
+              </div>
               <div>
                 <label className={cx('header-text', {'hide': !showLeftNav})}>{t('alert.txt-privateMaskedIp')}</label>
                 <CheckboxGroup
@@ -650,14 +720,8 @@ class HostController extends Component {
           </div>
 
           <div className='parent-content'>
-            <FilterContent
-              activeTab='host'
-              showFilter={showFilter}
-              filterData={filterData}
-              setFilterData={this.setFilterData}
-              toggleFilter={this.toggleFilter}
-              handleSearchSubmit={this.handleSearchSubmit}
-              handleResetBtn={this.handleResetBtn} />
+            {this.renderFilter()}
+
             <div className='host-list'>
               <header>{t('host.txt-hostList2')}</header>
               {hostInfo.totalCount > 0 &&
@@ -677,9 +741,9 @@ class HostController extends Component {
 
               {activeSubTab === 'hostList' &&
                 <div className='table-content'>
-                  <div className='table'>
+                  <div className='table' style={{height: '65vh'}}>
                     <ul className='host-list'>
-                      {hostInfo.dataContent.length > 0 &&
+                      {hostInfo.dataContent && hostInfo.dataContent.length > 0 &&
                         hostInfo.dataContent.map(this.getHostList)
                       }
                     </ul>
