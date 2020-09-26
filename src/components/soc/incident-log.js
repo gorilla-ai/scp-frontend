@@ -9,6 +9,8 @@ import Input from "react-ui/build/src/components/input";
 import TableContent from "../common/table-content";
 import {Link} from "react-router-dom";
 import DropDownList from "react-ui/build/src/components/dropdown";
+import DateRange from "react-ui/build/src/components/date-range";
+import Moment from "moment";
 
 let t = null;
 let f = null;
@@ -36,7 +38,12 @@ class IncidentLog extends Component {
             logSearch: {
                 keyword: '',
                 type: '',
-                status: ''
+                status: '',
+                dttmType: 'createdDttm',
+                datetime: {
+                    from: helper.getSubstractDate(1, 'month'),
+                    to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+                },
             },
             incidentLog: {
                 dataFieldsArr: ['id', 'type', 'status', 'createDttm', 'updateDttm', 'sendTime'],
@@ -75,7 +82,7 @@ class IncidentLog extends Component {
     getData = (fromSearch) => {
         const {baseUrl, contextRoot} = this.context;
         const {logSearch, incidentLog} = this.state;
-        const url = `${baseUrl}/api/soc/log/_search?page=${incidentLog.currentPage}&pageSize=${incidentLog.pageSize}`;
+        const url = `${baseUrl}/api/soc/log/_searchV2?page=${incidentLog.currentPage}&pageSize=${incidentLog.pageSize}`;
         let requestData = {};
 
         if (logSearch.keyword) {
@@ -88,6 +95,15 @@ class IncidentLog extends Component {
 
         if (logSearch.status) {
             requestData.status = logSearch.status;
+        }
+
+        if (logSearch.dttmType) {
+            requestData.dttmType = logSearch.dttmType;
+        }
+
+        if (logSearch.datetime) {
+            requestData.startDttm =   Moment(logSearch.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+            requestData.endDttm =   Moment(logSearch.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
         }
 
         this.ah.one({
@@ -225,7 +241,7 @@ class IncidentLog extends Component {
      */
     renderFilter = () => {
         const {showFilter, logSearch} = this.state;
-
+        const {locale} = this.context;
         return (
             <div className={cx('main-filter', {'active': showFilter})}>
                 <i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}/>
@@ -278,6 +294,40 @@ class IncidentLog extends Component {
                             ]}
                             value={logSearch.status}
                             onChange={this.handleLogSearch.bind(this, 'status')}/>
+                    </div>
+                    <div className='group'>
+                        <label htmlFor='searchDttmType'>{it('txt-searchDttmType')}</label>
+                        <DropDownList
+                            id='searchDttmType'
+                            list={[
+                                {
+                                    value: 'sendDttm',
+                                    text: f('incidentFields.sendTime')
+                                },
+                                {
+                                    value: 'updateDttm',
+                                    text: f('incidentFields.updateDttm')
+                                },
+                                {
+                                    value: 'createdDttm',
+                                    text: f('incidentFields.createDttm')
+                                }
+                            ]}
+                            required={true}
+                            value={logSearch.dttmType}
+                            onChange={this.handleLogSearch.bind(this, 'dttmType')}/>
+
+                    </div>
+                    <div className='group'>
+                        <label htmlFor='searchDttm'>{it('txt-searchDttm')}</label>
+                        <DateRange
+                            id='datetime'
+                            className='daterange'
+                            enableTime={true}
+                            value={logSearch.datetime}
+                            onChange={this.handleLogSearch.bind(this, 'datetime')}
+                            locale={locale}
+                            t={et} />
                     </div>
                 </div>
                 <div className='button-group'>
@@ -373,8 +423,13 @@ class IncidentLog extends Component {
             logSearch: {
                 keyword: '',
                 type: '',
-                status: ''
-            }
+                status: '',
+                dttmType: 'createdDttm',
+                datetime: {
+                    from: helper.getSubstractDate(1, 'month'),
+                    to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+                },
+            },
         });
     };
 
