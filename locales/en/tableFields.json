@@ -506,14 +506,15 @@
     "_IsPE": "Is PE?",
     "_IsPEextension": "Is PEextension?",
     "_IsVerifyTrust": "Is VerifyTrust?",
-    "hostIdArrCnt": "Available Count in Host",
-    "totalHostCnt": "Total Host Count"
+    "hostIdArrCnt": "Available Count in Host"
   },
   "edgeFields": {
     "agentName": "Name",
     "ipPort": "VPN IP",
+    "groupList": "Group",
     "descriptionEdge": "Description",
     "keywords": "Keywords",
+    "groups": "Group",
     "serviceType": "Service Type",
     "connectionStatus": "Connection Status",
     "txt-lastAlertDataUpdDT": "Latest alert data update time",

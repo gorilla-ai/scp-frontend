@@ -527,14 +527,19 @@ html[data-theme='dark'] {
         height: 50px;
         padding-top: 15px;
         overflow: hidden;
+        .refresh {
+          position: absolute;
+          top: 15px;
+          left: 0;
+        }
         .last-update {
           float: right;
           margin-top: 5px;
+          margin-right: 10px;
         }
         .btn {
           float: right;
           padding: .3em .5em;
-          margin-left: 10px;
         }
       }
       .table {
@@ -618,7 +623,7 @@ html[data-theme='dark'] {
             .rule {
               padding: 5px 45px;
               border-top: 1px solid var(--primaryBorder);
-              .rule-content {
+              .item-content {
                 margin-bottom: 2px;
                 .header,
                 .tree-content {
@@ -657,11 +662,15 @@ html[data-theme='dark'] {
                     display: none;
                   }
                   ul {
-                    padding: 10px;
                     width: 20%;
+                    padding: 10px;
                     li span {
                       color: var(--primaryContentHeader);
                     }
+                    &.no-padding {
+                      width: 100%;
+                      padding: 0;
+                    } 
                   }
                 }
                 i.fg {
@@ -697,54 +706,94 @@ html[data-theme='dark'] {
       }
       .settings {
         position: relative;
-        .settings-wrapper {
-          overflow-y: auto;
+        overflow: hidden;
+        .btn {
+          padding: .3em .5em;
         }
-        .options-btn {
-          float: right;
-          margin-top: 10px;
-          margin-right: 10px;
-          .btn {
-            padding: .3em .5em;
-          }
-          .restore-default,
+        & > button,
+        .edit-btns {
+          position: absolute;
+          top: 15px;
+        }
+        .edit,
+        .edit-btns {
+          right: 10px;
+        }
+        .edit-btns {
+          .cancel,
           .save,
-          .cancel {
+          .restore-default {
             float: right;
           }
-          .restore-default,
-          .save {
+          .save,
+          .restore-default {
             margin-right: 5px;
           }
         }
-        .toggle-btn {
-          position: absolute;
-          top: 65px;
-          left: 135px;
-          label {
-            display: inherit;
+        .settings-wrapper {
+          margin-top: 60px;
+          overflow-y: auto;
+          header {
+            float: left;
+            padding-left: 10px;
           }
-        }
-        .settings-form {
-          margin: 0 10px;
-          .form-group {
-            margin-bottom: 20px;
-            label {
-              display: block;
-              text-align: left;
-              font-size: .9em;
-              color: var(--primaryContentHeader);
-              margin-bottom: 3px;
+          .settings-group {
+            position: relative;
+            border-top: 2px solid var(--primaryBorder);
+            .info {
+              position: absolute;
+              top: 0;
+              right: 10px;
             }
-            .flex-item {
-              margin-top: 10px;
-              span {
-                font-size: 14px;
-                color: #fff;
-                padding: 5px 10px;
-                margin: 3px 2px;
-                border-radius: 5px;
-                background-color: var(--primaryContentHeader);
+          }
+          .toggle-btn {
+            float: left;
+            margin-top: 15px;
+            label {
+              display: inherit;
+            }
+          }
+          .settings-form {
+            margin: 0 10px;
+            clear: both;
+            .form-group {
+              margin-bottom: 10px;
+              label {
+                display: block;
+                text-align: left;
+                font-size: .9em;
+                color: var(--primaryContentHeader);
+                margin-bottom: 3px;
+              }
+              .path-item {
+                .item {
+                  display: inline-block;
+                  margin-top: 8px;
+                  margin-bottom: 15px;
+                }
+                .block {
+                  display: block;
+                }
+                span {
+                  font-size: 14px;
+                  color: #fff;
+                  padding: 5px 10px;
+                  margin: 3px 2px;
+                  border-radius: 5px;
+                  background-color: var(--primaryContentHeader);
+                }
+              }
+            }
+            .path-group {
+              margin-bottom: 20px;
+              .path-input {
+                width: 1130px;
+                &.short {
+                  width: 255px;
+                }
+                .error {
+                  border-color: #da364a;
+                }
               }
             }
           }
@@ -879,6 +928,7 @@ html[data-theme='dark'] {
           float: right;
           cursor: pointer;
           .multi-items {
+            float: right;
             overflow: hidden;
             span {
               display: block;
@@ -1009,7 +1059,7 @@ html[data-theme='dark'] {
         }
       }
       .dashboard-wrapper {
-        height: 365px;
+        height: 360px;
       }
       .scan-wrapper {
         margin-top: 5px;
@@ -1018,7 +1068,7 @@ html[data-theme='dark'] {
         }
       }
       .settings-wrapper {
-        height: 340px;
+        height: 330px;
       }
     }
   }
@@ -1048,7 +1098,7 @@ html[data-theme='dark'] {
         }
       }
       .settings-wrapper {
-        height: 455px;
+        height: 445px;
       }      
     }
   }
@@ -1078,7 +1128,6 @@ html[data-theme='dark'] {
 #departmentTitleDialog-content {
   width: 350px;
   height: 400px;
-  overflow-y: auto;
   .button-group {
     position: relative;
     margin: 0;
@@ -1581,6 +1630,7 @@ html[data-theme='dark'] {
   }
 }
 #yaraRuleDialog-content {
+  max-height: 500px;
   width: 600px;
   .radio-group {
     flex-direction: row;
@@ -1592,6 +1642,9 @@ html[data-theme='dark'] {
     input {
       width: 20px;
     }
+  }
+  .path-input {
+    width: 100%;
   }
 }
 #encodeDecodeDialog-content {
@@ -1610,4 +1663,32 @@ html[data-theme='dark'] {
 }
 #encodeDecodeAction {
   z-index: 10000;
+}
+#selectGroupDialog-content {
+  width: 350px;
+  height: 400px;
+  .fg-add {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 24px;
+  }
+  table {
+    width: 100%;
+    thead th {
+      text-align: left;
+    }
+  }
+  .table-data {
+    height: 340px;
+    margin-top: 35px;
+    overflow-y: auto;
+    td.group {
+      width: 90%;
+      font-size: 15px;
+    }
+    .fg {
+      font-size: 26px;
+    }
+  }
 }

@@ -126,10 +126,8 @@ class DataChart extends Component {
     }
   }
   render() {
-    const {contextRoot} = this.context;
     const {mainContentData, tabChartData, markData, tableMouseOver} = this.props;
     const {chartData} = this.state;
-    const assetsPath = `${contextRoot}/lib/keylines/assets/`;
 
     if (mainContentData.activeTab === 'connections') {
       return (

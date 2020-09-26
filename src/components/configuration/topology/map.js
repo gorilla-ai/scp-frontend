@@ -807,7 +807,7 @@ class NetworkMap extends Component {
     }
 
     this.ah.one({
-      url: `${baseUrl}/api/u1/ipdevice/_search?seatUUID=${seatUUID}`,
+      url: `${baseUrl}/api/v2/ipdevice/_search?seatUUID=${seatUUID}`,
       type: 'GET'
     })
     .then(data => {
