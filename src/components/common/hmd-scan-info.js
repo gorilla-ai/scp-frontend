@@ -48,6 +48,14 @@ const SAFETY_SCAN_LIST = [
   {
     type: 'procMonitor',
     path: 'getProcessMonitorResult'
+  },
+  {
+    type: 'snapshot',
+    path: 'snapshotResult'
+  },
+  {
+    type: 'procWhiteList',
+    path: 'procWhiteListResult'
   }
 ];
 const TRIGGER_NAME = {
@@ -56,6 +64,10 @@ const TRIGGER_NAME = {
   [SAFETY_SCAN_LIST[2].type]: 'gcbDetection',
   [SAFETY_SCAN_LIST[4].type]: 'getFileIntegrity',
   [SAFETY_SCAN_LIST[5].type]: 'getProcessMonitorResult'
+};
+const SETTINGS = {
+  snapshot: 'getSnapshot',
+  procWhiteList: 'setProcessWhiteList'
 };
 
 let scrollCount = 1;
@@ -178,10 +190,12 @@ class HMDscanInfo extends Component {
     }];
 
     _.forEach(SAFETY_SCAN_LIST, val => {
-      buttonGroupList.push({ //Create list for Button group
-        value: val.type,
-        text: t('network-inventory.scan-list.txt-' + val.type)
-      });
+      if (val.type !== 'snapshot' && val.type !== 'procWhiteList') {
+        buttonGroupList.push({ //Create list for Button group
+          value: val.type,
+          text: t('network-inventory.scan-list.txt-' + val.type)
+        });
+      }
     });
 
     if (location.pathname.indexOf('host') > 0 || location.pathname.indexOf('configuration') > 0) { //Add Settings tab for Config section
@@ -398,8 +412,8 @@ class HMDscanInfo extends Component {
     let pathData = '';
 
     if (currentDeviceData.hmdSetting && currentDeviceData.hmdSetting.length > 0) {
-      const fileIntegrityData = _.find(currentDeviceData.hmdSetting, {_CommandName: 'getSnapshot'});
-      const processMonitorData = _.find(currentDeviceData.hmdSetting, {_CommandName: 'setProcessWhiteList'});
+      const fileIntegrityData = _.find(currentDeviceData.hmdSetting, {_CommandName: SETTINGS.snapshot});
+      const processMonitorData = _.find(currentDeviceData.hmdSetting, {_CommandName: SETTINGS.procWhiteList});
 
       if (!_.isEmpty(fileIntegrityData)) {
         status = fileIntegrityData._Parameters.isJobEnable;
@@ -1090,9 +1104,9 @@ class HMDscanInfo extends Component {
         this.props.toggleYaraRule(ipType);
       } else {
         if (activeTab === 'settings') { //For Settings tab
-          if (type === 'fileIntegrity') {
-            this.props.triggerTask(['getSnapshot']);
-          } else if (type === 'procMonitor') {
+          if (type === 'snapshot') {
+            this.props.triggerTask([SETTINGS[type]]);
+          } else if (type === 'procWhiteList') {
             const procMonitorPath = this.state.settingsPath.procMonitor.includePath;
             let formattedPath = [];
 
@@ -1102,29 +1116,33 @@ class HMDscanInfo extends Component {
               }
             });
 
-            this.props.triggerTask(['setProcessWhiteList'], formattedPath);
+            this.props.triggerTask([SETTINGS[type]], formattedPath);
           }
         } else {
           this.props.triggerTask([TRIGGER_NAME[activeTab]], ipType);
         }
-
-        this.setState({
-          disabledBtn: true
-        });
       }
     }
   }
   /**
    * Display trigger button info for scan type
    * @method
-   * @param {string} type - tab ('procMonitor' or 'settings')
+   * @param {string} [type] - tab ('fileIntegrity' or 'procMonitor')
    * @returns HTML DOM
    */
   getTriggerBtnInfo = (type) => {
     const {ipType} = this.props;
     const {activeTab, hmdInfo} = this.state;
     const btnText = activeTab === 'ir' ? t('network-inventory.txt-reCompress') : t('network-inventory.txt-reCheck');
-    const currentTab = type ? type : activeTab;
+    let currentTab = activeTab;
+
+    if (type) { //Exceptions for Settings tab
+      if (type === 'fileIntegrity') {
+        currentTab = 'snapshot';
+      } else if (type === 'procMonitor') {
+        currentTab = 'procWhiteList';
+      }
+    }
 
     return (
       <div className='info'>
@@ -1570,7 +1588,21 @@ class HMDscanInfo extends Component {
    */
   setPathData = (type, listType, pathData) => {
     let tempSettingsPath = {...this.state.settingsPath};
-    tempSettingsPath[type][listType] = pathData;
+    let setPathData = pathData;
+
+    if (pathData.length === 0) {
+      if (listType === 'processKeyword') {
+        setPathData = [{
+          keyword: ''
+        }];
+      } else {
+        setPathData = [{
+          path: ''
+        }];
+      }
+    }
+
+    tempSettingsPath[type][listType] = setPathData;
 
     this.setState({
       settingsPath: tempSettingsPath
@@ -1606,7 +1638,7 @@ class HMDscanInfo extends Component {
   /**
    * Display view/edit settings content
    * @method
-   * @param {object} val - settings object
+   * @param {object} val - settings object ('fileIntegrity' or 'procMonitor')
    * @param {number} i - index of the settings array
    * @returns HTML DOM
    */
@@ -1614,7 +1646,7 @@ class HMDscanInfo extends Component {
     const {settingsActiveContent, fileIntegrityEnable} = this.state;
 
     return (
-      <div className='settings-group' key={i}>
+      <div key={i} className='settings-group'>
         {settingsActiveContent === 'viewMode' &&
           this.getTriggerBtnInfo(val.type)
         }
@@ -1676,7 +1708,7 @@ class HMDscanInfo extends Component {
       hostId: currentDeviceData.ipDeviceUUID,
       hmdSetting: [
         {
-          _CommandName: 'getSnapshot',
+          _CommandName: SETTINGS.snapshot,
           _Parameters: {
             _IncludePathList: this.getSavedSettings(true, 'path', settingsPath.fileIntegrity.includePath),
             _ExcludePathList: this.getSavedSettings(false, 'path', settingsPath.fileIntegrity.excludePath),
@@ -1686,7 +1718,7 @@ class HMDscanInfo extends Component {
           }
         },
         {
-          _CommandName: 'setProcessWhiteList',
+          _CommandName: SETTINGS.procWhiteList,
           _Parameters: {
             _WhiteList: this.getSavedSettings(false, 'path', settingsPath.procMonitor.includePath)
           }

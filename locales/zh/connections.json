@@ -385,7 +385,7 @@
     "txt-serviceNotifications": "服務通知設定",
     "txt-edgeNotifications": "Edge設備通知設定",
     "txt-alertNotifications": "告警通知設定",
-    "txt-socNotifications": "事件申報通知設定",
+    "txt-socNotifications": "事件通知設定",
     "txt-serviceError": "服務狀態錯誤",
     "txt-conectionsError": "連線狀態錯誤",
     "txt-dailyAlert": "每日告警統計",
