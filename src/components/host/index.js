@@ -6,6 +6,7 @@ import cx from 'classnames'
 
 import CheckboxGroup from 'react-ui/build/src/components/checkbox-group'
 import ContextMenu from 'react-ui/build/src/components/contextmenu'
+import DropDownList from 'react-ui/build/src/components/dropdown'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import Tabs from 'react-ui/build/src/components/tabs'
 
@@ -75,6 +76,10 @@ const HMD_LIST = [
 ];
 const HMD_STATUS_LIST = [
   {
+    value: 'notHmd',
+    text: 'Not Installed'
+  },
+  {
     value: 'isLatestVersion',
     text: 'Latest Version'
   },
@@ -93,6 +98,40 @@ const HMD_STATUS_LIST = [
   {
     value: 'isSeatNull',
     text: 'No Seat'
+  }
+];
+const HOST_SORT_LIST = [
+  {
+    name: 'ip',
+    type: 'asc'
+  },
+  {
+    name: 'ip',
+    type: 'desc'
+  },
+  {
+    name: 'mac',
+    type: 'asc'
+  },
+  {
+    name: 'mac',
+    type: 'desc'
+  },
+  {
+    name: 'hostName',
+    type: 'asc'
+  },
+  {
+    name: 'hostName',
+    type: 'desc'
+  },
+  {
+    name: 'system',
+    type: 'asc'
+  },
+  {
+    name: 'system',
+    type: 'desc'
   }
 ];
 
@@ -114,9 +153,9 @@ class HostController extends Component {
 
     this.state = {
       activeSubTab: 'hostList', //'hostList', 'deviceMap'
-      showFilter: true,
+      showFilter: false,
       showLeftNav: true,
-      datetime: Moment().local().format('YYYY-MM-DDTHH:mm:ss'),
+      datetime: helper.getSubstractDate(1, 'day', Moment().local().format('YYYY-MM-DD') + 'T00:00:00'),
       hostAnalysisOpen: false,
       severityList: [],
       privateMaskedIPlist: [],
@@ -143,16 +182,50 @@ class HostController extends Component {
         currentPage: 1,
         pageSize: 20
       },
-      hostData: {}
+      hostData: {},
+      hostSortList: [],
+      hostSort: 'ip-asc',
     };
 
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    this.getHostSortList();
     this.getHostData();
   }
   ryan = () => {
 
+  }
+  /**
+   * Get and set host sort list
+   * @method
+   */
+  getHostSortList = () => {
+    const hostSortList = _.map(HOST_SORT_LIST, val => {
+      return {
+        value: val.name + '-' + val.type,
+        text: t('ipFields.' + val.name) + ' - ' + t('txt-' + val.type)
+      }
+    });
+
+    this.setState({
+      hostSortList
+    });
+  }
+  /**
+   * Get formatted datetime
+   * @method
+   * @returns formatted datetime object
+   */
+  getHostDateTime = () => {
+    const {datetime} = this.state;
+
+    return {
+      //from: '2020-09-25T16:00:00Z',
+      //to: '2020-09-26T16:00:00Z'
+      from: Moment(datetime).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: Moment(helper.getAdditionDate(1, 'day', datetime)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    }
   }
   /**
    * Get and set host info data
@@ -160,14 +233,12 @@ class HostController extends Component {
    */
   getHostData = () => {
     const {baseUrl} = this.context;
-    const {datetime, filterNav, deviceSearch, hostInfo} = this.state;
-    let url = `${baseUrl}/api/ipdevice/assessment/_search?page=${hostInfo.currentPage}&pageSize=${hostInfo.pageSize}`;
+    const {filterNav, deviceSearch, hostInfo, hostSort} = this.state;
+    const hostSortArr = hostSort.split('-');
+    const url = `${baseUrl}/api/ipdevice/assessment/_search?page=${hostInfo.currentPage}&pageSize=${hostInfo.pageSize}&orders=${hostSortArr[0]} ${hostSortArr[1]}`;
+    const datetime = this.getHostDateTime('default');
     let requestData = {
-      timestamp: [
-        '2020-09-23T16:00:00Z', '2020-09-24T16:00:00Z'
-        //Moment(helper.getSubstractDate(1, 'day', datetime)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-        //Moment(datetime).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
-      ]
+      timestamp: [datetime.from, datetime.to]
     };
 
     if (filterNav.severitySelected.length > 0) {
@@ -218,14 +289,14 @@ class HostController extends Component {
         let privateMaskedIPlist = [];
         let tempHostInfo = {...hostInfo};
         tempHostInfo.dataContent = data.rows;
-        tempHostInfo.totalCount = data.counts;
+        tempHostInfo.totalCount = data.count;
 
         _.forEach(SEVERITY_TYPE, val => { //Create formattedSeverityType object for input data based on severity
           _.forEach(data.severityAgg, (val2, key) => {
             if (val === key) {
               severityList.push({
                 value: val,
-                text: val + ' (' + helper.numberWithCommas(val2) + ')'
+                text: <span><i className={'fg fg-recode ' + val.toLowerCase()}></i>{val + ' (' + helper.numberWithCommas(val2) + ')'}</span>
               });
             }
           })
@@ -246,7 +317,7 @@ class HostController extends Component {
           hostInfo: tempHostInfo
         });
 
-        if (data.counts === 0) {
+        if (data.count === 0) {
           helper.showPopupMsg(t('txt-notFound'));
         }
       }
@@ -275,13 +346,25 @@ class HostController extends Component {
     });
   }
   /**
-   * Set new datetime and reload page data
+   * Set new datetime
    * @method
    * @param {object} datetime - new datetime object
    */
   handleDateChange = (datetime) => {
     this.setState({
       datetime
+    });
+  }
+  /**
+   * Handle Host sort change
+   * @method
+   * @param {string} val - new sort value
+   */
+  handleHostSortChange = (val) => {
+    this.setState({
+      hostSort: val
+    }, () => {
+      this.getHostData();
     });
   }
   /**
@@ -478,23 +561,24 @@ class HostController extends Component {
    */
   getIPdeviceInfo = (host) => {
     const {baseUrl} = this.context;
-    const {datetime, hostInfo} = this.state;
-    const dateTime = {
-      from: Moment(helper.getSubstractDate(1, 'day', datetime)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-      to: Moment(datetime).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
-    };
+    const {hostInfo} = this.state;
+    const datetime = this.getHostDateTime();
+    const url = `${baseUrl}/api/v2/ipdevice?uuid=${host.ipDeviceUUID}&page=1&pageSize=1&startDttm=${datetime.from}&endDttm=${datetime.to}`;
 
     this.ah.one({
-      url: `${baseUrl}/api/v2/ipdevice?uuid=${host.ipDeviceUUID}&page=1&pageSize=1&startDttm=${dateTime.from}&endDttm=${dateTime.to}`,
+      url,
       type: 'GET'
     })
     .then(data => {
       if (data) {
         const activeHostInfo = _.find(hostInfo.dataContent, {ipDeviceUUID: host.ipDeviceUUID});
-        const hostData = {
-          ...data,
-          severityLevel: activeHostInfo.networkBehaviorInfo.severityLevel
+        let hostData = {
+          ...data
         };
+
+        if (activeHostInfo.networkBehaviorInfo) {
+          hostData.severityLevel = activeHostInfo.networkBehaviorInfo.severityLevel;
+        }
 
         this.setState({
           hostData
@@ -658,7 +742,9 @@ class HostController extends Component {
       privateMaskedIPlist,
       filterNav,
       hostInfo,
-      hostData
+      hostData,
+      hostSortList,
+      hostSort
     } = this.state;
 
     return (
@@ -693,18 +779,18 @@ class HostController extends Component {
                   onChange={this.handleFilterNavChange.bind(this, 'severitySelected')} />
               </div>
               <div>
-                <label className={cx('header-text', {'hide': !showLeftNav})}>Scan Status</label>
-                <CheckboxGroup
-                  list={HMD_LIST}
-                  value={filterNav.hmdSelected}
-                  onChange={this.handleFilterNavChange.bind(this, 'hmdSelected')} />
-              </div>
-              <div>
                 <label className={cx('header-text', {'hide': !showLeftNav})}>HMD Status</label>
                 <CheckboxGroup
                   list={HMD_STATUS_LIST}
                   value={filterNav.hmdStatusSelected}
                   onChange={this.handleFilterNavChange.bind(this, 'hmdStatusSelected')} />
+              </div>
+              <div>
+                <label className={cx('header-text', {'hide': !showLeftNav})}>Scan Status</label>
+                <CheckboxGroup
+                  list={HMD_LIST}
+                  value={filterNav.hmdSelected}
+                  onChange={this.handleFilterNavChange.bind(this, 'hmdSelected')} />
               </div>
               <div>
                 <label className={cx('header-text', {'hide': !showLeftNav})}>{t('alert.txt-privateMaskedIp')}</label>
@@ -727,6 +813,15 @@ class HostController extends Component {
               {hostInfo.totalCount > 0 &&
                 <span>{t('txt-total')}: {helper.numberWithCommas(hostInfo.totalCount)}</span>
               }
+              <div className='sort-section'>
+                <span>{t('txt-sort')}</span>
+                <DropDownList
+                  id='hostSortList'
+                  list={hostSortList}
+                  required={true}
+                  value={hostSort}
+                  onChange={this.handleHostSortChange} />
+              </div>
             </div>
             <div className='main-content host'>
               <Tabs

@@ -5,6 +5,7 @@ import cx from 'classnames'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import Hierarchy from 'react-ui/build/src/components/hierarchy'
 
+import helper from './helper'
 import Pagination from './pagination'
 
 let t = null;
@@ -49,7 +50,7 @@ class Tree extends Component {
         if (key2 === key) {
           tabData.push({
             value: key,
-            text: val + ' (' + val2 + ')'
+            text: val + ' (' + helper.numberWithCommas(val2) + ')'
           });
         }
       })

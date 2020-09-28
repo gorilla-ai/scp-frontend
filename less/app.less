@@ -652,7 +652,8 @@ i.c-checkbox.fg-checkbox {
       }
       .datepicker {
         float: left;
-        .date-range {
+        .date-range,
+        .date-picker {
           margin-right: 15px;
         }
         .fg {
@@ -770,6 +771,7 @@ i.c-checkbox.fg-checkbox {
       }
       &::-webkit-scrollbar-thumb {
         background: #004d93;
+        box-shadow: none;
       }
       li {
         display: block;
@@ -1199,6 +1201,27 @@ i.c-checkbox.fg-checkbox {
             color: var(--buttonSelectedColor);
           }
         }
+        .fg-recode {
+          float: left;
+          font-size: 1em;
+          margin-top: 3px;
+          margin-right: 3px;
+          &.emergency {
+            color: #CC2943;
+          }
+          &.alert {
+            color: #CC7B29;
+          }
+          &.critical {
+            color: #29B0CC;
+          }
+          &.warning {
+            color: #29CC7A;
+          }
+          &.notice {
+            color: #7ACC29;
+          }
+        }
       }
       .content {
         overflow-y: auto;
@@ -1252,30 +1275,6 @@ i.c-checkbox.fg-checkbox {
         cursor: text;
         &.hide {
           display: none;
-        }
-      }
-      .alert-tree,
-      .private-tree {
-        .fg-recode {
-          float: left;
-          font-size: 1em;
-          margin-top: 3px;
-          margin-right: 3px;
-          &.emergency {
-            color: #CC2943;
-          }
-          &.alert {
-            color: #CC7B29;
-          }
-          &.critical {
-            color: #29B0CC;
-          }
-          &.warning {
-            color: #29CC7A;
-          }
-          &.notice {
-            color: #7ACC29;
-          }
         }
       }
       input,
@@ -1641,9 +1640,20 @@ i.c-checkbox.fg-checkbox {
         }
       }
       & > .host-list {
-        margin-top: 20px;
-        margin-left: 20px;
+        position: relative;
+        padding-top: 20px;
+        padding-left: 20px;
         overflow: hidden;
+        .sort-section {
+          position: absolute;
+          top: 10px;
+          right: 17px;
+          span {
+            float: left;
+            margin-right: 10px;
+            margin-top: 7px;
+          }
+        }
         header {
           float: left;
           font-size: 1.2em;
@@ -1679,11 +1689,11 @@ i.c-checkbox.fg-checkbox {
               }
               .device {
                 float: left;
-                width: 55px;
-                height: 55px;
+                width: 45px;
+                height: 45px;
                 margin-top: 5px;
-                margin-left: 40px;
-                margin-right: 40px;
+                margin-left: 45px;
+                margin-right: 45px;
                 -webkit-mask: url('/images/ic_host.svg');
                 mask: url('/images/ic_host.svg');
                 background-color: var(--primaryTextColor);
@@ -1697,7 +1707,7 @@ i.c-checkbox.fg-checkbox {
                   margin-bottom: 5px;
                 }
                 ul {
-                  margin-bottom: 15px;
+                  margin-bottom: 10px;
                   li {
                     display: inline-block;
                     color: var(--primaryTextColor);
