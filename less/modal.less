@@ -788,14 +788,8 @@ html[data-theme='dark'] {
             }
             .path-group {
               margin-bottom: 20px;
-              .path-input {
-                width: 1130px;
-                &.short {
-                  width: 255px;
-                }
-                .error {
-                  border-color: #da364a;
-                }
+              .error {
+                border-color: #da364a;
               }
             }
           }
@@ -1080,10 +1074,11 @@ html[data-theme='dark'] {
 #hostModalDialog-content {
   .main-content {
     & > .content {
+      height: 550px;
       .srcIp-content,
       .scan-info,
       & > .network-behavior {
-        height: 550px;
+        height: 525px;
       }
     }
   }
@@ -1093,6 +1088,19 @@ html[data-theme='dark'] {
     }
     .table {
       max-height: 440px;
+    }
+    .settings-wrapper {
+      height: 430px;
+      .settings-form {
+        .path-group {
+          .path-input {
+            width: 900px;
+            &.short {
+              width: 197px;
+            }
+          }
+        }
+      }
     }
   }
 }
@@ -1122,7 +1130,17 @@ html[data-theme='dark'] {
       }
       .settings-wrapper {
         height: 445px;
-      }      
+        .settings-form {
+          .path-group {
+            .path-input {
+              width: 1130px;
+              &.short {
+                width: 255px;
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

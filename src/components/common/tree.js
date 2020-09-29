@@ -85,9 +85,9 @@ class Tree extends Component {
     }
   }
   /**
-   * Handle checkbox selection change
+   * Handle tree checkbox selection change
    * @method
-   * @param {array.<string>} selectedId - selected IDs for edge
+   * @param {array.<string>} selected - selected IDs for edge
    */
   handleSelectChange = (selected) => {
     this.setState({

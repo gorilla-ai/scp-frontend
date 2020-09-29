@@ -1687,16 +1687,21 @@ i.c-checkbox.fg-checkbox {
                   color: var(--buttonTextColor);
                 }
               }
-              .device {
+              .device-alert {
                 float: left;
-                width: 45px;
-                height: 45px;
-                margin-top: 5px;
-                margin-left: 45px;
-                margin-right: 45px;
-                -webkit-mask: url('/images/ic_host.svg');
-                mask: url('/images/ic_host.svg');
-                background-color: var(--primaryTextColor);
+                padding: 10px;
+                margin-left: 35px;
+                margin-right: 35px;
+                border-radius: 35px;
+                overflow: hidden;
+                .device {
+                  float: left;
+                  width: 35px;
+                  height: 35px;
+                  -webkit-mask: url('/images/ic_host.svg');
+                  mask: url('/images/ic_host.svg');
+                  background-color: #fff;
+                }
               }
               .info {
                 float: left;
@@ -1751,7 +1756,7 @@ i.c-checkbox.fg-checkbox {
                   }
                 }
                 .sub-item {
-                  margin-top: 10px;
+                  margin-top: 15px;
                   clear: both;
                   header {
                     float: left;

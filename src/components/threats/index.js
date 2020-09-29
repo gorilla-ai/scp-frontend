@@ -1158,7 +1158,7 @@ class ThreatsController extends Component {
           nodeClass += ' ' + treeData[key]._severity_.toLowerCase();
         }
 
-        label = <span><i className={nodeClass} style={this.showSeverity(treeData[key]._severity_)}/> {key} ({helper.numberWithCommas(treeData[key].doc_count)}) <button className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</button></span>;
+        label = <span><i className={nodeClass} style={this.showSeverity(treeData[key]._severity_)} />{key} ({helper.numberWithCommas(treeData[key].doc_count)}) <button className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</button></span>;
 
         treeProperty = {
           id: key,

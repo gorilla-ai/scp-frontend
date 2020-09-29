@@ -1468,7 +1468,9 @@ class HMDscanInfo extends Component {
   getContentHeight = () => {
     const {page} = this.props;
 
-    if (page === 'threats') {
+    if (page === 'host') {
+      return 470;
+    } else if (page === 'threats') {
       return 330;
     } else if (page === 'inventory') {
       return 435;
@@ -1688,7 +1690,7 @@ class HMDscanInfo extends Component {
       }
     })
 
-    if (required && listData.length === 0) {
+    if (required && !listData[0].path) {
       helper.showPopupMsg(t('network-inventory.txt-includePathEmpty'), t('txt-error'));
       return false;
     }

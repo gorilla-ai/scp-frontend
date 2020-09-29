@@ -147,6 +147,28 @@ class HostAnalysis extends Component {
     )
   }
   /**
+   * Display safety scan info
+   * @method
+   * @returns HMDscanInfo component
+   */
+  displaySafetyScanContent = () => {
+    const {hostData} = this.props;
+
+    if (_.isEmpty(hostData.safetyScanInfo)) {
+      return <span>N/A</span>
+    } else {
+      return (
+        <HMDscanInfo
+          page='host'
+          currentDeviceData={hostData}
+          toggleYaraRule={this.toggleYaraRule}
+          toggleSelectionIR={this.toggleSelectionIR}
+          triggerTask={this.triggerTask}
+          getHMDinfo={this.props.getIPdeviceInfo} />
+      )
+    }
+  }
+  /**
    * Display Host Analysis content
    * @method
    * @returns HTML DOM
@@ -198,14 +220,8 @@ class HostAnalysis extends Component {
               this.displayInfoContent()
             }
 
-            {showContent.safety && hostData.safetyScanInfo &&
-              <HMDscanInfo
-                page='host'
-                currentDeviceData={hostData}
-                toggleYaraRule={this.toggleYaraRule}
-                toggleSelectionIR={this.toggleSelectionIR}
-                triggerTask={this.triggerTask}
-                getHMDinfo={this.props.getIPdeviceInfo} />
+            {showContent.safety &&
+              this.displaySafetyScanContent()
             }
 
             {showContent.network &&

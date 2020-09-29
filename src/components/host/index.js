@@ -7,6 +7,7 @@ import cx from 'classnames'
 import CheckboxGroup from 'react-ui/build/src/components/checkbox-group'
 import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import DropDownList from 'react-ui/build/src/components/dropdown'
+import Hierarchy from 'react-ui/build/src/components/hierarchy'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import Tabs from 'react-ui/build/src/components/tabs'
 
@@ -158,7 +159,7 @@ class HostController extends Component {
       datetime: helper.getSubstractDate(1, 'day', Moment().local().format('YYYY-MM-DD') + 'T00:00:00'),
       hostAnalysisOpen: false,
       severityList: [],
-      privateMaskedIPlist: [],
+      privateMaskedIP: {},
       filterNav: {
         severitySelected: [],
         hmdSelected: [],
@@ -286,7 +287,6 @@ class HostController extends Component {
     .then(data => {
       if (data) {
         let severityList = [];
-        let privateMaskedIPlist = [];
         let tempHostInfo = {...hostInfo};
         tempHostInfo.dataContent = data.rows;
         tempHostInfo.totalCount = data.count;
@@ -302,18 +302,10 @@ class HostController extends Component {
           })
         })
 
-        _.forEach(data.InternalMaskedIpWithDevCount, val => {
-          if (val.key) {
-            privateMaskedIPlist.push({
-              value: val.key,
-              text: val.key + ' (' + helper.numberWithCommas(val.doc_count) + ')'
-            });
-          }
-        });
+        this.getPrivateTreeData(data.InternalMaskedIpWithDevCount);
 
         this.setState({
           severityList,
-          privateMaskedIPlist,
           hostInfo: tempHostInfo
         });
 
@@ -326,6 +318,85 @@ class HostController extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+  }
+  /**
+   * Show severity level for private tree data
+   * @method
+   * @param {string} severity - severity info
+   * @returns object display property
+   */
+  showSeverity = (severity) => {
+    if (!severity) {
+      return {
+        display: 'none'
+      };
+    }
+  }
+  /**
+   * Set the alert private tree data
+   * @method
+   * @param {string} treeData - alert tree data
+   * @returns tree data object
+   */
+  getPrivateTreeData = (treeData) => {
+    const path = 'srcIp';
+    let treeObj = { //Handle service tree data
+      id: 'All',
+      children: []
+    };
+
+    _.keys(treeData)
+    .forEach(key => {
+      let tempChild = [];
+      let label = '';
+      let treeProperty = {};
+
+      if (key && key !== 'doc_count') {
+        if (treeData[key][path].buckets.length > 0) {
+          _.forEach(treeData[key][path].buckets, val => {
+            if (val.key) {
+              let nodeClass = 'fg fg-recode';
+
+              if (val._severity_) {
+                nodeClass += ' ' + val._severity_.toLowerCase();
+              }
+
+              label = <span><i className={nodeClass} />{val.key}</span>;
+
+              tempChild.push({
+                id: val.key,
+                label
+              });
+            }
+          })
+        }
+
+        let nodeClass = 'fg fg-recode';
+
+        if (treeData[key]._severity_) {
+          nodeClass += ' ' + treeData[key]._severity_.toLowerCase();
+        }
+
+        label = <span><i className={nodeClass} style={this.showSeverity(treeData[key]._severity_)} />{key} ({helper.numberWithCommas(treeData[key].doc_count)})</span>;
+
+        treeProperty = {
+          id: key,
+          label
+        };
+
+        if (tempChild.length > 0) {
+          treeProperty.children = tempChild;
+        }
+
+        treeObj.children.push(treeProperty);
+      }
+    })
+
+    treeObj.label = t('txt-all') + ' (' + helper.numberWithCommas(treeData.doc_count) + ')';
+
+    this.setState({
+      privateMaskedIPtree: treeObj
+    });
   }
   /**
    * Toggle (show/hide) the left menu
@@ -396,7 +467,7 @@ class HostController extends Component {
   /**
    * Handle Host data filter change
    * @method
-   * @param {string} type - filter type ('severitySelected', hmdSelected', 'maskedIPSelected')
+   * @param {string} type - filter type ('severitySelected', hmdSelected')
    * @param {array} value - selected hmd array
    */
   handleFilterNavChange = (type, value) => {
@@ -580,6 +651,10 @@ class HostController extends Component {
           hostData.severityLevel = activeHostInfo.networkBehaviorInfo.severityLevel;
         }
 
+        if (!hostData.safetyScanInfo) {
+          hostData.safetyScanInfo = {};
+        }
+
         this.setState({
           hostData
         }, () => {
@@ -677,7 +752,9 @@ class HostController extends Component {
 
     return (
       <li key={i}>
-        <div className='device'>
+        <div className='device-alert' style={{backgroundColor: ALERT_LEVEL_COLORS[val.severityLevel] || '#999'}}>
+          <div className='device'>
+          </div>
         </div>
         <div className='info'>
           <header>{itemHeader}</header>
@@ -739,7 +816,7 @@ class HostController extends Component {
       datetime,
       hostAnalysisOpen,
       severityList,
-      privateMaskedIPlist,
+      privateMaskedIPtree,
       filterNav,
       hostInfo,
       hostData,
@@ -794,10 +871,16 @@ class HostController extends Component {
               </div>
               <div>
                 <label className={cx('header-text', {'hide': !showLeftNav})}>{t('alert.txt-privateMaskedIp')}</label>
-                <CheckboxGroup
-                  list={privateMaskedIPlist}
-                  value={filterNav.maskedIPSelected}
-                  onChange={this.handleFilterNavChange.bind(this, 'maskedIPSelected')} />
+                <Hierarchy
+                  layout='tree'
+                  foldable={true}
+                  data={privateMaskedIPtree}
+                  selection={{
+                    enabled: true
+                  }}
+                  onSelectionChange={this.handleFilterNavChange.bind(this, 'maskedIPSelected')}
+                  selected={filterNav.maskedIPSelected}
+                  defaultOpened={['all', 'All']} />
               </div>
             </div>
             <div className='expand-collapse' onClick={this.toggleLeftNav}>
