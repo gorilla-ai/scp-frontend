@@ -161,6 +161,7 @@ class Incident extends Component {
         }
 
         search.isExecutor = _.includes(session.roles, 'SOC Executor')
+        search.account = session.accountId
 
         ah.one({
             url: `${baseUrl}/api/soc/_searchV2?page=${incident.currentPage}&pageSize=${incident.pageSize}`,
@@ -227,9 +228,9 @@ class Incident extends Component {
             }
             return null
         })
-            .catch(err => {
-                helper.showPopupMsg('', t('txt-error'), err.message)
-            })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+        })
     };
 
 
@@ -243,6 +244,7 @@ class Incident extends Component {
         const {incident} = this.state;
 
         // searchPayload.isExecutor = _.includes(session.roles, 'SOC Executor')
+        searchPayload.account = session.accountId
 
         ah.one({
             url: `${baseUrl}/api/soc/_searchV2?page=${incident.currentPage}&pageSize=${incident.pageSize}`,
@@ -324,7 +326,8 @@ class Incident extends Component {
             startDttm: Moment(helper.getSubstractDate(1, 'month')).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
             endDttm: Moment(Moment().local().format('YYYY-MM-DDTHH:mm:ss')).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
             isExpired: 2,
-            isExecutor
+            isExecutor,
+            account: session.accountId
         }
         
         ah.all([
