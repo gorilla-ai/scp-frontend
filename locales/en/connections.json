@@ -270,7 +270,14 @@
     "txt-deviceMap": "Device Map",
     "txt-viewInfo": "View Info",
     "txt-hostList2": "Host",
-    "txt-hostAnalysis": "Host Analysis Info"
+    "txt-hostAnalysis": "Host Analysis Info",
+    "txt-hostCreateTime": "Create Date Time",
+    "txt-isNotHmd": "Not Installed",
+    "txt-isLatestVersion": "Latest Version",
+    "txt-isOldVersion": "Not Upgraded",
+    "txt-isOwnerNull": "No Owner",
+    "txt-isAreaNull": "No Area",
+    "txt-isSeatNull": "No Seat"
   },
 
   "alert": {

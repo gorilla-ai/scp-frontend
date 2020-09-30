@@ -1088,7 +1088,6 @@ i.c-checkbox.fg-checkbox {
         position: absolute;
         top: 14px;
         left: 320px;
-        width: 145px;
       }
       .floor-map {
         overflow: hidden;
@@ -1662,6 +1661,8 @@ i.c-checkbox.fg-checkbox {
           margin-right: 15px;
         }
         span {
+          float: left;
+          margin-right: 15px;
           display: block;
           margin-top: 3px;
         }
@@ -1774,7 +1775,8 @@ i.c-checkbox.fg-checkbox {
                       color: #fff;
                       font-size: 14px;
                       padding: 5px 10px;
-                      margin: 3px 2px;
+                      margin-top: 5px;
+                      margin-right: 10px;
                       border-radius: 5px;
                       background-color: var(--primaryContentHeader);                      
                     }
@@ -1792,6 +1794,20 @@ i.c-checkbox.fg-checkbox {
                 border-radius: 15px;
                 cursor: pointer;
               }
+            }
+          }
+          .map {
+            position: relative;
+            text-align: center;
+            background-color: var(--primaryContentBackground);
+            min-height: 72vh;
+            .drop-down {
+              position: absolute;
+              top: 10px;
+              left: 10px;
+            }
+            .floor-map-area {
+              margin-top: 60px;
             }
           }
         }

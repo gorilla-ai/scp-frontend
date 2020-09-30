@@ -270,7 +270,14 @@
     "txt-deviceMap": "裝置地圖",
     "txt-viewInfo": "查看內容",
     "txt-hostList2": "主機清單",
-    "txt-hostAnalysis": "主機分析資訊"
+    "txt-hostAnalysis": "主機分析資訊",
+    "txt-hostCreateTime": "評估時間",
+    "txt-isNotHmd": "未安裝HMD",
+    "txt-isLatestVersion": "最新版本HMD",
+    "txt-isOldVersion": "未升版HMD",
+    "txt-isOwnerNull": "未設定使用者",
+    "txt-isAreaNull": "未設定樓層",
+    "txt-isSeatNull": "未設定座位"
   },
 
   "alert": {

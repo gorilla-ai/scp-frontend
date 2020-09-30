@@ -174,7 +174,7 @@ class HostAnalysis extends Component {
    * @returns HTML DOM
    */
   displayHostAnalysisData = () => {
-    const {hostData} = this.props;
+    const {hostData, datetime} = this.props;
     const {showContent} = this.state;
     
     return (
@@ -227,7 +227,8 @@ class HostAnalysis extends Component {
             {showContent.network &&
               <NetworkBehavior
                 ipType='srcIp'
-                alertData={hostData} />
+                alertData={hostData}
+                hostDatetime={datetime} />
             }
           </div>
         </div>

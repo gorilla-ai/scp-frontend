@@ -7,6 +7,7 @@ import cx from 'classnames'
 import CheckboxGroup from 'react-ui/build/src/components/checkbox-group'
 import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import DropDownList from 'react-ui/build/src/components/dropdown'
+import Gis from 'react-gis/build/src/components'
 import Hierarchy from 'react-ui/build/src/components/hierarchy'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import Tabs from 'react-ui/build/src/components/tabs'
@@ -49,6 +50,7 @@ const SCAN_RESULT = [
   result: 'fileIntegrityResult',
   count: 'getFileIntegrityTotalCnt'
 }];
+const HMD_STATUS_LIST = ['isNotHmd', 'isLatestVersion', 'isOldVersion', 'isOwnerNull', 'isAreaNull', 'isSeatNull'];
 const HMD_LIST = [
   {
     value: 'isScanProc',
@@ -73,32 +75,6 @@ const HMD_LIST = [
   {
     value: 'isIR',
     text: 'IR'
-  }
-];
-const HMD_STATUS_LIST = [
-  {
-    value: 'notHmd',
-    text: 'Not Installed'
-  },
-  {
-    value: 'isLatestVersion',
-    text: 'Latest Version'
-  },
-  {
-    value: 'isOldVersion',
-    text: 'Old Version'
-  },
-  {
-    value: 'isOwnerNull',
-    text: 'No Owner'
-  },
-  {
-    value: 'isAreaNull',
-    text: 'No Area'
-  },
-  {
-    value: 'isSeatNull',
-    text: 'No Seat'
   }
 ];
 const HOST_SORT_LIST = [
@@ -135,6 +111,18 @@ const HOST_SORT_LIST = [
     type: 'desc'
   }
 ];
+const MAPS_PRIVATE_DATA = {
+  floorList: [],
+  currentFloor: '',
+  floorPlan: {
+    treeData: {},
+    currentAreaUUID: '',
+    currentAreaName: ''
+  },
+  currentMap: '',
+  currentBaseLayers: {},
+  seatData: {}
+};
 
 let t = null;
 let f = null;
@@ -153,13 +141,16 @@ class HostController extends Component {
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
 
     this.state = {
-      activeSubTab: 'hostList', //'hostList', 'deviceMap'
+      activeTab: 'hostList', //'hostList', 'deviceMap'
       showFilter: false,
       showLeftNav: true,
       datetime: helper.getSubstractDate(1, 'day', Moment().local().format('YYYY-MM-DD') + 'T00:00:00'),
       hostAnalysisOpen: false,
       severityList: [],
       privateMaskedIP: {},
+      hmdStatusList: [],
+      scanStatusList: [],
+      hostCreateTime: '',
       filterNav: {
         severitySelected: [],
         hmdSelected: [],
@@ -186,16 +177,14 @@ class HostController extends Component {
       hostData: {},
       hostSortList: [],
       hostSort: 'ip-asc',
+      ..._.cloneDeep(MAPS_PRIVATE_DATA)
     };
 
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
     this.getHostSortList();
-    this.getHostData();
-  }
-  ryan = () => {
-
+    this.getFloorPlan();
   }
   /**
    * Get and set host sort list
@@ -212,6 +201,124 @@ class HostController extends Component {
     this.setState({
       hostSortList
     });
+  }
+  /**
+   * Get and set floor plan data
+   * @method
+   */
+  getFloorPlan = () => {
+    const {baseUrl} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/area/_tree`,
+      type: 'GET'
+    }, {showProgress: false})
+    .then(data => {
+      if (data && data.length > 0) {
+        const floorPlanData = data[0];
+        const floorPlan = {
+          treeData: data,
+          currentAreaUUID: floorPlanData.areaUUID,
+          currentAreaName: floorPlanData.areaName
+        };
+
+        this.setState({
+          floorPlan
+        }, () => {
+          this.getFloorList();
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get and set floor list data
+   * @method
+   */
+  getFloorList = () => {
+    const {floorPlan} = this.state;
+    let floorList = [];
+    let currentFloor = '';
+
+    _.forEach(floorPlan.treeData, val => {
+      helper.floorPlanRecursive(val, obj => {
+        floorList.push({
+          value: obj.areaUUID,
+          text: obj.areaName
+        });
+      });
+    })
+
+    currentFloor = floorList[0].value; //Default to the top parent floor
+
+    this.setState({
+      floorList,
+      currentFloor
+    }, () => {
+      this.getAreaData(currentFloor);
+    });
+  }
+  /**
+   * Get and set area related data
+   * @method
+   * @param {string} areaUUID - area UUID
+   */
+  getAreaData = (areaUUID) => {
+    const {baseUrl, contextRoot} = this.context;
+    const {alertDetails} = this.state;
+    const floorPlan = areaUUID;
+
+    if (!floorPlan) {
+      return;
+    }
+
+    this.ah.one({
+      url: `${baseUrl}/api/area?uuid=${floorPlan}`,
+      type: 'GET'
+    }, {showProgress: false})
+    .then(data => {
+      if (data) {
+        const areaName = data.areaName;
+        const areaUUID = data.areaUUID;
+        let currentMap = '';
+
+        if (data.picPath) {
+          const picPath = `${baseUrl}${contextRoot}/api/area/_image?path=${data.picPath}`;
+          const picWidth = data.picWidth;
+          const picHeight = data.picHeight;
+
+          currentMap = {
+            label: areaName,
+            images: [
+              {
+                id: areaUUID,
+                url: picPath,
+                size: {width: picWidth, height: picHeight}
+              }
+            ]
+          };
+        }
+
+        const currentBaseLayers = {
+          [floorPlan]: currentMap
+        };
+
+        this.setState({
+          currentMap,
+          currentBaseLayers,
+          currentFloor: areaUUID
+        }, () => {
+          this.getHostData();
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Get formatted datetime
@@ -234,13 +341,22 @@ class HostController extends Component {
    */
   getHostData = () => {
     const {baseUrl} = this.context;
-    const {filterNav, deviceSearch, hostInfo, hostSort} = this.state;
+    const {activeTab, filterNav, deviceSearch, hostInfo, hostSort, currentFloor} = this.state;
     const hostSortArr = hostSort.split('-');
-    const url = `${baseUrl}/api/ipdevice/assessment/_search?page=${hostInfo.currentPage}&pageSize=${hostInfo.pageSize}&orders=${hostSortArr[0]} ${hostSortArr[1]}`;
-    const datetime = this.getHostDateTime('default');
+    const datetime = this.getHostDateTime();
+    let url = `${baseUrl}/api/ipdevice/assessment/_search`;
+
+    if (activeTab === 'hostList') {
+      url += `?page=${hostInfo.currentPage}&pageSize=${hostInfo.pageSize}&orders=${hostSortArr[0]} ${hostSortArr[1]}`;
+    }
+
     let requestData = {
       timestamp: [datetime.from, datetime.to]
     };
+
+    if (activeTab === 'deviceMap') {
+      requestData.areaUUID = currentFloor;
+    }
 
     if (filterNav.severitySelected.length > 0) {
       requestData.severityLevel = filterNav.severitySelected;
@@ -302,14 +418,35 @@ class HostController extends Component {
           })
         })
 
+        const hmdStatusList = _.map(HMD_STATUS_LIST, val => {
+          return {
+            value: val,
+            text: t('host.txt-' + val) + ' (' + helper.numberWithCommas(data.devInfoAgg[val]) + ')'
+          }
+        });
+
+        const scanStatusList = _.map(HMD_LIST, val => {
+          return {
+            value: val.value,
+            text: val.text + ' (' + data.scanInfoAgg[val.value] + ')'
+          }
+        });
+
         this.getPrivateTreeData(data.InternalMaskedIpWithDevCount);
 
         this.setState({
           severityList,
+          hmdStatusList,
+          scanStatusList,
+          hostCreateTime: data.create_dttm,
           hostInfo: tempHostInfo
+        }, () => {
+          if (activeTab === 'deviceMap' && data.rows.length > 0) {
+            this.getSeatData();
+          }
         });
 
-        if (data.count === 0) {
+        if (activeTab === 'hostList' && data.count === 0) {
           helper.showPopupMsg(t('txt-notFound'));
         }
       }
@@ -318,6 +455,55 @@ class HostController extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+  }
+  /**
+   * Get and set set data
+   * @method
+   */
+  getSeatData = () => {
+    const {contextRoot} = this.context;
+    const {hostInfo, currentFloor} = this.state;
+    const seatData = {};
+    let seatListArr = [];
+
+    _.forEach(hostInfo.dataContent, val => {
+      if (val.seatObj) {
+        seatListArr.push({
+          id: val.seatObj.seatUUID,
+          type: 'marker',
+          xy: [val.seatObj.coordX, val.seatObj.coordY],
+          icon: {
+            iconUrl: `${contextRoot}/images/ic_person.png`,
+            iconSize: [25, 25],
+            iconAnchor: [12.5, 12.5]
+          },
+          label: val.seatObj.seatName,
+          data: {
+            name: val.seatObj.seatName
+          }
+        });
+      }
+    })
+
+    seatData[currentFloor] = {
+      data: seatListArr
+    };
+
+    this.setState({
+      seatData
+    });
+  }
+  /**
+   * Handle seat selection for floor map
+   * @method
+   * @param {string} seatUUID - selected seat UUID
+   */
+  handleFloorMapClick = (seatUUID) => {
+    const activeHostInfo = _.find(this.state.hostInfo.dataContent, {seatUUID});
+
+    if (!_.isEmpty(activeHostInfo)) {
+      this.getIPdeviceInfo(activeHostInfo);
+    }
   }
   /**
    * Show severity level for private tree data
@@ -461,7 +647,9 @@ class HostController extends Component {
    */
   handleSubTabChange = (type) => {
     this.setState({
-      activeSubTab: type
+      activeTab: type
+    }, () => {
+      this.getHostData();
     });
   }
   /**
@@ -677,6 +865,18 @@ class HostController extends Component {
     });
   }
   /**
+   * Display individual severity
+   * @method
+   * @param {object} val - Severity list
+   * @param {number} i - index of the severity list
+   * @returns HTML DOM
+   */
+  displaySeverityItem = (val, i) => {
+    return (
+      <span key={i} style={{backgroundColor: ALERT_LEVEL_COLORS[val.key]}}>{val.key}: {val.doc_count}</span>
+    )
+  }
+  /**
    * Display Host content
    * @method
    * @param {object} val - Host data
@@ -709,9 +909,8 @@ class HostController extends Component {
     let firstItem = false;
     let safetyScanInfo = '';
     let safetyData = false;
-    let severityType = '';
-    let severityCount = 0;
     let itemHeader = val.ip;
+    let severityList = [];
 
     _.forEach(infoList, val2 => { //Determine the first item in the list
       if (!firstItem && val[val2.path]) {
@@ -741,13 +940,21 @@ class HostController extends Component {
       })
     }
 
-    if (val.networkBehaviorInfo) {
-      severityType = val.networkBehaviorInfo.severityLevel;
-      severityCount = helper.numberWithCommas(val.networkBehaviorInfo.doc_count);
-    }
-
     if (val.hostName) {
       itemHeader += ' / ' + val.hostName;
+    }
+
+    if (val.networkBehaviorInfo) {
+      _.forEach(SEVERITY_TYPE, val2 => { //Create formatted severity array based on severity
+        _.forEach(val.networkBehaviorInfo.severityAgg.buckets, (val3, key) => {
+          if (val3.key === val2) {
+            severityList.push({
+              doc_count: helper.numberWithCommas(val3.doc_count),
+              key: val3.key
+            });
+          }
+        })
+      })
     }
 
     return (
@@ -771,12 +978,12 @@ class HostController extends Component {
             </div>
           }
 
-          {severityType &&
+          {severityList.length > 0 &&
             <div className='sub-item'>
               <div>
-                <header>Network Behavior</header>
+                <header>{t('txt-networkBehavior')}</header>
                 <div className='flex-item'>
-                  <span style={{backgroundColor: ALERT_LEVEL_COLORS[severityType]}}>{severityType}: {severityCount}</span>
+                  {severityList.map(this.displaySeverityItem)}
                 </div>
               </div>
             </div>
@@ -808,20 +1015,53 @@ class HostController extends Component {
       this.getHostData();
     });
   }
+  /**
+   * Handle CSV download
+   * @method
+   */
+  getCSVfile = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {activeTab, account} = this.state;
+    const url = `${baseUrl}${contextRoot}/api/u1/log/event/_export`;
+    // let tempColumns = [];
+
+    // _.forEach(account.fields, val => {
+    //   if (val !== 'alertRule' && val != '_tableMenu_') {
+    //     tempColumns.push({
+    //       [val]: this.getCustomFieldName(val)
+    //     });
+    //   }
+    // })
+
+    // const dataOptions = {
+    //   ...this.toQueryLanguage('csv'),
+    //   columns: tempColumns
+    // };
+
+    // downloadWithForm(url, {payload: JSON.stringify(dataOptions)});
+  }
   render() {
     const {
-      activeSubTab,
+      activeTab,
       showLeftNav,
       showFilter,
       datetime,
       hostAnalysisOpen,
       severityList,
+      hmdStatusList,
+      scanStatusList,
+      hostCreateTime,
       privateMaskedIPtree,
       filterNav,
       hostInfo,
       hostData,
       hostSortList,
-      hostSort
+      hostSort,
+      floorList,
+      currentFloor,
+      currentMap,
+      currentBaseLayers,
+      seatData
     } = this.state;
 
     return (
@@ -829,13 +1069,15 @@ class HostController extends Component {
         {hostAnalysisOpen &&
           <HostAnalysis
             hostData={hostData}
+            datetime={this.getHostDateTime()}
             getIPdeviceInfo={this.getIPdeviceInfo}
             toggleHostAnalysis={this.toggleHostAnalysis} />
         }
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
+            <button className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
+            <button className='last' onClick={this.getCSVfile} title={t('events.connections.txt-exportCSV')}><i className='fg fg-data-download'></i></button>
           </div>
 
           <SearchOptions
@@ -858,14 +1100,14 @@ class HostController extends Component {
               <div>
                 <label className={cx('header-text', {'hide': !showLeftNav})}>HMD Status</label>
                 <CheckboxGroup
-                  list={HMD_STATUS_LIST}
+                  list={hmdStatusList}
                   value={filterNav.hmdStatusSelected}
                   onChange={this.handleFilterNavChange.bind(this, 'hmdStatusSelected')} />
               </div>
               <div>
                 <label className={cx('header-text', {'hide': !showLeftNav})}>Scan Status</label>
                 <CheckboxGroup
-                  list={HMD_LIST}
+                  list={scanStatusList}
                   value={filterNav.hmdSelected}
                   onChange={this.handleFilterNavChange.bind(this, 'hmdSelected')} />
               </div>
@@ -894,17 +1136,22 @@ class HostController extends Component {
             <div className='host-list'>
               <header>{t('host.txt-hostList2')}</header>
               {hostInfo.totalCount > 0 &&
-                <span>{t('txt-total')}: {helper.numberWithCommas(hostInfo.totalCount)}</span>
+                <div>
+                  <span>{t('txt-total')}: {helper.numberWithCommas(hostInfo.totalCount)}</span>
+                  <span>{t('host.txt-hostCreateTime')}: {helper.getFormattedDate(hostCreateTime, 'local')}</span>
+                </div>
               }
-              <div className='sort-section'>
-                <span>{t('txt-sort')}</span>
-                <DropDownList
-                  id='hostSortList'
-                  list={hostSortList}
-                  required={true}
-                  value={hostSort}
-                  onChange={this.handleHostSortChange} />
-              </div>
+              {activeTab === 'hostList' &&
+                <div className='sort-section'>
+                  <span>{t('txt-sort')}</span>
+                  <DropDownList
+                    id='hostSortList'
+                    list={hostSortList}
+                    required={true}
+                    value={hostSort}
+                    onChange={this.handleHostSortChange} />
+                </div>
+              }
             </div>
             <div className='main-content host'>
               <Tabs
@@ -913,11 +1160,11 @@ class HostController extends Component {
                   hostList: t('host.txt-hostList'),
                   deviceMap: t('host.txt-deviceMap')
                 }}
-                current={activeSubTab}
+                current={activeTab}
                 onChange={this.handleSubTabChange}>
               </Tabs>
 
-              {activeSubTab === 'hostList' &&
+              {activeTab === 'hostList' &&
                 <div className='table-content'>
                   <div className='table' style={{height: '65vh'}}>
                     <ul className='host-list'>
@@ -937,8 +1184,39 @@ class HostController extends Component {
                 </div>
               }
 
-              {activeSubTab === 'deviceMap' &&
-                <div className=''>
+              {activeTab === 'deviceMap' &&
+                <div className='map'>
+                  {floorList.length > 0 &&
+                    <DropDownList
+                      className='drop-down'
+                      list={floorList}
+                      required={true}
+                      value={currentFloor}
+                      onChange={this.getAreaData} />
+                  }
+                  {currentMap &&
+                    <Gis
+                      className='floor-map-area'
+                      _ref={(ref) => {this.gisNode = ref}}
+                      data={_.get(seatData, [currentFloor, 'data'])}
+                      baseLayers={currentBaseLayers}
+                      baseLayer={currentFloor}
+                      layouts={['standard']}
+                      dragModes={['pan']}
+                      scale={{enabled: false}}
+                      mapOptions={{
+                        maxZoom: 2
+                      }}
+                      onClick={this.handleFloorMapClick}
+                      symbolOptions={[{
+                        match: {
+                          data: {tag: 'red'}
+                        },
+                        props: {
+                          backgroundColor: 'red'
+                        }
+                      }]} />
+                  }
                 </div>
               }
             </div>

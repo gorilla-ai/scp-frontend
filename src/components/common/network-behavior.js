@@ -114,15 +114,24 @@ class NetworkBehavior extends Component {
    */
   loadNetworkBehavior = (ipType) => {
     const {baseUrl} = this.context;
-    const {alertData} = this.props;
+    const {alertData, hostDatetime} = this.props;
     const {networkBehavior} = this.state;
     const eventDateTime = helper.getFormattedDate(alertData._eventDttm_ || alertData.createDttm, 'local');
     const eventDateFrom = helper.getSubstractDate(1, 'hours', eventDateTime);
-    const datetime = {
-      from: Moment(eventDateFrom).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-      to: Moment(eventDateTime).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
-    };
+    let datetime = {};
     let apiArr = [];
+
+    if (_.isEmpty(hostDatetime)) {
+      datetime = {
+        from: Moment(eventDateFrom).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+        to: Moment(eventDateTime).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+      };
+    } else {
+      datetime = {
+        from: hostDatetime.from,
+        to: hostDatetime.to
+      };
+    }
 
     if (ipType === 'srcIp') {
       const srcIp = alertData.srcIp || alertData.ip;
@@ -454,16 +463,25 @@ class NetworkBehavior extends Component {
    */
   redirectNewPage = (ipType) => {
     const {baseUrl, contextRoot, language} = this.context;
-    const {alertData} = this.props;
+    const {alertData, hostDatetime} = this.props;
     const {activeNetworkBehavior} = this.state;
-    const datetime = {
-      from: helper.getFormattedDate(helper.getSubstractDate(1, 'hours', alertData._eventDttm_ || alertData.createDttm)),
-      to: helper.getFormattedDate(alertData._eventDttm_ || alertData.createDttm, 'local')
-    };
     const srcIp = this.props.getIpPortData ? this.props.getIpPortData('srcIp') : alertData.ip;
     const destIp = this.props.getIpPortData ? this.props.getIpPortData('destIp') : alertData.ip;
+    let datetime = {};
     let ipParam = '';
     let linkUrl ='';
+
+    if (_.isEmpty(hostDatetime)) {
+      datetime = {
+        from: helper.getFormattedDate(helper.getSubstractDate(1, 'hours', alertData._eventDttm_ || alertData.createDttm)),
+        to: helper.getFormattedDate(alertData._eventDttm_ || alertData.createDttm, 'local')
+      };
+    } else {
+      datetime = {
+        from: helper.getFormattedDate(hostDatetime.from, 'local'),
+        to: helper.getFormattedDate(hostDatetime.to, 'local')
+      };
+    }
 
     if (ipType === 'srcIp') {
       ipParam = `&sourceIP=${srcIp}`;
@@ -499,15 +517,25 @@ class NetworkBehavior extends Component {
     });
   }
   render() {
-    const {alertData, ipType} = this.props;
+    const {alertData, ipType, hostDatetime} = this.props;
     const {activeNetworkBehavior, networkBehavior} = this.state;
     let datetime = {};
+    let alertTimeText = '';
 
-    if (alertData._eventDttm_ || alertData.createDttm) {
+    if (_.isEmpty(hostDatetime)) {
+      if (alertData._eventDttm_ || alertData.createDttm) {
+        datetime = {
+          from: helper.getFormattedDate(helper.getSubstractDate(1, 'hours', alertData._eventDttm_ || alertData.createDttm)),
+          to: helper.getFormattedDate(alertData._eventDttm_ || alertData.createDttm, 'local')
+        };
+      }
+      alertTimeText = t('txt-alertHourBefore');
+    } else {
       datetime = {
-        from: helper.getFormattedDate(helper.getSubstractDate(1, 'hours', alertData._eventDttm_ || alertData.createDttm)),
-        to: helper.getFormattedDate(alertData._eventDttm_ || alertData.createDttm, 'local')
+        from: helper.getFormattedDate(hostDatetime.from, 'local'),
+        to: helper.getFormattedDate(hostDatetime.to, 'local')
       };
+      alertTimeText = t('alert.txt-alertTime');
     }
 
     if (this.props.getIpPortData && this.props.getIpPortData(ipType) === NOT_AVAILABLE) {
@@ -528,7 +556,7 @@ class NetworkBehavior extends Component {
           onChange={this.toggleNetworkBtn} />
 
         {datetime.from && datetime.to &&
-          <div className='msg'>{t('txt-alertHourBefore')}: {datetime.from} ~ {datetime.to}</div>
+          <div className='msg'>{alertTimeText}: {datetime.from} ~ {datetime.to}</div>
         }
         <button className='standard btn query-events' onClick={this.redirectNewPage.bind(this, ipType)}>{t('alert.txt-queryEvents')}</button>
 
