@@ -232,8 +232,8 @@ class HostAnalysis extends Component {
 
             {showContent.network &&
               <NetworkBehavior
-                ipType='srcIp'
                 page='host'
+                ipType='srcIp'
                 alertData={hostData}
                 hostDatetime={datetime} />
             }

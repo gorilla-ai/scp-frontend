@@ -323,6 +323,13 @@ class ThreatsController extends Component {
     }
 
     if (alertsParam.from && alertsParam.to) {
+      const page = alertsParam.page;
+      let query = 'sourceIP: ' + alertsParam.sourceIP;
+
+      if (page === 'host') {
+        query = alertsParam.sourceIP;
+      }
+
       this.setState({
         datetime: {
           from: alertsParam.from,
@@ -330,7 +337,7 @@ class ThreatsController extends Component {
         },
         filterData: [{
           condition: 'must',
-          query: 'sourceIP: ' + alertsParam.sourceIP
+          query
         }],
         showFilter: true
       });

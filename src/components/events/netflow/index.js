@@ -258,6 +258,13 @@ class Netflow extends Component {
           this.initialLoad();
         });
       } else if (urlParams.from && urlParams.to) {
+        const page = urlParams.page;
+        let query = 'ipSrc: ' + urlParams.sourceIP;
+
+        if (page === 'host') {
+          query = urlParams.sourceIP;
+        }
+
         this.setState({
           datetime: {
             from: urlParams.from,
@@ -265,7 +272,7 @@ class Netflow extends Component {
           },
           filterData: [{
             condition: 'must',
-            query: 'ipSrc:' + urlParams.sourceIP
+            query
           }],
           account: tempAccount,
           showFilter: true

@@ -474,7 +474,7 @@ class NetworkBehavior extends Component {
    */
   redirectNewPage = (ipType) => {
     const {baseUrl, contextRoot, language} = this.context;
-    const {alertData, hostDatetime} = this.props;
+    const {page, alertData, hostDatetime} = this.props;
     const {activeNetworkBehavior} = this.state;
     const srcIp = this.props.getIpPortData ? this.props.getIpPortData('srcIp') : alertData.ip;
     const destIp = this.props.getIpPortData ? this.props.getIpPortData('destIp') : alertData.ip;
@@ -498,6 +498,10 @@ class NetworkBehavior extends Component {
       ipParam = `&sourceIP=${srcIp}`;
     } else if (ipType === 'destIp') {
       ipParam = `&sourceIP=${destIp}`;
+    }
+
+    if (page) {
+      ipParam += `&page=${page}`;
     }
  
     if (activeNetworkBehavior === 'threats') {
