@@ -652,7 +652,8 @@ i.c-checkbox.fg-checkbox {
       }
       .datepicker {
         float: left;
-        .daterange {
+        .date-range,
+        .date-picker {
           margin-right: 15px;
         }
         .fg {
@@ -770,6 +771,7 @@ i.c-checkbox.fg-checkbox {
       }
       &::-webkit-scrollbar-thumb {
         background: #004d93;
+        box-shadow: none;
       }
       li {
         display: block;
@@ -1086,7 +1088,6 @@ i.c-checkbox.fg-checkbox {
         position: absolute;
         top: 14px;
         left: 320px;
-        width: 145px;
       }
       .floor-map {
         overflow: hidden;
@@ -1188,6 +1189,38 @@ i.c-checkbox.fg-checkbox {
           text-align: center;
           margin-top: 50px;
         }
+        .c-checkbox-group {
+          width: 100%;
+          padding: 10px 5px;
+          border-radius: 5px;
+          background-color: var(--leftTreeGroup);
+        }
+        .list-item {
+          i.c-checkbox {
+            color: var(--buttonSelectedColor);
+          }
+        }
+        .fg-recode {
+          float: left;
+          font-size: 1em;
+          margin-top: 3px;
+          margin-right: 3px;
+          &.emergency {
+            color: #CC2943;
+          }
+          &.alert {
+            color: #CC7B29;
+          }
+          &.critical {
+            color: #29B0CC;
+          }
+          &.warning {
+            color: #29CC7A;
+          }
+          &.notice {
+            color: #7ACC29;
+          }
+        }
       }
       .content {
         overflow-y: auto;
@@ -1216,7 +1249,7 @@ i.c-checkbox.fg-checkbox {
       }
       label {
         display: block;
-        margin: 15px 0 3px 0;
+        //margin: 15px 0 3px 0;
         &.first-label {
           margin-top: 0;
         }
@@ -1241,30 +1274,6 @@ i.c-checkbox.fg-checkbox {
         cursor: text;
         &.hide {
           display: none;
-        }
-      }
-      .alert-tree,
-      .private-tree {
-        .fg-recode {
-          float: left;
-          font-size: 1em;
-          margin-top: 3px;
-          margin-right: 3px;
-          &.emergency {
-            color: #CC2943;
-          }
-          &.alert {
-            color: #CC7B29;
-          }
-          &.critical {
-            color: #29B0CC;
-          }
-          &.warning {
-            color: #29CC7A;
-          }
-          &.notice {
-            color: #7ACC29;
-          }
         }
       }
       input,
@@ -1410,7 +1419,7 @@ i.c-checkbox.fg-checkbox {
               width: 215px;
             }
             .condition-select {
-              width: 100px;
+              width: auto;
               height: 35px;
               margin-right: 3px;
             }
@@ -1629,6 +1638,35 @@ i.c-checkbox.fg-checkbox {
           }
         }
       }
+      & > .host-list {
+        position: relative;
+        padding-top: 20px;
+        padding-left: 20px;
+        overflow: hidden;
+        .sort-section {
+          position: absolute;
+          top: 10px;
+          right: 17px;
+          span {
+            float: left;
+            margin-right: 10px;
+            margin-top: 7px;
+          }
+        }
+        header {
+          float: left;
+          font-size: 1.2em;
+          font-weight: bold;
+          color: var(--formEmailGroup);
+          margin-right: 15px;
+        }
+        span {
+          float: left;
+          margin-right: 15px;
+          display: block;
+          margin-top: 3px;
+        }
+      }
       .main-content { //Content below the filter or charts
         position: relative;
         margin: 15px;
@@ -1636,6 +1674,143 @@ i.c-checkbox.fg-checkbox {
         border-radius: 5px;
         background-color: var(--primarySubBackground);
         overflow: hidden;
+        &.host {
+          ul.host-list {
+            & > li {
+              min-height: 100px;
+              padding: 15px 10px;
+              overflow: hidden;
+              border: 1px solid var(--primaryBorder);
+              background-color: var(--primaryContentBackground);
+              &:hover {
+                background-color: var(--dashboardMapsHover);
+                .view-details {
+                  color: var(--buttonTextColor);
+                }
+              }
+              .device-alert {
+                float: left;
+                padding: 10px;
+                margin-left: 35px;
+                margin-right: 35px;
+                border-radius: 35px;
+                overflow: hidden;
+                .device {
+                  float: left;
+                  width: 35px;
+                  height: 35px;
+                  -webkit-mask: url('/images/ic_host.svg');
+                  mask: url('/images/ic_host.svg');
+                  background-color: #fff;
+                }
+              }
+              .info {
+                float: left;
+                & > header:first-child  {
+                  color: var(--formEmailGroup);
+                  font-size: 1.2em;
+                  font-weight: bold;
+                  margin-bottom: 5px;
+                }
+                ul {
+                  margin-bottom: 10px;
+                  li {
+                    display: inline-block;
+                    color: var(--primaryTextColor);
+                    margin-right: 10px;
+                    padding-left: 10px;
+                    border-left: 1px solid #d8d8d8;
+                    &.first {
+                      padding-left: 0;
+                      border: none;
+                    }
+                    .fg-bg {
+                      float: left;
+                      margin-right: 3px;
+                      width: 20px;
+                      height: 20px;
+                      background-color: var(--primaryTextColor);
+                      &.mac {
+                        -webkit-mask: url('/images/ic_mac_address.svg');
+                        mask: url('/images/ic_mac_address.svg');
+                      }
+                      &.windows {
+                        -webkit-mask: url('/images/ic_windows.svg');
+                        mask: url('/images/ic_windows.svg');
+                      }
+                      &.linux {
+                        -webkit-mask: url('/images/ic_linux.svg');
+                        mask: url('/images/ic_linux.svg');
+                      }
+                    }
+                    i.fg,
+                    img {
+                      float: left;
+                      margin-right: 3px;
+                    }
+                    i.fg {
+                      font-size: 20px;
+                    }
+                    img {
+                      width: 20px;
+                    }
+                  }
+                }
+                .sub-item {
+                  margin-top: 15px;
+                  clear: both;
+                  header {
+                    float: left;
+                    color: var(--primaryTextColor);
+                    font-size: 15px;
+                    font-weight: bold;
+                    margin-right: 10px;
+                  }
+                  .flex-item {
+                    display: flex;
+                    flex-wrap: wrap;
+                    width: 100%;
+                    margin: 2px 0;
+                    span {
+                      color: #fff;
+                      font-size: 14px;
+                      padding: 5px 10px;
+                      margin-top: 5px;
+                      margin-right: 10px;
+                      border-radius: 5px;
+                      background-color: var(--primaryContentHeader);                      
+                    }
+                  }
+                }
+              }
+              .view-details {
+                float: right;
+                color: var(--tabMenuText);
+                font-weight: bold;
+                margin-top: 15px;
+                margin-right: 20px;
+                padding: 6px 12px;
+                border: 2px solid #d9d9d9;
+                border-radius: 15px;
+                cursor: pointer;
+              }
+            }
+          }
+          .map {
+            position: relative;
+            text-align: center;
+            background-color: var(--primaryContentBackground);
+            min-height: 72vh;
+            .drop-down {
+              position: absolute;
+              top: 10px;
+              left: 10px;
+            }
+            .floor-map-area {
+              margin-top: 60px;
+            }
+          }
+        }
         &.basic-form { //For content with form input
           min-height: 84vh;
           background-color: var(--primaryContentBackground);

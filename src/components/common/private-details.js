@@ -59,8 +59,8 @@ class PrivateDetails extends Component {
     }
 
     const ip = {
-      ip: topoInfo[type] ? topoInfo[type] : (topoInfo.ip || topoInfo.srcIp),
-      mac: topoInfo[srcDestType + 'Mac'] ? topoInfo[srcDestType + 'Mac'] : (topoInfo.mac || topoInfo.srcMac)
+      ip: topoInfo[type] ? topoInfo[type] : (topoInfo.ip || topoInfo.srcIp || alertInfo.ip),
+      mac: topoInfo[srcDestType + 'Mac'] ? topoInfo[srcDestType + 'Mac'] : (topoInfo.mac || topoInfo.srcMac || alertInfo.mac)
     };
     const owner = {
       id: topoInfo.ownerObj ? topoInfo.ownerObj.ownerID : topoInfo.ownerID,
@@ -179,7 +179,7 @@ class PrivateDetails extends Component {
         <section>
           <div className='header trigger'>{t('alert.txt-systemInfo')}</div>
           {topoInfo && topoInfo.isHmd && topoInfo.updateDttm &&
-            <div className='trigger-text'>{t('edge-management.txt-lastUpateTime')}: {helper.getFormattedDate(topoInfo.updateDttm, 'local')}</div>
+            <div className='trigger-text'>{t('edge-management.txt-lastUpdateTime')}: {helper.getFormattedDate(topoInfo.updateDttm, 'local')}</div>
           }
           {topoInfo && topoInfo.isHmd &&
             <button className='btn trigger' onClick={this.props.triggerTask.bind(this, ['getSystemInfo'], 'fromInventory')}>{t('txt-reTrigger')}</button>

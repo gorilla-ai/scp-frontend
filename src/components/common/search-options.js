@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
 
+import DatePicker from 'react-ui/build/src/components/date-picker'
 import DateRange from 'react-ui/build/src/components/date-range'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 
@@ -139,7 +140,7 @@ class SearchOptions extends Component {
     });
   }
   /**
-   * Display date picker
+   * Display date range
    * @method
    * @returns DateRange component
    */
@@ -150,9 +151,28 @@ class SearchOptions extends Component {
 
     return (
       <DateRange
-        id='datetime'
-        className='daterange'
+        id='dateTime'
+        className='date-range'
         enableTime={showTime}
+        value={datetime}
+        onChange={this.props.handleDateChange}
+        locale={locale}
+        t={et} />
+    )
+  }
+  /**
+   * Display date picker
+   * @method
+   * @returns DatePicker component
+   */
+  showDatePicker = () => {
+    const {locale} = this.context;
+    const {datetime} = this.props;
+
+    return (
+      <DatePicker
+        id='datePicker'
+        className='date-picker'
         value={datetime}
         onChange={this.props.handleDateChange}
         locale={locale}
@@ -180,7 +200,7 @@ class SearchOptions extends Component {
     }
   }
   render() {
-    const {showFilter, showInterval, searchInput} = this.props;
+    const {dateType, showFilter, showInterval, searchInput} = this.props;
 
     return (
       <div className='search-options'>
@@ -245,7 +265,13 @@ class SearchOptions extends Component {
         
         <div className='datepicker'>
           <label htmlFor='datetime' className='datetime'></label>
-          {this.showDataRange()}
+          {dateType === 'datepicker' &&
+            this.showDatePicker()
+          }
+
+          {(!dateType || dateType === 'daterange') &&
+            this.showDataRange()
+          }
         </div>
 
         <button className='search-button' onClick={this.loadSearchOptions.bind(this, 'search')} disabled={showFilter || false}>{t('events.connections.txt-toggleFilter')}</button>

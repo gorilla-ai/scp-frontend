@@ -281,7 +281,7 @@ class Severity extends Component {
           <header>
             <div className='text'>{t('threat-severity-mapping.txt-typeInfo')}</div>
             {severity.info.updateDttm &&
-              <span className='msg'>{t('threat-severity-mapping.txt-lastUpateTime')} {helper.getFormattedDate(severity.info.updateDttm, 'local')}</span>
+              <span className='msg'>{t('threat-severity-mapping.txt-lastUpdateTime')} {helper.getFormattedDate(severity.info.updateDttm, 'local')}</span>
             }
           </header>
           <div className='group'>

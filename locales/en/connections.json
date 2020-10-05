@@ -153,7 +153,11 @@
   "txt-score": "Score",
   "txt-text": "Text",
   "txt-result": "Result",
+  "txt-total": "Total",
   "txt-maxScore": "max. score",
+  "txt-sort": "Sort",
+  "txt-asc": "Ascending",
+  "txt-desc": "Descending",
   "txt-maxDataMsg": "The maximum data count is 10,000",
   "txt-es-data-over-limit": "Exceed max queried number, please revise filters",
   "txt-duplicatedName": "Name is duplicated",
@@ -161,6 +165,7 @@
   "txt-threatsSrcCountryRank": "Source Country Alert Rank",
 
   "txt-dashboard": "Dashboard",
+  "txt-host": "Host",
   "txt-threats": "Threats",
   "txt-syslog": "Syslog",
   "txt-netflow": "Netflow",
@@ -258,6 +263,22 @@
     "txt-hmd": "HMD",
     "txt-max": "Max",
     "txt-hosts": "Hosts"
+  },
+
+  "host": {
+    "txt-hostList": "Host List",
+    "txt-deviceMap": "Device Map",
+    "txt-hostInfo": "Host Info",
+    "txt-viewInfo": "View Info",
+    "txt-hostList2": "Host",
+    "txt-hostAnalysis": "Host Analysis Info",
+    "txt-hostCreateTime": "Create Date Time",
+    "txt-isNotHmd": "Not Installed",
+    "txt-isLatestVersion": "Latest Version",
+    "txt-isOldVersion": "Not Upgraded",
+    "txt-isOwnerNull": "No Owner",
+    "txt-isAreaNull": "No Area",
+    "txt-isSeatNull": "No Seat"
   },
 
   "alert": {
@@ -423,7 +444,7 @@
     "txt-longitude": "Longitude",
     "txt-latitude": "Latitude",
     "txt-activatTime": "Datetime",
-    "txt-lastUpateTime": "Last Update Time",
+    "txt-lastUpdateTime": "Last Update Time",
     "txt-anyTime": "Any Time",
     "txt-customTime": "Custom Time",
     "txt-memo": "Memo",
@@ -459,14 +480,14 @@
     "txt-severityMapping": "Threat Severity Mapping",
     "txt-addSeverityTable": "Add Type",
     "txt-typeInfo": "Type Info",
-    "txt-lastUpateTime": "Last Update Time",
+    "txt-lastUpdateTime": "Last Update Time",
     "txt-severityMissing": "Severity type cannot be empty"
   },
 
   "system-defined-pattern": {
     "txt-addPatternScript": "Add Pattern",
     "txt-patternInfo": "Pattern Info",
-    "txt-lastUpateTime": "Last Update Time",
+    "txt-lastUpdateTime": "Last Update Time",
     "txt-patternMissing": "Pattern cannot be empty",
     "txt-queryScriptMissing": "Query Script cannot be empty",
     "txt-deletePattern": "$t(txt-delete) Pattern"
@@ -709,6 +730,7 @@
     "ip": "IP",
     "mac": "MAC",
     "owner": "Owner",
+    "floorName": "Floor Name",
     "userAccount": "User Account",
     "userName": "User",
     "disks": "$t(txt-disks)",

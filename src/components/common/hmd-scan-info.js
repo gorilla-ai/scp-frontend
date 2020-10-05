@@ -198,7 +198,7 @@ class HMDscanInfo extends Component {
       }
     });
 
-    if (location.pathname.indexOf('configuration') > 0) { //Add Settings tab for Config section
+    if (location.pathname.indexOf('host') > 0 || location.pathname.indexOf('configuration') > 0) { //Add Settings tab for Config section
       buttonGroupList.push({
         value: 'settings',
         text: t('txt-setting-eng')
@@ -571,7 +571,7 @@ class HMDscanInfo extends Component {
     const uniqueKey = val + i;
 
     return (
-      <div className='item-content' key={uniqueKey}>
+      <div key={uniqueKey} className='item-content'>
         <div className='header' onClick={this.togglePathRule.bind(this, 'rule', i)}>
           <i className={cx('fg fg-play', {'rotate': _.includes(activeRule, i)})}></i>
           <span>{nameList[i]}</span>
@@ -786,7 +786,7 @@ class HMDscanInfo extends Component {
       }
 
       return (
-        <div className='group' key={uniqueKey}>
+        <div key={uniqueKey} className='group'>
           <div className='path pointer' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
             <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`}></i>
             <div className='path-header'>
@@ -910,7 +910,7 @@ class HMDscanInfo extends Component {
     }
 
     return (
-      <div className='group' key={uniqueKey}>
+      <div key={uniqueKey} className='group'>
         <div className='path pointer' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
           <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`}></i>
           <div className='path-header'>
@@ -987,7 +987,7 @@ class HMDscanInfo extends Component {
     }
 
     return (
-      <div className='group' key={uniqueKey}>
+      <div key={uniqueKey} className='group'>
         <div className='path'>
           <div className='path-header'>
             {val &&
@@ -1018,7 +1018,7 @@ class HMDscanInfo extends Component {
     }
 
     return (
-      <div className='group' key={uniqueKey}>
+      <div key={uniqueKey} className='group'>
         <div className='path pointer' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
           <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`}></i>
           <div className='path-header'>
@@ -1147,7 +1147,7 @@ class HMDscanInfo extends Component {
     return (
       <div className='info'>
         {activeTab !== 'settings' &&
-          <button className='btn refresh' onClick={this.props.getIPdeviceInfo.bind(this, ipType)}>{t('network-inventory.txt-refresh')}</button>
+          <button className='btn refresh' onClick={this.props.getHMDinfo.bind(this, ipType)}>{t('network-inventory.txt-refresh')}</button>
         }
         <button className='btn' onClick={this.getTriggerTask.bind(this, currentTab)} disabled={this.checkTriggerTime(currentTab)}>{btnText}</button>
         <div className='last-update'>
@@ -1219,7 +1219,7 @@ class HMDscanInfo extends Component {
     }
 
     return (
-      <div className='group' key={uniqueKey}>
+      <div key={uniqueKey} className='group'>
         <div className='path' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
           <div className='path-header'>
             {filePath &&
@@ -1293,7 +1293,7 @@ class HMDscanInfo extends Component {
     }
 
     return (
-      <div className='scan-section' key={i}>
+      <div key={i} className='scan-section'>
         <div className='scan-header'>
           <span>{t('network-inventory.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local') || NOT_AVAILABLE}</span>
           <span>{t('network-inventory.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}</span>
@@ -1415,7 +1415,7 @@ class HMDscanInfo extends Component {
     }
 
     return (
-      <div className='scan-section' key={i}>
+      <div key={i} className='scan-section'>
         <div className='table'>
           <div className='scan-header'>
             <span>{t('network-inventory.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local') || NOT_AVAILABLE}</span>
@@ -1445,7 +1445,7 @@ class HMDscanInfo extends Component {
     }
 
     return (
-      <div className='scan-section' key={i}>
+      <div key={i} className='scan-section'>
         <div className='scan-header'>
           <span>{t('network-inventory.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local') || NOT_AVAILABLE}</span>
           <span>{t('network-inventory.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}</span>
@@ -1468,7 +1468,9 @@ class HMDscanInfo extends Component {
   getContentHeight = () => {
     const {page} = this.props;
 
-    if (page === 'threats') {
+    if (page === 'host') {
+      return 470;
+    } else if (page === 'threats') {
       return 330;
     } else if (page === 'inventory') {
       return 435;
@@ -1568,7 +1570,7 @@ class HMDscanInfo extends Component {
     const dataType = val.type === 'processKeyword' ? 'keyword' : 'path';
 
     return (
-      <div className='form-group' key={i}>
+      <div key={i} className='form-group'>
         <label>{val.headerText}</label>
         {settingsPath[type][val.type][0][dataType] !== '' &&
           <div className='path-item'>{settingsPath[type][val.type].map(this.displaySettingsPath)}</div>
@@ -1688,7 +1690,7 @@ class HMDscanInfo extends Component {
       }
     })
 
-    if (required && listData.length === 0) {
+    if (required && !listData[0].path) {
       helper.showPopupMsg(t('network-inventory.txt-includePathEmpty'), t('txt-error'));
       return false;
     }
@@ -1738,7 +1740,7 @@ class HMDscanInfo extends Component {
     })
     .then(data => {
       if (data.ret === 0) {
-        this.props.getIPdeviceInfo('');
+        this.props.getHMDinfo('');
         this.toggleSettingsContent('save');
       }
       return null;
@@ -1862,7 +1864,7 @@ class HMDscanInfo extends Component {
 
           {activeTab === 'settings' &&
             <div className='settings'>
-              <button className='btn refresh' onClick={this.props.getIPdeviceInfo.bind(this, '')}>{t('network-inventory.txt-refresh')}</button>
+              <button className='btn refresh' onClick={this.props.getHMDinfo.bind(this, '')}>{t('network-inventory.txt-refresh')}</button>
               {settingsActiveContent === 'viewMode' &&
                 <button className='btn edit' onClick={this.toggleSettingsContent.bind(this, 'edit')}>{t('txt-edit')}</button>
               }
@@ -1892,7 +1894,7 @@ HMDscanInfo.propTypes = {
   toggleSelectionIR: PropTypes.func.isRequired,
   triggerTask: PropTypes.func.isRequired,
   toggleYaraRule: PropTypes.func.isRequired,
-  getIPdeviceInfo: PropTypes.func.isRequired
+  getHMDinfo: PropTypes.func.isRequired
 };
 
 export default withRouter(HMDscanInfo);

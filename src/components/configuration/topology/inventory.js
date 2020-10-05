@@ -1579,7 +1579,7 @@ class NetworkInventory extends Component {
           toggleYaraRule={this.toggleYaraRule}
           toggleSelectionIR={this.toggleSelectionIR}
           triggerTask={this.triggerTask}
-          getIPdeviceInfo={this.getIPdeviceInfo} />
+          getHMDinfo={this.getIPdeviceInfo} />
 
         {deviceData.hmdOnly.currentLength > 1 &&
           <div className='pagination'>

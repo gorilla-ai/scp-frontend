@@ -491,8 +491,10 @@ html[data-theme='dark'] {
 }
 /* configuration/topology/inventory */
 /* configuration/common/alert-details */
+/* host/index */
 #dashboardModalDialog-content,
-#configScanModalDialog-content {
+#configScanModalDialog-content,
+#hostModalDialog-content, {
   #g-progress-container {
     .fg-loading-2 {
       display: block;
@@ -786,14 +788,8 @@ html[data-theme='dark'] {
             }
             .path-group {
               margin-bottom: 20px;
-              .path-input {
-                width: 1130px;
-                &.short {
-                  width: 255px;
-                }
-                .error {
-                  border-color: #da364a;
-                }
+              .error {
+                border-color: #da364a;
               }
             }
           }
@@ -803,7 +799,9 @@ html[data-theme='dark'] {
   }
 }
 /* common/alert-details */
-#dashboardModalDialog-content {
+/* host/index */
+#dashboardModalDialog-content,
+#hostModalDialog-content {
   width: 1280px;
   max-height: 725px;
   .main-table {
@@ -829,7 +827,7 @@ html[data-theme='dark'] {
         width: 10%;
       }
     }
-    .severity {
+    .severity-level .severity {
       display: block;
       color: #fff;
       width: 90px;
@@ -1073,6 +1071,39 @@ html[data-theme='dark'] {
     }
   }
 }
+#hostModalDialog-content {
+  .main-content {
+    & > .content {
+      height: 550px;
+      .srcIp-content,
+      .scan-info,
+      & > .network-behavior {
+        height: 525px;
+      }
+    }
+  }
+  .scan-info .info-content {
+    .dashboard-wrapper {
+      height: 100%;
+    }
+    .table {
+      max-height: 440px;
+    }
+    .settings-wrapper {
+      height: 430px;
+      .settings-form {
+        .path-group {
+          .path-input {
+            width: 900px;
+            &.short {
+              width: 197px;
+            }
+          }
+        }
+      }
+    }
+  }
+}
 /* configuration/topology/inventory */
 #configScanModalDialog-content {
   width: 1280px;
@@ -1099,7 +1130,17 @@ html[data-theme='dark'] {
       }
       .settings-wrapper {
         height: 445px;
-      }      
+        .settings-form {
+          .path-group {
+            .path-input {
+              width: 1130px;
+              &.short {
+                width: 255px;
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

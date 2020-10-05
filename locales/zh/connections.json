@@ -153,7 +153,11 @@
   "txt-score": "評分",
   "txt-text": "文字",
   "txt-result": "結果",
+  "txt-total": "總數",
   "txt-maxScore": "最高分",
+  "txt-sort": "排序",
+  "txt-asc": "升序",
+  "txt-desc": "降序",
   "txt-maxDataMsg": "資料筆數最大為10,000筆",
   "txt-es-data-over-limit": "超出搜尋範圍，請修改查詢條件",
   "txt-duplicatedName": "名稱不得重複",
@@ -161,6 +165,7 @@
   "txt-threatsSrcCountryRank": "威脅來源國家排名",
 
   "txt-dashboard": "Dashboard",
+  "txt-host": "Host",
   "txt-threats": "Threats",
   "txt-syslog": "Syslog",
   "txt-netflow": "Netflow",
@@ -258,6 +263,22 @@
     "txt-hmd": "使用數",
     "txt-max": "授權數",
     "txt-hosts": "主機"
+  },
+
+  "host": {
+    "txt-hostList": "主機列表",
+    "txt-deviceMap": "裝置地圖",
+    "txt-hostInfo": "主機資訊",
+    "txt-viewInfo": "查看內容",
+    "txt-hostList2": "主機清單",
+    "txt-hostAnalysis": "主機分析資訊",
+    "txt-hostCreateTime": "評估時間",
+    "txt-isNotHmd": "未安裝",
+    "txt-isLatestVersion": "最新版",
+    "txt-isOldVersion": "未升版",
+    "txt-isOwnerNull": "未設定使用者",
+    "txt-isAreaNull": "未設定樓層",
+    "txt-isSeatNull": "未設定座位"
   },
 
   "alert": {
@@ -423,7 +444,7 @@
     "txt-longitude": "經度",
     "txt-latitude": "緯度",
     "txt-activatTime": "啟用時間",
-    "txt-lastUpateTime": "最近更新時間",
+    "txt-lastUpdateTime": "最近更新時間",
     "txt-anyTime": "不限時段",
     "txt-customTime": "自訂時段",
     "txt-memo": "備忘錄",
@@ -459,14 +480,14 @@
     "txt-severityMapping": "情資嚴重等級管理",
     "txt-addSeverityTable": "新增類型",
     "txt-typeInfo": "類型內容",
-    "txt-lastUpateTime": "最近更新時間",
+    "txt-lastUpdateTime": "最近更新時間",
     "txt-severityMissing": "嚴重等級類型不得為空白"
   },
 
   "system-defined-pattern": {
     "txt-addPatternScript": "新增Pattern",
     "txt-patternInfo": "Pattern內容",
-    "txt-lastUpateTime": "最近更新時間",
+    "txt-lastUpdateTime": "最近更新時間",
     "txt-patternMissing": "Pattern名稱不得為空白",
     "txt-queryScriptMissing": "查詢條件不得為空白",
     "txt-deletePattern": "$t(txt-delete)Pattern"
@@ -709,6 +730,7 @@
     "ip": "IP",
     "mac": "MAC",
     "owner": "所屬人員",
+    "floorName": "樓層名稱",
     "userAccount": "使用者帳號",
     "userName": "人員",
     "disks": "$t(txt-disks)",

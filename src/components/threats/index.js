@@ -20,11 +20,6 @@ import Threats from './threats'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
-let t = null;
-let f = null;
-let et = null;
-let it = null;
-
 const NOT_AVAILABLE = 'N/A';
 const PRIVATE = 'private';
 const PUBLIC = 'public';
@@ -134,6 +129,11 @@ const TABLE_CHARTS_LIST = [
     key: 'client'
   }
 ];
+
+let t = null;
+let f = null;
+let et = null;
+let it = null;
 
 /**
  * Threats
@@ -323,6 +323,13 @@ class ThreatsController extends Component {
     }
 
     if (alertsParam.from && alertsParam.to) {
+      const page = alertsParam.page;
+      let query = 'sourceIP: ' + alertsParam.sourceIP;
+
+      if (page === 'host') {
+        query = alertsParam.sourceIP;
+      }
+
       this.setState({
         datetime: {
           from: alertsParam.from,
@@ -330,7 +337,7 @@ class ThreatsController extends Component {
         },
         filterData: [{
           condition: 'must',
-          query: 'sourceIP: ' + alertsParam.sourceIP
+          query
         }],
         showFilter: true
       });
@@ -956,7 +963,7 @@ class ThreatsController extends Component {
   getTreeLabel = (id, name, currentTreeName, count, query) => {
     const serviceCount = count !== '' ? ' (' + count + ')' : '';
 
-    return <span>{name}{serviceCount} <button className={cx('button', {'active': currentTreeName === id})} onClick={this.selectTree.bind(this, name, query)}>{t('events.connections.txt-addFilter')}</button></span>;
+    return <span>{name}{helper.numberWithCommas(serviceCount)} <button className={cx('button', {'active': currentTreeName === id})} onClick={this.selectTree.bind(this, name, query)}>{t('events.connections.txt-addFilter')}</button></span>;
   }
   /**
    * Display severity info content
@@ -1058,7 +1065,7 @@ class ThreatsController extends Component {
 
                     tempChild2.push({
                       id,
-                      label: <span>{key3}{serviceCount} <button className={cx('button', {'active': treeName === id})} onClick={this.selectTree.bind(this, key3, '')}>{t('events.connections.txt-addFilter')}</button><i className={cx('fg fg-info', {'active': treeName === id})} title={t('txt-info')} onClick={this.showSeverityInfo.bind(this, val2)}></i></span>
+                      label: <span>{key3}{helper.numberWithCommas(serviceCount)} <button className={cx('button', {'active': treeName === id})} onClick={this.selectTree.bind(this, key3, '')}>{t('events.connections.txt-addFilter')}</button><i className={cx('fg fg-info', {'active': treeName === id})} title={t('txt-info')} onClick={this.showSeverityInfo.bind(this, val2)}></i></span>
                     });
                   }
                 })
@@ -1079,7 +1086,7 @@ class ThreatsController extends Component {
             }
           })
 
-          label = <span><i className={'fg fg-recode ' + key.toLowerCase()} /> {key} ({totalHostCount}) <button className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, '')}>{t('events.connections.txt-addFilter')}</button></span>;
+          label = <span><i className={'fg fg-recode ' + key.toLowerCase()} /> {key} ({helper.numberWithCommas(totalHostCount)}) <button className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, '')}>{t('events.connections.txt-addFilter')}</button></span>;
 
           let treeProperty = {
             id: key,
@@ -1095,7 +1102,7 @@ class ThreatsController extends Component {
       })
     })
 
-    treeObj.label = t('txt-all') + ' (' + treeData.default.doc_count + ')';
+    treeObj.label = t('txt-all') + ' (' + helper.numberWithCommas(treeData.default.doc_count) + ')';
 
     return treeObj;
   }
@@ -1142,7 +1149,7 @@ class ThreatsController extends Component {
                 nodeClass += ' ' + val._severity_.toLowerCase();
               }
 
-              label = <span><i className={nodeClass} />{val.key} ({val.doc_count}) <button className={cx('button', {'active': treeName === val.key})} onClick={this.selectTree.bind(this, val.key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</button></span>;
+              label = <span><i className={nodeClass} />{val.key} ({helper.numberWithCommas(val.doc_count)}) <button className={cx('button', {'active': treeName === val.key})} onClick={this.selectTree.bind(this, val.key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</button></span>;
 
               tempChild.push({
                 id: val.key,
@@ -1158,7 +1165,7 @@ class ThreatsController extends Component {
           nodeClass += ' ' + treeData[key]._severity_.toLowerCase();
         }
 
-        label = <span><i className={nodeClass} style={this.showSeverity(treeData[key]._severity_)}/> {key} ({treeData[key].doc_count}) <button className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</button></span>;
+        label = <span><i className={nodeClass} style={this.showSeverity(treeData[key]._severity_)} />{key} ({helper.numberWithCommas(treeData[key].doc_count)}) <button className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</button></span>;
 
         treeProperty = {
           id: key,
@@ -1173,7 +1180,7 @@ class ThreatsController extends Component {
       }
     })
 
-    treeObj.label = t('txt-all') + ' (' + treeData.doc_count + ')';
+    treeObj.label = t('txt-all') + ' (' + helper.numberWithCommas(treeData.doc_count) + ')';
 
     return treeObj;
   }
@@ -1208,7 +1215,7 @@ class ThreatsController extends Component {
       }
     })
 
-    treeObj.label = t('txt-all') + ' (' + treeData.doc_count + ')';
+    treeObj.label = t('txt-all') + ' (' + helper.numberWithCommas(treeData.doc_count) + ')';
 
     return treeObj;
   }
@@ -1233,7 +1240,7 @@ class ThreatsController extends Component {
       if (key && key !== 'doc_count') {
         _.forEach(treeData[path].buckets, val => {
           if (val.agentId) {
-            label = <span>{val.agentName} ({val.serviceType}) ({val.doc_count}) </span>;
+            label = <span>{val.agentName} ({val.serviceType}) ({helper.numberWithCommas(val.doc_count)}) </span>;
 
             treeObj.children.push({
               id: val.agentId,
@@ -1244,7 +1251,7 @@ class ThreatsController extends Component {
       }
     })
 
-    treeObj.label = t('txt-all') + ' (' + treeData.doc_count + ')';
+    treeObj.label = t('txt-all') + ' (' + helper.numberWithCommas(treeData.doc_count) + ')';
 
     return treeObj;
   }
@@ -1457,7 +1464,7 @@ class ThreatsController extends Component {
         alertDetails={alertDetails}
         alertData={alertData}
         showAlertData={this.showAlertData}
-        fromPage='threats'/>
+        fromPage='threats' />
     )
   }
   /**

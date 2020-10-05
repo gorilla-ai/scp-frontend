@@ -1010,7 +1010,7 @@ class Edge extends Component {
                 <img className='status' src={icon.src} title={icon.title} />
               }
               {edge.info.lastUpdateTime &&
-                <span className='msg'>{t('edge-management.txt-lastUpateTime')} {helper.getFormattedDate(edge.info.lastUpdateTime, 'local')}</span>
+                <span className='msg'>{t('edge-management.txt-lastUpdateTime')} {helper.getFormattedDate(edge.info.lastUpdateTime, 'local')}</span>
               }
             </header>
             <button className='btn nettrap-upgrade' onClick={this.handleNetTrapUpgrade} disabled={activeContent === 'viewEdge' || !edge.info.isNetTrapUpgrade}>{t('txt-upgrade')}</button>

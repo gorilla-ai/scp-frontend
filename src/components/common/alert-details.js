@@ -5,9 +5,7 @@ import Moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import ButtonGroup from 'react-ui/build/src/components/button-group'
 import ContextMenu from 'react-ui/build/src/components/contextmenu'
-import DataTable from 'react-ui/build/src/components/table'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
@@ -15,28 +13,21 @@ import JSONTree from 'react-json-tree'
 
 import {BaseDataContext} from './context';
 
-import helper from './helper'
 import EncodeDecode from './encode-decode'
-import IrSelections from './ir-selections'
+import helper from './helper'
 import HMDscanInfo from './hmd-scan-info'
+import IrSelections from './ir-selections'
+import NetworkBehavior from './network-behavior'
 import PrivateDetails from './private-details'
 import YaraRule from './yara-rule'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
-let t = null;
-let f = null;
-
-const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
-const ALERT_LEVEL_COLORS = {
-  Emergency: '#CC2943',
-  Alert: '#CC7B29',
-  Critical: '#29B0CC',
-  Warning: '#29CC7A',
-  Notice: '#7ACC29'
-};
 const PUBLIC_KEY = ['City', 'CountryCode', 'Latitude', 'Longitude'];
 const NOT_AVAILABLE = 'N/A';
+
+let t = null;
+let f = null;
 
 /**
  * Alert Details
@@ -94,66 +85,7 @@ class AlertDetails extends Component {
       modalYaraRuleOpen: false,
       modalIRopen: false,
       modalEncodeOpen: false,
-      highlightedText: '',
-      activeNetworkBehavior: 'alert',
-      networkBehavior: {
-        alert: {
-          fields: ['severity', 'count'],
-          srcIp: {
-            totalCount: 0,
-            data: []
-          },
-          destIp: {
-            totalCount: 0,
-            data: []
-          }
-        },
-        connections: {
-          fields: ['destIp', 'destPort', 'count'],
-          sort: {
-            field: 'destIp',
-            desc: true
-          },
-          srcIp: {
-            totalCount: 0,
-            data: []
-          },
-          destIp: {
-            totalCount: 0,
-            data: []
-          }
-        },
-        dns: {
-          fields: ['destIp', 'destPort', 'count'],
-          sort: {
-            field: 'destIp',
-            desc: true
-          },
-          srcIp: {
-            totalCount: 0,
-            data: []
-          },
-          destIp: {
-            totalCount: 0,
-            data: []
-          }
-        },
-        syslog: {
-          fields: ['configSource', 'count'],
-          sort: {
-            field: 'configSource',
-            desc: true
-          },
-          srcIp: {
-            totalCount: 0,
-            data: []
-          },
-          destIp: {
-            totalCount: 0,
-            data: []
-          }
-        }
-      }
+      highlightedText: ''
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -439,18 +371,21 @@ class AlertDetails extends Component {
     
     tempAlertInfo[ipType].ownerMap = ownerMap;
     tempAlertInfo[ipType].ownerBaseLayers[topoInfo.areaUUID] = ownerMap;
-    tempAlertInfo[ipType].ownerSeat[topoInfo.areaUUID] = {
-      data: [{
-        id: topoInfo.seatUUID,
-        type: 'spot',
-        xy: [topoInfo.seatCoordX, topoInfo.seatCoordY],
-        label: topoInfo.seatName,
-        data: {
-          name: topoInfo.seatName,
-          tag: 'red'
-        }
-      }]
-    };
+
+    if (topoInfo.seatUUID) {
+      tempAlertInfo[ipType].ownerSeat[topoInfo.areaUUID] = {
+        data: [{
+          id: topoInfo.seatUUID,
+          type: 'spot',
+          xy: [topoInfo.seatCoordX, topoInfo.seatCoordY],
+          label: topoInfo.seatName,
+          data: {
+            name: topoInfo.seatName,
+            tag: 'red'
+          }
+        }]
+      };
+    }
 
     this.setState({
       alertInfo: tempAlertInfo
@@ -590,45 +525,17 @@ class AlertDetails extends Component {
           tempShowContent.destSafety = true;
           break;
         case 'srcNetwork':
-          this.loadNetworkBehavior('srcIp');
           tempShowContent.srcNetwork = true;
           break;
         case 'destNetwork':
-          this.loadNetworkBehavior('destIp');
           tempShowContent.destNetwork = true;
           break;
       }
 
       this.setState({
-        showContent: tempShowContent,
-        activeNetworkBehavior: 'alert'
+        showContent: tempShowContent
       });
     });
-  }
-  /**
-   * Get alert severity
-   * @method
-   * @param {string} value - 'Emergency', 'Alert', 'Critical', 'Warning', 'Notice'
-   * @returns HTML DOM
-   */
-  getSeverity = (value) => {
-    let backgroundColor = '';
-
-    if (value === 'Emergency') {
-      backgroundColor = '#CC2943';
-    } else if (value === 'Alert') {
-      backgroundColor = '#CC7B29';
-    } else if (value === 'Critical') {
-      backgroundColor = '#29B0CC';
-    } else if (value === 'Warning') {
-      backgroundColor = '#29CC7A';
-    } else if (value === 'Notice') {
-      backgroundColor = '#7ACC29';
-    } else if (value === NOT_AVAILABLE) {
-      return {NOT_AVAILABLE}
-    }
-
-    return <span className='severity' style={{backgroundColor}}>{value}</span>
   }
   /**
    * Handle pcap download button
@@ -795,7 +702,6 @@ class AlertDetails extends Component {
   displayAlertData = () => {
     const {alertDetails, alertData} = this.props;
     const {alertType, showContent, alertRule, alertPayload, showRedirectMenu} = this.state;
-    const severity = alertData._severity_ ? this.getSeverity(alertData._severity_) : NOT_AVAILABLE;
     const eventDatetime = alertData._eventDttm_ ? helper.getFormattedDate(alertData._eventDttm_, 'local') : NOT_AVAILABLE;
 
     return (
@@ -812,7 +718,7 @@ class AlertDetails extends Component {
           </thead>
           <tbody>
             <tr>
-              <td className='severity-level'>{severity}</td>
+              <td className='severity-level'>{helper.getSeverityColor(alertData._severity_)}</td>
               <td className='collector'>{alertData.Collector || NOT_AVAILABLE}</td>
               <td className='trigger'>{alertData.Trigger || NOT_AVAILABLE}</td>
               <td className='source'>{alertData.Source || NOT_AVAILABLE}</td>
@@ -1492,7 +1398,7 @@ class AlertDetails extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
-  }  
+  }
   /**
    * Display safety scan content
    * @method
@@ -1519,441 +1425,17 @@ class AlertDetails extends Component {
     }
   }
   /**
-   * Toggle network behavior button
-   * @method
-   * @param {string} type - 'threats' or 'syslog'
-   */
-  toggleNetworkBtn = (type) => {
-    this.setState({
-      activeNetworkBehavior: type
-    });
-  }
-  /**
-   * Redirect to netflow or syslog page
-   * @method
-   * @param {string} ipType - 'srcIp' or 'destIp'
-   */
-  redirectNewPage = (ipType) => {
-    const {baseUrl, contextRoot, language} = this.context;
-    const {alertData} = this.props;
-    const {activeNetworkBehavior} = this.state;
-    const datetime = {
-      from: helper.getFormattedDate(helper.getSubstractDate(1, 'hours', alertData._eventDttm_)),
-      to: helper.getFormattedDate(alertData._eventDttm_, 'local')
-    };
-    const srcIp = this.getIpPortData('srcIp');
-    const destIp = this.getIpPortData('destIp');
-    let ipParam = '';
-    let linkUrl ='';
-
-    if (ipType === 'srcIp') {
-      ipParam = `&sourceIP=${srcIp}`;
-    } else if (ipType === 'destIp') {
-      ipParam = `&sourceIP=${destIp}`;
-    }
- 
-    if (activeNetworkBehavior === 'alert') {
-      linkUrl = `${baseUrl}${contextRoot}/threats?from=${datetime.from}&to=${datetime.to}${ipParam}&lng=${language}`;
-    } else if (activeNetworkBehavior === 'connections') {
-      linkUrl = `${baseUrl}${contextRoot}/events/netflow?from=${datetime.from}&to=${datetime.to}${ipParam}&type=connections&lng=${language}`;
-    } else if (activeNetworkBehavior === 'dns') {
-      linkUrl = `${baseUrl}${contextRoot}/events/netflow?from=${datetime.from}&to=${datetime.to}${ipParam}&type=dns&lng=${language}`;
-    } else if (activeNetworkBehavior === 'syslog') {
-      linkUrl = `${baseUrl}${contextRoot}/events/syslog?from=${datetime.from}&to=${datetime.to}${ipParam}&lng=${language}`;
-    }
-
-    window.open(linkUrl, '_blank');
-  }
-  /**
-   * Handle table sort for network behavior
-   * @method
-   * @param {string} type - network behavior type ('alert', 'connections', 'dns' or 'syslog')
-   * @param {object} sort - sort data object
-   */
-  handleNetworkBehaviorTableSort = (type, sort) => {
-    let tempNetworkBehavior = {...this.state.networkBehavior};
-    tempNetworkBehavior[type].sort.field = sort.field;
-    tempNetworkBehavior[type].sort.desc = sort.desc;
-
-    this.setState({
-      networkBehavior: tempNetworkBehavior
-    });
-  }
-  /**
-   * Get aggregated network behavior data
-   * @method
-   * @param {string} type - network behavior type ('alert', 'connections', 'dns' or 'syslog')
-   * @param {object | array.<object>} data - network behavior data
-   */
-  getNetworkBehaviorData = (type, data) => {
-    let tempData = [];
-
-    if (type === 'alert') {
-      _.forEach(SEVERITY_TYPE, val => {
-        _.forEach(data, (val2, key) => {
-          if (key !== 'default' && val === key) {
-            tempData.push({
-              severity: key,
-              count: val2.doc_count
-            });
-          }
-        })
-      })
-    } else if (type === 'connections' || type === 'dns') {
-      _.forEach(data, val => {
-        _.forEach(val.portDst.buckets, val2 => {
-          tempData.push({
-            destIp: val.key,
-            destPort: val2.key,
-            count: val.doc_count
-          });
-        })
-      })
-    } else if (type === 'syslog') {
-      _.forEach(data, val => {
-        tempData.push({
-          configSource: val.key,
-          count: val.doc_count
-        });
-      })
-    }
-
-    return tempData;
-  }
-  /**
-   * Load network behavior data
-   * @method
-   * @param {string} ipType - 'srcIp' or 'destIp'
-   */
-  loadNetworkBehavior = (ipType) => {
-    const {baseUrl} = this.context;
-    const {alertData} = this.props;
-    const {networkBehavior} = this.state;
-    const eventDateTime = helper.getFormattedDate(alertData._eventDttm_, 'local');
-    const eventDateFrom = helper.getSubstractDate(1, 'hours', eventDateTime);
-    const datetime = {
-      from: Moment(eventDateFrom).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-      to: Moment(eventDateTime).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
-    };
-    let apiArr = [];
-
-    if (ipType === 'srcIp') {
-      if (!alertData.srcIp) {
-        return;
-      }
-
-      apiArr = [
-        {
-          url: `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`, //Threats srcIp
-          data: JSON.stringify({
-            timestamp: [datetime.from, datetime.to],
-            filters: [
-              {
-                condition: 'must',
-                query: 'sourceIP:' + alertData.srcIp
-              }
-            ]
-          }),
-          type: 'POST',
-          contentType: 'text/plain'
-        },
-        {
-          url: `${baseUrl}/api/u1/network/session?pageSize=0`, //Connections srcIp
-          data: JSON.stringify({
-            timestamp: [datetime.from, datetime.to],
-            filters: [
-              {
-                condition: 'must',
-                query: 'sourceIP:' + alertData.srcIp
-              }
-            ],
-            search: [
-              'TopDestIpPortAgg'
-            ]
-          }),
-          type: 'POST',
-          contentType: 'text/plain'
-        },
-        {
-          url: `${baseUrl}/api/u1/network/session?pageSize=0`, //DNS srcIp
-          data: JSON.stringify({
-            timestamp: [datetime.from, datetime.to],
-            filters: [
-              {
-                condition: 'must',
-                query: 'sourceIP:' + alertData.srcIp
-              },
-              {
-                condition: 'must',
-                query: 'DNS' 
-              }
-            ],
-            search: [
-              'TopDestIpPortAgg'
-            ]
-          }),
-          type: 'POST',
-          contentType: 'text/plain'
-        },
-        {
-          url: `${baseUrl}/api/u2/alert/_search?pageSize=0`, //Syslog srcIp
-          data: JSON.stringify({
-            timestamp: [datetime.from, datetime.to],
-            filters: [
-              {
-                condition: 'must',
-                query: 'Top10SyslogConfigSource'
-              },
-              {
-                condition: 'must',
-                query: alertData.srcIp
-              }
-            ]
-          }),
-          type: 'POST',
-          contentType: 'text/plain'
-        }
-      ];
-    } else if (ipType === 'destIp') {
-      if (!alertData.destIp) {
-        return;
-      }
-
-      apiArr = [
-        {
-          url: `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`, //Threats destIp
-          data: JSON.stringify({
-            timestamp: [datetime.from, datetime.to],
-            filters: [
-              {
-                condition: 'must',
-                query: 'sourceIP:' + alertData.destIp
-              }
-            ]
-          }),
-          type: 'POST',
-          contentType: 'text/plain'
-        },
-        {
-          url: `${baseUrl}/api/u1/network/session?pageSize=0`, //Connections destIp
-          data: JSON.stringify({
-            timestamp: [datetime.from, datetime.to],
-            filters: [
-              {
-                condition: 'must',
-                query: 'sourceIP:' + alertData.destIp
-              }
-            ],
-            search: [
-              'TopDestIpPortAgg'
-            ]
-          }),
-          type: 'POST',
-          contentType: 'text/plain'
-        },
-        {
-          url: `${baseUrl}/api/u1/network/session?pageSize=0`, //DNS destIp
-          data: JSON.stringify({
-            timestamp: [datetime.from, datetime.to],
-            filters: [
-              {
-                condition: 'must',
-                query: 'sourceIP:' + alertData.destIp
-              },
-              {
-                condition: 'must',
-                query: 'DNS' 
-              }
-            ],
-            search: [
-              'TopDestIpPortAgg'
-            ]
-          }),
-          type: 'POST',
-          contentType: 'text/plain'
-        },
-        {
-          url: `${baseUrl}/api/u2/alert/_search?pageSize=0`, //Syslog destIp
-          data: JSON.stringify({
-            timestamp: [datetime.from, datetime.to],
-            filters: [
-              {
-                condition: 'must',
-                query: 'Top10SyslogConfigSource'
-              },
-              {
-                condition: 'must',
-                query: alertData.destIp
-              }
-            ]
-          }),
-          type: 'POST',
-          contentType: 'text/plain'
-        }
-      ];
-    }
-
-    this.ah.all(apiArr)
-    .then(data => {
-      if (data && data.length > 0) {
-        let tempNetworkBehavior = {...networkBehavior};
-        let tempFields = {};
-        networkBehavior.alert.fields.forEach(tempData => {
-          tempFields[tempData] = {
-            label: t(`txt-${tempData}`),
-            sortable: false,
-            formatter: (value, allValue, i) => {
-              if (tempData === 'severity') {
-                return <span className='severity-level' style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>
-              } else {
-                return <span>{value}</span>
-              }
-            }
-          }
-        })
-
-        tempNetworkBehavior.alert.fieldsData = tempFields;
-
-        if (ipType === 'srcIp') {
-          tempNetworkBehavior.alert.srcIp.totalCount = data[0].data.counts;
-
-          if (data[0].aggregations) {
-            tempNetworkBehavior.alert.srcIp.data = this.getNetworkBehaviorData('alert', data[0].aggregations);
-          }
-        } else if (ipType === 'destIp') {
-          tempNetworkBehavior.alert.destIp.totalCount = data[0].data.counts;
-
-          if (data[0].aggregations) {
-            tempNetworkBehavior.alert.destIp.data = this.getNetworkBehaviorData('alert', data[0].aggregations);
-          }
-        }
-
-        tempFields = {};
-        networkBehavior.connections.fields.forEach(tempData => {
-          tempFields[tempData] = {
-            label: t(`txt-${tempData}`),
-            sortable: true,
-            formatter: (value, allValue, i) => {
-              return <span>{value}</span>
-            }
-          }
-        })
-
-        tempNetworkBehavior.connections.fieldsData = tempFields;
-        tempNetworkBehavior.dns.fieldsData = tempFields;
-
-        if (ipType === 'srcIp') {
-          tempNetworkBehavior.connections.srcIp.totalCount = data[1].data.counts;
-
-          if (data[1].aggregations && data[1].aggregations.TopDestIpPortAgg) {
-            tempNetworkBehavior.connections.srcIp.data = this.getNetworkBehaviorData('connections', data[1].aggregations.TopDestIpPortAgg.buckets);
-          }
-
-          tempNetworkBehavior.dns.srcIp.totalCount = data[2].data.counts;
-
-          if (data[2].aggregations && data[2].aggregations.TopDestIpPortAgg) {
-            tempNetworkBehavior.dns.srcIp.data = this.getNetworkBehaviorData('dns', data[2].aggregations.TopDestIpPortAgg.buckets);
-          }
-        } else if (ipType === 'destIp') {
-          tempNetworkBehavior.connections.destIp.totalCount = data[1].data.counts;
-
-          if (data[1].aggregations && data[1].aggregations.TopDestIpPortAgg) {
-            tempNetworkBehavior.connections.destIp.data = this.getNetworkBehaviorData('connections', data[1].aggregations.TopDestIpPortAgg.buckets);
-          }
-
-          tempNetworkBehavior.dns.destIp.totalCount = data[2].data.counts;
-
-          if (data[2].aggregations && data[2].aggregations.TopDestIpPortAgg) {
-            tempNetworkBehavior.dns.destIp.data = this.getNetworkBehaviorData('dns', data[2].aggregations.TopDestIpPortAgg.buckets);
-          }
-        }
-
-        tempFields = {};
-        networkBehavior.syslog.fields.forEach(tempData => {
-          tempFields[tempData] = {
-            label: t(`txt-${tempData}`),
-            sortable: true,
-            formatter: (value, allValue, i) => {
-              return <span>{value}</span>
-            }
-          }
-        })
-
-        tempNetworkBehavior.syslog.fieldsData = tempFields;
-
-        if (ipType === 'srcIp') {
-          tempNetworkBehavior.syslog.srcIp.totalCount = data[3].data.counts;
-
-          if (data[3].aggregations && data[3].aggregations.Top10SyslogConfigSource) {
-            tempNetworkBehavior.syslog.srcIp.data = this.getNetworkBehaviorData('syslog', data[3].aggregations.Top10SyslogConfigSource.agg.buckets);
-          }
-        } else if (ipType === 'destIp') {
-          tempNetworkBehavior.syslog.destIp.totalCount = data[3].data.counts;
-
-          if (data[3].aggregations && data[3].aggregations.Top10SyslogConfigSource) {
-            tempNetworkBehavior.syslog.destIp.data = this.getNetworkBehaviorData('syslog', data[3].aggregations.Top10SyslogConfigSource.agg.buckets);
-          }
-        }
-
-        this.setState({
-          networkBehavior: tempNetworkBehavior
-        });
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
    * Display network behavior content
    * @method
    * @param {string} ipType - 'srcIp' or 'destIp'
-   * @returns HTML DOM
+   * @returns NetworkBehavior component
    */
   displayNetworkBehaviorContent = (ipType) => {
-    const {alertData} = this.props;
-    const {activeNetworkBehavior, networkBehavior} = this.state;
-    let datetime = {};
-
-    if (alertData._eventDttm_) {
-      datetime = {
-        from: helper.getFormattedDate(helper.getSubstractDate(1, 'hours', alertData._eventDttm_)),
-        to: helper.getFormattedDate(alertData._eventDttm_, 'local')
-      };
-    }
-
-    if (this.getIpPortData(ipType) === NOT_AVAILABLE) {
-      return <span>{NOT_AVAILABLE}</span>
-    }
-
     return (
-      <div className='network-behavior'>
-        <ButtonGroup
-          id='networkType'
-          list={[
-            {value: 'alert', text: t('txt-threats') + ' (' + networkBehavior.alert[ipType].totalCount + ')'},
-            {value: 'connections', text: t('txt-connections-eng') + ' (' + networkBehavior.connections[ipType].totalCount + ')'},
-            {value: 'dns', text: t('txt-dns') + ' (' + networkBehavior.dns[ipType].totalCount + ')'},
-            {value: 'syslog', text: t('txt-syslog') + ' (' + networkBehavior.syslog[ipType].totalCount + ')'}
-          ]}
-          value={activeNetworkBehavior}
-          onChange={this.toggleNetworkBtn} />
-
-        {datetime.from && datetime.to &&
-          <div className='msg'>{t('txt-alertHourBefore')}: {datetime.from} ~ {datetime.to}</div>
-        }
-        <button className='standard btn query-events' onClick={this.redirectNewPage.bind(this, ipType)}>{t('alert.txt-queryEvents')}</button>
-
-        <div className='table-data'>
-          <DataTable
-            className='main-table network-behavior'
-            fields={networkBehavior[activeNetworkBehavior].fieldsData}
-            data={networkBehavior[activeNetworkBehavior][ipType].data}
-            sort={networkBehavior[activeNetworkBehavior][ipType].data.length === 0 ? {} : networkBehavior[activeNetworkBehavior].sort}
-            onSort={this.handleNetworkBehaviorTableSort.bind(this, activeNetworkBehavior)} />
-        </div>
-      </div>
+      <NetworkBehavior
+        ipType={ipType}
+        alertData={this.props.alertData}
+        getIpPortData={this.getIpPortData} />
     )
   }
   /**

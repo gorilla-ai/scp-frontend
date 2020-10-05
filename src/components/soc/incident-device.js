@@ -506,7 +506,7 @@ class IncidentDevice extends Component {
 
                         {activeContent !== 'addDevice' &&
                         <span
-                            className='msg'>{t('edge-management.txt-lastUpateTime')} {helper.getFormattedDate(incidentDevice.info.updateDttm, 'local')}</span>
+                            className='msg'>{t('edge-management.txt-lastUpdateTime')} {helper.getFormattedDate(incidentDevice.info.updateDttm, 'local')}</span>
                         }
                     </header>
 
