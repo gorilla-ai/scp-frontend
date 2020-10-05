@@ -268,6 +268,7 @@
   "host": {
     "txt-hostList": "Host List",
     "txt-deviceMap": "Device Map",
+    "txt-hostInfo": "Host Info",
     "txt-viewInfo": "View Info",
     "txt-hostList2": "Host",
     "txt-hostAnalysis": "Host Analysis Info",
@@ -443,7 +444,7 @@
     "txt-longitude": "Longitude",
     "txt-latitude": "Latitude",
     "txt-activatTime": "Datetime",
-    "txt-lastUpateTime": "Last Update Time",
+    "txt-lastUpdateTime": "Last Update Time",
     "txt-anyTime": "Any Time",
     "txt-customTime": "Custom Time",
     "txt-memo": "Memo",
@@ -479,14 +480,14 @@
     "txt-severityMapping": "Threat Severity Mapping",
     "txt-addSeverityTable": "Add Type",
     "txt-typeInfo": "Type Info",
-    "txt-lastUpateTime": "Last Update Time",
+    "txt-lastUpdateTime": "Last Update Time",
     "txt-severityMissing": "Severity type cannot be empty"
   },
 
   "system-defined-pattern": {
     "txt-addPatternScript": "Add Pattern",
     "txt-patternInfo": "Pattern Info",
-    "txt-lastUpateTime": "Last Update Time",
+    "txt-lastUpdateTime": "Last Update Time",
     "txt-patternMissing": "Pattern cannot be empty",
     "txt-queryScriptMissing": "Query Script cannot be empty",
     "txt-deletePattern": "$t(txt-delete) Pattern"

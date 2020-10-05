@@ -176,6 +176,12 @@ class HostAnalysis extends Component {
   displayHostAnalysisData = () => {
     const {hostData, datetime} = this.props;
     const {showContent} = this.state;
+    const ip = hostData.ip || NOT_AVAILABLE;
+    const mac = hostData.mac || NOT_AVAILABLE;
+    const hostName = hostData.hostName || NOT_AVAILABLE;
+    const system = hostData.system || NOT_AVAILABLE;
+    const ownerName = hostData.ownerObj ? hostData.ownerObj.ownerName : NOT_AVAILABLE;
+    const version = hostData.version || NOT_AVAILABLE;
     
     return (
       <div>
@@ -183,23 +189,23 @@ class HostAnalysis extends Component {
           <thead>
             <tr>
               <th>{f('alertFields._severity_')}</th>
-              <th>{t('ipFields.hostName')}</th>
               <th>{t('ipFields.ip')}</th>
               <th>{t('ipFields.mac')}</th>
+              <th>{t('ipFields.hostName')}</th>
               <th>{t('ipFields.system')}</th>
               <th>{t('ipFields.owner')}</th>
-              <th>{t('ipFields.areaName')}</th>
+              <th>{t('ipFields.version')}</th>              
             </tr>
           </thead>
           <tbody>
             <tr>
               <td className='severity-level'>{helper.getSeverityColor(hostData.severityLevel)}</td>
-              <td>{hostData.hostName || NOT_AVAILABLE}</td>
-              <td>{hostData.ip || NOT_AVAILABLE}</td>
-              <td>{hostData.mac || NOT_AVAILABLE}</td>
-              <td>{hostData.system || NOT_AVAILABLE}</td>
-              <td>{hostData.ownerObj && hostData.ownerObj.ownerName || NOT_AVAILABLE}</td>
-              <td>{hostData.areaOb && hostData.areaObj.areaFullName || NOT_AVAILABLE}</td>
+              <td>{ip}</td>
+              <td>{mac}</td>
+              <td>{hostName}</td>
+              <td>{system}</td>
+              <td>{ownerName}</td>
+              <td>{version}</td>
             </tr>
           </tbody>
         </table>
@@ -208,7 +214,7 @@ class HostAnalysis extends Component {
           <div className='nav'>
             <ul>
               <li className='header'>
-                <span className='name'>{t('alert.txt-ipSrc')}</span>
+                <span className='name'>{t('host.txt-hostInfo')}</span>
               </li>
               <li className='child' onClick={this.getContent.bind(this, 'info')}><span className={cx({'active': showContent.info})}>{t('alert.txt-ipBasicInfo')}</span></li>
               <li className='child' onClick={this.getContent.bind(this, 'safety')}><span className={cx({'active': showContent.safety})}>{t('alert.txt-safetyScanInfo')}</span></li>
@@ -227,6 +233,7 @@ class HostAnalysis extends Component {
             {showContent.network &&
               <NetworkBehavior
                 ipType='srcIp'
+                page='host'
                 alertData={hostData}
                 hostDatetime={datetime} />
             }

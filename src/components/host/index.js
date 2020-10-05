@@ -903,6 +903,11 @@ class HostController extends Component {
         name: 'floorName',
         path: 'areaObj.areaFullName',
         icon: 'map'
+      },
+      {
+        name: 'version',
+        path: 'version',
+        icon: 'report'
       }
     ];
     let newInfoList = [];
@@ -914,7 +919,7 @@ class HostController extends Component {
 
     _.forEach(infoList, val2 => { //Determine the first item in the list
       if (!firstItem && val[val2.path]) {
-        firstItem = true; //Upate flag
+        firstItem = true; //Update flag
         newInfoList.push({
           ...val2,
           first: true

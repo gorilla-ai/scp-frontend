@@ -114,12 +114,13 @@ class NetworkBehavior extends Component {
    */
   loadNetworkBehavior = (ipType) => {
     const {baseUrl} = this.context;
-    const {alertData, hostDatetime} = this.props;
+    const {page, alertData, hostDatetime} = this.props;
     const {networkBehavior} = this.state;
     const eventDateTime = helper.getFormattedDate(alertData._eventDttm_ || alertData.createDttm, 'local');
     const eventDateFrom = helper.getSubstractDate(1, 'hours', eventDateTime);
     let datetime = {};
     let apiArr = [];
+    let query = '';
 
     if (_.isEmpty(hostDatetime)) {
       datetime = {
@@ -131,6 +132,16 @@ class NetworkBehavior extends Component {
         from: hostDatetime.from,
         to: hostDatetime.to
       };
+    }
+
+    if (page === 'host') {
+      query = alertData.srcIp || alertData.ip;
+    } else {
+      if (ipType === 'srcIp') {
+        query = 'sourceIP: ' + alertData.srcIp || alertData.ip;
+      } else if (ipType === 'destIp') {
+        query = 'sourceIP: ' + alertData.destIp || alertData.ip;
+      }
     }
 
     if (ipType === 'srcIp') {
@@ -148,7 +159,7 @@ class NetworkBehavior extends Component {
             filters: [
               {
                 condition: 'must',
-                query: 'sourceIP:' + srcIp
+                query
               }
             ]
           }),
@@ -162,7 +173,7 @@ class NetworkBehavior extends Component {
             filters: [
               {
                 condition: 'must',
-                query: 'sourceIP:' + srcIp
+                query
               }
             ],
             search: [
@@ -179,7 +190,7 @@ class NetworkBehavior extends Component {
             filters: [
               {
                 condition: 'must',
-                query: 'sourceIP:' + srcIp
+                query
               },
               {
                 condition: 'must',
@@ -227,7 +238,7 @@ class NetworkBehavior extends Component {
             filters: [
               {
                 condition: 'must',
-                query: 'sourceIP:' + destIp
+                query
               }
             ]
           }),
@@ -241,7 +252,7 @@ class NetworkBehavior extends Component {
             filters: [
               {
                 condition: 'must',
-                query: 'sourceIP:' + destIp
+                query
               }
             ],
             search: [
@@ -258,7 +269,7 @@ class NetworkBehavior extends Component {
             filters: [
               {
                 condition: 'must',
-                query: 'sourceIP:' + destIp
+                query
               },
               {
                 condition: 'must',
