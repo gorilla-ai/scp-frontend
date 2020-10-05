@@ -101,20 +101,16 @@ class Config extends Component {
       showContent: !this.state.showContent
     });
   }
+  /**
+   * Logs download
+   * @method
+   */
   downloadLogs = () => {
     const {baseUrl, contextRoot} = this.props;
     const url = `${baseUrl}${contextRoot}/api/common/logs/_export`;
     const requestData = {};
 
     downloadWithForm(url, {payload: JSON.stringify(requestData)});
-  }
-  /**
-   * Set the menu class name
-   * @method
-   * @returns {string} - class name
-   */
-  getClassName = () => {
-    return this.state.showContent ? 'fg fg-arrow-left' : 'fg fg-arrow-right';
   }
   render() {
     const {showContent, openEdgeManagement, openTopology, openSyslog, openAccount, selected} = this.state;
@@ -235,7 +231,7 @@ class Config extends Component {
         </div>
 
         <div className={cx('expand-collapse', {'not-allowed': this.getActiveFrame('threat')})} onClick={this.toggleLeftNav}>
-          <i className={this.getClassName()}></i>
+          <i className={`fg fg-arrow-${showContent ? 'left' : 'right'}`}></i>
         </div>
       </div>
     )
