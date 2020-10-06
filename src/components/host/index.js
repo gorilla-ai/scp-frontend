@@ -32,23 +32,23 @@ const SCAN_RESULT = [
 {
   name: 'Yara Scan',
   result: 'yaraResult',
-  count: 'ScanResultTotalCnt',
+  count: 'TotalCnt',
 },
 {
   name: 'Malware',
   result: 'scanFileResult',
-  count: 'DetectionResultTotalCnt'
+  count: 'TotalCnt'
 },
 {
   name: 'GCB',
   result: 'gcbResult',
-  count: 'GCBResultTotalCnt',
-  pass: 'GCBResultPassCnt'
+  count: 'TotalCnt',
+  pass: 'PassCnt'
 },
 {
   name: 'File Integrity',
   result: 'fileIntegrityResult',
-  count: 'getFileIntegrityTotalCnt'
+  count: 'TotalCnt'
 }];
 const HMD_STATUS_LIST = ['isNotHmd', 'isLatestVersion', 'isOldVersion', 'isOwnerNull', 'isAreaNull', 'isSeatNull'];
 const HMD_LIST = [
@@ -144,7 +144,7 @@ class HostController extends Component {
       activeTab: 'hostList', //'hostList', 'deviceMap'
       showFilter: false,
       showLeftNav: true,
-      datetime: helper.getSubstractDate(1, 'day', Moment().local().format('YYYY-MM-DD') + 'T00:00:00'),
+      datetime: Moment().local().format('YYYY-MM-DD') + 'T00:00:00',
       hostAnalysisOpen: false,
       severityList: [],
       privateMaskedIP: {},
@@ -329,10 +329,10 @@ class HostController extends Component {
     const {datetime} = this.state;
 
     return {
-      //from: '2020-09-25T16:00:00Z',
-      //to: '2020-09-26T16:00:00Z'
       from: Moment(datetime).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
       to: Moment(helper.getAdditionDate(1, 'day', datetime)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+      //from: '2020-09-25T16:00:00Z',
+      //to: '2020-09-26T16:00:00Z'
     }
   }
   /**

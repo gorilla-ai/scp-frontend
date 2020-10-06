@@ -620,7 +620,7 @@ class DashboardOverview extends Component {
         <div className='sub-header overview'>
           {helper.getDashboardMenu('overview')}
 
-          <div className='dropdown'>
+          {/*<div className='dropdown'>
             <label>Data count: </label>
             <DropDownList
               id='mapLimitList'
@@ -645,10 +645,10 @@ class DashboardOverview extends Component {
               ]}
               value={mapInterval}
               onChange={this.handleMapConfigChange.bind(this, 'mapInterval')} />
-          </div>
-          {countDown && countDown >= 0 &&
+          </div>*/}
+          {/*{countDown && countDown >= 0 &&
             <span className='count-down'>{countDown}s</span>
-          }
+          }*/}
           <span className='date-time'>{displayTime}</span>
         </div>
 

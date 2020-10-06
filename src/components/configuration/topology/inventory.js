@@ -221,31 +221,24 @@ class NetworkInventory extends Component {
       return <li key={i} style={{color}}>{val.name}: {t('network-inventory.txt-taskFailure')}</li>
     }
 
-    if (val.type === 'gcb' && val.result.GCBResultTotalCnt >= 0 && val.result.GCBResultPassCnt >= 0) {
-      if (val.result.GCBResultTotalCnt === val.result.GCBResultPassCnt) { //Show green color for all pass
+    if (val.type === 'gcb' && val.result.TotalCnt >= 0 && val.result.PassCnt >= 0) {
+      if (val.result.TotalCnt === val.result.PassCnt) { //Show green color for all pass
         color = '#22ac38';
       }
 
-      return <li key={i} style={{color}}><span>{val.name} {t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}:</span> {val.result.GCBResultPassCnt}/{val.result.GCBResultTotalCnt}</li>
+      return <li key={i} style={{color}}><span>{val.name} {t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}:</span> {val.result.PassCnt}/{val.result.TotalCnt}</li>
     } else {
-      if (val.result.ScanResultTotalCnt >= 0 || val.result.DetectionResultTotalCnt >= 0 || val.result.getFileIntegrityTotalCnt >= 0 || val.result.getProcessMonitorResultTotalCnt >= 0) {
-        let totalCount = 0;
+      if (val.result.TotalCnt >= 0) {
+        const totalCount = val.result.TotalCnt;
         let color = '#22ac38'; //Default green color
         let text = t('network-inventory.txt-suspiciousFileCount');
 
-        if (val.type === 'yara') {
-          totalCount = val.result.ScanResultTotalCnt;
-        } else if (val.type === 'scanFile') {
-          totalCount = val.result.DetectionResultTotalCnt;
-        } else if (val.type === 'fileIntegrity') {
-          totalCount = val.result.getFileIntegrityTotalCnt;
-          text = t('network-inventory.txt-modifiedFileCount');
-        } else if (val.type === 'procMonitor') {
-          totalCount = val.result.getProcessMonitorResultTotalCnt;
-        }
-
         if (totalCount > 0) { //Show red color
           color = '#d10d25';
+        }
+
+        if (val.type === 'fileIntegrity') {
+          text = t('network-inventory.txt-modifiedFileCount');
         }
 
         return <li key={i} style={{color}}>{val.name} {text}: {helper.numberWithCommas(totalCount)}</li>
