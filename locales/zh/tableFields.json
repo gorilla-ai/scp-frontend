@@ -465,7 +465,6 @@
     "ip": "IP",
     "mac": "MAC",
     "createDttm": "建立時間",
-    "createdDttm": "建立時間",
     "runningTaskCount": "Running Task Count",
     "waitingTaskCount": "Waiting Task Count",
     "completeTaskCount": "Complete Task Count",
@@ -528,6 +527,13 @@
     "txt-tx_pkts": "傳送封包",
     "txt-lastAnalyzedStatus": "分析狀態",
     "txt-lastAnalyzedStatusUpdDT": "上次分析狀態時間"
+  },
+  "esFields": {
+    "date": "日期",
+    "status": "狀態",
+    "docCount": "文件數量",
+    "storeSize": "儲存資料大小(Mb)",
+    "priStoreSize": "主要儲存資料大小(Mb)"
   },
   "serviceStatusFields": {
     "status": "狀態",

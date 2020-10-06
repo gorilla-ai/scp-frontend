@@ -12,6 +12,7 @@ import DashboardMaps from './components/dashboard/maps'
 import DashboardOverview from './components/dashboard/overview'
 import DashboardStats from './components/dashboard/statistics'
 import EdgeManagement from './components/configuration/edge/edge'
+import EsManagement from './components/configuration/es/es-manage'
 import Header from './header'
 import Host from './components/host/index'
 import IncidentDevice from './components/soc/incident-device'
@@ -127,32 +128,38 @@ const Notifications = () => (
 )
 
 const Edge = () => (
-    <BaseDataContext.Provider value={baseData}>
-        <EdgeManagement/>
-    </BaseDataContext.Provider>
+  <BaseDataContext.Provider value={baseData}>
+    <EdgeManagement/>
+  </BaseDataContext.Provider>
 )
 
 const Threat = () => (
-    <BaseDataContext.Provider value={baseData}>
-        <ThreatIntelligence/>
-    </BaseDataContext.Provider>
+  <BaseDataContext.Provider value={baseData}>
+    <ThreatIntelligence/>
+  </BaseDataContext.Provider>
 )
 
 const Severity = () => (
-    <BaseDataContext.Provider value={baseData}>
-        <SeverityTable/>
-    </BaseDataContext.Provider>
+  <BaseDataContext.Provider value={baseData}>
+    <SeverityTable/>
+  </BaseDataContext.Provider>
+)
+
+const Es = () => (
+  <BaseDataContext.Provider value={baseData}>
+    <EsManagement/>
+  </BaseDataContext.Provider>
 )
 
 const NetworkTopologyInventory = () => (
-    <BaseDataContext.Provider value={baseData}>
-        <NetworkInventory/>
-    </BaseDataContext.Provider>
+  <BaseDataContext.Provider value={baseData}>
+    <NetworkInventory/>
+  </BaseDataContext.Provider>
 )
 
 const NetworkTopologyOwner = () => (
-    <BaseDataContext.Provider value={baseData}>
-        <NetworkOwner/>
+  <BaseDataContext.Provider value={baseData}>
+    <NetworkOwner/>
   </BaseDataContext.Provider>
 )
 
@@ -188,38 +195,38 @@ const userPrivileges = () => (
 
 const serviceStatus = () => (
   <BaseDataContext.Provider value={baseData}>
-      <ServiceStatus/>
+    <ServiceStatus/>
   </BaseDataContext.Provider>
 )
 
 const productInfo = () => (
-    <BaseDataContext.Provider value={baseData}>
-        <ProductInfo/>
-    </BaseDataContext.Provider>
+  <BaseDataContext.Provider value={baseData}>
+    <ProductInfo/>
+  </BaseDataContext.Provider>
 )
 
 const incidentDevice = () => (
-    <BaseDataContext.Provider value={baseData}>
-        <IncidentDevice/>
-    </BaseDataContext.Provider>
+  <BaseDataContext.Provider value={baseData}>
+    <IncidentDevice/>
+  </BaseDataContext.Provider>
 );
 
 const incident = () => (
-    <BaseDataContext.Provider value={baseData}>
-        <Incident/>
-    </BaseDataContext.Provider>
+  <BaseDataContext.Provider value={baseData}>
+    <Incident/>
+  </BaseDataContext.Provider>
 );
 
 const incidentUnit = () => (
-    <BaseDataContext.Provider value={baseData}>
-        <IncidentUnit/>
-    </BaseDataContext.Provider>
+  <BaseDataContext.Provider value={baseData}>
+    <IncidentUnit/>
+  </BaseDataContext.Provider>
 );
 
 const incidentLog = () => (
-    <BaseDataContext.Provider value={baseData}>
-        <IncidentLog/>
-    </BaseDataContext.Provider>
+  <BaseDataContext.Provider value={baseData}>
+    <IncidentLog/>
+  </BaseDataContext.Provider>
 );
 
 const Main = () => (
@@ -236,9 +243,10 @@ const Main = () => (
       <Route exact path='/SCP/events/syslog' component={SyslogComp} />
       <Route exact path='/SCP/events/netflow' component={NetflowComp} />
       <Route exact path='/SCP/configuration/notifications' component={Notifications} />
-      <Route exact path='/SCP/configuration/threat/threat' component={Threat} />
+      <Route exact path='/SCP/configuration/threat' component={Threat} />
       <Route exact path='/SCP/configuration/edge/edge' component={Edge} />
       <Route exact path='/SCP/configuration/edge/severity' component={Severity} />
+      <Route exact path='/SCP/configuration/es' component={Es} />
       <Route exact path='/SCP/configuration/topology/inventory' component={NetworkTopologyInventory} />
       <Route exact path='/SCP/configuration/topology/owner' component={NetworkTopologyOwner} />
       <Route exact path='/SCP/configuration/topology/map' component={NetworkTopologyMap} />
