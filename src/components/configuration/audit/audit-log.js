@@ -41,7 +41,7 @@ class AuditLog extends Component {
         keyword: ''
       },
       audit: {
-        dataFieldsArr: ['projectId', 'message', 'level', 'creator', 'createDttm'],
+        dataFieldsArr: ['createDttm', 'message'],
         dataFields: {},
         dataContent: [],
         sort: {

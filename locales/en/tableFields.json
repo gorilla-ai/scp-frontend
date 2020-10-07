@@ -536,10 +536,7 @@
     "priStoreSize": "Primary Store Size(MB)"
   },
   "auditFields": {
-    "projectId": "Projcect ID",
     "message": "Message",
-    "level": "Level",
-    "creator": "Creator",
     "createDttm": "Datetime"
   },
   "serviceStatusFields": {

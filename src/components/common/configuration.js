@@ -202,6 +202,12 @@ class Config extends Component {
           </div>
         }
 
+        <div className='item frame audit-log'>
+          <Link to='/SCP/configuration/audit'>
+            <span className={`${this.getActiveFrame('audit')}`}>{t('txt-auditLog')}</span>
+          </Link>
+        </div>
+
         <div className='item frame account-manage' onClick={this.handleOpen.bind(this, 'openAccount', openAccount)}>
           <span className={`${this.getActiveFrame('account') || this.getActiveFrame('privileges')}`}>{t('txt-accountManage')}</span>
           <i className={`c-link fg fg-arrow-${openAccount ? 'top' : 'bottom'}`}></i>
@@ -221,12 +227,6 @@ class Config extends Component {
             </div>
           </div>
         }
-
-        <div className='item frame audit-log'>
-          <Link to='/SCP/configuration/audit'>
-            <span className={`${this.getActiveFrame('audit')}`}>{t('txt-auditLog')}</span>
-          </Link>
-        </div>
 
         <div className='item frame service-status'>
           <Link to='/SCP/configuration/service-status'>
