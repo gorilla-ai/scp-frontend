@@ -579,7 +579,6 @@ class ThreatIntelligence extends Component {
   /**
    * Handle add threats confirm
    * @method
-   * @returns HTML DOM
    */
   confirmAddThreats = () => {
     const {baseUrl, contextRoot} = this.context;

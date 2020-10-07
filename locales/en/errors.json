@@ -66,6 +66,11 @@
   "-5008": "Default port for system service is not allowed to use",
   "-5009": "Log Host IP does not exist",
 
+  "-7000": "Get ES index list fail",
+  "-7001": "Open ES index fail",
+  "-7002": "Close ES index fail",
+  "-7003": "Delete ES index fail",
+
   "txt-param-null": "Parameter is NULL",
   "txt-account-fail" : "Fail to get accounts from AD",
 

@@ -186,6 +186,9 @@
   "txt-productInfo": "Product Information",
   "txt-issuesFeedback": "Feedback",
 
+  "txt-esManage": "ES Management",
+  "txt-importEsIndex": "Import Index",
+
   "txt-edge": "Edge",
   "txt-threatIntelligence": "Threat Intelligence",
   "txt-addDepartment": "Add Department",

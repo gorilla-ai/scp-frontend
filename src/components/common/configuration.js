@@ -72,9 +72,10 @@ class Config extends Component {
     const path = window.location.pathname;
     const pattern = {
       notifications: '/SCP/configuration/notifications',
-      threat: '/SCP/configuration/threat/threat',
+      threat: '/SCP/configuration/threat',
       edge: '/SCP/configuration/edge/edge',
       severity: '/SCP/configuration/edge/severity',
+      es: '/SCP/configuration/es',
       inventory: '/SCP/configuration/topology/inventory',
       owner: '/SCP/configuration/topology/owner',
       map: '/SCP/configuration/topology/map',
@@ -124,7 +125,7 @@ class Config extends Component {
         </div>
 
         <div className='item frame threat'>
-          <Link to={{pathname: '/SCP/configuration/threat/threat', state: 'viewMode'}}>
+          <Link to={{pathname: '/SCP/configuration/threat', state: 'viewMode'}}>
             <span className={`${this.getActiveFrame('threat')}`}>{t('txt-threatIntelligence')}</span>
           </Link>
         </div>
@@ -148,6 +149,12 @@ class Config extends Component {
             </div>
           </div>
         }
+
+        <div className='item frame es-manage'>
+          <Link to='/SCP/configuration/es'>
+            <span className={`${this.getActiveFrame('es')}`}>{t('txt-esManage')}</span>
+          </Link>
+        </div>
 
         <div className='item frame network-topology' onClick={this.handleOpen.bind(this, 'openTopology', openTopology)}>
           <span className={`${this.getActiveFrame('inventory') || this.getActiveFrame('owner') || this.getActiveFrame('map')}`}>{t('txt-topology')}</span>

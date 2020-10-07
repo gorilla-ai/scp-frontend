@@ -528,11 +528,17 @@
     "txt-lastAnalyzedStatus": "Latest analyzed status",
     "txt-lastAnalyzedStatusUpdDT": "Latest analyzed status time"
   },
+  "esFields": {
+    "date": "Date",
+    "status": "Status",
+    "docCount": "Docs Count",
+    "storeSize": "Store Size(MB)",
+    "priStoreSize": "Primary Store Size(MB)"
+  },
   "serviceStatusFields": {
     "status": "Status",
     "serviceName": "Service Name"
   },
-
   "incidentFields": {
     "isDefault": "Default Unit",
     "id": "ID",
