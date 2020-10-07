@@ -528,18 +528,29 @@
     "txt-lastAnalyzedStatus": "Latest analyzed status",
     "txt-lastAnalyzedStatusUpdDT": "Latest analyzed status time"
   },
+  "esFields": {
+    "date": "Date",
+    "status": "Status",
+    "docCount": "Docs Count",
+    "storeSize": "Store Size(MB)",
+    "priStoreSize": "Primary Store Size(MB)"
+  },
+  "auditFields": {
+    "message": "Message",
+    "createDttm": "Datetime"
+  },
   "serviceStatusFields": {
     "status": "Status",
     "serviceName": "Service Name"
   },
-
   "incidentFields": {
     "isDefault": "Default Unit",
     "id": "ID",
     "title": "Title",
     "category": "Category",
     "victimName": "Victim",
-    "reporter": "Reporter",
+    "reporter": "Report Source",
+    "suggestion": "Sign-off Suggestion",
     "createDttm": "Create Datetime",
     "sendTime": "Send Datetime",
     "createdDttm": "Create Datetime",
@@ -560,6 +571,9 @@
     "etsDescription": "Loophole",
     "fileName": "File Name",
     "fileExtension": "File Extension",
+    "fileSize": "File Size",
+    "fileMemo": "File Description",
+    "fileDttm": "Upload Time",
     "uriType": "URI Type",
     "uriValue": "URI Value",
     "domain": "Domain",
@@ -582,7 +596,12 @@
     "updateDttm": "Last Update Time",
     "abbreviation": "Unit Abbreviation",
     "type": "Incident Type",
-    "select": "Send or Not"
+    "select": "Send or Not",
+    "Suggestion": "Event Handling Suggestion",
+    "finalDate": "Limit DateTime",
+    "tag": "Tag",
+    "reviewDttm": "Review Time",
+    "reviewerName": "Reviewer"
   },
   "severityTableFields": {
     "dataSourceType": "Type",
