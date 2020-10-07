@@ -535,6 +535,13 @@
     "storeSize": "儲存資料大小(MB)",
     "priStoreSize": "主要儲存資料大小(MB)"
   },
+  "auditFields": {
+    "projectId": "專案ID",
+    "message": "訊息",
+    "level": "等級",
+    "creator": "創造者",
+    "createDttm": "日期"
+  },
   "serviceStatusFields": {
     "status": "狀態",
     "serviceName": "服務名稱"

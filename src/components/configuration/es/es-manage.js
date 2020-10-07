@@ -23,7 +23,7 @@ let t = null;
 let f = null;
 
 /**
- * Edge
+ * ES Management
  * @class
  * @author Ryan Chen <ryanchen@telmediatech.com>
  * @summary A react component to show the ES Management page
@@ -149,7 +149,7 @@ class EsManage extends Component {
         let tempEs = {...es};
         tempEs.dataContent = data.rows;
         tempEs.totalCount = data.counts;
-        tempEs.currentPage = fromSearch === 'search' ? 1 : es.currentPage;
+        tempEs.currentPage = page;
 
         if (!data.rows || data.rows.length === 0) {
           helper.showPopupMsg(t('txt-notFound'));

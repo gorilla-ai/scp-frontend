@@ -30,9 +30,6 @@ class ImportIndex extends Component {
     et = global.chewbaccaI18n.getFixedT(null, 'errors')
     this.ah = getInstance('chewbacca');
   }
-  componentDidMount() {
-
-  }
   /**
    * Set import index input value change
    * @method

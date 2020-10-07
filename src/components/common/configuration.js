@@ -83,6 +83,7 @@ class Config extends Component {
       pattern: '/SCP/configuration/syslog/pattern',
       account: '/SCP/configuration/user/account',
       privileges: '/SCP/configuration/user/privileges',
+      audit: '/SCP/configuration/audit',
       serviceStatus: '/SCP/configuration/service-status',
       productInfo: '/SCP/configuration/product-info'
     };
@@ -220,6 +221,12 @@ class Config extends Component {
             </div>
           </div>
         }
+
+        <div className='item frame audit-log'>
+          <Link to='/SCP/configuration/audit'>
+            <span className={`${this.getActiveFrame('audit')}`}>{t('txt-auditLog')}</span>
+          </Link>
+        </div>
 
         <div className='item frame service-status'>
           <Link to='/SCP/configuration/service-status'>
