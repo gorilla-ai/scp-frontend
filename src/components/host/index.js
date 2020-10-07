@@ -445,7 +445,7 @@ class HostController extends Component {
           }
         });
 
-        this.getPrivateTreeData(data.InternalMaskedIpWithDevCount);
+        this.getPrivateTreeData(data.subnetAgg);
 
         this.setState({
           severityList,
@@ -519,26 +519,12 @@ class HostController extends Component {
     }
   }
   /**
-   * Show severity level for private tree data
-   * @method
-   * @param {string} severity - severity info
-   * @returns object display property
-   */
-  showSeverity = (severity) => {
-    if (!severity) {
-      return {
-        display: 'none'
-      };
-    }
-  }
-  /**
    * Set the alert private tree data
    * @method
    * @param {string} treeData - alert tree data
    * @returns tree data object
    */
   getPrivateTreeData = (treeData) => {
-    const path = 'srcIp';
     let treeObj = { //Handle service tree data
       id: 'All',
       children: []
@@ -555,32 +541,32 @@ class HostController extends Component {
       let treeProperty = {};
 
       if (key && key !== 'doc_count') {
-        if (treeData[key][path].buckets.length > 0) {
-          _.forEach(treeData[key][path].buckets, val => {
-            if (val.key) {
-              let nodeClass = 'fg fg-recode';
+        if (treeData[key].buckets.length > 0) {
+          _.forEach(treeData[key].buckets, val => {
+            if (val.ip) {
+              let nodeClass = '';
 
               if (val._severity_) {
-                nodeClass += ' ' + val._severity_.toLowerCase();
+                nodeClass = 'fg fg-recode ' + val._severity_.toLowerCase();
               }
 
-              label = <span><i className={nodeClass} />{val.key}</span>;
+              label = <span><i className={nodeClass} />{val.ip}</span>;
 
               tempChild.push({
-                id: val.key,
+                id: val.ip,
                 label
               });
             }
           })
         }
 
-        let nodeClass = 'fg fg-recode';
+        let nodeClass = '';
 
         if (treeData[key]._severity_) {
-          nodeClass += ' ' + treeData[key]._severity_.toLowerCase();
+          nodeClass = 'fg fg-recode ' + treeData[key]._severity_.toLowerCase();
         }
 
-        label = <span><i className={nodeClass} style={this.showSeverity(treeData[key]._severity_)} />{key} ({helper.numberWithCommas(treeData[key].doc_count)})</span>;
+        label = <span><i className={nodeClass} />{key} ({helper.numberWithCommas(treeData[key].doc_count)})</span>;
 
         treeProperty = {
           id: key,

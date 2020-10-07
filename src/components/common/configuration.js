@@ -81,9 +81,9 @@ class Config extends Component {
       map: '/SCP/configuration/topology/map',
       config: '/SCP/configuration/syslog/config',
       pattern: '/SCP/configuration/syslog/pattern',
+      audit: '/SCP/configuration/audit',
       account: '/SCP/configuration/user/account',
       privileges: '/SCP/configuration/user/privileges',
-      audit: '/SCP/configuration/audit',
       serviceStatus: '/SCP/configuration/service-status',
       productInfo: '/SCP/configuration/product-info'
     };
