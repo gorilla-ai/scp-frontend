@@ -151,6 +151,11 @@ class EsManage extends Component {
         tempEs.totalCount = data.counts;
         tempEs.currentPage = fromSearch === 'search' ? 1 : es.currentPage;
 
+        if (!data.rows || data.rows.length === 0) {
+          helper.showPopupMsg(t('txt-notFound'));
+          return;
+        }
+
         let statusList = [{
           value: 'all',
           text: 'All'
@@ -266,6 +271,22 @@ class EsManage extends Component {
     });
   }
   /**
+   * Handle search submit
+   * @method
+   */
+  handleSearchSubmit = () => {
+    let tempEs = {...this.state.es};
+    tempEs.dataContent = [];
+    tempEs.totalCount = 0;
+    tempEs.currentPage = 1;
+
+    this.setState({
+      es: tempEs
+    }, () => {
+      this.getEsData();
+    });
+  }
+  /**
    * Display filter content
    * @method
    * @returns HTML DOM
@@ -290,7 +311,7 @@ class EsManage extends Component {
           </div>
         </div>
         <div className='button-group'>
-          <button className='filter' onClick={this.getEsData.bind(this, 'search')}>{t('txt-filter')}</button>
+          <button className='filter' onClick={this.handleSearchSubmit}>{t('txt-filter')}</button>
           <button className='clear' onClick={this.clearFilter}>{t('txt-clear')}</button>
         </div>
       </div>
@@ -443,7 +464,7 @@ class EsManage extends Component {
             datetime={datetime}
             enableTime={false}
             handleDateChange={this.handleDateChange}
-            handleSearchSubmit={this.getEsData.bind(this, 'search')} />          
+            handleSearchSubmit={this.handleSearchSubmit} />          
         </div>
 
         <div className='data-content'>

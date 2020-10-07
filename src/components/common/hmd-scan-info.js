@@ -13,7 +13,6 @@ import ButtonGroup from 'react-ui/build/src/components/button-group'
 import DataTable from 'react-ui/build/src/components/table'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import MultiInput from 'react-ui/build/src/components/multi-input'
-import ToggleBtn from 'react-ui/build/src/components/toggle-button'
 
 import {BaseDataContext} from './context';
 import helper from './helper'
@@ -109,8 +108,6 @@ class HMDscanInfo extends Component {
       hasMore: true,
       disabledBtn: false,
       settingsActiveContent: 'viewMode',
-      originalFileIntegrityEnableData: '',
-      fileIntegrityEnable: '',
       originalSettingsPathData: {},
       settingsPath: {
         fileIntegrity: {
@@ -406,7 +403,6 @@ class HMDscanInfo extends Component {
   loadSettingsData = () => {
     const {currentDeviceData} = this.props;
     let tempSettingsPath = {...this.state.settingsPath};
-    let status = false;
     let includePathList = [];
     let excludePathList = [];
     let pathData = '';
@@ -416,7 +412,6 @@ class HMDscanInfo extends Component {
       const processMonitorData = _.find(currentDeviceData.hmdSetting, {_CommandName: SETTINGS.procWhiteList});
 
       if (!_.isEmpty(fileIntegrityData)) {
-        status = fileIntegrityData._Parameters.isJobEnable;
         pathData = fileIntegrityData._Parameters;
         tempSettingsPath.fileIntegrity.includePath = this.getParsedPathData('path', pathData._IncludePathList);
         tempSettingsPath.fileIntegrity.excludePath = this.getParsedPathData('path', pathData._ExcludePathList);
@@ -429,8 +424,6 @@ class HMDscanInfo extends Component {
       }
 
       this.setState({
-        originalFileIntegrityEnableData: status,
-        fileIntegrityEnable: status,
         originalSettingsPathData: _.cloneDeep(tempSettingsPath),
         settingsPath: tempSettingsPath
       });
@@ -1528,7 +1521,7 @@ class HMDscanInfo extends Component {
    * @param {string} type - page type ('edit, 'save' and 'cancel')
    */
   toggleSettingsContent = (type) => {
-    const {originalFileIntegrityEnableData, originalSettingsPathData} = this.state;
+    const {originalSettingsPathData} = this.state;
     let tempActiveContent = '';
 
     if (type === 'edit') {
@@ -1538,7 +1531,6 @@ class HMDscanInfo extends Component {
     } else if (type === 'cancel') {
       tempActiveContent = 'viewMode';
       this.setState({
-        fileIntegrityEnable: _.cloneDeep(originalFileIntegrityEnableData),
         settingsPath: _.cloneDeep(originalSettingsPathData)
       });
     }
@@ -1645,7 +1637,7 @@ class HMDscanInfo extends Component {
    * @returns HTML DOM
    */
   displaySettingsContent = (val, i) => {
-    const {settingsActiveContent, fileIntegrityEnable} = this.state;
+    const {settingsActiveContent} = this.state;
 
     return (
       <div key={i} className='settings-group'>
@@ -1653,15 +1645,6 @@ class HMDscanInfo extends Component {
           this.getTriggerBtnInfo(val.type)
         }
         <header>{t('network-inventory.scan-list.txt-' + val.type)} {t('txt-settings')}</header>
-        {val.type === 'fileIntegrity' &&
-          <ToggleBtn
-            className='toggle-btn'
-            onText={t('txt-on')}
-            offText={t('txt-off')}
-            on={fileIntegrityEnable}
-            onChange={this.handleStatusChange}
-            disabled={settingsActiveContent === 'viewMode'} />
-        }
         <div className='settings-form'>
           {settingsActiveContent === 'viewMode' &&
             val.settings.map(this.viewSettingsPathContent.bind(this, val.type))
@@ -1704,7 +1687,7 @@ class HMDscanInfo extends Component {
   saveSettings = () => {
     const {baseUrl} = this.context;
     const {currentDeviceData} = this.props;
-    const {fileIntegrityEnable, settingsPath} = this.state;
+    const {settingsPath} = this.state;
     const url = `${baseUrl}/api/hmd/setting`;
     const requestData = {
       hostId: currentDeviceData.ipDeviceUUID,
@@ -1715,8 +1698,7 @@ class HMDscanInfo extends Component {
             _IncludePathList: this.getSavedSettings(true, 'path', settingsPath.fileIntegrity.includePath),
             _ExcludePathList: this.getSavedSettings(false, 'path', settingsPath.fileIntegrity.excludePath),
             _ProcessKeyword: this.getSavedSettings(false, 'keyword', settingsPath.fileIntegrity.processKeyword),
-            _IsRecursive: true,
-            isJobEnable: fileIntegrityEnable
+            _IsRecursive: true
           }
         },
         {
@@ -1763,7 +1745,6 @@ class HMDscanInfo extends Component {
     .then(data => {
       if (data) {
         this.setState({
-          fileIntegrityEnable: data.isJobEnable,
           settingsPath: {
             fileIntegrity: {
               includePath: this.getParsedPathData('path', data._IncludePathList.split(',')),
@@ -1783,16 +1764,6 @@ class HMDscanInfo extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
-  }
-  /**
-   * Set file integrity status data
-   * @method
-   * @param {boolean} value - status data
-   */
-  handleStatusChange = (value) => {
-    this.setState({
-      fileIntegrityEnable: value
-    });
   }
   render() {
     const {

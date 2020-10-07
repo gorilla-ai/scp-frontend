@@ -6,6 +6,7 @@ import cx from 'classnames'
 
 import CheckboxGroup from 'react-ui/build/src/components/checkbox-group'
 import ContextMenu from 'react-ui/build/src/components/contextmenu'
+import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import Gis from 'react-gis/build/src/components'
 import Hierarchy from 'react-ui/build/src/components/hierarchy'
@@ -338,8 +339,9 @@ class HostController extends Component {
   /**
    * Get and set host info data
    * @method
+   * @param {string} options - options for CSV export
    */
-  getHostData = () => {
+  getHostData = (options) => {
     const {baseUrl} = this.context;
     const {activeTab, filterNav, deviceSearch, hostInfo, hostSort, currentFloor} = this.state;
     const hostSortArr = hostSort.split('-');
@@ -394,6 +396,10 @@ class HostController extends Component {
       requestData.system = deviceSearch.system;
     }
 
+    if (options === 'csv') { //For CSV export
+      return requestData;
+    }
+
     this.ah.one({
       url,
       data: JSON.stringify(requestData),
@@ -406,6 +412,13 @@ class HostController extends Component {
         let tempHostInfo = {...hostInfo};
         tempHostInfo.dataContent = data.rows;
         tempHostInfo.totalCount = data.count;
+
+        if (!data.rows || data.rows.length === 0) {
+          if (activeTab === 'hostList') {
+            helper.showPopupMsg(t('txt-notFound'));
+          }
+          return;
+        }
 
         _.forEach(SEVERITY_TYPE, val => { //Create formattedSeverityType object for input data based on severity
           _.forEach(data.severityAgg, (val2, key) => {
@@ -530,6 +543,10 @@ class HostController extends Component {
       id: 'All',
       children: []
     };
+
+    if (!treeData) {
+      return;
+    }
 
     _.keys(treeData)
     .forEach(key => {
@@ -966,6 +983,7 @@ class HostController extends Component {
       <li key={i}>
         <div className='device-alert' style={{backgroundColor: ALERT_LEVEL_COLORS[val.severityLevel] || '#999'}}>
           <div className='device'>
+            <img src={contextRoot + '/images/ic_host.svg'} />
           </div>
         </div>
         <div className='info'>
@@ -1026,24 +1044,10 @@ class HostController extends Component {
    */
   getCSVfile = () => {
     const {baseUrl, contextRoot} = this.context;
-    const {activeTab, account} = this.state;
-    const url = `${baseUrl}${contextRoot}/api/u1/log/event/_export`;
-    // let tempColumns = [];
+    const url = `${baseUrl}${contextRoot}/api/ipdevice/assessment/_export`;
+    const dataOptions = this.getHostData('csv');
 
-    // _.forEach(account.fields, val => {
-    //   if (val !== 'alertRule' && val != '_tableMenu_') {
-    //     tempColumns.push({
-    //       [val]: this.getCustomFieldName(val)
-    //     });
-    //   }
-    // })
-
-    // const dataOptions = {
-    //   ...this.toQueryLanguage('csv'),
-    //   columns: tempColumns
-    // };
-
-    // downloadWithForm(url, {payload: JSON.stringify(dataOptions)});
+    downloadWithForm(url, {payload: JSON.stringify(dataOptions)});
   }
   render() {
     const {
