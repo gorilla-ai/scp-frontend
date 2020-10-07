@@ -532,8 +532,8 @@
     "date": "日期",
     "status": "狀態",
     "docCount": "文件數量",
-    "storeSize": "儲存資料大小(Mb)",
-    "priStoreSize": "主要儲存資料大小(Mb)"
+    "storeSize": "儲存資料大小(MB)",
+    "priStoreSize": "主要儲存資料大小(MB)"
   },
   "serviceStatusFields": {
     "status": "狀態",

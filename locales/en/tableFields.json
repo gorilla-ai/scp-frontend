@@ -532,8 +532,8 @@
     "date": "Date",
     "status": "Status",
     "docCount": "Docs Count",
-    "storeSize": "Store Size(Mb)",
-    "priStoreSize": "Primary Store Size(Mb)"
+    "storeSize": "Store Size(MB)",
+    "priStoreSize": "Primary Store Size(MB)"
   },
   "serviceStatusFields": {
     "status": "Status",

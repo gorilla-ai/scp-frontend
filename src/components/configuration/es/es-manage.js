@@ -5,7 +5,6 @@ import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
 
-import DateRange from 'react-ui/build/src/components/date-range'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import MultiInput from 'react-ui/build/src/components/multi-input'
@@ -15,6 +14,7 @@ import {BaseDataContext} from '../../common/context';
 import Config from '../../common/configuration'
 import helper from '../../common/helper'
 import ImportIndex from './import-index'
+import SearchOptions from '../../common/search-options'
 import TableContent from '../../common/table-content'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -38,8 +38,13 @@ class EsManage extends Component {
     this.state = {
       showFilter: false,
       importIndexOpen: false,
+      datetime: {
+        from: helper.getSubstractDate(1, 'month'),
+        to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+      },
+      statusList: [],
       esSearch: {
-        keyword: ''
+        status: 'all'
       },
       es: {
         dataFieldsArr: ['date', 'status', 'docCount', 'storeSize', 'priStoreSize', '_menu'],
@@ -62,7 +67,7 @@ class EsManage extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    this.getEsData();
+    this.getEsData('search');
   }
   /**
    * Set status data
@@ -72,38 +77,37 @@ class EsManage extends Component {
    */
   handleStatusChange = (date, value) => {
     const {baseUrl} = this.context;
-    let type = '';
-
-    if (value) {
-      type = 'open';
-    } else {
-      type = 'close';
-    }
+    const type = value ? 'open' : 'close';
 
     this.ah.one({
-      url: `${baseUrl}/api/elasticsearch/${type}?date=*-${date}`,
+      url: `${baseUrl}/api/elasticsearch/${type}?date=${date}`,
       type: 'GET'
     })
     .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('txt-requestSent'));
+        this.getEsData();
+      }
       return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
-
-    helper.showPopupMsg(t('txt-requestSent'));
-    this.getEsData('search');
   }
   /**
    * Handle index export
    * @method
-   * @param {string} date - selected date
+   * @param {object} allValue - ES data
    */
-  handleIndexExport = (date) => {
+  handleIndexExport = (allValue) => {
     const {baseUrl} = this.context;
 
+    if (!allValue.export) {
+      return;
+    }
+
     this.ah.one({
-      url: `${baseUrl}/api/elasticsearch/export?date=*-${date}`,
+      url: `${baseUrl}/api/elasticsearch/export?date=${allValue.date}`,
       type: 'GET'
     })
     .then(data => {
@@ -114,7 +118,7 @@ class EsManage extends Component {
     })
 
     helper.showPopupMsg(t('txt-requestSent'));
-    this.getEsData('search');
+    this.getEsData();
   }
   /**
    * Get and set ES table data
@@ -123,11 +127,21 @@ class EsManage extends Component {
    */
   getEsData = (fromSearch) => {
     const {baseUrl} = this.context;
-    const {es} = this.state;
+    const {datetime, esSearch, es} = this.state;
     const sort = es.sort.desc ? 'desc' : 'asc';
+    const page = fromSearch === 'search' ? 1 : es.currentPage;
+    const dateTime = {
+      from: Moment(datetime.from).format('YYYY.MM.DD'),
+      to: Moment(datetime.to).format('YYYY.MM.DD')
+    };
+    let url = `${baseUrl}/api/elasticsearch/list?page=${page}&pageSize=${es.pageSize}&orders=${es.sort.field} ${sort}&startDate=${dateTime.from}&endDate=${dateTime.to}`;
+
+    if (esSearch.status !== 'all') {
+      url += `&status=${esSearch.status}`;
+    }
 
     this.ah.one({
-      url: `${baseUrl}/api/elasticsearch/list?page=${es.currentPage}&pageSize=${es.pageSize}&orders=${es.sort.field} ${sort}`,
+      url,
       type: 'GET'
     })
     .then(data => {
@@ -136,6 +150,18 @@ class EsManage extends Component {
         tempEs.dataContent = data.rows;
         tempEs.totalCount = data.counts;
         tempEs.currentPage = fromSearch === 'search' ? 1 : es.currentPage;
+
+        let statusList = [{
+          value: 'all',
+          text: 'All'
+        }];
+
+        _.forEach(data.statusList, val => {
+          statusList.push({
+            value: val.toLowerCase(),
+            text: val  
+          });
+        })
         
         let dataFields = {};
         es.dataFieldsArr.forEach(tempData => {
@@ -153,7 +179,7 @@ class EsManage extends Component {
                       on={allValue.isOpen}
                       onChange={this.handleStatusChange.bind(this, allValue.date)}
                       disabled={!allValue.actionEnable} />                  
-                    <i className={cx('fg fg-data-export', {'not-allowed': !allValue.export})} title={t('txt-export')} onClick={this.handleIndexExport.bind(this, allValue.date)}></i>
+                    <i className={cx('fg fg-data-export', {'not-allowed': !allValue.export})} title={t('txt-export')} onClick={this.handleIndexExport.bind(this, allValue)}></i>
                   </div>
                 )
               }
@@ -170,6 +196,7 @@ class EsManage extends Component {
         tempEs.dataFields = dataFields;
 
         this.setState({
+          statusList,
           es: tempEs
         });
       }
@@ -232,10 +259,7 @@ class EsManage extends Component {
    */
   handleEsSearch = (type, value) => {
     let tempEsSearch = {...this.state.esSearch};
-
-    if (type === 'keyword') { //value is an object type
-      tempEsSearch[type] = value.target.value.trim();
-    }
+    tempEsSearch[type] = value;
 
     this.setState({
       esSearch: tempEsSearch
@@ -247,7 +271,8 @@ class EsManage extends Component {
    * @returns HTML DOM
    */
   renderFilter = () => {
-    const {showFilter, esSearch} = this.state;
+    const {locale} = this.context;
+    const {showFilter, statusList, esSearch} = this.state;
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
@@ -255,12 +280,13 @@ class EsManage extends Component {
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group'>
-            <label htmlFor='edgeSearchKeyword'>{f('edgeFields.keywords')}</label>
-            <input
-              id='edgeSearchKeyword'
-              type='text'
-              value={esSearch.keyword}
-              onChange={this.handleEsSearch.bind(this, 'keyword')} />
+            <label htmlFor='esSearchStatus'>{t('txt-status')}</label>
+            <DropDownList
+              id='esSearchStatus'
+              list={statusList}
+              required={true}
+              value={esSearch.status}
+              onChange={this.handleEsSearch.bind(this, 'status')} />
           </div>
         </div>
         <div className='button-group'>
@@ -277,7 +303,7 @@ class EsManage extends Component {
   clearFilter = () => {
     this.setState({
       esSearch: {
-        keyword: ''
+        status: 'all'
       }
     });
   }
@@ -363,6 +389,10 @@ class EsManage extends Component {
       }
     })
 
+    if (esData.length === 0) {
+      return;
+    }
+
     const requestData = {
       esData
     };
@@ -384,9 +414,19 @@ class EsManage extends Component {
     this.toggleImportIndex();
     this.getEsData('search');    
   }
+  /**
+   * Set new datetime
+   * @method
+   * @param {object} datetime - new datetime object
+   */
+  handleDateChange = (datetime) => {
+    this.setState({
+      datetime
+    });
+  }
   render() {
     const {baseUrl, contextRoot} = this.context;
-    const {showFilter, importIndexOpen, es} = this.state;
+    const {showFilter, importIndexOpen, datetime, es} = this.state;
 
     return (
       <div>
@@ -398,6 +438,12 @@ class EsManage extends Component {
           <div className='secondary-btn-group right'>
             <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
           </div>
+
+          <SearchOptions
+            datetime={datetime}
+            enableTime={false}
+            handleDateChange={this.handleDateChange}
+            handleSearchSubmit={this.getEsData.bind(this, 'search')} />          
         </div>
 
         <div className='data-content'>
