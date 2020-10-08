@@ -391,7 +391,7 @@ class Notifications extends Component {
     const titleText = t('notifications.txt-testEmails');
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeDialog},
-      confirm: {text: t('txt-send'), handler: this.testEmailConfirm}
+      confirm: {text: t('txt-send'), handler: this.handleTestEmailConfirm}
     };
 
     return (
@@ -411,7 +411,7 @@ class Notifications extends Component {
    * Handle test email confirm
    * @method
    */
-  testEmailConfirm = () => {
+  handleTestEmailConfirm = () => {
     const {baseUrl} = this.context;
     const {testEmails} = this.state;
     let dataParams = '';
@@ -425,16 +425,15 @@ class Notifications extends Component {
       dataParams += '&receipts=' + val;
     })
 
-    ah.one({
+    this.ah.one({
       url: `${baseUrl}/api/notification/mailServer/_test?${dataParams}`,
       type: 'GET'
     })
     .then(data => {
-      if (data.rt) {
+      if (data) {
         helper.showPopupMsg(t('notifications.txt-sendSuccess'));
-      } else {
-        helper.showPopupMsg(t('notifications.txt-sendFail'));
       }
+
       this.closeDialog();
       return null;
     })

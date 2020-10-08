@@ -385,7 +385,7 @@ class EsManage extends Component {
 
     return (
       <div>
-        <div className='header'>{t('txt-esImportMsg')}</div>
+        <label>{t('txt-esImportMsg')}</label>
         <Combobox
           list={formattedImportList}
           multiSelect={{
