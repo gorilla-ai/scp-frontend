@@ -53,11 +53,6 @@ class PrivateDetails extends Component {
    */
   getDataInfo = (prevProps) => {
     const {type, alertInfo, topoInfo, srcDestType} = this.props;
-
-    if (_.isEmpty(topoInfo)) {
-      return;
-    }
-
     const ip = {
       ip: topoInfo[type] ? topoInfo[type] : (topoInfo.ip || topoInfo.srcIp || alertInfo.ip),
       mac: topoInfo[srcDestType + 'Mac'] ? topoInfo[srcDestType + 'Mac'] : (topoInfo.mac || topoInfo.srcMac || alertInfo.mac)

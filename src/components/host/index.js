@@ -373,7 +373,7 @@ class HostController extends Component {
     }
 
     if (filterNav.maskedIPSelected.length > 0) {
-      requestData.maskedIp = filterNav.maskedIPSelected;
+      requestData.exactIps = filterNav.maskedIPSelected;
     }
 
     if (deviceSearch.ip) {
@@ -515,7 +515,7 @@ class HostController extends Component {
     const activeHostInfo = _.find(this.state.hostInfo.dataContent, {seatUUID});
 
     if (!_.isEmpty(activeHostInfo)) {
-      this.getIPdeviceInfo(activeHostInfo);
+      this.getIPdeviceInfo(activeHostInfo, 'toggle');
     }
   }
   /**
@@ -668,7 +668,7 @@ class HostController extends Component {
     this.setState({
       filterNav: tempFilterNav
     }, () => {
-      this.getHostData();
+      this.handleSearchSubmit();
     });
   }
   /**
@@ -820,8 +820,9 @@ class HostController extends Component {
    * Get IP device data info
    * @method
    * @param {object} host - active Host data
+   * @param {string} options - options for 'toggle'
    */
-  getIPdeviceInfo = (host) => {
+  getIPdeviceInfo = (host, options) => {
     const {baseUrl} = this.context;
     const {hostInfo} = this.state;
     const datetime = this.getHostDateTime();
@@ -849,7 +850,9 @@ class HostController extends Component {
         this.setState({
           hostData
         }, () => {
-          this.toggleHostAnalysis();
+          if (options === 'toggle') {
+            this.toggleHostAnalysis();
+          }
         });
       }
       return null;
@@ -998,7 +1001,7 @@ class HostController extends Component {
             </div>
           }
         </div>
-        <div className='view-details' onClick={this.getIPdeviceInfo.bind(this, val)}>
+        <div className='view-details' onClick={this.getIPdeviceInfo.bind(this, val, 'toggle')}>
           {t('host.txt-viewInfo')}
         </div>
       </li>
