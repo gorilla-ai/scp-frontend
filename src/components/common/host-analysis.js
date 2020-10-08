@@ -329,7 +329,7 @@ class HostAnalysis extends Component {
           this.toggleSelectionIR();
         }
 
-        this.getHMDinfo(hostData.ipDeviceUUID);
+        this.props.getIPdeviceInfo(hostData);
       }
       return null;
     })

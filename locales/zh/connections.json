@@ -188,6 +188,7 @@
 
   "txt-esManage": "ES管理",
   "txt-importEsIndex": "匯入索引",
+  "txt-esImportMsg": "請選擇要匯入的index日期",
   "txt-auditLog": "稽核紀錄",
 
   "txt-edge": "Edge",

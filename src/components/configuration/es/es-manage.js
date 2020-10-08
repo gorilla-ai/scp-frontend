@@ -5,15 +5,14 @@ import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
 
+import Combobox from 'react-ui/build/src/components/combobox'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
-import MultiInput from 'react-ui/build/src/components/multi-input'
 import ToggleBtn from 'react-ui/build/src/components/toggle-button'
 
 import {BaseDataContext} from '../../common/context';
 import Config from '../../common/configuration'
 import helper from '../../common/helper'
-import ImportIndex from './import-index'
 import SearchOptions from '../../common/search-options'
 import TableContent from '../../common/table-content'
 
@@ -42,10 +41,12 @@ class EsManage extends Component {
         from: helper.getSubstractDate(1, 'month'),
         to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
       },
+      importList: [],
       statusList: [],
       esSearch: {
         status: 'all'
       },
+      selectedImportList: [],
       es: {
         dataFieldsArr: ['date', 'status', 'docCount', 'storeSize', 'priStoreSize', '_menu'],
         dataFields: {},
@@ -58,16 +59,36 @@ class EsManage extends Component {
         currentPage: 1,
         pageSize: 20,
         info: {}
-      },
-      importIndex: [{
-        index: ''
-      }]
+      }
     };
 
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    this.getImportList();
     this.getEsData('search');
+  }
+  ryan = () => {
+
+  }
+  getImportList = () => {
+    const {baseUrl} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/elasticsearch/importlist`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        this.setState({
+          importList: data.folderList
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Set status data
@@ -335,9 +356,7 @@ class EsManage extends Component {
   toggleImportIndex = () => {
     this.setState({
       importIndexOpen: !this.state.importIndexOpen,
-      importIndex: [{
-        index: ''
-      }]
+      selectedImportList: []
     });
   }
   /**
@@ -347,7 +366,7 @@ class EsManage extends Component {
    */
   handleImportIndexChange = (data) => {
     this.setState({
-      importIndex: data
+      selectedImportList: data
     });
   }
   /**
@@ -356,15 +375,29 @@ class EsManage extends Component {
    * @returns HTML DOM
    */
   displayImportIndexContent = () => {
+    const {importList, selectedImportList} = this.state;
+    const formattedImportList = _.map(importList, val => {
+      return {
+        value: val,
+        text: val.replace(/\./g, '-')
+      }
+    });
+
     return (
-      <MultiInput
-        id='esIndexMultiInputs'
-        base={ImportIndex}
-        defaultItemValue={{
-          index: ''
-        }}
-        value={this.state.importIndex}
-        onChange={this.handleImportIndexChange}/>
+      <div>
+        <div className='header'>{t('txt-esImportMsg')}</div>
+        <Combobox
+          list={formattedImportList}
+          multiSelect={{
+            enabled: true,
+            toggleAll: true
+          }}
+          search={{
+            enabled: true
+          }}
+          value={selectedImportList}
+          onChange={this.handleImportIndexChange} />
+      </div>
     )
   }
   /**
@@ -399,23 +432,15 @@ class EsManage extends Component {
    */
   confirmImportIndex = () => {
     const {baseUrl} = this.context;
-    const {importIndex} = this.state;
+    const {selectedImportList} = this.state;
     const url = `${baseUrl}/api/elasticsearch/import`;
-    let esData = [];
 
-    _.forEach(importIndex, val => {
-      if (val.index) {
-        const newDate = val.index.replace(/-/g, '.');
-        esData.push(newDate);
-      }
-    })
-
-    if (esData.length === 0) {
+    if (selectedImportList.length === 0) {
       return;
     }
 
     const requestData = {
-      esData
+      esData: selectedImportList
     };
 
     this.ah.one({

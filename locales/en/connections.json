@@ -188,6 +188,7 @@
 
   "txt-esManage": "ES Management",
   "txt-importEsIndex": "Import Index",
+  "txt-esImportMsg": "Please enter the date of the index to import",
   "txt-auditLog": "Audit Log",
 
   "txt-edge": "Edge",
