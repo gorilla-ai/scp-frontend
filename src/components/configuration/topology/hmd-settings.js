@@ -75,7 +75,7 @@ class HMDsettings extends Component {
     this.ah.all(apiArr)
     .then(data => {
       if (data) {
-        if (data[0] && data[0].value && data[1] && data[1].value) {
+        if (!_.isEmpty(data[0]) && !_.isEmpty(data[1])) {
           const scanIncludePath = data[0].value.split(',');
           const scanExcludePath = data[1].value.split(',');
           let scanFiles = {
@@ -202,7 +202,7 @@ class HMDsettings extends Component {
   handleScanFilesConfirm = () => {
     const {baseUrl} = this.context;
     const {scanFiles, gcbVersion} = this.state;
-    const url = `${baseUrl}/api/common/config`;
+    const url = `${baseUrl}/api/hmd/config`;
     let parsedIncludePath = [];
     let parsedExcludePath = [];
 
