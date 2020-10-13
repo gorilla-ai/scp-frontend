@@ -188,6 +188,7 @@
 
   "txt-esManage": "ES管理",
   "txt-importEsIndex": "匯入索引",
+  "txt-esImportMsg": "請選擇要匯入的index日期",
   "txt-auditLog": "稽核紀錄",
 
   "txt-edge": "Edge",
@@ -396,6 +397,7 @@
   "notifications": {
     "txt-testEmails": "寄信測試",
     "txt-settings": "通知設定",
+    "txt-sync": "同步情資",
     "txt-emailSettings": "Email設定",
     "txt-serviceNotifications": "服務通知設定",
     "txt-edgeNotifications": "Edge設備通知設定",
@@ -415,8 +417,7 @@
     "txt-recipientEmail": "收件者郵件信箱",
     "txt-notifyEmail": "通知郵件信箱",
     "txt-emailInvalid": "請輸入正確email",
-    "txt-sendSuccess": "寄送成功",
-    "txt-sendFail": "寄送失敗"
+    "txt-sendSuccess": "寄送成功"
   },
 
   "edge-management": {

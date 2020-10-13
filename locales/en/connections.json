@@ -188,6 +188,7 @@
 
   "txt-esManage": "ES Management",
   "txt-importEsIndex": "Import Index",
+  "txt-esImportMsg": "Please enter the date of the index to import",
   "txt-auditLog": "Audit Log",
 
   "txt-edge": "Edge",
@@ -396,6 +397,7 @@
   "notifications": {
     "txt-testEmails": "Test Emails",
     "txt-settings": "Notification Settings",
+    "txt-sync": "Sync Threat-Intelligence",
     "txt-emailSettings": "Email Settings",
     "txt-serviceNotifications": "Service Settings",
     "txt-edgeNotifications": "Edge Settings",
@@ -415,8 +417,7 @@
     "txt-recipientEmail": "Recipient Email",
     "txt-notifyEmail": "Notify Email Address",
     "txt-emailInvalid": "Please enter correct email address",
-    "txt-sendSuccess": "Email has been sent successfully",
-    "txt-sendFail": "Email delivery failed"
+    "txt-sendSuccess": "Email has been sent successfully"
   },
 
   "edge-management": {

@@ -85,6 +85,7 @@ class Edge extends Component {
         pageSize: 20,
         info: {}
       },
+      syncEnable: true,
       geoJson: {
         mapDataArr: [],
         edgeDataArr: []
@@ -356,7 +357,8 @@ class Edge extends Component {
         tempEdge.dataFields = dataFields;
 
         this.setState({
-          edge: tempEdge
+          edge: tempEdge,
+          syncEnable: data.syncEnable
         }, () => {
           this.getWorldMap();
         });
@@ -419,6 +421,27 @@ class Edge extends Component {
     this.setState({
       geoJson
     });
+  }
+  /**
+   * Handle trigger sync button
+   * @method
+   */
+  triggerSyncBtn = () => {
+    const {baseUrl} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/edge/pushThreatIntell`,
+      type: 'GET'
+    })
+    .then(data => {
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+
+    helper.showPopupMsg(t('txt-requestSent'));
+    this.getEdgeData();
   }
   /**
    * Handle Analyze button and reload the table
@@ -1010,7 +1033,7 @@ class Edge extends Component {
                 <img className='status' src={icon.src} title={icon.title} />
               }
               {edge.info.lastUpdateTime &&
-                <span className='msg'>{t('edge-management.txt-lastUpateTime')} {helper.getFormattedDate(edge.info.lastUpdateTime, 'local')}</span>
+                <span className='msg'>{t('edge-management.txt-lastUpdateTime')} {helper.getFormattedDate(edge.info.lastUpdateTime, 'local')}</span>
               }
             </header>
             <button className='btn nettrap-upgrade' onClick={this.handleNetTrapUpgrade} disabled={activeContent === 'viewEdge' || !edge.info.isNetTrapUpgrade}>{t('txt-upgrade')}</button>
@@ -1286,6 +1309,7 @@ class Edge extends Component {
       allGroupList,
       openManageGroupDialog,
       edge,
+      syncEnable,
       geoJson
     } = this.state;
 
@@ -1330,6 +1354,7 @@ class Edge extends Component {
                 </Tabs>
 
                 <div className='content-header-btns'>
+                  <button className='standard btn' onClick={this.triggerSyncBtn} disabled={!syncEnable}>{t('notifications.txt-sync')}</button>
                   <Link to='/SCP/configuration/notifications'><button className='standard btn'>{t('notifications.txt-settings')}</button></Link>
                 </div>
 
