@@ -397,6 +397,7 @@
   "notifications": {
     "txt-testEmails": "Test Emails",
     "txt-settings": "Notification Settings",
+    "txt-sync": "Sync Threat-Intelligence",
     "txt-emailSettings": "Email Settings",
     "txt-serviceNotifications": "Service Settings",
     "txt-edgeNotifications": "Edge Settings",

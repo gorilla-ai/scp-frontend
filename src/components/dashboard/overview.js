@@ -279,6 +279,9 @@ class DashboardOverview extends Component {
     let alertDisplayData = [];
 
     if (alertMapData.length === 0) {
+      this.setState({
+        worldAttackData
+      });
       return;
     }
 
