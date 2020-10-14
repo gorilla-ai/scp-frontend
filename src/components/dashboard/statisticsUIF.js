@@ -95,6 +95,9 @@ class StatisticsUIF extends Component {
             else if (_.includes(param, 'accountId')) {
               newUrl += `accountId=${session.accountId}` 
             }
+            else if (_.includes(param, 'timeZone')) {
+              newUrl += `timeZone=8` 
+            }
             else {
               newUrl += param
             }
