@@ -30,27 +30,28 @@ const ALERT_LEVEL_COLORS = {
   Notice: '#7ACC29'
 };
 const SCAN_RESULT = [
-{
-  name: 'Yara Scan',
-  result: 'yaraResult',
-  count: 'TotalCnt',
-},
-{
-  name: 'Malware',
-  result: 'scanFileResult',
-  count: 'TotalCnt'
-},
-{
-  name: 'GCB',
-  result: 'gcbResult',
-  count: 'TotalCnt',
-  pass: 'PassCnt'
-},
-{
-  name: 'File Integrity',
-  result: 'fileIntegrityResult',
-  count: 'TotalCnt'
-}];
+  {
+    name: 'Yara Scan',
+    result: 'yaraResult'
+  },
+  {
+    name: 'Malware',
+    result: 'scanFileResult'
+  },
+  {
+    name: 'GCB',
+    result: 'gcbResult',
+    pass: 'PassCnt'
+  },
+  {
+    name: 'File Integrity',
+    result: 'fileIntegrityResult'
+  },
+  {
+    name: 'Process Monitor',
+    result: 'procMonitorResult'
+  }
+];
 const HMD_STATUS_LIST = ['isNotHmd', 'isLatestVersion', 'isOldVersion', 'isOwnerNull', 'isAreaNull', 'isSeatNull'];
 const HMD_LIST = [
   {
@@ -122,7 +123,8 @@ const MAPS_PRIVATE_DATA = {
   },
   currentMap: '',
   currentBaseLayers: {},
-  seatData: {}
+  seatData: {},
+  openHmdType: ''
 };
 
 let t = null;
@@ -765,22 +767,26 @@ class HostController extends Component {
    * Display Safety Scan list
    * @method
    * @param {object} safetyScanInfo - Safety Scan data
+   * @param {object} host - all Safety Scan data
    * @param {object} val - individual Safety Scan data
    * @param {number} i - index of the Safety Scan data
    * @returns HTML DOM
    */
-  getSafetyScanInfo = (safetyScanInfo, val, i) => {
-    let safetyData = safetyScanInfo[val.result];
+  getSafetyScanInfo = (safetyScanInfo, host, val, i) => {
+    const safetyData = safetyScanInfo[val.result];
+    let displayCount = '';
+    let displayTooltip = val.name + ' ';
 
     if (safetyData && safetyData.length > 0) {
-      if (safetyData[0][val.count] > 0) {
-        if (val.name === 'GCB') {
-          return <span key={i}>{val.name} {t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}: {safetyData[0][val.pass]}/{safetyData[0][val.count]}</span>
-        } else {
-          const text = val.name === 'File Integrity' ? t('network-inventory.txt-modifiedFileCount') : t('network-inventory.txt-suspiciousFileCount');
-          return <span key={i}>{val.name} {text}: {safetyData[0][val.count]}</span>
-        }
+      if (val.name === 'GCB') {
+        displayCount = safetyData[0][val.pass] + '/' + safetyData[0].TotalCnt;
+        displayTooltip += t('network-inventory.txt-passCount') + '/' + t('network-inventory.txt-totalItem');
+      } else {
+        displayCount = safetyData[0].TotalCnt;
+        displayTooltip += val.name === 'File Integrity' ? t('network-inventory.txt-modifiedFileCount') : t('network-inventory.txt-suspiciousFileCount');
       }
+
+      return <span key={i} className='c-link' title={displayTooltip + ': ' + displayCount} onClick={this.getIPdeviceInfo.bind(this, host, 'toggle', val.result)}>{val.name} {displayCount}</span>
     }
   }
   /**
@@ -792,13 +798,13 @@ class HostController extends Component {
    * @returns HTML DOM
    */
   getInfoList = (dataInfo, val, i) => {
-    const {contextRoot} = this.context;
-    let context = '';
-
     if (dataInfo[val.path]) {
-      if (val.path === 'mac') {
+      let context = <i className={`fg fg-${val.icon}`}></i>;
+      let content = dataInfo[val.path];
+
+      if (val.name === 'mac') {
         context = <div className={`fg-bg ${val.path}`}></div>;
-      } else if (val.path === 'system') {
+      } else if (val.name === 'system') {
         const system = dataInfo[val.path].toLowerCase();
         let os = 'windows';
 
@@ -809,11 +815,11 @@ class HostController extends Component {
         }
 
         context = <div className={`fg-bg ${os}`}></div>;
-      } else {
-        context = <i className={`fg fg-${val.icon}`}></i>;
+      } else if (val.name === 'version') {
+        content = 'HMD v.' + content;
       }
 
-      return <li key={i} className={cx({'first': val.first})} title={t('ipFields.' + val.name)}>{context}{dataInfo[val.path]}</li>
+      return <li key={i} title={t('ipFields.' + val.name)}>{context}<span>{content}</span></li>
     }
   }
   /**
@@ -821,8 +827,9 @@ class HostController extends Component {
    * @method
    * @param {object} host - active Host data
    * @param {string} options - options for 'toggle'
+   * @param {string} [hmdType] - HMD type
    */
-  getIPdeviceInfo = (host, options) => {
+  getIPdeviceInfo = (host, options, hmdType) => {
     const {baseUrl} = this.context;
     const {hostInfo} = this.state;
     const datetime = this.getHostDateTime();
@@ -851,7 +858,15 @@ class HostController extends Component {
           hostData
         }, () => {
           if (options === 'toggle') {
-            this.toggleHostAnalysis();
+            if (hmdType) {
+              this.setState({
+                openHmdType: hmdType
+              }, () => {
+                this.toggleHostAnalysis();
+              });
+            } else {
+              this.toggleHostAnalysis();
+            }
           }
         });
       }
@@ -878,9 +893,7 @@ class HostController extends Component {
    * @returns HTML DOM
    */
   displaySeverityItem = (val, i) => {
-    return (
-      <span key={i} style={{backgroundColor: ALERT_LEVEL_COLORS[val.key]}}>{val.key}: {val.doc_count}</span>
-    )
+    return <span key={i} style={{backgroundColor: ALERT_LEVEL_COLORS[val.key]}}>{val.key}: {val.doc_count}</span>
   }
   /**
    * Display Host content
@@ -892,6 +905,11 @@ class HostController extends Component {
   getHostList = (val, i) => {
     const {contextRoot} = this.context;
     const infoList = [
+      {
+        name: 'hostName',
+        path: 'hostName',
+        icon: 'host'
+      },
       {
         name: 'mac',
         path: 'mac'
@@ -916,43 +934,21 @@ class HostController extends Component {
         icon: 'report'
       }
     ];
-    let newInfoList = [];
-    let firstItem = false;
     let safetyScanInfo = '';
     let safetyData = false;
-    let itemHeader = val.ip;
     let severityList = [];
-
-    _.forEach(infoList, val2 => { //Determine the first item in the list
-      if (!firstItem && val[val2.path]) {
-        firstItem = true; //Update flag
-        newInfoList.push({
-          ...val2,
-          first: true
-        });
-      } else {
-        newInfoList.push({
-          ...val2,
-          first: false
-        });
-      }
-    })
 
     if (val.safetyScanInfo) {
       safetyScanInfo = val.safetyScanInfo;
 
       _.forEach(SCAN_RESULT, val => { //Check if safety scan data is available
         if (safetyScanInfo[val.result] && safetyScanInfo[val.result].length > 0) {
-          if (safetyScanInfo[val.result][0][val.count] > 0) {
+          if (safetyScanInfo[val.result][0].TotalCnt > 0) {
             safetyData = true;
             return false;
           }
         }
       })
-    }
-
-    if (val.hostName) {
-      itemHeader += ' / ' + val.hostName;
     }
 
     if (val.networkBehaviorInfo) {
@@ -976,30 +972,19 @@ class HostController extends Component {
           </div>
         </div>
         <div className='info'>
-          <header>{itemHeader}</header>
-          <ul>
-            {newInfoList.map(this.getInfoList.bind(this, val))}
+          <ul className='c-link' onClick={this.getIPdeviceInfo.bind(this, val, 'toggle')}>
+            <li className='first' title={t('ipFields.ip')}><i className='fg fg-box'></i><span>{val.ip}</span></li>
+            {infoList.map(this.getInfoList.bind(this, val))}
           </ul>
 
-          {safetyData &&
-            <div className='sub-item'>
-              <header>Safety Scan</header>
-              <div className='flex-item'>
-                {SCAN_RESULT.map(this.getSafetyScanInfo.bind(this, safetyScanInfo))}
-              </div>
-            </div>
-          }
-
-          {severityList.length > 0 &&
-            <div className='sub-item'>
-              <div>
-                <header>{t('txt-networkBehavior')}</header>
-                <div className='flex-item'>
-                  {severityList.map(this.displaySeverityItem)}
-                </div>
-              </div>
-            </div>
-          }
+          <div className='flex-item'>
+            {safetyData &&
+              SCAN_RESULT.map(this.getSafetyScanInfo.bind(this, safetyScanInfo, val))
+            }
+            {severityList.length > 0 &&
+              severityList.map(this.displaySeverityItem)
+            }
+          </div>
         </div>
         <div className='view-details' onClick={this.getIPdeviceInfo.bind(this, val, 'toggle')}>
           {t('host.txt-viewInfo')}
@@ -1059,7 +1044,8 @@ class HostController extends Component {
       currentFloor,
       currentMap,
       currentBaseLayers,
-      seatData
+      seatData,
+      openHmdType
     } = this.state;
 
     return (
@@ -1067,6 +1053,7 @@ class HostController extends Component {
         {hostAnalysisOpen &&
           <HostAnalysis
             hostData={hostData}
+            openHmdType={openHmdType}
             datetime={this.getHostDateTime()}
             getIPdeviceInfo={this.getIPdeviceInfo}
             toggleHostAnalysis={this.toggleHostAnalysis} />

@@ -170,10 +170,22 @@ class HMDscanInfo extends Component {
    * @method
    */
   loadInitialData = () => {
+    this.hmdTypeChecking();
     this.loadInitialContent();
     this.loadRadarCharts();
     this.loadHMDdata();
     this.loadSettingsData();
+  }
+  /**
+   * Set active HMD tab
+   * @method
+   */
+  hmdTypeChecking = () => {
+    if (this.props.openHmdType && typeof this.props.openHmdType === 'string') {
+      this.setState({
+        activeTab: this.props.openHmdType.replace('Result', '')
+      });
+    }
   }
   /**
    * Set sync status and button group list
@@ -1865,7 +1877,8 @@ HMDscanInfo.propTypes = {
   toggleSelectionIR: PropTypes.func.isRequired,
   triggerTask: PropTypes.func.isRequired,
   toggleYaraRule: PropTypes.func.isRequired,
-  getHMDinfo: PropTypes.func.isRequired
+  getHMDinfo: PropTypes.func.isRequired,
+  openHmdType: PropTypes.string
 };
 
 export default withRouter(HMDscanInfo);
