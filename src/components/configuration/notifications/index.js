@@ -403,7 +403,7 @@ class Notifications extends Component {
         draggable={true}
         global={true}
         actions={actions}
-        info={info}
+        info={this.state.info}
         closeAction='cancel'>
         {this.displayTestEmail()}
       </ModalDialog>
