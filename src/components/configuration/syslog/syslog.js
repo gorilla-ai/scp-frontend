@@ -1442,14 +1442,6 @@ class Syslog extends Component {
     });
   }
   /**
-   * Set left menu arrow class name
-   * @method
-   * @returns {string} - class name
-   */
-  getArrowClassName = () => {
-    return this.state.showPatternLeftNav ? 'fg fg-arrow-left' : 'fg fg-arrow-right';
-  }
-  /**
    * Display Syslog Config content
    * @method
    * @param {object} val - content of the syslogPatternConfig
@@ -1713,7 +1705,7 @@ class Syslog extends Component {
                     <div className='syslog-config'>
                       <div className={cx('left-nav', {'collapse': !showPatternLeftNav})}>
                         {syslogPatternConfig.patternSetting.map(this.getPatternItem)}
-                        <div className='expand-collapse' onClick={this.toggleLeftNav}><i className={this.getArrowClassName()}></i></div>
+                        <div className='expand-collapse' onClick={this.toggleLeftNav}><i className={`fg fg-arrow-${showPatternLeftNav ? 'left' : 'right'}`}></i></div>
                       </div>
                       {syslogPatternConfig.patternSetting.map(this.getSyslogConfig)}
                     </div>

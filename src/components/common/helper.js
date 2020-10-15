@@ -43,7 +43,15 @@ const helper = {
     return string.charAt(0).toUpperCase() + string.slice(1);
   },
   numberWithCommas: function(n) {
-    return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    if (n) {
+      return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    } else {
+      if (n === 0) {
+        return n;
+      } else {
+        return;
+      }
+    }
   },
   setChartData: function(data, property) {
     let innerObj = {};
@@ -174,6 +182,25 @@ const helper = {
       default:
         return 'yellow';
     }
+  },
+  getSeverityColor: function(value) {
+    let backgroundColor = '';
+
+    if (value === 'Emergency') {
+      backgroundColor = '#CC2943';
+    } else if (value === 'Alert') {
+      backgroundColor = '#CC7B29';
+    } else if (value === 'Critical') {
+      backgroundColor = '#29B0CC';
+    } else if (value === 'Warning') {
+      backgroundColor = '#29CC7A';
+    } else if (value === 'Notice') {
+      backgroundColor = '#7ACC29';
+    } else {
+      return 'N/A'
+    }
+
+    return <span className='severity' style={{backgroundColor}}>{value}</span>
   },
   getJsonViewTheme: function() {
     return {

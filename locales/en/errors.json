@@ -49,6 +49,7 @@
   "-9001": "Owner ID is duplicated",
 
   "-13": "Please set the valid Agent end time",
+  "-1000": "Couldn't connect to host, port: aaa.bb, 25; timeout -1",
   "-1001": "Please fill out all the required fields",
   "-1002": "User already exists.",
   "-1004": "password must contain at least one lower-case alphabet/upper-case alphabet/digital/special character and have length more than 12.",
@@ -65,6 +66,11 @@
   "-5007": "Name already exist",
   "-5008": "Default port for system service is not allowed to use",
   "-5009": "Log Host IP does not exist",
+
+  "-7000": "Get ES index list fail",
+  "-7001": "Open ES index fail",
+  "-7002": "Close ES index fail",
+  "-7003": "Delete ES index fail",
 
   "txt-param-null": "Parameter is NULL",
   "txt-account-fail" : "Fail to get accounts from AD",

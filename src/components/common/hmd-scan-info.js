@@ -13,7 +13,6 @@ import ButtonGroup from 'react-ui/build/src/components/button-group'
 import DataTable from 'react-ui/build/src/components/table'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import MultiInput from 'react-ui/build/src/components/multi-input'
-import ToggleBtn from 'react-ui/build/src/components/toggle-button'
 
 import {BaseDataContext} from './context';
 import helper from './helper'
@@ -46,8 +45,16 @@ const SAFETY_SCAN_LIST = [
     path: 'fileIntegrityResult'
   },
   {
+    type: 'procMonitor',
+    path: 'getProcessMonitorResult'
+  },
+  {
     type: 'snapshot',
     path: 'snapshotResult'
+  },
+  {
+    type: 'procWhiteList',
+    path: 'procWhiteListResult'
   }
 ];
 const TRIGGER_NAME = {
@@ -55,7 +62,11 @@ const TRIGGER_NAME = {
   [SAFETY_SCAN_LIST[1].type]: 'scanFile',
   [SAFETY_SCAN_LIST[2].type]: 'gcbDetection',
   [SAFETY_SCAN_LIST[4].type]: 'getFileIntegrity',
-  [SAFETY_SCAN_LIST[5].type]: 'getSnapshot'
+  [SAFETY_SCAN_LIST[5].type]: 'getProcessMonitorResult'
+};
+const SETTINGS = {
+  snapshot: 'getSnapshot',
+  procWhiteList: 'setProcessWhiteList'
 };
 
 let scrollCount = 1;
@@ -73,7 +84,7 @@ class HMDscanInfo extends Component {
     super(props);
 
     this.state = {
-      activeTab: 'dashboard', //dashboard, yara, scanFile, gcb, ir, fileIntegrity, settings
+      activeTab: 'dashboard', //dashboard, yara, scanFile, gcb, ir, fileIntegrity, Process Monitor, and settings
       buttonGroupList: [],
       polarChartSettings: {},
       activePath: null,
@@ -81,6 +92,7 @@ class HMDscanInfo extends Component {
       activeRule: [],
       activeDLL: false,
       activeConnections: false,
+      activeExecutableInfo: false,
       dashboardInfo: {
         dataFieldsArr: ['item', 'score'],
         dataFields: {},
@@ -96,19 +108,24 @@ class HMDscanInfo extends Component {
       hasMore: true,
       disabledBtn: false,
       settingsActiveContent: 'viewMode',
-      originalFileIntegrityEnableData: '',
-      fileIntegrityEnable: '',
       originalSettingsPathData: {},
       settingsPath: {
-        includePath: [{
-          path: ''
-        }],
-        excludePath: [{
-          path: ''
-        }],
-        processKeyword: [{
-          path: ''
-        }]
+        fileIntegrity: {
+          includePath: [{
+            path: ''
+          }],
+          excludePath: [{
+            path: ''
+          }],
+          processKeyword: [{
+            keyword: ''
+          }]
+        },
+        procMonitor: {
+          includePath: [{
+            path: ''
+          }]
+        }
       }
     };
 
@@ -153,10 +170,22 @@ class HMDscanInfo extends Component {
    * @method
    */
   loadInitialData = () => {
+    this.hmdTypeChecking();
     this.loadInitialContent();
     this.loadRadarCharts();
     this.loadHMDdata();
     this.loadSettingsData();
+  }
+  /**
+   * Set active HMD tab
+   * @method
+   */
+  hmdTypeChecking = () => {
+    if (this.props.openHmdType && typeof this.props.openHmdType === 'string') {
+      this.setState({
+        activeTab: this.props.openHmdType.replace('Result', '')
+      });
+    }
   }
   /**
    * Set sync status and button group list
@@ -170,15 +199,15 @@ class HMDscanInfo extends Component {
     }];
 
     _.forEach(SAFETY_SCAN_LIST, val => {
-      if (val.type === 'snapshot') return; //Ignore 'snapshot' tab
-
-      buttonGroupList.push({ //Create list for Button group
-        value: val.type,
-        text: t('network-inventory.scan-list.txt-' + val.type)
-      });
+      if (val.type !== 'snapshot' && val.type !== 'procWhiteList') {
+        buttonGroupList.push({ //Create list for Button group
+          value: val.type,
+          text: t('network-inventory.scan-list.txt-' + val.type)
+        });
+      }
     });
 
-    if (location.pathname.indexOf('configuration') > 0) { //Add Settings tab for Config section
+    if (location.pathname.indexOf('host') > 0 || location.pathname.indexOf('configuration') > 0) { //Add Settings tab for Config section
       buttonGroupList.push({
         value: 'settings',
         text: t('txt-setting-eng')
@@ -356,23 +385,24 @@ class HMDscanInfo extends Component {
   /**
    * Get parsed path list data
    * @method
-   * @param {object} pathData - path list data
+   * @param {object} type - value type
+   * @param {object} listData - list data
    * @returns parsed path list
    */
-  getParsedPathData = (pathData) => {
+  getParsedPathData = (type, listData) => {
     let pathList = [];
 
-    if (pathData.length > 0) {
-      _.forEach(pathData, val => {
+    if (listData.length > 0) {
+      _.forEach(listData, val => {
         if (val) {
           pathList.push({
-            path: val
-          })
+            [type]: val
+          });
         }
       })
     } else {
       pathList.push({
-        path: ''
+        [type]: ''
       });
     }
 
@@ -385,25 +415,31 @@ class HMDscanInfo extends Component {
   loadSettingsData = () => {
     const {currentDeviceData} = this.props;
     let tempSettingsPath = {...this.state.settingsPath};
-    let status = false;
     let includePathList = [];
     let excludePathList = [];
     let pathData = '';
 
     if (currentDeviceData.hmdSetting && currentDeviceData.hmdSetting.length > 0) {
-      status = currentDeviceData.hmdSetting[0]._Parameters.isJobEnable;
-      pathData = currentDeviceData.hmdSetting[0]._Parameters;
-      tempSettingsPath.includePath = this.getParsedPathData(pathData._IncludePathList);
-      tempSettingsPath.excludePath = this.getParsedPathData(pathData._ExcludePathList);
-      tempSettingsPath.processKeyword = this.getParsedPathData(pathData._ProcessKeyword);
-    }
+      const fileIntegrityData = _.find(currentDeviceData.hmdSetting, {_CommandName: SETTINGS.snapshot});
+      const processMonitorData = _.find(currentDeviceData.hmdSetting, {_CommandName: SETTINGS.procWhiteList});
 
-    this.setState({
-      originalFileIntegrityEnableData: status,
-      fileIntegrityEnable: status,
-      originalSettingsPathData: _.cloneDeep(tempSettingsPath),
-      settingsPath: tempSettingsPath
-    });
+      if (!_.isEmpty(fileIntegrityData)) {
+        pathData = fileIntegrityData._Parameters;
+        tempSettingsPath.fileIntegrity.includePath = this.getParsedPathData('path', pathData._IncludePathList);
+        tempSettingsPath.fileIntegrity.excludePath = this.getParsedPathData('path', pathData._ExcludePathList);
+        tempSettingsPath.fileIntegrity.processKeyword = this.getParsedPathData('keyword', pathData._ProcessKeyword);
+      }
+
+      if (!_.isEmpty(processMonitorData)) {
+        pathData = processMonitorData._Parameters._WhiteList;
+        tempSettingsPath.procMonitor.includePath = this.getParsedPathData('path', pathData);
+      }
+
+      this.setState({
+        originalSettingsPathData: _.cloneDeep(tempSettingsPath),
+        settingsPath: tempSettingsPath
+      });
+    }
   }
   /**
    * Sort the Yara and Yara Scan File by matched file availablility
@@ -440,6 +476,7 @@ class HMDscanInfo extends Component {
       activeRule: [],
       activeDLL: false,
       activeConnections: false,
+      activeExecutableInfo: false,
       disabledBtn: false
     });
   }
@@ -509,7 +546,8 @@ class HMDscanInfo extends Component {
         activeRuleHeader: false,
         activeRule: [],
         activeDLL: false,
-        activeConnections: false
+        activeConnections: false,
+        activeExecutableInfo: false
       });
     } else if (type === 'rule') {
       let tempActiveRule = activeRule;
@@ -538,7 +576,7 @@ class HMDscanInfo extends Component {
     const uniqueKey = val + i;
 
     return (
-      <div className='rule-content' key={uniqueKey}>
+      <div key={uniqueKey} className='item-content'>
         <div className='header' onClick={this.togglePathRule.bind(this, 'rule', i)}>
           <i className={cx('fg fg-play', {'rotate': _.includes(activeRule, i)})}></i>
           <span>{nameList[i]}</span>
@@ -567,7 +605,7 @@ class HMDscanInfo extends Component {
     )
   }
   /**
-   * Display file path
+   * Display file path for Yara Scan and Process Monitor
    * @method
    * @param {object} val - scan file data
    * @returns HTML DOM
@@ -596,7 +634,7 @@ class HMDscanInfo extends Component {
     )
   }
   /**
-   * Display individual connection for Yara Scan
+   * Display individual connection for Yara Scan and Process Monitor
    * @method
    * @param {object} val - connection data
    * @param {number} i - index of the connections array
@@ -616,7 +654,7 @@ class HMDscanInfo extends Component {
     )
   }
   /**
-   * Display connections for Yara Scan
+   * Display connections for Yara Scan and Process Monitor
    * @method
    * @param {object} val - connection data
    * @returns HTML DOM
@@ -649,6 +687,63 @@ class HMDscanInfo extends Component {
     )
   }
   /**
+   * Display item for Executable Info
+   * @method
+   * @param {object} info - executable data
+   * @param {string} val - executable list
+   * @param {number} i - index of the executable list array
+   * @returns HTML DOM
+   */
+  displayExecutableList = (info, val, i) => {
+    let value = info._ProcessInfo._ExecutableInfo[val];
+
+    if (val === '_AutorunLocation' || val === '_CommandLine') {
+      value = info._ProcessInfo[val];
+    }
+
+    if (val === '_Filepath' || val === '_Filesize') {
+      value = info._ProcessInfo._ExecutableInfo._FileInfo[val];
+
+      if (val === '_Filesize') {
+        value = value.toString();
+      }
+    }
+
+    if (val === '_MD5' || val === '_SHA1' || val === '_SHA256') {
+      value = info._ProcessInfo._ExecutableInfo._FileInfo._HashValues[val];
+    }
+
+    if (val === '_IsPE') {
+      value = this.getBoolValue(value);
+    }
+
+    if (val === '_Signatures') { //Signature is an array type
+      value = info._ProcessInfo._ExecutableInfo[val].toString();
+    }
+
+    return <li key={i}>{t('network-inventory.executable-list.txt-' + val)}: {value || NOT_AVAILABLE}</li>
+  }
+  /**
+   * Display Executable Info for Process Monitor
+   * @method
+   * @param {object} val - process monitor data
+   * @returns HTML DOM
+   */
+  displayExecutableInfo = (val) => {
+    const {activeExecutableInfo} = this.state;
+    const executableList = ['_AutorunLocation', '_CommandLine', '_CompanyName', '_Filepath', '_Filesize', '_MD5', '_SHA1', '_SHA256', '_IsPE', '_OwnerSID', '_Signatures'];
+
+    if (val._ProcessInfo && val._ProcessInfo._ExecutableInfo) {
+      return (
+        <div className={cx('sub-content', {'hide': !activeExecutableInfo})}>
+          <ul className='no-padding'>
+            {executableList.map(this.displayExecutableList.bind(this, val))}
+          </ul>
+        </div>
+      )
+    }
+  }
+  /**
    * Toggle scan rule item on/off
    * @method
    * @param {string} type - item type ('rule', 'dll' or 'connections')
@@ -666,10 +761,14 @@ class HMDscanInfo extends Component {
       this.setState({
         activeConnections: !this.state.activeConnections
       });
+    } else if (type === 'executableInfo') {
+      this.setState({
+        activeExecutableInfo: !this.state.activeExecutableInfo
+      });
     }
   }
   /**
-   * Display Yara Scan Process content
+   * Display Yara Scan Process and Process Monitor content
    * @method
    * @param {number} parentIndex - parent index of the scan process array
    * @param {object} val - scan data content
@@ -677,11 +776,12 @@ class HMDscanInfo extends Component {
    * @returns HTML DOM
    */
   displayScanProcessPath = (parentIndex, val, i) => {
-    const {activePath, activeRuleHeader, activeDLL, activeConnections} = this.state;
+    const {activeTab, activePath, activeRuleHeader, activeDLL, activeConnections, activeExecutableInfo} = this.state;
+    const filePath = val._MatchedFile || val._ProcessInfo._ExecutableInfo._FileInfo._Filepath;
 
-    if (val._MatchedFile || val._MatchedPid) {
+    if (filePath || val._MatchedPid) {
       const uniqueKey = val._ScanType + i;
-      const uniqueID = parentIndex.toString() + i.toString() + (val._MatchedFile || val._MatchedPid);
+      const uniqueID = parentIndex.toString() + i.toString() + (filePath || val._MatchedPid);
       let displayInfo = '';
 
       if (val._MatchedRuleList && val._MatchedRuleList.length > 0 && val._MatchedRuleNameList) {
@@ -691,14 +791,14 @@ class HMDscanInfo extends Component {
       }
 
       return (
-        <div className='group' key={uniqueKey}>
+        <div key={uniqueKey} className='group'>
           <div className='path pointer' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
             <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`}></i>
             <div className='path-header'>
-              {val._MatchedFile &&
-                <span>{t('txt-path')}: {val._MatchedFile}</span>
+              {filePath &&
+                <span>{t('txt-path')}: {filePath}</span>
               }
-              {val._MatchedFile && val._MatchedPid &&
+              {filePath && val._MatchedPid &&
                 <span>, </span>
               }
               {val._MatchedPid &&
@@ -707,17 +807,19 @@ class HMDscanInfo extends Component {
             </div>
           </div>
           <div className={cx('rule', {'hide': activePath !== uniqueID})}>
-            <div className='rule-content'>
-              <div className='header' onClick={this.toggleInfoHeader.bind(this, 'rule')}>
-                <i className={cx('fg fg-play', {'rotate': activeRuleHeader})}></i>
-                <span>{t('txt-rule')}</span>
+            {activeTab === 'yara' &&
+              <div className='item-content'>
+                <div className='header' onClick={this.toggleInfoHeader.bind(this, 'rule')}>
+                  <i className={cx('fg fg-play', {'rotate': activeRuleHeader})}></i>
+                  <span>{t('txt-rule')}</span>
+                </div>
+                <div className={cx('sub-content', {'hide': !activeRuleHeader})}>
+                  {displayInfo}
+                </div>
               </div>
-              <div className={cx('sub-content', {'hide': !activeRuleHeader})}>
-                {displayInfo}
-              </div>
-            </div>
+            }
 
-            <div className='rule-content'>
+            <div className='item-content'>
               <div className='header' onClick={this.toggleInfoHeader.bind(this, 'dll')}>
                 <i className={cx('fg fg-play', {'rotate': activeDLL})}></i>
                 <span>DLLs</span>
@@ -725,13 +827,23 @@ class HMDscanInfo extends Component {
               {this.displayFilePath(val)}
             </div>
 
-            <div className='rule-content'>
+            <div className='item-content'>
               <div className='header' onClick={this.toggleInfoHeader.bind(this, 'connections')}>
                 <i className={cx('fg fg-play', {'rotate': activeConnections})}></i>
                 <span>{t('txt-networkBehavior')}</span>
               </div>
               {this.displayConnections(val)}
             </div>
+
+            {activeTab === 'procMonitor' &&
+              <div className='item-content'>
+                <div className='header' onClick={this.toggleInfoHeader.bind(this, 'executableInfo')}>
+                  <i className={cx('fg fg-play', {'rotate': activeExecutableInfo})}></i>
+                  <span>{t('txt-executableInfo')}</span>
+                </div>
+                {this.displayExecutableInfo(val)}
+              </div>
+            }
           </div>
         </div>
       )
@@ -803,7 +915,7 @@ class HMDscanInfo extends Component {
     }
 
     return (
-      <div className='group' key={uniqueKey}>
+      <div key={uniqueKey} className='group'>
         <div className='path pointer' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
           <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`}></i>
           <div className='path-header'>
@@ -821,7 +933,7 @@ class HMDscanInfo extends Component {
           </div>
         </div>
         <div className={cx('rule', {'hide': activePath !== uniqueID})}>
-          <div className='rule-content'>
+          <div className='item-content'>
             {val._FileInfo && val._FileInfo._Filepath &&
               <div className='header'>
                 <ul>
@@ -880,7 +992,7 @@ class HMDscanInfo extends Component {
     }
 
     return (
-      <div className='group' key={uniqueKey}>
+      <div key={uniqueKey} className='group'>
         <div className='path'>
           <div className='path-header'>
             {val &&
@@ -911,7 +1023,7 @@ class HMDscanInfo extends Component {
     }
 
     return (
-      <div className='group' key={uniqueKey}>
+      <div key={uniqueKey} className='group'>
         <div className='path pointer' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
           <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`}></i>
           <div className='path-header'>
@@ -921,7 +1033,7 @@ class HMDscanInfo extends Component {
           </div>
         </div>
         <div className={cx('rule', {'hide': activePath !== uniqueID})}>
-          <div className='rule-content'>
+          <div className='item-content'>
             {yaraRule &&
               <pre>{yaraRule}</pre>
             }
@@ -944,7 +1056,8 @@ class HMDscanInfo extends Component {
       activePath: null,
       activeRuleHeader: false,
       activeDLL: false,
-      activeConnections: false
+      activeConnections: false,
+      activeExecutableInfo: false
     }, () => {
       this.props.showAlertData(type);
     });
@@ -981,20 +1094,13 @@ class HMDscanInfo extends Component {
     }
   }
   /**
-   * Get current active tab name
-   * @method
-   * @returns current active tab
-   */
-  getActiveTab = () => {
-    return this.state.activeTab === 'settings' ? 'snapshot' : this.state.activeTab;
-  }
-  /**
    * Handle trigger task button
    * @method
    * @param {string} type - scan type
    */
   getTriggerTask = (type) => {
     const {ipType} = this.props;
+    const {activeTab} = this.state;
 
     if (type === 'ir') { //Special case for IR
       this.props.toggleSelectionIR(ipType);
@@ -1002,39 +1108,53 @@ class HMDscanInfo extends Component {
       if (type === 'yara') { //Special case for Yara
         this.props.toggleYaraRule(ipType);
       } else {
-        this.props.triggerTask([TRIGGER_NAME[this.getActiveTab()]], ipType);
+        if (activeTab === 'settings') { //For Settings tab
+          if (type === 'snapshot') {
+            this.props.triggerTask([SETTINGS[type]]);
+          } else if (type === 'procWhiteList') {
+            const procMonitorPath = this.state.settingsPath.procMonitor.includePath;
+            let formattedPath = [];
 
-        this.setState({
-          disabledBtn: true
-        });
+            _.forEach(procMonitorPath, val => {
+              if (val.path) {
+                formattedPath.push(val.path);
+              }
+            });
+
+            this.props.triggerTask([SETTINGS[type]], formattedPath);
+          }
+        } else {
+          this.props.triggerTask([TRIGGER_NAME[activeTab]], ipType);
+        }
       }
     }
   }
   /**
-   * Display trigger button for scan type
-   * @method
-   * @returns HTML DOM
-   */
-  getTriggerBtn = () => {
-    const btnText = this.state.activeTab === 'ir' ? t('network-inventory.txt-reCompress') : t('network-inventory.txt-reCheck');
-    const currentTab = this.getActiveTab();
-
-    return <button className='btn' onClick={this.getTriggerTask.bind(this, currentTab)} disabled={this.checkTriggerTime(currentTab)}>{btnText}</button>
-  }
-  /**
    * Display trigger button info for scan type
    * @method
+   * @param {string} [type] - tab ('fileIntegrity' or 'procMonitor')
    * @returns HTML DOM
    */
-  getTriggerBtnInfo = () => {
+  getTriggerBtnInfo = (type) => {
     const {ipType} = this.props;
-    const {hmdInfo} = this.state;
-    const currentTab = this.getActiveTab();
+    const {activeTab, hmdInfo} = this.state;
+    const btnText = activeTab === 'ir' ? t('network-inventory.txt-reCompress') : t('network-inventory.txt-reCheck');
+    let currentTab = activeTab;
+
+    if (type) { //Exceptions for Settings tab
+      if (type === 'fileIntegrity') {
+        currentTab = 'snapshot';
+      } else if (type === 'procMonitor') {
+        currentTab = 'procWhiteList';
+      }
+    }
 
     return (
       <div className='info'>
-        <button className='btn refresh' onClick={this.props.getHMDinfo.bind(this, ipType)}>{t('network-inventory.txt-refresh')}</button>
-        {this.getTriggerBtn()}
+        {activeTab !== 'settings' &&
+          <button className='btn refresh' onClick={this.props.getHMDinfo.bind(this, ipType)}>{t('network-inventory.txt-refresh')}</button>
+        }
+        <button className='btn' onClick={this.getTriggerTask.bind(this, currentTab)} disabled={this.checkTriggerTime(currentTab)}>{btnText}</button>
         <div className='last-update'>
           <span>{t('network-inventory.txt-createTime')}: {hmdInfo[currentTab].latestCreateDttm || hmdInfo[currentTab].createTime || NOT_AVAILABLE}</span>
         </div>
@@ -1104,28 +1224,11 @@ class HMDscanInfo extends Component {
     }
 
     return (
-      <div className='group' key={uniqueKey}>
-        <div className='path pointer' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
-          <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`}></i>
+      <div key={uniqueKey} className='group'>
+        <div className='path' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
           <div className='path-header'>
             {filePath &&
               <span>{t('txt-path')}: {filePath}</span>
-            }
-          </div>
-        </div>
-        <div className={cx('rule', {'hide': activePath !== uniqueID})}>
-          <div className='rule-content'>
-            {val.Md5HashInfo &&
-              <div className='header'>
-                <ul>
-                  {val.Md5HashInfo._BaselineMd5Hash &&
-                    <li>Baseline MD5: {val.Md5HashInfo._BaselineMd5Hash}</li>
-                  }
-                  {val.Md5HashInfo._RealMd5Hash &&
-                    <li>Real MD5: {val.Md5HashInfo._RealMd5Hash}</li>
-                  }
-                </ul>
-              </div>
             }
           </div>
         </div>
@@ -1189,21 +1292,24 @@ class HMDscanInfo extends Component {
     } else if (activeTab === 'scanFile') {
       dataResult = val.DetectionResult;
       scanPath = this.displayScanFilePath.bind(this, i);
+    } else if (activeTab === 'procMonitor') {
+      dataResult = val.getProcessMonitorResult;
+      scanPath = this.displayScanProcessPath.bind(this, i);
     }
 
     return (
-      <div className='scan-section' key={i}>
+      <div key={i} className='scan-section'>
         <div className='scan-header'>
           <span>{t('network-inventory.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local') || NOT_AVAILABLE}</span>
           <span>{t('network-inventory.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}</span>
           {val.taskStatus && val.taskStatus === 'Failure' &&
             <span style={{color: '#d10d25'}}>{t('network-inventory.txt-taskFailure')}</span>
           }
-          {(activeTab === 'yara' || activeTab === 'scanFile') && dataResult &&
+          {(activeTab === 'yara' || activeTab === 'scanFile' || activeTab === 'procMonitor') && dataResult &&
             this.getSuspiciousFileCount(dataResult)
           }
         </div>
-        {(activeTab === 'yara' || activeTab === 'scanFile') &&
+        {(activeTab === 'yara' || activeTab === 'scanFile' || activeTab === 'procMonitor') &&
           <div className='scan-content'>
             <div className='header'>{t('network-inventory.txt-suspiciousFilePath')}</div>
             {dataResult && dataResult.length > 0 &&
@@ -1314,7 +1420,7 @@ class HMDscanInfo extends Component {
     }
 
     return (
-      <div className='scan-section' key={i}>
+      <div key={i} className='scan-section'>
         <div className='table'>
           <div className='scan-header'>
             <span>{t('network-inventory.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local') || NOT_AVAILABLE}</span>
@@ -1344,7 +1450,7 @@ class HMDscanInfo extends Component {
     }
 
     return (
-      <div className='scan-section' key={i}>
+      <div key={i} className='scan-section'>
         <div className='scan-header'>
           <span>{t('network-inventory.txt-createTime')}: {helper.getFormattedDate(val.taskCreateDttm, 'local') || NOT_AVAILABLE}</span>
           <span>{t('network-inventory.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}</span>
@@ -1367,7 +1473,9 @@ class HMDscanInfo extends Component {
   getContentHeight = () => {
     const {page} = this.props;
 
-    if (page === 'threats') {
+    if (page === 'host') {
+      return 470;
+    } else if (page === 'threats') {
       return 330;
     } else if (page === 'inventory') {
       return 435;
@@ -1384,7 +1492,7 @@ class HMDscanInfo extends Component {
     const loader = '';
     let displayContent = '';
 
-    if (activeTab === 'yara' || activeTab === 'scanFile' || activeTab === 'fileIntegrity') {
+    if (activeTab === 'yara' || activeTab === 'scanFile' || activeTab === 'fileIntegrity' || activeTab === 'procMonitor') {
       displayContent = this.displayAccordionContent;
     } else if (activeTab === 'gcb') {
       displayContent = this.displayTableContent;
@@ -1425,7 +1533,7 @@ class HMDscanInfo extends Component {
    * @param {string} type - page type ('edit, 'save' and 'cancel')
    */
   toggleSettingsContent = (type) => {
-    const {originalFileIntegrityEnableData, originalSettingsPathData} = this.state;
+    const {originalSettingsPathData} = this.state;
     let tempActiveContent = '';
 
     if (type === 'edit') {
@@ -1435,7 +1543,6 @@ class HMDscanInfo extends Component {
     } else if (type === 'cancel') {
       tempActiveContent = 'viewMode';
       this.setState({
-        fileIntegrityEnable: _.cloneDeep(originalFileIntegrityEnableData),
         settingsPath: _.cloneDeep(originalSettingsPathData)
       });
     }
@@ -1445,14 +1552,63 @@ class HMDscanInfo extends Component {
     });
   }
   /**
+   * Display list of settings path
+   * @method
+   * @param {object} val - settings path object
+   * @param {string} i - index of the settings path array
+   * @returns HTML DOM
+   */
+  displaySettingsPath = (val, i) => {
+    return <div key={i} className={cx('item', {'block': val.path})}><span>{val.path || val.keyword}</span></div>
+  }
+  /**
+   * Display File Integrity settings view only content
+   * @method
+   * @param {string} type - path type ('fileIntegrity', 'procMonitor')
+   * @param {object} val - settings object
+   * @param {number} i - index of the settings array
+   * @returns HTML DOM
+   */
+  viewSettingsPathContent = (type, val, i) => {
+    const {settingsPath} = this.state;
+    const dataType = val.type === 'processKeyword' ? 'keyword' : 'path';
+
+    return (
+      <div key={i} className='form-group'>
+        <label>{val.headerText}</label>
+        {settingsPath[type][val.type][0][dataType] !== '' &&
+          <div className='path-item'>{settingsPath[type][val.type].map(this.displaySettingsPath)}</div>
+        }
+        {settingsPath[type][val.type][0][dataType] === '' &&
+          <div>{NOT_AVAILABLE}</div>
+        }
+      </div>
+    )
+  }
+  /**
    * Set path data
    * @method
-   * @param {string} type - path data type ('includePath', 'excludePath' or 'processKeyword')
+   * @param {string} type - path type ('fileIntegrity', 'procMonitor')
+   * @param {string} listType - path data type ('includePath', 'excludePath' or 'processKeyword')
    * @param {array} pathData - path data to be set
    */
-  setPathData = (type, pathData) => {
+  setPathData = (type, listType, pathData) => {
     let tempSettingsPath = {...this.state.settingsPath};
-    tempSettingsPath[type] = pathData;
+    let setPathData = pathData;
+
+    if (pathData.length === 0) {
+      if (listType === 'processKeyword') {
+        setPathData = [{
+          keyword: ''
+        }];
+      } else {
+        setPathData = [{
+          path: ''
+        }];
+      }
+    }
+
+    tempSettingsPath[type][listType] = setPathData;
 
     this.setState({
       settingsPath: tempSettingsPath
@@ -1461,89 +1617,81 @@ class HMDscanInfo extends Component {
   /**
    * Display File Integrity settings content
    * @method
-   * @param {object} val - FILE_INTEGRITY_SETTINGS object
-   * @param {number} i - index of the FILE_INTEGRITY_SETTINGS array
+   * @param {string} type - path type ('fileIntegrity', 'procMonitor')
+   * @param {object} val - settings object
+   * @param {number} i - index of the settings array
    * @returns HTML DOM
    */
-  getSettingsPathContent = (val, i) => {
+  editSettingsPathContent = (type, val, i) => {
+    const {settingsPath} = this.state;
+    const data = {
+      scanType: type,
+      listType: val.type
+    };
+
     return (
-      <div className='path-group' key={i}>
+      <div key={i} className='path-group'>
         <label>{val.headerText}</label>
         <MultiInput
           base={InputPath}
           inline={true}
-          value={this.state.settingsPath[val.type]}
-          onChange={this.setPathData.bind(this, val.type)} />
+          value={settingsPath[type][val.type]}
+          props={data}
+          onChange={this.setPathData.bind(this, type, val.type)} />
       </div>
     )
   }
   /**
-   * Display list of settings path
+   * Display view/edit settings content
    * @method
-   * @param {string} type - settings path type ('includePath', 'excludePath', or 'processKeyword')
-   * @param {string | object} val - settings path value
-   * @param {string} i - index of the settings path array
+   * @param {object} val - settings object ('fileIntegrity' or 'procMonitor')
+   * @param {number} i - index of the settings array
    * @returns HTML DOM
    */
-  displaySettingsPath = (type, val, i) => {
-    if (val) {
-      if (val.path) {
-        return <span key={i}>{val.path}</span>
-      } else {
-        return <span key={i}>{val}</span>
-      }
-    }
-  }
-  /**
-   * Display File Integrity settings view only content
-   * @method
-   * @param {object} val - FILE_INTEGRITY_SETTINGS object
-   * @param {number} i - index of the FILE_INTEGRITY_SETTINGS array
-   * @returns HTML DOM
-   */
-  viewSettingsPathContent = (val, i) => {
-    const {settingsPath} = this.state;
+  displaySettingsContent = (val, i) => {
+    const {settingsActiveContent} = this.state;
 
     return (
-      <div className='form-group' key={i}>
-        <label>{val.headerText}</label>
-        {settingsPath[val.type].length > 0 &&
-          <div className='flex-item'>{settingsPath[val.type].map(this.displaySettingsPath.bind(this, [val.type]))}</div>
+      <div key={i} className='settings-group'>
+        {settingsActiveContent === 'viewMode' &&
+          this.getTriggerBtnInfo(val.type)
         }
-        {settingsPath[val.type].length === 0 &&
-          <div>{NOT_AVAILABLE}</div>
-        }
+        <header>{t('network-inventory.scan-list.txt-' + val.type)} {t('txt-settings')}</header>
+        <div className='settings-form'>
+          {settingsActiveContent === 'viewMode' &&
+            val.settings.map(this.viewSettingsPathContent.bind(this, val.type))
+          }
+          {settingsActiveContent === 'editMode' &&
+            val.settings.map(this.editSettingsPathContent.bind(this, val.type))
+          }
+        </div>
       </div>
     )
   }
   /**
-   * Get parsed path list data
+   * Get parsed list data
    * @method
-   * @param {string} type - path list type
-   * @param {array.<object>} pathData - path list data
-   * @returns parsed path list
+   * @param {boolean} required - required field or not
+   * @param {string} type - value type
+   * @param {array.<object>} listData - list data
+   * @returns parsed list or boolean
    */
-  getSavedSettings = (type, pathData) => {
-    let pathList = [];
-    let validPath = true;
+  getSavedSettings = (required, type, listData) => {
+    let dataList = [];
 
-    _.forEach(pathData, val => {
-      if (val.path) {
-        pathList.push(val.path);
+    _.forEach(listData, val => {
+      if (val[type]) {
+        dataList.push(val[type]);
       }
     })
 
-    if (type === 'includePath' && pathData.length === 0) {
+    if (required && !listData[0].path) {
       helper.showPopupMsg(t('network-inventory.txt-includePathEmpty'), t('txt-error'));
-      validPath = false;
+      return false;
     }
 
-    if (!validPath) {
-      return validPath;
-    }
-
-    return pathList.toString();
-}
+    return dataList;
+  }
   /**
    * Handle settings save confirm
    * @method
@@ -1551,40 +1699,43 @@ class HMDscanInfo extends Component {
   saveSettings = () => {
     const {baseUrl} = this.context;
     const {currentDeviceData} = this.props;
-    const {fileIntegrityEnable, settingsPath} = this.state;
-    const url = `${baseUrl}/api/hmd/snapshotSettings`;
+    const {settingsPath} = this.state;
+    const url = `${baseUrl}/api/hmd/setting`;
     const requestData = {
       hostId: currentDeviceData.ipDeviceUUID,
-      isJobEnable: fileIntegrityEnable,
-      _IncludePathList: this.getSavedSettings('includePath', settingsPath.includePath),
-      _ExcludePathList: this.getSavedSettings('excludePath', settingsPath.excludePath),
-      _ProcessKeyword: this.getSavedSettings('processKeyword', settingsPath.processKeyword)
+      hmdSetting: [
+        {
+          _CommandName: SETTINGS.snapshot,
+          _Parameters: {
+            _IncludePathList: this.getSavedSettings(true, 'path', settingsPath.fileIntegrity.includePath),
+            _ExcludePathList: this.getSavedSettings(false, 'path', settingsPath.fileIntegrity.excludePath),
+            _ProcessKeyword: this.getSavedSettings(false, 'keyword', settingsPath.fileIntegrity.processKeyword),
+            _IsRecursive: true
+          }
+        },
+        {
+          _CommandName: SETTINGS.procWhiteList,
+          _Parameters: {
+            _WhiteList: this.getSavedSettings(false, 'path', settingsPath.procMonitor.includePath)
+          }
+        }
+      ]
     };
 
-    if (!requestData._IncludePathList || !requestData._ExcludePathList) { //Invalid path data
+    if (!requestData.hmdSetting[0]._Parameters._IncludePathList) { //Invalid path data
       return;
     }
 
-    this.ah.one({
+    ah.one({
       url,
       data: JSON.stringify(requestData),
       type: 'PATCH',
       contentType: 'text/plain'
     })
     .then(data => {
-      if (data) {
-        data = data[0]._Parameters;
-
-        this.setState({
-          fileIntegrityEnable: data.isJobEnable,
-          settingsPath: {
-            includePath: this.getParsedPathData(data._IncludePathList),
-            excludePath: this.getParsedPathData(data._ExcludePathList),
-            processKeyword: this.getParsedPathData(data._ProcessKeyword)
-          }
-        }, () => {
-          this.toggleSettingsContent('save');
-        });
+      if (data.ret === 0) {
+        this.props.getHMDinfo('');
+        this.toggleSettingsContent('save');
       }
       return null;
     })
@@ -1606,11 +1757,17 @@ class HMDscanInfo extends Component {
     .then(data => {
       if (data) {
         this.setState({
-          fileIntegrityEnable: data.isJobEnable,
           settingsPath: {
-            includePath: this.getParsedPathData(data._IncludePathList.split(',')),
-            excludePath: this.getParsedPathData(data._ExcludePathList.split(',')),
-            processKeyword: this.getParsedPathData(data._ProcessKeyword.split(','))
+            fileIntegrity: {
+              includePath: this.getParsedPathData('path', data._IncludePathList.split(',')),
+              excludePath: this.getParsedPathData('path', data._ExcludePathList.split(',')),
+              processKeyword: this.getParsedPathData('keyword', data._ProcessKeyword.split(','))
+            },
+            procMonitor: {
+              includePath: [{
+                path: ''
+              }]
+            }
           }
         });
       }
@@ -1620,38 +1777,40 @@ class HMDscanInfo extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  /**
-   * Set file integrity status data
-   * @method
-   * @param {boolean} value - status data
-   */
-  handleStatusChange = (value) => {
-    this.setState({
-      fileIntegrityEnable: value
-    });
-  }
   render() {
     const {
       activeTab,
       buttonGroupList,
       dashboardInfo,
       hmdInfo,
-      settingsActiveContent,
-      fileIntegrityEnable,
-      settingsPath
+      settingsActiveContent
     } = this.state;
-    const FILE_INTEGRITY_SETTINGS = [
+    const SETTINGS_LIST = [
       {
-        type: 'includePath',
-        headerText: t('network-inventory.txt-includePath')
+        type: 'fileIntegrity',
+        settings: [
+          {
+            type: 'includePath',
+            headerText: t('network-inventory.txt-includePath')
+          },
+          {
+            type: 'excludePath',
+            headerText: t('network-inventory.txt-excludePath')
+          },
+          {
+            type: 'processKeyword',
+            headerText: t('network-inventory.txt-processKeyword')
+          }
+        ]
       },
       {
-        type: 'excludePath',
-        headerText: t('network-inventory.txt-excludePath')
-      },
-      {
-        type: 'processKeyword',
-        headerText: t('network-inventory.txt-processKeyword')
+        type: 'procMonitor',
+        settings: [
+          {
+            type: 'includePath',
+            headerText: t('network-inventory.txt-includePath')
+          }
+        ]
       }
     ];
 
@@ -1688,38 +1847,19 @@ class HMDscanInfo extends Component {
 
           {activeTab === 'settings' &&
             <div className='settings'>
-              {this.getTriggerBtnInfo()}
-
+              <button className='btn refresh' onClick={this.props.getHMDinfo.bind(this, '')}>{t('network-inventory.txt-refresh')}</button>
+              {settingsActiveContent === 'viewMode' &&
+                <button className='btn edit' onClick={this.toggleSettingsContent.bind(this, 'edit')}>{t('txt-edit')}</button>
+              }
+              {settingsActiveContent === 'editMode' &&
+                <div className='edit-btns'>
+                  <button className='standard btn cancel' onClick={this.toggleSettingsContent.bind(this, 'cancel')}>{t('txt-cancel')}</button>
+                  <button className='btn save' onClick={this.saveSettings}>{t('network-inventory.txt-saveSettings')}</button>
+                  <button className='standard btn restore-default' onClick={this.restoreDefaultSettings}>{t('network-inventory.txt-restoreDefault')}</button>
+                </div>
+              }
               <div className='settings-wrapper'>
-                <div className='options-btn'>
-                  {settingsActiveContent === 'viewMode' &&
-                    <button className='standard btn edit' onClick={this.toggleSettingsContent.bind(this, 'edit')}>{t('txt-edit')}</button>
-                  }
-                  {settingsActiveContent === 'editMode' &&
-                    <div>
-                      <button className='standard btn cancel' onClick={this.toggleSettingsContent.bind(this, 'cancel')}>{t('txt-cancel')}</button>
-                      <button className='btn save' onClick={this.saveSettings}>{t('network-inventory.txt-saveSettings')}</button>
-                      <button className='standard btn restore-default' onClick={this.restoreDefaultSettings}>{t('network-inventory.txt-restoreDefault')}</button>
-                    </div>
-                  }
-                </div>
-
-                <header>{t('network-inventory.scan-list.txt-fileIntegrity')}</header>
-                <ToggleBtn
-                  className='toggle-btn'
-                  onText={t('txt-on')}
-                  offText={t('txt-off')}
-                  on={fileIntegrityEnable}
-                  onChange={this.handleStatusChange}
-                  disabled={settingsActiveContent === 'viewMode'} />
-                <div className='settings-form'>
-                  {settingsActiveContent === 'viewMode' && 
-                    FILE_INTEGRITY_SETTINGS.map(this.viewSettingsPathContent)
-                  }
-                  {settingsActiveContent === 'editMode' &&
-                    FILE_INTEGRITY_SETTINGS.map(this.getSettingsPathContent)
-                  }
-                </div>
+                {SETTINGS_LIST.map(this.displaySettingsContent)}
               </div>
             </div>
           }
@@ -1737,7 +1877,8 @@ HMDscanInfo.propTypes = {
   toggleSelectionIR: PropTypes.func.isRequired,
   triggerTask: PropTypes.func.isRequired,
   toggleYaraRule: PropTypes.func.isRequired,
-  getHMDinfo: PropTypes.func.isRequired
+  getHMDinfo: PropTypes.func.isRequired,
+  openHmdType: PropTypes.string
 };
 
 export default withRouter(HMDscanInfo);

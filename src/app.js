@@ -8,11 +8,14 @@ import i18n from 'i18next'
 import Highcharts from 'highcharts'
 import Moment from 'moment'
 
+import AuditLog from './components/configuration/audit/audit-log'
 import DashboardMaps from './components/dashboard/maps'
 import DashboardOverview from './components/dashboard/overview'
 import DashboardStats from './components/dashboard/statistics'
 import EdgeManagement from './components/configuration/edge/edge'
+import EsManagement from './components/configuration/es/es-manage'
 import Header from './header'
+import Host from './components/host/index'
 import IncidentDevice from './components/soc/incident-device'
 import IncidentUnit from './components/soc/incident-unit'
 import IncidentLog from './components/soc/incident-log'
@@ -92,6 +95,12 @@ const DashboardMapsComp = () => (
   </BaseDataContext.Provider>
 )
 
+const HostComp = () => (
+  <BaseDataContext.Provider value={baseData}>
+    <Host />
+  </BaseDataContext.Provider>
+)
+
 const ThreatsComp = () => (
   <BaseDataContext.Provider value={baseData}>
     <Threats
@@ -120,32 +129,38 @@ const Notifications = () => (
 )
 
 const Edge = () => (
-    <BaseDataContext.Provider value={baseData}>
-        <EdgeManagement/>
-    </BaseDataContext.Provider>
+  <BaseDataContext.Provider value={baseData}>
+    <EdgeManagement/>
+  </BaseDataContext.Provider>
 )
 
 const Threat = () => (
-    <BaseDataContext.Provider value={baseData}>
-        <ThreatIntelligence/>
-    </BaseDataContext.Provider>
+  <BaseDataContext.Provider value={baseData}>
+    <ThreatIntelligence/>
+  </BaseDataContext.Provider>
 )
 
 const Severity = () => (
-    <BaseDataContext.Provider value={baseData}>
-        <SeverityTable/>
-    </BaseDataContext.Provider>
+  <BaseDataContext.Provider value={baseData}>
+    <SeverityTable/>
+  </BaseDataContext.Provider>
+)
+
+const Es = () => (
+  <BaseDataContext.Provider value={baseData}>
+    <EsManagement/>
+  </BaseDataContext.Provider>
 )
 
 const NetworkTopologyInventory = () => (
-    <BaseDataContext.Provider value={baseData}>
-        <NetworkInventory/>
-    </BaseDataContext.Provider>
+  <BaseDataContext.Provider value={baseData}>
+    <NetworkInventory/>
+  </BaseDataContext.Provider>
 )
 
 const NetworkTopologyOwner = () => (
-    <BaseDataContext.Provider value={baseData}>
-        <NetworkOwner/>
+  <BaseDataContext.Provider value={baseData}>
+    <NetworkOwner/>
   </BaseDataContext.Provider>
 )
 
@@ -179,40 +194,46 @@ const userPrivileges = () => (
   </BaseDataContext.Provider>
 )
 
+const Audit = () => (
+  <BaseDataContext.Provider value={baseData}>
+    <AuditLog />
+  </BaseDataContext.Provider>
+)
+
 const serviceStatus = () => (
   <BaseDataContext.Provider value={baseData}>
-      <ServiceStatus/>
+    <ServiceStatus/>
   </BaseDataContext.Provider>
 )
 
 const productInfo = () => (
-    <BaseDataContext.Provider value={baseData}>
-        <ProductInfo/>
-    </BaseDataContext.Provider>
+  <BaseDataContext.Provider value={baseData}>
+    <ProductInfo/>
+  </BaseDataContext.Provider>
 )
 
 const incidentDevice = () => (
-    <BaseDataContext.Provider value={baseData}>
-        <IncidentDevice/>
-    </BaseDataContext.Provider>
+  <BaseDataContext.Provider value={baseData}>
+    <IncidentDevice/>
+  </BaseDataContext.Provider>
 );
 
 const incident = () => (
-    <BaseDataContext.Provider value={baseData}>
-        <Incident/>
-    </BaseDataContext.Provider>
+  <BaseDataContext.Provider value={baseData}>
+    <Incident/>
+  </BaseDataContext.Provider>
 );
 
 const incidentUnit = () => (
-    <BaseDataContext.Provider value={baseData}>
-        <IncidentUnit/>
-    </BaseDataContext.Provider>
+  <BaseDataContext.Provider value={baseData}>
+    <IncidentUnit/>
+  </BaseDataContext.Provider>
 );
 
 const incidentLog = () => (
-    <BaseDataContext.Provider value={baseData}>
-        <IncidentLog/>
-    </BaseDataContext.Provider>
+  <BaseDataContext.Provider value={baseData}>
+    <IncidentLog/>
+  </BaseDataContext.Provider>
 );
 
 const Main = () => (
@@ -224,13 +245,15 @@ const Main = () => (
       <Route exact path='/SCP/dashboard/statisticsUIF' component={StatisticsUIFComp} />
       {/*<Route exact path='/SCP/dashboard/statistics' component={DashboardStatsComp} />*/}
       <Route exact path='/SCP/dashboard/maps' component={DashboardMapsComp} />
+      <Route exact path='/SCP/host' component={HostComp} />
       <Route exact path='/SCP/threats' component={ThreatsComp} />
       <Route exact path='/SCP/events/syslog' component={SyslogComp} />
       <Route exact path='/SCP/events/netflow' component={NetflowComp} />
       <Route exact path='/SCP/configuration/notifications' component={Notifications} />
-      <Route exact path='/SCP/configuration/threat/threat' component={Threat} />
+      <Route exact path='/SCP/configuration/threat' component={Threat} />
       <Route exact path='/SCP/configuration/edge/edge' component={Edge} />
       <Route exact path='/SCP/configuration/edge/severity' component={Severity} />
+      <Route exact path='/SCP/configuration/es' component={Es} />
       <Route exact path='/SCP/configuration/topology/inventory' component={NetworkTopologyInventory} />
       <Route exact path='/SCP/configuration/topology/owner' component={NetworkTopologyOwner} />
       <Route exact path='/SCP/configuration/topology/map' component={NetworkTopologyMap} />
@@ -238,6 +261,7 @@ const Main = () => (
       <Route exact path='/SCP/configuration/syslog/pattern' component={syslogPattern} />
       <Route exact path='/SCP/configuration/user/account' component={userAccounts} />
       <Route exact path='/SCP/configuration/user/privileges' component={userPrivileges} />
+      <Route exact path='/SCP/configuration/audit' component={Audit} />
       <Route exact path='/SCP/configuration/service-status' component={serviceStatus} />
       <Route exact path='/SCP/configuration/product-info' component={productInfo} />
         <Route exact path='/SCP/soc/incident-device' component={incidentDevice}/>

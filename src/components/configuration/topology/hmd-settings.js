@@ -15,6 +15,8 @@ import MultiInput from 'react-ui/build/src/components/multi-input'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+const MALWARE_DETECTION = ['includePath', 'excludePath'];
+
 let t = null;
 let et = null;
 
@@ -31,9 +33,14 @@ class HMDsettings extends Component {
     this.state = {
       activeContent: 'viewMode', //viewMode, editMode
       originalScanFiles: [],
-      scanFiles: [{
-        path: ''
-      }],
+      scanFiles: {
+        includePath: [{
+          path: ''
+        }],
+        excludePath: [{
+          path: ''
+        }]
+      },
       originalGcbVersion: '',
       gcbVersion: ''
     };
@@ -55,7 +62,7 @@ class HMDsettings extends Component {
    */
   getSettingsInfo = () => {
     const {baseUrl} = this.context;
-    const scanType = ['hmd.scanFile.path', 'hmd.gcb.version'];
+    const scanType = ['hmd.scanFile.path', 'hmd.scanFile.exclude.path', 'hmd.gcb.version'];
     let apiArr = [];
 
     _.forEach(scanType, val => {
@@ -68,13 +75,25 @@ class HMDsettings extends Component {
     this.ah.all(apiArr)
     .then(data => {
       if (data) {
-        if (data[0] && data[0].value) {
-          const scanData = data[0].value.split(',');
-          let scanFiles = [];
+        if (!_.isEmpty(data[0]) && !_.isEmpty(data[1])) {
+          const scanIncludePath = data[0].value.split(',');
+          const scanExcludePath = data[1].value.split(',');
+          let scanFiles = {
+            includePath: [],
+            excludePath: []
+          };
 
-          _.forEach(scanData, val => {
+          _.forEach(scanIncludePath, val => {
             if (val) {
-              scanFiles.push({
+              scanFiles.includePath.push({
+                path: val
+              });
+            }
+          })
+
+          _.forEach(scanExcludePath, val => {
+            if (val) {
+              scanFiles.excludePath.push({
                 path: val
               });
             }
@@ -87,10 +106,10 @@ class HMDsettings extends Component {
           });
         }
 
-        if (data[1] && data[1].value) {
+        if (data[2] && data[2].value) {
           this.setState({
-            originalGcbVersion: _.cloneDeep(data[1].value),
-            gcbVersion: data[1].value
+            originalGcbVersion: _.cloneDeep(data[2].value),
+            gcbVersion: data[2].value
           });
         }
       }
@@ -138,15 +157,43 @@ class HMDsettings extends Component {
   /**
    * Set path data
    * @method
+   * @param {string} type - path type ('includePath' or 'excludePath')
    * @param {array} pathData - path data to be set
    */
-  setScanFiles = (pathData) => {
+  setScanFiles = (type, pathData) => {
     let tempScanFiles = {...this.state.scanFiles};
-    tempScanFiles = pathData;
+    tempScanFiles[type] = pathData;
 
     this.setState({
       scanFiles: tempScanFiles
     });
+  }
+  /**
+   * Show Malware Detection path
+   * @method
+   * @param {string} val - malware detection list
+   * @param {string} i - index of the  malware detection list
+   * @returns HTML DOM
+   */
+  showMalwarePath = (val, i) => {
+    const {activeContent, scanFiles} = this.state;
+
+    return (
+      <div key={i} className='group'>
+        <label>{t('network-inventory.txt-' + val)}</label>
+        {activeContent === 'viewMode' && scanFiles[val].length > 0 &&
+          <div className='flex-item'>{scanFiles[val].map(this.displayScanFile)}</div>
+        }
+        {activeContent === 'editMode' &&
+          <MultiInput
+            className='file-path'
+            base={InputPath}
+            inline={true}
+            value={scanFiles[val]}
+            onChange={this.setScanFiles.bind(this, val)} />
+        }
+      </div>
+    )
   }
   /**
    * Handle scan files confirm
@@ -155,19 +202,30 @@ class HMDsettings extends Component {
   handleScanFilesConfirm = () => {
     const {baseUrl} = this.context;
     const {scanFiles, gcbVersion} = this.state;
-    const url = `${baseUrl}/api/common/config`;
-    let parsedScanFiles = [];
+    const url = `${baseUrl}/api/hmd/config`;
+    let parsedIncludePath = [];
+    let parsedExcludePath = [];
 
-    _.forEach(scanFiles, val => {
+    _.forEach(scanFiles.includePath, val => {
       if (val.path) {
-        parsedScanFiles.push(val.path);
+        parsedIncludePath.push(val.path);
+      }
+    });
+
+    _.forEach(scanFiles.excludePath, val => {
+      if (val.path) {
+        parsedExcludePath.push(val.path);
       }
     });
 
     const scanType = [
       {
         type: 'hmd.scanFile.path',
-        value: parsedScanFiles.join()
+        value: parsedIncludePath.join()
+      },
+      {
+        type: 'hmd.scanFile.exclude.path',
+        value: parsedExcludePath.join()
       },
       {
         type: 'hmd.gcb.version',
@@ -212,7 +270,7 @@ class HMDsettings extends Component {
     });
   }
   render() {
-    const {activeContent, scanFiles, gcbVersion} = this.state;
+    const {activeContent, gcbVersion} = this.state;
 
     return (
       <div className='parent-content'>
@@ -228,23 +286,10 @@ class HMDsettings extends Component {
             </div>
           }
 
-          <div className='hmd-settings' style={{height: activeContent === 'viewMode' ? '70vh' : '70vh'}}>
+          <div className='hmd-settings'>
             <div className='form-group normal long'>
               <header>{t('network-inventory.scan-list.txt-scanFile')}</header>
-              <div className='group'>
-                <label>{t('network-inventory.txt-includePath')}</label>
-                {activeContent === 'viewMode' && scanFiles.length > 0 &&
-                  <div className='flex-item'>{scanFiles.map(this.displayScanFile)}</div>
-                }
-                {activeContent === 'editMode' &&
-                  <MultiInput
-                    className='file-path'
-                    base={InputPath}
-                    inline={true}
-                    value={scanFiles}
-                    onChange={this.setScanFiles} />
-                }
-              </div>
+              {MALWARE_DETECTION.map(this.showMalwarePath)}
             </div>
             <div className='form-group normal long'>
               <header>{t('network-inventory.scan-list.txt-gcb')}</header>

@@ -125,6 +125,7 @@
   "txt-analyze": "分析",
   "txt-send": "寄出",
   "txt-networkBehavior": "網路行為",
+  "txt-executableInfo": "執行內容",
   "txt-logSource": "日誌來源",
   "txt-indicator": "Indicator",
   "txt-online": "連線",
@@ -145,13 +146,18 @@
   "txt-commonModule": "一般模組",
   "txt-configModule": "設定模組",
   "txt-host": "主機",
+  "txt-group": "群組",
   "txt-settings": "設定",
-  "txt-setting-eng": "Setting",
+  "txt-setting-eng": "Settings",
   "txt-item": "項目",
   "txt-score": "評分",
   "txt-text": "文字",
   "txt-result": "結果",
+  "txt-total": "總數",
   "txt-maxScore": "最高分",
+  "txt-sort": "排序",
+  "txt-asc": "升序",
+  "txt-desc": "降序",
   "txt-maxDataMsg": "資料筆數最大為10,000筆",
   "txt-es-data-over-limit": "超出搜尋範圍，請修改查詢條件",
   "txt-duplicatedName": "名稱不得重複",
@@ -159,6 +165,7 @@
   "txt-threatsSrcCountryRank": "威脅來源國家排名",
 
   "txt-dashboard": "Dashboard",
+  "txt-host": "Host",
   "txt-threats": "Threats",
   "txt-syslog": "Syslog",
   "txt-netflow": "Netflow",
@@ -178,6 +185,11 @@
   "txt-networkInventory": "網路清單",
   "txt-productInfo": "產品資訊",
   "txt-issuesFeedback": "問題回報",
+
+  "txt-esManage": "ES管理",
+  "txt-importEsIndex": "匯入索引",
+  "txt-esImportMsg": "請選擇要匯入的index日期",
+  "txt-auditLog": "稽核紀錄",
 
   "txt-edge": "Edge",
   "txt-threatIntelligence": "威脅情資",
@@ -199,7 +211,7 @@
   "txt-network-map": "樓層圖",
   "txt-selected-node": "選擇樓層節點",
   "txt-mixName":"部門與職稱管理",
-  "txt-nameInvalid": "請輸入名稱",
+  "txt-plsEnterName": "請輸入名稱",
   "txt-memoMaxLength": "上限250字",
   "txt-updateTime": "更新時間",
 
@@ -256,6 +268,22 @@
     "txt-hmd": "使用數",
     "txt-max": "授權數",
     "txt-hosts": "主機"
+  },
+
+  "host": {
+    "txt-hostList": "主機列表",
+    "txt-deviceMap": "裝置地圖",
+    "txt-hostInfo": "主機資訊",
+    "txt-viewInfo": "查看內容",
+    "txt-hostList2": "主機清單",
+    "txt-hostAnalysis": "主機分析資訊",
+    "txt-hostCreateTime": "評估時間",
+    "txt-isNotHmd": "未安裝",
+    "txt-isLatestVersion": "最新版",
+    "txt-isOldVersion": "未升版",
+    "txt-isOwnerNull": "未設定使用者",
+    "txt-isAreaNull": "未設定樓層",
+    "txt-isSeatNull": "未設定座位"
   },
 
   "alert": {
@@ -369,11 +397,12 @@
   "notifications": {
     "txt-testEmails": "寄信測試",
     "txt-settings": "通知設定",
+    "txt-sync": "同步情資",
     "txt-emailSettings": "Email設定",
     "txt-serviceNotifications": "服務通知設定",
     "txt-edgeNotifications": "Edge設備通知設定",
     "txt-alertNotifications": "告警通知設定",
-    "txt-socNotifications": "事件申報通知設定",
+    "txt-socNotifications": "事件通知設定",
     "txt-serviceError": "服務狀態錯誤",
     "txt-conectionsError": "連線狀態錯誤",
     "txt-dailyAlert": "每日告警統計",
@@ -388,8 +417,7 @@
     "txt-recipientEmail": "收件者郵件信箱",
     "txt-notifyEmail": "通知郵件信箱",
     "txt-emailInvalid": "請輸入正確email",
-    "txt-sendSuccess": "寄送成功",
-    "txt-sendFail": "寄送失敗"
+    "txt-sendSuccess": "寄送成功"
   },
 
   "edge-management": {
@@ -415,10 +443,13 @@
     "txt-deleteEdge": "$t(txt-delete)$t(txt-edge)",
     "txt-serviceType": "服務類型",
     "txt-serviceMode": "服務模式",
+    "txt-addGroup": "$t(txt-add)$t(txt-group)",
+    "txt-manageGroup": "$t(txt-group)$t(txt-manage)",
+    "txt-deleteGroup": "$t(txt-delete)$t(txt-group)",
     "txt-longitude": "經度",
     "txt-latitude": "緯度",
     "txt-activatTime": "啟用時間",
-    "txt-lastUpateTime": "最近更新時間",
+    "txt-lastUpdateTime": "最近更新時間",
     "txt-anyTime": "不限時段",
     "txt-customTime": "自訂時段",
     "txt-memo": "備忘錄",
@@ -454,14 +485,14 @@
     "txt-severityMapping": "情資嚴重等級管理",
     "txt-addSeverityTable": "新增類型",
     "txt-typeInfo": "類型內容",
-    "txt-lastUpateTime": "最近更新時間",
+    "txt-lastUpdateTime": "最近更新時間",
     "txt-severityMissing": "嚴重等級類型不得為空白"
   },
 
   "system-defined-pattern": {
     "txt-addPatternScript": "新增Pattern",
     "txt-patternInfo": "Pattern內容",
-    "txt-lastUpateTime": "最近更新時間",
+    "txt-lastUpdateTime": "最近更新時間",
     "txt-patternMissing": "Pattern名稱不得為空白",
     "txt-queryScriptMissing": "查詢條件不得為空白",
     "txt-deletePattern": "$t(txt-delete)Pattern"
@@ -539,7 +570,8 @@
       "txt-scanFile": "Malware",
       "txt-gcb": "GCB",
       "txt-ir": "IR",
-      "txt-fileIntegrity": "File Integrity"
+      "txt-fileIntegrity": "File Integrity",
+      "txt-procMonitor": "Process Monitor"
     },
     "ir-type": {
       "txt-quick": "快速採證",
@@ -563,6 +595,19 @@
       "txt-list14": "影像搜尋",
       "txt-list15": "微軟檔案搜尋",
       "txt-list16": "關鍵字檔案搜尋"
+    },
+    "executable-list": {
+      "txt-_AutorunLocation": "自動執行路徑",
+      "txt-_CommandLine": "執行語法",
+      "txt-_CompanyName": "公司名稱",
+      "txt-_Filepath": "檔案路徑",
+      "txt-_Filesize": "檔案大小",
+      "txt-_MD5": "MD5",
+      "txt-_SHA1" : "SHA1",
+      "txt-_SHA256": "SHA256",
+      "txt-_IsPE": "PE檔",
+      "txt-_OwnerSID": "使用者SID",
+      "txt-_Signatures": "簽章"      
     }
   },
 
@@ -690,6 +735,7 @@
     "ip": "IP",
     "mac": "MAC",
     "owner": "所屬人員",
+    "floorName": "樓層名稱",
     "userAccount": "使用者帳號",
     "userName": "人員",
     "disks": "$t(txt-disks)",

@@ -27,28 +27,42 @@ class InputPath extends Component {
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
   }
   /**
-   * Set path input
+   * Set data input
    * @method
+   * @param {string} listType - list data type
    * @param {string} value - input value
    */
-  handleDataChange = (value) => {
+  handleDataChange = (listType, value) => {
+    const dataType = listType === 'processKeyword' ? 'keyword' : 'path';
+
     this.props.onChange({
       ...this.props.value,
-      path: value
+      [dataType]: value
     });
   }
   render() {
-    const {value} = this.props;
+    const {scanType, listType, value} = this.props;
+    const dataType = listType === 'processKeyword' ? 'keyword' : 'path';
+
+    let inputProps = {
+      value: value[dataType],
+      onChange: this.handleDataChange.bind(this, listType)
+    };
+
+    if (scanType === 'fileIntegrity' && listType === 'includePath') {
+      inputProps = {
+        ...inputProps,
+        required: true,
+        validate: {
+          t: et
+        }
+      };
+    }
 
     return (
-      <div className='path-input'>
+      <div className={cx('path-input', {'short': listType === 'processKeyword'})}>
         <Input
-          required={true}
-          validate={{
-            t: et
-          }}
-          value={value.path}
-          onChange={this.handleDataChange} />
+          {...inputProps} />
       </div>
     )
   }

@@ -5,6 +5,7 @@ import cx from 'classnames'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import Hierarchy from 'react-ui/build/src/components/hierarchy'
 
+import helper from './helper'
 import Pagination from './pagination'
 
 let t = null;
@@ -49,7 +50,7 @@ class Tree extends Component {
         if (key2 === key) {
           tabData.push({
             value: key,
-            text: val + ' (' + val2 + ')'
+            text: val + ' (' + helper.numberWithCommas(val2) + ')'
           });
         }
       })
@@ -84,9 +85,9 @@ class Tree extends Component {
     }
   }
   /**
-   * Handle checkbox selection change
+   * Handle tree checkbox selection change
    * @method
-   * @param {array.<string>} selectedId - selected IDs for edge
+   * @param {array.<string>} selected - selected IDs for edge
    */
   handleSelectChange = (selected) => {
     this.setState({
@@ -178,12 +179,7 @@ class Tree extends Component {
         </div>
 
         <div className='expand-collapse' onClick={this.toggleLeftNav}>
-          {showContent &&
-            <i className='fg fg-arrow-left'></i>
-          }
-          {!showContent &&
-            <i className='fg fg-arrow-right'></i>
-          }
+          <i className={`fg fg-arrow-${showContent ? 'left' : 'right'}`}></i>
         </div>
       </div>
     )

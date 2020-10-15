@@ -202,10 +202,14 @@ button {
     border-color: var(--primaryContentHeader);
   }
 }
+.c-combo-list .list-item:hover {
+  color: var(--primaryTextColor);
+  background-color: var(--tabMenuHover);
+}
 .c-popover,
 .pure-form legend {
-  color: var(--primaryTextColor);
-  background-color: var(--primaryContentBackground);
+  color: var(--primaryTextColor) !important;
+  background-color: var(--primaryContentBackground) !important;
 }
 .c-tree {
   ul li:last-child:before {
@@ -519,28 +523,24 @@ i.c-checkbox.fg-checkbox {
   }
   .gis-polyline {
     animation-name: path;
-    //stroke-dasharray: 1000;
     stroke-dashoffset: 1000;
-    //animation-duration: 5s;
     animation-iteration-count: infinite;
     animation-timing-function: linear;
     animation-fill-mode: forwards;
   }
   @keyframes path {
-    //0%   {opacity: .1;}
-    //30%  {opacity: .5;}
-    //60%  {opacity: .7;}
     100% {opacity: 1; stroke-dashoffset: 0;}
   }
   .spot-big .gis-spot {
     animation-name: spotChange;
     animation-duration: 1s;
     animation-iteration-count: infinite;
+    animation-timing-function: linear;
   }
   @keyframes spotChange {
-    0%   {opacity: 1;}
-    50%  {opacity: .3;}
-    100% {opacity: 1;}
+    0%   {opacity: 1; transform: scaleX(0) scaleY(0);}
+    70%  {opacity: .3; transform: scaleX(1) scaleY(1);}
+    100% {opacity: 0; transform: scaleX(1.5) scaleY(1.5);}
   }
 }
 #gisMap {
@@ -656,7 +656,8 @@ i.c-checkbox.fg-checkbox {
       }
       .datepicker {
         float: left;
-        .daterange {
+        .date-range,
+        .date-picker {
           margin-right: 15px;
         }
         .fg {
@@ -769,14 +770,20 @@ i.c-checkbox.fg-checkbox {
       padding-right: 5px;
       overflow-y: auto;
       z-index: 3000;
+      &::-webkit-scrollbar-track {
+        background-color: rgba(0,0,0,0.7);
+      }
+      &::-webkit-scrollbar-thumb {
+        background: #004d93;
+        box-shadow: none;
+      }
       li {
         display: block;
         color: #fff;
         border-radius: 5px;
         padding: 10px;
         margin-bottom: 6px;
-        opacity: .8;
-        background-color: #000;
+        background-color: rgba(0,0,0,0.7);
         overflow: hidden;
         .count {
           float: left;
@@ -823,8 +830,7 @@ i.c-checkbox.fg-checkbox {
         margin: 10px 20px;
         padding: 10px 30px;
         line-height: 25px;
-        opacity: 0.6;
-        background-color: #000;
+        background-color: rgba(0,0,0,0.7);
         border-radius: 5px;
         .fg-checkbox-fill {
           float: left;
@@ -1086,7 +1092,6 @@ i.c-checkbox.fg-checkbox {
         position: absolute;
         top: 14px;
         left: 320px;
-        width: 145px;
       }
       .floor-map {
         overflow: hidden;
@@ -1188,6 +1193,38 @@ i.c-checkbox.fg-checkbox {
           text-align: center;
           margin-top: 50px;
         }
+        .c-checkbox-group {
+          width: 100%;
+          padding: 10px 5px;
+          border-radius: 5px;
+          background-color: var(--leftTreeGroup);
+        }
+        .list-item {
+          i.c-checkbox {
+            color: var(--buttonSelectedColor);
+          }
+        }
+        .fg-recode {
+          float: left;
+          font-size: 1em;
+          margin-top: 3px;
+          margin-right: 3px;
+          &.emergency {
+            color: #CC2943;
+          }
+          &.alert {
+            color: #CC7B29;
+          }
+          &.critical {
+            color: #29B0CC;
+          }
+          &.warning {
+            color: #29CC7A;
+          }
+          &.notice {
+            color: #7ACC29;
+          }
+        }
       }
       .content {
         overflow-y: auto;
@@ -1216,7 +1253,7 @@ i.c-checkbox.fg-checkbox {
       }
       label {
         display: block;
-        margin: 15px 0 3px 0;
+        //margin: 15px 0 3px 0;
         &.first-label {
           margin-top: 0;
         }
@@ -1241,30 +1278,6 @@ i.c-checkbox.fg-checkbox {
         cursor: text;
         &.hide {
           display: none;
-        }
-      }
-      .alert-tree,
-      .private-tree {
-        .fg-recode {
-          float: left;
-          font-size: 1em;
-          margin-top: 3px;
-          margin-right: 3px;
-          &.emergency {
-            color: #CC2943;
-          }
-          &.alert {
-            color: #CC7B29;
-          }
-          &.critical {
-            color: #29B0CC;
-          }
-          &.warning {
-            color: #29CC7A;
-          }
-          &.notice {
-            color: #7ACC29;
-          }
         }
       }
       input,
@@ -1356,7 +1369,8 @@ i.c-checkbox.fg-checkbox {
       }
     }
     .config-notify,
-    .auto-settings {
+    .auto-settings,
+    .edge-settings {
       overflow-y: auto;
       #autoSettingsIpRange {
         .group {
@@ -1409,7 +1423,7 @@ i.c-checkbox.fg-checkbox {
               width: 215px;
             }
             .condition-select {
-              width: 100px;
+              width: auto;
               height: 35px;
               margin-right: 3px;
             }
@@ -1628,6 +1642,35 @@ i.c-checkbox.fg-checkbox {
           }
         }
       }
+      & > .host-list {
+        position: relative;
+        padding-top: 20px;
+        padding-left: 20px;
+        overflow: hidden;
+        .sort-section {
+          position: absolute;
+          top: 10px;
+          right: 17px;
+          span {
+            float: left;
+            margin-right: 10px;
+            margin-top: 7px;
+          }
+        }
+        header {
+          float: left;
+          font-size: 1.2em;
+          font-weight: bold;
+          color: var(--formEmailGroup);
+          margin-right: 15px;
+        }
+        span {
+          float: left;
+          margin-right: 15px;
+          display: block;
+          margin-top: 3px;
+        }
+      }
       .main-content { //Content below the filter or charts
         position: relative;
         margin: 15px;
@@ -1635,6 +1678,122 @@ i.c-checkbox.fg-checkbox {
         border-radius: 5px;
         background-color: var(--primarySubBackground);
         overflow: hidden;
+        &.host {
+          ul.host-list {
+            & > li {
+              min-height: 100px;
+              padding: 15px 10px;
+              overflow: hidden;
+              border: 1px solid var(--primaryBorder);
+              background-color: var(--primaryContentBackground);
+              &:hover {
+                background-color: var(--dashboardMapsHover);
+                .view-details {
+                  color: var(--buttonTextColor);
+                }
+              }
+              .device-alert {
+                float: left;
+                padding: 10px;
+                margin-left: 35px;
+                margin-right: 35px;
+                border-radius: 35px;
+                overflow: hidden;
+                .fg-host {
+                  float: left;
+                  color: #fff;
+                  font-size: 35px;
+                }
+              }
+              .info {
+                float: left;
+                ul {
+                  margin-bottom: 5px;
+                  li {
+                    display: inline-block;
+                    font-size: 17px;
+                    font-weight: bold;
+                    margin-right: 6px;
+                    padding-left: 5px;
+                    border-left: 1px solid #d8d8d8;
+                    span {
+                      color: var(--formEmailGroup);
+                    }
+                    &.first {
+                      padding-left: 0;
+                      border: none;
+                    }
+                    .fg-bg {
+                      float: left;
+                      margin-right: 3px;
+                      width: 22px;
+                      height: 22px;
+                      background-color: var(--primaryTextColor);
+                      &.mac {
+                        -webkit-mask: url('/SCP/images/ic_mac_address.svg');
+                        mask: url('/SCP/images/ic_mac_address.svg');
+                      }
+                      &.windows {
+                        -webkit-mask: url('/SCP/images/ic_windows.svg');
+                        mask: url('/SCP/images/ic_windows.svg');
+                      }
+                      &.linux {
+                        -webkit-mask: url('/SCP/images/ic_linux.svg');
+                        mask: url('/SCP/images/ic_linux.svg');
+                      }
+                    }
+                    i.fg,
+                    img {
+                      float: left;
+                      margin-right: 3px;
+                    }
+                    img {
+                      width: 20px;
+                    }
+                  }
+                }
+                .flex-item {
+                  display: flex;
+                  flex-wrap: wrap;
+                  width: 100%;
+                  margin: 2px 0;
+                  span {
+                    font-size: .9em;
+                    padding: 5px 10px;
+                    margin-top: 5px;
+                    margin-right: 7px;
+                    border-radius: 5px;
+                  }
+                }
+              }
+              .view-details {
+                float: right;
+                color: var(--tabMenuText);
+                font-weight: bold;
+                margin-top: 15px;
+                margin-right: 20px;
+                padding: 6px 12px;
+                border: 2px solid #d9d9d9;
+                border-radius: 15px;
+                cursor: pointer;
+              }
+            }
+          }
+          .map {
+            position: relative;
+            text-align: center;
+            background-color: var(--primaryContentBackground);
+            min-height: 72vh;
+            .drop-down {
+              position: absolute;
+              top: 10px;
+              left: 10px;
+            }
+            .floor-map-area {
+              margin-top: 60px;
+            }
+          }
+        }
         &.basic-form { //For content with form input
           min-height: 84vh;
           background-color: var(--primaryContentBackground);
@@ -1741,9 +1900,15 @@ i.c-checkbox.fg-checkbox {
                   width: 20px;
                 }
               }
-              .user-pic {
+              .user-pic,
+              .user-info {
                 width: 50%;
-                .group,
+                padding: 0px 15px;
+                & > .group {
+                  padding: 5px;
+                }
+              }
+              .user-pic {
                 #ownerPhotoUpload {
                   width: 100%;
                   text-align: center;
@@ -1759,12 +1924,6 @@ i.c-checkbox.fg-checkbox {
                   &.existing {
                     margin-top: 30px;
                   }
-                }
-              }
-              .user-info {
-                width: 50%;
-                .group {
-                  width: 100%;
                 }
               }
             }
@@ -1838,7 +1997,21 @@ i.c-checkbox.fg-checkbox {
               top: -40px;
               right: 0;
             }
+            .group {
+              label {
+                display: block;
+                text-align: left;
+                font-size: .9em;
+                color: var(--primaryContentHeader);
+                margin-bottom: 3px;
+                &.checkbox {
+                  float: left;
+                  margin-right: 5px;
+                }
+              }
+            }
             & > .group {
+              position: relative;
               width: 50%;
               padding: 5px;
               text-align: left;
@@ -1869,17 +2042,6 @@ i.c-checkbox.fg-checkbox {
               .period {
                 color: var(--primaryContentHeader);
                 margin-top: 5px;
-              }
-              label {
-                display: block;
-                text-align: left;
-                font-size: .9em;
-                color: var(--primaryContentHeader);
-                margin-bottom: 3px;
-                &.checkbox {
-                  float: left;
-                  margin-right: 5px;
-                }
               }
               .flex-item {
                 display: flex;
@@ -1993,6 +2155,13 @@ i.c-checkbox.fg-checkbox {
                     }
                   }
                 }
+              }
+              .btn.add-group {
+                position: absolute;
+                top: 4px;
+                left: 40px;
+                padding: .2em .5em;
+                font-size: 12px;
               }
             }
             .relatedList {
@@ -2332,7 +2501,8 @@ i.c-checkbox.fg-checkbox {
           tbody tr {
             height: 45px;
           }
-          td.patternName {
+          td.patternName,
+          td.groupList {
             .flex-item {
               display: flex;
               flex-wrap: wrap;
@@ -2529,6 +2699,12 @@ i.c-checkbox.fg-checkbox {
               }
               &.ipPort {
                 img {
+                  float: left;
+                  margin-right: 5px;
+                }
+              }
+              &._menu {
+                .toggle-btn {
                   float: left;
                   margin-right: 5px;
                 }
@@ -2889,3 +3065,104 @@ i.c-checkbox.fg-checkbox {
     }
   }
 }
+
+.incident-tag-square {
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+  margin-right: 3px;
+}
+
+.incident-tag-modal {
+  .dialog {
+    width: 500px;
+    min-height: 500px;
+    
+    .c-checkbox-group {
+      padding: 15px;
+    }
+    .tagArray {
+      width: 100%;
+      display: contents;
+
+      .tagColor {
+        width: 15%;
+      }
+      .tagName {
+        width: 75%;
+        margin-left: 10px;
+      }
+    }
+  }
+}
+
+.incident-review {
+  .dialog {
+    width: 600px;
+    min-height: 400px;
+  }
+}
+
+.incident-comment {
+  .dialog {
+    width: 600px;
+    min-height: 400px;
+
+    .content {
+      display: flex;
+
+      .left {
+        width: 30%;
+
+        select {
+          width: 100%;
+        }
+      }
+      .right {
+        width: 70%;
+      }
+    }
+  }
+}
+
+.incident-statistics {
+  display: flex;
+  justify-content: center;
+
+  .item {
+    color: #fff;
+    width: 220px;
+    margin: 10px 20px;
+    padding: 10px 30px;
+    line-height: 25px;
+    opacity: 0.6;
+    background-color: #000;
+    border-radius: 5px;
+    
+    .fg-checkbox-fill {
+      float: left;
+      margin-right: 20px;
+      margin-top: 15px;
+      padding-right: 20px;
+      border-right: 1px solid #999;
+    }
+    .threats {
+      float: left;
+
+      span {
+        display: block;
+        font-size: 28px;
+      }
+    }
+  }
+
+/*  .block {
+    width: 30%;
+    margin: 10px 30px;
+    padding: 10px;
+    border: 1px #555555 solid;
+    border-radius: 5px;
+    text-align: center;
+
+  }
+*/}

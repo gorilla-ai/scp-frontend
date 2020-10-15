@@ -42,7 +42,7 @@ import YaraRule from '../../common/yara-rule'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const NOT_AVAILABLE = 'N/A';
-const SAFETY_SCAN_LIST = ['yara', 'scanFile', 'gcb', 'fileIntegrity'];
+const SAFETY_SCAN_LIST = ['yara', 'scanFile', 'gcb', 'fileIntegrity', 'procMonitor'];
 const HMD_LIST = [
   {
     name: 'Yara Scan',
@@ -59,6 +59,10 @@ const HMD_LIST = [
   {
     name: 'File Integrity',
     cmds: 'getFileIntegrity'
+  },
+  {
+    name: 'Process Monitor',
+    cmds: 'setProcessWhiteList'
   }
 ];
 const MAPS_PRIVATE_DATA = {
@@ -217,29 +221,24 @@ class NetworkInventory extends Component {
       return <li key={i} style={{color}}>{val.name}: {t('network-inventory.txt-taskFailure')}</li>
     }
 
-    if (val.type === 'gcb' && val.result.GCBResultTotalCnt >= 0 && val.result.GCBResultPassCnt >= 0) {
-      if (val.result.GCBResultTotalCnt === val.result.GCBResultPassCnt) { //Show green color for all pass
+    if (val.type === 'gcb' && val.result.TotalCnt >= 0 && val.result.PassCnt >= 0) {
+      if (val.result.TotalCnt === val.result.PassCnt) { //Show green color for all pass
         color = '#22ac38';
       }
 
-      return <li key={i} style={{color}}><span>{val.name} {t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}:</span> {val.result.GCBResultPassCnt}/{val.result.GCBResultTotalCnt}</li>
+      return <li key={i} style={{color}}><span>{val.name} {t('network-inventory.txt-passCount')}/{t('network-inventory.txt-totalItem')}:</span> {val.result.PassCnt}/{val.result.TotalCnt}</li>
     } else {
-      if (val.result.ScanResultTotalCnt >= 0 || val.result.DetectionResultTotalCnt >= 0 || val.result.getFileIntegrityTotalCnt >= 0) {
-        let totalCount = 0;
+      if (val.result.TotalCnt >= 0) {
+        const totalCount = val.result.TotalCnt;
         let color = '#22ac38'; //Default green color
         let text = t('network-inventory.txt-suspiciousFileCount');
 
-        if (val.type === 'yara') {
-          totalCount = val.result.ScanResultTotalCnt;
-        } else if (val.type === 'scanFile') {
-          totalCount = val.result.DetectionResultTotalCnt;
-        } else if (val.type === 'fileIntegrity') {
-          totalCount = val.result.getFileIntegrityTotalCnt;
-          text = t('network-inventory.txt-modifiedFileCount');
-        }
-
         if (totalCount > 0) { //Show red color
           color = '#d10d25';
+        }
+
+        if (val.type === 'fileIntegrity') {
+          text = t('network-inventory.txt-modifiedFileCount');
         }
 
         return <li key={i} style={{color}}>{val.name} {text}: {helper.numberWithCommas(totalCount)}</li>
@@ -324,17 +323,15 @@ class NetworkInventory extends Component {
       }
     }
 
-    let apiArr = [
-      {
-        url: `${baseUrl}/api/v2/ipdevice/_search?${dataParams}`,
-        type: 'GET'
-      }
-    ];
+    let apiArr = [{
+      url: `${baseUrl}/api/v2/ipdevice/_search?${dataParams}`,
+      type: 'GET'
+    }];
 
     //Combine the two APIs to show the loading icon
     if (options === 'delete') { //For deleting device
       apiArr.unshift({
-        url: `${baseUrl}/api/v2/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}`,
+        url: `${baseUrl}/api/u1/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}`,
         type: 'DELETE'
       });
     }
@@ -1445,7 +1442,7 @@ class NetworkInventory extends Component {
    * Handle trigger button for HMD
    * @method
    * @param {array.<string>} type - HMD scan type
-   * @param {string} [options] - option for 'fromInventory'
+   * @param {string || array.<string>} [options] - option for 'fromInventory' or Process Monitor settings
    * @param {object} [yaraRule] - yara rule data
    */
   triggerTask = (type, options, yaraRule) => {
@@ -1475,6 +1472,14 @@ class NetworkInventory extends Component {
         _FilepathList: pathData,
         _RuleString: yaraRule.rule
       };
+    }
+
+    if (type[0] === 'setProcessWhiteList') {
+      if (options.length > 0) {
+        requestData.paras = {
+          _WhiteList: options
+        };
+      }
     }
 
     let apiArr = [{
@@ -2684,6 +2689,16 @@ class NetworkInventory extends Component {
     return !_.has(inventoryParam, 'hostName');
   }
   /**
+   * Get owner name
+   * @method
+   * @param {ownerUUID} string - ownerUUID
+   * @returns owner name
+   */
+  getOwnerName = (ownerUUID) => {
+    const owner = _.find(this.state.ownerList, {'value': ownerUUID});
+    return owner.text;
+  }
+  /**
    * Display add/edit IP device form content
    * @method
    * @returns HTML DOM
@@ -2868,7 +2883,7 @@ class NetworkInventory extends Component {
                 }
                 <div className='group'>
                   {ownerType === 'existing' && addIP.ownerPic && !_.isEmpty(ownerList) &&
-                    <img src={addIP.ownerPic} className='existing' title={t('network-topology.txt-profileImage')} />
+                    <img src={addIP.ownerPic} className='existing' title={this.getOwnerName(addIP.ownerUUID)} />
                   }
                   {ownerType === 'new' && previewOwnerPic &&
                     <img src={previewOwnerPic} title={t('network-topology.txt-profileImage')} />

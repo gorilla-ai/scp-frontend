@@ -55,10 +55,12 @@ class FilterContent extends Component {
       <div className={cx('main-filter', {'active': showFilter})}>
         <i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}></i>
         <div className='header-text'>{filterTitle}</div>
-        <div className='button-group open-query'>
-          <button className='open-query' onClick={this.props.openQuery.bind(this, 'open')}>{t('events.connections.txt-openQuery')}</button>
-          <button className='save-query' onClick={this.props.openQuery.bind(this, 'save')}>{t('events.connections.txt-saveQuery')}</button>
-        </div>
+        {this.props.openQuery &&
+          <div className='button-group open-query'>
+            <button className='open-query' onClick={this.props.openQuery.bind(this, 'open')}>{t('events.connections.txt-openQuery')}</button>
+            <button className='save-query' onClick={this.props.openQuery.bind(this, 'save')}>{t('events.connections.txt-saveQuery')}</button>
+          </div>
+        }
         <FilterInput
           inline={true}
           {...this.props} />
@@ -72,9 +74,13 @@ class FilterContent extends Component {
 }
 
 FilterContent.propTypes = {
+  activeTab: PropTypes.string.isRequired,
   showFilter: PropTypes.bool.isRequired,
   handleSearchSubmit: PropTypes.func.isRequired,
-  handleResetBtn: PropTypes.func.isRequired
+  handleResetBtn: PropTypes.func.isRequired,
+  filterData: PropTypes.array,
+  setFilterData: PropTypes.func,
+  toggleFilter: PropTypes.func
 };
 
 export default FilterContent;

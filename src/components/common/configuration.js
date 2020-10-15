@@ -72,14 +72,16 @@ class Config extends Component {
     const path = window.location.pathname;
     const pattern = {
       notifications: '/SCP/configuration/notifications',
-      threat: '/SCP/configuration/threat/threat',
+      threat: '/SCP/configuration/threat',
       edge: '/SCP/configuration/edge/edge',
       severity: '/SCP/configuration/edge/severity',
+      es: '/SCP/configuration/es',
       inventory: '/SCP/configuration/topology/inventory',
       owner: '/SCP/configuration/topology/owner',
       map: '/SCP/configuration/topology/map',
       config: '/SCP/configuration/syslog/config',
       pattern: '/SCP/configuration/syslog/pattern',
+      audit: '/SCP/configuration/audit',
       account: '/SCP/configuration/user/account',
       privileges: '/SCP/configuration/user/privileges',
       serviceStatus: '/SCP/configuration/service-status',
@@ -101,20 +103,16 @@ class Config extends Component {
       showContent: !this.state.showContent
     });
   }
+  /**
+   * Logs download
+   * @method
+   */
   downloadLogs = () => {
     const {baseUrl, contextRoot} = this.props;
     const url = `${baseUrl}${contextRoot}/api/common/logs/_export`;
     const requestData = {};
 
     downloadWithForm(url, {payload: JSON.stringify(requestData)});
-  }
-  /**
-   * Set the menu class name
-   * @method
-   * @returns {string} - class name
-   */
-  getClassName = () => {
-    return this.state.showContent ? 'fg fg-arrow-left' : 'fg fg-arrow-right';
   }
   render() {
     const {showContent, openEdgeManagement, openTopology, openSyslog, openAccount, selected} = this.state;
@@ -128,7 +126,7 @@ class Config extends Component {
         </div>
 
         <div className='item frame threat'>
-          <Link to={{pathname: '/SCP/configuration/threat/threat', state: 'viewMode'}}>
+          <Link to={{pathname: '/SCP/configuration/threat', state: 'viewMode'}}>
             <span className={`${this.getActiveFrame('threat')}`}>{t('txt-threatIntelligence')}</span>
           </Link>
         </div>
@@ -152,6 +150,12 @@ class Config extends Component {
             </div>
           </div>
         }
+
+        <div className='item frame es-manage'>
+          <Link to='/SCP/configuration/es'>
+            <span className={`${this.getActiveFrame('es')}`}>{t('txt-esManage')}</span>
+          </Link>
+        </div>
 
         <div className='item frame network-topology' onClick={this.handleOpen.bind(this, 'openTopology', openTopology)}>
           <span className={`${this.getActiveFrame('inventory') || this.getActiveFrame('owner') || this.getActiveFrame('map')}`}>{t('txt-topology')}</span>
@@ -198,6 +202,12 @@ class Config extends Component {
           </div>
         }
 
+        <div className='item frame audit-log'>
+          <Link to='/SCP/configuration/audit'>
+            <span className={`${this.getActiveFrame('audit')}`}>{t('txt-auditLog')}</span>
+          </Link>
+        </div>
+
         <div className='item frame account-manage' onClick={this.handleOpen.bind(this, 'openAccount', openAccount)}>
           <span className={`${this.getActiveFrame('account') || this.getActiveFrame('privileges')}`}>{t('txt-accountManage')}</span>
           <i className={`c-link fg fg-arrow-${openAccount ? 'top' : 'bottom'}`}></i>
@@ -235,7 +245,7 @@ class Config extends Component {
         </div>
 
         <div className={cx('expand-collapse', {'not-allowed': this.getActiveFrame('threat')})} onClick={this.toggleLeftNav}>
-          <i className={this.getClassName()}></i>
+          <i className={`fg fg-arrow-${showContent ? 'left' : 'right'}`}></i>
         </div>
       </div>
     )

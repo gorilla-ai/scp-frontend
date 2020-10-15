@@ -334,7 +334,7 @@ class Pattern extends Component {
           <header>
             <div className='text'>{t('system-defined-pattern.txt-patternInfo')}</div>
             {pattern.info.lastUpdateDttm &&
-              <span className='msg'>{t('system-defined-pattern.txt-lastUpateTime')} {helper.getFormattedDate(pattern.info.lastUpdateDttm, 'local')}</span>
+              <span className='msg'>{t('system-defined-pattern.txt-lastUpdateTime')} {helper.getFormattedDate(pattern.info.lastUpdateDttm, 'local')}</span>
             }
           </header>
           <div className='group'>
