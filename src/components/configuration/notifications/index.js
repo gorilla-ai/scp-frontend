@@ -440,7 +440,6 @@ class Notifications extends Component {
           info: data.message
         });
       }
-
       return null;
     })
     .catch(err => {
