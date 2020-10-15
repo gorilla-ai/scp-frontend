@@ -1699,10 +1699,10 @@ i.c-checkbox.fg-checkbox {
                 margin-right: 35px;
                 border-radius: 35px;
                 overflow: hidden;
-                .device {
+                .fg-host {
                   float: left;
-                  width: 35px;
-                  height: 35px;
+                  color: #fff;
+                  font-size: 35px;
                 }
               }
               .info {
@@ -1730,25 +1730,22 @@ i.c-checkbox.fg-checkbox {
                       height: 22px;
                       background-color: var(--primaryTextColor);
                       &.mac {
-                        -webkit-mask: url('/images/ic_mac_address.svg');
-                        mask: url('/images/ic_mac_address.svg');
+                        -webkit-mask: url('/SCP/images/ic_mac_address.svg');
+                        mask: url('/SCP/images/ic_mac_address.svg');
                       }
                       &.windows {
-                        -webkit-mask: url('/images/ic_windows.svg');
-                        mask: url('/images/ic_windows.svg');
+                        -webkit-mask: url('/SCP/images/ic_windows.svg');
+                        mask: url('/SCP/images/ic_windows.svg');
                       }
                       &.linux {
-                        -webkit-mask: url('/images/ic_linux.svg');
-                        mask: url('/images/ic_linux.svg');
+                        -webkit-mask: url('/SCP/images/ic_linux.svg');
+                        mask: url('/SCP/images/ic_linux.svg');
                       }
                     }
                     i.fg,
                     img {
                       float: left;
                       margin-right: 3px;
-                    }
-                    i.fg {
-                      font-size: 22px;
                     }
                     img {
                       width: 20px;
@@ -1761,13 +1758,11 @@ i.c-checkbox.fg-checkbox {
                   width: 100%;
                   margin: 2px 0;
                   span {
-                    color: #fff;
                     font-size: .9em;
                     padding: 5px 10px;
                     margin-top: 5px;
                     margin-right: 7px;
                     border-radius: 5px;
-                    background-color: #999;                      
                   }
                 }
               }

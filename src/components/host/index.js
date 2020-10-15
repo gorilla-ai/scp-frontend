@@ -776,17 +776,36 @@ class HostController extends Component {
     const safetyData = safetyScanInfo[val.result];
     let displayCount = '';
     let displayTooltip = val.name + ' ';
+    let color = '';
+    let border = '';
+    let title = '';
+    let displayContent = '';
 
     if (safetyData && safetyData.length > 0) {
-      if (val.name === 'GCB') {
-        displayCount = safetyData[0][val.pass] + '/' + safetyData[0].TotalCnt;
-        displayTooltip += t('network-inventory.txt-passCount') + '/' + t('network-inventory.txt-totalItem');
-      } else {
-        displayCount = safetyData[0].TotalCnt;
-        displayTooltip += val.name === 'File Integrity' ? t('network-inventory.txt-modifiedFileCount') : t('network-inventory.txt-suspiciousFileCount');
+      if (!safetyData[0].taskStatus) {
+        return;
       }
 
-      return <span key={i} className='c-link' title={displayTooltip + ': ' + displayCount} onClick={this.getIPdeviceInfo.bind(this, host, 'toggle', val.result)}>{val.name} {displayCount}</span>
+      if (safetyData[0].taskStatus === 'Failure') {
+        color = '#e15b6b';
+        title = displayTooltip += t('network-inventory.txt-taskFailure');
+        displayContent = t('network-inventory.txt-taskFailure');
+      } else if (safetyData[0].taskStatus === 'Complete') {
+        if (val.name === 'GCB') {
+          displayCount = helper.numberWithCommas(safetyData[0][val.pass]) + '/' + helper.numberWithCommas(safetyData[0].TotalCnt);
+          displayTooltip += t('network-inventory.txt-passCount') + '/' + t('network-inventory.txt-totalItem');
+          color = safetyData[0][val.pass] === safetyData[0].TotalCnt ? '#70c97e' : '#e15b6b';
+        } else {
+          displayCount = helper.numberWithCommas(safetyData[0].TotalCnt);
+          displayTooltip += val.name === 'File Integrity' ? t('network-inventory.txt-modifiedFileCount') : t('network-inventory.txt-suspiciousFileCount');
+          color = safetyData[0].TotalCnt === 0 ? '#70c97e' : '#e15b6b';
+        }
+
+        title = displayTooltip + ': ' + displayCount;
+        displayContent = displayCount;
+      }
+
+      return <span key={i} className='c-link' style={{color, border: '1px solid ' + color, fontWeight: 'bold'}} title={title} onClick={this.getIPdeviceInfo.bind(this, host, 'toggle', val.result)}>{val.name} {displayContent}</span>
     }
   }
   /**
@@ -893,7 +912,10 @@ class HostController extends Component {
    * @returns HTML DOM
    */
   displaySeverityItem = (val, i) => {
-    return <span key={i} style={{backgroundColor: ALERT_LEVEL_COLORS[val.key]}}>{val.key}: {val.doc_count}</span>
+    const color = val.doc_count === 0 ? '#333' : '#fff';
+    const backgroundColor = val.doc_count === 0 ? '#d9d9d9' : ALERT_LEVEL_COLORS[val.key];
+
+    return <span key={i} style={{color, backgroundColor}}>{val.key}: {val.doc_count}</span>
   }
   /**
    * Display Host content
@@ -903,7 +925,6 @@ class HostController extends Component {
    * @returns HTML DOM
    */
   getHostList = (val, i) => {
-    const {contextRoot} = this.context;
     const infoList = [
       {
         name: 'hostName',
@@ -921,7 +942,7 @@ class HostController extends Component {
       {
         name: 'owner',
         path: 'ownerObj.ownerName',
-        icon: 'fg-ppl-face-2'
+        icon: 'fg-user'
       },
       {
         name: 'floorName',
@@ -967,22 +988,20 @@ class HostController extends Component {
     return (
       <li key={i}>
         <div className='device-alert' style={{backgroundColor: ALERT_LEVEL_COLORS[val.severityLevel] || '#999'}}>
-          <div className='device'>
-            <img src={contextRoot + '/images/ic_host.svg'} />
-          </div>
+          <i className='fg fg-host'></i>
         </div>
         <div className='info'>
           <ul className='c-link' onClick={this.getIPdeviceInfo.bind(this, val, 'toggle')}>
-            <li className='first' title={t('ipFields.ip')}><i className='fg fg-box'></i><span>{val.ip}</span></li>
+            <li className='first' title={t('ipFields.ip')}><i className='fg fg-box-vemo'></i><span>{val.ip}</span></li>
             {infoList.map(this.getInfoList.bind(this, val))}
           </ul>
 
           <div className='flex-item'>
-            {safetyData &&
-              SCAN_RESULT.map(this.getSafetyScanInfo.bind(this, safetyScanInfo, val))
-            }
             {severityList.length > 0 &&
               severityList.map(this.displaySeverityItem)
+            }
+            {safetyData &&
+              SCAN_RESULT.map(this.getSafetyScanInfo.bind(this, safetyScanInfo, val))
             }
           </div>
         </div>
