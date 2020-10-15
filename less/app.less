@@ -1699,28 +1699,26 @@ i.c-checkbox.fg-checkbox {
                 margin-right: 35px;
                 border-radius: 35px;
                 overflow: hidden;
-                .device {
+                .fg-host {
                   float: left;
-                  width: 35px;
-                  height: 35px;
+                  color: #fff;
+                  font-size: 35px;
                 }
               }
               .info {
                 float: left;
-                & > header:first-child  {
-                  color: var(--formEmailGroup);
-                  font-size: 1.2em;
-                  font-weight: bold;
-                  margin-bottom: 5px;
-                }
                 ul {
-                  margin-bottom: 10px;
+                  margin-bottom: 5px;
                   li {
                     display: inline-block;
-                    color: var(--primaryTextColor);
-                    margin-right: 10px;
-                    padding-left: 10px;
+                    font-size: 17px;
+                    font-weight: bold;
+                    margin-right: 6px;
+                    padding-left: 5px;
                     border-left: 1px solid #d8d8d8;
+                    span {
+                      color: var(--formEmailGroup);
+                    }
                     &.first {
                       padding-left: 0;
                       border: none;
@@ -1728,8 +1726,8 @@ i.c-checkbox.fg-checkbox {
                     .fg-bg {
                       float: left;
                       margin-right: 3px;
-                      width: 20px;
-                      height: 20px;
+                      width: 22px;
+                      height: 22px;
                       background-color: var(--primaryTextColor);
                       &.mac {
                         -webkit-mask: url('/SCP/images/ic_mac_address.svg');
@@ -1749,38 +1747,22 @@ i.c-checkbox.fg-checkbox {
                       float: left;
                       margin-right: 3px;
                     }
-                    i.fg {
-                      font-size: 20px;
-                    }
                     img {
                       width: 20px;
                     }
                   }
                 }
-                .sub-item {
-                  margin-top: 15px;
-                  clear: both;
-                  header {
-                    float: left;
-                    color: var(--primaryTextColor);
-                    font-size: 15px;
-                    font-weight: bold;
-                    margin-right: 10px;
-                  }
-                  .flex-item {
-                    display: flex;
-                    flex-wrap: wrap;
-                    width: 100%;
-                    margin: 2px 0;
-                    span {
-                      color: #fff;
-                      font-size: 14px;
-                      padding: 5px 10px;
-                      margin-top: 5px;
-                      margin-right: 10px;
-                      border-radius: 5px;
-                      background-color: var(--primaryContentHeader);                      
-                    }
+                .flex-item {
+                  display: flex;
+                  flex-wrap: wrap;
+                  width: 100%;
+                  margin: 2px 0;
+                  span {
+                    font-size: .9em;
+                    padding: 5px 10px;
+                    margin-top: 5px;
+                    margin-right: 7px;
+                    border-radius: 5px;
                   }
                 }
               }

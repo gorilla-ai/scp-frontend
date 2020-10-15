@@ -55,6 +55,24 @@ class HostAnalysis extends Component {
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
     this.ah = getInstance('chewbacca');
   }
+  componentDidMount() {
+    this.hmdTypeChecking();
+  }
+  /**
+   * Set active left navigation
+   * @method
+   */
+  hmdTypeChecking = () => {
+    if (this.props.openHmdType && typeof this.props.openHmdType === 'string') {
+      this.setState({
+        showContent: {
+          info: false,
+          safety: true,
+          network: false
+        }
+      });
+    }
+  }
   /**
    * Set corresponding content based on content type
    * @method
@@ -152,7 +170,7 @@ class HostAnalysis extends Component {
    * @returns HMDscanInfo component
    */
   displaySafetyScanContent = () => {
-    const {hostData} = this.props;
+    const {hostData, openHmdType} = this.props;
 
     if (_.isEmpty(hostData.safetyScanInfo)) {
       return <span>N/A</span>
@@ -161,6 +179,7 @@ class HostAnalysis extends Component {
         <HMDscanInfo
           page='host'
           currentDeviceData={hostData}
+          openHmdType={openHmdType}
           toggleYaraRule={this.toggleYaraRule}
           toggleSelectionIR={this.toggleSelectionIR}
           triggerTask={this.triggerTask}
@@ -377,7 +396,8 @@ HostAnalysis.contextType = BaseDataContext;
 HostAnalysis.propTypes = {
   hostData: PropTypes.object.isRequired,
   getIPdeviceInfo: PropTypes.func.isRequired,
-  toggleHostAnalysis: PropTypes.func.isRequired
+  toggleHostAnalysis: PropTypes.func.isRequired,
+  openHmdType: PropTypes.string
 };
 
 export default HostAnalysis;
