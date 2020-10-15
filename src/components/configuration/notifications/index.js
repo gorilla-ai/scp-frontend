@@ -32,6 +32,7 @@ class Notifications extends Component {
       activeContent: 'viewMode', //viewMode, editMode
       openEmailDialog: false,
       testEmails: [],
+      info: '',
       originalNotifications: {},
       notifications: {
         server: '',
@@ -391,7 +392,7 @@ class Notifications extends Component {
     const titleText = t('notifications.txt-testEmails');
     const actions = {
       cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeDialog},
-      confirm: {text: t('txt-send'), handler: this.testEmailConfirm}
+      confirm: {text: t('txt-send'), handler: this.handleTestEmailConfirm}
     };
 
     return (
@@ -402,6 +403,7 @@ class Notifications extends Component {
         draggable={true}
         global={true}
         actions={actions}
+        info={info}
         closeAction='cancel'>
         {this.displayTestEmail()}
       </ModalDialog>
@@ -411,7 +413,7 @@ class Notifications extends Component {
    * Handle test email confirm
    * @method
    */
-  testEmailConfirm = () => {
+  handleTestEmailConfirm = () => {
     const {baseUrl} = this.context;
     const {testEmails} = this.state;
     let dataParams = '';
@@ -432,10 +434,12 @@ class Notifications extends Component {
     .then(data => {
       if (data.rt) {
         helper.showPopupMsg(t('notifications.txt-sendSuccess'));
+        this.closeDialog();
       } else {
-        helper.showPopupMsg(t('notifications.txt-sendFail'));
+        this.setState({
+          info: data.message
+        });
       }
-      this.closeDialog();
       return null;
     })
     .catch(err => {
@@ -449,7 +453,8 @@ class Notifications extends Component {
   closeDialog = () => {
     this.setState({
       openEmailDialog: false,
-      testEmails: []
+      testEmails: [],
+      info: ''
     });
   }
   render() {
