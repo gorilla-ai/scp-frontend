@@ -5,6 +5,16 @@ import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
 
+import { withStyles, makeStyles } from '@material-ui/core/styles';
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableFooter from '@material-ui/core/TableFooter';
+import TableCell from '@material-ui/core/TableCell';
+import TableContainer from '@material-ui/core/TableContainer';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
+import TablePagination from '@material-ui/core/TablePagination';
+
 import DropDownList from 'react-ui/build/src/components/dropdown'
 
 import {BaseDataContext} from '../../common/context';
@@ -17,6 +27,27 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null;
 let f = null;
+
+const StyledTableCell = withStyles((theme) => ({
+  head: {
+    backgroundColor: '#ededed',
+    color: '#4a4a4a',
+  },
+  body: {
+    fontSize: 14,
+  },
+}))(TableCell);
+
+const StyledTableRow = withStyles((theme) => ({
+  root: {
+    '&:nth-of-type(odd)': {
+      backgroundColor: '#f5f5f5',
+    },
+    '&:nth-of-type(even)': {
+      backgroundColor: '#fff',
+    }
+  },
+}))(TableRow);
 
 /**
  * Audit Log
@@ -96,9 +127,14 @@ class AuditLog extends Component {
       if (data) {
         let tempAudit = {...audit};
         let auditData = [];
-        tempAudit.dataContent = data.rows;
         tempAudit.totalCount = data.counts;
         tempAudit.currentPage = page;
+        tempAudit.dataContent = _.map(data.rows, val => {
+          return {
+            createDttm: val.content.createDttm,
+            message: val.content.message
+          };
+        })
 
         if (!data.rows || data.rows.length === 0) {
           helper.showPopupMsg(t('txt-notFound'));
@@ -106,21 +142,21 @@ class AuditLog extends Component {
         }
 
         let dataFields = {};
-        audit.dataFieldsArr.forEach(tempData => {
-          dataFields[tempData] = {
-            label: f(`auditFields.${tempData}`),
-            sortable: null,
-            formatter: (value, allValue, i) => {
-              if (tempData === 'createDttm') {
-                value = helper.getFormattedDate(allValue.content[tempData], 'local');
-              } else {
-                value = allValue.content[tempData];
-              }
+        // audit.dataFieldsArr.forEach(tempData => {
+        //   dataFields[tempData] = {
+        //     label: f(`auditFields.${tempData}`),
+        //     sortable: null,
+        //     formatter: (value, allValue, i) => {
+        //       if (tempData === 'createDttm') {
+        //         value = helper.getFormattedDate(allValue.content[tempData], 'local');
+        //       } else {
+        //         value = allValue.content[tempData];
+        //       }
 
-              return <span>{value}</span>
-            }
-          };
-        })
+        //       return <span>{value}</span>
+        //     }
+        //   };
+        // })
 
         tempAudit.dataFields = dataFields;
 
@@ -263,9 +299,33 @@ class AuditLog extends Component {
       }
     });
   }
+  createData = (name, calories, fat, carbs, protein) => {
+    return { name, calories, fat, carbs, protein };
+  }
+  displayTableHeader = (val, i) => {
+    return (
+      <StyledTableCell key={i}>{f(`auditFields.${val}`)}</StyledTableCell>
+    )
+  }
+  displayTable = (val, i) => {
+    return (
+      <StyledTableRow key={i}>
+        <StyledTableCell>{val.createDttm}</StyledTableCell>
+        <StyledTableCell>{val.message}</StyledTableCell>
+      </StyledTableRow>
+    )
+  }
   render() {
     const {baseUrl, contextRoot} = this.context;
     const {showFilter, datetime, audit} = this.state;
+
+    const rows = [
+      this.createData('Frozen yoghurt', 159, 6.0, 24, 4.0),
+      this.createData('Ice cream sandwich', 237, 9.0, 37, 4.3),
+      this.createData('Eclair', 262, 16.0, 24, 6.0),
+      this.createData('Cupcake', 305, 3.7, 67, 4.3),
+      this.createData('Gingerbread', 356, 16.0, 49, 3.9),
+    ];
 
     return (
       <div>
@@ -295,7 +355,36 @@ class AuditLog extends Component {
               <div className='content-header-btns'>
               </div>
 
-              <TableContent
+              <TableContainer>
+                <Table stickyHeader aria-label='simple table'>
+                  <TableHead>
+                    <TableRow>
+                      {audit.dataFieldsArr.map(this.displayTableHeader)}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {audit.dataContent.map(this.displayTable)}
+                  </TableBody>
+                  <TableFooter>
+                    <TableRow>
+                      <TablePagination
+                        rowsPerPageOptions={[10, 20, 50, 100]}
+                        count={rows.length}
+                        rowsPerPage={audit.pageSize}
+                        page={audit.currentPage}
+                        SelectProps={{
+                          inputProps: { 'aria-label': 'rows per page' },
+                          native: true,
+                        }}
+                        onChangePage={this.handlePaginationChange.bind(this, 'currentPage')}
+                        onChangeRowsPerPage={this.handlePaginationChange.bind(this, 'pageSize')}
+                      />
+                    </TableRow>
+                  </TableFooter>
+                </Table>
+              </TableContainer>
+
+              {/*<TableContent
                 dataTableData={audit.dataContent}
                 dataTableFields={audit.dataFields}
                 dataTableSort={audit.sort}
@@ -304,7 +393,7 @@ class AuditLog extends Component {
                 paginationCurrentPage={audit.currentPage}
                 handleTableSort={this.handleTableSort}
                 paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
+                paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />*/}
             </div>
           </div>
         </div>
