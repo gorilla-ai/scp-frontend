@@ -185,6 +185,17 @@ button {
     border: 6px solid var(--pageCurrentHover);
   }
 }
+.MuiPaper-root {
+  button:hover:not([disabled]) {
+    background: none !important;
+  }
+}
+.MuiInputBase-root {
+  input {
+    box-sizing: content-box !important;
+    border: none !important;
+  }
+}
 .c-tabs > .menu {
   border-bottom: 1.5px solid var(--leftNavBackground);
   background-color: var(--primaryContentBackground);

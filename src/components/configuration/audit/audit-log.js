@@ -15,6 +15,8 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import TablePagination from '@material-ui/core/TablePagination';
 
+import MUIDataTable from "mui-datatables";
+
 import DropDownList from 'react-ui/build/src/components/dropdown'
 
 import {BaseDataContext} from '../../common/context';
@@ -327,6 +329,38 @@ class AuditLog extends Component {
       this.createData('Gingerbread', 356, 16.0, 49, 3.9),
     ];
 
+    const columns = ["Name", "Company", "City", "State"];
+
+    const data = [
+      ["Joe James", "Test Corp", "Yonkers", "NY"],
+      ["John Walsh", "Test Corp", "Hartford", "CT"],
+      ["Bob Herm", "Test Corp", "Tampa", "FL"],
+      ["James Houston", "Test Corp", "Dallas", "TX"]
+    ];
+     
+    const options = {
+      filterType: 'textField',
+      selectableRows: 'none'
+    };
+
+    const customColumns = _.map(audit.dataFieldsArr, val => {
+      return {
+        name: val,
+        label: f('auditFields.' + val),
+        options: {
+          filter: true,
+          sort: false,
+          customBodyRender: (value) => {
+            if (val === 'createDttm') {
+              return helper.getFormattedDate(value, 'local');
+            } else {
+              return value;
+            }
+          }
+        }
+      };
+    })
+
     return (
       <div>
         <div className='sub-header'>
@@ -355,7 +389,12 @@ class AuditLog extends Component {
               <div className='content-header-btns'>
               </div>
 
-              <TableContainer>
+              <MUIDataTable
+                columns={customColumns}
+                data={audit.dataContent}
+                options={options} />
+
+              {/*<TableContainer>
                 <Table stickyHeader aria-label='simple table'>
                   <TableHead>
                     <TableRow>
