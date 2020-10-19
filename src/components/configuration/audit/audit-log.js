@@ -6,6 +6,7 @@ import Moment from 'moment'
 import cx from 'classnames'
 
 import { withStyles, makeStyles } from '@material-ui/core/styles';
+import { createMuiTheme, MuiThemeProvider } from '@material-ui/core/styles';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableFooter from '@material-ui/core/TableFooter';
@@ -18,10 +19,12 @@ import TablePagination from '@material-ui/core/TablePagination';
 import MUIDataTable from "mui-datatables";
 
 import DropDownList from 'react-ui/build/src/components/dropdown'
+import PageNav from 'react-ui/build/src/components/page-nav'
 
 import {BaseDataContext} from '../../common/context';
 import Config from '../../common/configuration'
 import helper from '../../common/helper'
+import Pagination from '../../common/pagination'
 import SearchOptions from '../../common/search-options'
 import TableContent from '../../common/table-content'
 
@@ -192,13 +195,16 @@ class AuditLog extends Component {
    * Handle table pagination change
    * @method
    * @param {string} type - page type ('currentPage' or 'pageSize')
-   * @param {string | number} value - new page number
+   * @param {object} event - event
+   * @param {number} page - new page number
    */
-  handlePaginationChange = (type, value) => {
+  handlePaginationChange = (type, event, page) => {
     let tempAudit = {...this.state.audit};
-    tempAudit[type] = Number(value);
-
-    if (type === 'pageSize') {
+    
+    if (type === 'currentPage') {
+      tempAudit[type] = Number(page);
+    } else if (type === 'pageSize') {
+      tempAudit[type] = event.target.value;
       tempAudit.currentPage = 1;
     }
 
@@ -317,30 +323,43 @@ class AuditLog extends Component {
       </StyledTableRow>
     )
   }
+  getMuiTheme = () => createMuiTheme({
+    overrides: {
+      MuiTableCell: {
+        head: {
+          fontWeight: 'bold',
+          fontSize: '1em'
+        }
+      }
+    }
+  })
   render() {
     const {baseUrl, contextRoot} = this.context;
     const {showFilter, datetime, audit} = this.state;
-
-    const rows = [
-      this.createData('Frozen yoghurt', 159, 6.0, 24, 4.0),
-      this.createData('Ice cream sandwich', 237, 9.0, 37, 4.3),
-      this.createData('Eclair', 262, 16.0, 24, 6.0),
-      this.createData('Cupcake', 305, 3.7, 67, 4.3),
-      this.createData('Gingerbread', 356, 16.0, 49, 3.9),
-    ];
-
-    const columns = ["Name", "Company", "City", "State"];
-
-    const data = [
-      ["Joe James", "Test Corp", "Yonkers", "NY"],
-      ["John Walsh", "Test Corp", "Hartford", "CT"],
-      ["Bob Herm", "Test Corp", "Tampa", "FL"],
-      ["James Houston", "Test Corp", "Dallas", "TX"]
-    ];
      
     const options = {
       filterType: 'textField',
-      selectableRows: 'none'
+      selectableRows: 'none',
+      serverSide: true,
+      search: false,
+      filter: false,
+      print: false,
+      customFooter: (count, page, rowsPerPage, changeRowsPerPage, changePage, textLabels) => {
+        return (
+          <TablePagination
+            rowsPerPageOptions={[10, 20, 50, 100]}
+            count={audit.totalCount}
+            rowsPerPage={audit.pageSize}
+            page={audit.currentPage}
+            SelectProps={{
+              inputProps: { 'aria-label': 'rows per page' },
+              native: true,
+            }}
+            onChangePage={this.handlePaginationChange.bind(this, 'currentPage')}
+            onChangeRowsPerPage={this.handlePaginationChange.bind(this, 'pageSize')}
+          />
+        )
+      }
     };
 
     const customColumns = _.map(audit.dataFieldsArr, val => {
@@ -389,10 +408,13 @@ class AuditLog extends Component {
               <div className='content-header-btns'>
               </div>
 
-              <MUIDataTable
-                columns={customColumns}
-                data={audit.dataContent}
-                options={options} />
+              <MuiThemeProvider theme={this.getMuiTheme()}>
+                <MUIDataTable
+                  className='ryan'
+                  columns={customColumns}
+                  data={audit.dataContent}
+                  options={options} />
+              </MuiThemeProvider>
 
               {/*<TableContainer>
                 <Table stickyHeader aria-label='simple table'>
