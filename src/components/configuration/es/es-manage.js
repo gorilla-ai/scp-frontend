@@ -5,6 +5,8 @@ import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
 
+import TablePagination from '@material-ui/core/TablePagination';
+
 import Combobox from 'react-ui/build/src/components/combobox'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
@@ -13,6 +15,7 @@ import ToggleBtn from 'react-ui/build/src/components/toggle-button'
 import {BaseDataContext} from '../../common/context';
 import Config from '../../common/configuration'
 import helper from '../../common/helper'
+import MuiTableContent from '../../common/mui-table-content'
 import SearchOptions from '../../common/search-options'
 import TableContent from '../../common/table-content'
 
@@ -67,9 +70,6 @@ class EsManage extends Component {
   componentDidMount() {
     this.getImportList();
     this.getEsData('search');
-  }
-  ryan = () => {
-
   }
   getImportList = () => {
     const {baseUrl} = this.context;
@@ -188,38 +188,37 @@ class EsManage extends Component {
             text: val  
           });
         })
-        
-        let dataFields = {};
-        es.dataFieldsArr.forEach(tempData => {
-          dataFields[tempData] = {
-            label: tempData === '_menu' ? '' : f(`esFields.${tempData}`),
-            sortable: tempData === 'date' ? true : null,
-            formatter: (value, allValue, i) => {
-              if (tempData === '_menu') {
-                return (
-                  <div className='table-menu menu active'>
-                    <ToggleBtn
-                      className='toggle-btn'
-                      onText={t('txt-on')}
-                      offText={t('txt-off')}
-                      on={allValue.isOpen}
-                      onChange={this.handleStatusChange.bind(this, allValue.date)}
-                      disabled={!allValue.actionEnable} />                  
-                    <i className={cx('fg fg-data-export', {'not-allowed': !allValue.export})} title={t('txt-export')} onClick={this.handleIndexExport.bind(this, allValue)}></i>
-                  </div>
-                )
-              }
 
-              if (tempData === 'docCount' || tempData === 'storeSize' || tempData === 'priStoreSize') {
-                value = helper.numberWithCommas(value);
+        tempEs.dataFields = _.map(es.dataFieldsArr, val => {
+          return {
+            name: val,
+            label: val === '_menu' ? '' : f(`esFields.${val}`),
+            options: {
+              filter: true,
+              sort: val === 'date' ? true : false,
+              customBodyRenderLite: (dataIndex) => {
+                if (val === '_menu') {
+                  return (
+                    <div className='table-menu menu active'>
+                      <ToggleBtn
+                        className='toggle-btn'
+                        onText={t('txt-on')}
+                        offText={t('txt-off')}
+                        on={tempEs.dataContent[dataIndex].isOpen}
+                        onChange={this.handleStatusChange.bind(this, tempEs.dataContent[dataIndex].date)}
+                        disabled={!tempEs.dataContent[dataIndex].actionEnable} />
+                      <i className={cx('fg fg-data-export', {'not-allowed': !tempEs.dataContent[dataIndex].export})} title={t('txt-export')} onClick={this.handleIndexExport.bind(this, tempEs.dataContent[dataIndex])}></i>
+                    </div>
+                  )
+                } else if (val === 'docCount' || val === 'storeSize' || val === 'priStoreSize') {
+                  return helper.numberWithCommas(tempEs.dataContent[dataIndex][val]);
+                } else {
+                  return tempEs.dataContent[dataIndex][val];
+                }
               }
-
-              return <span>{value}</span>
             }
           };
-        })
-
-        tempEs.dataFields = dataFields;
+        });
 
         this.setState({
           statusList,
@@ -473,6 +472,25 @@ class EsManage extends Component {
   render() {
     const {baseUrl, contextRoot} = this.context;
     const {showFilter, importIndexOpen, datetime, es} = this.state;
+    const options = {
+      selectableRows: 'none',
+      serverSide: true,
+      search: false,
+      filter: false,
+      print: false,
+      customFooter: () => {
+        return (
+          <TablePagination
+            rowsPerPageOptions={[10, 20, 50, 100]}
+            count={es.totalCount}
+            rowsPerPage={es.pageSize}
+            page={es.currentPage}
+            onChangePage={this.handlePaginationChange.bind(this, 'currentPage')}
+            onChangeRowsPerPage={this.handlePaginationChange.bind(this, 'pageSize')}
+          />
+        )
+      }
+    };
 
     return (
       <div>
@@ -507,7 +525,14 @@ class EsManage extends Component {
                 <button className='standard btn' onClick={this.toggleImportIndex}>{t('txt-importEsIndex')}</button>
               </div>
 
-              <TableContent
+              {es.dataContent.length > 0 &&
+                <MuiTableContent
+                  columns={es.dataFields}
+                  data={es.dataContent}
+                  options={options} />
+              }
+
+              {/*<TableContent
                 dataTableData={es.dataContent}
                 dataTableFields={es.dataFields}
                 dataTableSort={es.sort}
@@ -516,7 +541,7 @@ class EsManage extends Component {
                 paginationCurrentPage={es.currentPage}
                 handleTableSort={this.handleTableSort}
                 paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
+                paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />*/}
             </div>
           </div>
         </div>

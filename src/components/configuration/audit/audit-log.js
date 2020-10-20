@@ -5,18 +5,11 @@ import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
 
-import { withStyles, makeStyles } from '@material-ui/core/styles';
 import { createMuiTheme, MuiThemeProvider } from '@material-ui/core/styles';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableFooter from '@material-ui/core/TableFooter';
-import TableCell from '@material-ui/core/TableCell';
-import TableContainer from '@material-ui/core/TableContainer';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-import TablePagination from '@material-ui/core/TablePagination';
 
-import MUIDataTable from "mui-datatables";
+import MUIDataTable from 'mui-datatables';
+
+import TablePagination from '@material-ui/core/TablePagination';
 
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import PageNav from 'react-ui/build/src/components/page-nav'
@@ -24,6 +17,7 @@ import PageNav from 'react-ui/build/src/components/page-nav'
 import {BaseDataContext} from '../../common/context';
 import Config from '../../common/configuration'
 import helper from '../../common/helper'
+import MuiTableContent from '../../common/mui-table-content'
 import Pagination from '../../common/pagination'
 import SearchOptions from '../../common/search-options'
 import TableContent from '../../common/table-content'
@@ -32,27 +26,6 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null;
 let f = null;
-
-const StyledTableCell = withStyles((theme) => ({
-  head: {
-    backgroundColor: '#ededed',
-    color: '#4a4a4a',
-  },
-  body: {
-    fontSize: 14,
-  },
-}))(TableCell);
-
-const StyledTableRow = withStyles((theme) => ({
-  root: {
-    '&:nth-of-type(odd)': {
-      backgroundColor: '#f5f5f5',
-    },
-    '&:nth-of-type(even)': {
-      backgroundColor: '#fff',
-    }
-  },
-}))(TableRow);
 
 /**
  * Audit Log
@@ -95,9 +68,6 @@ class AuditLog extends Component {
   }
   componentDidMount() {
     this.getAuditData('search');
-  }
-  ryan = () => {
-
   }
   /**
    * Get and set ES table data
@@ -146,24 +116,23 @@ class AuditLog extends Component {
           return;
         }
 
-        let dataFields = {};
-        // audit.dataFieldsArr.forEach(tempData => {
-        //   dataFields[tempData] = {
-        //     label: f(`auditFields.${tempData}`),
-        //     sortable: null,
-        //     formatter: (value, allValue, i) => {
-        //       if (tempData === 'createDttm') {
-        //         value = helper.getFormattedDate(allValue.content[tempData], 'local');
-        //       } else {
-        //         value = allValue.content[tempData];
-        //       }
-
-        //       return <span>{value}</span>
-        //     }
-        //   };
-        // })
-
-        tempAudit.dataFields = dataFields;
+        tempAudit.dataFields = _.map(audit.dataFieldsArr, val => {
+          return {
+            name: val,
+            label: f('auditFields.' + val),
+            options: {
+              filter: true,
+              sort: false,
+              customBodyRender: (value) => {
+                if (val === 'createDttm') {
+                  return helper.getFormattedDate(value, 'local');
+                } else {
+                  return value;
+                }
+              }
+            }
+          };
+        });
 
         this.setState({
           audit: tempAudit
@@ -307,28 +276,27 @@ class AuditLog extends Component {
       }
     });
   }
-  createData = (name, calories, fat, carbs, protein) => {
-    return { name, calories, fat, carbs, protein };
-  }
-  displayTableHeader = (val, i) => {
-    return (
-      <StyledTableCell key={i}>{f(`auditFields.${val}`)}</StyledTableCell>
-    )
-  }
-  displayTable = (val, i) => {
-    return (
-      <StyledTableRow key={i}>
-        <StyledTableCell>{val.createDttm}</StyledTableCell>
-        <StyledTableCell>{val.message}</StyledTableCell>
-      </StyledTableRow>
-    )
-  }
   getMuiTheme = () => createMuiTheme({
     overrides: {
       MuiTableCell: {
         head: {
           fontWeight: 'bold',
           fontSize: '1em'
+        },
+      },
+      MuiTableRow: {
+        root: {
+          '&:nth-of-type(odd)': {
+            backgroundColor: '#f5f5f5'
+          },
+          '&:nth-of-type(even)': {
+            backgroundColor: '#fff'
+          }
+        },
+        hover: {
+          '&:hover': {
+            backgroundColor: '#e2ecfd !important'
+          }
         }
       }
     }
@@ -336,49 +304,25 @@ class AuditLog extends Component {
   render() {
     const {baseUrl, contextRoot} = this.context;
     const {showFilter, datetime, audit} = this.state;
-     
     const options = {
-      filterType: 'textField',
       selectableRows: 'none',
       serverSide: true,
       search: false,
       filter: false,
       print: false,
-      customFooter: (count, page, rowsPerPage, changeRowsPerPage, changePage, textLabels) => {
+      customFooter: () => {
         return (
           <TablePagination
             rowsPerPageOptions={[10, 20, 50, 100]}
             count={audit.totalCount}
             rowsPerPage={audit.pageSize}
             page={audit.currentPage}
-            SelectProps={{
-              inputProps: { 'aria-label': 'rows per page' },
-              native: true,
-            }}
             onChangePage={this.handlePaginationChange.bind(this, 'currentPage')}
             onChangeRowsPerPage={this.handlePaginationChange.bind(this, 'pageSize')}
           />
         )
       }
     };
-
-    const customColumns = _.map(audit.dataFieldsArr, val => {
-      return {
-        name: val,
-        label: f('auditFields.' + val),
-        options: {
-          filter: true,
-          sort: false,
-          customBodyRender: (value) => {
-            if (val === 'createDttm') {
-              return helper.getFormattedDate(value, 'local');
-            } else {
-              return value;
-            }
-          }
-        }
-      };
-    })
 
     return (
       <div>
@@ -408,53 +352,14 @@ class AuditLog extends Component {
               <div className='content-header-btns'>
               </div>
 
-              <MuiThemeProvider theme={this.getMuiTheme()}>
-                <MUIDataTable
-                  className='ryan'
-                  columns={customColumns}
-                  data={audit.dataContent}
-                  options={options} />
-              </MuiThemeProvider>
-
-              {/*<TableContainer>
-                <Table stickyHeader aria-label='simple table'>
-                  <TableHead>
-                    <TableRow>
-                      {audit.dataFieldsArr.map(this.displayTableHeader)}
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {audit.dataContent.map(this.displayTable)}
-                  </TableBody>
-                  <TableFooter>
-                    <TableRow>
-                      <TablePagination
-                        rowsPerPageOptions={[10, 20, 50, 100]}
-                        count={rows.length}
-                        rowsPerPage={audit.pageSize}
-                        page={audit.currentPage}
-                        SelectProps={{
-                          inputProps: { 'aria-label': 'rows per page' },
-                          native: true,
-                        }}
-                        onChangePage={this.handlePaginationChange.bind(this, 'currentPage')}
-                        onChangeRowsPerPage={this.handlePaginationChange.bind(this, 'pageSize')}
-                      />
-                    </TableRow>
-                  </TableFooter>
-                </Table>
-              </TableContainer>
-
-              {/*<TableContent
-                dataTableData={audit.dataContent}
-                dataTableFields={audit.dataFields}
-                dataTableSort={audit.sort}
-                paginationTotalCount={audit.totalCount}
-                paginationPageSize={audit.pageSize}
-                paginationCurrentPage={audit.currentPage}
-                handleTableSort={this.handleTableSort}
-                paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />*/}
+              {audit.dataContent.length > 0 &&
+                <MuiThemeProvider theme={this.getMuiTheme()}>
+                  <MUIDataTable
+                    columns={audit.dataFields}
+                    data={audit.dataContent}
+                    options={options} />
+                </MuiThemeProvider>
+              }
             </div>
           </div>
         </div>
