@@ -5,12 +5,6 @@ import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
 
-import { createMuiTheme, MuiThemeProvider } from '@material-ui/core/styles';
-
-import MUIDataTable from 'mui-datatables';
-
-import TablePagination from '@material-ui/core/TablePagination';
-
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import PageNav from 'react-ui/build/src/components/page-nav'
 
@@ -58,7 +52,7 @@ class AuditLog extends Component {
           desc: true
         },
         totalCount: 0,
-        currentPage: 1,
+        currentPage: 0,
         pageSize: 20,
         info: {}
       }
@@ -77,8 +71,8 @@ class AuditLog extends Component {
   getAuditData = (fromSearch) => {
     const {baseUrl} = this.context;
     const {datetime, auditSearch, audit} = this.state;
-    const page = fromSearch === 'search' ? 1 : audit.currentPage;
-    const url = `${baseUrl}/api/auditLog/system?page=${page}&pageSize=${audit.pageSize}`;
+    const page = fromSearch === 'search' ? 0 : audit.currentPage;
+    const url = `${baseUrl}/api/auditLog/system?page=${page + 1}&pageSize=${audit.pageSize}`;
     const dateTime = {
       from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
       to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
@@ -164,16 +158,13 @@ class AuditLog extends Component {
    * Handle table pagination change
    * @method
    * @param {string} type - page type ('currentPage' or 'pageSize')
-   * @param {object} event - event
-   * @param {number} page - new page number
+   * @param {number} value - new page number
    */
-  handlePaginationChange = (type, event, page) => {
+  handlePaginationChange = (type, value) => {
     let tempAudit = {...this.state.audit};
+    tempAudit[type] = value;
     
-    if (type === 'currentPage') {
-      tempAudit[type] = Number(page);
-    } else if (type === 'pageSize') {
-      tempAudit[type] = event.target.value;
+    if (type === 'pageSize') {
       tempAudit.currentPage = 1;
     }
 
@@ -276,51 +267,15 @@ class AuditLog extends Component {
       }
     });
   }
-  getMuiTheme = () => createMuiTheme({
-    overrides: {
-      MuiTableCell: {
-        head: {
-          fontWeight: 'bold',
-          fontSize: '1em'
-        },
-      },
-      MuiTableRow: {
-        root: {
-          '&:nth-of-type(odd)': {
-            backgroundColor: '#f5f5f5'
-          },
-          '&:nth-of-type(even)': {
-            backgroundColor: '#fff'
-          }
-        },
-        hover: {
-          '&:hover': {
-            backgroundColor: '#e2ecfd !important'
-          }
-        }
-      }
-    }
-  })
   render() {
     const {baseUrl, contextRoot} = this.context;
     const {showFilter, datetime, audit} = this.state;
-    const options = {
-      selectableRows: 'none',
-      serverSide: true,
-      search: false,
-      filter: false,
-      print: false,
-      customFooter: () => {
-        return (
-          <TablePagination
-            rowsPerPageOptions={[10, 20, 50, 100]}
-            count={audit.totalCount}
-            rowsPerPage={audit.pageSize}
-            page={audit.currentPage}
-            onChangePage={this.handlePaginationChange.bind(this, 'currentPage')}
-            onChangeRowsPerPage={this.handlePaginationChange.bind(this, 'pageSize')}
-          />
-        )
+    const tableOptions = {
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('pageSize', numberOfRows);
       }
     };
 
@@ -353,12 +308,9 @@ class AuditLog extends Component {
               </div>
 
               {audit.dataContent.length > 0 &&
-                <MuiThemeProvider theme={this.getMuiTheme()}>
-                  <MUIDataTable
-                    columns={audit.dataFields}
-                    data={audit.dataContent}
-                    options={options} />
-                </MuiThemeProvider>
+                <MuiTableContent
+                  data={audit}
+                  tableOptions={tableOptions} />
               }
             </div>
           </div>

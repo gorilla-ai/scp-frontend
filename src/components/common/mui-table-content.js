@@ -8,6 +8,8 @@ import MUIDataTable from 'mui-datatables';
 
 import helper from '../common/helper'
 
+let t = null;
+
 /**
  * MUI Table Content
  * @class
@@ -17,6 +19,8 @@ import helper from '../common/helper'
 class MuiTableContent extends Component {
   constructor(props) {
     super(props);
+
+    t = global.chewbaccaI18n.getFixedT(null, 'connections');
   }
   ryan = () => {
 
@@ -47,13 +51,51 @@ class MuiTableContent extends Component {
     }
   })
   render() {
-    const {columns, data, options} = this.props;
+    const {columns, data, tableOptions} = this.props;
+    const options = {
+			tableBodyHeight: '66vh',
+      selectableRows: 'none',
+      serverSide: true,
+      search: false,
+      filter: false,
+      print: false,
+      rowsPerPageOptions: [10, 20, 50, 100],
+      jumpToPage: true,
+      count: data.totalCount,
+      rowsPerPage: data.pageSize,
+      page: data.currentPage,
+      textLabels: {
+        body: {
+          noMatch: t('MuiDataTable.body.noMatch'),
+          toolTip: t('MuiDataTable.body.toolTip')
+        },
+        pagination: {
+          next: t('MuiDataTable.pagination.next'),
+          previous: t('MuiDataTable.pagination.previous'),
+          rowsPerPage: t('MuiDataTable.pagination.rowsPerPage'),
+          displayRows: t('MuiDataTable.pagination.displayRows'),
+          jumpToPage: t('MuiDataTable.pagination.jumpToPage'),
+        },
+        toolbar: {
+          search: t('MuiDataTable.toolbar.search'),
+          downloadCsv: t('MuiDataTable.toolbar.downloadCsv'),
+          print: t('MuiDataTable.toolbar.print'),
+          viewColumns: t('MuiDataTable.toolbar.viewColumns'),
+          filterTable: t('MuiDataTable.toolbar.filterTable')
+        },
+        viewColumns: {
+          title: t('MuiDataTable.viewColumns.title'),
+          titleAria: t('MuiDataTable.viewColumns.titleAria')
+        }
+      },
+			...tableOptions
+    };
 
     return (
     	<MuiThemeProvider theme={this.getMuiTheme()}>
 				<MUIDataTable
-					columns={columns}
-					data={data}
+					columns={data.dataFields}
+					data={data.dataContent}
 					options={options} />
       </MuiThemeProvider>
     )
@@ -61,9 +103,8 @@ class MuiTableContent extends Component {
 }
 
 MuiTableContent.propTypes = {
-  columns: PropTypes.array.isRequired,
-  data: PropTypes.array.isRequired,
-  options: PropTypes.object.isRequired
+  data: PropTypes.object.isRequired,
+  tableOptions: PropTypes.object.isRequired
 };
 
 export default MuiTableContent;

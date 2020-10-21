@@ -533,7 +533,8 @@
     "status": "Status",
     "docCount": "Docs Count",
     "storeSize": "Store Size(MB)",
-    "priStoreSize": "Primary Store Size(MB)"
+    "priStoreSize": "Primary Store Size(MB)",
+    "_menu": "Actions"
   },
   "auditFields": {
     "message": "Message",

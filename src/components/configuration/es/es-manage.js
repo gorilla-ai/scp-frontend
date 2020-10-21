@@ -5,8 +5,6 @@ import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
 
-import TablePagination from '@material-ui/core/TablePagination';
-
 import Combobox from 'react-ui/build/src/components/combobox'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
@@ -17,7 +15,6 @@ import Config from '../../common/configuration'
 import helper from '../../common/helper'
 import MuiTableContent from '../../common/mui-table-content'
 import SearchOptions from '../../common/search-options'
-import TableContent from '../../common/table-content'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -59,7 +56,7 @@ class EsManage extends Component {
           desc: true
         },
         totalCount: 0,
-        currentPage: 1,
+        currentPage: 0,
         pageSize: 20,
         info: {}
       }
@@ -150,12 +147,12 @@ class EsManage extends Component {
     const {baseUrl} = this.context;
     const {datetime, esSearch, es} = this.state;
     const sort = es.sort.desc ? 'desc' : 'asc';
-    const page = fromSearch === 'search' ? 1 : es.currentPage;
+    const page = fromSearch === 'search' ? 0 : es.currentPage;
     const dateTime = {
       from: Moment(datetime.from).format('YYYY.MM.DD'),
       to: Moment(datetime.to).format('YYYY.MM.DD')
     };
-    let url = `${baseUrl}/api/elasticsearch/list?page=${page}&pageSize=${es.pageSize}&orders=${es.sort.field} ${sort}&startDate=${dateTime.from}&endDate=${dateTime.to}`;
+    let url = `${baseUrl}/api/elasticsearch/list?page=${page + 1}&pageSize=${es.pageSize}&orders=${es.sort.field} ${sort}&startDate=${dateTime.from}&endDate=${dateTime.to}`;
 
     if (esSearch.status !== 'all') {
       url += `&status=${esSearch.status}`;
@@ -192,10 +189,11 @@ class EsManage extends Component {
         tempEs.dataFields = _.map(es.dataFieldsArr, val => {
           return {
             name: val,
-            label: val === '_menu' ? '' : f(`esFields.${val}`),
+            label: val === '_menu' ? ' ' : f(`esFields.${val}`),
             options: {
-              filter: true,
+              filter: val === 'date' ? true : false,
               sort: val === 'date' ? true : false,
+              viewColumns: val === '_menu' ? false : true,
               customBodyRenderLite: (dataIndex) => {
                 if (val === '_menu') {
                   return (
@@ -234,12 +232,13 @@ class EsManage extends Component {
   /**
    * Handle table sort
    * @method
-   * @param {object} sort - sort data object
+   * @param {string} field - sort field
+   * @param {string} boolean - sort type ('asc' or 'desc')
    */
-  handleTableSort = (sort) => {
+  handleTableSort = (field, sort) => {
     let tempEs = {...this.state.es};
-    tempEs.sort.field = sort.field;
-    tempEs.sort.desc = sort.desc;
+    tempEs.sort.field = field;
+    tempEs.sort.desc = sort;
 
     this.setState({
       es: tempEs
@@ -251,7 +250,7 @@ class EsManage extends Component {
    * Handle table pagination change
    * @method
    * @param {string} type - page type ('currentPage' or 'pageSize')
-   * @param {string | number} value - new page number
+   * @param {number} value - new page number
    */
   handlePaginationChange = (type, value) => {
     let tempEs = {...this.state.es};
@@ -472,23 +471,15 @@ class EsManage extends Component {
   render() {
     const {baseUrl, contextRoot} = this.context;
     const {showFilter, importIndexOpen, datetime, es} = this.state;
-    const options = {
-      selectableRows: 'none',
-      serverSide: true,
-      search: false,
-      filter: false,
-      print: false,
-      customFooter: () => {
-        return (
-          <TablePagination
-            rowsPerPageOptions={[10, 20, 50, 100]}
-            count={es.totalCount}
-            rowsPerPage={es.pageSize}
-            page={es.currentPage}
-            onChangePage={this.handlePaginationChange.bind(this, 'currentPage')}
-            onChangeRowsPerPage={this.handlePaginationChange.bind(this, 'pageSize')}
-          />
-        )
+    const tableOptions = {
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort(changedColumn, direction === 'desc');
       }
     };
 
@@ -527,21 +518,9 @@ class EsManage extends Component {
 
               {es.dataContent.length > 0 &&
                 <MuiTableContent
-                  columns={es.dataFields}
-                  data={es.dataContent}
-                  options={options} />
+                  data={es}
+                  tableOptions={tableOptions} />
               }
-
-              {/*<TableContent
-                dataTableData={es.dataContent}
-                dataTableFields={es.dataFields}
-                dataTableSort={es.sort}
-                paginationTotalCount={es.totalCount}
-                paginationPageSize={es.pageSize}
-                paginationCurrentPage={es.currentPage}
-                handleTableSort={this.handleTableSort}
-                paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />*/}
             </div>
           </div>
         </div>

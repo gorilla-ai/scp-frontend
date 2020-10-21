@@ -533,7 +533,8 @@
     "status": "狀態",
     "docCount": "文件數量",
     "storeSize": "儲存資料大小(MB)",
-    "priStoreSize": "主要儲存資料大小(MB)"
+    "priStoreSize": "主要儲存資料大小(MB)",
+    "_menu": "功能"
   },
   "auditFields": {
     "message": "訊息",

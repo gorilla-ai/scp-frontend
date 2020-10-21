@@ -794,5 +794,29 @@
     "txt-timelineUnavailable": "趨勢圖資料不存在",
     "txt-addHost": "新增所屬主機",
     "txt-deleteHost": "$t(txt-delete)$t(txt-host)"
+  },
+  "MuiDataTable": {
+    "body": {
+      "noMatch": "查無資料",
+      "toolTip": "排序"
+    },
+    "pagination": {
+      "next": "下一頁",
+      "previous": "上一頁",
+      "rowsPerPage": "單頁資料數:",
+      "displayRows": "之",
+      "jumpToPage": "跳頁"
+    },
+    "toolbar": {
+      "search": "查詢",
+      "downloadCsv": "下載CSV",
+      "print": "列印",
+      "viewColumns": "查看欄位",
+      "filterTable": "過濾列表"
+    },
+    "viewColumns": {
+      "title": "顯示欄位",
+      "titleAria": "顯示/隱藏欄位"
+    }
   }
 }

@@ -794,5 +794,29 @@
     "txt-timelineUnavailable": "Timeline data is not available",
     "txt-addHost": "Add Host",
     "txt-deleteHost": "$t(txt-delete) $t(txt-host)"
+  },
+  "MuiDataTable": {
+    "body": {
+      "noMatch": "Sorry, no matching records found",
+      "toolTip": "Sort"
+    },
+    "pagination": {
+      "next": "Next Page",
+      "previous": "Previous Page",
+      "rowsPerPage": "Rows per page:",
+      "displayRows": "of",
+      "jumpToPage": "Jump to Page"
+    },
+    "toolbar": {
+      "search": "Search",
+      "downloadCsv": "Download CSV",
+      "print": "Print",
+      "viewColumns": "View Columns",
+      "filterTable": "Filter Table"
+    },
+    "viewColumns": {
+      "title": "Show Columns",
+      "titleAria": "Show/Hide Table Columns"
+    }
   }
 }
