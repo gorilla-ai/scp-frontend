@@ -68,9 +68,6 @@ class EsManage extends Component {
     this.getImportList();
     this.getEsData('search');
   }
-  ryan = () => {
-
-  }
   getImportList = () => {
     const {baseUrl} = this.context;
 

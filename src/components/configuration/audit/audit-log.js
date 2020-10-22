@@ -60,9 +60,6 @@ class AuditLog extends Component {
   componentDidMount() {
     this.getAuditData('search');
   }
-  ryan = () => {
-
-  }
   /**
    * Get and set ES table data
    * @method

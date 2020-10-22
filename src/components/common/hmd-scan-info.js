@@ -84,7 +84,7 @@ class HMDscanInfo extends Component {
     super(props);
 
     this.state = {
-      activeTab: 'dashboard', //dashboard, yara, scanFile, gcb, ir, fileIntegrity, Process Monitor, and settings
+      activeTab: 'dashboard', //dashboard, yara, scanFile, gcb, ir, fileIntegrity, procMonitor, and settings
       buttonGroupList: [],
       polarChartSettings: {},
       activePath: null,
@@ -107,7 +107,7 @@ class HMDscanInfo extends Component {
       hmdInfo: {},
       hasMore: true,
       disabledBtn: false,
-      settingsActiveContent: 'viewMode',
+      settingsActiveContent: 'viewMode', //'viewMode' or 'editMode'
       originalSettingsPathData: {},
       settingsPath: {
         fileIntegrity: {
@@ -768,6 +768,25 @@ class HMDscanInfo extends Component {
     }
   }
   /**
+   * Add file path to Settings tab
+   * @method
+   * @param {string} type - Scan type
+   * @param {string} path - File path to be added
+   */
+  addToSettings = (type, path) => {
+    let tempSettingsPath = {...this.state.settingsPath};
+    tempSettingsPath[type].includePath.push({path});
+
+    this.setState({
+      activeTab: 'settings',
+      settingsActiveContent: 'editMode',
+      settingsPath: tempSettingsPath
+    }, () => {
+      const settings = document.getElementById('settingsWrapper');
+      settings.scrollIntoView(false);
+    });
+  }
+  /**
    * Display Yara Scan Process and Process Monitor content
    * @method
    * @param {number} parentIndex - parent index of the scan process array
@@ -803,6 +822,9 @@ class HMDscanInfo extends Component {
               }
               {val._MatchedPid &&
                 <span>PID: {val._MatchedPid}</span>
+              }
+              {activeTab === 'procMonitor' &&
+                <i className='c-link fg fg-add' title={t('network-inventory.txt-addToSettings')} onClick={this.addToSettings.bind(this, 'procMonitor', filePath)}></i>
               }
             </div>
           </div>
@@ -1858,7 +1880,7 @@ class HMDscanInfo extends Component {
                   <button className='standard btn restore-default' onClick={this.restoreDefaultSettings}>{t('network-inventory.txt-restoreDefault')}</button>
                 </div>
               }
-              <div className='settings-wrapper'>
+              <div id='settingsWrapper' className='settings-wrapper'>
                 {SETTINGS_LIST.map(this.displaySettingsContent)}
               </div>
             </div>
