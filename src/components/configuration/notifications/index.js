@@ -4,6 +4,7 @@ import {withRouter} from 'react-router'
 import {ReactMultiEmail} from 'react-multi-email';
 
 import Button from '@material-ui/core/Button';
+import GeneralDialog from '@f2e/gui/dist/components/dialog/general-dialog'
 
 import Checkbox from 'react-ui/build/src/components/checkbox'
 import DropDownList from 'react-ui/build/src/components/dropdown'
@@ -479,11 +480,32 @@ class Notifications extends Component {
       }
     ];
 
+    const actions = {
+      cancel: {
+        color: 'default',
+        variant: 'contained',
+        text: t('txt-cancel'),
+        handler: this.closeDialog
+      },
+      confirm: {
+        color: 'primary',
+        variant: 'contained',
+        text: t('txt-send'),
+        handler: this.handleTestEmailConfirm
+      }
+    };
+
     return (
       <div>
-        {openEmailDialog &&
-          this.testEmailDialog()
-        }
+        <GeneralDialog
+          open={openEmailDialog}
+          title={t('notifications.txt-testEmails')}
+          maxWidth='sm'
+          fullWidth={true}
+          draggable={true}
+          content={this.displayTestEmail()}
+          actions={actions}
+        />
 
         <div className='sub-header'>
         </div>

@@ -29,6 +29,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@f2e/gui": "git+ssh://git@git.gorilla-technology.com:gorilla/f2e/gui.git",
     "@material-ui/core": "^4.11.0",
     "@material-ui/icons": "^4.9.1",
     "@material-ui/lab": "^4.0.0-alpha.56",
@@ -45,6 +46,7 @@
     "express-session": "^1.15.6",
     "font-gorilla": "git+ssh://git@git.gorilla-technology.com:scrd01/font-gorilla.git",
     "formidable": "^1.2.1",
+    "gui": "git+ssh://git@git.gorilla-technology.com:gorilla/f2e/gui.git",
     "html-to-image": "^0.1.1",
     "jest": "^23.6.0",
     "jquery": "^3.3.1",
