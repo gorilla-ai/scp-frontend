@@ -616,7 +616,6 @@
     "txt-noAvailableDevice": "No available devices to assign",
     "txt-enterSeat": "Please enter a seat name",
     "txt-selectDevice": "Please select a device",
-    "txt-enterFloor": "Please enter a floor name",
     "txt-deleteChild": "Please delete the child node first",
     "txt-addNewDevice": "$t(txt-add) a new device",
     "txt-editIPdevice": "$t(txt-edit) this device",

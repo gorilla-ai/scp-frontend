@@ -1,9 +1,15 @@
 import React, { Component } from 'react'
 import { withRouter } from 'react-router'
 import { NavLink, Link, Switch, Route } from 'react-router-dom'
+import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
+
+import Button from '@material-ui/core/Button';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import TextField from '@material-ui/core/TextField';
 
 import Combobox from 'react-ui/build/src/components/combobox'
 import DateRange from 'react-ui/build/src/components/date-range'
@@ -643,12 +649,11 @@ class Edge extends Component {
   /**
    * Handle Edge edit input data change
    * @method
-   * @param {string} type - input type
-   * @param {string} value - input value
+   * @param {object} event - event object
    */
-  handleDataChange = (type, value) => {
+  handleDataChange = (event) => {
     let tempEdge = {...this.state.edge};
-    tempEdge.info[type] = value;
+    tempEdge.info[event.target.name] = event.target.value;
 
     this.setState({
       edge: tempEdge
@@ -984,6 +989,7 @@ class Edge extends Component {
         text: val
       }
     });
+    const edgeIpText = t('edge-management.txt-ipList') + '(' + t('txt-commaSeparated') + ')';
     let iconType = '';
     let btnStatusOn = false;
     let action = 'start';
@@ -1011,6 +1017,15 @@ class Edge extends Component {
         action = 'stop';
       }
     }
+
+    const StyledTextField = withStyles({
+      root: {
+        backgroundColor: '#fff',
+        '& .Mui-disabled': {
+          backgroundColor: '#f2f2f2'
+        }
+      }
+    })(TextField);
 
     return (
       <div className='main-content basic-form'>
@@ -1047,20 +1062,27 @@ class Edge extends Component {
                 disabled={activeContent === 'viewEdge' || !edge.info.isConfigurable} />
             }
             <div className='group'>
-              <label htmlFor='edgeName'>{t('edge-management.txt-edgeName')}</label>
-              <Input
+              <StyledTextField
                 id='edgeName'
+                name='name'
+                label={t('edge-management.txt-edgeName')}
+                variant='outlined'
+                fullWidth={true}
+                size='small'
                 value={edge.info.name}
-                onChange={this.handleDataChange.bind(this, 'name')}
-                readOnly={activeContent === 'viewEdge'} />
+                onChange={this.handleDataChange}
+                disabled={activeContent === 'viewEdge'} />
             </div>
             <div className='group'>
-              <label htmlFor='edgeID'>{t('edge-management.txt-edgeID')}</label>
-              <Input
+              <StyledTextField
                 id='edgeID'
+                name='id'
+                label={t('edge-management.txt-edgeID')}
+                variant='outlined'
+                fullWidth={true}
+                size='small'
                 value={edge.info.id}
-                onChange={this.handleDataChange.bind(this, 'id')}
-                readOnly={true} />
+                disabled={true} />
             </div>
             <div className='group'>
               <label htmlFor='edgeIP'>{t('edge-management.txt-ip')}</label>
@@ -1082,36 +1104,49 @@ class Edge extends Component {
                 readOnly={true} />
             </div>
             <div className='group'>
-              <label htmlFor='edgeIPlist'>{t('edge-management.txt-ipList')} ({t('txt-commaSeparated')})</label>
-              <Input
+              <StyledTextField
                 id='edgeIPlist'
+                name='edgeIPlist'
+                label={edgeIpText}
+                variant='outlined'
+                fullWidth={true}
+                size='small'
                 value={edge.info.edgeIPlist}
-                onChange={this.handleDataChange.bind(this, 'edgeIPlist')}
-                readOnly={activeContent === 'viewEdge' || !edge.info.isConfigurable} />
+                onChange={this.handleDataChange}
+                disabled={activeContent === 'viewEdge' || !edge.info.isConfigurable} />
             </div>
             <div className='group'>
-              <label htmlFor='edgeVPNip'>{t('edge-management.txt-vpnIP')}</label>
-              <Input
+              <StyledTextField
                 id='edgeVPNip'
-                value={edge.info.vpnIP}
-                onChange={this.handleDataChange.bind(this, 'vpnIP')}
-                readOnly={true} />
+                name='vpnIP'
+                label={t('edge-management.txt-vpnIP')}
+                variant='outlined'
+                fullWidth={true}
+                size='small'
+                value={edge.info.edgeIPlist}
+                disabled={true} />
             </div>
             <div className='group'>
-              <label htmlFor='edgeLicenseName'>{t('edge-management.txt-vpnLicenseName')}</label>
-              <Input
+              <StyledTextField
                 id='edgeLicenseName'
+                name='licenseName'
+                label={t('edge-management.txt-vpnLicenseName')}
+                variant='outlined'
+                fullWidth={true}
+                size='small'
                 value={edge.info.licenseName}
-                onChange={this.handleDataChange.bind(this, 'licenseName')}
-                readOnly={true} />
+                disabled={true} />
             </div>
             <div className='group'>
-              <label htmlFor='edgeServiceType'>{t('edge-management.txt-serviceType')}</label>
-              <Input
+              <StyledTextField
                 id='edgeServiceType'
+                name='serviceType'
+                label={t('edge-management.txt-serviceType')}
+                variant='outlined'
+                fullWidth={true}
+                size='small'
                 value={edge.info.serviceType}
-                onChange={this.handleDataChange.bind(this, 'serviceType')}
-                readOnly={true} />
+                disabled={true} />
             </div>
             <div className='group'>
               <label htmlFor='edgeServiceMode'>{t('edge-management.txt-serviceMode')}</label>
@@ -1133,20 +1168,28 @@ class Edge extends Component {
                 readOnly={activeContent === 'viewEdge' || !edge.info.isConfigurable} />
             </div>
             <div className='group'>
-              <label htmlFor='edgeLongitude'>{t('edge-management.txt-longitude')}</label>
-              <Input
+              <StyledTextField
                 id='edgeLongitude'
+                name='longitude'
+                label={t('edge-management.txt-longitude')}
+                variant='outlined'
+                fullWidth={true}
+                size='small'
                 value={edge.info.longitude}
-                onChange={this.handleDataChange.bind(this, 'longitude')}
-                readOnly={activeContent === 'viewEdge'} />
+                onChange={this.handleDataChange}
+                disabled={activeContent === 'viewEdge'} />
             </div>
             <div className='group'>
-              <label htmlFor='edgeLatitude'>{t('edge-management.txt-latitude')}</label>
-              <Input
+              <StyledTextField
                 id='edgeLatitude'
+                name='latitude'
+                label={t('edge-management.txt-latitude')}
+                variant='outlined'
+                fullWidth={true}
+                size='small'
                 value={edge.info.latitude}
-                onChange={this.handleDataChange.bind(this, 'latitude')}
-                readOnly={activeContent === 'viewEdge'} />
+                onChange={this.handleDataChange}
+                disabled={activeContent === 'viewEdge'} />
             </div>
             <div className='group full'>
               {activeContent === 'editEdge' &&

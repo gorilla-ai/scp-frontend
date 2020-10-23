@@ -1,5 +1,5 @@
 import React, {Component} from 'react'
-import {withRouter} from 'react-router'
+import { withRouter } from 'react-router'
 import Moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'

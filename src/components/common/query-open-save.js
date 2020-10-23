@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
 
-import {ReactMultiEmail} from 'react-multi-email';
+import { ReactMultiEmail } from 'react-multi-email';
 
 import Checkbox from 'react-ui/build/src/components/checkbox'
 import DropDownList from 'react-ui/build/src/components/dropdown'

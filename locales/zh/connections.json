@@ -616,7 +616,6 @@
     "txt-noAvailableDevice": "無裝置可選擇",
     "txt-enterSeat": "請輸入座位名稱",
     "txt-selectDevice": "請選擇裝置",
-    "txt-enterFloor": "請輸入樓層圖名稱",
     "txt-deleteChild": "請先刪除子樹狀節點",
     "txt-addNewDevice": "$t(txt-add)裝置",
     "txt-editIPdevice": "$t(txt-edit)此裝置",

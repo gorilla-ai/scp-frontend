@@ -1,9 +1,10 @@
 import React, { Component } from 'react'
+import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import Input from 'react-ui/build/src/components/input'
+import TextField from '@material-ui/core/TextField';
 
 import helper from './helper'
 
@@ -26,42 +27,50 @@ class InputPath extends Component {
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
   }
+  ryan = () => {
+
+  }
   /**
    * Set data input
    * @method
-   * @param {string} listType - list data type
-   * @param {string} value - input value
+   * @param {object} event - event object
    */
-  handleDataChange = (listType, value) => {
-    const dataType = listType === 'processKeyword' ? 'keyword' : 'path';
+  handleDataChange = (event) => {
+    const dataType = event.target.name === 'processKeyword' ? 'keyword' : 'path';
 
     this.props.onChange({
       ...this.props.value,
-      [dataType]: value
+      [dataType]: event.target.value
     });
   }
   render() {
     const {scanType, listType, value} = this.props;
     const dataType = listType === 'processKeyword' ? 'keyword' : 'path';
+    const StyledTextField = withStyles({
+      root: {
+        backgroundColor: '#fff'
+      }
+    })(TextField);
 
     let inputProps = {
+      name: listType,
+      variant: 'outlined',
+      fullWidth: true,
+      size: 'small',
       value: value[dataType],
-      onChange: this.handleDataChange.bind(this, listType)
+      onChange: this.handleDataChange
     };
 
     if (scanType === 'fileIntegrity' && listType === 'includePath') {
       inputProps = {
         ...inputProps,
-        required: true,
-        validate: {
-          t: et
-        }
+        required: true
       };
     }
 
     return (
       <div className={cx('path-input', {'short': listType === 'processKeyword'})}>
-        <Input
+        <StyledTextField
           {...inputProps} />
       </div>
     )

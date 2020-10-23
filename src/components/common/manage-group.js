@@ -1,8 +1,9 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 
+import TextField from '@material-ui/core/TextField';
+
 import DataTable from 'react-ui/build/src/components/table'
-import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
@@ -147,12 +148,11 @@ class ManageGroup extends Component {
   /**
    * Handle input value change
    * @method
-   * @param {string} key - input type
-   * @param {string} value - input value
+   * @param {object} event - event object
    */
-  handleDataChange = (key, value) => {
+  handleDataChange = (event) => {
     this.setState({
-      [key]: value
+      [event.target.name]: event.target.value
     });
   }
   /**
@@ -162,10 +162,15 @@ class ManageGroup extends Component {
    */
   displayAddGroup = () => {
     return (
-      <Input
-        placeholder={t('txt-plsEnterName')}
+      <TextField
+        name='groupName'
+        label={t('txt-name')}
+        variant='outlined'
+        fullWidth={true}
+        size='small'
+        defaultValue={t('txt-plsEnterName')}
         value={this.state.groupName}
-        onChange={this.handleDataChange.bind(this, 'groupName')} />
+        onChange={this.handleDataChange} />
     )
   }
   /**

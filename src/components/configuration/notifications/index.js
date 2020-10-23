@@ -1,14 +1,17 @@
 import React, {Component} from 'react'
-import {withRouter} from 'react-router'
+import { withRouter } from 'react-router'
+import { withStyles } from '@material-ui/core/styles';
 
-import {ReactMultiEmail} from 'react-multi-email';
+import { ReactMultiEmail } from 'react-multi-email';
 
 import Button from '@material-ui/core/Button';
+import Checkbox from '@material-ui/core/Checkbox';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import TextField from '@material-ui/core/TextField';
+
 import GeneralDialog from '@f2e/gui/dist/components/dialog/general-dialog'
 
-import Checkbox from 'react-ui/build/src/components/checkbox'
-import DropDownList from 'react-ui/build/src/components/dropdown'
-import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
 import {BaseDataContext} from '../../common/context';
@@ -41,7 +44,7 @@ class Notifications extends Component {
         port: 25,
         sender: '',
         connectType: 'standard',
-        authentication: 'true',
+        authentication: true,
         senderAccount: '',
         senderPassword: ''
       },
@@ -109,7 +112,7 @@ class Notifications extends Component {
           port: data1.smtpPort,
           sender: data1.sender,
           connectType: data1.smtpConnectType,
-          authentication: data1.emailAuthentication.toString(), //Convert boolean to string
+          authentication: data1.emailAuthentication, //Convert boolean to string
           senderAccount: data1.senderAcct,
           senderPassword: data1.senderPasswd
         };
@@ -152,12 +155,11 @@ class Notifications extends Component {
   /**
    * Handle email settings input data change
    * @method
-   * @param {string} type - input type
-   * @param {string} value - input value
+   * @param {object} event - event object
    */
-  handleDataChange = (type, value) => {
+  handleDataChange = (event) => {
     let tempNotifications = {...this.state.notifications};
-    tempNotifications[type] = value;
+    tempNotifications[event.target.name] = event.target.value;
 
     this.setState({
       notifications: tempNotifications
@@ -199,7 +201,7 @@ class Notifications extends Component {
       smtpServer: notifications.server,
       smtpPort: Number(notifications.port),
       smtpConnectType: notifications.connectType,
-      emailAuthentication: notifications.authentication === 'true', //Convert string to boolean
+      emailAuthentication: notifications.authentication === true, //Convert string to boolean
       sender: notifications.sender,
       senderAcct: notifications.senderAccount,
       senderPasswd: notifications.senderPassword
@@ -253,12 +255,11 @@ class Notifications extends Component {
   /**
    * Toggle Email notifications checkbox
    * @method
-   * @param {string} type - notifications type ('service', 'edge', or 'alert')
-   * @param {string} value - input value
+   * @param {object} event - event object
    */
-  toggleEmailCheckbox = (type, value) => {
+  toggleEmailCheckbox = (event) => {
     let tempEmails = {...this.state.emails};
-    tempEmails[type].enable = value;
+    tempEmails[event.target.name].enable = event.target.checked;
 
     this.setState({
       emails: tempEmails
@@ -339,11 +340,15 @@ class Notifications extends Component {
           }
         </div>
         <div className='group'>
-          <label htmlFor='serviceError' className='checkbox'>{val.checkboxText}</label>
-          <Checkbox
-            id='serviceError'
-            checked={emails[val.type].enable}
-            onChange={this.toggleEmailCheckbox.bind(this, val.type)}
+          <FormControlLabel
+            label={val.checkboxText}
+            control={
+              <Checkbox
+                name={val.type}
+                checked={emails[val.type].enable}
+                onChange={this.toggleEmailCheckbox}
+                color='primary' />
+            }
             disabled={activeContent === 'viewMode'} />
         </div>
       </div>
@@ -495,6 +500,15 @@ class Notifications extends Component {
       }
     };
 
+    const StyledTextField = withStyles({
+      root: {
+        backgroundColor: '#fff',
+        '& .Mui-disabled': {
+          backgroundColor: '#f2f2f2'
+        }
+      }
+    })(TextField);
+
     return (
       <div>
         <GeneralDialog
@@ -530,78 +544,102 @@ class Notifications extends Component {
                   <header>{t('notifications.txt-emailSettings')}</header>
                   <Button variant='contained' color='primary' className='last' onClick={this.openEmailDialog} disabled={activeContent === 'editMode'}>{t('notifications.txt-testEmails')}</Button>
                   <div className='group'>
-                    <label htmlFor='notificationsServer'>{t('notifications.txt-smtpServer')}</label>
-                    <Input
+                    <StyledTextField
                       id='notificationsServer'
+                      name='server'
+                      label={t('notifications.txt-smtpServer')}
+                      variant='outlined'
+                      fullWidth={true}
+                      size='small'
                       value={notifications.server}
-                      onChange={this.handleDataChange.bind(this, 'server')}
-                      readOnly={activeContent === 'viewMode'} />
+                      onChange={this.handleDataChange}
+                      disabled={activeContent === 'viewMode'} />
                   </div>
                   <div className='group'>
-                    <label htmlFor='notificationsPort'>{t('notifications.txt-smtpPort')}</label>
-                    <DropDownList
+                    <StyledTextField
                       id='notificationsPort'
-                      required={true}
-                      list={[
-                        {value: 25, text: 25},
-                        {value: 465, text: 465},
-                        {value: 587, text: 587}
-                      ]}
+                      name='port'
+                      select
+                      label={t('notifications.txt-smtpPort')}
+                      variant='outlined'
+                      fullWidth={true}
+                      size='small'
                       value={notifications.port}
-                      onChange={this.handleDataChange.bind(this, 'port')}
-                      readOnly={activeContent === 'viewMode'} />
+                      onChange={this.handleDataChange}
+                      disabled={activeContent === 'viewMode'}>
+                      <MenuItem value={25}>25</MenuItem>
+                      <MenuItem value={465}>465</MenuItem>
+                      <MenuItem value={587}>587</MenuItem>
+                    </StyledTextField>
                   </div>
                   <div className='group' style={{width: '50%'}}>
-                    <label htmlFor='notificationsSender'>{t('notifications.txt-sender')}</label>
-                    <Input
+                    <StyledTextField
                       id='notificationsSender'
+                      name='sender'
+                      label={t('notifications.txt-sender')}
+                      variant='outlined'
+                      fullWidth={true}
+                      size='small'
                       value={notifications.sender}
-                      onChange={this.handleDataChange.bind(this, 'sender')}
-                      readOnly={activeContent === 'viewMode'} />
+                      onChange={this.handleDataChange}
+                      disabled={activeContent === 'viewMode'} />
                   </div>
                   <div className='group'>
-                    <label htmlFor='notificationsSender'>{t('notifications.txt-smtpConnectType')}</label>
-                    <DropDownList
+                    <StyledTextField
                       id='notificationsSender'
-                      required={true}
-                      list={[
-                        {value: 'standard', text: 'Standard'},
-                        {value: 'ssl', text: 'SSL'},
-                        {value: 'tls', text: 'TLS'},
-                      ]}
+                      name='connectType'
+                      select
+                      label={t('notifications.txt-smtpConnectType')}
+                      variant='outlined'
+                      fullWidth={true}
+                      size='small'
                       value={notifications.connectType}
-                      onChange={this.handleDataChange.bind(this, 'connectType')}
-                      readOnly={activeContent === 'viewMode'} />
+                      onChange={this.handleDataChange}
+                      disabled={activeContent === 'viewMode'}>
+                      <MenuItem value='standard'>standard</MenuItem>
+                      <MenuItem value='ssl'>SSL</MenuItem>
+                      <MenuItem value='tls'>TLS</MenuItem>
+                    </StyledTextField>
                   </div>
                   <div className='group'>
-                    <label htmlFor='notificationsAuthentication'>{t('notifications.txt-authentication')}</label>
-                    <DropDownList
+                    <StyledTextField
                       id='notificationsAuthentication'
-                      required={true}
-                      list={[
-                        {value: 'true', text: 'True'},
-                        {value: 'false', text: 'False'}
-                      ]}
+                      name='authentication'
+                      select
+                      label={t('notifications.txt-authentication')}
+                      variant='outlined'
+                      fullWidth={true}
+                      size='small'
                       value={notifications.authentication}
-                      onChange={this.handleDataChange.bind(this, 'authentication')}
-                      readOnly={activeContent === 'viewMode'} />
+                      onChange={this.handleDataChange}
+                      disabled={activeContent === 'viewMode'}>
+                      <MenuItem value={true}>True</MenuItem>
+                      <MenuItem value={false}>False</MenuItem>
+                    </StyledTextField>
                   </div>
                   <div className='group'>
-                    <label htmlFor='notificationsSenderAccount'>{t('notifications.txt-senderAccount')}</label>
-                    <Input
+                    <StyledTextField
                       id='notificationsSenderAccount'
+                      name='senderAccount'
+                      label={t('notifications.txt-senderAccount')}
+                      variant='outlined'
+                      fullWidth={true}
+                      size='small'
                       value={notifications.senderAccount}
-                      onChange={this.handleDataChange.bind(this, 'senderAccount')}
-                      readOnly={activeContent === 'viewMode'} />
+                      onChange={this.handleDataChange}
+                      disabled={activeContent === 'viewMode'} />
                   </div>
                   <div className='group'>
-                    <label htmlFor='notificationsSenderPassword'>{t('notifications.txt-senderPassword')}</label>
-                    <Input
+                    <StyledTextField
                       id='notificationsSenderPassword'
-                      type='password'
+                      name='senderPassword'
+                      label={t('notifications.txt-senderPassword')}
+                      variant='outlined'
+                      fullWidth={true}
+                      size='small'
                       value={notifications.senderPassword}
-                      onChange={this.handleDataChange.bind(this, 'senderPassword')}
-                      readOnly={activeContent === 'viewMode'} />
+                      onChange={this.handleDataChange}
+                      disabled={activeContent === 'viewMode'} />
                   </div>
                 </div>
 

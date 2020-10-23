@@ -3,6 +3,8 @@ import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
 
+import TextField from '@material-ui/core/TextField';
+
 import FileInput from 'react-ui/build/src/components/file-input'
 import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
@@ -40,7 +42,8 @@ class FloorMap extends Component {
       mapAreaUUID: '',
       currentMap: '',
       currentBaseLayers: {},
-      previewFloorMap: ''
+      previewFloorMap: '',
+      floorNameError: false
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -160,22 +163,27 @@ class FloorMap extends Component {
   /**
    * Set input data change
    * @method
-   * @param {string} type - input type
-   * @param {string | object} value - input data to be set
+   * @param {object} event - event object
    */
-  handleDataChange = (type, value) => {
+  handleDataChange = (event) => {
     let tempFloorPlan = {...this.state.floorPlan};
-    tempFloorPlan[type] = value;
-
-    if (type === 'map') {
-      const file = value ? URL.createObjectURL(value) : '';
-
-      this.setState({
-        previewFloorMap: file
-      });
-    }
+    tempFloorPlan[event.target.name] = event.target.value;  
 
     this.setState({
+      floorPlan: tempFloorPlan
+    });
+  }
+  /**
+   * Set map data change
+   * @method
+   * @param {string | object} value - input data to be set
+   */
+  handleMapChange = (value) => {
+    let tempFloorPlan = {...this.state.floorPlan};
+    tempFloorPlan.map = value;
+
+    this.setState({
+      previewFloorMap: value ? URL.createObjectURL(value) : '',
       floorPlan: tempFloorPlan
     });
   }
@@ -249,7 +257,8 @@ class FloorMap extends Component {
 
     this.setState({
       floorPlan: tempFloorPlan,
-      previewFloorMap: ''
+      previewFloorMap: '',
+      floorNameError: false
     }, () => {
       this.fileInput.handleClick();
       this.getAreaData(areaUUID);
@@ -429,7 +438,7 @@ class FloorMap extends Component {
    * @method
    */
   displayAddFloor = () => {
-    const {floorPlan, currentMap, previewFloorMap} = this.state;
+    const {floorPlan, currentMap, previewFloorMap, floorNameError} = this.state;
 
     return (
       <div>
@@ -467,18 +476,19 @@ class FloorMap extends Component {
         <div className='right'>
           <header className='add-floor'>
             <div className='field'>
-              <label htmlFor='areaMapName'>{t('txt-name')}</label>
-              <Input
+              <TextField
                 id='areaMapName'
-                className='add'
+                name='name'
+                label={t('txt-name')}
+                variant='outlined'
+                fullWidth={true}
+                size='small'
                 required={true}
-                validate={{
-                  t: et
-                }}
+                error={floorNameError}
+                helperText={floorNameError ? t('txt-required') : ''}
                 value={floorPlan.name}
-                onChange={this.handleDataChange.bind(this, 'name')} />
+                onChange={this.handleDataChange} />
             </div>
-
             <div className='field upload'>
               <label htmlFor='areaMapUpload'>{t('txt-network-map')}</label>
               <FileInput
@@ -496,7 +506,7 @@ class FloorMap extends Component {
                     }
                   }
                 }}
-                onChange={this.handleDataChange.bind(this, 'map')} />
+                onChange={this.handleMapChange} />
             </div>
 
             <i className='c-link fg fg-save' onClick={this.handleFloorSave} title={t('network-topology.txt-saveFloor')}></i>
@@ -536,8 +546,14 @@ class FloorMap extends Component {
       return;
     }
 
-    if (!floorPlan.name) {
-      helper.showPopupMsg(t('network-topology.txt-enterFloor'), t('txt-error'));
+    if (floorPlan.name) {
+      this.setState({
+        floorNameError: false
+      });
+    } else {
+      this.setState({
+        floorNameError: true
+      });
       return;
     }
 
