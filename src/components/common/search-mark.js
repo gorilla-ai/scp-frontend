@@ -1,9 +1,40 @@
 import React, { Component } from 'react'
+import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 import cx from 'classnames'
 
+import TextField from '@material-ui/core/TextField';
+
 import helper from './helper'
+
+const StyledTextField = withStyles({
+  root: {
+    backgroundColor: '#fff',
+    '& .Mui-disabled': {
+      backgroundColor: '#f2f2f2'
+    }
+  }
+})(TextField);
+
+function TextFieldComp(props) {
+  return (
+    <StyledTextField
+      id={props.id}
+      className={props.className}
+      name={props.name}
+      label={props.label}
+      multiline={props.multiline}
+      rows={props.rows}
+      maxLength={props.maxLength}
+      variant={props.variant}
+      fullWidth={props.fullWidth}
+      size={props.size}
+      value={props.value}
+      onChange={props.onChange}
+      disabled={props.disabled} />
+  )
+}
 
 /**
  * Search Filter
@@ -18,7 +49,7 @@ class SearchMark extends Component {
   /**
    * Set search mark input
    * @method
-   * @param {object} event - input value
+   * @param {object} event - event object
    */
   handleDataChange = (event) => {
     const {markData} = this.props;
@@ -38,14 +69,16 @@ class SearchMark extends Component {
   render() {
     const {value, queryType} = this.props;
     const formStatus = queryType === 'query' ? true : false;
-    const inputValue = typeof value.data === 'object' ? value.data.data : value.data;
+    const inputValue = typeof value.data === 'object' ? value.data.data : value.data;  
 
     return (
       <div>
         <i className={'c-link fg fg-recode ' + value.color}></i>
-        <input
+        <TextFieldComp
           className='mark-inputbox'
-          type='text'
+          variant='outlined'
+          fullWidth={true}
+          size='small'
           value={inputValue}
           onChange={this.handleDataChange}
           disabled={formStatus} />

@@ -1,10 +1,42 @@
 import React, { Component } from 'react'
+import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 import cx from 'classnames'
 
+import MenuItem from '@material-ui/core/MenuItem';
+import TextField from '@material-ui/core/TextField';
+
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import Textarea from 'react-ui/build/src/components/textarea'
+
+const StyledTextField = withStyles({
+  root: {
+    backgroundColor: '#fff',
+    '& .Mui-disabled': {
+      backgroundColor: '#f2f2f2'
+    }
+  }
+})(TextField);
+
+function TextFieldComp(props) {
+  return (
+    <StyledTextField
+      id={props.id}
+      className={props.className}
+      name={props.name}
+      label={props.label}
+      multiline={props.multiline}
+      rows={props.rows}
+      maxLength={props.maxLength}
+      variant={props.variant}
+      fullWidth={props.fullWidth}
+      size={props.size}
+      value={props.value}
+      onChange={props.onChange}
+      disabled={props.disabled} />
+  )
+}
 
 /**
  * Search Filter
@@ -19,74 +51,47 @@ class SearchFilter extends Component {
   /**
    * Set search filter input
    * @method
-   * @param {string} field - input type ('condition' or 'query')
-   * @param {string} value - input value
+   * @param {object} event - event object
    */
-  handleDataChange = (field, value) => {
+  handleDataChange = (event) => {
     this.props.onChange({
       ...this.props.value,
-      [field]: value
+      [event.target.name]: event.target.value
     });
   }
   render() {
     const {queryType, activeTab, value} = this.props;
     const formStatus = queryType === 'query' ? true : false;
-    let conditionList = [];
-    let filterList = [];
-
-    if (activeTab === 'host') {
-      filterList = [
-        {
-          value: 'exactIp',
-          text: 'Exact IP'
-        },
-        {
-          value: 'ip',
-          text: 'IP'
-        },
-        {
-          value: 'mac',
-          text: 'MAC'
-        },
-        {
-          value: 'hostName',
-          text: 'Host Name'
-        },
-        {
-          value: 'deviceType',
-          text: 'Device Type'
-        },
-        {
-          value: 'system',
-          text: 'System'
-        }
-      ];
-    } else {
-      conditionList = ['Must', 'Must Not', 'Either'];
-      filterList = _.map(conditionList, val => {
-        let formattedValue = val.toLowerCase();
-        formattedValue = formattedValue.replace(' ', '_');
-
-        return {
-          value: formattedValue,
-          text: val
-        };
-      });
-    }
+    const conditionList = ['Must', 'Must Not', 'Either'];
+    const filterList = _.map(conditionList, (val, i) => {
+      let formattedValue = val.toLowerCase();
+      formattedValue = formattedValue.replace(' ', '_');
+      return <MenuItem key={i} value={formattedValue}>{val}</MenuItem>
+    });
 
     return (
       <div>
-        <DropDownList
+        <StyledTextField
+          name='condition'
           className='condition-select'
-          list={filterList}
-          required={true}
+          select
+          variant='outlined'
+          fullWidth={true}
+          size='small'
           value={value.condition}
-          onChange={this.handleDataChange.bind(this, 'condition')}
-          disabled={formStatus} />
-        <Textarea
+          onChange={this.handleDataChange}
+          disabled={formStatus}>
+          {filterList}
+        </StyledTextField>
+        <TextFieldComp
+          name='query'
           className='filter-inputbox'
+          multiline={true}
+          variant='outlined'
+          fullWidth={true}
+          size='small'
           value={value.query}
-          onChange={this.handleDataChange.bind(this, 'query')}
+          onChange={this.handleDataChange}
           disabled={formStatus} />
       </div>
     )

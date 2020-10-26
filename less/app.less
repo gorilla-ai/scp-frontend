@@ -196,6 +196,9 @@ button {
     border: none !important;
   }
 }
+.fg-close {
+  height: 40px;
+}
 .c-tabs > .menu {
   border-bottom: 1.5px solid var(--leftNavBackground);
   background-color: var(--primaryContentBackground);
@@ -1392,6 +1395,21 @@ i.c-checkbox.fg-checkbox {
         }
       }
     }
+    .edge-settings {
+      .form-options {
+          position: absolute;
+          top: -45px;
+          right: -10px;
+        .nettrap-upgrade {
+          float: right;
+          margin-right: 20px;
+          padding: .3em 1em;
+        }
+        .switch-control {
+          float: right;
+        }
+      }
+    }
     .parent-content {
       flex-grow: 1;
       overflow-x: auto;
@@ -1452,7 +1470,8 @@ i.c-checkbox.fg-checkbox {
             .fg-recode {
               float: left;
               width: 32px;
-              padding: 5px 5px 6px 4px;
+              height: 40px;
+              padding: 8px 5px 6px 4px;
               margin-right: 3px;
               border: 1px solid var(--formReadOnlyBorderColor);
               border-radius: 5px;
@@ -1999,17 +2018,6 @@ i.c-checkbox.fg-checkbox {
                 right: 100px;
                 padding: .3em 1em;
               }
-            }
-            .nettrap-upgrade {
-              position: absolute;
-              top: -45px;
-              right: 75px;
-              padding: .3em 1em;
-            }
-            .toggle-btn {
-              position: absolute;
-              top: -40px;
-              right: 0;
             }
             .group {
               label {

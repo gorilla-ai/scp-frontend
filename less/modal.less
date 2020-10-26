@@ -330,7 +330,7 @@ html[data-theme='dark'] {
       color: var(--primaryContentHeader);
       margin-bottom: 3px;
       span {
-        color: #da364a;
+        //color: #da364a;
       }
     }
     input,
@@ -1359,18 +1359,18 @@ html[data-theme='dark'] {
     float: left;
     width: 58%;
     height: 35px;
-    margin-bottom: 10px;
+    margin-top: 10px;
+    margin-bottom: 20px;
     &.dropdown {
       width: 40%;
       margin-right: 5px;
-      margin-bottom: 15px;
     }
   }
   .filter-group {
     clear: both;
     min-width: 400px;
     overflow-y: hidden;
-    padding: 5px 6px;
+    padding: 10px 6px;
     margin-bottom: 15px;
     border-radius: 5px;
     background-color: var(--dialogFormGroup);
@@ -1422,6 +1422,7 @@ html[data-theme='dark'] {
   }
   .severity-level {
     padding: 10px;
+    padding-top: 15px;
     margin-bottom: 15px;
     border-radius: 5px;
     background-color: var(--dialogFormGroup);
@@ -1431,10 +1432,19 @@ html[data-theme='dark'] {
       margin-right: 5px;
       margin-top: 5px;
     }
+    .severity-dropdown {
+      width: 92%;
+    }
     .period {
       color: var(--primaryContentHeader);
-      margin-top: 5px;
+      margin-top: 10px;
       margin-bottom: 10px;
+      .support-text {
+        display: inline-block;
+        margin-top: 10px;
+        margin-right: 5px;
+        margin-left: 5px;
+      }
       .number {
         width: 65px;
       }
@@ -1447,13 +1457,6 @@ html[data-theme='dark'] {
     float: left;
     margin-right: 3px;
     margin-bottom: 5px;
-  }
-  .pattern-header {
-    color: var(--linkColor);
-  }
-  #severityLevel {
-    width: 93%;
-    margin-bottom: 10px;
   }
   .email-list {
     margin-bottom: 15px;

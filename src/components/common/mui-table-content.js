@@ -22,9 +22,6 @@ class MuiTableContent extends Component {
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
   }
-  ryan = () => {
-
-  }
   getMuiTheme = () => createMuiTheme({
     overrides: {
       MuiTableCell: {

@@ -11,6 +11,24 @@ import helper from './helper'
 let t = null;
 let et = null;
 
+const StyledTextField = withStyles({
+  root: {
+    backgroundColor: '#fff'
+  }
+})(TextField);
+
+function TextFieldComp(props) {
+  return (
+    <StyledTextField
+      name={props.name}
+      variant={props.variant}
+      fullWidth={props.fullWidth}
+      size={props.size}
+      value={props.value}
+      onChange={props.onChange} />
+  )
+}
+
 /**
  * Input Path
  * @class
@@ -26,9 +44,6 @@ class InputPath extends Component {
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
-  }
-  ryan = () => {
-
   }
   /**
    * Set data input
@@ -46,12 +61,6 @@ class InputPath extends Component {
   render() {
     const {scanType, listType, value} = this.props;
     const dataType = listType === 'processKeyword' ? 'keyword' : 'path';
-    const StyledTextField = withStyles({
-      root: {
-        backgroundColor: '#fff'
-      }
-    })(TextField);
-
     let inputProps = {
       name: listType,
       variant: 'outlined',
@@ -70,7 +79,7 @@ class InputPath extends Component {
 
     return (
       <div className={cx('path-input', {'short': listType === 'processKeyword'})}>
-        <StyledTextField
+        <TextFieldComp
           {...inputProps} />
       </div>
     )

@@ -1,11 +1,16 @@
 import React, { Component } from 'react'
+import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
 
 import { ReactMultiEmail } from 'react-multi-email';
 
-import Checkbox from 'react-ui/build/src/components/checkbox'
+import Checkbox from '@material-ui/core/Checkbox';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import TextField from '@material-ui/core/TextField';
+
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
@@ -31,6 +36,35 @@ const ALERT_LEVEL_COLORS = {
   Notice: '#7ACC29'
 };
 const PERIOD_MIN = [10, 15, 30, 60];
+const StyledTextField = withStyles({
+  root: {
+    backgroundColor: '#fff',
+    '& .Mui-disabled': {
+      backgroundColor: '#f2f2f2'
+    }
+  }
+})(TextField);
+
+function TextFieldComp(props) {
+  return (
+    <StyledTextField
+      id={props.id}
+      className={props.className}
+      name={props.name}
+      type={props.type}
+      label={props.label}
+      multiline={props.multiline}
+      rows={props.rows}
+      maxLength={props.maxLength}
+      variant={props.variant}
+      fullWidth={props.fullWidth}
+      size={props.size}
+      InputProps={props.InputProps}
+      value={props.value}
+      onChange={props.onChange}
+      disabled={props.disabled} />
+  )
+}
 
 /**
  * Query open/save
@@ -70,18 +104,11 @@ class QueryOpenSave extends Component {
    * @method
    */
   setSeverityList = () => {
-    let severityList = [];
-    let periodMinList = [];
-
-    _.forEach(SEVERITY_TYPE, val => {
-      severityList.push({
-        value: val,
-        text: val
-      });
-    })
-
-    periodMinList = _.map(PERIOD_MIN, val => {
-      return { value: val, text: val }
+    const severityList = _.map(SEVERITY_TYPE, (val, i) => {
+      return <MenuItem key={i} value={val}>{val}</MenuItem>
+    });
+    const periodMinList = _.map(PERIOD_MIN, (val, i) => {
+      return <MenuItem key={i} value={val}>{val}</MenuItem>
     });
 
     this.setState({
@@ -464,11 +491,12 @@ class QueryOpenSave extends Component {
    * Set query data for new selected saved query
    * @method
    * @param {string} type - input type ('id' or 'name')
-   * @param {number} value - input value
+   * @param {object} event - event object
    */
-  handleQueryChange = (type, value) => {
+  handleQueryChange = (type, event) => {
     const {activeTab, queryData} = this.props;
     const {newQueryName, pattern} = this.state;
+    const value = event.target.value;
     let tempQueryData = {...queryData};
     let tempPattern = {...pattern};
     let patternCheckbox = false;
@@ -572,31 +600,11 @@ class QueryOpenSave extends Component {
   /**
    * Handle Pattern edit input data change
    * @method
-   * @param {string} type - input type
-   * @param {string} value - input value
+   * @param {object} event - event object
    */
-  handleDataChange = (type, value) => {
+  handleDataChange = (event) => {
     let tempPattern = {...this.state.pattern};
-    tempPattern[type] = value;
-
-    this.setState({
-      pattern: tempPattern
-    });
-  }
-  /**
-   * Handle Pattern edit input number change
-   * @method
-   * @param {string} type - input type ('periodMin' or 'threshold')
-   * @param {object | string} value - input value
-   */
-  handleNumberChange = (type, value) => {
-    let tempPattern = {...this.state.pattern};
-
-    if (type === 'periodMin') {
-      tempPattern[type] = value;
-    } else if (type === 'threshold') {
-      tempPattern[type] = value.target.value;
-    }
+    tempPattern[event.target.name] = event.target.value;
 
     this.setState({
       pattern: tempPattern
@@ -702,43 +710,56 @@ class QueryOpenSave extends Component {
 
     return (
       <div>
-        <Checkbox
-          id='patternCheckbox'
-          checked={checkboxChecked}
-          onChange={this.togglePatternCheckbox}
+        <FormControlLabel
+          label={t('events.connections.txt-addPatternScript')}
+          control={
+            <Checkbox
+              id='patternCheckbox'
+              checked={checkboxChecked}
+              onChange={this.togglePatternCheckbox}
+              color='primary' />
+          }
           disabled={checkboxDisabled} />
-        <span className='pattern-header'>{t('events.connections.txt-addPatternScript')}</span>
         <div className='group severity-level'>
-          <label htmlFor='severityLevel'>{f('syslogPatternTableFields.severity')}</label>
           <i className='fg fg-recode' style={{color: ALERT_LEVEL_COLORS[severityType]}}></i>
-          <DropDownList
-            id='severityLevel'
-            required={true}
-            list={severityList}
+          <StyledTextField
+            className='severity-dropdown'
+            name='severity'
+            select
+            label={f('syslogPatternTableFields.severity')}
+            variant='outlined'
+            size='small'
             value={severityType}
-            onChange={this.handleDataChange.bind(this, 'severity')}
-            disabled={disabledValue} />
+            onChange={this.handleDataChange}
+            disabled={disabledValue}>
+            {severityList}
+          </StyledTextField>
           <div className='period'>
-            <span>{t('events.connections.txt-patternQuery1')} </span>
-            <DropDownList
-              className='number'
-              list={periodMinList}
+            <span className='support-text'>{t('events.connections.txt-patternQuery1')} </span>
+            <StyledTextField
+              name='periodMin'
+              select
+              variant='outlined'
+              size='small'
               required={true}
               value={pattern.periodMin}
-              onChange={this.handleNumberChange.bind(this, 'periodMin')}
-              disabled={disabledValue} />
-            <span> {t('events.connections.txt-patternQuery2')} </span>
-            <input
+              onChange={this.handleDataChange}
+              disabled={disabledValue}>
+              {periodMinList}
+            </StyledTextField>
+            <span className='support-text'> {t('events.connections.txt-patternQuery2')} </span>
+            <TextFieldComp
               id='threshold'
               className='number'
+              name='threshold'
               type='number'
-              min='1'
-              max='1000'
-              required={true}
+              variant='outlined'
+              size='small'
+              InputProps={{inputProps: { min: 1, max: 1000 }}}
               value={pattern.threshold}
-              onChange={this.handleNumberChange.bind(this, 'threshold')}
+              onChange={this.handleDataChange}
               disabled={disabledValue} />
-            <span> {t('events.connections.txt-patternQuery3')}</span>
+            <span className='support-text'> {t('events.connections.txt-patternQuery3')}</span>
           </div>
           {type === 'open' && queryData.emailList.length > 0 &&
             <div>
@@ -762,18 +783,11 @@ class QueryOpenSave extends Component {
   displayQueryContent = (type) => {
     const {locale} = this.context;
     const {activeTab, queryData, filterData, markData} = this.props;
-    let displayList = [];
+    const displayList = _.map(queryData.list, (val, i) => {
+      return <MenuItem key={i} value={val.id}>{val.name}</MenuItem>
+    });
     let tempFilterData = [];
     let tempMarkData = [];
-
-    if (queryData.list.length > 0) {
-      _.forEach(queryData.list, val => {
-        displayList.push({
-          value: val.id,
-          text: val.name
-        });
-      })
-    }
 
     if (type === 'open') {
       let queryDataList = [];
@@ -792,13 +806,17 @@ class QueryOpenSave extends Component {
 
       return (
         <div>
-          <label>{t('events.connections.txt-queryName')}</label>
-          <DropDownList
+          <StyledTextField
             className='query-name dropdown'
-            list={displayList}
-            required={true}
+            select
+            label={t('events.connections.txt-queryName')}
+            variant='outlined'
+            fullWidth={true}
+            size='small'
             value={queryData.id}
-            onChange={this.handleQueryChange.bind(this, 'id')} />
+            onChange={this.handleQueryChange.bind(this, 'id')}>
+            {displayList}
+          </StyledTextField>
 
           {queryDataList && queryDataList.length > 0 &&
             <div className='filter-group'>
@@ -856,10 +874,9 @@ class QueryOpenSave extends Component {
         }
       }
 
-      displayList.unshift({
-        value: 'new',
-        text: t('events.connections.txt-addQuery')
-      });
+      displayList.unshift(
+        <MenuItem value={'new'}>{t('events.connections.txt-addQuery')}</MenuItem>
+      );
 
       if (queryData.openFlag) {
         dropDownValue = queryData.id;
@@ -867,25 +884,29 @@ class QueryOpenSave extends Component {
 
       return (
         <div>
-          <label>{t('events.connections.txt-queryName')}</label>
-          <DropDownList
+          <StyledTextField
             className='query-name dropdown'
-            list={displayList}
+            select
+            label={t('events.connections.txt-queryName')}
+            variant='outlined'
+            fullWidth={true}
+            size='small'
             required={true}
-            value={dropDownValue}
-            onChange={this.handleQueryChange.bind(this, 'id')} />
+            value={queryData.id}
+            onChange={this.handleQueryChange.bind(this, 'id')}>
+            {displayList}
+          </StyledTextField>
 
           {dropDownValue === 'new' &&
-            <Input
-              placeholder={t('events.connections.txt-enterQueryName')}
+            <TextFieldComp
               className='query-name'
+              label={t('txt-name')}
+              variant='outlined'
+              size='small'
               maxLength={50}
               required={true}
-              validate={{
-                t: et
-              }}
               value={queryData.inputName}
-              onChange={this.handleQueryChange.bind(this, 'name')} />
+              onChange={this.handleQueryChange.bind(this, 'name')}/>
           }
 
           {tempFilterData.length > 0 &&

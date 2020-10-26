@@ -21,6 +21,7 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 const t = i18n.getFixedT(null, 'connections');
 const l = i18n.getFixedT(null, 'app');
 const it = i18n.getFixedT(null, 'incident');
+
 /**
  * Header
  * @class

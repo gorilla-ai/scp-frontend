@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import { withRouter } from 'react-router'
-import { NavLink, Link, Switch, Route } from 'react-router-dom'
+import { NavLink, Link, Route } from 'react-router-dom'
 import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import Moment from 'moment'
@@ -8,19 +8,19 @@ import cx from 'classnames'
 
 import Button from '@material-ui/core/Button';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormLabel from '@material-ui/core/FormLabel';
 import MenuItem from '@material-ui/core/MenuItem';
+import Radio from '@material-ui/core/Radio';
+import RadioGroup from '@material-ui/core/RadioGroup';
+import Switch from '@material-ui/core/Switch';
 import TextField from '@material-ui/core/TextField';
 
 import Combobox from 'react-ui/build/src/components/combobox'
 import DateRange from 'react-ui/build/src/components/date-range'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import Gis from 'react-gis/build/src/components'
-import Input from 'react-ui/build/src/components/input'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
-import RadioGroup from 'react-ui/build/src/components/radio-group'
 import Tabs from 'react-ui/build/src/components/tabs'
-import Textarea from 'react-ui/build/src/components/textarea'
-import ToggleBtn from 'react-ui/build/src/components/toggle-button'
 
 import {BaseDataContext} from '../../common/context';
 import Config from '../../common/configuration'
@@ -43,6 +43,34 @@ const SERVICE_TYPE_LIST = {
 let t = null;
 let f = null;
 let et = null;
+
+const StyledTextField = withStyles({
+  root: {
+    backgroundColor: '#fff',
+    '& .Mui-disabled': {
+      backgroundColor: '#f2f2f2'
+    }
+  }
+})(TextField);
+
+function TextFieldComp(props) {
+  return (
+    <StyledTextField
+      id={props.id}
+      className={props.className}
+      name={props.name}
+      label={props.label}
+      multiline={props.multiline}
+      rows={props.rows}
+      maxLength={props.maxLength}
+      variant={props.variant}
+      fullWidth={props.fullWidth}
+      size={props.size}
+      value={props.value}
+      onChange={props.onChange}
+      disabled={props.disabled} />
+  )
+}
 
 /**
  * Edge
@@ -597,7 +625,7 @@ class Edge extends Component {
           from: '',
           to: ''
         },
-        memo: allValue.memo,
+        memo: allValue.memo ? allValue.memo : '',
         isNetTrapUpgrade: allValue.isNetTrapUpgrade,
         agentApiStatus: allValue.agentApiStatus,
         lastUpdateTime: allValue.lastStatusUpdDT,
@@ -654,6 +682,19 @@ class Edge extends Component {
   handleDataChange = (event) => {
     let tempEdge = {...this.state.edge};
     tempEdge.info[event.target.name] = event.target.value;
+
+    this.setState({
+      edge: tempEdge
+    });
+  }
+  /**
+   * Handle date change
+   * @method
+   * @param {string} value - input value
+   */
+  handleDateChange = (value) => {
+    let tempEdge = {...this.state.edge};
+    tempEdge.info.edgeModeDatetime = value;
 
     this.setState({
       edge: tempEdge
@@ -990,6 +1031,8 @@ class Edge extends Component {
       }
     });
     const edgeIpText = t('edge-management.txt-ipList') + '(' + t('txt-commaSeparated') + ')';
+    const memoText = t('txt-memo') + '(' + t('txt-memoMaxLength') + ')';
+
     let iconType = '';
     let btnStatusOn = false;
     let action = 'start';
@@ -1018,15 +1061,6 @@ class Edge extends Component {
       }
     }
 
-    const StyledTextField = withStyles({
-      root: {
-        backgroundColor: '#fff',
-        '& .Mui-disabled': {
-          backgroundColor: '#f2f2f2'
-        }
-      }
-    })(TextField);
-
     return (
       <div className='main-content basic-form'>
         <header className='main-header'>Edge</header>
@@ -1051,18 +1085,23 @@ class Edge extends Component {
                 <span className='msg'>{t('edge-management.txt-lastUpdateTime')} {helper.getFormattedDate(edge.info.lastUpdateTime, 'local')}</span>
               }
             </header>
-            <button className='btn nettrap-upgrade' onClick={this.handleNetTrapUpgrade} disabled={activeContent === 'viewEdge' || !edge.info.isNetTrapUpgrade}>{t('txt-upgrade')}</button>
-            {edge.info.lastStatus &&
-              <ToggleBtn
-                className='toggle-btn'
-                onText={t('txt-on')}
-                offText={t('txt-off')}
-                on={btnStatusOn}
-                onChange={this.handleEdgeStatusChange.bind(this, action)}
-                disabled={activeContent === 'viewEdge' || !edge.info.isConfigurable} />
-            }
+            <div className='form-options'>
+              {edge.info.lastStatus &&
+                <FormControlLabel
+                  className='switch-control'
+                  control={
+                    <Switch
+                      checked={btnStatusOn}
+                      onChange={this.handleEdgeStatusChange.bind(this, action)}
+                      color='primary' />
+                  }
+                  label={t('txt-switch')}
+                  disabled={activeContent === 'viewEdge' || !edge.info.isConfigurable} />
+              }
+              <button className='btn nettrap-upgrade' onClick={this.handleNetTrapUpgrade} disabled={activeContent === 'viewEdge' || !edge.info.isNetTrapUpgrade}>{t('txt-upgrade')}</button>
+            </div>
             <div className='group'>
-              <StyledTextField
+              <TextFieldComp
                 id='edgeName'
                 name='name'
                 label={t('edge-management.txt-edgeName')}
@@ -1074,7 +1113,7 @@ class Edge extends Component {
                 disabled={activeContent === 'viewEdge'} />
             </div>
             <div className='group'>
-              <StyledTextField
+              <TextFieldComp
                 id='edgeID'
                 name='id'
                 label={t('edge-management.txt-edgeID')}
@@ -1085,26 +1124,19 @@ class Edge extends Component {
                 disabled={true} />
             </div>
             <div className='group'>
-              <label htmlFor='edgeIP'>{t('edge-management.txt-ip')}</label>
-              <Input
+              <TextFieldComp
                 id='edgeIP'
-                validate={{
-                  pattern:/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?):(\d+)$/,
-                  patternReadable:'xxx.xxx.xxx.xxx:xxx',
-                  t:(code, {value, pattern}) => {
-                    if (code[0] === 'missing') {
-                      return t('txt-required');
-                    } else if (code[0] === 'no-match') {
-                      return t('edge-management.txt-ipValidationFail');
-                    }
-                  }
-                }}
+                name='ip'
+                label={t('edge-management.txt-ip')}
+                variant='outlined'
+                fullWidth={true}
+                size='small'
                 value={edge.info.ip}
-                onChange={this.handleDataChange.bind(this, 'ip')}
-                readOnly={true} />
+                onChange={this.handleDataChange}
+                disabled={true} />
             </div>
             <div className='group'>
-              <StyledTextField
+              <TextFieldComp
                 id='edgeIPlist'
                 name='edgeIPlist'
                 label={edgeIpText}
@@ -1116,7 +1148,7 @@ class Edge extends Component {
                 disabled={activeContent === 'viewEdge' || !edge.info.isConfigurable} />
             </div>
             <div className='group'>
-              <StyledTextField
+              <TextFieldComp
                 id='edgeVPNip'
                 name='vpnIP'
                 label={t('edge-management.txt-vpnIP')}
@@ -1127,7 +1159,7 @@ class Edge extends Component {
                 disabled={true} />
             </div>
             <div className='group'>
-              <StyledTextField
+              <TextFieldComp
                 id='edgeLicenseName'
                 name='licenseName'
                 label={t('edge-management.txt-vpnLicenseName')}
@@ -1138,7 +1170,7 @@ class Edge extends Component {
                 disabled={true} />
             </div>
             <div className='group'>
-              <StyledTextField
+              <TextFieldComp
                 id='edgeServiceType'
                 name='serviceType'
                 label={t('edge-management.txt-serviceType')}
@@ -1149,26 +1181,23 @@ class Edge extends Component {
                 disabled={true} />
             </div>
             <div className='group'>
-              <label htmlFor='edgeServiceMode'>{t('edge-management.txt-serviceMode')}</label>
-              <DropDownList
+              <StyledTextField
                 id='edgeServiceMode'
-                required={true}
-                list={[
-                  {
-                    value: 'REALTIME',
-                    text: t('txt-realtime')
-                  },
-                  {
-                    value: 'TCPDUMP',
-                    text: t('txt-tcpdump')
-                  }
-                ]}
+                name='serviceMode'
+                select
+                label={t('edge-management.txt-serviceMode')}
+                variant='outlined'
+                fullWidth={true}
+                size='small'
                 value={edge.info.serviceMode}
-                onChange={this.handleDataChange.bind(this, 'serviceMode')}
-                readOnly={activeContent === 'viewEdge' || !edge.info.isConfigurable} />
+                onChange={this.handleDataChange}
+                disabled={activeContent === 'viewEdge' || !edge.info.isConfigurable}>
+                <MenuItem value={'REALTIME'}>{t('txt-realtime')}</MenuItem>
+                <MenuItem value={'TCPDUMP'}>{t('txt-tcpdump')}</MenuItem>
+              </StyledTextField>
             </div>
             <div className='group'>
-              <StyledTextField
+              <TextFieldComp
                 id='edgeLongitude'
                 name='longitude'
                 label={t('edge-management.txt-longitude')}
@@ -1180,7 +1209,7 @@ class Edge extends Component {
                 disabled={activeContent === 'viewEdge'} />
             </div>
             <div className='group'>
-              <StyledTextField
+              <TextFieldComp
                 id='edgeLatitude'
                 name='latitude'
                 label={t('edge-management.txt-latitude')}
@@ -1211,17 +1240,26 @@ class Edge extends Component {
               }
             </div>
             <div className='group'>
-              <label>{t('edge-management.txt-activatTime')}</label>
+              <FormLabel>{t('edge-management.txt-activatTime')}</FormLabel>
               <RadioGroup
-                id='edgeModeType'
-                className='radio-group'
-                list={[
-                  {value: 'anyTime', text: t('edge-management.txt-anyTime')},
-                  {value: 'customTime', text: t('edge-management.txt-customTime')}
-                ]}
+                name='edgeModeType'
                 value={edge.info.edgeModeType}
-                onChange={this.handleDataChange.bind(this, 'edgeModeType')}
-                disabled={activeContent === 'viewEdge' || !edge.info.isConfigurable} />
+                onChange={this.handleDataChange}>
+                <FormControlLabel
+                  value='anyTime'
+                  control={
+                    <Radio color='primary' />
+                  }
+                  label={t('edge-management.txt-anyTime')}
+                  disabled={activeContent === 'viewEdge' || !edge.info.isConfigurable} />
+                <FormControlLabel
+                  value='customTime'
+                  control={
+                    <Radio color='primary' />
+                  }
+                  label={t('edge-management.txt-customTime')}
+                  disabled={activeContent === 'viewEdge' || !edge.info.isConfigurable} />
+              </RadioGroup>
 
               {edge.info.edgeModeType === 'customTime' &&
                 <DateRange
@@ -1229,20 +1267,25 @@ class Edge extends Component {
                   className='daterange'
                   enableTime={true}
                   value={edge.info.edgeModeDatetime}
-                  onChange={this.handleDataChange.bind(this, 'edgeModeDatetime')}
+                  onChange={this.handleDateChange}
                   locale={locale}
                   t={et} />
               }
             </div>
             <div className='group full'>
-              <label htmlFor='edgeMemo'>{t('txt-memo')} ({t('txt-memoMaxLength')})</label>
-              <Textarea
+              <TextFieldComp
                 id='edgeMemo'
+                name='memo'
+                label={memoText}
+                multiline={true}
                 rows={4}
                 maxLength={250}
+                variant='outlined'
+                fullWidth={true}
+                size='small'
                 value={edge.info.memo}
-                onChange={this.handleDataChange.bind(this, 'memo')}
-                readOnly={activeContent === 'viewEdge'} />
+                onChange={this.handleDataChange}
+                disabled={activeContent === 'viewEdge'} />
             </div>
           </div>
         </div>

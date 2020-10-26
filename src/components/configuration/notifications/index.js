@@ -24,6 +24,31 @@ import 'react-multi-email/style.css';
 let t = null;
 let et = null;
 
+const StyledTextField = withStyles({
+  root: {
+    backgroundColor: '#fff',
+    '& .Mui-disabled': {
+      backgroundColor: '#f2f2f2'
+    }
+  }
+})(TextField);
+
+function TextFieldComp(props) {
+  return (
+    <StyledTextField
+      id={props.id}
+      className={props.className}
+      name={props.name}
+      label={props.label}
+      variant={props.variant}
+      fullWidth={props.fullWidth}
+      size={props.size}
+      value={props.value}
+      onChange={props.onChange}
+      disabled={props.disabled} />
+  )
+}
+
 /**
  * Notifications
  * @class
@@ -500,15 +525,6 @@ class Notifications extends Component {
       }
     };
 
-    const StyledTextField = withStyles({
-      root: {
-        backgroundColor: '#fff',
-        '& .Mui-disabled': {
-          backgroundColor: '#f2f2f2'
-        }
-      }
-    })(TextField);
-
     return (
       <div>
         <GeneralDialog
@@ -544,7 +560,7 @@ class Notifications extends Component {
                   <header>{t('notifications.txt-emailSettings')}</header>
                   <Button variant='contained' color='primary' className='last' onClick={this.openEmailDialog} disabled={activeContent === 'editMode'}>{t('notifications.txt-testEmails')}</Button>
                   <div className='group'>
-                    <StyledTextField
+                    <TextFieldComp
                       id='notificationsServer'
                       name='server'
                       label={t('notifications.txt-smtpServer')}
@@ -573,7 +589,7 @@ class Notifications extends Component {
                     </StyledTextField>
                   </div>
                   <div className='group' style={{width: '50%'}}>
-                    <StyledTextField
+                    <TextFieldComp
                       id='notificationsSender'
                       name='sender'
                       label={t('notifications.txt-sender')}
@@ -618,7 +634,7 @@ class Notifications extends Component {
                     </StyledTextField>
                   </div>
                   <div className='group'>
-                    <StyledTextField
+                    <TextFieldComp
                       id='notificationsSenderAccount'
                       name='senderAccount'
                       label={t('notifications.txt-senderAccount')}
@@ -630,7 +646,7 @@ class Notifications extends Component {
                       disabled={activeContent === 'viewMode'} />
                   </div>
                   <div className='group'>
-                    <StyledTextField
+                    <TextFieldComp
                       id='notificationsSenderPassword'
                       name='senderPassword'
                       label={t('notifications.txt-senderPassword')}
