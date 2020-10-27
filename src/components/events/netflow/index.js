@@ -1650,10 +1650,10 @@ class Netflow extends Component {
    * Handle value change for the checkbox in the table dialog
    * @method
    * @param {string} field - field of selected checkbox
-   * @param {boolean} data - checked/uncheck status
-
+   * @param {object} event - event object
    */
-  setFieldsChange = (field, data) => {
+  setFieldsChange = (field, event) => {
+    const data = event.target.checked;
     let tempAccount = {...this.state.account};
 
     if (_.includes(tempAccount.fields, field)) {
@@ -2782,9 +2782,11 @@ class Netflow extends Component {
    * Set search options data
    * @method
    * @param {string} type - search type to be set ('all' and others)
-   * @param {string} value - search value to be set
+   * @param {string | object} event - event object
    */
-  setSearchData = (type, value) => {
+  setSearchData = (type, event) => {
+    const value = event.target ? event.target.value : event;
+
     if (type === 'all') {
       this.setState({
         searchInput: value

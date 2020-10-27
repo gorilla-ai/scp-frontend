@@ -1,10 +1,11 @@
 import React, { Component } from 'react'
+import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 
-import Checkbox from 'react-ui/build/src/components/checkbox'
-import Input from 'react-ui/build/src/components/input'
-import Textarea from 'react-ui/build/src/components/textarea'
+import Checkbox from '@material-ui/core/Checkbox';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import TextField from '@material-ui/core/TextField';
 
 import {SortableElement, SortableHandle} from 'react-sortable-hoc'
 
@@ -15,8 +16,16 @@ let f = null;
 
 const LONG_INPUT = ['_Raw', 'message', 'msg'];
 const TIME_FIELDS = ['@timestamp', 'firstPacket', 'lastPacket', 'timestamp', '_eventDttm_'];
-
 const DragHandle = SortableHandle(() => <i className='fg fg-menu flow'></i>);
+
+const StyledTextField = withStyles({
+  root: {
+    backgroundColor: '#fff',
+    '& .Mui-disabled': {
+      backgroundColor: '#f2f2f2'
+    }
+  }
+})(TextField);
 
 /**
  * Sortable Item
@@ -41,11 +50,35 @@ class SortableItem extends Component {
     const key = _.keys(value).toString();
 
     if (_.includes(LONG_INPUT, key)) {
-      return <Textarea rows={8} cols={50} className='value-input' value={value[key]} readOnly={true} />
+      return (
+        <TextField
+          className='value-input'
+          multiline
+          rows={8}
+          cols={50}
+          fullWidth={true}
+          size='small'
+          value={value[key]}
+          disabled={true} />
+      )
     } else if (_.includes(TIME_FIELDS, key)) {
-      return <Input type='text' className='value-input' value={helper.getFormattedDate(value[key], 'local')} readOnly={true} />
+      return (
+        <TextField
+          className='value-input'
+          fullWidth={true}
+          size='small'
+          value={helper.getFormattedDate(value[key], 'local')}
+          disabled={true} />
+      )
     } else {
-      return <Input type='text' className='value-input' value={value[key]} readOnly={true} />
+      return (
+        <TextField
+          className='value-input'
+          fullWidth={true}
+          size='small'
+          value={value[key]}
+          disabled={true} />
+      )
     }
   }
   render() {
@@ -65,10 +98,14 @@ class SortableItem extends Component {
         {_.includes(TIME_FIELDS, key) && //Disable the filer for time related fields
           <i className='fg fg-filter disabled' title={t('txt-filterQuery')}></i>
         }
-        <Checkbox
-          className='data-field flow'
-          checked={this.props.checkDisplayFields(key)}
-          onChange={this.props.setFieldsChange.bind(this, key)}
+        <FormControlLabel
+          control={
+            <Checkbox
+              className='data-field flow'
+              checked={this.props.checkDisplayFields(key)}
+              onChange={this.props.setFieldsChange.bind(this, key)}
+              color='primary' />
+          }
           disabled={_.includes(TIME_FIELDS, key)} />
         {activeTab === 'logs' &&
           <i className='fg fg-edit' title={t('syslogFields.txt-customFieldName')} onClick={this.props.toggleLocaleEdit.bind(this, key, localeField)}></i>

@@ -1,15 +1,17 @@
 import React, { Component } from 'react'
 import { withRouter } from 'react-router'
 import { NavLink, Link, Switch, Route } from 'react-router-dom'
+import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
 
-import Checkbox from 'react-ui/build/src/components/checkbox'
-import DropDownList from 'react-ui/build/src/components/dropdown'
-import Input from 'react-ui/build/src/components/input'
+import Checkbox from '@material-ui/core/Checkbox';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import TextField from '@material-ui/core/TextField';
+
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
-import Textarea from 'react-ui/build/src/components/textarea'
 
 import {BaseDataContext} from '../../common/context';
 import Config from '../../common/configuration'
@@ -31,6 +33,37 @@ const ALERT_LEVEL_COLORS = {
   Notice: '#7ACC29'
 };
 
+const StyledTextField = withStyles({
+  root: {
+    backgroundColor: '#fff',
+    '& .Mui-disabled': {
+      backgroundColor: '#f2f2f2'
+    }
+  }
+})(TextField);
+
+function TextFieldComp(props) {
+  return (
+    <StyledTextField
+      id={props.id}
+      className={props.className}
+      name={props.name}
+      type={props.type}
+      label={props.label}
+      multiline={props.multiline}
+      rows={props.rows}
+      maxLength={props.maxLength}
+      variant={props.variant}
+      fullWidth={props.fullWidth}
+      size={props.size}
+      InputProps={props.InputProps}
+      required={props.required}
+      value={props.value}
+      onChange={props.onChange}
+      disabled={props.disabled} />
+  )
+}
+
 /**
  * Severity
  * @class
@@ -49,7 +82,13 @@ class Severity extends Component {
       activeContent: 'tableList', //tableList, viewSeverity, addSeverity, editSeverity
       showFilter: false,
       severitySearchType: '',
-      severitySearchOptions: {},
+      severitySearchOptions: {
+        Alert: false,
+        Critical: false,
+        Emergency: false,
+        Notice: false,
+        Warning: false
+      },
       originalSeverityData: {},
       severityList: [],
       currentSeverityData: '',
@@ -87,19 +126,15 @@ class Severity extends Component {
    * @method
    */
   setDefaultSearchOptions = () => {
-    let tempSeveritySearchOptions = {...this.state.severitySearchOptions};
-    let severityList = [];   
+    let severityList = [];
 
-    _.forEach(SEVERITY_TYPE, val => {
-      tempSeveritySearchOptions[val] = false;
-      severityList.push({
-        value: val,
-        text: val
-      });
-    })
+    _.forEach(SEVERITY_TYPE, (val, i) => {
+      severityList.push(
+        <MenuItem key={i} value={val}>{val}</MenuItem>
+      );
+    });
 
     this.setState({
-      severitySearchOptions: tempSeveritySearchOptions,
       severityList
     }, () => {
       this.getSeverityMapping();
@@ -224,12 +259,11 @@ class Severity extends Component {
   /**
    * Toggle Severity options
    * @method
-   * @param {string} field - severity option name
-   * @param {boolean} value - true/false
+   * @param {object} event - event object
    */
-  toggleSeverityOptions = (field, value) => {
+  toggleSeverityOptions = (event) => {
     let tempSeveritySearchOptions = {...this.state.severitySearchOptions};
-    tempSeveritySearchOptions[field] = value;
+    tempSeveritySearchOptions[event.target.name] = event.target.checked;
 
     this.setState({
       severitySearchOptions: tempSeveritySearchOptions
@@ -238,12 +272,11 @@ class Severity extends Component {
   /**
    * Handle Severity edit input data change
    * @method
-   * @param {string} type - input type
-   * @param {string} value - input value
+   * @param {object} event - event object
    */
-  handleDataChange = (type, value) => {
+  handleDataChange = (event) => {
     let tempSeverity = {...this.state.severity};
-    tempSeverity.info[type] = value;
+    tempSeverity.info[event.target.name] = event.target.value;
 
     this.setState({
       severity: tempSeverity
@@ -285,40 +318,55 @@ class Severity extends Component {
             }
           </header>
           <div className='group'>
-            <label htmlFor='severityType'>{f('severityTableFields.dataSourceType')}</label>
-            <Input
+            <TextFieldComp
               id='severityType'
+              name='type'
+              label={f('severityTableFields.dataSourceType')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={severity.info.type}
-              onChange={this.handleDataChange.bind(this, 'type')}
-              readOnly={activeContent === 'viewSeverity' || activeContent === 'editSeverity'} />
+              onChange={this.handleDataChange}
+              disabled={activeContent === 'viewSeverity' || activeContent === 'editSeverity'} />
           </div>
           <div className='group severity-level'>
-            <label htmlFor='severityLevel'>{f('severityTableFields.severityLevel')}</label>
             <i className='fg fg-recode' style={{color: ALERT_LEVEL_COLORS[severity.info.severity]}}></i>
-            <DropDownList
+            <StyledTextField
               id='severityLevel'
-              required={true}
-              list={severityList}
+              name='severity'
+              select
+              label={f('severityTableFields.severityLevel')}
+              variant='outlined'
+              size='small'
               value={severity.info.severity}
-              onChange={this.handleDataChange.bind(this, 'severity')}
-              readOnly={activeContent === 'viewSeverity'} />
+              onChange={this.handleDataChange}
+              disabled={activeContent === 'viewSeverity'}>
+              {severityList}
+            </StyledTextField>
           </div>
           <div className='group'>
-            <label htmlFor='severityNickname'>{f('severityTableFields.nickname')}</label>
-            <Input
+            <TextFieldComp
               id='severityNickname'
+              name='nickname'
+              label={f('severityTableFields.nickname')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={severity.info.nickname}
-              onChange={this.handleDataChange.bind(this, 'nickname')}
-              readOnly={activeContent === 'viewSeverity' || activeContent === 'editSeverity'} />
+              onChange={this.handleDataChange}
+              disabled={activeContent === 'viewSeverity' || activeContent === 'editSeverity'} />
           </div>
           <div className='group'>
-            <label htmlFor='severityDescription'>{f('severityTableFields.description')}</label>
-            <Textarea
+            <TextFieldComp
               id='severityDescription'
-              rows={4}
+              name='description'
+              label={f('severityTableFields.description')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={severity.info.description}
-              onChange={this.handleDataChange.bind(this, 'description')}
-              readOnly={activeContent === 'viewSeverity'} />
+              onChange={this.handleDataChange}
+              disabled={activeContent === 'viewSeverity'} />
           </div>
         </div>
 
@@ -413,11 +461,17 @@ class Severity extends Component {
   displaySeverityCheckbox = (val, i) => {
     return (
       <div className='option' key={val + i}>
-        <label htmlFor={val} className='active'>{val}</label>
-        <Checkbox
-          id={val}
-          checked={this.state.severitySearchOptions[val]}
-          onChange={this.toggleSeverityOptions.bind(this, val)} />
+        <FormControlLabel
+          key={i}
+          label={val}
+          control={
+            <Checkbox
+              id={val}
+              name={val}
+              checked={this.state.severitySearchOptions[val]}
+              onChange={this.toggleSeverityOptions}
+              color='primary' />
+          } />
       </div>
     )
   }
@@ -436,9 +490,11 @@ class Severity extends Component {
         <div className='filter-section config'>
           <div className='group'>
             <label htmlFor='severityType'>{f('severityTableFields.dataSourceType')}</label>
-            <input
+            <TextFieldComp
               id='severityType'
-              type='text'
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={severitySearchType}
               onChange={this.handleSearchType} />
           </div>
@@ -501,7 +557,13 @@ class Severity extends Component {
   clearFilter = () => {
     this.setState({
       severitySearchType: '',
-      severitySearchOptions: {}
+      severitySearchOptions: {
+        Alert: false,
+        Critical: false,
+        Emergency: false,
+        Notice: false,
+        Warning: false
+      }
     });
   }
   render() {

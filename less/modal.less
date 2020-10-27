@@ -121,15 +121,15 @@ html[data-theme='dark'] {
       cursor: not-allowed;
     }
   }
+  .MuiFormControlLabel-root {
+    float: left;
+    margin: 0 5px;
+    .data-field {
+      padding: 0;
+    }
+  }
   .fg-edit {
     margin-right: 2px;
-  }
-  i.data-field {
-    float: left;
-    &.flow {
-      margin-left: 10px;
-      margin-right: 10px;
-    }
   }
   span {
     a {
@@ -1609,14 +1609,9 @@ html[data-theme='dark'] {
   .add-threats {
     display: flex;
     width: 55em;
-    margin-right: 5px;
-    margin-bottom: 5px;
-    input {
-      margin-top: 0.55em;
-      margin-left: 1em;
-      &.error {
-        border-color: #da364a;
-      }
+    padding: 5px;
+    .MuiFormControl-root {
+      margin-right: 5px;
     }
     select {
       margin-top: 0.55em;

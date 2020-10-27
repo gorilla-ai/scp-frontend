@@ -23,6 +23,7 @@ function TextFieldComp(props) {
       id={props.id}
       className={props.className}
       name={props.name}
+      type={props.type}
       label={props.label}
       multiline={props.multiline}
       rows={props.rows}
@@ -30,6 +31,8 @@ function TextFieldComp(props) {
       variant={props.variant}
       fullWidth={props.fullWidth}
       size={props.size}
+      InputProps={props.InputProps}
+      required={props.required}
       value={props.value}
       onChange={props.onChange}
       disabled={props.disabled} />

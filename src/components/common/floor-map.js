@@ -6,7 +6,6 @@ import cx from 'classnames'
 import TextField from '@material-ui/core/TextField';
 
 import FileInput from 'react-ui/build/src/components/file-input'
-import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import TreeView from 'react-ui/build/src/components/tree'

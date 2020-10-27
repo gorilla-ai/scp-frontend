@@ -11,8 +11,6 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 
-import DropDownList from 'react-ui/build/src/components/dropdown'
-import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
@@ -36,6 +34,7 @@ const ALERT_LEVEL_COLORS = {
   Notice: '#7ACC29'
 };
 const PERIOD_MIN = [10, 15, 30, 60];
+
 const StyledTextField = withStyles({
   root: {
     backgroundColor: '#fff',
@@ -60,6 +59,7 @@ function TextFieldComp(props) {
       fullWidth={props.fullWidth}
       size={props.size}
       InputProps={props.InputProps}
+      required={props.required}
       value={props.value}
       onChange={props.onChange}
       disabled={props.disabled} />

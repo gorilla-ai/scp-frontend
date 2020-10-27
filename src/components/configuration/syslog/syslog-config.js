@@ -1,15 +1,47 @@
 import React, { Component } from 'react'
+import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import cx from 'classnames'
 
-import Input from 'react-ui/build/src/components/input'
+import TextField from '@material-ui/core/TextField';
+
 import MultiInput from 'react-ui/build/src/components/multi-input'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
-import Textarea from 'react-ui/build/src/components/textarea'
 
 import Relationships from './relationships'
 
 let t = null;
+
+const StyledTextField = withStyles({
+  root: {
+    backgroundColor: '#fff',
+    '& .Mui-disabled': {
+      backgroundColor: '#f2f2f2'
+    }
+  }
+})(TextField);
+
+function TextFieldComp(props) {
+  return (
+    <StyledTextField
+      id={props.id}
+      className={props.className}
+      name={props.name}
+      type={props.type}
+      label={props.label}
+      multiline={props.multiline}
+      rows={props.rows}
+      maxLength={props.maxLength}
+      variant={props.variant}
+      fullWidth={props.fullWidth}
+      size={props.size}
+      InputProps={props.InputProps}
+      required={props.required}
+      value={props.value}
+      onChange={props.onChange}
+      disabled={props.disabled} />
+  )
+}
 
 /**
  * Syslog Config
@@ -102,12 +134,15 @@ class syslogConfig extends Component {
     if (key != '_Raw') {
       return (
         <div className='group' key={key}>
-          <label htmlFor={key}>{key}</label>
-          <Input
+          <TextFieldComp
             id={key}
+            name='format'
+            label={key}
+            variant='outlined'
+            fullWidth={true}
+            size='small'
             value={val}
-            onChange={this.props.handleConfigChange.bind(this, 'format')}
-            readOnly={true} />
+            disabled={true} />
         </div>
       )
     }
@@ -133,9 +168,13 @@ class syslogConfig extends Component {
                 <div className='pattern'>
                   <label>{t('syslogFields.matchPattern')}</label><i className='c-link fg fg-help' title={t('txt-tips')} onClick={this.showPatternHint} />
                 </div>
-                <Textarea
+                <TextFieldComp
                   id='syslogPattern'
+                  multiline={true}
                   rows={6}
+                  variant='outlined'
+                  fullWidth={true}
+                  size='small'
                   value={config.patternSetting[index].pattern}
                   onChange={this.props.handleConfigChange.bind(this, 'pattern')} />
               </div>
@@ -150,9 +189,13 @@ class syslogConfig extends Component {
                     {config.id &&
                       <button className='standard' onClick={this.props.getLatestInput.bind(this, config.id)}>{t('syslogFields.txt-getLatest')}</button>
                     }
-                    <Textarea
+                    <TextFieldComp
                       id='syslogInput'
+                      multiline={true}
                       rows={20}
+                      variant='outlined'
+                      fullWidth={true}
+                      size='small'
                       value={config.patternSetting[index].input}
                       onChange={this.props.handleConfigChange.bind(this, 'input')} />
                   </div>

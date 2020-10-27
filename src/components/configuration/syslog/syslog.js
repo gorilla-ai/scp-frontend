@@ -1,15 +1,17 @@
 import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
+import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
 import _ from 'lodash'
 
+import TextField from '@material-ui/core/TextField';
+
 import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import DataTable from 'react-ui/build/src/components/table'
 import DateRange from 'react-ui/build/src/components/date-range'
-import Input from 'react-ui/build/src/components/input'
 import LineChart from 'react-chart/build/src/components/line'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import MultiInput from 'react-ui/build/src/components/multi-input'
@@ -49,6 +51,37 @@ const INIT_CONFIG = {
     rawOptions: []
   }]
 };
+
+const StyledTextField = withStyles({
+  root: {
+    backgroundColor: '#fff',
+    '& .Mui-disabled': {
+      backgroundColor: '#f2f2f2'
+    }
+  }
+})(TextField);
+
+function TextFieldComp(props) {
+  return (
+    <StyledTextField
+      id={props.id}
+      className={props.className}
+      name={props.name}
+      type={props.type}
+      label={props.label}
+      multiline={props.multiline}
+      rows={props.rows}
+      maxLength={props.maxLength}
+      variant={props.variant}
+      fullWidth={props.fullWidth}
+      size={props.size}
+      InputProps={props.InputProps}
+      required={props.required}
+      value={props.value}
+      onChange={props.onChange}
+      disabled={props.disabled} />
+  )
+}
 
 /**
  * Syslog Management
@@ -614,9 +647,10 @@ class Syslog extends Component {
    * @method
    * @param {number} [i] - index of the config pattern list
    * @param {string} type - input type
-   * @param {string} value - input value
+   * @param {string | object} event - event object
    */
-  handleConfigChange = (i, type, value) => {
+  handleConfigChange = (i, type, event) => {
+    const value = event.target ? event.target.value : event;
     let tempSyslogPatternConfig = {...this.state.syslogPatternConfig};
 
     if (typeof i === 'number') {
@@ -971,11 +1005,11 @@ class Syslog extends Component {
   /**
    * Handle Pattern name input value change
    * @method
-   * @param {string} newPatternName - input name
+   * @param {object} event - event object
    */
-  handleEditPatternNameChange = (newPatternName) => {
+  handleEditPatternNameChange = (event) => {
     this.setState({
-      newPatternName
+      newPatternName: event.target.value
     });
   }
   /**
@@ -986,12 +1020,13 @@ class Syslog extends Component {
   displayEditPatternName = () => {
     return (
       <div className='parent'>
-        <label>{t('syslogFields.txt-patternName')}</label>
-        <Input
-          required={true}
-          validate={{
-            t: et
-          }}
+        <TextFieldComp
+          id='syslogHostIP'
+          name='loghostIp'
+          label={t('syslogFields.txt-patternName')}
+          variant='outlined'
+          fullWidth={true}
+          size='small'
           value={this.state.newPatternName}
           onChange={this.handleEditPatternNameChange} />
       </div>
@@ -1176,12 +1211,11 @@ class Syslog extends Component {
   /**
    * Handle edit hosts input value change
    * @method
-   * @param {string} type - input type
-   * @param {string} value - input value
+   * @param {object} event - event object
    */
-  handleEditHostsChange = (type, value) => {
+  handleEditHostsChange = (event) => {
     let tempEditHosts = {...this.state.editHosts};
-    tempEditHosts[type] = value.trim();
+    tempEditHosts[event.target.name] = event.target.value.trim();
 
     this.setState({
       editHosts: tempEditHosts
@@ -1197,23 +1231,25 @@ class Syslog extends Component {
     return (
       <div className='parent'>
         <div className='group'>
-          <label>{t('syslogFields.ip')}</label>
-          <Input
-            required={true}
-            validate={{
-              pattern: /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/,
-              patternReadable: 'xxx.xxx.xxx.xxx',
-              t: et
-            }}
+          <TextFieldComp
+            name='ip'
+            label={t('syslogFields.ip')}
+            variant='outlined'
+            fullWidth={true}
+            size='small'
             value={editHosts.ip}
-            onChange={this.handleEditHostsChange.bind(this, 'ip')}
-            readOnly={editHostsType === 'edit'} />
+            onChange={this.handleEditHostsChange}
+            disabled={editHostsType === 'edit'} />
         </div>
         <div className='group'>
-          <label>{t('syslogFields.name')}</label>
-          <Input
+          <TextFieldComp
+            name='name'
+            label={t('syslogFields.name')}
+            variant='outlined'
+            fullWidth={true}
+            size='small'
             value={editHosts.name}
-            onChange={this.handleEditHostsChange.bind(this, 'name')} />
+            onChange={this.handleEditHostsChange} />
         </div>
       </div>
     )
@@ -1653,48 +1689,49 @@ class Syslog extends Component {
                   <div className='form-group normal'>
                     <header>{t('syslogFields.txt-syslogInfo')}</header>
                     <div className='group'>
-                      <label htmlFor='syslogHostIP'>{t('syslogFields.txt-hostIP')}</label>
-                      <Input
+                      <TextFieldComp
                         id='syslogHostIP'
-                        required={true}
-                        validate={{
-                          pattern: /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/,
-                          patternReadable: 'xxx.xxx.xxx.xxx',
-                          t: et
-                        }}
+                        name='loghostIp'
+                        label={t('syslogFields.ip')}
+                        variant='outlined'
+                        fullWidth={true}
+                        size='small'
                         value={syslogPatternConfig.loghostIp}
-                        onChange={this.handleConfigChange.bind(this, '', 'loghostIp')}
-                        readOnly={editSyslogType === 'edit' || editSyslogType === 'edit-exist'} />
+                        onChange={this.handleConfigChange.bind(this, '')}
+                        disabled={editSyslogType === 'edit' || editSyslogType === 'edit-exist'} />
                     </div>
                     <div className='group'>
-                      <label htmlFor='syslogName'>{t('syslogFields.name')}</label>
-                      <Input
+                      <TextFieldComp
                         id='syslogName'
-                        required={true}
-                        validate={{
-                          t: et
-                        }}
+                        name='name'
+                        label={t('syslogFields.name')}
+                        variant='outlined'
+                        fullWidth={true}
+                        size='small'
                         value={syslogPatternConfig.name}
-                        onChange={this.handleConfigChange.bind(this, '', 'name')} />
+                        onChange={this.handleConfigChange.bind(this, '')} />
                     </div>
                     <div className='group'>
-                      <label htmlFor='syslogReceivedPort'>{t('syslogFields.port')}</label>
-                      <Input
+                      <TextFieldComp
                         id='syslogReceivedPort'
-                        type='number'
-                        required={true}
-                        validate={{
-                          t: et
-                        }}
+                        name='port'
+                        label={t('syslogFields.port')}
+                        variant='outlined'
+                        fullWidth={true}
+                        size='small'
                         value={syslogPatternConfig.port}
-                        onChange={this.handleConfigChange.bind(this, '', 'port')} />
+                        onChange={this.handleConfigChange.bind(this, '')} />
                     </div>
                     <div className='group'>
-                      <label htmlFor='syslogDataFormat'>{t('syslogFields.format')}</label>
-                      <Input
+                      <TextFieldComp
                         id='syslogDataFormat'
+                        name='format'
+                        label={t('syslogFields.format')}
+                        variant='outlined'
+                        fullWidth={true}
+                        size='small'
                         value={syslogPatternConfig.format}
-                        onChange={this.handleConfigChange.bind(this, '', 'format')} />
+                        onChange={this.handleConfigChange.bind(this, '')} />
                     </div>
                   </div>
 

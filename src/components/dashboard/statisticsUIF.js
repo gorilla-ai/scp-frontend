@@ -153,7 +153,9 @@ class StatisticsUIF extends Component {
       }
     });
   }
-  setSearchData = (type, value) => {
+  setSearchData = (type, event) => {
+    const value = event.target ? event.target.value : event;
+
     if (type === 'all') {
       this.setState({
         searchInput: value

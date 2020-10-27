@@ -1,12 +1,25 @@
 import React, { Component } from 'react'
+import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import _ from 'lodash'
+
+import MenuItem from '@material-ui/core/MenuItem';
+import TextField from '@material-ui/core/TextField';
 
 import DataTable from 'react-ui/build/src/components/table'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 
 let t = null;
 let et = null;
+
+const StyledTextField = withStyles({
+  root: {
+    backgroundColor: '#fff',
+    '& .Mui-disabled': {
+      backgroundColor: '#f2f2f2'
+    }
+  }
+})(TextField);
 
 /**
  * Relationships
@@ -41,15 +54,12 @@ class Relationships extends Component {
    * @method
    */
   getOptions = () => {
-    const {relationships} = this.props;
-    let nameList = [];
-
-    _.forEach(relationships, el => {
-      nameList.push({value: el.name, text: el.name})
-    })
+    const nameOptions = _.map(this.props.relationships, (val, i) => {
+      return <MenuItem key={i} value={val.name}>{val.name}</MenuItem>
+    });    
 
     this.setState({
-      nameOptions: nameList
+      nameOptions
     });
   }
   /**
@@ -84,10 +94,11 @@ class Relationships extends Component {
   /**
    * Handle relationships input value change
    * @method
-   * @param {string} field - input field
-   * @param {string} value - input value
+   * @param {object} event - event object
    */
-  handleDataChange = (field, value) => {
+  handleDataChange = (event) => {
+    const field = event.target.name;
+    const value = event.target.value;
     let {value: curValue, relationships} = this.props;
 
     if (field === 'name') {
@@ -138,34 +149,55 @@ class Relationships extends Component {
   render() {
     const {value, rawOptions} = this.props;
     const {nodeA, nodeB, nameOptions} = this.state;
+    const nodeList = _.map(rawOptions, (val, i) => {
+      return <MenuItem key={i} value={val.value}>{val.text}</MenuItem>
+    });
 
     return (
       <div className='relationship'>
         <div className='up'>
           <div className='item'>
-            <label>{t('syslogFields.name')}</label>
-            <DropDownList
+            <StyledTextField
               className={this.getSelectClass()}
-              list={nameOptions}
+              name='name'
+              select
+              label={t('syslogFields.name')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={value.name}
-              onChange={this.handleDataChange.bind(this, 'name')} />
+              onChange={this.handleDataChange}>
+              {nameOptions}
+            </StyledTextField>
           </div>
           <div className='item'>
-            <label>{t('syslogFields.srcNode')}</label>
-            <DropDownList
+            <StyledTextField
               className={this.getSelectClass()}
-              list={rawOptions}
+              name='srcNode'
+              select
+              label={t('syslogFields.srcNode')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={value.srcNode}
-              onChange={this.handleDataChange.bind(this, 'srcNode')} />
+              onChange={this.handleDataChange}>
+              {nodeList}
+            </StyledTextField>
           </div>
           <i className='fg fg-next' />
           <div className='item'>
-            <label>{t('syslogFields.dstNode')}</label>
-            <DropDownList
+            <StyledTextField
               className={this.getSelectClass()}
-              list={rawOptions}
+              name='dstNode'
+              select
+              label={t('syslogFields.dstNode')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={value.dstNode}
-              onChange={this.handleDataChange.bind(this, 'dstNode')} />
+              onChange={this.handleDataChange}>
+              {nodeList}
+            </StyledTextField>
           </div>
         </div>
         <div className='down'>

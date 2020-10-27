@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
+import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import Moment from 'moment'
 import _ from 'lodash'
@@ -8,6 +9,9 @@ import cx from 'classnames'
 import jschardet from 'jschardet'
 import queryString from 'query-string'
 import XLSX from 'xlsx';
+
+import MenuItem from '@material-ui/core/MenuItem';
+import TextField from '@material-ui/core/TextField';
 
 import Checkbox from 'react-ui/build/src/components/checkbox'
 import ContextMenu from 'react-ui/build/src/components/contextmenu'
@@ -20,7 +24,6 @@ import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import RadioGroup from 'react-ui/build/src/components/radio-group'
 import Tabs from 'react-ui/build/src/components/tabs'
-import Textarea from 'react-ui/build/src/components/textarea'
 import TreeView from 'react-ui/build/src/components/tree'
 
 import AutoSettings from './auto-settings'
@@ -77,6 +80,37 @@ const MAPS_PRIVATE_DATA = {
 let t = null;
 let f = null;
 let et = null;
+
+const StyledTextField = withStyles({
+  root: {
+    backgroundColor: '#fff',
+    '& .Mui-disabled': {
+      backgroundColor: '#f2f2f2'
+    }
+  }
+})(TextField);
+
+function TextFieldComp(props) {
+  return (
+    <StyledTextField
+      id={props.id}
+      className={props.className}
+      name={props.name}
+      type={props.type}
+      label={props.label}
+      multiline={props.multiline}
+      rows={props.rows}
+      maxLength={props.maxLength}
+      variant={props.variant}
+      fullWidth={props.fullWidth}
+      size={props.size}
+      InputProps={props.InputProps}
+      required={props.required}
+      value={props.value}
+      onChange={props.onChange}
+      disabled={props.disabled} />
+  )
+}
 
 /**
  * Network Topology Inventory
@@ -137,6 +171,7 @@ class NetworkInventory extends Component {
       },
       currentDeviceData: {},
       ownerList: [],
+      ownerListDropDown: [],
       departmentList: [],
       titleList: [],
       floorPlan: {
@@ -518,11 +553,16 @@ class NetworkInventory extends Component {
               text: val.ownerName
             };
           });
-
           ownerList = _.orderBy(ownerList, ['text'], ['asc']);
 
+          let ownerListDropDown = _.orderBy(data.rows, ['ownerName'], ['asc']);
+          ownerListDropDown = _.map(ownerListDropDown, (val, i) => {
+            return <MenuItem key={i} value={val.ownerUUID}>{val.ownerName}</MenuItem>
+          });
+
           this.setState({
-            ownerList
+            ownerList,
+            ownerListDropDown
           });
         } else {
           this.setState({
@@ -602,12 +642,9 @@ class NetworkInventory extends Component {
         let tempAddIP = {...addIP};
 
         if (!_.isEmpty(data[0])) {
-          _.forEach(data[0], val => {
-            departmentList.push({
-              value: val.nameUUID,
-              text: val.name
-            });
-          })
+          departmentList = _.map(data[0], (val, i) => {
+            return <MenuItem key={i} value={val.nameUUID}>{val.name}</MenuItem>
+          });
 
           if (departmentList[0]) {
             tempAddIP.newDepartment = departmentList[0].value;
@@ -620,12 +657,9 @@ class NetworkInventory extends Component {
         }
 
         if (!_.isEmpty(data[1])) {
-          _.forEach(data[1], val => {
-            titleList.push({
-              value: val.nameUUID,
-              text: val.name
-            });
-          })
+          titleList = _.map(data[1], (val, i) => {
+            return <MenuItem key={i} value={val.nameUUID}>{val.name}</MenuItem>
+          });
 
           if (titleList[0]) {
             tempAddIP.newTitle = titleList[0].value;
@@ -2565,11 +2599,12 @@ class NetworkInventory extends Component {
   /**
    * Handle existing owners dropdown change
    * @method
-   * @param {string} value - ownerUUID
+   * @param {string | object} event - event object
    */
-  handleOwnerChange = (value) => {
-    const inventoryParam = queryString.parse(location.search);
+  handleOwnerChange = (event) => {
     const {baseUrl} = this.context;
+    const value = event.target ? event.target.value : event;
+    const inventoryParam = queryString.parse(location.search);
 
     if (!value) {
       return;
@@ -2605,26 +2640,13 @@ class NetworkInventory extends Component {
     })
   }
   /**
-   * Handle Department dropdown change
+   * Handle Department/Title dropdown change
    * @method
-   * @param {string} value - department nameUUID
+   * @param {object} event - event object
    */
-  handleDepartmentChange = (value) => {
+  handleSelectionChange = (event) => {
     const tempAddIP = {...this.state.addIP};
-    tempAddIP.newDepartment = value;
-
-    this.setState({
-      addIP: tempAddIP
-    });
-  }
-  /**
-   * Handle Title dropdown change
-   * @method
-   * @param {string} value - title nameUUID
-   */
-  handleTitleChange = (value) => {
-    const tempAddIP = {...this.state.addIP};
-    tempAddIP.newTitle = value;
+    tempAddIP[event.target.name] = event.target.value;
 
     this.setState({
       addIP: tempAddIP
@@ -2712,6 +2734,7 @@ class NetworkInventory extends Component {
       addIP,
       previewOwnerPic,
       ownerList,
+      ownerListDropDown,
       departmentList,
       titleList,
       ownerType,
@@ -2744,31 +2767,28 @@ class NetworkInventory extends Component {
             <div className='form-group steps-address'>
               <header>{t('txt-ipAddress')}</header>
               <div className='group'>
-                <label htmlFor='addIPstepsIP'>{t('ipFields.ip')}</label>
-                <Input
+                <TextFieldComp
                   id='addIPstepsIP'
-                  required={true}
-                  validate={{
-                    pattern: /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/,
-                    patternReadable: 'xxx.xxx.xxx.xxx',
-                    t: et
-                  }}
+                  name='ip'
+                  label={t('ipFields.ip')}
+                  variant='outlined'
+                  fullWidth={true}
+                  size='small'
                   value={addIP.ip}
-                  onChange={this.handleAddIpChange.bind(this, 'ip')}
-                  readOnly={formTypeEdit} />
+                  onChange={this.handleAddIpChange}
+                  disabled={formTypeEdit} />
               </div>
               <div className='group'>
-                <label htmlFor='addIPstepsMac'>{t('ipFields.mac')}</label>
-                <Input
-                  id='addIPstepsMac'
+                <TextFieldComp
+                  id='addIPstepsIP'
+                  name='mac'
+                  label={t('ipFields.mac')}
+                  variant='outlined'
+                  fullWidth={true}
+                  size='small'
                   required={this.checkMacRequired()}
-                  validate={{
-                    pattern: /^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$/i,
-                    patternReadable: '1)MM:MM:MM:SS:SS:SS 2)MM-MM-MM-SS-SS-SS',
-                    t: et
-                  }}
                   value={addIP.mac}
-                  onChange={this.handleAddIpChange.bind(this, 'mac')} />
+                  onChange={this.handleAddIpChange} />
               </div>
             </div>
           }
@@ -2776,77 +2796,115 @@ class NetworkInventory extends Component {
             <div className='form-group steps-host'>
               <header>{t('alert.txt-systemInfo')}</header>
               <div className='group'>
-                <label htmlFor='addIPstepsHostname'>{t('ipFields.hostName')}</label>
-                <Input
+                <TextFieldComp
                   id='addIPstepsHostname'
+                  name='hostName'
+                  label={t('ipFields.hostName')}
+                  variant='outlined'
+                  fullWidth={true}
+                  size='small'
                   value={hostNameField}
-                  onChange={this.handleAddIpChange.bind(this, 'hostName')}
-                  readOnly={hostNameReadyOnly} />
+                  onChange={this.handleAddIpChange}
+                  disabled={hostNameReadyOnly} />
               </div>
               <div className='group'>
-                <label htmlFor='addIPstepsHostID'>{t('ipFields.hostID')}</label>
-                <Input
+                <TextFieldComp
                   id='addIPstepsHostID'
+                  name='hostID'
+                  label={t('ipFields.hostID')}
+                  variant='outlined'
+                  fullWidth={true}
+                  size='small'
                   value={addIP.hostID}
-                  readOnly={true} />
+                  disabled={true} />
               </div>
               <div className='group'>
-                <label htmlFor='addIPstepsSystem'>{t('ipFields.system')}</label>
-                <Input
+                <TextFieldComp
                   id='addIPstepsSystem'
+                  name='system'
+                  label={t('ipFields.system')}
+                  variant='outlined'
+                  fullWidth={true}
+                  size='small'
                   value={addIP.system}
-                  onChange={this.handleAddIpChange.bind(this, 'system')}
-                  readOnly={currentDeviceData.isHmd} />
+                  onChange={this.handleAddIpChange}
+                  disabled={currentDeviceData.isHmd} />
               </div>
               <div className='group'>
-                <label htmlFor='addIPstepsDeviceType'>{t('ipFields.deviceType')}</label>
-                <Input
+                <TextFieldComp
                   id='addIPstepsDeviceType'
+                  name='deviceType'
+                  label={t('ipFields.deviceType')}
+                  variant='outlined'
+                  fullWidth={true}
+                  size='small'
                   value={addIP.deviceType}
-                  onChange={this.handleAddIpChange.bind(this, 'deviceType')}
-                  readOnly={currentDeviceData.isHmd} />
+                  onChange={this.handleAddIpChange}
+                  disabled={currentDeviceData.isHmd} />
               </div>
               <div className='group'>
-                <label htmlFor='addIPstepsUser'>{t('ipFields.userAccount')}</label>
-                <Input
+                <TextFieldComp
                   id='addIPstepsUser'
+                  name='userName'
+                  label={t('ipFields.userAccount')}
+                  variant='outlined'
+                  fullWidth={true}
+                  size='small'
                   value={addIP.userName}
-                  onChange={this.handleAddIpChange.bind(this, 'userName')}
-                  readOnly={currentDeviceData.isHmd} />
+                  onChange={this.handleAddIpChange}
+                  disabled={currentDeviceData.isHmd} />
               </div>
               <div className='group'>
-                <label htmlFor='addIPstepsCPU'>{t('txt-cpu')}</label>
-                <Input
+                <TextFieldComp
                   id='addIPstepsCPU'
+                  name='cpu'
+                  label={t('txt-cpu')}
+                  variant='outlined'
+                  fullWidth={true}
+                  size='small'
                   value={addIP.cpu}
-                  onChange={this.handleAddIpChange.bind(this, 'cpu')}
-                  readOnly={currentDeviceData.isHmd} />
+                  onChange={this.handleAddIpChange}
+                  disabled={currentDeviceData.isHmd} />
               </div>
               <div className='group'>
-                <label htmlFor='addIPstepsRam'>{t('txt-ram')}</label>
-                <Input
+                <TextFieldComp
                   id='addIPstepsRam'
+                  name='ram'
+                  label={t('txt-ram')}
+                  variant='outlined'
+                  fullWidth={true}
+                  size='small'
                   value={addIP.ram}
-                  onChange={this.handleAddIpChange.bind(this, 'ram')}
-                  readOnly={currentDeviceData.isHmd} />
+                  onChange={this.handleAddIpChange}
+                  disabled={currentDeviceData.isHmd} />
               </div>
               <div className='group'>
-                <label htmlFor='addIPstepsDisks'>{t('txt-disks')}</label>
-                <Textarea
+                <TextFieldComp
                   id='addIPstepsDisks'
+                  name='disks'
+                  label={t('txt-disks')}
+                  multiline={true}
                   rows={3}
+                  variant='outlined'
+                  fullWidth={true}
+                  size='small'
                   value={addIP.disks}
-                  onChange={this.handleAddIpChange.bind(this, 'disks')}
-                  readOnly={currentDeviceData.isHmd} />
+                  onChange={this.handleAddIpChange}
+                  disabled={currentDeviceData.isHmd} />
               </div>
               <div className='group'>
-                <label htmlFor='addIPstepsFolders'>{t('txt-shareFolders')}</label>
-                <Textarea
+                <TextFieldComp
                   id='addIPstepsFolders'
+                  name='shareFolders'
+                  label={t('txt-shareFolders')}
+                  multiline={true}
                   rows={3}
+                  variant='outlined'
+                  fullWidth={true}
+                  size='small'
                   value={addIP.shareFolders}
-                  onChange={this.handleAddIpChange.bind(this, 'shareFolders')}
-                  readOnly={currentDeviceData.isHmd} />
+                  onChange={this.handleAddIpChange}
+                  disabled={currentDeviceData.isHmd} />
               </div>
             </div>
           }
@@ -2899,89 +2957,114 @@ class NetworkInventory extends Component {
               <div className='user-info'>
                 {ownerType === 'existing' && !_.isEmpty(ownerList) &&
                   <div className='group'>
-                    <label htmlFor='addIPstepsOwnerName'>{t('ownerFields.ownerName')}</label>
-                    <DropDownList
+                    <StyledTextField
                       id='addIPstepsOwnerName'
-                      list={ownerList}
-                      required={true}
+                      label={t('ownerFields.ownerName')}
+                      select
+                      variant='outlined'
+                      fullWidth={true}
+                      size='small'
                       value={addIP.ownerUUID}
-                      onChange={this.handleOwnerChange} />
+                      onChange={this.handleOwnerChange}>
+                      {ownerListDropDown}
+                    </StyledTextField>
                   </div>
                 }
                 {ownerType === 'new' &&
                   <div className='group'>
-                    <label htmlFor='addIPstepsOwnerName'>{t('ownerFields.ownerName')}</label>
-                    <Input
+                    <TextFieldComp
                       id='addIPstepsOwnerName'
-                      required={true}
-                      validate={{
-                        t: et
-                      }}
+                      name='newOwnerName'
+                      label={t('ownerFields.ownerName')}
+                      variant='outlined'
+                      fullWidth={true}
+                      size='small'
                       value={addIP.newOwnerName}
-                      onChange={this.handleAddIpChange.bind(this, 'newOwnerName')} />
+                      onChange={this.handleAddIpChange} />
                   </div>
                 }
                 {ownerType === 'existing' && !_.isEmpty(ownerList) &&
-                <div className='group'>
-                  <label htmlFor='addIPstepsOwnerID'>{t('ownerFields.ownerID')}</label>
-                  <Input
-                    id='addIPstepsOwnerID'
-                    readOnly={true}
-                    value={addIP.ownerID} />
-                </div>
-                }
-                {ownerType === 'new' &&
                   <div className='group'>
-                    <label htmlFor='addIPstepsOwnerID'>{t('ownerFields.ownerID')}</label>
-                    <Input
+                    <TextFieldComp
                       id='addIPstepsOwnerID'
-                      className={cx({'invalid': ownerIDduplicated})}
-                      required={true}
-                      validate={{
-                        t: et
-                      }}
+                      name='ownerID'
+                      label={t('ownerFields.ownerID')}
+                      variant='outlined'
+                      fullWidth={true}
+                      size='small'
+                      value={addIP.ownerID}
+                      disabled={true} />
+                  </div>
+                }
+                {ownerType === 'new' &&
+                  <div className='group'>
+                    <TextFieldComp
+                      id='addIPstepsOwnerID'
+                      name='newOwnerID'
+                      label={t('ownerFields.ownerID')}
+                      variant='outlined'
+                      fullWidth={true}
+                      size='small'
                       value={addIP.newOwnerID}
-                      onChange={this.handleAddIpChange.bind(this, 'newOwnerID')} />
+                      onChange={this.handleAddIpChange} />
                   </div>
                 }
                 {ownerType === 'existing' && !_.isEmpty(ownerList) &&
                   <div className='group'>
-                    <label htmlFor='addIPstepsDepartment'>{t('ownerFields.department')}</label>
-                    <Input
+                    <TextFieldComp
                       id='addIPstepsDepartment'
-                      readOnly={true}
-                      value={addIP.department} />
+                      name='department'
+                      label={t('ownerFields.department')}
+                      variant='outlined'
+                      fullWidth={true}
+                      size='small'
+                      value={addIP.department}
+                      disabled={true} />
                   </div>
                 }
                 {ownerType === 'new' &&
                   <div className='group'>
-                    <label htmlFor='addIPstepsDepartment'>{t('ownerFields.department')}</label>
-                    <DropDownList
+                    <StyledTextField
                       id='addIPstepsDepartment'
-                      list={departmentList}
-                      required={true}
+                      name='newDepartment'
+                      label={t('ownerFields.department')}
+                      select
+                      variant='outlined'
+                      fullWidth={true}
+                      size='small'
                       value={addIP.newDepartment}
-                      onChange={this.handleDepartmentChange} />
+                      onChange={this.handleSelectionChange}>
+                      {departmentList}
+                    </StyledTextField>
                   </div>
                 }
                 {ownerType === 'existing' && !_.isEmpty(ownerList) &&
                   <div className='group'>
-                    <label htmlFor='addIPstepsTitle'>{t('ownerFields.title')}</label>
-                    <Input
+                    <TextFieldComp
                       id='addIPstepsTitle'
+                      name='title'
+                      label={t('ownerFields.title')}
+                      variant='outlined'
+                      fullWidth={true}
+                      size='small'
                       value={addIP.title}
-                      readOnly={true} />
+                      disabled={true} />
                   </div>
                 }
                 {ownerType === 'new' &&
                   <div className='group'>
-                    <label htmlFor='addIPstepsTitle'>{t('ownerFields.title')}</label>
-                    <DropDownList
+                    <StyledTextField
                       id='addIPstepsTitle'
-                      list={titleList}
-                      required={true}
+                      name='newTitle'
+                      label={t('ownerFields.title')}
+                      select
+                      variant='outlined'
+                      fullWidth={true}
+                      size='small'
                       value={addIP.newTitle}
-                      onChange={this.handleTitleChange} />
+                      onChange={this.handleSelectionChange}>
+                      {titleList}
+                    </StyledTextField>
                   </div>
                 }
               </div>
@@ -3303,10 +3386,11 @@ class NetworkInventory extends Component {
   /**
    * Handle Add IP form input value change
    * @method
-   * @param {string} type - input type
-   * @param {string} value - input value
+   * @param {object} event - event object
    */
-  handleAddIpChange = (type, value) => {
+  handleAddIpChange = (event) => {
+    const type = event.target.name;
+    const value = event.target.value;
     let tempAddIP = {...this.state.addIP};
     tempAddIP[type] = value;
 

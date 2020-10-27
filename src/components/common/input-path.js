@@ -20,12 +20,22 @@ const StyledTextField = withStyles({
 function TextFieldComp(props) {
   return (
     <StyledTextField
+      id={props.id}
+      className={props.className}
       name={props.name}
+      type={props.type}
+      label={props.label}
+      multiline={props.multiline}
+      rows={props.rows}
+      maxLength={props.maxLength}
       variant={props.variant}
       fullWidth={props.fullWidth}
       size={props.size}
+      InputProps={props.InputProps}
+      required={props.required}
       value={props.value}
-      onChange={props.onChange} />
+      onChange={props.onChange}
+      disabled={props.disabled} />
   )
 }
 

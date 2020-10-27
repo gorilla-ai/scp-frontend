@@ -1,9 +1,10 @@
 import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
+import { withStyles } from '@material-ui/core/styles';
 import cx from 'classnames'
 
-import DropDownList from 'react-ui/build/src/components/dropdown'
-import Input from 'react-ui/build/src/components/input'
+import MenuItem from '@material-ui/core/MenuItem';
+import TextField from '@material-ui/core/TextField';
 
 import {BaseDataContext} from '../../common/context';
 import helper from '../../common/helper'
@@ -14,6 +15,37 @@ let t = null;
 let et = null;
 
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
+
+const StyledTextField = withStyles({
+  root: {
+    backgroundColor: '#fff',
+    '& .Mui-disabled': {
+      backgroundColor: '#f2f2f2'
+    }
+  }
+})(TextField);
+
+function TextFieldComp(props) {
+  return (
+    <StyledTextField
+      id={props.id}
+      className={props.className}
+      name={props.name}
+      type={props.type}
+      label={props.label}
+      multiline={props.multiline}
+      rows={props.rows}
+      maxLength={props.maxLength}
+      variant={props.variant}
+      fullWidth={props.fullWidth}
+      size={props.size}
+      InputProps={props.InputProps}
+      required={props.required}
+      value={props.value}
+      onChange={props.onChange}
+      disabled={props.disabled} />
+  )
+}
 
 /**
  * Add Threats
@@ -34,14 +66,16 @@ class AddThreats extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    let severityList = [];
-
-    _.forEach(SEVERITY_TYPE, val => {
-      severityList.push({
-        value: val.toUpperCase(),
-        text: val
-      });
-    })
+    this.setSeverityList();
+  }
+  /**
+   * Set Severity list
+   * @method
+   */
+  setSeverityList = () => {
+    const severityList = _.map(SEVERITY_TYPE, (val, i) => {
+      return <MenuItem key={i} value={val.toUpperCase()}>{val}</MenuItem>
+    });
 
     this.setState({
       severityList
@@ -50,13 +84,12 @@ class AddThreats extends Component {
   /**
    * Set add threats input value change
    * @method
-   * @param {string} field - input type ('input' , 'type' and 'severity')
-   * @param {string} value - input value
+   * @param {object} event - event object
    */
-  handleDataChange = (field, value) => {
+  handleDataChange = (event) => {
     this.props.onChange({
       ...this.props.value,
-      [field]: value
+      [event.target.name]: event.target.value
     });
   }
   render() {
@@ -65,42 +98,49 @@ class AddThreats extends Component {
 
     return (
       <div className='add-threats'>
-        <label htmlFor='addThreatsText'></label>
-        <Input
+        <TextFieldComp
           id='addThreatsText'
           className={cx({'error': !value.validate})}
-          required={true}
+          name='input'
+          variant='outlined'
+          fullWidth={true}
+          size='small'
           value={value.input}
-          onChange={this.handleDataChange.bind(this, 'input')} />
-        <label htmlFor='addThreatsType'></label>
-        <DropDownList
+          onChange={this.handleDataChange} />
+        <StyledTextField
           id='addThreatsType'
-          className='type'
-          list={[
-            {value: 'ip', text: 'IP'},
-            {value: 'domainName', text: 'DomainName'},
-            {value: 'url', text: 'URL'},
-            {value: 'snort', text: 'SNORT'},
-            {value: 'yara', text: 'YARA'},
-            {value: 'certMd5', text: 'Certification (MD5)'},
-            {value: 'certSha1', text: 'Certification (Sha1)'},
-            {value: 'certSha256', text: 'Certification (Sha256)'},
-            {value: 'fileHashMd5', text: 'FileHash (MD5)'},
-            {value: 'fileHashSha1', text: 'FileHash (Sha1)'},
-            {value: 'fileHashSha256', text: 'FileHash (Sha256)'},
-            {value: 'fileHashWhiteMd5', text: 'FileHashWhite (MD5)'}
-          ]}
-          required={true}
+          name='type'
+          select
+          variant='outlined'
+          fullWidth={true}
+          size='small'
           value={value.type}
-          onChange={this.handleDataChange.bind(this, 'type')} />
-        <label htmlFor='addThreatsSeverity'></label>  
-        <DropDownList
+          onChange={this.handleDataChange}>
+          <MenuItem value={'ip'}>IP</MenuItem>
+          <MenuItem value={'domainName'}>DomainName</MenuItem>
+          <MenuItem value={'url'}>URL</MenuItem>
+          <MenuItem value={'snort'}>SNORT</MenuItem>
+          <MenuItem value={'yara'}>YARA</MenuItem>
+          <MenuItem value={'certMd5'}>Certification (MD5)</MenuItem>
+          <MenuItem value={'certSha1'}>Certification (Sha1)</MenuItem>
+          <MenuItem value={'certSha256'}>Certification (Sha256)</MenuItem>
+          <MenuItem value={'fileHashMd5'}>FileHash (MD5)</MenuItem>
+          <MenuItem value={'fileHashSha1'}>FileHash (Sha1)</MenuItem>
+          <MenuItem value={'fileHashSha256'}>FileHash (Sha256)</MenuItem>
+          <MenuItem value={'fileHashWhiteMd5'}>FileHashWhite (MD5)</MenuItem>
+        </StyledTextField>
+        <StyledTextField
           id='addThreatsSeverity'
           className={'severity ' + value.severity.toLowerCase()}
-          list={severityList}
-          required={true}
+          name='severity'
+          select
+          variant='outlined'
+          fullWidth={true}
+          size='small'
           value={value.severity}
-          onChange={this.handleDataChange.bind(this, 'severity')} />
+          onChange={this.handleDataChange}>
+          {severityList}
+        </StyledTextField>
       </div>
     )
   }

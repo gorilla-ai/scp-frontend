@@ -1,17 +1,29 @@
 import React, { Component } from 'react'
+import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
 
+import MenuItem from '@material-ui/core/MenuItem';
+import TextField from '@material-ui/core/TextField';
+
 import DatePicker from 'react-ui/build/src/components/date-picker'
 import DateRange from 'react-ui/build/src/components/date-range'
-import DropDownList from 'react-ui/build/src/components/dropdown'
 
 import {BaseDataContext} from './context';
 import helper from './helper'
 
 let t = null;
 let et = null;
+
+const StyledTextField = withStyles({
+  root: {
+    backgroundColor: '#fff',
+    '& .Mui-disabled': {
+      backgroundColor: '#f2f2f2'
+    }
+  }
+})(TextField);
 
 /**
  * Search Options
@@ -115,11 +127,11 @@ class SearchOptions extends Component {
   /**
    * Set search type and interval based on user's selection
    * @method
-   * @param {string} type - input value ('manual' or 'auto')
+   * @param {object} event - event object ('manual' or 'auto')
    */
-  handleSearchTypeChange = (type) => {
+  handleSearchTypeChange = (event) => {
     this.props.setSearchData('all', {
-      searchType: type,
+      searchType: event.target.value,
       searchInterval: '1h',
       refreshTime: '600000'
     });
@@ -205,60 +217,70 @@ class SearchOptions extends Component {
     return (
       <div className='search-options'>
         {showInterval &&
-          <DropDownList
+          <StyledTextField
             className='search-type'
-            list={[
-              {value: 'manual', text: t('events.connections.txt-search-manual')},
-              {value: 'auto', text: t('events.connections.txt-search-auto')}
-            ]}
-            required={true}
+            select
+            variant='outlined'
+            size='small'
             value={searchInput.searchType}
-            onChange={this.handleSearchTypeChange} />
+            onChange={this.handleSearchTypeChange}>
+            <MenuItem value={'manual'}>{t('events.connections.txt-search-manual')}</MenuItem>
+            <MenuItem value={'auto'}>{t('events.connections.txt-search-auto')}</MenuItem>
+          </StyledTextField>
         }
 
         {showInterval &&
           <div className='search-interval'>
             {searchInput.searchType === 'auto' &&
               <div>
-                <DropDownList
-                  id='updateInterval'
-                  list={[
-                    {value: '15000', text: t('events.connections.txt-15s')},
-                    {value: '30000', text: t('events.connections.txt-30s')},
-                    {value: '60000', text: t('events.connections.txt-1m')},
-                    {value: '300000', text: t('events.connections.txt-5m')},
-                    {value: '600000', text: t('events.connections.txt-10m')}
-                  ]}
-                  required={true}
-                  value={searchInput.refreshTime}
-                  onChange={this.props.setSearchData.bind(this, 'refreshTime')} />
-                <DropDownList
-                  id='timeInterval'
-                  list={[
-                    {value: '15m', text: t('events.connections.txt-last15m')},
-                    {value: '30m', text: t('events.connections.txt-last30m')},
-                    {value: '1h', text: t('events.connections.txt-last1h')},
-                    {value: '12h', text: t('events.connections.txt-last12h')}
-                  ]}
-                  required={true}
-                  value={searchInput.searchInterval}
-                  onChange={this.props.setSearchData.bind(this, 'searchInterval')} />          
+                <div className='update-interval'>
+                  <StyledTextField
+                    id='updateInterval'
+                    select
+                    variant='outlined'
+                    size='small'
+                    value={searchInput.refreshTime}
+                    onChange={this.props.setSearchData.bind(this, 'refreshTime')}>
+                    <MenuItem value={'15000'}>{t('events.connections.txt-15s')}</MenuItem>
+                    <MenuItem value={'30000'}>{t('events.connections.txt-30s')}</MenuItem>
+                    <MenuItem value={'60000'}>{t('events.connections.txt-1m')}</MenuItem>
+                    <MenuItem value={'300000'}>{t('events.connections.txt-5m')}</MenuItem>
+                    <MenuItem value={'600000'}>{t('events.connections.txt-10m')}</MenuItem>
+                  </StyledTextField>
+                </div>
+
+                <div className='time-interval'>
+                  <StyledTextField
+                    id='timeInterval'
+                    select
+                    variant='outlined'
+                    size='small'
+                    value={searchInput.searchInterval}
+                    onChange={this.props.setSearchData.bind(this, 'searchInterval')}>
+                    <MenuItem value={'15m'}>{t('events.connections.txt-last15m')}</MenuItem>
+                    <MenuItem value={'30m'}>{t('events.connections.txt-last30m')}</MenuItem>
+                    <MenuItem value={'1h'}>{t('events.connections.txt-last1h')}</MenuItem>
+                    <MenuItem value={'12h'}>{t('events.connections.txt-last12h')}</MenuItem>
+                  </StyledTextField>
+                </div>
               </div>
             }
             {searchInput.searchType === 'manual' &&
-              <DropDownList
-                id='timeInterval'
-                list={[
-                  {value: '30m', text: t('events.connections.txt-last30m')},
-                  {value: '1h', text: t('events.connections.txt-last1h')},
-                  {value: '2h', text: t('events.connections.txt-last2h')},
-                  {value: 'today', text: t('events.connections.txt-today')},
-                  {value: '24h', text: t('events.connections.txt-last24h')},
-                  {value: 'week', text: t('events.connections.txt-week')}
-                ]}
-                required={true}
-                value={searchInput.searchInterval}
-                onChange={this.props.setSearchData.bind(this, 'searchInterval')} />
+                <StyledTextField
+                  id='timeInterval'
+                  select
+                  variant='outlined'
+                  fullWidth={true}
+                  size='small'
+                  value={searchInput.searchInterval}
+                  onChange={this.props.setSearchData.bind(this, 'searchInterval')}>
+                  <MenuItem value={'30m'}>{t('events.connections.txt-last30m')}</MenuItem>
+                  <MenuItem value={'1h'}>{t('events.connections.txt-last1h')}</MenuItem>
+                  <MenuItem value={'2h'}>{t('events.connections.txt-last2h')}</MenuItem>
+                  <MenuItem value={'today'}>{t('events.connections.txt-today')}</MenuItem>
+                  <MenuItem value={'24h'}>{t('events.connections.txt-last24h')}</MenuItem>
+                  <MenuItem value={'week'}>{t('events.connections.txt-week')}</MenuItem>
+                </StyledTextField>
             }
           </div>
         }

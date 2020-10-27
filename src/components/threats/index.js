@@ -1760,9 +1760,11 @@ class ThreatsController extends Component {
    * Set search options data
    * @method
    * @param {string} type - search type to be set ('all' and everything else)
-   * @param {string} value - search value to be set
+   * @param {string | object} event - event object
    */
-  setSearchData = (type, value) => {
+  setSearchData = (type, event) => {
+    const value = event.target ? event.target.value : event;
+
     if (type === 'all') {
       this.setState({
         searchInput: value

@@ -655,17 +655,15 @@ i.c-checkbox.fg-checkbox {
         float: left;
         margin-right: 10px;
       }
-      #updateInterval {
-        margin-right: 10px;
-      }
       .search-interval {
         float: left;
         margin-right: 10px;
+        .update-interval,
         .time-interval {
-          height: 36px;
-          box-shadow: none;
-          background-color: var(--primaryContentBackground);
-          cursor: pointer;
+          float: left;
+        }
+        .update-interval {
+          margin-right: 10px;
         }
       }
       .datepicker {
@@ -1570,7 +1568,6 @@ i.c-checkbox.fg-checkbox {
               }
               input {
                 width: 185px;
-                height: 36px;
               }
               select {
                 width: auto;
@@ -1606,7 +1603,6 @@ i.c-checkbox.fg-checkbox {
                     margin-right: 10px;
                     label {
                       float: left;
-                      color: var(--disabledColor);
                       margin-top: 1px;
                       margin-right: 5px;
                       &.active {
@@ -1939,6 +1935,7 @@ i.c-checkbox.fg-checkbox {
                 padding: 0px 15px;
                 & > .group {
                   padding: 5px;
+                  margin: 10px 0;
                 }
               }
               .user-pic {
@@ -1954,9 +1951,6 @@ i.c-checkbox.fg-checkbox {
                   height: 200px;
                   border-radius: 50%;
                   margin-top: 10px;
-                  &.existing {
-                    margin-top: 30px;
-                  }
                 }
               }
             }
@@ -2065,6 +2059,13 @@ i.c-checkbox.fg-checkbox {
               .period {
                 color: var(--primaryContentHeader);
                 margin-top: 5px;
+              }
+              .support-text {
+                display: inline-block;
+                font-size: 14px;
+                margin-top: 10px;
+                margin-right: 5px;
+                margin-left: 5px;
               }
               .flex-item {
                 display: flex;
@@ -2339,7 +2340,7 @@ i.c-checkbox.fg-checkbox {
                     button {
                       position: absolute;
                       right: 15px;
-                      top: 5px;
+                      top: -5px;
                       font-size: .9em;
                       padding: .2em .8em;
                     }
@@ -2352,7 +2353,11 @@ i.c-checkbox.fg-checkbox {
                     .parsed-list {
                       width: 100%;
                       height: 445px;
+                      padding-right: 10px;
                       overflow-y: auto;
+                      .group {
+                        margin: 18px 0;
+                      }
                     }
                   }
                   .fg-forward {
@@ -2388,7 +2393,8 @@ i.c-checkbox.fg-checkbox {
               margin-bottom: 10px;
               .up {
                 display: flex;
-                padding: 5px 5px;
+                padding: 10px 5px 0px 5px;
+                margin-bottom: 10px;
               }
               .down {
                 padding: 5px 5px;
@@ -2417,15 +2423,15 @@ i.c-checkbox.fg-checkbox {
                 }
               }
               .fg-next {
-                margin-top: 30px;
+                margin-top: 10px;
                 margin-left: 10px;
               }
             }        
             .add,
             .remove {
               width: 30px;
-              height: 30px;
-              margin-top: 40px;
+              height: 40px;
+              margin-top: 20px;
             }
             .add {
               margin-right: 10px;

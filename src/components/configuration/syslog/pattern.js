@@ -1,15 +1,17 @@
 import React, { Component } from 'react'
 import { withRouter } from 'react-router'
 import { NavLink, Link, Switch, Route } from 'react-router-dom'
+import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
 
-import Checkbox from 'react-ui/build/src/components/checkbox'
-import DropDownList from 'react-ui/build/src/components/dropdown'
-import Input from 'react-ui/build/src/components/input'
+import Checkbox from '@material-ui/core/Checkbox';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import TextField from '@material-ui/core/TextField';
+
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
-import Textarea from 'react-ui/build/src/components/textarea'
 
 import {BaseDataContext} from '../../common/context';
 import Config from '../../common/configuration'
@@ -32,6 +34,37 @@ const ALERT_LEVEL_COLORS = {
 };
 const PERIOD_MIN = [10, 15, 30, 60];
 
+const StyledTextField = withStyles({
+  root: {
+    backgroundColor: '#fff',
+    '& .Mui-disabled': {
+      backgroundColor: '#f2f2f2'
+    }
+  }
+})(TextField);
+
+function TextFieldComp(props) {
+  return (
+    <StyledTextField
+      id={props.id}
+      className={props.className}
+      name={props.name}
+      type={props.type}
+      label={props.label}
+      multiline={props.multiline}
+      rows={props.rows}
+      maxLength={props.maxLength}
+      variant={props.variant}
+      fullWidth={props.fullWidth}
+      size={props.size}
+      InputProps={props.InputProps}
+      required={props.required}
+      value={props.value}
+      onChange={props.onChange}
+      disabled={props.disabled} />
+  )
+}
+
 /**
  * Pattern
  * @class
@@ -52,7 +85,13 @@ class Pattern extends Component {
       patternSearch: {
         name: '',
         queryScript: '',
-        severity: {}
+        severity: {
+          Alert: false,
+          Critical: false,
+          Emergency: false,
+          Notice: false,
+          Warning: false
+        }
       },
       originalPatternData: {},
       severityList: [],
@@ -96,24 +135,14 @@ class Pattern extends Component {
    * @method
    */
   setDefaultSearchOptions = () => {
-    let tempPatternSearch = {...this.state.patternSearch};
-    let severityList = [];
-    let periodMinList = [];
-
-    _.forEach(SEVERITY_TYPE, val => {
-      tempPatternSearch.severity[val] = false;
-      severityList.push({
-        value: val,
-        text: val
-      });
-    })
-
-    periodMinList = _.map(PERIOD_MIN, val => {
-      return { value: val, text: val }
+    const severityList = _.map(SEVERITY_TYPE, (val, i) => {
+      return <MenuItem key={i} value={val}>{val}</MenuItem>
+    });
+    const periodMinList = _.map(PERIOD_MIN, (val, i) => {
+      return <MenuItem key={i} value={val}>{val}</MenuItem>
     });
 
     this.setState({
-      patternSearch: tempPatternSearch,
       severityList,
       periodMinList
     }, () => {
@@ -257,12 +286,11 @@ class Pattern extends Component {
   /**
    * Toggle Severity options
    * @method
-   * @param {string} field - severity option name
-   * @param {boolean} value - true/false
+   * @param {object} event - event object
    */
-  toggleSeverityOptions = (field, value) => {
+  toggleSeverityOptions = (event) => {
     let tempPatternSearch = {...this.state.patternSearch};
-    tempPatternSearch.severity[field] = value;
+    tempPatternSearch.severity[event.target.name] = event.target.checked;
 
     this.setState({
       patternSearch: tempPatternSearch
@@ -271,31 +299,11 @@ class Pattern extends Component {
   /**
    * Handle Pattern edit input data change
    * @method
-   * @param {string} type - input type
-   * @param {string} value - input value
+   * @param {object} event - event object
    */
-  handleDataChange = (type, value) => {
+  handleDataChange = (event) => {
     let tempPattern = {...this.state.pattern};
-    tempPattern.info[type] = value;
-
-    this.setState({
-      pattern: tempPattern
-    });
-  }
-  /**
-   * Handle Pattern edit input number change
-   * @method
-   * @param {string} type - input type ('periodMin' or 'threshold')
-   * @param {object | string} value - input value
-   */
-  handleNumberChange = (type, value) => {
-    let tempPattern = {...this.state.pattern};
-
-    if (type === 'periodMin') {
-      tempPattern.info[type] = value;
-    } else if (type === 'threshold') {
-      tempPattern.info[type] = value.target.value;
-    }
+    tempPattern.info[event.target.name] = event.target.value;
 
     this.setState({
       pattern: tempPattern
@@ -338,56 +346,75 @@ class Pattern extends Component {
             }
           </header>
           <div className='group'>
-            <label htmlFor='patternName'>{f('syslogPatternTableFields.patternName')}</label>
-            <Input
+            <TextFieldComp
               id='patternName'
+              name='name'
+              label={f('syslogPatternTableFields.patternName')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={pattern.info.name}
-              onChange={this.handleDataChange.bind(this, 'name')}
-              readOnly={activeContent === 'viewPattern'} />
+              onChange={this.handleDataChange}
+              disabled={activeContent === 'viewPattern'} />
           </div>
           <div className='group severity-level'>
-            <label htmlFor='severityLevel'>{f('syslogPatternTableFields.severity')}</label>
             <i className='fg fg-recode' style={{color: ALERT_LEVEL_COLORS[pattern.info.severity]}}></i>
-            <DropDownList
+            <StyledTextField
               id='severityLevel'
-              required={true}
-              list={severityList}
+              name='severity'
+              select
+              label={f('syslogPatternTableFields.severity')}
+              variant='outlined'
+              size='small'
               value={pattern.info.severity}
-              onChange={this.handleDataChange.bind(this, 'severity')}
-              readOnly={activeContent === 'viewPattern'} />
+              onChange={this.handleDataChange}
+              disabled={activeContent === 'viewPattern'}>
+              {severityList}
+            </StyledTextField>
           </div>
           <div className='group full'>
-            <label htmlFor='queryScript'>{f('syslogPatternTableFields.queryScript')}</label>
-            <Textarea
+            <TextFieldComp
               id='queryScript'
+              name='queryScript'
+              label={f('syslogPatternTableFields.queryScript')}
+              multiline={true}
               rows={4}
               maxLength={250}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={pattern.info.queryScript}
-              onChange={this.handleDataChange.bind(this, 'queryScript')}
-              readOnly={activeContent === 'viewPattern'} />
+              onChange={this.handleDataChange}
+              disabled={activeContent === 'viewPattern'} />
           </div>
           <div className='group full'>
             <div className='period'>
-              <span>{t('events.connections.txt-patternQuery1')} </span>
-              <DropDownList
+              <span className='support-text'>{t('events.connections.txt-patternQuery1')} </span>
+              <StyledTextField
                 className='number'
-                list={periodMinList}
+                name='periodMin'
+                select
+                variant='outlined'
+                size='small'
                 required={true}
                 value={pattern.info.periodMin}
-                onChange={this.handleNumberChange.bind(this, 'periodMin')}
-                readOnly={activeContent === 'viewPattern'} />
-              <span> {t('events.connections.txt-patternQuery2')} </span>
-              <input
+                onChange={this.handleDataChange}
+                disabled={activeContent === 'viewPattern'}>
+                {periodMinList}
+              </StyledTextField>
+              <span className='support-text'> {t('events.connections.txt-patternQuery2')} </span>
+              <TextFieldComp
                 id='threshold'
                 className='number'
+                name='threshold'
                 type='number'
-                min='1'
-                max='1000'
-                required={true}
+                variant='outlined'
+                size='small'
+                InputProps={{inputProps: { min: 1, max: 1000 }}}
                 value={pattern.info.threshold}
-                onChange={this.handleNumberChange.bind(this, 'threshold')}
-                readOnly={activeContent === 'viewPattern'} />
-              <span> {t('events.connections.txt-patternQuery3')}</span>
+                onChange={this.handleDataChange}
+                disabled={activeContent === 'viewPattern'} />
+              <span className='support-text'> {t('events.connections.txt-patternQuery3')}</span>
             </div>
           </div>
         </div>
@@ -545,12 +572,11 @@ class Pattern extends Component {
   /**
    * Handle filter input data change
    * @method
-   * @param {string} type - input type
-   * @param {string} value - input value
+   * @param {object} event - event object
    */
-  handlePatternSearch = (type, value) => {
+  handlePatternSearch = (event) => {
     let tempPatternSearch = {...this.state.patternSearch};
-    tempPatternSearch[type] = value;
+    tempPatternSearch[event.target.name] = event.target.value;
 
     this.setState({
       patternSearch: tempPatternSearch
@@ -566,11 +592,17 @@ class Pattern extends Component {
   displaySeverityCheckbox = (val, i) => {
     return (
       <div className='option' key={val + i}>
-        <label htmlFor={val} className='active'>{val}</label>
-        <Checkbox
-          id={val}
-          checked={this.state.patternSearch.severity[val]}
-          onChange={this.toggleSeverityOptions.bind(this, val)} />
+        <FormControlLabel
+          key={i}
+          label={val}
+          control={
+            <Checkbox
+              id={val}
+              name={val}
+              checked={this.state.patternSearch.severity[val]}
+              onChange={this.toggleSeverityOptions}
+              color='primary' />
+          } />
       </div>
     )
   }
@@ -589,17 +621,25 @@ class Pattern extends Component {
         <div className='filter-section config'>
           <div className='group'>
             <label htmlFor='patternSearchName'>{f('syslogPatternTableFields.patternName')}</label>
-            <Input
+            <TextFieldComp
               id='patternSearchName'
+              name='name'
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={patternSearch.name}
-              onChange={this.handlePatternSearch.bind(this, 'name')} />
+              onChange={this.handlePatternSearch} />
           </div>
           <div className='group'>
             <label htmlFor='patternSearchQueryScript'>{f('syslogPatternTableFields.queryScript')}</label>
-            <Input
+            <TextFieldComp
               id='patternSearchQueryScript'
+              name='queryScript'
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={patternSearch.queryScript}
-              onChange={this.handlePatternSearch.bind(this, 'queryScript')} />
+              onChange={this.handlePatternSearch} />
           </div>
           <div className='severity'>
             <label>{f('syslogPatternTableFields.severity')}</label>
@@ -662,7 +702,13 @@ class Pattern extends Component {
       patternSearch: {
         name: '',
         queryScript: '',
-        severity: {}
+        severity: {
+          Alert: false,
+          Critical: false,
+          Emergency: false,
+          Notice: false,
+          Warning: false
+        }
       }
     });
   }

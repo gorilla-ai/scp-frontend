@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import { withRouter } from 'react-router'
+import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import Moment from 'moment'
 import moment from 'moment-timezone'
@@ -7,11 +8,12 @@ import _ from 'lodash'
 import cx from 'classnames'
 import queryString from 'query-string'
 
+import TextField from '@material-ui/core/TextField';
+
 import {analyze} from 'vbda-ui/build/src/analyzer'
 import {config as configLoader} from 'vbda-ui/build/src/loader'
 import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
-import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
@@ -32,6 +34,37 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 let t = null;
 let f = null;
 let et = null;
+
+const StyledTextField = withStyles({
+  root: {
+    backgroundColor: '#fff',
+    '& .Mui-disabled': {
+      backgroundColor: '#f2f2f2'
+    }
+  }
+})(TextField);
+
+function TextFieldComp(props) {
+  return (
+    <StyledTextField
+      id={props.id}
+      className={props.className}
+      name={props.name}
+      type={props.type}
+      label={props.label}
+      multiline={props.multiline}
+      rows={props.rows}
+      maxLength={props.maxLength}
+      variant={props.variant}
+      fullWidth={props.fullWidth}
+      size={props.size}
+      InputProps={props.InputProps}
+      required={props.required}
+      value={props.value}
+      onChange={props.onChange}
+      disabled={props.disabled} />
+  )
+}
 
 /**
  * Syslog
@@ -1087,9 +1120,10 @@ class SyslogController extends Component {
    * Handle value change for the checkbox in the table dialog
    * @method
    * @param {string} field - field of selected checkbox
-   * @param {boolean} data - checked/uncheck status
+   * @param {object} event - event object
    */
-  setFieldsChange = (field, data) => {
+  setFieldsChange = (field, event) => {
+    const data = event.target.checked;
     let tempAccount = {...this.state.account};
 
     if (_.includes(tempAccount.fields, field)) {
@@ -1265,11 +1299,11 @@ class SyslogController extends Component {
   /**
    * Handle locale input value change
    * @method
-   * @param {string} value - input value
+   * @param {object} event - event object
    */
-  handleLocaleChange = (value) => {
+  handleLocaleChange = (event) => {
     this.setState({
-      logCustomLocal: value
+      logCustomLocal: event.target.value
     });
   }
   /**
@@ -1294,13 +1328,11 @@ class SyslogController extends Component {
         global={true}
         actions={actions}
         closeAction='cancel'>
-        <Input
-          type='text'
+        <TextFieldComp
           className='field-input'
-          required={true}
-          validate={{
-            t: et
-          }}
+          variant='outlined'
+          fullWidth={true}
+          size='small'
           value={logCustomLocal}
           onChange={this.handleLocaleChange} />
       </ModalDialog>
@@ -1763,9 +1795,11 @@ class SyslogController extends Component {
    * Set search options data
    * @method
    * @param {string} type - search type to be set ('all' and others)
-   * @param {string} value - search value to be set
+   * @param {string | object} event - event object
    */
-  setSearchData = (type, value) => {
+  setSearchData = (type, event) => {
+    const value = event.target ? event.target.value : event;
+
     if (type === 'all') {
       this.setState({
         searchInput: value
