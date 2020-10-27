@@ -221,6 +221,10 @@ class NetworkInventory extends Component {
       return <li key={i} style={{color}}>{val.name}: {t('network-inventory.txt-taskFailure')}</li>
     }
 
+    if (val.result.taskStatus && val.result.taskStatus === 'NotSupport') {
+      return <li key={i} style={{color}}>{val.name}: {t('network-inventory.txt-notSupport')}</li>
+    }
+
     if (val.type === 'gcb' && val.result.TotalCnt >= 0 && val.result.PassCnt >= 0) {
       if (val.result.TotalCnt === val.result.PassCnt) { //Show green color for all pass
         color = '#22ac38';

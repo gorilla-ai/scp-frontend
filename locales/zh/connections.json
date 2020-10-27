@@ -527,6 +527,7 @@
     "txt-filePathList": "掃描路徑",
     "txt-modifiedFileCount": "異動檔案數",
     "txt-taskFailure": "執行異常",
+    "txt-notSupport": "未支援",
     "txt-_MissingFile": "刪除檔案路徑",
     "txt-_ModifyFile": "修改檔案路徑",
     "txt-_NewCreateFile": "新增檔案路徑",

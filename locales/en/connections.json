@@ -527,6 +527,7 @@
     "txt-filePathList": "File Path List",
     "txt-modifiedFileCount": "Modified files",
     "txt-taskFailure": "Task Failure",
+    "txt-notSupport": "Not Support",
     "txt-_MissingFile": "Missing File Path",
     "txt-_ModifyFile": "Modify File Path",
     "txt-_NewCreateFile": "New Create File Path",

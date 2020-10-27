@@ -790,6 +790,10 @@ class HostController extends Component {
         color = '#e15b6b';
         title = displayTooltip += t('network-inventory.txt-taskFailure');
         displayContent = t('network-inventory.txt-taskFailure');
+      } else if (safetyData[0].taskStatus === 'NotSupport') {
+        color = '#e15b6b';
+        title = displayTooltip += t('network-inventory.txt-notSupport');
+        displayContent = t('network-inventory.txt-notSupport');
       } else if (safetyData[0].taskStatus === 'Complete') {
         if (val.name === 'GCB') {
           displayCount = helper.numberWithCommas(safetyData[0][val.pass]) + '/' + helper.numberWithCommas(safetyData[0].TotalCnt);

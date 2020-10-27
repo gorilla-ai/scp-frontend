@@ -1327,6 +1327,9 @@ class HMDscanInfo extends Component {
           {val.taskStatus && val.taskStatus === 'Failure' &&
             <span style={{color: '#d10d25'}}>{t('network-inventory.txt-taskFailure')}</span>
           }
+          {val.taskStatus && val.taskStatus === 'NotSupport' &&
+            <span style={{color: '#d10d25'}}>{t('network-inventory.txt-notSupport')}</span>
+          }
           {(activeTab === 'yara' || activeTab === 'scanFile' || activeTab === 'procMonitor') && dataResult &&
             this.getSuspiciousFileCount(dataResult)
           }
@@ -1450,6 +1453,9 @@ class HMDscanInfo extends Component {
             {val.taskStatus && val.taskStatus === 'Failure' &&
               <span style={{color: '#d10d25'}}>{t('network-inventory.txt-taskFailure')}</span>
             }
+            {val.taskStatus && val.taskStatus === 'NotSupport' &&
+              <span style={{color: '#d10d25'}}>{t('network-inventory.txt-notSupport')}</span>
+            }
             {activeTab === 'gcb' && (!val.taskStatus || val.taskStatus && val.taskStatus === 'Complete') &&
               this.getPassTotalCount()
             }
@@ -1478,6 +1484,9 @@ class HMDscanInfo extends Component {
           <span>{t('network-inventory.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}</span>
           {val.taskStatus && val.taskStatus === 'Failure' &&
             <span style={{color: '#d10d25'}}>{t('network-inventory.txt-taskFailure')}</span>
+          }
+          {val.taskStatus && val.taskStatus === 'NotSupport' &&
+            <span style={{color: '#d10d25'}}>{t('network-inventory.txt-notSupport')}</span>
           }
         </div>
         <div className='scan-content'>
