@@ -1,10 +1,12 @@
 import React, {Component} from 'react'
+import { withStyles } from '@material-ui/core/styles';
 import _ from 'lodash'
 import i18n from 'i18next'
 import PropTypes from 'prop-types';
 import cx from 'classnames'
 
-import Input from 'react-ui/build/src/components/input'
+import TextField from '@material-ui/core/TextField';
+
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
 import {BaseDataContext} from '../../../common/context';
@@ -23,6 +25,37 @@ const INITIAL_STATE = {
   error: false,
   name: ''
 };
+
+const StyledTextField = withStyles({
+  root: {
+    backgroundColor: '#fff',
+    '& .Mui-disabled': {
+      backgroundColor: '#f2f2f2'
+    }
+  }
+})(TextField);
+
+function TextFieldComp(props) {
+  return (
+    <StyledTextField
+      id={props.id}
+      className={props.className}
+      name={props.name}
+      type={props.type}
+      label={props.label}
+      multiline={props.multiline}
+      rows={props.rows}
+      maxLength={props.maxLength}
+      variant={props.variant}
+      fullWidth={props.fullWidth}
+      size={props.size}
+      InputProps={props.InputProps}
+      required={props.required}
+      value={props.value}
+      onChange={props.onChange}
+      disabled={props.disabled} />
+  )
+}
 
 /**
  * Account Privileges Add
@@ -75,11 +108,11 @@ class PrivilegeAdd extends Component {
   /**
    * Handle privilege add input value change
    * @method
-   * @param {string} value - input value
+   * @param {object} event - event object
    */
-  handleDataChange = (value) => {
+  handleDataChange = (event) => {
     this.setState({
-      name: value
+      [event.target.name]: event.target.value
     });
   }
   /**
@@ -123,13 +156,14 @@ class PrivilegeAdd extends Component {
    * @returns HTML DOM
    */
   displayAddPrivilege = () => {
-    const {name} = this.state;
-
     return (
       <div className='c-flex fdc dialog-width'>
-        <Input
-          type='text'
-          value={name}
+        <TextFieldComp
+          name='name'
+          variant='outlined'
+          fullWidth={true}
+          size='small'
+          value={this.state.name}
           onChange={this.handleDataChange} />
       </div>
     )

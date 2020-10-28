@@ -1,9 +1,41 @@
 import React, { Component } from 'react'
+import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 
-import DropDownList from 'react-ui/build/src/components/dropdown'
-import Input from 'react-ui/build/src/components/input'
+import MenuItem from '@material-ui/core/MenuItem';
+import TextField from '@material-ui/core/TextField';
+
+const StyledTextField = withStyles({
+  root: {
+    backgroundColor: '#fff',
+    '& .Mui-disabled': {
+      backgroundColor: '#f2f2f2'
+    }
+  }
+})(TextField);
+
+function TextFieldComp(props) {
+  return (
+    <StyledTextField
+      id={props.id}
+      className={props.className}
+      name={props.name}
+      type={props.type}
+      label={props.label}
+      multiline={props.multiline}
+      rows={props.rows}
+      maxLength={props.maxLength}
+      variant={props.variant}
+      fullWidth={props.fullWidth}
+      size={props.size}
+      InputProps={props.InputProps}
+      required={props.required}
+      value={props.value}
+      onChange={props.onChange}
+      disabled={props.disabled} />
+  )
+}
 
 /**
  * Config Inventory auto settings IP Range
@@ -18,13 +50,12 @@ class IpRange extends Component {
   /**
    * Set input value change
    * @method
-   * @param {string} field - input field
-   * @param {string} value - input value
+   * @param {object} event - event object
    */
-  handleDataChange = (field, value) => {
+  handleDataChange = (event) => {
     this.props.onChange({
       ...this.props.value,
-      [field]: value
+      [event.target.name]: event.target.value
     });
   }
   render() {
@@ -32,23 +63,35 @@ class IpRange extends Component {
 
     return (
       <div className='group-content'>
-        <DropDownList
+        <StyledTextField
+          className='ip-range'
+          name='type'
+          select
+          variant='outlined'
+          size='small'
           required={true}
-          list={[
-            {value: 'private', text: 'Private'},
-            {value: 'public', text: 'Public'}
-          ]}
           value={value.type}
-          onChange={this.handleDataChange.bind(this, 'type')}
-          readOnly={activeContent === 'viewMode'} />
-        <Input
+          onChange={this.handleDataChange}
+          disabled={activeContent === 'viewMode'}>
+          <MenuItem value={'private'}>Private</MenuItem>
+          <MenuItem value={'public'}>Public</MenuItem>
+        </StyledTextField>
+        <TextFieldComp
+          className='ip-range'
+          name='ip'
+          variant='outlined'
+          size='small'
           value={value.ip}
-          onChange={this.handleDataChange.bind(this, 'ip')}
-          readOnly={activeContent === 'viewMode'} />
-        <Input
+          onChange={this.handleDataChange}
+          disabled={activeContent === 'viewMode'} />
+        <TextFieldComp
+          className='ip-range'
+          name='mask'
+          variant='outlined'
+          size='small'
           value={value.mask}
-          onChange={this.handleDataChange.bind(this, 'mask')}
-          readOnly={activeContent === 'viewMode'} />
+          onChange={this.handleDataChange}
+          disabled={activeContent === 'viewMode'} />
       </div>
     )
   }

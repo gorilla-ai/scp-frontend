@@ -126,12 +126,8 @@ class Severity extends Component {
    * @method
    */
   setDefaultSearchOptions = () => {
-    let severityList = [];
-
-    _.forEach(SEVERITY_TYPE, (val, i) => {
-      severityList.push(
-        <MenuItem key={i} value={val}>{val}</MenuItem>
-      );
+    const severityList = _.map(SEVERITY_TYPE, (val, i) => {
+      return <MenuItem key={i} value={val}>{val}</MenuItem>
     });
 
     this.setState({
@@ -444,7 +440,7 @@ class Severity extends Component {
   /**
    * Toggle filter content on/off
    * @method
-   * @param {string} event - Severity type input from user
+   * @param {string} event - event object
    */
   handleSearchType = (event) => {
     this.setState({
@@ -489,9 +485,9 @@ class Severity extends Component {
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group'>
-            <label htmlFor='severityType'>{f('severityTableFields.dataSourceType')}</label>
             <TextFieldComp
               id='severityType'
+              label={f('severityTableFields.dataSourceType')}
               variant='outlined'
               fullWidth={true}
               size='small'

@@ -1,9 +1,13 @@
 import React, { Component } from 'react'
 import { withRouter } from 'react-router'
 import { NavLink, Link, Switch, Route } from 'react-router-dom'
+import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
+
+import MenuItem from '@material-ui/core/MenuItem';
+import TextField from '@material-ui/core/TextField';
 
 import Combobox from 'react-ui/build/src/components/combobox'
 import DropDownList from 'react-ui/build/src/components/dropdown'
@@ -20,6 +24,15 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null;
 let f = null;
+
+const StyledTextField = withStyles({
+  root: {
+    backgroundColor: '#fff',
+    '& .Mui-disabled': {
+      backgroundColor: '#f2f2f2'
+    }
+  }
+})(TextField);
 
 /**
  * ES Management
@@ -174,17 +187,9 @@ class EsManage extends Component {
           return;
         }
 
-        let statusList = [{
-          value: 'all',
-          text: 'All'
-        }];
-
-        _.forEach(data.statusList, val => {
-          statusList.push({
-            value: val.toLowerCase(),
-            text: val  
-          });
-        })
+        const statusList = _.map(data.statusList, (val, i) => {
+          return <MenuItem key={i} value={val.toLowerCase()}>{val}</MenuItem>
+        });
 
         tempEs.dataFields = _.map(es.dataFieldsArr, val => {
           return {
@@ -278,12 +283,11 @@ class EsManage extends Component {
   /**
    * Handle filter input data change
    * @method
-   * @param {string} type - input type
-   * @param {string | object} value - input value
+   * @param {object} event - event object
    */
-  handleEsSearch = (type, value) => {
+  handleEsSearch = (event) => {
     let tempEsSearch = {...this.state.esSearch};
-    tempEsSearch[type] = value;
+    tempEsSearch[event.target.name] = event.target.value;
 
     this.setState({
       esSearch: tempEsSearch
@@ -320,13 +324,19 @@ class EsManage extends Component {
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group'>
-            <label htmlFor='esSearchStatus'>{t('txt-status')}</label>
-            <DropDownList
+            <StyledTextField
               id='esSearchStatus'
-              list={statusList}
-              required={true}
+              name='status'
+              select
+              label={t('txt-status')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={esSearch.status}
-              onChange={this.handleEsSearch.bind(this, 'status')} />
+              onChange={this.handleEsSearch}>
+              <MenuItem value={'all'}>{t('txt-all')}</MenuItem>
+              {statusList}
+            </StyledTextField>
           </div>
         </div>
         <div className='button-group'>

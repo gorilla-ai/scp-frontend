@@ -1,15 +1,19 @@
 import React, { Component } from 'react'
 import { withRouter } from 'react-router'
+import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import Moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import Checkbox from 'react-ui/build/src/components/checkbox'
+import Checkbox from '@material-ui/core/Checkbox';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import TextField from '@material-ui/core/TextField';
+
 import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import FileInput from 'react-ui/build/src/components/file-input'
-import Input from 'react-ui/build/src/components/input'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import {BaseDataContext} from '../../common/context';
@@ -22,6 +26,37 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null;
 let et = null;
+
+const StyledTextField = withStyles({
+  root: {
+    backgroundColor: '#fff',
+    '& .Mui-disabled': {
+      backgroundColor: '#f2f2f2'
+    }
+  }
+})(TextField);
+
+function TextFieldComp(props) {
+  return (
+    <StyledTextField
+      id={props.id}
+      className={props.className}
+      name={props.name}
+      type={props.type}
+      label={props.label}
+      multiline={props.multiline}
+      rows={props.rows}
+      maxLength={props.maxLength}
+      variant={props.variant}
+      fullWidth={props.fullWidth}
+      size={props.size}
+      InputProps={props.InputProps}
+      required={props.required}
+      value={props.value}
+      onChange={props.onChange}
+      disabled={props.disabled} />
+  )
+}
 
 /**
  * Config Topology Owner
@@ -39,6 +74,8 @@ class NetworkOwner extends Component {
         department: [],
         title: []
       },
+      departmentDropdown: [],
+      titleDropdown: [],
       search: {
         name: '',
         department: 'all',
@@ -129,13 +166,23 @@ class NetworkOwner extends Component {
         tempList.department = _.cloneDeep(departmentList);
         tempList.title = _.cloneDeep(titleList);
 
-        if (options === 'first' || (options === 'fromManage' && activeContent === 'tableList')) {
-          tempList.department.unshift({value: 'all', text: t('txt-all')});
-          tempList.title.unshift({value: 'all', text: t('txt-all')});
-        }
+        // if (options === 'first' || (options === 'fromManage' && activeContent === 'tableList')) {
+        //   tempList.department.unshift({value: 'all', text: t('txt-all')});
+        //   tempList.title.unshift({value: 'all', text: t('txt-all')});
+        // }
+
+        const departmentDropdown = _.map(data[0], (val, i) => {
+          return <MenuItem key={i} value={val.nameUUID}>{val.name}</MenuItem>
+        });
+
+        const titleDropdown = _.map(data[1], (val, i) => {
+          return <MenuItem key={i} value={val.nameUUID}>{val.name}</MenuItem>
+        });
 
         this.setState({
-          list: tempList
+          list: tempList,
+          departmentDropdown,
+          titleDropdown
         });
       }
       return null;
@@ -290,17 +337,11 @@ class NetworkOwner extends Component {
   /**
    * Handle filter input value change
    * @method
-   * @param {string} type - input type
-   * @param {string | object} value - input value
+   * @param {string} event - event object
    */
-  handleSearchChange = (type, value) => {
+  handleSearchChange = (event) => {
     let tempSearch = {...this.state.search};
-
-    if (type === 'name') { //value is an object type
-      tempSearch[type] = value.target.value.trim();
-    } else {
-      tempSearch[type] = value.trim();
-    }
+    tempSearch[event.target.name] = event.target.value;
 
     this.setState({
       search: tempSearch
@@ -416,10 +457,11 @@ class NetworkOwner extends Component {
   /**
    * Handle add/edit owner data change
    * @method
-   * @param {string} type - input type
-   * @param {string} value - input value
+   * @param {string} event - event object
    */
-  handleDataChange = (type, value) => {
+  handleDataChange = (event) => {
+    const type = event.target.name;
+    const value = event.target.value;    
     let tempOwner = {...this.state.owner};
     tempOwner.info[type] = value;
 
@@ -433,7 +475,7 @@ class NetworkOwner extends Component {
 
     this.setState({
       owner: tempOwner
-    });
+    });  
   }
   /**
    * Handle remove owner photo checkbox
@@ -621,7 +663,7 @@ class NetworkOwner extends Component {
    * @returns HTML DOM
    */
   renderFilter = () => {
-    const {list, search, showFilter} = this.state;
+    const {list, departmentDropdown, titleDropdown, search, showFilter} = this.state;
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
@@ -629,31 +671,45 @@ class NetworkOwner extends Component {
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group'>
-            <label htmlFor='ownerName'>{t('ownerFields.ownerName')}</label>
-            <input
+            <TextFieldComp
               id='ownerName'
-              type='text'
-              placeholder={t('txt-enterName')}
+              name='name'
+              label={t('ownerFields.ownerName')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={search.name}
-              onChange={this.handleSearchChange.bind(this, 'name')} />
+              onChange={this.handleSearchChange} />
           </div>
           <div className='group'>
-            <label htmlFor='ownerDept'>{t('ownerFields.department')}</label>
-            <DropDownList
+            <StyledTextField
               id='ownerDept'
-              list={list.department}
-              required={true}
+              name='department'
+              select
+              label={t('ownerFields.department')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={search.department}
-              onChange={this.handleSearchChange.bind(this, 'department')} />
+              onChange={this.handleSearchChange}>
+              <MenuItem value={'all'}>{t('txt-all')}</MenuItem>
+              {departmentDropdown}
+            </StyledTextField>
           </div>
           <div className='group'>
-            <label htmlFor='ownerTitle'>{t('ownerFields.title')}</label>
-            <DropDownList
+            <StyledTextField
               id='ownerTitle'
-              list={list.title}
-              required={true}
+              name='title'
+              select
+              label={t('ownerFields.title')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={search.title}
-              onChange={this.handleSearchChange.bind(this, 'title')} />
+              onChange={this.handleSearchChange}>
+              <MenuItem value={'all'}>{t('txt-all')}</MenuItem>
+              {titleDropdown}
+            </StyledTextField>
           </div>
         </div>
         <div className='button-group'>
@@ -668,6 +724,8 @@ class NetworkOwner extends Component {
     const {
       activeContent,
       list,
+      departmentDropdown,
+      titleDropdown,
       addOwnerTitle,
       owner,
       showFilter,
@@ -768,44 +826,54 @@ class NetworkOwner extends Component {
                   </div>
                   <div className='user-info'>
                     <div className='group'>
-                      <label htmlFor='ownerName'>{t('ownerFields.ownerName')}</label>
-                      <Input
+                      <TextFieldComp
                         id='ownerName'
-                        required={true}
-                        validate={{
-                          t: et
-                        }}
+                        name='ownerName'
+                        label={t('ownerFields.ownerName')}
+                        variant='outlined'
+                        fullWidth={true}
+                        size='small'
                         value={owner.info.ownerName}
-                        onChange={this.handleDataChange.bind(this, 'ownerName')} />
+                        onChange={this.handleDataChange} />
                     </div>
                     <div className='group'>
-                      <label htmlFor='ownerID'>{t('ownerFields.ownerID')}</label>
-                      <Input
+                      <TextFieldComp
                         id='ownerID'
-                        required={true}
-                        validate={{
-                          t: et
-                        }}
+                        name='ownerID'
+                        label={t('ownerFields.ownerID')}
+                        variant='outlined'
+                        fullWidth={true}
+                        size='small'
                         value={owner.info.ownerID}
-                        onChange={this.handleDataChange.bind(this, 'ownerID')} />
+                        onChange={this.handleDataChange} />
                     </div>
                     <div className='group'>
-                      <label htmlFor='ownerDepartment'>{t('ownerFields.department')}</label>
-                      <DropDownList
+                      <StyledTextField
                         id='ownerDepartment'
-                        list={list.department}
-                        required={true}
+                        name='department'
+                        select
+                        label={t('ownerFields.department')}
+                        variant='outlined'
+                        fullWidth={true}
+                        size='small'
                         value={owner.info.department}
-                        onChange={this.handleDataChange.bind(this, 'department')} />
+                        onChange={this.handleDataChange}>
+                        {departmentDropdown}
+                      </StyledTextField>
                     </div>
                     <div className='group'>
-                      <label htmlFor='ownerTitle'>{t('ownerFields.title')}</label>
-                      <DropDownList
+                      <StyledTextField
                         id='ownerTitle'
-                        list={list.title}
-                        required={true}
+                        name='title'
+                        select
+                        label={t('ownerFields.title')}
+                        variant='outlined'
+                        fullWidth={true}
+                        size='small'
                         value={owner.info.title}
-                        onChange={this.handleDataChange.bind(this, 'title')} />
+                        onChange={this.handleDataChange}>
+                        {titleDropdown}
+                      </StyledTextField>
                     </div>
                   </div>
                 </div>

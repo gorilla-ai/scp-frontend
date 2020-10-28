@@ -1,14 +1,48 @@
 import React, { Component } from 'react'
+import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import Moment from 'moment'
 
-import DropDownList from 'react-ui/build/src/components/dropdown'
+import MenuItem from '@material-ui/core/MenuItem';
+import TextField from '@material-ui/core/TextField';
+
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
-import Textarea from 'react-ui/build/src/components/textarea'
 
 import helper from './helper'
 
 let t = null;
+
+const StyledTextField = withStyles({
+  root: {
+    backgroundColor: '#fff',
+    '& .Mui-disabled': {
+      backgroundColor: '#f2f2f2'
+    }
+  }
+})(TextField);
+
+function TextFieldComp(props) {
+  return (
+    <StyledTextField
+      id={props.id}
+      className={props.className}
+      name={props.name}
+      type={props.type}
+      label={props.label}
+      multiline={props.multiline}
+      rows={props.rows}
+      maxLength={props.maxLength}
+      variant={props.variant}
+      fullWidth={props.fullWidth}
+      size={props.size}
+      InputProps={props.InputProps}
+      required={props.required}
+      value={props.value}
+      onChange={props.onChange}
+      disabled={props.disabled} />
+  )
+}
+
 
 /**
  * Encode Decode service
@@ -31,11 +65,8 @@ class EncodeDecode extends Component {
   }
   componentDidMount() {
     const {highlightedText} = this.props;
-    const dropDownList = _.map(['URL', 'Timestamp', 'BASE64'], val => {
-      return {
-        value: val.toLowerCase(),
-        text: val
-      };
+    const dropDownList = _.map(['URL', 'Timestamp', 'BASE64'], (val, i) => {
+      return <MenuItem key={i} value={val.toLowerCase()}>{val}</MenuItem>
     });
 
     this.setState({
@@ -51,12 +82,11 @@ class EncodeDecode extends Component {
   /**
    * Handle input data change
    * @method
-   * @param {string} type - input type
-   * @param {string} value - input value
+   * @param {object} event - event object
    */
-  handleDataChange = (type, value) => {
+  handleDataChange = (event) => {
     this.setState({
-      [type]: value.trim()
+      [event.target.name]: event.target.value
     });
   }
   /**
@@ -110,16 +140,6 @@ class EncodeDecode extends Component {
     });
   }
   /**
-   * Handle encode type dropdown list selection change
-   * @method
-   * @param {string} value - encode type ('url' 'timestamp', or 'base64')
-   */
-  handleEncodeListChange = (value) => {
-    this.setState({
-      encodeType: value
-    });
-  }
-  /**
    * Display encode/decode content
    * @method
    */
@@ -128,19 +148,30 @@ class EncodeDecode extends Component {
 
     return (
       <div>
-        <label htmlFor='textToBeEncoded'>{t('txt-text')}</label>
-        <Textarea
+        <TextFieldComp
           id='textToBeEncoded'
+          name='originalText'
           className='text-area'
+          label={t('txt-text')}
+          multiline={true}
+          rows={6}
+          variant='outlined'
+          fullWidth={true}
+          size='small'
           value={originalText}
-          onChange={this.handleDataChange.bind(this, 'originalText')} />
+          onChange={this.handleDataChange} />
         <div className='drop-down'>
-          <DropDownList
+          <StyledTextField
             id='encodeDecodeList'
-            list={dropDownList}
-            required={true}
+            name='encodeType'
+            select
+            variant='outlined'
+            fullWidth={true}
+            size='small'
             value={encodeType}
-            onChange={this.handleEncodeListChange} />
+            onChange={this.handleDataChange}>
+            {dropDownList}
+          </StyledTextField>
         </div>
         {(encodeType === 'url' || encodeType === 'base64') &&
           <button onClick={this.handleTextEncode.bind(this, 'encode')}>Encode</button>
@@ -151,13 +182,18 @@ class EncodeDecode extends Component {
         {encodeType === 'timestamp'&&
           <button onClick={this.handleTextEncode.bind(this, 'timestamp')}>{t('alert.txt-toLocalTime')}</button>
         }
-        <label htmlFor='encodedText'>{t('txt-result')}</label>
-        <Textarea
+        <TextFieldComp
           id='encodedText'
+          name='formattedText'
           className='text-area'
+          label={t('txt-result')}
+          multiline={true}
+          rows={6}
+          variant='outlined'
+          fullWidth={true}
+          size='small'
           value={formattedText}
-          onChange={this.handleDataChange.bind(this, 'formattedText')}
-          readOnly={true} />
+          disabled={true} />
       </div>
     )
   }

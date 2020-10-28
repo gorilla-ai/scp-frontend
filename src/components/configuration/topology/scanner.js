@@ -1,11 +1,43 @@
 import React, { Component } from 'react'
+import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 
-import DropDownList from 'react-ui/build/src/components/dropdown'
-import Input from 'react-ui/build/src/components/input'
+import MenuItem from '@material-ui/core/MenuItem';
+import TextField from '@material-ui/core/TextField';
 
 let t = null;
+
+const StyledTextField = withStyles({
+  root: {
+    backgroundColor: '#fff',
+    '& .Mui-disabled': {
+      backgroundColor: '#f2f2f2'
+    }
+  }
+})(TextField);
+
+function TextFieldComp(props) {
+  return (
+    <StyledTextField
+      id={props.id}
+      className={props.className}
+      name={props.name}
+      type={props.type}
+      label={props.label}
+      multiline={props.multiline}
+      rows={props.rows}
+      maxLength={props.maxLength}
+      variant={props.variant}
+      fullWidth={props.fullWidth}
+      size={props.size}
+      InputProps={props.InputProps}
+      required={props.required}
+      value={props.value}
+      onChange={props.onChange}
+      disabled={props.disabled} />
+  )
+}
 
 /**
  * Config Inventory auto settings Scanner
@@ -25,10 +57,10 @@ class Scanner extends Component {
    * @param {string} field - input field
    * @param {string} value - input value
    */
-  handleDataChange = (field, value) => {
+  handleDataChange = (event) => {
     this.props.onChange({
       ...this.props.value,
-      [field]: value
+      [event.target.name]: event.target.value
     });
   }
   render() {
@@ -36,19 +68,33 @@ class Scanner extends Component {
 
     return (
       <div className='group-content'>
-        <DropDownList
-          list={deviceList}
+        <StyledTextField
+          className='scanner'
+          name='edge'
+          select
+          variant='outlined'
+          size='small'
           value={value.edge}
-          onChange={this.handleDataChange.bind(this, 'edge')}
-          readOnly={activeContent === 'viewMode' || !statusEnable.scanner} />
-        <Input
+          onChange={this.handleDataChange}
+          disabled={activeContent === 'viewMode' || !statusEnable.scanner}>
+          {deviceList}
+        </StyledTextField>
+        <TextFieldComp
+          className='scanner'
+          name='ip'
+          variant='outlined'
+          size='small'
           value={value.ip}
-          onChange={this.handleDataChange.bind(this, 'ip')}
-          readOnly={activeContent === 'viewMode' || !statusEnable.scanner} />
-        <Input
+          onChange={this.handleDataChange}
+          disabled={activeContent === 'viewMode' || !statusEnable.scanner} />
+        <TextFieldComp
+          className='scanner'
+          name='mask'
+          variant='outlined'
+          size='small'
           value={value.mask}
-          onChange={this.handleDataChange.bind(this, 'mask')}
-          readOnly={activeContent === 'viewMode' || !statusEnable.scanner} />
+          onChange={this.handleDataChange}
+          disabled={activeContent === 'viewMode' || !statusEnable.scanner} />
         <button onClick={this.props.handleScannerTest.bind(this, value)} disabled={!statusEnable.scanner || !value.edge}>{t('network-inventory.txt-testQuery')}</button>
       </div>
     )

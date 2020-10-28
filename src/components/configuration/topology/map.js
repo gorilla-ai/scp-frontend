@@ -1,15 +1,17 @@
 import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
+import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
 import _ from 'lodash'
 
+import MenuItem from '@material-ui/core/MenuItem';
+import TextField from '@material-ui/core/TextField';
+
 import DataTable from 'react-ui/build/src/components/table'
-import DropDownList from 'react-ui/build/src/components/dropdown'
 import Gis from 'react-gis/build/src/components'
-import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import TreeView from 'react-ui/build/src/components/tree'
@@ -25,6 +27,37 @@ const NOT_AVAILABLE = 'N/A';
 
 let t = null;
 let et = null;
+
+const StyledTextField = withStyles({
+  root: {
+    backgroundColor: '#fff',
+    '& .Mui-disabled': {
+      backgroundColor: '#f2f2f2'
+    }
+  }
+})(TextField);
+
+function TextFieldComp(props) {
+  return (
+    <StyledTextField
+      id={props.id}
+      className={props.className}
+      name={props.name}
+      type={props.type}
+      label={props.label}
+      multiline={props.multiline}
+      rows={props.rows}
+      maxLength={props.maxLength}
+      variant={props.variant}
+      fullWidth={props.fullWidth}
+      size={props.size}
+      InputProps={props.InputProps}
+      required={props.required}
+      value={props.value}
+      onChange={props.onChange}
+      disabled={props.disabled} />
+  )
+}
 
 /**
  * Config Topology Map
@@ -117,24 +150,15 @@ class NetworkMap extends Component {
     this.ah.all(apiArr)
     .then(data => {
       if (data) {
+        const system = _.map(data[0], (val, i) => {
+          return <MenuItem key={i} value={val}>{val}</MenuItem>
+        });
+
+        const deviceType = _.map(data[1], (val, i) => {
+          return <MenuItem key={i} value={val}>{val}</MenuItem>
+        });        
+
         let tempList = {...this.state.list};
-        let system = [{value: 'all', text: t('txt-all')}];
-        let deviceType = [{value: 'all', text: t('txt-all')}];
-
-        _.forEach(data[0], val => {
-          system.push({
-            value: val,
-            text: val
-          });
-        })
-
-        _.forEach(data[1], val => {
-          deviceType.push({
-            value: val,
-            text: val
-          });
-        })
-
         tempList.system = system;
         tempList.deviceType = deviceType;
 
@@ -511,17 +535,11 @@ class NetworkMap extends Component {
   /**
    * Handle filter input value change
    * @method
-   * @param {string} type - input type
-   * @param {string | object} value - input value
+   * @param {string} event - event object
    */
-  handleSearchChange = (type, value) => {
+  handleSearchChange = (event) => {
     let tempSearch = {...this.state.search};
-
-    if (type === 'keyword') { //value is an object type
-      tempSearch[type] = value.target.value.trim();
-    } else {
-      tempSearch[type] = value.trim();
-    }
+    tempSearch[event.target.name] = event.target.value;
 
     this.setState({
       search: tempSearch
@@ -550,13 +568,11 @@ class NetworkMap extends Component {
   /**
    * Handle add seat value change
    * @method
-   * @param {string} type - add seat type ('addSeat')
-   * @param {string} field - field value
-   * @param {string} value - seat name
+   * @param {string} event - event object
    */
-  handleDataChange = (type, field, value) => {
+  handleDataChange = (event) => {
     let tempAddSeat = {...this.state.addSeat};
-    tempAddSeat[field] = value;
+    tempAddSeat[event.target.name] = event.target.value;
 
     this.setState({
       addSeat: tempAddSeat
@@ -669,11 +685,15 @@ class NetworkMap extends Component {
   displayAddNewSeat = () => {
     return (
       <div className='add-seat'>
-        <label htmlFor='addSeat'>{t('txt-name')}</label>
-        <Input
+        <TextFieldComp
           id='addSeat'
+          name='name'
+          label={t('txt-name')}
+          variant='outlined'
+          fullWidth={true}
+          size='small'
           value={this.state.addSeat.name}
-          onChange={this.handleDataChange.bind(this, 'addSeat', 'name')} />
+          onChange={this.handleDataChange} />
       </div>
     )
   }
@@ -948,31 +968,47 @@ class NetworkMap extends Component {
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group'>
-            <label htmlFor='MAPkeyword'>{t('ipFields.keyword')}</label>
-            <input
+            <TextFieldComp
               id='MAPkeyword'
-              type='text'
-              placeholder={t('txt-enterKeyword')}
+              name='keyword'
+              label={t('ipFields.keyword')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={search.keyword}
-              onChange={this.handleSearchChange.bind(this, 'keyword')} />
+              onChange={this.handleSearchChange} />
           </div>
           <div className='group'>
-            <label htmlFor='MAPsystem'>{t('ipFields.system')}</label>
-            <DropDownList
+            <StyledTextField
               id='MAPsystem'
-              list={list.system}
+              name='system'
+              select
+              label={t('ipFields.system')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               required={true}
               value={search.system}
-              onChange={this.handleSearchChange.bind(this, 'system')} />
+              onChange={this.handleSearchChange}>
+              <MenuItem value={'all'}>{t('txt-all')}</MenuItem>
+              {list.system}
+            </StyledTextField>
           </div>
           <div className='group'>
-            <label htmlFor='MAPdevice'>{t('txt-device')}</label>
-            <DropDownList
+            <StyledTextField
               id='MAPdevice'
-              list={list.deviceType}
+              name='deviceType'
+              select
+              label={t('txt-device')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               required={true}
               value={search.deviceType}
-              onChange={this.handleSearchChange.bind(this, 'deviceType')} />
+              onChange={this.handleSearchChange}>
+              <MenuItem value={'all'}>{t('txt-all')}</MenuItem>
+              {list.deviceType}
+            </StyledTextField>
           </div>
         </div>
         <div className='button-group'>

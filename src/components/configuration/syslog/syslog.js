@@ -1390,12 +1390,11 @@ class Syslog extends Component {
   /**
    * Handle filter input value change
    * @method
-   * @param {string} type - input type
-   * @param {object} event - input value
+   * @param {string} event - event object
    */
-  handleSearchChange = (type, event) => {
+  handleSearchChange = (event) => {
     let tempSearch = {...this.state.search};
-    tempSearch[type] = event.target.value.trim();
+    tempSearch[event.target.name] = event.target.value;
 
     this.setState({
       search: tempSearch
@@ -1437,28 +1436,37 @@ class Syslog extends Component {
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group'>
-            <label htmlFor='syslogName'>{t('syslogFields.name')}</label>
-            <input
+            <TextFieldComp
               id='syslogName'
-              type='text'
+              name='name'
+              label={t('syslogFields.name')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={search.name}
-              onChange={this.handleSearchChange.bind(this, 'name')} />
+              onChange={this.handleSearchChange} />
           </div>
           <div className='group'>
-            <label htmlFor='syslogLogHostIP'>{t('syslogFields.txt-hostIP')}</label>
-            <input
+            <TextFieldComp
               id='syslogLogHostIP'
-              type='text'
+              name='loghostip'
+              label={t('syslogFields.txt-hostIP')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={search.loghostip}
-              onChange={this.handleSearchChange.bind(this, 'loghostip')} />
+              onChange={this.handleSearchChange} />
           </div>
           <div className='group'>
-            <label htmlFor='syslogPort'>{t('syslogFields.port')}</label>
-            <input
+            <TextFieldComp
               id='syslogPort'
-              type='text'
+              name='port'
+              label={t('syslogFields.port')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={search.port}
-              onChange={this.handleSearchChange.bind(this, 'port')} />
+              onChange={this.handleSearchChange} />
           </div>
         </div>
         <div className='button-group'>

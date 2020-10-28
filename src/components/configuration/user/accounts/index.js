@@ -2,13 +2,16 @@ import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import { withRouter } from 'react-router-dom'
 import { connect } from 'react-redux'
+import { withStyles } from '@material-ui/core/styles';
 import i18n from 'i18next'
 import cx from 'classnames'
 import _ from 'lodash'
 
+import MenuItem from '@material-ui/core/MenuItem';
+import TextField from '@material-ui/core/TextField';
+
 import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import DataTable from 'react-ui/build/src/components/table'
-import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
@@ -23,6 +26,37 @@ const log = require('loglevel').getLogger('user/accounts')
 const c = i18n.getFixedT(null, 'connections');
 const t = i18n.getFixedT(null, 'accounts');
 const gt =  i18n.getFixedT(null, 'app');
+
+const StyledTextField = withStyles({
+  root: {
+    backgroundColor: '#fff',
+    '& .Mui-disabled': {
+      backgroundColor: '#f2f2f2'
+    }
+  }
+})(TextField);
+
+function TextFieldComp(props) {
+  return (
+    <StyledTextField
+      id={props.id}
+      className={props.className}
+      name={props.name}
+      type={props.type}
+      label={props.label}
+      multiline={props.multiline}
+      rows={props.rows}
+      maxLength={props.maxLength}
+      variant={props.variant}
+      fullWidth={props.fullWidth}
+      size={props.size}
+      InputProps={props.InputProps}
+      required={props.required}
+      value={props.value}
+      onChange={props.onChange}
+      disabled={props.disabled} />
+  )
+}
 
 /**
  * Account List
@@ -297,11 +331,11 @@ class AccountList extends Component {
   /**
    * Handle password input box
    * @method
-   * @param {string} value - password entered by the user
+   * @param {object} event - event object
    */
-  handlePasswordChange = (value) => {
+  handlePasswordChange = (event) => {
     this.setState({
-      newPassword: value
+      [event.target.name]: event.target.value
     });
   }
   /**
@@ -312,10 +346,14 @@ class AccountList extends Component {
   displayNewPassword = () => {
     return (
       <div className='group'>
-        <label htmlFor='resetPassword'></label>
-        <Input
+        <TextFieldComp
           id='resetPassword'
+          name='newPassword'
           type='password'
+          label={c('txt-password')}
+          variant='outlined'
+          fullWidth={true}
+          size='small'
           value={this.state.newPassword}
           onChange={this.handlePasswordChange} />
       </div>
@@ -400,12 +438,11 @@ class AccountList extends Component {
   /**
    * Handle filter input value change
    * @method
-   * @param {string} type - input type
-   * @param {object} event - input value
+   * @param {object} event - event object
    */
-  handleSearchChange = (type, event) => {
+  handleSearchChange = (event) => {
     let tempParam = {...this.state.param};
-    tempParam[type] = event.target.value.trim();
+    tempParam[event.target.name] = event.target.value;
 
     this.setState({
       param: tempParam
@@ -446,22 +483,26 @@ class AccountList extends Component {
         <div className='header-text'>{c('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group'>
-            <label htmlFor='account' >{t('l-account')}</label>
-            <input
+            <TextFieldComp
               id='account'
-              type='text'
-              placeholder={t('ph-account')}
+              name='account'
+              label={t('l-account')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={param.account}
-              onChange={this.handleSearchChange.bind(this, 'account')} />
+              onChange={this.handleSearchChange} />
           </div>
           <div className='group'>
-            <label htmlFor='name'>{t('l-name')}</label>
-            <input
+            <TextFieldComp
               id='name'
-              type='text'
-              placeholder={t('ph-name')}
+              name='name'
+              label={t('l-name')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={param.name}
-              onChange={this.handleSearchChange.bind(this, 'name')} />
+              onChange={this.handleSearchChange} />
           </div>
         </div>
         <div className='button-group'>

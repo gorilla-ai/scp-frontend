@@ -97,11 +97,6 @@ class Edge extends Component {
       allGroupList: [],
       currentEdgeData: '',
       serviceType: [],
-      connectionStatus: [
-        {value: 'all', text: t('txt-all')},
-        {value: 'Normal', text: t('txt-normal')},
-        {value: 'Error', text: t('txt-error')},
-      ],
       edgeSearch: {
         keyword: '',
         groups: [],
@@ -181,17 +176,9 @@ class Edge extends Component {
     })
     .then(data => {
       if (data) {
-        let serviceType = [{
-          value: 'all',
-          text: t('txt-all')
-        }];
-
-        _.forEach(data, val => {
-          serviceType.push({
-            value: val,
-            text: val
-          });
-        })
+        const serviceType = _.map(data, (val, i) => {
+          return <MenuItem key={i} value={val}>{val}</MenuItem>
+        });
 
         this.setState({
           serviceType
@@ -560,19 +547,24 @@ class Edge extends Component {
   /**
    * Handle filter input data change
    * @method
-   * @param {string} type - input type
-   * @param {string | object} value - input value
+   * @param {object} event - event object
    */
-  handleEdgeSearch = (type, value) => {
+  handleEdgeSearch = (event) => {
     let tempEdgeSearch = {...this.state.edgeSearch};
+    tempEdgeSearch[event.target.name] = event.target.value;
 
-    if (type === 'keyword') { //value is an object type
-      tempEdgeSearch[type] = value.target.value.trim();
-    } else if (type === 'groups') {
-      tempEdgeSearch[type] = value;
-    } else {
-      tempEdgeSearch[type] = value.trim();
-    }
+    this.setState({
+      edgeSearch: tempEdgeSearch
+    });
+  }
+  /**
+   * Handle combo data change
+   * @method
+   * @param {string} value - input value
+   */
+  handleComboSearch = (value) => {
+    let tempEdgeSearch = {...this.state.edgeSearch};
+    tempEdgeSearch.groups = value;
 
     this.setState({
       edgeSearch: tempEdgeSearch
@@ -1308,7 +1300,7 @@ class Edge extends Component {
    * @returns HTML DOM
    */
   renderFilter = () => {
-    const {showFilter, allGroupList, serviceType, connectionStatus, edgeSearch} = this.state;
+    const {showFilter, allGroupList, serviceType, edgeSearch} = this.state;
     const allGroup = _.map(allGroupList, val => {
       return {
         value: val,
@@ -1322,12 +1314,15 @@ class Edge extends Component {
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group'>
-            <label htmlFor='edgeSearchKeyword'>{f('edgeFields.keywords')}</label>
-            <input
+            <TextFieldComp
               id='edgeSearchKeyword'
-              type='text'
+              name='keyword'
+              label={f('edgeFields.keywords')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={edgeSearch.keyword}
-              onChange={this.handleEdgeSearch.bind(this, 'keyword')} />
+              onChange={this.handleEdgeSearch} />
           </div>
           <div className='group'>
             <label htmlFor='edgeSearchGroups'>{f('edgeFields.groups')}</label>
@@ -1339,25 +1334,38 @@ class Edge extends Component {
                 toggleAll: true
               }}
               value={edgeSearch.groups}
-              onChange={this.handleEdgeSearch.bind(this, 'groups')} />
+              onChange={this.handleComboSearch} />
           </div>
           <div className='group'>
-            <label htmlFor='edgeSearchServiceType'>{f('edgeFields.serviceType')}</label>
-            <DropDownList
+            <StyledTextField
               id='edgeSearchServiceType'
-              list={serviceType}
-              required={true}
+              name='serviceType'
+              select
+              label={f('edgeFields.serviceType')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={edgeSearch.serviceType}
-              onChange={this.handleEdgeSearch.bind(this, 'serviceType')} />
+              onChange={this.handleEdgeSearch}>
+              <MenuItem value={'all'}>{t('txt-all')}</MenuItem>
+              {serviceType}
+            </StyledTextField>
           </div>
           <div className='group'>
-            <label htmlFor='edgeSearchConnectionStatus'>{f('edgeFields.connectionStatus')}</label>
-            <DropDownList
+            <StyledTextField
               id='edgeSearchConnectionStatus'
-              list={connectionStatus}
-              required={true}
+              name='connectionStatus'
+              select
+              label={f('edgeFields.connectionStatus')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={edgeSearch.connectionStatus}
-              onChange={this.handleEdgeSearch.bind(this, 'connectionStatus')} />
+              onChange={this.handleEdgeSearch}>
+              <MenuItem value={'all'}>{t('txt-all')}</MenuItem>
+              <MenuItem value={'Normal'}>{t('txt-normal')}</MenuItem>
+              <MenuItem value={'Error'}>{t('txt-error')}</MenuItem>
+            </StyledTextField>
           </div>
         </div>
         <div className='button-group'>

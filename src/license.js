@@ -1,12 +1,14 @@
 import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
+import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import Moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import Input from 'react-ui/build/src/components/input'
+import TextField from '@material-ui/core/TextField';
+
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import helper from './components/common/helper'
@@ -16,6 +18,37 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 let t = null;
 let et = null;
 let lt = null;
+
+const StyledTextField = withStyles({
+  root: {
+    backgroundColor: '#fff',
+    '& .Mui-disabled': {
+      backgroundColor: '#f2f2f2'
+    }
+  }
+})(TextField);
+
+function TextFieldComp(props) {
+  return (
+    <StyledTextField
+      id={props.id}
+      className={props.className}
+      name={props.name}
+      type={props.type}
+      label={props.label}
+      multiline={props.multiline}
+      rows={props.rows}
+      maxLength={props.maxLength}
+      variant={props.variant}
+      fullWidth={props.fullWidth}
+      size={props.size}
+      InputProps={props.InputProps}
+      required={props.required}
+      value={props.value}
+      onChange={props.onChange}
+      disabled={props.disabled} />
+  )
+}
 
 class License extends Component {
   constructor(props, context) {
@@ -76,11 +109,11 @@ class License extends Component {
   /**
    * Handle license input change
    * @method
-   * @param {string} value - input value from user
+   * @param {object} event - event object
    */
-  handleInputChange = (value) => {
+  handleInputChange = (event) => {
     this.setState({
-      key: value
+      [event.target.name]: event.target.value
     });
   }
   /**
@@ -183,7 +216,11 @@ class License extends Component {
           {from === 'login' &&
             <div className='key'>
               <span>{lt('l-license-key')}:</span>
-              <Input
+              <TextFieldComp
+                name='key'
+                variant='outlined'
+                fullWidth={true}
+                size='small'
                 value={key}
                 onChange={this.handleInputChange} />
               <button onClick={this.activateLicense}>{lt('l-activate')}</button>
@@ -207,7 +244,11 @@ class License extends Component {
           {from === 'config' && showKeyInput &&
             <div className='key'>
               <span>{lt('l-new-license-key')}:</span>
-              <Input
+              <TextFieldComp
+                name='key'
+                variant='outlined'
+                fullWidth={true}
+                size='small'
                 value={key}
                 onChange={this.handleInputChange} />
               <button onClick={this.activateLicense}>{lt('l-activate')}</button>

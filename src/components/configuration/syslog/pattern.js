@@ -620,10 +620,10 @@ class Pattern extends Component {
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group'>
-            <label htmlFor='patternSearchName'>{f('syslogPatternTableFields.patternName')}</label>
             <TextFieldComp
               id='patternSearchName'
               name='name'
+              label={f('syslogPatternTableFields.patternName')}
               variant='outlined'
               fullWidth={true}
               size='small'
@@ -631,10 +631,10 @@ class Pattern extends Component {
               onChange={this.handlePatternSearch} />
           </div>
           <div className='group'>
-            <label htmlFor='patternSearchQueryScript'>{f('syslogPatternTableFields.queryScript')}</label>
             <TextFieldComp
               id='patternSearchQueryScript'
               name='queryScript'
+              label={f('syslogPatternTableFields.queryScript')}
               variant='outlined'
               fullWidth={true}
               size='small'
@@ -642,7 +642,6 @@ class Pattern extends Component {
               onChange={this.handlePatternSearch} />
           </div>
           <div className='severity'>
-            <label>{f('syslogPatternTableFields.severity')}</label>
             <div className='group group-checkbox narrow'>
               <div className='group-options'>
                 {SEVERITY_TYPE.map(this.displaySeverityCheckbox)}

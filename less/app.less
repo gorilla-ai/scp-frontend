@@ -1387,7 +1387,18 @@ i.c-checkbox.fg-checkbox {
     .auto-settings,
     .edge-settings {
       overflow-y: auto;
-      #autoSettingsIpRange {
+      #autoSettingsIpRange,
+      #autoSettingsScanner {
+        .ip-range,
+        .scanner {
+          margin-right: 2.2%;
+        }
+        .ip-range {
+          width: 31.5%;
+        }
+        .scanner {
+          width: 27%;
+        }
         .group {
           padding: 5px;
         }
@@ -1395,9 +1406,9 @@ i.c-checkbox.fg-checkbox {
     }
     .edge-settings {
       .form-options {
-          position: absolute;
-          top: -45px;
-          right: -10px;
+        position: absolute;
+        top: -45px;
+        right: 0;
         .nettrap-upgrade {
           float: right;
           margin-right: 20px;
@@ -1559,6 +1570,7 @@ i.c-checkbox.fg-checkbox {
           margin-top: 40px;
           &.config {
             .group {
+              min-width: 185px;
               padding: 5px;
               label {
                 display: block;
@@ -1997,6 +2009,19 @@ i.c-checkbox.fg-checkbox {
                 font-size: 10px;
                 font-weight: normal;
                 color: var(--primaryTextColor);
+              }
+            }
+            .form-options {
+              position: absolute;
+              top: -45px;
+              right: 0;
+              button {
+                float: left;
+                margin-right: 20px;
+                padding: .3em 1em;
+              }
+              .toggle-btn {
+                float: left;
               }
             }
             button {

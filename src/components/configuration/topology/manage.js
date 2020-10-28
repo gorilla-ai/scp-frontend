@@ -1,11 +1,13 @@
 import React, { Component } from 'react'
+import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 import cx from 'classnames'
 
+import TextField from '@material-ui/core/TextField';
+
 import ButtonGroup from 'react-ui/build/src/components/button-group'
 import DataTable from 'react-ui/build/src/components/table'
-import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
@@ -32,6 +34,37 @@ const TITLE = 2;
 
 let t = null;
 let et = null;
+
+const StyledTextField = withStyles({
+  root: {
+    backgroundColor: '#fff',
+    '& .Mui-disabled': {
+      backgroundColor: '#f2f2f2'
+    }
+  }
+})(TextField);
+
+function TextFieldComp(props) {
+  return (
+    <StyledTextField
+      id={props.id}
+      className={props.className}
+      name={props.name}
+      type={props.type}
+      label={props.label}
+      multiline={props.multiline}
+      rows={props.rows}
+      maxLength={props.maxLength}
+      variant={props.variant}
+      fullWidth={props.fullWidth}
+      size={props.size}
+      InputProps={props.InputProps}
+      required={props.required}
+      value={props.value}
+      onChange={props.onChange}
+      disabled={props.disabled} />
+  )
+}
 
 /**
  * Config Topology Department and Title management
@@ -273,12 +306,11 @@ class Manage extends Component {
   /**
    * Handle name input value change
    * @method
-   * @param {string} key - input type
-   * @param {string} value - input value
+   * @param {string} event - event object
    */
-  handleDataChange = (key, value) => {
+  handleDataChange = (event) => {
     this.setState({
-      [key]: value
+      [event.target.name]: event.target.value
     });
   }
   /**
@@ -288,10 +320,14 @@ class Manage extends Component {
    */
   displayTitleName = () => {
     return (
-      <Input
-        placeholder={t('txt-plsEnterName')}
+      <TextFieldComp
+        name='name'
+        label={t('txt-plsEnterName')}
+        variant='outlined'
+        fullWidth={true}
+        size='small'
         value={this.state.name}
-        onChange={this.handleDataChange.bind(this, 'name')} />
+        onChange={this.handleDataChange} />
     )
   }
   /**

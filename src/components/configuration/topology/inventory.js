@@ -10,16 +10,16 @@ import jschardet from 'jschardet'
 import queryString from 'query-string'
 import XLSX from 'xlsx';
 
+import Checkbox from '@material-ui/core/Checkbox';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 
-import Checkbox from 'react-ui/build/src/components/checkbox'
 import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import DataTable from 'react-ui/build/src/components/table'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import FileInput from 'react-ui/build/src/components/file-input'
 import Gis from 'react-gis/build/src/components'
-import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import RadioGroup from 'react-ui/build/src/components/radio-group'
@@ -956,10 +956,11 @@ class NetworkInventory extends Component {
   /**
    * Toggle HMD options
    * @method
-   * @param {string} field - HMD option name
-   * @param {boolean} value - true/false
+   * @param {object} event - event object
    */
-  toggleHMDoptions = (field, value) => {
+  toggleHMDoptions = (event) => {
+    const field = event.target.name;
+    const value = event.target.checked;
     let tempHMDsearchOptions = {...this.state.hmdSearchOptions};
     tempHMDsearchOptions[field] = value;
 
@@ -1013,12 +1014,11 @@ class NetworkInventory extends Component {
   /**
    * Handle filter input value change
    * @method
-   * @param {string} type - input type
-   * @param {object} event - input value
+   * @param {object} event - event object
    */
-  handleDeviceSearch = (type, event) => {
+  handleDeviceSearch = (event) => {
     let tempDeviceSearch = {...this.state.deviceSearch};
-    tempDeviceSearch[type] = event.target.value.trim();
+    tempDeviceSearch[event.target.name] = event.target.value;
 
     this.setState({
       deviceSearch: tempDeviceSearch
@@ -1038,100 +1038,147 @@ class NetworkInventory extends Component {
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group'>
-            <label htmlFor='deviceSearchIP'>{t('ipFields.ip')}</label>
-            <input
+            <TextFieldComp
               id='deviceSearchIP'
-              type='text'
+              name='ip'
+              label={t('ipFields.ip')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={deviceSearch.ip}
-              onChange={this.handleDeviceSearch.bind(this, 'ip')} />
+              onChange={this.handleDeviceSearch} />
           </div>
           <div className='group'>
-            <label htmlFor='deviceSearchMac'>{t('ipFields.mac')}</label>
-            <input
+            <TextFieldComp
               id='deviceSearchMac'
-              type='text'
+              name='mac'
+              label={t('ipFields.mac')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={deviceSearch.mac}
-              onChange={this.handleDeviceSearch.bind(this, 'mac')} />
+              onChange={this.handleDeviceSearch} />
           </div>
           <div className='group'>
-            <label htmlFor='deviceSearchHostName'>{t('ipFields.hostName')}</label>
-            <input
+            <TextFieldComp
               id='deviceSearchHostName'
-              type='text'
+              name='hostName'
+              label={t('ipFields.hostName')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={deviceSearch.hostName}
-              onChange={this.handleDeviceSearch.bind(this, 'hostName')} />
+              onChange={this.handleDeviceSearch} />
           </div>
           <div className='group'>
-            <label htmlFor='deviceSearchSystem'>{t('ipFields.system')}</label>
-            <input
+            <TextFieldComp
               id='deviceSearchSystem'
-              type='text'
+              name='system'
+              label={t('ipFields.system')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={deviceSearch.system}
-              onChange={this.handleDeviceSearch.bind(this, 'system')} />
+              onChange={this.handleDeviceSearch} />
           </div>
           <div className='group'>
-            <label htmlFor='deviceSearchOwner'>{t('ipFields.owner')}</label>
-            <input
+            <TextFieldComp
               id='deviceSearchOwner'
-              type='text'
+              name='owner'
+              label={t('ipFields.owner')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={deviceSearch.owner}
-              onChange={this.handleDeviceSearch.bind(this, 'owner')} />
+              onChange={this.handleDeviceSearch} />
           </div>
           <div className='group'>
-            <label htmlFor='deviceSearchAreaName'>{t('ipFields.areaName')}</label>
-            <input
+            <TextFieldComp
               id='deviceSearchAreaName'
-              type='text'
+              name='areaName'
+              label={t('ipFields.areaName')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={deviceSearch.areaName}
-              onChange={this.handleDeviceSearch.bind(this, 'areaName')} />
+              onChange={this.handleDeviceSearch} />
           </div>
           <div className='group'>
-            <label htmlFor='deviceSearchSeatName'>{t('ipFields.seatName')}</label>
-            <input
+            <TextFieldComp
               id='deviceSearchSeatName'
-              type='text'
+              name='seatName'
+              label={t('ipFields.seatName')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={deviceSearch.seatName}
-              onChange={this.handleDeviceSearch.bind(this, 'seatName')} />
+              onChange={this.handleDeviceSearch} />
           </div>
           <div className='group last'>
-            <label htmlFor='hmdCheckbox'>HMD</label>
-            <Checkbox
-              id='hmdCheckbox'
-              checked={hmdCheckbox}
-              onChange={this.toggleHMDcheckBox} />
+            <FormControlLabel
+              label='HMD'
+              control={
+                <Checkbox
+                  id='hmdCheckbox'
+                  name='selectAll'
+                  checked={hmdCheckbox}
+                  onChange={this.toggleHMDcheckBox}
+                  color='primary' />
+              } />
           </div>
+
           <div className='group group-checkbox'>
             <div className='group-options'>
               <div className='option'>
-                <label htmlFor='hmdSelectAll' className={cx({'active': hmdCheckbox})}>{t('txt-selectAll')}</label>
-                <Checkbox
-                  id='hmdSelectAll'
-                  checked={hmdSelectAll}
-                  onChange={this.toggleHMDoptions.bind(this, 'selectAll')}
+                <FormControlLabel
+                  label={t('txt-selectAll')}
+                  control={
+                    <Checkbox
+                      id='hmdSelectAll'
+                      name='selectAll'
+                      checked={hmdSelectAll}
+                      onChange={this.toggleHMDoptions}
+                      color='primary' />
+                  }
                   disabled={!hmdCheckbox} />
               </div>
               <div className='option'>
-                <label htmlFor='hmdScanProcess' className={cx({'active': hmdCheckbox})}>Yara Scan</label>
-                <Checkbox
-                  id='hmdScanProcess'
-                  checked={hmdSearchOptions.yaraScan}
-                  onChange={this.toggleHMDoptions.bind(this, 'yaraScan')}
+                <FormControlLabel
+                  label='Yara Scan'
+                  control={
+                    <Checkbox
+                      id='hmdScanProcess'
+                      name='yaraScan'
+                      checked={hmdSearchOptions.yaraScan}
+                      onChange={this.toggleHMDoptions}
+                      color='primary' />
+                  }
                   disabled={!hmdCheckbox} />
               </div>
               <div className='option'>
-                <label htmlFor='hmdScanFile' className={cx({'active': hmdCheckbox})}>Malware</label>
-                <Checkbox
-                  id='hmdScanFile'
-                  checked={hmdSearchOptions.malware}
-                  onChange={this.toggleHMDoptions.bind(this, 'malware')}
+                <FormControlLabel
+                  label='Malware'
+                  control={
+                    <Checkbox
+                      id='hmdScanFile'
+                      name='malware'
+                      checked={hmdSearchOptions.malware}
+                      onChange={this.toggleHMDoptions}
+                      color='primary' />
+                  }
                   disabled={!hmdCheckbox} />
               </div>
               <div className='option'>
-                <label htmlFor='hmdGCB' className={cx({'active': hmdCheckbox})}>GCB</label>
-                <Checkbox
-                  id='hmdGCB'
-                  checked={hmdSearchOptions.gcb}
-                  onChange={this.toggleHMDoptions.bind(this, 'gcb')}
+                <FormControlLabel
+                  label='GCB'
+                  control={
+                    <Checkbox
+                      id='hmdGCB'
+                      name='gcb'
+                      checked={hmdSearchOptions.gcb}
+                      onChange={this.toggleHMDoptions}
+                      color='primary' />
+                  }
                   disabled={!hmdCheckbox} />
               </div>
             </div>
@@ -3261,12 +3308,11 @@ class NetworkInventory extends Component {
   /**
    * Handle add seat input value change
    * @method
-   * @param {string} type - input type
-   * @param {string} value - input value
+   * @param {object} event - event object
    */
-  handleDataChange = (type, value) => {
+  handleDataChange = (event) => {
     let tempAddSeat = {...this.state.addSeat};
-    tempAddSeat[type] = value;
+    tempAddSeat[event.target.name] = event.target.value;
 
     this.setState({
       addSeat: tempAddSeat
@@ -3278,15 +3324,17 @@ class NetworkInventory extends Component {
    * @returns HTML DOM
    */
   displayAddSeat = () => {
-    const {addSeat} = this.state;
-
     return (
       <div className='add-seat'>
-        <label htmlFor='addAreaSeat'>{t('txt-name')}</label>
-        <Input
-          id='addAreaSeat'
-          value={addSeat.name}
-          onChange={this.handleDataChange.bind(this, 'name')} />
+        <TextFieldComp
+          id='deviceSearchIP'
+          name='name'
+          label={t('txt-name')}
+          variant='outlined'
+          fullWidth={true}
+          size='small'
+          value={this.state.addSeat.name}
+          onChange={this.handleDataChange} />
       </div>
     )
   }

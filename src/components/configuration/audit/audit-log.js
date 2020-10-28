@@ -1,9 +1,13 @@
 import React, { Component } from 'react'
 import { withRouter } from 'react-router'
 import { NavLink, Link, Switch, Route } from 'react-router-dom'
+import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
+
+import MenuItem from '@material-ui/core/MenuItem';
+import TextField from '@material-ui/core/TextField';
 
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import PageNav from 'react-ui/build/src/components/page-nav'
@@ -20,6 +24,37 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null;
 let f = null;
+
+const StyledTextField = withStyles({
+  root: {
+    backgroundColor: '#fff',
+    '& .Mui-disabled': {
+      backgroundColor: '#f2f2f2'
+    }
+  }
+})(TextField);
+
+function TextFieldComp(props) {
+  return (
+    <StyledTextField
+      id={props.id}
+      className={props.className}
+      name={props.name}
+      type={props.type}
+      label={props.label}
+      multiline={props.multiline}
+      rows={props.rows}
+      maxLength={props.maxLength}
+      variant={props.variant}
+      fullWidth={props.fullWidth}
+      size={props.size}
+      InputProps={props.InputProps}
+      required={props.required}
+      value={props.value}
+      onChange={props.onChange}
+      disabled={props.disabled} />
+  )
+}
 
 /**
  * Audit Log
@@ -186,15 +221,11 @@ class AuditLog extends Component {
   /**
    * Handle filter input data change
    * @method
-   * @param {string} type - input type
-   * @param {string | object} value - input value
+   * @param {object} event - event object
    */
-  handleAuditSearch = (type, value) => {
+  handleAuditSearch = (event) => {
     let tempAuditSearch = {...this.state.auditSearch};
-
-    if (type === 'keyword') { //value is an object type
-      tempAuditSearch[type] = value.target.value.trim();
-    }
+    tempAuditSearch[event.target.name] = event.target.value;
 
     this.setState({
       auditSearch: tempAuditSearch
@@ -241,12 +272,15 @@ class AuditLog extends Component {
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group'>
-            <label htmlFor='auditSearchKeyword'>{t('txt-keywords')}</label>
-            <input
+            <TextFieldComp
               id='auditSearchKeyword'
-              type='text'
+              name='keyword'
+              label={t('txt-keywords')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={auditSearch.keyword}
-              onChange={this.handleAuditSearch.bind(this, 'keyword')} />
+              onChange={this.handleAuditSearch} />
           </div>
         </div>
         <div className='button-group'>

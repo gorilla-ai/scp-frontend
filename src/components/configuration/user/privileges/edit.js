@@ -1,4 +1,5 @@
 import React, {Component} from 'react'
+import { withStyles } from '@material-ui/core/styles';
 import _ from 'lodash'
 import i18n from 'i18next'
 import PropTypes from 'prop-types';
@@ -6,8 +7,11 @@ import cx from 'classnames'
 import im from 'object-path-immutable'
 import queryString from 'query-string'
 
-import CheckboxGroup from 'react-ui/build/src/components/checkbox-group'
-import Input from 'react-ui/build/src/components/input'
+import Checkbox from '@material-ui/core/Checkbox';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import TextField from '@material-ui/core/TextField';
+
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
 import {BaseDataContext} from '../../../common/context';
@@ -27,11 +31,43 @@ const INITIAL_STATE = {
   open: false,
   info: null,
   error: false,
-  permits: [],
+  permitsList: [],
+  permitsOptions: {},
+  permitsSelected: [],
   name: '',
-  selected: [],
   privilegeid: ''
 };
+
+const StyledTextField = withStyles({
+  root: {
+    backgroundColor: '#fff',
+    '& .Mui-disabled': {
+      backgroundColor: '#f2f2f2'
+    }
+  }
+})(TextField);
+
+function TextFieldComp(props) {
+  return (
+    <StyledTextField
+      id={props.id}
+      className={props.className}
+      name={props.name}
+      type={props.type}
+      label={props.label}
+      multiline={props.multiline}
+      rows={props.rows}
+      maxLength={props.maxLength}
+      variant={props.variant}
+      fullWidth={props.fullWidth}
+      size={props.size}
+      InputProps={props.InputProps}
+      required={props.required}
+      value={props.value}
+      onChange={props.onChange}
+      disabled={props.disabled} />
+  )
+}
 
 /**
  * Account Privileges Edit
@@ -55,8 +91,10 @@ class PrivilegeEdit extends Component {
       open: true,
       name: privilege.name,
       privilegeid: privilege.privilegeid,
-      selected: _.map(privilege.permits, (permit) => { return permit.permitid }
-    )}, this.loadPermits)
+      permitsSelected: privilege.permits
+    }, () => {
+      this.loadPermits();
+    });
   }
   /**
    * Get locale name for module
@@ -85,13 +123,26 @@ class PrivilegeEdit extends Component {
     })
     .then(data => {
       if (data) {
+        const permitsList = _.map(data.rt, val => {
+          return {
+            value: val.permitid,
+            text: this.getLocaleName(val.dispname)
+          }
+        });
+
+        let permitsOptions = {};
+
+        _.forEach(data.rt, val => {
+          permitsOptions[val.permitid] = false;
+        });
+
+        _.forEach(this.state.permitsSelected, val => {
+          permitsOptions[val.permitid] = true;
+        })
+
         this.setState({
-          permits: _.map(data.rt, (permit) => {
-            return {
-              value: permit.permitid,
-              text: this.getLocaleName(permit.dispname)
-            };
-          })
+          permitsList,
+          permitsOptions
         });
       }
       return null;
@@ -125,14 +176,22 @@ class PrivilegeEdit extends Component {
    */
   editPrivilege = () => {
     const {baseUrl} = this.context;
-    const {name, selected, privilegeid} = this.state;
+    const {name, permitsOptions, privilegeid} = this.state;
 
     if (!privilegeid) {
       return;
     }
 
+    let permitIds = '';
+
+    _.forEach(permitsOptions, (val, key) => {
+      if (val) {
+        permitIds += '&permitIds=' + key;
+      }
+    })
+
     ah.one({
-      url: `${baseUrl}/api/account/privilege/permits/v1?privilegeId=${privilegeid}&${queryString.stringify({permitIds:selected})}`,
+      url: `${baseUrl}/api/account/privilege/permits/v1?privilegeId=${privilegeid}&${permitIds}`,
       data: JSON.stringify({name}),
       type: 'PATCH',
       contentType: 'application/json'
@@ -149,14 +208,50 @@ class PrivilegeEdit extends Component {
     })
   }
   /**
+   * Handle textbox value change
+   * @method
+   * @param {object} event - event object
+   */
+  handleDataChange = (event) => {
+    this.setState({
+      [event.target.name]: event.target.value
+    });
+  }
+  /**
    * Handle checkboxgroup value change
    * @method
-   * @param {array} selected - selected checkboxs value
+   * @param {object} event - event object
    */
-  handleDataChange = (type, value) => {
+  handleCheckboxChange = (event) => {
+    let tempPermitsOptions = {...this.state.permitsOptions}
+    tempPermitsOptions[event.target.name] = event.target.checked;
+
     this.setState({
-      [type]: value
+      permitsOptions: tempPermitsOptions
     });
+  }
+  /**
+   * Display role checkbox group
+   * @method
+   * @param {string} val - checkbox group
+   * @param {number} i - index of the checkbox group
+   * @returns HTML DOM
+   */
+  getRoleList = (val, i) => {
+    return (
+      <div className='option' key={i}>
+        <FormControlLabel
+          key={i}
+          label={val.text}
+          control={
+            <Checkbox
+              name={val.value}
+              checked={this.state.permitsOptions[val.value]}
+              onChange={this.handleCheckboxChange}
+              color='primary' />
+          } />
+      </div>
+    )
   }
   /**
    * Display edit privilege content
@@ -164,23 +259,22 @@ class PrivilegeEdit extends Component {
    * @returns HTML DOM
    */
   displayEditPrivilege = () => {
-    const {permits, selected, name} = this.state;
+    const {permitsList, name} = this.state;
 
     return (
       <div className='c-form'>
         <div>
-          <label className='required'>{t('l-name')}</label>
-          <Input
-            type='text'
+          <TextFieldComp
+            name='name'
+            label={t('l-name')}
+            variant='outlined'
+            fullWidth={true}
+            size='small'
             value={name}
-            onChange={this.handleDataChange.bind(this, 'name')} />
+            onChange={this.handleDataChange} />
         </div>
         <div className='group'>
-          <label className='required'>{t('l-permits')}</label>
-          <CheckboxGroup
-            list={permits}
-            value={selected}
-            onChange={this.handleDataChange.bind(this, 'selected')} />
+          {permitsList.map(this.getRoleList)}
         </div>
       </div>
     )

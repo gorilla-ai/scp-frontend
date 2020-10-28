@@ -874,10 +874,6 @@ class QueryOpenSave extends Component {
         }
       }
 
-      displayList.unshift(
-        <MenuItem value={'new'}>{t('events.connections.txt-addQuery')}</MenuItem>
-      );
-
       if (queryData.openFlag) {
         dropDownValue = queryData.id;
       }
@@ -894,6 +890,7 @@ class QueryOpenSave extends Component {
             required={true}
             value={queryData.id}
             onChange={this.handleQueryChange.bind(this, 'id')}>
+            <MenuItem value={'new'}>{t('events.connections.txt-addQuery')}</MenuItem>
             {displayList}
           </StyledTextField>
 

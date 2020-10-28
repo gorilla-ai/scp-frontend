@@ -1,8 +1,11 @@
 import React, { Component } from 'react'
+import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 
+import MenuItem from '@material-ui/core/MenuItem';
+import TextField from '@material-ui/core/TextField';
+
 import CheckboxGroup from 'react-ui/build/src/components/checkbox-group'
-import DropDownList from 'react-ui/build/src/components/dropdown'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
 const IR_MAPPINGS = {
@@ -27,6 +30,37 @@ const DEFAULT_IR_SELECTED = [2, 4, 5, 6, 9, 10];
 
 let t = null;
 
+const StyledTextField = withStyles({
+  root: {
+    backgroundColor: '#fff',
+    '& .Mui-disabled': {
+      backgroundColor: '#f2f2f2'
+    }
+  }
+})(TextField);
+
+function TextFieldComp(props) {
+  return (
+    <StyledTextField
+      id={props.id}
+      className={props.className}
+      name={props.name}
+      type={props.type}
+      label={props.label}
+      multiline={props.multiline}
+      rows={props.rows}
+      maxLength={props.maxLength}
+      variant={props.variant}
+      fullWidth={props.fullWidth}
+      size={props.size}
+      InputProps={props.InputProps}
+      required={props.required}
+      value={props.value}
+      onChange={props.onChange}
+      disabled={props.disabled} />
+  )
+}
+
 /**
  * IR combo selections
  * @class
@@ -47,9 +81,10 @@ class IrSelections extends Component {
   /**
    * Handle IR combo dropdown change
    * @method
-   * @param {string} type - IR combo type ('quick', 'standard' or 'full')
+   * @param {object} event - event object
    */
-  handleIrComboChange = (value) => {
+  handleIrComboChange = (event) => {
+    const value = event.target.value;
     let irItemSelected = [];
 
     if (value === 'quick') {
@@ -86,11 +121,8 @@ class IrSelections extends Component {
    */
   displayIRselection = () => {
     const {irComboSelected, irItemSelected} = this.state;
-    const dropDownList = _.map(['quick', 'standard', 'full'], val => {
-      return {
-        value: val,
-        text: t('network-inventory.ir-type.txt-' + val)
-      };
+    const dropDownList = _.map(['quick', 'standard', 'full'], (val, i) => {
+      return <MenuItem key={i} value={val}>{t('network-inventory.ir-type.txt-' + val)}</MenuItem>
     });
     const checkBoxList = _.map(_.range(1, 17), val => {
       return {
@@ -101,12 +133,16 @@ class IrSelections extends Component {
 
     return (
       <div>
-        <DropDownList
-          id='irComboList'
-          list={dropDownList}
-          required={true}
+        <StyledTextField
+          className='ir-comboList'
+          select
+          variant='outlined'
+          fullWidth={true}
+          size='small'
           value={irComboSelected}
-          onChange={this.handleIrComboChange} />
+          onChange={this.handleIrComboChange}>
+          {dropDownList}
+        </StyledTextField>
         <CheckboxGroup
           list={checkBoxList}
           value={irItemSelected}
