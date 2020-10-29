@@ -1,18 +1,18 @@
 import React, { Component } from 'react'
 import { withRouter } from 'react-router'
-import { NavLink, Link, Switch, Route } from 'react-router-dom'
+import { NavLink, Link, Route } from 'react-router-dom'
 import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
 
+import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MenuItem from '@material-ui/core/MenuItem';
+import Switch from '@material-ui/core/Switch';
 import TextField from '@material-ui/core/TextField';
 
 import Combobox from 'react-ui/build/src/components/combobox'
-import DropDownList from 'react-ui/build/src/components/dropdown'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
-import ToggleBtn from 'react-ui/build/src/components/toggle-button'
 
 import {BaseDataContext} from '../../common/context';
 import Config from '../../common/configuration'
@@ -33,6 +33,28 @@ const StyledTextField = withStyles({
     }
   }
 })(TextField);
+
+function TextFieldComp(props) {
+  return (
+    <StyledTextField
+      id={props.id}
+      className={props.className}
+      name={props.name}
+      type={props.type}
+      label={props.label}
+      multiline={props.multiline}
+      rows={props.rows}
+      maxLength={props.maxLength}
+      variant={props.variant}
+      fullWidth={props.fullWidth}
+      size={props.size}
+      InputProps={props.InputProps}
+      required={props.required}
+      value={props.value}
+      onChange={props.onChange}
+      disabled={props.disabled} />
+  )
+}
 
 /**
  * ES Management
@@ -104,11 +126,11 @@ class EsManage extends Component {
    * Set status data
    * @method
    * @param {string} date - selected date
-   * @param {boolean} value - status
+   * @param {object} event - event object
    */
-  handleStatusChange = (date, value) => {
+  handleStatusChange = (date, event) => {
     const {baseUrl} = this.context;
-    const type = value ? 'open' : 'close';
+    const type = event.target.checked ? 'open' : 'close';
 
     this.ah.one({
       url: `${baseUrl}/api/elasticsearch/${type}?date=${date}`,
@@ -203,12 +225,15 @@ class EsManage extends Component {
                 if (val === '_menu') {
                   return (
                     <div className='table-menu menu active'>
-                      <ToggleBtn
+                      <FormControlLabel
                         className='toggle-btn'
-                        onText={t('txt-on')}
-                        offText={t('txt-off')}
-                        on={tempEs.dataContent[dataIndex].isOpen}
-                        onChange={this.handleStatusChange.bind(this, tempEs.dataContent[dataIndex].date)}
+                        control={
+                          <Switch
+                            checked={tempEs.dataContent[dataIndex].isOpen}
+                            onChange={this.handleStatusChange.bind(this, tempEs.dataContent[dataIndex].date)}
+                            color='primary' />
+                        }
+                        label={t('txt-switch')}
                         disabled={!tempEs.dataContent[dataIndex].actionEnable} />
                       <i className={cx('fg fg-data-export', {'not-allowed': !tempEs.dataContent[dataIndex].export})} title={t('txt-export')} onClick={this.handleIndexExport.bind(this, tempEs.dataContent[dataIndex])}></i>
                     </div>

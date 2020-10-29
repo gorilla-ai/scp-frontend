@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { NavLink, Link, Switch, Route } from 'react-router-dom'
+import { NavLink, Link, Route } from 'react-router-dom'
 import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
 import cx from 'classnames'

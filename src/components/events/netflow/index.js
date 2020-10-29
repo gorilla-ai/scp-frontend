@@ -1,11 +1,14 @@
 import React, { Component } from 'react'
 import { withRouter } from 'react-router'
+import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import Moment from 'moment'
 import moment from 'moment-timezone'
 import _ from 'lodash'
 import cx from 'classnames'
 import queryString from 'query-string'
+
+import TextField from '@material-ui/core/TextField';
 
 import {analyze} from 'vbda-ui/build/src/analyzer'
 import Checkbox from 'react-ui/build/src/components/checkbox'
@@ -16,7 +19,6 @@ import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PageNav from 'react-ui/build/src/components/page-nav'
 import Popover from 'react-ui/build/src/components/popover'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
-import Textarea from 'react-ui/build/src/components/textarea'
 
 import {arrayMove} from 'react-sortable-hoc'
 import {GithubPicker} from 'react-color';
@@ -55,6 +57,37 @@ const ALL_TAB_DATA = {
   cert: 'Certification',
   ftp: 'FTP'
 };
+
+const StyledTextField = withStyles({
+  root: {
+    backgroundColor: '#fff',
+    '& .Mui-disabled': {
+      backgroundColor: '#f2f2f2'
+    }
+  }
+})(TextField);
+
+function TextFieldComp(props) {
+  return (
+    <StyledTextField
+      id={props.id}
+      className={props.className}
+      name={props.name}
+      type={props.type}
+      label={props.label}
+      multiline={props.multiline}
+      rows={props.rows}
+      maxLength={props.maxLength}
+      variant={props.variant}
+      fullWidth={props.fullWidth}
+      size={props.size}
+      InputProps={props.InputProps}
+      required={props.required}
+      value={props.value}
+      onChange={props.onChange}
+      disabled={props.disabled} />
+  )
+}
 
 /**
  * Events Netflow
@@ -2077,9 +2110,13 @@ class Netflow extends Component {
           </div>
           <div className='data'>
             {str &&
-              <Textarea
+              <TextFieldComp
+                multiline={true}
+                variant='outlined'
+                fullWidth={true}
+                size='small'
                 value={str}
-                readOnly={true} />
+                disabled={true} />
             }
           </div>
         </div>
@@ -2254,15 +2291,16 @@ class Netflow extends Component {
   /**
    * Handle value change for the add tagging form
    * @method
-   * @param {object | string} val - input value
+   * @param {object | string} event - event object
    */
-  handleDataChange = (val) => {
+  handleDataChange = (event) => {
+    const value = event.target ? event.target.value : event.hex;
     let tempTagData = {...this.state.tagData};
 
-    if (val.hex) {
-      tempTagData.color = val.hex.toUpperCase();
-    } else if (val) {
-      tempTagData.memo = val;
+    if (event.hex) {
+      tempTagData.color = value.hex.toUpperCase();
+    } else {
+      tempTagData.memo = value;
     }
 
     this.setState({
@@ -2277,15 +2315,20 @@ class Netflow extends Component {
   displayAddTagging = () => {
     const {tagData} = this.state;
     const colorList = ['#B80000', '#DB3E00', '#FCCB00', '#008B02', '#006B76', '#1273DE', '#004DCF', '#5300EB'];
+    const memoText = t('txt-memo') + ' (' + t('txt-memoMaxLength') + ')';
 
     return (
       <div>
-        <label htmlFor='tagMemo'>{t('txt-memo')} ({t('txt-memoMaxLength')})</label>
-        <Textarea
+        <TextFieldComp
           id='tagMemo'
           className='add'
+          label={memoText}
+          multiline={true}
           rows={4}
           maxLength={250}
+          variant='outlined'
+          fullWidth={true}
+          size='small'
           value={tagData.memo}
           onChange={this.handleDataChange} />
         <div className='group'>
@@ -2466,11 +2509,11 @@ class Netflow extends Component {
   /**
    * Handle show image only checkbox for File events
    * @method
-   * @param {boolean} showImgCheckbox - checkbox status (true/false)
+   * @param {object} event - event object
    */
-  handleShowImgCheckbox = (showImgCheckbox) => {
+  handleShowImgCheckbox = (event) => {
     this.setState({
-      showImgCheckbox
+      showImgCheckbox: event.target.checked
     }, () => {
       this.loadSubSections(this.state.showImgCheckbox ? 'images' : '');
     });
@@ -2478,11 +2521,11 @@ class Netflow extends Component {
   /**
    * Handle display change radio for File events
    * @method
-   * @param {boolean} displayType - display type ('list' or 'grid')
+   * @param {object} event - event object
    */
-  handleDisplayChange = (displayType) => {
+  handleDisplayChange = (event) => {
     this.setState({
-      displayType
+      displayType: event.target.value
     }, () => {
       this.loadSubSections(this.state.showImgCheckbox ? 'images' : '');
     });

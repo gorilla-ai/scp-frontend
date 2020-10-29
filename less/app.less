@@ -1685,12 +1685,11 @@ i.c-checkbox.fg-checkbox {
       }
       & > .host-list {
         position: relative;
-        padding-top: 20px;
-        padding-left: 20px;
+        padding: 20px 0 15px 20px;
         overflow: hidden;
         .sort-section {
           position: absolute;
-          top: 10px;
+          top: 20px;
           right: 17px;
           span {
             float: left;
@@ -1880,6 +1879,7 @@ i.c-checkbox.fg-checkbox {
               position: absolute;
               top: -45px;
               left: 80px;
+              flex-direction: row;
             }
             .radio-group {
               flex-direction: row;
@@ -1925,12 +1925,12 @@ i.c-checkbox.fg-checkbox {
               }
               button.manage {
                 position: absolute;
-                top: -40px;
+                top: -45px;
                 right: 0;
               }
               .owner-type {
                 position: absolute;
-                top: -38px;
+                top: -48px;
                 left: 100px;
                 flex-direction: row;
                 .list-item {
@@ -2868,8 +2868,9 @@ i.c-checkbox.fg-checkbox {
           .csv-dropdown {
             float: left;
             width: 15%;
+            margin-top: 10px;
             .group {
-              padding: 10px 30px;
+              padding: 15px 30px;
               label {
                 display: block;
                 color: var(--primaryContentHeader);
@@ -2883,7 +2884,7 @@ i.c-checkbox.fg-checkbox {
           footer {
             position: absolute;
             right: 5px;
-            bottom: 15px;
+            bottom: -20px;
             padding: 0;
             button {
               margin: 0 5px;

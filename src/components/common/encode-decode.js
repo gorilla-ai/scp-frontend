@@ -43,7 +43,6 @@ function TextFieldComp(props) {
   )
 }
 
-
 /**
  * Encode Decode service
  * @class

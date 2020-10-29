@@ -1,10 +1,14 @@
 import React, { Component } from 'react'
+import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
+
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Radio from '@material-ui/core/Radio';
+import RadioGroup from '@material-ui/core/RadioGroup';
+import TextField from '@material-ui/core/TextField';
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import MultiInput from 'react-ui/build/src/components/multi-input'
-import RadioGroup from 'react-ui/build/src/components/radio-group'
-import Textarea from 'react-ui/build/src/components/textarea'
 
 import helper from './helper'
 import InputPath from './input-path'
@@ -12,6 +16,37 @@ import InputPath from './input-path'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null;
+
+const StyledTextField = withStyles({
+  root: {
+    backgroundColor: '#fff',
+    '& .Mui-disabled': {
+      backgroundColor: '#f2f2f2'
+    }
+  }
+})(TextField);
+
+function TextFieldComp(props) {
+  return (
+    <StyledTextField
+      id={props.id}
+      className={props.className}
+      name={props.name}
+      type={props.type}
+      label={props.label}
+      multiline={props.multiline}
+      rows={props.rows}
+      maxLength={props.maxLength}
+      variant={props.variant}
+      fullWidth={props.fullWidth}
+      size={props.size}
+      InputProps={props.InputProps}
+      required={props.required}
+      value={props.value}
+      onChange={props.onChange}
+      disabled={props.disabled} />
+  )
+}
 
 /**
  * Yara Rule input
@@ -40,12 +75,11 @@ class YaraRule extends Component {
   /**
    * Handle yara rule input data change
    * @method
-   * @param {string} type - input type
-   * @param {string} value - input value
+   * @param {object} event - event object
    */
-  handleDataChange = (type, value) => {
+  handleDataChange = (event) => {
     let tempYaraRule = {...this.state.yaraRule};
-    tempYaraRule[type] = value;
+    tempYaraRule[event.target.name] = event.target.value;
 
     this.setState({
       yaraRule: tempYaraRule
@@ -54,12 +88,13 @@ class YaraRule extends Component {
   /**
    * Handle scan type data change
    * @method
-   * @param {string} val - scan type ('process' or 'filePath')
+   * @param {object} event - event object
    */
-  handleScanTypeChange = (val) => {
+  handleScanTypeChange = (event) => {
+    const value = event.target.value;
     let tempYaraRule = {...this.state.yaraRule};
 
-    if (val === 'process') {
+    if (value === 'process') {
       tempYaraRule.pathData = [{
         path: ''
       }];
@@ -70,7 +105,7 @@ class YaraRule extends Component {
     }
 
     this.setState({
-      scanType: val,
+      scanType: value,
       info: ''
     });
   }
@@ -114,24 +149,37 @@ class YaraRule extends Component {
     return (
       <div className='form-group normal'>
         <div className='group'>
-          <label htmlFor='yaraRuleContent'>{t('network-inventory.txt-yaraRules')}</label>
-          <Textarea
+          <TextFieldComp
             id='yaraRuleContent'
+            name='rule'
+            label={t('network-inventory.txt-yaraRules')}
+            multiline={true}
             rows={10}
-            required={true}
+            variant='outlined'
+            fullWidth={true}
+            size='small'
             value={yaraRule.rule}
-            onChange={this.handleDataChange.bind(this, 'rule')} />
+            onChange={this.handleDataChange} />
         </div>
         <div className='group'>
           <RadioGroup
             id='yaraScanType'
             className='radio-group'
-            list={[
-              {value: 'process', text: t('network-inventory.txt-scanProcess')},
-              {value: 'filePath', text: t('network-inventory.txt-scanFilePath')}
-            ]}
             value={scanType}
-            onChange={this.handleScanTypeChange} />
+            onChange={this.handleScanTypeChange}>
+            <FormControlLabel
+              value='process'
+              control={
+                <Radio color='primary' />
+              }
+              label={t('network-inventory.txt-scanProcess')} />
+            <FormControlLabel
+              value='filePath'
+              control={
+                <Radio color='primary' />
+              }
+              label={t('network-inventory.txt-scanFilePath')} />
+          </RadioGroup>
         </div>
         {scanType === 'filePath' &&
           <div className='group'>

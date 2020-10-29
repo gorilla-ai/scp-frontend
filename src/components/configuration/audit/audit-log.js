@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import { withRouter } from 'react-router'
-import { NavLink, Link, Switch, Route } from 'react-router-dom'
+import { NavLink, Link, Route } from 'react-router-dom'
 import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import Moment from 'moment'
@@ -8,9 +8,6 @@ import cx from 'classnames'
 
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
-
-import DropDownList from 'react-ui/build/src/components/dropdown'
-import PageNav from 'react-ui/build/src/components/page-nav'
 
 import {BaseDataContext} from '../../common/context';
 import Config from '../../common/configuration'

@@ -1,13 +1,17 @@
 import React, {Component} from 'react'
 import { withRouter } from 'react-router'
+import { withStyles } from '@material-ui/core/styles';
 import Moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import CheckboxGroup from 'react-ui/build/src/components/checkbox-group'
+import Checkbox from '@material-ui/core/Checkbox';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import TextField from '@material-ui/core/TextField';
+
 import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
-import DropDownList from 'react-ui/build/src/components/dropdown'
 import Gis from 'react-gis/build/src/components'
 import Hierarchy from 'react-ui/build/src/components/hierarchy'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
@@ -130,6 +134,37 @@ const MAPS_PRIVATE_DATA = {
 let t = null;
 let f = null;
 
+const StyledTextField = withStyles({
+  root: {
+    backgroundColor: '#fff',
+    '& .Mui-disabled': {
+      backgroundColor: '#f2f2f2'
+    }
+  }
+})(TextField);
+
+function TextFieldComp(props) {
+  return (
+    <StyledTextField
+      id={props.id}
+      className={props.className}
+      name={props.name}
+      type={props.type}
+      label={props.label}
+      multiline={props.multiline}
+      rows={props.rows}
+      maxLength={props.maxLength}
+      variant={props.variant}
+      fullWidth={props.fullWidth}
+      size={props.size}
+      InputProps={props.InputProps}
+      required={props.required}
+      value={props.value}
+      onChange={props.onChange}
+      disabled={props.disabled} />
+  )
+}
+
 /**
  * Host
  * @class
@@ -150,14 +185,17 @@ class HostController extends Component {
       datetime: Moment().local().format('YYYY-MM-DD') + 'T00:00:00',
       hostAnalysisOpen: false,
       severityList: [],
-      privateMaskedIP: {},
+      severityOptions: {},
       hmdStatusList: [],
+      hmdStatusOptions: {},
       scanStatusList: [],
+      scanStatusOptions: {},
+      privateMaskedIP: {},
       hostCreateTime: '',
       filterNav: {
         severitySelected: [],
-        hmdSelected: [],
         hmdStatusSelected: [],
+        scanStatusSelected: [],
         maskedIPSelected: []
       },
       deviceSearch: {
@@ -186,19 +224,44 @@ class HostController extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    this.setDataOptions();
     this.getHostSortList();
     this.getFloorPlan();
+  }
+  /**
+   * Set data for Checkbox
+   * @method
+   */
+  setDataOptions = () => {
+    let severityOptions = {};
+    let hmdStatusOptions = {};
+    let scanStatusOptions = {};
+
+    _.forEach(SEVERITY_TYPE, val => {
+      severityOptions[val] = false;
+    })
+
+    _.forEach(HMD_STATUS_LIST, val => {
+      hmdStatusOptions[val] = false;
+    })
+
+    _.forEach(HMD_LIST, val => {
+      scanStatusOptions[val] = false;
+    });
+
+    this.setState({
+      severityOptions,
+      hmdStatusOptions,
+      scanStatusOptions
+    });
   }
   /**
    * Get and set host sort list
    * @method
    */
   getHostSortList = () => {
-    const hostSortList = _.map(HOST_SORT_LIST, val => {
-      return {
-        value: val.name + '-' + val.type,
-        text: t('ipFields.' + val.name) + ' - ' + t('txt-' + val.type)
-      }
+    const hostSortList = _.map(HOST_SORT_LIST, (val, i) => {
+      return <MenuItem key={i} value={val.name + '-' + val.type}>{t('ipFields.' + val.name) + ' - ' + t('txt-' + val.type)}</MenuItem>
     });
 
     this.setState({
@@ -244,18 +307,21 @@ class HostController extends Component {
   getFloorList = () => {
     const {floorPlan} = this.state;
     let floorList = [];
-    let currentFloor = '';
+    let floorListArr = [];
 
     _.forEach(floorPlan.treeData, val => {
       helper.floorPlanRecursive(val, obj => {
-        floorList.push({
-          value: obj.areaUUID,
-          text: obj.areaName
+        floorList.push(
+          <MenuItem key={obj.areaUUID} value={obj.areaUUID}>{obj.areaName}</MenuItem>
+        );
+
+        floorListArr.push({
+          value: obj.areaUUID
         });
       });
     })
 
-    currentFloor = floorList[0].value; //Default to the top parent floor
+    const currentFloor = floorListArr[0].value; //Default to the top parent floor
 
     this.setState({
       floorList,
@@ -267,12 +333,12 @@ class HostController extends Component {
   /**
    * Get and set area related data
    * @method
-   * @param {string} areaUUID - area UUID
+   * @param {string | object} event - event object
    */
-  getAreaData = (areaUUID) => {
+  getAreaData = (event) => {
     const {baseUrl, contextRoot} = this.context;
     const {alertDetails} = this.state;
-    const floorPlan = areaUUID;
+    const floorPlan = event.target ? event.target.value : event;
 
     if (!floorPlan) {
       return;
@@ -366,12 +432,12 @@ class HostController extends Component {
       requestData.severityLevel = filterNav.severitySelected;
     }
 
-    if (filterNav.hmdSelected.length > 0) {
-      requestData.scanInfo = filterNav.hmdSelected;
-    }
-
     if (filterNav.hmdStatusSelected.length > 0) {
       requestData.devInfo = filterNav.hmdStatusSelected;
+    }
+
+    if (filterNav.scanStatusSelected.length > 0) {
+      requestData.scanInfo = filterNav.scanStatusSelected;
     }
 
     if (filterNav.maskedIPSelected.length > 0) {
@@ -411,6 +477,8 @@ class HostController extends Component {
     .then(data => {
       if (data) {
         let severityList = [];
+        let hmdStatusList = [];
+        let scanStatusList = [];
         let tempHostInfo = {...hostInfo};
         tempHostInfo.dataContent = data.rows;
         tempHostInfo.totalCount = data.count;
@@ -433,18 +501,18 @@ class HostController extends Component {
           })
         })
 
-        const hmdStatusList = _.map(HMD_STATUS_LIST, val => {
-          return {
+        _.forEach(HMD_STATUS_LIST, val => {
+          hmdStatusList.push({
             value: val,
             text: t('host.txt-' + val) + ' (' + helper.numberWithCommas(data.devInfoAgg[val]) + ')'
-          }
-        });
+          });
+        })
 
-        const scanStatusList = _.map(HMD_LIST, val => {
-          return {
+        _.forEach(HMD_LIST, val => {
+          scanStatusList.push({
             value: val.value,
             text: val.text + ' (' + data.scanInfoAgg[val.value] + ')'
-          }
+          });
         });
 
         this.getPrivateTreeData(data.subnetAgg);
@@ -470,6 +538,97 @@ class HostController extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+  }
+  /**
+   * Display checkbox for left nav
+   * @method
+   * @param {string} type - filter type ('severityOptions', 'hmdStatusOptions', 'scanStatusOptions')
+   * @param {object} event - event object
+   */
+  toggleCheckboxOptions = (type, event) => {
+    const {severityOptions, hmdStatusOptions, scanStatusOptions, filterNav} = this.state;
+    let tempFilterNav = {...filterNav};
+
+    if (type === 'severityOptions') {
+      let checkedItems = [];
+      let tempSeverityOptions = {...severityOptions};
+      tempSeverityOptions[event.target.name] = event.target.checked;
+
+      _.forEach(tempSeverityOptions, (val, key) => {
+        if (val) {
+          checkedItems.push(key);
+        }
+      })
+
+      tempFilterNav.severitySelected = checkedItems;
+
+      this.setState({
+        severityOptions: tempSeverityOptions,
+        filterNav: tempFilterNav
+      }, () => {
+        this.handleSearchSubmit();
+      });
+    } else if (type === 'hmdStatusOptions') {
+      let checkedItems = [];
+      let tempHmdStatusOptions = {...hmdStatusOptions};
+      tempHmdStatusOptions[event.target.name] = event.target.checked;
+
+      _.forEach(tempHmdStatusOptions, (val, key) => {
+        if (val) {
+          checkedItems.push(key);
+        }
+      })
+
+      tempFilterNav.hmdStatusSelected = checkedItems;
+
+      this.setState({
+        hmdStatusOptions: tempHmdStatusOptions,
+        filterNav: tempFilterNav
+      }, () => {
+        this.handleSearchSubmit();
+      });
+    } else if (type === 'scanStatusOptions') {
+      let checkedItems = [];
+      let tempScanStatusOptions = {...scanStatusOptions};
+      tempScanStatusOptions[event.target.name] = event.target.checked;
+
+      _.forEach(tempScanStatusOptions, (val, key) => {
+        if (val) {
+          checkedItems.push(key);
+        }
+      })
+
+      tempFilterNav.scanStatusSelected = checkedItems;
+
+      this.setState({
+        scanStatusOptions: tempScanStatusOptions,
+        filterNav: tempFilterNav
+      }, () => {
+        this.handleSearchSubmit();
+      });
+    }
+  }
+  /**
+   * Display checkbox for left nav
+   * @method
+   * @param {string} type - filter type ('severityOptions', 'hmdStatusOptions', 'scanStatusOptions')
+   * @param {object} val - individual filter data
+   * @param {number} i - index of the filter data
+   * @returns HTML DOM
+   */
+  getCheckboxItem = (type, val, i) => {
+    return (
+      <FormControlLabel
+        key={i}
+        label={val.text}
+        control={
+          <Checkbox
+            name={val.value}
+            checked={this.state[type][val.value]}
+            onChange={this.toggleCheckboxOptions.bind(this, type)}
+            color='primary' />
+        } />
+    )
   }
   /**
    * Get and set set data
@@ -620,11 +779,11 @@ class HostController extends Component {
   /**
    * Handle Host sort change
    * @method
-   * @param {string} val - new sort value
+   * @param {object} event - event object
    */
-  handleHostSortChange = (val) => {
+  handleHostSortChange = (event) => {
     this.setState({
-      hostSort: val
+      [event.target.name]: event.target.value
     }, () => {
       this.getHostData();
     });
@@ -660,7 +819,7 @@ class HostController extends Component {
   /**
    * Handle Host data filter change
    * @method
-   * @param {string} type - filter type ('severitySelected', hmdSelected')
+   * @param {string} type - filter type
    * @param {array} value - selected hmd array
    */
   handleFilterNavChange = (type, value) => {
@@ -676,12 +835,11 @@ class HostController extends Component {
   /**
    * Handle filter input value change
    * @method
-   * @param {string} type - input type
-   * @param {object} event - input value
+   * @param {object} event - event object
    */
-  handleDeviceSearch = (type, event) => {
+  handleDeviceSearch = (event) => {
     let tempDeviceSearch = {...this.state.deviceSearch};
-    tempDeviceSearch[type] = event.target.value.trim();
+    tempDeviceSearch[event.target.name] = event.target.value.trim();
 
     this.setState({
       deviceSearch: tempDeviceSearch
@@ -701,44 +859,59 @@ class HostController extends Component {
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group'>
-            <label htmlFor='deviceSearchIP'>{t('ipFields.ip')}</label>
-            <input
+            <TextFieldComp
               id='deviceSearchIP'
-              type='text'
+              name='ip'
+              label={t('ipFields.ip')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={deviceSearch.ip}
-              onChange={this.handleDeviceSearch.bind(this, 'ip')} />
+              onChange={this.handleDeviceSearch} />
           </div>
           <div className='group'>
-            <label htmlFor='deviceSearchMac'>{t('ipFields.mac')}</label>
-            <input
+            <TextFieldComp
               id='deviceSearchMac'
-              type='text'
+              name='mac'
+              label={t('ipFields.mac')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={deviceSearch.mac}
-              onChange={this.handleDeviceSearch.bind(this, 'mac')} />
+              onChange={this.handleDeviceSearch} />
           </div>
           <div className='group'>
-            <label htmlFor='deviceSearchHostName'>{t('ipFields.hostName')}</label>
-            <input
+            <TextFieldComp
               id='deviceSearchHostName'
-              type='text'
+              name='hostName'
+              label={t('ipFields.hostName')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={deviceSearch.hostName}
-              onChange={this.handleDeviceSearch.bind(this, 'hostName')} />
+              onChange={this.handleDeviceSearch} />
           </div>
           <div className='group'>
-            <label htmlFor='deviceSearchDeviceType'>{t('ipFields.deviceType')}</label>
-            <input
+            <TextFieldComp
               id='deviceSearchDeviceType'
-              type='text'
+              name='deviceType'
+              label={t('ipFields.deviceType')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={deviceSearch.deviceType}
-              onChange={this.handleDeviceSearch.bind(this, 'deviceType')} />
+              onChange={this.handleDeviceSearch} />
           </div>
           <div className='group'>
-            <label htmlFor='deviceSearchSystem'>{t('ipFields.system')}</label>
-            <input
+            <TextFieldComp
               id='deviceSearchSystem'
-              type='text'
+              name='system'
+              label={t('ipFields.system')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={deviceSearch.system}
-              onChange={this.handleDeviceSearch.bind(this, 'system')} />
+              onChange={this.handleDeviceSearch} />
           </div>
         </div>
         <div className='button-group'>
@@ -1096,24 +1269,21 @@ class HostController extends Component {
             <div className='content'>
               <div>
                 <label className={cx('header-text', {'hide': !showLeftNav})}>{t('alert.txt-threatLevel')}</label>
-                <CheckboxGroup
-                  list={severityList}
-                  value={filterNav.severitySelected}
-                  onChange={this.handleFilterNavChange.bind(this, 'severitySelected')} />
+                <div className='c-checkbox-group'>
+                  {severityList.map(this.getCheckboxItem.bind(this, 'severityOptions'))}
+                </div>
               </div>
               <div>
                 <label className={cx('header-text', {'hide': !showLeftNav})}>HMD Status</label>
-                <CheckboxGroup
-                  list={hmdStatusList}
-                  value={filterNav.hmdStatusSelected}
-                  onChange={this.handleFilterNavChange.bind(this, 'hmdStatusSelected')} />
+                <div className='c-checkbox-group'>
+                  {hmdStatusList.map(this.getCheckboxItem.bind(this, 'hmdStatusOptions'))}
+                </div>
               </div>
               <div>
                 <label className={cx('header-text', {'hide': !showLeftNav})}>Scan Status</label>
-                <CheckboxGroup
-                  list={scanStatusList}
-                  value={filterNav.hmdSelected}
-                  onChange={this.handleFilterNavChange.bind(this, 'hmdSelected')} />
+                <div className='c-checkbox-group'>
+                  {scanStatusList.map(this.getCheckboxItem.bind(this, 'scanStatusOptions'))}
+                </div>
               </div>
               <div>
                 <label className={cx('header-text', {'hide': !showLeftNav})}>{t('alert.txt-privateMaskedIp')}</label>
@@ -1147,13 +1317,18 @@ class HostController extends Component {
               }
               {activeTab === 'hostList' &&
                 <div className='sort-section'>
-                  <span>{t('txt-sort')}</span>
-                  <DropDownList
+                  <StyledTextField
                     id='hostSortList'
-                    list={hostSortList}
-                    required={true}
+                    name='hostSort'
+                    label={t('txt-sort')}
+                    select
+                    variant='outlined'
+                    fullWidth={true}
+                    size='small'
                     value={hostSort}
-                    onChange={this.handleHostSortChange} />
+                    onChange={this.handleHostSortChange}>
+                    {hostSortList}
+                  </StyledTextField>
                 </div>
               }
             </div>
@@ -1191,12 +1366,15 @@ class HostController extends Component {
               {activeTab === 'deviceMap' &&
                 <div className='map'>
                   {floorList.length > 0 &&
-                    <DropDownList
+                    <StyledTextField
                       className='drop-down'
-                      list={floorList}
-                      required={true}
+                      select
+                      variant='outlined'
+                      size='small'
                       value={currentFloor}
-                      onChange={this.getAreaData} />
+                      onChange={this.getAreaData}>
+                      {floorList}
+                    </StyledTextField>
                   }
                   {currentMap &&
                     <Gis

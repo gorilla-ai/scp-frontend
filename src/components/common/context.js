@@ -1,4 +1,5 @@
 import React from 'react'
+import _ from 'lodash'
 
 const initialState = JSON.parse(document.getElementById('initial-state').innerHTML);
 const cfg = initialState.envCfg;

@@ -6,7 +6,9 @@ import Moment from 'moment'
 import cx from 'classnames'
 import _ from 'lodash'
 
-import RadioGroup from 'react-ui/build/src/components/radio-group'
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Radio from '@material-ui/core/Radio';
+import RadioGroup from '@material-ui/core/RadioGroup';
 
 import {BaseDataContext} from '../../common/context';
 import helper from '../../common/helper'
@@ -262,11 +264,11 @@ class HMDsettings extends Component {
   /**
    * Handle GCB version change
    * @method
-   * @param {string} gcbVersion - GCB version ('TW' or 'US')
+   * @param {object} event - event object
    */
-  handleGcbVersionChange = (gcbVersion) => {
+  handleGcbVersionChange = (event) => {
     this.setState({
-      gcbVersion
+      gcbVersion: event.target.value
     });
   }
   render() {
@@ -297,13 +299,23 @@ class HMDsettings extends Component {
                 <label>{t('network-inventory.txt-gcbVersion')}</label>
                 <RadioGroup
                   className='radio-group'
-                  list={[
-                    {value: 'TW', text: 'TW'},
-                    {value: 'US', text: 'US'}
-                  ]}
                   value={gcbVersion}
-                  onChange={this.handleGcbVersionChange}
-                  disabled={activeContent === 'viewMode'} />
+                  onChange={this.handleGcbVersionChange}>
+                  <FormControlLabel
+                    value='TW'
+                    control={
+                      <Radio color='primary' />
+                    }
+                    label='TW'
+                    disabled={activeContent === 'viewMode'} />
+                  <FormControlLabel
+                    value='US'
+                    control={
+                      <Radio color='primary' />
+                    }
+                    label='US'
+                    disabled={activeContent === 'viewMode'} />
+                </RadioGroup>
               </div>
             </div>
           </div>

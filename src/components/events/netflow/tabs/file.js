@@ -1,8 +1,11 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 
-import Checkbox from 'react-ui/build/src/components/checkbox'
-import RadioGroup from 'react-ui/build/src/components/radio-group'
+import Checkbox from '@material-ui/core/Checkbox';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Radio from '@material-ui/core/Radio';
+import RadioGroup from '@material-ui/core/RadioGroup';
+
 import Tabs from 'react-ui/build/src/components/tabs'
 
 import FilterContent from '../../../common/filter-content'
@@ -76,28 +79,35 @@ class File extends Component {
             {mainContentData.dataTableData && mainContentData.dataTableData.length > 0 &&
               <div className='file-options'>
                 <div className='c-flex aic imgCheckBox'>
-                  <label htmlFor='showImgCheckbox'>{t('events.connections.txt-showImageOnly')}</label>
-                  <Checkbox
-                    id='showImgCheckbox'
-                    checked={mainContentData.showImageValue}
-                    onChange={mainContentData.handleShowImgCheckbox}
+                  <FormControlLabel
+                    label={t('events.connections.txt-showImageOnly')}
+                    control={
+                      <Checkbox
+                        id='showImgCheckbox'
+                        checked={mainContentData.showImageValue}
+                        onChange={mainContentData.handleShowImgCheckbox}
+                        color='primary' />
+                    }
                     disabled={mainContentData.displayImgType === 'grid'} />
                 </div>
                 {mainContentData.showImageValue &&
                   <RadioGroup
                     className='display-file-type'
-                    list={[
-                      {
-                        value: 'list',
-                        text: t('txt-list')
-                      },
-                      {
-                        value: 'grid',
-                        text: t('txt-grid')
-                      }
-                    ]}
                     value={mainContentData.displayImgType}
-                    onChange={mainContentData.handleDisplayChange} />
+                    onChange={mainContentData.handleDisplayChange}>
+                    <FormControlLabel
+                      value='list'
+                      control={
+                        <Radio color='primary' />
+                      }
+                      label={t('txt-list')} />
+                    <FormControlLabel
+                      value='grid'
+                      control={
+                        <Radio color='primary' />
+                      }
+                      label={t('txt-grid')} />
+                  </RadioGroup>
                 }
               </div>
             }

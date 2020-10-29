@@ -673,9 +673,11 @@ class QueryOpenSave extends Component {
             getLabel={this.getLabel} />
         }
         {activeTab === 'logs' && !patternCheckbox &&
-          <input
+          <TextFieldComp
             className='email-disabled'
-            type='text'
+            variant='outlined'
+            fullWidth={true}
+            size='small'
             value=''
             disabled={true} />
         }

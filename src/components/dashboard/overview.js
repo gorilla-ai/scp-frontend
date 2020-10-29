@@ -6,10 +6,8 @@ import Moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import DropDownList from 'react-ui/build/src/components/dropdown'
 import Gis from 'react-gis/build/src/components'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
-import RadioGroup from 'react-ui/build/src/components/radio-group'
 
 import {BaseDataContext} from '../common/context';
 import helper from '../common/helper'

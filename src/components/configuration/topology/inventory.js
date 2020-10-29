@@ -13,16 +13,16 @@ import XLSX from 'xlsx';
 import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MenuItem from '@material-ui/core/MenuItem';
+import Radio from '@material-ui/core/Radio';
+import RadioGroup from '@material-ui/core/RadioGroup';
 import TextField from '@material-ui/core/TextField';
 
 import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import DataTable from 'react-ui/build/src/components/table'
-import DropDownList from 'react-ui/build/src/components/dropdown'
 import FileInput from 'react-ui/build/src/components/file-input'
 import Gis from 'react-gis/build/src/components'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
-import RadioGroup from 'react-ui/build/src/components/radio-group'
 import Tabs from 'react-ui/build/src/components/tabs'
 import TreeView from 'react-ui/build/src/components/tree'
 
@@ -2155,11 +2155,15 @@ class NetworkInventory extends Component {
             btnText={t('txt-upload')}
             handleFileChange={this.parseFile} />
           <div className='csv-options'>
-            <label htmlFor='csvHeaderOption'>{t('network-inventory.txt-withHeader')}</label>
-            <Checkbox
-              id='csvHeaderOption'
-              checked={csvHeader}
-              onChange={this.toggleCsvHeader} />
+            <FormControlLabel
+              label={t('network-inventory.txt-withHeader')}
+              control={
+                <Checkbox
+                  id='csvHeaderOption'
+                  checked={csvHeader}
+                  onChange={this.toggleCsvHeader}
+                  color='primary' />
+              } />
           </div>
       </ModalDialog>
     )
@@ -2221,12 +2225,11 @@ class NetworkInventory extends Component {
   /**
    * Handle column change for CSV table dropdown
    * @method
-   * @param {string} type - dropdown selection type ('ip', 'mac' or 'hostName')
-   * @param {string} value - selected value from dropdown
+   * @param {object} event - event object
    */
-  handleColumnChange = (type, value) => {
+  handleColumnChange = (event) => {
     let tempCsvColumns = {...this.state.csvColumns};
-    tempCsvColumns[type] = value;
+    tempCsvColumns[event.target.name] = event.target.value;
 
     this.setState({
       csvColumns: tempCsvColumns
@@ -2630,16 +2633,16 @@ class NetworkInventory extends Component {
   /**
    * Handle owner type change
    * @method
-   * @param {string} ownerType - owner type ('existing' or 'new')
+   * @param {object} event - event object
    */
-  handleOwnerTypeChange = (ownerType) => {
+  handleOwnerTypeChange = (event) => {
     const {departmentList, titleList, addIP} = this.state;
     const tempAddIP = {...addIP};
     tempAddIP.newDepartment = departmentList[0] ? departmentList[0].value : '';
     tempAddIP.newTitle = titleList[0] ? titleList[0].value : '';
 
     this.setState({
-      ownerType,
+      ownerType: event.target.value,
       addIP: tempAddIP
     });
   }
@@ -2731,8 +2734,7 @@ class NetworkInventory extends Component {
   getOwnerType = () => {
     const {ownerList} = this.state;
 
-    let ownerType = [
-      {
+    let ownerType = [{
         value: 'new',
         text: t('txt-addNewOwner')
       }
@@ -2960,9 +2962,23 @@ class NetworkInventory extends Component {
               <header>{t('ipFields.owner')}</header>
               <RadioGroup
                 className='owner-type'
-                list={this.getOwnerType()}
                 value={ownerType}
-                onChange={this.handleOwnerTypeChange} />
+                onChange={this.handleOwnerTypeChange}>
+                {!_.isEmpty(ownerList) &&
+                  <FormControlLabel
+                    value='new'
+                    control={
+                      <Radio color='primary' />
+                    }
+                    label={t('txt-addNewOwner')} />
+                }
+                <FormControlLabel
+                  value='existing'
+                  control={
+                    <Radio color='primary' />
+                  }
+                  label={t('txt-existingOwner')} />
+              </RadioGroup>
               {ownerType === 'new' &&
                 <button className='standard manage' onClick={this.openManage}>{t('txt-manageDepartmentTitle')}</button>
               }
@@ -3492,10 +3508,9 @@ class NetworkInventory extends Component {
 
     if (!_.isEmpty(csvData)) {
       _.forEach(csvData[0], (val, i) => {
-        csvHeaderList.push({
-          value: i,
-          text: val
-        })
+        csvHeaderList.push(
+          <MenuItem key={i} value={i}>{val}</MenuItem>
+        );
       })
     }
 
@@ -3584,29 +3599,47 @@ class NetworkInventory extends Component {
                     </div>
                     <section className='csv-dropdown'>
                       <div className='group'>
-                        <label htmlFor='csvColumnIP'>{t('ipFields.ip')}*</label>
-                        <DropDownList
+                        <StyledTextField
                           id='csvColumnIP'
-                          list={csvHeaderList}
+                          name='ip'
+                          label={t('ipFields.ip')}
+                          select
+                          variant='outlined'
+                          fullWidth={true}
+                          size='small'
                           required={true}
                           value={csvColumns.ip}
-                          onChange={this.handleColumnChange.bind(this, 'ip')} />
+                          onChange={this.handleColumnChange}>
+                          {csvHeaderList}
+                        </StyledTextField>
                       </div>
                       <div className='group'>
-                        <label htmlFor='csvColumnMac'>{t('ipFields.mac')}</label>
-                        <DropDownList
+                        <StyledTextField
                           id='csvColumnMac'
-                          list={csvHeaderList}
+                          name='mac'
+                          label={t('ipFields.mac')}
+                          select
+                          variant='outlined'
+                          fullWidth={true}
+                          size='small'
                           value={csvColumns.mac}
-                          onChange={this.handleColumnChange.bind(this, 'mac')} />
+                          onChange={this.handleColumnChange}>
+                          {csvHeaderList}
+                        </StyledTextField>
                       </div>
                       <div className='group'>
-                        <label htmlFor='csvColumnHost'>{t('ipFields.hostName')}</label>
-                        <DropDownList
+                        <StyledTextField
                           id='csvColumnHost'
-                          list={csvHeaderList}
+                          name='hostName'
+                          label={t('ipFields.hostName')}
+                          select
+                          variant='outlined'
+                          fullWidth={true}
+                          size='small'
                           value={csvColumns.hostName}
-                          onChange={this.handleColumnChange.bind(this, 'hostName')} />
+                          onChange={this.handleColumnChange}>
+                          {csvHeaderList}
+                        </StyledTextField>
                       </div>
                     </section>
 

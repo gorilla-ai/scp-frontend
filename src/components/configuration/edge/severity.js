@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import { withRouter } from 'react-router'
-import { NavLink, Link, Switch, Route } from 'react-router-dom'
+import { NavLink, Link, Route } from 'react-router-dom'
 import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import Moment from 'moment'
@@ -495,7 +495,6 @@ class Severity extends Component {
               onChange={this.handleSearchType} />
           </div>
           <div className='severity'>
-            <label>{f('severityTableFields.severityLevel')}</label>
             <div className='group group-checkbox narrow'>
               <div className='group-options'>
                 {SEVERITY_TYPE.map(this.displaySeverityCheckbox)}

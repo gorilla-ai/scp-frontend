@@ -1,15 +1,18 @@
 import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
+import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
 import jschardet from 'jschardet'
 import XLSX from 'xlsx';
 
+import MenuItem from '@material-ui/core/MenuItem';
+import TextField from '@material-ui/core/TextField';
+
 import BarChart from 'react-chart/build/src/components/bar'
 import ButtonGroup from 'react-ui/build/src/components/button-group'
 import ContextMenu from 'react-ui/build/src/components/contextmenu'
-import DropDownList from 'react-ui/build/src/components/dropdown'
 import LineChart from 'react-chart/build/src/components/line'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import MultiInput from 'react-ui/build/src/components/multi-input'
@@ -30,6 +33,37 @@ let t = null;
 let f = null;
 
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
+
+const StyledTextField = withStyles({
+  root: {
+    backgroundColor: '#fff',
+    '& .Mui-disabled': {
+      backgroundColor: '#f2f2f2'
+    }
+  }
+})(TextField);
+
+function TextFieldComp(props) {
+  return (
+    <StyledTextField
+      id={props.id}
+      className={props.className}
+      name={props.name}
+      type={props.type}
+      label={props.label}
+      multiline={props.multiline}
+      rows={props.rows}
+      maxLength={props.maxLength}
+      variant={props.variant}
+      fullWidth={props.fullWidth}
+      size={props.size}
+      InputProps={props.InputProps}
+      required={props.required}
+      value={props.value}
+      onChange={props.onChange}
+      disabled={props.disabled} />
+  )
+}
 
 /**
  * Threat Intelligence
@@ -786,17 +820,11 @@ class ThreatIntelligence extends Component {
   /**
    * Handle filter input data change
    * @method
-   * @param {string} type - input type
-   * @param {string | object} value - input value
+   * @param {object} event - event object
    */
-  handleThreatsChange = (type, value) => {
+  handleThreatsChange = (event) => {
     let tempThreatsSearch = {...this.state.threatsSearch};
-
-    if (type === 'keyword') { //value is an object type
-      tempThreatsSearch[type] = value.target.value.trim();
-    } else {
-      tempThreatsSearch[type] = value;
-    }
+    tempThreatsSearch[event.target.name] = event.target.value;
 
     this.setState({
       threatsSearch: tempThreatsSearch
@@ -814,26 +842,35 @@ class ThreatIntelligence extends Component {
       <div className='filter'>
         <div className='filter-wrapper'>
           <div className='filter-section'>
-            <DropDownList
+            <StyledTextField
               id='threatsSearchType'
-              list={[
-                {value: 'IP', text: 'IP'},
-                {value: 'DOMAIN', text: 'DomainName'},
-                {value: 'URL', text: 'URL'},
-                {value: 'SNORT', text: 'SNORT'},
-                {value: 'YARA', text: 'YARA'},
-                {value: 'CERT', text: 'Certification'},
-                {value: 'FILEHASH', text: 'FileHash'},
-                {value: 'FILEHASHWHITE', text: 'FileHashWhite'}
-              ]}
-              required={true}
+              className='search-type'
+              name='type'
+              select
+              label={t('edge-management.txt-serviceMode')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={threatsSearch.type}
-              onChange={this.handleThreatsChange.bind(this, 'type')} />
-            <input
+              onChange={this.handleThreatsChange}>
+              <MenuItem value={'IP'}>IP</MenuItem>
+              <MenuItem value={'DOMAIN'}>DomainName</MenuItem>
+              <MenuItem value={'URL'}>URL</MenuItem>
+              <MenuItem value={'SNORT'}>SNORT</MenuItem>
+              <MenuItem value={'YARA'}>YARA</MenuItem>
+              <MenuItem value={'CERT'}>Certification</MenuItem>
+              <MenuItem value={'FILEHASH'}>FileHash</MenuItem>
+              <MenuItem value={'FILEHASHWHITE'}>FileHashWhite</MenuItem>
+            </StyledTextField>
+            <TextFieldComp
               id='threatsSearchKeyword'
-              type='text'
+              className='search-keyword'
+              name='keyword'
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={threatsSearch.keyword}
-              onChange={this.handleThreatsChange.bind(this, 'keyword')} />
+              onChange={this.handleThreatsChange} />
           </div>
           <div className='button-group'>
             <button className='btn' onClick={this.handleThreatsSearch.bind(this, 'search')}>{t('txt-search')}</button>
