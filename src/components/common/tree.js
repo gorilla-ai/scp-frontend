@@ -1,14 +1,48 @@
 import React, { Component } from 'react'
+import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import cx from 'classnames'
 
-import DropDownList from 'react-ui/build/src/components/dropdown'
+import MenuItem from '@material-ui/core/MenuItem';
+import TextField from '@material-ui/core/TextField';
+
 import Hierarchy from 'react-ui/build/src/components/hierarchy'
 
 import helper from './helper'
 import Pagination from './pagination'
 
 let t = null;
+
+const StyledTextField = withStyles({
+  root: {
+    backgroundColor: '#fff',
+    '& .Mui-disabled': {
+      backgroundColor: '#f2f2f2'
+    }
+  }
+})(TextField);
+
+function TextFieldComp(props) {
+  return (
+    <StyledTextField
+      id={props.id}
+      className={props.className}
+      name={props.name}
+      type={props.type}
+      label={props.label}
+      multiline={props.multiline}
+      rows={props.rows}
+      maxLength={props.maxLength}
+      variant={props.variant}
+      fullWidth={props.fullWidth}
+      size={props.size}
+      InputProps={props.InputProps}
+      required={props.required}
+      value={props.value}
+      onChange={props.onChange}
+      disabled={props.disabled} />
+  )
+}
 
 /**
  * Tree
@@ -48,10 +82,9 @@ class Tree extends Component {
         val2 = val2 ? val2 : 0;
 
         if (key2 === key) {
-          tabData.push({
-            value: key,
-            text: val + ' (' + helper.numberWithCommas(val2) + ')'
-          });
+          tabData.push(
+            <MenuItem key={key} value={key}>{val + ' (' + helper.numberWithCommas(val2) + ')'}</MenuItem>
+          );
         }
       })
     })
@@ -129,7 +162,7 @@ class Tree extends Component {
     const {showContent, tabData} = this.state;
 
     return (
-      <div className={cx('left-nav tree', {'collapse': !showContent})}>
+      <div className={cx('left-nav tree netflow', {'collapse': !showContent})}>
         {activeTab === 'alert' && _.isEmpty(treeData.alert.data) &&
           <span className='loading'><i className='fg fg-loading-2'></i></span>
         }
@@ -141,13 +174,17 @@ class Tree extends Component {
         {treeShowDropDown && tabData.length > 0 &&
           <div>
             <label htmlFor='analysisType' className={cx('header-text', {'hide': !showContent})}>{t('events.connections.txt-analysisType')}</label>
-            <DropDownList
+            <StyledTextField
               id='analysisType'
               className='analysis-type'
-              list={tabData}
-              required={true}
+              select
+              variant='outlined'
+              fullWidth={true}
+              size='small'
               value={activeTab}
-              onChange={this.props.handleTabChange} />
+              onChange={this.props.handleTabChange}>
+              {tabData}
+            </StyledTextField>
           </div>
         }
 

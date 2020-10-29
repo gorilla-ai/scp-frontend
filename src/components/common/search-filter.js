@@ -7,9 +7,6 @@ import cx from 'classnames'
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 
-import DropDownList from 'react-ui/build/src/components/dropdown'
-import Textarea from 'react-ui/build/src/components/textarea'
-
 const StyledTextField = withStyles({
   root: {
     backgroundColor: '#fff',

@@ -570,11 +570,10 @@ class Netflow extends Component {
   /**
    * Handle tab dropdown change
    * @method
-   * @param {string} newTab - new tab to be loaded
-   * @param {string} oldTab - old tab
+   * @param {string | object} event - new tab to be loaded
    */
-  handleTabChange = (newTab, oldTab) => {
-    const activeTab = newTab;
+  handleTabChange = (event) => {
+    const activeTab = event.target ? event.target.value : event;
     const {subSectionsData, filterData, showFilter} = this.state;
     const fieldsData = this.props.searchFields;
     const fieldsDataObj = {
@@ -593,7 +592,7 @@ class Netflow extends Component {
     let subTabMenu = {table: t('txt-table')};
     let activeSubTab = 'table';
 
-    if (this.state.activeTab === newTab) {
+    if (this.state.activeTab === activeTab) {
       return;
     }
 
