@@ -774,8 +774,14 @@ class HMDscanInfo extends Component {
    * @param {string} path - File path to be added
    */
   addToSettings = (type, path) => {
-    let tempSettingsPath = {...this.state.settingsPath};
-    tempSettingsPath[type].includePath.push({path});
+    const {settingsPath} = this.state;
+    let tempSettingsPath = {...settingsPath};
+
+    if (settingsPath[type].includePath.length === 1 && settingsPath[type].includePath[0].path === '') { //Take care the empty path
+      tempSettingsPath[type].includePath[0].path = path;
+    } else {
+      tempSettingsPath[type].includePath.push({path});
+    }
 
     this.setState({
       activeTab: 'settings',
