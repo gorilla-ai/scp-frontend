@@ -84,6 +84,7 @@ class File extends Component {
                     control={
                       <Checkbox
                         id='showImgCheckbox'
+                        className='checkbox-ui'
                         checked={mainContentData.showImageValue}
                         onChange={mainContentData.handleShowImgCheckbox}
                         color='primary' />
@@ -92,19 +93,23 @@ class File extends Component {
                 </div>
                 {mainContentData.showImageValue &&
                   <RadioGroup
-                    className='display-file-type'
+                    className='radio-group display-file-type'
                     value={mainContentData.displayImgType}
                     onChange={mainContentData.handleDisplayChange}>
                     <FormControlLabel
                       value='list'
                       control={
-                        <Radio color='primary' />
+                        <Radio
+                          className='radio-ui'
+                          color='primary' />
                       }
                       label={t('txt-list')} />
                     <FormControlLabel
                       value='grid'
                       control={
-                        <Radio color='primary' />
+                        <Radio
+                          className='radio-ui'
+                          color='primary' />
                       }
                       label={t('txt-grid')} />
                   </RadioGroup>

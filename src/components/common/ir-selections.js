@@ -2,31 +2,16 @@ import React, { Component } from 'react'
 import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 
+import Checkbox from '@material-ui/core/Checkbox';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 
-import CheckboxGroup from 'react-ui/build/src/components/checkbox-group'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
-const IR_MAPPINGS = {
-  1: 'dumpMemory',
-  2: 'getSystemInfoFile',
-  3: 'getFileInfo',
-  4: 'getProcessInfo',
-  5: 'getAutoruns',
-  6: 'getTaskScheduler',
-  7: 'getBrowserData',
-  8: 'getOutlookData',
-  9:  'getRegistryBackup',
-  10: 'getEventLogFile',
-  11: 'getRecycleFile',
-  12: 'getRecentFile',
-  13: 'getPictureFile',
-  14: 'getVideoFile',
-  15: 'getMicrosoftFile',
-  16: 'getKeyWordFile'
-};
-const DEFAULT_IR_SELECTED = [2, 4, 5, 6, 9, 10];
+const FULL_IR_LIST = ['dumpMemory', 'getSystemInfoFile', 'getFileInfo', 'getProcessInfo', 'getAutoruns', 'getTaskScheduler', 'getBrowserData', 'getOutlookData', 'getRegistryBackup', 'getEventLogFile', 'getRecycleFile', 'getRecentFile', 'getPictureFile', 'getVideoFile', 'getMicrosoftFile', 'getKeyWordFile'];
+const QUICK_IR_LIST = ['getSystemInfoFile', 'getProcessInfo', 'getAutoruns', 'getTaskScheduler', 'getRegistryBackup', 'getEventLogFile'];
+const STANDARD_IR_LIST = ['dumpMemory', 'getSystemInfoFile', 'getFileInfo', 'getProcessInfo', 'getAutoruns', 'getTaskScheduler', 'getRegistryBackup', 'getEventLogFile', 'getRecentFile'];
 
 let t = null;
 
@@ -72,11 +57,73 @@ class IrSelections extends Component {
     super(props);
 
     this.state = {
-      irComboSelected: 'quick', //quick, standard, full
-      irItemSelected: DEFAULT_IR_SELECTED
+      irComboSelected: 'quick', //'quick', 'standard', 'full'
+      irItemList: [],
+      irItemOptions: {}
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
+  }
+  componentDidMount() {
+    this.setIrList();
+    this.setCurrentOptions('quick');
+  }
+  /**
+   * Set IR list for display
+   * @method
+   * @param {object} event - event object
+   */
+  setIrList = () => {
+    const irItemList = _.map(FULL_IR_LIST, (val, i) => {
+      const item = i + 1;
+
+      return {
+        value: val,
+        text: item + ' - ' + t('network-inventory.ir-list.txt-list' + item)
+      };
+    });
+
+    this.setState({
+      irItemList
+    });
+  }
+  /**
+   * Set IR options
+   * @method
+   * @param {object} type - IR type ('quick', 'standard' or 'full')
+   */
+  setCurrentOptions = (type) => {
+    let irItemOptions = {};
+
+    if (type === 'full') {
+      _.forEach(FULL_IR_LIST, val => {
+        irItemOptions[val] = true;
+      })
+    } else {
+      if (type === 'quick' || type === 'standard') {
+        let irList = '';
+
+        if (type === 'quick') {
+          irList = QUICK_IR_LIST;
+        } else if (type === 'standard') {
+          irList = STANDARD_IR_LIST;
+        }
+
+        _.forEach(FULL_IR_LIST, val => {
+          irItemOptions[val] = false;
+
+          _.forEach(irList, val2 => {
+            if (val2 === val) {
+              irItemOptions[val] = true;
+            }
+          })
+        })
+      }
+    }
+
+    this.setState({
+      irItemOptions
+    });
   }
   /**
    * Handle IR combo dropdown change
@@ -84,35 +131,46 @@ class IrSelections extends Component {
    * @param {object} event - event object
    */
   handleIrComboChange = (event) => {
-    const value = event.target.value;
-    let irItemSelected = [];
-
-    if (value === 'quick') {
-      irItemSelected = DEFAULT_IR_SELECTED;
-    } else if (value === 'standard') {
-      irItemSelected = _.concat(_.range(1, 7), [9, 10, 12]);
-    } else if (value === 'full') {
-      irItemSelected = _.range(1, 17);
-    }
+    this.setCurrentOptions(event.target.value);
 
     this.setState({
-      irComboSelected: value,
-      irItemSelected
+      irComboSelected: event.target.value
     });
   }
   /**
-   * Handle IR combo multi checkbox change
+   * Handle checkbox selections
    * @method
-   * @param {array} selected - selected checkbox array
+   * @param {object} event - event object
    */
-  handleIrSelectionChange = (selected) => {
-    const irItemSelected = selected.sort((a, b) => {
-      return a - b;
-    });
+  toggleCheckboxOptions = (event) => {
+    let tempIrItemOptions = {...this.state.irItemOptions};
+    tempIrItemOptions[event.target.name] = event.target.checked;
 
     this.setState({
-      irItemSelected
+      irItemOptions: tempIrItemOptions
     });
+  }
+  /**
+   * Display checkbox for IR selections
+   * @method
+   * @param {object} val - individual IR type
+   * @param {number} i - index of the IR type
+   * @returns HTML DOM
+   */
+  showCheckboxList = (val, i) => {
+    return (
+      <FormControlLabel
+        key={i}
+        label={val.text}
+        control={
+          <Checkbox
+            className='checkbox-ui'
+            name={val.value}
+            checked={this.state.irItemOptions[val.value]}
+            onChange={this.toggleCheckboxOptions}
+            color='primary' />
+        } />
+    )
   }
   /**
    * Display IR selection content
@@ -120,15 +178,9 @@ class IrSelections extends Component {
    * @returns HTML DOM
    */
   displayIRselection = () => {
-    const {irComboSelected, irItemSelected} = this.state;
+    const {irComboSelected, irItemList} = this.state;
     const dropDownList = _.map(['quick', 'standard', 'full'], (val, i) => {
       return <MenuItem key={i} value={val}>{t('network-inventory.ir-type.txt-' + val)}</MenuItem>
-    });
-    const checkBoxList = _.map(_.range(1, 17), val => {
-      return {
-        value: val,
-        text: val + ' - ' + t('network-inventory.ir-list.txt-list' + val)
-      };
     });
 
     return (
@@ -143,10 +195,9 @@ class IrSelections extends Component {
           onChange={this.handleIrComboChange}>
           {dropDownList}
         </StyledTextField>
-        <CheckboxGroup
-          list={checkBoxList}
-          value={irItemSelected}
-          onChange={this.handleIrSelectionChange} />
+        <div className='ir-selections'>
+          {irItemList.map(this.showCheckboxList)}
+        </div>
       </div>
     )
   }
@@ -155,8 +206,12 @@ class IrSelections extends Component {
    * @method
    */
   confirmIRselection = () => {
-    const selectedIrArr = _.map(this.state.irItemSelected, val => {
-      return IR_MAPPINGS[val];
+    let selectedIrArr = [];
+
+    _.forEach(this.state.irItemOptions, (val, key) => {
+      if (val) {
+        selectedIrArr.push(key);
+      }
     });
 
     this.props.triggerTask(selectedIrArr);

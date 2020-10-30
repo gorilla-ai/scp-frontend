@@ -170,13 +170,17 @@ class YaraRule extends Component {
             <FormControlLabel
               value='process'
               control={
-                <Radio color='primary' />
+                <Radio
+                  className='radio-ui'
+                  color='primary' />
               }
               label={t('network-inventory.txt-scanProcess')} />
             <FormControlLabel
               value='filePath'
               control={
-                <Radio color='primary' />
+                <Radio
+                  className='radio-ui'
+                  color='primary' />
               }
               label={t('network-inventory.txt-scanFilePath')} />
           </RadioGroup>

@@ -660,20 +660,25 @@ class AutoSettings extends Component {
               <header>{adFormTitle}</header>
               <RadioGroup
                 id='autoSettingsAD'
+                className='radio-group'
                 name='type'
                 value={adData.type}
                 onChange={this.handleADchange}>
                 <FormControlLabel
                   value='AD'
                   control={
-                    <Radio color='primary' />
+                    <Radio
+                      className='radio-ui'
+                      color='primary' />
                   }
                   label={t('network-inventory.auto-settings.txt-AD')}
                   disabled={activeContent === 'viewMode'} />
                 <FormControlLabel
                   value='LDAP'
                   control={
-                    <Radio color='primary' />
+                    <Radio
+                      className='radio-ui'
+                      color='primary' />
                   }
                   label={t('network-inventory.auto-settings.txt-LDAP')}
                   disabled={activeContent === 'viewMode'} />

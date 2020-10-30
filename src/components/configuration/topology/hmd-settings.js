@@ -304,14 +304,19 @@ class HMDsettings extends Component {
                   <FormControlLabel
                     value='TW'
                     control={
-                      <Radio color='primary' />
+                      <Radio
+                        className='radio-ui'
+                        color='primary' />
                     }
                     label='TW'
                     disabled={activeContent === 'viewMode'} />
                   <FormControlLabel
+                    className='radio-ui'
                     value='US'
                     control={
-                      <Radio color='primary' />
+                      <Radio
+                        className='radio-ui'
+                        color='primary' />
                     }
                     label='US'
                     disabled={activeContent === 'viewMode'} />

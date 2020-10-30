@@ -1120,6 +1120,7 @@ class NetworkInventory extends Component {
               control={
                 <Checkbox
                   id='hmdCheckbox'
+                  className='checkbox-ui'
                   name='selectAll'
                   checked={hmdCheckbox}
                   onChange={this.toggleHMDcheckBox}
@@ -1135,6 +1136,7 @@ class NetworkInventory extends Component {
                   control={
                     <Checkbox
                       id='hmdSelectAll'
+                      className='checkbox-ui'
                       name='selectAll'
                       checked={hmdSelectAll}
                       onChange={this.toggleHMDoptions}
@@ -1148,6 +1150,7 @@ class NetworkInventory extends Component {
                   control={
                     <Checkbox
                       id='hmdScanProcess'
+                      className='checkbox-ui'
                       name='yaraScan'
                       checked={hmdSearchOptions.yaraScan}
                       onChange={this.toggleHMDoptions}
@@ -1161,6 +1164,7 @@ class NetworkInventory extends Component {
                   control={
                     <Checkbox
                       id='hmdScanFile'
+                      className='checkbox-ui'
                       name='malware'
                       checked={hmdSearchOptions.malware}
                       onChange={this.toggleHMDoptions}
@@ -1174,6 +1178,7 @@ class NetworkInventory extends Component {
                   control={
                     <Checkbox
                       id='hmdGCB'
+                      className='checkbox-ui'
                       name='gcb'
                       checked={hmdSearchOptions.gcb}
                       onChange={this.toggleHMDoptions}
@@ -2160,6 +2165,7 @@ class NetworkInventory extends Component {
               control={
                 <Checkbox
                   id='csvHeaderOption'
+                  className='checkbox-ui'
                   checked={csvHeader}
                   onChange={this.toggleCsvHeader}
                   color='primary' />
@@ -2961,21 +2967,25 @@ class NetworkInventory extends Component {
             <div className='form-group steps-owner'>
               <header>{t('ipFields.owner')}</header>
               <RadioGroup
-                className='owner-type'
+                className='radio-group owner-type'
                 value={ownerType}
                 onChange={this.handleOwnerTypeChange}>
                 {!_.isEmpty(ownerList) &&
                   <FormControlLabel
                     value='new'
                     control={
-                      <Radio color='primary' />
+                      <Radio
+                        className='radio-ui'
+                        color='primary' />
                     }
                     label={t('txt-addNewOwner')} />
                 }
                 <FormControlLabel
                   value='existing'
                   control={
-                    <Radio color='primary' />
+                    <Radio
+                      className='radio-ui'
+                      color='primary' />
                   }
                   label={t('txt-existingOwner')} />
               </RadioGroup>

@@ -375,6 +375,7 @@ class Notifications extends Component {
             label={val.checkboxText}
             control={
               <Checkbox
+                className='checkbox-ui'
                 name={val.type}
                 checked={emails[val.type].enable}
                 onChange={this.toggleEmailCheckbox}

@@ -463,6 +463,7 @@ class Severity extends Component {
           control={
             <Checkbox
               id={val}
+              className='checkbox-ui'
               name={val}
               checked={this.state.severitySearchOptions[val]}
               onChange={this.toggleSeverityOptions}

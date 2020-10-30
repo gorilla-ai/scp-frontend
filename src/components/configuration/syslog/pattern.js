@@ -598,6 +598,7 @@ class Pattern extends Component {
           control={
             <Checkbox
               id={val}
+              className='checkbox-ui'
               name={val}
               checked={this.state.patternSearch.severity[val]}
               onChange={this.toggleSeverityOptions}

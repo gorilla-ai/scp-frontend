@@ -245,6 +245,7 @@ class PrivilegeEdit extends Component {
           label={val.text}
           control={
             <Checkbox
+              className='checkbox-ui'
               name={val.value}
               checked={this.state.permitsOptions[val.value]}
               onChange={this.handleCheckboxChange}

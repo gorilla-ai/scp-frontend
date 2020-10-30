@@ -682,6 +682,19 @@ class Edge extends Component {
     });
   }
   /**
+   * Handle combo box change
+   * @method
+   * @param {string} value - input value
+   */
+  handleComboBoxChange = (value) => {
+    let tempEdge = {...this.state.edge};
+    tempEdge.info.edgeGroupList = value;
+
+    this.setState({
+      edge: tempEdge
+    });
+  }
+  /**
    * Handle date change
    * @method
    * @param {string} value - input value
@@ -1224,35 +1237,40 @@ class Edge extends Component {
               }
               {activeContent === 'editEdge' &&
                 <Combobox
+                  className='combo-box'
+                  name='edgeGroupList'
                   list={allGroup}
                   multiSelect={{
                     enabled: true,
                     toggleAll: true
                   }}
                   value={edge.info.edgeGroupList}
-                  onChange={this.handleDataChange.bind(this, 'edgeGroupList')} />
+                  onChange={this.handleComboBoxChange} />
               }
             </div>
             <div className='group'>
               <FormLabel>{t('edge-management.txt-activatTime')}</FormLabel>
               <RadioGroup
+                className='radio-group activate-time'
                 name='edgeModeType'
                 value={edge.info.edgeModeType}
                 onChange={this.handleDataChange}>
                 <FormControlLabel
                   value='anyTime'
                   control={
-                    <Radio color='primary' />
+                    <Radio
+                      className='radio-ui'
+                      color='primary' />
                   }
-                  label={t('edge-management.txt-anyTime')}
-                  disabled={activeContent === 'viewEdge' || !edge.info.isConfigurable} />
+                  label={t('edge-management.txt-anyTime')} />
                 <FormControlLabel
                   value='customTime'
                   control={
-                    <Radio color='primary' />
+                    <Radio
+                      className='radio-ui'
+                      color='primary' />
                   }
-                  label={t('edge-management.txt-customTime')}
-                  disabled={activeContent === 'viewEdge' || !edge.info.isConfigurable} />
+                  label={t('edge-management.txt-customTime')} />
               </RadioGroup>
 
               {edge.info.edgeModeType === 'customTime' &&
@@ -1324,18 +1342,6 @@ class Edge extends Component {
               onChange={this.handleEdgeSearch} />
           </div>
           <div className='group'>
-            <label htmlFor='edgeSearchGroups'>{f('edgeFields.groups')}</label>
-            <Combobox
-              id='edgeSearchGroups'
-              list={allGroup}
-              multiSelect={{
-                enabled: true,
-                toggleAll: true
-              }}
-              value={edgeSearch.groups}
-              onChange={this.handleComboSearch} />
-          </div>
-          <div className='group'>
             <StyledTextField
               id='edgeSearchServiceType'
               name='serviceType'
@@ -1365,6 +1371,19 @@ class Edge extends Component {
               <MenuItem value={'Normal'}>{t('txt-normal')}</MenuItem>
               <MenuItem value={'Error'}>{t('txt-error')}</MenuItem>
             </StyledTextField>
+          </div>
+          <div className='group'>
+            <Combobox
+              id='edgeSearchGroups'
+              className='combo-box'
+              placeholder={f('edgeFields.groups')}
+              list={allGroup}
+              multiSelect={{
+                enabled: true,
+                toggleAll: true
+              }}
+              value={edgeSearch.groups}
+              onChange={this.handleComboSearch} />
           </div>
         </div>
         <div className='button-group'>

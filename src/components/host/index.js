@@ -192,6 +192,7 @@ class HostController extends Component {
       scanStatusOptions: {},
       privateMaskedIP: {},
       hostCreateTime: '',
+      leftNavData: [],
       filterNav: {
         severitySelected: [],
         hmdStatusSelected: [],
@@ -224,9 +225,40 @@ class HostController extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    this.setLeftNavData();
     this.setDataOptions();
     this.getHostSortList();
     this.getFloorPlan();
+  }
+  /**
+   * Set Left nav data
+   * @method
+   */
+  setLeftNavData = () => {
+    const leftNavData = [
+      {
+        list: 'severityList',
+        text: t('alert.txt-threatLevel'),
+        options: 'severityOptions',
+        selected: 'severitySelected'
+      },
+      {
+        list: 'hmdStatusList',
+        text: 'HMD ' + t('txt-status'),
+        options: 'hmdStatusOptions',
+        selected: 'hmdStatusSelected'
+      },
+      {
+        list: 'scanStatusList',
+        text: 'Scan ' + t('txt-status'),
+        options: 'scanStatusOptions',
+        selected: 'scanStatusSelected'
+      }
+    ];
+
+    this.setState({
+      leftNavData
+    });
   }
   /**
    * Set data for Checkbox
@@ -540,73 +572,50 @@ class HostController extends Component {
     })
   }
   /**
-   * Display checkbox for left nav
+   * Set filter options and data
    * @method
-   * @param {string} type - filter type ('severityOptions', 'hmdStatusOptions', 'scanStatusOptions')
+   * @param {string} options - filter options ('severityOptions', 'hmdStatusOptions', 'scanStatusOptions')
+   * @param {string} selected - filter selected ('severitySelected', 'hmdStatusSelected', 'scanStatusSelected')
    * @param {object} event - event object
    */
-  toggleCheckboxOptions = (type, event) => {
-    const {severityOptions, hmdStatusOptions, scanStatusOptions, filterNav} = this.state;
-    let tempFilterNav = {...filterNav};
+  setFilterNavData = (options, selected, event) => {
+    let tempFilterNav = {...this.state.filterNav};
+    let checkedItems = [];
+    let tempSeverityOptions = {...this.state[options]};
+    tempSeverityOptions[event.target.name] = event.target.checked;
 
-    if (type === 'severityOptions') {
-      let checkedItems = [];
-      let tempSeverityOptions = {...severityOptions};
-      tempSeverityOptions[event.target.name] = event.target.checked;
+    _.forEach(tempSeverityOptions, (val, key) => {
+      if (val) {
+        checkedItems.push(key);
+      }
+    })
 
-      _.forEach(tempSeverityOptions, (val, key) => {
-        if (val) {
-          checkedItems.push(key);
-        }
-      })
+    tempFilterNav[selected] = checkedItems;
 
-      tempFilterNav.severitySelected = checkedItems;
+    this.setState({
+      [options]: tempSeverityOptions,
+      filterNav: tempFilterNav
+    }, () => {
+      this.handleSearchSubmit();
+    });
+  }
+  /**
+   * Handle checkbox selections
+   * @method
+   * @param {string} options - filter options ('severityOptions', 'hmdStatusOptions', 'scanStatusOptions')
+   * @param {object} event - event object
+   */
+  toggleCheckboxOptions = (options, event) => {
+    let selected = '';
 
-      this.setState({
-        severityOptions: tempSeverityOptions,
-        filterNav: tempFilterNav
-      }, () => {
-        this.handleSearchSubmit();
-      });
-    } else if (type === 'hmdStatusOptions') {
-      let checkedItems = [];
-      let tempHmdStatusOptions = {...hmdStatusOptions};
-      tempHmdStatusOptions[event.target.name] = event.target.checked;
+    _.forEach(this.state.leftNavData, val => {
+      if (val.options === options) {
+        selected = val.selected;
+        return false;
+      }
+    })
 
-      _.forEach(tempHmdStatusOptions, (val, key) => {
-        if (val) {
-          checkedItems.push(key);
-        }
-      })
-
-      tempFilterNav.hmdStatusSelected = checkedItems;
-
-      this.setState({
-        hmdStatusOptions: tempHmdStatusOptions,
-        filterNav: tempFilterNav
-      }, () => {
-        this.handleSearchSubmit();
-      });
-    } else if (type === 'scanStatusOptions') {
-      let checkedItems = [];
-      let tempScanStatusOptions = {...scanStatusOptions};
-      tempScanStatusOptions[event.target.name] = event.target.checked;
-
-      _.forEach(tempScanStatusOptions, (val, key) => {
-        if (val) {
-          checkedItems.push(key);
-        }
-      })
-
-      tempFilterNav.scanStatusSelected = checkedItems;
-
-      this.setState({
-        scanStatusOptions: tempScanStatusOptions,
-        filterNav: tempFilterNav
-      }, () => {
-        this.handleSearchSubmit();
-      });
-    }
+    this.setFilterNavData(options, selected, event);
   }
   /**
    * Display checkbox for left nav
@@ -623,11 +632,29 @@ class HostController extends Component {
         label={val.text}
         control={
           <Checkbox
+            className='checkbox-ui nav-box'
             name={val.value}
             checked={this.state[type][val.value]}
             onChange={this.toggleCheckboxOptions.bind(this, type)}
             color='primary' />
         } />
+    )
+  }
+  /**
+   * Display Left nav data
+   * @method
+   * @param {object} val - individual left nave data
+   * @param {number} i - index of the left nave data
+   * @returns HTML DOM
+   */
+  showLeftNavItems = (val, i) => {
+    return (
+      <div>
+        <label className={cx('header-text', {'hide': !this.state.showLeftNav})}>{val.text}</label>
+        <div className='checkbox-group'>
+          {this.state[val.list].map(this.getCheckboxItem.bind(this, val.options))}
+        </div>
+      </div>
     )
   }
   /**
@@ -1222,11 +1249,9 @@ class HostController extends Component {
       showFilter,
       datetime,
       hostAnalysisOpen,
-      severityList,
-      hmdStatusList,
-      scanStatusList,
       hostCreateTime,
       privateMaskedIPtree,
+      leftNavData,
       filterNav,
       hostInfo,
       hostData,
@@ -1267,24 +1292,7 @@ class HostController extends Component {
         <div className='data-content'>
           <div className={cx('left-nav tree', {'collapse': !showLeftNav})}>
             <div className='content'>
-              <div>
-                <label className={cx('header-text', {'hide': !showLeftNav})}>{t('alert.txt-threatLevel')}</label>
-                <div className='c-checkbox-group'>
-                  {severityList.map(this.getCheckboxItem.bind(this, 'severityOptions'))}
-                </div>
-              </div>
-              <div>
-                <label className={cx('header-text', {'hide': !showLeftNav})}>HMD Status</label>
-                <div className='c-checkbox-group'>
-                  {hmdStatusList.map(this.getCheckboxItem.bind(this, 'hmdStatusOptions'))}
-                </div>
-              </div>
-              <div>
-                <label className={cx('header-text', {'hide': !showLeftNav})}>Scan Status</label>
-                <div className='c-checkbox-group'>
-                  {scanStatusList.map(this.getCheckboxItem.bind(this, 'scanStatusOptions'))}
-                </div>
-              </div>
+              {leftNavData.map(this.showLeftNavItems)}
               <div>
                 <label className={cx('header-text', {'hide': !showLeftNav})}>{t('alert.txt-privateMaskedIp')}</label>
                 <Hierarchy

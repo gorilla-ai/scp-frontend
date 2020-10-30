@@ -101,7 +101,7 @@ class SortableItem extends Component {
         <FormControlLabel
           control={
             <Checkbox
-              className='data-field flow'
+              className='checkbox-ui data-field flow'
               checked={this.props.checkDisplayFields(key)}
               onChange={this.props.setFieldsChange.bind(this, key)}
               color='primary' />

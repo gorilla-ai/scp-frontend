@@ -717,6 +717,7 @@ class QueryOpenSave extends Component {
           control={
             <Checkbox
               id='patternCheckbox'
+              className='checkbox-ui'
               checked={checkboxChecked}
               onChange={this.togglePatternCheckbox}
               color='primary' />
