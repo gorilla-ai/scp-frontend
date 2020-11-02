@@ -35,7 +35,12 @@ const INITIAL_STATE = {
   permitsOptions: {},
   permitsSelected: [],
   name: '',
-  privilegeid: ''
+  privilegeid: '',
+  formValidation: {
+    name: {
+      valid: true
+    }
+  }
 };
 
 const StyledTextField = withStyles({
@@ -63,6 +68,8 @@ function TextFieldComp(props) {
       size={props.size}
       InputProps={props.InputProps}
       required={props.required}
+      error={props.required}
+      helperText={props.helperText}
       value={props.value}
       onChange={props.onChange}
       disabled={props.disabled} />
@@ -159,7 +166,21 @@ class PrivilegeEdit extends Component {
    * @method
    */
   close = () => {
-    this.setState(_.clone(INITIAL_STATE));
+    this.setState({
+      open: false,
+      info: null,
+      error: false,
+      permitsList: [],
+      permitsOptions: {},
+      permitsSelected: [],
+      name: '',
+      privilegeid: '',
+      formValidation: {
+        name: {
+          valid: true
+        }
+      }
+    });
   }
   /**
    * Reset data and call onDone props funciton
@@ -176,9 +197,22 @@ class PrivilegeEdit extends Component {
    */
   editPrivilege = () => {
     const {baseUrl} = this.context;
-    const {name, permitsOptions, privilegeid} = this.state;
+    const {name, permitsOptions, privilegeid, formValidation} = this.state;
+    let tempFormValidation = {...formValidation};
+    let validate = true;
 
-    if (!privilegeid) {
+    if (name) {
+      tempFormValidation.name.valid = true;
+    } else {
+      tempFormValidation.name.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      formValidation: tempFormValidation
+    });
+
+    if (!validate || !privilegeid) {
       return;
     }
 
@@ -260,7 +294,7 @@ class PrivilegeEdit extends Component {
    * @returns HTML DOM
    */
   displayEditPrivilege = () => {
-    const {permitsList, name} = this.state;
+    const {permitsList, name, formValidation} = this.state;
 
     return (
       <div className='c-form'>
@@ -271,6 +305,9 @@ class PrivilegeEdit extends Component {
             variant='outlined'
             fullWidth={true}
             size='small'
+            required={true}
+            error={!formValidation.name.valid}
+            helperText={formValidation.name.valid ? '' : c('txt-required')}
             value={name}
             onChange={this.handleDataChange} />
         </div>

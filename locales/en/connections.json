@@ -366,7 +366,7 @@
       "txt-addQuery": "Add New Query",
       "txt-noSavedQuery": "No Saved Query Found",
       "txt-noOpenQuery": "Query can not be Blank",
-      "txt-threasholdMax": "Maximum threashold count is 1,000",
+      "txt-threasholdCount": "Threashold count must be less than 1,000 and greater than 0",
       "txt-addPatternScript": "Custom Alert Query",
       "txt-patternQuery1": "In",
       "txt-patternQuery2": "minutes, alert occurs more than or equal to",
@@ -626,6 +626,7 @@
     "txt-fromSeat": " from $t(txt-seat) ",
     "txt-selected-node": "Selected Node",
     "txt-ipValidationFail": "Please enter a valid IP address",
+    "txt-macValidationFail": "Please enter a valid MAC address",
     "txt-seatNameEmpty": "Please enter a seat name",
     "txt-saveSuccess": "Saved",
 

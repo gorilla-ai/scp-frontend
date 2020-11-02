@@ -44,6 +44,8 @@ import YaraRule from '../../common/yara-rule'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+const IP_PATTERN = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
+const MAC_PATTERN = /^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$/i;
 const NOT_AVAILABLE = 'N/A';
 const SAFETY_SCAN_LIST = ['yara', 'scanFile', 'gcb', 'fileIntegrity', 'procMonitor'];
 const HMD_LIST = [
@@ -106,6 +108,8 @@ function TextFieldComp(props) {
       size={props.size}
       InputProps={props.InputProps}
       required={props.required}
+      error={props.required}
+      helperText={props.helperText}
       value={props.value}
       onChange={props.onChange}
       disabled={props.disabled} />
@@ -213,6 +217,27 @@ class NetworkInventory extends Component {
       csvHeader: true,
       ipUploadFields: ['ip', 'mac', 'hostName', 'errCode'],
       yaraTriggerAll: false,
+      formValidation: {
+        ip: {
+          valid: true,
+          msg: ''
+        },
+        mac: {
+          valid: true,
+          msg: ''
+        },
+        newOwnerName: {
+          valid: true,
+          msg: ''
+        },
+        newOwnerID: {
+          valid: true,
+          msg: ''
+        },
+        csvColumnsIp: {
+          valid: true
+        },
+      },
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
     };
 
@@ -1030,7 +1055,7 @@ class NetworkInventory extends Component {
    * @returns HTML DOM
    */
   renderFilter = () => {
-    const {showFilter, hmdCheckbox, hmdSelectAll, hmdSearchOptions, deviceSearch} = this.state;
+    const {showFilter, hmdCheckbox, hmdSelectAll, hmdSearchOptions, deviceSearch, formValidation} = this.state;
 
     return (
       <div className={cx('main-filter', {'active': showFilter})} style={{minHeight : '220px'}}>
@@ -1778,6 +1803,30 @@ class NetworkInventory extends Component {
       } else {
         activeContent = 'tableList';
       }
+
+      this.setState({
+        formValidation: {
+          ip: {
+            valid: true,
+            msg: ''
+          },
+          mac: {
+            valid: true,
+            msg: ''
+          },
+          newOwnerName: {
+            valid: true,
+            msg: ''
+          },
+          newOwnerID: {
+            valid: true,
+            msg: ''
+          },
+          csvColumnsIp: {
+            valid: true
+          }
+        }
+      });
     } else if (type === 'showList') {
       activeContent = 'tableList';
     } else if (type === 'hmdSettings' || type === 'autoSettings') {
@@ -2284,13 +2333,16 @@ class NetworkInventory extends Component {
    */
   uploadActions = (type) => {
     const {baseUrl} = this.context;
-    const {csvData, csvColumns, csvHeader, ipUploadFields} = this.state;
-    const ipPattern = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
-    const macPattern = /^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$/i;
+    const {csvData, csvColumns, csvHeader, ipUploadFields, formValidation} = this.state;
+    let tempFormValidation = {...formValidation};
 
     if (type === 'upload') {
       if (!csvColumns.ip) {
-        helper.showPopupMsg(t('network-inventory.txt-selectIP'), t('txt-error'));
+        tempFormValidation.csvColumnsIp.valid = false;
+
+        this.setState({
+          formValidation: tempFormValidation
+        });
       } else {
         const url = `${baseUrl}/api/ipdevices`;
         let requestData = [];
@@ -2318,13 +2370,13 @@ class NetworkInventory extends Component {
           }
 
           if (dataObj.ip) {
-            if (!ipPattern.test(dataObj.ip)) { //Check IP format
+            if (!IP_PATTERN.test(dataObj.ip)) { //Check IP format
               validate = false;
               helper.showPopupMsg(t('network-inventory.txt-uploadFailedIP'));
               return false;
             }
 
-            if (dataObj.mac && !macPattern.test(dataObj.mac)) { //Check MAC format
+            if (dataObj.mac && !MAC_PATTERN.test(dataObj.mac)) { //Check MAC format
               validate = false;
               helper.showPopupMsg(t('network-inventory.txt-uploadFailedMAC'));
               return false;
@@ -2337,6 +2389,12 @@ class NetworkInventory extends Component {
             });
           }
         })
+
+        tempFormValidation.csvColumnsIp.valid = true;
+
+        this.setState({
+          formValidation: tempFormValidation
+        });
 
         if (!validate) {
           return;
@@ -2394,34 +2452,31 @@ class NetworkInventory extends Component {
           ip: '',
           mac: '',
           hostName: ''
+        },
+        formValidation: {
+          ip: {
+            valid: true,
+            msg: ''
+          },
+          mac: {
+            valid: true,
+            msg: ''
+          },
+          newOwnerName: {
+            valid: true,
+            msg: ''
+          },
+          newOwnerID: {
+            valid: true,
+            msg: ''
+          },
+          csvColumnsIp: {
+            valid: true
+          }
         }
       }, () => {
         this.getDeviceData();
       });
-    }
-  }
-  /**
-   * Check add/edit step form validation
-   * @method
-   * @param {number} step - form step
-   * @returns true if form is invalid
-   */
-  checkFormValidation = (step) => {
-    const inventoryParam = queryString.parse(location.search);
-    const {addIP, ownerType} = this.state;
-
-    if (step === 1) {
-      if (!addIP.ip || (!_.has(inventoryParam, 'hostName') && !addIP.mac)) {
-        return true;
-      }
-    }
-
-    if (step === 3) {
-      if (ownerType === 'new') {
-        if (!addIP.newOwnerName || !addIP.newOwnerID) {
-          return true;
-        }
-      }
     }
   }
   /**
@@ -2430,7 +2485,8 @@ class NetworkInventory extends Component {
    */
   checkDuplicatedIP = () => {
     const {baseUrl} = this.context;
-    const {addIP} = this.state;
+    const {addIP, formValidation} = this.state;
+    let tempFormValidation = {...formValidation};
 
     if (!addIP.ip) {
       return;
@@ -2443,10 +2499,19 @@ class NetworkInventory extends Component {
     .then(data => {
       if (data) {
         if (data.counts > 0) {
-          helper.showPopupMsg(t('network-inventory.txt-duplicatedIP'), t('txt-error'));
-        } else {
+          tempFormValidation.ip.valid = false;
+          tempFormValidation.ip.msg = t('network-inventory.txt-duplicatedIP');
+
           this.setState({
-            activeSteps: 2
+            formValidation: tempFormValidation
+          });
+        } else {
+          tempFormValidation.ip.valid = true;
+          tempFormValidation.ip.msg = '';
+
+          this.setState({
+            activeSteps: 2,
+            formValidation: tempFormValidation
           });
         }
       }
@@ -2462,8 +2527,10 @@ class NetworkInventory extends Component {
    * @param {string} type - form step type ('previous' or 'next')
    */
   toggleSteps = (type) => {
-    const {activeSteps, formTypeEdit} = this.state;
+    const {formTypeEdit, activeSteps, addIP, ownerType, formValidation} = this.state;
+    const inventoryParam = queryString.parse(location.search);
     let tempActiveSteps = activeSteps;
+    let tempFormValidation = {...formValidation};
 
     if (type === 'previous') {
       tempActiveSteps--;
@@ -2473,22 +2540,80 @@ class NetworkInventory extends Component {
       });
     } else if (type === 'next') {
       if (activeSteps === 1) {
-        if (this.checkFormValidation(1)) {
-          helper.showPopupMsg(et('fill-required-fields'), t('txt-error'));
-          return;
+        let validate = true;
+
+        if (addIP.ip) {
+          if (IP_PATTERN.test(addIP.ip)) {
+            tempFormValidation.ip.valid = true;
+            tempFormValidation.ip.msg = '';
+          } else {
+            tempFormValidation.ip.valid = false;
+            tempFormValidation.ip.msg = t('network-topology.txt-ipValidationFail');
+            validate = false;
+          }
         } else {
-          if (formTypeEdit) {
-            this.setState({
-              activeSteps: 2
-            });
-          } else { //Check duplicated IP for adding new device
-            this.checkDuplicatedIP();
+          tempFormValidation.ip.valid = false;
+          tempFormValidation.ip.msg = t('txt-required');
+          validate = false;
+        }
+
+        if (!_.has(inventoryParam, 'hostName') && !addIP.mac) {
+          tempFormValidation.mac.valid = false;
+          tempFormValidation.mac.msg = t('txt-required');
+          validate = false;
+        } else {
+          if (MAC_PATTERN.test(addIP.mac)) {
+            tempFormValidation.mac.valid = true;
+            tempFormValidation.mac.msg = '';
+          } else {
+            tempFormValidation.mac.valid = false;
+            tempFormValidation.mac.msg = t('network-topology.txt-macValidationFail');
+            validate = false;
           }
         }
+
+        this.setState({
+          formValidation: tempFormValidation
+        });
+
+        if (!validate) {
+          return;
+        }
+
+        if (formTypeEdit) { //Edit mode
+          this.setState({
+            activeSteps: 2
+          });
+        } else { //Check duplicated IP for adding new device
+          this.checkDuplicatedIP();
+        }
       } else {
-        if (activeSteps === 3) {
-          if (this.checkFormValidation(3)) {
-            helper.showPopupMsg(et('fill-required-fields'), t('txt-error'));
+        if (activeSteps === 3 && ownerType === 'new') {
+          let validate = true;
+
+          if (addIP.newOwnerName) {
+            tempFormValidation.newOwnerName.valid = true;
+            tempFormValidation.newOwnerName.msg = '';
+          } else {
+            tempFormValidation.newOwnerName.valid = false;
+            tempFormValidation.newOwnerName.msg = t('txt-required');
+            validate = false;
+          }
+
+          if (addIP.newOwnerID) {
+            tempFormValidation.newOwnerID.valid = true;
+            tempFormValidation.newOwnerID.msg = '';
+          } else {
+            tempFormValidation.newOwnerID.valid = false;
+            tempFormValidation.newOwnerID.msg = t('txt-required');
+            validate = false;
+          }
+
+          this.setState({
+            formValidation: tempFormValidation
+          });
+
+          if (!validate) {
             return;
           }
         }
@@ -2799,7 +2924,8 @@ class NetworkInventory extends Component {
       currentBaseLayers,
       floorPlan,
       addSeat,
-      ownerIDduplicated
+      ownerIDduplicated,
+      formValidation
     } = this.state;
     const addIPtext = [t('txt-ipAddress'), t('alert.txt-systemInfo'), t('ipFields.owner'), t('alert.txt-floorInfo')];
     const inventoryParam = queryString.parse(location.search);
@@ -2829,6 +2955,9 @@ class NetworkInventory extends Component {
                   variant='outlined'
                   fullWidth={true}
                   size='small'
+                  required={true}
+                  error={!formValidation.ip.valid}
+                  helperText={formValidation.ip.msg}
                   value={addIP.ip}
                   onChange={this.handleAddIpChange}
                   disabled={formTypeEdit} />
@@ -2842,6 +2971,8 @@ class NetworkInventory extends Component {
                   fullWidth={true}
                   size='small'
                   required={this.checkMacRequired()}
+                  error={!formValidation.mac.valid}
+                  helperText={formValidation.mac.msg}
                   value={addIP.mac}
                   onChange={this.handleAddIpChange} />
               </div>
@@ -3052,6 +3183,9 @@ class NetworkInventory extends Component {
                       variant='outlined'
                       fullWidth={true}
                       size='small'
+                      required={true}
+                      error={!formValidation.newOwnerName.valid}
+                      helperText={formValidation.newOwnerName.msg}
                       value={addIP.newOwnerName}
                       onChange={this.handleAddIpChange} />
                   </div>
@@ -3078,6 +3212,9 @@ class NetworkInventory extends Component {
                       variant='outlined'
                       fullWidth={true}
                       size='small'
+                      required={true}
+                      error={!formValidation.newOwnerID.valid}
+                      helperText={formValidation.newOwnerID.msg}
                       value={addIP.newOwnerID}
                       onChange={this.handleAddIpChange} />
                   </div>
@@ -3506,7 +3643,8 @@ class NetworkInventory extends Component {
       addIP,
       csvData,
       showCsvData,
-      csvColumns
+      csvColumns,
+      formValidation
     } = this.state;
     const backText = activeTab === 'deviceList' ? t('network-inventory.txt-backToList') : t('network-inventory.txt-backToMap')
     let picPath = '';
@@ -3618,6 +3756,8 @@ class NetworkInventory extends Component {
                           fullWidth={true}
                           size='small'
                           required={true}
+                          error={!formValidation.csvColumnsIp.valid}
+                          helperText={formValidation.csvColumnsIp.valid ? '' : t('network-inventory.txt-selectIP')}
                           value={csvColumns.ip}
                           onChange={this.handleColumnChange}>
                           {csvHeaderList}

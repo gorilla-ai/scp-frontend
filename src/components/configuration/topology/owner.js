@@ -51,6 +51,8 @@ function TextFieldComp(props) {
       size={props.size}
       InputProps={props.InputProps}
       required={props.required}
+      error={props.required}
+      helperText={props.helperText}
       value={props.value}
       onChange={props.onChange}
       disabled={props.disabled} />
@@ -99,7 +101,15 @@ class NetworkOwner extends Component {
       },
       error: false,
       info: '',
-      previewOwnerPic: ''
+      previewOwnerPic: '',
+      formValidation: {
+        ownerName: {
+          valid: true
+        },
+        ownerID: {
+          valid: true
+        }
+      }
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -441,6 +451,17 @@ class NetworkOwner extends Component {
     } else if (type === 'tableList') {
       tempList.department.unshift({value: 'all', text: t('txt-all')});
       tempList.title.unshift({value: 'all', text: t('txt-all')});
+
+      this.setState({
+        formValidation: {
+          ownerName: {
+            valid: true
+          },
+          ownerID: {
+            valid: true
+          }
+        }
+      });
     }
 
     this.setState({
@@ -489,30 +510,37 @@ class NetworkOwner extends Component {
     });
   }
   /**
-   * Check add owner form validation
-   * @method
-   * @returns true if form is invalid
-   */
-  checkFormValidation = () => {
-    const {owner} = this.state;
-
-    if (!owner.info.ownerID || !owner.info.ownerName) {
-      return true;
-    }
-  }
-  /**
    * Handle add/edit owner form confirm
    * @method
    */
   handleOwnerConfirm = () => {
     const {baseUrl} = this.context;
-    const {addOwnerType, owner} = this.state;
+    const {addOwnerType, owner, formValidation} = this.state;
     let requestType = 'POST';
     let updatePic = owner.removePhoto;
     let formData = new FormData();
+    let tempFormValidation = {...formValidation};
+    let validate = true;
 
-    if (this.checkFormValidation()) {
-      helper.showPopupMsg(et('fill-required-fields'), t('txt-error'));
+    if (owner.info.ownerName) {
+      tempFormValidation.ownerName.valid = true;
+    } else {
+      tempFormValidation.ownerName.valid = false;
+      validate = false;
+    }
+
+    if (owner.info.ownerID) {
+      tempFormValidation.ownerID.valid = true;
+    } else {
+      tempFormValidation.ownerID.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      formValidation: tempFormValidation  
+    });
+
+    if (!validate) {
       return;
     }
 
@@ -728,7 +756,8 @@ class NetworkOwner extends Component {
       addOwnerTitle,
       owner,
       showFilter,
-      previewOwnerPic
+      previewOwnerPic,
+      formValidation
     } = this.state;
 
     return (
@@ -832,6 +861,9 @@ class NetworkOwner extends Component {
                         variant='outlined'
                         fullWidth={true}
                         size='small'
+                        required={true}
+                        error={!formValidation.ownerName.valid}
+                        helperText={formValidation.ownerName.valid ? '' : t('txt-required')}
                         value={owner.info.ownerName}
                         onChange={this.handleDataChange} />
                     </div>
@@ -843,6 +875,9 @@ class NetworkOwner extends Component {
                         variant='outlined'
                         fullWidth={true}
                         size='small'
+                        required={true}
+                        error={!formValidation.ownerID.valid}
+                        helperText={formValidation.ownerID.valid ? '' : t('txt-required')}
                         value={owner.info.ownerID}
                         onChange={this.handleDataChange} />
                     </div>

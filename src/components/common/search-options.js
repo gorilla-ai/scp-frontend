@@ -236,6 +236,7 @@ class SearchOptions extends Component {
                 <div className='update-interval'>
                   <StyledTextField
                     id='updateInterval'
+                    className='select-field'
                     select
                     variant='outlined'
                     size='small'
@@ -252,6 +253,7 @@ class SearchOptions extends Component {
                 <div className='time-interval'>
                   <StyledTextField
                     id='timeInterval'
+                    className='select-field'
                     select
                     variant='outlined'
                     size='small'
@@ -268,6 +270,7 @@ class SearchOptions extends Component {
             {searchInput.searchType === 'manual' &&
                 <StyledTextField
                   id='timeInterval'
+                  className='select-field'
                   select
                   variant='outlined'
                   fullWidth={true}

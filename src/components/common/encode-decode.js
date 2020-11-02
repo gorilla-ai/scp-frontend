@@ -37,6 +37,8 @@ function TextFieldComp(props) {
       size={props.size}
       InputProps={props.InputProps}
       required={props.required}
+      error={props.required}
+      helperText={props.helperText}
       value={props.value}
       onChange={props.onChange}
       disabled={props.disabled} />

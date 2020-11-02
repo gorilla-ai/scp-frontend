@@ -59,6 +59,8 @@ function TextFieldComp(props) {
       size={props.size}
       InputProps={props.InputProps}
       required={props.required}
+      error={props.required}
+      helperText={props.helperText}
       value={props.value}
       onChange={props.onChange}
       disabled={props.disabled} />
@@ -666,14 +668,9 @@ class ThreatIntelligence extends Component {
       })
     })
 
-    if (validation) {
-      this.setState({ //Threats input and type are valid
-        info: ''
-      });
-    } else { //Prompt to the user if threats input is invalid
+    if (!validation) {
       this.setState({
-        addThreats: tempAddThreats,
-        info: t('edge-management.txt-edgeFormatError')
+        addThreats: tempAddThreats
       });
       return;
     }

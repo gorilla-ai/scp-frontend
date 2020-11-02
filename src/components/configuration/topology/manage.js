@@ -28,6 +28,11 @@ const INIT = {
   name: '',
   header: '',
   data: [],
+  formValidation: {
+    name: {
+      valid: true
+    }
+  }
 };
 const DEPARTMENT = 1;
 const TITLE = 2;
@@ -60,6 +65,8 @@ function TextFieldComp(props) {
       size={props.size}
       InputProps={props.InputProps}
       required={props.required}
+      error={props.required}
+      helperText={props.helperText}
       value={props.value}
       onChange={props.onChange}
       disabled={props.disabled} />
@@ -319,6 +326,8 @@ class Manage extends Component {
    * @returns HTML DOM
    */
   displayTitleName = () => {
+    const {formValidation} = this.state;
+
     return (
       <TextFieldComp
         name='name'
@@ -326,6 +335,9 @@ class Manage extends Component {
         variant='outlined'
         fullWidth={true}
         size='small'
+        required={true}
+        error={!formValidation.name.valid}
+        helperText={formValidation.name.valid ? '' : t('txt-required')}
         value={this.state.name}
         onChange={this.handleDataChange} />
     )
@@ -361,13 +373,25 @@ class Manage extends Component {
    */
   confirmTitleName = () => {
     const {baseUrl} = this.context;
-    const {tab, name, nameUUID} = this.state;
+    const {tab, name, nameUUID, formValidation} = this.state;
     const url = `${baseUrl}/api/name`;
+    let tempFormValidation = {...formValidation};
     let requestData = {};
     let requestType = '';
+    let validate = true;
 
-    if (!name.trim()) {
-      helper.showPopupMsg(t('txt-plsEnterName'), t('txt-error'));
+    if (name) {
+      tempFormValidation.name.valid = true;
+    } else {
+      tempFormValidation.name.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
       return;
     }
 
@@ -412,7 +436,12 @@ class Manage extends Component {
    */
   closeTitleName = () => {
     this.setState({
-      openName: false
+      openName: false,
+      formValidation: {
+        name: {
+          valid: true
+        }
+      }
     });
   }
   render() {

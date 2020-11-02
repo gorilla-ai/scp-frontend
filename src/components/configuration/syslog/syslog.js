@@ -29,6 +29,7 @@ let t = null;
 let f = null;
 let et = null;
 
+const IP_PATTERN = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
 const DEFAULT_SYSLOG = ['syslog', 'eventlog'];
 const DEFAULT_INPUT = 'streaming log sample';
 const DEFAULT_PATTERN = '%{GREEDYDATA}';
@@ -77,6 +78,8 @@ function TextFieldComp(props) {
       size={props.size}
       InputProps={props.InputProps}
       required={props.required}
+      error={props.required}
+      helperText={props.helperText}
       value={props.value}
       onChange={props.onChange}
       disabled={props.disabled} />
@@ -152,7 +155,23 @@ class Syslog extends Component {
       activePatternMouse: '',
       newPatternName: '',
       info: '',
-      editPatternType: 'edit'
+      editPatternType: 'edit',
+      formValidation: {
+        ip: {
+          valid: true,
+          msg: ''
+        },
+        name: {
+          valid: true
+        },
+        port: {
+          valid: true
+        },
+        editHostsIp: {
+          valid: true,
+          msg: ''
+        }
+      }
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -379,6 +398,25 @@ class Syslog extends Component {
 
     if (activeContent === 'syslogData') { //Reset config data
       this.resetConfigValue();
+
+      this.setState({
+        formValidation: {
+          ip: {
+            valid: true,
+            msg: ''
+          },
+          name: {
+            valid: true
+          },
+          port: {
+            valid: true
+          },
+          editHostsIp: {
+            valid: true,
+            msg: ''
+          }
+        }
+      });
     }
 
     this.setState({
@@ -646,17 +684,18 @@ class Syslog extends Component {
    * Handle syslog edit input value change
    * @method
    * @param {number} [i] - index of the config pattern list
-   * @param {string} type - input type
+   * @param {string} type - input type ('form' or 'type')
    * @param {string | object} event - event object
    */
   handleConfigChange = (i, type, event) => {
     const value = event.target ? event.target.value : event;
+    const field = type === 'form' ? event.target.name : type;
     let tempSyslogPatternConfig = {...this.state.syslogPatternConfig};
 
     if (typeof i === 'number') {
       tempSyslogPatternConfig.patternSetting[i][type] = value;
     } else {
-      tempSyslogPatternConfig[type] = value;
+      tempSyslogPatternConfig[field] = value;
     }
 
     this.setState({
@@ -715,30 +754,56 @@ class Syslog extends Component {
    */
   confirmSyslogSave = () => {
     const {baseUrl} = this.context;
-    const {syslogPatternConfig} = this.state;
-    const requiredFields = ['loghostIp', 'name', 'port'];
+    const {syslogPatternConfig, formValidation} = this.state;
     const url = `${baseUrl}/api/v2/log/config`;
-    let valid = true;
+    let tempFormValidation = {...formValidation};
+    let validate = true;
 
-    _.forEach(requiredFields, val => { //Check basic Syslog info
-      if (!syslogPatternConfig[val]) {
-        valid = false;
-        return false;
+    if (syslogPatternConfig.loghostIp) {
+      if (IP_PATTERN.test(syslogPatternConfig.loghostIp)) { //Check IP format
+        tempFormValidation.ip.valid = true;
+        tempFormValidation.ip.msg = '';
+      } else {
+        tempFormValidation.ip.valid = false;
+        tempFormValidation.ip.msg = t('network-topology.txt-ipValidationFail');
+        validate = false;
       }
-    })
+    } else {
+      tempFormValidation.ip.valid = false;
+      tempFormValidation.ip.msg = t('txt-required');
+      validate = false;
+    }
 
-    if (!Number(syslogPatternConfig.port)) { //Port has to be a number type
-      valid = false;
+    if (syslogPatternConfig.name) {
+      tempFormValidation.name.valid = true;
+    } else {
+      tempFormValidation.name.valid = false;
+      validate = false;
+    }
+
+    if (syslogPatternConfig.port) {
+      tempFormValidation.port.valid = true;
+    } else {
+      tempFormValidation.port.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
+      return;
     }
 
     _.forEach(syslogPatternConfig.patternSetting, val => { //Check input and pattern for each pattern
       if (!val.input || !val.pattern) {
-        valid = false;
+        validate = false;
         return false;
       }
     })
 
-    if (!valid) {
+    if (!validate) {
       helper.showPopupMsg(t('txt-checkRequiredFieldType'), t('txt-error'));
       return;
     }
@@ -1226,7 +1291,7 @@ class Syslog extends Component {
    * @method
    */
   displayEditHosts = () => {
-    const {editHostsType, editHosts} = this.state;
+    const {editHostsType, editHosts, formValidation} = this.state;
 
     return (
       <div className='parent'>
@@ -1237,6 +1302,9 @@ class Syslog extends Component {
             variant='outlined'
             fullWidth={true}
             size='small'
+            required={true}
+            error={!formValidation.editHostsIp.valid}
+            helperText={formValidation.editHostsIp.msg}
             value={editHosts.ip}
             onChange={this.handleEditHostsChange}
             disabled={editHostsType === 'edit'} />
@@ -1284,13 +1352,38 @@ class Syslog extends Component {
    */
   confirmEditHosts = () => {
     const {baseUrl} = this.context;
-    const {editHosts, activeHost} = this.state;
+    const {editHosts, activeHost, formValidation} = this.state;
     const url = `${baseUrl}/api/v1/log/config/hosts`;
     const requestData = {
       id: activeHost.id,
       hostip: editHosts.ip,
       hostname: editHosts.name
     };
+    let tempFormValidation = {...formValidation};
+    let validate = true;
+
+    if (editHosts.ip) {
+      if (IP_PATTERN.test(editHosts.ip)) { //Check IP format
+        tempFormValidation.editHostsIp.valid = true;
+        tempFormValidation.editHostsIp.msg = '';
+      } else {
+        tempFormValidation.editHostsIp.valid = false;
+        tempFormValidation.editHostsIp.msg = t('network-topology.txt-ipValidationFail');
+        validate = false;
+      }
+    } else {
+      tempFormValidation.editHostsIp.valid = false;
+      tempFormValidation.editHostsIp.msg = t('txt-required');
+      validate = false;
+    }
+
+    this.setState({
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
+      return;
+    }
 
     this.ah.one({
       url,
@@ -1315,7 +1408,23 @@ class Syslog extends Component {
    */
   closeEditHosts = () => {
     this.setState({
-      openEditHosts: false
+      openEditHosts: false,
+      formValidation: {
+        ip: {
+          valid: true,
+          msg: ''
+        },
+        name: {
+          valid: true
+        },
+        port: {
+          valid: true
+        },
+        editHostsIp: {
+          valid: true,
+          msg: ''
+        }
+      }
     });
   }
   /**
@@ -1461,6 +1570,7 @@ class Syslog extends Component {
             <TextFieldComp
               id='syslogPort'
               name='port'
+              type='number'
               label={t('syslogFields.port')}
               variant='outlined'
               fullWidth={true}
@@ -1642,7 +1752,8 @@ class Syslog extends Component {
       openEditHosts,
       openEditPatternName,
       activeHost,
-      syslogPatternConfig
+      syslogPatternConfig,
+      formValidation
     } = this.state;
 
     return (
@@ -1704,8 +1815,11 @@ class Syslog extends Component {
                         variant='outlined'
                         fullWidth={true}
                         size='small'
+                        required={true}
+                        error={!formValidation.ip.valid}
+                        helperText={formValidation.ip.msg}
                         value={syslogPatternConfig.loghostIp}
-                        onChange={this.handleConfigChange.bind(this, '')}
+                        onChange={this.handleConfigChange.bind(this, '', 'form')}
                         disabled={editSyslogType === 'edit' || editSyslogType === 'edit-exist'} />
                     </div>
                     <div className='group'>
@@ -1716,19 +1830,26 @@ class Syslog extends Component {
                         variant='outlined'
                         fullWidth={true}
                         size='small'
+                        required={true}
+                        error={!formValidation.name.valid}
+                        helperText={formValidation.name.valid ? '' : t('txt-required')}
                         value={syslogPatternConfig.name}
-                        onChange={this.handleConfigChange.bind(this, '')} />
+                        onChange={this.handleConfigChange.bind(this, '', 'form')} />
                     </div>
                     <div className='group'>
                       <TextFieldComp
                         id='syslogReceivedPort'
                         name='port'
+                        type='number'
                         label={t('syslogFields.port')}
                         variant='outlined'
                         fullWidth={true}
                         size='small'
+                        required={true}
+                        error={!formValidation.port.valid}
+                        helperText={formValidation.port.valid ? '' : t('txt-required')}
                         value={syslogPatternConfig.port}
-                        onChange={this.handleConfigChange.bind(this, '')} />
+                        onChange={this.handleConfigChange.bind(this, '', 'form')} />
                     </div>
                     <div className='group'>
                       <TextFieldComp
@@ -1739,7 +1860,7 @@ class Syslog extends Component {
                         fullWidth={true}
                         size='small'
                         value={syslogPatternConfig.format}
-                        onChange={this.handleConfigChange.bind(this, '')} />
+                        onChange={this.handleConfigChange.bind(this, '', 'form')} />
                     </div>
                   </div>
 

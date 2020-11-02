@@ -68,6 +68,8 @@ function TextFieldComp(props) {
       size={props.size}
       InputProps={props.InputProps}
       required={props.required}
+      error={props.required}
+      helperText={props.helperText}
       value={props.value}
       onChange={props.onChange}
       disabled={props.disabled} />
@@ -120,6 +122,17 @@ class Edge extends Component {
       geoJson: {
         mapDataArr: [],
         edgeDataArr: []
+      },
+      formValidation: {
+        edgeName: {
+          valid: true
+        },
+        longitude: {
+          valid: true
+        },
+        latitude: {
+          valid: true
+        }
       }
     };
 
@@ -657,6 +670,20 @@ class Edge extends Component {
     } else if (type === 'cancel') {
       showPage = 'viewEdge';
       tempEdge = _.cloneDeep(originalEdgeData);
+
+      this.setState({
+        formValidation: {
+          edgeName: {
+            valid: true
+          },
+          longitude: {
+            valid: true
+          },
+          latitude: {
+            valid: true
+          }
+        }
+      });
     }
 
     this.setState({
@@ -832,29 +859,48 @@ class Edge extends Component {
    */
   handleEdgeSubmit = () => {
     const {baseUrl} = this.context;
-    const {edge} = this.state;
+    const {edge, formValidation} = this.state;
     let requestData = {
       id: edge.info.id,
       agentName: edge.info.name,
       memo: edge.info.memo
     };
+    let tempFormValidation = {...formValidation};
+    let validate = true;
+
+    if (edge.info.name) {
+      tempFormValidation.edgeName.valid = true;
+    } else {
+      tempFormValidation.edgeName.valid = false;
+      validate = false;
+    }
 
     if (edge.info.longitude) {
       if (edge.info.longitude >= -180 && edge.info.longitude <= 180) {
         requestData.longitude = edge.info.longitude;
+        tempFormValidation.longitude.valid = true;
       } else {
-        helper.showPopupMsg(t('edge-management.txt-coordinateError'), t('txt-error'));
-        return;
+        tempFormValidation.longitude.valid = false;
+        validate = false;
       }
     }
 
     if (edge.info.latitude) {
       if (edge.info.latitude >= -90 && edge.info.latitude <= 90) {
         requestData.latitude = edge.info.latitude;
+        tempFormValidation.latitude.valid = true;
       } else {
-        helper.showPopupMsg(t('edge-management.txt-coordinateError'), t('txt-error'));
-        return;
+        tempFormValidation.latitude.valid = false;
+        validate = false;
       }
+    }
+
+    this.setState({
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
+      return;
     }
 
     if (edge.info.isConfigurable) {
@@ -1030,7 +1076,7 @@ class Edge extends Component {
    */
   displayEditEdgeContent = () => {
     const {contextRoot, locale} = this.context;
-    const {activeContent, allGroupList, edge} = this.state;
+    const {activeContent, allGroupList, edge, formValidation} = this.state;
     const allGroup = _.map(allGroupList, val => {
       return {
         value: val,
@@ -1115,6 +1161,9 @@ class Edge extends Component {
                 variant='outlined'
                 fullWidth={true}
                 size='small'
+                required={true}
+                error={!formValidation.edgeName.valid}
+                helperText={formValidation.edgeName.valid ? '' : t('txt-required')}
                 value={edge.info.name}
                 onChange={this.handleDataChange}
                 disabled={activeContent === 'viewEdge'} />
@@ -1211,6 +1260,8 @@ class Edge extends Component {
                 variant='outlined'
                 fullWidth={true}
                 size='small'
+                error={!formValidation.longitude.valid}
+                helperText={formValidation.longitude.valid ? '' : t('edge-management.txt-coordinateError')}
                 value={edge.info.longitude}
                 onChange={this.handleDataChange}
                 disabled={activeContent === 'viewEdge'} />
@@ -1223,6 +1274,8 @@ class Edge extends Component {
                 variant='outlined'
                 fullWidth={true}
                 size='small'
+                error={!formValidation.latitude.valid}
+                helperText={formValidation.latitude.valid ? '' : t('edge-management.txt-coordinateError')}
                 value={edge.info.latitude}
                 onChange={this.handleDataChange}
                 disabled={activeContent === 'viewEdge'} />

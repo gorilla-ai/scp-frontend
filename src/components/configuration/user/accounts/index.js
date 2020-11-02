@@ -52,6 +52,8 @@ function TextFieldComp(props) {
       size={props.size}
       InputProps={props.InputProps}
       required={props.required}
+      error={props.required}
+      helperText={props.helperText}
       value={props.value}
       onChange={props.onChange}
       disabled={props.disabled} />
@@ -82,7 +84,12 @@ class AccountList extends Component {
       dataFields: {},
       showNewPassword: false,
       newPassword: '',
-      info: ''
+      info: '',
+      formValidation: {
+        password: {
+          valid: true
+        }
+      }
     };
 
     this.ah = getInstance('chewbacca');
@@ -344,6 +351,8 @@ class AccountList extends Component {
    * @returns HTML DOM
    */
   displayNewPassword = () => {
+    const {newPassword, formValidation} = this.state;
+
     return (
       <div className='group'>
         <TextFieldComp
@@ -354,10 +363,13 @@ class AccountList extends Component {
           variant='outlined'
           fullWidth={true}
           size='small'
-          value={this.state.newPassword}
+          required={true}
+          error={!formValidation.password.valid}
+          helperText={formValidation.password.valid ? '' : c('txt-required')}
+          value={newPassword}
           onChange={this.handlePasswordChange} />
       </div>
-    )    
+    )
   }
   /**
    * Show password reset dialog
@@ -391,17 +403,27 @@ class AccountList extends Component {
    */
   handleResetPasswordConfirm = () => {
     const {baseUrl} = this.context;
-    const {accountName, newPassword} = this.state;
+    const {accountName, newPassword, formValidation} = this.state;
     const url = `${baseUrl}/api/account/password/_reset`;
     const requestData = {
       account: accountName,
       newPassword
     };
+    let tempFormValidation = {...formValidation};
+    let validate = true;
 
-    if (!newPassword) {
-      this.setState({
-        info: t('pwd-empty')
-      });
+    if (newPassword) {
+      formValidation.password.valid = true;
+    } else {
+      formValidation.password.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
       return;
     }
 
@@ -432,7 +454,12 @@ class AccountList extends Component {
     this.setState({
       showNewPassword: false,
       newPassword: '',
-      info: ''
+      info: '',
+      formValidation: {
+        password: {
+          valid: true
+        }
+      }
     });
   }
   /**

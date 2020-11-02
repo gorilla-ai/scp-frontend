@@ -59,6 +59,8 @@ function TextFieldComp(props) {
       size={props.size}
       InputProps={props.InputProps}
       required={props.required}
+      error={props.required}
+      helperText={props.helperText}
       value={props.value}
       onChange={props.onChange}
       disabled={props.disabled} />
@@ -117,6 +119,17 @@ class Pattern extends Component {
           threshold: 1,
           queryScript: '',
           severity: 'Emergency'
+        }
+      },
+      formValidation: {
+        name: {
+          valid: true
+        },
+        queryScript: {
+          valid: true
+        },
+        threshold: {
+          valid: true
         }
       }
     };
@@ -272,6 +285,20 @@ class Pattern extends Component {
     } else if (type === 'cancel') {
       showPage = 'viewPattern';
       tempPattern = _.cloneDeep(originalPatternData);
+
+      this.setState({
+        formValidation: {
+          name: {
+            valid: true
+          },
+          queryScript: {
+            valid: true
+          },
+          threshold: {
+            valid: true
+          }
+        }
+      });
     }
 
     this.setState({
@@ -316,7 +343,7 @@ class Pattern extends Component {
    */
   displayEditPatternContent = () => {
     const {locale} = this.context;
-    const {activeContent, severityList, periodMinList, pattern} = this.state;
+    const {activeContent, severityList, periodMinList, pattern, formValidation} = this.state;
     let pageType = '';
 
     if (activeContent === 'addPattern') {
@@ -353,6 +380,9 @@ class Pattern extends Component {
               variant='outlined'
               fullWidth={true}
               size='small'
+              required={true}
+              error={!formValidation.name.valid}
+              helperText={formValidation.name.valid ? '' : t('txt-required')}
               value={pattern.info.name}
               onChange={this.handleDataChange}
               disabled={activeContent === 'viewPattern'} />
@@ -383,6 +413,9 @@ class Pattern extends Component {
               variant='outlined'
               fullWidth={true}
               size='small'
+              required={true}
+              error={!formValidation.queryScript.valid}
+              helperText={formValidation.queryScript.valid ? '' : t('txt-required')}
               value={pattern.info.queryScript}
               onChange={this.handleDataChange}
               disabled={activeContent === 'viewPattern'} />
@@ -411,6 +444,9 @@ class Pattern extends Component {
                 variant='outlined'
                 size='small'
                 InputProps={{inputProps: { min: 1, max: 1000 }}}
+                required={true}
+                error={!formValidation.threshold.valid}
+                helperText={formValidation.threshold.valid ? '' : t('events.connections.txt-threasholdCount')}
                 value={pattern.info.threshold}
                 onChange={this.handleDataChange}
                 disabled={activeContent === 'viewPattern'} />
@@ -496,26 +532,37 @@ class Pattern extends Component {
    */
   handlePatternSubmit = () => {
     const {baseUrl} = this.context;
-    const {activeContent, pattern} = this.state;
+    const {activeContent, pattern, formValidation} = this.state;
+    let tempFormValidation = {...formValidation};
+    let validate = true;
     let requestType = '';
 
-    if (!pattern.info.name) {
-      helper.showPopupMsg(t('system-defined-pattern.txt-patternMissing'), t('txt-error'));
-      return;
+    if (pattern.info.name) {
+      formValidation.name.valid = true;
+    } else {
+      formValidation.name.valid = false;
+      validate = false;
     }
 
-    if (!pattern.info.queryScript) {
-      helper.showPopupMsg(t('system-defined-pattern.txt-queryScriptMissing'), t('txt-error'));
-      return;
+    if (pattern.info.queryScript) {
+      formValidation.queryScript.valid = true;
+    } else {
+      formValidation.queryScript.valid = false;
+      validate = false;
     }
 
-    if (!pattern.info.threshold || !_.includes(PERIOD_MIN, Number(pattern.info.periodMin))) {
-      helper.showPopupMsg(t('txt-allRequired'));
-      return;
+    if (pattern.info.threshold < 0 || pattern.info.threshold > 1000) {
+      formValidation.threshold.valid = false;
+      validate = false;
+    } else {
+      formValidation.threshold.valid = true;
     }
 
-    if (pattern.info.threshold > 1000) {
-      helper.showPopupMsg(t('events.connections.txt-threasholdMax'));
+    this.setState({
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
       return;
     }
 

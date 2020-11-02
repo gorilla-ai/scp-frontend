@@ -55,6 +55,8 @@ function TextFieldComp(props) {
       size={props.size}
       InputProps={props.InputProps}
       required={props.required}
+      error={props.required}
+      helperText={props.helperText}
       value={props.value}
       onChange={props.onChange}
       disabled={props.disabled} />
@@ -108,7 +110,12 @@ class AutoSettings extends Component {
         ip: '',
         mask: ''
       }],
-      scannerTableData: []
+      scannerTableData: [],
+      formValidation: {
+        ip: {
+          valid: true
+        }
+      }
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -496,7 +503,12 @@ class AutoSettings extends Component {
         ipRangeData: _.cloneDeep(originalIPrangeData),
         adData: _.cloneDeep(originalADdata),
         netflowData: _.cloneDeep(originalNetflowData),
-        scannerData: _.cloneDeep(originalScannerData)
+        scannerData: _.cloneDeep(originalScannerData),
+        formValidation: {
+          ip: {
+            valid: true
+          }
+        }
       });
     }
 
@@ -510,8 +522,9 @@ class AutoSettings extends Component {
    */
   handleSettingsConfirm = () => {
     const {baseUrl} = this.context;
-    const {statusEnable, ipRangeData, adData, netflowData, scannerData} = this.state;
+    const {statusEnable, ipRangeData, adData, netflowData, scannerData, formValidation} = this.state;
     const url = `${baseUrl}/api/ipdevice/config`;
+    const ipPattern = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
     let requestData = {
       'ip.enable': statusEnable.ipRange,
       'ad.enable': statusEnable.ad_ldap,
@@ -520,6 +533,25 @@ class AutoSettings extends Component {
     };
     let ipRangePrivate = [];
     let ipRangePublic = [];
+    let tempFormValidation = {...formValidation};
+    let validate = true;
+
+    if (adData.ip) {
+      if (ipPattern.test(adData.ip)) { //Check IP format
+        tempFormValidation.ip.valid = true;
+      } else {
+        tempFormValidation.ip.valid = false;
+        validate = false;
+      }
+    }
+
+    this.setState({
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
+      return;
+    }
 
     _.forEach(ipRangeData, val => {
       if (val.type === 'private') {
@@ -595,7 +627,8 @@ class AutoSettings extends Component {
       adData,
       netflowData,
       deviceList,
-      scannerData
+      scannerData,
+      formValidation
     } = this.state;
     const data = {
       activeContent,
@@ -705,6 +738,8 @@ class AutoSettings extends Component {
                   variant='outlined'
                   fullWidth={true}
                   size='small'
+                  error={!formValidation.ip.valid}
+                  helperText={formValidation.ip.valid ? '' : t('network-topology.txt-ipValidationFail')}
                   value={adData.ip}
                   onChange={this.handleADchange}
                   disabled={activeContent === 'viewMode'} />
@@ -713,6 +748,7 @@ class AutoSettings extends Component {
                 <TextFieldComp
                   id='autoSettingsPort'
                   name='port'
+                  type='number'
                   label='Port'
                   variant='outlined'
                   fullWidth={true}

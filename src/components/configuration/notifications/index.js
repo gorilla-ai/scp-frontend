@@ -49,6 +49,8 @@ function TextFieldComp(props) {
       size={props.size}
       InputProps={props.InputProps}
       required={props.required}
+      error={props.required}
+      helperText={props.helperText}
       value={props.value}
       onChange={props.onChange}
       disabled={props.disabled} />
@@ -457,7 +459,7 @@ class Notifications extends Component {
     let dataParams = '';
 
     if (testEmails.length === 0) {
-      helper.showPopupMsg(t('notifications.txt-emailInvalid'), t('txt-error'), );
+      helper.showPopupMsg(t('notifications.txt-emailInvalid'), t('txt-error'));
       return;
     }
 

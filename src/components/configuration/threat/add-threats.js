@@ -41,6 +41,8 @@ function TextFieldComp(props) {
       size={props.size}
       InputProps={props.InputProps}
       required={props.required}
+      error={props.required}
+      helperText={props.helperText}
       value={props.value}
       onChange={props.onChange}
       disabled={props.disabled} />
@@ -100,11 +102,13 @@ class AddThreats extends Component {
       <div className='add-threats'>
         <TextFieldComp
           id='addThreatsText'
-          className={cx({'error': !value.validate})}
           name='input'
           variant='outlined'
           fullWidth={true}
           size='small'
+          required={true}
+          error={!value.validate}
+          helperText={value.validate ? '' : t('edge-management.txt-edgeFormatError')}
           value={value.input}
           onChange={this.handleDataChange} />
         <StyledTextField
@@ -114,6 +118,7 @@ class AddThreats extends Component {
           variant='outlined'
           fullWidth={true}
           size='small'
+          required={true}
           value={value.type}
           onChange={this.handleDataChange}>
           <MenuItem value={'ip'}>IP</MenuItem>
