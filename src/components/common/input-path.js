@@ -71,7 +71,7 @@ class InputPath extends Component {
     });
   }
   render() {
-    const {scanType, listType, value} = this.props;
+    const {scanType, listType, formValidation, value} = this.props;
     const dataType = listType === 'processKeyword' ? 'keyword' : 'path';
     let inputProps = {
       name: listType,
@@ -85,7 +85,9 @@ class InputPath extends Component {
     if (scanType === 'fileIntegrity' && listType === 'includePath') {
       inputProps = {
         ...inputProps,
-        required: true
+        required: true,
+        error: !formValidation.fileIntegrity.includePath.valid,
+        helperText: formValidation.fileIntegrity.includePath.valid ? '' : t('txt-required')
       };
     }
 

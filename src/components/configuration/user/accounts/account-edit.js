@@ -1,13 +1,20 @@
 import React, {Component} from 'react'
+import { withStyles } from '@material-ui/core/styles';
 import _ from 'lodash'
 import cx from 'classnames'
 import i18n from 'i18next'
 import PropTypes from 'prop-types';
 import queryString from 'query-string'
 
-import CheckboxGroup from 'react-ui/build/src/components/checkbox-group'
-import Form from 'react-ui/build/src/components/form'
-import Input from 'react-ui/build/src/components/input'
+import Checkbox from '@material-ui/core/Checkbox';
+import FormLabel from '@material-ui/core/FormLabel';
+import FormControl from '@material-ui/core/FormControl';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormGroup from '@material-ui/core/FormGroup';
+import FormHelperText from '@material-ui/core/FormHelperText';
+import MenuItem from '@material-ui/core/MenuItem';
+import TextField from '@material-ui/core/TextField';
+
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
 import {BaseDataContext} from '../../../common/context';
@@ -18,6 +25,7 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 const log = require('loglevel').getLogger('accounts/account-edit')
 const t = i18n.getFixedT(null, 'accounts');
 const gt = i18n.getFixedT(null, 'app');
+const c = i18n.getFixedT(null, 'connections');
 const et =  i18n.getFixedT(null, 'errors');
 
 const INITIAL_STATE = {
@@ -35,8 +43,69 @@ const INITIAL_STATE = {
       selected: []
   },
   privileges: [],
-  showPrivileges: true
+  showPrivileges: true,
+  selectedPrivileges: [],
+  formValidation: {
+    account: {
+      valid: true
+    },
+    name: {
+      valid: true
+    },
+    password: {
+      valid: true
+    },
+    email: {
+      valid: true,
+      msg: ''
+    },
+    unit: {
+      valid: true
+    },
+    title: {
+      valid: true
+    },
+    phone: {
+      valid: true
+    },
+    privileges: {
+      valid: true
+    }
+  }
 };
+
+const StyledTextField = withStyles({
+  root: {
+    backgroundColor: '#fff',
+    '& .Mui-disabled': {
+      backgroundColor: '#f2f2f2'
+    }
+  }
+})(TextField);
+
+function TextFieldComp(props) {
+  return (
+    <StyledTextField
+      id={props.id}
+      className={props.className}
+      name={props.name}
+      type={props.type}
+      label={props.label}
+      multiline={props.multiline}
+      rows={props.rows}
+      maxLength={props.maxLength}
+      variant={props.variant}
+      fullWidth={props.fullWidth}
+      size={props.size}
+      InputProps={props.InputProps}
+      required={props.required}
+      error={props.required}
+      helperText={props.helperText}
+      value={props.value}
+      onChange={props.onChange}
+      disabled={props.disabled} />
+  )
+}
 
 /**
  * AccountEdit
@@ -51,16 +120,6 @@ class AccountEdit extends Component {
     this.state = _.cloneDeep(INITIAL_STATE);
 
     this.ah = getInstance('chewbacca');
-  }
-  /**
-   * Handle account edit form change
-   * @method
-   * @param {object} accountData - form input key-value
-   */
-  handleDataChange = (accountData) => {
-    this.setState({
-      accountData
-    });
   }
   /**
    * Get and set account data
@@ -106,7 +165,8 @@ class AccountEdit extends Component {
         }
 
         this.setState({
-          accountData
+          accountData,
+          selectedPrivileges: _.cloneDeep(accountData.selected)
         });
       }
       return null;
@@ -143,67 +203,331 @@ class AccountEdit extends Component {
     })
   }
   /**
+   * Open account add/edit modal dialog
+   * @method
+   * @param {string} id - selected account ID
+   * @param {string} options - option for 'fromHeader'
+   */
+  openAccount = (id, options) => {
+    let showPrivileges = true;
+
+    if (options === 'fromHeader') {
+      showPrivileges = false;
+    }
+
+    this.setState({
+      open: true,
+      id,
+      showPrivileges,
+      selectedPrivileges: []
+    }, () => {
+      this.loadPrivileges();
+      
+      if (id) {
+       this.loadAccount(id, options);
+      }
+    });
+  }
+  /**
+   * Check if item is already in the selected list
+   * @method
+   * @param {string} val - checked item name
+   * @returns boolean true/false
+   */
+  checkSelectedItem = (val) => {
+    return _.includes(this.state.selectedPrivileges, val) ? true : false;
+  }
+  /**
+   * Handle checkbox check/uncheck
+   * @method
+   * @param {object} event - event object
+   */
+  toggleCheckbox = (event) => {
+    let selectedPrivileges = _.cloneDeep(this.state.selectedPrivileges);
+
+    if (event.target.checked) {
+      selectedPrivileges.push(event.target.name);
+    } else {
+      const index = selectedPrivileges.indexOf(event.target.name);
+      selectedPrivileges.splice(index, 1);
+    }
+
+    this.setState({
+      selectedPrivileges
+    });
+  }
+  /**
+   * Display checkbox for privilege
+   * @method
+   * @param {object} val - individual privilege
+   * @param {number} i - index of the privilege
+   * @returns HTML DOM
+   */
+  showPrivilegesList = (val, i) => {
+    return (
+      <FormControlLabel
+        key={i}
+        label={val.text}
+        control={
+          <Checkbox
+            className='checkbox-ui'
+            name={val.value}
+            checked={this.checkSelectedItem(val.value)}
+            onChange={this.toggleCheckbox}
+            color='primary' />
+        } />
+    )
+  }
+  /**
+   * Handle account edit form change
+   * @method
+   * @param {object} event - event object
+   */
+  handleDataChange = (event) => {
+    let tempAccountData = {...this.state.accountData};
+    tempAccountData[event.target.name] = event.target.value;
+
+    this.setState({
+      accountData: tempAccountData
+    });
+  }
+  /**
+   * Display account edit content
+   * @method
+   * @returns HTML DOM
+   */
+  displayAccountsEdit = () => {
+    const {id, accountData, privileges, showPrivileges, formValidation} = this.state;
+
+    return (
+      <div className='account-form'>
+        <div className='group'>
+          <TextFieldComp
+            name='account'
+            label={t('l-account')}
+            variant='outlined'
+            fullWidth={true}
+            size='small'
+            required={true}
+            error={!formValidation.account.valid}
+            helperText={formValidation.account.valid ? '' : c('txt-required')}
+            value={accountData.account}
+            onChange={this.handleDataChange}
+            disabled={id} />
+        </div>
+        <div className='group'>
+          <TextFieldComp
+            name='name'
+            label={t('l-name')}
+            variant='outlined'
+            fullWidth={true}
+            size='small'
+            required={true}
+            error={!formValidation.name.valid}
+            helperText={formValidation.name.valid ? '' : c('txt-required')}
+            value={accountData.name}
+            onChange={this.handleDataChange} />
+        </div>
+        {!showPrivileges &&
+          <div className='group'>
+            <TextFieldComp
+              name='password'
+              type='password'
+              label={t('l-password')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
+              required={true}
+              error={!formValidation.password.valid}
+              helperText={formValidation.password.valid ? '' : c('txt-required')}
+              value={accountData.password}
+              onChange={this.handleDataChange} />
+          </div>
+        }
+        <div className='group'>
+          <TextFieldComp
+            name='email'
+            label={t('l-email')}
+            variant='outlined'
+            fullWidth={true}
+            size='small'
+            error={!formValidation.email.valid}
+            helperText={formValidation.email.msg}
+            required={true}
+            value={accountData.email}
+            onChange={this.handleDataChange} />
+        </div>
+        <div className='group'>
+          <TextFieldComp
+            name='unit'
+            label={t('l-unit')}
+            variant='outlined'
+            fullWidth={true}
+            size='small'
+            required={true}
+            error={!formValidation.unit.valid}
+            helperText={formValidation.unit.valid ? '' : c('txt-required')}
+            value={accountData.unit}
+            onChange={this.handleDataChange} />
+        </div>
+        <div className='group'>
+          <TextFieldComp
+            name='title'
+            label={t('l-title')}
+            variant='outlined'
+            fullWidth={true}
+            size='small'
+            required={true}
+            error={!formValidation.title.valid}
+            helperText={formValidation.title.valid ? '' : c('txt-required')}
+            value={accountData.title}
+            onChange={this.handleDataChange} />
+        </div>
+        <div className='group'>
+          <TextFieldComp
+            name='phone'
+            label={t('l-phone')}
+            variant='outlined'
+            fullWidth={true}
+            size='small'
+            required={true}
+            error={!formValidation.phone.valid}
+            helperText={formValidation.phone.valid ? '' : c('txt-required')}
+            value={accountData.phone}
+            onChange={this.handleDataChange} />
+        </div>
+        {showPrivileges &&
+          <div className='group privileges-list'>
+            <FormControl
+              required
+              error={!formValidation.privileges.valid}>
+              <FormLabel>{t('l-privileges')}</FormLabel>
+              <FormGroup>
+                {privileges.map(this.showPrivilegesList)}
+              </FormGroup>
+              <FormHelperText>{formValidation.privileges.valid ? '' : c('txt-required')}</FormHelperText>
+            </FormControl>
+          </div>
+        }
+      </div>
+    )
+  }
+  /**
    * Handle save account confirm
    * @method
    */
   saveAccount = () => {
     const {baseUrl} = this.context;
-    const {id, accountData, showPrivileges} = this.state;
-    let validForm = true;
-    let url = '';
+    const {id, accountData, showPrivileges, selectedPrivileges, formValidation} = this.state;
+    const emailPattern = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    const url = showPrivileges ? `${baseUrl}/api/account/v1` : `${baseUrl}/api/account`;
+    let tempFormValidation = {...formValidation};
+    let validate = true;
 
-    if (_.isEmpty(accountData.account)) validForm = false;
-    if (_.isEmpty(accountData.email)) validForm = false;
-    if (_.isEmpty(accountData.name)) validForm = false;
-    if (!showPrivileges && _.isEmpty(accountData.password)) validForm = false;
-    if (_.isEmpty(accountData.phone)) validForm = false;
-    if (_.isEmpty(accountData.title)) validForm = false;
-    if (_.isEmpty(accountData.unit)) validForm = false;
-    if (showPrivileges && _.isEmpty(accountData.selected)) validForm = false;
+    if (accountData.account) {
+      tempFormValidation.account.valid = true;
+    } else {
+      tempFormValidation.account.valid = false;
+      validate = false;
+    }
+
+    if (accountData.name) {
+      tempFormValidation.name.valid = true;
+    } else {
+      tempFormValidation.name.valid = false;
+      validate = false;
+    }
+
+    if (!showPrivileges) {
+      if (accountData.password) {
+        tempFormValidation.password.valid = true;
+      } else {
+        tempFormValidation.password.valid = false;
+        validate = false;
+      }
+    }
+
+    if (accountData.email) {
+      if (emailPattern.test(accountData.email)) { //Check email format
+        tempFormValidation.email.valid = true;
+        tempFormValidation.email.msg = '';
+      } else {
+        tempFormValidation.email.valid = false;
+        tempFormValidation.email.msg = t('txt-email-invalid');
+        validate = false;
+      }
+    } else {
+      tempFormValidation.email.valid = false;
+      tempFormValidation.email.msg = c('txt-required');
+      validate = false;
+    }
+
+    if (accountData.unit) {
+      tempFormValidation.unit.valid = true;
+    } else {
+      tempFormValidation.unit.valid = false;
+      validate = false;
+    }
+
+    if (accountData.title) {
+      tempFormValidation.title.valid = true;
+    } else {
+      tempFormValidation.title.valid = false;
+      validate = false;
+    }
+
+    if (accountData.phone) {
+      tempFormValidation.phone.valid = true;
+    } else {
+      tempFormValidation.phone.valid = false;
+      validate = false;
+    }
 
     if (showPrivileges) {
-      url = `${baseUrl}/api/account/v1`;
-    } else {
-      url = `${baseUrl}/api/account`;
+      if (selectedPrivileges.length > 0) {
+        tempFormValidation.privileges.valid = true;
+        accountData.selected = selectedPrivileges;
+      } else {
+        tempFormValidation.privileges.valid = false;
+        validate = false;
+      }
     }
 
-    if (validForm) {
-      this.ah.one({
-        url,
-        data: JSON.stringify(_.omit(accountData, 'selected')),
-        type: id ? 'PATCH' : 'POST',
-        contentType: 'application/json',
-        dataType: 'json'
-      })
-      .then(data => {
-        if (data) {
-          const resId = id || data || data.rt;
+    this.setState({
+      formValidation: tempFormValidation
+    });
 
-          this.setState({
-            id: resId
-          }, () => {
-            if (showPrivileges) {
-              this.savePrivileges();
-            } else {
-              this.close();
-              this.props.onDone();
-            }
-          });
-        }
-        return null;
-      })
-      .catch(err => {
+    if (!validate) {
+      return;
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(_.omit(accountData, 'selected')),
+      type: id ? 'PATCH' : 'POST',
+      contentType: 'application/json',
+      dataType: 'json'
+    })
+    .then(data => {
+      if (data) {
+        const resId = id || data || data.rt;
+
         this.setState({
-          error: true,
-          info: err.message
+          id: resId
+        }, () => {
+          if (showPrivileges) {
+            this.savePrivileges();
+          } else {
+            this.close();
+            this.props.onDone();
+          }
         });
-      })
-    } else {
-      this.setState({
-        error: true,
-        info: et('fill-required-fields')
-      });
-    }
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Handle save privileges confirm
@@ -238,31 +562,6 @@ class AccountEdit extends Component {
     })
   }
   /**
-   * Open account add/edit modal dialog
-   * @method
-   * @param {string} id - selected account ID
-   * @param {string} options - option for 'fromHeader'
-   */
-  openAccount = (id, options) => {
-    let showPrivileges = true;
-
-    if (options === 'fromHeader') {
-      showPrivileges = false;
-    }
-
-    this.setState({
-      open: true,
-      id,
-      showPrivileges
-    }, () => {
-      this.loadPrivileges();
-      
-      if (id) {
-       this.loadAccount(id, options);
-      }
-    });
-  }
-  /**
    * Handle close confirm and reset data
    * @method
    */
@@ -281,84 +580,6 @@ class AccountEdit extends Component {
       info: msg,
       error: true
     });
-  }
-  /**
-   * Display account edit content
-   * @method
-   * @returns HTML DOM
-   */
-  displayAccountsEdit = () => {
-    const {id, accountData, privileges, showPrivileges} = this.state;
-
-    let formFieldsBasic = {
-      account: {label: t('l-account'), editor: Input, props: {
-        required: true,
-        readOnly: id,
-        validate: {
-          pattern: /[0-9a-zA-Z]{4,}/,
-          patternReadable: t('txt-only-num-eng'),
-          t: et
-        }
-      }},
-      name: {label: t('l-name'), editor: Input, props: {
-        required: true,
-        validate: { t:et }
-      }}
-    };
-
-    const formFieldsPassword = {
-      password: {label: t('l-password'), editor: Input, props: {
-        type: 'password',
-        required: true,
-        validate: { t:et }
-      }}
-    };
-
-    const additionalFormFields = {
-      email: {label: t('l-email'), editor: Input, props: {
-        required: true,
-        validate: {
-          pattern: /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
-          patternReadable: t('txt-email-invalid'),
-          t: et
-        }
-      }},
-      unit: {label: t('l-unit'), editor: Input, props: {
-        required: true,
-        validate: { t:et }
-      }},
-      title: {label: t('l-title'), editor: Input, props: {
-        required: true,
-        validate: { t:et }
-      }},
-      phone: {label: t('l-phone'), editor: Input, props: {
-        required: true,
-        validate: { t:et }
-      }}
-    };
-
-    const formFieldsPrivileges = {
-      selected: {label: t('l-privileges'), editor: CheckboxGroup, props: {
-        required: true,
-        list: privileges
-      }}
-    };
-
-    if (showPrivileges) {
-      formFieldsBasic = _.assign({}, formFieldsBasic, additionalFormFields, formFieldsPrivileges);
-    } else {
-      formFieldsBasic = _.assign({}, formFieldsBasic, formFieldsPassword, additionalFormFields);
-    }
-
-    return (
-      <div className='c-flex fdc boxes dialog-width'>
-        <Form
-          formClassName='c-form inline c-flex jcsb'
-          fields={formFieldsBasic}
-          value={accountData}
-          onChange={this.handleDataChange} />
-      </div>
-    )
   }
   render() {
     const {id, info, error, open} = this.state;

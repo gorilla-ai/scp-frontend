@@ -1230,21 +1230,25 @@ html[data-theme='dark'] {
 }
 /* configuration/user/accounts/account-edit */
 #accountEditDialog {
-  .c-box.dialog.react-draggable {
-    max-width: 600px;
-    > .content {
-      display: flex;
-      .c-form > div input, 
-      .c-form > div div {
-         width: 250px;
-      }
-      .c-form > div.selected {
-        margin-right: 6px;
-      }
+  #accountEditDialog-content {
+    width: 506px;
+  }
+  .account-form {
+    display: flex;
+    justify-content: left;
+    flex-wrap: wrap;
+    .group {
+      margin: 10px;
+    }
+    .privileges-list {
+      margin-top: 10px;
     }
   }
 }
 #privilegeEditDialog {
+  .role-name {
+    margin-bottom: 20px;
+  }
   footer {
     text-align: center;
   }
@@ -1355,6 +1359,10 @@ html[data-theme='dark'] {
   label {
     color: var(--linkColor);
   }
+  .query-options {
+    overflow: hidden;
+    padding-bottom: 10px;
+  }
   .query-name {
     float: left;
     width: 58%;
@@ -1367,7 +1375,6 @@ html[data-theme='dark'] {
     }
   }
   .filter-group {
-    clear: both;
     min-width: 400px;
     overflow-y: hidden;
     padding: 10px 6px;

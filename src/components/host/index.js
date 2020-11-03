@@ -187,11 +187,8 @@ class HostController extends Component {
       datetime: Moment().local().format('YYYY-MM-DD') + 'T00:00:00',
       hostAnalysisOpen: false,
       severityList: [],
-      severityOptions: {},
       hmdStatusList: [],
-      hmdStatusOptions: {},
       scanStatusList: [],
-      scanStatusOptions: {},
       privateMaskedIP: {},
       hostCreateTime: '',
       leftNavData: [],
@@ -228,7 +225,6 @@ class HostController extends Component {
   }
   componentDidMount() {
     this.setLeftNavData();
-    this.setDataOptions();
     this.getHostSortList();
     this.getFloorPlan();
   }
@@ -241,52 +237,22 @@ class HostController extends Component {
       {
         list: 'severityList',
         text: t('alert.txt-threatLevel'),
-        options: 'severityOptions',
         selected: 'severitySelected'
       },
       {
         list: 'hmdStatusList',
         text: 'HMD ' + t('txt-status'),
-        options: 'hmdStatusOptions',
         selected: 'hmdStatusSelected'
       },
       {
         list: 'scanStatusList',
         text: 'Scan ' + t('txt-status'),
-        options: 'scanStatusOptions',
         selected: 'scanStatusSelected'
       }
     ];
 
     this.setState({
       leftNavData
-    });
-  }
-  /**
-   * Set data for Checkbox
-   * @method
-   */
-  setDataOptions = () => {
-    let severityOptions = {};
-    let hmdStatusOptions = {};
-    let scanStatusOptions = {};
-
-    _.forEach(SEVERITY_TYPE, val => {
-      severityOptions[val] = false;
-    })
-
-    _.forEach(HMD_STATUS_LIST, val => {
-      hmdStatusOptions[val] = false;
-    })
-
-    _.forEach(HMD_LIST, val => {
-      scanStatusOptions[val] = false;
-    });
-
-    this.setState({
-      severityOptions,
-      hmdStatusOptions,
-      scanStatusOptions
     });
   }
   /**
@@ -574,55 +540,41 @@ class HostController extends Component {
     })
   }
   /**
-   * Set filter options and data
+   * Check if item is already in the selected list
    * @method
-   * @param {string} options - filter options ('severityOptions', 'hmdStatusOptions', 'scanStatusOptions')
-   * @param {string} selected - filter selected ('severitySelected', 'hmdStatusSelected', 'scanStatusSelected')
+   * @param {string} type - checked item type ('severitySelected', 'hmdStatusSelected', 'scanStatusSelected')
+   * @param {string} val - checked item name
+   * @returns boolean true/false
+   */
+  checkSelectedItem = (type, val) => {
+    return _.includes(this.state.filterNav[type], val) ? true : false;
+  }
+  /**
+   * Handle checkbox check/uncheck
+   * @method
+   * @param {string} type - checked item type ('severitySelected', 'hmdStatusSelected', 'scanStatusSelected')
    * @param {object} event - event object
    */
-  setFilterNavData = (options, selected, event) => {
+  toggleCheckbox = (type, event) => {
     let tempFilterNav = {...this.state.filterNav};
-    let checkedItems = [];
-    let tempSeverityOptions = {...this.state[options]};
-    tempSeverityOptions[event.target.name] = event.target.checked;
 
-    _.forEach(tempSeverityOptions, (val, key) => {
-      if (val) {
-        checkedItems.push(key);
-      }
-    })
-
-    tempFilterNav[selected] = checkedItems;
+    if (event.target.checked) {
+      tempFilterNav[type].push(event.target.name);
+    } else {
+      const index = tempFilterNav[type].indexOf(event.target.name);
+      tempFilterNav[type].splice(index, 1);
+    }
 
     this.setState({
-      [options]: tempSeverityOptions,
       filterNav: tempFilterNav
     }, () => {
       this.handleSearchSubmit();
     });
   }
   /**
-   * Handle checkbox selections
-   * @method
-   * @param {string} options - filter options ('severityOptions', 'hmdStatusOptions', 'scanStatusOptions')
-   * @param {object} event - event object
-   */
-  toggleCheckboxOptions = (options, event) => {
-    let selected = '';
-
-    _.forEach(this.state.leftNavData, val => {
-      if (val.options === options) {
-        selected = val.selected;
-        return false;
-      }
-    })
-
-    this.setFilterNavData(options, selected, event);
-  }
-  /**
    * Display checkbox for left nav
    * @method
-   * @param {string} type - filter type ('severityOptions', 'hmdStatusOptions', 'scanStatusOptions')
+   * @param {string} type - filter type ('severitySelected', 'hmdStatusSelected', 'scanStatusSelected')
    * @param {object} val - individual filter data
    * @param {number} i - index of the filter data
    * @returns HTML DOM
@@ -636,8 +588,8 @@ class HostController extends Component {
           <Checkbox
             className='checkbox-ui nav-box'
             name={val.value}
-            checked={this.state[type][val.value]}
-            onChange={this.toggleCheckboxOptions.bind(this, type)}
+            checked={this.checkSelectedItem(type, val.value)}
+            onChange={this.toggleCheckbox.bind(this, type)}
             color='primary' />
         } />
     )
@@ -654,7 +606,7 @@ class HostController extends Component {
       <div>
         <label className={cx('header-text', {'hide': !this.state.showLeftNav})}>{val.text}</label>
         <div className='checkbox-group'>
-          {this.state[val.list].map(this.getCheckboxItem.bind(this, val.options))}
+          {this.state[val.list].map(this.getCheckboxItem.bind(this, val.selected))}
         </div>
       </div>
     )

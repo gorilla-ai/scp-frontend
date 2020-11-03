@@ -90,7 +90,12 @@ class QueryOpenSave extends Component {
       },
       activePatternId: '',
       patternCheckbox: false,
-      info: ''
+      info: '',
+      formValidation: {
+        queryName: {
+          valid: true
+        }
+      }
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -163,13 +168,15 @@ class QueryOpenSave extends Component {
     } else if (type === 'save') {
       const {baseUrl} = this.context;
       const {account, queryData, notifyEmailData} = this.props;
-      const {newQueryName} = this.state;
+      const {newQueryName, formValidation} = this.state;
+      let tempFormValidation = {...formValidation};
       let tempFilterData = [];
       let url = '';
       let queryText = {};
       let emailList = [];
       let requestData = {};
       let requestType = '';
+      let validate = true;
 
       _.forEach(filterData, val => {
         if (val.query) {
@@ -187,13 +194,19 @@ class QueryOpenSave extends Component {
 
       if (newQueryName) { //Form validation
         if (queryData.inputName) {
-          this.clearErrorInfo();
+          tempFormValidation.queryName.valid = true;
         } else {
-          this.setState({
-            info: t('events.connections.txt-noOpenQuery')
-          });
-          return;
+          tempFormValidation.queryName.valid = false;
+          validate = false;
         }
+      }
+
+      this.setState({
+        formValidation: tempFormValidation
+      });
+
+      if (!validate) {
+        return;
       }
 
       if (activeTab === 'logs') { //Form validation
@@ -788,6 +801,7 @@ class QueryOpenSave extends Component {
   displayQueryContent = (type) => {
     const {locale} = this.context;
     const {activeTab, queryData, filterData, markData} = this.props;
+    const {formValidation} = this.state;
     const displayList = _.map(queryData.list, (val, i) => {
       return <MenuItem key={i} value={val.id}>{val.name}</MenuItem>
     });
@@ -885,31 +899,35 @@ class QueryOpenSave extends Component {
 
       return (
         <div>
-          <StyledTextField
-            className='query-name dropdown'
-            select
-            label={t('events.connections.txt-queryName')}
-            variant='outlined'
-            fullWidth={true}
-            size='small'
-            required={true}
-            value={queryData.id}
-            onChange={this.handleQueryChange.bind(this, 'id')}>
-            <MenuItem value={'new'}>{t('events.connections.txt-addQuery')}</MenuItem>
-            {displayList}
-          </StyledTextField>
-
-          {dropDownValue === 'new' &&
-            <TextFieldComp
-              className='query-name'
-              label={t('txt-name')}
+          <div className='query-options'>
+            <StyledTextField
+              className='query-name dropdown'
+              select
+              label={t('events.connections.txt-queryName')}
               variant='outlined'
+              fullWidth={true}
               size='small'
-              maxLength={50}
               required={true}
-              value={queryData.inputName}
-              onChange={this.handleQueryChange.bind(this, 'name')}/>
-          }
+              value={queryData.id}
+              onChange={this.handleQueryChange.bind(this, 'id')}>
+              <MenuItem value={'new'}>{t('events.connections.txt-addQuery')}</MenuItem>
+              {displayList}
+            </StyledTextField>
+
+            {dropDownValue === 'new' &&
+              <TextFieldComp
+                className='query-name'
+                label={t('txt-name')}
+                variant='outlined'
+                size='small'
+                maxLength={50}
+                required={true}
+                error={!formValidation.queryName.valid}
+                helperText={formValidation.queryName.valid ? '' : t('txt-required')}
+                value={queryData.inputName}
+                onChange={this.handleQueryChange.bind(this, 'name')}/>
+            }
+          </div>
 
           {tempFilterData.length > 0 &&
             <div className='filter-group'>

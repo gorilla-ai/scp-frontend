@@ -84,13 +84,7 @@ class Severity extends Component {
       activeContent: 'tableList', //tableList, viewSeverity, addSeverity, editSeverity
       showFilter: false,
       severitySearchType: '',
-      severitySearchOptions: {
-        Alert: false,
-        Critical: false,
-        Emergency: false,
-        Notice: false,
-        Warning: false
-      },
+      severitySelected: [],
       originalSeverityData: {},
       severityList: [],
       currentSeverityData: '',
@@ -145,23 +139,16 @@ class Severity extends Component {
    */
   getSeverityMapping = (fromSearch) => {
     const {baseUrl} = this.context;
-    const {severitySearchType, severitySearchOptions, severity} = this.state;
+    const {severitySearchType, severitySelected, severity} = this.state;
     const url = `${baseUrl}/api/severityMapping/_search?&page=${severity.currentPage}&pageSize=${severity.pageSize}`;
     let requestData = {};
-    let searchArr = [];
 
     if (severitySearchType !== '') {
       requestData.keyword = severitySearchType;
     }
 
-    _.forEach(severitySearchOptions, (val, key) => {
-      if (val) {
-        searchArr.push(key);
-      }
-    })
-
-    if (searchArr.length > 0) {
-      requestData.severityLevelList = searchArr;
+    if (severitySelected.length > 0) {
+      requestData.severityLevelList = severitySelected;
     }
 
     this.ah.one({
@@ -252,19 +239,6 @@ class Severity extends Component {
       if (type === 'tableList') {
         this.getSeverityMapping();
       }
-    });
-  }
-  /**
-   * Toggle Severity options
-   * @method
-   * @param {object} event - event object
-   */
-  toggleSeverityOptions = (event) => {
-    let tempSeveritySearchOptions = {...this.state.severitySearchOptions};
-    tempSeveritySearchOptions[event.target.name] = event.target.checked;
-
-    this.setState({
-      severitySearchOptions: tempSeveritySearchOptions
     });
   }
   /**
@@ -450,6 +424,34 @@ class Severity extends Component {
     });
   }
   /**
+   * Check if item is already in the selected list
+   * @method
+   * @param {string} val - checked item name
+   * @returns boolean true/false
+   */
+  checkSelectedItem = (val) => {
+    return _.includes(this.state.severitySelected, val) ? true : false;
+  }
+  /**
+   * Handle checkbox check/uncheck
+   * @method
+   * @param {object} event - event object
+   */
+  toggleCheckbox = (event) => {
+    let severitySelected = _.cloneDeep(this.state.severitySelected);
+
+    if (event.target.checked) {
+      severitySelected.push(event.target.name);
+    } else {
+      const index = severitySelected.indexOf(event.target.name);
+      severitySelected.splice(index, 1);
+    }
+
+    this.setState({
+      severitySelected
+    });
+  }
+  /**
    * Display Severity checkbox group
    * @method
    * @param {string} val - severity level
@@ -467,8 +469,8 @@ class Severity extends Component {
               id={val}
               className='checkbox-ui'
               name={val}
-              checked={this.state.severitySearchOptions[val]}
-              onChange={this.toggleSeverityOptions}
+              checked={this.checkSelectedItem(val)}
+              onChange={this.toggleCheckbox}
               color='primary' />
           } />
       </div>
@@ -555,13 +557,7 @@ class Severity extends Component {
   clearFilter = () => {
     this.setState({
       severitySearchType: '',
-      severitySearchOptions: {
-        Alert: false,
-        Critical: false,
-        Emergency: false,
-        Notice: false,
-        Warning: false
-      }
+      severitySelected: []
     });
   }
   render() {

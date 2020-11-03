@@ -326,7 +326,7 @@ class Manage extends Component {
    * @returns HTML DOM
    */
   displayTitleName = () => {
-    const {formValidation} = this.state;
+    const {name, formValidation} = this.state;
 
     return (
       <TextFieldComp
@@ -338,7 +338,7 @@ class Manage extends Component {
         required={true}
         error={!formValidation.name.valid}
         helperText={formValidation.name.valid ? '' : t('txt-required')}
-        value={this.state.name}
+        value={name}
         onChange={this.handleDataChange} />
     )
   }

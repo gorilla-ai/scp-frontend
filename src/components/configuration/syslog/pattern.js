@@ -86,15 +86,9 @@ class Pattern extends Component {
       showFilter: false,
       patternSearch: {
         name: '',
-        queryScript: '',
-        severity: {
-          Alert: false,
-          Critical: false,
-          Emergency: false,
-          Notice: false,
-          Warning: false
-        }
+        queryScript: ''
       },
+      severitySelected: [],
       originalPatternData: {},
       severityList: [],
       periodMinList: [],
@@ -169,7 +163,7 @@ class Pattern extends Component {
    */
   getPatternScript = (fromSearch) => {
     const {baseUrl} = this.context;
-    const {patternSearch, pattern} = this.state;
+    const {patternSearch, severitySelected, pattern} = this.state;
     let query = '';
 
     if (patternSearch.name) {
@@ -180,20 +174,8 @@ class Pattern extends Component {
       query += `&queryScript=${patternSearch.queryScript}`;
     } 
 
-    if (!_.isEmpty(patternSearch.severity)) {
-      let severityArr = [];
-
-      _.forEach(patternSearch.severity, (val, key) => {
-        if (val) {
-          severityArr.push(key);
-        }
-      })
-
-      const severityOptions = severityArr.join();
-
-      if (severityOptions) {
-        query += `&severity=${severityOptions}`;
-      }
+    if (severitySelected.length > 0) {
+      query += `&severity=${severitySelected.join()}`;
     }
 
     this.ah.one({
@@ -206,6 +188,11 @@ class Pattern extends Component {
         tempPattern.dataContent = data;
         tempPattern.totalCount = data.length;
         tempPattern.currentPage = fromSearch === 'search' ? 1 : pattern.currentPage;
+
+        if (data.length === 0) {
+          helper.showPopupMsg(t('txt-notFound'));
+          return;
+        }
 
         let dataFields = {};
         pattern.dataFieldsArr.forEach(tempData => {
@@ -308,19 +295,6 @@ class Pattern extends Component {
       if (type === 'tableList') {
         this.getPatternScript();
       }
-    });
-  }
-  /**
-   * Toggle Severity options
-   * @method
-   * @param {object} event - event object
-   */
-  toggleSeverityOptions = (event) => {
-    let tempPatternSearch = {...this.state.patternSearch};
-    tempPatternSearch.severity[event.target.name] = event.target.checked;
-
-    this.setState({
-      patternSearch: tempPatternSearch
     });
   }
   /**
@@ -630,6 +604,34 @@ class Pattern extends Component {
     });
   }
   /**
+   * Check if item is already in the selected list
+   * @method
+   * @param {string} val - checked item name
+   * @returns boolean true/false
+   */
+  checkSelectedItem = (val) => {
+    return _.includes(this.state.severitySelected, val) ? true : false;
+  }
+  /**
+   * Handle checkbox check/uncheck
+   * @method
+   * @param {object} event - event object
+   */
+  toggleCheckbox = (event) => {
+    let severitySelected = _.cloneDeep(this.state.severitySelected);
+
+    if (event.target.checked) {
+      severitySelected.push(event.target.name);
+    } else {
+      const index = severitySelected.indexOf(event.target.name);
+      severitySelected.splice(index, 1);
+    }
+
+    this.setState({
+      severitySelected
+    });
+  }
+  /**
    * Display Severity checkbox group
    * @method
    * @param {string} val - severity level
@@ -647,12 +649,28 @@ class Pattern extends Component {
               id={val}
               className='checkbox-ui'
               name={val}
-              checked={this.state.patternSearch.severity[val]}
-              onChange={this.toggleSeverityOptions}
+              checked={this.checkSelectedItem(val)}
+              onChange={this.toggleCheckbox}
               color='primary' />
           } />
       </div>
     )
+  }
+  /**
+   * Handle search submit
+   * @method
+   */
+  handleSearchSubmit = () => {
+    let tempPattern = {...this.state.pattern};
+    tempPattern.dataContent = [];
+    tempPattern.totalCount = 0;
+    tempPattern.currentPage = 1;
+
+    this.setState({
+      pattern: tempPattern
+    }, () => {
+      this.getPatternScript('search');
+    });
   }
   /**
    * Display filter content
@@ -698,7 +716,7 @@ class Pattern extends Component {
           </div>
         </div>
         <div className='button-group group-aligned'>
-          <button className='filter' onClick={this.getPatternScript.bind(this, 'search')}>{t('txt-filter')}</button>
+          <button className='filter' onClick={this.handleSearchSubmit}>{t('txt-filter')}</button>
           <button className='clear' onClick={this.clearFilter}>{t('txt-clear')}</button>
         </div>
       </div>
@@ -748,15 +766,9 @@ class Pattern extends Component {
     this.setState({
       patternSearch: {
         name: '',
-        queryScript: '',
-        severity: {
-          Alert: false,
-          Critical: false,
-          Emergency: false,
-          Notice: false,
-          Warning: false
-        }
-      }
+        queryScript: ''
+      },
+      severitySelected: []
     });
   }
   render() {

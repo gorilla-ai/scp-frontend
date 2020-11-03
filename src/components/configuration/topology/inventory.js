@@ -996,25 +996,14 @@ class NetworkInventory extends Component {
     }
 
     if (field === 'selectAll') {
-      if (value) {
-        this.setState({
-          hmdSelectAll: true,
-          hmdSearchOptions: {
-            yaraScan: true,
-            malware: true,
-            gcb: true
-          }
-        });
-      } else {
-        this.setState({
-          hmdSelectAll: false,
-          hmdSearchOptions: {
-            yaraScan: false,
-            malware: false,
-            gcb: false
-          }
-        });
-      }
+      this.setState({
+        hmdSelectAll: value,
+        hmdSearchOptions: {
+          yaraScan: value,
+          malware: value,
+          gcb: value
+        }
+      });
     } else {
       this.setState({
         hmdSearchOptions: tempHMDsearchOptions

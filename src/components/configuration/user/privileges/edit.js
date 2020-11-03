@@ -32,7 +32,6 @@ const INITIAL_STATE = {
   info: null,
   error: false,
   permitsList: [],
-  permitsOptions: {},
   permitsSelected: [],
   name: '',
   privilegeid: '',
@@ -94,11 +93,15 @@ class PrivilegeEdit extends Component {
    * @param {object} privilege - selected privilege data
    */
   openPrivilegeEdit = (privilege) => {
+    const permitsSelected = _.map(privilege.permits, val => {
+      return val.permitid;
+    });
+
     this.setState({
       open: true,
       name: privilege.name,
       privilegeid: privilege.privilegeid,
-      permitsSelected: privilege.permits
+      permitsSelected
     }, () => {
       this.loadPermits();
     });
@@ -137,19 +140,8 @@ class PrivilegeEdit extends Component {
           }
         });
 
-        let permitsOptions = {};
-
-        _.forEach(data.rt, val => {
-          permitsOptions[val.permitid] = false;
-        });
-
-        _.forEach(this.state.permitsSelected, val => {
-          permitsOptions[val.permitid] = true;
-        })
-
         this.setState({
-          permitsList,
-          permitsOptions
+          permitsList
         });
       }
       return null;
@@ -171,7 +163,6 @@ class PrivilegeEdit extends Component {
       info: null,
       error: false,
       permitsList: [],
-      permitsOptions: {},
       permitsSelected: [],
       name: '',
       privilegeid: '',
@@ -197,7 +188,7 @@ class PrivilegeEdit extends Component {
    */
   editPrivilege = () => {
     const {baseUrl} = this.context;
-    const {name, permitsOptions, privilegeid, formValidation} = this.state;
+    const {name, permitsSelected, privilegeid, formValidation} = this.state;
     let tempFormValidation = {...formValidation};
     let validate = true;
 
@@ -218,10 +209,8 @@ class PrivilegeEdit extends Component {
 
     let permitIds = '';
 
-    _.forEach(permitsOptions, (val, key) => {
-      if (val) {
-        permitIds += '&permitIds=' + key;
-      }
+    _.forEach(permitsSelected, val => {
+      permitIds += '&permitIds=' + val;
     })
 
     ah.one({
@@ -252,16 +241,31 @@ class PrivilegeEdit extends Component {
     });
   }
   /**
-   * Handle checkboxgroup value change
+   * Check if item is already in the selected list
+   * @method
+   * @param {string} val - checked item name
+   * @returns boolean true/false
+   */
+  checkSelectedItem = (val) => {
+    return _.includes(this.state.permitsSelected, val) ? true : false;
+  }
+  /**
+   * Handle checkbox check/uncheck
    * @method
    * @param {object} event - event object
    */
-  handleCheckboxChange = (event) => {
-    let tempPermitsOptions = {...this.state.permitsOptions}
-    tempPermitsOptions[event.target.name] = event.target.checked;
+  toggleCheckbox = (event) => {
+    let permitsSelected = _.cloneDeep(this.state.permitsSelected);
+
+    if (event.target.checked) {
+      permitsSelected.push(event.target.name);
+    } else {
+      const index = permitsSelected.indexOf(event.target.name);
+      permitsSelected.splice(index, 1);
+    }
 
     this.setState({
-      permitsOptions: tempPermitsOptions
+      permitsSelected
     });
   }
   /**
@@ -281,8 +285,8 @@ class PrivilegeEdit extends Component {
             <Checkbox
               className='checkbox-ui'
               name={val.value}
-              checked={this.state.permitsOptions[val.value]}
-              onChange={this.handleCheckboxChange}
+              checked={this.checkSelectedItem(val.value)}
+              onChange={this.toggleCheckbox}
               color='primary' />
           } />
       </div>
@@ -298,19 +302,19 @@ class PrivilegeEdit extends Component {
 
     return (
       <div className='c-form'>
-        <div>
-          <TextFieldComp
-            name='name'
-            label={t('l-name')}
-            variant='outlined'
-            fullWidth={true}
-            size='small'
-            required={true}
-            error={!formValidation.name.valid}
-            helperText={formValidation.name.valid ? '' : c('txt-required')}
-            value={name}
-            onChange={this.handleDataChange} />
-        </div>
+        <TextFieldComp
+          className='role-name'
+          name='name'
+          label={t('l-name')}
+          variant='outlined'
+          fullWidth={true}
+          size='small'
+          required={true}
+          error={!formValidation.name.valid}
+          helperText={formValidation.name.valid ? '' : c('txt-required')}
+          value={name}
+          onChange={this.handleDataChange} />
+
         <div className='group'>
           {permitsList.map(this.getRoleList)}
         </div>

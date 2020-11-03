@@ -16,6 +16,7 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const log = require('loglevel').getLogger('privileges')
 const t = i18n.getFixedT(null, 'privileges');
+const c = i18n.getFixedT(null, 'connections');
 const gt = i18n.getFixedT(null, 'app');
 const et =  i18n.getFixedT(null, 'errors');
 
@@ -23,7 +24,12 @@ const INITIAL_STATE = {
   open: false,
   info: null,
   error: false,
-  name: ''
+  name: '',
+  formValidation: {
+    name: {
+      valid: true
+    }
+  }
 };
 
 const StyledTextField = withStyles({
@@ -85,7 +91,17 @@ class PrivilegeAdd extends Component {
    * @method
    */
   close = () => {
-    this.setState(_.clone(INITIAL_STATE));
+    this.setState({
+      open: false,
+      info: null,
+      error: false,
+      name: '',
+      formValidation: {
+        name: {
+          valid: true
+        }
+      }
+    });
   }
   /**
    * Reset data and call onDone props funciton
@@ -123,34 +139,41 @@ class PrivilegeAdd extends Component {
    */
   addPrivilege = () => {
     const {baseUrl} = this.context;
-    const {name} = this.state;
+    const {name, formValidation} = this.state;
     const reqArg = {
       name
     };
+    let tempFormValidation = {...formValidation};
+    let validate = true;
 
-    if (name !== '') {
-      ah.one({
-        url: `${baseUrl}/api/account/privilege`,
-        data: JSON.stringify(reqArg),
-        type: 'POST',
-        contentType: 'application/json'
-      })
-      .then(data => {
-        this.save();
-        return null;
-      })
-      .catch(err => {
-        this.setState({
-          error: true,
-          info: err
-        });
-      })
+    if (name) {
+      tempFormValidation.name.valid = true;
     } else {
-      this.setState({
-        error: true,
-        info: et('fill-required-fields')
-      });
+      tempFormValidation.name.valid = false;
+      validate = false;
     }
+
+    this.setState({
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
+      return;
+    }
+
+    ah.one({
+      url: `${baseUrl}/api/account/privilege`,
+      data: JSON.stringify(reqArg),
+      type: 'POST',
+      contentType: 'application/json'
+    })
+    .then(data => {
+      this.save();
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Display add privilege content
@@ -158,16 +181,20 @@ class PrivilegeAdd extends Component {
    * @returns HTML DOM
    */
   displayAddPrivilege = () => {
+    const {name, formValidation} = this.state;
+
     return (
-      <div className='c-flex fdc dialog-width'>
-        <TextFieldComp
-          name='name'
-          variant='outlined'
-          fullWidth={true}
-          size='small'
-          value={this.state.name}
-          onChange={this.handleDataChange} />
-      </div>
+      <TextFieldComp
+        name='name'
+        label={c('txt-plsEnterName')}
+        variant='outlined'
+        fullWidth={true}
+        size='small'
+        required={true}
+        error={!formValidation.name.valid}
+        helperText={formValidation.name.valid ? '' : c('txt-required')}
+        value={name}
+        onChange={this.handleDataChange} />
     )
   }
   render() {

@@ -61,14 +61,14 @@ class IrSelections extends Component {
     this.state = {
       irComboSelected: 'quick', //'quick', 'standard', 'full'
       irItemList: [],
-      irItemOptions: {}
+      irSelectedList: []
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
   }
   componentDidMount() {
     this.setIrList();
-    this.setCurrentOptions('quick');
+    this.setSelectedList('quick');
   }
   /**
    * Set IR list for display
@@ -90,41 +90,23 @@ class IrSelections extends Component {
     });
   }
   /**
-   * Set IR options
+   * Set IR selected list
    * @method
    * @param {object} type - IR type ('quick', 'standard' or 'full')
    */
-  setCurrentOptions = (type) => {
-    let irItemOptions = {};
+  setSelectedList = (type) => {
+    let irSelectedList = [];
 
-    if (type === 'full') {
-      _.forEach(FULL_IR_LIST, val => {
-        irItemOptions[val] = true;
-      })
-    } else {
-      if (type === 'quick' || type === 'standard') {
-        let irList = '';
-
-        if (type === 'quick') {
-          irList = QUICK_IR_LIST;
-        } else if (type === 'standard') {
-          irList = STANDARD_IR_LIST;
-        }
-
-        _.forEach(FULL_IR_LIST, val => {
-          irItemOptions[val] = false;
-
-          _.forEach(irList, val2 => {
-            if (val2 === val) {
-              irItemOptions[val] = true;
-            }
-          })
-        })
-      }
+    if (type === 'quick') {
+      irSelectedList = _.cloneDeep(QUICK_IR_LIST);
+    } else if (type === 'standard') {
+      irSelectedList = _.cloneDeep(STANDARD_IR_LIST);
+    } else if (type === 'full') {
+      irSelectedList = _.cloneDeep(FULL_IR_LIST);
     }
 
     this.setState({
-      irItemOptions
+      irSelectedList
     });
   }
   /**
@@ -133,23 +115,38 @@ class IrSelections extends Component {
    * @param {object} event - event object
    */
   handleIrComboChange = (event) => {
-    this.setCurrentOptions(event.target.value);
+    this.setSelectedList(event.target.value);
 
     this.setState({
       irComboSelected: event.target.value
     });
   }
   /**
-   * Handle checkbox selections
+   * Check if item is already in the selected list
+   * @method
+   * @param {string} val - checked item name
+   * @returns boolean true/false
+   */
+  checkSelectedItem = (val) => {
+    return _.includes(this.state.irSelectedList, val) ? true : false;
+  }
+  /**
+   * Handle checkbox check/uncheck
    * @method
    * @param {object} event - event object
    */
-  toggleCheckboxOptions = (event) => {
-    let tempIrItemOptions = {...this.state.irItemOptions};
-    tempIrItemOptions[event.target.name] = event.target.checked;
+  toggleCheckbox = (event) => {
+    let irSelectedList = _.cloneDeep(this.state.irSelectedList);
+
+    if (event.target.checked) {
+      irSelectedList.push(event.target.name);
+    } else {
+      const index = irSelectedList.indexOf(event.target.name);
+      irSelectedList.splice(index, 1);
+    }
 
     this.setState({
-      irItemOptions: tempIrItemOptions
+      irSelectedList
     });
   }
   /**
@@ -168,8 +165,8 @@ class IrSelections extends Component {
           <Checkbox
             className='checkbox-ui'
             name={val.value}
-            checked={this.state.irItemOptions[val.value]}
-            onChange={this.toggleCheckboxOptions}
+            checked={this.checkSelectedItem(val.value)}
+            onChange={this.toggleCheckbox}
             color='primary' />
         } />
     )
@@ -208,15 +205,7 @@ class IrSelections extends Component {
    * @method
    */
   confirmIRselection = () => {
-    let selectedIrArr = [];
-
-    _.forEach(this.state.irItemOptions, (val, key) => {
-      if (val) {
-        selectedIrArr.push(key);
-      }
-    });
-
-    this.props.triggerTask(selectedIrArr);
+    this.props.triggerTask(this.state.irSelectedList);
   }
   render() {
     const titleText = t('network-inventory.txt-itemSelection');

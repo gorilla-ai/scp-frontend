@@ -839,11 +839,16 @@ class NetworkOwner extends Component {
                         <div>
                           <img src={owner.info.base64} title={t('network-topology.txt-profileImage')} />
                           <div className='removePhoto'>
-                            <label htmlFor='removePhoto'>{t('network-topology.txt-removePhoto')}</label>
-                            <Checkbox
-                              id='removePhoto'
-                              checked={owner.removePhoto}
-                              onChange={this.handleRemovePhoto} />
+                            <FormControlLabel
+                              label={t('network-topology.txt-removePhoto')}
+                              control={
+                                <Checkbox
+                                  id='removePhoto'
+                                  className='checkbox-ui'
+                                  checked={owner.removePhoto}
+                                  onChange={this.handleRemovePhoto}
+                                  color='primary' />
+                              } />
                           </div>
                         </div>
                       }

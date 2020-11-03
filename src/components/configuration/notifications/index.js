@@ -286,19 +286,6 @@ class Notifications extends Component {
     })
   }
   /**
-   * Toggle Email notifications checkbox
-   * @method
-   * @param {object} event - event object
-   */
-  toggleEmailCheckbox = (event) => {
-    let tempEmails = {...this.state.emails};
-    tempEmails[event.target.name].enable = event.target.checked;
-
-    this.setState({
-      emails: tempEmails
-    })
-  }
-  /**
    * Display individual email
    * @method
    * @param {string} val - email value
@@ -346,6 +333,19 @@ class Notifications extends Component {
         <span data-tag-handle onClick={this.deleteEmail.bind(this, removeEmail, index)}> <span className='font-bold'>x</span></span>
       </div>
     )
+  }
+  /**
+   * Toggle Email notifications checkbox
+   * @method
+   * @param {object} event - event object
+   */
+  toggleEmailCheckbox = (event) => {
+    let tempEmails = {...this.state.emails};
+    tempEmails[event.target.name].enable = event.target.checked;
+
+    this.setState({
+      emails: tempEmails
+    })
   }
   /**
    * Display emails notifications content

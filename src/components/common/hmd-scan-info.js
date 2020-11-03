@@ -126,6 +126,13 @@ class HMDscanInfo extends Component {
             path: ''
           }]
         }
+      },
+      formValidation: {
+        fileIntegrity: {
+          includePath: {
+            valid: true
+          }
+        }
       }
     };
 
@@ -1543,7 +1550,14 @@ class HMDscanInfo extends Component {
     } else if (type === 'cancel') {
       tempActiveContent = 'viewMode';
       this.setState({
-        settingsPath: _.cloneDeep(originalSettingsPathData)
+        settingsPath: _.cloneDeep(originalSettingsPathData),
+        formValidation: {
+          fileIntegrity: {
+            includePath: {
+              valid: true
+            }
+          }
+        }
       });
     }
 
@@ -1623,10 +1637,11 @@ class HMDscanInfo extends Component {
    * @returns HTML DOM
    */
   editSettingsPathContent = (type, val, i) => {
-    const {settingsPath} = this.state;
+    const {settingsPath, formValidation} = this.state;
     const data = {
       scanType: type,
-      listType: val.type
+      listType: val.type,
+      formValidation
     };
 
     return (
@@ -1677,7 +1692,9 @@ class HMDscanInfo extends Component {
    * @returns parsed list or boolean
    */
   getSavedSettings = (required, type, listData) => {
+    let tempFormValidation = {...this.state.formValidation};
     let dataList = [];
+    let validate = true;
 
     _.forEach(listData, val => {
       if (val[type]) {
@@ -1685,9 +1702,21 @@ class HMDscanInfo extends Component {
       }
     })
 
-    if (required && !listData[0].path) {
-      helper.showPopupMsg(t('network-inventory.txt-includePathEmpty'), t('txt-error'));
-      return false;
+    if (required) {
+      if (listData[0].path) {
+        tempFormValidation.fileIntegrity.includePath.valid = true;
+      } else {
+        tempFormValidation.fileIntegrity.includePath.valid = false;
+        validate = false;
+      }
+
+      this.setState({
+        formValidation: tempFormValidation
+      });
+
+      if (!validate) {
+        return false;
+      }
     }
 
     return dataList;
@@ -1767,6 +1796,13 @@ class HMDscanInfo extends Component {
               includePath: [{
                 path: ''
               }]
+            }
+          },
+          formValidation: {
+            fileIntegrity: {
+              includePath: {
+                valid: true
+              }
             }
           }
         });
