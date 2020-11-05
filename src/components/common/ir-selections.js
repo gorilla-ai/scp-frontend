@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 
 import Checkbox from '@material-ui/core/Checkbox';
@@ -14,39 +13,6 @@ const QUICK_IR_LIST = ['getSystemInfoFile', 'getProcessInfo', 'getAutoruns', 'ge
 const STANDARD_IR_LIST = ['dumpMemory', 'getSystemInfoFile', 'getFileInfo', 'getProcessInfo', 'getAutoruns', 'getTaskScheduler', 'getRegistryBackup', 'getEventLogFile', 'getRecentFile'];
 
 let t = null;
-
-const StyledTextField = withStyles({
-  root: {
-    backgroundColor: '#fff',
-    '& .Mui-disabled': {
-      backgroundColor: '#f2f2f2'
-    }
-  }
-})(TextField);
-
-function TextFieldComp(props) {
-  return (
-    <StyledTextField
-      id={props.id}
-      className={props.className}
-      name={props.name}
-      type={props.type}
-      label={props.label}
-      multiline={props.multiline}
-      rows={props.rows}
-      maxLength={props.maxLength}
-      variant={props.variant}
-      fullWidth={props.fullWidth}
-      size={props.size}
-      InputProps={props.InputProps}
-      required={props.required}
-      error={props.required}
-      helperText={props.helperText}
-      value={props.value}
-      onChange={props.onChange}
-      disabled={props.disabled} />
-  )
-}
 
 /**
  * IR combo selections
@@ -184,7 +150,7 @@ class IrSelections extends Component {
 
     return (
       <div>
-        <StyledTextField
+        <TextField
           className='ir-comboList'
           select
           variant='outlined'
@@ -193,7 +159,7 @@ class IrSelections extends Component {
           value={irComboSelected}
           onChange={this.handleIrComboChange}>
           {dropDownList}
-        </StyledTextField>
+        </TextField>
         <div className='ir-selections'>
           {irItemList.map(this.showCheckboxList)}
         </div>

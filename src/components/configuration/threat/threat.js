@@ -1,6 +1,5 @@
 import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
-import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
@@ -33,39 +32,6 @@ let t = null;
 let f = null;
 
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
-
-const StyledTextField = withStyles({
-  root: {
-    backgroundColor: '#fff',
-    '& .Mui-disabled': {
-      backgroundColor: '#f2f2f2'
-    }
-  }
-})(TextField);
-
-function TextFieldComp(props) {
-  return (
-    <StyledTextField
-      id={props.id}
-      className={props.className}
-      name={props.name}
-      type={props.type}
-      label={props.label}
-      multiline={props.multiline}
-      rows={props.rows}
-      maxLength={props.maxLength}
-      variant={props.variant}
-      fullWidth={props.fullWidth}
-      size={props.size}
-      InputProps={props.InputProps}
-      required={props.required}
-      error={props.required}
-      helperText={props.helperText}
-      value={props.value}
-      onChange={props.onChange}
-      disabled={props.disabled} />
-  )
-}
 
 /**
  * Threat Intelligence
@@ -839,7 +805,7 @@ class ThreatIntelligence extends Component {
       <div className='filter'>
         <div className='filter-wrapper'>
           <div className='filter-section'>
-            <StyledTextField
+            <TextField
               id='threatsSearchType'
               className='search-type'
               name='type'
@@ -858,8 +824,8 @@ class ThreatIntelligence extends Component {
               <MenuItem value={'CERT'}>Certification</MenuItem>
               <MenuItem value={'FILEHASH'}>FileHash</MenuItem>
               <MenuItem value={'FILEHASHWHITE'}>FileHashWhite</MenuItem>
-            </StyledTextField>
-            <TextFieldComp
+            </TextField>
+            <TextField
               id='threatsSearchKeyword'
               className='search-keyword'
               name='keyword'

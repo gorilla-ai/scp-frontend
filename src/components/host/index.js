@@ -1,6 +1,5 @@
 import React, {Component} from 'react'
 import { withRouter } from 'react-router'
-import { withStyles } from '@material-ui/core/styles';
 import Moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
@@ -133,39 +132,6 @@ const MAPS_PRIVATE_DATA = {
 
 let t = null;
 let f = null;
-
-const StyledTextField = withStyles({
-  root: {
-    backgroundColor: '#fff',
-    '& .Mui-disabled': {
-      backgroundColor: '#f2f2f2'
-    }
-  }
-})(TextField);
-
-function TextFieldComp(props) {
-  return (
-    <StyledTextField
-      id={props.id}
-      className={props.className}
-      name={props.name}
-      type={props.type}
-      label={props.label}
-      multiline={props.multiline}
-      rows={props.rows}
-      maxLength={props.maxLength}
-      variant={props.variant}
-      fullWidth={props.fullWidth}
-      size={props.size}
-      InputProps={props.InputProps}
-      required={props.required}
-      error={props.required}
-      helperText={props.helperText}
-      value={props.value}
-      onChange={props.onChange}
-      disabled={props.disabled} />
-  )
-}
 
 /**
  * Host
@@ -840,7 +806,7 @@ class HostController extends Component {
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group'>
-            <TextFieldComp
+            <TextField
               id='deviceSearchIP'
               name='ip'
               label={t('ipFields.ip')}
@@ -851,7 +817,7 @@ class HostController extends Component {
               onChange={this.handleDeviceSearch} />
           </div>
           <div className='group'>
-            <TextFieldComp
+            <TextField
               id='deviceSearchMac'
               name='mac'
               label={t('ipFields.mac')}
@@ -862,7 +828,7 @@ class HostController extends Component {
               onChange={this.handleDeviceSearch} />
           </div>
           <div className='group'>
-            <TextFieldComp
+            <TextField
               id='deviceSearchHostName'
               name='hostName'
               label={t('ipFields.hostName')}
@@ -873,7 +839,7 @@ class HostController extends Component {
               onChange={this.handleDeviceSearch} />
           </div>
           <div className='group'>
-            <TextFieldComp
+            <TextField
               id='deviceSearchDeviceType'
               name='deviceType'
               label={t('ipFields.deviceType')}
@@ -884,7 +850,7 @@ class HostController extends Component {
               onChange={this.handleDeviceSearch} />
           </div>
           <div className='group'>
-            <TextFieldComp
+            <TextField
               id='deviceSearchSystem'
               name='system'
               label={t('ipFields.system')}
@@ -1279,7 +1245,7 @@ class HostController extends Component {
               }
               {activeTab === 'hostList' &&
                 <div className='sort-section'>
-                  <StyledTextField
+                  <TextField
                     id='hostSortList'
                     name='hostSort'
                     label={t('txt-sort')}
@@ -1290,7 +1256,7 @@ class HostController extends Component {
                     value={hostSort}
                     onChange={this.handleHostSortChange}>
                     {hostSortList}
-                  </StyledTextField>
+                  </TextField>
                 </div>
               }
             </div>
@@ -1328,7 +1294,7 @@ class HostController extends Component {
               {activeTab === 'deviceMap' &&
                 <div className='map'>
                   {floorList.length > 0 &&
-                    <StyledTextField
+                    <TextField
                       className='drop-down'
                       select
                       variant='outlined'
@@ -1336,7 +1302,7 @@ class HostController extends Component {
                       value={currentFloor}
                       onChange={this.getAreaData}>
                       {floorList}
-                    </StyledTextField>
+                    </TextField>
                   }
                   {currentMap &&
                     <Gis

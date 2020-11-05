@@ -1,6 +1,5 @@
 import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
-import { withStyles } from '@material-ui/core/styles';
 import cx from 'classnames'
 
 import MenuItem from '@material-ui/core/MenuItem';
@@ -15,39 +14,6 @@ let t = null;
 let et = null;
 
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
-
-const StyledTextField = withStyles({
-  root: {
-    backgroundColor: '#fff',
-    '& .Mui-disabled': {
-      backgroundColor: '#f2f2f2'
-    }
-  }
-})(TextField);
-
-function TextFieldComp(props) {
-  return (
-    <StyledTextField
-      id={props.id}
-      className={props.className}
-      name={props.name}
-      type={props.type}
-      label={props.label}
-      multiline={props.multiline}
-      rows={props.rows}
-      maxLength={props.maxLength}
-      variant={props.variant}
-      fullWidth={props.fullWidth}
-      size={props.size}
-      InputProps={props.InputProps}
-      required={props.required}
-      error={props.required}
-      helperText={props.helperText}
-      value={props.value}
-      onChange={props.onChange}
-      disabled={props.disabled} />
-  )
-}
 
 /**
  * Add Threats
@@ -100,7 +66,7 @@ class AddThreats extends Component {
 
     return (
       <div className='add-threats'>
-        <TextFieldComp
+        <TextField
           id='addThreatsText'
           name='input'
           variant='outlined'
@@ -111,7 +77,7 @@ class AddThreats extends Component {
           helperText={value.validate ? '' : t('edge-management.txt-edgeFormatError')}
           value={value.input}
           onChange={this.handleDataChange} />
-        <StyledTextField
+        <TextField
           id='addThreatsType'
           name='type'
           select
@@ -133,8 +99,8 @@ class AddThreats extends Component {
           <MenuItem value={'fileHashSha1'}>FileHash (Sha1)</MenuItem>
           <MenuItem value={'fileHashSha256'}>FileHash (Sha256)</MenuItem>
           <MenuItem value={'fileHashWhiteMd5'}>FileHashWhite (MD5)</MenuItem>
-        </StyledTextField>
-        <StyledTextField
+        </TextField>
+        <TextField
           id='addThreatsSeverity'
           className={'severity ' + value.severity.toLowerCase()}
           name='severity'
@@ -145,7 +111,7 @@ class AddThreats extends Component {
           value={value.severity}
           onChange={this.handleDataChange}>
           {severityList}
-        </StyledTextField>
+        </TextField>
       </div>
     )
   }

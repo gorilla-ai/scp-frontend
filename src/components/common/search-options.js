@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
@@ -15,15 +14,6 @@ import helper from './helper'
 
 let t = null;
 let et = null;
-
-const StyledTextField = withStyles({
-  root: {
-    backgroundColor: '#fff',
-    '& .Mui-disabled': {
-      backgroundColor: '#f2f2f2'
-    }
-  }
-})(TextField);
 
 /**
  * Search Options
@@ -217,7 +207,7 @@ class SearchOptions extends Component {
     return (
       <div className='search-options'>
         {showInterval &&
-          <StyledTextField
+          <TextField
             className='search-type'
             select
             variant='outlined'
@@ -226,7 +216,7 @@ class SearchOptions extends Component {
             onChange={this.handleSearchTypeChange}>
             <MenuItem value={'manual'}>{t('events.connections.txt-search-manual')}</MenuItem>
             <MenuItem value={'auto'}>{t('events.connections.txt-search-auto')}</MenuItem>
-          </StyledTextField>
+          </TextField>
         }
 
         {showInterval &&
@@ -234,7 +224,7 @@ class SearchOptions extends Component {
             {searchInput.searchType === 'auto' &&
               <div>
                 <div className='update-interval'>
-                  <StyledTextField
+                  <TextField
                     id='updateInterval'
                     className='select-field'
                     select
@@ -247,11 +237,11 @@ class SearchOptions extends Component {
                     <MenuItem value={'60000'}>{t('events.connections.txt-1m')}</MenuItem>
                     <MenuItem value={'300000'}>{t('events.connections.txt-5m')}</MenuItem>
                     <MenuItem value={'600000'}>{t('events.connections.txt-10m')}</MenuItem>
-                  </StyledTextField>
+                  </TextField>
                 </div>
 
                 <div className='time-interval'>
-                  <StyledTextField
+                  <TextField
                     id='timeInterval'
                     className='select-field'
                     select
@@ -263,12 +253,12 @@ class SearchOptions extends Component {
                     <MenuItem value={'30m'}>{t('events.connections.txt-last30m')}</MenuItem>
                     <MenuItem value={'1h'}>{t('events.connections.txt-last1h')}</MenuItem>
                     <MenuItem value={'12h'}>{t('events.connections.txt-last12h')}</MenuItem>
-                  </StyledTextField>
+                  </TextField>
                 </div>
               </div>
             }
             {searchInput.searchType === 'manual' &&
-                <StyledTextField
+                <TextField
                   id='timeInterval'
                   className='select-field'
                   select
@@ -283,7 +273,7 @@ class SearchOptions extends Component {
                   <MenuItem value={'today'}>{t('events.connections.txt-today')}</MenuItem>
                   <MenuItem value={'24h'}>{t('events.connections.txt-last24h')}</MenuItem>
                   <MenuItem value={'week'}>{t('events.connections.txt-week')}</MenuItem>
-                </StyledTextField>
+                </TextField>
             }
           </div>
         }

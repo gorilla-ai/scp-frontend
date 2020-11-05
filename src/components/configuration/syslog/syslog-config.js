@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import cx from 'classnames'
 
@@ -11,39 +10,6 @@ import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import Relationships from './relationships'
 
 let t = null;
-
-const StyledTextField = withStyles({
-  root: {
-    backgroundColor: '#fff',
-    '& .Mui-disabled': {
-      backgroundColor: '#f2f2f2'
-    }
-  }
-})(TextField);
-
-function TextFieldComp(props) {
-  return (
-    <StyledTextField
-      id={props.id}
-      className={props.className}
-      name={props.name}
-      type={props.type}
-      label={props.label}
-      multiline={props.multiline}
-      rows={props.rows}
-      maxLength={props.maxLength}
-      variant={props.variant}
-      fullWidth={props.fullWidth}
-      size={props.size}
-      InputProps={props.InputProps}
-      required={props.required}
-      error={props.required}
-      helperText={props.helperText}
-      value={props.value}
-      onChange={props.onChange}
-      disabled={props.disabled} />
-  )
-}
 
 /**
  * Syslog Config
@@ -136,7 +102,7 @@ class syslogConfig extends Component {
     if (key != '_Raw') {
       return (
         <div className='group' key={key}>
-          <TextFieldComp
+          <TextField
             id={key}
             name='format'
             label={key}
@@ -170,7 +136,7 @@ class syslogConfig extends Component {
                 <div className='pattern'>
                   <label>{t('syslogFields.matchPattern')}</label><i className='c-link fg fg-help' title={t('txt-tips')} onClick={this.showPatternHint} />
                 </div>
-                <TextFieldComp
+                <TextField
                   id='syslogPattern'
                   multiline={true}
                   rows={6}
@@ -191,7 +157,7 @@ class syslogConfig extends Component {
                     {config.id &&
                       <button className='standard' onClick={this.props.getLatestInput.bind(this, config.id)}>{t('syslogFields.txt-getLatest')}</button>
                     }
-                    <TextFieldComp
+                    <TextField
                       id='syslogInput'
                       multiline={true}
                       rows={20}

@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import Moment from 'moment'
 
@@ -11,39 +10,6 @@ import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import helper from './helper'
 
 let t = null;
-
-const StyledTextField = withStyles({
-  root: {
-    backgroundColor: '#fff',
-    '& .Mui-disabled': {
-      backgroundColor: '#f2f2f2'
-    }
-  }
-})(TextField);
-
-function TextFieldComp(props) {
-  return (
-    <StyledTextField
-      id={props.id}
-      className={props.className}
-      name={props.name}
-      type={props.type}
-      label={props.label}
-      multiline={props.multiline}
-      rows={props.rows}
-      maxLength={props.maxLength}
-      variant={props.variant}
-      fullWidth={props.fullWidth}
-      size={props.size}
-      InputProps={props.InputProps}
-      required={props.required}
-      error={props.required}
-      helperText={props.helperText}
-      value={props.value}
-      onChange={props.onChange}
-      disabled={props.disabled} />
-  )
-}
 
 /**
  * Encode Decode service
@@ -149,7 +115,7 @@ class EncodeDecode extends Component {
 
     return (
       <div>
-        <TextFieldComp
+        <TextField
           id='textToBeEncoded'
           name='originalText'
           className='text-area'
@@ -162,7 +128,7 @@ class EncodeDecode extends Component {
           value={originalText}
           onChange={this.handleDataChange} />
         <div className='drop-down'>
-          <StyledTextField
+          <TextField
             id='encodeDecodeList'
             name='encodeType'
             select
@@ -172,7 +138,7 @@ class EncodeDecode extends Component {
             value={encodeType}
             onChange={this.handleDataChange}>
             {dropDownList}
-          </StyledTextField>
+          </TextField>
         </div>
         {(encodeType === 'url' || encodeType === 'base64') &&
           <button onClick={this.handleTextEncode.bind(this, 'encode')}>Encode</button>
@@ -183,7 +149,7 @@ class EncodeDecode extends Component {
         {encodeType === 'timestamp'&&
           <button onClick={this.handleTextEncode.bind(this, 'timestamp')}>{t('alert.txt-toLocalTime')}</button>
         }
-        <TextFieldComp
+        <TextField
           id='encodedText'
           name='formattedText'
           className='text-area'

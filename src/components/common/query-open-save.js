@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
@@ -34,39 +33,6 @@ const ALERT_LEVEL_COLORS = {
   Notice: '#7ACC29'
 };
 const PERIOD_MIN = [10, 15, 30, 60];
-
-const StyledTextField = withStyles({
-  root: {
-    backgroundColor: '#fff',
-    '& .Mui-disabled': {
-      backgroundColor: '#f2f2f2'
-    }
-  }
-})(TextField);
-
-function TextFieldComp(props) {
-  return (
-    <StyledTextField
-      id={props.id}
-      className={props.className}
-      name={props.name}
-      type={props.type}
-      label={props.label}
-      multiline={props.multiline}
-      rows={props.rows}
-      maxLength={props.maxLength}
-      variant={props.variant}
-      fullWidth={props.fullWidth}
-      size={props.size}
-      InputProps={props.InputProps}
-      required={props.required}
-      error={props.required}
-      helperText={props.helperText}
-      value={props.value}
-      onChange={props.onChange}
-      disabled={props.disabled} />
-  )
-}
 
 /**
  * Query open/save
@@ -688,7 +654,7 @@ class QueryOpenSave extends Component {
             getLabel={this.getLabel} />
         }
         {activeTab === 'logs' && !patternCheckbox &&
-          <TextFieldComp
+          <TextField
             className='email-disabled'
             variant='outlined'
             fullWidth={true}
@@ -740,7 +706,7 @@ class QueryOpenSave extends Component {
           disabled={checkboxDisabled} />
         <div className='group severity-level'>
           <i className='fg fg-recode' style={{color: ALERT_LEVEL_COLORS[severityType]}}></i>
-          <StyledTextField
+          <TextField
             className='severity-dropdown'
             name='severity'
             select
@@ -751,10 +717,10 @@ class QueryOpenSave extends Component {
             onChange={this.handleDataChange}
             disabled={disabledValue}>
             {severityList}
-          </StyledTextField>
+          </TextField>
           <div className='period'>
             <span className='support-text'>{t('events.connections.txt-patternQuery1')} </span>
-            <StyledTextField
+            <TextField
               name='periodMin'
               select
               variant='outlined'
@@ -764,9 +730,9 @@ class QueryOpenSave extends Component {
               onChange={this.handleDataChange}
               disabled={disabledValue}>
               {periodMinList}
-            </StyledTextField>
+            </TextField>
             <span className='support-text'> {t('events.connections.txt-patternQuery2')} </span>
-            <TextFieldComp
+            <TextField
               id='threshold'
               className='number'
               name='threshold'
@@ -825,7 +791,7 @@ class QueryOpenSave extends Component {
 
       return (
         <div>
-          <StyledTextField
+          <TextField
             className='query-name dropdown'
             select
             label={t('events.connections.txt-queryName')}
@@ -835,7 +801,7 @@ class QueryOpenSave extends Component {
             value={queryData.id}
             onChange={this.handleQueryChange.bind(this, 'id')}>
             {displayList}
-          </StyledTextField>
+          </TextField>
 
           {queryDataList && queryDataList.length > 0 &&
             <div className='filter-group'>
@@ -900,7 +866,7 @@ class QueryOpenSave extends Component {
       return (
         <div>
           <div className='query-options'>
-            <StyledTextField
+            <TextField
               className='query-name dropdown'
               select
               label={t('events.connections.txt-queryName')}
@@ -912,10 +878,10 @@ class QueryOpenSave extends Component {
               onChange={this.handleQueryChange.bind(this, 'id')}>
               <MenuItem value={'new'}>{t('events.connections.txt-addQuery')}</MenuItem>
               {displayList}
-            </StyledTextField>
+            </TextField>
 
             {dropDownValue === 'new' &&
-              <TextFieldComp
+              <TextField
                 className='query-name'
                 label={t('txt-name')}
                 variant='outlined'

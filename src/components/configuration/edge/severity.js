@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
 import { withRouter } from 'react-router'
 import { NavLink, Link, Route } from 'react-router-dom'
-import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
@@ -32,39 +31,6 @@ const ALERT_LEVEL_COLORS = {
   Warning: '#29CC7A',
   Notice: '#7ACC29'
 };
-
-const StyledTextField = withStyles({
-  root: {
-    backgroundColor: '#fff',
-    '& .Mui-disabled': {
-      backgroundColor: '#f2f2f2'
-    }
-  }
-})(TextField);
-
-function TextFieldComp(props) {
-  return (
-    <StyledTextField
-      id={props.id}
-      className={props.className}
-      name={props.name}
-      type={props.type}
-      label={props.label}
-      multiline={props.multiline}
-      rows={props.rows}
-      maxLength={props.maxLength}
-      variant={props.variant}
-      fullWidth={props.fullWidth}
-      size={props.size}
-      InputProps={props.InputProps}
-      required={props.required}
-      error={props.required}
-      helperText={props.helperText}
-      value={props.value}
-      onChange={props.onChange}
-      disabled={props.disabled} />
-  )
-}
 
 /**
  * Severity
@@ -290,7 +256,7 @@ class Severity extends Component {
             }
           </header>
           <div className='group'>
-            <TextFieldComp
+            <TextField
               id='severityType'
               name='type'
               label={f('severityTableFields.dataSourceType')}
@@ -303,7 +269,7 @@ class Severity extends Component {
           </div>
           <div className='group severity-level'>
             <i className='fg fg-recode' style={{color: ALERT_LEVEL_COLORS[severity.info.severity]}}></i>
-            <StyledTextField
+            <TextField
               id='severityLevel'
               name='severity'
               select
@@ -314,10 +280,10 @@ class Severity extends Component {
               onChange={this.handleDataChange}
               disabled={activeContent === 'viewSeverity'}>
               {severityList}
-            </StyledTextField>
+            </TextField>
           </div>
           <div className='group'>
-            <TextFieldComp
+            <TextField
               id='severityNickname'
               name='nickname'
               label={f('severityTableFields.nickname')}
@@ -329,7 +295,7 @@ class Severity extends Component {
               disabled={activeContent === 'viewSeverity' || activeContent === 'editSeverity'} />
           </div>
           <div className='group'>
-            <TextFieldComp
+            <TextField
               id='severityDescription'
               name='description'
               label={f('severityTableFields.description')}
@@ -490,7 +456,7 @@ class Severity extends Component {
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group'>
-            <TextFieldComp
+            <TextField
               id='severityType'
               label={f('severityTableFields.dataSourceType')}
               variant='outlined'

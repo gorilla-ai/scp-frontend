@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
-import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
@@ -27,39 +26,6 @@ const NOT_AVAILABLE = 'N/A';
 
 let t = null;
 let et = null;
-
-const StyledTextField = withStyles({
-  root: {
-    backgroundColor: '#fff',
-    '& .Mui-disabled': {
-      backgroundColor: '#f2f2f2'
-    }
-  }
-})(TextField);
-
-function TextFieldComp(props) {
-  return (
-    <StyledTextField
-      id={props.id}
-      className={props.className}
-      name={props.name}
-      type={props.type}
-      label={props.label}
-      multiline={props.multiline}
-      rows={props.rows}
-      maxLength={props.maxLength}
-      variant={props.variant}
-      fullWidth={props.fullWidth}
-      size={props.size}
-      InputProps={props.InputProps}
-      required={props.required}
-      error={props.required}
-      helperText={props.helperText}
-      value={props.value}
-      onChange={props.onChange}
-      disabled={props.disabled} />
-  )
-}
 
 /**
  * Config Topology Map
@@ -687,7 +653,7 @@ class NetworkMap extends Component {
   displayAddNewSeat = () => {
     return (
       <div className='add-seat'>
-        <TextFieldComp
+        <TextField
           id='addSeat'
           name='name'
           label={t('txt-name')}
@@ -970,7 +936,7 @@ class NetworkMap extends Component {
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group'>
-            <TextFieldComp
+            <TextField
               id='MAPkeyword'
               name='keyword'
               label={t('ipFields.keyword')}
@@ -981,7 +947,7 @@ class NetworkMap extends Component {
               onChange={this.handleSearchChange} />
           </div>
           <div className='group'>
-            <StyledTextField
+            <TextField
               id='MAPsystem'
               name='system'
               select
@@ -994,10 +960,10 @@ class NetworkMap extends Component {
               onChange={this.handleSearchChange}>
               <MenuItem value={'all'}>{t('txt-all')}</MenuItem>
               {list.system}
-            </StyledTextField>
+            </TextField>
           </div>
           <div className='group'>
-            <StyledTextField
+            <TextField
               id='MAPdevice'
               name='deviceType'
               select
@@ -1010,7 +976,7 @@ class NetworkMap extends Component {
               onChange={this.handleSearchChange}>
               <MenuItem value={'all'}>{t('txt-all')}</MenuItem>
               {list.deviceType}
-            </StyledTextField>
+            </TextField>
           </div>
         </div>
         <div className='button-group'>

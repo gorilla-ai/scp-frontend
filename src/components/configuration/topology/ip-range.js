@@ -1,43 +1,9 @@
 import React, { Component } from 'react'
-import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
-
-const StyledTextField = withStyles({
-  root: {
-    backgroundColor: '#fff',
-    '& .Mui-disabled': {
-      backgroundColor: '#f2f2f2'
-    }
-  }
-})(TextField);
-
-function TextFieldComp(props) {
-  return (
-    <StyledTextField
-      id={props.id}
-      className={props.className}
-      name={props.name}
-      type={props.type}
-      label={props.label}
-      multiline={props.multiline}
-      rows={props.rows}
-      maxLength={props.maxLength}
-      variant={props.variant}
-      fullWidth={props.fullWidth}
-      size={props.size}
-      InputProps={props.InputProps}
-      required={props.required}
-      error={props.required}
-      helperText={props.helperText}
-      value={props.value}
-      onChange={props.onChange}
-      disabled={props.disabled} />
-  )
-}
 
 /**
  * Config Inventory auto settings IP Range
@@ -65,7 +31,7 @@ class IpRange extends Component {
 
     return (
       <div className='group-content'>
-        <StyledTextField
+        <TextField
           className='ip-range'
           name='type'
           select
@@ -77,8 +43,8 @@ class IpRange extends Component {
           disabled={activeContent === 'viewMode'}>
           <MenuItem value={'private'}>Private</MenuItem>
           <MenuItem value={'public'}>Public</MenuItem>
-        </StyledTextField>
-        <TextFieldComp
+        </TextField>
+        <TextField
           className='ip-range'
           name='ip'
           variant='outlined'
@@ -86,7 +52,7 @@ class IpRange extends Component {
           value={value.ip}
           onChange={this.handleDataChange}
           disabled={activeContent === 'viewMode'} />
-        <TextFieldComp
+        <TextField
           className='ip-range'
           name='mask'
           variant='outlined'

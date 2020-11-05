@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
-import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import Moment from 'moment'
 import _ from 'lodash'
@@ -82,39 +81,6 @@ const MAPS_PRIVATE_DATA = {
 let t = null;
 let f = null;
 let et = null;
-
-const StyledTextField = withStyles({
-  root: {
-    backgroundColor: '#fff',
-    '& .Mui-disabled': {
-      backgroundColor: '#f2f2f2'
-    }
-  }
-})(TextField);
-
-function TextFieldComp(props) {
-  return (
-    <StyledTextField
-      id={props.id}
-      className={props.className}
-      name={props.name}
-      type={props.type}
-      label={props.label}
-      multiline={props.multiline}
-      rows={props.rows}
-      maxLength={props.maxLength}
-      variant={props.variant}
-      fullWidth={props.fullWidth}
-      size={props.size}
-      InputProps={props.InputProps}
-      required={props.required}
-      error={props.required}
-      helperText={props.helperText}
-      value={props.value}
-      onChange={props.onChange}
-      disabled={props.disabled} />
-  )
-}
 
 /**
  * Network Topology Inventory
@@ -1052,7 +1018,7 @@ class NetworkInventory extends Component {
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group'>
-            <TextFieldComp
+            <TextField
               id='deviceSearchIP'
               name='ip'
               label={t('ipFields.ip')}
@@ -1063,7 +1029,7 @@ class NetworkInventory extends Component {
               onChange={this.handleDeviceSearch} />
           </div>
           <div className='group'>
-            <TextFieldComp
+            <TextField
               id='deviceSearchMac'
               name='mac'
               label={t('ipFields.mac')}
@@ -1074,7 +1040,7 @@ class NetworkInventory extends Component {
               onChange={this.handleDeviceSearch} />
           </div>
           <div className='group'>
-            <TextFieldComp
+            <TextField
               id='deviceSearchHostName'
               name='hostName'
               label={t('ipFields.hostName')}
@@ -1085,7 +1051,7 @@ class NetworkInventory extends Component {
               onChange={this.handleDeviceSearch} />
           </div>
           <div className='group'>
-            <TextFieldComp
+            <TextField
               id='deviceSearchSystem'
               name='system'
               label={t('ipFields.system')}
@@ -1096,7 +1062,7 @@ class NetworkInventory extends Component {
               onChange={this.handleDeviceSearch} />
           </div>
           <div className='group'>
-            <TextFieldComp
+            <TextField
               id='deviceSearchOwner'
               name='owner'
               label={t('ipFields.owner')}
@@ -1107,7 +1073,7 @@ class NetworkInventory extends Component {
               onChange={this.handleDeviceSearch} />
           </div>
           <div className='group'>
-            <TextFieldComp
+            <TextField
               id='deviceSearchAreaName'
               name='areaName'
               label={t('ipFields.areaName')}
@@ -1118,7 +1084,7 @@ class NetworkInventory extends Component {
               onChange={this.handleDeviceSearch} />
           </div>
           <div className='group'>
-            <TextFieldComp
+            <TextField
               id='deviceSearchSeatName'
               name='seatName'
               label={t('ipFields.seatName')}
@@ -2937,7 +2903,7 @@ class NetworkInventory extends Component {
             <div className='form-group steps-address'>
               <header>{t('txt-ipAddress')}</header>
               <div className='group'>
-                <TextFieldComp
+                <TextField
                   id='addIPstepsIP'
                   name='ip'
                   label={t('ipFields.ip')}
@@ -2952,7 +2918,7 @@ class NetworkInventory extends Component {
                   disabled={formTypeEdit} />
               </div>
               <div className='group'>
-                <TextFieldComp
+                <TextField
                   id='addIPstepsIP'
                   name='mac'
                   label={t('ipFields.mac')}
@@ -2971,7 +2937,7 @@ class NetworkInventory extends Component {
             <div className='form-group steps-host'>
               <header>{t('alert.txt-systemInfo')}</header>
               <div className='group'>
-                <TextFieldComp
+                <TextField
                   id='addIPstepsHostname'
                   name='hostName'
                   label={t('ipFields.hostName')}
@@ -2983,7 +2949,7 @@ class NetworkInventory extends Component {
                   disabled={hostNameReadyOnly} />
               </div>
               <div className='group'>
-                <TextFieldComp
+                <TextField
                   id='addIPstepsHostID'
                   name='hostID'
                   label={t('ipFields.hostID')}
@@ -2994,7 +2960,7 @@ class NetworkInventory extends Component {
                   disabled={true} />
               </div>
               <div className='group'>
-                <TextFieldComp
+                <TextField
                   id='addIPstepsSystem'
                   name='system'
                   label={t('ipFields.system')}
@@ -3006,7 +2972,7 @@ class NetworkInventory extends Component {
                   disabled={currentDeviceData.isHmd} />
               </div>
               <div className='group'>
-                <TextFieldComp
+                <TextField
                   id='addIPstepsDeviceType'
                   name='deviceType'
                   label={t('ipFields.deviceType')}
@@ -3018,7 +2984,7 @@ class NetworkInventory extends Component {
                   disabled={currentDeviceData.isHmd} />
               </div>
               <div className='group'>
-                <TextFieldComp
+                <TextField
                   id='addIPstepsUser'
                   name='userName'
                   label={t('ipFields.userAccount')}
@@ -3030,7 +2996,7 @@ class NetworkInventory extends Component {
                   disabled={currentDeviceData.isHmd} />
               </div>
               <div className='group'>
-                <TextFieldComp
+                <TextField
                   id='addIPstepsCPU'
                   name='cpu'
                   label={t('txt-cpu')}
@@ -3042,7 +3008,7 @@ class NetworkInventory extends Component {
                   disabled={currentDeviceData.isHmd} />
               </div>
               <div className='group'>
-                <TextFieldComp
+                <TextField
                   id='addIPstepsRam'
                   name='ram'
                   label={t('txt-ram')}
@@ -3054,7 +3020,7 @@ class NetworkInventory extends Component {
                   disabled={currentDeviceData.isHmd} />
               </div>
               <div className='group'>
-                <TextFieldComp
+                <TextField
                   id='addIPstepsDisks'
                   name='disks'
                   label={t('txt-disks')}
@@ -3068,7 +3034,7 @@ class NetworkInventory extends Component {
                   disabled={currentDeviceData.isHmd} />
               </div>
               <div className='group'>
-                <TextFieldComp
+                <TextField
                   id='addIPstepsFolders'
                   name='shareFolders'
                   label={t('txt-shareFolders')}
@@ -3150,7 +3116,7 @@ class NetworkInventory extends Component {
               <div className='user-info'>
                 {ownerType === 'existing' && !_.isEmpty(ownerList) &&
                   <div className='group'>
-                    <StyledTextField
+                    <TextField
                       id='addIPstepsOwnerName'
                       label={t('ownerFields.ownerName')}
                       select
@@ -3160,12 +3126,12 @@ class NetworkInventory extends Component {
                       value={addIP.ownerUUID}
                       onChange={this.handleOwnerChange}>
                       {ownerListDropDown}
-                    </StyledTextField>
+                    </TextField>
                   </div>
                 }
                 {ownerType === 'new' &&
                   <div className='group'>
-                    <TextFieldComp
+                    <TextField
                       id='addIPstepsOwnerName'
                       name='newOwnerName'
                       label={t('ownerFields.ownerName')}
@@ -3181,7 +3147,7 @@ class NetworkInventory extends Component {
                 }
                 {ownerType === 'existing' && !_.isEmpty(ownerList) &&
                   <div className='group'>
-                    <TextFieldComp
+                    <TextField
                       id='addIPstepsOwnerID'
                       name='ownerID'
                       label={t('ownerFields.ownerID')}
@@ -3194,7 +3160,7 @@ class NetworkInventory extends Component {
                 }
                 {ownerType === 'new' &&
                   <div className='group'>
-                    <TextFieldComp
+                    <TextField
                       id='addIPstepsOwnerID'
                       name='newOwnerID'
                       label={t('ownerFields.ownerID')}
@@ -3210,7 +3176,7 @@ class NetworkInventory extends Component {
                 }
                 {ownerType === 'existing' && !_.isEmpty(ownerList) &&
                   <div className='group'>
-                    <TextFieldComp
+                    <TextField
                       id='addIPstepsDepartment'
                       name='department'
                       label={t('ownerFields.department')}
@@ -3223,7 +3189,7 @@ class NetworkInventory extends Component {
                 }
                 {ownerType === 'new' &&
                   <div className='group'>
-                    <StyledTextField
+                    <TextField
                       id='addIPstepsDepartment'
                       name='newDepartment'
                       label={t('ownerFields.department')}
@@ -3234,12 +3200,12 @@ class NetworkInventory extends Component {
                       value={addIP.newDepartment}
                       onChange={this.handleSelectionChange}>
                       {departmentList}
-                    </StyledTextField>
+                    </TextField>
                   </div>
                 }
                 {ownerType === 'existing' && !_.isEmpty(ownerList) &&
                   <div className='group'>
-                    <TextFieldComp
+                    <TextField
                       id='addIPstepsTitle'
                       name='title'
                       label={t('ownerFields.title')}
@@ -3252,7 +3218,7 @@ class NetworkInventory extends Component {
                 }
                 {ownerType === 'new' &&
                   <div className='group'>
-                    <StyledTextField
+                    <TextField
                       id='addIPstepsTitle'
                       name='newTitle'
                       label={t('ownerFields.title')}
@@ -3263,7 +3229,7 @@ class NetworkInventory extends Component {
                       value={addIP.newTitle}
                       onChange={this.handleSelectionChange}>
                       {titleList}
-                    </StyledTextField>
+                    </TextField>
                   </div>
                 }
               </div>
@@ -3478,7 +3444,7 @@ class NetworkInventory extends Component {
   displayAddSeat = () => {
     return (
       <div className='add-seat'>
-        <TextFieldComp
+        <TextField
           id='deviceSearchIP'
           name='name'
           label={t('txt-name')}
@@ -3736,7 +3702,7 @@ class NetworkInventory extends Component {
                     </div>
                     <section className='csv-dropdown'>
                       <div className='group'>
-                        <StyledTextField
+                        <TextField
                           id='csvColumnIP'
                           name='ip'
                           label={t('ipFields.ip')}
@@ -3750,10 +3716,10 @@ class NetworkInventory extends Component {
                           value={csvColumns.ip}
                           onChange={this.handleColumnChange}>
                           {csvHeaderList}
-                        </StyledTextField>
+                        </TextField>
                       </div>
                       <div className='group'>
-                        <StyledTextField
+                        <TextField
                           id='csvColumnMac'
                           name='mac'
                           label={t('ipFields.mac')}
@@ -3764,10 +3730,10 @@ class NetworkInventory extends Component {
                           value={csvColumns.mac}
                           onChange={this.handleColumnChange}>
                           {csvHeaderList}
-                        </StyledTextField>
+                        </TextField>
                       </div>
                       <div className='group'>
-                        <StyledTextField
+                        <TextField
                           id='csvColumnHost'
                           name='hostName'
                           label={t('ipFields.hostName')}
@@ -3778,7 +3744,7 @@ class NetworkInventory extends Component {
                           value={csvColumns.hostName}
                           onChange={this.handleColumnChange}>
                           {csvHeaderList}
-                        </StyledTextField>
+                        </TextField>
                       </div>
                     </section>
 

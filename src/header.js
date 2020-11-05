@@ -33,13 +33,19 @@ class Header extends Component {
     super(props);
 
     this.state = {
-      theme: 'light'
+      theme: ''
     };
 
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    this.getUserConfig();
+    this.setTheme();
+    //this.getUserConfig();
+  }
+  setTheme = () => {
+    this.setState({
+      theme: this.props.themeName
+    });
   }
   /**
    * Get and set user config for site theme
@@ -123,6 +129,8 @@ class Header extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+
+    this.props.setThemeName(theme);
 
     document.documentElement.setAttribute('data-theme', theme);
   }

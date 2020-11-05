@@ -1,5 +1,4 @@
 import React, {Component} from 'react'
-import { withStyles } from '@material-ui/core/styles';
 import _ from 'lodash'
 import i18n from 'i18next'
 import PropTypes from 'prop-types';
@@ -8,7 +7,11 @@ import im from 'object-path-immutable'
 import queryString from 'query-string'
 
 import Checkbox from '@material-ui/core/Checkbox';
+import FormLabel from '@material-ui/core/FormLabel';
+import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormGroup from '@material-ui/core/FormGroup';
+import FormHelperText from '@material-ui/core/FormHelperText';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 
@@ -38,42 +41,12 @@ const INITIAL_STATE = {
   formValidation: {
     name: {
       valid: true
+    },
+    privileges: {
+      valid: true
     }
   }
 };
-
-const StyledTextField = withStyles({
-  root: {
-    backgroundColor: '#fff',
-    '& .Mui-disabled': {
-      backgroundColor: '#f2f2f2'
-    }
-  }
-})(TextField);
-
-function TextFieldComp(props) {
-  return (
-    <StyledTextField
-      id={props.id}
-      className={props.className}
-      name={props.name}
-      type={props.type}
-      label={props.label}
-      multiline={props.multiline}
-      rows={props.rows}
-      maxLength={props.maxLength}
-      variant={props.variant}
-      fullWidth={props.fullWidth}
-      size={props.size}
-      InputProps={props.InputProps}
-      required={props.required}
-      error={props.required}
-      helperText={props.helperText}
-      value={props.value}
-      onChange={props.onChange}
-      disabled={props.disabled} />
-  )
-}
 
 /**
  * Account Privileges Edit
@@ -169,6 +142,9 @@ class PrivilegeEdit extends Component {
       formValidation: {
         name: {
           valid: true
+        },
+        privileges: {
+          valid: true
         }
       }
     });
@@ -196,6 +172,13 @@ class PrivilegeEdit extends Component {
       tempFormValidation.name.valid = true;
     } else {
       tempFormValidation.name.valid = false;
+      validate = false;
+    }
+
+    if (permitsSelected.length > 0) {
+      tempFormValidation.privileges.valid = true;
+    } else {
+      tempFormValidation.privileges.valid = false;
       validate = false;
     }
 
@@ -277,19 +260,17 @@ class PrivilegeEdit extends Component {
    */
   getRoleList = (val, i) => {
     return (
-      <div className='option' key={i}>
-        <FormControlLabel
-          key={i}
-          label={val.text}
-          control={
-            <Checkbox
-              className='checkbox-ui'
-              name={val.value}
-              checked={this.checkSelectedItem(val.value)}
-              onChange={this.toggleCheckbox}
-              color='primary' />
-          } />
-      </div>
+      <FormControlLabel
+        key={i}
+        label={val.text}
+        control={
+          <Checkbox
+            className='checkbox-ui'
+            name={val.value}
+            checked={this.checkSelectedItem(val.value)}
+            onChange={this.toggleCheckbox}
+            color='primary' />
+        } />
     )
   }
   /**
@@ -302,7 +283,7 @@ class PrivilegeEdit extends Component {
 
     return (
       <div className='c-form'>
-        <TextFieldComp
+        <TextField
           className='role-name'
           name='name'
           label={t('l-name')}
@@ -314,9 +295,16 @@ class PrivilegeEdit extends Component {
           helperText={formValidation.name.valid ? '' : c('txt-required')}
           value={name}
           onChange={this.handleDataChange} />
-
         <div className='group'>
-          {permitsList.map(this.getRoleList)}
+          <FormControl
+            required
+            error={!formValidation.privileges.valid}>
+            <FormLabel>{c('txt-privileges')}</FormLabel>
+            <FormGroup>
+              {permitsList.map(this.getRoleList)}
+            </FormGroup>
+            <FormHelperText>{formValidation.privileges.valid ? '' : c('txt-required')}</FormHelperText>
+          </FormControl>
         </div>
       </div>
     )

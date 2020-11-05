@@ -1,6 +1,5 @@
 import React, { Component } from 'react'
 import { withRouter } from 'react-router'
-import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import Moment from 'moment'
 import moment from 'moment-timezone'
@@ -57,39 +56,6 @@ const ALL_TAB_DATA = {
   cert: 'Certification',
   ftp: 'FTP'
 };
-
-const StyledTextField = withStyles({
-  root: {
-    backgroundColor: '#fff',
-    '& .Mui-disabled': {
-      backgroundColor: '#f2f2f2'
-    }
-  }
-})(TextField);
-
-function TextFieldComp(props) {
-  return (
-    <StyledTextField
-      id={props.id}
-      className={props.className}
-      name={props.name}
-      type={props.type}
-      label={props.label}
-      multiline={props.multiline}
-      rows={props.rows}
-      maxLength={props.maxLength}
-      variant={props.variant}
-      fullWidth={props.fullWidth}
-      size={props.size}
-      InputProps={props.InputProps}
-      required={props.required}
-      error={props.required}
-      helperText={props.helperText}
-      value={props.value}
-      onChange={props.onChange}
-      disabled={props.disabled} />
-  )
-}
 
 /**
  * Events Netflow
@@ -2112,7 +2078,7 @@ class Netflow extends Component {
           </div>
           <div className='data'>
             {str &&
-              <TextFieldComp
+              <TextField
                 multiline={true}
                 variant='outlined'
                 fullWidth={true}
@@ -2321,7 +2287,7 @@ class Netflow extends Component {
 
     return (
       <div>
-        <TextFieldComp
+        <TextField
           id='tagMemo'
           className='add'
           label={memoText}

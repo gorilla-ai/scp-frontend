@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
 import { withRouter } from 'react-router'
 import { NavLink, Link, Route } from 'react-router-dom'
-import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
@@ -33,39 +32,6 @@ const ALERT_LEVEL_COLORS = {
   Notice: '#7ACC29'
 };
 const PERIOD_MIN = [10, 15, 30, 60];
-
-const StyledTextField = withStyles({
-  root: {
-    backgroundColor: '#fff',
-    '& .Mui-disabled': {
-      backgroundColor: '#f2f2f2'
-    }
-  }
-})(TextField);
-
-function TextFieldComp(props) {
-  return (
-    <StyledTextField
-      id={props.id}
-      className={props.className}
-      name={props.name}
-      type={props.type}
-      label={props.label}
-      multiline={props.multiline}
-      rows={props.rows}
-      maxLength={props.maxLength}
-      variant={props.variant}
-      fullWidth={props.fullWidth}
-      size={props.size}
-      InputProps={props.InputProps}
-      required={props.required}
-      error={props.required}
-      helperText={props.helperText}
-      value={props.value}
-      onChange={props.onChange}
-      disabled={props.disabled} />
-  )
-}
 
 /**
  * Pattern
@@ -347,7 +313,7 @@ class Pattern extends Component {
             }
           </header>
           <div className='group'>
-            <TextFieldComp
+            <TextField
               id='patternName'
               name='name'
               label={f('syslogPatternTableFields.patternName')}
@@ -363,7 +329,7 @@ class Pattern extends Component {
           </div>
           <div className='group severity-level'>
             <i className='fg fg-recode' style={{color: ALERT_LEVEL_COLORS[pattern.info.severity]}}></i>
-            <StyledTextField
+            <TextField
               id='severityLevel'
               name='severity'
               select
@@ -374,10 +340,10 @@ class Pattern extends Component {
               onChange={this.handleDataChange}
               disabled={activeContent === 'viewPattern'}>
               {severityList}
-            </StyledTextField>
+            </TextField>
           </div>
           <div className='group full'>
-            <TextFieldComp
+            <TextField
               id='queryScript'
               name='queryScript'
               label={f('syslogPatternTableFields.queryScript')}
@@ -397,7 +363,7 @@ class Pattern extends Component {
           <div className='group full'>
             <div className='period'>
               <span className='support-text'>{t('events.connections.txt-patternQuery1')} </span>
-              <StyledTextField
+              <TextField
                 className='number'
                 name='periodMin'
                 select
@@ -408,9 +374,9 @@ class Pattern extends Component {
                 onChange={this.handleDataChange}
                 disabled={activeContent === 'viewPattern'}>
                 {periodMinList}
-              </StyledTextField>
+              </TextField>
               <span className='support-text'> {t('events.connections.txt-patternQuery2')} </span>
-              <TextFieldComp
+              <TextField
                 id='threshold'
                 className='number'
                 name='threshold'
@@ -686,7 +652,7 @@ class Pattern extends Component {
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group'>
-            <TextFieldComp
+            <TextField
               id='patternSearchName'
               name='name'
               label={f('syslogPatternTableFields.patternName')}
@@ -697,7 +663,7 @@ class Pattern extends Component {
               onChange={this.handlePatternSearch} />
           </div>
           <div className='group'>
-            <TextFieldComp
+            <TextField
               id='patternSearchQueryScript'
               name='queryScript'
               label={f('syslogPatternTableFields.queryScript')}

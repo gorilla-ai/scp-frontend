@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 import cx from 'classnames'
@@ -10,36 +9,6 @@ import helper from './helper'
 
 let t = null;
 let et = null;
-
-const StyledTextField = withStyles({
-  root: {
-    backgroundColor: '#fff'
-  }
-})(TextField);
-
-function TextFieldComp(props) {
-  return (
-    <StyledTextField
-      id={props.id}
-      className={props.className}
-      name={props.name}
-      type={props.type}
-      label={props.label}
-      multiline={props.multiline}
-      rows={props.rows}
-      maxLength={props.maxLength}
-      variant={props.variant}
-      fullWidth={props.fullWidth}
-      size={props.size}
-      InputProps={props.InputProps}
-      required={props.required}
-      error={props.required}
-      helperText={props.helperText}
-      value={props.value}
-      onChange={props.onChange}
-      disabled={props.disabled} />
-  )
-}
 
 /**
  * Input Path
@@ -93,7 +62,7 @@ class InputPath extends Component {
 
     return (
       <div className={cx('path-input', {'short': listType === 'processKeyword'})}>
-        <TextFieldComp
+        <TextField
           {...inputProps} />
       </div>
     )

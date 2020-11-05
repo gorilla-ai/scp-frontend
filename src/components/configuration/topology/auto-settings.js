@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
-import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
@@ -29,39 +28,6 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null;
 let et = null;
-
-const StyledTextField = withStyles({
-  root: {
-    backgroundColor: '#fff',
-    '& .Mui-disabled': {
-      backgroundColor: '#f2f2f2'
-    }
-  }
-})(TextField);
-
-function TextFieldComp(props) {
-  return (
-    <StyledTextField
-      id={props.id}
-      className={props.className}
-      name={props.name}
-      type={props.type}
-      label={props.label}
-      multiline={props.multiline}
-      rows={props.rows}
-      maxLength={props.maxLength}
-      variant={props.variant}
-      fullWidth={props.fullWidth}
-      size={props.size}
-      InputProps={props.InputProps}
-      required={props.required}
-      error={props.required}
-      helperText={props.helperText}
-      value={props.value}
-      onChange={props.onChange}
-      disabled={props.disabled} />
-  )
-}
 
 /**
  * Network Topology Inventory Auto Settings
@@ -731,7 +697,7 @@ class AutoSettings extends Component {
                   disabled={activeContent === 'viewMode'} />
               </div>
               <div className='group'>
-                <TextFieldComp
+                <TextField
                   id='autoSettingsIP'
                   name='ip'
                   label='IP'
@@ -745,7 +711,7 @@ class AutoSettings extends Component {
                   disabled={activeContent === 'viewMode'} />
               </div>
               <div className='group'>
-                <TextFieldComp
+                <TextField
                   id='autoSettingsPort'
                   name='port'
                   type='number'
@@ -758,7 +724,7 @@ class AutoSettings extends Component {
                   disabled={activeContent === 'viewMode'} />
               </div>
               <div className='group' style={{width: '50%'}}>
-                <TextFieldComp
+                <TextField
                   id='autoSettingsDomain'
                   name='domain'
                   label={t('txt-domain')}
@@ -770,7 +736,7 @@ class AutoSettings extends Component {
                   disabled={activeContent === 'viewMode'} />
               </div>
               <div className='group' style={{width: '50%'}}>
-                <TextFieldComp
+                <TextField
                   id='autoSettingsUsername'
                   name='username'
                   label={t('network-inventory.auto-settings.txt-username')}
@@ -782,7 +748,7 @@ class AutoSettings extends Component {
                   disabled={activeContent === 'viewMode'} />
               </div>
               <div className='group' style={{width: '50%'}}>
-                <TextFieldComp
+                <TextField
                   id='autoSettingsPassword'
                   name='password'
                   type='password'
@@ -813,7 +779,7 @@ class AutoSettings extends Component {
                   disabled={activeContent === 'viewMode'} />
               </div>
               <div className='group'>
-                <StyledTextField
+                <TextField
                   id='autoSettingsNetflow'
                   name='type'
                   label={t('txt-updateTime')}
@@ -824,7 +790,7 @@ class AutoSettings extends Component {
                   value={netflowData.time}
                   disabled={activeContent === 'viewMode'}>
                   <MenuItem value={'24'}>{t('events.connections.txt-last24h')}</MenuItem>
-                </StyledTextField>
+                </TextField>
               </div>
             </div>
 

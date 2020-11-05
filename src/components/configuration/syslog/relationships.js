@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 
@@ -11,39 +10,6 @@ import DropDownList from 'react-ui/build/src/components/dropdown'
 
 let t = null;
 let et = null;
-
-const StyledTextField = withStyles({
-  root: {
-    backgroundColor: '#fff',
-    '& .Mui-disabled': {
-      backgroundColor: '#f2f2f2'
-    }
-  }
-})(TextField);
-
-function TextFieldComp(props) {
-  return (
-    <StyledTextField
-      id={props.id}
-      className={props.className}
-      name={props.name}
-      type={props.type}
-      label={props.label}
-      multiline={props.multiline}
-      rows={props.rows}
-      maxLength={props.maxLength}
-      variant={props.variant}
-      fullWidth={props.fullWidth}
-      size={props.size}
-      InputProps={props.InputProps}
-      required={props.required}
-      error={props.required}
-      helperText={props.helperText}
-      value={props.value}
-      onChange={props.onChange}
-      disabled={props.disabled} />
-  )
-}
 
 /**
  * Relationships
@@ -181,7 +147,7 @@ class Relationships extends Component {
       <div className='relationship'>
         <div className='up'>
           <div className='item'>
-            <StyledTextField
+            <TextField
               className={this.getSelectClass()}
               name='name'
               select
@@ -192,10 +158,10 @@ class Relationships extends Component {
               value={value.name}
               onChange={this.handleDataChange}>
               {nameOptions}
-            </StyledTextField>
+            </TextField>
           </div>
           <div className='item'>
-            <StyledTextField
+            <TextField
               className={this.getSelectClass()}
               name='srcNode'
               select
@@ -206,11 +172,11 @@ class Relationships extends Component {
               value={value.srcNode}
               onChange={this.handleDataChange}>
               {nodeList}
-            </StyledTextField>
+            </TextField>
           </div>
           <i className='fg fg-next' />
           <div className='item'>
-            <StyledTextField
+            <TextField
               className={this.getSelectClass()}
               name='dstNode'
               select
@@ -221,7 +187,7 @@ class Relationships extends Component {
               value={value.dstNode}
               onChange={this.handleDataChange}>
               {nodeList}
-            </StyledTextField>
+            </TextField>
           </div>
         </div>
         <div className='down'>

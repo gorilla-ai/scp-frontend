@@ -1,6 +1,11 @@
 import React from 'react'
 import {render} from 'react-dom'
 import {BrowserRouter, Route, Switch} from 'react-router-dom'
+import { ThemeProvider } from '@material-ui/core/styles';  
+import _ from 'lodash'
+
+import createDarkTheme from './theme/dark';
+import createDefaultTheme from './theme/default';
 
 import Promise from 'bluebird'
 import $ from 'jquery'
@@ -59,15 +64,18 @@ const year = Moment().year();
 const session = initialState.session;
 const log = logger(cfg.env, loglevel, cfg.log);
 const footerText = `Powered by ${companyName}. Copyright © ${companyName}. ${year} All Rights Reserved. ${cfg.version} For the best experience, use the latest version of Google Chrome`;
+let accountTheme = '';
 
 Highcharts.setOptions({
   colors: ['#069BDA', '#57C3D9', '#57D998', '#6CD957', '#C3D957', '#D99857', '#D9576C', '#D957C3', '#9857D9', '#576CD9', '#5798D9', '#57D9C3', '#57D96C', '#98D957', '#D9C357', '#D96C57', '#D95798', '#C357D9', '#6C57D9']
 });
 
-const HeaderComp = () => (
+const HeaderComp = (props) => (
   <BaseDataContext.Provider value={baseData}>
     <Header
-      productName={productName} />
+      productName={productName}
+      themeName={props.themeName}
+      setThemeName={props.setThemeName} />
   </BaseDataContext.Provider>
 )
 
@@ -237,7 +245,6 @@ const incidentLog = () => (
 );
 
 const Main = () => (
-
   <main className='main'>
     <Switch>
       <Route exact path='/SCP' component={DashboardOverviewComp} />
@@ -270,10 +277,22 @@ const Main = () => (
         <Route exact path='/SCP/soc/incident' component={incident}/>
     </Switch>
   </main>
+);
 
-)
+const createTheme = (themeName) => {
+  switch (themeName) {
+    case 'light':
+      return createDefaultTheme();
+    case 'dark':
+      return createDarkTheme();
+    default:
+      return createDefaultTheme();
+  }
+};
 
 const App = () => {
+  const [themeName, setThemeName] = React.useState(accountTheme);
+
   return (
     !session.accountId ? 
       <div>
@@ -286,11 +305,35 @@ const App = () => {
       </div>
     :
       <div>
-        <HeaderComp />
-        <Main />
-        <footer className='footer'>{footerText}</footer>
+        <ThemeProvider theme={createTheme(themeName)}>
+          <HeaderComp
+            themeName={themeName}
+            setThemeName={setThemeName} />
+          <Main />
+          <footer className='footer'>{footerText}</footer>
+        </ThemeProvider>
       </div>
   )
+};
+
+function getTheme() {
+  const url = `${cfg.apiPrefix}/api/account/theme?accountId=${session.accountId}`;
+
+  Promise.resolve($.get(url))
+    .then(data => {
+      if (data.rt) {
+        accountTheme = data.rt;
+
+        document.documentElement.setAttribute('data-theme', data.rt);
+      }
+    })
+    .catch(xhr => {
+      log.error(xhr)
+      return null;
+    })
+    .then(resources => {
+      start();
+    })
 }
 
 function start() {
@@ -374,4 +417,6 @@ function start() {
     })
 }
 
-start();
+getTheme();
+
+//start();

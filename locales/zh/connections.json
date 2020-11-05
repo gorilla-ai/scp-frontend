@@ -625,8 +625,8 @@
     "txt-removePhoto": "$t(txt-remove)$t(txt-photo)",
     "txt-fromSeat": "從$t(txt-seat)",
     "txt-selected-node": "選擇樓層節點",
-    "txt-ipValidationFail": "請輸入正確IP格式",
-    "txt-macValidationFail": "請輸入正確MAC格式",
+    "txt-ipValidationFail": "請輸入正確的IP格式",
+    "txt-macValidationFail": "請輸入正確的MAC格式",
     "txt-seatNameEmpty": "請輸入座位名稱",
     "txt-saveSuccess": "儲存成功",
 

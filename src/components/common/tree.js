@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import cx from 'classnames'
 
@@ -12,39 +11,6 @@ import helper from './helper'
 import Pagination from './pagination'
 
 let t = null;
-
-const StyledTextField = withStyles({
-  root: {
-    backgroundColor: '#fff',
-    '& .Mui-disabled': {
-      backgroundColor: '#f2f2f2'
-    }
-  }
-})(TextField);
-
-function TextFieldComp(props) {
-  return (
-    <StyledTextField
-      id={props.id}
-      className={props.className}
-      name={props.name}
-      type={props.type}
-      label={props.label}
-      multiline={props.multiline}
-      rows={props.rows}
-      maxLength={props.maxLength}
-      variant={props.variant}
-      fullWidth={props.fullWidth}
-      size={props.size}
-      InputProps={props.InputProps}
-      required={props.required}
-      error={props.required}
-      helperText={props.helperText}
-      value={props.value}
-      onChange={props.onChange}
-      disabled={props.disabled} />
-  )
-}
 
 /**
  * Tree
@@ -176,7 +142,7 @@ class Tree extends Component {
         {treeShowDropDown && tabData.length > 0 &&
           <div>
             <label htmlFor='analysisType' className={cx('header-text', {'hide': !showContent})}>{t('events.connections.txt-analysisType')}</label>
-            <StyledTextField
+            <TextField
               id='analysisType'
               className='analysis-type'
               select
@@ -186,7 +152,7 @@ class Tree extends Component {
               value={activeTab}
               onChange={this.props.handleTabChange}>
               {tabData}
-            </StyledTextField>
+            </TextField>
           </div>
         }
 

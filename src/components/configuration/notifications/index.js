@@ -1,6 +1,5 @@
 import React, {Component} from 'react'
 import { withRouter } from 'react-router'
-import { withStyles } from '@material-ui/core/styles';
 
 import { ReactMultiEmail } from 'react-multi-email';
 
@@ -23,39 +22,6 @@ import 'react-multi-email/style.css';
 
 let t = null;
 let et = null;
-
-const StyledTextField = withStyles({
-  root: {
-    backgroundColor: '#fff',
-    '& .Mui-disabled': {
-      backgroundColor: '#f2f2f2'
-    }
-  }
-})(TextField);
-
-function TextFieldComp(props) {
-  return (
-    <StyledTextField
-      id={props.id}
-      className={props.className}
-      name={props.name}
-      type={props.type}
-      label={props.label}
-      multiline={props.multiline}
-      rows={props.rows}
-      maxLength={props.maxLength}
-      variant={props.variant}
-      fullWidth={props.fullWidth}
-      size={props.size}
-      InputProps={props.InputProps}
-      required={props.required}
-      error={props.required}
-      helperText={props.helperText}
-      value={props.value}
-      onChange={props.onChange}
-      disabled={props.disabled} />
-  )
-}
 
 /**
  * Notifications
@@ -569,7 +535,7 @@ class Notifications extends Component {
                   <header>{t('notifications.txt-emailSettings')}</header>
                   <Button variant='contained' color='primary' className='last' onClick={this.openEmailDialog} disabled={activeContent === 'editMode'}>{t('notifications.txt-testEmails')}</Button>
                   <div className='group'>
-                    <TextFieldComp
+                    <TextField
                       id='notificationsServer'
                       name='server'
                       label={t('notifications.txt-smtpServer')}
@@ -581,7 +547,7 @@ class Notifications extends Component {
                       disabled={activeContent === 'viewMode'} />
                   </div>
                   <div className='group'>
-                    <StyledTextField
+                    <TextField
                       id='notificationsPort'
                       name='port'
                       select
@@ -595,10 +561,10 @@ class Notifications extends Component {
                       <MenuItem value={25}>25</MenuItem>
                       <MenuItem value={465}>465</MenuItem>
                       <MenuItem value={587}>587</MenuItem>
-                    </StyledTextField>
+                    </TextField>
                   </div>
                   <div className='group' style={{width: '50%'}}>
-                    <TextFieldComp
+                    <TextField
                       id='notificationsSender'
                       name='sender'
                       label={t('notifications.txt-sender')}
@@ -610,7 +576,7 @@ class Notifications extends Component {
                       disabled={activeContent === 'viewMode'} />
                   </div>
                   <div className='group'>
-                    <StyledTextField
+                    <TextField
                       id='notificationsSender'
                       name='connectType'
                       select
@@ -624,10 +590,10 @@ class Notifications extends Component {
                       <MenuItem value='standard'>standard</MenuItem>
                       <MenuItem value='ssl'>SSL</MenuItem>
                       <MenuItem value='tls'>TLS</MenuItem>
-                    </StyledTextField>
+                    </TextField>
                   </div>
                   <div className='group'>
-                    <StyledTextField
+                    <TextField
                       id='notificationsAuthentication'
                       name='authentication'
                       select
@@ -640,10 +606,10 @@ class Notifications extends Component {
                       disabled={activeContent === 'viewMode'}>
                       <MenuItem value={true}>True</MenuItem>
                       <MenuItem value={false}>False</MenuItem>
-                    </StyledTextField>
+                    </TextField>
                   </div>
                   <div className='group'>
-                    <TextFieldComp
+                    <TextField
                       id='notificationsSenderAccount'
                       name='senderAccount'
                       label={t('notifications.txt-senderAccount')}
@@ -655,7 +621,7 @@ class Notifications extends Component {
                       disabled={activeContent === 'viewMode'} />
                   </div>
                   <div className='group'>
-                    <TextFieldComp
+                    <TextField
                       id='notificationsSenderPassword'
                       name='senderPassword'
                       label={t('notifications.txt-senderPassword')}

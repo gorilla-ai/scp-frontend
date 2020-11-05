@@ -1,5 +1,4 @@
 import React, {Component} from 'react'
-import { withStyles } from '@material-ui/core/styles';
 import _ from 'lodash'
 import cx from 'classnames'
 import i18n from 'i18next'
@@ -73,39 +72,6 @@ const INITIAL_STATE = {
     }
   }
 };
-
-const StyledTextField = withStyles({
-  root: {
-    backgroundColor: '#fff',
-    '& .Mui-disabled': {
-      backgroundColor: '#f2f2f2'
-    }
-  }
-})(TextField);
-
-function TextFieldComp(props) {
-  return (
-    <StyledTextField
-      id={props.id}
-      className={props.className}
-      name={props.name}
-      type={props.type}
-      label={props.label}
-      multiline={props.multiline}
-      rows={props.rows}
-      maxLength={props.maxLength}
-      variant={props.variant}
-      fullWidth={props.fullWidth}
-      size={props.size}
-      InputProps={props.InputProps}
-      required={props.required}
-      error={props.required}
-      helperText={props.helperText}
-      value={props.value}
-      onChange={props.onChange}
-      disabled={props.disabled} />
-  )
-}
 
 /**
  * AccountEdit
@@ -302,7 +268,7 @@ class AccountEdit extends Component {
     return (
       <div className='account-form'>
         <div className='group'>
-          <TextFieldComp
+          <TextField
             name='account'
             label={t('l-account')}
             variant='outlined'
@@ -316,7 +282,7 @@ class AccountEdit extends Component {
             disabled={id} />
         </div>
         <div className='group'>
-          <TextFieldComp
+          <TextField
             name='name'
             label={t('l-name')}
             variant='outlined'
@@ -330,7 +296,7 @@ class AccountEdit extends Component {
         </div>
         {!showPrivileges &&
           <div className='group'>
-            <TextFieldComp
+            <TextField
               name='password'
               type='password'
               label={t('l-password')}
@@ -345,7 +311,7 @@ class AccountEdit extends Component {
           </div>
         }
         <div className='group'>
-          <TextFieldComp
+          <TextField
             name='email'
             label={t('l-email')}
             variant='outlined'
@@ -358,7 +324,7 @@ class AccountEdit extends Component {
             onChange={this.handleDataChange} />
         </div>
         <div className='group'>
-          <TextFieldComp
+          <TextField
             name='unit'
             label={t('l-unit')}
             variant='outlined'
@@ -371,7 +337,7 @@ class AccountEdit extends Component {
             onChange={this.handleDataChange} />
         </div>
         <div className='group'>
-          <TextFieldComp
+          <TextField
             name='title'
             label={t('l-title')}
             variant='outlined'
@@ -384,7 +350,7 @@ class AccountEdit extends Component {
             onChange={this.handleDataChange} />
         </div>
         <div className='group'>
-          <TextFieldComp
+          <TextField
             name='phone'
             label={t('l-phone')}
             variant='outlined'

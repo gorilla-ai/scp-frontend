@@ -2,7 +2,6 @@ import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import { withRouter } from 'react-router-dom'
 import { connect } from 'react-redux'
-import { withStyles } from '@material-ui/core/styles';
 import i18n from 'i18next'
 import cx from 'classnames'
 import _ from 'lodash'
@@ -26,39 +25,6 @@ const log = require('loglevel').getLogger('user/accounts')
 const c = i18n.getFixedT(null, 'connections');
 const t = i18n.getFixedT(null, 'accounts');
 const gt =  i18n.getFixedT(null, 'app');
-
-const StyledTextField = withStyles({
-  root: {
-    backgroundColor: '#fff',
-    '& .Mui-disabled': {
-      backgroundColor: '#f2f2f2'
-    }
-  }
-})(TextField);
-
-function TextFieldComp(props) {
-  return (
-    <StyledTextField
-      id={props.id}
-      className={props.className}
-      name={props.name}
-      type={props.type}
-      label={props.label}
-      multiline={props.multiline}
-      rows={props.rows}
-      maxLength={props.maxLength}
-      variant={props.variant}
-      fullWidth={props.fullWidth}
-      size={props.size}
-      InputProps={props.InputProps}
-      required={props.required}
-      error={props.required}
-      helperText={props.helperText}
-      value={props.value}
-      onChange={props.onChange}
-      disabled={props.disabled} />
-  )
-}
 
 /**
  * Account List
@@ -355,7 +321,7 @@ class AccountList extends Component {
 
     return (
       <div className='group'>
-        <TextFieldComp
+        <TextField
           id='resetPassword'
           name='newPassword'
           type='password'
@@ -510,7 +476,7 @@ class AccountList extends Component {
         <div className='header-text'>{c('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group'>
-            <TextFieldComp
+            <TextField
               id='account'
               name='account'
               label={t('l-account')}
@@ -521,7 +487,7 @@ class AccountList extends Component {
               onChange={this.handleSearchChange} />
           </div>
           <div className='group'>
-            <TextFieldComp
+            <TextField
               id='name'
               name='name'
               label={t('l-name')}

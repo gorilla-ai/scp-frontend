@@ -1,6 +1,5 @@
 import React, { Component } from 'react'
 import { withRouter } from 'react-router'
-import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import Moment from 'moment'
 import _ from 'lodash'
@@ -25,39 +24,6 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 let t = null;
 let et = null;
-
-const StyledTextField = withStyles({
-  root: {
-    backgroundColor: '#fff',
-    '& .Mui-disabled': {
-      backgroundColor: '#f2f2f2'
-    }
-  }
-})(TextField);
-
-function TextFieldComp(props) {
-  return (
-    <StyledTextField
-      id={props.id}
-      className={props.className}
-      name={props.name}
-      type={props.type}
-      label={props.label}
-      multiline={props.multiline}
-      rows={props.rows}
-      maxLength={props.maxLength}
-      variant={props.variant}
-      fullWidth={props.fullWidth}
-      size={props.size}
-      InputProps={props.InputProps}
-      required={props.required}
-      error={props.required}
-      helperText={props.helperText}
-      value={props.value}
-      onChange={props.onChange}
-      disabled={props.disabled} />
-  )
-}
 
 /**
  * Config Topology Owner
@@ -698,7 +664,7 @@ class NetworkOwner extends Component {
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group'>
-            <TextFieldComp
+            <TextField
               id='ownerName'
               name='name'
               label={t('ownerFields.ownerName')}
@@ -709,7 +675,7 @@ class NetworkOwner extends Component {
               onChange={this.handleSearchChange} />
           </div>
           <div className='group'>
-            <StyledTextField
+            <TextField
               id='ownerDept'
               name='department'
               select
@@ -721,10 +687,10 @@ class NetworkOwner extends Component {
               onChange={this.handleSearchChange}>
               <MenuItem value={'all'}>{t('txt-all')}</MenuItem>
               {departmentDropdown}
-            </StyledTextField>
+            </TextField>
           </div>
           <div className='group'>
-            <StyledTextField
+            <TextField
               id='ownerTitle'
               name='title'
               select
@@ -736,7 +702,7 @@ class NetworkOwner extends Component {
               onChange={this.handleSearchChange}>
               <MenuItem value={'all'}>{t('txt-all')}</MenuItem>
               {titleDropdown}
-            </StyledTextField>
+            </TextField>
           </div>
         </div>
         <div className='button-group'>
@@ -859,7 +825,7 @@ class NetworkOwner extends Component {
                   </div>
                   <div className='user-info'>
                     <div className='group'>
-                      <TextFieldComp
+                      <TextField
                         id='ownerName'
                         name='ownerName'
                         label={t('ownerFields.ownerName')}
@@ -873,7 +839,7 @@ class NetworkOwner extends Component {
                         onChange={this.handleDataChange} />
                     </div>
                     <div className='group'>
-                      <TextFieldComp
+                      <TextField
                         id='ownerID'
                         name='ownerID'
                         label={t('ownerFields.ownerID')}
@@ -887,7 +853,7 @@ class NetworkOwner extends Component {
                         onChange={this.handleDataChange} />
                     </div>
                     <div className='group'>
-                      <StyledTextField
+                      <TextField
                         id='ownerDepartment'
                         name='department'
                         select
@@ -898,10 +864,10 @@ class NetworkOwner extends Component {
                         value={owner.info.department}
                         onChange={this.handleDataChange}>
                         {departmentDropdown}
-                      </StyledTextField>
+                      </TextField>
                     </div>
                     <div className='group'>
-                      <StyledTextField
+                      <TextField
                         id='ownerTitle'
                         name='title'
                         select
@@ -912,7 +878,7 @@ class NetworkOwner extends Component {
                         value={owner.info.title}
                         onChange={this.handleDataChange}>
                         {titleDropdown}
-                      </StyledTextField>
+                      </TextField>
                     </div>
                   </div>
                 </div>

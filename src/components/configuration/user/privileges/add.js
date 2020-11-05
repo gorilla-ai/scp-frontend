@@ -1,5 +1,4 @@
 import React, {Component} from 'react'
-import { withStyles } from '@material-ui/core/styles';
 import _ from 'lodash'
 import i18n from 'i18next'
 import PropTypes from 'prop-types';
@@ -31,39 +30,6 @@ const INITIAL_STATE = {
     }
   }
 };
-
-const StyledTextField = withStyles({
-  root: {
-    backgroundColor: '#fff',
-    '& .Mui-disabled': {
-      backgroundColor: '#f2f2f2'
-    }
-  }
-})(TextField);
-
-function TextFieldComp(props) {
-  return (
-    <StyledTextField
-      id={props.id}
-      className={props.className}
-      name={props.name}
-      type={props.type}
-      label={props.label}
-      multiline={props.multiline}
-      rows={props.rows}
-      maxLength={props.maxLength}
-      variant={props.variant}
-      fullWidth={props.fullWidth}
-      size={props.size}
-      InputProps={props.InputProps}
-      required={props.required}
-      error={props.required}
-      helperText={props.helperText}
-      value={props.value}
-      onChange={props.onChange}
-      disabled={props.disabled} />
-  )
-}
 
 /**
  * Account Privileges Add
@@ -184,7 +150,7 @@ class PrivilegeAdd extends Component {
     const {name, formValidation} = this.state;
 
     return (
-      <TextFieldComp
+      <TextField
         name='name'
         label={c('txt-plsEnterName')}
         variant='outlined'

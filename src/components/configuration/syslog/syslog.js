@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
-import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
@@ -52,39 +51,6 @@ const INIT_CONFIG = {
     rawOptions: []
   }]
 };
-
-const StyledTextField = withStyles({
-  root: {
-    backgroundColor: '#fff',
-    '& .Mui-disabled': {
-      backgroundColor: '#f2f2f2'
-    }
-  }
-})(TextField);
-
-function TextFieldComp(props) {
-  return (
-    <StyledTextField
-      id={props.id}
-      className={props.className}
-      name={props.name}
-      type={props.type}
-      label={props.label}
-      multiline={props.multiline}
-      rows={props.rows}
-      maxLength={props.maxLength}
-      variant={props.variant}
-      fullWidth={props.fullWidth}
-      size={props.size}
-      InputProps={props.InputProps}
-      required={props.required}
-      error={props.required}
-      helperText={props.helperText}
-      value={props.value}
-      onChange={props.onChange}
-      disabled={props.disabled} />
-  )
-}
 
 /**
  * Syslog Management
@@ -1085,7 +1051,7 @@ class Syslog extends Component {
   displayEditPatternName = () => {
     return (
       <div className='parent'>
-        <TextFieldComp
+        <TextField
           id='syslogHostIP'
           name='loghostIp'
           label={t('syslogFields.txt-patternName')}
@@ -1296,7 +1262,7 @@ class Syslog extends Component {
     return (
       <div className='parent'>
         <div className='group'>
-          <TextFieldComp
+          <TextField
             name='ip'
             label={t('syslogFields.ip')}
             variant='outlined'
@@ -1310,7 +1276,7 @@ class Syslog extends Component {
             disabled={editHostsType === 'edit'} />
         </div>
         <div className='group'>
-          <TextFieldComp
+          <TextField
             name='name'
             label={t('syslogFields.name')}
             variant='outlined'
@@ -1545,7 +1511,7 @@ class Syslog extends Component {
         <div className='header-text'>{t('txt-filter')}</div>
         <div className='filter-section config'>
           <div className='group'>
-            <TextFieldComp
+            <TextField
               id='syslogName'
               name='name'
               label={t('syslogFields.name')}
@@ -1556,7 +1522,7 @@ class Syslog extends Component {
               onChange={this.handleSearchChange} />
           </div>
           <div className='group'>
-            <TextFieldComp
+            <TextField
               id='syslogLogHostIP'
               name='loghostip'
               label={t('syslogFields.txt-hostIP')}
@@ -1567,7 +1533,7 @@ class Syslog extends Component {
               onChange={this.handleSearchChange} />
           </div>
           <div className='group'>
-            <TextFieldComp
+            <TextField
               id='syslogPort'
               name='port'
               type='number'
@@ -1808,7 +1774,7 @@ class Syslog extends Component {
                   <div className='form-group normal'>
                     <header>{t('syslogFields.txt-syslogInfo')}</header>
                     <div className='group'>
-                      <TextFieldComp
+                      <TextField
                         id='syslogHostIP'
                         name='loghostIp'
                         label={t('syslogFields.ip')}
@@ -1823,7 +1789,7 @@ class Syslog extends Component {
                         disabled={editSyslogType === 'edit' || editSyslogType === 'edit-exist'} />
                     </div>
                     <div className='group'>
-                      <TextFieldComp
+                      <TextField
                         id='syslogName'
                         name='name'
                         label={t('syslogFields.name')}
@@ -1837,7 +1803,7 @@ class Syslog extends Component {
                         onChange={this.handleConfigChange.bind(this, '', 'form')} />
                     </div>
                     <div className='group'>
-                      <TextFieldComp
+                      <TextField
                         id='syslogReceivedPort'
                         name='port'
                         type='number'
@@ -1852,7 +1818,7 @@ class Syslog extends Component {
                         onChange={this.handleConfigChange.bind(this, '', 'form')} />
                     </div>
                     <div className='group'>
-                      <TextFieldComp
+                      <TextField
                         id='syslogDataFormat'
                         name='format'
                         label={t('syslogFields.format')}

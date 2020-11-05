@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 import cx from 'classnames'
@@ -7,39 +6,6 @@ import cx from 'classnames'
 import TextField from '@material-ui/core/TextField';
 
 import helper from './helper'
-
-const StyledTextField = withStyles({
-  root: {
-    backgroundColor: '#fff',
-    '& .Mui-disabled': {
-      backgroundColor: '#f2f2f2'
-    }
-  }
-})(TextField);
-
-function TextFieldComp(props) {
-  return (
-    <StyledTextField
-      id={props.id}
-      className={props.className}
-      name={props.name}
-      type={props.type}
-      label={props.label}
-      multiline={props.multiline}
-      rows={props.rows}
-      maxLength={props.maxLength}
-      variant={props.variant}
-      fullWidth={props.fullWidth}
-      size={props.size}
-      InputProps={props.InputProps}
-      required={props.required}
-      error={props.required}
-      helperText={props.helperText}
-      value={props.value}
-      onChange={props.onChange}
-      disabled={props.disabled} />
-  )
-}
 
 /**
  * Search Filter
@@ -79,7 +45,7 @@ class SearchMark extends Component {
     return (
       <div>
         <i className={'c-link fg fg-recode ' + value.color}></i>
-        <TextFieldComp
+        <TextField
           className='mark-inputbox'
           variant='outlined'
           fullWidth={true}

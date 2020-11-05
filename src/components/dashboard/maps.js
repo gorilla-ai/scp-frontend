@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
-import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import Moment from 'moment'
 import _ from 'lodash'
@@ -69,39 +68,6 @@ const MAPS_PRIVATE_DATA = {
   currentBaseLayers: {},
   seatData: {}
 };
-
-const StyledTextField = withStyles({
-  root: {
-    backgroundColor: '#fff',
-    '& .Mui-disabled': {
-      backgroundColor: '#f2f2f2'
-    }
-  }
-})(TextField);
-
-function TextFieldComp(props) {
-  return (
-    <StyledTextField
-      id={props.id}
-      className={props.className}
-      name={props.name}
-      type={props.type}
-      label={props.label}
-      multiline={props.multiline}
-      rows={props.rows}
-      maxLength={props.maxLength}
-      variant={props.variant}
-      fullWidth={props.fullWidth}
-      size={props.size}
-      InputProps={props.InputProps}
-      required={props.required}
-      error={props.required}
-      helperText={props.helperText}
-      value={props.value}
-      onChange={props.onChange}
-      disabled={props.disabled} />
-  )
-}
 
 /**
  * Dashboard Maps
@@ -887,7 +853,7 @@ class DashboardMaps extends Component {
               onChange={this.toggleMaps} />
 
             {floorList.length > 0 && mapType === PRIVATE &&
-              <StyledTextField
+              <TextField
                 className='drop-down'
                 select
                 variant='outlined'
@@ -895,7 +861,7 @@ class DashboardMaps extends Component {
                 value={currentFloor}
                 onChange={this.getAreaData}>
                 {floorList}
-              </StyledTextField>
+              </TextField>
             }
 
             {mapType === PRIVATE &&

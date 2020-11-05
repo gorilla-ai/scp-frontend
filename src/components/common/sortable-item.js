@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 
@@ -17,15 +16,6 @@ let f = null;
 const LONG_INPUT = ['_Raw', 'message', 'msg'];
 const TIME_FIELDS = ['@timestamp', 'firstPacket', 'lastPacket', 'timestamp', '_eventDttm_'];
 const DragHandle = SortableHandle(() => <i className='fg fg-menu flow'></i>);
-
-const StyledTextField = withStyles({
-  root: {
-    backgroundColor: '#fff',
-    '& .Mui-disabled': {
-      backgroundColor: '#f2f2f2'
-    }
-  }
-})(TextField);
 
 /**
  * Sortable Item

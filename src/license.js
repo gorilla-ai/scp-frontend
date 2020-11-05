@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
-import { withStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types'
 import Moment from 'moment'
 import _ from 'lodash'
@@ -18,39 +17,6 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 let t = null;
 let et = null;
 let lt = null;
-
-const StyledTextField = withStyles({
-  root: {
-    backgroundColor: '#fff',
-    '& .Mui-disabled': {
-      backgroundColor: '#f2f2f2'
-    }
-  }
-})(TextField);
-
-function TextFieldComp(props) {
-  return (
-    <StyledTextField
-      id={props.id}
-      className={props.className}
-      name={props.name}
-      type={props.type}
-      label={props.label}
-      multiline={props.multiline}
-      rows={props.rows}
-      maxLength={props.maxLength}
-      variant={props.variant}
-      fullWidth={props.fullWidth}
-      size={props.size}
-      InputProps={props.InputProps}
-      required={props.required}
-      error={props.required}
-      helperText={props.helperText}
-      value={props.value}
-      onChange={props.onChange}
-      disabled={props.disabled} />
-  )
-}
 
 class License extends Component {
   constructor(props, context) {
@@ -218,7 +184,7 @@ class License extends Component {
           {from === 'login' &&
             <div className='key'>
               <span>{lt('l-license-key')}:</span>
-              <TextFieldComp
+              <TextField
                 name='key'
                 variant='outlined'
                 fullWidth={true}
@@ -246,7 +212,7 @@ class License extends Component {
           {from === 'config' && showKeyInput &&
             <div className='key'>
               <span>{lt('l-new-license-key')}:</span>
-              <TextFieldComp
+              <TextField
                 name='key'
                 variant='outlined'
                 fullWidth={true}
