@@ -910,6 +910,10 @@ class HostController extends Component {
         color = '#e15b6b';
         title = displayTooltip += t('network-inventory.txt-taskFailure');
         displayContent = t('network-inventory.txt-taskFailure');
+      } else if (safetyData[0].taskStatus === 'NotSupport') {
+        color = '#e15b6b';
+        title = displayTooltip += t('network-inventory.txt-notSupport');
+        displayContent = t('network-inventory.txt-notSupport');
       } else if (safetyData[0].taskStatus === 'Complete') {
         if (val.name === 'GCB') {
           displayCount = helper.numberWithCommas(safetyData[0][val.pass]) + '/' + helper.numberWithCommas(safetyData[0].TotalCnt);
@@ -955,6 +959,7 @@ class HostController extends Component {
 
         context = <div className={`fg-bg ${os}`}></div>;
       } else if (val.name === 'version') {
+        context = <div className='fg-bg hmd'></div>;
         content = 'HMD v.' + content;
       }
 
@@ -1049,7 +1054,7 @@ class HostController extends Component {
       {
         name: 'hostName',
         path: 'hostName',
-        icon: 'host'
+        icon: 'box'
       },
       {
         name: 'mac',
@@ -1112,7 +1117,7 @@ class HostController extends Component {
         </div>
         <div className='info'>
           <ul className='c-link' onClick={this.getIPdeviceInfo.bind(this, val, 'toggle')}>
-            <li className='first' title={t('ipFields.ip')}><i className='fg fg-box-vemo'></i><span>{val.ip}</span></li>
+            <li className='first' title={t('ipFields.ip')}><div className='fg-bg ip'></div><span>{val.ip}</span></li>
             {infoList.map(this.getInfoList.bind(this, val))}
           </ul>
 

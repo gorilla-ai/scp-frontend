@@ -37,6 +37,7 @@ class Notifications extends Component {
       activeContent: 'viewMode', //viewMode, editMode
       openEmailDialog: false,
       testEmails: [],
+      info: '',
       originalNotifications: {},
       notifications: {
         server: '',
@@ -410,6 +411,7 @@ class Notifications extends Component {
         draggable={true}
         global={true}
         actions={actions}
+        info={this.state.info}
         closeAction='cancel'>
         {this.displayTestEmail()}
       </ModalDialog>
@@ -433,16 +435,19 @@ class Notifications extends Component {
       dataParams += '&receipts=' + val;
     })
 
-    this.ah.one({
+    ah.one({
       url: `${baseUrl}/api/notification/mailServer/_test?${dataParams}`,
       type: 'GET'
     })
     .then(data => {
-      if (data) {
+      if (data.rt) {
         helper.showPopupMsg(t('notifications.txt-sendSuccess'));
+        this.closeDialog();
+      } else {
+        this.setState({
+          info: data.message
+        });
       }
-
-      this.closeDialog();
       return null;
     })
     .catch(err => {
@@ -456,7 +461,8 @@ class Notifications extends Component {
   closeDialog = () => {
     this.setState({
       openEmailDialog: false,
-      testEmails: []
+      testEmails: [],
+      info: ''
     });
   }
   render() {

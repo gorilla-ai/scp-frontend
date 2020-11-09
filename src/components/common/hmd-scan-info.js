@@ -84,7 +84,7 @@ class HMDscanInfo extends Component {
     super(props);
 
     this.state = {
-      activeTab: 'dashboard', //dashboard, yara, scanFile, gcb, ir, fileIntegrity, Process Monitor, and settings
+      activeTab: 'dashboard', //dashboard, yara, scanFile, gcb, ir, fileIntegrity, procMonitor, and settings
       buttonGroupList: [],
       polarChartSettings: {},
       activePath: null,
@@ -107,7 +107,7 @@ class HMDscanInfo extends Component {
       hmdInfo: {},
       hasMore: true,
       disabledBtn: false,
-      settingsActiveContent: 'viewMode',
+      settingsActiveContent: 'viewMode', //'viewMode' or 'editMode'
       originalSettingsPathData: {},
       settingsPath: {
         fileIntegrity: {
@@ -775,6 +775,31 @@ class HMDscanInfo extends Component {
     }
   }
   /**
+   * Add file path to Settings tab
+   * @method
+   * @param {string} type - Scan type
+   * @param {string} path - File path to be added
+   */
+  addToSettings = (type, path) => {
+    const {settingsPath} = this.state;
+    let tempSettingsPath = {...settingsPath};
+
+    if (settingsPath[type].includePath.length === 1 && settingsPath[type].includePath[0].path === '') { //Take care the empty path
+      tempSettingsPath[type].includePath[0].path = path;
+    } else {
+      tempSettingsPath[type].includePath.push({path});
+    }
+
+    this.setState({
+      activeTab: 'settings',
+      settingsActiveContent: 'editMode',
+      settingsPath: tempSettingsPath
+    }, () => {
+      const settings = document.getElementById('settingsWrapper');
+      settings.scrollIntoView(false);
+    });
+  }
+  /**
    * Display Yara Scan Process and Process Monitor content
    * @method
    * @param {number} parentIndex - parent index of the scan process array
@@ -810,6 +835,9 @@ class HMDscanInfo extends Component {
               }
               {val._MatchedPid &&
                 <span>PID: {val._MatchedPid}</span>
+              }
+              {activeTab === 'procMonitor' &&
+                <i className='c-link fg fg-add' title={t('network-inventory.txt-addToSettings')} onClick={this.addToSettings.bind(this, 'procMonitor', filePath)}></i>
               }
             </div>
           </div>
@@ -1312,6 +1340,9 @@ class HMDscanInfo extends Component {
           {val.taskStatus && val.taskStatus === 'Failure' &&
             <span style={{color: '#d10d25'}}>{t('network-inventory.txt-taskFailure')}</span>
           }
+          {val.taskStatus && val.taskStatus === 'NotSupport' &&
+            <span style={{color: '#d10d25'}}>{t('network-inventory.txt-notSupport')}</span>
+          }
           {(activeTab === 'yara' || activeTab === 'scanFile' || activeTab === 'procMonitor') && dataResult &&
             this.getSuspiciousFileCount(dataResult)
           }
@@ -1435,6 +1466,9 @@ class HMDscanInfo extends Component {
             {val.taskStatus && val.taskStatus === 'Failure' &&
               <span style={{color: '#d10d25'}}>{t('network-inventory.txt-taskFailure')}</span>
             }
+            {val.taskStatus && val.taskStatus === 'NotSupport' &&
+              <span style={{color: '#d10d25'}}>{t('network-inventory.txt-notSupport')}</span>
+            }
             {activeTab === 'gcb' && (!val.taskStatus || val.taskStatus && val.taskStatus === 'Complete') &&
               this.getPassTotalCount()
             }
@@ -1463,6 +1497,9 @@ class HMDscanInfo extends Component {
           <span>{t('network-inventory.txt-responseTime')}: {helper.getFormattedDate(val.taskResponseDttm, 'local') || NOT_AVAILABLE}</span>
           {val.taskStatus && val.taskStatus === 'Failure' &&
             <span style={{color: '#d10d25'}}>{t('network-inventory.txt-taskFailure')}</span>
+          }
+          {val.taskStatus && val.taskStatus === 'NotSupport' &&
+            <span style={{color: '#d10d25'}}>{t('network-inventory.txt-notSupport')}</span>
           }
         </div>
         <div className='scan-content'>
@@ -1894,7 +1931,7 @@ class HMDscanInfo extends Component {
                   <button className='standard btn restore-default' onClick={this.restoreDefaultSettings}>{t('network-inventory.txt-restoreDefault')}</button>
                 </div>
               }
-              <div className='settings-wrapper'>
+              <div id='settingsWrapper' className='settings-wrapper'>
                 {SETTINGS_LIST.map(this.displaySettingsContent)}
               </div>
             </div>
