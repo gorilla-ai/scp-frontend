@@ -42,6 +42,10 @@ class Header extends Component {
     this.setTheme();
     //this.getUserConfig();
   }
+  /**
+   * Set site theme
+   * @method
+   */
   setTheme = () => {
     this.setState({
       theme: this.props.themeName

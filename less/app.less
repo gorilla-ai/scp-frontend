@@ -251,6 +251,19 @@ button {
     background-color: var(--tabMenuHover) !important;
   }
 }
+.c-combobox {
+  input[type=text] {
+    color: var(--primaryTextColor);
+    border: 1px solid var(--formInputBorderColor);
+    background-color: var(--formBackground);
+  }
+}
+.c-multi {
+  .fg-add,
+  .fg-close {
+    max-height: 40px;
+  }
+}
 .c-menu {
   border: 1px solid var(--primaryBorder);
   &.sub {
@@ -651,6 +664,18 @@ i.c-checkbox.fg-checkbox {
         color: var(--primaryTextColor);
         border: var(--buttonBorderColor);
         background-color: var(--buttonBackground);
+        border-radius: 4px;
+      }
+      .search-type,
+      .search-interval {
+        .MuiInputBase-root {
+          font-size: .8em;
+        }
+        .MuiSelect-root {
+          color: var(--primaryTextColor);
+          border: var(--buttonBorderColor);
+          background-color: var(--buttonBackground);
+        }
       }
       .search-type {
         float: left;
@@ -667,12 +692,12 @@ i.c-checkbox.fg-checkbox {
         .update-interval {
           margin-right: 10px;
         }
-        .select-field {
-          height: 35px;
-        }
       }
       .datepicker {
         float: left;
+        input {
+          padding-left: 10px;
+        }
         .date-range,
         .date-picker {
           margin-right: 15px;
@@ -681,8 +706,8 @@ i.c-checkbox.fg-checkbox {
           border: none;
         }
       }
-      #datetime-from,
-      #datetime-to {
+      #dateTime-from,
+      #dateTime-to {
         padding: 0.5em;
       }
       .search-button {
@@ -1588,7 +1613,6 @@ i.c-checkbox.fg-checkbox {
               label {
                 display: block;
                 font-size: 15px;
-                color: var(--primaryContentHeader);
               }
               &.last {
                 width: 100%;
@@ -2048,7 +2072,6 @@ i.c-checkbox.fg-checkbox {
                 display: block;
                 text-align: left;
                 font-size: .9em;
-                color: var(--primaryContentHeader);
                 margin-bottom: 3px;
                 &.checkbox {
                   float: left;
@@ -2114,7 +2137,9 @@ i.c-checkbox.fg-checkbox {
                 flex-wrap: wrap;
                 background-color: var(--formBackground);
                 input {
+                  color: var(--primaryTextColor);
                   margin-left: 2px;
+                  background-color: var(--formBackground);
                 }
                 [data-tag] {
                   font-size: 14px;
@@ -2553,7 +2578,14 @@ i.c-checkbox.fg-checkbox {
           padding: 20px;
           margin: 0;
           .dropdown-margin {
-            margin-left: 50px;
+            margin-left: 30px;
+            margin-top: 5px;
+          }
+          #pageSize {
+            color: var(--primaryTextColor);
+            border-radius: 4px;
+            border: 1px solid var(--formInputBorderColor);
+            background-color: var(--formBackground);
           }
         }
         .main-table {

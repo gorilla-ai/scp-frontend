@@ -1,13 +1,12 @@
 import { createMuiTheme } from '@material-ui/core';
-import purple from '@material-ui/core/colors/purple';
-import blue from '@material-ui/core/colors/blue';
-import pink from '@material-ui/core/colors/pink';
-import red from '@material-ui/core/colors/red';
-import green from '@material-ui/core/colors/green';
-import grey from '@material-ui/core/colors/grey';
 
 export default function createDarkTheme() {
   const theme = createMuiTheme({
+    palette: {
+      primary: {
+        main: '#069bda'
+      }
+    },
     overrides: {
       MuiInputBase: {
         root: {
@@ -19,11 +18,29 @@ export default function createDarkTheme() {
           }
         }
       },
+      MuiFormLabel: {
+        root: {
+          color: 'rgba(6, 155, 218, 1)',
+          '&.Mui-disabled': {
+            color: 'rgba(6, 155, 218, 1)'
+          }
+        }
+      },
       MuiFormControlLabel: {
         label: {
           color: 'rgba(6, 155, 218, 1)',
           '&.Mui-disabled': {
-            color: 'rgba(6, 155, 218, 0.5)'
+            color: 'rgba(217, 217, 217, 0.4)'
+          }
+        }
+      },
+      MuiSvgIcon: {
+        root: {
+          '&.MuiSelect-icon': {
+            color: '#fff'
+          },
+          '&.MuiSelect-icon.Mui-disabled': {
+            color: '#666'
           }
         }
       },
@@ -40,14 +57,8 @@ export default function createDarkTheme() {
       },
       MuiButtonBase: {
         root: {
-          '&.MuiSwitch-colorPrimary.Mui-checked': {
-            color: 'rgba(8, 155, 218, 1)'
-          },
-          '&.MuiSwitch-colorPrimary.Mui-disabled': {
-            color: 'rgba(8, 155, 218, 0.5)'
-          },
-          '&.MuiSwitch-colorPrimary.Mui-checked + .MuiSwitch-track': {
-            backgroundColor: 'rgba(8, 155, 218, 1)'
+          '&.MuiButton-contained.Mui-disabled': {
+            color: 'rgba(217, 217, 217, 0.5)'
           },
           '&.MuiRadio-colorPrimary.Mui-checked': {
             color: 'rgba(8, 155, 218, 1)'
@@ -61,26 +72,8 @@ export default function createDarkTheme() {
         root: {
           color: '#d9d9d9'
         }
-      },
-      MuiSwitch: {
-        track: {
-          backgroundColor: '#fff'
-        }
       }
-    },
-    // palette: {
-    //   primary: {
-    //     light: '#fff',
-    //     main: '#f44336',
-    //     dark: '#000'
-    //   },
-    //   secondary: {
-    //     main: '#f44336',
-    //   },
-    // },
-    // typography: { 
-    //   useNextVariants: true
-    // }
+    }
   });
 
   return theme;
