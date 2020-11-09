@@ -7,10 +7,6 @@ export default function createDefaultTheme() {
         main: '#001b34'
       }
     },
-    typography: { 
-      useNextVariants: true
-    },
-
     overrides: {
       MuiInputBase: {
         root: {
