@@ -84,6 +84,11 @@ class NetworkMap extends Component {
         name: '',
         coordX: '',
         coordY: ''
+      },
+      formValidation: {
+        name: {
+          valid: true
+        }
       }
     };
 
@@ -651,18 +656,21 @@ class NetworkMap extends Component {
    * @returns HTML DOM
    */
   displayAddNewSeat = () => {
+    const {addSeat, formValidation} = this.state;
+
     return (
-      <div className='add-seat'>
-        <TextField
-          id='addSeat'
-          name='name'
-          label={t('txt-name')}
-          variant='outlined'
-          fullWidth={true}
-          size='small'
-          value={this.state.addSeat.name}
-          onChange={this.handleDataChange} />
-      </div>
+      <TextField
+        id='addSeat'
+        name='name'
+        label={t('txt-name')}
+        variant='outlined'
+        fullWidth={true}
+        size='small'
+        required={true}
+        error={!formValidation.name.valid}
+        helperText={formValidation.name.valid ? '' : t('txt-required')}
+        value={addSeat.name}
+        onChange={this.handleDataChange} />
     )
   }
   /**
@@ -696,7 +704,7 @@ class NetworkMap extends Component {
    */
   handleAddSeatConfirm = () => {
     const {baseUrl} = this.context;
-    const {floorPlan, addSeat} = this.state;
+    const {floorPlan, addSeat, formValidation} = this.state;
     const url = `${baseUrl}/api/seat`;
     const requestData = {
       areaUUID: floorPlan.currentAreaUUID,
@@ -704,9 +712,21 @@ class NetworkMap extends Component {
       coordX: addSeat.coordX,
       coordY: addSeat.coordY
     };
+    let tempFormValidation = {...formValidation};
+    let validate = true;
 
-    if (!addSeat.name) {
-      helper.showPopupMsg(t('network-topology.txt-seatNameEmpty'), t('txt-error'));
+    if (addSeat.name) {
+      tempFormValidation.name.valid = true;
+    } else {
+      tempFormValidation.name.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
       return;
     }
 
@@ -893,7 +913,12 @@ class NetworkMap extends Component {
         coordX: '',
         coordY: ''
       },
-      currentDeviceData: {}
+      currentDeviceData: {},
+      formValidation: {
+        name: {
+          valid: true
+        }
+      }
     }, () => {
       if (options === 'reload') {
         this.getFloorPlan();

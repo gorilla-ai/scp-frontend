@@ -203,6 +203,9 @@ class NetworkInventory extends Component {
         csvColumnsIp: {
           valid: true
         },
+        name: {
+          valid: true
+        }
       },
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
     };
@@ -3446,18 +3449,21 @@ class NetworkInventory extends Component {
    * @returns HTML DOM
    */
   displayAddSeat = () => {
+    const {addSeat, formValidation} = this.state;
+
     return (
-      <div className='add-seat'>
-        <TextField
-          id='deviceSearchIP'
-          name='name'
-          label={t('txt-name')}
-          variant='outlined'
-          fullWidth={true}
-          size='small'
-          value={this.state.addSeat.name}
-          onChange={this.handleDataChange} />
-      </div>
+      <TextField
+        id='addSeat'
+        name='name'
+        label={t('txt-name')}
+        variant='outlined'
+        fullWidth={true}
+        size='small'
+        required={true}
+        error={!formValidation.name.valid}
+        helperText={formValidation.name.valid ? '' : t('txt-required')}
+        value={addSeat.name}
+        onChange={this.handleDataChange} />
     )
   }
   /**
@@ -3490,6 +3496,9 @@ class NetworkInventory extends Component {
    * @method
    */
   closeAddSeatDialog = () => {
+    let tempFormValidation = {...this.state.formValidation};
+    tempFormValidation.name.valid = true;
+
     this.setState({
       addSeatOpen: false,
       addSeat: {
@@ -3497,7 +3506,8 @@ class NetworkInventory extends Component {
         name: '',
         coordX: '',
         coordY: ''
-      }
+      },
+      formValidation: tempFormValidation    
     });
   }
   /**
@@ -3506,16 +3516,28 @@ class NetworkInventory extends Component {
    */
   handleAddSeatConfirm = () => {
     const {baseUrl} = this.context;
-    const {floorPlan, currentDeviceData, addSeat, changeAreaMap} = this.state;
+    const {floorPlan, currentDeviceData, addSeat, changeAreaMap, formValidation} = this.state;
     const url = `${baseUrl}/api/seat`;
     let currentAreaUUID = floorPlan.currentAreaUUID;
+    let tempFormValidation = {...formValidation};
+    let validate = true;    
 
     if (!changeAreaMap && currentDeviceData.areaUUID) {
       currentAreaUUID = currentDeviceData.areaUUID;
     }
 
-    if (!addSeat.name) {
-      helper.showPopupMsg(t('network-topology.txt-seatNameEmpty'), t('txt-error'));
+    if (addSeat.name) {
+      tempFormValidation.name.valid = true;
+    } else {
+      tempFormValidation.name.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
       return;
     }
 
