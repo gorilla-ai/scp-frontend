@@ -16,6 +16,7 @@ import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import {BaseDataContext} from '../../common/context';
 import Config from '../../common/configuration'
 import helper from '../../common/helper'
+import MuiTableContent from '../../common/mui-table-content'
 import SearchOptions from '../../common/search-options'
 import TableContent from '../../common/table-content'
 
@@ -130,12 +131,12 @@ class EsManage extends Component {
     const {baseUrl} = this.context;
     const {datetime, esSearch, es} = this.state;
     const sort = es.sort.desc ? 'desc' : 'asc';
-    const page = fromSearch === 'search' ? 1 : es.currentPage;
+    const page = fromSearch === 'search' ? 0 : es.currentPage;
     const dateTime = {
       from: Moment(datetime.from).format('YYYY.MM.DD'),
       to: Moment(datetime.to).format('YYYY.MM.DD')
     };
-    let url = `${baseUrl}/api/elasticsearch/list?page=${page}&pageSize=${es.pageSize}&orders=${es.sort.field} ${sort}&startDate=${dateTime.from}&endDate=${dateTime.to}`;
+    let url = `${baseUrl}/api/elasticsearch/list?page=${page + 1}&pageSize=${es.pageSize}&orders=${es.sort.field} ${sort}&startDate=${dateTime.from}&endDate=${dateTime.to}`;
 
     if (esSearch.status !== 'all') {
       url += `&status=${esSearch.status}`;
@@ -160,41 +161,41 @@ class EsManage extends Component {
         const statusList = _.map(data.statusList, (val, i) => {
           return <MenuItem key={i} value={val.toLowerCase()}>{val}</MenuItem>
         });
-        
-        let dataFields = {};
-        es.dataFieldsArr.forEach(tempData => {
-          dataFields[tempData] = {
-            label: tempData === '_menu' ? '' : f(`esFields.${tempData}`),
-            sortable: tempData === 'date' ? true : null,
-            formatter: (value, allValue, i) => {
-              if (tempData === '_menu') {
-                return (
-                  <div className='table-menu menu active'>
-                    <FormControlLabel
-                      className='toggle-btn'
-                      control={
-                        <Switch
-                          checked={allValue.isOpen}
-                          onChange={this.handleStatusChange.bind(this, allValue.date)}
-                          color='primary' />
-                      }
-                      label={t('txt-switch')}
-                      disabled={!allValue.actionEnable} />
-                    <i className={cx('fg fg-data-export', {'not-allowed': !allValue.export})} title={t('txt-export')} onClick={this.handleIndexExport.bind(this, allValue)}></i>
-                  </div>
-                )
-              }
 
-              if (tempData === 'docCount' || tempData === 'storeSize' || tempData === 'priStoreSize') {
-                value = helper.numberWithCommas(value);
+        tempEs.dataFields = _.map(es.dataFieldsArr, val => {
+          return {
+            name: val,
+            label: val === '_menu' ? ' ' : f(`esFields.${val}`),
+            options: {
+              filter: val === 'date' ? true : false,
+              sort: val === 'date' ? true : false,
+              viewColumns: val === '_menu' ? false : true,
+              customBodyRenderLite: (dataIndex) => {
+                if (val === '_menu') {
+                  return (
+                    <div className='table-menu menu active'>
+                      <FormControlLabel
+                        className='toggle-btn'
+                        control={
+                          <Switch
+                            checked={tempEs.dataContent[dataIndex].isOpen}
+                            onChange={this.handleStatusChange.bind(this, tempEs.dataContent[dataIndex].date)}
+                            color='primary' />
+                        }
+                        label={t('txt-switch')}
+                        disabled={!tempEs.dataContent[dataIndex].actionEnable} />
+                      <i className={cx('fg fg-data-export', {'not-allowed': !tempEs.dataContent[dataIndex].export})} title={t('txt-export')} onClick={this.handleIndexExport.bind(this, tempEs.dataContent[dataIndex])}></i>
+                    </div>
+                  )
+                } else if (val === 'docCount' || val === 'storeSize' || val === 'priStoreSize') {
+                  return helper.numberWithCommas(tempEs.dataContent[dataIndex][val]);
+                } else {
+                  return tempEs.dataContent[dataIndex][val];
+                }
               }
-
-              return <span>{value}</span>
             }
           };
-        })
-
-        tempEs.dataFields = dataFields;
+        });
 
         this.setState({
           statusList,
@@ -238,10 +239,10 @@ class EsManage extends Component {
    * @param {string} field - sort field
    * @param {string} boolean - sort type ('asc' or 'desc')
    */
-  handleTableSort = (sort) => {
+  handleTableSort = (field, sort) => {
     let tempEs = {...this.state.es};
-    tempEs.sort.field = sort.field;
-    tempEs.sort.desc = sort.desc;
+    tempEs.sort.field = field;
+    tempEs.sort.desc = sort;
 
     this.setState({
       es: tempEs
@@ -524,16 +525,11 @@ class EsManage extends Component {
                 <button className='standard btn' onClick={this.toggleImportIndex}>{t('txt-importEsIndex')}</button>
               </div>
 
-              <TableContent
-                dataTableData={es.dataContent}
-                dataTableFields={es.dataFields}
-                dataTableSort={es.sort}
-                paginationTotalCount={es.totalCount}
-                paginationPageSize={es.pageSize}
-                paginationCurrentPage={es.currentPage}
-                handleTableSort={this.handleTableSort}
-                paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
+              {es.dataContent.length > 0 &&
+                <MuiTableContent
+                  data={es}
+                  tableOptions={tableOptions} />
+              }
             </div>
           </div>
         </div>
