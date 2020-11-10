@@ -681,7 +681,7 @@ class IncidentDevice extends Component {
 
         if (!incidentDevice.info.unitId || !incidentDevice.info.deviceId || !incidentDevice.info.deviceCompany ||
             !incidentDevice.info.deviceName || !incidentDevice.info.protectType) {
-            helper.showPopupMsg('', t('txt-error'), '[Unit],[Device ID],[Device Name] and [Device Type] is required');
+            helper.showPopupMsg('', t('txt-error'), t('txt-allRequired'));
             return false;
         }
 

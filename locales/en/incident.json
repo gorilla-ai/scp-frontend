@@ -37,7 +37,10 @@
 	"txt-send": "Send",
 	"txt-send-success": "Send Success",
 	"txt-send-fail": "Send Fail",
+	"txt-draw": "Draw Incident",
 	"txt-draw-msg": "Whether to Draw Incident",
+	"txt-draw-success": "Draw Success",
+	"txt-draw-fail": "Draw Fail",
 	"txt-send-msg": "Whether to Send Incident",
 	"txt-sendCheck": ", Whether to Send Incident directly?",
 	"txt-sendCheckHealth": "whether to Send Health Status Statistic CSV ?",
@@ -88,7 +91,11 @@
 	"txt-incident-expired": "Expired",
 	"txt-incident-unhandled": "Unhandled",
 	"txt-incident-mine": "Mine",
-	"txt-transfer": "Transfer",
+	"txt-transfer": "Assign",
+	"txt-analyze": "Assign",
+	"txt-analyze-msg": "Whether to Assign",
+	"txt-analyze-success": "Assign Success",
+	"txt-analyze-fail": "Assign Fail",
 	"txt-day": "Day",
 
 	"accident":{
