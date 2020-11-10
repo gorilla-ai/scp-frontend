@@ -8,7 +8,8 @@ import i18n from 'i18next'
 import qs from 'query-string'
 import $ from 'jquery'
 
-import DropDownList from 'react-ui/build/src/components/dropdown'
+import MenuItem from '@material-ui/core/MenuItem';
+import TextField from '@material-ui/core/TextField';
 
 import helper from './components/common/helper'
 import License from './license'
@@ -44,15 +45,42 @@ class Login extends Component {
     super(props);
 
     this.state = {
+      dropDownList: [],
+      login: {
+        username: '',
+        password: ''
+      },
       info: null,
       error: false,
-      license: null
+      license: null,
+      formValidation: {
+        username: {
+          valid: true
+        },
+        password: {
+          valid: true
+        }
+      }
     };
 
     this.ah = getInstance('login');
   }
   componentDidMount() {
+    this.getLanguageList();
     this.checkLicense();
+  }
+  /**
+   * Get language list
+   * @method
+   */
+  getLanguageList = () => {
+    const dropDownList = _.map(this.props.locale, (val, i) => {
+      return <MenuItem key={i} value={val}>{t('lng.' + val)}</MenuItem>
+    });
+
+    this.setState({
+      dropDownList
+    });
   }
   /**
    * Check license before login
@@ -84,7 +112,11 @@ class Login extends Component {
         }
       }
 
-      if (!licenseCheck) {
+      if (licenseCheck) {
+        this.setState({
+          license: licenseCheck
+        });
+      } else {
         this.ah.one(apiOnline)
         .then(data => {
           if (data) {
@@ -95,24 +127,11 @@ class Login extends Component {
 
           this.setState({
             license: licenseCheck
-          }, () => {
-            if (this.state.license && this.username) {
-              this.username.focus();
-            }
-          })
+          });
         })
         .catch(err => {
           helper.showPopupMsg('', t('txt-error'), err.message);
         })
-      }
-      else {
-        this.setState({
-          license: licenseCheck
-        }, () => {
-          if (this.state.license && this.username) {
-            this.username.focus();
-          }
-        })  
       }
     })
     .catch(err => {
@@ -124,41 +143,46 @@ class Login extends Component {
    * @method
    */
   logon = () =>  {
-    const username = this.username.value;
-    const password = this.password.value;
-    let error = '';
+    const {login, formValidation} = this.state;
+    let tempFormValidation = {...formValidation};
+    let validate = true;
 
-    if (username === '') {
-      error = t('login.txt-username');
-    } else if (password === '') {
-      error = t('login.txt-password');
-    }
-
-    if (error) {
-      this.setState({
-        info: error,
-        error: true
-      });
+    if (login.username) {
+      tempFormValidation.username.valid = true;
     } else {
-      this.setState({
-        info: t('txt-logging-in'),
-        error: false
-      }, () => {
-        this.getLogin(username, password);
-      });
+      tempFormValidation.username.valid = false;
+      validate = false;
     }
+
+    if (login.password) {
+      tempFormValidation.password.valid = true;
+    } else {
+      tempFormValidation.password.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      info: null,
+      error: false,
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
+      return;
+    }
+
+    this.getLogin();
   }
   /**
    * Call login api and show login success/fail
    * @method
-   * @param {string} username - entered username
-   * @param {string} password - entered password
    */
-  getLogin = (username, password) => {
+  getLogin = () => {
     const {baseUrl, contextRoot} = this.props;
+    const {login} = this.state;
     const requestData = {
-      account: username,
-      password: password
+      account: login.username,
+      password: login.password
     };
 
     this.ah.one({
@@ -218,13 +242,13 @@ class Login extends Component {
   /**
    * Handle language change
    * @method
-   * @param {string} lng - language type ('en' or 'zh')
+   * @param {object} event - event object
    */
-  changeLng = (lng) => {
+  changeLanguage = (event) => {
     const {contextRoot} = this.props;
     const redirectURL = contextRoot || '/SCP';
 
-    window.location.href = redirectURL + '/?' + qs.stringify({lng});
+    window.location.href = redirectURL + '/?lng=' + event.target.value;
   }
   /**
    * Set license to true and display login form
@@ -233,10 +257,19 @@ class Login extends Component {
   onPass = () => {
     this.setState({
       license: true
-    }, () => {
-      if (this.username) {
-        this.username.focus();
-      }
+    });
+  }
+  /**
+   * Set input data change
+   * @method
+   * @param {object} event - event object
+   */
+  handleDataChange = (event) => {
+    let tempLogin = {...this.state.login};
+    tempLogin[event.target.name] = event.target.value;  
+
+    this.setState({
+      login: tempLogin
     });
   }
   /**
@@ -246,7 +279,7 @@ class Login extends Component {
    */
   renderLogin = () => {
     const {baseUrl, contextRoot, productName, locale} = this.props;
-    const {info, error} = this.state;
+    const {dropDownList, login, info, error, formValidation} = this.state;
 
     return (
       <div id='g-login' className='c-center global c-flex fdc'>
@@ -257,24 +290,55 @@ class Login extends Component {
         </div>
 
         <div id='form' className='c-flex fdc'>
-          <label htmlFor='username'>{t('login.txt-userAccount')}</label>
-          <input ref={ref => { this.username = ref }} id='username' type='text' />
-
-          <label htmlFor='password'>{t('login.txt-userPassword')}</label>
-          <input ref={ref => { this.password = ref }} id='password' type='password' onKeyDown={this.handleKeyDown.bind(this)} />
-
+          <div className='login-group'>
+            <TextField
+              id='username'
+              name='username'
+              label={t('login.txt-userAccount')}
+              autoFocus={true}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
+              required={true}
+              error={!formValidation.username.valid}
+              helperText={formValidation.username.valid ? '' : t('login.txt-username')}
+              value={login.username}
+              onChange={this.handleDataChange} />
+          </div>
+          <div className='login-group'>
+            <TextField
+              id='password'
+              name='password'
+              type='password'
+              label={t('login.txt-userPassword')}
+              variant='outlined'
+              fullWidth={true}
+              size='small'
+              required={true}
+              error={!formValidation.password.valid}
+              helperText={formValidation.password.valid ? '' : t('login.txt-password')}
+              value={login.password}
+              onChange={this.handleDataChange}
+              onKeyDown={this.handleKeyDown} />
+          </div>
           <button className='end' onClick={this.logon}>{t('login.btn-login')}</button>
 
           <div className='first-time' onClick={this.startResetPwd.bind(this, 'newSet')}>{t('txt-fist-login')}?</div>
 
           <div className={cx('c-info error-msg', {'c-error': error})}>{info}</div>
+
           <div className='end actions c-flex aic'>
             {!_.isEmpty(locale) && locale.length > 1 &&
-              <DropDownList
-                required
-                list={_.map(locale, l=>({value:l, text:t(`lng.${l}`)}))}
+              <TextField
+                name='language'
+                select
+                variant='outlined'
+                fullWidth={true}
+                size='small'
                 value={i18n.language}
-                onChange={this.changeLng} />
+                onChange={this.changeLanguage}>
+                {dropDownList}
+              </TextField>
             }
           </div>
         </div>

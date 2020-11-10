@@ -394,7 +394,7 @@ class ThreatsController extends Component {
   loadTreeData = () => {
     const {baseUrl} = this.context;
     const {treeData} = this.state;
-    const url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`;
+    const url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0&skipHistogram=true`;
     const requestData = this.toQueryLanguage('tree');
 
     this.ah.one({
@@ -585,7 +585,7 @@ class ThreatsController extends Component {
     if (!options || options === 'search') {
       url += pageSize;
     } else {
-      url += 0;
+      url += '0&skipHistogram=true';
     }
 
     this.ah.one({

@@ -256,7 +256,7 @@ class ManageGroup extends Component {
           this.deleteGroup(group)
         }
       }
-    })
+    });
   }
   /**
    * Handle delete group confirm

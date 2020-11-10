@@ -170,7 +170,7 @@ class DashboardOverview extends Component {
     };
 
     this.ah.one({
-      url: `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`,
+      url: `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0&skipHistogram=true`,
       data: JSON.stringify(requestData),
       type: 'POST',
       contentType: 'application/json'
@@ -467,7 +467,7 @@ class DashboardOverview extends Component {
   getCountryAttackData = (countryCode) => {
     const {baseUrl} = this.context;
     const {dateTime} = this.state;
-    const url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`;
+    const url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0&skipHistogram=true`;
 
     if (!countryCode || countryCode.length > 2) { //If clicking on spots, don't show dialog
       return;

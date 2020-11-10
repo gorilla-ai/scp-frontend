@@ -12,6 +12,7 @@ import TextField from '@material-ui/core/TextField';
 
 import Combobox from 'react-ui/build/src/components/combobox'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import {BaseDataContext} from '../../common/context';
 import Config from '../../common/configuration'
@@ -71,29 +72,27 @@ class EsManage extends Component {
     this.getEsData('search');
   }
   /**
-   * Set status data
+   * Show the export confirm modal dialog
    * @method
-   * @param {string} date - selected date
-   * @param {object} event - event object
+   * @param {object} allValue - ES data
    */
-  handleStatusChange = (date, event) => {
-    const {baseUrl} = this.context;
-    const type = event.target.checked ? 'open' : 'close';
-
-    this.ah.one({
-      url: `${baseUrl}/api/elasticsearch/${type}?date=${date}`,
-      type: 'GET'
-    })
-    .then(data => {
-      if (data) {
-        helper.showPopupMsg(t('txt-requestSent'));
-        this.getEsData();
+  openExportConfirmModal = (allValue) => {
+    PopupDialog.prompt({
+      title: t('txt-export'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-ok'),
+      cancelText: t('txt-cancel'),
+      display: (
+        <div className='content delete'>
+          <span>{t('es-management.txt-exportMsg')}?</span>
+        </div>
+      ),
+      act: (confirmed) => {
+        if (confirmed) {
+          this.handleIndexExport(allValue);
+        }
       }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
+    });
   }
   /**
    * Handle index export
@@ -120,6 +119,60 @@ class EsManage extends Component {
 
     helper.showPopupMsg(t('txt-requestSent'));
     this.getEsData();
+  }
+  /**
+   * Show the close index confirm modal dialog
+   * @method
+   * @param {string} date - selected date
+   * @param {object} event - event object
+   */
+  openIndexConfirmModal = (date, event) => {
+    const type = event.target.checked ? 'open' : 'close';
+
+    if (type === 'open') {
+      this.handleStatusChange(date, 'open');
+    } else if (type === 'close') {
+      PopupDialog.prompt({
+        title: t('txt-close'),
+        id: 'modalWindowSmall',
+        confirmText: t('txt-ok'),
+        cancelText: t('txt-cancel'),
+        display: (
+          <div className='content delete'>
+            <span>{t('es-management.txt-turnOffMsg')}?</span>
+          </div>
+        ),
+        act: (confirmed) => {
+          if (confirmed) {
+            this.handleStatusChange(date, 'close');
+          }
+        }
+      });
+    }
+  }
+  /**
+   * Set status data
+   * @method
+   * @param {string} date - selected date
+   * @param {string} type - 'open' or 'close'
+   */
+  handleStatusChange = (date, type) => {
+    const {baseUrl} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/elasticsearch/${type}?date=${date}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('txt-requestSent'));
+        this.getEsData();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Get and set ES table data
@@ -167,7 +220,7 @@ class EsManage extends Component {
             label: tempData === '_menu' ? '' : f(`esFields.${tempData}`),
             sortable: tempData === 'date' ? true : null,
             formatter: (value, allValue, i) => {
-              if (tempData === '_menu') {
+              if (tempData === '_menu' && allValue.showButton) {
                 return (
                   <div className='table-menu menu active'>
                     <FormControlLabel
@@ -175,12 +228,12 @@ class EsManage extends Component {
                       control={
                         <Switch
                           checked={allValue.isOpen}
-                          onChange={this.handleStatusChange.bind(this, allValue.date)}
+                          onChange={this.openIndexConfirmModal.bind(this, allValue.date)}
                           color='primary' />
                       }
                       label={t('txt-switch')}
                       disabled={!allValue.actionEnable} />
-                    <i className={cx('fg fg-data-export', {'not-allowed': !allValue.export})} title={t('txt-export')} onClick={this.handleIndexExport.bind(this, allValue)}></i>
+                    <i className={cx('fg fg-data-export', {'not-allowed': !allValue.export})} title={t('txt-export')} onClick={this.openExportConfirmModal.bind(this, allValue)}></i>
                   </div>
                 )
               }

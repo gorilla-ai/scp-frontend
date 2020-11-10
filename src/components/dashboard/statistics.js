@@ -201,7 +201,7 @@ class DashboardStats extends Component {
       from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
       to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
-    const url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`;
+    const url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0&skipHistogram=true`;
     const requestData = {
       timestamp: [dateTime.from, dateTime.to],
       filters: [{
@@ -483,7 +483,7 @@ class DashboardStats extends Component {
       from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
       to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
-    const url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`;
+    const url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0&skipHistogram=true`;
     const requestData = {
       timestamp: [dateTime.from, dateTime.to],
       filters: [{

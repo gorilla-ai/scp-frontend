@@ -103,9 +103,7 @@ class NetworkBehavior extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {ipType} = this.props;
-
-    this.loadNetworkBehavior(ipType);
+    this.loadNetworkBehavior(this.props.ipType);
   }
   /**
    * Load network behavior data
@@ -153,7 +151,7 @@ class NetworkBehavior extends Component {
 
       apiArr = [
         {
-          url: `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`, //Threats srcIp
+          url: `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0&skipHistogram=true`, //Threats srcIp
           data: JSON.stringify({
             timestamp: [datetime.from, datetime.to],
             filters: [
@@ -205,7 +203,7 @@ class NetworkBehavior extends Component {
           contentType: 'text/plain'
         },
         {
-          url: `${baseUrl}/api/u2/alert/_search?pageSize=0`, //Syslog srcIp
+          url: `${baseUrl}/api/u2/alert/_search?pageSize=0&skipHistogram=true`, //Syslog srcIp
           data: JSON.stringify({
             timestamp: [datetime.from, datetime.to],
             filters: [
@@ -232,7 +230,7 @@ class NetworkBehavior extends Component {
 
       apiArr = [
         {
-          url: `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`, //Threats destIp
+          url: `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0&skipHistogram=true`, //Threats destIp
           data: JSON.stringify({
             timestamp: [datetime.from, datetime.to],
             filters: [
@@ -284,7 +282,7 @@ class NetworkBehavior extends Component {
           contentType: 'text/plain'
         },
         {
-          url: `${baseUrl}/api/u2/alert/_search?pageSize=0`, //Syslog destIp
+          url: `${baseUrl}/api/u2/alert/_search?pageSize=0&skipHistogram=true`, //Syslog destIp
           data: JSON.stringify({
             timestamp: [datetime.from, datetime.to],
             filters: [

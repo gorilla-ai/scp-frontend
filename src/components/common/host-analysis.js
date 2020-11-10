@@ -43,7 +43,7 @@ class HostAnalysis extends Component {
 
     this.state = {
       showContent: {
-        info: true,
+        info: false,
         safety: false,
         network: false
       },
@@ -63,15 +63,20 @@ class HostAnalysis extends Component {
    * @method
    */
   hmdTypeChecking = () => {
-    if (this.props.openHmdType && typeof this.props.openHmdType === 'string') {
-      this.setState({
-        showContent: {
-          info: false,
-          safety: true,
-          network: false
-        }
-      });
+    const {openHmdType, openNetworkBehavior} = this.props;
+    let tempShowshowContent = {...this.state.showContent};
+
+    if (openHmdType) {
+      tempShowshowContent.safety = true;
+    } else if (openNetworkBehavior) {
+      tempShowshowContent.network = true;
+    } else {
+      tempShowshowContent.info = true;
     }
+
+    this.setState({
+      showContent: tempShowshowContent
+    });
   }
   /**
    * Set corresponding content based on content type
@@ -397,7 +402,8 @@ HostAnalysis.propTypes = {
   hostData: PropTypes.object.isRequired,
   getIPdeviceInfo: PropTypes.func.isRequired,
   toggleHostAnalysis: PropTypes.func.isRequired,
-  openHmdType: PropTypes.string
+  openHmdType: PropTypes.string,
+  openNetworkBehavior: PropTypes.boolean
 };
 
 export default HostAnalysis;

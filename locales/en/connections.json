@@ -482,6 +482,11 @@
     }
   },
 
+  "es-management": {
+    "txt-exportMsg": "Index will be deleted after the export is done. Are you sure you want to proceed?",
+    "txt-turnOffMsg": "Are you sure you want to turn the index off"
+  },
+
   "threat-severity-mapping": {
     "txt-severityMapping": "Threat Severity Mapping",
     "txt-addSeverityTable": "Add Type",

@@ -126,8 +126,7 @@ const MAPS_PRIVATE_DATA = {
   },
   currentMap: '',
   currentBaseLayers: {},
-  seatData: {},
-  openHmdType: ''
+  seatData: {}
 };
 
 let t = null;
@@ -184,6 +183,8 @@ class HostController extends Component {
       hostData: {},
       hostSortList: [],
       hostSort: 'ip-asc',
+      openHmdType: '',
+      openNetworkBehavior: '',
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
     };
 
@@ -971,9 +972,9 @@ class HostController extends Component {
    * @method
    * @param {object} host - active Host data
    * @param {string} options - options for 'toggle'
-   * @param {string} [hmdType] - HMD type
+   * @param {string} [defaultOpen] - HMD type or networkBehavior
    */
-  getIPdeviceInfo = (host, options, hmdType) => {
+  getIPdeviceInfo = (host, options, defaultOpen) => {
     const {baseUrl} = this.context;
     const {hostInfo} = this.state;
     const datetime = this.getHostDateTime();
@@ -1002,14 +1003,27 @@ class HostController extends Component {
           hostData
         }, () => {
           if (options === 'toggle') {
-            if (hmdType) {
+            if (defaultOpen && typeof defaultOpen === 'string') {
+              if (defaultOpen === 'networkBehavior') {
+                this.setState({
+                  openNetworkBehavior: defaultOpen
+                }, () => {
+                  this.toggleHostAnalysis();
+                });
+              } else {
+                this.setState({
+                  openHmdType: defaultOpen
+                }, () => {
+                  this.toggleHostAnalysis();
+                });
+              }
+            } else {
               this.setState({
-                openHmdType: hmdType
+                openHmdType: '',
+                openNetworkBehavior: ''
               }, () => {
                 this.toggleHostAnalysis();
               });
-            } else {
-              this.toggleHostAnalysis();
             }
           }
         });
@@ -1032,15 +1046,16 @@ class HostController extends Component {
   /**
    * Display individual severity
    * @method
+   * @param {object} host - all Safety Scan data
    * @param {object} val - Severity list
    * @param {number} i - index of the severity list
    * @returns HTML DOM
    */
-  displaySeverityItem = (val, i) => {
+  displaySeverityItem = (host, val, i) => {
     const color = val.doc_count === 0 ? '#333' : '#fff';
     const backgroundColor = val.doc_count === 0 ? '#d9d9d9' : ALERT_LEVEL_COLORS[val.key];
 
-    return <span key={i} style={{color, backgroundColor}}>{val.key}: {val.doc_count}</span>
+    return <span key={i} className='c-link' style={{color, backgroundColor}} onClick={this.getIPdeviceInfo.bind(this, host, 'toggle', 'networkBehavior')}>{val.key}: {val.doc_count}</span>
   }
   /**
    * Display Host content
@@ -1123,7 +1138,7 @@ class HostController extends Component {
 
           <div className='flex-item'>
             {severityList.length > 0 &&
-              severityList.map(this.displaySeverityItem)
+              severityList.map(this.displaySeverityItem.bind(this, val))
             }
             {safetyData &&
               SCAN_RESULT.map(this.getSafetyScanInfo.bind(this, safetyScanInfo, val))
@@ -1187,7 +1202,8 @@ class HostController extends Component {
       currentMap,
       currentBaseLayers,
       seatData,
-      openHmdType
+      openHmdType,
+      openNetworkBehavior
     } = this.state;
 
     return (
@@ -1196,6 +1212,7 @@ class HostController extends Component {
           <HostAnalysis
             hostData={hostData}
             openHmdType={openHmdType}
+            openNetworkBehavior={openNetworkBehavior}
             datetime={this.getHostDateTime()}
             getIPdeviceInfo={this.getIPdeviceInfo}
             toggleHostAnalysis={this.toggleHostAnalysis} />

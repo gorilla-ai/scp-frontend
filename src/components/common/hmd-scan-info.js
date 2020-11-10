@@ -188,9 +188,11 @@ class HMDscanInfo extends Component {
    * @method
    */
   hmdTypeChecking = () => {
-    if (this.props.openHmdType && typeof this.props.openHmdType === 'string') {
+    const {openHmdType} = this.props;
+
+    if (openHmdType && typeof openHmdType === 'string') {
       this.setState({
-        activeTab: this.props.openHmdType.replace('Result', '')
+        activeTab: openHmdType.replace('Result', '')
       });
     }
   }

@@ -189,7 +189,7 @@
 
   "txt-esManage": "ES管理",
   "txt-importEsIndex": "匯入索引",
-  "txt-esImportMsg": "請選擇要匯入的index日期",
+  "txt-esImportMsg": "請選擇要匯入的索引日期",
   "txt-auditLog": "稽核紀錄",
 
   "txt-edge": "Edge",
@@ -480,6 +480,11 @@
       "txt-indicatorsTrend": "每日情資更新數量長條圖",
       "txt-acuIndicatorsTrend": "每日情資數量曲線圖"
     }
+  },
+
+  "es-management": {
+    "txt-exportMsg": "匯出後索引將會刪除。請確認是否匯出",
+    "txt-turnOffMsg": "請確認是否關閉索引"
   },
 
   "threat-severity-mapping": {

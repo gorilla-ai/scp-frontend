@@ -168,7 +168,7 @@ class Manage extends Component {
           this.deleteName(nameUUID)
         }
       }
-    })
+    });
   }
   /**
    * Handle delete name confirm

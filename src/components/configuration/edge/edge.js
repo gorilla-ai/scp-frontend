@@ -1281,7 +1281,8 @@ class Edge extends Component {
                       className='radio-ui'
                       color='primary' />
                   }
-                  label={t('edge-management.txt-anyTime')} />
+                  label={t('edge-management.txt-anyTime')}
+                  disabled={activeContent === 'viewEdge'} />
                 <FormControlLabel
                   value='customTime'
                   control={
@@ -1289,7 +1290,8 @@ class Edge extends Component {
                       className='radio-ui'
                       color='primary' />
                   }
-                  label={t('edge-management.txt-customTime')} />
+                  label={t('edge-management.txt-customTime')}
+                  disabled={activeContent === 'viewEdge'} />
               </RadioGroup>
 
               {edge.info.edgeModeType === 'customTime' &&

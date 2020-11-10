@@ -1035,7 +1035,7 @@ class ThreatIntelligence extends Component {
           this.handleThreatsSearch('', 'delete', allValue);
         }
       }
-    })
+    });
   }
   /**
    * Show pie chart
