@@ -19,9 +19,8 @@ import helper from "../common/helper"
 
 import Events from './common/events'
 import Ttps from './common/ttps'
-import {downloadWithForm, downloadLink} from "react-ui/build/src/utils/download";
+import {downloadLink, downloadWithForm} from "react-ui/build/src/utils/download";
 import ModalDialog from "react-ui/build/src/components/modal-dialog";
-import FileUpload from "../common/file-upload";
 import DataTable from "react-ui/build/src/components/table";
 import _ from "lodash";
 import DateRange from "react-ui/build/src/components/date-range";
@@ -297,7 +296,7 @@ class Incident extends Component {
                                             </div>
                                         })
                                     }
-                                </div>
+                                    </div>
                                 } else {
                                     return <span>{value}</span>
                                 }
@@ -306,7 +305,9 @@ class Incident extends Component {
                     });
 
                     tempEdge.dataFields = dataFields;
-                    this.setState({incident: tempEdge, activeContent: 'tableList'})
+                    this.setState({incident: tempEdge, activeContent: 'tableList'}, () => {
+                        this.loadDashboard()
+                    })
                 }
                 return null
             })
@@ -439,11 +440,23 @@ class Incident extends Component {
 
     /* ------------------ View ------------------- */
     render() {
-        const {activeContent, incidentType, baseUrl, contextRoot, showFilter, showChart, incident} = this.state
+        const {activeContent, baseUrl, contextRoot, showFilter, showChart, incident} = this.state
 
         return <div>
             <IncidentComment ref={ref => { this.incidentComment=ref }} />
-            <IncidentTag ref={ref => { this.incidentTag=ref }} onLoad={this.loadData.bind(this)} />
+            {this.state.loadListType === 0 && (
+                <IncidentTag ref={ref => { this.incidentTag=ref }} onLoad={this.loadCondition.bind(this,'expired')} />
+            )}
+            {this.state.loadListType === 1 && (
+                <IncidentTag ref={ref => { this.incidentTag=ref }} onLoad={this.loadCondition.bind(this,'unhandled')} />
+            )}
+            {this.state.loadListType === 2 && (
+                <IncidentTag ref={ref => { this.incidentTag=ref }} onLoad={this.loadCondition.bind(this,'mine')} />
+            )}
+            {this.state.loadListType === 3 && (
+                <IncidentTag ref={ref => { this.incidentTag=ref }} onLoad={this.loadData.bind(this)} />
+            )}
+
             <IncidentReview ref={ref => { this.incidentReview=ref }} onLoad={this.getIncident.bind(this)} />
 
             <div className="sub-header">
