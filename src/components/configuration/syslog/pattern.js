@@ -576,7 +576,7 @@ class Pattern extends Component {
    * @returns boolean true/false
    */
   checkSelectedItem = (val) => {
-    return _.includes(this.state.severitySelected, val) ? true : false;
+    return _.includes(this.state.severitySelected, val);
   }
   /**
    * Handle checkbox check/uncheck

@@ -201,7 +201,7 @@ class AccountEdit extends Component {
    * @returns boolean true/false
    */
   checkSelectedItem = (val) => {
-    return _.includes(this.state.selectedPrivileges, val) ? true : false;
+    return _.includes(this.state.selectedPrivileges, val);
   }
   /**
    * Handle checkbox check/uncheck

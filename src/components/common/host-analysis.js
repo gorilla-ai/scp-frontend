@@ -63,13 +63,11 @@ class HostAnalysis extends Component {
    * @method
    */
   hmdTypeChecking = () => {
-    const {openHmdType, openNetworkBehavior} = this.props;
+    const {openHmdType} = this.props;
     let tempShowshowContent = {...this.state.showContent};
 
     if (openHmdType) {
       tempShowshowContent.safety = true;
-    } else if (openNetworkBehavior) {
-      tempShowshowContent.network = true;
     } else {
       tempShowshowContent.info = true;
     }
@@ -362,6 +360,7 @@ class HostAnalysis extends Component {
     })
   }
   render() {
+    const {hostData} = this.props;
     const {modalYaraRuleOpen, modalIRopen} = this.state;
     const actions = {
       confirm: {text: t('txt-close'), handler: this.props.toggleHostAnalysis}
@@ -388,6 +387,7 @@ class HostAnalysis extends Component {
 
         {modalIRopen &&
           <IrSelections
+            currentDeviceData={hostData}
             toggleSelectionIR={this.toggleSelectionIR}
             triggerTask={this.triggerTask} />
         }
@@ -402,8 +402,7 @@ HostAnalysis.propTypes = {
   hostData: PropTypes.object.isRequired,
   getIPdeviceInfo: PropTypes.func.isRequired,
   toggleHostAnalysis: PropTypes.func.isRequired,
-  openHmdType: PropTypes.string,
-  openNetworkBehavior: PropTypes.boolean
+  openHmdType: PropTypes.string
 };
 
 export default HostAnalysis;

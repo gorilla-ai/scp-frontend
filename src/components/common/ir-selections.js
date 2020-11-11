@@ -11,6 +11,7 @@ import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 const FULL_IR_LIST = ['dumpMemory', 'getSystemInfoFile', 'getFileInfo', 'getProcessInfo', 'getAutoruns', 'getTaskScheduler', 'getBrowserData', 'getOutlookData', 'getRegistryBackup', 'getEventLogFile', 'getRecycleFile', 'getRecentFile', 'getPictureFile', 'getVideoFile', 'getMicrosoftFile', 'getKeyWordFile'];
 const QUICK_IR_LIST = ['getSystemInfoFile', 'getProcessInfo', 'getAutoruns', 'getTaskScheduler', 'getRegistryBackup', 'getEventLogFile'];
 const STANDARD_IR_LIST = ['dumpMemory', 'getSystemInfoFile', 'getFileInfo', 'getProcessInfo', 'getAutoruns', 'getTaskScheduler', 'getRegistryBackup', 'getEventLogFile', 'getRecentFile'];
+const LINUX_IR_LIST = ['getSystemInfoFile', 'getFileInfo', 'getProcessInfo'];
 
 let t = null;
 
@@ -61,10 +62,15 @@ class IrSelections extends Component {
    * @param {object} type - IR type ('quick', 'standard' or 'full')
    */
   setSelectedList = (type) => {
+    const {currentDeviceData} = this.props;
     let irSelectedList = [];
 
     if (type === 'quick') {
-      irSelectedList = _.cloneDeep(QUICK_IR_LIST);
+      if (currentDeviceData.osType && currentDeviceData.osType === 'linux') {
+        irSelectedList = _.cloneDeep(LINUX_IR_LIST);
+      } else {
+        irSelectedList = _.cloneDeep(QUICK_IR_LIST);
+      }
     } else if (type === 'standard') {
       irSelectedList = _.cloneDeep(STANDARD_IR_LIST);
     } else if (type === 'full') {
@@ -94,7 +100,7 @@ class IrSelections extends Component {
    * @returns boolean true/false
    */
   checkSelectedItem = (val) => {
-    return _.includes(this.state.irSelectedList, val) ? true : false;
+    return _.includes(this.state.irSelectedList, val);
   }
   /**
    * Handle checkbox check/uncheck
@@ -123,6 +129,13 @@ class IrSelections extends Component {
    * @returns HTML DOM
    */
   showCheckboxList = (val, i) => {
+    const {currentDeviceData} = this.props;
+    let disabled = false;
+
+    if (currentDeviceData.osType && currentDeviceData.osType === 'linux') {
+      disabled = !_.includes(LINUX_IR_LIST, val.value);
+    }
+
     return (
       <FormControlLabel
         key={i}
@@ -134,7 +147,8 @@ class IrSelections extends Component {
             checked={this.checkSelectedItem(val.value)}
             onChange={this.toggleCheckbox}
             color='primary' />
-        } />
+        }
+        disabled={disabled} />
     )
   }
   /**
@@ -143,8 +157,15 @@ class IrSelections extends Component {
    * @returns HTML DOM
    */
   displayIRselection = () => {
+    const {currentDeviceData} = this.props;
     const {irComboSelected, irItemList} = this.state;
-    const dropDownList = _.map(['quick', 'standard', 'full'], (val, i) => {
+    let list = ['quick', 'standard', 'full'];
+
+    if (currentDeviceData.osType && currentDeviceData.osType === 'linux') {
+      list = ['quick'];
+    }
+
+    const dropDownList = _.map(list, (val, i) => {
       return <MenuItem key={i} value={val}>{t('network-inventory.ir-type.txt-' + val)}</MenuItem>
     });
 
@@ -196,6 +217,7 @@ class IrSelections extends Component {
 }
 
 IrSelections.propTypes = {
+  currentDeviceData: PropTypes.object.isRequired,
   toggleSelectionIR: PropTypes.func.isRequired,
   triggerTask: PropTypes.func.isRequired
 };

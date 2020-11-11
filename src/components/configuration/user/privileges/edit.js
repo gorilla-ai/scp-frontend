@@ -230,7 +230,7 @@ class PrivilegeEdit extends Component {
    * @returns boolean true/false
    */
   checkSelectedItem = (val) => {
-    return _.includes(this.state.permitsSelected, val) ? true : false;
+    return _.includes(this.state.permitsSelected, val);
   }
   /**
    * Handle checkbox check/uncheck

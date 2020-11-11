@@ -3674,6 +3674,7 @@ class NetworkInventory extends Component {
 
         {modalIRopen &&
           <IrSelections
+            currentDeviceData={currentDeviceData}
             toggleSelectionIR={this.toggleSelectionIR}
             triggerTask={this.triggerTask} />
         }

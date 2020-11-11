@@ -317,7 +317,7 @@ const App = () => {
 };
 
 function getTheme() {
-  const url = `${cfg.apiPrefix}/api/account/theme?accountId=${session.accountId}`;
+  const url = `${cfg.apiPrefix}${cfg.contextRoot}/api/account/theme?accountId=${session.accountId}`;
 
   Promise.resolve($.get(url))
     .then(data => {

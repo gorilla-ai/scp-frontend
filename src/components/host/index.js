@@ -184,7 +184,6 @@ class HostController extends Component {
       hostSortList: [],
       hostSort: 'ip-asc',
       openHmdType: '',
-      openNetworkBehavior: '',
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
     };
 
@@ -362,13 +361,9 @@ class HostController extends Component {
    * @returns formatted datetime object
    */
   getHostDateTime = () => {
-    const {datetime} = this.state;
-
     return {
-      from: Moment(datetime).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-      to: Moment(helper.getAdditionDate(1, 'day', datetime)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
-      //from: '2020-09-25T16:00:00Z',
-      //to: '2020-09-26T16:00:00Z'
+      from: Moment(this.state.datetime).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: Moment(helper.getAdditionDate(1, 'day', this.state.datetime)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     }
   }
   /**
@@ -514,7 +509,7 @@ class HostController extends Component {
    * @returns boolean true/false
    */
   checkSelectedItem = (type, val) => {
-    return _.includes(this.state.filterNav[type], val) ? true : false;
+    return _.includes(this.state.filterNav[type], val);
   }
   /**
    * Handle checkbox check/uncheck
@@ -972,7 +967,7 @@ class HostController extends Component {
    * @method
    * @param {object} host - active Host data
    * @param {string} options - options for 'toggle'
-   * @param {string} [defaultOpen] - HMD type or networkBehavior
+   * @param {string} [defaultOpen] - HMD type
    */
   getIPdeviceInfo = (host, options, defaultOpen) => {
     const {baseUrl} = this.context;
@@ -1004,23 +999,14 @@ class HostController extends Component {
         }, () => {
           if (options === 'toggle') {
             if (defaultOpen && typeof defaultOpen === 'string') {
-              if (defaultOpen === 'networkBehavior') {
-                this.setState({
-                  openNetworkBehavior: defaultOpen
-                }, () => {
-                  this.toggleHostAnalysis();
-                });
-              } else {
-                this.setState({
-                  openHmdType: defaultOpen
-                }, () => {
-                  this.toggleHostAnalysis();
-                });
-              }
+              this.setState({
+                openHmdType: defaultOpen
+              }, () => {
+                this.toggleHostAnalysis();
+              });
             } else {
               this.setState({
-                openHmdType: '',
-                openNetworkBehavior: ''
+                openHmdType: ''
               }, () => {
                 this.toggleHostAnalysis();
               });
@@ -1044,6 +1030,19 @@ class HostController extends Component {
     });
   }
   /**
+   * Redirect to Threats page
+   * @method
+   * @param {string} ip - Source IP for the Host
+   */
+  redirectNewPage = (ip) => {
+    const {baseUrl, contextRoot, language} = this.context;
+    const datetime = this.getHostDateTime();
+    const ipParam = `&sourceIP=${ip}&page=host`;
+    const linkUrl = `${baseUrl}${contextRoot}/threats?from=${datetime.from}&to=${datetime.to}${ipParam}&lng=${language}`;
+
+    window.open(linkUrl, '_blank');
+  }
+  /**
    * Display individual severity
    * @method
    * @param {object} host - all Safety Scan data
@@ -1055,7 +1054,7 @@ class HostController extends Component {
     const color = val.doc_count === 0 ? '#333' : '#fff';
     const backgroundColor = val.doc_count === 0 ? '#d9d9d9' : ALERT_LEVEL_COLORS[val.key];
 
-    return <span key={i} className='c-link' style={{color, backgroundColor}} onClick={this.getIPdeviceInfo.bind(this, host, 'toggle', 'networkBehavior')}>{val.key}: {val.doc_count}</span>
+    return <span key={i} className='c-link' style={{color, backgroundColor}} onClick={this.redirectNewPage.bind(this, host.ip)}>{val.key}: {val.doc_count}</span>
   }
   /**
    * Display Host content
@@ -1202,8 +1201,7 @@ class HostController extends Component {
       currentMap,
       currentBaseLayers,
       seatData,
-      openHmdType,
-      openNetworkBehavior
+      openHmdType
     } = this.state;
 
     return (
@@ -1212,7 +1210,6 @@ class HostController extends Component {
           <HostAnalysis
             hostData={hostData}
             openHmdType={openHmdType}
-            openNetworkBehavior={openNetworkBehavior}
             datetime={this.getHostDateTime()}
             getIPdeviceInfo={this.getIPdeviceInfo}
             toggleHostAnalysis={this.toggleHostAnalysis} />

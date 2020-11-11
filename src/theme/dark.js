@@ -7,6 +7,9 @@ export default function createDarkTheme() {
         main: '#069bda'
       }
     },
+    typography: {
+      fontFamily: '"Segoe UI", "微軟正黑體", "新細明體"'
+    },
     overrides: {
       MuiInputBase: {
         root: {

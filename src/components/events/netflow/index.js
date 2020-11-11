@@ -545,10 +545,11 @@ class Netflow extends Component {
    * @returns true/false boolean
    */
   checkDisplayFields = (field) => {
-    if (_.includes(this.state.account.fields, field) || field === '_tableMenu_') {
+    if (field === '_tableMenu_') {
       return true;
+    } else {
+      return _.includes(this.state.account.fields, field);
     }
-    return false;
   }
   /**
    * Load table data based on events type

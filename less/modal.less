@@ -138,7 +138,7 @@ html[data-theme='dark'] {
     &.key {
       float: left;
       font-weight: bold;
-      width: 18%;
+      width: 19%;
       display: inline-block;
     }
     &.value {
@@ -419,6 +419,15 @@ html[data-theme='dark'] {
 /* events/netflow/index */
 #flowModalDialog-content {
   width: 1280px;
+  input,
+  textarea {
+    border: none;
+    background-color: var(--primaryContentBackground);
+  }
+  .MuiInputBase-multiline {
+    padding: 0 !important;
+    margin-top: 5px;
+  }
 }
 /* events/netflow/index */
 #pcapModalDialog-dialog {

@@ -49,7 +49,10 @@ class SortableItem extends Component {
           fullWidth={true}
           size='small'
           value={value[key]}
-          disabled={true} />
+          InputProps={{
+            readOnly: true,
+            disableUnderline: true
+          }} />
       )
     } else if (_.includes(TIME_FIELDS, key)) {
       return (
@@ -58,7 +61,10 @@ class SortableItem extends Component {
           fullWidth={true}
           size='small'
           value={helper.getFormattedDate(value[key], 'local')}
-          disabled={true} />
+          InputProps={{
+            readOnly: true,
+            disableUnderline: true
+          }} />
       )
     } else {
       return (
@@ -67,7 +73,10 @@ class SortableItem extends Component {
           fullWidth={true}
           size='small'
           value={value[key]}
-          disabled={true} />
+          InputProps={{
+            readOnly: true,
+            disableUnderline: true
+          }} />
       )
     }
   }

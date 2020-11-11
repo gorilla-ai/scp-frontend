@@ -1491,7 +1491,14 @@ class AlertDetails extends Component {
   }
   render() {
     const {titleText, actions} = this.props;
-    const {modalYaraRuleOpen, modalIRopen, modalEncodeOpen, highlightedText} = this.state;
+    const {showContent, ipDeviceInfo, modalYaraRuleOpen, modalIRopen, modalEncodeOpen, highlightedText} = this.state;
+    let ipType = '';
+
+    if (showContent.srcSafety) {
+      ipType = 'srcIp';
+    } else if (showContent.destSafety) {
+      ipType = 'destIp';
+    }
 
     return (
       <div>
@@ -1514,6 +1521,7 @@ class AlertDetails extends Component {
 
         {modalIRopen &&
           <IrSelections
+            currentDeviceData={ipDeviceInfo[ipType]}
             toggleSelectionIR={this.toggleSelectionIR}
             triggerTask={this.triggerTask} />
         }
