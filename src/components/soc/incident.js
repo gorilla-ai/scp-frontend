@@ -817,7 +817,7 @@ class Incident extends Component {
             cancelText: t('txt-cancel'),
             display: <div className='c-form content'>
                 <div>
-                    <FileInput id='attach' name='file' btnText={t('txt-selectFile')} />
+                    <FileInput validate={{max:20,t:it('file-too-large')}} id='attach' name='file' btnText={t('txt-selectFile')} />
                 </div>
                 <div>
                     <label>{it('txt-fileMemo')}</label>

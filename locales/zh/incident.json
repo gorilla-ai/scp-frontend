@@ -97,7 +97,7 @@
 	"txt-analyze-success": "交辦成功",
 	"txt-analyze-fail": "交辦失敗",
 	"txt-day": "天",
-
+	"file-too-large": "上傳檔案過大，超過20MB",
 	"accident": {
 		"1": "網頁攻擊",
 		"11": "網頁置換",
