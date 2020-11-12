@@ -68,6 +68,7 @@
 	"txt-autoSend": "Monthly Auto",
 	"txt-mustOne": "must required one malicious info",
 	"txt-attachedFile": "Attached File",
+	"txt-attachedFileNameError": "Attached File Name exist special characters",
 	"txt-attachedFileHint": "File size must less than 20M",
 	"txt-fileMemo": "Attachment Description",
 	"txt-flowTitle": "Event Handling Process",

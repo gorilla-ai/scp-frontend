@@ -68,6 +68,7 @@
 	"txt-autoSend": "每月自動發布",
 	"txt-mustOne": "擇一惡意資訊必填",
 	"txt-attachedFile": "附加檔案",
+	"txt-attachedFileNameError": "附加檔案名稱存在特殊字元",
 	"txt-attachedFileHint": "檔案大小請勿超過20M",
 	"txt-fileMemo": "附件說明",
 	"txt-flowTitle": "事件處理進度",

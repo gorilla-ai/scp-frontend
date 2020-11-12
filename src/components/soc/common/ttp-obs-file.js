@@ -4,7 +4,7 @@ import _ from 'lodash'
 
 import Input from 'react-ui/build/src/components/input'
 
-
+import TextField from '@material-ui/core/TextField';
 let t = null
 let et = null
 let f = null
@@ -23,6 +23,10 @@ class TtpObsFile extends Component {
         let {onChange, value: curValue} = this.props
         onChange({...curValue, [field]: value})
     }
+	handleDataChangeMui = (event) => {
+		let {onChange, value: curValue} = this.props
+		onChange({...curValue, [event.target.name]: event.target.value})
+	}
 	render() {
 		let {activeContent, value: {fileName, fileExtension, md5, sha1, sha256}} = this.props
 
@@ -30,52 +34,72 @@ class TtpObsFile extends Component {
 			<div className='line'>
 				<div className='group'>
 	                <label htmlFor='fileName'>{f('incidentFields.fileName')}</label>
-	                <Input
+	                <TextField style={{paddingRight: '2em'}}
 	                    id='fileName'
-	                    onChange={this.handleDataChange.bind(this, 'fileName')}
+	                    name='fileName'
+	                    variant='outlined'
+	                    fullWidth={true}
+	                    size='small'
+	                    onChange={this.handleDataChangeMui}
 	                    value={fileName}
-	                    readOnly={activeContent === 'viewIncident'}/>
+	                    disabled={activeContent === 'viewIncident'}/>
 	            </div>
 	            <div className='group'>
 	                <label htmlFor='fileExtension'>{f('incidentFields.fileExtension')}</label>
-	                <Input
+	                <TextField style={{paddingRight: '2em'}}
 	                    id='fileExtension'
-	                    onChange={this.handleDataChange.bind(this, 'fileExtension')}
+	                    name='fileExtension'
+	                    variant='outlined'
+	                    fullWidth={true}
+	                    size='small'
+	                    onChange={this.handleDataChangeMui}
 	                    value={fileExtension}
-	                    readOnly={activeContent === 'viewIncident'}/>
+	                    disabled={activeContent === 'viewIncident'}/>
 	            </div>
 	        </div>
 	        
 	        <div className='line'>
 				<div className='group'>
 	                <label htmlFor='md5'>MD5</label>
-	                <Input
+	                <TextField style={{paddingRight: '2em'}}
 	                    id='md5'
-	                    onChange={this.handleDataChange.bind(this, 'md5')}
+	                    name='md5'
+	                    variant='outlined'
+	                    fullWidth={true}
+	                    size='small'
+	                    onChange={this.handleDataChangeMui}
 	                    value={md5}
 						maxLength={32}
-	                    readOnly={activeContent === 'viewIncident'}/>
+	                    disabled={activeContent === 'viewIncident'}/>
 	            </div>
 	            <div className='group'>
 	                <label htmlFor='sha1'>SHA1</label>
-	                <Input
+	                <TextField style={{paddingRight: '2em'}}
 	                    id='sha1'
-	                    onChange={this.handleDataChange.bind(this, 'sha1')}
+	                    name='sha1'
+	                    variant='outlined'
+	                    fullWidth={true}
+	                    size='small'
+	                    onChange={this.handleDataChangeMui}
 	                    value={sha1}
 						maxLength={40}
-	                    readOnly={activeContent === 'viewIncident'}/>
+	                    disabled={activeContent === 'viewIncident'}/>
 	            </div>
 	        </div>
 
 	        <div className='line'>
 				<div className='group full'>
 	                <label htmlFor='sha256'>SHA256</label>
-	                <Input
+	                <TextField style={{paddingRight: '2em'}}
 	                    id='sha256'
-	                    onChange={this.handleDataChange.bind(this, 'sha256')}
+	                    name='sha256'
+	                    variant='outlined'
+	                    fullWidth={true}
+	                    size='small'
+	                    onChange={this.handleDataChangeMui}
 	                    value={sha256}
 						maxLength={64}
-	                    readOnly={activeContent === 'viewIncident'}/>
+	                    disabled={activeContent === 'viewIncident'}/>
 	            </div>
 	        </div>
 		</div>

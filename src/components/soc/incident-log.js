@@ -5,12 +5,14 @@ import {BaseDataContext} from "../common/context";
 import SocConfig from "../common/soc-configuration";
 import helper from "../common/helper";
 import cx from "classnames";
-import Input from "react-ui/build/src/components/input";
 import TableContent from "../common/table-content";
 import {Link} from "react-router-dom";
 import DropDownList from "react-ui/build/src/components/dropdown";
 import DateRange from "react-ui/build/src/components/date-range";
 import Moment from "moment";
+import MenuItem from '@material-ui/core/MenuItem';
+import TextField from '@material-ui/core/TextField';
+import Button from "@material-ui/core/Button";
 
 let t = null;
 let f = null;
@@ -249,73 +251,106 @@ class IncidentLog extends Component {
                 <div className='filter-section config'>
                     <div className='group'>
                         <label htmlFor='keyword'>{f('incidentFields.id')}</label>
-                        <input
+                        <TextField
                             id='keyword'
+                            name='keyword'
                             type='text'
+                            variant='outlined'
+                            fullWidth={true}
+                            size='small'
                             className='search-textarea'
                             value={logSearch.keyword}
-                            onChange={this.handleLogInputSearch.bind(this, 'keyword')}/>
+                            onChange={this.handleLogInputSearchMui}/>
                     </div>
                     <div className='group'>
                         <label htmlFor='type'>{it('txt-send-type')}</label>
-                        <DropDownList
+                        <TextField
                             id='type'
-                            list={[
-                                {
-                                    value: 'event',
-                                    text: it('txt-incident-event')
-                                },
-                                {
-                                    value: 'related',
-                                    text: it('txt-incident-related')
-                                },
-                                {
-                                    value: 'health',
-                                    text: it('txt-incident-health')
-                                }
-                            ]}
+                            name='type'
+                            variant='outlined'
+                            fullWidth={true}
+                            size='small'
+                            select
                             value={logSearch.type}
-                            onChange={this.handleLogSearch.bind(this, 'type')}/>
-
+                            onChange={this.handleLogInputSearchMui}>
+                            {
+                                _.map([
+                                    {
+                                        value: 'event',
+                                        text: it('txt-incident-event')
+                                    },
+                                    {
+                                        value: 'related',
+                                        text: it('txt-incident-related')
+                                    },
+                                    {
+                                        value: 'health',
+                                        text: it('txt-incident-health')
+                                    }
+                                ], el => {
+                                    return <MenuItem value={el.value}>{el.text}</MenuItem>
+                                })
+                            }
+                        </TextField>
                     </div>
                     <div className='group'>
                         <label htmlFor='status'>{it('txt-send-status')}</label>
-                        <DropDownList
+                        <TextField
                             id='status'
-                            list={[
-                                {
-                                    value: 'success',
-                                    text: it('txt-send-success')
-                                },
-                                {
-                                    value: 'fail',
-                                    text: it('txt-send-fail')
-                                }
-                            ]}
+                            name='status'
+                            variant='outlined'
+                            fullWidth={true}
+                            size='small'
+                            select
                             value={logSearch.status}
-                            onChange={this.handleLogSearch.bind(this, 'status')}/>
+                            onChange={this.handleLogInputSearchMui}>
+                            {
+                                _.map([
+                                    {
+                                        value: 'success',
+                                        text: it('txt-send-success')
+                                    },
+                                    {
+                                        value: 'fail',
+                                        text: it('txt-send-fail')
+                                    }
+                                ], el => {
+                                    return <MenuItem value={el.value}>{el.text}</MenuItem>
+                                })
+                            }
+                        </TextField>
                     </div>
                     <div className='group'>
                         <label htmlFor='searchDttmType'>{it('txt-searchDttmType')}</label>
-                        <DropDownList
+                        <TextField
                             id='searchDttmType'
-                            list={[
-                                {
-                                    value: 'sendDttm',
-                                    text: f('incidentFields.sendTime')
-                                },
-                                {
-                                    value: 'updateDttm',
-                                    text: f('incidentFields.updateDttm')
-                                },
-                                {
-                                    value: 'createdDttm',
-                                    text: f('incidentFields.createDttm')
-                                }
-                            ]}
+                            name='searchDttmType'
+                            variant='outlined'
+                            fullWidth={true}
+                            size='small'
+                            select
                             required={true}
                             value={logSearch.dttmType}
-                            onChange={this.handleLogSearch.bind(this, 'dttmType')}/>
+                            onChange={this.handleLogInputSearchMui}>
+                            {
+                                _.map([
+                                    {
+                                        value: 'sendDttm',
+                                        text: f('incidentFields.sendTime')
+                                    },
+                                    {
+                                        value: 'updateDttm',
+                                        text: f('incidentFields.updateDttm')
+                                    },
+                                    {
+                                        value: 'createdDttm',
+                                        text: f('incidentFields.createDttm')
+                                    }
+                                ], el => {
+                                    return <MenuItem value={el.value}>{el.text}</MenuItem>
+                                })
+                            }
+                        </TextField>
 
                     </div>
                     <div className='group'>
@@ -388,6 +423,20 @@ class IncidentLog extends Component {
             logSearch: tempLogSearch
         });
     };
+    /**
+     * Handle filter input data change
+     * @method
+     * @param {string} type - input type
+     * @param {object} event - input value
+     */
+    handleLogInputSearchMui = (event) => {
+        let tempLogSearch = {...this.state.logSearch};
+        tempLogSearch[event.target.name] = event.target.value.trim();
+
+        this.setState({
+            logSearch: tempLogSearch
+        });
+    };
 
     /**
      * Handle filter input data change
@@ -398,6 +447,20 @@ class IncidentLog extends Component {
     handleLogSearch = (type, value) => {
         let tempLogSearch = {...this.state.logSearch};
         tempLogSearch[type] = value;
+
+        this.setState({
+            logSearch: tempLogSearch
+        });
+    };
+    /**
+     * Handle filter input data change
+     * @method
+     * @param {string} type - input type
+     * @param {string} value - input value
+     */
+    handleLogSearchMui = (event) => {
+        let tempLogSearch = {...this.state.logSearch};
+        tempLogSearch[event.target.name] = event.target.value;
 
         this.setState({
             logSearch: tempLogSearch
