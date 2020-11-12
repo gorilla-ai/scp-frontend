@@ -42,29 +42,29 @@ class PrivateDetails extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    this.getDataInfo();
+    this.getPrivateInfo();
   }
   componentDidUpdate(prevProps) {
-    this.getDataInfo(prevProps);
+    this.getPrivateInfo(prevProps);
   }
   /**
    * Get and set the ip, owner, area and host information
    * @method
    */
-  getDataInfo = (prevProps) => {
-    const {type, alertInfo, topoInfo, srcDestType} = this.props;
+  getPrivateInfo = (prevProps) => {
+    const {alertInfo, topoInfo} = this.props;
     const ip = {
-      ip: topoInfo[type] ? topoInfo[type] : (topoInfo.ip || topoInfo.srcIp || alertInfo.ip),
-      mac: topoInfo[srcDestType + 'Mac'] ? topoInfo[srcDestType + 'Mac'] : (topoInfo.mac || topoInfo.srcMac || alertInfo.mac)
+      ip: topoInfo.ip,
+      mac: topoInfo.mac
     };
     const owner = {
       id: topoInfo.ownerObj ? topoInfo.ownerObj.ownerID : topoInfo.ownerID,
       name: topoInfo.ownerObj ? topoInfo.ownerObj.ownerName : topoInfo.ownerName,
       department: topoInfo.ownerObj ? topoInfo.ownerObj.departmentName : topoInfo.departmentName,
       title: topoInfo.ownerObj ? topoInfo.ownerObj.titleName : topoInfo.titleName,
-      map: alertInfo[type] ? alertInfo[type].ownerMap : alertInfo.ownerMap,
-      seat: alertInfo[type] ? alertInfo[type].ownerSeat : alertInfo.ownerSeat,
-      baseLayers: alertInfo[type] ? alertInfo[type].ownerBaseLayers : alertInfo.ownerBaseLayers
+      map: alertInfo.ownerMap,
+      seat: alertInfo.ownerSeat,
+      baseLayers: alertInfo.ownerBaseLayers
     };
     const areaName = topoInfo.areaObj ? topoInfo.areaObj.areaFullName : topoInfo.areaFullName;
     let hostInfo = [];
@@ -233,7 +233,9 @@ class PrivateDetails extends Component {
 
 PrivateDetails.propTypes = {
   alertInfo: PropTypes.object.isRequired,
-  topoInfo: PropTypes.object.isRequired
+  topoInfo: PropTypes.object.isRequired,
+  picPath: PropTypes.string.isRequired,
+  triggerTask: PropTypes.func.isRequired
 };
 
 export default PrivateDetails;

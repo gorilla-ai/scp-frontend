@@ -1171,17 +1171,14 @@ class AlertDetails extends Component {
   getPrivateInfo = (ipType) => {
     const {contextRoot} = this.context;
     const {alertInfo} = this.state;
-    const topoInfo = alertInfo[ipType].topology;
     const picPath = alertInfo[ipType].ownerPic ? alertInfo[ipType].ownerPic : contextRoot + '/images/empty_profile.png';
-    const srcDestType = ipType.replace('Ip', '');
 
     return (
       <PrivateDetails
-        type={ipType}
-        alertInfo={alertInfo}
-        topoInfo={topoInfo}
+        alertInfo={alertInfo[ipType]}
+        topoInfo={alertInfo[ipType].topology}
         picPath={picPath}
-        srcDestType={srcDestType} />
+        triggerTask={this.triggerTask} />
     )
   }
   /**
@@ -1214,25 +1211,25 @@ class AlertDetails extends Component {
       return (
         <div>
           {ipType === 'srcIp' && alertInfo[ipType].locationType === 1 && //Public
-            <div className='srcIp-content'>
+            <div className='privateIp-info srcIp-content'>
               {this.getPublicIPcontent(ipType)}
             </div>
           }
 
           {ipType === 'srcIp' && alertInfo[ipType].locationType === 2 && //Private
-            <div className='srcIp-content'>
+            <div className='privateIp-info srcIp-content'>
               {this.getPrivateInfo(ipType)}
             </div>
           }
 
           {ipType === 'destIp' && alertInfo[ipType].locationType === 1 && //Public
-            <div className='destIp-content'>
+            <div className='privateIp-info destIp-content'>
               {this.getPublicIPcontent(ipType)}
             </div>
           }
 
           {ipType === 'destIp' && alertInfo[ipType].locationType === 2 && //Private
-            <div className='destIp-content'>
+            <div className='privateIp-info destIp-content'>
               {this.getPrivateInfo(ipType)}
             </div>
           }

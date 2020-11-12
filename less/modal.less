@@ -988,9 +988,11 @@ html[data-theme='dark'] {
       .alert-rule,
       .srcIp-content,
       .destIp-content {
-        margin-top: 5px;
         height: 395px;
+        min-height: auto;
+        margin-top: 5px;
         overflow-y: auto;
+        background: none;
         .fg-info {
           cursor: pointer;
         }
@@ -1017,6 +1019,9 @@ html[data-theme='dark'] {
             }
           }
         }
+      }
+      .privateIp-info .private {
+        width: 90%;
       }
     }
     .network-behavior {
@@ -1085,6 +1090,8 @@ html[data-theme='dark'] {
       .scan-info,
       & > .network-behavior {
         height: 525px;
+        min-height: auto;
+        background: none;
       }
     }
   }

@@ -1386,7 +1386,7 @@ class ThreatsController extends Component {
    * @method
    * @param {string} [field] - corresponding field of selected node
    * @param {string} value - selected node name
-   * @param {string} type - condition of selected node ('must')
+   * @param {string} type - condition of selected node ('must', 'must_not' or 'either')
    */
   addSearch = (field, value, type) => {
     const {filterData} = this.state;

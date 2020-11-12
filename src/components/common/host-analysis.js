@@ -116,54 +116,51 @@ class HostAnalysis extends Component {
   displayInfoContent = () => {
     const {baseUrl, contextRoot} = this.context;
     const {hostData} = this.props;
-    const topoInfo = {
-      ...hostData.areaObj,
-      ...hostData.ownerObj,
-      ...hostData.seatObj
+    const picPath = (hostData.ownerObj && hostData.ownerObj.base64) ? hostData.ownerObj.base64 : contextRoot + '/images/empty_profile.png';
+    let alertInfo = {
+      ownerMap: {},
+      ownerBaseLayers: {},
+      ownerSeat: {}
     };
-    const picPath = topoInfo.ownerPic ? topoInfo.ownerPic : contextRoot + '/images/empty_profile.png';
-    let alertInfo = {...hostData};
-    let ownerMap = {};
-    alertInfo.ownerBaseLayers = {};
-    alertInfo.ownerSeat = {};  
 
-    if (topoInfo.picPath) {
-      ownerMap = {
-        label: topoInfo.areaName,
+    if (hostData.areaObj && hostData.areaObj.picPath) {
+      const ownerMap = {
+        label: hostData.areaObj.areaName,
         images: [
           {
-            id: topoInfo.areaUUID,
-            url: `${baseUrl}${contextRoot}/api/area/_image?path=${topoInfo.picPath}`,
-            size: {width: topoInfo.picWidth, height: topoInfo.picHeight}
+            id: hostData.areaUUID,
+            url: `${baseUrl}${contextRoot}/api/area/_image?path=${hostData.areaObj.picPath}`,
+            size: {width: hostData.areaObj.picWidth, height: hostData.areaObj.picHeight}
           }
         ]
       };
-    }
 
-    alertInfo.ownerMap = ownerMap;
-    alertInfo.ownerBaseLayers[topoInfo.areaUUID] = ownerMap;
+      alertInfo.ownerMap = ownerMap;
+      alertInfo.ownerBaseLayers[hostData.areaUUID] = ownerMap;
 
-    if (topoInfo.seatUUID) {
-      alertInfo.ownerSeat[topoInfo.areaUUID] = {
-        data: [{
-          id: topoInfo.seatUUID,
-          type: 'spot',
-          xy: [topoInfo.coordX, topoInfo.coordY],
-          label: topoInfo.seatName,
-          data: {
-            name: topoInfo.seatName,
-            tag: 'red'
-          }
-        }]
-      };
+      if (hostData.seatUUID && hostData.seatObj) {
+        alertInfo.ownerSeat[hostData.areaUUID] = {
+          data: [{
+            id: hostData.seatUUID,
+            type: 'spot',
+            xy: [hostData.seatObj.coordX, hostData.seatObj.coordY],
+            label: hostData.seatObj.seatName,
+            data: {
+              name: hostData.seatObj.seatName,
+              tag: 'red'
+            }
+          }]
+        };
+      }
     }
 
     return (
-      <div className='srcIp-content'>
+      <div className='privateIp-info srcIp-content'>
         <PrivateDetails
           alertInfo={alertInfo}
-          topoInfo={topoInfo}
-          picPath={picPath} />
+          topoInfo={hostData}
+          picPath={picPath}
+          triggerTask={this.triggerTask} />
       </div>
     )
   }

@@ -483,7 +483,7 @@ class HostController extends Component {
           severityList,
           hmdStatusList,
           scanStatusList,
-          hostCreateTime: data.create_dttm,
+          hostCreateTime: helper.getFormattedDate(data.create_dttm, 'local'),
           hostInfo: tempHostInfo
         }, () => {
           if (activeTab === 'deviceMap' && data.rows.length > 0) {
@@ -971,9 +971,10 @@ class HostController extends Component {
    */
   getIPdeviceInfo = (host, options, defaultOpen) => {
     const {baseUrl} = this.context;
-    const {hostInfo} = this.state;
+    const {hostInfo, hostData} = this.state;
     const datetime = this.getHostDateTime();
-    const url = `${baseUrl}/api/v2/ipdevice?uuid=${host.ipDeviceUUID}&page=1&pageSize=1&startDttm=${datetime.from}&endDttm=${datetime.to}`;
+    const ipDeviceUUID = host ? host.ipDeviceUUID : hostData.ipDeviceUUID;
+    const url = `${baseUrl}/api/v2/ipdevice?uuid=${ipDeviceUUID}&page=1&pageSize=1&startDttm=${datetime.from}&endDttm=${datetime.to}`;
 
     this.ah.one({
       url,
@@ -981,7 +982,7 @@ class HostController extends Component {
     })
     .then(data => {
       if (data) {
-        const activeHostInfo = _.find(hostInfo.dataContent, {ipDeviceUUID: host.ipDeviceUUID});
+        const activeHostInfo = _.find(hostInfo.dataContent, {ipDeviceUUID});
         let hostData = {
           ...data
         };
@@ -1011,6 +1012,10 @@ class HostController extends Component {
                 this.toggleHostAnalysis();
               });
             }
+          } else {
+            this.setState({
+              openHmdType: ''
+            });
           }
         });
       }
@@ -1036,9 +1041,24 @@ class HostController extends Component {
    */
   redirectNewPage = (ip) => {
     const {baseUrl, contextRoot, language} = this.context;
-    const datetime = this.getHostDateTime();
+    const {datetime, hostCreateTime} = this.state;
+    const selectedDate = Moment(datetime).format('YYYY-MM-DD');
+    const currentDate = Moment().local().format('YYYY-MM-DD');
+    let dateTime = {
+      from: '',
+      to: ''
+    };
+
+    if (Moment(selectedDate).isBefore(currentDate)) {
+      dateTime.from = selectedDate + ' 00:00:00';
+      dateTime.to = selectedDate + ' 23:59:59';
+    } else {
+      dateTime.from = currentDate + ' 00:00:00';
+      dateTime.to = hostCreateTime;
+    }
+
     const ipParam = `&sourceIP=${ip}&page=host`;
-    const linkUrl = `${baseUrl}${contextRoot}/threats?from=${datetime.from}&to=${datetime.to}${ipParam}&lng=${language}`;
+    const linkUrl = `${baseUrl}${contextRoot}/threats?from=${dateTime.from}&to=${dateTime.to}${ipParam}&lng=${language}`;
 
     window.open(linkUrl, '_blank');
   }
@@ -1259,7 +1279,7 @@ class HostController extends Component {
               {hostInfo.totalCount > 0 &&
                 <div>
                   <span>{t('txt-total')}: {helper.numberWithCommas(hostInfo.totalCount)}</span>
-                  <span>{t('host.txt-hostCreateTime')}: {helper.getFormattedDate(hostCreateTime, 'local')}</span>
+                  <span>{t('host.txt-hostCreateTime')}: {hostCreateTime}</span>
                 </div>
               }
               {activeTab === 'hostList' &&
