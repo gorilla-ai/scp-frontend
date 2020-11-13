@@ -1027,7 +1027,7 @@ class Incident extends Component {
                     size='small'
                     onChange={this.handleDataChangeMui}
                     value={incident.info.accidentCatogory}
-                    readOnly={activeContent === 'viewIncident'}>
+                    disabled={activeContent === 'viewIncident'}>
                     {INCIDENT_ACCIDENT_LIST}
                 </TextField>
             </div>

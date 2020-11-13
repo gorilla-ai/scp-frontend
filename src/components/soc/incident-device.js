@@ -8,8 +8,6 @@ import cx from "classnames";
 import Input from "react-ui/build/src/components/input";
 import PopupDialog from "react-ui/build/src/components/popup-dialog";
 import TableContent from "../common/table-content";
-import DropDownList from "react-ui/build/src/components/dropdown";
-import Textarea from "react-ui/build/src/components/textarea";
 import {downloadWithForm} from "react-ui/build/src/utils/download";
 import {Link} from "react-router-dom";
 import Checkbox from "react-ui/build/src/components/checkbox";
@@ -17,9 +15,8 @@ import SelecTableContent from "../common/selectable-content";
 import TextareaAutosize from '@material-ui/core/TextareaAutosize';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
-import Button from "@material-ui/core/Button";
-
-
+import CheckIcon from '@material-ui/icons/Check';
+import CloseIcon from '@material-ui/icons/Close';
 let t = null;
 let f = null;
 let et = null;
@@ -408,15 +405,11 @@ class IncidentDevice extends Component {
                             <header className='main-header'>{it('txt-incident-device')}</header>
                             <div className='content-header-btns'>
                                 {activeContent === 'tableList' &&
-                                <span>{it('txt-autoSend')}</span>
+                                        <span>{it('txt-autoSendState')}</span>
                                 }
-                                {activeContent === 'tableList' &&
-                                <Checkbox
-                                    id='isDefault'
-                                    onChange={this.handleStatusChange.bind(this, 'isDefault')}
-                                    checked={sendCheck.sendStatus}
-                                    disabled={activeContent === 'viewDevice'}/>
-                                }
+
+                                {activeContent === 'tableList' && sendCheck.sendStatus &&(<CheckIcon style={{color:'#68cb51'}}/>)}
+                                {activeContent === 'tableList' && !sendCheck.sendStatus &&(<CloseIcon style={{color:'#d63030'}}/>)}
 
                                 {activeContent === 'tableList' &&
                                 <button className='standard btn list'
@@ -429,9 +422,13 @@ class IncidentDevice extends Component {
                                         onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</button>
                                 }
                                 <button className='standard btn edit'
+                                        onClick={this.autoSendSettingsDialog.bind(this)}>{it('txt-autoSendSettings')}</button>
+                                <button className='standard btn edit'
                                         onClick={this.toggleContent.bind(this, 'addDevice')}>{t('txt-add')}</button>
 
-                                <Link to='/SCP/configuration/notifications'><button className='standard btn'>{t('notifications.txt-settings')}</button></Link>
+                                <Link to='/SCP/configuration/notifications'>
+                                    <button className='standard btn'>{t('notifications.txt-settings')}</button>
+                                </Link>
 
                             </div>
                             <TableContent
@@ -808,6 +805,24 @@ class IncidentDevice extends Component {
             </div>
         )
     };
+
+    autoSendSettingsDialog() {
+        PopupDialog.prompt({
+            title: it('txt-autoSendSettings'),
+            confirmText: it('unit.txt-isDefault'),
+            cancelText: it('unit.txt-isNotDefault'),
+            display: <div className='c-form content'>
+                <span>{it('txt-autoSend')}</span>
+            </div>,
+            act: (confirmed) => {
+                if (confirmed){
+                    this.handleStatusChange('isDefault',true)
+                }else {
+                    this.handleStatusChange('isDefault',false)
+                }
+            }
+        })
+    }
 
     /**
      * Handle delete IncidentDevice confirm
@@ -1240,8 +1255,8 @@ class IncidentDevice extends Component {
         let tempSendCheck = {...this.state.sendCheck};
         const {baseUrl, contextRoot} = this.context;
 
-        tempSendCheck.sendStatus = !this.state.sendCheck.sendStatus;
-
+        // tempSendCheck.sendStatus = !this.state.sendCheck.sendStatus;
+        tempSendCheck.sendStatus = value;
 
         ah.one({
             url: `${baseUrl}/api/soc/device/_override`,
