@@ -214,8 +214,8 @@ class SearchOptions extends Component {
             size='small'
             value={searchInput.searchType}
             onChange={this.handleSearchTypeChange}>
-            <MenuItem value={'manual'}>{t('events.connections.txt-search-manual')}</MenuItem>
-            <MenuItem value={'auto'}>{t('events.connections.txt-search-auto')}</MenuItem>
+            <MenuItem value={'manual'}>{t('time-interval.txt-search-manual')}</MenuItem>
+            <MenuItem value={'auto'}>{t('time-interval.txt-search-auto')}</MenuItem>
           </TextField>
         }
 
@@ -232,11 +232,11 @@ class SearchOptions extends Component {
                     size='small'
                     value={searchInput.refreshTime}
                     onChange={this.props.setSearchData.bind(this, 'refreshTime')}>
-                    <MenuItem value={'15000'}>{t('events.connections.txt-15s')}</MenuItem>
-                    <MenuItem value={'30000'}>{t('events.connections.txt-30s')}</MenuItem>
-                    <MenuItem value={'60000'}>{t('events.connections.txt-1m')}</MenuItem>
-                    <MenuItem value={'300000'}>{t('events.connections.txt-5m')}</MenuItem>
-                    <MenuItem value={'600000'}>{t('events.connections.txt-10m')}</MenuItem>
+                    <MenuItem value={'15000'}>{t('time-interval.txt-15s')}</MenuItem>
+                    <MenuItem value={'30000'}>{t('time-interval.txt-30s')}</MenuItem>
+                    <MenuItem value={'60000'}>{t('time-interval.txt-1m')}</MenuItem>
+                    <MenuItem value={'300000'}>{t('time-interval.txt-5m')}</MenuItem>
+                    <MenuItem value={'600000'}>{t('time-interval.txt-10m')}</MenuItem>
                   </TextField>
                 </div>
 
@@ -249,10 +249,10 @@ class SearchOptions extends Component {
                     size='small'
                     value={searchInput.searchInterval}
                     onChange={this.props.setSearchData.bind(this, 'searchInterval')}>
-                    <MenuItem value={'15m'}>{t('events.connections.txt-last15m')}</MenuItem>
-                    <MenuItem value={'30m'}>{t('events.connections.txt-last30m')}</MenuItem>
-                    <MenuItem value={'1h'}>{t('events.connections.txt-last1h')}</MenuItem>
-                    <MenuItem value={'12h'}>{t('events.connections.txt-last12h')}</MenuItem>
+                    <MenuItem value={'15m'}>{t('time-interval.txt-last15m')}</MenuItem>
+                    <MenuItem value={'30m'}>{t('time-interval.txt-last30m')}</MenuItem>
+                    <MenuItem value={'1h'}>{t('time-interval.txt-last1h')}</MenuItem>
+                    <MenuItem value={'12h'}>{t('time-interval.txt-last12h')}</MenuItem>
                   </TextField>
                 </div>
               </div>
@@ -267,12 +267,12 @@ class SearchOptions extends Component {
                   size='small'
                   value={searchInput.searchInterval}
                   onChange={this.props.setSearchData.bind(this, 'searchInterval')}>
-                  <MenuItem value={'30m'}>{t('events.connections.txt-last30m')}</MenuItem>
-                  <MenuItem value={'1h'}>{t('events.connections.txt-last1h')}</MenuItem>
-                  <MenuItem value={'2h'}>{t('events.connections.txt-last2h')}</MenuItem>
-                  <MenuItem value={'today'}>{t('events.connections.txt-today')}</MenuItem>
-                  <MenuItem value={'24h'}>{t('events.connections.txt-last24h')}</MenuItem>
-                  <MenuItem value={'week'}>{t('events.connections.txt-week')}</MenuItem>
+                  <MenuItem value={'30m'}>{t('time-interval.txt-last30m')}</MenuItem>
+                  <MenuItem value={'1h'}>{t('time-interval.txt-last1h')}</MenuItem>
+                  <MenuItem value={'2h'}>{t('time-interval.txt-last2h')}</MenuItem>
+                  <MenuItem value={'today'}>{t('time-interval.txt-today')}</MenuItem>
+                  <MenuItem value={'24h'}>{t('time-interval.txt-last24h')}</MenuItem>
+                  <MenuItem value={'week'}>{t('time-interval.txt-week')}</MenuItem>
                 </TextField>
             }
           </div>

@@ -20,6 +20,24 @@ export default function createDefaultTheme() {
             backgroundColor: '#eee'
           }
         }
+      },
+      MuiToggleButton: {
+        root: {
+          color: '#4a4a4a',
+          backgroundColor: '#fff',
+          '&:hover': {
+            color: '#fff',
+            backgroundColor: '#001b34 !important'
+          },
+          '&.Mui-selected': {
+            color: '#fff',
+            backgroundColor: '#001b34'
+          },
+          '&.Mui-selected:hover': {
+            color: '#fff',
+            backgroundColor: '#001b34 !important'
+          }
+        }
       }
     }
   });

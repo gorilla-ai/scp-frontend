@@ -235,6 +235,30 @@
   "txt-linkAnalysis": "關聯",
   "txt-map": "地圖",
 
+  "time-interval": {
+    "txt-search-manual": "自訂時間",
+    "txt-search-auto": "定期更新",
+    "txt-last15m": "最近15分鐘",
+    "txt-last30m": "最近30分鐘",
+    "txt-last1h": "最近1小時",
+    "txt-last2h": "最近2小時",
+    "txt-last12h": "最近12小時",
+    "txt-last24h": "最近24小時",
+    "txt-15s": "15秒",
+    "txt-30s": "30秒",
+    "txt-1m": "1分鐘",
+    "txt-5m": "5分鐘",
+    "txt-10m": "10分鐘",
+    "txt-15m": "15分鐘",
+    "txt-30m": "30分鐘",
+    "txt-60m": "60分鐘",
+    "txt-1h": "1小時",
+    "txt-12h": "12小時",
+    "txt-1d": "1天",    
+    "txt-today": "今天",
+    "txt-week": "本週"
+  },
+
   "dashboard": {
     "txt-overview": "Overview",
     "txt-statisticsInfo": "統計資料",
@@ -338,26 +362,6 @@
 
   "events": {
     "connections": {
-      "txt-search-manual": "自訂時間",
-      "txt-search-auto": "定期更新",
-      "txt-last15m": "最近15分鐘",
-      "txt-last30m": "最近30分鐘",
-      "txt-last1h": "最近1小時",
-      "txt-last2h": "最近2小時",
-      "txt-last12h": "最近12小時",
-      "txt-last24h": "最近24小時",
-      "txt-15s": "15秒",
-      "txt-30s": "30秒",
-      "txt-1m": "1分鐘",
-      "txt-5m": "5分鐘",
-      "txt-10m": "10分鐘",
-      "txt-today": "今天",
-      "txt-week": "本週",
-      "txt-connections1m": "1分",
-      "txt-connections15m": "15分",
-      "txt-connections30m": "30分",
-      "txt-connections60m": "60分",
-      "txt-chartExceedMaxMsg": "查詢資料超過可顯示的圖表數量，請重新選擇時間區間",
       "txt-enterQueryName": "輸入查詢條件名稱",
       "txt-openQuery": "開啟查詢條件",
       "txt-saveQuery": "儲存查詢條件",
@@ -391,7 +395,8 @@
       "txt-addFilter": "$t(txt-add2)$t(txt-filter)",
       "txt-deleteFilter": "$t(txt-delete)查詢條件",
       "txt-viewRule": "$t(txt-view)$t(txt-alert)$t(txt-rule)",
-      "txt-downloadMalware": "$t(txt-download)惡意程式"
+      "txt-downloadMalware": "$t(txt-download)惡意程式",
+      "txt-chartExceedMaxMsg": "查詢資料超過可顯示的圖表數量，請重新選擇時間區間"
     }
   },
 

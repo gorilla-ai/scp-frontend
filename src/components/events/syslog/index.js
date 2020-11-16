@@ -56,6 +56,8 @@ class SyslogController extends Component {
         //from: '2019-07-25T03:10:00Z',
         //to: '2019-08-01T04:10:00Z'
       },
+      chartIntervalList: [],
+      chartIntervalValue: '',
       currentPage: 1,
       oldPage: 1,
       pageSize: 20,
@@ -171,6 +173,7 @@ class SyslogController extends Component {
         this.getLAconfig();
         this.getSavedQuery();
         this.getSyslogTree();
+        this.setChartIntervalBtn();
         this.initialLoad();
       });
     }
@@ -233,6 +236,18 @@ class SyslogController extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+  }
+  /**
+   * Set interval for chart buttons
+   * @method
+   */
+  setChartIntervalBtn = () => {
+    const chartData = helper.setChartInterval(this.state.datetime);
+
+    this.setState({
+      chartIntervalList: chartData.chartIntervalList,
+      chartIntervalValue: chartData.chartIntervalValue
+    });
   }
   /**
    * Set initial data for page load
@@ -599,7 +614,7 @@ class SyslogController extends Component {
    */
   loadLogs = (options) => {
     const {baseUrl} = this.context;
-    const {activeTab, currentPage, oldPage, pageSize, subSectionsData, markData} = this.state;
+    const {activeTab, chartIntervalValue, currentPage, oldPage, pageSize, subSectionsData, markData} = this.state;
     const setPage = options === 'search' ? 1 : currentPage;
 
     this.ah.all([{
@@ -609,7 +624,7 @@ class SyslogController extends Component {
       contentType: 'text/plain'
     },
     {
-      url: `${baseUrl}/api/u1/log/event/_search?page=0&pageSize=0&timeline=true`,
+      url: `${baseUrl}/api/u1/log/event/_search?page=0&pageSize=0&timeline=true&interval=${chartIntervalValue}`,
       data: JSON.stringify(this.toQueryLanguage()),
       type: 'POST',
       contentType: 'text/plain'
@@ -850,6 +865,7 @@ class SyslogController extends Component {
         oldPage: 1,
         tableMouseOver: false
       }, () => {
+        this.setChartIntervalBtn();
         this.loadActiveSubTab(fromSearch);
       });
     }
@@ -1556,6 +1572,19 @@ class SyslogController extends Component {
     });
   }
   /**
+   * Handle chart interval change for Connections events
+   * @method
+   * @param {object} event - event object
+   * @param {string} type - interval type
+   */
+  handleIntervalChange = (event, type) => {
+    this.setState({
+      chartIntervalValue: type
+    }, () => {
+      this.loadLogs();
+    });
+  }
+  /**
    * Display table data content Syslog
    * @method
    * @returns Syslog component
@@ -1567,6 +1596,9 @@ class SyslogController extends Component {
       markData,
       tableMouseOver,
       tableUniqueID: 'id',
+      chartIntervalList: this.state.chartIntervalList,
+      chartIntervalValue: this.state.chartIntervalValue,
+      chartIntervalChange: this.handleIntervalChange,
       subTabMenu: this.state.subTabMenu,
       activeSubTab: this.state.activeSubTab,
       handleSubTabChange: this.handleSubTabChange,

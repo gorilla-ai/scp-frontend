@@ -8,8 +8,9 @@ import cx from 'classnames'
 
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
+import ToggleButton from '@material-ui/lab/ToggleButton';
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 
-import ButtonGroup from 'react-ui/build/src/components/button-group'
 import Gis from 'react-gis/build/src/components'
 
 import AlertDetails from '../common/alert-details'
@@ -280,9 +281,10 @@ class DashboardMaps extends Component {
   /**
    * Toggle public and private maps content
    * @method
+   * @param {object} event - event object
    * @param {string} type - content type ('private' or 'public')
    */
-  toggleMaps = (type) => {
+  toggleMaps = (event, type) => {
     this.setState({
       mapType: type,
       ..._.cloneDeep(MAPS_PUBLIC_DATA),
@@ -844,13 +846,14 @@ class DashboardMaps extends Component {
 
         <div className='main-dashboard'>
           <div className='maps'>
-            <ButtonGroup
-              list={[
-                {value: PRIVATE, text: t('dashboard.txt-private')},
-                {value: PUBLIC, text: t('dashboard.txt-public')}
-              ]}
+            <ToggleButtonGroup
+              className='button-group'
               value={mapType}
-              onChange={this.toggleMaps} />
+              exclusive
+              onChange={this.toggleMaps}>
+              <ToggleButton value={PRIVATE}>{t('dashboard.txt-private')}</ToggleButton>
+              <ToggleButton value={PUBLIC}>{t('dashboard.txt-public')}</ToggleButton>
+            </ToggleButtonGroup>
 
             {floorList.length > 0 && mapType === PRIVATE &&
               <TextField

@@ -789,7 +789,7 @@ class AutoSettings extends Component {
                   size='small'
                   value={netflowData.time}
                   disabled={activeContent === 'viewMode'}>
-                  <MenuItem value={'24'}>{t('events.connections.txt-last24h')}</MenuItem>
+                  <MenuItem value={'24'}>{t('time-interval.txt-last24h')}</MenuItem>
                 </TextField>
               </div>
             </div>

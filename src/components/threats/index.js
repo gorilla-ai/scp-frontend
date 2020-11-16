@@ -165,6 +165,8 @@ class ThreatsController extends Component {
         //from: '2019-06-28T05:28:00Z',
         //to: '2019-07-19T06:28:00Z'
       },
+      chartIntervalList: [],
+      chartIntervalValue: '',
       currentPage: 1,
       oldPage: 1,
       pageSize: 20,
@@ -274,6 +276,7 @@ class ThreatsController extends Component {
       }, () => {
         this.getSavedQuery();
         this.loadTreeData();
+        this.setChartIntervalBtn();
         this.setStatisticsTab();
       });
     }
@@ -439,6 +442,18 @@ class ThreatsController extends Component {
     })
   }
   /**
+   * Set interval for chart buttons
+   * @method
+   */
+  setChartIntervalBtn = () => {
+    const chartData = helper.setChartInterval(this.state.datetime);
+
+    this.setState({
+      chartIntervalList: chartData.chartIntervalList,
+      chartIntervalValue: chartData.chartIntervalValue
+    });
+  }
+  /**
    * Set initial data for statistics tab
    * @method
    */
@@ -577,10 +592,22 @@ class ThreatsController extends Component {
    */
   loadThreatsData = (options) => {
     const {baseUrl} = this.context;
-    const {activeTab, currentPage, oldPage, pageSize, treeData, subSectionsData, account, alertDetails, alertPieData, alertTableData} = this.state;
+    const {
+      activeTab,
+      chartIntervalValue,
+      currentPage,
+      oldPage,
+      pageSize,
+      treeData,
+      subSectionsData,
+      account,
+      alertDetails,
+      alertPieData,
+      alertTableData
+    } = this.state;
     const setPage = options === 'search' ? 1 : currentPage;
     const requestData = this.toQueryLanguage(options);
-    let url = `${baseUrl}/api/u2/alert/_search?page=${setPage}&pageSize=`;
+    let url = `${baseUrl}/api/u2/alert/_search?histogramInterval=${chartIntervalValue}&page=${setPage}&pageSize=`;
 
     if (!options || options === 'search') {
       url += pageSize;
@@ -1304,6 +1331,7 @@ class ThreatsController extends Component {
       alertTableData: {}
     }, () => {
       this.loadTreeData();
+      this.setChartIntervalBtn();
       this.setStatisticsTab();
     });
   }
@@ -1587,6 +1615,19 @@ class ThreatsController extends Component {
     });
   }
   /**
+   * Handle chart interval change for Connections events
+   * @method
+   * @param {object} event - event object
+   * @param {string} type - interval type
+   */
+  handleIntervalChange = (event, type) => {
+    this.setState({
+      chartIntervalValue: type
+    }, () => {
+      this.loadThreatsData();
+    });
+  }
+  /**
    * Display alert table data
    * @method
    * @returns Alert component
@@ -1597,6 +1638,9 @@ class ThreatsController extends Component {
       activeTab,
       chartColors: ALERT_LEVEL_COLORS,
       tableUniqueID: 'id',
+      chartIntervalList: this.state.chartIntervalList,
+      chartIntervalValue: this.state.chartIntervalValue,
+      chartIntervalChange: this.handleIntervalChange,
       subTabMenu: this.state.subTabMenu,
       activeSubTab: this.state.activeSubTab,
       handleSubTabChange: this.handleSubTabChange,

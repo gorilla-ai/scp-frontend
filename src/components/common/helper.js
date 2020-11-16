@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import Moment from 'moment'
 import cx from 'classnames'
 
+import ToggleButton from '@material-ui/lab/ToggleButton';
+
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
@@ -52,6 +54,38 @@ const helper = {
         return;
       }
     }
+  },
+  setChartInterval: function(datetime) {
+    const t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    const dateTime = {
+      from: Moment(datetime.from),
+      to: Moment(datetime.to)
+    };
+    const hr = dateTime.to.diff(dateTime.from, 'hours');
+    const day = dateTime.to.diff(dateTime.from, 'days');
+    let chartIntervalList = [];
+    let chartIntervalValue = '';
+
+    if (hr <= 24) {
+      chartIntervalList = ['10m', '1h'];
+    } else if (hr > 24 && day <= 7) {
+      chartIntervalList = ['1h', '12h', '1d'];
+    } else if (day > 7 && day <= 28) {
+      chartIntervalList = ['12h', '1d'];
+    } else if (day > 28) {
+      chartIntervalList = ['1d'];
+    }
+
+    chartIntervalValue = chartIntervalList[0];
+
+    chartIntervalList = _.map(chartIntervalList, val => {
+      return <ToggleButton value={val}>{t('time-interval.txt-' + val)}</ToggleButton>;
+    });
+
+    return {
+      chartIntervalList,
+      chartIntervalValue
+    };
   },
   setChartData: function(data, property) {
     let innerObj = {};

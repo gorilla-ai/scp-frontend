@@ -5,7 +5,9 @@ import Moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import ButtonGroup from 'react-ui/build/src/components/button-group'
+import ToggleButton from '@material-ui/lab/ToggleButton';
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
+
 import DataTable from 'react-ui/build/src/components/table'
 
 import {BaseDataContext} from './context';
@@ -458,9 +460,10 @@ class NetworkBehavior extends Component {
   /**
    * Toggle network behavior button
    * @method
+   * @param {object} event - event object
    * @param {string} type - 'threats' or 'syslog'
    */
-  toggleNetworkBtn = (type) => {
+  toggleNetworkBtn = (event, type) => {
     this.setState({
       activeNetworkBehavior: type
     });
@@ -557,16 +560,15 @@ class NetworkBehavior extends Component {
 
     return (
       <div className='network-behavior'>
-        <ButtonGroup
-          id='networkType'
-          list={[
-            {value: 'threats', text: t('txt-threats') + ' (' + helper.numberWithCommas(networkBehavior.threats[ipType].totalCount) + ')'},
-            {value: 'connections', text: t('txt-connections-eng') + ' (' + helper.numberWithCommas(networkBehavior.connections[ipType].totalCount) + ')'},
-            {value: 'dns', text: t('txt-dns') + ' (' + helper.numberWithCommas(networkBehavior.dns[ipType].totalCount) + ')'},
-            {value: 'syslog', text: t('txt-syslog') + ' (' + helper.numberWithCommas(networkBehavior.syslog[ipType].totalCount) + ')'}
-          ]}
+        <ToggleButtonGroup
           value={activeNetworkBehavior}
-          onChange={this.toggleNetworkBtn} />
+          exclusive
+          onChange={this.toggleNetworkBtn}>
+          <ToggleButton value='threats'>{t('txt-threats') + ' (' + helper.numberWithCommas(networkBehavior.threats[ipType].totalCount) + ')'}</ToggleButton>
+          <ToggleButton value='connections'>{t('txt-connections-eng') + ' (' + helper.numberWithCommas(networkBehavior.connections[ipType].totalCount) + ')'}</ToggleButton>
+          <ToggleButton value='dns'>{t('txt-dns') + ' (' + helper.numberWithCommas(networkBehavior.dns[ipType].totalCount) + ')'}</ToggleButton>
+          <ToggleButton value='syslog'>{t('txt-syslog') + ' (' + helper.numberWithCommas(networkBehavior.syslog[ipType].totalCount) + ')'}</ToggleButton>
+        </ToggleButtonGroup>
 
         {datetime.from && datetime.to &&
           <div className='msg'>{alertTimeText}: {datetime.from} ~ {datetime.to}</div>

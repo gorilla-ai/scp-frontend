@@ -9,7 +9,9 @@ import cx from 'classnames'
 
 import InfiniteScroll from 'react-infinite-scroll-component'
 
-import ButtonGroup from 'react-ui/build/src/components/button-group'
+import ToggleButton from '@material-ui/lab/ToggleButton';
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
+
 import DataTable from 'react-ui/build/src/components/table'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import MultiInput from 'react-ui/build/src/components/multi-input'
@@ -202,25 +204,18 @@ class HMDscanInfo extends Component {
    */
   loadInitialContent = () => {
     const {location, currentDeviceData} = this.props;
-    let buttonGroupList = [{
-      value: 'dashboard',
-      text: t('txt-dashboard')
-    }];
+    let buttonGroupList = [];
 
-    _.forEach(SAFETY_SCAN_LIST, val => {
+    buttonGroupList.push(<ToggleButton value='dashboard'>{t('txt-dashboard')}</ToggleButton>);
+
+    _.forEach(SAFETY_SCAN_LIST, val => { //Create list for Button group
       if (val.type !== 'snapshot' && val.type !== 'procWhiteList') {
-        buttonGroupList.push({ //Create list for Button group
-          value: val.type,
-          text: t('network-inventory.scan-list.txt-' + val.type)
-        });
+        buttonGroupList.push(<ToggleButton value={val.type}>{t('network-inventory.scan-list.txt-' + val.type)}</ToggleButton>);
       }
     });
 
     if (location.pathname.indexOf('host') > 0 || location.pathname.indexOf('configuration') > 0) { //Add Settings tab for Config section
-      buttonGroupList.push({
-        value: 'settings',
-        text: t('txt-setting-eng')
-      });
+      buttonGroupList.push(<ToggleButton value='settings'>{t('txt-setting-eng')}</ToggleButton>);
     }
 
     this.setState({
@@ -475,9 +470,10 @@ class HMDscanInfo extends Component {
   /**
    * Set active tab based on scan type
    * @method
+   * @param {object} event - event object
    * @param {string} activeTab - active scan type
    */
-  toggleScanType = (activeTab) => {
+  toggleScanType = (event, activeTab) => {
     this.setState({
       activeTab,
       activePath: null,
@@ -1891,11 +1887,12 @@ class HMDscanInfo extends Component {
 
     return (
       <div className='scan-info'>
-        <ButtonGroup
-          className='left'
-          list={buttonGroupList}
+        <ToggleButtonGroup
           value={activeTab}
-          onChange={this.toggleScanType} />
+          exclusive
+          onChange={this.toggleScanType}>
+          {buttonGroupList}
+        </ToggleButtonGroup>
 
         <div className='info-content'>
           {activeTab === 'dashboard' &&

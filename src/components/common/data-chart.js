@@ -3,7 +3,8 @@ import PropTypes from 'prop-types'
 import Moment from 'moment'
 import cx from 'classnames'
 
-import ButtonGroup from 'react-ui/build/src/components/button-group'
+import ToggleButton from '@material-ui/lab/ToggleButton';
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 
 import {BaseDataContext} from './context';
 import ChartContent from './chart-content'
@@ -133,28 +134,27 @@ class DataChart extends Component {
       return (
         <div className={cx('main-chart', {'active': mainContentData.showChart})}>
           <i className='fg fg-close' onClick={mainContentData.toggleChart} title={t('txt-close')}></i>
-          <div className='chart-content connections'>
-            <ButtonGroup
-              id='chartType'
+          <div className='chart-content interval-options'>
+            <ToggleButtonGroup
               className='chart-btn'
-              list={[
-                {value: 'connections', text: t('txt-connections')},
-                {value: 'packets', text: t('txt-packets')},
-                {value: 'databytes', text: t('txt-databytes')}
-              ]}
               value={tabChartData.chartTypeValue}
-              onChange={tabChartData.chartTypeChange} />
-            <ButtonGroup
-              id='chartType'
-              className='interval-btn'
-              list={[
-                {value: '1m', text: t('events.connections.txt-connections1m')},
-                {value: '15m', text: t('events.connections.txt-connections15m')},
-                {value: '30m', text: t('events.connections.txt-connections30m')},
-                {value: '60m', text: t('events.connections.txt-connections60m')}
-              ]}
+              exclusive
+              onChange={tabChartData.chartTypeChange}>
+              <ToggleButton value='connections'>{t('txt-connections')}</ToggleButton>
+              <ToggleButton value='packets'>{t('txt-packets')}</ToggleButton>
+              <ToggleButton value='databytes'>{t('txt-databytes')}</ToggleButton>
+            </ToggleButtonGroup>
+
+            <ToggleButtonGroup
+              className='chart-btn'
               value={tabChartData.chartIntervalValue}
-              onChange={tabChartData.chartIntervalChange} />
+              exclusive
+              onChange={tabChartData.chartIntervalChange}>
+              <ToggleButton value='1m'>{t('time-interval.txt-1m')}</ToggleButton>
+              <ToggleButton value='15m'>{t('time-interval.txt-15m')}</ToggleButton>
+              <ToggleButton value='30m'>{t('time-interval.txt-30m')}</ToggleButton>
+              <ToggleButton value='60m'>{t('time-interval.txt-60m')}</ToggleButton>
+            </ToggleButtonGroup>
           </div>
 
           {chartData &&
@@ -169,6 +169,15 @@ class DataChart extends Component {
       return (
         <div className={cx('main-chart', {'active': mainContentData.showChart})}>
           <i className='fg fg-close' onClick={mainContentData.toggleChart} title={t('txt-close')}></i>
+          <div className='chart-content interval-options'>
+            <ToggleButtonGroup
+              className='chart-btn'
+              value={mainContentData.chartIntervalValue}
+              exclusive
+              onChange={mainContentData.chartIntervalChange}>
+              {mainContentData.chartIntervalList}
+            </ToggleButtonGroup>
+          </div>
 
           {tabChartData &&
             <ChartContent

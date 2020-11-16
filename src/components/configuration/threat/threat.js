@@ -8,9 +8,10 @@ import XLSX from 'xlsx';
 
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
+import ToggleButton from '@material-ui/lab/ToggleButton';
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 
 import BarChart from 'react-chart/build/src/components/bar'
-import ButtonGroup from 'react-ui/build/src/components/button-group'
 import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import LineChart from 'react-chart/build/src/components/line'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
@@ -286,9 +287,10 @@ class ThreatIntelligence extends Component {
   /**
    * Toggle date options buttons
    * @method
+   * @param {object} event - event object
    * @param {string} type - 'today', 'past7days' or 'custom'
    */
-  toggleDateRangeButtons = (type) => {
+  toggleDateRangeButtons = (event, type) => {
     if (type === 'today' || type === 'past7days') {
       this.clearIndicatorsData(type);
     }
@@ -1223,15 +1225,15 @@ class ThreatIntelligence extends Component {
         }
 
         <div className='sub-header edge-options'>
-          <ButtonGroup
+          <ToggleButtonGroup
             id='edgeBtns'
-            list={[
-              {value: 'today', text: t('edge-management.txt-today')},
-              {value: 'past7days', text: t('edge-management.txt-past7days')},
-              {value: 'custom', text: t('edge-management.txt-customDate')}
-            ]}
             value={activeDateType}
-            onChange={this.toggleDateRangeButtons} />
+            exclusive
+            onChange={this.toggleDateRangeButtons}>
+            <ToggleButton value='today'>{t('edge-management.txt-today')}</ToggleButton>
+            <ToggleButton value='past7days'>{t('edge-management.txt-past7days')}</ToggleButton>
+            <ToggleButton value='custom'>{t('edge-management.txt-customDate')}</ToggleButton>
+          </ToggleButtonGroup>
 
           {activeDateType === 'custom' &&
             <SearchOptions

@@ -233,7 +233,31 @@
   "txt-statistics": "Statistics",
   "txt-table": "Table",
   "txt-linkAnalysis": "Link Analysis",
-  "txt-map": "Map",  
+  "txt-map": "Map",
+
+  "time-interval": {
+    "txt-search-manual": "Manual",
+    "txt-search-auto": "Auto",
+    "txt-last15m": "Last 15 min.",
+    "txt-last30m": "Last 30 min.",
+    "txt-last1h": "Last 1 hour",
+    "txt-last2h": "Last 2 hour",
+    "txt-last12h": "Last 12 hour",
+    "txt-last24h": "Last 24 hour",
+    "txt-15s": "15 sec.",
+    "txt-30s": "30 sec.",
+    "txt-1m": "1 min.",
+    "txt-5m": "5 min.",
+    "txt-10m": "10 min.",
+    "txt-15m": "15 min.",
+    "txt-30m": "30 min.",
+    "txt-60m": "60 min.",
+    "txt-1h": "1 hr.",
+    "txt-12h": "12 hr.",
+    "txt-1d": "1 day",    
+    "txt-today": "Today",
+    "txt-week": "This week"
+  },
 
   "dashboard": {
     "txt-overview": "Overview",
@@ -338,26 +362,6 @@
 
   "events": {
     "connections": {
-      "txt-search-manual": "Manual",
-      "txt-search-auto": "Auto",
-      "txt-last15m": "Last 15 min.",
-      "txt-last30m": "Last 30 min.",
-      "txt-last1h": "Last 1 hour",
-      "txt-last2h": "Last 2 hour",
-      "txt-last12h": "Last 12 hour",
-      "txt-last24h": "Last 24 hour",
-      "txt-15s": "15 sec.",
-      "txt-30s": "30 sec.",
-      "txt-1m": "1 min.",
-      "txt-5m": "5 min.",
-      "txt-10m": "10 min.",
-      "txt-today": "Today",
-      "txt-week": "This week",
-      "txt-connections1m": "1m",
-      "txt-connections15m": "15m",
-      "txt-connections30m": "30m",
-      "txt-connections60m": "60m",
-      "txt-chartExceedMaxMsg": "The result exeeds the maximum number the chart can handle. Please select other time interval.",
       "txt-enterQueryName": "Enter Query Name",
       "txt-openQuery": "Open Query Filter",
       "txt-saveQuery": "Save Query Filter",
@@ -391,7 +395,8 @@
       "txt-addFilter": "$t(txt-add2) $t(txt-filter)",
       "txt-deleteFilter": "$t(txt-delete) Query Filter",
       "txt-viewRule": "$t(txt-view) $t(txt-alert) $t(txt-rule)",
-      "txt-downloadMalware": "$t(txt-download) Malware"
+      "txt-downloadMalware": "$t(txt-download) Malware",
+      "txt-chartExceedMaxMsg": "The result exeeds the maximum number the chart can handle. Please select other time interval."
     }
   },
 

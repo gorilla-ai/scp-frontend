@@ -148,41 +148,9 @@ button {
   &[disabled] {
     border: 1px solid var(--primaryBorder);
   }
-  &:hover:not([disabled]) {
-    background-color: var(--buttonSelectedColor);
-  }
   &.standard {
-    &:hover:not([disabled]) {
-      background-color: var(--buttonHoverColor);
-    }
     color: var(--buttonTextColor);
     background-color: var(--buttonBackground);
-  }
-}
-.pure-form input,
-.pure-form select,
-.pure-form textarea,
-.c-file-input > input[type='text']:read-only {
-  color: var(--primaryTextColor);
-  border: 1px solid var(--formInputBorderColor);
-  background-color: var(--formBackground);
-}
-.pure-form input[type=text],
-.pure-form input[type=password],
-.pure-form input[type=email] {
-  border: 1px solid var(--formInputBorderColor);
-}
-.pure-form input[readonly],
-.pure-form select[readonly],
-.pure-form textarea[readonly] {
-  color: var(--formReadOnlyColor);
-  border: 1px solid var(--formReadOnlyBorderColor);
-  background-color: var(--formReadOnlyBackground);
-}
-.pure-form input[type='radio']:checked {
-  border: 6px solid var(--formCheckRadioColor);
-  &:hover {
-    border: 6px solid var(--pageCurrentHover);
   }
 }
 .MuiPaper-root {
@@ -195,6 +163,19 @@ button {
     box-sizing: content-box !important;
     border: none !important;
   }
+}
+.MuiToggleButton-label {
+  text-transform: none !important;
+  font-weight: normal !important;
+}
+.MuiToggleButton-root {
+  font-size: 1rem !important;
+  padding: 2px !important;
+  padding-left: 25px !important;
+  padding-right: 25px !important;
+}
+.MuiToggleButtonGroup-groupedHorizontal:not(:first-child) {
+  border-left: 1px solid var(--primaryBorder) !important;
 }
 .c-tabs > .menu {
   border-bottom: 1.5px solid var(--leftNavBackground);
@@ -217,8 +198,7 @@ button {
   color: var(--primaryTextColor);
   background-color: var(--tabMenuHover);
 }
-.c-popover,
-.pure-form legend {
+.c-popover {
   color: var(--primaryTextColor) !important;
   background-color: var(--primaryContentBackground) !important;
 }
@@ -1131,7 +1111,7 @@ i.c-checkbox.fg-checkbox {
       border: 1px solid var(--primaryBorder);
       border-radius: 5px;
       background-color: var(--primaryContentBackground);
-      .c-button-group {
+      .button-group {
         margin: 5px 8px;
       }
       .drop-down {
@@ -1687,29 +1667,26 @@ i.c-checkbox.fg-checkbox {
         .chart-content {
           position: absolute;
           background-color: var(--primaryContentBackground);
-          &.connections {
+          &.interval-options {
             padding-left: 10px;
             padding-bottom: 20px;
           }
           .chart-btn {
-            margin-right: 10px;
-          }
-        }
-        .chart-btn,
-        .interval-btn {
-          display: inline-block;
-          margin-top: 20px;
-          .thumb {
-            padding-left: 10px;
-            padding-right: 10px;
+            margin-top: 20px;
+            margin-right: 20px;
+            .MuiToggleButton-root {
+              padding-left: 10px !important;
+              padding-right: 10px !important;
+            }
           }
         }
         .bar-chart {
-          padding-top: 70px;
+          padding-top: 90px;
           background-color: var(--primaryContentBackground);
           .error {
             padding-left: 20px;
-            margin-top: -45px;
+            padding-bottom: 30px;
+            margin-top: -10px;
           }
         }
       }

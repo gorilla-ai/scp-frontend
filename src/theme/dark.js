@@ -21,6 +21,25 @@ export default function createDarkTheme() {
           }
         }
       },
+      MuiToggleButton: {
+        root: {
+          color: '#fff',
+          backgroundColor: '#1a668c',
+          border: '1px solid #4b4b4b',
+          '&:hover': {
+            color: '#fff',
+            backgroundColor: '#069bda !important'
+          },
+          '&.Mui-selected': {
+            color: '#fff',
+            backgroundColor: '#069bda'
+          },
+          '&.Mui-selected:hover': {
+            color: '#fff',
+            backgroundColor: '#069bda !important'
+          }
+        }
+      },
       MuiFormLabel: {
         root: {
           color: 'rgba(6, 155, 218, 1)',

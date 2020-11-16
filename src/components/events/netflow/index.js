@@ -2454,22 +2454,24 @@ class Netflow extends Component {
   /**
    * Handle chart type change for Connections events
    * @method
-   * @param {string} connectionsChartType - chart type ('connections', 'packets' or 'databytes')
+   * @param {object} event - event object
+   * @param {string} type - events type ('connections', 'packets', or 'databytes')
    */
-  handleChartChange = (connectionsChartType) => {
+  handleChartChange = (event, type) => {
     this.setState({
-      connectionsChartType,
+      connectionsChartType: type,
       tableMouseOver: false
     });
   }
   /**
    * Handle chart interval change for Connections events
    * @method
-   * @param {string} connectionsChartType - chart type ('1m', '15m', '30m' or '60m')
+   * @param {object} event - event object
+   * @param {string} type - interval type ('1m', '15m', '30m' or '60m')
    */
-  handleIntervalChange = (connectionsInterval) => {
+  handleIntervalChange = (event, type) => {
     this.setState({
-      connectionsInterval,
+      connectionsInterval: type,
       tableMouseOver: false
     }, () => {
       this.loadConnections();
