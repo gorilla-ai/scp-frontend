@@ -12,7 +12,13 @@ import MultiInput from 'react-ui/build/src/components/multi-input'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import TableContent from '../common/table-content'
 import Textarea from 'react-ui/build/src/components/textarea'
-
+import TextareaAutosize from '@material-ui/core/TextareaAutosize';
+import GeneralDialog from '@f2e/gui/dist/components/dialog/general-dialog'
+import Checkbox from '@material-ui/core/Checkbox';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import TextField from '@material-ui/core/TextField';
+import Button from '@material-ui/core/Button';
 import {BaseDataContext} from "../common/context"
 import SocConfig from "../common/soc-configuration"
 import helper from "../common/helper"
@@ -29,6 +35,7 @@ import DatePicker from "react-ui/build/src/components/date-picker";
 import IncidentComment from './common/comment'
 import IncidentTag from './common/tag'
 import IncidentReview from './common/review'
+import FileUpload from "../common/file-upload";
 
 let t = null;
 let f = null;
@@ -54,20 +61,20 @@ class Incident extends Component {
 
         this.state = {
             INCIDENT_ACCIDENT_LIST: _.map(_.range(1, 6), el => {
-                return { text: it(`accident.${el}`), value: el }
+                return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
             }),
             INCIDENT_ACCIDENT_SUB_LIST: [
                 _.map(_.range(11, 17), el => {
-                    return { text: it(`accident.${el}`), value: el }
+                    return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
                 }),
                 _.map(_.range(21, 26), el => {
-                    return { text: it(`accident.${el}`), value: el }
+                    return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
                 }),
                 _.map(_.range(31, 33), el => {
-                    return { text: it(`accident.${el}`), value: el }
+                    return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
                 }),
                 _.map(_.range(41, 45), el => {
-                    return { text: it(`accident.${el}`), value: el }
+                    return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
                 })
             ],
             activeContent: 'tableList', //tableList, viewIncident, editIncident, addIncident
@@ -573,7 +580,10 @@ class Incident extends Component {
         else if (incident.info.status === INCIDENT_STATUS_DELETED) {
         }
         else if (incident.info.status === INCIDENT_STATUS_ANALYZED) {
-            transferCheck = true
+            if (isExecutor) {
+                editCheck = true
+                transferCheck = true
+            }
         }
 
 
@@ -587,7 +597,7 @@ class Incident extends Component {
                         {
                             _.map(incident.info.tagList, el => {
                                 return <div style={{display: 'flex', marginRight: '30px'}}>
-                                    <div className='incident-tag-square' style={{backgroundColor: el.tag.color}}></div>
+                                    <div className='incident-tag-square' style={{backgroundColor: el.tag.color}}/>
                                     &nbsp;{el.tag.tag}
                                 </div>
                             })
@@ -692,58 +702,72 @@ class Incident extends Component {
                 }
             </header>
 
-            <button className='last'
-                    onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-next-page')}</button>
+            <Button className='last' style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
+                    onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-next-page')}</Button>
 
             <div className='group'>
                 <label htmlFor='title'>{f('incidentFields.title')}</label>
-                <Input
+                <TextField
                     id='title'
-                    onChange={this.handleDataChange.bind(this, 'title')}
+                    name='title'
+                    variant='outlined'
+                    fullWidth={true}
+                    size='small'
+                    onChange={this.handleDataChangeMui}
                     value={incident.info.title}
                     required={true}
-                    validate={{t: et}}
-                    readOnly={activeContent === 'viewIncident'}/>
+                    disabled={activeContent === 'viewIncident'}/>
             </div>
             <div className='group'>
                 <label htmlFor='category'>{f('incidentFields.category')}</label>
-                <DropDownList
+                <TextField
                     id='category'
-                    onChange={this.handleDataChange.bind(this, 'category')}
+                    name='category'
+                    variant='outlined'
+                    fullWidth={true}
+                    size='small'
+                    onChange={this.handleDataChangeMui}
                     required={true}
-                    validate={{t: et}}
-                    list={
-                        _.map(_.range(1, 9), el => {
-                            return {text: it(`category.${el}`), value: el}
-                        })
-                    }
+                    select
                     value={incident.info.category}
-                    readOnly={activeContent === 'viewIncident'}/>
+                    disabled={activeContent === 'viewIncident'}>
+                    {_.map(_.range(1, 9), el => {
+                        return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
+                    })
+                    }</TextField>
             </div>
             <div className='group'>
                 <label htmlFor='reporter'>{f('incidentFields.reporter')}</label>
-                <Input
+                <TextField
                     id='reporter'
-                    onChange={this.handleDataChange.bind(this, 'reporter')}
+                    name='reporter'
+                    variant='outlined'
+                    fullWidth={true}
+                    size='small'
+                    onChange={this.handleDataChangeMui}
                     required={true}
-                    validate={{t: et}}
                     value={incident.info.reporter}
-                    readOnly={activeContent === 'viewIncident'}/>
+                    disabled={activeContent === 'viewIncident'}/>
             </div>
             <div className='group' style={{width: '25vh'}}>
                 <label htmlFor='impactAssessment'>{f('incidentFields.impactAssessment')}</label>
-                <DropDownList
+                <TextField
                     id='impactAssessment'
-                    onChange={this.handleDataChange.bind(this, 'impactAssessment')}
+                    variant='outlined'
+                    fullWidth={true}
+                    size='small'
+                    select
+                    name='impactAssessment'
+                    onChange={this.handleDataChangeMui}
                     required={true}
-                    validate={{t: et}}
-                    list={
+                    value={incident.info.impactAssessment}
+                    disabled={activeContent === 'viewIncident'}>
+                    {
                         _.map(_.range(1, 5), el => {
-                            return {text: `${el} (${(9 - 2 * el)} ${it('txt-day')})`, value: el}
+                            return  <MenuItem value={el}>{`${el} (${(9 - 2 * el)} ${it('txt-day')})`}</MenuItem>
                         })
                     }
-                    value={incident.info.impactAssessment}
-                    readOnly={activeContent === 'viewIncident'}/>
+                </TextField>
             </div>
 
             <div className='group' style={{width: '25vh'}}>
@@ -762,14 +786,14 @@ class Incident extends Component {
 
             {incidentType === 'ttps' && <div className='group full'>
                 <label htmlFor='description'>{f('incidentFields.description')}</label>
-                <Textarea
+                <TextareaAutosize
                     id='description'
-                    onChange={this.handleDataChange.bind(this, 'description')}
+                    onChange={this.handleDataChangeMui}
                     required={true}
-                    validate={{t: et}}
+                    name='description'
                     value={incident.info.description}
                     rows={3}
-                    readOnly={activeContent === 'viewIncident'}/>
+                    disabled={activeContent === 'viewIncident'}/>
             </div>}
 
             {incidentType === 'ttps' &&
@@ -810,6 +834,13 @@ class Incident extends Component {
         this.setState({attach: val})
     }
 
+    handleAFChange(file) {
+        let flag = new RegExp("[`~!@#$^&*()=|{}':;',\\[\\]<>《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]")
+        if (flag.test(file.name)){
+            helper.showPopupMsg( it('txt-attachedFileNameError'), t('txt-error'), )
+        }
+    }
+
     uploadAttachmentModal() {
         PopupDialog.prompt({
             title: t('txt-upload'),
@@ -817,21 +848,27 @@ class Incident extends Component {
             cancelText: t('txt-cancel'),
             display: <div className='c-form content'>
                 <div>
-                    <FileInput id='attach' name='file' btnText={t('txt-selectFile')} />
+                    <FileInput id='attach' name='file'  validate={{ max:20 ,t: this.getErrorMsg}}
+                               onChange={this.handleAFChange} btnText={t('txt-selectFile')} />
                 </div>
                 <div>
                     <label>{it('txt-fileMemo')}</label>
-                    <Textarea id='comment' rows={3} />
+                    <TextareaAutosize id='comment' rows={3} />
                 </div>
             </div>,
             act: (confirmed, data) => {
+
                 if (confirmed) {
-                    this.uploadAttachmentByModal(data.file, data.comment)
+                    let flag = new RegExp("[`~!@#$^&*()=|{}':;',\\[\\]<>《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？ ]")
+
+                    if (flag.test(data.file.name)){
+                    }else{
+                        this.uploadAttachmentByModal(data.file, data.comment)
+                    }
                 }
             }
         })
     }
-
 
     displayAttached = () => {
         const {activeContent, incidentType, incident, relatedListOptions, attach} = this.state;
@@ -884,14 +921,6 @@ class Incident extends Component {
             {
                 activeContent === 'addIncident' &&
                 <div className='group'>
-                {
-                    // <FileUpload
-                    //     supportText={t('txt-upload')}
-                    //     id='attachedFileInput'
-                    //     fileType='attached'
-                    //     btnText={t('txt-selectFile')}
-                    //     handleFileChange={this.handleDataChange.bind(this, 'file')} />
-                }
                    <FileInput
                         btnText={t('txt-selectFile')}
                         value={attach}
@@ -902,9 +931,10 @@ class Incident extends Component {
                 activeContent === 'addIncident' &&
                 <div className='group'>
                     <label htmlFor='fileMemo'>{it('txt-fileMemo')}</label>
-                    <Textarea
+                    <TextareaAutosize
                         id='fileMemo'
-                        onChange={this.handleDataChange.bind(this, 'fileMemo')}
+                        name='fileMemo'
+                        onChange={this.handleDataChangeMui}
                         value={incident.info.fileMemo}
                         rows={2} />
                 </div>
@@ -977,72 +1007,91 @@ class Incident extends Component {
                 <div className='text'>{it('txt-accidentTitle')}</div>
             </header>
 
-            <button className={incidentType === 'events' ? 'last' : 'last-left'}
-                    onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}</button>
+            <Button className={incidentType === 'events' ? 'last' : 'last-left'}  style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
+                    onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}</Button>
 
             {
                 incidentType === 'ttps' &&
-                <button className='last'
-                        onClick={this.handleIncidentPageChange.bind(this, 'ttps')}>{it('txt-next-page')}</button>
+                <Button className='last'  style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
+                        onClick={this.handleIncidentPageChange.bind(this, 'ttps')}>{it('txt-next-page')}</Button>
             }
 
             <div className='group'>
                 <label htmlFor='accidentCatogory'>{it('txt-accidentClassification')}</label>
-                <DropDownList
+                <TextField
                     id='accidentCatogory'
-                    onChange={this.handleDataChange.bind(this, 'accidentCatogory')}
-                    list={INCIDENT_ACCIDENT_LIST}
+                    name='accidentCatogory'
+                    select
+                    variant='outlined'
+                    fullWidth={true}
+                    size='small'
+                    onChange={this.handleDataChangeMui}
                     value={incident.info.accidentCatogory}
-                    readOnly={activeContent === 'viewIncident'}/>
+                    disabled={activeContent === 'viewIncident'}>
+                    {INCIDENT_ACCIDENT_LIST}
+                </TextField>
             </div>
             {incident.info.accidentCatogory === '5' &&
                 <div className='group'>
                     <label htmlFor='accidentAbnormal'>{it('txt-reason')}</label>
-                    <Input
+                    <TextField
                         id='accidentAbnormal'
-                        onChange={this.handleDataChange.bind(this, 'accidentAbnormalOther')}
+                        name='accidentAbnormal'
+                        variant='outlined'
+                        fullWidth={true}
+                        size='small'
+                        onChange={this.handleDataChangeMui}
                         value={incident.info.accidentAbnormalOther}
-                        readOnly={activeContent === 'viewIncident'}/>
+                        disabled={activeContent === 'viewIncident'}/>
                 </div>
             }
             {incident.info.accidentCatogory !== '5' &&
             <div className='group'>
                 <label htmlFor='accidentAbnormal'>{it('txt-reason')}</label>
-                <DropDownList
+                <TextField
                     id='accidentAbnormal'
-                    onChange={this.handleDataChange.bind(this, 'accidentAbnormal')}
-                    list={INCIDENT_ACCIDENT_SUB_LIST[incident.info.accidentCatogory - 1]}
+                    name='accidentAbnormal'
+                    select
+                    variant='outlined'
+                    fullWidth={true}
+                    size='small'
+                    onChange={this.handleDataChangeMui}
                     value={incident.info.accidentAbnormal}
-                    readOnly={activeContent === 'viewIncident'}/>
+                    disabled={activeContent === 'viewIncident'}>
+                    {INCIDENT_ACCIDENT_SUB_LIST[incident.info.accidentCatogory - 1]}
+                </TextField>
             </div>
             }
 
             <div className='group full'>
                 <label htmlFor='accidentDescription'>{it('txt-accidentDescr')}</label>
-                <Textarea
+                <TextareaAutosize
                     id='accidentDescription'
-                    onChange={this.handleDataChange.bind(this, 'accidentDescription')}
+                    name='accidentDescription'
+                    onChange={this.handleDataChangeMui}
                     value={incident.info.accidentDescription}
                     rows={3}
-                    readOnly={activeContent === 'viewIncident'}/>
+                    disabled={activeContent === 'viewIncident'}/>
             </div>
             <div className='group full'>
                 <label htmlFor='accidentReason'>{it('txt-reasonDescr')}</label>
-                <Textarea
+                <TextareaAutosize
                     id='accidentReason'
-                    onChange={this.handleDataChange.bind(this, 'accidentReason')}
+                    name='accidentReason'
+                    onChange={this.handleDataChangeMui}
                     value={incident.info.accidentReason}
                     rows={3}
-                    readOnly={activeContent === 'viewIncident'}/>
+                    disabled={activeContent === 'viewIncident'}/>
             </div>
             <div className='group full'>
                 <label htmlFor='accidentInvestigation'>{it('txt-accidentInvestigation')}</label>
-                <Textarea
+                <TextareaAutosize
                     id='accidentInvestigation'
-                    onChange={this.handleDataChange.bind(this, 'accidentInvestigation')}
+                    name='accidentInvestigation'
+                    onChange={this.handleDataChangeMui}
                     value={incident.info.accidentInvestigation}
                     rows={3}
-                    readOnly={activeContent === 'viewIncident'}/>
+                    disabled={activeContent === 'viewIncident'}/>
             </div>
         </div>
     }
@@ -1065,11 +1114,11 @@ class Incident extends Component {
                 <div className='text'>{it('txt-incident-events')}</div>
             </header>
 
-            <button className='last-left '
-                    onClick={this.handleIncidentPageChange.bind(this, 'main')}>{it('txt-prev-page')}</button>
+            <Button className='last-left '  style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
+                    onClick={this.handleIncidentPageChange.bind(this, 'main')}>{it('txt-prev-page')}</Button>
 
-            <button className='last'
-                    onClick={this.handleIncidentPageChange.bind(this, 'notice')}>{it('txt-next-page')}</button>
+            <Button className='last'  style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
+                    onClick={this.handleIncidentPageChange.bind(this, 'notice')}>{it('txt-next-page')}</Button>
 
 
             <div className='group full multi'>
@@ -1102,8 +1151,8 @@ class Incident extends Component {
                     className='text'>{it('txt-incident-ttps')} ({it('txt-ttp-obs-file')}/{it('txt-ttp-obs-uri')}/{it('txt-ttp-obs-socket')} {it('txt-mustOne')})
                 </div>
             </header>
-            <button className='last'
-                    onClick={this.handleIncidentPageChange.bind(this, 'notice')}>{it('txt-prev-page')}</button>
+            <Button className='last'  style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
+                    onClick={this.handleIncidentPageChange.bind(this, 'notice')}>{it('txt-prev-page')}</Button>
 
             <div className='group full multi'>
                 <MultiInput
@@ -1341,60 +1390,84 @@ class Incident extends Component {
                 <div className='filter-section config'>
                     <div className='group'>
                         <label htmlFor='searchKeyword'>{f('edgeFields.keywords')}</label>
-                        <input
+                        <TextField
                             id='searchKeyword'
-                            type='text'
-                            className='search-textarea'
+                            name='searchKeyword'
+                            variant='outlined'
+                            fullWidth={true}
+                            size='small'
                             value={search.keyword}
-                            onChange={this.handleInputSearch.bind(this, 'keyword')}/>
+                            onChange={this.handleSearchChange}/>
                     </div>
                     <div className='group'>
                         <label htmlFor='searchCategory'>{f('incidentFields.category')}</label>
-                        <DropDownList
+                        <TextField
                             id='searchCategory'
+                            name='category'
+                            select
                             required={true}
-                            list={
+                            variant='outlined'
+                            fullWidth={true}
+                            size='small'
+                            value={search.category}
+                            onChange={this.handleSearchMui}>
+                            {
                                 _.map(_.range(0, 9), el => {
-                                    return {text: it(`category.${el}`), value: el}
+                                    return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
                                 })
                             }
-                            value={search.category}
-                            onChange={this.handleSearch.bind(this, 'category')}/>
+                        </TextField>
                     </div>
                     <div className='group'>
                         <label htmlFor='searchStatus'>{f('incidentFields.status')}</label>
-                        <DropDownList
+                        <TextField
                             id='searchStatus'
+                            name='status'
                             required={true}
-                            list={
-                                _.map(_.range(0, 5), el => {
-                                    return {text: it(`status.${el}`), value: el}
-                                })
-                            }
+                            variant='outlined'
+                            fullWidth={true}
+                            size='small'
+                            select
                             value={search.status}
-                            onChange={this.handleSearch.bind(this, 'status')}/>
+                            onChange={this.handleSearchMui}>
+                            {
+                                _.map(_.range(0, 7), el => {
+                                    return  <MenuItem value={el}>{it(`status.${el}`)}</MenuItem>
+                                })}
+                            }
+                        </TextField>
                     </div>
                     <div className='group'>
                         <label htmlFor='isExpired'>{it('txt-expired')}</label>
-                        <DropDownList
+                        <TextField
                             id='isExpired'
-                            list={[
-                                {
-                                    value: 2,
-                                    text: it('txt-allSearch')
-                                },
-                                {
-                                    value: 1,
-                                    text: it('unit.txt-isDefault')
-                                },
-                                {
-                                    value: 0,
-                                    text: it('unit.txt-isNotDefault')
-                                }
-                            ]}
+                            name='isExpired'
                             required={true}
+                            variant='outlined'
+                            fullWidth={true}
+                            size='small'
+                            select
                             value={search.isExpired}
-                            onChange={this.handleSearch.bind(this, 'isExpired')}/>
+                            onChange={this.handleSearchMui}>
+                            {
+                                _.map([
+                                    {
+                                        value: 2,
+                                        text: it('txt-allSearch')
+                                    },
+                                    {
+                                        value: 1,
+                                        text: it('unit.txt-isDefault')
+                                    },
+                                    {
+                                        value: 0,
+                                        text: it('unit.txt-isNotDefault')
+                                    }
+                                ], el => {
+                                    return <MenuItem value={el.value}>{el.text}</MenuItem>
+                                })}
+                            }
+                        </TextField>
                     </div>
                     <div className='group'>
                         <label htmlFor='searchDttm'>{f('incidentFields.createDttm')}</label>
@@ -1857,6 +1930,14 @@ class Incident extends Component {
         });
     };
 
+    handleSearchChange = (event) => {
+        let tempSearch = {...this.state.search};
+        tempSearch[event.target.name] = event.target.value.trim();
+        this.setState({
+            search: tempSearch
+        });
+    }
+
     /**
      * Handle filter input data change
      * @method
@@ -1867,6 +1948,20 @@ class Incident extends Component {
         let tempSearch = {...this.state.search};
         tempSearch[type] = value;
 
+        this.setState({
+            search: tempSearch
+        });
+    };
+
+    /**
+     * Handle filter input data change
+     * @method
+     * @param {string} type - input type
+     * @param {string} value - input value
+     */
+    handleSearchMui = (event) => {
+        let tempSearch = {...this.state.search};
+        tempSearch[event.target.name] = event.target.value;
         this.setState({
             search: tempSearch
         });
@@ -1921,6 +2016,19 @@ class Incident extends Component {
             incident: temp
         })
     };
+
+
+    handleDataChangeMui = (event) => {
+
+        let temp = {...this.state.incident};
+        temp.info[event.target.name] = event.target.value;
+        if (event.target.name === 'impactAssessment') {
+            temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * event.target.value), 'hours')
+        }
+        this.setState({
+            incident: temp
+        })
+    }
 
     getOptions = () => {
         const {baseUrl, contextRoot} = this.context;

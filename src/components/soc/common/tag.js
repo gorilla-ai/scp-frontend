@@ -7,7 +7,7 @@ import CheckboxGroup from 'react-ui/build/src/components/checkbox-group'
 import Input from 'react-ui/build/src/components/input'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import MultiInput from 'react-ui/build/src/components/multi-input'
-
+import TextField from '@material-ui/core/TextField';
 import {BaseDataContext} from "../../common/context"
 import {default as ah, getInstance} from "react-ui/build/src/utils/ajax-helper"
 import helper from "../../common/helper"
@@ -226,7 +226,7 @@ class IncidentTag extends Component {
             return {
                 value: el.id, 
                 text: <div style={{display: 'flex'}}>
-                    <div className='incident-tag-square' style={{backgroundColor: el.color}}></div>
+                    <div className='incident-tag-square' style={{backgroundColor: el.color}}/>
                     &nbsp;{el.tag}
                 </div>
             }
@@ -265,10 +265,20 @@ class TagArray extends React.Component {
             onChange({...curValue, [field]: value})
         }
     }
+	handleChangeMui = (event) => {
+		let {onChange, value:curValue} = this.props
+
+		if (event.target.name === 'color') {
+			onChange({...curValue, [event.target.name]: event.target.value.value})
+		}
+		else {
+			onChange({...curValue, [event.target.name]: event.target.value})
+		}
+	}
     render() {
         let {value: {id, tag, color, account}} = this.props
         const options = _.map(RAINBOW, el => {
-            return {value: el, label: <div className='incident-tag-square' style={{backgroundColor: el}}></div>}
+            return {value: el, label: <div className='incident-tag-square' style={{backgroundColor: el}}/>}
         })
 
         let target = options[0]
@@ -278,8 +288,18 @@ class TagArray extends React.Component {
 
 
         return <div className='tagArray'>
-            <Select className='tagColor' options={options} onChange={this.handleChange.bind(this, 'color')} value={target} />
-            <Input className='tagName' onChange={this.handleChange.bind(this, 'tag')} value={tag} />
+            <Select className='tagColor'
+                    options={options}
+                    onChange={this.handleChange.bind(this, 'color')}
+                    value={target} />
+            <TextField id='tag'
+                       name='tag'
+                       variant='outlined'
+                       fullWidth={true}
+                       size='small'
+                       className='tagName'
+                       onChange={this.handleChangeMui}
+                       value={tag} />
         </div>
     }
 }

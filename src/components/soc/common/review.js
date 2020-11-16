@@ -7,11 +7,11 @@ import DropDownList from 'react-ui/build/src/components/dropdown'
 import Form from 'react-ui/build/src/components/form'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import Textarea from 'react-ui/build/src/components/textarea'
-
+import MenuItem from '@material-ui/core/MenuItem';
 import {BaseDataContext} from "../../common/context"
 import {default as ah, getInstance} from "react-ui/build/src/utils/ajax-helper"
 import helper from "../../common/helper"
-
+import TextField from '@material-ui/core/TextField';
 
 let t = null
 let et = null
@@ -72,6 +72,21 @@ class IncidentReview extends Component {
     		}
     	})
     }
+	handleChangeMui(event) {
+		this.setState({[event.target.name]: event.target.value}, () => {
+			if (event.target.name === 'selected') {
+				if (event.target.value === 'none') {
+					this.setState({comment: ''})
+				}
+				else {
+					const {comments} = this.state
+					const target = _.find(comments, {id: event.target.value})
+
+					this.setState({comment: target.command})
+				}
+			}
+		})
+	}
     confirm() {
     	const {baseUrl, session} = this.context
     	const {incidentId, comment, reviewType} = this.state
@@ -130,7 +145,22 @@ class IncidentReview extends Component {
     		<div className='c-form content'>
     			<div>
     				<label>{it('txt-comment-example')}</label>
-    				<DropDownList required={true} list={list} value={selected} onChange={this.handleChange.bind(this, 'selected')}/>
+    				<TextField
+					    id='selected'
+					    name='selected'
+					    variant='outlined'
+					    fullWidth={true}
+					    size='small'
+					    required
+					    value={selected}
+					    select
+					    onChange={this.handleChangeMui.bind(this)}>
+					    {
+					    	_.map(list,el=>{
+					    		return <MenuItem value={el.value}>{el.text}</MenuItem>
+						    })
+					    }
+				    </TextField>
     			</div>
     			<div>
     				<label>{it('txt-comment')}</label>
