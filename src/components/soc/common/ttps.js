@@ -10,6 +10,12 @@ import TtpEts from './ttp-ets'
 import TtpObsFile from './ttp-obs-file'
 import TtpObsUri from './ttp-obs-uri'
 import TtpObsSocket from './ttp-obs-socket'
+import GeneralDialog from '@f2e/gui/dist/components/dialog/general-dialog'
+import Checkbox from '@material-ui/core/Checkbox';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import TextField from '@material-ui/core/TextField';
+
 
 let t = null
 let et = null
@@ -31,6 +37,10 @@ class Ttps extends Component {
         let {onChange, value: curValue} = this.props
         onChange({...curValue, [field]: value})
     }
+	handleDataChangeMui = (event) => {
+		let {onChange, value: curValue} = this.props
+		onChange({...curValue, [event.target.name]: event.target.value})
+	}
 	render() {
 		let {activeContent, value: {title, infrastructureType, etsList, obsFileList, obsUriList, obsSocketList}} = this.props
 
@@ -38,28 +48,41 @@ class Ttps extends Component {
 			<div className='line'>
 				<div className='group'>
 	                <label htmlFor='title'>{f('incidentFields.technique')}</label>
-	                <Input
+	                <TextField style={{paddingRight: '2em'}}
 	                    id='title'
-	                    onChange={this.handleDataChange.bind(this, 'title')}
+	                    name='title'
+	                    variant='outlined'
+	                    fullWidth={true}
+	                    size='small'
+	                    helperText={t('txt-checkRequiredFieldType')}
+	                    error={!(title || '').trim()}
+	                    onChange={this.handleDataChangeMui}
 	                    value={title}
-	                    required={true}
-	                    validate={{t: et}}
-	                    readOnly={activeContent === 'viewIncident'}/>
+	                    required
+	                    disabled={activeContent === 'viewIncident'}/>
 	            </div>
 	            <div className='group'>
 	                <label htmlFor='infrastructureType'>{f('incidentFields.infrastructureType')}</label>
-	                <DropDownList
+	                <TextField style={{paddingRight: '2em'}}
 	                    id='infrastructureType'
-	                    onChange={this.handleDataChange.bind(this, 'infrastructureType')}
-	                    list={[
-	                    	{value: 0, text: 'IOC'}, {value: 1, text: 'IOA'}
-                    	]}
+	                    name='infrastructureType'
+	                    variant='outlined'
+	                    fullWidth={true}
+	                    size='small'
+	                    onChange={this.handleDataChangeMui}
 	                    value={infrastructureType}
-	                    required={true}
-	                    validate={{t: et}}
-	                    readOnly={activeContent === 'viewIncident'}/>
+	                    helperText={t('txt-checkRequiredFieldType')}
+	                    error={!(title || '').trim()}
+	                    disabled={activeContent === 'viewIncident'}>
+		                {
+		                	_.map([
+				                {value: 0, text: 'IOC'}, {value: 1, text: 'IOA'}
+			                ], el=>{
+		                		return <MenuItem value={el.value}>{el.text}</MenuItem>
+			                })
+		                }
+	                </TextField>
 	            </div>
-
 	        </div>
 
 	        <div className='event-sub'>

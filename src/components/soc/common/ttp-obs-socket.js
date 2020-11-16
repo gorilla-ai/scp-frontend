@@ -1,8 +1,6 @@
-import React, { Component } from 'react'
-import PropTypes from 'prop-types'
-import _ from 'lodash'
-
-import Input from 'react-ui/build/src/components/input'
+import React, {Component} from 'react'
+import TextField from '@material-ui/core/TextField';
+import helper from "../../common/helper";
 
 let t = null
 let et = null
@@ -13,46 +11,53 @@ class TtpObsSocket extends Component {
 		super(props)
 
 		t = global.chewbaccaI18n.getFixedT(null, 'connections')
-    	et = global.chewbaccaI18n.getFixedT(null, 'errors')
-    	f = chewbaccaI18n.getFixedT(null, "tableFields");
+		et = global.chewbaccaI18n.getFixedT(null, 'errors')
+		f = chewbaccaI18n.getFixedT(null, "tableFields");
 	}
+
 	componentDidMount() {
 	}
+
 	handleDataChange = (field, value) => {
-        let {onChange, value: curValue} = this.props
-        onChange({...curValue, [field]: value})
-    }
+		let {onChange, value: curValue} = this.props
+		onChange({...curValue, [field]: value})
+	}
+	handleDataChangeMui = (event) => {
+		let {onChange, value: curValue} = this.props
+		onChange({...curValue, [event.target.name]: event.target.value})
+	}
+
 	render() {
 		let {activeContent, value: {ip, port}} = this.props
 
 		return <div className='event-content'>
 			<div className='line'>
 				<div className='group'>
-	                <label htmlFor='ip'>IP</label>
-	                <Input
-	                    id='ip'
-	                    onChange={this.handleDataChange.bind(this, 'ip')}
-	                    value={ip}
-						validate={{
-							pattern: /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/,
-							patternReadable: 'xxx.xxx.xxx.xxx',
-							t: this.getErrorMsg
-						}}
-	                    readOnly={activeContent === 'viewIncident'}/>
-	            </div>
-	            <div className='group'>
-	                <label htmlFor='port'>Port</label>
-	                <Input
-	                    id='port'
-	                    onChange={this.handleDataChange.bind(this, 'port')}
-	                    value={port}
-	                    validate={{
-		                    pattern:/^([0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$/,
-		                    patternReadable: '0-65535',
-		                    t: et
-	                    }}
-	                    readOnly={activeContent === 'viewIncident'}/>
-	            </div>
+					<label htmlFor='ip'>IP</label>
+					<TextField style={{paddingRight: '2em'}}
+						id='ip'
+						name='ip'
+						variant='outlined'
+						fullWidth={true}
+						size='small'
+						onChange={this.handleDataChangeMui}
+						value={ip}
+						helperText={t('edge-management.txt-ipValidationFail')}
+						error={ip === '' || ip === undefined ? false : !helper.ValidateIP_Address(ip)}
+						disabled={activeContent === 'viewIncident'}/>
+				</div>
+				<div className='group'>
+					<label htmlFor='port'>Port</label>
+					<TextField style={{paddingRight: '2em'}}
+						id='port'
+						name='port'
+						variant='outlined'
+						fullWidth={true}
+						size='small'
+						onChange={this.handleDataChangeMui}
+						value={port}
+						disabled={activeContent === 'viewIncident'}/>
+				</div>
 	        </div>
 		</div>
 	}

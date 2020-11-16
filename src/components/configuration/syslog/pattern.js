@@ -78,7 +78,6 @@ class Pattern extends Component {
           periodMin: 10,
           threshold: 1,
           queryScript: '',
-          severity: 'Emergency'
         }
       },
       formValidation: {

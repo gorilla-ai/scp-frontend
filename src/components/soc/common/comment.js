@@ -13,6 +13,8 @@ import Textarea from 'react-ui/build/src/components/textarea'
 import {BaseDataContext} from "../../common/context"
 import {default as ah, getInstance} from "react-ui/build/src/utils/ajax-helper"
 import helper from "../../common/helper"
+import TextField from "@material-ui/core/TextField";
+import MenuItem from "@material-ui/core/MenuItem";
 
 let t = null
 let et = null
@@ -63,6 +65,26 @@ class IncidentComment extends Component {
                 else {
                     const {comments} = this.state
                     const target = _.find(comments, {id: value})
+
+                    this.setState({
+                        comment: {
+                            title: target.title,
+                            command: target.command
+                        }
+                    })
+                }
+            }
+        })
+    }
+    handleChangeMui(event) {
+        this.setState({[event.target.name]: event.target.value}, () => {
+            if (event.target.name === 'selected') {
+                if (event.target.value === 'new') {
+                    this.setState({comment: {}})
+                }
+                else {
+                    const {comments} = this.state
+                    const target = _.find(comments, {id: event.target.value})
 
                     this.setState({
                         comment: {
@@ -205,6 +227,22 @@ class IncidentComment extends Component {
             draggable={true} global={true} closeAction='cancel' actions={actions}>
             <div className='left'>
                 <DropDownList size={15} list={list} required={true} value={selected} onChange={this.handleChange.bind(this, 'selected')} />
+                {/*<TextField*/}
+                {/*    id='selected'*/}
+                {/*    name='selected'*/}
+                {/*    variant='outlined'*/}
+                {/*    fullWidth={true}*/}
+                {/*    size='small'*/}
+                {/*    required*/}
+                {/*    value={selected}*/}
+                {/*    select*/}
+                {/*    onChange={this.handleChangeMui.bind(this)}>*/}
+                {/*    {*/}
+                {/*        _.map(list,el=>{*/}
+                {/*            return <MenuItem value={el.value}>{el.text}</MenuItem>*/}
+                {/*        })*/}
+                {/*    }*/}
+                {/*</TextField>*/}
             </div>
             <div className='right'>
                 <Form className='content' formClassName='c-form'

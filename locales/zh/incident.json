@@ -65,9 +65,12 @@
 	"txt-ttp-obs-uri": "惡意URI",
 	"txt-ttp-obs-socket": "惡意IP連線",
 	"txt-srcIp": "來源IP",
-	"txt-autoSend": "每月自動發布",
+	"txt-autoSendSettings": "自動發布設定",
+	"txt-autoSendState": "自動發布狀態",
+	"txt-autoSend": "是否每月4號自動發布給NCCST",
 	"txt-mustOne": "擇一惡意資訊必填",
 	"txt-attachedFile": "附加檔案",
+	"txt-attachedFileNameError": "附加檔案名稱存在特殊字元",
 	"txt-attachedFileHint": "檔案大小請勿超過20M",
 	"txt-fileMemo": "附件說明",
 	"txt-flowTitle": "事件處理進度",
@@ -97,7 +100,7 @@
 	"txt-analyze-success": "交辦成功",
 	"txt-analyze-fail": "交辦失敗",
 	"txt-day": "天",
-
+	"file-too-large": "上傳檔案過大，超過20MB",
 	"accident": {
 		"1": "網頁攻擊",
 		"11": "網頁置換",

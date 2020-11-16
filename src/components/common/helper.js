@@ -490,6 +490,50 @@ const helper = {
       act:(confirmed) => {
       }
     });
+  },
+  /**
+   * Validate IP Regex
+   * @return {boolean}
+   */
+  ValidateIP_Address(ip) {
+    let check = false
+
+    if (ip === null || ip === undefined){
+      return false
+    }
+
+    if (/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ip)){
+      return true
+    }
+
+    if (!check){
+      // Check if there are more then 2 : together (ex. :::)
+      if(/:{3,}/.test(ip)) return false;
+      // Check if there are more then 2 :: (ex. ::2001::)
+      if(/::.+::/.test(ip)) return false;
+      // Check if there is a single : at the end (requires :: if any)
+      if(/[^:]:$/.test(ip)) return false;
+      // Check for leading colon
+      if(/^:(?!:)/.test(ip)) return false;
+      // Split all the part to check each
+      let ipv6_parts = ip.split(':');
+      // Make sure there are at lease 2 parts and no more then 8
+      if(ipv6_parts.length < 2 || ipv6_parts.length > 8) return false;
+
+      let is_valid = true;
+      // Loop through the parts
+      ipv6_parts.forEach(function(part) {
+        // If the part is not blank (ex. ::) it must have no more than 4 digits
+        if(/^[0-9a-fA-F]{0,4}$/.test(part)) return;
+        // Fail if none of the above match
+        is_valid = false;
+      });
+
+      return is_valid;
+    }
+
+
+    return check;
   }
 };
 

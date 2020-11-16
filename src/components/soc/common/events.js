@@ -8,6 +8,9 @@ import Input from 'react-ui/build/src/components/input'
 import MultiInput from 'react-ui/build/src/components/multi-input'
 
 import EventConnections from './event-connections'
+import MenuItem from '@material-ui/core/MenuItem';
+import TextField from '@material-ui/core/TextField';
+import Button from '@material-ui/core/Button';
 
 let t = null
 let et = null
@@ -29,31 +32,52 @@ class Events extends Component {
         let {onChange, value: curValue} = this.props
         onChange({...curValue, [field]: value})
     }
+
+	handleDataChangeMui = (event) => {
+		let {onChange, value: curValue} = this.props
+		onChange({...curValue, [event.target.name]: event.target.value})
+	}
 	render() {
 		let {activeContent, locale, deviceListOptions, value: {description, deviceId, time, frequency, eventConnectionList}} = this.props
 
 		return <div className='event-content'>
 			<div className='line'>
 				<div className='group'>
-	                <label htmlFor='rule'>{f('incidentFields.rule')}</label>
-	                <Input
-	                    id='rule'
-	                    onChange={this.handleDataChange.bind(this, 'description')}
+	                <label htmlFor='description'>{f('incidentFields.rule')}</label>
+	                <TextField style={{paddingRight: '2em'}}
+	                    id='description'
+	                    name='description'
+	                    variant='outlined'
+	                    fullWidth={true}
+	                    size='small'
+	                    onChange={this.handleDataChangeMui}
 	                    value={description}
-	                    required={true}
-	                    validate={{t: et}}
-	                    readOnly={activeContent === 'viewIncident'}/>
+	                    required
+	                    error={!(description || '').trim()}
+	                    helperText={it('txt-required')}
+	                    disabled={activeContent === 'viewIncident'}/>
 	            </div>
 	            <div className='group'>
 	                <label htmlFor='deviceId'>{f('incidentFields.deviceId')}</label>
-	                <DropDownList
+	                <TextField style={{paddingRight: '2em'}}
 	                    id='deviceId'
-	                    onChange={this.handleDataChange.bind(this, 'deviceId')}
-	                    list={deviceListOptions}
+	                    name='deviceId'
+	                    variant='outlined'
+	                    fullWidth={true}
+	                    size='small'
+	                    select
+	                    onChange={this.handleDataChangeMui}
 	                    value={deviceId}
-	                    required={true}
-	                    validate={{t: et}}
-	                    readOnly={activeContent === 'viewIncident'}/>
+	                    required
+	                    helperText={it('txt-required')}
+	                    error={!(deviceId || '').trim()}
+	                    disabled={activeContent === 'viewIncident'}>
+		                {
+		                	_.map(deviceListOptions,el=>{
+		                		return <MenuItem value={el.value}>{el.text}</MenuItem>
+			                })
+		                }
+	                </TextField>
 	            </div>
 	        </div>
 	        
@@ -73,12 +97,17 @@ class Events extends Component {
 		        </div>
 		        <div className='group'>
 	                <label htmlFor='frequency'>{it('txt-frequency')}</label>
-	                <Input
+	                <TextField
 	                    id='frequency'
-	                    onChange={this.handleDataChange.bind(this, 'frequency')}
+	                    name='frequency'
+	                    variant='outlined'
+	                    fullWidth={false}
+	                    size='small'
+	                    onChange={this.handleDataChangeMui}
 	                    value={frequency}
-	                    required={true}
-	                    validate={{t: et}}
+	                    required
+	                    error={!(frequency || 0)}
+	                    helperText={it('txt-required')}
 	                    readOnly={activeContent === 'viewIncident'}/>
 	            </div>
 	        </div>
