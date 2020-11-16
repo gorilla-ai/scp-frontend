@@ -368,6 +368,7 @@ class Incident extends Component {
     loadCondition = (type) => {
         const {session} = this.context
         let search = {
+            subStatus:0,
             keyword: '',
             category: 0,
             isExpired: 2,
@@ -382,6 +383,7 @@ class Incident extends Component {
             this.setState({loadListType: 1})
             if (search.isExecutor){
                 search.status = 2
+                search.subStatus = 6
             }else{
                 search.status = 1
             }
@@ -395,7 +397,7 @@ class Incident extends Component {
         }else{
             // this.loadData('search')
         }
-
+        this.clearFilter()
     }
 
     handleRowContextMenu = (allValue, evt) => {
