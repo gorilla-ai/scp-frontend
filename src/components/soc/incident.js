@@ -861,7 +861,7 @@ class Incident extends Component {
             act: (confirmed, data) => {
 
                 if (confirmed) {
-                    let flag = new RegExp("[`~!@#$^&*()=|{}':;',\\[\\]<>《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？ ]")
+                    let flag = new RegExp("[`~!@#$^&*()=|{}':;',\\[\\]<>《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]")
 
                     if (flag.test(data.file.name)){
                     }else{
