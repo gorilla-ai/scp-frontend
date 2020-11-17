@@ -50,7 +50,7 @@ class ChartContent extends Component {
         {pageType === 'logs' &&
           <span>{t('txt-data')}: {data[0].rule}<br /></span>
         }
-        <span>{t('txt-time')}: {Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss')}<br /></span>
+        <span>{t('txt-time')}: {Moment(data[0].time).format('YYYY/MM/DD HH:mm:ss')}<br /></span>
         <span>{t('txt-count')}: {data[0].number}</span>
       </section>
     )
@@ -85,7 +85,7 @@ class ChartContent extends Component {
     if (pageType === 'connections') {
       dataArr = _.map(chartData, (value, key) => {
         return {
-          time: parseInt(Moment(key, 'YYYY-MM-DDTHH:mm:ss.SSZ').utc(true).format('x')),
+          time: key,
           number: value
         };
       });
@@ -96,7 +96,7 @@ class ChartContent extends Component {
       _.forEach(_.keys(chartData), val => { //Manually add rule name to the response data
         rulesObj[val] = _.map(chartData[val], (value, key) => {
           return {
-            time: parseInt(Moment(key, 'YYYY-MM-DDTHH:mm:ss.SSZ').utc(true).format('x')),
+            time: key,
             number: value,
             rule: val
           };
@@ -124,18 +124,17 @@ class ChartContent extends Component {
       legend,
       data: dataArr,
       colors: colorCode,
-      onTooltip: this.onTooltip,
       dataCfg,
       xAxis: {
-        type: 'datetime',
-        dateTimeLabelFormats: {
-          day: '%m-%d %H:%M'
-        }
+        type: 'datetime'
       },
       plotOptions: {
         series: {
           maxPointWidth: 20
         }
+      },
+      tooltip: {
+        formatter: this.onTooltip
       }
     };
 

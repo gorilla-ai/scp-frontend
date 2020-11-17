@@ -874,8 +874,8 @@ class Syslog extends Component {
   onTooltip = (eventInfo, data) => {
     return (
       <section>
-        <span>{data[0].type}<br /></span>
-        <span>{t('txt-time')}: {Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss')}<br /></span>
+        <span>{t('txt-ipAddress')}: {data[0].IP}<br /></span>
+        <span>{t('txt-time')}: {Moment(data[0].time).format('YYYY/MM/DD HH:mm:ss')}<br /></span>
         <span>{t('txt-count')}: {data[0].count}</span>
       </section>
     )
@@ -908,7 +908,7 @@ class Syslog extends Component {
 
     const dataArr = _.map(eventsData.hostOverTime, val => {
       return {
-        time: parseInt(Moment(val.time, 'YYYY-MM-DDTHH:mm:ss.SSZ').utc(true).format('x')),
+        time: val.time,
         count: val.count,
         IP: val.IP
       };
@@ -916,17 +916,16 @@ class Syslog extends Component {
 
     const chartAttributes = {
       data: dataArr,
-      onTooltip: this.onTooltip,
       dataCfg: {
         x: 'time',
         y: 'count',
         splitSeries: 'IP'
       },
       xAxis: {
-        type: 'datetime',
-        dateTimeLabelFormats: {
-          day: '%m-%d %H:%M'
-        }
+        type: 'datetime'
+      },
+      tooltip: {
+        formatter: this.onTooltip
       }
     };
     let showTimeline = false;

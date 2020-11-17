@@ -176,7 +176,7 @@ class DashboardStats extends Component {
       return (
         <section>
           <span>{t('txt-severity')}: {data[0].rule}<br /></span>
-          <span>{t('txt-time')}: {Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss')}<br /></span>
+          <span>{t('txt-time')}: {Moment(data[0].time).format('YYYY/MM/DD HH:mm:ss')}<br /></span>
           <span>{t('txt-count')}: {data[0].number}</span>
         </section>
       )
@@ -184,7 +184,7 @@ class DashboardStats extends Component {
       return (
         <section>
           <span>{t('dashboard.txt-patternName')}: {data[0].patternName}<br /></span>
-          <span>{t('txt-date')}: {Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss')}<br /></span>
+          <span>{t('txt-date')}: {Moment(data[0].time).format('YYYY/MM/DD HH:mm:ss')}<br /></span>
           <span>{t('txt-count')}: {data[0].count}</span>
         </section>
       )
@@ -977,22 +977,21 @@ class DashboardStats extends Component {
                   title={t('dashboard.txt-alertStatistics')}
                   data={alertDataArr}
                   colors={ALERT_LEVEL_COLORS}
-                  onTooltip={this.onTooltip.bind(this, 'barChart')}
                   dataCfg={{
                     x: 'time',
                     y: 'number',
                     splitSeries: 'rule'
                   }}
                   xAxis={{
-                    type: 'datetime',
-                    dateTimeLabelFormats: {
-                      day: '%m-%d %H:%M'
-                    }
+                    type: 'datetime'
                   }}
                   plotOptions={{
                     series: {
                       maxPointWidth: 20
                     }
+                  }}
+                  tooltip={{
+                    formatter: this.onTooltip.bind(this, 'barChart')
                   }} />
               }
             </div>
@@ -1059,22 +1058,21 @@ class DashboardStats extends Component {
                   vertical
                   title={t('dashboard.txt-customAlertStat')}
                   data={alertPatternData}
-                  onTooltip={this.onTooltip.bind(this, 'lineChart')}
                   dataCfg={{
                     x: 'time',
                     y: 'count',
                     splitSeries: 'patternName'
                   }}
                   xAxis={{
-                    type: 'datetime',
-                    dateTimeLabelFormats: {
-                      day: '%m-%d %H:%M'
-                    }
+                    type: 'datetime'
                   }}
                   plotOptions={{
                     series: {
                       maxPointWidth: 20
                     }
+                  }}
+                  tooltip={{
+                    formatter: this.onTooltip.bind(this, 'lineChart')
                   }} />
               }
             </div>

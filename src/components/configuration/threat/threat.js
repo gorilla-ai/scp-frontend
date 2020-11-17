@@ -1093,7 +1093,7 @@ class ThreatIntelligence extends Component {
     return (
       <section>
         <span>{t('txt-indicator')}: {data[0].indicator}<br /></span>
-        <span>{t('txt-date')}: {Moment(data[0].day, 'x').utc().format('YYYY/MM/DD')}<br /></span>
+        <span>{t('txt-date')}: {Moment(data[0].day).format('YYYY/MM/DD')}<br /></span>
         <span>{t('txt-count')}: {data[0].count}</span>
       </section>
     )
@@ -1127,22 +1127,21 @@ class ThreatIntelligence extends Component {
               enabled:true
             }}
             data={indicatorsData}
-            onTooltip={this.onTooltip}
             dataCfg={{
               x: 'day',
               y: 'count',
               splitSeries: 'indicator'
             }}
             xAxis={{
-              type: 'datetime',
-              dateTimeLabelFormats: {
-                day: '%Y-%m-%d'
-              }
+              type: 'datetime'
             }}
             plotOptions={{
               series: {
                 maxPointWidth: 20
               }
+            }}
+            tooltip={{
+              formatter: this.onTooltip
             }} />
         }
       </div>
@@ -1175,17 +1174,16 @@ class ThreatIntelligence extends Component {
               enabled: true
             }}
             data={indicatorsData}
-            onTooltip={this.onTooltip}
             dataCfg={{
               x: 'day',
               y: 'count',
               splitSeries: 'indicator'
             }}
             xAxis={{
-              type: 'datetime',
-              dateTimeLabelFormats: {
-                day: '%Y-%m-%d'
-              }
+              type: 'datetime'
+            }}
+            tooltip={{
+              formatter: this.onTooltip
             }} />
         }
       </div>
