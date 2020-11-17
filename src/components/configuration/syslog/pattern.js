@@ -151,8 +151,8 @@ class Pattern extends Component {
     .then(data => {
       if (data) {
         let tempPattern = {...pattern};
-        tempPattern.dataContent = data;
-        tempPattern.totalCount = data.length;
+        tempPattern.dataContent = data.rows;
+        tempPattern.totalCount = data.counts;
         tempPattern.currentPage = page;
 
         if (data.length === 0) {
