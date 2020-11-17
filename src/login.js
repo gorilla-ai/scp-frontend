@@ -321,13 +321,13 @@ class Login extends Component {
               onChange={this.handleDataChange}
               onKeyDown={this.handleKeyDown} />
           </div>
-          <button className='end' onClick={this.logon}>{t('login.btn-login')}</button>
+          <button onClick={this.logon}>{t('login.btn-login')}</button>
 
           <div className='first-time' onClick={this.startResetPwd.bind(this, 'newSet')}>{t('txt-fist-login')}?</div>
 
           <div className={cx('c-info error-msg', {'c-error': error})}>{info}</div>
 
-          <div className='end actions c-flex aic'>
+          <div className='end'>
             {!_.isEmpty(locale) && locale.length > 1 &&
               <TextField
                 name='language'

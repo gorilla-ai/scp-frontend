@@ -260,7 +260,7 @@
   },
   "alertFields": {
     "_tableMenu_": "",
-    "_eventDttm_": "事件時間",
+    "_eventDttm_": "告警時間",
     "lastPacket": "結束封包",
     "destIp": "目的IP",
     "srcIp": "來源IP",
@@ -320,12 +320,12 @@
     "payloadMD5": "Payload MD5",
     "destLocType": "Dest Loc Type",
     "timestamp": "日期",
-    "_severity_": "Severity",
+    "_severity_": "嚴重等級",
     "Info": "Info",
     "Collector": "Collector",
     "Trigger": "Trigger",
     "Suggest": "Suggest",
-    "Source": "Source"
+    "Source": "來源"
   },
   "logsFields": {
     "_tableMenu_": "",

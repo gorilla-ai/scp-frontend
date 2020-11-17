@@ -640,14 +640,12 @@ class NetworkOwner extends Component {
    * @method
    */
   clearFilter = () => {
-    const tempSearch = {
-      name: '',
-      department: 'all',
-      title: 'all'
-    };
-
     this.setState({
-      search: tempSearch
+      search: {
+        name: '',
+        department: 'all',
+        title: 'all',
+      }
     });
   }
   /**

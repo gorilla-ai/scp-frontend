@@ -260,7 +260,7 @@
   },
   "alertFields": {
     "_tableMenu_": "",
-    "_eventDttm_": "Event Datetime",
+    "_eventDttm_": "Alert Datetime",
     "lastPacket": "Last Packet",
     "destIp": "Destination IP",
     "srcIp": "Source IP",

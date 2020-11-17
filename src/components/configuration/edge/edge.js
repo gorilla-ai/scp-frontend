@@ -266,7 +266,8 @@ class Edge extends Component {
   getEdgeData = (fromSearch) => {
     const {baseUrl, contextRoot} = this.context;
     const {edgeSearch, edge} = this.state;
-    const url = `${baseUrl}/api/edge/_search?page=${edge.currentPage}&pageSize=${edge.pageSize}`;
+    const page = fromSearch === 'search' ? 1 : edge.currentPage;
+    const url = `${baseUrl}/api/edge/_search?page=${page}&pageSize=${edge.pageSize}`;
     let requestData = {};
 
     if (edgeSearch.keyword) {
@@ -296,7 +297,7 @@ class Edge extends Component {
         let tempEdge = {...edge};
         tempEdge.dataContent = data.rows;
         tempEdge.totalCount = data.counts;
-        tempEdge.currentPage = fromSearch === 'search' ? 1 : edge.currentPage;
+        tempEdge.currentPage = page;
 
         let dataFields = {};
         edge.dataFieldsArr.forEach(tempData => {
@@ -1431,6 +1432,7 @@ class Edge extends Component {
     this.setState({
       edgeSearch: {
         keyword: '',
+        groups: [],
         serviceType: 'all',
         connectionStatus: 'all'
       }

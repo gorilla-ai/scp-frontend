@@ -106,7 +106,8 @@ class Severity extends Component {
   getSeverityMapping = (fromSearch) => {
     const {baseUrl} = this.context;
     const {severitySearchType, severitySelected, severity} = this.state;
-    const url = `${baseUrl}/api/severityMapping/_search?&page=${severity.currentPage}&pageSize=${severity.pageSize}`;
+    const page = fromSearch === 'search' ? 1 : severity.currentPage;
+    const url = `${baseUrl}/api/severityMapping/_search?&page=${page}&pageSize=${severity.pageSize}`;
     let requestData = {};
 
     if (severitySearchType !== '') {
@@ -128,7 +129,7 @@ class Severity extends Component {
         let tempSeverity = {...severity};
         tempSeverity.dataContent = data.rows;
         tempSeverity.totalCount = data.counts;
-        tempSeverity.currentPage = fromSearch === 'search' ? 1 : severity.currentPage;
+        tempSeverity.currentPage = page;
 
         let dataFields = {};
         severity.dataFieldsArr.forEach(tempData => {

@@ -864,7 +864,7 @@ class ThreatIntelligence extends Component {
    */
   searchThreatsDialog = () => {
     const actions = {
-      cancel: {text: t('txt-close'), className: 'standard', handler: this.toggleSearchThreats}
+      confirm: {text: t('txt-close'), handler: this.toggleSearchThreats}
     };
 
     return (
@@ -875,7 +875,7 @@ class ThreatIntelligence extends Component {
         draggable={true}
         global={true}
         actions={actions}
-        closeAction='cancel'>
+        closeAction='confirm'>
         {this.displaySearchThreatsContent()}
       </ModalDialog>
     )
@@ -926,6 +926,7 @@ class ThreatIntelligence extends Component {
   handleThreatsSearch = (fromSearch, type, allValue) => {
     const {baseUrl, contextRoot} = this.context;
     const {threatsSearch, threats} = this.state;
+    const page = fromSearch === 'search' ? 1 : threats.currentPage;
 
     if (!threatsSearch.keyword) {
       helper.showPopupMsg(t('txt-plsEnterKeyword'));
@@ -934,7 +935,7 @@ class ThreatIntelligence extends Component {
 
     let apiArr = [
       {
-        url: `${baseUrl}/api/indicators/_search?text=${threatsSearch.keyword}&threatTypeArray=${threatsSearch.type}&page=${threats.currentPage}&pageSize=${threats.pageSize}`,
+        url: `${baseUrl}/api/indicators/_search?text=${threatsSearch.keyword}&threatTypeArray=${threatsSearch.type}&page=${page}&pageSize=${threats.pageSize}`,
         type: 'GET'
       }
     ];
@@ -973,7 +974,7 @@ class ThreatIntelligence extends Component {
         let tempThreats = {...threats};
         tempThreats.dataContent = data[threatsSearch.type].rows;
         tempThreats.totalCount = data[threatsSearch.type].counts;
-        tempThreats.currentPage = fromSearch === 'search' ? 1 : threats.currentPage;
+        tempThreats.currentPage = page;
 
         let dataFields = {};
         threats.dataFieldsArr.forEach(tempData => {

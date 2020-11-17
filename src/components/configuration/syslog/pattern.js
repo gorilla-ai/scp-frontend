@@ -129,6 +129,7 @@ class Pattern extends Component {
   getPatternScript = (fromSearch) => {
     const {baseUrl} = this.context;
     const {patternSearch, severitySelected, pattern} = this.state;
+    const page = fromSearch === 'search' ? 1 : pattern.currentPage;
     let query = '';
 
     if (patternSearch.name) {
@@ -144,7 +145,7 @@ class Pattern extends Component {
     }
 
     this.ah.one({
-      url: `${baseUrl}/api/alert/pattern?${query}&page=${pattern.currentPage}&pageSize=${pattern.pageSize}`,
+      url: `${baseUrl}/api/alert/pattern?${query}&page=${page}&pageSize=${pattern.pageSize}`,
       type: 'GET'
     })
     .then(data => {
@@ -152,7 +153,7 @@ class Pattern extends Component {
         let tempPattern = {...pattern};
         tempPattern.dataContent = data;
         tempPattern.totalCount = data.length;
-        tempPattern.currentPage = fromSearch === 'search' ? 1 : pattern.currentPage;
+        tempPattern.currentPage = page;
 
         if (data.length === 0) {
           helper.showPopupMsg(t('txt-notFound'));
