@@ -6,13 +6,13 @@ import cx from 'classnames'
 import jschardet from 'jschardet'
 import XLSX from 'xlsx';
 
+import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 import ToggleButton from '@material-ui/lab/ToggleButton';
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 
 import BarChart from 'react-chart/build/src/components/bar'
-import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import LineChart from 'react-chart/build/src/components/line'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import MultiInput from 'react-ui/build/src/components/multi-input'
@@ -56,6 +56,7 @@ class ThreatIntelligence extends Component {
         //to: '2020-06-04T01:00:00Z'
       },
       activeDateType: 'past7days',
+      contextAnchor: null,
       indicatorsData: null,
       indicatorsTrendData: null,
       acuIndicatorsTrendData: null,
@@ -310,31 +311,23 @@ class ThreatIntelligence extends Component {
     });
   }
   /**
-   * Construct and display Add Threats context menu
+   * Handle open menu
    * @method
-   * @param {object} evt - mouseClick events
+   * @param {object} event - event object
    */
-  handleRowContextMenu = (evt) => {
-    const menuItems = [
-      {
-        id: 'addManually',
-        text: t('edge-management.txt-addManually'),
-        action: () => this.toggleAddThreats()
-      },
-      {
-        id: 'addMultiple',
-        text: t('edge-management.txt-addMultiple') + '(.txt)',
-        action: () => this.toggleUploadThreat()
-      },
-      {
-        id: 'importThreats',
-        text: t('edge-management.txt-importTIMAP') + '(.zip)',
-        action: () => this.toggleImportThreats()
-      }
-    ];
-
-    ContextMenu.open(evt, menuItems, 'addThreatsType');
-    evt.stopPropagation();
+  handleOpenMenu = (event) => {
+    this.setState({
+      contextAnchor: event.currentTarget
+    });
+  }
+  /**
+   * Handle close menu
+   * @method
+   */
+  handleCloseMenu = () => {
+    this.setState({
+      contextAnchor: null
+    });
   }
   /**
    * Toggle upload modal dialog on/off
@@ -354,6 +347,8 @@ class ThreatIntelligence extends Component {
         this.getChartsData();
       }
     });
+
+    this.handleCloseMenu();
   }
   /**
    * Handle file change and set the file
@@ -520,6 +515,8 @@ class ThreatIntelligence extends Component {
     this.setState({
       addThreatsOpen: !addThreatsOpen
     });
+
+    this.handleCloseMenu();
   }
   /**
    * Handle add/remove for the add threats box
@@ -697,6 +694,8 @@ class ThreatIntelligence extends Component {
     this.setState({
       importThreatsOpen: !this.state.importThreatsOpen
     });
+
+    this.handleCloseMenu();
   }
   /**
    * Set import threats file
@@ -1094,7 +1093,7 @@ class ThreatIntelligence extends Component {
       <section>
         <span>{t('txt-indicator')}: {data[0].indicator}<br /></span>
         <span>{t('txt-date')}: {Moment(data[0].day).format('YYYY/MM/DD')}<br /></span>
-        <span>{t('txt-count')}: {data[0].count}</span>
+        <span>{t('txt-count')}: {helper.numberWithCommas(data[0].count)}</span>
       </section>
     )
   }
@@ -1194,6 +1193,7 @@ class ThreatIntelligence extends Component {
     const {
       datetime,
       activeDateType,
+      contextAnchor,
       indicatorsData,
       indicatorsTrendData,
       acuIndicatorsTrendData,
@@ -1252,7 +1252,16 @@ class ThreatIntelligence extends Component {
             <div className='main-content'>
               <header className='main-header'>{t('txt-threatIntelligence')}</header>
               <div className='content-header-btns'>
-                <button className='standard btn' onClick={this.handleRowContextMenu}><span>{t('edge-management.txt-addThreat')}</span></button>
+                <button className='standard btn' onClick={this.handleOpenMenu}><span>{t('edge-management.txt-addThreat')}</span></button>
+                <Menu
+                  anchorEl={contextAnchor}
+                  keepMounted
+                  open={Boolean(contextAnchor)}
+                  onClose={this.handleCloseMenu}>
+                  <MenuItem onClick={this.toggleAddThreats}>{t('edge-management.txt-addManually')}</MenuItem>
+                  <MenuItem onClick={this.toggleUploadThreat}>{t('edge-management.txt-addMultiple') + '(.txt)'}</MenuItem>
+                  <MenuItem onClick={this.toggleImportThreats}>{t('edge-management.txt-importTIMAP') + '(.zip)'}</MenuItem>
+                </Menu>
                 <button className='standard btn' onClick={this.toggleSearchThreats}>{t('edge-management.txt-searchThreat')}</button>
               </div>
 

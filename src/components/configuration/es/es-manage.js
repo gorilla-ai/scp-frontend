@@ -207,6 +207,7 @@ class EsManage extends Component {
 
         if (!data.rows || data.rows.length === 0) {
           helper.showPopupMsg(t('txt-notFound'));
+          this.getImportList();
           return;
         }
 

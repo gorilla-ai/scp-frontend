@@ -7,10 +7,10 @@ import cx from 'classnames'
 
 import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 
-import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import FileInput from 'react-ui/build/src/components/file-input'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
@@ -48,9 +48,11 @@ class NetworkOwner extends Component {
         department: 'all',
         title: 'all',
       },
+      contextAnchor: null,
       addOwnerType: '',
       addOwnerTitle: '',
       showFilter: false,
+      currentOwnerData: {},
       owner: {
         dataFieldsArr: ['_menu', 'ownerID', 'ownerName', 'departmentName', 'titleName'],
         dataFields: {},
@@ -167,6 +169,28 @@ class NetworkOwner extends Component {
     })
   }
   /**
+   * Handle open menu
+   * @method
+   * @param {object} owner - active owner data
+   * @param {object} event - event object
+   */
+  handleOpenMenu = (owner, event) => {
+    this.setState({
+      contextAnchor: event.currentTarget,
+      currentOwnerData: owner
+    });
+  }
+  /**
+   * Handle close menu
+   * @method
+   */
+  handleCloseMenu = () => {
+    this.setState({
+      contextAnchor: null,
+      currentOwnerData: {}
+    });
+  }
+  /**
    * Get and set owner data
    * @method
    * @param {string} fromSearch - option for 'search'
@@ -215,7 +239,7 @@ class NetworkOwner extends Component {
               if (tempData === '_menu') {
                 return (
                   <div className={cx('table-menu', {'active': value})}>
-                    <button onClick={this.handleRowContextMenu.bind(this, allValue)}><i className='fg fg-more'></i></button>
+                    <button onClick={this.handleOpenMenu.bind(this, allValue)}><i className='fg fg-more'></i></button>
                   </div>
                 )
               } else {
@@ -249,29 +273,6 @@ class NetworkOwner extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
-  }
-  /**
-   * Construct and display table context menu
-   * @method
-   * @param {object} allValue - owner data
-   * @param {object} evt - mouseClick events
-   */
-  handleRowContextMenu = (allValue, evt) => {
-    const menuItems = [
-      {
-        id: 'edit',
-        text: t('txt-edit'),
-        action: () => this.getOwnerInfo(allValue)
-      },
-      {
-        id: 'delete',
-        text: t('txt-delete'),
-        action: () => this.openDeleteOwnerModal(allValue)
-      }
-    ];
-
-    ContextMenu.open(evt, menuItems, 'configTopologyOwnerMenu');
-    evt.stopPropagation();
   }
   /**
    * Handle table row mouse over
@@ -345,18 +346,18 @@ class NetworkOwner extends Component {
   /**
    * Get individual owner data
    * @method
-   * @param {object} allValue - owner data
    */
-  getOwnerInfo = (allValue) => {
+  getOwnerInfo = () => {
     const {baseUrl} = this.context;
+    const {currentOwnerData} = this.state;
     let tempOwner = {...this.state.owner};
 
-    if (!allValue.ownerID) {
+    if (!currentOwnerData.ownerID) {
       return;
     }
 
     ah.one({
-      url: `${baseUrl}/api/u1/owner?uuid=${allValue.ownerUUID}`,
+      url: `${baseUrl}/api/u1/owner?uuid=${currentOwnerData.ownerUUID}`,
       type: 'GET'
     })
     .then(data => {
@@ -375,6 +376,8 @@ class NetworkOwner extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+
+    this.handleCloseMenu();
   }
   /**
    * Toggle and display page content
@@ -546,13 +549,14 @@ class NetworkOwner extends Component {
   /**
    * Display delete owner content
    * @method
-   * @param {object} allValue - owner data
    * @returns HTML DOM
    */
-  getDeleteOwnerContent = (allValue) => {
-    if (allValue.ownerID) {
+  getDeleteOwnerContent = () => {
+    const {currentOwnerData} = this.state;
+
+    if (currentOwnerData.ownerID) {
       let tempOwner = {...this.state.owner};
-      tempOwner.info = {...allValue};
+      tempOwner.info = {...currentOwnerData};
 
       this.setState({
         owner: tempOwner
@@ -561,28 +565,29 @@ class NetworkOwner extends Component {
 
     return (
       <div className='content delete'>
-        <span>{t('txt-delete-msg')}: {allValue.ownerID}?</span>
+        <span>{t('txt-delete-msg')}: {currentOwnerData.ownerName} (ID: {currentOwnerData.ownerID})?</span>
       </div>
     )
   }
   /**
    * Display delete owner modal dialog
    * @method
-   * @param {object} allValue - owner data
    */
-  openDeleteOwnerModal = (allValue) => {
+  openDeleteOwnerModal = () => {
     PopupDialog.prompt({
       title: t('network-topology.txt-deleteOwner'),
       id: 'modalWindowSmall',
       confirmText: t('txt-delete'),
       cancelText: t('txt-cancel'),
-      display: this.getDeleteOwnerContent(allValue),
+      display: this.getDeleteOwnerContent(),
       act: (confirmed) => {
         if (confirmed) {
           this.deleteOwner();
         }
       }
     });
+
+    this.handleCloseMenu();
   }
   /**
    * Handle delete owner confirm
@@ -715,6 +720,7 @@ class NetworkOwner extends Component {
     const {
       activeContent,
       list,
+      contextAnchor,
       departmentDropdown,
       titleDropdown,
       addOwnerTitle,
@@ -729,6 +735,15 @@ class NetworkOwner extends Component {
         <Manage
           ref={ref => { this.name=ref }}
           onDone={this.onDone} />
+
+        <Menu
+          anchorEl={contextAnchor}
+          keepMounted
+          open={Boolean(contextAnchor)}
+          onClose={this.handleCloseMenu}>
+          <MenuItem onClick={this.getOwnerInfo}>{t('txt-edit')}</MenuItem>
+          <MenuItem onClick={this.openDeleteOwnerModal}>{t('txt-delete')}</MenuItem>
+        </Menu>
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>

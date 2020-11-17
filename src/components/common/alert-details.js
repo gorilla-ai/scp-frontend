@@ -5,7 +5,9 @@ import Moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import ContextMenu from 'react-ui/build/src/components/contextmenu'
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
+
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
@@ -85,6 +87,8 @@ class AlertDetails extends Component {
       modalYaraRuleOpen: false,
       modalIRopen: false,
       modalEncodeOpen: false,
+      mouseX: null,
+      mouseY: null,
       highlightedText: ''
     };
 
@@ -998,6 +1002,8 @@ class AlertDetails extends Component {
     this.setState({
       modalEncodeOpen: !modalEncodeOpen
     });
+
+    this.handleCloseMenu();
   }
   /**
    * Get hightlighted text from user
@@ -1017,21 +1023,27 @@ class AlertDetails extends Component {
     }
   }
   /**
-   * Handle encode context menu action
+   * Handle open menu
    * @method
-   * @param {object} evt - mouseClick events
+   * @param {object} event - event object
    */
-  handleEncodeContextMenu = (evt) => {
-    const menuItems = [
-      {
-        id: 'encodeDecodeMenu',
-        text: t('alert.txt-encodeDecode'),
-        action: () => this.openEncodeDialog()
-      }
-    ];
+  handleOpenMenu = (event) => {
+    event.preventDefault();
 
-    ContextMenu.open(evt, menuItems, 'encodeDecodeAction');
-    evt.stopPropagation();
+    this.setState({
+      mouseX: event.clientX - 2,
+      mouseY: event.clientY - 4
+    });
+  }
+  /**
+   * Handle close menu
+   * @method
+   */
+  handleCloseMenu = () => {
+    this.setState({
+      mouseX: null,
+      mouseY: null
+    });
   }
   /**
    * Display PCAP payload content
@@ -1039,11 +1051,26 @@ class AlertDetails extends Component {
    * @returns HTML DOM
    */
   displayPayloadcontent = () => {
+    const {mouseX, mouseY} = this.state;
+
     return (
       <div className='payload'>
         <ul>
-          <li onMouseUp={this.getHighlightedText} onContextMenu={this.handleEncodeContextMenu}><JSONTree data={this.state.alertPayload} theme={helper.getJsonViewTheme()} /></li>
+          <li onMouseUp={this.getHighlightedText} onContextMenu={this.handleOpenMenu}><JSONTree data={this.state.alertPayload} theme={helper.getJsonViewTheme()} /></li>
         </ul>
+
+        <Menu
+          keepMounted
+          open={Boolean(mouseY !== null)}
+          onClose={this.handleCloseMenu}
+          anchorReference='anchorPosition'
+          anchorPosition={
+            mouseY !== null && mouseX !== null
+              ? { top: mouseY, left: mouseX }
+              : undefined
+          }>
+          <MenuItem onClick={this.openEncodeDialog}>{t('alert.txt-encodeDecode')}</MenuItem>
+        </Menu>
       </div>
     )
   }
@@ -1054,13 +1081,29 @@ class AlertDetails extends Component {
    */
   displayJsonData = () => {
     const {alertData} = this.props;
+    const {mouseX, mouseY} = this.state;
     const hiddenFields = ['id', '_tableMenu_'];
     const allData = _.omit(alertData, hiddenFields);
 
     return (
-      <ul className='json-data alert'>
-        <li onMouseUp={this.getHighlightedText} onContextMenu={this.handleEncodeContextMenu}><JSONTree data={allData} theme={helper.getJsonViewTheme()} /></li>
-      </ul>
+      <div>
+        <ul className='json-data alert'>
+          <li onMouseUp={this.getHighlightedText} onContextMenu={this.handleOpenMenu}><JSONTree data={allData} theme={helper.getJsonViewTheme()} /></li>
+        </ul>
+
+        <Menu
+          keepMounted
+          open={Boolean(mouseY !== null)}
+          onClose={this.handleCloseMenu}
+          anchorReference='anchorPosition'
+          anchorPosition={
+            mouseY !== null && mouseX !== null
+              ? { top: mouseY, left: mouseX }
+              : undefined
+          }>
+          <MenuItem onClick={this.openEncodeDialog}>{t('alert.txt-encodeDecode')}</MenuItem>
+        </Menu>
+      </div>
     )
   }
   /**

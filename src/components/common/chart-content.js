@@ -51,7 +51,7 @@ class ChartContent extends Component {
           <span>{t('txt-data')}: {data[0].rule}<br /></span>
         }
         <span>{t('txt-time')}: {Moment(data[0].time).format('YYYY/MM/DD HH:mm:ss')}<br /></span>
-        <span>{t('txt-count')}: {data[0].number}</span>
+        <span>{t('txt-count')}: {helper.numberWithCommas(data[0].number)}</span>
       </section>
     )
   }

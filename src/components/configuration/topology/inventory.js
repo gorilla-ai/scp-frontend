@@ -11,12 +11,12 @@ import XLSX from 'xlsx';
 
 import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import TextField from '@material-ui/core/TextField';
 
-import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import DataTable from 'react-ui/build/src/components/table'
 import FileInput from 'react-ui/build/src/components/file-input'
 import Gis from 'react-gis/build/src/components'
@@ -104,6 +104,8 @@ class NetworkInventory extends Component {
       addSeatOpen: false,
       uplaodOpen: false,
       formTypeEdit: true,
+      contextAnchor: null,
+      menuType: '',
       deviceSearch: {
         ip: '',
         mac: '',
@@ -1849,6 +1851,8 @@ class NetworkInventory extends Component {
         if (_.isEmpty(inventoryParam) || (!_.isEmpty(inventoryParam) && !inventoryParam.ip)) {
           this.getFloorPlan();
         }
+
+        this.handleCloseMenu();
       }
 
       if (!currentDeviceData.ownerUUID && ownerList[0]) {
@@ -1872,6 +1876,7 @@ class NetworkInventory extends Component {
       return;
     } else if (type === 'showUpload') {
       this.toggleFileUpload();
+      this.handleCloseMenu();
       return;
     }
 
@@ -1932,35 +1937,21 @@ class NetworkInventory extends Component {
     })
 
     helper.showPopupMsg(t('txt-requestSent'));
+    this.handleCloseMenu();
 
     if (hmdObj.cmds === 'compareIOC') {
       this.toggleYaraRule('false');
     }
   }
   /**
-   * Construct and display HMD context menu
+   * Get HMD test menu
    * @method
-   * @param {object} evt - mouseClick events
+   * @param {string} val - individual HMD data
+   * @param {number} i - index of the HMD data
    */
-  handleHmdContextMenu = (evt) => {
-    const menuItems = _.map(HMD_LIST, val => {
-      if (val.cmds === 'compareIOC') {
-        return {
-          id: val.name,
-          text: val.name,
-          action: () => this.toggleYaraRule('true')
-        }
-      } else {
-        return {
-          id: val.name,
-          text: val.name,
-          action: () => this.triggerHmdAll(val)
-        }
-      }
-    });
-
-    ContextMenu.open(evt, menuItems, 'HMDmenu');
-    evt.stopPropagation();
+  getHMDmenu = (val, i) => {
+    const hmdData = val.cmds === 'compareIOC' ? 'true' : val;
+    return <MenuItem key={i} onClick={this.triggerHmdAll.bind(this, hmdData)}>{val.name}</MenuItem>
   }
   /**
    * Handle HMD download button
@@ -1971,49 +1962,29 @@ class NetworkInventory extends Component {
     const {baseUrl, contextRoot} = this.context;
     const url = `${baseUrl}${contextRoot}/api/hmd/download?ver=${type}`;
     window.open(url, '_blank');
+    this.handleCloseMenu();
   }
   /**
-   * Construct and display add IP context menu
+   * Handle open menu
    * @method
-   * @param {string} type - context menu type ('addIP' or 'download')
-   * @param {object} evt - mouseClick events
+   * @param {string} type - menu type ('addIP' or 'download')
+   * @param {object} event - event object
    */
-  handleRowContextMenu = (type, evt) => {
-    let menuItems = [];
-    let menuType = '';
-
-    if (type === 'addIP') {
-      menuItems = [
-        {
-          id: 'showForm',
-          text: t('network-inventory.txt-manuallyEnter'),
-          action: () => this.toggleContent('showForm', 'new')
-        },
-        {
-          id: 'showUpload',
-          text: t('network-inventory.txt-batchUpload'),
-          action: () => this.toggleContent('showUpload')
-        }
-      ];
-      menuType = 'addIpMenu';
-    } else if (type === 'download') {
-      menuItems = [
-        {
-          id: 'windows',
-          text: 'Windows',
-          action: () => this.hmdDownload('windows')
-        },
-        {
-          id: 'linux',
-          text: 'Linux',
-          action: () => this.hmdDownload('linux')
-        }
-      ];
-      menuType = 'downloadMenu';
-    }
-
-    ContextMenu.open(evt, menuItems, menuType);
-    evt.stopPropagation();
+  handleOpenMenu = (type, event) => {
+    this.setState({
+      contextAnchor: event.currentTarget,
+      menuType: type
+    });
+  }
+  /**
+   * Handle close menu
+   * @method
+   */
+  handleCloseMenu = () => {
+    this.setState({
+      contextAnchor: null,
+      menuType: ''
+    });
   }
   /**
    * Handle CSV batch upload
@@ -3611,6 +3582,8 @@ class NetworkInventory extends Component {
       modalIRopen,
       addSeatOpen,
       uploadOpen,
+      contextAnchor,
+      menuType,
       deviceData,
       currentDeviceData,
       floorPlan,
@@ -3714,13 +3687,40 @@ class NetworkInventory extends Component {
                 </Tabs>
 
                 <div className='content-header-btns'>
-                  <button className='standard btn' onClick={this.handleHmdContextMenu}>{t('network-inventory.txt-triggerAll')}</button>
-                  <button className='standard btn' onClick={this.handleRowContextMenu.bind(this, 'addIP')}>{t('network-inventory.txt-addIP')}</button>
+                  <button className='standard btn' onClick={this.handleOpenMenu.bind(this, '')}>{t('network-inventory.txt-triggerAll')}</button>
+                  <button className='standard btn' onClick={this.handleOpenMenu.bind(this, 'addIP')}>{t('network-inventory.txt-addIP')}</button>
                   <button className='standard btn' onClick={this.toggleContent.bind(this, 'hmdSettings')}>{t('network-inventory.txt-hmdSettings')}</button>
-                  <button className='standard btn' onClick={this.handleRowContextMenu.bind(this, 'download')}>{t('network-inventory.txt-hmdDownload')}</button>
+                  <button className='standard btn' onClick={this.handleOpenMenu.bind(this, 'download')}>{t('network-inventory.txt-hmdDownload')}</button>
                   <button className='standard btn' onClick={this.toggleContent.bind(this, 'autoSettings')}>{t('network-inventory.txt-autoSettings')}</button>
                   <Link to='/SCP/configuration/notifications'><button className='standard btn'>{t('notifications.txt-settings')}</button></Link>
                 </div>
+
+                <Menu
+                  anchorEl={contextAnchor}
+                  keepMounted
+                  open={!menuType && Boolean(contextAnchor)}
+                  onClose={this.handleCloseMenu}>
+                  {HMD_LIST.map(this.getHMDmenu)}
+                </Menu>
+
+                <Menu
+                  anchorEl={contextAnchor}
+                  keepMounted
+                  open={menuType && Boolean(contextAnchor)}
+                  onClose={this.handleCloseMenu}>
+                  {menuType === 'addIP' &&
+                    <MenuItem onClick={this.toggleContent.bind(this, 'showForm', 'new')}>{t('network-inventory.txt-manuallyEnter')}</MenuItem>
+                  }
+                  {menuType === 'addIP' &&
+                    <MenuItem onClick={this.toggleContent.bind(this, 'showUpload')}>{t('network-inventory.txt-batchUpload')}</MenuItem>
+                  }
+                  {menuType === 'download' &&
+                    <MenuItem onClick={this.hmdDownload.bind(this, 'windows')}>Windows</MenuItem>
+                  }
+                  {menuType === 'download' &&
+                    <MenuItem onClick={this.hmdDownload.bind(this, 'linux')}>Linux</MenuItem>
+                  }
+                </Menu>
 
                 {showCsvData &&
                   <div className='csv-section'>

@@ -177,7 +177,7 @@ class DashboardStats extends Component {
         <section>
           <span>{t('txt-severity')}: {data[0].rule}<br /></span>
           <span>{t('txt-time')}: {Moment(data[0].time).format('YYYY/MM/DD HH:mm:ss')}<br /></span>
-          <span>{t('txt-count')}: {data[0].number}</span>
+          <span>{t('txt-count')}: {helper.numberWithCommas(data[0].number)}</span>
         </section>
       )
     } else if (type === 'lineChart') {
@@ -185,7 +185,7 @@ class DashboardStats extends Component {
         <section>
           <span>{t('dashboard.txt-patternName')}: {data[0].patternName}<br /></span>
           <span>{t('txt-date')}: {Moment(data[0].time).format('YYYY/MM/DD HH:mm:ss')}<br /></span>
-          <span>{t('txt-count')}: {data[0].count}</span>
+          <span>{t('txt-count')}: {helper.numberWithCommas(data[0].count)}</span>
         </section>
       )
     }

@@ -6,9 +6,10 @@ import Moment from 'moment'
 import cx from 'classnames'
 import _ from 'lodash'
 
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 
-import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import DataTable from 'react-ui/build/src/components/table'
 import DateRange from 'react-ui/build/src/components/date-range'
 import LineChart from 'react-chart/build/src/components/line'
@@ -122,6 +123,11 @@ class Syslog extends Component {
       newPatternName: '',
       info: '',
       editPatternType: 'edit',
+      contextAnchor: null,
+      currentPattern: {
+        index: '',
+        data: ''
+      },
       formValidation: {
         ip: {
           valid: true,
@@ -876,7 +882,7 @@ class Syslog extends Component {
       <section>
         <span>{t('txt-ipAddress')}: {data[0].IP}<br /></span>
         <span>{t('txt-time')}: {Moment(data[0].time).format('YYYY/MM/DD HH:mm:ss')}<br /></span>
-        <span>{t('txt-count')}: {data[0].count}</span>
+        <span>{t('txt-count')}: {helper.numberWithCommas(data[0].count)}</span>
       </section>
     )
   }
@@ -1614,50 +1620,54 @@ class Syslog extends Component {
     });
   }
   /**
-   * Handle context menu action
+   * Handle open menu
    * @method
    * @param {object} val - active mouse over pattern data
    * @param {number} i - index of the syslogPatternConfig pattern list
-   * @param {object} evt - mouseClick events
+   * @param {object} event - event object
    */
-  handleContextMenu = (val, i, evt) => {
-    let menuItems = [
-      {
-        id: 'editPattern',
-        text: t('syslogFields.txt-editName'),
-        action: () => this.handlePatternAction('edit', val, i)
+  handleOpenMenu = (val, i, event) => {
+    let tempCurrentPattern = {...this.state.currentPattern};
+    tempCurrentPattern.index = i;
+    tempCurrentPattern.data = val;
+
+    this.setState({
+      contextAnchor: event.currentTarget,
+      currentPattern: tempCurrentPattern
+    });
+  }
+  /**
+   * Handle close menu
+   * @method
+   */
+  handleCloseMenu = () => {
+    this.setState({
+      contextAnchor: null,
+      currentPattern: {
+        index: '',
+        data: ''
       }
-    ];
-
-    if (this.state.syslogPatternConfig.patternSetting.length > 1) { //Add Delete Pattern menu
-      menuItems.push({
-        id: 'deletePattern',
-        text: t('txt-delete'),
-        action: () => this.handlePatternAction('delete', val, i)
-      });
-    }
-
-    ContextMenu.open(evt, menuItems, 'patternAction');
-    evt.stopPropagation();
+    });
   }
   /**
    * handle edit/delete Pattern name
    * @method
-   * @param {object} val - active mouse over pattern data
-   * @param {number} i - index of the syslogPatternConfig pattern list
+   * @param {string} type - action type ('edit' or 'delete')
    */
-  handlePatternAction = (type, val, i) => {
+  handlePatternAction = (type) => {
+    const {currentPattern} = this.state;
+
     if (type === 'edit') {
       this.setState({
-        activePatternIndex: i,
-        newPatternName: val.patternName
+        activePatternIndex: currentPattern.index,
+        newPatternName: currentPattern.data.patternName
       }, () => {
         this.toggleEditPatternName();
       });
     } else if (type === 'delete') {
       let tempSyslogPatternConfig = {...this.state.syslogPatternConfig};
       let activePatternName = '';
-      tempSyslogPatternConfig.patternSetting.splice(i, 1);
+      tempSyslogPatternConfig.patternSetting.splice(currentPattern.index, 1);
       activePatternName = tempSyslogPatternConfig.patternSetting[tempSyslogPatternConfig.patternSetting.length - 1].patternName;
 
       this.setState({
@@ -1665,6 +1675,8 @@ class Syslog extends Component {
         activePatternName
       });
     }
+
+    this.handleCloseMenu();
   }
   /**
    * Display Syslog Config content
@@ -1674,7 +1686,7 @@ class Syslog extends Component {
    * @returns Syslog Config component
    */
   getPatternItem = (val, i) => {
-    const {syslogPatternConfig, activePatternName, activePatternMouse} = this.state;
+    const {syslogPatternConfig, activePatternName, activePatternMouse, contextAnchor} = this.state;
     const patternName = val.patternName;
     let formattedPatternName = '';
 
@@ -1686,9 +1698,19 @@ class Syslog extends Component {
       <div className='item'>
         <div key={i} className='item frame' onClick={this.handleActivePatternChange.bind(this, i, patternName)} onMouseOver={this.handlePatternMouseOver.bind(this, patternName)} onMouseOut={this.handlePatternMouseOver.bind(this, '')}>
           <span title={patternName}>{formattedPatternName || patternName}</span>
-          <i className={cx('fg fg-more', {'show': activePatternMouse === patternName})} onClick={this.handleContextMenu.bind(this, val, i)}></i>
+          <i className='fg fg-more show' onClick={this.handleOpenMenu.bind(this, val, i)}></i>
           <i className={`c-link fg fg-arrow-${activePatternName === patternName ? 'top' : 'bottom'}`}></i>
         </div>
+        <Menu
+          anchorEl={contextAnchor}
+          keepMounted
+          open={Boolean(contextAnchor)}
+          onClose={this.handleCloseMenu}>
+          <MenuItem onClick={this.handlePatternAction.bind(this, 'edit')}>{t('syslogFields.txt-editName')}</MenuItem>
+          {syslogPatternConfig.patternSetting.length > 1 &&
+            <MenuItem onClick={this.handlePatternAction.bind(this, 'delete')}>{t('txt-delete')}</MenuItem>
+          }
+        </Menu>
 
         {activePatternName === patternName &&
           <div className='item'>

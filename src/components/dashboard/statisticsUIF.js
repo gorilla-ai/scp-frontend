@@ -177,20 +177,20 @@ class StatisticsUIF extends Component {
       return <section>
         <span>{t('txt-severity')}: {data[0].severity}<br /></span>
         <span>{t('txt-time')}: {Moment(data[0].key, 'x').local().format('YYYY/MM/DD HH:mm:ss')}<br /></span>
-        <span>{t('txt-count')}: {data[0].doc_count}</span>
+        <span>{t('txt-count')}: {helper.numberWithCommas(data[0].doc_count)}</span>
       </section>
     }
     if (type === 'CustomAlertStatistics') {
       return <section>
         <span>{t('dashboard.txt-patternName')}: {data[0].patternName}<br /></span>
         <span>{t('txt-time')}: {Moment(data[0].key, 'x').local().format('YYYY/MM/DD HH:mm:ss')}<br /></span>
-        <span>{t('txt-count')}: {data[0].doc_count}</span>
+        <span>{t('txt-count')}: {helper.numberWithCommas(data[0].doc_count)}</span>
       </section>
     }
     else if (type === 'MaskedIPAlertStatistics-bar') {
       return <section>
         <span>{t('txt-subnet')}: {data[0].subnet}<br /></span>
-        <span>{t('txt-count')}: {data[0].doc_count}</span>
+        <span>{t('txt-count')}: {helper.numberWithCommas(data[0].doc_count)}</span>
       </section>
     } 
   }

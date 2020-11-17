@@ -138,7 +138,7 @@ class Pattern extends Component {
 
     if (patternSearch.queryScript) {
       query += `&queryScript=${patternSearch.queryScript}`;
-    } 
+    }
 
     if (severitySelected.length > 0) {
       query += `&severity=${severitySelected.join()}`;
