@@ -1891,7 +1891,7 @@ class Syslog extends Component {
                           <td>{activeHost.loghostIp}</td>
                         </tr>
                         <tr>
-                          <td style={{width: '30%'}}>Config Name</td>
+                          <td style={{width: '30%'}}>{t('txt-name')}</td>
                           <td>{activeHost.name}</td>
                         </tr>
                       </tbody>

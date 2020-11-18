@@ -449,6 +449,9 @@ html[data-theme='dark'] {
 /* events/netflow/index */
 #tagModalDialog-content {
   width: 400px;
+  .tag-memo {
+    margin-bottom: 10px;
+  }
   .github-picker {
     float: left;
     margin-right: 10px;
@@ -1557,6 +1560,12 @@ html[data-theme='dark'] {
   text-align: center;
 }
 #uploadThreatsDialog-content,
+#importThreatsDialog-content {
+  input {
+    height: 35px;
+  }
+}
+#uploadThreatsDialog-content,
 #addThreatsDialog-content {
   width: 350px;
 }
@@ -1611,6 +1620,9 @@ html[data-theme='dark'] {
   }
 }
 #batchUploadDialog-content {
+  input {
+    height: 35px;
+  }
   #csvFileInput {
     margin-bottom: 10px;
   }

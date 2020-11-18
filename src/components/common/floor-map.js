@@ -475,10 +475,10 @@ class FloorMap extends Component {
         <div className='right'>
           <header className='add-floor'>
             <div className='field'>
+              <label htmlFor='areaMapUpload'>{t('txt-name')}</label>
               <TextField
                 id='areaMapName'
                 name='name'
-                label={t('txt-name')}
                 variant='outlined'
                 fullWidth={true}
                 size='small'

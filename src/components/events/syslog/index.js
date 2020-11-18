@@ -6,11 +6,12 @@ import _ from 'lodash'
 import cx from 'classnames'
 import queryString from 'query-string'
 
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 
 import {analyze} from 'vbda-ui/build/src/analyzer'
 import {config as configLoader} from 'vbda-ui/build/src/loader'
-import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
@@ -107,6 +108,8 @@ class SyslogController extends Component {
           logs: 0
         }
       },
+      syslogContextAnchor: null,
+      currentSyslogData: {},
       logFields: [],
       LAconfig: {},
       logEventsData: {},
@@ -136,6 +139,9 @@ class SyslogController extends Component {
         emailList: [],
         openFlag: false
       },
+      queryContextAnchor: null,
+      currentQueryField: '',
+      currentQueryValue: '',
       notifyEmailData: [],
       newQueryName: true,
       showFilter: false,
@@ -679,7 +685,7 @@ class SyslogController extends Component {
               if (tempData === '_tableMenu_') {
                 return (
                   <div className={cx('table-menu', {'active': value})}>
-                    <button onClick={this.handleRowContextMenu.bind(this, allValue)}><i className='fg fg-more'></i></button>
+                    <button onClick={this.handleOpenMenu.bind(this, allValue)}><i className='fg fg-more'></i></button>
                   </div>
                 )
               }
@@ -704,7 +710,7 @@ class SyslogController extends Component {
                   fieldName={tempData}
                   allValue={allValue}
                   markData={markData}
-                  showQueryOptions={this.showQueryOptions} />
+                  handleOpenQueryMenu={this.handleOpenQueryMenu} />
               )
             }
           }
@@ -1006,56 +1012,52 @@ class SyslogController extends Component {
     });
   }
   /**
-   * Construct and display table context menu
+   * Handle open menu
    * @method
-   * @param {object} allValue - syslog data
-   * @param {object} evt - mouseClick events
+   * @param {object} syslog - active syslog data
+   * @param {object} event - event object
    */
-  handleRowContextMenu = (allValue, evt) => {
-    const menuItems = [
-      {
-        id: allValue.id + 'Table',
-        text: t('events.connections.txt-fieldsSettings'),
-        action: () => this.showTableData(allValue)
-      },
-      {
-        id: allValue.id + 'Json',
-        text: t('events.connections.txt-viewJSON'),
-        action: () => this.viewJsonData(allValue)
-      }
-    ];
-
-    ContextMenu.open(evt, menuItems, 'syslogViewMenu');
-    evt.stopPropagation();
+  handleOpenMenu = (syslog, event) => {
+    this.setState({
+      syslogContextAnchor: event.currentTarget,
+      currentSyslogData: syslog
+    });
   }
   /**
-   * Show query option when click on the table raw filter icon
+   * Handle close menu
+   * @method
+   */
+  handleCloseMenu = () => {
+    this.setState({
+      syslogContextAnchor: null,
+      currentSyslogData: {}
+    });
+  }
+  /**
+   * Show query option when click on the table row filter icon
    * @method
    * @param {string} field - field name of selected field
    * @param {string | number} value - value of selected field
-   * @param {object} e - mouseClick events
+   * @param {string} activeTab - currect active tab
+   * @param {object} event - event object
    */
-  showQueryOptions = (field, value) => (e) => {
-    const menuItems = [
-      {
-        id: value + '_Must',
-        text: 'Must',
-        action: () => this.addSearch(field, value, 'must')
-      },
-      {
-        id: value + '_MustNot',
-        text: 'Must Not',
-        action: () => this.addSearch(field, value, 'must_not')
-      },
-      {
-        id: value + '_Either',
-        text: 'Either',
-        action: () => this.addSearch(field, value, 'either')
-      }
-    ];
-
-    ContextMenu.open(e, menuItems, 'eventsQueryMenu');
-    e.stopPropagation();
+  handleOpenQueryMenu = (field, value, activeTab, event) => {
+    this.setState({
+      queryContextAnchor: event.currentTarget,
+      currentQueryField: field,
+      currentQueryValue: value
+    });
+  }
+  /**
+   * Handle close query menu
+   * @method
+   */
+  handleCloseQueryMenu = () => {
+    this.setState({
+      queryContextAnchor: null,
+      currentQueryField: '',
+      currentQueryValue: ''
+    });
   }
   /**
    * Add tree node to search filter
@@ -1097,6 +1099,8 @@ class SyslogController extends Component {
       showMark: true,
       filterData: currentFilterData
     });
+
+    this.handleCloseQueryMenu();
   }
   /**
    * Handle value change for the checkbox in the table dialog
@@ -1167,7 +1171,7 @@ class SyslogController extends Component {
     return null;
   }
   /**
-   * Set the table raw index and netflow data
+   * Set the table row index and netflow data
    * @method
    * @param {string | object} data - button action type ('previous' or 'next'), or data object
    * @returns object of index and data
@@ -1186,7 +1190,7 @@ class SyslogController extends Component {
         tableRowIndex--;
       }
       allValue = subSectionsData.mainData[activeTab][tableRowIndex];
-    } else { //For click on table raw
+    } else { //For click on table row
       tableRowIndex = _.findIndex(subSectionsData.mainData[activeTab], {'id': data.id});
       allValue = data;
     }
@@ -1199,7 +1203,7 @@ class SyslogController extends Component {
   /**
    * Set the data to be displayed in table dialog
    * @method
-   * @param {object} allValue - data of selected table raw
+   * @param {object} allValue - data of selected table row
    */
   showTableData = (allValue) => {
     const {activeTab, subSectionsData, account} = this.state;
@@ -1262,6 +1266,8 @@ class SyslogController extends Component {
       currentTableIndex,
       currentTableID: allValue.id
     });
+
+    this.handleCloseMenu();
   }
   /**
    * Set default and custom locale name
@@ -1391,7 +1397,7 @@ class SyslogController extends Component {
           getCustomFieldName={this.getCustomFieldName}
           setFieldsChange={this.setFieldsChange}
           checkDisplayFields={this.checkDisplayFields}
-          showQueryOptions={this.showQueryOptions}
+          handleOpenQueryMenu={this.handleOpenQueryMenu}
           toggleLocaleEdit={this.toggleLocaleEdit}
           useDragHandle={true}
           lockToContainerEdges={true} />
@@ -1508,7 +1514,7 @@ class SyslogController extends Component {
   /**
    * Open Json data modal dialog
    * @method
-   * @param {object} allValue - data of selected table raw
+   * @param {object} allValue - data of selected table row
    */
   viewJsonData = (allValue) => {
     const newData = this.handleDialogNavigation(allValue);
@@ -1528,6 +1534,8 @@ class SyslogController extends Component {
         }
       });
     });
+
+    this.handleCloseMenu();
   }
   /**
    * Set new datetime
@@ -1866,6 +1874,11 @@ class SyslogController extends Component {
       saveQueryOpen,
       filterData,
       markData,
+      syslogContextAnchor,
+      currentSyslogData,
+      queryContextAnchor,
+      currentQueryField,
+      currentQueryValue,
       showChart,
       showFilter,
       showMark,
@@ -1903,6 +1916,25 @@ class SyslogController extends Component {
         {logLocaleChangeOpen &&
           this.localeChangeDialog()
         }
+
+        <Menu
+          anchorEl={syslogContextAnchor}
+          keepMounted
+          open={Boolean(syslogContextAnchor)}
+          onClose={this.handleCloseMenu}>
+          <MenuItem onClick={this.showTableData.bind(this, currentSyslogData)}>{t('events.connections.txt-fieldsSettings')}</MenuItem>
+          <MenuItem onClick={this.viewJsonData.bind(this, currentSyslogData)}>{t('events.connections.txt-viewJSON')}</MenuItem>
+        </Menu>
+
+        <Menu
+          anchorEl={queryContextAnchor}
+          keepMounted
+          open={Boolean(queryContextAnchor)}
+          onClose={this.handleCloseQueryMenu}>
+          <MenuItem onClick={this.addSearch.bind(this, currentQueryField, currentQueryValue, 'must')}>Must</MenuItem>
+          <MenuItem onClick={this.addSearch.bind(this, currentQueryField, currentQueryValue, 'must_not')}>Must Not</MenuItem>
+          <MenuItem onClick={this.addSearch.bind(this, currentQueryField, currentQueryValue, 'either')}>Either</MenuItem>
+        </Menu>
 
         <div className='sub-header'>
           {helper.getEventsMenu('syslog')}

@@ -6,7 +6,9 @@ import _ from 'lodash'
 import cx from 'classnames'
 import queryString from 'query-string'
 
-import ContextMenu from 'react-ui/build/src/components/contextmenu'
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
+
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
@@ -232,6 +234,8 @@ class ThreatsController extends Component {
         emailList: [],
         openFlag: false
       },
+      contextAnchor: null,
+      currentQueryValue: '',
       notifyEmailData: [],
       newQueryName: true,
       showFilter: false,
@@ -522,14 +526,14 @@ class ThreatsController extends Component {
     });
   }
   /**
-   * Show query option when click on the table raw filter icon
+   * Show query menu when click on the table row filter icon
    * @method
    * @param {string} field - field name of selected field
    * @param {string | number} value - value of selected field
    * @param {string} activeTab - currect active tab
-   * @param {object} e - mouseClick events
+   * @param {object} event - event object
    */
-  showQueryOptions = (field, value, activeTab) => (e) => {
+  handleOpenQueryMenu = (field, value, activeTab, event) => {
     if (activeTab && activeTab === 'alert') {
       if (field === 'srcIp') {
         value = 'sourceIP: ' +  value;
@@ -542,26 +546,20 @@ class ThreatsController extends Component {
       }
     }
 
-    const menuItems = [
-      {
-        id: value + '_Must',
-        text: 'Must',
-        action: () => this.addSearch('', value, 'must')
-      },
-      {
-        id: value + '_MustNot',
-        text: 'Must Not',
-        action: () => this.addSearch('', value, 'must_not')
-      },
-      {
-        id: value + '_Either',
-        text: 'Either',
-        action: () => this.addSearch('', value, 'either')
-      }
-    ];
-
-    ContextMenu.open(e, menuItems, 'eventsQueryMenu');
-    e.stopPropagation();
+    this.setState({
+      contextAnchor: event.currentTarget,
+      currentQueryValue: value
+    });
+  }
+  /**
+   * Handle close query menu
+   * @method
+   */
+  handleCloseQueryMenu = () => {
+    this.setState({
+      contextAnchor: null,
+      currentQueryValue: ''
+    });
   }
   /**
    * Construct table data for Threats
@@ -712,7 +710,7 @@ class ThreatsController extends Component {
                           fieldName={tempData}
                           allValue={allValue}
                           alertLevelColors={ALERT_LEVEL_COLORS}
-                          showQueryOptions={this.showQueryOptions} />
+                          handleOpenQueryMenu={this.handleOpenQueryMenu} />
                       )
                     }
                   }
@@ -1452,6 +1450,8 @@ class ThreatsController extends Component {
       showFilter: true,
       filterData: currentFilterData
     });
+
+    this.handleCloseQueryMenu();
   }
   /**
    * Add tree node to search filter
@@ -1591,12 +1591,16 @@ class ThreatsController extends Component {
   /**
    * Set new datetime and reload page data
    * @method
-   * @param {object} datetime - new datetime object
+   * @param {string} type - date type ('from' or 'to')
+   * @param {object} newDatetime - new datetime object
    * @param {string} [refresh] - option for 'refresh'
    */
-  handleDateChange = (datetime, refresh) => {
+  handleDateChange = (type, newDatetime, refresh) => {
+    let tempDatetime = {...this.state.datetime};
+    tempDatetime[type] = newDatetime;
+
     this.setState({
-      datetime
+      datetime: tempDatetime
     }, () => {
       if (refresh === 'refresh') {
         this.loadTreeData();
@@ -1847,6 +1851,8 @@ class ThreatsController extends Component {
       subSectionsData,
       openQueryOpen,
       saveQueryOpen,
+      contextAnchor,
+      currentQueryValue,
       filterData,
       showChart,
       showFilter,
@@ -1873,6 +1879,16 @@ class ThreatsController extends Component {
         {alertDetailsOpen &&
           this.alertDialog()
         }
+
+        <Menu
+          anchorEl={contextAnchor}
+          keepMounted
+          open={Boolean(contextAnchor)}
+          onClose={this.handleCloseQueryMenu}>
+          <MenuItem onClick={this.addSearch.bind(this, '', currentQueryValue, 'must')}>Must</MenuItem>
+          <MenuItem onClick={this.addSearch.bind(this, '', currentQueryValue, 'must_not')}>Must Not</MenuItem>
+          <MenuItem onClick={this.addSearch.bind(this, '', currentQueryValue, 'either')}>Either</MenuItem>
+        </Menu>
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>

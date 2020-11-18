@@ -6,10 +6,10 @@ import i18n from 'i18next'
 import cx from 'classnames'
 import _ from 'lodash'
 
+import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 
-import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import DataTable from 'react-ui/build/src/components/table'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
@@ -47,6 +47,8 @@ class AccountList extends Component {
       },
       accountID: '',
       accountName: '',
+      contextAnchor: null,
+      currentAccountData: {},
       dataFields: {},
       showNewPassword: false,
       newPassword: '',
@@ -95,7 +97,7 @@ class AccountList extends Component {
               if (tempData === '_menu') {
                 return (
                   <div className={cx('table-menu', {'active': value})}>
-                    <button onClick={this.handleRowContextMenu.bind(this, allValue)}><i className='fg fg-more'></i></button>
+                    <button onClick={this.handleOpenMenu.bind(this, allValue)}><i className='fg fg-more'></i></button>
                   </div>
                 )
               } else if (tempData === 'account' && allValue.isLock) {
@@ -120,40 +122,26 @@ class AccountList extends Component {
     })
   }
   /**
-   * Construct and display table context menu
+   * Handle open menu
    * @method
-   * @param {object} allValue - account data
-   * @param {object} evt - mouseClick events
+   * @param {object} account - active account data
+   * @param {object} event - event object
    */
-  handleRowContextMenu = (allValue, evt) => {
-    let menuItems = [
-      {
-        id: 'edit',
-        text: c('txt-edit'),
-        action: () => this.showEditDialog(allValue.accountid)
-      },
-      {
-        id: 'delete',
-        text: c('txt-delete'),
-        action: () => this.showDialog('delete', allValue, allValue.accountid)
-      },
-      {
-        id: 'resetPassword',
-        text: c('txt-resetPassword'),
-        action: () => this.showResetPassword(allValue.account)
-      }
-    ];
-
-    if (allValue.isLock) {
-      menuItems.push({
-        id: 'unlock',
-        text: c('txt-unlock'),
-        action: () => this.showDialog('unlock', allValue, allValue.accountid)
-      });
-    }
-
-    ContextMenu.open(evt, menuItems, 'configUserAccountsMenu');
-    evt.stopPropagation();
+  handleOpenMenu = (account, event) => {
+    this.setState({
+      contextAnchor: event.currentTarget,
+      currentAccountData: account
+    });
+  }
+  /**
+   * Handle close menu
+   * @method
+   */
+  handleCloseMenu = () => {
+    this.setState({
+      contextAnchor: null,
+      currentAccountData: {}
+    });
   }
   /**
    * Handle table row mouse over
@@ -202,6 +190,7 @@ class AccountList extends Component {
    */
   showEditDialog = (id) => {
     this.editor.openAccount(id, 'fromAccount');
+    this.handleCloseMenu();
   }
   /**
    * Display delete and unlock content
@@ -250,6 +239,8 @@ class AccountList extends Component {
         }
       }
     });
+
+    this.handleCloseMenu();
   }
   /**
    * Handle delete/unlock modal confirm
@@ -300,6 +291,8 @@ class AccountList extends Component {
       accountName,
       showNewPassword: true
     });
+
+    this.handleCloseMenu();
   }
   /**
    * Handle password input box
@@ -507,13 +500,26 @@ class AccountList extends Component {
   }
   render() {
     const {baseUrl, contextRoot} = this.context;
-    const {accountData, dataFields, showFilter, showNewPassword} = this.state;
+    const {accountData, dataFields, showFilter, showNewPassword, contextAnchor, currentAccountData} = this.state;
 
     return (
       <div>
         {showNewPassword &&
           this.showNewPasswordDialog()
         }
+
+        <Menu
+          anchorEl={contextAnchor}
+          keepMounted
+          open={Boolean(contextAnchor)}
+          onClose={this.handleCloseMenu}>
+          <MenuItem onClick={this.showEditDialog.bind(this, currentAccountData.accountid)}>{c('txt-edit')}</MenuItem>
+          <MenuItem onClick={this.showDialog.bind(this, 'delete', currentAccountData, currentAccountData.accountid)}>{c('txt-delete')}</MenuItem>
+          <MenuItem onClick={this.showResetPassword.bind(this, currentAccountData.account)}>{c('txt-resetPassword')}</MenuItem>
+          {currentAccountData.isLock &&
+            <MenuItem onClick={this.showDialog.bind(this, 'unlock', currentAccountData, currentAccountData.accountid)}>{c('txt-unlock')}</MenuItem>
+          }
+        </Menu>
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>

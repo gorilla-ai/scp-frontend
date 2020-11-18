@@ -92,7 +92,7 @@ class SortableItem extends Component {
     return (
       <li key={index} className='table-sort-list'>
         {!_.includes(TIME_FIELDS, key) &&
-          <i className='fg fg-filter' title={t('txt-filterQuery')} onClick={this.props.showQueryOptions(key, value[key])}></i>
+          <i className='fg fg-filter' title={t('txt-filterQuery')} onClick={this.props.handleOpenQueryMenu.bind(this, key, value[key]), activeTab}></i>
         }
         {_.includes(TIME_FIELDS, key) && //Disable the filer for time related fields
           <i className='fg fg-filter disabled' title={t('txt-filterQuery')}></i>
@@ -124,7 +124,7 @@ SortableItem.propTypes = {
   value: PropTypes.object.isRequired,
   setFieldsChange: PropTypes.func.isRequired,
   checkDisplayFields: PropTypes.func.isRequired,
-  showQueryOptions: PropTypes.func.isRequired
+  handleOpenQueryMenu: PropTypes.func.isRequired
 };
 
 export default SortableElement(SortableItem);

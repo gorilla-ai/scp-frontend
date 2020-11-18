@@ -7,12 +7,13 @@ import _ from 'lodash'
 import cx from 'classnames'
 import queryString from 'query-string'
 
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 
 import {analyze} from 'vbda-ui/build/src/analyzer'
 import Checkbox from 'react-ui/build/src/components/checkbox'
 import {config as configLoader} from 'vbda-ui/build/src/loader'
-import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PageNav from 'react-ui/build/src/components/page-nav'
@@ -160,6 +161,8 @@ class Netflow extends Component {
           ftp: 0
         }
       },
+      netflowContextAnchor: null,
+      currentNetflowData: {},
       LAconfig: {},
       mainEventsData: {},
       showImgCheckbox: false,
@@ -202,6 +205,9 @@ class Netflow extends Component {
         formattedQuery: '',
         openFlag: false
       },
+      queryContextAnchor: null,
+      currentQueryField: '',
+      currentQueryValue: '',
       newQueryName: true,
       geoJson: {
         mapDataArr: [],
@@ -218,7 +224,12 @@ class Netflow extends Component {
       currentTableIndex: '',
       currentLength: '',
       currentTableID: '',
-      loadNetflowData: true
+      loadNetflowData: true,
+      formValidation: {
+        memo: {
+          valid: true
+        }
+      }
     };
 
     this.ah = getInstance('chewbacca');
@@ -773,7 +784,7 @@ class Netflow extends Component {
               if (tempData === '_tableMenu_') {
                 return (
                   <div className={cx('table-menu', {'active': value})}>
-                    <button onClick={this.handleRowContextMenu.bind(this, allValue)}><i className='fg fg-more'></i></button>
+                    <button onClick={this.handleOpenMenu.bind(this, allValue)}><i className='fg fg-more'></i></button>
                   </div>
                 )
               }
@@ -789,7 +800,7 @@ class Netflow extends Component {
                   fieldValue={value}
                   fieldName={tempData}
                   allValue={allValue}
-                  showQueryOptions={this.showQueryOptions} />
+                  handleOpenQueryMenu={this.handleOpenQueryMenu} />
               )
             }
           }
@@ -922,7 +933,7 @@ class Netflow extends Component {
               if (tempData === '_tableMenu_') {
                 return (
                   <div className={cx('table-menu', {'active': value})}>
-                    <button onClick={this.handleRowContextMenu.bind(this, allValue)}><i className='fg fg-more'></i></button>
+                    <button onClick={this.handleOpenMenu.bind(this, allValue)}><i className='fg fg-more'></i></button>
                   </div>
                 )
               }
@@ -933,7 +944,7 @@ class Netflow extends Component {
               } else if (tempData === 'filePath') {
                 return <a href={baseUrl + contextRoot + '/api/network/file?path=' + value} target='_blank' download>{value}</a>
               } else if (tempData === 'controlText') {
-                return <span title={value} onClick={this.showQueryOptions(tempData, value)}>{value.substr(0, 50) + '...'}</span>
+                return <span title={value} onClick={this.handleOpenQueryMenu(tempData, value)}>{value.substr(0, 50) + '...'}</span>
               } else if (tempData === 'htmlRelinkPath') {
                 return <span className='file-html' onClick={this.openHTMLModal.bind(this, value)}>{value}</span>
               } else {
@@ -949,7 +960,7 @@ class Netflow extends Component {
                     fieldValue={value}
                     fieldName={tempData}
                     allValue={allValue}
-                    showQueryOptions={this.showQueryOptions} />
+                    handleOpenQueryMenu={this.handleOpenQueryMenu} />
                 )
               }
             }
@@ -1460,6 +1471,8 @@ class Netflow extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+
+    this.handleCloseMenu();
   }
   /**
    * Handle table row mouse over to show menu button and tag memo
@@ -1502,110 +1515,52 @@ class Netflow extends Component {
     Popover.closeId('popup-id')
   }
   /**
-   * Construct and display table context menu
+   * Handle open menu
    * @method
-   * @param {object} allValue - syslog data
-   * @param {object} evt - mouseClick events
+   * @param {object} netflow - active netflow data
+   * @param {object} event - event object
    */
-  handleRowContextMenu = (allValue, evt) => {
-    this.handleRowMouseOut();
-
-    const {activeTab} = this.state;
-    const id = allValue.id;
-    let menuItems = [];
-
-    menuItems = [
-      {
-        id: id + 'Table',
-        text: t('events.connections.txt-fieldsSettings'),
-        action: () => this.showTableData(allValue)
-      },
-      {
-        id: id + 'Json',
-        text: t('events.connections.txt-viewJSON'),
-        action: () => this.viewJsonData(allValue)
-      }
-    ];
-
-    if (activeTab === 'connections') {
-      menuItems.unshift(
-        {
-          id: id + 'downloadPCAP',
-          text: t('events.connections.txt-downloadPCAP'),
-          action: () => this.pcapDownloadFile(allValue)
-        },
-        {
-          id: id + 'viewPCAP',
-          text: t('events.connections.txt-viewPCAP'),
-          action: () => this.getPCAPcontent(allValue)
-        }
-      );
-    }
-
-    if (allValue.tag) {
-      menuItems.push(
-        {
-          id: id + 'EditTag',
-          text: t('events.connections.txt-editTag'),
-          action: () => this.addTagging(allValue)
-        },
-        {
-          id: id + 'DeleteTag',
-          text: t('events.connections.txt-deleteTag'),
-          action: () => this.deleteTagging(allValue.tag.id)
-        }
-      );
-    } else {
-      if (allValue.vpnName) { //Disable the Add Tagging for Honeypot
-        menuItems.push(
-          {
-            className: 'disabled-tag-menu',
-            text: t('events.connections.txt-addTag'),
-            action: () => { return; }
-          }
-        );
-      } else {
-        menuItems.push(
-          {
-            id: id + 'AddTag',
-            text: t('events.connections.txt-addTag'),
-            action: () => this.addTagging(allValue)
-          }
-        );
-      }
-    }
-
-    ContextMenu.open(evt, menuItems, 'networkViewMenu');
-    evt.stopPropagation();
+  handleOpenMenu = (netflow, event) => {
+    this.setState({
+      netflowContextAnchor: event.currentTarget,
+      currentNetflowData: netflow
+    });
   }
   /**
-   * Show query option when click on the table raw filter icon
+   * Handle close menu
+   * @method
+   */
+  handleCloseMenu = () => {
+    this.setState({
+      netflowContextAnchor: null,
+      currentNetflowData: {}
+    });
+  }
+  /**
+   * Show query option when click on the table row filter icon
    * @method
    * @param {string} field - field name of selected field
    * @param {string | number} value - value of selected field
-   * @param {object} e - mouseClick events
+   * @param {string} activeTab - currect active tab
+   * @param {object} event - event object
    */
-  showQueryOptions = (field, value) => (e) => {
-    const menuItems = [
-      {
-        id: value + '_Must',
-        text: 'Must',
-        action: () => this.addSearch(field, value, 'must')
-      },
-      {
-        id: value + '_MustNot',
-        text: 'Must Not',
-        action: () => this.addSearch(field, value, 'must_not')
-      },
-      {
-        id: value + '_Either',
-        text: 'Either',
-        action: () => this.addSearch(field, value, 'either')
-      }
-    ];
-
-    ContextMenu.open(e, menuItems, 'eventsQueryMenu');
-    e.stopPropagation();
+  handleOpenQueryMenu = (field, value, activeTab, event) => {
+    this.setState({
+      queryContextAnchor: event.currentTarget,
+      currentQueryField: field,
+      currentQueryValue: value
+    });
+  }
+  /**
+   * Handle close query menu
+   * @method
+   */
+  handleCloseQueryMenu = () => {
+    this.setState({
+      queryContextAnchor: null,
+      currentQueryField: '',
+      currentQueryValue: ''
+    });
   }
   /**
    * Add tree node to search filter
@@ -1646,6 +1601,8 @@ class Netflow extends Component {
       showFilter: true,
       filterData: currentFilterData
     });
+
+    this.handleCloseQueryMenu();
   }
   /**
    * Handle value change for the checkbox in the table dialog
@@ -1709,7 +1666,7 @@ class Netflow extends Component {
     })
   }
   /**
-   * Set the table raw index and netflow data
+   * Set the table row index and netflow data
    * @method
    * @param {string | object} data - button action type ('previous' or 'next'), or data object
    * @returns object of index and data
@@ -1728,7 +1685,7 @@ class Netflow extends Component {
         tableRowIndex--;
       }
       allValue = subSectionsData.mainData[activeTab][tableRowIndex];
-    } else { //For click on table raw
+    } else { //For click on table row
       tableRowIndex = _.findIndex(subSectionsData.mainData[activeTab], {'id': data.id});
       allValue = data;
     }
@@ -1741,7 +1698,7 @@ class Netflow extends Component {
   /**
    * Set the data to be displayed in table dialog
    * @method
-   * @param {object} allValue - data of selected table raw
+   * @param {object} allValue - data of selected table row
    */
   showTableData = (allValue) => {
     const {account} = this.state;
@@ -1795,6 +1752,8 @@ class Netflow extends Component {
       currentTableIndex,
       currentTableID: allValue.id
     });
+
+    this.handleCloseMenu();
   }
   /**
    * Handle table field sort action
@@ -1822,7 +1781,7 @@ class Netflow extends Component {
           onSortEnd={this.onSortEnd}
           setFieldsChange={this.setFieldsChange}
           checkDisplayFields={this.checkDisplayFields}
-          showQueryOptions={this.showQueryOptions}
+          handleOpenQueryMenu={this.handleOpenQueryMenu}
           useDragHandle={true}
           lockToContainerEdges={true} />
 
@@ -1848,7 +1807,12 @@ class Netflow extends Component {
       openQueryOpen: false,
       saveQueryOpen: false,
       taggingOpen: false,
-      pcapOpen: false
+      pcapOpen: false,
+      formValidation: {
+        memo: {
+          valid: true
+        }
+      }
     }, () => {
       this.clearTagData();
       this.clearPcapData();
@@ -1944,7 +1908,7 @@ class Netflow extends Component {
   /**
    * Open Json data modal dialog
    * @method
-   * @param {object} allValue - data of selected table raw
+   * @param {object} allValue - data of selected table row
    */
   viewJsonData = (allValue) => {
     const {activeTab} = this.state;
@@ -1965,6 +1929,8 @@ class Netflow extends Component {
         }
       });
     });
+
+    this.handleCloseMenu();
   }
   /**
    * Set PCAP hex value
@@ -2128,7 +2094,7 @@ class Netflow extends Component {
   /**
    * Get and set PCAP data
    * @method
-   * @param {object} allValue - data of selected table raw
+   * @param {object} allValue - data of selected table row
    */
   getPCAPcontent = (allValue) => {
     const {baseUrl} = this.context;
@@ -2163,11 +2129,13 @@ class Netflow extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+
+    this.handleCloseMenu();
   }
   /**
    * Display delete tag content
    * @method
-   * @param {string} id - ID of selected table raw data
+   * @param {string} id - ID of selected table row data
    * @returns HTML DOM
    */
   getDeleteTagContent = (id) => {
@@ -2189,7 +2157,7 @@ class Netflow extends Component {
   /**
    * Open delete tag modal dialog
    * @method
-   * @param {string} id - ID of selected table raw data
+   * @param {string} id - ID of selected table row data
    */
   deleteTagging = (id) => {
     PopupDialog.prompt({
@@ -2204,6 +2172,8 @@ class Netflow extends Component {
         }
       }
     });
+
+    this.handleCloseMenu();
   }
   /**
    * Handle delete tag confirm
@@ -2234,7 +2204,7 @@ class Netflow extends Component {
   /**
    * Handle add tag table menu
    * @method
-   * @param {object} allValue - data of selected table raw
+   * @param {object} allValue - data of selected table row
    */
   addTagging = (allValue) => {
     let titleText = t('events.connections.txt-addTag');
@@ -2256,6 +2226,8 @@ class Netflow extends Component {
       tagData: tempTagData,
       taggingOpen: true
     });
+
+    this.handleCloseMenu();
   }
   /**
    * Handle value change for the add tagging form
@@ -2267,7 +2239,7 @@ class Netflow extends Component {
     let tempTagData = {...this.state.tagData};
 
     if (event.hex) {
-      tempTagData.color = value.hex.toUpperCase();
+      tempTagData.color = value.toUpperCase();
     } else {
       tempTagData.memo = value;
     }
@@ -2282,7 +2254,7 @@ class Netflow extends Component {
    * @returns HTML DOM
    */
   displayAddTagging = () => {
-    const {tagData} = this.state;
+    const {tagData, formValidation} = this.state;
     const colorList = ['#B80000', '#DB3E00', '#FCCB00', '#008B02', '#006B76', '#1273DE', '#004DCF', '#5300EB'];
     const memoText = t('txt-memo') + ' (' + t('txt-memoMaxLength') + ')';
 
@@ -2290,7 +2262,7 @@ class Netflow extends Component {
       <div>
         <TextField
           id='tagMemo'
-          className='add'
+          className='tag-memo'
           label={memoText}
           multiline={true}
           rows={4}
@@ -2298,6 +2270,9 @@ class Netflow extends Component {
           variant='outlined'
           fullWidth={true}
           size='small'
+          required={true}
+          error={!formValidation.memo.valid}
+          helperText={formValidation.memo.valid ? '' : t('txt-required')}
           value={tagData.memo}
           onChange={this.handleDataChange} />
         <div className='group'>
@@ -2347,10 +2322,27 @@ class Netflow extends Component {
    */
   handleAddTagging = () => {
     const {baseUrl} = this.context;
-    const {account, tagData} = this.state;
+    const {account, tagData, formValidation} = this.state;
     const url = `${baseUrl}/api/account/flow/session`;
     let requestData = {};
     let requestType = '';
+    let tempFormValidation = {...formValidation};
+    let validate = true;
+
+    if (tagData.memo) {
+      tempFormValidation.memo.valid = true;
+    } else {
+      tempFormValidation.memo.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      formValidation: tempFormValidation  
+    });
+
+    if (!validate) {
+      return;
+    }
 
     if (tagData.color.indexOf('#') < 0) {
       tagData.color = '#' + tagData.color;
@@ -2932,7 +2924,12 @@ class Netflow extends Component {
       filterData,
       pcapOpen,
       showChart,
-      showFilter
+      showFilter,
+      netflowContextAnchor,
+      currentNetflowData,
+      queryContextAnchor,
+      currentQueryField,
+      currentQueryValue
     } = this.state;
     let filterDataCount = 0;
 
@@ -2963,6 +2960,40 @@ class Netflow extends Component {
         {pcapOpen &&
           this.pcapDialog()
         }
+
+        <Menu
+          anchorEl={netflowContextAnchor}
+          keepMounted
+          open={Boolean(netflowContextAnchor)}
+          onClose={this.handleCloseMenu}>
+          {activeTab === 'connections' &&
+            <MenuItem onClick={this.pcapDownloadFile.bind(this, currentNetflowData)}>{t('events.connections.txt-downloadPCAP')}</MenuItem>
+          }
+          {activeTab === 'connections' &&
+            <MenuItem onClick={this.getPCAPcontent.bind(this, currentNetflowData)}>{t('events.connections.txt-viewPCAP')}</MenuItem>
+          }
+          <MenuItem onClick={this.showTableData.bind(this, currentNetflowData)}>{t('events.connections.txt-fieldsSettings')}</MenuItem>
+          <MenuItem onClick={this.viewJsonData.bind(this, currentNetflowData)}>{t('events.connections.txt-viewJSON')}</MenuItem>
+          {currentNetflowData.tag &&
+            <MenuItem onClick={this.addTagging.bind(this, currentNetflowData)}>{t('events.connections.txt-editTag')}</MenuItem>
+          }
+          {currentNetflowData.tag &&
+            <MenuItem onClick={this.deleteTagging.bind(this, currentNetflowData.tag.id)}>{t('events.connections.txt-deleteTag')}</MenuItem>
+          }
+          {!currentNetflowData.tag && !currentNetflowData.vpnName &&
+            <MenuItem onClick={this.addTagging.bind(this, currentNetflowData)}>{t('events.connections.txt-addTag')}</MenuItem>
+          }
+        </Menu>
+
+        <Menu
+          anchorEl={queryContextAnchor}
+          keepMounted
+          open={Boolean(queryContextAnchor)}
+          onClose={this.handleCloseQueryMenu}>
+          <MenuItem onClick={this.addSearch.bind(this, currentQueryField, currentQueryValue, 'must')}>Must</MenuItem>
+          <MenuItem onClick={this.addSearch.bind(this, currentQueryField, currentQueryValue, 'must_not')}>Must Not</MenuItem>
+          <MenuItem onClick={this.addSearch.bind(this, currentQueryField, currentQueryValue, 'either')}>Either</MenuItem>
+        </Menu>
 
         <div className='sub-header'>
           {helper.getEventsMenu('netflow')}

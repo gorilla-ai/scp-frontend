@@ -34,7 +34,7 @@ class SortableList extends Component {
         getCustomFieldName={this.props.getCustomFieldName}
         setFieldsChange={this.props.setFieldsChange}
         checkDisplayFields={this.props.checkDisplayFields}
-        showQueryOptions={this.props.showQueryOptions}
+        handleOpenQueryMenu={this.props.handleOpenQueryMenu}
         toggleLocaleEdit={this.props.toggleLocaleEdit} />
     )
   }
@@ -56,7 +56,7 @@ SortableList.propTypes = {
   items: PropTypes.array.isRequired,
   setFieldsChange: PropTypes.func.isRequired,
   checkDisplayFields: PropTypes.func.isRequired,
-  showQueryOptions: PropTypes.func.isRequired
+  handleOpenQueryMenu: PropTypes.func.isRequired
 };
 
 export default SortableContainer(SortableList);
