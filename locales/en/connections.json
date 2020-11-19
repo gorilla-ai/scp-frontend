@@ -164,6 +164,7 @@
   "txt-duplicatedName": "Name is duplicated",
   "txt-checkRequiredFieldType": "Please check all the required fields and its format",
   "txt-threatsSrcCountryRank": "Source Country Alert Rank",
+  "txt-checkDateFormat": "Please check date format",
 
   "txt-dashboard": "Dashboard",
   "txt-host": "Host",

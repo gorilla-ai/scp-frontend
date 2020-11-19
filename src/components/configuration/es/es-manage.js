@@ -2,9 +2,10 @@ import React, { Component } from 'react'
 import { withRouter } from 'react-router'
 import { NavLink, Link, Route } from 'react-router-dom'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
+import moment from 'moment'
 import cx from 'classnames'
 
+import Button from '@material-ui/core/Button';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import Switch from '@material-ui/core/Switch';
@@ -43,7 +44,7 @@ class EsManage extends Component {
       importIndexOpen: false,
       datetime: {
         from: helper.getSubstractDate(1, 'month'),
-        to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+        to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
       },
       importList: [],
       statusList: [],
@@ -185,8 +186,8 @@ class EsManage extends Component {
     const sort = es.sort.desc ? 'desc' : 'asc';
     const page = fromSearch === 'search' ? 1 : es.currentPage;
     const dateTime = {
-      from: Moment(datetime.from).format('YYYY.MM.DD'),
-      to: Moment(datetime.to).format('YYYY.MM.DD')
+      from: moment(datetime.from).format('YYYY.MM.DD'),
+      to: moment(datetime.to).format('YYYY.MM.DD')
     };
     let url = `${baseUrl}/api/elasticsearch/list?page=${page}&pageSize=${es.pageSize}&orders=${es.sort.field} ${sort}&startDate=${dateTime.from}&endDate=${dateTime.to}`;
 
@@ -392,8 +393,8 @@ class EsManage extends Component {
           </div>
         </div>
         <div className='button-group'>
-          <button className='filter' onClick={this.handleSearchSubmit}>{t('txt-filter')}</button>
-          <button className='clear' onClick={this.clearFilter}>{t('txt-clear')}</button>
+          <Button variant='contained' color='primary' className='filter' onClick={this.handleSearchSubmit}>{t('txt-filter')}</Button>
+          <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}</Button>
         </div>
       </div>
     )
@@ -523,11 +524,15 @@ class EsManage extends Component {
   /**
    * Set new datetime
    * @method
-   * @param {object} datetime - new datetime object
+   * @param {string} type - date type ('from' or 'to')
+   * @param {object} newDatetime - new datetime object
    */
-  handleDateChange = (datetime) => {
+  handleDateChange = (type, newDatetime) => {
+    let tempDatetime = {...this.state.datetime};
+    tempDatetime[type] = newDatetime;
+
     this.setState({
-      datetime
+      datetime: tempDatetime
     });
   }
   render() {
@@ -553,7 +558,7 @@ class EsManage extends Component {
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
+            <Button variant='outlined' color='primary' className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
           </div>
 
           <SearchOptions
@@ -575,7 +580,7 @@ class EsManage extends Component {
               <header className='main-header'>{t('txt-esManage')}</header>
 
               <div className='content-header-btns'>
-                <button className='standard btn' onClick={this.toggleImportIndex}>{t('txt-importEsIndex')}</button>
+                <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleImportIndex}>{t('txt-importEsIndex')}</Button>
               </div>
 
               <TableContent

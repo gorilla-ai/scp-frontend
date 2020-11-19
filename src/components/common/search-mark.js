@@ -4,6 +4,7 @@ import _ from 'lodash'
 import cx from 'classnames'
 
 import TextField from '@material-ui/core/TextField';
+import TextareaAutosize from '@material-ui/core/TextareaAutosize';
 
 import helper from './helper'
 
@@ -45,11 +46,8 @@ class SearchMark extends Component {
     return (
       <div>
         <i className={'c-link fg fg-recode ' + value.color}></i>
-        <TextField
+        <TextareaAutosize
           className='mark-inputbox'
-          variant='outlined'
-          fullWidth={true}
-          size='small'
           value={inputValue}
           onChange={this.handleDataChange}
           disabled={formStatus} />

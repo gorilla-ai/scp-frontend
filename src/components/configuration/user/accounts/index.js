@@ -6,6 +6,7 @@ import i18n from 'i18next'
 import cx from 'classnames'
 import _ from 'lodash'
 
+import Button from '@material-ui/core/Button';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
@@ -97,7 +98,7 @@ class AccountList extends Component {
               if (tempData === '_menu') {
                 return (
                   <div className={cx('table-menu', {'active': value})}>
-                    <button onClick={this.handleOpenMenu.bind(this, allValue)}><i className='fg fg-more'></i></button>
+                    <Button variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue)}><i className='fg fg-more'></i></Button>
                   </div>
                 )
               } else if (tempData === 'account' && allValue.isLock) {
@@ -492,8 +493,8 @@ class AccountList extends Component {
           </div>
         </div>
         <div className='button-group'>
-          <button className='filter' onClick={this.getAccountFilterData}>{c('txt-filter')}</button>
-          <button className='clear' onClick={this.clearFilter}>{c('txt-clear')}</button>
+          <Button variant='contained' color='primary' className='filter' onClick={this.getAccountFilterData}>{c('txt-filter')}</Button>
+          <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{c('txt-clear')}</Button>
         </div>
       </div>
     )
@@ -523,8 +524,8 @@ class AccountList extends Component {
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            <button onClick={this.showEditDialog.bind(this, null)} title={t('txt-add-account')}><i className='fg fg-add'></i></button>
-            <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={c('txt-filter')}><i className='fg fg-filter'></i></button>
+            <Button variant='outlined' color='primary' onClick={this.showEditDialog.bind(this, null)} title={t('txt-add-account')}><i className='fg fg-add'></i></Button>
+            <Button variant='outlined' color='primary' className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={c('txt-filter')}><i className='fg fg-filter'></i></Button>
           </div>
         </div>
 

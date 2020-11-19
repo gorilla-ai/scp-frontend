@@ -29,10 +29,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@date-io/moment": "^1.3.13",
     "@f2e/gui": "git+ssh://git@git.gorilla-technology.com:gorilla/f2e/gui.git",
     "@material-ui/core": "^4.11.0",
     "@material-ui/icons": "^4.9.1",
     "@material-ui/lab": "^4.0.0-alpha.56",
+    "@material-ui/pickers": "^3.2.10",
     "axios": "^0.20.0",
     "babel-jest": "^23.6.0",
     "babel-polyfill": "^6.26.0",

@@ -1,10 +1,10 @@
 import React, { Component } from 'react'
 import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
+import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Menu from '@material-ui/core/Menu';
@@ -239,7 +239,7 @@ class NetworkOwner extends Component {
               if (tempData === '_menu') {
                 return (
                   <div className={cx('table-menu', {'active': value})}>
-                    <button onClick={this.handleOpenMenu.bind(this, allValue)}><i className='fg fg-more'></i></button>
+                    <Button variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue)}><i className='fg fg-more'></i></Button>
                   </div>
                 )
               } else {
@@ -709,8 +709,8 @@ class NetworkOwner extends Component {
           </div>
         </div>
         <div className='button-group'>
-          <button className='filter' onClick={this.getOwnerData.bind(this, 'search')}>{t('txt-filter')}</button>
-          <button className='clear' onClick={this.clearFilter}>{t('txt-clear')}</button>
+          <Button variant='contained' color='primary' className='filter' onClick={this.getOwnerData.bind(this, 'search')}>{t('txt-filter')}</Button>
+          <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}</Button>
         </div>
       </div>
     )
@@ -747,7 +747,7 @@ class NetworkOwner extends Component {
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')} disabled={activeContent !== 'tableList'}><i className='fg fg-filter'></i></button>
+            <Button variant='outlined' color='primary' className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')} disabled={activeContent !== 'tableList'}><i className='fg fg-filter'></i></Button>
           </div>
         </div>
 
@@ -764,8 +764,8 @@ class NetworkOwner extends Component {
                 <header className='main-header'>{t('txt-ownerList')}</header>
 
                 <div className='content-header-btns'>
-                  <button className='standard btn' onClick={this.toggleContent.bind(this, 'addOwner', 'new')}>{t('txt-addNewOwner')}</button>
-                  <button className='standard btn' onClick={this.openManage}>{t('txt-manageDepartmentTitle')}</button>
+                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'addOwner', 'new')}>{t('txt-addNewOwner')}</Button>
+                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.openManage}>{t('txt-manageDepartmentTitle')}</Button>
                 </div>
 
                 <TableContent
@@ -787,7 +787,7 @@ class NetworkOwner extends Component {
                 <header className='main-header'>{addOwnerTitle}</header>
 
                 <div className='content-header-btns'>
-                  <button className='standard btn' onClick={this.openManage} >{t('txt-manageDepartmentTitle')}</button>
+                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.openManage} >{t('txt-manageDepartmentTitle')}</Button>
                 </div>
 
                 <div className='form-group steps-owner'>
@@ -896,8 +896,8 @@ class NetworkOwner extends Component {
                   </div>
                 </div>
                 <footer>
-                  <button className='standard' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-cancel')}</button>
-                  <button className='next-step' onClick={this.handleOwnerConfirm}>{t('txt-save')}</button>
+                  <Button variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-cancel')}</Button>
+                  <Button variant='contained' color='primary' className='next-step' onClick={this.handleOwnerConfirm}>{t('txt-save')}</Button>
                 </footer>
               </div>
             }

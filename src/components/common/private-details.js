@@ -1,9 +1,10 @@
 import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
+
+import Button from '@material-ui/core/Button';
 
 import Gis from 'react-gis/build/src/components'
 
@@ -177,7 +178,7 @@ class PrivateDetails extends Component {
             <div className='trigger-text'>{t('edge-management.txt-lastUpdateTime')}: {helper.getFormattedDate(topoInfo.updateDttm, 'local')}</div>
           }
           {topoInfo && topoInfo.isHmd &&
-            <button className='btn trigger' onClick={this.props.triggerTask.bind(this, ['getSystemInfo'], 'fromInventory')}>{t('txt-reTrigger')}</button>
+            <Button variant='contained' color='primary' className='btn trigger' onClick={this.props.triggerTask.bind(this, ['getSystemInfo'], 'fromInventory')}>{t('txt-reTrigger')}</Button>
           }
           <table className='c-table main-table host'>
             <tbody>

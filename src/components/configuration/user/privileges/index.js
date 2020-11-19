@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import cx from 'classnames'
 import _ from 'lodash'
 
+import Button from '@material-ui/core/Button';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 
@@ -72,7 +73,7 @@ class Roles extends Component {
               if (tempData === '_menu') {
                 return (
                   <div className={cx('table-menu', {'active': value})}>
-                    <button onClick={this.handleOpenMenu.bind(this, allValue)}><i className='fg fg-more'></i></button>
+                    <Button variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue)}><i className='fg fg-more'></i></Button>
                   </div>
                 )
               } else if (tempData === 'permits') {
@@ -254,7 +255,7 @@ class Roles extends Component {
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            <button className='last' onClick={this.showAddDialog} title={t('txt-add')}><i className='fg fg-add'></i></button>
+            <Button variant='outlined' color='primary' className='last' onClick={this.showAddDialog} title={t('txt-add')}><i className='fg fg-add'></i></Button>
           </div>
         </div>
         <div className='data-content'>

@@ -5,6 +5,8 @@ import Moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
+import Button from '@material-ui/core/Button';
+
 import DataTable from 'react-ui/build/src/components/table'
 
 import {BaseDataContext} from '../../common/context';
@@ -139,7 +141,7 @@ class Status extends Component {
       <div>
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            <button onClick={this.getServiceStatus.bind(this, 'refresh')} title={t('txt-update')}><i className='fg fg-update'></i></button>
+            <Button variant='contained' color='primary' onClick={this.getServiceStatus.bind(this, 'refresh')} title={t('txt-update')}><i className='fg fg-update'></i></Button>
 	          <span className='last-update'>{serviceStatus.lastUpdateTime}</span>
 	        </div>
         </div>

@@ -1,6 +1,5 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
 import cx from 'classnames'
 
 import DataTable from 'react-ui/build/src/components/table'

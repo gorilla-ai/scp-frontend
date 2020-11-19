@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
+import moment from 'moment'
 import cx from 'classnames'
 
 import BarChart from 'react-chart/build/src/components/bar'
@@ -50,7 +50,7 @@ class ChartContent extends Component {
         {pageType === 'logs' &&
           <span>{t('txt-data')}: {data[0].rule}<br /></span>
         }
-        <span>{t('txt-time')}: {Moment(data[0].time).format('YYYY/MM/DD HH:mm:ss')}<br /></span>
+        <span>{t('txt-time')}: {moment(data[0].time).format('YYYY/MM/DD HH:mm:ss')}<br /></span>
         <span>{t('txt-count')}: {helper.numberWithCommas(data[0].number)}</span>
       </section>
     )

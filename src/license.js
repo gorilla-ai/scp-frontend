@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
+import moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
@@ -186,7 +186,7 @@ class License extends Component {
     let error = true;
 
     if (lms.expireDate) {
-      licenseDate = Moment(lms.expireDate, 'YYYYMMDD').format('YYYY-MM-DD');
+      licenseDate = moment(lms.expireDate, 'YYYYMMDD').format('YYYY-MM-DD');
 
       if (lms.returnCode === '0') {
         text = lt('l-license-already');

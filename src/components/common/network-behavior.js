@@ -1,10 +1,11 @@
 import React, { Component } from 'react'
 import { Link, withRouter } from 'react-router-dom'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
+import moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
+import Button from '@material-ui/core/Button';
 import ToggleButton from '@material-ui/lab/ToggleButton';
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 
@@ -124,8 +125,8 @@ class NetworkBehavior extends Component {
 
     if (_.isEmpty(hostDatetime)) {
       datetime = {
-        from: Moment(eventDateFrom).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-        to: Moment(eventDateTime).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+        from: moment(eventDateFrom).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+        to: moment(eventDateTime).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
       };
     } else {
       datetime = {
@@ -573,7 +574,7 @@ class NetworkBehavior extends Component {
         {datetime.from && datetime.to &&
           <div className='msg'>{alertTimeText}: {datetime.from} ~ {datetime.to}</div>
         }
-        <button className='standard btn query-events' onClick={this.redirectNewPage.bind(this, ipType)}>{t('alert.txt-queryEvents')}</button>
+        <Button variant='contained' color='primary' className='standard btn query-events' onClick={this.redirectNewPage.bind(this, ipType)}>{t('alert.txt-queryEvents')}</Button>
 
         <div className='table-data'>
           <DataTable

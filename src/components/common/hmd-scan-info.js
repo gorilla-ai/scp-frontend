@@ -3,12 +3,13 @@ import { Link, withRouter } from 'react-router-dom'
 import Highcharts from 'highcharts'
 import HighchartsMore from 'highcharts/highcharts-more'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
+import moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
 import InfiniteScroll from 'react-infinite-scroll-component'
 
+import Button from '@material-ui/core/Button';
 import ToggleButton from '@material-ui/lab/ToggleButton';
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 
@@ -492,10 +493,10 @@ class HMDscanInfo extends Component {
    * @returns boolean true/false
    */
   checkTimeAfter = (latestCreateTime) => {
-    const currentDateTime = helper.getFormattedDate(Moment(), 'local');
+    const currentDateTime = helper.getFormattedDate(moment(), 'local');
     const tenMinutesAfter = helper.getAdditionDate(10, 'minutes', latestCreateTime);
 
-    if (Moment(currentDateTime).isAfter(tenMinutesAfter)) {
+    if (moment(currentDateTime).isAfter(tenMinutesAfter)) {
       return false; //Enable trigger button if current time is 10 minutes after latest create time
     } else {
       return true; //Disable trigger button
@@ -522,7 +523,7 @@ class HMDscanInfo extends Component {
         if (currentDevice[0].taskResponseDttm) {
           const responseTime = helper.getFormattedDate(currentDevice[0].taskResponseDttm, 'local');
 
-          if (Moment(latestCreateTime).isAfter(responseTime)) {
+          if (moment(latestCreateTime).isAfter(responseTime)) {
             return this.checkTimeAfter(latestCreateTime);
           } else {
             return false; //Enable trigger button if latest create time is later than response time
@@ -1185,9 +1186,9 @@ class HMDscanInfo extends Component {
     return (
       <div className='info'>
         {activeTab !== 'settings' &&
-          <button className='btn refresh' onClick={this.props.getHMDinfo.bind(this, ipType)}>{t('network-inventory.txt-refresh')}</button>
+          <Button variant='contained' color='primary' className='btn refresh' onClick={this.props.getHMDinfo.bind(this, ipType)}>{t('network-inventory.txt-refresh')}</Button>
         }
-        <button className='btn' onClick={this.getTriggerTask.bind(this, currentTab)} disabled={this.checkTriggerTime(currentTab)}>{btnText}</button>
+        <Button variant='contained' color='primary' className='btn' onClick={this.getTriggerTask.bind(this, currentTab)} disabled={this.checkTriggerTime(currentTab)}>{btnText}</Button>
         <div className='last-update'>
           <span>{t('network-inventory.txt-createTime')}: {hmdInfo[currentTab].latestCreateDttm || hmdInfo[currentTab].createTime || NOT_AVAILABLE}</span>
         </div>
@@ -1919,15 +1920,15 @@ class HMDscanInfo extends Component {
 
           {activeTab === 'settings' &&
             <div className='settings'>
-              <button className='btn refresh' onClick={this.props.getHMDinfo.bind(this, '')}>{t('network-inventory.txt-refresh')}</button>
+              <Button variant='contained' color='primary' className='btn refresh' onClick={this.props.getHMDinfo.bind(this, '')}>{t('network-inventory.txt-refresh')}</Button>
               {settingsActiveContent === 'viewMode' &&
-                <button className='btn edit' onClick={this.toggleSettingsContent.bind(this, 'edit')}>{t('txt-edit')}</button>
+                <Button variant='contained' color='primary' className='btn edit' onClick={this.toggleSettingsContent.bind(this, 'edit')}>{t('txt-edit')}</Button>
               }
               {settingsActiveContent === 'editMode' &&
                 <div className='edit-btns'>
-                  <button className='standard btn cancel' onClick={this.toggleSettingsContent.bind(this, 'cancel')}>{t('txt-cancel')}</button>
-                  <button className='btn save' onClick={this.saveSettings}>{t('network-inventory.txt-saveSettings')}</button>
-                  <button className='standard btn restore-default' onClick={this.restoreDefaultSettings}>{t('network-inventory.txt-restoreDefault')}</button>
+                  <Button variant='outlined' color='primary' className='standard btn cancel' onClick={this.toggleSettingsContent.bind(this, 'cancel')}>{t('txt-cancel')}</Button>
+                  <Button variant='contained' color='primary' className='btn save' onClick={this.saveSettings}>{t('network-inventory.txt-saveSettings')}</Button>
+                  <Button variant='outlined' color='primary' className='standard btn restore-default' onClick={this.restoreDefaultSettings}>{t('network-inventory.txt-restoreDefault')}</Button>
                 </div>
               }
               <div id='settingsWrapper' className='settings-wrapper'>

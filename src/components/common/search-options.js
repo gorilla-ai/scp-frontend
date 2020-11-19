@@ -1,13 +1,15 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
+import moment from 'moment'
 import cx from 'classnames'
 
+import { MuiPickersUtilsProvider, KeyboardDatePicker, KeyboardDateTimePicker } from '@material-ui/pickers';
+import MomentUtils from '@date-io/moment';
+import 'moment/locale/zh-tw';
+
+import Button from '@material-ui/core/Button';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
-
-import DatePicker from 'react-ui/build/src/components/date-picker'
-import DateRange from 'react-ui/build/src/components/date-range'
 
 import {BaseDataContext} from './context';
 import helper from './helper'
@@ -71,7 +73,7 @@ class SearchOptions extends Component {
   setNewDatetime = () => {
     const datetime = {
       from: this.getCalculatedTime(this.props.searchInput.searchInterval),
-      to: Moment().local().format('YYYY-MM-DDTHH:mm') + ':00'
+      to: moment().local().format('YYYY-MM-DDTHH:mm') + ':00'
     };
 
     this.props.handleDateChange(datetime, 'refresh');
@@ -138,29 +140,69 @@ class SearchOptions extends Component {
   handleIntervalConfirm = () => {
     this.props.handleDateChange({
       from: this.getCalculatedTime(this.props.searchInput.searchInterval),
-      to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+      to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
     });
   }
   /**
    * Display date range
    * @method
-   * @returns DateRange component
+   * @returns DateTimePicker component
    */
   showDataRange = () => {
     const {locale} = this.context;
     const {enableTime, datetime} = this.props;
     const showTime = typeof enableTime === 'boolean' ? enableTime : true;
+    let dateLocale = locale;
 
-    return (
-      <DateRange
-        id='dateTime'
-        className='date-range'
-        enableTime={showTime}
-        value={datetime}
-        onChange={this.props.handleDateChange}
-        locale={locale}
-        t={et} />
-    )
+    if (locale === 'zh') {
+      dateLocale += '-tw';
+    }
+
+    moment.locale(dateLocale);
+
+    if (showTime) {
+      return (
+        <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+          <KeyboardDateTimePicker
+            className='date-time-picker'
+            inputVariant='outlined'
+            variant='inline'
+            format='YYYY-MM-DD HH:mm'
+            ampm={false}
+            value={datetime.from}
+            onChange={this.props.handleDateChange.bind(this, 'from')} />
+          <div className='between'>~</div>
+          <KeyboardDateTimePicker
+            className='date-time-picker'
+            inputVariant='outlined'
+            variant='inline'
+            format='YYYY-MM-DD HH:mm'
+            ampm={false}
+            value={datetime.to}
+            onChange={this.props.handleDateChange.bind(this, 'to')} />
+        </MuiPickersUtilsProvider>
+      )
+    } else {
+      return (
+        <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+          <KeyboardDatePicker
+            className='date-picker'
+            inputVariant='outlined'
+            variant='inline'
+            format='YYYY-MM-DD'
+            value={datetime.from}
+            onChange={this.props.handleDateChange.bind(this, 'from')} />
+          <div className='between'>~</div>
+          <KeyboardDatePicker
+            className='date-picker'
+            inputVariant='outlined'
+            variant='inline'
+            format='YYYY-MM-DD'
+            value={datetime.to}
+            onChange={this.props.handleDateChange.bind(this, 'to')} />
+        </MuiPickersUtilsProvider>
+      )
+    }
   }
   /**
    * Display date picker
@@ -170,15 +212,24 @@ class SearchOptions extends Component {
   showDatePicker = () => {
     const {locale} = this.context;
     const {datetime} = this.props;
+    let dateLocale = locale;
+
+    if (locale === 'zh') {
+      dateLocale += '-tw';
+    }
+
+    moment.locale(dateLocale);
 
     return (
-      <DatePicker
-        id='datePicker'
-        className='date-picker'
-        value={datetime}
-        onChange={this.props.handleDateChange}
-        locale={locale}
-        t={et} />
+      <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+        <KeyboardDatePicker
+          className='date-picker'
+          inputVariant='outlined'
+          variant='inline'
+          format='YYYY-MM-DD'
+          value={datetime}
+          onChange={this.props.handleDateChange} />
+      </MuiPickersUtilsProvider>
     )
   }
   /**
@@ -279,7 +330,6 @@ class SearchOptions extends Component {
         }
         
         <div className='datepicker'>
-          <label htmlFor='datetime' className='datetime'></label>
           {dateType === 'datepicker' &&
             this.showDatePicker()
           }
@@ -289,7 +339,7 @@ class SearchOptions extends Component {
           }
         </div>
 
-        <button className='search-button' onClick={this.loadSearchOptions.bind(this, 'search')} disabled={showFilter || false}>{t('events.connections.txt-toggleFilter')}</button>
+        <Button variant='contained' color='primary' className='search-button' onClick={this.loadSearchOptions.bind(this, 'search')} disabled={showFilter || false}>{t('events.connections.txt-toggleFilter')}</Button>
       </div>
     )
   }

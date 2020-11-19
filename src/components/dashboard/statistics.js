@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
+import moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 import queryString from 'query-string'
@@ -77,7 +77,7 @@ class DashboardStats extends Component {
     this.state = {
       datetime: {
         from: helper.getSubstractDate(24, 'hours'),
-        to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+        to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
         //from: '2019-08-06T01:00:00Z',
         //to: '2019-08-07T02:02:13Z'
       },
@@ -176,7 +176,7 @@ class DashboardStats extends Component {
       return (
         <section>
           <span>{t('txt-severity')}: {data[0].rule}<br /></span>
-          <span>{t('txt-time')}: {Moment(data[0].time).format('YYYY/MM/DD HH:mm:ss')}<br /></span>
+          <span>{t('txt-time')}: {moment(data[0].time).format('YYYY/MM/DD HH:mm:ss')}<br /></span>
           <span>{t('txt-count')}: {helper.numberWithCommas(data[0].number)}</span>
         </section>
       )
@@ -184,7 +184,7 @@ class DashboardStats extends Component {
       return (
         <section>
           <span>{t('dashboard.txt-patternName')}: {data[0].patternName}<br /></span>
-          <span>{t('txt-date')}: {Moment(data[0].time).format('YYYY/MM/DD HH:mm:ss')}<br /></span>
+          <span>{t('txt-date')}: {moment(data[0].time).format('YYYY/MM/DD HH:mm:ss')}<br /></span>
           <span>{t('txt-count')}: {helper.numberWithCommas(data[0].count)}</span>
         </section>
       )
@@ -198,8 +198,8 @@ class DashboardStats extends Component {
     const {baseUrl} = this.context;
     const {datetime, alertPieData} = this.state;
     const dateTime = {
-      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+      from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
     const url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0&skipHistogram=true`;
     const requestData = {
@@ -246,7 +246,7 @@ class DashboardStats extends Component {
         _.forEach(_.keys(alertHistogram), val => { //Manually add rule name to the response data
           rulesObj[val] = _.map(alertHistogram[val], (value, key) => {
             return {
-              time: parseInt(Moment(key, 'YYYY-MM-DDTHH:mm:ss.SSZ').utc(true).format('x')),
+              time: parseInt(moment(key, 'YYYY-MM-DDTHH:mm:ss.SSZ').utc(true).format('x')),
               number: value,
               rule: val
             };
@@ -369,8 +369,8 @@ class DashboardStats extends Component {
     const {baseUrl, session} = this.context;
     const {datetime} = this.state;
     const dateTime = {
-      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+      from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
     const url = `${baseUrl}/api/alert/pattern/histogram`;
     const requestData = {
@@ -398,7 +398,7 @@ class DashboardStats extends Component {
               _.forEach(val.event_histogram.buckets, val2 => {
                 if (val2.doc_count > 0) {
                   alertPatternData.push({
-                    time: parseInt(Moment(val2.key_as_string, 'YYYY-MM-DDTHH:mm:ss.SSZ').utc(true).format('x')),
+                    time: parseInt(moment(val2.key_as_string, 'YYYY-MM-DDTHH:mm:ss.SSZ').utc(true).format('x')),
                     count: val2.doc_count,
                     patternName: key
                   });
@@ -435,8 +435,8 @@ class DashboardStats extends Component {
     const {baseUrl} = this.context;
     const {datetime, ivar} = this.state;
     const dateTime = {
-      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+      from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
 
     this.ah.one({
@@ -480,8 +480,8 @@ class DashboardStats extends Component {
     const {datetime, syslogPieData} = this.state;
     const configSrcInfo = CHARTS_LIST[5];
     const dateTime = {
-      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+      from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
     const url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0&skipHistogram=true`;
     const requestData = {
@@ -529,8 +529,8 @@ class DashboardStats extends Component {
     const {baseUrl} = this.context;
     const {datetime, dnsPieData, dnsMetricData} = this.state;
     const dateTime = {
-      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+      from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
     const url = `${baseUrl}/api/alert/dnsQuery?page=1&pageSize=0`;
     const requestData = {
@@ -665,7 +665,7 @@ class DashboardStats extends Component {
         let lms = 'empty';
 
         if (data[0].expireDate) {
-          lms = Moment(data[0].expireDate, 'YYYYMMDD').format('YYYY-MM-DD');
+          lms = moment(data[0].expireDate, 'YYYYMMDD').format('YYYY-MM-DD');
         }
 
         let tempHmdData = {...hmdData};

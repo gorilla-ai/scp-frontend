@@ -1,6 +1,5 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
 import cx from 'classnames'
 
 import TextField from '@material-ui/core/TextField';

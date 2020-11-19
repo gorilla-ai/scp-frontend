@@ -2,16 +2,20 @@ import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
+import moment from 'moment'
 import cx from 'classnames'
 import _ from 'lodash'
 
+import { MuiPickersUtilsProvider, KeyboardDatePicker, KeyboardDateTimePicker } from '@material-ui/pickers';
+import MomentUtils from '@date-io/moment';
+import 'moment/locale/zh-tw';
+
+import Button from '@material-ui/core/Button';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 
 import DataTable from 'react-ui/build/src/components/table'
-import DateRange from 'react-ui/build/src/components/date-range'
 import LineChart from 'react-chart/build/src/components/line'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import MultiInput from 'react-ui/build/src/components/multi-input'
@@ -109,7 +113,7 @@ class Syslog extends Component {
       activeConfigName: '',
       datetime: {
         from: helper.getStartDate('day'),
-        to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+        to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
       },
       eventsData: {},
       hostsData: {},
@@ -422,7 +426,7 @@ class Syslog extends Component {
         <header>{t('syslogFields.txt-hostIP')}: {val.ip}</header>
         <span className='status'>{t('txt-status')}: <i className='fg fg-recode' style={{color}} title={title} /></span>
         <div className='content-header-btns'>
-          <button className='standard btn' onClick={this.openNewSyslog.bind(this, 'edit-exist', val)}>{t('syslogFields.txt-addSyslog')}</button>
+          <Button variant='outlined' color='primary' className='standard btn' onClick={this.openNewSyslog.bind(this, 'edit-exist', val)}>{t('syslogFields.txt-addSyslog')}</Button>
         </div>
         <div className='host-content'>
           {errorText &&
@@ -823,12 +827,12 @@ class Syslog extends Component {
   getTimeline = () => {
     const {baseUrl} = this.context;
     const {activeTimeline, activeConfigId, datetime} = this.state;
-    const startDttm = Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-    const endDttm = Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    const startDttm = moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    const endDttm = moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
     const configId = activeTimeline === 'configId' ? activeConfigId : '';
     let uri = '';
 
-    if (Moment(datetime.from).isAfter()) {
+    if (moment(datetime.from).isAfter()) {
       helper.showPopupMsg(t('edge-management.txt-threatDateError'), t('txt-error'));
       return;
     }
@@ -881,7 +885,7 @@ class Syslog extends Component {
     return (
       <section>
         <span>{t('txt-ipAddress')}: {data[0].IP}<br /></span>
-        <span>{t('txt-time')}: {Moment(data[0].time).format('YYYY/MM/DD HH:mm:ss')}<br /></span>
+        <span>{t('txt-time')}: {moment(data[0].time).format('YYYY/MM/DD HH:mm:ss')}<br /></span>
         <span>{t('txt-count')}: {helper.numberWithCommas(data[0].count)}</span>
       </section>
     )
@@ -889,11 +893,15 @@ class Syslog extends Component {
   /**
    * Set new datetime
    * @method
-   * @param {object} datetime - datetime object
+   * @param {string} type - date type ('from' or 'to')
+   * @param {object} newDatetime - new datetime object
    */
-  handleDateChange = (datetime) => {
+  handleDateChange = (type, newDatetime) => {
+    let tempDatetime = {...this.state.datetime};
+    tempDatetime[type] = newDatetime;
+
     this.setState({
-      datetime
+      datetime: tempDatetime
     });
   }
   /**
@@ -945,18 +953,37 @@ class Syslog extends Component {
       showTable = true;
     }
 
+    let dateLocale = locale;
+
+    if (locale === 'zh') {
+      dateLocale += '-tw';
+    }
+
+    moment.locale(dateLocale);
+
     return (
       <div>
         <div className='calendar-section'>
-          <DateRange
-            id='datetime'
-            className='daterange'
-            enableTime={true}
-            value={datetime}
-            onChange={this.handleDateChange}
-            locale={locale}
-            t={et} />
-          <button onClick={this.getTimeline}>{t('txt-search')}</button>
+          <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+            <KeyboardDateTimePicker
+              className='date-time-picker'
+              inputVariant='outlined'
+              variant='inline'
+              format='YYYY-MM-DD HH:mm'
+              ampm={false}
+              value={datetime.from}
+              onChange={this.handleDateChange.bind(this, 'from')} />
+            <div className='between'>~</div>
+            <KeyboardDateTimePicker
+              className='date-time-picker'
+              inputVariant='outlined'
+              variant='inline'
+              format='YYYY-MM-DD HH:mm'
+              ampm={false}
+              value={datetime.to}
+              onChange={this.handleDateChange.bind(this, 'to')} />
+          </MuiPickersUtilsProvider>
+          <Button variant='contained' color='primary' onClick={this.getTimeline}>{t('txt-search')}</Button>
           </div>
         <div className='chart-section'>
           {showTimeline &&
@@ -1165,7 +1192,7 @@ class Syslog extends Component {
       activeConfigName: '',
       datetime: {
         from: helper.getStartDate('day'),
-        to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+        to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
       },
       eventsData: {}
     });
@@ -1551,8 +1578,8 @@ class Syslog extends Component {
           </div>
         </div>
         <div className='button-group'>
-          <button className='filter' onClick={this.getSyslogData}>{t('txt-filter')}</button>
-          <button className='clear' onClick={this.clearFilter}>{t('txt-clear')}</button>
+          <Button variant='contained' color='primary' className='filter' onClick={this.getSyslogData}>{t('txt-filter')}</Button>
+          <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}</Button>
         </div>
       </div>
     )
@@ -1761,9 +1788,9 @@ class Syslog extends Component {
           <div className='secondary-btn-group right'>
             {activeContent === 'syslogData' &&
               <div>
-                <button onClick={this.openTimeline.bind(this, 'overall')} title={t('syslogFields.txt-overallDist')}><i className='fg fg-chart-kpi'></i></button>
-                <button onClick={this.openNewSyslog.bind(this, 'new')} title={t('syslogFields.txt-addSyslog')}><i className='fg fg-add'></i></button>
-                <button className={cx('last', {'active': openFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
+                <Button variant='outlined' color='primary' onClick={this.openTimeline.bind(this, 'overall')} title={t('syslogFields.txt-overallDist')}><i className='fg fg-chart-kpi'></i></Button>
+                <Button variant='outlined' color='primary' onClick={this.openNewSyslog.bind(this, 'new')} title={t('syslogFields.txt-addSyslog')}><i className='fg fg-add'></i></Button>
+                <Button variant='outlined' color='primary' className={cx('last', {'active': openFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
               </div>
             }
           </div>
@@ -1853,7 +1880,7 @@ class Syslog extends Component {
 
                   <div className='pattern-content'>
                     <header>{t('syslogFields.matchPattern')}</header>
-                    <button className='standard add-pattern' onClick={this.toggleEditPatternName.bind(this, 'new')}>{t('syslogFields.txt-addPattern')}</button>
+                    <Button variant='outlined' color='primary' className='standard add-pattern' onClick={this.toggleEditPatternName.bind(this, 'new')}>{t('syslogFields.txt-addPattern')}</Button>
 
                     <div className='syslog-config'>
                       <div className={cx('left-nav', {'collapse': !showPatternLeftNav})}>
@@ -1864,8 +1891,8 @@ class Syslog extends Component {
                     </div>
                   </div>
                   <footer>
-                    <button className='standard' onClick={this.toggleContent.bind(this, 'syslogData', '')}>{t('txt-cancel')}</button>
-                    <button onClick={this.confirmSyslogSave}>{t('txt-save')}</button>
+                    <Button variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'syslogData', '')}>{t('txt-cancel')}</Button>
+                    <Button variant='contained' color='primary' onClick={this.confirmSyslogSave}>{t('txt-save')}</Button>
                   </footer>
                 </div>
               </div>
@@ -1878,7 +1905,7 @@ class Syslog extends Component {
                 <header className='main-header'>{t('syslogFields.txt-syslogHost')}</header>
 
                 <div className='content-header-btns'>
-                  <button className='standard btn list' onClick={this.toggleContent.bind(this, 'syslogData', '')}>{t('txt-back')}</button>
+                  <Button variant='outlined' color='primary' className='standard btn list' onClick={this.toggleContent.bind(this, 'syslogData', '')}>{t('txt-back')}</Button>
                 </div>
 
                 <div className='config-syslog'>
@@ -1898,7 +1925,7 @@ class Syslog extends Component {
                     </table>
 
                     <header>{t('syslogFields.txt-syslogHostList')}</header>
-                    <button className='standard btn add-host' onClick={this.openEditHostsV1.bind(this, 'add')}>{t('syslogFields.txt-addHost')}</button>
+                    <Button variant='outlined' color='primary' className='standard btn add-host' onClick={this.openEditHostsV1.bind(this, 'add')}>{t('syslogFields.txt-addHost')}</Button>
                     <DataTable
                       className='main-table'
                       fields={hostsFields}

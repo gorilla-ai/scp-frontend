@@ -164,6 +164,7 @@
   "txt-duplicatedName": "名稱不得重複",
   "txt-checkRequiredFieldType": "請檢查格式及必填欄位",
   "txt-threatsSrcCountryRank": "威脅來源國家排名",
+  "txt-checkDateFormat": "請確認日期格式",
 
   "txt-dashboard": "Dashboard",
   "txt-host": "Host",

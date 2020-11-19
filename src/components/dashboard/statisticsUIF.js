@@ -2,12 +2,13 @@ import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
+import moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 import Promise from 'bluebird'
 
-import DateRange from 'react-ui/build/src/components/date-range'
+import Button from '@material-ui/core/Button';
+
 import Progress from 'react-ui/build/src/components/progress'
 
 import SearchOptions from '../common/search-options'
@@ -51,8 +52,8 @@ class StatisticsUIF extends Component {
 	}
   componentDidMount() {
     const datetime = {
-      from: helper.getSubstractDate(1, 'days', Moment().local()),
-      to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+      from: helper.getSubstractDate(1, 'days', moment().local()),
+      to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
     }
 
     this.setState({datetime}, () => {
@@ -85,11 +86,11 @@ class StatisticsUIF extends Component {
             _.includes(newUrl, '?') ? newUrl += '&' : newUrl += '?'
 
             if (_.includes(param, 'startDttm')) {
-              const startDttm = Moment(datetime.from, 'YYYY-MM-DD hh:mm:ss').utc().format('YYYY-MM-DDTHH:mm:ss[Z]')
+              const startDttm = moment(datetime.from, 'YYYY-MM-DD hh:mm:ss').utc().format('YYYY-MM-DDTHH:mm:ss[Z]')
               newUrl += `startDttm=${startDttm}`
             }
             else if (_.includes(param, 'endDttm')) {
-              const endDttm = Moment(datetime.to, 'YYYY-MM-DD hh:mm:ss').utc().format('YYYY-MM-DDTHH:mm:ss[Z]')
+              const endDttm = moment(datetime.to, 'YYYY-MM-DD hh:mm:ss').utc().format('YYYY-MM-DDTHH:mm:ss[Z]')
               newUrl += `endDttm=${endDttm}`
             }
             else if (_.includes(param, 'accountId')) {
@@ -112,7 +113,7 @@ class StatisticsUIF extends Component {
           _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.xAxis`], {
             labels: {
               formatter() {
-                return Moment(this.value, 'x').local().format('MM/DD HH:mm')
+                return moment(this.value, 'x').local().format('MM/DD HH:mm')
               }
             }
           })
@@ -123,7 +124,7 @@ class StatisticsUIF extends Component {
           _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.xAxis`], {
             labels: {
               formatter() {
-                return Moment(this.value, 'x').local().format('MM/DD HH:mm')
+                return moment(this.value, 'x').local().format('MM/DD HH:mm')
               }
             }
           })
@@ -144,9 +145,12 @@ class StatisticsUIF extends Component {
   handleChange(field, value) {
     this.setState({[field]: value})
   }
-  handleDateChange = (datetime, refresh) => {
+  handleDateChange = (type, newDatetime, refresh) => {
+    let tempDatetime = {...this.state.datetime};
+    tempDatetime[type] = newDatetime;
+
     this.setState({
-      datetime
+      datetime: tempDatetime
     }, () => {
       if (refresh === 'refresh') {
         this.loadUIF()
@@ -176,14 +180,14 @@ class StatisticsUIF extends Component {
     if (type === 'AlertStatistics-bar') {
       return <section>
         <span>{t('txt-severity')}: {data[0].severity}<br /></span>
-        <span>{t('txt-time')}: {Moment(data[0].key, 'x').local().format('YYYY/MM/DD HH:mm:ss')}<br /></span>
+        <span>{t('txt-time')}: {moment(data[0].key, 'x').local().format('YYYY/MM/DD HH:mm:ss')}<br /></span>
         <span>{t('txt-count')}: {helper.numberWithCommas(data[0].doc_count)}</span>
       </section>
     }
     if (type === 'CustomAlertStatistics') {
       return <section>
         <span>{t('dashboard.txt-patternName')}: {data[0].patternName}<br /></span>
-        <span>{t('txt-time')}: {Moment(data[0].key, 'x').local().format('YYYY/MM/DD HH:mm:ss')}<br /></span>
+        <span>{t('txt-time')}: {moment(data[0].key, 'x').local().format('YYYY/MM/DD HH:mm:ss')}<br /></span>
         <span>{t('txt-count')}: {helper.numberWithCommas(data[0].doc_count)}</span>
       </section>
     }
@@ -265,7 +269,7 @@ class StatisticsUIF extends Component {
 				{helper.getDashboardMenu('statisticsUIF')}
 
         <div className='secondary-btn-group right'>
-          <button className='last' title={t('txt-export')} onClick={this.exportPDF.bind(this)} ><i className='fg fg-data-download'></i></button>
+          <Button variant='outlined' color='primary' className='last' title={t('txt-export')} onClick={this.exportPDF.bind(this)} ><i className='fg fg-data-download'></i></Button>
         </div>
 
         <SearchOptions

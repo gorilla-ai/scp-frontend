@@ -1,10 +1,10 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
 import cx from 'classnames'
 
 import { ReactMultiEmail } from 'react-multi-email';
 
+import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -826,7 +826,7 @@ class QueryOpenSave extends Component {
             this.getQueryAlertContent(type)
           }
 
-          <button className='standard delete-query' onClick={this.removeQuery} disabled={queryData.displayId === queryData.id}>{t('txt-delete')}</button>
+          <Button variant='outlined' color='primary' className='standard delete-query' onClick={this.removeQuery} disabled={queryData.displayId === queryData.id}>{t('txt-delete')}</Button>
         </div>
       )
     } else if (type === 'save') {
@@ -874,7 +874,7 @@ class QueryOpenSave extends Component {
               fullWidth={true}
               size='small'
               required={true}
-              value={queryData.id}
+              value={dropDownValue}
               onChange={this.handleQueryChange.bind(this, 'id')}>
               <MenuItem value={'new'}>{t('events.connections.txt-addQuery')}</MenuItem>
               {displayList}
