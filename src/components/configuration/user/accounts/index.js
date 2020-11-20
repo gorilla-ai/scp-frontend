@@ -535,7 +535,7 @@ class AccountList extends Component {
             contextRoot={contextRoot} />
 
           <div className='parent-content'>
-            { this.renderFilter() }
+            {this.renderFilter()}
 
             <div className='main-content'>
               <header className='main-header'>{c('txt-account')}</header>

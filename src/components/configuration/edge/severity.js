@@ -54,6 +54,7 @@ class Severity extends Component {
       originalSeverityData: {},
       severityList: [],
       currentSeverityData: '',
+      currentThreatType: '',
       severity: {
         dataFieldsArr: ['dataSourceType', 'severityLevel', 'nickname', 'description', 'updateDttm', '_menu'],
         dataFields: {},
@@ -145,6 +146,7 @@ class Severity extends Component {
                 return (
                   <div className='table-menu menu active'>
                     <i className='fg fg-eye' onClick={this.toggleContent.bind(this, 'viewSeverity', allValue)} title={t('txt-view')}></i>
+                    <i className='fg fg-trashcan' onClick={this.openDeleteMenu.bind(this, allValue.dataSourceType)} title={t('txt-delete')}></i>
                   </div>
                 )
               }
@@ -207,6 +209,64 @@ class Severity extends Component {
         this.getSeverityMapping();
       }
     });
+  }
+  /**
+   * Display delete Threat type
+   * @method
+   * @param {string} type - Threat type
+   * @returns HTML DOM
+   */
+  getDeleteThreatType = (type) => {
+    this.setState({
+      currentThreatType: type
+    });
+
+    return (
+      <div className='content delete'>
+        <span>{t('txt-delete-msg')}: {type}?</span>
+      </div>
+    )
+  }
+  /**
+   * Show Delete Threat type dialog
+   * @method
+   * @param {string} type - Threat type
+   */
+  openDeleteMenu = (type) => {
+    PopupDialog.prompt({
+      title: t('edge-management.txt-deleteThreatType'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: this.getDeleteThreatType(type),
+      act: (confirmed, data) => {
+        if (confirmed) {
+          this.deleteThreatType();
+        }
+      }
+    });
+  }
+  /**
+   * Handle delete Threat type
+   * @method
+   */
+  deleteThreatType = () => {
+    const {baseUrl} = this.context;
+    const {currentThreatType} = this.state;
+
+    ah.one({
+      url: `${baseUrl}/api/severityMapping?dataSourceType=${currentThreatType}`,
+      type: 'DELETE'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        this.getSeverityMapping();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Handle Severity edit input data change
@@ -547,7 +607,7 @@ class Severity extends Component {
             contextRoot={contextRoot} />
 
           <div className='parent-content'>
-            { this.renderFilter() }
+            {this.renderFilter()}
 
             {activeContent === 'tableList' &&
               <div className='main-content'>

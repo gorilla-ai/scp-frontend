@@ -1527,7 +1527,7 @@ class SyslogController extends Component {
       currentTableID: allValue.id
     }, () => {
       PopupDialog.alert({
-        title: t('events.connections.txt-viewJSON'),
+        title: t('txt-viewJSON'),
         id: 'viewJsonDialog',
         confirmText: t('txt-close'),
         display: this.displayJsonData(allValue),
@@ -1928,7 +1928,7 @@ class SyslogController extends Component {
           open={Boolean(syslogContextAnchor)}
           onClose={this.handleCloseMenu}>
           <MenuItem onClick={this.showTableData.bind(this, currentSyslogData)}>{t('events.connections.txt-fieldsSettings')}</MenuItem>
-          <MenuItem onClick={this.viewJsonData.bind(this, currentSyslogData)}>{t('events.connections.txt-viewJSON')}</MenuItem>
+          <MenuItem onClick={this.viewJsonData.bind(this, currentSyslogData)}>{t('txt-viewJSON')}</MenuItem>
         </Menu>
 
         <Menu
@@ -1947,7 +1947,7 @@ class SyslogController extends Component {
           <div className='secondary-btn-group right'>
             <Button variant='outlined' color='primary' className={cx({'active': showMark})} onClick={this.toggleMark}><i className='fg fg-filter'></i><span>({filterDataCount})</span> <i className='fg fg-edit'></i><span>({markDataCount})</span></Button>
             <Button variant='outlined' color='primary' className={cx({'active': showChart})} onClick={this.toggleChart} title={t('events.connections.txt-toggleChart')}><i className='fg fg-chart-columns'></i></Button>
-            <Button variant='outlined' color='primary' className='last' onClick={this.getCSVfile} title={t('events.connections.txt-exportCSV')}><i className='fg fg-data-download'></i></Button>
+            <Button variant='outlined' color='primary' className='last' onClick={this.getCSVfile} title={t('txt-exportCSV')}><i className='fg fg-data-download'></i></Button>
           </div>
 
           <SearchOptions

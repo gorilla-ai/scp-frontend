@@ -1922,7 +1922,7 @@ class Netflow extends Component {
       currentTableID: allValue.id
     }, () => {
       PopupDialog.alert({
-        title: t('events.connections.txt-viewJSON'),
+        title: t('txt-viewJSON'),
         id: 'viewJsonDialog',
         confirmText: t('txt-close'),
         display: this.displayJsonData(allValue),
@@ -2978,7 +2978,7 @@ class Netflow extends Component {
             <MenuItem onClick={this.getPCAPcontent.bind(this, currentNetflowData)}>{t('events.connections.txt-viewPCAP')}</MenuItem>
           }
           <MenuItem onClick={this.showTableData.bind(this, currentNetflowData)}>{t('events.connections.txt-fieldsSettings')}</MenuItem>
-          <MenuItem onClick={this.viewJsonData.bind(this, currentNetflowData)}>{t('events.connections.txt-viewJSON')}</MenuItem>
+          <MenuItem onClick={this.viewJsonData.bind(this, currentNetflowData)}>{t('txt-viewJSON')}</MenuItem>
           {currentNetflowData.tag &&
             <MenuItem onClick={this.addTagging.bind(this, currentNetflowData)}>{t('events.connections.txt-editTag')}</MenuItem>
           }
@@ -3006,7 +3006,7 @@ class Netflow extends Component {
           <div className='secondary-btn-group right'>
             <Button variant='outlined' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('events.connections.txt-toggleFilter')}><i className='fg fg-filter'></i><span>({filterDataCount})</span></Button>
             <Button variant='outlined' color='primary' className={cx({'active': showChart})} onClick={this.toggleChart} disabled={activeTab !== 'connections'} title={t('events.connections.txt-toggleChart')}><i className='fg fg-chart-columns'></i></Button>
-            <Button variant='outlined' color='primary' className='last' onClick={this.getCSVfile} title={t('events.connections.txt-exportCSV')}><i className='fg fg-data-download'></i></Button>
+            <Button variant='outlined' color='primary' className='last' onClick={this.getCSVfile} title={t('txt-exportCSV')}><i className='fg fg-data-download'></i></Button>
           </div>
 
           <SearchOptions

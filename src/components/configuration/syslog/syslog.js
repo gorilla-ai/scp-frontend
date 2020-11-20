@@ -1803,7 +1803,7 @@ class Syslog extends Component {
 
           {activeContent === 'syslogData' &&
             <div className='parent-content'>
-              { this.renderFilter() }
+              {this.renderFilter()}
 
               <div className='main-content'>
                 <header className='main-header'>{t('txt-syslogManage')}</header>

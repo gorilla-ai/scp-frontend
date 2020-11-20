@@ -757,7 +757,7 @@ class NetworkOwner extends Component {
             contextRoot={contextRoot} />
 
           <div className='parent-content'>
-            { this.renderFilter() }
+            {this.renderFilter()}
 
             {activeContent === 'tableList' &&
               <div className='main-content'>

@@ -760,7 +760,7 @@ class AlertDetails extends Component {
             <ul>
               <li onClick={this.getContent.bind(this, 'rule')}><span className={cx({'active': showContent.rule})}>{t('alert.txt-rule')}</span></li>
               <li className={cx({'not-allowed': alertType !== 'pot_attack'})} onClick={this.getContent.bind(this, 'attack')}><span className={cx({'active': showContent.attack})}>{t('alert.txt-attack')}</span></li>
-              <li onClick={this.getContent.bind(this, 'json')}><span className={cx({'active': showContent.json})}>{t('alert.txt-viewJSON')}</span></li>
+              <li onClick={this.getContent.bind(this, 'json')}><span className={cx({'active': showContent.json})}>{t('txt-viewJSON')}</span></li>
               <li className='header'>
                 <span className='name'>{t('alert.txt-ipSrc')}</span>
                 <span className='ip'>{this.getIpPortData('srcIp')}</span>
