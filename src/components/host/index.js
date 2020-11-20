@@ -1112,6 +1112,11 @@ class HostController extends Component {
         name: 'version',
         path: 'version',
         icon: 'report'
+      },
+      {
+        name: 'remarks',
+        path: 'remarks',
+        icon: 'edit'
       }
     ];
     let safetyScanInfo = '';

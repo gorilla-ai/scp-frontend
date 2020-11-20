@@ -248,20 +248,6 @@ button.standard:hover:not([disabled]) {
     max-height: 40px;
   }
 }
-.c-menu {
-  border: 1px solid var(--primaryBorder);
-  &.sub {
-    background-color: var(--primaryContentBackground);
-  }
-  &.sub > * {
-    color: var(--primaryTextColor);
-    border-bottom: 1px solid var(--primaryContentBackground);
-    &:hover {
-      border-bottom: 1px solid var(--primaryContentBackground);
-      background-color: var(--tabMenuHover);
-    }
-  }  
-}
 .c-toggle-btn > input[type=checkbox] + div {
   background: var(--fadedColor);
 }
@@ -326,12 +312,6 @@ button.standard:hover:not([disabled]) {
         padding: 0.3em 25px 0.5em 25px;
       }
     }
-  }
-}
-i.c-checkbox.fg-checkbox {
-  color: var(--buttonSelectedColor);
-  &:hover:not(.disabled) {
-    color: var(--pageCurrentHover);
   }
 }
 .c-hierarchy {
@@ -401,9 +381,6 @@ i.c-checkbox.fg-checkbox {
       background-color: var(--pageCurrentHover);
     }
   }
-}
-.c-date-picker i.fg {
-  height: 35px;
 }
 .c-box {
   border: 1px solid var(--primaryBorder);
@@ -1693,6 +1670,11 @@ i.c-checkbox.fg-checkbox {
       }
       .main-chart { //For main chart in Events and Syslog
         border-bottom: 1px solid var(--primaryBorder);
+        .csv-btn {
+          position: absolute;
+          top: 20px;
+          right: 50px;
+        }
         .chart-content {
           position: absolute;
           background-color: var(--primaryContentBackground);

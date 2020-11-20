@@ -18,6 +18,7 @@ import RadioGroup from '@material-ui/core/RadioGroup';
 import TextField from '@material-ui/core/TextField';
 
 import DataTable from 'react-ui/build/src/components/table'
+import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import FileInput from 'react-ui/build/src/components/file-input'
 import Gis from 'react-gis/build/src/components'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
@@ -525,6 +526,26 @@ class NetworkInventory extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+  }
+  /**
+   * Handle CSV download
+   * @method
+   */
+  getCSVfile = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {deviceSearch} = this.state;
+    const url = `${baseUrl}${contextRoot}/api/ipdevice/_export`;
+    const requestData = {
+      ip: deviceSearch.ip,
+      mac: deviceSearch.mac,
+      hostName: deviceSearch.hostName,
+      system: deviceSearch.system,
+      owner: deviceSearch.owner,
+      areaName: deviceSearch.areaName,
+      seatName: deviceSearch.seatName
+    };
+
+    downloadWithForm(url, {payload: JSON.stringify(requestData)});
   }
   /**
    * Get and set owner data
@@ -1817,6 +1838,7 @@ class NetworkInventory extends Component {
           ram: currentDeviceData.ram,
           disks: currentDeviceData.disks,
           shareFolders: currentDeviceData.shareFolders,
+          remarks: currentDeviceData.remarks,
           file: currentDeviceData.ownerObj ? currentDeviceData.ownerObj.picPath : '',
           ownerPic: currentDeviceData.ownerObj ? currentDeviceData.ownerObj.base64 : '',
           ownerUUID: currentDeviceData.ownerUUID,
@@ -2630,6 +2652,7 @@ class NetworkInventory extends Component {
       ram: addIP.ram,
       disks: addIP.disks,
       shareFolders: addIP.shareFolders,
+      remarks: addIP.remarks,
       areaUUID: mapAreaUUID,
       seatUUID: addSeat.selectedSeatUUID
     };
@@ -3022,6 +3045,20 @@ class NetworkInventory extends Component {
                   fullWidth={true}
                   size='small'
                   value={addIP.shareFolders}
+                  onChange={this.handleAddIpChange}
+                  disabled={currentDeviceData.isHmd} />
+              </div>
+              <div className='group'>
+                <TextField
+                  id='addIPstepsRemarks'
+                  name='remarks'
+                  label={t('txt-remarks')}
+                  multiline={true}
+                  rows={3}
+                  variant='outlined'
+                  fullWidth={true}
+                  size='small'
+                  value={addIP.remarks}
                   onChange={this.handleAddIpChange}
                   disabled={currentDeviceData.isHmd} />
               </div>
@@ -3658,8 +3695,11 @@ class NetworkInventory extends Component {
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            {activeTab === 'deviceList' &&
-              <Button variant='outlined' color='primary' className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('events.connections.txt-toggleFilter')} disabled={activeContent !== 'tableList'}><i className='fg fg-filter'></i></Button>
+            {activeTab === 'deviceList' && activeContent === 'tableList' &&
+              <div>
+                <Button variant='outlined' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('events.connections.txt-toggleFilter')} disabled={activeContent !== 'tableList'}><i className='fg fg-filter'></i></Button>
+                <Button variant='outlined' color='primary' className='last' onClick={this.getCSVfile} title={t('txt-exportCSV')}><i className='fg fg-data-download'></i></Button>
+              </div>
             }
           </div>
         </div>

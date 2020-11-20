@@ -8,7 +8,9 @@ import cx from 'classnames'
 import queryString from 'query-string'
 import i18n from 'i18next'
 
-import ContextMenu from 'react-ui/build/src/components/contextmenu'
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
+
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import Progress from 'react-ui/build/src/components/progress'
 
@@ -34,7 +36,8 @@ class Header extends Component {
     super(props);
 
     this.state = {
-      theme: ''
+      theme: '',
+      contextAnchor: null
     };
 
     this.ah = getInstance('chewbacca');
@@ -101,6 +104,7 @@ class Header extends Component {
     const {baseUrl, locale} = this.context;
     const url = `${baseUrl}/api/logout`;
 
+    this.handleCloseMenu();
     Progress.startSpin();
 
     Promise.resolve($.post(url))
@@ -135,6 +139,7 @@ class Header extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
 
+    this.handleCloseMenu();
     this.props.setThemeName(theme);
 
     document.documentElement.setAttribute('data-theme', theme);
@@ -154,52 +159,29 @@ class Header extends Component {
       }
     });
 
+    this.handleCloseMenu();
+
     urlString += queryString.stringify({lng});
     window.location.href = window.location.pathname + '?' + urlString;
   }
   /**
-   * Open and display account context menu
+   * Handle open menu
    * @method
-   * @param {object} evt - mouseClick events
+   * @param {object} event - event object
    */
-  showAccountMenu = (evt) => {
-    const {language} = this.context;
-    let showLanguage = '';
-
-    if (language === 'zh') {
-      showLanguage = 'en';
-    } else if (language === 'en') {
-      showLanguage = 'zh';
-    }
-
-    const lngs = [{
-      id: showLanguage,
-      text: t('lng.' + showLanguage),
-      action: this.changeLng.bind(this, showLanguage)
-    }];
-
-    const themes = [{
-      id: 'themes',
-      text: l('toggle-theme'),
-      action: this.toggleTheme
-    }];
-
-    const menuItems = [
-      ...lngs,
-      ...themes,
-      {
-        id: 'account',
-        text: l('login.txt-account'),
-        action: this.editAccount
-      },
-      {
-        id: 'logout',
-        text: l('login.btn-logout'),
-        action: this.logout
-      }
-    ];
-
-    ContextMenu.open(evt, menuItems, 'language-menu')
+  handleOpenMenu = (event) => {
+    this.setState({
+      contextAnchor: event.currentTarget
+    });
+  }
+  /**
+   * Handle close menu
+   * @method
+   */
+  handleCloseMenu = () => {
+    this.setState({
+      contextAnchor: null
+    });
   }
   /**
    * Handle account edit action
@@ -208,6 +190,7 @@ class Header extends Component {
   editAccount = () => {
     const {session} = this.context;
 
+    this.handleCloseMenu();
     this.editor.openAccount(session.accountId, 'fromHeader');
   }
   /**
@@ -222,9 +205,18 @@ class Header extends Component {
     });
   }
   render() {
-    const {contextRoot, sessionRights, session} = this.context;
+    const {contextRoot, sessionRights, session, language} = this.context;
     const {productName} = this.props;
-    let isSOC = _.includes(session.roles, 'SOC Executor'||'SOC Analyzer')
+    const {contextAnchor} = this.state;
+    let isSOC = _.includes(session.roles, 'SOC Executor'||'SOC Analyzer');
+    let showLanguage = '';
+
+    if (language === 'zh') {
+      showLanguage = 'en';
+    } else if (language === 'en') {
+      showLanguage = 'zh';
+    }
+
     return (
       <div className='header-wrapper'>
         <div className='main-header'>
@@ -258,10 +250,21 @@ class Header extends Component {
               </div>
             </div>
 
-            <div className='account' onClick={this.showAccountMenu}>
+            <div className='account' onClick={this.handleOpenMenu}>
               <i className='fg fg-globe'/>
               <i className='fg fg-arrow-bottom'/>
             </div>
+
+            <Menu
+              anchorEl={contextAnchor}
+              keepMounted
+              open={Boolean(contextAnchor)}
+              onClose={this.handleCloseMenu}>
+              <MenuItem onClick={this.changeLng.bind(this, showLanguage)}>{t('lng.' + showLanguage)}</MenuItem>
+              <MenuItem onClick={this.toggleTheme}>{l('toggle-theme')}</MenuItem>
+              <MenuItem onClick={this.editAccount}>{l('login.txt-account')}</MenuItem>
+              <MenuItem onClick={this.logout}>{l('login.btn-logout')}</MenuItem>
+            </Menu>
           </header>
         </div>
 

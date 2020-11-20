@@ -1647,6 +1647,7 @@ class ThreatsController extends Component {
       chartIntervalList: this.state.chartIntervalList,
       chartIntervalValue: this.state.chartIntervalValue,
       chartIntervalChange: this.handleIntervalChange,
+      getChartsCSVfile: this.getChartsCSVfile,
       subTabMenu: this.state.subTabMenu,
       activeSubTab: this.state.activeSubTab,
       handleSubTabChange: this.handleSubTabChange,
@@ -1689,26 +1690,48 @@ class ThreatsController extends Component {
     )
   }
   /**
+   * Get request data for CSV file
+   * @method
+   * @param {string} url - request URL
+   * @param {string} [columns] - columns for CSV file
+   */
+  getCSVrequestData = (url, columns) => {
+    let dataOptions = {
+      ...this.toQueryLanguage('csv')
+    };
+
+    if (columns === 'columns') {
+      let tempColumns = [];
+
+      _.forEach(SUBSECTIONS_DATA.subSectionsData.tableColumns.alert, val => {
+        tempColumns.push({
+          [val]: f(`alertFields.${val}`)
+        });
+      })
+
+      dataOptions.columns = tempColumns;
+    }
+
+    downloadWithForm(url, {payload: JSON.stringify(dataOptions)});
+  }
+  /**
    * Handle CSV download
    * @method
    */
   getCSVfile = () => {
     const {baseUrl, contextRoot} = this.context;
     const url = `${baseUrl}${contextRoot}/api/u2/alert/_export`;
-    let tempColumns = [];
-
-    _.forEach(SUBSECTIONS_DATA.subSectionsData.tableColumns.alert, val => {
-      tempColumns.push({
-        [val]: f(`alertFields.${val}`)
-      });
-    })
-
-    const dataOptions = {
-      ...this.toQueryLanguage('csv'),
-      columns: tempColumns
-    };
-
-    downloadWithForm(url, {payload: JSON.stringify(dataOptions)});
+    this.getCSVrequestData(url, 'columns');
+  }
+  /**
+   * Handle Charts CSV download
+   * @method
+   */
+  getChartsCSVfile = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {chartIntervalValue} = this.state;
+    const url = `${baseUrl}${contextRoot}/api/u2/alert/histogram/_export?histogramInterval=${chartIntervalValue}`;
+    this.getCSVrequestData(url);
   }
   /**
    * Toggle filter content on/off

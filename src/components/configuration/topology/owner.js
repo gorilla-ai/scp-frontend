@@ -747,7 +747,9 @@ class NetworkOwner extends Component {
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            <Button variant='outlined' color='primary' className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')} disabled={activeContent !== 'tableList'}><i className='fg fg-filter'></i></Button>
+            {activeContent === 'tableList' &&
+              <Button variant='outlined' color='primary' className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
+            }
           </div>
         </div>
 

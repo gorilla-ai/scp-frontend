@@ -66,6 +66,15 @@ export default function createDarkTheme() {
           }
         }
       },
+      MuiPaper: {
+        root: {
+          '&.MuiMenu-paper': {
+            color: '#fff',
+            backgroundColor: '#1f1e1e',
+            border: '1px solid #4b4b4b'
+          }
+        }
+      },
       MuiCheckbox: {
         root: {
           color: 'rgba(217, 217, 217, 1)',
@@ -87,6 +96,9 @@ export default function createDarkTheme() {
           },
           '&.MuiRadio-colorPrimary.Mui-disabled': {
             color: 'rgba(8, 155, 218, 0.5)'
+          },
+          '&.MuiListItem-button:hover': {
+            backgroundColor: '#1a3248'
           }
         }
       },

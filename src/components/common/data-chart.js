@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import cx from 'classnames'
 
+import Button from '@material-ui/core/Button';
 import ToggleButton from '@material-ui/lab/ToggleButton';
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 
@@ -168,6 +169,7 @@ class DataChart extends Component {
       return (
         <div className={cx('main-chart', {'active': mainContentData.showChart})}>
           <i className='fg fg-close' onClick={mainContentData.toggleChart} title={t('txt-close')}></i>
+          <Button variant='outlined' color='primary' className='standard csv-btn' onClick={mainContentData.getChartsCSVfile} title={t('txt-exportCSV')}><i className='fg fg-data-download'></i></Button>
           <div className='chart-content interval-options'>
             <ToggleButtonGroup
               className='chart-btn'
