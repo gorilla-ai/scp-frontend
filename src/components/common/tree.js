@@ -2,6 +2,12 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import cx from 'classnames'
 
+import Button from '@material-ui/core/Button';
+import ChevronRightIcon from '@material-ui/icons/ChevronRight';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import TreeItem from '@material-ui/lab/TreeItem';
+import TreeView from '@material-ui/lab/TreeView';
+
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 
@@ -97,6 +103,20 @@ class Tree extends Component {
 
     this.props.handleSelectChange(selected);
   }
+  getTreeItem = (val, i) => {
+    return (
+      <TreeItem
+        key={val.id + i}
+        nodeId={val.id}
+        label={val.label}
+        onLabelClick={(event) => {event.preventDefault();}}
+        onMouseOver={this.props.showTreeFilterBtn.bind(this, 'alert', val.key)}>
+        {val.children && val.children.length > 0 &&
+          val.children.map(this.getTreeItem)
+        }
+      </TreeItem>
+    )
+  }
   /**
    * Show multiple tree data for Threats page
    * @method
@@ -174,6 +194,14 @@ class Tree extends Component {
           }
           {activeTab === 'alert' &&
             <div>
+              <TreeView
+                className='tree-view'
+                defaultCollapseIcon={<ExpandMoreIcon />}
+                defaultExpandIcon={<ChevronRightIcon />}>
+                {treeData.alert.data && treeData.alert.data.children.length > 0 &&
+                  treeData.alert.data.children.map(this.getTreeItem)
+                }
+              </TreeView>
               {
                 Object.keys(treeData).map(key =>
                   this.showAlertTree(key, treeData)

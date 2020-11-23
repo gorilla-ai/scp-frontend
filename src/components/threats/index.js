@@ -941,8 +941,9 @@ class ThreatsController extends Component {
    * @method
    * @param {string} type - alert tree type ('alert', 'private' or 'public')
    * @param {string} value - tree node name
+   * @param {object} event - event object
    */
-  showTreeFilterBtn = (type, value) => {
+  showTreeFilterBtn = (type, value, event) => {
     let tempTreeData = {...this.state.treeData};
     tempTreeData[type].currentTreeName = value;
 
@@ -957,6 +958,8 @@ class ThreatsController extends Component {
     this.setState({
       treeData: tempTreeData
     });
+
+    event.stopPropagation();
   }
   /**
    * Set filter options for edge
@@ -989,7 +992,7 @@ class ThreatsController extends Component {
   getTreeLabel = (id, name, currentTreeName, count, query) => {
     const serviceCount = count !== '' ? ' (' + count + ')' : '';
 
-    return <span>{name}{helper.numberWithCommas(serviceCount)} <Button variant='outlined' color='primary' className={cx('button', {'active': currentTreeName === id})} onClick={this.selectTree.bind(this, name, query)}>{t('events.connections.txt-addFilter')}</Button></span>;
+    return <span>{name}{helper.numberWithCommas(serviceCount)} <Button variant='outlined' color='primary' className={cx('button', {'active': currentTreeName === name})} onClick={this.selectTree.bind(this, name, query)}>{t('events.connections.txt-addFilter')}</Button></span>;
   }
   /**
    * Display severity info content
@@ -1079,6 +1082,7 @@ class ThreatsController extends Component {
 
                 tempChild.push({
                   id,
+                  key: key2,
                   label: this.getTreeLabel(id, key2, treeName, val.doc_count)
                 });
               } else {
@@ -1091,7 +1095,8 @@ class ThreatsController extends Component {
 
                     tempChild2.push({
                       id,
-                      label: <span>{key3}{helper.numberWithCommas(serviceCount)} <Button variant='outlined' color='primary' className={cx('button', {'active': treeName === id})} onClick={this.selectTree.bind(this, key3, '')}>{t('events.connections.txt-addFilter')}</Button><i className={cx('fg fg-info', {'active': treeName === id})} title={t('txt-info')} onClick={this.showSeverityInfo.bind(this, val2)}></i></span>
+                      key: key3,
+                      label: <span>{key3} {serviceCount} <Button variant='outlined' color='primary' className={cx('button', {'active': treeName === key3})} onClick={this.selectTree.bind(this, key3, '')}>{t('events.connections.txt-addFilter')}</Button><i className={cx('fg fg-info', {'active': treeName === key3})} title={t('txt-info')} onClick={this.showSeverityInfo.bind(this, val2)}></i></span>
                     });
                   }
                 })
@@ -1100,6 +1105,7 @@ class ThreatsController extends Component {
 
                 let childProperty = {
                   id,
+                  key: key2,
                   label: this.getTreeLabel(id, key2, treeName, val.doc_count)
                 };
 
@@ -1112,11 +1118,10 @@ class ThreatsController extends Component {
             }
           })
 
-          label = <span><i className={'fg fg-recode ' + key.toLowerCase()} /> {key} ({helper.numberWithCommas(totalHostCount)}) <Button variant='outlined' color='primary' className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, '')}>{t('events.connections.txt-addFilter')}</Button></span>;
-
           let treeProperty = {
             id: key,
-            label
+            key,
+            label: <span><i className={'fg fg-recode ' + key.toLowerCase()} />{key} ({helper.numberWithCommas(totalHostCount)}) <Button variant='outlined' color='primary' className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, '')}>{t('events.connections.txt-addFilter')}</Button></span>
           };
 
           if (tempChild.length > 0) {
