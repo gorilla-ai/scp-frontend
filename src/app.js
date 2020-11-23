@@ -47,7 +47,7 @@ import UserPrivileges from './components/configuration/user/privileges/index'
 
 import {BaseDataContext, baseData} from './components/common/context'
 import {createInstance} from 'react-ui/build/src/utils/ajax-helper'
-import {setupConfigService} from 'widget-builder'
+import {setupConfigService, setWidgetLocales} from 'widget-builder'
 
 import 'font-gorilla/css/font-gorilla.css'
 import 'purecss/build/pure-min.css'
@@ -368,6 +368,7 @@ function start() {
 
   // set uif
   setupConfigService(baseUrl)
+  setWidgetLocales(lng)
 
 
   Promise.resolve($.get(url))

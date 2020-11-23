@@ -51,7 +51,7 @@ class StatisticsUIF extends Component {
 	}
   componentDidMount() {
     const datetime = {
-      from: helper.getSubstractDate(1, 'days', Moment().local()),
+      from: helper.getSubstractDate(2, 'days', Moment().local()),
       to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
     }
 
@@ -74,7 +74,9 @@ class StatisticsUIF extends Component {
       let dataJson = JSON.parse(data)
       let uifCfg = JSON.parse(dataJson.data)
 
+
       _.forEach(uifCfg.config.widgets, (widgetValue, widgetName) => {
+
         const oldUrl = widgetValue.widgetConfig.config.dataSource.query.url
         const pattern = _.includes(oldUrl, '?') ? oldUrl.substring(oldUrl.indexOf('/api'), oldUrl.indexOf('?')) : oldUrl.substring(oldUrl.indexOf('/api'))
         const params = _.includes(oldUrl, '?') ? oldUrl.substring(oldUrl.indexOf('?') + 1) : ''
@@ -180,9 +182,16 @@ class StatisticsUIF extends Component {
         <span>{t('txt-count')}: {data[0].doc_count}</span>
       </section>
     }
-    if (type === 'CustomAlertStatistics') {
+    else if (type === 'CustomAlertStatistics') {
       return <section>
         <span>{t('dashboard.txt-patternName')}: {data[0].patternName}<br /></span>
+        <span>{t('txt-time')}: {Moment(data[0].key, 'x').local().format('YYYY/MM/DD HH:mm:ss')}<br /></span>
+        <span>{t('txt-count')}: {data[0].doc_count}</span>
+      </section>
+    }
+    else if (type === 'CustomAccountQueryAlertStatistics') {
+      return <section>
+        <span>{t('dashboard.txt-patternName')}: {data[0].QueryFilterName}<br /></span>
         <span>{t('txt-time')}: {Moment(data[0].key, 'x').local().format('YYYY/MM/DD HH:mm:ss')}<br /></span>
         <span>{t('txt-count')}: {data[0].doc_count}</span>
       </section>
@@ -204,18 +213,23 @@ class StatisticsUIF extends Component {
 
     cfg.data = _.map(uifCfg.config.widgets, (v, k) => {
       return {
-        name: `${k}.jpg`,
-        width: v.layout.w * 2,
-        x: v.layout.x * 2,
-        y: v.layout.y,
-        type: 'image'
+        display_setting: {
+          x: v.layout.x * 2,
+          y: v.layout.y * 2,
+          width: v.layout.w * 2,
+          height: v.layout.h * 2
+        },
+        content_setting: {
+          type: 'image',
+          value: `${k}.jpg`
+        }
       }
     })
 
     const {baseUrl, contextRoot} = this.context
 
-    Promise.all(_.map(uifCfg.config.widgets, (value, chart) => {
-      return htmlToImage.toPng(document.getElementById(chart))
+    _.forEach(uifCfg.config.widgets, (value, chart) => {
+      htmlToImage.toPng(document.getElementById(chart))
       .then(function(dataUrl) {
           const imgArray = dataUrl.split(',')
           const mime = imgArray[0].match(/:(.*?);/)[1]
@@ -226,35 +240,79 @@ class StatisticsUIF extends Component {
           while (n--) {
             u8arr[n] = bstr.charCodeAt(n)
           }
-          return new File([u8arr], `${chart}.jpg`, {type: mime})
-      })
-    }))
-    .then(files => {
-      let formData = new FormData()
-      formData.append('config_string', JSON.stringify(cfg))
+          const img = new File([u8arr], `${chart}.jpg`, {type: mime})
 
-      _.forEach(files, file => {
-        formData.append('files', file)
-      })
-      
-      this.ah.one({
-        url: `${baseUrl}/api/pdf/_relay`,
-        data: formData,
-        type: 'POST',
-        dataType: 'JSON',
-        processData: false,
-        contentType: false
-      })
-      .then(data => {
-        downloadLink(`${baseUrl}${contextRoot}/api/pdf/_download`)
+          let formData = new FormData()
+          formData.append('file', img)
+          formData.append('config_string', JSON.stringify(cfg))
+          formData.append('size', _.size(cfg.data))
+
+          ah.one({
+            url: `${baseUrl}/api/pdf/_relay2`,
+            data: formData,
+            type: 'POST',
+            dataType: 'JSON',
+            processData: false,
+            contentType: false
+          })
+          .then(data => {
+            if (data.rt) {
+              downloadLink(`${baseUrl}${contextRoot}/api/pdf/_download`)
+
+              Progress.done()
+            }
+          })
+          .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+          })
       })
       .catch(err => {
         helper.showPopupMsg('', t('txt-error'), err.message)
       })
     })
-    .finally(() => {
-      Progress.done()
-    })
+
+
+    // Promise.all(_.map(uifCfg.config.widgets, (value, chart) => {
+    //   return htmlToImage.toPng(document.getElementById(chart))
+    //   .then(function(dataUrl) {
+    //       const imgArray = dataUrl.split(',')
+    //       const mime = imgArray[0].match(/:(.*?);/)[1]
+    //       const bstr = atob(imgArray[1])
+    //       let n = bstr.length
+    //       let u8arr = new Uint8Array(n)
+
+    //       while (n--) {
+    //         u8arr[n] = bstr.charCodeAt(n)
+    //       }
+    //       return new File([u8arr], `${chart}.jpg`, {type: mime})
+    //   })
+    // }))
+    // .then(files => {
+    //   let formData = new FormData()
+    //   formData.append('config_string', JSON.stringify(cfg))
+
+    //   _.forEach(files, file => {
+    //     formData.append('files', file)
+    //   })
+      
+    //   this.ah.one({
+    //     url: `${baseUrl}/api/pdf/_relay`,
+    //     data: formData,
+    //     type: 'POST',
+    //     dataType: 'JSON',
+    //     processData: false,
+    //     contentType: false
+    //   })
+    //   .then(data => {
+    //     downloadLink(`${baseUrl}${contextRoot}/api/pdf/_download`)
+    //   })
+    //   .catch(err => {
+    //     helper.showPopupMsg('', t('txt-error'), err.message)
+    //   })
+    // })
+    // .finally(() => {
+    //   Progress.done()
+    // })
   }
 	render() {
     const {locale} = this.context
