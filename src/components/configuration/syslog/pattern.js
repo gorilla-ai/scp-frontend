@@ -2,12 +2,13 @@ import React, { Component } from 'react'
 import { withRouter } from 'react-router'
 import { NavLink, Link, Route } from 'react-router-dom'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
 import cx from 'classnames'
 
+import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MenuItem from '@material-ui/core/MenuItem';
+import TextareaAutosize from '@material-ui/core/TextareaAutosize';
 import TextField from '@material-ui/core/TextField';
 
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
@@ -138,7 +139,7 @@ class Pattern extends Component {
 
     if (patternSearch.queryScript) {
       query += `&queryScript=${patternSearch.queryScript}`;
-    } 
+    }
 
     if (severitySelected.length > 0) {
       query += `&severity=${severitySelected.join()}`;
@@ -151,8 +152,8 @@ class Pattern extends Component {
     .then(data => {
       if (data) {
         let tempPattern = {...pattern};
-        tempPattern.dataContent = data;
-        tempPattern.totalCount = data.length;
+        tempPattern.dataContent = data.rows;
+        tempPattern.totalCount = data.counts;
         tempPattern.currentPage = page;
 
         if (data.length === 0) {
@@ -299,8 +300,8 @@ class Pattern extends Component {
         <div className='content-header-btns'>
           {activeContent === 'viewPattern' &&
             <div>
-              <button className='standard btn list' onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</button>
-              <button className='standard btn edit' onClick={this.toggleContent.bind(this, 'editPattern')}>{t('txt-edit')}</button>
+              <Button variant='outlined' color='primary' className='standard btn list' onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</Button>
+              <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'editPattern')}>{t('txt-edit')}</Button>
             </div>
           }
         </div>
@@ -397,8 +398,8 @@ class Pattern extends Component {
 
         {(activeContent === 'addPattern' || activeContent === 'editPattern') &&
           <footer>
-            <button className='standard' onClick={this.toggleContent.bind(this, pageType)}>{t('txt-cancel')}</button>
-            <button onClick={this.handlePatternSubmit}>{t('txt-save')}</button>
+            <Button variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, pageType)}>{t('txt-cancel')}</Button>
+            <Button variant='contained' color='primary' onClick={this.handlePatternSubmit}>{t('txt-save')}</Button>
           </footer>
         }
       </div>
@@ -663,13 +664,11 @@ class Pattern extends Component {
               onChange={this.handlePatternSearch} />
           </div>
           <div className='group'>
-            <TextField
+            <TextareaAutosize
               id='patternSearchQueryScript'
+              className='textarea-autosize'
               name='queryScript'
-              label={f('syslogPatternTableFields.queryScript')}
-              variant='outlined'
-              fullWidth={true}
-              size='small'
+              placeholder={f('syslogPatternTableFields.queryScript')}
               value={patternSearch.queryScript}
               onChange={this.handlePatternSearch} />
           </div>
@@ -682,8 +681,8 @@ class Pattern extends Component {
           </div>
         </div>
         <div className='button-group group-aligned'>
-          <button className='filter' onClick={this.handleSearchSubmit}>{t('txt-filter')}</button>
-          <button className='clear' onClick={this.clearFilter}>{t('txt-clear')}</button>
+          <Button variant='contained' color='primary' className='filter' onClick={this.handleSearchSubmit}>{t('txt-filter')}</Button>
+          <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}</Button>
         </div>
       </div>
     )
@@ -746,7 +745,7 @@ class Pattern extends Component {
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
             {activeContent === 'tableList' &&
-              <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
+              <Button variant='outlined' color='primary' className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
             }
           </div>
         </div>
@@ -757,14 +756,14 @@ class Pattern extends Component {
             contextRoot={contextRoot} />
 
           <div className='parent-content'>
-            { this.renderFilter() }
+            {this.renderFilter()}
 
             {activeContent === 'tableList' &&
               <div className='main-content'>
                 <header className='main-header'>{t('txt-systemDefinedPattern')}</header>
 
                 <div className='content-header-btns'>
-                  <button className='standard btn' onClick={this.toggleContent.bind(this, 'addPattern')}>{t('system-defined-pattern.txt-addPatternScript')}</button>
+                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'addPattern')}>{t('system-defined-pattern.txt-addPatternScript')}</Button>
                 </div>
 
                 <TableContent

@@ -2,10 +2,10 @@ import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
 import cx from 'classnames'
 import _ from 'lodash'
 
+import Button from '@material-ui/core/Button';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 
@@ -1005,8 +1005,8 @@ class NetworkMap extends Component {
           </div>
         </div>
         <div className='button-group'>
-          <button className='filter' onClick={this.getIPData.bind(this, floorPlan.currentAreaUUID)}>{t('txt-filter')}</button>
-          <button className='clear' onClick={this.clearFilter}>{t('txt-clear')}</button>
+          <Button variant='contained' color='primary' className='filter' onClick={this.getIPData.bind(this, floorPlan.currentAreaUUID)}>{t('txt-filter')}</Button>
+          <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}</Button>
         </div>
       </div>
     )
@@ -1044,7 +1044,7 @@ class NetworkMap extends Component {
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
+            <Button variant='outlined' color='primary' className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
           </div>
         </div>
 
@@ -1054,13 +1054,13 @@ class NetworkMap extends Component {
             contextRoot={contextRoot} />
 
           <div className='parent-content'>
-            { this.renderFilter() }
+            {this.renderFilter()}
 
             <div className='main-content'>
               <header className='main-header'>{t('txt-floorMap')}</header>
 
               <div className='content-header-btns'>
-                <button className='standard btn' onClick={this.openEditFloorMap} >{t('network-topology.txt-editFloorMap')}</button>
+                <Button variant='outlined' color='primary' className='standard btn' onClick={this.openEditFloorMap} >{t('network-topology.txt-editFloorMap')}</Button>
               </div>
 
               <div className='map-container'>

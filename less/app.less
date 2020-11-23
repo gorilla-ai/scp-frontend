@@ -153,6 +153,9 @@ button {
     background-color: var(--buttonBackground);
   }
 }
+button.standard:hover:not([disabled]) {
+  background-color: var(--formBackground) !important;
+}
 .MuiPaper-root {
   button:hover:not([disabled]) {
     background: none !important;
@@ -233,6 +236,7 @@ button {
 }
 .c-combobox {
   input[type=text] {
+    height: 40px;
     color: var(--primaryTextColor);
     border: 1px solid var(--formInputBorderColor);
     background-color: var(--formBackground);
@@ -243,20 +247,6 @@ button {
   .fg-close {
     max-height: 40px;
   }
-}
-.c-menu {
-  border: 1px solid var(--primaryBorder);
-  &.sub {
-    background-color: var(--primaryContentBackground);
-  }
-  &.sub > * {
-    color: var(--primaryTextColor);
-    border-bottom: 1px solid var(--primaryContentBackground);
-    &:hover {
-      border-bottom: 1px solid var(--primaryContentBackground);
-      background-color: var(--tabMenuHover);
-    }
-  }  
 }
 .c-toggle-btn > input[type=checkbox] + div {
   background: var(--fadedColor);
@@ -322,15 +312,6 @@ button {
         padding: 0.3em 25px 0.5em 25px;
       }
     }
-  }
-}
-.c-contextmenu {
-  position: absolute;
-}
-i.c-checkbox.fg-checkbox {
-  color: var(--buttonSelectedColor);
-  &:hover:not(.disabled) {
-    color: var(--pageCurrentHover);
   }
 }
 .c-hierarchy {
@@ -400,9 +381,6 @@ i.c-checkbox.fg-checkbox {
       background-color: var(--pageCurrentHover);
     }
   }
-}
-.c-date-picker i.fg {
-  height: 35px;
 }
 .c-box {
   border: 1px solid var(--primaryBorder);
@@ -582,9 +560,46 @@ i.c-checkbox.fg-checkbox {
   }
 }
 #app-container {
+  .textarea-autosize {
+    min-height: 40px !important;
+    padding: 8px 10px;
+    color: var(--primaryTextColor);
+    border: 1px solid var(--formInputBorderColor);
+    background-color: var(--formBackground);
+    border-radius: 4px;
+    width: 100%;
+  }
   .checkbox-ui,
   .radio-ui {
     padding: 0px 5px 5px 5px;
+  }
+  .date-time-picker,
+  .date-picker {
+    float: left;
+    margin-right: 10px;
+    input {
+      padding: 8px;
+    }
+    .MuiInputBase-root {
+      background-color: var(--buttonBackground);
+    }
+    .MuiIconButton-root {
+      color: var(--primaryTextColor);
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.04) !important;
+      }
+    }
+  }
+  .date-time-picker input {
+    width: 125px !important;
+  }
+  .date-picker input {
+    width: 85px !important;
+  }
+  .between {
+    float: left;
+    margin-top: 5px;
+    margin-right: 10px;
   }
   .sub-header { //The blue bar
     position: relative;
@@ -631,7 +646,7 @@ i.c-checkbox.fg-checkbox {
         margin-left: 5px;
       }
     }
-    .date-time {
+    .date-time-display {
       position: absolute;
       top: 10px;
       right: 15px;
@@ -675,22 +690,13 @@ i.c-checkbox.fg-checkbox {
       }
       .datepicker {
         float: left;
-        input {
-          padding-left: 10px;
-        }
-        .date-range,
-        .date-picker {
-          margin-right: 15px;
-        }
-        .fg {
-          border: none;
-        }
       }
       #dateTime-from,
       #dateTime-to {
         padding: 0.5em;
       }
       .search-button {
+        height: 32px;
         margin-top: 2px;
         background-color: var(--buttonSelectedColor);        
       }
@@ -1429,6 +1435,9 @@ i.c-checkbox.fg-checkbox {
           float: right;
         }
       }
+      .combo-box {
+        margin-top: 10px;
+      }
       .activate-time {
         flex-direction: row;
       }
@@ -1484,11 +1493,9 @@ i.c-checkbox.fg-checkbox {
             }
             .filter-inputbox {
               width: 230px;
-              height: 35px;
             }
             .mark-inputbox {
               width: 200px;
-              height: 35px;
             }
             .fg-close,
             .fg-add {
@@ -1543,7 +1550,6 @@ i.c-checkbox.fg-checkbox {
           }
         }
         .button-group {
-          margin-bottom: 5px;
           display: block;
           &.group-aligned {
             position: absolute;
@@ -1664,6 +1670,11 @@ i.c-checkbox.fg-checkbox {
       }
       .main-chart { //For main chart in Events and Syslog
         border-bottom: 1px solid var(--primaryBorder);
+        .csv-btn {
+          position: absolute;
+          top: 20px;
+          right: 50px;
+        }
         .chart-content {
           position: absolute;
           background-color: var(--primaryContentBackground);
@@ -1887,9 +1898,6 @@ i.c-checkbox.fg-checkbox {
             border: 1px solid var(--primaryBorder);
             border-radius: 5px;
             background-color: var(--formGroupBackground);
-            #edgeModeDatetime {
-              text-align: left;
-            }
             #autoSettingsAD {
               position: absolute;
               top: -50px;
@@ -1969,6 +1977,9 @@ i.c-checkbox.fg-checkbox {
                   text-align: center;
                   input[name='file'] {
                     width: 95%;
+                  }
+                  input {
+                    height: 35px;
                   }
                 }
                 img {
@@ -2979,14 +2990,6 @@ i.c-checkbox.fg-checkbox {
       padding: 15px;
       border-bottom: 1px solid var(--primaryBorder);
       background-color: var(--primaryContentBackground);
-    }
-    .btn {
-      &.edit {
-        right: 15px;
-      }
-      &.list {
-        right: 90px;
-      }
     }
     .private {
       padding: 20px 0;

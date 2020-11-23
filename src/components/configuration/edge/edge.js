@@ -2,8 +2,12 @@ import React, { Component } from 'react'
 import { withRouter } from 'react-router'
 import { NavLink, Link, Route } from 'react-router-dom'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
+import moment from 'moment'
 import cx from 'classnames'
+
+import { MuiPickersUtilsProvider, KeyboardDatePicker, KeyboardDateTimePicker } from '@material-ui/pickers';
+import MomentUtils from '@date-io/moment';
+import 'moment/locale/zh-tw';
 
 import Button from '@material-ui/core/Button';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
@@ -15,7 +19,7 @@ import Switch from '@material-ui/core/Switch';
 import TextField from '@material-ui/core/TextField';
 
 import Combobox from 'react-ui/build/src/components/combobox'
-import DateRange from 'react-ui/build/src/components/date-range'
+import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import Gis from 'react-gis/build/src/components'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import Tabs from 'react-ui/build/src/components/tabs'
@@ -196,7 +200,7 @@ class Edge extends Component {
               <li><span className='header'>{t('txt-stop')}:</span> {helper.getFormattedDate(allValue.agentEndDT)}</li>
             }
             {allValue.lastAnalyzedStatus && allValue.lastAnalyzedStatus !== 'ANALYZED' &&
-              <button onClick={this.agentAnalysis.bind(this, allValue)}>{t('txt-analyze')}</button>
+              <Button variant='contained' color='primary' onClick={this.agentAnalysis.bind(this, allValue)}>{t('txt-analyze')}</Button>
             }
             {allValue.lastAnalyzedStatus &&
               <li><span className='header'>lastAnalyzedStatus:</span> {allValue.lastAnalyzedStatus}</li>
@@ -259,15 +263,12 @@ class Edge extends Component {
     return <span key={i} className='item'>{val}</span>
   }
   /**
-   * Get and set Edge table data
+   * Get Edge search request data
    * @method
-   * @param {string} fromSearch - option for the 'search'
+   * @returns request object data
    */
-  getEdgeData = (fromSearch) => {
-    const {baseUrl, contextRoot} = this.context;
-    const {edgeSearch, edge} = this.state;
-    const page = fromSearch === 'search' ? 1 : edge.currentPage;
-    const url = `${baseUrl}/api/edge/_search?page=${page}&pageSize=${edge.pageSize}`;
+  getEdgeSearchRequestData = () => {
+    const {edgeSearch} = this.state;
     let requestData = {};
 
     if (edgeSearch.keyword) {
@@ -285,6 +286,20 @@ class Edge extends Component {
     if (edgeSearch.connectionStatus && edgeSearch.connectionStatus !== 'all') {
       requestData.connectionStatus = edgeSearch.connectionStatus;
     }
+
+    return requestData;
+  }
+  /**
+   * Get and set Edge table data
+   * @method
+   * @param {string} fromSearch - option for the 'search'
+   */
+  getEdgeData = (fromSearch) => {
+    const {baseUrl, contextRoot} = this.context;
+    const {edge} = this.state;
+    const page = fromSearch === 'search' ? 1 : edge.currentPage;
+    const url = `${baseUrl}/api/edge/_search?page=${page}&pageSize=${edge.pageSize}`;
+    const requestData = this.getEdgeSearchRequestData();
 
     this.ah.one({
       url,
@@ -371,6 +386,17 @@ class Edge extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+  }
+  /**
+   * Handle CSV download
+   * @method
+   */
+  getCSVfile = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const url = `${baseUrl}${contextRoot}/api/edge/_export`;
+    const requestData = this.getEdgeSearchRequestData();
+
+    downloadWithForm(url, {payload: JSON.stringify(requestData)});
   }
   /**
    * Set map geoJson and attacks data
@@ -591,6 +617,9 @@ class Edge extends Component {
         licenseName: allValue.vpnName,
         serviceType: allValue.serviceType,
         serviceMode: allValue.agentMode,
+        chassisAddress: allValue.chassisAddress,
+        chassisLocation: allValue.chassisLocation,
+        contact: allValue.contact,
         longitude: '',
         latitude: '',
         edgeGroupList: allValue.groupList,
@@ -691,11 +720,12 @@ class Edge extends Component {
   /**
    * Handle date change
    * @method
-   * @param {string} value - input value
+   * @param {string} type - date type ('from' or 'to')
+   * @param {object} newDatetime - new datetime object
    */
-  handleDateChange = (value) => {
+  handleDateChange = (type, newDatetime) => {
     let tempEdge = {...this.state.edge};
-    tempEdge.info.edgeModeDatetime = value;
+    tempEdge.info.edgeModeDatetime[type] = newDatetime;
 
     this.setState({
       edge: tempEdge
@@ -830,6 +860,9 @@ class Edge extends Component {
     let requestData = {
       id: edge.info.id,
       agentName: edge.info.name,
+      chassisAddress: edge.info.chassisAddress,
+      chassisLocation: edge.info.chassisLocation,
+      contact: edge.info.contact,
       memo: edge.info.memo
     };
     let tempFormValidation = {...formValidation};
@@ -882,7 +915,7 @@ class Edge extends Component {
       if (edge.info.edgeModeType === 'customTime') {
         if (edge.info.edgeModeDatetime.from) {
           if (edge.info.edgeModeDatetime.to) {
-            requestData.agentStartDt = Moment(edge.info.edgeModeDatetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+            requestData.agentStartDt = moment(edge.info.edgeModeDatetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
           } else { //End date is empty
             helper.showPopupMsg(t('edge-management.txt-edgeEditNoEndDate'), t('txt-error'));
             return;
@@ -894,13 +927,13 @@ class Edge extends Component {
 
         if (edge.info.edgeModeDatetime.to) {
           if (edge.info.edgeModeDatetime.from) {
-            requestData.agentEndDt = Moment(edge.info.edgeModeDatetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+            requestData.agentEndDt = moment(edge.info.edgeModeDatetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
           } else { //Start date is empty
             helper.showPopupMsg(t('edge-management.txt-edgeEditNoStartDate'), t('txt-error'));
             return;
           }
 
-          if (Moment(edge.info.edgeModeDatetime.to).isBefore()) { //End date is a past date (compare with current date time)
+          if (moment(edge.info.edgeModeDatetime.to).isBefore()) { //End date is a past date (compare with current date time)
             helper.showPopupMsg(t('edge-management.txt-edgeEditPastEndDate'), t('txt-error'));
             return;
           }
@@ -1052,7 +1085,6 @@ class Edge extends Component {
     });
     const edgeIpText = t('edge-management.txt-ipList') + '(' + t('txt-commaSeparated') + ')';
     const memoText = t('txt-memo') + '(' + t('txt-memoMaxLength') + ')';
-
     let iconType = '';
     let btnStatusOn = false;
     let action = 'start';
@@ -1081,6 +1113,14 @@ class Edge extends Component {
       }
     }
 
+    let dateLocale = locale;
+
+    if (locale === 'zh') {
+      dateLocale += '-tw';
+    }
+
+    moment.locale(dateLocale);
+
     return (
       <div className='main-content basic-form'>
         <header className='main-header'>Edge</header>
@@ -1088,8 +1128,8 @@ class Edge extends Component {
         <div className='content-header-btns'>
           {activeContent === 'viewEdge' &&
             <div>
-              <button className='standard btn list' onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</button>
-              <button className='standard btn edit' onClick={this.toggleContent.bind(this, 'editEdge')}>{t('txt-edit')}</button>
+              <Button variant='outlined' color='primary' className='standard btn list' onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</Button>
+              <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'editEdge')}>{t('txt-edit')}</Button>
             </div>
           }
         </div>
@@ -1118,7 +1158,7 @@ class Edge extends Component {
                   label={t('txt-switch')}
                   disabled={activeContent === 'viewEdge' || !edge.info.isConfigurable} />
               }
-              <button className='btn nettrap-upgrade' onClick={this.handleNetTrapUpgrade} disabled={activeContent === 'viewEdge' || !edge.info.isNetTrapUpgrade}>{t('txt-upgrade')}</button>
+              <Button variant='contained' color='primary' className='btn nettrap-upgrade' onClick={this.handleNetTrapUpgrade} disabled={activeContent === 'viewEdge' || !edge.info.isNetTrapUpgrade}>{t('txt-upgrade')}</Button>
             </div>
             <div className='group'>
               <TextField
@@ -1247,9 +1287,45 @@ class Edge extends Component {
                 onChange={this.handleDataChange}
                 disabled={activeContent === 'viewEdge'} />
             </div>
+            <div className='group'>
+              <TextField
+                id='edgeChassisAddress'
+                name='chassisAddress'
+                label={t('edge-management.txt-chassisAddress')}
+                variant='outlined'
+                fullWidth={true}
+                size='small'
+                value={edge.info.chassisAddress}
+                onChange={this.handleDataChange}
+                disabled={activeContent === 'viewEdge'} />
+            </div>
+            <div className='group'>
+              <TextField
+                id='edgeChassisLocation'
+                name='chassisLocation'
+                label={t('edge-management.txt-chassisLocation')}
+                variant='outlined'
+                fullWidth={true}
+                size='small'
+                value={edge.info.chassisLocation}
+                onChange={this.handleDataChange}
+                disabled={activeContent === 'viewEdge'} />
+            </div>
+            <div className='group'>
+              <TextField
+                id='edgeContact'
+                name='contact'
+                label={t('edge-management.txt-contact')}
+                variant='outlined'
+                fullWidth={true}
+                size='small'
+                value={edge.info.contact}
+                onChange={this.handleDataChange}
+                disabled={activeContent === 'viewEdge'} />
+            </div>
             <div className='group full'>
               {activeContent === 'editEdge' &&
-                <button className='btn add-group' onClick={this.toggleManageGroup}>{t('txt-manage')}</button>
+                <Button variant='contained' color='primary' className='btn add-group' onClick={this.toggleManageGroup}>{t('txt-manage')}</Button>
               }
               <label>{t('txt-group')}</label>
               {activeContent === 'viewEdge' &&
@@ -1268,7 +1344,7 @@ class Edge extends Component {
                   onChange={this.handleComboBoxChange} />
               }
             </div>
-            <div className='group'>
+            <div className='group full'>
               <FormLabel>{t('edge-management.txt-activatTime')}</FormLabel>
               <RadioGroup
                 className='radio-group activate-time'
@@ -1296,14 +1372,27 @@ class Edge extends Component {
               </RadioGroup>
 
               {edge.info.edgeModeType === 'customTime' &&
-                <DateRange
-                  id='edgeModeDatetime'
-                  className='daterange'
-                  enableTime={true}
-                  value={edge.info.edgeModeDatetime}
-                  onChange={this.handleDateChange}
-                  locale={locale}
-                  t={et} />
+                <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+                  <KeyboardDateTimePicker
+                    className='date-time-picker'
+                    inputVariant='outlined'
+                    variant='inline'
+                    format='YYYY-MM-DD HH:mm'
+                    ampm={false}
+                    invalidDateMessage={t('txt-checkDateFormat')}
+                    value={edge.info.edgeModeDatetime.from}
+                    onChange={this.handleDateChange.bind(this, 'from')} />
+                  <div className='between'>~</div>
+                  <KeyboardDateTimePicker
+                    className='date-time-picker'
+                    inputVariant='outlined'
+                    variant='inline'
+                    format='YYYY-MM-DD HH:mm'
+                    ampm={false}
+                    invalidDateMessage={t('txt-checkDateFormat')}
+                    value={edge.info.edgeModeDatetime.to}
+                    onChange={this.handleDateChange.bind(this, 'to')} />
+                </MuiPickersUtilsProvider>
               }
             </div>
             <div className='group full'>
@@ -1326,8 +1415,8 @@ class Edge extends Component {
 
         {activeContent === 'editEdge' &&
           <footer>
-            <button className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</button>
-            <button onClick={this.handleEdgeSubmit}>{t('txt-save')}</button>
+            <Button variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</Button>
+            <Button variant='contained' color='primary' onClick={this.handleEdgeSubmit}>{t('txt-save')}</Button>
           </footer>
         }
       </div>
@@ -1409,8 +1498,8 @@ class Edge extends Component {
           </div>
         </div>
         <div className='button-group'>
-          <button className='filter' onClick={this.getEdgeData.bind(this, 'search')}>{t('txt-filter')}</button>
-          <button className='clear' onClick={this.clearFilter}>{t('txt-clear')}</button>
+          <Button variant='contained' color='primary' className='filter' onClick={this.getEdgeData.bind(this, 'search')}>{t('txt-filter')}</Button>
+          <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}</Button>
         </div>
       </div>
     )
@@ -1464,7 +1553,10 @@ class Edge extends Component {
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
             {activeContent === 'tableList' &&
-              <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
+              <div>
+                <Button variant='contained' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
+                <Button variant='outlined' color='primary' className='last' onClick={this.getCSVfile} title={t('txt-exportCSV')}><i className='fg fg-data-download'></i></Button>
+              </div>
             }
           </div>
         </div>
@@ -1492,8 +1584,8 @@ class Edge extends Component {
                 </Tabs>
 
                 <div className='content-header-btns'>
-                  <button className='standard btn' onClick={this.triggerSyncBtn} disabled={!syncEnable}>{t('notifications.txt-sync')}</button>
-                  <Link to='/SCP/configuration/notifications'><button className='standard btn'>{t('notifications.txt-settings')}</button></Link>
+                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.triggerSyncBtn} disabled={!syncEnable}>{t('notifications.txt-sync')}</Button>
+                  <Link to='/SCP/configuration/notifications'><Button variant='outlined' color='primary' className='standard btn'>{t('notifications.txt-settings')}</Button></Link>
                 </div>
 
                 {activeTab === 'edge' &&

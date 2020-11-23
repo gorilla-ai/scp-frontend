@@ -2,15 +2,20 @@ import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
+import moment from 'moment'
 import cx from 'classnames'
 import _ from 'lodash'
 
+import { MuiPickersUtilsProvider, KeyboardDatePicker, KeyboardDateTimePicker } from '@material-ui/pickers';
+import MomentUtils from '@date-io/moment';
+import 'moment/locale/zh-tw';
+
+import Button from '@material-ui/core/Button';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 
-import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import DataTable from 'react-ui/build/src/components/table'
-import DateRange from 'react-ui/build/src/components/date-range'
 import LineChart from 'react-chart/build/src/components/line'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import MultiInput from 'react-ui/build/src/components/multi-input'
@@ -108,7 +113,7 @@ class Syslog extends Component {
       activeConfigName: '',
       datetime: {
         from: helper.getStartDate('day'),
-        to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+        to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
       },
       eventsData: {},
       hostsData: {},
@@ -122,6 +127,11 @@ class Syslog extends Component {
       newPatternName: '',
       info: '',
       editPatternType: 'edit',
+      contextAnchor: null,
+      currentPattern: {
+        index: '',
+        data: ''
+      },
       formValidation: {
         ip: {
           valid: true,
@@ -416,7 +426,7 @@ class Syslog extends Component {
         <header>{t('syslogFields.txt-hostIP')}: {val.ip}</header>
         <span className='status'>{t('txt-status')}: <i className='fg fg-recode' style={{color}} title={title} /></span>
         <div className='content-header-btns'>
-          <button className='standard btn' onClick={this.openNewSyslog.bind(this, 'edit-exist', val)}>{t('syslogFields.txt-addSyslog')}</button>
+          <Button variant='outlined' color='primary' className='standard btn' onClick={this.openNewSyslog.bind(this, 'edit-exist', val)}>{t('syslogFields.txt-addSyslog')}</Button>
         </div>
         <div className='host-content'>
           {errorText &&
@@ -817,12 +827,12 @@ class Syslog extends Component {
   getTimeline = () => {
     const {baseUrl} = this.context;
     const {activeTimeline, activeConfigId, datetime} = this.state;
-    const startDttm = Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-    const endDttm = Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    const startDttm = moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    const endDttm = moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
     const configId = activeTimeline === 'configId' ? activeConfigId : '';
     let uri = '';
 
-    if (Moment(datetime.from).isAfter()) {
+    if (moment(datetime.from).isAfter()) {
       helper.showPopupMsg(t('edge-management.txt-threatDateError'), t('txt-error'));
       return;
     }
@@ -874,20 +884,24 @@ class Syslog extends Component {
   onTooltip = (eventInfo, data) => {
     return (
       <section>
-        <span>{data[0].type}<br /></span>
-        <span>{t('txt-time')}: {Moment(data[0].time, 'x').utc().format('YYYY/MM/DD HH:mm:ss')}<br /></span>
-        <span>{t('txt-count')}: {data[0].count}</span>
+        <span>{t('txt-ipAddress')}: {data[0].IP}<br /></span>
+        <span>{t('txt-time')}: {moment(data[0].time).format('YYYY/MM/DD HH:mm:ss')}<br /></span>
+        <span>{t('txt-count')}: {helper.numberWithCommas(data[0].count)}</span>
       </section>
     )
   }
   /**
    * Set new datetime
    * @method
-   * @param {object} datetime - datetime object
+   * @param {string} type - date type ('from' or 'to')
+   * @param {object} newDatetime - new datetime object
    */
-  handleDateChange = (datetime) => {
+  handleDateChange = (type, newDatetime) => {
+    let tempDatetime = {...this.state.datetime};
+    tempDatetime[type] = newDatetime;
+
     this.setState({
-      datetime
+      datetime: tempDatetime
     });
   }
   /**
@@ -908,7 +922,7 @@ class Syslog extends Component {
 
     const dataArr = _.map(eventsData.hostOverTime, val => {
       return {
-        time: parseInt(Moment(val.time, 'YYYY-MM-DDTHH:mm:ss.SSZ').utc(true).format('x')),
+        time: val.time,
         count: val.count,
         IP: val.IP
       };
@@ -916,17 +930,16 @@ class Syslog extends Component {
 
     const chartAttributes = {
       data: dataArr,
-      onTooltip: this.onTooltip,
       dataCfg: {
         x: 'time',
         y: 'count',
         splitSeries: 'IP'
       },
       xAxis: {
-        type: 'datetime',
-        dateTimeLabelFormats: {
-          day: '%m-%d %H:%M'
-        }
+        type: 'datetime'
+      },
+      tooltip: {
+        formatter: this.onTooltip
       }
     };
     let showTimeline = false;
@@ -940,18 +953,37 @@ class Syslog extends Component {
       showTable = true;
     }
 
+    let dateLocale = locale;
+
+    if (locale === 'zh') {
+      dateLocale += '-tw';
+    }
+
+    moment.locale(dateLocale);
+
     return (
       <div>
         <div className='calendar-section'>
-          <DateRange
-            id='datetime'
-            className='daterange'
-            enableTime={true}
-            value={datetime}
-            onChange={this.handleDateChange}
-            locale={locale}
-            t={et} />
-          <button onClick={this.getTimeline}>{t('txt-search')}</button>
+          <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+            <KeyboardDateTimePicker
+              className='date-time-picker'
+              inputVariant='outlined'
+              variant='inline'
+              format='YYYY-MM-DD HH:mm'
+              ampm={false}
+              value={datetime.from}
+              onChange={this.handleDateChange.bind(this, 'from')} />
+            <div className='between'>~</div>
+            <KeyboardDateTimePicker
+              className='date-time-picker'
+              inputVariant='outlined'
+              variant='inline'
+              format='YYYY-MM-DD HH:mm'
+              ampm={false}
+              value={datetime.to}
+              onChange={this.handleDateChange.bind(this, 'to')} />
+          </MuiPickersUtilsProvider>
+          <Button variant='contained' color='primary' onClick={this.getTimeline}>{t('txt-search')}</Button>
           </div>
         <div className='chart-section'>
           {showTimeline &&
@@ -1160,7 +1192,7 @@ class Syslog extends Component {
       activeConfigName: '',
       datetime: {
         from: helper.getStartDate('day'),
-        to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+        to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
       },
       eventsData: {}
     });
@@ -1546,8 +1578,8 @@ class Syslog extends Component {
           </div>
         </div>
         <div className='button-group'>
-          <button className='filter' onClick={this.getSyslogData}>{t('txt-filter')}</button>
-          <button className='clear' onClick={this.clearFilter}>{t('txt-clear')}</button>
+          <Button variant='contained' color='primary' className='filter' onClick={this.getSyslogData}>{t('txt-filter')}</Button>
+          <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}</Button>
         </div>
       </div>
     )
@@ -1615,50 +1647,54 @@ class Syslog extends Component {
     });
   }
   /**
-   * Handle context menu action
+   * Handle open menu
    * @method
    * @param {object} val - active mouse over pattern data
    * @param {number} i - index of the syslogPatternConfig pattern list
-   * @param {object} evt - mouseClick events
+   * @param {object} event - event object
    */
-  handleContextMenu = (val, i, evt) => {
-    let menuItems = [
-      {
-        id: 'editPattern',
-        text: t('syslogFields.txt-editName'),
-        action: () => this.handlePatternAction('edit', val, i)
+  handleOpenMenu = (val, i, event) => {
+    let tempCurrentPattern = {...this.state.currentPattern};
+    tempCurrentPattern.index = i;
+    tempCurrentPattern.data = val;
+
+    this.setState({
+      contextAnchor: event.currentTarget,
+      currentPattern: tempCurrentPattern
+    });
+  }
+  /**
+   * Handle close menu
+   * @method
+   */
+  handleCloseMenu = () => {
+    this.setState({
+      contextAnchor: null,
+      currentPattern: {
+        index: '',
+        data: ''
       }
-    ];
-
-    if (this.state.syslogPatternConfig.patternSetting.length > 1) { //Add Delete Pattern menu
-      menuItems.push({
-        id: 'deletePattern',
-        text: t('txt-delete'),
-        action: () => this.handlePatternAction('delete', val, i)
-      });
-    }
-
-    ContextMenu.open(evt, menuItems, 'patternAction');
-    evt.stopPropagation();
+    });
   }
   /**
    * handle edit/delete Pattern name
    * @method
-   * @param {object} val - active mouse over pattern data
-   * @param {number} i - index of the syslogPatternConfig pattern list
+   * @param {string} type - action type ('edit' or 'delete')
    */
-  handlePatternAction = (type, val, i) => {
+  handlePatternAction = (type) => {
+    const {currentPattern} = this.state;
+
     if (type === 'edit') {
       this.setState({
-        activePatternIndex: i,
-        newPatternName: val.patternName
+        activePatternIndex: currentPattern.index,
+        newPatternName: currentPattern.data.patternName
       }, () => {
         this.toggleEditPatternName();
       });
     } else if (type === 'delete') {
       let tempSyslogPatternConfig = {...this.state.syslogPatternConfig};
       let activePatternName = '';
-      tempSyslogPatternConfig.patternSetting.splice(i, 1);
+      tempSyslogPatternConfig.patternSetting.splice(currentPattern.index, 1);
       activePatternName = tempSyslogPatternConfig.patternSetting[tempSyslogPatternConfig.patternSetting.length - 1].patternName;
 
       this.setState({
@@ -1666,6 +1702,8 @@ class Syslog extends Component {
         activePatternName
       });
     }
+
+    this.handleCloseMenu();
   }
   /**
    * Display Syslog Config content
@@ -1675,7 +1713,7 @@ class Syslog extends Component {
    * @returns Syslog Config component
    */
   getPatternItem = (val, i) => {
-    const {syslogPatternConfig, activePatternName, activePatternMouse} = this.state;
+    const {syslogPatternConfig, activePatternName, activePatternMouse, contextAnchor} = this.state;
     const patternName = val.patternName;
     let formattedPatternName = '';
 
@@ -1687,9 +1725,19 @@ class Syslog extends Component {
       <div className='item'>
         <div key={i} className='item frame' onClick={this.handleActivePatternChange.bind(this, i, patternName)} onMouseOver={this.handlePatternMouseOver.bind(this, patternName)} onMouseOut={this.handlePatternMouseOver.bind(this, '')}>
           <span title={patternName}>{formattedPatternName || patternName}</span>
-          <i className={cx('fg fg-more', {'show': activePatternMouse === patternName})} onClick={this.handleContextMenu.bind(this, val, i)}></i>
+          <i className='fg fg-more show' onClick={this.handleOpenMenu.bind(this, val, i)}></i>
           <i className={`c-link fg fg-arrow-${activePatternName === patternName ? 'top' : 'bottom'}`}></i>
         </div>
+        <Menu
+          anchorEl={contextAnchor}
+          keepMounted
+          open={Boolean(contextAnchor)}
+          onClose={this.handleCloseMenu}>
+          <MenuItem onClick={this.handlePatternAction.bind(this, 'edit')}>{t('syslogFields.txt-editName')}</MenuItem>
+          {syslogPatternConfig.patternSetting.length > 1 &&
+            <MenuItem onClick={this.handlePatternAction.bind(this, 'delete')}>{t('txt-delete')}</MenuItem>
+          }
+        </Menu>
 
         {activePatternName === patternName &&
           <div className='item'>
@@ -1740,9 +1788,9 @@ class Syslog extends Component {
           <div className='secondary-btn-group right'>
             {activeContent === 'syslogData' &&
               <div>
-                <button onClick={this.openTimeline.bind(this, 'overall')} title={t('syslogFields.txt-overallDist')}><i className='fg fg-chart-kpi'></i></button>
-                <button onClick={this.openNewSyslog.bind(this, 'new')} title={t('syslogFields.txt-addSyslog')}><i className='fg fg-add'></i></button>
-                <button className={cx('last', {'active': openFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
+                <Button variant='outlined' color='primary' onClick={this.openTimeline.bind(this, 'overall')} title={t('syslogFields.txt-overallDist')}><i className='fg fg-chart-kpi'></i></Button>
+                <Button variant='outlined' color='primary' onClick={this.openNewSyslog.bind(this, 'new')} title={t('syslogFields.txt-addSyslog')}><i className='fg fg-add'></i></Button>
+                <Button variant='outlined' color='primary' className={cx('last', {'active': openFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
               </div>
             }
           </div>
@@ -1755,7 +1803,7 @@ class Syslog extends Component {
 
           {activeContent === 'syslogData' &&
             <div className='parent-content'>
-              { this.renderFilter() }
+              {this.renderFilter()}
 
               <div className='main-content'>
                 <header className='main-header'>{t('txt-syslogManage')}</header>
@@ -1832,7 +1880,7 @@ class Syslog extends Component {
 
                   <div className='pattern-content'>
                     <header>{t('syslogFields.matchPattern')}</header>
-                    <button className='standard add-pattern' onClick={this.toggleEditPatternName.bind(this, 'new')}>{t('syslogFields.txt-addPattern')}</button>
+                    <Button variant='outlined' color='primary' className='standard add-pattern' onClick={this.toggleEditPatternName.bind(this, 'new')}>{t('syslogFields.txt-addPattern')}</Button>
 
                     <div className='syslog-config'>
                       <div className={cx('left-nav', {'collapse': !showPatternLeftNav})}>
@@ -1843,8 +1891,8 @@ class Syslog extends Component {
                     </div>
                   </div>
                   <footer>
-                    <button className='standard' onClick={this.toggleContent.bind(this, 'syslogData', '')}>{t('txt-cancel')}</button>
-                    <button onClick={this.confirmSyslogSave}>{t('txt-save')}</button>
+                    <Button variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'syslogData', '')}>{t('txt-cancel')}</Button>
+                    <Button variant='contained' color='primary' onClick={this.confirmSyslogSave}>{t('txt-save')}</Button>
                   </footer>
                 </div>
               </div>
@@ -1857,7 +1905,7 @@ class Syslog extends Component {
                 <header className='main-header'>{t('syslogFields.txt-syslogHost')}</header>
 
                 <div className='content-header-btns'>
-                  <button className='standard btn list' onClick={this.toggleContent.bind(this, 'syslogData', '')}>{t('txt-back')}</button>
+                  <Button variant='outlined' color='primary' className='standard btn list' onClick={this.toggleContent.bind(this, 'syslogData', '')}>{t('txt-back')}</Button>
                 </div>
 
                 <div className='config-syslog'>
@@ -1870,14 +1918,14 @@ class Syslog extends Component {
                           <td>{activeHost.loghostIp}</td>
                         </tr>
                         <tr>
-                          <td style={{width: '30%'}}>Config Name</td>
+                          <td style={{width: '30%'}}>{t('txt-name')}</td>
                           <td>{activeHost.name}</td>
                         </tr>
                       </tbody>
                     </table>
 
                     <header>{t('syslogFields.txt-syslogHostList')}</header>
-                    <button className='standard btn add-host' onClick={this.openEditHostsV1.bind(this, 'add')}>{t('syslogFields.txt-addHost')}</button>
+                    <Button variant='outlined' color='primary' className='standard btn add-host' onClick={this.openEditHostsV1.bind(this, 'add')}>{t('syslogFields.txt-addHost')}</Button>
                     <DataTable
                       className='main-table'
                       fields={hostsFields}

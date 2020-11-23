@@ -2,10 +2,11 @@ import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
+import moment from 'moment'
 import cx from 'classnames'
 import _ from 'lodash'
 
+import Button from '@material-ui/core/Button';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import Radio from '@material-ui/core/Radio';
@@ -364,8 +365,8 @@ class AutoSettings extends Component {
   handleNetflowtest = () => {
     const {baseUrl} = this.context;
     const dateTime = {
-      from: Moment(helper.getSubstractDate(24, 'hour')).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-      to: Moment().utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+      from: moment(helper.getSubstractDate(24, 'hour')).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: moment().utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
 
     this.ah.one({
@@ -611,10 +612,10 @@ class AutoSettings extends Component {
 
           {activeContent === 'viewMode' &&
             <div className='content-header-btns'>
-              <button className='standard btn no-padding'>
+              <Button variant='outlined' color='primary' className='standard btn no-padding'>
                 <Link to={{pathname: '/SCP/configuration/topology/inventory', state: 'tableList'}}>{t('txt-back')}</Link>
-              </button>
-              <button className='standard btn' onClick={this.toggleContent.bind(this, 'editMode')}>{t('txt-edit')}</button>
+              </Button>
+              <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode')}>{t('txt-edit')}</Button>
             </div>
           }
 
@@ -683,7 +684,7 @@ class AutoSettings extends Component {
                   disabled={activeContent === 'viewMode'} />
               </RadioGroup>
               <div className='form-options'>
-                <button onClick={this.handleADtest} disabled={!statusEnable.ad_ldap}>{t('network-inventory.txt-testQuery')}</button>
+                <Button variant='contained' color='primary' onClick={this.handleADtest} disabled={!statusEnable.ad_ldap}>{t('network-inventory.txt-testQuery')}</Button>
                 <FormControlLabel
                   className='toggle-btn'
                   control={
@@ -765,7 +766,7 @@ class AutoSettings extends Component {
             <div className='form-group normal'>
               <header>{t('network-inventory.auto-settings.txt-netflow')}</header>
               <div className='form-options'>
-                <button onClick={this.handleNetflowtest} disabled={!statusEnable.netflow}>{t('network-inventory.txt-testQuery')}</button>
+                <Button variant='contained' color='primary' onClick={this.handleNetflowtest} disabled={!statusEnable.netflow}>{t('network-inventory.txt-testQuery')}</Button>
                 <FormControlLabel
                   className='toggle-btn'
                   control={
@@ -837,8 +838,8 @@ class AutoSettings extends Component {
 
           {activeContent === 'editMode' &&
             <footer>
-              <button className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</button>
-              <button onClick={this.toggleContent.bind(this, 'save')}>{t('txt-save')}</button>
+              <Button variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</Button>
+              <Button variant='contained' color='primary' onClick={this.toggleContent.bind(this, 'save')}>{t('txt-save')}</Button>
             </footer>
           }
         </div>

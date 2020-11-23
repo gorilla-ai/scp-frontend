@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
-import Moment from 'moment'
+import moment from 'moment'
 import cx from 'classnames'
 
 import ToggleButton from '@material-ui/lab/ToggleButton';
@@ -11,34 +11,34 @@ import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 const helper = {
   getDate: function(datetime) {
-    return Moment(datetime, 'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    return moment(datetime, 'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DDTHH:mm:ss') + 'Z';
   },
   getFormattedDate: function(val, timezone) {
     if (!val) {
       return '';
     }
     if (timezone === 'local') {
-      val = Moment.utc(val).toDate();
-      return Moment(val).local().format('YYYY-MM-DD HH:mm:ss');
+      val = moment.utc(val).toDate();
+      return moment(val).local().format('YYYY-MM-DD HH:mm:ss');
     } else if (timezone === 'utc') {
-      return Moment(val).utc().format('YYYY-MM-DD HH:mm:ss');
+      return moment(val).utc().format('YYYY-MM-DD HH:mm:ss');
     } else if (timezone === 'unix') {
-      return Moment.unix(val).format('YYYY-MM-DD HH:mm:ss');
+      return moment.unix(val).format('YYYY-MM-DD HH:mm:ss');
     } else {
       const date = new Date(val);
-      return Moment(date).format('YYYY-MM-DD HH:mm:ss');
+      return moment(date).format('YYYY-MM-DD HH:mm:ss');
     }
   },
   getSubstractDate: function(val, type, date) {
     const dateTime = date ? date : new Date();
-    return Moment(dateTime).local().subtract(val, type).format('YYYY-MM-DDTHH:mm:ss');
+    return moment(dateTime).local().subtract(val, type).format('YYYY-MM-DDTHH:mm:ss');
   },
   getAdditionDate: function(val, type, date) {
     const dateTime = date ? date : new Date();
-    return Moment(dateTime).local().add(val, type).format('YYYY-MM-DDTHH:mm:ss');
+    return moment(dateTime).local().add(val, type).format('YYYY-MM-DDTHH:mm:ss');
   },
   getStartDate: function(val) {
-    return Moment().local().startOf(val).format('YYYY-MM-DDTHH:mm:ss');
+    return moment().local().startOf(val).format('YYYY-MM-DDTHH:mm:ss');
   },
   capitalizeFirstLetter: function(string) {
     string = string.toLowerCase();
@@ -58,8 +58,8 @@ const helper = {
   setChartInterval: function(datetime) {
     const t = global.chewbaccaI18n.getFixedT(null, 'connections');
     const dateTime = {
-      from: Moment(datetime.from),
-      to: Moment(datetime.to)
+      from: moment(datetime.from),
+      to: moment(datetime.to)
     };
     const hr = dateTime.to.diff(dateTime.from, 'hours');
     const day = dateTime.to.diff(dateTime.from, 'days');
@@ -300,7 +300,6 @@ const helper = {
         <button className={cx('thumb', {'selected': page === 'syslog'})}>
           <Link to='/SCP/events/syslog'>{t('txt-syslog')}</Link>
         </button>
-
         <button className={cx('thumb', {'selected': page === 'netflow'})}>
           <Link to='/SCP/events/netflow'>{t('txt-netflow')}</Link>
         </button>

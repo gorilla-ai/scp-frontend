@@ -87,9 +87,11 @@ html[data-theme='dark'] {
 .leaflet-container {
   background: #fff;
 }
-.react-multi-email {
+.react-multi-email,
+.react-multi-email.focused {
   display: flex;
   flex-wrap: wrap;
+  color: var(--primaryTextColor);
   background-color: var(--formBackground);
   input {
     margin-left: 2px;
@@ -346,6 +348,9 @@ html[data-theme='dark'] {
     }
     .c-combobox {
       width: 100%;
+      input {
+        height: 40px;
+      }
     }
     &.delete {
       span {
@@ -449,6 +454,9 @@ html[data-theme='dark'] {
 /* events/netflow/index */
 #tagModalDialog-content {
   width: 400px;
+  .tag-memo {
+    margin-bottom: 10px;
+  }
   .github-picker {
     float: left;
     margin-right: 10px;
@@ -1421,16 +1429,20 @@ html[data-theme='dark'] {
       width: 25%;
       margin-right: 3px;
     }
-    .filter-inputbox {
-      width: 74%;
-      height: 35px;
+    .filter-inputbox,
+    .mark-inputbox {
+      min-height: 40px !important;
+      padding: 8px 10px;
       color: var(--primaryTextColor);
       border: 1px solid var(--formInputBorderColor);
-      background-color: var(--formBackground);
+      background-color: var(--dialogFormGroup);
+      border-radius: 4px;
+    }
+    .filter-inputbox {
+      width: 74%;
     }
     .mark-inputbox {
       width: 200px;
-      height: 35px;
     }
     .fg-close,
     .fg-add,
@@ -1500,6 +1512,11 @@ html[data-theme='dark'] {
       background-color: var(--primaryContentHeader);
     }
   }
+  .react-multi-email input {
+    color: var(--primaryTextColor);
+    margin-left: 2px;
+    background-color: var(--formBackground);
+  }
   .error-msg {
     text-align: center;
     margin: 20px 0;
@@ -1557,6 +1574,12 @@ html[data-theme='dark'] {
   text-align: center;
 }
 #uploadThreatsDialog-content,
+#importThreatsDialog-content {
+  input {
+    height: 35px;
+  }
+}
+#uploadThreatsDialog-content,
 #addThreatsDialog-content {
   width: 350px;
 }
@@ -1611,6 +1634,9 @@ html[data-theme='dark'] {
   }
 }
 #batchUploadDialog-content {
+  input {
+    height: 35px;
+  }
   #csvFileInput {
     margin-bottom: 10px;
   }

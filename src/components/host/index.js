@@ -1,15 +1,15 @@
 import React, {Component} from 'react'
 import { withRouter } from 'react-router'
-import Moment from 'moment'
+import moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
+import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 
-import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import Gis from 'react-gis/build/src/components'
 import Hierarchy from 'react-ui/build/src/components/hierarchy'
@@ -149,7 +149,7 @@ class HostController extends Component {
       activeTab: 'hostList', //'hostList', 'deviceMap'
       showFilter: false,
       showLeftNav: true,
-      datetime: Moment().local().format('YYYY-MM-DD') + 'T00:00:00',
+      datetime: moment().local().format('YYYY-MM-DD') + 'T00:00:00',
       hostAnalysisOpen: false,
       severityList: [],
       hmdStatusList: [],
@@ -362,8 +362,8 @@ class HostController extends Component {
    */
   getHostDateTime = () => {
     return {
-      from: Moment(this.state.datetime).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-      to: Moment(helper.getAdditionDate(1, 'day', this.state.datetime)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+      from: moment(this.state.datetime).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: moment(helper.getAdditionDate(1, 'day', this.state.datetime)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     }
   }
   /**
@@ -712,11 +712,11 @@ class HostController extends Component {
   /**
    * Set new datetime
    * @method
-   * @param {object} datetime - new datetime object
+   * @param {object} newDatetime - new datetime object
    */
-  handleDateChange = (datetime) => {
+  handleDateChange = (newDatetime) => {
     this.setState({
-      datetime
+      datetime: newDatetime
     });
   }
   /**
@@ -858,8 +858,8 @@ class HostController extends Component {
           </div>
         </div>
         <div className='button-group'>
-          <button className='filter' onClick={this.handleSearchSubmit}>{t('txt-filter')}</button>
-          <button className='clear' onClick={this.clearFilter}>{t('txt-clear')}</button>
+          <Button variant='contained' color='primary' className='filter' onClick={this.handleSearchSubmit}>{t('txt-filter')}</Button>
+          <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}</Button>
         </div>
       </div>
     )
@@ -1042,14 +1042,14 @@ class HostController extends Component {
   redirectNewPage = (ip) => {
     const {baseUrl, contextRoot, language} = this.context;
     const {datetime, hostCreateTime} = this.state;
-    const selectedDate = Moment(datetime).format('YYYY-MM-DD');
-    const currentDate = Moment().local().format('YYYY-MM-DD');
+    const selectedDate = moment(datetime).format('YYYY-MM-DD');
+    const currentDate = moment().local().format('YYYY-MM-DD');
     let dateTime = {
       from: '',
       to: ''
     };
 
-    if (Moment(selectedDate).isBefore(currentDate)) {
+    if (moment(selectedDate).isBefore(currentDate)) {
       dateTime.from = selectedDate + ' 00:00:00';
       dateTime.to = selectedDate + ' 23:59:59';
     } else {
@@ -1112,6 +1112,11 @@ class HostController extends Component {
         name: 'version',
         path: 'version',
         icon: 'report'
+      },
+      {
+        name: 'remarks',
+        path: 'remarks',
+        icon: 'edit'
       }
     ];
     let safetyScanInfo = '';
@@ -1237,8 +1242,8 @@ class HostController extends Component {
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            <button className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
-            <button className='last' onClick={this.getCSVfile} title={t('events.connections.txt-exportCSV')}><i className='fg fg-data-download'></i></button>
+            <Button variant='outlined' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
+            <Button variant='outlined' color='primary' className='last' onClick={this.getCSVfile} title={t('txt-exportCSV')}><i className='fg fg-data-download'></i></Button>
           </div>
 
           <SearchOptions

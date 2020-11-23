@@ -2,22 +2,23 @@ import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 import jschardet from 'jschardet'
 import queryString from 'query-string'
 import XLSX from 'xlsx';
 
+import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import TextField from '@material-ui/core/TextField';
 
-import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import DataTable from 'react-ui/build/src/components/table'
+import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import FileInput from 'react-ui/build/src/components/file-input'
 import Gis from 'react-gis/build/src/components'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
@@ -104,6 +105,8 @@ class NetworkInventory extends Component {
       addSeatOpen: false,
       uplaodOpen: false,
       formTypeEdit: true,
+      contextAnchor: null,
+      menuType: '',
       deviceSearch: {
         ip: '',
         mac: '',
@@ -523,6 +526,26 @@ class NetworkInventory extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+  }
+  /**
+   * Handle CSV download
+   * @method
+   */
+  getCSVfile = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {deviceSearch} = this.state;
+    const url = `${baseUrl}${contextRoot}/api/ipdevice/_export`;
+    const requestData = {
+      ip: deviceSearch.ip,
+      mac: deviceSearch.mac,
+      hostName: deviceSearch.hostName,
+      system: deviceSearch.system,
+      owner: deviceSearch.owner,
+      areaName: deviceSearch.areaName,
+      seatName: deviceSearch.seatName
+    };
+
+    downloadWithForm(url, {payload: JSON.stringify(requestData)});
   }
   /**
    * Get and set owner data
@@ -1177,8 +1200,8 @@ class NetworkInventory extends Component {
           </div>
         </div>
         <div className='button-group group-aligned'>
-          <button className='filter' onClick={this.getDeviceData.bind(this, 'search')}>{t('txt-filter')}</button>
-          <button className='clear' onClick={this.clearFilter}>{t('txt-clear')}</button>
+          <Button variant='contained' color='primary' className='filter' onClick={this.getDeviceData.bind(this, 'search')}>{t('txt-filter')}</Button>
+          <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}</Button>
         </div>
       </div>
     )
@@ -1650,8 +1673,8 @@ class NetworkInventory extends Component {
         {deviceData.hmdOnly.currentLength > 1 &&
           <div className='pagination'>
             <div className='buttons'>
-              <button onClick={this.showAlertData.bind(this, 'previous')} disabled={deviceData.hmdOnly.currentIndex === 0}>{t('txt-previous')}</button>
-              <button onClick={this.showAlertData.bind(this, 'next')} disabled={deviceData.hmdOnly.currentIndex + 1 === deviceData.hmdOnly.currentLength}>{t('txt-next')}</button>
+              <Button variant='contained' color='primary' onClick={this.showAlertData.bind(this, 'previous')} disabled={deviceData.hmdOnly.currentIndex === 0}>{t('txt-previous')}</Button>
+              <Button variant='contained' color='primary' onClick={this.showAlertData.bind(this, 'next')} disabled={deviceData.hmdOnly.currentIndex + 1 === deviceData.hmdOnly.currentLength}>{t('txt-next')}</Button>
             </div>
             <span className='count'>{deviceData.hmdOnly.currentIndex + 1} / {deviceData.hmdOnly.currentLength}</span>
           </div>
@@ -1815,6 +1838,7 @@ class NetworkInventory extends Component {
           ram: currentDeviceData.ram,
           disks: currentDeviceData.disks,
           shareFolders: currentDeviceData.shareFolders,
+          remarks: currentDeviceData.remarks,
           file: currentDeviceData.ownerObj ? currentDeviceData.ownerObj.picPath : '',
           ownerPic: currentDeviceData.ownerObj ? currentDeviceData.ownerObj.base64 : '',
           ownerUUID: currentDeviceData.ownerUUID,
@@ -1849,6 +1873,8 @@ class NetworkInventory extends Component {
         if (_.isEmpty(inventoryParam) || (!_.isEmpty(inventoryParam) && !inventoryParam.ip)) {
           this.getFloorPlan();
         }
+
+        this.handleCloseMenu();
       }
 
       if (!currentDeviceData.ownerUUID && ownerList[0]) {
@@ -1872,6 +1898,7 @@ class NetworkInventory extends Component {
       return;
     } else if (type === 'showUpload') {
       this.toggleFileUpload();
+      this.handleCloseMenu();
       return;
     }
 
@@ -1932,35 +1959,21 @@ class NetworkInventory extends Component {
     })
 
     helper.showPopupMsg(t('txt-requestSent'));
+    this.handleCloseMenu();
 
     if (hmdObj.cmds === 'compareIOC') {
       this.toggleYaraRule('false');
     }
   }
   /**
-   * Construct and display HMD context menu
+   * Get HMD test menu
    * @method
-   * @param {object} evt - mouseClick events
+   * @param {string} val - individual HMD data
+   * @param {number} i - index of the HMD data
    */
-  handleHmdContextMenu = (evt) => {
-    const menuItems = _.map(HMD_LIST, val => {
-      if (val.cmds === 'compareIOC') {
-        return {
-          id: val.name,
-          text: val.name,
-          action: () => this.toggleYaraRule('true')
-        }
-      } else {
-        return {
-          id: val.name,
-          text: val.name,
-          action: () => this.triggerHmdAll(val)
-        }
-      }
-    });
-
-    ContextMenu.open(evt, menuItems, 'HMDmenu');
-    evt.stopPropagation();
+  getHMDmenu = (val, i) => {
+    const hmdData = val.cmds === 'compareIOC' ? 'true' : val;
+    return <MenuItem key={i} onClick={this.triggerHmdAll.bind(this, hmdData)}>{val.name}</MenuItem>
   }
   /**
    * Handle HMD download button
@@ -1971,49 +1984,29 @@ class NetworkInventory extends Component {
     const {baseUrl, contextRoot} = this.context;
     const url = `${baseUrl}${contextRoot}/api/hmd/download?ver=${type}`;
     window.open(url, '_blank');
+    this.handleCloseMenu();
   }
   /**
-   * Construct and display add IP context menu
+   * Handle open menu
    * @method
-   * @param {string} type - context menu type ('addIP' or 'download')
-   * @param {object} evt - mouseClick events
+   * @param {string} type - menu type ('addIP' or 'download')
+   * @param {object} event - event object
    */
-  handleRowContextMenu = (type, evt) => {
-    let menuItems = [];
-    let menuType = '';
-
-    if (type === 'addIP') {
-      menuItems = [
-        {
-          id: 'showForm',
-          text: t('network-inventory.txt-manuallyEnter'),
-          action: () => this.toggleContent('showForm', 'new')
-        },
-        {
-          id: 'showUpload',
-          text: t('network-inventory.txt-batchUpload'),
-          action: () => this.toggleContent('showUpload')
-        }
-      ];
-      menuType = 'addIpMenu';
-    } else if (type === 'download') {
-      menuItems = [
-        {
-          id: 'windows',
-          text: 'Windows',
-          action: () => this.hmdDownload('windows')
-        },
-        {
-          id: 'linux',
-          text: 'Linux',
-          action: () => this.hmdDownload('linux')
-        }
-      ];
-      menuType = 'downloadMenu';
-    }
-
-    ContextMenu.open(evt, menuItems, menuType);
-    evt.stopPropagation();
+  handleOpenMenu = (type, event) => {
+    this.setState({
+      contextAnchor: event.currentTarget,
+      menuType: type
+    });
+  }
+  /**
+   * Handle close menu
+   * @method
+   */
+  handleCloseMenu = () => {
+    this.setState({
+      contextAnchor: null,
+      menuType: ''
+    });
   }
   /**
    * Handle CSV batch upload
@@ -2659,6 +2652,7 @@ class NetworkInventory extends Component {
       ram: addIP.ram,
       disks: addIP.disks,
       shareFolders: addIP.shareFolders,
+      remarks: addIP.remarks,
       areaUUID: mapAreaUUID,
       seatUUID: addSeat.selectedSeatUUID
     };
@@ -3054,6 +3048,20 @@ class NetworkInventory extends Component {
                   onChange={this.handleAddIpChange}
                   disabled={currentDeviceData.isHmd} />
               </div>
+              <div className='group'>
+                <TextField
+                  id='addIPstepsRemarks'
+                  name='remarks'
+                  label={t('txt-remarks')}
+                  multiline={true}
+                  rows={3}
+                  variant='outlined'
+                  fullWidth={true}
+                  size='small'
+                  value={addIP.remarks}
+                  onChange={this.handleAddIpChange}
+                  disabled={currentDeviceData.isHmd} />
+              </div>
             </div>
           }
           {activeSteps === 3 &&
@@ -3083,7 +3091,7 @@ class NetworkInventory extends Component {
                   label={t('txt-existingOwner')} />
               </RadioGroup>
               {ownerType === 'new' &&
-                <button className='standard manage' onClick={this.openManage}>{t('txt-manageDepartmentTitle')}</button>
+                <Button variant='outlined' color='primary' className='standard manage' onClick={this.openManage}>{t('txt-manageDepartmentTitle')}</Button>
               }
               <div className='user-pic'>
                 {ownerType === 'new' &&
@@ -3245,7 +3253,7 @@ class NetworkInventory extends Component {
           {activeSteps === 4 &&
             <div className='form-group steps-floor'>
               <header>{t('alert.txt-floorInfo')}</header>
-              <button className='standard manage' onClick={this.openFloorMap}>{t('network-inventory.txt-editFloorMap')}</button>
+              <Button variant='outlined' color='primary' className='standard manage' onClick={this.openFloorMap}>{t('network-inventory.txt-editFloorMap')}</Button>
               <div className='floor-info'>
                 <div className='tree'>
                   {floorPlan.treeData && floorPlan.treeData.length > 0 &&
@@ -3274,11 +3282,11 @@ class NetworkInventory extends Component {
             </div>
           }
           <footer>
-            <button className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</button>
+            <Button variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</Button>
             {activeSteps > 1 &&
-              <button className='standard previous-step' onClick={this.toggleSteps.bind(this, 'previous')}>{t('txt-previousStep')}</button>
+              <Button variant='outlined' color='primary' className='standard previous-step' onClick={this.toggleSteps.bind(this, 'previous')}>{t('txt-previousStep')}</Button>
             }
-            <button className='next-step' onClick={this.toggleSteps.bind(this, 'next')}>{this.getBtnText()}</button>
+            <Button variant='contained' color='primary' className='next-step' onClick={this.toggleSteps.bind(this, 'next')}>{this.getBtnText()}</Button>
           </footer>
         </div>
       </div>
@@ -3611,6 +3619,8 @@ class NetworkInventory extends Component {
       modalIRopen,
       addSeatOpen,
       uploadOpen,
+      contextAnchor,
+      menuType,
       deviceData,
       currentDeviceData,
       floorPlan,
@@ -3685,8 +3695,11 @@ class NetworkInventory extends Component {
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            {activeTab === 'deviceList' &&
-              <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('events.connections.txt-toggleFilter')} disabled={activeContent !== 'tableList'}><i className='fg fg-filter'></i></button>
+            {activeTab === 'deviceList' && activeContent === 'tableList' &&
+              <div>
+                <Button variant='outlined' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('events.connections.txt-toggleFilter')} disabled={activeContent !== 'tableList'}><i className='fg fg-filter'></i></Button>
+                <Button variant='outlined' color='primary' className='last' onClick={this.getCSVfile} title={t('txt-exportCSV')}><i className='fg fg-data-download'></i></Button>
+              </div>
             }
           </div>
         </div>
@@ -3714,13 +3727,40 @@ class NetworkInventory extends Component {
                 </Tabs>
 
                 <div className='content-header-btns'>
-                  <button className='standard btn' onClick={this.handleHmdContextMenu}>{t('network-inventory.txt-triggerAll')}</button>
-                  <button className='standard btn' onClick={this.handleRowContextMenu.bind(this, 'addIP')}>{t('network-inventory.txt-addIP')}</button>
-                  <button className='standard btn' onClick={this.toggleContent.bind(this, 'hmdSettings')}>{t('network-inventory.txt-hmdSettings')}</button>
-                  <button className='standard btn' onClick={this.handleRowContextMenu.bind(this, 'download')}>{t('network-inventory.txt-hmdDownload')}</button>
-                  <button className='standard btn' onClick={this.toggleContent.bind(this, 'autoSettings')}>{t('network-inventory.txt-autoSettings')}</button>
-                  <Link to='/SCP/configuration/notifications'><button className='standard btn'>{t('notifications.txt-settings')}</button></Link>
+                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, '')}>{t('network-inventory.txt-triggerAll')}</Button>
+                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'addIP')}>{t('network-inventory.txt-addIP')}</Button>
+                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'hmdSettings')}>{t('network-inventory.txt-hmdSettings')}</Button>
+                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'download')}>{t('network-inventory.txt-hmdDownload')}</Button>
+                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'autoSettings')}>{t('network-inventory.txt-autoSettings')}</Button>
+                  <Link to='/SCP/configuration/notifications'><Button variant='outlined' color='primary' className='standard btn'>{t('notifications.txt-settings')}</Button></Link>
                 </div>
+
+                <Menu
+                  anchorEl={contextAnchor}
+                  keepMounted
+                  open={!menuType && Boolean(contextAnchor)}
+                  onClose={this.handleCloseMenu}>
+                  {HMD_LIST.map(this.getHMDmenu)}
+                </Menu>
+
+                <Menu
+                  anchorEl={contextAnchor}
+                  keepMounted
+                  open={menuType && Boolean(contextAnchor)}
+                  onClose={this.handleCloseMenu}>
+                  {menuType === 'addIP' &&
+                    <MenuItem onClick={this.toggleContent.bind(this, 'showForm', 'new')}>{t('network-inventory.txt-manuallyEnter')}</MenuItem>
+                  }
+                  {menuType === 'addIP' &&
+                    <MenuItem onClick={this.toggleContent.bind(this, 'showUpload')}>{t('network-inventory.txt-batchUpload')}</MenuItem>
+                  }
+                  {menuType === 'download' &&
+                    <MenuItem onClick={this.hmdDownload.bind(this, 'windows')}>Windows</MenuItem>
+                  }
+                  {menuType === 'download' &&
+                    <MenuItem onClick={this.hmdDownload.bind(this, 'linux')}>Linux</MenuItem>
+                  }
+                </Menu>
 
                 {showCsvData &&
                   <div className='csv-section'>
@@ -3776,8 +3816,9 @@ class NetworkInventory extends Component {
                     </section>
 
                     <footer>
-                      <button className='standard' onClick={this.uploadActions.bind(this, 'cancel')}>{t('txt-cancel')}</button>
-                      <button className='upload' onClick={this.uploadActions.bind(this, 'upload')}>{t('txt-upload')}</button>
+                      <Button variant='outlined' color='primary' className='standard' onClick={this.uploadActions.bind(this, 'cancel')}>{t('txt-cancel')}</Button>
+                      <Button variant='contained' color='primary'
+ className='upload' onClick={this.uploadActions.bind(this, 'upload')}>{t('txt-upload')}</Button>
                     </footer>
                   </div>
                 }
@@ -3833,8 +3874,8 @@ class NetworkInventory extends Component {
                   <header className='main-header'>{t('alert.txt-ipBasicInfo')}</header>
 
                   <div className='content-header-btns'>
-                    <button className='standard btn list' onClick={this.toggleContent.bind(this, 'showList')}>{backText}</button>
-                    <button className='standard btn edit' onClick={this.toggleContent.bind(this, 'showForm', 'edit')}>{t('txt-edit')}</button>
+                    <Button variant='outlined' color='primary' className='standard btn list' onClick={this.toggleContent.bind(this, 'showList')}>{backText}</Button>
+                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'showForm', 'edit')}>{t('txt-edit')}</Button>
                   </div>
 
                   <PrivateDetails

@@ -1,11 +1,14 @@
 import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
+import moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import ContextMenu from 'react-ui/build/src/components/contextmenu'
+import Button from '@material-ui/core/Button';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
+
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
@@ -85,6 +88,8 @@ class AlertDetails extends Component {
       modalYaraRuleOpen: false,
       modalIRopen: false,
       modalEncodeOpen: false,
+      mouseX: null,
+      mouseY: null,
       highlightedText: ''
     };
 
@@ -552,8 +557,8 @@ class AlertDetails extends Component {
   getPCAPdownloadContent = () => {
     const {baseUrl, contextRoot} = this.context;
     const {alertData} = this.props;
-    const startDttm = Moment(helper.getSubstractDate(10, 'minutes', alertData._eventDttm_)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-    const endDttm = Moment(helper.getAdditionDate(10, 'minutes', alertData._eventDttm_)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    const startDttm = moment(helper.getSubstractDate(10, 'minutes', alertData._eventDttm_)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    const endDttm = moment(helper.getAdditionDate(10, 'minutes', alertData._eventDttm_)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
     const downloadLink = `${baseUrl}${contextRoot}/api/alert/pcap?agentId=${alertData._edgeInfo.agentId}&startDttm=${startDttm}&endDttm=${endDttm}&targetIp=${alertData.srcIp || alertData.ipSrc}&infoType=${alertData['alertInformation.type']}`;
 
     return (
@@ -689,7 +694,7 @@ class AlertDetails extends Component {
         }
         <span className='msg'>{alertData.Info || NOT_AVAILABLE}</span>
         {videoUrl &&
-          <button onClick={this.redirectVidoeURL.bind(this, videoUrl)}>{t('alert.txt-openVideo')}</button>
+          <Button variant='contained' color='primary' onClick={this.redirectVidoeURL.bind(this, videoUrl)}>{t('alert.txt-openVideo')}</Button>
         }
       </div>
     )
@@ -755,7 +760,7 @@ class AlertDetails extends Component {
             <ul>
               <li onClick={this.getContent.bind(this, 'rule')}><span className={cx({'active': showContent.rule})}>{t('alert.txt-rule')}</span></li>
               <li className={cx({'not-allowed': alertType !== 'pot_attack'})} onClick={this.getContent.bind(this, 'attack')}><span className={cx({'active': showContent.attack})}>{t('alert.txt-attack')}</span></li>
-              <li onClick={this.getContent.bind(this, 'json')}><span className={cx({'active': showContent.json})}>{t('alert.txt-viewJSON')}</span></li>
+              <li onClick={this.getContent.bind(this, 'json')}><span className={cx({'active': showContent.json})}>{t('txt-viewJSON')}</span></li>
               <li className='header'>
                 <span className='name'>{t('alert.txt-ipSrc')}</span>
                 <span className='ip'>{this.getIpPortData('srcIp')}</span>
@@ -845,8 +850,8 @@ class AlertDetails extends Component {
         {alertDetails.currentLength > 1 &&
           <div className='pagination'>
             <div className='buttons'>
-              <button onClick={this.props.showAlertData.bind(this, 'previous')} disabled={alertDetails.currentIndex === 0}>{t('txt-previous')}</button>
-              <button onClick={this.props.showAlertData.bind(this, 'next')} disabled={alertDetails.currentIndex + 1 === alertDetails.currentLength}>{t('txt-next')}</button>
+              <Button variant='contained' color='primary' onClick={this.props.showAlertData.bind(this, 'previous')} disabled={alertDetails.currentIndex === 0}>{t('txt-previous')}</Button>
+              <Button variant='contained' color='primary' onClick={this.props.showAlertData.bind(this, 'next')} disabled={alertDetails.currentIndex + 1 === alertDetails.currentLength}>{t('txt-next')}</Button>
             </div>
             <span className='count'>{alertDetails.currentIndex + 1} / {alertDetails.currentLength}</span>
           </div>
@@ -998,6 +1003,8 @@ class AlertDetails extends Component {
     this.setState({
       modalEncodeOpen: !modalEncodeOpen
     });
+
+    this.handleCloseMenu();
   }
   /**
    * Get hightlighted text from user
@@ -1017,21 +1024,27 @@ class AlertDetails extends Component {
     }
   }
   /**
-   * Handle encode context menu action
+   * Handle open menu
    * @method
-   * @param {object} evt - mouseClick events
+   * @param {object} event - event object
    */
-  handleEncodeContextMenu = (evt) => {
-    const menuItems = [
-      {
-        id: 'encodeDecodeMenu',
-        text: t('alert.txt-encodeDecode'),
-        action: () => this.openEncodeDialog()
-      }
-    ];
+  handleOpenMenu = (event) => {
+    event.preventDefault();
 
-    ContextMenu.open(evt, menuItems, 'encodeDecodeAction');
-    evt.stopPropagation();
+    this.setState({
+      mouseX: event.clientX - 2,
+      mouseY: event.clientY - 4
+    });
+  }
+  /**
+   * Handle close menu
+   * @method
+   */
+  handleCloseMenu = () => {
+    this.setState({
+      mouseX: null,
+      mouseY: null
+    });
   }
   /**
    * Display PCAP payload content
@@ -1039,11 +1052,26 @@ class AlertDetails extends Component {
    * @returns HTML DOM
    */
   displayPayloadcontent = () => {
+    const {mouseX, mouseY} = this.state;
+
     return (
       <div className='payload'>
         <ul>
-          <li onMouseUp={this.getHighlightedText} onContextMenu={this.handleEncodeContextMenu}><JSONTree data={this.state.alertPayload} theme={helper.getJsonViewTheme()} /></li>
+          <li onMouseUp={this.getHighlightedText} onContextMenu={this.handleOpenMenu}><JSONTree data={this.state.alertPayload} theme={helper.getJsonViewTheme()} /></li>
         </ul>
+
+        <Menu
+          keepMounted
+          open={Boolean(mouseY !== null)}
+          onClose={this.handleCloseMenu}
+          anchorReference='anchorPosition'
+          anchorPosition={
+            mouseY !== null && mouseX !== null
+              ? { top: mouseY, left: mouseX }
+              : undefined
+          }>
+          <MenuItem onClick={this.openEncodeDialog}>{t('alert.txt-encodeDecode')}</MenuItem>
+        </Menu>
       </div>
     )
   }
@@ -1054,13 +1082,29 @@ class AlertDetails extends Component {
    */
   displayJsonData = () => {
     const {alertData} = this.props;
+    const {mouseX, mouseY} = this.state;
     const hiddenFields = ['id', '_tableMenu_'];
     const allData = _.omit(alertData, hiddenFields);
 
     return (
-      <ul className='json-data alert'>
-        <li onMouseUp={this.getHighlightedText} onContextMenu={this.handleEncodeContextMenu}><JSONTree data={allData} theme={helper.getJsonViewTheme()} /></li>
-      </ul>
+      <div>
+        <ul className='json-data alert'>
+          <li onMouseUp={this.getHighlightedText} onContextMenu={this.handleOpenMenu}><JSONTree data={allData} theme={helper.getJsonViewTheme()} /></li>
+        </ul>
+
+        <Menu
+          keepMounted
+          open={Boolean(mouseY !== null)}
+          onClose={this.handleCloseMenu}
+          anchorReference='anchorPosition'
+          anchorPosition={
+            mouseY !== null && mouseX !== null
+              ? { top: mouseY, left: mouseX }
+              : undefined
+          }>
+          <MenuItem onClick={this.openEncodeDialog}>{t('alert.txt-encodeDecode')}</MenuItem>
+        </Menu>
+      </div>
     )
   }
   /**

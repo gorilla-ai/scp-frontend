@@ -1,7 +1,8 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
+import moment from 'moment'
 
+import Button from '@material-ui/core/Button';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 
@@ -92,9 +93,9 @@ class EncodeDecode extends Component {
       tempFormattedText = t('alert.txt-invalidDate');
 
       if (originalText.length === 10) {
-        tempFormattedText = Moment.unix(Number(originalText)).local().format();
+        tempFormattedText = moment.unix(Number(originalText)).local().format();
       } else if (originalText.length === 13) {
-        tempFormattedText = Moment(Number(originalText)).local().format();
+        tempFormattedText = moment(Number(originalText)).local().format();
       }
 
       if (tempFormattedText === 'Invalid date') {
@@ -141,13 +142,13 @@ class EncodeDecode extends Component {
           </TextField>
         </div>
         {(encodeType === 'url' || encodeType === 'base64') &&
-          <button onClick={this.handleTextEncode.bind(this, 'encode')}>Encode</button>
+          <Button variant='contained' color='primary' onClick={this.handleTextEncode.bind(this, 'encode')}>Encode</Button>
         }
         {(encodeType === 'url' || encodeType === 'base64') &&
-          <button onClick={this.handleTextEncode.bind(this, 'decode')}>Decode</button>
+          <Button variant='contained' color='primary' onClick={this.handleTextEncode.bind(this, 'decode')}>Decode</Button>
         }
         {encodeType === 'timestamp'&&
-          <button onClick={this.handleTextEncode.bind(this, 'timestamp')}>{t('alert.txt-toLocalTime')}</button>
+          <Button variant='contained' color='primary' onClick={this.handleTextEncode.bind(this, 'timestamp')}>{t('alert.txt-toLocalTime')}</Button>
         }
         <TextField
           id='encodedText'

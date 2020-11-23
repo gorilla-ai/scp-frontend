@@ -83,6 +83,7 @@ class FileUpload extends Component {
         <label htmlFor={id}>{supportText}</label>
         <FileInput
           id={id}
+          className={className}
           disabled={disabled}
           validate={validate}
           onChange={this.handleFileChange}

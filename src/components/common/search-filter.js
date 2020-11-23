@@ -5,6 +5,7 @@ import cx from 'classnames'
 
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
+import TextareaAutosize from '@material-ui/core/TextareaAutosize';
 
 /**
  * Search Filter
@@ -51,13 +52,9 @@ class SearchFilter extends Component {
           disabled={formStatus}>
           {filterList}
         </TextField>
-        <TextField
+        <TextareaAutosize
           name='query'
-          className='filter-inputbox'
-          multiline={true}
-          variant='outlined'
-          fullWidth={true}
-          size='small'
+          className='textarea-autosize filter-inputbox'
           value={value.query}
           onChange={this.handleDataChange}
           disabled={formStatus} />

@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
+import moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
@@ -83,7 +83,7 @@ class DashboardMaps extends Component {
     this.state = {
       datetime: {
         from: helper.getSubstractDate(24, 'hours'),
-        to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+        to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
         //from: '2020-08-02T01:00:00Z',
         //to: '2020-08-02T01:10:00Z'
       },
@@ -110,8 +110,8 @@ class DashboardMaps extends Component {
     const {baseUrl} = this.context;
     const {datetime, alertDetails} = this.state;
     const dateTime = {
-      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+      from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
     const url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=10000`;
     const requestData = {
@@ -258,11 +258,15 @@ class DashboardMaps extends Component {
   /**
    * Set new datetime
    * @method
-   * @param {object} datetime - new datetime object
+   * @param {string} type - date type ('from' or 'to')
+   * @param {object} newDatetime - new datetime object
    */
-  handleDateChange = (datetime) => {
+  handleDateChange = (type, newDatetime) => {
+    let tempDatetime = {...this.state.datetime};
+    tempDatetime[type] = newDatetime;
+
     this.setState({
-      datetime
+      datetime: tempDatetime
     });
   }
   /**
@@ -346,8 +350,8 @@ class DashboardMaps extends Component {
       const {datetime, alertDetails, currentFloor} = this.state;
       const ip = id;
       const dateTime = {
-        from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-        to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+        from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+        to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
       };
       const url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=10000`;
       const requestData = {
@@ -653,8 +657,8 @@ class DashboardMaps extends Component {
     const {baseUrl} = this.context;
     const {datetime, alertDetails, currentFloor} = this.state;
     const dateTime = {
-      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+      from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
     const url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0&skipHistogram=true`;
     const requestData = {

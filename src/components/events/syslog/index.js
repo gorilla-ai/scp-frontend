@@ -1,16 +1,18 @@
 import React, {Component} from 'react'
 import {withRouter} from 'react-router'
-import Moment from 'moment'
-import moment from 'moment-timezone'
+import moment from 'moment'
+import momentTimezone from 'moment-timezone'
 import _ from 'lodash'
 import cx from 'classnames'
 import queryString from 'query-string'
 
+import Button from '@material-ui/core/Button';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 
 import {analyze} from 'vbda-ui/build/src/analyzer'
 import {config as configLoader} from 'vbda-ui/build/src/loader'
-import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
@@ -52,7 +54,7 @@ class SyslogController extends Component {
       //General
       datetime: {
         from: helper.getSubstractDate(1, 'hour'),
-        to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+        to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
         //from: '2019-07-25T03:10:00Z',
         //to: '2019-08-01T04:10:00Z'
       },
@@ -107,6 +109,8 @@ class SyslogController extends Component {
           logs: 0
         }
       },
+      syslogContextAnchor: null,
+      currentSyslogData: {},
       logFields: [],
       LAconfig: {},
       logEventsData: {},
@@ -136,6 +140,9 @@ class SyslogController extends Component {
         emailList: [],
         openFlag: false
       },
+      queryContextAnchor: null,
+      currentQueryField: '',
+      currentQueryValue: '',
       notifyEmailData: [],
       newQueryName: true,
       showFilter: false,
@@ -383,8 +390,8 @@ class SyslogController extends Component {
     const {datetime} = this.state;
     const url = `${baseUrl}/api/log/event/fields`;
     const requestData = {
-      startDttm: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-      endDttm: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+      startDttm: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      endDttm: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
 
     this.ah.one({
@@ -555,8 +562,8 @@ class SyslogController extends Component {
   toQueryLanguage = (options) => {
     const {datetime, sort, filterData, markData} = this.state;
     const dateTime = {
-      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+      from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
     let dataObj = {
       '@timestamp': [dateTime.from, dateTime.to],
@@ -586,7 +593,7 @@ class SyslogController extends Component {
     }
 
     if (options == 'csv') {
-      const timezone = moment.tz(moment.tz.guess()); //Get local timezone obj
+      const timezone = momentTimezone.tz(momentTimezone.tz.guess()); //Get local timezone obj
       const utc_offset = timezone._offset / 60; //Convert minute to hour
       dataObj.timeZone = utc_offset;
     }
@@ -679,7 +686,7 @@ class SyslogController extends Component {
               if (tempData === '_tableMenu_') {
                 return (
                   <div className={cx('table-menu', {'active': value})}>
-                    <button onClick={this.handleRowContextMenu.bind(this, allValue)}><i className='fg fg-more'></i></button>
+                    <Button variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue)}><i className='fg fg-more'></i></Button>
                   </div>
                 )
               }
@@ -704,7 +711,7 @@ class SyslogController extends Component {
                   fieldName={tempData}
                   allValue={allValue}
                   markData={markData}
-                  showQueryOptions={this.showQueryOptions} />
+                  handleOpenQueryMenu={this.handleOpenQueryMenu} />
               )
             }
           }
@@ -782,7 +789,7 @@ class SyslogController extends Component {
   getTreeLabel = (name, currentTreeName, count, query) => {
     const serviceCount = count !== '' ? ' (' + count + ')' : '';
 
-    return <span>{name}{serviceCount} <button className={cx('button', {'active': currentTreeName === name})} onClick={this.selectTree.bind(this, name, query)}>{t('events.connections.txt-addFilter')}</button></span>;
+    return <span>{name}{serviceCount} <Button variant='outlined' color='primary' className={cx('button', {'active': currentTreeName === name})} onClick={this.selectTree.bind(this, name, query)}>{t('events.connections.txt-addFilter')}</Button></span>;
   }
   /**
    * Set the netflow tree data
@@ -1006,56 +1013,52 @@ class SyslogController extends Component {
     });
   }
   /**
-   * Construct and display table context menu
+   * Handle open menu
    * @method
-   * @param {object} allValue - syslog data
-   * @param {object} evt - mouseClick events
+   * @param {object} syslog - active syslog data
+   * @param {object} event - event object
    */
-  handleRowContextMenu = (allValue, evt) => {
-    const menuItems = [
-      {
-        id: allValue.id + 'Table',
-        text: t('events.connections.txt-fieldsSettings'),
-        action: () => this.showTableData(allValue)
-      },
-      {
-        id: allValue.id + 'Json',
-        text: t('events.connections.txt-viewJSON'),
-        action: () => this.viewJsonData(allValue)
-      }
-    ];
-
-    ContextMenu.open(evt, menuItems, 'syslogViewMenu');
-    evt.stopPropagation();
+  handleOpenMenu = (syslog, event) => {
+    this.setState({
+      syslogContextAnchor: event.currentTarget,
+      currentSyslogData: syslog
+    });
   }
   /**
-   * Show query option when click on the table raw filter icon
+   * Handle close menu
+   * @method
+   */
+  handleCloseMenu = () => {
+    this.setState({
+      syslogContextAnchor: null,
+      currentSyslogData: {}
+    });
+  }
+  /**
+   * Show query option when click on the table row filter icon
    * @method
    * @param {string} field - field name of selected field
    * @param {string | number} value - value of selected field
-   * @param {object} e - mouseClick events
+   * @param {string} activeTab - currect active tab
+   * @param {object} event - event object
    */
-  showQueryOptions = (field, value) => (e) => {
-    const menuItems = [
-      {
-        id: value + '_Must',
-        text: 'Must',
-        action: () => this.addSearch(field, value, 'must')
-      },
-      {
-        id: value + '_MustNot',
-        text: 'Must Not',
-        action: () => this.addSearch(field, value, 'must_not')
-      },
-      {
-        id: value + '_Either',
-        text: 'Either',
-        action: () => this.addSearch(field, value, 'either')
-      }
-    ];
-
-    ContextMenu.open(e, menuItems, 'eventsQueryMenu');
-    e.stopPropagation();
+  handleOpenQueryMenu = (field, value, activeTab, event) => {
+    this.setState({
+      queryContextAnchor: event.currentTarget,
+      currentQueryField: field,
+      currentQueryValue: value
+    });
+  }
+  /**
+   * Handle close query menu
+   * @method
+   */
+  handleCloseQueryMenu = () => {
+    this.setState({
+      queryContextAnchor: null,
+      currentQueryField: '',
+      currentQueryValue: ''
+    });
   }
   /**
    * Add tree node to search filter
@@ -1097,6 +1100,8 @@ class SyslogController extends Component {
       showMark: true,
       filterData: currentFilterData
     });
+
+    this.handleCloseQueryMenu();
   }
   /**
    * Handle value change for the checkbox in the table dialog
@@ -1167,7 +1172,7 @@ class SyslogController extends Component {
     return null;
   }
   /**
-   * Set the table raw index and netflow data
+   * Set the table row index and netflow data
    * @method
    * @param {string | object} data - button action type ('previous' or 'next'), or data object
    * @returns object of index and data
@@ -1186,7 +1191,7 @@ class SyslogController extends Component {
         tableRowIndex--;
       }
       allValue = subSectionsData.mainData[activeTab][tableRowIndex];
-    } else { //For click on table raw
+    } else { //For click on table row
       tableRowIndex = _.findIndex(subSectionsData.mainData[activeTab], {'id': data.id});
       allValue = data;
     }
@@ -1199,7 +1204,7 @@ class SyslogController extends Component {
   /**
    * Set the data to be displayed in table dialog
    * @method
-   * @param {object} allValue - data of selected table raw
+   * @param {object} allValue - data of selected table row
    */
   showTableData = (allValue) => {
     const {activeTab, subSectionsData, account} = this.state;
@@ -1262,6 +1267,8 @@ class SyslogController extends Component {
       currentTableIndex,
       currentTableID: allValue.id
     });
+
+    this.handleCloseMenu();
   }
   /**
    * Set default and custom locale name
@@ -1391,7 +1398,7 @@ class SyslogController extends Component {
           getCustomFieldName={this.getCustomFieldName}
           setFieldsChange={this.setFieldsChange}
           checkDisplayFields={this.checkDisplayFields}
-          showQueryOptions={this.showQueryOptions}
+          handleOpenQueryMenu={this.handleOpenQueryMenu}
           toggleLocaleEdit={this.toggleLocaleEdit}
           useDragHandle={true}
           lockToContainerEdges={true} />
@@ -1399,8 +1406,8 @@ class SyslogController extends Component {
         {currentLength > 1 &&
           <div className='pagination'>
             <div className='buttons'>
-              <button onClick={this.showTableData.bind(this, 'previous')} disabled={currentTableIndex === 0}>{t('txt-previous')}</button>
-              <button onClick={this.showTableData.bind(this, 'next')} disabled={currentTableIndex + 1 == currentLength}>{t('txt-next')}</button>
+              <Button variant='outlined' color='primary' onClick={this.showTableData.bind(this, 'previous')} disabled={currentTableIndex === 0}>{t('txt-previous')}</Button>
+              <Button variant='outlined' color='primary' onClick={this.showTableData.bind(this, 'next')} disabled={currentTableIndex + 1 == currentLength}>{t('txt-next')}</Button>
             </div>
             <span className='count'>{currentTableIndex + 1} / {currentLength}</span>
           </div>
@@ -1497,8 +1504,8 @@ class SyslogController extends Component {
 
         <div className='pagination json'>
           <div className='buttons'>
-            <button onClick={this.viewJsonData.bind(this, 'previous')} disabled={currentTableIndex === 0}>{t('txt-previous')}</button>
-            <button onClick={this.viewJsonData.bind(this, 'next')} disabled={currentTableIndex + 1 == currentLength}>{t('txt-next')}</button>
+            <Button variant='outlined' color='primary' onClick={this.viewJsonData.bind(this, 'previous')} disabled={currentTableIndex === 0}>{t('txt-previous')}</Button>
+            <Button variant='outlined' color='primary' onClick={this.viewJsonData.bind(this, 'next')} disabled={currentTableIndex + 1 == currentLength}>{t('txt-next')}</Button>
           </div>
           <span className='count'>{currentTableIndex + 1} / {currentLength}</span>
         </div>
@@ -1508,7 +1515,7 @@ class SyslogController extends Component {
   /**
    * Open Json data modal dialog
    * @method
-   * @param {object} allValue - data of selected table raw
+   * @param {object} allValue - data of selected table row
    */
   viewJsonData = (allValue) => {
     const newData = this.handleDialogNavigation(allValue);
@@ -1520,7 +1527,7 @@ class SyslogController extends Component {
       currentTableID: allValue.id
     }, () => {
       PopupDialog.alert({
-        title: t('events.connections.txt-viewJSON'),
+        title: t('txt-viewJSON'),
         id: 'viewJsonDialog',
         confirmText: t('txt-close'),
         display: this.displayJsonData(allValue),
@@ -1528,16 +1535,22 @@ class SyslogController extends Component {
         }
       });
     });
+
+    this.handleCloseMenu();
   }
   /**
    * Set new datetime
    * @method
-   * @param {object} datetime - new datetime object
+   * @param {string} type - date type ('from' or 'to')
+   * @param {object} newDatetime - new datetime object
    * @param {string} refresh - option for 'refresh'
    */
-  handleDateChange = (datetime, refresh) => {
+  handleDateChange = (type, newDatetime, refresh) => {
+    let tempDatetime = {...this.state.datetime};
+    tempDatetime[type] = newDatetime;
+
     this.setState({
-      datetime
+      datetime: tempDatetime
     }, () => {
       if (refresh === 'refresh') {
         this.loadLogs();
@@ -1599,6 +1612,7 @@ class SyslogController extends Component {
       chartIntervalList: this.state.chartIntervalList,
       chartIntervalValue: this.state.chartIntervalValue,
       chartIntervalChange: this.handleIntervalChange,
+      getChartsCSVfile: this.getChartsCSVfile,
       subTabMenu: this.state.subTabMenu,
       activeSubTab: this.state.activeSubTab,
       handleSubTabChange: this.handleSubTabChange,
@@ -1651,29 +1665,50 @@ class SyslogController extends Component {
     )
   }
   /**
+   * Get request data for CSV file
+   * @method
+   * @param {string} url - request URL
+   * @param {string} [columns] - columns for CSV file
+   */
+  getCSVrequestData = (url, columns) => {
+    let dataOptions = {
+      ...this.toQueryLanguage('csv')
+    };
+
+    if (columns === 'columns') {
+      let tempColumns = [];
+
+      _.forEach(this.state.account.fields, val => {
+        if (val !== 'alertRule' && val != '_tableMenu_') {
+          tempColumns.push({
+            [val]: this.getCustomFieldName(val)
+          });
+        }
+      })
+
+      dataOptions.columns = tempColumns;
+    }
+
+    downloadWithForm(url, {payload: JSON.stringify(dataOptions)});
+  }
+  /**
    * Handle CSV download
    * @method
    */
   getCSVfile = () => {
     const {baseUrl, contextRoot} = this.context;
-    const {activeTab, account} = this.state;
     const url = `${baseUrl}${contextRoot}/api/u1/log/event/_export`;
-    let tempColumns = [];
-
-    _.forEach(account.fields, val => {
-      if (val !== 'alertRule' && val != '_tableMenu_') {
-        tempColumns.push({
-          [val]: this.getCustomFieldName(val)
-        });
-      }
-    })
-
-    const dataOptions = {
-      ...this.toQueryLanguage('csv'),
-      columns: tempColumns
-    };
-
-    downloadWithForm(url, {payload: JSON.stringify(dataOptions)});
+    this.getCSVrequestData(url, 'columns');
+  }
+  /**
+   * Handle Charts CSV download
+   * @method
+   */
+  getChartsCSVfile = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {chartIntervalValue} = this.state;
+    const url = `${baseUrl}${contextRoot}/api/u1/log/event/histogram/_export?interval=${chartIntervalValue}`;
+    this.getCSVrequestData(url);
   }
   /**
    * Toggle filter and mark content on/off
@@ -1866,6 +1901,11 @@ class SyslogController extends Component {
       saveQueryOpen,
       filterData,
       markData,
+      syslogContextAnchor,
+      currentSyslogData,
+      queryContextAnchor,
+      currentQueryField,
+      currentQueryValue,
       showChart,
       showFilter,
       showMark,
@@ -1904,13 +1944,32 @@ class SyslogController extends Component {
           this.localeChangeDialog()
         }
 
+        <Menu
+          anchorEl={syslogContextAnchor}
+          keepMounted
+          open={Boolean(syslogContextAnchor)}
+          onClose={this.handleCloseMenu}>
+          <MenuItem onClick={this.showTableData.bind(this, currentSyslogData)}>{t('events.connections.txt-fieldsSettings')}</MenuItem>
+          <MenuItem onClick={this.viewJsonData.bind(this, currentSyslogData)}>{t('txt-viewJSON')}</MenuItem>
+        </Menu>
+
+        <Menu
+          anchorEl={queryContextAnchor}
+          keepMounted
+          open={Boolean(queryContextAnchor)}
+          onClose={this.handleCloseQueryMenu}>
+          <MenuItem onClick={this.addSearch.bind(this, currentQueryField, currentQueryValue, 'must')}>Must</MenuItem>
+          <MenuItem onClick={this.addSearch.bind(this, currentQueryField, currentQueryValue, 'must_not')}>Must Not</MenuItem>
+          <MenuItem onClick={this.addSearch.bind(this, currentQueryField, currentQueryValue, 'either')}>Either</MenuItem>
+        </Menu>
+
         <div className='sub-header'>
           {helper.getEventsMenu('syslog')}
 
           <div className='secondary-btn-group right'>
-            <button className={cx({'active': showMark})} onClick={this.toggleMark}><i className='fg fg-filter'></i><span>({filterDataCount})</span> <i className='fg fg-edit'></i><span>({markDataCount})</span></button>
-            <button className={cx({'active': showChart})} onClick={this.toggleChart} title={t('events.connections.txt-toggleChart')}><i className='fg fg-chart-columns'></i></button>
-            <button className='last' onClick={this.getCSVfile} title={t('events.connections.txt-exportCSV')}><i className='fg fg-data-download'></i></button>
+            <Button variant='outlined' color='primary' className={cx({'active': showMark})} onClick={this.toggleMark}><i className='fg fg-filter'></i><span>({filterDataCount})</span> <i className='fg fg-edit'></i><span>({markDataCount})</span></Button>
+            <Button variant='outlined' color='primary' className={cx({'active': showChart})} onClick={this.toggleChart} title={t('events.connections.txt-toggleChart')}><i className='fg fg-chart-columns'></i></Button>
+            <Button variant='outlined' color='primary' className='last' onClick={this.getCSVfile} title={t('txt-exportCSV')}><i className='fg fg-data-download'></i></Button>
           </div>
 
           <SearchOptions

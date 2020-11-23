@@ -532,7 +532,7 @@ class Notifications extends Component {
 
               {activeContent === 'viewMode' &&
                 <div className='content-header-btns'>
-                  <button className='standard btn' onClick={this.toggleContent.bind(this, 'editMode')}>{t('txt-edit')}</button>
+                  <Button variant='contained' color='primary' onClick={this.toggleContent.bind(this, 'editMode')}>{t('txt-edit')}</Button>
                 </div>
               }
 
@@ -645,8 +645,8 @@ class Notifications extends Component {
 
               {activeContent === 'editMode' &&
                 <footer>
-                  <button className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</button>
-                  <button onClick={this.toggleContent.bind(this, 'save')}>{t('txt-save')}</button>
+                  <Button variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</Button>
+                  <Button variant='contained' color='primary' onClick={this.toggleContent.bind(this, 'save')}>{t('txt-save')}</Button>
                 </footer>
               }
             </div>

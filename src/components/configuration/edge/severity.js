@@ -2,9 +2,9 @@ import React, { Component } from 'react'
 import { withRouter } from 'react-router'
 import { NavLink, Link, Route } from 'react-router-dom'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
 import cx from 'classnames'
 
+import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -54,6 +54,7 @@ class Severity extends Component {
       originalSeverityData: {},
       severityList: [],
       currentSeverityData: '',
+      currentThreatType: '',
       severity: {
         dataFieldsArr: ['dataSourceType', 'severityLevel', 'nickname', 'description', 'updateDttm', '_menu'],
         dataFields: {},
@@ -145,6 +146,7 @@ class Severity extends Component {
                 return (
                   <div className='table-menu menu active'>
                     <i className='fg fg-eye' onClick={this.toggleContent.bind(this, 'viewSeverity', allValue)} title={t('txt-view')}></i>
+                    <i className='fg fg-trashcan' onClick={this.openDeleteMenu.bind(this, allValue.dataSourceType)} title={t('txt-delete')}></i>
                   </div>
                 )
               }
@@ -209,6 +211,64 @@ class Severity extends Component {
     });
   }
   /**
+   * Display delete Threat type
+   * @method
+   * @param {string} type - Threat type
+   * @returns HTML DOM
+   */
+  getDeleteThreatType = (type) => {
+    this.setState({
+      currentThreatType: type
+    });
+
+    return (
+      <div className='content delete'>
+        <span>{t('txt-delete-msg')}: {type}?</span>
+      </div>
+    )
+  }
+  /**
+   * Show Delete Threat type dialog
+   * @method
+   * @param {string} type - Threat type
+   */
+  openDeleteMenu = (type) => {
+    PopupDialog.prompt({
+      title: t('edge-management.txt-deleteThreatType'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-delete'),
+      cancelText: t('txt-cancel'),
+      display: this.getDeleteThreatType(type),
+      act: (confirmed, data) => {
+        if (confirmed) {
+          this.deleteThreatType();
+        }
+      }
+    });
+  }
+  /**
+   * Handle delete Threat type
+   * @method
+   */
+  deleteThreatType = () => {
+    const {baseUrl} = this.context;
+    const {currentThreatType} = this.state;
+
+    ah.one({
+      url: `${baseUrl}/api/severityMapping?dataSourceType=${currentThreatType}`,
+      type: 'DELETE'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        this.getSeverityMapping();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Handle Severity edit input data change
    * @method
    * @param {object} event - event object
@@ -243,8 +303,8 @@ class Severity extends Component {
         <div className='content-header-btns'>
           {activeContent === 'viewSeverity' &&
             <div>
-              <button className='standard btn list' onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</button>
-              <button className='standard btn edit' onClick={this.toggleContent.bind(this, 'editSeverity')}>{t('txt-edit')}</button>
+              <Button variant='outlined' color='primary' className='standard btn list' onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</Button>
+              <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'editSeverity')}>{t('txt-edit')}</Button>
             </div>
           }
         </div>
@@ -311,8 +371,8 @@ class Severity extends Component {
 
         {(activeContent === 'addSeverity' || activeContent === 'editSeverity') &&
           <footer>
-            <button className='standard' onClick={this.toggleContent.bind(this, pageType)}>{t('txt-cancel')}</button>
-            <button onClick={this.handleSeveritySubmit}>{t('txt-save')}</button>
+            <Button variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, pageType)}>{t('txt-cancel')}</Button>
+            <Button variant='contained' color='primary' onClick={this.handleSeveritySubmit}>{t('txt-save')}</Button>
           </footer>
         }
       </div>
@@ -475,8 +535,8 @@ class Severity extends Component {
           </div>
         </div>
         <div className='button-group group-aligned'>
-          <button className='filter' onClick={this.getSeverityMapping.bind(this, 'search')}>{t('txt-filter')}</button>
-          <button className='clear' onClick={this.clearFilter}>{t('txt-clear')}</button>
+          <Button variant='contained' color='primary' className='filter' onClick={this.getSeverityMapping.bind(this, 'search')}>{t('txt-filter')}</Button>
+          <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}</Button>
         </div>
       </div>
     )
@@ -536,7 +596,7 @@ class Severity extends Component {
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
             {activeContent === 'tableList' &&
-              <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
+              <Button variant='outlined' color='primary' className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
             }
           </div>
         </div>
@@ -547,14 +607,14 @@ class Severity extends Component {
             contextRoot={contextRoot} />
 
           <div className='parent-content'>
-            { this.renderFilter() }
+            {this.renderFilter()}
 
             {activeContent === 'tableList' &&
               <div className='main-content'>
                 <header className='main-header'>{t('threat-severity-mapping.txt-severityMapping')}</header>
 
                 <div className='content-header-btns'>
-                  <button className='standard btn' onClick={this.toggleContent.bind(this, 'addSeverity')}>{t('threat-severity-mapping.txt-addSeverityTable')}</button>
+                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'addSeverity')}>{t('threat-severity-mapping.txt-addSeverityTable')}</Button>
                 </div>
 
                 <TableContent
