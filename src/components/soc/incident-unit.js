@@ -408,7 +408,7 @@ class IncidentUnit extends Component {
                             name='industryType'
                             required
                             helperText={it('txt-required')}
-                            error={!(incidentUnit.info.industryType || '').trim()}
+                            error={!(incidentUnit.info.industryType || '')}
                             variant='outlined'
                             fullWidth={true}
                             size='small'

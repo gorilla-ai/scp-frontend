@@ -224,7 +224,12 @@ class Header extends Component {
   render() {
     const {contextRoot, sessionRights, session} = this.context;
     const {productName} = this.props;
-    let isSOC = _.includes(session.roles, 'SOC Executor'||'SOC Analyzer'|| 'SOC Supervior' || 'SOC Supervisor')
+
+    let isSOC = session.roles.includes("SOC Executor") ||
+        session.roles.includes("SOC Analyzer")  ||
+        session.roles.includes("SOC Supervior")  ||
+        session.roles.includes("SOC Supervisor")
+
     return (
       <div className='header-wrapper'>
         <div className='main-header'>
