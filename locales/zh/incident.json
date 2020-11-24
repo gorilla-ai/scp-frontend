@@ -22,10 +22,14 @@
 	"txt-auditV2-success": "審核成功",
 	"txt-auditV2-fail": "審核失敗",
 	"txt-auditV2-msg": "是否審核",
-	"txt-close": "結案",
-	"txt-close-success": "結案成功",
-	"txt-close-fail": "結案失敗",
-	"txt-close-msg": "是否結案",
+	"txt-close": "撤案",
+	"txt-close-success": "撤案成功",
+	"txt-close-fail": "撤案失敗",
+	"txt-close-msg": "是否撤案",
+	"txt-sign": "簽核",
+	"txt-sign-success": "簽核成功",
+	"txt-sign-fail": "簽核失敗",
+	"txt-sign-msg": "是否簽核",
 	"txt-submit": "送審",
 	"txt-submit-success": "送審成功",
 	"txt-submit-fail": "送審失敗",
@@ -170,11 +174,12 @@
 		"0": "全部",
 		"1": "待送審",
 		"2": "待審核",
-		"3": "結案(未發布)",
+		"3": "已結案(未發布)",
 		"4": "已發布",
 		"5": "已刪除",
 		"6": "待交辦分析",
-		"7": "待處理"
+		"7": "待簽核",
+		"8": "已撤案"
 	},
 	"action": {
 		"0": "全部",
@@ -184,7 +189,9 @@
 		"4": "結案",
 		"5": "新增事件單",
 		"6": "修改事件單",
-		"7": "轉分析人員"
+		"7": "轉分析人員",
+		"8": "撤銷事件單",
+		"9": "簽核事件單"
 	},
 	"protectType": {
 		"0": "防毒軟體",
