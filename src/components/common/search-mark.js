@@ -47,7 +47,7 @@ class SearchMark extends Component {
       <div>
         <i className={'c-link fg fg-recode ' + value.color}></i>
         <TextareaAutosize
-          className='mark-inputbox'
+          className='textarea-autosize mark-inputbox'
           value={inputValue}
           onChange={this.handleDataChange}
           disabled={formStatus} />

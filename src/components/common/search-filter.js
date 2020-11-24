@@ -54,7 +54,7 @@ class SearchFilter extends Component {
         </TextField>
         <TextareaAutosize
           name='query'
-          className='filter-inputbox'
+          className='textarea-autosize filter-inputbox'
           value={value.query}
           onChange={this.handleDataChange}
           disabled={formStatus} />

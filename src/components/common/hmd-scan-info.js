@@ -807,6 +807,7 @@ class HMDscanInfo extends Component {
    * @returns HTML DOM
    */
   displayScanProcessPath = (parentIndex, val, i) => {
+    const {location} = this.props;
     const {activeTab, activePath, activeRuleHeader, activeDLL, activeConnections, activeExecutableInfo} = this.state;
     const filePath = val._MatchedFile || val._ProcessInfo._ExecutableInfo._FileInfo._Filepath;
 
@@ -835,7 +836,7 @@ class HMDscanInfo extends Component {
               {val._MatchedPid &&
                 <span>PID: {val._MatchedPid}</span>
               }
-              {activeTab === 'procMonitor' &&
+              {activeTab === 'procMonitor' && (location.pathname.indexOf('host') > 0 || location.pathname.indexOf('configuration') > 0) &&
                 <i className='c-link fg fg-add' title={t('network-inventory.txt-addToSettings')} onClick={this.addToSettings.bind(this, 'procMonitor', filePath)}></i>
               }
             </div>

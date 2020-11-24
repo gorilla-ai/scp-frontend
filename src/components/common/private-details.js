@@ -14,7 +14,7 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const NOT_AVAILABLE = 'N/A';
 const IP_INFO = ['ip', 'mac'];
-const HOST_INFO = ['hostName', 'system', 'deviceType', 'userAccount', 'cpu', 'ram', 'disks', 'shareFolders'];
+const HOST_INFO = ['hostName', 'system', 'deviceType', 'userAccount', 'cpu', 'ram', 'disks', 'shareFolders', 'remarks'];
 const OWNER_INFO = ['ownerName', 'ownerID', 'department', 'title'];
 
 let t = null;

@@ -173,11 +173,13 @@ class ResetPwd extends Component {
       validate = false;
     }
 
-    if (formData.oldPwd) {
-      tempFormValidation.oldPwd.valid = true;
-    } else {
-      tempFormValidation.oldPwd.valid = false;
-      validate = false;
+    if (formType === 'reset') {
+      if (formData.oldPwd) {
+        tempFormValidation.oldPwd.valid = true;
+      } else {
+        tempFormValidation.oldPwd.valid = false;
+        validate = false;
+      }
     }
 
     if (formData.newPwd1) {

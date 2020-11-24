@@ -1527,7 +1527,7 @@ class SyslogController extends Component {
       currentTableID: allValue.id
     }, () => {
       PopupDialog.alert({
-        title: t('events.connections.txt-viewJSON'),
+        title: t('txt-viewJSON'),
         id: 'viewJsonDialog',
         confirmText: t('txt-close'),
         display: this.displayJsonData(allValue),
@@ -1612,6 +1612,7 @@ class SyslogController extends Component {
       chartIntervalList: this.state.chartIntervalList,
       chartIntervalValue: this.state.chartIntervalValue,
       chartIntervalChange: this.handleIntervalChange,
+      getChartsCSVfile: this.getChartsCSVfile,
       subTabMenu: this.state.subTabMenu,
       activeSubTab: this.state.activeSubTab,
       handleSubTabChange: this.handleSubTabChange,
@@ -1664,29 +1665,50 @@ class SyslogController extends Component {
     )
   }
   /**
+   * Get request data for CSV file
+   * @method
+   * @param {string} url - request URL
+   * @param {string} [columns] - columns for CSV file
+   */
+  getCSVrequestData = (url, columns) => {
+    let dataOptions = {
+      ...this.toQueryLanguage('csv')
+    };
+
+    if (columns === 'columns') {
+      let tempColumns = [];
+
+      _.forEach(this.state.account.fields, val => {
+        if (val !== 'alertRule' && val != '_tableMenu_') {
+          tempColumns.push({
+            [val]: this.getCustomFieldName(val)
+          });
+        }
+      })
+
+      dataOptions.columns = tempColumns;
+    }
+
+    downloadWithForm(url, {payload: JSON.stringify(dataOptions)});
+  }
+  /**
    * Handle CSV download
    * @method
    */
   getCSVfile = () => {
     const {baseUrl, contextRoot} = this.context;
-    const {activeTab, account} = this.state;
     const url = `${baseUrl}${contextRoot}/api/u1/log/event/_export`;
-    let tempColumns = [];
-
-    _.forEach(account.fields, val => {
-      if (val !== 'alertRule' && val != '_tableMenu_') {
-        tempColumns.push({
-          [val]: this.getCustomFieldName(val)
-        });
-      }
-    })
-
-    const dataOptions = {
-      ...this.toQueryLanguage('csv'),
-      columns: tempColumns
-    };
-
-    downloadWithForm(url, {payload: JSON.stringify(dataOptions)});
+    this.getCSVrequestData(url, 'columns');
+  }
+  /**
+   * Handle Charts CSV download
+   * @method
+   */
+  getChartsCSVfile = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {chartIntervalValue} = this.state;
+    const url = `${baseUrl}${contextRoot}/api/u1/log/event/histogram/_export?interval=${chartIntervalValue}`;
+    this.getCSVrequestData(url);
   }
   /**
    * Toggle filter and mark content on/off
@@ -1928,7 +1950,7 @@ class SyslogController extends Component {
           open={Boolean(syslogContextAnchor)}
           onClose={this.handleCloseMenu}>
           <MenuItem onClick={this.showTableData.bind(this, currentSyslogData)}>{t('events.connections.txt-fieldsSettings')}</MenuItem>
-          <MenuItem onClick={this.viewJsonData.bind(this, currentSyslogData)}>{t('events.connections.txt-viewJSON')}</MenuItem>
+          <MenuItem onClick={this.viewJsonData.bind(this, currentSyslogData)}>{t('txt-viewJSON')}</MenuItem>
         </Menu>
 
         <Menu
@@ -1947,7 +1969,7 @@ class SyslogController extends Component {
           <div className='secondary-btn-group right'>
             <Button variant='outlined' color='primary' className={cx({'active': showMark})} onClick={this.toggleMark}><i className='fg fg-filter'></i><span>({filterDataCount})</span> <i className='fg fg-edit'></i><span>({markDataCount})</span></Button>
             <Button variant='outlined' color='primary' className={cx({'active': showChart})} onClick={this.toggleChart} title={t('events.connections.txt-toggleChart')}><i className='fg fg-chart-columns'></i></Button>
-            <Button variant='outlined' color='primary' className='last' onClick={this.getCSVfile} title={t('events.connections.txt-exportCSV')}><i className='fg fg-data-download'></i></Button>
+            <Button variant='outlined' color='primary' className='last' onClick={this.getCSVfile} title={t('txt-exportCSV')}><i className='fg fg-data-download'></i></Button>
           </div>
 
           <SearchOptions

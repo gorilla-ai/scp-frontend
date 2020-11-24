@@ -8,6 +8,7 @@ import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MenuItem from '@material-ui/core/MenuItem';
+import TextareaAutosize from '@material-ui/core/TextareaAutosize';
 import TextField from '@material-ui/core/TextField';
 
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
@@ -663,13 +664,11 @@ class Pattern extends Component {
               onChange={this.handlePatternSearch} />
           </div>
           <div className='group'>
-            <TextField
+            <TextareaAutosize
               id='patternSearchQueryScript'
+              className='textarea-autosize'
               name='queryScript'
-              label={f('syslogPatternTableFields.queryScript')}
-              variant='outlined'
-              fullWidth={true}
-              size='small'
+              placeholder={f('syslogPatternTableFields.queryScript')}
               value={patternSearch.queryScript}
               onChange={this.handlePatternSearch} />
           </div>
@@ -757,7 +756,7 @@ class Pattern extends Component {
             contextRoot={contextRoot} />
 
           <div className='parent-content'>
-            { this.renderFilter() }
+            {this.renderFilter()}
 
             {activeContent === 'tableList' &&
               <div className='main-content'>

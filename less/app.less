@@ -236,6 +236,7 @@ button.standard:hover:not([disabled]) {
 }
 .c-combobox {
   input[type=text] {
+    height: 40px;
     color: var(--primaryTextColor);
     border: 1px solid var(--formInputBorderColor);
     background-color: var(--formBackground);
@@ -246,20 +247,6 @@ button.standard:hover:not([disabled]) {
   .fg-close {
     max-height: 40px;
   }
-}
-.c-menu {
-  border: 1px solid var(--primaryBorder);
-  &.sub {
-    background-color: var(--primaryContentBackground);
-  }
-  &.sub > * {
-    color: var(--primaryTextColor);
-    border-bottom: 1px solid var(--primaryContentBackground);
-    &:hover {
-      border-bottom: 1px solid var(--primaryContentBackground);
-      background-color: var(--tabMenuHover);
-    }
-  }  
 }
 .c-toggle-btn > input[type=checkbox] + div {
   background: var(--fadedColor);
@@ -325,15 +312,6 @@ button.standard:hover:not([disabled]) {
         padding: 0.3em 25px 0.5em 25px;
       }
     }
-  }
-}
-.c-contextmenu {
-  position: absolute;
-}
-i.c-checkbox.fg-checkbox {
-  color: var(--buttonSelectedColor);
-  &:hover:not(.disabled) {
-    color: var(--pageCurrentHover);
   }
 }
 .c-hierarchy {
@@ -403,9 +381,6 @@ i.c-checkbox.fg-checkbox {
       background-color: var(--pageCurrentHover);
     }
   }
-}
-.c-date-picker i.fg {
-  height: 35px;
 }
 .c-box {
   border: 1px solid var(--primaryBorder);
@@ -585,6 +560,15 @@ i.c-checkbox.fg-checkbox {
   }
 }
 #app-container {
+  .textarea-autosize {
+    min-height: 40px !important;
+    padding: 8px 10px;
+    color: var(--primaryTextColor);
+    border: 1px solid var(--formInputBorderColor);
+    background-color: var(--formBackground);
+    border-radius: 4px;
+    width: 100%;
+  }
   .checkbox-ui,
   .radio-ui {
     padding: 0px 5px 5px 5px;
@@ -1507,15 +1491,6 @@ i.c-checkbox.fg-checkbox {
               height: 35px;
               margin-right: 3px;
             }
-            .filter-inputbox,
-            .mark-inputbox {
-              min-height: 40px !important;
-              padding: 8px 10px;
-              color: var(--primaryTextColor);
-              border: 1px solid var(--formInputBorderColor);
-              background-color: var(--formBackground);
-              border-radius: 4px;
-            }
             .filter-inputbox {
               width: 230px;
             }
@@ -1695,6 +1670,11 @@ i.c-checkbox.fg-checkbox {
       }
       .main-chart { //For main chart in Events and Syslog
         border-bottom: 1px solid var(--primaryBorder);
+        .csv-btn {
+          position: absolute;
+          top: 20px;
+          right: 50px;
+        }
         .chart-content {
           position: absolute;
           background-color: var(--primaryContentBackground);

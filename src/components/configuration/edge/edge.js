@@ -19,6 +19,7 @@ import Switch from '@material-ui/core/Switch';
 import TextField from '@material-ui/core/TextField';
 
 import Combobox from 'react-ui/build/src/components/combobox'
+import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import Gis from 'react-gis/build/src/components'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import Tabs from 'react-ui/build/src/components/tabs'
@@ -262,15 +263,12 @@ class Edge extends Component {
     return <span key={i} className='item'>{val}</span>
   }
   /**
-   * Get and set Edge table data
+   * Get Edge search request data
    * @method
-   * @param {string} fromSearch - option for the 'search'
+   * @returns request object data
    */
-  getEdgeData = (fromSearch) => {
-    const {baseUrl, contextRoot} = this.context;
-    const {edgeSearch, edge} = this.state;
-    const page = fromSearch === 'search' ? 1 : edge.currentPage;
-    const url = `${baseUrl}/api/edge/_search?page=${page}&pageSize=${edge.pageSize}`;
+  getEdgeSearchRequestData = () => {
+    const {edgeSearch} = this.state;
     let requestData = {};
 
     if (edgeSearch.keyword) {
@@ -288,6 +286,20 @@ class Edge extends Component {
     if (edgeSearch.connectionStatus && edgeSearch.connectionStatus !== 'all') {
       requestData.connectionStatus = edgeSearch.connectionStatus;
     }
+
+    return requestData;
+  }
+  /**
+   * Get and set Edge table data
+   * @method
+   * @param {string} fromSearch - option for the 'search'
+   */
+  getEdgeData = (fromSearch) => {
+    const {baseUrl, contextRoot} = this.context;
+    const {edge} = this.state;
+    const page = fromSearch === 'search' ? 1 : edge.currentPage;
+    const url = `${baseUrl}/api/edge/_search?page=${page}&pageSize=${edge.pageSize}`;
+    const requestData = this.getEdgeSearchRequestData();
 
     this.ah.one({
       url,
@@ -374,6 +386,17 @@ class Edge extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+  }
+  /**
+   * Handle CSV download
+   * @method
+   */
+  getCSVfile = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const url = `${baseUrl}${contextRoot}/api/edge/_export`;
+    const requestData = this.getEdgeSearchRequestData();
+
+    downloadWithForm(url, {payload: JSON.stringify(requestData)});
   }
   /**
    * Set map geoJson and attacks data
@@ -594,6 +617,9 @@ class Edge extends Component {
         licenseName: allValue.vpnName,
         serviceType: allValue.serviceType,
         serviceMode: allValue.agentMode,
+        chassisAddress: allValue.chassisAddress,
+        chassisLocation: allValue.chassisLocation,
+        contact: allValue.contact,
         longitude: '',
         latitude: '',
         edgeGroupList: allValue.groupList,
@@ -834,6 +860,9 @@ class Edge extends Component {
     let requestData = {
       id: edge.info.id,
       agentName: edge.info.name,
+      chassisAddress: edge.info.chassisAddress,
+      chassisLocation: edge.info.chassisLocation,
+      contact: edge.info.contact,
       memo: edge.info.memo
     };
     let tempFormValidation = {...formValidation};
@@ -1258,6 +1287,42 @@ class Edge extends Component {
                 onChange={this.handleDataChange}
                 disabled={activeContent === 'viewEdge'} />
             </div>
+            <div className='group'>
+              <TextField
+                id='edgeChassisAddress'
+                name='chassisAddress'
+                label={t('edge-management.txt-chassisAddress')}
+                variant='outlined'
+                fullWidth={true}
+                size='small'
+                value={edge.info.chassisAddress}
+                onChange={this.handleDataChange}
+                disabled={activeContent === 'viewEdge'} />
+            </div>
+            <div className='group'>
+              <TextField
+                id='edgeChassisLocation'
+                name='chassisLocation'
+                label={t('edge-management.txt-chassisLocation')}
+                variant='outlined'
+                fullWidth={true}
+                size='small'
+                value={edge.info.chassisLocation}
+                onChange={this.handleDataChange}
+                disabled={activeContent === 'viewEdge'} />
+            </div>
+            <div className='group'>
+              <TextField
+                id='edgeContact'
+                name='contact'
+                label={t('edge-management.txt-contact')}
+                variant='outlined'
+                fullWidth={true}
+                size='small'
+                value={edge.info.contact}
+                onChange={this.handleDataChange}
+                disabled={activeContent === 'viewEdge'} />
+            </div>
             <div className='group full'>
               {activeContent === 'editEdge' &&
                 <Button variant='contained' color='primary' className='btn add-group' onClick={this.toggleManageGroup}>{t('txt-manage')}</Button>
@@ -1488,7 +1553,10 @@ class Edge extends Component {
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
             {activeContent === 'tableList' &&
-              <Button variant='contained' color='primary' className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
+              <div>
+                <Button variant='contained' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
+                <Button variant='outlined' color='primary' className='last' onClick={this.getCSVfile} title={t('txt-exportCSV')}><i className='fg fg-data-download'></i></Button>
+              </div>
             }
           </div>
         </div>

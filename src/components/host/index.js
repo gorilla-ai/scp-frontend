@@ -1112,6 +1112,11 @@ class HostController extends Component {
         name: 'version',
         path: 'version',
         icon: 'report'
+      },
+      {
+        name: 'remarks',
+        path: 'remarks',
+        icon: 'edit'
       }
     ];
     let safetyScanInfo = '';
@@ -1238,7 +1243,7 @@ class HostController extends Component {
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
             <Button variant='outlined' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
-            <Button variant='outlined' color='primary' className='last' onClick={this.getCSVfile} title={t('events.connections.txt-exportCSV')}><i className='fg fg-data-download'></i></Button>
+            <Button variant='outlined' color='primary' className='last' onClick={this.getCSVfile} title={t('txt-exportCSV')}><i className='fg fg-data-download'></i></Button>
           </div>
 
           <SearchOptions
