@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import cx from 'classnames'
 
+import Button from '@material-ui/core/Button';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 
@@ -130,7 +131,7 @@ class Tree extends Component {
     const {showContent, tabData} = this.state;
 
     return (
-      <div className={cx('left-nav tree netflow', {'collapse': !showContent})}>
+      <div className={cx('left-nav tree', {'collapse': !showContent})}>
         {activeTab === 'alert' && _.isEmpty(treeData.alert.data) &&
           <span className='loading'><i className='fg fg-loading-2'></i></span>
         }
@@ -161,6 +162,10 @@ class Tree extends Component {
         }
 
         <div className='content'>
+          {activeTab === 'alert' &&
+            <Button variant='outlined' color='primary' className='standard csv-btn' onClick={this.props.getLeftNavCSVfile} title={t('txt-exportCSV')}><i className='fg fg-data-download'></i></Button>
+          }
+
           {activeTab !== 'alert' && !_.isEmpty(treeData) &&
             <div>
               <label className={cx('header-text', {'hide': !showContent})}>{treeTitle}</label>

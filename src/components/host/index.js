@@ -974,17 +974,23 @@ class HostController extends Component {
     const {hostInfo, hostData} = this.state;
     const datetime = this.getHostDateTime();
     const ipDeviceUUID = host ? host.ipDeviceUUID : hostData.ipDeviceUUID;
-    const url = `${baseUrl}/api/v2/ipdevice?uuid=${ipDeviceUUID}&page=1&pageSize=1&startDttm=${datetime.from}&endDttm=${datetime.to}`;
+    const url = `${baseUrl}/api/ipdevice/assessment/_search?page=1&pageSize=20&orders=ip desc`;
+    const requestData = {
+      timestamp: [datetime.from, datetime.to],
+      ipDeviceUUID: ipDeviceUUID
+    };
 
     this.ah.one({
       url,
-      type: 'GET'
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
     })
     .then(data => {
       if (data) {
         const activeHostInfo = _.find(hostInfo.dataContent, {ipDeviceUUID});
         let hostData = {
-          ...data
+          ...data.rows[0]
         };
 
         if (activeHostInfo.networkBehaviorInfo) {

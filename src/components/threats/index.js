@@ -1648,6 +1648,7 @@ class ThreatsController extends Component {
       chartIntervalValue: this.state.chartIntervalValue,
       chartIntervalChange: this.handleIntervalChange,
       getChartsCSVfile: this.getChartsCSVfile,
+      getLeftNavCSVfile: this.getLeftNavCSVfile,
       subTabMenu: this.state.subTabMenu,
       activeSubTab: this.state.activeSubTab,
       handleSubTabChange: this.handleSubTabChange,
@@ -1732,6 +1733,23 @@ class ThreatsController extends Component {
     const {chartIntervalValue} = this.state;
     const url = `${baseUrl}${contextRoot}/api/u2/alert/histogram/_export?histogramInterval=${chartIntervalValue}`;
     this.getCSVrequestData(url);
+  }
+  /**
+   * Handle Left Nav CSV download
+   * @method
+   */
+  getLeftNavCSVfile = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {datetime} = this.state;
+    const url = `${baseUrl}${contextRoot}/api/alert/severityRuleAgg/_export`;
+    const dateTime = {
+      from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    };
+    const dataOptions = {
+      timestamp: [dateTime.from, dateTime.to]
+    };
+    downloadWithForm(url, {payload: JSON.stringify(dataOptions)});
   }
   /**
    * Toggle filter content on/off
