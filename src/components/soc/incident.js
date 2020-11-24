@@ -36,6 +36,9 @@ import IncidentComment from './common/comment'
 import IncidentTag from './common/tag'
 import IncidentReview from './common/review'
 import FileUpload from "../common/file-upload";
+import {KeyboardDateTimePicker, MuiPickersUtilsProvider} from "@material-ui/pickers";
+import MomentUtils from "@date-io/moment";
+import moment from "moment";
 
 let t = null;
 let f = null;
@@ -1492,21 +1495,30 @@ class Incident extends Component {
     renderFilter = () => {
         const {showFilter, search} = this.state;
         const {locale} = this.context;
+
+        let dateLocale = locale;
+
+        if (locale === 'zh') {
+            dateLocale += '-tw';
+        }
+
+        moment.locale(dateLocale);
+
         return (
             <div className={cx('main-filter', {'active': showFilter})}>
                 <i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}/>
                 <div className='header-text'>{t('txt-filter')}</div>
                 <div className='filter-section config'>
                     <div className='group'>
-                        <label htmlFor='searchKeyword'>{f('edgeFields.keywords')}</label>
+                        <label htmlFor='keyword'>{f('edgeFields.keywords')}</label>
                         <TextField
-                            id='searchKeyword'
-                            name='searchKeyword'
+                            id='keyword'
+                            name='keyword'
                             variant='outlined'
                             fullWidth={true}
                             size='small'
                             value={search.keyword}
-                            onChange={this.handleSearchChange}/>
+                            onChange={this.handleSearchMui}/>
                     </div>
                     <div className='group'>
                         <label htmlFor='searchCategory'>{f('incidentFields.category')}</label>
@@ -1578,16 +1590,27 @@ class Incident extends Component {
                             }
                         </TextField>
                     </div>
-                    <div className='group'>
+                    <div className='group' style={{width: '500px'}}>
                         <label htmlFor='searchDttm'>{f('incidentFields.createDttm')}</label>
-                        <DateRange
-                            id='datetime'
-                            className='daterange'
-                            enableTime={true}
-                            value={search.datetime}
-                            onChange={this.handleSearch.bind(this, 'datetime')}
-                            locale={locale}
-                            t={et} />
+                        <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+                            <KeyboardDateTimePicker
+                                className='date-time-picker'
+                                inputVariant='outlined'
+                                variant='inline'
+                                format='YYYY-MM-DD HH:mm'
+                                ampm={false}
+                                value={search.datetime.from}
+                                onChange={this.handleSearchTime.bind(this, 'from')} />
+                            <div className='between'>~</div>
+                            <KeyboardDateTimePicker
+                                className='date-time-picker'
+                                inputVariant='outlined'
+                                variant='inline'
+                                format='YYYY-MM-DD HH:mm'
+                                ampm={false}
+                                value={search.datetime.to}
+                                onChange={this.handleSearchTime.bind(this, 'to')} />
+                        </MuiPickersUtilsProvider>
                     </div>
                 </div>
                 <div className='button-group'>
@@ -2055,6 +2078,21 @@ class Incident extends Component {
     handleSearch = (type, value) => {
         let tempSearch = {...this.state.search};
         tempSearch[type] = value;
+
+        this.setState({
+            search: tempSearch
+        });
+    };
+
+    /**
+     * Handle filter input data change
+     * @method
+     * @param {string} type - input type
+     * @param {string} value - input value
+     */
+    handleSearchTime = (type, value) => {
+        let tempSearch = {...this.state.search};
+        tempSearch.datetime[type] = value;
 
         this.setState({
             search: tempSearch

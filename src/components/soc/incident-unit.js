@@ -417,7 +417,7 @@ class IncidentUnit extends Component {
                             value={incidentUnit.info.industryType}
                             disabled={activeContent === 'viewDevice'}>
                             {_.map(_.range(0, 14), el => {
-                                return <MenuItem value={el}>{it(`industryType.${el}`)}</MenuItem>
+                                return <MenuItem value={el.toString()}>{it(`industryType.${el}`)}</MenuItem>
                             })}
                         </TextField>
                     </div>
@@ -555,7 +555,7 @@ class IncidentUnit extends Component {
                             value={unitSearch.industryType}
                             onChange={this.handleUnitInputSearchMui}>
                             {_.map(_.range(0, 14), el => {
-                                return <MenuItem value={el}>{it(`industryType.${el}`)}</MenuItem>
+                                return <MenuItem value={el.toString()}>{it(`industryType.${el}`)}</MenuItem>
                             })}
                         </TextField>
 
