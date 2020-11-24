@@ -1189,9 +1189,10 @@ class Netflow extends Component {
   /**
    * Set the netflow events tree data
    * @method
+   * @param {string} type - active tab
    * @param {string} value - tree node name
    */
-  showTreeFilterBtn = (value) => {
+  showTreeFilterBtn = (type, value) => {
     this.setState({
       currentTreeName: value,
       treeData: this.getTreeData(this.state.treeRawData, value)

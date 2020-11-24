@@ -770,9 +770,10 @@ class SyslogController extends Component {
   /**
    * Set the netflow events tree data
    * @method
+   * @param {string} type - active tab
    * @param {string} value - tree node name
    */
-  showTreeFilterBtn = (value) => {
+  showTreeFilterBtn = (type, value) => {
     this.setState({
       currentTreeName: value,
       treeData: this.getTreeData(this.state.treeRawData, value)
@@ -820,12 +821,14 @@ class SyslogController extends Component {
           _.forEach(val2, val3 => {
             tempChild2.push({
               id: val3,
+              key: val3,
               label: this.getTreeLabel(val3, currentTreeName, '', '_host')
             });
           })
 
           tempChild.push({
             id: key2,
+            key: key2,
             label: this.getTreeLabel(key2, currentTreeName, val2.length, 'configSource')
           });
 
@@ -836,6 +839,7 @@ class SyslogController extends Component {
 
         let treeProperty = {
           id: key,
+          key: key,
           label: this.getTreeLabel(key, currentTreeName, i, 'LoghostIp')
         };
 

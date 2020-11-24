@@ -11,8 +11,6 @@ import TreeView from '@material-ui/lab/TreeView';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 
-import Hierarchy from 'react-ui/build/src/components/hierarchy'
-
 import helper from './helper'
 import Pagination from './pagination'
 
@@ -78,22 +76,9 @@ class Tree extends Component {
     });
   }
   /**
-   * Show checkbox for Hierarchy component
-   * @method
-   * @param {string} key - tree name for the Threats page ('alert', 'private', 'public' and 'edge')
-   * @returns enabled settings
-   */
-  showCheckBox = (key) => {
-    if (key === 'edge') {
-      return {
-        enabled: true
-      };
-    }
-  }
-  /**
    * Display tree item
    * @method
-   * @param {string} type - tree type ('alert', 'private', 'public' or 'edge')
+   * @param {string} type - tree type ('syslog', 'netflow', alert', 'private', 'public' or 'edge')
    * @param {object} val - tree data
    * @param {number} i - index of the tree data
    * @returns TreeItem component
@@ -147,7 +132,7 @@ class Tree extends Component {
     const {showContent, tabData} = this.state;
 
     return (
-      <div className={cx('left-nav tree netflow', {'collapse': !showContent})}>
+      <div className={cx('left-nav tree', {'collapse': !showContent})}>
         {activeTab === 'alert' && _.isEmpty(treeData.alert.data) &&
           <span className='loading'><i className='fg fg-loading-2'></i></span>
         }
@@ -181,12 +166,14 @@ class Tree extends Component {
           {activeTab !== 'alert' && !_.isEmpty(treeData) &&
             <div>
               <label className={cx('header-text', {'hide': !showContent})}>{treeTitle}</label>
-              <Hierarchy
-                layout='tree'
-                foldable={true}
-                data={treeData}
-                defaultOpened={['all', 'All']}
-                onLabelMouseOver={this.props.showTreeFilterBtn} />
+              <TreeView
+                className='tree-view'
+                defaultCollapseIcon={<ExpandMoreIcon />}
+                defaultExpandIcon={<ChevronRightIcon />}>
+                {treeData.children.length > 0 &&
+                  treeData.children.map(this.getTreeItem.bind(this, activeTab))
+                }
+              </TreeView>
             </div>
           }
           {activeTab === 'alert' &&

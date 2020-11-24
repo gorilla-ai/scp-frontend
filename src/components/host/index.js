@@ -6,13 +6,16 @@ import cx from 'classnames'
 
 import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
+import ChevronRightIcon from '@material-ui/icons/ChevronRight';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
+import TreeItem from '@material-ui/lab/TreeItem';
+import TreeView from '@material-ui/lab/TreeView';
 
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import Gis from 'react-gis/build/src/components'
-import Hierarchy from 'react-ui/build/src/components/hierarchy'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import Tabs from 'react-ui/build/src/components/tabs'
 
@@ -157,6 +160,7 @@ class HostController extends Component {
       privateMaskedIP: {},
       hostCreateTime: '',
       leftNavData: [],
+      privateIpData: {},
       filterNav: {
         severitySelected: [],
         hmdStatusSelected: [],
@@ -445,6 +449,14 @@ class HostController extends Component {
         tempHostInfo.dataContent = data.rows;
         tempHostInfo.totalCount = data.count;
 
+        if (!_.isEmpty(data.subnetAgg)) {
+          this.setState({
+            privateIpData: data.subnetAgg
+          }, () => {
+            this.getPrivateTreeData();
+          });
+        }
+
         if (!data.rows || data.rows.length === 0) {
           if (activeTab === 'hostList') {
             helper.showPopupMsg(t('txt-notFound'));
@@ -476,8 +488,6 @@ class HostController extends Component {
             text: val.text + ' (' + data.scanInfoAgg[val.value] + ')'
           });
         });
-
-        this.getPrivateTreeData(data.subnetAgg);
 
         this.setState({
           severityList,
@@ -623,30 +633,64 @@ class HostController extends Component {
     }
   }
   /**
+   * Handle private IP checkbox check/uncheck
+   * @method
+   * @param {string} ip - selected IP
+   * @param {string} type - IP type ('ip' or 'masked')
+   * @param {object} event - event object
+   */
+  togglePrivateIpCheckbox = (ip, type, event) => {
+    const {filterNav, privateIpData} = this.state;
+    let tempFilterNav = {...filterNav};
+    let selectedPrivateIP = [];
+
+    if (type === 'masked') {
+      const maskedChildList = _.map(privateIpData[ip].buckets, val => {
+        return val.ip;
+      });
+
+      if (event.target.checked) {
+        selectedPrivateIP = _.concat(filterNav.maskedIPSelected, ...maskedChildList);
+      } else {
+        selectedPrivateIP = _.without(filterNav.maskedIPSelected, ...maskedChildList);
+      }
+    } else if (type === 'ip') {
+      if (event.target.checked) {
+        selectedPrivateIP = _.concat(filterNav.maskedIPSelected, ip);
+      } else {
+        selectedPrivateIP = _.without(filterNav.maskedIPSelected, ip);
+      }
+    }
+
+    tempFilterNav.maskedIPSelected = selectedPrivateIP;
+
+    this.setState({
+      filterNav: tempFilterNav
+    }, () => {
+      this.handleSearchSubmit();
+    });
+  }
+  /**
    * Set the alert private tree data
    * @method
-   * @param {string} treeData - alert tree data
    * @returns tree data object
    */
-  getPrivateTreeData = (treeData) => {
+  getPrivateTreeData = () => {
+    const {privateIpData} = this.state;
+
     let treeObj = { //Handle service tree data
       id: 'All',
       children: []
     };
 
-    if (!treeData) {
-      return;
-    }
-
-    _.keys(treeData)
+    _.keys(privateIpData)
     .forEach(key => {
       let tempChild = [];
-      let label = '';
       let treeProperty = {};
 
       if (key && key !== 'doc_count') {
-        if (treeData[key].buckets.length > 0) {
-          _.forEach(treeData[key].buckets, val => {
+        if (privateIpData[key].buckets.length > 0) {
+          _.forEach(privateIpData[key].buckets, val => {
             if (val.ip) {
               let nodeClass = '';
 
@@ -654,11 +698,9 @@ class HostController extends Component {
                 nodeClass = 'fg fg-recode ' + val._severity_.toLowerCase();
               }
 
-              label = <span><i className={nodeClass} />{val.ip}</span>;
-
               tempChild.push({
                 id: val.ip,
-                label
+                label: <span><Checkbox checked={this.checkSelectedItem('maskedIPSelected', val.ip)} onChange={this.togglePrivateIpCheckbox.bind(this, val.ip, 'ip')} color='primary' /><i className={nodeClass} />{val.ip}</span>
               });
             }
           })
@@ -666,15 +708,13 @@ class HostController extends Component {
 
         let nodeClass = '';
 
-        if (treeData[key]._severity_) {
-          nodeClass = 'fg fg-recode ' + treeData[key]._severity_.toLowerCase();
+        if (privateIpData[key]._severity_) {
+          nodeClass = 'fg fg-recode ' + privateIpData[key]._severity_.toLowerCase();
         }
-
-        label = <span><i className={nodeClass} />{key} ({helper.numberWithCommas(treeData[key].doc_count)})</span>;
 
         treeProperty = {
           id: key,
-          label
+          label: <span><Checkbox onChange={this.togglePrivateIpCheckbox.bind(this, key, 'masked')} color='primary' /><i className={nodeClass} />{key} ({helper.numberWithCommas(privateIpData[key].doc_count)})</span>
         };
 
         if (tempChild.length > 0) {
@@ -685,7 +725,7 @@ class HostController extends Component {
       }
     })
 
-    treeObj.label = t('txt-all') + ' (' + helper.numberWithCommas(treeData.doc_count) + ')';
+    treeObj.label = t('txt-all') + ' (' + helper.numberWithCommas(privateIpData.doc_count) + ')';
 
     this.setState({
       privateMaskedIPtree: treeObj
@@ -757,22 +797,6 @@ class HostController extends Component {
       activeTab: type
     }, () => {
       this.getHostData();
-    });
-  }
-  /**
-   * Handle Host data filter change
-   * @method
-   * @param {string} type - filter type
-   * @param {array} value - selected hmd array
-   */
-  handleFilterNavChange = (type, value) => {
-    let tempFilterNav = {...this.state.filterNav};
-    tempFilterNav[type] = value;
-
-    this.setState({
-      filterNav: tempFilterNav
-    }, () => {
-      this.handleSearchSubmit();
     });
   }
   /**
@@ -1206,6 +1230,25 @@ class HostController extends Component {
 
     downloadWithForm(url, {payload: JSON.stringify(dataOptions)});
   }
+  /**
+   * Display tree item
+   * @method
+   * @param {object} val - tree data
+   * @param {number} i - index of the tree data
+   * @returns TreeItem component
+   */
+  getTreeItem = (val, i) => {
+    return (
+      <TreeItem
+        key={val.id + i}
+        nodeId={val.id}
+        label={val.label}>
+        {val.children && val.children.length > 0 &&
+          val.children.map(this.getTreeItem)
+        }
+      </TreeItem>
+    )
+  }
   render() {
     const {
       activeTab,
@@ -1259,16 +1302,14 @@ class HostController extends Component {
               {leftNavData.map(this.showLeftNavItems)}
               <div>
                 <label className={cx('header-text', {'hide': !showLeftNav})}>{t('alert.txt-privateMaskedIp')}</label>
-                <Hierarchy
-                  layout='tree'
-                  foldable={true}
-                  data={privateMaskedIPtree}
-                  selection={{
-                    enabled: true
-                  }}
-                  onSelectionChange={this.handleFilterNavChange.bind(this, 'maskedIPSelected')}
-                  selected={filterNav.maskedIPSelected}
-                  defaultOpened={['all', 'All']} />
+                <TreeView
+                  className='tree-view'
+                  defaultCollapseIcon={<ExpandMoreIcon />}
+                  defaultExpandIcon={<ChevronRightIcon />}>
+                  {privateMaskedIPtree && privateMaskedIPtree.children.length > 0 &&
+                    privateMaskedIPtree.children.map(this.getTreeItem)
+                  }
+                </TreeView>
               </div>
             </div>
             <div className='expand-collapse' onClick={this.toggleLeftNav}>
