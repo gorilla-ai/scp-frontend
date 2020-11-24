@@ -828,7 +828,7 @@ class IncidentUnit extends Component {
      */
     handleDataChangeMui = (event) => {
         let tempDevice = {...this.state.incidentUnit};
-        tempDevice.info[event.target.name] = event.target.value.trim();
+        tempDevice.info[event.target.name] = event.target.value;
 
         this.setState({
             incidentUnit: tempDevice
