@@ -30,8 +30,7 @@ class Tree extends Component {
 
     this.state = {
       showContent: true,
-      tabData: [],
-      edgeSelectedNode: ''
+      tabData: []
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -92,27 +91,31 @@ class Tree extends Component {
     }
   }
   /**
-   * Handle tree checkbox selection change
+   * Display tree item
    * @method
-   * @param {array.<string>} selected - selected IDs for edge
+   * @param {string} type - tree type ('alert', 'private', 'public' or 'edge')
+   * @param {object} val - tree data
+   * @param {number} i - index of the tree data
+   * @returns TreeItem component
    */
-  handleSelectChange = (selected) => {
-    this.setState({
-      edgeSelectedNode: selected
-    });
+  getTreeItem = (type, val, i) => {
+    let treeItemParam = {};
 
-    this.props.handleSelectChange(selected);
-  }
-  getTreeItem = (val, i) => {
+    if (type !== 'edge') {
+      treeItemParam.onLabelClick = (event) => {
+        event.preventDefault();
+      };
+    }
+
     return (
       <TreeItem
         key={val.id + i}
         nodeId={val.id}
         label={val.label}
-        onLabelClick={(event) => {event.preventDefault();}}
-        onMouseOver={this.props.showTreeFilterBtn.bind(this, 'alert', val.key)}>
+        {...treeItemParam}
+        onMouseOver={this.props.showTreeFilterBtn.bind(this, type, val.key)}>
         {val.children && val.children.length > 0 &&
-          val.children.map(this.getTreeItem)
+          val.children.map(this.getTreeItem.bind(this, type))
         }
       </TreeItem>
     )
@@ -120,27 +123,21 @@ class Tree extends Component {
   /**
    * Show multiple tree data for Threats page
    * @method
-   * @param {string} key - tree name for the Threats page ('alert', 'private', 'public' and 'edge')
+   * @param {string} key - tree name for the Threats page ('alert', 'private', 'public' or 'edge')
    * @param {object} treeData - tree data of the Threats
    * @returns HTML DOM
    */
   showAlertTree = (key, treeData) => {
-    const {showContent, edgeSelectedNode} = this.state;
-    const className = key + '-tree';
-
     if (!_.isEmpty(treeData[key].data)) {
       return (
-        <div key={key} className={className}>
-          <label className={cx('header-text', {'hide': !showContent})}>{treeData[key].title}</label>
-          <Hierarchy
-            layout='tree'
-            foldable={true}
-            data={treeData[key].data}
-            selection={this.showCheckBox(key)}
-            onSelectionChange={this.handleSelectChange}
-            selected={edgeSelectedNode}
-            defaultOpened={['all', 'All']}
-            onLabelMouseOver={this.props.showTreeFilterBtn.bind(this, key)} />
+        <div key={key}>
+          <label className={cx('header-text', {'hide': !this.state.showContent})}>{treeData[key].title}</label>
+          <TreeView
+            className='tree-view'
+            defaultCollapseIcon={<ExpandMoreIcon />}
+            defaultExpandIcon={<ChevronRightIcon />}>
+            {treeData[key].data.children.map(this.getTreeItem.bind(this, key))}
+          </TreeView>
         </div>
       )
     }
@@ -194,14 +191,6 @@ class Tree extends Component {
           }
           {activeTab === 'alert' &&
             <div>
-              <TreeView
-                className='tree-view'
-                defaultCollapseIcon={<ExpandMoreIcon />}
-                defaultExpandIcon={<ChevronRightIcon />}>
-                {treeData.alert.data && treeData.alert.data.children.length > 0 &&
-                  treeData.alert.data.children.map(this.getTreeItem)
-                }
-              </TreeView>
               {
                 Object.keys(treeData).map(key =>
                   this.showAlertTree(key, treeData)
