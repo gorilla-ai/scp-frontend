@@ -279,9 +279,9 @@ class NetworkOwner extends Component {
    * @method
    * @param {string} index - index of the owner data
    * @param {object} allValue - owner data
-   * @param {object} evt - mouseOver events
+   * @param {object} event - event object
    */
-  handleRowMouseOver = (index, allValue, evt) => {
+  handleRowMouseOver = (index, allValue, event) => {
     let tempOwner = {...this.state.owner};
     tempOwner['dataContent'] = _.map(tempOwner['dataContent'], el => {
       return {

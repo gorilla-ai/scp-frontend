@@ -120,8 +120,13 @@ class Tree extends Component {
           <TreeView
             className='tree-view'
             defaultCollapseIcon={<ExpandMoreIcon />}
-            defaultExpandIcon={<ChevronRightIcon />}>
-            {treeData[key].data.children.map(this.getTreeItem.bind(this, key))}
+            defaultExpandIcon={<ChevronRightIcon />}
+            defaultExpanded={['All']}>
+            <TreeItem
+              nodeId={treeData[key].data.id}
+              label={treeData[key].data.label}>
+              {treeData[key].data.children.map(this.getTreeItem.bind(this, key))}
+            </TreeItem>
           </TreeView>
         </div>
       )
@@ -169,10 +174,15 @@ class Tree extends Component {
               <TreeView
                 className='tree-view'
                 defaultCollapseIcon={<ExpandMoreIcon />}
-                defaultExpandIcon={<ChevronRightIcon />}>
-                {treeData.children.length > 0 &&
-                  treeData.children.map(this.getTreeItem.bind(this, activeTab))
-                }
+                defaultExpandIcon={<ChevronRightIcon />}
+                defaultExpanded={['all']}>
+                <TreeItem
+                  nodeId={treeData.id}
+                  label={treeData.label}>
+                  {treeData.children.length > 0 &&
+                    treeData.children.map(this.getTreeItem.bind(this, activeTab))
+                  }
+                </TreeItem>
               </TreeView>
             </div>
           }

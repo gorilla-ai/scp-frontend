@@ -963,20 +963,6 @@ class ThreatsController extends Component {
     event.stopPropagation();
   }
   /**
-   * Get tree label
-   * @method
-   * @param {string} id - tree node ID
-   * @param {string} name - tree node name
-   * @param {string} currentTreeName - current tree node name
-   * @param {number} count - tree node length
-   * @param {string} [query] - search query
-   */
-  getTreeLabel = (id, name, currentTreeName, count, query) => {
-    const serviceCount = count !== '' ? ' (' + count + ')' : '';
-
-    return <span>{name}{helper.numberWithCommas(serviceCount)} <Button variant='outlined' color='primary' className={cx('button', {'active': currentTreeName === name})} onClick={this.selectTree.bind(this, name, query)}>{t('events.connections.txt-addFilter')}</Button></span>;
-  }
-  /**
    * Display severity info content
    * @method
    * @param {object} alertData - alert data
@@ -999,6 +985,19 @@ class ThreatsController extends Component {
         </tbody>
       </table>
     )
+  }
+  /**
+   * Get tree label
+   * @method
+   * @param {string} name - tree node name
+   * @param {string} currentTreeName - current tree node name
+   * @param {number} count - tree node length
+   * @param {string} [query] - search query
+   */
+  getTreeLabel = (name, currentTreeName, count, query) => {
+    const serviceCount = count !== '' ? ' (' + helper.numberWithCommas(count) + ')' : '';
+
+    return <span>{name}{serviceCount} <Button variant='outlined' color='primary' className={cx('button', {'active': currentTreeName === name})} onClick={this.selectTree.bind(this, name, query)}>{t('events.connections.txt-addFilter')}</Button></span>;
   }
   /**
    * Open dialog to show severity info
@@ -1058,35 +1057,30 @@ class ThreatsController extends Component {
               totalHostCount += val;
             } else {
               if (_.size(val) === 1) {
-                const id = key + key2;
-
                 tempChild.push({
-                  id,
+                  id: key + key2,
                   key: key2,
-                  label: this.getTreeLabel(id, key2, treeName, val.doc_count)
+                  label: this.getTreeLabel(key2, treeName, val.doc_count)
                 });
               } else {
                 let tempChild2 = [];
 
                 _.forEach(val, (val2, key3) => {
                   if (key3 !== 'doc_count' && val2 && val2.doc_count) {
-                    const id = key + key2 + key3;
                     const serviceCount = val2.doc_count !== '' ? ' (' + val2.doc_count + ')' : '';
 
                     tempChild2.push({
-                      id,
+                      id: key + key2 + key3,
                       key: key3,
                       label: <span>{key3} {serviceCount} <Button variant='outlined' color='primary' className={cx('button', {'active': treeName === key3})} onClick={this.selectTree.bind(this, key3, '')}>{t('events.connections.txt-addFilter')}</Button><i className={cx('fg fg-info', {'active': treeName === key3})} title={t('txt-info')} onClick={this.showSeverityInfo.bind(this, val2)}></i></span>
                     });
                   }
                 })
 
-                const id = key + key2;
-
                 let childProperty = {
-                  id,
+                  id: key + key2,
                   key: key2,
-                  label: this.getTreeLabel(id, key2, treeName, val.doc_count)
+                  label: this.getTreeLabel(key2, treeName, val.doc_count)
                 };
 
                 if (tempChild2.length > 0) { //Push child only if child is not empty (ie. 'Pattern' doesn't have child)
@@ -1214,7 +1208,7 @@ class ThreatsController extends Component {
             treeObj.children.push({
               id: val.key,
               key: val.key,
-              label: this.getTreeLabel(val.key, val.key, treeName, val.doc_count, 'srcCountry')
+              label: this.getTreeLabel(val.key, treeName, val.doc_count, 'srcCountry')
             });
           }
         })
@@ -1458,12 +1452,12 @@ class ThreatsController extends Component {
    * @method
    * @param {string} index - index of the alert data
    * @param {object} allValue - alert data
-   * @param {object} evt - MouseEvents
+   * @param {object} event - event object
    */
-  handleRowDoubleClick = (index, allValue, evt) => {
+  handleRowDoubleClick = (index, allValue, event) => {
     this.openDetailInfo(index, allValue);
 
-    evt.stopPropagation();
+    event.stopPropagation();
     return null;
   }
   /**

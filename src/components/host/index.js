@@ -1305,9 +1305,16 @@ class HostController extends Component {
                 <TreeView
                   className='tree-view'
                   defaultCollapseIcon={<ExpandMoreIcon />}
-                  defaultExpandIcon={<ChevronRightIcon />}>
-                  {privateMaskedIPtree && privateMaskedIPtree.children.length > 0 &&
-                    privateMaskedIPtree.children.map(this.getTreeItem)
+                  defaultExpandIcon={<ChevronRightIcon />}
+                  defaultExpanded={['All']}>
+                  {privateMaskedIPtree &&
+                    <TreeItem
+                      nodeId={privateMaskedIPtree.id}
+                      label={privateMaskedIPtree.label}>
+                      {privateMaskedIPtree.children.length > 0 &&
+                        privateMaskedIPtree.children.map(this.getTreeItem)
+                      }
+                    </TreeItem>
                   }
                 </TreeView>
               </div>

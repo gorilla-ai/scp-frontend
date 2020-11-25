@@ -772,12 +772,15 @@ class SyslogController extends Component {
    * @method
    * @param {string} type - active tab
    * @param {string} value - tree node name
+   * @param {object} event - event object
    */
-  showTreeFilterBtn = (type, value) => {
+  showTreeFilterBtn = (type, value, event) => {
     this.setState({
       currentTreeName: value,
       treeData: this.getTreeData(this.state.treeRawData, value)
     });
+
+    event.stopPropagation();
   }
   /**
    * Get tree label
@@ -788,7 +791,7 @@ class SyslogController extends Component {
    * @param {string} [query] - search query
    */
   getTreeLabel = (name, currentTreeName, count, query) => {
-    const serviceCount = count !== '' ? ' (' + count + ')' : '';
+    const serviceCount = count !== '' ? ' (' + helper.numberWithCommas(count) + ')' : '';
 
     return <span>{name}{serviceCount} <Button variant='outlined' color='primary' className={cx('button', {'active': currentTreeName === name})} onClick={this.selectTree.bind(this, name, query)}>{t('events.connections.txt-addFilter')}</Button></span>;
   }
@@ -999,9 +1002,9 @@ class SyslogController extends Component {
    * @method
    * @param {number} id - ID of the selected raw data
    * @param {object} allValue - table data
-   * @param {object} evt - MouseoverEvents
+   * @param {object} event - event object
    */
-  handleRowMouseOver = (id, allValue, evt) => {
+  handleRowMouseOver = (id, allValue, event) => {
     const {activeTab, subSectionsData} = this.state;
     let tempSubSectionsData = {...subSectionsData};
     tempSubSectionsData.mainData[activeTab] = _.map(tempSubSectionsData.mainData[activeTab], item => {
@@ -1168,11 +1171,11 @@ class SyslogController extends Component {
    * @method
    * @param {string} index - index of the syslog data
    * @param {object} allValue - selected syslog data
-   * @param {object} evt - mouseClick events
+   * @param {object} event - event object
    */
-  handleRowDoubleClick = (index, allValue, evt) => {
+  handleRowDoubleClick = (index, allValue, event) => {
     this.showTableData(allValue, index);
-    evt.stopPropagation();
+    event.stopPropagation();
     return null;
   }
   /**
