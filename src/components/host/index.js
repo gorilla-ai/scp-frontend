@@ -998,7 +998,7 @@ class HostController extends Component {
     const {hostInfo, hostData} = this.state;
     const datetime = this.getHostDateTime();
     const ipDeviceUUID = host ? host.ipDeviceUUID : hostData.ipDeviceUUID;
-    const url = `${baseUrl}/api/ipdevice/assessment/_search`;
+    const url = `${baseUrl}/api/ipdevice/assessment?page=1&pageSize=5`;
     const requestData = {
       timestamp: [datetime.from, datetime.to],
       ipDeviceUUID: ipDeviceUUID
@@ -1013,9 +1013,7 @@ class HostController extends Component {
     .then(data => {
       if (data) {
         const activeHostInfo = _.find(hostInfo.dataContent, {ipDeviceUUID});
-        let hostData = {
-          ...data.rows[0]
-        };
+        let hostData = {...data};
 
         if (activeHostInfo.networkBehaviorInfo) {
           hostData.severityLevel = activeHostInfo.networkBehaviorInfo.severityLevel;

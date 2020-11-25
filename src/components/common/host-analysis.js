@@ -169,7 +169,7 @@ class HostAnalysis extends Component {
    * @returns HMDscanInfo component
    */
   displaySafetyScanContent = () => {
-    const {hostData, openHmdType} = this.props;
+    const {hostData, datetime, openHmdType} = this.props;
 
     if (_.isEmpty(hostData.safetyScanInfo)) {
       return <span>N/A</span>
@@ -177,6 +177,7 @@ class HostAnalysis extends Component {
       return (
         <HMDscanInfo
           page='host'
+          datetime={datetime}
           currentDeviceData={hostData}
           openHmdType={openHmdType}
           toggleYaraRule={this.toggleYaraRule}
