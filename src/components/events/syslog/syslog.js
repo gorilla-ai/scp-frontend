@@ -27,7 +27,6 @@ class Syslog extends Component {
     const {contextRoot, language} = this.context;
     const {mainContentData, tabChartData, markData, tableMouseOver} = this.props;
     const assetsPath = `${contextRoot}/lib/keylines/assets/`;
-    const eventsData = mainContentData.logEventsData;
 
     return (
       <div className='data-content'>
@@ -65,7 +64,7 @@ class Syslog extends Component {
                 <VbdaLA
                   assetsPath={assetsPath}
                   sourceCfg={mainContentData.LAconfig}
-                  events={eventsData}
+                  events={mainContentData.logEventsData}
                   source={mainContentData.LAdata}
                   sourceItemOptions={mainContentData.LAconfig.la}
                   lng={language} />

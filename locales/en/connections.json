@@ -302,6 +302,7 @@
   "host": {
     "txt-hostList": "Host List",
     "txt-deviceMap": "Device Map",
+    "txt-deviceLA": "Device Topology",
     "txt-hostInfo": "Host Info",
     "txt-viewInfo": "View Info",
     "txt-hostList2": "Host",

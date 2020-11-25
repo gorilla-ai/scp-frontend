@@ -17,6 +17,8 @@ import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import TextField from '@material-ui/core/TextField';
 
+import {analyze} from 'vbda-ui/build/src/analyzer'
+import {config as configLoader} from 'vbda-ui/build/src/loader'
 import DataTable from 'react-ui/build/src/components/table'
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import FileInput from 'react-ui/build/src/components/file-input'
@@ -25,6 +27,7 @@ import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import Tabs from 'react-ui/build/src/components/tabs'
 import TreeView from 'react-ui/build/src/components/tree'
+import VbdaLA from 'vbda-ui/build/src/components/analysis/la'
 
 import AutoSettings from './auto-settings'
 import {BaseDataContext} from '../../common/context';
@@ -107,6 +110,9 @@ class NetworkInventory extends Component {
       formTypeEdit: true,
       contextAnchor: null,
       menuType: '',
+      LAconfig: {},
+      deviceEventsData: {},
+      deviceLAdata: {},
       deviceSearch: {
         ip: '',
         mac: '',
@@ -227,6 +233,8 @@ class NetworkInventory extends Component {
     if (_.isEmpty(inventoryParam) || (!_.isEmpty(inventoryParam) && !inventoryParam.ip)) {
       this.getDeviceData();
     }
+
+    this.getLAconfig();
     this.getOwnerData();
     this.getOtherData();
   }
@@ -234,6 +242,23 @@ class NetworkInventory extends Component {
     if (nextProps.location.state === 'tableList') {
       this.toggleContent('showList');
     }
+  }
+  /**
+   * Get and set the Link Analysis config
+   * @method
+   */
+  getLAconfig = () => {
+    const {baseUrl} = this.context;
+
+    helper.getLAconfig(baseUrl)
+    .then(data => {
+      if (!_.isEmpty(data)) {
+        this.setState({
+          LAconfig: configLoader.processAll(data)
+        });
+      }
+      return null;
+    });
   }
   /**
    * Display individual scan info
@@ -528,26 +553,6 @@ class NetworkInventory extends Component {
     })
   }
   /**
-   * Handle CSV download
-   * @method
-   */
-  getCSVfile = () => {
-    const {baseUrl, contextRoot} = this.context;
-    const {deviceSearch} = this.state;
-    const url = `${baseUrl}${contextRoot}/api/ipdevice/_export`;
-    const requestData = {
-      ip: deviceSearch.ip,
-      mac: deviceSearch.mac,
-      hostName: deviceSearch.hostName,
-      system: deviceSearch.system,
-      owner: deviceSearch.owner,
-      areaName: deviceSearch.areaName,
-      seatName: deviceSearch.seatName
-    };
-
-    downloadWithForm(url, {payload: JSON.stringify(requestData)});
-  }
-  /**
    * Get and set owner data
    * @method
    */
@@ -596,6 +601,26 @@ class NetworkInventory extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+  }
+  /**
+   * Handle CSV download
+   * @method
+   */
+  getCSVfile = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {deviceSearch} = this.state;
+    const url = `${baseUrl}${contextRoot}/api/ipdevice/_export`;
+    const requestData = {
+      ip: deviceSearch.ip,
+      mac: deviceSearch.mac,
+      hostName: deviceSearch.hostName,
+      system: deviceSearch.system,
+      owner: deviceSearch.owner,
+      areaName: deviceSearch.areaName,
+      seatName: deviceSearch.seatName
+    };
+
+    downloadWithForm(url, {payload: JSON.stringify(requestData)});
   }
   /**
    * Get single device data from URL parameter
@@ -693,6 +718,38 @@ class NetworkInventory extends Component {
             this.getFloorPlan(options);
           });
         }
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get and set link analysis data
+   * @method
+   */
+  loadLinkAnalysis = () => {
+    const {baseUrl} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/ipdevice/la`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let deviceEventsData = {};
+
+        _.forEach(data, val => {
+          deviceEventsData[val.id] = val.content;
+        })
+
+        this.setState({
+          deviceEventsData,
+          deviceLAdata: analyze(deviceEventsData, this.state.LAconfig, {analyzeGis: false})
+        });
+      } else {
+        helper.showPopupMsg(t('txt-notFound'));
       }
       return null;
     })
@@ -1409,12 +1466,16 @@ class NetworkInventory extends Component {
   /**
    * Handle content tab change
    * @method
-   * @param {string} type - content type ('deviceList' or 'deviceMap')
+   * @param {string} type - content type ('deviceList', 'deviceMap' or 'deviceLA')
    */
   handleSubTabChange = (type) => {
     this.setState({
       activeTab: type,
       showFilter: false
+    }, () => {
+      if (type === 'deviceLA') {
+        this.loadLinkAnalysis();
+      }
     });
   }
   /**
@@ -3607,7 +3668,7 @@ class NetworkInventory extends Component {
     });
   }
   render() {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl, contextRoot, language} = this.context;
     const {
       activeTab,
       activeContent,
@@ -3621,6 +3682,9 @@ class NetworkInventory extends Component {
       uploadOpen,
       contextAnchor,
       menuType,
+      LAconfig,
+      deviceEventsData,
+      deviceLAdata,
       deviceData,
       currentDeviceData,
       floorPlan,
@@ -3638,6 +3702,7 @@ class NetworkInventory extends Component {
       formValidation
     } = this.state;
     const backText = activeTab === 'deviceList' ? t('network-inventory.txt-backToList') : t('network-inventory.txt-backToMap')
+    const assetsPath = `${contextRoot}/lib/keylines/assets/`;
     let picPath = '';
     let csvHeaderList = [];
 
@@ -3720,7 +3785,8 @@ class NetworkInventory extends Component {
                   className='subtab-menu'
                   menu={{
                     deviceList: t('network-inventory.txt-deviceList'),
-                    deviceMap: t('network-inventory.txt-deviceMap')
+                    deviceMap: t('network-inventory.txt-deviceMap'),
+                    deviceLA: t('network-inventory.txt-deviceLA')
                   }}
                   current={activeTab}
                   onChange={this.handleSubTabChange}>
@@ -3761,6 +3827,59 @@ class NetworkInventory extends Component {
                     <MenuItem onClick={this.hmdDownload.bind(this, 'linux')}>Linux</MenuItem>
                   }
                 </Menu>
+
+                {activeTab === 'deviceList' && !showCsvData &&
+                  <TableContent
+                    dataTableData={deviceData.dataContent}
+                    dataTableFields={deviceData.dataFields}
+                    dataTableSort={deviceData.sort}
+                    paginationTotalCount={deviceData.totalCount}
+                    paginationPageSize={deviceData.pageSize}
+                    paginationCurrentPage={deviceData.currentPage}
+                    currentTableID={activeIPdeviceUUID}
+                    tableUniqueID='ipDeviceUUID'
+                    handleTableSort={this.handleTableSort}
+                    paginationPageChange={this.handlePaginationChange}
+                    paginationDropDownChange={this.handlePageDropdown} />
+                }
+
+                {activeTab === 'deviceMap' && !showCsvData &&
+                  <div className='inventory-map'>
+                    <div className='tree'>
+                      {floorPlan.treeData && floorPlan.treeData.length > 0 &&
+                        floorPlan.treeData.map(this.displayTree.bind(this, 'deviceMap'))
+                      }
+                    </div>
+                    <div className='map'>
+                      {currentMap.label &&
+                        <Gis
+                          _ref={(ref) => {this.gisNode = ref}}
+                          data={_.get(seatData, [mapAreaUUID, 'data'], [])}
+                          baseLayers={currentBaseLayers}
+                          baseLayer={mapAreaUUID}
+                          layouts={['standard']}
+                          dragModes={['pan']}
+                          scale={{enabled: false}}
+                          mapOptions={{
+                            maxZoom: 2
+                          }}
+                          onClick={this.getDeviceData.bind(this, '', 'oneSeat')} />
+                      }
+                    </div>
+                  </div>
+                }
+
+                {activeTab === 'deviceLA' && !showCsvData &&
+                  <div className='la-content'>
+                    <VbdaLA
+                      assetsPath={assetsPath}
+                      sourceCfg={LAconfig}
+                      events={deviceEventsData}
+                      source={deviceLAdata}
+                      sourceItemOptions={LAconfig.la}
+                      lng={language} />
+                  </div>
+                }
 
                 {showCsvData &&
                   <div className='csv-section'>
@@ -3820,47 +3939,6 @@ class NetworkInventory extends Component {
                       <Button variant='contained' color='primary'
  className='upload' onClick={this.uploadActions.bind(this, 'upload')}>{t('txt-upload')}</Button>
                     </footer>
-                  </div>
-                }
-
-                {activeTab === 'deviceList' && !showCsvData &&
-                  <TableContent
-                    dataTableData={deviceData.dataContent}
-                    dataTableFields={deviceData.dataFields}
-                    dataTableSort={deviceData.sort}
-                    paginationTotalCount={deviceData.totalCount}
-                    paginationPageSize={deviceData.pageSize}
-                    paginationCurrentPage={deviceData.currentPage}
-                    currentTableID={activeIPdeviceUUID}
-                    tableUniqueID='ipDeviceUUID'
-                    handleTableSort={this.handleTableSort}
-                    paginationPageChange={this.handlePaginationChange}
-                    paginationDropDownChange={this.handlePageDropdown} />
-                }
-
-                {activeTab === 'deviceMap' && !showCsvData &&
-                  <div className='inventory-map'>
-                    <div className='tree'>
-                      {floorPlan.treeData && floorPlan.treeData.length > 0 &&
-                        floorPlan.treeData.map(this.displayTree.bind(this, 'deviceMap'))
-                      }
-                    </div>
-                    <div className='map'>
-                      {currentMap.label &&
-                        <Gis
-                          _ref={(ref) => {this.gisNode = ref}}
-                          data={_.get(seatData, [mapAreaUUID, 'data'], [])}
-                          baseLayers={currentBaseLayers}
-                          baseLayer={mapAreaUUID}
-                          layouts={['standard']}
-                          dragModes={['pan']}
-                          scale={{enabled: false}}
-                          mapOptions={{
-                            maxZoom: 2
-                          }}
-                          onClick={this.getDeviceData.bind(this, '', 'oneSeat')} />
-                      }
-                    </div>
                   </div>
                 }
               </div>
