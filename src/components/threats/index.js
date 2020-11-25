@@ -7,6 +7,7 @@ import cx from 'classnames'
 import queryString from 'query-string'
 
 import Button from '@material-ui/core/Button';
+import Checkbox from '@material-ui/core/Checkbox';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 
@@ -941,8 +942,9 @@ class ThreatsController extends Component {
    * @method
    * @param {string} type - alert tree type ('alert', 'private' or 'public')
    * @param {string} value - tree node name
+   * @param {object} event - event object
    */
-  showTreeFilterBtn = (type, value) => {
+  showTreeFilterBtn = (type, value, event) => {
     let tempTreeData = {...this.state.treeData};
     tempTreeData[type].currentTreeName = value;
 
@@ -957,39 +959,8 @@ class ThreatsController extends Component {
     this.setState({
       treeData: tempTreeData
     });
-  }
-  /**
-   * Set filter options for edge
-   * @method
-   * @param {array.<string>} selectedId - selected IDs for edge
-   */  
-  handleTreeSelectChange = (selectedId) => {
-    let edgeFilterData = [];
 
-    _.forEach(selectedId, val => {
-      edgeFilterData.push({
-        condition: 'either',
-        query: '_edgeId: "' + val + '"'
-      })
-    })
-
-    this.setState({
-      edgeFilterData
-    });
-  }
-  /**
-   * Get tree label
-   * @method
-   * @param {string} id - tree node ID
-   * @param {string} name - tree node name
-   * @param {string} currentTreeName - current tree node name
-   * @param {number} count - tree node length
-   * @param {string} [query] - search query
-   */
-  getTreeLabel = (id, name, currentTreeName, count, query) => {
-    const serviceCount = count !== '' ? ' (' + count + ')' : '';
-
-    return <span>{name}{helper.numberWithCommas(serviceCount)} <Button variant='outlined' color='primary' className={cx('button', {'active': currentTreeName === id})} onClick={this.selectTree.bind(this, name, query)}>{t('events.connections.txt-addFilter')}</Button></span>;
+    event.stopPropagation();
   }
   /**
    * Display severity info content
@@ -1014,6 +985,19 @@ class ThreatsController extends Component {
         </tbody>
       </table>
     )
+  }
+  /**
+   * Get tree label
+   * @method
+   * @param {string} name - tree node name
+   * @param {string} currentTreeName - current tree node name
+   * @param {number} count - tree node length
+   * @param {string} [query] - search query
+   */
+  getTreeLabel = (name, currentTreeName, count, query) => {
+    const serviceCount = count !== '' ? ' (' + helper.numberWithCommas(count) + ')' : '';
+
+    return <span>{name}{serviceCount} <Button variant='outlined' color='primary' className={cx('button', {'active': currentTreeName === name})} onClick={this.selectTree.bind(this, name, query)}>{t('events.connections.txt-addFilter')}</Button></span>;
   }
   /**
    * Open dialog to show severity info
@@ -1065,8 +1049,6 @@ class ThreatsController extends Component {
       _.keys(val)
       .forEach(key => {
         let tempChild = [];
-        let label = '';
-        let label2 = '';
         let totalHostCount = 0;
 
         if (key && key !== 'default') {
@@ -1075,32 +1057,30 @@ class ThreatsController extends Component {
               totalHostCount += val;
             } else {
               if (_.size(val) === 1) {
-                const id = key + key2;
-
                 tempChild.push({
-                  id,
-                  label: this.getTreeLabel(id, key2, treeName, val.doc_count)
+                  id: key + key2,
+                  key: key2,
+                  label: this.getTreeLabel(key2, treeName, val.doc_count)
                 });
               } else {
                 let tempChild2 = [];
 
                 _.forEach(val, (val2, key3) => {
                   if (key3 !== 'doc_count' && val2 && val2.doc_count) {
-                    const id = key + key2 + key3;
                     const serviceCount = val2.doc_count !== '' ? ' (' + val2.doc_count + ')' : '';
 
                     tempChild2.push({
-                      id,
-                      label: <span>{key3}{helper.numberWithCommas(serviceCount)} <Button variant='outlined' color='primary' className={cx('button', {'active': treeName === id})} onClick={this.selectTree.bind(this, key3, '')}>{t('events.connections.txt-addFilter')}</Button><i className={cx('fg fg-info', {'active': treeName === id})} title={t('txt-info')} onClick={this.showSeverityInfo.bind(this, val2)}></i></span>
+                      id: key + key2 + key3,
+                      key: key3,
+                      label: <span>{key3} {serviceCount} <Button variant='outlined' color='primary' className={cx('button', {'active': treeName === key3})} onClick={this.selectTree.bind(this, key3, '')}>{t('events.connections.txt-addFilter')}</Button><i className={cx('fg fg-info', {'active': treeName === key3})} title={t('txt-info')} onClick={this.showSeverityInfo.bind(this, val2)}></i></span>
                     });
                   }
                 })
 
-                const id = key + key2;
-
                 let childProperty = {
-                  id,
-                  label: this.getTreeLabel(id, key2, treeName, val.doc_count)
+                  id: key + key2,
+                  key: key2,
+                  label: this.getTreeLabel(key2, treeName, val.doc_count)
                 };
 
                 if (tempChild2.length > 0) { //Push child only if child is not empty (ie. 'Pattern' doesn't have child)
@@ -1112,11 +1092,10 @@ class ThreatsController extends Component {
             }
           })
 
-          label = <span><i className={'fg fg-recode ' + key.toLowerCase()} /> {key} ({helper.numberWithCommas(totalHostCount)}) <Button variant='outlined' color='primary' className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, '')}>{t('events.connections.txt-addFilter')}</Button></span>;
-
           let treeProperty = {
             id: key,
-            label
+            key,
+            label: <span><i className={'fg fg-recode ' + key.toLowerCase()} />{key} ({helper.numberWithCommas(totalHostCount)}) <Button variant='outlined' color='primary' className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, '')}>{t('events.connections.txt-addFilter')}</Button></span>
           };
 
           if (tempChild.length > 0) {
@@ -1162,7 +1141,6 @@ class ThreatsController extends Component {
     _.keys(treeData)
     .forEach(key => {
       let tempChild = [];
-      let label = '';
       let treeProperty = {};
 
       if (key && key !== 'doc_count') {
@@ -1175,11 +1153,10 @@ class ThreatsController extends Component {
                 nodeClass += ' ' + val._severity_.toLowerCase();
               }
 
-              label = <span><i className={nodeClass} />{val.key} ({helper.numberWithCommas(val.doc_count)}) <Button variant='outlined' color='primary' className={cx('button', {'active': treeName === val.key})} onClick={this.selectTree.bind(this, val.key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</Button></span>;
-
               tempChild.push({
                 id: val.key,
-                label
+                key: val.key,
+                label: <span><i className={nodeClass} />{val.key} ({helper.numberWithCommas(val.doc_count)}) <Button variant='outlined' color='primary' className={cx('button', {'active': treeName === val.key})} onClick={this.selectTree.bind(this, val.key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</Button></span>
               });
             }
           })
@@ -1191,11 +1168,10 @@ class ThreatsController extends Component {
           nodeClass += ' ' + treeData[key]._severity_.toLowerCase();
         }
 
-        label = <span><i className={nodeClass} style={this.showSeverity(treeData[key]._severity_)} />{key} ({helper.numberWithCommas(treeData[key].doc_count)}) <Button variant='outlined' color='primary' className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</Button></span>;
-
         treeProperty = {
           id: key,
-          label
+          key,
+          label: <span><i className={nodeClass} style={this.showSeverity(treeData[key]._severity_)} />{key} ({helper.numberWithCommas(treeData[key].doc_count)}) <Button variant='outlined' color='primary' className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</Button></span>
         };
 
         if (tempChild.length > 0) {
@@ -1226,15 +1202,13 @@ class ThreatsController extends Component {
 
     _.keys(treeData)
     .forEach(key => {
-      let tempChild = [];
-      let label = '';
-
       if (key && key !== 'doc_count') {
         _.forEach(treeData[path].buckets, val => {
           if (val.key) {
             treeObj.children.push({
               id: val.key,
-              label: this.getTreeLabel(val.key, val.key, treeName, val.doc_count, 'srcCountry')
+              key: val.key,
+              label: this.getTreeLabel(val.key, treeName, val.doc_count, 'srcCountry')
             });
           }
         })
@@ -1244,6 +1218,29 @@ class ThreatsController extends Component {
     treeObj.label = t('txt-all') + ' (' + helper.numberWithCommas(treeData.doc_count) + ')';
 
     return treeObj;
+  }
+  /**
+   * Handle checkbox check/uncheck
+   * @method
+   * @param {string} agentId - selected IDs for edge
+   * @param {object} event - event object
+   */
+  toggleCheckbox = (agentId, event) => {
+    let edgeFilterData = _.cloneDeep(this.state.edgeFilterData);
+
+    if (event.target.checked) {
+      edgeFilterData.push({
+        condition: 'either',
+        query: '_edgeId: "' + agentId + '"'
+      });
+    } else {
+      const index = edgeFilterData.indexOf(agentId);
+      edgeFilterData.splice(index, 1);
+    }
+
+    this.setState({
+      edgeFilterData
+    });
   }
   /**
    * Set the edges tree data
@@ -1260,17 +1257,13 @@ class ThreatsController extends Component {
 
     _.keys(treeData)
     .forEach(key => {
-      let tempChild = [];
-      let label = '';
-
       if (key && key !== 'doc_count') {
         _.forEach(treeData[path].buckets, val => {
           if (val.agentId) {
-            label = <span>{val.agentName} ({val.serviceType}) ({helper.numberWithCommas(val.doc_count)}) </span>;
-
             treeObj.children.push({
               id: val.agentId,
-              label
+              key,
+              label: <div><Checkbox onChange={this.toggleCheckbox.bind(this, val.agentId)} color='primary' /><span>{val.agentName} ({val.serviceType}) ({helper.numberWithCommas(val.doc_count)}) </span></div>
             });
           }
         })
@@ -1459,12 +1452,12 @@ class ThreatsController extends Component {
    * @method
    * @param {string} index - index of the alert data
    * @param {object} allValue - alert data
-   * @param {object} evt - MouseEvents
+   * @param {object} event - event object
    */
-  handleRowDoubleClick = (index, allValue, evt) => {
+  handleRowDoubleClick = (index, allValue, event) => {
     this.openDetailInfo(index, allValue);
 
-    evt.stopPropagation();
+    event.stopPropagation();
     return null;
   }
   /**
@@ -1668,7 +1661,6 @@ class ThreatsController extends Component {
       handleSearchSubmit: this.handleSearchSubmit,
       treeData: this.state.treeData,
       showTreeFilterBtn: this.showTreeFilterBtn,
-      handleSelectChange: this.handleTreeSelectChange,
       dataTableData: this.state.subSectionsData.mainData[activeTab],
       dataTableFields: this.state.subSectionsData.fieldsData[activeTab],
       mainEventsData: this.state.mainEventsData,

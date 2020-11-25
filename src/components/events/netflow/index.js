@@ -1189,13 +1189,17 @@ class Netflow extends Component {
   /**
    * Set the netflow events tree data
    * @method
+   * @param {string} type - active tab
    * @param {string} value - tree node name
+   * @param {object} event - event object
    */
-  showTreeFilterBtn = (value) => {
+  showTreeFilterBtn = (type, value, event) => {
     this.setState({
       currentTreeName: value,
       treeData: this.getTreeData(this.state.treeRawData, value)
     });
+
+    event.stopPropagation();
   }
   /**
    * Set the netflow tree data
@@ -1230,17 +1234,16 @@ class Netflow extends Component {
 
             totalHostCount += hostCount;
 
-            label = <span>{key3} ({hostCount}) <Button variant='outlined' color='primary' className={cx('button', {'active': currentTreeName === key3})} onClick={this.selectTree.bind(this, key3, 'dstHostname')}>{t('events.connections.txt-addFilter')}</Button></span>;
-
             tempChild.push({
               id: key3,
-              label
+              key: key3,
+              label: <span>{key3} ({helper.numberWithCommas(hostCount)}) <Button variant='outlined' color='primary' className={cx('button', {'active': currentTreeName === key3})} onClick={this.selectTree.bind(this, key3, 'dstHostname')}>{t('events.connections.txt-addFilter')}</Button></span>
             });
           })
         })
 
         if (key === 'unknown') { //Add an export button for Unknown service
-          label = <span>{key} ({totalHostCount}) <Button variant='outlined' color='primary' className='button active' onClick={this.handleTreeExport}>{t('txt-export')}</Button> <Button variant='outlined' color='primary' className={cx('button', {'active': currentTreeName === key})} onClick={this.selectTree.bind(this, key, 'dstSvcname')}>{t('events.connections.txt-addFilter')}</Button></span>;
+          label = <span>{key} ({helper.numberWithCommas(totalHostCount)}) <Button variant='outlined' color='primary' className='button active' onClick={this.handleTreeExport}>{t('txt-export')}</Button> <Button variant='outlined' color='primary' className={cx('button', {'active': currentTreeName === key})} onClick={this.selectTree.bind(this, key, 'dstSvcname')}>{t('events.connections.txt-addFilter')}</Button></span>;
         } else {
           let formattedKey = key;
 
@@ -1248,11 +1251,12 @@ class Netflow extends Component {
             formattedKey = key.substr(0, 28) + '...';
           }
 
-          label = <span>{formattedKey} ({totalHostCount}) <Button variant='outlined' color='primary' className={cx('button', {'active': currentTreeName === key})} onClick={this.selectTree.bind(this, key, 'dstSvcname')}>{t('events.connections.txt-addFilter')}</Button></span>;
+          label = <span>{formattedKey} ({helper.numberWithCommas(totalHostCount)}) <Button variant='outlined' color='primary' className={cx('button', {'active': currentTreeName === key})} onClick={this.selectTree.bind(this, key, 'dstSvcname')}>{t('events.connections.txt-addFilter')}</Button></span>;
         }
 
         let treeProperty = {
           id: key,
+          key,
           label
         };
 
@@ -1480,9 +1484,9 @@ class Netflow extends Component {
    * @method
    * @param {number} id - ID of the selected raw data
    * @param {object} allValue - table data
-   * @param {object} evt - MouseoverEvents
+   * @param {object} event - event object
    */
-  handleRowMouseOver = (id, allValue, evt) => {
+  handleRowMouseOver = (id, allValue, event) => {
     const {activeTab, subSectionsData} = this.state;
     let tempSubSectionsData = {...subSectionsData};
     tempSubSectionsData.mainData[activeTab] = _.map(tempSubSectionsData.mainData[activeTab], item => {
@@ -1500,7 +1504,7 @@ class Netflow extends Component {
     if (allValue.tag && allValue.tag.memo) {
       Popover.openId(
         'popup-id',
-        evt,
+        event,
         allValue.tag.memo
       )
     }
@@ -1510,9 +1514,9 @@ class Netflow extends Component {
    * @method
    * @param {number} id - ID of the selected raw data
    * @param {object} allValue - table data
-   * @param {object} evt - MouseoverEvents
+   * @param {object} event - event object
    */
-  handleRowMouseOut = (id, allValue, evt) => {
+  handleRowMouseOut = (id, allValue, event) => {
     Popover.closeId('popup-id')
   }
   /**

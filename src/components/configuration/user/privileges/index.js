@@ -223,9 +223,9 @@ class Roles extends Component {
    * @method
    * @param {string} id - selected privilege id
    * @param {object} allValue - privilege data
-   * @param {object} evt - MouseoverEvents
+   * @param {object} event - event object
    */
-  handleRowMouseOver = (id, allValue, evt) => {
+  handleRowMouseOver = (id, allValue, event) => {
     let tempData = {...this.state.data};
     tempData = _.map(tempData, el => {
       return {

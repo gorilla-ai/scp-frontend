@@ -1216,6 +1216,38 @@ button.standard:hover:not([disabled]) {
       }
       &.tree {
         padding: 10px 25px 10px 10px;
+        .tree-view {
+          width: 100%;
+          padding: 10px 5px;
+          border-radius: 5px;
+          background-color: var(--leftTreeGroup);
+          .MuiTreeItem-content {
+            margin-bottom: 5px;
+          }
+          .MuiCheckbox-root {
+            float: left;
+            padding: 0;
+            margin: 1px 5px 1px 0;
+          }
+        }
+        button {
+          display: none;
+          font-size: .4em;
+          color: var(--buttonTextColor);
+          padding: .1em .5em;
+          border-radius: 5px;
+          background-color: var(--buttonBackground);
+          &.active {
+            display: inline-block;
+          }
+        }
+        .fg-info {
+          display: none;
+          &.active {
+            position: absolute;
+            display: inline-block;
+          }
+        }
         &.collapse {
           width: 0;
           padding: 0;

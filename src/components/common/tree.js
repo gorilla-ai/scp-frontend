@@ -3,10 +3,12 @@ import PropTypes from 'prop-types'
 import cx from 'classnames'
 
 import Button from '@material-ui/core/Button';
+import ChevronRightIcon from '@material-ui/icons/ChevronRight';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
-
-import Hierarchy from 'react-ui/build/src/components/hierarchy'
+import TreeItem from '@material-ui/lab/TreeItem';
+import TreeView from '@material-ui/lab/TreeView';
 
 import helper from './helper'
 import Pagination from './pagination'
@@ -25,8 +27,7 @@ class Tree extends Component {
 
     this.state = {
       showContent: true,
-      tabData: [],
-      edgeSelectedNode: ''
+      tabData: []
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -74,54 +75,58 @@ class Tree extends Component {
     });
   }
   /**
-   * Show checkbox for Hierarchy component
+   * Display tree item
    * @method
-   * @param {string} key - tree name for the Threats page ('alert', 'private', 'public' and 'edge')
-   * @returns enabled settings
+   * @param {string} type - tree type ('syslog', 'netflow', alert', 'private', 'public' or 'edge')
+   * @param {object} val - tree data
+   * @param {number} i - index of the tree data
+   * @returns TreeItem component
    */
-  showCheckBox = (key) => {
-    if (key === 'edge') {
-      return {
-        enabled: true
+  getTreeItem = (type, val, i) => {
+    let treeItemParam = {};
+
+    if (type !== 'edge') {
+      treeItemParam.onLabelClick = (event) => {
+        event.preventDefault();
       };
     }
-  }
-  /**
-   * Handle tree checkbox selection change
-   * @method
-   * @param {array.<string>} selected - selected IDs for edge
-   */
-  handleSelectChange = (selected) => {
-    this.setState({
-      edgeSelectedNode: selected
-    });
 
-    this.props.handleSelectChange(selected);
+    return (
+      <TreeItem
+        key={val.id + i}
+        nodeId={val.id}
+        label={val.label}
+        {...treeItemParam}
+        onMouseOver={this.props.showTreeFilterBtn.bind(this, type, val.key)}>
+        {val.children && val.children.length > 0 &&
+          val.children.map(this.getTreeItem.bind(this, type))
+        }
+      </TreeItem>
+    )
   }
   /**
    * Show multiple tree data for Threats page
    * @method
-   * @param {string} key - tree name for the Threats page ('alert', 'private', 'public' and 'edge')
+   * @param {string} key - tree name for the Threats page ('alert', 'private', 'public' or 'edge')
    * @param {object} treeData - tree data of the Threats
    * @returns HTML DOM
    */
   showAlertTree = (key, treeData) => {
-    const {showContent, edgeSelectedNode} = this.state;
-    const className = key + '-tree';
-
     if (!_.isEmpty(treeData[key].data)) {
       return (
-        <div key={key} className={className}>
-          <label className={cx('header-text', {'hide': !showContent})}>{treeData[key].title}</label>
-          <Hierarchy
-            layout='tree'
-            foldable={true}
-            data={treeData[key].data}
-            selection={this.showCheckBox(key)}
-            onSelectionChange={this.handleSelectChange}
-            selected={edgeSelectedNode}
-            defaultOpened={['all', 'All']}
-            onLabelMouseOver={this.props.showTreeFilterBtn.bind(this, key)} />
+        <div key={key}>
+          <label className={cx('header-text', {'hide': !this.state.showContent})}>{treeData[key].title}</label>
+          <TreeView
+            className='tree-view'
+            defaultCollapseIcon={<ExpandMoreIcon />}
+            defaultExpandIcon={<ChevronRightIcon />}
+            defaultExpanded={['All']}>
+            <TreeItem
+              nodeId={treeData[key].data.id}
+              label={treeData[key].data.label}>
+              {treeData[key].data.children.map(this.getTreeItem.bind(this, key))}
+            </TreeItem>
+          </TreeView>
         </div>
       )
     }
@@ -169,12 +174,19 @@ class Tree extends Component {
           {activeTab !== 'alert' && !_.isEmpty(treeData) &&
             <div>
               <label className={cx('header-text', {'hide': !showContent})}>{treeTitle}</label>
-              <Hierarchy
-                layout='tree'
-                foldable={true}
-                data={treeData}
-                defaultOpened={['all', 'All']}
-                onLabelMouseOver={this.props.showTreeFilterBtn} />
+              <TreeView
+                className='tree-view'
+                defaultCollapseIcon={<ExpandMoreIcon />}
+                defaultExpandIcon={<ChevronRightIcon />}
+                defaultExpanded={['all']}>
+                <TreeItem
+                  nodeId={treeData.id}
+                  label={treeData.label}>
+                  {treeData.children.length > 0 &&
+                    treeData.children.map(this.getTreeItem.bind(this, activeTab))
+                  }
+                </TreeItem>
+              </TreeView>
             </div>
           }
           {activeTab === 'alert' &&
