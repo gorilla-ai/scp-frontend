@@ -1260,7 +1260,7 @@ class Incident extends Component {
                 </div>
             </header>
 
-            <Button className='last'  style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
+            <Button className='last-left '  style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
                     onClick={this.handleIncidentPageChange.bind(this, 'notice')}>{it('txt-prev-page')}</Button>
 
             <Button className='last' disabled={true} style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
