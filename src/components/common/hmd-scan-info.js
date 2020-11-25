@@ -475,6 +475,10 @@ class HMDscanInfo extends Component {
    * @param {string} activeTab - active scan type
    */
   toggleScanType = (event, activeTab) => {
+    if (!activeTab) {
+      return;
+    }
+
     this.setState({
       activeTab,
       activePath: null,

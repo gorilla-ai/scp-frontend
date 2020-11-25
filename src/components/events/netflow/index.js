@@ -2459,6 +2459,10 @@ class Netflow extends Component {
    * @param {string} type - events type ('connections', 'packets', or 'databytes')
    */
   handleChartChange = (event, type) => {
+    if (!type) {
+      return;
+    }
+
     this.setState({
       connectionsChartType: type,
       tableMouseOver: false
@@ -2471,6 +2475,10 @@ class Netflow extends Component {
    * @param {string} type - interval type ('1m', '15m', '30m' or '60m')
    */
   handleIntervalChange = (event, type) => {
+    if (!type) {
+      return;
+    }
+
     this.setState({
       connectionsInterval: type,
       tableMouseOver: false

@@ -569,13 +569,13 @@ class HostController extends Component {
   /**
    * Display Left nav data
    * @method
-   * @param {object} val - individual left nave data
-   * @param {number} i - index of the left nave data
+   * @param {object} val - individual left nav data
+   * @param {number} i - index of the left nav data
    * @returns HTML DOM
    */
   showLeftNavItems = (val, i) => {
     return (
-      <div>
+      <div key={i}>
         <label className={cx('header-text', {'hide': !this.state.showLeftNav})}>{val.text}</label>
         <div className='checkbox-group'>
           {this.state[val.list].map(this.getCheckboxItem.bind(this, val.selected))}
@@ -998,7 +998,7 @@ class HostController extends Component {
     const {hostInfo, hostData} = this.state;
     const datetime = this.getHostDateTime();
     const ipDeviceUUID = host ? host.ipDeviceUUID : hostData.ipDeviceUUID;
-    const url = `${baseUrl}/api/ipdevice/assessment/_search?page=1&pageSize=20&orders=ip desc`;
+    const url = `${baseUrl}/api/ipdevice/assessment/_search`;
     const requestData = {
       timestamp: [datetime.from, datetime.to],
       ipDeviceUUID: ipDeviceUUID

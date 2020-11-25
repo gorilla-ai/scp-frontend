@@ -433,11 +433,11 @@ class NetworkMap extends Component {
     })
   }
   /**
-   * Handle tree filter button selection
+   * Handle tree selection
    * @param {object} val - tree data
    * @method
    */
-  selectTree = (val) => {
+  handleSelectTree = (val) => {
     const areaUUID = val.areaUUID;
     let tempFloorPlan = {...this.state.floorPlan};
     tempFloorPlan.currentAreaName = val.areaName;
@@ -468,7 +468,7 @@ class NetworkMap extends Component {
         key={val.id + i}
         nodeId={val.id}
         label={val.label}
-        onLabelClick={this.selectTree.bind(this, val)}>
+        onLabelClick={this.handleSelectTree.bind(this, val)}>
         {val.children && val.children.length > 0 &&
           val.children.map(this.getTreeItem)
         }
@@ -479,11 +479,10 @@ class NetworkMap extends Component {
    * Get tree data
    * @method
    * @param {object} tree - tree data
-   * @param {string} selectedID - selected area UUID
    * @param {number} i - index of the floorPlan tree data
    * @returns TreeView component
    */
-  getTreeView = (tree, selectedID, i) => {
+  displayTreeView = (tree, i) => {
     return (
       <TreeView
         key={i}
@@ -494,7 +493,7 @@ class NetworkMap extends Component {
           <TreeItem
             nodeId={tree.areaUUID}
             label={tree.areaName}
-            onLabelClick={this.selectTree.bind(this, tree)}>
+            onLabelClick={this.handleSelectTree.bind(this, tree)}>
             {tree.children.length > 0 &&
               tree.children.map(this.getTreeItem)
             }
@@ -502,16 +501,6 @@ class NetworkMap extends Component {
         }
       </TreeView>
     )
-  }
-  /**
-   * Display tree data for lefe nav
-   * @method
-   * @param {object} val - tree data
-   * @param {number} i - index of the tree array
-   * @returns content of the TreeView component
-   */
-  displayTreeView = (val, i) => {
-    return this.getTreeView(val, this.state.floorPlan.currentAreaUUID, i);
   }
   /**
    * Handle filter input value change

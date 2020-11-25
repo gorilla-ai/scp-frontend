@@ -111,6 +111,10 @@ class Manage extends Component {
    * @param {string} tab - tab name ('department' or 'title')
    */
   handleTabChange = (event, tab) => {
+    if (!tab) {
+      return;
+    }
+
     let tabs = {
       department: false,
       title: false

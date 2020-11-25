@@ -1620,6 +1620,10 @@ class ThreatsController extends Component {
    * @param {string} type - interval type
    */
   handleIntervalChange = (event, type) => {
+    if (!type) {
+      return;
+    }
+
     this.setState({
       chartIntervalValue: type
     }, () => {

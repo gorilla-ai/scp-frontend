@@ -289,6 +289,10 @@ class DashboardMaps extends Component {
    * @param {string} type - content type ('private' or 'public')
    */
   toggleMaps = (event, type) => {
+    if (!type) {
+      return;
+    }
+
     this.setState({
       mapType: type,
       ..._.cloneDeep(MAPS_PUBLIC_DATA),
