@@ -274,6 +274,7 @@ class FloorMap extends Component {
         key={i}
         defaultCollapseIcon={<ExpandMoreIcon />}
         defaultExpandIcon={<ChevronRightIcon />}
+        defaultSelected={tree.areaUUID}
         defaultExpanded={[tree.areaUUID]}>
         {tree.areaUUID &&
           <TreeItem

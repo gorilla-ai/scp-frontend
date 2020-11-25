@@ -9,13 +9,17 @@ import queryString from 'query-string'
 import XLSX from 'xlsx';
 
 import Button from '@material-ui/core/Button';
+import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import Checkbox from '@material-ui/core/Checkbox';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import TextField from '@material-ui/core/TextField';
+import TreeItem from '@material-ui/lab/TreeItem';
+import TreeView from '@material-ui/lab/TreeView';
 
 import {analyze} from 'vbda-ui/build/src/analyzer'
 import {config as configLoader} from 'vbda-ui/build/src/loader'
@@ -26,7 +30,6 @@ import Gis from 'react-gis/build/src/components'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import Tabs from 'react-ui/build/src/components/tabs'
-import TreeView from 'react-ui/build/src/components/tree'
 import VbdaLA from 'vbda-ui/build/src/components/analysis/la'
 
 import AutoSettings from './auto-settings'
@@ -97,7 +100,7 @@ class NetworkInventory extends Component {
     super(props);
 
     this.state = {
-      activeTab: 'deviceList', //deviceList, deviceMap
+      activeTab: 'deviceList', //deviceList, deviceMap, deviceLA
       activeContent: 'tableList', //tableList, dataInfo, addIPsteps, hmdSettings, autoSettings
       showFilter: false,
       showScanInfo: false,
@@ -3318,7 +3321,7 @@ class NetworkInventory extends Component {
               <div className='floor-info'>
                 <div className='tree'>
                   {floorPlan.treeData && floorPlan.treeData.length > 0 &&
-                    floorPlan.treeData.map(this.displayTree.bind(this, 'stepsFloor'))
+                    floorPlan.treeData.map(this.displayTreeView.bind(this, 'stepsFloor'))
                   }
                 </div>
                 <div className='map'>
@@ -3375,41 +3378,17 @@ class NetworkInventory extends Component {
     return areaRoute;
   }
   /**
-   * Handle floor plan tree node select
+   * Handle tree selection
+   * @param {object} val - tree data
    * @method
-   * @param {number} i - index of the tree data
-   * @param {string} areaUUID - selected area UUID
-   * @param {object} eventData - tree click events data
    */
-  selectTree = (i, areaUUID, eventData) => {
+  handleSelectTree = (val) => {
+    const areaUUID = val.areaUUID;
     let tempFloorPlan = {...this.state.floorPlan};
-    let tempArr = [];
-    let pathStr = '';
-    let pathNameStr = '';
-    let pathParentStr = '';
-
-    if (eventData.path.length > 0) {
-      _.forEach(eventData.path, val => {
-        if (val.index >= 0) {
-          tempArr.push(val.index);
-        }
-      })
-    }
-
-    _.forEach(tempArr, val => {
-      pathStr += 'children[' + val + '].';
-    })
-
-    pathNameStr = pathStr + 'label';
-    pathParentStr = pathStr + 'parentAreaUUID';
-
-    if (eventData.path[0].id) {
-      tempFloorPlan.rootAreaUUID = eventData.path[0].id;
-    }
+    tempFloorPlan.currentAreaName = val.areaName;
     tempFloorPlan.currentAreaUUID = areaUUID;
-    tempFloorPlan.currentAreaName = _.get(tempFloorPlan.treeData[i], pathNameStr);
-    tempFloorPlan.currentParentAreaUUID = _.get(tempFloorPlan.treeData[i], pathParentStr);
-    tempFloorPlan.name = tempFloorPlan.currentAreaName;
+    tempFloorPlan.currentParentAreaUUID = val.parentAreaUUID;
+    tempFloorPlan.name = val.areaName;
     tempFloorPlan.type = 'edit';
 
     this.setState({
@@ -3422,56 +3401,82 @@ class NetworkInventory extends Component {
     });
   }
   /**
-   * Display floor tree data
+   * Display tree item
    * @method
+   * @param {object} val - tree data
+   * @param {number} i - index of the tree data
+   * @returns TreeItem component
+   */
+  getTreeItem = (val, i) => {
+    return (
+      <TreeItem
+        key={val.id + i}
+        nodeId={val.id}
+        label={val.label}
+        onLabelClick={this.handleSelectTree.bind(this, val)}>
+        {val.children && val.children.length > 0 &&
+          val.children.map(this.getTreeItem)
+        }
+      </TreeItem>
+    )
+  }
+  /**
+   * Get tree data
+   * @method
+   * @param {string} type - tree type ('deviceMap' or 'stepsFloor')
    * @param {object} tree - tree data
-   * @param {string} selectedID - selected area UUID
-   * @param {number} i - index of the floor plan data
+   * @param {number} i - index of the floorPlan tree data
    * @returns TreeView component
    */
-  getTreeView = (tree, selectedID, i) => {
-    const {currentDeviceData, changeAreaMap, selectedTreeID} = this.state;
-    let defaultSelectedID = selectedTreeID || tree.areaUUID;
+  displayTreeView = (type, tree, i) => {
+    const {floorPlan, currentDeviceData, changeAreaMap, selectedTreeID} = this.state;
+    let defaultSelectedID  = '';
+    let defaultExpanded = [];
 
-    if (changeAreaMap) {
-      if (selectedID) {
-        defaultSelectedID = selectedID;
+    if (type === 'deviceMap') {
+      defaultSelectedID = tree.areaUUID;
+      defaultExpanded = [tree.areaUUID];
+    } else if (type === 'stepsFloor') {
+      let currentAreaUUID = floorPlan.currentAreaUUID;
+
+      if (!changeAreaMap && currentDeviceData.areaUUID) {
+        currentAreaUUID = currentDeviceData.areaUUID;
       }
-    } else {
-      if (currentDeviceData && currentDeviceData.areaUUID) {
-        defaultSelectedID = currentDeviceData.areaUUID;
+
+      defaultSelectedID = selectedTreeID || tree.areaUUID;
+
+      if (changeAreaMap) {
+        if (currentAreaUUID) {
+          defaultSelectedID = currentAreaUUID;
+        }
+      } else {
+        if (currentDeviceData && currentDeviceData.areaUUID) {
+          defaultSelectedID = currentDeviceData.areaUUID;
+        }
       }
+
+      defaultExpanded = this.getDefaultFloor(defaultSelectedID);
     }
 
     return (
       <TreeView
-        id={tree.areaUUID}
-        key={tree.areaUUID}
-        data={tree}
-        selected={defaultSelectedID}
-        defaultOpened={this.getDefaultFloor(defaultSelectedID)}
-        onSelect={this.selectTree.bind(this, i)} />
+        key={i}
+        defaultCollapseIcon={<ExpandMoreIcon />}
+        defaultExpandIcon={<ChevronRightIcon />}
+        defaultSelected={defaultSelectedID}
+        defaultExpanded={defaultExpanded}>
+        {tree.areaUUID &&
+          <TreeItem
+            nodeId={tree.areaUUID}
+            label={tree.areaName}
+            onLabelClick={this.handleSelectTree.bind(this, tree)}>
+            {tree.children.length > 0 &&
+              tree.children.map(this.getTreeItem)
+            }
+          </TreeItem>
+        }
+      </TreeView>
     )
-  }
-  /**
-   * Handle floor tree data
-   * @method
-   * @param {string} type - map type ('deviceMap' or 'stepsFloor')
-   * @param {object} val - floor plan data
-   * @param {number} i - index of the floor plan data
-   * @returns content of TreeView component
-   */
-  displayTree = (type, val, i) => {
-    const {floorPlan, currentDeviceData, changeAreaMap} = this.state;
-    let currentAreaUUID = floorPlan.currentAreaUUID;
-
-    if (type === 'stepsFloor') {
-      if (!changeAreaMap && currentDeviceData.areaUUID) {
-        currentAreaUUID = currentDeviceData.areaUUID;
-      }
-    }
-
-    return this.getTreeView(val, currentAreaUUID, i);
   }
   /**
    * Handle floor map mouse click
@@ -3847,7 +3852,7 @@ class NetworkInventory extends Component {
                   <div className='inventory-map'>
                     <div className='tree'>
                       {floorPlan.treeData && floorPlan.treeData.length > 0 &&
-                        floorPlan.treeData.map(this.displayTree.bind(this, 'deviceMap'))
+                        floorPlan.treeData.map(this.displayTreeView.bind(this, 'deviceMap'))
                       }
                     </div>
                     <div className='map'>
