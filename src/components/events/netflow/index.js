@@ -2535,9 +2535,10 @@ class Netflow extends Component {
   /**
    * Handle content tab change
    * @method
+   * @param {object} event - event object
    * @param {string} newTab - content type ('table', 'linkAnalysis' or 'worldMap')
    */
-  handleSubTabChange = (newTab) => {
+  handleSubTabChange = (event, newTab) => {
     const {activeTab} = this.state;
 
     if (newTab === 'worldMap') {

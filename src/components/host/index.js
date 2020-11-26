@@ -13,11 +13,12 @@ import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 import TreeItem from '@material-ui/lab/TreeItem';
 import TreeView from '@material-ui/lab/TreeView';
+import Tab from '@material-ui/core/Tab';
+import Tabs from '@material-ui/core/Tabs';
 
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import Gis from 'react-gis/build/src/components'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
-import Tabs from 'react-ui/build/src/components/tabs'
 
 import {BaseDataContext} from '../common/context';
 import helper from '../common/helper'
@@ -790,11 +791,12 @@ class HostController extends Component {
   /**
    * Handle content tab change
    * @method
-   * @param {string} type - content type ('hostList' or 'deviceMap')
+   * @param {object} event - event object
+   * @param {string} newTab - content type ('hostList' or 'deviceMap')
    */
-  handleSubTabChange = (type) => {
+  handleSubTabChange = (event, newTab) => {
     this.setState({
-      activeTab: type
+      activeTab: newTab
     }, () => {
       this.getHostData();
     });
@@ -1358,13 +1360,12 @@ class HostController extends Component {
             </div>
             <div className='main-content host'>
               <Tabs
-                className='subtab-menu'
-                menu={{
-                  hostList: t('host.txt-hostList'),
-                  deviceMap: t('host.txt-deviceMap')
-                }}
-                current={activeTab}
+                indicatorColor='primary'
+                textColor='primary'
+                value={activeTab}
                 onChange={this.handleSubTabChange}>
+                <Tab label={t('host.txt-hostList')} value='hostList' />
+                <Tab label={t('host.txt-deviceMap')} value='deviceMap' />
               </Tabs>
 
               {activeTab === 'hostList' &&

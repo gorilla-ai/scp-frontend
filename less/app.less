@@ -180,40 +180,18 @@ button.standard:hover:not([disabled]) {
 .MuiToggleButtonGroup-groupedHorizontal:not(:first-child) {
   border-left: 1px solid var(--primaryBorder) !important;
 }
-.c-tabs > .menu {
-  border-bottom: 1.5px solid var(--leftNavBackground);
+.MuiTabs-root {
   background-color: var(--primaryContentBackground);
-  li {
-    color: var(--tabMenuText);
-    border-color: var(--primaryContentHeader);
-    background-color: var(--primaryContentBackground);
-    &:hover {
-      background-color: var(--tabMenuHover);
-    }
+  border-bottom: 1.5px solid var(--leftNavBackground);
+  button {
+    font-size: 1.1em;
+    font-weight: bold;
+    min-width: 115px;
   }
-  .current {
-    color: var(--primaryContentHeader);
-    background-color: var(--primaryContentBackground);
-    border-color: var(--primaryContentHeader);
-  }
-}
-.c-combo-list .list-item:hover {
-  color: var(--primaryTextColor);
-  background-color: var(--tabMenuHover);
 }
 .c-popover {
   color: var(--primaryTextColor) !important;
   background-color: var(--primaryContentBackground) !important;
-}
-.c-tree {
-  ul li:last-child:before {
-    background: var(--primaryContentBackground);
-  }
-  .selected,
-  .branch:hover:not(.selected) {
-    color: var(--primaryContentHeader);
-  }
-  background-color: var(--primaryContentBackground);
 }
 .c-table {
   thead {
@@ -242,6 +220,17 @@ button.standard:hover:not([disabled]) {
     background-color: var(--formBackground);
   }
 }
+.c-combo-list {
+  input[type=text] {
+    color: var(--primaryTextColor);
+    border: 1px solid var(--formInputBorderColor);
+    background-color: var(--formBackground);
+  }
+  .list-item:hover {
+    color: var(--primaryTextColor);
+    background-color: var(--tabMenuHover);
+  }
+}
 .c-multi {
   .fg-add,
   .fg-close {
@@ -266,6 +255,16 @@ button.standard:hover:not([disabled]) {
   &.right {
     float: right;
     margin-top: 1px;
+  }
+  &.menu {
+    .thumb {
+      padding: 0;
+      a {
+        width: 100%;
+        height: 100%;
+        padding: 0.3em 25px 0.5em 25px;
+      }
+    }
   }
   .thumb {
     padding-left: 25px;
@@ -301,56 +300,6 @@ button.standard:hover:not([disabled]) {
     }
     &:last-child {
       border-radius: 0 4px 4px 0;
-    }
-  }
-  &.menu {
-    .thumb {
-      padding: 0;
-      a {
-        width: 100%;
-        height: 100%;
-        padding: 0.3em 25px 0.5em 25px;
-      }
-    }
-  }
-}
-.c-hierarchy {
-  background: none;
-  .node:hover:not(.current) {
-    color: var(--primaryContentHeader);
-  }
-  &.tree {
-    width: 100%;
-    padding: 10px 5px;
-    border-radius: 5px;
-    background-color: var(--leftTreeGroup);
-    .branch,
-    .leaf {
-      padding: 0 0 0 .7em;
-    }
-    & > .branch,
-    & > .leaf {
-      padding-left: 0;
-    }
-    i.c-checkbox {
-      color: var(--buttonSelectedColor);
-      &.fg-checkbox {
-        &.partial {
-          color: #a6a6a6;
-        }
-      }
-      &.fg-checkbox-outline:active:not(.disabled),
-      &.fg-checkbox-outline:hover:not(.disabled) {
-        color: var(--chartAxisLabelColor);
-      }
-    }
-    .children .branch:before,
-    .leaf:before {
-      width: .7em;
-    }
-    .children .branch:last-child:before,
-    .leaf:last-child:before {
-      background-color: var(--leftTreeGroup);
     }
   }
 }
@@ -560,6 +509,9 @@ button.standard:hover:not([disabled]) {
   }
 }
 #app-container {
+  .react-grid-layout {
+    background-color: var(--primaryBackground);
+  }
   .textarea-autosize {
     min-height: 40px !important;
     padding: 8px 10px;

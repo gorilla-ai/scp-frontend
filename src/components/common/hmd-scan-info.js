@@ -1940,7 +1940,7 @@ class HMDscanInfo extends Component {
         <div className='info-content'>
           {activeTab === 'dashboard' &&
             <div className='dashboard-wrapper'>
-              <div className='chart-group c-box spider-chart'>
+              <div className='chart-group spider-chart'>
                 <div ref={node => { this.chartNode = node }}></div>
               </div>
 

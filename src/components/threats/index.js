@@ -1606,9 +1606,10 @@ class ThreatsController extends Component {
   /**
    * Handle content tab change
    * @method
+   * @param {object} event - event object
    * @param {string} newTab - content type ('table' or 'statistics')
    */
-  handleSubTabChange = (newTab) => {
+  handleSubTabChange = (event, newTab) => {
     this.setState({
       activeSubTab: newTab
     });

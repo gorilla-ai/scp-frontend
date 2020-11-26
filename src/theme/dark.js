@@ -11,6 +11,17 @@ export default function createDarkTheme() {
       fontFamily: '"Segoe UI", "微軟正黑體", "新細明體"'
     },
     overrides: {
+      MuiTab: {
+        root: {
+          '&:hover': {
+            color: '#fff',
+            backgroundColor: '#1a3248 !important'
+          }
+        },
+        textColorPrimary: {
+          color: '#fff'
+        }
+      },
       MuiInputBase: {
         root: {
           color: '#fff',

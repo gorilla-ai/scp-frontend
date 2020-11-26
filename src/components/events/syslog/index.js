@@ -1567,9 +1567,10 @@ class SyslogController extends Component {
   /**
    * Handle content tab change
    * @method
+   * @param {object} event - event object
    * @param {string} newTab - content type ('table' or 'linkAnalysis')
    */
-  handleSubTabChange = (newTab) => {
+  handleSubTabChange = (event, newTab) => {
     if (newTab === 'table') {
       this.setState({
         currentPage: 1,

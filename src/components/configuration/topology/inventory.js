@@ -17,6 +17,9 @@ import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
+import Tab from '@material-ui/core/Tab';
+import Tabs from '@material-ui/core/Tabs';
+
 import TextField from '@material-ui/core/TextField';
 import TreeItem from '@material-ui/lab/TreeItem';
 import TreeView from '@material-ui/lab/TreeView';
@@ -29,7 +32,6 @@ import FileInput from 'react-ui/build/src/components/file-input'
 import Gis from 'react-gis/build/src/components'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
-import Tabs from 'react-ui/build/src/components/tabs'
 import VbdaLA from 'vbda-ui/build/src/components/analysis/la'
 
 import AutoSettings from './auto-settings'
@@ -1469,16 +1471,17 @@ class NetworkInventory extends Component {
   /**
    * Handle content tab change
    * @method
-   * @param {string} type - content type ('deviceList', 'deviceMap' or 'deviceLA')
+   * @param {object} event - event object
+   * @param {string} newTab - content type ('deviceList', 'deviceMap' or 'deviceLA')
    */
-  handleSubTabChange = (type) => {
+  handleSubTabChange = (event, newTab) => {
     this.setState({
-      activeTab: type,
+      activeTab: newTab,
       showFilter: false
     }, () => {
-      if (type === 'deviceMap') {
+      if (newTab === 'deviceMap') {
         this.getFloorPlan();
-      } else if (type === 'deviceLA') {
+      } else if (newTab === 'deviceLA') {
         this.loadLinkAnalysis();
       }
     });
@@ -3794,14 +3797,13 @@ class NetworkInventory extends Component {
 
               <div className='main-content'>
                 <Tabs
-                  className='subtab-menu'
-                  menu={{
-                    deviceList: t('network-inventory.txt-deviceList'),
-                    deviceMap: t('network-inventory.txt-deviceMap'),
-                    deviceLA: t('network-inventory.txt-deviceLA')
-                  }}
-                  current={activeTab}
+                  indicatorColor='primary'
+                  textColor='primary'
+                  value={activeTab}
                   onChange={this.handleSubTabChange}>
+                  <Tab label={t('network-inventory.txt-deviceList')} value='deviceList' />
+                  <Tab label={t('network-inventory.txt-deviceMap')} value='deviceMap' />
+                  <Tab label={t('network-inventory.txt-deviceLA')} value='deviceLA' />
                 </Tabs>
 
                 <div className='content-header-btns'>
