@@ -49,7 +49,7 @@ class TableCell extends Component {
     if (value) {
       if (typeof value === 'string') {
         value = value.toLowerCase();
-      } else if (typeof myVar === 'number') {
+      } else if (typeof value === 'number') {
         value = value.toString();
         value = value.toLowerCase();
       } else {
