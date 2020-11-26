@@ -69,6 +69,7 @@ class Ttps extends Component {
 	                    variant='outlined'
 	                    fullWidth={true}
 	                    size='small'
+	                    select
 	                    onChange={this.handleDataChangeMui}
 	                    value={infrastructureType}
 	                    helperText={t('txt-checkRequiredFieldType')}
