@@ -11,6 +11,9 @@ import EventConnections from './event-connections'
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
+import {KeyboardDateTimePicker, MuiPickersUtilsProvider} from "@material-ui/pickers";
+import MomentUtils from "@date-io/moment";
+import moment from "moment";
 
 let t = null
 let et = null
@@ -29,8 +32,21 @@ class Events extends Component {
 	componentDidMount() {
 	}
 	handleDataChange = (field, value) => {
+		console.log("field == ",field)
+		console.log("value == ",value)
         let {onChange, value: curValue} = this.props
-        onChange({...curValue, [field]: value})
+
+		if (field === 'from'){
+			let tmpTime =  curValue.time
+			tmpTime.from = value
+			onChange({...curValue, [field]: tmpTime})
+		}else if (field === 'to'){
+			let tmpTime =  curValue.time
+			tmpTime.to = value
+			onChange({...curValue, [field]: tmpTime})
+		}else{
+			onChange({...curValue, [field]: value})
+		}
     }
 
 	handleDataChangeMui = (event) => {
@@ -39,7 +55,13 @@ class Events extends Component {
 	}
 	render() {
 		let {activeContent, locale, deviceListOptions, value: {description, deviceId, time, frequency, eventConnectionList}} = this.props
+		let dateLocale = locale;
 
+		if (locale === 'zh') {
+			dateLocale += '-tw';
+		}
+
+		moment.locale(dateLocale);
 		return <div className='event-content'>
 			<div className='line'>
 				<div className='group'>
@@ -84,16 +106,27 @@ class Events extends Component {
 	        <div className='line'>
 	        	<div className='group'>
 		        	<label htmlFor='datetime'>{f('incidentFields.dateRange')}</label>
-		        	<DateRange
-				        id='datetime'
-				        className='daterange'
-				        onChange={this.handleDataChange.bind(this, 'time')}
-				        enableTime={true}
-				        required={true}
-				        validate={{t: et}}
-				        value={time}
-				        locale={locale}
-				        readOnly={activeContent === 'viewIncident'} />
+			        <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+				        <KeyboardDateTimePicker
+					        className='date-time-picker'
+					        inputVariant='outlined'
+					        variant='inline'
+					        format='YYYY-MM-DD HH:mm'
+					        ampm={false}
+					        value={time.from}
+					        readOnly={activeContent === 'viewIncident' }
+					        onChange={this.handleDataChange.bind(this, 'from')} />
+				        <div className='between'>~</div>
+				        <KeyboardDateTimePicker
+					        className='date-time-picker'
+					        inputVariant='outlined'
+					        variant='inline'
+					        format='YYYY-MM-DD HH:mm'
+					        ampm={false}
+					        value={time.to}
+					        readOnly={activeContent === 'viewIncident' }
+					        onChange={this.handleDataChange.bind(this, 'to')} />
+			        </MuiPickersUtilsProvider>
 		        </div>
 		        <div className='group'>
 	                <label htmlFor='frequency'>{it('txt-frequency')}</label>
@@ -108,7 +141,7 @@ class Events extends Component {
 	                    required
 	                    error={!(frequency || 0)}
 	                    helperText={it('txt-required')}
-	                    readOnly={activeContent === 'viewIncident'}/>
+	                    disabled={activeContent === 'viewIncident'}/>
 	            </div>
 	        </div>
 

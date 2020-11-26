@@ -795,6 +795,13 @@ class Incident extends Component {
     displayMainPage = () => {
         const {activeContent, incidentType, incident, relatedListOptions} = this.state;
         const {locale} = this.context;
+        let dateLocale = locale;
+
+        if (locale === 'zh') {
+            dateLocale += '-tw';
+        }
+
+        moment.locale(dateLocale);
 
         return <div className='form-group normal'>
             <header>
@@ -878,16 +885,29 @@ class Incident extends Component {
 
             <div className='group' style={{width: '25vh'}}>
                 <label htmlFor='expireDttm'>{f('incidentFields.finalDate')}</label>
-                <DatePicker
-                    id='expireDttm'
-                    className='daterange'
-                    onChange={this.handleDataChange.bind(this, 'expireDttm')}
-                    enableTime={true}
-                    required={true}
-                    validate={{t: et}}
-                    value={incident.info.expireDttm}
-                    locale={locale}
-                    readOnly={activeContent === 'viewIncident'} />
+                {/*<DatePicker*/}
+                {/*    id='expireDttm'*/}
+                {/*    className='daterange'*/}
+                {/*    onChange={this.handleDataChange.bind(this, 'expireDttm')}*/}
+                {/*    enableTime={true}*/}
+                {/*    required={true}*/}
+                {/*    validate={{t: et}}*/}
+                {/*    value={incident.info.expireDttm}*/}
+                {/*    locale={locale}*/}
+                {/*    readOnly={activeContent === 'viewIncident'} />*/}
+                <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+                    <KeyboardDateTimePicker
+                        id='expireDttm'
+                        className='date-time-picker'
+                        inputVariant='outlined'
+                        variant='inline'
+                        format='YYYY-MM-DD HH:mm'
+                        ampm={false}
+                        required={true}
+                        value={incident.info.expireDttm}
+                        readOnly={activeContent === 'viewIncident' }
+                        onChange={this.handleDataChange.bind(this, 'expireDttm')} />
+                </MuiPickersUtilsProvider>
             </div>
 
             {incidentType === 'ttps' && <div className='group full'>
@@ -1921,6 +1941,7 @@ class Incident extends Component {
         }
 
         this.setState({
+            displayPage: 'main',
             activeContent: showPage,
             incident: tempIncident
         }, () => {
