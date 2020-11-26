@@ -799,6 +799,7 @@ class NetworkOwner extends Component {
                       <label htmlFor='ownerPhotoUpload'>{t('txt-uploadPhoto')}</label>
                       <FileInput
                         id='ownerPhotoUpload'
+                        className='file-input'
                         name='file'
                         btnText={t('txt-uploadPhoto')}
                         validate={{

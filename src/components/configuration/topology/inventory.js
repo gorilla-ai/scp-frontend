@@ -1476,7 +1476,9 @@ class NetworkInventory extends Component {
       activeTab: type,
       showFilter: false
     }, () => {
-      if (type === 'deviceLA') {
+      if (type === 'deviceMap') {
+        this.getFloorPlan();
+      } else if (type === 'deviceLA') {
         this.loadLinkAnalysis();
       }
     });
@@ -2921,6 +2923,33 @@ class NetworkInventory extends Component {
     return owner.text;
   }
   /**
+   * Handle Add IP form input value change
+   * @method
+   * @param {object} event - event object
+   */
+  handleAddIpChange = (event) => {
+    let tempAddIP = {...this.state.addIP};
+    tempAddIP[event.target.name] = event.target.value;
+
+    this.setState({
+      addIP: tempAddIP
+    });
+  }
+  /**
+   * Handle photo upload input value change
+   * @method
+   * @param {string | object} value - input data to be set
+   */
+  handlePhotoChange = (value) => {
+    let tempAddIP = {...this.state.addIP};
+    tempAddIP.file = value;
+
+    this.setState({
+      previewOwnerPic: value ? URL.createObjectURL(value) : '',
+      addIP: tempAddIP
+    });
+  }
+  /**
    * Display add/edit IP device form content
    * @method
    * @returns HTML DOM
@@ -3163,6 +3192,7 @@ class NetworkInventory extends Component {
                     <label htmlFor='ownerPhotoUpload'>{t('txt-uploadPhoto')}</label>
                     <FileInput
                       id='ownerPhotoUpload'
+                      className='file-input'
                       name='file'
                       btnText={t('txt-uploadPhoto')}
                       validate={{
@@ -3174,7 +3204,7 @@ class NetworkInventory extends Component {
                           }
                         }
                       }}
-                      onChange={this.handleAddIpChange.bind(this, 'file')} />
+                      onChange={this.handlePhotoChange} />
                   </div>
                 }
                 <div className='group'>
@@ -3648,29 +3678,6 @@ class NetworkInventory extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
-  }
-  /**
-   * Handle Add IP form input value change
-   * @method
-   * @param {object} event - event object
-   */
-  handleAddIpChange = (event) => {
-    const type = event.target.name;
-    const value = event.target.value;
-    let tempAddIP = {...this.state.addIP};
-    tempAddIP[type] = value;
-
-    if (type === 'file') {
-      const file = value ? URL.createObjectURL(value) : '';
-
-      this.setState({
-        previewOwnerPic: file
-      });
-    }
-
-    this.setState({
-      addIP: tempAddIP
-    });
   }
   render() {
     const {baseUrl, contextRoot, language} = this.context;

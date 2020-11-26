@@ -500,7 +500,7 @@
       "_Filepath": "File Path",
       "_Filesize": "File Size",
       "_HashValues": {
-        "_MD5": "Hash Value"
+        "_MD5": "Hash Value (MD5)"
       }
     },
     "_IsPE": "Is PE?",

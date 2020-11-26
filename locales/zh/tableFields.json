@@ -500,7 +500,7 @@
       "_Filepath": "檔案路徑",
       "_Filesize": "檔案大小",
       "_HashValues": {
-        "_MD5": "Hash Value"
+        "_MD5": "Hash Value (MD5)"
       }
     },
     "_IsPE": "是否為PE檔",
