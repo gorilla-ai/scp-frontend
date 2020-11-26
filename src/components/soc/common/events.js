@@ -32,8 +32,6 @@ class Events extends Component {
 	componentDidMount() {
 	}
 	handleDataChange = (field, value) => {
-		console.log("field == ",field)
-		console.log("value == ",value)
         let {onChange, value: curValue} = this.props
 
 		if (field === 'from'){
