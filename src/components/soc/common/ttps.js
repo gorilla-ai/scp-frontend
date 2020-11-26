@@ -73,7 +73,7 @@ class Ttps extends Component {
 	                    onChange={this.handleDataChangeMui}
 	                    value={infrastructureType}
 	                    helperText={t('txt-checkRequiredFieldType')}
-	                    error={!(title || '').trim()}
+	                    error={!(infrastructureType || '')}
 	                    disabled={activeContent === 'viewIncident'}>
 		                {
 		                	_.map([
