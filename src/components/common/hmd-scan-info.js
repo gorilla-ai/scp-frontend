@@ -841,7 +841,7 @@ class HMDscanInfo extends Component {
                 <span>PID: {val._MatchedPid}</span>
               }
               {activeTab === 'procMonitor' && (location.pathname.indexOf('host') > 0 || location.pathname.indexOf('configuration') > 0) &&
-                <i className='c-link fg fg-add' title={t('network-inventory.txt-addToSettings')} onClick={this.addToSettings.bind(this, 'procMonitor', filePath)}></i>
+                <i className='c-link fg fg-add' title={t('network-inventory.txt-addToFilterList')} onClick={this.addToSettings.bind(this, 'procMonitor', filePath)}></i>
               }
             </div>
           </div>

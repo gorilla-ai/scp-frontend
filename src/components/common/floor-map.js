@@ -489,7 +489,7 @@ class FloorMap extends Component {
               <FileInput
                 ref={ref => { this.fileInput = ref }}
                 id='areaMapUpload'
-                className='area-upload'
+                className='file-input area-upload'
                 name='file'
                 btnText={t('txt-upload')}
                 validate={{
