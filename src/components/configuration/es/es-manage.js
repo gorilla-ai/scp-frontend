@@ -5,13 +5,16 @@ import PropTypes from 'prop-types'
 import moment from 'moment'
 import cx from 'classnames'
 
+import Autocomplete from '@material-ui/lab/Autocomplete';
 import Button from '@material-ui/core/Button';
+import Checkbox from '@material-ui/core/Checkbox';
+import CheckBoxIcon from '@material-ui/icons/CheckBox';
+import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import Switch from '@material-ui/core/Switch';
 import TextField from '@material-ui/core/TextField';
 
-import Combobox from 'react-ui/build/src/components/combobox'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
@@ -277,8 +280,14 @@ class EsManage extends Component {
     })
     .then(data => {
       if (data) {
+        const importList = _.map(data.folderList, val => {
+          return {
+            value: val.replace(/\./g, '-')
+          }
+        });
+
         this.setState({
-          importList: data.folderList
+          importList
         });
       }
       return null;
@@ -423,12 +432,13 @@ class EsManage extends Component {
   /**
    * Handle add/remove for the import index box
    * @method
-   * @param {array} data - import index list array
+   * @param {object} event - event object
+   * @param {array.<object>} value - selected input value
    */
-  handleImportIndexChange = (data) => {
+  handleComboBoxChange = (event, value) => {
     this.setState({
-      selectedImportList: data
-    });
+      selectedImportList: value
+    });    
   }
   /**
    * Display import index content
@@ -437,27 +447,38 @@ class EsManage extends Component {
    */
   displayImportIndexContent = () => {
     const {importList, selectedImportList} = this.state;
-    const formattedImportList = _.map(importList, val => {
-      return {
-        value: val,
-        text: val.replace(/\./g, '-')
-      }
-    });
 
     return (
       <div>
         <label>{t('txt-esImportMsg')}</label>
-        <Combobox
-          list={formattedImportList}
-          multiSelect={{
-            enabled: true,
-            toggleAll: true
-          }}
-          search={{
-            enabled: true
-          }}
+        <Autocomplete
+          className='checkboxes-tags groups'
+          multiple
           value={selectedImportList}
-          onChange={this.handleImportIndexChange} />
+          options={importList}
+          getOptionLabel={(option) => option.value}
+          disableCloseOnSelect
+          noOptionsText={t('txt-notFound')}
+          openText={t('txt-on')}
+          closeText={t('txt-off')}
+          clearText={t('txt-clear')}
+          renderOption={(option, { selected }) => (
+            <React.Fragment>
+              <Checkbox
+                color='primary'
+                icon={<CheckBoxOutlineBlankIcon />}
+                checkedIcon={<CheckBoxIcon />}
+                checked={selected} />
+              {option.value}
+            </React.Fragment>
+          )}
+          renderInput={(params) => (
+            <TextField {...params} variant='outlined' />
+          )}
+          getOptionSelected={(option, value) => (
+            option.value === value.value
+          )}
+          onChange={this.handleComboBoxChange} />
       </div>
     )
   }
@@ -501,7 +522,9 @@ class EsManage extends Component {
     }
 
     const requestData = {
-      esData: selectedImportList
+      esData: _.map(selectedImportList, val => {
+        return val.value.replace(/\-/g, '.');
+      })
     };
 
     this.ah.one({

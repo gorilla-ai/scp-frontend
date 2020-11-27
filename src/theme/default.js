@@ -11,13 +11,6 @@ export default function createDefaultTheme() {
       fontFamily: '"Segoe UI", "微軟正黑體", "新細明體"'
     },
     overrides: {
-      MuiIconButton: {
-        root: {
-          '&:hover': {
-            backgroundColor: '#185e9e !important'
-          }
-        }
-      },
       MuiTab: {
         root: {
           '&:hover': {

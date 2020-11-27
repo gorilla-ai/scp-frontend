@@ -9,7 +9,11 @@ import { MuiPickersUtilsProvider, KeyboardDatePicker, KeyboardDateTimePicker } f
 import MomentUtils from '@date-io/moment';
 import 'moment/locale/zh-tw';
 
+import Autocomplete from '@material-ui/lab/Autocomplete';
 import Button from '@material-ui/core/Button';
+import Checkbox from '@material-ui/core/Checkbox';
+import CheckBoxIcon from '@material-ui/icons/CheckBox';
+import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormLabel from '@material-ui/core/FormLabel';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -20,12 +24,6 @@ import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import TextField from '@material-ui/core/TextField';
 
-import Checkbox from '@material-ui/core/Checkbox';
-import Autocomplete from '@material-ui/lab/Autocomplete';
-import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank';
-import CheckBoxIcon from '@material-ui/icons/CheckBox';
-
-import Combobox from 'react-ui/build/src/components/combobox'
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import Gis from 'react-gis/build/src/components'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
@@ -282,7 +280,9 @@ class Edge extends Component {
     }
 
     if (edgeSearch.groups.length > 0) {
-      requestData.groups = edgeSearch.groups;
+      requestData.groups = _.map(edgeSearch.groups, val => {
+        return val.value;
+      });
     }
 
     if (edgeSearch.serviceType && edgeSearch.serviceType !== 'all') {
@@ -576,9 +576,7 @@ class Edge extends Component {
    */
   handleComboSearch = (event, value) => {
     let tempEdgeSearch = {...this.state.edgeSearch};
-    tempEdgeSearch.groups = _.map(value, val => {
-      return val.value;
-    });
+    tempEdgeSearch.groups = value;
 
     this.setState({
       edgeSearch: tempEdgeSearch
@@ -722,9 +720,7 @@ class Edge extends Component {
    */
   handleComboBoxChange = (event, value) => {
     let tempEdge = {...this.state.edge};
-    tempEdge.info.edgeGroupList = _.map(value, val => {
-      return val.value;
-    });
+    tempEdge.info.edgeGroupList = value;
 
     this.setState({
       edge: tempEdge
@@ -958,7 +954,9 @@ class Edge extends Component {
     }
 
     const requestData2 = {
-      groupName: edge.info.edgeGroupList
+      groupName: _.map(edge.info.edgeGroupList, val => {
+        return val.value;
+      })
     };
 
     ah.series([
@@ -1334,17 +1332,22 @@ class Edge extends Component {
               {activeContent === 'editEdge' &&
                 <Button variant='contained' color='primary' className='btn add-group' onClick={this.toggleManageGroup}>{t('txt-manage')}</Button>
               }
-              <label>{t('txt-group')}</label>
+              <label className='combobox-group'>{t('txt-group')}</label>
               {activeContent === 'viewEdge' &&
                 <div className='flex-item'>{edge.info.edgeGroupList.map(this.displayGroup)}</div>
               }
               {activeContent === 'editEdge' &&
                 <Autocomplete
-                  className='checkboxes-tags'
+                  className='checkboxes-tags groups'
                   multiple
+                  value={edge.info.edgeGroupList}
                   options={_.map(allGroupList, (val) => { return { value: val }})}
-                  disableCloseOnSelect
                   getOptionLabel={(option) => option.value}
+                  disableCloseOnSelect
+                  noOptionsText={t('txt-notFound')}
+                  openText={t('txt-on')}
+                  closeText={t('txt-off')}
+                  clearText={t('txt-clear')}
                   renderOption={(option, { selected }) => (
                     <React.Fragment>
                       <Checkbox
@@ -1361,7 +1364,7 @@ class Edge extends Component {
                   getOptionSelected={(option, value) => (
                     option.value === value.value
                   )}
-                  onChange={this.handleComboBoxChange} />
+                  onChange={this.handleComboBoxChange} />               
               }
             </div>
             <div className='group full'>
@@ -1497,14 +1500,19 @@ class Edge extends Component {
               <MenuItem value={'Error'}>{t('txt-error')}</MenuItem>
             </TextField>
           </div>
-          <div className='group' style={{width: '430px'}}>
+          <div className='group' style={{width: '300px'}}>
             <Autocomplete
+              debug
               className='checkboxes-tags'
               multiple
               value={edgeSearch.groups}
               options={_.map(allGroupList, (val) => { return { value: val }})}
-              disableCloseOnSelect
               getOptionLabel={(option) => option.value}
+              disableCloseOnSelect
+              noOptionsText={t('txt-notFound')}
+              openText={t('txt-on')}
+              closeText={t('txt-off')}
+              clearText={t('txt-clear')}
               renderOption={(option, { selected }) => (
                 <React.Fragment>
                   <Checkbox
