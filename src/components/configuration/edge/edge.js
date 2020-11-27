@@ -1502,7 +1502,6 @@ class Edge extends Component {
           </div>
           <div className='group' style={{width: '300px'}}>
             <Autocomplete
-              debug
               className='checkboxes-tags'
               multiple
               value={edgeSearch.groups}
