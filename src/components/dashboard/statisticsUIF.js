@@ -136,6 +136,10 @@ class StatisticsUIF extends Component {
           _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.onTooltip`], this.onTooltip.bind(this, 'MaskedIPAlertStatistics-bar'))
         }
 
+        if (widgetName === 'honeypotLoginPassword-table') {
+          _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.fields.password.formatter`], this.formatter.bind(this))
+        }
+
       })
 
       this.setState({appendConfig, uifCfg})
@@ -177,6 +181,9 @@ class StatisticsUIF extends Component {
         });
       }
     }
+  }
+  formatter = (value) => {
+    return <div dangerouslySetInnerHTML={{__html: value}} />
   }
   onTooltip = (type, eventInfo, data) => {
     if (type === 'AlertStatistics-bar') {
@@ -267,10 +274,14 @@ class StatisticsUIF extends Component {
             }
           })
           .catch(err => {
+            console.log(err)
+
             helper.showPopupMsg('', t('txt-error'), err.message)
           })
       })
       .catch(err => {
+        console.log(err)
+
         helper.showPopupMsg('', t('txt-error'), err.message)
       })
     })
