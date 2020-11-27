@@ -19,7 +19,10 @@ import {downloadLink} from 'react-ui/build/src/utils/download'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 import {HOC} from 'widget-builder'
 
-import htmlToImage from 'html-to-image'
+
+import * as htmlToImage from 'html-to-image'
+import { toPng } from 'html-to-image'
+
 
 let t = null
 let et = null
