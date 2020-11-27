@@ -16,13 +16,14 @@ import MenuItem from '@material-ui/core/MenuItem';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import Switch from '@material-ui/core/Switch';
+import Tab from '@material-ui/core/Tab';
+import Tabs from '@material-ui/core/Tabs';
 import TextField from '@material-ui/core/TextField';
 
 import Combobox from 'react-ui/build/src/components/combobox'
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import Gis from 'react-gis/build/src/components'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
-import Tabs from 'react-ui/build/src/components/tabs'
 
 import {BaseDataContext} from '../../common/context';
 import Config from '../../common/configuration'
@@ -589,13 +590,14 @@ class Edge extends Component {
   /**
    * Handle content tab change
    * @method
-   * @param {string} type - content type ('edge' or 'geography')
+   * @param {object} event - event object
+   * @param {string} newTab - content type ('edge' or 'geography')
    */
-  handleSubTabChange = (type) => {
+  handleSubTabChange = (event, newTab) => {
     this.setState({
-      activeTab: type
+      activeTab: newTab
     });
-  }  
+  }
   /**
    * Toggle different content
    * @method
@@ -1574,13 +1576,12 @@ class Edge extends Component {
             {activeContent === 'tableList' &&
               <div className='main-content'>
                 <Tabs
-                  className='subtab-menu'
-                  menu={{
-                    edge: t('txt-edge'),
-                    geography: t('edge-management.txt-geography')
-                  }}
-                  current={activeTab}
+                  indicatorColor='primary'
+                  textColor='primary'
+                  value={activeTab}
                   onChange={this.handleSubTabChange}>
+                  <Tab label={t('txt-edge')} value='edge' />
+                  <Tab label={t('edge-management.txt-geography')} value='geography' />
                 </Tabs>
 
                 <div className='content-header-btns'>

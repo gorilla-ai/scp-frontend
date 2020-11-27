@@ -1,9 +1,10 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 
+import Tab from '@material-ui/core/Tab';
+import Tabs from '@material-ui/core/Tabs';
+
 import Gis from 'react-gis/build/src/components'
-import Tabs from 'react-ui/build/src/components/tabs'
-import Timebar from 'react-timebar/build/src/components'
 import VbdaLA from 'vbda-ui/build/src/components/analysis/la'
 
 import {BaseDataContext} from '../../../common/context';
@@ -28,6 +29,9 @@ class Connections extends Component {
     const {contextRoot, language} = this.context;
     const {mainContentData, tabChartData, tableMouseOver} = this.props;
     const assetsPath = `${contextRoot}/lib/keylines/assets/`;
+    const tabsMenu = _.map(mainContentData.subTabMenu, (val, key) => {
+      return <Tab label={val} value={key} />
+    });
 
     return (
       <div className='data-content'>
@@ -45,10 +49,11 @@ class Connections extends Component {
 
           <div className='main-content'>
             <Tabs
-              className='subtab-menu'
-              menu={mainContentData.subTabMenu}
-              current={mainContentData.activeSubTab}
+              indicatorColor='primary'
+              textColor='primary'
+              value={mainContentData.activeSubTab}
               onChange={mainContentData.handleSubTabChange}>
+              {tabsMenu}
             </Tabs>
 
             {mainContentData.activeSubTab === 'table' &&

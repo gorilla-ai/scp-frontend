@@ -517,6 +517,7 @@
   "network-inventory": {
     "txt-deviceList": "裝置列表",
     "txt-deviceMap": "裝置地圖",
+    "txt-deviceLA": "裝置拓譜圖",
     "txt-triggerAll": "全部檢測(HMD)",
     "txt-addIP": "新增IP",
     "txt-manuallyEnter": "單筆輸入",
@@ -558,7 +559,7 @@
     "txt-reCheck": "重新檢測",
     "txt-reCompress": "重新壓縮",
     "txt-yaraRules": "Yara Rules",
-    "txt-addToSettings": "加入設定",
+    "txt-addToFilterList": "加入過濾名單",
     "txt-passCount": "通過",
     "txt-totalItem": "總項目",
     "txt-total": "總上傳筆數",

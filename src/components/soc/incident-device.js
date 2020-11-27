@@ -595,7 +595,7 @@ class IncidentDevice extends Component {
                             disabled={activeContent === 'viewDevice'}>
                             {
                                 _.map(_.range(0, 7), el => {
-                                    return <MenuItem value={el}>{it(`protectType.${el}`)}</MenuItem>
+                                    return <MenuItem value={el.toString()}>{it(`protectType.${el}`)}</MenuItem>
                                 })
                             }
                         </TextField>
@@ -1083,7 +1083,7 @@ class IncidentDevice extends Component {
      */
     handleDeviceInputSearchMui = (event) => {
         let tempDeviceSearch = {...this.state.deviceSearch};
-        tempDeviceSearch[event.target.name] =  event.target.value.trim();
+        tempDeviceSearch[event.target.name] =  event.target.value;
 
         this.setState({
             deviceSearch: tempDeviceSearch

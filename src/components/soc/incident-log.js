@@ -13,6 +13,9 @@ import Moment from "moment";
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 import Button from "@material-ui/core/Button";
+import {KeyboardDateTimePicker, MuiPickersUtilsProvider} from "@material-ui/pickers";
+import MomentUtils from "@date-io/moment";
+import moment from "moment";
 
 let t = null;
 let f = null;
@@ -244,6 +247,14 @@ class IncidentLog extends Component {
     renderFilter = () => {
         const {showFilter, logSearch} = this.state;
         const {locale} = this.context;
+
+        let dateLocale = locale;
+
+        if (locale === 'zh') {
+            dateLocale += '-tw';
+        }
+
+        moment.locale(dateLocale);
         return (
             <div className={cx('main-filter', {'active': showFilter})}>
                 <i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}/>
@@ -353,16 +364,35 @@ class IncidentLog extends Component {
                         </TextField>
 
                     </div>
-                    <div className='group'>
-                        <label htmlFor='searchDttm'>{it('txt-searchDttm')}</label>
-                        <DateRange
-                            id='datetime'
-                            className='daterange'
-                            enableTime={true}
-                            value={logSearch.datetime}
-                            onChange={this.handleLogSearch.bind(this, 'datetime')}
-                            locale={locale}
-                            t={et} />
+                    <div className='group' style={{width: '500px'}}>
+                        <label htmlFor='searchDttm'>{f('incidentFields.createDttm')}</label>
+                        <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+                            <KeyboardDateTimePicker
+                                className='date-time-picker'
+                                inputVariant='outlined'
+                                variant='inline'
+                                format='YYYY-MM-DD HH:mm'
+                                ampm={false}
+                                value={logSearch.datetime.from}
+                                onChange={this.handleSearchTime.bind(this, 'from')} />
+                            <div className='between'>~</div>
+                            <KeyboardDateTimePicker
+                                className='date-time-picker'
+                                inputVariant='outlined'
+                                variant='inline'
+                                format='YYYY-MM-DD HH:mm'
+                                ampm={false}
+                                value={logSearch.datetime.to}
+                                onChange={this.handleSearchTime.bind(this, 'to')} />
+                        </MuiPickersUtilsProvider>
+                        {/*<DateRange*/}
+                        {/*    id='datetime'*/}
+                        {/*    className='daterange'*/}
+                        {/*    enableTime={true}*/}
+                        {/*    value={logSearch.datetime}*/}
+                        {/*    onChange={this.handleLogSearch.bind(this, 'datetime')}*/}
+                        {/*    locale={locale}*/}
+                        {/*    t={et} />*/}
                     </div>
                 </div>
                 <div className='button-group'>
@@ -375,6 +405,22 @@ class IncidentLog extends Component {
     };
 
     /* ---- Func Space ---- */
+
+
+    /**
+     * Handle filter input data change
+     * @method
+     * @param {string} type - input type
+     * @param {string} value - input value
+     */
+    handleSearchTime = (type, value) => {
+        let tempSearch = {...this.state.logSearch};
+        tempSearch.datetime[type] = value;
+
+        this.setState({
+            logSearch: tempSearch
+        });
+    };
 
     /**
      * Handle table sort

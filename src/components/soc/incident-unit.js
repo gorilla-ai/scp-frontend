@@ -408,7 +408,7 @@ class IncidentUnit extends Component {
                             name='industryType'
                             required
                             helperText={it('txt-required')}
-                            error={!(incidentUnit.info.industryType || '').trim()}
+                            error={!(incidentUnit.info.industryType || '')}
                             variant='outlined'
                             fullWidth={true}
                             size='small'
@@ -417,7 +417,7 @@ class IncidentUnit extends Component {
                             value={incidentUnit.info.industryType}
                             disabled={activeContent === 'viewDevice'}>
                             {_.map(_.range(0, 14), el => {
-                                return <MenuItem value={el}>{it(`industryType.${el}`)}</MenuItem>
+                                return <MenuItem value={el.toString()}>{it(`industryType.${el}`)}</MenuItem>
                             })}
                         </TextField>
                     </div>
@@ -555,7 +555,7 @@ class IncidentUnit extends Component {
                             value={unitSearch.industryType}
                             onChange={this.handleUnitInputSearchMui}>
                             {_.map(_.range(0, 14), el => {
-                                return <MenuItem value={el}>{it(`industryType.${el}`)}</MenuItem>
+                                return <MenuItem value={el.toString()}>{it(`industryType.${el}`)}</MenuItem>
                             })}
                         </TextField>
 
@@ -828,7 +828,7 @@ class IncidentUnit extends Component {
      */
     handleDataChangeMui = (event) => {
         let tempDevice = {...this.state.incidentUnit};
-        tempDevice.info[event.target.name] = event.target.value.trim();
+        tempDevice.info[event.target.name] = event.target.value;
 
         this.setState({
             incidentUnit: tempDevice

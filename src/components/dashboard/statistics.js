@@ -814,7 +814,7 @@ class DashboardStats extends Component {
 
     if (alertChartsList[i].type === 'pie') {
       return (
-        <div className='chart-group c-box' key={alertChartsList[i].chartID}>
+        <div className='chart-group' key={alertChartsList[i].chartID}>
           {!alertChartsList[i].chartData &&
             <div className='empty-data'>
               <header>{alertChartsList[i].chartTitle}</header>
@@ -846,7 +846,7 @@ class DashboardStats extends Component {
       )
     } else if (alertChartsList[i].type === 'table') {
       return (
-        <div className='chart-group c-box' key={alertChartsList[i].chartID}>
+        <div className='chart-group' key={alertChartsList[i].chartID}>
           {!ivar.dataContent &&
             <div className='empty-data'>
               <header>{alertChartsList[i].chartTitle}</header>
@@ -1079,7 +1079,7 @@ class DashboardStats extends Component {
 
             {alertChartsList.map(this.displayCharts)}
 
-            <div className='chart-group c-box'>
+            <div className='chart-group'>
               {this.displayHmdData()}
 
               <div className='c-chart license-date'>
@@ -1096,7 +1096,7 @@ class DashboardStats extends Component {
               </div>
             </div>
 
-            <div className='chart-group c-box'>
+            <div className='chart-group'>
               {[dnsMetricData, diskMetricData].map(this.displayMetrics)}
             </div>
           </div>

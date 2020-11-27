@@ -280,6 +280,10 @@ class ThreatIntelligence extends Component {
    * @param {string} type - 'today', 'past7days' or 'custom'
    */
   toggleDateRangeButtons = (event, type) => {
+    if (!type) {
+      return;
+    }
+    
     if (type === 'today' || type === 'past7days') {
       this.clearIndicatorsData(type);
     }

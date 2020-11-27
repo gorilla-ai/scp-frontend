@@ -48,6 +48,7 @@ const cfg = _.assign({
   session: {
     rights: ["Module_Common", "Module_Config"],
     name: null,
+    roles: "SOC Supervior",
     account: "admin",
     accountId: "DPIR-00000000-0000-0000-0000-000000000000"
   },
@@ -55,6 +56,7 @@ const cfg = _.assign({
   // session: {
   //   rights: [],
   //   name: null,
+  //   roles: null,
   //   account: null,
   //   accountId: null
   // }

@@ -465,6 +465,10 @@ class NetworkBehavior extends Component {
    * @param {string} type - 'threats' or 'syslog'
    */
   toggleNetworkBtn = (event, type) => {
+    if (!type) {
+      return;
+    }
+    
     this.setState({
       activeNetworkBehavior: type
     });

@@ -36,6 +36,9 @@ import IncidentComment from './common/comment'
 import IncidentTag from './common/tag'
 import IncidentReview from './common/review'
 import FileUpload from "../common/file-upload";
+import {KeyboardDateTimePicker, MuiPickersUtilsProvider} from "@material-ui/pickers";
+import MomentUtils from "@date-io/moment";
+import moment from "moment";
 
 let t = null;
 let f = null;
@@ -49,6 +52,12 @@ const INCIDENT_STATUS_CLOSED = 3
 const INCIDENT_STATUS_SUBMITTED = 4
 const INCIDENT_STATUS_DELETED = 5
 const INCIDENT_STATUS_ANALYZED = 6
+const INCIDENT_STATUS_EXECUTOR_UNREVIEWED = 7
+const INCIDENT_STATUS_EXECUTOR_CLOSE = 8
+
+const SOC_Analyzer = 1
+const SOC_Executor = 2
+const SOC_Super = 3
 
 class Incident extends Component {
     constructor(props) {
@@ -121,7 +130,8 @@ class Incident extends Component {
                     socType: 1
                 }
             },
-            loadListType:1,
+            accountRoleType:1,
+            loadListType:SOC_Analyzer,
             attach: null
         };
 
@@ -134,13 +144,42 @@ class Incident extends Component {
 
         let alertDataId = this.getQueryString('alertDataId');
         let alertData = sessionStorage.getItem(alertDataId);
+
         if (alertData) {
             this.toggleContent('redirect', alertData);
             sessionStorage.removeItem(alertDataId)
         } else {
-            // this.loadData()
-            this.loadCondition('unhandled')
+            const {session} = this.context;
+
+            if (_.includes(session.roles, 'SOC Supervior' || 'SOC Supervisor' || 'SOC Executor')){
+                if (_.includes(session.roles, 'SOC Executor')){
+                    this.setState({
+                        accountRoleType:SOC_Super
+                    },() => {
+                        this.loadCondition('unhandled')
+                    })
+                }else{
+                    this.setState({
+                        accountRoleType:SOC_Super
+                    },() => {
+                        this.loadCondition('unhandled')
+                    })
+                }
+            } else  if (_.includes(session.roles, 'SOC Executor')){
+                this.setState({
+                    accountRoleType:SOC_Executor
+                },() => {
+                    this.loadCondition('unhandled')
+                })
+            } else{
+                this.setState({
+                    accountRoleType:SOC_Analyzer
+                },() => {
+                    this.loadCondition('unhandled')
+                })
+            }
         }
+
         this.getOptions()
         this.loadDashboard()
     }
@@ -167,6 +206,7 @@ class Incident extends Component {
         }
 
         search.isExecutor = _.includes(session.roles, 'SOC Executor')
+        search.accountRoleType = this.state.accountRoleType
         search.account = session.accountId
 
         ah.one({
@@ -249,7 +289,6 @@ class Incident extends Component {
         const {baseUrl, contextRoot, session} = this.context;
         const {incident} = this.state;
 
-        // searchPayload.isExecutor = _.includes(session.roles, 'SOC Executor')
         searchPayload.account = session.accountId
 
         ah.one({
@@ -325,19 +364,33 @@ class Incident extends Component {
 
     loadDashboard = () => {
         const {baseUrl, session} = this.context
-        const isExecutor = _.includes(session.roles, 'SOC Executor') ? 'executor' : 'analyzer'
+
+        let roleType = 'analyzer';
+
         const payload = {
             keyword: '',
             category: 0,
-            // status: isExecutor ? 2 : 1,
             status: 0,
             startDttm: Moment(helper.getSubstractDate(1, 'month')).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
             endDttm: Moment(Moment().local().format('YYYY-MM-DDTHH:mm:ss')).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
             isExpired: 2,
-            isExecutor,
+            isExecutor:_.includes(session.roles, 'SOC Executor'),
+            accountRoleType:this.state.accountRoleType,
             account: session.accountId
         }
-        
+
+        switch (this.state.accountRoleType){
+            case 1:
+                roleType = 'analyzer'
+                break
+            case 2:
+                roleType = 'executor'
+                break
+            case 3:
+                roleType = 'supervisor'
+                break
+        }
+
         ah.all([
             {
                 url: `${baseUrl}/api/soc/_searchV2?page=1&pageSize=20`,
@@ -347,7 +400,7 @@ class Incident extends Component {
                 dataType: 'json'
             },
             {
-                url: `${baseUrl}/api/soc/statistic/${isExecutor}/_search?createrId=${session.accountId}`
+                url: `${baseUrl}/api/soc/statistic/${roleType}/_search?createrId=${session.accountId}`
             }
         ])
         .then(data => {
@@ -367,12 +420,15 @@ class Incident extends Component {
 
     loadCondition = (type) => {
         const {session} = this.context
+
         let search = {
             subStatus:0,
             keyword: '',
             category: 0,
             isExpired: 2,
-            isExecutor : _.includes(session.roles, 'SOC Executor')
+            accountRoleType: this.state.accountRoleType,
+            isExecutor : _.includes(session.roles, 'SOC Executor'),
+
         }
         if (type === 'expired') {
             this.setState({loadListType: 0})
@@ -381,21 +437,22 @@ class Incident extends Component {
             this.loadWithoutDateTimeData('search',search)
         } else if (type === 'unhandled') {
             this.setState({loadListType: 1})
-            if (search.isExecutor){
+            if (search.accountRoleType === SOC_Executor){
                 search.status = 2
                 search.subStatus = 6
+            }else if(search.accountRoleType === SOC_Super){
+                search.status = 7
             }else{
                 search.status = 1
             }
             this.loadWithoutDateTimeData('search',search)
-        }
-        else if (type === 'mine') {
+        } else if (type === 'mine') {
             this.setState({loadListType: 2})
             search.status = 0
             search.creator = session.accountId
             this.loadWithoutDateTimeData('search',search)
         }else{
-            // this.loadData('search')
+
         }
         this.clearFilter()
     }
@@ -543,48 +600,84 @@ class Incident extends Component {
         let auditCheck = false
         let returnCheck = false
         let publishCheck = false
-
         let transferCheck = false
-
-
-        const isExecutor = _.includes(session.roles, 'SOC Executor')
+        // new
+        let signCheck = false
+        let closeCheck = false
 
 
         if (incident.info.status === INCIDENT_STATUS_UNREVIEWED) {
-            editCheck = true
-            submitCheck = true
-        }
-        else if (incident.info.status === INCIDENT_STATUS_REVIEWED) {
+            // 待送審
+            if (this.state.accountRoleType === SOC_Executor) {
+
+            }else if (this.state.accountRoleType === SOC_Super){
+
+            }else {
+                editCheck = true
+                submitCheck = true
+            }
+        } else if (incident.info.status === INCIDENT_STATUS_REVIEWED) {
+            // 待審核
             if (session.accountId === incident.info.creator) {
                 drawCheck = true
             }
 
-            if (isExecutor) {
+            if (this.state.accountRoleType === SOC_Executor) {
                 editCheck = true
                 returnCheck = true
                 auditCheck = true
+                closeCheck = true
+            }else if (this.state.accountRoleType === SOC_Super){
+
+            }else {
+                editCheck = true
             }
-        }
-        else if (incident.info.status === INCIDENT_STATUS_CLOSED) {
+        } else if (incident.info.status === INCIDENT_STATUS_CLOSED) {
+            // 結案(未發布)
             if (session.accountId === incident.info.creator) {
-                // drawCheck = true
             }
 
-            if (isExecutor) {
-                // editCheck = true
+            if (this.state.accountRoleType === SOC_Super) {
                 publishCheck = true
             }
-        }
-        else if (incident.info.status === INCIDENT_STATUS_SUBMITTED) {
-            // editCheck = true
-        }
+        } else if (incident.info.status === INCIDENT_STATUS_SUBMITTED) {
+            if (this.state.accountRoleType === SOC_Executor) {
+                editCheck = true
+            }else if (this.state.accountRoleType === SOC_Super){
+                returnCheck = true
+                editCheck = true
+                auditCheck = true
+            }else {
+                editCheck = true
+            }
+        } else if (incident.info.status === INCIDENT_STATUS_DELETED) {
 
-        else if (incident.info.status === INCIDENT_STATUS_DELETED) {
-        }
-        else if (incident.info.status === INCIDENT_STATUS_ANALYZED) {
-            if (isExecutor) {
+        } else if (incident.info.status === INCIDENT_STATUS_ANALYZED) {
+            if (this.state.accountRoleType === SOC_Executor) {
                 editCheck = true
                 transferCheck = true
+            }else if (this.state.accountRoleType === SOC_Super){
+                editCheck = true
+                transferCheck = true
+            }
+        } else if (incident.info.status === INCIDENT_STATUS_EXECUTOR_UNREVIEWED) {
+            if (this.state.accountRoleType === SOC_Executor) {
+                editCheck = true
+            }else if (this.state.accountRoleType === SOC_Super){
+                editCheck = true
+                returnCheck = true
+                signCheck = true
+            }else{
+                if (session.accountId === incident.info.creator) {
+                    drawCheck = true
+                }
+                editCheck = true
+            }
+        }else if (incident.info.status === INCIDENT_STATUS_EXECUTOR_CLOSE) {
+            if (this.state.accountRoleType === SOC_Executor) {
+                transferCheck = true
+            }else if (this.state.accountRoleType === SOC_Super){
+
             }
         }
 
@@ -663,6 +756,14 @@ class Incident extends Component {
                         <button className='standard btn list'
                                 onClick={this.openReviewModal.bind(this, incident.info, 'analyze')}>{it('txt-transfer')}</button>
                     }
+                    {signCheck &&
+                    <button className='standard btn list'
+                            onClick={this.openReviewModal.bind(this, incident.info, 'sign')}>{it('txt-sign')}</button>
+                    }
+                    {closeCheck &&
+                    <button className='standard btn list'
+                            onClick={this.openReviewModal.bind(this, incident.info, 'close')}>{it('txt-close')}</button>
+                    }
                 </footer>
             }
 
@@ -694,6 +795,13 @@ class Incident extends Component {
     displayMainPage = () => {
         const {activeContent, incidentType, incident, relatedListOptions} = this.state;
         const {locale} = this.context;
+        let dateLocale = locale;
+
+        if (locale === 'zh') {
+            dateLocale += '-tw';
+        }
+
+        moment.locale(dateLocale);
 
         return <div className='form-group normal'>
             <header>
@@ -703,6 +811,9 @@ class Incident extends Component {
                     className='msg'>{f('incidentFields.updateDttm')} {helper.getFormattedDate(incident.info.updateDttm, 'local')}</span>
                 }
             </header>
+
+            <Button className='last-left' disabled={true} style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
+                    onClick={this.handleIncidentPageChange.bind(this, 'main')}>{it('txt-prev-page')}</Button>
 
             <Button className='last' style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
                     onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-next-page')}</Button>
@@ -774,16 +885,29 @@ class Incident extends Component {
 
             <div className='group' style={{width: '25vh'}}>
                 <label htmlFor='expireDttm'>{f('incidentFields.finalDate')}</label>
-                <DatePicker
-                    id='expireDttm'
-                    className='daterange'
-                    onChange={this.handleDataChange.bind(this, 'expireDttm')}
-                    enableTime={true}
-                    required={true}
-                    validate={{t: et}}
-                    value={incident.info.expireDttm}
-                    locale={locale}
-                    readOnly={activeContent === 'viewIncident'} />
+                {/*<DatePicker*/}
+                {/*    id='expireDttm'*/}
+                {/*    className='daterange'*/}
+                {/*    onChange={this.handleDataChange.bind(this, 'expireDttm')}*/}
+                {/*    enableTime={true}*/}
+                {/*    required={true}*/}
+                {/*    validate={{t: et}}*/}
+                {/*    value={incident.info.expireDttm}*/}
+                {/*    locale={locale}*/}
+                {/*    readOnly={activeContent === 'viewIncident'} />*/}
+                <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+                    <KeyboardDateTimePicker
+                        id='expireDttm'
+                        className='date-time-picker'
+                        inputVariant='outlined'
+                        variant='inline'
+                        format='YYYY-MM-DD HH:mm'
+                        ampm={false}
+                        required={true}
+                        value={incident.info.expireDttm}
+                        readOnly={activeContent === 'viewIncident' }
+                        onChange={this.handleDataChange.bind(this, 'expireDttm')} />
+                </MuiPickersUtilsProvider>
             </div>
 
             {incidentType === 'ttps' && <div className='group full'>
@@ -817,9 +941,7 @@ class Incident extends Component {
     };
 
     formatBytes = (bytes, decimals = 2) => {
-        // console.log("bytes == " , bytes)
         if (bytes === 0 || bytes === '0'){
-            // console.log("into bytes == 0 ")
             return '0 Bytes';
         }
 
@@ -1009,14 +1131,18 @@ class Incident extends Component {
                 <div className='text'>{it('txt-accidentTitle')}</div>
             </header>
 
-            <Button className={incidentType === 'events' ? 'last' : 'last-left'}  style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
+            {/*<Button className={incidentType === 'events' ? 'last' : 'last-left'}  style={{backgroundColor:'#001b34',color:'#FFFFFF'}}*/}
+            {/*        onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}</Button>*/}
+            <Button className='last-left' style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
                     onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}</Button>
 
-            {
-                incidentType === 'ttps' &&
-                <Button className='last'  style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
-                        onClick={this.handleIncidentPageChange.bind(this, 'ttps')}>{it('txt-next-page')}</Button>
-            }
+            <Button className='last' disabled={incidentType !== 'ttps'}  style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
+                    onClick={this.handleIncidentPageChange.bind(this, 'ttps')}>{it('txt-next-page')}</Button>
+
+            {/*{*/}
+            {/*    incidentType === 'ttps' &&*/}
+
+            {/*}*/}
 
             <div className='group'>
                 <label htmlFor='accidentCatogory'>{it('txt-accidentClassification')}</label>
@@ -1153,8 +1279,12 @@ class Incident extends Component {
                     className='text'>{it('txt-incident-ttps')} ({it('txt-ttp-obs-file')}/{it('txt-ttp-obs-uri')}/{it('txt-ttp-obs-socket')} {it('txt-mustOne')})
                 </div>
             </header>
-            <Button className='last'  style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
+
+            <Button className='last-left '  style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
                     onClick={this.handleIncidentPageChange.bind(this, 'notice')}>{it('txt-prev-page')}</Button>
+
+            <Button className='last' disabled={true} style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
+                    onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-next-page')}</Button>
 
             <div className='group full multi'>
                 <MultiInput
@@ -1385,21 +1515,30 @@ class Incident extends Component {
     renderFilter = () => {
         const {showFilter, search} = this.state;
         const {locale} = this.context;
+
+        let dateLocale = locale;
+
+        if (locale === 'zh') {
+            dateLocale += '-tw';
+        }
+
+        moment.locale(dateLocale);
+
         return (
             <div className={cx('main-filter', {'active': showFilter})}>
                 <i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}/>
                 <div className='header-text'>{t('txt-filter')}</div>
                 <div className='filter-section config'>
                     <div className='group'>
-                        <label htmlFor='searchKeyword'>{f('edgeFields.keywords')}</label>
+                        <label htmlFor='keyword'>{f('edgeFields.keywords')}</label>
                         <TextField
-                            id='searchKeyword'
-                            name='searchKeyword'
+                            id='keyword'
+                            name='keyword'
                             variant='outlined'
                             fullWidth={true}
                             size='small'
                             value={search.keyword}
-                            onChange={this.handleSearchChange}/>
+                            onChange={this.handleSearchMui}/>
                     </div>
                     <div className='group'>
                         <label htmlFor='searchCategory'>{f('incidentFields.category')}</label>
@@ -1433,7 +1572,7 @@ class Incident extends Component {
                             value={search.status}
                             onChange={this.handleSearchMui}>
                             {
-                                _.map(_.range(0, 7), el => {
+                                _.map(_.range(0, 9), el => {
                                     return  <MenuItem value={el}>{it(`status.${el}`)}</MenuItem>
                                 })}
                             }
@@ -1471,16 +1610,27 @@ class Incident extends Component {
                             }
                         </TextField>
                     </div>
-                    <div className='group'>
+                    <div className='group' style={{width: '500px'}}>
                         <label htmlFor='searchDttm'>{f('incidentFields.createDttm')}</label>
-                        <DateRange
-                            id='datetime'
-                            className='daterange'
-                            enableTime={true}
-                            value={search.datetime}
-                            onChange={this.handleSearch.bind(this, 'datetime')}
-                            locale={locale}
-                            t={et} />
+                        <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+                            <KeyboardDateTimePicker
+                                className='date-time-picker'
+                                inputVariant='outlined'
+                                variant='inline'
+                                format='YYYY-MM-DD HH:mm'
+                                ampm={false}
+                                value={search.datetime.from}
+                                onChange={this.handleSearchTime.bind(this, 'from')} />
+                            <div className='between'>~</div>
+                            <KeyboardDateTimePicker
+                                className='date-time-picker'
+                                inputVariant='outlined'
+                                variant='inline'
+                                format='YYYY-MM-DD HH:mm'
+                                ampm={false}
+                                value={search.datetime.to}
+                                onChange={this.handleSearchTime.bind(this, 'to')} />
+                        </MuiPickersUtilsProvider>
                     </div>
                 </div>
                 <div className='button-group'>
@@ -1791,11 +1941,11 @@ class Incident extends Component {
         }
 
         this.setState({
+            displayPage: 'main',
             activeContent: showPage,
             incident: tempIncident
         }, () => {
             if (showPage === 'tableList' || showPage === 'cancel-add') {
-                // console.log("this.state.loadListType == " , this.state.loadListType)
                 if (this.state.loadListType === 0){
                     this.loadCondition('expired')
                 }else if (this.state.loadListType === 1){
@@ -1949,6 +2099,21 @@ class Incident extends Component {
     handleSearch = (type, value) => {
         let tempSearch = {...this.state.search};
         tempSearch[type] = value;
+
+        this.setState({
+            search: tempSearch
+        });
+    };
+
+    /**
+     * Handle filter input data change
+     * @method
+     * @param {string} type - input type
+     * @param {string} value - input value
+     */
+    handleSearchTime = (type, value) => {
+        let tempSearch = {...this.state.search};
+        tempSearch.datetime[type] = value;
 
         this.setState({
             search: tempSearch

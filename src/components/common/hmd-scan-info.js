@@ -475,6 +475,10 @@ class HMDscanInfo extends Component {
    * @param {string} activeTab - active scan type
    */
   toggleScanType = (event, activeTab) => {
+    if (!activeTab) {
+      return;
+    }
+
     this.setState({
       activeTab,
       activePath: null,
@@ -837,7 +841,7 @@ class HMDscanInfo extends Component {
                 <span>PID: {val._MatchedPid}</span>
               }
               {activeTab === 'procMonitor' && (location.pathname.indexOf('host') > 0 || location.pathname.indexOf('configuration') > 0) &&
-                <i className='c-link fg fg-add' title={t('network-inventory.txt-addToSettings')} onClick={this.addToSettings.bind(this, 'procMonitor', filePath)}></i>
+                <i className='c-link fg fg-add' title={t('network-inventory.txt-addToFilterList')} onClick={this.addToSettings.bind(this, 'procMonitor', filePath)}></i>
               }
             </div>
           </div>
@@ -1197,42 +1201,79 @@ class HMDscanInfo extends Component {
     )
   }
   /**
+   * Set HMD info data
+   * @method
+   * @param {object} data - data object from server response
+   */
+  setHmdInfo = (data) => {
+    const {activeTab, hmdInfo} = this.state;
+    let tempHmdInfo = {...hmdInfo};
+    
+    const hmdResult = data.safetyScanInfo[activeTab + 'Result'];
+
+    if (hmdResult.length > 0) {
+      tempHmdInfo[activeTab].data = _.concat(hmdInfo[activeTab].data, hmdResult);
+
+      this.setState({
+        hmdInfo: tempHmdInfo,
+        hasMore: true
+      });
+    } else {
+      this.setState({
+        hasMore: false
+      });
+    }
+  }
+  /**
    * Load more items when scrolling to the bottom of the dialog
    * @method
    */
   loadMoreContent = () => {
     const {baseUrl} = this.context;
-    const {currentDeviceData} = this.props;
-    const {activeTab, hmdInfo} = this.state;
-    let tempHmdInfo = {...hmdInfo};
+    const {page, datetime, currentDeviceData} = this.props;
+    let url = '';
     scrollCount++;
 
-    this.ah.one({
-      url: `${baseUrl}/api/v2/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}&page=${scrollCount}&pageSize=5`,
-      type: 'GET'
-    })
-    .then(data => {
-      if (data) {
-        const hmdResult = data.safetyScanInfo[activeTab + 'Result'];
+    if (page === 'host') {
+      url = `${baseUrl}/api/ipdevice/assessment?page=${scrollCount}&pageSize=5`;
 
-        if (hmdResult.length > 0) {
-          tempHmdInfo[activeTab].data = _.concat(hmdInfo[activeTab].data, hmdResult);
+      const requestData = {
+        timestamp: [datetime.from, datetime.to],
+        ipDeviceUUID: currentDeviceData.ipDeviceUUID
+      };
 
-          this.setState({
-            hmdInfo: tempHmdInfo,
-            hasMore: true
-          });
-        } else {
-          this.setState({
-            hasMore: false
-          });
+      this.ah.one({
+        url,
+        data: JSON.stringify(requestData),
+        type: 'POST',
+        contentType: 'text/plain'
+      })
+      .then(data => {
+        if (data) {
+          this.setHmdInfo(data);
         }
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
+        return null;
+      })
+      .catch(err => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
+      })
+    } else {
+      url = `${baseUrl}/api/v2/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}&page=${scrollCount}&pageSize=5`;
+
+      this.ah.one({
+        url,
+        type: 'GET'
+      })
+      .then(data => {
+        if (data) {
+          this.setHmdInfo(data);
+        }
+        return null;
+      })
+      .catch(err => {
+        helper.showPopupMsg('', t('txt-error'), err.message);
+      })
+    }
   }
   /**
    * Display File Integrity path
@@ -1899,7 +1940,7 @@ class HMDscanInfo extends Component {
         <div className='info-content'>
           {activeTab === 'dashboard' &&
             <div className='dashboard-wrapper'>
-              <div className='chart-group c-box spider-chart'>
+              <div className='chart-group spider-chart'>
                 <div ref={node => { this.chartNode = node }}></div>
               </div>
 
@@ -1947,6 +1988,7 @@ HMDscanInfo.contextType = BaseDataContext;
 
 HMDscanInfo.propTypes = {
   page: PropTypes.string.isRequired,
+  datetime: PropTypes.object,
   currentDeviceData: PropTypes.object.isRequired,
   toggleSelectionIR: PropTypes.func.isRequired,
   triggerTask: PropTypes.func.isRequired,

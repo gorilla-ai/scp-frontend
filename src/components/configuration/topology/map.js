@@ -6,14 +6,17 @@ import cx from 'classnames'
 import _ from 'lodash'
 
 import Button from '@material-ui/core/Button';
+import ChevronRightIcon from '@material-ui/icons/ChevronRight';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
+import TreeItem from '@material-ui/lab/TreeItem';
+import TreeView from '@material-ui/lab/TreeView';
 
 import DataTable from 'react-ui/build/src/components/table'
 import Gis from 'react-gis/build/src/components'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
-import TreeView from 'react-ui/build/src/components/tree'
 
 import {BaseDataContext} from '../../common/context';
 import Config from '../../common/configuration'
@@ -430,41 +433,17 @@ class NetworkMap extends Component {
     })
   }
   /**
-   * Handle tree filter button selection
+   * Handle tree selection
+   * @param {object} val - tree data
    * @method
-   * @param {number} i - index of the floorPlan tree data
-   * @param {string} areaUUID - selected area UUID
-   * @param {object} eventData - selected node data (before and path)
    */
-  selectTree = (i, areaUUID, eventData) => {
+  handleSelectTree = (val) => {
+    const areaUUID = val.areaUUID;
     let tempFloorPlan = {...this.state.floorPlan};
-    let tempArr = [];
-    let pathStr = '';
-    let pathNameStr = '';
-    let pathParentStr = '';
-
-    if (eventData.path.length > 0) {
-      _.forEach(eventData.path, val => {
-        if (val.index >= 0) {
-          tempArr.push(val.index);
-        }
-      })
-    }
-
-    _.forEach(tempArr, val => {
-      pathStr += 'children[' + val + '].'
-    })
-
-    pathNameStr = pathStr + 'label';
-    pathParentStr = pathStr + 'parentAreaUUID';
-
-    if (eventData.path[0].id) {
-      tempFloorPlan.rootAreaUUID = eventData.path[0].id;
-    }
+    tempFloorPlan.currentAreaName = val.areaName;
     tempFloorPlan.currentAreaUUID = areaUUID;
-    tempFloorPlan.currentAreaName = _.get(tempFloorPlan.treeData[i], pathNameStr);
-    tempFloorPlan.currentParentAreaUUID = _.get(tempFloorPlan.treeData[i], pathParentStr);
-    tempFloorPlan.name = tempFloorPlan.currentAreaName;
+    tempFloorPlan.currentParentAreaUUID = val.parentAreaUUID;
+    tempFloorPlan.name = val.areaName;
     tempFloorPlan.type = 'edit';
 
     this.setState({
@@ -477,33 +456,52 @@ class NetworkMap extends Component {
     });
   }
   /**
-   * Get tree data
+   * Display tree item
    * @method
-   * @param {object} tree - tree data
-   * @param {string} selectedID - selected area UUID
-   * @param {number} i - index of the floorPlan tree data
-   * @returns TreeView component
+   * @param {object} val - tree data
+   * @param {number} i - index of the tree data
+   * @returns TreeItem component
    */
-  getTreeView = (tree, selectedID, i) => {
+  getTreeItem = (val, i) => {
     return (
-      <TreeView
-        id={tree.areaUUID}
-        key={tree.areaUUID}
-        data={tree}
-        selected={selectedID}
-        defaultOpened={[tree.areaUUID]}
-        onSelect={this.selectTree.bind(this, i)} />
+      <TreeItem
+        key={val.id + i}
+        nodeId={val.id}
+        label={val.label}
+        onLabelClick={this.handleSelectTree.bind(this, val)}>
+        {val.children && val.children.length > 0 &&
+          val.children.map(this.getTreeItem)
+        }
+      </TreeItem>
     )
   }
   /**
-   * Display tree data for lefe nav
+   * Get tree data
    * @method
-   * @param {object} val - tree data
-   * @param {number} i - index of the tree array
-   * @returns content of the TreeView component
+   * @param {object} tree - tree data
+   * @param {number} i - index of the floorPlan tree data
+   * @returns TreeView component
    */
-  displayTreeView = (val, i) => {
-    return this.getTreeView(val, this.state.floorPlan.currentAreaUUID, i);
+  displayTreeView = (tree, i) => {
+    return (
+      <TreeView
+        key={i}
+        defaultCollapseIcon={<ExpandMoreIcon />}
+        defaultExpandIcon={<ChevronRightIcon />}
+        defaultSelected={tree.areaUUID}
+        defaultExpanded={[tree.areaUUID]}>
+        {tree.areaUUID &&
+          <TreeItem
+            nodeId={tree.areaUUID}
+            label={tree.areaName}
+            onLabelClick={this.handleSelectTree.bind(this, tree)}>
+            {tree.children.length > 0 &&
+              tree.children.map(this.getTreeItem)
+            }
+          </TreeItem>
+        }
+      </TreeView>
+    )
   }
   /**
    * Handle filter input value change

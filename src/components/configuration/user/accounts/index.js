@@ -149,9 +149,9 @@ class AccountList extends Component {
    * @method
    * @param {string} index - index of the account data
    * @param {object} allValue - account data
-   * @param {object} evt - MouseoverEvents
+   * @param {object} event - event object
    */
-  handleRowMouseOver = (value, allValue, evt) => {
+  handleRowMouseOver = (value, allValue, event) => {
     let tempAccountData = {...this.state.accountData};
     tempAccountData = _.map(tempAccountData, el => {
       return {

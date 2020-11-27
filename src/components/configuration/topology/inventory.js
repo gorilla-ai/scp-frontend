@@ -9,22 +9,30 @@ import queryString from 'query-string'
 import XLSX from 'xlsx';
 
 import Button from '@material-ui/core/Button';
+import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import Checkbox from '@material-ui/core/Checkbox';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
-import TextField from '@material-ui/core/TextField';
+import Tab from '@material-ui/core/Tab';
+import Tabs from '@material-ui/core/Tabs';
 
+import TextField from '@material-ui/core/TextField';
+import TreeItem from '@material-ui/lab/TreeItem';
+import TreeView from '@material-ui/lab/TreeView';
+
+import {analyze} from 'vbda-ui/build/src/analyzer'
+import {config as configLoader} from 'vbda-ui/build/src/loader'
 import DataTable from 'react-ui/build/src/components/table'
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import FileInput from 'react-ui/build/src/components/file-input'
 import Gis from 'react-gis/build/src/components'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
-import Tabs from 'react-ui/build/src/components/tabs'
-import TreeView from 'react-ui/build/src/components/tree'
+import VbdaLA from 'vbda-ui/build/src/components/analysis/la'
 
 import AutoSettings from './auto-settings'
 import {BaseDataContext} from '../../common/context';
@@ -94,7 +102,7 @@ class NetworkInventory extends Component {
     super(props);
 
     this.state = {
-      activeTab: 'deviceList', //deviceList, deviceMap
+      activeTab: 'deviceList', //deviceList, deviceMap, deviceLA
       activeContent: 'tableList', //tableList, dataInfo, addIPsteps, hmdSettings, autoSettings
       showFilter: false,
       showScanInfo: false,
@@ -107,6 +115,9 @@ class NetworkInventory extends Component {
       formTypeEdit: true,
       contextAnchor: null,
       menuType: '',
+      LAconfig: {},
+      deviceEventsData: {},
+      deviceLAdata: {},
       deviceSearch: {
         ip: '',
         mac: '',
@@ -227,6 +238,8 @@ class NetworkInventory extends Component {
     if (_.isEmpty(inventoryParam) || (!_.isEmpty(inventoryParam) && !inventoryParam.ip)) {
       this.getDeviceData();
     }
+
+    this.getLAconfig();
     this.getOwnerData();
     this.getOtherData();
   }
@@ -234,6 +247,23 @@ class NetworkInventory extends Component {
     if (nextProps.location.state === 'tableList') {
       this.toggleContent('showList');
     }
+  }
+  /**
+   * Get and set the Link Analysis config
+   * @method
+   */
+  getLAconfig = () => {
+    const {baseUrl} = this.context;
+
+    helper.getLAconfig(baseUrl)
+    .then(data => {
+      if (!_.isEmpty(data)) {
+        this.setState({
+          LAconfig: configLoader.processAll(data)
+        });
+      }
+      return null;
+    });
   }
   /**
    * Display individual scan info
@@ -528,26 +558,6 @@ class NetworkInventory extends Component {
     })
   }
   /**
-   * Handle CSV download
-   * @method
-   */
-  getCSVfile = () => {
-    const {baseUrl, contextRoot} = this.context;
-    const {deviceSearch} = this.state;
-    const url = `${baseUrl}${contextRoot}/api/ipdevice/_export`;
-    const requestData = {
-      ip: deviceSearch.ip,
-      mac: deviceSearch.mac,
-      hostName: deviceSearch.hostName,
-      system: deviceSearch.system,
-      owner: deviceSearch.owner,
-      areaName: deviceSearch.areaName,
-      seatName: deviceSearch.seatName
-    };
-
-    downloadWithForm(url, {payload: JSON.stringify(requestData)});
-  }
-  /**
    * Get and set owner data
    * @method
    */
@@ -596,6 +606,26 @@ class NetworkInventory extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+  }
+  /**
+   * Handle CSV download
+   * @method
+   */
+  getCSVfile = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {deviceSearch} = this.state;
+    const url = `${baseUrl}${contextRoot}/api/ipdevice/_export`;
+    const requestData = {
+      ip: deviceSearch.ip,
+      mac: deviceSearch.mac,
+      hostName: deviceSearch.hostName,
+      system: deviceSearch.system,
+      owner: deviceSearch.owner,
+      areaName: deviceSearch.areaName,
+      seatName: deviceSearch.seatName
+    };
+
+    downloadWithForm(url, {payload: JSON.stringify(requestData)});
   }
   /**
    * Get single device data from URL parameter
@@ -693,6 +723,38 @@ class NetworkInventory extends Component {
             this.getFloorPlan(options);
           });
         }
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get and set link analysis data
+   * @method
+   */
+  loadLinkAnalysis = () => {
+    const {baseUrl} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/ipdevice/la`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let deviceEventsData = {};
+
+        _.forEach(data, val => {
+          deviceEventsData[val.id] = val.content;
+        })
+
+        this.setState({
+          deviceEventsData,
+          deviceLAdata: analyze(deviceEventsData, this.state.LAconfig, {analyzeGis: false})
+        });
+      } else {
+        helper.showPopupMsg(t('txt-notFound'));
       }
       return null;
     })
@@ -1409,12 +1471,19 @@ class NetworkInventory extends Component {
   /**
    * Handle content tab change
    * @method
-   * @param {string} type - content type ('deviceList' or 'deviceMap')
+   * @param {object} event - event object
+   * @param {string} newTab - content type ('deviceList', 'deviceMap' or 'deviceLA')
    */
-  handleSubTabChange = (type) => {
+  handleSubTabChange = (event, newTab) => {
     this.setState({
-      activeTab: type,
+      activeTab: newTab,
       showFilter: false
+    }, () => {
+      if (newTab === 'deviceMap') {
+        this.getFloorPlan();
+      } else if (newTab === 'deviceLA') {
+        this.loadLinkAnalysis();
+      }
     });
   }
   /**
@@ -2857,6 +2926,33 @@ class NetworkInventory extends Component {
     return owner.text;
   }
   /**
+   * Handle Add IP form input value change
+   * @method
+   * @param {object} event - event object
+   */
+  handleAddIpChange = (event) => {
+    let tempAddIP = {...this.state.addIP};
+    tempAddIP[event.target.name] = event.target.value;
+
+    this.setState({
+      addIP: tempAddIP
+    });
+  }
+  /**
+   * Handle photo upload input value change
+   * @method
+   * @param {string | object} value - input data to be set
+   */
+  handlePhotoChange = (value) => {
+    let tempAddIP = {...this.state.addIP};
+    tempAddIP.file = value;
+
+    this.setState({
+      previewOwnerPic: value ? URL.createObjectURL(value) : '',
+      addIP: tempAddIP
+    });
+  }
+  /**
    * Display add/edit IP device form content
    * @method
    * @returns HTML DOM
@@ -3099,6 +3195,7 @@ class NetworkInventory extends Component {
                     <label htmlFor='ownerPhotoUpload'>{t('txt-uploadPhoto')}</label>
                     <FileInput
                       id='ownerPhotoUpload'
+                      className='file-input'
                       name='file'
                       btnText={t('txt-uploadPhoto')}
                       validate={{
@@ -3110,7 +3207,7 @@ class NetworkInventory extends Component {
                           }
                         }
                       }}
-                      onChange={this.handleAddIpChange.bind(this, 'file')} />
+                      onChange={this.handlePhotoChange} />
                   </div>
                 }
                 <div className='group'>
@@ -3257,7 +3354,7 @@ class NetworkInventory extends Component {
               <div className='floor-info'>
                 <div className='tree'>
                   {floorPlan.treeData && floorPlan.treeData.length > 0 &&
-                    floorPlan.treeData.map(this.displayTree.bind(this, 'stepsFloor'))
+                    floorPlan.treeData.map(this.displayTreeView.bind(this, 'stepsFloor'))
                   }
                 </div>
                 <div className='map'>
@@ -3314,41 +3411,17 @@ class NetworkInventory extends Component {
     return areaRoute;
   }
   /**
-   * Handle floor plan tree node select
+   * Handle tree selection
+   * @param {object} val - tree data
    * @method
-   * @param {number} i - index of the tree data
-   * @param {string} areaUUID - selected area UUID
-   * @param {object} eventData - tree click events data
    */
-  selectTree = (i, areaUUID, eventData) => {
+  handleSelectTree = (val) => {
+    const areaUUID = val.areaUUID;
     let tempFloorPlan = {...this.state.floorPlan};
-    let tempArr = [];
-    let pathStr = '';
-    let pathNameStr = '';
-    let pathParentStr = '';
-
-    if (eventData.path.length > 0) {
-      _.forEach(eventData.path, val => {
-        if (val.index >= 0) {
-          tempArr.push(val.index);
-        }
-      })
-    }
-
-    _.forEach(tempArr, val => {
-      pathStr += 'children[' + val + '].';
-    })
-
-    pathNameStr = pathStr + 'label';
-    pathParentStr = pathStr + 'parentAreaUUID';
-
-    if (eventData.path[0].id) {
-      tempFloorPlan.rootAreaUUID = eventData.path[0].id;
-    }
+    tempFloorPlan.currentAreaName = val.areaName;
     tempFloorPlan.currentAreaUUID = areaUUID;
-    tempFloorPlan.currentAreaName = _.get(tempFloorPlan.treeData[i], pathNameStr);
-    tempFloorPlan.currentParentAreaUUID = _.get(tempFloorPlan.treeData[i], pathParentStr);
-    tempFloorPlan.name = tempFloorPlan.currentAreaName;
+    tempFloorPlan.currentParentAreaUUID = val.parentAreaUUID;
+    tempFloorPlan.name = val.areaName;
     tempFloorPlan.type = 'edit';
 
     this.setState({
@@ -3361,56 +3434,82 @@ class NetworkInventory extends Component {
     });
   }
   /**
-   * Display floor tree data
+   * Display tree item
    * @method
+   * @param {object} val - tree data
+   * @param {number} i - index of the tree data
+   * @returns TreeItem component
+   */
+  getTreeItem = (val, i) => {
+    return (
+      <TreeItem
+        key={val.id + i}
+        nodeId={val.id}
+        label={val.label}
+        onLabelClick={this.handleSelectTree.bind(this, val)}>
+        {val.children && val.children.length > 0 &&
+          val.children.map(this.getTreeItem)
+        }
+      </TreeItem>
+    )
+  }
+  /**
+   * Get tree data
+   * @method
+   * @param {string} type - tree type ('deviceMap' or 'stepsFloor')
    * @param {object} tree - tree data
-   * @param {string} selectedID - selected area UUID
-   * @param {number} i - index of the floor plan data
+   * @param {number} i - index of the floorPlan tree data
    * @returns TreeView component
    */
-  getTreeView = (tree, selectedID, i) => {
-    const {currentDeviceData, changeAreaMap, selectedTreeID} = this.state;
-    let defaultSelectedID = selectedTreeID || tree.areaUUID;
+  displayTreeView = (type, tree, i) => {
+    const {floorPlan, currentDeviceData, changeAreaMap, selectedTreeID} = this.state;
+    let defaultSelectedID  = '';
+    let defaultExpanded = [];
 
-    if (changeAreaMap) {
-      if (selectedID) {
-        defaultSelectedID = selectedID;
+    if (type === 'deviceMap') {
+      defaultSelectedID = tree.areaUUID;
+      defaultExpanded = [tree.areaUUID];
+    } else if (type === 'stepsFloor') {
+      let currentAreaUUID = floorPlan.currentAreaUUID;
+
+      if (!changeAreaMap && currentDeviceData.areaUUID) {
+        currentAreaUUID = currentDeviceData.areaUUID;
       }
-    } else {
-      if (currentDeviceData && currentDeviceData.areaUUID) {
-        defaultSelectedID = currentDeviceData.areaUUID;
+
+      defaultSelectedID = selectedTreeID || tree.areaUUID;
+
+      if (changeAreaMap) {
+        if (currentAreaUUID) {
+          defaultSelectedID = currentAreaUUID;
+        }
+      } else {
+        if (currentDeviceData && currentDeviceData.areaUUID) {
+          defaultSelectedID = currentDeviceData.areaUUID;
+        }
       }
+
+      defaultExpanded = this.getDefaultFloor(defaultSelectedID);
     }
 
     return (
       <TreeView
-        id={tree.areaUUID}
-        key={tree.areaUUID}
-        data={tree}
-        selected={defaultSelectedID}
-        defaultOpened={this.getDefaultFloor(defaultSelectedID)}
-        onSelect={this.selectTree.bind(this, i)} />
+        key={i}
+        defaultCollapseIcon={<ExpandMoreIcon />}
+        defaultExpandIcon={<ChevronRightIcon />}
+        defaultSelected={defaultSelectedID}
+        defaultExpanded={defaultExpanded}>
+        {tree.areaUUID &&
+          <TreeItem
+            nodeId={tree.areaUUID}
+            label={tree.areaName}
+            onLabelClick={this.handleSelectTree.bind(this, tree)}>
+            {tree.children.length > 0 &&
+              tree.children.map(this.getTreeItem)
+            }
+          </TreeItem>
+        }
+      </TreeView>
     )
-  }
-  /**
-   * Handle floor tree data
-   * @method
-   * @param {string} type - map type ('deviceMap' or 'stepsFloor')
-   * @param {object} val - floor plan data
-   * @param {number} i - index of the floor plan data
-   * @returns content of TreeView component
-   */
-  displayTree = (type, val, i) => {
-    const {floorPlan, currentDeviceData, changeAreaMap} = this.state;
-    let currentAreaUUID = floorPlan.currentAreaUUID;
-
-    if (type === 'stepsFloor') {
-      if (!changeAreaMap && currentDeviceData.areaUUID) {
-        currentAreaUUID = currentDeviceData.areaUUID;
-      }
-    }
-
-    return this.getTreeView(val, currentAreaUUID, i);
   }
   /**
    * Handle floor map mouse click
@@ -3583,31 +3682,8 @@ class NetworkInventory extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
-  /**
-   * Handle Add IP form input value change
-   * @method
-   * @param {object} event - event object
-   */
-  handleAddIpChange = (event) => {
-    const type = event.target.name;
-    const value = event.target.value;
-    let tempAddIP = {...this.state.addIP};
-    tempAddIP[type] = value;
-
-    if (type === 'file') {
-      const file = value ? URL.createObjectURL(value) : '';
-
-      this.setState({
-        previewOwnerPic: file
-      });
-    }
-
-    this.setState({
-      addIP: tempAddIP
-    });
-  }
   render() {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl, contextRoot, language} = this.context;
     const {
       activeTab,
       activeContent,
@@ -3621,6 +3697,9 @@ class NetworkInventory extends Component {
       uploadOpen,
       contextAnchor,
       menuType,
+      LAconfig,
+      deviceEventsData,
+      deviceLAdata,
       deviceData,
       currentDeviceData,
       floorPlan,
@@ -3638,6 +3717,7 @@ class NetworkInventory extends Component {
       formValidation
     } = this.state;
     const backText = activeTab === 'deviceList' ? t('network-inventory.txt-backToList') : t('network-inventory.txt-backToMap')
+    const assetsPath = `${contextRoot}/lib/keylines/assets/`;
     let picPath = '';
     let csvHeaderList = [];
 
@@ -3717,13 +3797,13 @@ class NetworkInventory extends Component {
 
               <div className='main-content'>
                 <Tabs
-                  className='subtab-menu'
-                  menu={{
-                    deviceList: t('network-inventory.txt-deviceList'),
-                    deviceMap: t('network-inventory.txt-deviceMap')
-                  }}
-                  current={activeTab}
+                  indicatorColor='primary'
+                  textColor='primary'
+                  value={activeTab}
                   onChange={this.handleSubTabChange}>
+                  <Tab label={t('network-inventory.txt-deviceList')} value='deviceList' />
+                  <Tab label={t('network-inventory.txt-deviceMap')} value='deviceMap' />
+                  <Tab label={t('network-inventory.txt-deviceLA')} value='deviceLA' />
                 </Tabs>
 
                 <div className='content-header-btns'>
@@ -3761,6 +3841,59 @@ class NetworkInventory extends Component {
                     <MenuItem onClick={this.hmdDownload.bind(this, 'linux')}>Linux</MenuItem>
                   }
                 </Menu>
+
+                {activeTab === 'deviceList' && !showCsvData &&
+                  <TableContent
+                    dataTableData={deviceData.dataContent}
+                    dataTableFields={deviceData.dataFields}
+                    dataTableSort={deviceData.sort}
+                    paginationTotalCount={deviceData.totalCount}
+                    paginationPageSize={deviceData.pageSize}
+                    paginationCurrentPage={deviceData.currentPage}
+                    currentTableID={activeIPdeviceUUID}
+                    tableUniqueID='ipDeviceUUID'
+                    handleTableSort={this.handleTableSort}
+                    paginationPageChange={this.handlePaginationChange}
+                    paginationDropDownChange={this.handlePageDropdown} />
+                }
+
+                {activeTab === 'deviceMap' && !showCsvData &&
+                  <div className='inventory-map'>
+                    <div className='tree'>
+                      {floorPlan.treeData && floorPlan.treeData.length > 0 &&
+                        floorPlan.treeData.map(this.displayTreeView.bind(this, 'deviceMap'))
+                      }
+                    </div>
+                    <div className='map'>
+                      {currentMap.label &&
+                        <Gis
+                          _ref={(ref) => {this.gisNode = ref}}
+                          data={_.get(seatData, [mapAreaUUID, 'data'], [])}
+                          baseLayers={currentBaseLayers}
+                          baseLayer={mapAreaUUID}
+                          layouts={['standard']}
+                          dragModes={['pan']}
+                          scale={{enabled: false}}
+                          mapOptions={{
+                            maxZoom: 2
+                          }}
+                          onClick={this.getDeviceData.bind(this, '', 'oneSeat')} />
+                      }
+                    </div>
+                  </div>
+                }
+
+                {activeTab === 'deviceLA' && !showCsvData &&
+                  <div className='la-content'>
+                    <VbdaLA
+                      assetsPath={assetsPath}
+                      sourceCfg={LAconfig}
+                      events={deviceEventsData}
+                      source={deviceLAdata}
+                      sourceItemOptions={LAconfig.la}
+                      lng={language} />
+                  </div>
+                }
 
                 {showCsvData &&
                   <div className='csv-section'>
@@ -3820,47 +3953,6 @@ class NetworkInventory extends Component {
                       <Button variant='contained' color='primary'
  className='upload' onClick={this.uploadActions.bind(this, 'upload')}>{t('txt-upload')}</Button>
                     </footer>
-                  </div>
-                }
-
-                {activeTab === 'deviceList' && !showCsvData &&
-                  <TableContent
-                    dataTableData={deviceData.dataContent}
-                    dataTableFields={deviceData.dataFields}
-                    dataTableSort={deviceData.sort}
-                    paginationTotalCount={deviceData.totalCount}
-                    paginationPageSize={deviceData.pageSize}
-                    paginationCurrentPage={deviceData.currentPage}
-                    currentTableID={activeIPdeviceUUID}
-                    tableUniqueID='ipDeviceUUID'
-                    handleTableSort={this.handleTableSort}
-                    paginationPageChange={this.handlePaginationChange}
-                    paginationDropDownChange={this.handlePageDropdown} />
-                }
-
-                {activeTab === 'deviceMap' && !showCsvData &&
-                  <div className='inventory-map'>
-                    <div className='tree'>
-                      {floorPlan.treeData && floorPlan.treeData.length > 0 &&
-                        floorPlan.treeData.map(this.displayTree.bind(this, 'deviceMap'))
-                      }
-                    </div>
-                    <div className='map'>
-                      {currentMap.label &&
-                        <Gis
-                          _ref={(ref) => {this.gisNode = ref}}
-                          data={_.get(seatData, [mapAreaUUID, 'data'], [])}
-                          baseLayers={currentBaseLayers}
-                          baseLayer={mapAreaUUID}
-                          layouts={['standard']}
-                          dragModes={['pan']}
-                          scale={{enabled: false}}
-                          mapOptions={{
-                            maxZoom: 2
-                          }}
-                          onClick={this.getDeviceData.bind(this, '', 'oneSeat')} />
-                      }
-                    </div>
                   </div>
                 }
               </div>

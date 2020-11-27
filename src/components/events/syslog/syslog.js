@@ -1,7 +1,9 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 
-import Tabs from 'react-ui/build/src/components/tabs'
+import Tab from '@material-ui/core/Tab';
+import Tabs from '@material-ui/core/Tabs';
+
 import VbdaLA from 'vbda-ui/build/src/components/analysis/la'
 
 import {BaseDataContext} from '../../common/context';
@@ -27,7 +29,9 @@ class Syslog extends Component {
     const {contextRoot, language} = this.context;
     const {mainContentData, tabChartData, markData, tableMouseOver} = this.props;
     const assetsPath = `${contextRoot}/lib/keylines/assets/`;
-    const eventsData = mainContentData.logEventsData;
+    const tabsMenu = _.map(mainContentData.subTabMenu, (val, key) => {
+      return <Tab label={val} value={key} />
+    });
 
     return (
       <div className='data-content'>
@@ -49,10 +53,11 @@ class Syslog extends Component {
 
           <div className='main-content'>
             <Tabs
-              className='subtab-menu'
-              menu={mainContentData.subTabMenu}
-              current={mainContentData.activeSubTab}
+              indicatorColor='primary'
+              textColor='primary'
+              value={mainContentData.activeSubTab}
               onChange={mainContentData.handleSubTabChange}>
+              {tabsMenu}
             </Tabs>
 
             {mainContentData.activeSubTab === 'table' &&
@@ -65,7 +70,7 @@ class Syslog extends Component {
                 <VbdaLA
                   assetsPath={assetsPath}
                   sourceCfg={mainContentData.LAconfig}
-                  events={eventsData}
+                  events={mainContentData.logEventsData}
                   source={mainContentData.LAdata}
                   sourceItemOptions={mainContentData.LAconfig.la}
                   lng={language} />
