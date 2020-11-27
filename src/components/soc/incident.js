@@ -828,7 +828,9 @@ class Incident extends Component {
                     size='small'
                     onChange={this.handleDataChangeMui}
                     value={incident.info.title}
-                    required={true}
+                    helperText={it('txt-required')}
+                    required
+                    error={!(incident.info.title || '')}
                     disabled={activeContent === 'viewIncident'}/>
             </div>
             <div className='group'>
@@ -840,9 +842,11 @@ class Incident extends Component {
                     fullWidth={true}
                     size='small'
                     onChange={this.handleDataChangeMui}
-                    required={true}
+                    helperText={it('txt-required')}
+                    required
                     select
                     value={incident.info.category}
+                    error={!(incident.info.category || '')}
                     disabled={activeContent === 'viewIncident'}>
                     {_.map(_.range(1, 9), el => {
                         return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
@@ -858,7 +862,9 @@ class Incident extends Component {
                     fullWidth={true}
                     size='small'
                     onChange={this.handleDataChangeMui}
-                    required={true}
+                    required
+                    helperText={it('txt-required')}
+                    error={!(incident.info.reporter || '')}
                     value={incident.info.reporter}
                     disabled={activeContent === 'viewIncident'}/>
             </div>
@@ -872,8 +878,10 @@ class Incident extends Component {
                     select
                     name='impactAssessment'
                     onChange={this.handleDataChangeMui}
-                    required={true}
+                    required
+                    helperText={it('txt-required')}
                     value={incident.info.impactAssessment}
+                    error={!(incident.info.impactAssessment || '')}
                     disabled={activeContent === 'viewIncident'}>
                     {
                         _.map(_.range(1, 5), el => {
@@ -885,16 +893,6 @@ class Incident extends Component {
 
             <div className='group' style={{width: '25vh'}}>
                 <label htmlFor='expireDttm'>{f('incidentFields.finalDate')}</label>
-                {/*<DatePicker*/}
-                {/*    id='expireDttm'*/}
-                {/*    className='daterange'*/}
-                {/*    onChange={this.handleDataChange.bind(this, 'expireDttm')}*/}
-                {/*    enableTime={true}*/}
-                {/*    required={true}*/}
-                {/*    validate={{t: et}}*/}
-                {/*    value={incident.info.expireDttm}*/}
-                {/*    locale={locale}*/}
-                {/*    readOnly={activeContent === 'viewIncident'} />*/}
                 <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
                     <KeyboardDateTimePicker
                         id='expireDttm'
@@ -903,7 +901,8 @@ class Incident extends Component {
                         variant='inline'
                         format='YYYY-MM-DD HH:mm'
                         ampm={false}
-                        required={true}
+                        required
+                        helperText={it('txt-required')}
                         value={incident.info.expireDttm}
                         readOnly={activeContent === 'viewIncident' }
                         onChange={this.handleDataChange.bind(this, 'expireDttm')} />
@@ -912,13 +911,20 @@ class Incident extends Component {
 
             {incidentType === 'ttps' && <div className='group full'>
                 <label htmlFor='description'>{f('incidentFields.description')}</label>
-                <TextareaAutosize
+                <TextField
                     id='description'
                     onChange={this.handleDataChangeMui}
-                    required={true}
+                    required
+                    variant='outlined'
+                    fullWidth={true}
+                    size='small'
+                    multiline
+                    rows={4}
+                    rowsMax={5}
+                    helperText={it('txt-required')}
                     name='description'
+                    error={!(incident.info.description || '')}
                     value={incident.info.description}
-                    rows={3}
                     disabled={activeContent === 'viewIncident'}/>
             </div>}
 
@@ -1451,6 +1457,11 @@ class Incident extends Component {
                 })
 
                 let empty = _.filter(incident.ttpList, function (o) {
+
+                    if (o.infrastructureType === undefined){
+                        o.infrastructureType === '0'
+                    }
+
                     return !o.title || !o.infrastructureType
                 });
 
