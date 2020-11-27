@@ -42,7 +42,7 @@ class Ttps extends Component {
 		onChange({...curValue, [event.target.name]: event.target.value})
 	}
 	render() {
-		let {activeContent, value: {title, infrastructureType = '0', etsList, obsFileList, obsUriList, obsSocketList}} = this.props
+		let {activeContent, value: {title, infrastructureType, etsList, obsFileList, obsUriList, obsSocketList}} = this.props
 
 		return <div className='event-content'>
 			<div className='line'>
@@ -73,7 +73,7 @@ class Ttps extends Component {
 	                    onChange={this.handleDataChangeMui}
 	                    value={infrastructureType}
 	                    helperText={t('txt-checkRequiredFieldType')}
-	                    error={!(infrastructureType || '').trim()}
+	                    error={!(infrastructureType || '')}
 	                    disabled={activeContent === 'viewIncident'}>
 		                {
 		                	_.map([
