@@ -21,7 +21,8 @@ import {HOC} from 'widget-builder'
 
 
 import * as htmlToImage from 'html-to-image'
-import { toPng } from 'html-to-image'
+import { toPng, toJpeg, toBlob, toPixelData, toSvg } from 'html-to-image'
+ 
 
 
 let t = null
