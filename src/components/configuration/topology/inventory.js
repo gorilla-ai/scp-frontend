@@ -1565,6 +1565,8 @@ class NetworkInventory extends Component {
     this.setState({
       yaraRuleOpen: !this.state.yaraRuleOpen
     });
+
+    this.handleCloseMenu();
   }
   /**
    * Toggle IR combo selection dialog on/off
@@ -2041,8 +2043,11 @@ class NetworkInventory extends Component {
    * @param {number} i - index of the HMD data
    */
   getHMDmenu = (val, i) => {
-    const hmdData = val.cmds === 'compareIOC' ? 'true' : val;
-    return <MenuItem key={i} onClick={this.triggerHmdAll.bind(this, hmdData)}>{val.name}</MenuItem>
+    if (val.cmds === 'compareIOC') {
+      return <MenuItem key={i} onClick={this.toggleYaraRule.bind(this, 'true')}>{val.name}</MenuItem>
+    } else {
+      return <MenuItem key={i} onClick={this.triggerHmdAll.bind(this, val)}>{val.name}</MenuItem>
+    }
   }
   /**
    * Handle HMD download button
