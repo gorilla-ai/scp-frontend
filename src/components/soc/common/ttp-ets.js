@@ -55,7 +55,7 @@ class TtpEts extends Component {
 		                size='small'
 	                    onChange={this.handleDataChangeMui}
 	                    value={description}
-	                    readOnly={activeContent === 'viewIncident'}/>
+	                    disabled={activeContent === 'viewIncident'}/>
 	            </div>
 	        </div>
 		</div>
