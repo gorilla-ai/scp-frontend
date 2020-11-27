@@ -69,6 +69,7 @@ export default function createDarkTheme() {
       },
       MuiSvgIcon: {
         root: {
+          color: '#fff',
           '&.MuiSelect-icon': {
             color: '#fff'
           },
