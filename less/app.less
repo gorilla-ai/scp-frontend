@@ -167,6 +167,12 @@ button.standard:hover:not([disabled]) {
     border: none !important;
   }
 }
+.MuiAutocomplete-root {
+  .MuiIconButton-root:hover {
+    color: #fff !important;
+    background-color: var(--buttonSelectedColor) !important;
+  }
+}
 .MuiToggleButton-label {
   text-transform: none !important;
   font-weight: normal !important;
@@ -188,6 +194,11 @@ button.standard:hover:not([disabled]) {
     font-weight: bold;
     min-width: 115px;
   }
+}
+.MuiAutocomplete-listbox {
+  color: var(--primaryTextColor);
+  background-color: var(--primaryContentBackground);
+  border: 1px solid var(--primaryBorder);
 }
 .c-popover {
   color: var(--primaryTextColor) !important;
@@ -512,6 +523,11 @@ button.standard:hover:not([disabled]) {
   .react-grid-layout {
     background-color: var(--primaryBackground);
   }
+  .checkboxes-tags {
+    &.groups input {
+      width: 0 !important;
+    }
+  }
   .textarea-autosize {
     min-height: 40px !important;
     padding: 8px 10px;
@@ -536,9 +552,9 @@ button.standard:hover:not([disabled]) {
       background-color: var(--buttonBackground);
     }
     .MuiIconButton-root {
-      color: var(--primaryTextColor);
+      color: var(--primaryTextColor) !important;
       &:hover {
-        background-color: rgba(0, 0, 0, 0.04) !important;
+        background-color: rgba(0, 0, 0, 0) !important;
       }
     }
   }
@@ -1431,9 +1447,6 @@ button.standard:hover:not([disabled]) {
           float: right;
         }
       }
-      .combo-box {
-        margin-top: 10px;
-      }
       .activate-time {
         flex-direction: row;
       }
@@ -2069,6 +2082,9 @@ button.standard:hover:not([disabled]) {
                 &.checkbox {
                   float: left;
                   margin-right: 5px;
+                }
+                &.combobox-group {
+                  margin-bottom: 15px;
                 }
               }
             }
