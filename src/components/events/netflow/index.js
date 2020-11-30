@@ -1230,15 +1230,15 @@ class Netflow extends Component {
 
             _.forEach(val, val2 => {
               hostCount += val2.counts;
+
+              tempChild.push({
+                id: val2,
+                key: val2.ip,
+                label: <span>{val2.ip} ({helper.numberWithCommas(val2.counts)}) <Button variant='outlined' color='primary' className={cx('button', {'active': currentTreeName === val2.ip})} onClick={this.selectTree.bind(this, val2.ip, 'dstHostname')}>{t('events.connections.txt-addFilter')}</Button></span>
+              });
             })
 
             totalHostCount += hostCount;
-
-            tempChild.push({
-              id: key3,
-              key: key3,
-              label: <span>{key3} ({helper.numberWithCommas(hostCount)}) <Button variant='outlined' color='primary' className={cx('button', {'active': currentTreeName === key3})} onClick={this.selectTree.bind(this, key3, 'dstHostname')}>{t('events.connections.txt-addFilter')}</Button></span>
-            });
           })
         })
 

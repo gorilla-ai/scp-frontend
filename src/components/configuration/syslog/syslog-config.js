@@ -160,6 +160,7 @@ class syslogConfig extends Component {
                     }
                     <TextField
                       id='syslogInput'
+                      className='syslog-input'
                       multiline={true}
                       rows={20}
                       variant='outlined'
