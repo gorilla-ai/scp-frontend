@@ -1365,9 +1365,14 @@ class Syslog extends Component {
         tempFormValidation.editHostsIp.valid = true;
         tempFormValidation.editHostsIp.msg = '';
       } else {
-        tempFormValidation.editHostsIp.valid = false;
-        tempFormValidation.editHostsIp.msg = t('network-topology.txt-ipValidationFail');
-        validate = false;
+        if (editHosts.ip === 'localhost') { //Make exceptions for 'localhost'
+          tempFormValidation.editHostsIp.valid = true;
+          tempFormValidation.editHostsIp.msg = '';
+        } else {
+          tempFormValidation.editHostsIp.valid = false;
+          tempFormValidation.editHostsIp.msg = t('network-topology.txt-ipValidationFail');
+          validate = false;
+        }
       }
     } else {
       tempFormValidation.editHostsIp.valid = false;

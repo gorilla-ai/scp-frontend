@@ -155,14 +155,20 @@ class StatisticsUIF extends Component {
   handleChange(field, value) {
     this.setState({[field]: value})
   }
-  handleDateChange = (type, newDatetime, refresh) => {
+  handleDateChange = (type, newDatetime) => {
     let tempDatetime = {...this.state.datetime};
-    tempDatetime[type] = newDatetime;
+
+    if (type === 'customTime' || type === 'refresh') {
+      tempDatetime.from = newDatetime.from;
+      tempDatetime.to = newDatetime.to;
+    } else {
+      tempDatetime[type] = newDatetime;
+    }
 
     this.setState({
       datetime: tempDatetime
     }, () => {
-      if (refresh === 'refresh') {
+      if (type === 'refresh') {
         this.loadUIF()
       }
     });

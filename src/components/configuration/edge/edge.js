@@ -663,6 +663,16 @@ class Edge extends Component {
       this.setState({
         originalEdgeData: _.cloneDeep(tempEdge)
       });
+    } else if (type === 'editEdge') {
+      tempEdge.info.edgeGroupList = _.map(edge.info.edgeGroupList, val => {
+        return {
+          value: val
+        }
+      });
+
+      this.setState({
+        edge: tempEdge
+      });
     } else if (type === 'tableList') {
       if (this.checkFilterStatus()) {
         this.setState({
@@ -975,7 +985,9 @@ class Edge extends Component {
     ])
     .then(data => {
       if (data) {
-        if (data[0]) {
+        if (data[0] && data[0].ret === 0) {
+          this.toggleContent('tableList');
+        } else {
           switch(data[0].ret) {
             case -1:
               helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError1'));

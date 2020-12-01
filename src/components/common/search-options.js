@@ -67,18 +67,6 @@ class SearchOptions extends Component {
     }
   }
   /**
-   * Set new datetime based on time interval
-   * @method
-   */
-  setNewDatetime = () => {
-    const datetime = {
-      from: this.getCalculatedTime(this.props.searchInput.searchInterval),
-      to: moment().local().format('YYYY-MM-DDTHH:mm') + ':00'
-    };
-
-    this.props.handleDateChange(datetime, 'refresh');
-  }
-  /**
    * Get calculated time based on user's time selection
    * @method
    * @param {string} type - time options
@@ -134,11 +122,21 @@ class SearchOptions extends Component {
     }
   }
   /**
+   * Set new datetime based on time interval
+   * @method
+   */
+  setNewDatetime = () => {
+    this.props.handleDateChange('refresh', {
+      from: this.getCalculatedTime(this.props.searchInput.searchInterval),
+      to: moment().local().format('YYYY-MM-DDTHH:mm') + ':00'
+    });
+  }
+  /**
    * Set search data based on user's selection
    * @method
    */
   handleIntervalConfirm = () => {
-    this.props.handleDateChange({
+    this.props.handleDateChange('customTime', {
       from: this.getCalculatedTime(this.props.searchInput.searchInterval),
       to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
     });
