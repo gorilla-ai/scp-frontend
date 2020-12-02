@@ -1744,8 +1744,8 @@ class NetworkInventory extends Component {
         {deviceData.hmdOnly.currentLength > 1 &&
           <div className='pagination'>
             <div className='buttons'>
-              <Button variant='contained' color='primary' onClick={this.showAlertData.bind(this, 'previous')} disabled={deviceData.hmdOnly.currentIndex === 0}>{t('txt-previous')}</Button>
-              <Button variant='contained' color='primary' onClick={this.showAlertData.bind(this, 'next')} disabled={deviceData.hmdOnly.currentIndex + 1 === deviceData.hmdOnly.currentLength}>{t('txt-next')}</Button>
+              <Button variant='outlined' color='primary' onClick={this.showAlertData.bind(this, 'previous')} disabled={deviceData.hmdOnly.currentIndex === 0}>{t('txt-previous')}</Button>
+              <Button variant='outlined' color='primary' onClick={this.showAlertData.bind(this, 'next')} disabled={deviceData.hmdOnly.currentIndex + 1 === deviceData.hmdOnly.currentLength}>{t('txt-next')}</Button>
             </div>
             <span className='count'>{deviceData.hmdOnly.currentIndex + 1} / {deviceData.hmdOnly.currentLength}</span>
           </div>

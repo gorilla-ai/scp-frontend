@@ -156,6 +156,9 @@ button {
 button.standard:hover:not([disabled]) {
   background-color: var(--formBackground) !important;
 }
+.MuiButton-contained {
+  box-shadow: none !important;
+}
 .MuiPaper-root {
   button:hover:not([disabled]) {
     background: none !important;
@@ -1475,7 +1478,7 @@ button.standard:hover:not([disabled]) {
             .group {
               .fg-add {
                 color: #fff;
-                background-color: var(--formCheckRadioColor);
+                background-color: var(--formCheckRadioColor) !important;
               }
             }
             .filter-select {
