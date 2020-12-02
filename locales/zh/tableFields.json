@@ -330,6 +330,8 @@
   "logsFields": {
     "_tableMenu_": "",
     "@timestamp": "日期",
+    "_EventCode": "事件代碼",
+    "_Message": "訊息",
     "@version": "版本",
     "AccountName": "帳號名稱",
     "AccountType": "帳號種類",

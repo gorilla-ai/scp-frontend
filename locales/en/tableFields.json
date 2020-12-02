@@ -330,6 +330,8 @@
   "logsFields": {
     "_tableMenu_": "",
     "@timestamp": "Timestamp",
+    "_EventCode": "Event Code",
+    "_Message": "Message",
     "@version": "Version",
     "AccountName": "Account Name",
     "AccountType": "Account Type",

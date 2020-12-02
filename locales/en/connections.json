@@ -590,6 +590,7 @@
       "txt-scanFile": "Malware",
       "txt-gcb": "GCB",
       "txt-ir": "IR",
+      "txt-eventTracing": "Event Tracing",
       "txt-fileIntegrity": "File Integrity",
       "txt-procMonitor": "Process Monitor"
     },

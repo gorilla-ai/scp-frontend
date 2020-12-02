@@ -571,6 +571,16 @@ html[data-theme='dark'] {
         .empty-msg {
           margin-top: 10px;
         }
+        &.event-tracing {
+          max-height: 485px;
+          margin-top: 20px;
+        }
+        ._EventCode {
+          width: 100px;
+        }
+        ._Message {
+          width: 78%;
+        }
       }
       .dashboard-wrapper {
         width: 100%;
@@ -812,6 +822,9 @@ html[data-theme='dark'] {
 #hostModalDialog-content {
   width: 1280px;
   max-height: 725px;
+  .MuiToggleButton-label {
+    font-size: 14px;
+  }
   .main-table {
     td {
       &.severity-level,

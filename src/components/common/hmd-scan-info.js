@@ -48,6 +48,10 @@ const SAFETY_SCAN_LIST = [
     path: 'fileIntegrityResult'
   },
   {
+    type: 'eventTracing',
+    path: ''
+  },
+  {
     type: 'procMonitor',
     path: 'getProcessMonitorResult'
   },
@@ -65,7 +69,7 @@ const TRIGGER_NAME = {
   [SAFETY_SCAN_LIST[1].type]: 'scanFile',
   [SAFETY_SCAN_LIST[2].type]: 'gcbDetection',
   [SAFETY_SCAN_LIST[4].type]: 'getFileIntegrity',
-  [SAFETY_SCAN_LIST[5].type]: 'getProcessMonitorResult'
+  [SAFETY_SCAN_LIST[6].type]: 'getProcessMonitorResult'
 };
 const SETTINGS = {
   snapshot: 'getSnapshot',
@@ -108,6 +112,11 @@ class HMDscanInfo extends Component {
       gcbFieldsArr: ['_CceId', '_OriginalKey', '_Type', '_CompareResult'],
       gcbSort: 'asc',
       hmdInfo: {},
+      eventInfo: {
+        dataFieldsArr: ['@timestamp', '_EventCode', '_Message'],
+        dataFields: {},
+        dataContent: []
+      },
       hasMore: true,
       disabledBtn: false,
       settingsActiveContent: 'viewMode', //'viewMode' or 'editMode'
@@ -388,6 +397,95 @@ class HMDscanInfo extends Component {
     });
   }
   /**
+   * Load Event Tracing data
+   * @method
+   */
+  loadEventTracing = () => {
+    const {baseUrl} = this.context;
+    const {page, currentDeviceData, datetime} = this.props;
+    const {eventInfo} = this.state;
+    let dateTime = {};
+
+    if (page === 'inventory') {
+      dateTime = {
+        from: helper.getSubstractDate(7, 'day'),
+        to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
+      };
+
+      dateTime.from = moment(dateTime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+      dateTime.to = moment(dateTime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    } else {
+      dateTime.from = datetime.from;
+      dateTime.to = datetime.to;
+    }
+
+    const requestData = {
+      '@timestamp': [dateTime.from, dateTime.to],
+      sort: [
+        {
+          '@timestamp': 'desc'
+        }
+      ],
+      filters: [
+        {
+          condition: 'must',
+          query: 'configSource: hmd'
+        },
+        {
+          condition: 'must',
+          query: 'hostId: ' + currentDeviceData.ipDeviceUUID
+        }
+      ]
+    };
+
+    this.ah.one({
+      url: `${baseUrl}/api/u1/log/event/_search?page=${scrollCount}&pageSize=20`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        if (data.data.rows.length > 0) {
+          const dataContent = data.data.rows.map(tempData => {
+            tempData.content.id = tempData.id;
+            return tempData.content;
+          });
+          let tempEventInfo = {...this.state.eventInfo};
+
+          eventInfo.dataFieldsArr.forEach(tempData => {
+            tempEventInfo.dataFields[tempData] = {
+              label: f(`logsFields.${tempData}`),
+              sortable: false,
+              formatter: (value, allValue) => {
+                if (tempData === '@timestamp') {
+                  value = helper.getFormattedDate(value, 'local');
+                }
+                return <span>{value}</span>
+              }
+            };
+          })
+
+          tempEventInfo.dataContent = _.concat(eventInfo.dataContent, dataContent);
+          scrollCount++;
+
+          this.setState({
+            eventInfo: tempEventInfo,
+            hasMore: true
+          });
+        } else {
+          this.setState({
+            hasMore: false
+          });
+        }
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Get parsed path list data
    * @method
    * @param {object} type - value type
@@ -479,6 +577,12 @@ class HMDscanInfo extends Component {
       return;
     }
 
+    let tempEventInfo = {...this.state.eventInfo};
+    tempEventInfo.dataFields = {};
+    tempEventInfo.dataContent = [];
+
+    scrollCount = 1;
+
     this.setState({
       activeTab,
       activePath: null,
@@ -487,7 +591,12 @@ class HMDscanInfo extends Component {
       activeDLL: false,
       activeConnections: false,
       activeExecutableInfo: false,
-      disabledBtn: false
+      disabledBtn: false,
+      eventInfo: tempEventInfo
+    }, () => {
+      if (activeTab === 'eventTracing') {
+        this.loadEventTracing();
+      }
     });
   }
   /**
@@ -1231,19 +1340,16 @@ class HMDscanInfo extends Component {
   loadMoreContent = () => {
     const {baseUrl} = this.context;
     const {page, datetime, currentDeviceData} = this.props;
-    let url = '';
     scrollCount++;
 
     if (page === 'host') {
-      url = `${baseUrl}/api/ipdevice/assessment?page=${scrollCount}&pageSize=5`;
-
       const requestData = {
         timestamp: [datetime.from, datetime.to],
         ipDeviceUUID: currentDeviceData.ipDeviceUUID
       };
 
       this.ah.one({
-        url,
+        url: `${baseUrl}/api/ipdevice/assessment?page=${scrollCount}&pageSize=5`,
         data: JSON.stringify(requestData),
         type: 'POST',
         contentType: 'text/plain'
@@ -1258,10 +1364,8 @@ class HMDscanInfo extends Component {
         helper.showPopupMsg('', t('txt-error'), err.message);
       })
     } else {
-      url = `${baseUrl}/api/v2/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}&page=${scrollCount}&pageSize=5`;
-
       this.ah.one({
-        url,
+        url: `${baseUrl}/api/v2/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}&page=${scrollCount}&pageSize=5`,
         type: 'GET'
       })
       .then(data => {
@@ -1574,7 +1678,6 @@ class HMDscanInfo extends Component {
   getMainContent = () => {
     const {activeTab, hmdInfo, hasMore} = this.state;
     const hmdData = hmdInfo[activeTab].data;
-    const loader = '';
     let displayContent = '';
 
     if (activeTab === 'yara' || activeTab === 'scanFile' || activeTab === 'fileIntegrity' || activeTab === 'procMonitor') {
@@ -1592,10 +1695,41 @@ class HMDscanInfo extends Component {
             dataLength={hmdData.length}
             next={this.loadMoreContent}
             hasMore={hasMore}
-            loader={loader}
             height={this.getContentHeight()}>
             {hmdData.map(displayContent)}
           </InfiniteScroll>
+        }
+      </div>
+    )
+  }
+  /**
+   * Display content for Event Tracing
+   * @method
+   * @returns HTML DOM
+   */
+  getEventTracingContent = () => {
+    const {eventInfo, hasMore} = this.state;
+    const dataCount = eventInfo.dataContent.length;
+
+    return (
+      <div className='scan-section'>
+        {dataCount === 0 &&
+          <div className='empty-msg' style={{marginTop: '20px'}}>{NOT_AVAILABLE}</div>
+        }
+
+        {dataCount > 0 &&
+          <div className='table event-tracing'>
+            <InfiniteScroll
+              dataLength={dataCount}
+              next={this.loadEventTracing}
+              hasMore={hasMore}
+              height={485}>
+              <DataTable
+                className='main-table'
+                fields={eventInfo.dataFields}
+                data={eventInfo.dataContent} />
+            </InfiniteScroll>
+          </div>
         }
       </div>
     )
@@ -1953,11 +2087,15 @@ class HMDscanInfo extends Component {
             </div>
           }
 
-          {activeTab !== 'dashboard' && activeTab !== 'settings' && !_.isEmpty(hmdInfo) &&
+          {activeTab !== 'dashboard' && activeTab !== 'eventTracing' && activeTab !== 'settings' && !_.isEmpty(hmdInfo) &&
             <div>
               {this.getTriggerBtnInfo()}
               {this.getMainContent()}
             </div>
+          }
+
+          {activeTab === 'eventTracing' &&
+            this.getEventTracingContent()
           }
 
           {activeTab === 'settings' &&
