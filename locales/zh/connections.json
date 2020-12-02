@@ -375,6 +375,7 @@
       "txt-noOpenQuery": "查詢條件名稱不得為空白",
       "txt-threasholdCount": "統整次數不得大於1,000或小於0",
       "txt-addPatternScript": "定義告警條件",
+      "txt-public": "共用",
       "txt-patternQuery1": "統整",
       "txt-patternQuery2": "分鐘資料，超過或等於",
       "txt-patternQuery3": "次成為告警",

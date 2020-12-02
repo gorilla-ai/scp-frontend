@@ -1399,10 +1399,13 @@ html[data-theme='dark'] {
   .filter-group {
     min-width: 400px;
     overflow-y: hidden;
-    padding: 10px 6px;
+    padding: 10px 6px 5px 6px;
     margin-bottom: 15px;
     border-radius: 5px;
     background-color: var(--dialogFormGroup);
+  }
+  .checkbox-ui {
+    margin-left: 5px;
   }
   .main-filter-group,
   .main-mark-group {
@@ -1453,20 +1456,35 @@ html[data-theme='dark'] {
       width: 196px;
     }
   }
-  .severity-level {
+  .severity-section {
     padding: 10px;
     padding-top: 15px;
     margin-bottom: 15px;
     border-radius: 5px;
     background-color: var(--dialogFormGroup);
     clear: both;
-    .fg-recode {
-      float: left;
-      margin-right: 5px;
-      margin-top: 5px;
-    }
-    .severity-dropdown {
-      width: 92%;
+    .top-group {
+      overflow: hidden;
+      padding-top: 6px;
+      margin-bottom: 15px;
+      .severity-level {
+        float: left;
+        width: 75%;
+        margin-right: 10px;
+        .fg-recode {
+          float: left;
+          width: 8%;
+          margin-right: 5px;
+          margin-top: 5px;
+        }
+        .severity-dropdown {
+          float: left;
+          width: 90%;
+        }
+      }
+      .MuiFormControlLabel-root {
+        margin-top: 5px;
+      }
     }
     .period {
       color: var(--primaryContentHeader);
@@ -1479,7 +1497,7 @@ html[data-theme='dark'] {
         margin-left: 5px;
       }
       .number {
-        width: 65px;
+        width: 80px;
       }
     }
     .email-disabled {

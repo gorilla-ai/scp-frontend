@@ -1755,6 +1755,7 @@ class SyslogController extends Component {
       tempQueryData.pattern.periodMin = queryData.list[0].periodMin;
       tempQueryData.pattern.severity = queryData.list[0].severity;
       tempQueryData.pattern.threshold = queryData.list[0].threshold;
+      tempQueryData.isPublic = queryData.list[0].isPublic;
 
       this.setState({
         queryData: tempQueryData,
