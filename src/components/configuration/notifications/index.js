@@ -630,6 +630,7 @@ class Notifications extends Component {
                     <TextField
                       id='notificationsSenderPassword'
                       name='senderPassword'
+                      type='password'
                       label={t('notifications.txt-senderPassword')}
                       variant='outlined'
                       fullWidth={true}
