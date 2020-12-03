@@ -578,7 +578,7 @@ class NetworkBehavior extends Component {
         {datetime.from && datetime.to &&
           <div className='msg'>{alertTimeText}: {datetime.from} ~ {datetime.to}</div>
         }
-        <Button variant='contained' color='primary' className='standard btn query-events' onClick={this.redirectNewPage.bind(this, ipType)}>{t('alert.txt-queryEvents')}</Button>
+        <Button variant='contained' color='primary' className='query-events' onClick={this.redirectNewPage.bind(this, ipType)}>{t('alert.txt-queryEvents')}</Button>
 
         <div className='table-data'>
           <DataTable
@@ -597,7 +597,9 @@ NetworkBehavior.contextType = BaseDataContext;
 
 NetworkBehavior.propTypes = {
   ipType: PropTypes.string.isRequired,
-  alertData: PropTypes.object.isRequired
+  alertData: PropTypes.object.isRequired,
+  page: PropTypes.string,
+  hostDatetime: PropTypes.object
 };
 
 export default NetworkBehavior;

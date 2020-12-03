@@ -6,14 +6,13 @@ import cx from 'classnames'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
-import {BaseDataContext} from './context';
-
-import helper from './helper'
-import HMDscanInfo from './hmd-scan-info'
-import IrSelections from './ir-selections'
-import NetworkBehavior from './network-behavior'
-import PrivateDetails from './private-details'
-import YaraRule from './yara-rule'
+import {BaseDataContext} from '../common/context';
+import helper from '../common/helper'
+import HMDscanInfo from '../common/hmd-scan-info'
+import IrSelections from '../common/ir-selections'
+import NetworkBehavior from '../common/network-behavior'
+import PrivateDetails from '../common/private-details'
+import YaraRule from '../common/yara-rule'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -169,7 +168,7 @@ class HostAnalysis extends Component {
    * @returns HMDscanInfo component
    */
   displaySafetyScanContent = () => {
-    const {hostData, datetime, openHmdType} = this.props;
+    const {datetime, assessmentDatetime, hostData, openHmdType} = this.props;
 
     if (_.isEmpty(hostData.safetyScanInfo)) {
       return <span>N/A</span>
@@ -178,6 +177,7 @@ class HostAnalysis extends Component {
         <HMDscanInfo
           page='host'
           datetime={datetime}
+          assessmentDatetime={assessmentDatetime}
           currentDeviceData={hostData}
           openHmdType={openHmdType}
           toggleYaraRule={this.toggleYaraRule}
@@ -193,7 +193,7 @@ class HostAnalysis extends Component {
    * @returns HTML DOM
    */
   displayHostAnalysisData = () => {
-    const {hostData, datetime} = this.props;
+    const {hostData, assessmentDatetime} = this.props;
     const {showContent} = this.state;
     const ip = hostData.ip || NOT_AVAILABLE;
     const mac = hostData.mac || NOT_AVAILABLE;
@@ -254,7 +254,7 @@ class HostAnalysis extends Component {
                 page='host'
                 ipType='srcIp'
                 alertData={hostData}
-                hostDatetime={datetime} />
+                hostDatetime={assessmentDatetime} />
             }
           </div>
         </div>
@@ -396,6 +396,7 @@ class HostAnalysis extends Component {
 HostAnalysis.contextType = BaseDataContext;
 
 HostAnalysis.propTypes = {
+  assessmentDatetime:  PropTypes.object.isRequired,
   hostData: PropTypes.object.isRequired,
   getIPdeviceInfo: PropTypes.func.isRequired,
   toggleHostAnalysis: PropTypes.func.isRequired,

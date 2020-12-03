@@ -692,10 +692,9 @@ class HMDscanInfo extends Component {
    */
   displayRule = (nameList, val, i) => {
     const {activeRule} = this.state;
-    const uniqueKey = val + i;
 
     return (
-      <div key={uniqueKey} className='item-content'>
+      <div key={val + i} className='item-content'>
         <div className='header' onClick={this.togglePathRule.bind(this, 'rule', i)}>
           <i className={cx('fg fg-play', {'rotate': _.includes(activeRule, i)})}></i>
           <span>{nameList[i]}</span>
@@ -717,10 +716,8 @@ class HMDscanInfo extends Component {
    * @returns HTML DOM
    */
   displayIndividualFile = (val, i) => {
-    const uniqueKey = val + i;
-
     return (
-      <div key={uniqueKey}>{val}</div>
+      <div key={val + i}>{val}</div>
     )
   }
   /**
@@ -760,10 +757,8 @@ class HMDscanInfo extends Component {
    * @returns HTML DOM
    */
   displayIndividualConnection = (val, i) => {
-    const uniqueKey = val + i;
-
     return (
-      <ul key={uniqueKey}>
+      <ul key={val + i}>
         <li><span>{t('attacksFields.protocolType')}:</span> {val.protocol || NOT_AVAILABLE}</li>
         <li><span>{t('attacksFields.srcIp')}:</span> {val.srcIp || NOT_AVAILABLE}</li>
         <li><span>{t('attacksFields.srcPort')}:</span> {val.srcPort || NOT_AVAILABLE}</li>
@@ -840,7 +835,7 @@ class HMDscanInfo extends Component {
       value = info._ProcessInfo._ExecutableInfo[val].toString();
     }
 
-    return <li key={i}>{t('network-inventory.executable-list.txt-' + val)}: {value || NOT_AVAILABLE}</li>
+    return <li key={val + i}>{t('network-inventory.executable-list.txt-' + val)}: {value || NOT_AVAILABLE}</li>
   }
   /**
    * Display Executable Info for Process Monitor
@@ -1340,44 +1335,27 @@ class HMDscanInfo extends Component {
   loadMoreContent = () => {
     const {baseUrl} = this.context;
     const {page, datetime, currentDeviceData} = this.props;
+
     scrollCount++;
+    let url = `${baseUrl}/api/v2/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}&page=${scrollCount}&pageSize=5`;
 
     if (page === 'host') {
-      const requestData = {
-        timestamp: [datetime.from, datetime.to],
-        ipDeviceUUID: currentDeviceData.ipDeviceUUID
-      };
-
-      this.ah.one({
-        url: `${baseUrl}/api/ipdevice/assessment?page=${scrollCount}&pageSize=5`,
-        data: JSON.stringify(requestData),
-        type: 'POST',
-        contentType: 'text/plain'
-      })
-      .then(data => {
-        if (data) {
-          this.setHmdInfo(data);
-        }
-        return null;
-      })
-      .catch(err => {
-        helper.showPopupMsg('', t('txt-error'), err.message);
-      })
-    } else {
-      this.ah.one({
-        url: `${baseUrl}/api/v2/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}&page=${scrollCount}&pageSize=5`,
-        type: 'GET'
-      })
-      .then(data => {
-        if (data) {
-          this.setHmdInfo(data);
-        }
-        return null;
-      })
-      .catch(err => {
-        helper.showPopupMsg('', t('txt-error'), err.message);
-      })
+      url += `&startDttm=${datetime.from}&endDttm=${datetime.to}`;
     }
+
+    this.ah.one({
+      url,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        this.setHmdInfo(data);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Display File Integrity path
@@ -1389,7 +1367,7 @@ class HMDscanInfo extends Component {
    */
   displayFileIntegrityPath = (parentIndex, val, i) => {
     const {activePath, activeRuleHeader} = this.state;
-    let uniqueKey = '';
+    let uniqueKey = i;
     let uniqueID = '';
     let filePath = '';
 
@@ -1663,7 +1641,7 @@ class HMDscanInfo extends Component {
     const {page} = this.props;
 
     if (page === 'host') {
-      return 470;
+      return 440;
     } else if (page === 'threats') {
       return 330;
     } else if (page === 'inventory') {
@@ -2126,7 +2104,6 @@ HMDscanInfo.contextType = BaseDataContext;
 
 HMDscanInfo.propTypes = {
   page: PropTypes.string.isRequired,
-  datetime: PropTypes.object,
   currentDeviceData: PropTypes.object.isRequired,
   toggleSelectionIR: PropTypes.func.isRequired,
   triggerTask: PropTypes.func.isRequired,

@@ -22,7 +22,7 @@ import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import {BaseDataContext} from '../common/context';
 import helper from '../common/helper'
-import HostAnalysis from '../common/host-analysis'
+import HostAnalysis from './host-analysis'
 import Pagination from '../common/pagination'
 import SearchOptions from '../common/search-options'
 
@@ -154,6 +154,10 @@ class HostController extends Component {
       showFilter: false,
       showLeftNav: true,
       datetime: moment().local().format('YYYY-MM-DD') + 'T00:00:00',
+      assessmentDatetime: {
+        from: '',
+        to: ''
+      },
       hostAnalysisOpen: false,
       severityList: [],
       hmdStatusList: [],
@@ -491,10 +495,14 @@ class HostController extends Component {
         });
 
         this.setState({
+          assessmentDatetime: {
+            from: data.assessmentStartDttm,
+            to: data.assessmentEndDttm
+          },
           severityList,
           hmdStatusList,
           scanStatusList,
-          hostCreateTime: helper.getFormattedDate(data.create_dttm, 'local'),
+          hostCreateTime: helper.getFormattedDate(data.assessmentCreateDttm, 'local'),
           hostInfo: tempHostInfo
         }, () => {
           if (activeTab === 'deviceMap' && data.rows.length > 0) {
@@ -997,20 +1005,12 @@ class HostController extends Component {
    */
   getIPdeviceInfo = (host, options, defaultOpen) => {
     const {baseUrl} = this.context;
-    const {hostInfo, hostData} = this.state;
-    const datetime = this.getHostDateTime();
+    const {assessmentDatetime, hostInfo, hostData} = this.state;
     const ipDeviceUUID = host ? host.ipDeviceUUID : hostData.ipDeviceUUID;
-    const url = `${baseUrl}/api/ipdevice/assessment?page=1&pageSize=5`;
-    const requestData = {
-      timestamp: [datetime.from, datetime.to],
-      ipDeviceUUID: ipDeviceUUID
-    };
 
     this.ah.one({
-      url,
-      data: JSON.stringify(requestData),
-      type: 'POST',
-      contentType: 'text/plain'
+      url: `${baseUrl}/api/v2/ipdevice?uuid=${ipDeviceUUID}&page=1&pageSize=5&startDttm=${assessmentDatetime.from}&endDttm=${assessmentDatetime.to}`,
+      type: 'GET'
     })
     .then(data => {
       if (data) {
@@ -1261,6 +1261,7 @@ class HostController extends Component {
       showLeftNav,
       showFilter,
       datetime,
+      assessmentDatetime,
       hostAnalysisOpen,
       hostCreateTime,
       privateMaskedIPtree,
@@ -1282,9 +1283,10 @@ class HostController extends Component {
       <div>
         {hostAnalysisOpen &&
           <HostAnalysis
+            datetime={datetime}
+            assessmentDatetime={assessmentDatetime}
             hostData={hostData}
             openHmdType={openHmdType}
-            datetime={this.getHostDateTime()}
             getIPdeviceInfo={this.getIPdeviceInfo}
             toggleHostAnalysis={this.toggleHostAnalysis} />
         }
