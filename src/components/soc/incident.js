@@ -557,6 +557,11 @@ class Incident extends Component {
                             <button className='standard btn list'
                                     onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</button>
                             }
+                            {
+                                _.size(incident.dataContent) > 0 &&
+                                <button className='standard btn edit'
+                                    onClick={this.exportAll.bind(this)}>{it('txt-export-all')}</button>
+                            }
                             <button className='standard btn edit'
                                     onClick={this.toggleContent.bind(this, 'addIncident', 'events')}>{it('txt-addIncident-events')}</button>
                             <button className='standard btn edit'
@@ -726,6 +731,9 @@ class Incident extends Component {
 
             {activeContent === 'viewIncident' &&
                 <footer style={{'textAlign':'center'}}>
+                    <button className='standard btn list'
+                            onClick={this.exportPdf.bind(this)}>{t('txt-export')}</button>
+                    
                     <button className='standard btn list'
                             onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</button>
                     {editCheck &&
@@ -1658,7 +1666,7 @@ class Incident extends Component {
 
         return <div className={cx('main-filter', {'active': showChart})}>
             <i className='fg fg-close' onClick={this.toggleChart} title={t('txt-close')}/>
-            <div className='incident-statistics'>
+            <div className='incident-statistics' id='incident-statistics'>
                 <div className='item c-link' onClick={this.loadCondition.bind(this,'expired')}>
                     <i className='fg fg-checkbox-fill' style={{color: '#ec8f8f'}}/>
                     <div className='threats'>{it('txt-incident-expired')}<span>{dashboard.expired}</span></div>
@@ -2437,6 +2445,233 @@ class Incident extends Component {
                 }
             }
         })
+    }
+
+
+
+    toPdfPayload(incident) {
+        const {incidentType, relatedListOptions, deviceListOptions} = this.state
+        let payload = {}
+
+        payload.id = incident.id
+        payload.header = `${it('txt-incident-id')}${incident.id}`
+        // basic
+        payload.basic = {}
+        payload.basic.cols = 4
+        payload.basic.header = `${t('edge-management.txt-basicInfo')}    ${f('incidentFields.updateDttm')}  ${helper.getFormattedDate(incident.updateDttm, 'local')}`
+        payload.basic.table = []
+        payload.basic.table.push({text: f('incidentFields.title'), colSpan: 2})
+        payload.basic.table.push({text: f('incidentFields.category'), colSpan: 2})
+        payload.basic.table.push({text: incident.title, colSpan: 2})
+        payload.basic.table.push({text: it(`category.${incident.category}`), colSpan: 2})
+        payload.basic.table.push({text: f('incidentFields.reporter'), colSpan: 2})
+        payload.basic.table.push({text: f('incidentFields.impactAssessment'), colSpan: 1})
+        payload.basic.table.push({text: f('incidentFields.finalDate'), colSpan: 1})
+        payload.basic.table.push({text: incident.reporter, colSpan: 2})
+        payload.basic.table.push({text: `${incident.impactAssessment} (${(9 - 2 * incident.impactAssessment)} ${it('txt-day')})`, colSpan: 1})
+        payload.basic.table.push({text: helper.getFormattedDate(incident.expireDttm, 'local'), colSpan: 1})
+       
+        if (incidentType === 'ttps') {
+            payload.basic.table.push({text: f('incidentFields.description'), colSpan: 4})
+            payload.basic.table.push({text: incident.description, colSpan: 4})
+
+            if (_.size(incident.relatedList) > 0) {
+                let value = []
+                _.forEach(incident.relatedList, el => {
+                    const target = _.find(relatedListOptions, {value: el})
+                    value.push(target.text)
+                })
+
+                payload.basic.table.push({text: f('incidentFields.relatedList'), colSpan: 4})
+                payload.basic.table.push({text: value.toString(), colSpan: 4})
+            }
+        }
+
+        // history
+        payload.history = {}
+        payload.history.cols = 4
+        payload.history.header = it('txt-flowTitle')
+        payload.history.table = []
+        payload.history.table.push({text: f(`incidentFields.status`), colSpan: 1})
+        payload.history.table.push({text: f(`incidentFields.reviewDttm`), colSpan: 1})
+        payload.history.table.push({text: f(`incidentFields.reviewerName`), colSpan: 1})
+        payload.history.table.push({text: f(`incidentFields.suggestion`), colSpan: 1})
+
+        _.forEach(incident.historyList, el => {
+            payload.history.table.push({text: it(`action.${el.status}`), colSpan: 1})
+            payload.history.table.push({text: Moment(el.reviewDttm).local().format('YYYY-MM-DD HH:mm:ss'), colSpan: 1})
+            payload.history.table.push({text: el.reviewerName, colSpan: 1})
+            payload.history.table.push({text: el.suggestion, colSpan: 1})
+        })
+
+
+        // attach
+        if (_.size(incident.fileList) > 0) {
+            payload.attachment = {}
+            payload.attachment.cols = 4
+            payload.attachment.header = it('txt-attachedFile')
+            payload.attachment.table = []
+            payload.attachment.table.push({text: f(`incidentFields.fileName`), colSpan: 1})
+            payload.attachment.table.push({text: f(`incidentFields.fileSize`), colSpan: 1})
+            payload.attachment.table.push({text: f(`incidentFields.fileDttm`), colSpan: 1})
+            payload.attachment.table.push({text: f(`incidentFields.fileMemo`), colSpan: 1})
+
+            _.forEach(incident.fileList, file => {
+                payload.attachment.table.push({text: file.fileName, colSpan: 1})
+                payload.attachment.table.push({text: this.formatBytes(file.fileSize), colSpan: 1})
+                payload.attachment.table.push({text: Moment(file.fileDttm).local().format('YYYY-MM-DD HH:mm:ss'), colSpan: 1})
+                const target = _.find(JSON.parse(incident.attachmentDescription), {fileName: file.fileName})
+                payload.attachment.table.push({text: target.fileMemo, colSpan: 1})
+            })
+        }
+
+
+        // accident
+        payload.accident = {}
+        payload.accident.cols = 4
+        payload.accident.header = it('txt-accidentTitle')
+        payload.accident.table = []
+        payload.accident.table.push({text: it('txt-accidentClassification'), colSpan: 2})
+        payload.accident.table.push({text: it('txt-reason'), colSpan: 2})
+        
+        if (incident.accidentCatogory) {
+            payload.accident.table.push({text: it(`accident.${incident.accidentCatogory}`), colSpan: 2})
+        }
+        else {
+            payload.accident.table.push({text: ' ', colSpan: 2})
+        }
+        
+        if (!incident.accidentCatogory) {
+            payload.accident.table.push({text: ' ', colSpan: 2})
+        }
+        else if (incident.accidentCatogory === '5') {
+            payload.accident.table.push({text: incident.accidentAbnormalOther, colSpan: 2})
+        }
+        else {
+            payload.accident.table.push({text: it(`accident.${incident.accidentAbnormal}`), colSpan: 2})
+        }
+
+        payload.accident.table.push({text: it('txt-accidentDescr'), colSpan: 4})
+        payload.accident.table.push({text: incident.accidentDescription, colSpan: 4})
+        payload.accident.table.push({text: it('txt-reasonDescr'), colSpan: 4})
+        payload.accident.table.push({text: incident.accidentReason, colSpan: 4})
+        payload.accident.table.push({text: it('txt-accidentInvestigation'), colSpan: 4})
+        payload.accident.table.push({text: incident.accidentInvestigation, colSpan: 4})
+
+
+        //  event list
+        payload.eventList = {}
+        payload.eventList.cols = 6
+        payload.eventList.header = it('txt-incident-events')
+        payload.eventList.table = []
+
+        _.forEach(incident.eventList, event => {
+            payload.eventList.table.push({text: f('incidentFields.rule'), colSpan: 3})
+            payload.eventList.table.push({text: f('incidentFields.deviceId'), colSpan: 3})
+            payload.eventList.table.push({text: event.description, colSpan: 3})
+            const target = _.find(deviceListOptions, {value: event.deviceId})
+            payload.eventList.table.push({text: target.text, colSpan: 3})
+            payload.eventList.table.push({text: f('incidentFields.dateRange'), colSpan: 4})
+            payload.eventList.table.push({text: it('txt-frequency'), colSpan: 2})
+            payload.eventList.table.push({text: Moment.utc(event.startDttm, 'YYYY-MM-DDTHH:mm:ss[Z]').local().format('YYYY-MM-DD HH:mm:ss'), colSpan: 2})
+            payload.eventList.table.push({text: Moment.utc(event.endDttm, 'YYYY-MM-DDTHH:mm:ss[Z]').local().format('YYYY-MM-DD HH:mm:ss'), colSpan: 2})
+            payload.eventList.table.push({text: event.frequency, colSpan: 2})
+
+            _.forEach(event.eventConnectionList, conn => {
+                payload.eventList.table.push({text: f('incidentFields.srcIp'), colSpan: 2})
+                payload.eventList.table.push({text: f('incidentFields.srcPort'), colSpan: 2})
+                payload.eventList.table.push({text: f('incidentFields.srcHostname'), colSpan: 2})
+                payload.eventList.table.push({text: conn.srcIp, colSpan: 2})
+                payload.eventList.table.push({text: conn.srcPort, colSpan: 2})
+                payload.eventList.table.push({text: conn.srcHostname, colSpan: 2})
+                payload.eventList.table.push({text: f('incidentFields.dstIp'), colSpan: 2})
+                payload.eventList.table.push({text: f('incidentFields.dstPort'), colSpan: 2})
+                payload.eventList.table.push({text: f('incidentFields.dstHostname'), colSpan: 2})
+                payload.eventList.table.push({text: conn.dstIp, colSpan: 2})
+                payload.eventList.table.push({text: conn.dstPort, colSpan: 2})
+                payload.eventList.table.push({text: conn.dstHostname, colSpan: 2})
+            })
+        })
+
+
+        // ttps
+        if (_.size(incident.ttpList) > 0) {
+            payload.ttps = {}
+            payload.ttps.cols = 4
+            payload.ttps.header = it('txt-incident-ttps')
+            payload.ttps.table = []
+        }
+
+        _.forEach(incident.ttpList, ttp => {
+            payload.ttps.table.push({text: f('incidentFields.technique'), colSpan: 2})
+            payload.ttps.table.push({text: f('incidentFields.infrastructureType'), colSpan: 2})
+            payload.ttps.table.push({text: ttp.title, colSpan: 2})
+            payload.ttps.table.push({text: ttp.infrastructureType === 0 ? 'IOC' : 'IOA', colSpan: 2})
+
+            if (_.size(ttp.etsList) > 0) {
+                payload.ttps.table.push({text: it('txt-ttp-ets'), colSpan: 4})
+                _.forEach(ttp.etsList, ets => {
+                    payload.ttps.table.push({text: f('incidentFields.cveId'), colSpan: 2})
+                    payload.ttps.table.push({text: f('incidentFields.etsDescription'), colSpan: 2})
+                    payload.ttps.table.push({text: ets.cveId || '', colSpan: 2})
+                    payload.ttps.table.push({text: ets.description || '', colSpan: 2})
+                })
+            }
+
+            if (_.size(ttp.obsFileList) > 0) {
+                payload.ttps.table.push({text: it('txt-ttp-obs-file'), colSpan: 4})
+                _.forEach(ttp.obsFileList, obsFile => {
+                    payload.ttps.table.push({text: f('incidentFields.fileName'), colSpan: 2})
+                    payload.ttps.table.push({text: f('incidentFields.fileExtension'), colSpan: 2})
+                    payload.ttps.table.push({text: obsFile.fileName, colSpan: 2})
+                    payload.ttps.table.push({text: obsFile.fileExtension, colSpan: 2})
+                    payload.ttps.table.push({text: 'MD5', colSpan: 2})
+                    payload.ttps.table.push({text: 'SHA1', colSpan: 2})
+                    payload.ttps.table.push({text: obsFile.md5, colSpan: 2})
+                    payload.ttps.table.push({text: obsFile.sha1, colSpan: 2})
+                    payload.ttps.table.push({text: 'SHA256', colSpan: 4})
+                    payload.ttps.table.push({text: obsFile.sha256, colSpan: 4})
+                })
+            }
+
+            if (_.size(ttp.obsUriList) > 0) {
+                payload.ttps.table.push({text: it('txt-ttp-obs-uri'), colSpan: 4})
+                _.forEach(ttp.obsUriList, obsUri => {
+                    payload.ttps.table.push({text: f('incidentFields.uriType'), colSpan: 2})
+                    payload.ttps.table.push({text: f('incidentFields.uriValue'), colSpan: 2})
+                    payload.ttps.table.push({text: obsUri.uriType === 0 ? 'URL' : f('incidentFields.domain'), colSpan: 2})
+                    payload.ttps.table.push({text: obsUri.uriValue, colSpan: 2})
+                })
+            }
+
+            if (_.size(ttp.obsSocketList) > 0) {
+                payload.ttps.table.push({text: it('txt-ttp-obs-socket'), colSpan: 4})
+                _.forEach(ttp.obsSocketList, obsSocket => {
+                    payload.ttps.table.push({text: 'IP', colSpan: 2})
+                    payload.ttps.table.push({text: 'Port', colSpan: 2})
+                    payload.ttps.table.push({text: obsSocket.ip, colSpan: 2})
+                    payload.ttps.table.push({text: obsSocket.port, colSpan: 2})
+                })
+            }
+        })
+
+        return payload
+    }
+    exportPdf() {
+        const {baseUrl, contextRoot} = this.context
+        const {incident} = this.state
+
+        downloadWithForm(`${baseUrl}${contextRoot}/api/soc/_pdf`, {payload: JSON.stringify(this.toPdfPayload(incident.info))})
+    }
+    exportAll() {
+        const {baseUrl, contextRoot} = this.context
+        const {incident} = this.state
+
+        let payload = _.map(incident.dataContent, el => {
+            return this.toPdfPayload(el)
+        })
+
+        downloadWithForm(`${baseUrl}${contextRoot}/api/soc/_pdfs`, {payload: JSON.stringify(payload)})
     }
 }
 
