@@ -2664,14 +2664,35 @@ class Incident extends Component {
         downloadWithForm(`${baseUrl}${contextRoot}/api/soc/_pdf`, {payload: JSON.stringify(this.toPdfPayload(incident.info))})
     }
     exportAll() {
-        const {baseUrl, contextRoot} = this.context
-        const {incident} = this.state
+        const {baseUrl, contextRoot, session} = this.context
+        const {search, incident} = this.state
 
-        let payload = _.map(incident.dataContent, el => {
-            return this.toPdfPayload(el)
+        if (search.datetime) {
+            search.startDttm = Moment(search.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+            search.endDttm = Moment(search.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+        }
+
+        search.isExecutor = _.includes(session.roles, 'SOC Executor')
+        search.accountRoleType = this.state.accountRoleType
+        search.account = session.accountId
+
+        ah.one({
+            url: `${baseUrl}/api/soc/_searchV2`,
+            data: JSON.stringify(search),
+            type: 'POST',
+            contentType: 'application/json',
+            dataType: 'json'
         })
+        .then(data => {
+            let payload = _.map(data.rt.rows, el => {
+                return this.toPdfPayload(el)
+            })
 
-        downloadWithForm(`${baseUrl}${contextRoot}/api/soc/_pdfs`, {payload: JSON.stringify(payload)})
+            downloadWithForm(`${baseUrl}${contextRoot}/api/soc/_pdfs`, {payload: JSON.stringify(payload)})
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+        })
     }
 }
 

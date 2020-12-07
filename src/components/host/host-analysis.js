@@ -14,6 +14,7 @@ import NetworkBehavior from '../common/network-behavior'
 import PrivateDetails from '../common/private-details'
 import YaraRule from '../common/yara-rule'
 
+import {downloadLink} from 'react-ui/build/src/utils/download'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
@@ -356,10 +357,19 @@ class HostAnalysis extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  exportPdf() {
+    const {baseUrl, contextRoot} = this.context
+    const {hostData, assessmentDatetime} = this.props
+    const url = `${baseUrl}${contextRoot}/api/ipdevice/assessment/_pdf`
+
+    downloadLink(url, {uuid: hostData.ipDeviceUUID, startDttm: assessmentDatetime.from, endDttm: assessmentDatetime.to, page: 1, pageSize: 5})
+  
+  }
   render() {
     const {hostData} = this.props;
     const {modalYaraRuleOpen, modalIRopen} = this.state;
     const actions = {
+      export: {text: t('txt-export'), handler: this.exportPdf.bind(this)},
       confirm: {text: t('txt-close'), handler: this.props.toggleHostAnalysis}
     };
 

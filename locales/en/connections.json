@@ -162,6 +162,7 @@
   "txt-desc": "Descending",
   "txt-viewJSON": "$t(txt-view) JSON",
   "txt-exportCSV": "$t(txt-export) CSV",
+  "txt-exportPDF": "$t(txt-export) PDF",
   "txt-maxDataMsg": "The maximum data count is 10,000",
   "txt-es-data-over-limit": "Exceed max queried number, please revise filters",
   "txt-duplicatedName": "Name is duplicated",

@@ -435,7 +435,7 @@ class HostController extends Component {
       requestData.system = deviceSearch.system;
     }
 
-    if (options === 'csv') { //For CSV export
+    if (options === 'csv' || options === 'pdf') { //For CSV / PDF export
       return requestData;
     }
 
@@ -1236,6 +1236,15 @@ class HostController extends Component {
 
     downloadWithForm(url, {payload: JSON.stringify(dataOptions)});
   }
+
+  exportAllPdf = () => {
+    const {baseUrl, contextRoot} = this.context
+    const url = `${baseUrl}${contextRoot}/api/ipdevice/assessment/_pdfs`
+    const dataOptions = this.getHostData('pdf')
+
+    downloadWithForm(url, {payload: JSON.stringify(dataOptions)})
+  }
+
   /**
    * Display tree item
    * @method
@@ -1294,6 +1303,7 @@ class HostController extends Component {
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
             <Button variant='outlined' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
+            <Button variant='outlined' color='primary' onClick={this.exportAllPdf} title={t('txt-exportPDF')}><i className='fg fg-data-download'></i></Button>
             <Button variant='outlined' color='primary' className='last' onClick={this.getCSVfile} title={t('txt-exportCSV')}><i className='fg fg-data-download'></i></Button>
           </div>
 

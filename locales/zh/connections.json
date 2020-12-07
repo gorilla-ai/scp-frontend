@@ -162,6 +162,7 @@
   "txt-desc": "降序",
   "txt-viewJSON": "$t(txt-view)JSON",
   "txt-exportCSV": "$t(txt-export)CSV",
+  "txt-exportPDF": "$t(txt-export)PDF",
   "txt-maxDataMsg": "資料筆數最大為10,000筆",
   "txt-es-data-over-limit": "超出搜尋範圍，請修改查詢條件",
   "txt-duplicatedName": "名稱不得重複",
