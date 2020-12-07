@@ -112,11 +112,6 @@ class HMDscanInfo extends Component {
       gcbFieldsArr: ['_CceId', '_OriginalKey', '_Type', '_CompareResult'],
       gcbSort: 'asc',
       hmdInfo: {},
-      eventInfo: {
-        dataFieldsArr: ['@timestamp', '_EventCode', '_Message'],
-        dataFields: {},
-        dataContent: []
-      },
       hasMore: true,
       disabledBtn: false,
       settingsActiveContent: 'viewMode', //'viewMode' or 'editMode'
@@ -397,95 +392,6 @@ class HMDscanInfo extends Component {
     });
   }
   /**
-   * Load Event Tracing data
-   * @method
-   */
-  loadEventTracing = () => {
-    const {baseUrl} = this.context;
-    const {page, currentDeviceData, datetime} = this.props;
-    const {eventInfo} = this.state;
-    let dateTime = {};
-
-    if (page === 'inventory') {
-      dateTime = {
-        from: helper.getSubstractDate(7, 'day'),
-        to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
-      };
-
-      dateTime.from = moment(dateTime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-      dateTime.to = moment(dateTime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-    } else {
-      dateTime.from = datetime.from;
-      dateTime.to = datetime.to;
-    }
-
-    const requestData = {
-      '@timestamp': [dateTime.from, dateTime.to],
-      sort: [
-        {
-          '@timestamp': 'desc'
-        }
-      ],
-      filters: [
-        {
-          condition: 'must',
-          query: 'configSource: hmd'
-        },
-        {
-          condition: 'must',
-          query: 'hostId: ' + currentDeviceData.ipDeviceUUID
-        }
-      ]
-    };
-
-    this.ah.one({
-      url: `${baseUrl}/api/u1/log/event/_search?page=${scrollCount}&pageSize=20`,
-      data: JSON.stringify(requestData),
-      type: 'POST',
-      contentType: 'text/plain'
-    })
-    .then(data => {
-      if (data) {
-        if (data.data.rows.length > 0) {
-          const dataContent = data.data.rows.map(tempData => {
-            tempData.content.id = tempData.id;
-            return tempData.content;
-          });
-          let tempEventInfo = {...this.state.eventInfo};
-
-          eventInfo.dataFieldsArr.forEach(tempData => {
-            tempEventInfo.dataFields[tempData] = {
-              label: f(`logsFields.${tempData}`),
-              sortable: false,
-              formatter: (value, allValue) => {
-                if (tempData === '@timestamp') {
-                  value = helper.getFormattedDate(value, 'local');
-                }
-                return <span>{value}</span>
-              }
-            };
-          })
-
-          tempEventInfo.dataContent = _.concat(eventInfo.dataContent, dataContent);
-          scrollCount++;
-
-          this.setState({
-            eventInfo: tempEventInfo,
-            hasMore: true
-          });
-        } else {
-          this.setState({
-            hasMore: false
-          });
-        }
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
    * Get parsed path list data
    * @method
    * @param {object} type - value type
@@ -577,10 +483,6 @@ class HMDscanInfo extends Component {
       return;
     }
 
-    let tempEventInfo = {...this.state.eventInfo};
-    tempEventInfo.dataFields = {};
-    tempEventInfo.dataContent = [];
-
     scrollCount = 1;
 
     this.setState({
@@ -591,12 +493,7 @@ class HMDscanInfo extends Component {
       activeDLL: false,
       activeConnections: false,
       activeExecutableInfo: false,
-      disabledBtn: false,
-      eventInfo: tempEventInfo
-    }, () => {
-      if (activeTab === 'eventTracing') {
-        this.loadEventTracing();
-      }
+      disabledBtn: false
     });
   }
   /**
@@ -1635,17 +1532,28 @@ class HMDscanInfo extends Component {
   /**
    * Get table height for scan content
    * @method
+   * @param {string} type - display type ('scan' or 'event')
    * @returns table height in px
    */
-  getContentHeight = () => {
+  getContentHeight = (type) => {
     const {page} = this.props;
 
-    if (page === 'host') {
-      return 440;
-    } else if (page === 'threats') {
-      return 330;
-    } else if (page === 'inventory') {
-      return 435;
+    if (type === 'scan') {
+      if (page === 'host') {
+        return 440;
+      } else if (page === 'threats') {
+        return 330;
+      } else if (page === 'inventory') {
+        return 435;
+      }
+    } else if (type === 'event') {
+      if (page === 'host') {
+        return 475;
+      } else if (page === 'threats') {
+        return 360;
+      } else if (page === 'inventory') {
+        return 485;
+      }
     }
   }
   /**
@@ -1673,7 +1581,7 @@ class HMDscanInfo extends Component {
             dataLength={hmdData.length}
             next={this.loadMoreContent}
             hasMore={hasMore}
-            height={this.getContentHeight()}>
+            height={this.getContentHeight('scan')}>
             {hmdData.map(displayContent)}
           </InfiniteScroll>
         }
@@ -1686,7 +1594,7 @@ class HMDscanInfo extends Component {
    * @returns HTML DOM
    */
   getEventTracingContent = () => {
-    const {eventInfo, hasMore} = this.state;
+    const {ipType, eventInfo} = this.props;
     const dataCount = eventInfo.dataContent.length;
 
     return (
@@ -1699,9 +1607,9 @@ class HMDscanInfo extends Component {
           <div className='table event-tracing'>
             <InfiniteScroll
               dataLength={dataCount}
-              next={this.loadEventTracing}
-              hasMore={hasMore}
-              height={485}>
+              next={this.props.loadEventTracing.bind(this, ipType)}
+              hasMore={eventInfo.hasMore}
+              height={this.getContentHeight('event')}>
               <DataTable
                 className='main-table'
                 fields={eventInfo.dataFields}
@@ -2105,10 +2013,12 @@ HMDscanInfo.contextType = BaseDataContext;
 HMDscanInfo.propTypes = {
   page: PropTypes.string.isRequired,
   currentDeviceData: PropTypes.object.isRequired,
+  eventInfo: PropTypes.object.isRequired,
   toggleSelectionIR: PropTypes.func.isRequired,
   triggerTask: PropTypes.func.isRequired,
   toggleYaraRule: PropTypes.func.isRequired,
   getHMDinfo: PropTypes.func.isRequired,
+  loadEventTracing: PropTypes.func.isRequired,
   openHmdType: PropTypes.string
 };
 

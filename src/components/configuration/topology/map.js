@@ -50,7 +50,7 @@ class NetworkMap extends Component {
         system: 'all',
         deviceType: 'all'
       },
-      showFilter: true,
+      showFilter: false,
       device: {
         dataFieldsArr: ['seat', 'ip', 'mac', 'owner', 'hostName', 'system', 'deviceType'],
         dataFields: {},

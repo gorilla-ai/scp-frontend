@@ -1467,7 +1467,7 @@ class ThreatsController extends Component {
    */
   alertDialog = () => {
     const {sessionRights} = this.context;
-    const {alertDetails, alertData} = this.state;
+    const {datetime, alertDetails, alertData} = this.state;
     let actions = {
       confirm: {text: t('txt-close'), handler: this.closeDialog}
     };
@@ -1482,6 +1482,7 @@ class ThreatsController extends Component {
     return (
       <AlertDetails
         titleText={t('alert.txt-alertInfo')}
+        datetime={datetime}
         actions={actions}
         alertDetails={alertDetails}
         alertData={alertData}

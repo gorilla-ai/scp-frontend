@@ -84,6 +84,13 @@ class AlertDetails extends Component {
         destIp: {}
       },
       ipType: '',
+      eventInfo: {
+        dataFieldsArr: ['@timestamp', '_EventCode', '_Message'],
+        dataFields: {},
+        dataContent: [],
+        scrollCount: 1,
+        hasMore: false
+      },
       showRedirectMenu: false,
       modalYaraRuleOpen: false,
       modalIRopen: false,
@@ -263,15 +270,50 @@ class AlertDetails extends Component {
     }
   }
   /**
+   * Get Event Tracing request data
+   * @method
+   * @param {string} ipDeviceUUID - IP Device UUID
+   */
+  getRequestData = (ipDeviceUUID) => {
+    const {datetime} = this.props;
+    const requestData = {
+      '@timestamp': [datetime.from, datetime.to],
+      sort: [
+        {
+          '@timestamp': 'desc'
+        }
+      ],
+      filters: [
+        {
+          condition: 'must',
+          query: 'configSource: hmd'
+        },
+        {
+          condition: 'must',
+          query: 'hostId: ' + ipDeviceUUID
+        }
+      ]
+    };
+
+    return requestData;
+  }
+  /**
    * Check IP device info for HMD
    * @method
    * @param {string} ipType - 'srcIp' or 'destIp'
    */
   getHMDinfo = (ipType) => {
     const {baseUrl} = this.context;
+    const {alertData} = this.props;
     const {alertInfo, ipDeviceInfo} = this.state;
     const ip = this.getIpPortData(ipType);
-    const apiArr = [
+    const srcDestType = ipType.replace('Ip', '');
+
+    if (ip === NOT_AVAILABLE) {
+      return;
+    }
+
+    let apiArr = [
       {
         url: `${baseUrl}/api/v2/ipdevice/_search?exactIp=${ip}`,
         type: 'GET'
@@ -282,8 +324,15 @@ class AlertDetails extends Component {
       }
     ];
 
-    if (ip === NOT_AVAILABLE) {
-      return;
+    if (alertData[srcDestType + 'TopoInfo']) {
+      const ipDeviceUUID = alertData[srcDestType + 'TopoInfo'].ipDeviceUUID;
+
+      apiArr.push({
+        url: `${baseUrl}/api/u1/log/event/_search?page=1&pageSize=20`,
+        data: JSON.stringify(this.getRequestData(ipDeviceUUID)),
+        type: 'POST',
+        contentType: 'text/plain'     
+      });
     }
 
     let tempAlertInfo = {...alertInfo};
@@ -310,12 +359,87 @@ class AlertDetails extends Component {
             modalIRopen: false
           });
         }
+
+        if (data[2]) {
+          this.setEventTracingData(data[2]);
+        }
       }
       return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+  }
+  /**
+   * Load Event Tracing data
+   * @method
+   * @param {string} ipType - 'srcIp' or 'destIp'
+   */
+  loadEventTracing = (ipType) => {
+    const {baseUrl} = this.context;
+    const {alertData} = this.props;
+    const {eventInfo} = this.state;
+    const srcDestType = ipType.replace('Ip', '');
+    const ipDeviceUUID = alertData[srcDestType + 'TopoInfo'].ipDeviceUUID;
+
+    this.ah.one({
+      url: `${baseUrl}/api/u1/log/event/_search?page=${eventInfo.scrollCount}&pageSize=20`,
+      data: JSON.stringify(this.getRequestData(ipDeviceUUID)),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.setEventTracingData(data);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Set Event Tracing data
+   * @method
+   * @param {object} data - data from server response
+   */
+  setEventTracingData = (data) => {
+    const {eventInfo} = this.state;
+    let tempEventInfo = {...eventInfo};
+
+    if (data.data.rows.length > 0) {
+      const dataContent = data.data.rows.map(tempData => {
+        tempData.content.id = tempData.id;
+        return tempData.content;
+      });
+
+      eventInfo.dataFieldsArr.forEach(tempData => {
+        tempEventInfo.dataFields[tempData] = {
+          label: f(`logsFields.${tempData}`),
+          sortable: false,
+          formatter: (value, allValue) => {
+            if (tempData === '@timestamp') {
+              value = helper.getFormattedDate(value, 'local');
+            }
+            return <span>{value}</span>
+          }
+        };
+      })
+
+      tempEventInfo.dataContent = _.concat(eventInfo.dataContent, dataContent);
+      tempEventInfo.scrollCount++;
+      tempEventInfo.hasMore = true;
+
+      this.setState({
+        eventInfo: tempEventInfo
+      });
+    } else {
+      tempEventInfo.hasMore = false;
+
+      this.setState({
+        eventInfo: tempEventInfo
+      });
+    }
   }
   /**
    * Get owner picture based on location type
@@ -1447,7 +1571,7 @@ class AlertDetails extends Component {
    * @returns HMDscanInfo component
    */
   displaySafetyScanContent = (ipType) => {
-    const {ipDeviceInfo} = this.state;
+    const {ipDeviceInfo, eventInfo} = this.state;
 
     if (ipDeviceInfo[ipType].isHmd) {
       return (
@@ -1455,11 +1579,13 @@ class AlertDetails extends Component {
           page='threats'
           ipType={ipType}
           currentDeviceData={ipDeviceInfo[ipType]}
+          eventInfo={eventInfo}
           showAlertData={this.showAlertData}
           toggleYaraRule={this.toggleYaraRule}
           toggleSelectionIR={this.toggleSelectionIR}
           triggerTask={this.triggerTask}
-          getHMDinfo={this.getHMDinfo} />
+          getHMDinfo={this.getHMDinfo}
+          loadEventTracing={this.loadEventTracing} />
       )
     } else {
       return <span>{NOT_AVAILABLE}</span>

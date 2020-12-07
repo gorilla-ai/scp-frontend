@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
+import moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 import jschardet from 'jschardet'
@@ -179,6 +180,13 @@ class NetworkInventory extends Component {
         name: '',
         coordX: '',
         coordY: ''
+      },
+      eventInfo: {
+        dataFieldsArr: ['@timestamp', '_EventCode', '_Message'],
+        dataFields: {},
+        dataContent: [],
+        scrollCount: 1,
+        hasMore: false
       },
       ownerType: 'existing', //existing, new
       ownerIDduplicated: false,
@@ -1495,6 +1503,41 @@ class NetworkInventory extends Component {
     });
   }
   /**
+   * Get Event Tracing request data
+   * @method
+   * @param {string} ipDeviceUUID - IP Device UUID
+   */
+  getRequestData = (ipDeviceUUID) => {
+    let datetime = {
+      from: helper.getSubstractDate(7, 'day'),
+      to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
+    };
+
+    datetime.from = moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    datetime.to = moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+
+    const requestData = {
+      '@timestamp': [datetime.from, datetime.to],
+      sort: [
+        {
+          '@timestamp': 'desc'
+        }
+      ],
+      filters: [
+        {
+          condition: 'must',
+          query: 'configSource: hmd'
+        },
+        {
+          condition: 'must',
+          query: 'hostId: ' + ipDeviceUUID
+        }
+      ]
+    };
+
+    return requestData;
+  }
+  /**
    * Get and set IP device data (old api)
    * @method
    * @param {string} [index] - index of the IP devicde data
@@ -1522,32 +1565,115 @@ class NetworkInventory extends Component {
       tempDeviceData.hmdOnly.currentIndex = Number(index);
     }
 
-    this.ah.one({
-      url: `${baseUrl}/api/v2/ipdevice?uuid=${ipDeviceID}&page=1&pageSize=5`,
-      type: 'GET'
-    })
+    const apiArr = [
+      {
+        url: `${baseUrl}/api/v2/ipdevice?uuid=${ipDeviceID}&page=1&pageSize=5`,
+        type: 'GET'
+      },
+      {
+        url: `${baseUrl}/api/u1/log/event/_search?page=1&pageSize=20`,
+        data: JSON.stringify(this.getRequestData(ipDeviceID)),
+        type: 'POST',
+        contentType: 'text/plain'
+      }
+    ];
+
+    this.ah.all(apiArr)
     .then(data => {
       if (data) {
-        if (options === 'oneDevice') {
-          this.getOwnerSeat(data);
-          return;
+        if (data[0]) {
+          if (options === 'oneDevice') {
+            this.getOwnerSeat(data[0]);
+            return;
+          }
+
+          this.setState({
+            showScanInfo: true,
+            modalIRopen: false,
+            deviceData: tempDeviceData,
+            currentDeviceData: data[0],
+            activeIPdeviceUUID: ipDeviceID
+          });
+        } else {
+          helper.showPopupMsg(t('txt-notFound'));
         }
 
-        this.setState({
-          showScanInfo: true,
-          modalIRopen: false,
-          deviceData: tempDeviceData,
-          currentDeviceData: data,
-          activeIPdeviceUUID: ipDeviceID
-        });
-      } else {
-        helper.showPopupMsg(t('txt-notFound'));
+        if (data[1]) {
+          this.setEventTracingData(data[1]);
+        }
       }
       return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+  }
+  /**
+   * Load Event Tracing data
+   * @method
+   */
+  loadEventTracing = () => {
+    const {baseUrl} = this.context;
+    const {currentDeviceData, eventInfo} = this.state;
+
+    this.ah.one({
+      url: `${baseUrl}/api/u1/log/event/_search?page=${eventInfo.scrollCount}&pageSize=20`,
+      data: JSON.stringify(this.getRequestData(currentDeviceData.ipDeviceUUID)),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.setEventTracingData(data);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Set Event Tracing data
+   * @method
+   * @param {object} data - data from server response
+   */
+  setEventTracingData = (data) => {
+    const {eventInfo} = this.state;
+    let tempEventInfo = {...eventInfo};
+
+    if (data.data.rows.length > 0) {
+      const dataContent = data.data.rows.map(tempData => {
+        tempData.content.id = tempData.id;
+        return tempData.content;
+      });
+
+      eventInfo.dataFieldsArr.forEach(tempData => {
+        tempEventInfo.dataFields[tempData] = {
+          label: f(`logsFields.${tempData}`),
+          sortable: false,
+          formatter: (value, allValue) => {
+            if (tempData === '@timestamp') {
+              value = helper.getFormattedDate(value, 'local');
+            }
+            return <span>{value}</span>
+          }
+        };
+      })
+
+      tempEventInfo.dataContent = _.concat(eventInfo.dataContent, dataContent);
+      tempEventInfo.scrollCount++;
+      tempEventInfo.hasMore = true;
+
+      this.setState({
+        eventInfo: tempEventInfo
+      });
+    } else {
+      tempEventInfo.hasMore = false;
+
+      this.setState({
+        eventInfo: tempEventInfo
+      });
+    }
   }
   /**
    * Toggle yara rule modal dialog on/off
@@ -1698,7 +1824,7 @@ class NetworkInventory extends Component {
    * @returns HTML DOM
    */
   displayScanInfo = () => {
-    const {deviceData, currentDeviceData} = this.state;
+    const {deviceData, currentDeviceData, eventInfo} = this.state;
     const ip = currentDeviceData.ip || NOT_AVAILABLE;
     const mac = currentDeviceData.mac || NOT_AVAILABLE;
     const hostName = currentDeviceData.hostName || NOT_AVAILABLE;
@@ -1734,11 +1860,13 @@ class NetworkInventory extends Component {
         <HMDscanInfo
           page='inventory'
           currentDeviceData={currentDeviceData}
+          eventInfo={eventInfo}
           showAlertData={this.showAlertData}
           toggleYaraRule={this.toggleYaraRule}
           toggleSelectionIR={this.toggleSelectionIR}
           triggerTask={this.triggerTask}
-          getHMDinfo={this.getIPdeviceInfo} />
+          getHMDinfo={this.getIPdeviceInfo}
+          loadEventTracing={this.loadEventTracing} />
 
         {deviceData.hmdOnly.currentLength > 1 &&
           <div className='pagination'>
@@ -1781,7 +1909,14 @@ class NetworkInventory extends Component {
    */
   closeScanInfoDialog = () => {
     this.setState({
-      showScanInfo: false
+      showScanInfo: false,
+      eventInfo: {
+        dataFieldsArr: ['@timestamp', '_EventCode', '_Message'],
+        dataFields: {},
+        dataContent: [],
+        scrollCount: 1,
+        hasMore: false
+      }
     });
   }
   /**

@@ -168,7 +168,7 @@ class HostAnalysis extends Component {
    * @returns HMDscanInfo component
    */
   displaySafetyScanContent = () => {
-    const {datetime, assessmentDatetime, hostData, openHmdType} = this.props;
+    const {datetime, assessmentDatetime, hostData, eventInfo, openHmdType} = this.props;
 
     if (_.isEmpty(hostData.safetyScanInfo)) {
       return <span>N/A</span>
@@ -179,11 +179,13 @@ class HostAnalysis extends Component {
           datetime={datetime}
           assessmentDatetime={assessmentDatetime}
           currentDeviceData={hostData}
+          eventInfo={eventInfo}
           openHmdType={openHmdType}
           toggleYaraRule={this.toggleYaraRule}
           toggleSelectionIR={this.toggleSelectionIR}
           triggerTask={this.triggerTask}
-          getHMDinfo={this.props.getIPdeviceInfo} />
+          getHMDinfo={this.props.getIPdeviceInfo}
+          loadEventTracing={this.props.loadEventTracing} />
       )
     }
   }
@@ -399,6 +401,7 @@ HostAnalysis.propTypes = {
   assessmentDatetime:  PropTypes.object.isRequired,
   hostData: PropTypes.object.isRequired,
   getIPdeviceInfo: PropTypes.func.isRequired,
+  loadEventTracing: PropTypes.func.isRequired,
   toggleHostAnalysis: PropTypes.func.isRequired,
   openHmdType: PropTypes.string
 };
