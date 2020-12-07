@@ -192,6 +192,13 @@ class HostController extends Component {
       hostData: {},
       hostSortList: [],
       hostSort: 'ip-asc',
+      eventInfo: {
+        dataFieldsArr: ['@timestamp', '_EventCode', '_Message'],
+        dataFields: {},
+        dataContent: [],
+        scrollCount: 1,
+        hasMore: false
+      },
       openHmdType: '',
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
     };
@@ -997,6 +1004,34 @@ class HostController extends Component {
     }
   }
   /**
+   * Get Event Tracing request data
+   * @method
+   * @param {string} ipDeviceUUID - IP Device UUID
+   */
+  getRequestData = (ipDeviceUUID) => {
+    const {datetime} = this.state;
+    const requestData = {
+      '@timestamp': [datetime.from, datetime.to],
+      sort: [
+        {
+          '@timestamp': 'desc'
+        }
+      ],
+      filters: [
+        {
+          condition: 'must',
+          query: 'configSource: hmd'
+        },
+        {
+          condition: 'must',
+          query: 'hostId: ' + ipDeviceUUID
+        }
+      ]
+    };
+
+    return requestData;
+  }
+  /**
    * Get IP device data info
    * @method
    * @param {object} host - active Host data
@@ -1007,47 +1042,62 @@ class HostController extends Component {
     const {baseUrl} = this.context;
     const {assessmentDatetime, hostInfo, hostData} = this.state;
     const ipDeviceUUID = host ? host.ipDeviceUUID : hostData.ipDeviceUUID;
+    const apiArr = [
+      {
+        url: `${baseUrl}/api/v2/ipdevice?uuid=${ipDeviceUUID}&page=1&pageSize=5&startDttm=${assessmentDatetime.from}&endDttm=${assessmentDatetime.to}`,
+        type: 'GET'
+      },
+      {
+        url: `${baseUrl}/api/u1/log/event/_search?page=1&pageSize=20`,
+        data: JSON.stringify(this.getRequestData(ipDeviceUUID)),
+        type: 'POST',
+        contentType: 'text/plain'
+      }
+    ];
 
-    this.ah.one({
-      url: `${baseUrl}/api/v2/ipdevice?uuid=${ipDeviceUUID}&page=1&pageSize=5&startDttm=${assessmentDatetime.from}&endDttm=${assessmentDatetime.to}`,
-      type: 'GET'
-    })
+    this.ah.all(apiArr)
     .then(data => {
       if (data) {
-        const activeHostInfo = _.find(hostInfo.dataContent, {ipDeviceUUID});
-        let hostData = {...data};
+        if (data[0]) {
+          const activeHostInfo = _.find(hostInfo.dataContent, {ipDeviceUUID});
+          let hostData = {...data[0]};
 
-        if (activeHostInfo.networkBehaviorInfo) {
-          hostData.severityLevel = activeHostInfo.networkBehaviorInfo.severityLevel;
-        }
+          if (activeHostInfo.networkBehaviorInfo) {
+            hostData.severityLevel = activeHostInfo.networkBehaviorInfo.severityLevel;
+          }
 
-        if (!hostData.safetyScanInfo) {
-          hostData.safetyScanInfo = {};
-        }
+          if (!hostData.safetyScanInfo) {
+            hostData.safetyScanInfo = {};
+          }
 
-        this.setState({
-          hostData
-        }, () => {
-          if (options === 'toggle') {
-            if (defaultOpen && typeof defaultOpen === 'string') {
-              this.setState({
-                openHmdType: defaultOpen
-              }, () => {
-                this.toggleHostAnalysis();
-              });
+          this.setState({
+            hostData
+          }, () => {
+            if (options === 'toggle') {
+              if (defaultOpen && typeof defaultOpen === 'string') {
+                this.setState({
+                  openHmdType: defaultOpen
+                }, () => {
+                  this.toggleHostAnalysis();
+                });
+              } else {
+                this.setState({
+                  openHmdType: ''
+                }, () => {
+                  this.toggleHostAnalysis();
+                });
+              }
             } else {
               this.setState({
                 openHmdType: ''
-              }, () => {
-                this.toggleHostAnalysis();
               });
             }
-          } else {
-            this.setState({
-              openHmdType: ''
-            });
-          }
-        });
+          });
+        }
+
+        if (data[1]) {
+          this.setEventTracingData(data[1]);
+        }
       }
       return null;
     })
@@ -1056,12 +1106,86 @@ class HostController extends Component {
     })
   }
   /**
+   * Load Event Tracing data
+   * @method
+   */
+  loadEventTracing = () => {
+    const {baseUrl} = this.context;
+    const {hostData, eventInfo} = this.state;
+
+    this.ah.one({
+      url: `${baseUrl}/api/u1/log/event/_search?page=${eventInfo.scrollCount}&pageSize=20`,
+      data: JSON.stringify(this.getRequestData(hostData.ipDeviceUUID)),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.setEventTracingData(data);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Set Event Tracing data
+   * @method
+   * @param {object} data - data from server response
+   */
+  setEventTracingData = (data) => {
+    const {eventInfo} = this.state;
+    let tempEventInfo = {...eventInfo};
+
+    if (data.data.rows.length > 0) {
+      const dataContent = data.data.rows.map(tempData => {
+        tempData.content.id = tempData.id;
+        return tempData.content;
+      });
+
+      eventInfo.dataFieldsArr.forEach(tempData => {
+        tempEventInfo.dataFields[tempData] = {
+          label: f(`logsFields.${tempData}`),
+          sortable: false,
+          formatter: (value, allValue) => {
+            if (tempData === '@timestamp') {
+              value = helper.getFormattedDate(value, 'local');
+            }
+            return <span>{value}</span>
+          }
+        };
+      })
+
+      tempEventInfo.dataContent = _.concat(eventInfo.dataContent, dataContent);
+      tempEventInfo.scrollCount++;
+      tempEventInfo.hasMore = true;
+
+      this.setState({
+        eventInfo: tempEventInfo
+      });
+    } else {
+      tempEventInfo.hasMore = false;
+
+      this.setState({
+        eventInfo: tempEventInfo
+      });
+    }
+  }
+  /**
    * Toggle Host Analysis dialog on/off
    * @method
    */
   toggleHostAnalysis = () => {
     this.setState({
-      hostAnalysisOpen: !this.state.hostAnalysisOpen
+      hostAnalysisOpen: !this.state.hostAnalysisOpen,
+      eventInfo: {
+        dataFieldsArr: ['@timestamp', '_EventCode', '_Message'],
+        dataFields: {},
+        dataContent: [],
+        scrollCount: 1,
+        hasMore: false
+      }
     });
   }
   /**
@@ -1285,6 +1409,7 @@ class HostController extends Component {
       currentMap,
       currentBaseLayers,
       seatData,
+      eventInfo,
       openHmdType
     } = this.state;
 
@@ -1295,8 +1420,10 @@ class HostController extends Component {
             datetime={datetime}
             assessmentDatetime={assessmentDatetime}
             hostData={hostData}
+            eventInfo={eventInfo}
             openHmdType={openHmdType}
             getIPdeviceInfo={this.getIPdeviceInfo}
+            loadEventTracing={this.loadEventTracing}
             toggleHostAnalysis={this.toggleHostAnalysis} />
         }
 
