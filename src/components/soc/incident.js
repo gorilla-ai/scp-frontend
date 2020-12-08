@@ -2665,7 +2665,7 @@ class Incident extends Component {
     }
     exportAll() {
         const {baseUrl, contextRoot, session} = this.context
-        const {search, incident} = this.state
+        let {search, incident, loadListType, accountRoleType} = this.state
 
         if (search.datetime) {
             search.startDttm = Moment(search.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
@@ -2676,9 +2676,44 @@ class Incident extends Component {
         search.accountRoleType = this.state.accountRoleType
         search.account = session.accountId
 
+
+        let payload = {
+            subStatus: 0,
+            keyword: '',
+            category: 0,
+            isExpired: 2,
+            accountRoleType,
+            isExecutor : _.includes(session.roles, 'SOC Executor'),
+        }
+
+
+        if (loadListType === 0) {
+            payload.status = 0
+            payload.isExpired = 1
+        }
+        else if (loadListType === 1) {
+            if (payload.accountRoleType === SOC_Executor) {
+                payload.status = 2
+                payload.subStatus = 6
+            }
+            else if (payload.accountRoleType === SOC_Super) {
+                payload.status = 7
+            }
+            else {
+                payload.status = 1
+            }
+        }
+        else if (loadListType === 2) {
+            payload.status = 0
+            payload.creator = session.accountId
+        }
+        else if (loadListType === 3) {
+            payload = search
+        }
+
         ah.one({
             url: `${baseUrl}/api/soc/_searchV2`,
-            data: JSON.stringify(search),
+            data: JSON.stringify(payload),
             type: 'POST',
             contentType: 'application/json',
             dataType: 'json'
