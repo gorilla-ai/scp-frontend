@@ -1122,7 +1122,7 @@ class NetworkInventory extends Component {
               name='ip'
               label={t('ipFields.ip')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={deviceSearch.ip}
               onChange={this.handleDeviceSearch} />
@@ -1133,7 +1133,7 @@ class NetworkInventory extends Component {
               name='mac'
               label={t('ipFields.mac')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={deviceSearch.mac}
               onChange={this.handleDeviceSearch} />
@@ -1144,7 +1144,7 @@ class NetworkInventory extends Component {
               name='hostName'
               label={t('ipFields.hostName')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={deviceSearch.hostName}
               onChange={this.handleDeviceSearch} />
@@ -1155,7 +1155,7 @@ class NetworkInventory extends Component {
               name='system'
               label={t('ipFields.system')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={deviceSearch.system}
               onChange={this.handleDeviceSearch} />
@@ -1166,7 +1166,7 @@ class NetworkInventory extends Component {
               name='owner'
               label={t('ipFields.owner')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={deviceSearch.owner}
               onChange={this.handleDeviceSearch} />
@@ -1177,7 +1177,7 @@ class NetworkInventory extends Component {
               name='areaName'
               label={t('ipFields.areaName')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={deviceSearch.areaName}
               onChange={this.handleDeviceSearch} />
@@ -1188,7 +1188,7 @@ class NetworkInventory extends Component {
               name='seatName'
               label={t('ipFields.seatName')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={deviceSearch.seatName}
               onChange={this.handleDeviceSearch} />
@@ -3144,9 +3144,9 @@ class NetworkInventory extends Component {
                   name='ip'
                   label={t('ipFields.ip')}
                   variant='outlined'
-                  fullWidth={true}
+                  fullWidth
                   size='small'
-                  required={true}
+                  required
                   error={!formValidation.ip.valid}
                   helperText={formValidation.ip.msg}
                   value={addIP.ip}
@@ -3159,7 +3159,7 @@ class NetworkInventory extends Component {
                   name='mac'
                   label={t('ipFields.mac')}
                   variant='outlined'
-                  fullWidth={true}
+                  fullWidth
                   size='small'
                   required={this.checkMacRequired()}
                   error={!formValidation.mac.valid}
@@ -3178,7 +3178,7 @@ class NetworkInventory extends Component {
                   name='hostName'
                   label={t('ipFields.hostName')}
                   variant='outlined'
-                  fullWidth={true}
+                  fullWidth
                   size='small'
                   value={hostNameField}
                   onChange={this.handleAddIpChange}
@@ -3190,10 +3190,10 @@ class NetworkInventory extends Component {
                   name='hostID'
                   label={t('ipFields.hostID')}
                   variant='outlined'
-                  fullWidth={true}
+                  fullWidth
                   size='small'
                   value={addIP.hostID}
-                  disabled={true} />
+                  disabled />
               </div>
               <div className='group'>
                 <TextField
@@ -3201,7 +3201,7 @@ class NetworkInventory extends Component {
                   name='system'
                   label={t('ipFields.system')}
                   variant='outlined'
-                  fullWidth={true}
+                  fullWidth
                   size='small'
                   value={addIP.system}
                   onChange={this.handleAddIpChange}
@@ -3213,7 +3213,7 @@ class NetworkInventory extends Component {
                   name='deviceType'
                   label={t('ipFields.deviceType')}
                   variant='outlined'
-                  fullWidth={true}
+                  fullWidth
                   size='small'
                   value={addIP.deviceType}
                   onChange={this.handleAddIpChange}
@@ -3225,7 +3225,7 @@ class NetworkInventory extends Component {
                   name='userName'
                   label={t('ipFields.userAccount')}
                   variant='outlined'
-                  fullWidth={true}
+                  fullWidth
                   size='small'
                   value={addIP.userName}
                   onChange={this.handleAddIpChange}
@@ -3237,7 +3237,7 @@ class NetworkInventory extends Component {
                   name='cpu'
                   label={t('txt-cpu')}
                   variant='outlined'
-                  fullWidth={true}
+                  fullWidth
                   size='small'
                   value={addIP.cpu}
                   onChange={this.handleAddIpChange}
@@ -3249,7 +3249,7 @@ class NetworkInventory extends Component {
                   name='ram'
                   label={t('txt-ram')}
                   variant='outlined'
-                  fullWidth={true}
+                  fullWidth
                   size='small'
                   value={addIP.ram}
                   onChange={this.handleAddIpChange}
@@ -3260,10 +3260,10 @@ class NetworkInventory extends Component {
                   id='addIPstepsDisks'
                   name='disks'
                   label={t('txt-disks')}
-                  multiline={true}
+                  multiline
                   rows={3}
                   variant='outlined'
-                  fullWidth={true}
+                  fullWidth
                   size='small'
                   value={addIP.disks}
                   onChange={this.handleAddIpChange}
@@ -3274,10 +3274,10 @@ class NetworkInventory extends Component {
                   id='addIPstepsFolders'
                   name='shareFolders'
                   label={t('txt-shareFolders')}
-                  multiline={true}
+                  multiline
                   rows={3}
                   variant='outlined'
-                  fullWidth={true}
+                  fullWidth
                   size='small'
                   value={addIP.shareFolders}
                   onChange={this.handleAddIpChange}
@@ -3288,10 +3288,10 @@ class NetworkInventory extends Component {
                   id='addIPstepsRemarks'
                   name='remarks'
                   label={t('txt-remarks')}
-                  multiline={true}
+                  multiline
                   rows={3}
                   variant='outlined'
-                  fullWidth={true}
+                  fullWidth
                   size='small'
                   value={addIP.remarks}
                   onChange={this.handleAddIpChange}
@@ -3372,7 +3372,7 @@ class NetworkInventory extends Component {
                       label={t('ownerFields.ownerName')}
                       select
                       variant='outlined'
-                      fullWidth={true}
+                      fullWidth
                       size='small'
                       value={addIP.ownerUUID}
                       onChange={this.handleOwnerChange}>
@@ -3387,9 +3387,9 @@ class NetworkInventory extends Component {
                       name='newOwnerName'
                       label={t('ownerFields.ownerName')}
                       variant='outlined'
-                      fullWidth={true}
+                      fullWidth
                       size='small'
-                      required={true}
+                      required
                       error={!formValidation.newOwnerName.valid}
                       helperText={formValidation.newOwnerName.msg}
                       value={addIP.newOwnerName}
@@ -3403,10 +3403,10 @@ class NetworkInventory extends Component {
                       name='ownerID'
                       label={t('ownerFields.ownerID')}
                       variant='outlined'
-                      fullWidth={true}
+                      fullWidth
                       size='small'
                       value={addIP.ownerID}
-                      disabled={true} />
+                      disabled />
                   </div>
                 }
                 {ownerType === 'new' &&
@@ -3416,9 +3416,9 @@ class NetworkInventory extends Component {
                       name='newOwnerID'
                       label={t('ownerFields.ownerID')}
                       variant='outlined'
-                      fullWidth={true}
+                      fullWidth
                       size='small'
-                      required={true}
+                      required
                       error={!formValidation.newOwnerID.valid}
                       helperText={formValidation.newOwnerID.msg}
                       value={addIP.newOwnerID}
@@ -3432,10 +3432,10 @@ class NetworkInventory extends Component {
                       name='department'
                       label={t('ownerFields.department')}
                       variant='outlined'
-                      fullWidth={true}
+                      fullWidth
                       size='small'
                       value={addIP.department}
-                      disabled={true} />
+                      disabled />
                   </div>
                 }
                 {ownerType === 'new' &&
@@ -3446,7 +3446,7 @@ class NetworkInventory extends Component {
                       label={t('ownerFields.department')}
                       select
                       variant='outlined'
-                      fullWidth={true}
+                      fullWidth
                       size='small'
                       value={addIP.newDepartment}
                       onChange={this.handleSelectionChange}>
@@ -3461,10 +3461,10 @@ class NetworkInventory extends Component {
                       name='title'
                       label={t('ownerFields.title')}
                       variant='outlined'
-                      fullWidth={true}
+                      fullWidth
                       size='small'
                       value={addIP.title}
-                      disabled={true} />
+                      disabled />
                   </div>
                 }
                 {ownerType === 'new' &&
@@ -3475,7 +3475,7 @@ class NetworkInventory extends Component {
                       label={t('ownerFields.title')}
                       select
                       variant='outlined'
-                      fullWidth={true}
+                      fullWidth
                       size='small'
                       value={addIP.newTitle}
                       onChange={this.handleSelectionChange}>
@@ -3703,9 +3703,9 @@ class NetworkInventory extends Component {
         name='name'
         label={t('txt-name')}
         variant='outlined'
-        fullWidth={true}
+        fullWidth
         size='small'
-        required={true}
+        required
         error={!formValidation.name.valid}
         helperText={formValidation.name.valid ? '' : t('txt-required')}
         value={addSeat.name}
@@ -4047,9 +4047,9 @@ class NetworkInventory extends Component {
                           label={t('ipFields.ip')}
                           select
                           variant='outlined'
-                          fullWidth={true}
+                          fullWidth
                           size='small'
-                          required={true}
+                          required
                           error={!formValidation.csvColumnsIp.valid}
                           helperText={formValidation.csvColumnsIp.valid ? '' : t('network-inventory.txt-selectIP')}
                           value={csvColumns.ip}
@@ -4064,7 +4064,7 @@ class NetworkInventory extends Component {
                           label={t('ipFields.mac')}
                           select
                           variant='outlined'
-                          fullWidth={true}
+                          fullWidth
                           size='small'
                           value={csvColumns.mac}
                           onChange={this.handleColumnChange}>
@@ -4078,7 +4078,7 @@ class NetworkInventory extends Component {
                           label={t('ipFields.hostName')}
                           select
                           variant='outlined'
-                          fullWidth={true}
+                          fullWidth
                           size='small'
                           value={csvColumns.hostName}
                           onChange={this.handleColumnChange}>

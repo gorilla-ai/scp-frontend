@@ -70,9 +70,9 @@ class AddThreats extends Component {
           id='addThreatsText'
           name='input'
           variant='outlined'
-          fullWidth={true}
+          fullWidth
           size='small'
-          required={true}
+          required
           error={!value.validate}
           helperText={value.validate ? '' : t('edge-management.txt-edgeFormatError')}
           value={value.input}
@@ -82,9 +82,9 @@ class AddThreats extends Component {
           name='type'
           select
           variant='outlined'
-          fullWidth={true}
+          fullWidth
           size='small'
-          required={true}
+          required
           value={value.type}
           onChange={this.handleDataChange}>
           <MenuItem value={'ip'}>IP</MenuItem>
@@ -106,7 +106,7 @@ class AddThreats extends Component {
           name='severity'
           select
           variant='outlined'
-          fullWidth={true}
+          fullWidth
           size='small'
           value={value.severity}
           onChange={this.handleDataChange}>

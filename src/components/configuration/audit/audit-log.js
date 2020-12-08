@@ -241,7 +241,7 @@ class AuditLog extends Component {
               name='keyword'
               label={t('txt-keywords')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={auditSearch.keyword}
               onChange={this.handleAuditSearch} />

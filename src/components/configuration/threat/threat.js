@@ -811,7 +811,7 @@ class ThreatIntelligence extends Component {
               select
               label={t('edge-management.txt-serviceMode')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={threatsSearch.type}
               onChange={this.handleThreatsChange}>
@@ -829,7 +829,7 @@ class ThreatIntelligence extends Component {
               className='search-keyword'
               name='keyword'
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={threatsSearch.keyword}
               onChange={this.handleThreatsChange} />

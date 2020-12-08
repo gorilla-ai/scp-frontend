@@ -476,9 +476,9 @@ class FloorMap extends Component {
                 id='areaMapName'
                 name='name'
                 variant='outlined'
-                fullWidth={true}
+                fullWidth
                 size='small'
-                required={true}
+                required
                 error={floorNameError}
                 helperText={floorNameError ? t('txt-required') : ''}
                 value={floorPlan.name}

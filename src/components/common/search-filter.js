@@ -45,7 +45,7 @@ class SearchFilter extends Component {
           className='condition-select'
           select
           variant='outlined'
-          fullWidth={true}
+          fullWidth
           size='small'
           value={value.condition}
           onChange={this.handleDataChange}

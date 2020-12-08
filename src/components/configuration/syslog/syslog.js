@@ -1093,7 +1093,7 @@ class Syslog extends Component {
           name='loghostIp'
           label={t('syslogFields.txt-patternName')}
           variant='outlined'
-          fullWidth={true}
+          fullWidth
           size='small'
           value={this.state.newPatternName}
           onChange={this.handleEditPatternNameChange} />
@@ -1303,9 +1303,9 @@ class Syslog extends Component {
             name='ip'
             label={t('syslogFields.ip')}
             variant='outlined'
-            fullWidth={true}
+            fullWidth
             size='small'
-            required={true}
+            required
             error={!formValidation.editHostsIp.valid}
             helperText={formValidation.editHostsIp.msg}
             value={editHosts.ip}
@@ -1317,7 +1317,7 @@ class Syslog extends Component {
             name='name'
             label={t('syslogFields.name')}
             variant='outlined'
-            fullWidth={true}
+            fullWidth
             size='small'
             value={editHosts.name}
             onChange={this.handleEditHostsChange} />
@@ -1558,7 +1558,7 @@ class Syslog extends Component {
               name='name'
               label={t('syslogFields.name')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={search.name}
               onChange={this.handleSearchChange} />
@@ -1569,7 +1569,7 @@ class Syslog extends Component {
               name='loghostip'
               label={t('syslogFields.txt-hostIP')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={search.loghostip}
               onChange={this.handleSearchChange} />
@@ -1581,7 +1581,7 @@ class Syslog extends Component {
               type='number'
               label={t('syslogFields.port')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={search.port}
               onChange={this.handleSearchChange} />
@@ -1837,9 +1837,9 @@ class Syslog extends Component {
                         name='loghostIp'
                         label={t('syslogFields.ip')}
                         variant='outlined'
-                        fullWidth={true}
+                        fullWidth
                         size='small'
-                        required={true}
+                        required
                         error={!formValidation.ip.valid}
                         helperText={formValidation.ip.msg}
                         value={syslogPatternConfig.loghostIp}
@@ -1852,9 +1852,9 @@ class Syslog extends Component {
                         name='name'
                         label={t('syslogFields.name')}
                         variant='outlined'
-                        fullWidth={true}
+                        fullWidth
                         size='small'
-                        required={true}
+                        required
                         error={!formValidation.name.valid}
                         helperText={formValidation.name.valid ? '' : t('txt-required')}
                         value={syslogPatternConfig.name}
@@ -1867,9 +1867,9 @@ class Syslog extends Component {
                         type='number'
                         label={t('syslogFields.port')}
                         variant='outlined'
-                        fullWidth={true}
+                        fullWidth
                         size='small'
-                        required={true}
+                        required
                         error={!formValidation.port.valid}
                         helperText={formValidation.port.valid ? '' : t('txt-required')}
                         value={syslogPatternConfig.port}
@@ -1881,7 +1881,7 @@ class Syslog extends Component {
                         name='format'
                         label={t('syslogFields.format')}
                         variant='outlined'
-                        fullWidth={true}
+                        fullWidth
                         size='small'
                         value={syslogPatternConfig.format}
                         onChange={this.handleConfigChange.bind(this, '', 'form')} />
