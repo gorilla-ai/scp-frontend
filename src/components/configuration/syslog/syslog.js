@@ -740,9 +740,14 @@ class Syslog extends Component {
         tempFormValidation.ip.valid = true;
         tempFormValidation.ip.msg = '';
       } else {
-        tempFormValidation.ip.valid = false;
-        tempFormValidation.ip.msg = t('network-topology.txt-ipValidationFail');
-        validate = false;
+        if (syslogPatternConfig.loghostIp === 'localhost') { //Make exceptions for 'localhost'
+          tempFormValidation.ip.valid = true;
+          tempFormValidation.ip.msg = '';
+        } else {
+          tempFormValidation.ip.valid = false;
+          tempFormValidation.ip.msg = t('network-topology.txt-ipValidationFail');
+          validate = false;
+        }
       }
     } else {
       tempFormValidation.ip.valid = false;

@@ -761,6 +761,8 @@ class ThreatIntelligence extends Component {
         }, () => {
           this.getChartsData();
         });
+      } else if (data.ret === -1) {
+        helper.showPopupMsg('', t('txt-error'));
       }
       return null;
     })
