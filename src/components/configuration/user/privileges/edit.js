@@ -92,6 +92,9 @@ class PrivilegeEdit extends Component {
     if (name === 'Configuration Module') {
       return c('txt-configModule');
     }
+    if (name === 'SOC Module') {
+      return c('txt-configSoc');
+    }
   }
   /**
    * Get and set privilege permits data

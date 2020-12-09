@@ -147,6 +147,7 @@
   "txt-domain": "Domain",
   "txt-commonModule": "Common Module",
   "txt-configModule": "Configuration Module",
+  "txt-configSoc": "SOC Module",
   "txt-host": "Host",
   "txt-group": "Group",
   "txt-settings": "Settings",
