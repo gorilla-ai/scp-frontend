@@ -204,6 +204,9 @@ class Roles extends Component {
     if (name === 'Configuration Module') {
       return c('txt-configModule');
     }
+    if (name === 'SOC Module') {
+      return c('txt-socModule');
+    }
   }
   /**
    * Display role privilege data
