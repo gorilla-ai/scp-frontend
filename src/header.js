@@ -208,12 +208,6 @@ class Header extends Component {
     const {contextRoot, sessionRights, session, language} = this.context;
     const {productName} = this.props;
     const {contextAnchor} = this.state;
-    
-    let isSOC = session.roles.includes("SOC Executor") ||
-        session.roles.includes("SOC Analyzer")  ||
-        session.roles.includes("SOC Supervior")  ||
-        session.roles.includes("SOC Supervisor")
-        
     let showLanguage = '';
 
     if (language === 'zh') {
