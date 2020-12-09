@@ -93,7 +93,7 @@ class PrivilegeEdit extends Component {
       return c('txt-configModule');
     }
     if (name === 'SOC Module') {
-      return c('txt-configSoc');
+      return c('txt-socModule');
     }
   }
   /**
