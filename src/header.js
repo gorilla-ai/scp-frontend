@@ -247,8 +247,8 @@ class Header extends Component {
                 {sessionRights.Module_Common &&
                   <Link to='/SCP/events/syslog' className={cx('item', {'active': this.getActiveTab('events')})}>{t('txt-events')}</Link>
                 }
-                {isSOC &&
-                  <Link to='/SCP/soc/incident' className={cx('item', {'active': this.getActiveTab('soc')})}>{it('txt-soc')}</Link>
+                {sessionRights.Module_Soc &&
+                <Link to='/SCP/soc/incident' className={cx('item', {'active': this.getActiveTab('soc')})}>{it('txt-soc')}</Link>
                 }
                 {sessionRights.Module_Config &&
                   <Link to='/SCP/configuration/notifications' className={cx('item', {'active': this.getActiveTab('configuration')})}>{t('txt-configuration')}</Link>
