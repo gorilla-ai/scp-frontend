@@ -312,7 +312,7 @@ class SearchOptions extends Component {
                   className='select-field'
                   select
                   variant='outlined'
-                  fullWidth={true}
+                  fullWidth
                   size='small'
                   value={searchInput.searchInterval}
                   onChange={this.props.setSearchData.bind(this, 'searchInterval')}>

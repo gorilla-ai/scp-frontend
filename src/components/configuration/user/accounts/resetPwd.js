@@ -96,9 +96,9 @@ class ResetPwd extends Component {
             name='account'
             label={t('l-account')}
             variant='outlined'
-            fullWidth={true}
+            fullWidth
             size='small'
-            required={true}
+            required
             error={!formValidation.account.valid}
             helperText={formValidation.account.valid ? '' : at('login.lbl-username')}
             inputProps={{ maxLength: 32 }}
@@ -112,9 +112,9 @@ class ResetPwd extends Component {
               type='password'
               label={t('oldPwd')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
-              required={true}
+              required
               error={!formValidation.oldPwd.valid}
               helperText={formValidation.oldPwd.valid ? '' : at('login.lbl-password')}
               inputProps={{ maxLength: 64 }}
@@ -128,9 +128,9 @@ class ResetPwd extends Component {
             type='password'
             label={t('pwd')}
             variant='outlined'
-            fullWidth={true}
+            fullWidth
             size='small'
-            required={true}
+            required
             error={!formValidation.newPwd1.valid}
             helperText={formValidation.newPwd1.valid ? '' : at('login.lbl-password')}
             inputProps={{ maxLength: 64 }}
@@ -143,9 +143,9 @@ class ResetPwd extends Component {
             type='password'
             label={t('reenterPwd')}
             variant='outlined'
-            fullWidth={true}
+            fullWidth
             size='small'
-            required={true}
+            required
             error={!formValidation.newPwd2.valid}
             helperText={formValidation.newPwd2.valid ? '' : at('login.lbl-password')}
             inputProps={{ maxLength: 64 }}

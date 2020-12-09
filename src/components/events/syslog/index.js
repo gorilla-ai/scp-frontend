@@ -1327,7 +1327,7 @@ class SyslogController extends Component {
         <TextField
           className='field-input'
           variant='outlined'
-          fullWidth={true}
+          fullWidth
           size='small'
           value={logCustomLocal}
           onChange={this.handleLocaleChange} />

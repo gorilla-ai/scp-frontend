@@ -848,7 +848,7 @@ class HostController extends Component {
               name='ip'
               label={t('ipFields.ip')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={deviceSearch.ip}
               onChange={this.handleDeviceSearch} />
@@ -859,7 +859,7 @@ class HostController extends Component {
               name='mac'
               label={t('ipFields.mac')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={deviceSearch.mac}
               onChange={this.handleDeviceSearch} />
@@ -870,7 +870,7 @@ class HostController extends Component {
               name='hostName'
               label={t('ipFields.hostName')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={deviceSearch.hostName}
               onChange={this.handleDeviceSearch} />
@@ -881,7 +881,7 @@ class HostController extends Component {
               name='deviceType'
               label={t('ipFields.deviceType')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={deviceSearch.deviceType}
               onChange={this.handleDeviceSearch} />
@@ -892,7 +892,7 @@ class HostController extends Component {
               name='system'
               label={t('ipFields.system')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={deviceSearch.system}
               onChange={this.handleDeviceSearch} />
@@ -1488,7 +1488,7 @@ class HostController extends Component {
                     label={t('txt-sort')}
                     select
                     variant='outlined'
-                    fullWidth={true}
+                    fullWidth
                     size='small'
                     value={hostSort}
                     onChange={this.handleHostSortChange}>

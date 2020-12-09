@@ -512,7 +512,7 @@ class Notifications extends Component {
           open={openEmailDialog}
           title={t('notifications.txt-testEmails')}
           maxWidth='sm'
-          fullWidth={true}
+          fullWidth
           draggable={true}
           content={this.displayTestEmail()}
           actions={actions}
@@ -546,7 +546,7 @@ class Notifications extends Component {
                       name='server'
                       label={t('notifications.txt-smtpServer')}
                       variant='outlined'
-                      fullWidth={true}
+                      fullWidth
                       size='small'
                       value={notifications.server}
                       onChange={this.handleDataChange}
@@ -559,7 +559,7 @@ class Notifications extends Component {
                       select
                       label={t('notifications.txt-smtpPort')}
                       variant='outlined'
-                      fullWidth={true}
+                      fullWidth
                       size='small'
                       value={notifications.port}
                       onChange={this.handleDataChange}
@@ -575,7 +575,7 @@ class Notifications extends Component {
                       name='sender'
                       label={t('notifications.txt-sender')}
                       variant='outlined'
-                      fullWidth={true}
+                      fullWidth
                       size='small'
                       value={notifications.sender}
                       onChange={this.handleDataChange}
@@ -588,7 +588,7 @@ class Notifications extends Component {
                       select
                       label={t('notifications.txt-smtpConnectType')}
                       variant='outlined'
-                      fullWidth={true}
+                      fullWidth
                       size='small'
                       value={notifications.connectType}
                       onChange={this.handleDataChange}
@@ -605,7 +605,7 @@ class Notifications extends Component {
                       select
                       label={t('notifications.txt-authentication')}
                       variant='outlined'
-                      fullWidth={true}
+                      fullWidth
                       size='small'
                       value={notifications.authentication}
                       onChange={this.handleDataChange}
@@ -620,7 +620,7 @@ class Notifications extends Component {
                       name='senderAccount'
                       label={t('notifications.txt-senderAccount')}
                       variant='outlined'
-                      fullWidth={true}
+                      fullWidth
                       size='small'
                       value={notifications.senderAccount}
                       onChange={this.handleDataChange}
@@ -633,7 +633,7 @@ class Notifications extends Component {
                       type='password'
                       label={t('notifications.txt-senderPassword')}
                       variant='outlined'
-                      fullWidth={true}
+                      fullWidth
                       size='small'
                       value={notifications.senderPassword}
                       onChange={this.handleDataChange}

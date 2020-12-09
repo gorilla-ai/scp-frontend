@@ -305,9 +305,9 @@ class Manage extends Component {
         name='name'
         label={t('txt-plsEnterName')}
         variant='outlined'
-        fullWidth={true}
+        fullWidth
         size='small'
-        required={true}
+        required
         error={!formValidation.name.valid}
         helperText={formValidation.name.valid ? '' : t('txt-required')}
         value={name}

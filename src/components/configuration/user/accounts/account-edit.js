@@ -272,9 +272,9 @@ class AccountEdit extends Component {
             name='account'
             label={t('l-account')}
             variant='outlined'
-            fullWidth={true}
+            fullWidth
             size='small'
-            required={true}
+            required
             error={!formValidation.account.valid}
             helperText={formValidation.account.valid ? '' : c('txt-required')}
             value={accountData.account}
@@ -286,9 +286,9 @@ class AccountEdit extends Component {
             name='name'
             label={t('l-name')}
             variant='outlined'
-            fullWidth={true}
+            fullWidth
             size='small'
-            required={true}
+            required
             error={!formValidation.name.valid}
             helperText={formValidation.name.valid ? '' : c('txt-required')}
             value={accountData.name}
@@ -301,9 +301,9 @@ class AccountEdit extends Component {
               type='password'
               label={t('l-password')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
-              required={true}
+              required
               error={!formValidation.password.valid}
               helperText={formValidation.password.valid ? '' : c('txt-required')}
               value={accountData.password}
@@ -315,11 +315,11 @@ class AccountEdit extends Component {
             name='email'
             label={t('l-email')}
             variant='outlined'
-            fullWidth={true}
+            fullWidth
             size='small'
             error={!formValidation.email.valid}
             helperText={formValidation.email.msg}
-            required={true}
+            required
             value={accountData.email}
             onChange={this.handleDataChange} />
         </div>
@@ -328,9 +328,9 @@ class AccountEdit extends Component {
             name='unit'
             label={t('l-unit')}
             variant='outlined'
-            fullWidth={true}
+            fullWidth
             size='small'
-            required={true}
+            required
             error={!formValidation.unit.valid}
             helperText={formValidation.unit.valid ? '' : c('txt-required')}
             value={accountData.unit}
@@ -341,9 +341,9 @@ class AccountEdit extends Component {
             name='title'
             label={t('l-title')}
             variant='outlined'
-            fullWidth={true}
+            fullWidth
             size='small'
-            required={true}
+            required
             error={!formValidation.title.valid}
             helperText={formValidation.title.valid ? '' : c('txt-required')}
             value={accountData.title}
@@ -354,9 +354,9 @@ class AccountEdit extends Component {
             name='phone'
             label={t('l-phone')}
             variant='outlined'
-            fullWidth={true}
+            fullWidth
             size='small'
-            required={true}
+            required
             error={!formValidation.phone.valid}
             helperText={formValidation.phone.valid ? '' : c('txt-required')}
             value={accountData.phone}

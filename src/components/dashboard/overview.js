@@ -625,7 +625,7 @@ class DashboardOverview extends Component {
             <label>Data count: </label>
             <DropDownList
               id='mapLimitList'
-              required={true}
+              required
               list={[
                 {value: 10, text: 10},
                 {value: 20, text: 20},
@@ -638,7 +638,7 @@ class DashboardOverview extends Component {
             <label>Interval: </label>
             <DropDownList
               id='mapIntervalList'
-              required={true}
+              required
               list={[
                 {value: 1, text: '1s'},
                 {value: 5, text: '5s'},
