@@ -1468,6 +1468,10 @@ class ThreatsController extends Component {
   alertDialog = () => {
     const {sessionRights} = this.context;
     const {datetime, alertDetails, alertData} = this.state;
+    const dateTime = {
+      from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    };
     let actions = {
       confirm: {text: t('txt-close'), handler: this.closeDialog}
     };
@@ -1482,7 +1486,7 @@ class ThreatsController extends Component {
     return (
       <AlertDetails
         titleText={t('alert.txt-alertInfo')}
-        datetime={datetime}
+        datetime={dateTime}
         actions={actions}
         alertDetails={alertDetails}
         alertData={alertData}

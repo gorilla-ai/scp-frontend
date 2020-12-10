@@ -141,7 +141,8 @@ class Syslog extends Component {
           valid: true
         },
         port: {
-          valid: true
+          valid: true,
+          msg: ''
         },
         editHostsIp: {
           valid: true,
@@ -763,9 +764,18 @@ class Syslog extends Component {
     }
 
     if (syslogPatternConfig.port) {
-      tempFormValidation.port.valid = true;
+      const portNumber = Number(syslogPatternConfig.port);
+
+      if (portNumber <= 0 || portNumber > 65535) { //Check port number
+        tempFormValidation.port.valid = false;
+        tempFormValidation.port.msg = t('network-topology.txt-portValidationFail');
+        validate = false;
+      } else {
+        tempFormValidation.port.valid = true;
+      }
     } else {
       tempFormValidation.port.valid = false;
+      tempFormValidation.port.msg = t('txt-required');
       validate = false;
     }
 
@@ -793,7 +803,7 @@ class Syslog extends Component {
     let requestData = {
       loghostIp: syslogPatternConfig.loghostIp,
       name: syslogPatternConfig.name,
-      port: syslogPatternConfig.port,
+      port: Number(syslogPatternConfig.port),
       format: syslogPatternConfig.format
     };
 
@@ -1871,7 +1881,8 @@ class Syslog extends Component {
                         size='small'
                         required
                         error={!formValidation.port.valid}
-                        helperText={formValidation.port.valid ? '' : t('txt-required')}
+                        helperText={formValidation.port.msg}
+                        InputProps={{ inputProps: { min: 1, max: 65535 } }}
                         value={syslogPatternConfig.port}
                         onChange={this.handleConfigChange.bind(this, '', 'form')} />
                     </div>

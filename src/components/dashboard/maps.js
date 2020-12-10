@@ -465,7 +465,11 @@ class DashboardMaps extends Component {
    * @returns AlertDetails component
    */
   alertDialog = () => {
-    const {alertDetails, alertData, locationType} = this.state;
+    const {datetime, alertDetails, alertData, locationType} = this.state;
+    const dateTime = {
+      from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    };
     const actions = {
       confirm: {text: t('txt-close'), handler: this.closeDialog}
     };
@@ -473,6 +477,7 @@ class DashboardMaps extends Component {
     return (
       <AlertDetails
         titleText={t('alert.txt-alertInfo')}
+        datetime={dateTime}
         actions={actions}
         alertDetails={alertDetails}
         alertData={alertData}

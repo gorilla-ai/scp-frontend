@@ -776,6 +776,10 @@ class ThreatIntelligence extends Component {
    */
   toggleSearchThreats = () => {
     this.setState({
+      threatsSearch: {
+        keyword: '',
+        type: 'IP'
+      },
       searchThreatsOpen: !this.state.searchThreatsOpen
     });
   }

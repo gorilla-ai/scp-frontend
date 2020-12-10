@@ -34,7 +34,6 @@ const INITIAL_STATE = {
   accountData: {
       account: '',
       name: '',
-      password: '',
       email: '',
       unit: '',
       title: '',
@@ -49,9 +48,6 @@ const INITIAL_STATE = {
       valid: true
     },
     name: {
-      valid: true
-    },
-    password: {
       valid: true
     },
     email: {
@@ -125,10 +121,6 @@ class AccountEdit extends Component {
           phone: data[0].rt.phone,
           selected: _.map(data[1].rt, 'privilegeid')
         };
-
-        if (data[0].rt.password) {
-          accountData.password = data[0].rt.password;
-        }
 
         this.setState({
           accountData,
@@ -294,22 +286,6 @@ class AccountEdit extends Component {
             value={accountData.name}
             onChange={this.handleDataChange} />
         </div>
-        {!showPrivileges &&
-          <div className='group'>
-            <TextField
-              name='password'
-              type='password'
-              label={t('l-password')}
-              variant='outlined'
-              fullWidth
-              size='small'
-              required
-              error={!formValidation.password.valid}
-              helperText={formValidation.password.valid ? '' : c('txt-required')}
-              value={accountData.password}
-              onChange={this.handleDataChange} />
-          </div>
-        }
         <div className='group'>
           <TextField
             name='email'
@@ -386,7 +362,7 @@ class AccountEdit extends Component {
     const {baseUrl} = this.context;
     const {id, accountData, showPrivileges, selectedPrivileges, formValidation} = this.state;
     const emailPattern = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    const url = showPrivileges ? `${baseUrl}/api/account/v1` : `${baseUrl}/api/account`;
+    const url = `${baseUrl}/api/account/v1`;
     let tempFormValidation = {...formValidation};
     let validate = true;
 
@@ -402,15 +378,6 @@ class AccountEdit extends Component {
     } else {
       tempFormValidation.name.valid = false;
       validate = false;
-    }
-
-    if (!showPrivileges) {
-      if (accountData.password) {
-        tempFormValidation.password.valid = true;
-      } else {
-        tempFormValidation.password.valid = false;
-        validate = false;
-      }
     }
 
     if (accountData.email) {

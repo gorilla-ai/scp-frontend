@@ -1009,9 +1009,9 @@ class HostController extends Component {
    * @param {string} ipDeviceUUID - IP Device UUID
    */
   getRequestData = (ipDeviceUUID) => {
-    const {datetime} = this.state;
+    const {assessmentDatetime} = this.state;
     const requestData = {
-      '@timestamp': [datetime.from, datetime.to],
+      '@timestamp': [assessmentDatetime.from, assessmentDatetime.to],
       sort: [
         {
           '@timestamp': 'desc'

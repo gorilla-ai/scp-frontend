@@ -649,6 +649,7 @@
     "txt-selected-node": "選擇樓層節點",
     "txt-ipValidationFail": "請輸入正確的IP格式",
     "txt-macValidationFail": "請輸入正確的MAC格式",
+    "txt-portValidationFail": "請檢查port",
     "txt-seatNameEmpty": "請輸入座位名稱",
     "txt-saveSuccess": "儲存成功",
 
