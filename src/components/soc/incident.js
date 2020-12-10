@@ -130,7 +130,7 @@ class Incident extends Component {
                     socType: 1
                 }
             },
-            accountRoleType:1,
+            accountRoleType:SOC_Analyzer,
             loadListType:SOC_Analyzer,
             attach: null
         };
@@ -140,7 +140,7 @@ class Incident extends Component {
 
     componentDidMount() {
         const {locale, sessionRights} = this.context;
-        helper.getPrivilegesInfo(sessionRights, 'config', locale);
+        helper.getPrivilegesInfo(sessionRights, 'soc', locale);
 
         let alertDataId = this.getQueryString('alertDataId');
         let alertData = sessionStorage.getItem(alertDataId);
@@ -973,7 +973,7 @@ class Incident extends Component {
     }
 
     handleAFChange(file) {
-        let flag = new RegExp("[`~!@#$^&*()=|{}':;',\\[\\]<>《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]")
+        let flag = new RegExp("[`~!@#$^&*()=|{}+':;',\\[\\]<>《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]")
         if (flag.test(file.name)){
             helper.showPopupMsg( it('txt-attachedFileNameError'), t('txt-error'), )
         }

@@ -297,6 +297,7 @@ class PrivilegeEdit extends Component {
           error={!formValidation.name.valid}
           helperText={formValidation.name.valid ? '' : c('txt-required')}
           value={name}
+          disabled={name==='SOC Analyzer'||name==='SOC Executor'||name==='SOC Supervior'||name==='SOC Supervisor'}
           onChange={this.handleDataChange} />
         <div className='group'>
           <FormControl

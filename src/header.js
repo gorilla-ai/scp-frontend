@@ -354,11 +354,7 @@ class Header extends Component {
   render() {
     const {contextRoot, sessionRights, session, language} = this.context;
     const {productName} = this.props;
-    const {contextAnchor, showResetPassword} = this.state;
-    let isSOC = session.roles.includes('SOC Executor') ||
-        session.roles.includes('SOC Analyzer')  ||
-        session.roles.includes('SOC Supervior')  ||
-        session.roles.includes('SOC Supervisor')
+    const {contextAnchor} = this.state;
     let showLanguage = '';
 
     if (language === 'zh') {
@@ -395,8 +391,8 @@ class Header extends Component {
                 {sessionRights.Module_Common &&
                   <Link to='/SCP/events/syslog' className={cx('item', {'active': this.getActiveTab('events')})}>{t('txt-events')}</Link>
                 }
-                {isSOC &&
-                  <Link to='/SCP/soc/incident' className={cx('item', {'active': this.getActiveTab('soc')})}>{it('txt-soc')}</Link>
+                {sessionRights.Module_Soc &&
+                <Link to='/SCP/soc/incident' className={cx('item', {'active': this.getActiveTab('soc')})}>{it('txt-soc')}</Link>
                 }
                 {sessionRights.Module_Config &&
                   <Link to='/SCP/configuration/notifications' className={cx('item', {'active': this.getActiveTab('configuration')})}>{t('txt-configuration')}</Link>
