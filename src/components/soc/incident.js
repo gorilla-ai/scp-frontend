@@ -973,7 +973,7 @@ class Incident extends Component {
     }
 
     handleAFChange(file) {
-        let flag = new RegExp("[`~!@#$^&*()=|{}':;',\\[\\]<>《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]")
+        let flag = new RegExp("[`~!@#$^&*()=|{}+':;',\\[\\]<>《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]")
         if (flag.test(file.name)){
             helper.showPopupMsg( it('txt-attachedFileNameError'), t('txt-error'), )
         }
