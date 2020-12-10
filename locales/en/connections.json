@@ -649,6 +649,7 @@
     "txt-selected-node": "Selected Node",
     "txt-ipValidationFail": "Please enter a valid IP address",
     "txt-macValidationFail": "Please enter a valid MAC address",
+    "txt-portValidationFail": "Please check the port number",
     "txt-seatNameEmpty": "Please enter a seat name",
     "txt-saveSuccess": "Saved",
 

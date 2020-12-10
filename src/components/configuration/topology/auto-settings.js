@@ -81,6 +81,9 @@ class AutoSettings extends Component {
       formValidation: {
         ip: {
           valid: true
+        },
+        port: {
+          valid: true
         }
       }
     };
@@ -474,6 +477,9 @@ class AutoSettings extends Component {
         formValidation: {
           ip: {
             valid: true
+          },
+          port: {
+            valid: true
           }
         }
       });
@@ -509,6 +515,17 @@ class AutoSettings extends Component {
       } else {
         tempFormValidation.ip.valid = false;
         validate = false;
+      }
+    }
+
+    if (adData.port) {
+      const portNumber = Number(adData.port);
+
+      if (portNumber <= 0 || portNumber > 65535) { //Check port number
+        tempFormValidation.port.valid = false;
+        validate = false;
+      } else {
+        tempFormValidation.port.valid = true;
       }
     }
 
@@ -720,6 +737,9 @@ class AutoSettings extends Component {
                   variant='outlined'
                   fullWidth
                   size='small'
+                  error={!formValidation.port.valid}
+                  helperText={formValidation.port.valid ? '' : t('network-topology.txt-portValidationFail')}
+                  InputProps={{ inputProps: { min: 1, max: 65535 } }}
                   value={adData.port}
                   onChange={this.handleADchange}
                   disabled={activeContent === 'viewMode'} />
