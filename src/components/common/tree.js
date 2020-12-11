@@ -153,7 +153,7 @@ class Tree extends Component {
               className='analysis-type'
               select
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={activeTab}
               onChange={this.props.handleTabChange}>

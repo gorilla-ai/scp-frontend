@@ -121,10 +121,10 @@ class YaraRule extends Component {
             id='yaraRuleContent'
             name='rule'
             label={t('network-inventory.txt-yaraRules')}
-            multiline={true}
+            multiline
             rows={10}
             variant='outlined'
-            fullWidth={true}
+            fullWidth
             size='small'
             value={yaraRule.rule}
             onChange={this.handleDataChange} />

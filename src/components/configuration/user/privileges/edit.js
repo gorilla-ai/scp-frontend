@@ -92,6 +92,9 @@ class PrivilegeEdit extends Component {
     if (name === 'Configuration Module') {
       return c('txt-configModule');
     }
+    if (name === 'SOC Module') {
+      return c('txt-socModule');
+    }
   }
   /**
    * Get and set privilege permits data
@@ -288,12 +291,13 @@ class PrivilegeEdit extends Component {
           name='name'
           label={t('l-name')}
           variant='outlined'
-          fullWidth={true}
+          fullWidth
           size='small'
-          required={true}
+          required
           error={!formValidation.name.valid}
           helperText={formValidation.name.valid ? '' : c('txt-required')}
           value={name}
+          disabled={name==='SOC Analyzer'||name==='SOC Executor'||name==='SOC Supervior'||name==='SOC Supervisor'}
           onChange={this.handleDataChange} />
         <div className='group'>
           <FormControl

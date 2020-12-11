@@ -175,7 +175,7 @@ class IrSelections extends Component {
           className='ir-comboList'
           select
           variant='outlined'
-          fullWidth={true}
+          fullWidth
           size='small'
           value={irComboSelected}
           onChange={this.handleIrComboChange}>

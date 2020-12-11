@@ -81,6 +81,9 @@ class AutoSettings extends Component {
       formValidation: {
         ip: {
           valid: true
+        },
+        port: {
+          valid: true
         }
       }
     };
@@ -474,6 +477,9 @@ class AutoSettings extends Component {
         formValidation: {
           ip: {
             valid: true
+          },
+          port: {
+            valid: true
           }
         }
       });
@@ -509,6 +515,17 @@ class AutoSettings extends Component {
       } else {
         tempFormValidation.ip.valid = false;
         validate = false;
+      }
+    }
+
+    if (adData.port) {
+      const portNumber = Number(adData.port);
+
+      if (portNumber <= 0 || portNumber > 65535) { //Check port number
+        tempFormValidation.port.valid = false;
+        validate = false;
+      } else {
+        tempFormValidation.port.valid = true;
       }
     }
 
@@ -703,7 +720,7 @@ class AutoSettings extends Component {
                   name='ip'
                   label='IP'
                   variant='outlined'
-                  fullWidth={true}
+                  fullWidth
                   size='small'
                   error={!formValidation.ip.valid}
                   helperText={formValidation.ip.valid ? '' : t('network-topology.txt-ipValidationFail')}
@@ -718,8 +735,11 @@ class AutoSettings extends Component {
                   type='number'
                   label='Port'
                   variant='outlined'
-                  fullWidth={true}
+                  fullWidth
                   size='small'
+                  error={!formValidation.port.valid}
+                  helperText={formValidation.port.valid ? '' : t('network-topology.txt-portValidationFail')}
+                  InputProps={{ inputProps: { min: 1, max: 65535 } }}
                   value={adData.port}
                   onChange={this.handleADchange}
                   disabled={activeContent === 'viewMode'} />
@@ -730,7 +750,7 @@ class AutoSettings extends Component {
                   name='domain'
                   label={t('txt-domain')}
                   variant='outlined'
-                  fullWidth={true}
+                  fullWidth
                   size='small'
                   value={adData.domain}
                   onChange={this.handleADchange}
@@ -742,7 +762,7 @@ class AutoSettings extends Component {
                   name='username'
                   label={t('network-inventory.auto-settings.txt-username')}
                   variant='outlined'
-                  fullWidth={true}
+                  fullWidth
                   size='small'
                   value={adData.username}
                   onChange={this.handleADchange}
@@ -755,7 +775,7 @@ class AutoSettings extends Component {
                   type='password'
                   label={t('network-inventory.auto-settings.txt-password')}
                   variant='outlined'
-                  fullWidth={true}
+                  fullWidth
                   size='small'
                   value={adData.password}
                   onChange={this.handleADchange}
@@ -786,7 +806,7 @@ class AutoSettings extends Component {
                   label={t('txt-updateTime')}
                   select
                   variant='outlined'
-                  fullWidth={true}
+                  fullWidth
                   size='small'
                   value={netflowData.time}
                   disabled={activeContent === 'viewMode'}>

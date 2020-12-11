@@ -7,10 +7,13 @@ import $ from 'jquery'
 import cx from 'classnames'
 import queryString from 'query-string'
 import i18n from 'i18next'
+import _ from 'lodash'
 
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
+import TextField from '@material-ui/core/TextField';
 
+import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import Progress from 'react-ui/build/src/components/progress'
 
@@ -19,7 +22,6 @@ import {BaseDataContext} from './components/common/context';
 import helper from './components/common/helper'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
-import _ from "lodash";
 
 const t = i18n.getFixedT(null, 'connections');
 const l = i18n.getFixedT(null, 'app');
@@ -37,7 +39,15 @@ class Header extends Component {
 
     this.state = {
       theme: '',
-      contextAnchor: null
+      contextAnchor: null,
+      showResetPassword: false,
+      newPassword: '',
+      info: '',
+      formValidation: {
+        password: {
+          valid: true
+        }
+      }
     };
 
     this.ah = getInstance('chewbacca');
@@ -204,16 +214,147 @@ class Header extends Component {
       display: <div className='content'>{l('txt-updateSuccess')}</div>
     });
   }
+  /**
+   * Show reset password dialog and set active account name
+   * @method
+   * @returns HTML DOM
+   */
+  showResetPassword = () => {
+    this.setState({
+      showResetPassword: true
+    });
+
+    this.handleCloseMenu();
+  }
+  /**
+   * Handle password input box
+   * @method
+   * @param {object} event - event object
+   */
+  handlePasswordChange = (event) => {
+    this.setState({
+      [event.target.name]: event.target.value
+    });
+  }
+  /**
+   * Display new password content
+   * @method
+   * @returns HTML DOM
+   */
+  displayNewPassword = () => {
+    const {newPassword, formValidation} = this.state;
+
+    return (
+      <div className='group'>
+        <TextField
+          name='newPassword'
+          type='password'
+          label={t('txt-password')}
+          variant='outlined'
+          fullWidth
+          size='small'
+          required
+          error={!formValidation.password.valid}
+          helperText={formValidation.password.valid ? '' : t('txt-required')}
+          value={newPassword}
+          onChange={this.handlePasswordChange} />
+      </div>
+    )
+  }
+  /**
+   * Show password reset dialog
+   * @method
+   * @returns ModalDialog
+   */
+  showResetPasswordDialog = () => {
+    const actions = {
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeResetPasswordDialog},
+      confirm: {text: t('txt-confirm'), handler: this.handleResetPasswordConfirm}
+    };
+    const titleText = t('txt-resetPassword');
+
+    return (
+      <ModalDialog
+        className='modal-dialog'
+        title={titleText}
+        draggable={true}
+        global={true}
+        actions={actions}
+        info={this.state.info}
+        closeAction='cancel'>
+        {this.displayNewPassword()}
+      </ModalDialog>
+    )
+  }
+  /**
+   * Handle reset password confirm
+   * @method
+   */
+  handleResetPasswordConfirm = () => {
+    const {baseUrl, session} = this.context;
+    const {newPassword, formValidation} = this.state;
+    const url = `${baseUrl}/api/account/password/_reset`;
+    const requestData = {
+      account: session.account,
+      newPassword
+    };
+    let tempFormValidation = {...formValidation};
+    let validate = true;
+
+    if (newPassword) {
+      formValidation.password.valid = true;
+    } else {
+      formValidation.password.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
+      return;
+    }
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('txt-resetPasswordSuccess'));
+        this.closeResetPasswordDialog();
+      }
+      return null;
+    })
+    .catch(err => {
+      this.setState({
+        info: err.message
+      });
+    })
+  }
+  /**
+   * Handle reset password cancel
+   * @method
+   */
+  closeResetPasswordDialog = () => {
+    this.setState({
+      showResetPassword: false,
+      newPassword: '',
+      info: '',
+      formValidation: {
+        password: {
+          valid: true
+        }
+      }
+    });
+  }
   render() {
     const {contextRoot, sessionRights, session, language} = this.context;
     const {productName} = this.props;
     const {contextAnchor} = this.state;
-    
-    let isSOC = session.roles.includes("SOC Executor") ||
-        session.roles.includes("SOC Analyzer")  ||
-        session.roles.includes("SOC Supervior")  ||
-        session.roles.includes("SOC Supervisor")
-        
     let showLanguage = '';
 
     if (language === 'zh') {
@@ -222,9 +363,12 @@ class Header extends Component {
       showLanguage = 'zh';
     }
 
-
     return (
       <div className='header-wrapper'>
+        {showResetPassword &&
+          this.showResetPasswordDialog()
+        }
+
         <div className='main-header'>
           <header id='g-header'>
             <div className='title'>
@@ -247,8 +391,8 @@ class Header extends Component {
                 {sessionRights.Module_Common &&
                   <Link to='/SCP/events/syslog' className={cx('item', {'active': this.getActiveTab('events')})}>{t('txt-events')}</Link>
                 }
-                {isSOC &&
-                  <Link to='/SCP/soc/incident' className={cx('item', {'active': this.getActiveTab('soc')})}>{it('txt-soc')}</Link>
+                {sessionRights.Module_Soc &&
+                <Link to='/SCP/soc/incident' className={cx('item', {'active': this.getActiveTab('soc')})}>{it('txt-soc')}</Link>
                 }
                 {sessionRights.Module_Config &&
                   <Link to='/SCP/configuration/notifications' className={cx('item', {'active': this.getActiveTab('configuration')})}>{t('txt-configuration')}</Link>
@@ -269,6 +413,7 @@ class Header extends Component {
               <MenuItem onClick={this.changeLng.bind(this, showLanguage)}>{t('lng.' + showLanguage)}</MenuItem>
               <MenuItem onClick={this.toggleTheme}>{l('toggle-theme')}</MenuItem>
               <MenuItem onClick={this.editAccount}>{l('login.txt-account')}</MenuItem>
+              <MenuItem onClick={this.showResetPassword}>{l('login.txt-resetPassword')}</MenuItem>
               <MenuItem onClick={this.logout}>{l('login.btn-logout')}</MenuItem>
             </Menu>
           </header>

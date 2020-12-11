@@ -154,7 +154,7 @@ class Relationships extends Component {
               select
               label={t('syslogFields.name')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={value.name}
               onChange={this.handleDataChange}>
@@ -168,7 +168,7 @@ class Relationships extends Component {
               select
               label={t('syslogFields.srcNode')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={value.srcNode}
               onChange={this.handleDataChange}>
@@ -183,7 +183,7 @@ class Relationships extends Component {
               select
               label={t('syslogFields.dstNode')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={value.dstNode}
               onChange={this.handleDataChange}>

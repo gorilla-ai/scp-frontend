@@ -672,7 +672,7 @@ class NetworkOwner extends Component {
               name='name'
               label={t('ownerFields.ownerName')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={search.name}
               onChange={this.handleSearchChange} />
@@ -684,7 +684,7 @@ class NetworkOwner extends Component {
               select
               label={t('ownerFields.department')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={search.department}
               onChange={this.handleSearchChange}>
@@ -699,7 +699,7 @@ class NetworkOwner extends Component {
               select
               label={t('ownerFields.title')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={search.title}
               onChange={this.handleSearchChange}>
@@ -846,9 +846,9 @@ class NetworkOwner extends Component {
                         name='ownerName'
                         label={t('ownerFields.ownerName')}
                         variant='outlined'
-                        fullWidth={true}
+                        fullWidth
                         size='small'
-                        required={true}
+                        required
                         error={!formValidation.ownerName.valid}
                         helperText={formValidation.ownerName.valid ? '' : t('txt-required')}
                         value={owner.info.ownerName}
@@ -860,9 +860,9 @@ class NetworkOwner extends Component {
                         name='ownerID'
                         label={t('ownerFields.ownerID')}
                         variant='outlined'
-                        fullWidth={true}
+                        fullWidth
                         size='small'
-                        required={true}
+                        required
                         error={!formValidation.ownerID.valid}
                         helperText={formValidation.ownerID.valid ? '' : t('txt-required')}
                         value={owner.info.ownerID}
@@ -875,7 +875,7 @@ class NetworkOwner extends Component {
                         select
                         label={t('ownerFields.department')}
                         variant='outlined'
-                        fullWidth={true}
+                        fullWidth
                         size='small'
                         value={owner.info.department}
                         onChange={this.handleDataChange}>
@@ -889,7 +889,7 @@ class NetworkOwner extends Component {
                         select
                         label={t('ownerFields.title')}
                         variant='outlined'
-                        fullWidth={true}
+                        fullWidth
                         size='small'
                         value={owner.info.title}
                         onChange={this.handleDataChange}>

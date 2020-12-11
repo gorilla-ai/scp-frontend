@@ -46,7 +46,7 @@ class SortableItem extends Component {
           multiline
           rows={8}
           cols={50}
-          fullWidth={true}
+          fullWidth
           size='small'
           value={value[key]}
           InputProps={{
@@ -58,7 +58,7 @@ class SortableItem extends Component {
       return (
         <TextField
           className='value-input'
-          fullWidth={true}
+          fullWidth
           size='small'
           value={helper.getFormattedDate(value[key], 'local')}
           InputProps={{
@@ -70,7 +70,7 @@ class SortableItem extends Component {
       return (
         <TextField
           className='value-input'
-          fullWidth={true}
+          fullWidth
           size='small'
           value={value[key]}
           InputProps={{

@@ -2051,12 +2051,12 @@ class Netflow extends Component {
           <div className='data'>
             {str &&
               <TextField
-                multiline={true}
+                multiline
                 variant='outlined'
-                fullWidth={true}
+                fullWidth
                 size='small'
                 value={str}
-                disabled={true} />
+                disabled />
             }
           </div>
         </div>
@@ -2269,13 +2269,13 @@ class Netflow extends Component {
           id='tagMemo'
           className='tag-memo'
           label={memoText}
-          multiline={true}
+          multiline
           rows={4}
           maxLength={250}
           variant='outlined'
-          fullWidth={true}
+          fullWidth
           size='small'
-          required={true}
+          required
           error={!formValidation.memo.valid}
           helperText={formValidation.memo.valid ? '' : t('txt-required')}
           value={tagData.memo}

@@ -392,7 +392,7 @@ class EsManage extends Component {
               select
               label={t('txt-status')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={esSearch.status}
               onChange={this.handleEsSearch}>

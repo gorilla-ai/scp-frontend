@@ -622,9 +622,9 @@ class NetworkMap extends Component {
         name='name'
         label={t('txt-name')}
         variant='outlined'
-        fullWidth={true}
+        fullWidth
         size='small'
-        required={true}
+        required
         error={!formValidation.name.valid}
         helperText={formValidation.name.valid ? '' : t('txt-required')}
         value={addSeat.name}
@@ -923,7 +923,7 @@ class NetworkMap extends Component {
               name='keyword'
               label={t('ipFields.keyword')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={search.keyword}
               onChange={this.handleSearchChange} />
@@ -935,9 +935,9 @@ class NetworkMap extends Component {
               select
               label={t('ipFields.system')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
-              required={true}
+              required
               value={search.system}
               onChange={this.handleSearchChange}>
               <MenuItem value={'all'}>{t('txt-all')}</MenuItem>
@@ -951,9 +951,9 @@ class NetworkMap extends Component {
               select
               label={t('txt-device')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
-              required={true}
+              required
               value={search.deviceType}
               onChange={this.handleSearchChange}>
               <MenuItem value={'all'}>{t('txt-all')}</MenuItem>

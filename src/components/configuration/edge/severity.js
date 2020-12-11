@@ -322,7 +322,7 @@ class Severity extends Component {
               name='type'
               label={f('severityTableFields.dataSourceType')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={severity.info.type}
               onChange={this.handleDataChange}
@@ -349,7 +349,7 @@ class Severity extends Component {
               name='nickname'
               label={f('severityTableFields.nickname')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={severity.info.nickname}
               onChange={this.handleDataChange}
@@ -361,7 +361,7 @@ class Severity extends Component {
               name='description'
               label={f('severityTableFields.description')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={severity.info.description}
               onChange={this.handleDataChange}
@@ -521,7 +521,7 @@ class Severity extends Component {
               id='severityType'
               label={f('severityTableFields.dataSourceType')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={severitySearchType}
               onChange={this.handleSearchType} />

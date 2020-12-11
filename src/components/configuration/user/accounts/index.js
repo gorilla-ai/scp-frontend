@@ -321,9 +321,9 @@ class AccountList extends Component {
           type='password'
           label={c('txt-password')}
           variant='outlined'
-          fullWidth={true}
+          fullWidth
           size='small'
-          required={true}
+          required
           error={!formValidation.password.valid}
           helperText={formValidation.password.valid ? '' : c('txt-required')}
           value={newPassword}
@@ -475,7 +475,7 @@ class AccountList extends Component {
               name='account'
               label={t('l-account')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={param.account}
               onChange={this.handleSearchChange} />
@@ -486,7 +486,7 @@ class AccountList extends Component {
               name='name'
               label={t('l-name')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={param.name}
               onChange={this.handleSearchChange} />

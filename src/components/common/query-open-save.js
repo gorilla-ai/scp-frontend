@@ -675,10 +675,10 @@ class QueryOpenSave extends Component {
           <TextField
             className='email-disabled'
             variant='outlined'
-            fullWidth={true}
+            fullWidth
             size='small'
             value=''
-            disabled={true} />
+            disabled />
         }
       </div>
     )
@@ -761,7 +761,7 @@ class QueryOpenSave extends Component {
               select
               variant='outlined'
               size='small'
-              required={true}
+              required
               value={pattern.periodMin}
               onChange={this.handleDataChange}
               disabled={disabledValue}>
@@ -832,7 +832,7 @@ class QueryOpenSave extends Component {
             select
             label={t('events.connections.txt-queryName')}
             variant='outlined'
-            fullWidth={true}
+            fullWidth
             size='small'
             value={queryData.id}
             onChange={this.handleQueryChange.bind(this, 'id')}>
@@ -907,9 +907,9 @@ class QueryOpenSave extends Component {
               select
               label={t('events.connections.txt-queryName')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
-              required={true}
+              required
               value={dropDownValue}
               onChange={this.handleQueryChange.bind(this, 'id')}>
               <MenuItem value={'new'}>{t('events.connections.txt-addQuery')}</MenuItem>
@@ -923,7 +923,7 @@ class QueryOpenSave extends Component {
                 variant='outlined'
                 size='small'
                 maxLength={50}
-                required={true}
+                required
                 error={!formValidation.queryName.valid}
                 helperText={formValidation.queryName.valid ? '' : t('txt-required')}
                 value={queryData.inputName}

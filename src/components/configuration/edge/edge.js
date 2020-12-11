@@ -1183,9 +1183,9 @@ class Edge extends Component {
                 name='name'
                 label={t('edge-management.txt-edgeName')}
                 variant='outlined'
-                fullWidth={true}
+                fullWidth
                 size='small'
-                required={true}
+                required
                 error={!formValidation.edgeName.valid}
                 helperText={formValidation.edgeName.valid ? '' : t('txt-required')}
                 value={edge.info.name}
@@ -1198,10 +1198,10 @@ class Edge extends Component {
                 name='id'
                 label={t('edge-management.txt-edgeID')}
                 variant='outlined'
-                fullWidth={true}
+                fullWidth
                 size='small'
                 value={edge.info.id}
-                disabled={true} />
+                disabled />
             </div>
             <div className='group'>
               <TextField
@@ -1209,11 +1209,11 @@ class Edge extends Component {
                 name='ip'
                 label={t('edge-management.txt-ip')}
                 variant='outlined'
-                fullWidth={true}
+                fullWidth
                 size='small'
                 value={edge.info.ip}
                 onChange={this.handleDataChange}
-                disabled={true} />
+                disabled />
             </div>
             <div className='group'>
               <TextField
@@ -1221,7 +1221,7 @@ class Edge extends Component {
                 name='edgeIPlist'
                 label={edgeIpText}
                 variant='outlined'
-                fullWidth={true}
+                fullWidth
                 size='small'
                 value={edge.info.edgeIPlist}
                 onChange={this.handleDataChange}
@@ -1233,10 +1233,10 @@ class Edge extends Component {
                 name='vpnIP'
                 label={t('edge-management.txt-vpnIP')}
                 variant='outlined'
-                fullWidth={true}
+                fullWidth
                 size='small'
                 value={edge.info.edgeIPlist}
-                disabled={true} />
+                disabled />
             </div>
             <div className='group'>
               <TextField
@@ -1244,10 +1244,10 @@ class Edge extends Component {
                 name='licenseName'
                 label={t('edge-management.txt-vpnLicenseName')}
                 variant='outlined'
-                fullWidth={true}
+                fullWidth
                 size='small'
                 value={edge.info.licenseName}
-                disabled={true} />
+                disabled />
             </div>
             <div className='group'>
               <TextField
@@ -1255,10 +1255,10 @@ class Edge extends Component {
                 name='serviceType'
                 label={t('edge-management.txt-serviceType')}
                 variant='outlined'
-                fullWidth={true}
+                fullWidth
                 size='small'
                 value={edge.info.serviceType}
-                disabled={true} />
+                disabled />
             </div>
             <div className='group'>
               <TextField
@@ -1267,7 +1267,7 @@ class Edge extends Component {
                 select
                 label={t('edge-management.txt-serviceMode')}
                 variant='outlined'
-                fullWidth={true}
+                fullWidth
                 size='small'
                 value={edge.info.serviceMode}
                 onChange={this.handleDataChange}
@@ -1282,7 +1282,7 @@ class Edge extends Component {
                 name='longitude'
                 label={t('edge-management.txt-longitude')}
                 variant='outlined'
-                fullWidth={true}
+                fullWidth
                 size='small'
                 error={!formValidation.longitude.valid}
                 helperText={formValidation.longitude.valid ? '' : t('edge-management.txt-coordinateError')}
@@ -1296,7 +1296,7 @@ class Edge extends Component {
                 name='latitude'
                 label={t('edge-management.txt-latitude')}
                 variant='outlined'
-                fullWidth={true}
+                fullWidth
                 size='small'
                 error={!formValidation.latitude.valid}
                 helperText={formValidation.latitude.valid ? '' : t('edge-management.txt-coordinateError')}
@@ -1310,7 +1310,7 @@ class Edge extends Component {
                 name='chassisAddress'
                 label={t('edge-management.txt-chassisAddress')}
                 variant='outlined'
-                fullWidth={true}
+                fullWidth
                 size='small'
                 value={edge.info.chassisAddress}
                 onChange={this.handleDataChange}
@@ -1322,7 +1322,7 @@ class Edge extends Component {
                 name='chassisLocation'
                 label={t('edge-management.txt-chassisLocation')}
                 variant='outlined'
-                fullWidth={true}
+                fullWidth
                 size='small'
                 value={edge.info.chassisLocation}
                 onChange={this.handleDataChange}
@@ -1334,7 +1334,7 @@ class Edge extends Component {
                 name='contact'
                 label={t('edge-management.txt-contact')}
                 variant='outlined'
-                fullWidth={true}
+                fullWidth
                 size='small'
                 value={edge.info.contact}
                 onChange={this.handleDataChange}
@@ -1435,11 +1435,11 @@ class Edge extends Component {
                 id='edgeMemo'
                 name='memo'
                 label={memoText}
-                multiline={true}
+                multiline
                 rows={4}
                 maxLength={250}
                 variant='outlined'
-                fullWidth={true}
+                fullWidth
                 size='small'
                 value={edge.info.memo}
                 onChange={this.handleDataChange}
@@ -1476,7 +1476,7 @@ class Edge extends Component {
               name='keyword'
               label={f('edgeFields.keywords')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={edgeSearch.keyword}
               onChange={this.handleEdgeSearch} />
@@ -1488,7 +1488,7 @@ class Edge extends Component {
               select
               label={f('edgeFields.serviceType')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={edgeSearch.serviceType}
               onChange={this.handleEdgeSearch}>
@@ -1503,7 +1503,7 @@ class Edge extends Component {
               select
               label={f('edgeFields.connectionStatus')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={edgeSearch.connectionStatus}
               onChange={this.handleEdgeSearch}>

@@ -474,6 +474,8 @@ const helper = {
       window.location.href = '/SCP/configuration/edge/edge?lng=' + locale;
     } else if (privilege === 'config' && !sessionRights.Module_Config)  {
       window.location.href = '/SCP?lng=' + locale;
+    } else if (privilege === 'soc' && !sessionRights.Module_Soc)  {
+      window.location.href = '/SCP?lng=' + locale;
     }
   },
   showPopupMsg: function(msg, title, errorMsg, options, redirect) {

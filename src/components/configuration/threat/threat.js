@@ -761,6 +761,8 @@ class ThreatIntelligence extends Component {
         }, () => {
           this.getChartsData();
         });
+      } else if (data.ret === -1) {
+        helper.showPopupMsg('', t('txt-error'));
       }
       return null;
     })
@@ -774,6 +776,10 @@ class ThreatIntelligence extends Component {
    */
   toggleSearchThreats = () => {
     this.setState({
+      threatsSearch: {
+        keyword: '',
+        type: 'IP'
+      },
       searchThreatsOpen: !this.state.searchThreatsOpen
     });
   }
@@ -809,7 +815,7 @@ class ThreatIntelligence extends Component {
               select
               label={t('edge-management.txt-serviceMode')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={threatsSearch.type}
               onChange={this.handleThreatsChange}>
@@ -827,7 +833,7 @@ class ThreatIntelligence extends Component {
               className='search-keyword'
               name='keyword'
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={threatsSearch.keyword}
               onChange={this.handleThreatsChange} />

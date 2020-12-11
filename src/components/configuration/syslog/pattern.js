@@ -319,9 +319,9 @@ class Pattern extends Component {
               name='name'
               label={f('syslogPatternTableFields.patternName')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
-              required={true}
+              required
               error={!formValidation.name.valid}
               helperText={formValidation.name.valid ? '' : t('txt-required')}
               value={pattern.info.name}
@@ -348,13 +348,13 @@ class Pattern extends Component {
               id='queryScript'
               name='queryScript'
               label={f('syslogPatternTableFields.queryScript')}
-              multiline={true}
+              multiline
               rows={4}
               maxLength={250}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
-              required={true}
+              required
               error={!formValidation.queryScript.valid}
               helperText={formValidation.queryScript.valid ? '' : t('txt-required')}
               value={pattern.info.queryScript}
@@ -370,7 +370,7 @@ class Pattern extends Component {
                 select
                 variant='outlined'
                 size='small'
-                required={true}
+                required
                 value={pattern.info.periodMin}
                 onChange={this.handleDataChange}
                 disabled={activeContent === 'viewPattern'}>
@@ -385,7 +385,7 @@ class Pattern extends Component {
                 variant='outlined'
                 size='small'
                 InputProps={{inputProps: { min: 1, max: 1000 }}}
-                required={true}
+                required
                 error={!formValidation.threshold.valid}
                 helperText={formValidation.threshold.valid ? '' : t('events.connections.txt-threasholdCount')}
                 value={pattern.info.threshold}
@@ -658,7 +658,7 @@ class Pattern extends Component {
               name='name'
               label={f('syslogPatternTableFields.patternName')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={patternSearch.name}
               onChange={this.handlePatternSearch} />

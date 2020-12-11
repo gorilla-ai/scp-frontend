@@ -76,7 +76,7 @@ class IncidentUnit extends Component {
     componentDidMount() {
         const {locale, sessionRights} = this.context;
 
-        helper.getPrivilegesInfo(sessionRights, 'config', locale);
+        helper.getPrivilegesInfo(sessionRights, 'soc', locale);
         this.getData();
     }
 

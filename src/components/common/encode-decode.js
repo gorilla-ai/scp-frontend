@@ -121,10 +121,10 @@ class EncodeDecode extends Component {
           name='originalText'
           className='text-area'
           label={t('txt-text')}
-          multiline={true}
+          multiline
           rows={6}
           variant='outlined'
-          fullWidth={true}
+          fullWidth
           size='small'
           value={originalText}
           onChange={this.handleDataChange} />
@@ -134,7 +134,7 @@ class EncodeDecode extends Component {
             name='encodeType'
             select
             variant='outlined'
-            fullWidth={true}
+            fullWidth
             size='small'
             value={encodeType}
             onChange={this.handleDataChange}>
@@ -155,13 +155,13 @@ class EncodeDecode extends Component {
           name='formattedText'
           className='text-area'
           label={t('txt-result')}
-          multiline={true}
+          multiline
           rows={6}
           variant='outlined'
-          fullWidth={true}
+          fullWidth
           size='small'
           value={formattedText}
-          disabled={true} />
+          disabled />
       </div>
     )
   }

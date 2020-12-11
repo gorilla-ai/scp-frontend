@@ -108,10 +108,10 @@ class syslogConfig extends Component {
             name='format'
             label={key}
             variant='outlined'
-            fullWidth={true}
+            fullWidth
             size='small'
             value={val}
-            disabled={true} />
+            disabled />
         </div>
       )
     }
@@ -139,10 +139,10 @@ class syslogConfig extends Component {
                 </div>
                 <TextField
                   id='syslogPattern'
-                  multiline={true}
+                  multiline
                   rows={6}
                   variant='outlined'
-                  fullWidth={true}
+                  fullWidth
                   size='small'
                   value={config.patternSetting[index].pattern}
                   onChange={this.props.handleConfigChange.bind(this, 'pattern')} />
@@ -161,10 +161,10 @@ class syslogConfig extends Component {
                     <TextField
                       id='syslogInput'
                       className='syslog-input'
-                      multiline={true}
+                      multiline
                       rows={20}
                       variant='outlined'
-                      fullWidth={true}
+                      fullWidth
                       size='small'
                       value={config.patternSetting[index].input}
                       onChange={this.props.handleConfigChange.bind(this, 'input')} />
