@@ -7,12 +7,27 @@ import _ from 'lodash'
 import cx from 'classnames'
 import Promise from 'bluebird'
 
-import Button from '@material-ui/core/Button';
+import Button from '@material-ui/core/Button'
+import Container from '@material-ui/core/Container'
+import Dialog from '@material-ui/core/Dialog'
+import DialogActions from '@material-ui/core/DialogActions'
+import DialogContent from '@material-ui/core/DialogContent'
+import DialogContentText from '@material-ui/core/DialogContentText'
+import DialogTitle from '@material-ui/core/DialogTitle'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import Grid from '@material-ui/core/Grid'
+import MenuItem from '@material-ui/core/MenuItem'
+import Select from '@material-ui/core/Select'
+import Switch from '@material-ui/core/Switch'
+import TextField from '@material-ui/core/TextField'
+
+import BlurLinearIcon from '@material-ui/icons/BlurLinear'
+import CloudDownloadIcon from '@material-ui/icons/CloudDownload'
 
 import Progress from 'react-ui/build/src/components/progress'
 
 import SearchOptions from '../common/search-options'
-import {BaseDataContext} from '../common/context';
+import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
 
 import {downloadLink} from 'react-ui/build/src/utils/download'
@@ -41,7 +56,15 @@ const INIT = {
     searchType: 'manual',
     searchInterval: '1h',
     refreshTime: '600000' //10 minutes
-  }
+  },
+  openLayout: false,
+  layoutConfig: {
+    display: {},
+    position: []
+  },
+  displayContent: {},
+  intervalArray: ['10m', '1h'],
+  intervalValue: '10m'
 }
 
 class StatisticsUIF extends Component {
@@ -61,17 +84,31 @@ class StatisticsUIF extends Component {
     }
 
     this.setState({datetime}, () => {
-      this.loadUIF()  
+      this.loadLayoutCfg()
     })
   }
   componentWillUnmount() {
 
   }
+  loadLayoutCfg = () => {
+    const {baseUrl, session} = this.context
+
+    this.ah.one({url: `${baseUrl}/api/dashboard/layout/_get?accountId=${session.accountId}`})
+    .then(data => {
+      this.setState({layoutConfig: data}, () => {
+        this.loadUIF()
+      })
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message)
+    })
+  }
+
   loadUIF = () => {
     const {baseUrl, session} = this.context
     const url = `${baseUrl}/api/uif?id=SCP-Overview`
 
-    let {datetime} = this.state
+    let {datetime, intervalValue} = this.state
     let appendConfig = {}
 
     this.ah.one({url})
@@ -79,9 +116,7 @@ class StatisticsUIF extends Component {
       let dataJson = JSON.parse(data)
       let uifCfg = JSON.parse(dataJson.data)
 
-
       _.forEach(uifCfg.config.widgets, (widgetValue, widgetName) => {
-
         const oldUrl = widgetValue.widgetConfig.config.dataSource.query.url
         const pattern = _.includes(oldUrl, '?') ? oldUrl.substring(oldUrl.indexOf('/api'), oldUrl.indexOf('?')) : oldUrl.substring(oldUrl.indexOf('/api'))
         const params = _.includes(oldUrl, '?') ? oldUrl.substring(oldUrl.indexOf('?') + 1) : ''
@@ -104,6 +139,9 @@ class StatisticsUIF extends Component {
             }
             else if (_.includes(param, 'timeZone')) {
               newUrl += `timeZone=8` 
+            }
+            else if (_.includes(param, 'histogramInterval')) {
+              newUrl += `histogramInterval=${intervalValue}` 
             }
             else {
               newUrl += param
@@ -146,13 +184,24 @@ class StatisticsUIF extends Component {
 
       })
 
-      this.setState({appendConfig, uifCfg})
+      let displayContent = {}
+      _.forEach(uifCfg.config.widgets, (content, key) => {
+        let type = _.get(content.widgetConfig, 'type')
+        type = type.substring(type.indexOf('/') + 1)
+        let label = `${content.boxTitle}(${type})`
+
+        displayContent[key] = label
+      })
+
+      this.setState({appendConfig, uifCfg, displayContent}, () => {
+        this.hoc.forceRefresh()
+      })
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message)
     })
   }
-  handleChange(field, value) {
+  handleChange = (field, value) => {
     this.setState({[field]: value})
   }
   handleDateChange = (type, newDatetime) => {
@@ -165,8 +214,26 @@ class StatisticsUIF extends Component {
       tempDatetime[type] = newDatetime;
     }
 
+    let period = moment(tempDatetime.to).diff(moment(tempDatetime.from))
+    let intervalArray = []
+
+    if (period <= 8640000) {
+      intervalArray = ['10m', '1h']
+    }
+    else if (8640000 < period && period <= 604800000) {
+      intervalArray = ['1h', '12h', '1d']
+    }
+    else if (604800000 < period && period <= 2419200000) {
+      intervalArray = ['12h', '1d']
+    }
+    else {
+      intervalArray = ['1d']
+    }
+
+    let intervalValue = intervalArray[0]
+
     this.setState({
-      datetime: tempDatetime
+      datetime: tempDatetime, intervalArray, intervalValue
     }, () => {
       if (type === 'refresh') {
         this.loadUIF()
@@ -284,14 +351,10 @@ class StatisticsUIF extends Component {
             }
           })
           .catch(err => {
-            console.log(err)
-
             helper.showPopupMsg('', t('txt-error'), err.message)
           })
       })
       .catch(err => {
-        console.log(err)
-
         helper.showPopupMsg('', t('txt-error'), err.message)
       })
     })
@@ -339,38 +402,146 @@ class StatisticsUIF extends Component {
     //   Progress.done()
     // })
   }
+
+  positionChange(event) {
+    let {layoutConfig} = this.state
+    layoutConfig.position = event
+
+    this.setState({layoutConfig})
+  }
+  displayChange(name, value) {
+    let {layoutConfig} = this.state
+    layoutConfig = _.set(layoutConfig, `display.${name}`, value)
+
+    this.setState({layoutConfig})
+  }
+  openLayoutDialog() {
+    this.setState({openLayout: true})
+  }
+  cancelLayout = () => {
+    const {layoutConfig} = this.state
+    this.setState({openLayout: false}, () => {
+      this.loadLayoutCfg()
+    })
+  }
+  saveLayout = () => {
+    const {baseUrl, session} = this.context
+    const {layoutConfig} = this.state
+
+    this.ah.one({
+      url: `${baseUrl}/api/dashboard/layout/_set?accountId=${session.accountId}`,
+      data: JSON.stringify(layoutConfig),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      this.setState({openLayout: false}, () => {
+        this.hoc.forceRefresh()
+      })
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message)
+    })
+  }
+
 	render() {
     const {locale} = this.context
-    const {appendConfig, datetime, searchInput} = this.state
+    let {appendConfig, datetime, searchInput, uifCfg, openLayout, layoutConfig, displayContent, intervalArray, intervalValue} = this.state
+
+    _.set(uifCfg, 'config.onLayoutChange', this.positionChange.bind(this))
+    _.forEach(appendConfig, (v, k) => {
+      _.set(uifCfg, k, v)
+    })
+
+    // set position
+    _.forEach(layoutConfig.position, el => {
+      _.set(uifCfg, `config.widgets.${el.id}.layout`, el)
+    })
+
+    // set display
+    _.forEach(layoutConfig.display, (isDisplay, key) => {
+      if (!isDisplay) {
+        uifCfg = _.omit(uifCfg, [`config.widgets.${key}`])
+      }
+    })
 
 		return <div>
 			<div className='sub-header'>
-				{helper.getDashboardMenu('statisticsUIF')}
-
-        <div className='secondary-btn-group right'>
-          <Button variant='outlined' color='primary' className='last' title={t('txt-export')} onClick={this.exportPDF.bind(this)} ><i className='fg fg-data-download'></i></Button>
-        </div>
-
-        <SearchOptions
-          datetime={datetime}
-          searchInput={searchInput}
-          enableTime={true}
-          showInterval={true}
-          setSearchData={this.setSearchData}
-          handleDateChange={this.handleDateChange}
-          handleSearchSubmit={this.loadUIF} />
+        <Grid container justify='space-between'>
+          <Grid item xs={3}>
+            {helper.getDashboardMenu('statisticsUIF')}
+          </Grid>
+          <Grid item xs={9}>
+            <Grid container justify='flex-end'>
+              <Grid item className='secondary-btn-group'>
+                <Button variant='outlined' color='primary' title={t('txt-export')} onClick={this.exportPDF.bind(this)} ><CloudDownloadIcon /></Button>
+                <Button variant='outlined' color='primary' title={t('txt-layout-setting')} onClick={this.openLayoutDialog.bind(this)} ><BlurLinearIcon /></Button>
+              </Grid>
+              <Grid item>
+                <div className='search-options'>
+                  <TextField
+                    className='search-type'
+                    select
+                    variant='outlined'
+                    size='small'
+                    value={intervalValue}
+                    onChange={(event) => this.handleChange('intervalValue', event.target.value)} >
+                    {
+                      _.map(intervalArray, el => {
+                        return <MenuItem key={el} value={el}>{t(`time-interval.txt-chart-interval`)}{t(`time-interval.txt-${el}`)}</MenuItem>
+                      })
+                    }
+                  </TextField>
+                </div>
+              </Grid>
+              <Grid item>
+                <SearchOptions
+                  datetime={datetime}
+                  searchInput={searchInput}
+                  enableTime={true}
+                  showInterval={true}
+                  setSearchData={this.setSearchData}
+                  handleDateChange={this.handleDateChange}
+                  handleSearchSubmit={this.loadUIF} />
+              </Grid>
+            </Grid>
+          </Grid>
+        </Grid>
       </div>
       {
         !_.isEmpty(appendConfig) &&
         <div className='uif-dashboard'>
-           <HOC $id={'dashboard/SCP-Overview'} $appendConfig={appendConfig} />
+        {
+           // <HOC $id={'dashboard/tettest'} $appendConfig={{...appendConfig, 'config.onLayoutChange': this.aaa.bind(this)}} />
+        }
+
+           <HOC ref={ref => { this.hoc=ref }} {...uifCfg} />
         </div>
       }
+
+      <Dialog maxWidth='lg' open={openLayout} onClose={this.cancelLayout} >
+        <DialogTitle>{t('txt-layout-setting')}</DialogTitle>
+        <DialogContent>
+        {
+          _.map(displayContent, (label, key) => {
+            return <FormControlLabel label={label} control={
+              <Switch name={key} checked={_.get(layoutConfig, `display.${key}`) === false ? false : true} 
+                onChange={(event) => this.displayChange(key, event.target.checked)} />
+            } />
+          })
+
+        }
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={this.cancelLayout} color='primary'>{t('txt-cancel')}</Button>
+          <Button onClick={this.saveLayout} color='primary'>{t('txt-save')}</Button>
+        </DialogActions>
+      </Dialog>
 		</div>
 	}
 }
 
-StatisticsUIF.contextType = BaseDataContext;
+StatisticsUIF.contextType = BaseDataContext
 
 StatisticsUIF.propTypes = {
 }

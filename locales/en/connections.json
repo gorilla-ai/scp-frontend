@@ -20,6 +20,7 @@
   "txt-close": "Close",
   "txt-show": "Show",
   "txt-tips": "Tips",
+  "txt-layout-setting": "Layout Setting",
   "txt-account": "Account",
   "txt-accounts": "Accounts",
   "txt-accountPassword": "Account/Password",
@@ -261,7 +262,8 @@
     "txt-12h": "12 hr.",
     "txt-1d": "1 day",    
     "txt-today": "Today",
-    "txt-week": "This week"
+    "txt-week": "This week",
+    "txt-interval": "Chart Interval "
   },
 
   "dashboard": {

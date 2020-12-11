@@ -20,6 +20,7 @@
   "txt-close": "關閉",
   "txt-show": "顯示",
   "txt-tips": "提示",
+  "txt-layout-setting": "版面設定",
   "txt-account": "帳號",
   "txt-accounts": "帳號",
   "txt-accountPassword": "帳號/密碼",
@@ -261,7 +262,8 @@
     "txt-12h": "12小時",
     "txt-1d": "1天",    
     "txt-today": "今天",
-    "txt-week": "本週"
+    "txt-week": "本週",
+    "txt-chart-interval": "圖表區間"
   },
 
   "dashboard": {
