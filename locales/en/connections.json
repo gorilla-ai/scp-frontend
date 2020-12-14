@@ -12,7 +12,7 @@
   "txt-date": "Date",
   "txt-filter": "Filter",
   "txt-filterQuery": "Filter Query",
-  "txt-monitor": "Monitor",
+  "txt-search": "Search",
   "txt-pageSize": "Page Size",
   "txt-totalCount": "Total Count",
   "txt-noData": "No Data",
@@ -493,7 +493,7 @@
     "txt-coordinateError": "Please enter a valid longitude/latitude value",
     "txt-edgeFormatError": "Please check your input format and required fields",
     "txt-addSuccess": "Threat has been added successfully",
-    "txt-urlErrorMsg": "Please remove the URL protocol",
+    "txt-urlErrorMsg": "Please remove the URL protocol (e.g., http://)",
     "statistics": {
       "txt-sourceIndicators": "Source Indicators",
       "txt-indicatorsTrend": "Indicators Trend",

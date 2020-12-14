@@ -492,7 +492,7 @@
     "txt-coordinateError": "請輸入正確的經緯度",
     "txt-edgeFormatError": "請檢查格式及必填欄位",
     "txt-addSuccess": "威脅情資新增成功",
-    "txt-urlErrorMsg": "請移除URL通訊協定的部分",
+    "txt-urlErrorMsg": "請移除URL通訊協定的部分(如: http://)",
     "statistics": {
       "txt-sourceIndicators": "情資類型統計圓餅圖",
       "txt-indicatorsTrend": "每日情資更新數量長條圖",
