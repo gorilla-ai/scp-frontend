@@ -23,6 +23,7 @@ import helper from './components/common/helper'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+const a = i18n.getFixedT(null, 'accounts');
 const t = i18n.getFixedT(null, 'connections');
 const l = i18n.getFixedT(null, 'app');
 const it = i18n.getFixedT(null, 'incident');
@@ -40,11 +41,21 @@ class Header extends Component {
     this.state = {
       theme: '',
       contextAnchor: null,
-      showResetPassword: false,
-      newPassword: '',
+      showChangePassword: false,
+      formData: {
+        oldPwd: '',
+        newPwd1: '',
+        newPwd2: ''
+      },
       info: '',
       formValidation: {
-        password: {
+        oldPwd: {
+          valid: true
+        },
+        newPwd1: {
+          valid: true
+        },
+        newPwd2: {
           valid: true
         }
       }
@@ -54,7 +65,6 @@ class Header extends Component {
   }
   componentDidMount() {
     this.setTheme();
-    //this.getUserConfig();
   }
   /**
    * Set site theme
@@ -64,31 +74,6 @@ class Header extends Component {
     this.setState({
       theme: this.props.themeName
     });
-  }
-  /**
-   * Get and set user config for site theme
-   * @method
-   */
-  getUserConfig = () => {
-    const {baseUrl, session} = this.context;
-
-    this.ah.one({
-      url: `${baseUrl}/api/account/theme?accountId=${session.accountId}`,
-      type: 'GET'
-    }, {showProgress: false})
-    .then(data => {
-      if (data) {
-        this.setState({
-          theme: data
-        });
-
-        document.documentElement.setAttribute('data-theme', data);
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
   }
   /**
    * Determine the active page
@@ -219,21 +204,24 @@ class Header extends Component {
    * @method
    * @returns HTML DOM
    */
-  showResetPassword = () => {
+  showChangePassword = () => {
     this.setState({
-      showResetPassword: true
+      showChangePassword: true
     });
 
     this.handleCloseMenu();
   }
   /**
-   * Handle password input box
+   * Set input data change
    * @method
    * @param {object} event - event object
    */
-  handlePasswordChange = (event) => {
+  handleDataChange = (event) => {
+    let tempFormData = {...this.state.formData};
+    tempFormData[event.target.name] = event.target.value;  
+
     this.setState({
-      [event.target.name]: event.target.value
+      formData: tempFormData
     });
   }
   /**
@@ -242,22 +230,55 @@ class Header extends Component {
    * @returns HTML DOM
    */
   displayNewPassword = () => {
-    const {newPassword, formValidation} = this.state;
+    const {formData, formValidation} = this.state;
 
     return (
-      <div className='group'>
-        <TextField
-          name='newPassword'
-          type='password'
-          label={t('txt-password')}
-          variant='outlined'
-          fullWidth
-          size='small'
-          required
-          error={!formValidation.password.valid}
-          helperText={formValidation.password.valid ? '' : t('txt-required')}
-          value={newPassword}
-          onChange={this.handlePasswordChange} />
+      <div>
+        <div className='form-input'>
+          <TextField
+            name='oldPwd'
+            type='password'
+            label={a('oldPwd')}
+            variant='outlined'
+            fullWidth
+            size='small'
+            required
+            error={!formValidation.oldPwd.valid}
+            helperText={formValidation.oldPwd.valid ? '' : l('login.lbl-password')}
+            inputProps={{ maxLength: 64 }}
+            value={formData.oldPwd}
+            onChange={this.handleDataChange} />
+        </div>
+        <div className='form-input'>
+          <TextField
+            name='newPwd1'
+            type='password'
+            label={a('pwd')}
+            variant='outlined'
+            fullWidth
+            size='small'
+            required
+            error={!formValidation.newPwd1.valid}
+            helperText={formValidation.newPwd1.valid ? '' : l('login.lbl-password')}
+            inputProps={{ maxLength: 64 }}
+            value={formData.newPwd1}
+            onChange={this.handleDataChange} />
+        </div>
+        <div className='form-input'>
+          <TextField
+            name='newPwd2'
+            type='password'
+            label={a('reenterPwd')}
+            variant='outlined'
+            fullWidth
+            size='small'
+            required
+            error={!formValidation.newPwd2.valid}
+            helperText={formValidation.newPwd2.valid ? '' : l('login.lbl-password')}
+            inputProps={{ maxLength: 64 }}
+            value={formData.newPwd2}
+            onChange={this.handleDataChange} />
+        </div>
       </div>
     )
   }
@@ -266,15 +287,16 @@ class Header extends Component {
    * @method
    * @returns ModalDialog
    */
-  showResetPasswordDialog = () => {
+  showChangePasswordDialog = () => {
     const actions = {
-      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeResetPasswordDialog},
-      confirm: {text: t('txt-confirm'), handler: this.handleResetPasswordConfirm}
+      cancel: {text: t('txt-cancel'), className: 'standard', handler: this.closeChangePasswordDialog},
+      confirm: {text: t('txt-confirm'), handler: this.handleChangePasswordConfirm}
     };
-    const titleText = t('txt-resetPassword');
+    const titleText = l('login.txt-changePassword');
 
     return (
       <ModalDialog
+        id='changePasswordDialog'
         className='modal-dialog'
         title={titleText}
         draggable={true}
@@ -290,25 +312,37 @@ class Header extends Component {
    * Handle reset password confirm
    * @method
    */
-  handleResetPasswordConfirm = () => {
+  handleChangePasswordConfirm = () => {
     const {baseUrl, session} = this.context;
-    const {newPassword, formValidation} = this.state;
-    const url = `${baseUrl}/api/account/password/_reset`;
-    const requestData = {
-      account: session.account,
-      newPassword
-    };
+    const {formData, formValidation} = this.state;
+    const url = `${baseUrl}/api/account/password`;
+    const PASSWORD = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@.$%^&*-]).{12,}$/;
     let tempFormValidation = {...formValidation};
     let validate = true;
 
-    if (newPassword) {
-      formValidation.password.valid = true;
+    if (formData.oldPwd) {
+      tempFormValidation.oldPwd.valid = true;
     } else {
-      formValidation.password.valid = false;
+      tempFormValidation.oldPwd.valid = false;
+      validate = false;
+    }
+
+    if (formData.newPwd1) {
+      tempFormValidation.newPwd1.valid = true;
+    } else {
+      tempFormValidation.newPwd1.valid = false;
+      validate = false;
+    }
+
+    if (formData.newPwd2) {
+      tempFormValidation.newPwd2.valid = true;
+    } else {
+      tempFormValidation.newPwd2.valid = false;
       validate = false;
     }
 
     this.setState({
+      info: '',
       formValidation: tempFormValidation
     });
 
@@ -316,16 +350,37 @@ class Header extends Component {
       return;
     }
 
+    if (formData.oldPwd === formData.newPwd1) {
+      this.showError(a('pwd-samePass'));
+      return;
+    }
+
+    if (!formData.newPwd1.match(PASSWORD)) {
+      this.showError(l('txt-password-pattern'));
+      return;
+    }
+
+    if (formData.newPwd1 !== formData.newPwd2) {
+      this.showError(a('pwd-inconsistent'));
+      return;
+    }    
+
+    const requestData = {
+      account: session.account,
+      currentPassword: formData.oldPwd,
+      newPassword: formData.newPwd1
+    };
+
     this.ah.one({
       url,
       data: JSON.stringify(requestData),
-      type: 'POST',
+      type: 'PATCH',
       contentType: 'text/plain'
     })
     .then(data => {
       if (data) {
-        helper.showPopupMsg(t('txt-resetPasswordSuccess'));
-        this.closeResetPasswordDialog();
+        helper.showPopupMsg(t('txt-changePasswordSuccess'));
+        this.closeChangePasswordDialog();
       }
       return null;
     })
@@ -336,16 +391,36 @@ class Header extends Component {
     })
   }
   /**
+   * Set dialog error message
+   * @method
+   * @param {string} msg - error message
+   */
+  showError = (msg) => {
+    this.setState({
+      info: msg
+    });
+  }
+  /**
    * Handle reset password cancel
    * @method
    */
-  closeResetPasswordDialog = () => {
+  closeChangePasswordDialog = () => {
     this.setState({
-      showResetPassword: false,
-      newPassword: '',
+      showChangePassword: false,
+      formData: {
+        oldPwd: '',
+        newPwd1: '',
+        newPwd2: ''
+      },
       info: '',
       formValidation: {
-        password: {
+        oldPwd: {
+          valid: true
+        },
+        newPwd1: {
+          valid: true
+        },
+        newPwd2: {
           valid: true
         }
       }
@@ -354,7 +429,7 @@ class Header extends Component {
   render() {
     const {contextRoot, sessionRights, session, language} = this.context;
     const {productName} = this.props;
-    const {contextAnchor, showResetPassword} = this.state;
+    const {contextAnchor, showChangePassword} = this.state;
     let showLanguage = '';
 
     if (language === 'zh') {
@@ -365,8 +440,8 @@ class Header extends Component {
 
     return (
       <div className='header-wrapper'>
-        {showResetPassword &&
-          this.showResetPasswordDialog()
+        {showChangePassword &&
+          this.showChangePasswordDialog()
         }
 
         <div className='main-header'>
@@ -413,7 +488,7 @@ class Header extends Component {
               <MenuItem onClick={this.changeLng.bind(this, showLanguage)}>{t('lng.' + showLanguage)}</MenuItem>
               <MenuItem onClick={this.toggleTheme}>{l('toggle-theme')}</MenuItem>
               <MenuItem onClick={this.editAccount}>{l('login.txt-account')}</MenuItem>
-              <MenuItem onClick={this.showResetPassword}>{l('login.txt-resetPassword')}</MenuItem>
+              <MenuItem onClick={this.showChangePassword}>{l('login.txt-changePassword')}</MenuItem>
               <MenuItem onClick={this.logout}>{l('login.btn-logout')}</MenuItem>
             </Menu>
           </header>

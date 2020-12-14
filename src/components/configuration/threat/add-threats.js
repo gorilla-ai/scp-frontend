@@ -88,6 +88,7 @@ class AddThreats extends Component {
           value={value.type}
           onChange={this.handleDataChange}>
           <MenuItem value={'ip'}>IP</MenuItem>
+          <MenuItem value={'ipv6'}>IPv6</MenuItem>
           <MenuItem value={'domainName'}>DomainName</MenuItem>
           <MenuItem value={'url'}>URL</MenuItem>
           <MenuItem value={'snort'}>SNORT</MenuItem>

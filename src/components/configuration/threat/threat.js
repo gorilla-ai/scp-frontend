@@ -653,6 +653,10 @@ class ThreatIntelligence extends Component {
       formData.append('severity', key.toUpperCase());
 
       _.forEach(val, (val2, key2) => {
+        if (key2 === 'ipv6Array') { //Special case for IPv6
+          key2 = 'ipArray';
+        }
+
         formData.append(key2, val2.toString());
       })
 
@@ -928,15 +932,20 @@ class ThreatIntelligence extends Component {
     const {baseUrl, contextRoot} = this.context;
     const {threatsSearch, threats} = this.state;
     const page = fromSearch === 'search' ? 1 : threats.currentPage;
+    let keyword = threatsSearch.keyword;
 
     if (!threatsSearch.keyword) {
       helper.showPopupMsg(t('txt-plsEnterKeyword'));
       return;
     }
 
+    if (threatsSearch.type === 'URL') {
+      keyword = threatsSearch.keyword.replace(/(^\w+:|^)\/\//, ''); //Remove :// from URL
+    }
+
     let apiArr = [
       {
-        url: `${baseUrl}/api/indicators/_search?text=${threatsSearch.keyword}&threatTypeArray=${threatsSearch.type}&page=${page}&pageSize=${threats.pageSize}`,
+        url: `${baseUrl}/api/indicators/_search?text=${keyword}&threatTypeArray=${threatsSearch.type}&page=${page}&pageSize=${threats.pageSize}`,
         type: 'GET'
       }
     ];

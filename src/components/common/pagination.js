@@ -4,6 +4,8 @@ import PropTypes from 'prop-types'
 import DropDownList from 'react-ui/build/src/components/dropdown'
 import PageNav from 'react-ui/build/src/components/page-nav'
 
+import helper from '../common/helper'
+
 let t = null;
 
 /**
@@ -45,14 +47,18 @@ class Pagination extends Component {
         }
 
         {totalCount > 0 &&
-          <div className='pagination dropdown-margin'>
-            <label htmlFor='pageSize'>{t('txt-pageSize')}</label>
-            <DropDownList
-              id='pageSize'
-              list={paginationOptions || defaultPaginationOptions}
-              required={true}
-              value={pageSize}
-              onChange={this.props.onDropDownChange} />
+          <div>
+            <div className='pagination dropdown-margin'>
+              <label htmlFor='pageSize'>{t('txt-pageSize')}</label>
+              <DropDownList
+                className='page-size'
+                list={paginationOptions || defaultPaginationOptions}
+                required={true}
+                value={pageSize}
+                onChange={this.props.onDropDownChange} />
+            </div>
+
+            <div className='total-count'>{t('txt-totalCount')}: {helper.numberWithCommas(totalCount)}</div>
           </div>
         }
       </div>

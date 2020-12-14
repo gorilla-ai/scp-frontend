@@ -90,7 +90,7 @@ class ResetPwd extends Component {
     const {formType, formData, formValidation} = this.state;
 
     return (
-      <div className='accounts-size-frame'>
+      <div>
         <div className='form-input'>
           <TextField
             name='account'
@@ -164,7 +164,7 @@ class ResetPwd extends Component {
     const {formType, formData, formValidation} = this.state;
     const PASSWORD = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@.$%^&*-]).{12,}$/;
     let tempFormValidation = {...formValidation};
-    let validate = true;    
+    let validate = true;
 
     if (formData.account) {
       tempFormValidation.account.valid = true;
