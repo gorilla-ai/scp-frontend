@@ -493,6 +493,7 @@
     "txt-coordinateError": "Please enter a valid longitude/latitude value",
     "txt-edgeFormatError": "Please check your input format and required fields",
     "txt-addSuccess": "Threat has been added successfully",
+    "txt-urlErrorMsg": "Please remove the URL protocol",
     "statistics": {
       "txt-sourceIndicators": "Source Indicators",
       "txt-indicatorsTrend": "Indicators Trend",

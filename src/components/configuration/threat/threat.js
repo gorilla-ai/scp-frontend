@@ -932,20 +932,24 @@ class ThreatIntelligence extends Component {
     const {baseUrl, contextRoot} = this.context;
     const {threatsSearch, threats} = this.state;
     const page = fromSearch === 'search' ? 1 : threats.currentPage;
-    let keyword = threatsSearch.keyword;
 
     if (!threatsSearch.keyword) {
-      helper.showPopupMsg(t('txt-plsEnterKeyword'));
+      helper.showPopupMsg(t('txt-plsEnterKeyword'), t('txt-error'));
       return;
     }
 
-    if (threatsSearch.type === 'URL') {
-      keyword = threatsSearch.keyword.replace(/(^\w+:|^)\/\//, ''); //Remove :// from URL
+    if (threatsSearch.type === 'URL') { //Handle special case for URL
+      const pattern = /:\/\//;
+
+      if (pattern.test(threatsSearch.keyword)) {
+        helper.showPopupMsg(t('edge-management.txt-urlErrorMsg'), t('txt-error'));
+        return;
+      }
     }
 
     let apiArr = [
       {
-        url: `${baseUrl}/api/indicators/_search?text=${keyword}&threatTypeArray=${threatsSearch.type}&page=${page}&pageSize=${threats.pageSize}`,
+        url: `${baseUrl}/api/indicators/_search?text=${threatsSearch.keyword}&threatTypeArray=${threatsSearch.type}&page=${page}&pageSize=${threats.pageSize}`,
         type: 'GET'
       }
     ];
