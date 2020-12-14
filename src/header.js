@@ -354,7 +354,7 @@ class Header extends Component {
   render() {
     const {contextRoot, sessionRights, session, language} = this.context;
     const {productName} = this.props;
-    const {contextAnchor} = this.state;
+    const {contextAnchor, showResetPassword} = this.state;
     let showLanguage = '';
 
     if (language === 'zh') {
