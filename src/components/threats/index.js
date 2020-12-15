@@ -152,7 +152,7 @@ class ThreatsController extends Component {
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
-    it = global.chewbaccaI18n.getFixedT(null, "incident");
+    it = global.chewbaccaI18n.getFixedT(null, 'incident');
 
     this.state = {
       activeTab: 'alert',
@@ -588,7 +588,7 @@ class ThreatsController extends Component {
   /**
    * Get and set alert data
    * @method
-   * @param {string} [options] - option for 'search' or 'statistics'
+   * @param {string} [options] - option for 'search', 'statistics', or 'alertDetails'
    */
   loadThreatsData = (options) => {
     const {baseUrl} = this.context;
@@ -609,7 +609,7 @@ class ThreatsController extends Component {
     const requestData = this.toQueryLanguage(options);
     let url = `${baseUrl}/api/u2/alert/_search?histogramInterval=${chartIntervalValue}&page=${setPage}&pageSize=`;
 
-    if (!options || options === 'search') {
+    if (!options || options === 'search' || options === 'alertDetails') {
       url += pageSize;
     } else {
       url += '0&skipHistogram=true';
@@ -623,7 +623,7 @@ class ThreatsController extends Component {
     })
     .then(data => {
       if (data) {
-        if (!options || options === 'search') {
+        if (!options || options === 'search' || options === 'alertDetails') {
           if (currentPage > 1 && data.data.rows.length === 0) {
             helper.showPopupMsg('', t('txt-error'), t('txt-maxDataMsg'));
 
@@ -688,6 +688,10 @@ class ThreatsController extends Component {
               this.setState({
                 alertHistogram,
                 alertDetails: tempAlertDetails
+              }, () => {
+                if (options === 'alertDetails') {
+                  this.openDetailInfo(0); //Pass index of 0
+                }
               });
 
               let tempFields = {};
@@ -1351,12 +1355,13 @@ class ThreatsController extends Component {
    * Handle pagination change
    * @method
    * @param {number} currentPage - current page
+   * @param {string} options - options for 'alertDetails'
    */
-  handlePaginationChange = (currentPage) => {
+  handlePaginationChange = (currentPage, options) => {
     this.setState({
       currentPage
     }, () => {
-      this.loadThreatsData();
+      this.loadThreatsData(options);
     });
   }
   /**
@@ -1467,7 +1472,7 @@ class ThreatsController extends Component {
    */
   alertDialog = () => {
     const {sessionRights} = this.context;
-    const {datetime, alertDetails, alertData} = this.state;
+    const {datetime, currentPage, pageSize, alertDetails, alertData, subSectionsData} = this.state;
     const dateTime = {
       from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
       to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
@@ -1491,6 +1496,9 @@ class ThreatsController extends Component {
         alertDetails={alertDetails}
         alertData={alertData}
         showAlertData={this.showAlertData}
+        currentPage={currentPage}
+        pageSize={pageSize}
+        totalPageCount={subSectionsData.totalCount.alert}
         fromPage='threats' />
     )
   }
@@ -1500,15 +1508,22 @@ class ThreatsController extends Component {
    * @param {string} type - button action type ('previous' or 'next')
    */
   showAlertData = (type) => {
-    const {alertDetails} = this.state;
+    const {currentPage, alertDetails} = this.state;
     let tempAlertDetails = {...alertDetails};
+    let tempCurrentPage = currentPage;
 
     if (type === 'previous') {
-      if (alertDetails.currentIndex !== 0) {
+      if (alertDetails.currentIndex === 0) { //End of the data, load previous set
+        this.handlePaginationChange(--tempCurrentPage, 'alertDetails');
+        return;
+      } else {
         tempAlertDetails.currentIndex--;
       }
     } else if (type === 'next') {
-      if (alertDetails.currentLength - alertDetails.currentIndex > 1) {
+      if (alertDetails.currentLength - alertDetails.currentIndex === 1) { //End of the data, load next set
+        this.handlePaginationChange(++tempCurrentPage, 'alertDetails');
+        return;
+      } else {
         tempAlertDetails.currentIndex++;
       }
     }
@@ -1536,25 +1551,25 @@ class ThreatsController extends Component {
   openDetailInfo = (index, allValue, evt) => {
     const {alertDetails} = this.state;
     let tempAlertDetails = {...alertDetails};
-    let data = '';
-    let itemID = '';
+    let alertData = '';
 
     if (_.isArray(allValue)) { //For click from World Map
-      data = allValue[index];
+      alertData = allValue[index];
     } else {
       tempAlertDetails.currentIndex = Number(index);
-      data = allValue;
 
-      if (allValue.id) {
-        itemID = allValue.id;
+      if (allValue) {
+        alertData = allValue;
+      } else {
+        alertData = alertDetails.all[Number(index)];
       }
     }
 
     this.setState({
+      currentTableID: alertData.id,
+      alertDetailsOpen: true,
       alertDetails: tempAlertDetails,
-      currentTableID: itemID,
-      alertData: data,
-      alertDetailsOpen: true
+      alertData
     });
   }
   /**

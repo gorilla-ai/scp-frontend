@@ -617,7 +617,7 @@ class SyslogController extends Component {
   /**
    * Load Syslog data
    * @method
-   * @param {string} options - option for 'search'
+   * @param {string} options - option for 'search' or dialogType ('table' or 'json')
    */
   loadLogs = (options) => {
     const {baseUrl} = this.context;
@@ -745,6 +745,12 @@ class SyslogController extends Component {
           subSectionsData: tempSubSectionsData,
           eventHistogram,
           currentLength
+        }, () => {
+          if (options === 'table') {
+            this.showTableData(tempSubSectionsData.mainData.logs[0]);
+          } else if (options === 'json') {
+            this.showJsonData(tempSubSectionsData.mainData.logs[0]);
+          }
         });
       }
       return null;
@@ -948,12 +954,13 @@ class SyslogController extends Component {
    * Handle pagination change
    * @method
    * @param {number} currentPage - current page
+   * @param {string} options - options for dialogType ('table' or 'json')
    */
-  handlePaginationChange = (currentPage) => {
+  handlePaginationChange = (currentPage, options) => {
     this.setState({
       currentPage
     }, () => {
-      this.loadLogs();
+      this.loadLogs(options);
     });
   }
   /**
@@ -1174,7 +1181,7 @@ class SyslogController extends Component {
    * @param {object} event - event object
    */
   handleRowDoubleClick = (index, allValue, event) => {
-    this.showTableData(allValue, index);
+    this.showTableData(allValue);
     event.stopPropagation();
     return null;
   }
@@ -1182,21 +1189,34 @@ class SyslogController extends Component {
    * Set the table row index and netflow data
    * @method
    * @param {string | object} data - button action type ('previous' or 'next'), or data object
+   * @param {string} dialogType - 'table' or 'json'
    * @returns object of index and data
    */
-  handleDialogNavigation = (data) => {
-    const {activeTab, subSectionsData, currentTableIndex} = this.state;
+  handleDialogNavigation = (data, dialogType) => {
+    const {activeTab, currentPage, subSectionsData, currentTableIndex, currentLength} = this.state;
     let tableRowIndex = '';
     let allValue = {};
+    let tempCurrentPage = currentPage;
 
-    if (data === 'next' || data === 'previous') { //For click on navigation button
+    if (data === 'previous' || data === 'next') { //For click on navigation button
       tableRowIndex = currentTableIndex;
 
-      if (data === 'next') {
-        tableRowIndex++;
-      } else if (data === 'previous') {
-        tableRowIndex--;
+      if (data === 'previous') {
+        if (currentTableIndex === 0) { //End of the data, load previous set
+          this.handlePaginationChange(--tempCurrentPage, dialogType);
+          return;
+        } else {
+          tableRowIndex--;
+        }
+      } else if (data === 'next') {
+        if (currentTableIndex + 1 == currentLength) { //End of the data, load next set
+          this.handlePaginationChange(++tempCurrentPage, dialogType);
+          return;
+        } else {
+          tableRowIndex++;
+        }
       }
+
       allValue = subSectionsData.mainData[activeTab][tableRowIndex];
     } else { //For click on table row
       tableRowIndex = _.findIndex(subSectionsData.mainData[activeTab], {'id': data.id});
@@ -1211,11 +1231,16 @@ class SyslogController extends Component {
   /**
    * Set the data to be displayed in table dialog
    * @method
-   * @param {object} allValue - data of selected table row
+   * @param {object} allValue - data of selected table row, or button action type ('previous' or 'next')
    */
   showTableData = (allValue) => {
     const {activeTab, subSectionsData, account} = this.state;
-    const newData = this.handleDialogNavigation(allValue);
+    const newData = this.handleDialogNavigation(allValue, 'table');
+
+    if (!newData) {
+      return;
+    }
+
     const currentTableIndex = newData.tableRowIndex;
     let filteredAllValue = {};
     allValue = newData.allValue;
@@ -1284,12 +1309,10 @@ class SyslogController extends Component {
    * @param {string} localeField - custom locale name
    */
   toggleLocaleEdit = (key, localeField) => {
-    const logCustomLocal = localeField ? localeField : key;
-
     this.setState({
       logLocaleChangeOpen: true,
       logActiveField: key,
-      logCustomLocal
+      logCustomLocal: localeField ? localeField : key
     });
   }
   /**
@@ -1389,6 +1412,36 @@ class SyslogController extends Component {
     });
   }
   /**
+   * Display dialog navigation btn with text
+   * @method
+   * @param {string} dialogType - 'table' or 'json'
+   * @param {string} navType - 'previous' or 'next'
+   */
+  displayNavigationBtn = (dialogType, navType) => {
+    const {currentPage, pageSize, currentTableIndex, currentLength, subSectionsData} = this.state;
+    const firstItemCheck = currentTableIndex === 0;
+    const lastItemCheck = currentTableIndex + 1 == currentLength;
+    const firstPageCheck = currentPage === 1;
+    const lastPageCheck = currentPage === Math.ceil(subSectionsData.totalCount.logs / pageSize);
+    const pageText = {
+      previous: firstItemCheck ? t('txt-previousPage') : t('txt-previous'),
+      next: lastItemCheck ? t('txt-nextPage') : t('txt-next')
+    };
+    const paginationDisabled = {
+      previous: firstItemCheck && firstPageCheck,
+      next: lastItemCheck && lastPageCheck
+    };
+    let clickAction = '';
+
+    if (dialogType === 'table') {
+      clickAction = this.showTableData.bind(this, navType);
+    } else if (dialogType === 'json') {
+      clickAction = this.showJsonData.bind(this, navType);
+    }   
+
+    return <Button variant='outlined' color='primary' onClick={clickAction} disabled={paginationDisabled[navType]}>{pageText[navType]}</Button>
+  }
+  /**
    * Display table data content
    * @method
    * @returns HTML DOM
@@ -1413,8 +1466,8 @@ class SyslogController extends Component {
         {currentLength > 1 &&
           <div className='pagination'>
             <div className='buttons'>
-              <Button variant='outlined' color='primary' onClick={this.showTableData.bind(this, 'previous')} disabled={currentTableIndex === 0}>{t('txt-previous')}</Button>
-              <Button variant='outlined' color='primary' onClick={this.showTableData.bind(this, 'next')} disabled={currentTableIndex + 1 == currentLength}>{t('txt-next')}</Button>
+              {this.displayNavigationBtn('table', 'previous')}
+              {this.displayNavigationBtn('table', 'next')}
             </div>
             <span className='count'>{currentTableIndex + 1} / {currentLength}</span>
           </div>
@@ -1511,8 +1564,8 @@ class SyslogController extends Component {
 
         <div className='pagination json'>
           <div className='buttons'>
-            <Button variant='outlined' color='primary' onClick={this.viewJsonData.bind(this, 'previous')} disabled={currentTableIndex === 0}>{t('txt-previous')}</Button>
-            <Button variant='outlined' color='primary' onClick={this.viewJsonData.bind(this, 'next')} disabled={currentTableIndex + 1 == currentLength}>{t('txt-next')}</Button>
+            {this.displayNavigationBtn('json', 'previous')}
+            {this.displayNavigationBtn('json', 'next')}
           </div>
           <span className='count'>{currentTableIndex + 1} / {currentLength}</span>
         </div>
@@ -1524,8 +1577,13 @@ class SyslogController extends Component {
    * @method
    * @param {object} allValue - data of selected table row
    */
-  viewJsonData = (allValue) => {
-    const newData = this.handleDialogNavigation(allValue);
+  showJsonData = (allValue) => {
+    const newData = this.handleDialogNavigation(allValue, 'json');
+
+    if (!newData) {
+      return;
+    }
+
     const currentTableIndex = newData.tableRowIndex;
     allValue = newData.allValue;
 
@@ -1968,7 +2026,7 @@ class SyslogController extends Component {
           open={Boolean(syslogContextAnchor)}
           onClose={this.handleCloseMenu}>
           <MenuItem onClick={this.showTableData.bind(this, currentSyslogData)}>{t('events.connections.txt-fieldsSettings')}</MenuItem>
-          <MenuItem onClick={this.viewJsonData.bind(this, currentSyslogData)}>{t('txt-viewJSON')}</MenuItem>
+          <MenuItem onClick={this.showJsonData.bind(this, currentSyslogData)}>{t('txt-viewJSON')}</MenuItem>
         </Menu>
 
         <Menu
