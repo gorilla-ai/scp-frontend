@@ -20,6 +20,7 @@ import MenuItem from '@material-ui/core/MenuItem'
 import Select from '@material-ui/core/Select'
 import Switch from '@material-ui/core/Switch'
 import TextField from '@material-ui/core/TextField'
+import Typography from '@material-ui/core/Typography'
 
 import BlurLinearIcon from '@material-ui/icons/BlurLinear'
 import CloudDownloadIcon from '@material-ui/icons/CloudDownload'
@@ -58,6 +59,8 @@ const INIT = {
     refreshTime: '600000' //10 minutes
   },
   openLayout: false,
+  openEdit: false,
+  oneFlag: false,
   layoutConfig: {
     display: {},
     position: []
@@ -71,11 +74,11 @@ class StatisticsUIF extends Component {
 	constructor(props) {
 		super(props)
 
-	    t = global.chewbaccaI18n.getFixedT(null, 'connections')
-	    et = global.chewbaccaI18n.getFixedT(null, 'errors')
-	    this.ah = getInstance('chewbacca')
+    t = global.chewbaccaI18n.getFixedT(null, 'connections')
+    et = global.chewbaccaI18n.getFixedT(null, 'errors')
+    this.ah = getInstance('chewbacca')
 
-      this.state = _.cloneDeep(INIT)
+    this.state = _.cloneDeep(INIT)
 	}
   componentDidMount() {
     const datetime = {
@@ -83,7 +86,7 @@ class StatisticsUIF extends Component {
       to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
     }
 
-    this.setState({datetime}, () => {
+    this.setState({datetime, oneFlag: false}, () => {
       this.loadLayoutCfg()
     })
   }
@@ -106,9 +109,9 @@ class StatisticsUIF extends Component {
 
   loadUIF = () => {
     const {baseUrl, session} = this.context
-    const url = `${baseUrl}/api/uif?id=SCP-Overview`
+    const url = `${baseUrl}/api/uif?id=tettest`
 
-    let {datetime, intervalValue} = this.state
+    let {datetime, intervalValue, oneFlag} = this.state
     let appendConfig = {}
 
     this.ah.one({url})
@@ -194,7 +197,7 @@ class StatisticsUIF extends Component {
       })
 
       this.setState({appendConfig, uifCfg, displayContent}, () => {
-        this.hoc.forceRefresh()
+        oneFlag && this.hoc.forceRefresh()
       })
     })
     .catch(err => {
@@ -403,25 +406,30 @@ class StatisticsUIF extends Component {
     // })
   }
 
-  positionChange(event) {
-    let {layoutConfig} = this.state
+  positionChange = (event) => {
+    let {layoutConfig, oneFlag} = this.state
     layoutConfig.position = event
 
-    this.setState({layoutConfig})
+    if (oneFlag) {
+      this.setState({layoutConfig, openEdit: true})
+    }
+    else {
+      this.setState({layoutConfig, oneFlag: true})
+    }
   }
   displayChange(name, value) {
     let {layoutConfig} = this.state
     layoutConfig = _.set(layoutConfig, `display.${name}`, value)
-
-    this.setState({layoutConfig})
+    // document.getElementById(name).style.visibility = value ? 'visible' : 'hidden'
+    this.setState({layoutConfig, openEdit: true})
   }
   openLayoutDialog() {
     this.setState({openLayout: true})
   }
   cancelLayout = () => {
-    const {layoutConfig} = this.state
+    const {openEdit} = this.state
     this.setState({openLayout: false}, () => {
-      this.loadLayoutCfg()
+      openEdit && this.loadUIF()
     })
   }
   saveLayout = () => {
@@ -435,8 +443,8 @@ class StatisticsUIF extends Component {
       contentType: 'text/plain'
     })
     .then(data => {
-      this.setState({openLayout: false}, () => {
-        this.hoc.forceRefresh()
+      this.setState({openLayout: false, openEdit: false, oneFlag: false}, () => {
+        // this.hoc.forceRefresh()
       })
     })
     .catch(err => {
@@ -444,11 +452,12 @@ class StatisticsUIF extends Component {
     })
   }
 
+
 	render() {
     const {locale} = this.context
-    let {appendConfig, datetime, searchInput, uifCfg, openLayout, layoutConfig, displayContent, intervalArray, intervalValue} = this.state
+    let {appendConfig, datetime, searchInput, uifCfg, openLayout, openEdit, layoutConfig, displayContent, intervalArray, intervalValue} = this.state
 
-    _.set(uifCfg, 'config.onLayoutChange', this.positionChange.bind(this))
+    _.set(uifCfg, 'config.onLayoutChange', this.positionChange)
     _.forEach(appendConfig, (v, k) => {
       _.set(uifCfg, k, v)
     })
@@ -508,6 +517,16 @@ class StatisticsUIF extends Component {
           </Grid>
         </Grid>
       </div>
+
+      {
+        openEdit &&
+        <Grid container style={{backgroundColor: 'white', padding: '5px'}} justify='center' alignItems='center'>
+            <Typography color='error' display='inline'>{t('txt-layout-change')}</Typography>&nbsp;&nbsp;&nbsp;
+            <Button variant='outlined' color='primary' onClick={this.handleChange.bind(this, 'openEdit', false)} >{t('txt-cancel')}</Button>&nbsp;&nbsp;&nbsp;
+            <Button variant='outlined' color='primary' onClick={this.saveLayout.bind(this)} >{t('txt-save')}</Button>
+        </Grid>
+      }
+
       {
         !_.isEmpty(appendConfig) &&
         <div className='uif-dashboard'>
@@ -533,8 +552,7 @@ class StatisticsUIF extends Component {
         }
         </DialogContent>
         <DialogActions>
-          <Button onClick={this.cancelLayout} color='primary'>{t('txt-cancel')}</Button>
-          <Button onClick={this.saveLayout} color='primary'>{t('txt-save')}</Button>
+          <Button onClick={this.cancelLayout} color='primary'>{t('txt-close')}</Button>
         </DialogActions>
       </Dialog>
 		</div>
