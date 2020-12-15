@@ -109,7 +109,7 @@ class StatisticsUIF extends Component {
 
   loadUIF = () => {
     const {baseUrl, session} = this.context
-    const url = `${baseUrl}/api/uif?id=tettest`
+    const url = `${baseUrl}/api/uif?id=SCP-Overview`
 
     let {datetime, intervalValue, oneFlag} = this.state
     let appendConfig = {}
