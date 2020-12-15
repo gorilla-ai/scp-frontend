@@ -829,9 +829,37 @@ class AlertDetails extends Component {
    * @returns HTML DOM
    */
   displayAlertData = () => {
-    const {alertDetails, alertData} = this.props;
+    const {alertDetails, alertData, currentPage, pageSize, totalPageCount, fromPage} = this.props;
     const {alertType, showContent, alertRule, alertPayload, showRedirectMenu} = this.state;
     const eventDatetime = alertData._eventDttm_ ? helper.getFormattedDate(alertData._eventDttm_, 'local') : NOT_AVAILABLE;
+    const firstItemCheck = alertDetails.currentIndex === 0;
+    const lastItemCheck = alertDetails.currentIndex + 1 === alertDetails.currentLength;
+    const firstPageCheck = currentPage === 1;
+    const lastPageCheck = currentPage === Math.ceil(totalPageCount / pageSize);
+    let pageText = {
+      previous: t('txt-previous'),
+      next: t('txt-next')
+    };
+    let paginationDisabled = {
+      previous: '',
+      next: ''
+    };
+
+    if (fromPage === 'dashboard') {
+      paginationDisabled.previous = firstItemCheck;
+      paginationDisabled.next = lastItemCheck;
+    } else if (fromPage === 'threats') {
+      if (firstItemCheck) {
+        pageText.previous = t('txt-previousPage');
+      }
+
+      if (lastItemCheck) {
+        pageText.next = t('txt-nextPage');
+      }
+
+      paginationDisabled.previous = firstItemCheck && firstPageCheck;
+      paginationDisabled.next = lastItemCheck && lastPageCheck;
+    }
 
     return (
       <div>
@@ -974,8 +1002,8 @@ class AlertDetails extends Component {
         {alertDetails.currentLength > 1 &&
           <div className='pagination'>
             <div className='buttons'>
-              <Button variant='outlined' color='primary' onClick={this.props.showAlertData.bind(this, 'previous')} disabled={alertDetails.currentIndex === 0}>{t('txt-previous')}</Button>
-              <Button variant='outlined' color='primary' onClick={this.props.showAlertData.bind(this, 'next')} disabled={alertDetails.currentIndex + 1 === alertDetails.currentLength}>{t('txt-next')}</Button>
+              <Button variant='outlined' color='primary' onClick={this.props.showAlertData.bind(this, 'previous')} disabled={paginationDisabled.previous}>{pageText.previous}</Button>
+              <Button variant='outlined' color='primary' onClick={this.props.showAlertData.bind(this, 'next')} disabled={paginationDisabled.next}>{pageText.next}</Button>
             </div>
             <span className='count'>{alertDetails.currentIndex + 1} / {alertDetails.currentLength}</span>
           </div>
@@ -1711,6 +1739,9 @@ AlertDetails.propTypes = {
   alertDetails: PropTypes.object.isRequired,
   alertData: PropTypes.object.isRequired,
   showAlertData: PropTypes.func.isRequired,
+  currentPage: PropTypes.number,
+  pageSize: PropTypes.number,
+  totalPageCount: PropTypes.number,
   fromPage: PropTypes.string.isRequired
 };
 
