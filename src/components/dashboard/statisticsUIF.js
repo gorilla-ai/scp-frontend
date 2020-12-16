@@ -111,7 +111,7 @@ class StatisticsUIF extends Component {
     const {baseUrl, session} = this.context
     const url = `${baseUrl}/api/uif?id=SCP-Overview`
 
-    let {datetime, intervalValue, oneFlag} = this.state
+    let {datetime, intervalValue, oneFlag, layoutConfig} = this.state
     let appendConfig = {}
 
     this.ah.one({url})
@@ -187,6 +187,7 @@ class StatisticsUIF extends Component {
 
       })
 
+      // set display
       let displayContent = {}
       _.forEach(uifCfg.config.widgets, (content, key) => {
         let type = _.get(content.widgetConfig, 'type')
@@ -194,6 +195,18 @@ class StatisticsUIF extends Component {
         let label = `${content.boxTitle}(${type})`
 
         displayContent[key] = label
+      })
+      
+      _.set(uifCfg, 'config.onLayoutChange', this.positionChange)
+
+      // overwrite uifcfg
+      _.forEach(appendConfig, (v, k) => {
+        _.set(uifCfg, k, v)
+      })
+
+      // set position
+      _.forEach(layoutConfig.position, el => {
+        _.set(uifCfg, `config.widgets.${el.id}.layout`, el)
       })
 
       this.setState({appendConfig, uifCfg, displayContent}, () => {
@@ -420,7 +433,10 @@ class StatisticsUIF extends Component {
   displayChange(name, value) {
     let {layoutConfig} = this.state
     layoutConfig = _.set(layoutConfig, `display.${name}`, value)
-    // document.getElementById(name).style.visibility = value ? 'visible' : 'hidden'
+    
+    let chart = document.getElementById(name)
+    chart.parentNode.style.visibility = value ? 'visible' : 'hidden'
+
     this.setState({layoutConfig, openEdit: true})
   }
   openLayoutDialog() {
@@ -429,7 +445,7 @@ class StatisticsUIF extends Component {
   cancelLayout = () => {
     const {openEdit} = this.state
     this.setState({openLayout: false}, () => {
-      openEdit && this.loadUIF()
+      // openEdit && this.loadUIF()
     })
   }
   saveLayout = () => {
@@ -457,20 +473,14 @@ class StatisticsUIF extends Component {
     const {locale} = this.context
     let {appendConfig, datetime, searchInput, uifCfg, openLayout, openEdit, layoutConfig, displayContent, intervalArray, intervalValue} = this.state
 
-    _.set(uifCfg, 'config.onLayoutChange', this.positionChange)
-    _.forEach(appendConfig, (v, k) => {
-      _.set(uifCfg, k, v)
-    })
-
-    // set position
-    _.forEach(layoutConfig.position, el => {
-      _.set(uifCfg, `config.widgets.${el.id}.layout`, el)
-    })
-
-    // set display
     _.forEach(layoutConfig.display, (isDisplay, key) => {
       if (!isDisplay) {
-        uifCfg = _.omit(uifCfg, [`config.widgets.${key}`])
+        let chart = document.getElementById(key)
+
+        if (chart) {
+          let charts = chart.parentNode
+          charts.style.visibility = 'hidden'
+        }
       }
     })
 
@@ -530,10 +540,6 @@ class StatisticsUIF extends Component {
       {
         !_.isEmpty(appendConfig) &&
         <div className='uif-dashboard'>
-        {
-           // <HOC $id={'dashboard/tettest'} $appendConfig={{...appendConfig, 'config.onLayoutChange': this.aaa.bind(this)}} />
-        }
-
            <HOC ref={ref => { this.hoc=ref }} {...uifCfg} />
         </div>
       }
@@ -541,15 +547,18 @@ class StatisticsUIF extends Component {
       <Dialog maxWidth='lg' open={openLayout} onClose={this.cancelLayout} >
         <DialogTitle>{t('txt-layout-setting')}</DialogTitle>
         <DialogContent>
-        {
-          _.map(displayContent, (label, key) => {
-            return <FormControlLabel label={label} control={
-              <Switch name={key} checked={_.get(layoutConfig, `display.${key}`) === false ? false : true} 
-                onChange={(event) => this.displayChange(key, event.target.checked)} />
-            } />
-          })
-
-        }
+          <Grid container>
+          {
+            _.map(displayContent, (label, key) => {
+              return <Grid item xs={4}>
+                <FormControlLabel label={label} control={
+                  <Switch name={key} checked={_.get(layoutConfig, `display.${key}`) === false ? false : true} 
+                    onChange={(event) => this.displayChange(key, event.target.checked)} />
+                } />
+              </Grid>
+            })
+          }
+          </Grid>
         </DialogContent>
         <DialogActions>
           <Button onClick={this.cancelLayout} color='primary'>{t('txt-close')}</Button>
