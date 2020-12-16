@@ -1434,8 +1434,26 @@ button.standard:hover:not([disabled]) {
           float: right;
         }
       }
+      .edge-time {
+        width: 100%;
+        .group {
+          float: left;
+          width: 50%;
+          margin: 5px 0;
+          padding: 5px;
+        }
+        label {
+          margin-bottom: 10px !important;
+        }
+        .upgrade-checkbox {
+          float: left;
+        }
+        .date-time-picker.upgrade {
+          margin-top: -5px;
+        }
+      }
       .activate-time {
-        flex-direction: row;
+        margin-bottom: -5px !important;
       }
     }
     .parent-content {
@@ -2233,7 +2251,7 @@ button.standard:hover:not([disabled]) {
               }
               .btn.add-group {
                 position: absolute;
-                top: 4px;
+                top: 3px;
                 left: 40px;
                 padding: .2em .5em;
                 font-size: 12px;
