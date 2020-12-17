@@ -327,7 +327,16 @@ class Edge extends Component {
             label: tempData === '_menu' ? '' : f(`edgeFields.${tempData}`),
             sortable: this.checkSortable(tempData),
             formatter: (value, allValue, i) => {
-              if (tempData === 'ipPort') {
+              if (tempData === 'agentName') {
+                return (
+                  <div>
+                    <span>{value}</span>
+                    {allValue.upgradeDttm &&
+                      <div style={{'marginTop': '5px'}}>{t('edge-management.txt-nextUpgrade')}: {helper.getFormattedDate(allValue.upgradeDttm, 'local')}</div>
+                    }
+                  </div>
+                )
+              } else if (tempData === 'ipPort') {
                 let iconType = '';
 
                 if (!allValue.agentApiStatus) {
@@ -1387,7 +1396,8 @@ class Edge extends Component {
                       ampm={false}
                       disablePast={true}
                       value={edge.info.upgradeDatetime}
-                      onChange={this.handleUpgradeDateChange} />
+                      onChange={this.handleUpgradeDateChange}
+                      disabled={activeContent === 'viewEdge'} />
                   </MuiPickersUtilsProvider>
                 }
               </div>

@@ -176,6 +176,7 @@
   "txt-checkRequiredFieldType": "請檢查格式及必填欄位",
   "txt-threatsSrcCountryRank": "威脅來源國家排名",
   "txt-checkDateFormat": "請確認日期格式",
+  "txt-layout-change": "版面布局已變更，是否儲存 ?",
 
   "txt-dashboard": "Dashboard",
   "txt-host": "Host",
@@ -452,6 +453,7 @@
     "txt-basicInfo": "基本資訊",
     "txt-editEdge": "編輯Edge",
     "txt-edgeName": "Edge名稱",
+    "txt-nextUpgrade": "下次更新",
     "txt-edgeID": "Edge ID",
     "txt-ip": "IP",
     "txt-ipList": "IP列表",
