@@ -556,6 +556,7 @@
     "txt-suspiciousFileCount": "Suspicious File Count",
     "txt-suspiciousFileName": "Suspicious Filename",
     "txt-suspiciousFilePath": "Suspicious File Path",
+    "txt-vulnerabilityInfo": "Vulnerability Info",
     "txt-filePathList": "File Path List",
     "txt-modifiedFileCount": "Modified files",
     "txt-taskFailure": "Task Failure",
@@ -606,7 +607,8 @@
       "txt-ir": "IR",
       "txt-eventTracing": "Event Tracing",
       "txt-fileIntegrity": "File Integrity",
-      "txt-procMonitor": "Process Monitor"
+      "txt-procMonitor": "Process Monitor",
+      "txt-_Vans": "VANS"
     },
     "ir-type": {
       "txt-quick": "Quick IR",

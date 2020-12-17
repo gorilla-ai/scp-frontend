@@ -56,6 +56,10 @@ const SAFETY_SCAN_LIST = [
     path: 'getProcessMonitorResult'
   },
   {
+    type: '_Vans',
+    path: '_VansResult'
+  },
+  {
     type: 'snapshot',
     path: 'snapshotResult'
   },
@@ -814,7 +818,11 @@ class HMDscanInfo extends Component {
   displayScanProcessPath = (parentIndex, val, i) => {
     const {location} = this.props;
     const {activeTab, activePath, activeRuleHeader, activeDLL, activeConnections, activeExecutableInfo} = this.state;
-    const filePath = val._MatchedFile || val._ProcessInfo._ExecutableInfo._FileInfo._Filepath;
+    let filePath = val._MatchedFile;
+
+    if (val._ProcessInfo) {
+      filePath = filePath || val._ProcessInfo._ExecutableInfo._FileInfo._Filepath;
+    }
 
     if (filePath || val._MatchedPid) {
       const uniqueKey = val._ScanType + i;
@@ -899,7 +907,7 @@ class HMDscanInfo extends Component {
     return <span style={{color : val ? '#22ac38' : '#d0021b'}}>{val.toString()}</span>
   }
   /**
-   * Display Scan File content
+   * Display Scan File (Malware) content
    * @method
    * @param {number} parentIndex - parent index of the scan file array
    * @param {object} val - scan file content
@@ -1081,6 +1089,52 @@ class HMDscanInfo extends Component {
               <div>NOT_AVAILABLE</div>
             }
           </div>
+        </div>
+      </div>
+    )
+  }
+  displayVansData = (val, i) => {
+    const {activeRuleHeader} = this.state;
+    const uniqueKey = val.id + i;
+
+    return (
+      <div key={uniqueKey} className='item-content'>
+        <div className='header' onClick={this.toggleInfoHeader.bind(this, 'rule')}>
+          <i className={cx('fg fg-play', {'rotate': activeRuleHeader})}></i>
+          <span>{val.id}</span>
+        </div>
+        <div className={cx('sub-content', {'hide': !activeRuleHeader})}>
+
+        </div>
+      </div>
+    )
+  }
+  /**
+   * Display Vans content
+   * @method
+   * @param {number} parentIndex - parent index of the scan process array
+   * @param {object} val - scan data content
+   * @param {number} i - index of the scan process array
+   * @returns HTML DOM
+   */
+  displayVansPath = (parentIndex, val, i) => {
+    const {activePath} = this.state;
+    const vansName = val.name;
+    const uniqueKey = vansName + i;
+    const uniqueID = parentIndex.toString() + i.toString() + vansName;
+
+    return (
+      <div key={uniqueKey} className='group'>
+        <div className='path pointer' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
+          <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`}></i>
+          <div className='path-header'>
+            <span>{t('txt-path')}: {val.vendor} | {val.product} | {val.version} | {vansName}</span>
+          </div>
+        </div>
+        <div className={cx('rule', {'hide': activePath !== uniqueID})}>
+          {val.rows.length > 0 &&
+            val.rows.map(this.displayVansData)
+          }
         </div>
       </div>
     )
@@ -1331,6 +1385,7 @@ class HMDscanInfo extends Component {
     let scanPath = '';
     let filePathList = [];
     let yaraRuleList = [];
+    let header = t('network-inventory.txt-suspiciousFilePath');
 
     if (!val.taskResponseDttm) {
       return;
@@ -1350,6 +1405,10 @@ class HMDscanInfo extends Component {
     } else if (activeTab === 'procMonitor') {
       dataResult = val.getProcessMonitorResult;
       scanPath = this.displayScanProcessPath.bind(this, i);
+    } else if (activeTab === '_Vans') {
+      dataResult = val.cpeInfoArray;
+      scanPath = this.displayVansPath.bind(this, i);
+      header = t('network-inventory.txt-vulnerabilityInfo');
     }
 
     return (
@@ -1367,9 +1426,9 @@ class HMDscanInfo extends Component {
             this.getSuspiciousFileCount(dataResult)
           }
         </div>
-        {(activeTab === 'yara' || activeTab === 'scanFile' || activeTab === 'procMonitor') &&
+        {(activeTab === 'yara' || activeTab === 'scanFile' || activeTab === 'procMonitor' || activeTab === '_Vans') &&
           <div className='scan-content'>
-            <div className='header'>{t('network-inventory.txt-suspiciousFilePath')}</div>
+            <div className='header'>{header}</div>
             {dataResult && dataResult.length > 0 &&
               <div className='list'>
                 {dataResult.map(scanPath)}
@@ -1566,7 +1625,7 @@ class HMDscanInfo extends Component {
     const hmdData = hmdInfo[activeTab].data;
     let displayContent = '';
 
-    if (activeTab === 'yara' || activeTab === 'scanFile' || activeTab === 'fileIntegrity' || activeTab === 'procMonitor') {
+    if (activeTab === 'yara' || activeTab === 'scanFile' || activeTab === 'fileIntegrity' || activeTab === 'procMonitor' || activeTab === '_Vans') {
       displayContent = this.displayAccordionContent;
     } else if (activeTab === 'gcb') {
       displayContent = this.displayTableContent;
