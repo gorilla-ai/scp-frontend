@@ -73,7 +73,8 @@ const TRIGGER_NAME = {
   [SAFETY_SCAN_LIST[1].type]: 'scanFile',
   [SAFETY_SCAN_LIST[2].type]: 'gcbDetection',
   [SAFETY_SCAN_LIST[4].type]: 'getFileIntegrity',
-  [SAFETY_SCAN_LIST[6].type]: 'getProcessMonitorResult'
+  [SAFETY_SCAN_LIST[6].type]: 'getProcessMonitorResult',
+  [SAFETY_SCAN_LIST[7].type]: 'getVans'
 };
 const SETTINGS = {
   snapshot: 'getSnapshot',
@@ -104,6 +105,7 @@ class HMDscanInfo extends Component {
       activeDLL: false,
       activeConnections: false,
       activeExecutableInfo: false,
+      activeVansProduct: null,
       dashboardInfo: {
         dataFieldsArr: ['item', 'score'],
         dataFields: {},
@@ -559,10 +561,8 @@ class HMDscanInfo extends Component {
     const {activePath, activeRule} = this.state;
 
     if (type === 'path') {
-      const tempActivePath = activePath === id ? null : id;
-
       this.setState({
-        activePath: tempActivePath,
+        activePath: activePath === id ? null : id,
         activeRuleHeader: false,
         activeRule: [],
         activeDLL: false,
@@ -761,9 +761,10 @@ class HMDscanInfo extends Component {
   /**
    * Toggle scan rule item on/off
    * @method
-   * @param {string} type - item type ('rule', 'dll' or 'connections')
+   * @param {string} type - item type ('rule', 'dll', 'connections', 'executableInfo' or 'vans')
+   * @param {string} id - unique ID of vans
    */
-  toggleInfoHeader = (type) => {
+  toggleInfoHeader = (type, id) => {
     if (type === 'rule') {
       this.setState({
         activeRuleHeader: !this.state.activeRuleHeader
@@ -779,6 +780,10 @@ class HMDscanInfo extends Component {
     } else if (type === 'executableInfo') {
       this.setState({
         activeExecutableInfo: !this.state.activeExecutableInfo
+      });
+    } else if (type === 'vans') {
+      this.setState({
+        activeVansProduct: this.state.activeVansProduct === id ? null : id
       });
     }
   }
@@ -1093,18 +1098,83 @@ class HMDscanInfo extends Component {
       </div>
     )
   }
+  /**
+   * Display Vans individual data
+   * @method
+   * @param {string} type - content type ('desc' or 'ref')
+   * @param {object} val - individual vans data
+   * @param {number} i - index of the vans data
+   * @returns HTML DOM
+   */
+  displayVansContent = (type, val, i) => {
+    if (type === 'desc' && val.value) {
+      return <div key={i} className='desc'>{val.value}</div>
+    }
+
+    if (type === 'ref' && val.url) {
+      return <li key={i}><a href={val.url} target='_blank'>{val.url}</a></li>
+    }
+  }
+  /**
+   * Display Vans details content
+   * @method
+   * @param {object} val - individual vans data content
+   * @param {number} i - index of the vans data
+   * @returns HTML DOM
+   */
   displayVansData = (val, i) => {
-    const {activeRuleHeader} = this.state;
+    const {activeVansProduct} = this.state;
     const uniqueKey = val.id + i;
+    const severityLevel = helper.capitalizeFirstLetter(val.severity);
+    let color = '';
+
+    switch (severityLevel) {
+      case 'High':
+        color = '#CC2943';
+        break;
+      case 'Medium':
+        color = '#CC7B29';
+        break;
+      case 'Low':
+        color = '#29CC7A';
+        break;
+    }
 
     return (
       <div key={uniqueKey} className='item-content'>
-        <div className='header' onClick={this.toggleInfoHeader.bind(this, 'rule')}>
-          <i className={cx('fg fg-play', {'rotate': activeRuleHeader})}></i>
+        <div className='header' onClick={this.toggleInfoHeader.bind(this, 'vans', uniqueKey)}>
+          <i className={cx('fg fg-play', {'rotate': activeVansProduct === uniqueKey})}></i>
           <span>{val.id}</span>
         </div>
-        <div className={cx('sub-content', {'hide': !activeRuleHeader})}>
-
+        <div className={cx('sub-content', {'hide': activeVansProduct !== uniqueKey})}>
+          <table className='c-table main-table vans'>
+            <tbody>
+              <tr>
+                <td>{t('txt-severity')}</td>
+                <td><span style={{color}}>{severityLevel}</span></td>
+              </tr>
+              {val.description.description_data.length > 0 &&
+                <tr>
+                  <td>{t('txt-description')}</td>
+                  <td>{val.description.description_data.map(this.displayVansContent.bind(this, 'desc'))}</td>
+                </tr>
+              }
+              {val.referenceData.reference_data.length > 0 &&
+                <tr>
+                  <td>{t('txt-reference')}</td>
+                  <td><ul>{val.referenceData.reference_data.map(this.displayVansContent.bind(this, 'ref'))}</ul></td>
+                </tr>
+              }
+              <tr>
+                <td>{t('network-inventory.txt-publishedDate')}</td>
+                <td>{helper.getFormattedDate(val.publishedDate, 'local')}</td>
+              </tr>
+              <tr>
+                <td>{t('network-inventory.txt-lastModifiedDate')}</td>
+                <td>{helper.getFormattedDate(val.lastModifiedDate, 'local')}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     )
@@ -1112,9 +1182,9 @@ class HMDscanInfo extends Component {
   /**
    * Display Vans content
    * @method
-   * @param {number} parentIndex - parent index of the scan process array
-   * @param {object} val - scan data content
-   * @param {number} i - index of the scan process array
+   * @param {number} parentIndex - parent index of the vans array
+   * @param {object} val - vans data content
+   * @param {number} i - index of the vans array
    * @returns HTML DOM
    */
   displayVansPath = (parentIndex, val, i) => {
@@ -1128,7 +1198,10 @@ class HMDscanInfo extends Component {
         <div className='path pointer' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
           <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`}></i>
           <div className='path-header'>
-            <span>{t('txt-path')}: {val.vendor} | {val.product} | {val.version} | {vansName}</span>
+            <span><span className='main'>{val.vendor}</span> | <span className='main'>{val.product}</span> | <span className='main'>{val.version}</span> | {vansName}</span>
+          </div>
+          <div className='product-count'>
+            <span>{val.rows.length}</span>
           </div>
         </div>
         <div className={cx('rule', {'hide': activePath !== uniqueID})}>
@@ -1635,7 +1708,7 @@ class HMDscanInfo extends Component {
 
     return (
       <div className='scan-wrapper'>
-        {hmdData && displayContent &&
+        {hmdData && hmdData.length > 0 &&
           <InfiniteScroll
             dataLength={hmdData.length}
             next={this.loadMoreContent}
@@ -1643,6 +1716,10 @@ class HMDscanInfo extends Component {
             height={this.getContentHeight('scan')}>
             {hmdData.map(displayContent)}
           </InfiniteScroll>
+        }
+
+        {(!hmdData || hmdData.length === 0) &&
+          <div className='empty-msg'>{NOT_AVAILABLE}</div>
         }
       </div>
     )
@@ -1658,10 +1735,6 @@ class HMDscanInfo extends Component {
 
     return (
       <div className='scan-section'>
-        {dataCount === 0 &&
-          <div className='empty-msg' style={{marginTop: '20px'}}>{NOT_AVAILABLE}</div>
-        }
-
         {dataCount > 0 &&
           <div className='table event-tracing'>
             <InfiniteScroll
@@ -1675,6 +1748,10 @@ class HMDscanInfo extends Component {
                 data={eventInfo.dataContent} />
             </InfiniteScroll>
           </div>
+        }
+
+        {dataCount === 0 &&
+          <div className='empty-msg' style={{marginTop: '20px'}}>{NOT_AVAILABLE}</div>
         }
       </div>
     )
@@ -2010,6 +2087,7 @@ class HMDscanInfo extends Component {
     return (
       <div className='scan-info'>
         <ToggleButtonGroup
+          className='hmd-btns-group'
           value={activeTab}
           exclusive
           onChange={this.toggleScanType}>

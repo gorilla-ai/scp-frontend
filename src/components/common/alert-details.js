@@ -625,7 +625,7 @@ class AlertDetails extends Component {
     }, () => {
       let tempShowContent = {...this.state.showContent};
 
-      switch(type) {
+      switch (type) {
         case 'rule':
           this.getAlertRule();
           tempShowContent.rule = true;

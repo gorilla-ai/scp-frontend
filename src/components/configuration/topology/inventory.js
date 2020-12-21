@@ -357,7 +357,7 @@ class NetworkInventory extends Component {
         }
       }
 
-      dataParams += `&page=${page}&pageSize=${pageSize}&orders=${orders}&ip=172.18.0.87`;
+      dataParams += `&page=${page}&pageSize=${pageSize}&orders=${orders}`;
 
       if (fromSearch === 'search' || !_.isEmpty(deviceSearch)) {
         if (deviceSearch.ip) {
