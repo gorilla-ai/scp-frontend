@@ -1498,6 +1498,9 @@ class HMDscanInfo extends Component {
           {(activeTab === 'yara' || activeTab === 'scanFile' || activeTab === 'procMonitor') && dataResult &&
             this.getSuspiciousFileCount(dataResult)
           }
+          {activeTab === '_Vans' && dataResult.length > 0 &&
+            <span style={{color: '#d10d25'}}>{t('network-inventory.txt-VulnerabilityCount')}: {dataResult.length}</span>
+          }
         </div>
         {(activeTab === 'yara' || activeTab === 'scanFile' || activeTab === 'procMonitor' || activeTab === '_Vans') &&
           <div className='scan-content'>

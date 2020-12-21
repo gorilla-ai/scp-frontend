@@ -206,6 +206,10 @@ class HostController extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    const {locale, sessionRights} = this.context;
+
+    helper.getPrivilegesInfo(sessionRights, 'common', locale);
+
     this.setLeftNavData();
     this.getHostSortList();
     this.getFloorPlan();

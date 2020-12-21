@@ -558,6 +558,7 @@
     "txt-suspiciousFileName": "可疑檔案名稱",
     "txt-suspiciousFilePath": "可疑檔案路徑",
     "txt-vulnerabilityInfo": "用戶端設備漏洞偵測",
+    "txt-VulnerabilityCount": "用戶端漏洞設備數",
     "txt-filePathList": "掃描路徑",
     "txt-modifiedFileCount": "異動檔案數",
     "txt-taskFailure": "執行異常",

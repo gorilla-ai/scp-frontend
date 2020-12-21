@@ -558,6 +558,7 @@
     "txt-suspiciousFileName": "Suspicious Filename",
     "txt-suspiciousFilePath": "Suspicious File Path",
     "txt-vulnerabilityInfo": "Vulnerability Info",
+    "txt-VulnerabilityCount": "Vulnerabilities",
     "txt-filePathList": "File Path List",
     "txt-modifiedFileCount": "Modified files",
     "txt-taskFailure": "Task Failure",
