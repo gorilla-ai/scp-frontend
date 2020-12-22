@@ -293,8 +293,18 @@ const createTheme = (themeName) => {
 const App = () => {
   const [themeName, setThemeName] = React.useState(accountTheme);
 
-  return (
-    !session.accountId ? 
+  if (session.accountId) {
+    return (
+      <ThemeProvider theme={createTheme(themeName)}>
+        <HeaderComp
+          themeName={themeName}
+          setThemeName={setThemeName} />
+        <Main />
+        <footer className='footer'>{footerText}</footer>
+      </ThemeProvider>
+    )
+  } else {
+    return (
       <div>
         <Login
           baseUrl={cfg.apiPrefix}
@@ -303,17 +313,8 @@ const App = () => {
           productName={productName} />
         <footer className='footer login'>{footerText}</footer>
       </div>
-    :
-      <div>
-        <ThemeProvider theme={createTheme(themeName)}>
-          <HeaderComp
-            themeName={themeName}
-            setThemeName={setThemeName} />
-          <Main />
-          <footer className='footer'>{footerText}</footer>
-        </ThemeProvider>
-      </div>
-  )
+    )
+  }
 };
 
 function getTheme() {
