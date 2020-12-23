@@ -200,7 +200,7 @@ class Login extends Component {
           this.startResetPwd('newSet');
         });
       } else {
-        const redirectURL = contextRoot || '/SCP';
+        const redirectURL = window.location.pathname;
         window.location.href = redirectURL;
       }
       return null;

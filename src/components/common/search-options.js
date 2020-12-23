@@ -75,7 +75,7 @@ class SearchOptions extends Component {
   getCalculatedTime = (type) => {
     let time = '';
 
-    switch(type) {
+    switch (type) {
       case '15m':
         time = helper.getSubstractDate(15, 'minutes');
         break;

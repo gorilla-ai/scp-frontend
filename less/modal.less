@@ -521,6 +521,24 @@ html[data-theme='dark'] {
     span[title] {
       cursor: default;
     }
+    &.vans {
+      td:first-child {
+        width: 160px;
+        color: var(--primaryContentHeader);
+        font-weight: bold;
+      }
+      .desc {
+        word-break: normal;
+        margin-bottom: 10px;
+      }
+      ul {
+        width: 100% !important;
+        padding: 0 !important;
+        a {
+          text-decoration: underline;
+        }
+      }
+    }
   }
   .scan-info {
     overflow: hidden;
@@ -529,7 +547,14 @@ html[data-theme='dark'] {
     border: 1px solid var(--primaryBorder);
     border-radius: 5px;
     background-color: var(--contentBackground);
+    .hmd-btns-group {
+      button {
+        padding-left: 21px !important;
+        padding-right: 21px !important;
+      }
+    }
     .info-content {
+      min-height: 54vh;
       overflow: hidden;
       clear: both;
       .info {
@@ -638,6 +663,10 @@ html[data-theme='dark'] {
                 width: 80%;
                 text-align: left;
                 margin-top: 1px;
+                .main {
+                  color: var(--primaryContentHeader);
+                  font-weight: bold;
+                }
                 .fg-add {
                   float: right;
                   margin-right: 0;
@@ -645,6 +674,11 @@ html[data-theme='dark'] {
               }
               .scan-type {
                 color: #b1b1b1;
+              }
+              .product-count {
+                padding: 0 5px;
+                border-radius: 5px;
+                background-color: #b1b1b1;
               }
             }
             .rule {

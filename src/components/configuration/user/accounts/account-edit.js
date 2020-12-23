@@ -87,21 +87,13 @@ class AccountEdit extends Component {
    * Get and set account data
    * @method
    * @param {string} id - selected account ID
-   * @param {string} options - options for where page is from ('fromHeader' or 'fromAccount')
    */
-  loadAccount = (id, options) => {
+  loadAccount = (id) => {
     const {baseUrl} = this.context;
-    let url = '';
-
-    if (options === 'fromHeader') {
-      url = `${baseUrl}/api/account?accountid=${id}`;
-    } else if (options === 'fromAccount') {
-      url = `${baseUrl}/api/account/v1?accountid=${id}`;
-    }
 
     ah.all([
       {
-        url,
+        url: `${baseUrl}/api/account/v1?accountid=${id}`,
         type:'GET'
       },
       {
@@ -164,7 +156,7 @@ class AccountEdit extends Component {
    * Open account add/edit modal dialog
    * @method
    * @param {string} id - selected account ID
-   * @param {string} options - option for 'fromHeader'
+   * @param {string} options - option for 'fromHeader' or 'fromAccount'
    */
   openAccount = (id, options) => {
     let showPrivileges = true;
@@ -182,7 +174,7 @@ class AccountEdit extends Component {
       this.loadPrivileges();
       
       if (id) {
-       this.loadAccount(id, options);
+       this.loadAccount(id);
       }
     });
   }

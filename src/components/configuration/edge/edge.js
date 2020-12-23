@@ -1011,7 +1011,7 @@ class Edge extends Component {
         if (data[0] && data[0].ret === 0) {
           this.toggleContent('tableList');
         } else {
-          switch(data[0].ret) {
+          switch (data[0].ret) {
             case -1:
               helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError1'));
               break;

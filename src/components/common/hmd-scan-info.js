@@ -56,6 +56,10 @@ const SAFETY_SCAN_LIST = [
     path: 'getProcessMonitorResult'
   },
   {
+    type: '_Vans',
+    path: '_VansResult'
+  },
+  {
     type: 'snapshot',
     path: 'snapshotResult'
   },
@@ -69,7 +73,8 @@ const TRIGGER_NAME = {
   [SAFETY_SCAN_LIST[1].type]: 'scanFile',
   [SAFETY_SCAN_LIST[2].type]: 'gcbDetection',
   [SAFETY_SCAN_LIST[4].type]: 'getFileIntegrity',
-  [SAFETY_SCAN_LIST[6].type]: 'getProcessMonitorResult'
+  [SAFETY_SCAN_LIST[6].type]: 'getProcessMonitorResult',
+  [SAFETY_SCAN_LIST[7].type]: 'getVans'
 };
 const SETTINGS = {
   snapshot: 'getSnapshot',
@@ -100,6 +105,7 @@ class HMDscanInfo extends Component {
       activeDLL: false,
       activeConnections: false,
       activeExecutableInfo: false,
+      activeVansProduct: null,
       dashboardInfo: {
         dataFieldsArr: ['item', 'score'],
         dataFields: {},
@@ -555,10 +561,8 @@ class HMDscanInfo extends Component {
     const {activePath, activeRule} = this.state;
 
     if (type === 'path') {
-      const tempActivePath = activePath === id ? null : id;
-
       this.setState({
-        activePath: tempActivePath,
+        activePath: activePath === id ? null : id,
         activeRuleHeader: false,
         activeRule: [],
         activeDLL: false,
@@ -757,9 +761,10 @@ class HMDscanInfo extends Component {
   /**
    * Toggle scan rule item on/off
    * @method
-   * @param {string} type - item type ('rule', 'dll' or 'connections')
+   * @param {string} type - item type ('rule', 'dll', 'connections', 'executableInfo' or 'vans')
+   * @param {string} id - unique ID of vans
    */
-  toggleInfoHeader = (type) => {
+  toggleInfoHeader = (type, id) => {
     if (type === 'rule') {
       this.setState({
         activeRuleHeader: !this.state.activeRuleHeader
@@ -775,6 +780,10 @@ class HMDscanInfo extends Component {
     } else if (type === 'executableInfo') {
       this.setState({
         activeExecutableInfo: !this.state.activeExecutableInfo
+      });
+    } else if (type === 'vans') {
+      this.setState({
+        activeVansProduct: this.state.activeVansProduct === id ? null : id
       });
     }
   }
@@ -814,7 +823,11 @@ class HMDscanInfo extends Component {
   displayScanProcessPath = (parentIndex, val, i) => {
     const {location} = this.props;
     const {activeTab, activePath, activeRuleHeader, activeDLL, activeConnections, activeExecutableInfo} = this.state;
-    const filePath = val._MatchedFile || val._ProcessInfo._ExecutableInfo._FileInfo._Filepath;
+    let filePath = val._MatchedFile;
+
+    if (val._ProcessInfo) {
+      filePath = filePath || val._ProcessInfo._ExecutableInfo._FileInfo._Filepath;
+    }
 
     if (filePath || val._MatchedPid) {
       const uniqueKey = val._ScanType + i;
@@ -899,7 +912,7 @@ class HMDscanInfo extends Component {
     return <span style={{color : val ? '#22ac38' : '#d0021b'}}>{val.toString()}</span>
   }
   /**
-   * Display Scan File content
+   * Display Scan File (Malware) content
    * @method
    * @param {number} parentIndex - parent index of the scan file array
    * @param {object} val - scan file content
@@ -1081,6 +1094,120 @@ class HMDscanInfo extends Component {
               <div>NOT_AVAILABLE</div>
             }
           </div>
+        </div>
+      </div>
+    )
+  }
+  /**
+   * Display Vans individual data
+   * @method
+   * @param {string} type - content type ('desc' or 'ref')
+   * @param {object} val - individual vans data
+   * @param {number} i - index of the vans data
+   * @returns HTML DOM
+   */
+  displayVansContent = (type, val, i) => {
+    if (type === 'desc' && val.value) {
+      return <div key={i} className='desc'>{val.value}</div>
+    }
+
+    if (type === 'ref' && val.url) {
+      return <li key={i}><a href={val.url} target='_blank'>{val.url}</a></li>
+    }
+  }
+  /**
+   * Display Vans details content
+   * @method
+   * @param {object} val - individual vans data content
+   * @param {number} i - index of the vans data
+   * @returns HTML DOM
+   */
+  displayVansData = (val, i) => {
+    const {activeVansProduct} = this.state;
+    const uniqueKey = val.id + i;
+    const severityLevel = helper.capitalizeFirstLetter(val.severity);
+    let color = '';
+
+    switch (severityLevel) {
+      case 'High':
+        color = '#CC2943';
+        break;
+      case 'Medium':
+        color = '#CC7B29';
+        break;
+      case 'Low':
+        color = '#29CC7A';
+        break;
+    }
+
+    return (
+      <div key={uniqueKey} className='item-content'>
+        <div className='header' onClick={this.toggleInfoHeader.bind(this, 'vans', uniqueKey)}>
+          <i className={cx('fg fg-play', {'rotate': activeVansProduct === uniqueKey})}></i>
+          <span>{val.id}</span>
+        </div>
+        <div className={cx('sub-content', {'hide': activeVansProduct !== uniqueKey})}>
+          <table className='c-table main-table vans'>
+            <tbody>
+              <tr>
+                <td>{t('txt-severity')}</td>
+                <td><span style={{color}}>{severityLevel}</span></td>
+              </tr>
+              {val.description.description_data.length > 0 &&
+                <tr>
+                  <td>{t('txt-description')}</td>
+                  <td>{val.description.description_data.map(this.displayVansContent.bind(this, 'desc'))}</td>
+                </tr>
+              }
+              {val.referenceData.reference_data.length > 0 &&
+                <tr>
+                  <td>{t('txt-reference')}</td>
+                  <td><ul>{val.referenceData.reference_data.map(this.displayVansContent.bind(this, 'ref'))}</ul></td>
+                </tr>
+              }
+              <tr>
+                <td>{t('network-inventory.txt-publishedDate')}</td>
+                <td>{helper.getFormattedDate(val.publishedDate, 'local')}</td>
+              </tr>
+              <tr>
+                <td>{t('network-inventory.txt-lastModifiedDate')}</td>
+                <td>{helper.getFormattedDate(val.lastModifiedDate, 'local')}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    )
+  }
+  /**
+   * Display Vans content
+   * @method
+   * @param {number} parentIndex - parent index of the vans array
+   * @param {object} val - vans data content
+   * @param {number} i - index of the vans array
+   * @returns HTML DOM
+   */
+  displayVansPath = (parentIndex, val, i) => {
+    const {activePath} = this.state;
+    const vansName = val.name;
+    const uniqueKey = vansName + i;
+    const uniqueID = parentIndex.toString() + i.toString() + vansName;
+
+    return (
+      <div key={uniqueKey} className='group'>
+        <div className='path pointer' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
+          <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`}></i>
+          <div className='path-header'>
+            <span><span className='main'>{val.vendor}</span> | <span className='main'>{val.product}</span> | <span className='main'>{val.version}</span> | {vansName}</span>
+          </div>
+          <div className='product-count'>
+            <span>{val.rows.length}</span>
+          </div>
+        </div>
+        <div className={cx('rule', {'hide': activePath !== uniqueID})}>
+          {val.rows.length > 0 &&
+            val.rows.map(this.displayVansData)
+          }
         </div>
       </div>
     )
@@ -1331,6 +1458,7 @@ class HMDscanInfo extends Component {
     let scanPath = '';
     let filePathList = [];
     let yaraRuleList = [];
+    let header = t('network-inventory.txt-suspiciousFilePath');
 
     if (!val.taskResponseDttm) {
       return;
@@ -1350,6 +1478,10 @@ class HMDscanInfo extends Component {
     } else if (activeTab === 'procMonitor') {
       dataResult = val.getProcessMonitorResult;
       scanPath = this.displayScanProcessPath.bind(this, i);
+    } else if (activeTab === '_Vans') {
+      dataResult = val.cpeInfoArray;
+      scanPath = this.displayVansPath.bind(this, i);
+      header = t('network-inventory.txt-vulnerabilityInfo');
     }
 
     return (
@@ -1366,10 +1498,13 @@ class HMDscanInfo extends Component {
           {(activeTab === 'yara' || activeTab === 'scanFile' || activeTab === 'procMonitor') && dataResult &&
             this.getSuspiciousFileCount(dataResult)
           }
+          {activeTab === '_Vans' && dataResult.length > 0 &&
+            <span style={{color: '#d10d25'}}>{t('network-inventory.txt-VulnerabilityCount')}: {dataResult.length}</span>
+          }
         </div>
-        {(activeTab === 'yara' || activeTab === 'scanFile' || activeTab === 'procMonitor') &&
+        {(activeTab === 'yara' || activeTab === 'scanFile' || activeTab === 'procMonitor' || activeTab === '_Vans') &&
           <div className='scan-content'>
-            <div className='header'>{t('network-inventory.txt-suspiciousFilePath')}</div>
+            <div className='header'>{header}</div>
             {dataResult && dataResult.length > 0 &&
               <div className='list'>
                 {dataResult.map(scanPath)}
@@ -1566,7 +1701,7 @@ class HMDscanInfo extends Component {
     const hmdData = hmdInfo[activeTab].data;
     let displayContent = '';
 
-    if (activeTab === 'yara' || activeTab === 'scanFile' || activeTab === 'fileIntegrity' || activeTab === 'procMonitor') {
+    if (activeTab === 'yara' || activeTab === 'scanFile' || activeTab === 'fileIntegrity' || activeTab === 'procMonitor' || activeTab === '_Vans') {
       displayContent = this.displayAccordionContent;
     } else if (activeTab === 'gcb') {
       displayContent = this.displayTableContent;
@@ -1576,7 +1711,7 @@ class HMDscanInfo extends Component {
 
     return (
       <div className='scan-wrapper'>
-        {hmdData && displayContent &&
+        {hmdData && hmdData.length > 0 &&
           <InfiniteScroll
             dataLength={hmdData.length}
             next={this.loadMoreContent}
@@ -1584,6 +1719,10 @@ class HMDscanInfo extends Component {
             height={this.getContentHeight('scan')}>
             {hmdData.map(displayContent)}
           </InfiniteScroll>
+        }
+
+        {(!hmdData || hmdData.length === 0) &&
+          <div className='empty-msg'>{NOT_AVAILABLE}</div>
         }
       </div>
     )
@@ -1599,10 +1738,6 @@ class HMDscanInfo extends Component {
 
     return (
       <div className='scan-section'>
-        {dataCount === 0 &&
-          <div className='empty-msg' style={{marginTop: '20px'}}>{NOT_AVAILABLE}</div>
-        }
-
         {dataCount > 0 &&
           <div className='table event-tracing'>
             <InfiniteScroll
@@ -1616,6 +1751,10 @@ class HMDscanInfo extends Component {
                 data={eventInfo.dataContent} />
             </InfiniteScroll>
           </div>
+        }
+
+        {dataCount === 0 &&
+          <div className='empty-msg' style={{marginTop: '20px'}}>{NOT_AVAILABLE}</div>
         }
       </div>
     )
@@ -1951,6 +2090,7 @@ class HMDscanInfo extends Component {
     return (
       <div className='scan-info'>
         <ToggleButtonGroup
+          className='hmd-btns-group'
           value={activeTab}
           exclusive
           onChange={this.toggleScanType}>

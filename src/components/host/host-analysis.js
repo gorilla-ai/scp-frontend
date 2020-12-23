@@ -90,7 +90,7 @@ class HostAnalysis extends Component {
     }, () => {
       let tempShowContent = {...this.state.showContent};
 
-      switch(type) {
+      switch (type) {
         case 'info':
           tempShowContent.info = true;
           break;
