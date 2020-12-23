@@ -772,6 +772,7 @@ class Syslog extends Component {
         validate = false;
       } else {
         tempFormValidation.port.valid = true;
+        tempFormValidation.port.msg = '';
       }
     } else {
       tempFormValidation.port.valid = false;
