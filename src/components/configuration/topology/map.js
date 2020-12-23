@@ -192,6 +192,7 @@ class NetworkMap extends Component {
           floorPlan: tempFloorPlan
         }, () => {
           this.getAreaData(areaUUID);
+          this.getSeatData(areaUUID);
           this.getDeviceData(areaUUID);
         });
       }
@@ -264,6 +265,11 @@ class NetworkMap extends Component {
             mapAreaUUID: floorPlan,
             currentMap,
             currentBaseLayers
+          }, () => {
+            if (areaUUID) {
+              this.getSeatData(areaUUID);
+              this.getDeviceData(areaUUID);
+            }
           });
         }
       }
@@ -271,6 +277,61 @@ class NetworkMap extends Component {
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Get and set floor plan seat data
+   * @method
+   * @param {string} areaUUID - area UUID
+   */
+  getSeatData = (areaUUID) => {
+    const {baseUrl, contextRoot} = this.context;
+    const area = areaUUID || this.state.floorPlan.currentAreaUUID;
+    const requestData = {
+      areaUUID: area
+    };
+
+    if (!area) {
+      return;
+    }
+
+    this.ah.one({
+      url: `${baseUrl}/api/seat/_search`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        const seatData = {};
+        let seatListArr = [];
+
+        _.forEach(data, val => {
+          seatListArr.push({
+            id: val.seatUUID,
+            type: 'marker',
+            xy: [val.coordX, val.coordY],
+            icon: {
+              iconUrl: `${contextRoot}/images/ic_person.png`,
+              iconSize: [25, 25],
+              iconAnchor: [12.5, 12.5]
+            },
+            label: val.seatName,
+            data: {
+              name: val.seatName
+            }
+          });
+        })
+
+        seatData[area] = {
+          data: seatListArr
+        };
+
+        this.setState({
+          seatData
+        });
+      }
+      return null;
     })
   }
   /**
@@ -295,10 +356,16 @@ class NetworkMap extends Component {
    * @returns device data for the data table
    */
   getDeviceData = (areaUUID) => {
-    const {baseUrl, contextRoot} = this.context;
+    const {baseUrl} = this.context;
     const {device, floorPlan, search} = this.state;
-    const area = areaUUID || floorPlan.currentAreaUUID;
-    let requestData = {
+    let requestData = {};
+    let area = areaUUID || floorPlan.currentAreaUUID;
+
+    if (!area) {
+      return;
+    }
+
+    requestData = {
       page: device.currentPage,
       pageSize: device.pageSize
     };
@@ -308,8 +375,6 @@ class NetworkMap extends Component {
         ...requestData,
         areaUUID: area
       }
-    } else {
-      return;
     }
     
     requestData.keyword = search.keyword;
@@ -330,32 +395,6 @@ class NetworkMap extends Component {
     })
     .then(data => {
       if (data) {
-        let seatData = {}
-        let seatListArr = [];
-
-        _.forEach(data.rows, val => {
-          if (val.seatObj) {
-            seatListArr.push({
-              id: val.seatObj.seatUUID,
-              type: 'marker',
-              xy: [val.seatObj.coordX, val.seatObj.coordY],
-              icon: {
-                iconUrl: `${contextRoot}/images/ic_person.png`,
-                iconSize: [25, 25],
-                iconAnchor: [12.5, 12.5]
-              },
-              label: val.seatObj.seatName,
-              data: {
-                name: val.seatObj.seatName
-              }
-            });
-          }
-        })
-
-        seatData[area] = {
-          data: seatListArr
-        };
-
         let tempDevice = {...this.state.device};
         tempDevice.dataContent = data.rows;
         tempDevice.totalCount = data.counts;
@@ -384,8 +423,7 @@ class NetworkMap extends Component {
         tempDevice.dataFields = dataFields;
 
         this.setState({
-          device: tempDevice,
-          seatData
+          device: tempDevice
         });
       }
       return null;
@@ -413,6 +451,7 @@ class NetworkMap extends Component {
       floorPlan: tempFloorPlan
     }, () => {
       this.getAreaData(areaUUID);
+      this.getSeatData(areaUUID);
       this.getDeviceData(areaUUID);
     });
   }
@@ -542,9 +581,11 @@ class NetworkMap extends Component {
    * @returns HTML DOM
    */
   displayDeleteSeat = () => {
+    const {currentDeviceData} = this.state;
+
     return (
       <div className='content delete'>
-        <span>{t('network-topology.txt-deleteSeatMsg')}: {this.state.currentDeviceData.seatObj.seatName}?</span>
+        <span>{t('network-topology.txt-deleteSeatMsg')}: {currentDeviceData.seatObj.seatName}?</span>
       </div>
     )
   }
@@ -589,6 +630,7 @@ class NetworkMap extends Component {
           showSeatData: false
         }, () => {
           this.getDeviceData();
+          this.getSeatData();
         })
       }
       return null;
@@ -706,6 +748,7 @@ class NetworkMap extends Component {
           }
         }, () => {
           this.getDeviceData();
+          this.getSeatData();
         });
       }
       return null;
@@ -823,6 +866,7 @@ class NetworkMap extends Component {
    * @returns ModalDialog component
    */
   showSeatData = () => {
+    const {currentDeviceData} = this.state;
     const actions = {
       confirm: {text: t('txt-close'), handler: this.closeSeatDialog}
     };
@@ -831,6 +875,7 @@ class NetworkMap extends Component {
       <ModalDialog
         id='configSeatDialog'
         className='modal-dialog'
+        title={currentDeviceData.seatObj.seatName}
         draggable={true}
         global={true}
         actions={actions}
@@ -1035,6 +1080,8 @@ class NetworkMap extends Component {
                       <Gis
                         _ref={(ref) => {this.gisNode = ref}}
                         data={_.get(seatData, [mapAreaUUID, 'data'], [])}
+                        selected={selectedSeat}
+                        onSelectionChange={this.handleSelectionChange}
                         baseLayers={currentBaseLayers}
                         baseLayer={mapAreaUUID}
                         layouts={['standard']}
@@ -1043,8 +1090,7 @@ class NetworkMap extends Component {
                         mapOptions={{
                           maxZoom: 2
                         }}
-                        selected={selectedSeat}
-                        onSelectionChange={this.handleSelectionChange}
+                        selected={[addSeat.selectedSeatUUID]}
                         onClick={this.handleFloorMapClick} />
                     }
                   </div>

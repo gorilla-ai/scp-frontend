@@ -3306,24 +3306,24 @@ class NetworkInventory extends Component {
                 className='radio-group owner-type'
                 value={ownerType}
                 onChange={this.handleOwnerTypeChange}>
-                {!_.isEmpty(ownerList) &&
-                  <FormControlLabel
-                    value='new'
-                    control={
-                      <Radio
-                        className='radio-ui'
-                        color='primary' />
-                    }
-                    label={t('txt-addNewOwner')} />
-                }
                 <FormControlLabel
-                  value='existing'
+                  value='new'
                   control={
                     <Radio
                       className='radio-ui'
                       color='primary' />
                   }
-                  label={t('txt-existingOwner')} />
+                  label={t('txt-addNewOwner')} />
+                {!_.isEmpty(ownerList) &&
+                  <FormControlLabel
+                    value='existing'
+                    control={
+                      <Radio
+                        className='radio-ui'
+                        color='primary' />
+                    }
+                    label={t('txt-existingOwner')} />
+                }
               </RadioGroup>
               {ownerType === 'new' &&
                 <Button variant='outlined' color='primary' className='standard manage' onClick={this.openManage}>{t('txt-manageDepartmentTitle')}</Button>
@@ -3365,122 +3365,114 @@ class NetworkInventory extends Component {
                 </div>
               </div>
               <div className='user-info'>
-                {ownerType === 'existing' && !_.isEmpty(ownerList) &&
-                  <div className='group'>
-                    <TextField
-                      id='addIPstepsOwnerName'
-                      label={t('ownerFields.ownerName')}
-                      select
-                      variant='outlined'
-                      fullWidth
-                      size='small'
-                      value={addIP.ownerUUID}
-                      onChange={this.handleOwnerChange}>
-                      {ownerListDropDown}
-                    </TextField>
-                  </div>
-                }
                 {ownerType === 'new' &&
-                  <div className='group'>
-                    <TextField
-                      id='addIPstepsOwnerName'
-                      name='newOwnerName'
-                      label={t('ownerFields.ownerName')}
-                      variant='outlined'
-                      fullWidth
-                      size='small'
-                      required
-                      error={!formValidation.newOwnerName.valid}
-                      helperText={formValidation.newOwnerName.msg}
-                      value={addIP.newOwnerName}
-                      onChange={this.handleAddIpChange} />
+                  <div>
+                    <div className='group'>
+                      <TextField
+                        id='addIPstepsOwnerName'
+                        name='newOwnerName'
+                        label={t('ownerFields.ownerName')}
+                        variant='outlined'
+                        fullWidth
+                        size='small'
+                        required
+                        error={!formValidation.newOwnerName.valid}
+                        helperText={formValidation.newOwnerName.msg}
+                        value={addIP.newOwnerName}
+                        onChange={this.handleAddIpChange} />
+                    </div>
+                    <div className='group'>
+                      <TextField
+                        id='addIPstepsOwnerID'
+                        name='newOwnerID'
+                        label={t('ownerFields.ownerID')}
+                        variant='outlined'
+                        fullWidth
+                        size='small'
+                        required
+                        error={!formValidation.newOwnerID.valid}
+                        helperText={formValidation.newOwnerID.msg}
+                        value={addIP.newOwnerID}
+                        onChange={this.handleAddIpChange} />
+                    </div>
+                    <div className='group'>
+                      <TextField
+                        id='addIPstepsDepartment'
+                        name='newDepartment'
+                        label={t('ownerFields.department')}
+                        select
+                        variant='outlined'
+                        fullWidth
+                        size='small'
+                        value={addIP.newDepartment}
+                        onChange={this.handleSelectionChange}>
+                        {departmentList}
+                      </TextField>
+                    </div>
+                    <div className='group'>
+                      <TextField
+                        id='addIPstepsTitle'
+                        name='newTitle'
+                        label={t('ownerFields.title')}
+                        select
+                        variant='outlined'
+                        fullWidth
+                        size='small'
+                        value={addIP.newTitle}
+                        onChange={this.handleSelectionChange}>
+                        {titleList}
+                      </TextField>
+                    </div>
                   </div>
                 }
-                {ownerType === 'existing' && !_.isEmpty(ownerList) &&
-                  <div className='group'>
-                    <TextField
-                      id='addIPstepsOwnerID'
-                      name='ownerID'
-                      label={t('ownerFields.ownerID')}
-                      variant='outlined'
-                      fullWidth
-                      size='small'
-                      value={addIP.ownerID}
-                      disabled />
-                  </div>
-                }
-                {ownerType === 'new' &&
-                  <div className='group'>
-                    <TextField
-                      id='addIPstepsOwnerID'
-                      name='newOwnerID'
-                      label={t('ownerFields.ownerID')}
-                      variant='outlined'
-                      fullWidth
-                      size='small'
-                      required
-                      error={!formValidation.newOwnerID.valid}
-                      helperText={formValidation.newOwnerID.msg}
-                      value={addIP.newOwnerID}
-                      onChange={this.handleAddIpChange} />
-                  </div>
-                }
-                {ownerType === 'existing' && !_.isEmpty(ownerList) &&
-                  <div className='group'>
-                    <TextField
-                      id='addIPstepsDepartment'
-                      name='department'
-                      label={t('ownerFields.department')}
-                      variant='outlined'
-                      fullWidth
-                      size='small'
-                      value={addIP.department}
-                      disabled />
-                  </div>
-                }
-                {ownerType === 'new' &&
-                  <div className='group'>
-                    <TextField
-                      id='addIPstepsDepartment'
-                      name='newDepartment'
-                      label={t('ownerFields.department')}
-                      select
-                      variant='outlined'
-                      fullWidth
-                      size='small'
-                      value={addIP.newDepartment}
-                      onChange={this.handleSelectionChange}>
-                      {departmentList}
-                    </TextField>
-                  </div>
-                }
-                {ownerType === 'existing' && !_.isEmpty(ownerList) &&
-                  <div className='group'>
-                    <TextField
-                      id='addIPstepsTitle'
-                      name='title'
-                      label={t('ownerFields.title')}
-                      variant='outlined'
-                      fullWidth
-                      size='small'
-                      value={addIP.title}
-                      disabled />
-                  </div>
-                }
-                {ownerType === 'new' &&
-                  <div className='group'>
-                    <TextField
-                      id='addIPstepsTitle'
-                      name='newTitle'
-                      label={t('ownerFields.title')}
-                      select
-                      variant='outlined'
-                      fullWidth
-                      size='small'
-                      value={addIP.newTitle}
-                      onChange={this.handleSelectionChange}>
-                      {titleList}
-                    </TextField>
+                {ownerType === 'existing' &&
+                  <div>
+                    <div className='group'>
+                      <TextField
+                        id='addIPstepsOwnerName'
+                        label={t('ownerFields.ownerName')}
+                        select
+                        variant='outlined'
+                        fullWidth
+                        size='small'
+                        value={addIP.ownerUUID}
+                        onChange={this.handleOwnerChange}>
+                        {ownerListDropDown}
+                      </TextField>
+                    </div>
+                    <div className='group'>
+                      <TextField
+                        id='addIPstepsOwnerID'
+                        name='ownerID'
+                        label={t('ownerFields.ownerID')}
+                        variant='outlined'
+                        fullWidth
+                        size='small'
+                        value={addIP.ownerID}
+                        disabled />
+                    </div>
+                    <div className='group'>
+                      <TextField
+                        id='addIPstepsDepartment'
+                        name='department'
+                        label={t('ownerFields.department')}
+                        variant='outlined'
+                        fullWidth
+                        size='small'
+                        value={addIP.department}
+                        disabled />
+                    </div>
+                    <div className='group'>
+                      <TextField
+                        id='addIPstepsTitle'
+                        name='title'
+                        label={t('ownerFields.title')}
+                        variant='outlined'
+                        fullWidth
+                        size='small'
+                        value={addIP.title}
+                        disabled />
+                    </div>
                   </div>
                 }
               </div>
