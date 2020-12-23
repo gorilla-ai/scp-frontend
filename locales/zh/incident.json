@@ -81,6 +81,7 @@
 	"txt-fileMemo": "附件說明",
 	"txt-flowTitle": "事件處理進度",
 	"txt-accidentTitle": "事故分類與異常原因",
+	"txt-notifyUnit": "額外通知聯絡人列表",
 	"txt-reason": "異常原因",
 	"txt-reasonDescr": "事故發生原因",
 	"txt-accidentClassification": "事故分類",
@@ -107,6 +108,7 @@
 	"txt-analyze-fail": "交辦失敗",
 	"txt-day": "天",
 	"file-too-large": "上傳檔案過大，超過20MB",
+	"txt-checkRequiredFieldType": "請輸入正確欄位格式",
 	"accident": {
 		"1": "網頁攻擊",
 		"11": "網頁置換",

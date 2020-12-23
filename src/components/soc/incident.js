@@ -39,11 +39,13 @@ import FileUpload from "../common/file-upload";
 import {KeyboardDateTimePicker, MuiPickersUtilsProvider} from "@material-ui/pickers";
 import MomentUtils from "@date-io/moment";
 import moment from "moment";
+import NotifyContact from "./common/notifyContact";
 
 let t = null;
 let f = null;
 let et = null;
 let it = null;
+let at = null;
 
 const INCIDENT_STATUS_ALL = 0
 const INCIDENT_STATUS_UNREVIEWED = 1
@@ -67,6 +69,7 @@ class Incident extends Component {
         f = chewbaccaI18n.getFixedT(null, "tableFields");
         et = global.chewbaccaI18n.getFixedT(null, "errors");
         it = global.chewbaccaI18n.getFixedT(null, "incident");
+        at = global.chewbaccaI18n.getFixedT(null, "account");
 
         this.state = {
             INCIDENT_ACCIDENT_LIST: _.map(_.range(1, 6), el => {
@@ -713,14 +716,17 @@ class Incident extends Component {
                     displayPage === 'main' && this.displayMainPage()
                 }
                 {
+                    _.includes(['addIncident', 'editIncident', 'viewIncident'], activeContent) && displayPage === 'main' &&  this.displayNoticePage()
+                }
+                {
                     _.includes(['addIncident', 'editIncident', 'viewIncident'], activeContent) && displayPage === 'main' && this.displayAttached()
+                }
+                {
+                    _.includes(['addIncident', 'editIncident', 'viewIncident'], activeContent) && displayPage === 'main' &&  this.displayConnectUnit()
                 }
                 {
                     activeContent !== 'addIncident' &&  displayPage === 'main' && this.displayFlow()
                 }
-            {
-                displayPage === 'notice' && this.displayNoticePage()
-            }
             {
                 displayPage === 'events' && this.displayEventsPage()
             }
@@ -1147,11 +1153,11 @@ class Incident extends Component {
 
             {/*<Button className={incidentType === 'events' ? 'last' : 'last-left'}  style={{backgroundColor:'#001b34',color:'#FFFFFF'}}*/}
             {/*        onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}</Button>*/}
-            <Button className='last-left' style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
-                    onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}</Button>
+            {/*<Button className='last-left' style={{backgroundColor:'#001b34',color:'#FFFFFF'}}*/}
+            {/*        onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}</Button>*/}
 
-            <Button className='last' disabled={incidentType !== 'ttps'}  style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
-                    onClick={this.handleIncidentPageChange.bind(this, 'ttps')}>{it('txt-next-page')}</Button>
+            {/*<Button className='last' disabled={incidentType !== 'ttps'}  style={{backgroundColor:'#001b34',color:'#FFFFFF'}}*/}
+            {/*        onClick={this.handleIncidentPageChange.bind(this, 'ttps')}>{it('txt-next-page')}</Button>*/}
 
             {/*{*/}
             {/*    incidentType === 'ttps' &&*/}
@@ -1238,6 +1244,35 @@ class Incident extends Component {
         </div>
     }
 
+    handleConnectContactChange = (val) => {
+        let temp = {...this.state.incident};
+        temp.info.notifyList = val;
+        this.setState({incident: temp})
+    };
+
+    displayConnectUnit = () => {
+        const {activeContent, INCIDENT_ACCIDENT_LIST, INCIDENT_ACCIDENT_SUB_LIST,incidentType, incident, relatedListOptions} = this.state;
+
+        return <div className='form-group normal'>
+            <header>
+                <div className='text'>{it('txt-notifyUnit')}</div>
+            </header>
+
+            <div className='group full multi'>
+                <MultiInput
+                    id='incidentEvent'
+                    className='incident-group'
+                    base={NotifyContact}
+                    defaultItemValue={{title: '', name: '', phone:'', email:''}}
+                    value={incident.info.notifyList}
+                    props={{activeContent: activeContent}}
+                    onChange={this.handleConnectContactChange}
+                    readOnly={activeContent === 'viewIncident'}/>
+
+            </div>
+        </div>
+    }
+
     handleEventsChange = (val) => {
         let temp = {...this.state.incident};
         temp.info.eventList = val;
@@ -1259,8 +1294,8 @@ class Incident extends Component {
             <Button className='last-left '  style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
                     onClick={this.handleIncidentPageChange.bind(this, 'main')}>{it('txt-prev-page')}</Button>
 
-            <Button className='last'  style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
-                    onClick={this.handleIncidentPageChange.bind(this, 'notice')}>{it('txt-next-page')}</Button>
+            <Button className='last'  disabled={incidentType !== 'ttps'}   style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
+                    onClick={this.handleIncidentPageChange.bind(this, 'ttps')}>{it('txt-next-page')}</Button>
 
 
             <div className='group full multi'>
@@ -1295,7 +1330,7 @@ class Incident extends Component {
             </header>
 
             <Button className='last-left '  style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
-                    onClick={this.handleIncidentPageChange.bind(this, 'notice')}>{it('txt-prev-page')}</Button>
+                    onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}</Button>
 
             <Button className='last' disabled={true} style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
                     onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-next-page')}</Button>
@@ -1832,6 +1867,7 @@ class Incident extends Component {
                 fileList: allValue.fileList,
                 fileMemo: allValue.fileMemo,
                 tagList: allValue.tagList,
+                notifyList: allValue.notifyList,
                 historyList: allValue.historyList,
                 creator: allValue.creator,
                 announceSource: allValue.announceSource,
@@ -1863,6 +1899,7 @@ class Incident extends Component {
                 relatedList: null,
                 ttpList: null,
                 eventList: null,
+                notifyList: null,
                 fileMemo: '',
                 tagList: null,
                 historyList: null,
@@ -2525,6 +2562,23 @@ class Incident extends Component {
             })
         }
 
+        //  Contact list
+        payload.notifyList = {}
+        payload.notifyList.cols = 8
+        payload.notifyList.header = it('txt-notifyUnit')
+        payload.notifyList.table = []
+
+        _.forEach(incident.notifyList, notify => {
+            payload.notifyList.table.push({text: f('incidentFields.name'), colSpan: 2})
+            payload.notifyList.table.push({text: f('incidentFields.reviewerName'), colSpan: 2})
+            payload.notifyList.table.push({text: at('phone'), colSpan: 2})
+            payload.notifyList.table.push({text: at('email'), colSpan: 2})
+            payload.notifyList.table.push({text: notify.title, colSpan: 2})
+            payload.notifyList.table.push({text: notify.name, colSpan: 2})
+            payload.notifyList.table.push({text: notify.phone, colSpan: 2})
+            payload.notifyList.table.push({text: notify.email, colSpan: 2})
+        })
+
 
         // accident
         payload.accident = {}
@@ -2660,7 +2714,7 @@ class Incident extends Component {
     exportPdf() {
         const {baseUrl, contextRoot} = this.context
         const {incident} = this.state
-
+        console.log('this.toPdfPayload(incident.info) == ', this.toPdfPayload(incident.info))
         downloadWithForm(`${baseUrl}${contextRoot}/api/soc/_pdf`, {payload: JSON.stringify(this.toPdfPayload(incident.info))})
     }
     exportAll() {
