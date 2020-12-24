@@ -200,6 +200,11 @@ button.standard:hover:not([disabled]) {
   background-color: var(--primaryContentBackground);
   border: 1px solid var(--primaryBorder);
 }
+.MuiPopover-paper {
+  .MuiIconButton-root:hover {
+    color: #fff;
+  }
+}
 .c-popover {
   color: var(--primaryTextColor) !important;
   background-color: var(--primaryContentBackground) !important;
@@ -512,6 +517,15 @@ button.standard:hover:not([disabled]) {
   }
 }
 #app-container {
+  .mui-data-table {
+    background-color: var(--primaryContentBackground);
+    color: #fff;
+    button {
+      &:hover {
+        color: #fff;
+      }
+    }
+  }
   .react-grid-layout {
     background-color: var(--primaryBackground);
   }

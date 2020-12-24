@@ -22,31 +22,6 @@ class MuiTableContent extends Component {
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
   }
-  getMuiTheme = () => createMuiTheme({
-    overrides: {
-      MuiTableCell: {
-        head: {
-          fontWeight: 'bold',
-          fontSize: '1em'
-        },
-      },
-      MuiTableRow: {
-				root: {
-				  '&:nth-of-type(odd)': {
-				    backgroundColor: '#f5f5f5'
-				  },
-				  '&:nth-of-type(even)': {
-				    backgroundColor: '#fff'
-				  }
-				},
-        hover: {
-          '&:hover': {
-						backgroundColor: '#e2ecfd !important'
-          }
-        }
-      }
-    }
-  })
   render() {
     const {columns, data, tableOptions} = this.props;
     const options = {
@@ -56,6 +31,7 @@ class MuiTableContent extends Component {
       search: false,
       filter: false,
       print: false,
+      download: false,
       rowsPerPageOptions: [10, 20, 50, 100],
       jumpToPage: true,
       count: data.totalCount,
@@ -89,12 +65,11 @@ class MuiTableContent extends Component {
     };
 
     return (
-    	<MuiThemeProvider theme={this.getMuiTheme()}>
-				<MUIDataTable
-					columns={data.dataFields}
-					data={data.dataContent}
-					options={options} />
-      </MuiThemeProvider>
+      <MUIDataTable
+        className='mui-data-table'
+        columns={data.dataFields}
+        data={data.dataContent}
+        options={options} />
     )
   }
 }

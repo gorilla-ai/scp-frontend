@@ -228,7 +228,7 @@ class EsManage extends Component {
               sort: val === 'date' ? true : false,
               viewColumns: val === '_menu' ? false : true,
               customBodyRenderLite: (dataIndex) => {
-                if (val === '_menu') {
+                if (val === '_menu' && tempEs.dataContent[dataIndex].showButton) {
                   return (
                     <div className='table-menu menu active'>
                       <FormControlLabel
@@ -368,7 +368,7 @@ class EsManage extends Component {
     this.setState({
       es: tempEs
     }, () => {
-      this.getEsData();
+      this.getEsData('search');
     });
   }
   /**
