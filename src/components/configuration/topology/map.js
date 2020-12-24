@@ -2,18 +2,21 @@ import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
 import cx from 'classnames'
 import _ from 'lodash'
 
+import Button from '@material-ui/core/Button';
+import ChevronRightIcon from '@material-ui/icons/ChevronRight';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
+import TreeItem from '@material-ui/lab/TreeItem';
+import TreeView from '@material-ui/lab/TreeView';
 
 import DataTable from 'react-ui/build/src/components/table'
 import Gis from 'react-gis/build/src/components'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
-import TreeView from 'react-ui/build/src/components/tree'
 
 import {BaseDataContext} from '../../common/context';
 import Config from '../../common/configuration'
@@ -48,7 +51,7 @@ class NetworkMap extends Component {
         deviceType: 'all'
       },
       showFilter: false,
-      IP: {
+      device: {
         dataFieldsArr: ['seat', 'ip', 'mac', 'owner', 'hostName', 'system', 'deviceType'],
         dataFields: {},
         dataContent: [],
@@ -105,7 +108,7 @@ class NetworkMap extends Component {
     this.getFloorPlan();  //For floor plan on the left nav
   }
   /**
-   * Get and set the IP device list
+   * Get and set the device list
    * @method
    */
   getSearchOption = () => {
@@ -190,7 +193,7 @@ class NetworkMap extends Component {
         }, () => {
           this.getAreaData(areaUUID);
           this.getSeatData(areaUUID);
-          this.getIPData(areaUUID);
+          this.getDeviceData(areaUUID);
         });
       }
       return null;
@@ -255,7 +258,7 @@ class NetworkMap extends Component {
             currentMap,
             currentBaseLayers
           }, () => {
-            this.getIPData(areaUUID);
+            this.getDeviceData(areaUUID);
           });
         } else {
           this.setState({
@@ -265,7 +268,7 @@ class NetworkMap extends Component {
           }, () => {
             if (areaUUID) {
               this.getSeatData(areaUUID);
-              this.getIPData(areaUUID);
+              this.getDeviceData(areaUUID);
             }
           });
         }
@@ -347,14 +350,14 @@ class NetworkMap extends Component {
     }
   }
   /**
-   * Get and set IP data
+   * Get and set device data
    * @method
    * @param {string} areaUUID - area UUID
-   * @returns IP data for the data table
+   * @returns device data for the data table
    */
-  getIPData = (areaUUID) => {
+  getDeviceData = (areaUUID) => {
     const {baseUrl} = this.context;
-    const {IP, floorPlan, search} = this.state;
+    const {device, floorPlan, search} = this.state;
     let requestData = {};
     let area = areaUUID || floorPlan.currentAreaUUID;
 
@@ -363,8 +366,8 @@ class NetworkMap extends Component {
     }
 
     requestData = {
-      page: IP.currentPage,
-      pageSize: IP.pageSize
+      page: device.currentPage,
+      pageSize: device.pageSize
     };
 
     if (area) {
@@ -392,12 +395,12 @@ class NetworkMap extends Component {
     })
     .then(data => {
       if (data) {
-        let tempIP = {...this.state.IP};
-        tempIP.dataContent = data.rows;
-        tempIP.totalCount = data.counts;
+        let tempDevice = {...this.state.device};
+        tempDevice.dataContent = data.rows;
+        tempDevice.totalCount = data.counts;
 
         let dataFields = {};
-        IP.dataFieldsArr.forEach(tempData => {
+        device.dataFieldsArr.forEach(tempData => {
           dataFields[tempData] = {
             label: t(`ipFields.${tempData}`),
             sortable: this.checkSortable(tempData),
@@ -417,10 +420,10 @@ class NetworkMap extends Component {
           };
         })
 
-        tempIP.dataFields = dataFields;
+        tempDevice.dataFields = dataFields;
 
         this.setState({
-          IP: tempIP
+          device: tempDevice
         });
       }
       return null;
@@ -430,41 +433,17 @@ class NetworkMap extends Component {
     })
   }
   /**
-   * Handle tree filter button selection
+   * Handle tree selection
+   * @param {object} val - tree data
    * @method
-   * @param {number} i - index of the floorPlan tree data
-   * @param {string} areaUUID - selected area UUID
-   * @param {object} eventData - selected node data (before and path)
    */
-  selectTree = (i, areaUUID, eventData) => {
+  handleSelectTree = (val) => {
+    const areaUUID = val.areaUUID;
     let tempFloorPlan = {...this.state.floorPlan};
-    let tempArr = [];
-    let pathStr = '';
-    let pathNameStr = '';
-    let pathParentStr = '';
-
-    if (eventData.path.length > 0) {
-      _.forEach(eventData.path, val => {
-        if (val.index >= 0) {
-          tempArr.push(val.index);
-        }
-      })
-    }
-
-    _.forEach(tempArr, val => {
-      pathStr += 'children[' + val + '].'
-    })
-
-    pathNameStr = pathStr + 'label';
-    pathParentStr = pathStr + 'parentAreaUUID';
-
-    if (eventData.path[0].id) {
-      tempFloorPlan.rootAreaUUID = eventData.path[0].id;
-    }
+    tempFloorPlan.currentAreaName = val.areaName;
     tempFloorPlan.currentAreaUUID = areaUUID;
-    tempFloorPlan.currentAreaName = _.get(tempFloorPlan.treeData[i], pathNameStr);
-    tempFloorPlan.currentParentAreaUUID = _.get(tempFloorPlan.treeData[i], pathParentStr);
-    tempFloorPlan.name = tempFloorPlan.currentAreaName;
+    tempFloorPlan.currentParentAreaUUID = val.parentAreaUUID;
+    tempFloorPlan.name = val.areaName;
     tempFloorPlan.type = 'edit';
 
     this.setState({
@@ -473,37 +452,56 @@ class NetworkMap extends Component {
     }, () => {
       this.getAreaData(areaUUID);
       this.getSeatData(areaUUID);
-      this.getIPData(areaUUID);
+      this.getDeviceData(areaUUID);
     });
+  }
+  /**
+   * Display tree item
+   * @method
+   * @param {object} val - tree data
+   * @param {number} i - index of the tree data
+   * @returns TreeItem component
+   */
+  getTreeItem = (val, i) => {
+    return (
+      <TreeItem
+        key={val.id + i}
+        nodeId={val.id}
+        label={val.label}
+        onLabelClick={this.handleSelectTree.bind(this, val)}>
+        {val.children && val.children.length > 0 &&
+          val.children.map(this.getTreeItem)
+        }
+      </TreeItem>
+    )
   }
   /**
    * Get tree data
    * @method
    * @param {object} tree - tree data
-   * @param {string} selectedID - selected area UUID
    * @param {number} i - index of the floorPlan tree data
    * @returns TreeView component
    */
-  getTreeView = (tree, selectedID, i) => {
+  displayTreeView = (tree, i) => {
     return (
       <TreeView
-        id={tree.areaUUID}
-        key={tree.areaUUID}
-        data={tree}
-        selected={selectedID}
-        defaultOpened={[tree.areaUUID]}
-        onSelect={this.selectTree.bind(this, i)} />
+        key={i}
+        defaultCollapseIcon={<ExpandMoreIcon />}
+        defaultExpandIcon={<ChevronRightIcon />}
+        defaultSelected={tree.areaUUID}
+        defaultExpanded={[tree.areaUUID]}>
+        {tree.areaUUID &&
+          <TreeItem
+            nodeId={tree.areaUUID}
+            label={tree.areaName}
+            onLabelClick={this.handleSelectTree.bind(this, tree)}>
+            {tree.children.length > 0 &&
+              tree.children.map(this.getTreeItem)
+            }
+          </TreeItem>
+        }
+      </TreeView>
     )
-  }
-  /**
-   * Display tree data for lefe nav
-   * @method
-   * @param {object} val - tree data
-   * @param {number} i - index of the tree array
-   * @returns content of the TreeView component
-   */
-  displayTreeView = (val, i) => {
-    return this.getTreeView(val, this.state.floorPlan.currentAreaUUID, i);
   }
   /**
    * Handle filter input value change
@@ -525,17 +523,17 @@ class NetworkMap extends Component {
    * @param {string | number} value - new page number
    */
   handlePaginationChange = (type, value) => {
-    let tempIP = {...this.state.IP};
-    tempIP[type] = value;
+    let tempDevice = {...this.state.device};
+    tempDevice[type] = value;
 
     if (type === 'pageSize') {
-      tempIP.currentPage = 1;
+      tempDevice.currentPage = 1;
     }
 
     this.setState({
-      IP: tempIP
+      device: tempDevice
     }, () => {
-      this.getIPData();
+      this.getDeviceData();
     });
   }
   /**
@@ -583,9 +581,11 @@ class NetworkMap extends Component {
    * @returns HTML DOM
    */
   displayDeleteSeat = () => {
+    const {currentDeviceData} = this.state;
+
     return (
       <div className='content delete'>
-        <span>{t('network-topology.txt-deleteSeatMsg')}: {this.state.currentDeviceData.seatObj.seatName}?</span>
+        <span>{t('network-topology.txt-deleteSeatMsg')}: {currentDeviceData.seatObj.seatName}?</span>
       </div>
     )
   }
@@ -629,7 +629,7 @@ class NetworkMap extends Component {
         this.setState({
           showSeatData: false
         }, () => {
-          this.getIPData();
+          this.getDeviceData();
           this.getSeatData();
         })
       }
@@ -664,9 +664,9 @@ class NetworkMap extends Component {
         name='name'
         label={t('txt-name')}
         variant='outlined'
-        fullWidth={true}
+        fullWidth
         size='small'
-        required={true}
+        required
         error={!formValidation.name.valid}
         helperText={formValidation.name.valid ? '' : t('txt-required')}
         value={addSeat.name}
@@ -747,7 +747,7 @@ class NetworkMap extends Component {
             coordY: ''
           }
         }, () => {
-          this.getIPData();
+          this.getDeviceData();
           this.getSeatData();
         });
       }
@@ -794,7 +794,7 @@ class NetworkMap extends Component {
     })
   }
   /**
-   * Get and set IP device data based on seat selection, or add new seat
+   * Get and set device data based on seat selection, or add new seat
    * @method
    * @param {string} seatUUID - selected seat UUID
    * @param {object} info - MouseClick events
@@ -866,6 +866,7 @@ class NetworkMap extends Component {
    * @returns ModalDialog component
    */
   showSeatData = () => {
+    const {currentDeviceData} = this.state;
     const actions = {
       confirm: {text: t('txt-close'), handler: this.closeSeatDialog}
     };
@@ -874,6 +875,7 @@ class NetworkMap extends Component {
       <ModalDialog
         id='configSeatDialog'
         className='modal-dialog'
+        title={currentDeviceData.seatObj.seatName}
         draggable={true}
         global={true}
         actions={actions}
@@ -953,7 +955,7 @@ class NetworkMap extends Component {
    * @returns HTML DOM
    */
   renderFilter = () => {
-    const {showFilter, IP, floorPlan, list, search} = this.state;
+    const {showFilter, device, floorPlan, list, search} = this.state;
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
@@ -966,7 +968,7 @@ class NetworkMap extends Component {
               name='keyword'
               label={t('ipFields.keyword')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={search.keyword}
               onChange={this.handleSearchChange} />
@@ -978,9 +980,9 @@ class NetworkMap extends Component {
               select
               label={t('ipFields.system')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
-              required={true}
+              required
               value={search.system}
               onChange={this.handleSearchChange}>
               <MenuItem value={'all'}>{t('txt-all')}</MenuItem>
@@ -994,9 +996,9 @@ class NetworkMap extends Component {
               select
               label={t('txt-device')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
-              required={true}
+              required
               value={search.deviceType}
               onChange={this.handleSearchChange}>
               <MenuItem value={'all'}>{t('txt-all')}</MenuItem>
@@ -1005,8 +1007,8 @@ class NetworkMap extends Component {
           </div>
         </div>
         <div className='button-group'>
-          <button className='filter' onClick={this.getIPData.bind(this, floorPlan.currentAreaUUID)}>{t('txt-filter')}</button>
-          <button className='clear' onClick={this.clearFilter}>{t('txt-clear')}</button>
+          <Button variant='contained' color='primary' className='filter' onClick={this.getDeviceData.bind(this, floorPlan.currentAreaUUID)}>{t('txt-filter')}</Button>
+          <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}</Button>
         </div>
       </div>
     )
@@ -1018,7 +1020,7 @@ class NetworkMap extends Component {
       modalFloorOpen,
       showSeatData,
       addSeatOpen,
-      IP,
+      device,
       floorPlan,
       currentMap,
       currentBaseLayers,
@@ -1044,7 +1046,7 @@ class NetworkMap extends Component {
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
+            <Button variant='outlined' color='primary' className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
           </div>
         </div>
 
@@ -1054,13 +1056,13 @@ class NetworkMap extends Component {
             contextRoot={contextRoot} />
 
           <div className='parent-content'>
-            { this.renderFilter() }
+            {this.renderFilter()}
 
             <div className='main-content'>
               <header className='main-header'>{t('txt-floorMap')}</header>
 
               <div className='content-header-btns'>
-                <button className='standard btn' onClick={this.openEditFloorMap} >{t('network-topology.txt-editFloorMap')}</button>
+                <Button variant='outlined' color='primary' className='standard btn' onClick={this.openEditFloorMap} >{t('network-topology.txt-editFloorMap')}</Button>
               </div>
 
               <div className='map-container'>
@@ -1096,8 +1098,8 @@ class NetworkMap extends Component {
                     <div className='table'>
                       <DataTable
                         className='main-table'
-                        fields={IP.dataFields}
-                        data={IP.dataContent} />
+                        fields={device.dataFields}
+                        data={device.dataContent} />
                     </div>
                   </div>
                 </div>

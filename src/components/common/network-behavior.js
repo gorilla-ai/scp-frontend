@@ -1,11 +1,14 @@
 import React, { Component } from 'react'
 import { Link, withRouter } from 'react-router-dom'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
+import moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import ButtonGroup from 'react-ui/build/src/components/button-group'
+import Button from '@material-ui/core/Button';
+import ToggleButton from '@material-ui/lab/ToggleButton';
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
+
 import DataTable from 'react-ui/build/src/components/table'
 
 import {BaseDataContext} from './context';
@@ -103,9 +106,7 @@ class NetworkBehavior extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    const {ipType} = this.props;
-
-    this.loadNetworkBehavior(ipType);
+    this.loadNetworkBehavior(this.props.ipType);
   }
   /**
    * Load network behavior data
@@ -124,8 +125,8 @@ class NetworkBehavior extends Component {
 
     if (_.isEmpty(hostDatetime)) {
       datetime = {
-        from: Moment(eventDateFrom).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-        to: Moment(eventDateTime).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+        from: moment(eventDateFrom).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+        to: moment(eventDateTime).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
       };
     } else {
       datetime = {
@@ -153,7 +154,7 @@ class NetworkBehavior extends Component {
 
       apiArr = [
         {
-          url: `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`, //Threats srcIp
+          url: `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0&skipHistogram=true`, //Threats srcIp
           data: JSON.stringify({
             timestamp: [datetime.from, datetime.to],
             filters: [
@@ -205,7 +206,7 @@ class NetworkBehavior extends Component {
           contentType: 'text/plain'
         },
         {
-          url: `${baseUrl}/api/u2/alert/_search?pageSize=0`, //Syslog srcIp
+          url: `${baseUrl}/api/u2/alert/_search?pageSize=0&skipHistogram=true`, //Syslog srcIp
           data: JSON.stringify({
             timestamp: [datetime.from, datetime.to],
             filters: [
@@ -232,7 +233,7 @@ class NetworkBehavior extends Component {
 
       apiArr = [
         {
-          url: `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`, //Threats destIp
+          url: `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0&skipHistogram=true`, //Threats destIp
           data: JSON.stringify({
             timestamp: [datetime.from, datetime.to],
             filters: [
@@ -284,7 +285,7 @@ class NetworkBehavior extends Component {
           contentType: 'text/plain'
         },
         {
-          url: `${baseUrl}/api/u2/alert/_search?pageSize=0`, //Syslog destIp
+          url: `${baseUrl}/api/u2/alert/_search?pageSize=0&skipHistogram=true`, //Syslog destIp
           data: JSON.stringify({
             timestamp: [datetime.from, datetime.to],
             filters: [
@@ -460,9 +461,14 @@ class NetworkBehavior extends Component {
   /**
    * Toggle network behavior button
    * @method
+   * @param {object} event - event object
    * @param {string} type - 'threats' or 'syslog'
    */
-  toggleNetworkBtn = (type) => {
+  toggleNetworkBtn = (event, type) => {
+    if (!type) {
+      return;
+    }
+    
     this.setState({
       activeNetworkBehavior: type
     });
@@ -559,21 +565,20 @@ class NetworkBehavior extends Component {
 
     return (
       <div className='network-behavior'>
-        <ButtonGroup
-          id='networkType'
-          list={[
-            {value: 'threats', text: t('txt-threats') + ' (' + helper.numberWithCommas(networkBehavior.threats[ipType].totalCount) + ')'},
-            {value: 'connections', text: t('txt-connections-eng') + ' (' + helper.numberWithCommas(networkBehavior.connections[ipType].totalCount) + ')'},
-            {value: 'dns', text: t('txt-dns') + ' (' + helper.numberWithCommas(networkBehavior.dns[ipType].totalCount) + ')'},
-            {value: 'syslog', text: t('txt-syslog') + ' (' + helper.numberWithCommas(networkBehavior.syslog[ipType].totalCount) + ')'}
-          ]}
+        <ToggleButtonGroup
           value={activeNetworkBehavior}
-          onChange={this.toggleNetworkBtn} />
+          exclusive
+          onChange={this.toggleNetworkBtn}>
+          <ToggleButton value='threats'>{t('txt-threats') + ' (' + helper.numberWithCommas(networkBehavior.threats[ipType].totalCount) + ')'}</ToggleButton>
+          <ToggleButton value='connections'>{t('txt-connections-eng') + ' (' + helper.numberWithCommas(networkBehavior.connections[ipType].totalCount) + ')'}</ToggleButton>
+          <ToggleButton value='dns'>{t('txt-dns') + ' (' + helper.numberWithCommas(networkBehavior.dns[ipType].totalCount) + ')'}</ToggleButton>
+          <ToggleButton value='syslog'>{t('txt-syslog') + ' (' + helper.numberWithCommas(networkBehavior.syslog[ipType].totalCount) + ')'}</ToggleButton>
+        </ToggleButtonGroup>
 
         {datetime.from && datetime.to &&
           <div className='msg'>{alertTimeText}: {datetime.from} ~ {datetime.to}</div>
         }
-        <button className='standard btn query-events' onClick={this.redirectNewPage.bind(this, ipType)}>{t('alert.txt-queryEvents')}</button>
+        <Button variant='contained' color='primary' className='query-events' onClick={this.redirectNewPage.bind(this, ipType)}>{t('alert.txt-queryEvents')}</Button>
 
         <div className='table-data'>
           <DataTable
@@ -592,7 +597,9 @@ NetworkBehavior.contextType = BaseDataContext;
 
 NetworkBehavior.propTypes = {
   ipType: PropTypes.string.isRequired,
-  alertData: PropTypes.object.isRequired
+  alertData: PropTypes.object.isRequired,
+  page: PropTypes.string,
+  hostDatetime: PropTypes.object
 };
 
 export default NetworkBehavior;

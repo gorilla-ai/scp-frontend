@@ -1,7 +1,8 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 
-import Tabs from 'react-ui/build/src/components/tabs'
+import Tab from '@material-ui/core/Tab';
+import Tabs from '@material-ui/core/Tabs';
 
 import FilterContent from '../../../common/filter-content'
 import helper from '../../../common/helper'
@@ -20,6 +21,9 @@ class Certification extends Component {
   }
   render() {
     const {mainContentData} = this.props;
+    const tabsMenu = _.map(mainContentData.subTabMenu, (val, key) => {
+      return <Tab label={val} value={key} />
+    });
 
     return (
       <div className='data-content'>
@@ -32,10 +36,11 @@ class Certification extends Component {
 
           <div className='main-content'>
             <Tabs
-              className='subtab-menu'
-              menu={mainContentData.subTabMenu}
-              current={mainContentData.activeSubTab}
+              indicatorColor='primary'
+              textColor='primary'
+              value={mainContentData.activeSubTab}
               onChange={mainContentData.handleSubTabChange}>
+              {tabsMenu}
             </Tabs>
 
             <TableContent

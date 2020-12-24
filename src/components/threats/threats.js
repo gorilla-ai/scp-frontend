@@ -1,11 +1,12 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
 import cx from 'classnames'
+
+import Tab from '@material-ui/core/Tab';
+import Tabs from '@material-ui/core/Tabs';
 
 import DataTable from 'react-ui/build/src/components/table'
 import PieChart from 'react-chart/build/src/components/pie'
-import Tabs from 'react-ui/build/src/components/tabs'
 
 import DataChart from '../common/data-chart'
 import FilterContent from '../common/filter-content'
@@ -63,7 +64,7 @@ class Threats extends Component {
 
     if (alertChartsList[i].type === 'pie') {
       return (
-        <div className='chart-group c-box' key={alertChartsList[i].chartID}>
+        <div className='chart-group' key={alertChartsList[i].chartID}>
           {!alertChartsList[i].chartData &&
             <div className='empty-data'>
               <header>{alertChartsList[i].chartTitle}</header>
@@ -125,6 +126,9 @@ class Threats extends Component {
   }  
   render() {
     const {mainContentData, tabChartData} = this.props;
+    const tabsMenu = _.map(mainContentData.subTabMenu, (val, key) => {
+      return <Tab label={val} value={key} />
+    });
 
     return (
       <div className='data-content'>
@@ -141,10 +145,11 @@ class Threats extends Component {
 
           <div className='main-content'>
             <Tabs
-              className='subtab-menu'
-              menu={mainContentData.subTabMenu}
-              current={mainContentData.activeSubTab}
+              indicatorColor='primary'
+              textColor='primary'
+              value={mainContentData.activeSubTab}
               onChange={mainContentData.handleSubTabChange}>
+              {tabsMenu}
             </Tabs>
 
             {mainContentData.activeSubTab === 'table' &&

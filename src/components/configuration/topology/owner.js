@@ -1,16 +1,16 @@
 import React, { Component } from 'react'
 import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
+import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 
-import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import FileInput from 'react-ui/build/src/components/file-input'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
@@ -48,9 +48,11 @@ class NetworkOwner extends Component {
         department: 'all',
         title: 'all',
       },
+      contextAnchor: null,
       addOwnerType: '',
       addOwnerTitle: '',
       showFilter: false,
+      currentOwnerData: {},
       owner: {
         dataFieldsArr: ['_menu', 'ownerID', 'ownerName', 'departmentName', 'titleName'],
         dataFields: {},
@@ -167,6 +169,28 @@ class NetworkOwner extends Component {
     })
   }
   /**
+   * Handle open menu
+   * @method
+   * @param {object} owner - active owner data
+   * @param {object} event - event object
+   */
+  handleOpenMenu = (owner, event) => {
+    this.setState({
+      contextAnchor: event.currentTarget,
+      currentOwnerData: owner
+    });
+  }
+  /**
+   * Handle close menu
+   * @method
+   */
+  handleCloseMenu = () => {
+    this.setState({
+      contextAnchor: null,
+      currentOwnerData: {}
+    });
+  }
+  /**
    * Get and set owner data
    * @method
    * @param {string} fromSearch - option for 'search'
@@ -215,7 +239,7 @@ class NetworkOwner extends Component {
               if (tempData === '_menu') {
                 return (
                   <div className={cx('table-menu', {'active': value})}>
-                    <button onClick={this.handleRowContextMenu.bind(this, allValue)}><i className='fg fg-more'></i></button>
+                    <Button variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue)}><i className='fg fg-more'></i></Button>
                   </div>
                 )
               } else {
@@ -251,36 +275,13 @@ class NetworkOwner extends Component {
     })
   }
   /**
-   * Construct and display table context menu
-   * @method
-   * @param {object} allValue - owner data
-   * @param {object} evt - mouseClick events
-   */
-  handleRowContextMenu = (allValue, evt) => {
-    const menuItems = [
-      {
-        id: 'edit',
-        text: t('txt-edit'),
-        action: () => this.getOwnerInfo(allValue)
-      },
-      {
-        id: 'delete',
-        text: t('txt-delete'),
-        action: () => this.openDeleteOwnerModal(allValue)
-      }
-    ];
-
-    ContextMenu.open(evt, menuItems, 'configTopologyOwnerMenu');
-    evt.stopPropagation();
-  }
-  /**
    * Handle table row mouse over
    * @method
    * @param {string} index - index of the owner data
    * @param {object} allValue - owner data
-   * @param {object} evt - mouseOver events
+   * @param {object} event - event object
    */
-  handleRowMouseOver = (index, allValue, evt) => {
+  handleRowMouseOver = (index, allValue, event) => {
     let tempOwner = {...this.state.owner};
     tempOwner['dataContent'] = _.map(tempOwner['dataContent'], el => {
       return {
@@ -345,18 +346,18 @@ class NetworkOwner extends Component {
   /**
    * Get individual owner data
    * @method
-   * @param {object} allValue - owner data
    */
-  getOwnerInfo = (allValue) => {
+  getOwnerInfo = () => {
     const {baseUrl} = this.context;
+    const {currentOwnerData} = this.state;
     let tempOwner = {...this.state.owner};
 
-    if (!allValue.ownerID) {
+    if (!currentOwnerData.ownerID) {
       return;
     }
 
     ah.one({
-      url: `${baseUrl}/api/u1/owner?uuid=${allValue.ownerUUID}`,
+      url: `${baseUrl}/api/u1/owner?uuid=${currentOwnerData.ownerUUID}`,
       type: 'GET'
     })
     .then(data => {
@@ -375,6 +376,8 @@ class NetworkOwner extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+
+    this.handleCloseMenu();
   }
   /**
    * Toggle and display page content
@@ -546,13 +549,14 @@ class NetworkOwner extends Component {
   /**
    * Display delete owner content
    * @method
-   * @param {object} allValue - owner data
    * @returns HTML DOM
    */
-  getDeleteOwnerContent = (allValue) => {
-    if (allValue.ownerID) {
+  getDeleteOwnerContent = () => {
+    const {currentOwnerData} = this.state;
+
+    if (currentOwnerData.ownerID) {
       let tempOwner = {...this.state.owner};
-      tempOwner.info = {...allValue};
+      tempOwner.info = {...currentOwnerData};
 
       this.setState({
         owner: tempOwner
@@ -561,28 +565,29 @@ class NetworkOwner extends Component {
 
     return (
       <div className='content delete'>
-        <span>{t('txt-delete-msg')}: {allValue.ownerID}?</span>
+        <span>{t('txt-delete-msg')}: {currentOwnerData.ownerName} (ID: {currentOwnerData.ownerID})?</span>
       </div>
     )
   }
   /**
    * Display delete owner modal dialog
    * @method
-   * @param {object} allValue - owner data
    */
-  openDeleteOwnerModal = (allValue) => {
+  openDeleteOwnerModal = () => {
     PopupDialog.prompt({
       title: t('network-topology.txt-deleteOwner'),
       id: 'modalWindowSmall',
       confirmText: t('txt-delete'),
       cancelText: t('txt-cancel'),
-      display: this.getDeleteOwnerContent(allValue),
+      display: this.getDeleteOwnerContent(),
       act: (confirmed) => {
         if (confirmed) {
           this.deleteOwner();
         }
       }
     });
+
+    this.handleCloseMenu();
   }
   /**
    * Handle delete owner confirm
@@ -640,14 +645,12 @@ class NetworkOwner extends Component {
    * @method
    */
   clearFilter = () => {
-    const tempSearch = {
-      name: '',
-      department: 'all',
-      title: 'all'
-    };
-
     this.setState({
-      search: tempSearch
+      search: {
+        name: '',
+        department: 'all',
+        title: 'all',
+      }
     });
   }
   /**
@@ -669,7 +672,7 @@ class NetworkOwner extends Component {
               name='name'
               label={t('ownerFields.ownerName')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={search.name}
               onChange={this.handleSearchChange} />
@@ -681,7 +684,7 @@ class NetworkOwner extends Component {
               select
               label={t('ownerFields.department')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={search.department}
               onChange={this.handleSearchChange}>
@@ -696,7 +699,7 @@ class NetworkOwner extends Component {
               select
               label={t('ownerFields.title')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={search.title}
               onChange={this.handleSearchChange}>
@@ -706,8 +709,8 @@ class NetworkOwner extends Component {
           </div>
         </div>
         <div className='button-group'>
-          <button className='filter' onClick={this.getOwnerData.bind(this, 'search')}>{t('txt-filter')}</button>
-          <button className='clear' onClick={this.clearFilter}>{t('txt-clear')}</button>
+          <Button variant='contained' color='primary' className='filter' onClick={this.getOwnerData.bind(this, 'search')}>{t('txt-filter')}</Button>
+          <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}</Button>
         </div>
       </div>
     )
@@ -717,6 +720,7 @@ class NetworkOwner extends Component {
     const {
       activeContent,
       list,
+      contextAnchor,
       departmentDropdown,
       titleDropdown,
       addOwnerTitle,
@@ -732,9 +736,20 @@ class NetworkOwner extends Component {
           ref={ref => { this.name=ref }}
           onDone={this.onDone} />
 
+        <Menu
+          anchorEl={contextAnchor}
+          keepMounted
+          open={Boolean(contextAnchor)}
+          onClose={this.handleCloseMenu}>
+          <MenuItem onClick={this.getOwnerInfo}>{t('txt-edit')}</MenuItem>
+          <MenuItem onClick={this.openDeleteOwnerModal}>{t('txt-delete')}</MenuItem>
+        </Menu>
+
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')} disabled={activeContent !== 'tableList'}><i className='fg fg-filter'></i></button>
+            {activeContent === 'tableList' &&
+              <Button variant='outlined' color='primary' className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
+            }
           </div>
         </div>
 
@@ -744,15 +759,15 @@ class NetworkOwner extends Component {
             contextRoot={contextRoot} />
 
           <div className='parent-content'>
-            { this.renderFilter() }
+            {this.renderFilter()}
 
             {activeContent === 'tableList' &&
               <div className='main-content'>
                 <header className='main-header'>{t('txt-ownerList')}</header>
 
                 <div className='content-header-btns'>
-                  <button className='standard btn' onClick={this.toggleContent.bind(this, 'addOwner', 'new')}>{t('txt-addNewOwner')}</button>
-                  <button className='standard btn' onClick={this.openManage}>{t('txt-manageDepartmentTitle')}</button>
+                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'addOwner', 'new')}>{t('txt-addNewOwner')}</Button>
+                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.openManage}>{t('txt-manageDepartmentTitle')}</Button>
                 </div>
 
                 <TableContent
@@ -774,7 +789,7 @@ class NetworkOwner extends Component {
                 <header className='main-header'>{addOwnerTitle}</header>
 
                 <div className='content-header-btns'>
-                  <button className='standard btn' onClick={this.openManage} >{t('txt-manageDepartmentTitle')}</button>
+                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.openManage} >{t('txt-manageDepartmentTitle')}</Button>
                 </div>
 
                 <div className='form-group steps-owner'>
@@ -784,6 +799,7 @@ class NetworkOwner extends Component {
                       <label htmlFor='ownerPhotoUpload'>{t('txt-uploadPhoto')}</label>
                       <FileInput
                         id='ownerPhotoUpload'
+                        className='file-input'
                         name='file'
                         btnText={t('txt-uploadPhoto')}
                         validate={{
@@ -830,9 +846,9 @@ class NetworkOwner extends Component {
                         name='ownerName'
                         label={t('ownerFields.ownerName')}
                         variant='outlined'
-                        fullWidth={true}
+                        fullWidth
                         size='small'
-                        required={true}
+                        required
                         error={!formValidation.ownerName.valid}
                         helperText={formValidation.ownerName.valid ? '' : t('txt-required')}
                         value={owner.info.ownerName}
@@ -844,9 +860,9 @@ class NetworkOwner extends Component {
                         name='ownerID'
                         label={t('ownerFields.ownerID')}
                         variant='outlined'
-                        fullWidth={true}
+                        fullWidth
                         size='small'
-                        required={true}
+                        required
                         error={!formValidation.ownerID.valid}
                         helperText={formValidation.ownerID.valid ? '' : t('txt-required')}
                         value={owner.info.ownerID}
@@ -859,7 +875,7 @@ class NetworkOwner extends Component {
                         select
                         label={t('ownerFields.department')}
                         variant='outlined'
-                        fullWidth={true}
+                        fullWidth
                         size='small'
                         value={owner.info.department}
                         onChange={this.handleDataChange}>
@@ -873,7 +889,7 @@ class NetworkOwner extends Component {
                         select
                         label={t('ownerFields.title')}
                         variant='outlined'
-                        fullWidth={true}
+                        fullWidth
                         size='small'
                         value={owner.info.title}
                         onChange={this.handleDataChange}>
@@ -883,8 +899,8 @@ class NetworkOwner extends Component {
                   </div>
                 </div>
                 <footer>
-                  <button className='standard' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-cancel')}</button>
-                  <button className='next-step' onClick={this.handleOwnerConfirm}>{t('txt-save')}</button>
+                  <Button variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-cancel')}</Button>
+                  <Button variant='contained' color='primary' className='next-step' onClick={this.handleOwnerConfirm}>{t('txt-save')}</Button>
                 </footer>
               </div>
             }

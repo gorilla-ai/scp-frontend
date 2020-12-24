@@ -5,8 +5,8 @@ import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
-
-import Tabs from 'react-ui/build/src/components/tabs'
+import Tab from '@material-ui/core/Tab';
+import Tabs from '@material-ui/core/Tabs';
 
 import FilterContent from '../../../common/filter-content'
 import helper from '../../../common/helper'
@@ -43,6 +43,9 @@ class File extends Component {
   }
   render() {
     const {mainContentData} = this.props;
+    const tabsMenu = _.map(mainContentData.subTabMenu, (val, key) => {
+      return <Tab label={val} value={key} />
+    });
     let hideTable = false;
     let pageSize = 20;
     let paginationOptions = '';
@@ -70,10 +73,11 @@ class File extends Component {
 
           <div className='main-content'>
             <Tabs
-              className='subtab-menu'
-              menu={mainContentData.subTabMenu}
-              current={mainContentData.activeSubTab}
+              indicatorColor='primary'
+              textColor='primary'
+              value={mainContentData.activeSubTab}
               onChange={mainContentData.handleSubTabChange}>
+              {tabsMenu}
             </Tabs>
 
             {mainContentData.dataTableData && mainContentData.dataTableData.length > 0 &&

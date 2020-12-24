@@ -2,6 +2,8 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import cx from 'classnames'
 
+import Button from '@material-ui/core/Button';
+
 import MarkInput from './mark-input'
 
 let t = null;
@@ -28,8 +30,8 @@ class MarkContent extends Component {
           inline={true}
           {...this.props} />
         <div className='button-group'>
-          <button className='filter' onClick={this.props.handleSearchSubmit.bind(this, 'mark')}>{t('events.connections.txt-mark')}</button>
-          <button className='clear' onClick={this.props.handleResetBtn.bind(this, 'mark')}>{t('events.connections.txt-clear')}</button>
+          <Button variant='contained' color='primary' className='filter' onClick={this.props.handleSearchSubmit.bind(this, 'mark')}>{t('events.connections.txt-mark')}</Button>
+          <Button variant='outlined' color='primary' className='clear' onClick={this.props.handleResetBtn.bind(this, 'mark')}>{t('events.connections.txt-clear')}</Button>
         </div>
       </div>
     )

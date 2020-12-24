@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
+import moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
@@ -30,7 +30,12 @@ class License extends Component {
       },
       showKeyInput: false,
       originalKey: '',
-      key: ''
+      key: '',
+      formValidation: {
+        key: {
+          valid: true
+        }
+      }
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -90,10 +95,22 @@ class License extends Component {
    */
   activateLicense = () => {
     const {baseUrl, contextRoot, from} = this.props;
-    const {originalKey, key} = this.state;
+    const {originalKey, key, formValidation} = this.state;
+    let tempFormValidation = {...formValidation};
+    let validate = true;
 
-    if (!key) {
-      helper.showPopupMsg(lt('key-empty'), t('txt-error'));
+    if (key) {
+      tempFormValidation.key.valid = true;
+    } else {
+      tempFormValidation.key.valid = false;
+      validate = false;
+    }
+
+    this.setState({
+      formValidation: tempFormValidation
+    });
+
+    if (!validate) {
       return;
     }
 
@@ -152,19 +169,24 @@ class License extends Component {
    */
   toggleKeyInput = () => {
     this.setState({
+      showKeyInput: !this.state.showKeyInput,
       key: '',
-      showKeyInput: !this.state.showKeyInput
+      formValidation: {
+        key: {
+          valid: true
+        }
+      }
     });
   }
   render() {
     const {from} = this.props;
-    const {lms, showKeyInput, originalKey, key} = this.state;
+    const {lms, showKeyInput, originalKey, key, formValidation} = this.state;
     let text = lt('l-license-none');
     let licenseDate = '';
     let error = true;
 
     if (lms.expireDate) {
-      licenseDate = Moment(lms.expireDate, 'YYYYMMDD').format('YYYY-MM-DD');
+      licenseDate = moment(lms.expireDate, 'YYYYMMDD').format('YYYY-MM-DD');
 
       if (lms.returnCode === '0') {
         text = lt('l-license-already');
@@ -176,19 +198,24 @@ class License extends Component {
 
     return (
       <div id='g-login' className={cx('c-center global c-flex fdc', {'config': from === 'config'})}>
-        <div className={cx('lms', {'config': from === 'config'})}>
+        <div id='form' className={cx('fdc lms', {'config': from === 'config'})}>
           <section>
             <span className='msg'>{lt('l-license-status')}:</span>
             <span className={cx({'error': error})}>{text}</span>
           </section>
           {from === 'login' &&
-            <div className='key'>
-              <span>{lt('l-license-key')}:</span>
+            <div>
               <TextField
+                className='key-field'
                 name='key'
+                label={lt('l-license-key')}
+                autoFocus={true}
                 variant='outlined'
                 fullWidth={true}
                 size='small'
+                required={true}
+                error={!formValidation.key.valid}
+                helperText={formValidation.key.valid ? '' : lt('key-empty')}
                 value={key}
                 onChange={this.handleInputChange} />
               <button onClick={this.activateLicense}>{lt('l-activate')}</button>
@@ -210,16 +237,20 @@ class License extends Component {
             <button onClick={this.toggleKeyInput}>{lt('l-license-renew-key')}</button>
           }
           {from === 'config' && showKeyInput &&
-            <div className='key'>
-              <span>{lt('l-new-license-key')}:</span>
+            <div>
               <TextField
+                className='key-field'
                 name='key'
+                label={lt('l-new-license-key')}
                 variant='outlined'
                 fullWidth={true}
                 size='small'
+                required={true}
+                error={!formValidation.key.valid}
+                helperText={formValidation.key.valid ? '' : lt('key-empty')}
                 value={key}
                 onChange={this.handleInputChange} />
-              <button onClick={this.activateLicense}>{lt('l-activate')}</button>
+              <button className='multiple-btn' onClick={this.activateLicense}>{lt('l-activate')}</button>
               <button className='standard btn' onClick={this.toggleKeyInput}>{t('txt-cancel')}</button>
             </div>
           }

@@ -1,11 +1,14 @@
 import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
+import moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
-import ContextMenu from 'react-ui/build/src/components/contextmenu'
+import Button from '@material-ui/core/Button';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
+
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
@@ -81,10 +84,19 @@ class AlertDetails extends Component {
         destIp: {}
       },
       ipType: '',
+      eventInfo: {
+        dataFieldsArr: ['@timestamp', '_EventCode', '_Message'],
+        dataFields: {},
+        dataContent: [],
+        scrollCount: 1,
+        hasMore: false
+      },
       showRedirectMenu: false,
       modalYaraRuleOpen: false,
       modalIRopen: false,
       modalEncodeOpen: false,
+      mouseX: null,
+      mouseY: null,
       highlightedText: ''
     };
 
@@ -258,15 +270,50 @@ class AlertDetails extends Component {
     }
   }
   /**
+   * Get Event Tracing request data
+   * @method
+   * @param {string} ipDeviceUUID - IP Device UUID
+   */
+  getRequestData = (ipDeviceUUID) => {
+    const {datetime} = this.props;
+    const requestData = {
+      '@timestamp': [datetime.from, datetime.to],
+      sort: [
+        {
+          '@timestamp': 'desc'
+        }
+      ],
+      filters: [
+        {
+          condition: 'must',
+          query: 'configSource: hmd'
+        },
+        {
+          condition: 'must',
+          query: 'hostId: ' + ipDeviceUUID
+        }
+      ]
+    };
+
+    return requestData;
+  }
+  /**
    * Check IP device info for HMD
    * @method
    * @param {string} ipType - 'srcIp' or 'destIp'
    */
   getHMDinfo = (ipType) => {
     const {baseUrl} = this.context;
+    const {alertData} = this.props;
     const {alertInfo, ipDeviceInfo} = this.state;
     const ip = this.getIpPortData(ipType);
-    const apiArr = [
+    const srcDestType = ipType.replace('Ip', '');
+
+    if (ip === NOT_AVAILABLE) {
+      return;
+    }
+
+    let apiArr = [
       {
         url: `${baseUrl}/api/v2/ipdevice/_search?exactIp=${ip}`,
         type: 'GET'
@@ -277,8 +324,15 @@ class AlertDetails extends Component {
       }
     ];
 
-    if (ip === NOT_AVAILABLE) {
-      return;
+    if (alertData[srcDestType + 'TopoInfo']) {
+      const ipDeviceUUID = alertData[srcDestType + 'TopoInfo'].ipDeviceUUID;
+
+      apiArr.push({
+        url: `${baseUrl}/api/u1/log/event/_search?page=1&pageSize=20`,
+        data: JSON.stringify(this.getRequestData(ipDeviceUUID)),
+        type: 'POST',
+        contentType: 'text/plain'     
+      });
     }
 
     let tempAlertInfo = {...alertInfo};
@@ -305,12 +359,87 @@ class AlertDetails extends Component {
             modalIRopen: false
           });
         }
+
+        if (data[2]) {
+          this.setEventTracingData(data[2]);
+        }
       }
       return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+  }
+  /**
+   * Load Event Tracing data
+   * @method
+   * @param {string} ipType - 'srcIp' or 'destIp'
+   */
+  loadEventTracing = (ipType) => {
+    const {baseUrl} = this.context;
+    const {alertData} = this.props;
+    const {eventInfo} = this.state;
+    const srcDestType = ipType.replace('Ip', '');
+    const ipDeviceUUID = alertData[srcDestType + 'TopoInfo'].ipDeviceUUID;
+
+    this.ah.one({
+      url: `${baseUrl}/api/u1/log/event/_search?page=${eventInfo.scrollCount}&pageSize=20`,
+      data: JSON.stringify(this.getRequestData(ipDeviceUUID)),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.setEventTracingData(data);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Set Event Tracing data
+   * @method
+   * @param {object} data - data from server response
+   */
+  setEventTracingData = (data) => {
+    const {eventInfo} = this.state;
+    let tempEventInfo = {...eventInfo};
+
+    if (data.data.rows.length > 0) {
+      const dataContent = data.data.rows.map(tempData => {
+        tempData.content.id = tempData.id;
+        return tempData.content;
+      });
+
+      eventInfo.dataFieldsArr.forEach(tempData => {
+        tempEventInfo.dataFields[tempData] = {
+          label: f(`logsFields.${tempData}`),
+          sortable: false,
+          formatter: (value, allValue) => {
+            if (tempData === '@timestamp') {
+              value = helper.getFormattedDate(value, 'local');
+            }
+            return <span>{value}</span>
+          }
+        };
+      })
+
+      tempEventInfo.dataContent = _.concat(eventInfo.dataContent, dataContent);
+      tempEventInfo.scrollCount++;
+      tempEventInfo.hasMore = true;
+
+      this.setState({
+        eventInfo: tempEventInfo
+      });
+    } else {
+      tempEventInfo.hasMore = false;
+
+      this.setState({
+        eventInfo: tempEventInfo
+      });
+    }
   }
   /**
    * Get owner picture based on location type
@@ -496,7 +625,7 @@ class AlertDetails extends Component {
     }, () => {
       let tempShowContent = {...this.state.showContent};
 
-      switch(type) {
+      switch (type) {
         case 'rule':
           this.getAlertRule();
           tempShowContent.rule = true;
@@ -552,8 +681,8 @@ class AlertDetails extends Component {
   getPCAPdownloadContent = () => {
     const {baseUrl, contextRoot} = this.context;
     const {alertData} = this.props;
-    const startDttm = Moment(helper.getSubstractDate(10, 'minutes', alertData._eventDttm_)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-    const endDttm = Moment(helper.getAdditionDate(10, 'minutes', alertData._eventDttm_)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    const startDttm = moment(helper.getSubstractDate(10, 'minutes', alertData._eventDttm_)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    const endDttm = moment(helper.getAdditionDate(10, 'minutes', alertData._eventDttm_)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
     const downloadLink = `${baseUrl}${contextRoot}/api/alert/pcap?agentId=${alertData._edgeInfo.agentId}&startDttm=${startDttm}&endDttm=${endDttm}&targetIp=${alertData.srcIp || alertData.ipSrc}&infoType=${alertData['alertInformation.type']}`;
 
     return (
@@ -689,7 +818,7 @@ class AlertDetails extends Component {
         }
         <span className='msg'>{alertData.Info || NOT_AVAILABLE}</span>
         {videoUrl &&
-          <button onClick={this.redirectVidoeURL.bind(this, videoUrl)}>{t('alert.txt-openVideo')}</button>
+          <Button variant='contained' color='primary' onClick={this.redirectVidoeURL.bind(this, videoUrl)}>{t('alert.txt-openVideo')}</Button>
         }
       </div>
     )
@@ -700,9 +829,37 @@ class AlertDetails extends Component {
    * @returns HTML DOM
    */
   displayAlertData = () => {
-    const {alertDetails, alertData} = this.props;
+    const {alertDetails, alertData, currentPage, pageSize, totalPageCount, fromPage} = this.props;
     const {alertType, showContent, alertRule, alertPayload, showRedirectMenu} = this.state;
     const eventDatetime = alertData._eventDttm_ ? helper.getFormattedDate(alertData._eventDttm_, 'local') : NOT_AVAILABLE;
+    const firstItemCheck = alertDetails.currentIndex === 0;
+    const lastItemCheck = alertDetails.currentIndex + 1 === alertDetails.currentLength;
+    const firstPageCheck = currentPage === 1;
+    const lastPageCheck = currentPage === Math.ceil(totalPageCount / pageSize);
+    let pageText = {
+      previous: t('txt-previous'),
+      next: t('txt-next')
+    };
+    let paginationDisabled = {
+      previous: '',
+      next: ''
+    };
+
+    if (fromPage === 'dashboard') {
+      paginationDisabled.previous = firstItemCheck;
+      paginationDisabled.next = lastItemCheck;
+    } else if (fromPage === 'threats') {
+      if (firstItemCheck) {
+        pageText.previous = t('txt-previousPage');
+      }
+
+      if (lastItemCheck) {
+        pageText.next = t('txt-nextPage');
+      }
+
+      paginationDisabled.previous = firstItemCheck && firstPageCheck;
+      paginationDisabled.next = lastItemCheck && lastPageCheck;
+    }
 
     return (
       <div>
@@ -755,7 +912,7 @@ class AlertDetails extends Component {
             <ul>
               <li onClick={this.getContent.bind(this, 'rule')}><span className={cx({'active': showContent.rule})}>{t('alert.txt-rule')}</span></li>
               <li className={cx({'not-allowed': alertType !== 'pot_attack'})} onClick={this.getContent.bind(this, 'attack')}><span className={cx({'active': showContent.attack})}>{t('alert.txt-attack')}</span></li>
-              <li onClick={this.getContent.bind(this, 'json')}><span className={cx({'active': showContent.json})}>{t('alert.txt-viewJSON')}</span></li>
+              <li onClick={this.getContent.bind(this, 'json')}><span className={cx({'active': showContent.json})}>{t('txt-viewJSON')}</span></li>
               <li className='header'>
                 <span className='name'>{t('alert.txt-ipSrc')}</span>
                 <span className='ip'>{this.getIpPortData('srcIp')}</span>
@@ -845,8 +1002,8 @@ class AlertDetails extends Component {
         {alertDetails.currentLength > 1 &&
           <div className='pagination'>
             <div className='buttons'>
-              <button onClick={this.props.showAlertData.bind(this, 'previous')} disabled={alertDetails.currentIndex === 0}>{t('txt-previous')}</button>
-              <button onClick={this.props.showAlertData.bind(this, 'next')} disabled={alertDetails.currentIndex + 1 === alertDetails.currentLength}>{t('txt-next')}</button>
+              <Button variant='outlined' color='primary' onClick={this.props.showAlertData.bind(this, 'previous')} disabled={paginationDisabled.previous}>{pageText.previous}</Button>
+              <Button variant='outlined' color='primary' onClick={this.props.showAlertData.bind(this, 'next')} disabled={paginationDisabled.next}>{pageText.next}</Button>
             </div>
             <span className='count'>{alertDetails.currentIndex + 1} / {alertDetails.currentLength}</span>
           </div>
@@ -998,6 +1155,8 @@ class AlertDetails extends Component {
     this.setState({
       modalEncodeOpen: !modalEncodeOpen
     });
+
+    this.handleCloseMenu();
   }
   /**
    * Get hightlighted text from user
@@ -1017,21 +1176,27 @@ class AlertDetails extends Component {
     }
   }
   /**
-   * Handle encode context menu action
+   * Handle open menu
    * @method
-   * @param {object} evt - mouseClick events
+   * @param {object} event - event object
    */
-  handleEncodeContextMenu = (evt) => {
-    const menuItems = [
-      {
-        id: 'encodeDecodeMenu',
-        text: t('alert.txt-encodeDecode'),
-        action: () => this.openEncodeDialog()
-      }
-    ];
+  handleOpenMenu = (event) => {
+    event.preventDefault();
 
-    ContextMenu.open(evt, menuItems, 'encodeDecodeAction');
-    evt.stopPropagation();
+    this.setState({
+      mouseX: event.clientX - 2,
+      mouseY: event.clientY - 4
+    });
+  }
+  /**
+   * Handle close menu
+   * @method
+   */
+  handleCloseMenu = () => {
+    this.setState({
+      mouseX: null,
+      mouseY: null
+    });
   }
   /**
    * Display PCAP payload content
@@ -1039,11 +1204,26 @@ class AlertDetails extends Component {
    * @returns HTML DOM
    */
   displayPayloadcontent = () => {
+    const {mouseX, mouseY} = this.state;
+
     return (
       <div className='payload'>
         <ul>
-          <li onMouseUp={this.getHighlightedText} onContextMenu={this.handleEncodeContextMenu}><JSONTree data={this.state.alertPayload} theme={helper.getJsonViewTheme()} /></li>
+          <li onMouseUp={this.getHighlightedText} onContextMenu={this.handleOpenMenu}><JSONTree data={this.state.alertPayload} theme={helper.getJsonViewTheme()} /></li>
         </ul>
+
+        <Menu
+          keepMounted
+          open={Boolean(mouseY !== null)}
+          onClose={this.handleCloseMenu}
+          anchorReference='anchorPosition'
+          anchorPosition={
+            mouseY !== null && mouseX !== null
+              ? { top: mouseY, left: mouseX }
+              : undefined
+          }>
+          <MenuItem onClick={this.openEncodeDialog}>{t('alert.txt-encodeDecode')}</MenuItem>
+        </Menu>
       </div>
     )
   }
@@ -1054,13 +1234,29 @@ class AlertDetails extends Component {
    */
   displayJsonData = () => {
     const {alertData} = this.props;
+    const {mouseX, mouseY} = this.state;
     const hiddenFields = ['id', '_tableMenu_'];
     const allData = _.omit(alertData, hiddenFields);
 
     return (
-      <ul className='json-data alert'>
-        <li onMouseUp={this.getHighlightedText} onContextMenu={this.handleEncodeContextMenu}><JSONTree data={allData} theme={helper.getJsonViewTheme()} /></li>
-      </ul>
+      <div>
+        <ul className='json-data alert'>
+          <li onMouseUp={this.getHighlightedText} onContextMenu={this.handleOpenMenu}><JSONTree data={allData} theme={helper.getJsonViewTheme()} /></li>
+        </ul>
+
+        <Menu
+          keepMounted
+          open={Boolean(mouseY !== null)}
+          onClose={this.handleCloseMenu}
+          anchorReference='anchorPosition'
+          anchorPosition={
+            mouseY !== null && mouseX !== null
+              ? { top: mouseY, left: mouseX }
+              : undefined
+          }>
+          <MenuItem onClick={this.openEncodeDialog}>{t('alert.txt-encodeDecode')}</MenuItem>
+        </Menu>
+      </div>
     )
   }
   /**
@@ -1171,17 +1367,14 @@ class AlertDetails extends Component {
   getPrivateInfo = (ipType) => {
     const {contextRoot} = this.context;
     const {alertInfo} = this.state;
-    const topoInfo = alertInfo[ipType].topology;
     const picPath = alertInfo[ipType].ownerPic ? alertInfo[ipType].ownerPic : contextRoot + '/images/empty_profile.png';
-    const srcDestType = ipType.replace('Ip', '');
 
     return (
       <PrivateDetails
-        type={ipType}
-        alertInfo={alertInfo}
-        topoInfo={topoInfo}
+        alertInfo={alertInfo[ipType]}
+        topoInfo={alertInfo[ipType].topology}
         picPath={picPath}
-        srcDestType={srcDestType} />
+        triggerTask={this.triggerTask} />
     )
   }
   /**
@@ -1214,25 +1407,25 @@ class AlertDetails extends Component {
       return (
         <div>
           {ipType === 'srcIp' && alertInfo[ipType].locationType === 1 && //Public
-            <div className='srcIp-content'>
+            <div className='privateIp-info srcIp-content'>
               {this.getPublicIPcontent(ipType)}
             </div>
           }
 
           {ipType === 'srcIp' && alertInfo[ipType].locationType === 2 && //Private
-            <div className='srcIp-content'>
+            <div className='privateIp-info srcIp-content'>
               {this.getPrivateInfo(ipType)}
             </div>
           }
 
           {ipType === 'destIp' && alertInfo[ipType].locationType === 1 && //Public
-            <div className='destIp-content'>
+            <div className='privateIp-info destIp-content'>
               {this.getPublicIPcontent(ipType)}
             </div>
           }
 
           {ipType === 'destIp' && alertInfo[ipType].locationType === 2 && //Private
-            <div className='destIp-content'>
+            <div className='privateIp-info destIp-content'>
               {this.getPrivateInfo(ipType)}
             </div>
           }
@@ -1406,7 +1599,7 @@ class AlertDetails extends Component {
    * @returns HMDscanInfo component
    */
   displaySafetyScanContent = (ipType) => {
-    const {ipDeviceInfo} = this.state;
+    const {ipDeviceInfo, eventInfo} = this.state;
 
     if (ipDeviceInfo[ipType].isHmd) {
       return (
@@ -1414,11 +1607,13 @@ class AlertDetails extends Component {
           page='threats'
           ipType={ipType}
           currentDeviceData={ipDeviceInfo[ipType]}
+          eventInfo={eventInfo}
           showAlertData={this.showAlertData}
           toggleYaraRule={this.toggleYaraRule}
           toggleSelectionIR={this.toggleSelectionIR}
           triggerTask={this.triggerTask}
-          getHMDinfo={this.getHMDinfo} />
+          getHMDinfo={this.getHMDinfo}
+          loadEventTracing={this.loadEventTracing} />
       )
     } else {
       return <span>{NOT_AVAILABLE}</span>
@@ -1491,7 +1686,14 @@ class AlertDetails extends Component {
   }
   render() {
     const {titleText, actions} = this.props;
-    const {modalYaraRuleOpen, modalIRopen, modalEncodeOpen, highlightedText} = this.state;
+    const {showContent, ipDeviceInfo, modalYaraRuleOpen, modalIRopen, modalEncodeOpen, highlightedText} = this.state;
+    let ipType = '';
+
+    if (showContent.srcSafety) {
+      ipType = 'srcIp';
+    } else if (showContent.destSafety) {
+      ipType = 'destIp';
+    }
 
     return (
       <div>
@@ -1514,6 +1716,7 @@ class AlertDetails extends Component {
 
         {modalIRopen &&
           <IrSelections
+            currentDeviceData={ipDeviceInfo[ipType]}
             toggleSelectionIR={this.toggleSelectionIR}
             triggerTask={this.triggerTask} />
         }
@@ -1536,6 +1739,9 @@ AlertDetails.propTypes = {
   alertDetails: PropTypes.object.isRequired,
   alertData: PropTypes.object.isRequired,
   showAlertData: PropTypes.func.isRequired,
+  currentPage: PropTypes.number,
+  pageSize: PropTypes.number,
+  totalPageCount: PropTypes.number,
   fromPage: PropTypes.string.isRequired
 };
 

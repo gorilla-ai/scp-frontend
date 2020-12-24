@@ -1,7 +1,9 @@
 import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
-import Moment from 'moment'
+import moment from 'moment'
 import cx from 'classnames'
+
+import ToggleButton from '@material-ui/lab/ToggleButton';
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -9,34 +11,34 @@ import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 const helper = {
   getDate: function(datetime) {
-    return Moment(datetime, 'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    return moment(datetime, 'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DDTHH:mm:ss') + 'Z';
   },
   getFormattedDate: function(val, timezone) {
     if (!val) {
       return '';
     }
     if (timezone === 'local') {
-      val = Moment.utc(val).toDate();
-      return Moment(val).local().format('YYYY-MM-DD HH:mm:ss');
+      val = moment.utc(val).toDate();
+      return moment(val).local().format('YYYY-MM-DD HH:mm:ss');
     } else if (timezone === 'utc') {
-      return Moment(val).utc().format('YYYY-MM-DD HH:mm:ss');
+      return moment(val).utc().format('YYYY-MM-DD HH:mm:ss');
     } else if (timezone === 'unix') {
-      return Moment.unix(val).format('YYYY-MM-DD HH:mm:ss');
+      return moment.unix(val).format('YYYY-MM-DD HH:mm:ss');
     } else {
       const date = new Date(val);
-      return Moment(date).format('YYYY-MM-DD HH:mm:ss');
+      return moment(date).format('YYYY-MM-DD HH:mm:ss');
     }
   },
   getSubstractDate: function(val, type, date) {
     const dateTime = date ? date : new Date();
-    return Moment(dateTime).local().subtract(val, type).format('YYYY-MM-DDTHH:mm:ss');
+    return moment(dateTime).local().subtract(val, type).format('YYYY-MM-DDTHH:mm:ss');
   },
   getAdditionDate: function(val, type, date) {
     const dateTime = date ? date : new Date();
-    return Moment(dateTime).local().add(val, type).format('YYYY-MM-DDTHH:mm:ss');
+    return moment(dateTime).local().add(val, type).format('YYYY-MM-DDTHH:mm:ss');
   },
   getStartDate: function(val) {
-    return Moment().local().startOf(val).format('YYYY-MM-DDTHH:mm:ss');
+    return moment().local().startOf(val).format('YYYY-MM-DDTHH:mm:ss');
   },
   capitalizeFirstLetter: function(string) {
     string = string.toLowerCase();
@@ -52,6 +54,38 @@ const helper = {
         return;
       }
     }
+  },
+  setChartInterval: function(datetime) {
+    const t = global.chewbaccaI18n.getFixedT(null, 'connections');
+    const dateTime = {
+      from: moment(datetime.from),
+      to: moment(datetime.to)
+    };
+    const hr = dateTime.to.diff(dateTime.from, 'hours');
+    const day = dateTime.to.diff(dateTime.from, 'days');
+    let chartIntervalList = [];
+    let chartIntervalValue = '';
+
+    if (hr <= 24) {
+      chartIntervalList = ['10m', '1h'];
+    } else if (hr > 24 && day <= 7) {
+      chartIntervalList = ['1h', '12h', '1d'];
+    } else if (day > 7 && day <= 28) {
+      chartIntervalList = ['12h', '1d'];
+    } else if (day > 28) {
+      chartIntervalList = ['1d'];
+    }
+
+    chartIntervalValue = chartIntervalList[0];
+
+    chartIntervalList = _.map(chartIntervalList, val => {
+      return <ToggleButton value={val}>{t('time-interval.txt-' + val)}</ToggleButton>;
+    });
+
+    return {
+      chartIntervalList,
+      chartIntervalValue
+    };
   },
   setChartData: function(data, property) {
     let innerObj = {};
@@ -266,7 +300,6 @@ const helper = {
         <button className={cx('thumb', {'selected': page === 'syslog'})}>
           <Link to='/SCP/events/syslog'>{t('txt-syslog')}</Link>
         </button>
-
         <button className={cx('thumb', {'selected': page === 'netflow'})}>
           <Link to='/SCP/events/netflow'>{t('txt-netflow')}</Link>
         </button>
@@ -361,6 +394,8 @@ const helper = {
 
     if (type === 'ip') {
       pattern = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+    } else if (type === 'ipv6') {
+      pattern = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$|^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$|^\s*((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))(%.+)?\s*$/;
     } else if (type === 'domainName') {
       pattern = /^(?!:\/\/)([a-zA-Z0-9-_]+\.)*[a-zA-Z0-9][a-zA-Z0-9-_]+\.[a-zA-Z]{2,11}?$/;
     } else if (type === 'url') {
@@ -441,6 +476,8 @@ const helper = {
       window.location.href = '/SCP/configuration/edge/edge?lng=' + locale;
     } else if (privilege === 'config' && !sessionRights.Module_Config)  {
       window.location.href = '/SCP?lng=' + locale;
+    } else if (privilege === 'soc' && !sessionRights.Module_Soc)  {
+      window.location.href = '/SCP?lng=' + locale;
     }
   },
   showPopupMsg: function(msg, title, errorMsg, options, redirect) {
@@ -456,6 +493,50 @@ const helper = {
       act:(confirmed) => {
       }
     });
+  },
+  /**
+   * Validate IP Regex
+   * @return {boolean}
+   */
+  ValidateIP_Address(ip) {
+    let check = false
+
+    if (ip === null || ip === undefined){
+      return false
+    }
+
+    if (/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ip)){
+      return true
+    }
+
+    if (!check){
+      // Check if there are more then 2 : together (ex. :::)
+      if(/:{3,}/.test(ip)) return false;
+      // Check if there are more then 2 :: (ex. ::2001::)
+      if(/::.+::/.test(ip)) return false;
+      // Check if there is a single : at the end (requires :: if any)
+      if(/[^:]:$/.test(ip)) return false;
+      // Check for leading colon
+      if(/^:(?!:)/.test(ip)) return false;
+      // Split all the part to check each
+      let ipv6_parts = ip.split(':');
+      // Make sure there are at lease 2 parts and no more then 8
+      if(ipv6_parts.length < 2 || ipv6_parts.length > 8) return false;
+
+      let is_valid = true;
+      // Loop through the parts
+      ipv6_parts.forEach(function(part) {
+        // If the part is not blank (ex. ::) it must have no more than 4 digits
+        if(/^[0-9a-fA-F]{0,4}$/.test(part)) return;
+        // Fail if none of the above match
+        is_valid = false;
+      });
+
+      return is_valid;
+    }
+
+
+    return check;
   }
 };
 

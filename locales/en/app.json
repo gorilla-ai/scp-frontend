@@ -61,6 +61,8 @@
     "lbl-password": "Please Enter Password",
     "txt-username":"Please enter your username",
     "txt-password":"Please enter your password",
+    "txt-resetPassword": "Reset Password",
+    "txt-changePassword": "Change Password",
     "txt-account": "Account",
     "txt-userAccount": "Username",
     "txt-userPassword": "Password"

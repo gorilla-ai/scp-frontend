@@ -5,12 +5,17 @@ import {BaseDataContext} from "../common/context";
 import SocConfig from "../common/soc-configuration";
 import helper from "../common/helper";
 import cx from "classnames";
-import Input from "react-ui/build/src/components/input";
 import TableContent from "../common/table-content";
 import {Link} from "react-router-dom";
 import DropDownList from "react-ui/build/src/components/dropdown";
 import DateRange from "react-ui/build/src/components/date-range";
 import Moment from "moment";
+import MenuItem from '@material-ui/core/MenuItem';
+import TextField from '@material-ui/core/TextField';
+import Button from "@material-ui/core/Button";
+import {KeyboardDateTimePicker, MuiPickersUtilsProvider} from "@material-ui/pickers";
+import MomentUtils from "@date-io/moment";
+import moment from "moment";
 
 let t = null;
 let f = null;
@@ -70,7 +75,7 @@ class IncidentLog extends Component {
     componentDidMount() {
         const {locale, sessionRights} = this.context;
 
-        helper.getPrivilegesInfo(sessionRights, 'config', locale);
+        helper.getPrivilegesInfo(sessionRights, 'soc', locale);
         this.getData();
     }
 
@@ -242,6 +247,14 @@ class IncidentLog extends Component {
     renderFilter = () => {
         const {showFilter, logSearch} = this.state;
         const {locale} = this.context;
+
+        let dateLocale = locale;
+
+        if (locale === 'zh') {
+            dateLocale += '-tw';
+        }
+
+        moment.locale(dateLocale);
         return (
             <div className={cx('main-filter', {'active': showFilter})}>
                 <i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}/>
@@ -249,85 +262,137 @@ class IncidentLog extends Component {
                 <div className='filter-section config'>
                     <div className='group'>
                         <label htmlFor='keyword'>{f('incidentFields.id')}</label>
-                        <input
+                        <TextField
                             id='keyword'
+                            name='keyword'
                             type='text'
+                            variant='outlined'
+                            fullWidth={true}
+                            size='small'
                             className='search-textarea'
                             value={logSearch.keyword}
-                            onChange={this.handleLogInputSearch.bind(this, 'keyword')}/>
+                            onChange={this.handleLogInputSearchMui}/>
                     </div>
                     <div className='group'>
                         <label htmlFor='type'>{it('txt-send-type')}</label>
-                        <DropDownList
+                        <TextField
                             id='type'
-                            list={[
-                                {
-                                    value: 'event',
-                                    text: it('txt-incident-event')
-                                },
-                                {
-                                    value: 'related',
-                                    text: it('txt-incident-related')
-                                },
-                                {
-                                    value: 'health',
-                                    text: it('txt-incident-health')
-                                }
-                            ]}
+                            name='type'
+                            variant='outlined'
+                            fullWidth={true}
+                            size='small'
+                            select
                             value={logSearch.type}
-                            onChange={this.handleLogSearch.bind(this, 'type')}/>
-
+                            onChange={this.handleLogInputSearchMui}>
+                            {
+                                _.map([
+                                    {
+                                        value: 'event',
+                                        text: it('txt-incident-event')
+                                    },
+                                    {
+                                        value: 'related',
+                                        text: it('txt-incident-related')
+                                    },
+                                    {
+                                        value: 'health',
+                                        text: it('txt-incident-health')
+                                    }
+                                ], el => {
+                                    return <MenuItem value={el.value}>{el.text}</MenuItem>
+                                })
+                            }
+                        </TextField>
                     </div>
                     <div className='group'>
                         <label htmlFor='status'>{it('txt-send-status')}</label>
-                        <DropDownList
+                        <TextField
                             id='status'
-                            list={[
-                                {
-                                    value: 'success',
-                                    text: it('txt-send-success')
-                                },
-                                {
-                                    value: 'fail',
-                                    text: it('txt-send-fail')
-                                }
-                            ]}
+                            name='status'
+                            variant='outlined'
+                            fullWidth={true}
+                            size='small'
+                            select
                             value={logSearch.status}
-                            onChange={this.handleLogSearch.bind(this, 'status')}/>
+                            onChange={this.handleLogInputSearchMui}>
+                            {
+                                _.map([
+                                    {
+                                        value: 'success',
+                                        text: it('txt-send-success')
+                                    },
+                                    {
+                                        value: 'fail',
+                                        text: it('txt-send-fail')
+                                    }
+                                ], el => {
+                                    return <MenuItem value={el.value}>{el.text}</MenuItem>
+                                })
+                            }
+                        </TextField>
                     </div>
                     <div className='group'>
                         <label htmlFor='searchDttmType'>{it('txt-searchDttmType')}</label>
-                        <DropDownList
+                        <TextField
                             id='searchDttmType'
-                            list={[
-                                {
-                                    value: 'sendDttm',
-                                    text: f('incidentFields.sendTime')
-                                },
-                                {
-                                    value: 'updateDttm',
-                                    text: f('incidentFields.updateDttm')
-                                },
-                                {
-                                    value: 'createdDttm',
-                                    text: f('incidentFields.createDttm')
-                                }
-                            ]}
+                            name='searchDttmType'
+                            variant='outlined'
+                            fullWidth={true}
+                            size='small'
+                            select
                             required={true}
                             value={logSearch.dttmType}
-                            onChange={this.handleLogSearch.bind(this, 'dttmType')}/>
+                            onChange={this.handleLogInputSearchMui}>
+                            {
+                                _.map([
+                                    {
+                                        value: 'sendDttm',
+                                        text: f('incidentFields.sendTime')
+                                    },
+                                    {
+                                        value: 'updateDttm',
+                                        text: f('incidentFields.updateDttm')
+                                    },
+                                    {
+                                        value: 'createdDttm',
+                                        text: f('incidentFields.createDttm')
+                                    }
+                                ], el => {
+                                    return <MenuItem value={el.value}>{el.text}</MenuItem>
+                                })
+                            }
+                        </TextField>
 
                     </div>
-                    <div className='group'>
-                        <label htmlFor='searchDttm'>{it('txt-searchDttm')}</label>
-                        <DateRange
-                            id='datetime'
-                            className='daterange'
-                            enableTime={true}
-                            value={logSearch.datetime}
-                            onChange={this.handleLogSearch.bind(this, 'datetime')}
-                            locale={locale}
-                            t={et} />
+                    <div className='group' style={{width: '500px'}}>
+                        <label htmlFor='searchDttm'>{f('incidentFields.createDttm')}</label>
+                        <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+                            <KeyboardDateTimePicker
+                                className='date-time-picker'
+                                inputVariant='outlined'
+                                variant='inline'
+                                format='YYYY-MM-DD HH:mm'
+                                ampm={false}
+                                value={logSearch.datetime.from}
+                                onChange={this.handleSearchTime.bind(this, 'from')} />
+                            <div className='between'>~</div>
+                            <KeyboardDateTimePicker
+                                className='date-time-picker'
+                                inputVariant='outlined'
+                                variant='inline'
+                                format='YYYY-MM-DD HH:mm'
+                                ampm={false}
+                                value={logSearch.datetime.to}
+                                onChange={this.handleSearchTime.bind(this, 'to')} />
+                        </MuiPickersUtilsProvider>
+                        {/*<DateRange*/}
+                        {/*    id='datetime'*/}
+                        {/*    className='daterange'*/}
+                        {/*    enableTime={true}*/}
+                        {/*    value={logSearch.datetime}*/}
+                        {/*    onChange={this.handleLogSearch.bind(this, 'datetime')}*/}
+                        {/*    locale={locale}*/}
+                        {/*    t={et} />*/}
                     </div>
                 </div>
                 <div className='button-group'>
@@ -340,6 +405,22 @@ class IncidentLog extends Component {
     };
 
     /* ---- Func Space ---- */
+
+
+    /**
+     * Handle filter input data change
+     * @method
+     * @param {string} type - input type
+     * @param {string} value - input value
+     */
+    handleSearchTime = (type, value) => {
+        let tempSearch = {...this.state.logSearch};
+        tempSearch.datetime[type] = value;
+
+        this.setState({
+            logSearch: tempSearch
+        });
+    };
 
     /**
      * Handle table sort
@@ -388,6 +469,20 @@ class IncidentLog extends Component {
             logSearch: tempLogSearch
         });
     };
+    /**
+     * Handle filter input data change
+     * @method
+     * @param {string} type - input type
+     * @param {object} event - input value
+     */
+    handleLogInputSearchMui = (event) => {
+        let tempLogSearch = {...this.state.logSearch};
+        tempLogSearch[event.target.name] = event.target.value.trim();
+
+        this.setState({
+            logSearch: tempLogSearch
+        });
+    };
 
     /**
      * Handle filter input data change
@@ -398,6 +493,20 @@ class IncidentLog extends Component {
     handleLogSearch = (type, value) => {
         let tempLogSearch = {...this.state.logSearch};
         tempLogSearch[type] = value;
+
+        this.setState({
+            logSearch: tempLogSearch
+        });
+    };
+    /**
+     * Handle filter input data change
+     * @method
+     * @param {string} type - input type
+     * @param {string} value - input value
+     */
+    handleLogSearchMui = (event) => {
+        let tempLogSearch = {...this.state.logSearch};
+        tempLogSearch[event.target.name] = event.target.value;
 
         this.setState({
             logSearch: tempLogSearch

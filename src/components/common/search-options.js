@@ -1,13 +1,15 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
+import moment from 'moment'
 import cx from 'classnames'
 
+import { MuiPickersUtilsProvider, KeyboardDatePicker, KeyboardDateTimePicker } from '@material-ui/pickers';
+import MomentUtils from '@date-io/moment';
+import 'moment/locale/zh-tw';
+
+import Button from '@material-ui/core/Button';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
-
-import DatePicker from 'react-ui/build/src/components/date-picker'
-import DateRange from 'react-ui/build/src/components/date-range'
 
 import {BaseDataContext} from './context';
 import helper from './helper'
@@ -65,18 +67,6 @@ class SearchOptions extends Component {
     }
   }
   /**
-   * Set new datetime based on time interval
-   * @method
-   */
-  setNewDatetime = () => {
-    const datetime = {
-      from: this.getCalculatedTime(this.props.searchInput.searchInterval),
-      to: Moment().local().format('YYYY-MM-DDTHH:mm') + ':00'
-    };
-
-    this.props.handleDateChange(datetime, 'refresh');
-  }
-  /**
    * Get calculated time based on user's time selection
    * @method
    * @param {string} type - time options
@@ -85,7 +75,7 @@ class SearchOptions extends Component {
   getCalculatedTime = (type) => {
     let time = '';
 
-    switch(type) {
+    switch (type) {
       case '15m':
         time = helper.getSubstractDate(15, 'minutes');
         break;
@@ -132,35 +122,85 @@ class SearchOptions extends Component {
     }
   }
   /**
+   * Set new datetime based on time interval
+   * @method
+   */
+  setNewDatetime = () => {
+    this.props.handleDateChange('refresh', {
+      from: this.getCalculatedTime(this.props.searchInput.searchInterval),
+      to: moment().local().format('YYYY-MM-DDTHH:mm') + ':00'
+    });
+  }
+  /**
    * Set search data based on user's selection
    * @method
    */
   handleIntervalConfirm = () => {
-    this.props.handleDateChange({
+    this.props.handleDateChange('customTime', {
       from: this.getCalculatedTime(this.props.searchInput.searchInterval),
-      to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+      to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
     });
   }
   /**
    * Display date range
    * @method
-   * @returns DateRange component
+   * @returns DateTimePicker component
    */
   showDataRange = () => {
     const {locale} = this.context;
     const {enableTime, datetime} = this.props;
     const showTime = typeof enableTime === 'boolean' ? enableTime : true;
+    let dateLocale = locale;
 
-    return (
-      <DateRange
-        id='dateTime'
-        className='date-range'
-        enableTime={showTime}
-        value={datetime}
-        onChange={this.props.handleDateChange}
-        locale={locale}
-        t={et} />
-    )
+    if (locale === 'zh') {
+      dateLocale += '-tw';
+    }
+
+    moment.locale(dateLocale);
+
+    if (showTime) {
+      return (
+        <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+          <KeyboardDateTimePicker
+            className='date-time-picker'
+            inputVariant='outlined'
+            variant='inline'
+            format='YYYY-MM-DD HH:mm'
+            ampm={false}
+            value={datetime.from}
+            onChange={this.props.handleDateChange.bind(this, 'from')} />
+          <div className='between'>~</div>
+          <KeyboardDateTimePicker
+            className='date-time-picker'
+            inputVariant='outlined'
+            variant='inline'
+            format='YYYY-MM-DD HH:mm'
+            ampm={false}
+            value={datetime.to}
+            onChange={this.props.handleDateChange.bind(this, 'to')} />
+        </MuiPickersUtilsProvider>
+      )
+    } else {
+      return (
+        <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+          <KeyboardDatePicker
+            className='date-picker'
+            inputVariant='outlined'
+            variant='inline'
+            format='YYYY-MM-DD'
+            value={datetime.from}
+            onChange={this.props.handleDateChange.bind(this, 'from')} />
+          <div className='between'>~</div>
+          <KeyboardDatePicker
+            className='date-picker'
+            inputVariant='outlined'
+            variant='inline'
+            format='YYYY-MM-DD'
+            value={datetime.to}
+            onChange={this.props.handleDateChange.bind(this, 'to')} />
+        </MuiPickersUtilsProvider>
+      )
+    }
   }
   /**
    * Display date picker
@@ -170,15 +210,24 @@ class SearchOptions extends Component {
   showDatePicker = () => {
     const {locale} = this.context;
     const {datetime} = this.props;
+    let dateLocale = locale;
+
+    if (locale === 'zh') {
+      dateLocale += '-tw';
+    }
+
+    moment.locale(dateLocale);
 
     return (
-      <DatePicker
-        id='datePicker'
-        className='date-picker'
-        value={datetime}
-        onChange={this.props.handleDateChange}
-        locale={locale}
-        t={et} />
+      <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+        <KeyboardDatePicker
+          className='date-picker'
+          inputVariant='outlined'
+          variant='inline'
+          format='YYYY-MM-DD'
+          value={datetime}
+          onChange={this.props.handleDateChange} />
+      </MuiPickersUtilsProvider>
     )
   }
   /**
@@ -214,8 +263,8 @@ class SearchOptions extends Component {
             size='small'
             value={searchInput.searchType}
             onChange={this.handleSearchTypeChange}>
-            <MenuItem value={'manual'}>{t('events.connections.txt-search-manual')}</MenuItem>
-            <MenuItem value={'auto'}>{t('events.connections.txt-search-auto')}</MenuItem>
+            <MenuItem value={'manual'}>{t('time-interval.txt-search-manual')}</MenuItem>
+            <MenuItem value={'auto'}>{t('time-interval.txt-search-auto')}</MenuItem>
           </TextField>
         }
 
@@ -232,11 +281,11 @@ class SearchOptions extends Component {
                     size='small'
                     value={searchInput.refreshTime}
                     onChange={this.props.setSearchData.bind(this, 'refreshTime')}>
-                    <MenuItem value={'15000'}>{t('events.connections.txt-15s')}</MenuItem>
-                    <MenuItem value={'30000'}>{t('events.connections.txt-30s')}</MenuItem>
-                    <MenuItem value={'60000'}>{t('events.connections.txt-1m')}</MenuItem>
-                    <MenuItem value={'300000'}>{t('events.connections.txt-5m')}</MenuItem>
-                    <MenuItem value={'600000'}>{t('events.connections.txt-10m')}</MenuItem>
+                    <MenuItem value={'15000'}>{t('time-interval.txt-15s')}</MenuItem>
+                    <MenuItem value={'30000'}>{t('time-interval.txt-30s')}</MenuItem>
+                    <MenuItem value={'60000'}>{t('time-interval.txt-1m')}</MenuItem>
+                    <MenuItem value={'300000'}>{t('time-interval.txt-5m')}</MenuItem>
+                    <MenuItem value={'600000'}>{t('time-interval.txt-10m')}</MenuItem>
                   </TextField>
                 </div>
 
@@ -249,10 +298,10 @@ class SearchOptions extends Component {
                     size='small'
                     value={searchInput.searchInterval}
                     onChange={this.props.setSearchData.bind(this, 'searchInterval')}>
-                    <MenuItem value={'15m'}>{t('events.connections.txt-last15m')}</MenuItem>
-                    <MenuItem value={'30m'}>{t('events.connections.txt-last30m')}</MenuItem>
-                    <MenuItem value={'1h'}>{t('events.connections.txt-last1h')}</MenuItem>
-                    <MenuItem value={'12h'}>{t('events.connections.txt-last12h')}</MenuItem>
+                    <MenuItem value={'15m'}>{t('time-interval.txt-last15m')}</MenuItem>
+                    <MenuItem value={'30m'}>{t('time-interval.txt-last30m')}</MenuItem>
+                    <MenuItem value={'1h'}>{t('time-interval.txt-last1h')}</MenuItem>
+                    <MenuItem value={'12h'}>{t('time-interval.txt-last12h')}</MenuItem>
                   </TextField>
                 </div>
               </div>
@@ -263,23 +312,22 @@ class SearchOptions extends Component {
                   className='select-field'
                   select
                   variant='outlined'
-                  fullWidth={true}
+                  fullWidth
                   size='small'
                   value={searchInput.searchInterval}
                   onChange={this.props.setSearchData.bind(this, 'searchInterval')}>
-                  <MenuItem value={'30m'}>{t('events.connections.txt-last30m')}</MenuItem>
-                  <MenuItem value={'1h'}>{t('events.connections.txt-last1h')}</MenuItem>
-                  <MenuItem value={'2h'}>{t('events.connections.txt-last2h')}</MenuItem>
-                  <MenuItem value={'today'}>{t('events.connections.txt-today')}</MenuItem>
-                  <MenuItem value={'24h'}>{t('events.connections.txt-last24h')}</MenuItem>
-                  <MenuItem value={'week'}>{t('events.connections.txt-week')}</MenuItem>
+                  <MenuItem value={'30m'}>{t('time-interval.txt-last30m')}</MenuItem>
+                  <MenuItem value={'1h'}>{t('time-interval.txt-last1h')}</MenuItem>
+                  <MenuItem value={'2h'}>{t('time-interval.txt-last2h')}</MenuItem>
+                  <MenuItem value={'today'}>{t('time-interval.txt-today')}</MenuItem>
+                  <MenuItem value={'24h'}>{t('time-interval.txt-last24h')}</MenuItem>
+                  <MenuItem value={'week'}>{t('time-interval.txt-week')}</MenuItem>
                 </TextField>
             }
           </div>
         }
         
         <div className='datepicker'>
-          <label htmlFor='datetime' className='datetime'></label>
           {dateType === 'datepicker' &&
             this.showDatePicker()
           }
@@ -289,7 +337,7 @@ class SearchOptions extends Component {
           }
         </div>
 
-        <button className='search-button' onClick={this.loadSearchOptions.bind(this, 'search')} disabled={showFilter || false}>{t('events.connections.txt-toggleFilter')}</button>
+        <Button variant='contained' color='primary' className='search-button' onClick={this.loadSearchOptions.bind(this, 'search')} disabled={showFilter || false}>{t('events.connections.txt-toggleFilter')}</Button>
       </div>
     )
   }
@@ -298,7 +346,6 @@ class SearchOptions extends Component {
 SearchOptions.contextType = BaseDataContext;
 
 SearchOptions.propTypes = {
-  datetime: PropTypes.object.isRequired,
   handleDateChange: PropTypes.func.isRequired,
   handleSearchSubmit: PropTypes.func.isRequired
 };

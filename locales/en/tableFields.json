@@ -260,7 +260,7 @@
   },
   "alertFields": {
     "_tableMenu_": "",
-    "_eventDttm_": "Event Datetime",
+    "_eventDttm_": "Alert Datetime",
     "lastPacket": "Last Packet",
     "destIp": "Destination IP",
     "srcIp": "Source IP",
@@ -330,6 +330,8 @@
   "logsFields": {
     "_tableMenu_": "",
     "@timestamp": "Timestamp",
+    "_EventCode": "Event Code",
+    "_Message": "Message",
     "@version": "Version",
     "AccountName": "Account Name",
     "AccountType": "Account Type",
@@ -500,7 +502,7 @@
       "_Filepath": "File Path",
       "_Filesize": "File Size",
       "_HashValues": {
-        "_MD5": "Hash Value"
+        "_MD5": "Hash Value (MD5)"
       }
     },
     "_IsPE": "Is PE?",

@@ -16,7 +16,6 @@ html[data-theme='dark'] {
   background: linear-gradient(to top, #001549, #72aaff);
   background-image: url('/SCP/images/scp-bg.jpg');
   height: 100%;
-  background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
   &.config {
@@ -51,26 +50,22 @@ html[data-theme='dark'] {
     }
   }
   #form {
-    padding: 30px 30px 10px 30px;
+    padding: 30px 30px 20px 30px;
     background-color: #fff;
     color: #333;
     &, input, button {
       border-radius: 5px;
     }
-    #username {
-      margin-bottom: 15px;
-    }
-    #password {
-      margin-bottom: 35px;
-    }
-    input {
-      width: 100%;
-      margin-top: 7px;
-      height: 40px;
-    }
     button {
+      display: block;
       width: 100%;
       padding: 8px 43px;
+      &.multiple-btn {
+        margin-bottom: 10px;
+      }
+    }
+    .login-group {
+      margin-bottom: 25px;
     }
     .first-time {
       font-size: 15px;
@@ -80,7 +75,7 @@ html[data-theme='dark'] {
       cursor: pointer;
     }
     .error-msg {
-      min-height: 30px;
+      min-height: 20px;
     }
   }
   #g-footer {
@@ -91,13 +86,11 @@ html[data-theme='dark'] {
     bottom: 0;
   }
   .lms {
-    color: #fff;
-    margin-top: -5%;
     &.config {
       color: var(--lmsConfig);
     }
     section {
-      margin-bottom: 10px;
+      margin-bottom: 25px;
       .msg {
         margin-right: 10px;
       }
@@ -105,22 +98,12 @@ html[data-theme='dark'] {
         color: red;
       }
     }
+    .key-field {
+      margin-bottom: 25px;
+    }
     #newKey {
       float: left;
       margin-right: 5px;
-    }
-    .key {
-      display: inline-block;
-      vertical-align: middle;
-      line-height: 1.5;
-      input {
-        margin-left: 10px;
-      }
-      button {
-        margin-left: 10px;
-        float: right;
-        margin-top: -1px;
-      }
     }
   }
 }

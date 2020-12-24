@@ -4,8 +4,9 @@ import _ from 'lodash'
 import cx from 'classnames'
 
 import TextField from '@material-ui/core/TextField';
+import ToggleButton from '@material-ui/lab/ToggleButton';
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 
-import ButtonGroup from 'react-ui/build/src/components/button-group'
 import DataTable from 'react-ui/build/src/components/table'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
@@ -106,9 +107,14 @@ class Manage extends Component {
   /**
    * Handle tabs change
    * @method
+   * @param {object} event - event object
    * @param {string} tab - tab name ('department' or 'title')
    */
-  handleTabChange = (tab) => {
+  handleTabChange = (event, tab) => {
+    if (!tab) {
+      return;
+    }
+
     let tabs = {
       department: false,
       title: false
@@ -168,7 +174,7 @@ class Manage extends Component {
           this.deleteName(nameUUID)
         }
       }
-    })
+    });
   }
   /**
    * Handle delete name confirm
@@ -227,13 +233,13 @@ class Manage extends Component {
 
     return (
       <div>
-        <ButtonGroup
-          list={[
-            {value: 'department', text: t('ownerFields.department')},
-            {value: 'title', text: t('ownerFields.title')}
-          ]}
+        <ToggleButtonGroup
           value={tab.department ? 'department' : 'title'}
-          onChange={this.handleTabChange} />
+          exclusive
+          onChange={this.handleTabChange}>
+          <ToggleButton value='department'>{t('ownerFields.department')}</ToggleButton>
+          <ToggleButton value='title'>{t('ownerFields.title')}</ToggleButton>
+        </ToggleButtonGroup>
 
         <i className='c-link fg fg-add' onClick={this.openName.bind(this, 'add')} title={tab.department ? t('txt-addDepartment') : t('txt-addTitle')}></i>
 
@@ -299,9 +305,9 @@ class Manage extends Component {
         name='name'
         label={t('txt-plsEnterName')}
         variant='outlined'
-        fullWidth={true}
+        fullWidth
         size='small'
-        required={true}
+        required
         error={!formValidation.name.valid}
         helperText={formValidation.name.valid ? '' : t('txt-required')}
         value={name}

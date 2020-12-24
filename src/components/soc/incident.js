@@ -12,16 +12,21 @@ import MultiInput from 'react-ui/build/src/components/multi-input'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import TableContent from '../common/table-content'
 import Textarea from 'react-ui/build/src/components/textarea'
-
+import TextareaAutosize from '@material-ui/core/TextareaAutosize';
+import GeneralDialog from '@f2e/gui/dist/components/dialog/general-dialog'
+import Checkbox from '@material-ui/core/Checkbox';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import TextField from '@material-ui/core/TextField';
+import Button from '@material-ui/core/Button';
 import {BaseDataContext} from "../common/context"
 import SocConfig from "../common/soc-configuration"
 import helper from "../common/helper"
 
 import Events from './common/events'
 import Ttps from './common/ttps'
-import {downloadWithForm, downloadLink} from "react-ui/build/src/utils/download";
+import {downloadLink, downloadWithForm} from "react-ui/build/src/utils/download";
 import ModalDialog from "react-ui/build/src/components/modal-dialog";
-import FileUpload from "../common/file-upload";
 import DataTable from "react-ui/build/src/components/table";
 import _ from "lodash";
 import DateRange from "react-ui/build/src/components/date-range";
@@ -30,6 +35,10 @@ import DatePicker from "react-ui/build/src/components/date-picker";
 import IncidentComment from './common/comment'
 import IncidentTag from './common/tag'
 import IncidentReview from './common/review'
+import FileUpload from "../common/file-upload";
+import {KeyboardDateTimePicker, MuiPickersUtilsProvider} from "@material-ui/pickers";
+import MomentUtils from "@date-io/moment";
+import moment from "moment";
 
 let t = null;
 let f = null;
@@ -43,6 +52,12 @@ const INCIDENT_STATUS_CLOSED = 3
 const INCIDENT_STATUS_SUBMITTED = 4
 const INCIDENT_STATUS_DELETED = 5
 const INCIDENT_STATUS_ANALYZED = 6
+const INCIDENT_STATUS_EXECUTOR_UNREVIEWED = 7
+const INCIDENT_STATUS_EXECUTOR_CLOSE = 8
+
+const SOC_Analyzer = 1
+const SOC_Executor = 2
+const SOC_Super = 3
 
 class Incident extends Component {
     constructor(props) {
@@ -55,20 +70,20 @@ class Incident extends Component {
 
         this.state = {
             INCIDENT_ACCIDENT_LIST: _.map(_.range(1, 6), el => {
-                return { text: it(`accident.${el}`), value: el }
+                return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
             }),
             INCIDENT_ACCIDENT_SUB_LIST: [
                 _.map(_.range(11, 17), el => {
-                    return { text: it(`accident.${el}`), value: el }
+                    return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
                 }),
                 _.map(_.range(21, 26), el => {
-                    return { text: it(`accident.${el}`), value: el }
+                    return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
                 }),
                 _.map(_.range(31, 33), el => {
-                    return { text: it(`accident.${el}`), value: el }
+                    return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
                 }),
                 _.map(_.range(41, 45), el => {
-                    return { text: it(`accident.${el}`), value: el }
+                    return <MenuItem value={el}>{it(`accident.${el}`)}</MenuItem>
                 })
             ],
             activeContent: 'tableList', //tableList, viewIncident, editIncident, addIncident
@@ -115,7 +130,8 @@ class Incident extends Component {
                     socType: 1
                 }
             },
-            loadListType:1,
+            accountRoleType:SOC_Analyzer,
+            loadListType:SOC_Analyzer,
             attach: null
         };
 
@@ -124,17 +140,46 @@ class Incident extends Component {
 
     componentDidMount() {
         const {locale, sessionRights} = this.context;
-        helper.getPrivilegesInfo(sessionRights, 'config', locale);
+        helper.getPrivilegesInfo(sessionRights, 'soc', locale);
 
         let alertDataId = this.getQueryString('alertDataId');
         let alertData = sessionStorage.getItem(alertDataId);
+
         if (alertData) {
             this.toggleContent('redirect', alertData);
             sessionStorage.removeItem(alertDataId)
         } else {
-            // this.loadData()
-            this.loadCondition('unhandled')
+            const {session} = this.context;
+
+            if (_.includes(session.roles, 'SOC Supervior' || 'SOC Supervisor' || 'SOC Executor')){
+                if (_.includes(session.roles, 'SOC Executor')){
+                    this.setState({
+                        accountRoleType:SOC_Super
+                    },() => {
+                        this.loadCondition('unhandled')
+                    })
+                }else{
+                    this.setState({
+                        accountRoleType:SOC_Super
+                    },() => {
+                        this.loadCondition('unhandled')
+                    })
+                }
+            } else  if (_.includes(session.roles, 'SOC Executor')){
+                this.setState({
+                    accountRoleType:SOC_Executor
+                },() => {
+                    this.loadCondition('unhandled')
+                })
+            } else{
+                this.setState({
+                    accountRoleType:SOC_Analyzer
+                },() => {
+                    this.loadCondition('unhandled')
+                })
+            }
         }
+
         this.getOptions()
         this.loadDashboard()
     }
@@ -161,6 +206,7 @@ class Incident extends Component {
         }
 
         search.isExecutor = _.includes(session.roles, 'SOC Executor')
+        search.accountRoleType = this.state.accountRoleType
         search.account = session.accountId
 
         ah.one({
@@ -243,7 +289,6 @@ class Incident extends Component {
         const {baseUrl, contextRoot, session} = this.context;
         const {incident} = this.state;
 
-        // searchPayload.isExecutor = _.includes(session.roles, 'SOC Executor')
         searchPayload.account = session.accountId
 
         ah.one({
@@ -297,7 +342,7 @@ class Incident extends Component {
                                             </div>
                                         })
                                     }
-                                </div>
+                                    </div>
                                 } else {
                                     return <span>{value}</span>
                                 }
@@ -306,7 +351,9 @@ class Incident extends Component {
                     });
 
                     tempEdge.dataFields = dataFields;
-                    this.setState({incident: tempEdge, activeContent: 'tableList'})
+                    this.setState({incident: tempEdge, activeContent: 'tableList'}, () => {
+                        this.loadDashboard()
+                    })
                 }
                 return null
             })
@@ -317,19 +364,33 @@ class Incident extends Component {
 
     loadDashboard = () => {
         const {baseUrl, session} = this.context
-        const isExecutor = _.includes(session.roles, 'SOC Executor') ? 'executor' : 'analyzer'
+
+        let roleType = 'analyzer';
+
         const payload = {
             keyword: '',
             category: 0,
-            // status: isExecutor ? 2 : 1,
             status: 0,
             startDttm: Moment(helper.getSubstractDate(1, 'month')).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
             endDttm: Moment(Moment().local().format('YYYY-MM-DDTHH:mm:ss')).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
             isExpired: 2,
-            isExecutor,
+            isExecutor:_.includes(session.roles, 'SOC Executor'),
+            accountRoleType:this.state.accountRoleType,
             account: session.accountId
         }
-        
+
+        switch (this.state.accountRoleType){
+            case 1:
+                roleType = 'analyzer'
+                break
+            case 2:
+                roleType = 'executor'
+                break
+            case 3:
+                roleType = 'supervisor'
+                break
+        }
+
         ah.all([
             {
                 url: `${baseUrl}/api/soc/_searchV2?page=1&pageSize=20`,
@@ -339,7 +400,7 @@ class Incident extends Component {
                 dataType: 'json'
             },
             {
-                url: `${baseUrl}/api/soc/statistic/${isExecutor}/_search?createrId=${session.accountId}`
+                url: `${baseUrl}/api/soc/statistic/${roleType}/_search?createrId=${session.accountId}`
             }
         ])
         .then(data => {
@@ -359,11 +420,15 @@ class Incident extends Component {
 
     loadCondition = (type) => {
         const {session} = this.context
+
         let search = {
+            subStatus:0,
             keyword: '',
             category: 0,
             isExpired: 2,
-            isExecutor : _.includes(session.roles, 'SOC Executor')
+            accountRoleType: this.state.accountRoleType,
+            isExecutor : _.includes(session.roles, 'SOC Executor'),
+
         }
         if (type === 'expired') {
             this.setState({loadListType: 0})
@@ -372,22 +437,24 @@ class Incident extends Component {
             this.loadWithoutDateTimeData('search',search)
         } else if (type === 'unhandled') {
             this.setState({loadListType: 1})
-            if (search.isExecutor){
+            if (search.accountRoleType === SOC_Executor){
                 search.status = 2
+                search.subStatus = 6
+            }else if(search.accountRoleType === SOC_Super){
+                search.status = 7
             }else{
                 search.status = 1
             }
             this.loadWithoutDateTimeData('search',search)
-        }
-        else if (type === 'mine') {
+        } else if (type === 'mine') {
             this.setState({loadListType: 2})
             search.status = 0
             search.creator = session.accountId
             this.loadWithoutDateTimeData('search',search)
         }else{
-            // this.loadData('search')
-        }
 
+        }
+        this.clearFilter()
     }
 
     handleRowContextMenu = (allValue, evt) => {
@@ -439,11 +506,23 @@ class Incident extends Component {
 
     /* ------------------ View ------------------- */
     render() {
-        const {activeContent, incidentType, baseUrl, contextRoot, showFilter, showChart, incident} = this.state
+        const {activeContent, baseUrl, contextRoot, showFilter, showChart, incident} = this.state
 
         return <div>
             <IncidentComment ref={ref => { this.incidentComment=ref }} />
-            <IncidentTag ref={ref => { this.incidentTag=ref }} onLoad={this.loadData.bind(this)} />
+            {this.state.loadListType === 0 && (
+                <IncidentTag ref={ref => { this.incidentTag=ref }} onLoad={this.loadCondition.bind(this,'expired')} />
+            )}
+            {this.state.loadListType === 1 && (
+                <IncidentTag ref={ref => { this.incidentTag=ref }} onLoad={this.loadCondition.bind(this,'unhandled')} />
+            )}
+            {this.state.loadListType === 2 && (
+                <IncidentTag ref={ref => { this.incidentTag=ref }} onLoad={this.loadCondition.bind(this,'mine')} />
+            )}
+            {this.state.loadListType === 3 && (
+                <IncidentTag ref={ref => { this.incidentTag=ref }} onLoad={this.loadData.bind(this)} />
+            )}
+
             <IncidentReview ref={ref => { this.incidentReview=ref }} onLoad={this.getIncident.bind(this)} />
 
             <div className="sub-header">
@@ -477,6 +556,11 @@ class Incident extends Component {
                             {activeContent === 'viewIncident' &&
                             <button className='standard btn list'
                                     onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</button>
+                            }
+                            {
+                                _.size(incident.dataContent) > 0 &&
+                                <button className='standard btn edit'
+                                    onClick={this.exportAll.bind(this)}>{it('txt-export-all')}</button>
                             }
                             <button className='standard btn edit'
                                     onClick={this.toggleContent.bind(this, 'addIncident', 'events')}>{it('txt-addIncident-events')}</button>
@@ -521,46 +605,85 @@ class Incident extends Component {
         let auditCheck = false
         let returnCheck = false
         let publishCheck = false
-
         let transferCheck = false
-
-
-        const isExecutor = _.includes(session.roles, 'SOC Executor')
+        // new
+        let signCheck = false
+        let closeCheck = false
 
 
         if (incident.info.status === INCIDENT_STATUS_UNREVIEWED) {
-            editCheck = true
-            submitCheck = true
-        }
-        else if (incident.info.status === INCIDENT_STATUS_REVIEWED) {
+            // 待送審
+            if (this.state.accountRoleType === SOC_Executor) {
+
+            }else if (this.state.accountRoleType === SOC_Super){
+
+            }else {
+                editCheck = true
+                submitCheck = true
+            }
+        } else if (incident.info.status === INCIDENT_STATUS_REVIEWED) {
+            // 待審核
             if (session.accountId === incident.info.creator) {
                 drawCheck = true
             }
 
-            if (isExecutor) {
+            if (this.state.accountRoleType === SOC_Executor) {
                 editCheck = true
                 returnCheck = true
                 auditCheck = true
+                closeCheck = true
+            }else if (this.state.accountRoleType === SOC_Super){
+
+            }else {
+                editCheck = true
             }
-        }
-        else if (incident.info.status === INCIDENT_STATUS_CLOSED) {
+        } else if (incident.info.status === INCIDENT_STATUS_CLOSED) {
+            // 結案(未發布)
             if (session.accountId === incident.info.creator) {
-                // drawCheck = true
             }
 
-            if (isExecutor) {
-                // editCheck = true
+            if (this.state.accountRoleType === SOC_Super) {
                 publishCheck = true
             }
-        }
-        else if (incident.info.status === INCIDENT_STATUS_SUBMITTED) {
-            // editCheck = true
-        }
+        } else if (incident.info.status === INCIDENT_STATUS_SUBMITTED) {
+            if (this.state.accountRoleType === SOC_Executor) {
+                editCheck = true
+            }else if (this.state.accountRoleType === SOC_Super){
+                returnCheck = true
+                editCheck = true
+                auditCheck = true
+            }else {
+                editCheck = true
+            }
+        } else if (incident.info.status === INCIDENT_STATUS_DELETED) {
 
-        else if (incident.info.status === INCIDENT_STATUS_DELETED) {
-        }
-        else if (incident.info.status === INCIDENT_STATUS_ANALYZED) {
-            transferCheck = true
+        } else if (incident.info.status === INCIDENT_STATUS_ANALYZED) {
+            if (this.state.accountRoleType === SOC_Executor) {
+                editCheck = true
+                transferCheck = true
+            }else if (this.state.accountRoleType === SOC_Super){
+                editCheck = true
+                transferCheck = true
+            }
+        } else if (incident.info.status === INCIDENT_STATUS_EXECUTOR_UNREVIEWED) {
+            if (this.state.accountRoleType === SOC_Executor) {
+                editCheck = true
+            }else if (this.state.accountRoleType === SOC_Super){
+                editCheck = true
+                returnCheck = true
+                signCheck = true
+            }else{
+                if (session.accountId === incident.info.creator) {
+                    drawCheck = true
+                }
+                editCheck = true
+            }
+        }else if (incident.info.status === INCIDENT_STATUS_EXECUTOR_CLOSE) {
+            if (this.state.accountRoleType === SOC_Executor) {
+                transferCheck = true
+            }else if (this.state.accountRoleType === SOC_Super){
+
+            }
         }
 
 
@@ -574,7 +697,7 @@ class Incident extends Component {
                         {
                             _.map(incident.info.tagList, el => {
                                 return <div style={{display: 'flex', marginRight: '30px'}}>
-                                    <div className='incident-tag-square' style={{backgroundColor: el.tag.color}}></div>
+                                    <div className='incident-tag-square' style={{backgroundColor: el.tag.color}}/>
                                     &nbsp;{el.tag.tag}
                                 </div>
                             })
@@ -609,6 +732,9 @@ class Incident extends Component {
             {activeContent === 'viewIncident' &&
                 <footer style={{'textAlign':'center'}}>
                     <button className='standard btn list'
+                            onClick={this.exportPdf.bind(this)}>{t('txt-export')}</button>
+                    
+                    <button className='standard btn list'
                             onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</button>
                     {editCheck &&
                         <button className='standard btn list'
@@ -637,6 +763,14 @@ class Incident extends Component {
                     {transferCheck &&
                         <button className='standard btn list'
                                 onClick={this.openReviewModal.bind(this, incident.info, 'analyze')}>{it('txt-transfer')}</button>
+                    }
+                    {signCheck &&
+                    <button className='standard btn list'
+                            onClick={this.openReviewModal.bind(this, incident.info, 'sign')}>{it('txt-sign')}</button>
+                    }
+                    {closeCheck &&
+                    <button className='standard btn list'
+                            onClick={this.openReviewModal.bind(this, incident.info, 'close')}>{it('txt-close')}</button>
                     }
                 </footer>
             }
@@ -669,6 +803,13 @@ class Incident extends Component {
     displayMainPage = () => {
         const {activeContent, incidentType, incident, relatedListOptions} = this.state;
         const {locale} = this.context;
+        let dateLocale = locale;
+
+        if (locale === 'zh') {
+            dateLocale += '-tw';
+        }
+
+        moment.locale(dateLocale);
 
         return <div className='form-group normal'>
             <header>
@@ -679,84 +820,120 @@ class Incident extends Component {
                 }
             </header>
 
-            <button className='last'
-                    onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-next-page')}</button>
+            <Button className='last-left' disabled={true} style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
+                    onClick={this.handleIncidentPageChange.bind(this, 'main')}>{it('txt-prev-page')}</Button>
+
+            <Button className='last' style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
+                    onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-next-page')}</Button>
 
             <div className='group'>
                 <label htmlFor='title'>{f('incidentFields.title')}</label>
-                <Input
+                <TextField
                     id='title'
-                    onChange={this.handleDataChange.bind(this, 'title')}
+                    name='title'
+                    variant='outlined'
+                    fullWidth={true}
+                    size='small'
+                    onChange={this.handleDataChangeMui}
                     value={incident.info.title}
-                    required={true}
-                    validate={{t: et}}
-                    readOnly={activeContent === 'viewIncident'}/>
+                    helperText={it('txt-required')}
+                    required
+                    error={!(incident.info.title || '')}
+                    disabled={activeContent === 'viewIncident'}/>
             </div>
             <div className='group'>
                 <label htmlFor='category'>{f('incidentFields.category')}</label>
-                <DropDownList
+                <TextField
                     id='category'
-                    onChange={this.handleDataChange.bind(this, 'category')}
-                    required={true}
-                    validate={{t: et}}
-                    list={
-                        _.map(_.range(1, 9), el => {
-                            return {text: it(`category.${el}`), value: el}
-                        })
-                    }
+                    name='category'
+                    variant='outlined'
+                    fullWidth={true}
+                    size='small'
+                    onChange={this.handleDataChangeMui}
+                    helperText={it('txt-required')}
+                    required
+                    select
                     value={incident.info.category}
-                    readOnly={activeContent === 'viewIncident'}/>
+                    error={!(incident.info.category || '')}
+                    disabled={activeContent === 'viewIncident'}>
+                    {_.map(_.range(1, 9), el => {
+                        return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
+                    })
+                    }</TextField>
             </div>
             <div className='group'>
                 <label htmlFor='reporter'>{f('incidentFields.reporter')}</label>
-                <Input
+                <TextField
                     id='reporter'
-                    onChange={this.handleDataChange.bind(this, 'reporter')}
-                    required={true}
-                    validate={{t: et}}
+                    name='reporter'
+                    variant='outlined'
+                    fullWidth={true}
+                    size='small'
+                    onChange={this.handleDataChangeMui}
+                    required
+                    helperText={it('txt-required')}
+                    error={!(incident.info.reporter || '')}
                     value={incident.info.reporter}
-                    readOnly={activeContent === 'viewIncident'}/>
+                    disabled={activeContent === 'viewIncident'}/>
             </div>
             <div className='group' style={{width: '25vh'}}>
                 <label htmlFor='impactAssessment'>{f('incidentFields.impactAssessment')}</label>
-                <DropDownList
+                <TextField
                     id='impactAssessment'
-                    onChange={this.handleDataChange.bind(this, 'impactAssessment')}
-                    required={true}
-                    validate={{t: et}}
-                    list={
+                    variant='outlined'
+                    fullWidth={true}
+                    size='small'
+                    select
+                    name='impactAssessment'
+                    onChange={this.handleDataChangeMui}
+                    required
+                    helperText={it('txt-required')}
+                    value={incident.info.impactAssessment}
+                    error={!(incident.info.impactAssessment || '')}
+                    disabled={activeContent === 'viewIncident'}>
+                    {
                         _.map(_.range(1, 5), el => {
-                            return {text: `${el} (${(9 - 2 * el)} ${it('txt-day')})`, value: el}
+                            return  <MenuItem value={el}>{`${el} (${(9 - 2 * el)} ${it('txt-day')})`}</MenuItem>
                         })
                     }
-                    value={incident.info.impactAssessment}
-                    readOnly={activeContent === 'viewIncident'}/>
+                </TextField>
             </div>
 
             <div className='group' style={{width: '25vh'}}>
                 <label htmlFor='expireDttm'>{f('incidentFields.finalDate')}</label>
-                <DatePicker
-                    id='expireDttm'
-                    className='daterange'
-                    onChange={this.handleDataChange.bind(this, 'expireDttm')}
-                    enableTime={true}
-                    required={true}
-                    validate={{t: et}}
-                    value={incident.info.expireDttm}
-                    locale={locale}
-                    readOnly={activeContent === 'viewIncident'} />
+                <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+                    <KeyboardDateTimePicker
+                        id='expireDttm'
+                        className='date-time-picker'
+                        inputVariant='outlined'
+                        variant='inline'
+                        format='YYYY-MM-DD HH:mm'
+                        ampm={false}
+                        required
+                        helperText={it('txt-required')}
+                        value={incident.info.expireDttm}
+                        readOnly={activeContent === 'viewIncident' }
+                        onChange={this.handleDataChange.bind(this, 'expireDttm')} />
+                </MuiPickersUtilsProvider>
             </div>
 
             {incidentType === 'ttps' && <div className='group full'>
                 <label htmlFor='description'>{f('incidentFields.description')}</label>
-                <Textarea
+                <TextField
                     id='description'
-                    onChange={this.handleDataChange.bind(this, 'description')}
-                    required={true}
-                    validate={{t: et}}
+                    onChange={this.handleDataChangeMui}
+                    required
+                    variant='outlined'
+                    fullWidth={true}
+                    size='small'
+                    multiline
+                    rows={4}
+                    rowsMax={5}
+                    helperText={it('txt-required')}
+                    name='description'
+                    error={!(incident.info.description || '')}
                     value={incident.info.description}
-                    rows={3}
-                    readOnly={activeContent === 'viewIncident'}/>
+                    disabled={activeContent === 'viewIncident'}/>
             </div>}
 
             {incidentType === 'ttps' &&
@@ -778,9 +955,7 @@ class Incident extends Component {
     };
 
     formatBytes = (bytes, decimals = 2) => {
-        // console.log("bytes == " , bytes)
         if (bytes === 0 || bytes === '0'){
-            // console.log("into bytes == 0 ")
             return '0 Bytes';
         }
 
@@ -797,6 +972,13 @@ class Incident extends Component {
         this.setState({attach: val})
     }
 
+    handleAFChange(file) {
+        let flag = new RegExp("[`~!@#$^&*()=|{}+':;',\\[\\]<>《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]")
+        if (flag.test(file.name)){
+            helper.showPopupMsg( it('txt-attachedFileNameError'), t('txt-error'), )
+        }
+    }
+
     uploadAttachmentModal() {
         PopupDialog.prompt({
             title: t('txt-upload'),
@@ -804,21 +986,27 @@ class Incident extends Component {
             cancelText: t('txt-cancel'),
             display: <div className='c-form content'>
                 <div>
-                    <FileInput id='attach' name='file' btnText={t('txt-selectFile')} />
+                    <FileInput id='attach' name='file'  validate={{ max:20 ,t: this.getErrorMsg}}
+                               onChange={this.handleAFChange} btnText={t('txt-selectFile')} />
                 </div>
                 <div>
                     <label>{it('txt-fileMemo')}</label>
-                    <Textarea id='comment' rows={3} />
+                    <TextareaAutosize id='comment' rows={3} />
                 </div>
             </div>,
             act: (confirmed, data) => {
+
                 if (confirmed) {
-                    this.uploadAttachmentByModal(data.file, data.comment)
+                    let flag = new RegExp("[`~!@#$^&*()=|{}':;',\\[\\]<>《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]")
+
+                    if (flag.test(data.file.name)){
+                    }else{
+                        this.uploadAttachmentByModal(data.file, data.comment)
+                    }
                 }
             }
         })
     }
-
 
     displayAttached = () => {
         const {activeContent, incidentType, incident, relatedListOptions, attach} = this.state;
@@ -871,14 +1059,6 @@ class Incident extends Component {
             {
                 activeContent === 'addIncident' &&
                 <div className='group'>
-                {
-                    // <FileUpload
-                    //     supportText={t('txt-upload')}
-                    //     id='attachedFileInput'
-                    //     fileType='attached'
-                    //     btnText={t('txt-selectFile')}
-                    //     handleFileChange={this.handleDataChange.bind(this, 'file')} />
-                }
                    <FileInput
                         btnText={t('txt-selectFile')}
                         value={attach}
@@ -889,9 +1069,10 @@ class Incident extends Component {
                 activeContent === 'addIncident' &&
                 <div className='group'>
                     <label htmlFor='fileMemo'>{it('txt-fileMemo')}</label>
-                    <Textarea
+                    <TextareaAutosize
                         id='fileMemo'
-                        onChange={this.handleDataChange.bind(this, 'fileMemo')}
+                        name='fileMemo'
+                        onChange={this.handleDataChangeMui}
                         value={incident.info.fileMemo}
                         rows={2} />
                 </div>
@@ -964,72 +1145,95 @@ class Incident extends Component {
                 <div className='text'>{it('txt-accidentTitle')}</div>
             </header>
 
-            <button className={incidentType === 'events' ? 'last' : 'last-left'}
-                    onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}</button>
+            {/*<Button className={incidentType === 'events' ? 'last' : 'last-left'}  style={{backgroundColor:'#001b34',color:'#FFFFFF'}}*/}
+            {/*        onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}</Button>*/}
+            <Button className='last-left' style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
+                    onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}</Button>
 
-            {
-                incidentType === 'ttps' &&
-                <button className='last'
-                        onClick={this.handleIncidentPageChange.bind(this, 'ttps')}>{it('txt-next-page')}</button>
-            }
+            <Button className='last' disabled={incidentType !== 'ttps'}  style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
+                    onClick={this.handleIncidentPageChange.bind(this, 'ttps')}>{it('txt-next-page')}</Button>
+
+            {/*{*/}
+            {/*    incidentType === 'ttps' &&*/}
+
+            {/*}*/}
 
             <div className='group'>
                 <label htmlFor='accidentCatogory'>{it('txt-accidentClassification')}</label>
-                <DropDownList
+                <TextField
                     id='accidentCatogory'
-                    onChange={this.handleDataChange.bind(this, 'accidentCatogory')}
-                    list={INCIDENT_ACCIDENT_LIST}
+                    name='accidentCatogory'
+                    select
+                    variant='outlined'
+                    fullWidth={true}
+                    size='small'
+                    onChange={this.handleDataChangeMui}
                     value={incident.info.accidentCatogory}
-                    readOnly={activeContent === 'viewIncident'}/>
+                    disabled={activeContent === 'viewIncident'}>
+                    {INCIDENT_ACCIDENT_LIST}
+                </TextField>
             </div>
             {incident.info.accidentCatogory === '5' &&
                 <div className='group'>
                     <label htmlFor='accidentAbnormal'>{it('txt-reason')}</label>
-                    <Input
+                    <TextField
                         id='accidentAbnormal'
-                        onChange={this.handleDataChange.bind(this, 'accidentAbnormalOther')}
+                        name='accidentAbnormal'
+                        variant='outlined'
+                        fullWidth={true}
+                        size='small'
+                        onChange={this.handleDataChangeMui}
                         value={incident.info.accidentAbnormalOther}
-                        readOnly={activeContent === 'viewIncident'}/>
+                        disabled={activeContent === 'viewIncident'}/>
                 </div>
             }
             {incident.info.accidentCatogory !== '5' &&
             <div className='group'>
                 <label htmlFor='accidentAbnormal'>{it('txt-reason')}</label>
-                <DropDownList
+                <TextField
                     id='accidentAbnormal'
-                    onChange={this.handleDataChange.bind(this, 'accidentAbnormal')}
-                    list={INCIDENT_ACCIDENT_SUB_LIST[incident.info.accidentCatogory - 1]}
+                    name='accidentAbnormal'
+                    select
+                    variant='outlined'
+                    fullWidth={true}
+                    size='small'
+                    onChange={this.handleDataChangeMui}
                     value={incident.info.accidentAbnormal}
-                    readOnly={activeContent === 'viewIncident'}/>
+                    disabled={activeContent === 'viewIncident'}>
+                    {INCIDENT_ACCIDENT_SUB_LIST[incident.info.accidentCatogory - 1]}
+                </TextField>
             </div>
             }
 
             <div className='group full'>
                 <label htmlFor='accidentDescription'>{it('txt-accidentDescr')}</label>
-                <Textarea
+                <TextareaAutosize
                     id='accidentDescription'
-                    onChange={this.handleDataChange.bind(this, 'accidentDescription')}
+                    name='accidentDescription'
+                    onChange={this.handleDataChangeMui}
                     value={incident.info.accidentDescription}
                     rows={3}
-                    readOnly={activeContent === 'viewIncident'}/>
+                    disabled={activeContent === 'viewIncident'}/>
             </div>
             <div className='group full'>
                 <label htmlFor='accidentReason'>{it('txt-reasonDescr')}</label>
-                <Textarea
+                <TextareaAutosize
                     id='accidentReason'
-                    onChange={this.handleDataChange.bind(this, 'accidentReason')}
+                    name='accidentReason'
+                    onChange={this.handleDataChangeMui}
                     value={incident.info.accidentReason}
                     rows={3}
-                    readOnly={activeContent === 'viewIncident'}/>
+                    disabled={activeContent === 'viewIncident'}/>
             </div>
             <div className='group full'>
                 <label htmlFor='accidentInvestigation'>{it('txt-accidentInvestigation')}</label>
-                <Textarea
+                <TextareaAutosize
                     id='accidentInvestigation'
-                    onChange={this.handleDataChange.bind(this, 'accidentInvestigation')}
+                    name='accidentInvestigation'
+                    onChange={this.handleDataChangeMui}
                     value={incident.info.accidentInvestigation}
                     rows={3}
-                    readOnly={activeContent === 'viewIncident'}/>
+                    disabled={activeContent === 'viewIncident'}/>
             </div>
         </div>
     }
@@ -1052,11 +1256,11 @@ class Incident extends Component {
                 <div className='text'>{it('txt-incident-events')}</div>
             </header>
 
-            <button className='last-left '
-                    onClick={this.handleIncidentPageChange.bind(this, 'main')}>{it('txt-prev-page')}</button>
+            <Button className='last-left '  style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
+                    onClick={this.handleIncidentPageChange.bind(this, 'main')}>{it('txt-prev-page')}</Button>
 
-            <button className='last'
-                    onClick={this.handleIncidentPageChange.bind(this, 'notice')}>{it('txt-next-page')}</button>
+            <Button className='last'  style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
+                    onClick={this.handleIncidentPageChange.bind(this, 'notice')}>{it('txt-next-page')}</Button>
 
 
             <div className='group full multi'>
@@ -1089,8 +1293,12 @@ class Incident extends Component {
                     className='text'>{it('txt-incident-ttps')} ({it('txt-ttp-obs-file')}/{it('txt-ttp-obs-uri')}/{it('txt-ttp-obs-socket')} {it('txt-mustOne')})
                 </div>
             </header>
-            <button className='last'
-                    onClick={this.handleIncidentPageChange.bind(this, 'notice')}>{it('txt-prev-page')}</button>
+
+            <Button className='last-left '  style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
+                    onClick={this.handleIncidentPageChange.bind(this, 'notice')}>{it('txt-prev-page')}</Button>
+
+            <Button className='last' disabled={true} style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
+                    onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-next-page')}</Button>
 
             <div className='group full multi'>
                 <MultiInput
@@ -1257,6 +1465,11 @@ class Incident extends Component {
                 })
 
                 let empty = _.filter(incident.ttpList, function (o) {
+
+                    if (o.infrastructureType === undefined){
+                        o.infrastructureType === '0'
+                    }
+
                     return !o.title || !o.infrastructureType
                 });
 
@@ -1321,78 +1534,122 @@ class Incident extends Component {
     renderFilter = () => {
         const {showFilter, search} = this.state;
         const {locale} = this.context;
+
+        let dateLocale = locale;
+
+        if (locale === 'zh') {
+            dateLocale += '-tw';
+        }
+
+        moment.locale(dateLocale);
+
         return (
             <div className={cx('main-filter', {'active': showFilter})}>
                 <i className='fg fg-close' onClick={this.toggleFilter} title={t('txt-close')}/>
                 <div className='header-text'>{t('txt-filter')}</div>
                 <div className='filter-section config'>
                     <div className='group'>
-                        <label htmlFor='searchKeyword'>{f('edgeFields.keywords')}</label>
-                        <input
-                            id='searchKeyword'
-                            type='text'
-                            className='search-textarea'
+                        <label htmlFor='keyword'>{f('edgeFields.keywords')}</label>
+                        <TextField
+                            id='keyword'
+                            name='keyword'
+                            variant='outlined'
+                            fullWidth={true}
+                            size='small'
                             value={search.keyword}
-                            onChange={this.handleInputSearch.bind(this, 'keyword')}/>
+                            onChange={this.handleSearchMui}/>
                     </div>
                     <div className='group'>
                         <label htmlFor='searchCategory'>{f('incidentFields.category')}</label>
-                        <DropDownList
+                        <TextField
                             id='searchCategory'
+                            name='category'
+                            select
                             required={true}
-                            list={
+                            variant='outlined'
+                            fullWidth={true}
+                            size='small'
+                            value={search.category}
+                            onChange={this.handleSearchMui}>
+                            {
                                 _.map(_.range(0, 9), el => {
-                                    return {text: it(`category.${el}`), value: el}
+                                    return <MenuItem value={el}>{it(`category.${el}`)}</MenuItem>
                                 })
                             }
-                            value={search.category}
-                            onChange={this.handleSearch.bind(this, 'category')}/>
+                        </TextField>
                     </div>
                     <div className='group'>
                         <label htmlFor='searchStatus'>{f('incidentFields.status')}</label>
-                        <DropDownList
+                        <TextField
                             id='searchStatus'
+                            name='status'
                             required={true}
-                            list={
-                                _.map(_.range(0, 5), el => {
-                                    return {text: it(`status.${el}`), value: el}
-                                })
-                            }
+                            variant='outlined'
+                            fullWidth={true}
+                            size='small'
+                            select
                             value={search.status}
-                            onChange={this.handleSearch.bind(this, 'status')}/>
+                            onChange={this.handleSearchMui}>
+                            {
+                                _.map(_.range(0, 9), el => {
+                                    return  <MenuItem value={el}>{it(`status.${el}`)}</MenuItem>
+                                })}
+                            }
+                        </TextField>
                     </div>
                     <div className='group'>
                         <label htmlFor='isExpired'>{it('txt-expired')}</label>
-                        <DropDownList
+                        <TextField
                             id='isExpired'
-                            list={[
-                                {
-                                    value: 2,
-                                    text: it('txt-allSearch')
-                                },
-                                {
-                                    value: 1,
-                                    text: it('unit.txt-isDefault')
-                                },
-                                {
-                                    value: 0,
-                                    text: it('unit.txt-isNotDefault')
-                                }
-                            ]}
+                            name='isExpired'
                             required={true}
+                            variant='outlined'
+                            fullWidth={true}
+                            size='small'
+                            select
                             value={search.isExpired}
-                            onChange={this.handleSearch.bind(this, 'isExpired')}/>
+                            onChange={this.handleSearchMui}>
+                            {
+                                _.map([
+                                    {
+                                        value: 2,
+                                        text: it('txt-allSearch')
+                                    },
+                                    {
+                                        value: 1,
+                                        text: it('unit.txt-isDefault')
+                                    },
+                                    {
+                                        value: 0,
+                                        text: it('unit.txt-isNotDefault')
+                                    }
+                                ], el => {
+                                    return <MenuItem value={el.value}>{el.text}</MenuItem>
+                                })}
+                            }
+                        </TextField>
                     </div>
-                    <div className='group'>
+                    <div className='group' style={{width: '500px'}}>
                         <label htmlFor='searchDttm'>{f('incidentFields.createDttm')}</label>
-                        <DateRange
-                            id='datetime'
-                            className='daterange'
-                            enableTime={true}
-                            value={search.datetime}
-                            onChange={this.handleSearch.bind(this, 'datetime')}
-                            locale={locale}
-                            t={et} />
+                        <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+                            <KeyboardDateTimePicker
+                                className='date-time-picker'
+                                inputVariant='outlined'
+                                variant='inline'
+                                format='YYYY-MM-DD HH:mm'
+                                ampm={false}
+                                value={search.datetime.from}
+                                onChange={this.handleSearchTime.bind(this, 'from')} />
+                            <div className='between'>~</div>
+                            <KeyboardDateTimePicker
+                                className='date-time-picker'
+                                inputVariant='outlined'
+                                variant='inline'
+                                format='YYYY-MM-DD HH:mm'
+                                ampm={false}
+                                value={search.datetime.to}
+                                onChange={this.handleSearchTime.bind(this, 'to')} />
+                        </MuiPickersUtilsProvider>
                     </div>
                 </div>
                 <div className='button-group'>
@@ -1409,7 +1666,7 @@ class Incident extends Component {
 
         return <div className={cx('main-filter', {'active': showChart})}>
             <i className='fg fg-close' onClick={this.toggleChart} title={t('txt-close')}/>
-            <div className='incident-statistics'>
+            <div className='incident-statistics' id='incident-statistics'>
                 <div className='item c-link' onClick={this.loadCondition.bind(this,'expired')}>
                     <i className='fg fg-checkbox-fill' style={{color: '#ec8f8f'}}/>
                     <div className='threats'>{it('txt-incident-expired')}<span>{dashboard.expired}</span></div>
@@ -1703,11 +1960,11 @@ class Incident extends Component {
         }
 
         this.setState({
+            displayPage: 'main',
             activeContent: showPage,
             incident: tempIncident
         }, () => {
             if (showPage === 'tableList' || showPage === 'cancel-add') {
-                // console.log("this.state.loadListType == " , this.state.loadListType)
                 if (this.state.loadListType === 0){
                     this.loadCondition('expired')
                 }else if (this.state.loadListType === 1){
@@ -1844,6 +2101,14 @@ class Incident extends Component {
         });
     };
 
+    handleSearchChange = (event) => {
+        let tempSearch = {...this.state.search};
+        tempSearch[event.target.name] = event.target.value.trim();
+        this.setState({
+            search: tempSearch
+        });
+    }
+
     /**
      * Handle filter input data change
      * @method
@@ -1854,6 +2119,35 @@ class Incident extends Component {
         let tempSearch = {...this.state.search};
         tempSearch[type] = value;
 
+        this.setState({
+            search: tempSearch
+        });
+    };
+
+    /**
+     * Handle filter input data change
+     * @method
+     * @param {string} type - input type
+     * @param {string} value - input value
+     */
+    handleSearchTime = (type, value) => {
+        let tempSearch = {...this.state.search};
+        tempSearch.datetime[type] = value;
+
+        this.setState({
+            search: tempSearch
+        });
+    };
+
+    /**
+     * Handle filter input data change
+     * @method
+     * @param {string} type - input type
+     * @param {string} value - input value
+     */
+    handleSearchMui = (event) => {
+        let tempSearch = {...this.state.search};
+        tempSearch[event.target.name] = event.target.value;
         this.setState({
             search: tempSearch
         });
@@ -1908,6 +2202,19 @@ class Incident extends Component {
             incident: temp
         })
     };
+
+
+    handleDataChangeMui = (event) => {
+
+        let temp = {...this.state.incident};
+        temp.info[event.target.name] = event.target.value;
+        if (event.target.name === 'impactAssessment') {
+            temp.info.expireDttm = helper.getAdditionDate(24 * (9 - 2 * event.target.value), 'hours')
+        }
+        this.setState({
+            incident: temp
+        })
+    }
 
     getOptions = () => {
         const {baseUrl, contextRoot} = this.context;
@@ -2137,6 +2444,289 @@ class Incident extends Component {
                     })
                 }
             }
+        })
+    }
+
+
+
+    toPdfPayload(incident) {
+        const {incidentType, relatedListOptions, deviceListOptions} = this.state
+        let payload = {}
+
+        payload.id = incident.id
+        payload.header = `${it('txt-incident-id')}${incident.id}`
+        // basic
+        payload.basic = {}
+        payload.basic.cols = 4
+        payload.basic.header = `${t('edge-management.txt-basicInfo')}    ${f('incidentFields.updateDttm')}  ${helper.getFormattedDate(incident.updateDttm, 'local')}`
+        payload.basic.table = []
+        payload.basic.table.push({text: f('incidentFields.title'), colSpan: 2})
+        payload.basic.table.push({text: f('incidentFields.category'), colSpan: 2})
+        payload.basic.table.push({text: incident.title, colSpan: 2})
+        payload.basic.table.push({text: it(`category.${incident.category}`), colSpan: 2})
+        payload.basic.table.push({text: f('incidentFields.reporter'), colSpan: 2})
+        payload.basic.table.push({text: f('incidentFields.impactAssessment'), colSpan: 1})
+        payload.basic.table.push({text: f('incidentFields.finalDate'), colSpan: 1})
+        payload.basic.table.push({text: incident.reporter, colSpan: 2})
+        payload.basic.table.push({text: `${incident.impactAssessment} (${(9 - 2 * incident.impactAssessment)} ${it('txt-day')})`, colSpan: 1})
+        payload.basic.table.push({text: helper.getFormattedDate(incident.expireDttm, 'local'), colSpan: 1})
+       
+        if (incidentType === 'ttps') {
+            payload.basic.table.push({text: f('incidentFields.description'), colSpan: 4})
+            payload.basic.table.push({text: incident.description, colSpan: 4})
+
+            if (_.size(incident.relatedList) > 0) {
+                let value = []
+                _.forEach(incident.relatedList, el => {
+                    const target = _.find(relatedListOptions, {value: el})
+                    value.push(target.text)
+                })
+
+                payload.basic.table.push({text: f('incidentFields.relatedList'), colSpan: 4})
+                payload.basic.table.push({text: value.toString(), colSpan: 4})
+            }
+        }
+
+        // history
+        payload.history = {}
+        payload.history.cols = 4
+        payload.history.header = it('txt-flowTitle')
+        payload.history.table = []
+        payload.history.table.push({text: f(`incidentFields.status`), colSpan: 1})
+        payload.history.table.push({text: f(`incidentFields.reviewDttm`), colSpan: 1})
+        payload.history.table.push({text: f(`incidentFields.reviewerName`), colSpan: 1})
+        payload.history.table.push({text: f(`incidentFields.suggestion`), colSpan: 1})
+
+        _.forEach(incident.historyList, el => {
+            payload.history.table.push({text: it(`action.${el.status}`), colSpan: 1})
+            payload.history.table.push({text: Moment(el.reviewDttm).local().format('YYYY-MM-DD HH:mm:ss'), colSpan: 1})
+            payload.history.table.push({text: el.reviewerName, colSpan: 1})
+            payload.history.table.push({text: el.suggestion, colSpan: 1})
+        })
+
+
+        // attach
+        if (_.size(incident.fileList) > 0) {
+            payload.attachment = {}
+            payload.attachment.cols = 4
+            payload.attachment.header = it('txt-attachedFile')
+            payload.attachment.table = []
+            payload.attachment.table.push({text: f(`incidentFields.fileName`), colSpan: 1})
+            payload.attachment.table.push({text: f(`incidentFields.fileSize`), colSpan: 1})
+            payload.attachment.table.push({text: f(`incidentFields.fileDttm`), colSpan: 1})
+            payload.attachment.table.push({text: f(`incidentFields.fileMemo`), colSpan: 1})
+
+            _.forEach(incident.fileList, file => {
+                payload.attachment.table.push({text: file.fileName, colSpan: 1})
+                payload.attachment.table.push({text: this.formatBytes(file.fileSize), colSpan: 1})
+                payload.attachment.table.push({text: Moment(file.fileDttm).local().format('YYYY-MM-DD HH:mm:ss'), colSpan: 1})
+                const target = _.find(JSON.parse(incident.attachmentDescription), {fileName: file.fileName})
+                payload.attachment.table.push({text: target.fileMemo, colSpan: 1})
+            })
+        }
+
+
+        // accident
+        payload.accident = {}
+        payload.accident.cols = 4
+        payload.accident.header = it('txt-accidentTitle')
+        payload.accident.table = []
+        payload.accident.table.push({text: it('txt-accidentClassification'), colSpan: 2})
+        payload.accident.table.push({text: it('txt-reason'), colSpan: 2})
+        
+        if (incident.accidentCatogory) {
+            payload.accident.table.push({text: it(`accident.${incident.accidentCatogory}`), colSpan: 2})
+        }
+        else {
+            payload.accident.table.push({text: ' ', colSpan: 2})
+        }
+        
+        if (!incident.accidentCatogory) {
+            payload.accident.table.push({text: ' ', colSpan: 2})
+        }
+        else if (incident.accidentCatogory === '5') {
+            payload.accident.table.push({text: incident.accidentAbnormalOther, colSpan: 2})
+        }
+        else {
+            payload.accident.table.push({text: it(`accident.${incident.accidentAbnormal}`), colSpan: 2})
+        }
+
+        payload.accident.table.push({text: it('txt-accidentDescr'), colSpan: 4})
+        payload.accident.table.push({text: incident.accidentDescription, colSpan: 4})
+        payload.accident.table.push({text: it('txt-reasonDescr'), colSpan: 4})
+        payload.accident.table.push({text: incident.accidentReason, colSpan: 4})
+        payload.accident.table.push({text: it('txt-accidentInvestigation'), colSpan: 4})
+        payload.accident.table.push({text: incident.accidentInvestigation, colSpan: 4})
+
+
+        //  event list
+        payload.eventList = {}
+        payload.eventList.cols = 6
+        payload.eventList.header = it('txt-incident-events')
+        payload.eventList.table = []
+
+        _.forEach(incident.eventList, event => {
+            payload.eventList.table.push({text: f('incidentFields.rule'), colSpan: 3})
+            payload.eventList.table.push({text: f('incidentFields.deviceId'), colSpan: 3})
+            payload.eventList.table.push({text: event.description, colSpan: 3})
+            const target = _.find(deviceListOptions, {value: event.deviceId})
+            payload.eventList.table.push({text: target.text, colSpan: 3})
+            payload.eventList.table.push({text: f('incidentFields.dateRange'), colSpan: 4})
+            payload.eventList.table.push({text: it('txt-frequency'), colSpan: 2})
+            payload.eventList.table.push({text: Moment.utc(event.startDttm, 'YYYY-MM-DDTHH:mm:ss[Z]').local().format('YYYY-MM-DD HH:mm:ss'), colSpan: 2})
+            payload.eventList.table.push({text: Moment.utc(event.endDttm, 'YYYY-MM-DDTHH:mm:ss[Z]').local().format('YYYY-MM-DD HH:mm:ss'), colSpan: 2})
+            payload.eventList.table.push({text: event.frequency, colSpan: 2})
+
+            _.forEach(event.eventConnectionList, conn => {
+                payload.eventList.table.push({text: f('incidentFields.srcIp'), colSpan: 2})
+                payload.eventList.table.push({text: f('incidentFields.srcPort'), colSpan: 2})
+                payload.eventList.table.push({text: f('incidentFields.srcHostname'), colSpan: 2})
+                payload.eventList.table.push({text: conn.srcIp, colSpan: 2})
+                payload.eventList.table.push({text: conn.srcPort, colSpan: 2})
+                payload.eventList.table.push({text: conn.srcHostname, colSpan: 2})
+                payload.eventList.table.push({text: f('incidentFields.dstIp'), colSpan: 2})
+                payload.eventList.table.push({text: f('incidentFields.dstPort'), colSpan: 2})
+                payload.eventList.table.push({text: f('incidentFields.dstHostname'), colSpan: 2})
+                payload.eventList.table.push({text: conn.dstIp, colSpan: 2})
+                payload.eventList.table.push({text: conn.dstPort, colSpan: 2})
+                payload.eventList.table.push({text: conn.dstHostname, colSpan: 2})
+            })
+        })
+
+
+        // ttps
+        if (_.size(incident.ttpList) > 0) {
+            payload.ttps = {}
+            payload.ttps.cols = 4
+            payload.ttps.header = it('txt-incident-ttps')
+            payload.ttps.table = []
+        }
+
+        _.forEach(incident.ttpList, ttp => {
+            payload.ttps.table.push({text: f('incidentFields.technique'), colSpan: 2})
+            payload.ttps.table.push({text: f('incidentFields.infrastructureType'), colSpan: 2})
+            payload.ttps.table.push({text: ttp.title, colSpan: 2})
+            payload.ttps.table.push({text: ttp.infrastructureType === 0 ? 'IOC' : 'IOA', colSpan: 2})
+
+            if (_.size(ttp.etsList) > 0) {
+                payload.ttps.table.push({text: it('txt-ttp-ets'), colSpan: 4})
+                _.forEach(ttp.etsList, ets => {
+                    payload.ttps.table.push({text: f('incidentFields.cveId'), colSpan: 2})
+                    payload.ttps.table.push({text: f('incidentFields.etsDescription'), colSpan: 2})
+                    payload.ttps.table.push({text: ets.cveId || '', colSpan: 2})
+                    payload.ttps.table.push({text: ets.description || '', colSpan: 2})
+                })
+            }
+
+            if (_.size(ttp.obsFileList) > 0) {
+                payload.ttps.table.push({text: it('txt-ttp-obs-file'), colSpan: 4})
+                _.forEach(ttp.obsFileList, obsFile => {
+                    payload.ttps.table.push({text: f('incidentFields.fileName'), colSpan: 2})
+                    payload.ttps.table.push({text: f('incidentFields.fileExtension'), colSpan: 2})
+                    payload.ttps.table.push({text: obsFile.fileName, colSpan: 2})
+                    payload.ttps.table.push({text: obsFile.fileExtension, colSpan: 2})
+                    payload.ttps.table.push({text: 'MD5', colSpan: 2})
+                    payload.ttps.table.push({text: 'SHA1', colSpan: 2})
+                    payload.ttps.table.push({text: obsFile.md5, colSpan: 2})
+                    payload.ttps.table.push({text: obsFile.sha1, colSpan: 2})
+                    payload.ttps.table.push({text: 'SHA256', colSpan: 4})
+                    payload.ttps.table.push({text: obsFile.sha256, colSpan: 4})
+                })
+            }
+
+            if (_.size(ttp.obsUriList) > 0) {
+                payload.ttps.table.push({text: it('txt-ttp-obs-uri'), colSpan: 4})
+                _.forEach(ttp.obsUriList, obsUri => {
+                    payload.ttps.table.push({text: f('incidentFields.uriType'), colSpan: 2})
+                    payload.ttps.table.push({text: f('incidentFields.uriValue'), colSpan: 2})
+                    payload.ttps.table.push({text: obsUri.uriType === 0 ? 'URL' : f('incidentFields.domain'), colSpan: 2})
+                    payload.ttps.table.push({text: obsUri.uriValue, colSpan: 2})
+                })
+            }
+
+            if (_.size(ttp.obsSocketList) > 0) {
+                payload.ttps.table.push({text: it('txt-ttp-obs-socket'), colSpan: 4})
+                _.forEach(ttp.obsSocketList, obsSocket => {
+                    payload.ttps.table.push({text: 'IP', colSpan: 2})
+                    payload.ttps.table.push({text: 'Port', colSpan: 2})
+                    payload.ttps.table.push({text: obsSocket.ip, colSpan: 2})
+                    payload.ttps.table.push({text: obsSocket.port, colSpan: 2})
+                })
+            }
+        })
+
+        return payload
+    }
+    exportPdf() {
+        const {baseUrl, contextRoot} = this.context
+        const {incident} = this.state
+
+        downloadWithForm(`${baseUrl}${contextRoot}/api/soc/_pdf`, {payload: JSON.stringify(this.toPdfPayload(incident.info))})
+    }
+    exportAll() {
+        const {baseUrl, contextRoot, session} = this.context
+        let {search, incident, loadListType, accountRoleType} = this.state
+
+        if (search.datetime) {
+            search.startDttm = Moment(search.datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+            search.endDttm = Moment(search.datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+        }
+
+        search.isExecutor = _.includes(session.roles, 'SOC Executor')
+        search.accountRoleType = this.state.accountRoleType
+        search.account = session.accountId
+
+
+        let payload = {
+            subStatus: 0,
+            keyword: '',
+            category: 0,
+            isExpired: 2,
+            accountRoleType,
+            isExecutor : _.includes(session.roles, 'SOC Executor'),
+        }
+
+
+        if (loadListType === 0) {
+            payload.status = 0
+            payload.isExpired = 1
+        }
+        else if (loadListType === 1) {
+            if (payload.accountRoleType === SOC_Executor) {
+                payload.status = 2
+                payload.subStatus = 6
+            }
+            else if (payload.accountRoleType === SOC_Super) {
+                payload.status = 7
+            }
+            else {
+                payload.status = 1
+            }
+        }
+        else if (loadListType === 2) {
+            payload.status = 0
+            payload.creator = session.accountId
+        }
+        else if (loadListType === 3) {
+            payload = search
+        }
+
+        ah.one({
+            url: `${baseUrl}/api/soc/_searchV2`,
+            data: JSON.stringify(payload),
+            type: 'POST',
+            contentType: 'application/json',
+            dataType: 'json'
+        })
+        .then(data => {
+            let payload = _.map(data.rt.rows, el => {
+                return this.toPdfPayload(el)
+            })
+
+            downloadWithForm(`${baseUrl}${contextRoot}/api/soc/_pdfs`, {payload: JSON.stringify(payload)})
+        })
+        .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
         })
     }
 }

@@ -3,13 +3,16 @@ import { Link, withRouter } from 'react-router-dom'
 import Highcharts from 'highcharts'
 import HighchartsMore from 'highcharts/highcharts-more'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
+import moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
 import InfiniteScroll from 'react-infinite-scroll-component'
 
-import ButtonGroup from 'react-ui/build/src/components/button-group'
+import Button from '@material-ui/core/Button';
+import ToggleButton from '@material-ui/lab/ToggleButton';
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
+
 import DataTable from 'react-ui/build/src/components/table'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import MultiInput from 'react-ui/build/src/components/multi-input'
@@ -45,8 +48,16 @@ const SAFETY_SCAN_LIST = [
     path: 'fileIntegrityResult'
   },
   {
+    type: 'eventTracing',
+    path: ''
+  },
+  {
     type: 'procMonitor',
     path: 'getProcessMonitorResult'
+  },
+  {
+    type: '_Vans',
+    path: '_VansResult'
   },
   {
     type: 'snapshot',
@@ -62,7 +73,8 @@ const TRIGGER_NAME = {
   [SAFETY_SCAN_LIST[1].type]: 'scanFile',
   [SAFETY_SCAN_LIST[2].type]: 'gcbDetection',
   [SAFETY_SCAN_LIST[4].type]: 'getFileIntegrity',
-  [SAFETY_SCAN_LIST[5].type]: 'getProcessMonitorResult'
+  [SAFETY_SCAN_LIST[6].type]: 'getProcessMonitorResult',
+  [SAFETY_SCAN_LIST[7].type]: 'getVans'
 };
 const SETTINGS = {
   snapshot: 'getSnapshot',
@@ -93,6 +105,7 @@ class HMDscanInfo extends Component {
       activeDLL: false,
       activeConnections: false,
       activeExecutableInfo: false,
+      activeVansProduct: null,
       dashboardInfo: {
         dataFieldsArr: ['item', 'score'],
         dataFields: {},
@@ -188,9 +201,11 @@ class HMDscanInfo extends Component {
    * @method
    */
   hmdTypeChecking = () => {
-    if (this.props.openHmdType && typeof this.props.openHmdType === 'string') {
+    const {openHmdType} = this.props;
+
+    if (openHmdType && typeof openHmdType === 'string') {
       this.setState({
-        activeTab: this.props.openHmdType.replace('Result', '')
+        activeTab: openHmdType.replace('Result', '')
       });
     }
   }
@@ -200,25 +215,18 @@ class HMDscanInfo extends Component {
    */
   loadInitialContent = () => {
     const {location, currentDeviceData} = this.props;
-    let buttonGroupList = [{
-      value: 'dashboard',
-      text: t('txt-dashboard')
-    }];
+    let buttonGroupList = [];
 
-    _.forEach(SAFETY_SCAN_LIST, val => {
+    buttonGroupList.push(<ToggleButton value='dashboard'>{t('txt-dashboard')}</ToggleButton>);
+
+    _.forEach(SAFETY_SCAN_LIST, val => { //Create list for Button group
       if (val.type !== 'snapshot' && val.type !== 'procWhiteList') {
-        buttonGroupList.push({ //Create list for Button group
-          value: val.type,
-          text: t('network-inventory.scan-list.txt-' + val.type)
-        });
+        buttonGroupList.push(<ToggleButton value={val.type}>{t('network-inventory.scan-list.txt-' + val.type)}</ToggleButton>);
       }
     });
 
     if (location.pathname.indexOf('host') > 0 || location.pathname.indexOf('configuration') > 0) { //Add Settings tab for Config section
-      buttonGroupList.push({
-        value: 'settings',
-        text: t('txt-setting-eng')
-      });
+      buttonGroupList.push(<ToggleButton value='settings'>{t('txt-setting-eng')}</ToggleButton>);
     }
 
     this.setState({
@@ -473,9 +481,16 @@ class HMDscanInfo extends Component {
   /**
    * Set active tab based on scan type
    * @method
+   * @param {object} event - event object
    * @param {string} activeTab - active scan type
    */
-  toggleScanType = (activeTab) => {
+  toggleScanType = (event, activeTab) => {
+    if (!activeTab) {
+      return;
+    }
+
+    scrollCount = 1;
+
     this.setState({
       activeTab,
       activePath: null,
@@ -494,10 +509,10 @@ class HMDscanInfo extends Component {
    * @returns boolean true/false
    */
   checkTimeAfter = (latestCreateTime) => {
-    const currentDateTime = helper.getFormattedDate(Moment(), 'local');
+    const currentDateTime = helper.getFormattedDate(moment(), 'local');
     const tenMinutesAfter = helper.getAdditionDate(10, 'minutes', latestCreateTime);
 
-    if (Moment(currentDateTime).isAfter(tenMinutesAfter)) {
+    if (moment(currentDateTime).isAfter(tenMinutesAfter)) {
       return false; //Enable trigger button if current time is 10 minutes after latest create time
     } else {
       return true; //Disable trigger button
@@ -524,7 +539,7 @@ class HMDscanInfo extends Component {
         if (currentDevice[0].taskResponseDttm) {
           const responseTime = helper.getFormattedDate(currentDevice[0].taskResponseDttm, 'local');
 
-          if (Moment(latestCreateTime).isAfter(responseTime)) {
+          if (moment(latestCreateTime).isAfter(responseTime)) {
             return this.checkTimeAfter(latestCreateTime);
           } else {
             return false; //Enable trigger button if latest create time is later than response time
@@ -546,10 +561,8 @@ class HMDscanInfo extends Component {
     const {activePath, activeRule} = this.state;
 
     if (type === 'path') {
-      const tempActivePath = activePath === id ? null : id;
-
       this.setState({
-        activePath: tempActivePath,
+        activePath: activePath === id ? null : id,
         activeRuleHeader: false,
         activeRule: [],
         activeDLL: false,
@@ -580,10 +593,9 @@ class HMDscanInfo extends Component {
    */
   displayRule = (nameList, val, i) => {
     const {activeRule} = this.state;
-    const uniqueKey = val + i;
 
     return (
-      <div key={uniqueKey} className='item-content'>
+      <div key={val + i} className='item-content'>
         <div className='header' onClick={this.togglePathRule.bind(this, 'rule', i)}>
           <i className={cx('fg fg-play', {'rotate': _.includes(activeRule, i)})}></i>
           <span>{nameList[i]}</span>
@@ -605,10 +617,8 @@ class HMDscanInfo extends Component {
    * @returns HTML DOM
    */
   displayIndividualFile = (val, i) => {
-    const uniqueKey = val + i;
-
     return (
-      <div key={uniqueKey}>{val}</div>
+      <div key={val + i}>{val}</div>
     )
   }
   /**
@@ -648,10 +658,8 @@ class HMDscanInfo extends Component {
    * @returns HTML DOM
    */
   displayIndividualConnection = (val, i) => {
-    const uniqueKey = val + i;
-
     return (
-      <ul key={uniqueKey}>
+      <ul key={val + i}>
         <li><span>{t('attacksFields.protocolType')}:</span> {val.protocol || NOT_AVAILABLE}</li>
         <li><span>{t('attacksFields.srcIp')}:</span> {val.srcIp || NOT_AVAILABLE}</li>
         <li><span>{t('attacksFields.srcPort')}:</span> {val.srcPort || NOT_AVAILABLE}</li>
@@ -728,7 +736,7 @@ class HMDscanInfo extends Component {
       value = info._ProcessInfo._ExecutableInfo[val].toString();
     }
 
-    return <li key={i}>{t('network-inventory.executable-list.txt-' + val)}: {value || NOT_AVAILABLE}</li>
+    return <li key={val + i}>{t('network-inventory.executable-list.txt-' + val)}: {value || NOT_AVAILABLE}</li>
   }
   /**
    * Display Executable Info for Process Monitor
@@ -753,9 +761,10 @@ class HMDscanInfo extends Component {
   /**
    * Toggle scan rule item on/off
    * @method
-   * @param {string} type - item type ('rule', 'dll' or 'connections')
+   * @param {string} type - item type ('rule', 'dll', 'connections', 'executableInfo' or 'vans')
+   * @param {string} id - unique ID of vans
    */
-  toggleInfoHeader = (type) => {
+  toggleInfoHeader = (type, id) => {
     if (type === 'rule') {
       this.setState({
         activeRuleHeader: !this.state.activeRuleHeader
@@ -771,6 +780,10 @@ class HMDscanInfo extends Component {
     } else if (type === 'executableInfo') {
       this.setState({
         activeExecutableInfo: !this.state.activeExecutableInfo
+      });
+    } else if (type === 'vans') {
+      this.setState({
+        activeVansProduct: this.state.activeVansProduct === id ? null : id
       });
     }
   }
@@ -808,8 +821,13 @@ class HMDscanInfo extends Component {
    * @returns HTML DOM
    */
   displayScanProcessPath = (parentIndex, val, i) => {
+    const {location} = this.props;
     const {activeTab, activePath, activeRuleHeader, activeDLL, activeConnections, activeExecutableInfo} = this.state;
-    const filePath = val._MatchedFile || val._ProcessInfo._ExecutableInfo._FileInfo._Filepath;
+    let filePath = val._MatchedFile;
+
+    if (val._ProcessInfo) {
+      filePath = filePath || val._ProcessInfo._ExecutableInfo._FileInfo._Filepath;
+    }
 
     if (filePath || val._MatchedPid) {
       const uniqueKey = val._ScanType + i;
@@ -836,8 +854,8 @@ class HMDscanInfo extends Component {
               {val._MatchedPid &&
                 <span>PID: {val._MatchedPid}</span>
               }
-              {activeTab === 'procMonitor' &&
-                <i className='c-link fg fg-add' title={t('network-inventory.txt-addToSettings')} onClick={this.addToSettings.bind(this, 'procMonitor', filePath)}></i>
+              {activeTab === 'procMonitor' && (location.pathname.indexOf('host') > 0 || location.pathname.indexOf('configuration') > 0) &&
+                <i className='c-link fg fg-add' title={t('network-inventory.txt-addToFilterList')} onClick={this.addToSettings.bind(this, 'procMonitor', filePath)}></i>
               }
             </div>
           </div>
@@ -894,7 +912,7 @@ class HMDscanInfo extends Component {
     return <span style={{color : val ? '#22ac38' : '#d0021b'}}>{val.toString()}</span>
   }
   /**
-   * Display Scan File content
+   * Display Scan File (Malware) content
    * @method
    * @param {number} parentIndex - parent index of the scan file array
    * @param {object} val - scan file content
@@ -1081,6 +1099,120 @@ class HMDscanInfo extends Component {
     )
   }
   /**
+   * Display Vans individual data
+   * @method
+   * @param {string} type - content type ('desc' or 'ref')
+   * @param {object} val - individual vans data
+   * @param {number} i - index of the vans data
+   * @returns HTML DOM
+   */
+  displayVansContent = (type, val, i) => {
+    if (type === 'desc' && val.value) {
+      return <div key={i} className='desc'>{val.value}</div>
+    }
+
+    if (type === 'ref' && val.url) {
+      return <li key={i}><a href={val.url} target='_blank'>{val.url}</a></li>
+    }
+  }
+  /**
+   * Display Vans details content
+   * @method
+   * @param {object} val - individual vans data content
+   * @param {number} i - index of the vans data
+   * @returns HTML DOM
+   */
+  displayVansData = (val, i) => {
+    const {activeVansProduct} = this.state;
+    const uniqueKey = val.id + i;
+    const severityLevel = helper.capitalizeFirstLetter(val.severity);
+    let color = '';
+
+    switch (severityLevel) {
+      case 'High':
+        color = '#CC2943';
+        break;
+      case 'Medium':
+        color = '#CC7B29';
+        break;
+      case 'Low':
+        color = '#29CC7A';
+        break;
+    }
+
+    return (
+      <div key={uniqueKey} className='item-content'>
+        <div className='header' onClick={this.toggleInfoHeader.bind(this, 'vans', uniqueKey)}>
+          <i className={cx('fg fg-play', {'rotate': activeVansProduct === uniqueKey})}></i>
+          <span>{val.id}</span>
+        </div>
+        <div className={cx('sub-content', {'hide': activeVansProduct !== uniqueKey})}>
+          <table className='c-table main-table vans'>
+            <tbody>
+              <tr>
+                <td>{t('txt-severity')}</td>
+                <td><span style={{color}}>{severityLevel}</span></td>
+              </tr>
+              {val.description.description_data.length > 0 &&
+                <tr>
+                  <td>{t('txt-description')}</td>
+                  <td>{val.description.description_data.map(this.displayVansContent.bind(this, 'desc'))}</td>
+                </tr>
+              }
+              {val.referenceData.reference_data.length > 0 &&
+                <tr>
+                  <td>{t('txt-reference')}</td>
+                  <td><ul>{val.referenceData.reference_data.map(this.displayVansContent.bind(this, 'ref'))}</ul></td>
+                </tr>
+              }
+              <tr>
+                <td>{t('network-inventory.txt-publishedDate')}</td>
+                <td>{helper.getFormattedDate(val.publishedDate, 'local')}</td>
+              </tr>
+              <tr>
+                <td>{t('network-inventory.txt-lastModifiedDate')}</td>
+                <td>{helper.getFormattedDate(val.lastModifiedDate, 'local')}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    )
+  }
+  /**
+   * Display Vans content
+   * @method
+   * @param {number} parentIndex - parent index of the vans array
+   * @param {object} val - vans data content
+   * @param {number} i - index of the vans array
+   * @returns HTML DOM
+   */
+  displayVansPath = (parentIndex, val, i) => {
+    const {activePath} = this.state;
+    const vansName = val.name;
+    const uniqueKey = vansName + i;
+    const uniqueID = parentIndex.toString() + i.toString() + vansName;
+
+    return (
+      <div key={uniqueKey} className='group'>
+        <div className='path pointer' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
+          <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`}></i>
+          <div className='path-header'>
+            <span><span className='main'>{val.vendor}</span> | <span className='main'>{val.product}</span> | <span className='main'>{val.version}</span> | {vansName}</span>
+          </div>
+          <div className='product-count'>
+            <span>{val.rows.length}</span>
+          </div>
+        </div>
+        <div className={cx('rule', {'hide': activePath !== uniqueID})}>
+          {val.rows.length > 0 &&
+            val.rows.map(this.displayVansData)
+          }
+        </div>
+      </div>
+    )
+  }
+  /**
    * Reset the activeTab and rule data
    * @method
    * @param {string} type - button action type ('previous' or 'next')
@@ -1187,9 +1319,9 @@ class HMDscanInfo extends Component {
     return (
       <div className='info'>
         {activeTab !== 'settings' &&
-          <button className='btn refresh' onClick={this.props.getHMDinfo.bind(this, ipType)}>{t('network-inventory.txt-refresh')}</button>
+          <Button variant='contained' color='primary' className='btn refresh' onClick={this.props.getHMDinfo.bind(this, ipType)}>{t('network-inventory.txt-refresh')}</Button>
         }
-        <button className='btn' onClick={this.getTriggerTask.bind(this, currentTab)} disabled={this.checkTriggerTime(currentTab)}>{btnText}</button>
+        <Button variant='contained' color='primary' className='btn' onClick={this.getTriggerTask.bind(this, currentTab)} disabled={this.checkTriggerTime(currentTab)}>{btnText}</Button>
         <div className='last-update'>
           <span>{t('network-inventory.txt-createTime')}: {hmdInfo[currentTab].latestCreateDttm || hmdInfo[currentTab].createTime || NOT_AVAILABLE}</span>
         </div>
@@ -1197,36 +1329,51 @@ class HMDscanInfo extends Component {
     )
   }
   /**
+   * Set HMD info data
+   * @method
+   * @param {object} data - data object from server response
+   */
+  setHmdInfo = (data) => {
+    const {activeTab, hmdInfo} = this.state;
+    let tempHmdInfo = {...hmdInfo};
+    
+    const hmdResult = data.safetyScanInfo[activeTab + 'Result'];
+
+    if (hmdResult.length > 0) {
+      tempHmdInfo[activeTab].data = _.concat(hmdInfo[activeTab].data, hmdResult);
+
+      this.setState({
+        hmdInfo: tempHmdInfo,
+        hasMore: true
+      });
+    } else {
+      this.setState({
+        hasMore: false
+      });
+    }
+  }
+  /**
    * Load more items when scrolling to the bottom of the dialog
    * @method
    */
   loadMoreContent = () => {
     const {baseUrl} = this.context;
-    const {currentDeviceData} = this.props;
-    const {activeTab, hmdInfo} = this.state;
-    let tempHmdInfo = {...hmdInfo};
+    const {page, datetime, currentDeviceData} = this.props;
+
     scrollCount++;
+    let url = `${baseUrl}/api/v2/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}&page=${scrollCount}&pageSize=5`;
+
+    if (page === 'host') {
+      url += `&startDttm=${datetime.from}&endDttm=${datetime.to}`;
+    }
 
     this.ah.one({
-      url: `${baseUrl}/api/v2/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}&page=${scrollCount}&pageSize=5`,
+      url,
       type: 'GET'
     })
     .then(data => {
       if (data) {
-        const hmdResult = data.safetyScanInfo[activeTab + 'Result'];
-
-        if (hmdResult.length > 0) {
-          tempHmdInfo[activeTab].data = _.concat(hmdInfo[activeTab].data, hmdResult);
-
-          this.setState({
-            hmdInfo: tempHmdInfo,
-            hasMore: true
-          });
-        } else {
-          this.setState({
-            hasMore: false
-          });
-        }
+        this.setHmdInfo(data);
       }
       return null;
     })
@@ -1244,7 +1391,7 @@ class HMDscanInfo extends Component {
    */
   displayFileIntegrityPath = (parentIndex, val, i) => {
     const {activePath, activeRuleHeader} = this.state;
-    let uniqueKey = '';
+    let uniqueKey = i;
     let uniqueID = '';
     let filePath = '';
 
@@ -1311,6 +1458,7 @@ class HMDscanInfo extends Component {
     let scanPath = '';
     let filePathList = [];
     let yaraRuleList = [];
+    let header = t('network-inventory.txt-suspiciousFilePath');
 
     if (!val.taskResponseDttm) {
       return;
@@ -1330,6 +1478,10 @@ class HMDscanInfo extends Component {
     } else if (activeTab === 'procMonitor') {
       dataResult = val.getProcessMonitorResult;
       scanPath = this.displayScanProcessPath.bind(this, i);
+    } else if (activeTab === '_Vans') {
+      dataResult = val.cpeInfoArray;
+      scanPath = this.displayVansPath.bind(this, i);
+      header = t('network-inventory.txt-vulnerabilityInfo');
     }
 
     return (
@@ -1346,10 +1498,13 @@ class HMDscanInfo extends Component {
           {(activeTab === 'yara' || activeTab === 'scanFile' || activeTab === 'procMonitor') && dataResult &&
             this.getSuspiciousFileCount(dataResult)
           }
+          {activeTab === '_Vans' && dataResult.length > 0 &&
+            <span style={{color: '#d10d25'}}>{t('network-inventory.txt-VulnerabilityCount')}: {dataResult.length}</span>
+          }
         </div>
-        {(activeTab === 'yara' || activeTab === 'scanFile' || activeTab === 'procMonitor') &&
+        {(activeTab === 'yara' || activeTab === 'scanFile' || activeTab === 'procMonitor' || activeTab === '_Vans') &&
           <div className='scan-content'>
-            <div className='header'>{t('network-inventory.txt-suspiciousFilePath')}</div>
+            <div className='header'>{header}</div>
             {dataResult && dataResult.length > 0 &&
               <div className='list'>
                 {dataResult.map(scanPath)}
@@ -1512,17 +1667,28 @@ class HMDscanInfo extends Component {
   /**
    * Get table height for scan content
    * @method
+   * @param {string} type - display type ('scan' or 'event')
    * @returns table height in px
    */
-  getContentHeight = () => {
+  getContentHeight = (type) => {
     const {page} = this.props;
 
-    if (page === 'host') {
-      return 470;
-    } else if (page === 'threats') {
-      return 330;
-    } else if (page === 'inventory') {
-      return 435;
+    if (type === 'scan') {
+      if (page === 'host') {
+        return 440;
+      } else if (page === 'threats') {
+        return 330;
+      } else if (page === 'inventory') {
+        return 435;
+      }
+    } else if (type === 'event') {
+      if (page === 'host') {
+        return 475;
+      } else if (page === 'threats') {
+        return 360;
+      } else if (page === 'inventory') {
+        return 485;
+      }
     }
   }
   /**
@@ -1533,10 +1699,9 @@ class HMDscanInfo extends Component {
   getMainContent = () => {
     const {activeTab, hmdInfo, hasMore} = this.state;
     const hmdData = hmdInfo[activeTab].data;
-    const loader = '';
     let displayContent = '';
 
-    if (activeTab === 'yara' || activeTab === 'scanFile' || activeTab === 'fileIntegrity' || activeTab === 'procMonitor') {
+    if (activeTab === 'yara' || activeTab === 'scanFile' || activeTab === 'fileIntegrity' || activeTab === 'procMonitor' || activeTab === '_Vans') {
       displayContent = this.displayAccordionContent;
     } else if (activeTab === 'gcb') {
       displayContent = this.displayTableContent;
@@ -1546,15 +1711,50 @@ class HMDscanInfo extends Component {
 
     return (
       <div className='scan-wrapper'>
-        {hmdData && displayContent &&
+        {hmdData && hmdData.length > 0 &&
           <InfiniteScroll
             dataLength={hmdData.length}
             next={this.loadMoreContent}
             hasMore={hasMore}
-            loader={loader}
-            height={this.getContentHeight()}>
+            height={this.getContentHeight('scan')}>
             {hmdData.map(displayContent)}
           </InfiniteScroll>
+        }
+
+        {(!hmdData || hmdData.length === 0) &&
+          <div className='empty-msg'>{NOT_AVAILABLE}</div>
+        }
+      </div>
+    )
+  }
+  /**
+   * Display content for Event Tracing
+   * @method
+   * @returns HTML DOM
+   */
+  getEventTracingContent = () => {
+    const {ipType, eventInfo} = this.props;
+    const dataCount = eventInfo.dataContent.length;
+
+    return (
+      <div className='scan-section'>
+        {dataCount > 0 &&
+          <div className='table event-tracing'>
+            <InfiniteScroll
+              dataLength={dataCount}
+              next={this.props.loadEventTracing.bind(this, ipType)}
+              hasMore={eventInfo.hasMore}
+              height={this.getContentHeight('event')}>
+              <DataTable
+                className='main-table'
+                fields={eventInfo.dataFields}
+                data={eventInfo.dataContent} />
+            </InfiniteScroll>
+          </div>
+        }
+
+        {dataCount === 0 &&
+          <div className='empty-msg' style={{marginTop: '20px'}}>{NOT_AVAILABLE}</div>
         }
       </div>
     )
@@ -1889,16 +2089,18 @@ class HMDscanInfo extends Component {
 
     return (
       <div className='scan-info'>
-        <ButtonGroup
-          className='left'
-          list={buttonGroupList}
+        <ToggleButtonGroup
+          className='hmd-btns-group'
           value={activeTab}
-          onChange={this.toggleScanType} />
+          exclusive
+          onChange={this.toggleScanType}>
+          {buttonGroupList}
+        </ToggleButtonGroup>
 
         <div className='info-content'>
           {activeTab === 'dashboard' &&
             <div className='dashboard-wrapper'>
-              <div className='chart-group c-box spider-chart'>
+              <div className='chart-group spider-chart'>
                 <div ref={node => { this.chartNode = node }}></div>
               </div>
 
@@ -1911,24 +2113,28 @@ class HMDscanInfo extends Component {
             </div>
           }
 
-          {activeTab !== 'dashboard' && activeTab !== 'settings' && !_.isEmpty(hmdInfo) &&
+          {activeTab !== 'dashboard' && activeTab !== 'eventTracing' && activeTab !== 'settings' && !_.isEmpty(hmdInfo) &&
             <div>
               {this.getTriggerBtnInfo()}
               {this.getMainContent()}
             </div>
           }
 
+          {activeTab === 'eventTracing' &&
+            this.getEventTracingContent()
+          }
+
           {activeTab === 'settings' &&
             <div className='settings'>
-              <button className='btn refresh' onClick={this.props.getHMDinfo.bind(this, '')}>{t('network-inventory.txt-refresh')}</button>
+              <Button variant='contained' color='primary' className='btn refresh' onClick={this.props.getHMDinfo.bind(this, '')}>{t('network-inventory.txt-refresh')}</Button>
               {settingsActiveContent === 'viewMode' &&
-                <button className='btn edit' onClick={this.toggleSettingsContent.bind(this, 'edit')}>{t('txt-edit')}</button>
+                <Button variant='contained' color='primary' className='btn edit' onClick={this.toggleSettingsContent.bind(this, 'edit')}>{t('txt-edit')}</Button>
               }
               {settingsActiveContent === 'editMode' &&
                 <div className='edit-btns'>
-                  <button className='standard btn cancel' onClick={this.toggleSettingsContent.bind(this, 'cancel')}>{t('txt-cancel')}</button>
-                  <button className='btn save' onClick={this.saveSettings}>{t('network-inventory.txt-saveSettings')}</button>
-                  <button className='standard btn restore-default' onClick={this.restoreDefaultSettings}>{t('network-inventory.txt-restoreDefault')}</button>
+                  <Button variant='outlined' color='primary' className='standard btn cancel' onClick={this.toggleSettingsContent.bind(this, 'cancel')}>{t('txt-cancel')}</Button>
+                  <Button variant='contained' color='primary' className='btn save' onClick={this.saveSettings}>{t('network-inventory.txt-saveSettings')}</Button>
+                  <Button variant='outlined' color='primary' className='standard btn restore-default' onClick={this.restoreDefaultSettings}>{t('network-inventory.txt-restoreDefault')}</Button>
                 </div>
               }
               <div id='settingsWrapper' className='settings-wrapper'>
@@ -1947,10 +2153,12 @@ HMDscanInfo.contextType = BaseDataContext;
 HMDscanInfo.propTypes = {
   page: PropTypes.string.isRequired,
   currentDeviceData: PropTypes.object.isRequired,
+  eventInfo: PropTypes.object.isRequired,
   toggleSelectionIR: PropTypes.func.isRequired,
   triggerTask: PropTypes.func.isRequired,
   toggleYaraRule: PropTypes.func.isRequired,
   getHMDinfo: PropTypes.func.isRequired,
+  loadEventTracing: PropTypes.func.isRequired,
   openHmdType: PropTypes.string
 };
 

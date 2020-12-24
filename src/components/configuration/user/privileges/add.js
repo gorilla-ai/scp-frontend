@@ -154,9 +154,9 @@ class PrivilegeAdd extends Component {
         name='name'
         label={c('txt-plsEnterName')}
         variant='outlined'
-        fullWidth={true}
+        fullWidth
         size='small'
-        required={true}
+        required
         error={!formValidation.name.valid}
         helperText={formValidation.name.valid ? '' : c('txt-required')}
         value={name}

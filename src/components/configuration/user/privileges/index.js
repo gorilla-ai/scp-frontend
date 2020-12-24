@@ -4,7 +4,10 @@ import PropTypes from 'prop-types';
 import cx from 'classnames'
 import _ from 'lodash'
 
-import ContextMenu from 'react-ui/build/src/components/contextmenu'
+import Button from '@material-ui/core/Button';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
+
 import DataTable from 'react-ui/build/src/components/table'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
@@ -34,7 +37,9 @@ class Roles extends Component {
     this.state = {
       data: [],
       dataFieldsArr: ['_menu', 'privilegeid', 'name', 'permits'],
-      dataFields: {}
+      dataFields: {},
+      contextAnchor: null,
+      currentRolesData: {}
     };
   }
   componentDidMount() {
@@ -68,7 +73,7 @@ class Roles extends Component {
               if (tempData === '_menu') {
                 return (
                   <div className={cx('table-menu', {'active': value})}>
-                    <button onClick={this.handleRowContextMenu.bind(this, allValue)}><i className='fg fg-more'></i></button>
+                    <Button variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue)}><i className='fg fg-more'></i></Button>
                   </div>
                 )
               } else if (tempData === 'permits') {
@@ -101,6 +106,7 @@ class Roles extends Component {
    */
   showEditDialog = (id) => {
     this.editor.openPrivilegeEdit(id);
+    this.handleCloseMenu();
   }
   /**
    * Open account privilege add dialog
@@ -160,29 +166,30 @@ class Roles extends Component {
         }
       }
     });
+
+    this.handleCloseMenu();
   }
   /**
-   * Construct and display table context menu
+   * Handle open menu
    * @method
-   * @param {object} allValue - owner data
-   * @param {object} evt - mouseClick events
+   * @param {object} roles - active roles data
+   * @param {object} event - event object
    */
-  handleRowContextMenu = (allValue, evt) => {
-    const menuItems = [
-      {
-        id: 'edit',
-        text: c('txt-edit'),
-        action: () => this.showEditDialog(allValue)
-      },
-      {
-        id: 'delete',
-        text: c('txt-delete'),
-        action: () => this.showDeleteDialog(allValue, allValue.privilegeid)
-      }
-    ];
-
-    ContextMenu.open(evt, menuItems, 'configUserPrivilegesMenu');
-    evt.stopPropagation();
+  handleOpenMenu = (roles, event) => {
+    this.setState({
+      contextAnchor: event.currentTarget,
+      currentRolesData: roles
+    });
+  }
+  /**
+   * Handle close menu
+   * @method
+   */
+  handleCloseMenu = () => {
+    this.setState({
+      contextAnchor: null,
+      currentRolesData: {}
+    });
   }
   /**
    * Get locale name for module
@@ -196,6 +203,9 @@ class Roles extends Component {
     }
     if (name === 'Configuration Module') {
       return c('txt-configModule');
+    }
+    if (name === 'SOC Module') {
+      return c('txt-socModule');
     }
   }
   /**
@@ -216,9 +226,9 @@ class Roles extends Component {
    * @method
    * @param {string} id - selected privilege id
    * @param {object} allValue - privilege data
-   * @param {object} evt - MouseoverEvents
+   * @param {object} event - event object
    */
-  handleRowMouseOver = (id, allValue, evt) => {
+  handleRowMouseOver = (id, allValue, event) => {
     let tempData = {...this.state.data};
     tempData = _.map(tempData, el => {
       return {
@@ -233,13 +243,22 @@ class Roles extends Component {
   }
   render() {
     const {baseUrl, contextRoot} = this.context;
-    const {data, dataFields, info, error} = this.state;
+    const {data, dataFields, contextAnchor, currentRolesData, info, error} = this.state;
 
     return (
       <div>
+        <Menu
+          anchorEl={contextAnchor}
+          keepMounted
+          open={Boolean(contextAnchor)}
+          onClose={this.handleCloseMenu}>
+          <MenuItem onClick={this.showEditDialog.bind(this, currentRolesData)}>{c('txt-edit')}</MenuItem>
+          <MenuItem onClick={this.showDeleteDialog.bind(this, currentRolesData, currentRolesData.privilegeid)}>{c('txt-delete')}</MenuItem>
+        </Menu>
+
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            <button className='last' onClick={this.showAddDialog} title={t('txt-add')}><i className='fg fg-add'></i></button>
+            <Button variant='outlined' color='primary' className='last' onClick={this.showAddDialog} title={t('txt-add')}><i className='fg fg-add'></i></Button>
           </div>
         </div>
         <div className='data-content'>

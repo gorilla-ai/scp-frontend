@@ -1,10 +1,10 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
 import cx from 'classnames'
 
 import { ReactMultiEmail } from 'react-multi-email';
 
+import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -56,6 +56,7 @@ class QueryOpenSave extends Component {
       },
       activePatternId: '',
       patternCheckbox: false,
+      publicCheckbox: false,
       info: '',
       formValidation: {
         queryName: {
@@ -104,7 +105,7 @@ class QueryOpenSave extends Component {
    * @param {string} type - query type ('open' or 'save')
    */
   handleQueryAction = (type) => {
-    const {pattern, patternCheckbox} = this.state;
+    const {pattern, patternCheckbox, publicCheckbox} = this.state;
     const {activeTab, filterData, queryData, markData} = this.props;   
 
     if (type === 'open') {
@@ -229,11 +230,11 @@ class QueryOpenSave extends Component {
           name: queryData.inputName,
           queryText
         };
-
         requestType = 'POST';
       } else {
         requestData = {
           id: queryData.id,
+          accountId: account.id,
           patternId: queryData.patternId,
           name: this.getQueryName(),
           queryText
@@ -260,6 +261,8 @@ class QueryOpenSave extends Component {
           if (pattern.threshold) {
             requestData.threshold = Number(pattern.threshold);
           }
+
+          requestData.isPublic = publicCheckbox;
         } else { //Pattern script checkbox is unchecked
           requestData.emailList = [];
 
@@ -481,6 +484,7 @@ class QueryOpenSave extends Component {
     let tempQueryData = {...queryData};
     let tempPattern = {...pattern};
     let patternCheckbox = false;
+    let publicCheckbox = false;
     let queryName = '';
 
     if (type === 'id') {
@@ -548,6 +552,10 @@ class QueryOpenSave extends Component {
             patternCheckbox = true;
           }
 
+          if (val.isPublic) {
+            publicCheckbox = true;
+          }
+
           if (val.emailList.length > 0) {
             tempQueryData.emailList = val.emailList;
             this.props.setNotifyEmailData(val.emailList);
@@ -575,7 +583,8 @@ class QueryOpenSave extends Component {
     this.setState({
       newQueryName: queryName,
       pattern: tempPattern,
-      patternCheckbox
+      patternCheckbox,
+      publicCheckbox
     });
   }
   /**
@@ -598,6 +607,15 @@ class QueryOpenSave extends Component {
   togglePatternCheckbox = () => {
     this.setState({
       patternCheckbox: !this.state.patternCheckbox
+    });
+  }
+  /**
+   * Toggle public checkbox
+   * @method
+   */
+  togglePublicCheckbox = () => {
+    this.setState({
+      publicCheckbox: !this.state.publicCheckbox
     });
   }
   /**
@@ -657,10 +675,10 @@ class QueryOpenSave extends Component {
           <TextField
             className='email-disabled'
             variant='outlined'
-            fullWidth={true}
+            fullWidth
             size='small'
             value=''
-            disabled={true} />
+            disabled />
         }
       </div>
     )
@@ -673,21 +691,24 @@ class QueryOpenSave extends Component {
    */
   getQueryAlertContent = (type) => {
     const {queryData} = this.props;
-    const {pattern, severityList, periodMinList, patternCheckbox} = this.state;
+    const {pattern, severityList, periodMinList, patternCheckbox, publicCheckbox} = this.state;
     let severityType = '';
-    let checkboxChecked = '';
-    let checkboxDisabled = '';
+    let patternCheckboxChecked = '';
+    let patternCheckboxDisabled = '';
+    let publicCheckboxChecked = '';
     let disabledValue = '';
 
     if (type === 'open') {
       severityType = queryData.pattern.severity;
-      checkboxChecked = true;
-      checkboxDisabled = true;
+      patternCheckboxChecked = true;
+      patternCheckboxDisabled = true;
+      publicCheckboxChecked = queryData.isPublic;
       disabledValue = true;
     } else if (type === 'save') {
       severityType = pattern.severity;
-      checkboxChecked = patternCheckbox;
-      checkboxDisabled = false;
+      patternCheckboxChecked = patternCheckbox;
+      patternCheckboxDisabled = false;
+      publicCheckboxChecked = publicCheckbox;
       disabledValue = !patternCheckbox;
     }
 
@@ -699,25 +720,40 @@ class QueryOpenSave extends Component {
             <Checkbox
               id='patternCheckbox'
               className='checkbox-ui'
-              checked={checkboxChecked}
+              checked={patternCheckboxChecked}
               onChange={this.togglePatternCheckbox}
               color='primary' />
           }
-          disabled={checkboxDisabled} />
-        <div className='group severity-level'>
-          <i className='fg fg-recode' style={{color: ALERT_LEVEL_COLORS[severityType]}}></i>
-          <TextField
-            className='severity-dropdown'
-            name='severity'
-            select
-            label={f('syslogPatternTableFields.severity')}
-            variant='outlined'
-            size='small'
-            value={severityType}
-            onChange={this.handleDataChange}
-            disabled={disabledValue}>
-            {severityList}
-          </TextField>
+          disabled={patternCheckboxDisabled} />
+        <div className='group severity-section'>
+          <div className='top-group'>
+            <div className='severity-level'>
+              <i className='fg fg-recode' style={{color: ALERT_LEVEL_COLORS[severityType]}}></i>
+              <TextField
+                className='severity-dropdown'
+                name='severity'
+                select
+                label={f('syslogPatternTableFields.severity')}
+                variant='outlined'
+                size='small'
+                value={severityType}
+                onChange={this.handleDataChange}
+                disabled={disabledValue}>
+                {severityList}
+              </TextField>
+            </div>
+            <FormControlLabel
+              label={t('events.connections.txt-public')}
+              control={
+                <Checkbox
+                  id='publicCheckbox'
+                  className='checkbox-ui public-checkbox'
+                  checked={publicCheckboxChecked}
+                  onChange={this.togglePublicCheckbox}
+                  color='primary' />
+              }
+              disabled={disabledValue} />
+          </div>
           <div className='period'>
             <span className='support-text'>{t('events.connections.txt-patternQuery1')} </span>
             <TextField
@@ -725,7 +761,7 @@ class QueryOpenSave extends Component {
               select
               variant='outlined'
               size='small'
-              required={true}
+              required
               value={pattern.periodMin}
               onChange={this.handleDataChange}
               disabled={disabledValue}>
@@ -796,7 +832,7 @@ class QueryOpenSave extends Component {
             select
             label={t('events.connections.txt-queryName')}
             variant='outlined'
-            fullWidth={true}
+            fullWidth
             size='small'
             value={queryData.id}
             onChange={this.handleQueryChange.bind(this, 'id')}>
@@ -826,7 +862,7 @@ class QueryOpenSave extends Component {
             this.getQueryAlertContent(type)
           }
 
-          <button className='standard delete-query' onClick={this.removeQuery} disabled={queryData.displayId === queryData.id}>{t('txt-delete')}</button>
+          <Button variant='outlined' color='primary' className='standard delete-query' onClick={this.removeQuery} disabled={queryData.displayId === queryData.id}>{t('txt-delete')}</Button>
         </div>
       )
     } else if (type === 'save') {
@@ -871,10 +907,10 @@ class QueryOpenSave extends Component {
               select
               label={t('events.connections.txt-queryName')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
-              required={true}
-              value={queryData.id}
+              required
+              value={dropDownValue}
               onChange={this.handleQueryChange.bind(this, 'id')}>
               <MenuItem value={'new'}>{t('events.connections.txt-addQuery')}</MenuItem>
               {displayList}
@@ -887,7 +923,7 @@ class QueryOpenSave extends Component {
                 variant='outlined'
                 size='small'
                 maxLength={50}
-                required={true}
+                required
                 error={!formValidation.queryName.valid}
                 helperText={formValidation.queryName.valid ? '' : t('txt-required')}
                 value={queryData.inputName}

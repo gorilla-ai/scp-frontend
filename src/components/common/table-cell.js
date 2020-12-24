@@ -49,7 +49,7 @@ class TableCell extends Component {
     if (value) {
       if (typeof value === 'string') {
         value = value.toLowerCase();
-      } else if (typeof myVar === 'number') {
+      } else if (typeof value === 'number') {
         value = value.toString();
         value = value.toLowerCase();
       } else {
@@ -111,7 +111,7 @@ class TableCell extends Component {
               <i className='fg fg-network' title={tooltip}></i>
             }
             <span className='ip'>{fieldValue}</span>
-            <i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.showQueryOptions(fieldName, fieldValue, activeTab)}></i>
+            <i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.handleOpenQueryMenu.bind(this, fieldName, fieldValue, activeTab)}></i>
           </div>
         )
       } else {
@@ -121,11 +121,11 @@ class TableCell extends Component {
           return ( //Special case for Severity in Alerts
             <div>
               <span className='severity' style={{backgroundColor: alertLevelColors[fieldValue]}}>{fieldValue}</span>
-              <i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.showQueryOptions(fieldName, fieldValue)}></i>
+              <i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.handleOpenQueryMenu.bind(this, fieldName, fieldValue, activeTab)}></i>
             </div>
           )
         } else { //Everythig else
-          return <span className={this.getBackgroundColor(fieldValue)}>{fieldValue}<i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.showQueryOptions(fieldName, fieldValue)}></i></span>
+          return <span className={this.getBackgroundColor(fieldValue)}>{fieldValue}<i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.handleOpenQueryMenu.bind(this, fieldName, fieldValue, activeTab)}></i></span>
         }
       }
     }

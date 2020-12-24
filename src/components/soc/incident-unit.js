@@ -10,7 +10,13 @@ import PopupDialog from "react-ui/build/src/components/popup-dialog";
 import TableContent from "../common/table-content";
 import DropDownList from "react-ui/build/src/components/dropdown";
 import Checkbox from "react-ui/build/src/components/checkbox";
-
+import TextareaAutosize from '@material-ui/core/TextareaAutosize';
+import GeneralDialog from '@f2e/gui/dist/components/dialog/general-dialog'
+// import Checkbox from '@material-ui/core/Checkbox';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import TextField from '@material-ui/core/TextField';
+import Button from '@material-ui/core/Button';
 let t = null;
 let f = null;
 let et = null;
@@ -70,7 +76,7 @@ class IncidentUnit extends Component {
     componentDidMount() {
         const {locale, sessionRights} = this.context;
 
-        helper.getPrivilegesInfo(sessionRights, 'config', locale);
+        helper.getPrivilegesInfo(sessionRights, 'soc', locale);
         this.getData();
     }
 
@@ -303,7 +309,7 @@ class IncidentUnit extends Component {
                     <button className='standard btn list'
                             onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</button>
                     }
-                    {activeContent !== 'addDevice' &&
+                    {activeContent !== 'addDevice' && activeContent !== 'editDevice' &&
                     <button className='standard btn edit'
                             onClick={this.toggleContent.bind(this, 'editDevice')}>{t('txt-edit')}</button>
                     }
@@ -316,72 +322,104 @@ class IncidentUnit extends Component {
 
                     <div className='group'>
                         <label htmlFor='oid'>{it('unit.txt-oid')}</label>
-                        <Input
+                        <TextField
                             id='oid'
-                            onChange={this.handleDataChange.bind(this, 'oid')}
+                            name='oid'
+                            variant='outlined'
+                            fullWidth={true}
+                            size='small'
+                            onChange={this.handleDataChangeMui}
                             value={incidentUnit.info.oid}
-                            readOnly={activeContent === 'viewDevice'}/>
+                            disabled={activeContent === 'viewDevice'}/>
                     </div>
                     <div className='group'>
                         <label htmlFor='name'>{it('unit.txt-name')}</label>
-                        <Input
+                        <TextField
                             id='name'
-                            onChange={this.handleDataChange.bind(this, 'name')}
+                            name='name'
+                            variant='outlined'
+                            fullWidth={true}
+                            size='small'
+                            onChange={this.handleDataChangeMui}
                             value={incidentUnit.info.name}
-                            readOnly={activeContent === 'viewDevice'}/>
+                            disabled={activeContent === 'viewDevice'}/>
                     </div>
                     <div className='group'>
                         <label htmlFor='abbreviation'>{it('unit.txt-abbreviation')}</label>
-                        <Input
+                        <TextField
                             id='abbreviation'
-                            onChange={this.handleDataChange.bind(this, 'abbreviation')}
+                            name='abbreviation'
+                            variant='outlined'
+                            fullWidth={true}
+                            size='small'
+                            onChange={this.handleDataChangeMui}
                             value={incidentUnit.info.abbreviation}
-                            readOnly={activeContent === 'viewDevice'}/>
+                            disabled={activeContent === 'viewDevice'}/>
                     </div>
 
                     <div className='group'>
                         <label htmlFor='level'>{it('unit.txt-level')}</label>
-                        <DropDownList
+                        <TextField
                             id='level'
-                            required={true}
-                            list={[
-                                {
-                                    value: 'A',
-                                    text: 'A'
-                                },
-                                {
-                                    value: 'B',
-                                    text: 'B'
-                                },
-                                {
-                                    value: 'C',
-                                    text: 'C'
-                                },
-                                {
-                                    value: 'D',
-                                    text: 'D'
-                                },
-                                {
-                                    value: 'E',
-                                    text: 'E'
-                                },
-                            ]}
-                            onChange={this.handleDataChange.bind(this, 'level')}
+                            name='level'
+                            required
+                            error={!(incidentUnit.info.level || '').trim()}
+                            helperText={it('txt-required')}
+                            variant='outlined'
+                            fullWidth={true}
+                            size='small'
+                            select
+                            onChange={this.handleDataChangeMui}
                             value={incidentUnit.info.level}
-                            readOnly={activeContent === 'viewDevice'}/>
+                            disabled={activeContent === 'viewDevice'}>
+                            {
+                                _.map([
+                                    {
+                                        value: 'A',
+                                        text: 'A'
+                                    },
+                                    {
+                                        value: 'B',
+                                        text: 'B'
+                                    },
+                                    {
+                                        value: 'C',
+                                        text: 'C'
+                                    },
+                                    {
+                                        value: 'D',
+                                        text: 'D'
+                                    },
+                                    {
+                                        value: 'E',
+                                        text: 'E'
+                                    },
+                                ],el =>{
+                                    return <MenuItem value={el.value}>{el.text}</MenuItem>
+                                })
+                            }
+                        </TextField>
                     </div>
 
                     <div className='group'>
                         <label htmlFor='industryType'>{it('unit.txt-type')}</label>
-                        <DropDownList
+                        <TextField
                             id='industryType'
-                            required={true}
-                            list={_.map(_.range(0, 14), el => {
-                                return {text: it(`industryType.${el}`), value: el}
-                            })}
-                            onChange={this.handleDataChange.bind(this, 'industryType')}
+                            name='industryType'
+                            required
+                            helperText={it('txt-required')}
+                            error={!(incidentUnit.info.industryType || '')}
+                            variant='outlined'
+                            fullWidth={true}
+                            size='small'
+                            select
+                            onChange={this.handleDataChangeMui}
                             value={incidentUnit.info.industryType}
-                            readOnly={activeContent === 'viewDevice'}/>
+                            disabled={activeContent === 'viewDevice'}>
+                            {_.map(_.range(0, 14), el => {
+                                return <MenuItem value={el.toString()}>{it(`industryType.${el}`)}</MenuItem>
+                            })}
+                        </TextField>
                     </div>
 
                     <div className='group'>
@@ -396,18 +434,14 @@ class IncidentUnit extends Component {
 
                 {activeContent === 'editDevice' &&
                 <footer>
-                    <button className='standard'
-                            onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</button>
+                    <button className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</button>
                     <button onClick={this.handleUnitSubmit}>{t('txt-save')}</button>
-
                 </footer>
                 }
                 {activeContent === 'addDevice' &&
                 <footer>
-                    <button className='standard'
-                            onClick={this.toggleContent.bind(this, 'cancel-add')}>{t('txt-cancel')}</button>
-                    <button onClick={this.handleUnitSubmit}>{t('txt-save')}</button>
-
+                    <button className='standard' onClick={this.toggleContent.bind(this, 'cancel-add')}>{t('txt-cancel')}</button>
+                    <button  onClick={this.handleUnitSubmit}>{t('txt-save')}</button>
                 </footer>
                 }
             </div>
@@ -498,29 +532,39 @@ class IncidentUnit extends Component {
                 <div className='header-text'>{t('txt-filter')}</div>
                 <div className='filter-section config'>
                     <div className='group'>
-                        <label htmlFor='keyword'>{f('incidentFields.keywords')}</label>
-                        <input
+                        <TextField
                             id='keyword'
+                            name='keyword'
+                            label={f('incidentFields.keywords')}
+                            variant='outlined'
+                            fullWidth={true}
+                            size='small'
                             className='search-textarea'
                             value={unitSearch.keyword}
-                            onChange={this.handleUnitInputSearch.bind(this, 'keyword')}/>
+                            onChange={this.handleUnitInputSearchMui}/>
                     </div>
                     <div className='group'>
-                        <label htmlFor='industryType'>{f('incidentFields.industryType')}</label>
-                        <DropDownList
+                        <TextField
                             id='industryType'
-                            list={_.map(_.range(0, 14), el => {
-                                return {text: it(`industryType.${el}`), value: el}
-                            })}
+                            name='industryType'
+                            select
+                            label={f('incidentFields.industryType')}
+                            variant='outlined'
+                            fullWidth={true}
+                            size='small'
                             value={unitSearch.industryType}
-                            onChange={this.handleUnitSearch.bind(this, 'industryType')}/>
+                            onChange={this.handleUnitInputSearchMui}>
+                            {_.map(_.range(0, 14), el => {
+                                return <MenuItem value={el.toString()}>{it(`industryType.${el}`)}</MenuItem>
+                            })}
+                        </TextField>
 
                     </div>
                 </div>
                 <div className='button-group'>
-                    <button className='filter'
-                            onClick={this.getData.bind(this, 'search')}>{t('txt-filter')}</button>
-                    <button className='clear' onClick={this.clearFilter}>{t('txt-clear')}</button>
+                    <utton className='filter'
+                            onClick={this.getData.bind(this, 'search')}>{t('txt-filter')}</utton>
+                    <utton className='clear' onClick={this.clearFilter}>{t('txt-clear')}</utton>
                 </div>
             </div>
         )
@@ -710,6 +754,21 @@ class IncidentUnit extends Component {
     };
 
     /**
+     * Handle filter input data change
+     * @method
+     * @param {string} type - input type
+     * @param {object} event - input value
+     */
+    handleUnitInputSearchMui = (event) => {
+        let tempUnitSearch = {...this.state.unitSearch};
+        tempUnitSearch[event.target.name] = event.target.value.trim();
+
+        this.setState({
+            unitSearch: tempUnitSearch
+        });
+    };
+
+    /**
      * Handle filter DropDown data change
      * @method
      * @param {string} type - input type
@@ -761,7 +820,20 @@ class IncidentUnit extends Component {
             incidentUnit: tempDevice
         });
     };
+    /**
+     * Handle Incident Device edit input data change
+     * @method
+     * @param {string} type - input type
+     * @param {string} value - input value
+     */
+    handleDataChangeMui = (event) => {
+        let tempDevice = {...this.state.incidentUnit};
+        tempDevice.info[event.target.name] = event.target.value;
 
+        this.setState({
+            incidentUnit: tempDevice
+        });
+    };
 }
 
 IncidentUnit.contextType = BaseDataContext;

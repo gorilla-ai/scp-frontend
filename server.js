@@ -51,10 +51,11 @@ const cfg = _.assign({
     account: "admin",
     accountId: "DPIR-00000000-0000-0000-0000-000000000000"
   },
-  mapUrl: 'https://mt0.google.com/vt/lyrs=m&hl=en-US&x={x}&y={y}&z={z}'
+  mapUrl: 'https://mt0.google.com/vt/lyrs=m&hl=en-US&x={x}&y={y}&z={z}',
   // session: {
   //   rights: [],
   //   name: null,
+  //   roles: null,
   //   account: null,
   //   accountId: null
   // }

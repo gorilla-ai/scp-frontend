@@ -260,7 +260,7 @@
   },
   "alertFields": {
     "_tableMenu_": "",
-    "_eventDttm_": "事件時間",
+    "_eventDttm_": "告警時間",
     "lastPacket": "結束封包",
     "destIp": "目的IP",
     "srcIp": "來源IP",
@@ -320,16 +320,18 @@
     "payloadMD5": "Payload MD5",
     "destLocType": "Dest Loc Type",
     "timestamp": "日期",
-    "_severity_": "Severity",
+    "_severity_": "嚴重等級",
     "Info": "Info",
     "Collector": "Collector",
     "Trigger": "Trigger",
     "Suggest": "Suggest",
-    "Source": "Source"
+    "Source": "來源"
   },
   "logsFields": {
     "_tableMenu_": "",
     "@timestamp": "日期",
+    "_EventCode": "事件代碼",
+    "_Message": "訊息",
     "@version": "版本",
     "AccountName": "帳號名稱",
     "AccountType": "帳號種類",
@@ -500,7 +502,7 @@
       "_Filepath": "檔案路徑",
       "_Filesize": "檔案大小",
       "_HashValues": {
-        "_MD5": "Hash Value"
+        "_MD5": "Hash Value (MD5)"
       }
     },
     "_IsPE": "是否為PE檔",

@@ -2,10 +2,11 @@ import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
+import moment from 'moment'
 import cx from 'classnames'
 import _ from 'lodash'
 
+import Button from '@material-ui/core/Button';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import Radio from '@material-ui/core/Radio';
@@ -79,6 +80,9 @@ class AutoSettings extends Component {
       scannerTableData: [],
       formValidation: {
         ip: {
+          valid: true
+        },
+        port: {
           valid: true
         }
       }
@@ -364,8 +368,8 @@ class AutoSettings extends Component {
   handleNetflowtest = () => {
     const {baseUrl} = this.context;
     const dateTime = {
-      from: Moment(helper.getSubstractDate(24, 'hour')).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-      to: Moment().utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+      from: moment(helper.getSubstractDate(24, 'hour')).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: moment().utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
 
     this.ah.one({
@@ -473,6 +477,9 @@ class AutoSettings extends Component {
         formValidation: {
           ip: {
             valid: true
+          },
+          port: {
+            valid: true
           }
         }
       });
@@ -508,6 +515,17 @@ class AutoSettings extends Component {
       } else {
         tempFormValidation.ip.valid = false;
         validate = false;
+      }
+    }
+
+    if (adData.port) {
+      const portNumber = Number(adData.port);
+
+      if (portNumber <= 0 || portNumber > 65535) { //Check port number
+        tempFormValidation.port.valid = false;
+        validate = false;
+      } else {
+        tempFormValidation.port.valid = true;
       }
     }
 
@@ -611,10 +629,10 @@ class AutoSettings extends Component {
 
           {activeContent === 'viewMode' &&
             <div className='content-header-btns'>
-              <button className='standard btn no-padding'>
+              <Button variant='outlined' color='primary' className='standard btn no-padding'>
                 <Link to={{pathname: '/SCP/configuration/topology/inventory', state: 'tableList'}}>{t('txt-back')}</Link>
-              </button>
-              <button className='standard btn' onClick={this.toggleContent.bind(this, 'editMode')}>{t('txt-edit')}</button>
+              </Button>
+              <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'editMode')}>{t('txt-edit')}</Button>
             </div>
           }
 
@@ -683,7 +701,7 @@ class AutoSettings extends Component {
                   disabled={activeContent === 'viewMode'} />
               </RadioGroup>
               <div className='form-options'>
-                <button onClick={this.handleADtest} disabled={!statusEnable.ad_ldap}>{t('network-inventory.txt-testQuery')}</button>
+                <Button variant='contained' color='primary' onClick={this.handleADtest} disabled={!statusEnable.ad_ldap}>{t('network-inventory.txt-testQuery')}</Button>
                 <FormControlLabel
                   className='toggle-btn'
                   control={
@@ -702,7 +720,7 @@ class AutoSettings extends Component {
                   name='ip'
                   label='IP'
                   variant='outlined'
-                  fullWidth={true}
+                  fullWidth
                   size='small'
                   error={!formValidation.ip.valid}
                   helperText={formValidation.ip.valid ? '' : t('network-topology.txt-ipValidationFail')}
@@ -717,8 +735,11 @@ class AutoSettings extends Component {
                   type='number'
                   label='Port'
                   variant='outlined'
-                  fullWidth={true}
+                  fullWidth
                   size='small'
+                  error={!formValidation.port.valid}
+                  helperText={formValidation.port.valid ? '' : t('network-topology.txt-portValidationFail')}
+                  InputProps={{ inputProps: { min: 1, max: 65535 } }}
                   value={adData.port}
                   onChange={this.handleADchange}
                   disabled={activeContent === 'viewMode'} />
@@ -729,7 +750,7 @@ class AutoSettings extends Component {
                   name='domain'
                   label={t('txt-domain')}
                   variant='outlined'
-                  fullWidth={true}
+                  fullWidth
                   size='small'
                   value={adData.domain}
                   onChange={this.handleADchange}
@@ -741,7 +762,7 @@ class AutoSettings extends Component {
                   name='username'
                   label={t('network-inventory.auto-settings.txt-username')}
                   variant='outlined'
-                  fullWidth={true}
+                  fullWidth
                   size='small'
                   value={adData.username}
                   onChange={this.handleADchange}
@@ -754,7 +775,7 @@ class AutoSettings extends Component {
                   type='password'
                   label={t('network-inventory.auto-settings.txt-password')}
                   variant='outlined'
-                  fullWidth={true}
+                  fullWidth
                   size='small'
                   value={adData.password}
                   onChange={this.handleADchange}
@@ -765,7 +786,7 @@ class AutoSettings extends Component {
             <div className='form-group normal'>
               <header>{t('network-inventory.auto-settings.txt-netflow')}</header>
               <div className='form-options'>
-                <button onClick={this.handleNetflowtest} disabled={!statusEnable.netflow}>{t('network-inventory.txt-testQuery')}</button>
+                <Button variant='contained' color='primary' onClick={this.handleNetflowtest} disabled={!statusEnable.netflow}>{t('network-inventory.txt-testQuery')}</Button>
                 <FormControlLabel
                   className='toggle-btn'
                   control={
@@ -785,11 +806,11 @@ class AutoSettings extends Component {
                   label={t('txt-updateTime')}
                   select
                   variant='outlined'
-                  fullWidth={true}
+                  fullWidth
                   size='small'
                   value={netflowData.time}
                   disabled={activeContent === 'viewMode'}>
-                  <MenuItem value={'24'}>{t('events.connections.txt-last24h')}</MenuItem>
+                  <MenuItem value={'24'}>{t('time-interval.txt-last24h')}</MenuItem>
                 </TextField>
               </div>
             </div>
@@ -837,8 +858,8 @@ class AutoSettings extends Component {
 
           {activeContent === 'editMode' &&
             <footer>
-              <button className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</button>
-              <button onClick={this.toggleContent.bind(this, 'save')}>{t('txt-save')}</button>
+              <Button variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</Button>
+              <Button variant='contained' color='primary' onClick={this.toggleContent.bind(this, 'save')}>{t('txt-save')}</Button>
             </footer>
           }
         </div>

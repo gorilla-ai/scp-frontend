@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
+import moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
@@ -46,7 +46,7 @@ class DashboardOverview extends Component {
         to: ''
       },
       past24hTime: helper.getFormattedDate(helper.getSubstractDate(24, 'hours')),
-      updatedTime: helper.getFormattedDate(Moment()),
+      updatedTime: helper.getFormattedDate(moment()),
       alertMapData: [],
       worldMapData: [],
       countryData: [],
@@ -149,13 +149,13 @@ class DashboardOverview extends Component {
     const {baseUrl} = this.context;
     const datetime = {
       from: helper.getSubstractDate(24, 'hours'),
-      to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+      to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
       //from: '2020-08-11T01:00:00Z',
       //to: '2020-08-13T01:10:00Z'
     };
     const dateTime = {
-      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+      from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
 
     /* Get Country top ranks data */
@@ -170,7 +170,7 @@ class DashboardOverview extends Component {
     };
 
     this.ah.one({
-      url: `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`,
+      url: `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0&skipHistogram=true`,
       data: JSON.stringify(requestData),
       type: 'POST',
       contentType: 'application/json'
@@ -245,7 +245,7 @@ class DashboardOverview extends Component {
         to: dateTime.to
       },
       past24hTime: helper.getFormattedDate(helper.getSubstractDate(24, 'hours')),
-      updatedTime: helper.getFormattedDate(Moment())
+      updatedTime: helper.getFormattedDate(moment())
     });
   }
   /**
@@ -429,7 +429,7 @@ class DashboardOverview extends Component {
           <div className='count' style={{backgroundColor: ALERT_LEVEL_COLORS[val._severity_]}}>{helper.numberWithCommas(val.srcDestCityCnt)}</div>
           <div className='data'>
             <div className='info'>{val.Info}</div>
-            <div className='datetime'>{Moment(val._eventDttm_).local().format('HH:mm:ss')}</div>
+            <div className='datetime'>{moment(val._eventDttm_).local().format('HH:mm:ss')}</div>
             <div className='country'>{val.srcCountry} <i className='fg fg-next' style={{color: ALERT_LEVEL_COLORS[val._severity_]}}></i> {val.destCountry}</div>
           </div>
         </li>
@@ -467,7 +467,7 @@ class DashboardOverview extends Component {
   getCountryAttackData = (countryCode) => {
     const {baseUrl} = this.context;
     const {dateTime} = this.state;
-    const url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`;
+    const url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0&skipHistogram=true`;
 
     if (!countryCode || countryCode.length > 2) { //If clicking on spots, don't show dialog
       return;
@@ -625,7 +625,7 @@ class DashboardOverview extends Component {
             <label>Data count: </label>
             <DropDownList
               id='mapLimitList'
-              required={true}
+              required
               list={[
                 {value: 10, text: 10},
                 {value: 20, text: 20},
@@ -638,7 +638,7 @@ class DashboardOverview extends Component {
             <label>Interval: </label>
             <DropDownList
               id='mapIntervalList'
-              required={true}
+              required
               list={[
                 {value: 1, text: '1s'},
                 {value: 5, text: '5s'},
@@ -650,7 +650,7 @@ class DashboardOverview extends Component {
           {/*{countDown && countDown >= 0 &&
             <span className='count-down'>{countDown}s</span>
           }*/}
-          <span className='date-time'>{displayTime}</span>
+          <span className='date-time-display'>{displayTime}</span>
         </div>
 
         <div className='main-overview'>

@@ -2,16 +2,21 @@ import React, { Component } from 'react'
 import { withRouter } from 'react-router'
 import { NavLink, Link, Route } from 'react-router-dom'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
+import moment from 'moment'
 import cx from 'classnames'
 
+import Autocomplete from '@material-ui/lab/Autocomplete';
+import Button from '@material-ui/core/Button';
+import Checkbox from '@material-ui/core/Checkbox';
+import CheckBoxIcon from '@material-ui/icons/CheckBox';
+import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import Switch from '@material-ui/core/Switch';
 import TextField from '@material-ui/core/TextField';
 
-import Combobox from 'react-ui/build/src/components/combobox'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import {BaseDataContext} from '../../common/context';
 import Config from '../../common/configuration'
@@ -43,7 +48,7 @@ class EsManage extends Component {
       importIndexOpen: false,
       datetime: {
         from: helper.getSubstractDate(1, 'month'),
-        to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+        to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
       },
       importList: [],
       statusList: [],
@@ -72,29 +77,27 @@ class EsManage extends Component {
     this.getEsData('search');
   }
   /**
-   * Set status data
+   * Show the export confirm modal dialog
    * @method
-   * @param {string} date - selected date
-   * @param {object} event - event object
+   * @param {object} allValue - ES data
    */
-  handleStatusChange = (date, event) => {
-    const {baseUrl} = this.context;
-    const type = event.target.checked ? 'open' : 'close';
-
-    this.ah.one({
-      url: `${baseUrl}/api/elasticsearch/${type}?date=${date}`,
-      type: 'GET'
-    })
-    .then(data => {
-      if (data) {
-        helper.showPopupMsg(t('txt-requestSent'));
-        this.getEsData();
+  openExportConfirmModal = (allValue) => {
+    PopupDialog.prompt({
+      title: t('txt-export'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-ok'),
+      cancelText: t('txt-cancel'),
+      display: (
+        <div className='content delete'>
+          <span>{t('es-management.txt-exportMsg')}?</span>
+        </div>
+      ),
+      act: (confirmed) => {
+        if (confirmed) {
+          this.handleIndexExport(allValue);
+        }
       }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
+    });
   }
   /**
    * Handle index export
@@ -123,6 +126,60 @@ class EsManage extends Component {
     this.getEsData();
   }
   /**
+   * Show the close index confirm modal dialog
+   * @method
+   * @param {string} date - selected date
+   * @param {object} event - event object
+   */
+  openIndexConfirmModal = (date, event) => {
+    const type = event.target.checked ? 'open' : 'close';
+
+    if (type === 'open') {
+      this.handleStatusChange(date, 'open');
+    } else if (type === 'close') {
+      PopupDialog.prompt({
+        title: t('txt-close'),
+        id: 'modalWindowSmall',
+        confirmText: t('txt-ok'),
+        cancelText: t('txt-cancel'),
+        display: (
+          <div className='content delete'>
+            <span>{t('es-management.txt-turnOffMsg')}?</span>
+          </div>
+        ),
+        act: (confirmed) => {
+          if (confirmed) {
+            this.handleStatusChange(date, 'close');
+          }
+        }
+      });
+    }
+  }
+  /**
+   * Set status data
+   * @method
+   * @param {string} date - selected date
+   * @param {string} type - 'open' or 'close'
+   */
+  handleStatusChange = (date, type) => {
+    const {baseUrl} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/elasticsearch/${type}?date=${date}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('txt-requestSent'));
+        this.getEsData();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Get and set ES table data
    * @method
    * @param {string} fromSearch - option for the 'search'
@@ -133,8 +190,8 @@ class EsManage extends Component {
     const sort = es.sort.desc ? 'desc' : 'asc';
     const page = fromSearch === 'search' ? 0 : es.currentPage;
     const dateTime = {
-      from: Moment(datetime.from).format('YYYY.MM.DD'),
-      to: Moment(datetime.to).format('YYYY.MM.DD')
+      from: moment(datetime.from).format('YYYY.MM.DD'),
+      to: moment(datetime.to).format('YYYY.MM.DD')
     };
     let url = `${baseUrl}/api/elasticsearch/list?page=${page + 1}&pageSize=${es.pageSize}&orders=${es.sort.field} ${sort}&startDate=${dateTime.from}&endDate=${dateTime.to}`;
 
@@ -223,8 +280,14 @@ class EsManage extends Component {
     })
     .then(data => {
       if (data) {
+        const importList = _.map(data.folderList, val => {
+          return {
+            value: val.replace(/\./g, '-')
+          }
+        });
+
         this.setState({
-          importList: data.folderList
+          importList
         });
       }
       return null;
@@ -261,7 +324,7 @@ class EsManage extends Component {
     tempEs[type] = Number(value);
 
     if (type === 'pageSize') {
-      tempEs.currentPage = 1;
+      tempEs.currentPage = 0;
     }
 
     this.setState({
@@ -329,7 +392,7 @@ class EsManage extends Component {
               select
               label={t('txt-status')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={esSearch.status}
               onChange={this.handleEsSearch}>
@@ -339,8 +402,8 @@ class EsManage extends Component {
           </div>
         </div>
         <div className='button-group'>
-          <button className='filter' onClick={this.handleSearchSubmit}>{t('txt-filter')}</button>
-          <button className='clear' onClick={this.clearFilter}>{t('txt-clear')}</button>
+          <Button variant='contained' color='primary' className='filter' onClick={this.handleSearchSubmit}>{t('txt-filter')}</Button>
+          <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}</Button>
         </div>
       </div>
     )
@@ -369,12 +432,13 @@ class EsManage extends Component {
   /**
    * Handle add/remove for the import index box
    * @method
-   * @param {array} data - import index list array
+   * @param {object} event - event object
+   * @param {array.<object>} value - selected input value
    */
-  handleImportIndexChange = (data) => {
+  handleComboBoxChange = (event, value) => {
     this.setState({
-      selectedImportList: data
-    });
+      selectedImportList: value
+    });    
   }
   /**
    * Display import index content
@@ -383,27 +447,38 @@ class EsManage extends Component {
    */
   displayImportIndexContent = () => {
     const {importList, selectedImportList} = this.state;
-    const formattedImportList = _.map(importList, val => {
-      return {
-        value: val,
-        text: val.replace(/\./g, '-')
-      }
-    });
 
     return (
       <div>
         <label>{t('txt-esImportMsg')}</label>
-        <Combobox
-          list={formattedImportList}
-          multiSelect={{
-            enabled: true,
-            toggleAll: true
-          }}
-          search={{
-            enabled: true
-          }}
+        <Autocomplete
+          className='checkboxes-tags groups'
+          multiple
           value={selectedImportList}
-          onChange={this.handleImportIndexChange} />
+          options={importList}
+          getOptionLabel={(option) => option.value}
+          disableCloseOnSelect
+          noOptionsText={t('txt-notFound')}
+          openText={t('txt-on')}
+          closeText={t('txt-off')}
+          clearText={t('txt-clear')}
+          renderOption={(option, { selected }) => (
+            <React.Fragment>
+              <Checkbox
+                color='primary'
+                icon={<CheckBoxOutlineBlankIcon />}
+                checkedIcon={<CheckBoxIcon />}
+                checked={selected} />
+              {option.value}
+            </React.Fragment>
+          )}
+          renderInput={(params) => (
+            <TextField {...params} variant='outlined' />
+          )}
+          getOptionSelected={(option, value) => (
+            option.value === value.value
+          )}
+          onChange={this.handleComboBoxChange} />
       </div>
     )
   }
@@ -447,7 +522,9 @@ class EsManage extends Component {
     }
 
     const requestData = {
-      esData: selectedImportList
+      esData: _.map(selectedImportList, val => {
+        return val.value.replace(/\-/g, '.');
+      })
     };
 
     this.ah.one({
@@ -470,11 +547,15 @@ class EsManage extends Component {
   /**
    * Set new datetime
    * @method
-   * @param {object} datetime - new datetime object
+   * @param {string} type - date type ('from' or 'to')
+   * @param {object} newDatetime - new datetime object
    */
-  handleDateChange = (datetime) => {
+  handleDateChange = (type, newDatetime) => {
+    let tempDatetime = {...this.state.datetime};
+    tempDatetime[type] = newDatetime;
+
     this.setState({
-      datetime
+      datetime: tempDatetime
     });
   }
   render() {
@@ -500,7 +581,7 @@ class EsManage extends Component {
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
+            <Button variant='outlined' color='primary' className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
           </div>
 
           <SearchOptions
@@ -522,7 +603,7 @@ class EsManage extends Component {
               <header className='main-header'>{t('txt-esManage')}</header>
 
               <div className='content-header-btns'>
-                <button className='standard btn' onClick={this.toggleImportIndex}>{t('txt-importEsIndex')}</button>
+                <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleImportIndex}>{t('txt-importEsIndex')}</Button>
               </div>
 
               {es.dataContent.length > 0 &&

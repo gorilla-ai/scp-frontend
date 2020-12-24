@@ -87,9 +87,11 @@ html[data-theme='dark'] {
 .leaflet-container {
   background: #fff;
 }
-.react-multi-email {
+.react-multi-email,
+.react-multi-email.focused {
   display: flex;
   flex-wrap: wrap;
+  color: var(--primaryTextColor);
   background-color: var(--formBackground);
   input {
     margin-left: 2px;
@@ -138,7 +140,7 @@ html[data-theme='dark'] {
     &.key {
       float: left;
       font-weight: bold;
-      width: 18%;
+      width: 19%;
       display: inline-block;
     }
     &.value {
@@ -168,6 +170,27 @@ html[data-theme='dark'] {
   }
 }
 .modal-dialog {
+  footer {
+    .dropdown-margin {
+      float: left;
+      margin-right: 15px;
+      margin-left: 30px;
+      label {
+        color: var(--primaryTextColor);
+      }
+    }
+    .page-size {
+      color: var(--primaryTextColor);
+      height: 35px;
+      border-radius: 4px;
+      border: 1px solid var(--formInputBorderColor);
+      background-color: var(--formBackground);
+    }
+    .total-count {
+      float: left;
+      margin-top: 7px;
+    }
+  }
   .main-table {
     width: 100%;
     border-radius: 5px;
@@ -328,10 +351,7 @@ html[data-theme='dark'] {
     label {
       display: block;
       color: var(--primaryContentHeader);
-      margin-bottom: 3px;
-      span {
-        //color: #da364a;
-      }
+      margin-bottom: 5px;
     }
     input,
     select,
@@ -343,9 +363,6 @@ html[data-theme='dark'] {
     }
     textarea {
       border: 1px solid var(--primaryBorder);
-    }
-    .c-combobox {
-      width: 100%;
     }
     &.delete {
       span {
@@ -419,6 +436,15 @@ html[data-theme='dark'] {
 /* events/netflow/index */
 #flowModalDialog-content {
   width: 1280px;
+  input,
+  textarea {
+    border: none;
+    background-color: var(--primaryContentBackground);
+  }
+  .MuiInputBase-multiline {
+    padding: 0 !important;
+    margin-top: 5px;
+  }
 }
 /* events/netflow/index */
 #pcapModalDialog-dialog {
@@ -440,6 +466,9 @@ html[data-theme='dark'] {
 /* events/netflow/index */
 #tagModalDialog-content {
   width: 400px;
+  .tag-memo {
+    margin-bottom: 10px;
+  }
   .github-picker {
     float: left;
     margin-right: 10px;
@@ -513,6 +542,24 @@ html[data-theme='dark'] {
     span[title] {
       cursor: default;
     }
+    &.vans {
+      td:first-child {
+        width: 160px;
+        color: var(--primaryContentHeader);
+        font-weight: bold;
+      }
+      .desc {
+        word-break: normal;
+        margin-bottom: 10px;
+      }
+      ul {
+        width: 100% !important;
+        padding: 0 !important;
+        a {
+          text-decoration: underline;
+        }
+      }
+    }
   }
   .scan-info {
     overflow: hidden;
@@ -521,7 +568,14 @@ html[data-theme='dark'] {
     border: 1px solid var(--primaryBorder);
     border-radius: 5px;
     background-color: var(--contentBackground);
+    .hmd-btns-group {
+      button {
+        padding-left: 21px !important;
+        padding-right: 21px !important;
+      }
+    }
     .info-content {
+      min-height: 54vh;
       overflow: hidden;
       clear: both;
       .info {
@@ -550,7 +604,7 @@ html[data-theme='dark'] {
         .gcb_Type,
         .gcb_CompareResult {
           text-align: center;
-          min-width: 120px;
+          min-width: 140px;
         }
         .scan-file_Filesize,
         .scan-file_IsPE,
@@ -563,6 +617,16 @@ html[data-theme='dark'] {
         .empty-msg {
           margin-top: 10px;
         }
+        &.event-tracing {
+          max-height: 485px;
+          margin-top: 20px;
+        }
+        ._EventCode {
+          width: 100px;
+        }
+        ._Message {
+          width: 78%;
+        }
       }
       .dashboard-wrapper {
         width: 100%;
@@ -572,6 +636,8 @@ html[data-theme='dark'] {
       .spider-chart {
         float: left;
         width: 65%;
+        border: 1px solid var(--primaryBorder);
+        background-color: var(--primaryContentBackground);
       }
       .main-table.score {
         float: right;
@@ -593,6 +659,7 @@ html[data-theme='dark'] {
         .list {
           overflow-y: auto;
           .group {
+            word-break: break-all;
             border-top: 1px solid var(--primaryBorder);
             .path {
               display: flex;
@@ -617,6 +684,10 @@ html[data-theme='dark'] {
                 width: 80%;
                 text-align: left;
                 margin-top: 1px;
+                .main {
+                  color: var(--primaryContentHeader);
+                  font-weight: bold;
+                }
                 .fg-add {
                   float: right;
                   margin-right: 0;
@@ -624,6 +695,11 @@ html[data-theme='dark'] {
               }
               .scan-type {
                 color: #b1b1b1;
+              }
+              .product-count {
+                padding: 0 5px;
+                border-radius: 5px;
+                background-color: #b1b1b1;
               }
             }
             .rule {
@@ -801,6 +877,9 @@ html[data-theme='dark'] {
 #hostModalDialog-content {
   width: 1280px;
   max-height: 725px;
+  .MuiToggleButton-label {
+    font-size: 14px;
+  }
   .main-table {
     td {
       &.severity-level,
@@ -979,9 +1058,11 @@ html[data-theme='dark'] {
       .alert-rule,
       .srcIp-content,
       .destIp-content {
-        margin-top: 5px;
         height: 395px;
+        min-height: auto;
+        margin-top: 5px;
         overflow-y: auto;
+        background: none;
         .fg-info {
           cursor: pointer;
         }
@@ -1008,6 +1089,9 @@ html[data-theme='dark'] {
             }
           }
         }
+      }
+      .privateIp-info .private {
+        width: 90%;
       }
     }
     .network-behavior {
@@ -1076,6 +1160,8 @@ html[data-theme='dark'] {
       .scan-info,
       & > .network-behavior {
         height: 525px;
+        min-height: auto;
+        background: none;
       }
     }
   }
@@ -1235,7 +1321,7 @@ html[data-theme='dark'] {
 /* configuration/user/accounts/account-edit */
 #accountEditDialog {
   #accountEditDialog-content {
-    width: 506px;
+    width: 464px;
   }
   .account-form {
     display: flex;
@@ -1381,10 +1467,13 @@ html[data-theme='dark'] {
   .filter-group {
     min-width: 400px;
     overflow-y: hidden;
-    padding: 10px 6px;
+    padding: 10px 6px 5px 6px;
     margin-bottom: 15px;
     border-radius: 5px;
     background-color: var(--dialogFormGroup);
+  }
+  .checkbox-ui {
+    margin-left: 5px;
   }
   .main-filter-group,
   .main-mark-group {
@@ -1405,16 +1494,20 @@ html[data-theme='dark'] {
       width: 25%;
       margin-right: 3px;
     }
-    .filter-inputbox {
-      width: 74%;
-      height: 35px;
+    .filter-inputbox,
+    .mark-inputbox {
+      min-height: 40px !important;
+      padding: 8px 10px;
       color: var(--primaryTextColor);
       border: 1px solid var(--formInputBorderColor);
-      background-color: var(--formBackground);
+      background-color: var(--dialogFormGroup);
+      border-radius: 4px;
+    }
+    .filter-inputbox {
+      width: 74%;
     }
     .mark-inputbox {
       width: 200px;
-      height: 35px;
     }
     .fg-close,
     .fg-add,
@@ -1431,20 +1524,35 @@ html[data-theme='dark'] {
       width: 196px;
     }
   }
-  .severity-level {
+  .severity-section {
     padding: 10px;
     padding-top: 15px;
     margin-bottom: 15px;
     border-radius: 5px;
     background-color: var(--dialogFormGroup);
     clear: both;
-    .fg-recode {
-      float: left;
-      margin-right: 5px;
-      margin-top: 5px;
-    }
-    .severity-dropdown {
-      width: 92%;
+    .top-group {
+      overflow: hidden;
+      padding-top: 6px;
+      margin-bottom: 15px;
+      .severity-level {
+        float: left;
+        width: 75%;
+        margin-right: 10px;
+        .fg-recode {
+          float: left;
+          width: 8%;
+          margin-right: 5px;
+          margin-top: 5px;
+        }
+        .severity-dropdown {
+          float: left;
+          width: 90%;
+        }
+      }
+      .MuiFormControlLabel-root {
+        margin-top: 5px;
+      }
     }
     .period {
       color: var(--primaryContentHeader);
@@ -1457,7 +1565,7 @@ html[data-theme='dark'] {
         margin-left: 5px;
       }
       .number {
-        width: 65px;
+        width: 80px;
       }
     }
     .email-disabled {
@@ -1484,6 +1592,11 @@ html[data-theme='dark'] {
       background-color: var(--primaryContentHeader);
     }
   }
+  .react-multi-email input {
+    color: var(--primaryTextColor);
+    margin-left: 2px;
+    background-color: var(--formBackground);
+  }
   .error-msg {
     text-align: center;
     margin: 20px 0;
@@ -1503,7 +1616,7 @@ html[data-theme='dark'] {
     display: flex;
     flex-wrap: wrap;
     flex-direction: column;
-    height: 270px;
+    height: 275px;
     .checkbox-ui {
       padding: 0px 5px 5px 15px;
     }
@@ -1541,6 +1654,12 @@ html[data-theme='dark'] {
   text-align: center;
 }
 #uploadThreatsDialog-content,
+#importThreatsDialog-content {
+  input {
+    height: 35px;
+  }
+}
+#uploadThreatsDialog-content,
 #addThreatsDialog-content {
   width: 350px;
 }
@@ -1566,7 +1685,7 @@ html[data-theme='dark'] {
       }
     }
     .button-group {
-      margin-top: 15px;
+      margin-top: 13px;
       button {
         min-width: auto;
       }
@@ -1574,7 +1693,7 @@ html[data-theme='dark'] {
   }
   .table-content {
     .table {
-      height: 530px;
+      height: 520px;
       overflow-y: auto;
       margin-bottom: 30px;
     }
@@ -1595,6 +1714,9 @@ html[data-theme='dark'] {
   }
 }
 #batchUploadDialog-content {
+  input {
+    height: 35px;
+  }
   #csvFileInput {
     margin-bottom: 10px;
   }
@@ -1746,6 +1868,13 @@ html[data-theme='dark'] {
   }
 }
 #importEsIndexDialog-content {
-  width: 310px;
+  width: 450px;
   padding: 15px;
+}
+#changePasswordDialog-content,
+#resetPasswordDialog-content {
+  min-width: 300px;
+  .form-input {
+    margin: 15px 5px;
+  }
 }

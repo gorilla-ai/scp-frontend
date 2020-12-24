@@ -28,6 +28,7 @@ var cfg = {
     },
     resolve: {
         alias: {
+          'react-ui': path.resolve(__dirname, 'node_modules/react-ui')
           //chewbacca: path.resolve(__dirname, '../chewbacca-ui/src') // Local
           //chewbacca: path.resolve(__dirname, 'node_modules/chewbacca-ui/build/src') // Prod
         },

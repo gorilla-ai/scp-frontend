@@ -47,7 +47,7 @@ import UserPrivileges from './components/configuration/user/privileges/index'
 
 import {BaseDataContext, baseData} from './components/common/context'
 import {createInstance} from 'react-ui/build/src/utils/ajax-helper'
-import {setupConfigService} from 'widget-builder'
+import {setupConfigService, setWidgetLocales} from 'widget-builder'
 
 import 'font-gorilla/css/font-gorilla.css'
 import 'purecss/build/pure-min.css'
@@ -293,8 +293,18 @@ const createTheme = (themeName) => {
 const App = () => {
   const [themeName, setThemeName] = React.useState(accountTheme);
 
-  return (
-    !session.accountId ? 
+  if (session.accountId) {
+    return (
+      <ThemeProvider theme={createTheme(themeName)}>
+        <HeaderComp
+          themeName={themeName}
+          setThemeName={setThemeName} />
+        <Main />
+        <footer className='footer'>{footerText}</footer>
+      </ThemeProvider>
+    )
+  } else {
+    return (
       <div>
         <Login
           baseUrl={cfg.apiPrefix}
@@ -303,21 +313,12 @@ const App = () => {
           productName={productName} />
         <footer className='footer login'>{footerText}</footer>
       </div>
-    :
-      <div>
-        <ThemeProvider theme={createTheme(themeName)}>
-          <HeaderComp
-            themeName={themeName}
-            setThemeName={setThemeName} />
-          <Main />
-          <footer className='footer'>{footerText}</footer>
-        </ThemeProvider>
-      </div>
-  )
+    )
+  }
 };
 
 function getTheme() {
-  const url = `${cfg.apiPrefix}/api/account/theme?accountId=${session.accountId}`;
+  const url = `${cfg.apiPrefix}${cfg.contextRoot}/api/account/theme?accountId=${session.accountId}`;
 
   Promise.resolve($.get(url))
     .then(data => {
@@ -368,6 +369,7 @@ function start() {
 
   // set uif
   setupConfigService(baseUrl)
+  setWidgetLocales(lng)
 
 
   Promise.resolve($.get(url))

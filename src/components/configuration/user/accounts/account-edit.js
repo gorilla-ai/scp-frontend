@@ -34,7 +34,6 @@ const INITIAL_STATE = {
   accountData: {
       account: '',
       name: '',
-      password: '',
       email: '',
       unit: '',
       title: '',
@@ -49,9 +48,6 @@ const INITIAL_STATE = {
       valid: true
     },
     name: {
-      valid: true
-    },
-    password: {
       valid: true
     },
     email: {
@@ -91,21 +87,13 @@ class AccountEdit extends Component {
    * Get and set account data
    * @method
    * @param {string} id - selected account ID
-   * @param {string} options - options for where page is from ('fromHeader' or 'fromAccount')
    */
-  loadAccount = (id, options) => {
+  loadAccount = (id) => {
     const {baseUrl} = this.context;
-    let url = '';
-
-    if (options === 'fromHeader') {
-      url = `${baseUrl}/api/account?accountid=${id}`;
-    } else if (options === 'fromAccount') {
-      url = `${baseUrl}/api/account/v1?accountid=${id}`;
-    }
 
     ah.all([
       {
-        url,
+        url: `${baseUrl}/api/account/v1?accountid=${id}`,
         type:'GET'
       },
       {
@@ -125,10 +113,6 @@ class AccountEdit extends Component {
           phone: data[0].rt.phone,
           selected: _.map(data[1].rt, 'privilegeid')
         };
-
-        if (data[0].rt.password) {
-          accountData.password = data[0].rt.password;
-        }
 
         this.setState({
           accountData,
@@ -172,7 +156,7 @@ class AccountEdit extends Component {
    * Open account add/edit modal dialog
    * @method
    * @param {string} id - selected account ID
-   * @param {string} options - option for 'fromHeader'
+   * @param {string} options - option for 'fromHeader' or 'fromAccount'
    */
   openAccount = (id, options) => {
     let showPrivileges = true;
@@ -190,7 +174,7 @@ class AccountEdit extends Component {
       this.loadPrivileges();
       
       if (id) {
-       this.loadAccount(id, options);
+       this.loadAccount(id);
       }
     });
   }
@@ -201,7 +185,7 @@ class AccountEdit extends Component {
    * @returns boolean true/false
    */
   checkSelectedItem = (val) => {
-    return _.includes(this.state.selectedPrivileges, val) ? true : false;
+    return _.includes(this.state.selectedPrivileges, val);
   }
   /**
    * Handle checkbox check/uncheck
@@ -272,9 +256,9 @@ class AccountEdit extends Component {
             name='account'
             label={t('l-account')}
             variant='outlined'
-            fullWidth={true}
+            fullWidth
             size='small'
-            required={true}
+            required
             error={!formValidation.account.valid}
             helperText={formValidation.account.valid ? '' : c('txt-required')}
             value={accountData.account}
@@ -286,40 +270,24 @@ class AccountEdit extends Component {
             name='name'
             label={t('l-name')}
             variant='outlined'
-            fullWidth={true}
+            fullWidth
             size='small'
-            required={true}
+            required
             error={!formValidation.name.valid}
             helperText={formValidation.name.valid ? '' : c('txt-required')}
             value={accountData.name}
             onChange={this.handleDataChange} />
         </div>
-        {!showPrivileges &&
-          <div className='group'>
-            <TextField
-              name='password'
-              type='password'
-              label={t('l-password')}
-              variant='outlined'
-              fullWidth={true}
-              size='small'
-              required={true}
-              error={!formValidation.password.valid}
-              helperText={formValidation.password.valid ? '' : c('txt-required')}
-              value={accountData.password}
-              onChange={this.handleDataChange} />
-          </div>
-        }
         <div className='group'>
           <TextField
             name='email'
             label={t('l-email')}
             variant='outlined'
-            fullWidth={true}
+            fullWidth
             size='small'
             error={!formValidation.email.valid}
             helperText={formValidation.email.msg}
-            required={true}
+            required
             value={accountData.email}
             onChange={this.handleDataChange} />
         </div>
@@ -328,9 +296,9 @@ class AccountEdit extends Component {
             name='unit'
             label={t('l-unit')}
             variant='outlined'
-            fullWidth={true}
+            fullWidth
             size='small'
-            required={true}
+            required
             error={!formValidation.unit.valid}
             helperText={formValidation.unit.valid ? '' : c('txt-required')}
             value={accountData.unit}
@@ -341,9 +309,9 @@ class AccountEdit extends Component {
             name='title'
             label={t('l-title')}
             variant='outlined'
-            fullWidth={true}
+            fullWidth
             size='small'
-            required={true}
+            required
             error={!formValidation.title.valid}
             helperText={formValidation.title.valid ? '' : c('txt-required')}
             value={accountData.title}
@@ -354,9 +322,9 @@ class AccountEdit extends Component {
             name='phone'
             label={t('l-phone')}
             variant='outlined'
-            fullWidth={true}
+            fullWidth
             size='small'
-            required={true}
+            required
             error={!formValidation.phone.valid}
             helperText={formValidation.phone.valid ? '' : c('txt-required')}
             value={accountData.phone}
@@ -386,7 +354,7 @@ class AccountEdit extends Component {
     const {baseUrl} = this.context;
     const {id, accountData, showPrivileges, selectedPrivileges, formValidation} = this.state;
     const emailPattern = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    const url = showPrivileges ? `${baseUrl}/api/account/v1` : `${baseUrl}/api/account`;
+    const url = `${baseUrl}/api/account/v1`;
     let tempFormValidation = {...formValidation};
     let validate = true;
 
@@ -402,15 +370,6 @@ class AccountEdit extends Component {
     } else {
       tempFormValidation.name.valid = false;
       validate = false;
-    }
-
-    if (!showPrivileges) {
-      if (accountData.password) {
-        tempFormValidation.password.valid = true;
-      } else {
-        tempFormValidation.password.valid = false;
-        validate = false;
-      }
     }
 
     if (accountData.email) {

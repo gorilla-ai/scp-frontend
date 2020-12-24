@@ -166,7 +166,7 @@ class ManageGroup extends Component {
         name='groupName'
         label={t('txt-name')}
         variant='outlined'
-        fullWidth={true}
+        fullWidth
         size='small'
         defaultValue={t('txt-plsEnterName')}
         value={this.state.groupName}
@@ -256,7 +256,7 @@ class ManageGroup extends Component {
           this.deleteGroup(group)
         }
       }
-    })
+    });
   }
   /**
    * Handle delete group confirm

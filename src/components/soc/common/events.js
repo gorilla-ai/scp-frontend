@@ -8,6 +8,12 @@ import Input from 'react-ui/build/src/components/input'
 import MultiInput from 'react-ui/build/src/components/multi-input'
 
 import EventConnections from './event-connections'
+import MenuItem from '@material-ui/core/MenuItem';
+import TextField from '@material-ui/core/TextField';
+import Button from '@material-ui/core/Button';
+import {KeyboardDateTimePicker, MuiPickersUtilsProvider} from "@material-ui/pickers";
+import MomentUtils from "@date-io/moment";
+import moment from "moment";
 
 let t = null
 let et = null
@@ -27,59 +33,113 @@ class Events extends Component {
 	}
 	handleDataChange = (field, value) => {
         let {onChange, value: curValue} = this.props
-        onChange({...curValue, [field]: value})
+
+		if (field === 'from'){
+			let tmpTime =  curValue.time
+			tmpTime.from = value
+			onChange({...curValue, [field]: tmpTime})
+		}else if (field === 'to'){
+			let tmpTime =  curValue.time
+			tmpTime.to = value
+			onChange({...curValue, [field]: tmpTime})
+		}else{
+			onChange({...curValue, [field]: value})
+		}
     }
+
+	handleDataChangeMui = (event) => {
+		let {onChange, value: curValue} = this.props
+		onChange({...curValue, [event.target.name]: event.target.value})
+	}
 	render() {
 		let {activeContent, locale, deviceListOptions, value: {description, deviceId, time, frequency, eventConnectionList}} = this.props
+		let dateLocale = locale;
 
+		if (locale === 'zh') {
+			dateLocale += '-tw';
+		}
+
+		moment.locale(dateLocale);
 		return <div className='event-content'>
 			<div className='line'>
 				<div className='group'>
-	                <label htmlFor='rule'>{f('incidentFields.rule')}</label>
-	                <Input
-	                    id='rule'
-	                    onChange={this.handleDataChange.bind(this, 'description')}
+	                <label htmlFor='description'>{f('incidentFields.rule')}</label>
+	                <TextField style={{paddingRight: '2em'}}
+	                    id='description'
+	                    name='description'
+	                    variant='outlined'
+	                    fullWidth={true}
+	                    size='small'
+	                    onChange={this.handleDataChangeMui}
 	                    value={description}
-	                    required={true}
-	                    validate={{t: et}}
-	                    readOnly={activeContent === 'viewIncident'}/>
+	                    required
+	                    error={!(description || '').trim()}
+	                    helperText={it('txt-required')}
+	                    disabled={activeContent === 'viewIncident'}/>
 	            </div>
 	            <div className='group'>
 	                <label htmlFor='deviceId'>{f('incidentFields.deviceId')}</label>
-	                <DropDownList
+	                <TextField style={{paddingRight: '2em'}}
 	                    id='deviceId'
-	                    onChange={this.handleDataChange.bind(this, 'deviceId')}
-	                    list={deviceListOptions}
+	                    name='deviceId'
+	                    variant='outlined'
+	                    fullWidth={true}
+	                    size='small'
+	                    select
+	                    onChange={this.handleDataChangeMui}
 	                    value={deviceId}
-	                    required={true}
-	                    validate={{t: et}}
-	                    readOnly={activeContent === 'viewIncident'}/>
+	                    required
+	                    helperText={it('txt-required')}
+	                    error={!(deviceId || '').trim()}
+	                    disabled={activeContent === 'viewIncident'}>
+		                {
+		                	_.map(deviceListOptions,el=>{
+		                		return <MenuItem value={el.value}>{el.text}</MenuItem>
+			                })
+		                }
+	                </TextField>
 	            </div>
 	        </div>
 	        
 	        <div className='line'>
 	        	<div className='group'>
 		        	<label htmlFor='datetime'>{f('incidentFields.dateRange')}</label>
-		        	<DateRange
-				        id='datetime'
-				        className='daterange'
-				        onChange={this.handleDataChange.bind(this, 'time')}
-				        enableTime={true}
-				        required={true}
-				        validate={{t: et}}
-				        value={time}
-				        locale={locale}
-				        readOnly={activeContent === 'viewIncident'} />
+			        <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+				        <KeyboardDateTimePicker
+					        className='date-time-picker'
+					        inputVariant='outlined'
+					        variant='inline'
+					        format='YYYY-MM-DD HH:mm'
+					        ampm={false}
+					        value={time.from}
+					        readOnly={activeContent === 'viewIncident' }
+					        onChange={this.handleDataChange.bind(this, 'from')} />
+				        <div className='between'>~</div>
+				        <KeyboardDateTimePicker
+					        className='date-time-picker'
+					        inputVariant='outlined'
+					        variant='inline'
+					        format='YYYY-MM-DD HH:mm'
+					        ampm={false}
+					        value={time.to}
+					        readOnly={activeContent === 'viewIncident' }
+					        onChange={this.handleDataChange.bind(this, 'to')} />
+			        </MuiPickersUtilsProvider>
 		        </div>
 		        <div className='group'>
 	                <label htmlFor='frequency'>{it('txt-frequency')}</label>
-	                <Input
+	                <TextField
 	                    id='frequency'
-	                    onChange={this.handleDataChange.bind(this, 'frequency')}
+	                    name='frequency'
+	                    variant='outlined'
+	                    fullWidth={false}
+	                    size='small'
+	                    onChange={this.handleDataChangeMui}
 	                    value={frequency}
-	                    required={true}
-	                    validate={{t: et}}
-	                    readOnly={activeContent === 'viewIncident'}/>
+	                    required
+	                    error={!(frequency || 0)}
+	                    helperText={it('txt-required')}
+	                    disabled={activeContent === 'viewIncident'}/>
 	            </div>
 	        </div>
 

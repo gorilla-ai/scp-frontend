@@ -1,21 +1,20 @@
 import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 
-import {BaseDataContext} from './context';
+import {BaseDataContext} from '../common/context';
+import helper from '../common/helper'
+import HMDscanInfo from '../common/hmd-scan-info'
+import IrSelections from '../common/ir-selections'
+import NetworkBehavior from '../common/network-behavior'
+import PrivateDetails from '../common/private-details'
+import YaraRule from '../common/yara-rule'
 
-import helper from './helper'
-import HMDscanInfo from './hmd-scan-info'
-import IrSelections from './ir-selections'
-import NetworkBehavior from './network-behavior'
-import PrivateDetails from './private-details'
-import YaraRule from './yara-rule'
-
+import {downloadLink} from 'react-ui/build/src/utils/download'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const SEVERITY_TYPE = ['Emergency', 'Alert', 'Critical', 'Warning', 'Notice'];
@@ -43,7 +42,7 @@ class HostAnalysis extends Component {
 
     this.state = {
       showContent: {
-        info: true,
+        info: false,
         safety: false,
         network: false
       },
@@ -63,15 +62,18 @@ class HostAnalysis extends Component {
    * @method
    */
   hmdTypeChecking = () => {
-    if (this.props.openHmdType && typeof this.props.openHmdType === 'string') {
-      this.setState({
-        showContent: {
-          info: false,
-          safety: true,
-          network: false
-        }
-      });
+    const {openHmdType} = this.props;
+    let tempShowshowContent = {...this.state.showContent};
+
+    if (openHmdType) {
+      tempShowshowContent.safety = true;
+    } else {
+      tempShowshowContent.info = true;
     }
+
+    this.setState({
+      showContent: tempShowshowContent
+    });
   }
   /**
    * Set corresponding content based on content type
@@ -88,7 +90,7 @@ class HostAnalysis extends Component {
     }, () => {
       let tempShowContent = {...this.state.showContent};
 
-      switch(type) {
+      switch (type) {
         case 'info':
           tempShowContent.info = true;
           break;
@@ -113,54 +115,51 @@ class HostAnalysis extends Component {
   displayInfoContent = () => {
     const {baseUrl, contextRoot} = this.context;
     const {hostData} = this.props;
-    const topoInfo = {
-      ...hostData.areaObj,
-      ...hostData.ownerObj,
-      ...hostData.seatObj
+    const picPath = (hostData.ownerObj && hostData.ownerObj.base64) ? hostData.ownerObj.base64 : contextRoot + '/images/empty_profile.png';
+    let alertInfo = {
+      ownerMap: {},
+      ownerBaseLayers: {},
+      ownerSeat: {}
     };
-    const picPath = topoInfo.ownerPic ? topoInfo.ownerPic : contextRoot + '/images/empty_profile.png';
-    let alertInfo = {...hostData};
-    let ownerMap = {};
-    alertInfo.ownerBaseLayers = {};
-    alertInfo.ownerSeat = {};  
 
-    if (topoInfo.picPath) {
-      ownerMap = {
-        label: topoInfo.areaName,
+    if (hostData.areaObj && hostData.areaObj.picPath) {
+      const ownerMap = {
+        label: hostData.areaObj.areaName,
         images: [
           {
-            id: topoInfo.areaUUID,
-            url: `${baseUrl}${contextRoot}/api/area/_image?path=${topoInfo.picPath}`,
-            size: {width: topoInfo.picWidth, height: topoInfo.picHeight}
+            id: hostData.areaUUID,
+            url: `${baseUrl}${contextRoot}/api/area/_image?path=${hostData.areaObj.picPath}`,
+            size: {width: hostData.areaObj.picWidth, height: hostData.areaObj.picHeight}
           }
         ]
       };
-    }
 
-    alertInfo.ownerMap = ownerMap;
-    alertInfo.ownerBaseLayers[topoInfo.areaUUID] = ownerMap;
+      alertInfo.ownerMap = ownerMap;
+      alertInfo.ownerBaseLayers[hostData.areaUUID] = ownerMap;
 
-    if (topoInfo.seatUUID) {
-      alertInfo.ownerSeat[topoInfo.areaUUID] = {
-        data: [{
-          id: topoInfo.seatUUID,
-          type: 'spot',
-          xy: [topoInfo.coordX, topoInfo.coordY],
-          label: topoInfo.seatName,
-          data: {
-            name: topoInfo.seatName,
-            tag: 'red'
-          }
-        }]
-      };
+      if (hostData.seatUUID && hostData.seatObj) {
+        alertInfo.ownerSeat[hostData.areaUUID] = {
+          data: [{
+            id: hostData.seatUUID,
+            type: 'spot',
+            xy: [hostData.seatObj.coordX, hostData.seatObj.coordY],
+            label: hostData.seatObj.seatName,
+            data: {
+              name: hostData.seatObj.seatName,
+              tag: 'red'
+            }
+          }]
+        };
+      }
     }
 
     return (
-      <div className='srcIp-content'>
+      <div className='privateIp-info srcIp-content'>
         <PrivateDetails
           alertInfo={alertInfo}
-          topoInfo={topoInfo}
-          picPath={picPath} />
+          topoInfo={hostData}
+          picPath={picPath}
+          triggerTask={this.triggerTask} />
       </div>
     )
   }
@@ -170,7 +169,7 @@ class HostAnalysis extends Component {
    * @returns HMDscanInfo component
    */
   displaySafetyScanContent = () => {
-    const {hostData, openHmdType} = this.props;
+    const {datetime, assessmentDatetime, hostData, eventInfo, openHmdType} = this.props;
 
     if (_.isEmpty(hostData.safetyScanInfo)) {
       return <span>N/A</span>
@@ -178,12 +177,16 @@ class HostAnalysis extends Component {
       return (
         <HMDscanInfo
           page='host'
+          datetime={datetime}
+          assessmentDatetime={assessmentDatetime}
           currentDeviceData={hostData}
+          eventInfo={eventInfo}
           openHmdType={openHmdType}
           toggleYaraRule={this.toggleYaraRule}
           toggleSelectionIR={this.toggleSelectionIR}
           triggerTask={this.triggerTask}
-          getHMDinfo={this.props.getIPdeviceInfo} />
+          getHMDinfo={this.props.getIPdeviceInfo}
+          loadEventTracing={this.props.loadEventTracing} />
       )
     }
   }
@@ -193,7 +196,7 @@ class HostAnalysis extends Component {
    * @returns HTML DOM
    */
   displayHostAnalysisData = () => {
-    const {hostData, datetime} = this.props;
+    const {hostData, assessmentDatetime} = this.props;
     const {showContent} = this.state;
     const ip = hostData.ip || NOT_AVAILABLE;
     const mac = hostData.mac || NOT_AVAILABLE;
@@ -254,7 +257,7 @@ class HostAnalysis extends Component {
                 page='host'
                 ipType='srcIp'
                 alertData={hostData}
-                hostDatetime={datetime} />
+                hostDatetime={assessmentDatetime} />
             }
           </div>
         </div>
@@ -356,9 +359,19 @@ class HostAnalysis extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
   }
+  exportPdf() {
+    const {baseUrl, contextRoot} = this.context
+    const {hostData, assessmentDatetime} = this.props
+    const url = `${baseUrl}${contextRoot}/api/ipdevice/assessment/_pdf`
+
+    downloadLink(url, {uuid: hostData.ipDeviceUUID, startDttm: assessmentDatetime.from, endDttm: assessmentDatetime.to, page: 1, pageSize: 5})
+  
+  }
   render() {
+    const {hostData} = this.props;
     const {modalYaraRuleOpen, modalIRopen} = this.state;
     const actions = {
+      export: {text: t('txt-export'), handler: this.exportPdf.bind(this)},
       confirm: {text: t('txt-close'), handler: this.props.toggleHostAnalysis}
     };
 
@@ -383,6 +396,7 @@ class HostAnalysis extends Component {
 
         {modalIRopen &&
           <IrSelections
+            currentDeviceData={hostData}
             toggleSelectionIR={this.toggleSelectionIR}
             triggerTask={this.triggerTask} />
         }
@@ -394,8 +408,10 @@ class HostAnalysis extends Component {
 HostAnalysis.contextType = BaseDataContext;
 
 HostAnalysis.propTypes = {
+  assessmentDatetime:  PropTypes.object.isRequired,
   hostData: PropTypes.object.isRequired,
   getIPdeviceInfo: PropTypes.func.isRequired,
+  loadEventTracing: PropTypes.func.isRequired,
   toggleHostAnalysis: PropTypes.func.isRequired,
   openHmdType: PropTypes.string
 };

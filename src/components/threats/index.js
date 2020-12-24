@@ -1,12 +1,16 @@
 import React, {Component} from 'react'
 import { withRouter } from 'react-router'
-import Moment from 'moment'
-import moment from 'moment-timezone'
+import moment from 'moment'
+import momentTimezone from 'moment-timezone'
 import _ from 'lodash'
 import cx from 'classnames'
 import queryString from 'query-string'
 
-import ContextMenu from 'react-ui/build/src/components/contextmenu'
+import Button from '@material-ui/core/Button';
+import Checkbox from '@material-ui/core/Checkbox';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
+
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
@@ -148,7 +152,7 @@ class ThreatsController extends Component {
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
     f = global.chewbaccaI18n.getFixedT(null, 'tableFields');
     et = global.chewbaccaI18n.getFixedT(null, 'errors');
-    it = global.chewbaccaI18n.getFixedT(null, "incident");
+    it = global.chewbaccaI18n.getFixedT(null, 'incident');
 
     this.state = {
       activeTab: 'alert',
@@ -161,10 +165,12 @@ class ThreatsController extends Component {
       //General
       datetime: {
         from: helper.getSubstractDate(1, 'hour'),
-        to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+        to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
         //from: '2019-06-28T05:28:00Z',
         //to: '2019-07-19T06:28:00Z'
       },
+      chartIntervalList: [],
+      chartIntervalValue: '',
       currentPage: 1,
       oldPage: 1,
       pageSize: 20,
@@ -230,6 +236,8 @@ class ThreatsController extends Component {
         emailList: [],
         openFlag: false
       },
+      contextAnchor: null,
+      currentQueryValue: '',
       notifyEmailData: [],
       newQueryName: true,
       showFilter: false,
@@ -274,6 +282,7 @@ class ThreatsController extends Component {
       }, () => {
         this.getSavedQuery();
         this.loadTreeData();
+        this.setChartIntervalBtn();
         this.setStatisticsTab();
       });
     }
@@ -394,7 +403,7 @@ class ThreatsController extends Component {
   loadTreeData = () => {
     const {baseUrl} = this.context;
     const {treeData} = this.state;
-    const url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`;
+    const url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0&skipHistogram=true`;
     const requestData = this.toQueryLanguage('tree');
 
     this.ah.one({
@@ -437,6 +446,18 @@ class ThreatsController extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+  }
+  /**
+   * Set interval for chart buttons
+   * @method
+   */
+  setChartIntervalBtn = () => {
+    const chartData = helper.setChartInterval(this.state.datetime);
+
+    this.setState({
+      chartIntervalList: chartData.chartIntervalList,
+      chartIntervalValue: chartData.chartIntervalValue
+    });
   }
   /**
    * Set initial data for statistics tab
@@ -507,14 +528,14 @@ class ThreatsController extends Component {
     });
   }
   /**
-   * Show query option when click on the table raw filter icon
+   * Show query menu when click on the table row filter icon
    * @method
    * @param {string} field - field name of selected field
    * @param {string | number} value - value of selected field
    * @param {string} activeTab - currect active tab
-   * @param {object} e - mouseClick events
+   * @param {object} event - event object
    */
-  showQueryOptions = (field, value, activeTab) => (e) => {
+  handleOpenQueryMenu = (field, value, activeTab, event) => {
     if (activeTab && activeTab === 'alert') {
       if (field === 'srcIp') {
         value = 'sourceIP: ' +  value;
@@ -527,26 +548,20 @@ class ThreatsController extends Component {
       }
     }
 
-    const menuItems = [
-      {
-        id: value + '_Must',
-        text: 'Must',
-        action: () => this.addSearch('', value, 'must')
-      },
-      {
-        id: value + '_MustNot',
-        text: 'Must Not',
-        action: () => this.addSearch('', value, 'must_not')
-      },
-      {
-        id: value + '_Either',
-        text: 'Either',
-        action: () => this.addSearch('', value, 'either')
-      }
-    ];
-
-    ContextMenu.open(e, menuItems, 'eventsQueryMenu');
-    e.stopPropagation();
+    this.setState({
+      contextAnchor: event.currentTarget,
+      currentQueryValue: value
+    });
+  }
+  /**
+   * Handle close query menu
+   * @method
+   */
+  handleCloseQueryMenu = () => {
+    this.setState({
+      contextAnchor: null,
+      currentQueryValue: ''
+    });
   }
   /**
    * Construct table data for Threats
@@ -573,19 +588,31 @@ class ThreatsController extends Component {
   /**
    * Get and set alert data
    * @method
-   * @param {string} [options] - option for 'search' or 'statistics'
+   * @param {string} [options] - option for 'search', 'statistics', or 'alertDetails'
    */
   loadThreatsData = (options) => {
     const {baseUrl} = this.context;
-    const {activeTab, currentPage, oldPage, pageSize, treeData, subSectionsData, account, alertDetails, alertPieData, alertTableData} = this.state;
+    const {
+      activeTab,
+      chartIntervalValue,
+      currentPage,
+      oldPage,
+      pageSize,
+      treeData,
+      subSectionsData,
+      account,
+      alertDetails,
+      alertPieData,
+      alertTableData
+    } = this.state;
     const setPage = options === 'search' ? 1 : currentPage;
     const requestData = this.toQueryLanguage(options);
-    let url = `${baseUrl}/api/u2/alert/_search?page=${setPage}&pageSize=`;
+    let url = `${baseUrl}/api/u2/alert/_search?histogramInterval=${chartIntervalValue}&page=${setPage}&pageSize=`;
 
-    if (!options || options === 'search') {
+    if (!options || options === 'search' || options === 'alertDetails') {
       url += pageSize;
     } else {
-      url += 0;
+      url += '0&skipHistogram=true';
     }
 
     this.ah.one({
@@ -596,7 +623,7 @@ class ThreatsController extends Component {
     })
     .then(data => {
       if (data) {
-        if (!options || options === 'search') {
+        if (!options || options === 'search' || options === 'alertDetails') {
           if (currentPage > 1 && data.data.rows.length === 0) {
             helper.showPopupMsg('', t('txt-error'), t('txt-maxDataMsg'));
 
@@ -661,6 +688,10 @@ class ThreatsController extends Component {
               this.setState({
                 alertHistogram,
                 alertDetails: tempAlertDetails
+              }, () => {
+                if (options === 'alertDetails') {
+                  this.openDetailInfo(0); //Pass index of 0
+                }
               });
 
               let tempFields = {};
@@ -685,7 +716,7 @@ class ThreatsController extends Component {
                           fieldName={tempData}
                           allValue={allValue}
                           alertLevelColors={ALERT_LEVEL_COLORS}
-                          showQueryOptions={this.showQueryOptions} />
+                          handleOpenQueryMenu={this.handleOpenQueryMenu} />
                       )
                     }
                   }
@@ -874,8 +905,8 @@ class ThreatsController extends Component {
   toQueryLanguage = (options) => {
     const {datetime, sort, filterData, edgeFilterData} = this.state;
     const dateTime = {
-      from: Moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-      to: Moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+      from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
     let dataObj = {
       timestamp: [dateTime.from, dateTime.to]
@@ -903,7 +934,7 @@ class ThreatsController extends Component {
     }
 
     if (options == 'csv') {
-      const timezone = moment.tz(moment.tz.guess()); //Get local timezone obj
+      const timezone = momentTimezone.tz(momentTimezone.tz.guess()); //Get local timezone obj
       const utc_offset = timezone._offset / 60; //Convert minute to hour
       dataObj.timeZone = utc_offset;
     }
@@ -915,8 +946,9 @@ class ThreatsController extends Component {
    * @method
    * @param {string} type - alert tree type ('alert', 'private' or 'public')
    * @param {string} value - tree node name
+   * @param {object} event - event object
    */
-  showTreeFilterBtn = (type, value) => {
+  showTreeFilterBtn = (type, value, event) => {
     let tempTreeData = {...this.state.treeData};
     tempTreeData[type].currentTreeName = value;
 
@@ -931,39 +963,8 @@ class ThreatsController extends Component {
     this.setState({
       treeData: tempTreeData
     });
-  }
-  /**
-   * Set filter options for edge
-   * @method
-   * @param {array.<string>} selectedId - selected IDs for edge
-   */  
-  handleTreeSelectChange = (selectedId) => {
-    let edgeFilterData = [];
 
-    _.forEach(selectedId, val => {
-      edgeFilterData.push({
-        condition: 'either',
-        query: '_edgeId: "' + val + '"'
-      })
-    })
-
-    this.setState({
-      edgeFilterData
-    });
-  }
-  /**
-   * Get tree label
-   * @method
-   * @param {string} id - tree node ID
-   * @param {string} name - tree node name
-   * @param {string} currentTreeName - current tree node name
-   * @param {number} count - tree node length
-   * @param {string} [query] - search query
-   */
-  getTreeLabel = (id, name, currentTreeName, count, query) => {
-    const serviceCount = count !== '' ? ' (' + count + ')' : '';
-
-    return <span>{name}{helper.numberWithCommas(serviceCount)} <button className={cx('button', {'active': currentTreeName === id})} onClick={this.selectTree.bind(this, name, query)}>{t('events.connections.txt-addFilter')}</button></span>;
+    event.stopPropagation();
   }
   /**
    * Display severity info content
@@ -988,6 +989,19 @@ class ThreatsController extends Component {
         </tbody>
       </table>
     )
+  }
+  /**
+   * Get tree label
+   * @method
+   * @param {string} name - tree node name
+   * @param {string} currentTreeName - current tree node name
+   * @param {number} count - tree node length
+   * @param {string} [query] - search query
+   */
+  getTreeLabel = (name, currentTreeName, count, query) => {
+    const serviceCount = count !== '' ? ' (' + helper.numberWithCommas(count) + ')' : '';
+
+    return <span>{name}{serviceCount} <Button variant='outlined' color='primary' className={cx('button', {'active': currentTreeName === name})} onClick={this.selectTree.bind(this, name, query)}>{t('events.connections.txt-addFilter')}</Button></span>;
   }
   /**
    * Open dialog to show severity info
@@ -1039,8 +1053,6 @@ class ThreatsController extends Component {
       _.keys(val)
       .forEach(key => {
         let tempChild = [];
-        let label = '';
-        let label2 = '';
         let totalHostCount = 0;
 
         if (key && key !== 'default') {
@@ -1049,32 +1061,30 @@ class ThreatsController extends Component {
               totalHostCount += val;
             } else {
               if (_.size(val) === 1) {
-                const id = key + key2;
-
                 tempChild.push({
-                  id,
-                  label: this.getTreeLabel(id, key2, treeName, val.doc_count)
+                  id: key + key2,
+                  key: key2,
+                  label: this.getTreeLabel(key2, treeName, val.doc_count)
                 });
               } else {
                 let tempChild2 = [];
 
                 _.forEach(val, (val2, key3) => {
                   if (key3 !== 'doc_count' && val2 && val2.doc_count) {
-                    const id = key + key2 + key3;
                     const serviceCount = val2.doc_count !== '' ? ' (' + val2.doc_count + ')' : '';
 
                     tempChild2.push({
-                      id,
-                      label: <span>{key3}{helper.numberWithCommas(serviceCount)} <button className={cx('button', {'active': treeName === id})} onClick={this.selectTree.bind(this, key3, '')}>{t('events.connections.txt-addFilter')}</button><i className={cx('fg fg-info', {'active': treeName === id})} title={t('txt-info')} onClick={this.showSeverityInfo.bind(this, val2)}></i></span>
+                      id: key + key2 + key3,
+                      key: key3,
+                      label: <span>{key3} {serviceCount} <Button variant='outlined' color='primary' className={cx('button', {'active': treeName === key3})} onClick={this.selectTree.bind(this, key3, '')}>{t('events.connections.txt-addFilter')}</Button><i className={cx('fg fg-info', {'active': treeName === key3})} title={t('txt-info')} onClick={this.showSeverityInfo.bind(this, val2)}></i></span>
                     });
                   }
                 })
 
-                const id = key + key2;
-
                 let childProperty = {
-                  id,
-                  label: this.getTreeLabel(id, key2, treeName, val.doc_count)
+                  id: key + key2,
+                  key: key2,
+                  label: this.getTreeLabel(key2, treeName, val.doc_count)
                 };
 
                 if (tempChild2.length > 0) { //Push child only if child is not empty (ie. 'Pattern' doesn't have child)
@@ -1086,11 +1096,10 @@ class ThreatsController extends Component {
             }
           })
 
-          label = <span><i className={'fg fg-recode ' + key.toLowerCase()} /> {key} ({helper.numberWithCommas(totalHostCount)}) <button className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, '')}>{t('events.connections.txt-addFilter')}</button></span>;
-
           let treeProperty = {
             id: key,
-            label
+            key,
+            label: <span><i className={'fg fg-recode ' + key.toLowerCase()} />{key} ({helper.numberWithCommas(totalHostCount)}) <Button variant='outlined' color='primary' className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, '')}>{t('events.connections.txt-addFilter')}</Button></span>
           };
 
           if (tempChild.length > 0) {
@@ -1136,7 +1145,6 @@ class ThreatsController extends Component {
     _.keys(treeData)
     .forEach(key => {
       let tempChild = [];
-      let label = '';
       let treeProperty = {};
 
       if (key && key !== 'doc_count') {
@@ -1149,11 +1157,10 @@ class ThreatsController extends Component {
                 nodeClass += ' ' + val._severity_.toLowerCase();
               }
 
-              label = <span><i className={nodeClass} />{val.key} ({helper.numberWithCommas(val.doc_count)}) <button className={cx('button', {'active': treeName === val.key})} onClick={this.selectTree.bind(this, val.key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</button></span>;
-
               tempChild.push({
                 id: val.key,
-                label
+                key: val.key,
+                label: <span><i className={nodeClass} />{val.key} ({helper.numberWithCommas(val.doc_count)}) <Button variant='outlined' color='primary' className={cx('button', {'active': treeName === val.key})} onClick={this.selectTree.bind(this, val.key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</Button></span>
               });
             }
           })
@@ -1165,11 +1172,10 @@ class ThreatsController extends Component {
           nodeClass += ' ' + treeData[key]._severity_.toLowerCase();
         }
 
-        label = <span><i className={nodeClass} style={this.showSeverity(treeData[key]._severity_)} />{key} ({helper.numberWithCommas(treeData[key].doc_count)}) <button className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</button></span>;
-
         treeProperty = {
           id: key,
-          label
+          key,
+          label: <span><i className={nodeClass} style={this.showSeverity(treeData[key]._severity_)} />{key} ({helper.numberWithCommas(treeData[key].doc_count)}) <Button variant='outlined' color='primary' className={cx('button', {'active': treeName === key})} onClick={this.selectTree.bind(this, key, 'sourceIP')}>{t('events.connections.txt-addFilter')}</Button></span>
         };
 
         if (tempChild.length > 0) {
@@ -1200,15 +1206,13 @@ class ThreatsController extends Component {
 
     _.keys(treeData)
     .forEach(key => {
-      let tempChild = [];
-      let label = '';
-
       if (key && key !== 'doc_count') {
         _.forEach(treeData[path].buckets, val => {
           if (val.key) {
             treeObj.children.push({
               id: val.key,
-              label: this.getTreeLabel(val.key, val.key, treeName, val.doc_count, 'srcCountry')
+              key: val.key,
+              label: this.getTreeLabel(val.key, treeName, val.doc_count, 'srcCountry')
             });
           }
         })
@@ -1218,6 +1222,29 @@ class ThreatsController extends Component {
     treeObj.label = t('txt-all') + ' (' + helper.numberWithCommas(treeData.doc_count) + ')';
 
     return treeObj;
+  }
+  /**
+   * Handle checkbox check/uncheck
+   * @method
+   * @param {string} agentId - selected IDs for edge
+   * @param {object} event - event object
+   */
+  toggleCheckbox = (agentId, event) => {
+    let edgeFilterData = _.cloneDeep(this.state.edgeFilterData);
+
+    if (event.target.checked) {
+      edgeFilterData.push({
+        condition: 'either',
+        query: '_edgeId: "' + agentId + '"'
+      });
+    } else {
+      const index = edgeFilterData.indexOf(agentId);
+      edgeFilterData.splice(index, 1);
+    }
+
+    this.setState({
+      edgeFilterData
+    });
   }
   /**
    * Set the edges tree data
@@ -1234,17 +1261,13 @@ class ThreatsController extends Component {
 
     _.keys(treeData)
     .forEach(key => {
-      let tempChild = [];
-      let label = '';
-
       if (key && key !== 'doc_count') {
         _.forEach(treeData[path].buckets, val => {
           if (val.agentId) {
-            label = <span>{val.agentName} ({val.serviceType}) ({helper.numberWithCommas(val.doc_count)}) </span>;
-
             treeObj.children.push({
               id: val.agentId,
-              label
+              key,
+              label: <div><Checkbox onChange={this.toggleCheckbox.bind(this, val.agentId)} color='primary' /><span>{val.agentName} ({val.serviceType}) ({helper.numberWithCommas(val.doc_count)}) </span></div>
             });
           }
         })
@@ -1304,6 +1327,7 @@ class ThreatsController extends Component {
       alertTableData: {}
     }, () => {
       this.loadTreeData();
+      this.setChartIntervalBtn();
       this.setStatisticsTab();
     });
   }
@@ -1331,12 +1355,13 @@ class ThreatsController extends Component {
    * Handle pagination change
    * @method
    * @param {number} currentPage - current page
+   * @param {string} options - options for 'alertDetails'
    */
-  handlePaginationChange = (currentPage) => {
+  handlePaginationChange = (currentPage, options) => {
     this.setState({
       currentPage
     }, () => {
-      this.loadThreatsData();
+      this.loadThreatsData(options);
     });
   }
   /**
@@ -1386,7 +1411,7 @@ class ThreatsController extends Component {
    * @method
    * @param {string} [field] - corresponding field of selected node
    * @param {string} value - selected node name
-   * @param {string} type - condition of selected node ('must')
+   * @param {string} type - condition of selected node ('must', 'must_not' or 'either')
    */
   addSearch = (field, value, type) => {
     const {filterData} = this.state;
@@ -1424,18 +1449,20 @@ class ThreatsController extends Component {
       showFilter: true,
       filterData: currentFilterData
     });
+
+    this.handleCloseQueryMenu();
   }
   /**
    * Add tree node to search filter
    * @method
    * @param {string} index - index of the alert data
    * @param {object} allValue - alert data
-   * @param {object} evt - MouseEvents
+   * @param {object} event - event object
    */
-  handleRowDoubleClick = (index, allValue, evt) => {
+  handleRowDoubleClick = (index, allValue, event) => {
     this.openDetailInfo(index, allValue);
 
-    evt.stopPropagation();
+    event.stopPropagation();
     return null;
   }
   /**
@@ -1445,7 +1472,11 @@ class ThreatsController extends Component {
    */
   alertDialog = () => {
     const {sessionRights} = this.context;
-    const {alertDetails, alertData} = this.state;
+    const {datetime, currentPage, pageSize, alertDetails, alertData, subSectionsData} = this.state;
+    const dateTime = {
+      from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    };
     let actions = {
       confirm: {text: t('txt-close'), handler: this.closeDialog}
     };
@@ -1460,10 +1491,14 @@ class ThreatsController extends Component {
     return (
       <AlertDetails
         titleText={t('alert.txt-alertInfo')}
+        datetime={dateTime}
         actions={actions}
         alertDetails={alertDetails}
         alertData={alertData}
         showAlertData={this.showAlertData}
+        currentPage={currentPage}
+        pageSize={pageSize}
+        totalPageCount={subSectionsData.totalCount.alert}
         fromPage='threats' />
     )
   }
@@ -1473,15 +1508,22 @@ class ThreatsController extends Component {
    * @param {string} type - button action type ('previous' or 'next')
    */
   showAlertData = (type) => {
-    const {alertDetails} = this.state;
+    const {currentPage, alertDetails} = this.state;
     let tempAlertDetails = {...alertDetails};
+    let tempCurrentPage = currentPage;
 
     if (type === 'previous') {
-      if (alertDetails.currentIndex !== 0) {
+      if (alertDetails.currentIndex === 0) { //End of the data, load previous set
+        this.handlePaginationChange(--tempCurrentPage, 'alertDetails');
+        return;
+      } else {
         tempAlertDetails.currentIndex--;
       }
     } else if (type === 'next') {
-      if (alertDetails.currentLength - alertDetails.currentIndex > 1) {
+      if (alertDetails.currentLength - alertDetails.currentIndex === 1) { //End of the data, load next set
+        this.handlePaginationChange(++tempCurrentPage, 'alertDetails');
+        return;
+      } else {
         tempAlertDetails.currentIndex++;
       }
     }
@@ -1509,25 +1551,25 @@ class ThreatsController extends Component {
   openDetailInfo = (index, allValue, evt) => {
     const {alertDetails} = this.state;
     let tempAlertDetails = {...alertDetails};
-    let data = '';
-    let itemID = '';
+    let alertData = '';
 
     if (_.isArray(allValue)) { //For click from World Map
-      data = allValue[index];
+      alertData = allValue[index];
     } else {
       tempAlertDetails.currentIndex = Number(index);
-      data = allValue;
 
-      if (allValue.id) {
-        itemID = allValue.id;
+      if (allValue) {
+        alertData = allValue;
+      } else {
+        alertData = alertDetails.all[Number(index)];
       }
     }
 
     this.setState({
+      currentTableID: alertData.id,
+      alertDetailsOpen: true,
       alertDetails: tempAlertDetails,
-      currentTableID: itemID,
-      alertData: data,
-      alertDetailsOpen: true
+      alertData
     });
   }
   /**
@@ -1558,19 +1600,29 @@ class ThreatsController extends Component {
     const {alertData} = this.state;
     let timeInMss = Date.now();
     sessionStorage.setItem(timeInMss, JSON.stringify(alertData));
-    window.location.href = '/SCP/soc/incident?alertDataId=' + timeInMss
+
+    window.location.href = '/SCP/soc/incident?alertDataId=' + timeInMss;
   };
   /**
    * Set new datetime and reload page data
    * @method
-   * @param {object} datetime - new datetime object
-   * @param {string} [refresh] - option for 'refresh'
+   * @param {string} type - date type ('from', 'to', 'customTime' or 'refresh')
+   * @param {object} newDatetime - new datetime object
    */
-  handleDateChange = (datetime, refresh) => {
+  handleDateChange = (type, newDatetime) => {
+    let tempDatetime = {...this.state.datetime};
+
+    if (type === 'customTime' || type === 'refresh') {
+      tempDatetime.from = newDatetime.from;
+      tempDatetime.to = newDatetime.to;
+    } else {
+      tempDatetime[type] = newDatetime;
+    }
+
     this.setState({
-      datetime
+      datetime: tempDatetime
     }, () => {
-      if (refresh === 'refresh') {
+      if (type === 'refresh') {
         this.loadTreeData();
         this.loadThreatsData('search');
       }
@@ -1579,11 +1631,29 @@ class ThreatsController extends Component {
   /**
    * Handle content tab change
    * @method
+   * @param {object} event - event object
    * @param {string} newTab - content type ('table' or 'statistics')
    */
-  handleSubTabChange = (newTab) => {
+  handleSubTabChange = (event, newTab) => {
     this.setState({
       activeSubTab: newTab
+    });
+  }
+  /**
+   * Handle chart interval change for Connections events
+   * @method
+   * @param {object} event - event object
+   * @param {string} type - interval type
+   */
+  handleIntervalChange = (event, type) => {
+    if (!type) {
+      return;
+    }
+
+    this.setState({
+      chartIntervalValue: type
+    }, () => {
+      this.loadThreatsData();
     });
   }
   /**
@@ -1597,6 +1667,11 @@ class ThreatsController extends Component {
       activeTab,
       chartColors: ALERT_LEVEL_COLORS,
       tableUniqueID: 'id',
+      chartIntervalList: this.state.chartIntervalList,
+      chartIntervalValue: this.state.chartIntervalValue,
+      chartIntervalChange: this.handleIntervalChange,
+      getChartsCSVfile: this.getChartsCSVfile,
+      getLeftNavCSVfile: this.getLeftNavCSVfile,
       subTabMenu: this.state.subTabMenu,
       activeSubTab: this.state.activeSubTab,
       handleSubTabChange: this.handleSubTabChange,
@@ -1616,7 +1691,6 @@ class ThreatsController extends Component {
       handleSearchSubmit: this.handleSearchSubmit,
       treeData: this.state.treeData,
       showTreeFilterBtn: this.showTreeFilterBtn,
-      handleSelectChange: this.handleTreeSelectChange,
       dataTableData: this.state.subSectionsData.mainData[activeTab],
       dataTableFields: this.state.subSectionsData.fieldsData[activeTab],
       mainEventsData: this.state.mainEventsData,
@@ -1639,25 +1713,64 @@ class ThreatsController extends Component {
     )
   }
   /**
+   * Get request data for CSV file
+   * @method
+   * @param {string} url - request URL
+   * @param {string} [columns] - columns for CSV file
+   */
+  getCSVrequestData = (url, columns) => {
+    let dataOptions = {
+      ...this.toQueryLanguage('csv')
+    };
+
+    if (columns === 'columns') {
+      let tempColumns = [];
+
+      _.forEach(SUBSECTIONS_DATA.subSectionsData.tableColumns.alert, val => {
+        tempColumns.push({
+          [val]: f(`alertFields.${val}`)
+        });
+      })
+
+      dataOptions.columns = tempColumns;
+    }
+
+    downloadWithForm(url, {payload: JSON.stringify(dataOptions)});
+  }
+  /**
    * Handle CSV download
    * @method
    */
   getCSVfile = () => {
     const {baseUrl, contextRoot} = this.context;
     const url = `${baseUrl}${contextRoot}/api/u2/alert/_export`;
-    let tempColumns = [];
-
-    _.forEach(SUBSECTIONS_DATA.subSectionsData.tableColumns.alert, val => {
-      tempColumns.push({
-        [val]: f(`alertFields.${val}`)
-      });
-    })
-
-    const dataOptions = {
-      ...this.toQueryLanguage('csv'),
-      columns: tempColumns
+    this.getCSVrequestData(url, 'columns');
+  }
+  /**
+   * Handle Charts CSV download
+   * @method
+   */
+  getChartsCSVfile = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {chartIntervalValue} = this.state;
+    const url = `${baseUrl}${contextRoot}/api/u2/alert/histogram/_export?histogramInterval=${chartIntervalValue}`;
+    this.getCSVrequestData(url);
+  }
+  /**
+   * Handle Left Nav CSV download
+   * @method
+   */
+  getLeftNavCSVfile = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const {datetime} = this.state;
+    const url = `${baseUrl}${contextRoot}/api/alert/severityRuleAgg/_export`;
+    const dateTime = {
+      from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
-
+    const dataOptions = {
+      timestamp: [dateTime.from, dateTime.to]
+    };
     downloadWithForm(url, {payload: JSON.stringify(dataOptions)});
   }
   /**
@@ -1803,6 +1916,8 @@ class ThreatsController extends Component {
       subSectionsData,
       openQueryOpen,
       saveQueryOpen,
+      contextAnchor,
+      currentQueryValue,
       filterData,
       showChart,
       showFilter,
@@ -1830,11 +1945,21 @@ class ThreatsController extends Component {
           this.alertDialog()
         }
 
+        <Menu
+          anchorEl={contextAnchor}
+          keepMounted
+          open={Boolean(contextAnchor)}
+          onClose={this.handleCloseQueryMenu}>
+          <MenuItem onClick={this.addSearch.bind(this, '', currentQueryValue, 'must')}>Must</MenuItem>
+          <MenuItem onClick={this.addSearch.bind(this, '', currentQueryValue, 'must_not')}>Must Not</MenuItem>
+          <MenuItem onClick={this.addSearch.bind(this, '', currentQueryValue, 'either')}>Either</MenuItem>
+        </Menu>
+
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            <button className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('events.connections.txt-toggleFilter')}><i className='fg fg-filter'></i><span>({filterDataCount})</span></button>
-            <button className={cx({'active': showChart})} onClick={this.toggleChart} title={t('events.connections.txt-toggleChart')}><i className='fg fg-chart-columns'></i></button>
-            <button className='last' onClick={this.getCSVfile} title={t('events.connections.txt-exportCSV')}><i className='fg fg-data-download'></i></button>
+            <Button variant='outlined' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('events.connections.txt-toggleFilter')}><i className='fg fg-filter'></i><span>({filterDataCount})</span></Button>
+            <Button variant='outlined' color='primary' className={cx({'active': showChart})} onClick={this.toggleChart} title={t('events.connections.txt-toggleChart')}><i className='fg fg-chart-columns'></i></Button>
+            <Button variant='outlined' color='primary' className='last' onClick={this.getCSVfile} title={t('txt-exportCSV')}><i className='fg fg-data-download'></i></Button>
           </div>
 
           <SearchOptions

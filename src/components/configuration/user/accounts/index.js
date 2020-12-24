@@ -6,10 +6,11 @@ import i18n from 'i18next'
 import cx from 'classnames'
 import _ from 'lodash'
 
+import Button from '@material-ui/core/Button';
+import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 
-import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import DataTable from 'react-ui/build/src/components/table'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
@@ -47,6 +48,8 @@ class AccountList extends Component {
       },
       accountID: '',
       accountName: '',
+      contextAnchor: null,
+      currentAccountData: {},
       dataFields: {},
       showNewPassword: false,
       newPassword: '',
@@ -95,7 +98,7 @@ class AccountList extends Component {
               if (tempData === '_menu') {
                 return (
                   <div className={cx('table-menu', {'active': value})}>
-                    <button onClick={this.handleRowContextMenu.bind(this, allValue)}><i className='fg fg-more'></i></button>
+                    <Button variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue)}><i className='fg fg-more'></i></Button>
                   </div>
                 )
               } else if (tempData === 'account' && allValue.isLock) {
@@ -120,49 +123,35 @@ class AccountList extends Component {
     })
   }
   /**
-   * Construct and display table context menu
+   * Handle open menu
    * @method
-   * @param {object} allValue - account data
-   * @param {object} evt - mouseClick events
+   * @param {object} account - active account data
+   * @param {object} event - event object
    */
-  handleRowContextMenu = (allValue, evt) => {
-    let menuItems = [
-      {
-        id: 'edit',
-        text: c('txt-edit'),
-        action: () => this.showEditDialog(allValue.accountid)
-      },
-      {
-        id: 'delete',
-        text: c('txt-delete'),
-        action: () => this.showDialog('delete', allValue, allValue.accountid)
-      },
-      {
-        id: 'resetPassword',
-        text: c('txt-resetPassword'),
-        action: () => this.showResetPassword(allValue.account)
-      }
-    ];
-
-    if (allValue.isLock) {
-      menuItems.push({
-        id: 'unlock',
-        text: c('txt-unlock'),
-        action: () => this.showDialog('unlock', allValue, allValue.accountid)
-      });
-    }
-
-    ContextMenu.open(evt, menuItems, 'configUserAccountsMenu');
-    evt.stopPropagation();
+  handleOpenMenu = (account, event) => {
+    this.setState({
+      contextAnchor: event.currentTarget,
+      currentAccountData: account
+    });
+  }
+  /**
+   * Handle close menu
+   * @method
+   */
+  handleCloseMenu = () => {
+    this.setState({
+      contextAnchor: null,
+      currentAccountData: {}
+    });
   }
   /**
    * Handle table row mouse over
    * @method
    * @param {string} index - index of the account data
    * @param {object} allValue - account data
-   * @param {object} evt - MouseoverEvents
+   * @param {object} event - event object
    */
-  handleRowMouseOver = (value, allValue, evt) => {
+  handleRowMouseOver = (value, allValue, event) => {
     let tempAccountData = {...this.state.accountData};
     tempAccountData = _.map(tempAccountData, el => {
       return {
@@ -202,6 +191,7 @@ class AccountList extends Component {
    */
   showEditDialog = (id) => {
     this.editor.openAccount(id, 'fromAccount');
+    this.handleCloseMenu();
   }
   /**
    * Display delete and unlock content
@@ -250,6 +240,8 @@ class AccountList extends Component {
         }
       }
     });
+
+    this.handleCloseMenu();
   }
   /**
    * Handle delete/unlock modal confirm
@@ -300,6 +292,8 @@ class AccountList extends Component {
       accountName,
       showNewPassword: true
     });
+
+    this.handleCloseMenu();
   }
   /**
    * Handle password input box
@@ -327,9 +321,9 @@ class AccountList extends Component {
           type='password'
           label={c('txt-password')}
           variant='outlined'
-          fullWidth={true}
+          fullWidth
           size='small'
-          required={true}
+          required
           error={!formValidation.password.valid}
           helperText={formValidation.password.valid ? '' : c('txt-required')}
           value={newPassword}
@@ -481,7 +475,7 @@ class AccountList extends Component {
               name='account'
               label={t('l-account')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={param.account}
               onChange={this.handleSearchChange} />
@@ -492,22 +486,22 @@ class AccountList extends Component {
               name='name'
               label={t('l-name')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={param.name}
               onChange={this.handleSearchChange} />
           </div>
         </div>
         <div className='button-group'>
-          <button className='filter' onClick={this.getAccountFilterData}>{c('txt-filter')}</button>
-          <button className='clear' onClick={this.clearFilter}>{c('txt-clear')}</button>
+          <Button variant='contained' color='primary' className='filter' onClick={this.getAccountFilterData}>{c('txt-filter')}</Button>
+          <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{c('txt-clear')}</Button>
         </div>
       </div>
     )
   }
   render() {
     const {baseUrl, contextRoot} = this.context;
-    const {accountData, dataFields, showFilter, showNewPassword} = this.state;
+    const {accountData, dataFields, showFilter, showNewPassword, contextAnchor, currentAccountData} = this.state;
 
     return (
       <div>
@@ -515,10 +509,23 @@ class AccountList extends Component {
           this.showNewPasswordDialog()
         }
 
+        <Menu
+          anchorEl={contextAnchor}
+          keepMounted
+          open={Boolean(contextAnchor)}
+          onClose={this.handleCloseMenu}>
+          <MenuItem onClick={this.showEditDialog.bind(this, currentAccountData.accountid)}>{c('txt-edit')}</MenuItem>
+          <MenuItem onClick={this.showDialog.bind(this, 'delete', currentAccountData, currentAccountData.accountid)}>{c('txt-delete')}</MenuItem>
+          <MenuItem onClick={this.showResetPassword.bind(this, currentAccountData.account)}>{c('txt-resetPassword')}</MenuItem>
+          {currentAccountData.isLock &&
+            <MenuItem onClick={this.showDialog.bind(this, 'unlock', currentAccountData, currentAccountData.accountid)}>{c('txt-unlock')}</MenuItem>
+          }
+        </Menu>
+
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            <button onClick={this.showEditDialog.bind(this, null)} title={t('txt-add-account')}><i className='fg fg-add'></i></button>
-            <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={c('txt-filter')}><i className='fg fg-filter'></i></button>
+            <Button variant='outlined' color='primary' onClick={this.showEditDialog.bind(this, null)} title={t('txt-add-account')}><i className='fg fg-add'></i></Button>
+            <Button variant='outlined' color='primary' className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={c('txt-filter')}><i className='fg fg-filter'></i></Button>
           </div>
         </div>
 
@@ -528,7 +535,7 @@ class AccountList extends Component {
             contextRoot={contextRoot} />
 
           <div className='parent-content'>
-            { this.renderFilter() }
+            {this.renderFilter()}
 
             <div className='main-content'>
               <header className='main-header'>{c('txt-account')}</header>

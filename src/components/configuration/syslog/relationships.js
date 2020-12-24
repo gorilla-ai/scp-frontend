@@ -60,18 +60,8 @@ class Relationships extends Component {
     const {value, relationships} = this.props;
     let curValue = value === '' ? {} : value;
 
-    if (!curValue.name) {
-      curValue.name = '';
-      curValue.conditions = _.map(relationships[0].conditions, el => {
-        return {
-          name: el.name,
-          value: el.value, node: ''
-        };
-      });
-
-      this.props.onChange(curValue);
-    } else {
-      const rs = _.find(relationships, {name: curValue.name});
+    if (value.name) {
+      const rs = _.find(relationships, {name: value.name});
 
       if (rs) {
         this.setState({
@@ -79,6 +69,17 @@ class Relationships extends Component {
           nodeB: rs.node_b
         });
       }
+    } else {
+      let curValue = {};
+      curValue.name = '';
+      curValue.conditions = _.map(value.conditions, el => {
+        return {
+          name: el.name,
+          value: el.value, node: ''
+        };
+      });
+
+      this.props.onChange(curValue);
     }
   }
   /**
@@ -153,7 +154,7 @@ class Relationships extends Component {
               select
               label={t('syslogFields.name')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={value.name}
               onChange={this.handleDataChange}>
@@ -167,7 +168,7 @@ class Relationships extends Component {
               select
               label={t('syslogFields.srcNode')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={value.srcNode}
               onChange={this.handleDataChange}>
@@ -182,45 +183,12 @@ class Relationships extends Component {
               select
               label={t('syslogFields.dstNode')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={value.dstNode}
               onChange={this.handleDataChange}>
               {nodeList}
             </TextField>
-          </div>
-        </div>
-        <div className='down'>
-          <div className='item'>
-            <label>{t('syslogFields.conditions')}</label>
-            <DataTable 
-              className='main-table'
-              data={value.conditions}
-              fields={
-                {
-                  name: { 
-                    label: t('syslogFields.name'),
-                    style: { textAlign: 'left'}
-                  },
-                  value: {
-                    label: t('syslogFields.value'),
-                    style: {textAlign: 'left'}
-                  },
-                  node: {
-                    label: '',
-                    formatter: (val, allValue) => {
-                      return <DropDownList
-                        list={rawOptions}
-                        required={true}
-                        validate={{
-                          t: et
-                        }}
-                        value={val}
-                        onChange={this.handleNodeChange.bind(this, allValue)} />
-                    }
-                  }
-                }
-              } />
           </div>
         </div>
       </div>

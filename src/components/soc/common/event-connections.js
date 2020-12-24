@@ -3,7 +3,10 @@ import PropTypes from 'prop-types'
 import _ from 'lodash'
 
 import Input from 'react-ui/build/src/components/input'
-
+import MenuItem from '@material-ui/core/MenuItem';
+import TextField from '@material-ui/core/TextField';
+import Button from '@material-ui/core/Button';
+import helper from "../../common/helper";
 let t = null
 let et = null
 let f = null
@@ -22,6 +25,12 @@ class EventConnections extends Component {
         let {onChange, value: curValue} = this.props
         onChange({...curValue, [field]: value})
     }
+
+	handleDataChangeMui = (event) => {
+		let {onChange, value: curValue} = this.props
+		onChange({...curValue, [event.target.name]: event.target.value})
+	}
+
 	render() {
 		let {activeContent, value: {srcIp, srcPort, srcHostname, dstIp, dstPort, dstHostname}} = this.props
 
@@ -29,99 +38,95 @@ class EventConnections extends Component {
 			<div className='line'>
 				<div className='group'>
 	                <label htmlFor='srcIp'>{f('incidentFields.srcIp')}</label>
-	                <Input
+	                <TextField
 	                    id='srcIp'
-	                    onChange={this.handleDataChange.bind(this, 'srcIp')}
+	                    name='srcIp'
+	                    // label={f('incidentFields.srcIp')}
+	                    variant='outlined'
+	                    fullWidth={true}
+	                    size='small'
+	                    onChange={this.handleDataChangeMui}
 	                    value={srcIp}
-						validate={{
-							pattern: /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/,
-							patternReadable: 'xxx.xxx.xxx.xxx',
-							t: this.getErrorMsg
-						}}
-						required={true}
-	                    readOnly={activeContent === 'viewIncident'}/>
+	                    helperText={t('txt-checkRequiredFieldType')}
+		                aria-errormessage={t('network-topology.txt-ipValidationFail')}
+	                    error={!helper.ValidateIP_Address(srcIp)}
+						required
+	                    disabled={activeContent === 'viewIncident'}/>
 	            </div>
 	            <div className='group'>
-	                <label htmlFor='srcPort'>{f('incidentFields.srcPort')}</label>
-	                <Input
+	                <label htmlFor='srcPort' style={{paddingRight: '2em', paddingLeft: '2em'}}>{f('incidentFields.srcPort')}</label>
+	                <TextField style={{paddingRight: '2em', paddingLeft: '2em'}}
 	                    id='srcPort'
-	                    onChange={this.handleDataChange.bind(this, 'srcPort')}
+	                    name='srcPort'
+	                    // label={f('incidentFields.srcPort')}
+	                    variant='outlined'
+	                    fullWidth={true}
+	                    size='small'
+	                    onChange={this.handleDataChangeMui}
 	                    value={srcPort}
-						required={false}
-	                    validate={{
-		                    pattern:/^([0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$/,
-		                    patternReadable: '0-65535',
-		                    t: et
-	                    }}
-	                    readOnly={activeContent === 'viewIncident'}/>
+	                    disabled={activeContent === 'viewIncident'}/>
 	            </div>
 	            <div className='group'>
-	                <label htmlFor='srcHostname'>{f('incidentFields.srcHostname')}</label>
-	                <Input
+	                <label htmlFor='srcHostname' style={{paddingRight: '2em', paddingLeft: '2em'}}>{f('incidentFields.srcHostname')}</label>
+	                <TextField style={{paddingRight: '2em', paddingLeft: '2em'}}
 	                    id='srcHostname'
-	                    onChange={this.handleDataChange.bind(this, 'srcHostname')}
+	                    name='srcHostname'
+	                    // label={f('incidentFields.srcHostname')}
+	                    variant='outlined'
+	                    fullWidth={true}
+	                    size='small'
+	                    onChange={this.handleDataChangeMui}
 	                    value={srcHostname}
-	                    required={false}
-	                    readOnly={activeContent === 'viewIncident'}/>
+	                    disabled={activeContent === 'viewIncident'}/>
 	            </div>
 	        </div>
 	        
 	        <div className='line'>
 				<div className='group'>
 	                <label htmlFor='dstIp'>{f('incidentFields.dstIp')}</label>
-	                <Input
+	                <TextField
 	                    id='dstIp'
-	                    onChange={this.handleDataChange.bind(this, 'dstIp')}
+	                    name='dstIp'
+	                    variant='outlined'
+	                    fullWidth={true}
+	                    size='small'
+	                    onChange={this.handleDataChangeMui}
 	                    value={dstIp}
-						validate={{
-							pattern: /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/,
-							patternReadable: 'xxx.xxx.xxx.xxx',
-							t: this.getErrorMsg
-						}}
-						required={true}
-	                    readOnly={activeContent === 'viewIncident'}/>
+	                    helperText={t('txt-checkRequiredFieldType')}
+	                    error={!helper.ValidateIP_Address(dstIp)}
+						required
+	                    disabled={activeContent === 'viewIncident'}/>
 	            </div>
 	            <div className='group'>
-	                <label htmlFor='dstPort'>{f('incidentFields.dstPort')}</label>
-	                <Input
+	                <label htmlFor='dstPort' style={{paddingRight: '2em', paddingLeft: '2em'}}>{f('incidentFields.dstPort')}</label>
+	                <TextField style={{paddingRight: '2em', paddingLeft: '2em'}}
 	                    id='dstPort'
-	                    onChange={this.handleDataChange.bind(this, 'dstPort')}
+	                    name='dstPort'
+	                    // label={f('incidentFields.dstPort')}
+	                    variant='outlined'
+	                    fullWidth={true}
+	                    size='small'
+	                    onChange={this.handleDataChangeMui}
 	                    value={dstPort}
-	                    required={false}
-	                    validate={{
-	                    	pattern:/^([0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$/,
-		                    patternReadable: '0-65535',
-		                    t: et
-	                    }}
-	                    readOnly={activeContent === 'viewIncident'}/>
+	                    disabled={activeContent === 'viewIncident'}/>
 	            </div>
 	            <div className='group'>
-	                <label htmlFor='dstHostname'>{f('incidentFields.dstHostname')}</label>
-	                <Input
+	                <label htmlFor='dstHostname' style={{paddingRight: '2em', paddingLeft: '2em'}}>{f('incidentFields.dstHostname')}</label>
+	                <TextField style={{paddingRight: '2em', paddingLeft: '2em'}}
 	                    id='dstHostname'
-	                    onChange={this.handleDataChange.bind(this, 'dstHostname')}
+	                    name='dstHostname'
+	                    // label={f('incidentFields.dstHostname')}
+	                    variant='outlined'
+	                    fullWidth={true}
+	                    size='small'
+	                    onChange={this.handleDataChangeMui}
 	                    value={dstHostname}
-	                    required={false}
-	                    validate={{
-		                    t: et
-	                    }}
-	                    readOnly={activeContent === 'viewIncident'}/>
+	                    disabled={activeContent === 'viewIncident'}/>
 	            </div>
 	        </div>
 		</div>
 	}
 
-	/**
-	 * Input validation
-	 * @method
-	 * @param {array} code - error code
-	 * @returns error message
-	 */
-	getErrorMsg = (code, {value, pattern}) => {
-		if (code[0] === 'no-match') {
-			return t('network-topology.txt-ipValidationFail');
-		}
-	}
 }
 
 EventConnections.propTypes = {

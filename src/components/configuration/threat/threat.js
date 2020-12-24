@@ -1,17 +1,19 @@
 import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
+import moment from 'moment'
 import cx from 'classnames'
 import jschardet from 'jschardet'
 import XLSX from 'xlsx';
 
+import Button from '@material-ui/core/Button';
+import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
+import ToggleButton from '@material-ui/lab/ToggleButton';
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 
 import BarChart from 'react-chart/build/src/components/bar'
-import ButtonGroup from 'react-ui/build/src/components/button-group'
-import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import LineChart from 'react-chart/build/src/components/line'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import MultiInput from 'react-ui/build/src/components/multi-input'
@@ -49,12 +51,13 @@ class ThreatIntelligence extends Component {
         type: 'IP'
       },
       datetime: {
-        from: helper.getSubstractDate(1, 'week'),
-        to: helper.getSubstractDate(1, 'day', Moment().local().format('YYYY-MM-DDTHH:mm:ss'))
+        from: helper.getSubstractDate(1, 'week', moment().local().format('YYYY-MM-DD') + 'T00:00:00'),
+        to: helper.getSubstractDate(1, 'day', moment().local().format('YYYY-MM-DD') + 'T00:00:00')
         //from: '2020-06-04T00:00:00Z',
         //to: '2020-06-04T01:00:00Z'
       },
       activeDateType: 'past7days',
+      contextAnchor: null,
       indicatorsData: null,
       indicatorsTrendData: null,
       acuIndicatorsTrendData: null,
@@ -119,27 +122,14 @@ class ThreatIntelligence extends Component {
   getChartsData = () => {
     const {baseUrl} = this.context;
     const {datetime} = this.state;
-    let dateTimeFrom = datetime.from;
-    let dateTimeTo = datetime.to;
-
-    if (datetime.from.indexOf('T') > 0) {
-      dateTimeFrom = datetime.from.substr(0, 11) + '00:00:00';
-    } else {
-      dateTimeFrom = datetime.from + 'T00:00:00';
-    }
-
-    if (datetime.to.indexOf('T') > 0) {
-      dateTimeTo = datetime.to.substr(0, 11) + '23:59:59';
-    } else {
-      dateTimeTo = datetime.to + 'T23:59:59';
-    }
-
+    const dateTimeFrom = moment(datetime.from).format('YYYY-MM-DD') + 'T00:00:00';
+    const dateTimeTo = moment(datetime.to).format('YYYY-MM-DD') + 'T23:59:59';
     const dateTime = {
-      from: Moment(dateTimeFrom).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-      to: Moment(dateTimeTo).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+      from: moment(dateTimeFrom).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: moment(dateTimeTo).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
 
-    if (Moment(dateTime.from).isAfter()) {
+    if (moment(dateTime.from).isAfter()) {
       helper.showPopupMsg(t('edge-management.txt-threatDateError'), t('txt-error'));
       return;
     }
@@ -174,7 +164,7 @@ class ThreatIntelligence extends Component {
           .forEach(key2 => {
             if (data[key][key2] > 0) {
               indicatorsTrendData.push({
-                day: parseInt(Moment(helper.getFormattedDate(key2, 'local')).format('x')),
+                day: parseInt(moment(helper.getFormattedDate(key2, 'local')).format('x')),
                 count: data[key][key2],
                 indicator: key
               })
@@ -205,7 +195,7 @@ class ThreatIntelligence extends Component {
           _.forEach(data[key], val => {
             if (val.counts > 0) {
               acuIndicatorsTrendData.push({
-                day: parseInt(Moment(helper.getFormattedDate(val.time, 'local')).format('x')),
+                day: parseInt(moment(helper.getFormattedDate(val.time, 'local')).format('x')),
                 count: val.counts,
                 indicator: key
               })
@@ -230,8 +220,8 @@ class ThreatIntelligence extends Component {
   getTodayChartsData = () => {
     const {baseUrl} = this.context;
     const dateTime = {
-      from: Moment(helper.getStartDate('day')).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-      to: Moment().utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+      from: moment(helper.getStartDate('day')).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: moment().utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     };
 
     this.ah.one({
@@ -271,8 +261,8 @@ class ThreatIntelligence extends Component {
 
       if (type === 'past7days') {
         indicatorsObj.datetime = {
-          from: helper.getSubstractDate(1, 'week'),
-          to: helper.getSubstractDate(1, 'day', Moment().local().format('YYYY-MM-DDTHH:mm:ss'))
+          from: helper.getSubstractDate(1, 'week', moment().local().format('YYYY-MM-DD') + 'T00:00:00'),
+          to: helper.getSubstractDate(1, 'day', moment().local().format('YYYY-MM-DD') + 'T00:00:00')
         };
       }
 
@@ -286,9 +276,14 @@ class ThreatIntelligence extends Component {
   /**
    * Toggle date options buttons
    * @method
+   * @param {object} event - event object
    * @param {string} type - 'today', 'past7days' or 'custom'
    */
-  toggleDateRangeButtons = (type) => {
+  toggleDateRangeButtons = (event, type) => {
+    if (!type) {
+      return;
+    }
+    
     if (type === 'today' || type === 'past7days') {
       this.clearIndicatorsData(type);
     }
@@ -300,39 +295,35 @@ class ThreatIntelligence extends Component {
   /**
    * Set new datetime
    * @method
-   * @param {object} datetime - new datetime object
+   * @param {string} type - date type ('from' or 'to')
+   * @param {object} newDatetime - new datetime object
    */
-  handleDateChange = (datetime) => {
+  handleDateChange = (type, newDatetime) => {
+    let tempDatetime = {...this.state.datetime};
+    tempDatetime[type] = newDatetime;
+
     this.setState({
-      datetime
+      datetime: tempDatetime
     });
   }
   /**
-   * Construct and display Add Threats context menu
+   * Handle open menu
    * @method
-   * @param {object} evt - mouseClick events
+   * @param {object} event - event object
    */
-  handleRowContextMenu = (evt) => {
-    const menuItems = [
-      {
-        id: 'addManually',
-        text: t('edge-management.txt-addManually'),
-        action: () => this.toggleAddThreats()
-      },
-      {
-        id: 'addMultiple',
-        text: t('edge-management.txt-addMultiple') + '(.txt)',
-        action: () => this.toggleUploadThreat()
-      },
-      {
-        id: 'importThreats',
-        text: t('edge-management.txt-importTIMAP') + '(.zip)',
-        action: () => this.toggleImportThreats()
-      }
-    ];
-
-    ContextMenu.open(evt, menuItems, 'addThreatsType');
-    evt.stopPropagation();
+  handleOpenMenu = (event) => {
+    this.setState({
+      contextAnchor: event.currentTarget
+    });
+  }
+  /**
+   * Handle close menu
+   * @method
+   */
+  handleCloseMenu = () => {
+    this.setState({
+      contextAnchor: null
+    });
   }
   /**
    * Toggle upload modal dialog on/off
@@ -352,6 +343,8 @@ class ThreatIntelligence extends Component {
         this.getChartsData();
       }
     });
+
+    this.handleCloseMenu();
   }
   /**
    * Handle file change and set the file
@@ -491,10 +484,10 @@ class ThreatIntelligence extends Component {
    * @method
    */
   handleSearchSubmit = () => {
-    const dateTimeTo = Moment(this.state.datetime.to).format('YYYY-MM-DD');
-    const yesterday = Moment(helper.getSubstractDate(1, 'day', Moment().local())).format('YYYY-MM-DD');
+    const dateTimeTo = moment(this.state.datetime.to).format('YYYY-MM-DD');
+    const yesterday = moment(helper.getSubstractDate(1, 'day', moment().local())).format('YYYY-MM-DD');
 
-    if (Moment(dateTimeTo).isAfter(yesterday)) { //Show error message
+    if (moment(dateTimeTo).isAfter(yesterday)) { //Show error message
       helper.showPopupMsg(t('edge-management.txt-threatEndTimeError'), t('txt-error'));
       return;
     } else {
@@ -518,6 +511,8 @@ class ThreatIntelligence extends Component {
     this.setState({
       addThreatsOpen: !addThreatsOpen
     });
+
+    this.handleCloseMenu();
   }
   /**
    * Handle add/remove for the add threats box
@@ -658,6 +653,10 @@ class ThreatIntelligence extends Component {
       formData.append('severity', key.toUpperCase());
 
       _.forEach(val, (val2, key2) => {
+        if (key2 === 'ipv6Array') { //Special case for IPv6
+          key2 = 'ipArray';
+        }
+
         formData.append(key2, val2.toString());
       })
 
@@ -695,6 +694,8 @@ class ThreatIntelligence extends Component {
     this.setState({
       importThreatsOpen: !this.state.importThreatsOpen
     });
+
+    this.handleCloseMenu();
   }
   /**
    * Set import threats file
@@ -764,6 +765,8 @@ class ThreatIntelligence extends Component {
         }, () => {
           this.getChartsData();
         });
+      } else if (data.ret === -1) {
+        helper.showPopupMsg('', t('txt-error'));
       }
       return null;
     })
@@ -777,6 +780,10 @@ class ThreatIntelligence extends Component {
    */
   toggleSearchThreats = () => {
     this.setState({
+      threatsSearch: {
+        keyword: '',
+        type: 'IP'
+      },
       searchThreatsOpen: !this.state.searchThreatsOpen
     });
   }
@@ -812,7 +819,7 @@ class ThreatIntelligence extends Component {
               select
               label={t('edge-management.txt-serviceMode')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={threatsSearch.type}
               onChange={this.handleThreatsChange}>
@@ -830,13 +837,13 @@ class ThreatIntelligence extends Component {
               className='search-keyword'
               name='keyword'
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={threatsSearch.keyword}
               onChange={this.handleThreatsChange} />
           </div>
           <div className='button-group'>
-            <button className='btn' onClick={this.handleThreatsSearch.bind(this, 'search')}>{t('txt-search')}</button>
+            <Button variant='contained' color='primary' className='btn' onClick={this.handleThreatsSearch.bind(this, 'search')}>{t('txt-search')}</Button>
           </div>
         </div>
 
@@ -862,7 +869,7 @@ class ThreatIntelligence extends Component {
    */
   searchThreatsDialog = () => {
     const actions = {
-      cancel: {text: t('txt-close'), className: 'standard', handler: this.toggleSearchThreats}
+      confirm: {text: t('txt-close'), handler: this.toggleSearchThreats}
     };
 
     return (
@@ -873,7 +880,7 @@ class ThreatIntelligence extends Component {
         draggable={true}
         global={true}
         actions={actions}
-        closeAction='cancel'>
+        closeAction='confirm'>
         {this.displaySearchThreatsContent()}
       </ModalDialog>
     )
@@ -924,15 +931,25 @@ class ThreatIntelligence extends Component {
   handleThreatsSearch = (fromSearch, type, allValue) => {
     const {baseUrl, contextRoot} = this.context;
     const {threatsSearch, threats} = this.state;
+    const page = fromSearch === 'search' ? 1 : threats.currentPage;
 
     if (!threatsSearch.keyword) {
-      helper.showPopupMsg(t('txt-plsEnterKeyword'));
+      helper.showPopupMsg(t('txt-plsEnterKeyword'), t('txt-error'));
       return;
+    }
+
+    if (threatsSearch.type === 'URL') { //Handle special case for URL
+      const pattern = /:\/\//;
+
+      if (pattern.test(threatsSearch.keyword)) {
+        helper.showPopupMsg(t('edge-management.txt-urlErrorMsg'), t('txt-error'));
+        return;
+      }
     }
 
     let apiArr = [
       {
-        url: `${baseUrl}/api/indicators/_search?text=${threatsSearch.keyword}&threatTypeArray=${threatsSearch.type}&page=${threats.currentPage}&pageSize=${threats.pageSize}`,
+        url: `${baseUrl}/api/indicators/_search?text=${threatsSearch.keyword}&threatTypeArray=${threatsSearch.type}&page=${page}&pageSize=${threats.pageSize}`,
         type: 'GET'
       }
     ];
@@ -971,7 +988,7 @@ class ThreatIntelligence extends Component {
         let tempThreats = {...threats};
         tempThreats.dataContent = data[threatsSearch.type].rows;
         tempThreats.totalCount = data[threatsSearch.type].counts;
-        tempThreats.currentPage = fromSearch === 'search' ? 1 : threats.currentPage;
+        tempThreats.currentPage = page;
 
         let dataFields = {};
         threats.dataFieldsArr.forEach(tempData => {
@@ -1035,7 +1052,7 @@ class ThreatIntelligence extends Component {
           this.handleThreatsSearch('', 'delete', allValue);
         }
       }
-    })
+    });
   }
   /**
    * Show pie chart
@@ -1090,8 +1107,8 @@ class ThreatIntelligence extends Component {
     return (
       <section>
         <span>{t('txt-indicator')}: {data[0].indicator}<br /></span>
-        <span>{t('txt-date')}: {Moment(data[0].day, 'x').utc().format('YYYY/MM/DD')}<br /></span>
-        <span>{t('txt-count')}: {data[0].count}</span>
+        <span>{t('txt-date')}: {moment(data[0].day).format('YYYY/MM/DD')}<br /></span>
+        <span>{t('txt-count')}: {helper.numberWithCommas(data[0].count)}</span>
       </section>
     )
   }
@@ -1124,22 +1141,21 @@ class ThreatIntelligence extends Component {
               enabled:true
             }}
             data={indicatorsData}
-            onTooltip={this.onTooltip}
             dataCfg={{
               x: 'day',
               y: 'count',
               splitSeries: 'indicator'
             }}
             xAxis={{
-              type: 'datetime',
-              dateTimeLabelFormats: {
-                day: '%Y-%m-%d'
-              }
+              type: 'datetime'
             }}
             plotOptions={{
               series: {
                 maxPointWidth: 20
               }
+            }}
+            tooltip={{
+              formatter: this.onTooltip
             }} />
         }
       </div>
@@ -1172,17 +1188,16 @@ class ThreatIntelligence extends Component {
               enabled: true
             }}
             data={indicatorsData}
-            onTooltip={this.onTooltip}
             dataCfg={{
               x: 'day',
               y: 'count',
               splitSeries: 'indicator'
             }}
             xAxis={{
-              type: 'datetime',
-              dateTimeLabelFormats: {
-                day: '%Y-%m-%d'
-              }
+              type: 'datetime'
+            }}
+            tooltip={{
+              formatter: this.onTooltip
             }} />
         }
       </div>
@@ -1193,6 +1208,7 @@ class ThreatIntelligence extends Component {
     const {
       datetime,
       activeDateType,
+      contextAnchor,
       indicatorsData,
       indicatorsTrendData,
       acuIndicatorsTrendData,
@@ -1223,15 +1239,15 @@ class ThreatIntelligence extends Component {
         }
 
         <div className='sub-header edge-options'>
-          <ButtonGroup
+          <ToggleButtonGroup
             id='edgeBtns'
-            list={[
-              {value: 'today', text: t('edge-management.txt-today')},
-              {value: 'past7days', text: t('edge-management.txt-past7days')},
-              {value: 'custom', text: t('edge-management.txt-customDate')}
-            ]}
             value={activeDateType}
-            onChange={this.toggleDateRangeButtons} />
+            exclusive
+            onChange={this.toggleDateRangeButtons}>
+            <ToggleButton value='today'>{t('edge-management.txt-today')}</ToggleButton>
+            <ToggleButton value='past7days'>{t('edge-management.txt-past7days')}</ToggleButton>
+            <ToggleButton value='custom'>{t('edge-management.txt-customDate')}</ToggleButton>
+          </ToggleButtonGroup>
 
           {activeDateType === 'custom' &&
             <SearchOptions
@@ -1251,8 +1267,17 @@ class ThreatIntelligence extends Component {
             <div className='main-content'>
               <header className='main-header'>{t('txt-threatIntelligence')}</header>
               <div className='content-header-btns'>
-                <button className='standard btn' onClick={this.handleRowContextMenu}><span>{t('edge-management.txt-addThreat')}</span></button>
-                <button className='standard btn' onClick={this.toggleSearchThreats}>{t('edge-management.txt-searchThreat')}</button>
+                <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu}><span>{t('edge-management.txt-addThreat')}</span></Button>
+                <Menu
+                  anchorEl={contextAnchor}
+                  keepMounted
+                  open={Boolean(contextAnchor)}
+                  onClose={this.handleCloseMenu}>
+                  <MenuItem onClick={this.toggleAddThreats}>{t('edge-management.txt-addManually')}</MenuItem>
+                  <MenuItem onClick={this.toggleUploadThreat}>{t('edge-management.txt-addMultiple') + '(.txt)'}</MenuItem>
+                  <MenuItem onClick={this.toggleImportThreats}>{t('edge-management.txt-importTIMAP') + '(.zip)'}</MenuItem>
+                </Menu>
+                <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleSearchThreats}>{t('edge-management.txt-searchThreat')}</Button>
               </div>
 
               <div className='main-statistics'>

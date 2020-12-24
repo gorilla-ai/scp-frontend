@@ -37,7 +37,7 @@ class IpRange extends Component {
           select
           variant='outlined'
           size='small'
-          required={true}
+          required
           value={value.type}
           onChange={this.handleDataChange}
           disabled={activeContent === 'viewMode'}>

@@ -2,23 +2,44 @@ import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
+import moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 import Promise from 'bluebird'
 
-import DateRange from 'react-ui/build/src/components/date-range'
+import Button from '@material-ui/core/Button'
+import Container from '@material-ui/core/Container'
+import Dialog from '@material-ui/core/Dialog'
+import DialogActions from '@material-ui/core/DialogActions'
+import DialogContent from '@material-ui/core/DialogContent'
+import DialogContentText from '@material-ui/core/DialogContentText'
+import DialogTitle from '@material-ui/core/DialogTitle'
+import FormControlLabel from '@material-ui/core/FormControlLabel'
+import Grid from '@material-ui/core/Grid'
+import MenuItem from '@material-ui/core/MenuItem'
+import Select from '@material-ui/core/Select'
+import Switch from '@material-ui/core/Switch'
+import TextField from '@material-ui/core/TextField'
+import Typography from '@material-ui/core/Typography'
+
+import BlurLinearIcon from '@material-ui/icons/BlurLinear'
+import CloudDownloadIcon from '@material-ui/icons/CloudDownload'
+
 import Progress from 'react-ui/build/src/components/progress'
 
 import SearchOptions from '../common/search-options'
-import {BaseDataContext} from '../common/context';
+import {BaseDataContext} from '../common/context'
 import helper from '../common/helper'
 
 import {downloadLink} from 'react-ui/build/src/utils/download'
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 import {HOC} from 'widget-builder'
 
-import htmlToImage from 'html-to-image'
+
+import * as htmlToImage from 'html-to-image'
+import { toPng, toJpeg, toBlob, toPixelData, toSvg } from 'html-to-image'
+ 
+
 
 let t = null
 let et = null
@@ -36,37 +57,61 @@ const INIT = {
     searchType: 'manual',
     searchInterval: '1h',
     refreshTime: '600000' //10 minutes
-  }
+  },
+  openLayout: false,
+  openEdit: false,
+  oneFlag: false,
+  layoutConfig: {
+    display: {},
+    position: []
+  },
+  displayContent: {},
+  intervalArray: ['10m', '1h'],
+  intervalValue: '10m'
 }
 
 class StatisticsUIF extends Component {
 	constructor(props) {
 		super(props)
 
-	    t = global.chewbaccaI18n.getFixedT(null, 'connections')
-	    et = global.chewbaccaI18n.getFixedT(null, 'errors')
-	    this.ah = getInstance('chewbacca')
+    t = global.chewbaccaI18n.getFixedT(null, 'connections')
+    et = global.chewbaccaI18n.getFixedT(null, 'errors')
+    this.ah = getInstance('chewbacca')
 
-      this.state = _.cloneDeep(INIT)
+    this.state = _.cloneDeep(INIT)
 	}
   componentDidMount() {
     const datetime = {
-      from: helper.getSubstractDate(1, 'days', Moment().local()),
-      to: Moment().local().format('YYYY-MM-DDTHH:mm:ss')
+      from: helper.getSubstractDate(1, 'days', moment().local()),
+      to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
     }
 
-    this.setState({datetime}, () => {
-      this.loadUIF()  
+    this.setState({datetime, oneFlag: false}, () => {
+      this.loadLayoutCfg()
     })
   }
   componentWillUnmount() {
 
   }
+  loadLayoutCfg = () => {
+    const {baseUrl, session} = this.context
+
+    this.ah.one({url: `${baseUrl}/api/dashboard/layout/_get?accountId=${session.accountId}`})
+    .then(data => {
+      this.setState({layoutConfig: data}, () => {
+        this.loadUIF()
+      })
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message)
+    })
+  }
+
   loadUIF = () => {
     const {baseUrl, session} = this.context
     const url = `${baseUrl}/api/uif?id=SCP-Overview`
 
-    let {datetime} = this.state
+    let {datetime, intervalValue, oneFlag, layoutConfig} = this.state
     let appendConfig = {}
 
     this.ah.one({url})
@@ -85,11 +130,11 @@ class StatisticsUIF extends Component {
             _.includes(newUrl, '?') ? newUrl += '&' : newUrl += '?'
 
             if (_.includes(param, 'startDttm')) {
-              const startDttm = Moment(datetime.from, 'YYYY-MM-DD hh:mm:ss').utc().format('YYYY-MM-DDTHH:mm:ss[Z]')
+              const startDttm = moment(datetime.from, 'YYYY-MM-DD hh:mm:ss').utc().format('YYYY-MM-DDTHH:mm:ss[Z]')
               newUrl += `startDttm=${startDttm}`
             }
             else if (_.includes(param, 'endDttm')) {
-              const endDttm = Moment(datetime.to, 'YYYY-MM-DD hh:mm:ss').utc().format('YYYY-MM-DDTHH:mm:ss[Z]')
+              const endDttm = moment(datetime.to, 'YYYY-MM-DD hh:mm:ss').utc().format('YYYY-MM-DDTHH:mm:ss[Z]')
               newUrl += `endDttm=${endDttm}`
             }
             else if (_.includes(param, 'accountId')) {
@@ -97,6 +142,9 @@ class StatisticsUIF extends Component {
             }
             else if (_.includes(param, 'timeZone')) {
               newUrl += `timeZone=8` 
+            }
+            else if (_.includes(param, 'histogramInterval')) {
+              newUrl += `histogramInterval=${intervalValue}` 
             }
             else {
               newUrl += param
@@ -112,7 +160,7 @@ class StatisticsUIF extends Component {
           _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.xAxis`], {
             labels: {
               formatter() {
-                return Moment(this.value, 'x').local().format('MM/DD HH:mm')
+                return moment(this.value, 'x').local().format('MM/DD HH:mm')
               }
             }
           })
@@ -123,7 +171,7 @@ class StatisticsUIF extends Component {
           _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.xAxis`], {
             labels: {
               formatter() {
-                return Moment(this.value, 'x').local().format('MM/DD HH:mm')
+                return moment(this.value, 'x').local().format('MM/DD HH:mm')
               }
             }
           })
@@ -133,22 +181,77 @@ class StatisticsUIF extends Component {
           _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.onTooltip`], this.onTooltip.bind(this, 'MaskedIPAlertStatistics-bar'))
         }
 
+        if (widgetName === 'honeypotLoginPassword-table') {
+          _.set(appendConfig, [`config.widgets.${widgetName}.widgetConfig.config.fields.password.formatter`], this.formatter.bind(this))
+        }
+
       })
 
-      this.setState({appendConfig, uifCfg})
+      // set display
+      let displayContent = {}
+      _.forEach(uifCfg.config.widgets, (content, key) => {
+        let type = _.get(content.widgetConfig, 'type')
+        type = type.substring(type.indexOf('/') + 1)
+        let label = `${content.boxTitle}(${type})`
+
+        displayContent[key] = label
+      })
+      
+      _.set(uifCfg, 'config.onLayoutChange', this.positionChange)
+
+      // overwrite uifcfg
+      _.forEach(appendConfig, (v, k) => {
+        _.set(uifCfg, k, v)
+      })
+
+      // set position
+      _.forEach(layoutConfig.position, el => {
+        _.set(uifCfg, `config.widgets.${el.id}.layout`, el)
+      })
+
+      this.setState({appendConfig, uifCfg, displayContent}, () => {
+        oneFlag && this.hoc.forceRefresh()
+      })
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message)
     })
   }
-  handleChange(field, value) {
+  handleChange = (field, value) => {
     this.setState({[field]: value})
   }
-  handleDateChange = (datetime, refresh) => {
+  handleDateChange = (type, newDatetime) => {
+    let tempDatetime = {...this.state.datetime};
+
+    if (type === 'customTime' || type === 'refresh') {
+      tempDatetime.from = newDatetime.from;
+      tempDatetime.to = newDatetime.to;
+    } else {
+      tempDatetime[type] = newDatetime;
+    }
+
+    let period = moment(tempDatetime.to).diff(moment(tempDatetime.from))
+    let intervalArray = []
+
+    if (period <= 8640000) {
+      intervalArray = ['10m', '1h']
+    }
+    else if (8640000 < period && period <= 604800000) {
+      intervalArray = ['1h', '12h', '1d']
+    }
+    else if (604800000 < period && period <= 2419200000) {
+      intervalArray = ['12h', '1d']
+    }
+    else {
+      intervalArray = ['1d']
+    }
+
+    let intervalValue = intervalArray[0]
+
     this.setState({
-      datetime
+      datetime: tempDatetime, intervalArray, intervalValue
     }, () => {
-      if (refresh === 'refresh') {
+      if (type === 'refresh') {
         this.loadUIF()
       }
     });
@@ -172,17 +275,27 @@ class StatisticsUIF extends Component {
       }
     }
   }
+  formatter = (value) => {
+    return <div dangerouslySetInnerHTML={{__html: value}} />
+  }
   onTooltip = (type, eventInfo, data) => {
     if (type === 'AlertStatistics-bar') {
       return <section>
         <span>{t('txt-severity')}: {data[0].severity}<br /></span>
-        <span>{t('txt-time')}: {Moment(data[0].key, 'x').local().format('YYYY/MM/DD HH:mm:ss')}<br /></span>
-        <span>{t('txt-count')}: {data[0].doc_count}</span>
+        <span>{t('txt-time')}: {moment(data[0].key, 'x').local().format('YYYY/MM/DD HH:mm:ss')}<br /></span>
+        <span>{t('txt-count')}: {helper.numberWithCommas(data[0].doc_count)}</span>
       </section>
     }
-    if (type === 'CustomAlertStatistics') {
+    else if (type === 'CustomAlertStatistics') {
       return <section>
         <span>{t('dashboard.txt-patternName')}: {data[0].patternName}<br /></span>
+        <span>{t('txt-time')}: {moment(data[0].key, 'x').local().format('YYYY/MM/DD HH:mm:ss')}<br /></span>
+        <span>{t('txt-count')}: {helper.numberWithCommas(data[0].doc_count)}</span>
+      </section>
+    }
+    else if (type === 'CustomAccountQueryAlertStatistics') {
+      return <section>
+        <span>{t('dashboard.txt-patternName')}: {data[0].QueryFilterName}<br /></span>
         <span>{t('txt-time')}: {Moment(data[0].key, 'x').local().format('YYYY/MM/DD HH:mm:ss')}<br /></span>
         <span>{t('txt-count')}: {data[0].doc_count}</span>
       </section>
@@ -190,7 +303,7 @@ class StatisticsUIF extends Component {
     else if (type === 'MaskedIPAlertStatistics-bar') {
       return <section>
         <span>{t('txt-subnet')}: {data[0].subnet}<br /></span>
-        <span>{t('txt-count')}: {data[0].doc_count}</span>
+        <span>{t('txt-count')}: {helper.numberWithCommas(data[0].doc_count)}</span>
       </section>
     } 
   }
@@ -204,18 +317,23 @@ class StatisticsUIF extends Component {
 
     cfg.data = _.map(uifCfg.config.widgets, (v, k) => {
       return {
-        name: `${k}.jpg`,
-        width: v.layout.w * 2,
-        x: v.layout.x * 2,
-        y: v.layout.y,
-        type: 'image'
+        display_setting: {
+          x: v.layout.x * 2,
+          y: v.layout.y * 2,
+          width: v.layout.w * 2,
+          height: v.layout.h * 2
+        },
+        content_setting: {
+          type: 'image',
+          value: `${k}.jpg`
+        }
       }
     })
 
     const {baseUrl, contextRoot} = this.context
 
-    Promise.all(_.map(uifCfg.config.widgets, (value, chart) => {
-      return htmlToImage.toPng(document.getElementById(chart))
+    _.forEach(uifCfg.config.widgets, (value, chart) => {
+      htmlToImage.toPng(document.getElementById(chart))
       .then(function(dataUrl) {
           const imgArray = dataUrl.split(',')
           const mime = imgArray[0].match(/:(.*?);/)[1]
@@ -226,68 +344,231 @@ class StatisticsUIF extends Component {
           while (n--) {
             u8arr[n] = bstr.charCodeAt(n)
           }
-          return new File([u8arr], `${chart}.jpg`, {type: mime})
-      })
-    }))
-    .then(files => {
-      let formData = new FormData()
-      formData.append('config_string', JSON.stringify(cfg))
+          const img = new File([u8arr], `${chart}.jpg`, {type: mime})
 
-      _.forEach(files, file => {
-        formData.append('files', file)
-      })
-      
-      this.ah.one({
-        url: `${baseUrl}/api/pdf/_relay`,
-        data: formData,
-        type: 'POST',
-        dataType: 'JSON',
-        processData: false,
-        contentType: false
-      })
-      .then(data => {
-        downloadLink(`${baseUrl}${contextRoot}/api/pdf/_download`)
+          let formData = new FormData()
+          formData.append('file', img)
+          formData.append('config_string', JSON.stringify(cfg))
+          formData.append('size', _.size(cfg.data))
+
+          ah.one({
+            url: `${baseUrl}/api/pdf/_relay2`,
+            data: formData,
+            type: 'POST',
+            dataType: 'JSON',
+            processData: false,
+            contentType: false
+          })
+          .then(data => {
+            if (data.rt) {
+              downloadLink(`${baseUrl}${contextRoot}/api/pdf/_download`)
+
+              Progress.done()
+            }
+          })
+          .catch(err => {
+            helper.showPopupMsg('', t('txt-error'), err.message)
+          })
       })
       .catch(err => {
         helper.showPopupMsg('', t('txt-error'), err.message)
       })
     })
-    .finally(() => {
-      Progress.done()
+
+
+    // Promise.all(_.map(uifCfg.config.widgets, (value, chart) => {
+    //   return htmlToImage.toPng(document.getElementById(chart))
+    //   .then(function(dataUrl) {
+    //       const imgArray = dataUrl.split(',')
+    //       const mime = imgArray[0].match(/:(.*?);/)[1]
+    //       const bstr = atob(imgArray[1])
+    //       let n = bstr.length
+    //       let u8arr = new Uint8Array(n)
+
+    //       while (n--) {
+    //         u8arr[n] = bstr.charCodeAt(n)
+    //       }
+    //       return new File([u8arr], `${chart}.jpg`, {type: mime})
+    //   })
+    // }))
+    // .then(files => {
+    //   let formData = new FormData()
+    //   formData.append('config_string', JSON.stringify(cfg))
+
+    //   _.forEach(files, file => {
+    //     formData.append('files', file)
+    //   })
+      
+    //   this.ah.one({
+    //     url: `${baseUrl}/api/pdf/_relay`,
+    //     data: formData,
+    //     type: 'POST',
+    //     dataType: 'JSON',
+    //     processData: false,
+    //     contentType: false
+    //   })
+    //   .then(data => {
+    //     downloadLink(`${baseUrl}${contextRoot}/api/pdf/_download`)
+    //   })
+    //   .catch(err => {
+    //     helper.showPopupMsg('', t('txt-error'), err.message)
+    //   })
+    // })
+    // .finally(() => {
+    //   Progress.done()
+    // })
+  }
+
+  positionChange = (event) => {
+    let {layoutConfig, oneFlag} = this.state
+    layoutConfig.position = event
+
+    if (oneFlag) {
+      this.setState({layoutConfig, openEdit: true})
+    }
+    else {
+      this.setState({layoutConfig, oneFlag: true})
+    }
+  }
+  displayChange(name, value) {
+    let {layoutConfig} = this.state
+    layoutConfig = _.set(layoutConfig, `display.${name}`, value)
+    
+    let chart = document.getElementById(name)
+    chart.parentNode.style.visibility = value ? 'visible' : 'hidden'
+
+    this.setState({layoutConfig, openEdit: true})
+  }
+  openLayoutDialog() {
+    this.setState({openLayout: true})
+  }
+  cancelLayout = () => {
+    const {openEdit} = this.state
+    this.setState({openLayout: false}, () => {
+      // openEdit && this.loadUIF()
     })
   }
+  saveLayout = () => {
+    const {baseUrl, session} = this.context
+    const {layoutConfig} = this.state
+
+    this.ah.one({
+      url: `${baseUrl}/api/dashboard/layout/_set?accountId=${session.accountId}`,
+      data: JSON.stringify(layoutConfig),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      this.setState({openLayout: false, openEdit: false, oneFlag: false}, () => {
+        // this.hoc.forceRefresh()
+      })
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message)
+    })
+  }
+
+
 	render() {
     const {locale} = this.context
-    const {appendConfig, datetime, searchInput} = this.state
+    let {appendConfig, datetime, searchInput, uifCfg, openLayout, openEdit, layoutConfig, displayContent, intervalArray, intervalValue} = this.state
+
+    _.forEach(layoutConfig.display, (isDisplay, key) => {
+      if (!isDisplay) {
+        let chart = document.getElementById(key)
+
+        if (chart) {
+          let charts = chart.parentNode
+          charts.style.visibility = 'hidden'
+        }
+      }
+    })
 
 		return <div>
 			<div className='sub-header'>
-				{helper.getDashboardMenu('statisticsUIF')}
-
-        <div className='secondary-btn-group right'>
-          <button className='last' title={t('txt-export')} onClick={this.exportPDF.bind(this)} ><i className='fg fg-data-download'></i></button>
-        </div>
-
-        <SearchOptions
-          datetime={datetime}
-          searchInput={searchInput}
-          enableTime={true}
-          showInterval={true}
-          setSearchData={this.setSearchData}
-          handleDateChange={this.handleDateChange}
-          handleSearchSubmit={this.loadUIF} />
+        <Grid container justify='space-between'>
+          <Grid item xs={3}>
+            {helper.getDashboardMenu('statisticsUIF')}
+          </Grid>
+          <Grid item xs={9}>
+            <Grid container justify='flex-end'>
+              <Grid item className='secondary-btn-group'>
+                <Button variant='outlined' color='primary' title={t('txt-export')} onClick={this.exportPDF.bind(this)} ><CloudDownloadIcon /></Button>
+                <Button variant='outlined' color='primary' title={t('txt-layout-setting')} onClick={this.openLayoutDialog.bind(this)} ><BlurLinearIcon /></Button>
+              </Grid>
+              <Grid item>
+                <div className='search-options'>
+                  <TextField
+                    className='search-type'
+                    select
+                    variant='outlined'
+                    size='small'
+                    value={intervalValue}
+                    onChange={(event) => this.handleChange('intervalValue', event.target.value)} >
+                    {
+                      _.map(intervalArray, el => {
+                        return <MenuItem key={el} value={el}>{t(`time-interval.txt-chart-interval`)}{t(`time-interval.txt-${el}`)}</MenuItem>
+                      })
+                    }
+                  </TextField>
+                </div>
+              </Grid>
+              <Grid item>
+                <SearchOptions
+                  datetime={datetime}
+                  searchInput={searchInput}
+                  enableTime={true}
+                  showInterval={true}
+                  setSearchData={this.setSearchData}
+                  handleDateChange={this.handleDateChange}
+                  handleSearchSubmit={this.loadUIF} />
+              </Grid>
+            </Grid>
+          </Grid>
+        </Grid>
       </div>
+
+      {
+        openEdit &&
+        <Grid container style={{backgroundColor: 'white', padding: '5px'}} justify='center' alignItems='center'>
+            <Typography color='error' display='inline'>{t('txt-layout-change')}</Typography>&nbsp;&nbsp;&nbsp;
+            <Button variant='outlined' color='primary' onClick={this.handleChange.bind(this, 'openEdit', false)} >{t('txt-cancel')}</Button>&nbsp;&nbsp;&nbsp;
+            <Button variant='outlined' color='primary' onClick={this.saveLayout.bind(this)} >{t('txt-save')}</Button>
+        </Grid>
+      }
+
       {
         !_.isEmpty(appendConfig) &&
         <div className='uif-dashboard'>
-           <HOC $id={'dashboard/SCP-Overview'} $appendConfig={appendConfig} />
+           <HOC ref={ref => { this.hoc=ref }} {...uifCfg} />
         </div>
       }
+
+      <Dialog maxWidth='lg' open={openLayout} onClose={this.cancelLayout} >
+        <DialogTitle>{t('txt-layout-setting')}</DialogTitle>
+        <DialogContent>
+          <Grid container>
+          {
+            _.map(displayContent, (label, key) => {
+              return <Grid item xs={4}>
+                <FormControlLabel label={label} control={
+                  <Switch name={key} checked={_.get(layoutConfig, `display.${key}`) === false ? false : true} 
+                    onChange={(event) => this.displayChange(key, event.target.checked)} />
+                } />
+              </Grid>
+            })
+          }
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={this.cancelLayout} color='primary'>{t('txt-close')}</Button>
+        </DialogActions>
+      </Dialog>
 		</div>
 	}
 }
 
-StatisticsUIF.contextType = BaseDataContext;
+StatisticsUIF.contextType = BaseDataContext
 
 StatisticsUIF.propTypes = {
 }

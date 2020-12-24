@@ -148,47 +148,19 @@ button {
   &[disabled] {
     border: 1px solid var(--primaryBorder);
   }
-  &:hover:not([disabled]) {
-    background-color: var(--buttonSelectedColor);
-  }
   &.standard {
-    &:hover:not([disabled]) {
-      background-color: var(--buttonHoverColor);
-    }
     color: var(--buttonTextColor);
     background-color: var(--buttonBackground);
   }
 }
-.pure-form input,
-.pure-form select,
-.pure-form textarea,
-.c-file-input > input[type='text']:read-only {
-  color: var(--primaryTextColor);
-  border: 1px solid var(--formInputBorderColor);
-  background-color: var(--formBackground);
+button.standard:hover:not([disabled]) {
+  background-color: var(--formBackground) !important;
 }
-.pure-form input[type=text],
-.pure-form input[type=password],
-.pure-form input[type=email] {
-  border: 1px solid var(--formInputBorderColor);
+.MuiButton-contained {
+  box-shadow: none !important;
 }
-.pure-form input[readonly],
-.pure-form select[readonly],
-.pure-form textarea[readonly] {
-  color: var(--formReadOnlyColor);
-  border: 1px solid var(--formReadOnlyBorderColor);
-  background-color: var(--formReadOnlyBackground);
-}
-.pure-form input[type='radio']:checked {
-  border: 6px solid var(--formCheckRadioColor);
-  &:hover {
-    border: 6px solid var(--pageCurrentHover);
-  }
-}
-.MuiPaper-root {
-  button:hover:not([disabled]) {
-    background: none !important;
-  }
+.MuiPickersDay-day:hover {
+  color: #fff !important;
 }
 .MuiInputBase-root {
   input {
@@ -196,41 +168,41 @@ button {
     border: none !important;
   }
 }
-.c-tabs > .menu {
-  border-bottom: 1.5px solid var(--leftNavBackground);
+.MuiAutocomplete-root {
+  .MuiIconButton-root:hover {
+    background: none;
+  }
+}
+.MuiToggleButton-label {
+  text-transform: none !important;
+  font-weight: normal !important;
+}
+.MuiToggleButton-root {
+  font-size: 1rem !important;
+  padding: 2px !important;
+  padding-left: 25px !important;
+  padding-right: 25px !important;
+}
+.MuiToggleButtonGroup-groupedHorizontal:not(:first-child) {
+  border-left: 1px solid var(--primaryBorder) !important;
+}
+.MuiTabs-root {
   background-color: var(--primaryContentBackground);
-  li {
-    color: var(--tabMenuText);
-    border-color: var(--primaryContentHeader);
-    background-color: var(--primaryContentBackground);
-    &:hover {
-      background-color: var(--tabMenuHover);
-    }
-  }
-  .current {
-    color: var(--primaryContentHeader);
-    background-color: var(--primaryContentBackground);
-    border-color: var(--primaryContentHeader);
+  border-bottom: 1.5px solid var(--leftNavBackground);
+  button {
+    font-size: 1.1em;
+    font-weight: bold;
+    min-width: 115px;
   }
 }
-.c-combo-list .list-item:hover {
+.MuiAutocomplete-listbox {
   color: var(--primaryTextColor);
-  background-color: var(--tabMenuHover);
+  background-color: var(--primaryContentBackground);
+  border: 1px solid var(--primaryBorder);
 }
-.c-popover,
-.pure-form legend {
+.c-popover {
   color: var(--primaryTextColor) !important;
   background-color: var(--primaryContentBackground) !important;
-}
-.c-tree {
-  ul li:last-child:before {
-    background: var(--primaryContentBackground);
-  }
-  .selected,
-  .branch:hover:not(.selected) {
-    color: var(--primaryContentHeader);
-  }
-  background-color: var(--primaryContentBackground);
 }
 .c-table {
   thead {
@@ -251,11 +223,15 @@ button {
     background-color: var(--tabMenuHover) !important;
   }
 }
-.c-combobox {
+.c-combo-list {
   input[type=text] {
     color: var(--primaryTextColor);
     border: 1px solid var(--formInputBorderColor);
     background-color: var(--formBackground);
+  }
+  .list-item:hover {
+    color: var(--primaryTextColor);
+    background-color: var(--tabMenuHover);
   }
 }
 .c-multi {
@@ -263,20 +239,6 @@ button {
   .fg-close {
     max-height: 40px;
   }
-}
-.c-menu {
-  border: 1px solid var(--primaryBorder);
-  &.sub {
-    background-color: var(--primaryContentBackground);
-  }
-  &.sub > * {
-    color: var(--primaryTextColor);
-    border-bottom: 1px solid var(--primaryContentBackground);
-    &:hover {
-      border-bottom: 1px solid var(--primaryContentBackground);
-      background-color: var(--tabMenuHover);
-    }
-  }  
 }
 .c-toggle-btn > input[type=checkbox] + div {
   background: var(--fadedColor);
@@ -296,6 +258,16 @@ button {
   &.right {
     float: right;
     margin-top: 1px;
+  }
+  &.menu {
+    .thumb {
+      padding: 0;
+      a {
+        width: 100%;
+        height: 100%;
+        padding: 0.3em 25px 0.5em 25px;
+      }
+    }
   }
   .thumb {
     padding-left: 25px;
@@ -333,65 +305,6 @@ button {
       border-radius: 0 4px 4px 0;
     }
   }
-  &.menu {
-    .thumb {
-      padding: 0;
-      a {
-        width: 100%;
-        height: 100%;
-        padding: 0.3em 25px 0.5em 25px;
-      }
-    }
-  }
-}
-.c-contextmenu {
-  position: absolute;
-}
-i.c-checkbox.fg-checkbox {
-  color: var(--buttonSelectedColor);
-  &:hover:not(.disabled) {
-    color: var(--pageCurrentHover);
-  }
-}
-.c-hierarchy {
-  background: none;
-  .node:hover:not(.current) {
-    color: var(--primaryContentHeader);
-  }
-  &.tree {
-    width: 100%;
-    padding: 10px 5px;
-    border-radius: 5px;
-    background-color: var(--leftTreeGroup);
-    .branch,
-    .leaf {
-      padding: 0 0 0 .7em;
-    }
-    & > .branch,
-    & > .leaf {
-      padding-left: 0;
-    }
-    i.c-checkbox {
-      color: var(--buttonSelectedColor);
-      &.fg-checkbox {
-        &.partial {
-          color: #a6a6a6;
-        }
-      }
-      &.fg-checkbox-outline:active:not(.disabled),
-      &.fg-checkbox-outline:hover:not(.disabled) {
-        color: var(--chartAxisLabelColor);
-      }
-    }
-    .children .branch:before,
-    .leaf:before {
-      width: .7em;
-    }
-    .children .branch:last-child:before,
-    .leaf:last-child:before {
-      background-color: var(--leftTreeGroup);
-    }
-  }
 }
 .c-page-nav .thumb {
   &:not(.selected) {
@@ -420,9 +333,6 @@ i.c-checkbox.fg-checkbox {
       background-color: var(--pageCurrentHover);
     }
   }
-}
-.c-date-picker i.fg {
-  height: 35px;
 }
 .c-box {
   border: 1px solid var(--primaryBorder);
@@ -602,9 +512,61 @@ i.c-checkbox.fg-checkbox {
   }
 }
 #app-container {
+  .react-grid-layout {
+    background-color: var(--primaryBackground);
+  }
+  .checkboxes-tags {
+    &.groups input {
+      width: 0 !important;
+    }
+  }
+  .textarea-autosize {
+    min-height: 40px !important;
+    padding: 8px 10px;
+    color: var(--primaryTextColor);
+    border: 1px solid var(--formInputBorderColor);
+    background-color: var(--formBackground);
+    border-radius: 4px;
+    width: 100%;
+  }
   .checkbox-ui,
   .radio-ui {
-    padding: 0px 5px 5px 5px;
+    padding: 0px 2px 5px 5px;
+  }
+  .date-time-picker,
+  .date-picker {
+    float: left;
+    margin-right: 10px;
+    input {
+      padding: 8px;
+    }
+    .MuiInputBase-root {
+      background-color: var(--buttonBackground);
+    }
+    .MuiIconButton-root {
+      color: var(--primaryTextColor) !important;
+      &:hover {
+        background-color: rgba(0, 0, 0, 0) !important;
+      }
+    }
+  }
+  .date-time-picker input {
+    width: 125px !important;
+  }
+  .date-picker input {
+    width: 85px !important;
+  }
+  .between {
+    float: left;
+    margin-top: 5px;
+    margin-right: 10px;
+  }
+  .file-input {
+    input[type=text] {
+      padding-left: 10px;
+      background-color: var(--formBackground);
+      border: 1px solid var(--formInputBorderColor);
+    }
   }
   .sub-header { //The blue bar
     position: relative;
@@ -651,7 +613,7 @@ i.c-checkbox.fg-checkbox {
         margin-left: 5px;
       }
     }
-    .date-time {
+    .date-time-display {
       position: absolute;
       top: 10px;
       right: 15px;
@@ -695,22 +657,13 @@ i.c-checkbox.fg-checkbox {
       }
       .datepicker {
         float: left;
-        input {
-          padding-left: 10px;
-        }
-        .date-range,
-        .date-picker {
-          margin-right: 15px;
-        }
-        .fg {
-          border: none;
-        }
       }
       #dateTime-from,
       #dateTime-to {
         padding: 0.5em;
       }
       .search-button {
+        height: 32px;
         margin-top: 2px;
         background-color: var(--buttonSelectedColor);        
       }
@@ -1131,7 +1084,7 @@ i.c-checkbox.fg-checkbox {
       border: 1px solid var(--primaryBorder);
       border-radius: 5px;
       background-color: var(--primaryContentBackground);
-      .c-button-group {
+      .button-group {
         margin: 5px 8px;
       }
       .drop-down {
@@ -1230,9 +1183,46 @@ i.c-checkbox.fg-checkbox {
       }
       &.tree {
         padding: 10px 25px 10px 10px;
+        .tree-view {
+          width: 100%;
+          padding: 10px 5px;
+          border-radius: 5px;
+          background-color: var(--leftTreeGroup);
+          .MuiTreeItem-content {
+            margin-bottom: 5px;
+          }
+          .MuiCheckbox-root {
+            float: left;
+            padding: 0;
+            margin: 1px 5px 1px 0;
+          }
+        }
+        button {
+          display: none;
+          font-size: .4em;
+          color: var(--buttonTextColor);
+          padding: .1em .5em;
+          border-radius: 5px;
+          background-color: var(--buttonBackground);
+          &.active {
+            display: inline-block;
+          }
+        }
+        .fg-info {
+          display: none;
+          &.active {
+            position: absolute;
+            display: inline-block;
+          }
+        }
         &.collapse {
           width: 0;
           padding: 0;
+        }
+        .csv-btn {
+          position: absolute;
+          top: 10px;
+          right: 45px;
         }
         span.loading {
           display: block;
@@ -1325,11 +1315,6 @@ i.c-checkbox.fg-checkbox {
         &.hide {
           display: none;
         }
-      }
-      input,
-      select,
-      .c-combobox {
-        width: 100%;
       }
       .c-hierarchy {
         .button {
@@ -1449,8 +1434,26 @@ i.c-checkbox.fg-checkbox {
           float: right;
         }
       }
+      .edge-time {
+        width: 100%;
+        .group {
+          float: left;
+          width: 50%;
+          margin: 5px 0;
+          padding: 5px;
+        }
+        label {
+          margin-bottom: 10px !important;
+        }
+        .upgrade-checkbox {
+          float: left;
+        }
+        .date-time-picker.upgrade {
+          margin-top: -5px;
+        }
+      }
       .activate-time {
-        flex-direction: row;
+        margin-bottom: -5px !important;
       }
     }
     .parent-content {
@@ -1491,7 +1494,7 @@ i.c-checkbox.fg-checkbox {
             .group {
               .fg-add {
                 color: #fff;
-                background-color: var(--formCheckRadioColor);
+                background-color: var(--formCheckRadioColor) !important;
               }
             }
             .filter-select {
@@ -1504,11 +1507,9 @@ i.c-checkbox.fg-checkbox {
             }
             .filter-inputbox {
               width: 230px;
-              height: 35px;
             }
             .mark-inputbox {
               width: 200px;
-              height: 35px;
             }
             .fg-close,
             .fg-add {
@@ -1563,7 +1564,6 @@ i.c-checkbox.fg-checkbox {
           }
         }
         .button-group {
-          margin-bottom: 5px;
           display: block;
           &.group-aligned {
             position: absolute;
@@ -1684,32 +1684,34 @@ i.c-checkbox.fg-checkbox {
       }
       .main-chart { //For main chart in Events and Syslog
         border-bottom: 1px solid var(--primaryBorder);
+        .csv-btn {
+          position: absolute;
+          top: 20px;
+          right: 50px;
+        }
         .chart-content {
           position: absolute;
           background-color: var(--primaryContentBackground);
-          &.connections {
+          &.interval-options {
             padding-left: 10px;
             padding-bottom: 20px;
           }
           .chart-btn {
-            margin-right: 10px;
-          }
-        }
-        .chart-btn,
-        .interval-btn {
-          display: inline-block;
-          margin-top: 20px;
-          .thumb {
-            padding-left: 10px;
-            padding-right: 10px;
+            margin-top: 20px;
+            margin-right: 20px;
+            .MuiToggleButton-root {
+              padding-left: 10px !important;
+              padding-right: 10px !important;
+            }
           }
         }
         .bar-chart {
-          padding-top: 70px;
+          padding-top: 90px;
           background-color: var(--primaryContentBackground);
           .error {
             padding-left: 20px;
-            margin-top: -45px;
+            padding-bottom: 30px;
+            margin-top: -10px;
           }
         }
       }
@@ -1804,16 +1806,16 @@ i.c-checkbox.fg-checkbox {
                         mask: url('/SCP/images/ic_ip_private.svg');
                       }
                       &.mac {
-                        -webkit-mask: url('/images/ic_mac_address.svg');
-                        mask: url('/images/ic_mac_address.svg');
+                        -webkit-mask: url('/SCP/images/ic_mac_address.svg');
+                        mask: url('/SCP/images/ic_mac_address.svg');
                       }
                       &.windows {
-                        -webkit-mask: url('/images/ic_windows.svg');
-                        mask: url('/images/ic_windows.svg');
+                        -webkit-mask: url('/SCP/images/ic_windows.svg');
+                        mask: url('/SCP/images/ic_windows.svg');
                       }
                       &.linux {
-                        -webkit-mask: url('/images/ic_linux.svg');
-                        mask: url('/images/ic_linux.svg');
+                        -webkit-mask: url('/SCP/images/ic_linux.svg');
+                        mask: url('/SCP/images/ic_linux.svg');
                       }
                       &.hmd {
                         -webkit-mask: url('/SCP/images/ic_net_hmd.svg');
@@ -1910,9 +1912,6 @@ i.c-checkbox.fg-checkbox {
             border: 1px solid var(--primaryBorder);
             border-radius: 5px;
             background-color: var(--formGroupBackground);
-            #edgeModeDatetime {
-              text-align: left;
-            }
             #autoSettingsAD {
               position: absolute;
               top: -50px;
@@ -1981,7 +1980,7 @@ i.c-checkbox.fg-checkbox {
               .user-info {
                 width: 50%;
                 padding: 0px 15px;
-                & > .group {
+                .group {
                   padding: 5px;
                   margin: 10px 0;
                 }
@@ -1992,6 +1991,9 @@ i.c-checkbox.fg-checkbox {
                   text-align: center;
                   input[name='file'] {
                     width: 95%;
+                  }
+                  input {
+                    height: 35px;
                   }
                 }
                 img {
@@ -2007,7 +2009,7 @@ i.c-checkbox.fg-checkbox {
               padding: 0;
               button.manage {
                 position: absolute;
-                top: -40px;
+                top: -50px;
                 right: 0;
               }
               .floor-info {
@@ -2015,9 +2017,10 @@ i.c-checkbox.fg-checkbox {
                 height: 450px;
                 .tree {
                   float: left;
-                  text-align: left;
                   width: 20%;
                   height: 100%;
+                  padding: 15px;
+                  text-align: left;
                   border-right: 1px solid var(--primaryBorder);
                   background-color: var(--primaryContentBackground);
                 }
@@ -2084,6 +2087,9 @@ i.c-checkbox.fg-checkbox {
                 &.checkbox {
                   float: left;
                   margin-right: 5px;
+                }
+                &.combobox-group {
+                  margin-bottom: 15px;
                 }
               }
             }
@@ -2245,7 +2251,7 @@ i.c-checkbox.fg-checkbox {
               }
               .btn.add-group {
                 position: absolute;
-                top: 4px;
+                top: 3px;
                 left: 40px;
                 padding: .2em .5em;
                 font-size: 12px;
@@ -2407,6 +2413,9 @@ i.c-checkbox.fg-checkbox {
                       font-size: .9em;
                       padding: .2em .8em;
                     }
+                    .syslog-input {
+                      margin-top: 10px;
+                    }
                     .pattern {
                       label {
                         float: left;
@@ -2458,16 +2467,6 @@ i.c-checkbox.fg-checkbox {
                 display: flex;
                 padding: 10px 5px 0px 5px;
                 margin-bottom: 10px;
-              }
-              .down {
-                padding: 5px 5px;
-                .table-100 {
-                  width: 100%;
-                }
-                table {
-                  border: 1px solid var(--primaryBorder);
-                  border-radius: 5px;
-                }
               }
               .item {
                 margin-left: 10px;
@@ -2553,7 +2552,7 @@ i.c-checkbox.fg-checkbox {
             height: 78vh;
             overflow-y: auto;
             padding: 20px 100px;
-            background-color: #fff;
+            background-color: var(--primaryContentBackground);
             header {
               margin-bottom: 15px;
             }
@@ -2581,19 +2580,25 @@ i.c-checkbox.fg-checkbox {
             display: none;
           }
         }
-        footer { //For pagination in Table, LA and Maps
+        footer {
           min-height: 76px;
           padding: 20px;
           margin: 0;
           .dropdown-margin {
+            float: left;
+            margin-right: 15px;
             margin-left: 30px;
-            margin-top: 5px;
           }
-          #pageSize {
+          .page-size {
             color: var(--primaryTextColor);
+            height: 35px;
             border-radius: 4px;
             border: 1px solid var(--formInputBorderColor);
             background-color: var(--formBackground);
+          }
+          .total-count {
+            float: left;
+            margin-top: 7px;
           }
         }
         .main-table {
@@ -2888,10 +2893,10 @@ i.c-checkbox.fg-checkbox {
           .tree {
             float: left;
             width: 20%;
-            ul.c-tree {
-              min-height: 80vh;
-              border-right: 1px solid var(--primaryBorder);
-            }
+            min-height: 80vh;
+            padding: 15px;
+            background-color: var(--primaryContentBackground);
+            border-right: 1px solid var(--primaryBorder);
           }
           .map {
             float: left;
@@ -3003,14 +3008,6 @@ i.c-checkbox.fg-checkbox {
       border-bottom: 1px solid var(--primaryBorder);
       background-color: var(--primaryContentBackground);
     }
-    .btn {
-      &.edit {
-        right: 15px;
-      }
-      &.list {
-        right: 90px;
-      }
-    }
     .private {
       padding: 20px 0;
       margin: 0 auto;
@@ -3054,7 +3051,7 @@ i.c-checkbox.fg-checkbox {
           margin-bottom: 15px;
           &.trigger {
             float: left;
-            margin-right: 15px;
+            margin-right: 20px;
           }
         }
         .trigger-text {

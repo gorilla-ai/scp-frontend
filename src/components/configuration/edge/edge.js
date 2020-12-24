@@ -2,23 +2,31 @@ import React, { Component } from 'react'
 import { withRouter } from 'react-router'
 import { NavLink, Link, Route } from 'react-router-dom'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
+import moment from 'moment'
 import cx from 'classnames'
 
+import { MuiPickersUtilsProvider, KeyboardDatePicker, KeyboardDateTimePicker } from '@material-ui/pickers';
+import MomentUtils from '@date-io/moment';
+import 'moment/locale/zh-tw';
+
+import Autocomplete from '@material-ui/lab/Autocomplete';
 import Button from '@material-ui/core/Button';
+import Checkbox from '@material-ui/core/Checkbox';
+import CheckBoxIcon from '@material-ui/icons/CheckBox';
+import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormLabel from '@material-ui/core/FormLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import Switch from '@material-ui/core/Switch';
+import Tab from '@material-ui/core/Tab';
+import Tabs from '@material-ui/core/Tabs';
 import TextField from '@material-ui/core/TextField';
 
-import Combobox from 'react-ui/build/src/components/combobox'
-import DateRange from 'react-ui/build/src/components/date-range'
+import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import Gis from 'react-gis/build/src/components'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
-import Tabs from 'react-ui/build/src/components/tabs'
 
 import {BaseDataContext} from '../../common/context';
 import Config from '../../common/configuration'
@@ -84,6 +92,7 @@ class Edge extends Component {
         pageSize: 20,
         info: {}
       },
+      upgradeCheckbox: false,
       syncEnable: true,
       geoJson: {
         mapDataArr: [],
@@ -196,7 +205,7 @@ class Edge extends Component {
               <li><span className='header'>{t('txt-stop')}:</span> {helper.getFormattedDate(allValue.agentEndDT)}</li>
             }
             {allValue.lastAnalyzedStatus && allValue.lastAnalyzedStatus !== 'ANALYZED' &&
-              <button onClick={this.agentAnalysis.bind(this, allValue)}>{t('txt-analyze')}</button>
+              <Button variant='contained' color='primary' onClick={this.agentAnalysis.bind(this, allValue)}>{t('txt-analyze')}</Button>
             }
             {allValue.lastAnalyzedStatus &&
               <li><span className='header'>lastAnalyzedStatus:</span> {allValue.lastAnalyzedStatus}</li>
@@ -259,14 +268,12 @@ class Edge extends Component {
     return <span key={i} className='item'>{val}</span>
   }
   /**
-   * Get and set Edge table data
+   * Get Edge search request data
    * @method
-   * @param {string} fromSearch - option for the 'search'
+   * @returns request object data
    */
-  getEdgeData = (fromSearch) => {
-    const {baseUrl, contextRoot} = this.context;
-    const {edgeSearch, edge} = this.state;
-    const url = `${baseUrl}/api/edge/_search?page=${edge.currentPage}&pageSize=${edge.pageSize}`;
+  getEdgeSearchRequestData = () => {
+    const {edgeSearch} = this.state;
     let requestData = {};
 
     if (edgeSearch.keyword) {
@@ -274,7 +281,9 @@ class Edge extends Component {
     }
 
     if (edgeSearch.groups.length > 0) {
-      requestData.groups = edgeSearch.groups;
+      requestData.groups = _.map(edgeSearch.groups, val => {
+        return val.value;
+      });
     }
 
     if (edgeSearch.serviceType && edgeSearch.serviceType !== 'all') {
@@ -284,6 +293,20 @@ class Edge extends Component {
     if (edgeSearch.connectionStatus && edgeSearch.connectionStatus !== 'all') {
       requestData.connectionStatus = edgeSearch.connectionStatus;
     }
+
+    return requestData;
+  }
+  /**
+   * Get and set Edge table data
+   * @method
+   * @param {string} fromSearch - option for the 'search'
+   */
+  getEdgeData = (fromSearch) => {
+    const {baseUrl, contextRoot} = this.context;
+    const {edge} = this.state;
+    const page = fromSearch === 'search' ? 1 : edge.currentPage;
+    const url = `${baseUrl}/api/edge/_search?page=${page}&pageSize=${edge.pageSize}`;
+    const requestData = this.getEdgeSearchRequestData();
 
     this.ah.one({
       url,
@@ -296,7 +319,7 @@ class Edge extends Component {
         let tempEdge = {...edge};
         tempEdge.dataContent = data.rows;
         tempEdge.totalCount = data.counts;
-        tempEdge.currentPage = fromSearch === 'search' ? 1 : edge.currentPage;
+        tempEdge.currentPage = page;
 
         let dataFields = {};
         edge.dataFieldsArr.forEach(tempData => {
@@ -304,7 +327,16 @@ class Edge extends Component {
             label: tempData === '_menu' ? '' : f(`edgeFields.${tempData}`),
             sortable: this.checkSortable(tempData),
             formatter: (value, allValue, i) => {
-              if (tempData === 'ipPort') {
+              if (tempData === 'agentName') {
+                return (
+                  <div>
+                    <span>{value}</span>
+                    {allValue.upgradeDttm &&
+                      <div style={{'marginTop': '5px'}}>{t('edge-management.txt-nextUpgrade')}: {helper.getFormattedDate(allValue.upgradeDttm, 'local')}</div>
+                    }
+                  </div>
+                )
+              } else if (tempData === 'ipPort') {
                 let iconType = '';
 
                 if (!allValue.agentApiStatus) {
@@ -370,6 +402,17 @@ class Edge extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+  }
+  /**
+   * Handle CSV download
+   * @method
+   */
+  getCSVfile = () => {
+    const {baseUrl, contextRoot} = this.context;
+    const url = `${baseUrl}${contextRoot}/api/edge/_export`;
+    const requestData = this.getEdgeSearchRequestData();
+
+    downloadWithForm(url, {payload: JSON.stringify(requestData)});
   }
   /**
    * Set map geoJson and attacks data
@@ -538,9 +581,10 @@ class Edge extends Component {
   /**
    * Handle combo data change
    * @method
+   * @param {object} event - event object
    * @param {string} value - input value
    */
-  handleComboSearch = (value) => {
+  handleComboSearch = (event, value) => {
     let tempEdgeSearch = {...this.state.edgeSearch};
     tempEdgeSearch.groups = value;
 
@@ -562,13 +606,14 @@ class Edge extends Component {
   /**
    * Handle content tab change
    * @method
-   * @param {string} type - content type ('edge' or 'geography')
+   * @param {object} event - event object
+   * @param {string} newTab - content type ('edge' or 'geography')
    */
-  handleSubTabChange = (type) => {
+  handleSubTabChange = (event, newTab) => {
     this.setState({
-      activeTab: type
+      activeTab: newTab
     });
-  }  
+  }
   /**
    * Toggle different content
    * @method
@@ -592,12 +637,16 @@ class Edge extends Component {
         serviceMode: allValue.agentMode,
         longitude: '',
         latitude: '',
-        edgeGroupList: allValue.groupList,
-        edgeModeType: 'anyTime',
+        chassisAddress: allValue.chassisAddress,
+        chassisLocation: allValue.chassisLocation,
+        contact: allValue.contact,
+        upgradeDatetime: allValue.upgradeDttm,
+        edgeModeType: allValue.agentStartDT && allValue.agentEndDT ? 'customTime' : 'anyTime',
         edgeModeDatetime: {
-          from: '',
-          to: ''
+          from: allValue.agentStartDT ? allValue.agentStartDT : '',
+          to: allValue.agentEndDT ? allValue.agentEndDT : ''
         },
+        edgeGroupList: allValue.groupList,
         memo: allValue.memo ? allValue.memo : '',
         isNetTrapUpgrade: allValue.isNetTrapUpgrade,
         agentApiStatus: allValue.agentApiStatus,
@@ -616,14 +665,19 @@ class Edge extends Component {
         }
       }
 
-      if (allValue.agentStartDT &&  allValue.agentEndDT) {
-        tempEdge.info.edgeModeType = 'customTime';
-        tempEdge.info.edgeModeDatetime.from = allValue.agentStartDT;
-        tempEdge.info.edgeModeDatetime.to = allValue.agentEndDT;
-      }
+      this.setState({
+        upgradeCheckbox: Boolean(allValue.upgradeDttm),
+        originalEdgeData: _.cloneDeep(tempEdge)
+      });
+    } else if (type === 'editEdge') {
+      tempEdge.info.edgeGroupList = _.map(edge.info.edgeGroupList, val => {
+        return {
+          value: val
+        }
+      });
 
       this.setState({
-        originalEdgeData: _.cloneDeep(tempEdge)
+        edge: tempEdge
       });
     } else if (type === 'tableList') {
       if (this.checkFilterStatus()) {
@@ -675,11 +729,25 @@ class Edge extends Component {
     });
   }
   /**
+   * Handle date change
+   * @method
+   * @param {object} newDatetime - new datetime object
+   */
+  handleUpgradeDateChange = (newDatetime) => {
+    let tempEdge = {...this.state.edge};
+    tempEdge.info.upgradeDatetime = newDatetime;
+
+    this.setState({
+      edge: tempEdge
+    });
+  }
+  /**
    * Handle combo box change
    * @method
-   * @param {string} value - input value
+   * @param {object} event - event object
+   * @param {array.<object>} value - selected input value
    */
-  handleComboBoxChange = (value) => {
+  handleComboBoxChange = (event, value) => {
     let tempEdge = {...this.state.edge};
     tempEdge.info.edgeGroupList = value;
 
@@ -690,11 +758,12 @@ class Edge extends Component {
   /**
    * Handle date change
    * @method
-   * @param {string} value - input value
+   * @param {string} type - date type ('from' or 'to')
+   * @param {object} newDatetime - new datetime object
    */
-  handleDateChange = (value) => {
+  handleDateChange = (type, newDatetime) => {
     let tempEdge = {...this.state.edge};
-    tempEdge.info.edgeModeDatetime = value;
+    tempEdge.info.edgeModeDatetime[type] = newDatetime;
 
     this.setState({
       edge: tempEdge
@@ -825,10 +894,13 @@ class Edge extends Component {
    */
   handleEdgeSubmit = () => {
     const {baseUrl} = this.context;
-    const {edge, formValidation} = this.state;
+    const {edge, upgradeCheckbox, formValidation} = this.state;
     let requestData = {
       id: edge.info.id,
       agentName: edge.info.name,
+      chassisAddress: edge.info.chassisAddress,
+      chassisLocation: edge.info.chassisLocation,
+      contact: edge.info.contact,
       memo: edge.info.memo
     };
     let tempFormValidation = {...formValidation};
@@ -861,6 +933,10 @@ class Edge extends Component {
       }
     }
 
+    if (upgradeCheckbox) {
+      requestData.upgradeDttm = moment(edge.info.upgradeDatetime).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    }
+
     this.setState({
       formValidation: tempFormValidation
     });
@@ -881,7 +957,7 @@ class Edge extends Component {
       if (edge.info.edgeModeType === 'customTime') {
         if (edge.info.edgeModeDatetime.from) {
           if (edge.info.edgeModeDatetime.to) {
-            requestData.agentStartDt = Moment(edge.info.edgeModeDatetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+            requestData.agentStartDt = moment(edge.info.edgeModeDatetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
           } else { //End date is empty
             helper.showPopupMsg(t('edge-management.txt-edgeEditNoEndDate'), t('txt-error'));
             return;
@@ -893,13 +969,13 @@ class Edge extends Component {
 
         if (edge.info.edgeModeDatetime.to) {
           if (edge.info.edgeModeDatetime.from) {
-            requestData.agentEndDt = Moment(edge.info.edgeModeDatetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+            requestData.agentEndDt = moment(edge.info.edgeModeDatetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
           } else { //Start date is empty
             helper.showPopupMsg(t('edge-management.txt-edgeEditNoStartDate'), t('txt-error'));
             return;
           }
 
-          if (Moment(edge.info.edgeModeDatetime.to).isBefore()) { //End date is a past date (compare with current date time)
+          if (moment(edge.info.edgeModeDatetime.to).isBefore()) { //End date is a past date (compare with current date time)
             helper.showPopupMsg(t('edge-management.txt-edgeEditPastEndDate'), t('txt-error'));
             return;
           }
@@ -911,7 +987,9 @@ class Edge extends Component {
     }
 
     const requestData2 = {
-      groupName: edge.info.edgeGroupList
+      groupName: _.map(edge.info.edgeGroupList, val => {
+        return val.value;
+      })
     };
 
     ah.series([
@@ -930,8 +1008,10 @@ class Edge extends Component {
     ])
     .then(data => {
       if (data) {
-        if (data[0]) {
-          switch(data[0].ret) {
+        if (data[0] && data[0].ret === 0) {
+          this.toggleContent('tableList');
+        } else {
+          switch (data[0].ret) {
             case -1:
               helper.showPopupMsg(t('edge-management.txt-edgeEditFail'), t('txt-error'), t('edge-management.txt-edgeEditError1'));
               break;
@@ -1036,22 +1116,24 @@ class Edge extends Component {
     return <span key={i}>{val}</span>
   }
   /**
+   * Toggle upgrade checkbox
+   * @method
+   */
+  toggleUpgradeCheckbox = () => {
+    this.setState({
+      upgradeCheckbox: !this.state.upgradeCheckbox
+    });
+  }
+  /**
    * Display edit Edge content
    * @method
    * @returns HTML DOM
    */
   displayEditEdgeContent = () => {
     const {contextRoot, locale} = this.context;
-    const {activeContent, allGroupList, edge, formValidation} = this.state;
-    const allGroup = _.map(allGroupList, val => {
-      return {
-        value: val,
-        text: val
-      }
-    });
+    const {activeContent, allGroupList, edge, upgradeCheckbox, formValidation} = this.state;
     const edgeIpText = t('edge-management.txt-ipList') + '(' + t('txt-commaSeparated') + ')';
     const memoText = t('txt-memo') + '(' + t('txt-memoMaxLength') + ')';
-
     let iconType = '';
     let btnStatusOn = false;
     let action = 'start';
@@ -1080,6 +1162,14 @@ class Edge extends Component {
       }
     }
 
+    let dateLocale = locale;
+
+    if (locale === 'zh') {
+      dateLocale += '-tw';
+    }
+
+    moment.locale(dateLocale);  
+
     return (
       <div className='main-content basic-form'>
         <header className='main-header'>Edge</header>
@@ -1087,8 +1177,8 @@ class Edge extends Component {
         <div className='content-header-btns'>
           {activeContent === 'viewEdge' &&
             <div>
-              <button className='standard btn list' onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</button>
-              <button className='standard btn edit' onClick={this.toggleContent.bind(this, 'editEdge')}>{t('txt-edit')}</button>
+              <Button variant='outlined' color='primary' className='standard btn list' onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</Button>
+              <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'editEdge')}>{t('txt-edit')}</Button>
             </div>
           }
         </div>
@@ -1117,7 +1207,7 @@ class Edge extends Component {
                   label={t('txt-switch')}
                   disabled={activeContent === 'viewEdge' || !edge.info.isConfigurable} />
               }
-              <button className='btn nettrap-upgrade' onClick={this.handleNetTrapUpgrade} disabled={activeContent === 'viewEdge' || !edge.info.isNetTrapUpgrade}>{t('txt-upgrade')}</button>
+              <Button variant='contained' color='primary' className='btn nettrap-upgrade' onClick={this.handleNetTrapUpgrade} disabled={activeContent === 'viewEdge' || !edge.info.isNetTrapUpgrade}>{t('txt-upgrade')}</Button>
             </div>
             <div className='group'>
               <TextField
@@ -1125,9 +1215,9 @@ class Edge extends Component {
                 name='name'
                 label={t('edge-management.txt-edgeName')}
                 variant='outlined'
-                fullWidth={true}
+                fullWidth
                 size='small'
-                required={true}
+                required
                 error={!formValidation.edgeName.valid}
                 helperText={formValidation.edgeName.valid ? '' : t('txt-required')}
                 value={edge.info.name}
@@ -1140,10 +1230,10 @@ class Edge extends Component {
                 name='id'
                 label={t('edge-management.txt-edgeID')}
                 variant='outlined'
-                fullWidth={true}
+                fullWidth
                 size='small'
                 value={edge.info.id}
-                disabled={true} />
+                disabled />
             </div>
             <div className='group'>
               <TextField
@@ -1151,11 +1241,11 @@ class Edge extends Component {
                 name='ip'
                 label={t('edge-management.txt-ip')}
                 variant='outlined'
-                fullWidth={true}
+                fullWidth
                 size='small'
                 value={edge.info.ip}
                 onChange={this.handleDataChange}
-                disabled={true} />
+                disabled />
             </div>
             <div className='group'>
               <TextField
@@ -1163,7 +1253,7 @@ class Edge extends Component {
                 name='edgeIPlist'
                 label={edgeIpText}
                 variant='outlined'
-                fullWidth={true}
+                fullWidth
                 size='small'
                 value={edge.info.edgeIPlist}
                 onChange={this.handleDataChange}
@@ -1175,10 +1265,10 @@ class Edge extends Component {
                 name='vpnIP'
                 label={t('edge-management.txt-vpnIP')}
                 variant='outlined'
-                fullWidth={true}
+                fullWidth
                 size='small'
                 value={edge.info.edgeIPlist}
-                disabled={true} />
+                disabled />
             </div>
             <div className='group'>
               <TextField
@@ -1186,10 +1276,10 @@ class Edge extends Component {
                 name='licenseName'
                 label={t('edge-management.txt-vpnLicenseName')}
                 variant='outlined'
-                fullWidth={true}
+                fullWidth
                 size='small'
                 value={edge.info.licenseName}
-                disabled={true} />
+                disabled />
             </div>
             <div className='group'>
               <TextField
@@ -1197,10 +1287,10 @@ class Edge extends Component {
                 name='serviceType'
                 label={t('edge-management.txt-serviceType')}
                 variant='outlined'
-                fullWidth={true}
+                fullWidth
                 size='small'
                 value={edge.info.serviceType}
-                disabled={true} />
+                disabled />
             </div>
             <div className='group'>
               <TextField
@@ -1209,7 +1299,7 @@ class Edge extends Component {
                 select
                 label={t('edge-management.txt-serviceMode')}
                 variant='outlined'
-                fullWidth={true}
+                fullWidth
                 size='small'
                 value={edge.info.serviceMode}
                 onChange={this.handleDataChange}
@@ -1224,7 +1314,7 @@ class Edge extends Component {
                 name='longitude'
                 label={t('edge-management.txt-longitude')}
                 variant='outlined'
-                fullWidth={true}
+                fullWidth
                 size='small'
                 error={!formValidation.longitude.valid}
                 helperText={formValidation.longitude.valid ? '' : t('edge-management.txt-coordinateError')}
@@ -1238,7 +1328,7 @@ class Edge extends Component {
                 name='latitude'
                 label={t('edge-management.txt-latitude')}
                 variant='outlined'
-                fullWidth={true}
+                fullWidth
                 size='small'
                 error={!formValidation.latitude.valid}
                 helperText={formValidation.latitude.valid ? '' : t('edge-management.txt-coordinateError')}
@@ -1246,61 +1336,160 @@ class Edge extends Component {
                 onChange={this.handleDataChange}
                 disabled={activeContent === 'viewEdge'} />
             </div>
+            <div className='group'>
+              <TextField
+                id='edgeChassisAddress'
+                name='chassisAddress'
+                label={t('edge-management.txt-chassisAddress')}
+                variant='outlined'
+                fullWidth
+                size='small'
+                value={edge.info.chassisAddress}
+                onChange={this.handleDataChange}
+                disabled={activeContent === 'viewEdge'} />
+            </div>
+            <div className='group'>
+              <TextField
+                id='edgeChassisLocation'
+                name='chassisLocation'
+                label={t('edge-management.txt-chassisLocation')}
+                variant='outlined'
+                fullWidth
+                size='small'
+                value={edge.info.chassisLocation}
+                onChange={this.handleDataChange}
+                disabled={activeContent === 'viewEdge'} />
+            </div>
+            <div className='group'>
+              <TextField
+                id='edgeContact'
+                name='contact'
+                label={t('edge-management.txt-contact')}
+                variant='outlined'
+                fullWidth
+                size='small'
+                value={edge.info.contact}
+                onChange={this.handleDataChange}
+                disabled={activeContent === 'viewEdge'} />
+            </div>
+            <div className='edge-time'>
+              <div className='group'>
+                <FormLabel>{t('edge-management.txt-upgradeTime')}</FormLabel>
+                <FormControlLabel
+                  label={t('txt-activate')}
+                  className='upgrade-checkbox'
+                  control={
+                    <Checkbox
+                      className='checkbox-ui'
+                      checked={upgradeCheckbox}
+                      onChange={this.toggleUpgradeCheckbox}
+                      color='primary' />
+                  }
+                  disabled={activeContent === 'viewEdge'} />
+                {upgradeCheckbox &&
+                  <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+                    <KeyboardDateTimePicker
+                      className='date-time-picker upgrade'
+                      inputVariant='outlined'
+                      variant='inline'
+                      format='YYYY-MM-DD HH:mm'
+                      ampm={false}
+                      disablePast={true}
+                      value={edge.info.upgradeDatetime}
+                      onChange={this.handleUpgradeDateChange}
+                      disabled={activeContent === 'viewEdge'} />
+                  </MuiPickersUtilsProvider>
+                }
+              </div>
+              <div className='group'>
+                <FormLabel>{t('edge-management.txt-activatTime')}</FormLabel>
+                <RadioGroup
+                  className='radio-group activate-time'
+                  name='edgeModeType'
+                  value={edge.info.edgeModeType}
+                  onChange={this.handleDataChange}>
+                  <FormControlLabel
+                    value='anyTime'
+                    control={
+                      <Radio
+                        className='radio-ui'
+                        color='primary' />
+                    }
+                    label={t('edge-management.txt-anyTime')}
+                    disabled={activeContent === 'viewEdge'} />
+                  <FormControlLabel
+                    value='customTime'
+                    control={
+                      <Radio
+                        className='radio-ui'
+                        color='primary' />
+                    }
+                    label={t('edge-management.txt-customTime')}
+                    disabled={activeContent === 'viewEdge'} />
+                </RadioGroup>
+
+                {edge.info.edgeModeType === 'customTime' &&
+                  <MuiPickersUtilsProvider utils={MomentUtils} locale={dateLocale}>
+                    <KeyboardDateTimePicker
+                      className='date-time-picker'
+                      inputVariant='outlined'
+                      variant='inline'
+                      format='YYYY-MM-DD HH:mm'
+                      ampm={false}
+                      invalidDateMessage={t('txt-checkDateFormat')}
+                      value={edge.info.edgeModeDatetime.from}
+                      onChange={this.handleDateChange.bind(this, 'from')} />
+                    <div className='between'>~</div>
+                    <KeyboardDateTimePicker
+                      className='date-time-picker'
+                      inputVariant='outlined'
+                      variant='inline'
+                      format='YYYY-MM-DD HH:mm'
+                      ampm={false}
+                      invalidDateMessage={t('txt-checkDateFormat')}
+                      value={edge.info.edgeModeDatetime.to}
+                      onChange={this.handleDateChange.bind(this, 'to')} />
+                  </MuiPickersUtilsProvider>
+                }
+              </div>
+            </div>
             <div className='group full'>
               {activeContent === 'editEdge' &&
-                <button className='btn add-group' onClick={this.toggleManageGroup}>{t('txt-manage')}</button>
+                <Button variant='contained' color='primary' className='btn add-group' onClick={this.toggleManageGroup}>{t('txt-manage')}</Button>
               }
-              <label>{t('txt-group')}</label>
+              <label className='combobox-group'>{t('txt-group')}</label>
               {activeContent === 'viewEdge' &&
                 <div className='flex-item'>{edge.info.edgeGroupList.map(this.displayGroup)}</div>
               }
               {activeContent === 'editEdge' &&
-                <Combobox
-                  className='combo-box'
-                  name='edgeGroupList'
-                  list={allGroup}
-                  multiSelect={{
-                    enabled: true,
-                    toggleAll: true
-                  }}
+                <Autocomplete
+                  className='checkboxes-tags groups'
+                  multiple
                   value={edge.info.edgeGroupList}
+                  options={_.map(allGroupList, (val) => { return { value: val }})}
+                  getOptionLabel={(option) => option.value}
+                  disableCloseOnSelect
+                  noOptionsText={t('txt-notFound')}
+                  openText={t('txt-on')}
+                  closeText={t('txt-off')}
+                  clearText={t('txt-clear')}
+                  renderOption={(option, { selected }) => (
+                    <React.Fragment>
+                      <Checkbox
+                        color='primary'
+                        icon={<CheckBoxOutlineBlankIcon />}
+                        checkedIcon={<CheckBoxIcon />}
+                        checked={selected} />
+                      {option.value}
+                    </React.Fragment>
+                  )}
+                  renderInput={(params) => (
+                    <TextField {...params} variant='outlined' />
+                  )}
+                  getOptionSelected={(option, value) => (
+                    option.value === value.value
+                  )}
                   onChange={this.handleComboBoxChange} />
-              }
-            </div>
-            <div className='group'>
-              <FormLabel>{t('edge-management.txt-activatTime')}</FormLabel>
-              <RadioGroup
-                className='radio-group activate-time'
-                name='edgeModeType'
-                value={edge.info.edgeModeType}
-                onChange={this.handleDataChange}>
-                <FormControlLabel
-                  value='anyTime'
-                  control={
-                    <Radio
-                      className='radio-ui'
-                      color='primary' />
-                  }
-                  label={t('edge-management.txt-anyTime')} />
-                <FormControlLabel
-                  value='customTime'
-                  control={
-                    <Radio
-                      className='radio-ui'
-                      color='primary' />
-                  }
-                  label={t('edge-management.txt-customTime')} />
-              </RadioGroup>
-
-              {edge.info.edgeModeType === 'customTime' &&
-                <DateRange
-                  id='edgeModeDatetime'
-                  className='daterange'
-                  enableTime={true}
-                  value={edge.info.edgeModeDatetime}
-                  onChange={this.handleDateChange}
-                  locale={locale}
-                  t={et} />
               }
             </div>
             <div className='group full'>
@@ -1308,11 +1497,11 @@ class Edge extends Component {
                 id='edgeMemo'
                 name='memo'
                 label={memoText}
-                multiline={true}
+                multiline
                 rows={4}
                 maxLength={250}
                 variant='outlined'
-                fullWidth={true}
+                fullWidth
                 size='small'
                 value={edge.info.memo}
                 onChange={this.handleDataChange}
@@ -1323,8 +1512,8 @@ class Edge extends Component {
 
         {activeContent === 'editEdge' &&
           <footer>
-            <button className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</button>
-            <button onClick={this.handleEdgeSubmit}>{t('txt-save')}</button>
+            <Button variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</Button>
+            <Button variant='contained' color='primary' onClick={this.handleEdgeSubmit}>{t('txt-save')}</Button>
           </footer>
         }
       </div>
@@ -1337,12 +1526,6 @@ class Edge extends Component {
    */
   renderFilter = () => {
     const {showFilter, allGroupList, serviceType, edgeSearch} = this.state;
-    const allGroup = _.map(allGroupList, val => {
-      return {
-        value: val,
-        text: val
-      }
-    });
 
     return (
       <div className={cx('main-filter', {'active': showFilter})}>
@@ -1355,7 +1538,7 @@ class Edge extends Component {
               name='keyword'
               label={f('edgeFields.keywords')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={edgeSearch.keyword}
               onChange={this.handleEdgeSearch} />
@@ -1367,7 +1550,7 @@ class Edge extends Component {
               select
               label={f('edgeFields.serviceType')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={edgeSearch.serviceType}
               onChange={this.handleEdgeSearch}>
@@ -1382,7 +1565,7 @@ class Edge extends Component {
               select
               label={f('edgeFields.connectionStatus')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={edgeSearch.connectionStatus}
               onChange={this.handleEdgeSearch}>
@@ -1391,23 +1574,40 @@ class Edge extends Component {
               <MenuItem value={'Error'}>{t('txt-error')}</MenuItem>
             </TextField>
           </div>
-          <div className='group'>
-            <Combobox
-              id='edgeSearchGroups'
-              className='combo-box'
-              placeholder={f('edgeFields.groups')}
-              list={allGroup}
-              multiSelect={{
-                enabled: true,
-                toggleAll: true
-              }}
+          <div className='group' style={{width: '300px'}}>
+            <Autocomplete
+              className='checkboxes-tags'
+              multiple
               value={edgeSearch.groups}
+              options={_.map(allGroupList, (val) => { return { value: val }})}
+              getOptionLabel={(option) => option.value}
+              disableCloseOnSelect
+              noOptionsText={t('txt-notFound')}
+              openText={t('txt-on')}
+              closeText={t('txt-off')}
+              clearText={t('txt-clear')}
+              renderOption={(option, { selected }) => (
+                <React.Fragment>
+                  <Checkbox
+                    color='primary'
+                    icon={<CheckBoxOutlineBlankIcon />}
+                    checkedIcon={<CheckBoxIcon />}
+                    checked={selected} />
+                  {option.value}
+                </React.Fragment>
+              )}
+              renderInput={(params) => (
+                <TextField {...params} label={f('edgeFields.groups')} variant='outlined' />
+              )}
+              getOptionSelected={(option, value) => (
+                option.value === value.value
+              )}
               onChange={this.handleComboSearch} />
           </div>
         </div>
         <div className='button-group'>
-          <button className='filter' onClick={this.getEdgeData.bind(this, 'search')}>{t('txt-filter')}</button>
-          <button className='clear' onClick={this.clearFilter}>{t('txt-clear')}</button>
+          <Button variant='contained' color='primary' className='filter' onClick={this.getEdgeData.bind(this, 'search')}>{t('txt-filter')}</Button>
+          <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}</Button>
         </div>
       </div>
     )
@@ -1429,6 +1629,7 @@ class Edge extends Component {
     this.setState({
       edgeSearch: {
         keyword: '',
+        groups: [],
         serviceType: 'all',
         connectionStatus: 'all'
       }
@@ -1460,7 +1661,10 @@ class Edge extends Component {
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
             {activeContent === 'tableList' &&
-              <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
+              <div>
+                <Button variant='contained' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
+                <Button variant='outlined' color='primary' className='last' onClick={this.getCSVfile} title={t('txt-exportCSV')}><i className='fg fg-data-download'></i></Button>
+              </div>
             }
           </div>
         </div>
@@ -1478,18 +1682,17 @@ class Edge extends Component {
             {activeContent === 'tableList' &&
               <div className='main-content'>
                 <Tabs
-                  className='subtab-menu'
-                  menu={{
-                    edge: t('txt-edge'),
-                    geography: t('edge-management.txt-geography')
-                  }}
-                  current={activeTab}
+                  indicatorColor='primary'
+                  textColor='primary'
+                  value={activeTab}
                   onChange={this.handleSubTabChange}>
+                  <Tab label={t('txt-edge')} value='edge' />
+                  <Tab label={t('edge-management.txt-geography')} value='geography' />
                 </Tabs>
 
                 <div className='content-header-btns'>
-                  <button className='standard btn' onClick={this.triggerSyncBtn} disabled={!syncEnable}>{t('notifications.txt-sync')}</button>
-                  <Link to='/SCP/configuration/notifications'><button className='standard btn'>{t('notifications.txt-settings')}</button></Link>
+                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.triggerSyncBtn} disabled={!syncEnable}>{t('notifications.txt-sync')}</Button>
+                  <Link to='/SCP/configuration/notifications'><Button variant='outlined' color='primary' className='standard btn'>{t('notifications.txt-settings')}</Button></Link>
                 </div>
 
                 {activeTab === 'edge' &&

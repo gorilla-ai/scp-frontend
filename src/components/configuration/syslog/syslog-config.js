@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import cx from 'classnames'
 
+import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 
 import MultiInput from 'react-ui/build/src/components/multi-input'
@@ -107,10 +108,10 @@ class syslogConfig extends Component {
             name='format'
             label={key}
             variant='outlined'
-            fullWidth={true}
+            fullWidth
             size='small'
             value={val}
-            disabled={true} />
+            disabled />
         </div>
       )
     }
@@ -138,10 +139,10 @@ class syslogConfig extends Component {
                 </div>
                 <TextField
                   id='syslogPattern'
-                  multiline={true}
+                  multiline
                   rows={6}
                   variant='outlined'
-                  fullWidth={true}
+                  fullWidth
                   size='small'
                   value={config.patternSetting[index].pattern}
                   onChange={this.props.handleConfigChange.bind(this, 'pattern')} />
@@ -155,14 +156,15 @@ class syslogConfig extends Component {
                   <div className='group'>
                     <label htmlFor='syslogInput'>{t('syslogFields.dataSampleInput')}</label>
                     {config.id &&
-                      <button className='standard' onClick={this.props.getLatestInput.bind(this, config.id)}>{t('syslogFields.txt-getLatest')}</button>
+                      <Button variant='outlined' color='primary' className='standard' onClick={this.props.getLatestInput.bind(this, config.id)}>{t('syslogFields.txt-getLatest')}</Button>
                     }
                     <TextField
                       id='syslogInput'
-                      multiline={true}
+                      className='syslog-input'
+                      multiline
                       rows={20}
                       variant='outlined'
-                      fullWidth={true}
+                      fullWidth
                       size='small'
                       value={config.patternSetting[index].input}
                       onChange={this.props.handleConfigChange.bind(this, 'input')} />

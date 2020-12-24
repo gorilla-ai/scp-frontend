@@ -1,24 +1,28 @@
 import React, {Component} from 'react'
 import { withRouter } from 'react-router'
-import Moment from 'moment'
+import moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
 
+import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
+import ChevronRightIcon from '@material-ui/icons/ChevronRight';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
+import TreeItem from '@material-ui/lab/TreeItem';
+import TreeView from '@material-ui/lab/TreeView';
+import Tab from '@material-ui/core/Tab';
+import Tabs from '@material-ui/core/Tabs';
 
-import ContextMenu from 'react-ui/build/src/components/contextmenu'
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import Gis from 'react-gis/build/src/components'
-import Hierarchy from 'react-ui/build/src/components/hierarchy'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
-import Tabs from 'react-ui/build/src/components/tabs'
 
 import {BaseDataContext} from '../common/context';
 import helper from '../common/helper'
-import HostAnalysis from '../common/host-analysis'
+import HostAnalysis from './host-analysis'
 import Pagination from '../common/pagination'
 import SearchOptions from '../common/search-options'
 
@@ -126,8 +130,7 @@ const MAPS_PRIVATE_DATA = {
   },
   currentMap: '',
   currentBaseLayers: {},
-  seatData: {},
-  openHmdType: ''
+  seatData: {}
 };
 
 let t = null;
@@ -150,7 +153,11 @@ class HostController extends Component {
       activeTab: 'hostList', //'hostList', 'deviceMap'
       showFilter: false,
       showLeftNav: true,
-      datetime: Moment().local().format('YYYY-MM-DD') + 'T00:00:00',
+      datetime: moment().local().format('YYYY-MM-DD') + 'T00:00:00',
+      assessmentDatetime: {
+        from: '',
+        to: ''
+      },
       hostAnalysisOpen: false,
       severityList: [],
       hmdStatusList: [],
@@ -158,6 +165,7 @@ class HostController extends Component {
       privateMaskedIP: {},
       hostCreateTime: '',
       leftNavData: [],
+      privateIpData: {},
       filterNav: {
         severitySelected: [],
         hmdStatusSelected: [],
@@ -184,12 +192,24 @@ class HostController extends Component {
       hostData: {},
       hostSortList: [],
       hostSort: 'ip-asc',
+      eventInfo: {
+        dataFieldsArr: ['@timestamp', '_EventCode', '_Message'],
+        dataFields: {},
+        dataContent: [],
+        scrollCount: 1,
+        hasMore: false
+      },
+      openHmdType: '',
       ..._.cloneDeep(MAPS_PRIVATE_DATA)
     };
 
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
+    const {locale, sessionRights} = this.context;
+
+    helper.getPrivilegesInfo(sessionRights, 'common', locale);
+
     this.setLeftNavData();
     this.getHostSortList();
     this.getFloorPlan();
@@ -361,13 +381,9 @@ class HostController extends Component {
    * @returns formatted datetime object
    */
   getHostDateTime = () => {
-    const {datetime} = this.state;
-
     return {
-      from: Moment(datetime).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-      to: Moment(helper.getAdditionDate(1, 'day', datetime)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
-      //from: '2020-09-25T16:00:00Z',
-      //to: '2020-09-26T16:00:00Z'
+      from: moment(this.state.datetime).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: moment(helper.getAdditionDate(1, 'day', this.state.datetime)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
     }
   }
   /**
@@ -430,7 +446,7 @@ class HostController extends Component {
       requestData.system = deviceSearch.system;
     }
 
-    if (options === 'csv') { //For CSV export
+    if (options === 'csv' || options === 'pdf') { //For CSV / PDF export
       return requestData;
     }
 
@@ -448,6 +464,14 @@ class HostController extends Component {
         let tempHostInfo = {...hostInfo};
         tempHostInfo.dataContent = data.rows;
         tempHostInfo.totalCount = data.count;
+
+        if (!_.isEmpty(data.subnetAgg)) {
+          this.setState({
+            privateIpData: data.subnetAgg
+          }, () => {
+            this.getPrivateTreeData();
+          });
+        }
 
         if (!data.rows || data.rows.length === 0) {
           if (activeTab === 'hostList') {
@@ -481,13 +505,15 @@ class HostController extends Component {
           });
         });
 
-        this.getPrivateTreeData(data.subnetAgg);
-
         this.setState({
+          assessmentDatetime: {
+            from: data.assessmentStartDttm,
+            to: data.assessmentEndDttm
+          },
           severityList,
           hmdStatusList,
           scanStatusList,
-          hostCreateTime: data.create_dttm,
+          hostCreateTime: helper.getFormattedDate(data.assessmentCreateDttm, 'local'),
           hostInfo: tempHostInfo
         }, () => {
           if (activeTab === 'deviceMap' && data.rows.length > 0) {
@@ -513,7 +539,7 @@ class HostController extends Component {
    * @returns boolean true/false
    */
   checkSelectedItem = (type, val) => {
-    return _.includes(this.state.filterNav[type], val) ? true : false;
+    return _.includes(this.state.filterNav[type], val);
   }
   /**
    * Handle checkbox check/uncheck
@@ -563,13 +589,13 @@ class HostController extends Component {
   /**
    * Display Left nav data
    * @method
-   * @param {object} val - individual left nave data
-   * @param {number} i - index of the left nave data
+   * @param {object} val - individual left nav data
+   * @param {number} i - index of the left nav data
    * @returns HTML DOM
    */
   showLeftNavItems = (val, i) => {
     return (
-      <div>
+      <div key={i}>
         <label className={cx('header-text', {'hide': !this.state.showLeftNav})}>{val.text}</label>
         <div className='checkbox-group'>
           {this.state[val.list].map(this.getCheckboxItem.bind(this, val.selected))}
@@ -627,30 +653,64 @@ class HostController extends Component {
     }
   }
   /**
+   * Handle private IP checkbox check/uncheck
+   * @method
+   * @param {string} ip - selected IP
+   * @param {string} type - IP type ('ip' or 'masked')
+   * @param {object} event - event object
+   */
+  togglePrivateIpCheckbox = (ip, type, event) => {
+    const {filterNav, privateIpData} = this.state;
+    let tempFilterNav = {...filterNav};
+    let selectedPrivateIP = [];
+
+    if (type === 'masked') {
+      const maskedChildList = _.map(privateIpData[ip].buckets, val => {
+        return val.ip;
+      });
+
+      if (event.target.checked) {
+        selectedPrivateIP = _.concat(filterNav.maskedIPSelected, ...maskedChildList);
+      } else {
+        selectedPrivateIP = _.without(filterNav.maskedIPSelected, ...maskedChildList);
+      }
+    } else if (type === 'ip') {
+      if (event.target.checked) {
+        selectedPrivateIP = _.concat(filterNav.maskedIPSelected, ip);
+      } else {
+        selectedPrivateIP = _.without(filterNav.maskedIPSelected, ip);
+      }
+    }
+
+    tempFilterNav.maskedIPSelected = selectedPrivateIP;
+
+    this.setState({
+      filterNav: tempFilterNav
+    }, () => {
+      this.handleSearchSubmit();
+    });
+  }
+  /**
    * Set the alert private tree data
    * @method
-   * @param {string} treeData - alert tree data
    * @returns tree data object
    */
-  getPrivateTreeData = (treeData) => {
+  getPrivateTreeData = () => {
+    const {privateIpData} = this.state;
+
     let treeObj = { //Handle service tree data
       id: 'All',
       children: []
     };
 
-    if (!treeData) {
-      return;
-    }
-
-    _.keys(treeData)
+    _.keys(privateIpData)
     .forEach(key => {
       let tempChild = [];
-      let label = '';
       let treeProperty = {};
 
       if (key && key !== 'doc_count') {
-        if (treeData[key].buckets.length > 0) {
-          _.forEach(treeData[key].buckets, val => {
+        if (privateIpData[key].buckets.length > 0) {
+          _.forEach(privateIpData[key].buckets, val => {
             if (val.ip) {
               let nodeClass = '';
 
@@ -658,11 +718,9 @@ class HostController extends Component {
                 nodeClass = 'fg fg-recode ' + val._severity_.toLowerCase();
               }
 
-              label = <span><i className={nodeClass} />{val.ip}</span>;
-
               tempChild.push({
                 id: val.ip,
-                label
+                label: <span><Checkbox checked={this.checkSelectedItem('maskedIPSelected', val.ip)} onChange={this.togglePrivateIpCheckbox.bind(this, val.ip, 'ip')} color='primary' /><i className={nodeClass} />{val.ip}</span>
               });
             }
           })
@@ -670,15 +728,13 @@ class HostController extends Component {
 
         let nodeClass = '';
 
-        if (treeData[key]._severity_) {
-          nodeClass = 'fg fg-recode ' + treeData[key]._severity_.toLowerCase();
+        if (privateIpData[key]._severity_) {
+          nodeClass = 'fg fg-recode ' + privateIpData[key]._severity_.toLowerCase();
         }
-
-        label = <span><i className={nodeClass} />{key} ({helper.numberWithCommas(treeData[key].doc_count)})</span>;
 
         treeProperty = {
           id: key,
-          label
+          label: <span><Checkbox onChange={this.togglePrivateIpCheckbox.bind(this, key, 'masked')} color='primary' /><i className={nodeClass} />{key} ({helper.numberWithCommas(privateIpData[key].doc_count)})</span>
         };
 
         if (tempChild.length > 0) {
@@ -689,7 +745,7 @@ class HostController extends Component {
       }
     })
 
-    treeObj.label = t('txt-all') + ' (' + helper.numberWithCommas(treeData.doc_count) + ')';
+    treeObj.label = t('txt-all') + ' (' + helper.numberWithCommas(privateIpData.doc_count) + ')';
 
     this.setState({
       privateMaskedIPtree: treeObj
@@ -716,11 +772,11 @@ class HostController extends Component {
   /**
    * Set new datetime
    * @method
-   * @param {object} datetime - new datetime object
+   * @param {object} newDatetime - new datetime object
    */
-  handleDateChange = (datetime) => {
+  handleDateChange = (newDatetime) => {
     this.setState({
-      datetime
+      datetime: newDatetime
     });
   }
   /**
@@ -754,29 +810,14 @@ class HostController extends Component {
   /**
    * Handle content tab change
    * @method
-   * @param {string} type - content type ('hostList' or 'deviceMap')
+   * @param {object} event - event object
+   * @param {string} newTab - content type ('hostList' or 'deviceMap')
    */
-  handleSubTabChange = (type) => {
+  handleSubTabChange = (event, newTab) => {
     this.setState({
-      activeTab: type
+      activeTab: newTab
     }, () => {
       this.getHostData();
-    });
-  }
-  /**
-   * Handle Host data filter change
-   * @method
-   * @param {string} type - filter type
-   * @param {array} value - selected hmd array
-   */
-  handleFilterNavChange = (type, value) => {
-    let tempFilterNav = {...this.state.filterNav};
-    tempFilterNav[type] = value;
-
-    this.setState({
-      filterNav: tempFilterNav
-    }, () => {
-      this.handleSearchSubmit();
     });
   }
   /**
@@ -811,7 +852,7 @@ class HostController extends Component {
               name='ip'
               label={t('ipFields.ip')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={deviceSearch.ip}
               onChange={this.handleDeviceSearch} />
@@ -822,7 +863,7 @@ class HostController extends Component {
               name='mac'
               label={t('ipFields.mac')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={deviceSearch.mac}
               onChange={this.handleDeviceSearch} />
@@ -833,7 +874,7 @@ class HostController extends Component {
               name='hostName'
               label={t('ipFields.hostName')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={deviceSearch.hostName}
               onChange={this.handleDeviceSearch} />
@@ -844,7 +885,7 @@ class HostController extends Component {
               name='deviceType'
               label={t('ipFields.deviceType')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={deviceSearch.deviceType}
               onChange={this.handleDeviceSearch} />
@@ -855,15 +896,15 @@ class HostController extends Component {
               name='system'
               label={t('ipFields.system')}
               variant='outlined'
-              fullWidth={true}
+              fullWidth
               size='small'
               value={deviceSearch.system}
               onChange={this.handleDeviceSearch} />
           </div>
         </div>
         <div className='button-group'>
-          <button className='filter' onClick={this.handleSearchSubmit}>{t('txt-filter')}</button>
-          <button className='clear' onClick={this.clearFilter}>{t('txt-clear')}</button>
+          <Button variant='contained' color='primary' className='filter' onClick={this.handleSearchSubmit}>{t('txt-filter')}</Button>
+          <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}</Button>
         </div>
       </div>
     )
@@ -967,52 +1008,100 @@ class HostController extends Component {
     }
   }
   /**
+   * Get Event Tracing request data
+   * @method
+   * @param {string} ipDeviceUUID - IP Device UUID
+   */
+  getRequestData = (ipDeviceUUID) => {
+    const {assessmentDatetime} = this.state;
+    const requestData = {
+      '@timestamp': [assessmentDatetime.from, assessmentDatetime.to],
+      sort: [
+        {
+          '@timestamp': 'desc'
+        }
+      ],
+      filters: [
+        {
+          condition: 'must',
+          query: 'configSource: hmd'
+        },
+        {
+          condition: 'must',
+          query: 'hostId: ' + ipDeviceUUID
+        }
+      ]
+    };
+
+    return requestData;
+  }
+  /**
    * Get IP device data info
    * @method
    * @param {object} host - active Host data
    * @param {string} options - options for 'toggle'
-   * @param {string} [hmdType] - HMD type
+   * @param {string} [defaultOpen] - HMD type
    */
-  getIPdeviceInfo = (host, options, hmdType) => {
+  getIPdeviceInfo = (host, options, defaultOpen) => {
     const {baseUrl} = this.context;
-    const {hostInfo} = this.state;
-    const datetime = this.getHostDateTime();
-    const url = `${baseUrl}/api/v2/ipdevice?uuid=${host.ipDeviceUUID}&page=1&pageSize=1&startDttm=${datetime.from}&endDttm=${datetime.to}`;
+    const {assessmentDatetime, hostInfo, hostData} = this.state;
+    const ipDeviceUUID = host ? host.ipDeviceUUID : hostData.ipDeviceUUID;
+    const apiArr = [
+      {
+        url: `${baseUrl}/api/v2/ipdevice?uuid=${ipDeviceUUID}&page=1&pageSize=5&startDttm=${assessmentDatetime.from}&endDttm=${assessmentDatetime.to}`,
+        type: 'GET'
+      },
+      {
+        url: `${baseUrl}/api/u1/log/event/_search?page=1&pageSize=20`,
+        data: JSON.stringify(this.getRequestData(ipDeviceUUID)),
+        type: 'POST',
+        contentType: 'text/plain'
+      }
+    ];
 
-    this.ah.one({
-      url,
-      type: 'GET'
-    })
+    this.ah.all(apiArr)
     .then(data => {
       if (data) {
-        const activeHostInfo = _.find(hostInfo.dataContent, {ipDeviceUUID: host.ipDeviceUUID});
-        let hostData = {
-          ...data
-        };
+        if (data[0]) {
+          const activeHostInfo = _.find(hostInfo.dataContent, {ipDeviceUUID});
+          let hostData = {...data[0]};
 
-        if (activeHostInfo.networkBehaviorInfo) {
-          hostData.severityLevel = activeHostInfo.networkBehaviorInfo.severityLevel;
-        }
-
-        if (!hostData.safetyScanInfo) {
-          hostData.safetyScanInfo = {};
-        }
-
-        this.setState({
-          hostData
-        }, () => {
-          if (options === 'toggle') {
-            if (hmdType) {
-              this.setState({
-                openHmdType: hmdType
-              }, () => {
-                this.toggleHostAnalysis();
-              });
-            } else {
-              this.toggleHostAnalysis();
-            }
+          if (activeHostInfo.networkBehaviorInfo) {
+            hostData.severityLevel = activeHostInfo.networkBehaviorInfo.severityLevel;
           }
-        });
+
+          if (!hostData.safetyScanInfo) {
+            hostData.safetyScanInfo = {};
+          }
+
+          this.setState({
+            hostData
+          }, () => {
+            if (options === 'toggle') {
+              if (defaultOpen && typeof defaultOpen === 'string') {
+                this.setState({
+                  openHmdType: defaultOpen
+                }, () => {
+                  this.toggleHostAnalysis();
+                });
+              } else {
+                this.setState({
+                  openHmdType: ''
+                }, () => {
+                  this.toggleHostAnalysis();
+                });
+              }
+            } else {
+              this.setState({
+                openHmdType: ''
+              });
+            }
+          });
+        }
+
+        if (data[1]) {
+          this.setEventTracingData(data[1]);
+        }
       }
       return null;
     })
@@ -1021,26 +1110,129 @@ class HostController extends Component {
     })
   }
   /**
+   * Load Event Tracing data
+   * @method
+   */
+  loadEventTracing = () => {
+    const {baseUrl} = this.context;
+    const {hostData, eventInfo} = this.state;
+
+    this.ah.one({
+      url: `${baseUrl}/api/u1/log/event/_search?page=${eventInfo.scrollCount}&pageSize=20`,
+      data: JSON.stringify(this.getRequestData(hostData.ipDeviceUUID)),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        this.setEventTracingData(data);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Set Event Tracing data
+   * @method
+   * @param {object} data - data from server response
+   */
+  setEventTracingData = (data) => {
+    const {eventInfo} = this.state;
+    let tempEventInfo = {...eventInfo};
+
+    if (data.data.rows.length > 0) {
+      const dataContent = data.data.rows.map(tempData => {
+        tempData.content.id = tempData.id;
+        return tempData.content;
+      });
+
+      eventInfo.dataFieldsArr.forEach(tempData => {
+        tempEventInfo.dataFields[tempData] = {
+          label: f(`logsFields.${tempData}`),
+          sortable: false,
+          formatter: (value, allValue) => {
+            if (tempData === '@timestamp') {
+              value = helper.getFormattedDate(value, 'local');
+            }
+            return <span>{value}</span>
+          }
+        };
+      })
+
+      tempEventInfo.dataContent = _.concat(eventInfo.dataContent, dataContent);
+      tempEventInfo.scrollCount++;
+      tempEventInfo.hasMore = true;
+
+      this.setState({
+        eventInfo: tempEventInfo
+      });
+    } else {
+      tempEventInfo.hasMore = false;
+
+      this.setState({
+        eventInfo: tempEventInfo
+      });
+    }
+  }
+  /**
    * Toggle Host Analysis dialog on/off
    * @method
    */
   toggleHostAnalysis = () => {
     this.setState({
-      hostAnalysisOpen: !this.state.hostAnalysisOpen
+      hostAnalysisOpen: !this.state.hostAnalysisOpen,
+      eventInfo: {
+        dataFieldsArr: ['@timestamp', '_EventCode', '_Message'],
+        dataFields: {},
+        dataContent: [],
+        scrollCount: 1,
+        hasMore: false
+      }
     });
+  }
+  /**
+   * Redirect to Threats page
+   * @method
+   * @param {string} ip - Source IP for the Host
+   */
+  redirectNewPage = (ip) => {
+    const {baseUrl, contextRoot, language} = this.context;
+    const {datetime, hostCreateTime} = this.state;
+    const selectedDate = moment(datetime).format('YYYY-MM-DD');
+    const currentDate = moment().local().format('YYYY-MM-DD');
+    let dateTime = {
+      from: '',
+      to: ''
+    };
+
+    if (moment(selectedDate).isBefore(currentDate)) {
+      dateTime.from = selectedDate + ' 00:00:00';
+      dateTime.to = selectedDate + ' 23:59:59';
+    } else {
+      dateTime.from = currentDate + ' 00:00:00';
+      dateTime.to = hostCreateTime;
+    }
+
+    const ipParam = `&sourceIP=${ip}&page=host`;
+    const linkUrl = `${baseUrl}${contextRoot}/threats?from=${dateTime.from}&to=${dateTime.to}${ipParam}&lng=${language}`;
+
+    window.open(linkUrl, '_blank');
   }
   /**
    * Display individual severity
    * @method
+   * @param {object} host - all Safety Scan data
    * @param {object} val - Severity list
    * @param {number} i - index of the severity list
    * @returns HTML DOM
    */
-  displaySeverityItem = (val, i) => {
+  displaySeverityItem = (host, val, i) => {
     const color = val.doc_count === 0 ? '#333' : '#fff';
     const backgroundColor = val.doc_count === 0 ? '#d9d9d9' : ALERT_LEVEL_COLORS[val.key];
 
-    return <span key={i} style={{color, backgroundColor}}>{val.key}: {val.doc_count}</span>
+    return <span key={i} className='c-link' style={{color, backgroundColor}} onClick={this.redirectNewPage.bind(this, host.ip)}>{val.key}: {val.doc_count}</span>
   }
   /**
    * Display Host content
@@ -1078,6 +1270,11 @@ class HostController extends Component {
         name: 'version',
         path: 'version',
         icon: 'report'
+      },
+      {
+        name: 'remarks',
+        path: 'remarks',
+        icon: 'edit'
       }
     ];
     let safetyScanInfo = '';
@@ -1123,7 +1320,7 @@ class HostController extends Component {
 
           <div className='flex-item'>
             {severityList.length > 0 &&
-              severityList.map(this.displaySeverityItem)
+              severityList.map(this.displaySeverityItem.bind(this, val))
             }
             {safetyData &&
               SCAN_RESULT.map(this.getSafetyScanInfo.bind(this, safetyScanInfo, val))
@@ -1167,12 +1364,41 @@ class HostController extends Component {
 
     downloadWithForm(url, {payload: JSON.stringify(dataOptions)});
   }
+
+  exportAllPdf = () => {
+    const {baseUrl, contextRoot} = this.context
+    const url = `${baseUrl}${contextRoot}/api/ipdevice/assessment/_pdfs`
+    const dataOptions = this.getHostData('pdf')
+
+    downloadWithForm(url, {payload: JSON.stringify(dataOptions)})
+  }
+
+  /**
+   * Display tree item
+   * @method
+   * @param {object} val - tree data
+   * @param {number} i - index of the tree data
+   * @returns TreeItem component
+   */
+  getTreeItem = (val, i) => {
+    return (
+      <TreeItem
+        key={val.id + i}
+        nodeId={val.id}
+        label={val.label}>
+        {val.children && val.children.length > 0 &&
+          val.children.map(this.getTreeItem)
+        }
+      </TreeItem>
+    )
+  }
   render() {
     const {
       activeTab,
       showLeftNav,
       showFilter,
       datetime,
+      assessmentDatetime,
       hostAnalysisOpen,
       hostCreateTime,
       privateMaskedIPtree,
@@ -1187,6 +1413,7 @@ class HostController extends Component {
       currentMap,
       currentBaseLayers,
       seatData,
+      eventInfo,
       openHmdType
     } = this.state;
 
@@ -1194,17 +1421,21 @@ class HostController extends Component {
       <div>
         {hostAnalysisOpen &&
           <HostAnalysis
+            datetime={datetime}
+            assessmentDatetime={assessmentDatetime}
             hostData={hostData}
+            eventInfo={eventInfo}
             openHmdType={openHmdType}
-            datetime={this.getHostDateTime()}
             getIPdeviceInfo={this.getIPdeviceInfo}
+            loadEventTracing={this.loadEventTracing}
             toggleHostAnalysis={this.toggleHostAnalysis} />
         }
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            <button className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></button>
-            <button className='last' onClick={this.getCSVfile} title={t('events.connections.txt-exportCSV')}><i className='fg fg-data-download'></i></button>
+            <Button variant='outlined' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'></i></Button>
+            <Button variant='outlined' color='primary' onClick={this.exportAllPdf} title={t('txt-exportPDF')}><i className='fg fg-data-download'></i></Button>
+            <Button variant='outlined' color='primary' className='last' onClick={this.getCSVfile} title={t('txt-exportCSV')}><i className='fg fg-data-download'></i></Button>
           </div>
 
           <SearchOptions
@@ -1220,16 +1451,21 @@ class HostController extends Component {
               {leftNavData.map(this.showLeftNavItems)}
               <div>
                 <label className={cx('header-text', {'hide': !showLeftNav})}>{t('alert.txt-privateMaskedIp')}</label>
-                <Hierarchy
-                  layout='tree'
-                  foldable={true}
-                  data={privateMaskedIPtree}
-                  selection={{
-                    enabled: true
-                  }}
-                  onSelectionChange={this.handleFilterNavChange.bind(this, 'maskedIPSelected')}
-                  selected={filterNav.maskedIPSelected}
-                  defaultOpened={['all', 'All']} />
+                <TreeView
+                  className='tree-view'
+                  defaultCollapseIcon={<ExpandMoreIcon />}
+                  defaultExpandIcon={<ChevronRightIcon />}
+                  defaultExpanded={['All']}>
+                  {privateMaskedIPtree &&
+                    <TreeItem
+                      nodeId={privateMaskedIPtree.id}
+                      label={privateMaskedIPtree.label}>
+                      {privateMaskedIPtree.children.length > 0 &&
+                        privateMaskedIPtree.children.map(this.getTreeItem)
+                      }
+                    </TreeItem>
+                  }
+                </TreeView>
               </div>
             </div>
             <div className='expand-collapse' onClick={this.toggleLeftNav}>
@@ -1245,7 +1481,7 @@ class HostController extends Component {
               {hostInfo.totalCount > 0 &&
                 <div>
                   <span>{t('txt-total')}: {helper.numberWithCommas(hostInfo.totalCount)}</span>
-                  <span>{t('host.txt-hostCreateTime')}: {helper.getFormattedDate(hostCreateTime, 'local')}</span>
+                  <span>{t('host.txt-hostCreateTime')}: {hostCreateTime}</span>
                 </div>
               }
               {activeTab === 'hostList' &&
@@ -1256,7 +1492,7 @@ class HostController extends Component {
                     label={t('txt-sort')}
                     select
                     variant='outlined'
-                    fullWidth={true}
+                    fullWidth
                     size='small'
                     value={hostSort}
                     onChange={this.handleHostSortChange}>
@@ -1267,13 +1503,12 @@ class HostController extends Component {
             </div>
             <div className='main-content host'>
               <Tabs
-                className='subtab-menu'
-                menu={{
-                  hostList: t('host.txt-hostList'),
-                  deviceMap: t('host.txt-deviceMap')
-                }}
-                current={activeTab}
+                indicatorColor='primary'
+                textColor='primary'
+                value={activeTab}
                 onChange={this.handleSubTabChange}>
+                <Tab label={t('host.txt-hostList')} value='hostList' />
+                <Tab label={t('host.txt-deviceMap')} value='deviceMap' />
               </Tabs>
 
               {activeTab === 'hostList' &&

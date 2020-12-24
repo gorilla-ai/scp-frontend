@@ -8,13 +8,15 @@ import cx from "classnames";
 import Input from "react-ui/build/src/components/input";
 import PopupDialog from "react-ui/build/src/components/popup-dialog";
 import TableContent from "../common/table-content";
-import DropDownList from "react-ui/build/src/components/dropdown";
-import Textarea from "react-ui/build/src/components/textarea";
 import {downloadWithForm} from "react-ui/build/src/utils/download";
 import {Link} from "react-router-dom";
 import Checkbox from "react-ui/build/src/components/checkbox";
 import SelecTableContent from "../common/selectable-content";
-
+import TextareaAutosize from '@material-ui/core/TextareaAutosize';
+import MenuItem from '@material-ui/core/MenuItem';
+import TextField from '@material-ui/core/TextField';
+import CheckIcon from '@material-ui/icons/Check';
+import CloseIcon from '@material-ui/icons/Close';
 let t = null;
 let f = null;
 let et = null;
@@ -127,7 +129,7 @@ class IncidentDevice extends Component {
     componentDidMount() {
         const {locale, sessionRights} = this.context;
 
-        helper.getPrivilegesInfo(sessionRights, 'config', locale);
+        helper.getPrivilegesInfo(sessionRights, 'soc', locale);
 
         this.getDeviceData();
         this.getUnitList();
@@ -403,15 +405,11 @@ class IncidentDevice extends Component {
                             <header className='main-header'>{it('txt-incident-device')}</header>
                             <div className='content-header-btns'>
                                 {activeContent === 'tableList' &&
-                                <span>{it('txt-autoSend')}</span>
+                                        <span>{it('txt-autoSendState')}</span>
                                 }
-                                {activeContent === 'tableList' &&
-                                <Checkbox
-                                    id='isDefault'
-                                    onChange={this.handleStatusChange.bind(this, 'isDefault')}
-                                    checked={sendCheck.sendStatus}
-                                    disabled={activeContent === 'viewDevice'}/>
-                                }
+
+                                {activeContent === 'tableList' && sendCheck.sendStatus &&(<CheckIcon style={{color:'#68cb51'}}/>)}
+                                {activeContent === 'tableList' && !sendCheck.sendStatus &&(<CloseIcon style={{color:'#d63030'}}/>)}
 
                                 {activeContent === 'tableList' &&
                                 <button className='standard btn list'
@@ -424,9 +422,13 @@ class IncidentDevice extends Component {
                                         onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</button>
                                 }
                                 <button className='standard btn edit'
+                                        onClick={this.autoSendSettingsDialog.bind(this)}>{it('txt-autoSendSettings')}</button>
+                                <button className='standard btn edit'
                                         onClick={this.toggleContent.bind(this, 'addDevice')}>{t('txt-add')}</button>
 
-                                <Link to='/SCP/configuration/notifications'><button className='standard btn'>{t('notifications.txt-settings')}</button></Link>
+                                <Link to='/SCP/configuration/notifications'>
+                                    <button className='standard btn'>{t('notifications.txt-settings')}</button>
+                                </Link>
 
                             </div>
                             <TableContent
@@ -512,100 +514,142 @@ class IncidentDevice extends Component {
 
                     <div className='group'>
                         <label htmlFor='edgeDevice'>{it('device.txt-edgeDevice')}</label>
-                        <DropDownList
+                        <TextField
                             id='edgeDevice'
-                            required={false}
-                            list={edgeList}
-                            onChange={this.handleDataChange.bind(this, 'edgeDevice')}
+                            name='edgeDevice'
+                            variant='outlined'
+                            fullWidth={true}
+                            size='small'
+                            select
+                            onChange={this.handleDataChangeMui}
                             value={incidentDevice.edgeItem}
-                            readOnly={activeContent === 'viewDevice'}/>
+                            disabled={activeContent === 'viewDevice'}>
+                            {_.map(edgeList,el=>{
+                                return <MenuItem value={el}>{el.agentName}</MenuItem>
+                            })}
+                        </TextField>
                     </div>
 
                     <div className='group'>
                         <label htmlFor='deviceId'>{it('device.txt-id')}</label>
-                        <Input
+                        <TextField
                             id='deviceId'
-                            onChange={this.handleDataChange.bind(this, 'deviceId')}
+                            name='deviceId'
+                            variant='outlined'
+                            fullWidth={true}
+                            size='small'
+                            onChange={this.handleDataChangeMui}
                             value={incidentDevice.info.deviceId}
-                            required={true}
-                            readOnly={activeContent === 'viewDevice' || dataFromEdgeDevice}/>
+                            error={!(incidentDevice.info.deviceId || '')}
+                            required
+                            helperText={it('txt-required')}
+                            disabled={activeContent === 'viewDevice' || dataFromEdgeDevice}/>
                     </div>
                     <div className='group'>
                         <label htmlFor='deviceName'>{it('device.txt-name')}</label>
-                        <Input
+                        <TextField
                             id='deviceName'
-                            onChange={this.handleDataChange.bind(this, 'deviceName')}
+                            name='deviceName'
+                            variant='outlined'
+                            fullWidth={true}
+                            size='small'
+                            onChange={this.handleDataChangeMui}
                             value={incidentDevice.info.deviceName}
-                            required={true}
-                            readOnly={activeContent === 'viewDevice' || dataFromEdgeDevice}/>
+                            error={!(incidentDevice.info.deviceName || '')}
+                            required
+                            helperText={it('txt-required')}
+                            disabled={activeContent === 'viewDevice' || dataFromEdgeDevice}/>
                     </div>
 
                     <div className='group'>
                         <label htmlFor='deviceCompany'>{it('device.txt-company')}</label>
-                        <Input
+                        <TextField
                             id='deviceCompany'
-                            required={true}
-                            onChange={this.handleDataChange.bind(this, 'deviceCompany')}
+                            name='deviceCompany'
+                            error={!(incidentDevice.info.deviceCompany || '')}
+                            helperText={it('txt-required')}
+                            required
+                            variant='outlined'
+                            fullWidth={true}
+                            size='small'
+                            onChange={this.handleDataChangeMui}
                             value={incidentDevice.info.deviceCompany}
-                            readOnly={activeContent === 'viewDevice' || dataFromEdgeDevice}/>
+                            disabled={activeContent === 'viewDevice' || dataFromEdgeDevice}/>
                     </div>
 
 
                     <div className='group'>
                         <label htmlFor='protectType'>{it('txt-protect-type')}</label>
-                        <DropDownList
+                        <TextField
                             id='protectType'
-                            required={true}
-                            list={_.map(_.range(0, 7), el => {
-                                return {text: it(`protectType.${el}`), value: el}
-                            })}
-                            onChange={this.handleDataChange.bind(this, 'protectType')}
+                            name='protectType'
+                            error={!(incidentDevice.info.protectType || '')}
+                            required
+                            helperText={it('txt-required')}
+                            variant='outlined'
+                            fullWidth={true}
+                            size='small'
+                            select
+                            onChange={this.handleDataChangeMui}
                             value={incidentDevice.info.protectType}
-                            readOnly={activeContent === 'viewDevice'}/>
+                            disabled={activeContent === 'viewDevice'}>
+                            {
+                                _.map(_.range(0, 7), el => {
+                                    return <MenuItem value={el.toString()}>{it(`protectType.${el}`)}</MenuItem>
+                                })
+                            }
+                        </TextField>
                     </div>
 
                     {incidentDevice.info.protectType === '6' &&
                     <div className='group'>
                         <label htmlFor='protectTypeInfo'>{it('txt-protect-type-info')}</label>
-                        <Input
+                        <TextField
                             id='protectTypeInfo'
-                            onChange={this.handleDataChange.bind(this, 'protectTypeInfo')}
+                            name='protectTypeInfo'
+                            variant='outlined'
+                            fullWidth={true}
+                            size='small'
+                            onChange={this.handleDataChangeMui}
                             value={incidentDevice.info.protectTypeInfo}
-                            readOnly={activeContent === 'viewDevice'}/>
+                            disabled={activeContent === 'viewDevice'}/>
                     </div>
                     }
 
                     <div className='group'>
                         <label htmlFor='unitId'>{it('unit.txt-name')}</label>
-                        <DropDownList
+                        <TextField
                             id='unitId'
-                            required={true}
-                            list={unitList}
-                            onChange={this.handleDataChange.bind(this, 'unitId')}
+                            name='unitId'
+                            required
+                            error={!(incidentDevice.info.unitId || '')}
+                            helperText={it('txt-required')}
+                            variant='outlined'
+                            fullWidth={true}
+                            size='small'
+                            select
+                            onChange={this.handleDataChangeMui}
                             value={incidentDevice.info.unitId}
-                            readOnly={activeContent === 'viewDevice'}/>
+                            disabled={activeContent === 'viewDevice'}>
+                            {
+                                _.map(unitList, el => {
+                                    return <MenuItem value={el.value}>{el.text}</MenuItem>
+                                })
+                            }
+                        </TextField>
                     </div>
 
-                    {/*{activeContent !== 'addDevice' &&*/}
-                    {/*<div className='group'>*/}
-                    {/*    <label htmlFor='frequency'>{it('txt-frequency')}</label>*/}
-                    {/*    <Input*/}
-                    {/*        id='frequency'*/}
-                    {/*        onChange={this.handleDataChange.bind(this, 'frequency')}*/}
-                    {/*        value={incidentDevice.info.frequency}*/}
-                    {/*        readOnly={activeContent === 'viewDevice'}/>*/}
-                    {/*</div>*/}
-                    {/*}*/}
                     {activeContent !== 'addDevice' && incidentDevice.info.frequency === 0 &&
                     <div className='group full'>
                         <label htmlFor='note'>{it('txt-note')} ({t('txt-memoMaxLength')})</label>
-                        <Textarea
+                        <TextareaAutosize
                             id='note'
+                            name='note'
                             rows={4}
                             maxLength={250}
                             value={incidentDevice.info.note}
-                            onChange={this.handleDataChange.bind(this, 'note')}
-                            readOnly={activeContent === 'viewDevice'}/>
+                            onChange={this.handleDataChangeMui}
+                            disabled={activeContent === 'viewDevice'}/>
                     </div>
                     }
                 </div>
@@ -681,7 +725,7 @@ class IncidentDevice extends Component {
 
         if (!incidentDevice.info.unitId || !incidentDevice.info.deviceId || !incidentDevice.info.deviceCompany ||
             !incidentDevice.info.deviceName || !incidentDevice.info.protectType) {
-            helper.showPopupMsg('', t('txt-error'), '[Unit],[Device ID],[Device Name] and [Device Type] is required');
+            helper.showPopupMsg('', t('txt-error'), t('txt-allRequired'));
             return false;
         }
 
@@ -703,12 +747,15 @@ class IncidentDevice extends Component {
                 <div className='header-text'>{t('txt-filter')}</div>
                 <div className='filter-section config'>
                     <div className='group'>
-                        <label htmlFor='edgeSearchKeyword'>{f('edgeFields.keywords')}</label>
-                        <input
+                        <TextField
                             id='edgeSearchKeyword'
+                            name='keyword'
+                            variant='outlined'
+                            fullWidth={true}
+                            size='small'
                             className='search-textarea'
                             value={deviceSearch.keyword}
-                            onChange={this.handleDeviceInputSearch.bind(this, 'keyword')}/>
+                            onChange={this.handleDeviceInputSearchMui}/>
                     </div>
                 </div>
                 <div className='button-group'>
@@ -758,6 +805,24 @@ class IncidentDevice extends Component {
             </div>
         )
     };
+
+    autoSendSettingsDialog() {
+        PopupDialog.prompt({
+            title: it('txt-autoSendSettings'),
+            confirmText: it('unit.txt-isDefault'),
+            cancelText: it('unit.txt-isNotDefault'),
+            display: <div className='c-form content'>
+                <span>{it('txt-autoSend')}</span>
+            </div>,
+            act: (confirmed) => {
+                if (confirmed){
+                    this.handleStatusChange('isDefault',true)
+                }else {
+                    this.handleStatusChange('isDefault',false)
+                }
+            }
+        })
+    }
 
     /**
      * Handle delete IncidentDevice confirm
@@ -994,20 +1059,6 @@ class IncidentDevice extends Component {
      */
     openSendMenu = () => {
         this.setupHealthStatisticData();
-        // PopupDialog.prompt({
-        //     title: it('txt-send'),
-        //     id: 'modalWindowSmall',
-        //     confirmText: it('txt-send'),
-        //     cancelText: t('txt-cancel'),
-        //     display: <div className='content delete'>
-        //         <span>{it('txt-sendCheckHealth')}</span>
-        //     </div>,
-        //     act: (confirmed) => {
-        //         if (confirmed) {
-        //             this.sendCsv()
-        //         }
-        //     }
-        // })
     };
 
     /**
@@ -1019,6 +1070,20 @@ class IncidentDevice extends Component {
     handleDeviceInputSearch = (type, event) => {
         let tempDeviceSearch = {...this.state.deviceSearch};
         tempDeviceSearch[type] =  event.target.value.trim();
+
+        this.setState({
+            deviceSearch: tempDeviceSearch
+        });
+    };
+    /**
+     * Handle filter input data change
+     * @method
+     * @param {string} type - input type
+     * @param {object} event - input value
+     */
+    handleDeviceInputSearchMui = (event) => {
+        let tempDeviceSearch = {...this.state.deviceSearch};
+        tempDeviceSearch[event.target.name] =  event.target.value;
 
         this.setState({
             deviceSearch: tempDeviceSearch
@@ -1079,6 +1144,38 @@ class IncidentDevice extends Component {
             });
         } else {
             tempDevice.info[type] = value;
+            this.setState({
+                incidentDevice: tempDevice
+            });
+        }
+    };
+
+    handleDataChangeMui = (event) => {
+        let tempDevice = {...this.state.incidentDevice};
+        let edgeItemList = {...this.state.edgeList};
+        let dataFromEdgeDevice = this.state.dataFromEdgeDevice;
+        if (event.target.name === 'edgeDevice') {
+            tempDevice.edgeItem = event.target.value;
+            _.forEach(edgeItemList, val => {
+                if (val.agentId === event.target.value.agentId) {
+                    tempDevice.info.deviceId = val.agentId
+                    tempDevice.info.deviceName = val.agentName
+                    tempDevice.info.deviceCompany = val.agentCompany
+                }
+            })
+
+            if (tempDevice.info.deviceId.length !== 0) {
+                dataFromEdgeDevice = true;
+            } else {
+                dataFromEdgeDevice = false;
+            }
+
+            this.setState({
+                incidentDevice: tempDevice,
+                dataFromEdgeDevice: dataFromEdgeDevice
+            });
+        } else {
+            tempDevice.info[event.target.name] = event.target.value;
             this.setState({
                 incidentDevice: tempDevice
             });
@@ -1158,8 +1255,8 @@ class IncidentDevice extends Component {
         let tempSendCheck = {...this.state.sendCheck};
         const {baseUrl, contextRoot} = this.context;
 
-        tempSendCheck.sendStatus = !this.state.sendCheck.sendStatus;
-
+        // tempSendCheck.sendStatus = !this.state.sendCheck.sendStatus;
+        tempSendCheck.sendStatus = value;
 
         ah.one({
             url: `${baseUrl}/api/soc/device/_override`,

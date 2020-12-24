@@ -1,9 +1,10 @@
 import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
 import PropTypes from 'prop-types'
-import Moment from 'moment'
 import _ from 'lodash'
 import cx from 'classnames'
+
+import Button from '@material-ui/core/Button';
 
 import Gis from 'react-gis/build/src/components'
 
@@ -13,7 +14,7 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
 const NOT_AVAILABLE = 'N/A';
 const IP_INFO = ['ip', 'mac'];
-const HOST_INFO = ['hostName', 'system', 'deviceType', 'userAccount', 'cpu', 'ram', 'disks', 'shareFolders'];
+const HOST_INFO = ['hostName', 'system', 'deviceType', 'userAccount', 'cpu', 'ram', 'disks', 'shareFolders', 'remarks'];
 const OWNER_INFO = ['ownerName', 'ownerID', 'department', 'title'];
 
 let t = null;
@@ -42,29 +43,29 @@ class PrivateDetails extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    this.getDataInfo();
+    this.getPrivateInfo();
   }
   componentDidUpdate(prevProps) {
-    this.getDataInfo(prevProps);
+    this.getPrivateInfo(prevProps);
   }
   /**
    * Get and set the ip, owner, area and host information
    * @method
    */
-  getDataInfo = (prevProps) => {
-    const {type, alertInfo, topoInfo, srcDestType} = this.props;
+  getPrivateInfo = (prevProps) => {
+    const {alertInfo, topoInfo} = this.props;
     const ip = {
-      ip: topoInfo[type] ? topoInfo[type] : (topoInfo.ip || topoInfo.srcIp || alertInfo.ip),
-      mac: topoInfo[srcDestType + 'Mac'] ? topoInfo[srcDestType + 'Mac'] : (topoInfo.mac || topoInfo.srcMac || alertInfo.mac)
+      ip: topoInfo.ip,
+      mac: topoInfo.mac
     };
     const owner = {
       id: topoInfo.ownerObj ? topoInfo.ownerObj.ownerID : topoInfo.ownerID,
       name: topoInfo.ownerObj ? topoInfo.ownerObj.ownerName : topoInfo.ownerName,
       department: topoInfo.ownerObj ? topoInfo.ownerObj.departmentName : topoInfo.departmentName,
       title: topoInfo.ownerObj ? topoInfo.ownerObj.titleName : topoInfo.titleName,
-      map: alertInfo[type] ? alertInfo[type].ownerMap : alertInfo.ownerMap,
-      seat: alertInfo[type] ? alertInfo[type].ownerSeat : alertInfo.ownerSeat,
-      baseLayers: alertInfo[type] ? alertInfo[type].ownerBaseLayers : alertInfo.ownerBaseLayers
+      map: alertInfo.ownerMap,
+      seat: alertInfo.ownerSeat,
+      baseLayers: alertInfo.ownerBaseLayers
     };
     const areaName = topoInfo.areaObj ? topoInfo.areaObj.areaFullName : topoInfo.areaFullName;
     let hostInfo = [];
@@ -177,7 +178,7 @@ class PrivateDetails extends Component {
             <div className='trigger-text'>{t('edge-management.txt-lastUpdateTime')}: {helper.getFormattedDate(topoInfo.updateDttm, 'local')}</div>
           }
           {topoInfo && topoInfo.isHmd &&
-            <button className='btn trigger' onClick={this.props.triggerTask.bind(this, ['getSystemInfo'], 'fromInventory')}>{t('txt-reTrigger')}</button>
+            <Button variant='contained' color='primary' className='btn trigger' onClick={this.props.triggerTask.bind(this, ['getSystemInfo'], 'fromInventory')}>{t('txt-reTrigger')}</Button>
           }
           <table className='c-table main-table host'>
             <tbody>
@@ -233,7 +234,9 @@ class PrivateDetails extends Component {
 
 PrivateDetails.propTypes = {
   alertInfo: PropTypes.object.isRequired,
-  topoInfo: PropTypes.object.isRequired
+  topoInfo: PropTypes.object.isRequired,
+  picPath: PropTypes.string.isRequired,
+  triggerTask: PropTypes.func.isRequired
 };
 
 export default PrivateDetails;
