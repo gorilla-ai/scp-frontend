@@ -669,6 +669,7 @@
     "txt-portValidationFail": "請檢查port",
     "txt-seatNameEmpty": "請輸入座位名稱",
     "txt-saveSuccess": "儲存成功",
+    "txt-maxCharError": "不得超過64字元",
 
     "txt-addOwner": "$t(txt-add)$t(ipFields.owner)",
     "txt-editOwner": "$t(txt-edit)$t(ipFields.owner)",

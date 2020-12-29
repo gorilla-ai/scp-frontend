@@ -224,7 +224,16 @@ class NetworkInventory extends Component {
         csvColumnsIp: {
           valid: true
         },
-        name: {
+        seatName: {
+          valid: true
+        },
+        hostName: {
+          valid: true
+        },
+        system: {
+          valid: true
+        },
+        deviceType: {
           valid: true
         }
       },
@@ -2014,6 +2023,15 @@ class NetworkInventory extends Component {
           },
           csvColumnsIp: {
             valid: true
+          },
+          hostName: {
+            valid: true
+          },
+          system: {
+            valid: true
+          },
+          deviceType: {
+            valid: true
           }
         }
       });
@@ -2751,6 +2769,36 @@ class NetworkInventory extends Component {
           this.checkDuplicatedIP();
         }
       } else {
+        if (activeSteps === 2) {
+          let validate = true;
+          tempFormValidation.hostName.valid = true;
+          tempFormValidation.system.valid = true;
+          tempFormValidation.deviceType.valid = true;
+
+          if (addIP.hostName && addIP.hostName.length > 64) {
+            tempFormValidation.hostName.valid = false;
+            validate = false;
+          }
+
+          if (addIP.system && addIP.system.length > 64) {
+            tempFormValidation.system.valid = false;
+            validate = false;
+          }
+
+          if (addIP.deviceType && addIP.deviceType.length > 64) {
+            tempFormValidation.deviceType.valid = false;
+            validate = false;
+          }
+
+          this.setState({
+            formValidation: tempFormValidation
+          });
+
+          if (!validate) {
+            return;
+          }
+        }
+
         if (activeSteps === 3 && ownerType === 'new') {
           let validate = true;
 
@@ -2785,6 +2833,7 @@ class NetworkInventory extends Component {
           this.handleAddIpConfirm();
           return;
         }
+
         tempActiveSteps++;
 
         this.setState({
@@ -3229,6 +3278,8 @@ class NetworkInventory extends Component {
                   variant='outlined'
                   fullWidth
                   size='small'
+                  error={!formValidation.hostName.valid}
+                  helperText={formValidation.hostName.valid ? '' : t('network-topology.txt-maxCharError')}
                   value={hostNameField}
                   onChange={this.handleAddIpChange}
                   disabled={hostNameReadyOnly} />
@@ -3252,6 +3303,8 @@ class NetworkInventory extends Component {
                   variant='outlined'
                   fullWidth
                   size='small'
+                  error={!formValidation.system.valid}
+                  helperText={formValidation.system.valid ? '' : t('network-topology.txt-maxCharError')}
                   value={addIP.system}
                   onChange={this.handleAddIpChange}
                   disabled={currentDeviceData.isHmd} />
@@ -3264,6 +3317,8 @@ class NetworkInventory extends Component {
                   variant='outlined'
                   fullWidth
                   size='small'
+                  error={!formValidation.deviceType.valid}
+                  helperText={formValidation.deviceType.valid ? '' : t('network-topology.txt-maxCharError')}
                   value={addIP.deviceType}
                   onChange={this.handleAddIpChange}
                   disabled={currentDeviceData.isHmd} />
@@ -3747,8 +3802,8 @@ class NetworkInventory extends Component {
         fullWidth
         size='small'
         required
-        error={!formValidation.name.valid}
-        helperText={formValidation.name.valid ? '' : t('txt-required')}
+        error={!formValidation.seatName.valid}
+        helperText={formValidation.seatName.valid ? '' : t('txt-required')}
         value={addSeat.name}
         onChange={this.handleDataChange} />
     )
@@ -3784,7 +3839,7 @@ class NetworkInventory extends Component {
    */
   closeAddSeatDialog = () => {
     let tempFormValidation = {...this.state.formValidation};
-    tempFormValidation.name.valid = true;
+    tempFormValidation.seatName.valid = true;
 
     this.setState({
       addSeatOpen: false,
@@ -3814,9 +3869,9 @@ class NetworkInventory extends Component {
     }
 
     if (addSeat.name) {
-      tempFormValidation.name.valid = true;
+      tempFormValidation.seatName.valid = true;
     } else {
-      tempFormValidation.name.valid = false;
+      tempFormValidation.seatName.valid = false;
       validate = false;
     }
 
