@@ -39,11 +39,13 @@ import FileUpload from "../common/file-upload";
 import {KeyboardDateTimePicker, MuiPickersUtilsProvider} from "@material-ui/pickers";
 import MomentUtils from "@date-io/moment";
 import moment from "moment";
+import NotifyContact from "./common/notifyContact";
 
 let t = null;
 let f = null;
 let et = null;
 let it = null;
+let at = null;
 
 const INCIDENT_STATUS_ALL = 0
 const INCIDENT_STATUS_UNREVIEWED = 1
@@ -67,6 +69,7 @@ class Incident extends Component {
         f = chewbaccaI18n.getFixedT(null, "tableFields");
         et = global.chewbaccaI18n.getFixedT(null, "errors");
         it = global.chewbaccaI18n.getFixedT(null, "incident");
+        at = global.chewbaccaI18n.getFixedT(null, "account");
 
         this.state = {
             INCIDENT_ACCIDENT_LIST: _.map(_.range(1, 6), el => {
@@ -113,7 +116,7 @@ class Incident extends Component {
             relatedListOptions: [],
             deviceListOptions: [],
             incident: {
-                dataFieldsArr: ['_menu', 'id', 'tag', 'status', 'type', 'createDttm', 'title', 'category', 'reporter'],
+                dataFieldsArr: ['_menu', 'id', 'tag', 'status', 'createDttm', 'title', 'reporter', 'srcIPListString' , 'dstIPListString'],
                 fileFieldsArr: ['fileName', 'fileSize', 'fileDttm', 'fileMemo', 'action'],
                 flowFieldsArr: ['id', 'status', 'reviewDttm', 'reviewerName', 'suggestion'],
                 dataFields: {},
@@ -262,7 +265,16 @@ class Incident extends Component {
                                 }
                                 </div>
 
-                            } else {
+                            }else if (tempData === 'srcIPListString' || tempData === 'dstIPListString'){
+                                let formattedPatternIP = ''
+                                if (value.length > 32) {
+                                    formattedPatternIP = value.substr(0, 32) + '...';
+                                }else{
+                                    formattedPatternIP = value
+                                }
+                                return <span>{formattedPatternIP}</span>
+                            }
+                            else {
                                 return <span>{value}</span>
                             }
                         }
@@ -713,14 +725,17 @@ class Incident extends Component {
                     displayPage === 'main' && this.displayMainPage()
                 }
                 {
+                    _.includes(['addIncident', 'editIncident', 'viewIncident'], activeContent) && displayPage === 'main' &&  this.displayNoticePage()
+                }
+                {
                     _.includes(['addIncident', 'editIncident', 'viewIncident'], activeContent) && displayPage === 'main' && this.displayAttached()
+                }
+                {
+                    _.includes(['addIncident', 'editIncident', 'viewIncident'], activeContent) && displayPage === 'main' &&  this.displayConnectUnit()
                 }
                 {
                     activeContent !== 'addIncident' &&  displayPage === 'main' && this.displayFlow()
                 }
-            {
-                displayPage === 'notice' && this.displayNoticePage()
-            }
             {
                 displayPage === 'events' && this.displayEventsPage()
             }
@@ -731,11 +746,12 @@ class Incident extends Component {
 
             {activeContent === 'viewIncident' &&
                 <footer style={{'textAlign':'center'}}>
-                    <button className='standard btn list'
-                            onClick={this.exportPdf.bind(this)}>{t('txt-export')}</button>
+
                     
                     <button className='standard btn list'
                             onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</button>
+
+
                     {editCheck &&
                         <button className='standard btn list'
                                 onClick={this.toggleContent.bind(this, 'editIncident')}>{t('txt-edit')}</button>
@@ -772,6 +788,12 @@ class Incident extends Component {
                     <button className='standard btn list'
                             onClick={this.openReviewModal.bind(this, incident.info, 'close')}>{it('txt-close')}</button>
                     }
+
+                    <button className='standard btn list'
+                            onClick={this.exportPdf.bind(this)}>{t('txt-export')}</button>
+
+                    <button className='standard btn list'
+                            onClick={this.notifyContact.bind(this)}>{it('txt-notify')}</button>
                 </footer>
             }
 
@@ -1147,11 +1169,11 @@ class Incident extends Component {
 
             {/*<Button className={incidentType === 'events' ? 'last' : 'last-left'}  style={{backgroundColor:'#001b34',color:'#FFFFFF'}}*/}
             {/*        onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}</Button>*/}
-            <Button className='last-left' style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
-                    onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}</Button>
+            {/*<Button className='last-left' style={{backgroundColor:'#001b34',color:'#FFFFFF'}}*/}
+            {/*        onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}</Button>*/}
 
-            <Button className='last' disabled={incidentType !== 'ttps'}  style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
-                    onClick={this.handleIncidentPageChange.bind(this, 'ttps')}>{it('txt-next-page')}</Button>
+            {/*<Button className='last' disabled={incidentType !== 'ttps'}  style={{backgroundColor:'#001b34',color:'#FFFFFF'}}*/}
+            {/*        onClick={this.handleIncidentPageChange.bind(this, 'ttps')}>{it('txt-next-page')}</Button>*/}
 
             {/*{*/}
             {/*    incidentType === 'ttps' &&*/}
@@ -1238,6 +1260,35 @@ class Incident extends Component {
         </div>
     }
 
+    handleConnectContactChange = (val) => {
+        let temp = {...this.state.incident};
+        temp.info.notifyList = val;
+        this.setState({incident: temp})
+    };
+
+    displayConnectUnit = () => {
+        const {activeContent, INCIDENT_ACCIDENT_LIST, INCIDENT_ACCIDENT_SUB_LIST,incidentType, incident, relatedListOptions} = this.state;
+
+        return <div className='form-group normal'>
+            <header>
+                <div className='text'>{it('txt-notifyUnit')}</div>
+            </header>
+
+            <div className='group full multi'>
+                <MultiInput
+                    id='incidentEvent'
+                    className='incident-group'
+                    base={NotifyContact}
+                    defaultItemValue={{title: '', name: '', phone:'', email:''}}
+                    value={incident.info.notifyList}
+                    props={{activeContent: activeContent}}
+                    onChange={this.handleConnectContactChange}
+                    readOnly={activeContent === 'viewIncident'}/>
+
+            </div>
+        </div>
+    }
+
     handleEventsChange = (val) => {
         let temp = {...this.state.incident};
         temp.info.eventList = val;
@@ -1259,8 +1310,8 @@ class Incident extends Component {
             <Button className='last-left '  style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
                     onClick={this.handleIncidentPageChange.bind(this, 'main')}>{it('txt-prev-page')}</Button>
 
-            <Button className='last'  style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
-                    onClick={this.handleIncidentPageChange.bind(this, 'notice')}>{it('txt-next-page')}</Button>
+            <Button className='last'  disabled={incidentType !== 'ttps'}   style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
+                    onClick={this.handleIncidentPageChange.bind(this, 'ttps')}>{it('txt-next-page')}</Button>
 
 
             <div className='group full multi'>
@@ -1295,7 +1346,7 @@ class Incident extends Component {
             </header>
 
             <Button className='last-left '  style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
-                    onClick={this.handleIncidentPageChange.bind(this, 'notice')}>{it('txt-prev-page')}</Button>
+                    onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}</Button>
 
             <Button className='last' disabled={true} style={{backgroundColor:'#001b34',color:'#FFFFFF'}}
                     onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-next-page')}</Button>
@@ -1307,7 +1358,8 @@ class Incident extends Component {
                     base={Ttps}
                     value={incident.info.ttpList}
                     props={{activeContent: activeContent}}
-                    onChange={this.handleTtpsChange}/>
+                    onChange={this.handleTtpsChange}
+                    readOnly={activeContent === 'viewIncident'}/>
             </div>
         </div>
     };
@@ -1832,6 +1884,7 @@ class Incident extends Component {
                 fileList: allValue.fileList,
                 fileMemo: allValue.fileMemo,
                 tagList: allValue.tagList,
+                notifyList: allValue.notifyList,
                 historyList: allValue.historyList,
                 creator: allValue.creator,
                 announceSource: allValue.announceSource,
@@ -1863,6 +1916,7 @@ class Incident extends Component {
                 relatedList: null,
                 ttpList: null,
                 eventList: null,
+                notifyList: null,
                 fileMemo: '',
                 tagList: null,
                 historyList: null,
@@ -2525,6 +2579,23 @@ class Incident extends Component {
             })
         }
 
+        //  Contact list
+        payload.notifyList = {}
+        payload.notifyList.cols = 8
+        payload.notifyList.header = it('txt-notifyUnit')
+        payload.notifyList.table = []
+
+        _.forEach(incident.notifyList, notify => {
+            payload.notifyList.table.push({text: f('incidentFields.name'), colSpan: 2})
+            payload.notifyList.table.push({text: f('incidentFields.reviewerName'), colSpan: 2})
+            payload.notifyList.table.push({text: at('phone'), colSpan: 2})
+            payload.notifyList.table.push({text: at('email'), colSpan: 2})
+            payload.notifyList.table.push({text: notify.title, colSpan: 2})
+            payload.notifyList.table.push({text: notify.name, colSpan: 2})
+            payload.notifyList.table.push({text: notify.phone, colSpan: 2})
+            payload.notifyList.table.push({text: notify.email, colSpan: 2})
+        })
+
 
         // accident
         payload.accident = {}
@@ -2657,12 +2728,13 @@ class Incident extends Component {
 
         return payload
     }
+
     exportPdf() {
         const {baseUrl, contextRoot} = this.context
         const {incident} = this.state
-
         downloadWithForm(`${baseUrl}${contextRoot}/api/soc/_pdf`, {payload: JSON.stringify(this.toPdfPayload(incident.info))})
     }
+
     exportAll() {
         const {baseUrl, contextRoot, session} = this.context
         let {search, incident, loadListType, accountRoleType} = this.state
@@ -2728,6 +2800,34 @@ class Incident extends Component {
         .catch(err => {
             helper.showPopupMsg('', t('txt-error'), err.message)
         })
+    }
+
+    notifyContact() {
+        const {baseUrl, contextRoot} = this.context
+        const {incident} = this.state
+
+        let payload = {
+            incidentId:incident.info.id
+        }
+
+        ah.one({
+            url: `${baseUrl}/api/soc/_notify`,
+            data: JSON.stringify(payload),
+            type: 'POST',
+            contentType: 'application/json',
+            dataType: 'json'
+        })
+            .then(data => {
+                if (data.status.includes('success')){
+                    helper.showPopupMsg('', it('txt-notify'), it('txt-notify')+t('notifications.txt-sendSuccess'))
+                }else{
+                    helper.showPopupMsg('', it('txt-notify'), t('txt-txt-fail'))
+                }
+            })
+            .catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message)
+            })
+
     }
 }
 

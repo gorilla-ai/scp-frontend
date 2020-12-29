@@ -604,7 +604,9 @@
     "finalDate": "Limit DateTime",
     "tag": "Tag",
     "reviewDttm": "Review Time",
-    "reviewerName": "Reviewer"
+    "reviewerName": "Reviewer",
+    "srcIPListString": "Source IP ",
+    "dstIPListString": "Destination IP"
   },
   "severityTableFields": {
     "dataSourceType": "Type",

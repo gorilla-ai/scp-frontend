@@ -603,7 +603,9 @@
     "finalDate": "逾期時間",
     "tag": "標籤",
     "reviewDttm": "處理時間",
-    "reviewerName": "處理人"
+    "reviewerName": "處理人",
+    "srcIPListString": "來源IP",
+    "dstIPListString": "目的IP"
   },
   "severityTableFields": {
     "dataSourceType": "類型",
