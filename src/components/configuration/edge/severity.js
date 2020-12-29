@@ -613,10 +613,6 @@ class Severity extends Component {
               <div className='main-content'>
                 <header className='main-header'>{t('threat-severity-mapping.txt-severityMapping')}</header>
 
-                <div className='content-header-btns'>
-                  <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'addSeverity')}>{t('threat-severity-mapping.txt-addSeverityTable')}</Button>
-                </div>
-
                 <TableContent
                   dataTableData={severity.dataContent}
                   dataTableFields={severity.dataFields}

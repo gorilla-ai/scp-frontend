@@ -135,7 +135,7 @@ class EsManage extends Component {
     const type = event.target.checked ? 'open' : 'close';
 
     if (type === 'open') {
-      this.handleStatusChange(date, 'open');
+      this.getEsData('status', date, 'open');
     } else if (type === 'close') {
       PopupDialog.prompt({
         title: t('txt-close'),
@@ -149,46 +149,24 @@ class EsManage extends Component {
         ),
         act: (confirmed) => {
           if (confirmed) {
-            this.handleStatusChange(date, 'close');
+            this.getEsData('status', date, 'close');
           }
         }
       });
     }
   }
   /**
-   * Set status data
+   * Get and set ES table data
    * @method
+   * @param {string} options - option for 'search' or 'status'
    * @param {string} date - selected date
    * @param {string} type - 'open' or 'close'
    */
-  handleStatusChange = (date, type) => {
-    const {baseUrl} = this.context;
-
-    this.ah.one({
-      url: `${baseUrl}/api/elasticsearch/${type}?date=${date}`,
-      type: 'GET'
-    })
-    .then(data => {
-      if (data) {
-        helper.showPopupMsg(t('txt-requestSent'));
-        this.getEsData();
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
-   * Get and set ES table data
-   * @method
-   * @param {string} fromSearch - option for the 'search'
-   */
-  getEsData = (fromSearch) => {
+  getEsData = (options, date, type) => {
     const {baseUrl} = this.context;
     const {datetime, esSearch, es} = this.state;
     const sort = es.sort.desc ? 'desc' : 'asc';
-    const page = fromSearch === 'search' ? 0 : es.currentPage;
+    const page = options === 'search' ? 0 : es.currentPage;
     const dateTime = {
       from: moment(datetime.from).format('YYYY.MM.DD'),
       to: moment(datetime.to).format('YYYY.MM.DD')
@@ -199,12 +177,28 @@ class EsManage extends Component {
       url += `&status=${esSearch.status}`;
     }
 
-    this.ah.one({
+    let apiArr = [{
       url,
       type: 'GET'
-    })
+    }];
+
+    //Combine the two APIs to show the loading icon
+    if (options === 'status') {
+      apiArr.unshift({
+        url: `${baseUrl}/api/elasticsearch/${type}?date=${date}`,
+        type: 'GET'
+      });
+    }
+
+    this.ah.series(apiArr)
     .then(data => {
       if (data) {
+        if (options === 'status') {
+          data = data[1];
+        } else {
+          data = data[0];
+        }
+
         let tempEs = {...es};
         tempEs.dataContent = data.rows;
         tempEs.totalCount = data.counts;
@@ -236,7 +230,7 @@ class EsManage extends Component {
                         control={
                           <Switch
                             checked={tempEs.dataContent[dataIndex].isOpen}
-                            onChange={this.handleStatusChange.bind(this, tempEs.dataContent[dataIndex].date)}
+                            onChange={this.openIndexConfirmModal.bind(this, tempEs.dataContent[dataIndex].date)}
                             color='primary' />
                         }
                         label={t('txt-switch')}

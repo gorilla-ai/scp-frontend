@@ -122,7 +122,7 @@ class AccountEdit extends Component {
       return null;
     })
     .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
+      helper.showPopupMsg('', c('txt-error'), err.message);
       this.close();
     })
   }
@@ -451,7 +451,7 @@ class AccountEdit extends Component {
       return null;
     })
     .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
+      helper.showPopupMsg('', c('txt-error'), err.message);
     })
   }
   /**

@@ -60,7 +60,8 @@ class QueryOpenSave extends Component {
       info: '',
       formValidation: {
         queryName: {
-          valid: true
+          valid: true,
+          msg: ''
         }
       }
     };
@@ -161,9 +162,19 @@ class QueryOpenSave extends Component {
 
       if (newQueryName) { //Form validation
         if (queryData.inputName) {
-          tempFormValidation.queryName.valid = true;
+          const specialCharTest = /[\[\]<>?]+/; //[]<> are not allowed
+
+          if (specialCharTest.test(queryData.inputName)) {
+            tempFormValidation.queryName.valid = false;
+            tempFormValidation.queryName.msg = t('txt-checkRequiredFieldType');
+            validate = false;
+          } else {
+            tempFormValidation.queryName.valid = true;
+            tempFormValidation.queryName.msg = '';
+          }
         } else {
           tempFormValidation.queryName.valid = false;
+          tempFormValidation.queryName.msg = t('txt-required');
           validate = false;
         }
       }
@@ -925,7 +936,7 @@ class QueryOpenSave extends Component {
                 maxLength={50}
                 required
                 error={!formValidation.queryName.valid}
-                helperText={formValidation.queryName.valid ? '' : t('txt-required')}
+                helperText={formValidation.queryName.msg}
                 value={queryData.inputName}
                 onChange={this.handleQueryChange.bind(this, 'name')}/>
             }

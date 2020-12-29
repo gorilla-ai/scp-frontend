@@ -170,7 +170,7 @@ class HMDscanInfo extends Component {
 
     if (!prevProps || (this.props.currentDeviceData.ip !== prevProps.currentDeviceData.ip)) {
       this.setState({
-        activeTab: 'yara'
+        activeTab: 'dashboard'
       });
     }
 
@@ -1219,7 +1219,7 @@ class HMDscanInfo extends Component {
    */
   showAlertData = (type) => {
     this.setState({
-      activeTab: 'yara',
+      activeTab: 'dashboard',
       activePath: null,
       activeRuleHeader: false,
       activeDLL: false,

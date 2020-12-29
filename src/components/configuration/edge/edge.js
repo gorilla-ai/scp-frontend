@@ -1454,10 +1454,10 @@ class Edge extends Component {
               </div>
             </div>
             <div className='group full'>
+              <label className='combobox-group'>{t('txt-group')}</label>
               {activeContent === 'editEdge' &&
                 <Button variant='contained' color='primary' className='btn add-group' onClick={this.toggleManageGroup}>{t('txt-manage')}</Button>
               }
-              <label className='combobox-group'>{t('txt-group')}</label>
               {activeContent === 'viewEdge' &&
                 <div className='flex-item'>{edge.info.edgeGroupList.map(this.displayGroup)}</div>
               }

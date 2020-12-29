@@ -2908,19 +2908,68 @@ class NetworkInventory extends Component {
    * @returns HTML DOM
    */
   showAddIpSteps = (val, i) => {
+    const {locale} = this.context;
     const {activeSteps} = this.state;
     const index = ++i;
     const groupClass = 'group group' + index;
     const lineClass = 'line line' + index;
     const stepClass = 'step step' + index;
-    const textClass = 'text text' + index;
+    const textClass = 'text';
+
+    let textAttr = {
+      className: textClass
+    };
+
+    if (index === 1) {
+      let pos = '';
+
+      if (locale === 'en') {
+        pos = '-11px';
+      } else if (locale === 'zh') {
+        pos = '0';
+      }
+      textAttr.style = {left: pos};
+    }
+
+    if (index === 2) {
+      let pos = '';
+
+      if (locale === 'en') {
+        pos = '-1px';
+      } else if (locale === 'zh') {
+        pos = '-22px';
+      }
+      textAttr.style = {left: pos};
+    }
+
+    if (index === 3) {
+      let pos = '';
+
+      if (locale === 'en') {
+        pos = '-1px';
+      } else if (locale === 'zh') {
+        pos = '-6px';
+      }
+      textAttr.style = {left: pos};
+    }
+
+    if (index === 4) {
+      let pos = '';
+
+      if (locale === 'en') {
+        pos = '5px';
+      } else if (locale === 'zh') {
+        pos = '-1px';
+      }
+      textAttr.style = {left: pos};
+    }
 
     return (
       <div className={groupClass} key={index}>
         <div className={cx(lineClass, {active: activeSteps >= index})}></div>
         <div className={cx(stepClass, {active: activeSteps >= index})}>
           <div className='wrapper'><span className='number'>{index}</span></div>
-          <div className={textClass}>{val}</div>
+          <div {...textAttr}>{val}</div>
         </div>
       </div>
     )

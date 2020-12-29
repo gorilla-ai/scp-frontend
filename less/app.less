@@ -530,6 +530,7 @@ button.standard:hover:not([disabled]) {
     background-color: var(--primaryBackground);
   }
   .checkboxes-tags {
+    clear: both;
     &.groups input {
       width: 0 !important;
     }
@@ -705,14 +706,11 @@ button.standard:hover:not([disabled]) {
     }
     &.edge-options {
       #edgeBtns {
-        position: absolute;
-        right: 15px;
-        top: 6px;
+        float: right;
+        margin-right: 5px;
       }
       .search-options {
-        position: absolute;
-        right: 340px;
-        top: 4px;
+        margin-right: 10px;
       }
     }
   }
@@ -2103,6 +2101,8 @@ button.standard:hover:not([disabled]) {
                   margin-right: 5px;
                 }
                 &.combobox-group {
+                  float: left;
+                  margin-right: 10px;
                   margin-bottom: 15px;
                 }
               }
@@ -2195,22 +2195,6 @@ button.standard:hover:not([disabled]) {
                   }
                 }
               }
-              .ip-range-group {
-                .group {
-                  select,
-                  input {
-                    width: 31.5%;
-                  }
-                }
-              }
-              .scanner-group {
-                .group {
-                  select,
-                  input {
-                    width: 27%;
-                  }
-                }
-              }
               .incident-group {
                 .group {
                   &.full {
@@ -2264,11 +2248,9 @@ button.standard:hover:not([disabled]) {
                 }
               }
               .btn.add-group {
-                position: absolute;
-                top: 3px;
-                left: 40px;
-                padding: .2em .5em;
                 font-size: 12px;
+                padding: .2em .5em;
+                margin-top: -5px;
               }
             }
             .relatedList {
@@ -2318,18 +2300,6 @@ button.standard:hover:not([disabled]) {
                 top: 55px;
                 font-size: 14px;
                 color: var(--primaryTextColor);
-                &.text1 {
-                  left: -4px;
-                }
-                &.text2 {
-                  left: -22px;
-                }
-                &.text3 {
-                  left: -9px;
-                }
-                &.text4 {
-                  left: -2px;
-                }
               }
             }
             .line {

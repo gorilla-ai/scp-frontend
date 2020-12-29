@@ -172,8 +172,8 @@ class AccountList extends Component {
     const {originalAccountData, accountData, param} = this.state;
     let filteredAccountArr = [];
 
-    if (param.name || param.account) { //If filters are set
-      filteredAccountArr = _.filter(accountData, ({name, account}) => {
+    if (param.name || param.account) { //If filters are been set
+      filteredAccountArr = _.filter(originalAccountData, ({name, account}) => {
         return (_.includes(name, param.name) && _.includes(account, param.account));
       });
     } else  {
