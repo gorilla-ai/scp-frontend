@@ -82,6 +82,7 @@
 	"txt-flowTitle": "Event Handling Process",
 	"txt-accidentTitle": "Accident Classification and Abnormal Reason",
 	"txt-notifyUnit": "Notification Contact List",
+	"txt-notify": "Notify Contact",
 	"txt-reason": "Abnormal Reason",
 	"txt-accidentClassification": "Accident Classification",
 	"txt-reasonDescr": "Accident Reason Description",

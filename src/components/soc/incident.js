@@ -116,7 +116,7 @@ class Incident extends Component {
             relatedListOptions: [],
             deviceListOptions: [],
             incident: {
-                dataFieldsArr: ['_menu', 'id', 'tag', 'status', 'type', 'createDttm', 'title', 'category', 'reporter'],
+                dataFieldsArr: ['_menu', 'id', 'tag', 'status', 'createDttm', 'title', 'reporter', 'srcIPListString' , 'dstIPListString'],
                 fileFieldsArr: ['fileName', 'fileSize', 'fileDttm', 'fileMemo', 'action'],
                 flowFieldsArr: ['id', 'status', 'reviewDttm', 'reviewerName', 'suggestion'],
                 dataFields: {},
@@ -265,7 +265,16 @@ class Incident extends Component {
                                 }
                                 </div>
 
-                            } else {
+                            }else if (tempData === 'srcIPListString' || tempData === 'dstIPListString'){
+                                let formattedPatternIP = ''
+                                if (value.length > 32) {
+                                    formattedPatternIP = value.substr(0, 32) + '...';
+                                }else{
+                                    formattedPatternIP = value
+                                }
+                                return <span>{formattedPatternIP}</span>
+                            }
+                            else {
                                 return <span>{value}</span>
                             }
                         }
@@ -737,11 +746,12 @@ class Incident extends Component {
 
             {activeContent === 'viewIncident' &&
                 <footer style={{'textAlign':'center'}}>
-                    <button className='standard btn list'
-                            onClick={this.exportPdf.bind(this)}>{t('txt-export')}</button>
+
                     
                     <button className='standard btn list'
                             onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</button>
+
+
                     {editCheck &&
                         <button className='standard btn list'
                                 onClick={this.toggleContent.bind(this, 'editIncident')}>{t('txt-edit')}</button>
@@ -778,6 +788,12 @@ class Incident extends Component {
                     <button className='standard btn list'
                             onClick={this.openReviewModal.bind(this, incident.info, 'close')}>{it('txt-close')}</button>
                     }
+
+                    <button className='standard btn list'
+                            onClick={this.exportPdf.bind(this)}>{t('txt-export')}</button>
+
+                    <button className='standard btn list'
+                            onClick={this.notifyContact.bind(this)}>{it('txt-notify')}</button>
                 </footer>
             }
 
@@ -1342,7 +1358,8 @@ class Incident extends Component {
                     base={Ttps}
                     value={incident.info.ttpList}
                     props={{activeContent: activeContent}}
-                    onChange={this.handleTtpsChange}/>
+                    onChange={this.handleTtpsChange}
+                    readOnly={activeContent === 'viewIncident'}/>
             </div>
         </div>
     };
@@ -2711,12 +2728,13 @@ class Incident extends Component {
 
         return payload
     }
+
     exportPdf() {
         const {baseUrl, contextRoot} = this.context
         const {incident} = this.state
-        console.log('this.toPdfPayload(incident.info) == ', this.toPdfPayload(incident.info))
         downloadWithForm(`${baseUrl}${contextRoot}/api/soc/_pdf`, {payload: JSON.stringify(this.toPdfPayload(incident.info))})
     }
+
     exportAll() {
         const {baseUrl, contextRoot, session} = this.context
         let {search, incident, loadListType, accountRoleType} = this.state
@@ -2782,6 +2800,34 @@ class Incident extends Component {
         .catch(err => {
             helper.showPopupMsg('', t('txt-error'), err.message)
         })
+    }
+
+    notifyContact() {
+        const {baseUrl, contextRoot} = this.context
+        const {incident} = this.state
+
+        let payload = {
+            incidentId:incident.info.id
+        }
+
+        ah.one({
+            url: `${baseUrl}/api/soc/_notify`,
+            data: JSON.stringify(payload),
+            type: 'POST',
+            contentType: 'application/json',
+            dataType: 'json'
+        })
+            .then(data => {
+                if (data.status.includes('success')){
+                    helper.showPopupMsg('', it('txt-notify'), it('txt-notify')+t('notifications.txt-sendSuccess'))
+                }else{
+                    helper.showPopupMsg('', it('txt-notify'), t('txt-txt-fail'))
+                }
+            })
+            .catch(err => {
+                helper.showPopupMsg('', t('txt-error'), err.message)
+            })
+
     }
 }
 
