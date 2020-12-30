@@ -647,7 +647,7 @@ class Incident extends Component {
             }else if (this.state.accountRoleType === SOC_Super){
 
             }else {
-                editCheck = true
+                // editCheck = true
             }
         } else if (incident.info.status === INCIDENT_STATUS_CLOSED) {
             // 結案(未發布)
@@ -665,7 +665,7 @@ class Incident extends Component {
                 editCheck = true
                 auditCheck = true
             }else {
-                editCheck = true
+                // editCheck = true
             }
         } else if (incident.info.status === INCIDENT_STATUS_DELETED) {
 
@@ -688,12 +688,14 @@ class Incident extends Component {
                 if (session.accountId === incident.info.creator) {
                     drawCheck = true
                 }
-                editCheck = true
+                // editCheck = true
             }
         }else if (incident.info.status === INCIDENT_STATUS_EXECUTOR_CLOSE) {
             if (this.state.accountRoleType === SOC_Executor) {
                 transferCheck = true
             }else if (this.state.accountRoleType === SOC_Super){
+
+            }else {
 
             }
         }
@@ -1019,7 +1021,7 @@ class Incident extends Component {
             act: (confirmed, data) => {
 
                 if (confirmed) {
-                    let flag = new RegExp("[`~!@#$^&*()=|{}':;',\\[\\]<>《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]")
+                    let flag = new RegExp("[`~!@#$^&*()=|{}':;',\\[\\]<>+《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]")
 
                     if (flag.test(data.file.name)){
                     }else{
@@ -1046,7 +1048,15 @@ class Incident extends Component {
                     }
                     else if (tempData === 'fileMemo') {
                         const target = _.find(JSON.parse(incident.info.attachmentDescription), {fileName: allValue.fileName})
-                        return <span>{target.fileMemo}</span>
+
+                        let formattedWording = ''
+                        if (value.length > 9) {
+                            formattedWording = target.fileMemo.substr(0, 9) + '...';
+                        }else{
+                            formattedWording = target.fileMemo
+                        }
+
+                        return <span>{formattedWording}</span>
                     }
                     else if (tempData === 'action') {
                         let isShow = true
@@ -1134,8 +1144,15 @@ class Incident extends Component {
                     }
                     else if (tempData === 'status') {
                         return <span>{it(`action.${value}`)}</span>
-                    }
-                    else {
+                    }else if (tempData === 'suggestion' || tempData === 'reviewerName'){
+                        let formattedWording = ''
+                        if (value.length > 9) {
+                            formattedWording = value.substr(0, 9) + '...';
+                        }else{
+                            formattedWording = value
+                        }
+                        return <span>{formattedWording}</span>
+                    } else {
                         return <span>{value}</span>
                     }
                 }
@@ -1416,7 +1433,12 @@ class Incident extends Component {
 
         // add by soc executer
         if (activeContent === 'addIncident') {
-            incident.info.status = _.includes(session.roles, 'SOC Executor') ? 6 : 1
+
+            if (_.includes(session.roles, 'SOC Supervior' || 'SOC Supervisor' || 'SOC Executor')){
+                incident.info.status =  INCIDENT_STATUS_ANALYZED ;
+            }else{
+                incident.info.status =  INCIDENT_STATUS_UNREVIEWED ;
+            }
         }
 
         ah.one({
