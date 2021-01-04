@@ -516,6 +516,17 @@ button.standard:hover:not([disabled]) {
     }
   }
 }
+.MuiPickersBasePicker-pickerView {
+  .MuiSvgIcon-root {
+    color: rgba(0, 0, 0, 0.54) !important;
+  }
+  .MuiPickersCalendarHeader-iconButton:hover {
+    background: none !important;
+  }
+  button:hover:not([disabled]) {
+    background-color: var(--buttonSelectedHover);
+  }
+}
 #app-container {
   .mui-data-table {
     background-color: var(--primaryContentBackground);
@@ -2140,6 +2151,9 @@ button.standard:hover:not([disabled]) {
               .period {
                 color: var(--primaryContentHeader);
                 margin-top: 5px;
+                .number {
+                  width: 90px;
+                }
               }
               .support-text {
                 display: inline-block;

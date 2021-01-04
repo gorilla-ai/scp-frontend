@@ -94,7 +94,7 @@ class SortableItem extends Component {
         {!_.includes(TIME_FIELDS, key) &&
           <i className='fg fg-filter' title={t('txt-filterQuery')} onClick={this.props.handleOpenQueryMenu.bind(this, key, value[key]), activeTab}></i>
         }
-        {_.includes(TIME_FIELDS, key) && //Disable the filer for time related fields
+        {_.includes(TIME_FIELDS, key) && //Disable the filter for time related fields
           <i className='fg fg-filter disabled' title={t('txt-filterQuery')}></i>
         }
         <FormControlLabel

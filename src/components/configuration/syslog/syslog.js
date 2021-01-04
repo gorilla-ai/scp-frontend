@@ -100,7 +100,7 @@ class Syslog extends Component {
       editSyslogType: '',
       editHostsType: '',
       editHosts: {
-        ip: '',
+        host: '',
         name: ''
       },
       showPatternLeftNav: true,
@@ -144,9 +144,8 @@ class Syslog extends Component {
           valid: true,
           msg: ''
         },
-        editHostsIp: {
-          valid: true,
-          msg: ''
+        editHostsHost: {
+          valid: true
         }
       }
     };
@@ -388,9 +387,8 @@ class Syslog extends Component {
           port: {
             valid: true
           },
-          editHostsIp: {
-            valid: true,
-            msg: ''
+          editHostsHost: {
+            valid: true
           }
         }
       });
@@ -644,10 +642,10 @@ class Syslog extends Component {
     let tempEditHosts = {...this.state.editHosts};
 
     if (type === 'add') {
-      tempEditHosts.ip = '';
+      tempEditHosts.host = '';
       tempEditHosts.name = '';
     } else if (type === 'edit') {
-      tempEditHosts.ip = allValue.ip;
+      tempEditHosts.host = allValue.ip;
       tempEditHosts.name = allValue.name;
     }
 
@@ -793,6 +791,23 @@ class Syslog extends Component {
         validate = false;
         return false;
       }
+
+      _.forEach(val.relationships, val2 => { //Validate relationships data
+        if (val2.name || val2.srcNode || val2.dstNode) {
+          if (!val2.name) {
+            validate = false;
+            return false;
+          }
+          if (!val2.srcNode) {
+            validate = false;
+            return false;
+          }
+          if (!val2.dstNode) {
+            validate = false;
+            return false;
+          }
+        }
+      })
     })
 
     if (!validate) {
@@ -1311,15 +1326,15 @@ class Syslog extends Component {
       <div className='parent'>
         <div className='group'>
           <TextField
-            name='ip'
-            label={t('syslogFields.ip')}
+            name='host'
+            label={t('txt-host')}
             variant='outlined'
             fullWidth
             size='small'
             required
-            error={!formValidation.editHostsIp.valid}
-            helperText={formValidation.editHostsIp.msg}
-            value={editHosts.ip}
+            error={!formValidation.editHostsHost.valid}
+            helperText={formValidation.editHostsHost.valid ? '' : t('txt-required')}
+            value={editHosts.host}
             onChange={this.handleEditHostsChange}
             disabled={editHostsType === 'edit'} />
         </div>
@@ -1370,29 +1385,18 @@ class Syslog extends Component {
     const url = `${baseUrl}/api/v1/log/config/hosts`;
     const requestData = {
       id: activeHost.id,
-      hostip: editHosts.ip,
+      hostip: editHosts.host,
       hostname: editHosts.name
     };
     let tempFormValidation = {...formValidation};
     let validate = true;
 
-    if (editHosts.ip) {
-      if (IP_PATTERN.test(editHosts.ip)) { //Check IP format
-        tempFormValidation.editHostsIp.valid = true;
-        tempFormValidation.editHostsIp.msg = '';
-      } else {
-        if (editHosts.ip === 'localhost') { //Make exceptions for 'localhost'
-          tempFormValidation.editHostsIp.valid = true;
-          tempFormValidation.editHostsIp.msg = '';
-        } else {
-          tempFormValidation.editHostsIp.valid = false;
-          tempFormValidation.editHostsIp.msg = t('network-topology.txt-ipValidationFail');
-          validate = false;
-        }
-      }
+    if (editHosts.host) {
+      tempFormValidation.editHostsHost.valid = true;
+      tempFormValidation.editHostsHost.msg = '';
     } else {
-      tempFormValidation.editHostsIp.valid = false;
-      tempFormValidation.editHostsIp.msg = t('txt-required');
+      tempFormValidation.editHostsHost.valid = false;
+      tempFormValidation.editHostsHost.msg = t('txt-required');
       validate = false;
     }
 
@@ -1439,9 +1443,8 @@ class Syslog extends Component {
         port: {
           valid: true
         },
-        editHostsIp: {
-          valid: true,
-          msg: ''
+        editHostsHost: {
+          valid: true
         }
       }
     });

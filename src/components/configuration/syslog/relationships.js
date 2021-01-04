@@ -70,12 +70,16 @@ class Relationships extends Component {
         });
       }
     } else {
-      let curValue = {};
-      curValue.name = '';
-      curValue.conditions = _.map(value.conditions, el => {
+      let curValue = {
+        name: '',
+        srcNode: '',
+        dstNode: ''
+      };
+
+      curValue.conditions = _.map(value.conditions, val => {
         return {
-          name: el.name,
-          value: el.value, node: ''
+          name: val.name,
+          value: val.value, node: ''
         };
       });
 

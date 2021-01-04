@@ -23,13 +23,11 @@ class SortableList extends Component {
    * @returns SortableItem component
    */
   showTableSort = (value, index) => {
-    const {activeTab} = this.props;
-
     return (
       <SortableItem
         key={index}
         index={index}
-        activeTab={activeTab}
+        activeTab={this.props.activeTab}
         value={value}
         getCustomFieldName={this.props.getCustomFieldName}
         setFieldsChange={this.props.setFieldsChange}
@@ -56,7 +54,8 @@ SortableList.propTypes = {
   items: PropTypes.array.isRequired,
   setFieldsChange: PropTypes.func.isRequired,
   checkDisplayFields: PropTypes.func.isRequired,
-  handleOpenQueryMenu: PropTypes.func.isRequired
+  handleOpenQueryMenu: PropTypes.func.isRequired,
+  toggleLocaleEdit: PropTypes.func.toggleLocaleEdit
 };
 
 export default SortableContainer(SortableList);

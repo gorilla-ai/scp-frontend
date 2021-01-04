@@ -160,11 +160,6 @@ export default function createDarkTheme() {
         root: {
           backgroundColor: '#1f1e1e'
         }
-      },
-      MuiTypography: {
-        root: {
-          color: '#fff !important'
-        }
       }
     }
   });
