@@ -53,7 +53,7 @@ class syslogConfig extends Component {
             </td>
             <td>
               <div><span>"</span>EventReceivedTime<span>"</span>:<span>"</span>2020-02-18 10:03:33<span>"</span>, <span>"</span>SourceModuleName<span>"</span>:<span>"</span>dns3<span>"</span></div>
-              <div><span>&#37;&#123;QUOTEDSTRING&#125;</span>:<span>&#37;&#123;QUOTEDSTRING</span>:datestamp<span>&#125;</span>, <span>&#37;&#123;QUOTEDSTRING&#125;</span>:<span>&#37;&#123;QUOTEDSTRING</span>:word<span>&#125;</span></div>
+              <div><span>\"</span>EventReceivedTime<span>\"</span>:<span>\"</span>&#37;&#123;DATESTAMP:datestamp&#125;<span>\"</span>, <span>\"</span>SourceModuleName<span>\"</span>:<span>\"</span>&#37;&#123;WORD:word&#125;<span>\"</span></div>
             </td>
           </tr>
           <tr>
@@ -63,17 +63,7 @@ class syslogConfig extends Component {
             </td>
             <td>
               <div><span>\"</span>EventReceivedTime<span>\"</span>:<span>\"</span>2020-02-18 10:03:33<span>\"</span>, <span>\"</span>SourceModuleName<span>\"</span>:<span>\"</span>dns3<span>\"</span></div>
-              <div><span>&#37;&#123;NOTSPACE&#125;&#37;&#123;NOTSPACE&#125;</span>EventReceivedTime<span>&#37;&#123;NOTSPACE&#125;&#37;&#123;NOTSPACE&#125;</span>:<span>&#37;&#123;NOTSPACE&#125;&#37;&#123;NOTSPACE&#125;</span>&#37;&#123;DATESTAMP:datestamp&#125;<span>&#37;&#123;NOTSPACE&#125;&#37;&#123;NOTSPACE&#125;</span>, <span>&#37;&#123;NOTSPACE&#125;&#37;&#123;NOTSPACE&#125;</span>SourceModuleName<span>&#37;&#123;NOTSPACE&#125;&#37; &#123;NOTSPACE&#125;</span>:<span>&#37;&#123;NOTSPACE&#125;&#37;&#123;NOTSPACE&#125;</span>&#37;&#123;WORD:word&#125;<span>&#37;&#123;NOTSPACE&#125;&#37;&#123;NOTSPACE&#125;</span></div>
-            </td>
-          </tr>
-          <tr>
-            <td valign='top'>
-              <div>Log:</div>
-              <div>Pattern:</div>
-            </td>
-            <td>
-              <div>"EventReceivedTime":"2020-02-18 10:03:33", "SourceModuleName<span>":</span>"dns3"</div>
-              <div>&#37;&#123;GREEDYDATA&#125;SourceModuleName<span>&#37;&#123;DOUBLEQUOTESCOLON&#125;</span>&#37;&#123;QUOTEDSTRING:word&#125;</div>
+              <div><span>\\"</span>EventReceivedTime<span>\\"</span>:<span>\\"</span>&#37;&#123;DATESTAMP:datestamp&#125;<span>\\"</span>, <span>\\"</span>SourceModuleName<span>\\"</span>:<span>\\"</span>&#37;&#123;WORD:word&#125;<span>\\"</span></div>
             </td>
           </tr>
         </tbody>

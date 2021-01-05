@@ -193,7 +193,7 @@ class HostController extends Component {
       hostSortList: [],
       hostSort: 'ip-asc',
       eventInfo: {
-        dataFieldsArr: ['@timestamp', '_EventCode', '_Message'],
+        dataFieldsArr: ['@timestamp', '_EventCode', 'message'],
         dataFields: {},
         dataContent: [],
         scrollCount: 1,
@@ -1184,7 +1184,7 @@ class HostController extends Component {
     this.setState({
       hostAnalysisOpen: !this.state.hostAnalysisOpen,
       eventInfo: {
-        dataFieldsArr: ['@timestamp', '_EventCode', '_Message'],
+        dataFieldsArr: ['@timestamp', '_EventCode', 'message'],
         dataFields: {},
         dataContent: [],
         scrollCount: 1,

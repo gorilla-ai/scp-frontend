@@ -67,7 +67,13 @@ class TableCell extends Component {
     })
 
     _.forEach(tempMarkData, val => {
-      if (val.data.toLowerCase() === value) {
+      const data = val.data.toLowerCase();
+
+      if (!data) {
+        return;
+      }
+
+      if (data === value || value.indexOf(data) > -1) {
         color = val.color;
         return false; //Exit the loop
       }
