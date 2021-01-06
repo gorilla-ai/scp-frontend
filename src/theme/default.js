@@ -51,6 +51,30 @@ export default function createDefaultTheme() {
             backgroundColor: '#001b34 !important'
           }
         }
+      },
+      MuiTableCell: {
+        head: {
+          fontWeight: 'bold',
+          fontSize: '1em'
+        },
+        body: {
+          fontSize: '1em'
+        }
+      },
+      MuiTableRow: {
+        root: {
+          '&:nth-of-type(odd)': {
+            backgroundColor: '#f5f5f5'
+          },
+          '&:nth-of-type(even)': {
+            backgroundColor: '#fff'
+          }
+        },
+        hover: {
+          '&:hover': {
+            backgroundColor: '#e2ecfd !important'
+          }
+        }
       }
     }
   });

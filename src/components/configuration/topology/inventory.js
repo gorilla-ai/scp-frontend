@@ -224,7 +224,16 @@ class NetworkInventory extends Component {
         csvColumnsIp: {
           valid: true
         },
-        name: {
+        seatName: {
+          valid: true
+        },
+        hostName: {
+          valid: true
+        },
+        system: {
+          valid: true
+        },
+        deviceType: {
           valid: true
         }
       },
@@ -2014,6 +2023,15 @@ class NetworkInventory extends Component {
           },
           csvColumnsIp: {
             valid: true
+          },
+          hostName: {
+            valid: true
+          },
+          system: {
+            valid: true
+          },
+          deviceType: {
+            valid: true
           }
         }
       });
@@ -2751,6 +2769,36 @@ class NetworkInventory extends Component {
           this.checkDuplicatedIP();
         }
       } else {
+        if (activeSteps === 2) {
+          let validate = true;
+          tempFormValidation.hostName.valid = true;
+          tempFormValidation.system.valid = true;
+          tempFormValidation.deviceType.valid = true;
+
+          if (addIP.hostName && addIP.hostName.length > 64) {
+            tempFormValidation.hostName.valid = false;
+            validate = false;
+          }
+
+          if (addIP.system && addIP.system.length > 64) {
+            tempFormValidation.system.valid = false;
+            validate = false;
+          }
+
+          if (addIP.deviceType && addIP.deviceType.length > 64) {
+            tempFormValidation.deviceType.valid = false;
+            validate = false;
+          }
+
+          this.setState({
+            formValidation: tempFormValidation
+          });
+
+          if (!validate) {
+            return;
+          }
+        }
+
         if (activeSteps === 3 && ownerType === 'new') {
           let validate = true;
 
@@ -2785,6 +2833,7 @@ class NetworkInventory extends Component {
           this.handleAddIpConfirm();
           return;
         }
+
         tempActiveSteps++;
 
         this.setState({
@@ -2908,19 +2957,68 @@ class NetworkInventory extends Component {
    * @returns HTML DOM
    */
   showAddIpSteps = (val, i) => {
+    const {locale} = this.context;
     const {activeSteps} = this.state;
     const index = ++i;
     const groupClass = 'group group' + index;
     const lineClass = 'line line' + index;
     const stepClass = 'step step' + index;
-    const textClass = 'text text' + index;
+    const textClass = 'text';
+
+    let textAttr = {
+      className: textClass
+    };
+
+    if (index === 1) {
+      let pos = '';
+
+      if (locale === 'en') {
+        pos = '-11px';
+      } else if (locale === 'zh') {
+        pos = '0';
+      }
+      textAttr.style = {left: pos};
+    }
+
+    if (index === 2) {
+      let pos = '';
+
+      if (locale === 'en') {
+        pos = '-1px';
+      } else if (locale === 'zh') {
+        pos = '-22px';
+      }
+      textAttr.style = {left: pos};
+    }
+
+    if (index === 3) {
+      let pos = '';
+
+      if (locale === 'en') {
+        pos = '-1px';
+      } else if (locale === 'zh') {
+        pos = '-6px';
+      }
+      textAttr.style = {left: pos};
+    }
+
+    if (index === 4) {
+      let pos = '';
+
+      if (locale === 'en') {
+        pos = '5px';
+      } else if (locale === 'zh') {
+        pos = '-1px';
+      }
+      textAttr.style = {left: pos};
+    }
 
     return (
       <div className={groupClass} key={index}>
         <div className={cx(lineClass, {active: activeSteps >= index})}></div>
         <div className={cx(stepClass, {active: activeSteps >= index})}>
           <div className='wrapper'><span className='number'>{index}</span></div>
-          <div className={textClass}>{val}</div>
+          <div {...textAttr}>{val}</div>
         </div>
       </div>
     )
@@ -3180,6 +3278,8 @@ class NetworkInventory extends Component {
                   variant='outlined'
                   fullWidth
                   size='small'
+                  error={!formValidation.hostName.valid}
+                  helperText={formValidation.hostName.valid ? '' : t('network-topology.txt-maxCharError')}
                   value={hostNameField}
                   onChange={this.handleAddIpChange}
                   disabled={hostNameReadyOnly} />
@@ -3203,6 +3303,8 @@ class NetworkInventory extends Component {
                   variant='outlined'
                   fullWidth
                   size='small'
+                  error={!formValidation.system.valid}
+                  helperText={formValidation.system.valid ? '' : t('network-topology.txt-maxCharError')}
                   value={addIP.system}
                   onChange={this.handleAddIpChange}
                   disabled={currentDeviceData.isHmd} />
@@ -3215,6 +3317,8 @@ class NetworkInventory extends Component {
                   variant='outlined'
                   fullWidth
                   size='small'
+                  error={!formValidation.deviceType.valid}
+                  helperText={formValidation.deviceType.valid ? '' : t('network-topology.txt-maxCharError')}
                   value={addIP.deviceType}
                   onChange={this.handleAddIpChange}
                   disabled={currentDeviceData.isHmd} />
@@ -3698,8 +3802,8 @@ class NetworkInventory extends Component {
         fullWidth
         size='small'
         required
-        error={!formValidation.name.valid}
-        helperText={formValidation.name.valid ? '' : t('txt-required')}
+        error={!formValidation.seatName.valid}
+        helperText={formValidation.seatName.valid ? '' : t('txt-required')}
         value={addSeat.name}
         onChange={this.handleDataChange} />
     )
@@ -3735,7 +3839,7 @@ class NetworkInventory extends Component {
    */
   closeAddSeatDialog = () => {
     let tempFormValidation = {...this.state.formValidation};
-    tempFormValidation.name.valid = true;
+    tempFormValidation.seatName.valid = true;
 
     this.setState({
       addSeatOpen: false,
@@ -3765,9 +3869,9 @@ class NetworkInventory extends Component {
     }
 
     if (addSeat.name) {
-      tempFormValidation.name.valid = true;
+      tempFormValidation.seatName.valid = true;
     } else {
-      tempFormValidation.name.valid = false;
+      tempFormValidation.seatName.valid = false;
       validate = false;
     }
 

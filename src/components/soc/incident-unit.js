@@ -328,6 +328,9 @@ class IncidentUnit extends Component {
                             variant='outlined'
                             fullWidth={true}
                             size='small'
+                            required
+                            error={!(incidentUnit.info.oid || '').trim()}
+                            helperText={it('txt-required')}
                             onChange={this.handleDataChangeMui}
                             value={incidentUnit.info.oid}
                             disabled={activeContent === 'viewDevice'}/>
@@ -340,6 +343,9 @@ class IncidentUnit extends Component {
                             variant='outlined'
                             fullWidth={true}
                             size='small'
+                            required
+                            error={!(incidentUnit.info.name || '').trim()}
+                            helperText={it('txt-required')}
                             onChange={this.handleDataChangeMui}
                             value={incidentUnit.info.name}
                             disabled={activeContent === 'viewDevice'}/>
@@ -352,6 +358,9 @@ class IncidentUnit extends Component {
                             variant='outlined'
                             fullWidth={true}
                             size='small'
+                            required
+                            error={!(incidentUnit.info.abbreviation || '').trim()}
+                            helperText={it('txt-required')}
                             onChange={this.handleDataChangeMui}
                             value={incidentUnit.info.abbreviation}
                             disabled={activeContent === 'viewDevice'}/>
@@ -473,6 +482,7 @@ class IncidentUnit extends Component {
             contentType: 'text/plain'
         })
             .then(data => {
+                tmpIncidentUnit.info.id = data.rt.id;
                 tmpIncidentUnit.info.isUse = data.rt.isUse;
                 tmpIncidentUnit.info.isDefault = data.rt.isDefault;
 
@@ -495,16 +505,19 @@ class IncidentUnit extends Component {
         if (!incidentUnit.info.oid ||
             !incidentUnit.info.name||
             !incidentUnit.info.abbreviation) {
-            helper.showPopupMsg('', t('txt-error'), '[Unit OID],[Unit Name], and [Unit Abbreviation] is required');
+            // helper.showPopupMsg('', t('txt-error'), '[Unit OID],[Unit Name], and [Unit Abbreviation] is required');
+            helper.showPopupMsg('', t('txt-error'), it('txt-validUnit'));
             return false;
         }
 
         if (!incidentUnit.info.level){
-            helper.showPopupMsg('', t('txt-error'), '[Unit Level] is required');
+            // helper.showPopupMsg('', t('txt-error'), '[Unit Level] is required');
+            helper.showPopupMsg('', t('txt-error'), it('txt-validUnit'));
         }
 
         if (incidentUnit.info.industryType.toString() === ''){
-            helper.showPopupMsg('', t('txt-error'), '[Unit Industry] is required');
+            // helper.showPopupMsg('', t('txt-error'), '[Unit Industry] is required');
+            helper.showPopupMsg('', t('txt-error'), it('txt-validUnit'));
         }
 
 
@@ -634,6 +647,9 @@ class IncidentUnit extends Component {
             .then(data => {
                 if (data.ret === 0) {
                     this.getData();
+                }else if (data.ret === -1004) {
+                    // this.getData();
+                    helper.showPopupMsg('', t('txt-error'),it('unit.txt-existDevice'));
                 }
                 return null;
             })

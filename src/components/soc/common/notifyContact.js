@@ -58,7 +58,7 @@ class NotifyContact extends Component {
 					           disabled={activeContent === 'viewIncident'}/>
 				</div>
 				<div className='group'>
-					<label htmlFor='phone'>{at('phone')}</label>
+					<label htmlFor='phone'>{f('incidentFields.phone')}</label>
 					<TextField style={{paddingRight: '2em'}}
 					           id='phone'
 					           name='phone'
@@ -70,7 +70,7 @@ class NotifyContact extends Component {
 					           disabled={activeContent === 'viewIncident'}/>
 				</div>
 				<div className='group'>
-					<label htmlFor='email'>{at('email')}</label>
+					<label htmlFor='email'>{f('incidentFields.email')}</label>
 					<TextField style={{paddingRight: '2em'}}
 					           id='email'
 					           name='email'

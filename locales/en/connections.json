@@ -436,7 +436,7 @@
     "txt-senderPassword": "Sender Password",
     "txt-recipientEmail": "Recipient Email",
     "txt-notifyEmail": "Notify Email Address",
-    "txt-emailInvalid": "Please enter correct email address",
+    "txt-emailInvalid": "Please enter the correct email address",
     "txt-sendSuccess": "Email has been sent successfully"
   },
 
@@ -515,7 +515,6 @@
 
   "threat-severity-mapping": {
     "txt-severityMapping": "Threat Severity Mapping",
-    "txt-addSeverityTable": "Add Type",
     "txt-typeInfo": "Type Info",
     "txt-lastUpdateTime": "Last Update Time",
     "txt-severityMissing": "Severity type cannot be empty"
@@ -533,7 +532,7 @@
   "network-inventory": {
     "txt-deviceList": "Device List",
     "txt-deviceMap": "Device Map",
-    "txt-deviceLA": "Device Link Analysis",
+    "txt-deviceLA": "Network Topology",
     "txt-triggerAll": "Trigger All (HMD)",
     "txt-addIP": "Add IP",
     "txt-manuallyEnter": "Manually Enter",
@@ -670,6 +669,7 @@
     "txt-portValidationFail": "Please check the port number",
     "txt-seatNameEmpty": "Please enter a seat name",
     "txt-saveSuccess": "Saved",
+    "txt-maxCharError": "Maximum characters count is 64",
 
     "txt-addOwner": "$t(txt-add) $t(ipFields.owner)",
     "txt-editOwner": "$t(txt-edit) $t(ipFields.owner)",
@@ -825,7 +825,7 @@
     "txt-customFieldName": "Custom Field Name",
     "txt-addSyslog": "Add Syslog",
     "txt-editSyslog": "Edit Syslog",
-    "txt-deleteSyslogdeleteSyslog": "Delete Syslog",
+    "txt-deleteSyslog": "Delete Syslog",
     "txt-eventDist": " Event Distribution",
     "txt-viewEvents": "View Events",
     "txt-overallDist": "Overall Distribution",

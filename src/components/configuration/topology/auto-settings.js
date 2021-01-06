@@ -673,6 +673,7 @@ class AutoSettings extends Component {
                   disabled={activeContent === 'viewMode'} />
               </div>
             </div>
+
             <div className='form-group normal short'>
               <header>{adFormTitle}</header>
               <RadioGroup
@@ -783,7 +784,7 @@ class AutoSettings extends Component {
               </div>
             </div>
 
-            <div className='form-group normal'>
+            <div className='form-group normal' style={{display: 'none'}}>
               <header>{t('network-inventory.auto-settings.txt-netflow')}</header>
               <div className='form-options'>
                 <Button variant='contained' color='primary' onClick={this.handleNetflowtest} disabled={!statusEnable.netflow}>{t('network-inventory.txt-testQuery')}</Button>

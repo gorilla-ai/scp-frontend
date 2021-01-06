@@ -596,6 +596,7 @@
     "industryType": "Unit Industry",
     "frequency": "Last Month Trigger Frequency",
     "note": "Note",
+    "reason": "Frequency Empty Reason",
     "updateDttm": "Last Update Time",
     "abbreviation": "Unit Abbreviation",
     "type": "Incident Type",
@@ -606,7 +607,9 @@
     "reviewDttm": "Review Time",
     "reviewerName": "Reviewer",
     "srcIPListString": "Source IP ",
-    "dstIPListString": "Destination IP"
+    "dstIPListString": "Destination IP",
+    "phone": "Phone",
+    "email": "Email"
   },
   "severityTableFields": {
     "dataSourceType": "Type",

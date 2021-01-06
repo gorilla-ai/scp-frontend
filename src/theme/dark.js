@@ -61,7 +61,7 @@ export default function createDarkTheme() {
       },
       MuiFormControlLabel: {
         label: {
-          color: 'rgba(6, 155, 218, 1)',
+          color: 'rgba(6, 155, 218, 1) !important',
           '&.Mui-disabled': {
             color: 'rgba(217, 217, 217, 0.4)'
           }
@@ -117,6 +117,53 @@ export default function createDarkTheme() {
       MuiRadio: {
         root: {
           color: '#d9d9d9'
+        }
+      },
+      MuiTableCell: {
+        head: {
+          color: '#069bda',
+          fontWeight: 'bold',
+          fontSize: '1em',
+          backgroundColor: '#000 !important'
+        },
+        body: {
+          color: '#fff',
+          fontSize: '1em'
+        }
+      },
+      MuiTableRow: {
+        root: {
+          '&:nth-of-type(odd)': {
+            backgroundColor: '#1f1e1e'
+          },
+          '&:nth-of-type(even)': {
+            backgroundColor: '#0f0f0f'
+          }
+        },
+        hover: {
+          '&:hover': {
+            backgroundColor: '#1a3248 !important'
+          }
+        }
+      },
+      MuiToolbar: {
+        root: {
+          color: '#fff !important'
+        }
+      },
+      MuiTablePagination: {
+        root: {
+          color: '#fff'
+        }
+      },
+      MuiFormControl: {
+        root: {
+          backgroundColor: '#1f1e1e'
+        }
+      },
+      MuiTypography: {
+        root: {
+          color: '#fff !important'
         }
       }
     }

@@ -19,12 +19,13 @@ const server = require('http').Server(app)
 const cfg = _.assign({
   env: process.env.NODE_ENV || 'development', 
   contextRoot: '',
-  apiPrefix: 'http:\//172.18.0.119/SCP', //Prod environment
-  //apiPrefix: 'http:\//192.168.11.91/SCP', //Test environment
+  // apiPrefix: 'http:\//172.18.0.119/SCP', //Prod environment
+  // apiPrefix: 'http:\//192.168.11.91/SCP', //Test environment
   //apiPrefix: 'http:\//192.168.12.111/SCP', //QA environment
   //apiPrefix: 'http:\//172.18.0.136/SCP', //Rays's machine
   //apiPrefix: 'http:\//172.18.0.87/SCP', //Rex's machine
   //apiPrefix: 'http:\//172.18.0.52/SCP', //Allen's machine
+  apiPrefix: 'http:\//localhost:8080/SCP', //local machine
   port: process.env.PORT || 3000,
   version: '1.2.2437.491',
   lng: 'zh',
@@ -46,11 +47,14 @@ const cfg = _.assign({
   productName: 'SCP',
   companyName: 'NSGUARD',
   session: {
-    rights: ["Module_Common", "Module_Config"],
-    name: null,
-    account: "admin",
-    accountId: "DPIR-00000000-0000-0000-0000-000000000000"
+    rights: ["Module_Common", "Module_Config","Module_Soc"],
+    name: "kennethSOC",
+    account:"kenneth.soc1",
+    // accountId: "DPIR-3094b2fc-96a9-41fc-80b4-bbfbb83e95fb",
+    accountId: "DPIR-0b06ab24-9bee-4929-9eb4-c6627b278f31",
+    roles:["SOC Analyzer"],
   },
+
   mapUrl: 'https://mt0.google.com/vt/lyrs=m&hl=en-US&x={x}&y={y}&z={z}',
   // session: {
   //   rights: [],

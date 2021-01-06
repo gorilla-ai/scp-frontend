@@ -152,6 +152,7 @@ class License extends Component {
               if (from === 'login') {
                 this.props.onPass();
               } else if (from === 'config') {
+                this.toggleKeyInput();
                 this.loadData();
               }
             }

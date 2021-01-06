@@ -21,6 +21,7 @@ import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import {BaseDataContext} from '../../common/context';
 import Config from '../../common/configuration'
 import helper from '../../common/helper'
+import MuiTableContent from '../../common/mui-table-content'
 import SearchOptions from '../../common/search-options'
 import TableContent from '../../common/table-content'
 
@@ -134,7 +135,7 @@ class EsManage extends Component {
     const type = event.target.checked ? 'open' : 'close';
 
     if (type === 'open') {
-      this.handleStatusChange(date, 'open');
+      this.getEsData('status', date, 'open');
     } else if (type === 'close') {
       PopupDialog.prompt({
         title: t('txt-close'),
@@ -148,62 +149,56 @@ class EsManage extends Component {
         ),
         act: (confirmed) => {
           if (confirmed) {
-            this.handleStatusChange(date, 'close');
+            this.getEsData('status', date, 'close');
           }
         }
       });
     }
   }
   /**
-   * Set status data
+   * Get and set ES table data
    * @method
+   * @param {string} options - option for 'search' or 'status'
    * @param {string} date - selected date
    * @param {string} type - 'open' or 'close'
    */
-  handleStatusChange = (date, type) => {
-    const {baseUrl} = this.context;
-
-    this.ah.one({
-      url: `${baseUrl}/api/elasticsearch/${type}?date=${date}`,
-      type: 'GET'
-    })
-    .then(data => {
-      if (data) {
-        helper.showPopupMsg(t('txt-requestSent'));
-        this.getEsData();
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
-   * Get and set ES table data
-   * @method
-   * @param {string} fromSearch - option for the 'search'
-   */
-  getEsData = (fromSearch) => {
+  getEsData = (options, date, type) => {
     const {baseUrl} = this.context;
     const {datetime, esSearch, es} = this.state;
     const sort = es.sort.desc ? 'desc' : 'asc';
-    const page = fromSearch === 'search' ? 1 : es.currentPage;
+    const page = options === 'search' ? 0 : es.currentPage;
     const dateTime = {
       from: moment(datetime.from).format('YYYY.MM.DD'),
       to: moment(datetime.to).format('YYYY.MM.DD')
     };
-    let url = `${baseUrl}/api/elasticsearch/list?page=${page}&pageSize=${es.pageSize}&orders=${es.sort.field} ${sort}&startDate=${dateTime.from}&endDate=${dateTime.to}`;
+    let url = `${baseUrl}/api/elasticsearch/list?page=${page + 1}&pageSize=${es.pageSize}&orders=${es.sort.field} ${sort}&startDate=${dateTime.from}&endDate=${dateTime.to}`;
 
     if (esSearch.status !== 'all') {
       url += `&status=${esSearch.status}`;
     }
 
-    this.ah.one({
+    let apiArr = [{
       url,
       type: 'GET'
-    })
+    }];
+
+    //Combine the two APIs to show the loading icon
+    if (options === 'status') {
+      apiArr.unshift({
+        url: `${baseUrl}/api/elasticsearch/${type}?date=${date}`,
+        type: 'GET'
+      });
+    }
+
+    this.ah.series(apiArr)
     .then(data => {
       if (data) {
+        if (options === 'status') {
+          data = data[1];
+        } else {
+          data = data[0];
+        }
+
         let tempEs = {...es};
         tempEs.dataContent = data.rows;
         tempEs.totalCount = data.counts;
@@ -211,48 +206,47 @@ class EsManage extends Component {
 
         if (!data.rows || data.rows.length === 0) {
           helper.showPopupMsg(t('txt-notFound'));
-          this.getImportList();
           return;
         }
 
         const statusList = _.map(data.statusList, (val, i) => {
           return <MenuItem key={i} value={val.toLowerCase()}>{val}</MenuItem>
         });
-        
-        let dataFields = {};
-        es.dataFieldsArr.forEach(tempData => {
-          dataFields[tempData] = {
-            label: tempData === '_menu' ? '' : f(`esFields.${tempData}`),
-            sortable: tempData === 'date' ? true : null,
-            formatter: (value, allValue, i) => {
-              if (tempData === '_menu' && allValue.showButton) {
-                return (
-                  <div className='table-menu menu active'>
-                    <FormControlLabel
-                      className='toggle-btn'
-                      control={
-                        <Switch
-                          checked={allValue.isOpen}
-                          onChange={this.openIndexConfirmModal.bind(this, allValue.date)}
-                          color='primary' />
-                      }
-                      label={t('txt-switch')}
-                      disabled={!allValue.actionEnable} />
-                    <i className={cx('fg fg-data-export', {'not-allowed': !allValue.export})} title={t('txt-export')} onClick={this.openExportConfirmModal.bind(this, allValue)}></i>
-                  </div>
-                )
-              }
 
-              if (tempData === 'docCount' || tempData === 'storeSize' || tempData === 'priStoreSize') {
-                value = helper.numberWithCommas(value);
+        tempEs.dataFields = _.map(es.dataFieldsArr, val => {
+          return {
+            name: val,
+            label: val === '_menu' ? ' ' : f(`esFields.${val}`),
+            options: {
+              filter: val === 'date' ? true : false,
+              sort: val === 'date' ? true : false,
+              viewColumns: val === '_menu' ? false : true,
+              customBodyRenderLite: (dataIndex) => {
+                if (val === '_menu' && tempEs.dataContent[dataIndex].showButton) {
+                  return (
+                    <div className='table-menu menu active'>
+                      <FormControlLabel
+                        className='toggle-btn'
+                        control={
+                          <Switch
+                            checked={tempEs.dataContent[dataIndex].isOpen}
+                            onChange={this.openIndexConfirmModal.bind(this, tempEs.dataContent[dataIndex].date)}
+                            color='primary' />
+                        }
+                        label={t('txt-switch')}
+                        disabled={!tempEs.dataContent[dataIndex].actionEnable} />
+                      <i className={cx('fg fg-data-export', {'not-allowed': !tempEs.dataContent[dataIndex].export})} title={t('txt-export')} onClick={this.handleIndexExport.bind(this, tempEs.dataContent[dataIndex])}></i>
+                    </div>
+                  )
+                } else if (val === 'docCount' || val === 'storeSize' || val === 'priStoreSize') {
+                  return helper.numberWithCommas(tempEs.dataContent[dataIndex][val]);
+                } else {
+                  return tempEs.dataContent[dataIndex][val];
+                }
               }
-
-              return <span>{value}</span>
             }
           };
-        })
-
-        tempEs.dataFields = dataFields;
+        });
 
         this.setState({
           statusList,
@@ -302,10 +296,10 @@ class EsManage extends Component {
    * @param {string} field - sort field
    * @param {string} boolean - sort type ('asc' or 'desc')
    */
-  handleTableSort = (sort) => {
+  handleTableSort = (field, sort) => {
     let tempEs = {...this.state.es};
-    tempEs.sort.field = sort.field;
-    tempEs.sort.desc = sort.desc;
+    tempEs.sort.field = field;
+    tempEs.sort.desc = sort;
 
     this.setState({
       es: tempEs
@@ -324,7 +318,7 @@ class EsManage extends Component {
     tempEs[type] = Number(value);
 
     if (type === 'pageSize') {
-      tempEs.currentPage = 1;
+      tempEs.currentPage = 0;
     }
 
     this.setState({
@@ -368,7 +362,7 @@ class EsManage extends Component {
     this.setState({
       es: tempEs
     }, () => {
-      this.getEsData();
+      this.getEsData('search');
     });
   }
   /**
@@ -606,16 +600,11 @@ class EsManage extends Component {
                 <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleImportIndex}>{t('txt-importEsIndex')}</Button>
               </div>
 
-              <TableContent
-                dataTableData={es.dataContent}
-                dataTableFields={es.dataFields}
-                dataTableSort={es.sort}
-                paginationTotalCount={es.totalCount}
-                paginationPageSize={es.pageSize}
-                paginationCurrentPage={es.currentPage}
-                handleTableSort={this.handleTableSort}
-                paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
+              {es.dataContent.length > 0 &&
+                <MuiTableContent
+                  data={es}
+                  tableOptions={tableOptions} />
+              }
             </div>
           </div>
         </div>

@@ -427,7 +427,9 @@ class Notifications extends Component {
     let dataParams = '';
 
     if (testEmails.length === 0) {
-      helper.showPopupMsg(t('notifications.txt-emailInvalid'), t('txt-error'));
+      this.setState({
+        info: t('notifications.txt-emailInvalid')
+      });
       return;
     }
 
@@ -508,15 +510,9 @@ class Notifications extends Component {
 
     return (
       <div>
-        <GeneralDialog
-          open={openEmailDialog}
-          title={t('notifications.txt-testEmails')}
-          maxWidth='sm'
-          fullWidth
-          draggable={true}
-          content={this.displayTestEmail()}
-          actions={actions}
-        />
+        {openEmailDialog &&
+          this.testEmailDialog()
+        }
 
         <div className='sub-header'>
         </div>

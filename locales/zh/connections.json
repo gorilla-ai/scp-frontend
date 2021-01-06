@@ -436,7 +436,7 @@
     "txt-senderPassword": "寄件者密碼",
     "txt-recipientEmail": "收件者郵件信箱",
     "txt-notifyEmail": "通知郵件信箱",
-    "txt-emailInvalid": "請輸入正確email",
+    "txt-emailInvalid": "請輸入正確的email",
     "txt-sendSuccess": "寄送成功"
   },
 
@@ -515,7 +515,6 @@
 
   "threat-severity-mapping": {
     "txt-severityMapping": "情資嚴重等級管理",
-    "txt-addSeverityTable": "新增類型",
     "txt-typeInfo": "類型內容",
     "txt-lastUpdateTime": "最近更新時間",
     "txt-severityMissing": "嚴重等級類型不得為空白"
@@ -533,7 +532,7 @@
   "network-inventory": {
     "txt-deviceList": "裝置列表",
     "txt-deviceMap": "裝置地圖",
-    "txt-deviceLA": "裝置拓譜圖",
+    "txt-deviceLA": "裝置拓樸圖",
     "txt-triggerAll": "全部檢測(HMD)",
     "txt-addIP": "新增IP",
     "txt-manuallyEnter": "單筆輸入",
@@ -670,6 +669,7 @@
     "txt-portValidationFail": "請檢查port",
     "txt-seatNameEmpty": "請輸入座位名稱",
     "txt-saveSuccess": "儲存成功",
+    "txt-maxCharError": "不得超過64字元",
 
     "txt-addOwner": "$t(txt-add)$t(ipFields.owner)",
     "txt-editOwner": "$t(txt-edit)$t(ipFields.owner)",

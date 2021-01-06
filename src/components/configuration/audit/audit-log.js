@@ -12,6 +12,7 @@ import TextField from '@material-ui/core/TextField';
 import {BaseDataContext} from '../../common/context';
 import Config from '../../common/configuration'
 import helper from '../../common/helper'
+import MuiTableContent from '../../common/mui-table-content'
 import SearchOptions from '../../common/search-options'
 import TableContent from '../../common/table-content'
 
@@ -70,8 +71,8 @@ class AuditLog extends Component {
   getAuditData = (fromSearch) => {
     const {baseUrl} = this.context;
     const {datetime, auditSearch, audit} = this.state;
-    const page = fromSearch === 'search' ? 1 : audit.currentPage;
-    const url = `${baseUrl}/api/auditLog/system?page=${page}&pageSize=${audit.pageSize}`;
+    const page = fromSearch === 'search' ? 0 : audit.currentPage;
+    const url = `${baseUrl}/api/auditLog/system?page=${page + 1}&pageSize=${audit.pageSize}`;
     const dateTime = {
       from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
       to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
@@ -95,33 +96,37 @@ class AuditLog extends Component {
       if (data) {
         let tempAudit = {...audit};
         let auditData = [];
-        tempAudit.dataContent = data.rows;
         tempAudit.totalCount = data.counts;
         tempAudit.currentPage = page;
+        tempAudit.dataContent = _.map(data.rows, val => {
+          return {
+            createDttm: val.content.createDttm,
+            message: val.content.message
+          };
+        })
 
         if (!data.rows || data.rows.length === 0) {
           helper.showPopupMsg(t('txt-notFound'));
           return;
         }
 
-        let dataFields = {};
-        audit.dataFieldsArr.forEach(tempData => {
-          dataFields[tempData] = {
-            label: f(`auditFields.${tempData}`),
-            sortable: null,
-            formatter: (value, allValue, i) => {
-              if (tempData === 'createDttm') {
-                value = helper.getFormattedDate(allValue.content[tempData], 'local');
-              } else {
-                value = allValue.content[tempData];
+        tempAudit.dataFields = _.map(audit.dataFieldsArr, val => {
+          return {
+            name: val,
+            label: f('auditFields.' + val),
+            options: {
+              filter: true,
+              sort: false,
+              customBodyRender: (value) => {
+                if (val === 'createDttm') {
+                  return helper.getFormattedDate(value, 'local');
+                } else {
+                  return value;
+                }
               }
-
-              return <span>{value}</span>
             }
           };
-        })
-
-        tempAudit.dataFields = dataFields;
+        });
 
         this.setState({
           audit: tempAudit
@@ -157,8 +162,8 @@ class AuditLog extends Component {
    */
   handlePaginationChange = (type, value) => {
     let tempAudit = {...this.state.audit};
-    tempAudit[type] = Number(value);
-
+    tempAudit[type] = value;
+    
     if (type === 'pageSize') {
       tempAudit.currentPage = 1;
     }
@@ -302,20 +307,11 @@ class AuditLog extends Component {
             <div className='main-content'>
               <header className='main-header'>{t('txt-auditLog')}</header>
 
-              <div className='content-header-btns'>
-              </div>
-
-              <TableContent
-                dataTableData={audit.dataContent}
-                dataTableFields={audit.dataFields}
-                dataTableSort={audit.sort}
-                paginationTotalCount={audit.totalCount}
-                paginationPageSize={audit.pageSize}
-                paginationCurrentPage={audit.currentPage}
-                handleTableSort={this.handleTableSort}
-                paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
-
+              {audit.dataContent.length > 0 &&
+                <MuiTableContent
+                  data={audit}
+                  tableOptions={tableOptions} />
+              }
             </div>
           </div>
         </div>
