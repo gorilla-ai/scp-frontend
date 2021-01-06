@@ -61,7 +61,7 @@ class ChartContent extends Component {
    * @param {object} prevProps - previous react props when the props have been updated
    */
   getChartData = (prevProps) => {
-    const {chartData, markData, chartColors, pageType, tableMouseOver} = this.props;
+    const {chartData, markData, chartColors, pageType} = this.props;
     let dataArr = [];
     let legend = {
       enabled: false
@@ -71,10 +71,6 @@ class ChartContent extends Component {
       y: 'number'
     };
     let colorCode = {};
-
-    if (tableMouseOver) {
-      return;
-    }
 
     if (markData) {
       _.forEach(markData, (val, i) => {

@@ -84,7 +84,8 @@ const MAPS_PRIVATE_DATA = {
   mapAreaUUID: '',
   currentMap: '',
   currentBaseLayers: {},
-  seatData: {}
+  seatData: {},
+  deviceSeatData: {}
 };
 
 let t = null;
@@ -182,7 +183,7 @@ class NetworkInventory extends Component {
         coordY: ''
       },
       eventInfo: {
-        dataFieldsArr: ['@timestamp', '_EventCode', '_Message'],
+        dataFieldsArr: ['@timestamp', '_EventCode', 'message'],
         dataFields: {},
         dataContent: [],
         scrollCount: 1,
@@ -920,7 +921,7 @@ class NetworkInventory extends Component {
       const inventoryParam = queryString.parse(location.search);
 
       this.getAreaData(currentFloor);
-      this.getSeatData(currentFloor);
+      this.getFloorDeviceData(currentFloor);
 
       if (!options && inventoryParam.type) {
         if (inventoryParam.type === 'add') {
@@ -987,6 +988,60 @@ class NetworkInventory extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+  }
+  /**
+   * Get and set floor device data (only show seats with device)
+   * @method
+   * @param {string} areaUUID - area UUID
+   */
+  getFloorDeviceData = (areaUUID) => {
+    const {baseUrl, contextRoot} = this.context;
+
+    if (!areaUUID) {
+      return;
+    }
+
+    this.ah.one({
+      url: `${baseUrl}/api/v2/ipdevice/_search?areaUUID=${areaUUID}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        const deviceSeatData = {};
+        let seatListArr = [];
+
+        _.forEach(data.rows, val => {
+          if (val.seatObj) {
+            seatListArr.push({
+              id: val.seatObj.seatUUID,
+              type: 'marker',
+              xy: [val.seatObj.coordX, val.seatObj.coordY],
+              icon: {
+                iconUrl: `${contextRoot}/images/ic_person.png`,
+                iconSize: [25, 25],
+                iconAnchor: [12.5, 12.5]
+              },
+              label: val.seatObj.seatName,
+              data: {
+                name: val.seatObj.seatName
+              }
+            });
+          }
+        })
+
+        deviceSeatData[areaUUID] = {
+          data: seatListArr
+        };
+
+        this.setState({
+          deviceSeatData
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })  
   }
   /**
    * Get and set floor seat data
@@ -1920,7 +1975,7 @@ class NetworkInventory extends Component {
     this.setState({
       showScanInfo: false,
       eventInfo: {
-        dataFieldsArr: ['@timestamp', '_EventCode', '_Message'],
+        dataFieldsArr: ['@timestamp', '_EventCode', 'message'],
         dataFields: {},
         dataContent: [],
         scrollCount: 1,
@@ -1956,7 +2011,7 @@ class NetworkInventory extends Component {
           const {floorPlan} = this.state;
 
           this.getAreaData(floorPlan.currentAreaUUID);
-          this.getSeatData(floorPlan.currentAreaUUID);
+          this.getFloorDeviceData(floorPlan.currentAreaUUID);
         }
       }
     });
@@ -2001,6 +2056,8 @@ class NetworkInventory extends Component {
         activeContent = 'dataInfo';
       } else {
         activeContent = 'tableList';
+
+        this.getFloorPlan();
       }
 
       this.setState({
@@ -3647,16 +3704,17 @@ class NetworkInventory extends Component {
   }
   /**
    * Handle tree selection
-   * @param {object} val - tree data
+   * @param {string} type - tree type ('deviceMap' or 'stepsFloor')
+   * @param {object} tree - tree data
    * @method
    */
-  handleSelectTree = (val) => {
-    const areaUUID = val.areaUUID;
+  handleSelectTree = (type, tree) => {
+    const areaUUID = tree.areaUUID;
     let tempFloorPlan = {...this.state.floorPlan};
-    tempFloorPlan.currentAreaName = val.areaName;
+    tempFloorPlan.currentAreaName = tree.areaName;
     tempFloorPlan.currentAreaUUID = areaUUID;
-    tempFloorPlan.currentParentAreaUUID = val.parentAreaUUID;
-    tempFloorPlan.name = val.areaName;
+    tempFloorPlan.currentParentAreaUUID = tree.parentAreaUUID;
+    tempFloorPlan.name = tree.areaName;
     tempFloorPlan.type = 'edit';
 
     this.setState({
@@ -3665,25 +3723,31 @@ class NetworkInventory extends Component {
       selectedTreeID: areaUUID
     }, () => {
       this.getAreaData(areaUUID);
-      this.getSeatData(areaUUID);
+
+      if (type === 'deviceMap') {
+        this.getFloorDeviceData(areaUUID);
+      } else if (type === 'stepsFloor') {
+        this.getSeatData(areaUUID);
+      }
     });
   }
   /**
    * Display tree item
    * @method
+   * @param {string} type - tree type ('deviceMap' or 'stepsFloor')
    * @param {object} val - tree data
    * @param {number} i - index of the tree data
    * @returns TreeItem component
    */
-  getTreeItem = (val, i) => {
+  getTreeItem = (type, val, i) => {
     return (
       <TreeItem
         key={val.id + i}
         nodeId={val.id}
         label={val.label}
-        onLabelClick={this.handleSelectTree.bind(this, val)}>
+        onLabelClick={this.handleSelectTree.bind(this, type, val)}>
         {val.children && val.children.length > 0 &&
-          val.children.map(this.getTreeItem)
+          val.children.map(this.getTreeItem.bind(this, type))
         }
       </TreeItem>
     )
@@ -3737,9 +3801,9 @@ class NetworkInventory extends Component {
           <TreeItem
             nodeId={tree.areaUUID}
             label={tree.areaName}
-            onLabelClick={this.handleSelectTree.bind(this, tree)}>
+            onLabelClick={this.handleSelectTree.bind(this, type, tree)}>
             {tree.children.length > 0 &&
-              tree.children.map(this.getTreeItem)
+              tree.children.map(this.getTreeItem.bind(this, type))
             }
           </TreeItem>
         }
@@ -3943,6 +4007,7 @@ class NetworkInventory extends Component {
       mapAreaUUID,
       currentMap,
       seatData,
+      deviceSeatData,
       currentBaseLayers,
       activeSteps,
       addIP,
@@ -4103,7 +4168,7 @@ class NetworkInventory extends Component {
                       {currentMap.label &&
                         <Gis
                           _ref={(ref) => {this.gisNode = ref}}
-                          data={_.get(seatData, [mapAreaUUID, 'data'], [])}
+                          data={_.get(deviceSeatData, [mapAreaUUID, 'data'], [])}
                           baseLayers={currentBaseLayers}
                           baseLayer={mapAreaUUID}
                           layouts={['standard']}

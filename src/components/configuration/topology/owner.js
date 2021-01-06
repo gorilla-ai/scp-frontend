@@ -454,17 +454,23 @@ class NetworkOwner extends Component {
     let tempOwner = {...this.state.owner};
     tempOwner.info[type] = value;
 
-    if (type === 'file') {
-      const file = value ? URL.createObjectURL(value) : '';
-
-      this.setState({
-        previewOwnerPic: file
-      });
-    }
-
     this.setState({
       owner: tempOwner
     });  
+  }
+  /**
+   * Handle photo upload input value change
+   * @method
+   * @param {string | object} value - input data to be set
+   */
+  handlePhotoChange = (value) => {
+    let tempOwner = {...this.state.owner};
+    tempOwner.info.file = value;
+
+    this.setState({
+      previewOwnerPic: value ? URL.createObjectURL(value) : '',
+      owner: tempOwner
+    });
   }
   /**
    * Handle remove owner photo checkbox
@@ -811,7 +817,7 @@ class NetworkOwner extends Component {
                             }
                           }
                         }}
-                        onChange={this.handleDataChange.bind(this, 'file')} />
+                        onChange={this.handlePhotoChange} />
                     </div>
                     <div className='group'>
                       {previewOwnerPic &&

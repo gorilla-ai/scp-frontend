@@ -66,13 +66,9 @@ class DataChart extends Component {
    * @param {object} prevProps - previous react props when the props have been updated
    */
   getChartData = (prevProps) => {
-    const {mainContentData, tabChartData, tableMouseOver} = this.props;
+    const {mainContentData, tabChartData} = this.props;
     const activeTab = mainContentData.activeTab;
     let chartData = '';
-
-    if (tableMouseOver) {
-      return;
-    }
 
     if (activeTab === 'alert' || activeTab === 'logs') {
       chartData = tabChartData.chartData;

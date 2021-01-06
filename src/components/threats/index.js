@@ -532,20 +532,15 @@ class ThreatsController extends Component {
    * @method
    * @param {string} field - field name of selected field
    * @param {string | number} value - value of selected field
-   * @param {string} activeTab - currect active tab
    * @param {object} event - event object
    */
-  handleOpenQueryMenu = (field, value, activeTab, event) => {
-    if (activeTab && activeTab === 'alert') {
-      if (field === 'srcIp') {
-        value = 'sourceIP: ' +  value;
-      } else if (field === 'destIp') {
-        value = 'destinationIP: ' +  value;
-      }
-    } else {
-      if (field === 'Collector') {
-        value = 'Collector: ' +  '"' + value + '"';
-      }
+  handleOpenQueryMenu = (field, value, event) => {
+    if (field === 'srcIp') {
+      value = 'sourceIP: ' +  value;
+    } else if (field === 'destIp') {
+      value = 'destinationIP: ' +  value;
+    } else if (field === 'Collector') {
+      value = 'Collector: ' +  '"' + value + '"';
     }
 
     this.setState({

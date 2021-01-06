@@ -85,7 +85,7 @@ class AlertDetails extends Component {
       },
       ipType: '',
       eventInfo: {
-        dataFieldsArr: ['@timestamp', '_EventCode', '_Message'],
+        dataFieldsArr: ['@timestamp', '_EventCode', 'message'],
         dataFields: {},
         dataContent: [],
         scrollCount: 1,

@@ -200,6 +200,11 @@ button.standard:hover:not([disabled]) {
   background-color: var(--primaryContentBackground);
   border: 1px solid var(--primaryBorder);
 }
+.MuiPopover-paper {
+  .MuiIconButton-root:hover {
+    color: #fff;
+  }
+}
 .c-popover {
   color: var(--primaryTextColor) !important;
   background-color: var(--primaryContentBackground) !important;
@@ -511,11 +516,32 @@ button.standard:hover:not([disabled]) {
     }
   }
 }
+.MuiPickersBasePicker-pickerView {
+  .MuiSvgIcon-root {
+    color: rgba(0, 0, 0, 0.54) !important;
+  }
+  .MuiPickersCalendarHeader-iconButton:hover {
+    background: none !important;
+  }
+  button:hover:not([disabled]) {
+    background-color: var(--buttonSelectedHover);
+  }
+}
 #app-container {
+  .mui-data-table {
+    background-color: var(--primaryContentBackground);
+    color: #fff;
+    button {
+      &:hover {
+        color: #fff;
+      }
+    }
+  }
   .react-grid-layout {
     background-color: var(--primaryBackground);
   }
   .checkboxes-tags {
+    clear: both;
     &.groups input {
       width: 0 !important;
     }
@@ -691,14 +717,11 @@ button.standard:hover:not([disabled]) {
     }
     &.edge-options {
       #edgeBtns {
-        position: absolute;
-        right: 15px;
-        top: 6px;
+        float: right;
+        margin-right: 5px;
       }
       .search-options {
-        position: absolute;
-        right: 340px;
-        top: 4px;
+        margin-right: 10px;
       }
     }
   }
@@ -2089,6 +2112,8 @@ button.standard:hover:not([disabled]) {
                   margin-right: 5px;
                 }
                 &.combobox-group {
+                  float: left;
+                  margin-right: 10px;
                   margin-bottom: 15px;
                 }
               }
@@ -2126,6 +2151,9 @@ button.standard:hover:not([disabled]) {
               .period {
                 color: var(--primaryContentHeader);
                 margin-top: 5px;
+                .number {
+                  width: 90px;
+                }
               }
               .support-text {
                 display: inline-block;
@@ -2178,22 +2206,6 @@ button.standard:hover:not([disabled]) {
                     button {
                       padding: .3em 1em;
                     }
-                  }
-                }
-              }
-              .ip-range-group {
-                .group {
-                  select,
-                  input {
-                    width: 31.5%;
-                  }
-                }
-              }
-              .scanner-group {
-                .group {
-                  select,
-                  input {
-                    width: 27%;
                   }
                 }
               }
@@ -2250,11 +2262,9 @@ button.standard:hover:not([disabled]) {
                 }
               }
               .btn.add-group {
-                position: absolute;
-                top: 3px;
-                left: 40px;
-                padding: .2em .5em;
                 font-size: 12px;
+                padding: .2em .5em;
+                margin-top: -5px;
               }
             }
             .relatedList {
@@ -2304,18 +2314,6 @@ button.standard:hover:not([disabled]) {
                 top: 55px;
                 font-size: 14px;
                 color: var(--primaryTextColor);
-                &.text1 {
-                  left: -4px;
-                }
-                &.text2 {
-                  left: -22px;
-                }
-                &.text3 {
-                  left: -9px;
-                }
-                &.text4 {
-                  left: -2px;
-                }
               }
             }
             .line {
@@ -2580,7 +2578,7 @@ button.standard:hover:not([disabled]) {
             display: none;
           }
         }
-        footer { //For pagination in Table, LA and Maps
+        footer {
           min-height: 76px;
           padding: 20px;
           margin: 0;

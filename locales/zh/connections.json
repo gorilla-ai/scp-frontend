@@ -181,7 +181,7 @@
   "txt-layout-change": "版面布局已變更，是否儲存 ?",
 
   "txt-dashboard": "Dashboard",
-  "txt-host": "Host",
+  "txt-host-eng": "Host",
   "txt-threats": "Threats",
   "txt-syslog": "Syslog",
   "txt-netflow": "Netflow",

@@ -103,8 +103,7 @@ Syslog.contextType = BaseDataContext;
 Syslog.propTypes = {
   mainContentData: PropTypes.object.isRequired,
   tabChartData: PropTypes.object.isRequired,
-  markData: PropTypes.array.isRequired,
-  tableMouseOver: PropTypes.bool.isRequired
+  markData: PropTypes.array.isRequired
 };
 
 export default Syslog;
