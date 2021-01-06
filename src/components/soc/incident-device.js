@@ -17,6 +17,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 import CheckIcon from '@material-ui/icons/Check';
 import CloseIcon from '@material-ui/icons/Close';
+import Button from "@material-ui/core/Button";
 let t = null;
 let f = null;
 let et = null;
@@ -90,6 +91,7 @@ class IncidentDevice extends Component {
                     protectType: '0',
                     protectTypeInfo: '',
                     note: '',
+                    reason:'',
                     updateDttm: ''
                 }
             },
@@ -119,6 +121,7 @@ class IncidentDevice extends Component {
                     protectType: '0',
                     protectTypeInfo: '',
                     note: '',
+                    reason:'',
                     updateDttm: ''
                 }
             }
@@ -399,8 +402,6 @@ class IncidentDevice extends Component {
                 <div className="sub-header">
                     <div className='secondary-btn-group right'>
                         <button className={cx('', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'/></button>
-
-                        {/*<button className='' onClick={this.getCSV_File} title={it('txt-exportHealthCsv')}><i className='fg fg-data-download'/></button>*/}
                     </div>
 
                 </div>
@@ -418,32 +419,28 @@ class IncidentDevice extends Component {
                         <div className='main-content'>
                             <header className='main-header'>{it('txt-incident-device')}</header>
                             <div className='content-header-btns'>
-                                {activeContent === 'tableList' &&
-                                        <span>{it('txt-autoSendState')}</span>
+                                {activeContent === 'tableList' && <span>{it('txt-autoSendState')}</span>
                                 }
 
                                 {activeContent === 'tableList' && sendCheck.sendStatus &&(<CheckIcon style={{color:'#68cb51'}}/>)}
                                 {activeContent === 'tableList' && !sendCheck.sendStatus &&(<CloseIcon style={{color:'#d63030'}}/>)}
 
                                 {activeContent === 'tableList' &&
-                                    <button className='standard btn list' onClick={this.openSendMenu.bind()}>{it('txt-sendHealthCsv')}</button>
+                                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openSendMenu.bind()}>{it('txt-sendHealthCsv')}</Button>
                                 }
 
                                 {activeContent === 'tableList' &&
-                                    <button className='standard btn list' onClick={this.openDownloadMenu.bind()}>{it('txt-exportHealthCsv')}</button>
+                                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openDownloadMenu.bind()}>{it('txt-exportHealthCsv')}</Button>
                                 }
 
                                 {activeContent === 'viewDevice' &&
-                                    <button className='standard btn list'
-                                            onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</button>
+                                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</Button>
                                 }
-                                <button className='standard btn edit'
-                                        onClick={this.autoSendSettingsDialog.bind(this)}>{it('txt-autoSendSettings')}</button>
-                                <button className='standard btn edit'
-                                        onClick={this.toggleContent.bind(this, 'addDevice')}>{t('txt-add')}</button>
+                                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.autoSendSettingsDialog.bind(this)}>{it('txt-autoSendSettings')}</Button>
+                                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'addDevice')}>{t('txt-add')}</Button>
 
                                 <Link to='/SCP/configuration/notifications'>
-                                    <button className='standard btn'>{t('notifications.txt-settings')}</button>
+                                    <Button variant='outlined' color='primary' className='standard btn edit' >{t('notifications.txt-settings')}</Button>
                                 </Link>
 
                             </div>
@@ -465,18 +462,13 @@ class IncidentDevice extends Component {
 
                                 <header className='main-header'>{it('txt-incident-device')}</header>
                                 <div className='content-header-btns'>
-
+                                        <Button variant='outlined' color='primary' className='standard btn list' onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</Button>
                                     {this.state.setType === 'send' &&
-                                        <button className='standard btn edit'
-                                                onClick={this.sendCsvWithOnlineEditData.bind(this)}>{it('txt-send')}</button>
+                                        <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.sendCsvWithOnlineEditData.bind(this)}>{it('txt-send')}</Button>
                                     }
                                     {this.state.setType === 'download' &&
-                                    <button className='standard btn edit'
-                                            onClick={this.downloadCsvWithOnlineEditData.bind(this)}>{it('txt-exportHealthCsv')}</button>
+                                        <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.downloadCsvWithOnlineEditData.bind(this)}>{it('txt-exportHealthCsv')}</Button>
                                     }
-
-                                    <button className='standard  btn edit'
-                                            onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-cancel')}</button>
                                 </div>
 
                                 <SelecTableContent
@@ -516,12 +508,10 @@ class IncidentDevice extends Component {
 
                 <div className='content-header-btns'>
                     {activeContent === 'viewDevice' &&
-                    <button className='standard btn list'
-                            onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</button>
+                        <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</Button>
                     }
                     {activeContent !== 'addDevice' &&
-                    <button className='standard btn edit'
-                            onClick={this.toggleContent.bind(this, 'editDevice')}>{t('txt-edit')}</button>
+                        <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'editDevice')}>{t('txt-edit')}</Button>
                     }
                 </div>
 
@@ -662,9 +652,6 @@ class IncidentDevice extends Component {
                         </TextField>
                     </div>
 
-                    {/*{activeContent !== 'addDevice' && incidentDevice.info.frequency === 0 &&*/}
-
-                    {/*}*/}
                     <div className='group full'>
                         <label htmlFor='note'>{it('txt-note')} ({t('txt-memoMaxLength')})</label>
                         <TextareaAutosize
@@ -680,17 +667,14 @@ class IncidentDevice extends Component {
 
                 {activeContent === 'editDevice' &&
                 <footer>
-                    <button className='standard'
-                            onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</button>
-                    <button onClick={this.handleDeviceSubmit}>{t('txt-save')}</button>
-
+                    <Button variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</Button>
+                    <Button variant='contained' color='primary' onClick={this.handleDeviceSubmit}>{t('txt-save')}</Button>
                 </footer>
                 }
                 {activeContent === 'addDevice' &&
                 <footer>
-                    <button className='standard'
-                            onClick={this.toggleContent.bind(this, 'cancel-add')}>{t('txt-cancel')}</button>
-                    <button onClick={this.handleDeviceSubmit}>{t('txt-save')}</button>
+                    <Button variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'cancel-add')}>{t('txt-cancel')}</Button>
+                    <Button variant='contained' color='primary' onClick={this.handleDeviceSubmit}>{t('txt-save')}</Button>
                 </footer>
                 }
             </div>
@@ -783,9 +767,8 @@ class IncidentDevice extends Component {
                     </div>
                 </div>
                 <div className='button-group'>
-                    <button className='filter'
-                            onClick={this.getDeviceData.bind(this, 'search')}>{t('txt-filter')}</button>
-                    <button className='clear' onClick={this.clearFilter}>{t('txt-clear')}</button>
+                    <Button variant='contained' color='primary' className='filter' onClick={this.getDeviceData.bind(this, 'search')}>{t('txt-filter')}</Button>
+                    <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}</Button>
                 </div>
             </div>
         )
@@ -1281,7 +1264,9 @@ class IncidentDevice extends Component {
                         data.frequency = value
                     } else if (type === 'note') {
                         data.note = value
-                    } else if (type === 'select') {
+                    }  else if (type === 'reason') {
+                        data.reason = value
+                    }  else if (type === 'select') {
                         data.select = value;
                     }
                 }

@@ -549,10 +549,6 @@ class Incident extends Component {
                             title={t('txt-filter')}><i className='fg fg-filter'/></button>
                     <button className={cx('', {'active': showChart})} onClick={this.toggleChart}
                             title={it('txt-statistics')}><i className='fg fg-chart-columns'/></button>
-                    {/*<button className='' onClick={this.getIncidentSTIXFileExample.bind(this, 'event')}*/}
-                    {/*        title={it('txt-downloadEvent')}><i className='fg fg-data-download'/></button>*/}
-                    {/*<button className='' onClick={this.getIncidentSTIXFileExample.bind(this, 'related')}*/}
-                    {/*        title={it('txt-downloadRelated')}><i className='fg fg-data-download'/></button>*/}
                     <button className='' onClick={this.openIncidentTag.bind(this, null)}
                             title={it('txt-custom-tag')}><i className='fg fg-color-ruler'/></button>
                     <button className='' onClick={this.openIncidentComment.bind(this)}
@@ -572,18 +568,13 @@ class Incident extends Component {
                         <header className='main-header'>{it('txt-incident')}</header>
                         <div className='content-header-btns'>
                             {activeContent === 'viewIncident' &&
-                            <button className='standard btn list'
-                                    onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</button>
+                            <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</Button>
                             }
-                            {
-                                _.size(incident.dataContent) > 0 &&
-                                <button className='standard btn edit'
-                                    onClick={this.exportAll.bind(this)}>{it('txt-export-all')}</button>
+                            {_.size(incident.dataContent) > 0 &&
+                            <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.exportAll.bind(this)}>{it('txt-export-all')}</Button>
                             }
-                            <button className='standard btn edit'
-                                    onClick={this.toggleContent.bind(this, 'addIncident', 'events')}>{it('txt-addIncident-events')}</button>
-                            <button className='standard btn edit'
-                                    onClick={this.toggleContent.bind(this, 'addIncident', 'ttps')}>{it('txt-addIncident-ttps')}</button>
+                            <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'addIncident', 'events')}>{it('txt-addIncident-events')}</Button>
+                            <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'addIncident', 'ttps')}>{it('txt-addIncident-ttps')}</Button>
                         </div>
                         <TableContent
                             dataTableData={incident.dataContent}
@@ -755,72 +746,52 @@ class Incident extends Component {
             {activeContent === 'viewIncident' &&
                 <footer style={{'textAlign':'center'}}>
 
-                    
-                    <button className='standard btn list'
-                            onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</button>
-
+                    <Button variant='outlined' color='primary' className='standard'  onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</Button>
 
                     {editCheck &&
-                        <button className='standard btn list'
-                                onClick={this.toggleContent.bind(this, 'editIncident')}>{t('txt-edit')}</button>
+                    <Button variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'editIncident')}>{t('txt-edit')}</Button>
                     }
                     {drawCheck &&
-                        <button className='standard btn list'
-                                onClick={this.openReviewModal.bind(this, incident.info, 'draw')}>{it('txt-draw')}</button>
+                    <Button variant='outlined' color='primary' className='standard' onClick={this.openReviewModal.bind(this, incident.info, 'draw')}>{it('txt-draw')}</Button>
                     }
                     {submitCheck &&
-                        <button className='standard btn list'
-                                onClick={this.openReviewModal.bind(this, incident.info, 'submit')}>{it('txt-submit')}</button>
+                    <Button variant='outlined' color='primary' className='standard' onClick={this.openReviewModal.bind(this, incident.info, 'submit')}>{it('txt-submit')}</Button>
                     }
                     {returnCheck &&
-                       <button className='standard btn list'
-                                onClick={this.openReviewModal.bind(this, incident.info, 'return')}>{it('txt-return')}</button>
+                    <Button variant='outlined' color='primary' className='standard' onClick={this.openReviewModal.bind(this, incident.info, 'return')}>{it('txt-return')}</Button>
                     }
                     {auditCheck &&
-                        <button className='standard btn list'
-                                onClick={this.openReviewModal.bind(this, incident.info, 'auditV2')}>{it('txt-audit')}</button>
+                    <Button variant='outlined' color='primary' className='standard' onClick={this.openReviewModal.bind(this, incident.info, 'auditV2')}>{it('txt-audit')}</Button>
                     }
                     {transferCheck &&
-                        <button className='standard btn list'
-                                onClick={this.openReviewModal.bind(this, incident.info, 'analyze')}>{it('txt-transfer')}</button>
+                    <Button variant='outlined' color='primary' className='standard' onClick={this.openReviewModal.bind(this, incident.info, 'analyze')}>{it('txt-transfer')}</Button>
                     }
                     {signCheck &&
-                    <button className='standard btn list'
-                            onClick={this.openReviewModal.bind(this, incident.info, 'sign')}>{it('txt-sign')}</button>
+                    <Button variant='outlined' color='primary' className='standard'  onClick={this.openReviewModal.bind(this, incident.info, 'sign')}>{it('txt-sign')}</Button>
                     }
                     {closeCheck &&
-                    <button className='standard btn list'
-                            onClick={this.openReviewModal.bind(this, incident.info, 'close')}>{it('txt-close')}</button>
+                    <Button variant='outlined' color='primary' className='standard'  onClick={this.openReviewModal.bind(this, incident.info, 'close')}>{it('txt-close')}</Button>
                     }
                     {publishCheck &&
-                    <button className='standard btn list'
-                            onClick={this.openSendMenu.bind(this, incident.info.id)}>{it('txt-send')}</button>
+                    <Button variant='outlined' color='primary' className='standard' onClick={this.openSendMenu.bind(this, incident.info.id)}>{it('txt-send')}</Button>
                     }
-
-                    <button className='standard btn list'
-                            onClick={this.exportPdf.bind(this)}>{t('txt-export')}</button>
-
-                    <button className='standard btn list'
-                            onClick={this.notifyContact.bind(this)}>{it('txt-notify')}</button>
+                    <Button variant='outlined' color='primary' className='standard' onClick={this.exportPdf.bind(this)}>{t('txt-export')}</Button>
+                    <Button variant='outlined' color='primary' className='standard' onClick={this.notifyContact.bind(this)}>{it('txt-notify')}</Button>
                 </footer>
             }
 
             {
                 activeContent === 'editIncident' &&
                 <footer>
-                    <button className='standard'
-                            onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</button>
-                    <button onClick={this.handleSubmit}>{t('txt-save')}</button>
-
+                    <Button variant='outlined' color='primary' className='standard'  onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</Button>
+                    <Button variant='contained' color='primary'  onClick={this.handleSubmit}>{t('txt-save')}</Button>
                 </footer>
             }
             {
                 activeContent === 'addIncident' &&
                 <footer>
-                    <button className='standard'
-                            onClick={this.toggleContent.bind(this, 'cancel-add')}>{t('txt-cancel')}</button>
-                    <button onClick={this.handleSubmit}>{t('txt-save')}</button>
-
+                    <Button variant='outlined' color='primary' className='standard'  onClick={this.toggleContent.bind(this, 'cancel-add')}>{t('txt-cancel')}</Button>
+                    <Button variant='contained' color='primary'onClick={this.handleSubmit}>{t('txt-save')}</Button>
                 </footer>
             }
         </div>
@@ -1117,7 +1088,8 @@ class Incident extends Component {
             {
                 activeContent !== 'addIncident' &&
                 <div className='group'>
-                    <button onClick={this.uploadAttachmentModal.bind(this)}>{t('txt-upload')}</button>
+                    <Button variant='contained' color='primary' className='upload' onClick={this.uploadAttachmentModal.bind(this)}>{t('txt-upload')}</Button>
+                    {/*<button onClick={this.uploadAttachmentModal.bind(this)}>{t('txt-upload')}</button>*/}
                 </div>
             }
             {
@@ -1190,19 +1162,6 @@ class Incident extends Component {
             <header>
                 <div className='text'>{it('txt-accidentTitle')}</div>
             </header>
-
-            {/*<Button className={incidentType === 'events' ? 'last' : 'last-left'}  style={{backgroundColor:'#001b34',color:'#FFFFFF'}}*/}
-            {/*        onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}</Button>*/}
-            {/*<Button className='last-left' style={{backgroundColor:'#001b34',color:'#FFFFFF'}}*/}
-            {/*        onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}</Button>*/}
-
-            {/*<Button className='last' disabled={incidentType !== 'ttps'}  style={{backgroundColor:'#001b34',color:'#FFFFFF'}}*/}
-            {/*        onClick={this.handleIncidentPageChange.bind(this, 'ttps')}>{it('txt-next-page')}</Button>*/}
-
-            {/*{*/}
-            {/*    incidentType === 'ttps' &&*/}
-
-            {/*}*/}
 
             <div className='group'>
                 <label htmlFor='accidentCatogory'>{it('txt-accidentClassification')}</label>
@@ -1494,30 +1453,59 @@ class Incident extends Component {
         }
         else {
 
+            let eventCheck = true;
             _.forEach(incident.eventList, event => {
                 _.forEach(event.eventConnectionList, eventConnect => {
 
-                    if (!helper.ValidateIP_Address(eventConnect.srcIp) || !helper.ValidateIP_Address(eventConnect.dstIp)){
+                    if (!helper.ValidateIP_Address(eventConnect.srcIp) ){
                         PopupDialog.alert({
                             title: t('txt-tips'),
                             display: t('network-topology.txt-ipValidationFail'),
                             confirmText: t('txt-close')
                         });
-                        return  false
+                        eventCheck = false
+                        return
                     }
-                    if (eventConnect.srcPort || eventConnect.dstPort){
-                        if (!helper.ValidatePort(eventConnect.srcPort) || !helper.ValidatePort(eventConnect.dstPort)){
+
+                    if (!helper.ValidateIP_Address(eventConnect.dstIp)){
+                        PopupDialog.alert({
+                            title: t('txt-tips'),
+                            display: t('network-topology.txt-ipValidationFail'),
+                            confirmText: t('txt-close')
+                        });
+                        eventCheck = false
+                        return
+                    }
+
+                    if (eventConnect.dstPort){
+                     if (!helper.ValidatePort(eventConnect.dstPort)){
                             PopupDialog.alert({
                                 title: t('txt-tips'),
                                 display: t('network-topology.txt-portValidationFail'),
                                 confirmText: t('txt-close')
                             });
-                            return false
+                            eventCheck = false
+                            return
                         }
                     }
 
+                    if (eventConnect.srcPort){
+                        if (!helper.ValidatePort(eventConnect.srcPort)){
+                            PopupDialog.alert({
+                                title: t('txt-tips'),
+                                display: t('network-topology.txt-portValidationFail'),
+                                confirmText: t('txt-close')
+                            });
+                            eventCheck = false
+                            return
+                        }
+                    }
                 })
             })
+
+            if (!eventCheck){
+                return false
+            }
 
             let empty = _.filter(incident.eventList, function (o) {
                 return !o.description || !o.deviceId || !o.eventConnectionList  || !o.frequency
@@ -1824,9 +1812,8 @@ class Incident extends Component {
                     </div>
                 </div>
                 <div className='button-group'>
-                    <button className='filter'
-                            onClick={this.loadData.bind(this, 'search')}>{t('txt-filter')}</button>
-                    <button className='clear' onClick={this.clearFilter}>{t('txt-clear')}</button>
+                    <Button variant='contained' color='primary' className='filter' onClick={this.loadData.bind(this, 'search')}>{t('txt-filter')}</Button>
+                    <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}</Button>
                 </div>
             </div>
         )
