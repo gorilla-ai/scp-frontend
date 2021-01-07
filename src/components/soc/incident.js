@@ -2760,7 +2760,14 @@ class Incident extends Component {
             payload.eventList.table.push({text: f('incidentFields.deviceId'), colSpan: 3})
             payload.eventList.table.push({text: event.description, colSpan: 3})
             const target = _.find(deviceListOptions, {value: event.deviceId})
-            payload.eventList.table.push({text: target.text, colSpan: 3})
+            
+            if (target) {
+                payload.eventList.table.push({text: target.text, colSpan: 3})
+            }
+            else {
+                payload.eventList.table.push({text: '', colSpan: 3})
+            }
+            
             payload.eventList.table.push({text: f('incidentFields.dateRange'), colSpan: 4})
             payload.eventList.table.push({text: it('txt-frequency'), colSpan: 2})
             payload.eventList.table.push({text: Moment.utc(event.startDttm, 'YYYY-MM-DDTHH:mm:ss[Z]').local().format('YYYY-MM-DD HH:mm:ss'), colSpan: 2})
