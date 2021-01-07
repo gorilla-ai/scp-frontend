@@ -724,6 +724,10 @@ html[data-theme='dark'] {
                     padding-left: 0;
                     cursor: default;
                   }
+                  li a {
+                    font-weight: bold;
+                    text-decoration: underline;
+                  }
                   .fg-play {
                     position: absolute;
                     top: 2px;
@@ -778,10 +782,16 @@ html[data-theme='dark'] {
           border: 1px solid var(--primaryBorder);
           border-radius: 10px;
           .scan-header {
+            position: relative;
             display: block;
             margin-bottom: 10px;
-            span {
+            & > span {
               margin-right: 15px;
+            }
+            .download {
+              position: absolute;
+              right: 0;
+              padding: 0 5px;
             }
           }
         }

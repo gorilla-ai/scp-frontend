@@ -505,6 +505,7 @@
         "_MD5": "Hash Value (MD5)"
       }
     },
+    "detectedCount": "VirusTotal Detected Count",
     "_IsPE": "Is PE?",
     "_IsPEextension": "Is PEextension?",
     "_IsVerifyTrust": "Is VerifyTrust?",

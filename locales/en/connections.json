@@ -575,6 +575,8 @@
     "txt-refresh": "Refresh",
     "txt-reCheck": "Re-check",
     "txt-reCompress": "Re-compress",
+    "txt-downloadFile": "Download File",
+    "txt-compressFile": "Compress File",
     "txt-yaraRules": "Yara Rules",
     "txt-addToFilterList": "Add to filter list",
     "txt-passCount": "Pass",

@@ -505,6 +505,7 @@
         "_MD5": "Hash Value (MD5)"
       }
     },
+    "detectedCount": "VirusTotal回報數量",
     "_IsPE": "是否為PE檔",
     "_IsPEextension": "是否為PE副檔名",
     "_IsVerifyTrust": "是否為有效簽章",

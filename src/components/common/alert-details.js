@@ -1593,6 +1593,40 @@ class AlertDetails extends Component {
     })
   }
   /**
+   * Handle trigger button for HMD Malware
+   * @method
+   * @param {array.<string>} filePath - Malware file path
+   * @param {string} taskId - Task ID
+   */
+  triggerFilesTask = (filePath, taskId) => {
+    const {baseUrl} = this.context;
+    const {currentDeviceData} = this.state;
+    const requestData = {
+      hostId: currentDeviceData.ipDeviceUUID,
+      cmds: ['getHmdFiles'],
+      paras: {
+        _FilepathVec: filePath,
+        _FileName: taskId
+      }
+    };
+
+    this.ah.one({
+      url: `${baseUrl}/api/hmd/retrigger`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data) {
+        helper.showPopupMsg(t('txt-requestSent'));
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Display safety scan content
    * @method
    * @param {string} ipType - 'srcIp' or 'destIp'
@@ -1612,6 +1646,7 @@ class AlertDetails extends Component {
           toggleYaraRule={this.toggleYaraRule}
           toggleSelectionIR={this.toggleSelectionIR}
           triggerTask={this.triggerTask}
+          triggerFilesTask={this.triggerFilesTask}
           getHMDinfo={this.getHMDinfo}
           loadEventTracing={this.loadEventTracing} />
       )

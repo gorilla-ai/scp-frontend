@@ -575,6 +575,8 @@
     "txt-refresh": "重新載入",
     "txt-reCheck": "重新檢測",
     "txt-reCompress": "重新壓縮",
+    "txt-downloadFile": "下載檔案",
+    "txt-compressFile": "壓縮檔案",
     "txt-yaraRules": "Yara Rules",
     "txt-addToFilterList": "加入過濾名單",
     "txt-passCount": "通過",

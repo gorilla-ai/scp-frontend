@@ -921,12 +921,14 @@ class HMDscanInfo extends Component {
    */
   displayScanFilePath = (parentIndex, val, i) => {
     const {activePath, activeRuleHeader} = this.state;
+    const virusTotalLink = `https://www.virustotal.com/gui/file/${val._FileInfo._HashValues._MD5}`;
     let uniqueKey = '';
     let uniqueID = '';
     let displayInfo = NOT_AVAILABLE;
     let filePath = '';
     let matchPID = '';
     let scanType = '';
+    let detectedCount = NOT_AVAILABLE;
 
     if (val && val._FileInfo) { //For AI
       uniqueKey = val._FileInfo._Filepath + i;
@@ -961,6 +963,10 @@ class HMDscanInfo extends Component {
       if (val.isYARA) {
         scanType += 'YARA';
       }
+    }
+
+    if (val.virusTotalDetectedCount !== null) {
+      detectedCount = val.virusTotalDetectedCount;
     }
 
     if (!filePath) {
@@ -999,6 +1005,7 @@ class HMDscanInfo extends Component {
                   {val._FileInfo._HashValues._MD5 &&
                     <li>{f('malwareFields._FileInfo._HashValues._MD5')}: {val._FileInfo._HashValues._MD5}</li>
                   }
+                  <li>{f('malwareFields.detectedCount')}: {helper.numberWithCommas(detectedCount)} (<a href={virusTotalLink} target='_blank'>VirusTotal</a>)</li>
                   {val._IsPE &&
                     <li>{f('malwareFields._IsPE')}: {this.getBoolValue(val._IsPE)}</li>
                   }
@@ -1445,6 +1452,25 @@ class HMDscanInfo extends Component {
     }
   }
   /**
+   * Handle malware button action
+   * @method
+   * @param {string} type - button type ('download' or 'compress')
+   * @param {object} dataResult - malware detection result
+   * @param {string} taskId - Task ID
+   */
+  handleMalwareBtn = (type, dataResult, taskId) => {
+    if (type === 'download') {
+      const fileData = dataResult[0]._FileInfo._HashValues;
+      const url = `http:\/\/172.18.0.87/SCP/api/hmd/file/_download?taskId=${fileData._MD5}`;
+      window.open(url, '_blank');
+    } else if (type === 'compress') {
+      const filePath = _.map(dataResult, val => {
+        return val._FileInfo._Filepath;
+      });
+      this.props.triggerFilesTask(filePath, taskId);
+    }
+  }
+  /**
    * Display content for accordion type
    * @method
    * @param {object} val - scan file data
@@ -1454,11 +1480,12 @@ class HMDscanInfo extends Component {
   displayAccordionContent = (val, i) => {
     const {activeTab} = this.state;
     const fileIntegrityArr = ['_NewCreateFile', '_MissingFile', '_ModifyFile'];
+    const malwareBtnType = val.isUploaded ? 'download' : 'compress';
     let dataResult = [];
     let scanPath = '';
     let filePathList = [];
     let yaraRuleList = [];
-    let header = t('network-inventory.txt-suspiciousFilePath');
+    let header = t('network-inventory.txt-suspiciousFilePath');    
 
     if (!val.taskResponseDttm) {
       return;
@@ -1497,6 +1524,9 @@ class HMDscanInfo extends Component {
           }
           {(activeTab === 'yara' || activeTab === 'scanFile' || activeTab === 'procMonitor') && dataResult &&
             this.getSuspiciousFileCount(dataResult)
+          }
+          {activeTab === 'scanFile' &&
+            <Button variant='contained' color='primary' className='btn download' onClick={this.handleMalwareBtn.bind(this, malwareBtnType, dataResult, val.taskId)}>{t(`network-inventory.txt-${malwareBtnType}File`)}</Button>
           }
           {activeTab === '_Vans' && dataResult.length > 0 &&
             <span style={{color: '#d10d25'}}>{t('network-inventory.txt-VulnerabilityCount')}: {dataResult.length}</span>
@@ -2156,6 +2186,7 @@ HMDscanInfo.propTypes = {
   eventInfo: PropTypes.object.isRequired,
   toggleSelectionIR: PropTypes.func.isRequired,
   triggerTask: PropTypes.func.isRequired,
+  triggerFilesTask: PropTypes.func.isRequired,
   toggleYaraRule: PropTypes.func.isRequired,
   getHMDinfo: PropTypes.func.isRequired,
   loadEventTracing: PropTypes.func.isRequired,
