@@ -10,6 +10,8 @@
 	"txt-incident-unit-management": "機關管理",
 	"txt-incident-config-management": "事件參數設定",
 	"txt-incident-log-management": "事件發布紀錄",
+	"txt-incident-isac-management": "轉發ISAC設定管理",
+	"txt-incident-isac-config": "ISAC參數設定",
 	"txt-incident-events": "監控觸發紀錄",
 	"txt-incident-ttps": "攻擊手法",
 	"txt-prev-page": "上一頁",
@@ -228,5 +230,13 @@
 		"11": "臺中區域聯防中心",
 		"12": "臺南區域聯防中心",
 		"13": "高雄區域聯防中心"
+	},
+	"isac": {
+		"txt-start-setting": "啟用設定",
+		"txt-config-setting": "參數設定",
+		"txt-account": "ISAC帳號",
+		"txt-url": "API網址",
+		"txt-key": "API-KEY",
+		"txt-sendFlag": "啟用狀態"
 	}
 }

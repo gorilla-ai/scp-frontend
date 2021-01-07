@@ -25,6 +25,7 @@ import IncidentDevice from './components/soc/incident-device'
 import IncidentUnit from './components/soc/incident-unit'
 import IncidentLog from './components/soc/incident-log'
 import Incident from './components/soc/incident'
+import IncidentISAC from './components/soc/incident-isac'
 import logger from 'loglevel-prefix-persist/client'
 import Login from './login'
 import loglevel from 'loglevel'
@@ -244,6 +245,13 @@ const incidentLog = () => (
   </BaseDataContext.Provider>
 );
 
+const incidentISAC = () => (
+    <BaseDataContext.Provider value={baseData}>
+        <IncidentISAC/>
+    </BaseDataContext.Provider>
+);
+
+
 const Main = () => (
   <main className='main'>
     <Switch>
@@ -275,6 +283,7 @@ const Main = () => (
         <Route exact path='/SCP/soc/incident-unit' component={incidentUnit}/>
         <Route exact path='/SCP/soc/incident-log' component={incidentLog}/>
         <Route exact path='/SCP/soc/incident' component={incident}/>
+        <Route exact path='/SCP/soc/incident-ISAC' component={incidentISAC}/>
     </Switch>
   </main>
 );

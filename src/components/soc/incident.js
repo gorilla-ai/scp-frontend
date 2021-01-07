@@ -701,6 +701,8 @@ class Incident extends Component {
 
         if(incident.info.tagList && incident.info.tagList.length >= 3){
             tmpTagList = incident.info.tagList.slice(0,3);
+        }else{
+            tmpTagList = incident.info.tagList
         }
 
         return <div className='main-content basic-form'>
