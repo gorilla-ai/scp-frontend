@@ -1027,7 +1027,7 @@ class Incident extends Component {
                         const target = _.find(JSON.parse(incident.info.attachmentDescription), {fileName: allValue.fileName})
 
                         let formattedWording = ''
-                        if (target.fileMemo.length > 32) {
+                        if (target.fileMemo && target.fileMemo.length > 32) {
                             formattedWording = target.fileMemo.substr(0, 32) + '...';
                         }else{
                             formattedWording = target.fileMemo
@@ -1123,7 +1123,7 @@ class Incident extends Component {
                         return <span>{it(`action.${value}`)}</span>
                     }else if (tempData === 'suggestion' || tempData === 'reviewerName'){
                         let formattedWording = ''
-                        if (value.length > 32) {
+                        if (value && value.length > 32) {
                             formattedWording = value.substr(0, 32) + '...';
                         }else{
                             formattedWording = value
