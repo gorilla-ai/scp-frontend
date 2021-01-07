@@ -39,9 +39,9 @@ class IncidentIsac extends Component {
 			originalSetting: {},
 			isacSettings: {
 				url: '',
-				account: 25,
+				account: '',
 				key: '',
-				sendFlag: true,
+				sendFlag: false,
 			},
 		};
 
@@ -127,7 +127,6 @@ class IncidentIsac extends Component {
 	 * @param {string} type - content type ('editMode', 'viewMode', 'save' or 'cancel')
 	 */
 	toggleContent = (type) => {
-		const {originalSetting} = this.state;
 		let showPage = type;
 
 		if (type === 'save') {
@@ -135,14 +134,12 @@ class IncidentIsac extends Component {
 			return;
 		} else if (type === 'viewMode' || type === 'cancel') {
 			showPage = 'viewMode';
-
-			this.setState({
-				isacSettings: _.cloneDeep(originalSetting),
-			});
 		}
 
 		this.setState({
 			activeContent: showPage
+		},()=>{
+			this.getSettingInfo();
 		});
 	}
 	/**
