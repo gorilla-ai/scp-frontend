@@ -323,7 +323,7 @@ class Login extends Component {
           </div>
           <button onClick={this.logon}>{t('login.btn-login')}</button>
 
-          <div className='first-time' onClick={this.startResetPwd.bind(this, 'newSet')}>{t('txt-fist-login')}?</div>
+          <div className='first-time'><span onClick={this.startResetPwd.bind(this, 'newSet')}>{t('txt-fist-login')}?</span></div>
 
           <div className={cx('c-info error-msg', {'c-error': error})}>{info}</div>
 

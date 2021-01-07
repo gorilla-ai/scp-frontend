@@ -181,7 +181,7 @@
   "txt-layout-change": "Layout changed，whether to save ?",
 
   "txt-dashboard": "Dashboard",
-  "txt-host": "Host",
+  "txt-host-eng": "Host",
   "txt-threats": "Threats",
   "txt-syslog": "Syslog",
   "txt-netflow": "Netflow",

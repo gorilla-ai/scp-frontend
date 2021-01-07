@@ -456,7 +456,7 @@ class Header extends Component {
               <div className='main-nav'>
                 <Link to='/SCP/dashboard/overview' className={cx('item', {'active': this.getActiveTab('dashboard')})}>{t('txt-dashboard')}</Link>
 
-                <Link to='/SCP/host' className={cx('item', {'active': this.getActiveTab('host')})}>{t('txt-host')}</Link>
+                <Link to='/SCP/host' className={cx('item', {'active': this.getActiveTab('host')})}>{t('txt-host-eng')}</Link>
 
                 {/*<Link to='/SCP/dashboard/statisticsUIF' className={cx('item', {'active': this.getActiveTab('dashboard')})}>{t('txt-dashboard')}</Link>*/}
 

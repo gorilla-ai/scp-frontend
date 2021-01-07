@@ -75,7 +75,7 @@ class Pattern extends Component {
           id: '',
           name: '',
           lastUpdateDttm: '',
-          severity: '',
+          severity: 'Emergency',
           periodMin: 10,
           threshold: 1,
           queryScript: '',
@@ -128,7 +128,7 @@ class Pattern extends Component {
    * @param {string} fromSearch - option for 'search'
    */
   getPatternScript = (fromSearch) => {
-    const {baseUrl} = this.context;
+    const {baseUrl, session} = this.context;
     const {patternSearch, severitySelected, pattern} = this.state;
     const page = fromSearch === 'search' ? 1 : pattern.currentPage;
     let query = '';
@@ -146,7 +146,7 @@ class Pattern extends Component {
     }
 
     this.ah.one({
-      url: `${baseUrl}/api/alert/pattern?${query}&page=${page}&pageSize=${pattern.pageSize}`,
+      url: `${baseUrl}/api/alert/pattern?accountId=${session.accountId}${query}&page=${page}&pageSize=${pattern.pageSize}`,
       type: 'GET'
     })
     .then(data => {
@@ -472,11 +472,15 @@ class Pattern extends Component {
    * @method
    */
   handlePatternSubmit = () => {
-    const {baseUrl} = this.context;
+    const {baseUrl, session} = this.context;
     const {activeContent, pattern, formValidation} = this.state;
     let tempFormValidation = {...formValidation};
     let validate = true;
     let requestType = '';
+
+    if (!session.accountId) {
+      return;
+    }
 
     if (pattern.info.name) {
       formValidation.name.valid = true;
@@ -508,6 +512,7 @@ class Pattern extends Component {
     }
 
     let requestData = {
+      accountId: session.accountId,
       patternName: pattern.info.name,
       severity: pattern.info.severity,
       queryScript: pattern.info.queryScript,

@@ -1053,10 +1053,9 @@ class SyslogController extends Component {
    * @method
    * @param {string} field - field name of selected field
    * @param {string | number} value - value of selected field
-   * @param {string} activeTab - currect active tab
    * @param {object} event - event object
    */
-  handleOpenQueryMenu = (field, value, activeTab, event) => {
+  handleOpenQueryMenu = (field, value, event) => {
     this.setState({
       queryContextAnchor: event.currentTarget,
       currentQueryField: field,
@@ -1124,21 +1123,22 @@ class SyslogController extends Component {
    * @param {object} event - event object
    */
   setFieldsChange = (field, event) => {
-    const data = event.target.checked;
-    let tempAccount = {...this.state.account};
+    const {account} = this.state;
+    const checkedStatus = event.target.checked;
+    let uniqAccountFields = _.uniq(account.fields);
 
-    if (_.includes(tempAccount.fields, field)) {
-      if (!data) {
-        const index = tempAccount.fields.indexOf(field);
-        tempAccount.fields.splice(index, 1);
+    if (_.includes(uniqAccountFields, field)) {
+      if (!checkedStatus) { //Remove field from account field
+        const index = uniqAccountFields.indexOf(field);
+        uniqAccountFields.splice(index, 1);
       }
     } else {
-      if (data) {
-        tempAccount.fields.push(field);
+      if (checkedStatus) { //Add field to the account field
+        uniqAccountFields.push(field);
       }
     }
 
-    this.setCustomFields(tempAccount.fields);
+    this.setCustomFields(uniqAccountFields);
   }
   /**
    * Set and save events table fields of the account
