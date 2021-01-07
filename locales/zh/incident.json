@@ -110,6 +110,11 @@
 	"txt-day": "天",
 	"file-too-large": "上傳檔案過大，超過20MB",
 	"txt-checkRequiredFieldType": "請輸入正確欄位格式",
+	"txt-validTechniqueInfa": "請檢查手法描述及指標類型",
+	"txt-validTTPs": "請檢查否正確輸入攻擊手法資料",
+	"txt-validEvents": "請檢查否正確輸入監控觸發紀錄資料",
+	"txt-portValidationFail": "請輸入正確Port格式",
+	"txt-validUnit": "請檢查否正確輸入資安事件申報機關資料",
 	"accident": {
 		"1": "網頁攻擊",
 		"11": "網頁置換",
@@ -145,7 +150,8 @@
 		"txt-type": "機關領域",
 		"txt-abbreviation": "機關英文縮寫",
 		"txt-exists": "OID 已存在",
-		"txt-defaultDelete": "預設機關無法刪除"
+		"txt-defaultDelete": "預設機關無法刪除",
+		"txt-existDevice": "機關尚有使用中設備，故無法刪除"
 	},
 	"device": {
 		"txt-edgeDevice": "可收錄之Edge設備",

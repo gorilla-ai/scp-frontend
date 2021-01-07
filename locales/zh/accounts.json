@@ -46,6 +46,9 @@
   "txt-add-account":"新增帳號",
   "txt-edit-account":"編輯帳號",
   "txt-delete-account":"刪除帳號",
+  "txt-ad-config": "AD設定",
+  "txt-ssl-connect": "SSL連線",
+  "txt-test-connect": "連線測試",
   "txt-only-num-eng":"由至少 4 位數字與英文字母組成",
   "txt-email-invalid":"正確的email",
   "accountFields": {

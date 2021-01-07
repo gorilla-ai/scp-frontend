@@ -16,6 +16,8 @@ import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import AccountEdit from './account-edit'
+import AdConfig from './ad-config'
+
 import {BaseDataContext} from '../../../common/context';
 import Config from '../../../common/configuration'
 import helper from '../../../common/helper'
@@ -193,6 +195,11 @@ class AccountList extends Component {
     this.editor.openAccount(id, 'fromAccount');
     this.handleCloseMenu();
   }
+
+  showAdDialog = () => {
+    this.config.open()
+  }
+  
   /**
    * Display delete and unlock content
    * @method
@@ -524,6 +531,7 @@ class AccountList extends Component {
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
+            <Button variant='outlined' color='primary' onClick={this.showAdDialog.bind(this)} title={t('txt-ad-config')}><i className='fg fg-signage-ad'></i></Button>
             <Button variant='outlined' color='primary' onClick={this.showEditDialog.bind(this, null)} title={t('txt-add-account')}><i className='fg fg-add'></i></Button>
             <Button variant='outlined' color='primary' className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={c('txt-filter')}><i className='fg fg-filter'></i></Button>
           </div>
@@ -555,6 +563,8 @@ class AccountList extends Component {
         <AccountEdit
           ref={ref => { this.editor = ref }}
           onDone={this.loadAccounts} />
+
+        <AdConfig ref={ref => { this.config = ref }} />
       </div>
     )
   }

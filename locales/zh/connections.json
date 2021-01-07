@@ -603,7 +603,8 @@
       "txt-password": "管理者密碼",
       "txt-netflow": "Netflow",
       "txt-scanner": "Scanner",
-      "txt-connectionsFail": "連線失敗"
+      "txt-connectionsFail": "連線失敗",
+      "txt-connectionsSuccess": "連線成功"
     },
     "scan-list": {
       "txt-yara": "Yara Scan",

@@ -595,6 +595,7 @@
     "level": "機關等級",
     "industryType": "機關領域",
     "note": "備註",
+    "reason": "異常原因",
     "frequency": "上月觸發次數",
     "updateDttm": "最後更新時間",
     "abbreviation": "機關英文簡稱",
@@ -606,7 +607,9 @@
     "reviewDttm": "處理時間",
     "reviewerName": "處理人",
     "srcIPListString": "來源IP",
-    "dstIPListString": "目的IP"
+    "dstIPListString": "目的IP",
+    "phone": "電話",
+    "email": "電子郵件"
   },
   "severityTableFields": {
     "dataSourceType": "類型",

@@ -603,7 +603,8 @@
       "txt-password": "Admin Password",
       "txt-netflow": "Netflow",
       "txt-scanner": "Scanner",
-      "txt-connectionsFail": "Connections Fail"
+      "txt-connectionsFail": "Connections Fail",
+      "txt-connectionsSuccess": "Connections Success"
     },
     "scan-list": {
       "txt-yara": "Yara Scan",

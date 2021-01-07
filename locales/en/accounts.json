@@ -46,6 +46,9 @@
   "txt-add-account":"Add account",
   "txt-edit-account":"Edit account",
   "txt-delete-account":"Delete account",
+  "txt-ad-config": "AD Config",
+  "txt-ssl-connect": "SSL Connection",
+  "txt-test-connect": "Connection Test",
   "txt-only-num-eng":"Composed by at least 4 digits and Eng alphabet",
   "txt-email-invalid":"Invalid email address",
   "accountFields": {
