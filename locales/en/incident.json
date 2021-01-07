@@ -10,6 +10,8 @@
 	"txt-incident-unit-management": "Incident Unit Management",
 	"txt-incident-config-management": "Incident Config Management",
 	"txt-incident-log-management": "Incident Send Log",
+	"txt-incident-isac-management": "ISAC Config Management",
+	"txt-incident-isac-config": "ISAC Config Settings",
 	"txt-incident-events": "Incident Events",
 	"txt-incident-ttps": "TTPs",
 	"txt-prev-page": "Prev",
@@ -224,5 +226,13 @@
 		"11": "臺中區域聯防中心",
 		"12": "臺南區域聯防中心",
 		"13": "高雄區域聯防中心"
+	},
+	"isac": {
+		"txt-start-setting": "Enable settings",
+		"txt-config-setting": "Config Settings",
+		"txt-account": "ISAC Account",
+		"txt-url": "API URL",
+		"txt-key": "API-KEY",
+		"txt-sendFlag": "Enable Status"
 	}
 }
