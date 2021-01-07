@@ -697,27 +697,75 @@ class Incident extends Component {
             }
         }
 
+        let tmpTagList = []
+
+        if(incident.info.tagList && incident.info.tagList.length >= 3){
+            tmpTagList = incident.info.tagList.slice(0,3);
+        }
 
         return <div className='main-content basic-form'>
             <header className='main-header' style={{display: 'flex'}}>
                 {it(`txt-${activeContent}-${incidentType}`)}
                 {
                     activeContent !== 'addIncident' &&
-                    <div className='msg' style={{display: 'flex'}}>{it('txt-id')}{incident.info.id}
-                        <div style={{display: 'flex', marginLeft: '30px'}}>
+                    <div className='msg' style={{display: 'flex'}}>{it('txt-id')}<span style={{color: 'red'}}>{incident.info.id}</span>
+                        <div style={{display: 'flex', marginLeft: '10px'}}>
                         {
-                            _.map(incident.info.tagList, el => {
-                                return <div style={{display: 'flex', marginRight: '30px'}}>
+                            _.map(tmpTagList, el => {
+                                    let formattedWording = ''
+                                    if (el.tag.tag.length > 6){
+                                        formattedWording = el.tag.tag.substr(0, 6) + '...';
+                                    }else{
+                                        formattedWording = el.tag.tag;
+                                    }
+                                return (
+                                    <div style={{display: 'flex', marginRight: '5px'}}>
                                     <div className='incident-tag-square' style={{backgroundColor: el.tag.color}}/>
-                                    &nbsp;{el.tag.tag}
-                                </div>
+                                        {formattedWording}
+                                    </div>
+                                )
                             })
                         }
+                        {incident.info.tagList && incident.info.tagList.length >= 3 && "..."}
                         </div>
                     </div>
                 }
             </header>
+            {activeContent === 'viewIncident' &&
+            <div className='content-header-btns'>
+                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</Button>
 
+                {editCheck &&
+                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'editIncident')}>{t('txt-edit')}</Button>
+                }
+                {drawCheck &&
+                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openReviewModal.bind(this, incident.info, 'draw')}>{it('txt-draw')}</Button>
+                }
+                {submitCheck &&
+                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openReviewModal.bind(this, incident.info, 'submit')}>{it('txt-submit')}</Button>
+                }
+                {returnCheck &&
+                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openReviewModal.bind(this, incident.info, 'return')}>{it('txt-return')}</Button>
+                }
+                {auditCheck &&
+                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openReviewModal.bind(this, incident.info, 'auditV2')}>{it('txt-audit')}</Button>
+                }
+                {transferCheck &&
+                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openReviewModal.bind(this, incident.info, 'analyze')}>{it('txt-transfer')}</Button>
+                }
+                {signCheck &&
+                <Button variant='outlined' color='primary' className='standard btn edit'  onClick={this.openReviewModal.bind(this, incident.info, 'sign')}>{it('txt-sign')}</Button>
+                }
+                {closeCheck &&
+                <Button variant='outlined' color='primary' className='standard btn edit'  onClick={this.openReviewModal.bind(this, incident.info, 'close')}>{it('txt-close')}</Button>
+                }
+                {publishCheck &&
+                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openSendMenu.bind(this, incident.info.id)}>{it('txt-send')}</Button>
+                }
+                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.exportPdf.bind(this)}>{t('txt-export')}</Button>
+                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.notifyContact.bind(this)}>{it('txt-notify')}</Button>
+            </div>
+            }
 
             <div className='auto-settings' style={{height: '70vh'}}>
                 {
@@ -742,43 +790,6 @@ class Incident extends Component {
                 displayPage === 'ttps' && this.displayTtpPage()
             }
             </div>
-
-            {activeContent === 'viewIncident' &&
-                <footer style={{'textAlign':'center'}}>
-
-                    <Button variant='outlined' color='primary' className='standard'  onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</Button>
-
-                    {editCheck &&
-                    <Button variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'editIncident')}>{t('txt-edit')}</Button>
-                    }
-                    {drawCheck &&
-                    <Button variant='outlined' color='primary' className='standard' onClick={this.openReviewModal.bind(this, incident.info, 'draw')}>{it('txt-draw')}</Button>
-                    }
-                    {submitCheck &&
-                    <Button variant='outlined' color='primary' className='standard' onClick={this.openReviewModal.bind(this, incident.info, 'submit')}>{it('txt-submit')}</Button>
-                    }
-                    {returnCheck &&
-                    <Button variant='outlined' color='primary' className='standard' onClick={this.openReviewModal.bind(this, incident.info, 'return')}>{it('txt-return')}</Button>
-                    }
-                    {auditCheck &&
-                    <Button variant='outlined' color='primary' className='standard' onClick={this.openReviewModal.bind(this, incident.info, 'auditV2')}>{it('txt-audit')}</Button>
-                    }
-                    {transferCheck &&
-                    <Button variant='outlined' color='primary' className='standard' onClick={this.openReviewModal.bind(this, incident.info, 'analyze')}>{it('txt-transfer')}</Button>
-                    }
-                    {signCheck &&
-                    <Button variant='outlined' color='primary' className='standard'  onClick={this.openReviewModal.bind(this, incident.info, 'sign')}>{it('txt-sign')}</Button>
-                    }
-                    {closeCheck &&
-                    <Button variant='outlined' color='primary' className='standard'  onClick={this.openReviewModal.bind(this, incident.info, 'close')}>{it('txt-close')}</Button>
-                    }
-                    {publishCheck &&
-                    <Button variant='outlined' color='primary' className='standard' onClick={this.openSendMenu.bind(this, incident.info.id)}>{it('txt-send')}</Button>
-                    }
-                    <Button variant='outlined' color='primary' className='standard' onClick={this.exportPdf.bind(this)}>{t('txt-export')}</Button>
-                    <Button variant='outlined' color='primary' className='standard' onClick={this.notifyContact.bind(this)}>{it('txt-notify')}</Button>
-                </footer>
-            }
 
             {
                 activeContent === 'editIncident' &&
