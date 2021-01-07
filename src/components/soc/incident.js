@@ -40,6 +40,7 @@ import {KeyboardDateTimePicker, MuiPickersUtilsProvider} from "@material-ui/pick
 import MomentUtils from "@date-io/moment";
 import moment from "moment";
 import NotifyContact from "./common/notifyContact";
+import Menu from "@material-ui/core/Menu";
 
 let t = null;
 let f = null;
@@ -135,7 +136,9 @@ class Incident extends Component {
             },
             accountRoleType:SOC_Analyzer,
             loadListType:SOC_Analyzer,
-            attach: null
+            attach: null,
+            contextAnchor: null,
+            currentData: {},
         };
 
         this.ah = getInstance("chewbacca");
@@ -194,6 +197,8 @@ class Incident extends Component {
         return null;
     }
 
+
+
     /**
      * Get and set Incident Device table data
      * @method
@@ -234,7 +239,7 @@ class Incident extends Component {
                         formatter: (value, allValue, i) => {
                             if (tempData === '_menu') {
                                 return <div className={cx('table-menu', {'active': value})}>
-                                    <button onClick={this.handleRowContextMenu.bind(this, allValue)}><i
+                                    <button onClick={this.handleOpenMenu.bind(this, allValue)}><i
                                         className='fg fg-more'/></button>
                                 </div>
                             } else if (tempData === 'type') {
@@ -325,7 +330,7 @@ class Incident extends Component {
                             formatter: (value, allValue, i) => {
                                 if (tempData === '_menu') {
                                     return <div className={cx('table-menu', {'active': value})}>
-                                        <button onClick={this.handleRowContextMenu.bind(this, allValue)}><i
+                                        <button onClick={this.handleOpenMenu.bind(this, allValue)}><i
                                             className='fg fg-more'/></button>
                                     </div>
                                 } else if (tempData === 'type') {
@@ -469,43 +474,29 @@ class Incident extends Component {
         this.clearFilter()
     }
 
-    handleRowContextMenu = (allValue, evt) => {
-        let menuItems = [];
-
-        menuItems = this.generateClickMenu(allValue)
-
-        ContextMenu.open(evt, menuItems, 'incidentMenu');
-        evt.stopPropagation();
-    };
-
-    generateClickMenu = (allValue) => {
-        let menuItems = [];
-
-        let itemDownload =  {
-            id: 'download',
-            text: it('txt-download'),
-            action: () => this.getIncidentSTIXFile(allValue.id)
-        }
-        let viewItem = {
-            id: 'view',
-            text: t('txt-view'),
-            action: () => this.getIncident(allValue.id,'view')
-        }
-        let itemTag = {
-            id: 'tag',
-            text: it('txt-tag'),
-            action: () => this.openIncidentTag(allValue.id)
-        };
-
-        menuItems.push(itemTag)
-        menuItems.push(viewItem)
-
-        if (allValue.status === INCIDENT_STATUS_CLOSED || allValue.status === INCIDENT_STATUS_SUBMITTED) {
-            menuItems.push(itemDownload)
-        }
-
-        return menuItems
+    /**
+     * Handle open menu
+     * @method
+     * @param {object} data - active data
+     * @param {object} event - event object
+     */
+    handleOpenMenu = (data, event) => {
+        this.setState({
+            contextAnchor: event.currentTarget,
+            currentData: data
+        });
     }
+    /**
+     * Handle close menu
+     * @method
+     */
+    handleCloseMenu = () => {
+        this.setState({
+            contextAnchor: null,
+            currentData: {}
+        });
+    }
+
 
     handleRowMouseOver = (index, allValue, evt) => {
         let tempIncident = {...this.state.incident};
@@ -518,7 +509,7 @@ class Incident extends Component {
 
     /* ------------------ View ------------------- */
     render() {
-        const {activeContent, baseUrl, contextRoot, showFilter, showChart, incident} = this.state
+        const {activeContent, baseUrl, contextRoot, showFilter, showChart, incident,  contextAnchor, currentData} = this.state
 
         return <div>
             <IncidentComment ref={ref => { this.incidentComment=ref }} />
@@ -537,16 +528,27 @@ class Incident extends Component {
 
             <IncidentReview ref={ref => { this.incidentReview=ref }} onLoad={this.getIncident.bind(this)} />
 
+            <Menu
+                anchorEl={contextAnchor}
+                keepMounted
+                open={Boolean(contextAnchor)}
+                onClose={this.handleCloseMenu}>
+                <MenuItem onClick={this.getIncident.bind(this, currentData.id,'view')}>{t('txt-view')}</MenuItem>
+                <MenuItem onClick={this.openIncidentTag.bind(this, currentData.id)}>{it('txt-tag')}</MenuItem>
+                {currentData.status === INCIDENT_STATUS_CLOSED &&
+                    <MenuItem onClick={this.getIncidentSTIXFile.bind(this, currentData.id)}>{it('txt-download')}</MenuItem>
+                }
+                {currentData.status === INCIDENT_STATUS_SUBMITTED &&
+                <MenuItem onClick={this.getIncidentSTIXFile.bind(this, currentData.id)}>{it('txt-download')}</MenuItem>
+                }
+            </Menu>
+
             <div className="sub-header">
                 <div className='secondary-btn-group right'>
                     <button className={cx('', {'active': showFilter})} onClick={this.toggleFilter}
                             title={t('txt-filter')}><i className='fg fg-filter'/></button>
                     <button className={cx('', {'active': showChart})} onClick={this.toggleChart}
                             title={it('txt-statistics')}><i className='fg fg-chart-columns'/></button>
-                    {/*<button className='' onClick={this.getIncidentSTIXFileExample.bind(this, 'event')}*/}
-                    {/*        title={it('txt-downloadEvent')}><i className='fg fg-data-download'/></button>*/}
-                    {/*<button className='' onClick={this.getIncidentSTIXFileExample.bind(this, 'related')}*/}
-                    {/*        title={it('txt-downloadRelated')}><i className='fg fg-data-download'/></button>*/}
                     <button className='' onClick={this.openIncidentTag.bind(this, null)}
                             title={it('txt-custom-tag')}><i className='fg fg-color-ruler'/></button>
                     <button className='' onClick={this.openIncidentComment.bind(this)}
@@ -566,18 +568,13 @@ class Incident extends Component {
                         <header className='main-header'>{it('txt-incident')}</header>
                         <div className='content-header-btns'>
                             {activeContent === 'viewIncident' &&
-                            <button className='standard btn list'
-                                    onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</button>
+                            <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</Button>
                             }
-                            {
-                                _.size(incident.dataContent) > 0 &&
-                                <button className='standard btn edit'
-                                    onClick={this.exportAll.bind(this)}>{it('txt-export-all')}</button>
+                            {_.size(incident.dataContent) > 0 &&
+                            <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.exportAll.bind(this)}>{it('txt-export-all')}</Button>
                             }
-                            <button className='standard btn edit'
-                                    onClick={this.toggleContent.bind(this, 'addIncident', 'events')}>{it('txt-addIncident-events')}</button>
-                            <button className='standard btn edit'
-                                    onClick={this.toggleContent.bind(this, 'addIncident', 'ttps')}>{it('txt-addIncident-ttps')}</button>
+                            <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'addIncident', 'events')}>{it('txt-addIncident-events')}</Button>
+                            <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'addIncident', 'ttps')}>{it('txt-addIncident-ttps')}</Button>
                         </div>
                         <TableContent
                             dataTableData={incident.dataContent}
@@ -700,27 +697,75 @@ class Incident extends Component {
             }
         }
 
+        let tmpTagList = []
+
+        if(incident.info.tagList && incident.info.tagList.length >= 3){
+            tmpTagList = incident.info.tagList.slice(0,3);
+        }
 
         return <div className='main-content basic-form'>
             <header className='main-header' style={{display: 'flex'}}>
                 {it(`txt-${activeContent}-${incidentType}`)}
                 {
                     activeContent !== 'addIncident' &&
-                    <div className='msg' style={{display: 'flex'}}>{it('txt-id')}{incident.info.id}
-                        <div style={{display: 'flex', marginLeft: '30px'}}>
+                    <div className='msg' style={{display: 'flex'}}>{it('txt-id')}<span style={{color: 'red'}}>{incident.info.id}</span>
+                        <div style={{display: 'flex', marginLeft: '10px'}}>
                         {
-                            _.map(incident.info.tagList, el => {
-                                return <div style={{display: 'flex', marginRight: '30px'}}>
+                            _.map(tmpTagList, el => {
+                                    let formattedWording = ''
+                                    if (el.tag.tag.length > 6){
+                                        formattedWording = el.tag.tag.substr(0, 6) + '...';
+                                    }else{
+                                        formattedWording = el.tag.tag;
+                                    }
+                                return (
+                                    <div style={{display: 'flex', marginRight: '5px'}}>
                                     <div className='incident-tag-square' style={{backgroundColor: el.tag.color}}/>
-                                    &nbsp;{el.tag.tag}
-                                </div>
+                                        {formattedWording}
+                                    </div>
+                                )
                             })
                         }
+                        {incident.info.tagList && incident.info.tagList.length >= 3 && "..."}
                         </div>
                     </div>
                 }
             </header>
+            {activeContent === 'viewIncident' &&
+            <div className='content-header-btns'>
+                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</Button>
 
+                {editCheck &&
+                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'editIncident')}>{t('txt-edit')}</Button>
+                }
+                {drawCheck &&
+                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openReviewModal.bind(this, incident.info, 'draw')}>{it('txt-draw')}</Button>
+                }
+                {submitCheck &&
+                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openReviewModal.bind(this, incident.info, 'submit')}>{it('txt-submit')}</Button>
+                }
+                {returnCheck &&
+                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openReviewModal.bind(this, incident.info, 'return')}>{it('txt-return')}</Button>
+                }
+                {auditCheck &&
+                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openReviewModal.bind(this, incident.info, 'auditV2')}>{it('txt-audit')}</Button>
+                }
+                {transferCheck &&
+                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openReviewModal.bind(this, incident.info, 'analyze')}>{it('txt-transfer')}</Button>
+                }
+                {signCheck &&
+                <Button variant='outlined' color='primary' className='standard btn edit'  onClick={this.openReviewModal.bind(this, incident.info, 'sign')}>{it('txt-sign')}</Button>
+                }
+                {closeCheck &&
+                <Button variant='outlined' color='primary' className='standard btn edit'  onClick={this.openReviewModal.bind(this, incident.info, 'close')}>{it('txt-close')}</Button>
+                }
+                {publishCheck &&
+                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openSendMenu.bind(this, incident.info.id)}>{it('txt-send')}</Button>
+                }
+                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.exportPdf.bind(this)}>{t('txt-export')}</Button>
+                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.notifyContact.bind(this)}>{it('txt-notify')}</Button>
+            </div>
+            }
 
             <div className='auto-settings' style={{height: '70vh'}}>
                 {
@@ -746,75 +791,18 @@ class Incident extends Component {
             }
             </div>
 
-            {activeContent === 'viewIncident' &&
-                <footer style={{'textAlign':'center'}}>
-
-                    
-                    <button className='standard btn list'
-                            onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</button>
-
-
-                    {editCheck &&
-                        <button className='standard btn list'
-                                onClick={this.toggleContent.bind(this, 'editIncident')}>{t('txt-edit')}</button>
-                    }
-                    {drawCheck &&
-                        <button className='standard btn list'
-                                onClick={this.openReviewModal.bind(this, incident.info, 'draw')}>{it('txt-draw')}</button>
-                    }
-                    {submitCheck &&
-                        <button className='standard btn list'
-                                onClick={this.openReviewModal.bind(this, incident.info, 'submit')}>{it('txt-submit')}</button>
-                    }
-                    {returnCheck &&
-                       <button className='standard btn list'
-                                onClick={this.openReviewModal.bind(this, incident.info, 'return')}>{it('txt-return')}</button>
-                    }
-                    {auditCheck &&
-                        <button className='standard btn list'
-                                onClick={this.openReviewModal.bind(this, incident.info, 'auditV2')}>{it('txt-audit')}</button>
-                    }
-                    {publishCheck &&
-                        <button className='standard btn list'
-                                onClick={this.openSendMenu.bind(this, incident.info.id)}>{it('txt-send')}</button>
-                    }
-                    {transferCheck &&
-                        <button className='standard btn list'
-                                onClick={this.openReviewModal.bind(this, incident.info, 'analyze')}>{it('txt-transfer')}</button>
-                    }
-                    {signCheck &&
-                    <button className='standard btn list'
-                            onClick={this.openReviewModal.bind(this, incident.info, 'sign')}>{it('txt-sign')}</button>
-                    }
-                    {closeCheck &&
-                    <button className='standard btn list'
-                            onClick={this.openReviewModal.bind(this, incident.info, 'close')}>{it('txt-close')}</button>
-                    }
-
-                    <button className='standard btn list'
-                            onClick={this.exportPdf.bind(this)}>{t('txt-export')}</button>
-
-                    <button className='standard btn list'
-                            onClick={this.notifyContact.bind(this)}>{it('txt-notify')}</button>
-                </footer>
-            }
-
             {
                 activeContent === 'editIncident' &&
                 <footer>
-                    <button className='standard'
-                            onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</button>
-                    <button onClick={this.handleSubmit}>{t('txt-save')}</button>
-
+                    <Button variant='outlined' color='primary' className='standard'  onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</Button>
+                    <Button variant='contained' color='primary'  onClick={this.handleSubmit}>{t('txt-save')}</Button>
                 </footer>
             }
             {
                 activeContent === 'addIncident' &&
                 <footer>
-                    <button className='standard'
-                            onClick={this.toggleContent.bind(this, 'cancel-add')}>{t('txt-cancel')}</button>
-                    <button onClick={this.handleSubmit}>{t('txt-save')}</button>
-
+                    <Button variant='outlined' color='primary' className='standard'  onClick={this.toggleContent.bind(this, 'cancel-add')}>{t('txt-cancel')}</Button>
+                    <Button variant='contained' color='primary'onClick={this.handleSubmit}>{t('txt-save')}</Button>
                 </footer>
             }
         </div>
@@ -1050,13 +1038,12 @@ class Incident extends Component {
                         const target = _.find(JSON.parse(incident.info.attachmentDescription), {fileName: allValue.fileName})
 
                         let formattedWording = ''
-                        if (value.length > 9) {
-                            formattedWording = target.fileMemo.substr(0, 9) + '...';
+                        if (target.fileMemo && target.fileMemo.length > 32) {
+                            formattedWording = target.fileMemo.substr(0, 32) + '...';
                         }else{
                             formattedWording = target.fileMemo
                         }
-
-                        return <span>{formattedWording}</span>
+                        return <span style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all'}}>{formattedWording}</span>
                     }
                     else if (tempData === 'action') {
                         let isShow = true
@@ -1112,7 +1099,8 @@ class Incident extends Component {
             {
                 activeContent !== 'addIncident' &&
                 <div className='group'>
-                    <button onClick={this.uploadAttachmentModal.bind(this)}>{t('txt-upload')}</button>
+                    <Button variant='contained' color='primary' className='upload' onClick={this.uploadAttachmentModal.bind(this)}>{t('txt-upload')}</Button>
+                    {/*<button onClick={this.uploadAttachmentModal.bind(this)}>{t('txt-upload')}</button>*/}
                 </div>
             }
             {
@@ -1146,14 +1134,16 @@ class Incident extends Component {
                         return <span>{it(`action.${value}`)}</span>
                     }else if (tempData === 'suggestion' || tempData === 'reviewerName'){
                         let formattedWording = ''
-                        if (value.length > 9) {
-                            formattedWording = value.substr(0, 9) + '...';
+                        if (value && value.length > 32) {
+                            formattedWording = value.substr(0, 32) + '...';
                         }else{
                             formattedWording = value
                         }
-                        return <span>{formattedWording}</span>
+                        return <span  style={{ whiteSpace: 'pre-wrap',
+                                         wordBreak: 'break-all'}}>{formattedWording}</span>
                     } else {
-                        return <span>{value}</span>
+                        return <span style={{ whiteSpace: 'pre-wrap',
+                            wordBreak: 'break-all'}}>{value}</span>
                     }
                 }
             }
@@ -1183,19 +1173,6 @@ class Incident extends Component {
             <header>
                 <div className='text'>{it('txt-accidentTitle')}</div>
             </header>
-
-            {/*<Button className={incidentType === 'events' ? 'last' : 'last-left'}  style={{backgroundColor:'#001b34',color:'#FFFFFF'}}*/}
-            {/*        onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}</Button>*/}
-            {/*<Button className='last-left' style={{backgroundColor:'#001b34',color:'#FFFFFF'}}*/}
-            {/*        onClick={this.handleIncidentPageChange.bind(this, 'events')}>{it('txt-prev-page')}</Button>*/}
-
-            {/*<Button className='last' disabled={incidentType !== 'ttps'}  style={{backgroundColor:'#001b34',color:'#FFFFFF'}}*/}
-            {/*        onClick={this.handleIncidentPageChange.bind(this, 'ttps')}>{it('txt-next-page')}</Button>*/}
-
-            {/*{*/}
-            {/*    incidentType === 'ttps' &&*/}
-
-            {/*}*/}
 
             <div className='group'>
                 <label htmlFor='accidentCatogory'>{it('txt-accidentClassification')}</label>
@@ -1387,13 +1364,6 @@ class Incident extends Component {
         let incident = {...this.state.incident};
 
         if (!this.checkRequired(incident.info)) {
-
-            PopupDialog.alert({
-                title: t('txt-tips'),
-                display: it('txt-required'),
-                confirmText: t('txt-close')
-            });
-
             return
         }
 
@@ -1431,7 +1401,9 @@ class Incident extends Component {
             incident.info.creator = session.accountId;
         }
 
-        // add by soc executer
+        // add for save who edit
+        incident.info.editor = session.accountId;
+
         if (activeContent === 'addIncident') {
 
             if (_.includes(session.roles, 'SOC Supervior' || 'SOC Supervisor' || 'SOC Executor')){
@@ -1463,10 +1435,8 @@ class Incident extends Component {
             }, () => {
                 this.uploadAttachment()
 
-                // this.loadData();
-                // this.getIncident(incident.info.id);
+                this.getIncident(incident.info.id);
                 this.toggleContent('cancel');
-                //
             });
 
             return null;
@@ -1485,14 +1455,79 @@ class Incident extends Component {
 
         // always check event list
         if (!incident.eventList) {
+            PopupDialog.alert({
+                title: t('txt-tips'),
+                display: it('txt-validEvents'),
+                confirmText: t('txt-close')
+            });
             return false
         }
         else {
+
+            let eventCheck = true;
+            _.forEach(incident.eventList, event => {
+                _.forEach(event.eventConnectionList, eventConnect => {
+
+                    if (!helper.ValidateIP_Address(eventConnect.srcIp) ){
+                        PopupDialog.alert({
+                            title: t('txt-tips'),
+                            display: t('network-topology.txt-ipValidationFail'),
+                            confirmText: t('txt-close')
+                        });
+                        eventCheck = false
+                        return
+                    }
+
+                    if (!helper.ValidateIP_Address(eventConnect.dstIp)){
+                        PopupDialog.alert({
+                            title: t('txt-tips'),
+                            display: t('network-topology.txt-ipValidationFail'),
+                            confirmText: t('txt-close')
+                        });
+                        eventCheck = false
+                        return
+                    }
+
+                    if (eventConnect.dstPort){
+                     if (!helper.ValidatePort(eventConnect.dstPort)){
+                            PopupDialog.alert({
+                                title: t('txt-tips'),
+                                display: t('network-topology.txt-portValidationFail'),
+                                confirmText: t('txt-close')
+                            });
+                            eventCheck = false
+                            return
+                        }
+                    }
+
+                    if (eventConnect.srcPort){
+                        if (!helper.ValidatePort(eventConnect.srcPort)){
+                            PopupDialog.alert({
+                                title: t('txt-tips'),
+                                display: t('network-topology.txt-portValidationFail'),
+                                confirmText: t('txt-close')
+                            });
+                            eventCheck = false
+                            return
+                        }
+                    }
+                })
+            })
+
+            if (!eventCheck){
+                return false
+            }
+
             let empty = _.filter(incident.eventList, function (o) {
-                return !o.description || !o.deviceId
+                return !o.description || !o.deviceId || !o.eventConnectionList  || !o.frequency
             });
 
             if (_.size(empty) > 0) {
+                PopupDialog.alert({
+                    title: t('txt-tips'),
+                    display: it('txt-validEvents'),
+                    confirmText: t('txt-close')
+                });
                 return false
             }
         }
@@ -1501,11 +1536,21 @@ class Incident extends Component {
         if (incidentType === 'ttps') {
 
             if (!incident.description) {
+                PopupDialog.alert({
+                    title: t('txt-tips'),
+                    display: it('txt-validTechniqueInfa'),
+                    confirmText: t('txt-close')
+                });
                 return false
             }
 
 
             if (!incident.ttpList) {
+                PopupDialog.alert({
+                    title: t('txt-tips'),
+                    display: it('txt-validTTPs'),
+                    confirmText: t('txt-close')
+                });
                 return false
             } else {
                 let sizeCheck = false
@@ -1516,6 +1561,13 @@ class Incident extends Component {
                             if (file.fileName && file.fileExtension) {
                                 if (file.md5 || file.sha1 || file.sha256) {
                                     sizeCheck = true
+                                }else {
+                                    PopupDialog.alert({
+                                        title: t('txt-tips'),
+                                        display: it('txt-required'),
+                                        confirmText: t('txt-close')
+                                    });
+                                    return false
                                 }
                             }
                         })
@@ -1525,30 +1577,73 @@ class Incident extends Component {
                         _.forEach(ttp.obsUriList, uri => {
                             if (uri.uriType && uri.uriValue) {
                                 sizeCheck = true
+                            } else {
+                                PopupDialog.alert({
+                                    title: t('txt-tips'),
+                                    display: it('txt-required'),
+                                    confirmText: t('txt-close')
+                                });
+                                return false
                             }
                         })
                     }
 
                     if (_.size(ttp.obsSocketList) > 0) {
                         _.forEach(ttp.obsSocketList, socket => {
-                            if (socket.ip && socket.port) {
+                            if (socket.ip || socket.port) {
+                                if (socket.ip && !helper.ValidateIP_Address(socket.ip)){
+                                    PopupDialog.alert({
+                                        title: t('txt-tips'),
+                                        display: t('network-topology.txt-ipValidationFail'),
+                                        confirmText: t('txt-close')
+                                    });
+                                    return false
+                                }
+
+                                if ( socket.port && !helper.ValidatePort(socket.port)){
+                                    PopupDialog.alert({
+                                        title: t('txt-tips'),
+                                        display: t('network-topology.txt-portValidationFail'),
+                                        confirmText: t('txt-close')
+                                    });
+                                    return false
+                                }
                                 sizeCheck = true
+                            }else {
+                                PopupDialog.alert({
+                                    title: t('txt-tips'),
+                                    display: it('txt-required'),
+                                    confirmText: t('txt-close')
+                                });
+                                return false
                             }
                         })
+                    }
+
+                    if (_.size(ttp.obsSocketList) <= 0 && _.size(ttp.obsUriList) <= 0 && _.size(ttp.obsFileList) <= 0){
+                        PopupDialog.alert({
+                            title: t('txt-tips'),
+                            display: it('txt-incident-ttps')+'('+it('txt-ttp-obs-file')+'/'+it('txt-ttp-obs-uri')+'/'+it('txt-ttp-obs-socket')+'-'+it('txt-mustOne')+')',
+                            confirmText: t('txt-close')
+                        });
+                        return  false
                     }
                 })
 
                 let empty = _.filter(incident.ttpList, function (o) {
-
                     if (o.infrastructureType === undefined){
                         o.infrastructureType === '0'
                     }
-
                     return !o.title || !o.infrastructureType
                 });
 
                 if (_.size(empty) > 0) {
-                    sizeCheck = false
+                    PopupDialog.alert({
+                        title: t('txt-tips'),
+                        display: it('txt-validTechniqueInfa'),
+                        confirmText: t('txt-close')
+                    });
+                    return false
                 }
 
                 return sizeCheck
@@ -1559,6 +1654,7 @@ class Incident extends Component {
     }
 
     getIncident = (id, type) => {
+        this.handleCloseMenu()
         const {baseUrl} = this.context;
 
         ah.one({
@@ -1727,9 +1823,8 @@ class Incident extends Component {
                     </div>
                 </div>
                 <div className='button-group'>
-                    <button className='filter'
-                            onClick={this.loadData.bind(this, 'search')}>{t('txt-filter')}</button>
-                    <button className='clear' onClick={this.clearFilter}>{t('txt-clear')}</button>
+                    <Button variant='contained' color='primary' className='filter' onClick={this.loadData.bind(this, 'search')}>{t('txt-filter')}</Button>
+                    <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}</Button>
                 </div>
             </div>
         )
@@ -2371,6 +2466,7 @@ class Incident extends Component {
      * @param {Incident-ID} incidentId
      */
     getIncidentSTIXFile = (incidentId) => {
+        this.handleCloseMenu()
         const {baseUrl, contextRoot} = this.context;
         const url = `${baseUrl}${contextRoot}/api/soc/_export`;
         let requestData = {
@@ -2426,6 +2522,7 @@ class Incident extends Component {
     }
 
     openIncidentTag(id) {
+        this.handleCloseMenu()
         this.incidentTag.open(id)
     }
 
@@ -2610,8 +2707,8 @@ class Incident extends Component {
         _.forEach(incident.notifyList, notify => {
             payload.notifyList.table.push({text: f('incidentFields.name'), colSpan: 2})
             payload.notifyList.table.push({text: f('incidentFields.reviewerName'), colSpan: 2})
-            payload.notifyList.table.push({text: at('phone'), colSpan: 2})
-            payload.notifyList.table.push({text: at('email'), colSpan: 2})
+            payload.notifyList.table.push({text: f('incidentFields.phone'), colSpan: 2})
+            payload.notifyList.table.push({text: f('incidentFields.email'), colSpan: 2})
             payload.notifyList.table.push({text: notify.title, colSpan: 2})
             payload.notifyList.table.push({text: notify.name, colSpan: 2})
             payload.notifyList.table.push({text: notify.phone, colSpan: 2})

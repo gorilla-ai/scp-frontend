@@ -244,11 +244,9 @@ class IncidentUnit extends Component {
                             <header className='main-header'>{it('txt-incident-unit')}</header>
                             <div className='content-header-btns'>
                                 {activeContent === 'viewDevice' &&
-                                <button className='standard btn list'
-                                        onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</button>
+                                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</Button>
                                 }
-                                <button className='standard btn edit'
-                                        onClick={this.toggleContent.bind(this, 'addDevice')}>{t('txt-add')}</button>
+                                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'addDevice')}>{t('txt-add')}</Button>
                             </div>
                             <TableContent
                                 dataTableData={incidentUnit.dataContent}
@@ -328,6 +326,9 @@ class IncidentUnit extends Component {
                             variant='outlined'
                             fullWidth={true}
                             size='small'
+                            required
+                            error={!(incidentUnit.info.oid || '').trim()}
+                            helperText={it('txt-required')}
                             onChange={this.handleDataChangeMui}
                             value={incidentUnit.info.oid}
                             disabled={activeContent === 'viewDevice'}/>
@@ -340,6 +341,9 @@ class IncidentUnit extends Component {
                             variant='outlined'
                             fullWidth={true}
                             size='small'
+                            required
+                            error={!(incidentUnit.info.name || '').trim()}
+                            helperText={it('txt-required')}
                             onChange={this.handleDataChangeMui}
                             value={incidentUnit.info.name}
                             disabled={activeContent === 'viewDevice'}/>
@@ -352,6 +356,9 @@ class IncidentUnit extends Component {
                             variant='outlined'
                             fullWidth={true}
                             size='small'
+                            required
+                            error={!(incidentUnit.info.abbreviation || '').trim()}
+                            helperText={it('txt-required')}
                             onChange={this.handleDataChangeMui}
                             value={incidentUnit.info.abbreviation}
                             disabled={activeContent === 'viewDevice'}/>
@@ -434,14 +441,14 @@ class IncidentUnit extends Component {
 
                 {activeContent === 'editDevice' &&
                 <footer>
-                    <button className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</button>
-                    <button onClick={this.handleUnitSubmit}>{t('txt-save')}</button>
+                    <Button variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</Button>
+                    <Button variant='contained' color='primary' onClick={this.handleUnitSubmit}>{t('txt-save')}</Button>
                 </footer>
                 }
                 {activeContent === 'addDevice' &&
                 <footer>
-                    <button className='standard' onClick={this.toggleContent.bind(this, 'cancel-add')}>{t('txt-cancel')}</button>
-                    <button  onClick={this.handleUnitSubmit}>{t('txt-save')}</button>
+                    <Button variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'cancel-add')}>{t('txt-cancel')}</Button>
+                    <Button variant='contained' color='primary' onClick={this.handleUnitSubmit}>{t('txt-save')}</Button>
                 </footer>
                 }
             </div>
@@ -473,6 +480,7 @@ class IncidentUnit extends Component {
             contentType: 'text/plain'
         })
             .then(data => {
+                tmpIncidentUnit.info.id = data.rt.id;
                 tmpIncidentUnit.info.isUse = data.rt.isUse;
                 tmpIncidentUnit.info.isDefault = data.rt.isDefault;
 
@@ -495,16 +503,19 @@ class IncidentUnit extends Component {
         if (!incidentUnit.info.oid ||
             !incidentUnit.info.name||
             !incidentUnit.info.abbreviation) {
-            helper.showPopupMsg('', t('txt-error'), '[Unit OID],[Unit Name], and [Unit Abbreviation] is required');
+            // helper.showPopupMsg('', t('txt-error'), '[Unit OID],[Unit Name], and [Unit Abbreviation] is required');
+            helper.showPopupMsg('', t('txt-error'), it('txt-validUnit'));
             return false;
         }
 
         if (!incidentUnit.info.level){
-            helper.showPopupMsg('', t('txt-error'), '[Unit Level] is required');
+            // helper.showPopupMsg('', t('txt-error'), '[Unit Level] is required');
+            helper.showPopupMsg('', t('txt-error'), it('txt-validUnit'));
         }
 
         if (incidentUnit.info.industryType.toString() === ''){
-            helper.showPopupMsg('', t('txt-error'), '[Unit Industry] is required');
+            // helper.showPopupMsg('', t('txt-error'), '[Unit Industry] is required');
+            helper.showPopupMsg('', t('txt-error'), it('txt-validUnit'));
         }
 
 
@@ -562,9 +573,8 @@ class IncidentUnit extends Component {
                     </div>
                 </div>
                 <div className='button-group'>
-                    <utton className='filter'
-                            onClick={this.getData.bind(this, 'search')}>{t('txt-filter')}</utton>
-                    <utton className='clear' onClick={this.clearFilter}>{t('txt-clear')}</utton>
+                    <Button variant='contained' color='primary' className='filter' onClick={this.getData.bind(this, 'search')}>{t('txt-filter')}</Button>
+                    <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}</Button>
                 </div>
             </div>
         )
@@ -634,6 +644,9 @@ class IncidentUnit extends Component {
             .then(data => {
                 if (data.ret === 0) {
                     this.getData();
+                }else if (data.ret === -1004) {
+                    // this.getData();
+                    helper.showPopupMsg('', t('txt-error'),it('unit.txt-existDevice'));
                 }
                 return null;
             })

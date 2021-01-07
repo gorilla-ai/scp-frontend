@@ -17,6 +17,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 import CheckIcon from '@material-ui/icons/Check';
 import CloseIcon from '@material-ui/icons/Close';
+import Button from "@material-ui/core/Button";
 let t = null;
 let f = null;
 let et = null;
@@ -46,6 +47,7 @@ class IncidentDevice extends Component {
             deviceSearch: {
                 keyword: ''
             },
+            setType:null,
             unitList: [{
                 value: '',
                 text: ''
@@ -54,7 +56,7 @@ class IncidentDevice extends Component {
                 sendStatus: false,
             },
             healthStatistic: {
-                dataFieldsArr: ['select', 'deviceId', 'deviceName', 'frequency', 'note', 'protectTypeInfo', 'incidentUnitDTO.name', 'incidentUnitDTO.level'],
+                dataFieldsArr: ['select', 'deviceId', 'deviceName', 'frequency', 'reason', 'protectTypeInfo', 'incidentUnitDTO.name', 'incidentUnitDTO.level'],
                 dataFields: {},
                 dataContent: [],
                 rowIdField: [],
@@ -89,6 +91,7 @@ class IncidentDevice extends Component {
                     protectType: '0',
                     protectTypeInfo: '',
                     note: '',
+                    reason:'',
                     updateDttm: ''
                 }
             },
@@ -118,6 +121,7 @@ class IncidentDevice extends Component {
                     protectType: '0',
                     protectTypeInfo: '',
                     note: '',
+                    reason:'',
                     updateDttm: ''
                 }
             }
@@ -273,7 +277,7 @@ class IncidentDevice extends Component {
                         id: deviceItem.id,
                         deviceId: deviceItem.deviceId,
                         frequency: deviceItem.frequency,
-                        note: deviceItem.note
+                        reason: deviceItem.reason
                     }
                     sendDeviceDateList.push(tempSend);
                     let tmp = {
@@ -293,6 +297,13 @@ class IncidentDevice extends Component {
 
 
                 let dataFields = {};
+
+                if (this.state.setType === 'download'){
+                    tempStatistic.dataFieldsArr = ['select', 'deviceId', 'deviceName', 'frequency', 'protectTypeInfo', 'incidentUnitDTO.name', 'incidentUnitDTO.level'];
+                }else{
+                    tempStatistic.dataFieldsArr = ['select', 'deviceId', 'deviceName', 'frequency', 'reason', 'protectTypeInfo', 'incidentUnitDTO.name', 'incidentUnitDTO.level'];
+                }
+
                 tempStatistic.dataFieldsArr.forEach(tempData => {
                     dataFields[tempData] = {
                         label: tempData === '_menu' ? '' : f(`incidentFields.${tempData}`),
@@ -314,13 +325,19 @@ class IncidentDevice extends Component {
                                     value={value}
                                     readOnly={!allValue.select}
                                 />
-                            } else if (tempData === 'note') {
-                                return <Input
-                                    id={allValue.deviceId + '_note'}
-                                    onChange={this.handleSendDataChange.bind(this, "note", allValue.deviceId)}
-                                    value={value}
-                                    readOnly={!allValue.select}
-                                />
+                            } else if (tempData === 'reason') {
+
+                                if (allValue.frequency === 0){
+                                    return <Input
+                                        id={allValue.deviceId + '_reason'}
+                                        onChange={this.handleSendDataChange.bind(this, "reason", allValue.deviceId)}
+                                        value={value}
+                                        readOnly={!allValue.select}
+                                    />
+                                }else{
+                                    return <span/>
+                                }
+
                             } else if (tempData === 'updateDttm') {
                                 return <span>{helper.getFormattedDate(value, 'local')}</span>
                             } else {
@@ -385,8 +402,6 @@ class IncidentDevice extends Component {
                 <div className="sub-header">
                     <div className='secondary-btn-group right'>
                         <button className={cx('', {'active': showFilter})} onClick={this.toggleFilter} title={t('txt-filter')}><i className='fg fg-filter'/></button>
-
-                        <button className='' onClick={this.getCSV_File} title={it('txt-exportHealthCsv')}><i className='fg fg-data-download'/></button>
                     </div>
 
                 </div>
@@ -404,30 +419,28 @@ class IncidentDevice extends Component {
                         <div className='main-content'>
                             <header className='main-header'>{it('txt-incident-device')}</header>
                             <div className='content-header-btns'>
-                                {activeContent === 'tableList' &&
-                                        <span>{it('txt-autoSendState')}</span>
+                                {activeContent === 'tableList' && <span>{it('txt-autoSendState')}</span>
                                 }
 
                                 {activeContent === 'tableList' && sendCheck.sendStatus &&(<CheckIcon style={{color:'#68cb51'}}/>)}
                                 {activeContent === 'tableList' && !sendCheck.sendStatus &&(<CloseIcon style={{color:'#d63030'}}/>)}
 
                                 {activeContent === 'tableList' &&
-                                <button className='standard btn list'
-                                        onClick={this.openSendMenu.bind()}>{it('txt-sendHealthCsv')}</button>
+                                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openSendMenu.bind()}>{it('txt-sendHealthCsv')}</Button>
+                                }
 
+                                {activeContent === 'tableList' &&
+                                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.openDownloadMenu.bind()}>{it('txt-exportHealthCsv')}</Button>
                                 }
 
                                 {activeContent === 'viewDevice' &&
-                                <button className='standard btn list'
-                                        onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</button>
+                                    <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</Button>
                                 }
-                                <button className='standard btn edit'
-                                        onClick={this.autoSendSettingsDialog.bind(this)}>{it('txt-autoSendSettings')}</button>
-                                <button className='standard btn edit'
-                                        onClick={this.toggleContent.bind(this, 'addDevice')}>{t('txt-add')}</button>
+                                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.autoSendSettingsDialog.bind(this)}>{it('txt-autoSendSettings')}</Button>
+                                <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'addDevice')}>{t('txt-add')}</Button>
 
                                 <Link to='/SCP/configuration/notifications'>
-                                    <button className='standard btn'>{t('notifications.txt-settings')}</button>
+                                    <Button variant='outlined' color='primary' className='standard btn edit' >{t('notifications.txt-settings')}</Button>
                                 </Link>
 
                             </div>
@@ -445,29 +458,31 @@ class IncidentDevice extends Component {
                         }
 
                         {activeContent === 'sendList' &&
-                        <div className='main-content'>
+                            <div className='main-content'>
 
-                            <header className='main-header'>{it('txt-incident-device')}</header>
-                            <div className='content-header-btns'>
+                                <header className='main-header'>{it('txt-incident-device')}</header>
+                                <div className='content-header-btns'>
+                                        <Button variant='outlined' color='primary' className='standard btn list' onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</Button>
+                                    {this.state.setType === 'send' &&
+                                        <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.sendCsvWithOnlineEditData.bind(this)}>{it('txt-send')}</Button>
+                                    }
+                                    {this.state.setType === 'download' &&
+                                        <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.downloadCsvWithOnlineEditData.bind(this)}>{it('txt-exportHealthCsv')}</Button>
+                                    }
+                                </div>
 
-                                <button className='standard btn edit'
-                                        onClick={this.sendCsvWithOnlineEditData.bind(this)}>{it('txt-send')}</button>
-                                <button className='standard  btn edit'
-                                        onClick={this.toggleContent.bind(this, 'tableList')}>{t('txt-cancel')}</button>
+                                <SelecTableContent
+                                    dataTableData={healthStatistic.dataContent}
+                                    dataTableFields={healthStatistic.dataFields}
+                                    dataTableSort={healthStatistic.sort}
+                                    paginationTotalCount={healthStatistic.totalCount}
+                                    paginationPageSize={healthStatistic.pageSize}
+                                    paginationCurrentPage={healthStatistic.currentPage}
+                                    handleTableSort={this.handleTableSort}
+                                    paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
+                                    paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')}
+                                />
                             </div>
-
-                            <SelecTableContent
-                                dataTableData={healthStatistic.dataContent}
-                                dataTableFields={healthStatistic.dataFields}
-                                dataTableSort={healthStatistic.sort}
-                                paginationTotalCount={healthStatistic.totalCount}
-                                paginationPageSize={healthStatistic.pageSize}
-                                paginationCurrentPage={healthStatistic.currentPage}
-                                handleTableSort={this.handleTableSort}
-                                paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                                paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')}
-                            />
-                        </div>
                         }
 
                         {(activeContent === 'viewDevice' || activeContent === 'editDevice' || activeContent === 'addDevice') &&
@@ -493,12 +508,10 @@ class IncidentDevice extends Component {
 
                 <div className='content-header-btns'>
                     {activeContent === 'viewDevice' &&
-                    <button className='standard btn list'
-                            onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</button>
+                        <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'tableList')}>{t('network-inventory.txt-backToList')}</Button>
                     }
                     {activeContent !== 'addDevice' &&
-                    <button className='standard btn edit'
-                            onClick={this.toggleContent.bind(this, 'editDevice')}>{t('txt-edit')}</button>
+                        <Button variant='outlined' color='primary' className='standard btn edit' onClick={this.toggleContent.bind(this, 'editDevice')}>{t('txt-edit')}</Button>
                     }
                 </div>
 
@@ -639,7 +652,6 @@ class IncidentDevice extends Component {
                         </TextField>
                     </div>
 
-                    {activeContent !== 'addDevice' && incidentDevice.info.frequency === 0 &&
                     <div className='group full'>
                         <label htmlFor='note'>{it('txt-note')} ({t('txt-memoMaxLength')})</label>
                         <TextareaAutosize
@@ -651,22 +663,18 @@ class IncidentDevice extends Component {
                             onChange={this.handleDataChangeMui}
                             disabled={activeContent === 'viewDevice'}/>
                     </div>
-                    }
                 </div>
 
                 {activeContent === 'editDevice' &&
                 <footer>
-                    <button className='standard'
-                            onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</button>
-                    <button onClick={this.handleDeviceSubmit}>{t('txt-save')}</button>
-
+                    <Button variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'cancel')}>{t('txt-cancel')}</Button>
+                    <Button variant='contained' color='primary' onClick={this.handleDeviceSubmit}>{t('txt-save')}</Button>
                 </footer>
                 }
                 {activeContent === 'addDevice' &&
                 <footer>
-                    <button className='standard'
-                            onClick={this.toggleContent.bind(this, 'cancel-add')}>{t('txt-cancel')}</button>
-                    <button onClick={this.handleDeviceSubmit}>{t('txt-save')}</button>
+                    <Button variant='outlined' color='primary' className='standard' onClick={this.toggleContent.bind(this, 'cancel-add')}>{t('txt-cancel')}</Button>
+                    <Button variant='contained' color='primary' onClick={this.handleDeviceSubmit}>{t('txt-save')}</Button>
                 </footer>
                 }
             </div>
@@ -759,9 +767,8 @@ class IncidentDevice extends Component {
                     </div>
                 </div>
                 <div className='button-group'>
-                    <button className='filter'
-                            onClick={this.getDeviceData.bind(this, 'search')}>{t('txt-filter')}</button>
-                    <button className='clear' onClick={this.clearFilter}>{t('txt-clear')}</button>
+                    <Button variant='contained' color='primary' className='filter' onClick={this.getDeviceData.bind(this, 'search')}>{t('txt-filter')}</Button>
+                    <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}</Button>
                 </div>
             </div>
         )
@@ -974,6 +981,9 @@ class IncidentDevice extends Component {
             showPage = 'viewDevice';
             dataFromEdgeDevice = false;
             tempIncidentDevice = _.cloneDeep(originalIncidentDeviceData);
+            // this.setState({
+            //     setType:null
+            // })
         }
 
         this.setState({
@@ -1040,17 +1050,33 @@ class IncidentDevice extends Component {
         })
             .then(data => {
                 helper.showPopupMsg(it('txt-send-success'), it('txt-send'));
-                // this.setState({
-                //     activeContent: "tableList",
-                // }, () => {
-                //     this.getDeviceData();
-                // });
             })
             .catch(err => {
                 helper.showPopupMsg(it('txt-send-fail'), it('txt-send'));
             })
     };
 
+    downloadCsvWithOnlineEditData = () => {
+        const {baseUrl, contextRoot} = this.context;
+        const url = `${baseUrl}${contextRoot}/api/soc/device/_exportV2`;
+        let tempList = {...this.state.healthStatistic.dataContent}
+
+        let sendList = []
+        _.forEach(tempList, sendTemp => {
+            let tmp = {
+                id: sendTemp.id,
+                select: sendTemp.select,
+                frequency: sendTemp.frequency,
+                note: sendTemp.note
+            }
+            sendList.push(tmp)
+        })
+        let requestData = {
+            "columns": sendList
+        };
+        downloadWithForm(url, {payload: JSON.stringify(requestData)});
+
+    };
 
     /**
      * Show Delete IncidentDevice dialog
@@ -1058,6 +1084,16 @@ class IncidentDevice extends Component {
      * @param {object} allValue - IncidentDevice data
      */
     openSendMenu = () => {
+        this.setState({
+            setType: 'send',
+        })
+        this.setupHealthStatisticData();
+    };
+
+    openDownloadMenu = () => {
+        this.setState({
+            setType: 'download',
+        })
         this.setupHealthStatisticData();
     };
 
@@ -1228,7 +1264,9 @@ class IncidentDevice extends Component {
                         data.frequency = value
                     } else if (type === 'note') {
                         data.note = value
-                    } else if (type === 'select') {
+                    }  else if (type === 'reason') {
+                        data.reason = value
+                    }  else if (type === 'select') {
                         data.select = value;
                     }
                 }

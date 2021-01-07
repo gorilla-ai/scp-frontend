@@ -179,6 +179,7 @@ class IncidentLog extends Component {
 
                 <div className="sub-header">
                     <div className='secondary-btn-group right'>
+
                         <button className={cx('last', {'active': showFilter})} onClick={this.toggleFilter}
                                 title={t('txt-filter')}><i className='fg fg-filter'/></button>
                     </div>
@@ -197,7 +198,9 @@ class IncidentLog extends Component {
                         <div className='main-content'>
                             <header className='main-header'>{it('txt-incident-log')}</header>
                             <div className='content-header-btns'>
-                                <Link to='/SCP/configuration/notifications'><button className='standard btn'>{t('notifications.txt-settings')}</button></Link>
+                                <Link to='/SCP/configuration/notifications'>
+                                    <Button variant='outlined' color='primary' className='link'>{t('notifications.txt-settings')}</Button>
+                                </Link>
                             </div>
                             <TableContent
                                 dataTableData={incidentLog.dataContent}
@@ -385,20 +388,11 @@ class IncidentLog extends Component {
                                 value={logSearch.datetime.to}
                                 onChange={this.handleSearchTime.bind(this, 'to')} />
                         </MuiPickersUtilsProvider>
-                        {/*<DateRange*/}
-                        {/*    id='datetime'*/}
-                        {/*    className='daterange'*/}
-                        {/*    enableTime={true}*/}
-                        {/*    value={logSearch.datetime}*/}
-                        {/*    onChange={this.handleLogSearch.bind(this, 'datetime')}*/}
-                        {/*    locale={locale}*/}
-                        {/*    t={et} />*/}
                     </div>
                 </div>
                 <div className='button-group'>
-                    <button className='filter'
-                            onClick={this.getData.bind(this, 'search')}>{t('txt-filter')}</button>
-                    <button className='clear' onClick={this.clearFilter}>{t('txt-clear')}</button>
+                    <Button variant='contained' color='primary' className='filter' onClick={this.getData.bind(this, 'search')}>{t('txt-filter')}</Button>
+                    <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}</Button>
                 </div>
             </div>
         )

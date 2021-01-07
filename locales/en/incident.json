@@ -109,6 +109,12 @@
 	"txt-analyze-fail": "Assign Fail",
 	"txt-day": "Day",
 	"file-too-large": "Upload file over limit，limit is 20MB",
+	"txt-checkRequiredFieldType": "Please enter the correct format value",
+	"txt-validTechniqueInfa": "Please check the Technique & Infrastructure Type",
+	"txt-validTTPs": "Please check the is enter correct TTPs values or not",
+	"txt-validEvents": "Please check the is enter correct Incident Events values or not",
+	"txt-portValidationFail": "Please check the correct port number",
+	"txt-validUnit": "Please check the is enter correct Incident Unit values or not",
 	"accident":{
 		"1": "Web Attack",
 		"11": "Web Defacement",
@@ -143,7 +149,8 @@
 		"txt-type": "Unit Industry",
 		"txt-abbreviation": "Unit Abbreviation",
 		"txt-exists": "OID already exists",
-		"txt-defaultDelete": "Default Unit can't delete"
+		"txt-defaultDelete": "Default Unit can't delete",
+		"txt-existDevice": "The Unit still has equipment devices in use, so it cannot be deleted"
 	},
 	"device": {
 		"txt-edgeDevice": "Available Edge Device",
