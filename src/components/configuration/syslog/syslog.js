@@ -645,7 +645,7 @@ class Syslog extends Component {
       tempEditHosts.host = '';
       tempEditHosts.name = '';
     } else if (type === 'edit') {
-      tempEditHosts.host = allValue.ip;
+      tempEditHosts.host = allValue.host;
       tempEditHosts.name = allValue.name;
     }
 
@@ -1235,7 +1235,7 @@ class Syslog extends Component {
    */
   redirectIp = (allValue) => {
     const {baseUrl, contextRoot, language} = this.context;
-    const url = `${baseUrl}${contextRoot}/configuration/topology/inventory?ip=${allValue.ip}&type=edit&hostName=${allValue.name}&lng=${language}`;
+    const url = `${baseUrl}${contextRoot}/configuration/topology/inventory?ip=${allValue.host}&type=edit&hostName=${allValue.name}&lng=${language}`;
 
     if (IP_PATTERN.test(allValue.host)) { //Check IP format
       window.open(url, '_blank');
@@ -1465,7 +1465,7 @@ class Syslog extends Component {
 
     return (
       <div className='content delete'>
-        <span>{t('txt-delete-msg')}: {allValue.ip}?</span>
+        <span>{t('txt-delete-msg')}: {allValue.host}?</span>
       </div>
     )
   }
@@ -1498,7 +1498,7 @@ class Syslog extends Component {
     const url = `${baseUrl}/api/log/config/hosts`;
     const requestData = {
       id: currentHostData.id,
-      hosts: currentHostData.ip
+      hosts: currentHostData.host
     }
 
     if (!currentHostData.id) {
