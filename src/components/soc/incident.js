@@ -2,20 +2,14 @@ import React, {Component} from "react"
 import {default as ah, getInstance} from "react-ui/build/src/utils/ajax-helper"
 import cx from "classnames"
 import Moment from 'moment'
+import moment from 'moment'
 
 import ComboBox from 'react-ui/build/src/components/combobox'
-import ContextMenu from 'react-ui/build/src/components/contextmenu'
-import DropDownList from 'react-ui/build/src/components/dropdown'
 import FileInput from 'react-ui/build/src/components/file-input'
-import Input from 'react-ui/build/src/components/input'
 import MultiInput from 'react-ui/build/src/components/multi-input'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import TableContent from '../common/table-content'
-import Textarea from 'react-ui/build/src/components/textarea'
 import TextareaAutosize from '@material-ui/core/TextareaAutosize';
-import GeneralDialog from '@f2e/gui/dist/components/dialog/general-dialog'
-import Checkbox from '@material-ui/core/Checkbox';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
@@ -29,16 +23,12 @@ import {downloadLink, downloadWithForm} from "react-ui/build/src/utils/download"
 import ModalDialog from "react-ui/build/src/components/modal-dialog";
 import DataTable from "react-ui/build/src/components/table";
 import _ from "lodash";
-import DateRange from "react-ui/build/src/components/date-range";
-import DatePicker from "react-ui/build/src/components/date-picker";
 
 import IncidentComment from './common/comment'
 import IncidentTag from './common/tag'
 import IncidentReview from './common/review'
-import FileUpload from "../common/file-upload";
 import {KeyboardDateTimePicker, MuiPickersUtilsProvider} from "@material-ui/pickers";
 import MomentUtils from "@date-io/moment";
-import moment from "moment";
 import NotifyContact from "./common/notifyContact";
 import Menu from "@material-ui/core/Menu";
 
@@ -701,6 +691,8 @@ class Incident extends Component {
 
         if(incident.info.tagList && incident.info.tagList.length >= 3){
             tmpTagList = incident.info.tagList.slice(0,3);
+        }else{
+            tmpTagList = incident.info.tagList
         }
 
         return <div className='main-content basic-form'>
@@ -1450,6 +1442,11 @@ class Incident extends Component {
         const {incidentType} = this.state;
 
         if (!incident.title || !incident.category || !incident.reporter || !incident.impactAssessment || !incident.socType) {
+            PopupDialog.alert({
+                title: t('txt-tips'),
+                display: it('txt-validBasic'),
+                confirmText: t('txt-close')
+            });
             return false
         }
 
@@ -1489,26 +1486,26 @@ class Incident extends Component {
                     }
 
                     if (eventConnect.dstPort){
-                     if (!helper.ValidatePort(eventConnect.dstPort)){
-                            PopupDialog.alert({
-                                title: t('txt-tips'),
-                                display: t('network-topology.txt-portValidationFail'),
-                                confirmText: t('txt-close')
-                            });
-                            eventCheck = false
-                            return
-                        }
+                         if (!helper.ValidatePort(eventConnect.dstPort)){
+                                PopupDialog.alert({
+                                    title: t('txt-tips'),
+                                    display: t('network-topology.txt-portValidationFail'),
+                                    confirmText: t('txt-close')
+                                });
+                                eventCheck = false
+                                return
+                         }
                     }
 
                     if (eventConnect.srcPort){
                         if (!helper.ValidatePort(eventConnect.srcPort)){
-                            PopupDialog.alert({
-                                title: t('txt-tips'),
-                                display: t('network-topology.txt-portValidationFail'),
-                                confirmText: t('txt-close')
-                            });
-                            eventCheck = false
-                            return
+                                PopupDialog.alert({
+                                    title: t('txt-tips'),
+                                    display: t('network-topology.txt-portValidationFail'),
+                                    confirmText: t('txt-close')
+                                });
+                                eventCheck = false
+                                return
                         }
                     }
                 })
@@ -2760,7 +2757,14 @@ class Incident extends Component {
             payload.eventList.table.push({text: f('incidentFields.deviceId'), colSpan: 3})
             payload.eventList.table.push({text: event.description, colSpan: 3})
             const target = _.find(deviceListOptions, {value: event.deviceId})
-            payload.eventList.table.push({text: target.text, colSpan: 3})
+            
+            if (target) {
+                payload.eventList.table.push({text: target.text, colSpan: 3})
+            }
+            else {
+                payload.eventList.table.push({text: '', colSpan: 3})
+            }
+            
             payload.eventList.table.push({text: f('incidentFields.dateRange'), colSpan: 4})
             payload.eventList.table.push({text: it('txt-frequency'), colSpan: 2})
             payload.eventList.table.push({text: Moment.utc(event.startDttm, 'YYYY-MM-DDTHH:mm:ss[Z]').local().format('YYYY-MM-DD HH:mm:ss'), colSpan: 2})

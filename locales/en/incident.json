@@ -10,6 +10,8 @@
 	"txt-incident-unit-management": "Incident Unit Management",
 	"txt-incident-config-management": "Incident Config Management",
 	"txt-incident-log-management": "Incident Send Log",
+	"txt-incident-isac-management": "ISAC Config Management",
+	"txt-incident-isac-config": "ISAC Config Settings",
 	"txt-incident-events": "Incident Events",
 	"txt-incident-ttps": "TTPs",
 	"txt-prev-page": "Prev",
@@ -113,6 +115,7 @@
 	"txt-validTechniqueInfa": "Please check the Technique & Infrastructure Type",
 	"txt-validTTPs": "Please check the is enter correct TTPs values or not",
 	"txt-validEvents": "Please check the is enter correct Incident Events values or not",
+	"txt-validBasic": "Please check the is enter correct Incident Basic Info values or not",
 	"txt-portValidationFail": "Please check the correct port number",
 	"txt-validUnit": "Please check the is enter correct Incident Unit values or not",
 	"accident":{
@@ -224,5 +227,13 @@
 		"11": "臺中區域聯防中心",
 		"12": "臺南區域聯防中心",
 		"13": "高雄區域聯防中心"
+	},
+	"isac": {
+		"txt-start-setting": "Enable settings",
+		"txt-config-setting": "Config Settings",
+		"txt-account": "ISAC Account",
+		"txt-url": "API URL",
+		"txt-key": "API-KEY",
+		"txt-sendFlag": "Enable Status"
 	}
 }
