@@ -82,7 +82,7 @@ class Syslog extends Component {
         currentPage: 1,
         pageSize: 20,
       },
-      hostsFieldsArr: ['id', 'ip', 'name', '_menu'],
+      hostsFieldsArr: ['id', 'host', 'name', '_menu'],
       hostsFields: {}, 
       hosts: {
         dataContent: [],
@@ -1259,7 +1259,7 @@ class Syslog extends Component {
         _.forEach(data.hostname, (val, key) => {
           hostsDataArr.push({
             id: data.id,
-            ip: key,
+            host: key,
             name: val
           });
         })

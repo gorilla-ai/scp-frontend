@@ -806,6 +806,7 @@
     "property": "Data Property",
     "patternName": "Pattern",
     "ip": "IP",
+    "host": "Host",
     "name": "Name",
     "value": "Value",
     "conditions": "Conditions",

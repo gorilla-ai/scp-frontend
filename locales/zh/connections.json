@@ -806,6 +806,7 @@
     "property": "資料屬性",
     "patternName": "Pattern",
     "ip": "IP",
+    "host": "主機",
     "name": "名稱",
     "value": "數值",
     "conditions": "條件",

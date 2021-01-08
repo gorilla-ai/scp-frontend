@@ -1459,9 +1459,10 @@ class HMDscanInfo extends Component {
    * @param {string} taskId - Task ID
    */
   handleMalwareBtn = (type, dataResult, taskId) => {
+    const {baseUrl, contextRoot} = this.context;
+
     if (type === 'download') {
-      const fileData = dataResult[0]._FileInfo._HashValues;
-      const url = `http:\/\/172.18.0.87/SCP/api/hmd/file/_download?taskId=${fileData._MD5}`;
+      const url = `${baseUrl}${contextRoot}/api/hmd/file/_download?taskId=${taskId}`;
       window.open(url, '_blank');
     } else if (type === 'compress') {
       const filePath = _.map(dataResult, val => {
