@@ -368,9 +368,9 @@ class HostAnalysis extends Component {
    */
   triggerFilesTask = (filePath, taskId) => {
     const {baseUrl} = this.context;
-    const {currentDeviceData} = this.state;
+    const {hostData} = this.props;
     const requestData = {
-      hostId: currentDeviceData.ipDeviceUUID,
+      hostId: hostData.ipDeviceUUID,
       cmds: ['getHmdFiles'],
       paras: {
         _FilepathVec: filePath,

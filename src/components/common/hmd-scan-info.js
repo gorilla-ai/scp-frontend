@@ -1471,6 +1471,17 @@ class HMDscanInfo extends Component {
     }
   }
   /**
+   * Check malware button disabled
+   * @method
+   * @param {string} type - button type ('download' or 'compress')
+   * @param {object} dataResult - malware detection result
+   */
+  checkMalwareCompress = (type, dataResult) => {
+    if (type === 'compress' && dataResult.length === 0) {
+      return true;
+    }
+  }
+  /**
    * Display content for accordion type
    * @method
    * @param {object} val - scan file data
@@ -1526,7 +1537,7 @@ class HMDscanInfo extends Component {
             this.getSuspiciousFileCount(dataResult)
           }
           {activeTab === 'scanFile' &&
-            <Button variant='contained' color='primary' className='btn download' onClick={this.handleMalwareBtn.bind(this, malwareBtnType, dataResult, val.taskId)}>{t(`network-inventory.txt-${malwareBtnType}File`)}</Button>
+            <Button variant='contained' color='primary' className='btn download' onClick={this.handleMalwareBtn.bind(this, malwareBtnType, dataResult, val.taskId)} disabled={this.checkMalwareCompress(malwareBtnType, dataResult)}>{t(`network-inventory.txt-${malwareBtnType}File`)}</Button>
           }
           {activeTab === '_Vans' && dataResult.length > 0 &&
             <span style={{color: '#d10d25'}}>{t('network-inventory.txt-VulnerabilityCount')}: {dataResult.length}</span>

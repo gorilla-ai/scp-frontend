@@ -1505,7 +1505,7 @@ class AlertDetails extends Component {
     const {alertInfo, ipDeviceInfo, ipType} = this.state;
     const ip = this.getIpPortData(ipTypeParam || ipType);
     let requestData = {
-      hostId: this.state.ipDeviceInfo[ipTypeParam || ipType].ipDeviceUUID,
+      hostId: ipDeviceInfo[ipTypeParam || ipType].ipDeviceUUID,
       cmds: type
     };
 
@@ -1600,9 +1600,9 @@ class AlertDetails extends Component {
    */
   triggerFilesTask = (filePath, taskId) => {
     const {baseUrl} = this.context;
-    const {currentDeviceData} = this.state;
+    const {ipDeviceInfo, ipType} = this.state;
     const requestData = {
-      hostId: currentDeviceData.ipDeviceUUID,
+      hostId: ipDeviceInfo[ipType].ipDeviceUUID,
       cmds: ['getHmdFiles'],
       paras: {
         _FilepathVec: filePath,

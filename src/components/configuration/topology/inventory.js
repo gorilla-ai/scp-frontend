@@ -662,15 +662,19 @@ class NetworkInventory extends Component {
     })
     .then(data => {
       if (data) {
+        let currentDeviceData = {
+          ip: inventoryParam.ip
+        };
+
         if (data.counts > 0) {
-          this.setState({
-            currentDeviceData: data.rows[0]
-          }, () => {
-            this.toggleContent('showForm', 'edit');
-          });
-        } else {
-          this.getDeviceData(); //No device data is found
+          currentDeviceData = data.rows[0];
         }
+
+        this.setState({
+          currentDeviceData
+        }, () => {
+          this.toggleContent('showForm', 'edit');
+        });
       }
       return null;
     })
@@ -736,10 +740,10 @@ class NetworkInventory extends Component {
           this.setState({
             titleList,
             addIP: tempAddIP
-          }, () => {
-            this.getFloorPlan(options);
           });
         }
+
+        this.getFloorPlan(options);
       }
       return null;
     })
@@ -3241,7 +3245,6 @@ class NetworkInventory extends Component {
    */
   checkMacRequired = () => {
     const inventoryParam = queryString.parse(location.search);
-
     return !_.has(inventoryParam, 'hostName');
   }
   /**
