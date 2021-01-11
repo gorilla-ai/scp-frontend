@@ -4150,7 +4150,6 @@ class NetworkInventory extends Component {
                   <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'hmdSettings')}>{t('network-inventory.txt-hmdSettings')}</Button>
                   <Button variant='outlined' color='primary' className='standard btn' onClick={this.handleOpenMenu.bind(this, 'download')}>{t('network-inventory.txt-hmdDownload')}</Button>
                   <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'autoSettings')}>{t('network-inventory.txt-autoSettings')}</Button>
-                  <Link to='/SCP/configuration/notifications'><Button variant='outlined' color='primary' className='standard btn'>{t('notifications.txt-settings')}</Button></Link>
                 </div>
 
                 <Menu

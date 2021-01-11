@@ -121,7 +121,6 @@ export default function createDarkTheme() {
       },
       MuiTableCell: {
         head: {
-          color: '#069bda',
           fontWeight: 'bold',
           fontSize: '1em',
           backgroundColor: '#000 !important'
