@@ -15,7 +15,7 @@ import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import {BaseDataContext} from '../../common/context';
 import Config from '../../common/configuration'
 import helper from '../../common/helper'
-import TableContent from '../../common/table-content'
+import MuiTableContent from '../../common/mui-table-content'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -57,7 +57,7 @@ class Severity extends Component {
       currentThreatType: '',
       severity: {
         dataFieldsArr: ['dataSourceType', 'severityLevel', 'nickname', 'description', 'updateDttm', '_menu'],
-        dataFields: {},
+        dataFields: [],
         dataContent: [],
         sort: {
           field: 'dataSourceType',
@@ -102,13 +102,13 @@ class Severity extends Component {
   /**
    * Get and set severity table data
    * @method
-   * @param {string} fromSearch - option for 'search'
+   * @param {string} fromSearch - option for 'pagination'
    */
   getSeverityMapping = (fromSearch) => {
     const {baseUrl} = this.context;
     const {severitySearchType, severitySelected, severity} = this.state;
-    const page = fromSearch === 'search' ? 1 : severity.currentPage;
-    const url = `${baseUrl}/api/severityMapping/_search?&page=${page}&pageSize=${severity.pageSize}`;
+    const page = fromSearch === 'pagination' ? severity.currentPage : 0;
+    const url = `${baseUrl}/api/severityMapping/_search?&page=${page + 1}&pageSize=${severity.pageSize}`;
     let requestData = {};
 
     if (severitySearchType !== '') {
@@ -131,31 +131,33 @@ class Severity extends Component {
         tempSeverity.dataContent = data.rows;
         tempSeverity.totalCount = data.counts;
         tempSeverity.currentPage = page;
-
-        let dataFields = {};
-        severity.dataFieldsArr.forEach(tempData => {
-          dataFields[tempData] = {
-            label: tempData === '_menu' ? '' : f(`severityTableFields.${tempData}`),
-            sortable: tempData === '_menu' ? null : true,
-            formatter: (value, allValue, i) => {
-              if (tempData === 'severityLevel') {
-                return <span className='severity' style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>
-              } else if (tempData === 'updateDttm') {
-                value = helper.getFormattedDate(value, 'local');
-              } else if (tempData === '_menu') {
-                return (
-                  <div className='table-menu menu active'>
-                    <i className='fg fg-eye' onClick={this.toggleContent.bind(this, 'viewSeverity', allValue)} title={t('txt-view')}></i>
-                    <i className='fg fg-trashcan' onClick={this.openDeleteMenu.bind(this, allValue.dataSourceType)} title={t('txt-delete')}></i>
-                  </div>
-                )
+        tempSeverity.dataFields = _.map(severity.dataFieldsArr, val => {
+          return {
+            name: val,
+            label: val === '_menu' ? ' ' : f(`severityTableFields.${val}`),
+            options: {
+              sort: val === 'dataSourceType' ? true : false,
+              viewColumns: val === '_menu' ? false : true,
+              customBodyRenderLite: (dataIndex) => {
+                if (val === 'severityLevel') {
+                  return <span className='severity-level' style={{backgroundColor: ALERT_LEVEL_COLORS[tempSeverity.dataContent[dataIndex][val]]}}>{tempSeverity.dataContent[dataIndex][val]}</span>;
+                } else if (val === 'updateDttm') {
+                  return helper.getFormattedDate(tempSeverity.dataContent[dataIndex][val], 'local');
+                } else if (val === '_menu') {
+                  return (
+                    <div className='table-menu menu active'>
+                      <i className='fg fg-eye' onClick={this.toggleContent.bind(this, 'viewSeverity', tempSeverity.dataContent[dataIndex])} title={t('txt-view')}></i>
+                      <i className='fg fg-trashcan' onClick={this.openDeleteMenu.bind(this, tempSeverity.dataContent[dataIndex].dataSourceType)} title={t('txt-delete')}></i>
+                    </div>
+                  )
+                } else if (val === 'docCount' || val === 'storeSize' || val === 'priStoreSize') {
+                  return helper.numberWithCommas(tempSeverity.dataContent[dataIndex][val]);
+                }
+                return tempSeverity.dataContent[dataIndex][val];
               }
-              return <span>{value}</span>
             }
           };
-        })
-
-        tempSeverity.dataFields = dataFields;
+        });
 
         this.setState({
           severity: tempSeverity
@@ -535,7 +537,7 @@ class Severity extends Component {
           </div>
         </div>
         <div className='button-group group-aligned'>
-          <Button variant='contained' color='primary' className='filter' onClick={this.getSeverityMapping.bind(this, 'search')}>{t('txt-filter')}</Button>
+          <Button variant='contained' color='primary' className='filter' onClick={this.getSeverityMapping}>{t('txt-filter')}</Button>
           <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}</Button>
         </div>
       </div>
@@ -564,17 +566,18 @@ class Severity extends Component {
    * @param {string | number} value - new page number
    */
   handlePaginationChange = (type, value) => {
+    const fromPage = type === 'currentPage' ? 'pagination' : '';
     let tempSeverity = {...this.state.severity};
     tempSeverity[type] = Number(value);
 
     if (type === 'pageSize') {
-      tempSeverity.currentPage = 1;
+      tempSeverity.currentPage = 0;
     }
 
     this.setState({
       severity: tempSeverity
     }, () => {
-      this.getSeverityMapping();
+      this.getSeverityMapping(fromPage);
     });
   }
   /**
@@ -590,6 +593,17 @@ class Severity extends Component {
   render() {
     const {baseUrl, contextRoot} = this.context;
     const {activeContent, showFilter, severity} = this.state;
+    const tableOptions = {
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort(changedColumn, direction === 'desc');
+      }
+    };
 
     return (
       <div>
@@ -613,16 +627,11 @@ class Severity extends Component {
               <div className='main-content'>
                 <header className='main-header'>{t('threat-severity-mapping.txt-severityMapping')}</header>
 
-                <TableContent
-                  dataTableData={severity.dataContent}
-                  dataTableFields={severity.dataFields}
-                  dataTableSort={severity.sort}
-                  paginationTotalCount={severity.totalCount}
-                  paginationPageSize={severity.pageSize}
-                  paginationCurrentPage={severity.currentPage}
-                  handleTableSort={this.handleTableSort}
-                  paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                  paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
+                {severity.dataContent.length > 0 &&
+                  <MuiTableContent
+                    data={severity}
+                    tableOptions={tableOptions} />
+                }
               </div>
             }
 

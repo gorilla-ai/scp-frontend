@@ -14,7 +14,6 @@ import Config from '../../common/configuration'
 import helper from '../../common/helper'
 import MuiTableContent from '../../common/mui-table-content'
 import SearchOptions from '../../common/search-options'
-import TableContent from '../../common/table-content'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -45,7 +44,7 @@ class AuditLog extends Component {
       },
       audit: {
         dataFieldsArr: ['createDttm', 'message'],
-        dataFields: {},
+        dataFields: [],
         dataContent: [],
         sort: {
           field: 'createDttm',
@@ -61,17 +60,17 @@ class AuditLog extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    this.getAuditData('search');
+    this.getAuditData();
   }
   /**
    * Get and set ES table data
    * @method
-   * @param {string} fromSearch - option for the 'search'
+   * @param {string} fromSearch - option for 'pagination'
    */
   getAuditData = (fromSearch) => {
     const {baseUrl} = this.context;
     const {datetime, auditSearch, audit} = this.state;
-    const page = fromSearch === 'search' ? 0 : audit.currentPage;
+    const page = fromSearch === 'pagination' ? audit.currentPage : 0;
     const url = `${baseUrl}/api/auditLog/system?page=${page + 1}&pageSize=${audit.pageSize}`;
     const dateTime = {
       from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
@@ -161,6 +160,7 @@ class AuditLog extends Component {
    * @param {number} value - new page number
    */
   handlePaginationChange = (type, value) => {
+    const fromPage = type === 'currentPage' ? 'pagination' : '';
     let tempAudit = {...this.state.audit};
     tempAudit[type] = value;
     
@@ -171,7 +171,7 @@ class AuditLog extends Component {
     this.setState({
       audit: tempAudit
     }, () => {
-      this.getAuditData();
+      this.getAuditData(fromPage);
     });
   }
   /**

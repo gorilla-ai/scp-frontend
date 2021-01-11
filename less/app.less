@@ -531,6 +531,30 @@ button.standard:hover:not([disabled]) {
 .MuiTableSortLabel-icon {
   color: var(--buttonSelectedColor) !important;
 }
+.MuiTableCell-body {
+  .severity-level {
+    float: left;
+    width: 90px;
+    color: #fff;
+    padding: 2px;
+    text-align: center;
+    border-radius: 10px;
+  }
+  .description-edge {
+    white-space: pre-wrap;
+    word-break: break-all;
+    span.header {
+      color: var(--primaryContentHeader);
+    }
+    button {
+      margin: 5px 0;
+    }
+  }
+  .ip-edge {
+    float: left;
+    margin-right: 5px;
+  }
+}
 #app-container {
   .mui-data-table {
     background-color: var(--primaryContentBackground);
@@ -2788,25 +2812,9 @@ button.standard:hover:not([disabled]) {
                   border-radius: 10px;
                 }
               }
-              &.descriptionEdge {
-                white-space: pre-wrap;
-                word-break: break-all;
-                span.header {
-                  color: var(--primaryContentHeader);
-                }
-                button {
-                  margin: 5px 0;
-                }
-              }
               &.scanInfo {
                 li {
                   color: #d10d25;
-                }
-              }
-              &.ipPort {
-                img {
-                  float: left;
-                  margin-right: 5px;
                 }
               }
               &._menu {

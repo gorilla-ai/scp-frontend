@@ -23,7 +23,6 @@ import Config from '../../common/configuration'
 import helper from '../../common/helper'
 import MuiTableContent from '../../common/mui-table-content'
 import SearchOptions from '../../common/search-options'
-import TableContent from '../../common/table-content'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -58,7 +57,7 @@ class EsManage extends Component {
       selectedImportList: [],
       es: {
         dataFieldsArr: ['date', 'status', 'docCount', 'storeSize', 'priStoreSize', '_menu'],
-        dataFields: {},
+        dataFields: [],
         dataContent: [],
         sort: {
           field: 'date',
@@ -74,7 +73,7 @@ class EsManage extends Component {
     this.ah = getInstance('chewbacca');
   }
   componentDidMount() {
-    this.getEsData('search');
+    this.getEsData();
   }
   /**
    * Show the export confirm modal dialog
@@ -158,7 +157,7 @@ class EsManage extends Component {
   /**
    * Get and set ES table data
    * @method
-   * @param {string} options - option for 'search' or 'status'
+   * @param {string} options - option for 'pagination' or 'status'
    * @param {string} date - selected date
    * @param {string} type - 'open' or 'close'
    */
@@ -166,7 +165,7 @@ class EsManage extends Component {
     const {baseUrl} = this.context;
     const {datetime, esSearch, es} = this.state;
     const sort = es.sort.desc ? 'desc' : 'asc';
-    const page = options === 'search' ? 0 : es.currentPage;
+    const page = options === 'pagination' ? es.currentPage : 0;
     const dateTime = {
       from: moment(datetime.from).format('YYYY.MM.DD'),
       to: moment(datetime.to).format('YYYY.MM.DD')
@@ -314,6 +313,7 @@ class EsManage extends Component {
    * @param {number} value - new page number
    */
   handlePaginationChange = (type, value) => {
+    const fromPage = type === 'currentPage' ? 'pagination' : '';
     let tempEs = {...this.state.es};
     tempEs[type] = Number(value);
 
@@ -324,7 +324,7 @@ class EsManage extends Component {
     this.setState({
       es: tempEs
     }, () => {
-      this.getEsData();
+      this.getEsData(fromPage);
     });
   }
   /**
@@ -362,7 +362,7 @@ class EsManage extends Component {
     this.setState({
       es: tempEs
     }, () => {
-      this.getEsData('search');
+      this.getEsData();
     });
   }
   /**
@@ -536,7 +536,7 @@ class EsManage extends Component {
 
     helper.showPopupMsg(t('txt-requestSent'));
     this.toggleImportIndex();
-    this.getEsData('search');    
+    this.getEsData();    
   }
   /**
    * Set new datetime

@@ -32,7 +32,7 @@ import {BaseDataContext} from '../../common/context';
 import Config from '../../common/configuration'
 import helper from '../../common/helper'
 import ManageGroup from '../../common/manage-group'
-import TableContent from '../../common/table-content'
+import MuiTableContent from '../../common/mui-table-content'
 import WORLDMAP from '../../../mock/world-map-low.json'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
@@ -81,7 +81,7 @@ class Edge extends Component {
       originalEdgeData: {},
       edge: {
         dataFieldsArr: ['agentName', 'groupList', 'ipPort', 'serviceType', 'descriptionEdge', '_menu'],
-        dataFields: {},
+        dataFields: [],
         dataContent: [],
         sort: {
           field: 'agentName',
@@ -299,13 +299,13 @@ class Edge extends Component {
   /**
    * Get and set Edge table data
    * @method
-   * @param {string} fromSearch - option for the 'search'
+   * @param {string} fromSearch - option for 'pagination'
    */
   getEdgeData = (fromSearch) => {
     const {baseUrl, contextRoot} = this.context;
     const {edge} = this.state;
-    const page = fromSearch === 'search' ? 1 : edge.currentPage;
-    const url = `${baseUrl}/api/edge/_search?page=${page}&pageSize=${edge.pageSize}`;
+    const page = fromSearch === 'pagination' ? edge.currentPage : 0;
+    const url = `${baseUrl}/api/edge/_search?page=${page + 1}&pageSize=${edge.pageSize}`;
     const requestData = this.getEdgeSearchRequestData();
 
     this.ah.one({
@@ -321,74 +321,75 @@ class Edge extends Component {
         tempEdge.totalCount = data.counts;
         tempEdge.currentPage = page;
 
-        let dataFields = {};
-        edge.dataFieldsArr.forEach(tempData => {
-          dataFields[tempData] = {
-            label: tempData === '_menu' ? '' : f(`edgeFields.${tempData}`),
-            sortable: this.checkSortable(tempData),
-            formatter: (value, allValue, i) => {
-              if (tempData === 'agentName') {
-                return (
-                  <div>
-                    <span>{value}</span>
-                    {allValue.upgradeDttm &&
-                      <div style={{'marginTop': '5px'}}>{t('edge-management.txt-nextUpgrade')}: {helper.getFormattedDate(allValue.upgradeDttm, 'local')}</div>
-                    }
-                  </div>
-                )
-              } else if (tempData === 'ipPort') {
-                let iconType = '';
+        tempEdge.dataFields = _.map(edge.dataFieldsArr, val => {
+          return {
+            name: val,
+            label: val === '_menu' ? ' ' : f(`edgeFields.${val}`),
+            options: {
+              sort: this.checkSortable(val),
+              viewColumns: val === '_menu' ? false : true,
+              customBodyRenderLite: (dataIndex) => {
+                if (val === 'agentName') {
+                  return (
+                    <div>
+                      <span>{tempEdge.dataContent[dataIndex][val]}</span>
+                      {tempEdge.dataContent[dataIndex].upgradeDttm &&
+                        <div style={{'marginTop': '5px'}}>{t('edge-management.txt-nextUpgrade')}: {helper.getFormattedDate(tempEdge.dataContent[dataIndex].upgradeDttm, 'local')}</div>
+                      }
+                    </div>
+                  )
+                } else if (val === 'ipPort') {
+                  let iconType = '';
 
-                if (!allValue.agentApiStatus) {
-                  return;
-                }
+                  if (!tempEdge.dataContent[dataIndex].agentApiStatus) {
+                    return;
+                  }
 
-                if (allValue.agentApiStatus === 'Normal') {
-                  iconType = 'icon_connected_on';
-                } else if (allValue.agentApiStatus === 'Error') {
-                  iconType = 'icon_connected_off';
-                }
+                  if (tempEdge.dataContent[dataIndex].agentApiStatus === 'Normal') {
+                    iconType = 'icon_connected_on';
+                  } else if (tempEdge.dataContent[dataIndex].agentApiStatus === 'Error') {
+                    iconType = 'icon_connected_off';
+                  }
 
-                const icon = {
-                  src: contextRoot + `/images/${iconType}.png`,
-                  title: t('txt-' + allValue.agentApiStatus.toLowerCase())
-                };
+                  const icon = {
+                    src: contextRoot + `/images/${iconType}.png`,
+                    title: t('txt-' + tempEdge.dataContent[dataIndex].agentApiStatus.toLowerCase())
+                  };
 
-                return <span><img src={icon.src} title={icon.title} />{value}</span>
-              } else if (tempData === 'groupList') {
-                if (allValue.groupList.length > 0) {
-                  return <div className='flex-item'>{allValue.groupList.map(this.displayGroupName)}</div>
-                }
-              } else if (tempData === 'descriptionEdge') {
-                const serviceDescList = SERVICE_TYPE_LIST[allValue.serviceType];
-                let serviceArr = [];
-                let moduleArr = [];
+                  return <span><img src={icon.src} className='ip-edge' title={icon.title} />{tempEdge.dataContent[dataIndex][val]}</span>
+                } else if (val === 'groupList') {
+                  if (tempEdge.dataContent[dataIndex].groupList.length > 0) {
+                    return <div className='flex-item'>{tempEdge.dataContent[dataIndex].groupList.map(this.displayGroupName)}</div>
+                  }
+                } else if (val === 'descriptionEdge') {
+                  const serviceDescList = SERVICE_TYPE_LIST[tempEdge.dataContent[dataIndex].serviceType];
+                  let serviceArr = [];
+                  let moduleArr = [];
 
-                if (serviceDescList) {
-                  serviceArr = this.getServiceDesc(allValue, serviceDescList);
-                }
+                  if (serviceDescList) {
+                    serviceArr = this.getServiceDesc(tempEdge.dataContent[dataIndex], serviceDescList);
+                  }
 
-                if (allValue.modules) {
-                  moduleArr = allValue.modules.map(this.getServiceStatus);
-                  return _.concat(serviceArr, moduleArr);
+                  if (tempEdge.dataContent[dataIndex].modules) {
+                    moduleArr = tempEdge.dataContent[dataIndex].modules.map(this.getServiceStatus);
+                    return <div className='description-edge'>{_.concat(serviceArr, moduleArr)}</div>
+                  } else {
+                    return <div className='description-edge'>serviceArr</div>
+                  }
+                } else if (val === '_menu') {
+                  return (
+                    <div className='table-menu menu active'>
+                      <i className='fg fg-eye' onClick={this.toggleContent.bind(this, 'viewEdge', tempEdge.dataContent[dataIndex])} title={t('txt-view')}></i>
+                      <i className='fg fg-trashcan' onClick={this.openDeleteMenu.bind(this, tempEdge.dataContent[dataIndex])} title={t('txt-delete')}></i>
+                    </div>
+                  )
                 } else {
-                  return serviceArr;
+                  return tempEdge.dataContent[dataIndex][val];
                 }
-              } else if (tempData === '_menu') {
-                return (
-                  <div className='table-menu menu active'>
-                    <i className='fg fg-eye' onClick={this.toggleContent.bind(this, 'viewEdge', allValue)} title={t('txt-view')}></i>
-                    <i className='fg fg-trashcan' onClick={this.openDeleteMenu.bind(this, allValue)} title={t('txt-delete')}></i>
-                  </div>
-                )
-              } else {
-                return <span>{value}</span>
               }
             }
           };
-        })
-
-        tempEdge.dataFields = dataFields;
+        });
 
         this.setState({
           edge: tempEdge,
@@ -506,7 +507,7 @@ class Edge extends Component {
     })
     .then(data => {
       if (data.ret === 0) {
-        this.getEdgeData('search');
+        this.getEdgeData();
       }
       return null;
     })
@@ -552,6 +553,7 @@ class Edge extends Component {
    * @param {string | number} value - new page number
    */
   handlePaginationChange = (type, value) => {
+    const fromPage = type === 'currentPage' ? 'pagination' : '';
     let tempEdge = {...this.state.edge};
     tempEdge[type] = Number(value);
 
@@ -562,7 +564,7 @@ class Edge extends Component {
     this.setState({
       edge: tempEdge
     }, () => {
-      this.getEdgeData();
+      this.getEdgeData(fromPage);
     });
   }
   /**
@@ -1606,7 +1608,7 @@ class Edge extends Component {
           </div>
         </div>
         <div className='button-group'>
-          <Button variant='contained' color='primary' className='filter' onClick={this.getEdgeData.bind(this, 'search')}>{t('txt-filter')}</Button>
+          <Button variant='contained' color='primary' className='filter' onClick={this.getEdgeData}>{t('txt-filter')}</Button>
           <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}</Button>
         </div>
       </div>
@@ -1647,6 +1649,17 @@ class Edge extends Component {
       syncEnable,
       geoJson
     } = this.state;
+    const tableOptions = {
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort(changedColumn, direction === 'desc');
+      }
+    };
 
     return (
       <div>
@@ -1696,16 +1709,9 @@ class Edge extends Component {
                 </div>
 
                 {activeTab === 'edge' &&
-                  <TableContent
-                    dataTableData={edge.dataContent}
-                    dataTableFields={edge.dataFields}
-                    dataTableSort={edge.sort}
-                    paginationTotalCount={edge.totalCount}
-                    paginationPageSize={edge.pageSize}
-                    paginationCurrentPage={edge.currentPage}
-                    handleTableSort={this.handleTableSort}
-                    paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                    paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
+                  <MuiTableContent
+                    data={edge}
+                    tableOptions={tableOptions} />
                 }
 
                 {activeTab === 'geography' &&
