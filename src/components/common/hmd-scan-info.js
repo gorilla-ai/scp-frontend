@@ -1537,10 +1537,10 @@ class HMDscanInfo extends Component {
           {(activeTab === 'yara' || activeTab === 'scanFile' || activeTab === 'procMonitor') && dataResult &&
             this.getSuspiciousFileCount(dataResult)
           }
-          {activeTab === 'scanFile' &&
+          {activeTab === 'scanFile' && dataResult &&
             <Button variant='contained' color='primary' className='btn download' onClick={this.handleMalwareBtn.bind(this, malwareBtnType, dataResult, val.taskId)} disabled={this.checkMalwareCompress(malwareBtnType, dataResult)}>{t(`network-inventory.txt-${malwareBtnType}File`)}</Button>
           }
-          {activeTab === '_Vans' && dataResult.length > 0 &&
+          {activeTab === '_Vans' && dataResult && dataResult.length > 0 &&
             <span style={{color: '#d10d25'}}>{t('network-inventory.txt-VulnerabilityCount')}: {dataResult.length}</span>
           }
         </div>

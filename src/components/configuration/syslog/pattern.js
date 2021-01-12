@@ -16,7 +16,7 @@ import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 import {BaseDataContext} from '../../common/context';
 import Config from '../../common/configuration'
 import helper from '../../common/helper'
-import TableContent from '../../common/table-content'
+import MuiTableContent from '../../common/mui-table-content'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -62,7 +62,7 @@ class Pattern extends Component {
       currentPatternData: '',
       pattern: {
         dataFieldsArr: ['patternName', 'severity', 'queryScript', 'periodMin', 'threshold', 'lastUpdateDttm', '_menu'],
-        dataFields: {},
+        dataFields: [],
         dataContent: [],
         sort: {
           field: 'patternName',
@@ -125,12 +125,12 @@ class Pattern extends Component {
   /**
    * Get and set pattern script data
    * @method
-   * @param {string} fromSearch - option for 'search'
+   * @param {string} fromPage - option for 'pagination'
    */
-  getPatternScript = (fromSearch) => {
+  getPatternScript = (fromPage) => {
     const {baseUrl, session} = this.context;
     const {patternSearch, severitySelected, pattern} = this.state;
-    const page = fromSearch === 'search' ? 1 : pattern.currentPage;
+    const page = fromPage === 'pagination' ? severity.currentPage : 0;
     let query = '';
 
     if (patternSearch.name) {
@@ -146,7 +146,7 @@ class Pattern extends Component {
     }
 
     this.ah.one({
-      url: `${baseUrl}/api/alert/pattern?accountId=${session.accountId}${query}&page=${page}&pageSize=${pattern.pageSize}`,
+      url: `${baseUrl}/api/alert/pattern?accountId=${session.accountId}${query}&page=${page + 1}&pageSize=${pattern.pageSize}`,
       type: 'GET'
     })
     .then(data => {
@@ -161,30 +161,31 @@ class Pattern extends Component {
           return;
         }
 
-        let dataFields = {};
-        pattern.dataFieldsArr.forEach(tempData => {
-          dataFields[tempData] = {
-            label: tempData === '_menu' ? '' : f(`syslogPatternTableFields.${tempData}`),
-            sortable: tempData === '_menu' ? null : true,
-            formatter: (value, allValue, i) => {
-              if (tempData === 'severity') {
-                return <span className='severity' style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>
-              } else if (tempData === 'lastUpdateDttm') {
-                value = helper.getFormattedDate(value, 'local');
-              } else if (tempData === '_menu') {
-                return (
-                  <div className='table-menu menu active'>
-                    <i className='fg fg-eye' onClick={this.toggleContent.bind(this, 'viewPattern', allValue)} title={t('txt-view')}></i>
-                    <i className='fg fg-trashcan' onClick={this.openDeleteMenu.bind(this, allValue)} title={t('txt-delete')}></i>
-                  </div>
-                )
+        tempPattern.dataFields = _.map(pattern.dataFieldsArr, val => {
+          return {
+            name: val,
+            label: val === '_menu' ? ' ' : f(`syslogPatternTableFields.${val}`),
+            options: {
+              sort: val === '_menu' ? false : true,
+              viewColumns: val === '_menu' ? false : true,
+              customBodyRenderLite: (dataIndex) => {
+                if (val === 'severity') {
+                  return <span className='severity-level' style={{backgroundColor: ALERT_LEVEL_COLORS[tempPattern.dataContent[dataIndex][val]]}}>{tempPattern.dataContent[dataIndex][val]}</span>
+                } else if (val === 'lastUpdateDttm') {
+                  return helper.getFormattedDate(tempPattern.dataContent[dataIndex][val], 'local');
+                } else if (val === '_menu') {
+                  return (
+                    <div className='table-menu menu active'>
+                      <i className='fg fg-eye' onClick={this.toggleContent.bind(this, 'viewPattern', tempPattern.dataContent[dataIndex])} title={t('txt-view')}></i>
+                      <i className='fg fg-trashcan' onClick={this.openDeleteMenu.bind(this, tempPattern.dataContent[dataIndex])} title={t('txt-delete')}></i>
+                    </div>
+                  )
+                }
+                return tempPattern.dataContent[dataIndex][val];
               }
-              return <span>{value}</span>
             }
           };
-        })
-
-        tempPattern.dataFields = dataFields;
+        });
 
         this.setState({
           pattern: tempPattern
@@ -641,7 +642,7 @@ class Pattern extends Component {
     this.setState({
       pattern: tempPattern
     }, () => {
-      this.getPatternScript('search');
+      this.getPatternScript();
     });
   }
   /**
@@ -715,6 +716,7 @@ class Pattern extends Component {
    * @param {string | number} value - new page number
    */
   handlePaginationChange = (type, value) => {
+    const fromPage = type === 'currentPage' ? 'pagination' : '';
     let tempPattern = {...this.state.pattern};
     tempPattern[type] = Number(value);
 
@@ -725,7 +727,7 @@ class Pattern extends Component {
     this.setState({
       pattern: tempPattern
     }, () => {
-      this.getPatternScript();
+      this.getPatternScript(fromPage);
     });
   }
   /**
@@ -744,6 +746,17 @@ class Pattern extends Component {
   render() {
     const {baseUrl, contextRoot} = this.context;
     const {activeContent, showFilter, pattern} = this.state;
+    const tableOptions = {
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort(changedColumn, direction === 'desc');
+      }
+    };
 
     return (
       <div>
@@ -771,16 +784,11 @@ class Pattern extends Component {
                   <Button variant='outlined' color='primary' className='standard btn' onClick={this.toggleContent.bind(this, 'addPattern')}>{t('system-defined-pattern.txt-addPatternScript')}</Button>
                 </div>
 
-                <TableContent
-                  dataTableData={pattern.dataContent}
-                  dataTableFields={pattern.dataFields}
-                  dataTableSort={pattern.sort}
-                  paginationTotalCount={pattern.totalCount}
-                  paginationPageSize={pattern.pageSize}
-                  paginationCurrentPage={pattern.currentPage}
-                  handleTableSort={this.handleTableSort}
-                  paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                  paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
+                {pattern.dataContent.length > 0 &&
+                  <MuiTableContent
+                    data={pattern}
+                    tableOptions={tableOptions} />
+                }
               </div>
             }
 

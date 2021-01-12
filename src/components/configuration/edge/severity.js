@@ -102,12 +102,12 @@ class Severity extends Component {
   /**
    * Get and set severity table data
    * @method
-   * @param {string} fromSearch - option for 'pagination'
+   * @param {string} fromPage - option for 'pagination'
    */
-  getSeverityMapping = (fromSearch) => {
+  getSeverityMapping = (fromPage) => {
     const {baseUrl} = this.context;
     const {severitySearchType, severitySelected, severity} = this.state;
-    const page = fromSearch === 'pagination' ? severity.currentPage : 0;
+    const page = fromPage === 'pagination' ? severity.currentPage : 0;
     const url = `${baseUrl}/api/severityMapping/_search?&page=${page + 1}&pageSize=${severity.pageSize}`;
     let requestData = {};
 

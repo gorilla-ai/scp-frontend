@@ -299,12 +299,12 @@ class Edge extends Component {
   /**
    * Get and set Edge table data
    * @method
-   * @param {string} fromSearch - option for 'pagination'
+   * @param {string} fromPage - option for 'pagination'
    */
-  getEdgeData = (fromSearch) => {
+  getEdgeData = (fromPage) => {
     const {baseUrl, contextRoot} = this.context;
     const {edge} = this.state;
-    const page = fromSearch === 'pagination' ? edge.currentPage : 0;
+    const page = fromPage === 'pagination' ? edge.currentPage : 0;
     const url = `${baseUrl}/api/edge/_search?page=${page + 1}&pageSize=${edge.pageSize}`;
     const requestData = this.getEdgeSearchRequestData();
 

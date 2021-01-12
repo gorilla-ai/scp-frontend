@@ -65,12 +65,12 @@ class AuditLog extends Component {
   /**
    * Get and set ES table data
    * @method
-   * @param {string} fromSearch - option for 'pagination'
+   * @param {string} fromPage - option for 'pagination'
    */
-  getAuditData = (fromSearch) => {
+  getAuditData = (fromPage) => {
     const {baseUrl} = this.context;
     const {datetime, auditSearch, audit} = this.state;
-    const page = fromSearch === 'pagination' ? audit.currentPage : 0;
+    const page = fromPage === 'pagination' ? audit.currentPage : 0;
     const url = `${baseUrl}/api/auditLog/system?page=${page + 1}&pageSize=${audit.pageSize}`;
     const dateTime = {
       from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
@@ -279,6 +279,9 @@ class AuditLog extends Component {
       },
       onChangeRowsPerPage: (numberOfRows) => {
         this.handlePaginationChange('pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort(changedColumn, direction === 'desc');
       }
     };
 
