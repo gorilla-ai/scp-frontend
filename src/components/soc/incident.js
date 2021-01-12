@@ -973,11 +973,17 @@ class Incident extends Component {
     }
 
     handleAttachChange = (val) => {
-        this.setState({attach: val})
+        let flag = new RegExp("[`~!@#$^&*()=|{}':;',\\[\\]<>+《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]")
+        if (flag.test(val.name)){
+            helper.showPopupMsg( it('txt-attachedFileNameError'), t('txt-error'), )
+        }else{
+            this.setState({attach: val})
+        }
     }
 
     handleAFChange(file) {
-        let flag = new RegExp("[`~!@#$^&*()=|{}+':;',\\[\\]<>《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]")
+        let flag = new RegExp("[`~!@#$^&*()=|{}':;',\\[\\]<>+《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]")
+
         if (flag.test(file.name)){
             helper.showPopupMsg( it('txt-attachedFileNameError'), t('txt-error'), )
         }
@@ -2088,7 +2094,7 @@ class Incident extends Component {
 
             let eventList = [];
             let eventListItem = {
-                description: alertData.trailName || alertData.__index_name,
+                description: alertData.Rule || alertData.trailName || alertData.__index_name,
                 deviceId: '',
                 frequency: 1,
                 time: {
