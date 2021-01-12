@@ -213,6 +213,7 @@ class HostController extends Component {
     this.setLeftNavData();
     this.getHostSortList();
     this.getFloorPlan();
+    this.getHostData();
   }
   /**
    * Set Left nav data
@@ -365,8 +366,6 @@ class HostController extends Component {
           currentMap,
           currentBaseLayers,
           currentFloor: areaUUID
-        }, () => {
-          this.getHostData();
         });
       }
       return null;

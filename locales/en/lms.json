@@ -12,7 +12,9 @@
 	"16": "Product information not found",
 	"17": "Detail disabled",
 	"18": "Install path not matched",
-	
+  "19": "Invalid License Key",
+
+  "-99": "Server is not Rechievable",
 	"-2000": "Setting initialize error",
 	"-2001": "SOAP_SSL initialize error",
 	"-2002": "Encrypt initialize error",
