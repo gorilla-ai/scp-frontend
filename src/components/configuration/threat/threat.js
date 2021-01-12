@@ -25,8 +25,8 @@ import {BaseDataContext} from '../../common/context';
 import Config from '../../common/configuration'
 import FileUpload from '../../common/file-upload'
 import helper from '../../common/helper'
+import MuiTableContent from '../../common/mui-table-content'
 import SearchOptions from '../../common/search-options'
-import TableContent from '../../common/table-content'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -70,7 +70,7 @@ class ThreatIntelligence extends Component {
       threatsFile: {},
       threats: {
         dataFieldsArr: ['threatText', 'threatType', 'dataSourceType', 'createDttm', '_menu'],
-        dataFields: {},
+        dataFields: [],
         dataContent: [],
         sort: {
           field: 'threatText',
@@ -807,6 +807,18 @@ class ThreatIntelligence extends Component {
    */
   displaySearchThreatsContent = () => {
     const {threatsSearch, threats} = this.state;
+    const tableOptions = {
+      tableBodyHeight: '50vh',
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort(changedColumn, direction === 'desc');
+      }
+    };
 
     return (
       <div className='filter'>
@@ -848,16 +860,9 @@ class ThreatIntelligence extends Component {
         </div>
 
         {threats.dataContent.length > 0 &&
-          <TableContent
-            dataTableData={threats.dataContent}
-            dataTableFields={threats.dataFields}
-            dataTableSort={threats.sort}
-            paginationTotalCount={threats.totalCount}
-            paginationPageSize={threats.pageSize}
-            paginationCurrentPage={threats.currentPage}
-            handleTableSort={this.handleTableSort}
-            paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-            paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
+          <MuiTableContent
+            data={threats}
+            tableOptions={tableOptions} />
         }
       </div>
     )
@@ -911,27 +916,23 @@ class ThreatIntelligence extends Component {
     let tempThreats = {...this.state.threats};
     tempThreats[type] = Number(value);
 
-    if (type === 'pageSize') {
-      tempThreats.currentPage = 1;
-    }
-
     this.setState({
       threats: tempThreats
     }, () => {
-      this.handleThreatsSearch();
+      this.handleThreatsSearch(type);
     });
   }
   /**
    * Get and set Threats table data
    * @method
-   * @param {string} fromSearch - option for the 'search'
+   * @param {string} [fromPage] - option for 'currentPage'
    * @param {string} type - option for 'delete'
    * @param {object} allValue - threats data
    */
-  handleThreatsSearch = (fromSearch, type, allValue) => {
+  handleThreatsSearch = (fromPage, type, allValue) => {
     const {baseUrl, contextRoot} = this.context;
     const {threatsSearch, threats} = this.state;
-    const page = fromSearch === 'search' ? 1 : threats.currentPage;
+    const page = fromPage === 'currentPage' ? threats.currentPage : 0;
 
     if (!threatsSearch.keyword) {
       helper.showPopupMsg(t('txt-plsEnterKeyword'), t('txt-error'));
@@ -949,7 +950,7 @@ class ThreatIntelligence extends Component {
 
     let apiArr = [
       {
-        url: `${baseUrl}/api/indicators/_search?text=${threatsSearch.keyword}&threatTypeArray=${threatsSearch.type}&page=${page}&pageSize=${threats.pageSize}`,
+        url: `${baseUrl}/api/indicators/_search?text=${threatsSearch.keyword}&threatTypeArray=${threatsSearch.type}&page=${page + 1}&pageSize=${threats.pageSize}`,
         type: 'GET'
       }
     ];
@@ -989,33 +990,36 @@ class ThreatIntelligence extends Component {
         tempThreats.dataContent = data[threatsSearch.type].rows;
         tempThreats.totalCount = data[threatsSearch.type].counts;
         tempThreats.currentPage = page;
+        tempThreats.dataFields = _.map(threats.dataFieldsArr, val => {
+          return {
+            name: val,
+            label: val === '_menu' ? ' ' : f(`threatsTableFields.${val}`),
+            options: {
+              sort: val === '_menu' ? false : true,
+              viewColumns: val === '_menu' ? false : true,
+              customBodyRenderLite: (dataIndex) => {
+                const allValue = tempThreats.dataContent[dataIndex];
+                const value = tempThreats.dataContent[dataIndex][val];
 
-        let dataFields = {};
-        threats.dataFieldsArr.forEach(tempData => {
-          dataFields[tempData] = {
-            label: tempData === '_menu' ? '' : f(`threatsTableFields.${tempData}`),
-            sortable: tempData === '_menu' ? null : true,
-            formatter: (value, allValue, i) => {
-              if (tempData === 'threatText' && allValue.score === -999) {
-                return <span style={{textDecoration: 'line-through'}}>{value}</span>
-              } else if (tempData === 'createDttm') {
-                return <span>{helper.getFormattedDate(value, 'local')}</span>
-              } else if (tempData === '_menu') {
-                if (allValue.score !== -999) {
-                  return (
-                    <div className='table-menu menu active'>
-                      <i className='fg fg-trashcan' onClick={this.openDeleteThreats.bind(this, allValue)} title={t('txt-delete')}></i>
-                    </div>
-                  )
+                if (val === 'threatText' && allValue.score === -999) {
+                  return <span style={{textDecoration: 'line-through'}}>{value}</span>
+                } else if (val === 'createDttm') {
+                  return <span>{helper.getFormattedDate(value, 'local')}</span>
+                } else if (val === '_menu') {
+                  if (allValue.score !== -999) {
+                    return (
+                      <div className='table-menu menu active'>
+                        <i className='fg fg-trashcan' onClick={this.openDeleteThreats.bind(this, allValue)} title={t('txt-delete')}></i>
+                      </div>
+                    )
+                  }
+                } else {
+                  return value;
                 }
-              } else {
-                return <span>{value}</span>
               }
             }
           };
-        })
-
-        tempThreats.dataFields = dataFields;
+        });
 
         this.setState({
           threats: tempThreats

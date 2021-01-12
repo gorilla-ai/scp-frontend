@@ -125,12 +125,12 @@ class Pattern extends Component {
   /**
    * Get and set pattern script data
    * @method
-   * @param {string} fromPage - option for 'pagination'
+   * @param {string} fromPage - option for 'currentPage'
    */
   getPatternScript = (fromPage) => {
     const {baseUrl, session} = this.context;
     const {patternSearch, severitySelected, pattern} = this.state;
-    const page = fromPage === 'pagination' ? severity.currentPage : 0;
+    const page = fromPage === 'currentPage' ? pattern.currentPage : 0;
     let query = '';
 
     if (patternSearch.name) {
@@ -169,19 +169,22 @@ class Pattern extends Component {
               sort: val === '_menu' ? false : true,
               viewColumns: val === '_menu' ? false : true,
               customBodyRenderLite: (dataIndex) => {
+                const allValue = tempPattern.dataContent[dataIndex];
+                const value = tempPattern.dataContent[dataIndex][val];
+
                 if (val === 'severity') {
-                  return <span className='severity-level' style={{backgroundColor: ALERT_LEVEL_COLORS[tempPattern.dataContent[dataIndex][val]]}}>{tempPattern.dataContent[dataIndex][val]}</span>
+                  return <span className='severity-level' style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>
                 } else if (val === 'lastUpdateDttm') {
-                  return helper.getFormattedDate(tempPattern.dataContent[dataIndex][val], 'local');
+                  return helper.getFormattedDate(value, 'local');
                 } else if (val === '_menu') {
                   return (
                     <div className='table-menu menu active'>
-                      <i className='fg fg-eye' onClick={this.toggleContent.bind(this, 'viewPattern', tempPattern.dataContent[dataIndex])} title={t('txt-view')}></i>
-                      <i className='fg fg-trashcan' onClick={this.openDeleteMenu.bind(this, tempPattern.dataContent[dataIndex])} title={t('txt-delete')}></i>
+                      <i className='fg fg-eye' onClick={this.toggleContent.bind(this, 'viewPattern', allValue)} title={t('txt-view')}></i>
+                      <i className='fg fg-trashcan' onClick={this.openDeleteMenu.bind(this, allValue)} title={t('txt-delete')}></i>
                     </div>
                   )
                 }
-                return tempPattern.dataContent[dataIndex][val];
+                return value;
               }
             }
           };
@@ -630,22 +633,6 @@ class Pattern extends Component {
     )
   }
   /**
-   * Handle search submit
-   * @method
-   */
-  handleSearchSubmit = () => {
-    let tempPattern = {...this.state.pattern};
-    tempPattern.dataContent = [];
-    tempPattern.totalCount = 0;
-    tempPattern.currentPage = 1;
-
-    this.setState({
-      pattern: tempPattern
-    }, () => {
-      this.getPatternScript();
-    });
-  }
-  /**
    * Display filter content
    * @method
    * @returns HTML DOM
@@ -687,7 +674,7 @@ class Pattern extends Component {
           </div>
         </div>
         <div className='button-group group-aligned'>
-          <Button variant='contained' color='primary' className='filter' onClick={this.handleSearchSubmit}>{t('txt-filter')}</Button>
+          <Button variant='contained' color='primary' className='filter' onClick={this.getPatternScript}>{t('txt-filter')}</Button>
           <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}</Button>
         </div>
       </div>
@@ -716,18 +703,13 @@ class Pattern extends Component {
    * @param {string | number} value - new page number
    */
   handlePaginationChange = (type, value) => {
-    const fromPage = type === 'currentPage' ? 'pagination' : '';
     let tempPattern = {...this.state.pattern};
     tempPattern[type] = Number(value);
-
-    if (type === 'pageSize') {
-      tempPattern.currentPage = 1;
-    }
 
     this.setState({
       pattern: tempPattern
     }, () => {
-      this.getPatternScript(fromPage);
+      this.getPatternScript(type);
     });
   }
   /**

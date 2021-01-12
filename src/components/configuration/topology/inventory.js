@@ -45,6 +45,7 @@ import HMDsettings from './hmd-settings'
 import HMDscanInfo from '../../common/hmd-scan-info'
 import IrSelections from '../../common/ir-selections'
 import Manage from './manage'
+import MuiTableContent from '../../common/mui-table-content'
 import Pagination from '../../common/pagination'
 import PrivateDetails from '../../common/private-details'
 import TableContent from '../../common/table-content'
@@ -137,7 +138,7 @@ class NetworkInventory extends Component {
       },
       deviceData: {
         dataFieldsArr: ['ip', 'mac', 'hostName', 'system', 'owner', 'areaName', 'seatName', 'scanInfo', '_menu'],
-        dataFields: {},
+        dataFields: [],
         dataContent: [],
         ipListArr: [],
         ipDeviceUUID: '',
@@ -331,13 +332,14 @@ class NetworkInventory extends Component {
   /**
    * Get and set device data / Handle delete IP device confirm
    * @method
-   * @param {string} fromSearch - option for 'search'
-   * @param {string} options - options for 'oneSeat' and 'delete'
-   * @param {string} seatUUID - seat UUID
+   * @param {string} [fromPage] - option for 'currentPage'
+   * @param {string} [options] - options for 'oneSeat' and 'delete'
+   * @param {string} [seatUUID] - seat UUID
    */
-  getDeviceData = (fromSearch, options, seatUUID) => {
+  getDeviceData = (fromPage, options, seatUUID) => {
     const {baseUrl} = this.context;
     const {deviceSearch, hmdCheckbox, hmdSearchOptions, deviceData, currentDeviceData} = this.state;
+    const page = fromPage === 'currentPage' ? deviceData.currentPage : 0;
     let dataParams = '';
 
     if (options === 'oneSeat') {
@@ -346,7 +348,6 @@ class NetworkInventory extends Component {
       }
       dataParams += `&seatUUID=${seatUUID}`;
     } else {
-      const page = fromSearch === 'search' ? 1 : deviceData.currentPage;
       const pageSize = deviceData.pageSize;
       const sort = deviceData.sort.desc ? 'desc' : 'asc';
       const orders = deviceData.sort.field + ' ' + sort;
@@ -367,9 +368,9 @@ class NetworkInventory extends Component {
         }
       }
 
-      dataParams += `&page=${page}&pageSize=${pageSize}&orders=${orders}`;
+      dataParams += `&page=${page + 1}&pageSize=${pageSize}&orders=${orders}`;
 
-      if (fromSearch === 'search' || !_.isEmpty(deviceSearch)) {
+      if (!_.isEmpty(deviceSearch)) {
         if (deviceSearch.ip) {
           dataParams += `&ip=${deviceSearch.ip}`;
         }
@@ -471,7 +472,7 @@ class NetworkInventory extends Component {
         });
 
         tempDeviceData.totalCount = ipData.counts;
-        tempDeviceData.currentPage = fromSearch === 'search' ? 1 : deviceData.currentPage;
+        tempDeviceData.currentPage = page;
 
         //HMD only
         let hmdDataOnly = [];
@@ -485,72 +486,75 @@ class NetworkInventory extends Component {
         tempDeviceData.hmdOnly.dataContent = hmdDataOnly;
         tempDeviceData.hmdOnly.currentIndex = 0;
         tempDeviceData.hmdOnly.currentLength = hmdDataOnly.length;
+        tempDeviceData.dataFields = _.map(deviceData.dataFieldsArr, val => {
+          return {
+            name: val,
+            label: val === '_menu' ? ' ' : t(`ipFields.${val}`),
+            options: {
+              sort: val === '_menu' ? false : true,
+              viewColumns: val === '_menu' ? false : true,
+              customBodyRenderLite: (dataIndex) => {
+                const allValue = tempDeviceData.dataContent[dataIndex];
+                const value = tempDeviceData.dataContent[dataIndex][val];
 
-        let tempFields = {};
-        deviceData.dataFieldsArr.forEach(tempData => {
-          tempFields[tempData] = {
-            label: tempData === '_menu' ? '' : t(`ipFields.${tempData}`),
-            sortable: this.checkSortable(tempData),
-            formatter: (value, allValue, i) => {
-              if (tempData === 'owner') {
-                if (allValue.ownerObj) {
-                  return <span>{allValue.ownerObj.ownerName}</span>
-                } else {
-                  return <span>{value}</span>
-                }
-              } else if (tempData === 'areaName') {
-                if (allValue.areaObj) {
-                  return <span>{allValue.areaObj.areaName}</span>
-                }
-              } else if (tempData === 'seatName') {
-                if (allValue.seatObj) {
-                  return <span>{allValue.seatObj.seatName}</span>
-                }
-              } else if (tempData === 'scanInfo') {
-                let hmdInfo = [];
-
-                _.forEach(SAFETY_SCAN_LIST, val => { //Construct the HMD info array
-                  const dataType = val + 'Result';  
-                  let currentDataObj = {};
-
-                  if (allValue.safetyScanInfo) {
-                    currentDataObj = allValue.safetyScanInfo[dataType];
+                if (val === 'owner') {
+                  if (allValue.ownerObj) {
+                    return <span>{allValue.ownerObj.ownerName}</span>
+                  } else {
+                    return <span>{value}</span>
                   }
-
-                  if (!_.isEmpty(currentDataObj)) {
-                    hmdInfo.push({
-                      type: val,
-                      name: t('network-inventory.scan-list.txt-' + val),
-                      result: allValue.safetyScanInfo[dataType][0]
-                    });
+                } else if (val === 'areaName') {
+                  if (allValue.areaObj) {
+                    return <span>{allValue.areaObj.areaName}</span>
                   }
-                })
+                } else if (val === 'seatName') {
+                  if (allValue.seatObj) {
+                    return <span>{allValue.seatObj.seatName}</span>
+                  }
+                } else if (val === 'scanInfo') {
+                  let hmdInfo = [];
 
-                return (
-                  <ul>
-                    {hmdInfo.map(this.getHMDinfo)}
-                  </ul>
-                )
-              } else if (tempData === '_menu') {
-                return (
-                  <div className='table-menu menu active'>
-                    <i className='fg fg-eye' onClick={this.openMenu.bind(this, 'view', allValue, i)} title={t('network-inventory.txt-viewDevice')}></i>
-                    {allValue.isHmd &&
-                      <i className='fg fg-chart-kpi' onClick={this.openMenu.bind(this, 'hmd', allValue, i)} title={t('network-inventory.txt-viewHMD')}></i>
+                  _.forEach(SAFETY_SCAN_LIST, val => { //Construct the HMD info array
+                    const dataType = val + 'Result';  
+                    let currentDataObj = {};
+
+                    if (allValue.safetyScanInfo) {
+                      currentDataObj = allValue.safetyScanInfo[dataType];
                     }
-                    <i className='fg fg-trashcan' onClick={this.openMenu.bind(this, 'delete', allValue)} title={t('network-inventory.txt-deleteDevice')}></i>
-                  </div>
-                )
-              } else {
-                return <span>{value}</span>
+
+                    if (!_.isEmpty(currentDataObj)) {
+                      hmdInfo.push({
+                        type: val,
+                        name: t('network-inventory.scan-list.txt-' + val),
+                        result: allValue.safetyScanInfo[dataType][0]
+                      });
+                    }
+                  })
+
+                  return (
+                    <ul>
+                      {hmdInfo.map(this.getHMDinfo)}
+                    </ul>
+                  )
+                } else if (val === '_menu') {
+                  return (
+                    <div className='table-menu menu active'>
+                      <i className='fg fg-eye' onClick={this.openMenu.bind(this, 'view', allValue, dataIndex)} title={t('network-inventory.txt-viewDevice')}></i>
+                      {allValue.isHmd &&
+                        <i className='fg fg-chart-kpi' onClick={this.openMenu.bind(this, 'hmd', allValue, dataIndex)} title={t('network-inventory.txt-viewHMD')}></i>
+                      }
+                      <i className='fg fg-trashcan' onClick={this.openMenu.bind(this, 'delete', allValue)} title={t('network-inventory.txt-deleteDevice')}></i>
+                    </div>
+                  )
+                } else {
+                  return value;
+                }
               }
             }
           };
-        })
+        });
 
-        tempDeviceData.dataFields = tempFields;
-
-        if (!fromSearch) {
+        if (ipData.rows.length > 0) {
           let ipListArr = [];
 
           _.forEach(ipData.rows, val => {
@@ -1337,7 +1341,7 @@ class NetworkInventory extends Component {
           </div>
         </div>
         <div className='button-group group-aligned'>
-          <Button variant='contained' color='primary' className='filter' onClick={this.getDeviceData.bind(this, 'search')}>{t('txt-filter')}</Button>
+          <Button variant='contained' color='primary' className='filter' onClick={this.getDeviceData}>{t('txt-filter')}</Button>
           <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}</Button>
         </div>
       </div>
@@ -1515,32 +1519,17 @@ class NetworkInventory extends Component {
   /**
    * Handle table pagination change
    * @method
-   * @param {number} currentPage - new page number
+   * @param {string} type - page type ('currentPage' or 'pageSize')
+   * @param {string | number} value - new page number
    */
-  handlePaginationChange = (currentPage) => {
+  handlePaginationChange = (type, value) => {
     let tempDeviceData = {...this.state.deviceData};
-    tempDeviceData.currentPage = currentPage;
+    tempDeviceData[type] = Number(value);
 
     this.setState({
       deviceData: tempDeviceData
     }, () => {
-      this.getDeviceData();
-    });
-  }
-  /**
-   * Handle table pagesize change
-   * @method
-   * @param {string} pageSize - new page sizse
-   */
-  handlePageDropdown = (pageSize) => {
-    let tempDeviceData = {...this.state.deviceData};
-    tempDeviceData.currentPage = 1;
-    tempDeviceData.pageSize = Number(pageSize);
-
-    this.setState({
-      deviceData: tempDeviceData
-    }, () => {
-      this.getDeviceData();
+      this.getDeviceData(type);
     });
   }
   /**
@@ -3028,7 +3017,7 @@ class NetworkInventory extends Component {
     })
     .then(data => {
       if (data.ret === 0) {
-        this.getDeviceData('search');
+        this.getDeviceData();
         this.getOwnerData();
         this.getOtherData('stepComplete');
         this.getFloorPlan('stepComplete');
@@ -4056,6 +4045,17 @@ class NetworkInventory extends Component {
     } = this.state;
     const backText = activeTab === 'deviceList' ? t('network-inventory.txt-backToList') : t('network-inventory.txt-backToMap')
     const assetsPath = `${contextRoot}/lib/keylines/assets/`;
+    const tableOptions = {
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort(changedColumn, direction === 'desc');
+      }
+    };
     let picPath = '';
     let csvHeaderList = [];
 
@@ -4179,19 +4179,10 @@ class NetworkInventory extends Component {
                   }
                 </Menu>
 
-                {activeTab === 'deviceList' && !showCsvData &&
-                  <TableContent
-                    dataTableData={deviceData.dataContent}
-                    dataTableFields={deviceData.dataFields}
-                    dataTableSort={deviceData.sort}
-                    paginationTotalCount={deviceData.totalCount}
-                    paginationPageSize={deviceData.pageSize}
-                    paginationCurrentPage={deviceData.currentPage}
-                    currentTableID={activeIPdeviceUUID}
-                    tableUniqueID='ipDeviceUUID'
-                    handleTableSort={this.handleTableSort}
-                    paginationPageChange={this.handlePaginationChange}
-                    paginationDropDownChange={this.handlePageDropdown} />
+                {activeTab === 'deviceList' && !showCsvData && deviceData.dataContent.length > 0 &&
+                  <MuiTableContent
+                    data={deviceData}
+                    tableOptions={tableOptions} />
                 }
 
                 {activeTab === 'deviceMap' && !showCsvData &&

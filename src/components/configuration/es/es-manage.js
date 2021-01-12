@@ -157,7 +157,7 @@ class EsManage extends Component {
   /**
    * Get and set ES table data
    * @method
-   * @param {string} options - option for 'pagination' or 'status'
+   * @param {string} options - option for 'currentPage' or 'status'
    * @param {string} date - selected date
    * @param {string} type - 'open' or 'close'
    */
@@ -165,7 +165,7 @@ class EsManage extends Component {
     const {baseUrl} = this.context;
     const {datetime, esSearch, es} = this.state;
     const sort = es.sort.desc ? 'desc' : 'asc';
-    const page = options === 'pagination' ? es.currentPage : 0;
+    const page = options === 'currentPage' ? es.currentPage : 0;
     const dateTime = {
       from: moment(datetime.from).format('YYYY.MM.DD'),
       to: moment(datetime.to).format('YYYY.MM.DD')
@@ -221,26 +221,29 @@ class EsManage extends Component {
               sort: val === 'date' ? true : false,
               viewColumns: val === '_menu' ? false : true,
               customBodyRenderLite: (dataIndex) => {
-                if (val === '_menu' && tempEs.dataContent[dataIndex].showButton) {
+                const allValue = tempEs.dataContent[dataIndex];
+                const value = tempEs.dataContent[dataIndex][val];
+
+                if (val === '_menu' && allValue.showButton) {
                   return (
                     <div className='table-menu menu active'>
                       <FormControlLabel
                         className='toggle-btn'
                         control={
                           <Switch
-                            checked={tempEs.dataContent[dataIndex].isOpen}
-                            onChange={this.openIndexConfirmModal.bind(this, tempEs.dataContent[dataIndex].date)}
+                            checked={allValue.isOpen}
+                            onChange={this.openIndexConfirmModal.bind(this, allValue.date)}
                             color='primary' />
                         }
                         label={t('txt-switch')}
-                        disabled={!tempEs.dataContent[dataIndex].actionEnable} />
-                      <i className={cx('fg fg-data-export', {'not-allowed': !tempEs.dataContent[dataIndex].export})} title={t('txt-export')} onClick={this.handleIndexExport.bind(this, tempEs.dataContent[dataIndex])}></i>
+                        disabled={!allValue.actionEnable} />
+                      <i className={cx('fg fg-data-export', {'not-allowed': !allValue.export})} title={t('txt-export')} onClick={this.handleIndexExport.bind(this, allValue)}></i>
                     </div>
                   )
                 } else if (val === 'docCount' || val === 'storeSize' || val === 'priStoreSize') {
-                  return helper.numberWithCommas(tempEs.dataContent[dataIndex][val]);
+                  return helper.numberWithCommas(value);
                 } else {
-                  return tempEs.dataContent[dataIndex][val];
+                  return value;
                 }
               }
             }
@@ -313,7 +316,6 @@ class EsManage extends Component {
    * @param {number} value - new page number
    */
   handlePaginationChange = (type, value) => {
-    const fromPage = type === 'currentPage' ? 'pagination' : '';
     let tempEs = {...this.state.es};
     tempEs[type] = Number(value);
 
@@ -324,7 +326,7 @@ class EsManage extends Component {
     this.setState({
       es: tempEs
     }, () => {
-      this.getEsData(fromPage);
+      this.getEsData(type);
     });
   }
   /**
@@ -347,22 +349,6 @@ class EsManage extends Component {
 
     this.setState({
       esSearch: tempEsSearch
-    });
-  }
-  /**
-   * Handle search submit
-   * @method
-   */
-  handleSearchSubmit = () => {
-    let tempEs = {...this.state.es};
-    tempEs.dataContent = [];
-    tempEs.totalCount = 0;
-    tempEs.currentPage = 1;
-
-    this.setState({
-      es: tempEs
-    }, () => {
-      this.getEsData();
     });
   }
   /**
@@ -396,7 +382,7 @@ class EsManage extends Component {
           </div>
         </div>
         <div className='button-group'>
-          <Button variant='contained' color='primary' className='filter' onClick={this.handleSearchSubmit}>{t('txt-filter')}</Button>
+          <Button variant='contained' color='primary' className='filter' onClick={this.getEsData}>{t('txt-filter')}</Button>
           <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}</Button>
         </div>
       </div>
@@ -582,7 +568,7 @@ class EsManage extends Component {
             datetime={datetime}
             enableTime={false}
             handleDateChange={this.handleDateChange}
-            handleSearchSubmit={this.handleSearchSubmit} />          
+            handleSearchSubmit={this.getEsData} />
         </div>
 
         <div className='data-content'>

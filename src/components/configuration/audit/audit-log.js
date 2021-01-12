@@ -65,12 +65,12 @@ class AuditLog extends Component {
   /**
    * Get and set ES table data
    * @method
-   * @param {string} fromPage - option for 'pagination'
+   * @param {string} fromPage - option for 'currentPage'
    */
   getAuditData = (fromPage) => {
     const {baseUrl} = this.context;
     const {datetime, auditSearch, audit} = this.state;
-    const page = fromPage === 'pagination' ? audit.currentPage : 0;
+    const page = fromPage === 'currentPage' ? audit.currentPage : 0;
     const url = `${baseUrl}/api/auditLog/system?page=${page + 1}&pageSize=${audit.pageSize}`;
     const dateTime = {
       from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
@@ -116,7 +116,7 @@ class AuditLog extends Component {
             options: {
               filter: true,
               sort: false,
-              customBodyRender: (value) => {
+              customBodyRenderLite: (value) => {
                 if (val === 'createDttm') {
                   return helper.getFormattedDate(value, 'local');
                 } else {
@@ -160,18 +160,13 @@ class AuditLog extends Component {
    * @param {number} value - new page number
    */
   handlePaginationChange = (type, value) => {
-    const fromPage = type === 'currentPage' ? 'pagination' : '';
     let tempAudit = {...this.state.audit};
     tempAudit[type] = value;
-    
-    if (type === 'pageSize') {
-      tempAudit.currentPage = 1;
-    }
 
     this.setState({
       audit: tempAudit
     }, () => {
-      this.getAuditData(fromPage);
+      this.getAuditData(type);
     });
   }
   /**

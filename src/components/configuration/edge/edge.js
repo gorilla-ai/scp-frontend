@@ -299,12 +299,12 @@ class Edge extends Component {
   /**
    * Get and set Edge table data
    * @method
-   * @param {string} fromPage - option for 'pagination'
+   * @param {string} fromPage - option for 'currentPage'
    */
   getEdgeData = (fromPage) => {
     const {baseUrl, contextRoot} = this.context;
     const {edge} = this.state;
-    const page = fromPage === 'pagination' ? edge.currentPage : 0;
+    const page = fromPage === 'currentPage' ? edge.currentPage : 0;
     const url = `${baseUrl}/api/edge/_search?page=${page + 1}&pageSize=${edge.pageSize}`;
     const requestData = this.getEdgeSearchRequestData();
 
@@ -329,49 +329,52 @@ class Edge extends Component {
               sort: this.checkSortable(val),
               viewColumns: val === '_menu' ? false : true,
               customBodyRenderLite: (dataIndex) => {
+                const allValue = tempEdge.dataContent[dataIndex];
+                const value = tempEdge.dataContent[dataIndex][val];
+
                 if (val === 'agentName') {
                   return (
                     <div>
-                      <span>{tempEdge.dataContent[dataIndex][val]}</span>
-                      {tempEdge.dataContent[dataIndex].upgradeDttm &&
-                        <div style={{'marginTop': '5px'}}>{t('edge-management.txt-nextUpgrade')}: {helper.getFormattedDate(tempEdge.dataContent[dataIndex].upgradeDttm, 'local')}</div>
+                      <span>{value}</span>
+                      {allValue.upgradeDttm &&
+                        <div style={{'marginTop': '5px'}}>{t('edge-management.txt-nextUpgrade')}: {helper.getFormattedDate(allValue.upgradeDttm, 'local')}</div>
                       }
                     </div>
                   )
                 } else if (val === 'ipPort') {
                   let iconType = '';
 
-                  if (!tempEdge.dataContent[dataIndex].agentApiStatus) {
+                  if (!allValue.agentApiStatus) {
                     return;
                   }
 
-                  if (tempEdge.dataContent[dataIndex].agentApiStatus === 'Normal') {
+                  if (allValue.agentApiStatus === 'Normal') {
                     iconType = 'icon_connected_on';
-                  } else if (tempEdge.dataContent[dataIndex].agentApiStatus === 'Error') {
+                  } else if (allValue.agentApiStatus === 'Error') {
                     iconType = 'icon_connected_off';
                   }
 
                   const icon = {
                     src: contextRoot + `/images/${iconType}.png`,
-                    title: t('txt-' + tempEdge.dataContent[dataIndex].agentApiStatus.toLowerCase())
+                    title: t('txt-' + allValue.agentApiStatus.toLowerCase())
                   };
 
-                  return <span><img src={icon.src} className='ip-edge' title={icon.title} />{tempEdge.dataContent[dataIndex][val]}</span>
+                  return <span><img src={icon.src} className='ip-edge' title={icon.title} />{value}</span>
                 } else if (val === 'groupList') {
-                  if (tempEdge.dataContent[dataIndex].groupList.length > 0) {
-                    return <div className='flex-item'>{tempEdge.dataContent[dataIndex].groupList.map(this.displayGroupName)}</div>
+                  if (allValue.groupList.length > 0) {
+                    return <div className='flex-item'>{allValue.groupList.map(this.displayGroupName)}</div>
                   }
                 } else if (val === 'descriptionEdge') {
-                  const serviceDescList = SERVICE_TYPE_LIST[tempEdge.dataContent[dataIndex].serviceType];
+                  const serviceDescList = SERVICE_TYPE_LIST[allValue.serviceType];
                   let serviceArr = [];
                   let moduleArr = [];
 
                   if (serviceDescList) {
-                    serviceArr = this.getServiceDesc(tempEdge.dataContent[dataIndex], serviceDescList);
+                    serviceArr = this.getServiceDesc(allValue, serviceDescList);
                   }
 
-                  if (tempEdge.dataContent[dataIndex].modules) {
-                    moduleArr = tempEdge.dataContent[dataIndex].modules.map(this.getServiceStatus);
+                  if (allValue.modules) {
+                    moduleArr = allValue.modules.map(this.getServiceStatus);
                     return <div className='description-edge'>{_.concat(serviceArr, moduleArr)}</div>
                   } else {
                     return <div className='description-edge'>serviceArr</div>
@@ -379,12 +382,12 @@ class Edge extends Component {
                 } else if (val === '_menu') {
                   return (
                     <div className='table-menu menu active'>
-                      <i className='fg fg-eye' onClick={this.toggleContent.bind(this, 'viewEdge', tempEdge.dataContent[dataIndex])} title={t('txt-view')}></i>
-                      <i className='fg fg-trashcan' onClick={this.openDeleteMenu.bind(this, tempEdge.dataContent[dataIndex])} title={t('txt-delete')}></i>
+                      <i className='fg fg-eye' onClick={this.toggleContent.bind(this, 'viewEdge', allValue)} title={t('txt-view')}></i>
+                      <i className='fg fg-trashcan' onClick={this.openDeleteMenu.bind(this, allValue)} title={t('txt-delete')}></i>
                     </div>
                   )
                 } else {
-                  return tempEdge.dataContent[dataIndex][val];
+                  return value;
                 }
               }
             }
@@ -553,18 +556,13 @@ class Edge extends Component {
    * @param {string | number} value - new page number
    */
   handlePaginationChange = (type, value) => {
-    const fromPage = type === 'currentPage' ? 'pagination' : '';
     let tempEdge = {...this.state.edge};
     tempEdge[type] = Number(value);
-
-    if (type === 'pageSize') {
-      tempEdge.currentPage = 1;
-    }
 
     this.setState({
       edge: tempEdge
     }, () => {
-      this.getEdgeData(fromPage);
+      this.getEdgeData(type);
     });
   }
   /**

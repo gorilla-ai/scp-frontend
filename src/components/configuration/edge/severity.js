@@ -102,12 +102,12 @@ class Severity extends Component {
   /**
    * Get and set severity table data
    * @method
-   * @param {string} fromPage - option for 'pagination'
+   * @param {string} fromPage - option for 'currentPage'
    */
   getSeverityMapping = (fromPage) => {
     const {baseUrl} = this.context;
     const {severitySearchType, severitySelected, severity} = this.state;
-    const page = fromPage === 'pagination' ? severity.currentPage : 0;
+    const page = fromPage === 'currentPage' ? severity.currentPage : 0;
     const url = `${baseUrl}/api/severityMapping/_search?&page=${page + 1}&pageSize=${severity.pageSize}`;
     let requestData = {};
 
@@ -139,21 +139,24 @@ class Severity extends Component {
               sort: val === 'dataSourceType' ? true : false,
               viewColumns: val === '_menu' ? false : true,
               customBodyRenderLite: (dataIndex) => {
+                const allValue = tempSeverity.dataContent[dataIndex];
+                const value = tempSeverity.dataContent[dataIndex][val];
+
                 if (val === 'severityLevel') {
-                  return <span className='severity-level' style={{backgroundColor: ALERT_LEVEL_COLORS[tempSeverity.dataContent[dataIndex][val]]}}>{tempSeverity.dataContent[dataIndex][val]}</span>;
+                  return <span className='severity-level' style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>;
                 } else if (val === 'updateDttm') {
-                  return helper.getFormattedDate(tempSeverity.dataContent[dataIndex][val], 'local');
+                  return helper.getFormattedDate(value, 'local');
                 } else if (val === '_menu') {
                   return (
                     <div className='table-menu menu active'>
-                      <i className='fg fg-eye' onClick={this.toggleContent.bind(this, 'viewSeverity', tempSeverity.dataContent[dataIndex])} title={t('txt-view')}></i>
-                      <i className='fg fg-trashcan' onClick={this.openDeleteMenu.bind(this, tempSeverity.dataContent[dataIndex].dataSourceType)} title={t('txt-delete')}></i>
+                      <i className='fg fg-eye' onClick={this.toggleContent.bind(this, 'viewSeverity', allValue)} title={t('txt-view')}></i>
+                      <i className='fg fg-trashcan' onClick={this.openDeleteMenu.bind(this, allValue.dataSourceType)} title={t('txt-delete')}></i>
                     </div>
                   )
                 } else if (val === 'docCount' || val === 'storeSize' || val === 'priStoreSize') {
-                  return helper.numberWithCommas(tempSeverity.dataContent[dataIndex][val]);
+                  return helper.numberWithCommas(value);
                 }
-                return tempSeverity.dataContent[dataIndex][val];
+                return value;
               }
             }
           };
@@ -566,18 +569,13 @@ class Severity extends Component {
    * @param {string | number} value - new page number
    */
   handlePaginationChange = (type, value) => {
-    const fromPage = type === 'currentPage' ? 'pagination' : '';
     let tempSeverity = {...this.state.severity};
     tempSeverity[type] = Number(value);
-
-    if (type === 'pageSize') {
-      tempSeverity.currentPage = 0;
-    }
 
     this.setState({
       severity: tempSeverity
     }, () => {
-      this.getSeverityMapping(fromPage);
+      this.getSeverityMapping(type);
     });
   }
   /**

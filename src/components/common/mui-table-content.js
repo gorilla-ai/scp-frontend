@@ -23,9 +23,9 @@ class MuiTableContent extends Component {
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
   }
   render() {
-    const {columns, data, tableOptions} = this.props;
+    const {data, tableOptions} = this.props;
     const options = {
-			tableBodyHeight: '66vh',
+			tableBodyHeight: tableOptions.tableBodyHeight || '66vh',
       selectableRows: 'none',
       serverSide: true,
       search: false,
