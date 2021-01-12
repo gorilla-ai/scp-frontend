@@ -2094,7 +2094,7 @@ class Incident extends Component {
 
             let eventList = [];
             let eventListItem = {
-                description: alertData.Rule || alertData.__index_name,
+                description: alertData.Rule || alertData.trailName || alertData.__index_name,
                 deviceId: '',
                 frequency: 1,
                 time: {
