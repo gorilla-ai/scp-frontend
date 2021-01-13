@@ -74,16 +74,24 @@ const HMD_LIST = [
     text: 'GCB'
   },
   {
+    value: 'isIR',
+    text: 'IR'
+  },
+  {
     value: 'isFileIntegrity',
     text: 'File Integrity'
+  },
+  {
+    value: 'isEventTracing',
+    text: 'Event Tracing'
   },
   {
     value: 'isProcessMonitor',
     text: 'Process Monitor'
   },
   {
-    value: 'isIR',
-    text: 'IR'
+    value: 'isVans',
+    text: 'VANS'
   }
 ];
 const HOST_SORT_LIST = [

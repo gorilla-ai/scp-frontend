@@ -648,44 +648,6 @@ class NetworkInventory extends Component {
     downloadWithForm(url, {payload: JSON.stringify(requestData)});
   }
   /**
-   * Get single device data from URL parameter
-   * @method
-   */
-  getSingleDeviceData = () => {
-    const {baseUrl} = this.context;
-    const inventoryParam = queryString.parse(location.search);
-
-    if (!inventoryParam.ip) {
-      return;
-    }
-
-    this.ah.one({
-      url: `${baseUrl}/api/v2/ipdevice/_search?ip=${inventoryParam.ip}`,
-      type: 'GET'
-    })
-    .then(data => {
-      if (data) {
-        let currentDeviceData = {
-          ip: inventoryParam.ip
-        };
-
-        if (data.counts > 0) {
-          currentDeviceData = data.rows[0];
-        }
-
-        this.setState({
-          currentDeviceData
-        }, () => {
-          this.toggleContent('showForm', 'edit');
-        });
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
    * Get and set Department and Title data
    * @param {string} options - option for calling type
    * @method
@@ -893,6 +855,58 @@ class NetworkInventory extends Component {
         }, () => {
           this.getFloorList(options);
         });
+      } else {
+        this.getInventoryEdit();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Toggle content to show edit page
+   * @method
+   */
+  getInventoryEdit = () => {
+    const inventoryParam = queryString.parse(location.search);
+    const type = inventoryParam.type;
+
+    if (type) {
+      if (type === 'add') {
+        this.toggleContent('showForm', 'new');
+      } else if (type === 'edit' && inventoryParam.ip) {
+        this.getSingleDeviceData(inventoryParam.ip);
+      }
+    }
+  }
+  /**
+   * Get single device data from URL parameter
+   * @param {string} ip - IP from page redirect
+   * @method
+   */
+  getSingleDeviceData = (ip) => {
+    const {baseUrl} = this.context;
+
+    this.ah.one({
+      url: `${baseUrl}/api/v2/ipdevice/_search?ip=${ip}`,
+      type: 'GET'
+    })
+    .then(data => {
+      if (data) {
+        let currentDeviceData = {
+          ip
+        };
+
+        if (data.counts > 0) {
+          currentDeviceData = data.rows[0];
+        }
+
+        this.setState({
+          currentDeviceData
+        }, () => {
+          this.toggleContent('showForm', 'edit');
+        });
       }
       return null;
     })
@@ -925,18 +939,9 @@ class NetworkInventory extends Component {
       floorList,
       currentFloor
     }, () => {
-      const inventoryParam = queryString.parse(location.search);
-
       this.getAreaData(currentFloor);
       this.getFloorDeviceData(currentFloor);
-
-      if (!options && inventoryParam.type) {
-        if (inventoryParam.type === 'add') {
-          this.toggleContent('showForm', 'new');
-        } else if (inventoryParam.type === 'edit') {
-          this.getSingleDeviceData();
-        }
-      }
+      this.getInventoryEdit();
     });
   }
   /**
@@ -3131,7 +3136,6 @@ class NetworkInventory extends Component {
   handleOwnerChange = (event) => {
     const {baseUrl} = this.context;
     const value = event.target ? event.target.value : event;
-    const inventoryParam = queryString.parse(location.search);
 
     if (!value) {
       return;
@@ -3151,6 +3155,8 @@ class NetworkInventory extends Component {
         tempAddIP.department = data.departmentName;
         tempAddIP.title = data.titleName;
         tempAddIP.ownerPic = data.base64;
+
+        const inventoryParam = queryString.parse(location.search);
 
         if (inventoryParam.ip && inventoryParam.type === 'add') {
           tempAddIP.ip = inventoryParam.ip;
@@ -3640,24 +3646,26 @@ class NetworkInventory extends Component {
                     </div>
                     <div className='group'>
                       <TextField
+                        key='departmentName'
                         id='addIPstepsDepartment'
                         name='department'
                         label={t('ownerFields.department')}
                         variant='outlined'
                         fullWidth
                         size='small'
-                        value={addIP.department}
+                        value={addIP.department || ''}
                         disabled />
                     </div>
                     <div className='group'>
                       <TextField
+                        key='titleName'
                         id='addIPstepsTitle'
                         name='title'
                         label={t('ownerFields.title')}
                         variant='outlined'
                         fullWidth
                         size='small'
-                        value={addIP.title}
+                        value={addIP.title || ''}
                         disabled />
                     </div>
                   </div>
