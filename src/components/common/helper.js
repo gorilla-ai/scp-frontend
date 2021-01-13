@@ -300,9 +300,9 @@ const helper = {
         <button className={cx('thumb', {'selected': page === 'syslog'})}>
           <Link to='/SCP/events/syslog'>{t('txt-syslog')}</Link>
         </button>
-        <button className={cx('thumb', {'selected': page === 'netflow'})}>
+        {/*<button className={cx('thumb', {'selected': page === 'netflow'})}>
           <Link to='/SCP/events/netflow'>{t('txt-netflow')}</Link>
-        </button>
+        </button>*/}
       </div>
     )
   },
