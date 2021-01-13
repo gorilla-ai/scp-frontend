@@ -48,7 +48,6 @@ import Manage from './manage'
 import MuiTableContent from '../../common/mui-table-content'
 import Pagination from '../../common/pagination'
 import PrivateDetails from '../../common/private-details'
-import TableContent from '../../common/table-content'
 import YaraRule from '../../common/yara-rule'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'

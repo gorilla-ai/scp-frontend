@@ -7,7 +7,6 @@ import cx from 'classnames'
 import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 
@@ -18,7 +17,7 @@ import {BaseDataContext} from '../../common/context';
 import Config from '../../common/configuration'
 import helper from '../../common/helper'
 import Manage from './manage'
-import TableContent from '../../common/table-content'
+import MuiTableContent from '../../common/mui-table-content'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
@@ -48,14 +47,13 @@ class NetworkOwner extends Component {
         department: 'all',
         title: 'all',
       },
-      contextAnchor: null,
       addOwnerType: '',
       addOwnerTitle: '',
       showFilter: false,
       currentOwnerData: {},
       owner: {
-        dataFieldsArr: ['_menu', 'ownerID', 'ownerName', 'departmentName', 'titleName'],
-        dataFields: {},
+        dataFieldsArr: ['ownerID', 'ownerName', 'departmentName', 'titleName', '_menu'],
+        dataFields: [],
         dataContent: [],
         sort: {
           field: 'ownerID',
@@ -169,52 +167,31 @@ class NetworkOwner extends Component {
     })
   }
   /**
-   * Handle open menu
-   * @method
-   * @param {object} owner - active owner data
-   * @param {object} event - event object
-   */
-  handleOpenMenu = (owner, event) => {
-    this.setState({
-      contextAnchor: event.currentTarget,
-      currentOwnerData: owner
-    });
-  }
-  /**
-   * Handle close menu
-   * @method
-   */
-  handleCloseMenu = () => {
-    this.setState({
-      contextAnchor: null,
-      currentOwnerData: {}
-    });
-  }
-  /**
    * Get and set owner data
    * @method
-   * @param {string} fromSearch - option for 'search'
+   * @param {string} fromPage - option for 'currentPage'
    */
-  getOwnerData = (fromSearch) => {
+  getOwnerData = (fromPage) => {
     const {baseUrl} = this.context;
     const {owner, search} = this.state;
+    const page = fromPage === 'currentPage' ? owner.currentPage : 0;
     let requestData = {
       sort: owner.sort.field,
       order: owner.sort.desc ? 'desc' : 'asc',
-      page: fromSearch === 'search' ? 1 : owner.currentPage,
+      page: page + 1,
       pageSize: Number(owner.pageSize)
     };
 
-    if (fromSearch === 'search') {
+    if (search.name) {
       requestData.ownerName = '%' + search.name + '%';
+    }
 
-      if (search.department != 'all') {
-        requestData.department = search.department;
-      }
+    if (search.department != 'all') {
+      requestData.department = search.department;
+    }
 
-      if (search.title != 'all') {
-        requestData.title = search.title;
-      }
+    if (search.title != 'all') {
+      requestData.title = search.title;
     }
 
     this.ah.one({
@@ -228,41 +205,42 @@ class NetworkOwner extends Component {
         let tempOwner = {...owner};
         tempOwner.dataContent = data.rows;
         tempOwner.totalCount = data.counts;
-        tempOwner.currentPage = fromSearch === 'search' ? 1 : owner.currentPage;
+        tempOwner.currentPage = page;
+        tempOwner.dataFields = _.map(owner.dataFieldsArr, val => {
+          return {
+            name: val,
+            label: val === '_menu' ? ' ' : t(`ownerFields.${val}`),
+            options: {
+              sort: val === '_menu' ? false : true,
+              viewColumns: val === '_menu' ? false : true,
+              customBodyRenderLite: (dataIndex) => {
+                const allValue = tempOwner.dataContent[dataIndex];
+                const value = tempOwner.dataContent[dataIndex][val];
 
-        let dataFields = {};
-        owner.dataFieldsArr.forEach(tempData => {
-          dataFields[tempData] = {
-            label: tempData === '_menu' ? '' : t(`ownerFields.${tempData}`),
-            sortable: (tempData === 'ownerID' || tempData === 'ownerName') ? true : null,
-            formatter: (value, allValue) => {
-              if (tempData === '_menu') {
-                return (
-                  <div className={cx('table-menu', {'active': value})}>
-                    <Button variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue)}><i className='fg fg-more'></i></Button>
-                  </div>
-                )
-              } else {
-                return <span>{value}</span>
+                if (val === '_menu') {
+                  return (
+                    <div className='table-menu menu active'>
+                      <i className='fg fg-edit' onClick={this.getOwnerInfo.bind(this, allValue)} title={t('txt-edit')}></i>
+                      <i className='fg fg-trashcan' onClick={this.openDeleteOwnerModal.bind(this, allValue)} title={t('txt-delete')}></i>
+                    </div>
+                  )
+                }
+                return value;
               }
             }
           };
+        });
+
+        let ownerListArr = [];
+
+        _.forEach(data.rows, val => {
+          ownerListArr.push({
+            value: val.ownerName,
+            text: val.ownerName
+          });
         })
 
-        tempOwner.dataFields = dataFields;
-
-        if (!fromSearch) {
-          let ownerListArr = [];
-
-          _.forEach(data.rows, val => {
-            ownerListArr.push({
-              value: val.ownerName,
-              text: val.ownerName
-            });
-          })
-
-          tempOwner.ownerListArr = ownerListArr;
-        }
+        tempOwner.ownerListArr = ownerListArr;
 
         this.setState({
           owner: tempOwner
@@ -333,31 +311,27 @@ class NetworkOwner extends Component {
     let tempOwner = {...this.state.owner};
     tempOwner[type] = Number(value);
 
-    if (type === 'pageSize') {
-      tempOwner.currentPage = 1;
-    }
-
     this.setState({
       owner: tempOwner
     }, () => {
-      this.getOwnerData();
+      this.getOwnerData(type);
     });
   }
   /**
    * Get individual owner data
    * @method
+   * @param {object} allValue - Owner data
    */
-  getOwnerInfo = () => {
+  getOwnerInfo = (allValue) => {
     const {baseUrl} = this.context;
-    const {currentOwnerData} = this.state;
     let tempOwner = {...this.state.owner};
 
-    if (!currentOwnerData.ownerID) {
+    if (!allValue.ownerID) {
       return;
     }
 
     ah.one({
-      url: `${baseUrl}/api/u1/owner?uuid=${currentOwnerData.ownerUUID}`,
+      url: `${baseUrl}/api/u1/owner?uuid=${allValue.ownerUUID}`,
       type: 'GET'
     })
     .then(data => {
@@ -376,8 +350,6 @@ class NetworkOwner extends Component {
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
-
-    this.handleCloseMenu();
   }
   /**
    * Toggle and display page content
@@ -555,45 +527,38 @@ class NetworkOwner extends Component {
   /**
    * Display delete owner content
    * @method
+   * @param {object} allValue - Owner data
    * @returns HTML DOM
    */
-  getDeleteOwnerContent = () => {
-    const {currentOwnerData} = this.state;
-
-    if (currentOwnerData.ownerID) {
-      let tempOwner = {...this.state.owner};
-      tempOwner.info = {...currentOwnerData};
-
-      this.setState({
-        owner: tempOwner
-      });
-    }
+  getDeleteOwnerContent = (allValue) => {
+    this.setState({
+      currentOwnerData: allValue
+    });
 
     return (
       <div className='content delete'>
-        <span>{t('txt-delete-msg')}: {currentOwnerData.ownerName} (ID: {currentOwnerData.ownerID})?</span>
+        <span>{t('txt-delete-msg')}: {allValue.ownerName} (ID: {allValue.ownerID})?</span>
       </div>
     )
   }
   /**
    * Display delete owner modal dialog
    * @method
+   * @param {object} allValue - Owner data
    */
-  openDeleteOwnerModal = () => {
+  openDeleteOwnerModal = (allValue) => {
     PopupDialog.prompt({
       title: t('network-topology.txt-deleteOwner'),
       id: 'modalWindowSmall',
       confirmText: t('txt-delete'),
       cancelText: t('txt-cancel'),
-      display: this.getDeleteOwnerContent(),
+      display: this.getDeleteOwnerContent(allValue),
       act: (confirmed) => {
         if (confirmed) {
           this.deleteOwner();
         }
       }
     });
-
-    this.handleCloseMenu();
   }
   /**
    * Handle delete owner confirm
@@ -601,14 +566,14 @@ class NetworkOwner extends Component {
    */
   deleteOwner = () => {
     const {baseUrl} = this.context;
-    const {owner} = this.state;
+    const {currentOwnerData} = this.state;
 
-    if (owner.info && !owner.info.ownerUUID) {
+    if (!currentOwnerData.ownerUUID) {
       return;
     }
 
     ah.one({
-      url: `${baseUrl}/api/owner?uuid=${owner.info.ownerUUID}`,
+      url: `${baseUrl}/api/owner?uuid=${currentOwnerData.ownerUUID}`,
       type: 'DELETE'
     })
     .then(data => {
@@ -715,7 +680,7 @@ class NetworkOwner extends Component {
           </div>
         </div>
         <div className='button-group'>
-          <Button variant='contained' color='primary' className='filter' onClick={this.getOwnerData.bind(this, 'search')}>{t('txt-filter')}</Button>
+          <Button variant='contained' color='primary' className='filter' onClick={this.getOwnerData}>{t('txt-filter')}</Button>
           <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{t('txt-clear')}</Button>
         </div>
       </div>
@@ -726,7 +691,6 @@ class NetworkOwner extends Component {
     const {
       activeContent,
       list,
-      contextAnchor,
       departmentDropdown,
       titleDropdown,
       addOwnerTitle,
@@ -735,21 +699,23 @@ class NetworkOwner extends Component {
       previewOwnerPic,
       formValidation
     } = this.state;
+    const tableOptions = {
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort(changedColumn, direction === 'desc');
+      }
+    };
 
     return (
       <div>
         <Manage
           ref={ref => { this.name=ref }}
           onDone={this.onDone} />
-
-        <Menu
-          anchorEl={contextAnchor}
-          keepMounted
-          open={Boolean(contextAnchor)}
-          onClose={this.handleCloseMenu}>
-          <MenuItem onClick={this.getOwnerInfo}>{t('txt-edit')}</MenuItem>
-          <MenuItem onClick={this.openDeleteOwnerModal}>{t('txt-delete')}</MenuItem>
-        </Menu>
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
@@ -776,17 +742,11 @@ class NetworkOwner extends Component {
                   <Button variant='outlined' color='primary' className='standard btn' onClick={this.openManage}>{t('txt-manageDepartmentTitle')}</Button>
                 </div>
 
-                <TableContent
-                  dataTableData={owner.dataContent}
-                  dataTableFields={owner.dataFields}
-                  dataTableSort={owner.sort}
-                  paginationTotalCount={owner.totalCount}
-                  paginationPageSize={owner.pageSize}
-                  paginationCurrentPage={owner.currentPage}
-                  handleTableSort={this.handleTableSort}
-                  handleRowMouseOver={this.handleRowMouseOver}
-                  paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                  paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')} />
+                {owner.dataContent.length > 0 &&
+                  <MuiTableContent
+                    data={owner}
+                    tableOptions={tableOptions} />
+                }
               </div>
             }
 

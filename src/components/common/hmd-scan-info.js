@@ -829,78 +829,80 @@ class HMDscanInfo extends Component {
       filePath = filePath || val._ProcessInfo._ExecutableInfo._FileInfo._Filepath;
     }
 
-    if (filePath || val._MatchedPid) {
-      const uniqueKey = val._ScanType + i;
-      const uniqueID = parentIndex.toString() + i.toString() + (filePath || val._MatchedPid);
-      let displayInfo = '';
+    if (!filePath && !val._MatchedPid) {
+      return;
+    }
 
-      if (val._MatchedRuleList && val._MatchedRuleList.length > 0 && val._MatchedRuleNameList) {
-        displayInfo = val._MatchedRuleList.map(this.displayRule.bind(this, val._MatchedRuleNameList));
-      } else {
-        displayInfo = NOT_AVAILABLE;
-      }
+    const uniqueID = parentIndex.toString() + i.toString() + (filePath || val._MatchedPid);
+    const uniqueKey = uniqueID;
+    let displayInfo = '';
 
-      return (
-        <div key={uniqueKey} className='group'>
-          <div className='path pointer' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
-            <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`}></i>
-            <div className='path-header'>
-              {filePath &&
-                <span>{t('txt-path')}: {filePath}</span>
-              }
-              {filePath && val._MatchedPid &&
-                <span>, </span>
-              }
-              {val._MatchedPid &&
-                <span>PID: {val._MatchedPid}</span>
-              }
-              {activeTab === 'procMonitor' && (location.pathname.indexOf('host') > 0 || location.pathname.indexOf('configuration') > 0) &&
-                <i className='c-link fg fg-add' title={t('network-inventory.txt-addToFilterList')} onClick={this.addToSettings.bind(this, 'procMonitor', filePath)}></i>
-              }
-            </div>
-          </div>
-          <div className={cx('rule', {'hide': activePath !== uniqueID})}>
-            {activeTab === 'yara' &&
-              <div className='item-content'>
-                <div className='header' onClick={this.toggleInfoHeader.bind(this, 'rule')}>
-                  <i className={cx('fg fg-play', {'rotate': activeRuleHeader})}></i>
-                  <span>{t('txt-rule')}</span>
-                </div>
-                <div className={cx('sub-content', {'hide': !activeRuleHeader})}>
-                  {displayInfo}
-                </div>
-              </div>
+    if (val._MatchedRuleList && val._MatchedRuleList.length > 0 && val._MatchedRuleNameList) {
+      displayInfo = val._MatchedRuleList.map(this.displayRule.bind(this, val._MatchedRuleNameList));
+    } else {
+      displayInfo = NOT_AVAILABLE;
+    }
+
+    return (
+      <div key={uniqueKey} className='group'>
+        <div className='path pointer' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
+          <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`}></i>
+          <div className='path-header'>
+            {filePath &&
+              <span>{t('txt-path')}: {filePath}</span>
             }
-
-            <div className='item-content'>
-              <div className='header' onClick={this.toggleInfoHeader.bind(this, 'dll')}>
-                <i className={cx('fg fg-play', {'rotate': activeDLL})}></i>
-                <span>DLLs</span>
-              </div>
-              {this.displayFilePath(val)}
-            </div>
-
-            <div className='item-content'>
-              <div className='header' onClick={this.toggleInfoHeader.bind(this, 'connections')}>
-                <i className={cx('fg fg-play', {'rotate': activeConnections})}></i>
-                <span>{t('txt-networkBehavior')}</span>
-              </div>
-              {this.displayConnections(val)}
-            </div>
-
-            {activeTab === 'procMonitor' &&
-              <div className='item-content'>
-                <div className='header' onClick={this.toggleInfoHeader.bind(this, 'executableInfo')}>
-                  <i className={cx('fg fg-play', {'rotate': activeExecutableInfo})}></i>
-                  <span>{t('txt-executableInfo')}</span>
-                </div>
-                {this.displayExecutableInfo(val)}
-              </div>
+            {filePath && val._MatchedPid &&
+              <span>, </span>
+            }
+            {val._MatchedPid &&
+              <span>PID: {val._MatchedPid}</span>
+            }
+            {activeTab === 'procMonitor' && (location.pathname.indexOf('host') > 0 || location.pathname.indexOf('configuration') > 0) &&
+              <i className='c-link fg fg-add' title={t('network-inventory.txt-addToFilterList')} onClick={this.addToSettings.bind(this, 'procMonitor', filePath)}></i>
             }
           </div>
         </div>
-      )
-    }
+        <div className={cx('rule', {'hide': activePath !== uniqueID})}>
+          {activeTab === 'yara' &&
+            <div className='item-content'>
+              <div className='header' onClick={this.toggleInfoHeader.bind(this, 'rule')}>
+                <i className={cx('fg fg-play', {'rotate': activeRuleHeader})}></i>
+                <span>{t('txt-rule')}</span>
+              </div>
+              <div className={cx('sub-content', {'hide': !activeRuleHeader})}>
+                {displayInfo}
+              </div>
+            </div>
+          }
+
+          <div className='item-content'>
+            <div className='header' onClick={this.toggleInfoHeader.bind(this, 'dll')}>
+              <i className={cx('fg fg-play', {'rotate': activeDLL})}></i>
+              <span>DLLs</span>
+            </div>
+            {this.displayFilePath(val)}
+          </div>
+
+          <div className='item-content'>
+            <div className='header' onClick={this.toggleInfoHeader.bind(this, 'connections')}>
+              <i className={cx('fg fg-play', {'rotate': activeConnections})}></i>
+              <span>{t('txt-networkBehavior')}</span>
+            </div>
+            {this.displayConnections(val)}
+          </div>
+
+          {activeTab === 'procMonitor' &&
+            <div className='item-content'>
+              <div className='header' onClick={this.toggleInfoHeader.bind(this, 'executableInfo')}>
+                <i className={cx('fg fg-play', {'rotate': activeExecutableInfo})}></i>
+                <span>{t('txt-executableInfo')}</span>
+              </div>
+              {this.displayExecutableInfo(val)}
+            </div>
+          }
+        </div>
+      </div>
+    )
   }
   /**
    * Display boolean value
