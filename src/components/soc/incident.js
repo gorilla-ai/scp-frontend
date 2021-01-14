@@ -147,7 +147,7 @@ class Incident extends Component {
         } else {
             const {session} = this.context;
 
-            if (_.includes(session.roles, 'SOC Supervior' || 'SOC Supervisor' || 'SOC Executor')){
+            if (_.includes(session.roles, 'SOC Supervior') || _.includes(session.roles, 'SOC Supervisor')||  _.includes(session.roles, 'SOC Executor')){
                 if (_.includes(session.roles, 'SOC Executor')){
                     this.setState({
                         accountRoleType:SOC_Super
@@ -996,6 +996,12 @@ class Incident extends Component {
         }
     }
 
+    getErrorMsg = (code, params) => {
+        if (params.code === 'file-too-large') {
+            return it('file-too-large')
+        }
+    }
+
     uploadAttachmentModal() {
         PopupDialog.prompt({
             title: t('txt-upload'),
@@ -1411,7 +1417,7 @@ class Incident extends Component {
 
         if (activeContent === 'addIncident') {
 
-            if (_.includes(session.roles, 'SOC Supervior' || 'SOC Supervisor' || 'SOC Executor')){
+            if (_.includes(session.roles, 'SOC Supervior') || _.includes(session.roles, 'SOC Supervisor')||  _.includes(session.roles, 'SOC Executor')){
                 incident.info.status =  INCIDENT_STATUS_ANALYZED ;
             }else{
                 incident.info.status =  INCIDENT_STATUS_UNREVIEWED ;
@@ -1563,39 +1569,45 @@ class Incident extends Component {
                 });
                 return false
             } else {
-                let sizeCheck = false
+                let statusCheck = true
+                let fileCheck = false
+                let urlCheck = false
+                let socketCheck = false
                 _.forEach(incident.ttpList, ttp => {
 
                     if (_.size(ttp.obsFileList) > 0) {
                         _.forEach(ttp.obsFileList, file => {
                             if (file.fileName && file.fileExtension) {
                                 if (file.md5 || file.sha1 || file.sha256) {
-                                    sizeCheck = true
+                                    if (helper.validateInputRuleData('fileHashMd5',file.md5)){
+                                        fileCheck = true
+                                    }else if (helper.validateInputRuleData('fileHashSha1',file.sha1)){
+                                        fileCheck = true
+                                    }else if (helper.validateInputRuleData('fileHashSha256',file.sha256)){
+                                        fileCheck = true
+                                    }else{
+                                        fileCheck = false
+                                    }
                                 }else {
-                                    PopupDialog.alert({
-                                        title: t('txt-tips'),
-                                        display: it('txt-required'),
-                                        confirmText: t('txt-close')
-                                    });
-                                    return false
+                                    fileCheck = false
                                 }
                             }
                         })
+                    }else{
+                        fileCheck = true
                     }
+
 
                     if (_.size(ttp.obsUriList) > 0) {
                         _.forEach(ttp.obsUriList, uri => {
                             if (uri.uriType && uri.uriValue) {
-                                sizeCheck = true
+                                urlCheck = true
                             } else {
-                                PopupDialog.alert({
-                                    title: t('txt-tips'),
-                                    display: it('txt-required'),
-                                    confirmText: t('txt-close')
-                                });
-                                return false
+                                urlCheck = false
                             }
                         })
+                    }else{
+                        urlCheck = true
                     }
 
                     if (_.size(ttp.obsSocketList) > 0) {
@@ -1607,28 +1619,77 @@ class Incident extends Component {
                                         display: t('network-topology.txt-ipValidationFail'),
                                         confirmText: t('txt-close')
                                     });
-                                    return false
+                                    socketCheck = false
+                                    return
                                 }
 
-                                if ( socket.port && !helper.ValidatePort(socket.port)){
-                                    PopupDialog.alert({
-                                        title: t('txt-tips'),
-                                        display: t('network-topology.txt-portValidationFail'),
-                                        confirmText: t('txt-close')
-                                    });
-                                    return false
+                                if (socket.port){
+                                    if (!helper.ValidatePort(socket.port)){
+                                        PopupDialog.alert({
+                                            title: t('txt-tips'),
+                                            display: t('network-topology.txt-portValidationFail'),
+                                            confirmText: t('txt-close')
+                                        });
+                                        socketCheck = false
+                                        return
+                                    }else{
+                                        if (!socket.ip){
+                                            PopupDialog.alert({
+                                                title: t('txt-tips'),
+                                                display: t('network-topology.txt-ipValidationFail'),
+                                                confirmText: t('txt-close')
+                                            });
+                                            socketCheck = false
+                                            return
+                                        }
+                                        socketCheck = true
+                                    }
                                 }
-                                sizeCheck = true
+                                socketCheck = true
                             }else {
-                                PopupDialog.alert({
-                                    title: t('txt-tips'),
-                                    display: it('txt-required'),
-                                    confirmText: t('txt-close')
-                                });
-                                return false
+                                socketCheck = false
+                                return
                             }
                         })
+                    }else{
+                        socketCheck = true
                     }
+
+                    if (!fileCheck && !urlCheck && !socketCheck){
+                        PopupDialog.alert({
+                            title: t('txt-tips'),
+                            display: it('txt-incident-ttps')+'('+it('txt-ttp-obs-file')+'/'+it('txt-ttp-obs-uri')+'/'+it('txt-ttp-obs-socket')+'-'+it('txt-mustOne')+')',
+                            confirmText: t('txt-close')
+                        });
+                        statusCheck = false
+                    }
+
+                    if (!fileCheck){
+                        PopupDialog.alert({
+                            title: t('txt-tips'),
+                            display: it('txt-checkFileFieldType'),
+                            confirmText: t('txt-close')
+                        });
+                        statusCheck = false
+                    }
+
+                    if (!urlCheck){
+                        PopupDialog.alert({
+                            title: t('txt-tips'),
+                            display: it('txt-checkUrlFieldType'),
+                            confirmText: t('txt-close')
+                        });
+                        statusCheck = false
+                    }
+                    if (!socketCheck){
+                        PopupDialog.alert({
+                            title: t('txt-tips'),
+                            display: it('txt-checkIPFieldType'),
+                            confirmText: t('txt-close')
+                        });
+                        statusCheck = false
+                    }
+
 
                     if (_.size(ttp.obsSocketList) <= 0 && _.size(ttp.obsUriList) <= 0 && _.size(ttp.obsFileList) <= 0){
                         PopupDialog.alert({
@@ -1636,15 +1697,20 @@ class Incident extends Component {
                             display: it('txt-incident-ttps')+'('+it('txt-ttp-obs-file')+'/'+it('txt-ttp-obs-uri')+'/'+it('txt-ttp-obs-socket')+'-'+it('txt-mustOne')+')',
                             confirmText: t('txt-close')
                         });
-                        return  false
+                        statusCheck = false
                     }
+
                 })
+
+
 
                 let empty = _.filter(incident.ttpList, function (o) {
                     if (o.infrastructureType === undefined){
                         o.infrastructureType === '0'
                     }
-                    return !o.title || !o.infrastructureType
+                    if (!o.title || !o.infrastructureType){
+                        statusCheck = false
+                    }
                 });
 
                 if (_.size(empty) > 0) {
@@ -1653,10 +1719,9 @@ class Incident extends Component {
                         display: it('txt-validTechniqueInfa'),
                         confirmText: t('txt-close')
                     });
-                    return false
+                    statusCheck =   false
                 }
-
-                return sizeCheck
+                return statusCheck
             }
         }
 
