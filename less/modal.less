@@ -665,6 +665,7 @@ html[data-theme='dark'] {
             word-break: break-all;
             border-top: 1px solid var(--primaryBorder);
             .path {
+              position: relative;
               display: flex;
               overflow-wrap: break-word;
               color: var(--primaryTextColor);
@@ -696,8 +697,17 @@ html[data-theme='dark'] {
                   margin-right: 0;
                 }
               }
-              .scan-type {
-                color: #b1b1b1;
+              .path-btn {
+                position: absolute;
+                top: 6px;
+                right: 10px;
+                padding: 0 5px;
+                &:hover {
+                  background-color: var(--formBackground) !important;
+                }
+              }
+              .normal-cursor {
+                cursor: auto;
               }
               .product-count {
                 padding: 0 5px;

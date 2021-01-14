@@ -307,22 +307,22 @@ class SearchOptions extends Component {
               </div>
             }
             {searchInput.searchType === 'manual' &&
-                <TextField
-                  id='timeInterval'
-                  className='select-field'
-                  select
-                  variant='outlined'
-                  fullWidth
-                  size='small'
-                  value={searchInput.searchInterval}
-                  onChange={this.props.setSearchData.bind(this, 'searchInterval')}>
-                  <MenuItem value={'30m'}>{t('time-interval.txt-last30m')}</MenuItem>
-                  <MenuItem value={'1h'}>{t('time-interval.txt-last1h')}</MenuItem>
-                  <MenuItem value={'2h'}>{t('time-interval.txt-last2h')}</MenuItem>
-                  <MenuItem value={'today'}>{t('time-interval.txt-today')}</MenuItem>
-                  <MenuItem value={'24h'}>{t('time-interval.txt-last24h')}</MenuItem>
-                  <MenuItem value={'week'}>{t('time-interval.txt-week')}</MenuItem>
-                </TextField>
+              <TextField
+                id='timeInterval'
+                className='select-field'
+                select
+                variant='outlined'
+                fullWidth
+                size='small'
+                value={searchInput.searchInterval}
+                onChange={this.props.setSearchData.bind(this, 'searchInterval')}>
+                <MenuItem value={'30m'}>{t('time-interval.txt-last30m')}</MenuItem>
+                <MenuItem value={'1h'}>{t('time-interval.txt-last1h')}</MenuItem>
+                <MenuItem value={'2h'}>{t('time-interval.txt-last2h')}</MenuItem>
+                <MenuItem value={'today'}>{t('time-interval.txt-today')}</MenuItem>
+                <MenuItem value={'24h'}>{t('time-interval.txt-last24h')}</MenuItem>
+                <MenuItem value={'week'}>{t('time-interval.txt-week')}</MenuItem>
+              </TextField>
             }
           </div>
         }

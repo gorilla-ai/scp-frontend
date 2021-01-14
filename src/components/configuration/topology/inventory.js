@@ -1603,7 +1603,7 @@ class NetworkInventory extends Component {
    * @method
    * @param {string} [index] - index of the IP devicde data
    * @param {string | number} ipDeviceUUID - IP device UUID
-   * @param {string} options - option for 'oneDevice'
+   * @param {string} [options] - option for 'oneDevice'
    */
   getIPdeviceInfo = (index, ipDeviceUUID, options) => {
     const {baseUrl} = this.context;
@@ -1914,6 +1914,36 @@ class NetworkInventory extends Component {
     })
   }
   /**
+   * Handle malware add to white list
+   * @method
+   * @param {string} fileMD5 - File MD5
+   */
+  addToWhiteList = (fileMD5) => {
+    const {baseUrl} = this.context;
+    const {hostData} = this.props;
+    const requestData = [{
+      fileMD5,
+      hasHandled: true
+    }];
+
+    ah.one({
+      url: `${baseUrl}/api/hmd/malwareList`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        helper.showPopupMsg(t('txt-requestSent'));
+        this.getIPdeviceInfo();
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Display device info and HMD scan results
    * @method
    * @returns HTML DOM
@@ -1961,6 +1991,7 @@ class NetworkInventory extends Component {
           toggleSelectionIR={this.toggleSelectionIR}
           triggerTask={this.triggerTask}
           triggerFilesTask={this.triggerFilesTask}
+          addToWhiteList={this.addToWhiteList}
           getHMDinfo={this.getIPdeviceInfo}
           loadEventTracing={this.loadEventTracing} />
 

@@ -186,6 +186,7 @@ class HostAnalysis extends Component {
           toggleSelectionIR={this.toggleSelectionIR}
           triggerTask={this.triggerTask}
           triggerFilesTask={this.triggerFilesTask}
+          addToWhiteList={this.addToWhiteList}
           getHMDinfo={this.props.getIPdeviceInfo}
           loadEventTracing={this.props.loadEventTracing} />
       )
@@ -387,6 +388,36 @@ class HostAnalysis extends Component {
     .then(data => {
       if (data) {
         helper.showPopupMsg(t('txt-requestSent'));
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
+   * Handle malware add to white list
+   * @method
+   * @param {string} fileMD5 - File MD5
+   */
+  addToWhiteList = (fileMD5) => {
+    const {baseUrl} = this.context;
+    const {hostData} = this.props;
+    const requestData = [{
+      fileMD5,
+      hasHandled: true
+    }];
+
+    ah.one({
+      url: `${baseUrl}/api/hmd/malwareList`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        helper.showPopupMsg(t('txt-requestSent'));
+        this.props.getIPdeviceInfo(hostData);
       }
       return null;
     })
