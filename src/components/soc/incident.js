@@ -268,8 +268,7 @@ class Incident extends Component {
                                     formattedPatternIP = value
                                 }
                                 return <span>{formattedPatternIP}</span>
-                            }
-                            else {
+                            } else {
                                 return <span>{value}</span>
                             }
                         }
@@ -350,6 +349,14 @@ class Incident extends Component {
                                         })
                                     }
                                     </div>
+                                } else if (tempData === 'srcIPListString' || tempData === 'dstIPListString'){
+                                    let formattedPatternIP = ''
+                                    if (value.length > 32) {
+                                        formattedPatternIP = value.substr(0, 32) + '...';
+                                    }else{
+                                        formattedPatternIP = value
+                                    }
+                                    return <span>{formattedPatternIP}</span>
                                 } else {
                                     return <span>{value}</span>
                                 }
