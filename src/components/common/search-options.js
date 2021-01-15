@@ -147,9 +147,13 @@ class SearchOptions extends Component {
   showDataRange = () => {
     const {locale} = this.context;
     const {enableTime, datetime, searchInput} = this.props;
-    const searchType = searchInput.searchType;
     const showTime = typeof enableTime === 'boolean' ? enableTime : true;
     let dateLocale = locale;
+    let searchType = '';
+
+    if (searchInput && searchInput.searchType) {
+      searchType = searchInput.searchType;
+    }
 
     if (locale === 'zh') {
       dateLocale += '-tw';
@@ -177,7 +181,7 @@ class SearchOptions extends Component {
             ampm={false}
             value={datetime.to}
             onChange={this.props.handleDateChange.bind(this, 'to')}
-            disabled={searchType === 'auto'} />
+            disabled={searchType && searchType === 'auto'} />
         </MuiPickersUtilsProvider>
       )
     } else {
@@ -198,7 +202,7 @@ class SearchOptions extends Component {
             format='YYYY-MM-DD'
             value={datetime.to}
             onChange={this.props.handleDateChange.bind(this, 'to')}
-            disabled={searchType === 'auto'} />
+            disabled={searchType && searchType === 'auto'} />
         </MuiPickersUtilsProvider>
       )
     }
