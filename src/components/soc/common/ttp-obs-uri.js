@@ -47,7 +47,6 @@ class TtpObsUri extends Component {
 						disabled={activeContent === 'viewIncident'}>
 						{
 							_.map([
-								{text: 'URL', value: 0},
 								{text: f('incidentFields.domain'), value: 1}
 							], el => {
 								return <MenuItem value={el.value}>{el.text}</MenuItem>
