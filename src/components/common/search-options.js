@@ -67,6 +67,31 @@ class SearchOptions extends Component {
     }
   }
   /**
+   * Set search type and interval based on user's selection
+   * @method
+   * @param {object} event - event object ('manual' or 'auto')
+   */
+  handleSearchTypeChange = (event) => {
+    this.props.setSearchData({
+      searchType: event.target.value
+    }, event.target.name);
+
+    if (event.target.value === 'manual' && this.intervalId) { //clear time interval for manual search type
+      clearInterval(this.intervalId);
+      this.intervalId = null;
+    }
+  }
+  /**
+   * Set new datetime based on time interval
+   * @method
+   */
+  setNewDatetime = () => {
+    this.props.handleDateChange('refresh', {
+      from: this.props.datetime.from,
+      to: moment().local().format('YYYY-MM-DDTHH:mm:ss') //set to current time
+    });
+  }
+  /**
    * Get calculated time based on user's time selection
    * @method
    * @param {string} type - time options
@@ -105,40 +130,13 @@ class SearchOptions extends Component {
     return time;
   }
   /**
-   * Set search type and interval based on user's selection
-   * @method
-   * @param {object} event - event object ('manual' or 'auto')
-   */
-  handleSearchTypeChange = (event) => {
-    this.props.setSearchData('all', {
-      searchType: event.target.value,
-      searchInterval: '1h',
-      refreshTime: '600000'
-    });
-
-    if (this.intervalId) {
-      clearInterval(this.intervalId);
-      this.intervalId = null;
-    }
-  }
-  /**
-   * Set new datetime based on time interval
-   * @method
-   */
-  setNewDatetime = () => {
-    this.props.handleDateChange('refresh', {
-      from: this.getCalculatedTime(this.props.searchInput.searchInterval),
-      to: moment().local().format('YYYY-MM-DDTHH:mm') + ':00'
-    });
-  }
-  /**
    * Set search data based on user's selection
    * @method
    */
   handleIntervalConfirm = () => {
     this.props.handleDateChange('customTime', {
-      from: this.getCalculatedTime(this.props.searchInput.searchInterval),
-      to: moment().local().format('YYYY-MM-DDTHH:mm:ss')
+      from: this.getCalculatedTime(this.props.searchInput.searchInterval), //set time based on time interval selection
+      to: moment().local().format('YYYY-MM-DDTHH:mm:ss') //set to current time
     });
   }
   /**
@@ -148,7 +146,8 @@ class SearchOptions extends Component {
    */
   showDataRange = () => {
     const {locale} = this.context;
-    const {enableTime, datetime} = this.props;
+    const {enableTime, datetime, searchInput} = this.props;
+    const searchType = searchInput.searchType;
     const showTime = typeof enableTime === 'boolean' ? enableTime : true;
     let dateLocale = locale;
 
@@ -177,7 +176,8 @@ class SearchOptions extends Component {
             format='YYYY-MM-DD HH:mm'
             ampm={false}
             value={datetime.to}
-            onChange={this.props.handleDateChange.bind(this, 'to')} />
+            onChange={this.props.handleDateChange.bind(this, 'to')}
+            disabled={searchType === 'auto'} />
         </MuiPickersUtilsProvider>
       )
     } else {
@@ -197,7 +197,8 @@ class SearchOptions extends Component {
             variant='inline'
             format='YYYY-MM-DD'
             value={datetime.to}
-            onChange={this.props.handleDateChange.bind(this, 'to')} />
+            onChange={this.props.handleDateChange.bind(this, 'to')}
+            disabled={searchType === 'auto'} />
         </MuiPickersUtilsProvider>
       )
     }
@@ -258,6 +259,7 @@ class SearchOptions extends Component {
         {showInterval &&
           <TextField
             className='search-type'
+            name='searchType'
             select
             variant='outlined'
             size='small'
@@ -276,11 +278,12 @@ class SearchOptions extends Component {
                   <TextField
                     id='updateInterval'
                     className='select-field'
+                    name='refreshTime'
                     select
                     variant='outlined'
                     size='small'
                     value={searchInput.refreshTime}
-                    onChange={this.props.setSearchData.bind(this, 'refreshTime')}>
+                    onChange={this.props.setSearchData}>
                     <MenuItem value={'15000'}>{t('time-interval.txt-15s')}</MenuItem>
                     <MenuItem value={'30000'}>{t('time-interval.txt-30s')}</MenuItem>
                     <MenuItem value={'60000'}>{t('time-interval.txt-1m')}</MenuItem>
@@ -293,11 +296,12 @@ class SearchOptions extends Component {
                   <TextField
                     id='timeInterval'
                     className='select-field'
+                    name='searchInterval'
                     select
                     variant='outlined'
                     size='small'
                     value={searchInput.searchInterval}
-                    onChange={this.props.setSearchData.bind(this, 'searchInterval')}>
+                    onChange={this.props.setSearchData}>
                     <MenuItem value={'15m'}>{t('time-interval.txt-last15m')}</MenuItem>
                     <MenuItem value={'30m'}>{t('time-interval.txt-last30m')}</MenuItem>
                     <MenuItem value={'1h'}>{t('time-interval.txt-last1h')}</MenuItem>
@@ -310,12 +314,13 @@ class SearchOptions extends Component {
               <TextField
                 id='timeInterval'
                 className='select-field'
+                name='searchInterval'
                 select
                 variant='outlined'
                 fullWidth
                 size='small'
                 value={searchInput.searchInterval}
-                onChange={this.props.setSearchData.bind(this, 'searchInterval')}>
+                onChange={this.props.setSearchData}>
                 <MenuItem value={'30m'}>{t('time-interval.txt-last30m')}</MenuItem>
                 <MenuItem value={'1h'}>{t('time-interval.txt-last1h')}</MenuItem>
                 <MenuItem value={'2h'}>{t('time-interval.txt-last2h')}</MenuItem>

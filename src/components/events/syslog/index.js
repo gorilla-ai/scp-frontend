@@ -82,7 +82,7 @@ class SyslogController extends Component {
       searchInput: {
         searchType: 'manual',
         searchInterval: '1h',
-        refreshTime: '600000' //10 minutes
+        refreshTime: '60000' //1 min.
       },
       eventHistogram: {},
       filterData: [{
@@ -1903,27 +1903,23 @@ class SyslogController extends Component {
   /**
    * Set search options data
    * @method
-   * @param {string} type - search type to be set ('all' and others)
    * @param {string | object} event - event object
+   * @param {string} [type] - for 'searchType' input
    */
-  setSearchData = (type, event) => {
-    const value = event.target ? event.target.value : event;
+  setSearchData = (event, inputType) => {
+    let tempSearchInput = {...this.state.searchInput};
 
-    if (type === 'all') {
-      this.setState({
-        searchInput: value
-      });
+    if (event.target) {
+      tempSearchInput[event.target.name] = event.target.value;
     } else {
-      let tempSearchInput = {...this.state.searchInput};
-
-      if (value) {
-        tempSearchInput[type] = value;
-
-        this.setState({
-          searchInput: tempSearchInput
-        });
-      }
+      tempSearchInput[inputType] = event[inputType];
+      tempSearchInput.searchInterval = '1h'; //set default value
+      tempSearchInput.refreshTime = '60000'; //set default value for 1 min.
     }
+
+    this.setState({
+      searchInput: tempSearchInput
+    });
   }
   /**
    * Reset query data

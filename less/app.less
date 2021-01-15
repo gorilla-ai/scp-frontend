@@ -53,6 +53,7 @@ html {
   --laBackground: #fff;
   --fadedColor: #fff;
   --disabledColor: #ccc;
+  --disabledCalendar: #999;
 }
 html[data-theme='dark'] {
   --primaryBackground: #000;
@@ -107,6 +108,7 @@ html[data-theme='dark'] {
   --laBackground: #333;
   --fadedColor: #999;
   --disabledColor: #666;
+  --disabledCalendar: #ccc;
 }
 html, body, #app-container {
   font-family:"Segoe UI", "微軟正黑體", "新細明體";
@@ -601,6 +603,13 @@ button.standard:hover:not([disabled]) {
       color: var(--primaryTextColor) !important;
       &:hover {
         background-color: rgba(0, 0, 0, 0) !important;
+      }
+    }
+    .Mui-disabled {
+      border: none;
+      cursor: not-allowed;
+      input {
+        color: var(--disabledCalendar) !important;
       }
     }
   }
