@@ -16,6 +16,7 @@ import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 import DataTable from 'react-ui/build/src/components/table'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
 import MultiInput from 'react-ui/build/src/components/multi-input'
+import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import {BaseDataContext} from './context';
 import helper from './helper'
@@ -914,6 +915,31 @@ class HMDscanInfo extends Component {
     return <span style={{color : val ? '#22ac38' : '#d0021b'}}>{val.toString()}</span>
   }
   /**
+   * Open confirm white list dialog
+   * @method
+   * @param {string} fileMD5 - File MD5
+   * @param {string} [ipType] - 'srcIp' or 'destIp'
+   * 
+   */
+  confirmAddWhitelist = (fileMD5, ipType) => {
+    PopupDialog.prompt({
+      title: t('network-inventory.txt-addWhiteList'),
+      id: 'modalWindowSmall',
+      confirmText: t('txt-ok'),
+      cancelText: t('txt-cancel'),
+      display: (
+        <div className='content'>
+          <span>{t('network-inventory.txt-confirmWhiteList')}?</span>
+        </div>
+      ),
+      act: (confirmed) => {
+        if (confirmed) {
+          this.props.addToWhiteList(fileMD5, ipType);
+        }
+      }
+    });
+  }
+  /**
    * Display Scan File (Malware) content
    * @method
    * @param {number} parentIndex - parent index of the scan file array
@@ -965,18 +991,18 @@ class HMDscanInfo extends Component {
 
     return (
       <div key={uniqueKey} className='group'>
-        <div className='path pointer' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
-          <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`}></i>
+        <div className='path'>
+          <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`} onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}></i>
           <div className='path-header'>
             {filePath &&
-              <span>{t('txt-path')}: {filePath}</span>
+              <span title={filePath}>{t('txt-path')}: {filePath.substr(0, 100) + '...'}</span>
             }
             {matchPID &&
               <span>{matchPID}</span>
             }
           </div>
           {val.hasHandled === false &&
-            <Button variant='outlined' color='primary' className='path-btn' onClick={this.props.addToWhiteList.bind(this, val._FileInfo._HashValues._MD5), ipType}>{t('network-inventory.txt-addWhiteList')}</Button>
+            <Button variant='outlined' color='primary' className='path-btn' onClick={this.confirmAddWhitelist.bind(this, val._FileInfo._HashValues._MD5, ipType)}>{t('network-inventory.txt-addWhiteList')}</Button>
           }
           {val.hasHandled === true &&
             <span className='normal-cursor'>{t('network-inventory.txt-addedWhiteList')}</span>

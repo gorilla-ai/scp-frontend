@@ -18,7 +18,6 @@ import Tabs from '@material-ui/core/Tabs';
 
 import {downloadWithForm} from 'react-ui/build/src/utils/download'
 import Gis from 'react-gis/build/src/components'
-import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import {BaseDataContext} from '../common/context';
 import helper from '../common/helper'
@@ -55,9 +54,17 @@ const SCAN_RESULT = [
     result: 'fileIntegrityResult'
   },
   {
+    name: 'Event Tracing',
+    result: 'eventTracingResult'
+  },
+  {
     name: 'Process Monitor',
     result: 'procMonitorResult'
-  }
+  },
+  {
+    name: 'VANS',
+    result: '_VansResult'
+  },
 ];
 const HMD_STATUS_LIST = ['isNotHmd', 'isLatestVersion', 'isOldVersion', 'isOwnerNull', 'isAreaNull', 'isSeatNull'];
 const HMD_LIST = [
@@ -950,7 +957,7 @@ class HostController extends Component {
     let displayContent = '';
 
     if (safetyData && safetyData.length > 0) {
-      if (!safetyData[0].taskStatus) {
+      if (val.result !== 'eventTracingResult' && !safetyData[0].taskStatus) {
         return;
       }
 
@@ -962,15 +969,30 @@ class HostController extends Component {
         color = '#e15b6b';
         title = displayTooltip += t('network-inventory.txt-notSupport');
         displayContent = t('network-inventory.txt-notSupport');
-      } else if (safetyData[0].taskStatus === 'Complete') {
-        if (val.name === 'GCB') {
-          displayCount = helper.numberWithCommas(safetyData[0][val.pass]) + '/' + helper.numberWithCommas(safetyData[0].TotalCnt);
-          displayTooltip += t('network-inventory.txt-passCount') + '/' + t('network-inventory.txt-totalItem');
-          color = safetyData[0][val.pass] === safetyData[0].TotalCnt ? '#70c97e' : '#e15b6b';
-        } else {
+      } else {
+        if (val.result === 'eventTracingResult' && safetyData[0].TotalCnt >= 0) {
           displayCount = helper.numberWithCommas(safetyData[0].TotalCnt);
-          displayTooltip += val.name === 'File Integrity' ? t('network-inventory.txt-modifiedFileCount') : t('network-inventory.txt-suspiciousFileCount');
-          color = safetyData[0].TotalCnt === 0 ? '#70c97e' : '#e15b6b';
+          displayTooltip += t('network-inventory.txt-eventsLogCount');
+          color = '#e15b6b';
+        }
+        if (safetyData[0].taskStatus === 'Complete') {
+          if (val.name === 'GCB') {
+            displayCount = helper.numberWithCommas(safetyData[0][val.pass]) + '/' + helper.numberWithCommas(safetyData[0].TotalCnt);
+            displayTooltip += t('network-inventory.txt-passCount') + '/' + t('network-inventory.txt-totalItem');
+            color = safetyData[0][val.pass] === safetyData[0].TotalCnt ? '#70c97e' : '#e15b6b';
+          } else {
+            let text = t('network-inventory.txt-suspiciousFileCount');
+
+            if (val.name === 'File Integrity') {
+              text = t('network-inventory.txt-modifiedFileCount');
+            } else if (val.name === 'VANS') {
+              text = t('network-inventory.txt-VulnerabilityCount');
+            }
+
+            displayCount = helper.numberWithCommas(safetyData[0].TotalCnt);
+            displayTooltip += text;
+            color = safetyData[0].TotalCnt === 0 ? '#70c97e' : '#e15b6b';
+          }
         }
 
         title = displayTooltip + ': ' + displayCount;

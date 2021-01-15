@@ -253,7 +253,7 @@ class ManageGroup extends Component {
       ),
       act: (confirmed) => {
         if (confirmed) {
-          this.deleteGroup(group)
+          this.deleteGroup(group);
         }
       }
     });
