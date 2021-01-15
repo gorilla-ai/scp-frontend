@@ -150,7 +150,7 @@ class Incident extends Component {
             if (_.includes(session.roles, 'SOC Supervior') || _.includes(session.roles, 'SOC Supervisor')||  _.includes(session.roles, 'SOC Executor')){
                 if (_.includes(session.roles, 'SOC Executor')){
                     this.setState({
-                        accountRoleType:SOC_Super
+                        accountRoleType:SOC_Executor
                     },() => {
                         this.loadCondition('unhandled')
                     })
@@ -167,12 +167,18 @@ class Incident extends Component {
                 },() => {
                     this.loadCondition('unhandled')
                 })
-            } else{
+            } else  if (_.includes(session.roles, 'SOC Analyzer')){
                 this.setState({
                     accountRoleType:SOC_Analyzer
                 },() => {
                     this.loadCondition('unhandled')
                 })
+            } else{
+                // this.setState({
+                //     accountRoleType:SOC_Analyzer
+                // },() => {
+                //     this.loadCondition('unhandled')
+                // })
             }
         }
 
@@ -1089,8 +1095,11 @@ class Incident extends Component {
             {
                 activeContent === 'addIncident' &&
                 <div className='group'>
+                    {/*<FileInput id='attach' name='file'  validate={{ max:20 ,t: this.getErrorMsg}}*/}
+                    {/*           onChange={this.handleAFChange} btnText={t('txt-selectFile')} />*/}
                    <FileInput
                         btnText={t('txt-selectFile')}
+                        name='file'
                         value={attach}
                         validate={{ max:20 ,t: this.getErrorMsg}}
                         onChange={this.handleAttachChange.bind(this)} />
