@@ -9,6 +9,7 @@ import Button from '@material-ui/core/Button';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
+import TextField from '@material-ui/core/TextField';
 
 import {BaseDataContext} from '../../common/context';
 import helper from '../../common/helper'
@@ -44,7 +45,9 @@ class HMDsettings extends Component {
         }]
       },
       originalGcbVersion: '',
-      gcbVersion: ''
+      gcbVersion: '',
+      originalPmInterval: '',
+      pmInterval: 1
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -64,7 +67,7 @@ class HMDsettings extends Component {
    */
   getSettingsInfo = () => {
     const {baseUrl} = this.context;
-    const scanType = ['hmd.scanFile.path', 'hmd.scanFile.exclude.path', 'hmd.gcb.version'];
+    const scanType = ['hmd.scanFile.path', 'hmd.scanFile.exclude.path', 'hmd.gcb.version', 'hmd.setProcessWhiteList._MonitorSec'];
     let apiArr = [];
 
     _.forEach(scanType, val => {
@@ -114,6 +117,13 @@ class HMDsettings extends Component {
             gcbVersion: data[2].value
           });
         }
+
+        if (data[3] && data[3].value) {
+          this.setState({
+            originalPmInterval: _.cloneDeep(data[3].value),
+            pmInterval: Number(data[3].value)
+          });
+        }
       }
       return null;
     })
@@ -127,7 +137,7 @@ class HMDsettings extends Component {
    * @param {string} type - content type ('editMode', 'save' or 'cancel')
    */
   toggleContent = (type) => {
-    const {originalScanFiles, originalGcbVersion} = this.state;
+    const {originalScanFiles, originalGcbVersion, originalPmInterval} = this.state;
     let showPage = type;
 
     if (type === 'save') {
@@ -138,7 +148,8 @@ class HMDsettings extends Component {
 
       this.setState({
         scanFiles: _.cloneDeep(originalScanFiles),
-        gcbVersion: _.cloneDeep(originalGcbVersion)
+        gcbVersion: _.cloneDeep(originalGcbVersion),
+        pmInterval: _.cloneDeep(originalPmInterval)
       });
     }
 
@@ -203,7 +214,7 @@ class HMDsettings extends Component {
    */
   handleScanFilesConfirm = () => {
     const {baseUrl} = this.context;
-    const {scanFiles, gcbVersion} = this.state;
+    const {scanFiles, gcbVersion, pmInterval} = this.state;
     const url = `${baseUrl}/api/hmd/config`;
     let parsedIncludePath = [];
     let parsedExcludePath = [];
@@ -232,6 +243,10 @@ class HMDsettings extends Component {
       {
         type: 'hmd.gcb.version',
         value: gcbVersion
+      },
+      {
+        type: 'hmd.setProcessWhiteList._MonitorSec',
+        value: pmInterval.toString()
       }
     ];
     let apiArr = [];
@@ -271,8 +286,18 @@ class HMDsettings extends Component {
       gcbVersion: event.target.value
     });
   }
+  /**
+   * Handle input data change
+   * @method
+   * @param {object} event - event object
+   */
+  handleDataChange = (event) => {
+    this.setState({
+      pmInterval: event.target.value
+    });
+  }
   render() {
-    const {activeContent, gcbVersion} = this.state;
+    const {activeContent, gcbVersion, pmInterval} = this.state;
 
     return (
       <div className='parent-content'>
@@ -296,7 +321,7 @@ class HMDsettings extends Component {
             <div className='form-group normal long'>
               <header>{t('network-inventory.scan-list.txt-gcb')}</header>
               <div className='group'>
-                <label>{t('network-inventory.txt-gcbVersion')}</label>
+                <label>{t('network-inventory.txt-learningInterval')}</label>
                 <RadioGroup
                   className='radio-group'
                   value={gcbVersion}
@@ -321,6 +346,21 @@ class HMDsettings extends Component {
                     label='US'
                     disabled={activeContent === 'viewMode'} />
                 </RadioGroup>
+              </div>
+            </div>
+
+            <div className='form-group normal long'>
+              <header>{t('network-inventory.scan-list.txt-procMonitor')}</header>
+              <div className='group'>
+                <label>{t('network-inventory.txt-learningInterval')}</label>
+                <TextField
+                  type='number'
+                  variant='outlined'
+                  size='small'
+                  InputProps={{inputProps: { min: 0 }}}
+                  value={pmInterval}
+                  onChange={this.handleDataChange}
+                  disabled={activeContent === 'viewMode'} />
               </div>
             </div>
           </div>

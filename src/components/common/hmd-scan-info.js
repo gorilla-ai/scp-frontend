@@ -922,6 +922,7 @@ class HMDscanInfo extends Component {
    * @returns HTML DOM
    */
   displayScanFilePath = (parentIndex, val, i) => {
+    const {ipType} = this.props;
     const {activePath, activeRuleHeader} = this.state;
     const virusTotalLink = `https://www.virustotal.com/gui/file/${val._FileInfo._HashValues._MD5}`;
     let uniqueKey = '';
@@ -929,17 +930,12 @@ class HMDscanInfo extends Component {
     let displayInfo = NOT_AVAILABLE;
     let filePath = '';
     let matchPID = '';
-    let scanType = '';
     let detectedCount = NOT_AVAILABLE;
 
     if (val && val._FileInfo) { //For AI
       uniqueKey = val._FileInfo._Filepath + i;
       uniqueID = parentIndex.toString() + i.toString() + val._FileInfo._Filepath;
       filePath = val._FileInfo._Filepath;
-
-      if (val.isAI) {
-        scanType += 'AI';
-      }
     }
 
     if (val && val._YaraResult && !_.isEmpty(val._YaraResult)) { //For Yara
@@ -956,14 +952,6 @@ class HMDscanInfo extends Component {
 
       if (val._YaraResult._MatchedPid) {
         matchPID = ', PID: ' + val._YaraResult._MatchedPid;
-      }
-
-      if (scanType) {
-        scanType += ' / ';
-      }
-
-      if (val.isYARA) {
-        scanType += 'YARA';
       }
     }
 
@@ -987,11 +975,12 @@ class HMDscanInfo extends Component {
               <span>{matchPID}</span>
             }
           </div>
-          <div className='scan-type'>
-            {scanType &&
-              <span>{scanType}</span>
-            }
-          </div>
+          {val.hasHandled === false &&
+            <Button variant='outlined' color='primary' className='path-btn' onClick={this.props.addToWhiteList.bind(this, val._FileInfo._HashValues._MD5), ipType}>{t('network-inventory.txt-addWhiteList')}</Button>
+          }
+          {val.hasHandled === true &&
+            <span className='normal-cursor'>{t('network-inventory.txt-addedWhiteList')}</span>
+          }
         </div>
         <div className={cx('rule', {'hide': activePath !== uniqueID})}>
           <div className='item-content'>
@@ -2201,6 +2190,7 @@ HMDscanInfo.propTypes = {
   toggleSelectionIR: PropTypes.func.isRequired,
   triggerTask: PropTypes.func.isRequired,
   triggerFilesTask: PropTypes.func.isRequired,
+  addToWhiteList: PropTypes.func.isRequired,
   toggleYaraRule: PropTypes.func.isRequired,
   getHMDinfo: PropTypes.func.isRequired,
   loadEventTracing: PropTypes.func.isRequired,

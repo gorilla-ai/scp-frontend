@@ -1627,6 +1627,37 @@ class AlertDetails extends Component {
     })
   }
   /**
+   * Handle malware add to white list
+   * @method
+   * @param {string} fileMD5 - File MD5
+   * @param {string} ipType - 'srcIp' or 'destIp'
+   */
+  addToWhiteList = (fileMD5, ipType) => {
+    const {baseUrl} = this.context;
+    const {hostData} = this.props;
+    const requestData = [{
+      fileMD5,
+      hasHandled: true
+    }];
+
+    ah.one({
+      url: `${baseUrl}/api/hmd/malwareList`,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    })
+    .then(data => {
+      if (data.ret === 0) {
+        helper.showPopupMsg(t('txt-requestSent'));
+        this.getHMDinfo(ipType);
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+  }
+  /**
    * Display safety scan content
    * @method
    * @param {string} ipType - 'srcIp' or 'destIp'
@@ -1647,6 +1678,7 @@ class AlertDetails extends Component {
           toggleSelectionIR={this.toggleSelectionIR}
           triggerTask={this.triggerTask}
           triggerFilesTask={this.triggerFilesTask}
+          addToWhiteList={this.addToWhiteList}
           getHMDinfo={this.getHMDinfo}
           loadEventTracing={this.loadEventTracing} />
       )

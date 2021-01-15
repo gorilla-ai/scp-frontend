@@ -56,7 +56,7 @@ const INIT = {
   searchInput: {
     searchType: 'manual',
     searchInterval: '1h',
-    refreshTime: '600000' //10 minutes
+    refreshTime: '60000' //1 min.
   },
   openLayout: false,
   openEdit: false,
@@ -256,24 +256,26 @@ class StatisticsUIF extends Component {
       }
     });
   }
-  setSearchData = (type, event) => {
-    const value = event.target ? event.target.value : event;
+  /**
+   * Set search options data
+   * @method
+   * @param {string | object} event - event object
+   * @param {string} [type] - for 'searchType' input
+   */
+  setSearchData = (event, inputType) => {
+    let tempSearchInput = {...this.state.searchInput};
 
-    if (type === 'all') {
-      this.setState({
-        searchInput: value
-      });
+    if (event.target) {
+      tempSearchInput[event.target.name] = event.target.value;
     } else {
-      let tempSearchInput = {...this.state.searchInput};
-
-      if (value) {
-        tempSearchInput[type] = value;
-
-        this.setState({
-          searchInput: tempSearchInput
-        });
-      }
+      tempSearchInput[inputType] = event[inputType];
+      tempSearchInput.searchInterval = '1h'; //set default value
+      tempSearchInput.refreshTime = '60000'; //set default value for 1 min.
     }
+
+    this.setState({
+      searchInput: tempSearchInput
+    });
   }
   formatter = (value) => {
     return <div dangerouslySetInnerHTML={{__html: value}} />
