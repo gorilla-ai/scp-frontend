@@ -1092,6 +1092,7 @@ class Incident extends Component {
                    <FileInput
                         btnText={t('txt-selectFile')}
                         value={attach}
+                        validate={{ max:20 ,t: this.getErrorMsg}}
                         onChange={this.handleAttachChange.bind(this)} />
                 </div>
             }
