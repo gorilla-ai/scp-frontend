@@ -44,6 +44,14 @@ class Ttps extends Component {
 	render() {
 		let {activeContent, value: {title, infrastructureType, etsList, obsFileList, obsUriList, obsSocketList}} = this.props
 
+		if (infrastructureType  === 1){
+			infrastructureType = '1'
+		}
+
+		if (infrastructureType  === 0){
+			infrastructureType = '0'
+		}
+
 		return <div className='event-content'>
 			<div className='line'>
 				<div className='group'>
