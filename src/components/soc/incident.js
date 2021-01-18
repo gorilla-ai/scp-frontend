@@ -989,6 +989,7 @@ class Incident extends Component {
         let flag = new RegExp("[`~!@#$^&*()=|{}':;',\\[\\]<>+《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]")
         if (flag.test(val.name)){
             helper.showPopupMsg( it('txt-attachedFileNameError'), t('txt-error'), )
+            this.setState({attach: null})
         }else{
             this.setState({attach: val})
         }
@@ -999,6 +1000,7 @@ class Incident extends Component {
 
         if (flag.test(file.name)){
             helper.showPopupMsg( it('txt-attachedFileNameError'), t('txt-error'), )
+            this.setState({attach: null})
         }
     }
 
