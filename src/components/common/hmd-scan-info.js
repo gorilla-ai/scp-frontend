@@ -1257,10 +1257,11 @@ class HMDscanInfo extends Component {
    * Display suspicious file count content
    * @method
    * @param {array} dataResult - HMD data
+   * @param {number} totalCount - total count for scan file
    * @returns HTML DOM
    */
-  getSuspiciousFileCount = (dataResult) => {
-    const count = dataResult.length;
+  getSuspiciousFileCount = (dataResult, totalCount) => {
+    const count = this.state.activeTab === 'scanFile' ? totalCount : dataResult.length;
     const color = count === 0 ? '#22ac38' : '#d10d25'; //green : red
 
     return <span style={{color}}>{t('network-inventory.txt-suspiciousFileCount')}: {helper.numberWithCommas(count)}</span>
@@ -1552,7 +1553,7 @@ class HMDscanInfo extends Component {
             <span style={{color: '#d10d25'}}>{t('network-inventory.txt-notSupport')}</span>
           }
           {(activeTab === 'yara' || activeTab === 'scanFile' || activeTab === 'procMonitor') && dataResult &&
-            this.getSuspiciousFileCount(dataResult)
+            this.getSuspiciousFileCount(dataResult, val.TotalCnt)
           }
           {activeTab === 'scanFile' && dataResult &&
             <Button variant='contained' color='primary' className='btn download' onClick={this.handleMalwareBtn.bind(this, malwareBtnType, dataResult, val.taskId)} disabled={this.checkMalwareCompress(malwareBtnType, dataResult)}>{t(`network-inventory.txt-${malwareBtnType}File`)}</Button>
