@@ -989,6 +989,7 @@ class Incident extends Component {
         let flag = new RegExp("[`~!@#$^&*()=|{}':;',\\[\\]<>+《》/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]")
         if (flag.test(val.name)){
             helper.showPopupMsg( it('txt-attachedFileNameError'), t('txt-error'), )
+            this.setState({attach: null})
         }else{
             this.setState({attach: val})
         }
@@ -999,6 +1000,7 @@ class Incident extends Component {
 
         if (flag.test(file.name)){
             helper.showPopupMsg( it('txt-attachedFileNameError'), t('txt-error'), )
+            this.setState({attach: null})
         }
     }
 
@@ -1095,14 +1097,14 @@ class Incident extends Component {
             {
                 activeContent === 'addIncident' &&
                 <div className='group'>
-                    {/*<FileInput id='attach' name='file'  validate={{ max:20 ,t: this.getErrorMsg}}*/}
-                    {/*           onChange={this.handleAFChange} btnText={t('txt-selectFile')} />*/}
-                   <FileInput
-                        btnText={t('txt-selectFile')}
+                    <FileInput
+                        id='attach'
                         name='file'
-                        value={attach}
+                        className='file-input'
                         validate={{ max:20 ,t: this.getErrorMsg}}
-                        onChange={this.handleAttachChange.bind(this)} />
+                        onChange={this.handleAttachChange}
+                        btnText={t('txt-selectFile')}
+                    />
                 </div>
             }
             {
@@ -1121,7 +1123,6 @@ class Incident extends Component {
                 activeContent !== 'addIncident' &&
                 <div className='group'>
                     <Button variant='contained' color='primary' className='upload' onClick={this.uploadAttachmentModal.bind(this)}>{t('txt-upload')}</Button>
-                    {/*<button onClick={this.uploadAttachmentModal.bind(this)}>{t('txt-upload')}</button>*/}
                 </div>
             }
             {
