@@ -957,6 +957,7 @@ class HMDscanInfo extends Component {
     let filePath = '';
     let matchPID = '';
     let detectedCount = NOT_AVAILABLE;
+    let formattedFilePath = '';
 
     if (val && val._FileInfo) { //For AI
       uniqueKey = val._FileInfo._Filepath + i;
@@ -985,7 +986,13 @@ class HMDscanInfo extends Component {
       detectedCount = val.virusTotalDetectedCount;
     }
 
-    if (!filePath) {
+    if (filePath) {
+      if (filePath.length >= 140) {
+        formattedFilePath = filePath.substr(0, 140) + '...';
+      } else {
+        formattedFilePath = filePath;
+      }
+    } else {
       return;
     }
 
@@ -995,7 +1002,7 @@ class HMDscanInfo extends Component {
           <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`} onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}></i>
           <div className='path-header'>
             {filePath &&
-              <span title={filePath}>{t('txt-path')}: {filePath.substr(0, 100) + '...'}</span>
+              <span title={filePath}>{t('txt-path')}: {formattedFilePath}</span>
             }
             {matchPID &&
               <span>{matchPID}</span>
