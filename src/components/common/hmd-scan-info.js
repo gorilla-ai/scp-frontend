@@ -846,8 +846,8 @@ class HMDscanInfo extends Component {
 
     return (
       <div key={uniqueKey} className='group'>
-        <div className='path pointer' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
-          <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`}></i>
+        <div className='path'>
+          <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`} onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}></i>
           <div className='path-header'>
             {filePath &&
               <span>{t('txt-path')}: {filePath}</span>
@@ -1101,8 +1101,8 @@ class HMDscanInfo extends Component {
 
     return (
       <div key={uniqueKey} className='group'>
-        <div className='path pointer' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
-          <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`}></i>
+        <div className='path'>
+          <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`} onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}></i>
           <div className='path-header'>
             {ruleName &&
               <span>{t('txt-name')}: {ruleName}</span>
@@ -1219,8 +1219,8 @@ class HMDscanInfo extends Component {
 
     return (
       <div key={uniqueKey} className='group'>
-        <div className='path pointer' onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}>
-          <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`}></i>
+        <div className='path'>
+          <i className={`fg fg-arrow-${activePath === uniqueID ? 'top' : 'bottom'}`} onClick={this.togglePathRule.bind(this, 'path', i, uniqueID)}></i>
           <div className='path-header'>
             <span><span className='main'>{val.vendor}</span> | <span className='main'>{val.product}</span> | <span className='main'>{val.version}</span> | {vansName}</span>
           </div>
