@@ -1095,14 +1095,14 @@ class Incident extends Component {
             {
                 activeContent === 'addIncident' &&
                 <div className='group'>
-                    {/*<FileInput id='attach' name='file'  validate={{ max:20 ,t: this.getErrorMsg}}*/}
-                    {/*           onChange={this.handleAFChange} btnText={t('txt-selectFile')} />*/}
-                   <FileInput
-                        btnText={t('txt-selectFile')}
-                        name='file'
-                        value={attach}
-                        validate={{ max:20 ,t: this.getErrorMsg}}
-                        onChange={this.handleAttachChange.bind(this)} />
+                    <FileInput id='attach' name='file'  validate={{ max:20 ,t: this.getErrorMsg}}
+                               onChange={this.handleAFChange} btnText={t('txt-selectFile')} />
+                   {/*<FileInput*/}
+                   {/*     btnText={t('txt-selectFile')}*/}
+                   {/*     name='file'*/}
+                   {/*     value={attach}*/}
+                   {/*     validate={{ max:20 ,t: this.getErrorMsg}}*/}
+                   {/*     onChange={this.handleAttachChange.bind(this)} />*/}
                 </div>
             }
             {
