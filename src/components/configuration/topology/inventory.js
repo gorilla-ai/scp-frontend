@@ -76,6 +76,10 @@ const HMD_LIST = [
   {
     name: 'Process Monitor',
     cmds: 'setProcessWhiteList'
+  },
+  {
+    name: 'VANS',
+    cmds: 'getVans'
   }
 ];
 const MAPS_PRIVATE_DATA = {
