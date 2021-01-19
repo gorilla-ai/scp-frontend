@@ -177,7 +177,6 @@ class HostAnalysis extends Component {
       return (
         <HMDscanInfo
           page='host'
-          datetime={datetime}
           assessmentDatetime={assessmentDatetime}
           currentDeviceData={hostData}
           eventInfo={eventInfo}

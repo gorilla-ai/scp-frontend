@@ -1690,19 +1690,18 @@ class AlertDetails extends Component {
   /**
    * Download paylaod file
    * @method
-   * @returns false if origFileId and fileMD5 are not available
    */
   downloadFile = () => {
     const {baseUrl, contextRoot} = this.context;
     const {alertData} = this.props;
     let requestData = {};
 
-    if (alertData.origFileId && alertData.fileMD5) {
+    if (alertData.fileMD5) {
       requestData = {
-        origFileId: alertData.origFileId,
         md5: alertData.fileMD5
       };
     } else {
+      helper.showPopupMsg(t('txt-error'));
       return;
     }
 

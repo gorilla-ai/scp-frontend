@@ -1390,13 +1390,13 @@ class HMDscanInfo extends Component {
    */
   loadMoreContent = () => {
     const {baseUrl} = this.context;
-    const {page, datetime, currentDeviceData} = this.props;
+    const {page, assessmentDatetime, currentDeviceData} = this.props;
 
     scrollCount++;
     let url = `${baseUrl}/api/v2/ipdevice?uuid=${currentDeviceData.ipDeviceUUID}&page=${scrollCount}&pageSize=5`;
 
     if (page === 'host') {
-      url += `&startDttm=${datetime.from}&endDttm=${datetime.to}`;
+      url += `&startDttm=${assessmentDatetime.from}&endDttm=${assessmentDatetime.to}`;
     }
 
     this.ah.one({
@@ -2228,7 +2228,8 @@ HMDscanInfo.propTypes = {
   toggleYaraRule: PropTypes.func.isRequired,
   getHMDinfo: PropTypes.func.isRequired,
   loadEventTracing: PropTypes.func.isRequired,
-  openHmdType: PropTypes.string
+  openHmdType: PropTypes.string,
+  assessmentDatetime: PropTypes.object
 };
 
 export default withRouter(HMDscanInfo);
