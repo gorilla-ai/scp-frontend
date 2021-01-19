@@ -11,8 +11,10 @@ import TextField from '@material-ui/core/TextField';
 import {BaseDataContext} from "../../common/context"
 import {default as ah, getInstance} from "react-ui/build/src/utils/ajax-helper"
 import helper from "../../common/helper"
+import Checkbox from '@material-ui/core/Checkbox';
 
 import Select from 'react-select'
+import FormControlLabel from "@material-ui/core/FormControlLabel";
 
 let t = null
 let et = null
@@ -211,6 +213,46 @@ class IncidentTag extends Component {
         }
     }
 
+	displayCheckbox = (val, i) => {
+		return (
+			<div className='option' style={{display:'flex'}} key={val.id + i}>
+				<div className='incident-tag-square' style={{backgroundColor: val.color}}/>
+				&nbsp;
+				<FormControlLabel
+					key={i}
+					label={val.tag}
+					control={
+						<Checkbox
+							id={val}
+							className='checkbox-ui'
+							name={val.tag}
+							checked={this.checkSelectedItem(val.id)}
+							onChange={this.toggleCheckbox.bind(this, val.id)}
+							color='primary' />
+					} />
+			</div>
+		)
+	}
+
+	checkSelectedItem = (val) => {
+		return _.includes(this.state.selectedTags, val);
+	}
+
+	toggleCheckbox = (val , event) => {
+		let selectedTags = _.cloneDeep(this.state.selectedTags);
+
+		if (event.target.checked) {
+			selectedTags.push(val);
+		} else {
+			const index = selectedTags.indexOf(val);
+			selectedTags.splice(index, 1);
+		}
+
+		this.setState({
+			selectedTags
+		});
+	}
+
 	render() {
     	const {open, tags, selectedTags, id} = this.state
     	const actions ={
@@ -222,20 +264,10 @@ class IncidentTag extends Component {
             return null
         }
 
-        const tagList = _.map(tags, el => {
-            return {
-                value: el.id, 
-                text: <div style={{display: 'flex'}}>
-                    <div className='incident-tag-square' style={{backgroundColor: el.color}}/>
-                    &nbsp;{el.tag}
-                </div>
-            }
-        })
-
         return <ModalDialog className='incident-tag-modal' title={it('txt-custom-tag')} draggable={true} global={true} closeAction='cancel' actions={actions}>
             {
                 id &&
-                <CheckboxGroup list={tagList} onChange={this.handleChange.bind(this, 'selectedTags')} value={selectedTags} />
+                tags.map(this.displayCheckbox)
             }
             {
                 !id &&
