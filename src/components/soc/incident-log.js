@@ -149,6 +149,8 @@ class IncidentLog extends Component {
                                     return <span style={{color: '#008B02'}}>{it('txt-send-success')}</span>
                                 } else if (value === 'fail') {
                                     return <span style={{color: '#DB3E00'}}>{it('txt-send-fail')}</span>
+                                }else if (value === 'fail-connect') {
+                                    return <span style={{color: '#DB3E00'}}>{it('txt-send-connect-fail')}</span>
                                 }
                             } else {
                                 return <span>{value}</span>
@@ -327,6 +329,10 @@ class IncidentLog extends Component {
                                     {
                                         value: 'fail',
                                         text: it('txt-send-fail')
+                                    },
+                                    {
+                                        value: 'fail-connect',
+                                        text: it('txt-send-connect-fail')
                                     }
                                 ], el => {
                                     return <MenuItem value={el.value}>{el.text}</MenuItem>

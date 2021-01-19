@@ -23,6 +23,11 @@ let f = null;
 let et = null;
 let it = null;
 
+const SEND_STATUS_SUCCESS = 1;
+const SEND_STATUS_ERROR_NOT_CONNECT_NCCST = 2;
+const SEND_STATUS_ERROR_NOT_READY_INCIDENT = 3;
+const SEND_STATUS_ERROR_OTHER = 4;
+
 /**
  * Settings - IncidentDevice
  * @class
@@ -998,32 +1003,6 @@ class IncidentDevice extends Component {
     };
 
     /**
-     * Call API Send csv to NCCST with real data
-     */
-    sendCsv = () => {
-        const {baseUrl} = this.context;
-
-        ah.one({
-            url: `${baseUrl}/api/soc/device/_send`,
-            data: JSON.stringify({}),
-            type: 'POST',
-            contentType: 'application/json',
-            dataType: 'json'
-        })
-            .then(data => {
-                helper.showPopupMsg(it('txt-send-success'), it('txt-send'));
-                this.setState({
-                    activeContent: "tableList",
-                }, () => {
-                    this.getDeviceData();
-                });
-            })
-            .catch(err => {
-                helper.showPopupMsg(it('txt-send-fail'), it('txt-send'));
-            })
-    };
-
-    /**
      * Send edit CSV data to backend
      */
     sendCsvWithOnlineEditData = () => {
@@ -1036,7 +1015,7 @@ class IncidentDevice extends Component {
                 id: sendTemp.id,
                 select: sendTemp.select,
                 frequency: sendTemp.frequency,
-                note: sendTemp.note
+                reason: sendTemp.reason
             }
             sendList.push(tmp)
         })
@@ -1049,7 +1028,13 @@ class IncidentDevice extends Component {
             dataType: 'json'
         })
             .then(data => {
-                helper.showPopupMsg(it('txt-send-success'), it('txt-send'));
+                if (data && data.ret === SEND_STATUS_SUCCESS){
+                    helper.showPopupMsg(it('txt-send-success'), it('txt-send'));
+                }else if (data && data.ret === SEND_STATUS_ERROR_NOT_CONNECT_NCCST){
+                    helper.showPopupMsg(it('txt-send-connect-fail'), it('txt-send'));
+                }else {
+                    helper.showPopupMsg(it('txt-send-other-fail'), it('txt-send'));
+                }
             })
             .catch(err => {
                 helper.showPopupMsg(it('txt-send-fail'), it('txt-send'));
