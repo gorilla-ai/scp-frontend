@@ -323,18 +323,6 @@ class AlertDetails extends Component {
         type: 'GET'
       }
     ];
-
-    if (alertData[srcDestType + 'TopoInfo']) {
-      const ipDeviceUUID = alertData[srcDestType + 'TopoInfo'].ipDeviceUUID;
-
-      apiArr.push({
-        url: `${baseUrl}/api/u1/log/event/_search?page=1&pageSize=20`,
-        data: JSON.stringify(this.getRequestData(ipDeviceUUID)),
-        type: 'POST',
-        contentType: 'text/plain'     
-      });
-    }
-
     let tempAlertInfo = {...alertInfo};
     let tempIPdeviceInfo = {...ipDeviceInfo};
 
@@ -359,31 +347,30 @@ class AlertDetails extends Component {
             modalIRopen: false
           });
         }
-
-        if (data[2]) {
-          this.setEventTracingData(data[2]);
-        }
       }
       return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+
+    if (alertData[srcDestType + 'TopoInfo']) {
+      this.loadEventTracing(ipType, 1);
+    }
   }
   /**
    * Load Event Tracing data
    * @method
    * @param {string} ipType - 'srcIp' or 'destIp'
+   * @param {number} [page] - page number
    */
-  loadEventTracing = (ipType) => {
+  loadEventTracing = (ipType, page) => {
     const {baseUrl} = this.context;
-    const {alertData} = this.props;
-    const {eventInfo} = this.state;
     const srcDestType = ipType.replace('Ip', '');
-    const ipDeviceUUID = alertData[srcDestType + 'TopoInfo'].ipDeviceUUID;
+    const ipDeviceUUID = this.props.alertData[srcDestType + 'TopoInfo'].ipDeviceUUID;
 
     this.ah.one({
-      url: `${baseUrl}/api/u1/log/event/_search?page=${eventInfo.scrollCount}&pageSize=20`,
+      url: `${baseUrl}/api/u1/log/event/_search?page=${page || this.state.eventInfo.scrollCount}&pageSize=20`,
       data: JSON.stringify(this.getRequestData(ipDeviceUUID)),
       type: 'POST',
       contentType: 'text/plain'

@@ -1075,80 +1075,69 @@ class HostController extends Component {
     const {baseUrl} = this.context;
     const {assessmentDatetime, hostInfo, hostData} = this.state;
     const ipDeviceUUID = host ? host.ipDeviceUUID : hostData.ipDeviceUUID;
-    const apiArr = [
-      {
-        url: `${baseUrl}/api/v2/ipdevice?uuid=${ipDeviceUUID}&page=1&pageSize=5&startDttm=${assessmentDatetime.from}&endDttm=${assessmentDatetime.to}`,
-        type: 'GET'
-      },
-      {
-        url: `${baseUrl}/api/u1/log/event/_search?page=1&pageSize=20`,
-        data: JSON.stringify(this.getRequestData(ipDeviceUUID)),
-        type: 'POST',
-        contentType: 'text/plain'
-      }
-    ];
 
-    this.ah.all(apiArr)
+    this.ah.one({
+      url: `${baseUrl}/api/v2/ipdevice?uuid=${ipDeviceUUID}&page=1&pageSize=5&startDttm=${assessmentDatetime.from}&endDttm=${assessmentDatetime.to}`,
+      type: 'GET'
+    })
     .then(data => {
       if (data) {
-        if (data[0]) {
-          const activeHostInfo = _.find(hostInfo.dataContent, {ipDeviceUUID});
-          let hostData = {...data[0]};
+        const activeHostInfo = _.find(hostInfo.dataContent, {ipDeviceUUID});
+        let hostData = {...data};
 
-          if (activeHostInfo.networkBehaviorInfo) {
-            hostData.severityLevel = activeHostInfo.networkBehaviorInfo.severityLevel;
-          }
+        if (activeHostInfo.networkBehaviorInfo) {
+          hostData.severityLevel = activeHostInfo.networkBehaviorInfo.severityLevel;
+        }
 
-          if (!hostData.safetyScanInfo) {
-            hostData.safetyScanInfo = {};
-          }
+        if (!hostData.safetyScanInfo) {
+          hostData.safetyScanInfo = {};
+        }
 
-          this.setState({
-            hostData
-          }, () => {
-            if (options === 'toggle') {
-              if (defaultOpen && typeof defaultOpen === 'string') {
-                this.setState({
-                  openHmdType: defaultOpen
-                }, () => {
-                  this.toggleHostAnalysis();
-                });
-              } else {
-                this.setState({
-                  openHmdType: ''
-                }, () => {
-                  this.toggleHostAnalysis();
-                });
-              }
+        this.setState({
+          hostData
+        }, () => {
+          if (options === 'toggle') {
+            if (defaultOpen && typeof defaultOpen === 'string') {
+              this.setState({
+                openHmdType: defaultOpen
+              }, () => {
+                this.toggleHostAnalysis();
+              });
             } else {
               this.setState({
                 openHmdType: ''
+              }, () => {
+                this.toggleHostAnalysis();
               });
             }
-          });
-        }
-
-        if (data[1]) {
-          this.setEventTracingData(data[1]);
-        }
+          } else {
+            this.setState({
+              openHmdType: ''
+            });
+          }
+        });
       }
       return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+
+    this.loadEventTracing(1, ipDeviceUUID);
   }
   /**
    * Load Event Tracing data
    * @method
+   * @param {number} [page] - page number
+   * @param {string} [ipDeviceUUID] - ipDeviceUUID
    */
-  loadEventTracing = () => {
+  loadEventTracing = (page, ipDeviceUUID) => {
     const {baseUrl} = this.context;
     const {hostData, eventInfo} = this.state;
 
     this.ah.one({
-      url: `${baseUrl}/api/u1/log/event/_search?page=${eventInfo.scrollCount}&pageSize=20`,
-      data: JSON.stringify(this.getRequestData(hostData.ipDeviceUUID)),
+      url: `${baseUrl}/api/u1/log/event/_search?page=${page || eventInfo.scrollCount}&pageSize=20`,
+      data: JSON.stringify(this.getRequestData(ipDeviceUUID || hostData.ipDeviceUUID)),
       type: 'POST',
       contentType: 'text/plain'
     })
