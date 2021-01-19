@@ -46,7 +46,7 @@
   "txt-phone-wc-pattern":"由數字和*組成長度為10的字串，例09123456**",
   "txt-phone-pattern":"由10個數字組成的字串，例0912345678",
   "txt-phone-international-pattern":"由至少10個數字組成的(國際)門號，例0912345678, +85212345678",
-  "txt-password-pattern":"長度須為12碼，並包含特殊字元，數字與英文大小寫",
+  "txt-password-pattern":"長度須為12碼，並包含特殊字元(#?!@.$%^&*-)，數字與英文大小寫",
   "txt-id-no-pattern":"開頭英文母大寫後面由數字組成共10碼",
   "txt-email-pattern":"Email格式",
 
