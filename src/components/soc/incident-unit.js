@@ -9,10 +9,10 @@ import Input from "react-ui/build/src/components/input";
 import PopupDialog from "react-ui/build/src/components/popup-dialog";
 import TableContent from "../common/table-content";
 import DropDownList from "react-ui/build/src/components/dropdown";
-import Checkbox from "react-ui/build/src/components/checkbox";
+// import Checkbox from "react-ui/build/src/components/checkbox";
 import TextareaAutosize from '@material-ui/core/TextareaAutosize';
 import GeneralDialog from '@f2e/gui/dist/components/dialog/general-dialog'
-// import Checkbox from '@material-ui/core/Checkbox';
+import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
@@ -431,7 +431,10 @@ class IncidentUnit extends Component {
                         <label htmlFor='isDefault' className='checkbox'>{it('unit.txt-default')}</label>
                         <Checkbox
                             id='isDefault'
-                            onChange={this.handleDataChange.bind(this, 'isDefault')}
+                            name='isDefault'
+                            color='primary'
+                            className='checkbox-ui'
+                            onChange={this.handleDataChangeMuiCheck}
                             checked={incidentUnit.info.isDefault}
                             disabled={activeContent === 'viewDevice'}/>
                     </div>
@@ -826,6 +829,15 @@ class IncidentUnit extends Component {
     handleDataChange = (type, value) => {
         let tempDevice = {...this.state.incidentUnit};
         tempDevice.info[type] = value;
+
+        this.setState({
+            incidentUnit: tempDevice
+        });
+    };
+
+    handleDataChangeMuiCheck = (event) => {
+        let tempDevice = {...this.state.incidentUnit};
+        tempDevice.info[event.target.name] = event.target.checked;
 
         this.setState({
             incidentUnit: tempDevice
