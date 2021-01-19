@@ -1630,60 +1630,46 @@ class NetworkInventory extends Component {
       tempDeviceData.hmdOnly.currentIndex = Number(index);
     }
 
-    const apiArr = [
-      {
-        url: `${baseUrl}/api/v2/ipdevice?uuid=${ipDeviceID}&page=1&pageSize=5`,
-        type: 'GET'
-      },
-      {
-        url: `${baseUrl}/api/u1/log/event/_search?page=1&pageSize=20`,
-        data: JSON.stringify(this.getRequestData(ipDeviceID)),
-        type: 'POST',
-        contentType: 'text/plain'
-      }
-    ];
-
-    this.ah.all(apiArr)
+    this.ah.one({
+      url: `${baseUrl}/api/v2/ipdevice?uuid=${ipDeviceID}&page=1&pageSize=5`,
+      type: 'GET'
+    })
     .then(data => {
       if (data) {
-        if (data[0]) {
-          if (options === 'oneDevice') {
-            this.getOwnerSeat(data[0]);
-            return;
-          }
-
-          this.setState({
-            showScanInfo: true,
-            modalIRopen: false,
-            deviceData: tempDeviceData,
-            currentDeviceData: data[0],
-            activeIPdeviceUUID: ipDeviceID
-          });
-        } else {
-          helper.showPopupMsg(t('txt-notFound'));
+        if (options === 'oneDevice') {
+          this.getOwnerSeat(data);
+          return;
         }
 
-        if (data[1]) {
-          this.setEventTracingData(data[1]);
-        }
+        this.setState({
+          showScanInfo: true,
+          modalIRopen: false,
+          deviceData: tempDeviceData,
+          currentDeviceData: data,
+          activeIPdeviceUUID: ipDeviceID
+        });
       }
       return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
+
+    this.loadEventTracing(1, ipDeviceID);
   }
   /**
    * Load Event Tracing data
    * @method
+   * @param {number} [page] - page number
+   * @param {string} [ipDeviceID] - ipDeviceUUID
    */
-  loadEventTracing = () => {
+  loadEventTracing = (page, ipDeviceID) => {
     const {baseUrl} = this.context;
     const {currentDeviceData, eventInfo} = this.state;
 
     this.ah.one({
-      url: `${baseUrl}/api/u1/log/event/_search?page=${eventInfo.scrollCount}&pageSize=20`,
-      data: JSON.stringify(this.getRequestData(currentDeviceData.ipDeviceUUID)),
+      url: `${baseUrl}/api/u1/log/event/_search?page=${page || eventInfo.scrollCount}&pageSize=20`,
+      data: JSON.stringify(this.getRequestData(ipDeviceID || currentDeviceData.ipDeviceUUID)),
       type: 'POST',
       contentType: 'text/plain'
     })
