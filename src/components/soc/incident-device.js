@@ -10,7 +10,8 @@ import PopupDialog from "react-ui/build/src/components/popup-dialog";
 import TableContent from "../common/table-content";
 import {downloadWithForm} from "react-ui/build/src/utils/download";
 import {Link} from "react-router-dom";
-import Checkbox from "react-ui/build/src/components/checkbox";
+// import Checkbox from "react-ui/build/src/components/checkbox";
+import Checkbox from '@material-ui/core/Checkbox';
 import SelecTableContent from "../common/selectable-content";
 import TextareaAutosize from '@material-ui/core/TextareaAutosize';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -18,6 +19,7 @@ import TextField from '@material-ui/core/TextField';
 import CheckIcon from '@material-ui/icons/Check';
 import CloseIcon from '@material-ui/icons/Close';
 import Button from "@material-ui/core/Button";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
 let t = null;
 let f = null;
 let et = null;
@@ -316,29 +318,41 @@ class IncidentDevice extends Component {
                         formatter: (value, allValue, i) => {
 
                             if (tempData === 'select') {
-                                return <Checkbox
-                                    id={allValue.deviceId + '_che'}
-                                    onChange={this.handleSendDataChange.bind(this, 'select', allValue.deviceId)}
-                                    checked={value}
-                                />
+                                return (
+                                    <Checkbox
+                                        id={allValue.deviceId}
+                                        className='checkbox-ui'
+                                        name='select'
+                                        checked={value}
+                                        onChange={this.handleSendDataChangeMui.bind(this, allValue.deviceId)}
+                                        color='primary' />
+                                )
                             }
 
                             if (tempData === 'frequency') {
-                                return <Input
-                                    id={allValue.deviceId + '_fre'}
-                                    onChange={this.handleSendDataChange.bind(this, "frequency", allValue.deviceId)}
-                                    value={value}
-                                    readOnly={!allValue.select}
-                                />
+                                return (
+                                    <TextField
+                                        id={allValue.deviceId + '_fre'}
+                                        fullWidth={true}
+                                        size='small'
+                                        name='frequency'
+                                        onChange={this.handleSendDataChangeMui.bind(this, allValue.deviceId)}
+                                        value={value}
+                                        disabled={!allValue.select}/>
+                                )
                             } else if (tempData === 'reason') {
 
                                 if (allValue.frequency === 0){
-                                    return <Input
-                                        id={allValue.deviceId + '_reason'}
-                                        onChange={this.handleSendDataChange.bind(this, "reason", allValue.deviceId)}
-                                        value={value}
-                                        readOnly={!allValue.select}
-                                    />
+                                    return (
+                                        <TextField
+                                            id={allValue.deviceId + '_reason'}
+                                            fullWidth={true}
+                                            size='small'
+                                            name='reason'
+                                            onChange={this.handleSendDataChangeMui.bind(this, allValue.deviceId)}
+                                            value={value}
+                                            disabled={!allValue.select}/>
+                                    )
                                 }else{
                                     return <span/>
                                 }
@@ -1267,6 +1281,61 @@ class IncidentDevice extends Component {
 
     };
 
+
+    handleSendDataChangeMui = (deviceId, event) => {
+        let tempSendDevice = {...this.state.healthStatistic};
+        let edgeItemList = {...this.state.edgeList};
+        let dataFromEdgeDevice = this.state.dataFromEdgeDevice;
+
+
+        if (event.target.name === 'edgeDevice') {
+            tempSendDevice.edgeItem = event.target.value;
+            _.forEach(edgeItemList, val => {
+                if (val.agentId === event.target.value) {
+                    tempSendDevice.info.deviceId = val.agentId
+                    tempSendDevice.info.deviceName = val.agentName
+                    tempSendDevice.info.deviceCompany = val.agentCompany
+                } else {
+                    tempSendDevice.info.deviceId = ''
+                    tempSendDevice.info.deviceName = ''
+                    tempSendDevice.info.deviceCompany = ''
+                }
+            })
+
+            if (tempSendDevice.info.deviceId.length !== 0) {
+                dataFromEdgeDevice = true;
+            } else {
+                dataFromEdgeDevice = false;
+            }
+
+            this.setState({
+                healthStatistic: tempSendDevice,
+                dataFromEdgeDevice: dataFromEdgeDevice
+            });
+        } else {
+
+            _.forEach(tempSendDevice.dataContent, data => {
+
+                if (deviceId === data.deviceId) {
+                    if (event.target.name === 'frequency') {
+                        data.frequency = event.target.value
+                    } else if (event.target.name === 'note') {
+                        data.note = event.target.value
+                    }  else if (event.target.name === 'reason') {
+                        data.reason = event.target.value
+                    }  else if (event.target.name === 'select') {
+                        data.select = event.target.checked;
+                    }
+                }
+
+            })
+            this.setState({
+                healthStatistic: tempSendDevice
+            });
+        }
+
+
+    };
 
     /**
      * Handle Incident Device edit checkBox data change
