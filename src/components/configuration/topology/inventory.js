@@ -336,7 +336,7 @@ class NetworkInventory extends Component {
    * Get and set device data / Handle delete IP device confirm
    * @method
    * @param {string} [fromPage] - option for 'currentPage'
-   * @param {string} [options] - options for 'oneSeat' and 'delete'
+   * @param {string} [options] - options for 'oneSeat', 'delete', 'previous' or 'next'
    * @param {string} [seatUUID] - seat UUID
    */
   getDeviceData = (fromPage, options, seatUUID) => {
@@ -573,6 +573,10 @@ class NetworkInventory extends Component {
         this.setState({
           deviceData: tempDeviceData,
           activeIPdeviceUUID: ''
+        }, () => {
+          if (options === 'previous' || options === 'next') {
+            this.showAlertData('', options);
+          }
         });
       }
       return null;
@@ -1441,18 +1445,34 @@ class NetworkInventory extends Component {
    * Handle 'previous' and 'next' buttons for HMD dialog
    * @method
    * @param {string} type - button type ('previous' or 'next')
+   * @param {string} [type] - button action type ('previous' or 'next')
    */
-  showAlertData = (type) => {
+  showAlertData = (type, btnType) => {
     const {deviceData} = this.state;
     let tempDeviceData = {...deviceData};
+    let tempCurrentPage = deviceData.currentPage;
 
-    if (type === 'previous') {
-      if (deviceData.hmdOnly.currentIndex !== 0) {
-        tempDeviceData.hmdOnly.currentIndex--;
+    if (type === 'previous' || type === 'next') { //For click on navigation button
+      if (type === 'previous') {
+        if (deviceData.hmdOnly.currentIndex === 0) { //End of the data, load previous set
+          this.handlePaginationChange('currentPage', --tempCurrentPage, type);
+          return;
+        } else {
+          tempDeviceData.hmdOnly.currentIndex--;
+        }
+      } else if (type === 'next') {
+        if (deviceData.hmdOnly.currentLength - deviceData.hmdOnly.currentIndex === 1) { //End of the data, load next set
+          this.handlePaginationChange('currentPage', ++tempCurrentPage, type);
+          return;
+        } else {
+          tempDeviceData.hmdOnly.currentIndex++;
+        }
       }
-    } else if (type === 'next') {
-      if (deviceData.hmdOnly.currentLength - deviceData.hmdOnly.currentIndex > 1) {
-        tempDeviceData.hmdOnly.currentIndex++;
+    } else if (btnType) {
+      if (btnType === 'previous') {
+        tempDeviceData.hmdOnly.currentIndex = deviceData.hmdOnly.currentLength - 1;
+      } else if (btnType === 'next') {
+        tempDeviceData.hmdOnly.currentIndex = 0;
       }
     }
 
@@ -1464,7 +1484,9 @@ class NetworkInventory extends Component {
       const index = deviceData.hmdOnly.currentIndex;
       const allValue = deviceData.hmdOnly.dataContent[index];
 
-      this.getIPdeviceInfo(index, allValue.ipDeviceUUID);
+      if (allValue) {
+        this.getIPdeviceInfo(index, allValue.ipDeviceUUID);
+      }
     });
   }
   /**
@@ -1529,15 +1551,16 @@ class NetworkInventory extends Component {
    * @method
    * @param {string} type - page type ('currentPage' or 'pageSize')
    * @param {string | number} value - new page number
+   * @param {string} [btnType] - button action type ('previous' or 'next')
    */
-  handlePaginationChange = (type, value) => {
+  handlePaginationChange = (type, value, btnType) => {
     let tempDeviceData = {...this.state.deviceData};
     tempDeviceData[type] = Number(value);
 
     this.setState({
       deviceData: tempDeviceData
     }, () => {
-      this.getDeviceData(type);
+      this.getDeviceData(type, btnType);
     });
   }
   /**
@@ -1939,13 +1962,26 @@ class NetworkInventory extends Component {
    * @returns HTML DOM
    */
   displayScanInfo = () => {
-    const {deviceData, currentDeviceData, eventInfo} = this.state;
+    const {hmdCheckbox, deviceData, currentDeviceData, eventInfo} = this.state;
     const ip = currentDeviceData.ip || NOT_AVAILABLE;
     const mac = currentDeviceData.mac || NOT_AVAILABLE;
     const hostName = currentDeviceData.hostName || NOT_AVAILABLE;
     const system = currentDeviceData.system || NOT_AVAILABLE;
     const ownerName = currentDeviceData.ownerObj ? currentDeviceData.ownerObj.ownerName : NOT_AVAILABLE;
     const version = currentDeviceData.version || NOT_AVAILABLE;
+    const firstItemCheck = deviceData.hmdOnly.currentIndex === 0;
+    const lastItemCheck = deviceData.hmdOnly.currentIndex + 1 === deviceData.hmdOnly.currentLength;
+    const firstPageCheck = deviceData.currentPage === 0;
+    const lastPageCheck = deviceData.currentPage === Math.ceil(deviceData.totalCount / deviceData.pageSize);
+    let paginationDisabled = {};
+
+    if (hmdCheckbox) {
+      paginationDisabled.previous = firstItemCheck && firstPageCheck;
+      paginationDisabled.next = lastItemCheck && lastPageCheck;
+    } else {
+      paginationDisabled.previous = firstItemCheck;
+      paginationDisabled.next = lastItemCheck;
+    }
 
     return (
       <div>
@@ -1985,15 +2021,15 @@ class NetworkInventory extends Component {
           getHMDinfo={this.getIPdeviceInfo}
           loadEventTracing={this.loadEventTracing} />
 
-        {deviceData.hmdOnly.currentLength > 1 &&
+        {deviceData.hmdOnly.currentLength > 0 &&
           <div className='pagination'>
             <div className='buttons'>
-              <Button variant='outlined' color='primary' onClick={this.showAlertData.bind(this, 'previous')} disabled={deviceData.hmdOnly.currentIndex === 0}>{t('txt-previous')}</Button>
-              <Button variant='outlined' color='primary' onClick={this.showAlertData.bind(this, 'next')} disabled={deviceData.hmdOnly.currentIndex + 1 === deviceData.hmdOnly.currentLength}>{t('txt-next')}</Button>
+              <Button variant='outlined' color='primary' onClick={this.showAlertData.bind(this, 'previous')} disabled={paginationDisabled.previous}>{t('txt-previous')}</Button>
+              <Button variant='outlined' color='primary' onClick={this.showAlertData.bind(this, 'next')} disabled={paginationDisabled.next}>{t('txt-next')}</Button>
             </div>
             <span className='count'>{deviceData.hmdOnly.currentIndex + 1} / {deviceData.hmdOnly.currentLength}</span>
           </div>
-        }          
+        }
       </div>
     )
   }

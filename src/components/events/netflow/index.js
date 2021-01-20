@@ -708,8 +708,9 @@ class Netflow extends Component {
    * Load Connections data
    * @method
    * @param {string} options - option for 'search'
+   * @param {string} [type] - button action type ('previous' or 'next')
    */
-  loadConnections = (options) => {
+  loadConnections = (options, type) => {
     const {baseUrl} = this.context;
     const {projectID, activeTab, connectionsInterval, currentPage, oldPage, pageSize, subSectionsData, account} = this.state;
     const projectIDstring = this.getProjectURL(projectID);
@@ -836,6 +837,10 @@ class Netflow extends Component {
           packageHistogram: data[0].packageHistogram,
           byteHistogram: data[0].byteHistogram,
           currentLength
+        }, () => {
+          if (type) {
+            this.showTableData('', type);
+          }
         });
       }
       return null;
@@ -848,8 +853,9 @@ class Netflow extends Component {
    * Load events data other than Connections (DNS, File, Email, HTTP, etc.)
    * @method
    * @param {string} options - option for 'search'
+   * @param {string} [type] - button action type ('previous' or 'next')
    */
-  loadSubSections = (options) => {
+  loadSubSections = (options, type) => {
     const {baseUrl, contextRoot} = this.context;
     const {projectID, activeTab, currentPage, oldPage, pageSize, pageSizeGrid, subSectionsData, account} = this.state;
     const projectIDstring = this.getProjectURL(projectID);
@@ -1005,6 +1011,10 @@ class Netflow extends Component {
           treeData: treeObj,
           subSectionsData: tempSubSectionsData,
           currentLength
+        }, () => {
+          if (type) {
+            this.showTableData('', type);
+          }
         });
       }
       return null;
@@ -1372,17 +1382,18 @@ class Netflow extends Component {
    * Handle pagination change
    * @method
    * @param {number} currentPage - current page
+   * @param {string} [type] - button action type ('previous' or 'next')
    */
-  handlePaginationChange = (currentPage) => {
+  handlePaginationChange = (currentPage, type) => {
     const {activeTab, showImgCheckbox} = this.state;
 
     this.setState({
       currentPage
     }, () => {
       if (activeTab === 'connections') {
-        this.loadConnections();
+        this.loadConnections('', type);
       } else {
-        this.loadSubSections(showImgCheckbox ? 'images' : '');
+        this.loadSubSections(showImgCheckbox ? 'images' : '', type);
       }
     });
   }
@@ -1674,25 +1685,44 @@ class Netflow extends Component {
    * Set the table row index and netflow data
    * @method
    * @param {string | object} data - button action type ('previous' or 'next'), or data object
+   * @param {string} [type] - button action type ('previous' or 'next')
    * @returns object of index and data
    */
-  handleDialogNavigation = (data) => {
-    const {activeTab, subSectionsData, currentTableIndex} = this.state;
+  handleDialogNavigation = (data, type) => {
+    const {activeTab, currentPage, subSectionsData, currentTableIndex} = this.state;
     let tableRowIndex = '';
     let allValue = {};
+    let tempCurrentPage = currentPage;
 
-    if (data === 'next' || data === 'previous') { //For click on navigation button
+    if (data === 'previous' || data === 'next') { //For click on navigation button
       tableRowIndex = currentTableIndex;
 
-      if (data === 'next') {
-        tableRowIndex++;
-      } else if (data === 'previous') {
-        tableRowIndex--;
+      if (data === 'previous') {
+        if (currentTableIndex === 0) { //End of the data, load previous set
+          this.handlePaginationChange(--tempCurrentPage, data);
+          return;
+        } else {
+          tableRowIndex--;
+        }
+      } else if (data === 'next') {
+        if (currentTableIndex + 1 == currentLength) { //End of the data, load next set
+          this.handlePaginationChange(++tempCurrentPage, data);
+          return;
+        } else {
+          tableRowIndex++;
+        }
       }
       allValue = subSectionsData.mainData[activeTab][tableRowIndex];
-    } else { //For click on table row
+    } else if (!_.isEmpty(data)) {
       tableRowIndex = _.findIndex(subSectionsData.mainData[activeTab], {'id': data.id});
       allValue = data;
+    } else if (type) {
+      if (type === 'previous') {
+        tableRowIndex = subSectionsData.mainData[activeTab].length - 1;
+      } else if (type === 'next') {
+        tableRowIndex = 0;
+      }
+      allValue = subSectionsData.mainData[activeTab][tableRowIndex];
     }
 
     return {
@@ -1704,10 +1734,11 @@ class Netflow extends Component {
    * Set the data to be displayed in table dialog
    * @method
    * @param {object} allValue - data of selected table row
+   * @param {string} [type] - button action type ('previous' or 'next')
    */
-  showTableData = (allValue) => {
+  showTableData = (allValue, type) => {
     const {account} = this.state;
-    const newData = this.handleDialogNavigation(allValue);
+    const newData = this.handleDialogNavigation(allValue, type);
     const currentTableIndex = newData.tableRowIndex;
     let filteredAllValue = {};
     allValue = newData.allValue;
@@ -1771,6 +1802,36 @@ class Netflow extends Component {
     });
   }
   /**
+   * Display dialog navigation btn with text
+   * @method
+   * @param {string} dialogType - 'table' or 'json'
+   * @param {string} navType - 'previous' or 'next'
+   */
+  displayNavigationBtn = (dialogType, navType) => {
+    const {currentPage, currentTableIndex, currentLength} = this.state;
+    const firstItemCheck = currentTableIndex === 0;
+    const lastItemCheck = currentTableIndex + 1 == currentLength;
+    const firstPageCheck = currentPage === 1;
+    const lastPageCheck = currentPage === Math.ceil(subSectionsData.totalCount.logs / pageSize);
+    const pageText = {
+      previous: t('txt-previous'),
+      next: t('txt-next')
+    };
+    const paginationDisabled = {
+      previous: firstItemCheck && firstPageCheck,
+      next: lastItemCheck && lastPageCheck
+    };
+    let clickAction = '';
+
+    if (dialogType === 'table') {
+      clickAction = this.showTableData.bind(this, navType);
+    } else if (dialogType === 'json') {
+      clickAction = this.showJsonData.bind(this, navType);
+    }   
+
+    return <Button variant='outlined' color='primary' onClick={clickAction} disabled={paginationDisabled[navType]}>{pageText[navType]}</Button>
+  }
+  /**
    * Display table data content
    * @method
    * @returns HTML DOM
@@ -1790,11 +1851,11 @@ class Netflow extends Component {
           useDragHandle={true}
           lockToContainerEdges={true} />
 
-        {currentLength > 1 &&
+        {currentLength > 0 &&
           <div className='pagination'>
             <div className='buttons'>
-              <Button variant='outlined' color='primary' onClick={this.showTableData.bind(this, 'previous')} disabled={currentTableIndex === 0}>{t('txt-previous')}</Button>
-              <Button variant='outlined' color='primary' onClick={this.showTableData.bind(this, 'next')} disabled={currentTableIndex + 1 == currentLength}>{t('txt-next')}</Button>
+              {this.displayNavigationBtn('table', 'previous')}
+              {this.displayNavigationBtn('table', 'next')}
             </div>
             <span className='count'>{currentTableIndex + 1} / {currentLength}</span>
           </div>
@@ -1898,11 +1959,11 @@ class Netflow extends Component {
           <li><JSONTree data={allValue} theme={helper.getJsonViewTheme()} /></li>
         </ul>
 
-        {currentLength > 1 &&
+        {currentLength > 0 &&
           <div className='pagination json'>
             <div className='buttons'>
-              <Button variant='outlined' color='primary' onClick={this.viewJsonData.bind(this, 'previous')} disabled={currentTableIndex === 0}>{t('txt-previous')}</Button>
-              <Button variant='outlined' color='primary' onClick={this.viewJsonData.bind(this, 'next')} disabled={currentTableIndex + 1 == currentLength}>{t('txt-next')}</Button>
+              {this.displayNavigationBtn('json', 'previous')}
+              {this.displayNavigationBtn('json', 'next')}
             </div>
             <span className='count'>{currentTableIndex + 1} / {currentLength}</span>
           </div>
@@ -1915,7 +1976,7 @@ class Netflow extends Component {
    * @method
    * @param {object} allValue - data of selected table row
    */
-  viewJsonData = (allValue) => {
+  showJsonData = (allValue) => {
     const {activeTab} = this.state;
     const newData = this.handleDialogNavigation(allValue);
     const currentTableIndex = newData.tableRowIndex;
@@ -2992,7 +3053,7 @@ class Netflow extends Component {
             <MenuItem onClick={this.getPCAPcontent.bind(this, currentNetflowData)}>{t('events.connections.txt-viewPCAP')}</MenuItem>
           }
           <MenuItem onClick={this.showTableData.bind(this, currentNetflowData)}>{t('events.connections.txt-fieldsSettings')}</MenuItem>
-          <MenuItem onClick={this.viewJsonData.bind(this, currentNetflowData)}>{t('txt-viewJSON')}</MenuItem>
+          <MenuItem onClick={this.showJsonData.bind(this, currentNetflowData)}>{t('txt-viewJSON')}</MenuItem>
           {currentNetflowData.tag &&
             <MenuItem onClick={this.addTagging.bind(this, currentNetflowData)}>{t('events.connections.txt-editTag')}</MenuItem>
           }

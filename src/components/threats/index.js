@@ -584,8 +584,9 @@ class ThreatsController extends Component {
    * Get and set alert data
    * @method
    * @param {string} [options] - option for 'search', 'statistics', or 'alertDetails'
+   * @param {string} type - button action type ('previous' or 'next')
    */
-  loadThreatsData = (options) => {
+  loadThreatsData = (options, type) => {
     const {baseUrl} = this.context;
     const {
       activeTab,
@@ -685,7 +686,7 @@ class ThreatsController extends Component {
                 alertDetails: tempAlertDetails
               }, () => {
                 if (options === 'alertDetails') {
-                  this.openDetailInfo(0); //Pass index of 0
+                  this.openDetailInfo('', '', type); //Pass index of 0
                 }
               });
 
@@ -1350,13 +1351,14 @@ class ThreatsController extends Component {
    * Handle pagination change
    * @method
    * @param {number} currentPage - current page
-   * @param {string} options - options for 'alertDetails'
+   * @param {string} [options] - options for 'alertDetails'
+   * @param {string} [type] - button action type ('previous' or 'next')
    */
-  handlePaginationChange = (currentPage, options) => {
+  handlePaginationChange = (currentPage, options, type) => {
     this.setState({
       currentPage
     }, () => {
-      this.loadThreatsData(options);
+      this.loadThreatsData(options, type);
     });
   }
   /**
@@ -1509,14 +1511,14 @@ class ThreatsController extends Component {
 
     if (type === 'previous') {
       if (alertDetails.currentIndex === 0) { //End of the data, load previous set
-        this.handlePaginationChange(--tempCurrentPage, 'alertDetails');
+        this.handlePaginationChange(--tempCurrentPage, 'alertDetails', type);
         return;
       } else {
         tempAlertDetails.currentIndex--;
       }
     } else if (type === 'next') {
       if (alertDetails.currentLength - alertDetails.currentIndex === 1) { //End of the data, load next set
-        this.handlePaginationChange(++tempCurrentPage, 'alertDetails');
+        this.handlePaginationChange(++tempCurrentPage, 'alertDetails', type);
         return;
       } else {
         tempAlertDetails.currentIndex++;
@@ -1541,9 +1543,11 @@ class ThreatsController extends Component {
   /**
    * Set the individual alert data
    * @method
-   * @param {string} type - button action type ('previous' or 'next')
+   * @param {string} [index] - index of the alert data
+   * @param {object} [allValue] - all alert data
+   * @param {string} [type] - button action type ('previous' or 'next')
    */
-  openDetailInfo = (index, allValue, evt) => {
+  openDetailInfo = (index, allValue, type) => {
     const {alertDetails} = this.state;
     let tempAlertDetails = {...alertDetails};
     let alertData = '';
@@ -1551,13 +1555,17 @@ class ThreatsController extends Component {
     if (_.isArray(allValue)) { //For click from World Map
       alertData = allValue[index];
     } else {
-      tempAlertDetails.currentIndex = Number(index);
-
       if (allValue) {
         alertData = allValue;
-      } else {
-        alertData = alertDetails.all[Number(index)];
+      } else { //For next/previous set of data
+        if (type === 'previous') {
+          index = alertDetails.all.length - 1;
+        } else if (type === 'next') {
+          index = 0;
+        }
+        alertData = alertDetails.all[index];
       }
+      tempAlertDetails.currentIndex = Number(index);
     }
 
     this.setState({

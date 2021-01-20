@@ -618,8 +618,9 @@ class SyslogController extends Component {
    * Load Syslog data
    * @method
    * @param {string} options - option for 'search' or dialogType ('table' or 'json')
+   * @param {string} type - button action type ('previous' or 'next')
    */
-  loadLogs = (options) => {
+  loadLogs = (options, type) => {
     const {baseUrl} = this.context;
     const {activeTab, chartIntervalValue, currentPage, oldPage, pageSize, subSectionsData, markData} = this.state;
     const setPage = options === 'search' ? 1 : currentPage;
@@ -747,9 +748,9 @@ class SyslogController extends Component {
           currentLength
         }, () => {
           if (options === 'table') {
-            this.showTableData(tempSubSectionsData.mainData.logs[0]);
+            this.showTableData('', type);
           } else if (options === 'json') {
-            this.showJsonData(tempSubSectionsData.mainData.logs[0]);
+            this.showJsonData('', type);
           }
         });
       }
@@ -955,12 +956,13 @@ class SyslogController extends Component {
    * @method
    * @param {number} currentPage - current page
    * @param {string} options - options for dialogType ('table' or 'json')
+   * @param {string} [type] - button action type ('previous' or 'next')
    */
-  handlePaginationChange = (currentPage, options) => {
+  handlePaginationChange = (currentPage, options, type) => {
     this.setState({
       currentPage
     }, () => {
-      this.loadLogs(options);
+      this.loadLogs(options, type);
     });
   }
   /**
@@ -1188,11 +1190,12 @@ class SyslogController extends Component {
   /**
    * Set the table row index and netflow data
    * @method
-   * @param {string | object} data - button action type ('previous' or 'next'), or data object
+   * @param {object | string} data - data object or button action type ('previous' or 'next')
    * @param {string} dialogType - 'table' or 'json'
+   * @param {string} [type] - button action type ('previous' or 'next')
    * @returns object of index and data
    */
-  handleDialogNavigation = (data, dialogType) => {
+  handleDialogNavigation = (data, dialogType, type) => {
     const {activeTab, currentPage, subSectionsData, currentTableIndex, currentLength} = this.state;
     let tableRowIndex = '';
     let allValue = {};
@@ -1203,24 +1206,30 @@ class SyslogController extends Component {
 
       if (data === 'previous') {
         if (currentTableIndex === 0) { //End of the data, load previous set
-          this.handlePaginationChange(--tempCurrentPage, dialogType);
+          this.handlePaginationChange(--tempCurrentPage, dialogType, data);
           return;
         } else {
           tableRowIndex--;
         }
       } else if (data === 'next') {
         if (currentTableIndex + 1 == currentLength) { //End of the data, load next set
-          this.handlePaginationChange(++tempCurrentPage, dialogType);
+          this.handlePaginationChange(++tempCurrentPage, dialogType, data);
           return;
         } else {
           tableRowIndex++;
         }
       }
-
       allValue = subSectionsData.mainData[activeTab][tableRowIndex];
-    } else { //For click on table row
+    } else if (!_.isEmpty(data)) {
       tableRowIndex = _.findIndex(subSectionsData.mainData[activeTab], {'id': data.id});
       allValue = data;
+    } else if (type) {
+      if (type === 'previous') {
+        tableRowIndex = subSectionsData.mainData[activeTab].length - 1;
+      } else if (type === 'next') {
+        tableRowIndex = 0;
+      }
+      allValue = subSectionsData.mainData[activeTab][tableRowIndex];
     }
 
     return {
@@ -1231,11 +1240,12 @@ class SyslogController extends Component {
   /**
    * Set the data to be displayed in table dialog
    * @method
-   * @param {object} allValue - data of selected table row, or button action type ('previous' or 'next')
+   * @param {object | string} allValue - data of selected table row, or button action type ('previous' or 'next')
+   * @param {string} [type] - button action type ('previous' or 'next')
    */
-  showTableData = (allValue) => {
+  showTableData = (allValue, type) => {
     const {activeTab, subSectionsData, account} = this.state;
-    const newData = this.handleDialogNavigation(allValue, 'table');
+    const newData = this.handleDialogNavigation(allValue, 'table', type);
 
     if (!newData) {
       return;
@@ -1424,8 +1434,8 @@ class SyslogController extends Component {
     const firstPageCheck = currentPage === 1;
     const lastPageCheck = currentPage === Math.ceil(subSectionsData.totalCount.logs / pageSize);
     const pageText = {
-      previous: firstItemCheck ? t('txt-previousPage') : t('txt-previous'),
-      next: lastItemCheck ? t('txt-nextPage') : t('txt-next')
+      previous: t('txt-previous'),
+      next: t('txt-next')
     };
     const paginationDisabled = {
       previous: firstItemCheck && firstPageCheck,
@@ -1463,7 +1473,7 @@ class SyslogController extends Component {
           useDragHandle={true}
           lockToContainerEdges={true} />
 
-        {currentLength > 1 &&
+        {currentLength > 0 &&
           <div className='pagination'>
             <div className='buttons'>
               {this.displayNavigationBtn('table', 'previous')}
@@ -1576,9 +1586,10 @@ class SyslogController extends Component {
    * Open Json data modal dialog
    * @method
    * @param {object} allValue - data of selected table row
+   * @param {string} [type] - button action type ('previous' or 'next')
    */
-  showJsonData = (allValue) => {
-    const newData = this.handleDialogNavigation(allValue, 'json');
+  showJsonData = (allValue, type) => {
+    const newData = this.handleDialogNavigation(allValue, 'json', type);
 
     if (!newData) {
       return;

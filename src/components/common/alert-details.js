@@ -823,10 +823,6 @@ class AlertDetails extends Component {
     const lastItemCheck = alertDetails.currentIndex + 1 === alertDetails.currentLength;
     const firstPageCheck = currentPage === 1;
     const lastPageCheck = currentPage === Math.ceil(totalPageCount / pageSize);
-    let pageText = {
-      previous: t('txt-previous'),
-      next: t('txt-next')
-    };
     let paginationDisabled = {
       previous: '',
       next: ''
@@ -836,14 +832,6 @@ class AlertDetails extends Component {
       paginationDisabled.previous = firstItemCheck;
       paginationDisabled.next = lastItemCheck;
     } else if (fromPage === 'threats') {
-      if (firstItemCheck) {
-        pageText.previous = t('txt-previousPage');
-      }
-
-      if (lastItemCheck) {
-        pageText.next = t('txt-nextPage');
-      }
-
       paginationDisabled.previous = firstItemCheck && firstPageCheck;
       paginationDisabled.next = lastItemCheck && lastPageCheck;
     }
@@ -986,11 +974,11 @@ class AlertDetails extends Component {
             }
           </div>
         </div>
-        {alertDetails.currentLength > 1 &&
+        {alertDetails.currentLength > 0 &&
           <div className='pagination'>
             <div className='buttons'>
-              <Button variant='outlined' color='primary' onClick={this.props.showAlertData.bind(this, 'previous')} disabled={paginationDisabled.previous}>{pageText.previous}</Button>
-              <Button variant='outlined' color='primary' onClick={this.props.showAlertData.bind(this, 'next')} disabled={paginationDisabled.next}>{pageText.next}</Button>
+              <Button variant='outlined' color='primary' onClick={this.props.showAlertData.bind(this, 'previous')} disabled={paginationDisabled.previous}>{t('txt-previous')}</Button>
+              <Button variant='outlined' color='primary' onClick={this.props.showAlertData.bind(this, 'next')} disabled={paginationDisabled.next}>{t('txt-next')}</Button>
             </div>
             <span className='count'>{alertDetails.currentIndex + 1} / {alertDetails.currentLength}</span>
           </div>
