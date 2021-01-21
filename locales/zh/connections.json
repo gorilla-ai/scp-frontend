@@ -443,6 +443,7 @@
   "edge-management": {
     "txt-today": "今日",
     "txt-past7days": "最近7天",
+    "txt-allDays": "全部",
     "txt-customDate": "自訂時間",
     "txt-addManually": "手動輸入",
     "txt-addMultiple": "上傳多筆",

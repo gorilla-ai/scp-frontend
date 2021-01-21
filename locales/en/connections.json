@@ -443,6 +443,7 @@
   "edge-management": {
     "txt-today": "Today",
     "txt-past7days": "Past 7 Days",
+    "txt-allDays": "All",
     "txt-customDate": "Custom Date",
     "txt-addManually": "Add Manually",
     "txt-addMultiple": "Add Multiple",

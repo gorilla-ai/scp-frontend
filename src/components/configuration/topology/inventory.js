@@ -1653,32 +1653,44 @@ class NetworkInventory extends Component {
       tempDeviceData.hmdOnly.currentIndex = Number(index);
     }
 
-    this.ah.one({
-      url: `${baseUrl}/api/v2/ipdevice?uuid=${ipDeviceID}&page=1&pageSize=5`,
-      type: 'GET'
-    })
+    this.ah.all([
+      {
+        url: `${baseUrl}/api/v2/ipdevice?uuid=${ipDeviceID}&page=1&pageSize=5`,
+        type: 'GET'
+      },
+      {
+        url: `${baseUrl}/api/u1/log/event/_search?page=1&pageSize=20`,
+        data: JSON.stringify(this.getRequestData(ipDeviceID)),
+        type: 'POST',
+        contentType: 'text/plain'
+      }
+    ])
     .then(data => {
       if (data) {
-        if (options === 'oneDevice') {
-          this.getOwnerSeat(data);
-          return;
+        if (data[0]) {
+          if (options === 'oneDevice') {
+            this.getOwnerSeat(data[0]);
+            return;
+          }
+
+          this.setState({
+            showScanInfo: true,
+            modalIRopen: false,
+            deviceData: tempDeviceData,
+            currentDeviceData: data[0],
+            activeIPdeviceUUID: ipDeviceID
+          });
         }
 
-        this.setState({
-          showScanInfo: true,
-          modalIRopen: false,
-          deviceData: tempDeviceData,
-          currentDeviceData: data,
-          activeIPdeviceUUID: ipDeviceID
-        });
+        if (data[1]) {
+          this.setEventTracingData(data[1]);
+        }
       }
       return null;
     })
     .catch(err => {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
-
-    this.loadEventTracing(1, ipDeviceID);
   }
   /**
    * Load Event Tracing data

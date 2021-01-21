@@ -56,12 +56,11 @@ class ThreatIntelligence extends Component {
         //from: '2020-06-04T00:00:00Z',
         //to: '2020-06-04T01:00:00Z'
       },
-      activeDateType: 'past7days',
+      activeDateType: 'allDays', //'today', 'past7days', 'allDays' or 'custom'
       contextAnchor: null,
       indicatorsData: null,
       indicatorsTrendData: null,
       acuIndicatorsTrendData: null,
-      todaysIndicatorsData: null,
       addThreatsOpen: false,
       uplaodThreatsOpen: false,
       importThreatsOpen: false,
@@ -90,10 +89,11 @@ class ThreatIntelligence extends Component {
   }
   componentDidMount() {
     const {locale, sessionRights} = this.context;
+    const {activeDateType} = this.state;
 
     helper.getPrivilegesInfo(sessionRights, 'config', locale);
 
-    this.getChartsData();
+    this.getChartsData(activeDateType);
   }
   /**
    * Format the object data into array type
@@ -117,25 +117,36 @@ class ThreatIntelligence extends Component {
   }
   /**
    * Get and set charts data
+   * @param {string} activeDateType - date type ('today', 'past7days', 'allDays' or 'custom')
+   * @param {object} [dateTime] - custom datetime set by the user
    * @method
    */
-  getChartsData = () => {
+  getChartsData = (activeDateType, dateTime) => {
     const {baseUrl} = this.context;
-    const {datetime} = this.state;
-    const dateTimeFrom = moment(datetime.from).format('YYYY-MM-DD') + 'T00:00:00';
-    const dateTimeTo = moment(datetime.to).format('YYYY-MM-DD') + 'T23:59:59';
-    const dateTime = {
-      from: moment(dateTimeFrom).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-      to: moment(dateTimeTo).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    const url = {
+      summary: `${baseUrl}/api/indicators/summary`,
+      trend: `${baseUrl}/api/indicators/trend`,
+      trendAccum: `${baseUrl}/api/indicators/trend/accum`
     };
+    let params = '';
 
-    if (moment(dateTime.from).isAfter()) {
-      helper.showPopupMsg(t('edge-management.txt-threatDateError'), t('txt-error'));
-      return;
+    if (activeDateType === 'today') {
+      const todayDateTime = {
+        from: moment(helper.getStartDate('day')).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+        to: moment().utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+      };
+      params = `/period?startDttm=${todayDateTime.from}&endDttm=${todayDateTime.to}`;
+    } else if (activeDateType === 'past7days') {
+      params += '?recent7days=true';
+    } else if (activeDateType === 'allDays') {
+      params += '?totalcount=true';
+    } else if (activeDateType === 'custom') {
+      params = `/period?startDttm=${dateTime.from}&endDttm=${dateTime.to}`;
     }
 
+    //Pie Chart
     this.ah.one({
-      url: `${baseUrl}/api/indicators/summary`,
+      url: url.summary + params,
       type: 'GET'
     }, {showProgress: false})
     .then(data => {
@@ -150,8 +161,9 @@ class ThreatIntelligence extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
 
+    //Bar Chart
     this.ah.one({
-      url: `${baseUrl}/api/indicators/trend?startDttm=${dateTime.from}&endDttm=${dateTime.to}`,
+      url: url.trend + params,
       type: 'GET'
     }, {showProgress: false})
     .then(data => {
@@ -182,8 +194,9 @@ class ThreatIntelligence extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
 
+    //Line Chart
     this.ah.one({
-      url: `${baseUrl}/api/indicators/trend/accum?startDttm=${dateTime.from}&endDttm=${dateTime.to}`,
+      url: url.trendAccum + params,
       type: 'GET'
     }, {showProgress: false})
     .then(data => {
@@ -214,82 +227,33 @@ class ThreatIntelligence extends Component {
     })
   }
   /**
-   * Get and set today's charts data
-   * @method
-   */
-  getTodayChartsData = () => {
-    const {baseUrl} = this.context;
-    const dateTime = {
-      from: moment(helper.getStartDate('day')).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
-      to: moment().utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
-    };
-
-    this.ah.one({
-      url: `${baseUrl}/api//indicators/summary/period?startDttm=${dateTime.from}&endDttm=${dateTime.to}`,
-      type: 'GET'
-    }, {showProgress: false})
-    .then(data => {
-      if (data) {
-        this.setState({
-          todaysIndicatorsData: this.formatPieChartData(data)
-        });
-      }
-      return null;
-    })
-    .catch(err => {
-      helper.showPopupMsg('', t('txt-error'), err.message);
-    })
-  }
-  /**
    * Reset indicators data
    * @method
-   * @param {string} type - data type to be cleared ('today', 'past7days' or 'search')
+   * @param {string} activeDateType - date type ('today', 'past7days', 'allDays' or 'custom')
+   * @param {object} [dateTime] - custom datetime set by the user
    */
-  clearIndicatorsData = (type) => {
-    if (type === 'today') {
-      this.setState({
-        todaysIndicatorsData: null
-      }, () => {
-        this.getTodayChartsData();
-      })
-    } else {
-      let indicatorsObj = {
-        indicatorsData: null,
-        indicatorsTrendData: null,
-        acuIndicatorsTrendData: null
-      };
-
-      if (type === 'past7days') {
-        indicatorsObj.datetime = {
-          from: helper.getSubstractDate(1, 'week', moment().local().format('YYYY-MM-DD') + 'T00:00:00'),
-          to: helper.getSubstractDate(1, 'day', moment().local().format('YYYY-MM-DD') + 'T00:00:00')
-        };
-      }
-
-      this.setState({
-        ...indicatorsObj
-      }, () => {
-        this.getChartsData();
-      });
-    }
+  clearIndicatorsData = (activeDateType, dateTime) => {
+    this.setState({
+      indicatorsData: null,
+      indicatorsTrendData: null,
+      acuIndicatorsTrendData: null
+    }, () => {
+      this.getChartsData(activeDateType, dateTime);
+    });
   }
   /**
    * Toggle date options buttons
    * @method
    * @param {object} event - event object
-   * @param {string} type - 'today', 'past7days' or 'custom'
+   * @param {string} activeDateType - date type ('today', 'past7days', 'allDays' or 'custom')
    */
-  toggleDateRangeButtons = (event, type) => {
-    if (!type) {
-      return;
-    }
-    
-    if (type === 'today' || type === 'past7days') {
-      this.clearIndicatorsData(type);
+  toggleDateRangeButtons = (event, activeDateType) => {
+    if (activeDateType !== 'custom') {
+      this.clearIndicatorsData(activeDateType);
     }
 
     this.setState({
-      activeDateType: type
+      activeDateType
     });
   }
   /**
@@ -484,15 +448,27 @@ class ThreatIntelligence extends Component {
    * @method
    */
   handleSearchSubmit = () => {
-    const dateTimeTo = moment(this.state.datetime.to).format('YYYY-MM-DD');
+    const {datetime} = this.state;
+    const dateTimeFrom = moment(datetime.from).format('YYYY-MM-DD') + 'T00:00:00';
+    const dateTimeToToday = moment(this.state.datetime.to).format('YYYY-MM-DD');
+    const dateTimeTo = moment(datetime.to).format('YYYY-MM-DD') + 'T23:59:59';
     const yesterday = moment(helper.getSubstractDate(1, 'day', moment().local())).format('YYYY-MM-DD');
+    const dateTime = {
+      from: moment(dateTimeFrom).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
+      to: moment(dateTimeTo).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+    };
 
-    if (moment(dateTimeTo).isAfter(yesterday)) { //Show error message
+    if (moment(dateTimeToToday).isAfter(yesterday)) { //Show error message
       helper.showPopupMsg(t('edge-management.txt-threatEndTimeError'), t('txt-error'));
       return;
-    } else {
-      this.clearIndicatorsData('search');
     }
+
+    if (moment(dateTime.from).isAfter()) { //Show error message
+      helper.showPopupMsg(t('edge-management.txt-threatDateError'), t('txt-error'));
+      return;
+    }
+
+    this.clearIndicatorsData('custom', dateTime);
   }
   /**
    * Toggle add threats modal on/off
@@ -1216,7 +1192,6 @@ class ThreatIntelligence extends Component {
       indicatorsData,
       indicatorsTrendData,
       acuIndicatorsTrendData,
-      todaysIndicatorsData,
       uplaodThreatsOpen,
       addThreatsOpen,
       importThreatsOpen,
@@ -1250,6 +1225,7 @@ class ThreatIntelligence extends Component {
             onChange={this.toggleDateRangeButtons}>
             <ToggleButton value='today'>{t('edge-management.txt-today')}</ToggleButton>
             <ToggleButton value='past7days'>{t('edge-management.txt-past7days')}</ToggleButton>
+            <ToggleButton value='allDays'>{t('edge-management.txt-allDays')}</ToggleButton>
             <ToggleButton value='custom'>{t('edge-management.txt-customDate')}</ToggleButton>
           </ToggleButtonGroup>
 
@@ -1286,21 +1262,9 @@ class ThreatIntelligence extends Component {
 
               <div className='main-statistics'>
                 <div className='statistics-content'>
-                  {activeDateType === 'today' &&
-                    this.showPieChart(todaysIndicatorsData)
-                  }
-
-                  {activeDateType !== 'today' &&
-                    this.showPieChart(indicatorsData)
-                  }
-
-                  {activeDateType !== 'today' &&
-                    this.showBarChart(indicatorsTrendData)
-                  }
-
-                  {activeDateType !== 'today' &&
-                    this.showLineChart(acuIndicatorsTrendData)
-                  }
+                  {this.showPieChart(indicatorsData)}
+                  {this.showBarChart(indicatorsTrendData)}
+                  {this.showLineChart(acuIndicatorsTrendData)}
                 </div>
               </div>
             </div>
