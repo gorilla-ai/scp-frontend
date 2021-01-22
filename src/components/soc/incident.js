@@ -20,7 +20,6 @@ import helper from "../common/helper"
 import Events from './common/events'
 import Ttps from './common/ttps'
 import {downloadLink, downloadWithForm} from "react-ui/build/src/utils/download";
-import ModalDialog from "react-ui/build/src/components/modal-dialog";
 import DataTable from "react-ui/build/src/components/table";
 import _ from "lodash";
 
@@ -1407,6 +1406,7 @@ class Incident extends Component {
             })
         }
 
+
         if (incident.info.accidentCatogory) {
             if (incident.info.accidentCatogory === 5) {
                 incident.info.accidentAbnormal = null
@@ -1722,11 +1722,9 @@ class Incident extends Component {
 
                 })
 
-
-
                 let empty = _.filter(incident.ttpList, function (o) {
                     if (o.infrastructureType === undefined || o.infrastructureType === 0){
-                        o.infrastructureType === '0'
+                        o.infrastructureType = '0'
                     }
                     if (!o.title || !o.infrastructureType){
                         statusCheck = false
@@ -1775,6 +1773,24 @@ class Incident extends Component {
                             from: Moment(el.startDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss'),
                             to: Moment(el.endDttm, 'YYYY-MM-DDTHH:mm:ssZ').local().format('YYYY-MM-DD HH:mm:ss')
                         }
+                    }
+                })
+            }
+
+            if (incident.info.ttpList) {
+                incident.info.ttpList = _.map(incident.info.ttpList, el => {
+
+                    let tempTtp = el
+                    if (tempTtp.infrastructureType === 0) {
+                        tempTtp.infrastructureType = '0'
+
+                    }else if (tempTtp.infrastructureType === 1) {
+                        tempTtp.infrastructureType = '1'
+
+                    }
+
+                    return {
+                        ...tempTtp
                     }
                 })
             }
