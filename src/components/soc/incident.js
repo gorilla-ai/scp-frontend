@@ -2899,7 +2899,7 @@ class Incident extends Component {
             payload.ttps.table.push({text: f('incidentFields.technique'), colSpan: 2})
             payload.ttps.table.push({text: f('incidentFields.infrastructureType'), colSpan: 2})
             payload.ttps.table.push({text: ttp.title, colSpan: 2})
-            payload.ttps.table.push({text: ttp.infrastructureType === 0 ? 'IOC' : 'IOA', colSpan: 2})
+            payload.ttps.table.push({text: (ttp.infrastructureType === 0 || ttp.infrastructureType === '0') ? 'IOC' : 'IOA' , colSpan: 2})
 
             if (_.size(ttp.etsList) > 0) {
                 payload.ttps.table.push({text: it('txt-ttp-ets'), colSpan: 4})
