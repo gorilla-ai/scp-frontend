@@ -1054,15 +1054,17 @@ class Incident extends Component {
                         return <span>{Moment(value).local().format('YYYY-MM-DD HH:mm:ss')}</span>
                     }
                     else if (tempData === 'fileMemo') {
-                        const target = _.find(JSON.parse(incident.info.attachmentDescription), {fileName: allValue.fileName})
+                        if (incident.info.attachmentDescription){
+                            const target = _.find(JSON.parse(incident.info.attachmentDescription), {fileName: allValue.fileName})
 
-                        let formattedWording = ''
-                        if (target.fileMemo && target.fileMemo.length > 32) {
-                            formattedWording = target.fileMemo.substr(0, 32) + '...';
-                        }else{
-                            formattedWording = target.fileMemo
+                            let formattedWording = ''
+                            if (target.fileMemo && target.fileMemo.length > 32) {
+                                formattedWording = target.fileMemo.substr(0, 32) + '...';
+                            }else{
+                                formattedWording = target.fileMemo
+                            }
+                            return <span style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all'}}>{formattedWording}</span>
                         }
-                        return <span style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all'}}>{formattedWording}</span>
                     }
                     else if (tempData === 'action') {
                         let isShow = true
@@ -1477,6 +1479,7 @@ class Incident extends Component {
                 display: it('txt-validBasic'),
                 confirmText: t('txt-close')
             });
+
             return false
         }
 
@@ -1487,6 +1490,7 @@ class Incident extends Component {
                 display: it('txt-validEvents'),
                 confirmText: t('txt-close')
             });
+
             return false
         }
         else {
@@ -1535,7 +1539,7 @@ class Incident extends Component {
                                     confirmText: t('txt-close')
                                 });
                                 eventCheck = false
-                                return
+
                         }
                     }
                 })
@@ -1555,6 +1559,7 @@ class Incident extends Component {
                     display: it('txt-validEvents'),
                     confirmText: t('txt-close')
                 });
+
                 return false
             }
         }
@@ -1568,6 +1573,7 @@ class Incident extends Component {
                     display: it('txt-validTechniqueInfa'),
                     confirmText: t('txt-close')
                 });
+
                 return false
             }
 
@@ -1578,6 +1584,7 @@ class Incident extends Component {
                     display: it('txt-validTTPs'),
                     confirmText: t('txt-close')
                 });
+
                 return false
             } else {
                 let statusCheck = true
@@ -1598,9 +1605,11 @@ class Incident extends Component {
                                         fileCheck = true
                                     }else{
                                         fileCheck = false
+                                        return
                                     }
                                 }else {
                                     fileCheck = false
+                                    return
                                 }
                             }
                         })
@@ -1608,18 +1617,19 @@ class Incident extends Component {
                         fileCheck = true
                     }
 
-
                     if (_.size(ttp.obsUriList) > 0) {
                         _.forEach(ttp.obsUriList, uri => {
                             if (uri.uriType && uri.uriValue) {
                                 urlCheck = true
                             } else {
                                 urlCheck = false
+                                return
                             }
                         })
                     }else{
                         urlCheck = true
                     }
+
 
                     if (_.size(ttp.obsSocketList) > 0) {
                         _.forEach(ttp.obsSocketList, socket => {
@@ -1701,7 +1711,6 @@ class Incident extends Component {
                         statusCheck = false
                     }
 
-
                     if (_.size(ttp.obsSocketList) <= 0 && _.size(ttp.obsUriList) <= 0 && _.size(ttp.obsFileList) <= 0){
                         PopupDialog.alert({
                             title: t('txt-tips'),
@@ -1716,7 +1725,7 @@ class Incident extends Component {
 
 
                 let empty = _.filter(incident.ttpList, function (o) {
-                    if (o.infrastructureType === undefined){
+                    if (o.infrastructureType === undefined || o.infrastructureType === 0){
                         o.infrastructureType === '0'
                     }
                     if (!o.title || !o.infrastructureType){
@@ -1730,8 +1739,9 @@ class Incident extends Component {
                         display: it('txt-validTechniqueInfa'),
                         confirmText: t('txt-close')
                     });
-                    statusCheck =   false
+                    statusCheck = false
                 }
+
                 return statusCheck
             }
         }
