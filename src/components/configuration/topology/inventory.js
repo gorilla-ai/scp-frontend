@@ -55,31 +55,37 @@ import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 const IP_PATTERN = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
 const MAC_PATTERN = /^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$/i;
 const NOT_AVAILABLE = 'N/A';
-const SAFETY_SCAN_LIST = ['yara', 'scanFile', 'gcb', 'fileIntegrity', 'procMonitor'];
+const SAFETY_SCAN_LIST = ['yara', 'scanFile', 'gcb', 'fileIntegrity', 'procMonitor', '_Vans'];
 const HMD_LIST = [
   {
     name: 'Yara Scan',
-    cmds: 'compareIOC'
+    cmds: 'compareIOC',
+    checkBox: 'isScanProc'
   },
   {
     name: 'Malware',
-    cmds: 'scanFile'
+    cmds: 'scanFile',
+    checkBox: 'isScanFile'
   },
   {
     name: 'GCB',
-    cmds: 'gcbDetection'
+    cmds: 'gcbDetection',
+    checkBox: 'isGCB'
   },
   {
     name: 'File Integrity',
-    cmds: 'getFileIntegrity'
+    cmds: 'getFileIntegrity',
+    checkBox: 'isFileIntegrity'
   },
   {
     name: 'Process Monitor',
-    cmds: 'setProcessWhiteList'
+    cmds: 'setProcessWhiteList',
+    checkBox: 'isProcessMonitor'
   },
   {
     name: 'VANS',
-    cmds: 'getVans'
+    cmds: 'getVans',
+    checkBox: 'isVans'
   }
 ];
 const MAPS_PRIVATE_DATA = {
@@ -135,9 +141,12 @@ class NetworkInventory extends Component {
       hmdCheckbox: false,
       hmdSelectAll: false,
       hmdSearchOptions: {
-        yaraScan: false,
-        malware: false,
-        gcb: false
+        isScanProc: false,
+        isScanFile: false,
+        isGCB: false,
+        isFileIntegrity: false,
+        isProcessMonitor: false,
+        isVans: false
       },
       deviceData: {
         dataFieldsArr: ['ip', 'mac', 'hostName', 'system', 'owner', 'areaName', 'seatName', 'scanInfo', '_menu'],
@@ -328,6 +337,10 @@ class NetworkInventory extends Component {
           text = t('network-inventory.txt-modifiedFileCount');
         }
 
+        if (val.type === '_Vans') {
+          text = t('network-inventory.txt-vulnerabilityInfo');
+        }
+
         return <li key={i} style={{color}}>{val.name} {text}: {helper.numberWithCommas(totalCount)}</li>
       }
     }
@@ -356,19 +369,13 @@ class NetworkInventory extends Component {
       const orders = deviceData.sort.field + ' ' + sort;
 
       if (hmdCheckbox) {
-        dataParams = 'isHmd=true';
+        dataParams += 'isHmd=true';
 
-        if (hmdSearchOptions.yaraScan) {
-          dataParams += '&isScanProc=true';
-        }
-
-        if (hmdSearchOptions.malware) {
-          dataParams += '&isScanFile=true';
-        }
-
-        if (hmdSearchOptions.gcb) {
-          dataParams += '&isGCB=true';
-        }
+        _.forEach(hmdSearchOptions, (val, key) => {
+          if (val === true) {
+            dataParams += `&${key}=true`
+          }
+        });
       }
 
       dataParams += `&page=${page + 1}&pageSize=${pageSize}&orders=${orders}`;
@@ -1128,6 +1135,19 @@ class NetworkInventory extends Component {
     });
   }  
   /**
+   * Handle filter input value change
+   * @method
+   * @param {object} event - event object
+   */
+  handleDeviceSearch = (event) => {
+    let tempDeviceSearch = {...this.state.deviceSearch};
+    tempDeviceSearch[event.target.name] = event.target.value;
+
+    this.setState({
+      deviceSearch: tempDeviceSearch
+    });
+  }
+  /**
    * Toggle HMD options
    * @method
    * @param {object} event - event object
@@ -1148,9 +1168,12 @@ class NetworkInventory extends Component {
       this.setState({
         hmdSelectAll: value,
         hmdSearchOptions: {
-          yaraScan: value,
-          malware: value,
-          gcb: value
+          isScanProc: value,
+          isScanFile: value,
+          isGCB: value,
+          isFileIntegrity: value,
+          isProcessMonitor: value,
+          isVans: value
         }
       });
     } else {
@@ -1175,17 +1198,29 @@ class NetworkInventory extends Component {
     }
   }
   /**
-   * Handle filter input value change
+   * Display HMD filter checkbox
    * @method
-   * @param {object} event - event object
+   * @param {string} val - individual HMD data
+   * @param {number} i - index of the HMD data
    */
-  handleDeviceSearch = (event) => {
-    let tempDeviceSearch = {...this.state.deviceSearch};
-    tempDeviceSearch[event.target.name] = event.target.value;
+  getHMDcheckbox = (val, i) => {
+    const {hmdCheckbox, hmdSearchOptions} = this.state;
 
-    this.setState({
-      deviceSearch: tempDeviceSearch
-    });
+    return (
+      <div className='option'>
+        <FormControlLabel
+          label={val.name}
+          control={
+            <Checkbox
+              className='checkbox-ui'
+              name={val.checkBox}
+              checked={hmdSearchOptions[val.checkBox]}
+              onChange={this.toggleHMDoptions}
+              color='primary' />
+          }
+          disabled={!hmdCheckbox} />
+      </div>
+    )
   }
   /**
    * Display filter content
@@ -1307,48 +1342,7 @@ class NetworkInventory extends Component {
                   }
                   disabled={!hmdCheckbox} />
               </div>
-              <div className='option'>
-                <FormControlLabel
-                  label='Yara Scan'
-                  control={
-                    <Checkbox
-                      id='hmdScanProcess'
-                      className='checkbox-ui'
-                      name='yaraScan'
-                      checked={hmdSearchOptions.yaraScan}
-                      onChange={this.toggleHMDoptions}
-                      color='primary' />
-                  }
-                  disabled={!hmdCheckbox} />
-              </div>
-              <div className='option'>
-                <FormControlLabel
-                  label='Malware'
-                  control={
-                    <Checkbox
-                      id='hmdScanFile'
-                      className='checkbox-ui'
-                      name='malware'
-                      checked={hmdSearchOptions.malware}
-                      onChange={this.toggleHMDoptions}
-                      color='primary' />
-                  }
-                  disabled={!hmdCheckbox} />
-              </div>
-              <div className='option'>
-                <FormControlLabel
-                  label='GCB'
-                  control={
-                    <Checkbox
-                      id='hmdGCB'
-                      className='checkbox-ui'
-                      name='gcb'
-                      checked={hmdSearchOptions.gcb}
-                      onChange={this.toggleHMDoptions}
-                      color='primary' />
-                  }
-                  disabled={!hmdCheckbox} />
-              </div>
+              {HMD_LIST.map(this.getHMDcheckbox)}
             </div>
           </div>
         </div>
@@ -2135,9 +2129,12 @@ class NetworkInventory extends Component {
       hmdCheckbox: false,
       hmdSelectAll: false,
       hmdSearchOptions: {
-        yaraScan: false,
-        malware: false,
-        gcb: false
+        isScanProc: false,
+        isScanFile: false,
+        isGCB: false,
+        isFileIntegrity: false,
+        isProcessMonitor: false,
+        isVans: false
       }
     });
   }
