@@ -536,12 +536,13 @@ class Edge extends Component {
   /**
    * Handle table sort
    * @method
-   * @param {object} sort - sort data object
+   * @param {string} field - sort field
+   * @param {string} boolean - sort type ('asc' or 'desc')
    */
-  handleTableSort = (sort) => {
+  handleTableSort = (field, sort) => {
     let tempEdge = {...this.state.edge};
-    tempEdge.sort.field = sort.field;
-    tempEdge.sort.desc = sort.desc;
+    tempEdge.sort.field = field;
+    tempEdge.sort.desc = sort;
 
     this.setState({
       edge: tempEdge

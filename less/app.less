@@ -529,6 +529,17 @@ button.standard:hover:not([disabled]) {
     background-color: var(--buttonSelectedHover);
   }
 }
+.MuiTableBody-root {
+  .grey {
+    background-color: var(--tableActiveRow) !important;
+    .MuiTableCell-body {
+      color: #fff;
+    }
+    &:hover {
+      background-color: var(--tableActiveRow) !important;
+    }
+  }
+}
 .MuiTableCell-head div,
 .MuiTableSortLabel-icon {
   color: var(--buttonSelectedColor) !important;

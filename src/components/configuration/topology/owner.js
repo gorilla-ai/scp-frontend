@@ -275,12 +275,13 @@ class NetworkOwner extends Component {
   /**
    * Handle table sort
    * @method
-   * @param {object} sort - sort data object
+   * @param {string} field - sort field
+   * @param {string} boolean - sort type ('asc' or 'desc')
    */
-  handleTableSort = (sort) => {
+  handleTableSort = (field, sort) => {
     let tempOwner = {...this.state.owner};
-    tempOwner.sort.field = sort.field;
-    tempOwner.sort.desc = sort.desc;
+    tempOwner.sort.field = field;
+    tempOwner.sort.desc = sort;
 
     this.setState({
       owner: tempOwner

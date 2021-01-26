@@ -68,22 +68,6 @@ const ALERT_LEVEL_COLORS = {
   Warning: '#29CC7A',
   Notice: '#7ACC29'
 };
-const SUBSECTIONS_DATA = { //Sub sections
-  subSectionsData: {
-    mainData: {
-      alert: null
-    },
-    fieldsData: {
-      alert: {}
-    },
-    tableColumns: {
-      alert: ['_eventDttm_', '_severity_', 'srcIp', 'destIp', 'Info', 'Collector', 'Source']
-    },
-    totalCount: {
-      alert: 0
-    }
-  }
-};
 //Charts ID must be unique
 const CHARTS_LIST = [
   {
@@ -171,13 +155,6 @@ class ThreatsController extends Component {
       },
       chartIntervalList: [],
       chartIntervalValue: '',
-      currentPage: 1,
-      oldPage: 1,
-      pageSize: 20,
-      sort: {
-        field: '_eventDttm_',
-        desc: true
-      },
       //Left nav
       treeData: {
         alert: {
@@ -222,7 +199,20 @@ class ThreatsController extends Component {
         query: ''
       }],
       edgeFilterData:[],
-      ..._.cloneDeep(SUBSECTIONS_DATA),
+      threatsData: {
+        dataFieldsArr: ['_eventDttm_', '_severity_', 'srcIp', 'destIp', 'Info', 'Collector', 'Source'],
+        dataFields: [],
+        dataContent: [],
+        sort: {
+          field: '_eventDttm_',
+          desc: false
+        },
+        totalCount: 0,
+        currentPage: 1,
+        oldPage: 1,
+        pageSize: 20
+      },
+      //..._.cloneDeep(SUBSECTIONS_DATA),
       mainEventsData: {},
       queryData: {
         id: '',
@@ -522,7 +512,7 @@ class ThreatsController extends Component {
       alertChartsList,
       alertTableData: tempAlertTableData
     }, () => {
-      this.loadThreatsData('search');
+      this.loadThreatsData();
       this.loadThreatsData('statistics');
       this.loadThreatsData(NET_TRAP_QUERY.name);
     });
@@ -584,29 +574,27 @@ class ThreatsController extends Component {
    * Get and set alert data
    * @method
    * @param {string} [options] - option for 'search', 'statistics', or 'alertDetails'
+   * @param {string} [fromPage] - option for 'currentPage'
    * @param {string} type - button action type ('previous' or 'next')
    */
-  loadThreatsData = (options, type) => {
+  loadThreatsData = (options, fromPage, type) => {
     const {baseUrl} = this.context;
     const {
       activeTab,
       chartIntervalValue,
-      currentPage,
-      oldPage,
-      pageSize,
       treeData,
-      subSectionsData,
+      threatsData,
       account,
       alertDetails,
       alertPieData,
       alertTableData
     } = this.state;
-    const setPage = options === 'search' ? 1 : currentPage;
+    const page = fromPage === 'currentPage' ? threatsData.currentPage : 0;
     const requestData = this.toQueryLanguage(options);
-    let url = `${baseUrl}/api/u2/alert/_search?histogramInterval=${chartIntervalValue}&page=${setPage}&pageSize=`;
+    let url = `${baseUrl}/api/u2/alert/_search?histogramInterval=${chartIntervalValue}&page=${page + 1}&pageSize=`;
 
-    if (!options || options === 'search' || options === 'alertDetails') {
-      url += pageSize;
+    if (!options || options === 'alertDetails') {
+      url += threatsData.pageSize;
     } else {
       url += '0&skipHistogram=true';
     }
@@ -619,12 +607,16 @@ class ThreatsController extends Component {
     })
     .then(data => {
       if (data) {
-        if (!options || options === 'search' || options === 'alertDetails') {
-          if (currentPage > 1 && data.data.rows.length === 0) {
+        if (!options || options === 'alertDetails') {
+          let tempThreatsData = {...threatsData};
+
+          if (threatsData.currentPage > 1 && data.data.rows.length === 0) {
+            tempThreatsData.currentPage = threatsData.oldPage;
+
             helper.showPopupMsg('', t('txt-error'), t('txt-maxDataMsg'));
 
             this.setState({
-              currentPage: oldPage
+              threatsData: tempThreatsData
             });
           } else {
             let alertHistogram = {
@@ -636,28 +628,22 @@ class ThreatsController extends Component {
             };
             let tableData = data.data;
             let tempArray = [];
-            let tempSubSectionsData = {...subSectionsData};
 
             if (_.isEmpty(tableData) || (tableData && tableData.counts === 0)) {
               helper.showPopupMsg(t('txt-notFound'));
 
-              let tempSubSectionsData = {...this.state.subSectionsData};
-              tempSubSectionsData.mainData[activeTab] = [];
-              tempSubSectionsData.totalCount[activeTab] = 0;
-
-              const resetObj = {
-                subSectionsData: tempSubSectionsData,
-                currentPage: 1,
-                oldPage: 1,
-                pageSize: 20
-              };
+              tempThreatsData.dataFields = [];
+              tempThreatsData.dataContent = [];
+              tempThreatsData.totalCount = 0;
+              tempThreatsData.currentPage = 1;
+              tempThreatsData.oldPage = 1;
+              tempThreatsData.pageSize = 20;
 
               this.setState({
-                ...resetObj,
+                threatsData: tempThreatsData,
                 alertHistogram: {}
               });
             } else {
-              tempSubSectionsData.totalCount[activeTab] = tableData.counts;
               tableData = tableData.rows;
 
               tempArray = _.map(tableData, val => { //Re-construct the Alert data
@@ -668,7 +654,7 @@ class ThreatsController extends Component {
 
               let tempAlertDetails = {...alertDetails};
               tempAlertDetails.currentIndex = 0;
-              tempAlertDetails.currentLength = tableData.length < pageSize ? tableData.length : pageSize;
+              tempAlertDetails.currentLength = tableData.length < threatsData.pageSize ? tableData.length : threatsData.pageSize;
               tempAlertDetails.all = tempArray;
 
               _.forEach(SEVERITY_TYPE, val => { //Create Alert histogram for Emergency, Alert, Critical, Warning, Notice
@@ -690,43 +676,47 @@ class ThreatsController extends Component {
                 }
               });
 
-              let tempFields = {};
-              subSectionsData.tableColumns[activeTab].forEach(tempData => {
-                let tempFieldName = tempData;
+              tempThreatsData.dataContent = tempArray;
+              tempThreatsData.totalCount = data.data.counts;
+              tempThreatsData.currentPage = page;
+              tempThreatsData.dataFields = _.map(threatsData.dataFieldsArr, val => {
+                return {
+                  name: val,
+                  label: f(`alertFields.${val}`),
+                  options: {
+                    sort: val === '_eventDttm_' ? true : false,
+                    customBodyRenderLite: (dataIndex, options) => {
+                      const allValue = tempThreatsData.dataContent[dataIndex];
+                      let value = tempThreatsData.dataContent[dataIndex][val];
 
-                tempFields[tempData] = {
-                  hide: false,
-                  label: f(`${activeTab}Fields.${tempFieldName}`),
-                  sortable: tempData === '_eventDttm_' ? true : false,
-                  formatter: (value, allValue) => {
-                    if (tempData === 'Info' || tempData === 'Source') {
-                      return <span>{value}</span>
-                    } else {
-                      if (tempData === '_eventDttm_') {
-                        value = helper.getFormattedDate(value, 'local');
+                      if (options === 'getAllValue') {
+                        return allValue;
                       }
-                      return (
-                        <TableCell
-                          activeTab={activeTab}
-                          fieldValue={value}
-                          fieldName={tempData}
-                          allValue={allValue}
-                          alertLevelColors={ALERT_LEVEL_COLORS}
-                          handleOpenQueryMenu={this.handleOpenQueryMenu} />
-                      )
+
+                      if (val === 'Info' || val === 'Source') {
+                        return <span onDoubleClick={this.handleRowDoubleClick.bind(this, dataIndex, allValue)}>{value}</span>
+                      } else {
+                        if (val === '_eventDttm_') {
+                          value = helper.getFormattedDate(value, 'local');
+                        }
+                        return (
+                          <TableCell
+                            activeTab={activeTab}
+                            fieldValue={value}
+                            fieldName={val}
+                            allValue={allValue}
+                            alertLevelColors={ALERT_LEVEL_COLORS}
+                            handleOpenQueryMenu={this.handleOpenQueryMenu}
+                            hanldeDoubleClick={this.handleRowDoubleClick.bind(this, dataIndex, allValue)} />
+                        )
+                      }
                     }
                   }
                 };
-              })
-
-              const tempCurrentPage = options === 'search' ? 1 : currentPage;
-              tempSubSectionsData.mainData[activeTab] = tempArray;
-              tempSubSectionsData.fieldsData[activeTab] = tempFields;
+              });
 
               this.setState({
-                currentPage: tempCurrentPage,
-                oldPage: tempCurrentPage,
-                subSectionsData: tempSubSectionsData
+                threatsData: tempThreatsData
               });
             }
           }
@@ -899,7 +889,7 @@ class ThreatsController extends Component {
    * @returns requst data object
    */
   toQueryLanguage = (options) => {
-    const {datetime, sort, filterData, edgeFilterData} = this.state;
+    const {datetime, threatsData, filterData, edgeFilterData} = this.state;
     const dateTime = {
       from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
       to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
@@ -924,7 +914,7 @@ class ThreatsController extends Component {
         dataObj.search = [NET_TRAP_QUERY.name];
       } else {
         dataObj.sort = [{
-          '_eventDttm_': sort.desc ? 'desc' : 'asc'
+          '_eventDttm_': threatsData.sort.desc ? 'desc' : 'asc'
         }];
       }
     }
@@ -1279,19 +1269,21 @@ class ThreatsController extends Component {
    * @method
    */
   handleSearchSubmit = () => {
-    const {activeTab, subSectionsData, alertChartsList} = this.state;
-    let tempSubSectionsData = {...subSectionsData};
+    const {threatsData, alertChartsList} = this.state;
+    let tempThreatsData = {...threatsData};
     let tempAlertChartsList = alertChartsList;
-    tempSubSectionsData.mainData[activeTab] = null;
+    tempThreatsData.dataFields = [];
+    tempThreatsData.dataContent = [];
+    tempThreatsData.totalCount = 0;
+    tempThreatsData.currentPage = 1;
+    tempThreatsData.oldPage = 1;
+    tempThreatsData.pageSize = 20;
 
     _.forEach(tempAlertChartsList, (val, i) => {
       tempAlertChartsList[i].chartData = null;
     })
 
     this.setState({
-      currentPage: 1,
-      oldPage: 1,
-      pageSize: 20,
       treeData: {
         alert: {
           title: '',
@@ -1317,7 +1309,7 @@ class ThreatsController extends Component {
           data: {}
         }
       },
-      subSectionsData: tempSubSectionsData,
+      threatsData: tempThreatsData,
       alertChartsList: tempAlertChartsList,
       alertPieData: {},
       alertTableData: {}
@@ -1348,44 +1340,36 @@ class ThreatsController extends Component {
     });
   }
   /**
-   * Handle pagination change
+   * Handle table pagination change
    * @method
-   * @param {number} currentPage - current page
+   * @param {string} type - page type ('currentPage' or 'pageSize')
+   * @param {string | number} value - new page number
    * @param {string} [options] - options for 'alertDetails'
-   * @param {string} [type] - button action type ('previous' or 'next')
+   * @param {string} [btnType] - button action type ('previous' or 'next')
    */
-  handlePaginationChange = (currentPage, options, type) => {
+  handlePaginationChange = (type, value, options, btnType) => {
+    let tempThreatsData = {...this.state.threatsData};
+    tempThreatsData[type] = Number(value);
+
     this.setState({
-      currentPage
+      threatsData: tempThreatsData
     }, () => {
-      this.loadThreatsData(options, type);
-    });
-  }
-  /**
-   * Handle page size dropdown
-   * @method
-   * @param {string} pageSize - current page size
-   */
-  handlePageDropdown = (pageSize) => {
-    this.setState({
-      currentPage: 1,
-      pageSize: Number(pageSize)
-    }, () => {
-      this.loadThreatsData();
+      this.loadThreatsData(options, type, btnType);
     });
   }
   /**
    * Handle table sort
    * @method
-   * @param {object} sort - sort data object
+   * @param {string} field - sort field
+   * @param {string} boolean - sort type ('asc' or 'desc')
    */
-  handleTableSort = (sort) => {
-    let tempSort = {...this.state.sort};
-    tempSort.field = sort.field;
-    tempSort.desc = sort.desc;
+  handleTableSort = (field, sort) => {
+    let tempThreatsData = {...this.state.threatsData};
+    tempThreatsData.sort.field = field;
+    tempThreatsData.sort.desc = sort;
 
     this.setState({
-      sort: tempSort
+      threatsData: tempThreatsData
     }, () => {
       this.loadThreatsData();
     });
@@ -1469,7 +1453,7 @@ class ThreatsController extends Component {
    */
   alertDialog = () => {
     const {sessionRights} = this.context;
-    const {datetime, currentPage, pageSize, alertDetails, alertData, subSectionsData} = this.state;
+    const {datetime, alertDetails, alertData, threatsData} = this.state;
     const dateTime = {
       from: moment(datetime.from).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z',
       to: moment(datetime.to).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z'
@@ -1493,9 +1477,9 @@ class ThreatsController extends Component {
         alertDetails={alertDetails}
         alertData={alertData}
         showAlertData={this.showAlertData}
-        currentPage={currentPage}
-        pageSize={pageSize}
-        totalPageCount={subSectionsData.totalCount.alert}
+        currentPage={threatsData.currentPage + 1}
+        pageSize={threatsData.pageSize}
+        totalPageCount={threatsData.totalCount}
         fromPage='threats' />
     )
   }
@@ -1505,20 +1489,20 @@ class ThreatsController extends Component {
    * @param {string} type - button action type ('previous' or 'next')
    */
   showAlertData = (type) => {
-    const {currentPage, alertDetails} = this.state;
+    const {threatsData, alertDetails} = this.state;
     let tempAlertDetails = {...alertDetails};
-    let tempCurrentPage = currentPage;
+    let tempCurrentPage = threatsData.currentPage;
 
     if (type === 'previous') {
       if (alertDetails.currentIndex === 0) { //End of the data, load previous set
-        this.handlePaginationChange(--tempCurrentPage, 'alertDetails', type);
+        this.handlePaginationChange('currentPage', --tempCurrentPage, 'alertDetails', type);
         return;
       } else {
         tempAlertDetails.currentIndex--;
       }
     } else if (type === 'next') {
       if (alertDetails.currentLength - alertDetails.currentIndex === 1) { //End of the data, load next set
-        this.handlePaginationChange(++tempCurrentPage, 'alertDetails', type);
+        this.handlePaginationChange('currentPage', ++tempCurrentPage, 'alertDetails', type);
         return;
       } else {
         tempAlertDetails.currentIndex++;
@@ -1627,7 +1611,7 @@ class ThreatsController extends Component {
     }, () => {
       if (type === 'refresh') {
         this.loadTreeData();
-        this.loadThreatsData('search');
+        this.loadThreatsData();
       }
     });
   }
@@ -1665,11 +1649,36 @@ class ThreatsController extends Component {
    * @returns Alert component
    */
   renderTabContent = () => {
-    const {activeTab} = this.state;
+    const {activeTab, currentTableID} = this.state;
+    const tableOptions = {
+      onChangePage: (currentPage) => {
+        this.handlePaginationChange('currentPage', currentPage);
+      },
+      onChangeRowsPerPage: (numberOfRows) => {
+        this.handlePaginationChange('pageSize', numberOfRows);
+      },
+      onColumnSortChange: (changedColumn, direction) => {
+        this.handleTableSort(changedColumn, direction === 'desc');
+      },
+      setRowProps: (row, dataIndex, rowIndex) => {
+        if (!row[0]) {
+          return;
+        }      
+
+        const allValue = row[0](rowIndex, 'getAllValue');
+        const tableUniqueID = allValue.id;
+
+        if (tableUniqueID === currentTableID) {
+          return {
+            className: 'grey'
+          };
+        }
+      }
+    };
     const mainContentData = {
       activeTab,
+      tableOptions,
       chartColors: ALERT_LEVEL_COLORS,
-      tableUniqueID: 'id',
       chartIntervalList: this.state.chartIntervalList,
       chartIntervalValue: this.state.chartIntervalValue,
       chartIntervalChange: this.handleIntervalChange,
@@ -1690,21 +1699,12 @@ class ThreatsController extends Component {
       toggleChart: this.toggleChart,
       openQuery: this.openQuery,
       setFilterData: this.setFilterData,
+      threatsData: this.state.threatsData,
       handleResetBtn: this.handleResetBtn,
       handleSearchSubmit: this.handleSearchSubmit,
       treeData: this.state.treeData,
       showTreeFilterBtn: this.showTreeFilterBtn,
-      dataTableData: this.state.subSectionsData.mainData[activeTab],
-      dataTableFields: this.state.subSectionsData.fieldsData[activeTab],
-      mainEventsData: this.state.mainEventsData,
-      dataTableSort: this.state.sort,
-      handleTableSort: this.handleTableSort,
-      handleRowDoubleClick: this.handleRowDoubleClick,
-      paginationTotalCount: this.state.subSectionsData.totalCount[activeTab],
-      paginationPageSize: this.state.pageSize,
-      paginationCurrentPage: this.state.currentPage,
-      paginationPageChange: this.handlePaginationChange,
-      paginationDropDownChange: this.handlePageDropdown
+      mainEventsData: this.state.mainEventsData
     };
 
     return (
@@ -1729,7 +1729,7 @@ class ThreatsController extends Component {
     if (columns === 'columns') {
       let tempColumns = [];
 
-      _.forEach(SUBSECTIONS_DATA.subSectionsData.tableColumns.alert, val => {
+      _.forEach(this.state.threatsData.dataFieldsArr, val => {
         tempColumns.push({
           [val]: f(`alertFields.${val}`)
         });
@@ -1794,10 +1794,13 @@ class ThreatsController extends Component {
     if (type === 'open') {
       const {queryData} = this.state;
       let tempQueryData = {...queryData};
-      tempQueryData.id = queryData.list[0].id;
-      tempQueryData.name = queryData.list[0].name;
-      tempQueryData.query = queryData.list[0].queryText;
-      tempQueryData.emailList = queryData.list[0].emailList;
+
+      if (queryData.list.length > 0) {
+        tempQueryData.id = queryData.list[0].id;
+        tempQueryData.name = queryData.list[0].name;
+        tempQueryData.query = queryData.list[0].queryText;
+        tempQueryData.emailList = queryData.list[0].emailList;
+      }
 
       this.setState({
         queryData: tempQueryData,
@@ -1909,10 +1912,8 @@ class ThreatsController extends Component {
   }
   render() {
     const {
-      activeTab,
       datetime,
       searchInput,
-      subSectionsData,
       openQueryOpen,
       saveQueryOpen,
       contextAnchor,

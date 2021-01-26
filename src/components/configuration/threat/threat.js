@@ -869,12 +869,13 @@ class ThreatIntelligence extends Component {
   /**
    * Handle table sort
    * @method
-   * @param {object} sort - sort data object
+   * @param {string} field - sort field
+   * @param {string} boolean - sort type ('asc' or 'desc')
    */
-  handleTableSort = (sort) => {
+  handleTableSort = (field, sort) => {
     let tempThreats = {...this.state.threats};
-    tempThreats.sort.field = sort.field;
-    tempThreats.sort.desc = sort.desc;
+    tempThreats.sort.field = field;
+    tempThreats.sort.desc = sort;
 
     this.setState({
       threats: tempThreats

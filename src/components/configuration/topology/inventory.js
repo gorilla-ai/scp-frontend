@@ -503,9 +503,13 @@ class NetworkInventory extends Component {
             options: {
               sort: val === '_menu' ? false : true,
               viewColumns: val === '_menu' ? false : true,
-              customBodyRenderLite: (dataIndex) => {
+              customBodyRenderLite: (dataIndex, options) => {
                 const allValue = tempDeviceData.dataContent[dataIndex];
                 const value = tempDeviceData.dataContent[dataIndex][val];
+
+                if (options === 'getAllValue') {
+                  return allValue;
+                }
 
                 if (val === 'owner') {
                   if (allValue.ownerObj) {
@@ -1525,14 +1529,15 @@ class NetworkInventory extends Component {
     });
   }
   /**
-   * Handle table sort functionality
+   * Handle table sort
    * @method
-   * @param {object} sort - sort data object
+   * @param {string} field - sort field
+   * @param {string} boolean - sort type ('asc' or 'desc')
    */
-  handleTableSort = (sort) => {
+  handleTableSort = (field, sort) => {
     let tempDeviceData = {...this.state.deviceData};
-    tempDeviceData.sort.field = sort.field;
-    tempDeviceData.sort.desc = sort.desc;
+    tempDeviceData.sort.field = field;
+    tempDeviceData.sort.desc = sort;
 
     this.setState({
       deviceData: tempDeviceData
@@ -4127,6 +4132,20 @@ class NetworkInventory extends Component {
       },
       onColumnSortChange: (changedColumn, direction) => {
         this.handleTableSort(changedColumn, direction === 'desc');
+      },
+      setRowProps: (row, dataIndex, rowIndex) => {
+        if (!row[0]) {
+          return;
+        }
+
+        const allValue = row[0](rowIndex, 'getAllValue');
+        const tableUniqueID = allValue.ipDeviceUUID;
+
+        if (tableUniqueID === activeIPdeviceUUID) {
+          return {
+            className: 'grey'
+          };
+        }
       }
     };
     let picPath = '';

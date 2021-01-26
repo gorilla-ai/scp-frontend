@@ -11,7 +11,7 @@ import PieChart from 'react-chart/build/src/components/pie'
 import DataChart from '../common/data-chart'
 import FilterContent from '../common/filter-content'
 import helper from '../common/helper'
-import TableContent from '../common/table-content'
+import MuiTableContent from '../common/mui-table-content'
 import Tree from '../common/tree'
 
 let t = null;
@@ -153,8 +153,9 @@ class Threats extends Component {
             </Tabs>
 
             {mainContentData.activeSubTab === 'table' &&
-              <TableContent
-                {...mainContentData} />
+              <MuiTableContent
+                data={mainContentData.threatsData}
+                tableOptions={mainContentData.tableOptions} />
             }
 
             {mainContentData.activeSubTab === 'statistics' &&

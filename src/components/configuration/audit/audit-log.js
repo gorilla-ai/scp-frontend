@@ -140,12 +140,13 @@ class AuditLog extends Component {
   /**
    * Handle table sort
    * @method
-   * @param {object} sort - sort data object
+   * @param {string} field - sort field
+   * @param {string} boolean - sort type ('asc' or 'desc')
    */
-  handleTableSort = (sort) => {
+  handleTableSort = (field, sort) => {
     let tempAudit = {...this.state.audit};
-    tempAudit.sort.field = sort.field;
-    tempAudit.sort.desc = sort.desc;
+    tempAudit.sort.field = field;
+    tempAudit.sort.desc = sort;
 
     this.setState({
       audit: tempAudit

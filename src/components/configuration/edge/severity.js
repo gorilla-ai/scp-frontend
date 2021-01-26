@@ -549,12 +549,13 @@ class Severity extends Component {
   /**
    * Handle table sort
    * @method
-   * @param {object} sort - sort data object
+   * @param {string} field - sort field
+   * @param {string} boolean - sort type ('asc' or 'desc')
    */
-  handleTableSort = (sort) => {
+  handleTableSort = (field, sort) => {
     let tempSeverity = {...this.state.severity};
-    tempSeverity.sort.field = sort.field;
-    tempSeverity.sort.desc = sort.desc;
+    tempSeverity.sort.field = field;
+    tempSeverity.sort.desc = sort;
 
     this.setState({
       severity: tempSeverity

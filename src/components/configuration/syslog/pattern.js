@@ -683,12 +683,13 @@ class Pattern extends Component {
   /**
    * Handle table sort
    * @method
-   * @param {object} sort - sort data object
+   * @param {string} field - sort field
+   * @param {string} boolean - sort type ('asc' or 'desc')
    */
-  handleTableSort = (sort) => {
+  handleTableSort = (field, sort) => {
     let tempPattern = {...this.state.pattern};
-    tempPattern.sort.field = sort.field;
-    tempPattern.sort.desc = sort.desc;
+    tempPattern.sort.field = field;
+    tempPattern.sort.desc = sort;
 
     this.setState({
       pattern: tempPattern

@@ -126,7 +126,7 @@ class TableCell extends Component {
         } else if (activeTab === 'alert' && fieldName === '_severity_') {
           return ( //Special case for Severity in Alerts
             <div>
-              <span className='severity' style={{backgroundColor: alertLevelColors[fieldValue]}}>{fieldValue}</span>
+              <span className='severity-level' style={{backgroundColor: alertLevelColors[fieldValue]}}>{fieldValue}</span>
               <i className={cx('fg fg-filter', {'active': showIcon})} title={t('txt-filterQuery')} onClick={this.props.handleOpenQueryMenu.bind(this, fieldName, fieldValue)}></i>
             </div>
           )
@@ -200,7 +200,11 @@ class TableCell extends Component {
   }
   render() {
     return (
-      <div className='table-cell' onMouseOver={this.showFilterIcon.bind(this, true)} onMouseOut={this.showFilterIcon.bind(this, false)}>
+      <div
+        className='table-cell'
+        onMouseOver={this.showFilterIcon.bind(this, true)}
+        onMouseOut={this.showFilterIcon.bind(this, false)}
+        onDoubleClick={this.props.hanldeDoubleClick}>
         {this.getFieldValue()}
       </div>
     )
@@ -210,8 +214,12 @@ class TableCell extends Component {
 TableCell.contextType = BaseDataContext;
 
 TableCell.propTypes = {
-  fieldName: PropTypes.string.isRequired,
-  allValue: PropTypes.object.isRequired
+  activeTab: PropTypes.string,
+  fieldName: PropTypes.string,
+  allValue: PropTypes.object.isRequired,
+  alertLevelColors: PropTypes.object,
+  handleOpenQueryMenu: PropTypes.func,
+  hanldeDoubleClick: PropTypes.func
 };
 
 export default TableCell;
