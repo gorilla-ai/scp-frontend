@@ -109,21 +109,21 @@ class SyslogController extends Component {
       },
       laData: [],
       //Sub sections
-      subSectionsData: {
-        mainData: {
-          logs: null
-        },
-        fieldsData: {
-          logs: {}
-        },
-        laData: {
-          logs: []
-        },
-        tableColumns: {},
-        totalCount: {
-          logs: 0
-        }
-      },
+      // subSectionsData: {
+      //   mainData: {
+      //     logs: null
+      //   },
+      //   fieldsData: {
+      //     logs: {}
+      //   },
+      //   laData: {
+      //     logs: []
+      //   },
+      //   tableColumns: {},
+      //   totalCount: {
+      //     logs: 0
+      //   }
+      // },
       syslogContextAnchor: null,
       currentSyslogData: {},
       logFields: [],
@@ -480,11 +480,7 @@ class SyslogController extends Component {
    * @returns true/false boolean
    */
   checkDisplayFields = (field) => {
-    if (field === '_tableMenu_') {
-      return true;
-    } else {
-      return _.includes(this.state.account.fields, field);
-    }
+    return _.includes(this.state.account.fields, field);
   }
   /**
    * Check table sort
@@ -498,13 +494,13 @@ class SyslogController extends Component {
     if (field === '@timestamp') {
       return true;
     } else {
-      return null;
+      return false;
     }
 
     if (_.includes(unSortableFields, field)) {
       return null;
     } else {
-      return true;
+      return false;
     }
   }
   /**
@@ -696,53 +692,56 @@ class SyslogController extends Component {
         tempSyslogData.currentPage = page;
         tempSyslogData.oldPage = page;
         tempSyslogData.dataFields = _.map(syslogData.dataFieldsArr, val => {
-          return {
-            name: val,
-            label: f(`alertFields.${val}`),
-            options: {
-              sort: val === '_eventDttm_' ? true : false,
-              customBodyRenderLite: (dataIndex, options) => {
-                const allValue = tempThreatsData.dataContent[dataIndex];
-                let value = tempThreatsData.dataContent[dataIndex][val];
-                let displayValue = '';
+          if (this.checkDisplayFields(val)) {
+            return {
+              name: val === '_tableMenu_' ? '' : val,
+              label: this.getCustomFieldName(val),
+              options: {
+                sort: this.checkSortable(val),
+                customBodyRenderLite: (dataIndex, options) => {
+                  const allValue = tempSyslogData.dataContent[dataIndex];
+                  let value = tempSyslogData.dataContent[dataIndex][val];
+                  let displayValue = '';
 
-                if (options === 'getAllValue') {
-                  return allValue;
-                }
+                  if (options === 'getAllValue') {
+                    return allValue;
+                  }
 
-                if (val === '_tableMenu_') {
+                  if (val === '_tableMenu_') {
+                    return (
+                      <div className={cx('table-menu', {'active': value})}>
+                        <Button variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue)}><i className='fg fg-more'></i></Button>
+                      </div>
+                    )
+                  }
+                  if (val === '@timestamp') {
+                    value = helper.getFormattedDate(value, 'local');
+                  }
+                  if (val === '_Raw' || val === 'message' || val === 'msg') {
+                    displayValue = value;
+
+                    if (value && value.length > 50) {
+                      displayValue = value.substr(0, 50) + '...';
+                    }
+                  }
+                  if (typeof value === 'boolean') {
+                    value = value.toString();
+                  }
                   return (
-                    <div className={cx('table-menu', {'active': value})}>
-                      <Button variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue)}><i className='fg fg-more'></i></Button>
-                    </div>
+                    <TableCell
+                      activeTab={activeTab}
+                      fieldValue={value}
+                      displayValue={displayValue}
+                      fieldName={val}
+                      allValue={allValue}
+                      markData={markData}
+                      handleOpenQueryMenu={this.handleOpenQueryMenu}
+                      hanldeDoubleClick={this.handleRowDoubleClick.bind(this, dataIndex, allValue)} />
                   )
                 }
-                if (val === '@timestamp') {
-                  value = helper.getFormattedDate(value, 'local');
-                }
-                if (val === '_Raw' || val === 'message' || val === 'msg') {
-                  displayValue = value;
-
-                  if (value && value.length > 50) {
-                    displayValue = value.substr(0, 50) + '...';
-                  }
-                }
-                if (typeof value === 'boolean') {
-                  value = value.toString();
-                }
-                return (
-                  <TableCell
-                    activeTab={activeTab}
-                    fieldValue={value}
-                    displayValue={displayValue}
-                    fieldName={val}
-                    allValue={allValue}
-                    markData={markData}
-                    handleOpenQueryMenu={this.handleOpenQueryMenu} />
-                )
               }
-            }
-          };
+            };
+          }
         });
 
         const dataArray = tempSyslogData.dataContent;
@@ -750,7 +749,7 @@ class SyslogController extends Component {
         for (var i = 0; i < dataArray.length; i++) {
           for (var key in dataArray[i]) {
             if (Array.isArray(dataArray[i][key])) {
-              tempSyslogData.dataContent = helper.arrayDataJoin(dataArray[i][key], '', ', ');
+              tempSyslogData.dataContent[i][key] = helper.arrayDataJoin(dataArray[i][key], '', ', ');
             }
           }
         }
@@ -981,42 +980,34 @@ class SyslogController extends Component {
   /**
    * Handle pagination change
    * @method
-   * @param {number} currentPage - current page
-   * @param {string} options - options for dialogType ('table' or 'json')
-   * @param {string} [type] - button action type ('previous' or 'next')
+   * @param {string} type - page type ('currentPage' or 'pageSize')
+   * @param {string | number} value - new page number
+   * @param {string} dialogType - 'table' or 'json'
+   * @param {string} [btnType] - button action type ('previous' or 'next')
    */
-  handlePaginationChange = (currentPage, options, type) => {
+  handlePaginationChange = (type, value, dialogType, btnType) => {
+    let tempSyslogData = {...this.state.syslogData};
+    tempSyslogData[type] = Number(value);
+
     this.setState({
-      currentPage
+      syslogData: tempSyslogData
     }, () => {
-      this.loadLogs(options, type);
-    });
-  }
-  /**
-   * Handle page size dropdown
-   * @method
-   * @param {string} pageSize - current page size
-   */
-  handlePageDropdown = (pageSize) => {
-    this.setState({
-      currentPage: 1,
-      pageSize: Number(pageSize)
-    }, () => {
-      this.loadLogs();
+      this.loadLogs(dialogType, type, btnType);
     });
   }
   /**
    * Handle table sort
    * @method
-   * @param {object} sort - sort data object
+   * @param {string} field - sort field
+   * @param {string} boolean - sort type ('asc' or 'desc')
    */
-  handleTableSort = (sort) => {
-    let tempSort = {...this.state.sort};
-    tempSort.field = sort.field;
-    tempSort.desc = sort.desc;
+  handleTableSort = (field, sort) => {
+    let tempSyslogData = {...this.state.syslogData};
+    tempSyslogData.sort.field = field;
+    tempSyslogData.sort.desc = sort;
 
     this.setState({
-      sort: tempSort
+      syslogData: tempSyslogData
     }, () => {
       this.loadLogs();
     });
@@ -1203,7 +1194,7 @@ class SyslogController extends Component {
     })
   }
   /**
-   * Open table menu when double click the table
+   * Open table menu when double click the table row
    * @method
    * @param {string} index - index of the syslog data
    * @param {object} allValue - selected syslog data
@@ -1223,24 +1214,24 @@ class SyslogController extends Component {
    * @returns object of index and data
    */
   handleDialogNavigation = (data, dialogType, type) => {
-    const {activeTab, currentPage, syslogData, currentTableIndex, currentLength} = this.state;
+    const {activeTab, syslogData, currentTableIndex, currentLength} = this.state;
     let tableRowIndex = '';
     let allValue = {};
-    let tempCurrentPage = currentPage;
+    let tempCurrentPage = syslogData.currentPage;
 
     if (data === 'previous' || data === 'next') { //For click on navigation button
       tableRowIndex = currentTableIndex;
 
       if (data === 'previous') {
         if (currentTableIndex === 0) { //End of the data, load previous set
-          this.handlePaginationChange(--tempCurrentPage, dialogType, data);
+          this.handlePaginationChange('currentPage', --tempCurrentPage, dialogType, data);
           return;
         } else {
           tableRowIndex--;
         }
       } else if (data === 'next') {
         if (currentTableIndex + 1 == currentLength) { //End of the data, load next set
-          this.handlePaginationChange(++tempCurrentPage, dialogType, data);
+          this.handlePaginationChange('currentPage', ++tempCurrentPage, dialogType, data);
           return;
         } else {
           tableRowIndex++;
@@ -1458,7 +1449,7 @@ class SyslogController extends Component {
     const {currentTableIndex, currentLength, syslogData} = this.state;
     const firstItemCheck = currentTableIndex === 0;
     const lastItemCheck = currentTableIndex + 1 == currentLength;
-    const firstPageCheck = syslogData.currentPage === 1;
+    const firstPageCheck = syslogData.currentPage + 1 === 1;
     const lastPageCheck = syslogData.currentPage === Math.ceil(syslogData.totalCount.logs / syslogData.pageSize);
     const pageText = {
       previous: t('txt-previous'),
@@ -1679,7 +1670,7 @@ class SyslogController extends Component {
 
     if (newTab === 'table') {
       tempSyslogData.currentPage = 1;
-      currentPage.pageSize = 20;
+      tempSyslogData.pageSize = 20;
 
       this.setState({
         syslogData: tempSyslogData
@@ -1688,7 +1679,7 @@ class SyslogController extends Component {
       });
     } else if (newTab === 'linkAnalysis') {
       tempSyslogData.currentPage = 1;
-      currentPage.pageSizeMap = 500;
+      tempSyslogData.pageSizeMap = 500;
 
       this.setState({
         syslogData: tempSyslogData
@@ -1725,7 +1716,7 @@ class SyslogController extends Component {
    * @returns Syslog component
    */
   renderTabContent = () => {
-    const {activeTab, tableMouseOver, markData} = this.state;
+    const {activeTab, tableMouseOver, markData, currentTableID} = this.state;
     const tableOptions = {
       onChangePage: (currentPage) => {
         this.handlePaginationChange('currentPage', currentPage);
@@ -1736,20 +1727,20 @@ class SyslogController extends Component {
       onColumnSortChange: (changedColumn, direction) => {
         this.handleTableSort(changedColumn, direction === 'desc');
       },
-      // setRowProps: (row, dataIndex, rowIndex) => {
-      //   if (!row[0]) {
-      //     return;
-      //   }
+      setRowProps: (row, dataIndex, rowIndex) => {
+        if (!row[0]) {
+          return;
+        }
 
-      //   const allValue = row[0](rowIndex, 'getAllValue');
-      //   const tableUniqueID = allValue.id;
+        const allValue = row[0](rowIndex, 'getAllValue');
+        const tableUniqueID = allValue.id;
 
-      //   if (tableUniqueID === currentTableID) {
-      //     return {
-      //       className: 'grey'
-      //     };
-      //   }
-      // }
+        if (tableUniqueID === currentTableID) {
+          return {
+            className: 'grey'
+          };
+        }
+      }
     };
     const mainContentData = {
       activeTab,
@@ -1788,18 +1779,18 @@ class SyslogController extends Component {
       logFields: this.state.logFields,
       LAconfig: this.state.LAconfig,
       logEventsData: this.state.logEventsData,
-      dataTableSort: this.state.sort,
-      handleTableSort: this.handleTableSort,
-      handleRowMouseOver: this.handleRowMouseOver,
-      handleRowDoubleClick: this.handleRowDoubleClick,
-      paginationTotalCount: this.state.syslogData.totalCount,
-      paginationPageSize: this.state.pageSize,
-      paginationAlertPageSize: this.state.pageSizeMap,
-      paginationCurrentPage: this.state.currentPage,
-      paginationPageChange: this.handlePaginationChange,
-      paginationDropDownChange: this.handlePageDropdown,
-      paginationAlertPageChange: this.handleLargePageChange,
-      paginationAlertDropDownChange: this.handleLargePageDropdown
+      // dataTableSort: this.state.sort,
+      // handleTableSort: this.handleTableSort,
+      // handleRowMouseOver: this.handleRowMouseOver,
+      // handleRowDoubleClick: this.handleRowDoubleClick,
+      // paginationTotalCount: this.state.syslogData.totalCount,
+      // paginationPageSize: this.state.pageSize,
+      // paginationAlertPageSize: this.state.pageSizeMap,
+      // paginationCurrentPage: this.state.currentPage,
+      // paginationPageChange: this.handlePaginationChange,
+      // paginationDropDownChange: this.handlePageDropdown,
+      // paginationAlertPageChange: this.handleLargePageChange,
+      // paginationAlertDropDownChange: this.handleLargePageDropdown
     };
 
     return (

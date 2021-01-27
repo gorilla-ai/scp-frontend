@@ -1435,7 +1435,7 @@ class ThreatsController extends Component {
     this.handleCloseQueryMenu();
   }
   /**
-   * Add tree node to search filter
+   * Open details dialog when double click the table row
    * @method
    * @param {string} index - index of the alert data
    * @param {object} allValue - alert data
@@ -1443,7 +1443,6 @@ class ThreatsController extends Component {
    */
   handleRowDoubleClick = (index, allValue, event) => {
     this.openDetailInfo(index, allValue);
-
     event.stopPropagation();
     return null;
   }
