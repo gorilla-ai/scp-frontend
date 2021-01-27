@@ -11,8 +11,9 @@ import DataChart from '../../common/data-chart'
 import FilterContent from '../../common/filter-content'
 import helper from '../../common/helper'
 import MarkContent from '../../common/mark-content'
+import MuiTableContent from '../../common/mui-table-content'
 import Pagination from '../../common/pagination'
-import TableContent from '../../common/table-content'
+//import TableContent from '../../common/table-content'
 import Tree from '../../common/tree'
 
 /**
@@ -61,8 +62,9 @@ class Syslog extends Component {
             </Tabs>
 
             {mainContentData.activeSubTab === 'table' &&
-              <TableContent
-                {...mainContentData} />
+              <MuiTableContent
+                data={mainContentData.syslogData}
+                tableOptions={mainContentData.tableOptions} />
             }
 
             {mainContentData.activeSubTab === 'linkAnalysis' &&

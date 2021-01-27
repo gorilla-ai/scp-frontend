@@ -611,13 +611,14 @@ class ThreatsController extends Component {
           let tempThreatsData = {...threatsData};
 
           if (threatsData.currentPage > 1 && data.data.rows.length === 0) {
-            tempThreatsData.currentPage = threatsData.oldPage;
-
             helper.showPopupMsg('', t('txt-error'), t('txt-maxDataMsg'));
+
+            tempThreatsData.currentPage = threatsData.oldPage;
 
             this.setState({
               threatsData: tempThreatsData
             });
+            return;
           } else {
             let alertHistogram = {
               Emergency: {},
@@ -1270,8 +1271,8 @@ class ThreatsController extends Component {
    */
   handleSearchSubmit = () => {
     const {threatsData, alertChartsList} = this.state;
-    let tempThreatsData = {...threatsData};
     let tempAlertChartsList = alertChartsList;
+    let tempThreatsData = {...threatsData};
     tempThreatsData.dataFields = [];
     tempThreatsData.dataContent = [];
     tempThreatsData.totalCount = 0;
@@ -1663,7 +1664,7 @@ class ThreatsController extends Component {
       setRowProps: (row, dataIndex, rowIndex) => {
         if (!row[0]) {
           return;
-        }      
+        }
 
         const allValue = row[0](rowIndex, 'getAllValue');
         const tableUniqueID = allValue.id;
