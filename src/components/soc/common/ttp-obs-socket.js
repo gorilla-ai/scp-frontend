@@ -42,7 +42,7 @@ class TtpObsSocket extends Component {
 						size='small'
 						onChange={this.handleDataChangeMui}
 						value={ip}
-						helperText={t('edge-management.txt-ipValidationFail')}
+						helperText={t('network-topology.txt-ipValidationFail')}
 						error={ip === '' || ip === undefined ? false : !helper.ValidateIP_Address(ip)}
 						disabled={activeContent === 'viewIncident'}/>
 				</div>
