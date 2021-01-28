@@ -143,6 +143,27 @@ class Incident extends Component {
         if (alertData) {
             this.toggleContent('redirect', alertData);
             sessionStorage.removeItem(alertDataId)
+            const {session} = this.context;
+
+            if (_.includes(session.roles, 'SOC Supervior') || _.includes(session.roles, 'SOC Supervisor')||  _.includes(session.roles, 'SOC Executor')){
+                if (_.includes(session.roles, 'SOC Executor')){
+                    this.setState({
+                        accountRoleType:SOC_Executor
+                    })
+                }else{
+                    this.setState({
+                        accountRoleType:SOC_Super
+                    })
+                }
+            } else  if (_.includes(session.roles, 'SOC Executor')){
+                this.setState({
+                    accountRoleType:SOC_Executor
+                })
+            } else  if (_.includes(session.roles, 'SOC Analyzer')){
+                this.setState({
+                    accountRoleType:SOC_Analyzer
+                })
+            }
         } else {
             const {session} = this.context;
 
