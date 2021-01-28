@@ -71,10 +71,10 @@ class Syslog extends Component {
               <div className='la-content'>
                 <VbdaLA
                   assetsPath={assetsPath}
-                  sourceCfg={mainContentData.LAconfig}
-                  events={mainContentData.logEventsData}
-                  source={mainContentData.LAdata}
-                  sourceItemOptions={mainContentData.LAconfig.la}
+                  sourceCfg={mainContentData.LAdata.LAconfig}
+                  events={mainContentData.LAdata.logEventsData}
+                  source={mainContentData.LAdata.dataContent}
+                  sourceItemOptions={mainContentData.LAdata.LAconfig.la}
                   lng={language} />
 
                 <footer>
@@ -85,11 +85,11 @@ class Syslog extends Component {
                       {value: 2000, text: '2000'},
                       {value: 5000, text: '5000'}
                     ]}
-                    totalCount={mainContentData.paginationTotalCount}
-                    pageSize={mainContentData.paginationAlertPageSize}
-                    currentPage={mainContentData.paginationCurrentPage}
-                    onPageChange={mainContentData.paginationAlertPageChange.bind(this, 'la')}
-                    onDropDownChange={mainContentData.paginationAlertDropDownChange.bind(this, 'la')} />
+                    totalCount={mainContentData.LAdata.totalCount}
+                    pageSize={mainContentData.LAdata.pageSize}
+                    currentPage={mainContentData.LAdata.currentPage}
+                    onPageChange={mainContentData.handleLaPageChange.bind(this, 'currentPage')}
+                    onDropDownChange={mainContentData.handleLaPageChange.bind(this, 'pageSize')} />
                 </footer>
               </div>
             }

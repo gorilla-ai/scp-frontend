@@ -204,7 +204,8 @@ class TableCell extends Component {
         className='table-cell'
         onMouseOver={this.showFilterIcon.bind(this, true)}
         onMouseOut={this.showFilterIcon.bind(this, false)}
-        onDoubleClick={this.props.hanldeDoubleClick}>
+        onDoubleClick={this.props.handleRowDoubleClick}
+        onMouseOver ={this.props.handleRowMouseOver}>
         {this.getFieldValue()}
       </div>
     )
@@ -219,7 +220,8 @@ TableCell.propTypes = {
   allValue: PropTypes.object.isRequired,
   alertLevelColors: PropTypes.object,
   handleOpenQueryMenu: PropTypes.func,
-  hanldeDoubleClick: PropTypes.func
+  handleRowDoubleClick: PropTypes.func,
+  handleRowMouseOver: PropTypes.func
 };
 
 export default TableCell;

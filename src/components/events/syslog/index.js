@@ -60,14 +60,6 @@ class SyslogController extends Component {
       },
       chartIntervalList: [],
       chartIntervalValue: '',
-      // currentPage: 1,
-      // oldPage: 1,
-      // pageSize: 20,
-      // pageSizeMap: 500,
-      // sort: {
-      //   field: '@timestamp',
-      //   desc: true
-      // },
       //Left nav
       treeRawData: {},
       treeData: null,
@@ -104,31 +96,19 @@ class SyslogController extends Component {
         totalCount: 0,
         currentPage: 1,
         oldPage: 1,
-        pageSize: 20,
-        pageSizeMap: 500
+        pageSize: 20
       },
-      laData: [],
-      //Sub sections
-      // subSectionsData: {
-      //   mainData: {
-      //     logs: null
-      //   },
-      //   fieldsData: {
-      //     logs: {}
-      //   },
-      //   laData: {
-      //     logs: []
-      //   },
-      //   tableColumns: {},
-      //   totalCount: {
-      //     logs: 0
-      //   }
-      // },
+      laData: {
+        dataContent: [],
+        LAconfig: {},
+        logEventsData: {},
+        totalCount: 0,
+        currentPage: 1,
+        pageSize: 500
+      },
       syslogContextAnchor: null,
       currentSyslogData: {},
       logFields: [],
-      LAconfig: {},
-      logEventsData: {},
       account: {
         id: '',
         login: false,
@@ -210,8 +190,11 @@ class SyslogController extends Component {
     helper.getLAconfig(baseUrl)
     .then(data => {
       if (!_.isEmpty(data)) {
+        let tempLaData = {...this.state.laData};
+        tempLaData.LAconfig = configLoader.processAll(data);
+
         this.setState({
-          LAconfig: configLoader.processAll(data)
+          laData: tempLaData
         });
       }
       return null;
@@ -509,8 +492,11 @@ class SyslogController extends Component {
    * @param {string} options - option for 'search'
    */
   resetLinkAnalysis = (options) => {
+    let tempLaData = {...this.state.laData};
+    tempLaData.dataContent = [];
+
     this.setState({
-      laData: []
+      laData: tempLaData
     }, () => {
       this.loadLinkAnalysis(options);
     });
@@ -519,15 +505,14 @@ class SyslogController extends Component {
    * Get and set link analysis data
    * @method
    * @param {string} options - option for 'search'
-   * @param {string} [fromPage] - option for 'currentPage'
    */
-  loadLinkAnalysis = (options, fromPage) => {
+  loadLinkAnalysis = (options) => {
     const {baseUrl} = this.context;
-    const {activeTab, syslogData, LAconfig} = this.state;
-    const page = fromPage === 'currentPage' ? syslogData.currentPage : 0;
-    const url = `${baseUrl}/api/u1/log/event/_search?page=${page + 1}&pageSize=${syslogData.pageSizeMap}`;
+    const {laData} = this.state;
+    const page = options === 'search' ? 1 : laData.currentPage;
+    const url = `${baseUrl}/api/u1/log/event/_search?page=${page}&pageSize=${laData.pageSize}`;
     const requestData = this.toQueryLanguage();
-    let tempSyslogData = {...syslogData};
+    let tempLaData = {...laData};
     let logEventsData = {};
     let eventHistogram = {};
 
@@ -545,12 +530,13 @@ class SyslogController extends Component {
           logEventsData[val.id] = val.content;
         })
 
-        tempSyslogData.totalCount = logsData.counts;
+        tempLaData.currentPage = page;
+        tempLaData.totalCount = logsData.counts;
+        tempLaData.dataContent = analyze(logEventsData, laData.LAconfig, {analyzeGis: false});
+        tempLaData.logEventsData = logEventsData;
 
         this.setState({
-          logEventsData,
-          syslogData: tempSyslogData,
-          laData: analyze(logEventsData, LAconfig, {analyzeGis: false})
+          laData: tempLaData
         });
       } else {
         helper.showPopupMsg(t('txt-notFound'));
@@ -736,7 +722,8 @@ class SyslogController extends Component {
                       allValue={allValue}
                       markData={markData}
                       handleOpenQueryMenu={this.handleOpenQueryMenu}
-                      hanldeDoubleClick={this.handleRowDoubleClick.bind(this, dataIndex, allValue)} />
+                      handleRowDoubleClick={this.handleRowDoubleClick.bind(this, dataIndex, allValue)}
+                      handleRowMouseOver={this.handleRowMouseOver.bind(this, allValue.id)} />
                   )
                 }
               }
@@ -898,7 +885,6 @@ class SyslogController extends Component {
     tempSyslogData.currentPage = 1;
     tempSyslogData.oldPage = 1;
     tempSyslogData.pageSize = 20;
-    tempSyslogData.pageSizeMap = 500;
 
     this.setState({
       syslogData: tempSyslogData
@@ -943,39 +929,21 @@ class SyslogController extends Component {
     }
   }
   /**
-   * Handle pagination change for LA and World Map
+   * Handle pagination change for LA
    * @method
-   * @param {number} type - content type ('la' or 'map')
-   * @param {number} currentPage - current page
+   * @param {string} type - action type ('currentPage' or 'pageSize')
+   * @param {number} value - current page or page size
    */
-  handleLargePageChange = (type, currentPage) => {
-    this.setState({
-      currentPage
-    }, () => {
-      if (type === 'la') {
-        this.resetLinkAnalysis();
-      }
-    });
-  }
-  /**
-   * Handle page size dropdown for LA and World Map
-   * @method
-   * @param {number} type - content type ('la' or 'map')
-   * @param {string} pageSize - current page size
-   */
-  handleLargePageDropdown = (type, pageSize) => {
-    if (type === 'la') {
-      this.resetLinkAnalysis();
-    }
+  handleLaPageChange = (type, value) => {
+    let tempLaData = {...this.state.laData};
+    tempLaData[type] = Number(value);
 
-    // this.setState({
-    //   currentPage: 1,
-    //   pageSizeMap: Number(pageSize)
-    // }, () => {
-    //   if (type === 'la') {
-    //     this.resetLinkAnalysis();
-    //   }
-    // });
+    this.setState({
+      laData: tempLaData
+    }, () => {
+      const options = type === 'pageSize' ? 'search' : '';
+      this.resetLinkAnalysis(options);
+    });
   }
   /**
    * Handle pagination change
@@ -1027,17 +995,14 @@ class SyslogController extends Component {
   /**
    * Handle table row mouse over
    * @method
-   * @param {number} id - ID of the selected raw data
-   * @param {object} allValue - table data
-   * @param {object} event - event object
+   * @param {string} id - raw data ID
    */
-  handleRowMouseOver = (id, allValue, event) => {
-    const {activeTab, syslogData} = this.state;
-    let tempSyslogData = {...syslogData};
+  handleRowMouseOver = (id) => {
+    let tempSyslogData = {...this.state.syslogData};
     tempSyslogData.dataContent = _.map(tempSyslogData.dataContent, item => {
       return {
         ...item,
-        _tableMenu_: allValue.id === item.id ? true : false
+        _tableMenu_: id === item.id ? true : false
       };
     });
 
@@ -1450,7 +1415,7 @@ class SyslogController extends Component {
     const firstItemCheck = currentTableIndex === 0;
     const lastItemCheck = currentTableIndex + 1 == currentLength;
     const firstPageCheck = syslogData.currentPage + 1 === 1;
-    const lastPageCheck = syslogData.currentPage === Math.ceil(syslogData.totalCount.logs / syslogData.pageSize);
+    const lastPageCheck = syslogData.currentPage === Math.ceil(syslogData.totalCount / syslogData.pageSize);
     const pageText = {
       previous: t('txt-previous'),
       next: t('txt-next')
@@ -1530,7 +1495,6 @@ class SyslogController extends Component {
     tempSyslogData.currentPage = 1;
     tempSyslogData.oldPage = 1;
     tempSyslogData.pageSize = 20;
-    tempSyslogData.pageSizeMap = 500;
 
     this.setState({
       syslogData: tempSyslogData
@@ -1667,6 +1631,7 @@ class SyslogController extends Component {
    */
   handleSubTabChange = (event, newTab) => {
     let tempSyslogData = {...this.state.syslogData};
+    let tempLaData = {...this.state.laData};
 
     if (newTab === 'table') {
       tempSyslogData.currentPage = 1;
@@ -1678,11 +1643,11 @@ class SyslogController extends Component {
         this.loadLogs();
       });
     } else if (newTab === 'linkAnalysis') {
-      tempSyslogData.currentPage = 1;
-      tempSyslogData.pageSizeMap = 500;
+      tempLaData.currentPage = 1;
+      tempLaData.pageSize = 500;
 
       this.setState({
-        syslogData: tempSyslogData
+        laData: tempLaData
       }, () => {
         this.loadLinkAnalysis();
       });
@@ -1773,24 +1738,9 @@ class SyslogController extends Component {
       treeSelect: this.selectTree,
       showTreeFilterBtn: this.showTreeFilterBtn,
       syslogData: this.state.syslogData,
-      //dataTableData: this.state.subSectionsData.mainData[activeTab],
-      //dataTableFields: this.state.subSectionsData.fieldsData[activeTab],
       LAdata: this.state.laData,
       logFields: this.state.logFields,
-      LAconfig: this.state.LAconfig,
-      logEventsData: this.state.logEventsData,
-      // dataTableSort: this.state.sort,
-      // handleTableSort: this.handleTableSort,
-      // handleRowMouseOver: this.handleRowMouseOver,
-      // handleRowDoubleClick: this.handleRowDoubleClick,
-      // paginationTotalCount: this.state.syslogData.totalCount,
-      // paginationPageSize: this.state.pageSize,
-      // paginationAlertPageSize: this.state.pageSizeMap,
-      // paginationCurrentPage: this.state.currentPage,
-      // paginationPageChange: this.handlePaginationChange,
-      // paginationDropDownChange: this.handlePageDropdown,
-      // paginationAlertPageChange: this.handleLargePageChange,
-      // paginationAlertDropDownChange: this.handleLargePageDropdown
+      handleLaPageChange: this.handleLaPageChange
     };
 
     return (
@@ -2005,15 +1955,18 @@ class SyslogController extends Component {
    * @method
    */
   clearData = () => {
-    const {activeTab, syslogData} = this.state;
+    const {activeTab, syslogData, laData} = this.state;
     let tempSyslogData = {...syslogData};
+    let tempLaData = {...laData};
     tempSyslogData.dataFields = [];
     tempSyslogData.dataContent = [];
     tempSyslogData.totalCount = 0;
+    tempLaData.dataContent = [];
+    tempLaData.totalCount = 0;
 
     this.setState({
       syslogData: tempSyslogData,
-      laData: []
+      laData: tempLaData
     }, () => {
       this.loadFields(activeTab);
     });

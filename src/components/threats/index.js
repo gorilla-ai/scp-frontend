@@ -673,7 +673,7 @@ class ThreatsController extends Component {
                 alertDetails: tempAlertDetails
               }, () => {
                 if (options === 'alertDetails') {
-                  this.openDetailInfo('', '', type); //Pass index of 0
+                  this.openDetailInfo('', '', type);
                 }
               });
 
@@ -708,7 +708,7 @@ class ThreatsController extends Component {
                             allValue={allValue}
                             alertLevelColors={ALERT_LEVEL_COLORS}
                             handleOpenQueryMenu={this.handleOpenQueryMenu}
-                            hanldeDoubleClick={this.handleRowDoubleClick.bind(this, dataIndex, allValue)} />
+                            handleRowDoubleClick={this.handleRowDoubleClick.bind(this, dataIndex, allValue)} />
                         )
                       }
                     }
