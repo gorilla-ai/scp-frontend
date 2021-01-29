@@ -46,9 +46,15 @@ class SearchOptions extends Component {
    * @param {string} search - search option
    */
   loadSearchOptions = (search, prevProps) => {
-    const {searchInput} = this.props;
+    const {datetime, searchInput} = this.props;
 
     if (search) {
+      if (datetime.from && datetime.to) {
+        if (moment(datetime.to).isBefore(moment(datetime.from))) {
+          helper.showPopupMsg(t('txt-timeRangeError'), t('txt-error'));
+          return;
+        }
+      }
       this.props.handleSearchSubmit('search');
     }
 

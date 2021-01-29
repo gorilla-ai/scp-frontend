@@ -230,6 +230,7 @@
   "txt-plsEnterName": "Please enter a name",
   "txt-memoMaxLength": "maximum 250 characters",
   "txt-updateTime": "Update Time",
+  "txt-timeRangeError": "Please check your time range",
 
   "txt-listText": "List",
   "txt-uploadPhoto": "Upload Photo",

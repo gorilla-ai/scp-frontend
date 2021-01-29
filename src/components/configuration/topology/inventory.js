@@ -346,6 +346,21 @@ class NetworkInventory extends Component {
     }
   }
   /**
+   * Check table sort
+   * @method
+   * @param {string} field - table field name
+   * @returns true for sortable field
+   */
+  checkSortable = (field) => {
+    const unSortableFields = ['owner', 'areaName', 'seatName', 'yaraScan', '_menu', 'scanInfo'];
+
+    if (_.includes(unSortableFields, field)) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+  /**
    * Get and set device data / Handle delete IP device confirm
    * @method
    * @param {string} [fromPage] - option for 'currentPage'
@@ -501,7 +516,7 @@ class NetworkInventory extends Component {
             name: val,
             label: val === '_menu' ? ' ' : t(`ipFields.${val}`),
             options: {
-              sort: val === '_menu' ? false : true,
+              sort: this.checkSortable(val),
               viewColumns: val === '_menu' ? false : true,
               customBodyRenderLite: (dataIndex, options) => {
                 const allValue = tempDeviceData.dataContent[dataIndex];
@@ -832,21 +847,6 @@ class NetworkInventory extends Component {
     this.setState({
       showSeatData: false
     });
-  }
-  /**
-   * Check table sortable fields
-   * @method
-   * @param {string} field - field name
-   * @returns true for sortable or null
-   */
-  checkSortable = (field) => {
-    const unSortableFields = ['owner', 'areaName', 'seatName', 'yaraScan', '_menu', 'scanInfo'];
-
-    if (_.includes(unSortableFields, field)) {
-      return null;
-    } else {
-      return true;
-    }
   }
   /**
    * Get and set floor plan data

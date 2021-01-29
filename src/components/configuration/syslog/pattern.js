@@ -166,7 +166,7 @@ class Pattern extends Component {
             name: val,
             label: val === '_menu' ? ' ' : f(`syslogPatternTableFields.${val}`),
             options: {
-              sort: val === '_menu' ? false : true,
+              sort: false,
               viewColumns: val === '_menu' ? false : true,
               customBodyRenderLite: (dataIndex) => {
                 const allValue = tempPattern.dataContent[dataIndex];
