@@ -167,6 +167,21 @@ class NetworkOwner extends Component {
     })
   }
   /**
+   * Check table sort
+   * @method
+   * @param {string} field - table field name
+   * @returns true for sortable field
+   */
+  checkSortable = (field) => {
+    const sortableFields = ['ownerID', 'ownerName'];
+
+    if (_.includes(sortableFields, field)) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  /**
    * Get and set owner data
    * @method
    * @param {string} fromPage - option for 'currentPage'
@@ -211,7 +226,7 @@ class NetworkOwner extends Component {
             name: val,
             label: val === '_menu' ? ' ' : t(`ownerFields.${val}`),
             options: {
-              sort: val === '_menu' ? false : true,
+              sort: this.checkSortable(val),
               viewColumns: val === '_menu' ? false : true,
               customBodyRenderLite: (dataIndex) => {
                 const allValue = tempOwner.dataContent[dataIndex];
