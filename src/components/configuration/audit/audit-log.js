@@ -93,8 +93,12 @@ class AuditLog extends Component {
     })
     .then(data => {
       if (data) {
+        if (!data.rows || data.rows.length === 0) {
+          helper.showPopupMsg(t('txt-notFound'));
+          return;
+        }
+
         let tempAudit = {...audit};
-        let auditData = [];
         tempAudit.totalCount = data.counts;
         tempAudit.currentPage = page;
         tempAudit.dataContent = _.map(data.rows, val => {
@@ -102,12 +106,7 @@ class AuditLog extends Component {
             createDttm: val.content.createDttm,
             message: val.content.message
           };
-        })
-
-        if (!data.rows || data.rows.length === 0) {
-          helper.showPopupMsg(t('txt-notFound'));
-          return;
-        }
+        });
 
         tempAudit.dataFields = _.map(audit.dataFieldsArr, val => {
           return {
@@ -116,7 +115,10 @@ class AuditLog extends Component {
             options: {
               filter: true,
               sort: false,
-              customBodyRenderLite: (value) => {
+              customBodyRenderLite: (dataIndex) => {
+                const allValue = tempAudit.dataContent[dataIndex];
+                const value = tempAudit.dataContent[dataIndex][val];
+
                 if (val === 'createDttm') {
                   return helper.getFormattedDate(value, 'local');
                 } else {

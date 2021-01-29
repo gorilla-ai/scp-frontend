@@ -693,7 +693,7 @@ class Netflow extends Component {
    * Check table sort
    * @method
    * @param {string} field - table field name
-   * @returns true for sortable or null
+   * @returns true for sortable field
    */
   checkSortable = (field) => {
     const unSortableFields = ['_tableMenu_', 'base64', 'filePath', 'controlText', 'htmlRelinkPath', 'body', 'requestRawHeader', 'responseRawHeader', 'uploadData', 'dnsho'];

@@ -326,7 +326,7 @@ class Edge extends Component {
             name: val,
             label: val === '_menu' ? ' ' : f(`edgeFields.${val}`),
             options: {
-              sort: this.checkSortable(val),
+              sort: false,
               viewColumns: val === '_menu' ? false : true,
               customBodyRenderLite: (dataIndex) => {
                 const allValue = tempEdge.dataContent[dataIndex];
@@ -522,13 +522,13 @@ class Edge extends Component {
    * Check table sort
    * @method
    * @param {string} field - table field name
-   * @returns true for sortable or null
+   * @returns true for sortable field
    */
   checkSortable = (field) => {
     const unSortableFields = ['description', '_menu'];
 
     if (_.includes(unSortableFields, field)) {
-      return null;
+      return false;
     } else {
       return true;
     }

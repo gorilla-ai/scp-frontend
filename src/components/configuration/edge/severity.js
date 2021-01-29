@@ -136,7 +136,7 @@ class Severity extends Component {
             name: val,
             label: val === '_menu' ? ' ' : f(`severityTableFields.${val}`),
             options: {
-              sort: val === 'dataSourceType' ? true : false,
+              sort: false,
               viewColumns: val === '_menu' ? false : true,
               customBodyRenderLite: (dataIndex) => {
                 const allValue = tempSeverity.dataContent[dataIndex];

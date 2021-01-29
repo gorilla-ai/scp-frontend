@@ -689,6 +689,10 @@ html[data-theme='dark'] {
                 width: 80%;
                 text-align: left;
                 margin-top: 1px;
+                span {
+                  display: inline-block;
+                  width: 90%;
+                }
                 .main {
                   color: var(--primaryContentHeader);
                   font-weight: bold;
@@ -1177,6 +1181,15 @@ html[data-theme='dark'] {
     }
   }
 }
+
+#dashboardModalDialog-content {
+  .scan-info {
+    .info-content {
+      min-height: 41vh;
+    }
+  }
+}
+
 #hostModalDialog-content {
   .main-content {
     & > .content {

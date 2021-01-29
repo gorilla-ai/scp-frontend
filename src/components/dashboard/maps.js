@@ -824,7 +824,7 @@ class DashboardMaps extends Component {
           <span className='ip'>{val.key}</span>
           <span className='host'>{val.srcTopoInfo && val.srcTopoInfo.hostName}</span>
         </div>
-        <span className='count' style={{backgroundColor: ALERT_LEVEL_COLORS[val._severity_]}}>{val.doc_count}</span>
+        <span className='count' style={{backgroundColor: ALERT_LEVEL_COLORS[val._severity_]}}>{helper.numberWithCommas(val.doc_count)}</span>
       </li>
     )
   }

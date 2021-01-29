@@ -146,7 +146,7 @@
   "txt-selectFile": "請選擇檔案",
   "txt-destIp": "目的IP",
   "txt-destPort": "目的Port",
-  "txt-configSource": "Config Source",
+  "txt-configSource": "來源設定檔名稱",
   "txt-alertHourBefore": "告警時間前一小時",
   "txt-column": "欄位",
   "txt-ip": "IP",
@@ -230,6 +230,7 @@
   "txt-plsEnterName": "請輸入名稱",
   "txt-memoMaxLength": "上限250字",
   "txt-updateTime": "更新時間",
+  "txt-timeRangeError": "請檢查時間區間",
 
   "txt-listText": "列表",
   "txt-uploadPhoto": "上傳照片",

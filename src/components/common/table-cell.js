@@ -157,7 +157,18 @@ class TableCell extends Component {
             const ownerName = allValue.srcTopoInfo.ownerName;
             const areaName = allValue.srcTopoInfo.areaFullName;
             const seatName = allValue.srcTopoInfo.seatName;
-            tooltip = t('ipFields.owner') + ': ' + ownerName + ', ' + t('ipFields.areaFullName') + ': ' + areaName + ', ' + t('ipFields.seat') + ': ' + seatName;
+
+            if (ownerName) {
+              tooltip += t('ipFields.owner') + ': ' + ownerName;
+            }
+
+            if (areaName) {
+              tooltip += ', ' + t('ipFields.areaFullName') + ': ' + areaName;
+            }
+
+            if (seatName) {
+              tooltip += ', ' + t('ipFields.seat') + ': ' + seatName;
+            }
           }
           return this.getFieldContent('intranet', tooltip);
         } else if (allValue.srcLocType === 1) {
@@ -179,7 +190,18 @@ class TableCell extends Component {
             const ownerName = allValue.destTopoInfo.ownerName;
             const areaName = allValue.destTopoInfo.areaFullName;
             const seatName = allValue.destTopoInfo.seatName;
-            tooltip = t('ipFields.owner') + ': ' + ownerName + ', ' + t('ipFields.areaFullName') + ': ' + areaName + ', ' + t('ipFields.seat') + ': ' + seatName;
+
+            if (ownerName) {
+              tooltip += t('ipFields.owner') + ': ' + ownerName;
+            }
+
+            if (areaName) {
+              tooltip += ', ' + t('ipFields.areaFullName') + ': ' + areaName;
+            }
+
+            if (seatName) {
+              tooltip += ', ' + t('ipFields.seat') + ': ' + seatName;
+            }
           }
           return this.getFieldContent('intranet', tooltip);
         } else if (allValue.destLocType === 1) {
