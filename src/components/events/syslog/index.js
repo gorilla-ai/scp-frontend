@@ -684,6 +684,7 @@ class SyslogController extends Component {
               label: this.getCustomFieldName(val),
               options: {
                 sort: this.checkSortable(val),
+                viewColumns: val === '_tableMenu_' ? false : true,
                 customBodyRenderLite: (dataIndex, options) => {
                   const allValue = tempSyslogData.dataContent[dataIndex];
                   let value = tempSyslogData.dataContent[dataIndex][val];
@@ -1695,6 +1696,10 @@ class SyslogController extends Component {
       setRowProps: (row, dataIndex, rowIndex) => {
         if (!row[0]) {
           return;
+        }
+
+        onMouseOver: (row, dataIndex) => {
+          console.log('double click!');
         }
 
         const allValue = row[0](rowIndex, 'getAllValue');
