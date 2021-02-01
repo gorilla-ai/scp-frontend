@@ -200,9 +200,9 @@ class ThreatsController extends Component {
       }],
       edgeFilterData:[],
       threatsData: {
-        dataFieldsArr: ['_eventDttm_', '_severity_', 'srcIp', 'destIp', 'Info', 'Collector', 'Source'],
+        dataFieldsArr: ['_eventDttm_', '_severity_', 'srcIp', 'srcPort', 'destIp', 'destPort', 'Source', 'Info', 'Collector', 'severity_type_name'],
         dataFields: [],
-        dataContent: [],
+        dataContent: null,
         sort: {
           field: '_eventDttm_',
           desc: false
@@ -1273,7 +1273,7 @@ class ThreatsController extends Component {
     let tempThreatsData = {...threatsData};
     let tempAlertChartsList = alertChartsList;
     tempThreatsData.dataFields = [];
-    tempThreatsData.dataContent = [];
+    tempThreatsData.dataContent = null;
     tempThreatsData.totalCount = 0;
     tempThreatsData.currentPage = 1;
     tempThreatsData.oldPage = 1;

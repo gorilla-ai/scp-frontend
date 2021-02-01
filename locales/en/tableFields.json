@@ -325,7 +325,8 @@
     "Collector": "Collector",
     "Trigger": "Trigger",
     "Suggest": "Suggest",
-    "Source": "Source"
+    "Source": "Source",
+    "severity_type_name": "Severity Type Name"
   },
   "logsFields": {
     "_tableMenu_": "",
