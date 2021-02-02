@@ -1744,7 +1744,7 @@ class HMDscanInfo extends Component {
       if (page === 'host') {
         return 440;
       } else if (page === 'threats') {
-        return 330;
+        return 380;
       } else if (page === 'inventory') {
         return 435;
       }
@@ -1752,7 +1752,7 @@ class HMDscanInfo extends Component {
       if (page === 'host') {
         return 475;
       } else if (page === 'threats') {
-        return 360;
+        return 415;
       } else if (page === 'inventory') {
         return 485;
       }
