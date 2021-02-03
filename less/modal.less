@@ -1090,8 +1090,25 @@ html[data-theme='dark'] {
         }
       }
       .alert-rule {
-        ul {
-          background: none !important;
+        .section {
+          padding: 15px;
+          header {
+            padding-top: 0;
+            padding-left: 0;
+          }
+          .title {
+            color: var(--primaryContentHeader);
+          }
+          ul {
+            font-size: 15px;
+            li {
+              margin-bottom: .5em;
+            }
+            span {
+              color: var(--primaryContentHeader);
+            }
+            background: none !important;
+          }
         }
         .fg-info {
           position: absolute;
