@@ -150,6 +150,28 @@ class Threats extends Component {
       )
     }
   }
+
+  renderTrackTableContent = () => {
+    const {mainContentData} = this.props;
+
+    if (!mainContentData.threatsData.dataContent) {
+      return (
+          <div className='table-content'>
+            <div className='table' style={{height: '78vh'}}>
+              <span className='loading'><i className='fg fg-loading-2'></i></span>
+            </div>
+          </div>
+      )
+    }
+
+    if (mainContentData.threatsData.dataContent.length > 0) {
+      return (
+          <MuiTableContent
+              data={mainContentData.threatsData}
+              tableOptions={mainContentData.tableOptions} />
+      )
+    }
+  }
   render() {
     const {mainContentData, tabChartData} = this.props;
     const tabsMenu = _.map(mainContentData.subTabMenu, (val, key) => {
@@ -180,6 +202,10 @@ class Threats extends Component {
 
             {mainContentData.activeSubTab === 'table' &&
               this.renderTableContent()
+            }
+
+            {mainContentData.activeSubTab === 'trackAlertList' &&
+              this.renderTrackTableContent()
             }
 
             {mainContentData.activeSubTab === 'statistics' &&

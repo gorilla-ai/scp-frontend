@@ -23,7 +23,9 @@ import TableCell from '../common/table-cell'
 import Threats from './threats'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
-
+import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
+import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
+import AllInboxOutlinedIcon from '@material-ui/icons/AllInboxOutlined';
 const NOT_AVAILABLE = 'N/A';
 const PRIVATE = 'private';
 const PUBLIC = 'public';
@@ -184,6 +186,7 @@ class ThreatsController extends Component {
       //Tab IncidentDevice
       subTabMenu: {
         table: t('alert.txt-alertList'),
+        trackTreats:t('alert.txt-trackAlertList'),
         statistics: t('alert.txt-statistics')
       },
       activeSubTab: 'table',
@@ -226,6 +229,8 @@ class ThreatsController extends Component {
         emailList: [],
         openFlag: false
       },
+      tableType:'list',
+      incidentAnchor:null,
       contextAnchor: null,
       currentQueryValue: '',
       notifyEmailData: [],
@@ -449,6 +454,20 @@ class ThreatsController extends Component {
       chartIntervalValue: chartData.chartIntervalValue
     });
   }
+  openSelectMenu = () => {
+    this.setState({
+      tableType: 'select',
+    },()=>{
+      this.loadThreatsData();
+    })
+  };
+  closeSelectMenu = () => {
+    this.setState({
+      tableType:'list',
+    },()=>{
+      this.loadThreatsData();
+    })
+  };
   /**
    * Set initial data for statistics tab
    * @method
@@ -585,6 +604,7 @@ class ThreatsController extends Component {
       treeData,
       threatsData,
       account,
+      tableType,
       alertDetails,
       alertPieData,
       alertTableData
@@ -679,7 +699,13 @@ class ThreatsController extends Component {
               tempThreatsData.dataContent = tempArray;
               tempThreatsData.totalCount = data.data.counts;
               tempThreatsData.currentPage = page;
-              tempThreatsData.dataFields = _.map(threatsData.dataFieldsArr, val => {
+
+              let dataFieldsArr =  ['_eventDttm_', '_severity_', 'srcIp', 'srcPort', 'destIp', 'destPort', 'Source', 'Info', 'Collector', 'severity_type_name']
+              if (tableType === 'select'){
+                dataFieldsArr =  ['select' ,'_eventDttm_', '_severity_', 'srcIp', 'srcPort', 'destIp', 'destPort', 'Source', 'Info', 'Collector', 'severity_type_name']
+              }
+
+              tempThreatsData.dataFields = _.map(dataFieldsArr, val => {
                 return {
                   name: val,
                   label: f(`alertFields.${val}`),
@@ -691,6 +717,18 @@ class ThreatsController extends Component {
 
                       if (options === 'getAllValue') {
                         return allValue;
+                      }
+
+                      if (val === 'select'){
+                        return (
+                            <Checkbox
+                                id={allValue.deviceId}
+                                className='checkbox-ui'
+                                name='select'
+                                checked={value}
+                                onChange={this.handleSelectDataChangeMui.bind(this, allValue)}
+                                color='primary' />
+                        )
                       }
 
                       if (val === 'Info' || val === 'Source') {
@@ -1462,7 +1500,7 @@ class ThreatsController extends Component {
       confirm: {text: t('txt-close'), handler: this.closeDialog}
     };
 
-    if (sessionRights.Module_Config) {
+    if (sessionRights.Module_Soc) {
       actions = {
         makeIncident: {text: it('txt-createIncident'), handler: this.incidentRedirect},
         confirm: {text: t('txt-close'), handler: this.closeDialog}
@@ -1910,6 +1948,24 @@ class ThreatsController extends Component {
       notifyEmailData: []
     });
   }
+
+  handleSelectDataChangeMui = (allValue, event) => {
+    let edgeItemList = {...this.state.edgeList};
+
+  };
+
+  handleOpenIncidentMenu = (event) => {
+    this.setState({
+      incidentAnchor: event.currentTarget,
+    });
+  }
+
+  handleCloseIncidentMenu = () => {
+    this.setState({
+      incidentAnchor: null,
+    });
+  }
+
   render() {
     const {
       datetime,
@@ -1917,6 +1973,7 @@ class ThreatsController extends Component {
       openQueryOpen,
       saveQueryOpen,
       contextAnchor,
+      incidentAnchor,
       currentQueryValue,
       filterData,
       showChart,
@@ -1955,11 +2012,25 @@ class ThreatsController extends Component {
           <MenuItem onClick={this.addSearch.bind(this, '', currentQueryValue, 'either')}>Either</MenuItem>
         </Menu>
 
+        <Menu
+            anchorEl={incidentAnchor}
+            keepMounted
+            open={Boolean(incidentAnchor)}
+            onClose={this.handleCloseIncidentMenu}>
+          <MenuItem >{it('txt-createIncidents-selected')}</MenuItem>
+          <MenuItem >{it('txt-createIncident-tracked')}</MenuItem>
+        </Menu>
+
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            <Button variant='outlined' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('events.connections.txt-toggleFilter')}><i className='fg fg-filter'></i><span>({filterDataCount})</span></Button>
-            <Button variant='outlined' color='primary' className={cx({'active': showChart})} onClick={this.toggleChart} title={t('events.connections.txt-toggleChart')}><i className='fg fg-chart-columns'></i></Button>
-            <Button variant='outlined' color='primary' className='last' onClick={this.getCSVfile} title={t('txt-exportCSV')}><i className='fg fg-data-download'></i></Button>
+            <Button variant='outlined' color='primary' className={cx({'active': showFilter})} onClick={this.toggleFilter} title={t('events.connections.txt-toggleFilter')}><i className='fg fg-filter'/><span>({filterDataCount})</span></Button>
+            <Button variant='outlined' color='primary' className={cx({'active': showChart})} onClick={this.toggleChart} title={t('events.connections.txt-toggleChart')}><i className='fg fg-chart-columns'/></Button>
+            <Button variant='outlined' color='primary' className=' ' onClick={this.getCSVfile} title={t('txt-exportCSV')}><i className='fg fg-data-download'/></Button>
+
+            <Button variant='outlined' color='primary' title={it('txt-trackedIncidents')} disabled={this.state.activeSubTab === 'trackTreats' || this.state.activeSubTab === 'statistics'}><AddCircleOutlineIcon/></Button>
+            <Button variant='outlined' color='primary' title={it('txt-remove-trackedIncidents')} disabled={this.state.activeSubTab !== 'trackTreats'}><RemoveCircleOutlineIcon/></Button>
+            <Button variant='outlined' color='primary' title={it('txt-createIncidentTools')} className='last' disabled={this.state.activeSubTab === 'statistics'} onClick={this.handleOpenIncidentMenu.bind(this)}  ><AllInboxOutlinedIcon/></Button>
+
           </div>
 
           <SearchOptions
