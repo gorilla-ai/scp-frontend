@@ -205,7 +205,7 @@ class ThreatsController extends Component {
         dataContent: [],
         sort: {
           field: '_eventDttm_',
-          desc: false
+          desc: true
         },
         totalCount: 0,
         currentPage: 1,
