@@ -978,7 +978,7 @@ class Incident extends Component {
                 <label htmlFor='relatedList'>{f('incidentFields.relatedList')}</label>
                 <ComboBox
                     id='relatedList'
-                    className='relatedList'
+                    className='textarea-autosize'
                     onChange={this.handleDataChange.bind(this, 'relatedList')}
                     list={relatedListOptions}
                     search={{enabled: true, placeholder: '', interactive: true}}
@@ -1042,7 +1042,8 @@ class Incident extends Component {
                 </div>
                 <div>
                     <label>{it('txt-fileMemo')}</label>
-                    <TextareaAutosize id='comment' rows={3} />
+                    <TextareaAutosize id='comment'
+                                      className='textarea-autosize' rows={3} />
                 </div>
             </div>,
             act: (confirmed, data) => {
@@ -1136,6 +1137,7 @@ class Incident extends Component {
                     <TextareaAutosize
                         id='fileMemo'
                         name='fileMemo'
+                        className='textarea-autosize'
                         onChange={this.handleDataChangeMui}
                         value={incident.info.fileMemo}
                         rows={2} />
@@ -1270,6 +1272,7 @@ class Incident extends Component {
                 <TextareaAutosize
                     id='accidentDescription'
                     name='accidentDescription'
+                    className='textarea-autosize'
                     onChange={this.handleDataChangeMui}
                     value={incident.info.accidentDescription}
                     rows={3}
@@ -1280,6 +1283,7 @@ class Incident extends Component {
                 <TextareaAutosize
                     id='accidentReason'
                     name='accidentReason'
+                    className='textarea-autosize'
                     onChange={this.handleDataChangeMui}
                     value={incident.info.accidentReason}
                     rows={3}
@@ -1290,6 +1294,7 @@ class Incident extends Component {
                 <TextareaAutosize
                     id='accidentInvestigation'
                     name='accidentInvestigation'
+                    className='textarea-autosize'
                     onChange={this.handleDataChangeMui}
                     value={incident.info.accidentInvestigation}
                     rows={3}
