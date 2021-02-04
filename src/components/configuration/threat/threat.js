@@ -1119,7 +1119,7 @@ class ThreatIntelligence extends Component {
             vertical
             title={t('edge-management.statistics.txt-indicatorsTrend')}
             legend={{
-              enabled:true
+              enabled: true
             }}
             data={indicatorsData}
             dataCfg={{
