@@ -120,18 +120,18 @@ class Config extends Component {
     return (
       <div className={cx('left-nav', {'collapse': !showContent})}>
         <div className='item frame notifications'>
-          <Link to={{pathname: '/SCP/configuration/notifications', state: 'viewMode'}}>
+          <Link id='config-link-notify' to={{pathname: '/SCP/configuration/notifications', state: 'viewMode'}}>
             <span className={`${this.getActiveFrame('notifications')}`}>{t('notifications.txt-settings')}</span>
           </Link>
         </div>
 
         <div className='item frame threat'>
-          <Link to={{pathname: '/SCP/configuration/threat', state: 'viewMode'}}>
+          <Link id='config-link-threat' to={{pathname: '/SCP/configuration/threat', state: 'viewMode'}}>
             <span className={`${this.getActiveFrame('threat')}`}>{t('txt-threatIntelligence')}</span>
           </Link>
         </div>
 
-        <div className='item frame edge-manage' onClick={this.handleOpen.bind(this, 'openEdgeManagement', openEdgeManagement)}>
+        <div id='config-link-edge' className='item frame edge-manage' onClick={this.handleOpen.bind(this, 'openEdgeManagement', openEdgeManagement)}>
           <span className={`${this.getActiveFrame('edge')}`}>{t('txt-edgeManage')}</span>
           <i className={`c-link fg fg-arrow-${openEdgeManagement ? 'top' : 'bottom'}`}></i>
         </div>
@@ -139,12 +139,12 @@ class Config extends Component {
         {openEdgeManagement &&
           <div className='item open-edge'>
             <div className='subframe'>
-              <Link to={{pathname: '/SCP/configuration/edge/edge', state: 'tableList'}}>
+              <Link id='config-link-edges' to={{pathname: '/SCP/configuration/edge/edge', state: 'tableList'}}>
                 <span className={`${this.getActiveFrame('edge')}`}>{t('txt-edge')}</span>
               </Link>
             </div>
             <div className='subframe'>
-              <Link to='/SCP/configuration/edge/severity'>
+              <Link id='config-link-severity' to='/SCP/configuration/edge/severity'>
                 <span className={`${this.getActiveFrame('severity')}`}>{t('threat-severity-mapping.txt-severityMapping')}</span>
               </Link>
             </div>
@@ -152,12 +152,12 @@ class Config extends Component {
         }
 
         <div className='item frame es-manage'>
-          <Link to='/SCP/configuration/es'>
+          <Link id='config-link-es' to='/SCP/configuration/es'>
             <span className={`${this.getActiveFrame('es')}`}>{t('txt-esManage')}</span>
           </Link>
         </div>
 
-        <div className='item frame network-topology' onClick={this.handleOpen.bind(this, 'openTopology', openTopology)}>
+        <div id='config-link-topology' className='item frame network-topology' onClick={this.handleOpen.bind(this, 'openTopology', openTopology)}>
           <span className={`${this.getActiveFrame('inventory') || this.getActiveFrame('owner') || this.getActiveFrame('map')}`}>{t('txt-topology')}</span>
           <i className={`c-link fg fg-arrow-${openTopology ? 'top' : 'bottom'}`}></i>
         </div>
@@ -165,24 +165,24 @@ class Config extends Component {
         {openTopology &&
           <div className='item open-topology'>
             <div className='subframe'>
-              <Link to={{pathname: '/SCP/configuration/topology/inventory', state: 'tableList'}}>
+              <Link id='config-link-inventory' to={{pathname: '/SCP/configuration/topology/inventory', state: 'tableList'}}>
                 <span className={`${this.getActiveFrame('inventory')}`}>{t('txt-networkInventory')}</span>
               </Link>
             </div>
             <div className='subframe'>
-              <Link to={{pathname: '/SCP/configuration/topology/owner', state: 'tableList'}}>
+              <Link id='config-link-owner' to={{pathname: '/SCP/configuration/topology/owner', state: 'tableList'}}>
                 <span className={`${this.getActiveFrame('owner')}`}>{t('txt-network-owner')}</span>
               </Link>
             </div>
             <div className='subframe'>
-              <Link to='/SCP/configuration/topology/map'>
+              <Link id='config-link-map' to='/SCP/configuration/topology/map'>
                 <span className={`${this.getActiveFrame('map')}`}>{t('txt-network-map')}</span>
               </Link>
             </div>
           </div>
         }
 
-        <div className='item frame syslog' onClick={this.handleOpen.bind(this, 'openSyslog', openSyslog)}>
+        <div id='config-link-syslog' className='item frame syslog' onClick={this.handleOpen.bind(this, 'openSyslog', openSyslog)}>
           <span className={`${this.getActiveFrame('config') || this.getActiveFrame('pattern')}`}>{t('txt-syslogManage')}</span>
           <i className={`c-link fg fg-arrow-${openSyslog ? 'top' : 'bottom'}`}></i>
         </div>
@@ -190,12 +190,12 @@ class Config extends Component {
         {openSyslog &&
           <div className='item open-syslog'>
             <div className='subframe'>
-              <Link to='/SCP/configuration/syslog/config'>
+              <Link id='config-link-syslogs' to='/SCP/configuration/syslog/config'>
                 <span className={`${this.getActiveFrame('config')}`}>{t('txt-syslogConfig')}</span>
               </Link>
             </div>
             <div className='subframe'>
-              <Link to='/SCP/configuration/syslog/pattern'>
+              <Link id='config-link-pattern' to='/SCP/configuration/syslog/pattern'>
                 <span className={`${this.getActiveFrame('pattern')}`}>{t('txt-systemDefinedPattern')}</span>
               </Link>
             </div>
@@ -203,12 +203,12 @@ class Config extends Component {
         }
 
         <div className='item frame audit-log'>
-          <Link to='/SCP/configuration/audit'>
+          <Link id='config-link-audit' to='/SCP/configuration/audit'>
             <span className={`${this.getActiveFrame('audit')}`}>{t('txt-auditLog')}</span>
           </Link>
         </div>
 
-        <div className='item frame account-manage' onClick={this.handleOpen.bind(this, 'openAccount', openAccount)}>
+        <div id='config-link-account' className='item frame account-manage' onClick={this.handleOpen.bind(this, 'openAccount', openAccount)}>
           <span className={`${this.getActiveFrame('account') || this.getActiveFrame('privileges')}`}>{t('txt-accountManage')}</span>
           <i className={`c-link fg fg-arrow-${openAccount ? 'top' : 'bottom'}`}></i>
         </div>
@@ -216,12 +216,12 @@ class Config extends Component {
         {openAccount &&
           <div className='item open-account'>
             <div className='subframe'>
-              <Link to='/SCP/configuration/user/account'>
+              <Link id='config-link-accounts' to='/SCP/configuration/user/account'>
                 <span className={`${this.getActiveFrame('account')}`}>{t('txt-account')}</span>
               </Link>
             </div>
             <div className='subframe'>
-              <Link to='/SCP/configuration/user/privileges'>
+              <Link id='config-link-privileges' to='/SCP/configuration/user/privileges'>
                 <span className={`${this.getActiveFrame('privileges')}`}>{t('txt-privileges')}</span>
               </Link>
             </div>
@@ -229,18 +229,18 @@ class Config extends Component {
         }
 
         <div className='item frame service-status'>
-          <Link to='/SCP/configuration/service-status'>
+          <Link id='config-link-service' to='/SCP/configuration/service-status'>
             <span className={`${this.getActiveFrame('serviceStatus')}`}>{t('txt-serviceStatus')}</span>
           </Link>
         </div>
 
         <div className='item frame product-info'>
-          <Link to='/SCP/configuration/product-info'>
+          <Link id='config-link-product' to='/SCP/configuration/product-info'>
             <span className={`${this.getActiveFrame('productInfo')}`}>{t('txt-productInfo')}</span>
           </Link>
         </div>
 
-        <div className='item frame issues-feedback last' onClick={this.downloadLogs}>
+        <div id='config-link-feedback' className='item frame issues-feedback last' onClick={this.downloadLogs}>
           <span>{t('txt-issuesFeedback')}</span>
         </div>
 
