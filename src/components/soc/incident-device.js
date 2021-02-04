@@ -73,7 +73,7 @@ class IncidentDevice extends Component {
                 },
                 totalCount: 0,
                 currentPage: 1,
-                pageSize: 20,
+                pageSize: 1000,
                 edgeItem: '',
                 usedDeviceIdList: [],
                 sendDataDeviceList: [],
@@ -491,15 +491,16 @@ class IncidentDevice extends Component {
                                 </div>
 
                                 <SelecTableContent
+                                    hideNav={true}
                                     dataTableData={healthStatistic.dataContent}
                                     dataTableFields={healthStatistic.dataFields}
                                     dataTableSort={healthStatistic.sort}
                                     paginationTotalCount={healthStatistic.totalCount}
                                     paginationPageSize={healthStatistic.pageSize}
                                     paginationCurrentPage={healthStatistic.currentPage}
-                                    handleTableSort={this.handleTableSort}
-                                    paginationPageChange={this.handlePaginationChange.bind(this, 'currentPage')}
-                                    paginationDropDownChange={this.handlePaginationChange.bind(this, 'pageSize')}
+                                    handleTableSort={this.handleSelectTableSort}
+                                    paginationPageChange={this.handleSelectPaginationChange.bind(this, 'currentPage')}
+                                    paginationDropDownChange={this.handleSelectPaginationChange.bind(this, 'pageSize')}
                                 />
                             </div>
                         }
@@ -899,6 +900,27 @@ class IncidentDevice extends Component {
     };
 
     /**
+     * Handle table pagination change
+     * @method
+     * @param {string} type - page type ('currentPage' or 'pageSize')
+     * @param {string | number} value - new page number
+     */
+    handleSelectPaginationChange = (type, value) => {
+        let tempDevice = {...this.state.healthStatistic};
+        tempDevice[type] = Number(value);
+
+        if (type === 'pageSize') {
+            tempDevice.currentPage = 1;
+        }
+
+        this.setState({
+            healthStatistic: tempDevice
+        }, () => {
+            this.setupHealthStatisticData();
+        });
+    };
+
+    /**
      * Handle table sort
      * @method
      * @param {object} sort - sort data object
@@ -914,6 +936,24 @@ class IncidentDevice extends Component {
             this.getDeviceData();
         });
     };
+
+    /**
+     * Handle table sort
+     * @method
+     * @param {object} sort - sort data object
+     */
+    handleSelectTableSort = (sort) => {
+        let tempDevice = {...this.state.healthStatistic};
+        tempDevice.sort.field = sort.field;
+        tempDevice.sort.desc = sort.desc;
+
+        this.setState({
+            healthStatistic: tempDevice
+        }, () => {
+            this.setupHealthStatisticData();
+        });
+    };
+
 
     /**
      * Check table sort

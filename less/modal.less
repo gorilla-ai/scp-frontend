@@ -912,23 +912,16 @@ html[data-theme='dark'] {
     td {
       &.severity-level,
       &.collector,
-      &.trigger {
-        width: 15%;
-      }
-      &.datetime {
-        width: 20%;
+      &.datetime,
+      &.src-ip,
+      &.dest-ip {
+        width: 14%;
       }
       &.source {
-        width: 35%;
+        width: 30%;
       }
-      &.src-ip,
-      &.dest-ip,
-      &.src-port,
-      &.dest-port {
-        width: 20%;
-      }
-      &.protocol {
-        width: 10%;
+      &[class*='timestamp'] {
+        width: 170px;
       }
     }
     .severity-level .severity {
@@ -964,7 +957,7 @@ html[data-theme='dark'] {
     display: flex;
     justify-content: space-between;
     margin-top: 10px;
-    min-height: 395px;
+    min-height: 500px;
     border: 1px solid var(--primaryBorder);
     border-radius: 5px;
     & > .nav {
@@ -1167,7 +1160,7 @@ html[data-theme='dark'] {
         }
       }
       .dashboard-wrapper {
-        height: 360px;
+        height: 410px;
       }
       .scan-wrapper {
         margin-top: 5px;
@@ -1204,9 +1197,6 @@ html[data-theme='dark'] {
     }
   }
   .scan-info .info-content {
-    .dashboard-wrapper {
-      height: 100%;
-    }
     .table {
       max-height: 440px;
     }

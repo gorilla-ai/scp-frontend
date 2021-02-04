@@ -55,6 +55,7 @@ class SelecTableContent extends Component {
             projectID,
             checkProjectID,
             hideTable,
+            hideNav,
             withPointer,
             dataTableData,
             dataTableFields,
@@ -88,6 +89,7 @@ class SelecTableContent extends Component {
                     }
                 </div>
                 }
+                {!hideNav &&
                 <footer>
                     {dataTableData && dataTableData.length > 0 &&
                     <Pagination
@@ -99,6 +101,7 @@ class SelecTableContent extends Component {
                         onDropDownChange={this.props.paginationDropDownChange}/>
                     }
                 </footer>
+                }
             </div>
         )
     }

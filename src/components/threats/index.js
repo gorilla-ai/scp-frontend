@@ -205,7 +205,7 @@ class ThreatsController extends Component {
         dataContent: null,
         sort: {
           field: '_eventDttm_',
-          desc: false
+          desc: true
         },
         totalCount: 0,
         currentPage: 1,
@@ -1462,7 +1462,7 @@ class ThreatsController extends Component {
       confirm: {text: t('txt-close'), handler: this.closeDialog}
     };
 
-    if (sessionRights.Module_Config) {
+    if (sessionRights.Module_Soc) {
       actions = {
         makeIncident: {text: it('txt-createIncident'), handler: this.incidentRedirect},
         confirm: {text: t('txt-close'), handler: this.closeDialog}
