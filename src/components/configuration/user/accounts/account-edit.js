@@ -214,13 +214,15 @@ class AccountEdit extends Component {
    * @returns HTML DOM
    */
   showPrivilegesList = (val, i) => {
+    let acc = `account-edit-check-${i}`
+
     return (
       <FormControlLabel
         key={i}
         label={val.text}
         control={
           <Checkbox
-            id=`account-edit-check-${i}`
+            id={acc}
             className='checkbox-ui'
             name={val.value}
             checked={this.checkSelectedItem(val.value)}
