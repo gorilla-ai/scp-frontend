@@ -173,26 +173,26 @@ class Incident extends Component {
                     this.setState({
                         accountRoleType:SOC_Executor
                     },() => {
-                        this.loadCondition('unhandled')
+                        this.loadCondition('button','unhandled')
                     })
                 }else{
                     this.setState({
                         accountRoleType:SOC_Super
                     },() => {
-                        this.loadCondition('unhandled')
+                        this.loadCondition('button','unhandled')
                     })
                 }
             } else  if (_.includes(session.roles, 'SOC Executor')){
                 this.setState({
                     accountRoleType:SOC_Executor
                 },() => {
-                    this.loadCondition('unhandled')
+                    this.loadCondition('button','unhandled')
                 })
             } else  if (_.includes(session.roles, 'SOC Analyzer')){
                 this.setState({
                     accountRoleType:SOC_Analyzer
                 },() => {
-                    this.loadCondition('unhandled')
+                    this.loadCondition('button','unhandled')
                 })
             } else{
                 // this.setState({
@@ -213,7 +213,6 @@ class Incident extends Component {
         if (r != null) return unescape(r[2]);
         return null;
     }
-
 
 
     /**
@@ -459,9 +458,12 @@ class Incident extends Component {
         })
     }
 
-    loadCondition = (type) => {
+    loadCondition = (from,type) => {
         const {session} = this.context
-
+        let fromSearch = 'other'
+        if (from === 'button'){
+            fromSearch = 'search'
+        }
         let search = {
             subStatus:0,
             keyword: '',
@@ -475,7 +477,7 @@ class Incident extends Component {
             this.setState({loadListType: 0})
             search.status = 0
             search.isExpired = 1;
-            this.loadWithoutDateTimeData('search',search)
+            this.loadWithoutDateTimeData(fromSearch,search)
         } else if (type === 'unhandled') {
             this.setState({loadListType: 1})
             if (search.accountRoleType === SOC_Executor){
@@ -486,12 +488,12 @@ class Incident extends Component {
             }else{
                 search.status = 1
             }
-            this.loadWithoutDateTimeData('search',search)
+            this.loadWithoutDateTimeData(fromSearch,search)
         } else if (type === 'mine') {
             this.setState({loadListType: 2})
             search.status = 0
             search.creator = session.accountId
-            this.loadWithoutDateTimeData('search',search)
+            this.loadWithoutDateTimeData(fromSearch,search)
         }else{
 
         }
@@ -538,13 +540,13 @@ class Incident extends Component {
         return <div>
             <IncidentComment ref={ref => { this.incidentComment=ref }} />
             {this.state.loadListType === 0 && (
-                <IncidentTag ref={ref => { this.incidentTag=ref }} onLoad={this.loadCondition.bind(this,'expired')} />
+                <IncidentTag ref={ref => { this.incidentTag=ref }} onLoad={this.loadCondition.bind(this,'button','expired')} />
             )}
             {this.state.loadListType === 1 && (
-                <IncidentTag ref={ref => { this.incidentTag=ref }} onLoad={this.loadCondition.bind(this,'unhandled')} />
+                <IncidentTag ref={ref => { this.incidentTag=ref }} onLoad={this.loadCondition.bind(this,'button','unhandled')} />
             )}
             {this.state.loadListType === 2 && (
-                <IncidentTag ref={ref => { this.incidentTag=ref }} onLoad={this.loadCondition.bind(this,'mine')} />
+                <IncidentTag ref={ref => { this.incidentTag=ref }} onLoad={this.loadCondition.bind(this,'button','mine')} />
             )}
             {this.state.loadListType === 3 && (
                 <IncidentTag ref={ref => { this.incidentTag=ref }} onLoad={this.loadData.bind(this)} />
@@ -996,15 +998,6 @@ class Incident extends Component {
                         />
                     )}
                 />
-                {/*<ComboBox*/}
-                {/*    className='relatedList'*/}
-                {/*    infoClassName='relatedList'*/}
-                {/*    onChange={this.handleDataChange.bind(this, 'relatedList')}*/}
-                {/*    list={relatedListOptions}*/}
-                {/*    search={{enabled: true, placeholder: '', interactive: true}}*/}
-                {/*    multiSelect={{enabled: true}}*/}
-                {/*    value={incident.info.relatedList}*/}
-                {/*    disabled={activeContent === 'viewIncident'}/>*/}
             </div>
             }
 
@@ -2017,17 +2010,17 @@ class Incident extends Component {
         return <div className={cx('main-filter', {'active': showChart})}>
             <i className='fg fg-close' onClick={this.toggleChart} title={t('txt-close')}/>
             <div className='incident-statistics' id='incident-statistics'>
-                <div className='item c-link' onClick={this.loadCondition.bind(this,'expired')}>
+                <div className='item c-link' onClick={this.loadCondition.bind(this,'button','expired')}>
                     <i className='fg fg-checkbox-fill' style={{color: '#ec8f8f'}}/>
                     <div className='threats'>{it('txt-incident-expired')}<span>{dashboard.expired}</span></div>
                 </div>
 
-                <div className='item c-link' onClick={this.loadCondition.bind(this,'unhandled')}>
+                <div className='item c-link' onClick={this.loadCondition.bind(this,'button','unhandled')}>
                     <i className='fg fg-checkbox-fill' style={{color: '#f5f77a'}}/>
                     <div className='threats'>{it('txt-incident-unhandled')}<span>{dashboard.unhandled}</span></div>
                 </div>
 
-                <div className='item c-link' onClick={this.loadCondition.bind(this,'mine')}>
+                <div className='item c-link' onClick={this.loadCondition.bind(this,'button','mine')}>
                     <i className='fg fg-checkbox-fill' style={{color: '#99ea8a'}}/>
                     <div className='threats'>{it('txt-incident-mine')}<span>{dashboard.mine}</span></div>
                 </div>
@@ -2112,11 +2105,11 @@ class Incident extends Component {
                 if (data.ret === 0) {
                     // this.loadData()
                     if (this.state.loadListType === 0){
-                        this.loadCondition('expired')
+                        this.loadCondition('other','expired')
                     }else if (this.state.loadListType === 1){
-                        this.loadCondition('unhandled')
+                        this.loadCondition('other','unhandled')
                     }else if (this.state.loadListType === 2){
-                        this.loadCondition('mine')
+                        this.loadCondition('other','mine')
                     }else if (this.state.loadListType === 3){
                         this.loadData()
                     }
@@ -2146,11 +2139,11 @@ class Incident extends Component {
         this.setState({incident: temp}, () => {
             // this.loadData()
             if (this.state.loadListType === 0){
-                this.loadCondition('expired')
+                this.loadCondition('other','expired')
             }else if (this.state.loadListType === 1){
-                this.loadCondition('unhandled')
+                this.loadCondition('other','unhandled')
             }else if (this.state.loadListType === 2){
-                this.loadCondition('mine')
+                this.loadCondition('other','mine')
             }else if (this.state.loadListType === 3){
                 this.loadData()
             }
@@ -2323,11 +2316,11 @@ class Incident extends Component {
         }, () => {
             if (showPage === 'tableList' || showPage === 'cancel-add') {
                 if (this.state.loadListType === 0){
-                    this.loadCondition('expired')
+                    this.loadCondition('other','expired')
                 }else if (this.state.loadListType === 1){
-                    this.loadCondition('unhandled')
+                    this.loadCondition('other','unhandled')
                 }else if (this.state.loadListType === 2){
-                    this.loadCondition('mine')
+                    this.loadCondition('other','mine')
                 }else if (this.state.loadListType === 3){
                     this.loadData()
                 }
@@ -2382,11 +2375,11 @@ class Incident extends Component {
         })
             .then(data => {
                 if (this.state.loadListType === 0){
-                    this.loadCondition('expired')
+                    this.loadCondition('other','expired')
                 }else if (this.state.loadListType === 1){
-                    this.loadCondition('unhandled')
+                    this.loadCondition('other','unhandled')
                 }else if (this.state.loadListType === 2){
-                    this.loadCondition('mine')
+                    this.loadCondition('other','mine')
                 }else if (this.state.loadListType === 3){
                     this.loadData()
                 }
@@ -2692,11 +2685,11 @@ class Incident extends Component {
             incident: tmpIncident
         }, () => {
             if (this.state.loadListType === 0){
-                this.loadCondition('expired')
+                this.loadCondition('other','expired')
             }else if (this.state.loadListType === 1){
-                this.loadCondition('unhandled')
+                this.loadCondition('other','unhandled')
             }else if (this.state.loadListType === 2){
-                this.loadCondition('mine')
+                this.loadCondition('other','mine')
             }else if (this.state.loadListType === 3){
                 this.loadData()
             }
