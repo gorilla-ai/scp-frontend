@@ -975,11 +975,12 @@ class Incident extends Component {
             </div>}
 
             {incidentType === 'ttps' &&
-            <div className='group full relatedList'>
+            <div className='group full'>
                 <label htmlFor='relatedList'>{f('incidentFields.relatedList')}</label>
                 <Autocomplete
                     multiple
                     id="tags-standard"
+                    size='small'
                     options={incident.info.differenceWithOptions}
                     getOptionLabel={(option) => option.text}
                     // onChange={this.handleDataChange.bind(this, 'relatedList')}
@@ -989,7 +990,9 @@ class Incident extends Component {
                     renderInput={(params) => (
                         <TextField
                             {...params}
-                            variant="standard"
+                            variant='outlined'
+                            size='small'
+                            fullWidth={true}
                         />
                     )}
                 />
