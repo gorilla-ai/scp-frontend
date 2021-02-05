@@ -8,6 +8,8 @@ import cx from 'classnames'
 import Button from '@material-ui/core/Button';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
+import ToggleButton from '@material-ui/lab/ToggleButton';
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 
 import BarChart from 'react-chart/build/src/components/bar'
 import DataTable from 'react-ui/build/src/components/table'
@@ -108,7 +110,10 @@ class AlertDetails extends Component {
       mouseX: null,
       mouseY: null,
       highlightedText: '',
-      threatsCountData: null,
+      threatsCount: 'last10', //'last10', 'last20' or 'last50'
+      threatsCountData10: null,
+      threatsCountData20: null,
+      threatsCountData50: null,
       internalNetworkData: null,
       threatStatAlert: null,
       threatStatFields: ['severity', 'count'],
@@ -557,7 +562,13 @@ class AlertDetails extends Component {
     url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0&histogramInterval=60m`;
     timeFrom = moment(helper.getSubstractDate(1, 'month', alertData._eventDttm_)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
     requestData = {
-      timestamp: [timeFrom, timeTo]
+      timestamp: [timeFrom, timeTo],
+      filters: [
+        {
+          condition: 'must',
+          query: alertData.blackIP
+        }
+      ]
     };
 
     this.ah.one({
@@ -568,17 +579,35 @@ class AlertDetails extends Component {
     }, {showProgress: false})
     .then(data => {
       if (data) {
-        let threatsCountData = [];
+        let threatsCountData10 = [];
+        let threatsCountData20 = [];
+        let threatsCountData50 = [];
 
         _.forEach(data.event_histogramRecent10, val => {
-          threatsCountData.push({
-            day: parseInt(moment(helper.getFormattedDate(val.key, 'local')).format('x')),
+          threatsCountData10.push({
+            time: helper.getFormattedDate(val.key_as_string, 'local'),
             count: val.doc_count
           });
-        })  
+        })
+
+        _.forEach(data.event_histogramRecent20, val => {
+          threatsCountData20.push({
+            time: helper.getFormattedDate(val.key_as_string, 'local'),
+            count: val.doc_count
+          });
+        })
+
+        _.forEach(data.event_histogramRecent50, val => {
+          threatsCountData50.push({
+            time: helper.getFormattedDate(val.key_as_string, 'local'),
+            count: val.doc_count
+          });
+        })
 
         this.setState({
-          threatsCountData
+          threatsCountData10,
+          threatsCountData20,
+          threatsCountData50
         });
       }
       return null;
@@ -645,8 +674,8 @@ class AlertDetails extends Component {
 
         _.forEach(data.event_histogram4UIF, val => {
           threatStat.push({
-            time: val.key_as_string,
-            number: val.doc_count,
+            time: helper.getFormattedDate(val.key_as_string, 'local'),
+            count: val.doc_count,
             rule: val.severity
           });
         })
@@ -665,6 +694,7 @@ class AlertDetails extends Component {
       helper.showPopupMsg('', t('txt-error'), err.message);
     })
 
+    url = `${baseUrl}/api/u2/log/event/_search`;
     requestData = {
       timestamp: [timeFrom, timeTo],
       filters: [
@@ -710,16 +740,16 @@ class AlertDetails extends Component {
 
         _.forEach(data.aggregations.Top10SyslogConfigSource.event_histogram.buckets, val => {
           eventStat.push({
-            time: val.key_as_string,
-            number: val.doc_count,
-            configSource: val.severity
+            time: helper.getFormattedDate(val.key_as_string, 'local'),
+            count: val.doc_count
           });
         })
 
         this.setState({
           eventStatConfig,
           eventStatFieldsData: tempFields,
-          eventStatData: eventStatConfig
+          eventStatData: eventStatConfig,
+          eventStat
         });
       }
       return null;
@@ -1251,10 +1281,10 @@ class AlertDetails extends Component {
    * @returns HTML DOM
    */
   onTooltip = (type, eventInfo, data) => {
-    if (type === 'threatsCountData') {
+    if (type === 'threatsCountData' || type === 'eventStat') {
       return (
         <section>
-          <span>{t('txt-date')}: {moment(data[0].day).format('YYYY/MM/DD')}<br /></span>
+          <span>{t('txt-time')}: {data[0].time}<br /></span>
           <span>{t('txt-count')}: {helper.numberWithCommas(data[0].count)}</span>
         </section>
       )
@@ -1268,14 +1298,7 @@ class AlertDetails extends Component {
       return (
         <section>
           <span>{t('txt-severity')}: {data[0].rule}<br /></span>
-          <span>{t('txt-time')}: {moment(data[0].time).format('YYYY/MM/DD HH:mm:ss')}<br /></span>
-          <span>{t('txt-count')}: {helper.numberWithCommas(data[0].number)}</span>
-        </section>
-      )
-    } else if (type === 'eventStat') {
-      return (
-        <section>
-          <span>{t('txt-events')}: {data[0].key}<br /></span>
+          <span>{t('txt-time')}: {data[0].time}<br /></span>
           <span>{t('txt-count')}: {helper.numberWithCommas(data[0].count)}</span>
         </section>
       )
@@ -1288,16 +1311,31 @@ class AlertDetails extends Component {
    * @returns BarChart component
    */
   displayBarChart = (dataType) => {
-    const {threatsCountData, internalNetworkData, threatStat, eventStat} = this.state;
+    const {
+      threatsCount,
+      threatsCountData10,
+      threatsCountData20,
+      threatsCountData50,
+      internalNetworkData,
+      threatStat,
+      eventStat
+    } = this.state;
     let data = [];
     let dataCfg = {};
     let type = '';
     let chartAttributes = {};
 
     if (dataType === 'threatsCountData') {
-      data = threatsCountData;
+      if (threatsCount === 'last10') {
+        data = threatsCountData10;
+      } else if (threatsCount === 'last20') {
+        data = threatsCountData20;
+      } else if (threatsCount === 'last50') {
+        data = threatsCountData50;
+      }
+      
       dataCfg = {
-        x: 'day',
+        x: 'time',
         y: 'count'
       };
       type = 'datetime';
@@ -1312,7 +1350,7 @@ class AlertDetails extends Component {
       data = threatStat;
       dataCfg = {
         x: 'time',
-        y: 'number',
+        y: 'count',
         splitSeries: 'rule'
       };
       type = 'datetime';
@@ -1322,34 +1360,51 @@ class AlertDetails extends Component {
     } else if (dataType === 'eventStat') {
       data = eventStat;
       dataCfg = {
-        x: 'configSource',
+        x: 'time',
         y: 'count'
       };
-      type = 'category';
+      type = 'datetime';
     }
 
     return (
-      <BarChart
-        stacked
-        vertical
-        legend={{
-          enabled: true
-        }}
-        data={data}
-        dataCfg={dataCfg}
-        xAxis={{
-          type
-        }}
-        plotOptions={{
-          series: {
-            maxPointWidth: 20
-          }
-        }}
-        tooltip={{
-          formatter: this.onTooltip.bind(this, dataType)
-        }}
-        {...chartAttributes} />
+      <div className='chart-group'>
+        <BarChart
+          stacked
+          vertical
+          legend={{
+            enabled: true
+          }}
+          data={data}
+          dataCfg={dataCfg}
+          xAxis={{
+            type
+          }}
+          plotOptions={{
+            series: {
+              maxPointWidth: 20
+            }
+          }}
+          tooltip={{
+            formatter: this.onTooltip.bind(this, dataType)
+          }}
+          {...chartAttributes} />
+      </div>
     )
+  }
+  /**
+   * Handle Threats chart count change
+   * @method
+   * @param {object} event - event object
+   * @param {string} type - chart count ('last10', 'last20' or 'last50')
+   */
+  toggleThreatCount = (event, type) => {
+    if (!type) {
+      return;
+    }
+
+    this.setState({
+      threatsCount: type
+    });
   }
   /**
    * Display rule content
@@ -1359,7 +1414,8 @@ class AlertDetails extends Component {
   displayRuleContent = () => {
     const {alertData} = this.props;
     const {
-      threatsCountData,
+      threatsCount,
+      threatsCountData10,
       internalNetworkData,
       threatStatAlert,
       threatStatFieldsData,
@@ -1388,14 +1444,26 @@ class AlertDetails extends Component {
         <div className='section'>
           <header>{t('alert.txt-networkBehavior')}</header>
           <div className='title'>{t('alert.txt-activeThreatsCount')}</div>
-          {!threatsCountData &&
+          {!threatsCountData10 &&
             <span><i className='fg fg-loading-2'></i></span>
           }
-          {threatsCountData && threatsCountData.length === 0 &&
+          {threatsCountData10 && threatsCountData10.length === 0 &&
             <span>{t('txt-notFound')}</span>
           }
-          {threatsCountData && threatsCountData.length > 0 &&
-            this.displayBarChart('threatsCountData')
+          {threatsCountData10 && threatsCountData10.length > 0 &&
+            <div>
+              <ToggleButtonGroup
+                className='chart-btn'
+                value={threatsCount}
+                exclusive
+                onChange={this.toggleThreatCount}>
+                <ToggleButton value='last10'>{t('alert.txt-last10')}</ToggleButton>
+                <ToggleButton value='last20'>{t('alert.txt-last20')}</ToggleButton>
+                <ToggleButton value='last50'>{t('alert.txt-last50')}</ToggleButton>
+              </ToggleButtonGroup>
+
+              {this.displayBarChart('threatsCountData')}
+            </div>
           }
         </div>
 
@@ -1416,109 +1484,107 @@ class AlertDetails extends Component {
         <div className='section'>
           <header>{t('alert.txt-threatStat')}</header>
           <div className='title'>{t('alert.txt-lastHourData')}</div>
-          <div className='chart-group'>
-            {!threatStatAlert &&
-              <span><i className='fg fg-loading-2'></i></span>
-            }
-            {threatStatAlert && threatStatAlert.length === 0 &&
-              <span>{t('txt-notFound')}</span>
-            }
-            {threatStatAlert && threatStatAlert.length > 0 &&
-              <PieChart
-                data={threatStatAlert}
-                colors={{
-                  severity: ALERT_LEVEL_COLORS
-                }}
-                keyLabels={{
-                  severity: t('alert.txt-threatLevel'),
-                  count: t('txt-count')
-                }}
-                valueLabels={{
-                  'Pie Chart': {
+          <div className='chart-content'>
+            <div className='chart-group'>
+              {!threatStatAlert &&
+                <span><i className='fg fg-loading-2'></i></span>
+              }
+              {threatStatAlert && threatStatAlert.length === 0 &&
+                <span>{t('txt-notFound')}</span>
+              }
+              {threatStatAlert && threatStatAlert.length > 0 &&
+                <PieChart
+                  data={threatStatAlert}
+                  colors={{
+                    severity: ALERT_LEVEL_COLORS
+                  }}
+                  keyLabels={{
                     severity: t('alert.txt-threatLevel'),
                     count: t('txt-count')
-                  }
-                }}
-                dataCfg={{
-                  splitSlice: ['severity'],
-                  sliceSize: 'count'
-                }} />
-            }
-          </div>
-          
-          <div className='chart-group'>
-            {threatStatData && threatStatData.length > 0 &&
-              <DataTable
-                className='main-table table-data'
-                fields={threatStatFieldsData}
-                data={threatStatData} />
-            }
+                  }}
+                  valueLabels={{
+                    'Pie Chart': {
+                      severity: t('alert.txt-threatLevel'),
+                      count: t('txt-count')
+                    }
+                  }}
+                  dataCfg={{
+                    splitSlice: ['severity'],
+                    sliceSize: 'count'
+                  }} />
+              }
+            </div>
+            <div className='chart-group'>
+              {threatStatData && threatStatData.length > 0 &&
+                <DataTable
+                  className='main-table table-data'
+                  fields={threatStatFieldsData}
+                  data={threatStatData} />
+              }
+            </div>
           </div>
 
-          <div className='chart-group'>
-            {!threatStat &&
-              <span><i className='fg fg-loading-2'></i></span>
-            }
-            {threatStat && threatStat.length === 0 &&
-              <span>{t('txt-notFound')}</span>
-            }
-            {threatStat && threatStat.length > 0 &&
-              this.displayBarChart('threatStat')
-            }
-          </div>
+          {!threatStat &&
+            <span><i className='fg fg-loading-2'></i></span>
+          }
+          {threatStat && threatStat.length === 0 &&
+            <span>{t('txt-notFound')}</span>
+          }
+          {threatStat && threatStat.length > 0 &&
+            this.displayBarChart('threatStat')
+          }
         </div>
 
         <div className='section'>
           <header>{t('alert.txt-eventStat')}</header>
           <div className='title'>{t('alert.txt-lastHourData')}</div>
-          <div className='chart-group'>
-            {!eventStatConfig &&
-              <span><i className='fg fg-loading-2'></i></span>
-            }
-            {eventStatConfig && eventStatConfig.length === 0 &&
-              <span>{t('txt-notFound')}</span>
-            }
-            {eventStatConfig && eventStatConfig.length > 0 &&
-              <PieChart
-                data={eventStatConfig}
-                keyLabels={{
-                  configSource: t('txt-configSource'),
-                  count: t('txt-count')
-                }}
-                valueLabels={{
-                  'Pie Chart': {
+          <div className='chart-content'>
+            <div className='chart-group'>
+              {!eventStatConfig &&
+                <span><i className='fg fg-loading-2'></i></span>
+              }
+              {eventStatConfig && eventStatConfig.length === 0 &&
+                <span>{t('txt-notFound')}</span>
+              }
+              {eventStatConfig && eventStatConfig.length > 0 &&
+                <PieChart
+                  data={eventStatConfig}
+                  keyLabels={{
                     configSource: t('txt-configSource'),
                     count: t('txt-count')
-                  }
-                }}
-                dataCfg={{
-                  splitSlice: ['configSource'],
-                  sliceSize: 'count'
-                }} />
-            }
-          </div>
-          
-          <div className='chart-group'>
-            {eventStatData && eventStatData.length > 0 &&
-              <DataTable
-                className='main-table table-data'
-                fields={eventStatFieldsData}
-                data={eventStatData} />
-            }
+                  }}
+                  valueLabels={{
+                    'Pie Chart': {
+                      configSource: t('txt-configSource'),
+                      count: t('txt-count')
+                    }
+                  }}
+                  dataCfg={{
+                    splitSlice: ['configSource'],
+                    sliceSize: 'count'
+                  }} />
+              }
+            </div>
+            <div className='chart-group'>
+              {eventStatData && eventStatData.length > 0 &&
+                <DataTable
+                  className='main-table table-data'
+                  fields={eventStatFieldsData}
+                  data={eventStatData} />
+              }
+            </div>
           </div>
 
-          <div className='chart-group'>
-            {!eventStat &&
-              <span><i className='fg fg-loading-2'></i></span>
-            }
-            {eventStat && eventStat.length === 0 &&
-              <span>{t('txt-notFound')}</span>
-            }
-            {eventStat && eventStat.length > 0 &&
-              this.displayBarChart('eventStat')
-            }
-          </div>
-        </div>        
+          {!eventStat &&
+            <span><i className='fg fg-loading-2'></i></span>
+          }
+          {eventStat && eventStat.length === 0 &&
+            <span>{t('txt-notFound')}</span>
+          }
+          {eventStat && eventStat.length > 0 &&
+            this.displayBarChart('eventStat')
+          }
+        </div>
       </div>
     )
 

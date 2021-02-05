@@ -573,7 +573,7 @@ class ThreatsController extends Component {
   /**
    * Get and set alert data
    * @method
-   * @param {string} [options] - option for 'search', 'statistics', or 'alertDetails'
+   * @param {string} [options] - option for 'search', 'statistics' or 'alertDetails'
    * @param {string} [fromPage] - option for 'currentPage'
    * @param {string} type - button action type ('previous' or 'next')
    */
