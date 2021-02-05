@@ -848,7 +848,7 @@ class Incident extends Component {
         }
 
         moment.locale(dateLocale);
-        console.log("incident == " ,incident)
+
         return <div className='form-group normal'>
             <header>
                 <div className='text'>{t('edge-management.txt-basicInfo')}</div>
@@ -1864,7 +1864,6 @@ class Incident extends Component {
             let incidentType = _.size(temp.ttpList) > 0 ? 'ttps' : 'events';
             let toggleType = type
             incident.info = temp;
-            console.log("temp == " , temp)
 
             this.setState({incident, incidentType, toggleType}, () => {
                 this.toggleContent('viewIncident', temp)
