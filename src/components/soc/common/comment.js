@@ -59,8 +59,6 @@ class IncidentComment extends Component {
     	this.setState({open: false})
     }
     handleChange(field, value) {
-	    console.log("field == ", field)
-        console.log("value == ", value)
     	this.setState({[field]: value}, () => {
             if (field === 'selected') {
                 if (value === 'new') {
@@ -81,8 +79,6 @@ class IncidentComment extends Component {
         })
     }
     handleChangeMuiComment(event, title, command,id) {
-        console.log("event.target.name == " , event.target.name)
-        console.log("event.target.value == " , event.target.value)
         let value = {command:command,title:title};
         if (event.target.name === 'title'){
             value.title = event.target.value
@@ -90,7 +86,6 @@ class IncidentComment extends Component {
             value.command = event.target.value
         }
 
-        console.log("value " , value)
         this.setState({['comment']: value})
     }
 
