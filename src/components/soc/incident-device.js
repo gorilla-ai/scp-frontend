@@ -677,6 +677,7 @@ class IncidentDevice extends Component {
                         <TextareaAutosize
                             id='note'
                             name='note'
+                            className='textarea-autosize'
                             rows={4}
                             maxLength={250}
                             value={incidentDevice.info.note}
