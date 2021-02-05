@@ -15,6 +15,8 @@ import {default as ah, getInstance} from "react-ui/build/src/utils/ajax-helper"
 import helper from "../../common/helper"
 import TextField from "@material-ui/core/TextField";
 import MenuItem from "@material-ui/core/MenuItem";
+import {Drawer, List, ListItem, ListItemIcon, ListItemText, TextareaAutosize, withStyles} from "@material-ui/core";
+
 
 let t = null
 let et = null
@@ -76,6 +78,17 @@ class IncidentComment extends Component {
             }
         })
     }
+    handleChangeMuiComment(event, title, command,id) {
+        let value = {command:command,title:title};
+        if (event.target.name === 'title'){
+            value.title = event.target.value
+        }else  if (event.target.name === 'command'){
+            value.command = event.target.value
+        }
+
+        this.setState({['comment']: value})
+    }
+
     handleChangeMui(event) {
         this.setState({[event.target.name]: event.target.value}, () => {
             if (event.target.name === 'selected') {
@@ -96,6 +109,9 @@ class IncidentComment extends Component {
             }
         })
     }
+
+
+
     addComment() {
         const {baseUrl} = this.context
         const {comment} = this.state
@@ -225,40 +241,101 @@ class IncidentComment extends Component {
 
     	return <ModalDialog className='incident-comment' title={it('txt-comment-example')} 
             draggable={true} global={true} closeAction='cancel' actions={actions}>
+
             <div className='left'>
-                <DropDownList size={15} list={list} required={true} value={selected} onChange={this.handleChange.bind(this, 'selected')} />
-                {/*<TextField*/}
-                {/*    id='selected'*/}
-                {/*    name='selected'*/}
-                {/*    variant='outlined'*/}
-                {/*    fullWidth={true}*/}
-                {/*    size='small'*/}
-                {/*    required*/}
-                {/*    value={selected}*/}
-                {/*    select*/}
-                {/*    onChange={this.handleChangeMui.bind(this)}>*/}
-                {/*    {*/}
-                {/*        _.map(list,el=>{*/}
-                {/*            return <MenuItem value={el.value}>{el.text}</MenuItem>*/}
-                {/*        })*/}
-                {/*    }*/}
-                {/*</TextField>*/}
+                {/*<DropDownList size={15} list={list} required={true} value={selected} onChange={this.handleChange.bind(this, 'selected')} />*/}
+                <TextField
+                    id='selected'
+                    name='selected'
+                    variant='outlined'
+                    fullWidth={true}
+                    size='small'
+                    required
+                    multiline
+                    value={selected}
+                    select
+                    onChange={this.handleChangeMui.bind(this)}>
+                    {
+                        _.map(list,el=>{
+                            return <MenuItem value={el.value}>{el.text}</MenuItem>
+                        })
+                    }
+                </TextField>
+                {/*<Drawer*/}
+                {/*    variant="permanent"*/}
+                {/*    anchor="left"*/}
+                {/*    open={true}*/}
+                {/*    classes={{*/}
+                {/*        paper: classes.drawerPaper,*/}
+                {/*    }}*/}
+                {/*>*/}
+                {/*    <List>*/}
+                {/*        {list.map((obj, index) => (*/}
+                {/*            <ListItem button key={obj.value} onClick={this.handleChange.bind(this, 'selected',obj.value)}>*/}
+                {/*                <ListItemText primary={obj.text} />*/}
+                {/*            </ListItem>*/}
+                {/*        ))}*/}
+                {/*    </List>*/}
+                {/*</Drawer>*/}
             </div>
             <div className='right'>
-                <Form className='content' formClassName='c-form'
-                    fields={{
-                        title: {label: it('txt-title'), editor: Input, props: {
-                            t: et,
-                            required: true
-                        }},
-                        command: {label: it('txt-comment'), editor: Textarea, props: {
-                            t: et,
-                            required: true,
-                            rows: 10
-                        }}
-                    }}
-                    value={comment}
-                    onChange={this.handleChange.bind(this, 'comment')} />
+                {/*<Form className='content' formClassName='c-form'*/}
+                {/*    fields={{*/}
+                {/*        title: {label: it('txt-title'), editor: Input, props: {*/}
+                {/*            t: et,*/}
+                {/*            required: true*/}
+                {/*        }},*/}
+                {/*        command: {label: it('txt-comment'), editor: Textarea, props: {*/}
+                {/*            t: et,*/}
+                {/*            required: true,*/}
+                {/*            rows: 10*/}
+                {/*        }}*/}
+                {/*    }}*/}
+                {/*    value={comment}*/}
+                {/*    onChange={this.handleChange.bind(this, 'comment')} />*/}
+                <label htmlFor='title'>{it('txt-title')}</label>
+                <TextField
+                    name='title'
+                    variant='outlined'
+                    fullWidth={true}
+                    size='small'
+                    required
+                    value={comment.title}
+                    onChange={(event) => this.handleChangeMuiComment(event,comment.title,comment.command,comment.id)}>
+                </TextField>
+                <label htmlFor='comment'>{it('txt-comment')}</label>
+                <TextareaAutosize
+                    name='command'
+                    className='textarea-autosize'
+                    value={comment.command}
+                    rows={8}
+                    required
+                    variant='outlined'
+                    fullWidth={true}
+                    size='small'
+                    onChange={(event) => this.handleChangeMuiComment(event,comment.title,comment.command,comment.id)}
+                />
+                {/*<Form className='content' formClassName='c-form'*/}
+                {/*      fields={{*/}
+                {/*          title: {label: it('txt-title'), editor: TextField, props: {*/}
+                {/*                  t: et,*/}
+                {/*                  variant:'outlined',*/}
+                {/*                  fullWidth:true,*/}
+                {/*                  size:'small',*/}
+                {/*                  required: true,*/}
+                {/*                  onChange: this.handleChangeMui*/}
+                {/*              }},*/}
+                {/*          command: {label: it('txt-comment'), editor: TextareaAutosize, props: {*/}
+                {/*                  t: et,*/}
+                {/*                  required: true,*/}
+                {/*                  rows: 10,*/}
+                {/*                  name:'command',*/}
+                {/*                  onChange: this.handleChangeMui*/}
+                {/*              }}*/}
+                {/*      }}*/}
+
+                {/*      value={comment}*/}
+                {/*      onChange={this.handleChange.bind(this, 'comment')} />*/}
             </div>
     	</ModalDialog>
     }
