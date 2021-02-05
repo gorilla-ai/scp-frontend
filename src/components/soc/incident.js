@@ -16,7 +16,7 @@ import Button from '@material-ui/core/Button';
 import {BaseDataContext} from "../common/context"
 import SocConfig from "../common/soc-configuration"
 import helper from "../common/helper"
-
+import Autocomplete from '@material-ui/lab/Autocomplete';
 import Events from './common/events'
 import Ttps from './common/ttps'
 import {downloadLink, downloadWithForm} from "react-ui/build/src/utils/download";
@@ -30,6 +30,7 @@ import {KeyboardDateTimePicker, MuiPickersUtilsProvider} from "@material-ui/pick
 import MomentUtils from "@date-io/moment";
 import NotifyContact from "./common/notifyContact";
 import Menu from "@material-ui/core/Menu";
+import Typography from "@material-ui/core/Typography";
 
 let t = null;
 let f = null;
@@ -838,7 +839,7 @@ class Incident extends Component {
     };
 
     displayMainPage = () => {
-        const {activeContent, incidentType, incident, relatedListOptions} = this.state;
+        const {activeContent, incidentType, incident} = this.state;
         const {locale} = this.context;
         let dateLocale = locale;
 
@@ -974,22 +975,54 @@ class Incident extends Component {
             </div>}
 
             {incidentType === 'ttps' &&
-            <div className='group full'>
+            <div className='group full relatedList'>
                 <label htmlFor='relatedList'>{f('incidentFields.relatedList')}</label>
-                <ComboBox
-                    id='relatedList'
-                    className='textarea-autosize'
-                    onChange={this.handleDataChange.bind(this, 'relatedList')}
-                    list={relatedListOptions}
-                    search={{enabled: true, placeholder: '', interactive: true}}
-                    multiSelect={{enabled: true}}
-                    value={incident.info.relatedList}
-                    disabled={activeContent === 'viewIncident'}/>
+                <Autocomplete
+                    multiple
+                    id="tags-standard"
+                    options={incident.info.differenceWithOptions}
+                    getOptionLabel={(option) => option.text}
+                    // onChange={this.handleDataChange.bind(this, 'relatedList')}
+                    value={incident.info.showFontendRelatedList}
+                    onChange={this.onTagsChange}
+                    disabled={activeContent === 'viewIncident'}
+                    renderInput={(params) => (
+                        <TextField
+                            {...params}
+                            variant="standard"
+                        />
+                    )}
+                />
+                {/*<ComboBox*/}
+                {/*    className='relatedList'*/}
+                {/*    infoClassName='relatedList'*/}
+                {/*    onChange={this.handleDataChange.bind(this, 'relatedList')}*/}
+                {/*    list={relatedListOptions}*/}
+                {/*    search={{enabled: true, placeholder: '', interactive: true}}*/}
+                {/*    multiSelect={{enabled: true}}*/}
+                {/*    value={incident.info.relatedList}*/}
+                {/*    disabled={activeContent === 'viewIncident'}/>*/}
             </div>
             }
 
         </div>
     };
+
+    onTagsChange = (event, values) => {
+
+        // let tempList = []
+        // _.forEach(values, el => {
+        //     tempList.push(el.text)
+        // })
+
+        let temp = {...this.state.incident};
+        // temp.info['relatedList'] = tempList;
+        temp.info['showFontendRelatedList'] = values;
+
+        this.setState({
+            incident: temp
+        })
+    }
 
     formatBytes = (bytes, decimals = 2) => {
         if (bytes === 0 || bytes === '0'){
@@ -1061,7 +1094,7 @@ class Incident extends Component {
     }
 
     displayAttached = () => {
-        const {activeContent, incidentType, incident, relatedListOptions, attach} = this.state;
+        const {activeContent, incidentType, incident, attach} = this.state;
         let dataFields = {};
         incident.fileFieldsArr.forEach(tempData => {
             dataFields[tempData] = {
@@ -1164,7 +1197,7 @@ class Incident extends Component {
     }
 
     displayFlow = () => {
-        const {activeContent, incidentType, incident, relatedListOptions} = this.state;
+        const {activeContent, incidentType, incident} = this.state;
 
         let dataFields = {};
         incident.flowFieldsArr.forEach(tempData => {
@@ -1213,7 +1246,7 @@ class Incident extends Component {
     }
 
     displayNoticePage = () => {
-        const {activeContent, INCIDENT_ACCIDENT_LIST, INCIDENT_ACCIDENT_SUB_LIST,incidentType, incident, relatedListOptions} = this.state;
+        const {activeContent, INCIDENT_ACCIDENT_LIST, INCIDENT_ACCIDENT_SUB_LIST,incidentType, incident} = this.state;
 
         return <div className='form-group normal'>
             <header>
@@ -1310,7 +1343,7 @@ class Incident extends Component {
     };
 
     displayConnectUnit = () => {
-        const {activeContent, INCIDENT_ACCIDENT_LIST, INCIDENT_ACCIDENT_SUB_LIST,incidentType, incident, relatedListOptions} = this.state;
+        const {activeContent, INCIDENT_ACCIDENT_LIST, INCIDENT_ACCIDENT_SUB_LIST,incidentType, incident} = this.state;
 
         return <div className='form-group normal'>
             <header>
@@ -1416,9 +1449,9 @@ class Incident extends Component {
             return
         }
 
-        if (incident.info.relatedList) {
-            incident.info.relatedList = _.map(incident.info.relatedList, el => {
-                return {incidentRelatedId: el}
+        if (incident.info.showFontendRelatedList) {
+            incident.info.relatedList = _.map(incident.info.showFontendRelatedList, el => {
+                return {incidentRelatedId: el.value}
             })
         }
 
@@ -1473,12 +1506,6 @@ class Incident extends Component {
             incident.info.id = data.rt.id;
             incident.info.updateDttm = data.rt.updateDttm;
             incident.info.status = data.rt.status;
-
-            if (incident.info.relatedList) {
-                incident.info.relatedList = _.map(incident.info.relatedList, el => {
-                    return el.incidentRelatedId
-                })
-            }
 
             this.setState({
                 originalIncident: _.cloneDeep(incident)
@@ -1774,6 +1801,7 @@ class Incident extends Component {
     }
 
     getIncident = (id, type) => {
+        const {activeContent, incidentType, incident, relatedListOptions} = this.state;
         this.handleCloseMenu()
         const {baseUrl} = this.context;
 
@@ -1787,9 +1815,21 @@ class Incident extends Component {
 
             if (temp.relatedList) {
                 temp.relatedList = _.map(temp.relatedList, el => {
-                    return el.incidentRelatedId
+                    let obj = {
+                        value :el.incidentRelatedId,
+                        text:el.incidentRelatedId
+                    }
+                    return obj
                 })
             }
+
+
+            let result = _.map(temp.relatedList, function(obj) {
+                return _.assign(obj, _.find(relatedListOptions, {value: obj.value}));
+            });
+
+            temp.differenceWithOptions = _.differenceWith(relatedListOptions,temp.relatedList,function(p,o) { return p.value === o.value })
+            temp.showFontendRelatedList = result
 
             if (temp.eventList) {
                 temp.eventList = _.map(temp.eventList, el => {
@@ -2116,7 +2156,7 @@ class Incident extends Component {
 
     toggleContent = (type, allValue) => {
         const {baseUrl, contextRoot} = this.context;
-        const {originalIncident, incident} = this.state;
+        const {originalIncident, incident,relatedListOptions} = this.state;
         let tempIncident = {...incident};
         let showPage = type;
 
@@ -2133,6 +2173,8 @@ class Incident extends Component {
                 createDttm: allValue.createDttm,
                 updateDttm: allValue.updateDttm,
                 relatedList: allValue.relatedList,
+                showFontendRelatedList:allValue.showFontendRelatedList,
+                differenceWithOptions:allValue.differenceWithOptions,
                 ttpList: allValue.ttpList,
                 eventList: allValue.eventList,
                 status: allValue.status,
@@ -2153,6 +2195,7 @@ class Incident extends Component {
                 accidentAbnormalOther: allValue.accidentAbnormalOther
             };
 
+
             if (!tempIncident.info.socType) {
                 tempIncident.info.socType = 1
             }
@@ -2168,7 +2211,9 @@ class Incident extends Component {
                 impactAssessment: null,
                 socType: null,
                 createDttm: null,
-                relatedList: null,
+                relatedList: [],
+                showFontendRelatedList:[],
+                differenceWithOptions:relatedListOptions,
                 ttpList: null,
                 eventList: null,
                 notifyList: null,
@@ -2500,6 +2545,7 @@ class Incident extends Component {
      * @param {string} value - input value
      */
     handleDataChange = (type, value) => {
+
         let temp = {...this.state.incident};
         temp.info[type] = value;
 
@@ -2514,7 +2560,6 @@ class Incident extends Component {
 
 
     handleDataChangeMui = (event) => {
-
         let temp = {...this.state.incident};
         temp.info[event.target.name] = event.target.value;
         if (event.target.name === 'impactAssessment') {
@@ -2789,7 +2834,7 @@ class Incident extends Component {
             if (_.size(incident.relatedList) > 0) {
                 let value = []
                 _.forEach(incident.relatedList, el => {
-                    const target = _.find(relatedListOptions, {value: el})
+                    const target = _.find(relatedListOptions, {value: el.value})
                     value.push(target.text)
                 })
 
