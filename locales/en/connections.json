@@ -368,6 +368,8 @@
     "txt-eventStat": "Event Statistic",
     "txt-queryMore": "Query",
     "txt-queryEvents": "View Details Infomation",
+    "txt-queryMoreEvents": "View other records",
+    "txt-queryMoreLogs": "View Logs Records",
     "txt-searthVirustotal": "Search Virustotal",
     "txt-downloadPCAP": "$t(txt-download) PCAP",
     "txt-downloadFile": "Download File",

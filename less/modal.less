@@ -1080,7 +1080,7 @@ html[data-theme='dark'] {
       .alert-rule,
       .srcIp-content,
       .destIp-content {
-        height: 395px;
+        height: 445px;
         min-height: auto;
         margin-top: 5px;
         overflow-y: auto;
@@ -1090,11 +1090,19 @@ html[data-theme='dark'] {
         }
       }
       .alert-rule {
+        height: 465px;
         .section {
+          position: relative;
           padding: 15px;
           header {
             padding-top: 0;
             padding-left: 0;
+          }
+          button.info-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            padding: 5px 10px;
           }
           .title {
             color: var(--primaryContentHeader);

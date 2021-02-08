@@ -67,7 +67,6 @@ class AlertDetails extends Component {
         srcNetwork: false,
         destNetwork: false
       },
-      //alertRule: '',
       alertPayload: '',
       alertInfo: {
         srcIp: {
@@ -215,8 +214,7 @@ class AlertDetails extends Component {
       }, () => {
         this.getIPcontent('srcIp');
         this.getIPcontent('destIp');
-        this.getChartsData();
-        //this.getAlertRule();
+        this.clearChartsData();
       });
     }   
   }
@@ -547,6 +545,29 @@ class AlertDetails extends Component {
     });
   }
   /**
+   * Set charts data to initial values
+   * @method
+   */
+  clearChartsData = () => {
+    this.setState({
+      threatsCount: 'last10',
+      threatsCountData10: null,
+      threatsCountData20: null,
+      threatsCountData50: null,
+      internalNetworkData: null,
+      threatStatAlert: null,
+      threatStatFieldsData: {},
+      threatStatData: [],
+      threatStat: null,
+      eventStatConfig: null,
+      eventStatFieldsData: {},
+      eventStatData: [],
+      eventStat: null
+    }, () => {
+      this.getChartsData();
+    });
+  }
+  /**
    * Get and set charts data for alert rule
    * @method
    */
@@ -759,55 +780,6 @@ class AlertDetails extends Component {
     })
   }
   /**
-   * Get Alert rule data
-   * @method
-   */
-  // getAlertRule = () => {
-  //   const {baseUrl} = this.context;
-  //   const {alertData} = this.props;
-  //   const index = alertData.index;
-  //   const projectId = alertData.projectName;
-
-  //   if (_.isEmpty(alertData)) {
-  //     return;
-  //   }
-
-  //   if (alertData.Rule) {
-  //     this.setState({
-  //       alertRule: alertData.Rule
-  //     });
-  //   } else {
-  //     const url = `${baseUrl}/api/network/alert/rule?projectId=${projectId}`;
-  //     let requestData = {
-  //       alert: {}
-  //     };
-
-  //     if (alertData.alert && alertData.alert.signature_id) {
-  //       requestData.alert.signature_id = alertData.alert.signature_id;
-  //     } else if (alertData.trailName) {
-  //       requestData.alert.trailName = alertData.trailName;
-  //     }
-
-  //     this.ah.one({
-  //       url,
-  //       data: JSON.stringify(requestData),
-  //       type: 'POST',
-  //       contentType: 'text/plain'
-  //     })
-  //     .then(data => {
-  //       if (data) {
-  //         this.setState({
-  //           alertRule: data
-  //         });
-  //       }
-  //       return null;
-  //     })
-  //     .catch(err => {
-  //       helper.showPopupMsg('', t('txt-error'), err.message);
-  //     })
-  //   }
-  // }
-  /**
    * Get IP and Port data
    * @method
    * @param {string} ipType - 'srcIp', 'destIp', 'srcPort', 'destPort'
@@ -831,10 +803,8 @@ class AlertDetails extends Component {
    * @method
    */
   getAttackJson = () => {
-    const {alertData} = this.props;
-
     this.setState({
-      alertPayload: alertData.payload
+      alertPayload: this.props.alertData.payload
     });
   }
   /**
@@ -865,7 +835,6 @@ class AlertDetails extends Component {
 
       switch (type) {
         case 'rule':
-          //this.getAlertRule();
           tempShowContent.rule = true;
           break;
         case 'attack':
@@ -903,13 +872,6 @@ class AlertDetails extends Component {
         showContent: tempShowContent
       });
     });
-  }
-  /**
-   * Display Virus Total Analysis link
-   * @method
-   */
-  getVirusTotalAnalysis = () => {
-    return <Button variant='contained' color='primary' onClick={this.redirectLink.bind(this, 'virustotal', '151.139.128.11')}>{t('alert.txt-searthVirustotal')}</Button>
   }
   /**
    * Handle pcap download button
@@ -1145,10 +1107,6 @@ class AlertDetails extends Component {
           <div className='content'>
             <div className='options-buttons'>
               <section>
-                {showContent.rule &&
-                  this.getVirusTotalAnalysis()
-                }
-
                 {alertData.pcapFlag &&
                   this.getPCAPdownloadContent()
                 }
@@ -1231,18 +1189,30 @@ class AlertDetails extends Component {
   /**
    * Generate a redirect link and process the browser redirect
    * @method
-   * @param {string} type - 'events' or 'virustotal'
-   * @param {string} value - IP address, 'srcIp' or 'destIp'
+   * @param {string} type - virustotal', 'threats' or 'syslog'
+   * @param {string} [value] - IP address, 'srcIp' or 'destIp'
    */
   redirectLink = (type, value) => {
-    let ip = value;
+    const {baseUrl, contextRoot, language} = this.context;
+    const {alertData} = this.props;
+    const datetime = {
+      from: helper.getFormattedDate(helper.getSubstractDate(1, 'hours', alertData._eventDttm_)),
+      to: helper.getFormattedDate(alertData._eventDttm_, 'local')
+    };
     let linkUrl = '';
  
     if (type === 'virustotal') {
+      let ip = value;
+
       if (value === 'srcIp' || value === 'destIp') {
         ip = this.getIpPortData(value);
       }
+
       linkUrl = 'https:\//www.virustotal.com/gui/ip-address/' + ip + '/relations';
+    } else if (type === 'threats') {
+      linkUrl = `${baseUrl}${contextRoot}/threats?from=${datetime.from}&to=${datetime.to}&sourceIP=${alertData.blackIP}&lng=${language}`;
+    } else if (type === 'syslog') {
+      linkUrl = `${baseUrl}${contextRoot}/events/syslog?from=${datetime.from}&to=${datetime.to}&sourceIP=${alertData.blackIP}&lng=${language}`;
     }
 
     window.open(linkUrl, '_blank');
@@ -1259,18 +1229,6 @@ class AlertDetails extends Component {
         <li onClick={this.redirectLink.bind(this, 'virustotal', ipType)}>{t('alert.txt-searthVirustotal')}</li>
       </ul>
     )
-  }
-  /**
-   * Display pattern refs data
-   * @method
-   * @returns HTML DOM
-   */
-  showRuleRefsData = () => {
-    const {alertData} = this.props;
-
-    if (alertData.refs && alertData.refs.length > 0) {
-      return <JSONTree data={alertData.refs} theme={helper.getJsonViewTheme()} />
-    }
   }
   /**
    * Show tooltip info when mouseover the chart
@@ -1426,18 +1384,21 @@ class AlertDetails extends Component {
       eventStatData,
       eventStat
     } = this.state;
+    const threatCreateDttm = alertData.threatTextCreateDttm === 'N/A' ? NOT_AVAILABLE : helper.getFormattedDate(alertData.threatTextCreateDttm, 'local');
+    const threatUpdateDttm = alertData.threatTextUpdateDttm === 'N/A' ? NOT_AVAILABLE : helper.getFormattedDate(alertData.threatTextUpdateDttm, 'local');
 
     return (
       <div className='alert-rule'>
         <div className='section'>
           <header>{t('alert.txt-threatsContent')}</header>
+          <Button variant='contained' color='primary' className='info-btn' onClick={this.redirectLink.bind(this, 'virustotal', alertData.blackIP)} disabled={!alertData.blackIP}>{t('alert.txt-searthVirustotal')}</Button>
           <ul>
             <li><span>{t('alert.txt-severityType')}</span>: {alertData.severity_type}</li>
             <li><span>{t('alert.txt-severityDesc')}</span>: {alertData.severity_type_description || NOT_AVAILABLE}</li>
             <li><span>{t('alert.txt-collectorType')}</span>: {alertData.Collector}</li>
             <li><span>{t('alert.txt-threatsType')}</span>: {alertData.severity_type_name}</li>
-            <li><span>{t('alert.txt-threatsCreateDttm')}</span>: {helper.getFormattedDate(alertData.threatTextCreateDttm, 'local')}</li>
-            <li><span>{t('alert.txt-threatsUpdateDttm')}</span>: {helper.getFormattedDate(alertData.threatTextUpdateDttm, 'local')}</li>
+            <li><span>{t('alert.txt-threatsCreateDttm')}</span>: {threatCreateDttm}</li>
+            <li><span>{t('alert.txt-threatsUpdateDttm')}</span>: {threatUpdateDttm}</li>
           </ul>
         </div>
 
@@ -1483,16 +1444,17 @@ class AlertDetails extends Component {
 
         <div className='section'>
           <header>{t('alert.txt-threatStat')}</header>
+          <Button variant='contained' color='primary' className='info-btn' onClick={this.redirectLink.bind(this, 'threats', alertData.blackIP)} disabled={!alertData.blackIP}>{t('alert.txt-queryMoreEvents')}</Button>
           <div className='title'>{t('alert.txt-lastHourData')}</div>
           <div className='chart-content'>
-            <div className='chart-group'>
-              {!threatStatAlert &&
-                <span><i className='fg fg-loading-2'></i></span>
-              }
-              {threatStatAlert && threatStatAlert.length === 0 &&
-                <span>{t('txt-notFound')}</span>
-              }
-              {threatStatAlert && threatStatAlert.length > 0 &&
+            {!threatStatAlert &&
+              <span><i className='fg fg-loading-2'></i></span>
+            }
+            {threatStatAlert && threatStatAlert.length === 0 &&
+              <span>{t('txt-notFound')}</span>
+            }
+            {threatStatAlert && threatStatAlert.length > 0 &&
+              <div className='chart-group'>
                 <PieChart
                   data={threatStatAlert}
                   colors={{
@@ -1512,16 +1474,16 @@ class AlertDetails extends Component {
                     splitSlice: ['severity'],
                     sliceSize: 'count'
                   }} />
-              }
-            </div>
-            <div className='chart-group'>
-              {threatStatData && threatStatData.length > 0 &&
+              </div>
+            }
+            {threatStatData && threatStatData.length > 0 &&
+              <div className='chart-group'>
                 <DataTable
                   className='main-table table-data'
                   fields={threatStatFieldsData}
                   data={threatStatData} />
-              }
-            </div>
+              </div>
+            }
           </div>
 
           {!threatStat &&
@@ -1537,16 +1499,17 @@ class AlertDetails extends Component {
 
         <div className='section'>
           <header>{t('alert.txt-eventStat')}</header>
+          <Button variant='contained' color='primary' className='info-btn' onClick={this.redirectLink.bind(this, 'syslog', alertData.blackIP)} disabled={!alertData.blackIP}>{t('alert.txt-queryMoreLogs')}</Button>
           <div className='title'>{t('alert.txt-lastHourData')}</div>
           <div className='chart-content'>
-            <div className='chart-group'>
-              {!eventStatConfig &&
-                <span><i className='fg fg-loading-2'></i></span>
-              }
-              {eventStatConfig && eventStatConfig.length === 0 &&
-                <span>{t('txt-notFound')}</span>
-              }
-              {eventStatConfig && eventStatConfig.length > 0 &&
+            {!eventStatConfig &&
+              <span><i className='fg fg-loading-2'></i></span>
+            }
+            {eventStatConfig && eventStatConfig.length === 0 &&
+              <span>{t('txt-notFound')}</span>
+            }
+            {eventStatConfig && eventStatConfig.length > 0 &&
+              <div className='chart-group'>
                 <PieChart
                   data={eventStatConfig}
                   keyLabels={{
@@ -1563,16 +1526,16 @@ class AlertDetails extends Component {
                     splitSlice: ['configSource'],
                     sliceSize: 'count'
                   }} />
-              }
-            </div>
-            <div className='chart-group'>
-              {eventStatData && eventStatData.length > 0 &&
+              </div>
+            }
+            {eventStatData && eventStatData.length > 0 &&
+              <div className='chart-group'>
                 <DataTable
                   className='main-table table-data'
                   fields={eventStatFieldsData}
                   data={eventStatData} />
-              }
-            </div>
+              </div>
+            }
           </div>
 
           {!eventStat &&
@@ -1587,30 +1550,6 @@ class AlertDetails extends Component {
         </div>
       </div>
     )
-
-    // if (alertRule) {
-    //   if (_.isArray(alertRule)) { //alertRule is an array
-    //     if (alertRule.length === 0) {
-    //       return <span>{NOT_AVAILABLE}</span>
-    //     } else {
-    //       return (
-    //         <ul className='alert-rule'>
-    //           {alertRule.map(this.showRuleContent)}
-    //           {this.showRuleRefsData()}
-    //         </ul>
-    //       )
-    //     }
-    //   } else { //alertRule is a string
-    //     return (
-    //       <div className='alert-rule'>
-    //         <span>{alertRule}</span><i className='fg fg-info' title={t('txt-info')} onClick={this.showSeverityInfo}></i>
-    //         {this.showRuleRefsData()}
-    //       </div>
-    //     )
-    //   }
-    // } else {
-    //   return <i className='fg fg-loading-2'></i>
-    // }
   }
   /**
    * Toggle encode dialog on/off
@@ -2220,7 +2159,6 @@ class AlertDetails extends Component {
         srcIp: false,
         destIp: false
       },
-      alertRule: '',
       alertPayload: ''
     });
   }
