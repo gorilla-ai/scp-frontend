@@ -1684,7 +1684,7 @@ class Netflow extends Component {
   /**
    * Set the table row index and netflow data
    * @method
-   * @param {string | object} data - button action type ('previous' or 'next'), or data object
+   * @param {string | object} data - button action type ('previous' or 'next') or data object
    * @param {string} [type] - button action type ('previous' or 'next')
    * @returns object of index and data
    */
@@ -2522,7 +2522,7 @@ class Netflow extends Component {
    * Handle chart type change for Connections events
    * @method
    * @param {object} event - event object
-   * @param {string} type - events type ('connections', 'packets', or 'databytes')
+   * @param {string} type - events type ('connections', 'packets' or 'databytes')
    */
   handleChartChange = (event, type) => {
     if (!type) {
