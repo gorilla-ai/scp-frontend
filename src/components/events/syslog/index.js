@@ -696,7 +696,7 @@ class SyslogController extends Component {
 
                   if (val === '_tableMenu_') {
                     return (
-                      <div className={cx('table-menu', {'active': value})}>
+                      <div className={cx('table-menu active')}>
                         <Button variant='outlined' color='primary' onClick={this.handleOpenMenu.bind(this, allValue)}><i className='fg fg-more'></i></Button>
                       </div>
                     )
@@ -1698,10 +1698,6 @@ class SyslogController extends Component {
           return;
         }
 
-        onMouseOver: (row, dataIndex) => {
-          console.log('double click!');
-        }
-
         const allValue = row[0](rowIndex, 'getAllValue');
         const tableUniqueID = allValue.id;
 
@@ -1709,6 +1705,12 @@ class SyslogController extends Component {
           return {
             className: 'grey'
           };
+        } else {
+          return {
+            onMouseOver: () => {
+              //alert(tableUniqueID, currentTableID);
+            }
+          }
         }
       }
     };
