@@ -260,7 +260,7 @@
   },
   "alertFields": {
     "_tableMenu_": "",
-    "_eventDttm_": "告警時間",
+    "_eventDttm_": "時間",
     "lastPacket": "結束封包",
     "destIp": "目的IP",
     "srcIp": "來源IP",
@@ -320,12 +320,13 @@
     "payloadMD5": "Payload MD5",
     "destLocType": "Dest Loc Type",
     "timestamp": "日期",
-    "_severity_": "嚴重等級",
-    "Info": "Info",
-    "Collector": "Collector",
+    "_severity_": "威脅等級",
+    "Info": "告警資訊",
+    "Collector": "告警來源類型",
     "Trigger": "Trigger",
     "Suggest": "Suggest",
-    "Source": "來源"
+    "Source": "告警來源",
+    "severity_type_name": "告警情資類型"
   },
   "logsFields": {
     "_tableMenu_": "",

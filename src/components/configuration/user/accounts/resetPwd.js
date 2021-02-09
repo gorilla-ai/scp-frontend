@@ -93,6 +93,7 @@ class ResetPwd extends Component {
       <div>
         <div className='form-input'>
           <TextField
+            id='reset-account'
             name='account'
             label={t('l-account')}
             variant='outlined'
@@ -108,6 +109,7 @@ class ResetPwd extends Component {
         {formType === 'reset' &&
           <div className='form-input'>
             <TextField
+              id='reset-oldPwd'
               name='oldPwd'
               type='password'
               label={t('oldPwd')}
@@ -124,6 +126,7 @@ class ResetPwd extends Component {
         }
         <div className='form-input'>
           <TextField
+            id='reset-newPwd1'
             name='newPwd1'
             type='password'
             label={t('pwd')}
@@ -139,6 +142,7 @@ class ResetPwd extends Component {
         </div>
         <div className='form-input'>
           <TextField
+            id='reset-newPwd2'
             name='newPwd2'
             type='password'
             label={t('reenterPwd')}

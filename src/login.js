@@ -292,7 +292,7 @@ class Login extends Component {
         <div id='form' className='c-flex fdc'>
           <div className='login-group'>
             <TextField
-              id='username'
+              id='login-username'
               name='username'
               label={t('login.txt-userAccount')}
               autoFocus={true}
@@ -307,7 +307,7 @@ class Login extends Component {
           </div>
           <div className='login-group'>
             <TextField
-              id='password'
+              id='login-password'
               name='password'
               type='password'
               label={t('login.txt-userPassword')}
@@ -321,15 +321,16 @@ class Login extends Component {
               onChange={this.handleDataChange}
               onKeyDown={this.handleKeyDown} />
           </div>
-          <button onClick={this.logon}>{t('login.btn-login')}</button>
+          <button id='login-btn-login' onClick={this.logon}>{t('login.btn-login')}</button>
 
-          <div className='first-time'><span onClick={this.startResetPwd.bind(this, 'newSet')}>{t('txt-fist-login')}?</span></div>
+          <div className='first-time'><span id='login-startResetPwd' onClick={this.startResetPwd.bind(this, 'newSet')}>{t('txt-fist-login')}?</span></div>
 
           <div className={cx('c-info error-msg', {'c-error': error})}>{info}</div>
 
           <div className='end'>
             {!_.isEmpty(locale) && locale.length > 1 &&
               <TextField
+                id='login-language'
                 name='language'
                 select
                 variant='outlined'

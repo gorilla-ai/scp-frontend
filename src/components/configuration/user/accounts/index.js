@@ -500,8 +500,8 @@ class AccountList extends Component {
           </div>
         </div>
         <div className='button-group'>
-          <Button variant='contained' color='primary' className='filter' onClick={this.getAccountFilterData}>{c('txt-filter')}</Button>
-          <Button variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{c('txt-clear')}</Button>
+          <Button id='account-btn-filter' variant='contained' color='primary' className='filter' onClick={this.getAccountFilterData}>{c('txt-filter')}</Button>
+          <Button id='account-btn-clear' variant='outlined' color='primary' className='clear' onClick={this.clearFilter}>{c('txt-clear')}</Button>
         </div>
       </div>
     )
@@ -521,9 +521,9 @@ class AccountList extends Component {
           keepMounted
           open={Boolean(contextAnchor)}
           onClose={this.handleCloseMenu}>
-          <MenuItem onClick={this.showEditDialog.bind(this, currentAccountData.accountid)}>{c('txt-edit')}</MenuItem>
-          <MenuItem onClick={this.showDialog.bind(this, 'delete', currentAccountData, currentAccountData.accountid)}>{c('txt-delete')}</MenuItem>
-          <MenuItem onClick={this.showResetPassword.bind(this, currentAccountData.account)}>{c('txt-resetPassword')}</MenuItem>
+          <MenuItem id='account-menu-edit' onClick={this.showEditDialog.bind(this, currentAccountData.accountid)}>{c('txt-edit')}</MenuItem>
+          <MenuItem id='account-menu-delete' onClick={this.showDialog.bind(this, 'delete', currentAccountData, currentAccountData.accountid)}>{c('txt-delete')}</MenuItem>
+          <MenuItem id='account-menu-reset' onClick={this.showResetPassword.bind(this, currentAccountData.account)}>{c('txt-resetPassword')}</MenuItem>
           {currentAccountData.isLock &&
             <MenuItem onClick={this.showDialog.bind(this, 'unlock', currentAccountData, currentAccountData.accountid)}>{c('txt-unlock')}</MenuItem>
           }
@@ -531,9 +531,9 @@ class AccountList extends Component {
 
         <div className='sub-header'>
           <div className='secondary-btn-group right'>
-            <Button variant='outlined' color='primary' onClick={this.showAdDialog.bind(this)} title={t('txt-ad-config')}><i className='fg fg-signage-ad'></i></Button>
-            <Button variant='outlined' color='primary' onClick={this.showEditDialog.bind(this, null)} title={t('txt-add-account')}><i className='fg fg-add'></i></Button>
-            <Button variant='outlined' color='primary' className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={c('txt-filter')}><i className='fg fg-filter'></i></Button>
+            <Button id='accountShowAd' variant='outlined' color='primary' onClick={this.showAdDialog.bind(this)} title={t('txt-ad-config')}><i className='fg fg-signage-ad'></i></Button>
+            <Button id='accountShowAdd' variant='outlined' color='primary' onClick={this.showEditDialog.bind(this, null)} title={t('txt-add-account')}><i className='fg fg-add'></i></Button>
+            <Button id='accountShowFilter' variant='outlined' color='primary' className={cx('last', {'active': showFilter})} onClick={this.toggleFilter} title={c('txt-filter')}><i className='fg fg-filter'></i></Button>
           </div>
         </div>
 

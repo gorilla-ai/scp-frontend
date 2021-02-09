@@ -262,19 +262,45 @@ class PrivilegeEdit extends Component {
    * @returns HTML DOM
    */
   getRoleList = (val, i) => {
-    return (
-      <FormControlLabel
-        key={i}
-        label={val.text}
-        control={
-          <Checkbox
-            className='checkbox-ui'
-            name={val.value}
-            checked={this.checkSelectedItem(val.value)}
-            onChange={this.toggleCheckbox}
-            color='primary' />
-        } />
-    )
+    const {name} = this.state;
+    let showCheckbox = false
+    if (name === 'SOC Analyzer'|| name === 'SOC Executor'|| name === 'SOC Supervior'|| name === 'SOC Supervisor'){
+      showCheckbox =true
+    }
+
+    if (val.text.includes('SOC')){
+      return (
+          <FormControlLabel
+              key={i}
+              label={val.text}
+              control={
+                <Checkbox
+                    className='checkbox-ui'
+                    name={val.value}
+                    checked={this.checkSelectedItem(val.value)}
+                    disabled={!showCheckbox}
+                    onChange={this.toggleCheckbox}
+                    color='primary' />
+              } />
+      )
+    }else{
+      return (
+          <FormControlLabel
+              key={i}
+              label={val.text}
+              control={
+                <Checkbox
+                    className='checkbox-ui'
+                    name={val.value}
+                    checked={this.checkSelectedItem(val.value)}
+                    onChange={this.toggleCheckbox}
+                    color='primary' />
+              } />
+      )
+    }
+
+
+
   }
   /**
    * Display edit privilege content

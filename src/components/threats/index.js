@@ -200,12 +200,12 @@ class ThreatsController extends Component {
       }],
       edgeFilterData:[],
       threatsData: {
-        dataFieldsArr: ['_eventDttm_', '_severity_', 'srcIp', 'destIp', 'Info', 'Collector', 'Source'],
+        dataFieldsArr: ['_eventDttm_', '_severity_', 'srcIp', 'srcPort', 'destIp', 'destPort', 'Source', 'Info', 'Collector', 'severity_type_name'],
         dataFields: [],
-        dataContent: [],
+        dataContent: null,
         sort: {
           field: '_eventDttm_',
-          desc: false
+          desc: true
         },
         totalCount: 0,
         currentPage: 1,
@@ -573,7 +573,7 @@ class ThreatsController extends Component {
   /**
    * Get and set alert data
    * @method
-   * @param {string} [options] - option for 'search', 'statistics', or 'alertDetails'
+   * @param {string} [options] - option for 'search', 'statistics' or 'alertDetails'
    * @param {string} [fromPage] - option for 'currentPage'
    * @param {string} type - button action type ('previous' or 'next')
    */
@@ -1274,7 +1274,7 @@ class ThreatsController extends Component {
     let tempAlertChartsList = alertChartsList;
     let tempThreatsData = {...threatsData};
     tempThreatsData.dataFields = [];
-    tempThreatsData.dataContent = [];
+    tempThreatsData.dataContent = null;
     tempThreatsData.totalCount = 0;
     tempThreatsData.currentPage = 1;
     tempThreatsData.oldPage = 1;
@@ -1462,7 +1462,7 @@ class ThreatsController extends Component {
       confirm: {text: t('txt-close'), handler: this.closeDialog}
     };
 
-    if (sessionRights.Module_Config) {
+    if (sessionRights.Module_Soc) {
       actions = {
         makeIncident: {text: it('txt-createIncident'), handler: this.incidentRedirect},
         confirm: {text: t('txt-close'), handler: this.closeDialog}

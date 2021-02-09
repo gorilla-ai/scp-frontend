@@ -8,8 +8,13 @@ import cx from 'classnames'
 import Button from '@material-ui/core/Button';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
+import ToggleButton from '@material-ui/lab/ToggleButton';
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 
+import BarChart from 'react-chart/build/src/components/bar'
+import DataTable from 'react-ui/build/src/components/table'
 import ModalDialog from 'react-ui/build/src/components/modal-dialog'
+import PieChart from 'react-chart/build/src/components/pie'
 import PopupDialog from 'react-ui/build/src/components/popup-dialog'
 
 import JSONTree from 'react-json-tree'
@@ -26,6 +31,13 @@ import YaraRule from './yara-rule'
 
 import {default as ah, getInstance} from 'react-ui/build/src/utils/ajax-helper'
 
+const ALERT_LEVEL_COLORS = {
+  Emergency: '#CC2943',
+  Alert: '#CC7B29',
+  Critical: '#29B0CC',
+  Warning: '#29CC7A',
+  Notice: '#7ACC29'
+};
 const PUBLIC_KEY = ['City', 'CountryCode', 'Latitude', 'Longitude'];
 const NOT_AVAILABLE = 'N/A';
 
@@ -55,7 +67,6 @@ class AlertDetails extends Component {
         srcNetwork: false,
         destNetwork: false
       },
-      alertRule: '',
       alertPayload: '',
       alertInfo: {
         srcIp: {
@@ -97,7 +108,22 @@ class AlertDetails extends Component {
       modalEncodeOpen: false,
       mouseX: null,
       mouseY: null,
-      highlightedText: ''
+      highlightedText: '',
+      threatsCount: 'last10', //'last10', 'last20' or 'last50'
+      threatsCountData10: null,
+      threatsCountData20: null,
+      threatsCountData50: null,
+      internalNetworkData: null,
+      threatStatAlert: null,
+      threatStatFields: ['severity', 'count'],
+      threatStatFieldsData: {},
+      threatStatData: [],
+      threatStat: null,
+      eventStatConfig: null,
+      eventStatFields: ['configSource', 'count'],
+      eventStatFieldsData: {},
+      eventStatData: [],
+      eventStat: null
     };
 
     t = global.chewbaccaI18n.getFixedT(null, 'connections');
@@ -188,7 +214,7 @@ class AlertDetails extends Component {
       }, () => {
         this.getIPcontent('srcIp');
         this.getIPcontent('destIp');
-        this.getAlertRule();
+        this.clearChartsData();
       });
     }   
   }
@@ -519,53 +545,239 @@ class AlertDetails extends Component {
     });
   }
   /**
-   * Get Alert rule data
+   * Set charts data to initial values
    * @method
    */
-  getAlertRule = () => {
+  clearChartsData = () => {
+    this.setState({
+      threatsCount: 'last10',
+      threatsCountData10: null,
+      threatsCountData20: null,
+      threatsCountData50: null,
+      internalNetworkData: null,
+      threatStatAlert: null,
+      threatStatFieldsData: {},
+      threatStatData: [],
+      threatStat: null,
+      eventStatConfig: null,
+      eventStatFieldsData: {},
+      eventStatData: [],
+      eventStat: null
+    }, () => {
+      this.getChartsData();
+    });
+  }
+  /**
+   * Get and set charts data for alert rule
+   * @method
+   */
+  getChartsData = () => {
     const {baseUrl} = this.context;
     const {alertData} = this.props;
-    const index = alertData.index;
-    const projectId = alertData.projectName;
+    const {threatStatFields, eventStatFields} = this.state;
+    const timeTo = moment(alertData._eventDttm_).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    let url = '';
+    let timeFrom = '';
+    let requestData = {};
 
-    if (_.isEmpty(alertData)) {
-      return;
-    }
-
-    if (alertData.Rule) {
-      this.setState({
-        alertRule: alertData.Rule
-      });
-    } else {
-      const url = `${baseUrl}/api/network/alert/rule?projectId=${projectId}`;
-      let requestData = {
-        alert: {}
-      };
-
-      if (alertData.alert && alertData.alert.signature_id) {
-        requestData.alert.signature_id = alertData.alert.signature_id;
-      } else if (alertData.trailName) {
-        requestData.alert.trailName = alertData.trailName;
-      }
-
-      this.ah.one({
-        url,
-        data: JSON.stringify(requestData),
-        type: 'POST',
-        contentType: 'text/plain'
-      })
-      .then(data => {
-        if (data) {
-          this.setState({
-            alertRule: data
-          });
+    url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0&histogramInterval=60m`;
+    timeFrom = moment(helper.getSubstractDate(1, 'month', alertData._eventDttm_)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    requestData = {
+      timestamp: [timeFrom, timeTo],
+      filters: [
+        {
+          condition: 'must',
+          query: alertData.blackIP
         }
-        return null;
-      })
-      .catch(err => {
-        helper.showPopupMsg('', t('txt-error'), err.message);
-      })
-    }
+      ]
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }, {showProgress: false})
+    .then(data => {
+      if (data) {
+        let threatsCountData10 = [];
+        let threatsCountData20 = [];
+        let threatsCountData50 = [];
+
+        _.forEach(data.event_histogramRecent10, val => {
+          threatsCountData10.push({
+            time: helper.getFormattedDate(val.key_as_string, 'local'),
+            count: val.doc_count
+          });
+        })
+
+        _.forEach(data.event_histogramRecent20, val => {
+          threatsCountData20.push({
+            time: helper.getFormattedDate(val.key_as_string, 'local'),
+            count: val.doc_count
+          });
+        })
+
+        _.forEach(data.event_histogramRecent50, val => {
+          threatsCountData50.push({
+            time: helper.getFormattedDate(val.key_as_string, 'local'),
+            count: val.doc_count
+          });
+        })
+
+        this.setState({
+          threatsCountData10,
+          threatsCountData20,
+          threatsCountData50
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+
+    url = `${baseUrl}/api/u2/alert/_search?page=1&pageSize=0`;
+    timeFrom = moment(helper.getSubstractDate(1, 'hour', alertData._eventDttm_)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    requestData = {
+      timestamp: [timeFrom, timeTo],
+      filters: [
+        {
+          condition: 'must',
+          query: alertData.blackIP
+        }
+      ],
+      search: [
+        'InternalMaskedIp'
+      ]
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }, {showProgress: false})
+    .then(data => {
+      if (data) {
+        let internalNetworkData = [];
+        let threatStatAlert = [];
+        let threatStat = [];
+
+        _.forEach(data.aggregations.InternalMaskedIp4UIF, val => {
+          internalNetworkData.push({
+            subnet: val.subnet,
+            count: val.doc_count
+          });
+        })
+
+        _.forEach(data.aggregations.alertThreatLevel4UIF, val => {
+          threatStatAlert.push({
+            severity: val.key,
+            count: val.doc_count
+          });
+        })
+
+        let tempFields = {};
+        threatStatFields.forEach(tempData => {
+          tempFields[tempData] = {
+            label: t(`txt-${tempData}`),
+            sortable: false,
+            formatter: (value, allValue, i) => {
+              if (tempData === 'severity') {
+                return <span className='severity-level' style={{backgroundColor: ALERT_LEVEL_COLORS[value]}}>{value}</span>
+              } else {
+                return <span>{value}</span>
+              }
+            }
+          }
+        })
+
+        _.forEach(data.event_histogram4UIF, val => {
+          threatStat.push({
+            time: helper.getFormattedDate(val.key_as_string, 'local'),
+            count: val.doc_count,
+            rule: val.severity
+          });
+        })
+
+        this.setState({
+          internalNetworkData,
+          threatStatAlert,
+          threatStatFieldsData: tempFields,
+          threatStatData: threatStatAlert,
+          threatStat
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
+
+    url = `${baseUrl}/api/u2/log/event/_search`;
+    requestData = {
+      timestamp: [timeFrom, timeTo],
+      filters: [
+        {
+          condition: 'must',
+          query: alertData.blackIP
+        },
+        {
+          condition: 'must',
+          query: 'Top10SyslogConfigSource'
+        }
+      ]
+    };
+
+    this.ah.one({
+      url,
+      data: JSON.stringify(requestData),
+      type: 'POST',
+      contentType: 'text/plain'
+    }, {showProgress: false})
+    .then(data => {
+      if (data) {
+        let eventStatConfig = [];
+        let eventStat = [];
+
+        _.forEach(data.aggregations.Top10SyslogConfigSource.agg.buckets, val => {
+          eventStatConfig.push({
+            configSource: val.key,
+            count: val.doc_count
+          });
+        })     
+
+        let tempFields = {};
+        eventStatFields.forEach(tempData => {
+          tempFields[tempData] = {
+            label: t(`txt-${tempData}`),
+            sortable: false,
+            formatter: (value, allValue, i) => {
+              return <span>{value}</span>
+            }
+          }
+        })
+
+        _.forEach(data.aggregations.Top10SyslogConfigSource.event_histogram.buckets, val => {
+          eventStat.push({
+            time: helper.getFormattedDate(val.key_as_string, 'local'),
+            count: val.doc_count
+          });
+        })
+
+        this.setState({
+          eventStatConfig,
+          eventStatFieldsData: tempFields,
+          eventStatData: eventStatConfig,
+          eventStat
+        });
+      }
+      return null;
+    })
+    .catch(err => {
+      helper.showPopupMsg('', t('txt-error'), err.message);
+    })
   }
   /**
    * Get IP and Port data
@@ -591,10 +803,8 @@ class AlertDetails extends Component {
    * @method
    */
   getAttackJson = () => {
-    const {alertData} = this.props;
-
     this.setState({
-      alertPayload: alertData.payload
+      alertPayload: this.props.alertData.payload
     });
   }
   /**
@@ -625,7 +835,6 @@ class AlertDetails extends Component {
 
       switch (type) {
         case 'rule':
-          this.getAlertRule();
           tempShowContent.rule = true;
           break;
         case 'attack':
@@ -677,17 +886,17 @@ class AlertDetails extends Component {
    * @method
    */
   getPCAPdownloadContent = () => {
-    const {baseUrl, contextRoot} = this.context;
-    const {alertData} = this.props;
-    const startDttm = moment(helper.getSubstractDate(10, 'minutes', alertData._eventDttm_)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-    const endDttm = moment(helper.getAdditionDate(10, 'minutes', alertData._eventDttm_)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-    const downloadLink = `${baseUrl}${contextRoot}/api/alert/pcap?agentId=${alertData._edgeInfo.agentId}&startDttm=${startDttm}&endDttm=${endDttm}&targetIp=${alertData.srcIp || alertData.ipSrc}&infoType=${alertData['alertInformation.type']}`;
+    // const {baseUrl, contextRoot} = this.context;
+    // const {alertData} = this.props;
+    // const startDttm = moment(helper.getSubstractDate(10, 'minutes', alertData._eventDttm_)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    // const endDttm = moment(helper.getAdditionDate(10, 'minutes', alertData._eventDttm_)).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+    // const downloadLink = `${baseUrl}${contextRoot}/api/alert/pcap?agentId=${alertData._edgeInfo.agentId}&startDttm=${startDttm}&endDttm=${endDttm}&targetIp=${alertData.srcIp || alertData.ipSrc}&infoType=${alertData['alertInformation.type']}`;
 
-    return (
-      <div className='multi-items'>
-        <span onClick={this.pcapDownload.bind(this, downloadLink)}>{t('alert.txt-downloadPCAP')}</span>
-      </div>
-    )
+    // return (
+    //   <div className='multi-items'>
+    //     <span onClick={this.pcapDownload.bind(this, downloadLink)}>{t('alert.txt-downloadPCAP')}</span>
+    //   </div>
+    // )
   }
   /**
    * Display Download File link and encode option
@@ -828,7 +1037,7 @@ class AlertDetails extends Component {
    */
   displayAlertData = () => {
     const {alertDetails, alertData, currentPage, pageSize, totalPageCount, fromPage} = this.props;
-    const {alertType, showContent, alertRule, alertPayload, showRedirectMenu} = this.state;
+    const {alertType, showContent, alertPayload, showRedirectMenu} = this.state;
     const eventDatetime = alertData._eventDttm_ ? helper.getFormattedDate(alertData._eventDttm_, 'local') : NOT_AVAILABLE;
     const firstItemCheck = alertDetails.currentIndex === 0;
     const lastItemCheck = alertDetails.currentIndex + 1 === alertDetails.currentLength;
@@ -852,51 +1061,31 @@ class AlertDetails extends Component {
         <table className='c-table main-table align-center with-border'>
           <thead>
             <tr>
-              <th>{f('alertFields._severity_')}</th>
-              <th>{f('alertFields.Collector')}</th>
-              <th>{f('alertFields.Trigger')}</th>
-              <th>{f('alertFields.Source')}</th>
               <th>{f('alertFields._eventDttm_')}</th>
+              <th>{f('alertFields._severity_')}</th>
+              <th>{f('alertFields.srcIp')}</th>
+              <th>{f('alertFields.destIp')}</th>
+              <th>{f('alertFields.Collector')}</th>
+              <th>{f('alertFields.Source')}</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td className='severity-level'>{helper.getSeverityColor(alertData._severity_)}</td>
-              <td className='collector'>{alertData.Collector || NOT_AVAILABLE}</td>
-              <td className='trigger'>{alertData.Trigger || NOT_AVAILABLE}</td>
-              <td className='source'>{alertData.Source || NOT_AVAILABLE}</td>
               <td className='datetime'>{eventDatetime}</td>
+              <td className='severity-level'>{helper.getSeverityColor(alertData._severity_)}</td>
+              <td className='src-ip'>{this.getIpPortData('srcIp')}</td>
+              <td className='dest-ip'>{this.getIpPortData('destIp')}</td>
+              <td className='collector'>{alertData.Collector || NOT_AVAILABLE}</td>
+              <td className='source'>{alertData.Source || NOT_AVAILABLE}</td>
             </tr>
           </tbody>
         </table>
 
         <div className='alert-info'>{this.showAlertContent()}</div>
-
-        <table className='c-table main-table align-center with-border'>
-          <thead>
-            <tr>
-              <th>{f('alertFields.srcIp')}</th>
-              <th>{f('alertFields.srcPort')}</th>
-              <th>{f('alertFields.destIp')}</th>
-              <th>{f('alertFields.destPort')}</th>
-              <th>{f('alertFields.proto')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td className='src-ip'>{this.getIpPortData('srcIp')}</td>
-              <td className='src-port'>{this.getIpPortData('srcPort')}</td>
-              <td className='dest-ip'>{this.getIpPortData('destIp')}</td>
-              <td className='dest-port'>{this.getIpPortData('destPort')}</td>
-              <td className='protocol'>{alertData.proto || alertData.p || alertData.protocol || NOT_AVAILABLE}</td>
-            </tr>
-          </tbody>
-        </table>
-
         <div className='main-content'>
           <div className='nav'>
             <ul>
-              <li onClick={this.getContent.bind(this, 'rule')}><span className={cx({'active': showContent.rule})}>{t('alert.txt-rule')}</span></li>
+              <li onClick={this.getContent.bind(this, 'rule')}><span className={cx({'active': showContent.rule})}>{t('alert.txt-ruleAnalysis')}</span></li>
               <li className={cx({'not-allowed': alertType !== 'pot_attack'})} onClick={this.getContent.bind(this, 'attack')}><span className={cx({'active': showContent.attack})}>{t('alert.txt-attack')}</span></li>
               <li onClick={this.getContent.bind(this, 'json')}><span className={cx({'active': showContent.json})}>{t('txt-viewJSON')}</span></li>
               <li className='header'>
@@ -918,7 +1107,7 @@ class AlertDetails extends Component {
           <div className='content'>
             <div className='options-buttons'>
               <section>
-                {showContent.rule && alertData.pcapFlag &&
+                {alertData.pcapFlag &&
                   this.getPCAPdownloadContent()
                 }
 
@@ -1000,22 +1189,30 @@ class AlertDetails extends Component {
   /**
    * Generate a redirect link and process the browser redirect
    * @method
-   * @param {string} type - 'events' or 'virustotal'
-   * @param {string} value - 'srcIp' or 'destIp'
+   * @param {string} type - virustotal', 'threats' or 'syslog'
+   * @param {string} [value] - IP address, 'srcIp' or 'destIp'
    */
   redirectLink = (type, value) => {
-    const srcIp = this.getIpPortData('srcIp');
-    const destIp = this.getIpPortData('destIp');
-    let ipParam = '';
-    let linkUrl ='';
+    const {baseUrl, contextRoot, language} = this.context;
+    const {alertData} = this.props;
+    const datetime = {
+      from: helper.getFormattedDate(helper.getSubstractDate(1, 'hours', alertData._eventDttm_)),
+      to: helper.getFormattedDate(alertData._eventDttm_, 'local')
+    };
+    let linkUrl = '';
  
     if (type === 'virustotal') {
-      if (value === 'srcIp') {
-        ipParam = srcIp;
-      } else if (value === 'destIp') {
-        ipParam = destIp;
+      let ip = value;
+
+      if (value === 'srcIp' || value === 'destIp') {
+        ip = this.getIpPortData(value);
       }
-      linkUrl = 'https:\//www.virustotal.com/gui/ip-address/' + ipParam + '/relations';
+
+      linkUrl = 'https:\//www.virustotal.com/gui/ip-address/' + ip + '/relations';
+    } else if (type === 'threats') {
+      linkUrl = `${baseUrl}${contextRoot}/threats?from=${datetime.from}&to=${datetime.to}&sourceIP=${alertData.blackIP}&lng=${language}`;
+    } else if (type === 'syslog') {
+      linkUrl = `${baseUrl}${contextRoot}/events/syslog?from=${datetime.from}&to=${datetime.to}&sourceIP=${alertData.blackIP}&lng=${language}`;
     }
 
     window.open(linkUrl, '_blank');
@@ -1034,62 +1231,137 @@ class AlertDetails extends Component {
     )
   }
   /**
-   * Display rule content
+   * Show tooltip info when mouseover the chart
    * @method
-   * @param {object} val - rule data
-   * @param {number} i - index of the rule data
+   * @param {string} type - 'threatsCountData', 'internalNetworkData', 'threatStat' or 'eventStat'
+   * @param {object} eventInfo - MouseoverEvents
+   * @param {array.<object>} data - chart data
    * @returns HTML DOM
    */
-  showRuleContent = (val, i) => {
-    return <li key={i}>{val.rule}<i className='fg fg-info' title={t('txt-info')} onClick={this.showSeverityInfo}></i></li>
-  }
-  /**
-   * Display pattern refs data
-   * @method
-   * @returns HTML DOM
-   */
-  showRuleRefsData = () => {
-    const {alertData} = this.props;
-
-    if (alertData.refs && alertData.refs.length > 0) {
-      return <JSONTree data={alertData.refs} theme={helper.getJsonViewTheme()} />
+  onTooltip = (type, eventInfo, data) => {
+    if (type === 'threatsCountData' || type === 'eventStat') {
+      return (
+        <section>
+          <span>{t('txt-time')}: {data[0].time}<br /></span>
+          <span>{t('txt-count')}: {helper.numberWithCommas(data[0].count)}</span>
+        </section>
+      )
+    } else if (type === 'internalNetworkData') {
+      return (
+        <section>
+          <span>{t('txt-count')}: {helper.numberWithCommas(data[0].count)}</span>
+        </section>
+      )
+    } else if (type === 'threatStat') {
+      return (
+        <section>
+          <span>{t('txt-severity')}: {data[0].rule}<br /></span>
+          <span>{t('txt-time')}: {data[0].time}<br /></span>
+          <span>{t('txt-count')}: {helper.numberWithCommas(data[0].count)}</span>
+        </section>
+      )
     }
   }
   /**
-   * Display severity info content
+   * Display bar chart
    * @method
-   * @returns HTML DOM
+   * @param {string} dataType - 'threatsCountData', 'internalNetworkData', 'threatStat' or 'eventStat'
+   * @returns BarChart component
    */
-  getSeverityInfoContent = () => {
-    const {alertData} = this.props;
+  displayBarChart = (dataType) => {
+    const {
+      threatsCount,
+      threatsCountData10,
+      threatsCountData20,
+      threatsCountData50,
+      internalNetworkData,
+      threatStat,
+      eventStat
+    } = this.state;
+    let data = [];
+    let dataCfg = {};
+    let type = '';
+    let chartAttributes = {};
+
+    if (dataType === 'threatsCountData') {
+      if (threatsCount === 'last10') {
+        data = threatsCountData10;
+      } else if (threatsCount === 'last20') {
+        data = threatsCountData20;
+      } else if (threatsCount === 'last50') {
+        data = threatsCountData50;
+      }
+      
+      dataCfg = {
+        x: 'time',
+        y: 'count'
+      };
+      type = 'datetime';
+    } else if (dataType === 'internalNetworkData') {
+      data = internalNetworkData;
+      dataCfg = {
+        x: 'subnet',
+        y: 'count'
+      };
+      type = 'category';
+    } else if (dataType === 'threatStat') {
+      data = threatStat;
+      dataCfg = {
+        x: 'time',
+        y: 'count',
+        splitSeries: 'rule'
+      };
+      type = 'datetime';
+      chartAttributes = {
+        colors: ALERT_LEVEL_COLORS,
+      };
+    } else if (dataType === 'eventStat') {
+      data = eventStat;
+      dataCfg = {
+        x: 'time',
+        y: 'count'
+      };
+      type = 'datetime';
+    }
 
     return (
-      <table className='c-table'>
-        <tbody>
-          <tr>
-            <td valign='top' className='header'>
-              <div>{t('alert.txt-severityType')}:</div>
-              <div>{t('alert.txt-severityDesc')}:</div>
-            </td>
-            <td>
-              <div>{alertData.severity_type}</div>
-              <div>{alertData.severity_type_description || NOT_AVAILABLE}</div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div className='chart-group'>
+        <BarChart
+          stacked
+          vertical
+          legend={{
+            enabled: true
+          }}
+          data={data}
+          dataCfg={dataCfg}
+          xAxis={{
+            type
+          }}
+          plotOptions={{
+            series: {
+              maxPointWidth: 20
+            }
+          }}
+          tooltip={{
+            formatter: this.onTooltip.bind(this, dataType)
+          }}
+          {...chartAttributes} />
+      </div>
     )
   }
   /**
-   * Open dialog to show severity info
+   * Handle Threats chart count change
    * @method
+   * @param {object} event - event object
+   * @param {string} type - chart count ('last10', 'last20' or 'last50')
    */
-  showSeverityInfo = () => {
-    PopupDialog.alert({
-      title: this.props.alertData.severity_type_name,
-      id: 'modalWindowSmall',
-      confirmText: t('txt-close'),
-      display: this.getSeverityInfoContent()
+  toggleThreatCount = (event, type) => {
+    if (!type) {
+      return;
+    }
+
+    this.setState({
+      threatsCount: type
     });
   }
   /**
@@ -1098,31 +1370,186 @@ class AlertDetails extends Component {
    * @returns HTML DOM
    */
   displayRuleContent = () => {
-    const {alertRule} = this.state;
+    const {alertData} = this.props;
+    const {
+      threatsCount,
+      threatsCountData10,
+      internalNetworkData,
+      threatStatAlert,
+      threatStatFieldsData,
+      threatStatData,
+      threatStat,
+      eventStatConfig,
+      eventStatFieldsData,
+      eventStatData,
+      eventStat
+    } = this.state;
+    const threatCreateDttm = alertData.threatTextCreateDttm === 'N/A' ? NOT_AVAILABLE : helper.getFormattedDate(alertData.threatTextCreateDttm, 'local');
+    const threatUpdateDttm = alertData.threatTextUpdateDttm === 'N/A' ? NOT_AVAILABLE : helper.getFormattedDate(alertData.threatTextUpdateDttm, 'local');
 
-    if (alertRule) {
-      if (_.isArray(alertRule)) { //alertRule is an array
-        if (alertRule.length === 0) {
-          return <span>{NOT_AVAILABLE}</span>
-        } else {
-          return (
-            <ul className='alert-rule'>
-              {alertRule.map(this.showRuleContent)}
-              {this.showRuleRefsData()}
-            </ul>
-          )
-        }
-      } else { //alertRule is a string
-        return (
-          <div className='alert-rule'>
-            <span>{alertRule}</span><i className='fg fg-info' title={t('txt-info')} onClick={this.showSeverityInfo}></i>
-            {this.showRuleRefsData()}
+    return (
+      <div className='alert-rule'>
+        <div className='section'>
+          <header>{t('alert.txt-threatsContent')}</header>
+          <Button variant='contained' color='primary' className='info-btn' onClick={this.redirectLink.bind(this, 'virustotal', alertData.blackIP)} disabled={!alertData.blackIP}>{t('alert.txt-searthVirustotal')}</Button>
+          <ul>
+            <li><span>{t('alert.txt-severityType')}</span>: {alertData.severity_type}</li>
+            <li><span>{t('alert.txt-severityDesc')}</span>: {alertData.severity_type_description || NOT_AVAILABLE}</li>
+            <li><span>{t('alert.txt-collectorType')}</span>: {alertData.Collector}</li>
+            <li><span>{t('alert.txt-threatsType')}</span>: {alertData.severity_type_name}</li>
+            <li><span>{t('alert.txt-threatsCreateDttm')}</span>: {threatCreateDttm}</li>
+            <li><span>{t('alert.txt-threatsUpdateDttm')}</span>: {threatUpdateDttm}</li>
+          </ul>
+        </div>
+
+        <div className='section'>
+          <header>{t('alert.txt-networkBehavior')}</header>
+          <div className='title'>{t('alert.txt-activeThreatsCount')}</div>
+          {!threatsCountData10 &&
+            <span><i className='fg fg-loading-2'></i></span>
+          }
+          {threatsCountData10 && threatsCountData10.length === 0 &&
+            <span>{t('txt-notFound')}</span>
+          }
+          {threatsCountData10 && threatsCountData10.length > 0 &&
+            <div>
+              <ToggleButtonGroup
+                className='chart-btn'
+                value={threatsCount}
+                exclusive
+                onChange={this.toggleThreatCount}>
+                <ToggleButton value='last10'>{t('alert.txt-last10')}</ToggleButton>
+                <ToggleButton value='last20'>{t('alert.txt-last20')}</ToggleButton>
+                <ToggleButton value='last50'>{t('alert.txt-last50')}</ToggleButton>
+              </ToggleButtonGroup>
+
+              {this.displayBarChart('threatsCountData')}
+            </div>
+          }
+        </div>
+
+        <div className='section'>
+          <header>{t('alert.txt-internalNetworkDist')}</header>
+          <div className='title'>{t('alert.txt-lastHourData')}</div>
+          {!internalNetworkData &&
+            <span><i className='fg fg-loading-2'></i></span>
+          }
+          {internalNetworkData && internalNetworkData.length === 0 &&
+            <span>{t('txt-notFound')}</span>
+          }
+          {internalNetworkData && internalNetworkData.length > 0 &&
+            this.displayBarChart('internalNetworkData')
+          }
+        </div>
+
+        <div className='section'>
+          <header>{t('alert.txt-threatStat')}</header>
+          <Button variant='contained' color='primary' className='info-btn' onClick={this.redirectLink.bind(this, 'threats', alertData.blackIP)} disabled={!alertData.blackIP}>{t('alert.txt-queryMoreEvents')}</Button>
+          <div className='title'>{t('alert.txt-lastHourData')}</div>
+          <div className='chart-content'>
+            {!threatStatAlert &&
+              <span><i className='fg fg-loading-2'></i></span>
+            }
+            {threatStatAlert && threatStatAlert.length === 0 &&
+              <span>{t('txt-notFound')}</span>
+            }
+            {threatStatAlert && threatStatAlert.length > 0 &&
+              <div className='chart-group'>
+                <PieChart
+                  data={threatStatAlert}
+                  colors={{
+                    severity: ALERT_LEVEL_COLORS
+                  }}
+                  keyLabels={{
+                    severity: t('alert.txt-threatLevel'),
+                    count: t('txt-count')
+                  }}
+                  valueLabels={{
+                    'Pie Chart': {
+                      severity: t('alert.txt-threatLevel'),
+                      count: t('txt-count')
+                    }
+                  }}
+                  dataCfg={{
+                    splitSlice: ['severity'],
+                    sliceSize: 'count'
+                  }} />
+              </div>
+            }
+            {threatStatData && threatStatData.length > 0 &&
+              <div className='chart-group'>
+                <DataTable
+                  className='main-table table-data'
+                  fields={threatStatFieldsData}
+                  data={threatStatData} />
+              </div>
+            }
           </div>
-        )
-      }
-    } else {
-      return <i className='fg fg-loading-2'></i>
-    }
+
+          {!threatStat &&
+            <span><i className='fg fg-loading-2'></i></span>
+          }
+          {threatStat && threatStat.length === 0 &&
+            <span>{t('txt-notFound')}</span>
+          }
+          {threatStat && threatStat.length > 0 &&
+            this.displayBarChart('threatStat')
+          }
+        </div>
+
+        <div className='section'>
+          <header>{t('alert.txt-eventStat')}</header>
+          <Button variant='contained' color='primary' className='info-btn' onClick={this.redirectLink.bind(this, 'syslog', alertData.blackIP)} disabled={!alertData.blackIP}>{t('alert.txt-queryMoreLogs')}</Button>
+          <div className='title'>{t('alert.txt-lastHourData')}</div>
+          <div className='chart-content'>
+            {!eventStatConfig &&
+              <span><i className='fg fg-loading-2'></i></span>
+            }
+            {eventStatConfig && eventStatConfig.length === 0 &&
+              <span>{t('txt-notFound')}</span>
+            }
+            {eventStatConfig && eventStatConfig.length > 0 &&
+              <div className='chart-group'>
+                <PieChart
+                  data={eventStatConfig}
+                  keyLabels={{
+                    configSource: t('txt-configSource'),
+                    count: t('txt-count')
+                  }}
+                  valueLabels={{
+                    'Pie Chart': {
+                      configSource: t('txt-configSource'),
+                      count: t('txt-count')
+                    }
+                  }}
+                  dataCfg={{
+                    splitSlice: ['configSource'],
+                    sliceSize: 'count'
+                  }} />
+              </div>
+            }
+            {eventStatData && eventStatData.length > 0 &&
+              <div className='chart-group'>
+                <DataTable
+                  className='main-table table-data'
+                  fields={eventStatFieldsData}
+                  data={eventStatData} />
+              </div>
+            }
+          </div>
+
+          {!eventStat &&
+            <span><i className='fg fg-loading-2'></i></span>
+          }
+          {eventStat && eventStat.length === 0 &&
+            <span>{t('txt-notFound')}</span>
+          }
+          {eventStat && eventStat.length > 0 &&
+            this.displayBarChart('eventStat')
+          }
+        </div>
+      </div>
+    )
   }
   /**
    * Toggle encode dialog on/off
@@ -1732,7 +2159,6 @@ class AlertDetails extends Component {
         srcIp: false,
         destIp: false
       },
-      alertRule: '',
       alertPayload: ''
     });
   }

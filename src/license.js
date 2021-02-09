@@ -207,6 +207,7 @@ class License extends Component {
           {from === 'login' &&
             <div>
               <TextField
+                id='license-key'
                 className='key-field'
                 name='key'
                 label={lt('l-license-key')}
@@ -219,7 +220,7 @@ class License extends Component {
                 helperText={formValidation.key.valid ? '' : lt('key-empty')}
                 value={key}
                 onChange={this.handleInputChange} />
-              <button onClick={this.activateLicense}>{lt('l-activate')}</button>
+              <button id='license-activate' onClick={this.activateLicense}>{lt('l-activate')}</button>
             </div>
           }
           {from === 'config' && originalKey &&
@@ -235,11 +236,12 @@ class License extends Component {
             </section>
           }
           {from === 'config' && !showKeyInput &&
-            <button onClick={this.toggleKeyInput}>{lt('l-license-renew-key')}</button>
+            <button id='license-renew' onClick={this.toggleKeyInput}>{lt('l-license-renew-key')}</button>
           }
           {from === 'config' && showKeyInput &&
             <div>
               <TextField
+                id='license-new-key'
                 className='key-field'
                 name='key'
                 label={lt('l-new-license-key')}
@@ -251,8 +253,8 @@ class License extends Component {
                 helperText={formValidation.key.valid ? '' : lt('key-empty')}
                 value={key}
                 onChange={this.handleInputChange} />
-              <button className='multiple-btn' onClick={this.activateLicense}>{lt('l-activate')}</button>
-              <button className='standard btn' onClick={this.toggleKeyInput}>{t('txt-cancel')}</button>
+              <button id='license-confirm' className='multiple-btn' onClick={this.activateLicense}>{lt('l-activate')}</button>
+              <button id='license-cancel' className='standard btn' onClick={this.toggleKeyInput}>{t('txt-cancel')}</button>
             </div>
           }
         </div>

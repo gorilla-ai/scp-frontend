@@ -16,7 +16,7 @@ import Button from '@material-ui/core/Button';
 import {BaseDataContext} from "../common/context"
 import SocConfig from "../common/soc-configuration"
 import helper from "../common/helper"
-
+import Autocomplete from '@material-ui/lab/Autocomplete';
 import Events from './common/events'
 import Ttps from './common/ttps'
 import {downloadLink, downloadWithForm} from "react-ui/build/src/utils/download";
@@ -30,6 +30,7 @@ import {KeyboardDateTimePicker, MuiPickersUtilsProvider} from "@material-ui/pick
 import MomentUtils from "@date-io/moment";
 import NotifyContact from "./common/notifyContact";
 import Menu from "@material-ui/core/Menu";
+import Typography from "@material-ui/core/Typography";
 
 let t = null;
 let f = null;
@@ -172,26 +173,26 @@ class Incident extends Component {
                     this.setState({
                         accountRoleType:SOC_Executor
                     },() => {
-                        this.loadCondition('unhandled')
+                        this.loadCondition('button','unhandled')
                     })
                 }else{
                     this.setState({
                         accountRoleType:SOC_Super
                     },() => {
-                        this.loadCondition('unhandled')
+                        this.loadCondition('button','unhandled')
                     })
                 }
             } else  if (_.includes(session.roles, 'SOC Executor')){
                 this.setState({
                     accountRoleType:SOC_Executor
                 },() => {
-                    this.loadCondition('unhandled')
+                    this.loadCondition('button','unhandled')
                 })
             } else  if (_.includes(session.roles, 'SOC Analyzer')){
                 this.setState({
                     accountRoleType:SOC_Analyzer
                 },() => {
-                    this.loadCondition('unhandled')
+                    this.loadCondition('button','unhandled')
                 })
             } else{
                 // this.setState({
@@ -212,7 +213,6 @@ class Incident extends Component {
         if (r != null) return unescape(r[2]);
         return null;
     }
-
 
 
     /**
@@ -458,9 +458,12 @@ class Incident extends Component {
         })
     }
 
-    loadCondition = (type) => {
+    loadCondition = (from,type) => {
         const {session} = this.context
-
+        let fromSearch = 'other'
+        if (from === 'button'){
+            fromSearch = 'search'
+        }
         let search = {
             subStatus:0,
             keyword: '',
@@ -474,7 +477,7 @@ class Incident extends Component {
             this.setState({loadListType: 0})
             search.status = 0
             search.isExpired = 1;
-            this.loadWithoutDateTimeData('search',search)
+            this.loadWithoutDateTimeData(fromSearch,search)
         } else if (type === 'unhandled') {
             this.setState({loadListType: 1})
             if (search.accountRoleType === SOC_Executor){
@@ -485,12 +488,12 @@ class Incident extends Component {
             }else{
                 search.status = 1
             }
-            this.loadWithoutDateTimeData('search',search)
+            this.loadWithoutDateTimeData(fromSearch,search)
         } else if (type === 'mine') {
             this.setState({loadListType: 2})
             search.status = 0
             search.creator = session.accountId
-            this.loadWithoutDateTimeData('search',search)
+            this.loadWithoutDateTimeData(fromSearch,search)
         }else{
 
         }
@@ -537,13 +540,13 @@ class Incident extends Component {
         return <div>
             <IncidentComment ref={ref => { this.incidentComment=ref }} />
             {this.state.loadListType === 0 && (
-                <IncidentTag ref={ref => { this.incidentTag=ref }} onLoad={this.loadCondition.bind(this,'expired')} />
+                <IncidentTag ref={ref => { this.incidentTag=ref }} onLoad={this.loadCondition.bind(this,'button','expired')} />
             )}
             {this.state.loadListType === 1 && (
-                <IncidentTag ref={ref => { this.incidentTag=ref }} onLoad={this.loadCondition.bind(this,'unhandled')} />
+                <IncidentTag ref={ref => { this.incidentTag=ref }} onLoad={this.loadCondition.bind(this,'button','unhandled')} />
             )}
             {this.state.loadListType === 2 && (
-                <IncidentTag ref={ref => { this.incidentTag=ref }} onLoad={this.loadCondition.bind(this,'mine')} />
+                <IncidentTag ref={ref => { this.incidentTag=ref }} onLoad={this.loadCondition.bind(this,'button','mine')} />
             )}
             {this.state.loadListType === 3 && (
                 <IncidentTag ref={ref => { this.incidentTag=ref }} onLoad={this.loadData.bind(this)} />
@@ -838,7 +841,7 @@ class Incident extends Component {
     };
 
     displayMainPage = () => {
-        const {activeContent, incidentType, incident, relatedListOptions} = this.state;
+        const {activeContent, incidentType, incident} = this.state;
         const {locale} = this.context;
         let dateLocale = locale;
 
@@ -976,20 +979,46 @@ class Incident extends Component {
             {incidentType === 'ttps' &&
             <div className='group full'>
                 <label htmlFor='relatedList'>{f('incidentFields.relatedList')}</label>
-                <ComboBox
-                    id='relatedList'
-                    className='relatedList'
-                    onChange={this.handleDataChange.bind(this, 'relatedList')}
-                    list={relatedListOptions}
-                    search={{enabled: true, placeholder: '', interactive: true}}
-                    multiSelect={{enabled: true}}
-                    value={incident.info.relatedList}
-                    disabled={activeContent === 'viewIncident'}/>
+                <Autocomplete
+                    multiple
+                    id="tags-standard"
+                    size='small'
+                    options={incident.info.differenceWithOptions}
+                    getOptionLabel={(option) => option.text}
+                    // onChange={this.handleDataChange.bind(this, 'relatedList')}
+                    value={incident.info.showFontendRelatedList}
+                    onChange={this.onTagsChange}
+                    disabled={activeContent === 'viewIncident'}
+                    renderInput={(params) => (
+                        <TextField
+                            {...params}
+                            variant='outlined'
+                            size='small'
+                            fullWidth={true}
+                        />
+                    )}
+                />
             </div>
             }
 
         </div>
     };
+
+    onTagsChange = (event, values) => {
+
+        // let tempList = []
+        // _.forEach(values, el => {
+        //     tempList.push(el.text)
+        // })
+
+        let temp = {...this.state.incident};
+        // temp.info['relatedList'] = tempList;
+        temp.info['showFontendRelatedList'] = values;
+
+        this.setState({
+            incident: temp
+        })
+    }
 
     formatBytes = (bytes, decimals = 2) => {
         if (bytes === 0 || bytes === '0'){
@@ -1042,7 +1071,8 @@ class Incident extends Component {
                 </div>
                 <div>
                     <label>{it('txt-fileMemo')}</label>
-                    <TextareaAutosize id='comment' rows={3} />
+                    <TextareaAutosize id='comment'
+                                      className='textarea-autosize' rows={3} />
                 </div>
             </div>,
             act: (confirmed, data) => {
@@ -1060,7 +1090,7 @@ class Incident extends Component {
     }
 
     displayAttached = () => {
-        const {activeContent, incidentType, incident, relatedListOptions, attach} = this.state;
+        const {activeContent, incidentType, incident, attach} = this.state;
         let dataFields = {};
         incident.fileFieldsArr.forEach(tempData => {
             dataFields[tempData] = {
@@ -1136,6 +1166,7 @@ class Incident extends Component {
                     <TextareaAutosize
                         id='fileMemo'
                         name='fileMemo'
+                        className='textarea-autosize'
                         onChange={this.handleDataChangeMui}
                         value={incident.info.fileMemo}
                         rows={2} />
@@ -1162,7 +1193,7 @@ class Incident extends Component {
     }
 
     displayFlow = () => {
-        const {activeContent, incidentType, incident, relatedListOptions} = this.state;
+        const {activeContent, incidentType, incident} = this.state;
 
         let dataFields = {};
         incident.flowFieldsArr.forEach(tempData => {
@@ -1211,7 +1242,7 @@ class Incident extends Component {
     }
 
     displayNoticePage = () => {
-        const {activeContent, INCIDENT_ACCIDENT_LIST, INCIDENT_ACCIDENT_SUB_LIST,incidentType, incident, relatedListOptions} = this.state;
+        const {activeContent, INCIDENT_ACCIDENT_LIST, INCIDENT_ACCIDENT_SUB_LIST,incidentType, incident} = this.state;
 
         return <div className='form-group normal'>
             <header>
@@ -1270,6 +1301,7 @@ class Incident extends Component {
                 <TextareaAutosize
                     id='accidentDescription'
                     name='accidentDescription'
+                    className='textarea-autosize'
                     onChange={this.handleDataChangeMui}
                     value={incident.info.accidentDescription}
                     rows={3}
@@ -1280,6 +1312,7 @@ class Incident extends Component {
                 <TextareaAutosize
                     id='accidentReason'
                     name='accidentReason'
+                    className='textarea-autosize'
                     onChange={this.handleDataChangeMui}
                     value={incident.info.accidentReason}
                     rows={3}
@@ -1290,6 +1323,7 @@ class Incident extends Component {
                 <TextareaAutosize
                     id='accidentInvestigation'
                     name='accidentInvestigation'
+                    className='textarea-autosize'
                     onChange={this.handleDataChangeMui}
                     value={incident.info.accidentInvestigation}
                     rows={3}
@@ -1305,7 +1339,7 @@ class Incident extends Component {
     };
 
     displayConnectUnit = () => {
-        const {activeContent, INCIDENT_ACCIDENT_LIST, INCIDENT_ACCIDENT_SUB_LIST,incidentType, incident, relatedListOptions} = this.state;
+        const {activeContent, INCIDENT_ACCIDENT_LIST, INCIDENT_ACCIDENT_SUB_LIST,incidentType, incident} = this.state;
 
         return <div className='form-group normal'>
             <header>
@@ -1411,9 +1445,9 @@ class Incident extends Component {
             return
         }
 
-        if (incident.info.relatedList) {
-            incident.info.relatedList = _.map(incident.info.relatedList, el => {
-                return {incidentRelatedId: el}
+        if (incident.info.showFontendRelatedList) {
+            incident.info.relatedList = _.map(incident.info.showFontendRelatedList, el => {
+                return {incidentRelatedId: el.value}
             })
         }
 
@@ -1468,12 +1502,6 @@ class Incident extends Component {
             incident.info.id = data.rt.id;
             incident.info.updateDttm = data.rt.updateDttm;
             incident.info.status = data.rt.status;
-
-            if (incident.info.relatedList) {
-                incident.info.relatedList = _.map(incident.info.relatedList, el => {
-                    return el.incidentRelatedId
-                })
-            }
 
             this.setState({
                 originalIncident: _.cloneDeep(incident)
@@ -1769,6 +1797,7 @@ class Incident extends Component {
     }
 
     getIncident = (id, type) => {
+        const {activeContent, incidentType, incident, relatedListOptions} = this.state;
         this.handleCloseMenu()
         const {baseUrl} = this.context;
 
@@ -1782,9 +1811,21 @@ class Incident extends Component {
 
             if (temp.relatedList) {
                 temp.relatedList = _.map(temp.relatedList, el => {
-                    return el.incidentRelatedId
+                    let obj = {
+                        value :el.incidentRelatedId,
+                        text:el.incidentRelatedId
+                    }
+                    return obj
                 })
             }
+
+
+            let result = _.map(temp.relatedList, function(obj) {
+                return _.assign(obj, _.find(relatedListOptions, {value: obj.value}));
+            });
+
+            temp.differenceWithOptions = _.differenceWith(relatedListOptions,temp.relatedList,function(p,o) { return p.value === o.value })
+            temp.showFontendRelatedList = result
 
             if (temp.eventList) {
                 temp.eventList = _.map(temp.eventList, el => {
@@ -1969,17 +2010,17 @@ class Incident extends Component {
         return <div className={cx('main-filter', {'active': showChart})}>
             <i className='fg fg-close' onClick={this.toggleChart} title={t('txt-close')}/>
             <div className='incident-statistics' id='incident-statistics'>
-                <div className='item c-link' onClick={this.loadCondition.bind(this,'expired')}>
+                <div className='item c-link' onClick={this.loadCondition.bind(this,'button','expired')}>
                     <i className='fg fg-checkbox-fill' style={{color: '#ec8f8f'}}/>
                     <div className='threats'>{it('txt-incident-expired')}<span>{dashboard.expired}</span></div>
                 </div>
 
-                <div className='item c-link' onClick={this.loadCondition.bind(this,'unhandled')}>
+                <div className='item c-link' onClick={this.loadCondition.bind(this,'button','unhandled')}>
                     <i className='fg fg-checkbox-fill' style={{color: '#f5f77a'}}/>
                     <div className='threats'>{it('txt-incident-unhandled')}<span>{dashboard.unhandled}</span></div>
                 </div>
 
-                <div className='item c-link' onClick={this.loadCondition.bind(this,'mine')}>
+                <div className='item c-link' onClick={this.loadCondition.bind(this,'button','mine')}>
                     <i className='fg fg-checkbox-fill' style={{color: '#99ea8a'}}/>
                     <div className='threats'>{it('txt-incident-mine')}<span>{dashboard.mine}</span></div>
                 </div>
@@ -2064,11 +2105,11 @@ class Incident extends Component {
                 if (data.ret === 0) {
                     // this.loadData()
                     if (this.state.loadListType === 0){
-                        this.loadCondition('expired')
+                        this.loadCondition('other','expired')
                     }else if (this.state.loadListType === 1){
-                        this.loadCondition('unhandled')
+                        this.loadCondition('other','unhandled')
                     }else if (this.state.loadListType === 2){
-                        this.loadCondition('mine')
+                        this.loadCondition('other','mine')
                     }else if (this.state.loadListType === 3){
                         this.loadData()
                     }
@@ -2098,11 +2139,11 @@ class Incident extends Component {
         this.setState({incident: temp}, () => {
             // this.loadData()
             if (this.state.loadListType === 0){
-                this.loadCondition('expired')
+                this.loadCondition('other','expired')
             }else if (this.state.loadListType === 1){
-                this.loadCondition('unhandled')
+                this.loadCondition('other','unhandled')
             }else if (this.state.loadListType === 2){
-                this.loadCondition('mine')
+                this.loadCondition('other','mine')
             }else if (this.state.loadListType === 3){
                 this.loadData()
             }
@@ -2111,7 +2152,7 @@ class Incident extends Component {
 
     toggleContent = (type, allValue) => {
         const {baseUrl, contextRoot} = this.context;
-        const {originalIncident, incident} = this.state;
+        const {originalIncident, incident,relatedListOptions} = this.state;
         let tempIncident = {...incident};
         let showPage = type;
 
@@ -2128,6 +2169,8 @@ class Incident extends Component {
                 createDttm: allValue.createDttm,
                 updateDttm: allValue.updateDttm,
                 relatedList: allValue.relatedList,
+                showFontendRelatedList:allValue.showFontendRelatedList,
+                differenceWithOptions:allValue.differenceWithOptions,
                 ttpList: allValue.ttpList,
                 eventList: allValue.eventList,
                 status: allValue.status,
@@ -2148,6 +2191,7 @@ class Incident extends Component {
                 accidentAbnormalOther: allValue.accidentAbnormalOther
             };
 
+
             if (!tempIncident.info.socType) {
                 tempIncident.info.socType = 1
             }
@@ -2163,7 +2207,9 @@ class Incident extends Component {
                 impactAssessment: null,
                 socType: null,
                 createDttm: null,
-                relatedList: null,
+                relatedList: [],
+                showFontendRelatedList:[],
+                differenceWithOptions:relatedListOptions,
                 ttpList: null,
                 eventList: null,
                 notifyList: null,
@@ -2270,11 +2316,11 @@ class Incident extends Component {
         }, () => {
             if (showPage === 'tableList' || showPage === 'cancel-add') {
                 if (this.state.loadListType === 0){
-                    this.loadCondition('expired')
+                    this.loadCondition('other','expired')
                 }else if (this.state.loadListType === 1){
-                    this.loadCondition('unhandled')
+                    this.loadCondition('other','unhandled')
                 }else if (this.state.loadListType === 2){
-                    this.loadCondition('mine')
+                    this.loadCondition('other','mine')
                 }else if (this.state.loadListType === 3){
                     this.loadData()
                 }
@@ -2329,11 +2375,11 @@ class Incident extends Component {
         })
             .then(data => {
                 if (this.state.loadListType === 0){
-                    this.loadCondition('expired')
+                    this.loadCondition('other','expired')
                 }else if (this.state.loadListType === 1){
-                    this.loadCondition('unhandled')
+                    this.loadCondition('other','unhandled')
                 }else if (this.state.loadListType === 2){
-                    this.loadCondition('mine')
+                    this.loadCondition('other','mine')
                 }else if (this.state.loadListType === 3){
                     this.loadData()
                 }
@@ -2495,6 +2541,7 @@ class Incident extends Component {
      * @param {string} value - input value
      */
     handleDataChange = (type, value) => {
+
         let temp = {...this.state.incident};
         temp.info[type] = value;
 
@@ -2509,7 +2556,6 @@ class Incident extends Component {
 
 
     handleDataChangeMui = (event) => {
-
         let temp = {...this.state.incident};
         temp.info[event.target.name] = event.target.value;
         if (event.target.name === 'impactAssessment') {
@@ -2639,11 +2685,11 @@ class Incident extends Component {
             incident: tmpIncident
         }, () => {
             if (this.state.loadListType === 0){
-                this.loadCondition('expired')
+                this.loadCondition('other','expired')
             }else if (this.state.loadListType === 1){
-                this.loadCondition('unhandled')
+                this.loadCondition('other','unhandled')
             }else if (this.state.loadListType === 2){
-                this.loadCondition('mine')
+                this.loadCondition('other','mine')
             }else if (this.state.loadListType === 3){
                 this.loadData()
             }
@@ -2784,7 +2830,7 @@ class Incident extends Component {
             if (_.size(incident.relatedList) > 0) {
                 let value = []
                 _.forEach(incident.relatedList, el => {
-                    const target = _.find(relatedListOptions, {value: el})
+                    const target = _.find(relatedListOptions, {value: el.value})
                     value.push(target.text)
                 })
 

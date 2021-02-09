@@ -1224,7 +1224,7 @@ class SyslogController extends Component {
   /**
    * Set the data to be displayed in table dialog
    * @method
-   * @param {object | string} allValue - data of selected table row, or button action type ('previous' or 'next')
+   * @param {object | string} allValue - data of selected table row or button action type ('previous' or 'next')
    * @param {string} [type] - button action type ('previous' or 'next')
    */
   showTableData = (allValue, type) => {
