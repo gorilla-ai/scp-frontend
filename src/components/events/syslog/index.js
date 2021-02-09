@@ -88,7 +88,7 @@ class SyslogController extends Component {
       syslogData: {
         dataFieldsArr: [],
         dataFields: [],
-        dataContent: [],
+        dataContent: null,
         sort: {
           field: '@timestamp',
           desc: true
@@ -658,8 +658,12 @@ class SyslogController extends Component {
         if (_.isEmpty(data[0]) || dataObj.counts === 0) {
           helper.showPopupMsg(t('txt-notFound', ''));
 
+          tempSyslogData.dataFields = [];
           tempSyslogData.dataContent = [];
           tempSyslogData.totalCount = 0;
+          tempSyslogData.currentPage = 1;
+          tempSyslogData.oldPage = 1;
+          tempSyslogData.pageSize = 20;
 
           this.setState({
             syslogData: tempSyslogData,
@@ -673,13 +677,15 @@ class SyslogController extends Component {
           return tempData.content;
         });
 
+        let tempFieldsArr = [];
         tempSyslogData.dataContent = tempArray;
         tempSyslogData.totalCount = data[0].data.counts;
         tempSyslogData.currentPage = page;
         tempSyslogData.oldPage = page;
-        tempSyslogData.dataFields = _.map(syslogData.dataFieldsArr, val => {
+
+        _.forEach(syslogData.dataFieldsArr, val => {
           if (this.checkDisplayFields(val)) {
-            return {
+            tempFieldsArr.push({
               name: val === '_tableMenu_' ? '' : val,
               label: this.getCustomFieldName(val),
               options: {
@@ -728,9 +734,11 @@ class SyslogController extends Component {
                   )
                 }
               }
-            };
+            });
           }
         });
+
+        tempSyslogData.dataFields = tempFieldsArr;
 
         const dataArray = tempSyslogData.dataContent;
 
@@ -881,7 +889,7 @@ class SyslogController extends Component {
     const {activeTab, syslogData} = this.state;
     let tempSyslogData = {...syslogData};
     tempSyslogData.dataFields = [];
-    tempSyslogData.dataContent = [];
+    tempSyslogData.dataContent = null;
     tempSyslogData.totalCount = 0;
     tempSyslogData.currentPage = 1;
     tempSyslogData.oldPage = 1;
@@ -1491,7 +1499,7 @@ class SyslogController extends Component {
     const {activeTab, syslogData} = this.state;
     let tempSyslogData = {...syslogData};
     tempSyslogData.dataFields = [];
-    tempSyslogData.dataContent = [];
+    tempSyslogData.dataContent = null;
     tempSyslogData.totalCount = 0;
     tempSyslogData.currentPage = 1;
     tempSyslogData.oldPage = 1;
@@ -1705,12 +1713,6 @@ class SyslogController extends Component {
           return {
             className: 'grey'
           };
-        } else {
-          return {
-            onMouseOver: () => {
-              //alert(tableUniqueID, currentTableID);
-            }
-          }
         }
       }
     };
@@ -1966,7 +1968,7 @@ class SyslogController extends Component {
     let tempSyslogData = {...syslogData};
     let tempLaData = {...laData};
     tempSyslogData.dataFields = [];
-    tempSyslogData.dataContent = [];
+    tempSyslogData.dataContent = null;
     tempSyslogData.totalCount = 0;
     tempLaData.dataContent = [];
     tempLaData.totalCount = 0;

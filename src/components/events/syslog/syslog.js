@@ -26,6 +26,32 @@ class Syslog extends Component {
   constructor(props) {
     super(props);
   }
+  /**
+   * Display loading icon or table content
+   * @method
+   * @returns HTML DOM
+   */
+  renderTableContent = () => {
+    const {mainContentData} = this.props;
+
+    if (!mainContentData.syslogData.dataContent) {
+      return (
+        <div className='table-content'>
+          <div className='table' style={{height: '78vh'}}>
+            <span className='loading'><i className='fg fg-loading-2'></i></span>
+          </div>
+        </div>
+      )
+    }
+
+    if (mainContentData.syslogData.dataContent.length > 0) {
+      return (
+        <MuiTableContent
+          data={mainContentData.syslogData}
+          tableOptions={mainContentData.tableOptions} />
+      )
+    }
+  }
   render() {
     const {contextRoot, language} = this.context;
     const {mainContentData, tabChartData, markData, tableMouseOver} = this.props;
@@ -62,9 +88,7 @@ class Syslog extends Component {
             </Tabs>
 
             {mainContentData.activeSubTab === 'table' &&
-              <MuiTableContent
-                data={mainContentData.syslogData}
-                tableOptions={mainContentData.tableOptions} />
+              this.renderTableContent()
             }
 
             {mainContentData.activeSubTab === 'linkAnalysis' &&
