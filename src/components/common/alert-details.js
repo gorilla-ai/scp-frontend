@@ -1334,6 +1334,9 @@ class AlertDetails extends Component {
           }}
           data={data}
           dataCfg={dataCfg}
+          chart={{
+            height: 215
+          }}
           xAxis={{
             type
           }}
@@ -1457,6 +1460,9 @@ class AlertDetails extends Component {
               <div className='chart-group'>
                 <PieChart
                   data={threatStatAlert}
+                  chart={{
+                    height: 215
+                  }}
                   colors={{
                     severity: ALERT_LEVEL_COLORS
                   }}
@@ -1477,7 +1483,7 @@ class AlertDetails extends Component {
               </div>
             }
             {threatStatData && threatStatData.length > 0 &&
-              <div className='chart-group'>
+              <div className='chart-group table'>
                 <DataTable
                   className='main-table table-data'
                   fields={threatStatFieldsData}
@@ -1512,6 +1518,9 @@ class AlertDetails extends Component {
               <div className='chart-group'>
                 <PieChart
                   data={eventStatConfig}
+                  chart={{
+                    height: 215
+                  }}
                   keyLabels={{
                     configSource: t('txt-configSource'),
                     count: t('txt-count')
@@ -1529,7 +1538,7 @@ class AlertDetails extends Component {
               </div>
             }
             {eventStatData && eventStatData.length > 0 &&
-              <div className='chart-group'>
+              <div className='chart-group table'>
                 <DataTable
                   className='main-table table-data'
                   fields={eventStatFieldsData}

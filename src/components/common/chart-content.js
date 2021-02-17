@@ -119,6 +119,9 @@ class ChartContent extends Component {
     const chartAttributes = {
       legend,
       data: dataArr,
+      chart: {
+        height: 215
+      },
       colors: colorCode,
       dataCfg,
       xAxis: {
