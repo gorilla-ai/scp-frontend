@@ -214,12 +214,15 @@ class AccountEdit extends Component {
    * @returns HTML DOM
    */
   showPrivilegesList = (val, i) => {
+    let acc = `account-edit-check-${i}`
+
     return (
       <FormControlLabel
         key={i}
         label={val.text}
         control={
           <Checkbox
+            id={acc}
             className='checkbox-ui'
             name={val.value}
             checked={this.checkSelectedItem(val.value)}
@@ -253,6 +256,7 @@ class AccountEdit extends Component {
       <div className='account-form'>
         <div className='group'>
           <TextField
+            id='account-edit-account'
             name='account'
             label={t('l-account')}
             variant='outlined'
@@ -267,6 +271,7 @@ class AccountEdit extends Component {
         </div>
         <div className='group'>
           <TextField
+            id='account-edit-name'
             name='name'
             label={t('l-name')}
             variant='outlined'
@@ -280,6 +285,7 @@ class AccountEdit extends Component {
         </div>
         <div className='group'>
           <TextField
+            id='account-edit-email'
             name='email'
             label={t('l-email')}
             variant='outlined'
@@ -293,6 +299,7 @@ class AccountEdit extends Component {
         </div>
         <div className='group'>
           <TextField
+            id='account-edit-unit'
             name='unit'
             label={t('l-unit')}
             variant='outlined'
@@ -306,6 +313,7 @@ class AccountEdit extends Component {
         </div>
         <div className='group'>
           <TextField
+            id='account-edit-title'
             name='title'
             label={t('l-title')}
             variant='outlined'
@@ -319,6 +327,7 @@ class AccountEdit extends Component {
         </div>
         <div className='group'>
           <TextField
+            id='account-edit-phone'
             name='phone'
             label={t('l-phone')}
             variant='outlined'

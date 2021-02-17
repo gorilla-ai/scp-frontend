@@ -852,47 +852,27 @@ class AlertDetails extends Component {
         <table className='c-table main-table align-center with-border'>
           <thead>
             <tr>
-              <th>{f('alertFields._severity_')}</th>
-              <th>{f('alertFields.Collector')}</th>
-              <th>{f('alertFields.Trigger')}</th>
-              <th>{f('alertFields.Source')}</th>
               <th>{f('alertFields._eventDttm_')}</th>
+              <th>{f('alertFields._severity_')}</th>
+              <th>{f('alertFields.srcIp')}</th>
+              <th>{f('alertFields.destIp')}</th>
+              <th>{f('alertFields.Collector')}</th>
+              <th>{f('alertFields.Source')}</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td className='severity-level'>{helper.getSeverityColor(alertData._severity_)}</td>
-              <td className='collector'>{alertData.Collector || NOT_AVAILABLE}</td>
-              <td className='trigger'>{alertData.Trigger || NOT_AVAILABLE}</td>
-              <td className='source'>{alertData.Source || NOT_AVAILABLE}</td>
               <td className='datetime'>{eventDatetime}</td>
+              <td className='severity-level'>{helper.getSeverityColor(alertData._severity_)}</td>
+              <td className='src-ip'>{this.getIpPortData('srcIp')}</td>
+              <td className='dest-ip'>{this.getIpPortData('destIp')}</td>
+              <td className='collector'>{alertData.Collector || NOT_AVAILABLE}</td>
+              <td className='source'>{alertData.Source || NOT_AVAILABLE}</td>
             </tr>
           </tbody>
         </table>
 
         <div className='alert-info'>{this.showAlertContent()}</div>
-
-        <table className='c-table main-table align-center with-border'>
-          <thead>
-            <tr>
-              <th>{f('alertFields.srcIp')}</th>
-              <th>{f('alertFields.srcPort')}</th>
-              <th>{f('alertFields.destIp')}</th>
-              <th>{f('alertFields.destPort')}</th>
-              <th>{f('alertFields.proto')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td className='src-ip'>{this.getIpPortData('srcIp')}</td>
-              <td className='src-port'>{this.getIpPortData('srcPort')}</td>
-              <td className='dest-ip'>{this.getIpPortData('destIp')}</td>
-              <td className='dest-port'>{this.getIpPortData('destPort')}</td>
-              <td className='protocol'>{alertData.proto || alertData.p || alertData.protocol || NOT_AVAILABLE}</td>
-            </tr>
-          </tbody>
-        </table>
-
         <div className='main-content'>
           <div className='nav'>
             <ul>

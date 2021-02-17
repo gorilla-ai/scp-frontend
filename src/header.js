@@ -454,30 +454,30 @@ class Header extends Component {
 
             <div>
               <div className='main-nav'>
-                <Link to='/SCP/dashboard/overview' className={cx('item', {'active': this.getActiveTab('dashboard')})}>{t('txt-dashboard')}</Link>
+                <Link id='header-link-dashboard' to='/SCP/dashboard/overview' className={cx('item', {'active': this.getActiveTab('dashboard')})}>{t('txt-dashboard')}</Link>
 
                 {sessionRights.Module_Common &&
-                  <Link to='/SCP/host' className={cx('item', {'active': this.getActiveTab('host')})}>{t('txt-host-eng')}</Link>
+                  <Link id='header-link-host' to='/SCP/host' className={cx('item', {'active': this.getActiveTab('host')})}>{t('txt-host-eng')}</Link>
                 }
 
                 {/*<Link to='/SCP/dashboard/statisticsUIF' className={cx('item', {'active': this.getActiveTab('dashboard')})}>{t('txt-dashboard')}</Link>*/}
 
                 {sessionRights.Module_Common &&
-                  <Link to='/SCP/threats' className={cx('item', {'active': this.getActiveTab('threats')})}>{t('txt-threats')}</Link>
+                  <Link id='header-link-threats' to='/SCP/threats' className={cx('item', {'active': this.getActiveTab('threats')})}>{t('txt-threats')}</Link>
                 }
                 {sessionRights.Module_Common &&
-                  <Link to='/SCP/events/syslog' className={cx('item', {'active': this.getActiveTab('events')})}>{t('txt-events')}</Link>
+                  <Link id='header-link-events' to='/SCP/events/syslog' className={cx('item', {'active': this.getActiveTab('events')})}>{t('txt-events')}</Link>
                 }
                 {sessionRights.Module_Soc &&
-                <Link to='/SCP/soc/incident' className={cx('item', {'active': this.getActiveTab('soc')})}>{it('txt-soc')}</Link>
+                <Link id='header-link-soc' to='/SCP/soc/incident' className={cx('item', {'active': this.getActiveTab('soc')})}>{it('txt-soc')}</Link>
                 }
                 {sessionRights.Module_Config &&
-                  <Link to='/SCP/configuration/notifications' className={cx('item', {'active': this.getActiveTab('configuration')})}>{t('txt-configuration')}</Link>
+                  <Link id='header-link-config' to='/SCP/configuration/notifications' className={cx('item', {'active': this.getActiveTab('configuration')})}>{t('txt-configuration')}</Link>
                 }
               </div>
             </div>
 
-            <div className='account' onClick={this.handleOpenMenu}>
+            <div id='header-globe' className='account' onClick={this.handleOpenMenu}>
               <i className='fg fg-globe'/>
               <i className='fg fg-arrow-bottom'/>
             </div>
@@ -487,11 +487,11 @@ class Header extends Component {
               keepMounted
               open={Boolean(contextAnchor)}
               onClose={this.handleCloseMenu}>
-              <MenuItem onClick={this.changeLng.bind(this, showLanguage)}>{t('lng.' + showLanguage)}</MenuItem>
-              <MenuItem onClick={this.toggleTheme}>{l('toggle-theme')}</MenuItem>
-              <MenuItem onClick={this.editAccount}>{l('login.txt-account')}</MenuItem>
-              <MenuItem onClick={this.showChangePassword}>{l('login.txt-changePassword')}</MenuItem>
-              <MenuItem onClick={this.logout}>{l('login.btn-logout')}</MenuItem>
+              <MenuItem id='header-btn-lanuage' onClick={this.changeLng.bind(this, showLanguage)}>{t('lng.' + showLanguage)}</MenuItem>
+              <MenuItem id='header-btn-theme' onClick={this.toggleTheme}>{l('toggle-theme')}</MenuItem>
+              <MenuItem id='header-btn-account' onClick={this.editAccount}>{l('login.txt-account')}</MenuItem>
+              <MenuItem id='header-btn-password' onClick={this.showChangePassword}>{l('login.txt-changePassword')}</MenuItem>
+              <MenuItem id='header-btn-logout' onClick={this.logout}>{l('login.btn-logout')}</MenuItem>
             </Menu>
           </header>
         </div>
